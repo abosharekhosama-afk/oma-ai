@@ -1,0 +1,43 @@
+name: ci
+on:
+  push:
+    branches: ['001-oma-ai-product-foundation', 'main']
+  pull_request:
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: oma
+          POSTGRES_PASSWORD: oma
+          POSTGRES_DB: oma_ai
+        ports: ['5432:5432']
+      redis:
+        image: redis:7
+        ports: ['6379:6379']
+    env:
+      DATABASE_URL: postgresql://oma:oma@127.0.0.1:5432/oma_ai?schema=public
+      REDIS_URL: redis://127.0.0.1:6379
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm db:generate
+      - run: pnpm db:migrate:deploy
+      - run: pnpm db:seed
+      - run: pnpm format
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm --filter @oma/api build
+      - run: pnpm --filter @oma/web build
+      - run: pnpm --filter @oma/worker build
+      - run: pnpm audit:deps || true

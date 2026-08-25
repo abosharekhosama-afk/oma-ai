@@ -1,0 +1,58 @@
+{
+  "name": "oma-ai",
+  "private": true,
+  "version": "0.1.0",
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=22 <25",
+    "pnpm": ">=9"
+  },
+  "scripts": {
+    "build": "pnpm -r --filter=./packages/* build && pnpm -r --filter=./apps/* build",
+    "dev:api": "pnpm --filter @oma/api dev",
+    "dev:web": "pnpm --filter @oma/web dev",
+    "dev:worker": "pnpm --filter @oma/worker dev",
+    "lint": "eslint .",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write .",
+    "typecheck": "pnpm -r typecheck",
+    "test": "vitest run",
+    "test:unit": "vitest run packages apps",
+    "test:integration": "vitest run tests/integration tests/security tests/contract",
+    "test:contract": "vitest run tests/contract",
+    "test:security": "vitest run tests/security",
+    "test:e2e": "playwright test",
+    "db:generate": "pnpm --filter @oma/db generate",
+    "db:migrate": "pnpm --filter @oma/db migrate:dev",
+    "db:migrate:deploy": "pnpm --filter @oma/db migrate:deploy",
+    "db:seed": "pnpm --filter @oma/db seed",
+    "audit:deps": "pnpm audit --prod"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.22.0",
+    "@nestjs/common": "^11.0.11",
+    "@nestjs/core": "^11.0.11",
+    "@nestjs/platform-express": "^11.0.11",
+    "@playwright/test": "^1.51.0",
+    "@types/cookie-parser": "^1.4.8",
+    "@types/node": "^22.13.10",
+    "bullmq": "^5.41.0",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.4.2",
+    "eslint": "^9.22.0",
+    "ioredis": "^5.5.0",
+    "prettier": "^3.5.3",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "typescript": "^5.8.2",
+    "typescript-eslint": "^8.26.1",
+    "vitest": "^3.0.8"
+  },
+  "pnpm": {
+    "overrides": {
+      "postcss": ">=8.5.23",
+      "deepmerge-ts": ">=8.0.0",
+      "sharp": ">=0.35.0"
+    }
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "name": "@oma/api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/main.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "bootstrap:platform-owner": "tsx src/bootstrap/bootstrap-platform-owner.ts"
+  },
+  "dependencies": {
+    "@nestjs/common": "^11.0.11",
+    "@nestjs/core": "^11.0.11",
+    "@nestjs/platform-express": "^11.0.11",
+    "@nestjs/swagger": "^11.0.6",
+    "@oma/config": "workspace:*",
+    "@oma/db": "workspace:*",
+    "@oma/domain": "workspace:*",
+    "@oma/observability": "workspace:*",
+    "bullmq": "^5.41.0",
+    "cookie-parser": "^1.4.7",
+    "ioredis": "^5.5.0",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.8",
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.13.10",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  }
+}
