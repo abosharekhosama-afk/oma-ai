@@ -1,6 +1,6 @@
 # Contract: Tenant Context & Authorization
 
-**Status:** `DRAFT FOR APPROVAL`
+**Status:** `APPROVED IMPLEMENTATION BASELINE`
 **Owner:** OMA Tenant + Authz
 
 ## Tenant resolution algorithm

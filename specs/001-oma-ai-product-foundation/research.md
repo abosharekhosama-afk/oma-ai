@@ -3,8 +3,8 @@
 **Feature:** `001-oma-ai-product-foundation`
 **Date:** 2026-08-25
 **Mode:** `PLAN_ONLY`
-**Status:** `DRAFT FOR APPROVAL`
-**Stack status:** `PROPOSED FOR APPROVAL` — not implemented
+**Status:** `APPROVED IMPLEMENTATION BASELINE`
+**Stack status:** `APPROVED IMPLEMENTATION BASELINE` (`DEC-014`) — not yet installed/scaffolded until implementation is authorized
 
 ## 1. Repository inspection summary
 
@@ -18,11 +18,11 @@
 | Planning branch | `001-oma-ai-product-foundation` |
 | Authority | `AGENTS.md`, constitution v0.2.0, `spec.md`, `DEC-013` design strategy |
 
-## 2. Recommended technical stack (`PROPOSED FOR APPROVAL`)
+## 2. Approved technical stack (`APPROVED IMPLEMENTATION BASELINE`)
 
-### Decision
+### Decision (`DEC-014` — RESOLVED)
 
-Adopt a **TypeScript modular monolith** with separately runnable workers:
+Adopt a **TypeScript modular monolith** with separately runnable workers as the platform-foundation implementation baseline:
 
 | Layer | Proposal | Role |
 | --- | --- | --- |
@@ -160,4 +160,4 @@ Resolved and binding: `DEC-001`, `DEC-002`, `DEC-013`.
 
 ## 7. Research verdict
 
-Platform-foundation technical planning may proceed with the stack above as **`PROPOSED FOR APPROVAL`**. No dependencies may be installed and no application scaffold may be generated until the user approves the architecture/stack and `/speckit-tasks` is authorized.
+The stack above is **`APPROVED IMPLEMENTATION BASELINE`** under `DEC-014`. `/speckit-tasks` may generate foundation `tasks.md`. Dependency installation and application scaffolding remain deferred until the user explicitly starts `/speckit-implement`. `DEC-003`–`DEC-012` stay open; no vendor for AI, WorkDrive bytes, crawl mode, Meta launch, pricing, or production email/hosting is chosen here.

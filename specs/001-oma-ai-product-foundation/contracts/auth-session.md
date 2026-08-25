@@ -1,6 +1,6 @@
 # Contract: Authentication & Session
 
-**Status:** `DRAFT FOR APPROVAL`
+**Status:** `APPROVED IMPLEMENTATION BASELINE`
 **Owner:** OMA Identity (`DEC-002`)
 **Non-goals:** IMKAN SSO, social login providers (future), passwordless-only (optional later)
 

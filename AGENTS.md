@@ -16,8 +16,9 @@ Report conflicts instead of silently choosing one source.
 - OMA AI is in product-definition mode.
 - `specs/001-oma-ai-product-foundation/spec.md` is the current product baseline.
 - OMA AI is an independent product under the IMKAN ecosystem, with its own repository, deployable application boundary, information architecture, visual language, motion, and design tokens. It must not copy IMKAN ONE product behavior or visual design by default.
-- A separate repository shell named `oma-ai` and an OMA-owned account, login/session, user, tenant/company, membership, and capability boundary are approved. Technical architecture, stack, future IMKAN integration, final design system, and implementation tasks are not approved yet.
-- Do not create product code, schemas, routes, modules, implemented design systems, or navigation until the affected blocker decisions are closed and a technical plan is approved. Product/design specifications are allowed in `SPEC_ONLY` mode.
+- A separate repository shell named `oma-ai` and an OMA-owned account, login/session, user, tenant/company, membership, and capability boundary are approved (`DEC-001`, `DEC-002`).
+- Platform-foundation architecture and stack are an `APPROVED IMPLEMENTATION BASELINE` under `DEC-014` (TypeScript modular monolith: NestJS API, Next.js web, PostgreSQL/Prisma, Redis/BullMQ workers, pnpm, server-side sessions, Vitest, Playwright). Future IMKAN federation, final design-system component library, and slice-specific providers remain gated by open decisions.
+- Do not create product code, schemas, routes, modules, implemented design systems, or navigation until `/speckit-implement` is explicitly authorized for approved tasks. `DEC-003`–`DEC-012` remain blockers for their named slices. Product/design specifications are allowed in `SPEC_ONLY` / planning modes.
 
 ## Required workflow
 

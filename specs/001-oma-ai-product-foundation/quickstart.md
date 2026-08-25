@@ -1,7 +1,7 @@
 # Quickstart Validation Guide — Platform Foundation
 
 **Feature:** `001-oma-ai-product-foundation`
-**Status:** `DRAFT FOR APPROVAL`
+**Status:** `APPROVED IMPLEMENTATION BASELINE`
 **Purpose:** Define how foundation behavior will be proven after implementation.
 **Not:** runnable commands today (no app scaffold yet).
 

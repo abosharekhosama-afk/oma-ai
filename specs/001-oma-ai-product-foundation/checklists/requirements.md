@@ -45,8 +45,9 @@
 - [ ] `DEC-007`: Select AI providers and data/retention/cost policy before AI technical planning.
 - [ ] `DEC-008`–`DEC-012`: Resolve or explicitly defer with safe, slice-specific boundaries.
 - [x] `DEC-013`: Approve the exact seven-product hierarchy: Planable, Linear, Frame.io, Adobe Workfront, Jasper Brand IQ, Semrush, and Smartly in their named roles.
+- [x] `DEC-014`: Approve platform-foundation stack as `APPROVED IMPLEMENTATION BASELINE` (TypeScript, Node LTS, NestJS, Next.js, PostgreSQL, Prisma, Redis, BullMQ, pnpm, server-side sessions, Vitest, Playwright, modular monolith + workers). Does not close `DEC-003`–`DEC-012`.
 
 ## Planning gate verdict
 
-**Verdict:** `FOUNDATION PLAN DRAFT FOR APPROVAL`
-Repository setup, independent OMA identity/tenant boundary (`DEC-002`), and `DEC-013` reference hierarchy are approved. Platform-foundation technical plan artifacts exist on branch `001-oma-ai-product-foundation` and remain draft until stack/architecture approval. `DEC-003`–`DEC-012` remain gates for their affected functional slices. Do not create `tasks.md` or product code until the user approves the plan and authorizes `/speckit-tasks`.
+**Verdict:** `FOUNDATION TASKS AUTHORIZED`
+Architecture/stack approved via `DEC-014`. Generate and maintain `tasks.md` for platform foundation only. `DEC-003`–`DEC-012` remain gates for their affected functional slices. Do not install dependencies or create product code until `/speckit-implement` is explicitly started.

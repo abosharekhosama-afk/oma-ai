@@ -1,7 +1,7 @@
 # Data Model: OMA AI Platform Foundation
 
 **Feature:** `001-oma-ai-product-foundation`
-**Status:** `DRAFT FOR APPROVAL` — conceptual/logical model for foundation only
+**Status:** `APPROVED IMPLEMENTATION BASELINE` — conceptual/logical model for foundation only
 **Not:** physical SQL DDL, Prisma schema file, or product-slice entities beyond stubs needed for boundaries
 
 Physical schema is authorized only after stack approval and `/speckit-tasks`.

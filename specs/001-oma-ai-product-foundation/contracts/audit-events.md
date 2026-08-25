@@ -1,6 +1,6 @@
 # Contract: Audit Events
 
-**Status:** `DRAFT FOR APPROVAL`
+**Status:** `APPROVED IMPLEMENTATION BASELINE`
 **Owner:** OMA Security boundary
 
 ## When to write

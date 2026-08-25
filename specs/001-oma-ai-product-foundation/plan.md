@@ -4,9 +4,9 @@
 
 **Input**: Feature specification from `/specs/001-oma-ai-product-foundation/spec.md`
 
-**Plan status**: `DRAFT FOR APPROVAL`
-**Stack status**: `PROPOSED FOR APPROVAL` (see [`research.md`](./research.md))
-**Mode**: `PLAN_ONLY` — no product code, no dependency install, no `tasks.md`
+**Plan status**: `APPROVED IMPLEMENTATION BASELINE`
+**Stack status**: `APPROVED IMPLEMENTATION BASELINE` (see [`research.md`](./research.md); `DEC-014`)
+**Mode**: `TASKS_ONLY` authorized — product code and dependency install begin only after `/speckit-implement` is explicitly started
 
 ## Summary
 
@@ -14,9 +14,9 @@ Deliver the **independent OMA AI platform foundation**: repository layout, modul
 
 ## Technical Context
 
-**Language/Version**: TypeScript (strict) on Node.js Active LTS — **PROPOSED FOR APPROVAL**
+**Language/Version**: TypeScript (strict) on Node.js Active LTS — **APPROVED IMPLEMENTATION BASELINE (`DEC-014`)**
 
-**Primary Dependencies**: NestJS (API/workers), Next.js App Router (web), Prisma, PostgreSQL, Redis, BullMQ, Zod, Playwright, Vitest — **PROPOSED FOR APPROVAL**
+**Primary Dependencies**: NestJS (API/workers), Next.js App Router (web), Prisma, PostgreSQL, Redis, BullMQ, Zod, Playwright, Vitest — **APPROVED IMPLEMENTATION BASELINE (`DEC-014`)**
 
 **Storage**: PostgreSQL as OMA authoritative state; Redis for queues/cache; object-storage adapter interface only (byte ownership deferred — `DEC-003`)
 
@@ -38,7 +38,7 @@ Deliver the **independent OMA AI platform foundation**: repository layout, modul
 
 | Principle | Foundation plan compliance |
 | --- | --- |
-| I. Product truth precedes implementation | Spec remains authority; stack is proposed, not installed; `DEC-003`–`012` not silently closed |
+| I. Product truth precedes implementation | Spec remains authority; stack approved via `DEC-014`; `DEC-003`–`012` not silently closed; no product code until implement |
 | II. One owner / SoT per domain | Domain map in this plan + `data-model.md`; adapter ports for external SoTs |
 | III. Tenant isolation & least privilege | Session-derived tenant; capability gates; cross-tenant negative E2E required |
 | IV. AI proposes; humans decide | `AiProviderPort` + provenance; no auto-approval paths |
@@ -53,10 +53,11 @@ Deliver the **independent OMA AI platform foundation**: repository layout, modul
 | XIII. Independent coherent design | `DEC-013` hierarchy; original OMA tokens; no IMKAN ONE visual copy |
 
 **Gate A (Definition ready):** Pass — product spec + checklist ready for foundation plan.
-**Gate B (Architecture ready):** Conditionally pass pending **user approval** of this draft stack/architecture.
-**Gate C–E:** Not applicable until `/speckit-tasks` and implementation.
+**Gate B (Architecture ready):** Pass — stack/architecture approved as `APPROVED IMPLEMENTATION BASELINE` (`DEC-014`).
+**Gate C (Tasks ready):** In progress via `/speckit-tasks` → `tasks.md`.
+**Gate D–E:** Not applicable until implementation and verification.
 
-**Post-design re-check:** Phase 1 artifacts stay within foundation scope; no schemas assume unresolved commercial/file/AI vendor answers. **PASS for DRAFT FOR APPROVAL.**
+**Post-design re-check:** Phase 1 artifacts stay within foundation scope; no schemas assume unresolved commercial/file/AI vendor answers. **PASS for APPROVED IMPLEMENTATION BASELINE.**
 
 ## Project Structure
 

@@ -1,6 +1,6 @@
 # Contract: Jobs & Transactional Outbox
 
-**Status:** `DRAFT FOR APPROVAL`
+**Status:** `APPROVED IMPLEMENTATION BASELINE`
 **Owner:** OMA Platform
 
 ## Transactional outbox

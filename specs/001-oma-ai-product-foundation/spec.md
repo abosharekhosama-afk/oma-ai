@@ -853,6 +853,16 @@ This is product dependency order, not an implementation plan. Scope requires app
 
 **Impact:** The reference-hierarchy blocker is closed. A design-system specification may begin after repository inspection and explicit authorization; this decision does not authorize UI implementation.
 
+### DEC-014 — Platform foundation technical stack `RESOLVED 2026-08-25`
+
+**Decision:** Approve the following as the **`APPROVED IMPLEMENTATION BASELINE`** for the OMA AI platform foundation only: TypeScript (strict), Node.js Active LTS, NestJS API, Next.js App Router web, PostgreSQL, Prisma, Redis, BullMQ workers, pnpm monorepo, server-side sessions, Vitest, Playwright, and a modular monolith with separately runnable workers.
+
+**Reason:** The user explicitly approved this architecture and stack after reviewing the foundation technical plan on branch `001-oma-ai-product-foundation` (plan commit `9bf7525de72f76e79519f4cefce6f00a9951b691`).
+
+**Boundary:** This does **not** choose AI providers, WorkDrive byte ownership, website crawl vs commerce connector, Meta launch authority, pricing/billing ownership, production email/SMS vendors, cloud hosting, or CDN/object-storage products. Those remain gated by `DEC-003`–`DEC-012` and later slice plans. Future IMKAN identity federation remains a separate specification under `DEC-002`.
+
+**Impact:** Gate B is closed for platform-foundation tasks. `/speckit-tasks` may create foundation `tasks.md`. Product code and dependency installation still require an explicit `/speckit-implement` (or equivalent) authorization.
+
 ## 18. Definition of Done for any OMA AI slice
 
 A slice is complete only when all applicable items are true:
@@ -874,4 +884,4 @@ A slice is complete only when all applicable items are true:
 
 ## 19. Readiness status
 
-Repository setup is complete. This specification remains the product baseline for an independent OMA platform-foundation technical plan and a later design-system specification when explicitly authorized. Resolved `DEC-013` governs the reference hierarchy. Each functional slice must resolve its named blocker decisions before planning that slice. A foundation `plan.md` may exist as `DRAFT FOR APPROVAL`; readiness does not authorize product implementation, dependency installation, or `tasks.md` until the user approves architecture/stack and starts `/speckit-tasks`.
+Repository setup is complete. Platform-foundation architecture and stack are an `APPROVED IMPLEMENTATION BASELINE` under `DEC-014`. Resolved `DEC-013` governs the reference hierarchy. Each functional product slice must resolve its named blocker decisions (`DEC-003`–`DEC-012`) before planning that slice. Foundation `tasks.md` may be generated under `/speckit-tasks`. Product implementation and dependency installation require an explicit implementation authorization after tasks are approved.

@@ -1,6 +1,6 @@
 # Contract: API Conventions
 
-**Status:** `DRAFT FOR APPROVAL`
+**Status:** `APPROVED IMPLEMENTATION BASELINE`
 **Audience:** `apps/api`, `packages/api-client`, E2E
 
 ## Versioning

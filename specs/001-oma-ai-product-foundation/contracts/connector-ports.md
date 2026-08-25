@@ -1,6 +1,6 @@
 # Contract: Connector & Provider Ports
 
-**Status:** `DRAFT FOR APPROVAL`
+**Status:** `APPROVED IMPLEMENTATION BASELINE`
 **Note:** Interfaces only — no provider SDKs selected while `DEC-003`–`DEC-007` open
 
 ## Shared connection rules
