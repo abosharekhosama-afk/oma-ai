@@ -14,12 +14,33 @@ jobs:
           POSTGRES_PASSWORD: oma
           POSTGRES_DB: oma_ai
         ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U oma -d oma_ai"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
       redis:
         image: redis:7
         ports: ['6379:6379']
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
     env:
+      NODE_ENV: test
       DATABASE_URL: postgresql://oma:oma@127.0.0.1:5432/oma_ai?schema=public
       REDIS_URL: redis://127.0.0.1:6379
+      API_PORT: '3001'
+      WEB_ORIGIN: http://127.0.0.1:3000
+      API_PUBLIC_URL: http://127.0.0.1:3001
+      SESSION_COOKIE_NAME: oma_session
+      SESSION_TTL_SECONDS: '604800'
+      CSRF_COOKIE_NAME: oma_csrf
+      BOOTSTRAP_PLATFORM_OWNER_EMAIL: platform-owner@example.com
+      BOOTSTRAP_PLATFORM_OWNER_PASSWORD: ChangeMe_PlatformOwner_1!
+      WEB_BASE_URL: http://127.0.0.1:3000
+      CI: 'true'
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -33,11 +54,30 @@ jobs:
       - run: pnpm db:generate
       - run: pnpm db:migrate:deploy
       - run: pnpm db:seed
+      - run: pnpm --filter @oma/api bootstrap:platform-owner
       - run: pnpm format
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm --filter @oma/api build
-      - run: pnpm --filter @oma/web build
       - run: pnpm --filter @oma/worker build
-      - run: pnpm audit:deps || true
+      - run: pnpm --filter @oma/web build
+      - run: pnpm audit:deps
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Start API and Web for E2E
+        run: |
+          pnpm --filter @oma/api exec tsx src/main.ts > /tmp/oma-api.log 2>&1 &
+          pnpm --filter @oma/web exec next dev -p 3000 -H 127.0.0.1 > /tmp/oma-web.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -sf http://127.0.0.1:3001/api/v1/health/ready >/dev/null \
+              && curl -sf -o /dev/null http://127.0.0.1:3000/; then
+              echo ready
+              exit 0
+            fi
+            sleep 2
+          done
+          echo 'API log:' && tail -100 /tmp/oma-api.log || true
+          echo 'WEB log:' && tail -100 /tmp/oma-web.log || true
+          exit 1
+      - run: pnpm test:e2e
