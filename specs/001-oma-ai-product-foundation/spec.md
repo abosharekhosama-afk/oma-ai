@@ -874,4 +874,4 @@ A slice is complete only when all applicable items are true:
 
 ## 19. Readiness status
 
-This specification is ready for repository setup, architecture discovery, an independent OMA platform-foundation technical plan, and a design-system specification when the user explicitly starts those stages. Resolved `DEC-013` governs the reference hierarchy. Each functional slice must resolve its named blocker decisions before planning that slice. Readiness does not authorize product implementation during the current `SETUP_ONLY` stage.
+Repository setup is complete. This specification remains the product baseline for an independent OMA platform-foundation technical plan and a later design-system specification when explicitly authorized. Resolved `DEC-013` governs the reference hierarchy. Each functional slice must resolve its named blocker decisions before planning that slice. A foundation `plan.md` may exist as `DRAFT FOR APPROVAL`; readiness does not authorize product implementation, dependency installation, or `tasks.md` until the user approves architecture/stack and starts `/speckit-tasks`.

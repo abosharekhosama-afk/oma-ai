@@ -1,8 +1,9 @@
 # OMA AI Product Foundation — Requirements Quality Checklist
 
-**Purpose:** Validate specification quality before `/speckit-plan`.
+**Purpose:** Validate specification quality and keep planning gates current through `/speckit-plan`.
 **Spec:** `../spec.md`
 **Reviewed:** 2026-08-25
+**Plan artifacts:** `../plan.md`, `../research.md`, `../data-model.md`, `../quickstart.md`, `../contracts/` (DRAFT FOR APPROVAL)
 
 ## Content quality
 
@@ -47,5 +48,5 @@
 
 ## Planning gate verdict
 
-**Verdict:** `READY FOR PLATFORM FOUNDATION PLAN`
-Repository setup, the independent OMA identity/tenant boundary, and the seven-product reference hierarchy are approved. Platform-foundation and design-system planning may begin only after repository inspection and an explicit request to enter planning. `DEC-003`–`DEC-012` remain gates for their affected functional slices. The current setup workflow must not generate product implementation tasks.
+**Verdict:** `FOUNDATION PLAN DRAFT FOR APPROVAL`
+Repository setup, independent OMA identity/tenant boundary (`DEC-002`), and `DEC-013` reference hierarchy are approved. Platform-foundation technical plan artifacts exist on branch `001-oma-ai-product-foundation` and remain draft until stack/architecture approval. `DEC-003`–`DEC-012` remain gates for their affected functional slices. Do not create `tasks.md` or product code until the user approves the plan and authorizes `/speckit-tasks`.
