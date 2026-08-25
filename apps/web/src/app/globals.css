@@ -1,0 +1,111 @@
+@import '../../../../packages/ui/src/tokens.css';
+@import '../../../../packages/ui/src/motion.css';
+
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--oma-canvas);
+  color: var(--oma-ink);
+  font-family: var(--font-sans);
+}
+a {
+  color: inherit;
+}
+html {
+  overflow-x: clip;
+}
+body {
+  overflow-x: clip;
+  max-width: 100%;
+}
+.oma-skip-link {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.oma-skip-link:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0;
+  clip: auto;
+  overflow: visible;
+  white-space: normal;
+  padding: 0.5rem 0.75rem;
+}
+:focus-visible {
+  outline: 2px solid var(--oma-primary);
+  outline-offset: 2px;
+}
+.oma-container {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 1.25rem;
+}
+.oma-card {
+  background: var(--oma-surface);
+  border: 1px solid var(--oma-border);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+.oma-btn {
+  background: var(--oma-primary);
+  color: white;
+  border: 0;
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.oma-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.oma-input {
+  width: 100%;
+  border: 1px solid var(--oma-border);
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.oma-muted {
+  color: var(--oma-muted);
+}
+.oma-shell {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: 100vh;
+}
+.oma-rail {
+  border-inline-end: 1px solid var(--oma-border);
+  background: var(--oma-surface);
+  padding: 1rem;
+}
+.oma-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  border-bottom: 1px solid var(--oma-border);
+  background: var(--oma-surface);
+  padding: 0.75rem 1rem;
+}
+@media (max-width: 800px) {
+  .oma-shell {
+    grid-template-columns: 1fr;
+  }
+  .oma-rail {
+    border-inline-end: 0;
+    border-bottom: 1px solid var(--oma-border);
+  }
+}
