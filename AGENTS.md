@@ -1,0 +1,96 @@
+# OMA AI Repository Instructions
+
+## Authority order
+
+1. The user's current request.
+2. `.specify/memory/constitution.md`.
+3. The smallest relevant artifact under `specs/`.
+4. `docs/DESIGN_REFERENCE_STRATEGY.md` for product-shell, UI, interaction, or visual work.
+5. Existing repository architecture, source-of-truth ownership, and tests.
+6. `docs/CURSOR_WORKFLOW.md` and on-demand skills.
+
+Report conflicts instead of silently choosing one source.
+
+## Current product state
+
+- OMA AI is in product-definition mode.
+- `specs/001-oma-ai-product-foundation/spec.md` is the current product baseline.
+- OMA AI is an independent product under the IMKAN ecosystem, with its own repository, deployable application boundary, information architecture, visual language, motion, and design tokens. It must not copy IMKAN ONE product behavior or visual design by default.
+- A separate repository shell named `oma-ai` and an OMA-owned account, login/session, user, tenant/company, membership, and capability boundary are approved. Technical architecture, stack, future IMKAN integration, final design system, and implementation tasks are not approved yet.
+- Do not create product code, schemas, routes, modules, implemented design systems, or navigation until the affected blocker decisions are closed and a technical plan is approved. Product/design specifications are allowed in `SPEC_ONLY` mode.
+
+## Required workflow
+
+Use this sequence for every non-trivial change:
+
+`REQUEST → SPEC → REPO INSPECTION → DOMAIN/SoT MAP → PLAN → TASKS → IMPLEMENT → VERIFY → CONVERGE → SPEC SYNC → REPORT`
+
+Before editing:
+
+1. Classify the request as `SPEC_ONLY`, `IMPLEMENT`, `BUG`, or `REVIEW`.
+2. Read this file, the constitution, and the smallest relevant spec.
+3. Inspect the actual repository, tool versions, authentication state, conventions, and existing tests. Never reinstall or replace working tools without need.
+4. Identify the logical owner, authoritative writer, storage owner, readers, tenant boundary, permission gate, events, and downstream consumers for every affected domain.
+5. Stop for any unresolved decision that changes product behavior, data ownership, security, external spend, or repository architecture.
+
+## Product invariants
+
+- OMA AI must trace every approved output from source evidence and strategy through plan, brief, task, deliverable version, approval, and publication/campaign state.
+- Organic and Paid are distinct plans under one approved strategy; do not collapse them into one generic list.
+- AI output is a proposal with provenance and confidence, never an invisible final decision.
+- A human must approve client-facing strategy, final deliverables, publishing, and ad spend according to capability.
+- Status transitions are server-authoritative domain commands; drag-and-drop is only a UI gesture for a valid transition.
+- Approved deliverable versions are immutable. Revisions create new versions and preserve review history.
+- No user may read, infer, mutate, search, export, or receive notifications for another tenant's data.
+- Client-supplied tenant/company identifiers are never sufficient authority. Resolve tenant context from the authenticated server-side context.
+- OMA owns the initial account, session, user, tenant/company, membership, and capability boundary. A future IMKAN federation must preserve canonical OMA identifiers and cannot bypass OMA authorization.
+- External integrations use explicit adapters, idempotency keys, retry policy, webhook verification, reconciliation, and audit history.
+- Do not duplicate WorkDrive file bytes or external ad-platform delivery state when another system is authoritative.
+- Keep one coherent OMA experience under resolved `DEC-013`: Planable governs content visuals; Linear governs density, panels, speed, and restrained motion; Frame.io governs exact-version media review; Workfront, Jasper, Semrush, and Smartly are functional references only in their named domains.
+- Use original OMA tokens, layouts, copy, icons, and assets. References authorize pattern study, never pixel copying or competing visual systems.
+- User-facing experiences must support EN/AR, LTR/RTL, responsive layouts, keyboard access, and understandable empty/loading/error states.
+
+## Agent orchestration
+
+- Cursor is the parent orchestrator when work starts in Cursor.
+- Use built-in Explore for noisy repository discovery and built-in Browser for browser automation.
+- Use `oma-spec-auditor` before technical planning or when scope/ownership is disputed.
+- Use `oma-verifier` after implementation and before claiming completion.
+- Start with zero subagents. Use no more than two concurrently, only for independent context-heavy work.
+- Do not fan out automatically or duplicate the same task across agents.
+- OpenCode may be the default implementation worker only after its installed version and authentication are verified.
+- Codex is preferred for difficult architecture, review, migrations, debugging, and convergence work. The parent agent remains accountable for every handoff.
+- Do not pin or spend on premium models unless the user explicitly approves the model/cost choice.
+
+## Implementation standards
+
+- Make the smallest coherent change that completes a real user journey.
+- For UI work, name the screen archetype and reference behavior, then explain the OMA adaptation before implementation.
+- Preserve established architecture and naming; do not create parallel registries, roles, tenants, file stores, notification systems, or domain models.
+- Enforce authorization and tenant scope on the server before reads and writes.
+- Validate inputs at trust boundaries and return stable, actionable errors.
+- Design mutations for retries, duplicate submissions, stale writes, concurrent edits, and partial external failures.
+- Never hardcode secrets, tokens, client credentials, tenant IDs, ad account IDs, or environment-specific endpoints.
+- Add or update tests at the level where the behavior can fail.
+
+## Proof of completion
+
+Do not mark work done because files, routes, buttons, or tests merely exist. Prove the affected journey:
+
+`user action → request → authorization → persistence/integration → response → UI → refresh/re-login → persisted result`
+
+Also verify relevant role boundaries, tenant isolation, invalid transitions, duplicate actions, deep links/notifications, EN/AR, RTL/LTR, responsive behavior, and external failure handling.
+
+Run the repository's real lint, typecheck, test, build, and E2E commands that apply. Report exact commands and outcomes. If a required environment or credential is unavailable, state what remains unverified and do not claim full completion.
+
+## Spec synchronization
+
+After implementation, update the smallest relevant spec with durable behavior, ownership, states, APIs/contracts, permissions, events, integrations, decisions, deferred scope, and verified completion. Do not rewrite history or duplicate a source of truth.
+
+Finish with:
+
+- scope completed;
+- files changed;
+- checks run and results;
+- decisions/assumptions;
+- remaining gaps or blockers.

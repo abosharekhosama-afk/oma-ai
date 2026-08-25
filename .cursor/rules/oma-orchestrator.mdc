@@ -1,0 +1,20 @@
+---
+alwaysApply: true
+---
+
+# OMA AI Cursor Orchestration
+
+- Treat `@AGENTS.md` as the durable repository contract.
+- At the start of each request, state one mode: `SETUP_ONLY`, `SPEC_ONLY`, `IMPLEMENT`, `BUG`, or `REVIEW`.
+- Read the constitution and smallest relevant spec before proposing functional changes.
+- For product-shell, UI, interaction, motion, or visual work, also read `@docs/DESIGN_REFERENCE_STRATEGY.md`; do not plan the base design system until `DEC-013` is approved.
+- During initial setup, create only repository/tooling/spec/workflow files. Do not create product architecture or product code.
+- Do not plan or implement while a blocker decision changes repository ownership, identity/tenant authority, security, external spend, or the affected integration.
+- Inspect actual files, versions, authentication, scripts, tests, and dirty state before installing or changing tools.
+- Use built-in Explore for noisy repository discovery and built-in Browser for browser work.
+- Use `oma-spec-auditor` for independent scope/ownership review and `oma-verifier` for completion review.
+- Start with zero subagents; use at most two for independent context-heavy work. Never fan out the same task.
+- Use `inherit` models unless the user explicitly approves a pinned premium model/cost.
+- Keep the parent accountable for handoffs, diff review, real checks, convergence, spec sync, and the final evidence report.
+- Preserve OMA as an independent, original product under IMKAN. Do not copy IMKAN ONE or mix the visual systems of functional reference products.
+- Never request or expose credentials in chat or files. Pause for the user's manual login when authentication is required.
