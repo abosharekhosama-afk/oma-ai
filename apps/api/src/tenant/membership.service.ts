@@ -6,8 +6,8 @@ import { TenantService } from './tenant.service';
 export class MembershipService {
   constructor(private readonly tenants: TenantService) {}
 
-  invite(actorUserId: string, tenantId: string, email: string) {
-    return this.tenants.invite(actorUserId, tenantId, email);
+  invite(actorUserId: string, tenantId: string, email: string, correlationId?: string) {
+    return this.tenants.invite(actorUserId, tenantId, email, correlationId);
   }
 
   accept(userId: string, token: string) {

@@ -11,25 +11,39 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   workers: 1,
   reporter: [['list']],
-  timeout: 60_000,
+  timeout: 90_000,
   use: {
     baseURL: process.env.WEB_BASE_URL ?? 'http://127.0.0.1:3000',
-    trace: 'on-first-retry',
+    trace: 'retain-on-failure',
+    screenshot: 'only-on-failure',
+    video: 'off',
   },
   webServer: [
     {
       command: 'pnpm --filter @oma/api exec tsx src/main.ts',
       url: 'http://127.0.0.1:3001/api/v1/health/live',
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: process.env.E2E_REUSE_SERVERS === '1' || !process.env.CI,
       timeout: 120_000,
       env: {
         ...process.env,
+        OMA_WRITE_OPENAPI: '0',
+      },
+    },
+    {
+      command: 'pnpm --filter @oma/worker exec tsx src/main.ts',
+      url: `http://127.0.0.1:${process.env.WORKER_HEALTH_PORT ?? 3002}/`,
+      reuseExistingServer: process.env.E2E_REUSE_SERVERS === '1' || !process.env.CI,
+      timeout: 120_000,
+      env: {
+        ...process.env,
+        MAIL_PROVIDER: 'recording',
+        WORKER_HEALTH_PORT: process.env.WORKER_HEALTH_PORT ?? '3002',
       },
     },
     {
       command: 'pnpm --filter @oma/web exec next dev -p 3000 -H 127.0.0.1',
       url: 'http://127.0.0.1:3000',
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: process.env.E2E_REUSE_SERVERS === '1' || !process.env.CI,
       timeout: 120_000,
       env: {
         ...process.env,

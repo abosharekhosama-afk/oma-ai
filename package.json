@@ -22,6 +22,7 @@
     "test:contract": "vitest run tests/contract",
     "test:security": "vitest run tests/security",
     "test:e2e": "playwright test",
+    "openapi:generate": "pnpm --filter @oma/api exec tsx src/generate-openapi.ts",
     "db:generate": "pnpm --filter @oma/db generate",
     "db:migrate": "pnpm --filter @oma/db migrate:dev",
     "db:migrate:deploy": "pnpm --filter @oma/db migrate:deploy",

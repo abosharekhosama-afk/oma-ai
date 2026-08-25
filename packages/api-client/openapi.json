@@ -10,7 +10,9 @@
             "description": ""
           }
         },
-        "tags": ["Health"]
+        "tags": [
+          "Health"
+        ]
       }
     },
     "/api/v1/health/ready": {
@@ -22,7 +24,9 @@
             "description": ""
           }
         },
-        "tags": ["Health"]
+        "tags": [
+          "Health"
+        ]
       }
     },
     "/api/v1/auth/register": {
@@ -34,7 +38,9 @@
             "description": ""
           }
         },
-        "tags": ["Auth"]
+        "tags": [
+          "Auth"
+        ]
       }
     },
     "/api/v1/auth/login": {
@@ -46,7 +52,9 @@
             "description": ""
           }
         },
-        "tags": ["Auth"]
+        "tags": [
+          "Auth"
+        ]
       }
     },
     "/api/v1/auth/logout": {
@@ -58,7 +66,9 @@
             "description": ""
           }
         },
-        "tags": ["Auth"]
+        "tags": [
+          "Auth"
+        ]
       }
     },
     "/api/v1/auth/me": {
@@ -70,7 +80,9 @@
             "description": ""
           }
         },
-        "tags": ["Auth"]
+        "tags": [
+          "Auth"
+        ]
       }
     },
     "/api/v1/auth/password/change": {
@@ -82,7 +94,9 @@
             "description": ""
           }
         },
-        "tags": ["Auth"]
+        "tags": [
+          "Auth"
+        ]
       }
     },
     "/api/v1/auth/recovery/request": {
@@ -94,7 +108,9 @@
             "description": ""
           }
         },
-        "tags": ["Recovery"]
+        "tags": [
+          "Recovery"
+        ]
       }
     },
     "/api/v1/auth/recovery/confirm": {
@@ -106,7 +122,9 @@
             "description": ""
           }
         },
-        "tags": ["Recovery"]
+        "tags": [
+          "Recovery"
+        ]
       }
     },
     "/api/v1/audit-events": {
@@ -118,7 +136,9 @@
             "description": ""
           }
         },
-        "tags": ["Audit"]
+        "tags": [
+          "Audit"
+        ]
       }
     },
     "/api/v1/tenants": {
@@ -130,7 +150,9 @@
             "description": ""
           }
         },
-        "tags": ["Tenant"]
+        "tags": [
+          "Tenant"
+        ]
       }
     },
     "/api/v1/tenants/current": {
@@ -142,7 +164,9 @@
             "description": ""
           }
         },
-        "tags": ["Tenant"]
+        "tags": [
+          "Tenant"
+        ]
       }
     },
     "/api/v1/tenants/active": {
@@ -154,7 +178,9 @@
             "description": ""
           }
         },
-        "tags": ["Tenant"]
+        "tags": [
+          "Tenant"
+        ]
       }
     },
     "/api/v1/tenants/current/resource-probe/{id}": {
@@ -166,7 +192,9 @@
             "description": ""
           }
         },
-        "tags": ["Tenant"]
+        "tags": [
+          "Tenant"
+        ]
       }
     },
     "/api/v1/tenants/current/invitations": {
@@ -178,7 +206,9 @@
             "description": ""
           }
         },
-        "tags": ["Membership"]
+        "tags": [
+          "Membership"
+        ]
       }
     },
     "/api/v1/invitations/accept": {
@@ -190,7 +220,9 @@
             "description": ""
           }
         },
-        "tags": ["Membership"]
+        "tags": [
+          "Membership"
+        ]
       }
     },
     "/api/v1/memberships/{id}/suspend": {
@@ -202,7 +234,9 @@
             "description": ""
           }
         },
-        "tags": ["Membership"]
+        "tags": [
+          "Membership"
+        ]
       }
     },
     "/api/v1/memberships/{id}/remove": {
@@ -214,7 +248,9 @@
             "description": ""
           }
         },
-        "tags": ["Membership"]
+        "tags": [
+          "Membership"
+        ]
       }
     },
     "/api/v1/memberships/{id}/capabilities": {
@@ -226,7 +262,9 @@
             "description": ""
           }
         },
-        "tags": ["Capability"]
+        "tags": [
+          "Capability"
+        ]
       }
     },
     "/api/v1/memberships/{id}/profiles": {
@@ -238,7 +276,9 @@
             "description": ""
           }
         },
-        "tags": ["Capability"]
+        "tags": [
+          "Capability"
+        ]
       }
     },
     "/api/v1/jobs/{id}": {
@@ -250,7 +290,9 @@
             "description": ""
           }
         },
-        "tags": ["Jobs"]
+        "tags": [
+          "Jobs"
+        ]
       }
     },
     "/api/v1/jobs/{id}/cancel": {
@@ -262,7 +304,9 @@
             "description": ""
           }
         },
-        "tags": ["Jobs"]
+        "tags": [
+          "Jobs"
+        ]
       }
     },
     "/api/v1/notifications": {
@@ -274,7 +318,9 @@
             "description": ""
           }
         },
-        "tags": ["Notifications"]
+        "tags": [
+          "Notifications"
+        ]
       }
     }
   },

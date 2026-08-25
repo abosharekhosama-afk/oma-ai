@@ -184,7 +184,8 @@ Written in same transaction as domain mutation.
 | `correlation_id`              |                                                                           |
 | `error_code` / `error_detail` | Sanitized                                                                 |
 | `started_at` / `finished_at`  |                                                                           |
-| `idempotency_key`             | Optional                                                                  |
+| `idempotency_key`             | Optional; unique when set (prevents duplicate JobRun rows on retry)       |
+| BullMQ `job_run_id` payload   | Required; Worker updates only the correlated `JobRun.id`                  |
 
 ### Notification (skeleton)
 

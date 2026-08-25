@@ -136,10 +136,32 @@ export class IdentityService {
     await getPrisma().recoveryToken.create({
       data: { id: newId(), userId: user.id, tokenHash, expiresAt: new Date(Date.now() + 3600_000) },
     });
+    const jobRunId = newId();
+    const idempotencyKey = `mail.recovery:${tokenHash}`;
     await getPrisma().$transaction(async (tx) => {
+      await tx.jobRun.create({
+        data: {
+          id: jobRunId,
+          tenantId: null,
+          queue: 'mail',
+          jobType: 'mail.recovery',
+          status: 'QUEUED',
+          payloadJson: JSON.stringify({ to: user.email, token }),
+          actorUserId: user.id,
+          idempotencyKey,
+        },
+      });
       await writeOutbox(tx, {
         eventType: 'mail.recovery',
-        payload: { to: user.email, token },
+        payload: {
+          to: user.email,
+          token,
+          jobRunId,
+          actorUserId: user.id,
+          idempotencyKey,
+          subject: 'OMA AI password recovery',
+          text: `Recovery token (console adapter): ${token}`,
+        },
       });
     });
     return { ok: true };

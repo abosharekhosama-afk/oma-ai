@@ -12,10 +12,10 @@ jobs:
         env:
           POSTGRES_USER: oma
           POSTGRES_PASSWORD: oma
-          POSTGRES_DB: oma_ai
+          POSTGRES_DB: oma_ai_ci
         ports: ['5432:5432']
         options: >-
-          --health-cmd "pg_isready -U oma -d oma_ai"
+          --health-cmd "pg_isready -U oma -d oma_ai_ci"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
@@ -29,7 +29,7 @@ jobs:
           --health-retries 20
     env:
       NODE_ENV: test
-      DATABASE_URL: postgresql://oma:oma@127.0.0.1:5432/oma_ai?schema=public
+      DATABASE_URL: postgresql://oma:oma@127.0.0.1:5432/oma_ai_ci?schema=public
       REDIS_URL: redis://127.0.0.1:6379
       API_PORT: '3001'
       WEB_ORIGIN: http://127.0.0.1:3000
@@ -40,6 +40,10 @@ jobs:
       BOOTSTRAP_PLATFORM_OWNER_EMAIL: platform-owner@example.com
       BOOTSTRAP_PLATFORM_OWNER_PASSWORD: ChangeMe_PlatformOwner_1!
       WEB_BASE_URL: http://127.0.0.1:3000
+      WORKER_HEALTH_PORT: '3002'
+      MAIL_PROVIDER: recording
+      OMA_WRITE_OPENAPI: '0'
+      E2E_REUSE_SERVERS: '1'
       CI: 'true'
     steps:
       - uses: actions/checkout@v4
@@ -63,14 +67,34 @@ jobs:
       - run: pnpm --filter @oma/worker build
       - run: pnpm --filter @oma/web build
       - run: pnpm audit:deps
+      - name: Secret scan (no .env committed)
+        run: |
+          if git ls-files | grep -E '(^|/)\.env$|(^|/)\.env\.local$'; then
+            echo 'Committed .env files are forbidden'
+            exit 1
+          fi
+          if git grep -nE '(API_KEY|SECRET|PASSWORD|PRIVATE_KEY)\s*=\s*["'\''][^"'\'']+["'\'']' -- ':!.env.example' ':!specs/**' ':!docs/**' ':!*.md' ':!tests/**' ':!.github/**'; then
+            echo 'Potential hardcoded secret pattern found'
+            exit 1
+          fi
+      - name: OpenAPI generate stays clean
+        run: |
+          pnpm openapi:generate
+          git diff --exit-code -- packages/api-client/openapi.json
       - name: Install Playwright Chromium
         run: pnpm exec playwright install --with-deps chromium
-      - name: Start API and Web for E2E
+      - name: Start API, Worker, and Web for E2E
         run: |
+          set -euo pipefail
           pnpm --filter @oma/api exec tsx src/main.ts > /tmp/oma-api.log 2>&1 &
+          echo $! > /tmp/oma-api.pid
+          MAIL_PROVIDER=recording pnpm --filter @oma/worker exec tsx src/main.ts > /tmp/oma-worker.log 2>&1 &
+          echo $! > /tmp/oma-worker.pid
           pnpm --filter @oma/web exec next dev -p 3000 -H 127.0.0.1 > /tmp/oma-web.log 2>&1 &
+          echo $! > /tmp/oma-web.pid
           for i in $(seq 1 60); do
             if curl -sf http://127.0.0.1:3001/api/v1/health/ready >/dev/null \
+              && curl -sf http://127.0.0.1:3002/ >/dev/null \
               && curl -sf -o /dev/null http://127.0.0.1:3000/; then
               echo ready
               exit 0
@@ -78,6 +102,29 @@ jobs:
             sleep 2
           done
           echo 'API log:' && tail -100 /tmp/oma-api.log || true
+          echo 'WORKER log:' && tail -100 /tmp/oma-worker.log || true
           echo 'WEB log:' && tail -100 /tmp/oma-web.log || true
           exit 1
-      - run: pnpm test:e2e
+      - name: Playwright E2E
+        run: pnpm test:e2e
+      - name: Upload Playwright artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-artifacts
+          path: |
+            playwright-report
+            test-results
+          if-no-files-found: ignore
+      - name: Stop E2E processes
+        if: always()
+        run: |
+          for f in /tmp/oma-api.pid /tmp/oma-worker.pid /tmp/oma-web.pid; do
+            if [ -f "$f" ]; then
+              kill "$(cat "$f")" 2>/dev/null || true
+            fi
+          done
+          sleep 1
+          pkill -f 'tsx src/main.ts' 2>/dev/null || true
+          pkill -f 'next dev -p 3000' 2>/dev/null || true
+          true

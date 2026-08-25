@@ -5,6 +5,7 @@ coverage
 pnpm-lock.yaml
 playwright-report
 test-results
+packages/api-client/openapi.json
 .cursor/
 .specify/
 docs/CURSOR_WORKFLOW.md

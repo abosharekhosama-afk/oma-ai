@@ -21,7 +21,12 @@ export class MembershipController {
         'errors.tenant_required',
       );
     }
-    return tenantService.invite(req.oma.userId, req.oma.tenantId, body.email);
+    return tenantService.invite(
+      req.oma.userId,
+      req.oma.tenantId,
+      body.email,
+      req.oma.correlationId,
+    );
   }
 
   @Post('invitations/accept')

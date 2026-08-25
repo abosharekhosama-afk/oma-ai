@@ -207,11 +207,11 @@ These gates **block** named later-slice work. Ports/interfaces without provider 
 - [x] T070 [US3] Wire audit calls into login, tenant switch, membership, capability changes in the respective services under `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/`
 - [x] T071 [US3] Implement idempotency interceptor/middleware in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/common/interceptors/idempotency.interceptor.ts`
 - [x] T072 [US3] Implement transactional outbox writer helper in `/Users/burhanbakri/Downloads/oma-ai/packages/db/src/outbox.ts`
-- [x] T073 [US3] Implement outbox publisher processor in `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/processors/outbox.processor.ts`
+- [x] T073 [US3] Implement outbox publisher processor in `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/processors/outbox.publisher.ts` (polled from worker `main.ts`; legacy `outbox.processor.ts` is non-runtime)
 - [x] T074 [US3] Implement mail job processor using `MailProviderPort` with tenant/actor re-check in `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/processors/mail.processor.ts`
 - [x] T075 [US3] Implement notification materializer from outbox events in `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/processors/notification.processor.ts` and read API in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/notifications/notifications.controller.ts`
 - [x] T076 [US3] Implement job status read/cancel endpoints in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/jobs/jobs.controller.ts`
-- [x] T077 [US3] Add Playwright E2E covering invite→mail job→notification path and correlation header propagation in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/jobs-outbox.e2e.ts` (Q-08, Q-10)
+- [x] T077 [US3] Add Playwright E2E covering invite→mail job→notification path and correlation header propagation in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/jobs-outbox.e2e.ts` (Q-08, Q-10) — proven via real API + Postgres outbox/JobRun + BullMQ/Redis worker + `MailProviderPort` recording adapter + `GET /api/v1/notifications` (not health-only)
 
 **Checkpoint**: US3 complete; worker re-authz and idempotency proven.
 
@@ -312,28 +312,28 @@ Tests (failing) → models/migrations → domain services → API → web → E2
 
 ## Coverage Map
 
-| Requirement / acceptance            | Tasks                       |
-| ----------------------------------- | --------------------------- |
-| FR-001–FR-010 identity/tenant       | T029–T061, T069–T070        |
-| FR-009 / FR-104 audit               | T062, T068–T070             |
-| FR-115–FR-124 shell/design          | T078–T088                   |
-| NFR-001–002, CSRF/cookies           | T031, T038–T039, T043       |
-| NFR-007–010 idempotency/jobs        | T063–T076                   |
-| NFR-016–020 i18n/a11y               | T078–T088                   |
-| NFR-021–024 observability/health    | T016–T019, T022, T077, T103 |
-| `contracts/api-conventions.md`      | T015, T020–T021, T027, T102 |
-| `contracts/auth-session.md`         | T029–T043                   |
-| `contracts/tenant-authorization.md` | T044–T061                   |
-| `contracts/audit-events.md`         | T062, T068–T070             |
-| `contracts/jobs-outbox.md`          | T064–T076                   |
-| `contracts/connector-ports.md`      | T089–T095                   |
-| Q-01–Q-02                           | T030, T043                  |
-| Q-03–Q-06                           | T045–T049, T061             |
-| Q-07–Q-08                           | T063–T064, T077             |
-| Q-09                                | T080–T081, T084–T087        |
-| Q-10                                | T019, T028, T077            |
-| DEC-014 stack baseline              | T001–T026                   |
-| DEC-003–012 remain open             | T096–T101 gates, T108       |
+| Requirement / acceptance            | Tasks                                                        |
+| ----------------------------------- | ------------------------------------------------------------ |
+| FR-001–FR-010 identity/tenant       | T029–T061, T069–T070                                         |
+| FR-009 / FR-104 audit               | T062, T068–T070                                              |
+| FR-115–FR-124 shell/design          | T078–T088                                                    |
+| NFR-001–002, CSRF/cookies           | T031, T038–T039, T043                                        |
+| NFR-007–010 idempotency/jobs        | T063–T076                                                    |
+| NFR-016–020 i18n/a11y               | T078–T088                                                    |
+| NFR-021–024 observability/health    | T016–T019, T022, T077, T103                                  |
+| `contracts/api-conventions.md`      | T015, T020–T021, T027, T102                                  |
+| `contracts/auth-session.md`         | T029–T043                                                    |
+| `contracts/tenant-authorization.md` | T044–T061                                                    |
+| `contracts/audit-events.md`         | T062, T068–T070                                              |
+| `contracts/jobs-outbox.md`          | T064–T076, T077; job↔JobRun correlation + mid-flight reauthz |
+| `contracts/connector-ports.md`      | T089–T095                                                    |
+| Q-01–Q-02                           | T030, T043                                                   |
+| Q-03–Q-06                           | T045–T049, T061                                              |
+| Q-07–Q-08                           | T063–T064, T077                                              |
+| Q-09                                | T080–T081, T084–T087                                         |
+| Q-10                                | T019, T028, T077                                             |
+| DEC-014 stack baseline              | T001–T026                                                    |
+| DEC-003–012 remain open             | T096–T101 gates, T108                                        |
 
 ---
 

@@ -2,6 +2,7 @@ import { getPrisma } from '@oma/db';
 import { createLogger } from '@oma/observability';
 import { Queue, Worker } from 'bullmq';
 import type IORedis from 'ioredis';
+import { buildMailJobData, bullMailJobId } from './mail-job-payload';
 
 const log = createLogger('outbox-processor');
 
@@ -20,11 +21,39 @@ export function startOutboxProcessor(connection: IORedis) {
       for (const event of pending) {
         try {
           if (event.eventType.startsWith('mail.')) {
-            await mailQueue.add(event.eventType, {
-              outboxId: event.id,
-              tenantId: event.tenantId,
-              payload: JSON.parse(event.payloadJson),
-            });
+            const payload = JSON.parse(event.payloadJson) as {
+              to?: string;
+              token?: string;
+              membershipId?: string;
+              subject?: string;
+              text?: string;
+              jobRunId?: string;
+              actorUserId?: string;
+              correlationId?: string;
+              idempotencyKey?: string;
+            };
+            if (!payload.jobRunId) throw new Error(`outbox ${event.id} missing jobRunId`);
+            const jobRun = await prisma.jobRun.findUnique({ where: { id: payload.jobRunId } });
+            if (!jobRun) throw new Error(`jobRun ${payload.jobRunId} not found`);
+            await mailQueue.add(
+              event.eventType,
+              buildMailJobData({
+                jobRunId: jobRun.id,
+                outboxId: event.id,
+                tenantId: jobRun.tenantId,
+                actorUserId: jobRun.actorUserId,
+                correlationId: jobRun.correlationId ?? payload.correlationId ?? null,
+                idempotencyKey: jobRun.idempotencyKey ?? payload.idempotencyKey ?? null,
+                payload: {
+                  to: payload.to,
+                  token: payload.token,
+                  membershipId: payload.membershipId,
+                  subject: payload.subject,
+                  text: payload.text,
+                },
+              }),
+              { jobId: bullMailJobId(jobRun.id), attempts: 5, removeOnComplete: true },
+            );
           }
           await prisma.outboxEvent.update({
             where: { id: event.id },
@@ -43,24 +72,11 @@ export function startOutboxProcessor(connection: IORedis) {
     { connection, concurrency: 1 },
   );
 
-  // poll trigger
-  setInterval(() => {
-    void mailQueue.client.then(() => worker.run()).catch(() => undefined);
-  }, 2000);
-
-  // simpler: dedicated interval job
-  setInterval(async () => {
-    try {
-      await mailQueue.add('outbox.tick', {});
-    } catch {
-      /* ignore */
-    }
-  }, 2000);
-
   return worker;
 }
 
 export async function enqueueOutboxTick(connection: IORedis) {
   const q = new Queue('outbox', { connection });
   await q.add('tick', {}, { removeOnComplete: true, repeat: { every: 2000 } });
+  await q.close();
 }

@@ -18,6 +18,8 @@ Every job payload includes:
 
 - `job_run_id`, `tenant_id`, `actor_user_id` (nullable for system), `correlation_id`, `idempotency_key` (optional)
 
+BullMQ custom job id is `mail-{jobRunId}` (no `:` characters). Retries reuse the same id and must update only that `JobRun` row.
+
 Handler steps:
 
 1. Load JobRun; skip if terminal success (idempotent).

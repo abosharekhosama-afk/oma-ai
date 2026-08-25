@@ -217,11 +217,13 @@ model JobRun {
   errorDetail    String?
   startedAt      DateTime?
   finishedAt     DateTime?
-  idempotencyKey String?
+  /// When set, must be unique so retries cannot spawn a duplicate JobRun row.
+  idempotencyKey String?   @unique
   createdAt      DateTime  @default(now())
   tenant         Tenant?   @relation(fields: [tenantId], references: [id])
 
   @@index([tenantId, createdAt])
+  @@index([queue, status, createdAt])
 }
 
 model Notification {

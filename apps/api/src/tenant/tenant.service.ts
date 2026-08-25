@@ -132,14 +132,15 @@ export class TenantService {
     return { active_tenant_id: tenantId };
   }
 
-  async invite(actorUserId: string, tenantId: string, email: string) {
+  async invite(actorUserId: string, tenantId: string, email: string, correlationId?: string) {
     const prisma = getPrisma();
+    const normalizedEmail = email.trim().toLowerCase();
     const membership = await prisma.membership.create({
       data: {
         id: newId(),
         tenantId,
         status: 'INVITED',
-        invitedEmail: email.trim().toLowerCase(),
+        invitedEmail: normalizedEmail,
         invitedBy: actorUserId,
         invitedAt: new Date(),
       },
@@ -153,21 +154,38 @@ export class TenantService {
         expiresAt: new Date(Date.now() + 7 * 86400_000),
       },
     });
+    const jobRunId = newId();
+    const idempotencyKey = `mail.invite:${membership.id}`;
     await prisma.$transaction(async (tx) => {
-      await writeOutbox(tx, {
-        tenantId,
-        eventType: 'mail.invite',
-        payload: { to: email, token, membershipId: membership.id, tenantId },
-      });
       await tx.jobRun.create({
         data: {
-          id: newId(),
+          id: jobRunId,
           tenantId,
           queue: 'mail',
           jobType: 'mail.invite',
           status: 'QUEUED',
-          payloadJson: JSON.stringify({ to: email, token, membershipId: membership.id }),
+          payloadJson: JSON.stringify({
+            to: normalizedEmail,
+            token,
+            membershipId: membership.id,
+          }),
           actorUserId,
+          correlationId: correlationId ?? null,
+          idempotencyKey,
+        },
+      });
+      await writeOutbox(tx, {
+        tenantId,
+        eventType: 'mail.invite',
+        payload: {
+          to: normalizedEmail,
+          token,
+          membershipId: membership.id,
+          tenantId,
+          jobRunId,
+          actorUserId,
+          correlationId: correlationId ?? null,
+          idempotencyKey,
         },
       });
     });
@@ -177,8 +195,13 @@ export class TenantService {
       action: 'membership.invited',
       targetType: 'Membership',
       targetId: membership.id,
+      correlationId,
     });
-    return { membership_id: membership.id, invite_token: token };
+    return {
+      membership_id: membership.id,
+      invite_token: token,
+      job_run_id: jobRunId,
+    };
   }
 
   async acceptInvite(userId: string, token: string) {

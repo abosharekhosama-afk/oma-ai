@@ -7,5 +7,5 @@
 export const WorkerModule = {
   name: 'WorkerModule',
   queues: ['mail', 'outbox'],
-  processors: ['outbox.processor', 'mail.processor', 'notification.processor'],
+  processors: ['outbox.publisher', 'mail.processor', 'notification.processor'],
 } as const;
