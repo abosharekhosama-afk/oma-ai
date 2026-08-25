@@ -4,7 +4,7 @@
 **Date:** 2026-08-25
 **Mode:** `PLAN_ONLY`
 **Status:** `APPROVED IMPLEMENTATION BASELINE`
-**Stack status:** `APPROVED IMPLEMENTATION BASELINE` (`DEC-014`) — not yet installed/scaffolded until implementation is authorized
+**Stack status:** `APPROVED IMPLEMENTATION BASELINE` (`DEC-014`) — installed and verified under DEC-014 (see plan Implementation Sync Notes) until implementation is authorized
 
 ## 1. Repository inspection summary
 

@@ -263,3 +263,12 @@ Foundation tasks must **not** implement WorkDrive sync, website crawl, Meta laun
 
 `DEC-003`–`DEC-012` remain open with safe boundaries in `research.md` §6.
 `DEC-001`, `DEC-002`, `DEC-013` resolved and binding.
+
+
+## Implementation Sync Notes (2026-08-25)
+
+- Stack remains `DEC-014` APPROVED IMPLEMENTATION BASELINE; `DEC-003`–`DEC-012` unchanged/open.
+- Authn/session, tenant/membership/capabilities, audit, outbox/BullMQ workers, App Shell EN/AR RTL, and refusing connector ports are implemented under `apps/*` and `packages/*`.
+- Vitest root config lives at `vitest.config.ts` (with `vitest.workspace.ts`); Playwright projects cover EN/AR and desktop/tablet/mobile viewports.
+- Nest HTTP handlers resolve domain services via `apps/api/src/container.ts` for reliable runtime under `tsx`/Vitest without requiring full decorator metadata emission.
+- Local verification used Homebrew PostgreSQL 16 + Redis when Docker was unavailable; `infra/docker-compose.yml` remains the portable Compose path.
