@@ -1,0 +1,15 @@
+{
+  "app.name": "OMA AI",
+  "app.endorsement": "OMA AI by IMKAN",
+  "nav.home": "Home",
+  "nav.intelligence": "Intelligence",
+  "auth.login": "Sign in",
+  "auth.register": "Create account",
+  "auth.email": "Email",
+  "auth.password": "Password",
+  "auth.name": "Name",
+  "shell.tenant": "Company",
+  "shell.emptyMembership": "You have no active company membership.",
+  "errors.permission": "You do not have permission to view this.",
+  "home.welcome": "Welcome to your workspace"
+}

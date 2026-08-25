@@ -1,0 +1,292 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/api/v1/health/live": {
+      "get": {
+        "operationId": "HealthController_live",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Health"]
+      }
+    },
+    "/api/v1/health/ready": {
+      "get": {
+        "operationId": "HealthController_ready",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Health"]
+      }
+    },
+    "/api/v1/auth/register": {
+      "post": {
+        "operationId": "AuthController_register",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": ["Auth"]
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Auth"]
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "operationId": "AuthController_logout",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Auth"]
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "operationId": "AuthController_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Auth"]
+      }
+    },
+    "/api/v1/auth/password/change": {
+      "post": {
+        "operationId": "AuthController_changePassword",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": ["Auth"]
+      }
+    },
+    "/api/v1/auth/recovery/request": {
+      "post": {
+        "operationId": "RecoveryController_request",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Recovery"]
+      }
+    },
+    "/api/v1/auth/recovery/confirm": {
+      "post": {
+        "operationId": "RecoveryController_confirm",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Recovery"]
+      }
+    },
+    "/api/v1/audit-events": {
+      "get": {
+        "operationId": "AuditController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Audit"]
+      }
+    },
+    "/api/v1/tenants": {
+      "post": {
+        "operationId": "TenantController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": ["Tenant"]
+      }
+    },
+    "/api/v1/tenants/current": {
+      "get": {
+        "operationId": "TenantController_current",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Tenant"]
+      }
+    },
+    "/api/v1/tenants/active": {
+      "post": {
+        "operationId": "TenantController_activate",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": ["Tenant"]
+      }
+    },
+    "/api/v1/tenants/current/resource-probe/{id}": {
+      "get": {
+        "operationId": "TenantController_probe",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Tenant"]
+      }
+    },
+    "/api/v1/tenants/current/invitations": {
+      "post": {
+        "operationId": "MembershipController_invite",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": ["Membership"]
+      }
+    },
+    "/api/v1/invitations/accept": {
+      "post": {
+        "operationId": "MembershipController_accept",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": ["Membership"]
+      }
+    },
+    "/api/v1/memberships/{id}/suspend": {
+      "post": {
+        "operationId": "MembershipController_suspend",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": ["Membership"]
+      }
+    },
+    "/api/v1/memberships/{id}/remove": {
+      "post": {
+        "operationId": "MembershipController_remove",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": ["Membership"]
+      }
+    },
+    "/api/v1/memberships/{id}/capabilities": {
+      "post": {
+        "operationId": "CapabilityController_caps",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": ["Capability"]
+      }
+    },
+    "/api/v1/memberships/{id}/profiles": {
+      "post": {
+        "operationId": "CapabilityController_profiles",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": ["Capability"]
+      }
+    },
+    "/api/v1/jobs/{id}": {
+      "get": {
+        "operationId": "JobsController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Jobs"]
+      }
+    },
+    "/api/v1/jobs/{id}/cancel": {
+      "post": {
+        "operationId": "JobsController_cancel",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": ["Jobs"]
+      }
+    },
+    "/api/v1/notifications": {
+      "get": {
+        "operationId": "NotificationsController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Notifications"]
+      }
+    }
+  },
+  "info": {
+    "title": "OMA AI API",
+    "description": "Platform foundation API",
+    "version": "1.0.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "schemas": {}
+  }
+}
