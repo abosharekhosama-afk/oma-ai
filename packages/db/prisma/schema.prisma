@@ -1,0 +1,254 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum MembershipStatus {
+  INVITED
+  ACTIVE
+  SUSPENDED
+  REMOVED
+}
+
+enum TenantStatus {
+  ACTIVE
+  SUSPENDED
+  ARCHIVED
+}
+
+enum OutboxStatus {
+  PENDING
+  PUBLISHED
+  FAILED
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+  DEAD
+}
+
+model User {
+  id               String     @id
+  email            String     @unique
+  emailVerifiedAt  DateTime?
+  passwordHash     String?
+  name             String
+  preferredLocale  String     @default("en")
+  preferredDir     String     @default("ltr")
+  status           UserStatus @default(ACTIVE)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  sessions         Session[]
+  memberships      Membership[]
+  auditEvents      AuditEvent[] @relation("ActorUser")
+}
+
+model Session {
+  id             String    @id
+  userId         String
+  tokenHash      String    @unique
+  activeTenantId String?
+  ip             String?
+  userAgent      String?
+  createdAt      DateTime  @default(now())
+  expiresAt      DateTime
+  revokedAt      DateTime?
+  lastSeenAt     DateTime  @default(now())
+  user           User      @relation(fields: [userId], references: [id])
+  activeTenant   Tenant?   @relation(fields: [activeTenantId], references: [id])
+
+  @@index([userId])
+}
+
+model Tenant {
+  id            String       @id
+  name          String
+  slug          String       @unique
+  status        TenantStatus @default(ACTIVE)
+  defaultLocale String       @default("en")
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  version       Int          @default(1)
+  memberships   Membership[]
+  sessions      Session[]
+  grants        CapabilityGrant[]
+  audits        AuditEvent[]
+  outbox        OutboxEvent[]
+  jobs          JobRun[]
+  notifications Notification[]
+  idempotency   IdempotencyRecord[]
+}
+
+model Membership {
+  id           String           @id
+  tenantId     String
+  userId       String?
+  status       MembershipStatus @default(INVITED)
+  invitedEmail String?
+  invitedBy    String?
+  invitedAt    DateTime?
+  acceptedAt   DateTime?
+  suspendedAt  DateTime?
+  removedAt    DateTime?
+  version      Int              @default(1)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  tenant       Tenant           @relation(fields: [tenantId], references: [id])
+  user         User?            @relation(fields: [userId], references: [id])
+  grants       CapabilityGrant[]
+  invitations  Invitation[]
+
+  @@index([tenantId, status])
+  @@index([userId])
+}
+
+model Invitation {
+  id           String    @id
+  membershipId String
+  tokenHash    String    @unique
+  expiresAt    DateTime
+  acceptedAt   DateTime?
+  revokedAt    DateTime?
+  membership   Membership @relation(fields: [membershipId], references: [id])
+}
+
+model CapabilityProfile {
+  id              String   @id
+  code            String
+  nameKey         String
+  capabilityCodes String[]
+  tenantId        String?
+  isSystem        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  @@unique([code, tenantId])
+}
+
+model CapabilityGrant {
+  id               String    @id
+  membershipId     String
+  tenantId         String
+  capabilityCode   String
+  scopeJson        String?
+  sourceProfileCode String?
+  grantedBy        String?
+  grantedAt        DateTime  @default(now())
+  revokedAt        DateTime?
+  membership       Membership @relation(fields: [membershipId], references: [id])
+  tenant           Tenant     @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId, membershipId])
+  @@index([membershipId, capabilityCode])
+}
+
+model AuditEvent {
+  id            String   @id
+  occurredAt    DateTime @default(now())
+  actorUserId   String?
+  actorType     String
+  tenantId      String?
+  action        String
+  targetType    String?
+  targetId      String?
+  beforeRef     String?
+  afterRef      String?
+  correlationId String?
+  requestId     String?
+  ip            String?
+  actorUser     User?    @relation("ActorUser", fields: [actorUserId], references: [id])
+  tenant        Tenant?  @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId, occurredAt])
+}
+
+model IdempotencyRecord {
+  id             String   @id
+  tenantId       String
+  actorUserId    String
+  key            String
+  requestHash    String
+  responseStatus Int
+  responseBody   String
+  createdAt      DateTime @default(now())
+  expiresAt      DateTime
+  tenant         Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, actorUserId, key])
+}
+
+model OutboxEvent {
+  id          String       @id
+  tenantId    String?
+  eventType   String
+  payloadJson String
+  createdAt   DateTime     @default(now())
+  publishedAt DateTime?
+  status      OutboxStatus @default(PENDING)
+  attempts    Int          @default(0)
+  tenant      Tenant?      @relation(fields: [tenantId], references: [id])
+
+  @@index([status, createdAt])
+}
+
+model JobRun {
+  id             String    @id
+  tenantId       String?
+  queue          String
+  jobType        String
+  status         JobStatus @default(QUEUED)
+  payloadJson    String
+  actorUserId    String?
+  correlationId  String?
+  errorCode      String?
+  errorDetail    String?
+  startedAt      DateTime?
+  finishedAt     DateTime?
+  /// When set, must be unique so retries cannot spawn a duplicate JobRun row.
+  idempotencyKey String?   @unique
+  createdAt      DateTime  @default(now())
+  tenant         Tenant?   @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId, createdAt])
+  @@index([queue, status, createdAt])
+}
+
+model Notification {
+  id                 String    @id
+  tenantId           String
+  recipientUserId    String
+  type               String
+  objectType         String?
+  objectId           String?
+  deepLinkPath       String
+  readAt             DateTime?
+  dedupeKey          String
+  sourceOutboxEventId String?
+  createdAt          DateTime  @default(now())
+  tenant             Tenant    @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, dedupeKey])
+  @@index([recipientUserId, createdAt])
+}
+
+model RecoveryToken {
+  id        String    @id
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+}

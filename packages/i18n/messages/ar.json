@@ -1,0 +1,15 @@
+{
+  "app.name": "أوما AI",
+  "app.endorsement": "أوما AI من إمكان",
+  "nav.home": "الرئيسية",
+  "nav.intelligence": "الذكاء",
+  "auth.login": "تسجيل الدخول",
+  "auth.register": "إنشاء حساب",
+  "auth.email": "البريد الإلكتروني",
+  "auth.password": "كلمة المرور",
+  "auth.name": "الاسم",
+  "shell.tenant": "الشركة",
+  "shell.emptyMembership": "لا توجد عضوية شركة نشطة.",
+  "errors.permission": "ليست لديك صلاحية لعرض هذا المحتوى.",
+  "home.welcome": "مرحبًا بك في مساحة العمل"
+}

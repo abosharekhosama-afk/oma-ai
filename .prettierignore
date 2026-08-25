@@ -1,0 +1,12 @@
+node_modules
+dist
+.next
+coverage
+pnpm-lock.yaml
+playwright-report
+test-results
+packages/api-client/openapi.json
+.cursor/
+.specify/
+docs/CURSOR_WORKFLOW.md
+docs/DESIGN_REFERENCE_STRATEGY.md

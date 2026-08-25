@@ -119,21 +119,21 @@ Initial numeric targets are `TBD` and require baseline data. The product must me
 
 Security is capability-based. The following are assignable profiles, not hardcoded universal roles.
 
-| Actor/profile | Primary responsibilities | Typical capabilities |
-| --- | --- | --- |
-| Platform Owner | Operate OMA AI across permitted tenants | Tenant administration, global configuration, support audit; no silent client impersonation |
-| Company Owner | Represent a client company | Manage company profile, submit/approve requests, view company work, approve strategy/deliverables/spend if granted |
-| Strategist | Research and plan content | Manage sources, evidence, insights, competitors, strategy, Organic/Paid plans and briefs |
-| Production Manager | Turn plans into production | Create boards/tasks, assign work, manage capacity, review or route approvals |
-| Reviewer/Approver | Make accountable content decisions | Comment, request changes, approve a specific version within assigned scope |
-| Copywriter | Produce written content | View assigned context, create/upload copy versions, respond to feedback |
-| Designer | Produce static/graphic assets | View assigned context, upload versions, respond to feedback |
-| Video Editor | Produce edited video | View assigned context, upload versions/proxies, respond to feedback |
-| Photographer/Videographer | Produce source media | View shot list and task details, upload source/selects, respond to feedback |
-| Media Buyer | Prepare and manage paid activation | Manage paid plan details, ad account mapping, campaign drafts, approvals, launch/sync if granted |
-| Client Viewer | Follow progress without operational control | View permitted requests, milestones, approved assets, comments, and reports |
-| Pricing/Finance Operator | Manage commercial offer | Manage packages, quote, commercial approval, and payment state only if this domain belongs to OMA |
-| Integration Service | Perform machine-to-machine work | Narrow connector scopes, background sync, signed webhook processing, no interactive privileges |
+| Actor/profile             | Primary responsibilities                    | Typical capabilities                                                                                               |
+| ------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Platform Owner            | Operate OMA AI across permitted tenants     | Tenant administration, global configuration, support audit; no silent client impersonation                         |
+| Company Owner             | Represent a client company                  | Manage company profile, submit/approve requests, view company work, approve strategy/deliverables/spend if granted |
+| Strategist                | Research and plan content                   | Manage sources, evidence, insights, competitors, strategy, Organic/Paid plans and briefs                           |
+| Production Manager        | Turn plans into production                  | Create boards/tasks, assign work, manage capacity, review or route approvals                                       |
+| Reviewer/Approver         | Make accountable content decisions          | Comment, request changes, approve a specific version within assigned scope                                         |
+| Copywriter                | Produce written content                     | View assigned context, create/upload copy versions, respond to feedback                                            |
+| Designer                  | Produce static/graphic assets               | View assigned context, upload versions, respond to feedback                                                        |
+| Video Editor              | Produce edited video                        | View assigned context, upload versions/proxies, respond to feedback                                                |
+| Photographer/Videographer | Produce source media                        | View shot list and task details, upload source/selects, respond to feedback                                        |
+| Media Buyer               | Prepare and manage paid activation          | Manage paid plan details, ad account mapping, campaign drafts, approvals, launch/sync if granted                   |
+| Client Viewer             | Follow progress without operational control | View permitted requests, milestones, approved assets, comments, and reports                                        |
+| Pricing/Finance Operator  | Manage commercial offer                     | Manage packages, quote, commercial approval, and payment state only if this domain belongs to OMA                  |
+| Integration Service       | Perform machine-to-machine work             | Narrow connector scopes, background sync, signed webhook processing, no interactive privileges                     |
 
 One person may hold several profiles within one tenant. Capabilities must not leak across tenants or companies.
 
@@ -141,23 +141,23 @@ One person may hold several profiles within one tenant. Capabilities must not le
 
 The repository, product, and identity boundaries are resolved: OMA AI starts in a separate private repository named `oma-ai` as an independent deployable product under IMKAN. OMA owns its initial login, identity, tenant/company, membership, session, and capability domains. The following ownership intent is binding while technical placement is pending.
 
-| Domain | Logical owner | Authoritative writer/state | Consumers | Boundary note |
-| --- | --- | --- | --- | --- |
-| Login identity, session, tenant/company master | OMA Platform | OMA authentication and identity domain | All OMA modules | Future IMKAN federation uses an explicit external mapping; IMKAN identifiers are not canonical OMA authority |
-| OMA workflow capabilities | OMA AI | OMA-owned membership/capability policy | All OMA domains | Future external identity claims never grant or bypass OMA capabilities |
-| Website source and crawl snapshot | OMA Website Intelligence | OMA ingestion workflow | Strategy, catalog, audit | Store snapshot/version and source URL evidence |
-| Product/catalog projection | `TBD by DEC-004` | Commerce source when connected; OMA extraction when public-only | Strategy, briefs, client portal | Preserve source and freshness; do not overwrite external catalog silently |
-| Brand profile | OMA Strategy | Authorized OMA users; AI may propose | Strategy, briefs, generation | Separate observed facts from confirmed brand rules |
-| Competitor/reference evidence | OMA Strategy | OMA research workflow + human curation | Strategy and briefs | Record URL/source, capture time, and uncertainty |
-| Strategy and plans | OMA Strategy | Authorized strategists/approvers | Production, client portal, paid media | Organic and Paid remain distinct children |
-| Briefs and production tasks | OMA Production | Production managers and permitted contributors | Boards, notifications, reporting | Keep links back to plan objective |
-| Deliverable metadata/versions/reviews | OMA Production | Contributors and approvers through workflow commands | Client portal, WorkDrive, publishing | Approved version is immutable |
-| File bytes/folders | `TBD by DEC-003` | Prefer WorkDrive when selected as storage owner | OMA metadata and authorized users | OMA stores stable references/checksums/status, not duplicate bytes |
-| Pricing/quote/order | `TBD by DEC-005` | OMA commercial domain or approved shared system | Client portal, production intake, reporting | Payment/accounting must not be inferred |
-| Campaign intent, approvals, creative mapping | OMA Paid Media | Authorized OMA users | Meta/future connectors, reporting | OMA owns intent and approval trail |
-| Ad delivery/spend/status | External ad platform | Meta or future channel | OMA sync/reporting | External platform remains delivery truth |
-| Notification event | Originating OMA domain | Transactional event/outbox | Notification service/UI | Deep link and recipient are tenant-scoped |
-| Audit history | OMA platform/security boundary | Append-only system actions | Authorized audit viewers | No user-editable audit deletion |
+| Domain                                         | Logical owner                  | Authoritative writer/state                                      | Consumers                                   | Boundary note                                                                                                |
+| ---------------------------------------------- | ------------------------------ | --------------------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Login identity, session, tenant/company master | OMA Platform                   | OMA authentication and identity domain                          | All OMA modules                             | Future IMKAN federation uses an explicit external mapping; IMKAN identifiers are not canonical OMA authority |
+| OMA workflow capabilities                      | OMA AI                         | OMA-owned membership/capability policy                          | All OMA domains                             | Future external identity claims never grant or bypass OMA capabilities                                       |
+| Website source and crawl snapshot              | OMA Website Intelligence       | OMA ingestion workflow                                          | Strategy, catalog, audit                    | Store snapshot/version and source URL evidence                                                               |
+| Product/catalog projection                     | `TBD by DEC-004`               | Commerce source when connected; OMA extraction when public-only | Strategy, briefs, client portal             | Preserve source and freshness; do not overwrite external catalog silently                                    |
+| Brand profile                                  | OMA Strategy                   | Authorized OMA users; AI may propose                            | Strategy, briefs, generation                | Separate observed facts from confirmed brand rules                                                           |
+| Competitor/reference evidence                  | OMA Strategy                   | OMA research workflow + human curation                          | Strategy and briefs                         | Record URL/source, capture time, and uncertainty                                                             |
+| Strategy and plans                             | OMA Strategy                   | Authorized strategists/approvers                                | Production, client portal, paid media       | Organic and Paid remain distinct children                                                                    |
+| Briefs and production tasks                    | OMA Production                 | Production managers and permitted contributors                  | Boards, notifications, reporting            | Keep links back to plan objective                                                                            |
+| Deliverable metadata/versions/reviews          | OMA Production                 | Contributors and approvers through workflow commands            | Client portal, WorkDrive, publishing        | Approved version is immutable                                                                                |
+| File bytes/folders                             | `TBD by DEC-003`               | Prefer WorkDrive when selected as storage owner                 | OMA metadata and authorized users           | OMA stores stable references/checksums/status, not duplicate bytes                                           |
+| Pricing/quote/order                            | `TBD by DEC-005`               | OMA commercial domain or approved shared system                 | Client portal, production intake, reporting | Payment/accounting must not be inferred                                                                      |
+| Campaign intent, approvals, creative mapping   | OMA Paid Media                 | Authorized OMA users                                            | Meta/future connectors, reporting           | OMA owns intent and approval trail                                                                           |
+| Ad delivery/spend/status                       | External ad platform           | Meta or future channel                                          | OMA sync/reporting                          | External platform remains delivery truth                                                                     |
+| Notification event                             | Originating OMA domain         | Transactional event/outbox                                      | Notification service/UI                     | Deep link and recipient are tenant-scoped                                                                    |
+| Audit history                                  | OMA platform/security boundary | Append-only system actions                                      | Authorized audit viewers                    | No user-editable audit deletion                                                                              |
 
 ## 6. Core user scenarios and acceptance
 
@@ -460,37 +460,37 @@ The repository, product, and identity boundaries are resolved: OMA AI starts in 
 
 These are product concepts, not database tables. Physical models are defined only in the approved technical plan.
 
-| Entity | Purpose and key relationships |
-| --- | --- |
-| Tenant/Organization | OMA-owned security and ownership boundary; contains memberships, companies/workspaces, settings, and connections and may later retain an explicit external IMKAN mapping |
-| Company Profile | Confirmed business, brand, market, audience, locale, channel, and constraint context |
-| Membership/Capability Grant | Actor-to-tenant access and permitted actions; may combine profiles |
-| Website Source | Public URL or authorized connector configuration, scope, ownership assertion, and health |
-| Ingestion Run/Snapshot | Versioned acquisition job and exact evidence set used downstream |
-| Page Evidence | Source URL/content reference, captured time, extraction status, and supported facts |
-| Product/Service Projection | Normalized product/service view with source/freshness and confirmation state |
-| Brand Fact/Rule | Observed, inferred, confirmed, corrected, or stale brand information |
-| Competitor/Reference | Curated external subject/evidence with rationale, source, capture time, and restrictions |
-| Insight/Recommendation | Evidence-linked finding, hypothesis, risk, opportunity, or recommended action |
-| Strategy Version | Immutable submitted/reviewed strategic proposal and approval history |
-| Content Plan | `ORGANIC` or `PAID` child of a strategy version |
-| Plan Item | Planned content/campaign unit linked to objective, audience, channel, timing, and measures |
-| Brief Version | Structured production instruction linked to plan item/evidence and approval state |
-| Client Request | Company-originated content need and request lifecycle |
-| Pricing Package/Quote | Commercial scope, units, price/estimate, validity, inclusions, and approval |
-| Production Project/Board | Execution container linked to request/strategy/plan |
-| Workflow Definition | Allowed task states/transitions and required capabilities/conditions |
-| Task | Owned work unit linked to source brief/plan/request and production context |
-| Dependency/Blocker | Relationship and explanation preventing progress |
-| Deliverable | Logical output for a task; contains multiple immutable versions |
-| Deliverable Version | Exact file/reference and review target |
-| Review/Decision | Comment, change request, approval, rejection, actor/capability, and target version |
-| WorkDrive Mapping | Stable OMA-to-WorkDrive folder/file reference and sync/reconciliation state |
-| External Connection | Tenant-bound authorization to Meta/WorkDrive/future provider; secret material remains protected |
-| Campaign Intent | OMA-owned paid objective, budget proposal/constraints, schedule, mapping, and approvals |
-| External Campaign Projection | Provider-owned IDs, delivery/status metrics, freshness, and last sync |
-| Notification | Recipient/action/object/deep-link/read/deduplication record |
-| Audit Event | Append-only security/workflow/integration event with correlation |
+| Entity                       | Purpose and key relationships                                                                                                                                            |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Tenant/Organization          | OMA-owned security and ownership boundary; contains memberships, companies/workspaces, settings, and connections and may later retain an explicit external IMKAN mapping |
+| Company Profile              | Confirmed business, brand, market, audience, locale, channel, and constraint context                                                                                     |
+| Membership/Capability Grant  | Actor-to-tenant access and permitted actions; may combine profiles                                                                                                       |
+| Website Source               | Public URL or authorized connector configuration, scope, ownership assertion, and health                                                                                 |
+| Ingestion Run/Snapshot       | Versioned acquisition job and exact evidence set used downstream                                                                                                         |
+| Page Evidence                | Source URL/content reference, captured time, extraction status, and supported facts                                                                                      |
+| Product/Service Projection   | Normalized product/service view with source/freshness and confirmation state                                                                                             |
+| Brand Fact/Rule              | Observed, inferred, confirmed, corrected, or stale brand information                                                                                                     |
+| Competitor/Reference         | Curated external subject/evidence with rationale, source, capture time, and restrictions                                                                                 |
+| Insight/Recommendation       | Evidence-linked finding, hypothesis, risk, opportunity, or recommended action                                                                                            |
+| Strategy Version             | Immutable submitted/reviewed strategic proposal and approval history                                                                                                     |
+| Content Plan                 | `ORGANIC` or `PAID` child of a strategy version                                                                                                                          |
+| Plan Item                    | Planned content/campaign unit linked to objective, audience, channel, timing, and measures                                                                               |
+| Brief Version                | Structured production instruction linked to plan item/evidence and approval state                                                                                        |
+| Client Request               | Company-originated content need and request lifecycle                                                                                                                    |
+| Pricing Package/Quote        | Commercial scope, units, price/estimate, validity, inclusions, and approval                                                                                              |
+| Production Project/Board     | Execution container linked to request/strategy/plan                                                                                                                      |
+| Workflow Definition          | Allowed task states/transitions and required capabilities/conditions                                                                                                     |
+| Task                         | Owned work unit linked to source brief/plan/request and production context                                                                                               |
+| Dependency/Blocker           | Relationship and explanation preventing progress                                                                                                                         |
+| Deliverable                  | Logical output for a task; contains multiple immutable versions                                                                                                          |
+| Deliverable Version          | Exact file/reference and review target                                                                                                                                   |
+| Review/Decision              | Comment, change request, approval, rejection, actor/capability, and target version                                                                                       |
+| WorkDrive Mapping            | Stable OMA-to-WorkDrive folder/file reference and sync/reconciliation state                                                                                              |
+| External Connection          | Tenant-bound authorization to Meta/WorkDrive/future provider; secret material remains protected                                                                          |
+| Campaign Intent              | OMA-owned paid objective, budget proposal/constraints, schedule, mapping, and approvals                                                                                  |
+| External Campaign Projection | Provider-owned IDs, delivery/status metrics, freshness, and last sync                                                                                                    |
+| Notification                 | Recipient/action/object/deep-link/read/deduplication record                                                                                                              |
+| Audit Event                  | Append-only security/workflow/integration event with correlation                                                                                                         |
 
 ### 8.1 Mandatory relationship invariants
 
@@ -509,62 +509,62 @@ Canonical state codes are English. The UI localizes labels; for example `NEW_REQ
 
 ### 9.1 Client request lifecycle
 
-| State | Meaning | Typical permitted next states |
-| --- | --- | --- |
-| `DRAFT` | Client is preparing the request | `SUBMITTED`, `CANCELLED` |
-| `SUBMITTED` | New request awaiting intake | `NEEDS_CLARIFICATION`, `QUOTED`, `COMMERCIAL_APPROVED`, `REJECTED`, `CANCELLED` |
-| `NEEDS_CLARIFICATION` | Client/internal answer is required | `SUBMITTED`, `QUOTED`, `CANCELLED` |
-| `QUOTED` | Commercial offer awaits client action | `COMMERCIAL_APPROVED`, `NEEDS_CLARIFICATION`, `REJECTED`, `EXPIRED`, `CANCELLED` |
-| `COMMERCIAL_APPROVED` | Scope/price approved; not content/spend approval | `IN_PRODUCTION`, `CANCELLED` subject to policy |
-| `IN_PRODUCTION` | Linked production is active | `DELIVERED`, `CANCELLED` subject to policy |
-| `DELIVERED` | Client-visible delivery made | `CLOSED`, `IN_PRODUCTION` for an authorized revision |
-| `CLOSED` | Commercial/production request concluded | Terminal except approved reopen policy |
-| `REJECTED` | Offer/request declined | Terminal or clone as new draft |
-| `EXPIRED` | Quote validity ended | Terminal or issue a new quote version |
-| `CANCELLED` | Request stopped with reason | Terminal or clone as new draft |
+| State                 | Meaning                                          | Typical permitted next states                                                    |
+| --------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------- |
+| `DRAFT`               | Client is preparing the request                  | `SUBMITTED`, `CANCELLED`                                                         |
+| `SUBMITTED`           | New request awaiting intake                      | `NEEDS_CLARIFICATION`, `QUOTED`, `COMMERCIAL_APPROVED`, `REJECTED`, `CANCELLED`  |
+| `NEEDS_CLARIFICATION` | Client/internal answer is required               | `SUBMITTED`, `QUOTED`, `CANCELLED`                                               |
+| `QUOTED`              | Commercial offer awaits client action            | `COMMERCIAL_APPROVED`, `NEEDS_CLARIFICATION`, `REJECTED`, `EXPIRED`, `CANCELLED` |
+| `COMMERCIAL_APPROVED` | Scope/price approved; not content/spend approval | `IN_PRODUCTION`, `CANCELLED` subject to policy                                   |
+| `IN_PRODUCTION`       | Linked production is active                      | `DELIVERED`, `CANCELLED` subject to policy                                       |
+| `DELIVERED`           | Client-visible delivery made                     | `CLOSED`, `IN_PRODUCTION` for an authorized revision                             |
+| `CLOSED`              | Commercial/production request concluded          | Terminal except approved reopen policy                                           |
+| `REJECTED`            | Offer/request declined                           | Terminal or clone as new draft                                                   |
+| `EXPIRED`             | Quote validity ended                             | Terminal or issue a new quote version                                            |
+| `CANCELLED`           | Request stopped with reason                      | Terminal or clone as new draft                                                   |
 
 ### 9.2 Strategy/plan lifecycle
 
-| State | Meaning | Typical permitted next states |
-| --- | --- | --- |
-| `DRAFT` | Human-authored or prepared input | `GENERATING`, `IN_REVIEW`, `ARCHIVED` |
-| `GENERATING` | AI generation job is running | `AI_GENERATED`, `GENERATION_FAILED`, `CANCELLED` |
-| `AI_GENERATED` | Proposal exists; no approval implied | `DRAFT`, `IN_REVIEW`, `ARCHIVED` |
-| `IN_REVIEW` | Immutable version awaits decision | `CHANGES_REQUESTED`, `APPROVED`, `REJECTED` |
-| `CHANGES_REQUESTED` | New revision is required | `DRAFT`, `ARCHIVED` |
-| `APPROVED` | Exact version approved | `SUPERSEDED`, `ARCHIVED` |
-| `REJECTED` | Submitted version rejected | `DRAFT`, `ARCHIVED` |
-| `SUPERSEDED` | A newer version is approved | `ARCHIVED` |
-| `GENERATION_FAILED` | Generation did not produce a usable version | `GENERATING`, `DRAFT`, `CANCELLED` |
-| `ARCHIVED` / `CANCELLED` | No active workflow | Terminal unless explicit restore policy |
+| State                    | Meaning                                     | Typical permitted next states                    |
+| ------------------------ | ------------------------------------------- | ------------------------------------------------ |
+| `DRAFT`                  | Human-authored or prepared input            | `GENERATING`, `IN_REVIEW`, `ARCHIVED`            |
+| `GENERATING`             | AI generation job is running                | `AI_GENERATED`, `GENERATION_FAILED`, `CANCELLED` |
+| `AI_GENERATED`           | Proposal exists; no approval implied        | `DRAFT`, `IN_REVIEW`, `ARCHIVED`                 |
+| `IN_REVIEW`              | Immutable version awaits decision           | `CHANGES_REQUESTED`, `APPROVED`, `REJECTED`      |
+| `CHANGES_REQUESTED`      | New revision is required                    | `DRAFT`, `ARCHIVED`                              |
+| `APPROVED`               | Exact version approved                      | `SUPERSEDED`, `ARCHIVED`                         |
+| `REJECTED`               | Submitted version rejected                  | `DRAFT`, `ARCHIVED`                              |
+| `SUPERSEDED`             | A newer version is approved                 | `ARCHIVED`                                       |
+| `GENERATION_FAILED`      | Generation did not produce a usable version | `GENERATING`, `DRAFT`, `CANCELLED`               |
+| `ARCHIVED` / `CANCELLED` | No active workflow                          | Terminal unless explicit restore policy          |
 
 ### 9.3 Task lifecycle
 
-| State | Meaning | Typical permitted next states |
-| --- | --- | --- |
-| `NEW_REQUEST` | Work exists but is not assigned/accepted | `ASSIGNED`, `CANCELLED` |
-| `ASSIGNED` | Owner is assigned and work is ready | `IN_PROGRESS`, `BLOCKED`, `CANCELLED` |
-| `IN_PROGRESS` | Work is actively being produced | `BLOCKED`, `READY_FOR_REVIEW`, `CANCELLED` |
-| `BLOCKED` | A recorded blocker prevents progress | Prior valid working state, `CANCELLED` |
-| `READY_FOR_REVIEW` | Required output is submitted | `CHANGES_REQUESTED`, `APPROVED`, `IN_PROGRESS` if submission withdrawn by policy |
-| `CHANGES_REQUESTED` | Reviewer requires a new revision | `IN_PROGRESS`, `BLOCKED`, `CANCELLED` |
-| `APPROVED` | Required output/version is approved | `COMPLETED`, `CHANGES_REQUESTED` only through an explicit approval invalidation policy |
-| `COMPLETED` | All completion conditions and handoffs are satisfied | Terminal or controlled reopen |
-| `CANCELLED` | Work stopped with reason | Terminal or clone as new task |
+| State               | Meaning                                              | Typical permitted next states                                                          |
+| ------------------- | ---------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `NEW_REQUEST`       | Work exists but is not assigned/accepted             | `ASSIGNED`, `CANCELLED`                                                                |
+| `ASSIGNED`          | Owner is assigned and work is ready                  | `IN_PROGRESS`, `BLOCKED`, `CANCELLED`                                                  |
+| `IN_PROGRESS`       | Work is actively being produced                      | `BLOCKED`, `READY_FOR_REVIEW`, `CANCELLED`                                             |
+| `BLOCKED`           | A recorded blocker prevents progress                 | Prior valid working state, `CANCELLED`                                                 |
+| `READY_FOR_REVIEW`  | Required output is submitted                         | `CHANGES_REQUESTED`, `APPROVED`, `IN_PROGRESS` if submission withdrawn by policy       |
+| `CHANGES_REQUESTED` | Reviewer requires a new revision                     | `IN_PROGRESS`, `BLOCKED`, `CANCELLED`                                                  |
+| `APPROVED`          | Required output/version is approved                  | `COMPLETED`, `CHANGES_REQUESTED` only through an explicit approval invalidation policy |
+| `COMPLETED`         | All completion conditions and handoffs are satisfied | Terminal or controlled reopen                                                          |
+| `CANCELLED`         | Work stopped with reason                             | Terminal or clone as new task                                                          |
 
 The board MAY show a simplified subset of columns, but stored states and history remain canonical. A client-safe label MAY aggregate several internal states without changing them.
 
 ### 9.4 Deliverable version lifecycle
 
-| State | Meaning | Typical permitted next states |
-| --- | --- | --- |
-| `UPLOADED` | New immutable version exists | `IN_REVIEW`, `WITHDRAWN` |
-| `IN_REVIEW` | Version is the active review target | `CHANGES_REQUESTED`, `APPROVED`, `REJECTED` |
-| `CHANGES_REQUESTED` | Version remains historical; new version required | `SUPERSEDED` when replacement arrives |
-| `APPROVED` | Exact version accepted | `SUPERSEDED` only when another version receives explicit approval |
-| `REJECTED` | Version not accepted | `SUPERSEDED` when replacement arrives |
-| `SUPERSEDED` | Another version is the active/approved successor | Terminal |
-| `WITHDRAWN` | Uploader withdrew before decision according to policy | Terminal |
+| State               | Meaning                                               | Typical permitted next states                                     |
+| ------------------- | ----------------------------------------------------- | ----------------------------------------------------------------- |
+| `UPLOADED`          | New immutable version exists                          | `IN_REVIEW`, `WITHDRAWN`                                          |
+| `IN_REVIEW`         | Version is the active review target                   | `CHANGES_REQUESTED`, `APPROVED`, `REJECTED`                       |
+| `CHANGES_REQUESTED` | Version remains historical; new version required      | `SUPERSEDED` when replacement arrives                             |
+| `APPROVED`          | Exact version accepted                                | `SUPERSEDED` only when another version receives explicit approval |
+| `REJECTED`          | Version not accepted                                  | `SUPERSEDED` when replacement arrives                             |
+| `SUPERSEDED`        | Another version is the active/approved successor      | Terminal                                                          |
+| `WITHDRAWN`         | Uploader withdrew before decision according to policy | Terminal                                                          |
 
 ### 9.5 WorkDrive synchronization lifecycle
 
@@ -574,44 +574,44 @@ From `PENDING` or `SYNCING`, the system may enter `FAILED_RETRYABLE`, `FAILED_AC
 
 ### 9.6 Paid campaign lifecycle
 
-| State | Meaning | Typical permitted next states |
-| --- | --- | --- |
-| `DRAFT` | OMA intent is being prepared | `READY_FOR_APPROVAL`, `CANCELLED` |
-| `READY_FOR_APPROVAL` | Validated proposal awaits accountable approval | `CHANGES_REQUESTED`, `APPROVED`, `CANCELLED` |
-| `CHANGES_REQUESTED` | Material update required | `DRAFT`, `CANCELLED` |
-| `APPROVED` | Exact intent/budget/creative mapping approved | `ACTIVATING`, `CANCELLED` subject to policy |
-| `ACTIVATING` | Idempotent external mutation is in flight | `SCHEDULED`, `ACTIVE`, `FAILED`, `PARTIAL` |
-| `SCHEDULED` | Provider accepted future activation | `ACTIVE`, `PAUSED`, `FAILED`, `CANCELLED` according to provider/policy |
-| `ACTIVE` | Provider reports active delivery | `PAUSED`, `COMPLETED`, `FAILED` |
-| `PAUSED` | Provider reports paused | `ACTIVE`, `COMPLETED`, `FAILED` |
-| `PARTIAL` | Some external objects exist; reconciliation required | `ACTIVATING`, `FAILED`, `CANCELLED` only after reconciliation policy |
-| `FAILED` | Action/provider rejected or could not reconcile | `DRAFT`, `ACTIVATING`, `CANCELLED` as safely allowed |
-| `COMPLETED` | Provider reports campaign concluded | Terminal |
-| `CANCELLED` | OMA intent stopped; external cleanup status remains explicit | Terminal |
+| State                | Meaning                                                      | Typical permitted next states                                          |
+| -------------------- | ------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| `DRAFT`              | OMA intent is being prepared                                 | `READY_FOR_APPROVAL`, `CANCELLED`                                      |
+| `READY_FOR_APPROVAL` | Validated proposal awaits accountable approval               | `CHANGES_REQUESTED`, `APPROVED`, `CANCELLED`                           |
+| `CHANGES_REQUESTED`  | Material update required                                     | `DRAFT`, `CANCELLED`                                                   |
+| `APPROVED`           | Exact intent/budget/creative mapping approved                | `ACTIVATING`, `CANCELLED` subject to policy                            |
+| `ACTIVATING`         | Idempotent external mutation is in flight                    | `SCHEDULED`, `ACTIVE`, `FAILED`, `PARTIAL`                             |
+| `SCHEDULED`          | Provider accepted future activation                          | `ACTIVE`, `PAUSED`, `FAILED`, `CANCELLED` according to provider/policy |
+| `ACTIVE`             | Provider reports active delivery                             | `PAUSED`, `COMPLETED`, `FAILED`                                        |
+| `PAUSED`             | Provider reports paused                                      | `ACTIVE`, `COMPLETED`, `FAILED`                                        |
+| `PARTIAL`            | Some external objects exist; reconciliation required         | `ACTIVATING`, `FAILED`, `CANCELLED` only after reconciliation policy   |
+| `FAILED`             | Action/provider rejected or could not reconcile              | `DRAFT`, `ACTIVATING`, `CANCELLED` as safely allowed                   |
+| `COMPLETED`          | Provider reports campaign concluded                          | Terminal                                                               |
+| `CANCELLED`          | OMA intent stopped; external cleanup status remains explicit | Terminal                                                               |
 
 ## 10. Capability matrix
 
 Exact grants are tenant-configurable. `✓` means typical, `Scoped` means only assigned/exposed objects, and `Approval` means a separately granted accountable capability is required.
 
-| Capability area | Company Owner | Strategist | Production Manager | Contributor | Reviewer | Media Buyer | Client Viewer |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Manage company/brand inputs | ✓ | ✓ | View | Scoped input | View | View | View |
-| Manage website sources | Approval/configurable | ✓ | View | — | View | View | — |
-| Create/edit strategy | Comment/approval | ✓ | View | — | Review | Paid fields | View approved/exposed |
-| Approve strategy/plan | Approval | If granted | If granted | — | Approval | Paid approval if granted | — |
-| Create project/tasks | — | From plan if granted | ✓ | — | — | Paid tasks if granted | — |
-| Assign/manage board | — | Scoped | ✓ | Own task transitions | Review queue | Scoped | — |
-| Upload deliverables | Client inputs only | Scoped | ✓ | Assigned tasks | — | Paid assets if assigned | Client inputs only |
-| Internal comments | — | ✓ | ✓ | Scoped | ✓ | ✓ | — |
-| Client-visible comments | ✓ | If granted | If granted | If granted | If granted | If granted | ✓ |
-| Request changes/approve asset | Approval | If granted | If granted | — | Approval | If granted | If exposed/granted |
-| Manage pricing/quote | Accept/decline | — | View scope | — | — | — | View |
-| Connect WorkDrive | If granted | — | If granted | — | — | — | — |
-| Connect Meta/ad account | Approval/configurable | — | — | — | — | ✓ | — |
-| Prepare campaign draft | View/approve | Paid input | View | — | Review | ✓ | View exposed |
-| Launch/change spend | Approval | — | — | — | Approval if assigned | Approval + execute | — |
-| View operational dashboards | Company-safe | Strategy scope | ✓ | Own work | Review scope | Paid scope | Company-safe |
-| Export/audit | Company-safe | Scoped | Scoped | Own data if allowed | Scoped | Paid scope | Company-safe if allowed |
+| Capability area               | Company Owner         | Strategist           | Production Manager | Contributor          | Reviewer             | Media Buyer              | Client Viewer           |
+| ----------------------------- | --------------------- | -------------------- | ------------------ | -------------------- | -------------------- | ------------------------ | ----------------------- |
+| Manage company/brand inputs   | ✓                     | ✓                    | View               | Scoped input         | View                 | View                     | View                    |
+| Manage website sources        | Approval/configurable | ✓                    | View               | —                    | View                 | View                     | —                       |
+| Create/edit strategy          | Comment/approval      | ✓                    | View               | —                    | Review               | Paid fields              | View approved/exposed   |
+| Approve strategy/plan         | Approval              | If granted           | If granted         | —                    | Approval             | Paid approval if granted | —                       |
+| Create project/tasks          | —                     | From plan if granted | ✓                  | —                    | —                    | Paid tasks if granted    | —                       |
+| Assign/manage board           | —                     | Scoped               | ✓                  | Own task transitions | Review queue         | Scoped                   | —                       |
+| Upload deliverables           | Client inputs only    | Scoped               | ✓                  | Assigned tasks       | —                    | Paid assets if assigned  | Client inputs only      |
+| Internal comments             | —                     | ✓                    | ✓                  | Scoped               | ✓                    | ✓                        | —                       |
+| Client-visible comments       | ✓                     | If granted           | If granted         | If granted           | If granted           | If granted               | ✓                       |
+| Request changes/approve asset | Approval              | If granted           | If granted         | —                    | Approval             | If granted               | If exposed/granted      |
+| Manage pricing/quote          | Accept/decline        | —                    | View scope         | —                    | —                    | —                        | View                    |
+| Connect WorkDrive             | If granted            | —                    | If granted         | —                    | —                    | —                        | —                       |
+| Connect Meta/ad account       | Approval/configurable | —                    | —                  | —                    | —                    | ✓                        | —                       |
+| Prepare campaign draft        | View/approve          | Paid input           | View               | —                    | Review               | ✓                        | View exposed            |
+| Launch/change spend           | Approval              | —                    | —                  | —                    | Approval if assigned | Approval + execute       | —                       |
+| View operational dashboards   | Company-safe          | Strategy scope       | ✓                  | Own work             | Review scope         | Paid scope               | Company-safe            |
+| Export/audit                  | Company-safe          | Scoped               | Scoped             | Own data if allowed  | Scoped               | Paid scope               | Company-safe if allowed |
 
 No UI matrix substitutes for server-side capability checks.
 
@@ -853,6 +853,16 @@ This is product dependency order, not an implementation plan. Scope requires app
 
 **Impact:** The reference-hierarchy blocker is closed. A design-system specification may begin after repository inspection and explicit authorization; this decision does not authorize UI implementation.
 
+### DEC-014 — Platform foundation technical stack `RESOLVED 2026-08-25`
+
+**Decision:** Approve the following as the **`APPROVED IMPLEMENTATION BASELINE`** for the OMA AI platform foundation only: TypeScript (strict), Node.js Active LTS, NestJS API, Next.js App Router web, PostgreSQL, Prisma, Redis, BullMQ workers, pnpm monorepo, server-side sessions, Vitest, Playwright, and a modular monolith with separately runnable workers.
+
+**Reason:** The user explicitly approved this architecture and stack after reviewing the foundation technical plan on branch `001-oma-ai-product-foundation` (plan commit `9bf7525de72f76e79519f4cefce6f00a9951b691`).
+
+**Boundary:** This does **not** choose AI providers, WorkDrive byte ownership, website crawl vs commerce connector, Meta launch authority, pricing/billing ownership, production email/SMS vendors, cloud hosting, or CDN/object-storage products. Those remain gated by `DEC-003`–`DEC-012` and later slice plans. Future IMKAN identity federation remains a separate specification under `DEC-002`.
+
+**Impact:** Gate B is closed for platform-foundation tasks. `/speckit-tasks` may create foundation `tasks.md`. Product code and dependency installation still require an explicit `/speckit-implement` (or equivalent) authorization.
+
 ## 18. Definition of Done for any OMA AI slice
 
 A slice is complete only when all applicable items are true:
@@ -874,4 +884,4 @@ A slice is complete only when all applicable items are true:
 
 ## 19. Readiness status
 
-This specification is ready for repository setup, architecture discovery, an independent OMA platform-foundation technical plan, and a design-system specification when the user explicitly starts those stages. Resolved `DEC-013` governs the reference hierarchy. Each functional slice must resolve its named blocker decisions before planning that slice. Readiness does not authorize product implementation during the current `SETUP_ONLY` stage.
+Repository setup is complete. Platform-foundation architecture and stack are an `APPROVED IMPLEMENTATION BASELINE` under `DEC-014`. Resolved `DEC-013` governs the reference hierarchy. Each functional product slice must resolve its named blocker decisions (`DEC-003`–`DEC-012`) before planning that slice. Foundation `tasks.md` may be generated under `/speckit-tasks`. Product implementation and dependency installation require an explicit implementation authorization after tasks are approved.

@@ -1,8 +1,9 @@
 # OMA AI Product Foundation — Requirements Quality Checklist
 
-**Purpose:** Validate specification quality before `/speckit-plan`.
+**Purpose:** Validate specification quality and keep planning gates current through `/speckit-plan`.
 **Spec:** `../spec.md`
 **Reviewed:** 2026-08-25
+**Plan artifacts:** `../plan.md`, `../research.md`, `../data-model.md`, `../quickstart.md`, `../contracts/` (DRAFT FOR APPROVAL)
 
 ## Content quality
 
@@ -44,8 +45,9 @@
 - [ ] `DEC-007`: Select AI providers and data/retention/cost policy before AI technical planning.
 - [ ] `DEC-008`–`DEC-012`: Resolve or explicitly defer with safe, slice-specific boundaries.
 - [x] `DEC-013`: Approve the exact seven-product hierarchy: Planable, Linear, Frame.io, Adobe Workfront, Jasper Brand IQ, Semrush, and Smartly in their named roles.
+- [x] `DEC-014`: Approve platform-foundation stack as `APPROVED IMPLEMENTATION BASELINE` (TypeScript, Node LTS, NestJS, Next.js, PostgreSQL, Prisma, Redis, BullMQ, pnpm, server-side sessions, Vitest, Playwright, modular monolith + workers). Does not close `DEC-003`–`DEC-012`.
 
 ## Planning gate verdict
 
-**Verdict:** `READY FOR PLATFORM FOUNDATION PLAN`
-Repository setup, the independent OMA identity/tenant boundary, and the seven-product reference hierarchy are approved. Platform-foundation and design-system planning may begin only after repository inspection and an explicit request to enter planning. `DEC-003`–`DEC-012` remain gates for their affected functional slices. The current setup workflow must not generate product implementation tasks.
+**Verdict:** `FOUNDATION TASKS AUTHORIZED`
+Architecture/stack approved via `DEC-014`. Generate and maintain `tasks.md` for platform foundation only. `DEC-003`–`DEC-012` remain gates for their affected functional slices. Do not install dependencies or create product code until `/speckit-implement` is explicitly started.

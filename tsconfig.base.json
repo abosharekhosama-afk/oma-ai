@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "sourceMap": true,
+    "noUncheckedIndexedAccess": true,
+    "baseUrl": ".",
+    "paths": {
+      "@oma/domain": ["packages/domain/src/index.ts"],
+      "@oma/domain/*": ["packages/domain/src/*"],
+      "@oma/db": ["packages/db/src/index.ts"],
+      "@oma/config": ["packages/config/src/index.ts"],
+      "@oma/observability": ["packages/observability/src/index.ts"],
+      "@oma/i18n": ["packages/i18n/src/index.ts"],
+      "@oma/ui": ["packages/ui/src/index.ts"],
+      "@oma/api-client": ["packages/api-client/src/index.ts"]
+    }
+  }
+}
