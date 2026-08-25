@@ -33,3 +33,10 @@
 - Nest controllers use `apps/api/src/container.ts` singletons so Vitest/tsx runs without decorator metadata.
 - Local Postgres/Redis via Homebrew services when Docker Compose is unavailable; Compose file remains the documented default.
 - Default connector/AI adapters refuse operation until the matching DEC is resolved.
+
+## Acceptance re-run 2026-08-25 (pre-merge)
+
+- Commit under test: `487e4b5` (+ format hygiene commit if present)
+- Frozen install, format, lint, typecheck, vitest 28, playwright 40, builds, audit, migration on `oma_ai_acceptance`, secret scan: PASS
+- Operational: health live/ready, register/login/me/logout, CSRF negative 403, web proxy health: PASS
+- T096–T101 remain open; DEC-003–012 remain open; DEC-014 baseline unchanged

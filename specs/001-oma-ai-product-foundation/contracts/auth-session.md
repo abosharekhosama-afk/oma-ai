@@ -13,14 +13,14 @@
 
 ## Endpoints (logical)
 
-| Method | Path | Auth | Capability | Behavior |
-| --- | --- | --- | --- | --- |
-| POST | `/api/v1/auth/register` | no | — | Create user; start verification policy |
-| POST | `/api/v1/auth/login` | no | — | Verify credentials; create session; set cookie; rotate on success |
-| POST | `/api/v1/auth/logout` | yes | — | Revoke session; clear cookie |
-| GET | `/api/v1/auth/me` | yes | — | Current user + memberships summary + active tenant |
-| POST | `/api/v1/auth/password/change` | yes | — | Rehash; revoke other sessions per policy |
-| POST | `/api/v1/sessions/revoke` | yes | — | Revoke listed own sessions |
+| Method | Path                           | Auth | Capability | Behavior                                                          |
+| ------ | ------------------------------ | ---- | ---------- | ----------------------------------------------------------------- |
+| POST   | `/api/v1/auth/register`        | no   | —          | Create user; start verification policy                            |
+| POST   | `/api/v1/auth/login`           | no   | —          | Verify credentials; create session; set cookie; rotate on success |
+| POST   | `/api/v1/auth/logout`          | yes  | —          | Revoke session; clear cookie                                      |
+| GET    | `/api/v1/auth/me`              | yes  | —          | Current user + memberships summary + active tenant                |
+| POST   | `/api/v1/auth/password/change` | yes  | —          | Rehash; revoke other sessions per policy                          |
+| POST   | `/api/v1/sessions/revoke`      | yes  | —          | Revoke listed own sessions                                        |
 
 Exact verification (email link) flow is implementation-detail within OMA ownership.
 

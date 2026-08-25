@@ -35,15 +35,15 @@ See `plan.md` catalog. Minimum codes used by this contract: `tenant.manage`, `me
 
 ## Membership administration
 
-| Method | Path | Capability |
-| --- | --- | --- |
-| POST | `/api/v1/tenants` | `platform.tenant.create` |
-| GET | `/api/v1/tenants/current` | active membership |
-| POST | `/api/v1/tenants/current/invitations` | `membership.invite` |
-| POST | `/api/v1/memberships/{id}/suspend` | `membership.manage` |
-| POST | `/api/v1/memberships/{id}/remove` | `membership.manage` |
-| PUT | `/api/v1/memberships/{id}/capabilities` | `capability.assign` |
-| POST | `/api/v1/memberships/{id}/profiles` | `capability.assign` |
+| Method | Path                                    | Capability               |
+| ------ | --------------------------------------- | ------------------------ |
+| POST   | `/api/v1/tenants`                       | `platform.tenant.create` |
+| GET    | `/api/v1/tenants/current`               | active membership        |
+| POST   | `/api/v1/tenants/current/invitations`   | `membership.invite`      |
+| POST   | `/api/v1/memberships/{id}/suspend`      | `membership.manage`      |
+| POST   | `/api/v1/memberships/{id}/remove`       | `membership.manage`      |
+| PUT    | `/api/v1/memberships/{id}/capabilities` | `capability.assign`      |
+| POST   | `/api/v1/memberships/{id}/profiles`     | `capability.assign`      |
 
 ## Capability check
 

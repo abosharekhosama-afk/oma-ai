@@ -34,23 +34,23 @@ Deliver the **independent OMA AI platform foundation**: repository layout, modul
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
-| Principle | Foundation plan compliance |
-| --- | --- |
+| Principle                                | Foundation plan compliance                                                                                                 |
+| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | I. Product truth precedes implementation | Spec remains authority; stack approved via `DEC-014`; `DEC-003`–`012` not silently closed; no product code until implement |
-| II. One owner / SoT per domain | Domain map in this plan + `data-model.md`; adapter ports for external SoTs |
-| III. Tenant isolation & least privilege | Session-derived tenant; capability gates; cross-tenant negative E2E required |
-| IV. AI proposes; humans decide | `AiProviderPort` + provenance; no auto-approval paths |
-| V. Traceability | ID conventions and future link fields reserved; foundation entities carry correlation IDs |
-| VI. Explicit state machines | Job/session/membership states defined; product workflow machines remain in spec for later slices |
-| VII. Files/versions integrity | Metadata/version refs only; approved-version immutability as invariant for later deliverables |
-| VIII. Explicit integrations | Connector ports + idempotency/webhook/reconcile contracts |
-| IX. Accessible bilingual UX | i18n/dir/a11y/reduced-motion foundations in shell architecture |
-| X. Completion is evidence | `quickstart.md` E2E proofs for auth/tenant/permission |
-| XI. Controlled cost/agents | Modular monolith; no premium services assumed |
-| XII. Specs evolve | Plan artifacts under `specs/001-...`; templates untouched for product truth |
-| XIII. Independent coherent design | `DEC-013` hierarchy; original OMA tokens; no IMKAN ONE visual copy |
+| II. One owner / SoT per domain           | Domain map in this plan + `data-model.md`; adapter ports for external SoTs                                                 |
+| III. Tenant isolation & least privilege  | Session-derived tenant; capability gates; cross-tenant negative E2E required                                               |
+| IV. AI proposes; humans decide           | `AiProviderPort` + provenance; no auto-approval paths                                                                      |
+| V. Traceability                          | ID conventions and future link fields reserved; foundation entities carry correlation IDs                                  |
+| VI. Explicit state machines              | Job/session/membership states defined; product workflow machines remain in spec for later slices                           |
+| VII. Files/versions integrity            | Metadata/version refs only; approved-version immutability as invariant for later deliverables                              |
+| VIII. Explicit integrations              | Connector ports + idempotency/webhook/reconcile contracts                                                                  |
+| IX. Accessible bilingual UX              | i18n/dir/a11y/reduced-motion foundations in shell architecture                                                             |
+| X. Completion is evidence                | `quickstart.md` E2E proofs for auth/tenant/permission                                                                      |
+| XI. Controlled cost/agents               | Modular monolith; no premium services assumed                                                                              |
+| XII. Specs evolve                        | Plan artifacts under `specs/001-...`; templates untouched for product truth                                                |
+| XIII. Independent coherent design        | `DEC-013` hierarchy; original OMA tokens; no IMKAN ONE visual copy                                                         |
 
 **Gate A (Definition ready):** Pass — product spec + checklist ready for foundation plan.
 **Gate B (Architecture ready):** Pass — stack/architecture approved as `APPROVED IMPLEMENTATION BASELINE` (`DEC-014`).
@@ -116,8 +116,8 @@ tests/
 > No constitution violations requiring justification. Complexity stays at modular monolith + workers as required by the user.
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
-| --- | --- | --- |
-| — | — | — |
+| --------- | ---------- | ------------------------------------ |
+| —         | —          | —                                    |
 
 ## Architecture summary
 
@@ -131,41 +131,41 @@ tests/
 
 ### Domain / source-of-truth map (foundation)
 
-| Domain | Logical owner | Storage owner | Authoritative writer | Readers | Tenant gate | Permission gate | Events | Consumers |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| User account | OMA Identity | OMA Postgres | Identity module | Self, Platform Owner (audited) | N/A (user-global) | account.* | `user.created/updated` | Tenant membership, audit |
-| Session | OMA Identity | OMA Postgres | Identity module | Owning user only | Bound memberships | session.* | `session.created/revoked` | API authn |
-| Tenant/Company | OMA Tenant | OMA Postgres | Tenant module | Members | Tenant id from session | tenant.manage | `tenant.created/updated` | All domain modules |
-| Membership | OMA Tenant | OMA Postgres | Tenant module | Tenant admins; self limited | Tenant id | membership.* | `membership.*` | Authz, notifications |
-| Capability grant | OMA Authz | OMA Postgres | Tenant module | Authz middleware | Tenant id | capability.assign | `capability.changed` | All commands |
-| Audit event | OMA Security | OMA Postgres (append-only) | Audit writer | Authorized auditors | Tenant-scoped when applicable | audit.read | n/a | Compliance, support |
-| Outbox/job | OMA Platform | Postgres + Redis queue | Emitting module / worker | Operators | Re-resolved in worker | job.admin | `job.*` | Workers, observability |
-| Notification (skeleton) | Originating domain (event) | OMA Postgres notification store | Origin command writes outbox; Notification consumer materializes recipient rows | Recipient (tenant-safe) | Tenant + visibility re-check on read/deep link | notification.read | `notification.*` | Web UI, mail worker |
-| Object bytes | TBD `DEC-003` | External via port | Storage adapter | Authorized via OMA gate | Tenant binding | file.* | `file.sync.*` | Production later |
-| AI generation | OMA AI governance | OMA Postgres provenance | AI module via port | Authorized roles | Tenant | ai.generate | `ai.*` | Strategy later |
-| External connectors | Adapter boundary | Provider + OMA projection | Connector adapters | Scoped modules | Tenant-bound connection | connector.* | `connector.*` | Sync/reconcile |
+| Domain                  | Logical owner              | Storage owner                   | Authoritative writer                                                            | Readers                        | Tenant gate                                    | Permission gate   | Events                    | Consumers                |
+| ----------------------- | -------------------------- | ------------------------------- | ------------------------------------------------------------------------------- | ------------------------------ | ---------------------------------------------- | ----------------- | ------------------------- | ------------------------ |
+| User account            | OMA Identity               | OMA Postgres                    | Identity module                                                                 | Self, Platform Owner (audited) | N/A (user-global)                              | account.*         | `user.created/updated`    | Tenant membership, audit |
+| Session                 | OMA Identity               | OMA Postgres                    | Identity module                                                                 | Owning user only               | Bound memberships                              | session.*         | `session.created/revoked` | API authn                |
+| Tenant/Company          | OMA Tenant                 | OMA Postgres                    | Tenant module                                                                   | Members                        | Tenant id from session                         | tenant.manage     | `tenant.created/updated`  | All domain modules       |
+| Membership              | OMA Tenant                 | OMA Postgres                    | Tenant module                                                                   | Tenant admins; self limited    | Tenant id                                      | membership.*      | `membership.*`            | Authz, notifications     |
+| Capability grant        | OMA Authz                  | OMA Postgres                    | Tenant module                                                                   | Authz middleware               | Tenant id                                      | capability.assign | `capability.changed`      | All commands             |
+| Audit event             | OMA Security               | OMA Postgres (append-only)      | Audit writer                                                                    | Authorized auditors            | Tenant-scoped when applicable                  | audit.read        | n/a                       | Compliance, support      |
+| Outbox/job              | OMA Platform               | Postgres + Redis queue          | Emitting module / worker                                                        | Operators                      | Re-resolved in worker                          | job.admin         | `job.*`                   | Workers, observability   |
+| Notification (skeleton) | Originating domain (event) | OMA Postgres notification store | Origin command writes outbox; Notification consumer materializes recipient rows | Recipient (tenant-safe)        | Tenant + visibility re-check on read/deep link | notification.read | `notification.*`          | Web UI, mail worker      |
+| Object bytes            | TBD `DEC-003`              | External via port               | Storage adapter                                                                 | Authorized via OMA gate        | Tenant binding                                 | file.*            | `file.sync.*`             | Production later         |
+| AI generation           | OMA AI governance          | OMA Postgres provenance         | AI module via port                                                              | Authorized roles               | Tenant                                         | ai.generate       | `ai.*`                    | Strategy later           |
+| External connectors     | Adapter boundary           | Provider + OMA projection       | Connector adapters                                                              | Scoped modules                 | Tenant-bound connection                        | connector.*       | `connector.*`             | Sync/reconcile           |
 
 Future IMKAN federation: external subject/company **mapping table** only; canonical OMA IDs unchanged (`FR-010`).
 
 ### Foundation component → requirement mapping
 
-| Component | Primary FR / NFR / US |
-| --- | --- |
-| Session auth + logout/suspend | FR-001–FR-010, NFR-001–002 |
-| Tenant context resolution | FR-001–FR-002, FR-008 |
-| Membership invite/suspend/remove | FR-004–FR-007 |
-| Capability checks | FR-003, §10 matrix (foundation subset) |
-| Audit trail | FR-009, FR-104, NFR-006 |
-| Idempotency + concurrency | FR-046 pattern, NFR-007–008 |
-| Outbox / jobs | NFR-009–010, NFR-021–022 |
-| API conventions | NFR-025–027, §11 style for connectors |
-| App shell + tokens | FR-115–FR-124, DEC-013, NFR-016–020 |
-| i18n/RTL/a11y | NFR-016–020, FR-123 |
-| AI port + provenance | FR-106–FR-114 (boundary only), DEC-007 open |
-| Storage/connector ports | FR-076–FR-095 (ports only), DEC-003/004/006 open |
-| Security tests | M-010, Gate III, DoD §18 |
-| Observability/health | NFR-021–024 |
-| E2E proof | US patterns + DoD; `quickstart.md` |
+| Component                        | Primary FR / NFR / US                            |
+| -------------------------------- | ------------------------------------------------ |
+| Session auth + logout/suspend    | FR-001–FR-010, NFR-001–002                       |
+| Tenant context resolution        | FR-001–FR-002, FR-008                            |
+| Membership invite/suspend/remove | FR-004–FR-007                                    |
+| Capability checks                | FR-003, §10 matrix (foundation subset)           |
+| Audit trail                      | FR-009, FR-104, NFR-006                          |
+| Idempotency + concurrency        | FR-046 pattern, NFR-007–008                      |
+| Outbox / jobs                    | NFR-009–010, NFR-021–022                         |
+| API conventions                  | NFR-025–027, §11 style for connectors            |
+| App shell + tokens               | FR-115–FR-124, DEC-013, NFR-016–020              |
+| i18n/RTL/a11y                    | NFR-016–020, FR-123                              |
+| AI port + provenance             | FR-106–FR-114 (boundary only), DEC-007 open      |
+| Storage/connector ports          | FR-076–FR-095 (ports only), DEC-003/004/006 open |
+| Security tests                   | M-010, Gate III, DoD §18                         |
+| Observability/health             | NFR-021–024                                      |
+| E2E proof                        | US patterns + DoD; `quickstart.md`               |
 
 ### Authentication & tenant threat model (foundation)
 
@@ -184,17 +184,17 @@ For this foundation, **Tenant = the single company workspace** identity. Do not 
 
 ### Foundation capability catalog (machine codes)
 
-| Code | Intent | Typical profiles |
-| --- | --- | --- |
-| `tenant.manage` | Update tenant profile/settings | Company Owner, Platform Owner (scoped) |
-| `membership.invite` | Invite members | Company Owner / Production Manager if granted |
-| `membership.manage` | Suspend/remove members | Company Owner |
-| `capability.assign` | Grant/revoke capability codes | Company Owner |
-| `audit.read` | Read tenant audit events | Company Owner, Platform Owner |
-| `job.read` | Read job status for tenant | Managers / actor-owned jobs |
-| `notification.read` | Read own notifications | Any member |
-| `platform.tenant.create` | Create tenants (bootstrap/platform) | Platform Owner |
-| `platform.support.access` | Break-glass cross-tenant support (audited) | Platform Owner only |
+| Code                      | Intent                                     | Typical profiles                              |
+| ------------------------- | ------------------------------------------ | --------------------------------------------- |
+| `tenant.manage`           | Update tenant profile/settings             | Company Owner, Platform Owner (scoped)        |
+| `membership.invite`       | Invite members                             | Company Owner / Production Manager if granted |
+| `membership.manage`       | Suspend/remove members                     | Company Owner                                 |
+| `capability.assign`       | Grant/revoke capability codes              | Company Owner                                 |
+| `audit.read`              | Read tenant audit events                   | Company Owner, Platform Owner                 |
+| `job.read`                | Read job status for tenant                 | Managers / actor-owned jobs                   |
+| `notification.read`       | Read own notifications                     | Any member                                    |
+| `platform.tenant.create`  | Create tenants (bootstrap/platform)        | Platform Owner                                |
+| `platform.support.access` | Break-glass cross-tenant support (audited) | Platform Owner only                           |
 
 Runtime authorization checks **codes**, never job titles (`FR-003`). Profiles expand to codes via `CapabilityProfile` bundles (`data-model.md`).
 
@@ -226,24 +226,24 @@ Runtime authorization checks **codes**, never job titles (`FR-003`). Profiles ex
 
 ### Foundation screens (FR-124)
 
-| Archetype | Primary reference behavior | OMA adaptation | Represented SoT / state | A11y / i18n |
-| --- | --- | --- | --- | --- |
-| Auth (login/register) | Linear calm density | Original OMA branding; no third-party auth chrome | Session ACTIVE/REVOKED; credential errors | EN/AR, LTR/RTL, keyboard, visible focus, non-color errors |
-| Persistent product shell / Home | Linear shell + Planable content priority later | Capability-filtered rail; empty/denied nav items hidden or disabled with explanation | Active tenant from session; membership ACTIVE | Same + skip link; reduced motion |
-| Tenant / company context switcher | Linear workspace switcher pattern | Lists only authorized memberships; server switch command | `session.active_tenant_id` + Membership | Announces active company; RTL-safe menu |
-| Permission-denied / empty foundation states | Linear clarity | Actionable next step; no cross-tenant leakage | `PERMISSION_DENIED` / empty membership | Localized `message_key` |
+| Archetype                                   | Primary reference behavior                     | OMA adaptation                                                                       | Represented SoT / state                       | A11y / i18n                                               |
+| ------------------------------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------ | --------------------------------------------- | --------------------------------------------------------- |
+| Auth (login/register)                       | Linear calm density                            | Original OMA branding; no third-party auth chrome                                    | Session ACTIVE/REVOKED; credential errors     | EN/AR, LTR/RTL, keyboard, visible focus, non-color errors |
+| Persistent product shell / Home             | Linear shell + Planable content priority later | Capability-filtered rail; empty/denied nav items hidden or disabled with explanation | Active tenant from session; membership ACTIVE | Same + skip link; reduced motion                          |
+| Tenant / company context switcher           | Linear workspace switcher pattern              | Lists only authorized memberships; server switch command                             | `session.active_tenant_id` + Membership       | Announces active company; RTL-safe menu                   |
+| Permission-denied / empty foundation states | Linear clarity                                 | Actionable next step; no cross-tenant leakage                                        | `PERMISSION_DENIED` / empty membership        | Localized `message_key`                                   |
 
 ## Testing strategy
 
-| Layer | Scope |
-| --- | --- |
-| Unit | Domain transitions, capability evaluation, idempotency key handling |
+| Layer       | Scope                                                                   |
+| ----------- | ----------------------------------------------------------------------- |
+| Unit        | Domain transitions, capability evaluation, idempotency key handling     |
 | Integration | API + Postgres (testcontainers or Compose); session + tenant predicates |
-| Contract | OpenAPI stability for auth/tenant/audit/jobs |
-| E2E | Playwright journeys in `quickstart.md` |
-| A11y/RTL | axe + manual RTL smoke; keyboard paths for shell |
-| Security | Cross-tenant suite mandatory for merge of authz code |
-| Visual | Deferred lightweight screenshot gates after UI tokens land |
+| Contract    | OpenAPI stability for auth/tenant/audit/jobs                            |
+| E2E         | Playwright journeys in `quickstart.md`                                  |
+| A11y/RTL    | axe + manual RTL smoke; keyboard paths for shell                        |
+| Security    | Cross-tenant suite mandatory for merge of authz code                    |
+| Visual      | Deferred lightweight screenshot gates after UI tokens land              |
 
 ## Local development & operations (planned)
 
@@ -263,7 +263,6 @@ Foundation tasks must **not** implement WorkDrive sync, website crawl, Meta laun
 
 `DEC-003`–`DEC-012` remain open with safe boundaries in `research.md` §6.
 `DEC-001`, `DEC-002`, `DEC-013` resolved and binding.
-
 
 ## Implementation Sync Notes (2026-08-25)
 
