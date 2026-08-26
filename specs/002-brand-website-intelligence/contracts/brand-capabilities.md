@@ -1,7 +1,7 @@
 # Contract: Brand Capability Codes
 
-**Feature**: `002-brand-website-intelligence`  
-**Status**: `DRAFT FOR REVIEW`  
+**Feature**: `002-brand-website-intelligence`
+**Status**: `DRAFT FOR REVIEW`
 **Integration:** Extend Foundation capability registry + `CapabilitiesGuard.routeRequirements` (both must stay in sync).
 
 ---

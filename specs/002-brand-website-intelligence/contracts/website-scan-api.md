@@ -1,7 +1,7 @@
 # Contract: Website Scan API
 
-**Feature**: `002-brand-website-intelligence`  
-**Status**: `DRAFT FOR REVIEW` — documentation only  
+**Feature**: `002-brand-website-intelligence`
+**Status**: `DRAFT FOR REVIEW` — documentation only
 **Tenant**: Server session; brand scoped.
 
 ---
@@ -24,7 +24,7 @@ Async progress also visible via Foundation `GET /jobs/:jobRunId` with `job.read`
 
 Start a public crawl scan.
 
-**Headers:** `Idempotency-Key` required.  
+**Headers:** `Idempotency-Key` required.
 **Body:**
 
 ```json
@@ -118,25 +118,25 @@ List attempts newest-first; cursor pagination; filter `status`.
 
 ## `POST /api/v1/brands/:brandId/scans/:scanId/cancel`
 
-**Headers:** `Idempotency-Key` recommended.  
+**Headers:** `Idempotency-Key` recommended.
 **Body:** `{ "reason"?: string }`
 
 **Behavior:** Set `cancel_requested_at`; worker observes and ends in `CANCELLED`; JobRun cancelled/dead per foundation pattern. If already terminal, idempotent return current status.
 
-**Response `200`:** updated scan.  
-**Audit:** `brand.scan.cancelled`.  
+**Response `200`:** updated scan.
+**Audit:** `brand.scan.cancelled`.
 **Approve rule:** Cancelled attempts **cannot** approve (`FR-BWI-029c`).
 
 ---
 
 ## `POST /api/v1/brands/:brandId/scans/:scanId/retry`
 
-**Headers:** `Idempotency-Key` required.  
+**Headers:** `Idempotency-Key` required.
 **Body:** `{ "config"?: object }`
 
 **Behavior:** Creates **new** `ScanAttempt` linked via `parent_attempt_id`; does not reopen parent. Parent must be `FAILED` | `PARTIAL` | `CANCELLED` (or product-allowed set).
 
-**Response `202`:** same shape as start.  
+**Response `202`:** same shape as start.
 **Audit:** `brand.scan.retried`.
 
 ---

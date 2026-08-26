@@ -2,7 +2,7 @@
 
 **Feature Branch**: `002-brand-website-intelligence`
 **Created**: 2026-08-26
-**Status**: `CLARIFIED` — DP-001–DP-005 applied 2026-08-26; technical plan artifacts exist as `DRAFT FOR REVIEW` under `/speckit-plan` (`PLAN_ONLY`); live crawl/AI vendor wiring still gated until `DEC-004`/`DEC-007` close for those choices
+**Status**: `CLARIFIED` — DP-001–DP-005 applied; plan `APPROVED FOR TASK DECOMPOSITION`; `tasks.md` present (`TASKS_ONLY`); live crawl/AI vendor wiring still gated until `DEC-004`/`DEC-007` close for those choices
 **Input**: First product feature after OMA AI Product Foundation — Brand Workspace, website connection, safe async scan, discovery, evidence-backed Brand & Product Intelligence Profile with human approval
 **Parent baseline**: `specs/001-oma-ai-product-foundation/spec.md` — productizes Foundation **US-001** intent as a **Brand Workspace** child of the existing tenant/company (not a parallel company registry).
 **Foundation FR binding (honest subset)**: primarily **FR-012–FR-021** and **FR-024** (sources, safe ingest, observable jobs, extraction, evidence, human correct/accept/reject, refresh without silent overwrite of confirmed rules, insufficient-evidence handling).
@@ -509,8 +509,10 @@ Invalid transitions MUST be rejected with stable errors and no partial unauthori
 
 Clarifications: **`CLARIFY_APPLY_ONLY`** for DP-001–DP-005 (session 2026-08-26).
 
-Planning: **`PLAN_ONLY`** artifacts (2026-08-26) — `plan.md`, `research.md`, `data-model.md`, `contracts/`, `quickstart.md` — status **`DRAFT FOR REVIEW`**. No `tasks.md`, product code, dependencies, migrations, or UI in that stage.
+Planning: **`PLAN_ONLY`** artifacts — `plan.md`, `research.md`, `data-model.md`, `contracts/`, `quickstart.md` — plan status **`APPROVED FOR TASK DECOMPOSITION`**.
 
-**`PLAN_READINESS`:** `READY_WITH_EXPLICIT_GATES` (plan drafted; live crawl vendor and live AI wiring remain blocked until `DEC-004`/`DEC-007` close for those choices). No waiver substitutes for required live-provider decisions.
+Tasks: **`TASKS_ONLY`** — `tasks.md` defines provider-neutral implementation work plus blocked Phase BG. No product code, dependencies, migrations, or UI in that stage.
 
-Allowed next step after plan review: `/speckit-tasks` (not started).
+**`PLAN_READINESS`:** `READY_WITH_EXPLICIT_GATES` (tasks drafted; live crawl vendor and live AI wiring remain blocked until `DEC-004`/`DEC-007` close for those choices). No waiver substitutes for required live-provider decisions.
+
+Allowed next step after task review: `/speckit-implement` (not started).

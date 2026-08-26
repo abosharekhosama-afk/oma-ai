@@ -1,8 +1,8 @@
 # Data Model: Brand Website Intelligence
 
-**Feature**: `002-brand-website-intelligence`  
-**Date**: 2026-08-26  
-**Status**: `DRAFT FOR REVIEW` — logical model only (**no Prisma schema / migration in PLAN_ONLY**)  
+**Feature**: `002-brand-website-intelligence`
+**Date**: 2026-08-26
+**Status**: `DRAFT FOR REVIEW` — logical model only (**no Prisma schema / migration in PLAN_ONLY**)
 **Spec**: [`spec.md`](./spec.md) | **Plan**: [`plan.md`](./plan.md)
 
 Conventions inherit Foundation (`001` data-model): ULID string ids, `tenant_id` on tenant-scoped rows, camelCase in Prisma later, snake_case in API JSON, append-only audit, optimistic `version` / `row_version` on mutable aggregates.
@@ -258,7 +258,7 @@ Unique on `profile_version_id` for successful approval.
 
 ### ProfileVersion
 
-`DRAFT` → `NEEDS_REVIEW` → `APPROVED` | `REJECTED`.  
+`DRAFT` → `NEEDS_REVIEW` → `APPROVED` | `REJECTED`.
 `APPROVED` → `SUPERSEDED` when a newer version is approved.
 
 Reject version: **Version approve** capability only.

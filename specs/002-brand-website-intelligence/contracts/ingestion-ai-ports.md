@@ -1,8 +1,8 @@
 # Contract: Ingestion & AI Ports (002 usage)
 
-**Feature**: `002-brand-website-intelligence`  
-**Status**: `DRAFT FOR REVIEW`  
-**Authority**: Foundation `packages/domain` ports + clarifications `SR-002-004-MODE`, `SR-002-007-AI`  
+**Feature**: `002-brand-website-intelligence`
+**Status**: `DRAFT FOR REVIEW`
+**Authority**: Foundation `packages/domain` ports + clarifications `SR-002-004-MODE`, `SR-002-007-AI`
 **Note:** Extends **usage** of existing ports; does not select vendors or add SDKs.
 
 ---

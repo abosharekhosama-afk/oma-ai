@@ -1,8 +1,8 @@
 # Contract: Brand Workspace API
 
-**Feature**: `002-brand-website-intelligence`  
-**Status**: `DRAFT FOR REVIEW` — documentation only  
-**Base**: `/api/v1` per Foundation `api-conventions.md`  
+**Feature**: `002-brand-website-intelligence`
+**Status**: `DRAFT FOR REVIEW` — documentation only
+**Base**: `/api/v1` per Foundation `api-conventions.md`
 **Tenant**: Resolved from authenticated server session (`active_tenant_id`); client brand ids select among authorized resources only.
 
 ---
@@ -130,7 +130,7 @@ All routes: `AuthGuard` + CSRF on mutating methods + `CapabilitiesGuard` + activ
 
 Connect or replace primary public HTTPS source.
 
-**Capability:** `brand.website.connect`  
+**Capability:** `brand.website.connect`
 **Headers:** `Idempotency-Key` required.
 
 **Body:**

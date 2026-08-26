@@ -1,6 +1,6 @@
 # Contract: Discovery & Profile API
 
-**Feature**: `002-brand-website-intelligence`  
+**Feature**: `002-brand-website-intelligence`
 **Status**: `DRAFT FOR REVIEW` — documentation only
 
 ---
@@ -114,7 +114,7 @@ History list: id, status, created_at, approved_at, scan_attempt_id, ai_availabil
 
 Human edits on Draft / Needs review only.
 
-**Headers:** `If-Match` / body `row_version`.  
+**Headers:** `If-Match` / body `row_version`.
 **Body:** patch of editable fields / insight text values.
 
 **Behavior:** Creates `HumanEdit` rows; sets insight `USER_CORRECTED` / `USER_CONFIRMED` as appropriate; bumps `row_version`.
@@ -129,14 +129,14 @@ Human edits on Draft / Needs review only.
 
 ### `POST .../insights/:insightId/accept`
 
-**Body:** `{ "row_version": n }`  
-**Effect:** `review_status=ACCEPTED`; info_state → `USER_CONFIRMED` (from AI_INFERRED or OBSERVED).  
-**Capability:** `brand.insight.decide` only.  
+**Body:** `{ "row_version": n }`
+**Effect:** `review_status=ACCEPTED`; info_state → `USER_CONFIRMED` (from AI_INFERRED or OBSERVED).
+**Capability:** `brand.insight.decide` only.
 **Audit:** `brand.insight.accepted`.
 
 ### `POST .../insights/:insightId/reject`
 
-Same pattern → `REJECTED`; excluded from approved-claims set.  
+Same pattern → `REJECTED`; excluded from approved-claims set.
 **Audit:** `brand.insight.rejected`.
 
 Whole-version reject is a **separate** endpoint requiring `brand.version.approve`.
@@ -145,7 +145,7 @@ Whole-version reject is a **separate** endpoint requiring `brand.version.approve
 
 ## `POST .../profiles/:versionId/approve`
 
-**Capability:** `brand.version.approve`  
+**Capability:** `brand.version.approve`
 **Headers:** `Idempotency-Key` required (e.g. `profile:approve:{versionId}`).
 
 **Body:**
@@ -186,10 +186,10 @@ Whole-version reject is a **separate** endpoint requiring `brand.version.approve
 
 ## `POST .../profiles/:versionId/reject`
 
-**Capability:** `brand.version.approve` (DP-004)  
-**Body:** `{ "row_version": n, "reason": "…" }`  
-**Effect:** status → `REJECTED`; no Approved pointer change.  
-**Audit:** `brand.profile.rejected`.  
+**Capability:** `brand.version.approve` (DP-004)
+**Body:** `{ "row_version": n, "reason": "…" }`
+**Effect:** status → `REJECTED`; no Approved pointer change.
+**Audit:** `brand.profile.rejected`.
 **Forbidden** for Insight decide capability alone → `403`.
 
 ---

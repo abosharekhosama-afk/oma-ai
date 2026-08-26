@@ -1,9 +1,9 @@
 # Quickstart Validation Guide — Brand Website Intelligence
 
-**Feature:** `002-brand-website-intelligence`  
-**Status:** `DRAFT FOR REVIEW`  
-**Purpose:** Define how 002 behavior will be proven after implementation.  
-**Not:** runnable today (PLAN_ONLY — no product code in this stage).
+**Feature:** `002-brand-website-intelligence`
+**Status:** `APPROVED FOR TASK DECOMPOSITION` (proof guide; implement not started)
+**Purpose:** Define how 002 behavior will be proven after implementation.
+**Not:** runnable today (`TASKS_ONLY` — no product code in this stage).
 
 ## Prerequisites (when implemented)
 

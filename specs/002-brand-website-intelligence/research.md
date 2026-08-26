@@ -1,8 +1,8 @@
 # Research: Brand Website Intelligence
 
-**Feature**: `002-brand-website-intelligence`  
-**Date**: 2026-08-26  
-**Plan status**: `DRAFT FOR REVIEW`  
+**Feature**: `002-brand-website-intelligence`
+**Date**: 2026-08-26
+**Plan status**: `APPROVED FOR TASK DECOMPOSITION`
 **Authority**: [`spec.md`](./spec.md), clarifications DP-001–DP-005, Foundation `DEC-004` / `DEC-007` / `DEC-003`
 
 This document records **options for future decisions**. Nothing here closes Foundation DECs or selects production vendors.

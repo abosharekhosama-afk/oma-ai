@@ -2,9 +2,9 @@
 
 **Purpose**: Validate specification completeness and quality before planning
 **Created**: 2026-08-26
-**Updated**: 2026-08-26 (PLAN_ONLY draft artifacts; prior CLARIFY_APPLY DP-001–DP-005)
+**Updated**: 2026-08-26 (TASKS_ONLY; plan APPROVED FOR TASK DECOMPOSITION)
 **Feature**: [spec.md](../spec.md)
-**Stage**: `CLARIFIED` / plan `DRAFT FOR REVIEW` / `READY_WITH_EXPLICIT_GATES`
+**Stage**: `CLARIFIED` / plan `APPROVED FOR TASK DECOMPOSITION` / tasks drafted / `READY_WITH_EXPLICIT_GATES`
 
 ## Content Quality
 
@@ -49,5 +49,5 @@
 ## Notes
 
 - Checklist `[x]` means **requirements quality** after clarify-apply, not implementation done.
-- Plan artifacts (`plan.md`, `research.md`, `data-model.md`, `contracts/`, `quickstart.md`) exist as **`DRAFT FOR REVIEW`**; `tasks.md` and implement not started.
-- Verdict: **PLAN DRAFTED UNDER GATES** — do not select crawl/AI vendors or use waiver as a substitute for live-provider decisions.
+- Plan status **`APPROVED FOR TASK DECOMPOSITION`**; `tasks.md` drafted (`TASKS_ONLY`). Implement not started.
+- Verdict: **TASKS DRAFTED UNDER GATES** — provider-neutral core only; Phase BG live crawl/AI/snapshots remain blocked; do not claim live-integration ready.

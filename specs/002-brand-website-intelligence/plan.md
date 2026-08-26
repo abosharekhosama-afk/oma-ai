@@ -4,8 +4,8 @@
 
 **Input**: Clarified feature specification (`CLARIFY_APPLY` DP-001–DP-005; slice resolutions `SR-002-004-MODE`, `SR-002-007-AI`)
 
-**Plan status**: `DRAFT FOR REVIEW`  
-**Mode**: `PLAN_ONLY` — no `tasks.md`, no product code, no migrations, no dependency installs
+**Plan status**: `APPROVED FOR TASK DECOMPOSITION`
+**Mode**: `TASKS_ONLY` complete — `tasks.md` defines implementation work; no product code, migrations, or dependency installs until `/speckit-implement`
 
 ---
 
@@ -53,7 +53,7 @@ Fixed product boundaries for this plan:
 
 | Principle | Plan compliance |
 | --------- | --------------- |
-| I. Product truth precedes implementation | Spec + clarifications are authority; plan is `DRAFT FOR REVIEW`; no code in PLAN_ONLY |
+| I. Product truth precedes implementation | Spec + clarifications are authority; plan is `APPROVED FOR TASK DECOMPOSITION`; tasks defined; no code until implement |
 | II. One owner / SoT | Brand Intelligence owns workspace/scan/evidence/profile; live website remains external; Foundation owns identity/tenant/audit/jobs primitives |
 | III. Tenant isolation | All entities `tenantId`-scoped; workers re-authz; cross-tenant denial in quickstart |
 | IV. AI proposes; humans decide | `AiProviderPort` optional; refusing/not-configured path; human approve only |
@@ -67,11 +67,11 @@ Fixed product boundaries for this plan:
 | XII. Specs evolve | Artifacts under `specs/002-...` only |
 | XIII. Independent design | DEC-013: Semrush / Jasper Brand IQ / Linear / Planable pattern roles; original OMA UI |
 
-**Gate A:** Pass (clarified spec).  
-**Gate B:** Pass for **gated** architecture (ports + public-only); **Fail** if interpreted as authorizing live crawl/AI vendors.  
-**Gate C–E:** Not started (`tasks.md` / implement deferred).
+**Gate A:** Pass (clarified spec).
+**Gate B:** Pass for **gated** architecture (ports + public-only); **Fail** if interpreted as authorizing live crawl/AI vendors.
+**Gate C:** `tasks.md` drafted (`TASKS_ONLY`). **Gate D–E:** Implement deferred.
 
-**Post-design re-check:** PASS for `DRAFT FOR REVIEW` under explicit Decision Gates below.
+**Post-design re-check:** PASS for `APPROVED FOR TASK DECOMPOSITION` under explicit Decision Gates below.
 
 ---
 
@@ -94,7 +94,7 @@ Fixed product boundaries for this plan:
 
 ```text
 specs/002-brand-website-intelligence/
-├── plan.md                 # This file (DRAFT FOR REVIEW)
+├── plan.md                 # This file (APPROVED FOR TASK DECOMPOSITION)
 ├── research.md             # Phase 0 — future vendor options, not decisions
 ├── data-model.md           # Phase 1 — logical model (no Prisma migration)
 ├── quickstart.md           # Phase 1 — proof journeys
@@ -106,7 +106,7 @@ specs/002-brand-website-intelligence/
 │   └── brand-capabilities.md
 ├── checklists/requirements.md
 ├── spec.md
-└── tasks.md                # NOT created in PLAN_ONLY
+└── tasks.md                # TASKS_ONLY — provider-neutral core + blocked gates
 ```
 
 ### Source code layout (planned — create only at implement)
@@ -378,4 +378,4 @@ No constitution violations. Complexity remains modular monolith + workers.
 
 ## Next stage
 
-After plan review/approval: `/speckit-tasks` (not this stage). Implement only after explicit `/speckit-implement` and while respecting Decision Gates (no live vendor wiring).
+Plan status: `APPROVED FOR TASK DECOMPOSITION`. Tasks: [`tasks.md`](./tasks.md). Implement only after explicit `/speckit-implement` and while respecting Decision Gates (no live vendor wiring).
