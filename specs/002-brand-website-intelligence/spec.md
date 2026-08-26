@@ -1,12 +1,12 @@
 # Feature Specification: Brand Website Intelligence
 
-**Feature Branch**: `002-brand-website-intelligence`  
-**Created**: 2026-08-26  
-**Status**: `CLARIFIED` — DP-001–DP-005 applied 2026-08-26; `/speckit-plan` permitted with explicit gates (no live crawl/AI vendor wiring until `DEC-004`/`DEC-007` close for those choices)  
-**Input**: First product feature after OMA AI Product Foundation — Brand Workspace, website connection, safe async scan, discovery, evidence-backed Brand & Product Intelligence Profile with human approval  
-**Parent baseline**: `specs/001-oma-ai-product-foundation/spec.md` — productizes Foundation **US-001** intent as a **Brand Workspace** child of the existing tenant/company (not a parallel company registry).  
-**Foundation FR binding (honest subset)**: primarily **FR-012–FR-021** and **FR-024** (sources, safe ingest, observable jobs, extraction, evidence, human correct/accept/reject, refresh without silent overwrite of confirmed rules, insufficient-evidence handling).  
-**Explicitly deferred from this slice**: **FR-011** (full company intake profile), **FR-022–FR-023** (competitors), **FR-025** (export/remove source data under full retention/legal policy — hooks only until `DEC-012`).  
+**Feature Branch**: `002-brand-website-intelligence`
+**Created**: 2026-08-26
+**Status**: `CLARIFIED` — DP-001–DP-005 applied 2026-08-26; technical plan artifacts exist as `DRAFT FOR REVIEW` under `/speckit-plan` (`PLAN_ONLY`); live crawl/AI vendor wiring still gated until `DEC-004`/`DEC-007` close for those choices
+**Input**: First product feature after OMA AI Product Foundation — Brand Workspace, website connection, safe async scan, discovery, evidence-backed Brand & Product Intelligence Profile with human approval
+**Parent baseline**: `specs/001-oma-ai-product-foundation/spec.md` — productizes Foundation **US-001** intent as a **Brand Workspace** child of the existing tenant/company (not a parallel company registry).
+**Foundation FR binding (honest subset)**: primarily **FR-012–FR-021** and **FR-024** (sources, safe ingest, observable jobs, extraction, evidence, human correct/accept/reject, refresh without silent overwrite of confirmed rules, insufficient-evidence handling).
+**Explicitly deferred from this slice**: **FR-011** (full company intake profile), **FR-022–FR-023** (competitors), **FR-025** (export/remove source data under full retention/legal policy — hooks only until `DEC-012`).
 **Design references (DEC-013 only)**: Semrush (website/evidence analysis), Jasper Brand IQ (brand intelligence/voice), Linear (density, progress, side panels, restrained motion), Planable (collaboration/review where needed)
 
 ## Clarifications
@@ -36,7 +36,7 @@ Marketing and content teams under a company tenant need a trustworthy, company-s
 
 An authorized tenant member can create a Brand Workspace, connect the brand’s official **public HTTPS** website, run a safe asynchronous **public-crawl** scan, review discovered pages and products with traceable evidence, optionally refine AI-proposed drafts **when an `AiProviderPort` implementation is configured**, otherwise complete the profile manually from observations and evidence, and approve an immutable profile version.
 
-**Required end state:**  
+**Required end state:**
 `Approved Brand & Product Intelligence Profile backed by traceable website evidence`
 
 That approved version becomes the authoritative brand/product intelligence input for later competitor analysis, strategy, and content features (those features remain out of scope here).
@@ -507,10 +507,10 @@ Invalid transitions MUST be rejected with stable errors and no partial unauthori
 
 ## 20. Spec Kit stage boundary
 
-This artifact completes **`CLARIFY_APPLY_ONLY`** for DP-001–DP-005 (session 2026-08-26).
+Clarifications: **`CLARIFY_APPLY_ONLY`** for DP-001–DP-005 (session 2026-08-26).
 
-**`PLAN_READINESS`:** `READY_WITH_EXPLICIT_GATES`
+Planning: **`PLAN_ONLY`** artifacts (2026-08-26) — `plan.md`, `research.md`, `data-model.md`, `contracts/`, `quickstart.md` — status **`DRAFT FOR REVIEW`**. No `tasks.md`, product code, dependencies, migrations, or UI in that stage.
 
-Allowed next step: `/speckit-plan` for public-crawl + manual/optional-AI profile behind `WebsiteConnectorPort` / `AiProviderPort`. Live crawl vendor and live AI wiring remain blocked until `DEC-004`/`DEC-007` (as applicable) are closed for those choices. No waiver substitutes for required live-provider decisions.
+**`PLAN_READINESS`:** `READY_WITH_EXPLICIT_GATES` (plan drafted; live crawl vendor and live AI wiring remain blocked until `DEC-004`/`DEC-007` close for those choices). No waiver substitutes for required live-provider decisions.
 
-Not created by this stage: `plan.md`, `research.md`, `data-model.md`, `contracts/`, `tasks.md`, product code, dependencies, migrations, or UI implementation.
+Allowed next step after plan review: `/speckit-tasks` (not started).

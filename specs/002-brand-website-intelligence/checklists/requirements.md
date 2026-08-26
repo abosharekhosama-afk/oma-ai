@@ -1,10 +1,10 @@
 # Specification Quality Checklist: Brand Website Intelligence
 
-**Purpose**: Validate specification completeness and quality before planning  
-**Created**: 2026-08-26  
-**Updated**: 2026-08-26 (CLARIFY_APPLY DP-001–DP-005)  
-**Feature**: [spec.md](../spec.md)  
-**Stage**: `CLARIFIED` / `READY_WITH_EXPLICIT_GATES`
+**Purpose**: Validate specification completeness and quality before planning
+**Created**: 2026-08-26
+**Updated**: 2026-08-26 (PLAN_ONLY draft artifacts; prior CLARIFY_APPLY DP-001–DP-005)
+**Feature**: [spec.md](../spec.md)
+**Stage**: `CLARIFIED` / plan `DRAFT FOR REVIEW` / `READY_WITH_EXPLICIT_GATES`
 
 ## Content Quality
 
@@ -49,4 +49,5 @@
 ## Notes
 
 - Checklist `[x]` means **requirements quality** after clarify-apply, not implementation done.
-- Verdict: **CLARIFY APPLIED** — `/speckit-plan` may start with explicit gates; do not select crawl/AI vendors or use waiver as a substitute for live-provider decisions.
+- Plan artifacts (`plan.md`, `research.md`, `data-model.md`, `contracts/`, `quickstart.md`) exist as **`DRAFT FOR REVIEW`**; `tasks.md` and implement not started.
+- Verdict: **PLAN DRAFTED UNDER GATES** — do not select crawl/AI vendors or use waiver as a substitute for live-provider decisions.
