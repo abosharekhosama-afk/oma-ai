@@ -1,0 +1,208 @@
+'use client';
+
+import Link from 'next/link';
+import { useParams, useRouter } from 'next/navigation';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { api } from '../../../../../../../lib/api';
+import {
+  apiMutate,
+  getApiError,
+  isPermissionDenied,
+  newIdempotencyKey,
+} from '../../../../../../../lib/brand-api';
+import type { BrandDetail, ScanDetail } from '../../../../../../../lib/brand-types';
+import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand-workspace-shell';
+import { AiUnavailableBanner } from '../../../../../../../components/brand/ai-unavailable-banner';
+import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
+import { useT } from '../../../../../../../lib/use-locale';
+
+const TERMINAL = new Set(['SUCCEEDED', 'PARTIAL', 'FAILED', 'CANCELLED']);
+const POLL_MS = 2500;
+
+export default function ScanDetailPage() {
+  const t = useT();
+  const router = useRouter();
+  const params = useParams<{ brandId: string; scanId: string }>();
+  const { brandId, scanId } = params;
+  const [brand, setBrand] = useState<BrandDetail | null>(null);
+  const [scan, setScan] = useState<ScanDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [denied, setDenied] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const liveRef = useRef<HTMLDivElement>(null);
+  const lastAnnounced = useRef('');
+
+  const loadScan = useCallback(async () => {
+    const res = await api<{ data: ScanDetail }>(`/api/v1/brands/${brandId}/scans/${scanId}`);
+    setScan(res.data);
+    return res.data;
+  }, [brandId, scanId]);
+
+  useEffect(() => {
+    Promise.all([api<{ data: BrandDetail }>(`/api/v1/brands/${brandId}`), loadScan()])
+      .then(([brandRes]) => setBrand(brandRes.data))
+      .catch((err) => {
+        if (isPermissionDenied(err)) setDenied(true);
+        else setError(getApiError(err).message);
+      })
+      .finally(() => setLoading(false));
+  }, [brandId, loadScan]);
+
+  useEffect(() => {
+    if (!scan || TERMINAL.has(scan.status)) return;
+    const id = window.setInterval(() => {
+      loadScan().catch(() => undefined);
+    }, POLL_MS);
+    return () => window.clearInterval(id);
+  }, [scan, loadScan]);
+
+  useEffect(() => {
+    if (!scan || !liveRef.current) return;
+    const msg = t('brand.scan.progressLive')
+      .replace('{status}', scan.status)
+      .replace('{percent}', String(scan.progress_percent));
+    if (msg !== lastAnnounced.current) {
+      lastAnnounced.current = msg;
+      liveRef.current.textContent = msg;
+    }
+  }, [scan, t]);
+
+  async function handleCancel() {
+    setBusy(true);
+    setActionError(null);
+    try {
+      await apiMutate(`/api/v1/brands/${brandId}/scans/${scanId}/cancel`, {
+        method: 'POST',
+        body: JSON.stringify({}),
+      });
+      await loadScan();
+    } catch (err) {
+      setActionError(getApiError(err).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleRetry() {
+    setBusy(true);
+    setActionError(null);
+    try {
+      const res = await apiMutate<{ data: { scan_attempt_id: string } }>(
+        `/api/v1/brands/${brandId}/scans/${scanId}/retry`,
+        {
+          method: 'POST',
+          body: JSON.stringify({}),
+          idempotencyKey: newIdempotencyKey('brand:scan-retry'),
+        },
+      );
+      router.push(`/app/brands/${brandId}/scans/${res.data.scan_attempt_id}`);
+    } catch (err) {
+      setActionError(getApiError(err).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (denied) return <PermissionDenied message={t('errors.permission')} />;
+  if (loading) return <p role="status">{t('common.loading')}</p>;
+  if (error || !brand || !scan) {
+    return (
+      <div className="oma-card" role="alert">
+        <p style={{ color: 'var(--status-danger)' }}>{error ?? t('common.notFound')}</p>
+      </div>
+    );
+  }
+
+  const isPartial = scan.status === 'PARTIAL';
+  const canRetry = ['FAILED', 'PARTIAL', 'CANCELLED'].includes(scan.status);
+  const inProgress = !TERMINAL.has(scan.status);
+
+  return (
+    <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
+      <AiUnavailableBanner aiAvailability={scan.ai_availability} />
+
+      {isPartial ? (
+        <div className="oma-banner oma-banner-warning" role="alert">
+          <strong>{t('brand.scan.partialTitle')}</strong>
+          <p>{t('brand.scan.partialBody')}</p>
+        </div>
+      ) : null}
+
+      <div className="oma-card">
+        <h2>{t('brand.scan.progressTitle')}</h2>
+        <div
+          ref={liveRef}
+          className="oma-sr-only"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        />
+        <div className="oma-progress" aria-hidden="true">
+          <div className="oma-progress-bar" style={{ width: `${scan.progress_percent}%` }} />
+        </div>
+        <p aria-hidden="true">
+          {scan.progress_percent}% — <span className="oma-badge">{scan.status}</span>
+        </p>
+        <dl className="oma-detail-dl">
+          <div>
+            <dt>{t('brand.scan.pagesFetched')}</dt>
+            <dd>{scan.pages_fetched}</dd>
+          </div>
+          <div>
+            <dt>{t('brand.scan.pagesFailed')}</dt>
+            <dd>{scan.pages_failed}</dd>
+          </div>
+          <div>
+            <dt>{t('brand.scan.pagesSkipped')}</dt>
+            <dd>{scan.pages_skipped}</dd>
+          </div>
+        </dl>
+        {scan.error_code ? (
+          <p role="alert" style={{ color: 'var(--status-danger)' }}>
+            {scan.error_code}
+          </p>
+        ) : null}
+        {actionError ? (
+          <p role="alert" style={{ color: 'var(--status-danger)' }}>
+            {actionError}
+          </p>
+        ) : null}
+        <div className="oma-form-actions">
+          {inProgress ? (
+            <button
+              type="button"
+              className="oma-btn-secondary"
+              disabled={busy}
+              onClick={() => void handleCancel()}
+            >
+              {t('brand.scan.cancel')}
+            </button>
+          ) : null}
+          {canRetry ? (
+            <button
+              type="button"
+              className="oma-btn"
+              disabled={busy}
+              onClick={() => void handleRetry()}
+            >
+              {t('brand.scan.retry')}
+            </button>
+          ) : null}
+          {scan.profile_version_id ? (
+            <Link
+              href={`/app/brands/${brandId}/profiles/${scan.profile_version_id}`}
+              className="oma-btn"
+            >
+              {t('brand.scan.viewProfile')}
+            </Link>
+          ) : null}
+          <Link href={`/app/brands/${brandId}/discovery/pages`}>
+            {t('brand.discovery.pagesTitle')}
+          </Link>
+        </div>
+      </div>
+    </BrandWorkspaceShell>
+  );
+}
