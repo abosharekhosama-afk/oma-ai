@@ -12,6 +12,14 @@ export const envSchema = z.object({
   CSRF_COOKIE_NAME: z.string().default('oma_csrf'),
   BOOTSTRAP_PLATFORM_OWNER_EMAIL: z.string().email().optional(),
   BOOTSTRAP_PLATFORM_OWNER_PASSWORD: z.string().min(12).optional(),
+  BRAND_FIXTURE_CONNECTOR: z
+    .enum(['0', '1'])
+    .optional()
+    .transform((v) => v === '1'),
+  BRAND_MAX_PAGES: z.coerce.number().default(50),
+  BRAND_MAX_DEPTH: z.coerce.number().default(3),
+  BRAND_MAX_DURATION_SECONDS: z.coerce.number().default(600),
+  BRAND_MAX_BYTES: z.coerce.number().default(1_000_000),
 });
 
 export type Env = z.infer<typeof envSchema>;

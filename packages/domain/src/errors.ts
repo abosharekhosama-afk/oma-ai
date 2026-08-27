@@ -8,7 +8,12 @@ export type ErrorCode =
   | 'RATE_LIMITED'
   | 'CONFLICT_STATE'
   | 'TENANT_REQUIRED'
-  | 'PROVIDER_NOT_CONFIGURED';
+  | 'PROVIDER_NOT_CONFIGURED'
+  | 'APPROVAL_INELIGIBLE'
+  | 'URL_SCHEME_DENIED'
+  | 'URL_SSRF_DENIED'
+  | 'WEBSITE_NOT_CONNECTED'
+  | 'BRAND_ARCHIVED';
 
 export class DomainError extends Error {
   constructor(
