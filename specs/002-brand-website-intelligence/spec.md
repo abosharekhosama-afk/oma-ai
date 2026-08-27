@@ -511,8 +511,8 @@ Clarifications: **`CLARIFY_APPLY_ONLY`** for DP-001–DP-005 (session 2026-08-26
 
 Planning: **`PLAN_ONLY`** artifacts — `plan.md`, `research.md`, `data-model.md`, `contracts/`, `quickstart.md` — plan status **`APPROVED FOR TASK DECOMPOSITION`**.
 
-Tasks: **`TASKS_ONLY`** — `tasks.md` defines provider-neutral implementation work plus blocked Phase BG. No product code, dependencies, migrations, or UI in that stage.
+Tasks: **`IMPLEMENT_PROVIDER_NEUTRAL_CORE` complete** — `tasks.md` T001–T159 done at `2a063e1`; Phase BG T200–T208 remains blocked.
 
-**`PLAN_READINESS`:** `READY_WITH_EXPLICIT_GATES` (tasks drafted; live crawl vendor and live AI wiring remain blocked until `DEC-004`/`DEC-007` close for those choices). No waiver substitutes for required live-provider decisions.
+**`PLAN_READINESS`:** `PROVIDER-NEUTRAL CORE DONE` (live crawl vendor and live AI wiring remain blocked until `DEC-004`/`DEC-007` close for those choices). No waiver substitutes for required live-provider decisions.
 
-Allowed next step after task review: `/speckit-implement` (not started).
+Allowed next step: Phase BG only after `DEC-004`/`DEC-007` (and related gates) close — not authorized by current tasks.

@@ -49,5 +49,5 @@
 ## Notes
 
 - Checklist `[x]` means **requirements quality** after clarify-apply, not implementation done.
-- Plan status **`APPROVED FOR TASK DECOMPOSITION`**; `tasks.md` drafted (`TASKS_ONLY`). Implement not started.
-- Verdict: **TASKS DRAFTED UNDER GATES** — provider-neutral core only; Phase BG live crawl/AI/snapshots remain blocked; do not claim live-integration ready.
+- Plan status **`APPROVED FOR TASK DECOMPOSITION`**; `tasks.md` T001–T159 complete (`PROVIDER-NEUTRAL CORE DONE` at `2a063e1`). Phase BG T200–T208 remains blocked.
+- Verdict: **PROVIDER-NEUTRAL CORE DONE** — provider-neutral Phases 1–10 implemented; Phase BG live crawl/AI/snapshots remain blocked; do not claim live-integration ready.
