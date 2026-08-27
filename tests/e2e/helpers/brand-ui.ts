@@ -59,7 +59,9 @@ export async function uiCreateBrandConnectAndStartScan(
 }
 
 export async function uiWaitForScanTerminal(page: Page) {
-  await expect(page.locator('.oma-badge', { hasText: /PARTIAL|SUCCEEDED|FAILED|CANCELLED/ })).toBeVisible({
+  await expect(
+    page.locator('.oma-badge', { hasText: /PARTIAL|SUCCEEDED|FAILED|CANCELLED/ }),
+  ).toBeVisible({
     timeout: 90_000,
   });
   await expect(page.getByRole('link', { name: 'View profile draft' })).toBeVisible({

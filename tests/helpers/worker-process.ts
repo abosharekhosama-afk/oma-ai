@@ -1,5 +1,6 @@
 import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
 import { setTimeout as delay } from 'node:timers/promises';
+import { waitForWorkerHealthDown } from './bullmq-cleanup';
 
 export type WorkerProcessHandle = {
   proc: ChildProcessWithoutNullStreams;
@@ -37,11 +38,16 @@ export async function startWorkerProcess(
             proc.kill('SIGTERM');
             await Promise.race([
               new Promise<void>((resolve) => proc.once('exit', () => resolve())),
-              delay(5_000),
+              delay(8_000),
             ]);
             if (proc.exitCode === null) {
               proc.kill('SIGKILL');
+              await Promise.race([
+                new Promise<void>((resolve) => proc.once('exit', () => resolve())),
+                delay(3_000),
+              ]);
             }
+            await waitForWorkerHealthDown(healthPort, 15_000);
           },
         };
       }

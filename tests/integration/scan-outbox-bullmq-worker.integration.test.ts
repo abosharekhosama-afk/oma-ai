@@ -11,6 +11,8 @@ import {
   startScan,
 } from '../helpers/brand-test';
 import { startWorkerProcess } from '../helpers/worker-process';
+import { resetBullQueues } from '../helpers/bullmq-cleanup';
+import { createRedisConnection } from '../helpers/brand-test';
 
 describe('scan outbox bullmq worker integration', () => {
   let app: INestApplication;
@@ -66,6 +68,12 @@ describe('scan outbox bullmq worker integration', () => {
       expect(attempt.progressPercent).toBe(100);
     } finally {
       await worker.stop();
+      const connection = createRedisConnection();
+      try {
+        await resetBullQueues(connection);
+      } finally {
+        await connection.quit();
+      }
     }
   });
 });

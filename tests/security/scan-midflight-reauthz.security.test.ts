@@ -15,6 +15,7 @@ import {
   seedBrandTenant,
   startScan,
 } from '../helpers/brand-test';
+import { resetBullQueues } from '../helpers/bullmq-cleanup';
 
 describe('scan midflight reauthz security', () => {
   let connection: ReturnType<typeof createRedisConnection>;
@@ -28,6 +29,7 @@ describe('scan midflight reauthz security', () => {
     queue = new Queue('ingestion', { connection });
     events = new QueueEvents('ingestion', { connection });
     await events.waitUntilReady();
+    await resetBullQueues(connection, ['ingestion']);
   });
 
   afterAll(async () => {
