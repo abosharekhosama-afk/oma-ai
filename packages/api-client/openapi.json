@@ -322,6 +322,332 @@
           "Notifications"
         ]
       }
+    },
+    "/api/v1/brands": {
+      "get": {
+        "operationId": "BrandController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Brand"
+        ]
+      },
+      "post": {
+        "operationId": "BrandController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Brand"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}": {
+      "get": {
+        "operationId": "BrandController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Brand"
+        ]
+      },
+      "patch": {
+        "operationId": "BrandController_patch",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Brand"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/archive": {
+      "post": {
+        "operationId": "BrandController_archive",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Brand"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/website": {
+      "post": {
+        "operationId": "WebsiteController_connect",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Website"
+        ]
+      },
+      "get": {
+        "operationId": "WebsiteController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Website"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/scans": {
+      "post": {
+        "operationId": "ScanController_start",
+        "parameters": [],
+        "responses": {
+          "202": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Scan"
+        ]
+      },
+      "get": {
+        "operationId": "ScanController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Scan"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/scans/{scanId}": {
+      "get": {
+        "operationId": "ScanController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Scan"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/scans/{scanId}/cancel": {
+      "post": {
+        "operationId": "ScanController_cancel",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Scan"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/scans/{scanId}/retry": {
+      "post": {
+        "operationId": "ScanController_retry",
+        "parameters": [],
+        "responses": {
+          "202": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Scan"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/scans/{scanId}/pages": {
+      "get": {
+        "operationId": "DiscoveryController_pages",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Discovery"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/scans/{scanId}/products": {
+      "get": {
+        "operationId": "DiscoveryController_products",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Discovery"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/scans/{scanId}/evidence": {
+      "get": {
+        "operationId": "DiscoveryController_evidenceList",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Discovery"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/evidence/{evidenceId}": {
+      "get": {
+        "operationId": "DiscoveryController_evidenceGet",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Discovery"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/profiles": {
+      "get": {
+        "operationId": "ProfileController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Profile"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/profiles/{versionId}": {
+      "get": {
+        "operationId": "ProfileController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Profile"
+        ]
+      },
+      "patch": {
+        "operationId": "ProfileController_patch",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Profile"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/profiles/{versionId}/compare": {
+      "get": {
+        "operationId": "ProfileController_compare",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Profile"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/profiles/{versionId}/approve": {
+      "post": {
+        "operationId": "ProfileController_approve",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Profile"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/profiles/{versionId}/reject": {
+      "post": {
+        "operationId": "ProfileController_reject",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Profile"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/insights/{insightId}/accept": {
+      "post": {
+        "operationId": "ProfileController_acceptInsight",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Profile"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/insights/{insightId}/reject": {
+      "post": {
+        "operationId": "ProfileController_rejectInsight",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Profile"
+        ]
+      }
     }
   },
   "info": {
