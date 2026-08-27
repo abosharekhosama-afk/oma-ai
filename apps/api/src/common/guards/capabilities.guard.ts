@@ -13,16 +13,99 @@ const routeRequirements: Record<string, string[]> = {
   'GET /api/v1/notifications': ['notification.read'],
   'GET /api/v1/jobs/:id': ['job.read'],
   'POST /api/v1/jobs/:id/cancel': ['job.read'],
+  'GET /api/v1/brands': ['brand.read'],
+  'POST /api/v1/brands': ['brand.create'],
+  'GET /api/v1/brands/:brandId': ['brand.read'],
+  'PATCH /api/v1/brands/:brandId': ['brand.create'],
+  'POST /api/v1/brands/:brandId/archive': ['brand.archive'],
+  'POST /api/v1/brands/:brandId/website': ['brand.website.connect'],
+  'GET /api/v1/brands/:brandId/website': ['brand.read'],
+  'POST /api/v1/brands/:brandId/scans': ['brand.scan.control'],
+  'GET /api/v1/brands/:brandId/scans': ['brand.read'],
+  'GET /api/v1/brands/:brandId/scans/:scanId': ['brand.read'],
+  'POST /api/v1/brands/:brandId/scans/:scanId/cancel': ['brand.scan.control'],
+  'POST /api/v1/brands/:brandId/scans/:scanId/retry': ['brand.scan.control'],
+  'GET /api/v1/brands/:brandId/scans/:scanId/pages': ['brand.read'],
+  'GET /api/v1/brands/:brandId/scans/:scanId/products': ['brand.read'],
+  'GET /api/v1/brands/:brandId/scans/:scanId/evidence': ['brand.read'],
+  'GET /api/v1/brands/:brandId/evidence/:evidenceId': ['brand.read'],
+  'GET /api/v1/brands/:brandId/profiles': ['brand.read'],
+  'GET /api/v1/brands/:brandId/profiles/:versionId': ['brand.read'],
+  'GET /api/v1/brands/:brandId/profiles/:versionId/compare': ['brand.read'],
+  'PATCH /api/v1/brands/:brandId/profiles/:versionId': ['brand.insight.edit'],
+  'POST /api/v1/brands/:brandId/profiles/:versionId/approve': ['brand.version.approve'],
+  'POST /api/v1/brands/:brandId/profiles/:versionId/reject': ['brand.version.approve'],
+  'POST /api/v1/brands/:brandId/insights/:insightId/accept': ['brand.insight.decide'],
+  'POST /api/v1/brands/:brandId/insights/:insightId/reject': ['brand.insight.decide'],
 };
 
 function matchRequirements(method: string, path: string): string[] | null {
   const normalized = path
     .replace(/\/api\/v1\/memberships\/[^/]+\//, '/api/v1/memberships/:id/')
-    .replace(/\/api\/v1\/jobs\/[^/]+/, '/api/v1/jobs/:id');
+    .replace(/\/api\/v1\/jobs\/[^/]+/, '/api/v1/jobs/:id')
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/scans\/[^/]+\/cancel/,
+      '/api/v1/brands/:brandId/scans/:scanId/cancel',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/scans\/[^/]+\/retry/,
+      '/api/v1/brands/:brandId/scans/:scanId/retry',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/scans\/[^/]+\/pages/,
+      '/api/v1/brands/:brandId/scans/:scanId/pages',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/scans\/[^/]+\/products/,
+      '/api/v1/brands/:brandId/scans/:scanId/products',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/scans\/[^/]+\/evidence/,
+      '/api/v1/brands/:brandId/scans/:scanId/evidence',
+    )
+    .replace(/\/api\/v1\/brands\/[^/]+\/scans\/[^/]+/, '/api/v1/brands/:brandId/scans/:scanId')
+    .replace(/\/api\/v1\/brands\/[^/]+\/scans/, '/api/v1/brands/:brandId/scans')
+    .replace(/\/api\/v1\/brands\/[^/]+\/website/, '/api/v1/brands/:brandId/website')
+    .replace(/\/api\/v1\/brands\/[^/]+\/archive/, '/api/v1/brands/:brandId/archive')
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/profiles\/[^/]+\/compare/,
+      '/api/v1/brands/:brandId/profiles/:versionId/compare',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/profiles\/[^/]+\/approve/,
+      '/api/v1/brands/:brandId/profiles/:versionId/approve',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/profiles\/[^/]+\/reject/,
+      '/api/v1/brands/:brandId/profiles/:versionId/reject',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/profiles\/[^/]+/,
+      '/api/v1/brands/:brandId/profiles/:versionId',
+    )
+    .replace(/\/api\/v1\/brands\/[^/]+\/profiles/, '/api/v1/brands/:brandId/profiles')
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/insights\/[^/]+\/accept/,
+      '/api/v1/brands/:brandId/insights/:insightId/accept',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/insights\/[^/]+\/reject/,
+      '/api/v1/brands/:brandId/insights/:insightId/reject',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/evidence\/[^/]+/,
+      '/api/v1/brands/:brandId/evidence/:evidenceId',
+    )
+    .replace(/\/api\/v1\/brands\/[^/]+/, '/api/v1/brands/:brandId');
   const key = `${method.toUpperCase()} ${normalized}`;
-  // try exact and pattern keys
   for (const [k, v] of Object.entries(routeRequirements)) {
-    const pattern = k.replace(':id', '[^/]+');
+    const pattern = k
+      .replace(':id', '[^/]+')
+      .replace(':brandId', '[^/]+')
+      .replace(':scanId', '[^/]+')
+      .replace(':versionId', '[^/]+')
+      .replace(':insightId', '[^/]+')
+      .replace(':evidenceId', '[^/]+');
     if (
       new RegExp('^' + pattern.replace(/\//g, '\\/') + '$').test(`${method.toUpperCase()} ${path}`)
     )

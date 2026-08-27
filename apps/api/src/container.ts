@@ -1,7 +1,23 @@
 import { AuditService } from './audit/audit.service';
 import { IdentityService } from './identity/identity.service';
 import { TenantService } from './tenant/tenant.service';
+import { BrandService } from './brand/brand.service';
+import { WebsiteSourceService } from './brand/website-source.service';
+import { ScanService } from './brand/scan.service';
+import { DiscoveryService } from './discovery/discovery.service';
+import { EvidenceService } from './discovery/evidence.service';
+import { ProfileService } from './intelligence/profile.service';
+import { InsightService } from './intelligence/insight.service';
+import { ApprovalService } from './intelligence/approval.service';
 
 export const auditService = new AuditService();
 export const identityService = new IdentityService(auditService);
 export const tenantService = new TenantService(auditService);
+export const brandService = new BrandService(auditService);
+export const websiteSourceService = new WebsiteSourceService(auditService, brandService);
+export const scanService = new ScanService(auditService, brandService);
+export const discoveryService = new DiscoveryService();
+export const evidenceService = new EvidenceService();
+export const profileService = new ProfileService(auditService);
+export const insightService = new InsightService(auditService);
+export const approvalService = new ApprovalService(auditService);
