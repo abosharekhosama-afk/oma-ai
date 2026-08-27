@@ -2,7 +2,7 @@
 
 **Feature Branch**: `002-brand-website-intelligence`
 **Created**: 2026-08-26
-**Status**: `CLARIFIED` — DP-001–DP-005 applied; plan `APPROVED FOR TASK DECOMPOSITION`; `tasks.md` present (`TASKS_ONLY`); live crawl/AI vendor wiring still gated until `DEC-004`/`DEC-007` close for those choices
+**Status**: `PROVIDER-NEUTRAL CORE DONE` — Phases 1–10 implemented with fixture/refusing adapters; `tasks.md` T001–T159 complete; Phase BG (T200–T208) blocked; live crawl/AI vendor wiring still gated until `DEC-004`/`DEC-007` close for those choices
 **Input**: First product feature after OMA AI Product Foundation — Brand Workspace, website connection, safe async scan, discovery, evidence-backed Brand & Product Intelligence Profile with human approval
 **Parent baseline**: `specs/001-oma-ai-product-foundation/spec.md` — productizes Foundation **US-001** intent as a **Brand Workspace** child of the existing tenant/company (not a parallel company registry).
 **Foundation FR binding (honest subset)**: primarily **FR-012–FR-021** and **FR-024** (sources, safe ingest, observable jobs, extraction, evidence, human correct/accept/reject, refresh without silent overwrite of confirmed rules, insufficient-evidence handling).
@@ -21,10 +21,10 @@
 
 ### Feature-local slice resolutions (do not renumber or close Foundation DECs)
 
-| ID | Affirms | Explicitly does **not** close |
-| -- | ------- | ----------------------------- |
-| `SR-002-004-MODE` | 002 first release = public HTTPS crawl only | `DEC-004` (global mode / commerce / both remains open) |
-| `SR-002-007-AI` | 002 AI = `AiProviderPort` only; no live vendor until `DEC-007` | `DEC-007` (providers, models, retention, region, cost, fallback remain open) |
+| ID                | Affirms                                                        | Explicitly does **not** close                                                |
+| ----------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| `SR-002-004-MODE` | 002 first release = public HTTPS crawl only                    | `DEC-004` (global mode / commerce / both remains open)                       |
+| `SR-002-007-AI`   | 002 AI = `AiProviderPort` only; no live vendor until `DEC-007` | `DEC-007` (providers, models, retention, region, cost, fallback remain open) |
 
 ---
 
@@ -45,17 +45,17 @@ That approved version becomes the authoritative brand/product intelligence input
 
 Access is **capability-based** (not hardcoded UI roles). Job titles may map to capability profiles elsewhere; this feature authorizes only the capabilities below. All tenant and capability decisions are **server-authoritative**.
 
-| Capability intent | Allows |
-| ----------------- | ------ |
-| Brand create | Create a Brand Workspace under the active tenant |
-| Website connect | Link or change the primary website source and confirm authorization to add it |
-| Scan control | Start, cancel, or retry a scan job for a brand |
-| Discovery review | Review discovered pages, products/services, and categories |
-| Insight edit | Edit AI or extracted draft fields before approval |
-| Insight decide | Accept, reject, or edit an **individual** insight/claim only — MUST NOT reject or approve an entire Profile Version |
-| Version approve | Approve an immutable Brand & Product Intelligence Profile version; **also** reject/discard an entire Profile Version |
-| Brand read | View brand workspace, scan progress, evidence, and approved/draft profiles without mutation |
-| Brand archive | Archive a brand or request deletion subject to policy |
+| Capability intent | Allows                                                                                                               |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Brand create      | Create a Brand Workspace under the active tenant                                                                     |
+| Website connect   | Link or change the primary website source and confirm authorization to add it                                        |
+| Scan control      | Start, cancel, or retry a scan job for a brand                                                                       |
+| Discovery review  | Review discovered pages, products/services, and categories                                                           |
+| Insight edit      | Edit AI or extracted draft fields before approval                                                                    |
+| Insight decide    | Accept, reject, or edit an **individual** insight/claim only — MUST NOT reject or approve an entire Profile Version  |
+| Version approve   | Approve an immutable Brand & Product Intelligence Profile version; **also** reject/discard an entire Profile Version |
+| Brand read        | View brand workspace, scan progress, evidence, and approved/draft profiles without mutation                          |
+| Brand archive     | Archive a brand or request deletion subject to policy                                                                |
 
 Membership suspension or capability loss must deny subsequent commands and must cause in-flight workers to re-check and fail closed (see Security and State machine).
 
@@ -311,44 +311,44 @@ Three machines run together. A brand MAY simultaneously hold an **Approved** pro
 
 ### 9.1 Brand Workspace lifecycle
 
-| State | Meaning |
-| ----- | ------- |
-| Draft | Brand exists; primary source incomplete or invalid |
-| Ready to scan | Primary source validated; eligible to start a scan |
-| Active | At least one scan has been attempted; brand is in normal use |
-| Archived | Hidden from default active workflows; not eligible for new scans until restored by a future policy |
+| State         | Meaning                                                                                            |
+| ------------- | -------------------------------------------------------------------------------------------------- |
+| Draft         | Brand exists; primary source incomplete or invalid                                                 |
+| Ready to scan | Primary source validated; eligible to start a scan                                                 |
+| Active        | At least one scan has been attempted; brand is in normal use                                       |
+| Archived      | Hidden from default active workflows; not eligible for new scans until restored by a future policy |
 
-| From | To | Capability | Notes |
-| ---- | -- | ---------- | ----- |
-| Draft | Ready to scan | Website connect | Successful source validation |
-| Ready to scan | Active | Scan control | First scan start accepted |
-| Active | Active | — | Remains Active across rescans/approvals |
-| Draft / Ready to scan / Active | Archived | Brand archive | Default: cancel active scan attempt then archive |
-| Archived | Ready to scan or Active | Brand archive (restore) | Restore rules may be refined later; must re-validate source if needed |
+| From                           | To                      | Capability              | Notes                                                                 |
+| ------------------------------ | ----------------------- | ----------------------- | --------------------------------------------------------------------- |
+| Draft                          | Ready to scan           | Website connect         | Successful source validation                                          |
+| Ready to scan                  | Active                  | Scan control            | First scan start accepted                                             |
+| Active                         | Active                  | —                       | Remains Active across rescans/approvals                               |
+| Draft / Ready to scan / Active | Archived                | Brand archive           | Default: cancel active scan attempt then archive                      |
+| Archived                       | Ready to scan or Active | Brand archive (restore) | Restore rules may be refined later; must re-validate source if needed |
 
 ### 9.2 Scan Attempt lifecycle
 
-| State | Meaning |
-| ----- | ------- |
-| Queued | Scan accepted; waiting to run |
-| Crawling | Fetching permitted public pages |
-| Extracting | Normalizing pages/products/signals |
-| Analyzing | Producing draft intelligence proposals |
-| Partial | Attempt finished with incomplete coverage, page-level failures, **and/or AI unavailable while usable observations exist** |
-| Succeeded | Attempt finished enough to hand a draft profile to review |
-| Failed | Terminal failure for this attempt |
-| Cancelled | User/system cancelled this attempt |
+| State      | Meaning                                                                                                                   |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Queued     | Scan accepted; waiting to run                                                                                             |
+| Crawling   | Fetching permitted public pages                                                                                           |
+| Extracting | Normalizing pages/products/signals                                                                                        |
+| Analyzing  | Producing draft intelligence proposals                                                                                    |
+| Partial    | Attempt finished with incomplete coverage, page-level failures, **and/or AI unavailable while usable observations exist** |
+| Succeeded  | Attempt finished enough to hand a draft profile to review                                                                 |
+| Failed     | Terminal failure for this attempt                                                                                         |
+| Cancelled  | User/system cancelled this attempt                                                                                        |
 
-| From | To | Capability | Notes |
-| ---- | -- | ---------- | ----- |
-| (none) | Queued | Scan control | Start/retry/rescan; idempotent active-intent key |
-| Queued | Crawling | system | Worker start after membership/capability re-check |
-| Crawling | Extracting | system | |
-| Extracting | Analyzing | system | Analyzing may call `AiProviderPort` or skip when unconfigured |
-| Analyzing | Succeeded | system | Full enough draft for Needs review (AI optional) |
-| Crawling / Extracting / Analyzing | Partial | system | Bounded incomplete success, page failures, **and/or AI unavailable with usable observations** |
-| Queued / Crawling / Extracting / Analyzing | Failed | system | Hard failure **or** AI unavailable **and** insufficient observations for a reviewable profile |
-| Queued / Crawling / Extracting / Analyzing | Cancelled | Scan control | Cancel; never yields Approved |
+| From                                       | To         | Capability   | Notes                                                                                         |
+| ------------------------------------------ | ---------- | ------------ | --------------------------------------------------------------------------------------------- |
+| (none)                                     | Queued     | Scan control | Start/retry/rescan; idempotent active-intent key                                              |
+| Queued                                     | Crawling   | system       | Worker start after membership/capability re-check                                             |
+| Crawling                                   | Extracting | system       |                                                                                               |
+| Extracting                                 | Analyzing  | system       | Analyzing may call `AiProviderPort` or skip when unconfigured                                 |
+| Analyzing                                  | Succeeded  | system       | Full enough draft for Needs review (AI optional)                                              |
+| Crawling / Extracting / Analyzing          | Partial    | system       | Bounded incomplete success, page failures, **and/or AI unavailable with usable observations** |
+| Queued / Crawling / Extracting / Analyzing | Failed     | system       | Hard failure **or** AI unavailable **and** insufficient observations for a reviewable profile |
+| Queued / Crawling / Extracting / Analyzing | Cancelled  | Scan control | Cancel; never yields Approved                                                                 |
 
 Retry/rescan always creates a **new** Scan Attempt identity; it does not rewind a terminal attempt.
 
@@ -356,21 +356,21 @@ Retry/rescan always creates a **new** Scan Attempt identity; it does not rewind 
 
 ### 9.3 Intelligence Profile Version lifecycle
 
-| State | Meaning |
-| ----- | ------- |
-| Draft | Version being generated or not yet opened for structured review |
-| Needs review | Human review/edit/accept/reject in progress |
-| Approved | Immutable approved artifact |
-| Superseded | Previously approved version replaced as *current* by a newer approval (artifact remains readable) |
-| Rejected | Version discarded without approval (optional terminal for abandoned drafts) |
+| State        | Meaning                                                                                           |
+| ------------ | ------------------------------------------------------------------------------------------------- |
+| Draft        | Version being generated or not yet opened for structured review                                   |
+| Needs review | Human review/edit/accept/reject in progress                                                       |
+| Approved     | Immutable approved artifact                                                                       |
+| Superseded   | Previously approved version replaced as _current_ by a newer approval (artifact remains readable) |
+| Rejected     | Version discarded without approval (optional terminal for abandoned drafts)                       |
 
-| From | To | Capability | Notes |
-| ---- | -- | ---------- | ----- |
-| Draft | Needs review | system or Discovery review | After Succeeded/Partial produces a reviewable draft (manual or AI-assisted) |
-| Needs review | Needs review | Insight edit/decide | Individual insight decisions only; version remains Needs review |
-| Needs review | Approved | Version approve | Only if FR-BWI-029a/029c hold; Partial requires incompleteness UI + explicit confirm + audit |
-| Approved | Superseded | Version approve (on newer version) | Prior approved remains immutable and addressable |
-| Needs review | Rejected | Version approve **only** | Whole-version discard; Insight decide MUST NOT authorize this transition |
+| From         | To           | Capability                         | Notes                                                                                        |
+| ------------ | ------------ | ---------------------------------- | -------------------------------------------------------------------------------------------- |
+| Draft        | Needs review | system or Discovery review         | After Succeeded/Partial produces a reviewable draft (manual or AI-assisted)                  |
+| Needs review | Needs review | Insight edit/decide                | Individual insight decisions only; version remains Needs review                              |
+| Needs review | Approved     | Version approve                    | Only if FR-BWI-029a/029c hold; Partial requires incompleteness UI + explicit confirm + audit |
+| Approved     | Superseded   | Version approve (on newer version) | Prior approved remains immutable and addressable                                             |
+| Needs review | Rejected     | Version approve **only**           | Whole-version discard; Insight decide MUST NOT authorize this transition                     |
 
 **Current approved pointer:** Brand stores which Approved version is current. Rescan MUST NOT clear that pointer when creating a new Draft.
 
@@ -390,17 +390,17 @@ Invalid transitions MUST be rejected with stable errors and no partial unauthori
 
 ## 11. Ownership and source of truth
 
-| Domain | Logical owner | Authoritative writer | Readers | Tenant gate | Notes |
-| ------ | ------------- | -------------------- | ------- | ----------- | ----- |
-| Brand Workspace | OMA Brand Intelligence | Authorized brand commands | Capable tenant members | Active tenant + capability | No parallel tenancy |
-| Website Source config | OMA Brand Intelligence | Website connect commands | Capable members | Tenant + brand | External site remains external |
-| Crawl bytes / live website | External website | External origin | Connector adapter (read) | Safety policy | OMA does not own the live site |
-| Evidence excerpts/snapshot refs | OMA Brand Intelligence | Scan pipeline | Reviewers | Tenant + brand | Minimize stored content (`DEC-012` retention) |
-| Extracted observations | OMA Brand Intelligence | Scan extract phase | Reviewers | Tenant + brand | Immutable observations; corrections are new decisions |
-| AI draft insights | OMA Brand Intelligence | AI proposal step via approved provider boundary | Reviewers | Tenant + brand | Proposal only (`DEC-007`) |
-| Human decisions | OMA Brand Intelligence | Insight edit/decide/approve commands | Capable members | Tenant + brand | AI cannot approve |
-| Approved profile version | OMA Brand Intelligence | Version approve command | Downstream OMA features (later) | Tenant + brand | Immutable SoT for approved brand intelligence |
-| Job execution authz | OMA Identity/Membership | Foundation membership/capability services | Workers | Re-check at run | Confused-deputy prevention |
+| Domain                          | Logical owner           | Authoritative writer                            | Readers                         | Tenant gate                | Notes                                                 |
+| ------------------------------- | ----------------------- | ----------------------------------------------- | ------------------------------- | -------------------------- | ----------------------------------------------------- |
+| Brand Workspace                 | OMA Brand Intelligence  | Authorized brand commands                       | Capable tenant members          | Active tenant + capability | No parallel tenancy                                   |
+| Website Source config           | OMA Brand Intelligence  | Website connect commands                        | Capable members                 | Tenant + brand             | External site remains external                        |
+| Crawl bytes / live website      | External website        | External origin                                 | Connector adapter (read)        | Safety policy              | OMA does not own the live site                        |
+| Evidence excerpts/snapshot refs | OMA Brand Intelligence  | Scan pipeline                                   | Reviewers                       | Tenant + brand             | Minimize stored content (`DEC-012` retention)         |
+| Extracted observations          | OMA Brand Intelligence  | Scan extract phase                              | Reviewers                       | Tenant + brand             | Immutable observations; corrections are new decisions |
+| AI draft insights               | OMA Brand Intelligence  | AI proposal step via approved provider boundary | Reviewers                       | Tenant + brand             | Proposal only (`DEC-007`)                             |
+| Human decisions                 | OMA Brand Intelligence  | Insight edit/decide/approve commands            | Capable members                 | Tenant + brand             | AI cannot approve                                     |
+| Approved profile version        | OMA Brand Intelligence  | Version approve command                         | Downstream OMA features (later) | Tenant + brand             | Immutable SoT for approved brand intelligence         |
+| Job execution authz             | OMA Identity/Membership | Foundation membership/capability services       | Workers                         | Re-check at run            | Confused-deputy prevention                            |
 
 ## 12. Security, privacy, retention, and audit
 
@@ -436,16 +436,16 @@ Invalid transitions MUST be rejected with stable errors and no partial unauthori
 
 ## 15. Decision Gates (open — do not resolve here)
 
-| Gate | Decision | Affects this feature | Safe functional boundary until resolved |
-| ---- | -------- | -------------------- | --------------------------------------- |
-| DG-004 | `DEC-004` (still **open globally**) | Crawl vs commerce vs both | **Slice resolution `SR-002-004-MODE`:** 002 = public HTTPS crawl only. Commerce/API deferred to later features. **No crawl vendor selected.** Live crawl vendor wiring blocked until an authorized vendor decision (not a silent waiver). |
-| DG-007 | `DEC-007` (still **open globally**) | Providers/models/retention/region/cost/fallback | **Slice resolution `SR-002-007-AI`:** 002 uses `AiProviderPort` only; no SDK/keys/third-party/model/policy assumption. AI unavailable → Partial (usable data) or Failed (insufficient); manual approve allowed. Live AI wiring blocked until `DEC-007` closes. Test adapters tests-only. |
-| DG-003 | `DEC-003` file/object storage | Snapshot byte storage if large artifacts needed | Prefer evidence excerpts + identifiers; full artifact store not required to approve a profile if excerpts suffice |
-| DG-008 | `DEC-008` company/agency structure | Cross-company brand management | Interim: Brand Workspace child of one tenant; second brand under same tenant not forbidden; agency cross-tenant staffing out of scope — **does not close DEC-008** |
-| DG-009 | `DEC-009` approval topology | Multi-step/client approvals | Single internal Version approve capability for approve/reject version; **does not close DEC-009** |
-| DG-012 | `DEC-012` retention/legal | Evidence/snapshot retention periods | Minimum retention for review/audit; market-specific rules deferred |
-| — | Email/crawl/hosting/analytics vendors | Ops providers | No vendor selection in this spec |
-| — | IMKAN integration | Identity/company sync | Remains outside; Foundation `DEC-002` stands |
+| Gate   | Decision                              | Affects this feature                            | Safe functional boundary until resolved                                                                                                                                                                                                                                                  |
+| ------ | ------------------------------------- | ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| DG-004 | `DEC-004` (still **open globally**)   | Crawl vs commerce vs both                       | **Slice resolution `SR-002-004-MODE`:** 002 = public HTTPS crawl only. Commerce/API deferred to later features. **No crawl vendor selected.** Live crawl vendor wiring blocked until an authorized vendor decision (not a silent waiver).                                                |
+| DG-007 | `DEC-007` (still **open globally**)   | Providers/models/retention/region/cost/fallback | **Slice resolution `SR-002-007-AI`:** 002 uses `AiProviderPort` only; no SDK/keys/third-party/model/policy assumption. AI unavailable → Partial (usable data) or Failed (insufficient); manual approve allowed. Live AI wiring blocked until `DEC-007` closes. Test adapters tests-only. |
+| DG-003 | `DEC-003` file/object storage         | Snapshot byte storage if large artifacts needed | Prefer evidence excerpts + identifiers; full artifact store not required to approve a profile if excerpts suffice                                                                                                                                                                        |
+| DG-008 | `DEC-008` company/agency structure    | Cross-company brand management                  | Interim: Brand Workspace child of one tenant; second brand under same tenant not forbidden; agency cross-tenant staffing out of scope — **does not close DEC-008**                                                                                                                       |
+| DG-009 | `DEC-009` approval topology           | Multi-step/client approvals                     | Single internal Version approve capability for approve/reject version; **does not close DEC-009**                                                                                                                                                                                        |
+| DG-012 | `DEC-012` retention/legal             | Evidence/snapshot retention periods             | Minimum retention for review/audit; market-specific rules deferred                                                                                                                                                                                                                       |
+| —      | Email/crawl/hosting/analytics vendors | Ops providers                                   | No vendor selection in this spec                                                                                                                                                                                                                                                         |
+| —      | IMKAN integration                     | Identity/company sync                           | Remains outside; Foundation `DEC-002` stands                                                                                                                                                                                                                                             |
 
 **Planning readiness:** `/speckit-plan` **MAY** proceed for public-crawl + manual/optional-AI profile journeys behind ports. `/speckit-plan` and implement **MUST NOT** select crawl/AI vendors or ship live third-party wiring until `DEC-004`/`DEC-007` (as applicable) are closed for those choices. Waiver MUST NOT replace a required live-provider decision.
 
@@ -492,18 +492,18 @@ Invalid transitions MUST be rejected with stable errors and no partial unauthori
 
 ## 19. Traceability
 
-| Outcome / journey | Requirements | Stories | Gates |
-| ----------------- | ------------ | ------- | ----- |
-| Create brand + connect site | FR-BWI-001–013, 018 | US-BWI-01 | `SR-002-004-MODE`; DEC-004 open globally; DEC-008 interim |
-| Scan progress/cancel/retry | FR-BWI-014–019, NFR-BWI-002–004 | US-BWI-02 | Jobs foundation; public crawl port |
-| Discovery review | FR-BWI-020–020c, 021–025 | US-BWI-03 | Tiered discovery DP-005 |
-| AI draft + human decide | FR-BWI-023–028b | US-BWI-04 | `SR-002-007-AI`; DEC-007 open globally |
-| Approve / reject version | FR-BWI-029–031, 029a–029d, 036 | US-BWI-04/05 | DP-003/004; DEC-009 interim |
-| Rescan/compare / late results | FR-BWI-030–031, §9.2–9.3 | US-BWI-05 | — |
-| Archive | §9.1 + US-BWI-06 | US-BWI-06 | DEC-012 |
-| UX/a11y/i18n | FR-BWI-032–035, NFR-BWI-005–006 | All | DEC-013 |
-| Security isolation | FR-BWI-003–005, 008–009, 017, NFR-BWI-001 | Edge cases 14–16, 28 | Foundation |
-| Deferred Foundation FRs | — | — | FR-011, FR-022–023, FR-025 not claimed complete |
+| Outcome / journey             | Requirements                              | Stories              | Gates                                                     |
+| ----------------------------- | ----------------------------------------- | -------------------- | --------------------------------------------------------- |
+| Create brand + connect site   | FR-BWI-001–013, 018                       | US-BWI-01            | `SR-002-004-MODE`; DEC-004 open globally; DEC-008 interim |
+| Scan progress/cancel/retry    | FR-BWI-014–019, NFR-BWI-002–004           | US-BWI-02            | Jobs foundation; public crawl port                        |
+| Discovery review              | FR-BWI-020–020c, 021–025                  | US-BWI-03            | Tiered discovery DP-005                                   |
+| AI draft + human decide       | FR-BWI-023–028b                           | US-BWI-04            | `SR-002-007-AI`; DEC-007 open globally                    |
+| Approve / reject version      | FR-BWI-029–031, 029a–029d, 036            | US-BWI-04/05         | DP-003/004; DEC-009 interim                               |
+| Rescan/compare / late results | FR-BWI-030–031, §9.2–9.3                  | US-BWI-05            | —                                                         |
+| Archive                       | §9.1 + US-BWI-06                          | US-BWI-06            | DEC-012                                                   |
+| UX/a11y/i18n                  | FR-BWI-032–035, NFR-BWI-005–006           | All                  | DEC-013                                                   |
+| Security isolation            | FR-BWI-003–005, 008–009, 017, NFR-BWI-001 | Edge cases 14–16, 28 | Foundation                                                |
+| Deferred Foundation FRs       | —                                         | —                    | FR-011, FR-022–023, FR-025 not claimed complete           |
 
 ## 20. Spec Kit stage boundary
 

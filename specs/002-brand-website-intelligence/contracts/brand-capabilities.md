@@ -8,17 +8,17 @@
 
 ## Codes
 
-| Code | Description | Sensitive |
-| ---- | ----------- | --------- |
-| `brand.create` | Create / rename Brand Workspace | Yes (create) |
-| `brand.read` | List/read brands, scans, discovery, profiles, evidence | No |
-| `brand.archive` | Archive brand (cancels active scans) | Yes |
-| `brand.website.connect` | Connect/replace public website + attestation | Yes |
-| `brand.scan.control` | Start / cancel / retry scans | Yes |
-| `brand.discovery.review` | Discovery review UI actions beyond read (if any write dispositions on pages) | Soft |
-| `brand.insight.edit` | Edit profile draft fields / insights | Yes |
-| `brand.insight.decide` | Accept/reject **individual** insights only | Yes |
-| `brand.version.approve` | Approve profile version **and** whole-version Reject | Yes |
+| Code                     | Description                                                                  | Sensitive    |
+| ------------------------ | ---------------------------------------------------------------------------- | ------------ |
+| `brand.create`           | Create / rename Brand Workspace                                              | Yes (create) |
+| `brand.read`             | List/read brands, scans, discovery, profiles, evidence                       | No           |
+| `brand.archive`          | Archive brand (cancels active scans)                                         | Yes          |
+| `brand.website.connect`  | Connect/replace public website + attestation                                 | Yes          |
+| `brand.scan.control`     | Start / cancel / retry scans                                                 | Yes          |
+| `brand.discovery.review` | Discovery review UI actions beyond read (if any write dispositions on pages) | Soft         |
+| `brand.insight.edit`     | Edit profile draft fields / insights                                         | Yes          |
+| `brand.insight.decide`   | Accept/reject **individual** insights only                                   | Yes          |
+| `brand.version.approve`  | Approve profile version **and** whole-version Reject                         | Yes          |
 
 ---
 
@@ -33,11 +33,11 @@
 
 ## Planned profile grants (implement-time seed; interim)
 
-| Foundation profile | Suggested grants |
-| ------------------ | ---------------- |
-| `COMPANY_OWNER` | All brand.* |
+| Foundation profile                     | Suggested grants                                                                                             |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `COMPANY_OWNER`                        | All brand.*                                                                                                  |
 | Strategist / brand manager (if exists) | create, read, website.connect, scan.control, discovery.review, insight.edit, insight.decide, version.approve |
-| Contributor / viewer | `brand.read` only |
+| Contributor / viewer                   | `brand.read` only                                                                                            |
 
 Exact matrix follows Foundation seed patterns; deny-by-default for unspecified routes.
 

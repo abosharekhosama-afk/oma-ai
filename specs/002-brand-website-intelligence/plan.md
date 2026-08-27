@@ -51,21 +51,21 @@ Fixed product boundaries for this plan:
 
 ## Constitution Check
 
-| Principle | Plan compliance |
-| --------- | --------------- |
-| I. Product truth precedes implementation | Spec + clarifications are authority; plan is `APPROVED FOR TASK DECOMPOSITION`; tasks defined; no code until implement |
-| II. One owner / SoT | Brand Intelligence owns workspace/scan/evidence/profile; live website remains external; Foundation owns identity/tenant/audit/jobs primitives |
-| III. Tenant isolation | All entities `tenantId`-scoped; workers re-authz; cross-tenant denial in quickstart |
-| IV. AI proposes; humans decide | `AiProviderPort` optional; refusing/not-configured path; human approve only |
-| V. Traceability | Evidence → observation → insight → profile version chain with scan/attempt ids |
-| VI. Explicit state machines | Brand / ScanAttempt / ProfileVersion / InsightReview documented separately |
-| VII. Versions integrity | Approved profile immutable; edits/late results → new Draft |
-| VIII. Explicit integrations | Ports only; no vendor SDKs; idempotent jobs + webhook-ready shape unused for public crawl |
-| IX. Accessible bilingual UX | Routes/components plan EN/AR, RTL, keyboard, reduced motion |
-| X. Completion is evidence | `quickstart.md` eight proof journeys |
-| XI. Controlled cost | No premium vendor; fixture crawl in CI |
-| XII. Specs evolve | Artifacts under `specs/002-...` only |
-| XIII. Independent design | DEC-013: Semrush / Jasper Brand IQ / Linear / Planable pattern roles; original OMA UI |
+| Principle                                | Plan compliance                                                                                                                               |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| I. Product truth precedes implementation | Spec + clarifications are authority; plan is `APPROVED FOR TASK DECOMPOSITION`; tasks defined; no code until implement                        |
+| II. One owner / SoT                      | Brand Intelligence owns workspace/scan/evidence/profile; live website remains external; Foundation owns identity/tenant/audit/jobs primitives |
+| III. Tenant isolation                    | All entities `tenantId`-scoped; workers re-authz; cross-tenant denial in quickstart                                                           |
+| IV. AI proposes; humans decide           | `AiProviderPort` optional; refusing/not-configured path; human approve only                                                                   |
+| V. Traceability                          | Evidence → observation → insight → profile version chain with scan/attempt ids                                                                |
+| VI. Explicit state machines              | Brand / ScanAttempt / ProfileVersion / InsightReview documented separately                                                                    |
+| VII. Versions integrity                  | Approved profile immutable; edits/late results → new Draft                                                                                    |
+| VIII. Explicit integrations              | Ports only; no vendor SDKs; idempotent jobs + webhook-ready shape unused for public crawl                                                     |
+| IX. Accessible bilingual UX              | Routes/components plan EN/AR, RTL, keyboard, reduced motion                                                                                   |
+| X. Completion is evidence                | `quickstart.md` eight proof journeys                                                                                                          |
+| XI. Controlled cost                      | No premium vendor; fixture crawl in CI                                                                                                        |
+| XII. Specs evolve                        | Artifacts under `specs/002-...` only                                                                                                          |
+| XIII. Independent design                 | DEC-013: Semrush / Jasper Brand IQ / Linear / Planable pattern roles; original OMA UI                                                         |
 
 **Gate A:** Pass (clarified spec).
 **Gate B:** Pass for **gated** architecture (ports + public-only); **Fail** if interpreted as authorizing live crawl/AI vendors.
@@ -77,14 +77,14 @@ Fixed product boundaries for this plan:
 
 ## Decision Gates (must remain visible)
 
-| Gate | Status | Allowed in 002 plan/implement | Hard stop |
-| ---- | ------ | ----------------------------- | --------- |
-| `SR-002-004-MODE` | Slice affirmed | Public HTTPS crawl product + `WebsiteConnectorPort` + **fixture/test** adapter | Production crawl **vendor** selection/wiring |
-| `DEC-004` | **Open globally** | Do not close; no commerce path | Commerce connector as SoT |
-| `SR-002-007-AI` | Slice affirmed | Manual profile; optional `AiProviderPort`; test doubles in tests | Live AI SDK/keys/third-party |
-| `DEC-007` | **Open globally** | Do not close; no region/retention/cost policy as final | Production AI vendor |
-| `DEC-003` | Open | Excerpts/hashes/URLs only | Full-page binary snapshot store |
-| `DEC-008`/`009`/`012` | Open | Interim boundaries from spec | Agency topology / multi-step client approval / market retention as closed |
+| Gate                  | Status            | Allowed in 002 plan/implement                                                  | Hard stop                                                                 |
+| --------------------- | ----------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| `SR-002-004-MODE`     | Slice affirmed    | Public HTTPS crawl product + `WebsiteConnectorPort` + **fixture/test** adapter | Production crawl **vendor** selection/wiring                              |
+| `DEC-004`             | **Open globally** | Do not close; no commerce path                                                 | Commerce connector as SoT                                                 |
+| `SR-002-007-AI`       | Slice affirmed    | Manual profile; optional `AiProviderPort`; test doubles in tests               | Live AI SDK/keys/third-party                                              |
+| `DEC-007`             | **Open globally** | Do not close; no region/retention/cost policy as final                         | Production AI vendor                                                      |
+| `DEC-003`             | Open              | Excerpts/hashes/URLs only                                                      | Full-page binary snapshot store                                           |
+| `DEC-008`/`009`/`012` | Open              | Interim boundaries from spec                                                   | Agency topology / multi-step client approval / market retention as closed |
 
 ---
 
@@ -160,18 +160,18 @@ tests/
 
 ## Domain / Source-of-Truth map
 
-| Domain | Logical owner | Authoritative writer | Storage | Readers | Tenant gate | Notes |
-| ------ | ------------- | -------------------- | ------- | ------- | ----------- | ----- |
-| Brand Workspace | OMA Brand Intelligence (= Foundation “Website Intelligence” ownership alias; **one** SoT, not a second registry) | Brand commands | Postgres | Capable members | Active tenant + capability | Child of Foundation Tenant |
-| Website Source | OMA Brand Intelligence | Website connect | Postgres | Capable members | Tenant+brand | Live site external |
-| Scan Attempt | OMA Brand Intelligence | Scan commands + worker | Postgres + BullMQ | Capable members | Tenant+brand | Linked JobRun |
-| Crawl bytes | External website | External origin | Not stored as full mirror | Connector read | Safety policy | Excerpts only in OMA |
-| Observations/Evidence | OMA Brand Intelligence | Ingestion worker | Postgres | Reviewers | Tenant+brand | Immutable observations |
-| AI proposals | OMA Brand Intelligence | Analysis worker via port | Postgres | Reviewers | Tenant+brand | Optional; never approve |
-| Human decisions | OMA Brand Intelligence | Insight/approve commands | Postgres | Members | Tenant+brand | Audit |
-| Approved Profile Version | OMA Brand Intelligence | Version approve | Postgres | Downstream later | Tenant+brand | Immutable SoT |
-| Membership/Capability | Foundation Identity | Existing services | Postgres | Workers re-check | Session | Confused-deputy prevention |
-| Audit/Outbox/Notifications | Foundation | Existing writers | Postgres/Redis | Ops/users | Tenant | Reuse |
+| Domain                     | Logical owner                                                                                                    | Authoritative writer     | Storage                   | Readers          | Tenant gate                | Notes                      |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------ | ------------------------- | ---------------- | -------------------------- | -------------------------- |
+| Brand Workspace            | OMA Brand Intelligence (= Foundation “Website Intelligence” ownership alias; **one** SoT, not a second registry) | Brand commands           | Postgres                  | Capable members  | Active tenant + capability | Child of Foundation Tenant |
+| Website Source             | OMA Brand Intelligence                                                                                           | Website connect          | Postgres                  | Capable members  | Tenant+brand               | Live site external         |
+| Scan Attempt               | OMA Brand Intelligence                                                                                           | Scan commands + worker   | Postgres + BullMQ         | Capable members  | Tenant+brand               | Linked JobRun              |
+| Crawl bytes                | External website                                                                                                 | External origin          | Not stored as full mirror | Connector read   | Safety policy              | Excerpts only in OMA       |
+| Observations/Evidence      | OMA Brand Intelligence                                                                                           | Ingestion worker         | Postgres                  | Reviewers        | Tenant+brand               | Immutable observations     |
+| AI proposals               | OMA Brand Intelligence                                                                                           | Analysis worker via port | Postgres                  | Reviewers        | Tenant+brand               | Optional; never approve    |
+| Human decisions            | OMA Brand Intelligence                                                                                           | Insight/approve commands | Postgres                  | Members          | Tenant+brand               | Audit                      |
+| Approved Profile Version   | OMA Brand Intelligence                                                                                           | Version approve          | Postgres                  | Downstream later | Tenant+brand               | Immutable SoT              |
+| Membership/Capability      | Foundation Identity                                                                                              | Existing services        | Postgres                  | Workers re-check | Session                    | Confused-deputy prevention |
+| Audit/Outbox/Notifications | Foundation                                                                                                       | Existing writers         | Postgres/Redis            | Ops/users        | Tenant                     | Reuse                      |
 
 ---
 
@@ -202,17 +202,17 @@ tests/
 
 Extend `packages/domain` + `CapabilitiesGuard.routeRequirements` (both required):
 
-| Code | Maps to spec intent |
-| ---- | ------------------- |
-| `brand.create` | Brand create |
-| `brand.read` | Brand read |
-| `brand.archive` | Brand archive |
-| `brand.website.connect` | Website connect |
-| `brand.scan.control` | Scan control |
-| `brand.discovery.review` | Discovery review |
-| `brand.insight.edit` | Insight edit |
-| `brand.insight.decide` | Insight decide (item only) |
-| `brand.version.approve` | Version approve **and** whole-version reject |
+| Code                     | Maps to spec intent                          |
+| ------------------------ | -------------------------------------------- |
+| `brand.create`           | Brand create                                 |
+| `brand.read`             | Brand read                                   |
+| `brand.archive`          | Brand archive                                |
+| `brand.website.connect`  | Website connect                              |
+| `brand.scan.control`     | Scan control                                 |
+| `brand.discovery.review` | Discovery review                             |
+| `brand.insight.edit`     | Insight edit                                 |
+| `brand.insight.decide`   | Insight decide (item only)                   |
+| `brand.version.approve`  | Version approve **and** whole-version reject |
 
 Profiles: extend `COMPANY_OWNER` / strategist-like profiles in implement; exact grants follow existing seed pattern.
 
@@ -220,11 +220,11 @@ Profiles: extend `COMPANY_OWNER` / strategist-like profiles in implement; exact 
 
 ## Job / queue design
 
-| Queue | Purpose | Processor | Payload must include |
-| ----- | ------- | --------- | -------------------- |
-| `ingestion` | Public crawl + extract | `ingestion.processor` | `job_run_id`, `scan_attempt_id`, `tenant_id`, `brand_id`, `correlation_id`, `actor_user_id`, `idempotency_key` |
-| `analysis` | Optional AI proposals | `analysis.processor` | same + `profile_version_id` |
-| `outbox` / mail | Unchanged foundation | existing | — |
+| Queue           | Purpose                | Processor             | Payload must include                                                                                           |
+| --------------- | ---------------------- | --------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `ingestion`     | Public crawl + extract | `ingestion.processor` | `job_run_id`, `scan_attempt_id`, `tenant_id`, `brand_id`, `correlation_id`, `actor_user_id`, `idempotency_key` |
+| `analysis`      | Optional AI proposals  | `analysis.processor`  | same + `profile_version_id`                                                                                    |
+| `outbox` / mail | Unchanged foundation   | existing              | —                                                                                                              |
 
 **Correlation:** Same as foundation mail — create `JobRun` + outbox in one TX with `jobRunId` in payload; Bull custom id `ingestion-{jobRunId}` / `analysis-{jobRunId}` (no `:`); worker loads by `job_run_id` only (never `findFirst` by queue+QUEUED).
 
@@ -262,11 +262,11 @@ Profiles: extend `COMPANY_OWNER` / strategist-like profiles in implement; exact 
 
 ## AI-unavailable journey (must work)
 
-| Condition | ScanAttempt | Profile | User |
-| --------- | ----------- | ------- | ---- |
-| AI not configured / refuses + usable observations | `Partial` (skip analysis job) | Draft/Needs review from observations | Manual fill; AI-unavailable banner; may approve if 029a |
-| AI not configured + insufficient observations | `Failed` (skip analysis job) | No approve | Actionable error |
-| AI configured (future) | Succeeded or Partial (may enter Analyzing) | May include `AI_INFERRED` | Human dispositions required |
+| Condition                                         | ScanAttempt                                | Profile                              | User                                                    |
+| ------------------------------------------------- | ------------------------------------------ | ------------------------------------ | ------------------------------------------------------- |
+| AI not configured / refuses + usable observations | `Partial` (skip analysis job)              | Draft/Needs review from observations | Manual fill; AI-unavailable banner; may approve if 029a |
+| AI not configured + insufficient observations     | `Failed` (skip analysis job)               | No approve                           | Actionable error                                        |
+| AI configured (future)                            | Succeeded or Partial (may enter Analyzing) | May include `AI_INFERRED`            | Human dispositions required                             |
 
 Test adapters **only in tests**. Production default: refusing / not configured.
 
@@ -289,12 +289,12 @@ Audit must store incompleteness warnings acknowledged.
 
 Full tables live in [`data-model.md`](./data-model.md). Sensitive transitions emit audit + optional notification.
 
-| Machine | Key transitions |
-| ------- | --------------- |
-| BrandWorkspace | Draft → ReadyToScan → Active; → Archived (cancel-then-archive) |
-| ScanAttempt | Queued → Crawling → Extracting → (Analyzing **or skip if AI absent**) → Succeeded\|Partial\|Failed\|Cancelled; **≤1 non-terminal attempt per brand**; retry = new attempt |
-| ProfileVersion | Draft → NeedsReview → Approved\|Rejected; Approved → Superseded by newer approval |
-| InsightReview | Proposed → Accepted\|Rejected\|Edited (item-level; Insight decide/edit) |
+| Machine        | Key transitions                                                                                                                                                           |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| BrandWorkspace | Draft → ReadyToScan → Active; → Archived (cancel-then-archive)                                                                                                            |
+| ScanAttempt    | Queued → Crawling → Extracting → (Analyzing **or skip if AI absent**) → Succeeded\|Partial\|Failed\|Cancelled; **≤1 non-terminal attempt per brand**; retry = new attempt |
+| ProfileVersion | Draft → NeedsReview → Approved\|Rejected; Approved → Superseded by newer approval                                                                                         |
+| InsightReview  | Proposed → Accepted\|Rejected\|Edited (item-level; Insight decide/edit)                                                                                                   |
 
 **Mid-flight:** membership suspended / capability lost → worker sets JobRun `DEAD` / ScanAttempt `Failed` with `PERMISSION_DENIED`; no false success.
 
@@ -308,12 +308,12 @@ Full tables live in [`data-model.md`](./data-model.md). Sensitive transitions em
 
 **Archetype:** Intelligence workspace (`DEC-013`).
 
-| Surface | Reference emphasis | Notes |
-| ------- | ------------------ | ----- |
-| Evidence / coverage / gaps | Semrush | Confidence, freshness, missing |
-| Brand voice / profile structure | Jasper Brand IQ | Proposal labeling; human owns approval |
-| Density, progress, side panel | Linear | Evidence drawer; restrained motion |
-| Multi-actor review tone | Planable | Collaboration patterns only |
+| Surface                         | Reference emphasis | Notes                                  |
+| ------------------------------- | ------------------ | -------------------------------------- |
+| Evidence / coverage / gaps      | Semrush            | Confidence, freshness, missing         |
+| Brand voice / profile structure | Jasper Brand IQ    | Proposal labeling; human owns approval |
+| Density, progress, side panel   | Linear             | Evidence drawer; restrained motion     |
+| Multi-actor review tone         | Planable           | Collaboration patterns only            |
 
 **Routes:** under `/app/brands/...` inside existing shell; add Intelligence nav item filtered by `brand.read`.
 
@@ -323,14 +323,14 @@ Full tables live in [`data-model.md`](./data-model.md). Sensitive transitions em
 
 ## Testing strategy
 
-| Layer | Focus |
-| ----- | ----- |
-| Unit | URL normalize/SSRF pure functions; state transition guards; discovery tier classification |
-| DB integration | Tenant scope, unique idempotency, immutable approve, concurrent version conflict |
-| API contract | OpenAPI shapes for brand/scan/discovery/profile |
-| Worker | Job correlation, reauthz, cancel, retry, late-result, AI-not-configured |
-| Security | SSRF/DNS/redirect chain, cross-tenant, capability matrix |
-| E2E Playwright | Eight journeys in `quickstart.md` against local fixture site + real Postgres/Redis |
+| Layer          | Focus                                                                                     |
+| -------------- | ----------------------------------------------------------------------------------------- |
+| Unit           | URL normalize/SSRF pure functions; state transition guards; discovery tier classification |
+| DB integration | Tenant scope, unique idempotency, immutable approve, concurrent version conflict          |
+| API contract   | OpenAPI shapes for brand/scan/discovery/profile                                           |
+| Worker         | Job correlation, reauthz, cancel, retry, late-result, AI-not-configured                   |
+| Security       | SSRF/DNS/redirect chain, cross-tenant, capability matrix                                  |
+| E2E Playwright | Eight journeys in `quickstart.md` against local fixture site + real Postgres/Redis        |
 
 **CI:** fixture HTTP server or static fixture root; **forbid** egress to public websites.
 
@@ -351,18 +351,18 @@ Full tables live in [`data-model.md`](./data-model.md). Sensitive transitions em
 
 ## Requirement → plan traceability (selected)
 
-| Spec ID | Plan locus |
-| ------- | ---------- |
-| FR-BWI-001–005 | Domain map; data-model tenant keys |
-| FR-BWI-006a–012a | Crawl pipeline; ports; SR-002-004-MODE |
-| FR-BWI-014–019 | ScanAttempt + JobRun; contracts/website-scan-api |
-| FR-BWI-020a–c | data-model discovery tiers |
-| FR-BWI-023–025 | Evidence entity |
-| FR-BWI-028a–b | AI-unavailable; analysis processor |
-| FR-BWI-029–029d | Approval gate; discovery-profile-api |
-| FR-BWI-032–035 | UX architecture |
-| SC-BWI-001–010 | quickstart proofs |
-| NFR-BWI-* | Testing + ops |
+| Spec ID          | Plan locus                                       |
+| ---------------- | ------------------------------------------------ |
+| FR-BWI-001–005   | Domain map; data-model tenant keys               |
+| FR-BWI-006a–012a | Crawl pipeline; ports; SR-002-004-MODE           |
+| FR-BWI-014–019   | ScanAttempt + JobRun; contracts/website-scan-api |
+| FR-BWI-020a–c    | data-model discovery tiers                       |
+| FR-BWI-023–025   | Evidence entity                                  |
+| FR-BWI-028a–b    | AI-unavailable; analysis processor               |
+| FR-BWI-029–029d  | Approval gate; discovery-profile-api             |
+| FR-BWI-032–035   | UX architecture                                  |
+| SC-BWI-001–010   | quickstart proofs                                |
+| NFR-BWI-*        | Testing + ops                                    |
 
 ---
 
@@ -372,7 +372,7 @@ No constitution violations. Complexity remains modular monolith + workers.
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 | --------- | ---------- | ------------------------------------ |
-| — | — | — |
+| —         | —          | —                                    |
 
 ---
 

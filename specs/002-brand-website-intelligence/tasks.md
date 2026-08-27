@@ -3,7 +3,7 @@
 **Input**: Design documents from `/Users/burhanbakri/Downloads/oma-ai/specs/002-brand-website-intelligence/`
 **Baseline plan commit**: `ff8f6de` (`APPROVED FOR TASK DECOMPOSITION`)
 **Clarifications**: `97c9218` (DP-001–DP-005; `SR-002-004-MODE`; `SR-002-007-AI`)
-**Mode**: `TASKS_ONLY` — task definitions only; do not implement until `/speckit-implement`
+**Mode**: `IMPLEMENT_PROVIDER_NEUTRAL_CORE` — T001–T159 complete; Phase BG remains blocked
 **Tests**: **Mandatory**. Write failing tests before or with the code they prove. Real Postgres + Redis/BullMQ + local website fixtures. No public-internet crawl in CI. No internal mocks as proof of production DB/queue paths.
 
 **Prerequisites**: `plan.md`, `spec.md`, `research.md`, `data-model.md`, `contracts/`, `quickstart.md`
@@ -17,14 +17,14 @@
 
 ## User story mapping
 
-| Label | Spec story | Priority | Primary contracts / quickstart |
-| ----- | ---------- | -------- | ------------------------------ |
-| US1 | US-BWI-01 Create Brand + connect website | P1 | `brand-workspace-api.md`, Q-BWI-01 |
-| US2 | US-BWI-02 Safe async scan + progress | P1 | `website-scan-api.md`, `ingestion-ai-ports.md`, Q-BWI-04/06 |
-| US3 | US-BWI-03 Review pages/products/evidence | P1 | `discovery-profile-api.md`, Q-BWI-01 |
-| US4 | US-BWI-04 Profile draft, human review, approve | P1 | `discovery-profile-api.md`, Q-BWI-02/03 |
-| US5 | US-BWI-05 Rescan, compare, protect Approved | P2 | Q-BWI-07/08 |
-| US6 | US-BWI-06 Archive brand safely | P3 | `brand-workspace-api.md` |
+| Label | Spec story                                     | Priority | Primary contracts / quickstart                              |
+| ----- | ---------------------------------------------- | -------- | ----------------------------------------------------------- |
+| US1   | US-BWI-01 Create Brand + connect website       | P1       | `brand-workspace-api.md`, Q-BWI-01                          |
+| US2   | US-BWI-02 Safe async scan + progress           | P1       | `website-scan-api.md`, `ingestion-ai-ports.md`, Q-BWI-04/06 |
+| US3   | US-BWI-03 Review pages/products/evidence       | P1       | `discovery-profile-api.md`, Q-BWI-01                        |
+| US4   | US-BWI-04 Profile draft, human review, approve | P1       | `discovery-profile-api.md`, Q-BWI-02/03                     |
+| US5   | US-BWI-05 Rescan, compare, protect Approved    | P2       | Q-BWI-07/08                                                 |
+| US6   | US-BWI-06 Archive brand safely                 | P3       | `brand-workspace-api.md`                                    |
 
 ## Architecture constraints (non-negotiable)
 
@@ -36,22 +36,22 @@
 
 ## Readiness labels
 
-| Label | Meaning |
-| ----- | ------- |
-| `PROVIDER-NEUTRAL CORE DONE` | Phases 1–10 green with fixture/refusing adapters; blocked section still open |
-| `LIVE-INTEGRATION READY` | Blocked live adapters completed after DEC close — **not authorized by these tasks** |
-| `PRODUCTION LAUNCH READY` | Ops/legal/retention/hosting beyond this feature — **out of scope** |
+| Label                        | Meaning                                                                             |
+| ---------------------------- | ----------------------------------------------------------------------------------- |
+| `PROVIDER-NEUTRAL CORE DONE` | Phases 1–10 green with fixture/refusing adapters; blocked section still open        |
+| `LIVE-INTEGRATION READY`     | Blocked live adapters completed after DEC close — **not authorized by these tasks** |
+| `PRODUCTION LAUNCH READY`    | Ops/legal/retention/hosting beyond this feature — **out of scope**                  |
 
 ---
 
 ## Decision Gates (blocked work — NOT part of provider-neutral DoD)
 
-| Gate | Blocks | Allowed in core | Forbidden |
-| ---- | ------ | --------------- | --------- |
-| `BLOCKED_BY_DEC-004` / `SR-002-004-MODE` | Live website crawl adapter | `WebsiteConnectorPort` + fixture/refusing | Production crawl vendor; commerce SoT |
-| `BLOCKED_BY_DEC-007` / `SR-002-007-AI` | Live AI adapter | `AiProviderPort` + refusing + test double | AI SDK/keys/third-party |
-| `BLOCKED_BY_DEC-003` | Full snapshots / binary asset store | Excerpts/hashes/URLs | Object storage full HTML |
-| `DEC-008`/`009`/`012` | Final agency/approval/retention products | Interim multi-brand + single approver + soft archive | Closing those DECs |
+| Gate                                     | Blocks                                   | Allowed in core                                      | Forbidden                             |
+| ---------------------------------------- | ---------------------------------------- | ---------------------------------------------------- | ------------------------------------- |
+| `BLOCKED_BY_DEC-004` / `SR-002-004-MODE` | Live website crawl adapter               | `WebsiteConnectorPort` + fixture/refusing            | Production crawl vendor; commerce SoT |
+| `BLOCKED_BY_DEC-007` / `SR-002-007-AI`   | Live AI adapter                          | `AiProviderPort` + refusing + test double            | AI SDK/keys/third-party               |
+| `BLOCKED_BY_DEC-003`                     | Full snapshots / binary asset store      | Excerpts/hashes/URLs                                 | Object storage full HTML              |
+| `DEC-008`/`009`/`012`                    | Final agency/approval/retention products | Interim multi-brand + single approver + soft archive | Closing those DECs                    |
 
 Blocked tasks live in **Phase BG** at the end and stay `[ ]`.
 
@@ -61,17 +61,17 @@ Blocked tasks live in **Phase BG** at the end and stay `[ ]`.
 
 **Purpose**: Capability catalog, domain folders, fixtures, env validation — no parallel tenancy/auth/queue
 
-- [ ] T001 Add brand capability codes (`brand.create`, `brand.read`, `brand.archive`, `brand.website.connect`, `brand.scan.control`, `brand.discovery.review`, `brand.insight.edit`, `brand.insight.decide`, `brand.version.approve`) to `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/authz/capabilities.ts` and extend `SYSTEM_PROFILES` for `COMPANY_OWNER` (and document MEMBER remains deny-by-default)
-- [ ] T002 [P] Add unit tests for brand capability helpers in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/authz/brand-capabilities.test.ts`
-- [ ] T003 Create domain package folders and barrel exports in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/index.ts` (states, URL safety stubs export surface only)
-- [ ] T004 Create API domain folders (empty barrels) in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/brand/.gitkeep`, `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/discovery/.gitkeep`, `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/intelligence/.gitkeep`
-- [ ] T005 [P] Create worker processor stubs (throw `not implemented`) in `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/processors/ingestion.processor.ts` and `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/processors/analysis.processor.ts`
-- [ ] T006 [P] Add local deterministic website fixture tree in `/Users/burhanbakri/Downloads/oma-ai/tests/fixtures/websites/acme/index.html` plus product/about pages under `/Users/burhanbakri/Downloads/oma-ai/tests/fixtures/websites/acme/`
-- [ ] T007 [P] Add fixture HTTP server helper (loopback only) in `/Users/burhanbakri/Downloads/oma-ai/tests/helpers/website-fixture-server.ts`
-- [ ] T008 [P] Add shared brand test helpers (login, tenant seed, capability grant) in `/Users/burhanbakri/Downloads/oma-ai/tests/helpers/brand-test.ts`
-- [ ] T009 Document brand-related env knobs without secrets (crawl budgets, fixture mode flag) in `/Users/burhanbakri/Downloads/oma-ai/packages/config/src/env.ts` and `/Users/burhanbakri/Downloads/oma-ai/.env.example`
-- [ ] T010 [P] Add CI note/comment forbidding public crawl egress in `/Users/burhanbakri/Downloads/oma-ai/.github/workflows/ci.yml` (fixture-only brand jobs; no vendor secrets)
-- [ ] T011 Assert documentation that no second tenant/auth/queue system is introduced in `/Users/burhanbakri/Downloads/oma-ai/specs/002-brand-website-intelligence/plan.md` Decision Gates (sync note only if drift found)
+- [x] T001 Add brand capability codes (`brand.create`, `brand.read`, `brand.archive`, `brand.website.connect`, `brand.scan.control`, `brand.discovery.review`, `brand.insight.edit`, `brand.insight.decide`, `brand.version.approve`) to `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/authz/capabilities.ts` and extend `SYSTEM_PROFILES` for `COMPANY_OWNER` (and document MEMBER remains deny-by-default)
+- [x] T002 [P] Add unit tests for brand capability helpers in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/authz/brand-capabilities.test.ts`
+- [x] T003 Create domain package folders and barrel exports in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/index.ts` (states, URL safety stubs export surface only)
+- [x] T004 Create API domain folders (empty barrels) in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/brand/.gitkeep`, `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/discovery/.gitkeep`, `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/intelligence/.gitkeep`
+- [x] T005 [P] Create worker processor stubs (throw `not implemented`) in `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/processors/ingestion.processor.ts` and `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/processors/analysis.processor.ts`
+- [x] T006 [P] Add local deterministic website fixture tree in `/Users/burhanbakri/Downloads/oma-ai/tests/fixtures/websites/acme/index.html` plus product/about pages under `/Users/burhanbakri/Downloads/oma-ai/tests/fixtures/websites/acme/`
+- [x] T007 [P] Add fixture HTTP server helper (loopback only) in `/Users/burhanbakri/Downloads/oma-ai/tests/helpers/website-fixture-server.ts`
+- [x] T008 [P] Add shared brand test helpers (login, tenant seed, capability grant) in `/Users/burhanbakri/Downloads/oma-ai/tests/helpers/brand-test.ts`
+- [x] T009 Document brand-related env knobs without secrets (crawl budgets, fixture mode flag) in `/Users/burhanbakri/Downloads/oma-ai/packages/config/src/env.ts` and `/Users/burhanbakri/Downloads/oma-ai/.env.example`
+- [x] T010 [P] Add CI note/comment forbidding public crawl egress in `/Users/burhanbakri/Downloads/oma-ai/.github/workflows/ci.yml` (fixture-only brand jobs; no vendor secrets)
+- [x] T011 Assert documentation that no second tenant/auth/queue system is introduced in `/Users/burhanbakri/Downloads/oma-ai/specs/002-brand-website-intelligence/plan.md` Decision Gates (sync note only if drift found)
 
 **Checkpoint**: Capabilities + fixtures + folders exist; refusing ports untouched as production default; no Prisma brand models yet.
 
@@ -83,24 +83,24 @@ Blocked tasks live in **Phase BG** at the end and stay `[ ]`.
 
 **⚠️ CRITICAL**: User-story API work waits until migration applies cleanly on empty DB
 
-- [ ] T012 Write failing Prisma/schema expectation tests for brand entities in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/brand-schema.integration.test.ts`
-- [ ] T013 Add `BrandWorkspace` model (tenantId, status, version, currentApprovedProfileVersionId) in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
-- [ ] T014 Add `WebsiteSource` model (tenantId, brandId, normalizedUrl, attestation, sourceRevision, validationStatus) in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
-- [ ] T015 Add `ScanAttempt` model with unique `idempotencyKey`, unique `jobRunId`, status, progress, coverageJson, aiAvailability, parentAttemptId in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
-- [ ] T016 Add `DiscoveredPage` with unique `(scanAttemptId, canonicalHash)` in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
-- [ ] T017 Add `ExtractedObservation` (fieldKey, discoveryTier, infoState, evidenceId, profileVersionId) in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
-- [ ] T018 Add `EvidenceExcerpt` (excerptText bound, contentHash, extractionMethod, urls, fetchedAt) — **no blob storage ref required** — in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
-- [ ] T019 Add `DiscoveredProductService` (+ optional parent for variants) with per-attempt dedupeKey in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
-- [ ] T020 Add `ProfileVersion` (status, rowVersion, coverageSnapshotJson, aiAvailability, scanAttemptId) in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
-- [ ] T021 Add `ProfileSection` storage (JSON document on ProfileVersion **or** child model — pick one documented in schema comments) in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
-- [ ] T022 Add `InsightClaim` (infoState, reviewStatus, discoveryTier, evidenceId, rowVersion) in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
-- [ ] T023 Add `HumanEdit` and `ReviewDecision` append-only models in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
-- [ ] T024 Add `ApprovalRecord` unique on `profileVersionId` with incompleteness ack fields in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
-- [ ] T025 Add indexes `(tenantId, status, updatedAt)` on BrandWorkspace and `(tenantId, brandId, createdAt)` on ScanAttempt in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
-- [ ] T026 Generate migration under `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/migrations/` with documented rollback/down notes in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/migrations/<timestamp>_brand_website_intelligence/migration.sql` (and README sibling if project pattern uses it)
-- [ ] T027 Prove migration applies on clean database in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/brand-migration-clean.integration.test.ts`
-- [ ] T028 [P] Add domain state enums/guards for Brand/Scan/Profile/Insight in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/states.ts` and tests in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/states.test.ts`
-- [ ] T029 [P] Document late-result / Approved immutability application rules in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/immutability.ts` with unit tests in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/immutability.test.ts`
+- [x] T012 Write failing Prisma/schema expectation tests for brand entities in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/brand-schema.integration.test.ts`
+- [x] T013 Add `BrandWorkspace` model (tenantId, status, version, currentApprovedProfileVersionId) in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
+- [x] T014 Add `WebsiteSource` model (tenantId, brandId, normalizedUrl, attestation, sourceRevision, validationStatus) in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
+- [x] T015 Add `ScanAttempt` model with unique `idempotencyKey`, unique `jobRunId`, status, progress, coverageJson, aiAvailability, parentAttemptId in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
+- [x] T016 Add `DiscoveredPage` with unique `(scanAttemptId, canonicalHash)` in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
+- [x] T017 Add `ExtractedObservation` (fieldKey, discoveryTier, infoState, evidenceId, profileVersionId) in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
+- [x] T018 Add `EvidenceExcerpt` (excerptText bound, contentHash, extractionMethod, urls, fetchedAt) — **no blob storage ref required** — in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
+- [x] T019 Add `DiscoveredProductService` (+ optional parent for variants) with per-attempt dedupeKey in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
+- [x] T020 Add `ProfileVersion` (status, rowVersion, coverageSnapshotJson, aiAvailability, scanAttemptId) in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
+- [x] T021 Add `ProfileSection` storage (JSON document on ProfileVersion **or** child model — pick one documented in schema comments) in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
+- [x] T022 Add `InsightClaim` (infoState, reviewStatus, discoveryTier, evidenceId, rowVersion) in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
+- [x] T023 Add `HumanEdit` and `ReviewDecision` append-only models in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
+- [x] T024 Add `ApprovalRecord` unique on `profileVersionId` with incompleteness ack fields in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
+- [x] T025 Add indexes `(tenantId, status, updatedAt)` on BrandWorkspace and `(tenantId, brandId, createdAt)` on ScanAttempt in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
+- [x] T026 Generate migration under `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/migrations/` with documented rollback/down notes in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/migrations/<timestamp>_brand_website_intelligence/migration.sql` (and README sibling if project pattern uses it)
+- [x] T027 Prove migration applies on clean database in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/brand-migration-clean.integration.test.ts`
+- [x] T028 [P] Add domain state enums/guards for Brand/Scan/Profile/Insight in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/states.ts` and tests in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/states.test.ts`
+- [x] T029 [P] Document late-result / Approved immutability application rules in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/immutability.ts` with unit tests in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/immutability.test.ts`
 
 **Checkpoint**: Clean migrate green; T012 green; no live crawl/AI.
 
@@ -113,21 +113,21 @@ Blocked tasks live in **Phase BG** at the end and stay `[ ]`.
 
 ### Tests (write first; must fail)
 
-- [ ] T030 [P] [US1] Contract tests for brand list/create/read/patch/archive in `/Users/burhanbakri/Downloads/oma-ai/tests/contract/brand-workspace.contract.test.ts` per `contracts/brand-workspace-api.md`
-- [ ] T031 [P] [US1] Integration tests for brand CRUD + archive cancel-active policy stub in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/brand-workspace.integration.test.ts`
-- [ ] T032 [P] [US1] Security tests for cross-tenant brand denial in `/Users/burhanbakri/Downloads/oma-ai/tests/security/brand-tenant-isolation.security.test.ts`
-- [ ] T033 [P] [US1] Capability matrix tests (missing `brand.create`/`brand.read`/`brand.archive`) in `/Users/burhanbakri/Downloads/oma-ai/tests/security/brand-capabilities.security.test.ts`
+- [x] T030 [P] [US1] Contract tests for brand list/create/read/patch/archive in `/Users/burhanbakri/Downloads/oma-ai/tests/contract/brand-workspace.contract.test.ts` per `contracts/brand-workspace-api.md`
+- [x] T031 [P] [US1] Integration tests for brand CRUD + archive cancel-active policy stub in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/brand-workspace.integration.test.ts`
+- [x] T032 [P] [US1] Security tests for cross-tenant brand denial in `/Users/burhanbakri/Downloads/oma-ai/tests/security/brand-tenant-isolation.security.test.ts`
+- [x] T033 [P] [US1] Capability matrix tests (missing `brand.create`/`brand.read`/`brand.archive`) in `/Users/burhanbakri/Downloads/oma-ai/tests/security/brand-capabilities.security.test.ts`
 
 ### Implementation
 
-- [ ] T034 [US1] Implement `BrandService` create/list/get/patch/archive with `tenantWhere` + optimistic `version` in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/brand/brand.service.ts`
-- [ ] T035 [US1] Implement `BrandController` routes under `/api/v1/brands` in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/brand/brand.controller.ts`
-- [ ] T036 [US1] Register brand routes in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/common/guards/capabilities.guard.ts` and wire controller in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/app.module.ts` + export service from `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/container.ts`
-- [ ] T037 [US1] Emit audit events `brand.created` / `brand.updated` / `brand.archived` via existing AuditService from `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/brand/brand.service.ts`
-- [ ] T038 [US1] Add brand list/create pages with empty/loading/error/permission states in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/page.tsx` and `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/new/page.tsx`
-- [ ] T039 [US1] Add brand detail page shell in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/page.tsx`
-- [ ] T040 [US1] Add Intelligence nav item filtered by `brand.read` in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/layout.tsx`
-- [ ] T041 [P] [US1] Add EN/AR message keys for brand surfaces in `/Users/burhanbakri/Downloads/oma-ai/packages/i18n/messages/en.json` and `/Users/burhanbakri/Downloads/oma-ai/packages/i18n/messages/ar.json`
+- [x] T034 [US1] Implement `BrandService` create/list/get/patch/archive with `tenantWhere` + optimistic `version` in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/brand/brand.service.ts`
+- [x] T035 [US1] Implement `BrandController` routes under `/api/v1/brands` in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/brand/brand.controller.ts`
+- [x] T036 [US1] Register brand routes in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/common/guards/capabilities.guard.ts` and wire controller in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/app.module.ts` + export service from `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/container.ts`
+- [x] T037 [US1] Emit audit events `brand.created` / `brand.updated` / `brand.archived` via existing AuditService from `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/brand/brand.service.ts`
+- [x] T038 [US1] Add brand list/create pages with empty/loading/error/permission states in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/page.tsx` and `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/new/page.tsx`
+- [x] T039 [US1] Add brand detail page shell in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/page.tsx`
+- [x] T040 [US1] Add Intelligence nav item filtered by `brand.read` in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/layout.tsx`
+- [x] T041 [P] [US1] Add EN/AR message keys for brand surfaces in `/Users/burhanbakri/Downloads/oma-ai/packages/i18n/messages/en.json` and `/Users/burhanbakri/Downloads/oma-ai/packages/i18n/messages/ar.json`
 
 **Checkpoint**: Brand CRUD + isolation + capability tests green; UI list/create usable in EN/AR.
 
@@ -139,23 +139,23 @@ Blocked tasks live in **Phase BG** at the end and stay `[ ]`.
 
 ### Tests (write first)
 
-- [ ] T042 [P] [US1] Unit tests for URL normalize/HTTPS-only/credential strip in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/url-normalize.test.ts`
-- [ ] T043 [P] [US1] Unit/security tests for SSRF host policy (localhost, private, link-local, metadata) in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/ssrf-policy.test.ts`
-- [ ] T044 [P] [US1] Unit tests for redirect revalidation helpers in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/redirect-safety.test.ts`
-- [ ] T045 [P] [US1] Contract tests for `POST/GET .../website` in `/Users/burhanbakri/Downloads/oma-ai/tests/contract/brand-website.contract.test.ts`
-- [ ] T046 [P] [US1] Integration tests for attestation-required connect + sourceRevision increment without mutating Approved pointer in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/brand-website-connect.integration.test.ts`
-- [ ] T047 [P] [US1] Security tests for URL credentials, non-HTTPS, unsupported ports/protocols in `/Users/burhanbakri/Downloads/oma-ai/tests/security/brand-url-safety.security.test.ts`
+- [x] T042 [P] [US1] Unit tests for URL normalize/HTTPS-only/credential strip in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/url-normalize.test.ts`
+- [x] T043 [P] [US1] Unit/security tests for SSRF host policy (localhost, private, link-local, metadata) in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/ssrf-policy.test.ts`
+- [x] T044 [P] [US1] Unit tests for redirect revalidation helpers in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/redirect-safety.test.ts`
+- [x] T045 [P] [US1] Contract tests for `POST/GET .../website` in `/Users/burhanbakri/Downloads/oma-ai/tests/contract/brand-website.contract.test.ts`
+- [x] T046 [P] [US1] Integration tests for attestation-required connect + sourceRevision increment without mutating Approved pointer in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/brand-website-connect.integration.test.ts`
+- [x] T047 [P] [US1] Security tests for URL credentials, non-HTTPS, unsupported ports/protocols in `/Users/burhanbakri/Downloads/oma-ai/tests/security/brand-url-safety.security.test.ts`
 
 ### Implementation
 
-- [ ] T048 [US1] Implement URL normalize + SSRF policy pure functions in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/url-normalize.ts` and `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/ssrf-policy.ts`
-- [ ] T049 [US1] Implement redirect safety helper (re-check every hop) in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/redirect-safety.ts`
-- [ ] T050 [US1] Implement `WebsiteSourceService` connect/replace with attestation audit in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/brand/website-source.service.ts`
-- [ ] T051 [US1] Add website endpoints in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/brand/website.controller.ts` and capability map entries in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/common/guards/capabilities.guard.ts`
-- [ ] T052 [US1] Call `WebsiteConnectorPort.validateSource` after policy checks; keep production default refusing; wire fixture mode only via test/DI in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/brand/website-source.service.ts`
-- [ ] T053 [US1] Add connect-website UI with attestation checkbox in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/connect/page.tsx`
-- [ ] T054 [US1] Add rate-limit tightening for website connect in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/common/guards/rate-limit.guard.ts` (or brand-specific guard file `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/brand/brand-rate-limit.ts`)
-- [ ] T055 [P] [US1] Extend OpenAPI for brand/website routes via `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/generate-openapi.ts` (write gated) and `/Users/burhanbakri/Downloads/oma-ai/packages/api-client/openapi.json` when generated
+- [x] T048 [US1] Implement URL normalize + SSRF policy pure functions in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/url-normalize.ts` and `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/ssrf-policy.ts`
+- [x] T049 [US1] Implement redirect safety helper (re-check every hop) in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/redirect-safety.ts`
+- [x] T050 [US1] Implement `WebsiteSourceService` connect/replace with attestation audit in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/brand/website-source.service.ts`
+- [x] T051 [US1] Add website endpoints in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/brand/website.controller.ts` and capability map entries in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/common/guards/capabilities.guard.ts`
+- [x] T052 [US1] Call `WebsiteConnectorPort.validateSource` after policy checks; keep production default refusing; wire fixture mode only via test/DI in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/brand/website-source.service.ts`
+- [x] T053 [US1] Add connect-website UI with attestation checkbox in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/connect/page.tsx`
+- [x] T054 [US1] Add rate-limit tightening for website connect in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/common/guards/rate-limit.guard.ts` (or brand-specific guard file `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/brand/brand-rate-limit.ts`)
+- [x] T055 [P] [US1] Extend OpenAPI for brand/website routes via `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/generate-openapi.ts` (write gated) and `/Users/burhanbakri/Downloads/oma-ai/packages/api-client/openapi.json` when generated
 
 **Checkpoint**: Connect HTTPS fixture/host policy tests green; Approved versions never mutated by replace URL.
 
@@ -168,29 +168,29 @@ Blocked tasks live in **Phase BG** at the end and stay `[ ]`.
 
 ### Tests (write first)
 
-- [ ] T056 [P] [US2] Contract tests for start/status/list/cancel/retry in `/Users/burhanbakri/Downloads/oma-ai/tests/contract/website-scan.contract.test.ts`
-- [ ] T057 [P] [US2] Integration tests for idempotent start + ≤1 non-terminal attempt per brand in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/scan-idempotency.integration.test.ts`
-- [ ] T058 [P] [US2] Worker tests for JobRun correlation via `job_run_id` only in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/scan-job-correlation.integration.test.ts`
-- [ ] T059 [P] [US2] Worker tests for cancel, retry (new attempt), backoff/dead-letter handling in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/scan-cancel-retry.integration.test.ts`
-- [ ] T060 [P] [US2] Security/integration test: membership suspend mid-job → `PERMISSION_DENIED` fail-closed in `/Users/burhanbakri/Downloads/oma-ai/tests/security/scan-midflight-reauthz.security.test.ts`
-- [ ] T061 [P] [US2] Integration test: worker restart recovery does not duplicate successful writes in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/scan-worker-recovery.integration.test.ts`
-- [ ] T062 [P] [US2] Unit tests for ScanAttempt transitions in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/scan-transitions.test.ts`
+- [x] T056 [P] [US2] Contract tests for start/status/list/cancel/retry in `/Users/burhanbakri/Downloads/oma-ai/tests/contract/website-scan.contract.test.ts`
+- [x] T057 [P] [US2] Integration tests for idempotent start + ≤1 non-terminal attempt per brand in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/scan-idempotency.integration.test.ts`
+- [x] T058 [P] [US2] Worker tests for JobRun correlation via `job_run_id` only in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/scan-job-correlation.integration.test.ts`
+- [x] T059 [P] [US2] Worker tests for cancel, retry (new attempt), backoff/dead-letter handling in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/scan-cancel-retry.integration.test.ts`
+- [x] T060 [P] [US2] Security/integration test: membership suspend mid-job → `PERMISSION_DENIED` fail-closed in `/Users/burhanbakri/Downloads/oma-ai/tests/security/scan-midflight-reauthz.security.test.ts`
+- [x] T061 [P] [US2] Integration test: worker restart recovery does not duplicate successful writes in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/scan-worker-recovery.integration.test.ts`
+- [x] T062 [P] [US2] Unit tests for ScanAttempt transitions in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/scan-transitions.test.ts`
 
 ### Implementation
 
-- [ ] T063 [US2] Implement scan state transition guards in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/scan-transitions.ts`
-- [ ] T064 [US2] Implement `ScanService` start/cancel/retry creating ScanAttempt + JobRun + Outbox in one TX and emit audits `brand.scan.started` / `brand.scan.cancelled` / `brand.scan.retried` via AuditService in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/brand/scan.service.ts`
-- [ ] T065 [US2] Implement `ScanController` in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/brand/scan.controller.ts` and register capabilities in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/common/guards/capabilities.guard.ts`
-- [ ] T066 [US2] Define ingestion job payload type (snake_case `job_run_id`) in `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/processors/ingestion-job-payload.ts`
-- [ ] T067 [US2] Implement `ingestion.processor.ts` load-by-`job_run_id`, reauthz, progress updates, cancel honor in `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/processors/ingestion.processor.ts`
-- [ ] T068 [US2] Register `ingestion` (+ later `analysis`) queues in `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/worker.module.ts` and outbox publish path reuse in `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/processors/outbox.publisher.ts`
-- [ ] T069 [US2] Implement deterministic fixture `WebsiteConnectorPort` adapter for tests/local only in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/ports/fixture-website-connector.ts` (keep `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/ports/refusing-adapters.ts` as production default)
-- [ ] T070 [US2] Wire worker DI to choose fixture vs refusing via env flag documented in `/Users/burhanbakri/Downloads/oma-ai/packages/config/src/env.ts` (default refusing; fixture allowed only non-prod/test)
-- [ ] T071 [US2] Persist progress_percent / page counters / coverageJson during crawl in `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/processors/ingestion.processor.ts`
-- [ ] T072 [US2] Enforce per-tenant crawl concurrency / budgets in `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/processors/ingestion.processor.ts` and `/Users/burhanbakri/Downloads/oma-ai/packages/config/src/env.ts`
-- [ ] T073 [US2] Add scan setup/confirmation UI showing crawl bounds (max pages/depth/duration) before start in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/scans/new/page.tsx`
-- [ ] T074 [US2] Add scan progress UI with Partial/failure/retry controls and live progress a11y in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/scans/[scanId]/page.tsx`
-- [ ] T075 [P] [US2] Structured logs with correlation_id/tenant/brand/scan/job_run plus mid-flight audit `brand.scan.permission_denied_midflight` in `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/processors/ingestion.processor.ts`
+- [x] T063 [US2] Implement scan state transition guards in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/scan-transitions.ts`
+- [x] T064 [US2] Implement `ScanService` start/cancel/retry creating ScanAttempt + JobRun + Outbox in one TX and emit audits `brand.scan.started` / `brand.scan.cancelled` / `brand.scan.retried` via AuditService in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/brand/scan.service.ts`
+- [x] T065 [US2] Implement `ScanController` in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/brand/scan.controller.ts` and register capabilities in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/common/guards/capabilities.guard.ts`
+- [x] T066 [US2] Define ingestion job payload type (snake_case `job_run_id`) in `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/processors/ingestion-job-payload.ts`
+- [x] T067 [US2] Implement `ingestion.processor.ts` load-by-`job_run_id`, reauthz, progress updates, cancel honor in `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/processors/ingestion.processor.ts`
+- [x] T068 [US2] Register `ingestion` (+ later `analysis`) queues in `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/worker.module.ts` and outbox publish path reuse in `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/processors/outbox.publisher.ts`
+- [x] T069 [US2] Implement deterministic fixture `WebsiteConnectorPort` adapter for tests/local only in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/ports/fixture-website-connector.ts` (keep `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/ports/refusing-adapters.ts` as production default)
+- [x] T070 [US2] Wire worker DI to choose fixture vs refusing via env flag documented in `/Users/burhanbakri/Downloads/oma-ai/packages/config/src/env.ts` (default refusing; fixture allowed only non-prod/test)
+- [x] T071 [US2] Persist progress_percent / page counters / coverageJson during crawl in `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/processors/ingestion.processor.ts`
+- [x] T072 [US2] Enforce per-tenant crawl concurrency / budgets in `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/processors/ingestion.processor.ts` and `/Users/burhanbakri/Downloads/oma-ai/packages/config/src/env.ts`
+- [x] T073 [US2] Add scan setup/confirmation UI showing crawl bounds (max pages/depth/duration) before start in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/scans/new/page.tsx`
+- [x] T074 [US2] Add scan progress UI with Partial/failure/retry controls and live progress a11y in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/scans/[scanId]/page.tsx`
+- [x] T075 [P] [US2] Structured logs with correlation_id/tenant/brand/scan/job_run plus mid-flight audit `brand.scan.permission_denied_midflight` in `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/processors/ingestion.processor.ts`
 
 **Checkpoint**: Scan start→progress→cancel/retry green on real Redis/Postgres; mid-flight reauthz green; **no live crawl vendor**.
 
@@ -202,27 +202,27 @@ Blocked tasks live in **Phase BG** at the end and stay `[ ]`.
 
 ### Tests (write first)
 
-- [ ] T076 [P] [US3] Unit tests for canonical URL hash/dedupe in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/canonical-url.test.ts`
-- [ ] T077 [P] [US3] Unit tests for HTML/JSON-LD/OG extraction + Unknown handling in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/extractors.test.ts`
-- [ ] T078 [P] [US3] Unit tests for discovery tier classification in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/discovery-tiers.test.ts`
-- [ ] T079 [P] [US3] Integration tests for pages/products/evidence persistence tenant-scoped in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/discovery-extract.integration.test.ts`
-- [ ] T080 [P] [US3] Contract tests for pages/products/evidence list/get in `/Users/burhanbakri/Downloads/oma-ai/tests/contract/discovery-profile-read.contract.test.ts`
-- [ ] T081 [P] [US3] Security tests: oversized/slow/invalid content-type rejected in `/Users/burhanbakri/Downloads/oma-ai/tests/security/crawl-content-limits.security.test.ts`
-- [ ] T082 [P] [US3] Security tests: DNS rebinding + redirect-to-private denied during fetch loop in `/Users/burhanbakri/Downloads/oma-ai/tests/security/ssrf-redirect-chain.security.test.ts`
-- [ ] T083 [P] [US3] Assert no full HTML snapshot columns/blobs introduced in `/Users/burhanbakri/Downloads/oma-ai/tests/unit/evidence-excerpt-bounds.unit.test.ts`
+- [x] T076 [P] [US3] Unit tests for canonical URL hash/dedupe in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/canonical-url.test.ts`
+- [x] T077 [P] [US3] Unit tests for HTML/JSON-LD/OG extraction + Unknown handling in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/extractors.test.ts`
+- [x] T078 [P] [US3] Unit tests for discovery tier classification in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/discovery-tiers.test.ts`
+- [x] T079 [P] [US3] Integration tests for pages/products/evidence persistence tenant-scoped in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/discovery-extract.integration.test.ts`
+- [x] T080 [P] [US3] Contract tests for pages/products/evidence list/get in `/Users/burhanbakri/Downloads/oma-ai/tests/contract/discovery-profile-read.contract.test.ts`
+- [x] T081 [P] [US3] Security tests: oversized/slow/invalid content-type rejected in `/Users/burhanbakri/Downloads/oma-ai/tests/security/crawl-content-limits.security.test.ts`
+- [x] T082 [P] [US3] Security tests: DNS rebinding + redirect-to-private denied during fetch loop in `/Users/burhanbakri/Downloads/oma-ai/tests/security/ssrf-redirect-chain.security.test.ts`
+- [x] T083 [P] [US3] Assert no full HTML snapshot columns/blobs introduced in `/Users/burhanbakri/Downloads/oma-ai/tests/unit/evidence-excerpt-bounds.unit.test.ts`
 
 ### Implementation
 
-- [ ] T084 [US3] Implement canonical URL + content hash helpers in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/canonical-url.ts`
-- [ ] T085 [US3] Implement extractors (meta, JSON-LD, OG, heuristics) in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/extractors.ts`
-- [ ] T086 [US3] Implement discovery tier map constants in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/discovery-tiers.ts`
-- [ ] T087 [US3] Persist DiscoveredPage / Observation / EvidenceExcerpt / ProductService in ingestion processor `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/processors/ingestion.processor.ts` (or extract module `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/brand/extraction.service.ts`)
-- [ ] T088 [US3] Enforce robots/skip/limit reasons on pages in `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/brand/robots-policy.ts`
-- [ ] T089 [US3] Implement discovery read APIs in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/discovery/discovery.controller.ts` and `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/discovery/discovery.service.ts`
-- [ ] T090 [US3] Implement evidence get with re-authz in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/discovery/evidence.service.ts`
-- [ ] T091 [US3] Add discovered pages UI in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/discovery/pages/page.tsx`
-- [ ] T092 [US3] Add products/services catalog UI in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/discovery/products/page.tsx`
-- [ ] T093 [US3] Add Evidence side panel component in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/brand/evidence-side-panel.tsx`
+- [x] T084 [US3] Implement canonical URL + content hash helpers in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/canonical-url.ts`
+- [x] T085 [US3] Implement extractors (meta, JSON-LD, OG, heuristics) in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/extractors.ts`
+- [x] T086 [US3] Implement discovery tier map constants in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/discovery-tiers.ts`
+- [x] T087 [US3] Persist DiscoveredPage / Observation / EvidenceExcerpt / ProductService in ingestion processor `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/processors/ingestion.processor.ts` (or extract module `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/brand/extraction.service.ts`)
+- [x] T088 [US3] Enforce robots/skip/limit reasons on pages in `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/brand/robots-policy.ts`
+- [x] T089 [US3] Implement discovery read APIs in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/discovery/discovery.controller.ts` and `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/discovery/discovery.service.ts`
+- [x] T090 [US3] Implement evidence get with re-authz in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/discovery/evidence.service.ts`
+- [x] T091 [US3] Add discovered pages UI in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/discovery/pages/page.tsx`
+- [x] T092 [US3] Add products/services catalog UI in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/discovery/products/page.tsx`
+- [x] T093 [US3] Add Evidence side panel component in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/brand/evidence-side-panel.tsx`
 
 **Checkpoint**: Fixture crawl yields reviewable pages/products/evidence; SSRF redirect tests green; DEC-003 gate holds (excerpts only).
 
@@ -235,28 +235,28 @@ Blocked tasks live in **Phase BG** at the end and stay `[ ]`.
 
 ### Tests (write first)
 
-- [ ] T094 [P] [US4] Contract tests for profile get/patch/history/compare/insight accept-reject in `/Users/burhanbakri/Downloads/oma-ai/tests/contract/discovery-profile-write.contract.test.ts`
-- [ ] T095 [P] [US4] Integration: AI not configured → Partial + manual profile approvable path prep in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/ai-unavailable-manual.integration.test.ts`
-- [ ] T096 [P] [US4] Integration: concurrent edit → `409 CONFLICT_VERSION` in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/profile-concurrency.integration.test.ts`
-- [ ] T097 [P] [US5] Integration: late result after Approved does not mutate Approved in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/late-result-immutability.integration.test.ts`
-- [ ] T098 [P] [US5] Integration: rescan creates new Draft; Approved unchanged in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/rescan-new-draft.integration.test.ts`
-- [ ] T099 [P] [US4] Unit tests for info_state taxonomy transitions in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/info-state.test.ts`
-- [ ] T100 [P] [US4] Security: Insight decide cannot call whole-version reject endpoint (403) in `/Users/burhanbakri/Downloads/oma-ai/tests/security/insight-vs-version-capability.security.test.ts`
+- [x] T094 [P] [US4] Contract tests for profile get/patch/history/compare/insight accept-reject in `/Users/burhanbakri/Downloads/oma-ai/tests/contract/discovery-profile-write.contract.test.ts`
+- [x] T095 [P] [US4] Integration: AI not configured → Partial + manual profile approvable path prep in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/ai-unavailable-manual.integration.test.ts`
+- [x] T096 [P] [US4] Integration: concurrent edit → `409 CONFLICT_VERSION` in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/profile-concurrency.integration.test.ts`
+- [x] T097 [P] [US5] Integration: late result after Approved does not mutate Approved in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/late-result-immutability.integration.test.ts`
+- [x] T098 [P] [US5] Integration: rescan creates new Draft; Approved unchanged in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/rescan-new-draft.integration.test.ts`
+- [x] T099 [P] [US4] Unit tests for info_state taxonomy transitions in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/info-state.test.ts`
+- [x] T100 [P] [US4] Security: Insight decide cannot call whole-version reject endpoint (403) in `/Users/burhanbakri/Downloads/oma-ai/tests/security/insight-vs-version-capability.security.test.ts`
 
 ### Implementation
 
-- [ ] T101 [US4] Create ProfileVersion Draft from observations after extract (skip analysis when AI refusing) in `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/brand/profile-draft.service.ts`
-- [ ] T102 [US4] Implement analysis processor that catches `AiProviderNotConfiguredError` and sets `ai_availability` without failing usable Partial journeys in `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/processors/analysis.processor.ts`
-- [ ] T103 [US4] Keep production `refusingAiProvider` wired in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/container.ts` / worker DI; add **test-only** double in `/Users/burhanbakri/Downloads/oma-ai/tests/helpers/ai-test-double.ts`
-- [ ] T104 [US4] Implement `ProfileService` get/patch/history/compare in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/intelligence/profile.service.ts`
-- [ ] T105 [US4] Implement insight accept/reject/edit endpoints in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/intelligence/insight.service.ts` and `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/intelligence/profile.controller.ts`
-- [ ] T106 [US4] Register intelligence routes + capabilities in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/common/guards/capabilities.guard.ts` and `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/app.module.ts`
-- [ ] T107 [US4] Enforce Approved immutability + late-result → new Draft only in `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/brand/late-result.service.ts`
-- [ ] T108 [US4] Add Brand Intelligence editor UI in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/profiles/[versionId]/page.tsx`
-- [ ] T109 [US4] Add AI-unavailable banner + manual field completion UX in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/brand/ai-unavailable-banner.tsx`
-- [ ] T110 [US4] Add insight decision controls (item-level only) in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/brand/insight-decision-controls.tsx`
-- [ ] T111 [US5] Add version comparison UI in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/profiles/[versionId]/compare/page.tsx`
-- [ ] T112 [P] [US4] Audit HumanEdit and insight decisions via AuditService in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/intelligence/insight.service.ts` and `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/intelligence/profile.service.ts`
+- [x] T101 [US4] Create ProfileVersion Draft from observations after extract (skip analysis when AI refusing) in `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/brand/profile-draft.service.ts`
+- [x] T102 [US4] Implement analysis processor that catches `AiProviderNotConfiguredError` and sets `ai_availability` without failing usable Partial journeys in `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/processors/analysis.processor.ts`
+- [x] T103 [US4] Keep production `refusingAiProvider` wired in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/container.ts` / worker DI; add **test-only** double in `/Users/burhanbakri/Downloads/oma-ai/tests/helpers/ai-test-double.ts`
+- [x] T104 [US4] Implement `ProfileService` get/patch/history/compare in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/intelligence/profile.service.ts`
+- [x] T105 [US4] Implement insight accept/reject/edit endpoints in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/intelligence/insight.service.ts` and `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/intelligence/profile.controller.ts`
+- [x] T106 [US4] Register intelligence routes + capabilities in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/common/guards/capabilities.guard.ts` and `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/app.module.ts`
+- [x] T107 [US4] Enforce Approved immutability + late-result → new Draft only in `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/brand/late-result.service.ts`
+- [x] T108 [US4] Add Brand Intelligence editor UI in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/profiles/[versionId]/page.tsx`
+- [x] T109 [US4] Add AI-unavailable banner + manual field completion UX in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/brand/ai-unavailable-banner.tsx`
+- [x] T110 [US4] Add insight decision controls (item-level only) in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/brand/insight-decision-controls.tsx`
+- [x] T111 [US5] Add version comparison UI in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/profiles/[versionId]/compare/page.tsx`
+- [x] T112 [P] [US4] Audit HumanEdit and insight decisions via AuditService in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/intelligence/insight.service.ts` and `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/intelligence/profile.service.ts`
 
 **Checkpoint**: Manual path works with refusing AI; late/rescan immutability green; no AI SDK.
 
@@ -269,22 +269,22 @@ Blocked tasks live in **Phase BG** at the end and stay `[ ]`.
 
 ### Tests (write first)
 
-- [ ] T113 [P] [US4] Unit tests for approval eligibility evaluator (FR-BWI-029a/c) in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/approval-eligibility.test.ts`
-- [ ] T114 [P] [US4] Contract tests for approve/reject + `422 APPROVAL_INELIGIBLE` in `/Users/burhanbakri/Downloads/oma-ai/tests/contract/profile-approval.contract.test.ts`
-- [ ] T115 [P] [US4] Integration: Partial without `acknowledge_incomplete` denied; with ack + audit succeeds in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/partial-approval.integration.test.ts`
-- [ ] T116 [P] [US4] Integration: Cancelled / Failed-insufficient / ineligible cannot approve in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/approval-denials.integration.test.ts`
-- [ ] T117 [P] [US4] Integration: ApprovalRecord unique + Approved freeze in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/immutable-approval.integration.test.ts`
-- [ ] T118 [P] [US4] Security: whole-version reject requires `brand.version.approve` not insight.decide in `/Users/burhanbakri/Downloads/oma-ai/tests/security/version-reject-capability.security.test.ts`
+- [x] T113 [P] [US4] Unit tests for approval eligibility evaluator (FR-BWI-029a/c) in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/approval-eligibility.test.ts`
+- [x] T114 [P] [US4] Contract tests for approve/reject + `422 APPROVAL_INELIGIBLE` in `/Users/burhanbakri/Downloads/oma-ai/tests/contract/profile-approval.contract.test.ts`
+- [x] T115 [P] [US4] Integration: Partial without `acknowledge_incomplete` denied; with ack + audit succeeds in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/partial-approval.integration.test.ts`
+- [x] T116 [P] [US4] Integration: Cancelled / Failed-insufficient / ineligible cannot approve in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/approval-denials.integration.test.ts`
+- [x] T117 [P] [US4] Integration: ApprovalRecord unique + Approved freeze in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/immutable-approval.integration.test.ts`
+- [x] T118 [P] [US4] Security: whole-version reject requires `brand.version.approve` not insight.decide in `/Users/burhanbakri/Downloads/oma-ai/tests/security/version-reject-capability.security.test.ts`
 
 ### Implementation
 
-- [ ] T119 [US4] Implement eligibility evaluator + coverage summary builder in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/approval-eligibility.ts`
-- [ ] T120 [US4] Implement approve/reject commands with CAS + ApprovalRecord in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/intelligence/approval.service.ts`
-- [ ] T121 [US4] Wire approve/reject routes on `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/intelligence/profile.controller.ts`
-- [ ] T122 [US4] Audit `brand.profile.approved` including incompleteness warnings JSON (`FR-BWI-029d`) in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/intelligence/approval.service.ts`
-- [ ] T123 [US4] Add Approval summary UI with incompleteness banner + explicit confirm in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/brand/approval-summary.tsx`
-- [ ] T124 [US4] Promote Draft→Needs review transition API/UI before approve in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/intelligence/profile.service.ts` and editor page
-- [ ] T125 [US6] Implement archive brand cancels non-terminal scans then archives in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/brand/brand.service.ts` with tests in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/brand-archive.integration.test.ts`
+- [x] T119 [US4] Implement eligibility evaluator + coverage summary builder in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/brand/approval-eligibility.ts`
+- [x] T120 [US4] Implement approve/reject commands with CAS + ApprovalRecord in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/intelligence/approval.service.ts`
+- [x] T121 [US4] Wire approve/reject routes on `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/intelligence/profile.controller.ts`
+- [x] T122 [US4] Audit `brand.profile.approved` including incompleteness warnings JSON (`FR-BWI-029d`) in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/intelligence/approval.service.ts`
+- [x] T123 [US4] Add Approval summary UI with incompleteness banner + explicit confirm in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/brand/approval-summary.tsx`
+- [x] T124 [US4] Promote Draft→Needs review transition API/UI before approve in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/intelligence/profile.service.ts` and editor page
+- [x] T125 [US6] Implement archive brand cancels non-terminal scans then archives in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/brand/brand.service.ts` with tests in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/brand-archive.integration.test.ts`
 
 **Checkpoint**: Partial→disclosure→confirm→approve green; Cancelled never approves; capability split enforced.
 
@@ -294,19 +294,19 @@ Blocked tasks live in **Phase BG** at the end and stay `[ ]`.
 
 **Purpose**: Complete Intelligence workspace surfaces; DEC-013 pattern roles; EN/AR/RTL; a11y; responsive
 
-- [ ] T126 [P] Reuse/extend existing OMA tokens only in `/Users/burhanbakri/Downloads/oma-ai/packages/ui/src/tokens.css` (no competing visual system; no new base design system beyond feature needs)
-- [ ] T127 [P] Add shared brand layout chrome (density/panels) in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/brand/brand-workspace-shell.tsx` (Linear-style density/progress/panels adaptation)
-- [ ] T128 [P] Evidence clarity patterns (Semrush-style) in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/brand/evidence-clarity.tsx`
-- [ ] T129 [P] Brand profile section organization (Jasper Brand IQ-style) in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/brand/profile-sections.tsx`
-- [ ] T130 [P] Review collaboration cues (Planable-style) in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/brand/review-collaboration.tsx`
-- [ ] T131 Ensure all brand routes support loading/empty/error/permission-denied in pages under `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/`
-- [ ] T132 [P] Keyboard navigation + focus management for evidence drawer and approval dialog in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/brand/`
-- [ ] T133 [P] Screen reader labels for scan progress live region in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/scans/[scanId]/page.tsx`
-- [ ] T134 [P] Respect `prefers-reduced-motion` using `/Users/burhanbakri/Downloads/oma-ai/packages/ui/src/motion.css`
-- [ ] T135 [P] Responsive checks (desktop/tablet/mobile) documented via Playwright viewport tests in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-responsive.e2e.ts`
-- [ ] T136 [P] Complete EN/AR strings for remaining brand UX in `/Users/burhanbakri/Downloads/oma-ai/packages/i18n/messages/en.json` and `/Users/burhanbakri/Downloads/oma-ai/packages/i18n/messages/ar.json`
-- [ ] T137 Verify RTL layout for brand list, progress, evidence, approval in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-i18n-rtl.e2e.ts`
-- [ ] T138 [P] Visual overflow/console-error smoke assertions in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-ui-smoke.e2e.ts`
+- [x] T126 [P] Reuse/extend existing OMA tokens only in `/Users/burhanbakri/Downloads/oma-ai/packages/ui/src/tokens.css` (no competing visual system; no new base design system beyond feature needs)
+- [x] T127 [P] Add shared brand layout chrome (density/panels) in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/brand/brand-workspace-shell.tsx` (Linear-style density/progress/panels adaptation)
+- [x] T128 [P] Evidence clarity patterns (Semrush-style) in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/brand/evidence-clarity.tsx`
+- [x] T129 [P] Brand profile section organization (Jasper Brand IQ-style) in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/brand/profile-sections.tsx`
+- [x] T130 [P] Review collaboration cues (Planable-style) in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/brand/review-collaboration.tsx`
+- [x] T131 Ensure all brand routes support loading/empty/error/permission-denied in pages under `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/`
+- [x] T132 [P] Keyboard navigation + focus management for evidence drawer and approval dialog in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/brand/`
+- [x] T133 [P] Screen reader labels for scan progress live region in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/scans/[scanId]/page.tsx`
+- [x] T134 [P] Respect `prefers-reduced-motion` using `/Users/burhanbakri/Downloads/oma-ai/packages/ui/src/motion.css`
+- [x] T135 [P] Responsive checks (desktop/tablet/mobile) documented via Playwright viewport tests in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-responsive.e2e.ts`
+- [x] T136 [P] Complete EN/AR strings for remaining brand UX in `/Users/burhanbakri/Downloads/oma-ai/packages/i18n/messages/en.json` and `/Users/burhanbakri/Downloads/oma-ai/packages/i18n/messages/ar.json`
+- [x] T137 Verify RTL layout for brand list, progress, evidence, approval in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-i18n-rtl.e2e.ts`
+- [x] T138 [P] Visual overflow/console-error smoke assertions in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-ui-smoke.e2e.ts`
 
 **Checkpoint**: All FR-BWI-032 surfaces present; SC-BWI-006 covered by E2E tasks below.
 
@@ -316,30 +316,30 @@ Blocked tasks live in **Phase BG** at the end and stay `[ ]`.
 
 ### Playwright E2E (mandatory; fixture site + real Postgres/Redis/worker)
 
-- [ ] T139 [P] E2E Q-BWI-01 Create→Connect fixture→Scan→Review→Approve in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-q-bwi-01-approve.e2e.ts`
-- [ ] T140 [P] E2E Q-BWI-02 Partial→Disclosure→Confirm→Approve in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-q-bwi-02-partial-approve.e2e.ts`
-- [ ] T141 [P] E2E Q-BWI-03 AI not configured→Manual→Approve in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-q-bwi-03-manual.e2e.ts`
-- [ ] T142 [P] E2E Q-BWI-04 Cancel→Retry in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-q-bwi-04-cancel-retry.e2e.ts`
-- [ ] T143 [P] E2E Q-BWI-05 Cross-tenant denial in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-q-bwi-05-cross-tenant.e2e.ts`
-- [ ] T144 E2E Q-BWI-06 Membership suspended mid-job in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-q-bwi-06-midflight.e2e.ts`
-- [ ] T145 [P] E2E Q-BWI-07 Approved→Rescan→New Draft in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-q-bwi-07-rescan.e2e.ts`
-- [ ] T146 [P] E2E Q-BWI-08 Late result does not change Approved in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-q-bwi-08-late-result.e2e.ts`
-- [ ] T147 [P] E2E Q-BWI-09 Whole-version Reject vs item Insight decide in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-q-bwi-09-reject-scope.e2e.ts`
-- [ ] T148 [P] E2E Q-BWI-12 EN/AR RTL responsive a11y critical path in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-q-bwi-12-a11y-i18n.e2e.ts`
-- [ ] T149 [P] E2E Q-BWI-10 concurrent edit → `409 CONFLICT_VERSION` (UI or API journey) in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-q-bwi-10-concurrency.e2e.ts`
-- [ ] T150 [P] E2E Q-BWI-11 SSRF/private redirect/credential URL denied in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-q-bwi-11-ssrf.e2e.ts`
-- [ ] T151 [P] E2E Q-BWI-13 capability deny-by-default matrix for brand.* in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-q-bwi-13-capabilities.e2e.ts`
+- [x] T139 [P] E2E Q-BWI-01 Create→Connect fixture→Scan→Review→Approve in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-q-bwi-01-approve.e2e.ts`
+- [x] T140 [P] E2E Q-BWI-02 Partial→Disclosure→Confirm→Approve in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-q-bwi-02-partial-approve.e2e.ts`
+- [x] T141 [P] E2E Q-BWI-03 AI not configured→Manual→Approve in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-q-bwi-03-manual.e2e.ts`
+- [x] T142 [P] E2E Q-BWI-04 Cancel→Retry in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-q-bwi-04-cancel-retry.e2e.ts`
+- [x] T143 [P] E2E Q-BWI-05 Cross-tenant denial in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-q-bwi-05-cross-tenant.e2e.ts`
+- [x] T144 E2E Q-BWI-06 Membership suspended mid-job in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-q-bwi-06-midflight.e2e.ts`
+- [x] T145 [P] E2E Q-BWI-07 Approved→Rescan→New Draft in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-q-bwi-07-rescan.e2e.ts`
+- [x] T146 [P] E2E Q-BWI-08 Late result does not change Approved in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-q-bwi-08-late-result.e2e.ts`
+- [x] T147 [P] E2E Q-BWI-09 Whole-version Reject vs item Insight decide in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-q-bwi-09-reject-scope.e2e.ts`
+- [x] T148 [P] E2E Q-BWI-12 EN/AR RTL responsive a11y critical path in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-q-bwi-12-a11y-i18n.e2e.ts`
+- [x] T149 [P] E2E Q-BWI-10 concurrent edit → `409 CONFLICT_VERSION` (UI or API journey) in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-q-bwi-10-concurrency.e2e.ts`
+- [x] T150 [P] E2E Q-BWI-11 SSRF/private redirect/credential URL denied in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-q-bwi-11-ssrf.e2e.ts`
+- [x] T151 [P] E2E Q-BWI-13 capability deny-by-default matrix for brand.* in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-q-bwi-13-capabilities.e2e.ts`
 
 ### Ops / quality
 
-- [ ] T152 Add brand crawl metrics/log fields documentation in `/Users/burhanbakri/Downloads/oma-ai/packages/observability/src/brand-metrics.ts`
-- [ ] T153 [P] Health/readiness remains truthful with Redis/DB; optional queue lag note in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/health/health.controller.ts`
-- [ ] T154 Soft archive/retention boundary hooks (no market-specific hard delete until DEC-012) in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/brand/retention-hooks.ts`
-- [ ] T155 Wire brand E2E jobs into `/Users/burhanbakri/Downloads/oma-ai/.github/workflows/ci.yml` with fixture server; forbid public egress
-- [ ] T156 Update `/Users/burhanbakri/Downloads/oma-ai/specs/002-brand-website-intelligence/quickstart.md` with exact local commands after implement
-- [ ] T157 Spec sync: update durable behavior notes in `/Users/burhanbakri/Downloads/oma-ai/specs/002-brand-website-intelligence/spec.md` only for implemented truth (post-implement)
-- [ ] T158 Final provider-neutral Definition of Done checklist pass recorded in `/Users/burhanbakri/Downloads/oma-ai/specs/002-brand-website-intelligence/checklists/requirements.md`
-- [ ] T159 Secret scan + ensure no AI/crawl vendor credentials added in `/Users/burhanbakri/Downloads/oma-ai/.env.example` and `/Users/burhanbakri/Downloads/oma-ai/.github/workflows/ci.yml`
+- [x] T152 Add brand crawl metrics/log fields documentation in `/Users/burhanbakri/Downloads/oma-ai/packages/observability/src/brand-metrics.ts`
+- [x] T153 [P] Health/readiness remains truthful with Redis/DB; optional queue lag note in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/health/health.controller.ts`
+- [x] T154 Soft archive/retention boundary hooks (no market-specific hard delete until DEC-012) in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/brand/retention-hooks.ts`
+- [x] T155 Wire brand E2E jobs into `/Users/burhanbakri/Downloads/oma-ai/.github/workflows/ci.yml` with fixture server; forbid public egress
+- [x] T156 Update `/Users/burhanbakri/Downloads/oma-ai/specs/002-brand-website-intelligence/quickstart.md` with exact local commands after implement
+- [x] T157 Spec sync: update durable behavior notes in `/Users/burhanbakri/Downloads/oma-ai/specs/002-brand-website-intelligence/spec.md` only for implemented truth (post-implement)
+- [x] T158 Final provider-neutral Definition of Done checklist pass recorded in `/Users/burhanbakri/Downloads/oma-ai/specs/002-brand-website-intelligence/checklists/requirements.md`
+- [x] T159 Secret scan + ensure no AI/crawl vendor credentials added in `/Users/burhanbakri/Downloads/oma-ai/.env.example` and `/Users/burhanbakri/Downloads/oma-ai/.github/workflows/ci.yml`
 
 **Checkpoint**: All Q-BWI E2E green → may claim **`PROVIDER-NEUTRAL CORE DONE`** only. Never claim live-integration/production launch ready.
 
@@ -396,69 +396,69 @@ Failing tests → schema/domain → services → API → worker → UI → E2E p
 
 ### Requirements
 
-| IDs | Tasks |
-| --- | ----- |
-| FR-BWI-001–005 | T001, T030–T041, T032–T033 |
-| FR-BWI-006–013, 006a, 012a | T042–T055, T069–T070, T200–T201 blocked |
-| FR-BWI-014–019 | T056–T075 |
-| FR-BWI-020–025, 020a–c | T076–T093 |
-| FR-BWI-026–028b | T094–T112, T202–T203 blocked |
-| FR-BWI-029–031, 029a–d | T113–T125 |
-| FR-BWI-032–035 | T038–T041, T073–T074, T091–T093, T108–T111, T126–T138 |
-| FR-BWI-036–037 | T120–T122, Phase BG / out-of-scope notes |
-| NFR-BWI-001–008 | Security/integration/E2E tasks across phases; T149–T152 |
+| IDs                        | Tasks                                                   |
+| -------------------------- | ------------------------------------------------------- |
+| FR-BWI-001–005             | T001, T030–T041, T032–T033                              |
+| FR-BWI-006–013, 006a, 012a | T042–T055, T069–T070, T200–T201 blocked                 |
+| FR-BWI-014–019             | T056–T075                                               |
+| FR-BWI-020–025, 020a–c     | T076–T093                                               |
+| FR-BWI-026–028b            | T094–T112, T202–T203 blocked                            |
+| FR-BWI-029–031, 029a–d     | T113–T125                                               |
+| FR-BWI-032–035             | T038–T041, T073–T074, T091–T093, T108–T111, T126–T138   |
+| FR-BWI-036–037             | T120–T122, Phase BG / out-of-scope notes                |
+| NFR-BWI-001–008            | Security/integration/E2E tasks across phases; T149–T152 |
 
 ### Success criteria
 
-| SC | Tasks |
-| -- | ----- |
-| SC-BWI-001 | T139, T141 |
-| SC-BWI-002 | T113–T122, T139 |
-| SC-BWI-003 | T032, T143 |
-| SC-BWI-004 | T060, T144 |
-| SC-BWI-005 | T097–T098, T145–T146 |
-| SC-BWI-006 | T135–T137, T148 |
-| SC-BWI-007 | T057, T142 |
-| SC-BWI-008 | T115–T116, T140 |
-| SC-BWI-009 | T100, T118, T147 |
+| SC         | Tasks                                          |
+| ---------- | ---------------------------------------------- |
+| SC-BWI-001 | T139, T141                                     |
+| SC-BWI-002 | T113–T122, T139                                |
+| SC-BWI-003 | T032, T143                                     |
+| SC-BWI-004 | T060, T144                                     |
+| SC-BWI-005 | T097–T098, T145–T146                           |
+| SC-BWI-006 | T135–T137, T148                                |
+| SC-BWI-007 | T057, T142                                     |
+| SC-BWI-008 | T115–T116, T140                                |
+| SC-BWI-009 | T100, T118, T147                               |
 | SC-BWI-010 | Phase BG; fixture-only T069; no commerce tasks |
 
 ### Contracts
 
-| Contract | Tasks |
-| -------- | ----- |
-| `brand-workspace-api.md` | T030–T041, T125 |
-| `website-scan-api.md` | T056–T075 |
-| `discovery-profile-api.md` | T080, T089–T093, T094–T124 |
-| `ingestion-ai-ports.md` | T052, T069–T070, T102–T103, T200–T203 blocked |
-| `brand-capabilities.md` | T001–T002, T036, T051, T065, T106 |
+| Contract                   | Tasks                                         |
+| -------------------------- | --------------------------------------------- |
+| `brand-workspace-api.md`   | T030–T041, T125                               |
+| `website-scan-api.md`      | T056–T075                                     |
+| `discovery-profile-api.md` | T080, T089–T093, T094–T124                    |
+| `ingestion-ai-ports.md`    | T052, T069–T070, T102–T103, T200–T203 blocked |
+| `brand-capabilities.md`    | T001–T002, T036, T051, T065, T106             |
 
 ### Quickstart / E2E
 
-| Journey | Task |
-| ------- | ---- |
-| Q-BWI-01 | T139 |
-| Q-BWI-02 | T140 |
-| Q-BWI-03 | T141 |
-| Q-BWI-04 | T142 |
-| Q-BWI-05 | T143 |
-| Q-BWI-06 | T144 |
-| Q-BWI-07 | T145 |
-| Q-BWI-08 | T146 |
-| Q-BWI-09 | T147 |
-| Q-BWI-10 | T149 (also T096) |
+| Journey  | Task                       |
+| -------- | -------------------------- |
+| Q-BWI-01 | T139                       |
+| Q-BWI-02 | T140                       |
+| Q-BWI-03 | T141                       |
+| Q-BWI-04 | T142                       |
+| Q-BWI-05 | T143                       |
+| Q-BWI-06 | T144                       |
+| Q-BWI-07 | T145                       |
+| Q-BWI-08 | T146                       |
+| Q-BWI-09 | T147                       |
+| Q-BWI-10 | T149 (also T096)           |
 | Q-BWI-11 | T150 (also T043/T047/T082) |
-| Q-BWI-12 | T148 |
-| Q-BWI-13 | T151 (also T033) |
+| Q-BWI-12 | T148                       |
+| Q-BWI-13 | T151 (also T033)           |
 
 ### Decision gates
 
-| Gate | Core tasks | Blocked tasks |
-| ---- | ---------- | ------------- |
-| DEC-004 / SR-002-004-MODE | Fixture/refusing T069–T070 | T200–T201, T208 |
-| DEC-007 / SR-002-007-AI | Refusing + manual T102–T103, T141 | T202–T203 |
-| DEC-003 | Excerpts T018, T083, T087 | T204–T205 |
-| DEC-012 | Soft hooks T151 | hard delete productization |
+| Gate                      | Core tasks                        | Blocked tasks              |
+| ------------------------- | --------------------------------- | -------------------------- |
+| DEC-004 / SR-002-004-MODE | Fixture/refusing T069–T070        | T200–T201, T208            |
+| DEC-007 / SR-002-007-AI   | Refusing + manual T102–T103, T141 | T202–T203                  |
+| DEC-003                   | Excerpts T018, T083, T087         | T204–T205                  |
+| DEC-012                   | Soft hooks T151                   | hard delete productization |
 
 ---
 
@@ -495,20 +495,20 @@ If implement discovers behavior not in spec/plan/contracts → update smallest a
 
 ## Constitution check (TASKS_ONLY)
 
-| Principle | Tasks compliance |
-| --------- | ---------------- |
-| Product truth first | Tasks trace FR/SC/US; no inventing live vendors |
+| Principle                     | Tasks compliance                                        |
+| ----------------------------- | ------------------------------------------------------- |
+| Product truth first           | Tasks trace FR/SC/US; no inventing live vendors         |
 | One SoT / no parallel tenancy | Extend Foundation tenant; Brand Intelligence alias only |
-| Tenant isolation | Explicit security tasks every phase |
-| AI proposes / humans decide | Manual path mandatory; live AI blocked |
-| Traceability | Evidence→insight→version→approval tasks |
-| Explicit state machines | Domain states + transition tasks |
-| Versions integrity | Immutability + late-result tasks |
-| Explicit integrations | Ports + fixture/refusing only |
-| Bilingual accessible UX | Phase 9 + T148 |
-| Completion is evidence | Phase 10 E2E mapping |
-| Controlled cost | No premium vendor tasks in core |
-| Specs evolve | T154 sync |
+| Tenant isolation              | Explicit security tasks every phase                     |
+| AI proposes / humans decide   | Manual path mandatory; live AI blocked                  |
+| Traceability                  | Evidence→insight→version→approval tasks                 |
+| Explicit state machines       | Domain states + transition tasks                        |
+| Versions integrity            | Immutability + late-result tasks                        |
+| Explicit integrations         | Ports + fixture/refusing only                           |
+| Bilingual accessible UX       | Phase 9 + T148                                          |
+| Completion is evidence        | Phase 10 E2E mapping                                    |
+| Controlled cost               | No premium vendor tasks in core                         |
+| Specs evolve                  | T154 sync                                               |
 
 **Post-tasks status**: Ready for human review then `/speckit-implement` under gates.
 

@@ -8,13 +8,13 @@
 
 ## Capabilities
 
-| Method | Path | Capability |
-| ------ | ---- | ---------- |
-| `POST` | `/brands/:brandId/scans` | `brand.scan.control` |
-| `GET` | `/brands/:brandId/scans/:scanId` | `brand.read` |
-| `GET` | `/brands/:brandId/scans` | `brand.read` |
+| Method | Path                                    | Capability           |
+| ------ | --------------------------------------- | -------------------- |
+| `POST` | `/brands/:brandId/scans`                | `brand.scan.control` |
+| `GET`  | `/brands/:brandId/scans/:scanId`        | `brand.read`         |
+| `GET`  | `/brands/:brandId/scans`                | `brand.read`         |
 | `POST` | `/brands/:brandId/scans/:scanId/cancel` | `brand.scan.control` |
-| `POST` | `/brands/:brandId/scans/:scanId/retry` | `brand.scan.control` |
+| `POST` | `/brands/:brandId/scans/:scanId/retry`  | `brand.scan.control` |
 
 Async progress also visible via Foundation `GET /jobs/:jobRunId` with `job.read` when exposed; brand scan GET is primary UX source.
 
@@ -63,13 +63,13 @@ Config fields optional within server caps; server clamps to budgets.
 
 **Errors:**
 
-| Code | When |
-| ---- | ---- |
-| `WEBSITE_NOT_CONNECTED` | No VALID source |
-| `BRAND_ARCHIVED` | Archived |
-| `CONFLICT_STATE` | Another **non-terminal** ScanAttempt already exists for this brand (**at most one** in-flight attempt per brand) |
-| `IDEMPOTENCY_KEY_REUSE` | Same key different body |
-| `PERMISSION_DENIED` | Missing capability / inactive membership |
+| Code                    | When                                                                                                             |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `WEBSITE_NOT_CONNECTED` | No VALID source                                                                                                  |
+| `BRAND_ARCHIVED`        | Archived                                                                                                         |
+| `CONFLICT_STATE`        | Another **non-terminal** ScanAttempt already exists for this brand (**at most one** in-flight attempt per brand) |
+| `IDEMPOTENCY_KEY_REUSE` | Same key different body                                                                                          |
+| `PERMISSION_DENIED`     | Missing capability / inactive membership                                                                         |
 
 **Audit:** `brand.scan.started`.
 

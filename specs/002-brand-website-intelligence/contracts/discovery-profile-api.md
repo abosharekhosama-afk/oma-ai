@@ -7,20 +7,20 @@
 
 ## Capabilities
 
-| Method | Path | Capability |
-| ------ | ---- | ---------- |
-| `GET` | `/brands/:brandId/scans/:scanId/pages` | `brand.discovery.review` or `brand.read` (plan: **read** for list; **review** for write dispositions if any) |
-| `GET` | `/brands/:brandId/scans/:scanId/products` | `brand.read` |
-| `GET` | `/brands/:brandId/scans/:scanId/evidence` | `brand.read` |
-| `GET` | `/brands/:brandId/evidence/:evidenceId` | `brand.read` (+ re-authz on open) |
-| `GET` | `/brands/:brandId/profiles/:versionId` | `brand.read` |
-| `GET` | `/brands/:brandId/profiles` | `brand.read` |
-| `GET` | `/brands/:brandId/profiles/:versionId/compare` | `brand.read` |
-| `PATCH` | `/brands/:brandId/profiles/:versionId` | `brand.insight.edit` |
-| `POST` | `/brands/:brandId/insights/:insightId/accept` | `brand.insight.decide` |
-| `POST` | `/brands/:brandId/insights/:insightId/reject` | `brand.insight.decide` |
-| `POST` | `/brands/:brandId/profiles/:versionId/approve` | `brand.version.approve` |
-| `POST` | `/brands/:brandId/profiles/:versionId/reject` | `brand.version.approve` |
+| Method  | Path                                           | Capability                                                                                                   |
+| ------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `GET`   | `/brands/:brandId/scans/:scanId/pages`         | `brand.discovery.review` or `brand.read` (plan: **read** for list; **review** for write dispositions if any) |
+| `GET`   | `/brands/:brandId/scans/:scanId/products`      | `brand.read`                                                                                                 |
+| `GET`   | `/brands/:brandId/scans/:scanId/evidence`      | `brand.read`                                                                                                 |
+| `GET`   | `/brands/:brandId/evidence/:evidenceId`        | `brand.read` (+ re-authz on open)                                                                            |
+| `GET`   | `/brands/:brandId/profiles/:versionId`         | `brand.read`                                                                                                 |
+| `GET`   | `/brands/:brandId/profiles`                    | `brand.read`                                                                                                 |
+| `GET`   | `/brands/:brandId/profiles/:versionId/compare` | `brand.read`                                                                                                 |
+| `PATCH` | `/brands/:brandId/profiles/:versionId`         | `brand.insight.edit`                                                                                         |
+| `POST`  | `/brands/:brandId/insights/:insightId/accept`  | `brand.insight.decide`                                                                                       |
+| `POST`  | `/brands/:brandId/insights/:insightId/reject`  | `brand.insight.decide`                                                                                       |
+| `POST`  | `/brands/:brandId/profiles/:versionId/approve` | `brand.version.approve`                                                                                      |
+| `POST`  | `/brands/:brandId/profiles/:versionId/reject`  | `brand.version.approve`                                                                                      |
 
 **Rule:** Insight decide endpoints MUST NOT accept whole-version reject/approve payloads.
 

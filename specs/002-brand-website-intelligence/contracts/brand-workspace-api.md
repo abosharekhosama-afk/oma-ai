@@ -9,15 +9,15 @@
 
 ## Capabilities
 
-| Method | Path | Capability |
-| ------ | ---- | ---------- |
-| `GET` | `/brands` | `brand.read` |
-| `POST` | `/brands` | `brand.create` |
-| `GET` | `/brands/:brandId` | `brand.read` |
-| `PATCH` | `/brands/:brandId` | `brand.create` (name/metadata) **or** dedicated edit if split later — plan: same as create for rename until profile grants refined |
-| `POST` | `/brands/:brandId/archive` | `brand.archive` |
-| `POST` | `/brands/:brandId/website` | `brand.website.connect` |
-| `GET` | `/brands/:brandId/website` | `brand.read` |
+| Method  | Path                       | Capability                                                                                                                         |
+| ------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `GET`   | `/brands`                  | `brand.read`                                                                                                                       |
+| `POST`  | `/brands`                  | `brand.create`                                                                                                                     |
+| `GET`   | `/brands/:brandId`         | `brand.read`                                                                                                                       |
+| `PATCH` | `/brands/:brandId`         | `brand.create` (name/metadata) **or** dedicated edit if split later — plan: same as create for rename until profile grants refined |
+| `POST`  | `/brands/:brandId/archive` | `brand.archive`                                                                                                                    |
+| `POST`  | `/brands/:brandId/website` | `brand.website.connect`                                                                                                            |
+| `GET`   | `/brands/:brandId/website` | `brand.read`                                                                                                                       |
 
 All routes: `AuthGuard` + CSRF on mutating methods + `CapabilitiesGuard` + active membership.
 
@@ -186,8 +186,8 @@ Connect or replace primary public HTTPS source.
 
 ## Error taxonomy (brand-specific)
 
-| Code | HTTP | When |
-| ---- | ---- | ---- |
-| `BRAND_ARCHIVED` | 409 | Mutate archived |
-| `WEBSITE_NOT_CONNECTED` | 409 | Start scan without VALID source |
-| `URL_*` | 400 | Validation family |
+| Code                    | HTTP | When                            |
+| ----------------------- | ---- | ------------------------------- |
+| `BRAND_ARCHIVED`        | 409  | Mutate archived                 |
+| `WEBSITE_NOT_CONNECTED` | 409  | Start scan without VALID source |
+| `URL_*`                 | 400  | Validation family               |
