@@ -2,6 +2,8 @@ import { createLogger } from '@oma/observability';
 import { createServer } from 'node:http';
 import { publishPendingOutbox } from './processors/outbox.publisher';
 import { startMailProcessor } from './processors/mail.processor';
+import { startIngestionProcessor } from './processors/ingestion.processor';
+import { startAnalysisProcessor } from './processors/analysis.processor';
 import IORedis from 'ioredis';
 import { WorkerModule } from './worker.module';
 
@@ -12,6 +14,8 @@ async function main() {
     maxRetriesPerRequest: null,
   });
   startMailProcessor(connection);
+  startIngestionProcessor(connection);
+  startAnalysisProcessor(connection);
   setInterval(() => {
     void publishPendingOutbox(connection);
   }, 1500);
