@@ -3,6 +3,26 @@ import { defineConfig, devices } from '@playwright/test';
 
 loadDotenv();
 
+const webPort = process.env.WEB_PORT ?? '3000';
+const apiPort = process.env.API_PORT ?? '3001';
+const workerHealthPort = process.env.WORKER_HEALTH_PORT ?? '3002';
+const webBaseUrl = process.env.WEB_BASE_URL ?? `http://127.0.0.1:${webPort}`;
+const apiPublicUrl = process.env.API_PUBLIC_URL ?? `http://127.0.0.1:${apiPort}`;
+const webOrigin = process.env.WEB_ORIGIN ?? webBaseUrl;
+
+const sharedServerEnv = {
+  ...process.env,
+  WEB_PORT: webPort,
+  API_PORT: apiPort,
+  WORKER_HEALTH_PORT: workerHealthPort,
+  WEB_BASE_URL: webBaseUrl,
+  WEB_ORIGIN: webOrigin,
+  API_PUBLIC_URL: apiPublicUrl,
+  OMA_WRITE_OPENAPI: '0',
+  BRAND_FIXTURE_CONNECTOR: '1',
+  NODE_ENV: process.env.NODE_ENV ?? 'test',
+};
+
 export default defineConfig({
   testDir: './tests/e2e',
   testMatch: /.*\.e2e\.ts$/,
@@ -13,43 +33,40 @@ export default defineConfig({
   reporter: [['list']],
   timeout: 90_000,
   use: {
-    baseURL: process.env.WEB_BASE_URL ?? 'http://127.0.0.1:3000',
+    baseURL: webBaseUrl,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'off',
   },
-  webServer: [
-    {
-      command: 'pnpm --filter @oma/api exec tsx src/main.ts',
-      url: 'http://127.0.0.1:3001/api/v1/health/live',
-      reuseExistingServer: process.env.E2E_REUSE_SERVERS === '1' || !process.env.CI,
-      timeout: 120_000,
-      env: {
-        ...process.env,
-        OMA_WRITE_OPENAPI: '0',
-      },
-    },
-    {
-      command: 'pnpm --filter @oma/worker exec tsx src/main.ts',
-      url: `http://127.0.0.1:${process.env.WORKER_HEALTH_PORT ?? 3002}/`,
-      reuseExistingServer: process.env.E2E_REUSE_SERVERS === '1' || !process.env.CI,
-      timeout: 120_000,
-      env: {
-        ...process.env,
-        MAIL_PROVIDER: 'recording',
-        WORKER_HEALTH_PORT: process.env.WORKER_HEALTH_PORT ?? '3002',
-      },
-    },
-    {
-      command: 'pnpm --filter @oma/web exec next dev -p 3000 -H 127.0.0.1',
-      url: 'http://127.0.0.1:3000',
-      reuseExistingServer: process.env.E2E_REUSE_SERVERS === '1' || !process.env.CI,
-      timeout: 120_000,
-      env: {
-        ...process.env,
-      },
-    },
-  ],
+  webServer:
+    process.env.E2E_REUSE_SERVERS === '1'
+      ? undefined
+      : [
+          {
+            command: 'pnpm --filter @oma/api exec tsx src/main.ts',
+            url: `${apiPublicUrl}/api/v1/health/live`,
+            reuseExistingServer: false,
+            timeout: 120_000,
+            env: sharedServerEnv,
+          },
+          {
+            command: 'pnpm --filter @oma/worker exec tsx src/main.ts',
+            url: `http://127.0.0.1:${workerHealthPort}/`,
+            reuseExistingServer: false,
+            timeout: 120_000,
+            env: {
+              ...sharedServerEnv,
+              MAIL_PROVIDER: 'recording',
+            },
+          },
+          {
+            command: `pnpm --filter @oma/web exec next dev -p ${webPort} -H 127.0.0.1`,
+            url: webBaseUrl,
+            reuseExistingServer: false,
+            timeout: 120_000,
+            env: sharedServerEnv,
+          },
+        ],
   projects: [
     {
       name: 'en-desktop',
