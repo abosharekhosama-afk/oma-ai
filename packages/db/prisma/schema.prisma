@@ -292,6 +292,13 @@ enum BrandAiAvailability {
   SKIPPED
 }
 
+/// Which website connector produced a scan. Recorded per attempt because the
+/// configured connector can change between runs.
+enum BrandConnectorMode {
+  FIXTURE
+  NOT_CONFIGURED
+}
+
 enum PageClassification {
   HOME
   PRODUCT
@@ -432,6 +439,7 @@ model ScanAttempt {
   pagesSkipped     Int                 @default(0)
   coverageJson     String?
   aiAvailability   BrandAiAvailability @default(NOT_CONFIGURED)
+  connectorMode    BrandConnectorMode  @default(NOT_CONFIGURED)
   errorCode        String?
   errorDetail      String?
   startedAt        DateTime?

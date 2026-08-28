@@ -123,7 +123,14 @@ export function startIngestionProcessor(
       });
       await prisma.scanAttempt.update({
         where: { id: scan.id },
-        data: { status: 'CRAWLING', startedAt: new Date(), progressPercent: 5 },
+        data: {
+          status: 'CRAWLING',
+          startedAt: new Date(),
+          progressPercent: 5,
+          // Recorded on the attempt that used it: the API process can be
+          // reconfigured later and must not restate this scan's provenance.
+          connectorMode: isBrandFixtureConnectorEnabled() ? 'FIXTURE' : 'NOT_CONFIGURED',
+        },
       });
 
       const brand = await prisma.brandWorkspace.findFirst({ where: { id: scan.brandId } });

@@ -35,6 +35,7 @@ export class ScanService {
     pagesFailed: number;
     pagesSkipped: number;
     aiAvailability: string;
+    connectorMode: string;
     coverageJson: string | null;
     jobRunId: string;
     errorCode: string | null;
@@ -49,6 +50,7 @@ export class ScanService {
       pages_failed: scan.pagesFailed,
       pages_skipped: scan.pagesSkipped,
       ai_availability: scan.aiAvailability,
+      connector_mode: scan.connectorMode,
       coverage: scan.coverageJson ? JSON.parse(scan.coverageJson) : null,
       job_run_id: scan.jobRunId,
       error_code: scan.errorCode,

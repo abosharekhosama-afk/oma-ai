@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { getPrisma, tenantWhere } from '@oma/db';
 import { DomainError, isTerminalScanStatus, newId } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
+import { brandConnectorMode } from './connector-mode';
 
 @Injectable()
 export class BrandService {
@@ -103,8 +104,16 @@ export class BrandService {
             }
           : null,
         latest_scan: latestScan
-          ? { id: latestScan.id, status: latestScan.status, job_run_id: latestScan.jobRunId }
+          ? {
+              id: latestScan.id,
+              status: latestScan.status,
+              job_run_id: latestScan.jobRunId,
+              connector_mode: latestScan.connectorMode,
+            }
           : null,
+        // Forward-looking: which connector a scan started now would use. Past
+        // scans report the mode stored on their own attempt.
+        next_scan_connector_mode: brandConnectorMode(),
         archived_at: brand.archivedAt?.toISOString() ?? null,
         updated_at: brand.updatedAt.toISOString(),
       },
