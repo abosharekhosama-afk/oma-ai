@@ -514,6 +514,27 @@ If implement discovers behavior not in spec/plan/contracts → update smallest a
 
 **Next step**: merge-readiness review only — not `/speckit-implement`. No merge is performed at this stage.
 
+### Phase VP — Visible product recovery (completed outside T001–T159)
+
+`VISIBLE_PRODUCT_RECOVERY_AND_PUBLIC_REFERENCE_PASS` turned the provider-neutral core into a navigable product. It changed no domain rule and closed no decision.
+
+| Item | Outcome                                                                                                                                                |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| VP01 | Global shell rebuilt: grouped sidebar, active route state, language switcher, localized tenant selector and sign-out                                   |
+| VP02 | `/app` placeholder replaced with a real workspace landing that reaches Brand Intelligence through navigation                                           |
+| VP03 | Landing, login, and register localized; `LocaleProvider` added, removing an Arabic hydration mismatch                                                  |
+| VP04 | `/auth/me`, `CapabilitiesGuard`, and `TenantContextService` union capabilities across duplicate ACTIVE membership rows                                 |
+| VP05 | `pnpm db:seed:demo` — idempotent, non-production demo tenant with evidence-backed fixture brands                                                       |
+| VP06 | `ScanAttempt.connectorMode` records the connector at execution time; scan, brand, discovery, and evidence surfaces disclose it (`FR-BWI-019a`)         |
+| VP12 | Capability union across duplicate ACTIVE membership rows covered by integration tests; demo seed refuses non-local databases and is idempotency-tested |
+| VP07 | RTL URL isolation (`.oma-ltr`) and localized evidence panel labels                                                                                     |
+| VP08 | [`reference-matrix.md`](./reference-matrix.md) records public-source reference study                                                                   |
+| VP09 | Brand intelligence editor renders every profile section as labelled fields; the raw JSON dump is gone                                                  |
+| VP10 | Info state, discovery tier, blocking reasons, and known field keys are localized instead of leaking enum codes                                         |
+| VP11 | Empty state for pending AI insights; mobile shell no longer stretches a blank band under the navigation                                                |
+
+Status after Phase VP: `VISIBLE PRODUCT BASELINE: DONE`, `AUTHENTICATED REFERENCE PARITY: PENDING`, `LIVE-INTEGRATION READY: NO`, `PRODUCTION LAUNCH READY: NO`, `USER ACCEPTANCE: PENDING`.
+
 ---
 
 ## Notes

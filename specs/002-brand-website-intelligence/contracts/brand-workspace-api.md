@@ -91,6 +91,13 @@ All routes: `AuthGuard` + CSRF on mutating methods + `CapabilitiesGuard` + activ
 
 **Response `200`:** full workspace summary including website source summary, latest scan attempt id/status, current approved version id, `version` for concurrency.
 
+**Connector disclosure fields:**
+
+- `next_scan_connector_mode` — `FIXTURE | NOT_CONFIGURED`. Forward-looking: the connector a scan started **now** would use. Derived from current process configuration, so it must never be presented as the provenance of an existing record.
+- `latest_scan.connector_mode` — `FIXTURE | NOT_CONFIGURED`. The connector that actually produced that attempt, read from the stored `ScanAttempt.connectorMode`.
+
+No live crawl vendor is selected (`DEC-004`), so `FIXTURE` means the local fixture connector produced the data and it is not a live website fetch.
+
 **Cross-tenant / unknown:** `404 NOT_FOUND` (no existence leak) **or** `403 PERMISSION_DENIED` per Foundation FR isolation policy — **pick one consistent with foundation resource reads** (foundation uses deny without confirming foreign existence).
 
 ---

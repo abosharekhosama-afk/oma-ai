@@ -12,6 +12,42 @@
 - Migrations applied: `pnpm db:migrate:deploy` and `pnpm db:seed`
 - Platform owner bootstrapped once: `pnpm --filter @oma/api bootstrap:platform-owner`
 
+## Local demo walkthrough (visible product baseline)
+
+To open the product and walk the journey by hand:
+
+```bash
+pnpm db:migrate:deploy
+pnpm db:seed                 # system capability profiles
+pnpm --filter @oma/api bootstrap:platform-owner
+pnpm dev:local               # API + worker + web
+pnpm db:seed:demo            # demo tenant and brand fixtures (idempotent)
+```
+
+Sign in at `http://127.0.0.1:3000/login` with `BOOTSTRAP_PLATFORM_OWNER_EMAIL` /
+`BOOTSTRAP_PLATFORM_OWNER_PASSWORD` from `.env`, then choose **OMA Demo Agency** in
+the company selector. Brand Intelligence is reachable from the sidebar.
+
+`pnpm db:seed:demo` runs only when `NODE_ENV` or `OMA_ENV` is `development` or `test`
+**and** `DATABASE_URL` points at a local host; anything else is refused. It grants the
+existing bootstrap platform owner a `COMPANY_OWNER` membership in the demo tenant, so
+that account gains demo-tenant access — it creates no separate demo login.
+
+It creates one demo tenant with three brands:
+
+| Brand                     | State                                                      |
+| ------------------------- | ---------------------------------------------------------- |
+| Northwind Services (Demo) | Draft, no website — proves the connect-website entry state |
+| Acme Retail (Demo)        | Succeeded scan, pages, products, evidence, draft profile   |
+| Globex Group (Demo)       | Partial scan with failed and robots-skipped pages          |
+
+Every seeded record is a fixture. The website source carries the note
+`Demo fixture — no live connector configured`; no public crawl and no AI provider run.
+
+> **Stop the dev worker before running the test suites.** A `pnpm dev:local` worker
+> shares the Redis queues with the test workers and will consume their scan jobs,
+> which surfaces as unrelated contract/integration failures.
+
 ## Portable local run (alternate ports)
 
 If port `3000` is taken by another project, pick free ports and export them before starting services:

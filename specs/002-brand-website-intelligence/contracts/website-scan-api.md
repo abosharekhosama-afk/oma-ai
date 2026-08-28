@@ -91,6 +91,7 @@ Config fields optional within server caps; server clamps to budgets.
     "pages_failed": 1,
     "pages_skipped": 2,
     "ai_availability": "NOT_CONFIGURED",
+    "connector_mode": "FIXTURE",
     "coverage": {
       "required_missing": [],
       "unknown_fields": ["brand.description"],
@@ -107,6 +108,17 @@ Config fields optional within server caps; server clamps to budgets.
 ```
 
 Survives refresh/re-login (`FR-BWI-019`).
+
+`connector_mode` is `FIXTURE` when the local fixture connector produced the scan and
+`NOT_CONFIGURED` when no website connector is available. No live crawl vendor is
+selected (`DEC-004`), so the UI must state which connector produced a result rather
+than implying a live fetch.
+
+It is **stored provenance**, not process state: the worker writes
+`ScanAttempt.connectorMode` when the attempt starts crawling, and reads return that
+stored value. Reconfiguring the API afterwards must not restate how an existing scan
+was produced. `GET /api/v1/brands/:brandId/evidence/:evidenceId` echoes the same field
+from the scan that produced the excerpt.
 
 ---
 

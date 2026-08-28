@@ -2,12 +2,12 @@
 
 **Feature Branch**: `002-brand-website-intelligence`
 **Created**: 2026-08-26
-**Status**: `PROVIDER-NEUTRAL CORE DONE` — Phases 1–10 implemented with fixture/refusing adapters; `tasks.md` T001–T159 complete; Phase BG (T200–T208) blocked; live crawl/AI vendor wiring still gated until `DEC-004`/`DEC-007` close for those choices
+**Status**: `PROVIDER-NEUTRAL CORE DONE` + `VISIBLE PRODUCT BASELINE DONE` — Phases 1–10 implemented with fixture/refusing adapters; `tasks.md` T001–T159 complete; Phase BG (T200–T208) blocked; live crawl/AI vendor wiring still gated until `DEC-004`/`DEC-007` close for those choices. `AUTHENTICATED REFERENCE PARITY: PENDING`, `LIVE-INTEGRATION READY: NO`, `PRODUCTION LAUNCH READY: NO`, `USER ACCEPTANCE: PENDING`.
 **Input**: First product feature after OMA AI Product Foundation — Brand Workspace, website connection, safe async scan, discovery, evidence-backed Brand & Product Intelligence Profile with human approval
 **Parent baseline**: `specs/001-oma-ai-product-foundation/spec.md` — productizes Foundation **US-001** intent as a **Brand Workspace** child of the existing tenant/company (not a parallel company registry).
 **Foundation FR binding (honest subset)**: primarily **FR-012–FR-021** and **FR-024** (sources, safe ingest, observable jobs, extraction, evidence, human correct/accept/reject, refresh without silent overwrite of confirmed rules, insufficient-evidence handling).
 **Explicitly deferred from this slice**: **FR-011** (full company intake profile), **FR-022–FR-023** (competitors), **FR-025** (export/remove source data under full retention/legal policy — hooks only until `DEC-012`).
-**Design references (DEC-013 only)**: Semrush (website/evidence analysis), Jasper Brand IQ (brand intelligence/voice), Linear (density, progress, side panels, restrained motion), Planable (collaboration/review where needed)
+**Design references (DEC-013 only)**: Semrush (website/evidence analysis), Jasper Brand IQ (brand intelligence/voice), Linear (density, progress, side panels, restrained motion), Planable (collaboration/review where needed). Public-source study of these references is recorded in [`reference-matrix.md`](./reference-matrix.md); no reference was accessed with an account, so parity remains `PENDING`.
 
 ## Clarifications
 
@@ -261,6 +261,7 @@ Approved profile in use → Rescan → new Draft → compare → selectively pro
 - **FR-BWI-017**: Jobs MUST be isolated by tenant and brand; workers MUST re-resolve membership and required capabilities at execution time and fail closed on denial.
 - **FR-BWI-018**: Sensitive actions (connect website, start/cancel/retry scan, accept/reject insight, approve version, reject entire version, archive, incompleteness-acknowledged approval) MUST append immutable audit events with actor, tenant, brand, action, target, timestamp, and correlation identifier.
 - **FR-BWI-019**: Progress UI MUST remain accurate after refresh, deep link re-entry, and re-login.
+- **FR-BWI-019a**: Every surface that presents crawl-derived data (scan progress, discovered pages, discovered products, brand overview, evidence excerpts) MUST state which website connector produced it. The connector mode MUST be recorded on the scan attempt at execution time and read back from that record, so later reconfiguration cannot restate the provenance of an existing scan. While no live crawl vendor is selected (`DEC-004`), no surface may present fixture output as a live website fetch.
 
 ### 8.4 Discovery data (tiered — DP-005)
 
