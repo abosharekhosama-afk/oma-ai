@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { registerBrandOwner } from './helpers/brand-api';
+import { msg } from './helpers/i18n';
 
 test.describe('Q-BWI-12 a11y i18n', () => {
   test('app shell loads in EN and AR without console errors', async ({
@@ -23,9 +24,9 @@ test.describe('Q-BWI-12 a11y i18n', () => {
     const errors: string[] = [];
     page.on('pageerror', (e) => errors.push(e.message));
     await page.goto('/app');
-    await expect(page.getByRole('heading', { name: /workspace|dashboard|brand/i })).toBeVisible({
-      timeout: 15_000,
-    });
+    await expect(
+      page.getByRole('heading', { name: msg(testInfo, 'home.title'), level: 1 }),
+    ).toBeVisible({ timeout: 15_000 });
     expect(errors).toHaveLength(0);
 
     if (testInfo.project.name === 'ar-desktop') {
