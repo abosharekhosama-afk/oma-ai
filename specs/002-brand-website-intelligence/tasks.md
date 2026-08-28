@@ -516,7 +516,8 @@ If implement discovers behavior not in spec/plan/contracts → update smallest a
 
 ## Notes
 
-- All tasks above remain `[ ]` in `TASKS_ONLY`
+- Status: `PROVIDER-NEUTRAL CORE DONE` — `LIVE-INTEGRATION READY: NO`, `PRODUCTION LAUNCH READY: NO`
+- T001–T159 are `[x]` (159 completed); Phase BG T200–T208 remain `[ ]` (9 blocked); zero unblocked tasks remain
 - `[P]` = parallel-safe file isolation
 - Do not mark Phase BG complete without closed decisions + explicit implement authorization
-- Next command when approved: `/speckit-implement` (not this stage)
+- `DEC-003`–`DEC-012` stay open; Phase BG unblocks only after the owning decision closes
