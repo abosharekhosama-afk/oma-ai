@@ -11,7 +11,63 @@ type ProfileSectionsProps = {
   onViewEvidence?: (evidenceId: string) => void;
 };
 
-const SECTION_ORDER = ['overview', 'catalog', 'languages', 'claims', 'risks'];
+const SECTION_ORDER = [
+  'overview',
+  'brand',
+  'catalog',
+  'products',
+  'contact',
+  'languages',
+  'claims',
+  'risks',
+];
+
+function humanizeKey(key: string) {
+  return key
+    .replace(/[_.]/g, ' ')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/^./, (c) => c.toUpperCase());
+}
+
+/**
+ * Field keys come from the domain, so fall back to a humanized key when a
+ * profile carries a field the translation bundle does not know yet.
+ */
+function fieldLabel(t: (key: string) => string, fieldKey: string): string {
+  const translated = t(`brand.field.${fieldKey}`);
+  if (translated !== `brand.field.${fieldKey}`) return translated;
+  return humanizeKey(fieldKey.split('.').slice(1).join(' ') || fieldKey);
+}
+
+function formatValue(value: unknown): string {
+  if (value === null || value === undefined || value === '') return '—';
+  if (Array.isArray(value)) return value.map((v) => formatValue(v)).join(', ');
+  if (typeof value === 'object') return JSON.stringify(value);
+  return String(value);
+}
+
+/**
+ * Section payloads are open-ended JSON from the profile builder, so render them
+ * as labelled rows rather than exposing a raw JSON blob to reviewers.
+ */
+function SectionData({ label, value }: { label: string; value: unknown }) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const entries = Object.entries(value as Record<string, unknown>);
+  if (entries.length === 0) return null;
+  return (
+    <div className="oma-profile-data">
+      <h4 className="oma-profile-data-title">{label}</h4>
+      <dl className="oma-profile-data-list">
+        {entries.map(([k, v]) => (
+          <div key={k} className="oma-profile-data-row">
+            <dt>{humanizeKey(k)}</dt>
+            <dd>{formatValue(v)}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
 
 export function ProfileSections({
   sections,
@@ -29,9 +85,12 @@ export function ProfileSections({
     insightsBySection.set(section, list);
   }
 
+  // Every section that carries either recorded data or a claim must render;
+  // otherwise insights whose field prefix is outside SECTION_ORDER disappear.
+  const knownKeys = new Set([...Object.keys(sections), ...insightsBySection.keys()]);
   const sectionKeys = [
-    ...SECTION_ORDER.filter((k) => insightsBySection.has(k) || sections[k]),
-    ...Object.keys(sections).filter((k) => !SECTION_ORDER.includes(k)),
+    ...SECTION_ORDER.filter((k) => knownKeys.has(k)),
+    ...[...knownKeys].filter((k) => !SECTION_ORDER.includes(k)).sort(),
   ];
 
   if (sectionKeys.length === 0) {
@@ -51,16 +110,16 @@ export function ProfileSections({
           aria-labelledby={`section-${key}`}
         >
           <h3 id={`section-${key}`}>{t(`brand.profile.section.${key}`) || key}</h3>
-          {sections[key] ? (
-            <pre className="oma-profile-json">{JSON.stringify(sections[key], null, 2)}</pre>
-          ) : null}
+          <SectionData label={t('brand.profile.sectionDataTitle')} value={sections[key]} />
           <ul className="oma-insight-list">
             {(insightsBySection.get(key) ?? []).map((insight) => (
               <li key={insight.id} className="oma-insight-item">
                 <div className="oma-insight-header">
-                  <strong>{insight.field_key}</strong>
-                  <span className="oma-badge">{insight.info_state}</span>
-                  <span className="oma-badge oma-badge-muted">{insight.discovery_tier}</span>
+                  <strong>{fieldLabel(t, insight.field_key)}</strong>
+                  <span className="oma-badge">{t(`brand.infoState.${insight.info_state}`)}</span>
+                  <span className="oma-badge oma-badge-muted">
+                    {t(`brand.tier.${insight.discovery_tier}`)}
+                  </span>
                 </div>
                 {editable ? (
                   <label className="oma-insight-edit">

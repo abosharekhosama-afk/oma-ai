@@ -7,6 +7,7 @@ import { api } from '../../../../../lib/api';
 import type { BrandDetail } from '../../../../../lib/brand-types';
 import { getApiError, isPermissionDenied } from '../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../components/brand/brand-workspace-shell';
+import { ConnectorModeChip } from '../../../../../components/brand/connector-mode-banner';
 import { PermissionDenied } from '../../../../../components/shell/permission-denied';
 import { useT } from '../../../../../lib/use-locale';
 
@@ -57,7 +58,9 @@ export default function BrandDetailPage() {
             <dt>{t('brand.detail.website')}</dt>
             <dd>
               {brand.website ? (
-                <a href={brand.website.normalized_url}>{brand.website.normalized_url}</a>
+                <a href={brand.website.normalized_url} className="oma-ltr">
+                  {brand.website.normalized_url}
+                </a>
               ) : (
                 <Link href={`/app/brands/${brandId}/connect`}>{t('brand.detail.connectCta')}</Link>
               )}
@@ -67,7 +70,10 @@ export default function BrandDetailPage() {
             <dt>{t('brand.detail.latestScan')}</dt>
             <dd>
               {scan ? (
-                <Link href={`/app/brands/${brandId}/scans/${scan.id}`}>{scan.status}</Link>
+                <>
+                  <Link href={`/app/brands/${brandId}/scans/${scan.id}`}>{scan.status}</Link>{' '}
+                  <ConnectorModeChip mode={scan.connector_mode} />
+                </>
               ) : (
                 t('brand.detail.noScan')
               )}
@@ -107,12 +113,14 @@ export default function BrandDetailPage() {
               className="oma-card oma-action-card"
             >
               <strong>{t('brand.discovery.pagesTitle')}</strong>
+              <p className="oma-muted">{t('brand.discovery.pagesHint')}</p>
             </Link>
             <Link
               href={`/app/brands/${brandId}/discovery/products`}
               className="oma-card oma-action-card"
             >
               <strong>{t('brand.discovery.productsTitle')}</strong>
+              <p className="oma-muted">{t('brand.discovery.productsHint')}</p>
             </Link>
           </>
         ) : null}

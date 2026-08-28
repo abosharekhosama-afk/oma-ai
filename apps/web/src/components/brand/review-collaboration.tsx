@@ -22,7 +22,7 @@ export function ReviewCollaboration({ status, blockingReasons }: ReviewCollabora
           <p className="oma-muted">{t('brand.review.needsAttention')}</p>
           <ul>
             {blockingReasons.map((reason) => (
-              <li key={reason}>{reason}</li>
+              <li key={reason}>{t(`brand.blocking.${reason}`)}</li>
             ))}
           </ul>
         </div>

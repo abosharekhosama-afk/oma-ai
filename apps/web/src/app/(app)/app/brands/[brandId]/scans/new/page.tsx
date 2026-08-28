@@ -12,6 +12,7 @@ import {
 } from '../../../../../../../lib/brand-api';
 import type { BrandDetail } from '../../../../../../../lib/brand-types';
 import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand-workspace-shell';
+import { ConnectorModeBanner } from '../../../../../../../components/brand/connector-mode-banner';
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
 import { useT } from '../../../../../../../lib/use-locale';
 
@@ -91,6 +92,7 @@ export default function NewScanPage() {
   return (
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
       <div style={{ maxWidth: 520 }}>
+        <ConnectorModeBanner mode={brand.next_scan_connector_mode} />
         <h2>{t('brand.scan.setupTitle')}</h2>
         <p className="oma-muted">{t('brand.scan.setupHint')}</p>
         <div className="oma-card oma-scan-bounds" aria-labelledby="scan-bounds-title">

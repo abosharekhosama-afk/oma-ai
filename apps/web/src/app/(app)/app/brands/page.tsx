@@ -63,7 +63,11 @@ export default function BrandsListPage() {
                   <span className="oma-badge oma-badge-muted">{brand.status}</span>
                 </div>
                 <p className="oma-muted" style={{ margin: '0.25rem 0 0', fontSize: 14 }}>
-                  {brand.primary_website_url ?? t('brand.list.noWebsite')}
+                  {brand.primary_website_url ? (
+                    <span className="oma-ltr">{brand.primary_website_url}</span>
+                  ) : (
+                    t('brand.list.noWebsite')
+                  )}
                 </p>
               </Link>
             </li>

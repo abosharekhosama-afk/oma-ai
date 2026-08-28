@@ -58,6 +58,11 @@ export default function ProfileEditorPage() {
 
   const editable = profile?.status === 'DRAFT' || profile?.status === 'NEEDS_REVIEW';
 
+  const pendingInsights =
+    profile?.insights.filter(
+      (i) => i.info_state === 'AI_INFERRED' && i.review_status === 'PENDING',
+    ) ?? [];
+
   const displayInsights: InsightItem[] =
     profile?.insights.map((i) => ({
       ...i,
@@ -246,22 +251,25 @@ export default function ProfileEditorPage() {
 
       <section className="oma-card" aria-labelledby="insight-decisions-title">
         <h3 id="insight-decisions-title">{t('brand.insight.pendingTitle')}</h3>
+        {pendingInsights.length === 0 ? (
+          <p className="oma-muted" role="status">
+            {t('brand.insight.pendingEmpty')}
+          </p>
+        ) : null}
         <ul className="oma-insight-list">
-          {profile.insights
-            .filter((i) => i.info_state === 'AI_INFERRED' && i.review_status === 'PENDING')
-            .map((insight) => (
-              <li key={insight.id} className="oma-insight-item">
-                <strong>{insight.field_key}</strong>
-                <p>{insight.text_value}</p>
-                <InsightDecisionControls
-                  insight={insight}
-                  profileRowVersion={profile.row_version}
-                  disabled={busy || !editable}
-                  onAccept={handleAccept}
-                  onReject={handleReject}
-                />
-              </li>
-            ))}
+          {pendingInsights.map((insight) => (
+            <li key={insight.id} className="oma-insight-item">
+              <strong>{insight.field_key}</strong>
+              <p>{insight.text_value}</p>
+              <InsightDecisionControls
+                insight={insight}
+                profileRowVersion={profile.row_version}
+                disabled={busy || !editable}
+                onAccept={handleAccept}
+                onReject={handleReject}
+              />
+            </li>
+          ))}
         </ul>
       </section>
 

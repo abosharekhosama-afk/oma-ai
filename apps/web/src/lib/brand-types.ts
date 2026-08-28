@@ -19,7 +19,13 @@ export type BrandDetail = {
     validation_status: string;
     source_revision: number;
   } | null;
-  latest_scan: { id: string; status: string; job_run_id: string } | null;
+  latest_scan: {
+    id: string;
+    status: string;
+    job_run_id: string;
+    connector_mode: 'FIXTURE' | 'NOT_CONFIGURED';
+  } | null;
+  next_scan_connector_mode: 'FIXTURE' | 'NOT_CONFIGURED';
   archived_at: string | null;
   updated_at: string;
 };
@@ -32,6 +38,7 @@ export type ScanDetail = {
   pages_failed: number;
   pages_skipped: number;
   ai_availability: string;
+  connector_mode: 'FIXTURE' | 'NOT_CONFIGURED';
   coverage: {
     required_missing?: string[];
     unknown_fields?: string[];
@@ -81,6 +88,7 @@ export type EvidenceItem = {
   extraction_method: string;
   scan_attempt_id: string;
   discovered_page_id: string | null;
+  connector_mode?: 'FIXTURE' | 'NOT_CONFIGURED';
 };
 
 export type InsightItem = {

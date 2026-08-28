@@ -8,7 +8,12 @@ import type {
   BrandDetail,
   DiscoveredProduct,
   Paginated,
+  ScanDetail,
 } from '../../../../../../../lib/brand-types';
+import {
+  ConnectorModeChip,
+  type ConnectorMode,
+} from '../../../../../../../components/brand/connector-mode-banner';
 import { getApiError, isPermissionDenied } from '../../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand-workspace-shell';
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
@@ -21,6 +26,7 @@ export default function DiscoveryProductsPage() {
   const [brand, setBrand] = useState<BrandDetail | null>(null);
   const [products, setProducts] = useState<DiscoveredProduct[]>([]);
   const [scanId, setScanId] = useState<string | null>(null);
+  const [connectorMode, setConnectorMode] = useState<ConnectorMode | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
@@ -36,9 +42,11 @@ export default function DiscoveryProductsPage() {
           return;
         }
         setScanId(latest);
-        const productsRes = await api<Paginated<DiscoveredProduct>>(
-          `/api/v1/brands/${brandId}/scans/${latest}/products`,
-        );
+        const [scanRes, productsRes] = await Promise.all([
+          api<{ data: ScanDetail }>(`/api/v1/brands/${brandId}/scans/${latest}`),
+          api<Paginated<DiscoveredProduct>>(`/api/v1/brands/${brandId}/scans/${latest}/products`),
+        ]);
+        setConnectorMode(scanRes.data.connector_mode);
         setProducts(productsRes.data);
       } catch (err) {
         if (isPermissionDenied(err)) setDenied(true);
@@ -63,7 +71,10 @@ export default function DiscoveryProductsPage() {
   return (
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
       <header className="oma-page-header">
-        <h2>{t('brand.discovery.productsTitle')}</h2>
+        <div className="oma-title-row">
+          <h2>{t('brand.discovery.productsTitle')}</h2>
+          <ConnectorModeChip mode={connectorMode} />
+        </div>
         {scanId ? (
           <Link href={`/app/brands/${brandId}/discovery/pages`}>
             {t('brand.discovery.pagesTitle')}

@@ -85,7 +85,7 @@ export function ApprovalSummary({
           <p>{t('brand.approval.blocking')}</p>
           <ul>
             {serverBlocking.map((r) => (
-              <li key={r}>{r}</li>
+              <li key={r}>{t(`brand.blocking.${r}`)}</li>
             ))}
           </ul>
         </div>

@@ -4,7 +4,16 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { api } from '../../../../../../../lib/api';
-import type { BrandDetail, DiscoveredPage, Paginated } from '../../../../../../../lib/brand-types';
+import type {
+  BrandDetail,
+  DiscoveredPage,
+  Paginated,
+  ScanDetail,
+} from '../../../../../../../lib/brand-types';
+import {
+  ConnectorModeChip,
+  type ConnectorMode,
+} from '../../../../../../../components/brand/connector-mode-banner';
 import { getApiError, isPermissionDenied } from '../../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand-workspace-shell';
 import { EvidenceSidePanel } from '../../../../../../../components/brand/evidence-side-panel';
@@ -18,6 +27,7 @@ export default function DiscoveryPagesPage() {
   const [brand, setBrand] = useState<BrandDetail | null>(null);
   const [pages, setPages] = useState<DiscoveredPage[]>([]);
   const [scanId, setScanId] = useState<string | null>(null);
+  const [connectorMode, setConnectorMode] = useState<ConnectorMode | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
@@ -34,9 +44,11 @@ export default function DiscoveryPagesPage() {
           return;
         }
         setScanId(latest);
-        const pagesRes = await api<Paginated<DiscoveredPage>>(
-          `/api/v1/brands/${brandId}/scans/${latest}/pages`,
-        );
+        const [scanRes, pagesRes] = await Promise.all([
+          api<{ data: ScanDetail }>(`/api/v1/brands/${brandId}/scans/${latest}`),
+          api<Paginated<DiscoveredPage>>(`/api/v1/brands/${brandId}/scans/${latest}/pages`),
+        ]);
+        setConnectorMode(scanRes.data.connector_mode);
         setPages(pagesRes.data);
       } catch (err) {
         if (isPermissionDenied(err)) setDenied(true);
@@ -61,7 +73,10 @@ export default function DiscoveryPagesPage() {
   return (
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
       <header className="oma-page-header">
-        <h2>{t('brand.discovery.pagesTitle')}</h2>
+        <div className="oma-title-row">
+          <h2>{t('brand.discovery.pagesTitle')}</h2>
+          <ConnectorModeChip mode={connectorMode} />
+        </div>
         {scanId ? (
           <Link href={`/app/brands/${brandId}/discovery/products`}>
             {t('brand.discovery.productsTitle')}
@@ -94,7 +109,7 @@ export default function DiscoveryPagesPage() {
                 <span className="oma-badge">{page.fetch_status}</span>
               </div>
               <p className="oma-muted" style={{ fontSize: 14, margin: '0.25rem 0' }}>
-                <a href={page.url} target="_blank" rel="noopener noreferrer">
+                <a href={page.url} target="_blank" rel="noopener noreferrer" className="oma-ltr">
                   {page.canonical_url}
                 </a>
               </p>

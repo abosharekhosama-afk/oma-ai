@@ -12,6 +12,7 @@ import {
 } from '../../../../../../lib/brand-api';
 import type { BrandDetail } from '../../../../../../lib/brand-types';
 import { BrandWorkspaceShell } from '../../../../../../components/brand/brand-workspace-shell';
+import { ConnectorModeBanner } from '../../../../../../components/brand/connector-mode-banner';
 import { PermissionDenied } from '../../../../../../components/shell/permission-denied';
 import { useT } from '../../../../../../lib/use-locale';
 
@@ -78,6 +79,7 @@ export default function ConnectWebsitePage() {
   return (
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
       <div style={{ maxWidth: 520 }}>
+        <ConnectorModeBanner mode={brand.next_scan_connector_mode} />
         <h2>{t('brand.connect.title')}</h2>
         <p className="oma-muted">{t('brand.connect.hint')}</p>
         <form className="oma-card" onSubmit={onSubmit}>

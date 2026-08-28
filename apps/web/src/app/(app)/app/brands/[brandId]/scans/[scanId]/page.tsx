@@ -13,6 +13,7 @@ import {
 import type { BrandDetail, ScanDetail } from '../../../../../../../lib/brand-types';
 import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand-workspace-shell';
 import { AiUnavailableBanner } from '../../../../../../../components/brand/ai-unavailable-banner';
+import { ConnectorModeBanner } from '../../../../../../../components/brand/connector-mode-banner';
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
 import { useT } from '../../../../../../../lib/use-locale';
 
@@ -122,6 +123,8 @@ export default function ScanDetailPage() {
   return (
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
       <AiUnavailableBanner aiAvailability={scan.ai_availability} />
+
+      <ConnectorModeBanner mode={scan.connector_mode} />
 
       {isPartial ? (
         <div className="oma-banner oma-banner-warning" role="alert">
