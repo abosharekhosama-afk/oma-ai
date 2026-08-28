@@ -510,7 +510,9 @@ If implement discovers behavior not in spec/plan/contracts → update smallest a
 | Controlled cost               | No premium vendor tasks in core                         |
 | Specs evolve                  | T154 sync                                               |
 
-**Post-tasks status**: Ready for human review then `/speckit-implement` under gates.
+**Implementation status**: `PROVIDER-NEUTRAL CORE DONE` — T001–T159 complete; Phase BG T200–T208 remain blocked. `LIVE-INTEGRATION READY: NO`; `PRODUCTION LAUNCH READY: NO`.
+
+**Next step**: merge-readiness review only — not `/speckit-implement`. No merge is performed at this stage.
 
 ---
 
