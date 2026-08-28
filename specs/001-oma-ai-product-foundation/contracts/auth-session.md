@@ -24,6 +24,12 @@
 
 Exact verification (email link) flow is implementation-detail within OMA ownership.
 
+`GET /api/v1/auth/me` returns **one membership entry per tenant**. A user may hold more
+than one ACTIVE membership row in the same tenant; those rows are collapsed and their
+granted capabilities are unioned, and the reported `id` is the oldest row. Server
+authorization resolves the same union, so the reported capabilities match what is
+enforced. The response remains a summary — it is never the authorization decision.
+
 ## Session lifecycle
 
 ```text

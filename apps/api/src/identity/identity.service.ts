@@ -10,6 +10,41 @@ import {
 } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
 
+type MembershipRow = {
+  id: string;
+  tenantId: string;
+  tenant: { name: string };
+  grants: Array<{ capabilityCode: string }>;
+};
+
+/**
+ * A user may hold more than one ACTIVE membership row for the same tenant.
+ * Callers address companies by tenant, so collapse to one entry per tenant and
+ * union the granted capabilities.
+ */
+function dedupeMembershipsByTenant(memberships: MembershipRow[]) {
+  const byTenant = new Map<
+    string,
+    { id: string; tenant_id: string; tenant_name: string; capabilities: Set<string> }
+  >();
+  for (const m of memberships) {
+    const entry = byTenant.get(m.tenantId) ?? {
+      id: m.id,
+      tenant_id: m.tenantId,
+      tenant_name: m.tenant.name,
+      capabilities: new Set<string>(),
+    };
+    for (const g of m.grants) entry.capabilities.add(g.capabilityCode);
+    byTenant.set(m.tenantId, entry);
+  }
+  return [...byTenant.values()].map((e) => ({
+    id: e.id,
+    tenant_id: e.tenant_id,
+    tenant_name: e.tenant_name,
+    capabilities: [...e.capabilities],
+  }));
+}
+
 @Injectable()
 export class IdentityService {
   constructor(private readonly audit: AuditService) {}
@@ -104,6 +139,9 @@ export class IdentityService {
     const memberships = await getPrisma().membership.findMany({
       where: { userId, status: 'ACTIVE' },
       include: { tenant: true, grants: { where: { revokedAt: null } } },
+      // Oldest row first so the reported membership id matches the one the
+      // authorization guard resolves for the same tenant.
+      orderBy: { createdAt: 'asc' },
     });
     const session = await getPrisma().session.findFirst({
       where: { userId, revokedAt: null, expiresAt: { gt: new Date() } },
@@ -118,12 +156,7 @@ export class IdentityService {
         preferred_dir: user.preferredDir,
       },
       active_tenant_id: session?.activeTenantId ?? null,
-      memberships: memberships.map((m) => ({
-        id: m.id,
-        tenant_id: m.tenantId,
-        tenant_name: m.tenant.name,
-        capabilities: m.grants.map((g) => g.capabilityCode),
-      })),
+      memberships: dedupeMembershipsByTenant(memberships),
     };
   }
 

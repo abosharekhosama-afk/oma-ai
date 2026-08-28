@@ -137,20 +137,24 @@ export class CapabilitiesGuard implements CanActivate {
       );
 
     const prisma = getPrisma();
-    const membership = await prisma.membership.findFirst({
+    // A user may hold more than one ACTIVE membership row in a tenant, so the
+    // effective capability set is the union across those rows.
+    const memberships = await prisma.membership.findMany({
       where: tenantWhere(req.oma.tenantId, { userId: req.oma.userId, status: 'ACTIVE' }),
       include: { grants: { where: { revokedAt: null } } },
+      orderBy: { createdAt: 'asc' },
     });
-    if (!membership)
+    const primary = memberships[0];
+    if (!primary)
       throw new DomainError(
         'PERMISSION_DENIED',
         'No active membership',
         403,
         'errors.permission_denied',
       );
-    const caps = membership.grants.map((g) => g.capabilityCode);
+    const caps = [...new Set(memberships.flatMap((m) => m.grants.map((g) => g.capabilityCode)))];
     req.oma.capabilities = caps;
-    req.oma.membershipId = membership.id;
+    req.oma.membershipId = primary.id;
     if (!hasCapability(caps, required)) {
       throw new DomainError(
         'PERMISSION_DENIED',
