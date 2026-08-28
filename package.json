@@ -28,6 +28,7 @@
     "db:migrate": "pnpm --filter @oma/db migrate:dev",
     "db:migrate:deploy": "pnpm --filter @oma/db migrate:deploy",
     "db:seed": "pnpm --filter @oma/db seed",
+    "db:seed:demo": "pnpm --filter @oma/db seed:demo",
     "audit:deps": "pnpm audit --prod"
   },
   "devDependencies": {
