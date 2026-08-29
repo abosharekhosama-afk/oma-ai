@@ -5,7 +5,8 @@ import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { api } from '../../../../../lib/api';
 import type { BrandDetail } from '../../../../../lib/brand-types';
-import { getApiError, isPermissionDenied } from '../../../../../lib/brand-api';
+import { getApiError, isPermissionDenied, isTenantRequired } from '../../../../../lib/brand-api';
+import { SelectCompany } from '../../../../../components/shell/select-company';
 import { BrandWorkspaceShell } from '../../../../../components/brand/brand-workspace-shell';
 import { ConnectorModeChip } from '../../../../../components/brand/connector-mode-banner';
 import { PermissionDenied } from '../../../../../components/shell/permission-denied';
@@ -19,18 +20,21 @@ export default function BrandDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
+  const [tenantRequired, setTenantRequired] = useState(false);
 
   useEffect(() => {
     api<{ data: BrandDetail }>(`/api/v1/brands/${brandId}`)
       .then((res) => setBrand(res.data))
       .catch((err) => {
-        if (isPermissionDenied(err)) setDenied(true);
+        if (isTenantRequired(err)) setTenantRequired(true);
+        else if (isPermissionDenied(err)) setDenied(true);
         else setError(getApiError(err).message);
       })
       .finally(() => setLoading(false));
   }, [brandId]);
 
   if (denied) return <PermissionDenied message={t('errors.permission')} />;
+  if (tenantRequired) return <SelectCompany />;
   if (loading) return <p role="status">{t('common.loading')}</p>;
   if (error || !brand) {
     return (
@@ -124,6 +128,10 @@ export default function BrandDetailPage() {
             </Link>
           </>
         ) : null}
+        <Link href={`/app/brands/${brandId}/profiles`} className="oma-card oma-action-card">
+          <strong>{t('brand.detail.intelligenceCta')}</strong>
+          <p className="oma-muted">{t('brand.detail.intelligenceHint')}</p>
+        </Link>
       </div>
     </BrandWorkspaceShell>
   );

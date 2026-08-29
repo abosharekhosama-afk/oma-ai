@@ -268,6 +268,20 @@ body {
   margin-bottom: 1rem;
   flex-wrap: wrap;
 }
+.oma-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.oma-filter-row label {
+  font-size: 14px;
+  font-weight: 600;
+}
+.oma-filter-row .oma-input {
+  max-width: 280px;
+}
 .oma-btn-secondary {
   display: inline-flex;
   align-items: center;
