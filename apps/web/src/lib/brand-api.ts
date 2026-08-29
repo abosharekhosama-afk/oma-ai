@@ -37,3 +37,8 @@ export function isPermissionDenied(err: unknown): boolean {
   const { status, code } = getApiError(err);
   return status === 403 || code === 'PERMISSION_DENIED';
 }
+
+/** The session carries no active company yet, so the user must pick one. */
+export function isTenantRequired(err: unknown): boolean {
+  return getApiError(err).code === 'TENANT_REQUIRED';
+}

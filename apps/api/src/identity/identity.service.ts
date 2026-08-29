@@ -102,11 +102,24 @@ export class IdentityService {
     }
     const { token, tokenHash } = issueSessionToken();
     const ttl = Number(process.env.SESSION_TTL_SECONDS ?? 604800);
+    // A single-tenant member has nothing to choose, so selecting for them is not
+    // a guess. Anyone with several tenants must still choose explicitly.
+    const tenantIds = new Set(
+      (
+        await getPrisma().membership.findMany({
+          where: { userId: user.id, status: 'ACTIVE' },
+          select: { tenantId: true },
+          distinct: ['tenantId'],
+        })
+      ).map((m) => m.tenantId),
+    );
+    const soleTenantId = tenantIds.size === 1 ? [...tenantIds][0] : null;
     const session = await getPrisma().session.create({
       data: {
         id: newId(),
         userId: user.id,
         tokenHash,
+        activeTenantId: soleTenantId,
         expiresAt: new Date(Date.now() + ttl * 1000),
         ip: input.ip,
         userAgent: input.userAgent,
