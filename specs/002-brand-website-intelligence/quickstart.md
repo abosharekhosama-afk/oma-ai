@@ -21,15 +21,17 @@ pnpm db:migrate:deploy
 pnpm db:seed                 # system capability profiles
 pnpm --filter @oma/api bootstrap:platform-owner
 pnpm dev:local               # API + worker + web
-pnpm db:seed:demo            # demo tenant and brand fixtures (idempotent)
+NODE_ENV=development pnpm db:seed:demo   # demo tenant and brand fixtures (idempotent)
 ```
 
 Sign in at `http://127.0.0.1:3000/login` with `BOOTSTRAP_PLATFORM_OWNER_EMAIL` /
 `BOOTSTRAP_PLATFORM_OWNER_PASSWORD` from `.env`, then choose **OMA Demo Agency** in
 the company selector. Brand Intelligence is reachable from the sidebar.
 
-`pnpm db:seed:demo` runs only when `NODE_ENV` or `OMA_ENV` is `development` or `test`
-**and** `DATABASE_URL` points at a local host; anything else is refused. It grants the
+The seed runs only when `NODE_ENV` or `OMA_ENV` is `development` or `test` **and**
+`DATABASE_URL` points at a local host; anything else is refused. The environment name
+must be passed explicitly — an unset one is treated as unsafe, not as development.
+`DATABASE_URL` itself is read from the workspace `.env`. It grants the
 existing bootstrap platform owner a `COMPANY_OWNER` membership in the demo tenant, so
 that account gains demo-tenant access — it creates no separate demo login.
 

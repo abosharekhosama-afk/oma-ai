@@ -7,8 +7,21 @@
  *
  * Refuses to run outside development/test.
  */
+import { existsSync } from 'node:fs';
+import path from 'node:path';
+import { config as loadDotenv } from 'dotenv';
 import { PrismaClient, type Prisma } from '@prisma/client';
 import { SYSTEM_PROFILES, newId } from '@oma/domain';
+
+// `tsx` does not load the workspace .env the way the Prisma CLI does, so the
+// documented one-line command would otherwise fail on a fresh checkout.
+for (let dir = process.cwd(), depth = 0; depth < 5; depth += 1, dir = path.dirname(dir)) {
+  const candidate = path.join(dir, '.env');
+  if (existsSync(candidate)) {
+    loadDotenv({ path: candidate });
+    break;
+  }
+}
 
 const prisma = new PrismaClient();
 

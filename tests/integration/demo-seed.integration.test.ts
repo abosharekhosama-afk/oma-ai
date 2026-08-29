@@ -18,12 +18,26 @@ function runSeed(env: NodeJS.ProcessEnv = {}) {
  * seed is the only way demo brands reach the real domain tables.
  */
 describe('demo seed', () => {
-  it('is idempotent and leaves one demo tenant with three brands', async () => {
+  it('is idempotent and leaves one demo tenant carrying its fixture brands', async () => {
     runSeed();
     const prisma = getPrisma();
     const tenant = await prisma.tenant.findFirstOrThrow({ where: { slug: 'oma-demo' } });
     const firstCount = await prisma.brandWorkspace.count({ where: { tenantId: tenant.id } });
-    expect(firstCount).toBe(3);
+    // The demo tenant is a real tenant a developer can also create brands in,
+    // so assert the fixtures exist rather than an exact total.
+    const fixtureNames = (
+      await prisma.brandWorkspace.findMany({
+        where: { tenantId: tenant.id, name: { endsWith: '(Demo)' } },
+        select: { name: true },
+      })
+    ).map((b) => b.name);
+    expect(fixtureNames).toEqual(
+      expect.arrayContaining([
+        'Northwind Services (Demo)',
+        'Acme Retail (Demo)',
+        'Globex Group (Demo)',
+      ]),
+    );
 
     const secondRun = runSeed();
     expect(secondRun).toContain('exists');
