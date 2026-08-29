@@ -1,14 +1,9 @@
 {
-  "$comment": "Playwright MCP for the reference-inspector agent. It attaches to the dedicated reference Chrome over local CDP instead of launching a fresh unauthenticated browser, so an existing authenticated session is reused. Keep the CDP endpoint in sync with .reference/reference-config.default.json (OMA_REFERENCE_CDP_PORT overrides it). Invoked via npx so no platform-specific launcher path is hardcoded.",
+  "$comment": "Playwright MCP for the reference-inspector agent. It attaches to the dedicated reference Chrome over local CDP instead of launching a fresh unauthenticated browser, so an existing authenticated session is reused. The endpoint is deliberately absent here: the wrapper resolves it from the canonical source (.reference/reference-config.default.json#cdp) so no second copy of the port can drift.",
   "mcpServers": {
     "playwright": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@playwright/mcp@latest",
-        "--cdp-endpoint",
-        "http://127.0.0.1:9333"
-      ],
+      "command": "node",
+      "args": ["scripts/reference/playwright-mcp.mjs"],
       "agents": ["reference-inspector"]
     }
   }

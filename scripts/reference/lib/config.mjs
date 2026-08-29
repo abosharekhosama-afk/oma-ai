@@ -53,10 +53,7 @@ export function loadConfig(referenceId) {
     merged.profileDir = process.env.OMA_REFERENCE_PROFILE_DIR;
   }
 
-  // Loopback is a security boundary, not a preference.
-  if (merged.cdp.host !== '127.0.0.1' && merged.cdp.host !== 'localhost') {
-    throw new Error(`reference CDP host must be loopback, got "${merged.cdp.host}"`);
-  }
+  assertLoopback(merged.cdp.host);
 
   merged.referenceId = referenceId ?? null;
   merged.profileDirAbsolute = resolve(REPO_ROOT, merged.profileDir);
@@ -73,8 +70,43 @@ export function loadConfig(referenceId) {
   return merged;
 }
 
+/**
+ * Loopback is a security boundary, not a preference: a routable debugging
+ * endpoint exposes the authenticated reference browser to the network.
+ */
+export const LOOPBACK_HOSTS = ['127.0.0.1', 'localhost', '::1'];
+
+export function assertLoopback(host) {
+  if (!LOOPBACK_HOSTS.includes(host)) {
+    const error = new Error(
+      `CDP_NOT_LOOPBACK: reference CDP host must be one of ${LOOPBACK_HOSTS.join(', ')}, got "${host}"`,
+    );
+    error.code = 'CDP_NOT_LOOPBACK';
+    throw error;
+  }
+  return host;
+}
+
 export function cdpBase(config) {
-  return `http://${config.cdp.host}:${config.cdp.port}`;
+  const host = assertLoopback(config.cdp.host);
+  return `http://${host === '::1' ? '[::1]' : host}:${config.cdp.port}`;
+}
+
+/**
+ * The single canonical endpoint resolver. Every normal operational consumer —
+ * launcher, preflight, orchestrator, doctor, Playwright MCP — resolves here so
+ * no component can drift onto its own port. Tests may override through
+ * OMA_REFERENCE_CDP_PORT without touching committed configuration.
+ */
+export function resolveCdpEndpoint(referenceId = null) {
+  const config = loadConfig(referenceId);
+  return {
+    host: config.cdp.host,
+    port: config.cdp.port,
+    endpoint: cdpBase(config),
+    source: '.reference/reference-config.default.json#cdp',
+    overridden: Boolean(process.env.OMA_REFERENCE_CDP_PORT),
+  };
 }
 
 export function ensureDir(path) {

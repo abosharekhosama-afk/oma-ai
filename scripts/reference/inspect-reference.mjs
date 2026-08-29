@@ -14,6 +14,7 @@ import { join } from 'node:path';
 import { REPO_ROOT, ensureDir, findReference, loadConfig, parseArgs } from './lib/config.mjs';
 import { EXIT, createLogger, printCompact } from './lib/compact.mjs';
 import { validateArtifact } from './validate-reference-artifacts.mjs';
+import { snapshotSource, verifySource } from './lib/source-integrity.mjs';
 
 const run = promisify(execFile);
 
@@ -146,6 +147,11 @@ async function main() {
     'Inspect only the requested scope. Record unknowns as UNKNOWN. Return compact output only.',
   ].join('\n');
 
+  // Bracket the run: the worker is read-only with respect to source, and that
+  // is enforced by verification afterwards, not only by its tool permissions.
+  const sourceBefore = snapshotSource();
+  logger.event('info', 'source_snapshot', { head: sourceBefore.head, digest: sourceBefore.digest });
+
   let lastError = null;
   for (let attempt = 1; attempt <= config.maxAttempts; attempt += 1) {
     logger.event('info', 'attempt', { attempt, of: config.maxAttempts });
@@ -159,6 +165,21 @@ async function main() {
       if (!TRANSIENT.test(err.message) || attempt === config.maxAttempts) break;
       logger.event('info', 'retry', { attempt });
     }
+  }
+
+  const integrity = verifySource(sourceBefore);
+  logger.event(integrity.ok ? 'info' : 'error', 'source_integrity', integrity);
+  if (!integrity.ok) {
+    // A policy violation outranks every other outcome, including a successful
+    // capture. Never auto-accept and never silently repair.
+    printCompact({
+      ...base,
+      STATUS: 'REFERENCE_WORKER_POLICY_VIOLATION',
+      REASON: 'the reference worker modified paths outside the approved artifact roots',
+      BLOCKERS: integrity.unauthorizedPaths.join(', '),
+      NEXT: 'review and revert the unauthorized changes yourself; do not trust this run',
+    });
+    return EXIT.BLOCKED;
   }
 
   if (lastError) {

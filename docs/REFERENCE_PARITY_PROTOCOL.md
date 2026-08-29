@@ -92,9 +92,15 @@ pnpm ref:preflight       # deterministic readiness check
 
 Rules:
 
-- CDP binds to `127.0.0.1` only, on a configurable port. Never expose the debugging endpoint to the network.
+- CDP binds to loopback only (`127.0.0.1`, `localhost`, or `::1`), on a configurable port. Never expose the debugging endpoint to the network. A non-loopback host is rejected with `CDP_NOT_LOOPBACK`.
 - The profile directory, auth state, cookies, storage state, and logs are gitignored and never committed.
 - The launcher resolves the Chrome binary per platform (`darwin`, `win32`, `linux`). No Windows-only assumptions, no hardcoded `chrome.exe`, no hardcoded `playwright-mcp.cmd`.
+
+### Canonical CDP configuration
+
+There is exactly one operational source of truth for the endpoint: the `cdp` key in `.reference/reference-config.default.json`, resolved through `resolveCdpEndpoint()` in `scripts/reference/lib/config.mjs`. Every normal consumer — launcher, preflight, orchestrator, doctor, and Playwright MCP through `scripts/reference/playwright-mcp.mjs` — goes through that resolver. No operational component may carry its own port literal, and `pnpm devos:validate` fails with `CDP_CONFIG_CONFLICT` if one appears.
+
+A reference may override the endpoint in its own `reference-config.json`. Tests override it with `OMA_REFERENCE_CDP_PORT`, which never mutates committed configuration. Keep the distinction explicit: the canonical operational endpoint is committed, a test override is environment-only.
 
 ## 8. Readiness and session status
 
@@ -247,6 +253,22 @@ Existing routing in `docs/CURSOR_WORKFLOW.md` stands. For this subsystem specifi
 It must not modify application code, database schema, spec files, project configuration, or git state. The parent owns every later spec, governance, or code change.
 
 If a non-interactive worker mode ever requires a broad confirmation bypass, prefer safer configuration first; if unavoidable, constrain the worker by tool access and directory isolation and document the residual risk here.
+
+### Source-integrity enforcement
+
+Tool denial and a written contract are not sufficient on their own. A worker with shell access can write through redirection, `node`, `python`, `sed`, `perl`, `cp`, `mv`, `tee`, `cat`, or `git`, so enforcement is layered: the agent contract restricts tools and write paths, and every real inspection run is additionally bracketed by a deterministic integrity check in `scripts/reference/lib/source-integrity.mjs`.
+
+The access model is:
+
+| | Policy |
+| --- | --- |
+| Application source, specs, schema, config, git state | `READ_ONLY` |
+| `.reference/<id>/` artifacts, docs, logs | `RESTRICTED_WRITE_ALLOWED` |
+| `.reference/registry.json`, `reference-config.default.json`, `_schema/`, `_fixtures/` | Protected committed inputs — not writable by an inspection |
+
+`snapshotSource()` records tracked content through the index plus the full untracked listing before the run; `verifySource()` compares afterwards and classifies every changed path. Any change outside the approved roots — including a `HEAD` move from a worker-run `git commit` — fails the run with `REFERENCE_WORKER_POLICY_VIOLATION` and the exact unauthorized paths.
+
+A violation outranks a successful capture. The guard never auto-accepts and never silently repairs: reverting the change would hide the policy breach. The artifacts produced by the run are still listed so a human can judge what to keep.
 
 ## 20. Commands
 

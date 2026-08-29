@@ -191,6 +191,107 @@ for (const kind of [
   check(`schema-${kind}`, schemas.includes(`"${kind}"`), `schema for ${kind}`);
 }
 
+// Canonical CDP configuration: exactly one operational source of truth.
+const canonicalConfig = read('.reference/reference-config.default.json');
+check(
+  'cdp-canonical-source',
+  canonicalConfig !== null && /"cdp"/.test(canonicalConfig),
+  '.reference/reference-config.default.json#cdp',
+);
+const configLib = read('scripts/reference/lib/config.mjs') ?? '';
+check(
+  'cdp-canonical-resolver',
+  /export function resolveCdpEndpoint/.test(configLib),
+  'resolveCdpEndpoint in scripts/reference/lib/config.mjs',
+);
+check(
+  'cdp-loopback-enforced',
+  /CDP_NOT_LOOPBACK/.test(configLib),
+  'resolver must reject a non-loopback host with CDP_NOT_LOOPBACK',
+);
+
+try {
+  const parsed = JSON.parse(canonicalConfig ?? '{}');
+  const host = parsed.cdp?.host;
+  check(
+    'cdp-configured-host-loopback',
+    ['127.0.0.1', 'localhost', '::1'].includes(host),
+    `configured host "${host}" must be loopback`,
+  );
+  check(
+    'cdp-configured-port',
+    Number.isInteger(parsed.cdp?.port),
+    'canonical port must be an integer',
+  );
+} catch (err) {
+  check('cdp-configured-host-loopback', false, `unreadable canonical CDP config: ${err.message}`);
+}
+
+// No operational component may carry its own endpoint literal. Test overrides
+// go through OMA_REFERENCE_CDP_PORT, never through a second committed value.
+const CDP_LITERAL = /(?:9222|9333|59999|:\d{4,5}\/json)/;
+const operationalFiles = [
+  'scripts/reference/launch-reference-browser.mjs',
+  'scripts/reference/cdp-preflight.mjs',
+  'scripts/reference/inspect-reference.mjs',
+  'scripts/reference/playwright-mcp.mjs',
+  'scripts/reference/parity-report.mjs',
+  'scripts/reference/build-our-navigation-map.mjs',
+  'scripts/reference/reference-worker-smoke.mjs',
+  'scripts/reference/validate-reference-artifacts.mjs',
+  'scripts/dev-os/doctor.mjs',
+  '.opencode/mcp.json',
+];
+const drifted = operationalFiles.filter((path) => {
+  const content = read(path);
+  return content !== null && CDP_LITERAL.test(content);
+});
+check(
+  'cdp-no-operational-hardcodes',
+  drifted.length === 0,
+  drifted.length
+    ? `endpoint literal found in ${drifted.join(', ')}`
+    : 'no operational endpoint literals',
+);
+check(
+  'cdp-mcp-uses-resolver',
+  /playwright-mcp\.mjs/.test(read('.opencode/mcp.json') ?? ''),
+  'Playwright MCP must resolve the endpoint through the wrapper',
+);
+
+// Source-integrity guard.
+const integrityLib = read('scripts/reference/lib/source-integrity.mjs');
+check(
+  'source-integrity-guard',
+  integrityLib !== null,
+  'scripts/reference/lib/source-integrity.mjs',
+);
+check(
+  'source-integrity-violation-status',
+  /REFERENCE_WORKER_POLICY_VIOLATION/.test(integrityLib ?? ''),
+  'guard must return REFERENCE_WORKER_POLICY_VIOLATION',
+);
+check(
+  'source-integrity-covers-untracked',
+  /--untracked-files=all/.test(integrityLib ?? ''),
+  'snapshot must cover untracked writes, not only tracked edits',
+);
+check(
+  'source-integrity-wired-into-inspection',
+  /verifySource/.test(read('scripts/reference/inspect-reference.mjs') ?? ''),
+  'every inspection run must be bracketed by the guard',
+);
+check(
+  'source-integrity-no-silent-repair',
+  !/checkout --|git restore|reset --hard/.test(integrityLib ?? ''),
+  'guard must not repair unauthorized writes',
+);
+check(
+  'devos-isolation-tests',
+  existsSync(join(REPO_ROOT, 'tests/dev-os')),
+  'tests/dev-os deterministic guard tests',
+);
+
 const gitignore = read('.gitignore') ?? '';
 check(
   'gitignore-reference-secrets',
@@ -205,6 +306,10 @@ for (const c of checks) {
   );
 }
 process.stdout.write(`\n${checks.length - failed.length}/${checks.length} checks passed\n`);
+const cdpChecks = checks.filter((c) => c.name.startsWith('cdp-'));
+process.stdout.write(
+  `CDP: ${cdpChecks.every((c) => c.status === 'PASS') ? 'CDP_CONFIG_CONSISTENT' : 'CDP_CONFIG_CONFLICT'}\n`,
+);
 process.stdout.write(
   failed.length ? 'STATUS: DEVELOPMENT_OS_INVALID\n' : 'STATUS: DEVELOPMENT_OS_VALID\n',
 );
