@@ -4,8 +4,8 @@
 
 **Input**: Clarified feature specification (`CLARIFY_APPLY` DP-001–DP-005; slice resolutions `SR-002-004-MODE`, `SR-002-007-AI`)
 
-**Plan status**: `APPROVED FOR TASK DECOMPOSITION`
-**Mode**: `TASKS_ONLY` complete — `tasks.md` defines implementation work; no product code, migrations, or dependency installs until `/speckit-implement`
+**Plan status**: `APPROVED FOR TASK DECOMPOSITION` — plan remains the authority for this slice; no re-planning required
+**Mode**: `TASKS_ONLY` complete, and the provider-neutral core it defines has since been implemented (`tasks.md` T001–T159 complete; Phase BG T200–T208 still blocked). The gates below continue to bind: no live crawl vendor and no live AI provider wiring until `DEC-004`/`DEC-007` close for those choices.
 
 ---
 
@@ -378,4 +378,6 @@ No constitution violations. Complexity remains modular monolith + workers.
 
 ## Next stage
 
-Plan status: `APPROVED FOR TASK DECOMPOSITION`. Tasks: [`tasks.md`](./tasks.md). Implement only after explicit `/speckit-implement` and while respecting Decision Gates (no live vendor wiring).
+Plan status: `APPROVED FOR TASK DECOMPOSITION`. Tasks: [`tasks.md`](./tasks.md).
+
+The provider-neutral core defined by this plan is implemented and verified (`PROVIDER-NEUTRAL CORE DONE`, `VISIBLE PRODUCT BASELINE DONE`). The remaining work in this slice is Phase BG, which is blocked: it needs a live crawl vendor authorization under `DEC-004` and a live AI provider decision under `DEC-007`. A waiver does not substitute for either. Nothing in this plan authorizes that wiring.
