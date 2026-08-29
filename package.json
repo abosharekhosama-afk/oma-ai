@@ -17,7 +17,8 @@
     "format:fix": "prettier --write .",
     "typecheck": "pnpm -r typecheck",
     "test": "vitest run",
-    "test:unit": "vitest run packages apps",
+    "test:unit": "vitest run packages apps tests/dev-os",
+    "test:devos": "vitest run tests/dev-os",
     "test:integration": "vitest run tests/integration tests/security tests/contract",
     "test:contract": "vitest run tests/contract",
     "test:security": "vitest run tests/security",
@@ -27,7 +28,16 @@
     "db:migrate": "pnpm --filter @oma/db migrate:dev",
     "db:migrate:deploy": "pnpm --filter @oma/db migrate:deploy",
     "db:seed": "pnpm --filter @oma/db seed",
-    "audit:deps": "pnpm audit --prod"
+    "audit:deps": "pnpm audit --prod",
+    "ref:launch": "node scripts/reference/launch-reference-browser.mjs",
+    "ref:preflight": "node scripts/reference/cdp-preflight.mjs",
+    "ref:smoke": "node scripts/reference/reference-worker-smoke.mjs",
+    "ref:inspect": "node scripts/reference/inspect-reference.mjs",
+    "ref:validate": "node scripts/reference/validate-reference-artifacts.mjs",
+    "ref:our-nav": "node scripts/reference/build-our-navigation-map.mjs",
+    "ref:parity": "node scripts/reference/parity-report.mjs",
+    "devos:validate": "node scripts/dev-os/validate-development-os.mjs",
+    "devos:doctor": "node scripts/dev-os/doctor.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",

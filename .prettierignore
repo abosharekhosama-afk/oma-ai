@@ -10,3 +10,6 @@ packages/api-client/openapi.json
 .specify/
 docs/CURSOR_WORKFLOW.md
 docs/DESIGN_REFERENCE_STRATEGY.md
+docs/REFERENCE_PARITY_PROTOCOL.md
+.reference/
+.opencode/

@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "referenceId": "fixture-reference",
+    "capturedAt": "2026-08-29T00:00:00.000Z",
+    "scope": "fixture module"
+  },
+  "rows": [
+    {
+      "referenceId": "fixture.workspace.list",
+      "referencePath": "Workspace / Brands",
+      "referenceBehavior": "Lists brand workspaces with status and last scan",
+      "ourSurface": "/app/brands",
+      "currentBehavior": "Lists brand workspaces with status, website, and last scan",
+      "status": "MATCH",
+      "difference": null,
+      "requiredCorrection": null,
+      "owner": "brand-workspace",
+      "targetPhase": null,
+      "evidenceRefs": ["fixture-evidence-1"],
+      "verificationResult": "E2E covered"
+    },
+    {
+      "referenceId": "fixture.workspace.roles",
+      "referencePath": "Workspace / Roles",
+      "referenceBehavior": "Unknown: role administration was not reachable",
+      "ourSurface": null,
+      "currentBehavior": null,
+      "status": "REFERENCE_LIMITED",
+      "difference": "Reference role administration not accessible from public sources",
+      "requiredCorrection": null,
+      "owner": null,
+      "targetPhase": null,
+      "evidenceRefs": [],
+      "verificationResult": null
+    }
+  ]
+}

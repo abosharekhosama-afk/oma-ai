@@ -24,4 +24,6 @@ description: Implement an approved OMA AI feature, task, or bug fix through the 
 10. Invoke `oma-verify-change`, inspect the diff, fix material findings, and repeat until converged or explicitly blocked.
 11. Synchronize the smallest spec with durable implemented behavior and evidence.
 
+For reference-driven work, consume the prepared artifacts in `.reference/` (surface inventory, action inventory, parity matrix gap rows) alongside the spec. Do not browse the reference product yourself, reinterpret an unknown, or classify an inaccessible feature as matched — return `REFERENCE_EVIDENCE_INSUFFICIENT` and stop.
+
 Return changed files, requirements completed, exact checks/results, E2E evidence, decisions, migrations, risks, and remaining unverified work. Never claim full completion when credentials or a real environment were unavailable.

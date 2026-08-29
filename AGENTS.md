@@ -7,7 +7,7 @@
 3. The smallest relevant artifact under `specs/`.
 4. `docs/DESIGN_REFERENCE_STRATEGY.md` for product-shell, UI, interaction, or visual work.
 5. Existing repository architecture, source-of-truth ownership, and tests.
-6. `docs/CURSOR_WORKFLOW.md` and on-demand skills.
+6. `docs/CURSOR_WORKFLOW.md`, `docs/REFERENCE_PARITY_PROTOCOL.md` for reference-driven work, and on-demand skills.
 
 Report conflicts instead of silently choosing one source.
 
@@ -54,7 +54,8 @@ Before editing:
 ## Agent orchestration
 
 - Cursor is the parent orchestrator when work starts in Cursor.
-- Use built-in Explore for noisy repository discovery and built-in Browser for browser automation.
+- Use built-in Explore for noisy repository discovery and built-in Browser for our own application.
+- External reference products are inspected only by the Reference Inspection Worker, which is read-only with respect to application source. The parent does not drive the reference browser and does not answer reference-parity questions from memory. See `docs/REFERENCE_PARITY_PROTOCOL.md`.
 - Use `oma-spec-auditor` before technical planning or when scope/ownership is disputed.
 - Use `oma-verifier` after implementation and before claiming completion.
 - Start with zero subagents. Use no more than two concurrently, only for independent context-heavy work.

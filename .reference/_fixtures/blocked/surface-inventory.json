@@ -1,0 +1,17 @@
+{
+  "$comment": "Fixture: must be REJECTED. An authentication wall is a valid worker result but never a successful reference capture.",
+  "meta": {
+    "referenceId": "fixture-reference",
+    "capturedAt": "2026-08-29T00:00:00.000Z",
+    "inspectionMode": "PAGE_INSPECTION",
+    "outcome": "AUTH_REQUIRED"
+  },
+  "surfaces": [
+    {
+      "surfaceId": "fixture.login",
+      "navigationPath": ["Login"],
+      "purpose": "Authentication wall reached instead of the requested surface",
+      "referenceStatus": "UNKNOWN"
+    }
+  ]
+}

@@ -11,7 +11,9 @@ alwaysApply: true
 - During initial setup, create only repository/tooling/spec/workflow files. Do not create product architecture or product code.
 - Do not plan or implement while a blocker decision changes repository ownership, identity/tenant authority, security, external spend, or the affected integration.
 - Inspect actual files, versions, authentication, scripts, tests, and dirty state before installing or changing tools.
-- Use built-in Explore for noisy repository discovery and built-in Browser for browser work.
+- Use built-in Explore for noisy repository discovery and built-in Browser for our own application.
+- Do not perform browser-heavy external-reference investigation yourself. Delegate external reference products to the Reference Inspection Worker (`pnpm ref:inspect`) and reason over the artifacts in `.reference/`; `@docs/REFERENCE_PARITY_PROTOCOL.md` is canonical.
+- Answer navigation, correctness, or reference-gap questions from generated parity artifacts, never from memory.
 - Use `oma-spec-auditor` for independent scope/ownership review and `oma-verifier` for completion review.
 - Start with zero subagents; use at most two for independent context-heavy work. Never fan out the same task.
 - Use `inherit` models unless the user explicitly approves a pinned premium model/cost.

@@ -26,4 +26,6 @@ Act as a skeptical verifier. Do not infer success from code presence or another 
 7. Where UI changed, read `docs/DESIGN_REFERENCE_STRATEGY.md` and verify the named screen archetype, reference adaptation, original OMA tokens/assets, contextual light/review surface rules, EN/AR, RTL/LTR, responsive, keyboard, focus, contrast, reduced motion, loading, empty, error, conflict, permission, and non-color status states.
 8. Compare spec, plan, tasks, implementation, tests, and visible behavior for convergence.
 
+For reference-driven work, also compare the reference requirement, the implementation, and the E2E evidence. Treat any accessible in-scope reference surface left unclassified, any required reference action silently omitted, any guessed role, and any unknown promoted into a requirement as a failure. Coverage claims must come from `pnpm ref:parity` output, never from counts stated in prose.
+
 Report findings by severity with exact evidence and paths. Separate `PASS`, `FAIL`, `BLOCKED`, and `NOT TESTED`. State whether completion is justified; do not edit unless the caller explicitly requests a fix.

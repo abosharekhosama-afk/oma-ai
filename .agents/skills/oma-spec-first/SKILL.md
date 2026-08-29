@@ -24,4 +24,6 @@ description: Define or change OMA AI product behavior before implementation. Use
 6. Run the applicable requirements checklist and label unresolved decisions as `BLOCKER` only when they materially change behavior, architecture, security, cost, or external actions.
 7. Stop before `plan`, `tasks`, schemas, routes, or product code while affected blocker decisions remain. Do not plan the base UI design system until `DEC-013` is approved.
 
-Return the changed spec paths, requirement/decision IDs, resolved ambiguity, remaining blockers, and the next permitted Spec Kit stage.
+When the requested behavior is driven by an external reference product, request reference inspection before finalizing behavior instead of describing the reference from memory: read `.reference/registry.json` for the reference's authority and access policy, run the inspection modes the scope needs, and cite the resulting artifacts. Record what could not be observed as an unknown rather than a requirement. `docs/REFERENCE_PARITY_PROTOCOL.md` is canonical.
+
+Return the changed spec paths, requirement/decision IDs, resolved ambiguity, reference artifacts relied on, remaining blockers, and the next permitted Spec Kit stage.

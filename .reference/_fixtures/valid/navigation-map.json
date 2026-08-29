@@ -1,0 +1,30 @@
+{
+  "meta": {
+    "referenceId": "fixture-reference",
+    "capturedAt": "2026-08-29T00:00:00.000Z",
+    "inspectionMode": "NAVIGATION_DISCOVERY",
+    "outcome": "SUCCESS"
+  },
+  "nodes": [
+    {
+      "id": "root",
+      "parentId": null,
+      "label": "Reference application",
+      "surfaceType": "APPLICATION",
+      "children": ["workspace"],
+      "inspectionStatus": "DOC_VERIFIED",
+      "evidenceRefs": ["fixture-evidence-1"]
+    },
+    {
+      "id": "workspace",
+      "parentId": "root",
+      "label": "Workspace",
+      "route": "/workspace",
+      "surfaceType": "SECTION",
+      "requiredRole": "member",
+      "children": [],
+      "inspectionStatus": "DOC_VERIFIED",
+      "evidenceRefs": ["fixture-evidence-1"]
+    }
+  ]
+}
