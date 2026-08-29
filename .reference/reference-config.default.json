@@ -1,0 +1,21 @@
+{
+  "$comment": "Defaults for every reference target. A reference may override any key in .reference/<reference-id>/reference-config.json. Never put credentials in these files.",
+  "cdp": {
+    "host": "127.0.0.1",
+    "port": 9333,
+    "$comment": "Local loopback only. Never bind the debugging endpoint to a routable interface."
+  },
+  "profileDir": ".reference/.chrome-profile",
+  "viewport": { "width": 1440, "height": 900 },
+  "worker": {
+    "runtime": "opencode",
+    "agent": "reference-inspector",
+    "model": null,
+    "$comment": "model null means the worker's configured default. Do not pin a premium model for browsing."
+  },
+  "maxAttempts": 3,
+  "inspectionMode": "PAGE_INSPECTION",
+  "artifactPath": ".reference/{referenceId}",
+  "logPath": ".reference/{referenceId}/logs",
+  "requestTimeoutMs": 20000
+}

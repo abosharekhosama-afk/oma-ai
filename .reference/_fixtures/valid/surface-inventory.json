@@ -1,0 +1,25 @@
+{
+  "$comment": "Fixture: a minimal but genuinely valid surface inventory. Used by pnpm ref:validate to prove the validator accepts real captures.",
+  "meta": {
+    "referenceId": "fixture-reference",
+    "capturedAt": "2026-08-29T00:00:00.000Z",
+    "inspectionMode": "PAGE_INSPECTION",
+    "outcome": "SUCCESS",
+    "accessPolicy": "PUBLIC_SOURCE_ONLY"
+  },
+  "surfaces": [
+    {
+      "surfaceId": "fixture.workspace.list",
+      "navigationPath": ["Workspace", "Brands"],
+      "page": "Brand list",
+      "purpose": "List brand workspaces with status and last scan",
+      "actors": ["agency member"],
+      "roles": ["member"],
+      "controls": ["search", "status filter", "create"],
+      "states": ["loaded", "empty", "loading", "error"],
+      "referenceStatus": "DOC_VERIFIED",
+      "evidenceRefs": ["fixture-evidence-1"],
+      "unknowns": ["role-specific column visibility"]
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "referenceId": "fixture-reference",
+    "generatedAt": "2026-08-29T17:06:32.173Z",
+    "coverageClaim": "100_PERCENT_OF_VERIFIED_ACCESSIBLE_REFERENCE_SURFACE_RECONCILED",
+    "accessPolicy": "PUBLIC_SOURCE_ONLY",
+    "authority": [
+      "INSPIRATION_ONLY"
+    ],
+    "generator": "scripts/reference/parity-report.mjs"
+  },
+  "counts": {
+    "referenceSurfacesInspected": 1,
+    "referenceActionsInventoried": 0,
+    "referenceRolesCovered": 0,
+    "referenceJourneysCovered": 0,
+    "navigationNodes": 2,
+    "ourNavigationNodes": 14,
+    "parityRows": 2,
+    "parityByStatus": {
+      "MATCH": 1,
+      "PARTIAL": 0,
+      "MISSING": 0,
+      "WRONG_EXISTING_IMPLEMENTATION": 0,
+      "REBUILD": 0,
+      "REMOVE": 0,
+      "RECONNECT": 0,
+      "INTENTIONAL_DIFFERENCE": 0,
+      "REFERENCE_LIMITED": 1,
+      "NOT_APPLICABLE": 0
+    },
+    "unclassifiedParityRows": 0,
+    "inspectedSurfacesWithoutParityRow": 0,
+    "unknowns": 1,
+    "blockingUnknowns": 0
+  }
+}

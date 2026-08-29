@@ -1,0 +1,16 @@
+{
+  "meta": { "referenceId": "fixture-reference", "capturedAt": "2026-08-29T00:00:00.000Z" },
+  "unknowns": [
+    {
+      "unknownId": "fixture-unknown-1",
+      "reference": "fixture-reference",
+      "surface": "fixture.workspace.roles",
+      "question": "Which surfaces are hidden from a non-administrator role?",
+      "whyUnknown": "Role administration is not reachable from public sources",
+      "accessLimitation": "PUBLIC_SOURCE_ONLY",
+      "impact": "Cannot confirm reference permission model",
+      "blocking": false,
+      "nextEvidenceNeeded": "Official role documentation, or an authorised authenticated session"
+    }
+  ]
+}

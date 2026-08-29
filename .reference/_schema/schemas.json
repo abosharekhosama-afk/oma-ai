@@ -1,0 +1,148 @@
+{
+  "$comment": "Structural contracts for reference artifacts, enforced by scripts/reference/validate-reference-artifacts.mjs. Deliberately dependency-free: 'required' keys must be present, 'enum' fields are closed vocabularies, 'nonEmptyArray' must contain at least one entry. Fields not listed are allowed, because a surface may legitimately carry richer detail.",
+  "vocabularies": {
+    "referenceStatus": [
+      "LIVE_VERIFIED",
+      "DOC_VERIFIED",
+      "LIVE_AND_DOC_VERIFIED",
+      "REFERENCE_LIMITED",
+      "NOT_COVERED",
+      "NOT_APPLICABLE",
+      "UNKNOWN",
+      "REFERENCE_CONFLICT"
+    ],
+    "parityStatus": [
+      "MATCH",
+      "PARTIAL",
+      "MISSING",
+      "WRONG_EXISTING_IMPLEMENTATION",
+      "REBUILD",
+      "REMOVE",
+      "RECONNECT",
+      "INTENTIONAL_DIFFERENCE",
+      "REFERENCE_LIMITED",
+      "NOT_APPLICABLE"
+    ],
+    "navigationDiff": [
+      "MATCHED_PATH",
+      "PARTIAL_PATH",
+      "REFERENCE_ONLY",
+      "OURS_ONLY",
+      "WRONG_LOCATION",
+      "MISSING_PAGE",
+      "EXTRA_PAGE",
+      "REPLACEMENT_REQUIRED"
+    ],
+    "inspectionMode": [
+      "PAGE_INSPECTION",
+      "JOURNEY_INSPECTION",
+      "MODULE_INSPECTION",
+      "NAVIGATION_DISCOVERY",
+      "ROLE_INSPECTION",
+      "PARITY_AUDIT"
+    ],
+    "captureOutcome": [
+      "SUCCESS",
+      "PARTIAL",
+      "AUTH_REQUIRED",
+      "BROWSER_UNAVAILABLE",
+      "BLOCKED"
+    ]
+  },
+  "artifacts": {
+    "navigation-map": {
+      "required": ["meta", "nodes"],
+      "meta": { "required": ["referenceId", "capturedAt", "inspectionMode", "outcome"] },
+      "nonEmptyArray": ["nodes"],
+      "itemRules": {
+        "nodes": {
+          "required": ["id", "label", "surfaceType", "inspectionStatus"],
+          "enum": { "inspectionStatus": "referenceStatus" }
+        }
+      }
+    },
+    "surface-inventory": {
+      "required": ["meta", "surfaces"],
+      "meta": { "required": ["referenceId", "capturedAt", "inspectionMode", "outcome"] },
+      "nonEmptyArray": ["surfaces"],
+      "itemRules": {
+        "surfaces": {
+          "required": ["surfaceId", "navigationPath", "purpose", "referenceStatus"],
+          "enum": { "referenceStatus": "referenceStatus" }
+        }
+      }
+    },
+    "action-inventory": {
+      "required": ["meta", "actions"],
+      "meta": { "required": ["referenceId", "capturedAt", "inspectionMode", "outcome"] },
+      "nonEmptyArray": ["actions"],
+      "itemRules": {
+        "actions": {
+          "required": ["actionId", "surfaceId", "label", "operation", "referenceStatus"],
+          "enum": { "referenceStatus": "referenceStatus" }
+        }
+      }
+    },
+    "role-permission-matrix": {
+      "required": ["meta", "roles"],
+      "meta": { "required": ["referenceId", "capturedAt", "outcome"] },
+      "nonEmptyArray": ["roles"],
+      "itemRules": {
+        "roles": {
+          "required": ["role", "referenceStatus"],
+          "enum": { "referenceStatus": "referenceStatus" }
+        }
+      }
+    },
+    "journey-catalog": {
+      "required": ["meta", "journeys"],
+      "meta": { "required": ["referenceId", "capturedAt", "outcome"] },
+      "nonEmptyArray": ["journeys"],
+      "itemRules": {
+        "journeys": {
+          "required": ["journeyId", "name", "steps", "referenceStatus"],
+          "enum": { "referenceStatus": "referenceStatus" }
+        }
+      }
+    },
+    "parity-matrix": {
+      "required": ["meta", "rows"],
+      "meta": { "required": ["referenceId", "capturedAt"] },
+      "nonEmptyArray": ["rows"],
+      "itemRules": {
+        "rows": {
+          "required": ["referenceId", "referencePath", "status"],
+          "enum": { "status": "parityStatus" }
+        }
+      }
+    },
+    "unknowns": {
+      "required": ["meta", "unknowns"],
+      "meta": { "required": ["referenceId", "capturedAt"] },
+      "itemRules": {
+        "unknowns": {
+          "required": ["unknownId", "question", "whyUnknown", "impact", "blocking"]
+        }
+      }
+    },
+    "evidence-index": {
+      "required": ["meta", "evidence"],
+      "meta": { "required": ["referenceId", "capturedAt"] },
+      "itemRules": {
+        "evidence": { "required": ["evidenceId", "kind", "capturedAt"] }
+      }
+    },
+    "coverage-summary": {
+      "required": ["meta", "counts"],
+      "meta": { "required": ["referenceId", "generatedAt", "coverageClaim"] }
+    },
+    "our-navigation-map": {
+      "required": ["meta", "nodes"],
+      "meta": { "required": ["project", "generatedAt", "source"] },
+      "nonEmptyArray": ["nodes"],
+      "itemRules": {
+        "nodes": { "required": ["id", "route", "surfaceType"] }
+      }
+    }
+  }
+}

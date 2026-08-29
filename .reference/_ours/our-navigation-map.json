@@ -1,0 +1,141 @@
+{
+  "meta": {
+    "project": "oma-ai",
+    "generatedAt": "2026-08-29T17:06:32.280Z",
+    "source": "apps/web/src/app",
+    "generator": "scripts/reference/build-our-navigation-map.mjs"
+  },
+  "nodes": [
+    {
+      "id": "/",
+      "parentId": null,
+      "route": "/",
+      "label": "Public landing",
+      "surfaceType": "PUBLIC_LANDING",
+      "dynamicSegments": []
+    },
+    {
+      "id": "/app",
+      "parentId": "/",
+      "route": "/app",
+      "label": "app",
+      "surfaceType": "PAGE",
+      "dynamicSegments": []
+    },
+    {
+      "id": "/app/brands",
+      "parentId": "/app",
+      "route": "/app/brands",
+      "label": "brands",
+      "surfaceType": "PAGE",
+      "dynamicSegments": []
+    },
+    {
+      "id": "/app/brands/[brandId]",
+      "parentId": "/app/brands",
+      "route": "/app/brands/[brandId]",
+      "label": "[brandId]",
+      "surfaceType": "DETAIL",
+      "dynamicSegments": [
+        "brandId"
+      ]
+    },
+    {
+      "id": "/app/brands/[brandId]/connect",
+      "parentId": "/app/brands/[brandId]",
+      "route": "/app/brands/[brandId]/connect",
+      "label": "connect",
+      "surfaceType": "DETAIL",
+      "dynamicSegments": [
+        "brandId"
+      ]
+    },
+    {
+      "id": "/app/brands/[brandId]/discovery/pages",
+      "parentId": null,
+      "route": "/app/brands/[brandId]/discovery/pages",
+      "label": "pages",
+      "surfaceType": "DETAIL",
+      "dynamicSegments": [
+        "brandId"
+      ]
+    },
+    {
+      "id": "/app/brands/[brandId]/discovery/products",
+      "parentId": null,
+      "route": "/app/brands/[brandId]/discovery/products",
+      "label": "products",
+      "surfaceType": "DETAIL",
+      "dynamicSegments": [
+        "brandId"
+      ]
+    },
+    {
+      "id": "/app/brands/[brandId]/profiles/[versionId]",
+      "parentId": null,
+      "route": "/app/brands/[brandId]/profiles/[versionId]",
+      "label": "[versionId]",
+      "surfaceType": "DETAIL",
+      "dynamicSegments": [
+        "brandId",
+        "versionId"
+      ]
+    },
+    {
+      "id": "/app/brands/[brandId]/profiles/[versionId]/compare",
+      "parentId": "/app/brands/[brandId]/profiles/[versionId]",
+      "route": "/app/brands/[brandId]/profiles/[versionId]/compare",
+      "label": "compare",
+      "surfaceType": "DETAIL",
+      "dynamicSegments": [
+        "brandId",
+        "versionId"
+      ]
+    },
+    {
+      "id": "/app/brands/[brandId]/scans/[scanId]",
+      "parentId": null,
+      "route": "/app/brands/[brandId]/scans/[scanId]",
+      "label": "[scanId]",
+      "surfaceType": "DETAIL",
+      "dynamicSegments": [
+        "brandId",
+        "scanId"
+      ]
+    },
+    {
+      "id": "/app/brands/[brandId]/scans/new",
+      "parentId": null,
+      "route": "/app/brands/[brandId]/scans/new",
+      "label": "new",
+      "surfaceType": "DETAIL",
+      "dynamicSegments": [
+        "brandId"
+      ]
+    },
+    {
+      "id": "/app/brands/new",
+      "parentId": "/app/brands",
+      "route": "/app/brands/new",
+      "label": "new",
+      "surfaceType": "PAGE",
+      "dynamicSegments": []
+    },
+    {
+      "id": "/login",
+      "parentId": "/",
+      "route": "/login",
+      "label": "login",
+      "surfaceType": "AUTH",
+      "dynamicSegments": []
+    },
+    {
+      "id": "/register",
+      "parentId": "/",
+      "route": "/register",
+      "label": "register",
+      "surfaceType": "AUTH",
+      "dynamicSegments": []
+    }
+  ]
+}

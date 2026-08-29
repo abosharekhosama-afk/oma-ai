@@ -1,0 +1,92 @@
+{
+  "$comment": "Which references exist and what authority each holds. Authority is project governance (DEC-013 via docs/DESIGN_REFERENCE_STRATEGY.md); this file only records it in machine-readable form. accessPolicy gates authenticated inspection.",
+  "project": "oma-ai",
+  "referenceStrategyDoc": "docs/DESIGN_REFERENCE_STRATEGY.md",
+  "governingDecision": "DEC-013",
+  "authenticatedReferenceParity": "PENDING",
+  "references": [
+    {
+      "referenceId": "fixture-reference",
+      "name": "Fixture reference (self-test)",
+      "selfTest": true,
+      "authority": ["INSPIRATION_ONLY"],
+      "authorityScope": "Not a real reference. Exists so the subsystem can be validated end to end without inspecting any external product.",
+      "accessPolicy": "PUBLIC_SOURCE_ONLY",
+      "publicSources": [],
+      "sessionProfile": null,
+      "evidenceNamespace": ".reference/fixture-reference"
+    },
+    {
+      "referenceId": "planable",
+      "name": "Planable",
+      "authority": ["VISUAL_REFERENCE", "WORKFLOW_AUTHORITY"],
+      "authorityScope": "Content planning, calendar, preview, collaboration, review flow, approval visibility, status chips",
+      "accessPolicy": "PUBLIC_SOURCE_ONLY",
+      "publicSources": ["https://planable.io/product/"],
+      "sessionProfile": null,
+      "evidenceNamespace": ".reference/planable"
+    },
+    {
+      "referenceId": "linear",
+      "name": "Linear",
+      "authority": ["PLATFORM_SHELL_AUTHORITY", "NAVIGATION_AUTHORITY"],
+      "authorityScope": "Shell density, sidebar, side panels, spacing, speed, restrained motion",
+      "accessPolicy": "PUBLIC_SOURCE_ONLY",
+      "publicSources": ["https://linear.app/now/behind-the-latest-design-refresh"],
+      "sessionProfile": null,
+      "evidenceNamespace": ".reference/linear"
+    },
+    {
+      "referenceId": "frameio",
+      "name": "Frame.io",
+      "authority": ["SECONDARY_REFERENCE"],
+      "authorityScope": "Exact-version media review and anchored feedback only",
+      "accessPolicy": "PUBLIC_SOURCE_ONLY",
+      "publicSources": ["https://frame.io/features/review-and-approval"],
+      "sessionProfile": null,
+      "evidenceNamespace": ".reference/frameio"
+    },
+    {
+      "referenceId": "workfront",
+      "name": "Adobe Workfront / Content Supply Chain",
+      "authority": ["WORKFLOW_AUTHORITY"],
+      "authorityScope": "Request, planning, production, and approval workflow concepts only",
+      "accessPolicy": "PUBLIC_SOURCE_ONLY",
+      "publicSources": [
+        "https://business.adobe.com/solutions/content-supply-chain/workflow-planning.html"
+      ],
+      "sessionProfile": null,
+      "evidenceNamespace": ".reference/workfront"
+    },
+    {
+      "referenceId": "jasper-brand-iq",
+      "name": "Jasper Brand IQ",
+      "authority": ["FUNCTIONAL_AUTHORITY"],
+      "authorityScope": "Brand profile organisation, voice and identity sections, incompleteness states, source clarity",
+      "accessPolicy": "PUBLIC_SOURCE_ONLY",
+      "publicSources": ["https://www.jasper.ai/brand-iq"],
+      "sessionProfile": null,
+      "evidenceNamespace": ".reference/jasper-brand-iq"
+    },
+    {
+      "referenceId": "semrush",
+      "name": "Semrush",
+      "authority": ["FUNCTIONAL_AUTHORITY"],
+      "authorityScope": "Website scan result clarity, tables and states, evidence and issues, progress and coverage, filters, data density",
+      "accessPolicy": "PUBLIC_SOURCE_ONLY",
+      "publicSources": ["https://www.semrush.com/features/competitor-analysis/"],
+      "sessionProfile": null,
+      "evidenceNamespace": ".reference/semrush"
+    },
+    {
+      "referenceId": "smartly",
+      "name": "Smartly",
+      "authority": ["FUNCTIONAL_AUTHORITY"],
+      "authorityScope": "Linking approved content to paid-media planning and execution only",
+      "accessPolicy": "PUBLIC_SOURCE_ONLY",
+      "publicSources": ["https://www.smartly.io/platform-overview"],
+      "sessionProfile": null,
+      "evidenceNamespace": ".reference/smartly"
+    }
+  ]
+}
