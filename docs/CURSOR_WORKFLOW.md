@@ -32,7 +32,8 @@ Use Cursor as a thin orchestrator that routes only the context needed for the cu
 | Need | Preferred route | Constraint |
 | --- | --- | --- |
 | Repository search and architecture discovery | Cursor built-in Explore | Read-only; return paths and evidence, not guesses |
-| Browser journey and UI inspection | Cursor built-in Browser + project E2E runner | Never treat screenshots alone as persistence proof |
+| Browser journey and UI inspection of **our** application | Cursor built-in Browser + project E2E runner | Never treat screenshots alone as persistence proof |
+| Live inspection of an **external reference** product | Reference Inspection Worker via `pnpm ref:inspect` | Parent must not drive the reference browser itself; see `docs/REFERENCE_PARITY_PROTOCOL.md` |
 | Product/SoT/permission audit | `oma-spec-auditor` | Read-only and independent of implementer |
 | Routine bounded implementation | OpenCode, when installed/authenticated and suitable | Parent provides exact spec/task/files/tests and reviews the result |
 | Architecture, risky migration, hard debugging, convergence | Codex | Explicit bounded handoff; parent verifies the returned work |
@@ -89,6 +90,12 @@ For every UI plan or change:
 3. Map visible states to the authoritative domain state; distinguish AI proposal, human approval, OMA state, and external provider state.
 4. Use OMA's original tokens, copy, components, icons, imagery, and layout. Do not combine the visual systems of functional references.
 5. Define EN/AR, LTR/RTL, responsive, keyboard, focus, contrast, reduced-motion, loading, empty, error, permission, stale, and conflict behavior before implementation.
+
+## Reference-driven work
+
+When behavior is driven by an external reference product, `docs/REFERENCE_PARITY_PROTOCOL.md` is the canonical protocol. In short: project governance (`docs/DESIGN_REFERENCE_STRATEGY.md`, `DEC-013`) decides which reference is authoritative; the Reference Inspection Worker collects structured evidence into `.reference/`; the parent reasons over artifacts, never memory; coding workers consume spec plus gap items and return `REFERENCE_EVIDENCE_INSUFFICIENT` rather than guessing. Reference inspection and our application E2E are separate systems and neither substitutes for the other.
+
+Answer "is what we built correct?" or "what is missing compared to the reference?" from `pnpm ref:parity` output, not recollection.
 
 ## False-completion audit
 
