@@ -518,20 +518,24 @@ If implement discovers behavior not in spec/plan/contracts → update smallest a
 
 `VISIBLE_PRODUCT_RECOVERY_AND_PUBLIC_REFERENCE_PASS` turned the provider-neutral core into a navigable product. It changed no domain rule and closed no decision.
 
-| Item | Outcome                                                                                                                                                |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| VP01 | Global shell rebuilt: grouped sidebar, active route state, language switcher, localized tenant selector and sign-out                                   |
-| VP02 | `/app` placeholder replaced with a real workspace landing that reaches Brand Intelligence through navigation                                           |
-| VP03 | Landing, login, and register localized; `LocaleProvider` added, removing an Arabic hydration mismatch                                                  |
-| VP04 | `/auth/me`, `CapabilitiesGuard`, and `TenantContextService` union capabilities across duplicate ACTIVE membership rows                                 |
-| VP05 | `pnpm db:seed:demo` — idempotent, non-production demo tenant with evidence-backed fixture brands                                                       |
-| VP06 | `ScanAttempt.connectorMode` records the connector at execution time; scan, brand, discovery, and evidence surfaces disclose it (`FR-BWI-019a`)         |
-| VP12 | Capability union across duplicate ACTIVE membership rows covered by integration tests; demo seed refuses non-local databases and is idempotency-tested |
-| VP07 | RTL URL isolation (`.oma-ltr`) and localized evidence panel labels                                                                                     |
-| VP08 | [`reference-matrix.md`](./reference-matrix.md) records public-source reference study                                                                   |
-| VP09 | Brand intelligence editor renders every profile section as labelled fields; the raw JSON dump is gone                                                  |
-| VP10 | Info state, discovery tier, blocking reasons, and known field keys are localized instead of leaking enum codes                                         |
-| VP11 | Empty state for pending AI insights; mobile shell no longer stretches a blank band under the navigation                                                |
+| Item | Outcome                                                                                                                                                                                           |
+| ---- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| VP01 | Global shell rebuilt: grouped sidebar, active route state, language switcher, localized tenant selector and sign-out                                                                              |
+| VP02 | `/app` placeholder replaced with a real workspace landing that reaches Brand Intelligence through navigation                                                                                      |
+| VP03 | Landing, login, and register localized; `LocaleProvider` added, removing an Arabic hydration mismatch                                                                                             |
+| VP04 | `/auth/me`, `CapabilitiesGuard`, and `TenantContextService` union capabilities across duplicate ACTIVE membership rows                                                                            |
+| VP05 | `pnpm db:seed:demo` — idempotent, non-production demo tenant with evidence-backed fixture brands                                                                                                  |
+| VP06 | `ScanAttempt.connectorMode` records the connector at execution time; scan, brand, discovery, and evidence surfaces disclose it (`FR-BWI-019a`)                                                    |
+| VP12 | Capability union across duplicate ACTIVE membership rows covered by integration tests; demo seed refuses non-local databases and is idempotency-tested                                            |
+| VP07 | RTL URL isolation (`.oma-ltr`) and localized evidence panel labels                                                                                                                                |
+| VP08 | [`reference-matrix.md`](./reference-matrix.md) records public-source reference study                                                                                                              |
+| VP09 | Brand intelligence editor renders every profile section as labelled fields; the raw JSON dump is gone                                                                                             |
+| VP10 | Info state, discovery tier, blocking reasons, and known field keys are localized instead of leaking enum codes                                                                                    |
+| VP11 | Empty state for pending AI insights; mobile shell no longer stretches a blank band under the navigation                                                                                           |
+| VP13 | `/app/brands/[brandId]/profiles` version index plus an `Intelligence` workspace tab, so an intelligence version is reachable by clicking alone and version history is visible before any approval |
+| VP14 | Brand list search over `GET /brands?q=`, with its own no-results state, and an approved-version marker per brand                                                                                  |
+| VP15 | `TENANT_REQUIRED` renders as select-a-company guidance instead of a raw error; login activates the sole tenant when a user belongs to exactly one                                                 |
+| VP16 | `db:seed:demo` loads the workspace `.env` itself, so the documented demo command works on a fresh checkout                                                                                        |
 
 Status after Phase VP: `VISIBLE PRODUCT BASELINE: DONE`, `AUTHENTICATED REFERENCE PARITY: PENDING`, `LIVE-INTEGRATION READY: NO`, `PRODUCTION LAUNCH READY: NO`, `USER ACCEPTANCE: PENDING`.
 

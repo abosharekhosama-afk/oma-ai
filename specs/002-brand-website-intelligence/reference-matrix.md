@@ -40,6 +40,15 @@ Reference scope is fixed by `DEC-013`:
 | 10  | Item-level accept/reject distinct from whole-version approval                          | Planable        | Insight decisions, approval summary             | Separate insight decision controls and version approve/reject, separated by capability                                         | Threaded comments, per-approver assignment                | Approval eligibility is server-enforced; the UI cannot offer approval on an ineligible version                            |
 | 11  | Status chips that make review state readable at a glance                               | Planable        | Brand list, scan status, version status         | Shared badge component across brand status, scan status, review status                                                         | Full colour-coded workflow board                          | A single badge vocabulary is used so status colour never means two things                                                 |
 | 12  | Approval that states what is incomplete before it is granted                           | Planable        | Approval summary                                | Partial-scan disclosure, blocking-reason list, explicit confirmation checkbox                                                  | Approval delegation and reminders                         | OMA blocks rather than warns when required fields are missing                                                             |
+| 13  | Version history reachable from the object it belongs to, not only from the newest item | Planable        | Brand workspace → Intelligence                  | `Intelligence` workspace tab and a version index listing every draft and approved version with its dates and AI availability   | Diff presentation inside a review thread                  | OMA marks the approved version explicitly because approval, not recency, is the authority                                 |
+
+## Structured reference capture status
+
+This matrix is hand-recorded from public sources. The repository's Reference
+Intelligence subsystem (`.reference/`, `scripts/reference/`) lives on `main` and is
+not present on this branch, and its inspection worker is `NOT_CONFIGURED` locally, so
+no structured navigation/surface/parity artifacts were produced for this pass. Row 13
+is therefore `DOC_VERIFIED` like the rest, not `LIVE_VERIFIED`.
 
 ## Not studied in this pass
 
