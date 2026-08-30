@@ -2,7 +2,7 @@
 
 **Feature:** `002-brand-website-intelligence`
 **Phase:** `VISIBLE_PRODUCT_RECOVERY_AND_PUBLIC_REFERENCE_PASS`
-**Status:** `AUTHENTICATED REFERENCE PARITY: PENDING`
+**Status:** `AUTHENTICATED_REFERENCE_PARITY: PARTIAL` — superseded for evidence purposes by [`reference/`](./reference/)
 
 ## Evidence basis and limits
 
@@ -44,11 +44,23 @@ Reference scope is fixed by `DEC-013`:
 
 ## Structured reference capture status
 
-This matrix is hand-recorded from public sources. The repository's Reference
-Intelligence subsystem (`.reference/`, `scripts/reference/`) lives on `main` and is
-not present on this branch, and its inspection worker is `NOT_CONFIGURED` locally, so
-no structured navigation/surface/parity artifacts were produced for this pass. Row 13
-is therefore `DOC_VERIFIED` like the rest, not `LIVE_VERIFIED`.
+**Superseded for evidence purposes on 2026-08-30.** The rows above remain the record of
+the earlier public-source pass. A subsequent `REFERENCE_INSPECTION_ONLY` phase produced
+an authenticated, structured evidence baseline in
+[`reference/`](./reference/), where every surface, action and journey step carries an
+explicit status and an evidence id. Read that directory, not this matrix, when reference
+evidence is needed.
+
+The structured baseline supersedes this matrix's "no authenticated study" caveat only for
+Planable and Linear, which were inspected live. Semrush remains documentation-primary
+because its authenticated product app is subscription-gated, and Jasper remains
+documentation-only. Overall status is
+`AUTHENTICATED_REFERENCE_PARITY: PARTIAL`, not complete.
+
+The repository's Reference Intelligence subsystem (`scripts/reference/`) still lives on
+another branch and is not present here, so this phase's inspection used the user-level
+`reference-inspector` worker and the `OMA References` Chrome profile. Raw transcripts are
+retained locally under `.reference/002-evidence/` and are git-ignored.
 
 ## Not studied in this pass
 
@@ -56,4 +68,9 @@ is therefore `DOC_VERIFIED` like the rest, not `LIVE_VERIFIED`.
 - Pricing, billing, or admin surfaces of any reference product.
 - Reference mobile applications.
 
-These remain `AUTHENTICATED REFERENCE PARITY: PENDING` until documented access exists.
+These three items specifically remain `PENDING`: reference pricing, billing and admin surfaces were
+never opened, reference mobile applications were never inspected, and every Jasper surface behind a
+login is unreachable because no Jasper account exists. Planable and Linear login-gated screens are
+no longer pending — they were inspected live in the `reference/` baseline — and Semrush's
+login-gated product app remains pending because it is subscription-gated rather than
+inaccessible.
