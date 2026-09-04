@@ -29,8 +29,7 @@ reference product was introduced.
 | Adobe Workfront | `ACCOUNT_LIMITED / NOT_APPLICABLE_TO_FEATURE_002` | The account is authenticated to Adobe but is not linked to a Workfront organisation, and workflow planning is not a Feature 002 surface. |
 | Smartly | Not inspected | Paid-media reference; no Feature 002 authority. |
 
-No reference from any other project (including ISP references such as Teamworks or Sportdata) was
-opened, and no reference was added to `DEC-013`.
+No reference from any other project was opened, and no reference was added to `DEC-013`.
 
 ## Access and inspection status
 

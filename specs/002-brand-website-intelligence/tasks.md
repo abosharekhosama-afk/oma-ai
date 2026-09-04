@@ -298,13 +298,13 @@ Blocked tasks live in **Phase BG** at the end and stay `[ ]`.
 - [x] T127 [P] Add shared brand layout chrome (density/panels) in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/brand/brand-workspace-shell.tsx` (Linear-style density/progress/panels adaptation)
 - [x] T128 [P] Evidence clarity patterns (Semrush-style) in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/brand/evidence-clarity.tsx`
 - [x] T129 [P] Brand profile section organization (Jasper Brand IQ-style) in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/brand/profile-sections.tsx`
-- [x] T130 [P] Review collaboration cues (Planable-style) in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/brand/review-collaboration.tsx`
-- [x] T131 Ensure all brand routes support loading/empty/error/permission-denied in pages under `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/`
+- [ ] T130 [P] Review collaboration cues (Planable-style) in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/brand/review-collaboration.tsx` — **REOPENED** Finding `FC-004` / Gap `G-016`: section renders but comment/history survival unproven through the UI.
+- [ ] T131 Ensure all brand routes support loading/empty/error/permission-denied in pages under `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/` — **REOPENED** Finding `FC-005` / Gap `G-018`: permission-denied path unprovable until a second actor can be invited; loading/empty/error remain observed.
 - [x] T132 [P] Keyboard navigation + focus management for evidence drawer and approval dialog in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/brand/`
 - [x] T133 [P] Screen reader labels for scan progress live region in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/scans/[scanId]/page.tsx`
 - [x] T134 [P] Respect `prefers-reduced-motion` using `/Users/burhanbakri/Downloads/oma-ai/packages/ui/src/motion.css`
 - [x] T135 [P] Responsive checks (desktop/tablet/mobile) documented via Playwright viewport tests in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-responsive.e2e.ts`
-- [x] T136 [P] Complete EN/AR strings for remaining brand UX in `/Users/burhanbakri/Downloads/oma-ai/packages/i18n/messages/en.json` and `/Users/burhanbakri/Downloads/oma-ai/packages/i18n/messages/ar.json`
+- [ ] T136 [P] Complete EN/AR strings for remaining brand UX in `/Users/burhanbakri/Downloads/oma-ai/packages/i18n/messages/en.json` and `/Users/burhanbakri/Downloads/oma-ai/packages/i18n/messages/ar.json` — **REOPENED** Finding `FC-003` / Gap `G-010`: `brand.profile.section.evidence_refs` (and the `t() || key` fallback) leaks a raw key as a section heading.
 - [x] T137 Verify RTL layout for brand list, progress, evidence, approval in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-i18n-rtl.e2e.ts`
 - [x] T138 [P] Visual overflow/console-error smoke assertions in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-ui-smoke.e2e.ts`
 
@@ -344,6 +344,27 @@ Blocked tasks live in **Phase BG** at the end and stay `[ ]`.
 **Checkpoint**: All Q-BWI E2E green → may claim **`PROVIDER-NEUTRAL CORE DONE`** only. Never claim live-integration/production launch ready.
 
 ---
+
+## Phase GM — Gap-matrix follow-ups (opened by REFERENCE_TO_OMA_GAP_MATRIX_ONLY)
+
+Opened from runtime comparison against the reference evidence baseline at `1a7453c`. None of these
+are closed in this phase. `T200`–`T208` are untouched. `DEC-015` is proposed and **open** — do not
+implement identity/tenant-authority work until it closes.
+
+- [ ] T160 `GATED_BY_DEC-015` Specify and implement how a registered user obtains a first company (self-serve create, invitation-only, or Platform-Owner provisioning) across Foundation identity + `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(auth)/register/page.tsx` and a new create-company or accept-invitation surface under `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/` — Gap `G-001`/`G-002`; Finding `FC-001`; E2E: register → usable `/app/brands` by clicking only
+- [ ] T161 [P] Make the company selector searchable and disambiguated in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/shell/tenant-switcher.tsx` — Gap `G-003`; E2E: a user with many memberships finds a named company by typing
+- [ ] T162 [P] Isolate E2E tenant residue from the human demo account (cleanup hook or dedicated owner) in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/helpers/brand-api.ts` and wire `/Users/burhanbakri/Downloads/oma-ai/artifacts/prune-e2e-memberships.ts` or equivalent into the E2E lifecycle — Gap `G-005`; Finding `FC-002`
+- [ ] T163 E2E journey without API shortcuts: login form → company selector → create brand form → overview, in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-ui-entry.e2e.ts` (new) — Gaps `G-001`/`G-003`; Finding `FC-002`; Foundation `FR-002`; must not use `installOwnerSession` cookie injection or `apiPost` for brand create
+- [ ] T164 [P] E2E insight accept/reject through the UI using a test-only `AiProviderPort` adapter (permitted by `FR-BWI-028a`) in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-insight-decisions.e2e.ts` (new) — Gap `G-011`; Finding `FC-007`; **no live AI vendor**
+- [ ] T165 [P] E2E whole-version reject through the UI in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-q-bwi-09-reject-scope.e2e.ts` (extend to click `Reject version`, not only API) — Gap `G-014`
+- [ ] T166 [P] E2E rescan-after-approval creates a new Draft and leaves Approved untouched, driven by UI Retry/Start scan, in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-q-bwi-07-rescan.e2e.ts` — Gap `G-008`
+- [ ] T167 `GATED_BY_DEC-015` / after T168 Surface tenant-scoped notifications with deep links in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/shell/` consuming `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/notifications/notifications.controller.ts` — Gap `G-017`; E2E cross-tenant non-delivery
+- [ ] T168 `GATED_BY_DEC-015` Invitation and membership administration UI over `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/tenant/membership.controller.ts` under `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/` — Gap `G-018`; Finding `FC-005`; unlocks permission-denied proof for T131
+- [ ] T169 [P] Verify and, if missing, render coverage subset disclosure on brand overview in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/page.tsx` — Gap `G-009`; Semrush authority S12/S16/S17; E2E asserts the subset a figure covers is readable
+- [ ] T170 [P] Verify and, if missing, render unknown-versus-missing field distinction in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/brand/profile-sections.tsx` — Gap `G-012`; Jasper J5 / `FR-BWI-020`/`FR-BWI-022`; E2E asserts required-not-found vs optional-absent
+- [ ] T171 [P] Verify keyboard reachability of critical Brand Intelligence actions against `NFR-BWI-005` in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/brand-q-bwi-12-a11y-i18n.e2e.ts` (extend) — Gap `G-022`; no command-menu invention required
+- [ ] T172 [P] Measure motion on Brand Intelligence transitions before asserting Linear L10 calm; record results under `/Users/burhanbakri/Downloads/oma-ai/specs/002-brand-website-intelligence/gap-matrix/` or a follow-on evidence note — Gap `G-023`; measurement only in this task
+- [ ] T173 Decide whether unauthenticated `/` must route toward `/login` and record the decision in `/Users/burhanbakri/Downloads/oma-ai/specs/001-oma-ai-product-foundation/spec.md` or Feature 002 spec clarification — Gap `G-024`; no UI change until decided
 
 ## Phase BG — Blocked tasks (stay `[ ]`; not in provider-neutral DoD)
 
@@ -510,7 +531,7 @@ If implement discovers behavior not in spec/plan/contracts → update smallest a
 | Controlled cost               | No premium vendor tasks in core                         |
 | Specs evolve                  | T154 sync                                               |
 
-**Implementation status**: `PROVIDER-NEUTRAL CORE DONE` — T001–T159 complete; Phase BG T200–T208 remain blocked. `LIVE-INTEGRATION READY: NO`; `PRODUCTION LAUNCH READY: NO`.
+**Implementation status**: `PROVIDER-NEUTRAL CORE DONE` with **gap-matrix reopenings**. Phase GM T160–T173 open; T130/T131/T136 reopened; Phase BG T200–T208 remain blocked and unchanged. `AUTHENTICATED_REFERENCE_PARITY: PARTIAL`; `LIVE-INTEGRATION READY: NO`; `PRODUCTION LAUNCH READY: NO`; `USER ACCEPTANCE: PENDING`.
 
 **Next step**: merge-readiness review only — not `/speckit-implement`. No merge is performed at this stage.
 
@@ -537,14 +558,14 @@ If implement discovers behavior not in spec/plan/contracts → update smallest a
 | VP15 | `TENANT_REQUIRED` renders as select-a-company guidance instead of a raw error; login activates the sole tenant when a user belongs to exactly one                                                 |
 | VP16 | `db:seed:demo` loads the workspace `.env` itself, so the documented demo command works on a fresh checkout                                                                                        |
 
-Status after Phase VP: `VISIBLE PRODUCT BASELINE: DONE`, `AUTHENTICATED REFERENCE PARITY: PENDING`, `LIVE-INTEGRATION READY: NO`, `PRODUCTION LAUNCH READY: NO`, `USER ACCEPTANCE: PENDING`.
+Status after Phase VP + Gap Matrix: `VISIBLE PRODUCT BASELINE: CONDITIONAL` — navigable when an active company exists, but self-registration cannot obtain a company (`G-001`) and the shared owner account's switcher is polluted (`G-003`/`G-005`). `AUTHENTICATED_REFERENCE_PARITY: PARTIAL`, `LIVE-INTEGRATION READY: NO`, `PRODUCTION LAUNCH READY: NO`, `USER ACCEPTANCE: PENDING`. See `gap-matrix/`.
 
 ---
 
 ## Notes
 
 - Status: `PROVIDER-NEUTRAL CORE DONE` — `LIVE-INTEGRATION READY: NO`, `PRODUCTION LAUNCH READY: NO`
-- T001–T159 are `[x]` (159 completed); Phase BG T200–T208 remain `[ ]` (9 blocked); zero unblocked tasks remain
+- T001–T159: 156 remain `[x]`; T130, T131, T136 reopened `[ ]` (Findings FC-003/004/005). Phase GM T160–T173 are `[ ]`. Phase BG T200–T208 remain `[ ]` (9 blocked, unchanged). Open decision gate: proposed `DEC-015` for company acquisition.
 - `[P]` = parallel-safe file isolation
 - Do not mark Phase BG complete without closed decisions + explicit implement authorization
 - `DEC-003`–`DEC-012` stay open; Phase BG unblocks only after the owning decision closes

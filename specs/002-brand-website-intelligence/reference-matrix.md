@@ -6,10 +6,13 @@
 
 ## Evidence basis and limits
 
-No OMA-owned accounts exist on any reference product. Every row below is derived
-only from publicly reachable marketing pages, public documentation, and public
-help centres of the named products. Nothing here was observed inside a signed-in
-product session, so no row may be read as verified parity.
+**At the time of this public-source pass**, no OMA-owned account existed on any
+reference product. Every row below was derived only from publicly reachable
+marketing pages, public documentation, and public help centres of the named
+products. Nothing in *this* matrix was observed inside a signed-in product
+session, so no row may be read as verified parity. A later authenticated
+baseline lives in [`reference/`](./reference/) and supersedes this caveat for
+Planable and Linear only — see the status section below.
 
 This document studies interaction patterns only. It authorises no copying of
 reference logos, assets, icons, copy, colour systems, or layouts. `DEC-013` is

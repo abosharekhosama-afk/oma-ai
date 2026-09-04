@@ -92,6 +92,7 @@ All rows are documentation-only. No signed-in session exists.
 | Manager | Manages knowledge and brand voice; may view and edit permission settings; sees usage data | `EV-JAS-015` | `DOC_VERIFIED` |
 | Developer | Scoped to API access | `EV-JAS-013` | `DOC_VERIFIED` |
 | Member | Content creation with limited administrative scope | `EV-JAS-013` | `DOC_VERIFIED` |
+
 Jasper documents **four** roles. Two further actors appear in the documentation but are *not* roles
 in its role model, and are recorded separately so nobody counts them as such:
 

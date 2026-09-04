@@ -4,7 +4,13 @@ All routes are patterns. Real workspace, team, project, post and issue identifie
 with `{placeholders}`. Everything below is what was actually observed live, or what an official
 documentation page states; nothing is reconstructed from memory.
 
+Every factual row resolves to the evidence ids named in its section header. Details of each id —
+source URL, timestamp, verification type and limitations — live in `01-evidence-log.md`.
+
 ## Semrush
+
+Evidence: `EV-SEM-001` (live host, navigation, public entry), `EV-SEM-002`–`EV-SEM-017` (documented
+Site Audit sections, setup, panels and settings).
 
 | Level | Observed |
 | --- | --- |
@@ -21,6 +27,9 @@ documentation page states; nothing is reconstructed from memory.
 
 ## Planable
 
+Evidence: `EV-PLA-001`–`EV-PLA-005` (live), `EV-PLA-006`–`EV-PLA-021` (documented settings and
+supporting pages).
+
 | Level | Observed |
 | --- | --- |
 | Application | `app.planable.io` for the product; `help.planable.io` for the Help Center; `planable.io/product/` for the product page. |
@@ -35,6 +44,8 @@ documentation page states; nothing is reconstructed from memory.
 | Relevant visible settings (documented) | Workspace Settings → Approval Settings: approval workflow (None / Optional / Required [Pro] / Multi-level [Enterprise]), "Who can approve Content?", "Lock Content after Approval", "Schedule posts automatically on Approval", "Automatic reminders for pending approvals". Members settings → permissions tab. Workspace default "Create new posts as internal". |
 
 ## Linear
+
+Evidence: `EV-LIN-001`–`EV-LIN-008` (live and measured), `EV-LIN-009` (mobile documentation).
 
 | Level | Observed |
 | --- | --- |
@@ -51,10 +62,14 @@ documentation page states; nothing is reconstructed from memory.
 
 ## Jasper Brand IQ
 
+Evidence: `EV-JAS-001`–`EV-JAS-018` (official public sources only). Product navigation is not
+observable.
+
 | Level | Observed |
 | --- | --- |
 | Application | No product application was opened. There is no OMA-owned Jasper account and signup was refused, so the status stays `AUTH_REQUIRED / REFERENCE_LIMITED`. |
 | Sources | Official `jasper.ai` product pages, official Jasper documentation and the official Jasper Help Center only. |
 | Navigation | Not observable. Any product navigation, workspace model, section hierarchy, tab set or panel layout for Brand IQ is `UNKNOWN` for this baseline. |
 
-See `01-evidence-log.md` for the specific documentation pages behind every documented row above.
+See `01-evidence-log.md` for the specific documentation pages, timestamps and limitations behind
+every evidence id named above.

@@ -217,16 +217,16 @@ not OMA field names and authorize no OMA schema.
 - **Fields:** a card per workspace showing name, page count and last activity; a "Create a workspace" card; an "Other workspaces" section.
 - **Controls:** New workspace; a company menu containing Upgrade plan, Usage, Billing, Settings, Rename company, Members, Invite collaborators.
 - **States:** one card per workspace; an empty-state card when none exist.
-- **Actors:** all members can view; the company menu is owner/admin territory.
+- **Actors:** the inspecting account could view the dashboard. Whether every membership role can view it, and whether the company menu is restricted to owner/admin, is `UNKNOWN` — no permission boundary was tested (`06-role-permission-matrix.md`).
 - **Relevance to 002:** workspace-per-brand organisation, and a company level that owns membership above the workspace.
-- **Unknowns:** Usage and Billing contents — deliberately not opened.
+- **Unknowns:** Usage and Billing contents — deliberately not opened. Role restrictions on the company menu.
 
 ### PLA-002 — Calendar (primary planning surface)
 - **Status:** `LIVE_VERIFIED` · **Route:** `/calendar/{workspaceId}` · **Evidence:** `EV-PLA-001`
 - **Fields:** Month/Week toggle; a breadcrumb of company / section / view; day cells offering post and note creation; a right-hand saved-items panel whose empty state reads as "no saved posts, your drafts will appear here".
 - **Controls:** Filter, Media, Share, Compose, Request approvals, view selector, workspace switcher, user menu, per-channel checkboxes, a calendars popover, display settings.
 - **States:** an empty workspace shows an onboarding checklist with an explicit completion percentage and per-step ticks; the populated workspace shows posts per day with campaign labels and notes.
-- **Actors:** all members; approval entry points appear for approvers.
+- **Actors:** observed for the inspecting account only. That the approval entry points appear only for approvers is an **inference** from control labelling, not a tested permission boundary.
 - **Relevance to 002:** a populated primary surface with per-item status, and an empty state that tells a new user what to do next rather than showing a blank grid.
 
 ### PLA-003 — View switcher
@@ -269,7 +269,7 @@ not OMA field names and authorize no OMA schema.
 - **Fields:** campaign label, labels, share; a status chip; the channel name; the content; link preview cards; a desktop/mobile preview toggle; a timeline carrying the approve control and the schedule/publish control; a drawer with a Feedback section split into Comments and Suggestions tabs, and an Activity log with per-row entries.
 - **Controls:** approve, schedule/publish, comment input, preview toggle, drawer tabs, AI rewrite and hashtag helpers.
 - **States:** status chips observed live include "not approved yet", "approved by {user}", approved, pending, draft and scheduled; the activity log carries actor-plus-relative-time entries; the suggestions tab has its own empty state instructing the user to select text.
-- **Actors:** all members may view and comment per permission; approvers approve; editors edit.
+- **Actors:** observed for the inspecting account only (`EV-PLA-003`). That view/comment/approve/edit are split by role is **`DOC_VERIFIED`** via `EV-PLA-006`/`EV-PLA-008` for documented capability text; enforcement was not tested and remains `UNKNOWN`.
 - **Relevance to 002:** the canonical item-level review surface — status, content, evidence of prior discussion, decision control and history in one stable context. Directly informs OMA's insight review and evidence panel.
 - **Unknowns:** the per-post overflow menu was not opened, and version restore was not exercised because it would mutate content.
 
@@ -499,7 +499,7 @@ product behaviour. Official Help Center articles are treated as stronger evidenc
 ### JAS-003 — Brand voice
 - **Status:** `DOC_VERIFIED` · **Evidence:** `EV-JAS-004`, `EV-JAS-005`, `EV-JAS-003`
 - **Purpose:** define a voice from the brand's own existing writing; the product analyses tone, style and characteristics and then applies the voice to outputs.
-- **Fields:** a name; a description carrying tone attributes; a "best used for" note; a visibility setting; up to eight examples supplied as text, documents or URLs; a generated description with optional excerpts that the operator can enable for accuracy; a recently-used list.
+- **Fields:** a name; a description carrying tone attributes; a "best used for" note; a visibility setting; a bounded number of examples supplied as text, documents or URLs; a generated description with optional excerpts that the operator can enable for accuracy; a recently-used list.
 - **Controls:** add and edit; a preview across several content types; a with-voice versus without-voice comparison generating both versions side by side; save; delete and recreate; a workspace-default voice that only an administrator may set and that any user may override per generation.
 - **States:** created or draft; private or workspace-visible; default or overridden.
 - **Actors:** members and administrators may see and use a non-private voice; only administrators set the workspace default; create, edit and delete are restricted by permission settings.
@@ -535,7 +535,7 @@ product behaviour. Official Help Center articles are treated as stronger evidenc
 - **Unknowns:** no confidence scoring and no explicit first-class "known unknown" state is documented, so OMA's evidence-state taxonomy is stricter than the reference.
 
 ### JAS-007 — Reviewable brand guidance
-- **Status:** `DOC_VERIFIED` · **Evidence:** `EV-JAS-004`, `EV-JAS-009`, `EV-JAS-010`, `EV-JAS-008`
+- **Status:** `DOC_VERIFIED` · **Evidence:** `EV-JAS-004`, `EV-JAS-009`, `EV-JAS-010`, `EV-JAS-008`, `EV-JAS-003`
 - **Purpose:** brand guidance is reviewable both before and after it is applied.
 - **Fields:** the voice preview and with/without comparison; an automatic style-guide setup that the documentation itself describes as an AI-recommended starting point rather than a guaranteed import, with an instruction to always review and refine; visual-guideline review feedback that either approves all images or gives a per-image reason; review of drafted product entries.
 - **States:** recommended or draft versus reviewed and refined; approved versus flagged with a reason.
@@ -544,7 +544,7 @@ product behaviour. Official Help Center articles are treated as stronger evidenc
 - **Unknowns:** no formal approve-or-reject workflow with sign-off is documented. Automatic brand-violation flagging appears only as a marketing claim and is therefore not evidence of a review gate.
 
 ### JAS-008 — Multiple brand profiles
-- **Status:** `DOC_VERIFIED` · **Evidence:** `EV-JAS-004`, `EV-JAS-011`, `EV-JAS-009`, `EV-JAS-012`, `EV-JAS-008`
+- **Status:** `DOC_VERIFIED` · **Evidence:** `EV-JAS-004`, `EV-JAS-011`, `EV-JAS-009`, `EV-JAS-012`, `EV-JAS-008`, `EV-JAS-005`
 - **Purpose:** several brand voices, audiences, style guides and visual guideline sets may coexist, with groups segmenting them by brand or region.
 - **Fields:** the count of voices and audiences is plan-tiered, from a small fixed allowance up to unlimited; multiple style guides may exist per workspace, documented as suited to teams managing several brands or style systems; groups segment projects, knowledge, voices, visual guidelines and audiences; the product component is limited to one schema per workspace.
 - **Controls:** only one style guide is active at a time; defaults exist at both workspace and project level; groups may be open or invite-only.

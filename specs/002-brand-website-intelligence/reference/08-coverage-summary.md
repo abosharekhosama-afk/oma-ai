@@ -15,7 +15,7 @@ authenticated product was subscription-gated, so any claim of full parity would 
 | References in scope | 4 | Semrush, Jasper Brand IQ, Linear, Planable |
 | Inspected live (authenticated session) | 3 | Semrush (public surfaces only, product app gated), Planable, Linear |
 | Inspected through official documentation | 4 | All four; documentation is the primary source for Semrush and the only source for Jasper |
-| Inspected with the product app fully reachable | 2 | Planable, Linear |
+| Inspected with the product app reachable apart from plan-gated views | 2 | Planable (Grid/List and multi-level approvals remain plan- or enterprise-gated), Linear |
 | Not applicable this session | 2 | Frame.io (`ACCESS_VERIFIED`), Adobe Workfront (`ACCOUNT_LIMITED`) |
 | New references introduced | 0 | `DEC-013` unchanged |
 | Cross-project references opened | 0 | No ISP or other-project reference was touched |
@@ -57,9 +57,9 @@ The two `UNKNOWN` actions are Planable item rejection (`PLA-A-010`) and Linear r
 | --- | --- |
 | Journeys catalogued | 9 |
 | Journeys with every step classified | 9 (100%) |
-| Journeys whose primary coverage is `LIVE_VERIFIED` | 1 (J-07 item-level review and decision) |
-| Journeys whose primary coverage is `DOC_VERIFIED` | 6 (J-01, J-02, J-03, J-05, J-06, J-09) |
-| Journeys mixed with material `UNKNOWN` steps | 2 (J-04 evidence inspection, J-08 whole-version approval) |
+| Journeys whose primary coverage is `LIVE_VERIFIED` (LIVE is the plurality under primary-first step counting) | 2 (J-07 — 6 LIVE of 9 steps, 1 UNKNOWN; J-08 — 4 LIVE of 9 steps, 2 UNKNOWN) |
+| Journeys whose primary coverage is `DOC_VERIFIED` with no `UNKNOWN`/`AUTH_REQUIRED` steps | 2 (J-01, J-03) |
+| Journeys mixed, or DOC-primary with `UNKNOWN`/`AUTH_REQUIRED`/`REFERENCE_LIMITED` steps | 5 (J-02, J-04, J-05, J-06, J-09). J-07 and J-08 are LIVE-primary by plurality and are intentionally **not** in this bucket. |
 | Journey steps classified | 72 |
 
 Journey step breakdown: `LIVE_VERIFIED` 13 · `DOC_VERIFIED` 44 · `UNKNOWN` 8 ·
@@ -69,8 +69,8 @@ Journey step breakdown: `LIVE_VERIFIED` 13 · `DOC_VERIFIED` 44 · `UNKNOWN` 8 �
 
 | Metric | Count |
 | --- | --- |
-| Provable roles recorded | 15 |
-| Planable roles | 6, plus 3 membership/participant types |
+| Provable roles and participant types recorded | 15 |
+| Planable roles | 6, plus 3 membership/participant types (orthogonal to role) |
 | Jasper roles | 4 (plus 2 documented actor archetypes that are **not** roles) |
 | Linear roles | 1 (only the inspecting account's own observed scope) |
 | Semrush roles | 1 (an entitlement boundary, not a role boundary) |
@@ -97,12 +97,13 @@ Percentages are stated with their denominators so none can be misread as parity.
 | Items carrying an explicit status | 196 classified items | **100%** |
 | Items with positive verification (live or documented) | 196 | **89.8%** (176 of 196) |
 | Surfaces with positive verification | 77 surfaces | **97.4%** (75 of 77) |
-| Live coverage of the domain that was actually reachable live | 40 reachable-live surfaces (Planable 25, Linear 13, Semrush's 2 public surfaces) | **80.0%** (32 of 40) |
+| Live coverage of the live-inspected surface set | 40 surfaces in that set (Planable 25 including 2 plan-gated, Linear 13, Semrush's 2 public surfaces) | **80.0%** (32 of 40). The denominator is the set that was *attempted* live, not the set that was entitlement-reachable. |
 | Semrush authenticated-product coverage | Semrush product app | **0%** — subscription-gated |
 | Jasper live coverage | Jasper product | **0%** — no account |
 
-**Overall authenticated reference parity: `PARTIAL`.** Two of four in-scope references were fully
-reachable as products; one was reachable only as public pages; one was not reachable at all.
+**Overall authenticated reference parity: `PARTIAL`.** Two of four in-scope references were reachable
+as products apart from Planable plan-gated and enterprise-gated views; one was reachable only as
+public pages; one was not reachable at all.
 
 ## Evidence artifacts
 
@@ -116,7 +117,7 @@ Committed structured artifacts, under `specs/002-brand-website-intelligence/refe
 | `03-surface-inventory.md` | 77 surfaces |
 | `04-action-inventory.md` | 47 actions |
 | `05-journey-catalog.md` | 9 journeys, 72 classified steps |
-| `06-role-permission-matrix.md` | 15 provable roles and the permission questions that remain unproven |
+| `06-role-permission-matrix.md` | 15 provable roles and participant types, and the permission questions that remain unproven |
 | `07-reference-pattern-matrix.md` | Pattern → OMA surface inputs, including anti-patterns and unprovable requirements |
 | `08-coverage-summary.md` | This file |
 
@@ -135,20 +136,29 @@ committed, so no account region could leak through an image.
 
 ## Reference audit result
 
-An independent read-only audit was run over this directory before commit, covering: scope
-correctness; absence of cross-project contamination; no reference added outside `DEC-013`; no claim
-without an evidence id; no inference presented as fact; every surface, action and journey carrying a
-status; limitations visible; no personal data or secrets; no product code change; no external
-mutation; arithmetic; and internal consistency.
+Independent read-only audits were run over this directory after the initial fifteen-defect fix
+round and again after a second qualitative fix round.
 
-Audit outcome: scope, contamination, inference labelling, status completeness, limitation visibility,
-privacy, read-only discipline and the surface/action/journey/step/percentage arithmetic all passed.
-The audit failed evidence-id integrity and three counting checks, raising fifteen documentation
-defects: five broken or mis-targeted evidence-id citations, two surface ids cited in this file that
-did not exist, an evidence-item count stated as 58 against 65 actual, an inconsistent action
-`UNKNOWN` count, a Jasper role count that conflated documented roles with documented actor
-archetypes, two overclaiming header statements, and this section's own earlier claim of a
-non-existent phase report. Every one of the fifteen was corrected inside this phase before commit.
+**Round 1 (arithmetic / id integrity):** evidence-id integrity, surface/action/journey/role counts,
+scope, contamination, privacy, read-only discipline and reference-authority discipline passed after
+fifteen documentation defects were corrected.
+
+**Round 2 (qualitative):** failed checks 7–10 on overclaiming “fully reachable”, a present-tense
+account claim in `reference-matrix.md`, unsupported Planable permission assertions, navigation-map
+evidence pointers, citation asymmetries, journey-bucket labelling, and a premature PASS claim in
+this section. Those defects were corrected; the remaining round-2 items were:
+
+1. `EV-SEM-013` ↔ `SEM-C-017` bidirectional citation — **corrected** by restoring `SEM-C-017` on
+   `EV-SEM-013` and aligning the summary/limitations.
+2. Journey bucket wording that excluded J-07 despite an `UNKNOWN` step — **corrected** by defining
+   LIVE-primary as LIVE plurality.
+3. `PLA-011` multi-role actors claim — **corrected** to inspecting-account observation plus
+   documentation-only capability text with enforcement `UNKNOWN`.
+4. This section’s own premature PASS claim — **withdrawn** until the post-fix re-audit below.
+
+**Final post-fix status: `REFERENCE_EVIDENCE_AUDIT: PASS`.** An independent re-audit after the
+journey-bucket and citation fixes recomputed J-07/J-08 LIVE plurality, confirmed mixed = 5, and
+passed checks 1–16 with no remaining BLOCKING defects.
 
 No audit finding changed a product decision, ownership boundary, tenant or permission boundary,
 state machine or integration contract.
