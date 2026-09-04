@@ -29,11 +29,18 @@ export async function seedBrandTenant(input?: {
   tenantSlug?: string;
 }) {
   const slug = input?.tenantSlug ?? `brand-${newId().slice(-8).toLowerCase()}`;
-  const ownerEmail = process.env.BOOTSTRAP_PLATFORM_OWNER_EMAIL ?? 'platform-owner@example.com';
-  const ownerPassword =
-    process.env.BOOTSTRAP_PLATFORM_OWNER_PASSWORD ?? 'ChangeMe_PlatformOwner_1!';
+  const ownerEmail = input?.email ?? `seed-owner-${newId().slice(-8).toLowerCase()}@example.com`;
+  const ownerPassword = input?.password ?? 'ChangeMe_SeedOwner_1!';
 
   const { app, baseUrl } = await createTestApp();
+  const register = await fetch(`${baseUrl}/api/v1/auth/register`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ email: ownerEmail, password: ownerPassword, name: 'Seed Owner' }),
+  });
+  if (!register.ok && register.status !== 409) {
+    throw new Error(`register failed: ${register.status} ${await register.text()}`);
+  }
   const login = await fetch(`${baseUrl}/api/v1/auth/login`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },

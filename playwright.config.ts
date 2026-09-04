@@ -1,5 +1,6 @@
 import { config as loadDotenv } from 'dotenv';
 import { defineConfig, devices } from '@playwright/test';
+import { randomUUID } from 'node:crypto';
 
 loadDotenv();
 
@@ -10,6 +11,17 @@ const webBaseUrl = process.env.WEB_BASE_URL ?? `http://127.0.0.1:${webPort}`;
 const apiPublicUrl = process.env.API_PUBLIC_URL ?? `http://127.0.0.1:${apiPort}`;
 const webOrigin = process.env.WEB_ORIGIN ?? webBaseUrl;
 
+const e2eRunId = process.env.OMA_E2E_RUN_ID ?? randomUUID().slice(0, 8);
+const e2eDatabaseUrl =
+  process.env.E2E_DATABASE_URL ??
+  'postgresql://oma@127.0.0.1:5432/oma_ai_e2e?schema=public';
+const baseRedis = process.env.REDIS_URL ?? 'redis://127.0.0.1:6379';
+const e2eRedisUrl =
+  process.env.E2E_REDIS_URL ??
+  (baseRedis.includes('/1') || baseRedis.includes('/2')
+    ? baseRedis
+    : baseRedis.replace(/\/?\d?$/, '') + '/1');
+
 const sharedServerEnv = {
   ...process.env,
   WEB_PORT: webPort,
@@ -18,6 +30,10 @@ const sharedServerEnv = {
   WEB_BASE_URL: webBaseUrl,
   WEB_ORIGIN: webOrigin,
   API_PUBLIC_URL: apiPublicUrl,
+  DATABASE_URL: e2eDatabaseUrl,
+  REDIS_URL: e2eRedisUrl,
+  OMA_E2E_RUN_ID: e2eRunId,
+  BULLMQ_PREFIX: `oma-e2e-${e2eRunId}`,
   OMA_WRITE_OPENAPI: '0',
   BRAND_FIXTURE_CONNECTOR: '1',
   NODE_ENV: process.env.NODE_ENV ?? 'test',
@@ -32,6 +48,8 @@ export default defineConfig({
   workers: 1,
   reporter: [['list']],
   timeout: 90_000,
+  globalSetup: './tests/e2e/global-setup.ts',
+  globalTeardown: './tests/e2e/global-teardown.ts',
   use: {
     baseURL: webBaseUrl,
     trace: 'retain-on-failure',

@@ -6,7 +6,7 @@ test.describe('Q-BWI-13 capabilities', () => {
   test('member without brand caps denied', async ({ request }, testInfo) => {
     test.skip(testInfo.project.name !== 'en-desktop', 'run once on en-desktop');
     const owner = await registerBrandOwner(request);
-    const member = await registerTenantMember(request, owner.tenantId, owner.userId, [
+    const member = await registerTenantMember(request, owner, [
       'notification.read',
     ]);
 
