@@ -10,7 +10,9 @@
 | Reference evidence baseline | [`../reference/`](../reference/) |
 | Reference pattern inputs | [`../reference/07-reference-pattern-matrix.md`](../reference/07-reference-pattern-matrix.md) |
 
-**Phase status:** `REFERENCE_TO_OMA_GAP_MATRIX_002` — see final report after auditors PASS.
+**Phase status:** `REFERENCE_TO_OMA_GAP_MATRIX_002: READY_FOR_IMPLEMENTATION`
+
+Auditors: Reference Evidence PASS; Gap Matrix PASS; Task PASS; False-Completion PASS; Convergence PASS. Docs commit `6fa853b` (+ this status line). No product code in this phase.
 
 **Served commit under audit:** `1a7453c`
 
