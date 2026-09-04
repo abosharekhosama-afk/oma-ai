@@ -6,12 +6,7 @@ import {
   drainRecordedMail,
   RECORDING_MAIL_REDIS_KEY,
 } from '../../apps/worker/src/mail/create-mail-adapter';
-import {
-  apiGet,
-  cookieHeader,
-  parseCookies,
-  registerBrandOwner,
-} from './helpers/brand-api';
+import { apiGet, cookieHeader, parseCookies, registerBrandOwner } from './helpers/brand-api';
 
 const API = process.env.API_PUBLIC_URL ?? 'http://127.0.0.1:3001';
 

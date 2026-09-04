@@ -77,15 +77,15 @@ Fixed product boundaries for this plan:
 
 ## Decision Gates (must remain visible)
 
-| Gate                  | Status            | Allowed in 002 plan/implement                                                  | Hard stop                                                                 |
-| --------------------- | ----------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
-| `DEC-015`             | **RESOLVED 2026-09-04 — OPTION A** | Company Onboarding + invitation join on Foundation Tenant SoT (`FR-010a`) | Parallel company registry; public directory; domain auto-join             |
-| `SR-002-004-MODE`     | Slice affirmed    | Public HTTPS crawl product + `WebsiteConnectorPort` + **fixture/test** adapter | Production crawl **vendor** selection/wiring                              |
-| `DEC-004`             | **Open globally** | Do not close; no commerce path                                                 | Commerce connector as SoT                                                 |
-| `SR-002-007-AI`       | Slice affirmed    | Manual profile; optional `AiProviderPort`; test doubles in tests               | Live AI SDK/keys/third-party                                              |
-| `DEC-007`             | **Open globally** | Do not close; no region/retention/cost policy as final                         | Production AI vendor                                                      |
-| `DEC-003`             | Open              | Excerpts/hashes/URLs only                                                      | Full-page binary snapshot store                                           |
-| `DEC-008`/`009`/`012` | Open              | Interim boundaries from spec                                                   | Agency topology / multi-step client approval / market retention as closed |
+| Gate                  | Status                             | Allowed in 002 plan/implement                                                  | Hard stop                                                                 |
+| --------------------- | ---------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| `DEC-015`             | **RESOLVED 2026-09-04 — OPTION A** | Company Onboarding + invitation join on Foundation Tenant SoT (`FR-010a`)      | Parallel company registry; public directory; domain auto-join             |
+| `SR-002-004-MODE`     | Slice affirmed                     | Public HTTPS crawl product + `WebsiteConnectorPort` + **fixture/test** adapter | Production crawl **vendor** selection/wiring                              |
+| `DEC-004`             | **Open globally**                  | Do not close; no commerce path                                                 | Commerce connector as SoT                                                 |
+| `SR-002-007-AI`       | Slice affirmed                     | Manual profile; optional `AiProviderPort`; test doubles in tests               | Live AI SDK/keys/third-party                                              |
+| `DEC-007`             | **Open globally**                  | Do not close; no region/retention/cost policy as final                         | Production AI vendor                                                      |
+| `DEC-003`             | Open                               | Excerpts/hashes/URLs only                                                      | Full-page binary snapshot store                                           |
+| `DEC-008`/`009`/`012` | Open                               | Interim boundaries from spec                                                   | Agency topology / multi-step client approval / market retention as closed |
 
 ---
 

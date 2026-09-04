@@ -1,14 +1,14 @@
 # Gap Matrix Index — Feature 002
 
-| Artifact | Path |
-| --- | --- |
-| Runtime / root-cause audit | [`00-runtime-root-cause.md`](./00-runtime-root-cause.md) |
-| OMA application inventory | [`01-oma-application-inventory.md`](./01-oma-application-inventory.md) |
-| Gap matrix | [`02-gap-matrix.md`](./02-gap-matrix.md) |
-| Visual baseline | [`03-visual-baseline.md`](./03-visual-baseline.md) |
-| False-completion findings | [`04-false-completion.md`](./04-false-completion.md) |
-| Reference evidence baseline | [`../reference/`](../reference/) |
-| Reference pattern inputs | [`../reference/07-reference-pattern-matrix.md`](../reference/07-reference-pattern-matrix.md) |
+| Artifact                    | Path                                                                                         |
+| --------------------------- | -------------------------------------------------------------------------------------------- |
+| Runtime / root-cause audit  | [`00-runtime-root-cause.md`](./00-runtime-root-cause.md)                                     |
+| OMA application inventory   | [`01-oma-application-inventory.md`](./01-oma-application-inventory.md)                       |
+| Gap matrix                  | [`02-gap-matrix.md`](./02-gap-matrix.md)                                                     |
+| Visual baseline             | [`03-visual-baseline.md`](./03-visual-baseline.md)                                           |
+| False-completion findings   | [`04-false-completion.md`](./04-false-completion.md)                                         |
+| Reference evidence baseline | [`../reference/`](../reference/)                                                             |
+| Reference pattern inputs    | [`../reference/07-reference-pattern-matrix.md`](../reference/07-reference-pattern-matrix.md) |
 
 **Phase status:** `IMPLEMENT_REFERENCE_GAPS_002` in progress · `DEC-015: RESOLVED — OPTION A` (2026-09-04)
 

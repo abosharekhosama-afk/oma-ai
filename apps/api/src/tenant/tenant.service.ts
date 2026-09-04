@@ -229,7 +229,10 @@ export class TenantService {
       where: { tenantId },
       include: {
         user: { select: { id: true, email: true, name: true } },
-        grants: { where: { revokedAt: null }, select: { capabilityCode: true, sourceProfileCode: true } },
+        grants: {
+          where: { revokedAt: null },
+          select: { capabilityCode: true, sourceProfileCode: true },
+        },
       },
       orderBy: { createdAt: 'asc' },
     });
@@ -238,13 +241,9 @@ export class TenantService {
       status: m.status,
       invited_email: m.invitedEmail,
       accepted_at: m.acceptedAt,
-      user: m.user
-        ? { id: m.user.id, email: m.user.email, name: m.user.name }
-        : null,
+      user: m.user ? { id: m.user.id, email: m.user.email, name: m.user.name } : null,
       capabilities: [...new Set(m.grants.map((g) => g.capabilityCode))],
-      source_profiles: [
-        ...new Set(m.grants.map((g) => g.sourceProfileCode).filter(Boolean)),
-      ],
+      source_profiles: [...new Set(m.grants.map((g) => g.sourceProfileCode).filter(Boolean))],
     }));
   }
 

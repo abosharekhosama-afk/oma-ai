@@ -50,16 +50,16 @@ Forbidden: public company directory, join-by-name search, domain auto-join, sile
 
 ## Membership administration
 
-| Method | Path                                    | Capability / gate                                        |
-| ------ | --------------------------------------- | -------------------------------------------------------- |
+| Method | Path                                    | Capability / gate                                       |
+| ------ | --------------------------------------- | ------------------------------------------------------- |
 | POST   | `/api/v1/tenants`                       | `platform.tenant.create` **or** zero ACTIVE memberships |
-| GET    | `/api/v1/tenants/current`               | active membership                                        |
-| POST   | `/api/v1/tenants/current/invitations`   | `membership.invite`                                      |
-| POST   | `/api/v1/invitations/accept`            | authenticated; token + email-match policy                |
-| POST   | `/api/v1/memberships/{id}/suspend`      | `membership.manage`                                      |
-| POST   | `/api/v1/memberships/{id}/remove`       | `membership.manage`                                      |
-| PUT    | `/api/v1/memberships/{id}/capabilities` | `capability.assign`                                      |
-| POST   | `/api/v1/memberships/{id}/profiles`     | `capability.assign`                                      |
+| GET    | `/api/v1/tenants/current`               | active membership                                       |
+| POST   | `/api/v1/tenants/current/invitations`   | `membership.invite`                                     |
+| POST   | `/api/v1/invitations/accept`            | authenticated; token + email-match policy               |
+| POST   | `/api/v1/memberships/{id}/suspend`      | `membership.manage`                                     |
+| POST   | `/api/v1/memberships/{id}/remove`       | `membership.manage`                                     |
+| PUT    | `/api/v1/memberships/{id}/capabilities` | `capability.assign`                                     |
+| POST   | `/api/v1/memberships/{id}/profiles`     | `capability.assign`                                     |
 
 ## Capability check
 

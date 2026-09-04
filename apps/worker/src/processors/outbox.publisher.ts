@@ -34,7 +34,10 @@ type OutboxIngestionPayload = {
 export async function publishPendingOutbox(connection: IORedis, limit = 50): Promise<number> {
   const prisma = getPrisma();
   const mailQueue = new Queue('mail', { connection, prefix: process.env.BULLMQ_PREFIX || 'oma' });
-  const ingestionQueue = new Queue('ingestion', { connection, prefix: process.env.BULLMQ_PREFIX || 'oma' });
+  const ingestionQueue = new Queue('ingestion', {
+    connection,
+    prefix: process.env.BULLMQ_PREFIX || 'oma',
+  });
   const pending = await prisma.outboxEvent.findMany({
     where: { status: 'PENDING' },
     orderBy: { createdAt: 'asc' },

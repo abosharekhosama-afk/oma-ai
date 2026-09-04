@@ -9,7 +9,7 @@
 **At the time of this public-source pass**, no OMA-owned account existed on any
 reference product. Every row below was derived only from publicly reachable
 marketing pages, public documentation, and public help centres of the named
-products. Nothing in *this* matrix was observed inside a signed-in product
+products. Nothing in _this_ matrix was observed inside a signed-in product
 session, so no row may be read as verified parity. A later authenticated
 baseline lives in [`reference/`](./reference/) and supersedes this caveat for
 Planable and Linear only — see the status section below.

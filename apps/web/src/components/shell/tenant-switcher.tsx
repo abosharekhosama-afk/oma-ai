@@ -93,7 +93,9 @@ export function TenantSwitcher() {
           aria-controls="tenant-switcher-list"
           aria-labelledby="tenant-switcher-label"
           aria-autocomplete="list"
-          aria-activedescendant={options[activeIndex] ? `tenant-opt-${options[activeIndex].tenant_id}` : undefined}
+          aria-activedescendant={
+            options[activeIndex] ? `tenant-opt-${options[activeIndex].tenant_id}` : undefined
+          }
           placeholder={active ? labelFor(active) : t('shell.selectTenant')}
           value={query}
           disabled={busy}
@@ -119,12 +121,7 @@ export function TenantSwitcher() {
           }}
         />
         {open ? (
-          <ul
-            id="tenant-switcher-list"
-            role="listbox"
-            className="oma-combobox-list"
-            ref={listRef}
-          >
+          <ul id="tenant-switcher-list" role="listbox" className="oma-combobox-list" ref={listRef}>
             {options.length === 0 ? (
               <li className="oma-combobox-empty" role="presentation">
                 {t('shell.tenantSearchEmpty')}

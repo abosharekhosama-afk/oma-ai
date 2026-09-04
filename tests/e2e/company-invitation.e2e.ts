@@ -3,7 +3,10 @@ import { newId } from '@oma/domain';
 import { apiPost, cookieHeader, parseCookies, registerBrandOwner } from './helpers/brand-api';
 
 test.describe('Invitation UI', () => {
-  test('owner invites; matching member accepts via onboarding', async ({ page, request }, testInfo) => {
+  test('owner invites; matching member accepts via onboarding', async ({
+    page,
+    request,
+  }, testInfo) => {
     test.skip(testInfo.project.name !== 'en-desktop', 'run once on en-desktop');
     const owner = await registerBrandOwner(request);
     const inviteEmail = `invitee-${newId().slice(-8).toLowerCase()}@example.com`;
@@ -40,9 +43,12 @@ test.describe('Invitation UI', () => {
 
     const wrongEmail = `wrong-${newId().slice(-8).toLowerCase()}@example.com`;
     const password = 'ChangeMe_Wrong_1!';
-    await request.post(`${process.env.API_PUBLIC_URL ?? 'http://127.0.0.1:3001'}/api/v1/auth/register`, {
-      data: { email: wrongEmail, password, name: 'Wrong' },
-    });
+    await request.post(
+      `${process.env.API_PUBLIC_URL ?? 'http://127.0.0.1:3001'}/api/v1/auth/register`,
+      {
+        data: { email: wrongEmail, password, name: 'Wrong' },
+      },
+    );
     const login = await request.post(
       `${process.env.API_PUBLIC_URL ?? 'http://127.0.0.1:3001'}/api/v1/auth/login`,
       { data: { email: wrongEmail, password } },

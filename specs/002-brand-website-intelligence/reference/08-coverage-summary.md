@@ -10,96 +10,96 @@ authenticated product was subscription-gated, so any claim of full parity would 
 
 ## References
 
-| Metric | Count | Detail |
-| --- | --- | --- |
-| References in scope | 4 | Semrush, Jasper Brand IQ, Linear, Planable |
-| Inspected live (authenticated session) | 3 | Semrush (public surfaces only, product app gated), Planable, Linear |
-| Inspected through official documentation | 4 | All four; documentation is the primary source for Semrush and the only source for Jasper |
-| Inspected with the product app reachable apart from plan-gated views | 2 | Planable (Grid/List and multi-level approvals remain plan- or enterprise-gated), Linear |
-| Not applicable this session | 2 | Frame.io (`ACCESS_VERIFIED`), Adobe Workfront (`ACCOUNT_LIMITED`) |
-| New references introduced | 0 | `DEC-013` unchanged |
-| Cross-project references opened | 0 | No ISP or other-project reference was touched |
+| Metric                                                               | Count | Detail                                                                                   |
+| -------------------------------------------------------------------- | ----- | ---------------------------------------------------------------------------------------- |
+| References in scope                                                  | 4     | Semrush, Jasper Brand IQ, Linear, Planable                                               |
+| Inspected live (authenticated session)                               | 3     | Semrush (public surfaces only, product app gated), Planable, Linear                      |
+| Inspected through official documentation                             | 4     | All four; documentation is the primary source for Semrush and the only source for Jasper |
+| Inspected with the product app reachable apart from plan-gated views | 2     | Planable (Grid/List and multi-level approvals remain plan- or enterprise-gated), Linear  |
+| Not applicable this session                                          | 2     | Frame.io (`ACCESS_VERIFIED`), Adobe Workfront (`ACCOUNT_LIMITED`)                        |
+| New references introduced                                            | 0     | `DEC-013` unchanged                                                                      |
+| Cross-project references opened                                      | 0     | No ISP or other-project reference was touched                                            |
 
 ## Surfaces
 
-| Metric | Count |
-| --- | --- |
-| Surfaces found and recorded | 77 |
-| Surfaces carrying a status | 77 (100%) |
-| Surfaces with positive verification (`LIVE_VERIFIED` or `DOC_VERIFIED`) | 75 |
-| `LIVE_VERIFIED` | 32 |
-| `DOC_VERIFIED` | 43 |
-| `REFERENCE_LIMITED` | 1 |
-| `REFERENCE_LIMITED_NEEDS_SANDBOX_DATA` | 1 |
-| `UNKNOWN` | 0 |
+| Metric                                                                  | Count     |
+| ----------------------------------------------------------------------- | --------- |
+| Surfaces found and recorded                                             | 77        |
+| Surfaces carrying a status                                              | 77 (100%) |
+| Surfaces with positive verification (`LIVE_VERIFIED` or `DOC_VERIFIED`) | 75        |
+| `LIVE_VERIFIED`                                                         | 32        |
+| `DOC_VERIFIED`                                                          | 43        |
+| `REFERENCE_LIMITED`                                                     | 1         |
+| `REFERENCE_LIMITED_NEEDS_SANDBOX_DATA`                                  | 1         |
+| `UNKNOWN`                                                               | 0         |
 
 Per reference: Semrush 29 surfaces (2 live, 25 doc, 1 limited, 1 needs sandbox data);
 Planable 25 (18 live, 7 doc); Linear 13 (12 live, 1 doc); Jasper 10 (10 doc, 0 live).
 
 ## Actions
 
-| Metric | Count |
-| --- | --- |
-| Actions found and recorded | 47 |
-| Actions carrying a status | 47 (100%) |
-| `LIVE_VERIFIED` (control, precondition or resulting state observed) | 17 |
-| `DOC_VERIFIED` | 27 |
-| `UNKNOWN` | 2 |
-| `AUTH_REQUIRED` | 1 |
-| Actions actually executed against a reference product | **0** |
+| Metric                                                              | Count     |
+| ------------------------------------------------------------------- | --------- |
+| Actions found and recorded                                          | 47        |
+| Actions carrying a status                                           | 47 (100%) |
+| `LIVE_VERIFIED` (control, precondition or resulting state observed) | 17        |
+| `DOC_VERIFIED`                                                      | 27        |
+| `UNKNOWN`                                                           | 2         |
+| `AUTH_REQUIRED`                                                     | 1         |
+| Actions actually executed against a reference product               | **0**     |
 
 The two `UNKNOWN` actions are Planable item rejection (`PLA-A-010`) and Linear record creation
 (`LIN-A-007`). The `AUTH_REQUIRED` action is Jasper sign-up (`JAS-A-010`).
 
 ## Journeys
 
-| Metric | Count |
-| --- | --- |
-| Journeys catalogued | 9 |
-| Journeys with every step classified | 9 (100%) |
-| Journeys whose primary coverage is `LIVE_VERIFIED` (LIVE is the plurality under primary-first step counting) | 2 (J-07 — 6 LIVE of 9 steps, 1 UNKNOWN; J-08 — 4 LIVE of 9 steps, 2 UNKNOWN) |
-| Journeys whose primary coverage is `DOC_VERIFIED` with no `UNKNOWN`/`AUTH_REQUIRED` steps | 2 (J-01, J-03) |
-| Journeys mixed, or DOC-primary with `UNKNOWN`/`AUTH_REQUIRED`/`REFERENCE_LIMITED` steps | 5 (J-02, J-04, J-05, J-06, J-09). J-07 and J-08 are LIVE-primary by plurality and are intentionally **not** in this bucket. |
-| Journey steps classified | 72 |
+| Metric                                                                                                       | Count                                                                                                                       |
+| ------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- |
+| Journeys catalogued                                                                                          | 9                                                                                                                           |
+| Journeys with every step classified                                                                          | 9 (100%)                                                                                                                    |
+| Journeys whose primary coverage is `LIVE_VERIFIED` (LIVE is the plurality under primary-first step counting) | 2 (J-07 — 6 LIVE of 9 steps, 1 UNKNOWN; J-08 — 4 LIVE of 9 steps, 2 UNKNOWN)                                                |
+| Journeys whose primary coverage is `DOC_VERIFIED` with no `UNKNOWN`/`AUTH_REQUIRED` steps                    | 2 (J-01, J-03)                                                                                                              |
+| Journeys mixed, or DOC-primary with `UNKNOWN`/`AUTH_REQUIRED`/`REFERENCE_LIMITED` steps                      | 5 (J-02, J-04, J-05, J-06, J-09). J-07 and J-08 are LIVE-primary by plurality and are intentionally **not** in this bucket. |
+| Journey steps classified                                                                                     | 72                                                                                                                          |
 
 Journey step breakdown: `LIVE_VERIFIED` 13 · `DOC_VERIFIED` 44 · `UNKNOWN` 8 ·
 `REFERENCE_LIMITED` 2 · `REFERENCE_LIMITED_NEEDS_SANDBOX_DATA` 3 · `AUTH_REQUIRED` 2.
 
 ## Roles
 
-| Metric | Count |
-| --- | --- |
-| Provable roles and participant types recorded | 15 |
-| Planable roles | 6, plus 3 membership/participant types (orthogonal to role) |
-| Jasper roles | 4 (plus 2 documented actor archetypes that are **not** roles) |
-| Linear roles | 1 (only the inspecting account's own observed scope) |
-| Semrush roles | 1 (an entitlement boundary, not a role boundary) |
-| Permission boundaries tested by attempting a denied action | **0** |
+| Metric                                                     | Count                                                         |
+| ---------------------------------------------------------- | ------------------------------------------------------------- |
+| Provable roles and participant types recorded              | 15                                                            |
+| Planable roles                                             | 6, plus 3 membership/participant types (orthogonal to role)   |
+| Jasper roles                                               | 4 (plus 2 documented actor archetypes that are **not** roles) |
+| Linear roles                                               | 1 (only the inspecting account's own observed scope)          |
+| Semrush roles                                              | 1 (an entitlement boundary, not a role boundary)              |
+| Permission boundaries tested by attempting a denied action | **0**                                                         |
 
 ## Aggregate status counts across all artifacts
 
-| Status | Surfaces | Actions | Journey steps | Total |
-| --- | --- | --- | --- | --- |
-| `LIVE_VERIFIED` | 32 | 17 | 13 | 62 |
-| `DOC_VERIFIED` | 43 | 27 | 44 | 114 |
-| `REFERENCE_LIMITED` (incl. needs-sandbox-data) | 2 | 0 | 5 | 7 |
-| `UNKNOWN` | 0 | 2 | 8 | 10 |
-| `AUTH_REQUIRED` | 0 | 1 | 2 | 3 |
-| `NOT_APPLICABLE` | 2 references (Frame.io, Workfront) | — | — | 2 |
-| **Total classified items** | **77** | **47** | **72** | **196** |
+| Status                                         | Surfaces                           | Actions | Journey steps | Total   |
+| ---------------------------------------------- | ---------------------------------- | ------- | ------------- | ------- |
+| `LIVE_VERIFIED`                                | 32                                 | 17      | 13            | 62      |
+| `DOC_VERIFIED`                                 | 43                                 | 27      | 44            | 114     |
+| `REFERENCE_LIMITED` (incl. needs-sandbox-data) | 2                                  | 0       | 5             | 7       |
+| `UNKNOWN`                                      | 0                                  | 2       | 8             | 10      |
+| `AUTH_REQUIRED`                                | 0                                  | 1       | 2             | 3       |
+| `NOT_APPLICABLE`                               | 2 references (Frame.io, Workfront) | —       | —             | 2       |
+| **Total classified items**                     | **77**                             | **47**  | **72**        | **196** |
 
 ## Coverage percentage — accessible domain only
 
 Percentages are stated with their denominators so none can be misread as parity.
 
-| Measure | Denominator | Result |
-| --- | --- | --- |
-| Items carrying an explicit status | 196 classified items | **100%** |
-| Items with positive verification (live or documented) | 196 | **89.8%** (176 of 196) |
-| Surfaces with positive verification | 77 surfaces | **97.4%** (75 of 77) |
-| Live coverage of the live-inspected surface set | 40 surfaces in that set (Planable 25 including 2 plan-gated, Linear 13, Semrush's 2 public surfaces) | **80.0%** (32 of 40). The denominator is the set that was *attempted* live, not the set that was entitlement-reachable. |
-| Semrush authenticated-product coverage | Semrush product app | **0%** — subscription-gated |
-| Jasper live coverage | Jasper product | **0%** — no account |
+| Measure                                               | Denominator                                                                                          | Result                                                                                                                  |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| Items carrying an explicit status                     | 196 classified items                                                                                 | **100%**                                                                                                                |
+| Items with positive verification (live or documented) | 196                                                                                                  | **89.8%** (176 of 196)                                                                                                  |
+| Surfaces with positive verification                   | 77 surfaces                                                                                          | **97.4%** (75 of 77)                                                                                                    |
+| Live coverage of the live-inspected surface set       | 40 surfaces in that set (Planable 25 including 2 plan-gated, Linear 13, Semrush's 2 public surfaces) | **80.0%** (32 of 40). The denominator is the set that was _attempted_ live, not the set that was entitlement-reachable. |
+| Semrush authenticated-product coverage                | Semrush product app                                                                                  | **0%** — subscription-gated                                                                                             |
+| Jasper live coverage                                  | Jasper product                                                                                       | **0%** — no account                                                                                                     |
 
 **Overall authenticated reference parity: `PARTIAL`.** Two of four in-scope references were reachable
 as products apart from Planable plan-gated and enterprise-gated views; one was reachable only as
@@ -109,17 +109,17 @@ public pages; one was not reachable at all.
 
 Committed structured artifacts, under `specs/002-brand-website-intelligence/reference/`:
 
-| File | Contents |
-| --- | --- |
-| `00-reference-scope.md` | Reference scope, authority, access and inspection status |
-| `01-evidence-log.md` | 65 evidence items with source, timestamp, verification type and limitations |
-| `02-navigation-map.md` | Navigation, sections, pages, tabs, panels and relevant settings per reference |
-| `03-surface-inventory.md` | 77 surfaces |
-| `04-action-inventory.md` | 47 actions |
-| `05-journey-catalog.md` | 9 journeys, 72 classified steps |
-| `06-role-permission-matrix.md` | 15 provable roles and participant types, and the permission questions that remain unproven |
-| `07-reference-pattern-matrix.md` | Pattern → OMA surface inputs, including anti-patterns and unprovable requirements |
-| `08-coverage-summary.md` | This file |
+| File                             | Contents                                                                                   |
+| -------------------------------- | ------------------------------------------------------------------------------------------ |
+| `00-reference-scope.md`          | Reference scope, authority, access and inspection status                                   |
+| `01-evidence-log.md`             | 65 evidence items with source, timestamp, verification type and limitations                |
+| `02-navigation-map.md`           | Navigation, sections, pages, tabs, panels and relevant settings per reference              |
+| `03-surface-inventory.md`        | 77 surfaces                                                                                |
+| `04-action-inventory.md`         | 47 actions                                                                                 |
+| `05-journey-catalog.md`          | 9 journeys, 72 classified steps                                                            |
+| `06-role-permission-matrix.md`   | 15 provable roles and participant types, and the permission questions that remain unproven |
+| `07-reference-pattern-matrix.md` | Pattern → OMA surface inputs, including anti-patterns and unprovable requirements          |
+| `08-coverage-summary.md`         | This file                                                                                  |
 
 Evidence items by reference: Semrush 17 · Planable 21 · Linear 9 · Jasper 18. **Total 65 unique
 evidence ids.** The counts include official-marketing corroboration entries, which are never
@@ -180,16 +180,16 @@ state machine or integration contract.
 
 ## Surfaces needing sandbox data
 
-| Surface | What is needed |
-| --- | --- |
-| `SEM-S-003` — live Site Audit configuration UI | An active Semrush subscription plus a provisioned Site Audit project. Would yield live field names, input types, required markers, defaults, inline validation copy and error styling. |
-| Semrush audit runtime and results (`SEM-C-013`–`SEM-C-018`, `SEM-D-014`–`SEM-D-021` live equivalents) | The same, plus at least one completed audit. Currently documentation-only. |
-| Planable Grid and List views (recorded under `PLA-003` as plan-badged menu items, with List detailed at `PLA-030`) | A higher subscription tier. Currently documentation-only. |
-| Planable multi-level approvals (documented within `PLA-016`) | An enterprise tier. Currently documentation-only. |
-| Planable suggestion disposition and version restore (`PLA-A-014`, `PLA-A-015`) | A disposable sandbox workspace, since both mutate content. |
-| Planable full create-to-approve loop | A disposable sandbox workspace and item. |
-| Jasper — everything | An authorized Jasper account. |
-| Linear responsive breakpoints and slow-load behaviour | Viewport and network control within the read-only policy. |
+| Surface                                                                                                            | What is needed                                                                                                                                                                         |
+| ------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SEM-S-003` — live Site Audit configuration UI                                                                     | An active Semrush subscription plus a provisioned Site Audit project. Would yield live field names, input types, required markers, defaults, inline validation copy and error styling. |
+| Semrush audit runtime and results (`SEM-C-013`–`SEM-C-018`, `SEM-D-014`–`SEM-D-021` live equivalents)              | The same, plus at least one completed audit. Currently documentation-only.                                                                                                             |
+| Planable Grid and List views (recorded under `PLA-003` as plan-badged menu items, with List detailed at `PLA-030`) | A higher subscription tier. Currently documentation-only.                                                                                                                              |
+| Planable multi-level approvals (documented within `PLA-016`)                                                       | An enterprise tier. Currently documentation-only.                                                                                                                                      |
+| Planable suggestion disposition and version restore (`PLA-A-014`, `PLA-A-015`)                                     | A disposable sandbox workspace, since both mutate content.                                                                                                                             |
+| Planable full create-to-approve loop                                                                               | A disposable sandbox workspace and item.                                                                                                                                               |
+| Jasper — everything                                                                                                | An authorized Jasper account.                                                                                                                                                          |
+| Linear responsive breakpoints and slow-load behaviour                                                              | Viewport and network control within the read-only policy.                                                                                                                              |
 
 None of these was fabricated. Each is recorded as limited rather than inferred.
 

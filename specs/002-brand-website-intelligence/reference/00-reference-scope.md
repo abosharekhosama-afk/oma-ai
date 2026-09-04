@@ -14,33 +14,33 @@ reference product was introduced.
 
 ## Authority per reference (fixed by `DEC-013`)
 
-| Reference | Authority for Feature 002 | In scope this session | Out of scope this session |
-| --- | --- | --- | --- |
-| Semrush | Website intelligence, site-audit presentation, crawl configuration, progress, coverage, issues, crawled pages, evidence clarity, filters, comparison/history | Site Audit configuration, runtime, results, filters, compare/history, export affordance | Keyword/backlink/traffic/advertising toolkits; pricing; admin |
-| Jasper Brand IQ | Brand profile organisation, brand voice, knowledge organisation, source-backed brand information, missing/unknown information, reviewable brand guidance | Official public product pages, official documentation, official Help Center | Any signed-in Jasper surface; AI provider/model choices |
-| Linear | Product shell, sidebar, navigation density, page hierarchy, side panels, filters, keyboard interaction, calm motion, empty/loading states, responsive behaviour where provable | Live workspace shell, navigation, filters, display options, issue detail panel, keyboard model, row states, empty/loading states, measured layout values | Issue domain model; branding; billing; any persisted setting change |
-| Planable | Review workflow, status visibility, approval, item decisions, collaboration presentation, comments, version/revision clarity, workspace organisation | Live product shell, workspace organisation, approval queue and review flow, post review surface, status vocabulary, filters, notifications, plus official docs for approval configuration and roles | Publishing to social channels; analytics; social inbox; billing |
+| Reference       | Authority for Feature 002                                                                                                                                                      | In scope this session                                                                                                                                                                               | Out of scope this session                                           |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Semrush         | Website intelligence, site-audit presentation, crawl configuration, progress, coverage, issues, crawled pages, evidence clarity, filters, comparison/history                   | Site Audit configuration, runtime, results, filters, compare/history, export affordance                                                                                                             | Keyword/backlink/traffic/advertising toolkits; pricing; admin       |
+| Jasper Brand IQ | Brand profile organisation, brand voice, knowledge organisation, source-backed brand information, missing/unknown information, reviewable brand guidance                       | Official public product pages, official documentation, official Help Center                                                                                                                         | Any signed-in Jasper surface; AI provider/model choices             |
+| Linear          | Product shell, sidebar, navigation density, page hierarchy, side panels, filters, keyboard interaction, calm motion, empty/loading states, responsive behaviour where provable | Live workspace shell, navigation, filters, display options, issue detail panel, keyboard model, row states, empty/loading states, measured layout values                                            | Issue domain model; branding; billing; any persisted setting change |
+| Planable        | Review workflow, status visibility, approval, item decisions, collaboration presentation, comments, version/revision clarity, workspace organisation                           | Live product shell, workspace organisation, approval queue and review flow, post review surface, status vocabulary, filters, notifications, plus official docs for approval configuration and roles | Publishing to social channels; analytics; social inbox; billing     |
 
 ## Explicitly not applicable to this session
 
-| Reference | Recorded status | Reason |
-| --- | --- | --- |
-| Frame.io | `ACCESS_VERIFIED / NOT_APPLICABLE_TO_CURRENT_REFERENCE_INSPECTION` | Exact-version media review is not a Feature 002 surface. Access status retained for a later review-room phase. |
-| Adobe Workfront | `ACCOUNT_LIMITED / NOT_APPLICABLE_TO_FEATURE_002` | The account is authenticated to Adobe but is not linked to a Workfront organisation, and workflow planning is not a Feature 002 surface. |
-| Smartly | Not inspected | Paid-media reference; no Feature 002 authority. |
+| Reference       | Recorded status                                                    | Reason                                                                                                                                   |
+| --------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Frame.io        | `ACCESS_VERIFIED / NOT_APPLICABLE_TO_CURRENT_REFERENCE_INSPECTION` | Exact-version media review is not a Feature 002 surface. Access status retained for a later review-room phase.                           |
+| Adobe Workfront | `ACCOUNT_LIMITED / NOT_APPLICABLE_TO_FEATURE_002`                  | The account is authenticated to Adobe but is not linked to a Workfront organisation, and workflow planning is not a Feature 002 surface. |
+| Smartly         | Not inspected                                                      | Paid-media reference; no Feature 002 authority.                                                                                          |
 
 No reference from any other project was opened, and no reference was added to `DEC-013`.
 
 ## Access and inspection status
 
-| Reference | Access status | Inspection status | Inspection method |
-| --- | --- | --- | --- |
-| Semrush | `ACCESS_VERIFIED` (authenticated) / `SUBSCRIPTION_LIMITED` | `PARTIAL — DOC_PRIMARY` | Live navigation + public entry form verified; the authenticated product app never rendered because the account has no active paid subscription, so configuration, runtime and results are documented from the official Semrush Knowledge Base. |
-| Planable | `ACCESS_VERIFIED` | `SUBSTANTIAL — LIVE_PRIMARY` | Live product shell, approval queue, review flow, post review surface, filters and notifications inspected read-only in an existing sample workspace; plan-gated and write-only behaviour documented from the official Help Center. |
-| Linear | `ACCESS_VERIFIED` | `SUBSTANTIAL — LIVE_PRIMARY` | Live shell, navigation, filters, display options, issue detail, keyboard model, row states and empty states inspected read-only, with selected layout values measured from computed styles. |
-| Jasper Brand IQ | `AUTH_REQUIRED / REFERENCE_LIMITED` | `DOC_ONLY` | No OMA-owned Jasper account exists and signup was refused; only official Jasper product pages, documentation and Help Center were used. |
-| Frame.io | `ACCESS_VERIFIED` | `NOT_APPLICABLE_TO_CURRENT_REFERENCE_INSPECTION` | Not inspected. |
-| Adobe Workfront | `ACCOUNT_LIMITED` | `NOT_APPLICABLE_TO_FEATURE_002` | Not inspected. |
+| Reference       | Access status                                              | Inspection status                                | Inspection method                                                                                                                                                                                                                              |
+| --------------- | ---------------------------------------------------------- | ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Semrush         | `ACCESS_VERIFIED` (authenticated) / `SUBSCRIPTION_LIMITED` | `PARTIAL — DOC_PRIMARY`                          | Live navigation + public entry form verified; the authenticated product app never rendered because the account has no active paid subscription, so configuration, runtime and results are documented from the official Semrush Knowledge Base. |
+| Planable        | `ACCESS_VERIFIED`                                          | `SUBSTANTIAL — LIVE_PRIMARY`                     | Live product shell, approval queue, review flow, post review surface, filters and notifications inspected read-only in an existing sample workspace; plan-gated and write-only behaviour documented from the official Help Center.             |
+| Linear          | `ACCESS_VERIFIED`                                          | `SUBSTANTIAL — LIVE_PRIMARY`                     | Live shell, navigation, filters, display options, issue detail, keyboard model, row states and empty states inspected read-only, with selected layout values measured from computed styles.                                                    |
+| Jasper Brand IQ | `AUTH_REQUIRED / REFERENCE_LIMITED`                        | `DOC_ONLY`                                       | No OMA-owned Jasper account exists and signup was refused; only official Jasper product pages, documentation and Help Center were used.                                                                                                        |
+| Frame.io        | `ACCESS_VERIFIED`                                          | `NOT_APPLICABLE_TO_CURRENT_REFERENCE_INSPECTION` | Not inspected.                                                                                                                                                                                                                                 |
+| Adobe Workfront | `ACCOUNT_LIMITED`                                          | `NOT_APPLICABLE_TO_FEATURE_002`                  | Not inspected.                                                                                                                                                                                                                                 |
 
 ## Read-only and privacy compliance
 
@@ -57,14 +57,14 @@ No reference from any other project was opened, and no reference was added to `D
 
 ## Artifacts in this baseline
 
-| File | Covers |
-| --- | --- |
-| `00-reference-scope.md` | Reference scope, authority, access and inspection status (this file) |
-| `01-evidence-log.md` | Every evidence item with id, reference, source, timestamp, verification type, limitations |
-| `02-navigation-map.md` | Application, workspace, main navigation, sections, pages, tabs, panels per reference |
-| `03-surface-inventory.md` | Surfaces with purpose, fields, controls, states, actors, evidence, relevance |
-| `04-action-inventory.md` | Actions with actor, preconditions, trigger, validation, result, history visibility |
-| `05-journey-catalog.md` | Feature 002 journeys with per-step coverage classification |
-| `06-role-permission-matrix.md` | Only provable roles and permissions, with evidence |
-| `07-reference-pattern-matrix.md` | Reference pattern → OMA surface inputs (no gap resolution) |
-| `08-coverage-summary.md` | Counts, coverage percentage, audit result, limitations, confirmations |
+| File                             | Covers                                                                                    |
+| -------------------------------- | ----------------------------------------------------------------------------------------- |
+| `00-reference-scope.md`          | Reference scope, authority, access and inspection status (this file)                      |
+| `01-evidence-log.md`             | Every evidence item with id, reference, source, timestamp, verification type, limitations |
+| `02-navigation-map.md`           | Application, workspace, main navigation, sections, pages, tabs, panels per reference      |
+| `03-surface-inventory.md`        | Surfaces with purpose, fields, controls, states, actors, evidence, relevance              |
+| `04-action-inventory.md`         | Actions with actor, preconditions, trigger, validation, result, history visibility        |
+| `05-journey-catalog.md`          | Feature 002 journeys with per-step coverage classification                                |
+| `06-role-permission-matrix.md`   | Only provable roles and permissions, with evidence                                        |
+| `07-reference-pattern-matrix.md` | Reference pattern → OMA surface inputs (no gap resolution)                                |
+| `08-coverage-summary.md`         | Counts, coverage percentage, audit result, limitations, confirmations                     |

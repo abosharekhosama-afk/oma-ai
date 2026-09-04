@@ -72,7 +72,11 @@ export default function OnboardingClient() {
       {error ? (
         <div className="oma-card" role="alert">
           <p style={{ color: 'var(--status-danger)', margin: 0 }}>{error}</p>
-          <button type="button" className="oma-btn oma-btn-secondary" onClick={() => setError(null)}>
+          <button
+            type="button"
+            className="oma-btn oma-btn-secondary"
+            onClick={() => setError(null)}
+          >
             {t('common.retry')}
           </button>
         </div>
@@ -85,11 +89,19 @@ export default function OnboardingClient() {
 
       {mode === 'choose' ? (
         <div className="oma-action-grid" role="group" aria-label={t('onboarding.choices')}>
-          <button type="button" className="oma-card oma-card-button" onClick={() => setMode('create')}>
+          <button
+            type="button"
+            className="oma-card oma-card-button"
+            onClick={() => setMode('create')}
+          >
             <h2>{t('onboarding.createTitle')}</h2>
             <p className="oma-muted">{t('onboarding.createBody')}</p>
           </button>
-          <button type="button" className="oma-card oma-card-button" onClick={() => setMode('join')}>
+          <button
+            type="button"
+            className="oma-card oma-card-button"
+            onClick={() => setMode('join')}
+          >
             <h2>{t('onboarding.joinTitle')}</h2>
             <p className="oma-muted">{t('onboarding.joinBody')}</p>
           </button>

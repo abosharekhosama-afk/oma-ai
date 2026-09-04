@@ -24,8 +24,7 @@ export function resolveMembershipRoute(input: {
     return { kind: 'ONBOARDING' };
   }
 
-  const activeIsValid =
-    !!input.activeTenantId && uniqueTenantIds.includes(input.activeTenantId);
+  const activeIsValid = !!input.activeTenantId && uniqueTenantIds.includes(input.activeTenantId);
 
   if (activeIsValid) {
     return { kind: 'PROCEED', tenantId: input.activeTenantId! };

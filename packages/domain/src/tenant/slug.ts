@@ -48,7 +48,11 @@ export function isReservedSlug(slug: string): boolean {
 
 export function assertSlugCandidate(slug: string): string {
   const normalized = slug.trim().toLowerCase();
-  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalized) || normalized.length < 2 || normalized.length > 64) {
+  if (
+    !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(normalized) ||
+    normalized.length < 2 ||
+    normalized.length > 64
+  ) {
     throw new Error('Invalid company slug');
   }
   if (isReservedSlug(normalized)) {
