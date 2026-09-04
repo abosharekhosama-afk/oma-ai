@@ -13,7 +13,12 @@ const webOrigin = process.env.WEB_ORIGIN ?? webBaseUrl;
 
 const e2eRunId = process.env.OMA_E2E_RUN_ID ?? randomUUID().slice(0, 8);
 const e2eDatabaseUrl =
-  process.env.E2E_DATABASE_URL ?? 'postgresql://oma@127.0.0.1:5432/oma_ai_e2e?schema=public';
+  process.env.E2E_DATABASE_URL ??
+  process.env.DATABASE_URL ??
+  'postgresql://oma@127.0.0.1:5432/oma_ai_e2e?schema=public';
+if (!/oma_ai_e2e|oma_ai_ci/i.test(e2eDatabaseUrl) && process.env.OMA_E2E_ALLOW_DEV_DB !== '1') {
+  throw new Error('Playwright requires E2E_DATABASE_URL/DATABASE_URL for oma_ai_e2e or oma_ai_ci');
+}
 const baseRedis = process.env.REDIS_URL ?? 'redis://127.0.0.1:6379';
 const e2eRedisUrl =
   process.env.E2E_REDIS_URL ??

@@ -59,16 +59,16 @@ export function clearE2eTenantTrackFile() {
 function assertE2eDatabaseSafe() {
   const url = process.env.DATABASE_URL ?? '';
   const allowDev = process.env.OMA_E2E_ALLOW_DEV_DB === '1';
-  const isE2eDb = /oma_ai_e2e/i.test(url);
+  const isDedicatedTestDb = /oma_ai_e2e|oma_ai_ci/i.test(url);
   const looksProd =
     /prod|production|rds\.amazonaws|azure\.com|supabase\.co/i.test(url) &&
     !/127\.0\.0\.1|localhost/.test(url);
   if (looksProd) {
     throw new Error('Refusing to run E2E helpers against a non-local/production DATABASE_URL');
   }
-  if (!isE2eDb && !allowDev) {
+  if (!isDedicatedTestDb && !allowDev) {
     throw new Error(
-      'E2E requires DATABASE_URL pointing at oma_ai_e2e (or OMA_E2E_ALLOW_DEV_DB=1 for explicit local override)',
+      'E2E requires DATABASE_URL pointing at oma_ai_e2e or oma_ai_ci (or OMA_E2E_ALLOW_DEV_DB=1 for explicit local override)',
     );
   }
 }
