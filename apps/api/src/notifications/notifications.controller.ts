@@ -25,6 +25,14 @@ export class NotificationsController {
       orderBy: { createdAt: 'desc' },
       take: 50,
     });
-    return { items };
+    return {
+      items: items.map((n) => ({
+        id: n.id,
+        type: n.type,
+        deepLinkPath: n.deepLinkPath,
+        createdAt: n.createdAt.toISOString(),
+        readAt: n.readAt?.toISOString() ?? null,
+      })),
+    };
   }
 }

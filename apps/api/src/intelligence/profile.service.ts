@@ -47,6 +47,16 @@ export class ProfileService {
       confirmSummary: true,
       isPartialScan: scan?.status === 'PARTIAL',
     });
+    const reviewDecisions = await getPrisma().reviewDecision.findMany({
+      where: tenantWhere(tenantId, { profileVersionId: versionId }),
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+    });
+    const humanEdits = await getPrisma().humanEdit.findMany({
+      where: tenantWhere(tenantId, { profileVersionId: versionId }),
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+    });
     return {
       data: {
         id: version.id,
@@ -73,6 +83,20 @@ export class ProfileService {
           approvable: eligibility.approvable,
           blocking_reasons: eligibility.blockingReasons,
         },
+        review_history: [
+          ...reviewDecisions.map((d) => ({
+            id: d.id,
+            kind: 'decision' as const,
+            action: d.action,
+            created_at: d.createdAt.toISOString(),
+          })),
+          ...humanEdits.map((e) => ({
+            id: e.id,
+            kind: 'edit' as const,
+            action: e.action,
+            created_at: e.createdAt.toISOString(),
+          })),
+        ].sort((a, b) => b.created_at.localeCompare(a.created_at)),
         created_at: version.createdAt.toISOString(),
         approved_at: version.approvedAt?.toISOString() ?? null,
       },

@@ -256,6 +256,6 @@ export function startIngestionProcessor(
 
       return { ok: true, status: finalStatus, job_run_id: jobRun.id };
     },
-    { connection, concurrency: 1 },
+    { connection, prefix: process.env.BULLMQ_PREFIX || 'oma', concurrency: 1 },
   );
 }

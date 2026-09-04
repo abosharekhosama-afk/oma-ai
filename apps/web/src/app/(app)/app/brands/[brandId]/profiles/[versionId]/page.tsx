@@ -188,6 +188,29 @@ export default function ProfileEditorPage() {
         <ReviewCollaboration
           status={profile.status}
           blockingReasons={profile.eligibility.blocking_reasons}
+          reviewHistory={profile.review_history ?? []}
+          collaborationNote={
+            typeof profile.sections?.collaboration_note === 'string'
+              ? profile.sections.collaboration_note
+              : ''
+          }
+          onSaveNote={
+            editable
+              ? async (note) => {
+                  const res = await apiMutate<{ data: ProfileDetail }>(
+                    `/api/v1/brands/${brandId}/profiles/${versionId}`,
+                    {
+                      method: 'PATCH',
+                      body: JSON.stringify({
+                        row_version: profile.row_version,
+                        sections: { ...profile.sections, collaboration_note: note },
+                      }),
+                    },
+                  );
+                  setProfile(res.data);
+                }
+              : undefined
+          }
         />
       }
     >

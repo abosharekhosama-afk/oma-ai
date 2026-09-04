@@ -113,6 +113,12 @@ export type ProfileDetail = {
   insights: InsightItem[];
   coverage_snapshot: Record<string, unknown> | null;
   eligibility: { approvable: boolean; blocking_reasons: string[] };
+  review_history?: Array<{
+    id: string;
+    kind: string;
+    action: string;
+    created_at: string;
+  }>;
   created_at: string;
   approved_at: string | null;
 };

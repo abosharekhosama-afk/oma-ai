@@ -7,7 +7,7 @@ import { buildMailJobData, bullMailJobId } from './mail-job-payload';
 const log = createLogger('outbox-processor');
 
 export function startOutboxProcessor(connection: IORedis) {
-  const mailQueue = new Queue('mail', { connection });
+  const mailQueue = new Queue('mail', { connection, prefix: process.env.BULLMQ_PREFIX || 'oma' });
 
   const worker = new Worker(
     'outbox',
@@ -69,14 +69,14 @@ export function startOutboxProcessor(connection: IORedis) {
       }
       return { processed: pending.length };
     },
-    { connection, concurrency: 1 },
+    { connection, prefix: process.env.BULLMQ_PREFIX || 'oma', concurrency: 1 },
   );
 
   return worker;
 }
 
 export async function enqueueOutboxTick(connection: IORedis) {
-  const q = new Queue('outbox', { connection });
+  const q = new Queue('outbox', { connection, prefix: process.env.BULLMQ_PREFIX || 'oma' });
   await q.add('tick', {}, { removeOnComplete: true, repeat: { every: 2000 } });
   await q.close();
 }

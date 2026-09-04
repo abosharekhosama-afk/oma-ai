@@ -624,3 +624,87 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+
+.oma-combobox {
+  position: relative;
+  min-width: 14rem;
+}
+.oma-combobox-list {
+  position: absolute;
+  z-index: 40;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
+  margin: 0.25rem 0 0;
+  padding: 0.25rem;
+  list-style: none;
+  max-height: 16rem;
+  overflow: auto;
+  background: var(--surface-raised, #fff);
+  border: 1px solid var(--border-subtle, #d8d6e5);
+  border-radius: 0.5rem;
+  box-shadow: 0 8px 24px rgb(20 16 40 / 12%);
+}
+.oma-combobox-option {
+  padding: 0.45rem 0.6rem;
+  cursor: pointer;
+  border-radius: 0.35rem;
+}
+.oma-combobox-option.is-active,
+.oma-combobox-option:hover {
+  background: var(--surface-muted, #f4f3f8);
+}
+.oma-combobox-empty {
+  padding: 0.5rem 0.6rem;
+  color: var(--text-muted, #6b6780);
+}
+.oma-card-button {
+  text-align: start;
+  cursor: pointer;
+  border: 1px solid var(--border-subtle, #d8d6e5);
+  background: var(--surface-raised, #fff);
+  width: 100%;
+}
+.oma-card-button:hover,
+.oma-card-button:focus-visible {
+  outline: 2px solid var(--accent, #6658e8);
+  outline-offset: 2px;
+}
+.oma-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+.oma-notifications {
+  position: relative;
+}
+.oma-notifications-panel {
+  position: absolute;
+  inset-inline-end: 0;
+  top: calc(100% + 0.35rem);
+  width: min(20rem, 80vw);
+  background: var(--surface-raised, #fff);
+  border: 1px solid var(--border-subtle, #d8d6e5);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  z-index: 50;
+}
+.oma-code-block {
+  display: block;
+  padding: 0.5rem;
+  overflow-wrap: anywhere;
+  background: var(--surface-muted, #f4f3f8);
+  border-radius: 0.35rem;
+  font-size: 0.85rem;
+}
+.oma-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.oma-table th,
+.oma-table td {
+  text-align: start;
+  padding: 0.5rem 0.35rem;
+  border-bottom: 1px solid var(--border-subtle, #d8d6e5);
+}

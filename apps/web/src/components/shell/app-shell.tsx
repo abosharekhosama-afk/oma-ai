@@ -4,6 +4,8 @@ import { TenantSwitcher } from './tenant-switcher';
 import { LogoutButton } from './logout-button';
 import { LanguageSwitcher } from './language-switcher';
 import { NavLink } from './nav-link';
+import { MembershipRouteGate } from './membership-route-gate';
+import { NotificationsBell } from './notifications-bell';
 
 export async function AppShell({ children }: { children: React.ReactNode }) {
   const hdrs = await headers();
@@ -31,6 +33,9 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
             <li>
               <NavLink href="/app/brands" label={t(locale, 'nav.intelligence')} />
             </li>
+            <li>
+              <NavLink href="/app/company/members" label={t(locale, 'nav.company')} />
+            </li>
           </ul>
         </nav>
       </aside>
@@ -38,12 +43,13 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
         <header className="oma-top">
           <TenantSwitcher />
           <div className="oma-top-actions">
+            <NotificationsBell />
             <LanguageSwitcher />
             <LogoutButton />
           </div>
         </header>
         <main id="main" className="oma-container">
-          {children}
+          <MembershipRouteGate>{children}</MembershipRouteGate>
         </main>
       </div>
     </div>

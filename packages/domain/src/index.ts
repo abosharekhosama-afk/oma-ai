@@ -3,6 +3,8 @@ export * from './errors';
 export * from './auth/password';
 export * from './auth/session-token';
 export * from './authz/capabilities';
+export * from './tenant/slug';
+export * from './tenant/membership-routing';
 export * from './brand';
 export * from './jobs/outbox';
 export * from './ports/mail-provider.port';

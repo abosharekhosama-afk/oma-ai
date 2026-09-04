@@ -63,6 +63,9 @@ export default function AppHomePage() {
         <div className="oma-card" role="status">
           <h2>{t('home.noTenantTitle')}</h2>
           <p className="oma-muted">{t('home.noTenantBody')}</p>
+          <Link href="/app/onboarding" className="oma-btn">
+            {t('shell.emptyMembershipCta')}
+          </Link>
         </div>
       ) : (
         <div className="oma-action-grid">

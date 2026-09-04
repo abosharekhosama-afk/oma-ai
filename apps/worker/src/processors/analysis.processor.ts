@@ -54,6 +54,6 @@ export function startAnalysisProcessor(
       });
       return { ok: true };
     },
-    { connection, concurrency: 1 },
+    { connection, prefix: process.env.BULLMQ_PREFIX || 'oma', concurrency: 1 },
   );
 }

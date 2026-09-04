@@ -1,6 +1,6 @@
 import { Body, Controller, Get, HttpCode, Post, Req, Res, UseGuards } from '@nestjs/common';
 import type { Request, Response } from 'express';
-import { identityService } from '../container';
+import { identityService, tenantService } from '../container';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { CsrfGuard } from '../common/guards/csrf.guard';
 import { clearSessionCookie, setCsrfCookie, setSessionCookie } from './session-cookie';
@@ -66,7 +66,21 @@ export class AuthController {
         401,
         'errors.unauthenticated',
       );
-    return identityService.me(req.oma.userId);
+    const sessionId = (req as Request & { sessionId?: string }).sessionId;
+    let membershipRoute: string | undefined;
+    let activeTenantId: string | null | undefined;
+    if (sessionId) {
+      const reconciled = await tenantService.reconcileSessionTenant(req.oma.userId, sessionId);
+      membershipRoute = reconciled.route;
+      activeTenantId = reconciled.active_tenant_id;
+      req.oma.tenantId = reconciled.active_tenant_id ?? undefined;
+    }
+    const me = await identityService.me(req.oma.userId);
+    return {
+      ...me,
+      active_tenant_id: activeTenantId ?? me.active_tenant_id,
+      membership_route: membershipRoute ?? undefined,
+    };
   }
 
   @Post('password/change')

@@ -39,7 +39,9 @@ export class MembershipController {
         401,
         'errors.unauthenticated',
       );
-    return tenantService.acceptInvite(req.oma.userId, body.token);
+    const cookieName = process.env.SESSION_COOKIE_NAME ?? 'oma_session';
+    const sessionToken = req.cookies?.[cookieName] as string | undefined;
+    return tenantService.acceptInvite(req.oma.userId, body.token, sessionToken);
   }
 
   @Post('memberships/:id/suspend')

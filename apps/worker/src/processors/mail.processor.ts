@@ -130,6 +130,6 @@ export function startMailProcessor(connection: IORedis, options: MailProcessorOp
 
       return { ok: true, job_run_id: jobRun.id };
     },
-    { connection, concurrency: 2 },
+    { connection, prefix: process.env.BULLMQ_PREFIX || 'oma', concurrency: 2 },
   );
 }
