@@ -30,12 +30,12 @@ test.describe('Company onboarding UI', () => {
       timeout: 20_000,
     });
 
-    await page.getByRole('link', { name: /brand intelligence/i }).click();
+    await page.getByRole('navigation').getByRole('link', { name: 'Brand Intelligence' }).click();
     await expect(page).toHaveURL(/\/app\/brands/);
     await expect(page.getByRole('heading', { name: /brand intelligence/i })).toBeVisible();
 
     // Create brand through the form
-    await page.getByRole('link', { name: /create brand/i }).click();
+    await page.getByRole('link', { name: 'Create brand' }).first().click();
     await page.getByLabel(/brand name/i).fill(`UI Brand ${newId().slice(-4)}`);
     await page.getByRole('button', { name: /create/i }).click();
     await expect(page).toHaveURL(/\/app\/brands\/[^/]+$/);
@@ -46,12 +46,15 @@ test.describe('Company onboarding UI', () => {
 
     // Relogin persistence
     await page.getByRole('button', { name: /sign out/i }).click();
-    await page.goto('/login');
+    await page.waitForURL(/\/(login)?$/);
+    if (!page.url().includes('/login')) {
+      await page.goto('/login');
+    }
     await page.getByLabel('Email').fill(email);
     await page.getByLabel('Password').fill(password);
     await page.getByRole('button', { name: /sign in/i }).click();
     await page.waitForURL(/\/app/);
-    await page.getByRole('link', { name: /brand intelligence/i }).click();
+    await page.getByRole('navigation').getByRole('link', { name: 'Brand Intelligence' }).click();
     await expect(page.getByText(/UI Brand/i).first()).toBeVisible({ timeout: 20_000 });
   });
 });
