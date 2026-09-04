@@ -8,6 +8,7 @@ artifacts/
 .reference/
 .env
 .env.local
+.review/
 *.log
 .DS_Store
 packages/db/prisma/*.db
