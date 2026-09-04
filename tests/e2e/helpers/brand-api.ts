@@ -2,6 +2,8 @@ import { config as loadDotenv } from 'dotenv';
 import { expect, type APIRequestContext, type APIResponse } from '@playwright/test';
 import { getPrisma } from '@oma/db';
 import { newId } from '@oma/domain';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 loadDotenv();
 
@@ -11,9 +13,48 @@ const API = process.env.API_PUBLIC_URL ?? 'http://127.0.0.1:3001';
 
 export const FIXTURE_WEBSITE_URL = 'https://acme.test/';
 
-/** Tenants created by helpers in this process — cleaned in global teardown. */
+/** Tenants created by helpers in this process — also persisted for global teardown. */
 export const e2eCreatedTenantIds = new Set<string>();
 export const e2eCreatedUserEmails = new Set<string>();
+
+function e2eTrackDir() {
+  return join(process.cwd(), 'test-results', 'e2e-track');
+}
+
+function e2eTenantTrackFile() {
+  const runId = process.env.OMA_E2E_RUN_ID ?? 'local';
+  return join(e2eTrackDir(), `tenants-${runId}.jsonl`);
+}
+
+export function trackE2eTenant(tenantId: string) {
+  e2eCreatedTenantIds.add(tenantId);
+  try {
+    mkdirSync(e2eTrackDir(), { recursive: true });
+    appendFileSync(e2eTenantTrackFile(), `${tenantId}\n`, 'utf8');
+  } catch {
+    // best-effort; isolation still relies on oma_ai_e2e DB
+  }
+}
+
+export function readTrackedE2eTenantIds(): string[] {
+  const file = e2eTenantTrackFile();
+  const ids = new Set<string>([...e2eCreatedTenantIds]);
+  if (existsSync(file)) {
+    for (const line of readFileSync(file, 'utf8').split('\n')) {
+      const id = line.trim();
+      if (id) ids.add(id);
+    }
+  }
+  return [...ids];
+}
+
+export function clearE2eTenantTrackFile() {
+  try {
+    writeFileSync(e2eTenantTrackFile(), '', 'utf8');
+  } catch {
+    /* ignore */
+  }
+}
 
 function assertE2eDatabaseSafe() {
   const url = process.env.DATABASE_URL ?? '';
@@ -78,7 +119,7 @@ export async function registerBrandOwner(request: APIRequestContext) {
   });
   expect(tenant.ok(), await tenant.text()).toBeTruthy();
   const tenantBody = await tenant.json();
-  e2eCreatedTenantIds.add(tenantBody.tenant.id as string);
+  trackE2eTenant(tenantBody.tenant.id as string);
 
   // createTenant already activates; refresh cookies if Set-Cookie present
   Object.assign(cookies, parseCookies(tenant));
@@ -283,9 +324,9 @@ export async function createBrandFlow(request: APIRequestContext, cookies: Recor
 }
 
 /** Best-effort cleanup of ephemeral E2E tenants created in this run. */
-export async function cleanupE2eResidue(tenantIds: Iterable<string> = e2eCreatedTenantIds) {
+export async function cleanupE2eResidue(tenantIds: Iterable<string> = readTrackedE2eTenantIds()) {
   const prisma = getPrisma();
-  const ids = [...tenantIds];
+  const ids = [...new Set([...tenantIds])];
   if (!ids.length) return { tenants: 0 };
   // Soft-isolation: remove memberships/grants for tracked tenants only (no wildcard).
   const memberships = await prisma.membership.findMany({
@@ -303,5 +344,6 @@ export async function cleanupE2eResidue(tenantIds: Iterable<string> = e2eCreated
     data: { activeTenantId: null },
   });
   // Leave tenant rows for auditability; they are unusable without memberships.
+  clearE2eTenantTrackFile();
   return { tenants: ids.length, memberships: membershipIds.length };
 }

@@ -209,6 +209,28 @@ export class ProfileService {
           });
         }
       }
+      if (version.status === 'DRAFT') {
+        const deepLinkPath = `/app/brands/${brandId}/profiles/${versionId}`;
+        await tx.notification.upsert({
+          where: {
+            tenantId_dedupeKey: {
+              tenantId,
+              dedupeKey: `profile.review:${versionId}`,
+            },
+          },
+          create: {
+            id: newId(),
+            tenantId,
+            recipientUserId: actorUserId,
+            type: 'brand.profile.needs_review',
+            objectType: 'ProfileVersion',
+            objectId: versionId,
+            deepLinkPath,
+            dedupeKey: `profile.review:${versionId}`,
+          },
+          update: {},
+        });
+      }
     });
 
     await this.audit.write({

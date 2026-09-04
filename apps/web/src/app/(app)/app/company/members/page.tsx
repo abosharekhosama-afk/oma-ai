@@ -58,7 +58,11 @@ export default function CompanyMembersPage() {
 
   async function copyLink() {
     if (!inviteLink) return;
-    await navigator.clipboard.writeText(inviteLink);
+    try {
+      await navigator.clipboard.writeText(inviteLink);
+    } catch {
+      // Clipboard may be denied in some browsers; still expose the link for manual copy.
+    }
     setCopied(true);
   }
 
