@@ -2,7 +2,9 @@ import IORedis from 'ioredis';
 import { Queue } from 'bullmq';
 import { setTimeout as delay } from 'node:timers/promises';
 
-const DEFAULT_QUEUES = ['mail', 'ingestion'] as const;
+import { bullmqOptions } from './bullmq-options';
+
+const DEFAULT_QUEUES = ['mail', 'ingestion', 'outbox', 'analysis'] as const;
 
 /** Drain and remove BullMQ keys so no stray worker can consume jobs from a prior test file. */
 export async function resetBullQueues(
@@ -10,7 +12,7 @@ export async function resetBullQueues(
   queueNames: readonly string[] = DEFAULT_QUEUES,
 ): Promise<void> {
   for (const name of queueNames) {
-    const queue = new Queue(name, { connection });
+    const queue = new Queue(name, { connection, ...bullmqOptions() });
     await queue.pause().catch(() => undefined);
     await queue.obliterate({ force: true }).catch(() => undefined);
     await queue.close();

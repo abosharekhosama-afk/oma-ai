@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { getPrisma } from '@oma/db';
 import { newId } from '@oma/domain';
 import { Queue, QueueEvents } from 'bullmq';
+import { bullmqOptions } from '../helpers/bullmq-options';
 import {
   buildIngestionJobData,
   bullIngestionJobId,
@@ -26,8 +27,8 @@ describe('scan midflight reauthz security', () => {
   beforeAll(async () => {
     seed = await seedBrandTenant();
     connection = createRedisConnection();
-    queue = new Queue('ingestion', { connection });
-    events = new QueueEvents('ingestion', { connection });
+    queue = new Queue('ingestion', { connection, ...bullmqOptions() });
+    events = new QueueEvents('ingestion', { connection, ...bullmqOptions() });
     await events.waitUntilReady();
     await resetBullQueues(connection, ['ingestion']);
   });

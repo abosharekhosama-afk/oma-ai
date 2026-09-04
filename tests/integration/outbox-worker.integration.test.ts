@@ -4,6 +4,7 @@ import { newId } from '@oma/domain';
 import IORedis from 'ioredis';
 import { publishPendingOutbox } from '../../apps/worker/src/processors/outbox.publisher';
 import { Queue } from 'bullmq';
+import { bullmqOptions } from '../helpers/bullmq-options';
 
 describe('outbox worker Q-08', () => {
   let connection: IORedis;
@@ -40,7 +41,7 @@ describe('outbox worker Q-08', () => {
     const updated = await prisma.outboxEvent.findUniqueOrThrow({ where: { id: event.id } });
     expect(updated.status).toBe('PUBLISHED');
 
-    const mailQueue = new Queue('mail', { connection });
+    const mailQueue = new Queue('mail', { connection, ...bullmqOptions() });
     const waiting = await mailQueue.getJobs(['waiting', 'delayed', 'active', 'completed']);
     const matched = waiting.find(
       (j) => j.data?.job_run_id === jobRunId || j.data?.outbox_id === event.id,

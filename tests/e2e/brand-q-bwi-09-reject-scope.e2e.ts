@@ -8,6 +8,7 @@ import {
   parseCookies,
   registerBrandOwner,
 } from './helpers/brand-api';
+import { webOrigin } from './helpers/brand-ui';
 
 const API = process.env.API_PUBLIC_URL ?? 'http://127.0.0.1:3001';
 
@@ -95,5 +96,43 @@ test.describe('Q-BWI-09 reject scope', () => {
       );
       expect(accept.ok()).toBeTruthy();
     }
+  });
+
+  test('owner rejects whole profile version through the UI', async ({
+    page,
+    request,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== 'en-desktop', 'run once on en-desktop');
+    const owner = await registerBrandOwner(request);
+    const flow = await createBrandFlow(request, owner.cookies);
+    expect(flow.profileVersionId).toBeTruthy();
+
+    const origin = webOrigin();
+    await page.context().addCookies([
+      { name: 'oma_session', value: owner.cookies.oma_session, url: origin },
+      { name: 'oma_csrf', value: owner.cookies.oma_csrf, url: origin },
+    ]);
+
+    await page.goto(`/app/brands/${flow.brandId}/profiles/${flow.profileVersionId}`);
+    await expect(page.getByRole('heading', { name: 'Brand intelligence' })).toBeVisible({
+      timeout: 30_000,
+    });
+
+    const submit = page.getByRole('button', { name: 'Submit for review' });
+    if (await submit.isVisible()) {
+      await submit.click();
+      await expect(page.locator('.oma-badge', { hasText: 'NEEDS_REVIEW' })).toBeVisible();
+    }
+
+    await page.getByRole('button', { name: 'Reject version' }).click();
+    await expect(page.locator('.oma-badge', { hasText: 'REJECTED' }).first()).toBeVisible({
+      timeout: 20_000,
+    });
+
+    const prisma = getPrisma();
+    const version = await prisma.profileVersion.findUniqueOrThrow({
+      where: { id: flow.profileVersionId! },
+    });
+    expect(version.status).toBe('REJECTED');
   });
 });

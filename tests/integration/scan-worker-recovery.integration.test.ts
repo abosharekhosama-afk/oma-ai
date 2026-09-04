@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { getPrisma } from '@oma/db';
 import { newId } from '@oma/domain';
 import { Queue, QueueEvents } from 'bullmq';
+import { bullmqOptions } from '../helpers/bullmq-options';
 import type { INestApplication } from '@nestjs/common';
 import { publishPendingOutbox } from '../../apps/worker/src/processors/outbox.publisher';
 import { bullIngestionJobId } from '../../apps/worker/src/processors/ingestion-job-payload';
@@ -40,9 +41,9 @@ describe('scan worker recovery integration', () => {
     const jobRunId = scan.data.job_run_id as string;
     const scanId = scan.data.scan_attempt_id as string;
 
-    const events = new QueueEvents('ingestion', { connection });
+    const events = new QueueEvents('ingestion', { connection, ...bullmqOptions() });
     await events.waitUntilReady();
-    const queue = new Queue('ingestion', { connection });
+    const queue = new Queue('ingestion', { connection, ...bullmqOptions() });
     const worker = startIngestionProcessor(connection);
     try {
       await publishPendingOutbox(connection);

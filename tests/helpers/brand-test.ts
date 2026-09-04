@@ -6,6 +6,7 @@ import { publishPendingOutbox } from '../../apps/worker/src/processors/outbox.pu
 import { startIngestionProcessor } from '../../apps/worker/src/processors/ingestion.processor';
 import { bullIngestionJobId } from '../../apps/worker/src/processors/ingestion-job-payload';
 import { createTestApp, cookieHeader, parseCookies } from './app';
+import { bullmqOptions } from './bullmq-options';
 
 /** Public HTTPS URL mapped to acme fixture (passes SSRF policy). */
 export const FIXTURE_WEBSITE_URL = 'https://acme.test/';
@@ -323,9 +324,9 @@ export async function runIngestionForJobRun(
   jobRunId: string,
   options?: Parameters<typeof startIngestionProcessor>[1],
 ) {
-  const events = new QueueEvents('ingestion', { connection });
+  const events = new QueueEvents('ingestion', { connection, ...bullmqOptions() });
   await events.waitUntilReady();
-  const queue = new Queue('ingestion', { connection });
+  const queue = new Queue('ingestion', { connection, ...bullmqOptions() });
   const worker = startIngestionProcessor(connection, options);
   try {
     await publishPendingOutbox(connection);
