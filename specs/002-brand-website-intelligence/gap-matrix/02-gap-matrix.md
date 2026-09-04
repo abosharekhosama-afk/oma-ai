@@ -49,24 +49,24 @@ Feature 002's domain, but it blocks every Feature 002 journey.
 | Reference | None. No in-scope reference was inspected for account provisioning; Planable's workspace-creation wizard was observed (`EV-PLA-001`, surface `PLA-005`) but workspace ≠ tenant, and `07-reference-pattern-matrix.md` J12 explicitly forbids reading tenancy from it. |
 | Reference authority | `REFERENCE_LIMITED` |
 | OMA surface / action | `OMA-S09` create company, `OMA-A05` |
-| Spec | **No FR covers this.** Foundation 001 `FR-006` covers invited/active/suspended membership behaviour but never states how a first company comes into being or how a self-registered user obtains one. Feature 002 assumes a company already exists. |
-| Existing task | None |
+| Spec | Foundation `FR-010a` / `DEC-015` Option A; `FR-006` for membership states. Feature 002 brand journeys assume a company once onboarding completes. |
+| Existing task | `T160` |
 | Files | `apps/api/src/tenant/tenant.controller.ts:11`, `apps/api/src/identity/identity.service.ts:52-78`, `apps/web/src/components/shell/empty-membership.tsx` |
 | Current behaviour | Registration creates a `User` only. A fresh account has zero memberships and the shell reads `You have no active company membership.` — a permanent dead end. `POST /api/v1/tenants` works (`201`, `RT-11`) but no web surface calls it. |
-| Expected behaviour | Undecidable without a decision. Self-serve company creation and invitation-only provisioning are different security and tenancy postures. |
-| Classification | **`RECONNECT`** — gated on a decision, not directly implementable. `POST /api/v1/tenants` already returns `201` (`RT-11`); no web surface calls it. |
+| Expected behaviour | Per `DEC-015` Option A and `FR-010a`: Company Onboarding with Create company and Join through invitation. |
+| Classification | **`RECONNECT`** — implementable: wire UI to existing `POST /tenants` + Invitation accept under Option A. |
 | Tenant impact | Defines who may create a tenancy boundary. Maximum. |
-| Capability impact | Determines whether a bare authenticated user holds a company-creating capability. |
+| Capability impact | Self-serve first company when zero ACTIVE memberships; otherwise `platform.tenant.create`. |
 | State machine | Introduces an account state between registered and member. |
-| API / DB | `POST /tenants` already exists; policy, not schema, is missing. |
-| UI | A create-company or accept-invitation surface, plus a real no-membership state. |
+| API / DB | `POST /tenants` already exists; authorization amended by `DEC-015`; set Active Tenant on create. |
+| UI | Company Onboarding surface (create + accept invitation). |
 | EN/AR/RTL | Both locales, new keys required. |
 | Responsive / a11y | Standard form requirements. |
-| Required correction | **Close the decision first.** Then specify in Foundation 001, then implement. |
+| Required correction | Implement Option A on Foundation SoT; no parallel tenant model. |
 | Required tests | E2E: register → obtain a company → reach `/app/brands` with no API shortcut. Security: a user may not create or join a company they were not authorized to. |
 | Acceptance evidence | A newly registered account reaching a usable brand list through clicks only. |
 | Dependency | Blocks `G-002`, and blocks any honest claim that Feature 002 is usable by a new user. |
-| Decision gate | **`DEC-015` (proposed, open):** how does a company come into existence, and who may create or join one — self-serve at registration, Platform-Owner provisioning, invitation-only, or a combination? Touches identity and tenant authority, so `AGENTS.md` forbids planning past it. |
+| Decision gate | **`DEC-015: RESOLVED — OPTION A` (2026-09-04)** |
 | Order | 1 |
 | Parallel | No |
 
@@ -76,15 +76,15 @@ Feature 002's domain, but it blocks every Feature 002 journey.
 | --- | --- |
 | Reference | `REFERENCE_LIMITED` |
 | OMA surface / action | `OMA-S03`, `OMA-S08`, `OMA-A01` |
-| Spec | No FR; same gap as `G-001` |
+| Spec | `FR-010a` / `DEC-015` Option A; same cluster as `G-001` |
 | Files | `apps/web/src/app/(auth)/register/page.tsx:26-30`, `apps/web/src/components/shell/empty-membership.tsx` |
 | Current behaviour | Register succeeds, logs in, redirects to `/app`, and the user can do nothing (`RT-10`). The no-membership message offers no action and no explanation of what to do next. |
-| Expected behaviour | Per `FR-BWI-033`'s principle that an empty state must be actionable, and Linear L11 (`EV-LIN-006`) where every empty state names what is missing and offers the next action, this state must tell the user what to do. The action itself depends on `DEC-015`. |
+| Expected behaviour | Per `FR-BWI-033`, Linear L11, and `DEC-015` Option A: route zero-membership users to actionable Company Onboarding. |
 | Classification | **`WRONG_EXISTING_IMPLEMENTATION`** |
 | Reference authority | Linear, shell and empty-state domain — in domain |
 | Required correction | Make the no-membership state explain the situation and offer the authorized next step. |
 | Required tests | E2E: a zero-membership user sees actionable guidance, not a bare sentence. |
-| Dependency | `G-001` / `DEC-015` |
+| Dependency | `G-001` / `DEC-015` (resolved Option A) |
 | Order | 2 |
 | Parallel | No |
 
@@ -118,11 +118,11 @@ Feature 002's domain, but it blocks every Feature 002 journey.
 | Spec | No FR states whether the last company should persist. |
 | Files | `apps/api/src/identity/identity.service.ts:107-127` |
 | Current behaviour | `activeTenantId` lives on the `Session`, so it is `null` on every new login unless the user has exactly one membership. A multi-company user reselects every time (`RT-06`). |
-| Expected behaviour | Undetermined. Remembering a last-used company is a convenience with a real security question attached, since it changes what a fresh session can read by default. |
-| Classification | **`PARTIAL`**, spec clarification required before implementation |
+| Expected behaviour | Per `DEC-015` Option A: sole ACTIVE membership auto-activates; multiple → searchable selector; no cross-login remember for multi-membership users; clear invalid Active Tenant server-side. |
+| Classification | **`PARTIAL`** — policy decided by `DEC-015`; implementation pending |
 | Tenant impact | Changes the default read scope of a new session. |
-| Required correction | Decide and specify, then implement. Do not implement silently. |
-| Dependency | Should be answered together with `DEC-015` |
+| Required correction | Implement DEC-015 routing rules in identity/session resolution and shell. |
+| Dependency | `DEC-015` resolved Option A |
 | Order | 7 |
 | Parallel | No |
 
@@ -369,8 +369,8 @@ Feature 002's domain, but it blocks every Feature 002 journey.
 | Capability impact | Maximum — the entire authorization story is unverified in product. |
 | Required correction | An invitation and membership surface, then role-boundary proof. |
 | Required tests | E2E: an invited member with read-only capability sees data and is refused approval; a non-member is refused without existence leakage. |
-| Dependency | `DEC-015` shapes it, since invitation is one candidate answer to `G-001` |
-| Decision gate | `DEC-015` |
+| Dependency | `DEC-015` Option A includes invitation join; implement with `T168` then unlock `T131`/`G-017` |
+| Decision gate | `DEC-015: RESOLVED — OPTION A` |
 | Order | 16 |
 | Parallel | No |
 
@@ -511,40 +511,39 @@ Secondary notes that do not change the primary count:
 
 | Gate | Status | Blocks |
 | --- | --- | --- |
-| `DEC-015` (proposed) — how a company comes into existence and who may create or join one | **Open, must be opened and closed before implementation** | `G-001`, `G-002`, `G-004`, `G-018`, and transitively `G-017` |
+| `DEC-015` — company acquisition (create + invitation join) | **`RESOLVED 2026-09-04 — OPTION A`** | Unblocked: `G-001`, `G-002`, `G-004`, `G-018`, and `G-017` (after invitation UI) |
 | `DEC-004` | Open | Anything touching live crawl behaviour beyond the already-disclosed fixture limits in `G-006` |
-| `DEC-007` | Open | Anything beyond a test adapter in `G-011` |
+| `DEC-007` | Open | Live AI vendor wiring beyond a test adapter in `G-011` |
 | `DEC-003` | Open | Not reached by any gap above |
 
-`G-001` is the highest-priority gap **and** it is not implementable. Recording it as a task without
-its gate would violate `AGENTS.md`, which forbids planning past an unresolved decision that changes
-identity or tenant authority.
+`G-001` is highest priority and is now implementable under Option A on the existing Tenant SoT.
+`DEC-003`–`DEC-012` remain unchanged.
 
 ## Implementation queue
 
-Ordered by dependency, not by severity alone.
+Ordered by dependency, not by severity alone. Gates reflect post-`DEC-015` state.
 
 | # | Gap | Action | Parallel | Gate |
 | --- | --- | --- | --- | --- |
-| 1 | `G-001` | Open and close `DEC-015`; then specify in Foundation 001 | No | `DEC-015` |
-| 2 | `G-002` | Actionable no-membership state | No | `DEC-015` |
+| 1 | `G-001` | Company Onboarding Create-company path (`FR-010a`) | No | — (DEC-015 resolved) |
+| 2 | `G-002` | Actionable no-membership → Onboarding | No | — |
 | 3 | `G-010` | Fix the leaked section key and the fallback | Yes | — |
 | 4 | `G-005` | Isolate E2E residue from the demo account | Yes | — |
 | 5 | `G-003` | Searchable company selection | Yes | — |
-| 6 | `G-004` | Decide active-company persistence | No | with `DEC-015` |
+| 6 | `G-004` | Apply DEC-015 routing (sole auto-activate; multi → selector; no cross-login remember for multi) | No | — (DEC-015 resolved) |
 | 7 | `G-009` | Verify coverage presentation on brand overview | Yes | — |
 | 8 | `G-008` | Prove the rescan-after-approval journey through the UI | Yes | — |
-| 9 | `G-011` | Prove insight decisions via a test port adapter | Yes | `DEC-007` |
+| 9 | `G-011` | Prove insight decisions via a test port adapter | Yes | test adapter only; live AI still `DEC-007` |
 | 10 | `G-012` | Verify unknown-versus-missing rendering | Yes | — |
 | 11 | `G-014` | Prove whole-version reject through the UI | Yes | — |
 | 12 | `G-016` | Prove comment and history survival | Yes | — |
-| 13 | `G-017` | Notification surface with tenant-safe deep links | No | after `G-018` |
-| 14 | `G-018` | Invitation surface, then role-boundary proof | No | `DEC-015` |
-| 15 | `G-021` | Scope filters and counts; do not build density on reference authority alone | Yes | scope decision |
+| 13 | `G-018` | Invitation surface, then role-boundary proof | No | — (DEC-015 resolved) |
+| 14 | `G-017` | Notification surface with tenant-safe deep links | No | after `G-018` |
+| 15 | `G-021` | Scope filters and counts; do not build density on reference authority alone | Yes | explicit scope decision |
 | 16 | `G-022` | Verify keyboard access against `NFR-BWI-005` (`T171`) | Yes | — |
 | 17 | `G-006` | Scope whether editable crawl scope belongs in 002 (limits already visible) | Yes | `DEC-004` for live behaviour |
 | 18 | `G-023` | Measure motion before asserting (`T172`) | Yes | — |
-| 19 | `G-024` | Decide landing routing (`T173`) | Yes | product decision |
+| 19 | `G-024` | Record landing routing product choice (`T173`) | Yes | product decision (record only) |
 
 Genuinely parallel-eligible and ungated now: `G-010`, `G-005`, `G-003`.
 

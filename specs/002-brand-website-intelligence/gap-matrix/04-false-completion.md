@@ -13,7 +13,7 @@ reopens a task or adds a new one. No task is re-closed in this phase.
 | What the test claims | A newly registered user reaches `/app` with heading `Workspace`. |
 | What the product does | The user has **zero memberships** and cannot use Brand Intelligence (`G-001`, `G-002`). |
 | Gap | `G-001`, `G-002` |
-| Action | Do not reopen a Feature 002 task for Foundation tenancy; add `T160` gated on `DEC-015`. Reopen nothing in `auth-session` itself (test change is implementation). Record that `auth-session.e2e.ts` is a known false positive. |
+| Action | Implement `T160` under `DEC-015` Option A (resolved 2026-09-04). Reopen nothing in `auth-session` itself (test change is implementation). Record that `auth-session.e2e.ts` is a known false positive until onboarding E2E replaces it. |
 
 ### `FC-002` — Brand journey E2E never uses login, tenant switcher, or create-brand UI
 
@@ -81,7 +81,7 @@ reopens a task or adds a new one. No task is re-closed in this phase.
 
 | ID | Gap | Responsibility |
 | --- | --- | --- |
-| `T160` | `G-001`/`G-002` | Spec + UI for company acquisition after `DEC-015` |
+| `T160` | `G-001`/`G-002` | Company Onboarding UI + auth path per `DEC-015` Option A |
 | `T161` | `G-003` | Searchable company selector |
 | `T162` | `G-005` | E2E residue isolation / cleanup |
 | `T163` | `FC-002` | E2E: register/login → select company → create brand by clicking only |
@@ -89,13 +89,13 @@ reopens a task or adds a new one. No task is re-closed in this phase.
 | `T165` | `G-014` | E2E whole-version reject through UI |
 | `T166` | `G-008` | E2E rescan-after-approval → new Draft |
 | `T167` | `G-017` | Notifications surface (after invitation path) |
-| `T168` | `G-018` | Invitation / membership surface after `DEC-015` |
+| `T168` | `G-018` | Invitation / membership surface under `DEC-015` Option A |
 | `T169` | `G-009` | Coverage subset disclosure verification |
 | `T170` | `G-012` | Unknown-versus-missing field distinction |
 | `T171` | `G-022` | Keyboard reachability verification (`NFR-BWI-005`) |
 | `T172` | `G-023` | Motion measurement before assertion |
 | `T173` | `G-024` | Decide unauthenticated `/` routing |
 
-`G-004` / `G-006` / `G-021` remain decision- or scope-gated (`DEC-015`, `DEC-004`, or an explicit scope decision before building density controls). `G-010` is covered by reopening `T136`. `G-016` by reopening `T130`.
+`G-004` is unblocked by `DEC-015` Option A (implement routing). `G-006` remains live-crawl gated by `DEC-004`. `G-021` needs an explicit density scope decision. `G-010` is covered by reopening `T136`. `G-016` by reopening `T130`.
 
 Final new task set: `T160`–`T173` (fourteen tasks).

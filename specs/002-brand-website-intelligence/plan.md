@@ -79,6 +79,7 @@ Fixed product boundaries for this plan:
 
 | Gate                  | Status            | Allowed in 002 plan/implement                                                  | Hard stop                                                                 |
 | --------------------- | ----------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| `DEC-015`             | **RESOLVED 2026-09-04 — OPTION A** | Company Onboarding + invitation join on Foundation Tenant SoT (`FR-010a`) | Parallel company registry; public directory; domain auto-join             |
 | `SR-002-004-MODE`     | Slice affirmed    | Public HTTPS crawl product + `WebsiteConnectorPort` + **fixture/test** adapter | Production crawl **vendor** selection/wiring                              |
 | `DEC-004`             | **Open globally** | Do not close; no commerce path                                                 | Commerce connector as SoT                                                 |
 | `SR-002-007-AI`       | Slice affirmed    | Manual profile; optional `AiProviderPort`; test doubles in tests               | Live AI SDK/keys/third-party                                              |
