@@ -69,8 +69,9 @@ test.describe('Searchable company switcher', () => {
     const option = page.getByRole('option', { name: new RegExp(targetName, 'i') });
     await expect(option).toBeVisible({ timeout: 10_000 });
     await option.click();
-    await expect(page).toHaveURL(/\/app/, { timeout: 20_000 });
-    await page.reload();
+    // activate() uses full navigation assign to /app — wait for that, do not race reload.
+    await expect(page).toHaveURL(/\/app(\/|$)/, { timeout: 20_000 });
+    await page.goto('/app');
     const after = page
       .getByRole('combobox', { name: /company/i })
       .or(page.locator('[role="combobox"]').first());
