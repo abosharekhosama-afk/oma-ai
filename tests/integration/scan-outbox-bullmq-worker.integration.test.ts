@@ -59,7 +59,12 @@ describe('scan outbox bullmq worker integration', () => {
       const published = await prisma.outboxEvent.findUniqueOrThrow({ where: { id: outbox!.id } });
       expect(published.status).toBe('PUBLISHED');
 
-      const jobRun = await prisma.jobRun.findUniqueOrThrow({ where: { id: jobRunId } });
+      let jobRun = await prisma.jobRun.findUniqueOrThrow({ where: { id: jobRunId } });
+      const deadline = Date.now() + 30_000;
+      while (Date.now() < deadline && !['SUCCEEDED', 'FAILED', 'DEAD'].includes(jobRun.status)) {
+        await new Promise((r) => setTimeout(r, 250));
+        jobRun = await prisma.jobRun.findUniqueOrThrow({ where: { id: jobRunId } });
+      }
       expect(jobRun.status).toBe('SUCCEEDED');
       expect(jobRun.id).toBe(jobRunId);
 
