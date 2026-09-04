@@ -109,10 +109,12 @@ export function ProfileSections({
           className="oma-card oma-profile-section"
           aria-labelledby={`section-${key}`}
         >
-          <h3 id={`section-${key}`}>{(() => {
-            const label = t(`brand.profile.section.${key}`);
-            return label.startsWith('brand.profile.section.') ? key.replace(/_/g, ' ') : label;
-          })()}</h3>
+          <h3 id={`section-${key}`}>
+            {(() => {
+              const label = t(`brand.profile.section.${key}`);
+              return label.startsWith('brand.profile.section.') ? key.replace(/_/g, ' ') : label;
+            })()}
+          </h3>
           <SectionData label={t('brand.profile.sectionDataTitle')} value={sections[key]} />
           <ul className="oma-insight-list">
             {(insightsBySection.get(key) ?? []).map((insight) => (
@@ -124,6 +126,23 @@ export function ProfileSections({
                     {t(`brand.tier.${insight.discovery_tier}`)}
                   </span>
                 </div>
+                {(() => {
+                  const empty =
+                    insight.text_value == null || String(insight.text_value).trim() === '';
+                  if (!empty) return null;
+                  const required = insight.discovery_tier === 'REQUIRED_FOR_APPROVAL';
+                  return (
+                    <p
+                      className="oma-muted"
+                      role="status"
+                      data-absence={required ? 'required-not-found' : 'optional-unknown'}
+                    >
+                      {required
+                        ? t('brand.profile.requiredNotFound')
+                        : t('brand.profile.optionalUnknown')}
+                    </p>
+                  );
+                })()}
                 {editable ? (
                   <label className="oma-insight-edit">
                     <span className="oma-sr-only">{insight.field_key}</span>

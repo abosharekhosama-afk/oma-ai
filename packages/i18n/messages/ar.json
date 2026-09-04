@@ -232,5 +232,14 @@
   "brand.review.noteSave": "حفظ الملاحظة",
   "brand.review.noteSaved": "تم حفظ الملاحظة",
   "brand.review.historyTitle": "سجل المراجعة",
-  "brand.review.historyEmpty": "لا نشاط مراجعة بعد"
+  "brand.review.historyEmpty": "لا نشاط مراجعة بعد",
+  "brand.profile.requiredNotFound": "مطلوب — لم يُعثر عليه في المصادر (مجهول لأن الزحف لم يلاحظه).",
+  "brand.profile.optionalUnknown": "اختياري — غير ملاحظ. الغياب هنا يعني مجهولًا، لا إثباتًا بعدم الوجود.",
+  "brand.coverage.title": "تغطية الفحص",
+  "brand.coverage.subsetBody": "الأرقام أدناه تغطي فقط الصفحات والحقول التي وصل إليها هذا الفحص — وليست ادعاءً بتغطية الموقع كاملة.",
+  "brand.coverage.requiredMissing": "الحقول المطلوبة الناقصة",
+  "brand.coverage.unknownFields": "الحقول المجهولة",
+  "brand.coverage.failedPages": "صفحات فاشلة",
+  "brand.coverage.skippedPages": "صفحات متخطاة",
+  "brand.coverage.noneListed": "لا شيء مدرج"
 }

@@ -4,11 +4,12 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { api } from '../../../../../lib/api';
-import type { BrandDetail } from '../../../../../lib/brand-types';
+import type { BrandDetail, ScanDetail } from '../../../../../lib/brand-types';
 import { getApiError, isPermissionDenied, isTenantRequired } from '../../../../../lib/brand-api';
 import { SelectCompany } from '../../../../../components/shell/select-company';
 import { BrandWorkspaceShell } from '../../../../../components/brand/brand-workspace-shell';
 import { ConnectorModeChip } from '../../../../../components/brand/connector-mode-banner';
+import { CoverageDisclosure } from '../../../../../components/brand/coverage-disclosure';
 import { PermissionDenied } from '../../../../../components/shell/permission-denied';
 import { useT } from '../../../../../lib/use-locale';
 
@@ -17,6 +18,7 @@ export default function BrandDetailPage() {
   const params = useParams<{ brandId: string }>();
   const brandId = params.brandId;
   const [brand, setBrand] = useState<BrandDetail | null>(null);
+  const [scanDetail, setScanDetail] = useState<ScanDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
@@ -24,7 +26,19 @@ export default function BrandDetailPage() {
 
   useEffect(() => {
     api<{ data: BrandDetail }>(`/api/v1/brands/${brandId}`)
-      .then((res) => setBrand(res.data))
+      .then(async (res) => {
+        setBrand(res.data);
+        if (res.data.latest_scan?.id) {
+          try {
+            const scan = await api<{ data: ScanDetail }>(
+              `/api/v1/brands/${brandId}/scans/${res.data.latest_scan.id}`,
+            );
+            setScanDetail(scan.data);
+          } catch {
+            setScanDetail(null);
+          }
+        }
+      })
       .catch((err) => {
         if (isTenantRequired(err)) setTenantRequired(true);
         else if (isPermissionDenied(err)) setDenied(true);
@@ -97,6 +111,10 @@ export default function BrandDetailPage() {
           ) : null}
         </dl>
       </div>
+
+      {scanDetail ? (
+        <CoverageDisclosure coverage={scanDetail.coverage} scanStatus={scanDetail.status} />
+      ) : null}
 
       <div className="oma-action-grid">
         {!brand.website ? (

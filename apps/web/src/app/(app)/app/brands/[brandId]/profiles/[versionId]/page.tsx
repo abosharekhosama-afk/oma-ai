@@ -114,11 +114,13 @@ export default function ProfileEditorPage() {
 
   async function handleAccept(insightId: string) {
     if (!profile) return;
+    const insight = profile.insights.find((i) => i.id === insightId);
+    if (!insight) return;
     setBusy(true);
     try {
       await apiMutate(`/api/v1/brands/${brandId}/insights/${insightId}/accept`, {
         method: 'POST',
-        body: JSON.stringify({ row_version: profile.row_version }),
+        body: JSON.stringify({ row_version: insight.row_version }),
       });
       await loadProfile();
     } catch (err) {
@@ -130,11 +132,13 @@ export default function ProfileEditorPage() {
 
   async function handleReject(insightId: string) {
     if (!profile) return;
+    const insight = profile.insights.find((i) => i.id === insightId);
+    if (!insight) return;
     setBusy(true);
     try {
       await apiMutate(`/api/v1/brands/${brandId}/insights/${insightId}/reject`, {
         method: 'POST',
-        body: JSON.stringify({ row_version: profile.row_version }),
+        body: JSON.stringify({ row_version: insight.row_version }),
       });
       await loadProfile();
     } catch (err) {

@@ -169,6 +169,20 @@
         ]
       }
     },
+    "/api/v1/tenants/current/memberships": {
+      "get": {
+        "operationId": "TenantController_memberships",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Tenant"
+        ]
+      }
+    },
     "/api/v1/tenants/active": {
       "post": {
         "operationId": "TenantController_activate",

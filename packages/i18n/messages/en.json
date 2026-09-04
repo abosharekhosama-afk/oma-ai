@@ -232,5 +232,14 @@
   "brand.review.noteSave": "Save note",
   "brand.review.noteSaved": "Note saved",
   "brand.review.historyTitle": "Review history",
-  "brand.review.historyEmpty": "No review activity yet"
+  "brand.review.historyEmpty": "No review activity yet",
+  "brand.profile.requiredNotFound": "Required — not found in sources (unknown because the crawl did not observe it).",
+  "brand.profile.optionalUnknown": "Optional — not observed. Absence here means unknown, not proven nonexistent.",
+  "brand.coverage.title": "Scan coverage",
+  "brand.coverage.subsetBody": "Figures below cover only the pages and fields this scan attempt reached — not a claim of complete site coverage.",
+  "brand.coverage.requiredMissing": "Required fields missing",
+  "brand.coverage.unknownFields": "Unknown fields",
+  "brand.coverage.failedPages": "Failed pages",
+  "brand.coverage.skippedPages": "Skipped pages",
+  "brand.coverage.noneListed": "None listed"
 }
