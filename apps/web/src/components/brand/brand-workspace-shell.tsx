@@ -3,10 +3,17 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useT } from '../../lib/use-locale';
+import { StatusChip } from '../ui/status-chip';
 
 type BrandWorkspaceShellProps = {
   brandId: string;
   brandName: string;
+  brandStatus?: string | null;
+  scanStatus?: string | null;
+  profileStatus?: string | null;
+  latestScanId?: string | null;
+  nextStepHref?: string;
+  nextStepLabel?: string;
   children: React.ReactNode;
   aside?: React.ReactNode;
 };
@@ -14,12 +21,19 @@ type BrandWorkspaceShellProps = {
 export function BrandWorkspaceShell({
   brandId,
   brandName,
+  brandStatus,
+  scanStatus,
+  profileStatus,
+  latestScanId,
+  nextStepHref,
+  nextStepLabel,
   children,
   aside,
 }: BrandWorkspaceShellProps) {
   const t = useT();
   const pathname = usePathname();
   const base = `/app/brands/${brandId}`;
+  const scanHref = latestScanId ? `${base}/scans/${latestScanId}` : `${base}/scans/new`;
   const links = [
     { href: base, label: t('brand.nav.overview'), match: (p: string) => p === base },
     {
@@ -28,7 +42,7 @@ export function BrandWorkspaceShell({
       match: (p: string) => p.includes('/connect'),
     },
     {
-      href: `${base}/scans/new`,
+      href: scanHref,
       label: t('brand.nav.scan'),
       match: (p: string) => p.includes('/scans'),
     },
@@ -45,14 +59,26 @@ export function BrandWorkspaceShell({
   ];
 
   return (
-    <div className="oma-brand-shell">
+    <div className="oma-brand-shell" data-testid="brand-workspace">
       <header className="oma-brand-header">
         <div>
           <p className="oma-muted" style={{ margin: 0, fontSize: 12 }}>
             <Link href="/app/brands">{t('brand.list.title')}</Link>
+            <span aria-hidden="true"> / </span>
+            <span>{t('brand.workspace.context')}</span>
           </p>
           <h1 style={{ margin: '0.25rem 0 0' }}>{brandName}</h1>
+          <div className="oma-chip-row">
+            {brandStatus ? <StatusChip status={brandStatus} /> : null}
+            {scanStatus ? <StatusChip status={scanStatus} /> : null}
+            {profileStatus ? <StatusChip status={profileStatus} /> : null}
+          </div>
         </div>
+        {nextStepHref && nextStepLabel ? (
+          <Link href={nextStepHref} className="oma-btn">
+            {nextStepLabel}
+          </Link>
+        ) : null}
       </header>
       <nav className="oma-brand-nav" aria-label={t('brand.nav.label')}>
         <ul>

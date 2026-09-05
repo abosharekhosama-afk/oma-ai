@@ -26,7 +26,7 @@ test.describe('Company onboarding UI', () => {
     await page.getByLabel(/company name/i).fill(`UI Co ${newId().slice(-4)}`);
     await page.getByRole('button', { name: /^create company$/i }).click();
 
-    await expect(page.getByRole('heading', { name: /workspace/i })).toBeVisible({
+    await expect(page.getByRole('heading', { name: /command center|workspace/i })).toBeVisible({
       timeout: 20_000,
     });
 

@@ -25,19 +25,48 @@ export class BrandService {
     });
     const hasMore = rows.length > limit;
     const data = hasMore ? rows.slice(0, limit) : rows;
+    const brandIds = data.map((b) => b.id);
     const sources = await getPrisma().websiteSource.findMany({
-      where: { brandId: { in: data.map((b) => b.id) }, replacedAt: null },
+      where: { brandId: { in: brandIds }, replacedAt: null },
     });
     const sourceByBrand = new Map(sources.map((s) => [s.brandId, s]));
+    const latestScans = brandIds.length
+      ? await getPrisma().scanAttempt.findMany({
+          where: { tenantId, brandId: { in: brandIds } },
+          orderBy: { createdAt: 'desc' },
+        })
+      : [];
+    const scanByBrand = new Map<string, (typeof latestScans)[number]>();
+    for (const scan of latestScans) {
+      if (!scanByBrand.has(scan.brandId)) scanByBrand.set(scan.brandId, scan);
+    }
+    const latestProfiles = brandIds.length
+      ? await getPrisma().profileVersion.findMany({
+          where: { tenantId, brandId: { in: brandIds } },
+          orderBy: { createdAt: 'desc' },
+        })
+      : [];
+    const profileByBrand = new Map<string, (typeof latestProfiles)[number]>();
+    for (const profile of latestProfiles) {
+      if (!profileByBrand.has(profile.brandId)) profileByBrand.set(profile.brandId, profile);
+    }
     return {
-      data: data.map((b) => ({
-        id: b.id,
-        name: b.name,
-        status: b.status,
-        primary_website_url: sourceByBrand.get(b.id)?.normalizedUrl ?? null,
-        current_approved_profile_version_id: b.currentApprovedProfileVersionId,
-        updated_at: b.updatedAt.toISOString(),
-      })),
+      data: data.map((b) => {
+        const scan = scanByBrand.get(b.id);
+        const profile = profileByBrand.get(b.id);
+        return {
+          id: b.id,
+          name: b.name,
+          status: b.status,
+          primary_website_url: sourceByBrand.get(b.id)?.normalizedUrl ?? null,
+          current_approved_profile_version_id: b.currentApprovedProfileVersionId,
+          latest_scan_status: scan?.status ?? null,
+          latest_scan_id: scan?.id ?? null,
+          latest_profile_status: profile?.status ?? null,
+          latest_profile_version_id: profile?.id ?? null,
+          updated_at: b.updatedAt.toISOString(),
+        };
+      }),
       page: { next_cursor: hasMore ? (data[data.length - 1]?.id ?? null) : null, limit },
     };
   }

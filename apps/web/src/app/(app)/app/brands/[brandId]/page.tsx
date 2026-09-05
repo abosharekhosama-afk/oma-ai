@@ -11,6 +11,7 @@ import { BrandWorkspaceShell } from '../../../../../components/brand/brand-works
 import { ConnectorModeChip } from '../../../../../components/brand/connector-mode-banner';
 import { CoverageDisclosure } from '../../../../../components/brand/coverage-disclosure';
 import { PermissionDenied } from '../../../../../components/shell/permission-denied';
+import { StatusChip } from '../../../../../components/ui/status-chip';
 import { useT } from '../../../../../lib/use-locale';
 
 export default function BrandDetailPage() {
@@ -60,16 +61,83 @@ export default function BrandDetailPage() {
   }
 
   const scan = brand.latest_scan;
+  const nextStep = !brand.website
+    ? {
+        href: `/app/brands/${brandId}/connect`,
+        label: t('brand.detail.connectCta'),
+      }
+    : !scan
+      ? {
+          href: `/app/brands/${brandId}/scans/new`,
+          label: t('brand.scan.start'),
+        }
+      : brand.current_approved_profile_version_id
+        ? {
+            href: `/app/brands/${brandId}/profiles/${brand.current_approved_profile_version_id}`,
+            label: t('brand.detail.viewProfile'),
+          }
+        : {
+            href: `/app/brands/${brandId}/profiles`,
+            label: t('brand.detail.intelligenceCta'),
+          };
 
   return (
-    <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
+    <BrandWorkspaceShell
+      brandId={brandId}
+      brandName={brand.name}
+      brandStatus={brand.status}
+      scanStatus={scan?.status}
+      latestScanId={scan?.id}
+      nextStepHref={nextStep.href}
+      nextStepLabel={nextStep.label}
+    >
+      <div className="oma-card">
+        <h2>{t('brand.detail.journeyTitle')}</h2>
+        <ol className="oma-journey-steps">
+          <li>
+            {t('brand.detail.journeyConnect')}:{' '}
+            {brand.website ? (
+              <StatusChip tone="success" label={t('brand.detail.website')} />
+            ) : (
+              <Link href={`/app/brands/${brandId}/connect`}>{t('brand.detail.connectCta')}</Link>
+            )}
+          </li>
+          <li>
+            {t('brand.detail.journeyScan')}:{' '}
+            {scan ? (
+              <Link href={`/app/brands/${brandId}/scans/${scan.id}`}>
+                <StatusChip status={scan.status} />
+              </Link>
+            ) : (
+              <Link href={`/app/brands/${brandId}/scans/new`}>{t('brand.scan.start')}</Link>
+            )}
+          </li>
+          <li>
+            {t('brand.detail.journeyDiscover')}:{' '}
+            {scan ? (
+              <Link href={`/app/brands/${brandId}/discovery/pages`}>
+                {t('brand.discovery.pagesTitle')}
+              </Link>
+            ) : (
+              <span className="oma-muted">{t('brand.detail.noScan')}</span>
+            )}
+          </li>
+          <li>
+            {t('brand.detail.journeyIntelligence')}:{' '}
+            <Link href={`/app/brands/${brandId}/profiles`}>
+              {t('brand.detail.intelligenceCta')}
+            </Link>
+          </li>
+        </ol>
+      </div>
+
       <div className="oma-card">
         <h2>{t('brand.detail.overview')}</h2>
         <dl className="oma-detail-dl">
           <div>
             <dt>{t('brand.detail.status')}</dt>
             <dd>
-              <span className="oma-badge">{brand.status}</span>
+              <StatusChip status={brand.status} />
             </dd>
           </div>
           <div>

@@ -71,7 +71,7 @@ test.describe('Searchable company switcher', () => {
     await option.click();
     // activate() uses full navigation assign to /app — wait for that, do not race reload.
     await expect(page).toHaveURL(/\/app(\/|$)/, { timeout: 20_000 });
-    await page.goto('/app');
+    await page.waitForLoadState('networkidle');
     const after = page
       .getByRole('combobox', { name: /company/i })
       .or(page.locator('[role="combobox"]').first());

@@ -4,6 +4,10 @@ export type BrandListItem = {
   status: string;
   primary_website_url: string | null;
   current_approved_profile_version_id: string | null;
+  latest_scan_status: string | null;
+  latest_scan_id: string | null;
+  latest_profile_status: string | null;
+  latest_profile_version_id: string | null;
   updated_at: string;
 };
 

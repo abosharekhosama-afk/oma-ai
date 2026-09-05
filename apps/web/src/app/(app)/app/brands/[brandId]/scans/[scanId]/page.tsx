@@ -148,20 +148,20 @@ export default function ScanDetailPage() {
         <p aria-hidden="true">
           {scan.progress_percent}% — <span className="oma-badge">{scan.status}</span>
         </p>
-        <dl className="oma-detail-dl">
-          <div>
-            <dt>{t('brand.scan.pagesFetched')}</dt>
-            <dd>{scan.pages_fetched}</dd>
+        <div className="oma-scan-stats" aria-label={t('brand.scan.progressTitle')}>
+          <div className="oma-scan-stat">
+            <strong>{scan.pages_fetched}</strong>
+            <span>{t('brand.scan.pagesFetched')}</span>
           </div>
-          <div>
-            <dt>{t('brand.scan.pagesFailed')}</dt>
-            <dd>{scan.pages_failed}</dd>
+          <div className="oma-scan-stat">
+            <strong>{scan.pages_failed}</strong>
+            <span>{t('brand.scan.pagesFailed')}</span>
           </div>
-          <div>
-            <dt>{t('brand.scan.pagesSkipped')}</dt>
-            <dd>{scan.pages_skipped}</dd>
+          <div className="oma-scan-stat">
+            <strong>{scan.pages_skipped}</strong>
+            <span>{t('brand.scan.pagesSkipped')}</span>
           </div>
-        </dl>
+        </div>
         {scan.error_code ? (
           <p role="alert" style={{ color: 'var(--status-danger)' }}>
             {scan.error_code}

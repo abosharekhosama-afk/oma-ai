@@ -26,7 +26,7 @@ test.describe('Brand UI entry journey', () => {
     await page.getByRole('button', { name: /create a company/i }).click();
     await page.getByLabel(/company name/i).fill(companyA);
     await page.getByRole('button', { name: /^create company$/i }).click();
-    await expect(page.getByRole('heading', { name: /workspace/i })).toBeVisible({
+    await expect(page.getByRole('heading', { name: /command center|workspace/i })).toBeVisible({
       timeout: 20_000,
     });
 
@@ -75,7 +75,7 @@ test.describe('Brand UI entry journey', () => {
       }
     }
 
-    await expect(page.getByRole('heading', { name: /workspace/i })).toBeVisible({
+    await expect(page.getByRole('heading', { name: /command center|workspace/i })).toBeVisible({
       timeout: 20_000,
     });
     await page.getByRole('navigation').getByRole('link', { name: 'Brand Intelligence' }).click();
