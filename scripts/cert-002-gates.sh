@@ -10,7 +10,12 @@ export DATABASE_URL="${E2E_DATABASE_URL:-postgresql://oma@127.0.0.1:5432/oma_ai_
 export E2E_DATABASE_URL="$DATABASE_URL"
 export REDIS_URL="${E2E_REDIS_URL:-redis://127.0.0.1:6379/1}"
 export BOOTSTRAP_PLATFORM_OWNER_EMAIL="${BOOTSTRAP_PLATFORM_OWNER_EMAIL:-platform-owner@example.com}"
-export BOOTSTRAP_PLATFORM_OWNER_PASSWORD="${BOOTSTRAP_PLATFORM_OWNER_PASSWORD:-ChangeMe_PlatformOwner_1!}"
+# Password must come from the environment (CI / local .env) — do not embed literals here.
+if [[ -z "${BOOTSTRAP_PLATFORM_OWNER_PASSWORD:-}" ]]; then
+  echo "BOOTSTRAP_PLATFORM_OWNER_PASSWORD is required for cert bootstrap"
+  exit 1
+fi
+export BOOTSTRAP_PLATFORM_OWNER_PASSWORD
 export BRAND_FIXTURE_CONNECTOR=1
 export OMA_CERTIFICATION=1
 export RATE_LIMIT_PER_MINUTE="${RATE_LIMIT_PER_MINUTE:-0}"
