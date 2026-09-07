@@ -11,13 +11,13 @@ Provider-neutral Feature 002 core and visible product baseline (fixture/refusing
 
 ## Final labels (preserved)
 
-| Label | Value |
-| --- | --- |
-| PROVIDER-NEUTRAL CORE DONE | YES |
-| USER ACCEPTANCE | ACCEPTED |
-| AUTHENTICATED REFERENCE PARITY | PARTIAL |
-| LIVE-INTEGRATION READY | NO |
-| PRODUCTION LAUNCH READY | NO |
+| Label                          | Value    |
+| ------------------------------ | -------- |
+| PROVIDER-NEUTRAL CORE DONE     | YES      |
+| USER ACCEPTANCE                | ACCEPTED |
+| AUTHENTICATED REFERENCE PARITY | PARTIAL  |
+| LIVE-INTEGRATION READY         | NO       |
+| PRODUCTION LAUNCH READY        | NO       |
 
 ## Explicitly not accepted / not closed
 
