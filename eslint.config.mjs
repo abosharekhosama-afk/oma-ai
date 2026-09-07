@@ -19,6 +19,7 @@ export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
+    // Development-OS tooling + Feature 002 cert/review scripts run on Node.
     files: ['scripts/**/*.{js,mjs,cjs}'],
     languageOptions: {
       globals: {
@@ -27,6 +28,10 @@ export default tseslint.config(
         Buffer: 'readonly',
         __dirname: 'readonly',
         __filename: 'readonly',
+        fetch: 'readonly',
+        AbortSignal: 'readonly',
+        setTimeout: 'readonly',
+        URL: 'readonly',
       },
     },
   },

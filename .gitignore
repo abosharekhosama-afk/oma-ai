@@ -14,3 +14,15 @@ artifacts/
 packages/db/prisma/*.db
 .turbo/
 *.tsbuildinfo
+
+# Development OS stage ledgers (keep directory via .gitkeep).
+.dev-os/ledgers/*
+!.dev-os/ledgers/.gitkeep
+
+# Reference inspection: browser sessions and raw captures never enter git.
+.reference/.chrome-profile/
+.reference/**/logs/
+.reference/**/artifacts/
+.reference/**/auth-state.json
+.reference/**/*.storage-state.json
+.opencode/auth.json

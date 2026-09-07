@@ -2,7 +2,7 @@
 
 **Feature Branch**: `002-brand-website-intelligence`
 **Created**: 2026-08-26
-**Status**: `PROVIDER-NEUTRAL CORE DONE` + `VISIBLE PRODUCT BASELINE DONE` — Phases 1–10 implemented with fixture/refusing adapters; `tasks.md` T001–T159 complete; Phase BG (T200–T208) blocked; live crawl/AI vendor wiring still gated until `DEC-004`/`DEC-007` close for those choices. `AUTHENTICATED REFERENCE PARITY: PARTIAL`, `LIVE-INTEGRATION READY: NO`, `PRODUCTION LAUNCH READY: NO`, `USER ACCEPTANCE: PENDING`.
+**Status**: `PROVIDER-NEUTRAL CORE DONE` + `VISIBLE PRODUCT BASELINE DONE` + `USER ACCEPTANCE: ACCEPTED` (2026-09-07) — Phases 1–10 implemented with fixture/refusing adapters; `tasks.md` T001–T159 complete; Phase BG (T200–T208) remain open and decision-gated; live crawl/AI vendor wiring still gated until `DEC-004`/`DEC-007` close for those choices. Certified SHA `0fec2a3372ad5b475f454033ad8413ddc7cb9f25`. `AUTHENTICATED REFERENCE PARITY: PARTIAL`, `LIVE-INTEGRATION READY: NO`, `PRODUCTION LAUNCH READY: NO`.
 **Input**: First product feature after OMA AI Product Foundation — Brand Workspace, website connection, safe async scan, discovery, evidence-backed Brand & Product Intelligence Profile with human approval
 **Parent baseline**: `specs/001-oma-ai-product-foundation/spec.md` — productizes Foundation **US-001** intent as a **Brand Workspace** child of the existing tenant/company (not a parallel company registry).
 **Foundation FR binding (honest subset)**: primarily **FR-012–FR-021** and **FR-024** (sources, safe ingest, observable jobs, extraction, evidence, human correct/accept/reject, refresh without silent overwrite of confirmed rules, insufficient-evidence handling).

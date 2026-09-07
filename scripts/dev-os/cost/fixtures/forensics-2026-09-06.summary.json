@@ -1,0 +1,400 @@
+{
+  "totalEvents": 641,
+  "kinds": {
+    "Free": 77,
+    "On-Demand": 27,
+    "Included": 537
+  },
+  "onDemandEvents": 27,
+  "onDemandCost": 47.96,
+  "totalTokens": 1670602655,
+  "cacheRead": 1573908485,
+  "cacheReadSharePct": 94.21,
+  "byModel": {
+    "auto": {
+      "events": 513,
+      "tokens": 1429312049,
+      "cache": 1354030720,
+      "onDemand": 9,
+      "cost": 27.72
+    },
+    "cursor-grok-4.6-high": {
+      "events": 28,
+      "tokens": 160058334,
+      "cache": 147235456,
+      "onDemand": 3,
+      "cost": 7.8
+    },
+    "cursor-grok-4.6-high-fast": {
+      "events": 28,
+      "tokens": 23165623,
+      "cache": 19870784,
+      "onDemand": 0,
+      "cost": 0
+    },
+    "composer-2.5-fast": {
+      "events": 3,
+      "tokens": 2341808,
+      "cache": 2140864,
+      "onDemand": 0,
+      "cost": 0
+    },
+    "composer-2.5": {
+      "events": 8,
+      "tokens": 27636986,
+      "cache": 26719558,
+      "onDemand": 0,
+      "cost": 0
+    },
+    "gemini-3.1-pro": {
+      "events": 7,
+      "tokens": 947094,
+      "cache": 535629,
+      "onDemand": 3,
+      "cost": 0.5
+    },
+    "claude-fable-5-thinking-high": {
+      "events": 40,
+      "tokens": 10976024,
+      "cache": 8363554,
+      "onDemand": 11,
+      "cost": 11.729999999999999
+    },
+    "gpt-5.6-sol-medium": {
+      "events": 9,
+      "tokens": 3275259,
+      "cache": 2754808,
+      "onDemand": 1,
+      "cost": 0.21
+    },
+    "claude-opus-5-thinking-high": {
+      "events": 2,
+      "tokens": 1246647,
+      "cache": 1060253,
+      "onDemand": 0,
+      "cost": 0
+    },
+    "claude-sonnet-5-thinking-high": {
+      "events": 3,
+      "tokens": 11642831,
+      "cache": 11196859,
+      "onDemand": 0,
+      "cost": 0
+    }
+  },
+  "byDay": {
+    "2026-09-05": {
+      "events": 12,
+      "tokens": 26206106,
+      "onDemand": 0,
+      "cost": 0
+    },
+    "2026-09-04": {
+      "events": 61,
+      "tokens": 123062677,
+      "onDemand": 0,
+      "cost": 0
+    },
+    "2026-08-31": {
+      "events": 2,
+      "tokens": 1728490,
+      "onDemand": 0,
+      "cost": 0
+    },
+    "2026-08-30": {
+      "events": 27,
+      "tokens": 132607331,
+      "onDemand": 12,
+      "cost": 35.519999999999996
+    },
+    "2026-08-29": {
+      "events": 31,
+      "tokens": 171724716,
+      "onDemand": 0,
+      "cost": 0
+    },
+    "2026-08-28": {
+      "events": 88,
+      "tokens": 412808400,
+      "onDemand": 0,
+      "cost": 0
+    },
+    "2026-08-27": {
+      "events": 39,
+      "tokens": 109837892,
+      "onDemand": 0,
+      "cost": 0
+    },
+    "2026-08-26": {
+      "events": 30,
+      "tokens": 49091224,
+      "onDemand": 0,
+      "cost": 0
+    },
+    "2026-08-25": {
+      "events": 58,
+      "tokens": 144702110,
+      "onDemand": 0,
+      "cost": 0
+    },
+    "2026-08-24": {
+      "events": 42,
+      "tokens": 91596246,
+      "onDemand": 0,
+      "cost": 0
+    },
+    "2026-08-23": {
+      "events": 51,
+      "tokens": 82391626,
+      "onDemand": 10,
+      "cost": 7.4399999999999995
+    },
+    "2026-08-22": {
+      "events": 27,
+      "tokens": 30729764,
+      "onDemand": 5,
+      "cost": 5
+    },
+    "2026-08-21": {
+      "events": 96,
+      "tokens": 156888323,
+      "onDemand": 0,
+      "cost": 0
+    },
+    "2026-08-20": {
+      "events": 28,
+      "tokens": 71925383,
+      "onDemand": 0,
+      "cost": 0
+    },
+    "2026-08-19": {
+      "events": 22,
+      "tokens": 52510486,
+      "onDemand": 0,
+      "cost": 0
+    },
+    "2026-08-18": {
+      "events": 1,
+      "tokens": 177247,
+      "onDemand": 0,
+      "cost": 0
+    },
+    "2026-08-16": {
+      "events": 4,
+      "tokens": 1631639,
+      "onDemand": 0,
+      "cost": 0
+    },
+    "2026-08-14": {
+      "events": 2,
+      "tokens": 2110036,
+      "onDemand": 0,
+      "cost": 0
+    },
+    "2026-08-13": {
+      "events": 8,
+      "tokens": 2779430,
+      "onDemand": 0,
+      "cost": 0
+    },
+    "2026-08-12": {
+      "events": 2,
+      "tokens": 2258234,
+      "onDemand": 0,
+      "cost": 0
+    },
+    "2026-08-10": {
+      "events": 6,
+      "tokens": 1198157,
+      "onDemand": 0,
+      "cost": 0
+    },
+    "2026-08-09": {
+      "events": 3,
+      "tokens": 2377327,
+      "onDemand": 0,
+      "cost": 0
+    },
+    "2026-08-08": {
+      "events": 1,
+      "tokens": 259811,
+      "onDemand": 0,
+      "cost": 0
+    }
+  },
+  "fanOutMinutesGe3": 1,
+  "fanOutSamples": [
+    {
+      "minute": "2026-08-21T12:53",
+      "models": [
+        "claude-fable-5-thinking-high",
+        "claude-opus-5-thinking-high",
+        "claude-sonnet-5-thinking-high",
+        "composer-2.5",
+        "gemini-3.1-pro",
+        "gpt-5.6-sol-medium"
+      ]
+    }
+  ],
+  "topPaid": [
+    {
+      "date": "2026-08-30T16:20:39.980Z",
+      "model": "auto",
+      "cost": 10.07,
+      "tokens": 22522431,
+      "cache": 21936102
+    },
+    {
+      "date": "2026-08-30T18:11:03.844Z",
+      "model": "auto",
+      "cost": 6.58,
+      "tokens": 11686513,
+      "cache": 11434640
+    },
+    {
+      "date": "2026-08-30T17:14:30.686Z",
+      "model": "cursor-grok-4.6-high",
+      "cost": 5.5,
+      "tokens": 30594875,
+      "cache": 29325952
+    },
+    {
+      "date": "2026-08-30T16:27:58.415Z",
+      "model": "auto",
+      "cost": 4.55,
+      "tokens": 11930865,
+      "cache": 10363131
+    },
+    {
+      "date": "2026-08-23T19:30:31.695Z",
+      "model": "claude-fable-5-thinking-high",
+      "cost": 2.48,
+      "tokens": 965972,
+      "cache": 862192
+    },
+    {
+      "date": "2026-08-30T18:31:17.533Z",
+      "model": "cursor-grok-4.6-high",
+      "cost": 2.09,
+      "tokens": 3074709,
+      "cache": 2742400
+    },
+    {
+      "date": "2026-08-30T18:28:41.545Z",
+      "model": "auto",
+      "cost": 1.91,
+      "tokens": 2921712,
+      "cache": 2640373
+    },
+    {
+      "date": "2026-08-23T18:12:12.535Z",
+      "model": "claude-fable-5-thinking-high",
+      "cost": 1.73,
+      "tokens": 418415,
+      "cache": 336509
+    },
+    {
+      "date": "2026-08-30T18:12:07.984Z",
+      "model": "auto",
+      "cost": 1.42,
+      "tokens": 2060814,
+      "cache": 1874418
+    },
+    {
+      "date": "2026-08-30T18:30:00.621Z",
+      "model": "auto",
+      "cost": 1.31,
+      "tokens": 2089830,
+      "cache": 1964279
+    }
+  ],
+  "topToken": [
+    {
+      "date": "2026-08-28T18:41:55.117Z",
+      "kind": "Included",
+      "model": "cursor-grok-4.6-high",
+      "tokens": 31459644,
+      "cache": 26963200,
+      "cost": "Included"
+    },
+    {
+      "date": "2026-08-30T17:14:30.686Z",
+      "kind": "On-Demand",
+      "model": "cursor-grok-4.6-high",
+      "tokens": 30594875,
+      "cache": 29325952,
+      "cost": "5.50"
+    },
+    {
+      "date": "2026-08-29T19:08:39.539Z",
+      "kind": "Included",
+      "model": "auto",
+      "tokens": 30267332,
+      "cache": 29495824,
+      "cost": "Included"
+    },
+    {
+      "date": "2026-08-28T18:12:30.563Z",
+      "kind": "Included",
+      "model": "auto",
+      "tokens": 25636435,
+      "cache": 25409776,
+      "cost": "Included"
+    },
+    {
+      "date": "2026-08-19T16:48:16.018Z",
+      "kind": "Included",
+      "model": "auto",
+      "tokens": 25039509,
+      "cache": 24097728,
+      "cost": "Included"
+    },
+    {
+      "date": "2026-08-28T17:41:36.905Z",
+      "kind": "Included",
+      "model": "auto",
+      "tokens": 24431140,
+      "cache": 24121503,
+      "cost": "Included"
+    },
+    {
+      "date": "2026-08-30T16:12:22.493Z",
+      "kind": "Included",
+      "model": "cursor-grok-4.6-high",
+      "tokens": 24261484,
+      "cache": 23684096,
+      "cost": "Included"
+    },
+    {
+      "date": "2026-08-28T17:38:48.201Z",
+      "kind": "Included",
+      "model": "auto",
+      "tokens": 24015024,
+      "cache": 23488994,
+      "cost": "Included"
+    },
+    {
+      "date": "2026-08-28T19:12:42.498Z",
+      "kind": "Included",
+      "model": "auto",
+      "tokens": 23030997,
+      "cache": 22912317,
+      "cost": "Included"
+    },
+    {
+      "date": "2026-08-21T14:12:17.703Z",
+      "kind": "Included",
+      "model": "auto",
+      "tokens": 22650961,
+      "cache": 22171776,
+      "cost": "Included"
+    }
+  ],
+  "findings": {
+    "historicalModelFanOut": "PROVEN",
+    "contextReplay": "PROVEN",
+    "silentOpenCodeToCursorFallback": "UNRESOLVED"
+  },
+  "source": "/Users/mac/Downloads/usage-events-2026-09-06.csv",
+  "status": "OK"
+}

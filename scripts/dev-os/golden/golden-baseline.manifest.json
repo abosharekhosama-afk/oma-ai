@@ -1,0 +1,139 @@
+{
+  "goldenBaselineId": "IMKAN_ONE_DEVELOPMENT_OS_GOLDEN",
+  "version": "1.0.0",
+  "status": "GOLDEN_BASELINE",
+  "updatedAt": "2026-09-07",
+  "conformingProject": {
+    "PROJECT_ID": "OMA_AI",
+    "manifest": "scripts/dev-os/golden/project-manifest.json",
+    "note": "This repository conforms to Golden Development OS v1.0.0. Product logic remains OMA-owned."
+  },
+  "implementationSource": {
+    "repository": "imkan-group/imkanone",
+    "commit": "e8961f8",
+    "note": "IMKAN ONE / People is the CURRENT GOLDEN IMPLEMENTATION SOURCE for Development OS only — NOT for product logic propagation to ISP/OMA."
+  },
+  "owners": {
+    "costPolicy": "docs/DEVELOPMENT_OS_COST_POLICY.md",
+    "goldenContract": "docs/DEVELOPMENT_OS_GOLDEN_BASELINE.md",
+    "orchestrator": ".cursor/rules/opencode-orchestrator.mdc",
+    "routingRegistry": ".cursor/agents/routing-registry.json",
+    "validator": "scripts/dev-os/validate-development-os.mjs",
+    "doctor": "scripts/dev-os/doctor.mjs",
+    "referenceProtocol": "docs/REFERENCE_PARITY_PROTOCOL.md",
+    "tokenWasteAudit": "scripts/dev-os/cost/token-waste-audit.mjs",
+    "usageLedger": "scripts/dev-os/cost/usage-ledger.mjs",
+    "stageRunner": "scripts/dev-os/cost/run-stage.mjs",
+    "evidencePacketSchema": "scripts/dev-os/cost/evidence-packet.schema.json",
+    "goldenCompare": "scripts/dev-os/golden/compare-golden-baseline.mjs",
+    "projectManifestSchema": "scripts/dev-os/golden/project-manifest.schema.json",
+    "workflow": "docs/DEVELOPMENT_WORKFLOW.md",
+    "agentsMd": "AGENTS.md",
+    "projectOrchestrator": ".cursor/rules/oma-orchestrator.mdc"
+  },
+  "requiredComponents": [
+    "orchestrator",
+    "costPolicy",
+    "routingRegistry",
+    "validator",
+    "doctor",
+    "referenceProtocol",
+    "tokenWasteAudit",
+    "usageLedger",
+    "stageRunner",
+    "evidencePacketSchema",
+    "openCodeImplementationWorker",
+    "openCodeReferenceInspector",
+    "codexWorkerRoute"
+  ],
+  "requiredRuntimeRoutes": {
+    "tier0": "deterministic-tools-first",
+    "tier1DefaultHeavy": "opencode:oma-coder",
+    "tier1Reference": "opencode:reference-inspector",
+    "tier2PremiumDefault": 0,
+    "tier2PremiumMax": 1,
+    "codexEscalation": "scripts/ai/codex-worker.sh",
+    "chatGptSubscriptionOpenCodeRoute": "PRESERVE",
+    "paidOpenAiApiFallback": "DENY",
+    "silentPaidCursorFallback": "DENY"
+  },
+  "requiredGates": [
+    "DETERMINISTIC_FIRST",
+    "OPENCODE_DEFAULT_HEAVY",
+    "PREMIUM_DEFAULT_ZERO",
+    "PREMIUM_FAN_OUT_DENIED",
+    "SILENT_PAID_FALLBACK_DENIED",
+    "MODEL_INHERIT_SAFETY",
+    "CONTEXT_MINIMIZATION",
+    "EVIDENCE_PACKET",
+    "RETRY_CONTROL",
+    "TOKEN_WASTE_AUDIT",
+    "USAGE_LEDGER_AUTOMATIC_SUBSTANTIAL",
+    "REFERENCE_INTELLIGENCE_PRESERVED",
+    "QUALITY_CAPABILITY_REGRESSION_ZERO"
+  ],
+  "coreIdenticalAcrossProjects": [
+    "orchestrator architecture",
+    "execution tiers",
+    "OpenCode routing contract",
+    "Codex escalation contract",
+    "Reference Inspector contract",
+    "Playwright E2E role",
+    "Verifier / False Completion / Convergence",
+    "Git/worktree safety",
+    "cost governor",
+    "premium-default-zero",
+    "no fan-out",
+    "no silent paid fallback",
+    "context minimization",
+    "evidence packet",
+    "retry policy",
+    "Token Waste Audit",
+    "usage ledger + substantial stage runner",
+    "validator/doctor contracts"
+  ],
+  "projectSpecificMustNotPropagate": [
+    "product roadmap",
+    "phase status",
+    "reference authorities",
+    "reference access policies",
+    "product specs",
+    "tenant/domain semantics",
+    "product exceptions",
+    "branches/worktrees",
+    "credentials",
+    "CDP profiles/ports",
+    "application modules",
+    "product SoT decisions",
+    "People/Zoho parity directives",
+    "Payroll boundaries",
+    "P8 Onboarding product state",
+    "ISP Teamworks/Sportdata/Smoothcomp authorities"
+  ],
+  "platformLimitations": {
+    "PARENT_TASK_VM_HARD_BLOCK": "NOT_PLATFORM_ENFORCEABLE",
+    "compensatingControls": [
+      "routing registry",
+      "validator",
+      "token-waste audit",
+      "automatic stage ledger",
+      "completion gate"
+    ]
+  },
+  "paths": {
+    "openCodeImplementationWorker": ".opencode/agents/oma-coder.md",
+    "openCodeReferenceInspector": ".opencode/agents/reference-inspector.md",
+    "codexWorkerRoute": "scripts/ai/codex-worker.sh",
+    "ledgerRoot": ".dev-os/ledgers/",
+    "projectManifest": "scripts/dev-os/golden/project-manifest.json"
+  },
+  "comparisonVocabulary": [
+    "MATCH",
+    "MISSING",
+    "OUTDATED",
+    "PROJECT_SPECIFIC",
+    "CONFLICT",
+    "RUNTIME_NOT_CONFIGURED",
+    "MATCH_STRONGER_IMPLEMENTATION"
+  ]
+}

@@ -11,6 +11,7 @@ export default defineConfig({
       'tests/contract/**/*.test.ts',
       'tests/security/**/*.test.ts',
       'tests/unit/**/*.test.ts',
+      'tests/dev-os/**/*.test.ts',
     ],
     testTimeout: 60000,
     hookTimeout: 60000,

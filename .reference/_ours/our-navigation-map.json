@@ -1,0 +1,42 @@
+{
+  "meta": {
+    "project": "oma-ai",
+    "generatedAt": "2026-08-29T18:32:24.972Z",
+    "source": "apps/web/src/app",
+    "generator": "scripts/reference/build-our-navigation-map.mjs"
+  },
+  "nodes": [
+    {
+      "id": "/",
+      "parentId": null,
+      "route": "/",
+      "label": "Public landing",
+      "surfaceType": "PUBLIC_LANDING",
+      "dynamicSegments": []
+    },
+    {
+      "id": "/app",
+      "parentId": "/",
+      "route": "/app",
+      "label": "app",
+      "surfaceType": "PAGE",
+      "dynamicSegments": []
+    },
+    {
+      "id": "/login",
+      "parentId": "/",
+      "route": "/login",
+      "label": "login",
+      "surfaceType": "AUTH",
+      "dynamicSegments": []
+    },
+    {
+      "id": "/register",
+      "parentId": "/",
+      "route": "/register",
+      "label": "register",
+      "surfaceType": "AUTH",
+      "dynamicSegments": []
+    }
+  ]
+}

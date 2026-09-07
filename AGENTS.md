@@ -7,9 +7,18 @@
 3. The smallest relevant artifact under `specs/`.
 4. `docs/DESIGN_REFERENCE_STRATEGY.md` for product-shell, UI, interaction, or visual work.
 5. Existing repository architecture, source-of-truth ownership, and tests.
-6. `docs/CURSOR_WORKFLOW.md` and on-demand skills.
+6. `docs/CURSOR_WORKFLOW.md`, `docs/REFERENCE_PARITY_PROTOCOL.md` for reference-driven work, and on-demand skills.
+7. Development OS Golden v1.0.0 owners: `docs/DEVELOPMENT_OS_GOLDEN_BASELINE.md`, `docs/DEVELOPMENT_OS_COST_POLICY.md`, `docs/DEVELOPMENT_WORKFLOW.md`, `.cursor/rules/opencode-orchestrator.mdc`, `.cursor/agents/routing-registry.json`, `scripts/dev-os/golden/project-manifest.json`.
 
 Report conflicts instead of silently choosing one source.
+
+## Development OS (Golden v1.0.0)
+
+- Conforms to IMKAN ONE Development OS Golden baseline `1.0.0` for **orchestration/cost/routing only**.
+- Default heavy worker: OpenCode `oma-coder`. Reference evidence: OpenCode `reference-inspector`. Codex is escalation only.
+- Cursor premium specialists default to **0** invocations; max **1** with justification. No silent paid fallback when OpenCode is unavailable.
+- Substantial stages: `pnpm dev-os:stage`. Gates: `pnpm dev-os:validate`, `pnpm dev-os:token-waste`, `pnpm dev-os:golden-compare`.
+- Product behavior remains OMA-owned; do not import People/ISP product rules.
 
 ## Current product state
 
@@ -54,7 +63,8 @@ Before editing:
 ## Agent orchestration
 
 - Cursor is the parent orchestrator when work starts in Cursor.
-- Use built-in Explore for noisy repository discovery and built-in Browser for browser automation.
+- Use built-in Explore for noisy repository discovery and built-in Browser for our own application.
+- External reference products are inspected only by the Reference Inspection Worker, which is read-only with respect to application source. The parent does not drive the reference browser and does not answer reference-parity questions from memory. See `docs/REFERENCE_PARITY_PROTOCOL.md`.
 - Use `oma-spec-auditor` before technical planning or when scope/ownership is disputed.
 - Use `oma-verifier` after implementation and before claiming completion.
 - Start with zero subagents. Use no more than two concurrently, only for independent context-heavy work.

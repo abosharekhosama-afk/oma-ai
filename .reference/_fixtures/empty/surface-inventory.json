@@ -1,0 +1,10 @@
+{
+  "$comment": "Fixture: must be REJECTED. Schema-shaped but carries no observation, which is the failure mode where an inspection reports success having captured nothing.",
+  "meta": {
+    "referenceId": "fixture-reference",
+    "capturedAt": "2026-08-29T00:00:00.000Z",
+    "inspectionMode": "PAGE_INSPECTION",
+    "outcome": "SUCCESS"
+  },
+  "surfaces": []
+}

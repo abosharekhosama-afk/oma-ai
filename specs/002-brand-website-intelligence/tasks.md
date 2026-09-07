@@ -531,9 +531,9 @@ If implement discovers behavior not in spec/plan/contracts → update smallest a
 | Controlled cost               | No premium vendor tasks in core                         |
 | Specs evolve                  | T154 sync                                               |
 
-**Implementation status**: `IMPLEMENT_REFERENCE_GAPS_002` proofs complete for unblocked gaps. `DEC-015: RESOLVED — OPTION A`. Phase GM T160–T173 + T130/T131/T136 closed with evidence; Phase BG T200–T208 remain blocked. Target: `VISIBLE_PRODUCT_BASELINE_002: VERIFIED` after full gates. `AUTHENTICATED REFERENCE PARITY: PARTIAL`; `LIVE-INTEGRATION READY: NO`; `PRODUCTION LAUNCH READY: NO`; `USER ACCEPTANCE: PENDING`.
+**Implementation status**: `IMPLEMENT_REFERENCE_GAPS_002` proofs complete for unblocked gaps. `DEC-015: RESOLVED — OPTION A`. Phase GM T160–T173 + T130/T131/T136 closed with evidence; Phase BG T200–T208 remain blocked. `VISIBLE_PRODUCT_BASELINE_002: VERIFIED`. Certification `CERTIFICATION_VISIBLE_PRODUCT_002: PASS` at `0fec2a3372ad5b475f454033ad8413ddc7cb9f25`. `AUTHENTICATED REFERENCE PARITY: PARTIAL`; `LIVE-INTEGRATION READY: NO`; `PRODUCTION LAUNCH READY: NO`; `USER ACCEPTANCE: ACCEPTED` (2026-09-07).
 
-**Next step**: merge-readiness review only — not `/speckit-implement`. No merge is performed at this stage.
+**Next step**: deliver Feature 002 to `main` through a reviewed PR; do not start Feature 003 or Phase BG without closed decisions.
 
 ### Phase VP — Visible product recovery (completed outside T001–T159)
 
@@ -558,14 +558,14 @@ If implement discovers behavior not in spec/plan/contracts → update smallest a
 | VP15 | `TENANT_REQUIRED` renders as select-a-company guidance instead of a raw error; login activates the sole tenant when a user belongs to exactly one                                                 |
 | VP16 | `db:seed:demo` loads the workspace `.env` itself, so the documented demo command works on a fresh checkout                                                                                        |
 
-Status after Phase GM proofs: `VISIBLE_PRODUCT_BASELINE_002: VERIFIED` candidate after independent gates. `AUTHENTICATED_REFERENCE_PARITY: PARTIAL`, `LIVE-INTEGRATION READY: NO`, `PRODUCTION LAUNCH READY: NO`, `USER ACCEPTANCE: PENDING`. See `gap-matrix/`.
+Status after Phase GM proofs and Owner acceptance: `VISIBLE_PRODUCT_BASELINE_002: VERIFIED`. `AUTHENTICATED_REFERENCE_PARITY: PARTIAL`, `LIVE-INTEGRATION READY: NO`, `PRODUCTION LAUNCH READY: NO`, `USER ACCEPTANCE: ACCEPTED` (2026-09-07). See `gap-matrix/` and `closeout.md`.
 
 ---
 
 ## Notes
 
 - Status: `PROVIDER-NEUTRAL CORE DONE` — `LIVE-INTEGRATION READY: NO`, `PRODUCTION LAUNCH READY: NO`
-- T001–T159: all closed including T130/T131/T136. Phase GM T160–T173 closed with evidence. Phase BG T200–T208 remain `[ ]` (9 blocked). `DEC-015: RESOLVED — OPTION A` (2026-09-04). `AUTHENTICATED REFERENCE PARITY: PARTIAL`; `LIVE-INTEGRATION READY: NO`; `PRODUCTION LAUNCH READY: NO`; `USER ACCEPTANCE: PENDING`.
+- T001–T159: all closed including T130/T131/T136. Phase GM T160–T173 closed with evidence. Phase BG T200–T208 remain `[ ]` (9 blocked). `DEC-015: RESOLVED — OPTION A` (2026-09-04). `AUTHENTICATED REFERENCE PARITY: PARTIAL`; `LIVE-INTEGRATION READY: NO`; `PRODUCTION LAUNCH READY: NO`; `USER ACCEPTANCE: ACCEPTED` (2026-09-07).
 - `[P]` = parallel-safe file isolation
 - Do not mark Phase BG complete without closed decisions + explicit implement authorization
 - `DEC-003`–`DEC-012` stay open; Phase BG unblocks only after the owning decision closes

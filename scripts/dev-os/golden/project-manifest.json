@@ -1,0 +1,32 @@
+{
+  "PROJECT_ID": "OMA_AI",
+  "PROJECT_NAME": "OMA AI",
+  "REPOSITORY": "burhanbakri1-spec/oma-ai",
+  "PRODUCT_SPEC_ROOT": "specs/",
+  "PROJECT_ROADMAP_OWNER": "specs/001-oma-ai-product-foundation/spec.md",
+  "REFERENCE_AUTHORITIES": [
+    "Linear (shell density / navigation / panels / restrained motion)",
+    "Planable (review / approval / collaboration clarity)",
+    "Semrush (website intelligence hierarchy / coverage / evidence)",
+    "Jasper Brand IQ (brand profile organization — DOC_VERIFIED / REFERENCE_LIMITED)",
+    "Frame.io (version compare / review history / evidence panels)"
+  ],
+  "REFERENCE_ACCESS_POLICIES": [
+    "PUBLIC_SOURCE_ONLY where registry marks it",
+    "Authenticated CDP sessions are human-gated (AUTH_REQUIRED)",
+    "DEC-013 reference roles — pattern study only; never copy assets/branding"
+  ],
+  "IMPLEMENTATION_WORKER_NAME": "oma-coder",
+  "REFERENCE_WORKER_NAME": "reference-inspector",
+  "APPLICATION_E2E_ROUTE": "pnpm test:e2e",
+  "PROJECT_SPECIFIC_RULES": [
+    ".cursor/rules/oma-orchestrator.mdc",
+    "AGENTS.md",
+    ".specify/memory/constitution.md",
+    "docs/REFERENCE_PARITY_PROTOCOL.md",
+    "docs/DESIGN_REFERENCE_STRATEGY.md",
+    "docs/CURSOR_WORKFLOW.md"
+  ],
+  "CURRENT_PRODUCT_PHASE": "Feature 002 brand-website-intelligence (product branch separate from OS convergence)",
+  "GOLDEN_OS_VERSION_PIN": "1.0.0"
+}

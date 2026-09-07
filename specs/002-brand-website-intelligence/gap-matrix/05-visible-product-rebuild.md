@@ -49,4 +49,5 @@ Implemented remaining UI depth on Feature 002 branch (no live crawl/AI):
 - Members capability profile assign UI; permission-denied i18n
 - Targeted E2E: `tests/e2e/brand-visible-surfaces-002.e2e.ts`
 
-Still deferred / not claimed: DEC-003–012 live providers, Feature 003, USER ACCEPTANCE, LIVE-INTEGRATION READY.
+Still deferred / not claimed as ready: DEC-003–012 live providers, Feature 003, LIVE-INTEGRATION READY, PRODUCTION LAUNCH READY.  
+`USER ACCEPTANCE: ACCEPTED` (2026-09-07) for the provider-neutral core only — see `../closeout.md`.
