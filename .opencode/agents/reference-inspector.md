@@ -1,16 +1,42 @@
 ---
-name: reference-inspector
-description: Inspects an external reference product over an existing authenticated Chrome CDP session and returns structured reference evidence. Read-only with respect to application source.
-tools:
-  allow:
-    - browser
-    - read
-    - write
-  write_paths:
-    - .reference/**
-  deny:
-    - git
-    - shell_write
+description: External reference inspection agent. Explores a third-party reference over a dedicated Chrome CDP session and returns structured functional evidence. Read-only with respect to this repository's source.
+mode: all
+temperature: 0.1
+steps: 80
+
+permission:
+  read:
+    "*": allow
+    "*.env": deny
+    "*.env.*": deny
+    "**/auth.json": deny
+
+  glob: allow
+  grep: allow
+  lsp: deny
+
+  # Evidence roots only. Product source remains denied — also enforced by
+  # scripts/reference/lib/source-integrity.mjs after every run.
+  edit:
+    ".reference/**": allow
+    "*": deny
+
+  chrome-devtools_*: allow
+  playwright_*: allow
+
+  task:
+    "*": deny
+
+  todowrite: deny
+  todoread: deny
+
+  # Default-deny shell. Preflight/validate/evidence scripts are human- or
+  # parent-invoked; the inspector must not mutate product source via bash.
+  bash:
+    "*": deny
+    "pwd": allow
+    "ls": allow
+    "ls *": allow
 ---
 
 # Reference Inspection Worker

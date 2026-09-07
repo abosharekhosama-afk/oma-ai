@@ -44,6 +44,41 @@ async function main() {
     file('.cursor/rules/oma-orchestrator.mdc') ? 'PASS' : 'BLOCKED',
     '.cursor/rules/oma-orchestrator.mdc',
   );
+  row(
+    'COST ORCHESTRATOR',
+    file('.cursor/rules/opencode-orchestrator.mdc') ? 'PASS' : 'BLOCKED',
+    '.cursor/rules/opencode-orchestrator.mdc',
+  );
+  row(
+    'ROUTING REGISTRY',
+    file('.cursor/agents/routing-registry.json') ? 'PASS' : 'BLOCKED',
+    '.cursor/agents/routing-registry.json',
+  );
+  row(
+    'GOLDEN MANIFEST',
+    file('scripts/dev-os/golden/golden-baseline.manifest.json') ? 'PASS' : 'BLOCKED',
+    'Development OS Golden v1.0.0',
+  );
+  row(
+    'PROJECT MANIFEST',
+    file('scripts/dev-os/golden/project-manifest.json') ? 'PASS' : 'BLOCKED',
+    'scripts/dev-os/golden/project-manifest.json',
+  );
+  row(
+    'COST POLICY',
+    file('docs/DEVELOPMENT_OS_COST_POLICY.md') ? 'PASS' : 'BLOCKED',
+    'docs/DEVELOPMENT_OS_COST_POLICY.md',
+  );
+  row(
+    'OPENCODE IMPLEMENTATION WORKER',
+    file('.opencode/agents/oma-coder.md') ? 'PASS' : 'BLOCKED',
+    '.opencode/agents/oma-coder.md',
+  );
+  row(
+    'STAGE LEDGER RUNNER',
+    file('scripts/dev-os/cost/run-stage.mjs') ? 'PASS' : 'BLOCKED',
+    'scripts/dev-os/cost/run-stage.mjs',
+  );
   row('AGENTS CONTRACT', file('AGENTS.md') ? 'PASS' : 'BLOCKED', 'AGENTS.md');
   row(
     'SPEC KIT',
@@ -109,19 +144,62 @@ async function main() {
   // Route and runtime are reported separately: a wired, documented route is not
   // evidence that the worker can actually execute.
   const opencode = await which('opencode');
-  row('OPENCODE ROUTE', 'CONFIGURED_IN_OS', 'docs/CURSOR_WORKFLOW.md agent routing table');
-  row('OPENCODE CLI', opencode ? 'AVAILABLE' : 'NOT_CONFIGURED', opencode ?? 'not on PATH');
+  row(
+    'OPENCODE ROUTE',
+    file('opencode.json') && file('.opencode/agents/oma-coder.md') ? 'CONFIGURED_IN_OS' : 'BLOCKED',
+    'opencode.json + oma-coder (Tier 1 default heavy)',
+  );
+  row('OPENCODE CLI', opencode ? 'READY' : 'NOT_CONFIGURED', opencode ?? 'not on PATH');
+  let openCodeAuth = 'NOT_OBSERVABLE';
+  let openCodeAuthDetail = 'unable to query credentials';
+  if (opencode) {
+    try {
+      const { stdout } = await run(opencode, ['auth', 'list'], {
+        cwd: REPO_ROOT,
+        env: process.env,
+      });
+      const text = String(stdout || '');
+      if (/0 credentials/i.test(text)) {
+        // OpenCode may still run via a local/default provider; auth list emptiness
+        // is not alone sufficient to claim BLOCKED. Report accurately.
+        openCodeAuth = 'AUTH_LIST_EMPTY';
+        openCodeAuthDetail =
+          'opencode auth list → 0 credentials; verify with implementation smoke / opencode auth login if provider needed';
+      } else if (/credential/i.test(text)) {
+        openCodeAuth = 'READY';
+        openCodeAuthDetail = 'credentials present (details omitted)';
+      } else {
+        openCodeAuth = 'NOT_OBSERVABLE';
+        openCodeAuthDetail = 'auth list returned no clear credential count';
+      }
+    } catch (err) {
+      openCodeAuth = 'NOT_OBSERVABLE';
+      openCodeAuthDetail = err.message?.split('\n')[0] || 'auth list failed';
+    }
+  } else {
+    openCodeAuth = 'BLOCKED';
+    openCodeAuthDetail = 'CLI missing';
+  }
+  row('OPENCODE AUTH/PROVIDER', openCodeAuth, openCodeAuthDetail);
   row(
     'REFERENCE INSPECTOR RUNTIME',
-    opencode ? 'AVAILABLE' : 'NOT_CONFIGURED',
+    opencode && (openCodeAuth === 'READY' || openCodeAuth === 'AUTH_LIST_EMPTY')
+      ? 'CLI_READY_VERIFY_SMOKE'
+      : opencode
+        ? 'RUNTIME_NOT_CONFIGURED'
+        : 'NOT_CONFIGURED',
     opencode
-      ? 'contract present and CLI available; run pnpm ref:smoke to verify'
+      ? `CLI present; auth=${openCodeAuth}; run pnpm ref:smoke after provider login if needed`
       : 'contract present, CLI missing — runtime unverified',
   );
 
   const codex = await which('codex');
-  row('CODEX ROUTE', 'PRESERVED', 'docs/CURSOR_WORKFLOW.md agent routing table');
-  row('CODEX CLI', codex ? 'AVAILABLE' : 'NOT_CONFIGURED', codex ?? 'not on PATH');
+  row(
+    'CODEX ROUTE',
+    file('scripts/ai/codex-worker.sh') ? 'CONFIGURED_IN_OS' : 'BLOCKED',
+    'scripts/ai/codex-worker.sh (escalation only)',
+  );
+  row('CODEX CLI', codex ? 'READY' : 'NOT_CONFIGURED', codex ?? 'not on PATH');
 
   row(
     'PLAYWRIGHT APPLICATION E2E',
@@ -252,9 +330,9 @@ async function main() {
     await run(process.execPath, [join(REPO_ROOT, 'scripts/dev-os/validate-development-os.mjs')], {
       cwd: REPO_ROOT,
     });
-    row('DEVELOPMENT OS', 'VALID', 'pnpm devos:validate');
+    row('DEVELOPMENT OS', 'VALID', 'pnpm dev-os:validate');
   } catch {
-    row('DEVELOPMENT OS', 'BLOCKED', 'pnpm devos:validate reports DEVELOPMENT_OS_INVALID');
+    row('DEVELOPMENT OS', 'BLOCKED', 'pnpm dev-os:validate reports DEVELOPMENT_OS_INVALID');
   }
 
   const width = Math.max(...rows.map((r) => r.area.length));

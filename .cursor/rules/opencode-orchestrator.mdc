@@ -1,0 +1,102 @@
+---
+description: Lean worker routing — OpenCode default, Codex escalation, cost/token hardening, premium specialist default 0. Details in docs.
+alwaysApply: true
+---
+
+# Cursor ↔ OpenCode Orchestrator (enforcement layer)
+
+**Objective:** high product quality · **NO_DUPLICATE_INTELLIGENCE** · maximum fidelity per token · no premium fan-out.
+
+Routing map: [`docs/DEVELOPMENT_WORKFLOW.md`](../../docs/DEVELOPMENT_WORKFLOW.md).  
+**Cost policy (canonical):** [`docs/DEVELOPMENT_OS_COST_POLICY.md`](../../docs/DEVELOPMENT_OS_COST_POLICY.md).  
+Agent registry: [`.cursor/agents/routing-registry.json`](../agents/routing-registry.json).  
+Project orchestration (OMA-specific): [`.cursor/rules/oma-orchestrator.mdc`](./oma-orchestrator.mdc).  
+Golden contract: [`docs/DEVELOPMENT_OS_GOLDEN_BASELINE.md`](../../docs/DEVELOPMENT_OS_GOLDEN_BASELINE.md).
+
+## Compact stage command (prefer)
+
+```
+MODE · SCOPE · CURRENT_PHASE · TARGET_OUTCOME · SPECIAL_CONSTRAINTS · STOP_CONDITION
+```
+
+Then resolve durable owners (`AGENTS.md`, Spec, plan, tasks, cost policy, reference protocol). Do **not** replay the full Development OS in every user message.
+
+## Execution tiers (mandatory)
+
+| Tier | Use |
+|------|-----|
+| **0 Deterministic** | git/rg/find/JSON/CSV/typecheck/lint/tests/build/CI/artifact validate — **first when sufficient** |
+| **1 OpenCode** | default heavy implementation · explore · reference inspector · evidence prep — **subscription route** |
+| **2 Cursor specialist** | rare escalation after evidence packet — **default 0 / max 1** |
+
+Paid OpenAI API fallback: **DENY**. Silent Cursor premium after OpenCode failure: **DENY** → `BLOCKED_BY_OPENCODE_ROUTE` / `BLOCKED_BY_OPENCODE_LIMIT` / `BLOCKED_BY_OPENCODE_RUNTIME`.
+
+## Model pins (escalation only — default invocation 0)
+
+| Role | Agent | Pin | Default invoke |
+|------|-------|-----|----------------|
+| Spec / ownership audit | `oma-spec-auditor` | explicit or safe inherit | **0** |
+| Completion verifier | `oma-verifier` | explicit or safe inherit | **0** |
+| Default implementation | OpenCode `oma-coder` | subscription route | **YES** |
+| Complex coding escalation | Codex CLI | ChatGPT plan | escalation |
+| External reference | OpenCode `reference-inspector` | — | **YES** for ref work |
+
+Do **not** fan out premium specialists as a panel.
+
+## Hard no-fan-out + total-call guard
+
+**CURSOR PREMIUM PARALLEL FAN-OUT = 0**  
+**CURSOR PREMIUM SEQUENTIAL REDUNDANT FAN-OUT = 0**  
+**DEFAULT CURSOR SPECIALIST SUBAGENTS PER STAGE = 0**  
+**MAX WITHOUT `WHY_TWO_SPECIALISTS_REQUIRED` = 1**
+
+Count **total** specialist invocations per stage (not only concurrent). Same-role repeat without new evidence → **STOP**.
+
+Runtime limitation: Cursor cannot hard-block Parent `Task` calls; violation is caught by policy + `pnpm dev-os:token-waste` + routing tests. Do not claim undocumented hard VM enforcement.
+
+## Model inherit safety
+
+`INHERIT_FROM_HIGH_COST_PARENT` = **NOT AUTOMATIC**.  
+Classify agents in `routing-registry.json`. Do not spawn inherit children from a high-cost parent unless `SAFE_TO_INHERIT` / `SPECIALIST_EXPLICIT_OR_SAFE_INHERIT` with justification.
+
+## Context hygiene
+
+**MINIMUM NECESSARY CONTEXT.** Evidence packet before any Tier-2 specialist:
+
+`DECISION · QUESTION · RELEVANT_FILES · RELEVANT_DIFF · SPEC_IDS · REFERENCE_IDS · CONSTRAINTS · FACTS · UNKNOWN · RISKS`
+
+Schema: `scripts/dev-os/cost/evidence-packet.schema.json`.
+
+## Retry control
+
+Retry only with new evidence / corrected input / changed env / fixed config / smaller scope / different justified route. Else **STOP**.
+
+## Reference isolation (OMA)
+
+Before reference UI work: **REFERENCE_ID** from `.reference/registry.json`.  
+Cursor Parent does **not** perform browser-heavy external-reference inspection — delegate to `pnpm ref:inspect` / OpenCode `reference-inspector`.  
+`docs/REFERENCE_PARITY_PROTOCOL.md` is canonical for OMA reference intelligence.
+
+## PREMIUM_INSPECTION_ISOLATION (permanent)
+
+Premium models reason over **prepared evidence** — they do not collect broad evidence by default.
+
+Prepare first (Tier 0/1): scripts · targeted grep · Reference Inspector → compact packet → then premium (if needed).
+
+## Substantial stages → automatic ledger
+
+Substantial Development OS stages run via `pnpm dev-os:stage` (or equivalent). Ledger capture is **AUTOMATIC** — no `--ledger` flag required.
+
+Substantial equivalents: REFERENCE_DISCOVERY · SPEC · PLAN · TASKS · IMPLEMENT · BUG_COMPLEX · E2E · CERTIFICATION · FINAL_VERIFICATION · CONVERGENCE · large investigation.
+
+## Completion gates
+
+Before claiming done: `pnpm dev-os:validate`, relevant tests, and `pnpm dev-os:token-waste` when the stage was substantial / used workers.
+
+## NO HEAVY CURSOR FALLBACK
+
+If OpenCode is unavailable or fails for Tier-1 heavy work: **STOP** the affected work with an explicit blocker. Do not silently continue on Cursor premium, On-Demand, or paid API routes.
+
+## Safety / git
+
+Follow repository Git policy. No force-push to main. No `--no-verify`. Prefer dedicated OS/product branches. Never expose credentials.
