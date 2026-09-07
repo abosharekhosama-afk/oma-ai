@@ -45,6 +45,7 @@ jobs:
       OMA_WRITE_OPENAPI: '0'
       E2E_REUSE_SERVERS: '1'
       BRAND_FIXTURE_CONNECTOR: '1'
+      RATE_LIMIT_PER_MINUTE: '0'
       CI: 'true'
     steps:
       - uses: actions/checkout@v4

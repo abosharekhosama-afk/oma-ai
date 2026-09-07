@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { getPrisma } from '@oma/db';
-import { newId } from '@oma/domain';
+import { SYSTEM_PROFILES, newId } from '@oma/domain';
 import { registerBrandOwner, trackE2eTenant } from './helpers/brand-api';
 import { webOrigin } from './helpers/brand-ui';
 
@@ -16,6 +16,29 @@ test.describe('Searchable company switcher', () => {
     test.skip(testInfo.project.name !== 'en-desktop', 'run once on en-desktop');
     const owner = await registerBrandOwner(request);
     const prisma = getPrisma();
+    const caps = SYSTEM_PROFILES.COMPANY_OWNER ?? ['brand.read', 'notification.read'];
+
+    async function addMembership(tenantId: string) {
+      const membershipId = newId();
+      await prisma.membership.create({
+        data: {
+          id: membershipId,
+          tenantId,
+          userId: owner.userId,
+          status: 'ACTIVE',
+        },
+      });
+      await prisma.capabilityGrant.createMany({
+        data: caps.map((capabilityCode) => ({
+          id: newId(),
+          membershipId,
+          tenantId,
+          capabilityCode,
+          grantedBy: owner.userId,
+        })),
+      });
+    }
+
     const targetName = `Needle Co ${newId().slice(-4)}`;
     const target = await prisma.tenant.create({
       data: {
@@ -26,14 +49,7 @@ test.describe('Searchable company switcher', () => {
       },
     });
     trackE2eTenant(target.id);
-    await prisma.membership.create({
-      data: {
-        id: newId(),
-        tenantId: target.id,
-        userId: owner.userId,
-        status: 'ACTIVE',
-      },
-    });
+    await addMembership(target.id);
     for (let i = 0; i < 12; i++) {
       const t = await prisma.tenant.create({
         data: {
@@ -44,14 +60,7 @@ test.describe('Searchable company switcher', () => {
         },
       });
       trackE2eTenant(t.id);
-      await prisma.membership.create({
-        data: {
-          id: newId(),
-          tenantId: t.id,
-          userId: owner.userId,
-          status: 'ACTIVE',
-        },
-      });
+      await addMembership(t.id);
     }
 
     const origin = webOrigin();
@@ -71,9 +80,9 @@ test.describe('Searchable company switcher', () => {
     await option.click();
     // activate() uses full navigation assign to /app — wait for that, do not race reload.
     await expect(page).toHaveURL(/\/app(\/|$)/, { timeout: 20_000 });
-    await page.waitForLoadState('networkidle');
+    await page.waitForLoadState('domcontentloaded');
     const after = page
-      .getByRole('combobox', { name: /company/i })
+      .getByRole('combobox', { name: /company|tenant/i })
       .or(page.locator('[role="combobox"]').first());
     await expect(after).toBeVisible({ timeout: 20_000 });
     await expect(after).toHaveAttribute('placeholder', new RegExp(targetName.slice(0, 8), 'i'));

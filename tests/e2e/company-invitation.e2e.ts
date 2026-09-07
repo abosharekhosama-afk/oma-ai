@@ -29,7 +29,9 @@ test.describe('Invitation UI', () => {
     await page.getByLabel(/invitation token/i).fill(invite_token);
     await page.getByRole('button', { name: /accept invitation/i }).click();
     await expect(page).toHaveURL(/\/app(\/|$)/, { timeout: 20_000 });
-    await expect(page.getByRole('heading', { name: /command center|workspace|choose a company/i })).toBeVisible();
+    await expect(
+      page.getByRole('heading', { name: /command center|workspace|choose a company/i }),
+    ).toBeVisible();
   });
 
   test('wrong email cannot accept invitation', async ({ request }, testInfo) => {

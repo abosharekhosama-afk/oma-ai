@@ -35,18 +35,25 @@ await Promise.all([
 await shot('01-home');
 await page.goto(`${base}/app/brands`, { waitUntil: 'networkidle' });
 await shot('02-brands');
-const link = page.locator('a.oma-brand-list-item, a[href*="/app/brands/"]').filter({ hasText: /Demo|Acme|Globex|Northwind/i }).first();
+const link = page
+  .locator('a.oma-brand-list-item, a[href*="/app/brands/"]')
+  .filter({ hasText: /Demo|Acme|Globex|Northwind/i })
+  .first();
 if (await link.count()) {
   await link.click();
   await page.waitForLoadState('networkidle');
   await shot('03-brand-overview');
-  const scanLink = page.getByRole('link', { name: /SUCCEEDED|PARTIAL|FAILED|QUEUED|RUNNING/i }).first();
+  const scanLink = page
+    .getByRole('link', { name: /SUCCEEDED|PARTIAL|FAILED|QUEUED|RUNNING/i })
+    .first();
   if (await scanLink.count()) {
     await scanLink.click();
     await page.waitForLoadState('networkidle');
     await shot('04-scan');
   }
-  await page.goto(page.url().replace(/\/scans\/.*/, '/profiles'), { waitUntil: 'networkidle' }).catch(() => {});
+  await page
+    .goto(page.url().replace(/\/scans\/.*/, '/profiles'), { waitUntil: 'networkidle' })
+    .catch(() => {});
 }
 await browser.close();
 console.log('shots ok', fs.readdirSync(out));

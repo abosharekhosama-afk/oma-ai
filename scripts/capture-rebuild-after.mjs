@@ -58,4 +58,7 @@ if (await scanBadge.count()) {
 }
 
 await browser.close();
-console.log('after shots', fs.readdirSync(out).filter((f) => f.endsWith('.png')));
+console.log(
+  'after shots',
+  fs.readdirSync(out).filter((f) => f.endsWith('.png')),
+);

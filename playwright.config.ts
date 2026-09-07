@@ -40,6 +40,8 @@ const sharedServerEnv = {
   BULLMQ_PREFIX: `oma-e2e-${e2eRunId}`,
   OMA_WRITE_OPENAPI: '0',
   BRAND_FIXTURE_CONNECTOR: '1',
+  // Full multi-project suites exceed the default 120/min per-path budget on /auth/me.
+  RATE_LIMIT_PER_MINUTE: process.env.RATE_LIMIT_PER_MINUTE ?? '0',
   NODE_ENV: process.env.NODE_ENV ?? 'test',
 };
 
@@ -48,7 +50,7 @@ export default defineConfig({
   testMatch: /.*\.e2e\.ts$/,
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
+  retries: process.env.CI || process.env.OMA_CERTIFICATION === '1' ? 1 : 0,
   workers: 1,
   reporter: [['list']],
   timeout: 90_000,

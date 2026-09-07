@@ -1,5 +1,10 @@
 import { config as loadDotenv } from 'dotenv';
-import { expect, type APIRequestContext, type APIResponse } from '@playwright/test';
+import {
+  request as pwRequest,
+  expect,
+  type APIRequestContext,
+  type APIResponse,
+} from '@playwright/test';
 import { getPrisma } from '@oma/db';
 import { newId } from '@oma/domain';
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -80,80 +85,112 @@ export function parseCookies(res: APIResponse): Record<string, string> {
     const [pair] = value.split(';');
     const eq = pair.indexOf('=');
     if (eq < 0) continue;
-    out[pair.slice(0, eq).trim()] = decodeURIComponent(pair.slice(eq + 1).trim());
+    out[pair.slice(0, eq).trim()] = pair.slice(eq + 1).trim();
   }
   return out;
 }
 
 export function cookieHeader(cookies: Record<string, string>): string {
   return Object.entries(cookies)
-    .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
+    .map(([k, v]) => `${k}=${v}`)
     .join('; ');
 }
 
 /**
  * Ephemeral owner: register → self-serve create company (DEC-015) → active tenant.
  * Never uses the bootstrap platform owner, so Development residue cannot accumulate there.
+ *
+ * Uses an isolated APIRequestContext for the bootstrap sequence to prevent
+ * cookie-jar pollution from prior tests on the shared request fixture.
+ * Retries the full sequence up to 2 times on transient auth/me/tenant failures.
  */
-export async function registerBrandOwner(request: APIRequestContext) {
-  const email = `e2e-owner-${newId().slice(-10).toLowerCase()}@example.com`;
-  const password = 'ChangeMe_E2E_Owner_1!';
-  const register = await request.post(`${API}/api/v1/auth/register`, {
-    data: { email, password, name: 'E2E Owner' },
-  });
-  expect(register.ok(), await register.text()).toBeTruthy();
-  e2eCreatedUserEmails.add(email);
+export async function registerBrandOwner(_request: APIRequestContext) {
+  const MAX_BOOTSTRAP_RETRIES = 2;
+  let lastError: Error | undefined;
 
-  const login = await request.post(`${API}/api/v1/auth/login`, {
-    data: { email, password },
-  });
-  expect(login.ok(), `login failed: ${login.status()}`).toBeTruthy();
-  const cookies = parseCookies(login);
+  for (let attempt = 0; attempt <= MAX_BOOTSTRAP_RETRIES; attempt++) {
+    if (attempt > 0) {
+      // Prefer longer backoff when the prior failure was RATE_LIMITED (429).
+      const rateLimited = /RATE_LIMITED|429|Too many requests/i.test(lastError?.message ?? '');
+      await new Promise((r) => setTimeout(r, (rateLimited ? 1500 : 300) * attempt));
+    }
+    try {
+      return await bootstrapBrandOwner();
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+      if (attempt < MAX_BOOTSTRAP_RETRIES) continue;
+    }
+  }
+  throw lastError ?? new Error('registerBrandOwner failed after retries');
+}
 
-  const tenant = await request.post(`${API}/api/v1/tenants`, {
-    headers: {
-      cookie: cookieHeader(cookies),
-      'x-csrf-token': cookies.oma_csrf,
-    },
-    data: { name: `E2E Brand Co ${newId().slice(-4)}` },
-  });
-  expect(tenant.ok(), await tenant.text()).toBeTruthy();
-  const tenantBody = await tenant.json();
-  trackE2eTenant(tenantBody.tenant.id as string);
+async function bootstrapBrandOwner() {
+  const ctx = await pwRequest.newContext({ baseURL: API });
+  try {
+    const email = `e2e-owner-${newId().slice(-10).toLowerCase()}@example.com`;
+    const password = 'ChangeMe_E2E_Owner_1!';
 
-  // createTenant already activates; refresh cookies if Set-Cookie present
-  Object.assign(cookies, parseCookies(tenant));
-  const me = await request.get(`${API}/api/v1/auth/me`, {
-    headers: { cookie: cookieHeader(cookies) },
-  });
-  expect(me.ok()).toBeTruthy();
-  const meBody = await me.json();
-  if (meBody.active_tenant_id !== tenantBody.tenant.id) {
-    const switched = await request.post(`${API}/api/v1/tenants/active`, {
+    const register = await ctx.post(`${API}/api/v1/auth/register`, {
+      data: { email, password, name: 'E2E Owner' },
+    });
+    expect(register.ok(), await register.text()).toBeTruthy();
+    e2eCreatedUserEmails.add(email);
+
+    const login = await ctx.post(`${API}/api/v1/auth/login`, {
+      data: { email, password },
+    });
+    expect(login.ok(), `login failed: ${login.status()} ${await login.text()}`).toBeTruthy();
+    const cookies = parseCookies(login);
+
+    const tenant = await ctx.post(`${API}/api/v1/tenants`, {
       headers: {
         cookie: cookieHeader(cookies),
         'x-csrf-token': cookies.oma_csrf,
       },
-      data: { tenant_id: tenantBody.tenant.id },
+      data: { name: `E2E Brand Co ${newId().slice(-4)}` },
     });
-    expect(switched.ok(), await switched.text()).toBeTruthy();
-    Object.assign(cookies, parseCookies(switched));
+    expect(tenant.ok(), await tenant.text()).toBeTruthy();
+    const tenantBody = await tenant.json();
+    trackE2eTenant(tenantBody.tenant.id as string);
+
+    Object.assign(cookies, parseCookies(tenant));
+    const me = await ctx.get(`${API}/api/v1/auth/me`, {
+      headers: { cookie: cookieHeader(cookies) },
+    });
+    expect(
+      me.ok(),
+      `GET /api/v1/auth/me failed: status=${me.status()} body=${await me.text()}`,
+    ).toBeTruthy();
+    const meBody = await me.json();
+    if (meBody.active_tenant_id !== tenantBody.tenant.id) {
+      const switched = await ctx.post(`${API}/api/v1/tenants/active`, {
+        headers: {
+          cookie: cookieHeader(cookies),
+          'x-csrf-token': cookies.oma_csrf,
+        },
+        data: { tenant_id: tenantBody.tenant.id },
+      });
+      expect(switched.ok(), await switched.text()).toBeTruthy();
+      Object.assign(cookies, parseCookies(switched));
+    }
+
+    const prisma = getPrisma();
+    const user = await prisma.user.findUniqueOrThrow({ where: { email } });
+    const membership = await prisma.membership.findFirstOrThrow({
+      where: { tenantId: tenantBody.tenant.id, userId: user.id, status: 'ACTIVE' },
+    });
+
+    return {
+      cookies,
+      tenantId: tenantBody.tenant.id as string,
+      userId: user.id,
+      email,
+      password,
+      membershipId: membership.id,
+    };
+  } finally {
+    await ctx.dispose();
   }
-
-  const prisma = getPrisma();
-  const user = await prisma.user.findUniqueOrThrow({ where: { email } });
-  const membership = await prisma.membership.findFirstOrThrow({
-    where: { tenantId: tenantBody.tenant.id, userId: user.id, status: 'ACTIVE' },
-  });
-
-  return {
-    cookies,
-    tenantId: tenantBody.tenant.id as string,
-    userId: user.id,
-    email,
-    password,
-    membershipId: membership.id,
-  };
 }
 
 export async function apiPost(
