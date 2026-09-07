@@ -184,17 +184,19 @@ For this foundation, **Tenant = the single company workspace** identity. Do not 
 
 ### Foundation capability catalog (machine codes)
 
-| Code                      | Intent                                     | Typical profiles                              |
-| ------------------------- | ------------------------------------------ | --------------------------------------------- |
-| `tenant.manage`           | Update tenant profile/settings             | Company Owner, Platform Owner (scoped)        |
-| `membership.invite`       | Invite members                             | Company Owner / Production Manager if granted |
-| `membership.manage`       | Suspend/remove members                     | Company Owner                                 |
-| `capability.assign`       | Grant/revoke capability codes              | Company Owner                                 |
-| `audit.read`              | Read tenant audit events                   | Company Owner, Platform Owner                 |
-| `job.read`                | Read job status for tenant                 | Managers / actor-owned jobs                   |
-| `notification.read`       | Read own notifications                     | Any member                                    |
-| `platform.tenant.create`  | Create tenants (bootstrap/platform)        | Platform Owner                                |
-| `platform.support.access` | Break-glass cross-tenant support (audited) | Platform Owner only                           |
+| Code                     | Intent                              | Typical profiles                              |
+| ------------------------ | ----------------------------------- | --------------------------------------------- |
+| `tenant.manage`          | Update tenant profile/settings      | Company Owner, Platform Owner (scoped)        |
+| `membership.invite`      | Invite members                      | Company Owner / Production Manager if granted |
+| `membership.manage`      | Suspend/remove members              | Company Owner                                 |
+| `capability.assign`      | Grant/revoke capability codes       | Company Owner                                 |
+| `audit.read`             | Read tenant audit events            | Company Owner, Platform Owner                 |
+| `job.read`               | Read job status for tenant          | Managers / actor-owned jobs                   |
+| `notification.read`      | Read own notifications              | Any member                                    |
+| `platform.tenant.create` | Create tenants (bootstrap/platform) | Platform Owner                                |
+
+**`DEC-015` Option A (2026-09-04):** Authenticated users with **zero ACTIVE memberships** may also call `POST /api/v1/tenants` for self-serve first-company creation. Additional tenant creation by members still requires `platform.tenant.create`. See `contracts/tenant-authorization.md` and `spec.md` `FR-010a`.
+| `platform.support.access` | Break-glass cross-tenant support (audited) | Platform Owner only |
 
 Runtime authorization checks **codes**, never job titles (`FR-003`). Profiles expand to codes via `CapabilityProfile` bundles (`data-model.md`).
 

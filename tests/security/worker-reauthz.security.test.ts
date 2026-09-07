@@ -3,8 +3,10 @@ import { getPrisma } from '@oma/db';
 import { newId, type MailMessage, type MailProviderPort } from '@oma/domain';
 import IORedis from 'ioredis';
 import { Queue, QueueEvents } from 'bullmq';
+import { bullmqOptions } from '../helpers/bullmq-options';
 import { startMailProcessor } from '../../apps/worker/src/processors/mail.processor';
 import { buildMailJobData, bullMailJobId } from '../../apps/worker/src/processors/mail-job-payload';
+import { resetBullQueues } from '../helpers/bullmq-cleanup';
 
 class MemoryMailAdapter implements MailProviderPort {
   readonly sent: MailMessage[] = [];
@@ -22,10 +24,10 @@ describe('worker reauthz', () => {
     connection = new IORedis(process.env.REDIS_URL ?? 'redis://127.0.0.1:6379', {
       maxRetriesPerRequest: null,
     });
-    queue = new Queue('mail', { connection });
-    events = new QueueEvents('mail', { connection });
+    queue = new Queue('mail', { connection, ...bullmqOptions() });
+    events = new QueueEvents('mail', { connection, ...bullmqOptions() });
     await events.waitUntilReady();
-    await queue.obliterate({ force: true }).catch(() => undefined);
+    await resetBullQueues(connection, ['mail']);
   });
 
   afterAll(async () => {

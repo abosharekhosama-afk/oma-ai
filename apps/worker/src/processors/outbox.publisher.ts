@@ -3,6 +3,7 @@ import { createLogger } from '@oma/observability';
 import { Queue } from 'bullmq';
 import type IORedis from 'ioredis';
 import { buildMailJobData, bullMailJobId } from './mail-job-payload';
+import { buildIngestionJobData, bullIngestionJobId } from './ingestion-job-payload';
 
 const log = createLogger('outbox-publisher');
 
@@ -18,10 +19,25 @@ type OutboxMailPayload = {
   idempotencyKey?: string;
 };
 
+type OutboxIngestionPayload = {
+  jobRunId?: string;
+  scanAttemptId?: string;
+  tenantId?: string;
+  brandId?: string;
+  actorUserId?: string;
+  correlationId?: string;
+  idempotencyKey?: string;
+  config?: { max_pages?: number; max_depth?: number; max_duration_seconds?: number };
+};
+
 /** Publish PENDING outbox rows into BullMQ queues (real worker path). */
 export async function publishPendingOutbox(connection: IORedis, limit = 50): Promise<number> {
   const prisma = getPrisma();
-  const mailQueue = new Queue('mail', { connection });
+  const mailQueue = new Queue('mail', { connection, prefix: process.env.BULLMQ_PREFIX || 'oma' });
+  const ingestionQueue = new Queue('ingestion', {
+    connection,
+    prefix: process.env.BULLMQ_PREFIX || 'oma',
+  });
   const pending = await prisma.outboxEvent.findMany({
     where: { status: 'PENDING' },
     orderBy: { createdAt: 'asc' },
@@ -40,7 +56,6 @@ export async function publishPendingOutbox(connection: IORedis, limit = 50): Pro
         if (!jobRun) {
           throw new Error(`outbox ${event.id} jobRun ${jobRunId} not found`);
         }
-        // Authoritative tenant is JobRun; reject cross-tenant payload hints at publish time.
         if (jobRun.tenantId && event.tenantId && jobRun.tenantId !== event.tenantId) {
           throw new Error(`outbox ${event.id} tenant mismatch vs jobRun`);
         }
@@ -69,6 +84,40 @@ export async function publishPendingOutbox(connection: IORedis, limit = 50): Pro
             removeOnFail: false,
           },
         );
+      } else if (event.eventType.startsWith('ingestion.')) {
+        const payload = JSON.parse(event.payloadJson) as OutboxIngestionPayload;
+        const jobRunId = payload.jobRunId;
+        if (!jobRunId || !payload.scanAttemptId || !payload.brandId) {
+          throw new Error(`outbox ${event.id} missing ingestion fields`);
+        }
+        const jobRun = await prisma.jobRun.findUnique({ where: { id: jobRunId } });
+        if (!jobRun) {
+          throw new Error(`outbox ${event.id} jobRun ${jobRunId} not found`);
+        }
+        if (jobRun.tenantId && event.tenantId && jobRun.tenantId !== event.tenantId) {
+          throw new Error(`outbox ${event.id} tenant mismatch vs jobRun`);
+        }
+
+        await ingestionQueue.add(
+          event.eventType,
+          buildIngestionJobData({
+            jobRunId: jobRun.id,
+            outboxId: event.id,
+            tenantId: jobRun.tenantId,
+            brandId: payload.brandId,
+            scanAttemptId: payload.scanAttemptId,
+            actorUserId: jobRun.actorUserId ?? payload.actorUserId ?? null,
+            correlationId: jobRun.correlationId ?? payload.correlationId ?? null,
+            idempotencyKey: jobRun.idempotencyKey ?? payload.idempotencyKey ?? null,
+            config: payload.config,
+          }),
+          {
+            jobId: bullIngestionJobId(jobRun.id),
+            attempts: 5,
+            removeOnComplete: true,
+            removeOnFail: false,
+          },
+        );
       }
       await prisma.outboxEvent.update({
         where: { id: event.id },
@@ -88,5 +137,6 @@ export async function publishPendingOutbox(connection: IORedis, limit = 50): Pro
     }
   }
   await mailQueue.close();
+  await ingestionQueue.close();
   return published;
 }

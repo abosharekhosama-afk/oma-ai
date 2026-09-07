@@ -14,11 +14,15 @@ export class TenantContextService {
         'errors.tenant_required',
       );
     }
-    const membership = await getPrisma().membership.findFirst({
+    // Duplicate ACTIVE membership rows for one tenant are possible, so the
+    // effective capability set must be the union across them.
+    const memberships = await getPrisma().membership.findMany({
       where: tenantWhere(activeTenantId, { userId, status: 'ACTIVE' }),
       include: { grants: { where: { revokedAt: null } }, tenant: true },
+      orderBy: { createdAt: 'asc' },
     });
-    if (!membership) {
+    const primary = memberships[0];
+    if (!primary) {
       throw new DomainError(
         'PERMISSION_DENIED',
         'Not an active member of tenant',
@@ -27,10 +31,10 @@ export class TenantContextService {
       );
     }
     return {
-      tenantId: membership.tenantId,
-      membershipId: membership.id,
-      capabilities: membership.grants.map((g) => g.capabilityCode),
-      tenant: membership.tenant,
+      tenantId: primary.tenantId,
+      membershipId: primary.id,
+      capabilities: [...new Set(memberships.flatMap((m) => m.grants.map((g) => g.capabilityCode)))],
+      tenant: primary.tenant,
     };
   }
 }

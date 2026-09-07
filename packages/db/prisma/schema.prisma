@@ -91,6 +91,7 @@ model Tenant {
   jobs          JobRun[]
   notifications Notification[]
   idempotency   IdempotencyRecord[]
+  brandWorkspaces BrandWorkspace[]
 }
 
 model Membership {
@@ -251,4 +252,399 @@ model RecoveryToken {
   expiresAt DateTime
   usedAt    DateTime?
   createdAt DateTime  @default(now())
+}
+
+// --- Brand Website Intelligence (002) ---
+
+enum BrandWorkspaceStatus {
+  DRAFT
+  READY_TO_SCAN
+  ACTIVE
+  ARCHIVED
+}
+
+enum WebsiteValidationStatus {
+  VALID
+  REJECTED
+}
+
+enum ScanAttemptStatus {
+  QUEUED
+  CRAWLING
+  EXTRACTING
+  ANALYZING
+  SUCCEEDED
+  PARTIAL
+  FAILED
+  CANCELLED
+}
+
+enum ScanTrigger {
+  START
+  RETRY
+  RESCAN
+}
+
+enum BrandAiAvailability {
+  NOT_CONFIGURED
+  UNAVAILABLE
+  USED
+  SKIPPED
+}
+
+/// Which website connector produced a scan. Recorded per attempt because the
+/// configured connector can change between runs.
+enum BrandConnectorMode {
+  FIXTURE
+  NOT_CONFIGURED
+}
+
+enum PageClassification {
+  HOME
+  PRODUCT
+  SERVICE
+  ABOUT
+  FAQ
+  CONTACT
+  LEGAL
+  OTHER
+  UNKNOWN
+}
+
+enum PageFetchStatus {
+  FETCHED
+  FAILED
+  SKIPPED_ROBOTS
+  SKIPPED_LIMIT
+}
+
+enum ProductServiceKind {
+  PRODUCT
+  SERVICE
+}
+
+enum DiscoveryTier {
+  REQUIRED_FOR_APPROVAL
+  DISCOVER_WHEN_AVAILABLE
+  DEFERRED_ADVANCED
+}
+
+enum BrandInfoState {
+  OBSERVED
+  AI_INFERRED
+  USER_CONFIRMED
+  USER_CORRECTED
+  STALE
+}
+
+enum ExtractionMethod {
+  HTML_META
+  JSON_LD
+  OG
+  HEURISTIC
+  USER
+  AI
+}
+
+enum ProfileVersionStatus {
+  DRAFT
+  NEEDS_REVIEW
+  APPROVED
+  SUPERSEDED
+  REJECTED
+}
+
+enum InsightReviewStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EDITED
+}
+
+enum HumanEditAction {
+  EDIT
+  ACCEPT
+  REJECT_INSIGHT
+  REJECT_VERSION
+  APPROVE_VERSION
+}
+
+enum InsightCreatedBy {
+  SYSTEM
+  AI
+  USER
+}
+
+model BrandWorkspace {
+  id                            String               @id
+  tenantId                      String
+  name                          String
+  status                        BrandWorkspaceStatus @default(DRAFT)
+  currentApprovedProfileVersionId String?
+  primaryWebsiteSourceId        String?
+  version                       Int                  @default(1)
+  createdAt                     DateTime             @default(now())
+  updatedAt                     DateTime             @updatedAt
+  archivedAt                    DateTime?
+  tenant                        Tenant               @relation(fields: [tenantId], references: [id])
+  websiteSources                WebsiteSource[]
+  scanAttempts                  ScanAttempt[]
+  discoveredPages               DiscoveredPage[]
+  discoveredProducts            DiscoveredProductService[]
+  extractedObservations         ExtractedObservation[]
+  evidenceExcerpts              EvidenceExcerpt[]
+  profileVersions               ProfileVersion[]
+  insightClaims                 InsightClaim[]
+  humanEdits                    HumanEdit[]
+  reviewDecisions               ReviewDecision[]
+
+  @@index([tenantId, status, updatedAt])
+}
+
+model WebsiteSource {
+  id                  String                  @id
+  tenantId            String
+  brandId             String
+  normalizedUrl       String
+  host                String
+  attestationAcceptedAt DateTime
+  attestedByUserId    String
+  validationStatus    WebsiteValidationStatus @default(VALID)
+  validationReason    String?
+  sourceRevision      Int                     @default(1)
+  notes               String?
+  createdAt           DateTime                @default(now())
+  replacedAt          DateTime?
+  brand               BrandWorkspace          @relation(fields: [brandId], references: [id])
+  scanAttempts        ScanAttempt[]
+
+  @@index([tenantId, brandId])
+}
+
+model ScanAttempt {
+  id               String              @id
+  tenantId         String
+  brandId          String
+  websiteSourceId  String
+  status           ScanAttemptStatus   @default(QUEUED)
+  trigger          ScanTrigger         @default(START)
+  parentAttemptId  String?
+  jobRunId         String              @unique
+  idempotencyKey   String              @unique
+  actorUserId      String
+  correlationId    String?
+  progressPercent  Int                 @default(0)
+  pagesFetched     Int                 @default(0)
+  pagesFailed      Int                 @default(0)
+  pagesSkipped     Int                 @default(0)
+  coverageJson     String?
+  aiAvailability   BrandAiAvailability @default(NOT_CONFIGURED)
+  connectorMode    BrandConnectorMode  @default(NOT_CONFIGURED)
+  errorCode        String?
+  errorDetail      String?
+  startedAt        DateTime?
+  finishedAt       DateTime?
+  cancelRequestedAt DateTime?
+  createdAt        DateTime            @default(now())
+  brand            BrandWorkspace      @relation(fields: [brandId], references: [id])
+  websiteSource    WebsiteSource       @relation(fields: [websiteSourceId], references: [id])
+  discoveredPages  DiscoveredPage[]
+  discoveredProducts DiscoveredProductService[]
+  extractedObservations ExtractedObservation[]
+  evidenceExcerpts EvidenceExcerpt[]
+  profileVersions  ProfileVersion[]
+
+  @@index([tenantId, brandId, createdAt])
+}
+
+model DiscoveredPage {
+  id             String             @id
+  tenantId       String
+  brandId        String
+  scanAttemptId  String
+  url            String
+  canonicalUrl   String
+  canonicalHash  String
+  title          String?
+  httpStatus     Int?
+  contentType    String?
+  classification PageClassification @default(UNKNOWN)
+  fetchStatus    PageFetchStatus    @default(FETCHED)
+  failureReason  String?
+  localeHint     String?
+  discoveredAt   DateTime           @default(now())
+  brand          BrandWorkspace     @relation(fields: [brandId], references: [id])
+  scanAttempt    ScanAttempt        @relation(fields: [scanAttemptId], references: [id])
+  evidenceExcerpts EvidenceExcerpt[]
+
+  @@unique([scanAttemptId, canonicalHash])
+  @@index([tenantId, scanAttemptId])
+}
+
+model DiscoveredProductService {
+  id             String             @id
+  tenantId       String
+  brandId        String
+  scanAttemptId  String
+  kind           ProductServiceKind
+  name           String
+  description    String?
+  category       String?
+  skuPublic      String?
+  priceAmount    String?
+  priceCurrency  String?
+  availability   String?
+  sourcePageId   String?
+  parentProductId String?
+  dedupeKey      String
+  brand          BrandWorkspace     @relation(fields: [brandId], references: [id])
+  scanAttempt    ScanAttempt        @relation(fields: [scanAttemptId], references: [id])
+
+  @@unique([scanAttemptId, dedupeKey])
+  @@index([tenantId, scanAttemptId])
+}
+
+model ExtractedObservation {
+  id                String          @id
+  tenantId          String
+  brandId           String
+  scanAttemptId     String
+  fieldKey          String
+  discoveryTier     DiscoveryTier
+  valueJson         String?
+  isUnknown         Boolean         @default(false)
+  infoState         BrandInfoState  @default(OBSERVED)
+  confidence        Float?
+  evidenceId        String?
+  profileVersionId  String?
+  immutable         Boolean         @default(true)
+  brand             BrandWorkspace  @relation(fields: [brandId], references: [id])
+  scanAttempt       ScanAttempt     @relation(fields: [scanAttemptId], references: [id])
+  profileVersion    ProfileVersion? @relation(fields: [profileVersionId], references: [id])
+
+  @@index([tenantId, scanAttemptId])
+  @@index([profileVersionId])
+}
+
+model EvidenceExcerpt {
+  id               String           @id
+  tenantId         String
+  brandId          String
+  scanAttemptId    String
+  sourceUrl        String
+  canonicalUrl     String
+  pageTitle        String?
+  fetchedAt        DateTime         @default(now())
+  excerptText      String
+  contentHash      String
+  extractionMethod ExtractionMethod
+  discoveredPageId String?
+  brand            BrandWorkspace   @relation(fields: [brandId], references: [id])
+  scanAttempt      ScanAttempt      @relation(fields: [scanAttemptId], references: [id])
+  discoveredPage   DiscoveredPage?  @relation(fields: [discoveredPageId], references: [id])
+  insightClaims    InsightClaim[]
+
+  @@index([tenantId, scanAttemptId])
+}
+
+/// Profile sections stored as JSON document on ProfileVersion.sectionsJson (overview, catalog, etc.)
+model ProfileVersion {
+  id                   String               @id
+  tenantId             String
+  brandId              String
+  scanAttemptId        String?
+  status               ProfileVersionStatus @default(DRAFT)
+  rowVersion           Int                  @default(1)
+  aiAvailability       BrandAiAvailability  @default(NOT_CONFIGURED)
+  coverageSnapshotJson String?
+  sectionsJson         String?
+  approvedAt           DateTime?
+  approvedByUserId     String?
+  rejectedAt           DateTime?
+  rejectedByUserId     String?
+  incompletenessAcknowledged Boolean        @default(false)
+  createdAt            DateTime             @default(now())
+  brand                BrandWorkspace       @relation(fields: [brandId], references: [id])
+  scanAttempt          ScanAttempt?         @relation(fields: [scanAttemptId], references: [id])
+  observations         ExtractedObservation[]
+  insightClaims        InsightClaim[]
+  humanEdits           HumanEdit[]
+  reviewDecisions      ReviewDecision[]
+  approvalRecord       ApprovalRecord?
+
+  @@index([tenantId, brandId, createdAt])
+}
+
+model InsightClaim {
+  id                String              @id
+  tenantId          String
+  brandId           String
+  profileVersionId  String
+  fieldKey          String
+  infoState         BrandInfoState      @default(OBSERVED)
+  reviewStatus      InsightReviewStatus @default(PENDING)
+  textValue         String?
+  valueJson         String?
+  evidenceId        String?
+  discoveryTier     DiscoveryTier
+  createdBy         InsightCreatedBy    @default(SYSTEM)
+  rowVersion        Int                 @default(1)
+  brand             BrandWorkspace      @relation(fields: [brandId], references: [id])
+  profileVersion    ProfileVersion      @relation(fields: [profileVersionId], references: [id])
+  evidence          EvidenceExcerpt?    @relation(fields: [evidenceId], references: [id])
+  humanEdits        HumanEdit[]
+
+  @@index([tenantId, profileVersionId])
+}
+
+model HumanEdit {
+  id               String          @id
+  tenantId         String
+  brandId          String
+  profileVersionId String
+  insightId        String?
+  actorUserId      String
+  action           HumanEditAction
+  beforeRef        String?
+  afterRef         String?
+  acknowledgeIncomplete Boolean     @default(false)
+  correlationId    String?
+  createdAt        DateTime        @default(now())
+  brand            BrandWorkspace  @relation(fields: [brandId], references: [id])
+  profileVersion   ProfileVersion  @relation(fields: [profileVersionId], references: [id])
+  insight          InsightClaim?   @relation(fields: [insightId], references: [id])
+
+  @@index([tenantId, profileVersionId])
+}
+
+model ReviewDecision {
+  id               String          @id
+  tenantId         String
+  brandId          String
+  profileVersionId String
+  insightId        String?
+  actorUserId      String
+  action           HumanEditAction
+  beforeRef        String?
+  afterRef         String?
+  acknowledgeIncomplete Boolean     @default(false)
+  correlationId    String?
+  createdAt        DateTime        @default(now())
+  brand            BrandWorkspace  @relation(fields: [brandId], references: [id])
+  profileVersion   ProfileVersion  @relation(fields: [profileVersionId], references: [id])
+
+  @@index([tenantId, profileVersionId])
+}
+
+model ApprovalRecord {
+  id                    String         @id
+  tenantId              String
+  brandId               String
+  profileVersionId      String         @unique
+  actorUserId           String
+  acknowledgedIncomplete Boolean       @default(false)
+  warningsJson          String?
+  coverageSnapshotJson  String?
+  createdAt             DateTime       @default(now())
+  profileVersion        ProfileVersion @relation(fields: [profileVersionId], references: [id])
 }

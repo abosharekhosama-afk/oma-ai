@@ -2,6 +2,8 @@ import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { CsrfGuard } from '../common/guards/csrf.guard';
+import { CapabilitiesGuard } from '../common/guards/capabilities.guard';
+import { RequireCapabilities } from '../common/decorators/require-capabilities.decorator';
 import { tenantService } from '../container';
 import { DomainError } from '@oma/domain';
 import { getPrisma } from '@oma/db';
@@ -10,7 +12,7 @@ import { getPrisma } from '@oma/db';
 export class TenantController {
   @Post('tenants')
   @UseGuards(AuthGuard, CsrfGuard)
-  async create(@Req() req: Request, @Body() body: { name: string; slug: string }) {
+  async create(@Req() req: Request, @Body() body: { name: string; slug?: string }) {
     if (!req.oma?.userId)
       throw new DomainError(
         'UNAUTHENTICATED',
@@ -18,7 +20,14 @@ export class TenantController {
         401,
         'errors.unauthenticated',
       );
-    const tenant = await tenantService.createTenant(req.oma.userId, body, req.oma.correlationId);
+    const cookieName = process.env.SESSION_COOKIE_NAME ?? 'oma_session';
+    const token = req.cookies?.[cookieName] as string | undefined;
+    const tenant = await tenantService.createTenant(
+      req.oma.userId,
+      body,
+      req.oma.correlationId,
+      token,
+    );
     return { tenant: { id: tenant.id, name: tenant.name, slug: tenant.slug } };
   }
 
@@ -35,6 +44,20 @@ export class TenantController {
     const tenant = await getPrisma().tenant.findFirst({ where: { id: req.oma.tenantId } });
     if (!tenant) throw new DomainError('NOT_FOUND', 'Tenant not found', 404, 'errors.not_found');
     return { tenant };
+  }
+
+  @Get('tenants/current/memberships')
+  @UseGuards(AuthGuard, CapabilitiesGuard)
+  @RequireCapabilities('membership.manage')
+  async memberships(@Req() req: Request) {
+    if (!req.oma?.tenantId)
+      throw new DomainError(
+        'TENANT_REQUIRED',
+        'Active tenant required',
+        409,
+        'errors.tenant_required',
+      );
+    return { data: await tenantService.listCurrentMemberships(req.oma.tenantId) };
   }
 
   @Post('tenants/active')

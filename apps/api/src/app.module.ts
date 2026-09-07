@@ -13,6 +13,11 @@ import { MembershipController } from './tenant/membership.controller';
 import { CapabilityController } from './tenant/capability.controller';
 import { JobsController } from './jobs/jobs.controller';
 import { NotificationsController } from './notifications/notifications.controller';
+import { BrandController } from './brand/brand.controller';
+import { WebsiteController } from './brand/website.controller';
+import { ScanController } from './brand/scan.controller';
+import { DiscoveryController } from './discovery/discovery.controller';
+import { ProfileController } from './intelligence/profile.controller';
 
 @Module({
   controllers: [
@@ -25,6 +30,11 @@ import { NotificationsController } from './notifications/notifications.controlle
     CapabilityController,
     JobsController,
     NotificationsController,
+    BrandController,
+    WebsiteController,
+    ScanController,
+    DiscoveryController,
+    ProfileController,
   ],
   providers: [
     { provide: APP_FILTER, useClass: DomainExceptionFilter },

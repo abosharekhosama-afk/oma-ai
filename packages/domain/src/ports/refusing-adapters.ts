@@ -57,6 +57,15 @@ export const refusingWebsiteConnector: WebsiteConnectorPort = {
   async getProgress() {
     throw new WebsiteConnectorNotConfiguredError();
   },
+  async fetchPublic() {
+    throw new WebsiteConnectorNotConfiguredError();
+  },
+  async resolveRedirectTarget() {
+    throw new WebsiteConnectorNotConfiguredError();
+  },
+  async evaluateRobots() {
+    throw new WebsiteConnectorNotConfiguredError();
+  },
 };
 
 export const refusingPaidMedia: PaidMediaConnectorPort = {

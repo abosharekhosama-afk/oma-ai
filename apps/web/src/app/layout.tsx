@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { cookies, headers } from 'next/headers';
 import { resolveDir, resolveLocale, t, type Locale } from '@oma/i18n';
+import { LocaleProvider } from '../lib/locale-context';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -18,9 +19,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={locale} dir={dir}>
       <body>
         <a href="#main" className="oma-skip-link">
-          Skip to content
+          {t(locale, 'shell.skip')}
         </a>
-        <div data-endorsement={t(locale, 'app.endorsement')}>{children}</div>
+        <LocaleProvider locale={locale}>
+          <div data-endorsement={t(locale, 'app.endorsement')}>{children}</div>
+        </LocaleProvider>
       </body>
     </html>
   );

@@ -10,7 +10,20 @@ export const FOUNDATION_CAPABILITIES = [
   'platform.support.access',
 ] as const;
 
-export type CapabilityCode = (typeof FOUNDATION_CAPABILITIES)[number] | string;
+export const BRAND_CAPABILITIES = [
+  'brand.create',
+  'brand.read',
+  'brand.archive',
+  'brand.website.connect',
+  'brand.scan.control',
+  'brand.discovery.review',
+  'brand.insight.edit',
+  'brand.insight.decide',
+  'brand.version.approve',
+] as const;
+
+export type CapabilityCode =
+  (typeof FOUNDATION_CAPABILITIES)[number] | (typeof BRAND_CAPABILITIES)[number] | string;
 
 export function hasCapability(
   grants: readonly string[],
@@ -34,6 +47,7 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     'audit.read',
     'job.read',
     'notification.read',
+    ...BRAND_CAPABILITIES,
   ],
   COMPANY_OWNER: [
     'tenant.manage',
@@ -43,6 +57,7 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     'audit.read',
     'job.read',
     'notification.read',
+    ...BRAND_CAPABILITIES,
   ],
   MEMBER: ['notification.read', 'job.read'],
 };

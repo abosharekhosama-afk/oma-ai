@@ -10,18 +10,24 @@ export default tseslint.config(
       '**/coverage/**',
       '**/playwright-report/**',
       '**/test-results/**',
+      '**/artifacts/**',
+      '**/.reference/**',
       '**/next-env.d.ts',
+      'scripts/capture-rebuild-*.mjs',
     ],
   },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    // Development-OS tooling runs directly on Node with no bundler or type layer.
-    files: ['scripts/**/*.mjs'],
+    // Development-OS tooling + Feature 002 cert/review scripts run on Node.
+    files: ['scripts/**/*.{js,mjs,cjs}'],
     languageOptions: {
       globals: {
         process: 'readonly',
         console: 'readonly',
+        Buffer: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
         fetch: 'readonly',
         AbortSignal: 'readonly',
         setTimeout: 'readonly',

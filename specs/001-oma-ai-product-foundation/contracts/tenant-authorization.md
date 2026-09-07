@@ -29,21 +29,37 @@ See `plan.md` catalog. Minimum codes used by this contract: `tenant.manage`, `me
 ## Bootstrap & Platform Owner
 
 1. Ops bootstrap provisions the first Platform Owner (not self-serve).
-2. `POST /api/v1/tenants` requires `platform.tenant.create`.
-3. Tenant creation attaches an initial Company Owner membership with the default Company Owner profile grants.
-4. `platform.support.access` is never implied by tenant membership; it is separately granted and always audited.
+2. `POST /api/v1/tenants` is authorized when **either**:
+   - the actor has `platform.tenant.create` (Platform Owner / ops provisioning), **or**
+   - the actor is authenticated with **zero ACTIVE memberships** (self-serve first company under `DEC-015` Option A).
+3. Actors with one or more ACTIVE memberships who lack `platform.tenant.create` MUST receive `403 PERMISSION_DENIED` on additional self-serve tenant create.
+4. Tenant creation attaches an initial Company Owner membership with the default Company Owner profile grants, writes audit/outbox, and MUST set the new tenant as the caller’s session Active Tenant when a session is present.
+5. `platform.support.access` is never implied by tenant membership; it is separately granted and always audited.
+
+## Post-auth membership routing (`DEC-015`)
+
+Server resolves ACTIVE memberships only (`INVITED` / `SUSPENDED` / `REMOVED` never qualify):
+
+1. Zero ACTIVE memberships → Company Onboarding (create or accept invitation).
+2. Exactly one ACTIVE membership and no valid Active Tenant → auto-activate that tenant.
+3. Multiple ACTIVE memberships and no valid Active Tenant → searchable company selector.
+4. Valid Active Tenant → proceed.
+5. Stale/invalid `session.active_tenant_id` is cleared server-side.
+
+Forbidden: public company directory, join-by-name search, domain auto-join, silent membership creation.
 
 ## Membership administration
 
-| Method | Path                                    | Capability               |
-| ------ | --------------------------------------- | ------------------------ |
-| POST   | `/api/v1/tenants`                       | `platform.tenant.create` |
-| GET    | `/api/v1/tenants/current`               | active membership        |
-| POST   | `/api/v1/tenants/current/invitations`   | `membership.invite`      |
-| POST   | `/api/v1/memberships/{id}/suspend`      | `membership.manage`      |
-| POST   | `/api/v1/memberships/{id}/remove`       | `membership.manage`      |
-| PUT    | `/api/v1/memberships/{id}/capabilities` | `capability.assign`      |
-| POST   | `/api/v1/memberships/{id}/profiles`     | `capability.assign`      |
+| Method | Path                                    | Capability / gate                                       |
+| ------ | --------------------------------------- | ------------------------------------------------------- |
+| POST   | `/api/v1/tenants`                       | `platform.tenant.create` **or** zero ACTIVE memberships |
+| GET    | `/api/v1/tenants/current`               | active membership                                       |
+| POST   | `/api/v1/tenants/current/invitations`   | `membership.invite`                                     |
+| POST   | `/api/v1/invitations/accept`            | authenticated; token + email-match policy               |
+| POST   | `/api/v1/memberships/{id}/suspend`      | `membership.manage`                                     |
+| POST   | `/api/v1/memberships/{id}/remove`       | `membership.manage`                                     |
+| PUT    | `/api/v1/memberships/{id}/capabilities` | `capability.assign`                                     |
+| POST   | `/api/v1/memberships/{id}/profiles`     | `capability.assign`                                     |
 
 ## Capability check
 

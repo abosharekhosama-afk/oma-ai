@@ -1,5 +1,4 @@
-import { config as loadDotenv } from 'dotenv';
-import { test, expect, type APIRequestContext, type APIResponse } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import { getPrisma } from '@oma/db';
 import { newId } from '@oma/domain';
 import IORedis from 'ioredis';
@@ -7,34 +6,9 @@ import {
   drainRecordedMail,
   RECORDING_MAIL_REDIS_KEY,
 } from '../../apps/worker/src/mail/create-mail-adapter';
+import { apiGet, cookieHeader, parseCookies, registerBrandOwner } from './helpers/brand-api';
 
-loadDotenv();
-
-function parseCookies(res: APIResponse): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (const { name, value } of res.headersArray()) {
-    if (name.toLowerCase() !== 'set-cookie') continue;
-    const [pair] = value.split(';');
-    const eq = pair.indexOf('=');
-    if (eq < 0) continue;
-    out[pair.slice(0, eq).trim()] = decodeURIComponent(pair.slice(eq + 1).trim());
-  }
-  return out;
-}
-
-function cookieHeader(cookies: Record<string, string>): string {
-  return Object.entries(cookies)
-    .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
-    .join('; ');
-}
-
-async function login(request: APIRequestContext, email: string, password: string) {
-  const res = await request.post('http://127.0.0.1:3001/api/v1/auth/login', {
-    data: { email, password },
-  });
-  expect(res.ok(), `login failed: ${res.status()} ${await res.text()}`).toBeTruthy();
-  return parseCookies(res);
-}
+const API = process.env.API_PUBLIC_URL ?? 'http://127.0.0.1:3001';
 
 test.describe('T077 invite → mail job → notification', () => {
   test('authorized invite persists outbox, worker sends via mail port, notification readable; unauthorized denied', async ({
@@ -50,36 +24,11 @@ test.describe('T077 invite → mail job → notification', () => {
     const prisma = getPrisma();
     const correlationId = `e2e-corr-${newId()}`;
     const inviteEmail = `invitee-${newId().toLowerCase()}@example.com`;
-    const ownerEmail = process.env.BOOTSTRAP_PLATFORM_OWNER_EMAIL ?? 'platform-owner@example.com';
-    const ownerPassword =
-      process.env.BOOTSTRAP_PLATFORM_OWNER_PASSWORD ?? 'ChangeMe_PlatformOwner_1!';
+    const owner = await registerBrandOwner(request);
+    const ownerCookies = { ...owner.cookies };
+    const tenantId = owner.tenantId;
 
-    const ownerCookies = await login(request, ownerEmail, ownerPassword);
-
-    const slug = `e2e-${newId().toLowerCase().slice(-8)}`;
-    const created = await request.post('http://127.0.0.1:3001/api/v1/tenants', {
-      headers: {
-        cookie: cookieHeader(ownerCookies),
-        'x-csrf-token': ownerCookies.oma_csrf,
-        'x-correlation-id': correlationId,
-      },
-      data: { name: 'E2E Co', slug },
-    });
-    expect(created.ok(), await created.text()).toBeTruthy();
-    const tenantId = (await created.json()).tenant.id as string;
-
-    const switched = await request.post('http://127.0.0.1:3001/api/v1/tenants/active', {
-      headers: {
-        cookie: cookieHeader(ownerCookies),
-        'x-csrf-token': ownerCookies.oma_csrf,
-        'x-correlation-id': correlationId,
-      },
-      data: { tenant_id: tenantId },
-    });
-    expect(switched.ok(), await switched.text()).toBeTruthy();
-    Object.assign(ownerCookies, parseCookies(switched));
-
-    const inv = await request.post('http://127.0.0.1:3001/api/v1/tenants/current/invitations', {
+    const inv = await request.post(`${API}/api/v1/tenants/current/invitations`, {
       headers: {
         cookie: cookieHeader(ownerCookies),
         'x-csrf-token': ownerCookies.oma_csrf,
@@ -141,24 +90,15 @@ test.describe('T077 invite → mail job → notification', () => {
       where: { tenantId, dedupeKey: { startsWith: `${invBody.job_run_id}:` } },
     });
     expect(notification).toBeTruthy();
+    expect(notification!.recipientUserId).toBe(owner.userId);
 
-    const me = await request.get('http://127.0.0.1:3001/api/v1/auth/me', {
-      headers: { cookie: cookieHeader(ownerCookies) },
-    });
-    expect(me.ok()).toBeTruthy();
-    const meBody = await me.json();
-    const ownerUserId = meBody.user?.id as string;
-    expect(notification!.recipientUserId).toBe(ownerUserId);
-
-    const notes = await request.get('http://127.0.0.1:3001/api/v1/notifications', {
-      headers: { cookie: cookieHeader(ownerCookies) },
-    });
+    const notes = await apiGet(request, '/api/v1/notifications', ownerCookies);
     expect(notes.ok(), await notes.text()).toBeTruthy();
     const noteItems = (await notes.json()).items as Array<{ id: string }>;
     expect(noteItems.some((n) => n.id === notification!.id)).toBeTruthy();
 
     const strangerEmail = `stranger-${newId().toLowerCase()}@example.com`;
-    const reg = await request.post('http://127.0.0.1:3001/api/v1/auth/register', {
+    const reg = await request.post(`${API}/api/v1/auth/register`, {
       data: {
         email: strangerEmail,
         password: 'CorrectHorseBattery1!',
@@ -166,43 +106,22 @@ test.describe('T077 invite → mail job → notification', () => {
       },
     });
     expect([200, 201]).toContain(reg.status());
-    const strangerCookies = await login(request, strangerEmail, 'CorrectHorseBattery1!');
-    const deniedNotes = await request.get('http://127.0.0.1:3001/api/v1/notifications', {
-      headers: { cookie: cookieHeader(strangerCookies) },
+    const strangerLogin = await request.post(`${API}/api/v1/auth/login`, {
+      data: { email: strangerEmail, password: 'CorrectHorseBattery1!' },
     });
+    expect(strangerLogin.ok()).toBeTruthy();
+    const strangerCookies = parseCookies(strangerLogin);
+    const deniedNotes = await apiGet(request, '/api/v1/notifications', strangerCookies);
     expect([401, 403, 409]).toContain(deniedNotes.status());
 
-    const otherCookies = await login(request, ownerEmail, ownerPassword);
-    const otherSlug = `other-${newId().toLowerCase().slice(-8)}`;
-    const otherTenantRes = await request.post('http://127.0.0.1:3001/api/v1/tenants', {
-      headers: {
-        cookie: cookieHeader(otherCookies),
-        'x-csrf-token': otherCookies.oma_csrf,
-      },
-      data: { name: 'Other', slug: otherSlug },
-    });
-    expect(otherTenantRes.ok(), await otherTenantRes.text()).toBeTruthy();
-    const otherTenantId = (await otherTenantRes.json()).tenant.id as string;
-    const otherSwitch = await request.post('http://127.0.0.1:3001/api/v1/tenants/active', {
-      headers: {
-        cookie: cookieHeader(otherCookies),
-        'x-csrf-token': otherCookies.oma_csrf,
-      },
-      data: { tenant_id: otherTenantId },
-    });
-    expect(otherSwitch.ok()).toBeTruthy();
-    Object.assign(otherCookies, parseCookies(otherSwitch));
-
-    const otherNotes = await request.get('http://127.0.0.1:3001/api/v1/notifications', {
-      headers: { cookie: cookieHeader(otherCookies) },
-    });
+    // Cross-tenant: a different company owner must not see this notification/job.
+    const other = await registerBrandOwner(request);
+    const otherNotes = await apiGet(request, '/api/v1/notifications', other.cookies);
     expect(otherNotes.ok()).toBeTruthy();
     const otherItems = (await otherNotes.json()).items as Array<{ id: string }>;
     expect(otherItems.some((n) => n.id === notification!.id)).toBeFalsy();
 
-    const otherJob = await request.get(`http://127.0.0.1:3001/api/v1/jobs/${invBody.job_run_id}`, {
-      headers: { cookie: cookieHeader(otherCookies) },
-    });
+    const otherJob = await apiGet(request, `/api/v1/jobs/${invBody.job_run_id}`, other.cookies);
     expect([403, 404]).toContain(otherJob.status());
 
     await redis.quit();

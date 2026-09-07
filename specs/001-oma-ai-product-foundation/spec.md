@@ -314,9 +314,11 @@ The repository, product, and identity boundaries are resolved: OMA AI starts in 
 - **FR-008:** The system MUST expose permission-denied states without revealing whether an unauthorized cross-tenant resource exists.
 - **FR-009:** The system MUST record actor, tenant, action, target, before/after state reference, timestamp, and request/correlation identifier for privileged and workflow-changing actions.
 - **FR-010:** OMA AI MUST own the initial account, login/session, user, tenant/company, membership, and capability boundary. A future IMKAN federation or migration MUST use an explicit subject/company mapping, preserve canonical OMA identifiers and audit history, and MUST NOT bypass OMA authorization or create competing active sources of truth.
+- **FR-010a:** Per resolved `DEC-015` (Option A), a signed-in user with zero ACTIVE memberships MUST reach Company Onboarding with Create-company and Join-by-invitation paths; Create-company MUST create Tenant + Company Owner membership + default grants and Active Tenant in one authorized transaction on the existing Tenant SoT; Join MUST use tenant-scoped, time-bounded, single-use, replay-protected invitations with Foundation email-match policy. Public company directories, name-search join, domain auto-join, and silent membership creation are forbidden. Platform Owner provisioning via `platform.tenant.create` remains available.
 
 ### 7.2 Company intake and website intelligence
 
+- **FR-010b:** Unauthenticated `/` MAY remain a public product landing with explicit CTAs to login/register; it is not required to force-redirect to `/login` (Gap `G-024` product choice, 2026-09-04). Authenticated routing follows `DEC-015` / `FR-010a`.
 - **FR-011:** An authorized actor MUST be able to create or update a company intake profile containing business goals, markets, audiences, languages, channels, constraints, and brand inputs.
 - **FR-012:** The system MUST support adding one or more website/product sources with source type, ownership/authorization assertion, scope, locale, and inclusion/exclusion settings.
 - **FR-013:** The system MUST validate source URLs/connectors and protect against unsafe network targets, credential exposure, malicious redirects, and unauthorized private-network access.
@@ -863,6 +865,38 @@ This is product dependency order, not an implementation plan. Scope requires app
 
 **Impact:** Gate B is closed for platform-foundation tasks. `/speckit-tasks` may create foundation `tasks.md`. Product code and dependency installation still require an explicit `/speckit-implement` (or equivalent) authorization.
 
+### DEC-015 — Company acquisition (create + invitation join) `RESOLVED 2026-09-04 — OPTION A`
+
+**Decision:** Adopt **hybrid self-service company creation + invitation join** for how a registered user obtains a first (or additional authorized) company membership. Do **not** introduce a parallel tenant/company registry; extend the existing Foundation Tenant / Membership / Invitation / Session SoT.
+
+**Option A rules (binding):**
+
+1. A signed-in user with **zero ACTIVE memberships** is routed to **Company Onboarding**, never a blank product dead end.
+2. Onboarding presents exactly two paths: **Create a company** and **Join through invitation**.
+3. **Create a company** uses existing `POST /api/v1/tenants` and Tenant write path: create Tenant + ACTIVE Company Owner Membership + default `COMPANY_OWNER` capability grants in one transaction; set the new company as the session **Active Tenant**; audit + outbox; then route to OMA Home. Server generates a unique slug (reserved-slug protected). Name validation, idempotency, concurrency, and full transaction rollback apply.
+4. **Join through invitation** uses the existing Invitation + Membership accept path: tenant-scoped, time-bounded, single-use, replay-protected token (hash stored); Foundation email-match policy enforced. No new email provider is required; when mail delivery is unavailable, authorized actors may copy a secure invite link once.
+5. **Forbidden:** public company directory; join by searching company name; automatic domain-based joining; silent membership creation.
+6. **Platform Owner** retains `platform.tenant.create` provisioning for ops/bootstrap per existing Foundation capabilities.
+7. **Post-auth membership routing (server-authoritative):**
+   - Zero ACTIVE memberships → Company Onboarding.
+   - Exactly one ACTIVE membership and no valid Active Tenant → auto-activate that membership’s tenant.
+   - Multiple ACTIVE memberships and no valid Active Tenant → searchable company selector.
+   - Valid Active Tenant (ACTIVE membership + ACTIVE tenant) → proceed to requested destination or Home.
+8. `INVITED`, `SUSPENDED`, and `REMOVED` memberships never qualify for entry or activation. Invalid/stale `session.activeTenantId` is cleared server-side.
+9. All create/invite/accept/switch/suspend/remove operations remain audited, idempotent where applicable, and server-authorized.
+10. Cross-session “remember last company” for multi-membership users is **not** required: a new login with multiple ACTIVE memberships shows the selector; sole-membership auto-activation continues.
+
+**Authorization amendment (same SoT, no parallel model):**
+
+- `POST /api/v1/tenants` succeeds when the actor has `platform.tenant.create` **or** the actor is authenticated with **zero ACTIVE memberships** (self-serve first company under this decision).
+- Actors who already hold one or more ACTIVE memberships and lack `platform.tenant.create` MUST NOT create additional tenants via self-serve.
+
+**Reason:** User binding choice for Feature 002 gap closure (`G-001`/`G-002`/`G-004`/`G-018`) after the reference-to-OMA gap matrix proved register → empty product was caused by missing company acquisition UX over an existing create-tenant API.
+
+**Boundary:** Does not close `DEC-003`–`DEC-012`. Does not select an email/SMS vendor. Does not authorize live crawl/AI. Does not redefine Tenant as anything other than the Foundation company workspace (`DEC-008` remains open for multi-brand/agency topology).
+
+**Impact:** Unblocks Company Onboarding UI, invitation administration UI, searchable company selector policy, and related Feature 002 gap-matrix tasks previously gated by proposed `DEC-015`. Foundation contract `contracts/tenant-authorization.md` must reflect the authorization amendment above.
+
 ## 18. Definition of Done for any OMA AI slice
 
 A slice is complete only when all applicable items are true:
@@ -884,4 +918,4 @@ A slice is complete only when all applicable items are true:
 
 ## 19. Readiness status
 
-Repository setup is complete. Platform-foundation architecture and stack are an `APPROVED IMPLEMENTATION BASELINE` under `DEC-014`. Resolved `DEC-013` governs the reference hierarchy. Each functional product slice must resolve its named blocker decisions (`DEC-003`–`DEC-012`) before planning that slice. Foundation `tasks.md` may be generated under `/speckit-tasks`. Product implementation and dependency installation require an explicit implementation authorization after tasks are approved.
+Repository setup is complete. Platform-foundation architecture and stack are an `APPROVED IMPLEMENTATION BASELINE` under `DEC-014`. Resolved `DEC-013` governs the reference hierarchy. Resolved `DEC-015` (2026-09-04, Option A) governs hybrid self-service company creation and invitation join on the existing Tenant SoT. Each functional product slice must resolve its named blocker decisions (`DEC-003`–`DEC-012`) before planning that slice. Foundation `tasks.md` may be generated under `/speckit-tasks`. Product implementation and dependency installation require an explicit implementation authorization after tasks are approved.

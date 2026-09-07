@@ -3,9 +3,13 @@ import { getPrisma, tenantWhere, writeOutbox } from '@oma/db';
 import {
   DomainError,
   SYSTEM_PROFILES,
+  assertCompanyName,
   hashSessionToken,
   issueSessionToken,
   newId,
+  resolveMembershipRoute,
+  slugifyCompanyName,
+  uniquifySlug,
 } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
 
@@ -13,48 +17,70 @@ import { AuditService } from '../audit/audit.service';
 export class TenantService {
   constructor(private readonly audit: AuditService) {}
 
-  async createTenant(
-    actorUserId: string,
-    input: { name: string; slug: string },
-    correlationId?: string,
-  ) {
+  private async actorMayCreateTenant(actorUserId: string): Promise<'platform' | 'self_serve'> {
     const prisma = getPrisma();
-    const actorMemberships = await prisma.membership.findMany({
+    const activeMemberships = await prisma.membership.findMany({
       where: { userId: actorUserId, status: 'ACTIVE' },
       include: { grants: { where: { revokedAt: null } } },
     });
-    const platformCaps = actorMemberships.flatMap((m) => m.grants.map((g) => g.capabilityCode));
-    // Platform owner may also be identified via any grant of platform.tenant.create on any membership OR bootstrap user with profile
-    const hasPlatform = platformCaps.includes('platform.tenant.create');
-    // Also allow users who have PLATFORM_OWNER profile grants created at bootstrap without tenant (store as grants on a system membership)
-    const platformUser = await prisma.capabilityGrant.findFirst({
+    const platformCaps = activeMemberships.flatMap((m) => m.grants.map((g) => g.capabilityCode));
+    if (platformCaps.includes('platform.tenant.create')) {
+      return 'platform';
+    }
+    const platformGrant = await prisma.capabilityGrant.findFirst({
       where: {
         capabilityCode: 'platform.tenant.create',
         revokedAt: null,
         membership: { userId: actorUserId, status: 'ACTIVE' },
       },
     });
-    if (!hasPlatform && !platformUser) {
-      // Check platform grants table via memberships across tenants
-      const any = await prisma.capabilityGrant.findFirst({
-        where: {
-          capabilityCode: 'platform.tenant.create',
-          revokedAt: null,
-          membership: { userId: actorUserId, status: 'ACTIVE' },
-        },
+    if (platformGrant) return 'platform';
+
+    const distinctActiveTenants = new Set(activeMemberships.map((m) => m.tenantId));
+    if (distinctActiveTenants.size === 0) {
+      return 'self_serve';
+    }
+    throw new DomainError(
+      'PERMISSION_DENIED',
+      'Missing platform.tenant.create',
+      403,
+      'errors.permission_denied',
+    );
+  }
+
+  async createTenant(
+    actorUserId: string,
+    input: { name: string; slug?: string },
+    correlationId?: string,
+    sessionToken?: string,
+  ) {
+    await this.actorMayCreateTenant(actorUserId);
+    const prisma = getPrisma();
+
+    let name: string;
+    try {
+      name = assertCompanyName(input.name);
+    } catch {
+      throw new DomainError('VALIDATION_FAILED', 'Invalid company name', 400, 'errors.validation');
+    }
+
+    const baseSlug = input.slug?.trim()
+      ? input.slug.trim().toLowerCase()
+      : slugifyCompanyName(name);
+
+    let slug: string;
+    try {
+      slug = await uniquifySlug(baseSlug, async (candidate) => {
+        const existing = await prisma.tenant.findUnique({ where: { slug: candidate } });
+        return !!existing;
       });
-      if (!any)
-        throw new DomainError(
-          'PERMISSION_DENIED',
-          'Missing platform.tenant.create',
-          403,
-          'errors.permission_denied',
-        );
+    } catch {
+      throw new DomainError('VALIDATION_FAILED', 'Invalid company slug', 400, 'errors.validation');
     }
 
     const tenant = await prisma.$transaction(async (tx) => {
       const t = await tx.tenant.create({
-        data: { id: newId(), name: input.name, slug: input.slug, status: 'ACTIVE' },
+        data: { id: newId(), name, slug, status: 'ACTIVE' },
       });
       const membership = await tx.membership.create({
         data: {
@@ -86,6 +112,18 @@ export class TenantService {
       return t;
     });
 
+    if (sessionToken) {
+      const session = await prisma.session.findUnique({
+        where: { tokenHash: hashSessionToken(sessionToken) },
+      });
+      if (session && session.userId === actorUserId && !session.revokedAt) {
+        await prisma.session.update({
+          where: { id: session.id },
+          data: { activeTenantId: tenant.id },
+        });
+      }
+    }
+
     await this.audit.write({
       actorUserId,
       tenantId: tenant.id,
@@ -106,8 +144,9 @@ export class TenantService {
     const prisma = getPrisma();
     const membership = await prisma.membership.findFirst({
       where: tenantWhere(tenantId, { userId, status: 'ACTIVE' }),
+      include: { tenant: true },
     });
-    if (!membership)
+    if (!membership || membership.tenant.status !== 'ACTIVE')
       throw new DomainError(
         'PERMISSION_DENIED',
         'Not a member of tenant',
@@ -118,23 +157,106 @@ export class TenantService {
       where: { tokenHash: hashSessionToken(sessionToken) },
     });
     if (!session || session.userId !== userId || session.revokedAt) {
-      throw new DomainError('UNAUTHENTICATED', 'Session invalid', 401, 'errors.unauthenticated');
+      throw new DomainError(
+        'UNAUTHENTICATED',
+        'Authentication required',
+        401,
+        'errors.unauthenticated',
+      );
     }
-    await prisma.session.update({ where: { id: session.id }, data: { activeTenantId: tenantId } });
+    await prisma.session.update({
+      where: { id: session.id },
+      data: { activeTenantId: tenantId },
+    });
     await this.audit.write({
       actorUserId: userId,
       tenantId,
-      action: 'tenant.switched',
-      targetType: 'Tenant',
-      targetId: tenantId,
+      action: 'tenant.activated',
+      targetType: 'Session',
+      targetId: session.id,
       correlationId,
     });
     return { active_tenant_id: tenantId };
   }
 
+  /**
+   * Apply DEC-015 routing against the caller's latest session:
+   * clear invalid active tenant; auto-activate sole membership.
+   */
+  async reconcileSessionTenant(userId: string, sessionId: string) {
+    const prisma = getPrisma();
+    const memberships = await prisma.membership.findMany({
+      where: { userId, status: 'ACTIVE' },
+      include: { tenant: true },
+    });
+    const session = await prisma.session.findUnique({ where: { id: sessionId } });
+    if (!session || session.userId !== userId || session.revokedAt) {
+      return { active_tenant_id: null as string | null, route: 'ONBOARDING' as const };
+    }
+    const route = resolveMembershipRoute({
+      activeMemberships: memberships.map((m) => ({
+        tenantId: m.tenantId,
+        tenantStatus: m.tenant.status,
+      })),
+      activeTenantId: session.activeTenantId,
+    });
+
+    if (route.kind === 'PROCEED') {
+      return { active_tenant_id: route.tenantId, route: route.kind };
+    }
+    if (route.kind === 'AUTO_ACTIVATE') {
+      await prisma.session.update({
+        where: { id: session.id },
+        data: { activeTenantId: route.tenantId },
+      });
+      return { active_tenant_id: route.tenantId, route: route.kind };
+    }
+    if (session.activeTenantId) {
+      await prisma.session.update({
+        where: { id: session.id },
+        data: { activeTenantId: null },
+      });
+    }
+    return {
+      active_tenant_id: null as string | null,
+      route: route.kind,
+    };
+  }
+
+  async listCurrentMemberships(tenantId: string) {
+    const prisma = getPrisma();
+    const rows = await prisma.membership.findMany({
+      where: { tenantId },
+      include: {
+        user: { select: { id: true, email: true, name: true } },
+        grants: {
+          where: { revokedAt: null },
+          select: { capabilityCode: true, sourceProfileCode: true },
+        },
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+    return rows.map((m) => ({
+      id: m.id,
+      status: m.status,
+      invited_email: m.invitedEmail,
+      accepted_at: m.acceptedAt,
+      user: m.user ? { id: m.user.id, email: m.user.email, name: m.user.name } : null,
+      capabilities: [...new Set(m.grants.map((g) => g.capabilityCode))],
+      source_profiles: [...new Set(m.grants.map((g) => g.sourceProfileCode).filter(Boolean))],
+    }));
+  }
+
   async invite(actorUserId: string, tenantId: string, email: string, correlationId?: string) {
     const prisma = getPrisma();
+    const tenant = await prisma.tenant.findFirst({ where: { id: tenantId, status: 'ACTIVE' } });
+    if (!tenant) {
+      throw new DomainError('NOT_FOUND', 'Tenant not found', 404, 'errors.not_found');
+    }
     const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || !normalizedEmail.includes('@')) {
+      throw new DomainError('VALIDATION_FAILED', 'Invalid email', 400, 'errors.validation');
+    }
     const membership = await prisma.membership.create({
       data: {
         id: newId(),
@@ -201,24 +323,55 @@ export class TenantService {
       membership_id: membership.id,
       invite_token: token,
       job_run_id: jobRunId,
+      expires_at: new Date(Date.now() + 7 * 86400_000).toISOString(),
     };
   }
 
-  async acceptInvite(userId: string, token: string) {
+  async acceptInvite(userId: string, token: string, sessionToken?: string) {
     const prisma = getPrisma();
+    const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
     const inv = await prisma.invitation.findUnique({
       where: { tokenHash: hashSessionToken(token) },
-      include: { membership: true },
+      include: { membership: { include: { tenant: true } } },
     });
     if (!inv || inv.revokedAt || inv.acceptedAt || inv.expiresAt < new Date()) {
       throw new DomainError('NOT_FOUND', 'Invitation not found', 404, 'errors.not_found');
     }
+    if (inv.membership.tenant.status !== 'ACTIVE') {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'Company is not active',
+        409,
+        'errors.conflict_state',
+      );
+    }
+    const invitedEmail = inv.membership.invitedEmail?.trim().toLowerCase();
+    if (!invitedEmail || invitedEmail !== user.email.trim().toLowerCase()) {
+      throw new DomainError(
+        'PERMISSION_DENIED',
+        'Invitation email does not match this account',
+        403,
+        'errors.permission_denied',
+      );
+    }
     await prisma.$transaction(async (tx) => {
+      // Replay / concurrent accept protection: only the first accept wins.
+      const claimed = await tx.invitation.updateMany({
+        where: {
+          id: inv.id,
+          acceptedAt: null,
+          revokedAt: null,
+          expiresAt: { gt: new Date() },
+        },
+        data: { acceptedAt: new Date() },
+      });
+      if (claimed.count !== 1) {
+        throw new DomainError('NOT_FOUND', 'Invitation not found', 404, 'errors.not_found');
+      }
       await tx.membership.update({
         where: { id: inv.membershipId },
         data: { userId, status: 'ACTIVE', acceptedAt: new Date() },
       });
-      await tx.invitation.update({ where: { id: inv.id }, data: { acceptedAt: new Date() } });
       for (const code of SYSTEM_PROFILES.MEMBER ?? []) {
         await tx.capabilityGrant.create({
           data: {
@@ -230,6 +383,32 @@ export class TenantService {
           },
         });
       }
+    });
+
+    if (sessionToken) {
+      const session = await prisma.session.findUnique({
+        where: { tokenHash: hashSessionToken(sessionToken) },
+      });
+      if (session && session.userId === userId && !session.revokedAt) {
+        const activeCount = await prisma.membership.count({
+          where: { userId, status: 'ACTIVE' },
+        });
+        // Sole membership → activate; otherwise leave selector to choose.
+        if (activeCount === 1) {
+          await prisma.session.update({
+            where: { id: session.id },
+            data: { activeTenantId: inv.membership.tenantId },
+          });
+        }
+      }
+    }
+
+    await this.audit.write({
+      actorUserId: userId,
+      tenantId: inv.membership.tenantId,
+      action: 'membership.accepted',
+      targetType: 'Membership',
+      targetId: inv.membershipId,
     });
     return { ok: true, tenant_id: inv.membership.tenantId };
   }

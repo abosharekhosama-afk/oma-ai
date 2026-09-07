@@ -1,7 +1,7 @@
 name: ci
 on:
   push:
-    branches: ['001-oma-ai-product-foundation', 'main']
+    branches: ['001-oma-ai-product-foundation', '002-brand-website-intelligence', 'main']
   pull_request:
 jobs:
   verify:
@@ -44,6 +44,8 @@ jobs:
       MAIL_PROVIDER: recording
       OMA_WRITE_OPENAPI: '0'
       E2E_REUSE_SERVERS: '1'
+      BRAND_FIXTURE_CONNECTOR: '1'
+      RATE_LIMIT_PER_MINUTE: '0'
       CI: 'true'
     steps:
       - uses: actions/checkout@v4
@@ -65,7 +67,7 @@ jobs:
       - run: pnpm test
       - run: pnpm --filter @oma/api build
       - run: pnpm --filter @oma/worker build
-      - run: pnpm --filter @oma/web build
+      - run: NODE_ENV=production pnpm --filter @oma/web build
       - run: pnpm audit:deps
       - name: Secret scan (no .env committed)
         run: |

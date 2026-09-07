@@ -3,16 +3,21 @@ import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
+import { useT } from '../../../lib/use-locale';
 
 export default function RegisterPage() {
+  const t = useT();
   const router = useRouter();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
+    setBusy(true);
     try {
       await api('/api/v1/auth/register', {
         method: 'POST',
@@ -24,36 +29,53 @@ export default function RegisterPage() {
       });
       router.push('/app');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Register failed');
+      setError(err instanceof Error ? err.message : t('auth.registerFailed'));
+    } finally {
+      setBusy(false);
     }
   }
+
   return (
-    <main id="main" className="oma-container" style={{ maxWidth: 420 }}>
-      <h1>Create account</h1>
+    <main id="main" className="oma-auth">
+      <div className="oma-auth-brand">
+        <span className="oma-rail-mark" aria-hidden="true">
+          OMA
+        </span>
+        <strong>{t('app.name')}</strong>
+      </div>
+      <h1>{t('auth.register')}</h1>
       <form className="oma-card" onSubmit={onSubmit}>
-        <label htmlFor="name">Name</label>
+        <label htmlFor="name">{t('auth.name')}</label>
         <input
           id="name"
+          name="name"
           className="oma-input"
           value={name}
           onChange={(e) => setName(e.target.value)}
+          autoComplete="name"
           required
         />
-        <label htmlFor="email">Email</label>
+        <label htmlFor="email">{t('auth.email')}</label>
         <input
           id="email"
+          name="email"
+          type="email"
+          inputMode="email"
           className="oma-input"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          autoComplete="email"
           required
         />
-        <label htmlFor="password">Password</label>
+        <label htmlFor="password">{t('auth.password')}</label>
         <input
           id="password"
+          name="password"
           type="password"
           className="oma-input"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
+          autoComplete="new-password"
           required
           minLength={12}
         />
@@ -62,12 +84,12 @@ export default function RegisterPage() {
             {error}
           </p>
         ) : null}
-        <button className="oma-btn" type="submit">
-          Create account
+        <button className="oma-btn" type="submit" disabled={busy}>
+          {t('auth.register')}
         </button>
       </form>
-      <p>
-        <Link href="/login">Sign in</Link>
+      <p className="oma-muted">
+        {t('auth.haveAccount')} <Link href="/login">{t('auth.login')}</Link>
       </p>
     </main>
   );
