@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DevelopmentOsProjectManifest",
+  "type": "object",
+  "required": [
+    "PROJECT_ID",
+    "PROJECT_NAME",
+    "REPOSITORY",
+    "PRODUCT_SPEC_ROOT",
+    "PROJECT_ROADMAP_OWNER",
+    "REFERENCE_AUTHORITIES",
+    "REFERENCE_ACCESS_POLICIES",
+    "IMPLEMENTATION_WORKER_NAME",
+    "REFERENCE_WORKER_NAME",
+    "APPLICATION_E2E_ROUTE",
+    "PROJECT_SPECIFIC_RULES",
+    "CURRENT_PRODUCT_PHASE"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "PROJECT_ID": { "type": "string", "minLength": 1 },
+    "PROJECT_NAME": { "type": "string", "minLength": 1 },
+    "REPOSITORY": { "type": "string", "minLength": 1 },
+    "PRODUCT_SPEC_ROOT": { "type": "string" },
+    "PROJECT_ROADMAP_OWNER": { "type": "string" },
+    "REFERENCE_AUTHORITIES": { "type": "array", "items": { "type": "string" } },
+    "REFERENCE_ACCESS_POLICIES": { "type": "array", "items": { "type": "string" } },
+    "IMPLEMENTATION_WORKER_NAME": { "type": "string" },
+    "REFERENCE_WORKER_NAME": { "type": "string" },
+    "APPLICATION_E2E_ROUTE": { "type": "string" },
+    "PROJECT_SPECIFIC_RULES": { "type": "array", "items": { "type": "string" } },
+    "CURRENT_PRODUCT_PHASE": { "type": "string" },
+    "GOLDEN_OS_VERSION_PIN": { "type": "string", "description": "Pinned DEVELOPMENT_OS_GOLDEN_VERSION" }
+  }
+}

@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "updatedAt": "2026-09-07",
+  "policyOwner": "docs/DEVELOPMENT_OS_COST_POLICY.md",
+  "projectManifest": "scripts/dev-os/golden/project-manifest.json",
+  "defaults": {
+    "cursorPremiumPerStage": 0,
+    "cursorPremiumMaxJustified": 1,
+    "cursorPremiumParallelFanOut": 0,
+    "openCodeDefaultHeavy": true,
+    "silentPaidFallback": "DENY",
+    "paidApiFallback": "DENY"
+  },
+  "agents": [
+    {
+      "id": "oma-coder",
+      "file": ".opencode/agents/oma-coder.md",
+      "currentModel": "opencode-subscription-route",
+      "purpose": "Default heavy implementation / explore / routine debug",
+      "decision": "KEEP_AS_DEFAULT",
+      "newRoute": "TIER1_OPENCODE",
+      "why": "Golden Tier-1 default heavy worker for OMA",
+      "premium": false,
+      "defaultInvocationAllowed": true,
+      "inheritClass": "OPENCODE_WORKER"
+    },
+    {
+      "id": "reference-inspector",
+      "file": ".opencode/agents/reference-inspector.md",
+      "currentModel": "opencode-subscription-route",
+      "purpose": "External reference evidence collection",
+      "decision": "KEEP_AS_DEFAULT",
+      "newRoute": "TIER1_REFERENCE",
+      "why": "Default for reference inspection; Cursor Parent does not browser-inspect references",
+      "premium": false,
+      "defaultInvocationAllowed": true,
+      "inheritClass": "OPENCODE_WORKER"
+    },
+    {
+      "id": "oma-spec-auditor",
+      "file": ".cursor/agents/oma-spec-auditor.md",
+      "currentModel": "inherit",
+      "purpose": "Independent scope/ownership/spec audit",
+      "decision": "KEEP_AS_ESCALATION",
+      "newRoute": "TIER2_SPECIALIST",
+      "why": "Independent audit only when ownership/scope disputed",
+      "premium": true,
+      "defaultInvocationAllowed": false,
+      "inheritClass": "SPECIALIST_EXPLICIT_OR_SAFE_INHERIT"
+    },
+    {
+      "id": "oma-verifier",
+      "file": ".cursor/agents/oma-verifier.md",
+      "currentModel": "inherit",
+      "purpose": "Independent completion verification",
+      "decision": "KEEP_AS_ESCALATION",
+      "newRoute": "TIER2_SPECIALIST",
+      "why": "One independent verifier after evidence aggregation when needed",
+      "premium": true,
+      "defaultInvocationAllowed": false,
+      "inheritClass": "SPECIALIST_EXPLICIT_OR_SAFE_INHERIT"
+    },
+    {
+      "id": "codex-worker",
+      "file": "scripts/ai/codex-worker.sh",
+      "currentModel": "codex-cli-chatgpt-plan",
+      "purpose": "Complex architecture / hard debugging escalation",
+      "decision": "KEEP_AS_ESCALATION",
+      "newRoute": "TIER1_CODEX_ESCALATION",
+      "why": "Not default implementation; escalate after OpenCode evidence",
+      "premium": false,
+      "defaultInvocationAllowed": false,
+      "inheritClass": "CLI_ESCALATION"
+    }
+  ]
+}

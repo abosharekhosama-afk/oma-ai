@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EvidencePacket",
+  "type": "object",
+  "required": ["question", "facts", "unknown", "constraints"],
+  "additionalProperties": true,
+  "properties": {
+    "decision": { "type": "string" },
+    "question": { "type": "string", "minLength": 1 },
+    "relevantFiles": { "type": "array", "items": { "type": "string" } },
+    "relevantDiff": { "type": "string" },
+    "specIds": { "type": "array", "items": { "type": "string" } },
+    "referenceIds": { "type": "array", "items": { "type": "string" } },
+    "constraints": { "type": "array", "items": { "type": "string" } },
+    "facts": { "type": "array", "items": { "type": "string" } },
+    "unknown": { "type": "array", "items": { "type": "string" } },
+    "risks": { "type": "array", "items": { "type": "string" } },
+    "whyTwoSpecialistsRequired": { "type": ["string", "null"] }
+  }
+}

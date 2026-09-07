@@ -5,6 +5,7 @@ alwaysApply: true
 # OMA AI Cursor Orchestration
 
 - Treat `@AGENTS.md` as the durable repository contract.
+- Development OS Golden v1.0.0 cost/routing: `@docs/DEVELOPMENT_OS_COST_POLICY.md`, `@.cursor/rules/opencode-orchestrator.mdc`, `@.cursor/agents/routing-registry.json`. OpenCode `oma-coder` is default heavy; Cursor premium default **0**; no silent paid fallback.
 - At the start of each request, state one mode: `SETUP_ONLY`, `SPEC_ONLY`, `IMPLEMENT`, `BUG`, or `REVIEW`.
 - Read the constitution and smallest relevant spec before proposing functional changes.
 - For product-shell, UI, interaction, motion, or visual work, also read `@docs/DESIGN_REFERENCE_STRATEGY.md`; do not plan the base design system until `DEC-013` is approved.

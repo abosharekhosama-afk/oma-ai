@@ -298,6 +298,205 @@ check(
   /\.chrome-profile/.test(gitignore) && /logs/.test(gitignore),
   '.gitignore must exclude the reference browser profile and logs',
 );
+check(
+  'gitignore-devos-ledgers',
+  /\.dev-os\/ledgers/.test(gitignore),
+  '.gitignore must exclude Development OS stage ledgers',
+);
+
+// --- Golden Development OS v1.0.0 core (cost / routing / ledger) ---
+const costOrch = read('.cursor/rules/opencode-orchestrator.mdc');
+const workflow = read('docs/DEVELOPMENT_WORKFLOW.md');
+const costPolicy = read('docs/DEVELOPMENT_OS_COST_POLICY.md');
+const routingRegistry = read('.cursor/agents/routing-registry.json');
+const costGuards = read('scripts/dev-os/cost/lib/guards.mjs');
+check(
+  'golden-workflow-routing-map',
+  Boolean(workflow) && /DEVELOPMENT_OS_GOLDEN_VERSION/.test(workflow ?? ''),
+  'docs/DEVELOPMENT_WORKFLOW.md',
+);
+check(
+  'golden-cost-orchestrator',
+  Boolean(costOrch) && /Execution tiers|Tier 0|TIER 0/i.test(costOrch ?? ''),
+  '.cursor/rules/opencode-orchestrator.mdc',
+);
+check(
+  'golden-opencode-implementation-worker',
+  existsSync(join(REPO_ROOT, '.opencode/agents/oma-coder.md')),
+  '.opencode/agents/oma-coder.md',
+);
+check(
+  'golden-opencode-config',
+  existsSync(join(REPO_ROOT, 'opencode.json')),
+  'opencode.json',
+);
+check(
+  'golden-premium-default-zero',
+  /default\s*\*\*0\*\*|DEFAULT CURSOR SPECIALIST|premium.*default\s*0|CURSOR PREMIUM DEFAULT/i.test(
+    costOrch ?? '',
+  ),
+  'premium specialist default 0',
+);
+check(
+  'golden-app-e2e-distinct',
+  existsSync(join(REPO_ROOT, 'playwright.config.ts')) && existsSync(join(REPO_ROOT, 'tests/e2e')),
+  'Playwright application E2E (OMA stronger substitute for browser-worker.md)',
+);
+check(
+  'golden-cost-policy',
+  Boolean(costPolicy) && /NO_DUPLICATE_INTELLIGENCE/.test(costPolicy ?? ''),
+  'docs/DEVELOPMENT_OS_COST_POLICY.md',
+);
+check(
+  'golden-opencode-default-heavy',
+  existsSync(join(REPO_ROOT, '.opencode/agents/oma-coder.md')) &&
+    /TIER 1|OpenCode default/i.test(costPolicy ?? ''),
+  'OpenCode default heavy route',
+);
+check(
+  'golden-no-silent-premium-fallback',
+  /BLOCKED_BY_OPENCODE_(LIMIT|ROUTE|RUNTIME)/.test(`${costOrch}\n${costPolicy}`) &&
+    /silentPaidFallback|SILENT PAID FALLBACK|No silent|NO HEAVY CURSOR FALLBACK/i.test(
+      `${costOrch}\n${costPolicy}`,
+    ),
+  'no silent premium fallback',
+);
+check(
+  'golden-no-premium-fan-out',
+  /FAN-OUT|fan-out|FAN_OUT/.test(`${costOrch}\n${costPolicy}`) &&
+    /cursorPremiumParallelFanOut.: 0|PARALLEL FAN-OUT.: 0|PARALLEL_FAN_OUT.: 0/i.test(
+      `${costOrch}\n${routingRegistry}`,
+    ),
+  'premium fan-out denied',
+);
+check(
+  'golden-retry-control',
+  /Retry control|USELESS_RETRY|changedEvidence/i.test(
+    `${costOrch}\n${costPolicy}\n${costGuards}`,
+  ),
+  'retry control',
+);
+check(
+  'golden-context-minimization',
+  /MINIMUM NECESSARY CONTEXT/.test(`${costOrch}\n${costPolicy}`) &&
+    existsSync(join(REPO_ROOT, 'scripts/dev-os/cost/evidence-packet.schema.json')),
+  'context minimization + evidence packet',
+);
+check(
+  'golden-token-waste-audit',
+  existsSync(join(REPO_ROOT, 'scripts/dev-os/cost/token-waste-audit.mjs')) &&
+    /TOKEN_WASTE_AUDIT/.test(costPolicy ?? ''),
+  'TOKEN_WASTE_AUDIT',
+);
+check(
+  'golden-routing-registry-premium-defaults',
+  (() => {
+    if (!routingRegistry) return false;
+    try {
+      const doc = JSON.parse(routingRegistry);
+      return doc.agents.filter((a) => a.premium).every((a) => a.defaultInvocationAllowed === false);
+    } catch {
+      return false;
+    }
+  })(),
+  'premium agents defaultInvocationAllowed=false',
+);
+check(
+  'golden-no-parent-heavy-reference-browse',
+  /reference-inspector|NO HEAVY CURSOR REFERENCE/i.test(costOrch ?? '') &&
+    existsSync(join(REPO_ROOT, '.opencode/agents/reference-inspector.md')),
+  'reference inspector isolation',
+);
+check(
+  'golden-paid-api-fallback-deny',
+  /Paid OpenAI API fallback: \*\*DENY\*\*|paidApiFallback.: .DENY/.test(
+    `${costOrch}\n${costPolicy}\n${routingRegistry}`,
+  ),
+  'paid API fallback DENY',
+);
+check(
+  'golden-model-inherit-safety',
+  /INHERIT_FROM_HIGH_COST_PARENT/.test(`${costOrch}\n${costPolicy}`) &&
+    /inheritClass/.test(routingRegistry ?? ''),
+  'model inherit safety',
+);
+check(
+  'golden-usage-ledger',
+  existsSync(join(REPO_ROOT, 'scripts/dev-os/cost/usage-ledger.mjs')) &&
+    existsSync(join(REPO_ROOT, 'scripts/dev-os/cost/analyze-usage-export.mjs')),
+  'usage ledger + analyzer',
+);
+check(
+  'golden-cost-routing-tests',
+  existsSync(join(REPO_ROOT, 'scripts/dev-os/cost/test-cost-routing.mjs')),
+  'cost routing tests',
+);
+check(
+  'golden-automatic-ledger',
+  existsSync(join(REPO_ROOT, 'scripts/dev-os/cost/run-stage.mjs')) &&
+    existsSync(join(REPO_ROOT, 'scripts/dev-os/cost/lib/stages.mjs')) &&
+    /AUTOMATIC/.test(read('scripts/dev-os/cost/run-stage.mjs') ?? '') &&
+    /resolveLedgerPath/.test(read('scripts/dev-os/cost/token-waste-audit.mjs') ?? ''),
+  'automatic stage ledger',
+);
+check(
+  'golden-auto-ledger-tests',
+  existsSync(join(REPO_ROOT, 'scripts/dev-os/cost/test-auto-ledger.mjs')),
+  'automatic ledger tests',
+);
+check(
+  'golden-baseline-manifest',
+  (() => {
+    const raw = read('scripts/dev-os/golden/golden-baseline.manifest.json');
+    if (!raw) return false;
+    try {
+      const doc = JSON.parse(raw);
+      return (
+        doc.goldenBaselineId === 'IMKAN_ONE_DEVELOPMENT_OS_GOLDEN' &&
+        doc.version === '1.0.0' &&
+        doc.owners?.costPolicy &&
+        doc.paths?.openCodeImplementationWorker === '.opencode/agents/oma-coder.md'
+      );
+    } catch {
+      return false;
+    }
+  })(),
+  'golden-baseline.manifest.json v1.0.0',
+);
+check(
+  'golden-compare-script',
+  existsSync(join(REPO_ROOT, 'scripts/dev-os/golden/compare-golden-baseline.mjs')),
+  'compare-golden-baseline.mjs',
+);
+check(
+  'golden-project-manifest',
+  (() => {
+    const raw = read('scripts/dev-os/golden/project-manifest.json');
+    if (!raw) return false;
+    try {
+      const doc = JSON.parse(raw);
+      return doc.PROJECT_ID === 'OMA_AI' && doc.GOLDEN_OS_VERSION_PIN === '1.0.0';
+    } catch {
+      return false;
+    }
+  })(),
+  'project-manifest.json OMA_AI',
+);
+check(
+  'golden-project-manifest-schema',
+  existsSync(join(REPO_ROOT, 'scripts/dev-os/golden/project-manifest.schema.json')),
+  'project-manifest.schema.json',
+);
+check(
+  'golden-codex-worker-route',
+  existsSync(join(REPO_ROOT, 'scripts/ai/codex-worker.sh')),
+  'scripts/ai/codex-worker.sh',
+);
+check(
+  'golden-contract-doc',
+  existsSync(join(REPO_ROOT, 'docs/DEVELOPMENT_OS_GOLDEN_BASELINE.md')),
+  'docs/DEVELOPMENT_OS_GOLDEN_BASELINE.md',
+);
 
 const failed = checks.filter((c) => c.status === 'FAIL');
 for (const c of checks) {
