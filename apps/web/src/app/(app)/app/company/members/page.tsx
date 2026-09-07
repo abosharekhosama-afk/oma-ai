@@ -2,6 +2,8 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 import { api } from '../../../../../lib/api';
+import { apiMutate, getApiError, isPermissionDenied } from '../../../../../lib/brand-api';
+import { PermissionDenied } from '../../../../../components/shell/permission-denied';
 import { useT } from '../../../../../lib/use-locale';
 
 type Member = {
@@ -13,6 +15,8 @@ type Member = {
   source_profiles: Array<string | null>;
 };
 
+const ASSIGNABLE_PROFILES = ['COMPANY_OWNER', 'MEMBER'] as const;
+
 export default function CompanyMembersPage() {
   const t = useT();
   const [members, setMembers] = useState<Member[]>([]);
@@ -21,14 +25,18 @@ export default function CompanyMembersPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [denied, setDenied] = useState(false);
+  const [profileByMember, setProfileByMember] = useState<Record<string, string>>({});
 
   async function load() {
     try {
       const res = await api<{ data: Member[] }>('/api/v1/tenants/current/memberships');
       setMembers(res.data);
       setError(null);
+      setDenied(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      if (isPermissionDenied(err)) setDenied(true);
+      else setError(getApiError(err).message);
     }
   }
 
@@ -50,7 +58,7 @@ export default function CompanyMembersPage() {
       setEmail('');
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(getApiError(err).message);
     } finally {
       setBusy(false);
     }
@@ -61,7 +69,7 @@ export default function CompanyMembersPage() {
     try {
       await navigator.clipboard.writeText(inviteLink);
     } catch {
-      // Clipboard may be denied in some browsers; still expose the link for manual copy.
+      // Clipboard may be denied; link remains visible.
     }
     setCopied(true);
   }
@@ -72,11 +80,30 @@ export default function CompanyMembersPage() {
       await api(`/api/v1/memberships/${id}/suspend`, { method: 'POST', body: '{}' });
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(getApiError(err).message);
     } finally {
       setBusy(false);
     }
   }
+
+  async function attachProfile(membershipId: string) {
+    const profile_code = profileByMember[membershipId];
+    if (!profile_code) return;
+    setBusy(true);
+    try {
+      await apiMutate(`/api/v1/memberships/${membershipId}/profiles`, {
+        method: 'POST',
+        body: JSON.stringify({ profile_code }),
+      });
+      await load();
+    } catch (err) {
+      setError(getApiError(err).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (denied) return <PermissionDenied message={t('errors.permission')} />;
 
   return (
     <div className="oma-stack">
@@ -131,6 +158,7 @@ export default function CompanyMembersPage() {
                 <th>{t('company.colPerson')}</th>
                 <th>{t('company.colStatus')}</th>
                 <th>{t('company.colProfile')}</th>
+                <th>{t('company.colCapabilities')}</th>
                 <th>{t('company.colActions')}</th>
               </tr>
             </thead>
@@ -143,16 +171,52 @@ export default function CompanyMembersPage() {
                   </td>
                   <td>{m.source_profiles.filter(Boolean).join(', ') || '—'}</td>
                   <td>
-                    {m.status === 'ACTIVE' ? (
-                      <button
-                        type="button"
-                        className="oma-btn oma-btn-secondary"
-                        disabled={busy}
-                        onClick={() => void suspend(m.id)}
-                      >
-                        {t('company.suspend')}
-                      </button>
-                    ) : null}
+                    <span className="oma-muted" style={{ fontSize: 13 }}>
+                      {m.capabilities.length > 0 ? m.capabilities.join(', ') : '—'}
+                    </span>
+                  </td>
+                  <td>
+                    <div className="oma-form-actions">
+                      {m.status === 'ACTIVE' ? (
+                        <>
+                          <label className="oma-field">
+                            <span className="oma-sr-only">{t('company.assignProfile')}</span>
+                            <select
+                              className="oma-input"
+                              value={profileByMember[m.id] ?? ''}
+                              data-testid={`assign-profile-${m.id}`}
+                              onChange={(e) =>
+                                setProfileByMember((prev) => ({ ...prev, [m.id]: e.target.value }))
+                              }
+                              disabled={busy}
+                            >
+                              <option value="">{t('company.assignProfilePlaceholder')}</option>
+                              {ASSIGNABLE_PROFILES.map((code) => (
+                                <option key={code} value={code}>
+                                  {code}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                          <button
+                            type="button"
+                            className="oma-btn-secondary"
+                            disabled={busy || !profileByMember[m.id]}
+                            onClick={() => void attachProfile(m.id)}
+                          >
+                            {t('company.assignProfile')}
+                          </button>
+                          <button
+                            type="button"
+                            className="oma-btn oma-btn-secondary"
+                            disabled={busy}
+                            onClick={() => void suspend(m.id)}
+                          >
+                            {t('company.suspend')}
+                          </button>
+                        </>
+                      ) : null}
+                    </div>
                   </td>
                 </tr>
               ))}

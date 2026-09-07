@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
+import { apiMutate, getApiError } from '../../lib/brand-api';
 import { useT } from '../../lib/use-locale';
 
 type NotificationItem = {
@@ -12,6 +13,12 @@ type NotificationItem = {
   createdAt: string;
   readAt?: string | null;
 };
+
+function notificationLabel(t: (key: string) => string, type: string): string {
+  const key = `shell.notification.type.${type}`;
+  const translated = t(key);
+  return translated === key ? type : translated;
+}
 
 export function NotificationsBell() {
   const t = useT();
@@ -23,11 +30,26 @@ export function NotificationsBell() {
     api<{ items: NotificationItem[] }>('/api/v1/notifications')
       .then((res) => setItems(res.items))
       .catch((err) => {
-        // No active tenant / capability → hide quietly.
         if (err?.status === 409 || err?.status === 403) setItems([]);
         else setError(err instanceof Error ? err.message : String(err));
       });
   }, []);
+
+  async function markRead(id: string) {
+    try {
+      await apiMutate(`/api/v1/notifications/${id}/read`, {
+        method: 'POST',
+        body: JSON.stringify({}),
+      });
+      setItems((prev) =>
+        (prev ?? []).map((n) =>
+          n.id === id ? { ...n, readAt: n.readAt ?? new Date().toISOString() } : n,
+        ),
+      );
+    } catch (err) {
+      setError(getApiError(err).message);
+    }
+  }
 
   const unread = (items ?? []).filter((n) => !n.readAt).length;
 
@@ -54,11 +76,27 @@ export function NotificationsBell() {
           ) : (
             <ul>
               {items.map((n) => (
-                <li key={n.id}>
+                <li key={n.id} className={n.readAt ? undefined : 'oma-notification-unread'}>
                   {n.deepLinkPath ? (
-                    <Link href={n.deepLinkPath}>{n.type}</Link>
+                    <Link
+                      href={n.deepLinkPath}
+                      data-testid={`notification-link-${n.id}`}
+                      onClick={() => {
+                        if (!n.readAt) void markRead(n.id);
+                      }}
+                    >
+                      {notificationLabel(t, n.type)}
+                    </Link>
                   ) : (
-                    <span>{n.type}</span>
+                    <button
+                      type="button"
+                      className="oma-linkish"
+                      onClick={() => {
+                        if (!n.readAt) void markRead(n.id);
+                      }}
+                    >
+                      {notificationLabel(t, n.type)}
+                    </button>
                   )}
                 </li>
               ))}

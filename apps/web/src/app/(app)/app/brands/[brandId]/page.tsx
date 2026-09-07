@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { api } from '../../../../../lib/api';
-import type { BrandDetail, ScanDetail } from '../../../../../lib/brand-types';
+import type { BrandDetail, Paginated, ScanDetail } from '../../../../../lib/brand-types';
 import { getApiError, isPermissionDenied, isTenantRequired } from '../../../../../lib/brand-api';
 import { SelectCompany } from '../../../../../components/shell/select-company';
 import { BrandWorkspaceShell } from '../../../../../components/brand/brand-workspace-shell';
@@ -20,6 +20,7 @@ export default function BrandDetailPage() {
   const brandId = params.brandId;
   const [brand, setBrand] = useState<BrandDetail | null>(null);
   const [scanDetail, setScanDetail] = useState<ScanDetail | null>(null);
+  const [scanHistory, setScanHistory] = useState<ScanDetail[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
@@ -29,6 +30,14 @@ export default function BrandDetailPage() {
     api<{ data: BrandDetail }>(`/api/v1/brands/${brandId}`)
       .then(async (res) => {
         setBrand(res.data);
+        try {
+          const history = await api<Paginated<ScanDetail>>(
+            `/api/v1/brands/${brandId}/scans?limit=20`,
+          );
+          setScanHistory(history.data);
+        } catch {
+          setScanHistory([]);
+        }
         if (res.data.latest_scan?.id) {
           try {
             const scan = await api<{ data: ScanDetail }>(
@@ -183,6 +192,40 @@ export default function BrandDetailPage() {
       {scanDetail ? (
         <CoverageDisclosure coverage={scanDetail.coverage} scanStatus={scanDetail.status} />
       ) : null}
+
+      <section className="oma-card" aria-labelledby="scan-history-heading">
+        <h2 id="scan-history-heading">{t('brand.scan.historyTitle')}</h2>
+        {scanHistory.length === 0 ? (
+          <p className="oma-muted" role="status">
+            {t('brand.scan.historyEmpty')}
+          </p>
+        ) : (
+          <table className="oma-table">
+            <thead>
+              <tr>
+                <th scope="col">{t('brand.scan.historyStatus')}</th>
+                <th scope="col">{t('brand.scan.historyProgress')}</th>
+                <th scope="col">{t('brand.scan.historyActions')}</th>
+              </tr>
+            </thead>
+            <tbody>
+              {scanHistory.map((item) => (
+                <tr key={item.id}>
+                  <td>
+                    <StatusChip status={item.status} />
+                  </td>
+                  <td>{item.progress_percent}%</td>
+                  <td>
+                    <Link href={`/app/brands/${brandId}/scans/${item.id}`}>
+                      {t('brand.scan.historyOpen')}
+                    </Link>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
 
       <div className="oma-action-grid">
         {!brand.website ? (

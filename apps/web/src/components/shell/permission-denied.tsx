@@ -1,12 +1,13 @@
-export function PermissionDenied({
-  message = 'You do not have permission to view this.',
-}: {
-  message?: string;
-}) {
+'use client';
+
+import { useT } from '../../lib/use-locale';
+
+export function PermissionDenied({ message }: { message?: string }) {
+  const t = useT();
   return (
-    <div className="oma-card" role="alert">
-      <h2>Permission denied</h2>
-      <p>{message}</p>
+    <div className="oma-card" role="alert" data-testid="permission-denied">
+      <h2>{t('errors.permissionTitle')}</h2>
+      <p>{message ?? t('errors.permission')}</p>
     </div>
   );
 }

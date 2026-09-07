@@ -11,6 +11,7 @@ const routeRequirements: Record<string, string[]> = {
   'POST /api/v1/memberships/:id/profiles': ['capability.assign'],
   'GET /api/v1/audit-events': ['audit.read'],
   'GET /api/v1/notifications': ['notification.read'],
+  'POST /api/v1/notifications/:id/read': ['notification.read'],
   'GET /api/v1/jobs/:id': ['job.read'],
   'POST /api/v1/jobs/:id/cancel': ['job.read'],
   'GET /api/v1/brands': ['brand.read'],
@@ -42,6 +43,7 @@ const routeRequirements: Record<string, string[]> = {
 function matchRequirements(method: string, path: string): string[] | null {
   const normalized = path
     .replace(/\/api\/v1\/memberships\/[^/]+\//, '/api/v1/memberships/:id/')
+    .replace(/\/api\/v1\/notifications\/[^/]+\/read/, '/api/v1/notifications/:id/read')
     .replace(/\/api\/v1\/jobs\/[^/]+/, '/api/v1/jobs/:id')
     .replace(
       /\/api\/v1\/brands\/[^/]+\/scans\/[^/]+\/cancel/,

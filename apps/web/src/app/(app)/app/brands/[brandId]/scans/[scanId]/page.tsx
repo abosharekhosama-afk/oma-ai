@@ -15,10 +15,22 @@ import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand
 import { AiUnavailableBanner } from '../../../../../../../components/brand/ai-unavailable-banner';
 import { ConnectorModeBanner } from '../../../../../../../components/brand/connector-mode-banner';
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
+import { StatusChip } from '../../../../../../../components/ui/status-chip';
 import { useT } from '../../../../../../../lib/use-locale';
 
 const TERMINAL = new Set(['SUCCEEDED', 'PARTIAL', 'FAILED', 'CANCELLED']);
+const PHASES = ['QUEUED', 'CRAWLING', 'EXTRACTING', 'ANALYZING'] as const;
 const POLL_MS = 2500;
+
+function phaseIndex(status: string): number {
+  if (status === 'SUCCEEDED' || status === 'PARTIAL') return PHASES.length;
+  if (status === 'FAILED' || status === 'CANCELLED') {
+    const i = PHASES.indexOf(status as (typeof PHASES)[number]);
+    return i >= 0 ? i : Math.max(0, PHASES.length - 1);
+  }
+  const i = PHASES.indexOf(status as (typeof PHASES)[number]);
+  return i >= 0 ? i : 0;
+}
 
 export default function ScanDetailPage() {
   const t = useT();
@@ -117,11 +129,14 @@ export default function ScanDetailPage() {
   }
 
   const isPartial = scan.status === 'PARTIAL';
+  const isFailed = scan.status === 'FAILED';
+  const isCancelled = scan.status === 'CANCELLED';
   const canRetry = ['FAILED', 'PARTIAL', 'CANCELLED'].includes(scan.status);
   const inProgress = !TERMINAL.has(scan.status);
+  const activePhase = phaseIndex(scan.status);
 
   return (
-    <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
+    <BrandWorkspaceShell brandId={brandId} brandName={brand.name} scanStatus={scan.status}>
       <AiUnavailableBanner aiAvailability={scan.ai_availability} />
 
       <ConnectorModeBanner mode={scan.connector_mode} />
@@ -130,6 +145,21 @@ export default function ScanDetailPage() {
         <div className="oma-banner oma-banner-warning" role="alert">
           <strong>{t('brand.scan.partialTitle')}</strong>
           <p>{t('brand.scan.partialBody')}</p>
+        </div>
+      ) : null}
+
+      {isFailed ? (
+        <div className="oma-banner oma-banner-danger" role="alert">
+          <strong>{t('brand.scan.failedTitle')}</strong>
+          <p>{t('brand.scan.failedBody')}</p>
+          {scan.error_code ? <p className="oma-muted">{scan.error_code}</p> : null}
+        </div>
+      ) : null}
+
+      {isCancelled ? (
+        <div className="oma-banner oma-banner-warning" role="status">
+          <strong>{t('brand.scan.cancelledTitle')}</strong>
+          <p>{t('brand.scan.cancelledBody')}</p>
         </div>
       ) : null}
 
@@ -142,6 +172,31 @@ export default function ScanDetailPage() {
           aria-live="polite"
           aria-atomic="true"
         />
+
+        <ol className="oma-scan-phases" aria-label={t('brand.scan.phasesTitle')}>
+          {PHASES.map((phase, index) => {
+            const done = activePhase > index || TERMINAL.has(scan.status);
+            const current = scan.status === phase;
+            return (
+              <li
+                key={phase}
+                className={
+                  current
+                    ? 'oma-scan-phase is-current'
+                    : done
+                      ? 'oma-scan-phase is-done'
+                      : 'oma-scan-phase'
+                }
+              >
+                <StatusChip
+                  status={current ? scan.status : done ? 'SUCCEEDED' : 'QUEUED'}
+                  label={t(`brand.scan.phase.${phase}`)}
+                />
+              </li>
+            );
+          })}
+        </ol>
+
         <div className="oma-progress" aria-hidden="true">
           <div className="oma-progress-bar" style={{ width: `${scan.progress_percent}%` }} />
         </div>
@@ -162,11 +217,6 @@ export default function ScanDetailPage() {
             <span>{t('brand.scan.pagesSkipped')}</span>
           </div>
         </div>
-        {scan.error_code ? (
-          <p role="alert" style={{ color: 'var(--status-danger)' }}>
-            {scan.error_code}
-          </p>
-        ) : null}
         {actionError ? (
           <p role="alert" style={{ color: 'var(--status-danger)' }}>
             {actionError}
@@ -204,6 +254,7 @@ export default function ScanDetailPage() {
           <Link href={`/app/brands/${brandId}/discovery/pages`}>
             {t('brand.discovery.pagesTitle')}
           </Link>
+          <Link href={`/app/brands/${brandId}`}>{t('brand.scan.backToBrand')}</Link>
         </div>
       </div>
     </BrandWorkspaceShell>

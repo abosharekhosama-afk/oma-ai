@@ -37,3 +37,16 @@
 - Closing DEC-003–DEC-012
 - Feature 003, PR, merge to main
 - Claims: LIVE-INTEGRATION READY, PRODUCTION LAUNCH READY, USER ACCEPTANCE PASSED
+
+## Visible surfaces closure (post-accd45d)
+
+Implemented remaining UI depth on Feature 002 branch (no live crawl/AI):
+
+- Discovery → evidence side panel (pages + products via real evidence APIs)
+- Scan phase trail, failure/cancel remediation copy, scan history on brand overview
+- Approved immutable banner; compare against version picker (`against` query)
+- Notification localized labels + mark-read (`POST /api/v1/notifications/:id/read`)
+- Members capability profile assign UI; permission-denied i18n
+- Targeted E2E: `tests/e2e/brand-visible-surfaces-002.e2e.ts`
+
+Still deferred / not claimed: DEC-003–012 live providers, Feature 003, USER ACCEPTANCE, LIVE-INTEGRATION READY.

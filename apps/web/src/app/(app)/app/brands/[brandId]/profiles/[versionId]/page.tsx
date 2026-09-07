@@ -230,6 +230,13 @@ export default function ProfileEditorPage() {
 
       <AiUnavailableBanner aiAvailability={profile.ai_availability} />
 
+      {profile.status === 'APPROVED' || profile.status === 'SUPERSEDED' ? (
+        <div className="oma-banner oma-banner-info" role="status" data-testid="immutable-banner">
+          <strong>{t('brand.profile.immutableTitle')}</strong>
+          <p>{t('brand.profile.immutableBody')}</p>
+        </div>
+      ) : null}
+
       {scanStatus === 'PARTIAL' ? (
         <div className="oma-banner oma-banner-warning" role="alert">
           <strong>{t('brand.scan.partialTitle')}</strong>

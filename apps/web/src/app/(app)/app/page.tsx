@@ -40,6 +40,12 @@ function attentionLabel(t: (key: string) => string, brand: BrandListItem): strin
   }
 }
 
+function notificationLabel(t: (key: string) => string, type: string): string {
+  const key = `shell.notification.type.${type}`;
+  const translated = t(key);
+  return translated === key ? type : translated;
+}
+
 export default function AppHomePage() {
   const t = useT();
   const [me, setMe] = useState<Me | null>(null);
@@ -248,14 +254,14 @@ export default function AppHomePage() {
                     <li key={n.id}>
                       {n.deepLinkPath ? (
                         <Link href={n.deepLinkPath} className="oma-compact-row">
-                          <strong>{n.type}</strong>
+                          <strong>{notificationLabel(t, n.type)}</strong>
                           <span className="oma-muted">
                             {new Date(n.createdAt).toLocaleString()}
                           </span>
                         </Link>
                       ) : (
                         <div className="oma-compact-row">
-                          <strong>{n.type}</strong>
+                          <strong>{notificationLabel(t, n.type)}</strong>
                           <span className="oma-muted">
                             {new Date(n.createdAt).toLocaleString()}
                           </span>
