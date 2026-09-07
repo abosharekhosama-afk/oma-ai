@@ -13,38 +13,38 @@ This is **Development OS architecture only** — not product versioning.
 
 ## Implementation source
 
-**IMKAN ONE / People** is the current golden *implementation source* for the Development OS.
+**IMKAN ONE / People** is the current golden _implementation source_ for the Development OS.
 
 This does **not** make People product logic canonical for ISP or OMA AI.
 
 Forbidden examples of product propagation:
 
-- Zoho People rules → ISP  
-- People P8 → OMA  
-- Payroll boundary → ISP  
-- People capabilities → OMA  
-- People reference authority → ISP  
+- Zoho People rules → ISP
+- People P8 → OMA
+- Payroll boundary → ISP
+- People capabilities → OMA
+- People reference authority → ISP
 
 Only **OS-core** mechanisms may be compared/propagated.
 
 ## Core vs project-specific
 
-| CORE (identical across projects) | PROJECT-SPECIFIC (never propagate as core) |
-|----------------------------------|--------------------------------------------|
-| Orchestrator, tiers, OpenCode/Codex/Reference contracts | Product roadmap / phase status |
-| Cost governor, premium-default-zero, no fan-out | Reference authorities & access policies |
-| Context minimization, evidence packet, retries | Product specs / tenant / domain SoT |
-| TOKEN_WASTE_AUDIT, usage ledger, stage runner | Branches, credentials, CDP ports/profiles |
-| Validator / doctor contracts | Application modules / product exceptions |
+| CORE (identical across projects)                        | PROJECT-SPECIFIC (never propagate as core) |
+| ------------------------------------------------------- | ------------------------------------------ |
+| Orchestrator, tiers, OpenCode/Codex/Reference contracts | Product roadmap / phase status             |
+| Cost governor, premium-default-zero, no fan-out         | Reference authorities & access policies    |
+| Context minimization, evidence packet, retries          | Product specs / tenant / domain SoT        |
+| TOKEN_WASTE_AUDIT, usage ledger, stage runner           | Branches, credentials, CDP ports/profiles  |
+| Validator / doctor contracts                            | Application modules / product exceptions   |
 
 ## Required gates
 
 See manifest `requiredGates`. Notable:
 
-- Cursor premium default **0**  
-- Premium fan-out **DENIED**  
-- Silent paid fallback **DENIED**  
-- Usage ledger **AUTOMATIC** for substantial stages (`npm run dev-os:stage`)  
+- Cursor premium default **0**
+- Premium fan-out **DENIED**
+- Silent paid fallback **DENIED**
+- Usage ledger **AUTOMATIC** for substantial stages (`npm run dev-os:stage`)
 - `PARENT_TASK_VM_HARD_BLOCK` = **NOT_PLATFORM_ENFORCEABLE** (compensating controls listed in manifest)
 
 ## Project manifest contract
@@ -57,9 +57,9 @@ Do not store credentials or session secrets in manifests.
 
 ## Convergence (future ISP / OMA)
 
-1. Copy/compare against this golden version using `dev-os:golden-compare`  
-2. Classify each component: `MATCH` · `MISSING` · `OUTDATED` · `PROJECT_SPECIFIC` · `CONFLICT` · `RUNTIME_NOT_CONFIGURED`  
-3. Apply **core only** — never overwrite project manifests with People product state  
+1. Copy/compare against this golden version using `dev-os:golden-compare`
+2. Classify each component: `MATCH` · `MISSING` · `OUTDATED` · `PROJECT_SPECIFIC` · `CONFLICT` · `RUNTIME_NOT_CONFIGURED`
+3. Apply **core only** — never overwrite project manifests with People product state
 
 Commands:
 

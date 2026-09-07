@@ -325,11 +325,7 @@ check(
   existsSync(join(REPO_ROOT, '.opencode/agents/oma-coder.md')),
   '.opencode/agents/oma-coder.md',
 );
-check(
-  'golden-opencode-config',
-  existsSync(join(REPO_ROOT, 'opencode.json')),
-  'opencode.json',
-);
+check('golden-opencode-config', existsSync(join(REPO_ROOT, 'opencode.json')), 'opencode.json');
 check(
   'golden-premium-default-zero',
   /default\s*\*\*0\*\*|DEFAULT CURSOR SPECIALIST|premium.*default\s*0|CURSOR PREMIUM DEFAULT/i.test(
@@ -371,9 +367,7 @@ check(
 );
 check(
   'golden-retry-control',
-  /Retry control|USELESS_RETRY|changedEvidence/i.test(
-    `${costOrch}\n${costPolicy}\n${costGuards}`,
-  ),
+  /Retry control|USELESS_RETRY|changedEvidence/i.test(`${costOrch}\n${costPolicy}\n${costGuards}`),
   'retry control',
 );
 check(

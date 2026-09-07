@@ -146,9 +146,7 @@ async function main() {
   const opencode = await which('opencode');
   row(
     'OPENCODE ROUTE',
-    file('opencode.json') && file('.opencode/agents/oma-coder.md')
-      ? 'CONFIGURED_IN_OS'
-      : 'BLOCKED',
+    file('opencode.json') && file('.opencode/agents/oma-coder.md') ? 'CONFIGURED_IN_OS' : 'BLOCKED',
     'opencode.json + oma-coder (Tier 1 default heavy)',
   );
   row('OPENCODE CLI', opencode ? 'READY' : 'NOT_CONFIGURED', opencode ?? 'not on PATH');

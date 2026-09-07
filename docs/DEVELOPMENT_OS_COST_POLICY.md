@@ -14,10 +14,10 @@ Do **not** impose an arbitrary tiny token ceiling that degrades difficult work.
 
 ## Economic resources (separate)
 
-| Pool | Use |
-|------|-----|
+| Pool                                                  | Use                                                                  |
+| ----------------------------------------------------- | -------------------------------------------------------------------- |
 | **A — ChatGPT subscription → OpenCode / Codex route** | Default heavy implementation, reference inspection, Codex escalation |
-| **B — Cursor subscription / Included / On-Demand** | Orchestration + rare specialist escalation |
+| **B — Cursor subscription / Included / On-Demand**    | Orchestration + rare specialist escalation                           |
 
 Do not replace A with a metered OpenAI API key. Do not silently move OpenCode work onto B.
 
@@ -146,10 +146,10 @@ A overlapping premium work · B excess context · C full-history resent · D det
 
 Required for PASS:
 
-- `UNJUSTIFIED_PREMIUM_CALLS` = 0  
-- `UNJUSTIFIED_MODEL_FAN_OUT` = 0  
-- `USELESS_RETRIES` = 0  
-- `SILENT_PAID_FALLBACK` = 0  
+- `UNJUSTIFIED_PREMIUM_CALLS` = 0
+- `UNJUSTIFIED_MODEL_FAN_OUT` = 0
+- `USELESS_RETRIES` = 0
+- `SILENT_PAID_FALLBACK` = 0
 
 Unavailable telemetry → `NOT_OBSERVABLE` (not a fabricated pass). Missing Cursor billing data must **not** fail legitimate engineering; observable policy violations still fail.
 
@@ -163,13 +163,13 @@ Records stage · worker · model · purpose · calls · context strategy · retr
 
 ## Cost anomaly warnings (relative)
 
-| Signal | Code |
-|--------|------|
-| Stage launches >1 Cursor premium specialist | `COST_WARNING_FAN_OUT` |
-| Same worker retries >1 without new evidence | `COST_WARNING_RETRY` |
-| Full-context packet resent repeatedly | `COST_WARNING_CONTEXT_REPLAY` |
-| OpenCode unavailable + Cursor premium auto-starts | `POLICY_VIOLATION` |
-| Large cache-read amplification in export | `COST_WARNING_CACHE_AMPLIFICATION` |
+| Signal                                            | Code                               |
+| ------------------------------------------------- | ---------------------------------- |
+| Stage launches >1 Cursor premium specialist       | `COST_WARNING_FAN_OUT`             |
+| Same worker retries >1 without new evidence       | `COST_WARNING_RETRY`               |
+| Full-context packet resent repeatedly             | `COST_WARNING_CONTEXT_REPLAY`      |
+| OpenCode unavailable + Cursor premium auto-starts | `POLICY_VIOLATION`                 |
+| Large cache-read amplification in export          | `COST_WARNING_CACHE_AMPLIFICATION` |
 
 ## Unenforceable Cursor runtime limitations
 
@@ -181,11 +181,11 @@ PARENT_TASK_VM_HARD_BLOCK: NOT_PLATFORM_ENFORCEABLE
 
 Compensating controls:
 
-1. always-applied orchestrator rule  
-2. agent routing registry + frontmatter `DEFAULT_INVOCATION: 0`  
-3. deterministic validators and routing tests  
-4. automatic substantial-stage usage ledger (`dev-os:stage`)  
-5. `TOKEN_WASTE_AUDIT` before DONE  
+1. always-applied orchestrator rule
+2. agent routing registry + frontmatter `DEFAULT_INVOCATION: 0`
+3. deterministic validators and routing tests
+4. automatic substantial-stage usage ledger (`dev-os:stage`)
+5. `TOKEN_WASTE_AUDIT` before DONE
 
 Any bypass by a human or Parent that ignores rules is a **policy violation**, not a missing feature claim.
 

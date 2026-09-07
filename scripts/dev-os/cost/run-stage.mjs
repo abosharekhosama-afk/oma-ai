@@ -10,9 +10,9 @@
  * Does not call models. Does not poll billing.
  * Telemetry missing → NOT_OBSERVABLE (does not fail product work).
  */
-import fs from "node:fs";
-import path from "node:path";
-import { spawnSync } from "node:child_process";
+import fs from 'node:fs';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import {
   isSubstantialStage,
   isTrivialStage,
@@ -20,20 +20,20 @@ import {
   ensureLedgerRoot,
   writeCurrentPointer,
   defaultLedgerRoot,
-} from "./lib/stages.mjs";
+} from './lib/stages.mjs';
 
 function parseArgs(argv) {
   const out = { _: [], env: {} };
   for (let i = 0; i < argv.length; i += 1) {
     const a = argv[i];
-    if (a === "--") {
+    if (a === '--') {
       out._ = argv.slice(i + 1);
       break;
     }
-    if (a.startsWith("--")) {
+    if (a.startsWith('--')) {
       const key = a.slice(2);
       const next = argv[i + 1];
-      if (next && !next.startsWith("--")) {
+      if (next && !next.startsWith('--')) {
         out[key] = next;
         i += 1;
       } else out[key] = true;
@@ -43,18 +43,18 @@ function parseArgs(argv) {
 }
 
 const args = parseArgs(process.argv.slice(2));
-const stage = normalizeStage(args.stage || args._[0] || "");
+const stage = normalizeStage(args.stage || args._[0] || '');
 const cwd = args.cwd || process.cwd();
-const dryRun = Boolean(args["dry-run"]);
+const dryRun = Boolean(args['dry-run']);
 
 if (!stage || args.help) {
   process.stdout.write(
     [
-      "usage: node scripts/dev-os/cost/run-stage.mjs --stage <STAGE> [--dry-run] -- <command...>",
-      "substantial stages auto-create .dev-os/ledgers/<stage>-<ts>.json + CURRENT.json",
-      "trivial stages skip ledger",
-      "",
-    ].join("\n"),
+      'usage: node scripts/dev-os/cost/run-stage.mjs --stage <STAGE> [--dry-run] -- <command...>',
+      'substantial stages auto-create .dev-os/ledgers/<stage>-<ts>.json + CURRENT.json',
+      'trivial stages skip ledger',
+      '',
+    ].join('\n'),
   );
   process.exit(stage ? 0 : 2);
 }
@@ -63,17 +63,17 @@ const substantial = isSubstantialStage(stage);
 const trivial = isTrivialStage(stage);
 
 let ledgerPath = null;
-let ledgerCapture = "SKIPPED_TRIVIAL";
+let ledgerCapture = 'SKIPPED_TRIVIAL';
 
 if (substantial) {
-  const root = args["ledger-root"] ? path.resolve(cwd, args["ledger-root"]) : ensureLedgerRoot(cwd);
+  const root = args['ledger-root'] ? path.resolve(cwd, args['ledger-root']) : ensureLedgerRoot(cwd);
   fs.mkdirSync(root, { recursive: true });
-  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   ledgerPath = path.join(root, `${stage}-${stamp}.json`);
   const doc = {
     stage,
     createdAt: new Date().toISOString(),
-    ledgerCapture: "AUTOMATIC",
+    ledgerCapture: 'AUTOMATIC',
     substantial: true,
     cursorPremiumCalls: 0,
     cursorSpecialistCalls: [],
@@ -81,7 +81,7 @@ if (substantial) {
     retries: [],
     evidencePacket: null,
     whyTwoSpecialistsRequired: null,
-    contextStrategy: "MINIMUM_NECESSARY",
+    contextStrategy: 'MINIMUM_NECESSARY',
     fullRepoSent: false,
     fullChatHistorySent: false,
     deterministicViaModel: false,
@@ -92,14 +92,14 @@ if (substantial) {
     reranCompletedStage: false,
     wholesaleReportReplay: false,
     uselessRetries: 0,
-    telemetryValues: "NOT_OBSERVABLE",
+    telemetryValues: 'NOT_OBSERVABLE',
     entries: [],
   };
-  fs.writeFileSync(ledgerPath, JSON.stringify(doc, null, 2) + "\n");
+  fs.writeFileSync(ledgerPath, JSON.stringify(doc, null, 2) + '\n');
   // Prefer writing CURRENT under the same ledger-root (tests) or default
-  if (args["ledger-root"]) {
+  if (args['ledger-root']) {
     fs.writeFileSync(
-      path.join(root, "CURRENT.json"),
+      path.join(root, 'CURRENT.json'),
       JSON.stringify(
         {
           stage,
@@ -107,16 +107,16 @@ if (substantial) {
           ledgerPath,
           ledgerRel: path.relative(cwd, ledgerPath),
           updatedAt: new Date().toISOString(),
-          ledgerCapture: "AUTOMATIC",
+          ledgerCapture: 'AUTOMATIC',
         },
         null,
         2,
-      ) + "\n",
+      ) + '\n',
     );
   } else {
     writeCurrentPointer({ cwd, ledgerPath, stage, substantial: true });
   }
-  ledgerCapture = "AUTOMATIC";
+  ledgerCapture = 'AUTOMATIC';
   process.env.DEV_OS_LEDGER = ledgerPath;
   process.env.DEV_OS_STAGE = stage;
 }
@@ -127,13 +127,13 @@ const summary = {
   trivial,
   ledgerCapture,
   ledgerPath,
-  ledgerRoot: args["ledger-root"] || defaultLedgerRoot(cwd),
-  telemetryValues: "NOT_OBSERVABLE",
-  status: "READY",
+  ledgerRoot: args['ledger-root'] || defaultLedgerRoot(cwd),
+  telemetryValues: 'NOT_OBSERVABLE',
+  status: 'READY',
 };
 
 if (dryRun || !args._.length) {
-  process.stdout.write(JSON.stringify(summary, null, 2) + "\n");
+  process.stdout.write(JSON.stringify(summary, null, 2) + '\n');
   process.exit(0);
 }
 
@@ -141,12 +141,18 @@ const cmd = args._[0];
 const cmdArgs = args._.slice(1);
 const res = spawnSync(cmd, cmdArgs, {
   cwd,
-  env: { ...process.env, DEV_OS_LEDGER: ledgerPath || process.env.DEV_OS_LEDGER || "", DEV_OS_STAGE: stage },
-  stdio: "inherit",
+  env: {
+    ...process.env,
+    DEV_OS_LEDGER: ledgerPath || process.env.DEV_OS_LEDGER || '',
+    DEV_OS_STAGE: stage,
+  },
+  stdio: 'inherit',
   shell: false,
 });
 
 summary.commandExit = res.status ?? 1;
-summary.status = summary.commandExit === 0 ? "OK" : "COMMAND_FAILED";
-process.stdout.write(JSON.stringify({ ...summary, note: "stage command finished" }, null, 2) + "\n");
+summary.status = summary.commandExit === 0 ? 'OK' : 'COMMAND_FAILED';
+process.stdout.write(
+  JSON.stringify({ ...summary, note: 'stage command finished' }, null, 2) + '\n',
+);
 process.exit(summary.commandExit);

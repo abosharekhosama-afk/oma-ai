@@ -30,6 +30,9 @@
     "APPLICATION_E2E_ROUTE": { "type": "string" },
     "PROJECT_SPECIFIC_RULES": { "type": "array", "items": { "type": "string" } },
     "CURRENT_PRODUCT_PHASE": { "type": "string" },
-    "GOLDEN_OS_VERSION_PIN": { "type": "string", "description": "Pinned DEVELOPMENT_OS_GOLDEN_VERSION" }
+    "GOLDEN_OS_VERSION_PIN": {
+      "type": "string",
+      "description": "Pinned DEVELOPMENT_OS_GOLDEN_VERSION"
+    }
   }
 }

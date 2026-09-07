@@ -16,24 +16,24 @@ Durable governance lives in repository owners — do not paste the entire OS int
 
 ## Tiers
 
-| Tier | Route | Default |
-|------|-------|---------|
-| 0 | Deterministic tools/scripts | First when sufficient |
-| 1 | OpenCode `oma-coder` | Default heavy |
-| 1 | OpenCode `reference-inspector` | Default reference |
-| 1 | Codex CLI (`scripts/ai/codex-worker.sh`) | Escalation only |
-| 2 | Cursor specialists (`oma-spec-auditor`, `oma-verifier`, …) | Default **0** / max **1** |
+| Tier | Route                                                      | Default                   |
+| ---- | ---------------------------------------------------------- | ------------------------- |
+| 0    | Deterministic tools/scripts                                | First when sufficient     |
+| 1    | OpenCode `oma-coder`                                       | Default heavy             |
+| 1    | OpenCode `reference-inspector`                             | Default reference         |
+| 1    | Codex CLI (`scripts/ai/codex-worker.sh`)                   | Escalation only           |
+| 2    | Cursor specialists (`oma-spec-auditor`, `oma-verifier`, …) | Default **0** / max **1** |
 
 ## Worker map
 
-| Work | Worker |
-|------|--------|
-| Normal implementation / refactor / tests | `oma-coder` |
-| External reference evidence | `reference-inspector` via `pnpm ref:inspect` |
-| Application E2E | Playwright `pnpm test:e2e` |
-| Spec ownership disputes | `oma-spec-auditor` (escalation) |
-| Completion claim review | `oma-verifier` (escalation) |
-| Hard architecture / migrations | Codex escalation |
+| Work                                     | Worker                                       |
+| ---------------------------------------- | -------------------------------------------- |
+| Normal implementation / refactor / tests | `oma-coder`                                  |
+| External reference evidence              | `reference-inspector` via `pnpm ref:inspect` |
+| Application E2E                          | Playwright `pnpm test:e2e`                   |
+| Spec ownership disputes                  | `oma-spec-auditor` (escalation)              |
+| Completion claim review                  | `oma-verifier` (escalation)                  |
+| Hard architecture / migrations           | Codex escalation                             |
 
 ## Forbidden
 
