@@ -569,3 +569,4 @@ Status after Phase GM proofs and Owner acceptance: `VISIBLE_PRODUCT_BASELINE_002
 - `[P]` = parallel-safe file isolation
 - Do not mark Phase BG complete without closed decisions + explicit implement authorization
 - `DEC-003`–`DEC-012` stay open; Phase BG unblocks only after the owning decision closes
+- Phase BG Owner decision packet (docs only, 2026-09-08): [`decisions/phase-bg-decision-packet.md`](./decisions/phase-bg-decision-packet.md) — `READY_FOR_OWNER_DECISION`. Does not start T200–T208. Next stage: `OWNER_DECISION_PHASE_BG_002`.

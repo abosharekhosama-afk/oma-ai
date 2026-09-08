@@ -27,6 +27,12 @@ Provider-neutral Feature 002 core and visible product baseline (fixture/refusing
 - Feature 003
 - Production deployment / credentials / providers
 
+## Phase BG decision packet
+
+Owner input for authorizing live crawl + live AI (without implementing):
+[`decisions/phase-bg-decision-packet.md`](./decisions/phase-bg-decision-packet.md) — status `READY_FOR_OWNER_DECISION` (2026-09-08).
+Next stage: `OWNER_DECISION_PHASE_BG_002`. Decisions remain open until the Owner closes them in writing.
+
 ## Rollback notes
 
 Revert the Feature 002 merge commit on `main` (or restore prior `main` tip). Review data under `oma_ai_acceptance` and `.review/` is local and is not deleted by delivery stop.

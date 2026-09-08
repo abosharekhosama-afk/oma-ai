@@ -7,6 +7,8 @@
 
 This document records **options for future decisions**. Nothing here closes Foundation DECs or selects production vendors.
 
+**Phase BG Owner packet (2026-09-08):** current, priced, source-cited options for live crawl + live AI are in [`decisions/phase-bg-decision-packet.md`](./decisions/phase-bg-decision-packet.md) (`READY_FOR_OWNER_DECISION`). That packet does **not** close DEC-004/DEC-007; it supersedes unnamed SaaS placeholders below for Owner choice.
+
 ---
 
 ## 0. Locked for 002 (not research choices)
