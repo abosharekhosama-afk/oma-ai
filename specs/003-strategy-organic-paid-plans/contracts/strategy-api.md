@@ -30,14 +30,16 @@ All mutating commands accept optional `Idempotency-Key` header. Optimistic concu
 
 ## Versions
 
-| Method  | Path                                            | Capability         | Notes                                                    |
-| ------- | ----------------------------------------------- | ------------------ | -------------------------------------------------------- |
-| `GET`   | `/:strategyId/versions`                         | `strategy.read`    | History                                                  |
-| `GET`   | `/:strategyId/versions/:versionId`              | `strategy.read`    | Full package (foundation + tracks + children)            |
-| `PATCH` | `/:strategyId/versions/:versionId`              | `strategy.edit`    | Draft only; `rowVersion`                                 |
-| `POST`  | `/:strategyId/versions/:versionId/link-profile` | `strategy.edit`    | Body `{ profileVersionId }`; must be Approved same brand |
-| `POST`  | `/:strategyId/versions/from-approved`           | `strategy.edit`    | Create new Draft from approved snapshot                  |
-| `GET`   | `/:strategyId/versions/compare`                 | `strategy.compare` | Query `leftId&rightId`                                   |
+| Method  | Path                                            | Capability         | Notes                                                                                                           |
+| ------- | ----------------------------------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------- |
+| `GET`   | `/:strategyId/versions`                         | `strategy.read`    | History                                                                                                         |
+| `GET`   | `/:strategyId/versions/:versionId`              | `strategy.read`    | Full package (foundation + tracks + children)                                                                   |
+| `PATCH` | `/:strategyId/versions/:versionId`              | `strategy.edit`    | `DRAFT` only; frozen otherwise — use revise; requires `rowVersion`                                              |
+| `POST`  | `/:strategyId/versions/:versionId/link-profile` | `strategy.edit`    | Body `{ profileVersionId, role: "approved" \| "draft_aid" }`. `approved` satisfies gate; `draft_aid` never does |
+| `POST`  | `/:strategyId/versions/from-approved`           | `strategy.edit`    | Create new Draft from an `APPROVED` snapshot                                                                    |
+| `POST`  | `/:strategyId/versions/:versionId/revise`       | `strategy.edit`    | From `CHANGES_REQUESTED`, `REJECTED`, or `APPROVED`: new `DRAFT`, next versionNumber, no approval inheritance   |
+| `POST`  | `/:strategyId/versions/:versionId/clone`        | `strategy.edit`    | Optional clone to **new Strategy** + Draft via `originStrategyId`; never inherits approval or Brand current     |
+| `GET`   | `/:strategyId/versions/compare`                 | `strategy.compare` | Query `leftId&rightId`                                                                                          |
 
 ---
 

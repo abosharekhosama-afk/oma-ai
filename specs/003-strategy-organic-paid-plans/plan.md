@@ -204,14 +204,14 @@ Web (Next.js) ──► NestJS Strategy module ──► PostgreSQL (Strategy So
 
 ## Testing strategy
 
-| Layer                  | Covers                                                                                                                     |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------- |
-| Unit                   | Transition guards; package eligibility; pointer §8.4 clears; Organic/Paid enable rules                                     |
-| Integration (Postgres) | FK tenant/brand; unique indexes; optimistic concurrency; immutability after approve                                        |
-| Contract               | OpenAPI/route shapes in `contracts/*`                                                                                      |
-| Security               | Cross-tenant deny; capability matrix; AI cannot approve/set-current                                                        |
-| Idempotency            | Duplicate submit/approve/set-current                                                                                       |
-| E2E Playwright         | Manual journey; profile gate; package approve; multi-approved + set-current; archive clears pointer; EN/AR RTL; a11y smoke |
+| Layer                  | Covers                                                                                                                                                                |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Unit                   | Transition guards; package eligibility; pointer §8.4 clears; Organic/Paid enable rules                                                                                |
+| Integration (Postgres) | FK tenant/brand; unique indexes; optimistic concurrency; immutability after approve                                                                                   |
+| Contract               | OpenAPI/route shapes in `contracts/*`                                                                                                                                 |
+| Security               | Cross-tenant deny; capability matrix; AI cannot approve/set-current                                                                                                   |
+| Idempotency            | Duplicate submit/approve/set-current                                                                                                                                  |
+| E2E Playwright         | Manual journey; profile gate; package approve; multi-approved + set-current; archive clears pointer; revise/clone; EN/AR RTL; evidence re-auth; a11y smoke (PJ-01–09) |
 
 CI must assert **zero** outbound ad/AI provider HTTP from strategy tests.
 

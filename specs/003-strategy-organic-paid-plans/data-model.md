@@ -250,16 +250,16 @@ Side effect: if `BrandWorkspace.currentApprovedStrategyId == this.id` on archive
 
 ### 15.2 StrategyVersion
 
-| From                             | To                  | Actor capability                      | Guards                                                                                          |
-| -------------------------------- | ------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| (create)                         | `DRAFT`             | strategy.create/edit                  | Brand accessible                                                                                |
-| `DRAFT`                          | `IN_REVIEW`         | strategy.submit                       | ≥1 track enabled; disabled rationales; required fields; **Approved profile linked**; rowVersion |
-| `IN_REVIEW`                      | `APPROVED`          | strategy.approve                      | Package eligibility; profile still valid; **not AI**                                            |
-| `IN_REVIEW`                      | `REJECTED`          | strategy.approve                      |                                                                                                 |
-| `IN_REVIEW`                      | `CHANGES_REQUESTED` | strategy.approve                      |                                                                                                 |
-| `CHANGES_REQUESTED` / `REJECTED` | new `DRAFT`         | strategy.edit                         | Clone content; new versionNumber                                                                |
-| `APPROVED`                       | `SUPERSEDED`        | system on newer approve same strategy |                                                                                                 |
-| `*`                              | `ARCHIVED`          | strategy.archive                      | Policy                                                                                          |
+| From                                          | To                  | Actor capability                      | Guards                                                                                          |
+| --------------------------------------------- | ------------------- | ------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| (create)                                      | `DRAFT`             | strategy.create/edit                  | Brand accessible                                                                                |
+| `DRAFT`                                       | `IN_REVIEW`         | strategy.submit                       | ≥1 track enabled; disabled rationales; required fields; **Approved profile linked**; rowVersion |
+| `IN_REVIEW`                                   | `APPROVED`          | strategy.approve                      | Package eligibility; profile still valid; **not AI**                                            |
+| `IN_REVIEW`                                   | `REJECTED`          | strategy.approve                      |                                                                                                 |
+| `IN_REVIEW`                                   | `CHANGES_REQUESTED` | strategy.approve                      |                                                                                                 |
+| `CHANGES_REQUESTED` / `REJECTED` / `APPROVED` | new `DRAFT`         | strategy.edit                         | Via `revise` or `from-approved`; copy package; new versionNumber; no approval inheritance       |
+| `APPROVED`                                    | `SUPERSEDED`        | system on newer approve same strategy |                                                                                                 |
+| `*`                                           | `ARCHIVED`          | strategy.archive                      | Policy                                                                                          |
 
 ### 15.3 Track enablement
 
