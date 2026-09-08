@@ -1,15 +1,16 @@
 # DP-003-003 — Current-approved strategy pointer
 
-**Status:** `UNRESOLVED`
+**Status:** `OWNER_APPROVED / RESOLVED`
+**Resolution:** **Option B** (Owner 2026-09-08)
 **Feature:** `003-strategy-organic-paid-plans`
+**Slice resolution:** `SR-003-003-B`
 **Raised:** 2026-09-08
-**Why it matters:** Brands may need multiple strategies (e.g., seasonal vs always-on). Downstream US-003 conversion and client views need a deterministic “current approved” meaning.
 
 ## Question
 
 When a Brand has multiple strategies, how does OMA define the **current approved strategy**?
 
-## Options
+## Options (historical)
 
 | Option | Meaning                                                                                                                         |
 | ------ | ------------------------------------------------------------------------------------------------------------------------------- |
@@ -17,9 +18,17 @@ When a Brand has multiple strategies, how does OMA define the **current approved
 | **B**  | Many approved strategies allowed; Brand stores an explicit `currentApprovedStrategyId` set by an authorized user.               |
 | **C**  | Many approved strategies allowed; “current” is contextual (by time horizon / campaign tag) with no single brand pointer in 003. |
 
-## Spec interim (not an Owner resolution)
+## Owner resolution — Option B
 
-003 MUST support multiple Strategy records per Brand and MUST support `SUPERSEDED` when a **newer version of the same strategy** is approved. Brand-level single-current pointer semantics remain **UNRESOLVED** — UI MUST NOT invent a fake single-current badge until Owner chooses.
+- Multiple approved strategies MAY exist for one Brand.
+- Brand holds an explicit `currentApprovedStrategyId`.
+- Only an authorized capability (Strategy set current) may set or change the current strategy.
+- Changing the pointer does **not** mutate, reject, or supersede other approved strategies.
+- Pointer changes require audit logging and concurrency protection.
+- Approving a strategy does **not** implicitly set the pointer.
+- When the current strategy is archived, becomes ineligible, is inaccessible, or fails tenant/brand checks, apply deterministic clear/unavailable rules in `spec.md` §8.4 — **never** auto-select another current without authorized human set-current.
+
+Canonical behavior: Feature 003 `spec.md` §4.5, §8.4, `FR-SOP-070`–`077`, `US-SOP-12`.
 
 ## Out of scope for this packet
 

@@ -2,8 +2,9 @@
 
 **Purpose**: Validate specification completeness and quality before planning
 **Created**: 2026-09-08
+**Updated**: 2026-09-08 (Owner decisions applied)
 **Feature**: [spec.md](../spec.md)
-**Stage**: `SPEC_DRAFT` / awaiting Owner decision packets `DP-003-001`–`DP-003-003` (interims documented)
+**Stage**: `SPEC_READY_FOR_PLAN` — `DP-003-001` B, `DP-003-002` A, `DP-003-003` B **OWNER_APPROVED / RESOLVED**
 
 **Review Ownership**: Reviewer-owned requirements-quality artifact. Mark `[x]` only when the criterion is satisfied for requirements quality (not implementation done).
 
@@ -18,17 +19,20 @@
 
 ## Requirement Completeness
 
-- [x] CHK010 No unresolved `[NEEDS CLARIFICATION]` markers remain in FR text (open items are explicit Decision Packets)
+- [x] CHK010 No unresolved `[NEEDS CLARIFICATION]` markers remain in FR text
 - [x] CHK011 Requirements testable with stable IDs (`FR-SOP-*`, `NFR-SOP-*`, `SC-SOP-*`, `US-SOP-*`)
 - [x] CHK012 Success criteria measurable and technology-agnostic
 - [x] CHK013 Acceptance scenarios cover primary flows including AI-unavailable/manual path
-- [x] CHK014 Edge cases identified (no profile, concurrency, cross-tenant, both tracks disabled, stale profile link)
+- [x] CHK014 Edge cases identified (no profile, concurrency, cross-tenant, both tracks disabled, current pointer clear)
 - [x] CHK015 Scope clearly bounded; calendar/Kanban/creative/publish/ads/analytics out
 - [x] CHK016 Organic vs Paid boundary explicit and non-collapsible
 - [x] CHK017 Feature 002 input boundary explicit (link/read only; no rewrite of brand facts)
 - [x] CHK018 Fact vs recommendation vs assumption vs unknown classification defined
 - [x] CHK019 Versioning/immutability/concurrency/idempotency stated
 - [x] CHK020 Audit and notification minimum event set defined
+- [x] CHK021 Brand Profile gate Option B specified (draft warn; review/approve require link)
+- [x] CHK022 Package approval Option A specified (one decision; AI cannot approve)
+- [x] CHK023 Brand `currentApprovedStrategyId` Option B specified with clear/unavailable rules
 
 ## Cross-feature & Foundation consistency
 
@@ -48,24 +52,24 @@
 
 ## Ambiguity & decision gates
 
-- [x] CHK050 `DP-003-001` Brand Profile gate documented with safe interim
-- [x] CHK051 `DP-003-002` Approval granularity documented with safe interim
-- [x] CHK052 `DP-003-003` Current-approved pointer documented as open
+- [x] CHK050 `DP-003-001` Owner-approved Option B reflected in §8.2 / FRs
+- [x] CHK051 `DP-003-002` Owner-approved Option A reflected in §8.3 / FRs
+- [x] CHK052 `DP-003-003` Owner-approved Option B reflected in §8.4 / FRs
 - [x] CHK053 No invented Owner resolutions presented as closed Foundation DECs
-- [x] CHK054 Traceability table stories → FRs → SCs present
+- [x] CHK054 Traceability table stories → FRs → SCs present (includes US-SOP-12)
 
 ## Feature readiness
 
 - [x] CHK060 Manual/no-AI journey specified as complete
-- [x] CHK061 Spec quality sufficient to enter Owner decision or provider-neutral plan after DP acceptance
-- [ ] CHK062 Owner resolved `DP-003-001` (or explicitly accepted interim for plan)
-- [ ] CHK063 Owner resolved `DP-003-002` (or explicitly accepted interim for plan)
-- [ ] CHK064 Owner resolved `DP-003-003` (or explicitly accepted interim for plan)
-- [ ] CHK065 `/speckit-plan` authorized after Owner gate
+- [x] CHK061 Spec quality sufficient for provider-neutral `/speckit-plan`
+- [x] CHK062 Owner resolved `DP-003-001` Option B
+- [x] CHK063 Owner resolved `DP-003-002` Option A
+- [x] CHK064 Owner resolved `DP-003-003` Option B
+- [x] CHK065 Owner gates cleared — Feature 003 ready for technical planning (`PLAN_003`)
 
 ## Notes
 
-- Checklist `[x]` = requirements quality for this SPEC stage, not implementation done.
-- Next stage if DPs remain blocking for plan nuance: `OWNER_DECISION_003`.
-- If Owner accepts interims §8.2–§8.3 and resolves or waives DPs for planning: `PLAN_003_STRATEGY_ORGANIC_PAID_PLANS`.
-- Verdict at specify commit: **SPEC COMPLETE with open Owner packets** — no provider selection; no product code.
+- Checklist `[x]` = requirements quality, not implementation done.
+- Verdict: **SPEC_READY_FOR_PLAN** — Owner decisions applied; no provider selection; no product code.
+- Exact next stage: `PLAN_003_STRATEGY_ORGANIC_PAID_PLANS`.
+- Remaining non-blocking gates: deferred Foundation provider DECs (`DEC-003`–`DEC-007` etc.) for live integrations only.

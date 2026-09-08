@@ -1,15 +1,16 @@
 # DP-003-002 — Strategy vs plan approval granularity
 
-**Status:** `UNRESOLVED`
+**Status:** `OWNER_APPROVED / RESOLVED`
+**Resolution:** **Option A** (Owner 2026-09-08)
 **Feature:** `003-strategy-organic-paid-plans`
+**Slice resolution:** `SR-003-002-A`
 **Raised:** 2026-09-08
-**Why it matters:** Foundation FR-038/FR-039 allow approvals on strategy and plan/brief versions. Feature 003 ships strategy + Organic + Paid tracks before briefs/tasks (US-003). Ambiguity here changes capability grants and notification targets.
 
 ## Question
 
 Does approving a **Strategy Version** in Feature 003 also approve the enabled Organic and Paid track contents packaged in that version, or must each enabled track receive a separate accountable approval?
 
-## Options
+## Options (historical)
 
 | Option | Meaning                                                                                                                                                                                                |
 | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -17,9 +18,15 @@ Does approving a **Strategy Version** in Feature 003 also approve the enabled Or
 | **B**  | **Independent track approvals** — Strategy core, Organic plan, and Paid plan each require their own approve decision before the strategy package is considered fully approved.                         |
 | **C**  | **Hybrid** — Strategy approval required; Paid track additionally requires a distinct paid-planning acknowledgment capability; Organic does not.                                                        |
 
-## Spec interim (not an Owner resolution)
+## Owner resolution — Option A
 
-Until Owner chooses, Spec §8.3 uses **Option A**.
+- One approval decision applies to the Strategy Version **package**.
+- The package includes strategy foundation plus all **enabled** Organic/Paid tracks.
+- Disabled tracks require recorded rationale (not separate approvals).
+- Separate item/task/content approvals belong to later product features.
+- AI cannot approve.
+
+Canonical behavior: Feature 003 `spec.md` §8.3, `FR-SOP-044`, `US-SOP-08`.
 
 ## Out of scope for this packet
 

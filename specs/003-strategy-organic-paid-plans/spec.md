@@ -2,7 +2,7 @@
 
 **Feature Branch**: `003-strategy-organic-paid-plans`
 **Created**: 2026-09-08
-**Status**: `SPEC_DRAFT` — provider-neutral product specification under Foundation `DEC-016`
+**Status**: `SPEC_READY_FOR_PLAN` — provider-neutral; Owner decisions `DP-003-001`/`002`/`003` **OWNER_APPROVED / RESOLVED** (2026-09-08); under Foundation `DEC-016`
 **Input**: Evidence-backed marketing strategy with separate Organic and Paid planning tracks
 **Parent baseline**: `specs/001-oma-ai-product-foundation/spec.md` — productizes Foundation **US-002**
 **Upstream input**: `specs/002-brand-website-intelligence/spec.md` — Brand Workspace and immutable approved Brand & Product Intelligence Profile versions
@@ -19,6 +19,12 @@
 - Q: Are Organic and Paid the same list? → A: **No.** Organic and Paid are **distinct tracks** under one strategy version; either or both may be enabled with recorded rationale when a track is intentionally disabled (Foundation **FR-031**).
 - Q: Must 003 invent a parallel auth/tenant/capability/audit/notification system? → A: **No.** Reuse Foundation SoT only.
 
+### Session 2026-09-08 (Owner decisions)
+
+- Q: Brand Profile linkage gate (`DP-003-001`)? → A: **Option B** — Draft allowed without approved profile (warning + missing-source state); `IN_REVIEW` and Approve require linked immutable **Approved** Brand Profile version; no “evidence-backed” claim before linkage.
+- Q: Strategy vs plan approval granularity (`DP-003-002`)? → A: **Option A** — one package approval for Strategy Version (core + enabled Organic/Paid tracks); disabled tracks need rationale; separate item/task/content approvals later; AI cannot approve.
+- Q: Current-approved strategy pointer (`DP-003-003`)? → A: **Option B** — many approved strategies allowed; Brand holds explicit `currentApprovedStrategyId` set only by authorized capability; pointer change does not mutate/reject/supersede other approved strategies; audit + concurrency required.
+
 ### Feature-local slice resolutions (do not renumber or close Foundation DECs)
 
 | ID                     | Affirms                                                                          | Explicitly does **not** close                                       |
@@ -26,14 +32,17 @@
 | `SR-003-016-EXT`       | 003 ships provider-neutral; no live AI / ads / social / analytics / keyword APIs | `DEC-003`, `DEC-004`, `DEC-006`, `DEC-007`, final integration phase |
 | `SR-003-MANUAL`        | Manual create/edit/review/approve is the complete product journey for 003        | Future live AI proposal quality / model policy                      |
 | `SR-003-PAID-PLANNING` | Paid fields are planning intent only; no Meta/ad account connection              | `DEC-006` live activation                                           |
+| `SR-003-001-B`         | Brand Profile gate = Owner Option B                                              | Feature 002 profile approval rules                                  |
+| `SR-003-002-A`         | Package approval = Owner Option A                                                | US-003 brief/task item approvals                                    |
+| `SR-003-003-B`         | Brand `currentApprovedStrategyId` = Owner Option B                               | Cross-brand templates / portfolio rollups                           |
 
-### Open Owner decision packets (blocking for plan/implement of named gates only)
+### Owner decision packets (closed for 003 plan readiness)
 
-| Packet       | Topic                                                            | Status         |
-| ------------ | ---------------------------------------------------------------- | -------------- |
-| `DP-003-001` | Brand Profile linkage gate (create / submit / approve)           | **UNRESOLVED** |
-| `DP-003-002` | Strategy package approval vs separate plan approvals             | **UNRESOLVED** |
-| `DP-003-003` | Current-approved strategy pointer when multiple strategies exist | **UNRESOLVED** |
+| Packet       | Topic                                                            | Status                            |
+| ------------ | ---------------------------------------------------------------- | --------------------------------- |
+| `DP-003-001` | Brand Profile linkage gate (create / submit / approve)           | **OWNER_APPROVED / RESOLVED** — B |
+| `DP-003-002` | Strategy package approval vs separate plan approvals             | **OWNER_APPROVED / RESOLVED** — A |
+| `DP-003-003` | Current-approved strategy pointer when multiple strategies exist | **OWNER_APPROVED / RESOLVED** — B |
 
 See [`decisions/`](./decisions/).
 
@@ -48,11 +57,12 @@ After Brand Website Intelligence (Feature 002), teams still plan marketing in di
 An authorized tenant member, working under an active Foundation tenant and a selected Brand Workspace, can:
 
 1. Create and edit a **Strategy** manually (AI optional and unavailable by default under `DEC-016`).
-2. Link the strategy to an **immutable approved Brand Profile version** from Feature 002 when one exists, and see a clear blocked/warned path when it does not (exact gate = `DP-003-001`).
+2. Create Drafts without an approved Brand Profile when needed (with warning); **link an immutable Approved Brand Profile version before review/approve** (`DP-003-001` Option B).
 3. Maintain **distinct Organic and Paid plans** under the same strategy version, enabling Organic, Paid, or both.
 4. Capture goals, audiences, positioning, messages, pillars, channels, funnel stages, formats, cadence/horizon, KPIs, risks/assumptions/dependencies, evidence links, and unknowns.
-5. Submit for human review, receive comments/decisions, and produce an **immutable Approved strategy version** with history and comparison.
-6. Never confuse brand facts, strategy decisions, Organic planning, Paid planning, future execution, or live platform integrations.
+5. Submit for human review; one **package approval** covers strategy core + enabled Organic/Paid tracks (`DP-003-002` Option A).
+6. Maintain an explicit Brand **current approved strategy** pointer when multiple approved strategies exist (`DP-003-003` Option B).
+7. Never confuse brand facts, strategy decisions, Organic planning, Paid planning, future execution, or live platform integrations.
 
 **Required end state:**
 `Approved Strategy Version with distinct Organic and/or Paid planning tracks, evidence-linked to Brand Intelligence, without live external integrations`
@@ -61,21 +71,22 @@ An authorized tenant member, working under an active Foundation tenant and a sel
 
 Access is **capability-based** (Foundation §4 / §10). Job titles map to profiles elsewhere; 003 authorizes only the intents below. All checks are **server-authoritative**.
 
-| Capability intent | Allows                                                                                       |
-| ----------------- | -------------------------------------------------------------------------------------------- |
-| Strategy read     | View strategies, plans, comments, versions, and evidence links permitted to the membership   |
-| Strategy create   | Create a new strategy draft under the active tenant + selected brand                         |
-| Strategy edit     | Edit draft (or editable) strategy and enabled plan track content                             |
-| Strategy comment  | Comment / request changes on a strategy version in review                                    |
-| Strategy submit   | Submit a draft version into review (`IN_REVIEW`)                                             |
-| Strategy approve  | Approve, reject, or request changes on a submitted strategy version (accountable human only) |
-| Strategy archive  | Archive a strategy or version per policy                                                     |
-| Strategy compare  | Compare two strategy versions                                                                |
-| Organic plan edit | Edit Organic track fields when Organic is enabled                                            |
-| Paid plan edit    | Edit Paid planning fields when Paid is enabled (planning only — not spend)                   |
-| Evidence link     | Attach/detach links to Feature 002 evidence / profile fields without mutating Brand SoT      |
+| Capability intent    | Allows                                                                                       |
+| -------------------- | -------------------------------------------------------------------------------------------- |
+| Strategy read        | View strategies, plans, comments, versions, and evidence links permitted to the membership   |
+| Strategy create      | Create a new strategy draft under the active tenant + selected brand                         |
+| Strategy edit        | Edit draft (or editable) strategy and enabled plan track content                             |
+| Strategy comment     | Comment / request changes on a strategy version in review                                    |
+| Strategy submit      | Submit a draft version into review (`IN_REVIEW`)                                             |
+| Strategy approve     | Approve, reject, or request changes on a submitted strategy version (accountable human only) |
+| Strategy archive     | Archive a strategy or version per policy                                                     |
+| Strategy compare     | Compare two strategy versions                                                                |
+| Strategy set current | Set or clear Brand `currentApprovedStrategyId` among strategies the actor can access         |
+| Organic plan edit    | Edit Organic track fields when Organic is enabled                                            |
+| Paid plan edit       | Edit Paid planning fields when Paid is enabled (planning only — not spend)                   |
+| Evidence link        | Attach/detach links to Feature 002 evidence / profile fields without mutating Brand SoT      |
 
-AI systems and adapters MUST NOT hold Strategy approve. Membership suspension or capability loss MUST deny subsequent commands.
+AI systems and adapters MUST NOT hold Strategy approve or Strategy set current. Membership suspension or capability loss MUST deny subsequent commands.
 
 ## 4. Domain model and ownership (product rules)
 
@@ -121,18 +132,22 @@ Every material statement on a strategy version MUST carry a Foundation-aligned i
 
 AI MUST NOT turn `UNKNOWN` into Fact. Recommendations MUST be visually and structurally distinct from Brand-linked facts and approved strategy decisions.
 
-### 4.5 Versioning and immutability
+### 4.5 Versioning, immutability, and brand current pointer
 
 - Editing after submit-for-review on an immutable review target is forbidden; create a new draft version instead.
 - **Approved** strategy versions are **immutable**.
 - Changing an approved strategy creates a **new Draft** version (never in-place mutation).
-- When a newer version is approved, the previously current approved version becomes **`SUPERSEDED`** (exact current-pointer rules = `DP-003-003`).
+- When a **newer version of the same Strategy** is approved, that strategy’s previously approved version becomes **`SUPERSEDED`**.
+- A Brand MAY have **multiple** non-superseded `APPROVED` strategies. Brand stores optional `currentApprovedStrategyId` (`DP-003-003` Option B).
+- Setting or changing `currentApprovedStrategyId` MUST NOT mutate, reject, or supersede any strategy version; it is a Brand-level pointer only.
+- Approving a strategy MUST NOT implicitly set `currentApprovedStrategyId`. Only Strategy set current (or the deterministic clear rules in §8.4) may change it.
 - Version history and side-by-side comparison are required for authorized readers.
 
 ### 4.6 Concurrency and idempotency
 
 - Draft edits use optimistic concurrency (`row_version` / equivalent). Stale writes MUST fail with a conflict that preserves the other editor’s work.
-- Submit, approve, reject, request-changes, archive, and enable/disable-track commands MUST be idempotent under a client-supplied or server-derived idempotency key for the same actor+target+intent.
+- Brand `currentApprovedStrategyId` updates MUST use optimistic concurrency on the Brand pointer record; stale pointer writes MUST fail closed without applying.
+- Submit, approve, reject, request-changes, archive, enable/disable-track, and set-current commands MUST be idempotent under a client-supplied or server-derived idempotency key for the same actor+target+intent.
 - Duplicate clicks MUST NOT create duplicate versions or double audit decisions.
 
 ## 5. Prioritized user stories
@@ -155,18 +170,19 @@ An authorized member selects a Brand under the active tenant and opens its Strat
 
 ### US-SOP-02 — Create manual strategy and link Brand Profile (Priority: P1)
 
-An authorized strategist creates a Draft strategy for a Brand, optionally/requiredly links an immutable approved Brand Profile version per `DP-003-001`, and can proceed with clear messaging when no approved profile exists.
+An authorized strategist creates a Draft strategy for a Brand **without requiring** an approved Brand Profile, sees a clear warning/missing-source state until linked, and **must** link an immutable Approved Brand Profile version before submit-for-review and before approve (`DP-003-001` Option B). Until linked, the product MUST NOT claim the strategy is evidence-backed.
 
-**Why this priority**: Strategy must start from Brand context without inventing brand facts.
+**Why this priority**: Strategy must start from Brand context without inventing brand facts or blocking early drafting.
 
-**Independent Test**: Create strategy with and without an approved profile; UI and persistence match the unresolved gate’s safe interim rules in §8 until Owner resolves `DP-003-001`.
+**Independent Test**: Create Draft with no approved profile (warning shown); submit blocked; link Approved profile; submit succeeds; approve still requires the same valid linkage.
 
 **Acceptance Scenarios**:
 
-1. **Given** Strategy create, **When** the user creates a strategy with name/time horizon, **Then** a Draft exists under the brand with audit event.
-2. **Given** an approved Brand Profile version exists, **When** the user links it, **Then** the strategy stores the exact profile version id and shows read-only brand summary citations.
-3. **Given** no approved profile, **When** the user opens create, **Then** OMA shows a clear “no approved Brand Profile” state and applies the interim gate in §8 / `DP-003-001` without pretending Feature 002 data exists.
-4. **Given** a linked profile, **When** Feature 002 later approves a newer profile, **Then** the strategy’s linked version remains unchanged until a human explicitly retargets a new Draft.
+1. **Given** Strategy create, **When** the user creates a strategy with name/time horizon, **Then** a Draft exists under the brand with audit event even if no Approved Brand Profile exists.
+2. **Given** no approved profile (or none linked), **When** the user views the Draft, **Then** OMA shows a persistent warning and missing-source state and does **not** label the strategy as evidence-backed.
+3. **Given** an approved Brand Profile version exists, **When** the user links it, **Then** the strategy stores the exact profile version id and shows read-only brand summary citations.
+4. **Given** no linked Approved profile, **When** submit-for-review is attempted, **Then** OMA blocks with a clear reason.
+5. **Given** a linked profile, **When** Feature 002 later approves a newer profile, **Then** the strategy’s linked version remains unchanged until a human explicitly retargets on a new Draft.
 
 ---
 
@@ -250,18 +266,18 @@ The strategist maintains risks, assumptions, dependencies, explicit unknowns, an
 
 ---
 
-### US-SOP-08 — Human review, comments, and decisions (Priority: P1)
+### US-SOP-08 — Human package review, comments, and decisions (Priority: P1)
 
-Reviewers comment, request changes, approve, or reject. AI cannot approve. Notifications and audit fire.
+Reviewers comment, request changes, approve, or reject. **One approve decision** covers the Strategy Version package: strategy foundation plus all **enabled** Organic/Paid track snapshots (`DP-003-002` Option A). Disabled tracks remain recorded with rationale only. AI cannot approve. Notifications and audit fire.
 
-**Why this priority**: Foundation invariant — AI proposes, humans decide.
+**Why this priority**: Foundation invariant — AI proposes, humans decide; package approval keeps 003 operable before briefs/tasks.
 
-**Independent Test**: Submit → comment → request changes → new Draft → resubmit → approve; AI adapter never issues approve.
+**Independent Test**: Submit package with Organic enabled and Paid disabled+rationale → one approve → both core and Organic snapshot are approved with the version; Paid remains disabled with rationale; AI adapter never issues approve.
 
 **Acceptance Scenarios**:
 
 1. **Given** `IN_REVIEW`, **When** a reviewer comments, **Then** comment is tenant-scoped, version-targeted, and auditable.
-2. **Given** Strategy approve capability, **When** approve succeeds, **Then** exact version becomes `APPROVED` with actor, capability, time, and comment.
+2. **Given** Strategy approve capability and eligibility, **When** approve succeeds, **Then** the exact Strategy Version (core + enabled tracks) becomes `APPROVED` with actor, capability, time, and comment — no separate Organic/Paid approve steps in 003.
 3. **Given** any AI/system actor, **When** approve is attempted, **Then** it is denied.
 4. **Given** reject or changes requested, **When** recorded, **Then** prior version history remains and a path to new Draft exists.
 
@@ -315,15 +331,34 @@ Strategy surfaces support English and Arabic, LTR/RTL, responsive layouts, keybo
 
 ---
 
+### US-SOP-12 — Set Brand current approved strategy (Priority: P2)
+
+An authorized user sets or clears which approved strategy is the Brand’s current pointer (`currentApprovedStrategyId`) without changing other strategies’ approval states (`DP-003-003` Option B).
+
+**Why this priority**: Downstream conversion and client views need an explicit current without forcing a single approved strategy.
+
+**Independent Test**: Approve Strategy A and B; set current to A; set current to B; A remains `APPROVED` (not superseded by the pointer change); archive A while current → pointer clears; no auto-pick of B.
+
+**Acceptance Scenarios**:
+
+1. **Given** two `APPROVED` strategies and Strategy set current, **When** the user sets current to Strategy B, **Then** Brand `currentApprovedStrategyId` becomes B with audit and concurrency check; Strategy A remains `APPROVED`.
+2. **Given** Strategy approve only (no set current), **When** a strategy is approved, **Then** `currentApprovedStrategyId` is unchanged (not auto-set).
+3. **Given** current points at Strategy A, **When** A is archived, **Then** the pointer is cleared by the deterministic archive rule (§8.4) and B is **not** auto-selected.
+4. **Given** a strategy id from another tenant, **When** set-current is attempted, **Then** the command is denied without existence leak and the pointer is unchanged.
+
+---
+
 ### Edge cases
 
-- Brand without approved profile (`DP-003-001`).
+- Brand without approved profile: Draft allowed with warning; submit/approve blocked until Approved profile linked (`DP-003-001` B).
 - Approved Brand Profile superseded in Feature 002 while strategy still links older version — show freshness cue; do not auto-retarget.
 - Concurrent editors on same Draft — conflict on stale `row_version`.
+- Concurrent set-current on Brand pointer — conflict; no silent overwrite.
 - Submit with both tracks disabled — blocked.
 - Submit with enabled track missing required fields — blocked with field list.
 - Approve without Strategy approve capability — denied.
 - Cross-tenant strategy id — deny without existence leak.
+- Current strategy archived / inaccessible to actor / wrong tenant — §8.4; never invent a replacement current.
 - AI returns proposal later (final integration) after human already approved — must not mutate approved version; new Draft only.
 - Paid budget entered as zero / negative — validation error.
 - Competitor URL unreachable — allowed as manual note; no crawl required in 003.
@@ -343,9 +378,9 @@ Strategy surfaces support English and Arabic, LTR/RTL, responsive layouts, keybo
 
 #### Create, edit, link Brand Profile
 
-- **FR-SOP-010**: Authorized users MUST be able to create a manual Draft strategy for a selected Brand without requiring live AI.
-- **FR-SOP-011**: A strategy MUST be able to store a link to an exact Feature 002 Brand Profile version id (immutable pointer). A link to a **Draft** profile MAY exist only as a drafting aid and MUST NOT satisfy the Approved-profile gate for `IN_REVIEW` under the §8.2 interim (or Owner’s `DP-003-001` resolution).
-- **FR-SOP-012**: When no approved Brand Profile exists, the UI MUST show an explicit not-ready/missing-profile state. Create/submit/approve eligibility follows `DP-003-001` (interim safe rule in §8 until resolved).
+- **FR-SOP-010**: Authorized users MUST be able to create a manual Draft strategy for a selected Brand without requiring live AI and **without** requiring an approved Brand Profile (`DP-003-001` Option B).
+- **FR-SOP-011**: A strategy MUST be able to store a link to an exact Feature 002 **Approved** Brand Profile version id (immutable pointer). A link to a **Draft** profile MAY exist only as a drafting aid and MUST NOT satisfy the Approved-profile gate for `IN_REVIEW` or Approve.
+- **FR-SOP-012**: When no Approved Brand Profile is linked, the UI MUST show a persistent warning and missing-source state and MUST NOT claim the strategy is evidence-backed. Entering `IN_REVIEW` and Approve MUST require a valid linked Approved Brand Profile version for the same tenant/brand (`DP-003-001` Option B / `SR-003-001-B`).
 - **FR-SOP-013**: Linking or retargeting a Brand Profile MUST NOT mutate Feature 002 profile bytes or approval state.
 - **FR-SOP-014**: Strategy core MUST support: name/title; goals/business objectives; target audiences/personas; market/locale; market positioning; key messages; constraints; content pillars/themes; channel selection; campaign objectives (shared); funnel stages; recommended content formats; cadence; time horizon; KPI definitions and target values; risks; assumptions; dependencies; unknowns/missing information.
 - **FR-SOP-015**: Competitor/reference inputs MUST store provenance (source URL or note, capture/recorded time, uncertainty/confidence, information class) and MUST NOT require external research APIs in 003.
@@ -375,19 +410,30 @@ Strategy surfaces support English and Arabic, LTR/RTL, responsive layouts, keybo
 - **FR-SOP-041**: Transitions MUST be server-authoritative; UI gestures never bypass validation.
 - **FR-SOP-042**: `IN_REVIEW` and `APPROVED` versions are immutable; changes require a new Draft version.
 - **FR-SOP-043**: Authorized reviewers MUST be able to comment, request changes, approve, reject, archive, and compare versions within capability.
-- **FR-SOP-044**: Approval MUST target an exact strategy version and record actor, capability, decision, timestamp, and comment. Package-vs-plan granularity = `DP-003-002`.
+- **FR-SOP-044**: Approval MUST target an exact Strategy Version and record actor, capability, decision, timestamp, and comment. Per `DP-003-002` Option A / `SR-003-002-A`, that single decision is a **package approval** of strategy foundation plus all **enabled** Organic/Paid track snapshots on that version. Disabled tracks remain present only as disabled+rationale and are not separately approved. Separate item/task/content approvals are out of scope for 003.
 - **FR-SOP-045**: After an `APPROVED` version, further edits MUST create a new `DRAFT` and MUST NOT mutate the approved artifact.
-- **FR-SOP-046**: Approving a newer version MUST mark the prior current approved version `SUPERSEDED` per `DP-003-003`.
+- **FR-SOP-046**: Approving a newer version of the **same Strategy** MUST mark that strategy’s prior approved version `SUPERSEDED`. This MUST NOT by itself change Brand `currentApprovedStrategyId` or supersede other strategies.
 - **FR-SOP-047**: Version history MUST preserve comments and decisions across revisions.
 - **FR-SOP-048**: Authorized users MUST be able to clone a strategy/version into a new Draft while preserving origin lineage and MUST NOT inherit approval state (Foundation **FR-042**).
 - **FR-SOP-049**: If Client Viewer (or equivalent limited) access is granted, approved strategy presentation MUST withhold internal-only notes and non-exposed cost/planning details per capability (Foundation **FR-043**); default 003 MAY withhold client exposure entirely until that grant exists.
 
+#### Brand current approved strategy pointer (`DP-003-003` Option B)
+
+- **FR-SOP-070**: A Brand MAY have multiple strategies with non-superseded `APPROVED` versions simultaneously.
+- **FR-SOP-071**: Brand MUST store an optional `currentApprovedStrategyId` referencing at most one Strategy under the same tenant and brand.
+- **FR-SOP-072**: Only actors with Strategy set current capability MAY set or clear `currentApprovedStrategyId`. AI/system actors MUST NOT.
+- **FR-SOP-073**: Set-current MUST accept only a Strategy that (a) belongs to the same tenant and brand, (b) has a non-superseded `APPROVED` version (or explicit clear-to-null), and (c) is accessible to the actor. Cross-tenant or foreign-brand ids MUST be denied without existence leak.
+- **FR-SOP-074**: Changing `currentApprovedStrategyId` MUST NOT mutate, reject, archive, or supersede any strategy version.
+- **FR-SOP-075**: Approving a strategy MUST NOT implicitly set `currentApprovedStrategyId`.
+- **FR-SOP-076**: Pointer changes MUST append immutable audit events and MUST use optimistic concurrency; stale updates MUST fail closed.
+- **FR-SOP-077**: Deterministic unavailable-pointer rules (§8.4) apply when the current strategy is archived, otherwise becomes ineligible, is inaccessible, or fails tenant/brand checks. OMA MUST NEVER auto-select a replacement current strategy without an authorized set-current action.
+
 #### Concurrency, audit, notifications
 
 - **FR-SOP-050**: Draft updates MUST use optimistic concurrency; conflicts MUST be explicit and non-destructive to the newer server state.
-- **FR-SOP-051**: Submit/approve/reject/request-changes/archive/enable-track commands MUST be idempotent for duplicate submission.
-- **FR-SOP-052**: Sensitive actions (create, link profile, submit, approve, reject, request changes, archive, enable/disable track, evidence link changes) MUST append immutable audit events with actor, tenant, brand, strategy/version, action, timestamp, and correlation id.
-- **FR-SOP-053**: Notifications for submit-for-review, comment, changes requested, approved, rejected MUST resolve recipients by tenant membership, capability, and object visibility at delivery time (Foundation **FR-097**), with deep links that re-authorize.
+- **FR-SOP-051**: Submit/approve/reject/request-changes/archive/enable-track/set-current commands MUST be idempotent for duplicate submission.
+- **FR-SOP-052**: Sensitive actions (create, link profile, submit, approve, reject, request changes, archive, enable/disable track, evidence link changes, set/clear current strategy) MUST append immutable audit events with actor, tenant, brand, strategy/version, action, timestamp, and correlation id.
+- **FR-SOP-053**: Notifications for submit-for-review, comment, changes requested, approved, rejected, and current-strategy changed MUST resolve recipients by tenant membership, capability, and object visibility at delivery time (Foundation **FR-097**), with deep links that re-authorize.
 
 #### Localization and UX states
 
@@ -405,8 +451,9 @@ Strategy surfaces support English and Arabic, LTR/RTL, responsive layouts, keybo
 
 ### 6.3 Key entities
 
-- **Strategy**: Tenant+brand-scoped planning root; enablement flags; link to Brand Profile version; pointer rules per `DP-003-003`.
-- **Strategy Version**: Immutable snapshot once in `IN_REVIEW`/`APPROVED`/terminal decision states; carries core fields + embedded/child plan track versions.
+- **Strategy**: Tenant+brand-scoped planning root; Brand Profile link; not the Brand current pointer itself.
+- **Brand current pointer**: Brand-level optional `currentApprovedStrategyId` (`DP-003-003` Option B).
+- **Strategy Version**: Immutable snapshot once in `IN_REVIEW`/`APPROVED`/terminal decision states; carries core fields + embedded/child plan track versions (package approval target).
 - **Organic Plan (track)**: Distinct child of a strategy version; organic-only fields.
 - **Paid Plan (track)**: Distinct child of a strategy version; paid planning-only fields.
 - **Audience/Persona**: Named audience definition under a strategy version.
@@ -414,7 +461,7 @@ Strategy surfaces support English and Arabic, LTR/RTL, responsive layouts, keybo
 - **Evidence Link**: Pointer to Feature 002 evidence/profile field.
 - **KPI Definition**: Metric name, target, unit, track applicability (strategy / organic / paid).
 - **Risk / Assumption / Dependency / Unknown**: Structured gap records.
-- **Comment / Decision**: Review artifacts targeting an exact version.
+- **Comment / Decision**: Review artifacts targeting an exact version (package decision for approve).
 - **Audit Event / Notification**: Foundation-owned records referencing strategy objects.
 
 ## 7. State machine (003 slice)
@@ -433,35 +480,55 @@ Canonical codes are English; UI localizes labels (e.g. `IN_REVIEW` → “Needs 
 
 **Guards (all server-side):**
 
-- Enter `IN_REVIEW` only if: actor has Strategy submit; ≥1 track enabled; required fields for enabled tracks present; Brand Profile gate satisfied per `DP-003-001` interim/final rule; concurrency token valid.
-- Enter `APPROVED` only if: actor has Strategy approve; version is `IN_REVIEW`; eligibility/disclosure rules satisfied; AI/system actors forbidden.
+- Enter `IN_REVIEW` only if: actor has Strategy submit; ≥1 track enabled with required fields; disabled tracks have rationale; linked **Approved** Brand Profile version present (`DP-003-001` B); concurrency token valid.
+- Enter `APPROVED` only if: actor has Strategy approve; version is `IN_REVIEW`; same Approved Brand Profile linkage still valid; eligibility/disclosure rules satisfied; package approval applies to core + enabled tracks; AI/system actors forbidden.
 - `APPROVED`/`IN_REVIEW` content immutable.
 - Drag-and-drop or tabs NEVER invent transitions.
+- Brand `currentApprovedStrategyId` changes are not state-machine transitions of a Strategy Version; they follow §8.4.
 
 Optional Foundation AI states may appear later; under `DEC-016` they MUST NOT be required for success criteria of 003.
 
-## 8. Approval eligibility and interim gates
+## 8. Approval eligibility and Owner-resolved gates
 
-### 8.1 Always required to approve
+### 8.1 Always required to approve (package)
 
-- Human actor with Strategy approve capability.
+- Human actor with Strategy approve capability (AI forbidden).
 - Target version in `IN_REVIEW`.
-- At least one of Organic/Paid enabled with required track fields complete.
+- Valid linked **Approved** Brand Profile version (`DP-003-001` Option B).
+- At least one of Organic/Paid enabled with required track fields complete; each disabled track has stored rationale.
 - Strategy core required fields complete (goals, at least one audience, positioning or explicit Unknown+acknowledgment, time horizon, at least one KPI definition).
 - Explicit acknowledgment of listed unknowns/risks when any `UNKNOWN`/`ASSUMPTION` remains on required themes.
+- One decision approves the **package** (core + enabled tracks) — `DP-003-002` Option A.
 - No live spend or external activation side effects.
 
-### 8.2 Interim Brand Profile gate (until `DP-003-001` resolves)
+### 8.2 Brand Profile gate — `DP-003-001` Option B (`OWNER_APPROVED`)
 
-**Safe interim (does not invent Owner choice beyond fail-closed product honesty):**
+- Draft create/edit **allowed** without an Approved Brand Profile.
+- Persistent warning + missing-source state required until a valid Approved profile version is linked.
+- MUST NOT claim evidence-backed status before that linkage.
+- `IN_REVIEW` and Approve **require** a linked immutable Approved Brand Profile version for the same tenant/brand.
+- Draft profile links never satisfy the gate.
 
-- Users MAY create and edit Draft strategies without an approved Brand Profile, with a persistent warning.
-- Users MUST NOT enter `IN_REVIEW` without either (a) a linked **Approved** Brand Profile version, or (b) an explicit Owner resolution of `DP-003-001` allowing an alternate path.
-- This interim blocks false “evidence-backed” approval packaging while keeping manual drafting unblocked.
+### 8.3 Package approval — `DP-003-002` Option A (`OWNER_APPROVED`)
 
-### 8.3 Interim approval granularity (until `DP-003-002` resolves)
+- One Strategy Version approval covers strategy foundation + all enabled Organic/Paid track snapshots for 003.
+- Separate plan-item / task / content approvals belong to later features (US-003+).
+- AI cannot approve.
 
-**Safe interim:** Approving a Strategy Version approves that version’s packaged strategy core + enabled Organic/Paid track contents as one accountable decision for Feature 003. Separate production conversion approvals remain future US-003. If Owner selects separate plan approvals, plan/tasks MUST revise eligibility without renumbering FR-SOP ids.
+### 8.4 Brand current pointer — `DP-003-003` Option B (`OWNER_APPROVED`)
+
+| Situation                                                                                                     | Deterministic behavior                                                                                                     |
+| ------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Authorized set-current to eligible `APPROVED` strategy                                                        | Set pointer; audit; concurrency check                                                                                      |
+| Authorized clear                                                                                              | Set pointer null; audit                                                                                                    |
+| Approve strategy                                                                                              | Pointer **unchanged** (no implicit select)                                                                                 |
+| Current strategy archived                                                                                     | **Clear** pointer; audit `current_cleared_on_archive`; do **not** auto-select another                                      |
+| Current strategy’s approved version superseded and strategy no longer has a non-superseded `APPROVED` version | **Clear** pointer; audit; do **not** auto-select                                                                           |
+| Actor cannot access current strategy (capability/membership)                                                  | Show unavailable/permission-denied for that actor; pointer value unchanged for others; do **not** auto-select a substitute |
+| Pointer targets other tenant/brand or unknown id                                                              | Treat as invalid: deny reads that would leak; authorized repair may clear; never auto-pick another strategy                |
+| Set-current to non-approved / wrong brand / other tenant                                                      | Deny without existence leak                                                                                                |
+
+UI MAY show an explicit “Current” badge only when `currentApprovedStrategyId` resolves to an eligible accessible strategy; otherwise show “No current strategy” / “Current unavailable” — never invent a silent default.
 
 ## 9. Out of scope (003)
 
@@ -489,58 +556,63 @@ Optional Foundation AI states may appear later; under `DEC-016` they MUST NOT be
 - **SC-SOP-008**: EN and AR (RTL) primary strategy review path remains completable with keyboard for submit and approve actions.
 - **SC-SOP-009**: Every linked Feature 002 evidence open re-checks tenant/brand authorization.
 - **SC-SOP-010**: Duplicate submit/approve with same idempotency key creates exactly one decision/version transition.
+- **SC-SOP-011**: Submit and approve are blocked in tests when no Approved Brand Profile is linked; Draft create still succeeds with warning (`DP-003-001` B).
+- **SC-SOP-012**: One approve transitions the Strategy Version package (core + enabled tracks) without requiring separate Organic/Paid approve commands (`DP-003-002` A).
+- **SC-SOP-013**: Setting Brand current from Strategy A to B leaves A `APPROVED`; archiving the current strategy clears the pointer without auto-selecting another (`DP-003-003` B).
 
 ## 11. Traceability
 
-| Story     | Primary FRs                          | Success criteria     |
-| --------- | ------------------------------------ | -------------------- |
-| US-SOP-01 | FR-SOP-001–005, 062                  | SC-SOP-004           |
-| US-SOP-02 | FR-SOP-010–013                       | SC-SOP-001           |
-| US-SOP-03 | FR-SOP-014, 031                      | SC-SOP-001           |
-| US-SOP-04 | FR-SOP-014–015, 031                  | SC-SOP-001           |
-| US-SOP-05 | FR-SOP-020–022, 025–026              | SC-SOP-003           |
-| US-SOP-06 | FR-SOP-020–021, 023–026, 035         | SC-SOP-003, 006      |
-| US-SOP-07 | FR-SOP-030–032                       | SC-SOP-009           |
-| US-SOP-08 | FR-SOP-033–035, 040–044, 052–053     | SC-SOP-002, 005, 010 |
-| US-SOP-09 | FR-SOP-045–049, 050                  | SC-SOP-002, 007      |
-| US-SOP-10 | FR-SOP-010, 033–035                  | SC-SOP-001, 005      |
-| US-SOP-11 | FR-SOP-060–063                       | SC-SOP-008           |
+| Story     | Primary FRs                      | Success criteria          |
+| --------- | -------------------------------- | ------------------------- |
+| US-SOP-01 | FR-SOP-001–005, 062              | SC-SOP-004                |
+| US-SOP-02 | FR-SOP-010–013                   | SC-SOP-001, 011           |
+| US-SOP-03 | FR-SOP-014, 031                  | SC-SOP-001                |
+| US-SOP-04 | FR-SOP-014–015, 031              | SC-SOP-001                |
+| US-SOP-05 | FR-SOP-020–022, 025–026          | SC-SOP-003                |
+| US-SOP-06 | FR-SOP-020–021, 023–026, 035     | SC-SOP-003, 006           |
+| US-SOP-07 | FR-SOP-030–032                   | SC-SOP-009                |
+| US-SOP-08 | FR-SOP-033–035, 040–044, 052–053 | SC-SOP-002, 005, 010, 012 |
+| US-SOP-09 | FR-SOP-045–049, 050              | SC-SOP-002, 007           |
+| US-SOP-10 | FR-SOP-010, 033–035              | SC-SOP-001, 005           |
+| US-SOP-11 | FR-SOP-060–063                   | SC-SOP-008                |
+| US-SOP-12 | FR-SOP-070–077, 051–053          | SC-SOP-013                |
 
 Foundation mapping: productizes **US-002**; does not implement **US-003+**. Feature 002 remains SoT for brand facts.
 
 ## 12. Assumptions
 
 - Feature 002 provider-neutral Brand Workspace and profile approval semantics remain accepted on `main`.
-- Foundation capability profile names may be extended with Strategy\* intents without replacing the capability model.
+- Foundation capability profile names may be extended with Strategy\* intents (including set current) without replacing the capability model.
 - `DEC-016` remains binding; final integration phase is later.
 - Competitor pages may change after approval; 003 stores provenance at record time, not continuous monitoring.
 - Client-safe redaction of internal cost notes (Foundation **FR-043**) may be a later hardening if Client Viewer exposure is enabled; default 003 may limit Client Viewer to approved summaries only if Strategy read is granted.
 
 ## 13. Decision gates
 
-| Gate         | Blocks                                | Status                                           |
-| ------------ | ------------------------------------- | ------------------------------------------------ |
-| `DP-003-001` | Submit/approve eligibility nuance     | UNRESOLVED — interim §8.2                        |
-| `DP-003-002` | Whether plans need separate approvals | UNRESOLVED — interim §8.3                        |
-| `DP-003-003` | Current-approved pointer semantics    | UNRESOLVED                                       |
-| `DEC-007`    | Live AI proposals                     | Deferred (`DEFERRED_TO_FINAL_INTEGRATION_PHASE`) |
-| `DEC-006`    | Live paid activation                  | Deferred                                         |
-| `DEC-016`    | Sequencing                            | RESOLVED — product-first                         |
+| Gate         | Blocks                            | Status                                           |
+| ------------ | --------------------------------- | ------------------------------------------------ |
+| `DP-003-001` | Brand Profile submit/approve gate | **OWNER_APPROVED / RESOLVED** — Option B         |
+| `DP-003-002` | Package vs track approvals        | **OWNER_APPROVED / RESOLVED** — Option A         |
+| `DP-003-003` | Brand current strategy pointer    | **OWNER_APPROVED / RESOLVED** — Option B         |
+| `DEC-007`    | Live AI proposals                 | Deferred (`DEFERRED_TO_FINAL_INTEGRATION_PHASE`) |
+| `DEC-006`    | Live paid activation              | Deferred                                         |
+| `DEC-016`    | Sequencing                        | RESOLVED — product-first                         |
 
-Planning (`/speckit-plan`) may proceed for provider-neutral 003 once Owner resolves or explicitly accepts interims for `DP-003-001`–`DP-003-003`. Live integrations remain forbidden.
+Provider-neutral `/speckit-plan` for Feature 003 is **unblocked**. Live integrations remain forbidden.
 
 ## 14. Notifications and audit (minimum event set)
 
-| Event                        | Audit | Notify (typical)       |
-| ---------------------------- | ----- | ---------------------- |
-| Strategy created             | Yes   | Optional watchers      |
-| Brand profile linked/changed | Yes   | Strategist watchers    |
-| Submitted for review         | Yes   | Approvers              |
-| Comment added                | Yes   | Participants           |
-| Changes requested            | Yes   | Editors                |
-| Approved / Rejected          | Yes   | Editors + stakeholders |
-| Archived / Superseded        | Yes   | Watchers               |
-| Track enable/disable         | Yes   | Editors                |
+| Event                         | Audit | Notify (typical)       |
+| ----------------------------- | ----- | ---------------------- |
+| Strategy created              | Yes   | Optional watchers      |
+| Brand profile linked/changed  | Yes   | Strategist watchers    |
+| Submitted for review          | Yes   | Approvers              |
+| Comment added                 | Yes   | Participants           |
+| Changes requested             | Yes   | Editors                |
+| Approved / Rejected (package) | Yes   | Editors + stakeholders |
+| Archived / Superseded         | Yes   | Watchers               |
+| Track enable/disable          | Yes   | Editors                |
+| Current strategy set/cleared  | Yes   | Watchers               |
 
 ## 15. DEC-016 compliance statement
 

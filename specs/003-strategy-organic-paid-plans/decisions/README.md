@@ -2,13 +2,13 @@
 
 **Feature:** `003-strategy-organic-paid-plans`
 **Authority:** [`../spec.md`](../spec.md)
-**Rule:** Packets are **UNRESOLVED** until Owner decides. Spec interims are fail-closed honesty rules, not silent Owner resolutions.
+**Owner session:** 2026-09-08
 
-| ID           | File                                                                               | Status     | Blocks                                          |
-| ------------ | ---------------------------------------------------------------------------------- | ---------- | ----------------------------------------------- |
-| `DP-003-001` | [dp-003-001-brand-profile-gate.md](./dp-003-001-brand-profile-gate.md)             | UNRESOLVED | Submit/`IN_REVIEW` / approve eligibility nuance |
-| `DP-003-002` | [dp-003-002-approval-granularity.md](./dp-003-002-approval-granularity.md)         | UNRESOLVED | Whether Organic/Paid need separate approvals    |
-| `DP-003-003` | [dp-003-003-current-strategy-pointer.md](./dp-003-003-current-strategy-pointer.md) | UNRESOLVED | Current-approved strategy pointer semantics     |
+| ID           | File                                                                               | Status                        | Resolution |
+| ------------ | ---------------------------------------------------------------------------------- | ----------------------------- | ---------- |
+| `DP-003-001` | [dp-003-001-brand-profile-gate.md](./dp-003-001-brand-profile-gate.md)             | **OWNER_APPROVED / RESOLVED** | Option B   |
+| `DP-003-002` | [dp-003-002-approval-granularity.md](./dp-003-002-approval-granularity.md)         | **OWNER_APPROVED / RESOLVED** | Option A   |
+| `DP-003-003` | [dp-003-003-current-strategy-pointer.md](./dp-003-003-current-strategy-pointer.md) | **OWNER_APPROVED / RESOLVED** | Option B   |
 
 Non-decisions (already bound by repository authority):
 
