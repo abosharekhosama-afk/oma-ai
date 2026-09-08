@@ -27,6 +27,15 @@ Provider-neutral Feature 002 core and visible product baseline (fixture/refusing
 - Feature 003
 - Production deployment / credentials / providers
 
+## Phase BG decision packet
+
+Owner sequencing (`DEC-016`, 2026-09-08): **PRODUCT-FIRST / EXTERNAL-INTEGRATIONS-LAST**.
+Phase BG live crawl/AI is `DEFERRED_TO_FINAL_INTEGRATION_PHASE` without provider selection:
+[`decisions/phase-bg-decision-packet.md`](./decisions/phase-bg-decision-packet.md).
+`DEC-004` / `DEC-007` remain open (not resolved). `T200`–`T208` remain unchecked and excluded from Feature 002 completion.
+Policy: [`docs/PRODUCT_DELIVERY_SEQUENCING.md`](../../docs/PRODUCT_DELIVERY_SEQUENCING.md).
+Next unfinished provider-neutral product stage (not started): `SPECIFY_003_STRATEGY_ORGANIC_PAID_PLANS` (Foundation US-002).
+
 ## Rollback notes
 
 Revert the Feature 002 merge commit on `main` (or restore prior `main` tip). Review data under `oma_ai_acceptance` and `.review/` is local and is not deleted by delivery stop.

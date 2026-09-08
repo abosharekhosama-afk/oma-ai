@@ -7,6 +7,8 @@
 
 This document records **options for future decisions**. Nothing here closes Foundation DECs or selects production vendors.
 
+**Phase BG (2026-09-08):** Owner adopted `DEC-016` — **PRODUCT-FIRST / EXTERNAL-INTEGRATIONS-LAST**. Live crawl/AI options in [`decisions/phase-bg-decision-packet.md`](./decisions/phase-bg-decision-packet.md) are `DEFERRED_TO_FINAL_INTEGRATION_PHASE` with **no provider selected**. `DEC-004`/`DEC-007` remain open (not resolved). See [`docs/PRODUCT_DELIVERY_SEQUENCING.md`](../../docs/PRODUCT_DELIVERY_SEQUENCING.md).
+
 ---
 
 ## 0. Locked for 002 (not research choices)
