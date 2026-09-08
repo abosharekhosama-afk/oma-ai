@@ -805,25 +805,39 @@ This is product dependency order, not an implementation plan. Scope requires app
 
 **Impact:** The global authentication/tenant planning blocker is closed. This decision does not authorize implementation or select an authentication technology.
 
-### DEC-003 — WorkDrive ownership `BLOCKER BEFORE FILE IMPLEMENTATION`
+### DEC-003 — WorkDrive ownership `DEFERRED_TO_FINAL_INTEGRATION_PHASE` (still open)
 
+**Status tag:** `DEFERRED_TO_FINAL_INTEGRATION_PHASE` under `DEC-016` — **not resolved**.
 **Question:** Which system owns bytes for original inputs, working files, review proxies, and approved masters? Does OMA upload directly to WorkDrive, receive events from it, or sync after local staging?
 
-### DEC-004 — Initial website connection `BLOCKER BEFORE INGESTION PLAN`
+**Until final integration:** keep refs/checksums/status and refusing/fixture storage ports; do not select WorkDrive byte ownership or object-storage/CDN vendors.
 
+### DEC-004 — Initial website connection `DEFERRED_TO_FINAL_INTEGRATION_PHASE` (still open)
+
+**Status tag:** `DEFERRED_TO_FINAL_INTEGRATION_PHASE` under `DEC-016` — **not resolved**; **no crawl vendor selected**.
 **Question:** Does release one support public URL crawl only, one named commerce connector/API, or both? What authorization and crawl-scope rules apply?
+
+**Product-first note:** Feature 002 already shipped provider-neutral public-HTTPS product behavior behind `WebsiteConnectorPort` with fixture/refusing adapters (`SR-002-004-MODE`). Live crawl/browser vendors and commerce connectors wait for the **final integration phase**. Phase BG tasks `T200`–`T201` / `T208` remain blocked and unchecked.
 
 ### DEC-005 — Pricing, quote, payment, and billing `BLOCKER BEFORE CLIENT COMMERCIAL PLAN`
 
 **Question:** Are packages fixed-price, configurable units, custom quotes, or a combination? Does OMA own payment/invoice state or reference another authoritative system?
 
-### DEC-006 — Meta activation authority `BLOCKER BEFORE PAID IMPLEMENTATION`
+**External-provider note:** Any live payment/invoice provider SDK remains `DEFERRED_TO_FINAL_INTEGRATION_PHASE` under `DEC-016`. Provider-neutral commercial UX/domain may still be specified later without selecting a payment processor.
 
+### DEC-006 — Meta activation authority `DEFERRED_TO_FINAL_INTEGRATION_PHASE` (still open)
+
+**Status tag:** `DEFERRED_TO_FINAL_INTEGRATION_PHASE` under `DEC-016` for live Meta/paid-media APIs — **not resolved**.
 **Question:** Does release one stop at export/draft, create paused campaigns, schedule, or launch active campaigns? Which actors approve budget and execute external spend, and what limits require reapproval?
 
-### DEC-007 — AI providers and data policy `BLOCKER BEFORE AI TECHNICAL PLAN`
+**Until final integration:** keep `PaidMediaConnectorPort` + refusing adapter; no Meta SDK/credentials/live spend.
 
+### DEC-007 — AI providers and data policy `DEFERRED_TO_FINAL_INTEGRATION_PHASE` (still open)
+
+**Status tag:** `DEFERRED_TO_FINAL_INTEGRATION_PHASE` under `DEC-016` — **not resolved**; **no AI provider/model selected**.
 **Question:** Which providers/models may process public website data, confidential company data, and unpublished assets? What retention, regional, logging, cost, and fallback rules apply?
+
+**Product-first note:** Product features may use `AiProviderPort` with refusing/test doubles and mandatory human approval. Live AI SDK/keys/third-party sends wait for the **final integration phase**. Phase BG tasks `T202`–`T203` remain blocked and unchecked.
 
 ### DEC-008 — Client/company structure
 
@@ -896,6 +910,20 @@ This is product dependency order, not an implementation plan. Scope requires app
 **Boundary:** Does not close `DEC-003`–`DEC-012`. Does not select an email/SMS vendor. Does not authorize live crawl/AI. Does not redefine Tenant as anything other than the Foundation company workspace (`DEC-008` remains open for multi-brand/agency topology).
 
 **Impact:** Unblocks Company Onboarding UI, invitation administration UI, searchable company selector policy, and related Feature 002 gap-matrix tasks previously gated by proposed `DEC-015`. Foundation contract `contracts/tenant-authorization.md` must reflect the authorization amendment above.
+
+### DEC-016 — Product-first / external-integrations-last `RESOLVED 2026-09-08`
+
+**Decision:** Adopt **PRODUCT-FIRST / EXTERNAL-INTEGRATIONS-LAST** for all OMA AI delivery after Feature 002 acceptance. Complete provider-neutral product modules, UX, workflows, domain logic, permissions, APIs, data models, and internal state machines **before** the final live third-party integration phase.
+
+**Rules:** Keep ports and production guards; use refusing adapters, deterministic test adapters, and local fixtures; keep manual fallbacks where specified; UI must show honest not-connected/not-configured states; no provider SDK, credential, live external request, or provider selection before the final integration phase. Internal PostgreSQL, Redis, and BullMQ (`DEC-014`) are **not** deferred third-party product integrations.
+
+**Deferred (still open — not vendor-selected):** `DEC-003`, `DEC-004`, `DEC-006`, `DEC-007`, and live payment-provider aspects of `DEC-005`, plus ESP/analytics/CDN/object-storage/social publishing vendors. Status tag: `DEFERRED_TO_FINAL_INTEGRATION_PHASE`. Feature 002 Phase BG `T200`–`T208` remain unchecked and excluded from Feature 002 completion.
+
+**Reason:** Owner sequencing choice (2026-09-08): defer all third-party/live external integrations until the final product integration phase; finish the provider-neutral OMA product first.
+
+**Canonical policy:** `docs/PRODUCT_DELIVERY_SEQUENCING.md`.
+
+**Impact:** Does **not** close `DEC-003`–`DEC-012` questions. Does **not** select crawl, AI, Meta, WorkDrive, ESP, or CDN vendors. Does **not** start Feature 003. Unlocks sequencing clarity for the next provider-neutral Spec Kit feature (**US-002**).
 
 ## 18. Definition of Done for any OMA AI slice
 

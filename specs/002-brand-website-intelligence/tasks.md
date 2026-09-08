@@ -533,7 +533,7 @@ If implement discovers behavior not in spec/plan/contracts → update smallest a
 
 **Implementation status**: `IMPLEMENT_REFERENCE_GAPS_002` proofs complete for unblocked gaps. `DEC-015: RESOLVED — OPTION A`. Phase GM T160–T173 + T130/T131/T136 closed with evidence; Phase BG T200–T208 remain blocked. `VISIBLE_PRODUCT_BASELINE_002: VERIFIED`. Certification `CERTIFICATION_VISIBLE_PRODUCT_002: PASS` at `0fec2a3372ad5b475f454033ad8413ddc7cb9f25`. `AUTHENTICATED REFERENCE PARITY: PARTIAL`; `LIVE-INTEGRATION READY: NO`; `PRODUCTION LAUNCH READY: NO`; `USER ACCEPTANCE: ACCEPTED` (2026-09-07).
 
-**Next step**: deliver Feature 002 to `main` through a reviewed PR; do not start Feature 003 or Phase BG without closed decisions.
+**Next step**: provider-neutral Feature **003** for Foundation **US-002** (`SPECIFY_003_STRATEGY_ORGANIC_PAID_PLANS`) when authorized — do **not** start Phase BG live crawl/AI (`DEC-016`). Phase BG remains `DEFERRED_TO_FINAL_INTEGRATION_PHASE`.
 
 ### Phase VP — Visible product recovery (completed outside T001–T159)
 
@@ -569,4 +569,4 @@ Status after Phase GM proofs and Owner acceptance: `VISIBLE_PRODUCT_BASELINE_002
 - `[P]` = parallel-safe file isolation
 - Do not mark Phase BG complete without closed decisions + explicit implement authorization
 - `DEC-003`–`DEC-012` stay open; Phase BG unblocks only after the owning decision closes
-- Phase BG Owner decision packet (docs only, 2026-09-08): [`decisions/phase-bg-decision-packet.md`](./decisions/phase-bg-decision-packet.md) — `READY_FOR_OWNER_DECISION`. Does not start T200–T208. Next stage: `OWNER_DECISION_PHASE_BG_002`.
+- Phase BG Owner decision: [`decisions/phase-bg-decision-packet.md`](./decisions/phase-bg-decision-packet.md) — `DEFERRED_TO_FINAL_INTEGRATION_PHASE` under `DEC-016` (**PRODUCT-FIRST / EXTERNAL-INTEGRATIONS-LAST**). No crawl/AI provider selected. `T200`–`T208` stay `[ ]` and are excluded from Feature 002 completion. Policy: [`docs/PRODUCT_DELIVERY_SEQUENCING.md`](../../docs/PRODUCT_DELIVERY_SEQUENCING.md). Next unfinished provider-neutral stage (not started): `SPECIFY_003_STRATEGY_ORGANIC_PAID_PLANS`.

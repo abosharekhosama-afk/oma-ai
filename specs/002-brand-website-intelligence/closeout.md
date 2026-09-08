@@ -29,9 +29,12 @@ Provider-neutral Feature 002 core and visible product baseline (fixture/refusing
 
 ## Phase BG decision packet
 
-Owner input for authorizing live crawl + live AI (without implementing):
-[`decisions/phase-bg-decision-packet.md`](./decisions/phase-bg-decision-packet.md) — status `READY_FOR_OWNER_DECISION` (2026-09-08).
-Next stage: `OWNER_DECISION_PHASE_BG_002`. Decisions remain open until the Owner closes them in writing.
+Owner sequencing (`DEC-016`, 2026-09-08): **PRODUCT-FIRST / EXTERNAL-INTEGRATIONS-LAST**.
+Phase BG live crawl/AI is `DEFERRED_TO_FINAL_INTEGRATION_PHASE` without provider selection:
+[`decisions/phase-bg-decision-packet.md`](./decisions/phase-bg-decision-packet.md).
+`DEC-004` / `DEC-007` remain open (not resolved). `T200`–`T208` remain unchecked and excluded from Feature 002 completion.
+Policy: [`docs/PRODUCT_DELIVERY_SEQUENCING.md`](../../docs/PRODUCT_DELIVERY_SEQUENCING.md).
+Next unfinished provider-neutral product stage (not started): `SPECIFY_003_STRATEGY_ORGANIC_PAID_PLANS` (Foundation US-002).
 
 ## Rollback notes
 

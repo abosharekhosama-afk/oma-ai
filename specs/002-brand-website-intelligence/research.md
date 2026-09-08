@@ -7,7 +7,7 @@
 
 This document records **options for future decisions**. Nothing here closes Foundation DECs or selects production vendors.
 
-**Phase BG Owner packet (2026-09-08):** current, priced, source-cited options for live crawl + live AI are in [`decisions/phase-bg-decision-packet.md`](./decisions/phase-bg-decision-packet.md) (`READY_FOR_OWNER_DECISION`). That packet does **not** close DEC-004/DEC-007; it supersedes unnamed SaaS placeholders below for Owner choice.
+**Phase BG (2026-09-08):** Owner adopted `DEC-016` — **PRODUCT-FIRST / EXTERNAL-INTEGRATIONS-LAST**. Live crawl/AI options in [`decisions/phase-bg-decision-packet.md`](./decisions/phase-bg-decision-packet.md) are `DEFERRED_TO_FINAL_INTEGRATION_PHASE` with **no provider selected**. `DEC-004`/`DEC-007` remain open (not resolved). See [`docs/PRODUCT_DELIVERY_SEQUENCING.md`](../../docs/PRODUCT_DELIVERY_SEQUENCING.md).
 
 ---
 

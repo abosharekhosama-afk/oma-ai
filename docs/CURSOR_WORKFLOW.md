@@ -79,7 +79,7 @@ Use the command/skill names exposed by the installed Spec Kit integration. Curso
 
 ## OMA AI pre-plan gate
 
-`DEC-001`, `DEC-002`, and `DEC-013` are resolved: create a separate private repository named `oma-ai`, use an OMA-owned identity/tenant boundary, and apply the approved seven-product reference hierarchy. Do not introduce IMKAN SSO or identity/company synchronization during initial planning; that requires a later specification and mapping contract. Platform-foundation or design-system planning may begin only after repository inspection and explicit authorization. Resolve each of `DEC-003` through `DEC-007` before planning its affected slice, or explicitly defer it behind a safe boundary.
+`DEC-001`, `DEC-002`, and `DEC-013` are resolved: create a separate private repository named `oma-ai`, use an OMA-owned identity/tenant boundary, and apply the approved seven-product reference hierarchy. Do not introduce IMKAN SSO or identity/company synchronization during initial planning; that requires a later specification and mapping contract. Platform-foundation or design-system planning may begin only after repository inspection and explicit authorization. Resolve each of `DEC-003` through `DEC-007` before planning its affected **live provider** slice, or explicitly defer it behind a safe boundary. Under `DEC-016` (**PRODUCT-FIRST / EXTERNAL-INTEGRATIONS-LAST**), provider-neutral product features proceed with ports + refusing/fixtures; live third-party wiring waits for the final integration phase (`docs/PRODUCT_DELIVERY_SEQUENCING.md`).
 
 ## UI reference gate
 

@@ -1,13 +1,34 @@
 # Phase BG Decision Packet — Feature 002 Live Crawl & Live AI
 
-**Status:** `READY_FOR_OWNER_DECISION`  
-**Branch:** `docs/002-phase-bg-decision-packet`  
-**Base:** `origin/main` @ `5d27357e766d23f3c6f898453ae0e84ba862e862`  
-**Research date:** 2026-09-08  
-**Authority:** Foundation `specs/001-oma-ai-product-foundation/spec.md` §17; Feature 002 `plan.md` / `tasks.md` Phase BG; ports in `packages/domain/src/ports/`  
-**Mode:** Docs only — **no** implementation, **no** decision closure, **no** Feature 003
+**Status:** `DEFERRED_TO_FINAL_INTEGRATION_PHASE` (Owner sequencing 2026-09-08)
+**Prior status:** `READY_FOR_OWNER_DECISION` (research commit `8367c23`)
+**Authority:** Foundation `spec.md` §17; Feature 002 Phase BG; `docs/PRODUCT_DELIVERY_SEQUENCING.md` (`DEC-016`)
+**Mode:** Docs only — **no** provider selection, **no** implementation, **no** Feature 003 start
 
 ---
+
+## Owner sequencing decision (binding)
+
+**PRODUCT-FIRST / EXTERNAL-INTEGRATIONS-LAST** (`DEC-016`, 2026-09-08).
+
+Defer **all** third-party/live external integrations until the **final product integration phase** after provider-neutral OMA product features are accepted.
+
+| Item                                    | Treatment                                                                 |
+| --------------------------------------- | ------------------------------------------------------------------------- |
+| Crawl / AI vendor selection             | **Not selected** — deferred                                               |
+| `DEC-004` / `DEC-007`                   | Remain **open**; `DEFERRED_TO_FINAL_INTEGRATION_PHASE` — **not resolved** |
+| `T200`–`T208`                           | Remain **`[ ]`**; excluded from Feature 002 completion                    |
+| Feature 002 provider-neutral acceptance | **Preserved**                                                             |
+| Live SDK / credentials / live requests  | **Forbidden** until final integration phase                               |
+
+**Next unfinished provider-neutral product stage (not started):**
+`SPECIFY_003_STRATEGY_ORGANIC_PAID_PLANS` — Foundation **US-002** (evidence-backed strategy; Organic and Paid distinct plans).
+
+The research below remains valid **input for the future final integration phase**. All `RECOMMENDATION — NOT YET APPROVED` labels stay **not approved** and **not selected**.
+
+---
+
+## Historical research body (2026-09-08) — deferred, not approved
 
 ## Owner executive summary
 
@@ -16,7 +37,7 @@ Two Owner choices unlock useful Phase BG live value without reopening accepted F
 1. **Crawl approach (DEC-004-scoped / authorized crawl decision)** → unlocks **T200–T201**.
 2. **AI provider + policy (DEC-007)** → unlocks **T202–T203**.
 
-**DEC-003 is not required** for useful live crawl + AI while excerpts/hashes/URLs remain the evidence SoT.  
+**DEC-003 is not required** for useful live crawl + AI while excerpts/hashes/URLs remain the evidence SoT.
 **T204–T208**, commerce, and most other DECs can stay deferred.
 
 ### RECOMMENDATION — NOT YET APPROVED (crawl)
