@@ -4,7 +4,7 @@
 **Created**: 2026-09-08
 **Updated**: 2026-09-08 (Owner decisions applied)
 **Feature**: [spec.md](../spec.md)
-**Stage**: `SPEC_READY_FOR_PLAN` — `DP-003-001` B, `DP-003-002` A, `DP-003-003` B **OWNER_APPROVED / RESOLVED**
+**Stage**: `SPEC_READY_FOR_PLAN` + plan `READY_FOR_REVIEW` (2026-09-08) — Owner DPs closed; planning artifacts present; `tasks.md` not created
 
 **Review Ownership**: Reviewer-owned requirements-quality artifact. Mark `[x]` only when the criterion is satisfied for requirements quality (not implementation done).
 
@@ -70,6 +70,6 @@
 ## Notes
 
 - Checklist `[x]` = requirements quality, not implementation done.
-- Verdict: **SPEC_READY_FOR_PLAN** — Owner decisions applied; no provider selection; no product code.
-- Exact next stage: `PLAN_003_STRATEGY_ORGANIC_PAID_PLANS`.
+- Verdict: **SPEC_READY_FOR_PLAN** + plan **READY_FOR_REVIEW** — Owner decisions applied; provider-neutral plan artifacts complete; no product code.
+- Exact next stage after plan approval: `TASKS_003_STRATEGY_ORGANIC_PAID_PLANS`.
 - Remaining non-blocking gates: deferred Foundation provider DECs (`DEC-003`–`DEC-007` etc.) for live integrations only.
