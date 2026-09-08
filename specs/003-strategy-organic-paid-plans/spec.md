@@ -492,19 +492,19 @@ Optional Foundation AI states may appear later; under `DEC-016` they MUST NOT be
 
 ## 11. Traceability
 
-| Story     | Primary FRs                      | Success criteria     |
-| --------- | -------------------------------- | -------------------- |
-| US-SOP-01 | FR-SOP-001–005, 060–062          | SC-SOP-004, 008      |
-| US-SOP-02 | FR-SOP-010–013, 012              | SC-SOP-001           |
-| US-SOP-03 | FR-SOP-014, 031                  | SC-SOP-001           |
-| US-SOP-04 | FR-SOP-014–015, 031              | SC-SOP-001           |
-| US-SOP-05 | FR-SOP-020–022, 025–026          | SC-SOP-003           |
-| US-SOP-06 | FR-SOP-020–021, 023–026, 035     | SC-SOP-003, 006      |
-| US-SOP-07 | FR-SOP-030–032                   | SC-SOP-009           |
-| US-SOP-08 | FR-SOP-033–035, 040–044, 052–053 | SC-SOP-002, 005, 010 |
-| US-SOP-09 | FR-SOP-045–047, 050              | SC-SOP-002, 007      |
-| US-SOP-10 | FR-SOP-010, 033–035              | SC-SOP-001, 005      |
-| US-SOP-11 | FR-SOP-060–063                   | SC-SOP-008           |
+| Story     | Primary FRs                          | Success criteria     |
+| --------- | ------------------------------------ | -------------------- |
+| US-SOP-01 | FR-SOP-001–005, 062                  | SC-SOP-004           |
+| US-SOP-02 | FR-SOP-010–013                       | SC-SOP-001           |
+| US-SOP-03 | FR-SOP-014, 031                      | SC-SOP-001           |
+| US-SOP-04 | FR-SOP-014–015, 031                  | SC-SOP-001           |
+| US-SOP-05 | FR-SOP-020–022, 025–026              | SC-SOP-003           |
+| US-SOP-06 | FR-SOP-020–021, 023–026, 035         | SC-SOP-003, 006      |
+| US-SOP-07 | FR-SOP-030–032                       | SC-SOP-009           |
+| US-SOP-08 | FR-SOP-033–035, 040–044, 052–053     | SC-SOP-002, 005, 010 |
+| US-SOP-09 | FR-SOP-045–049, 050                  | SC-SOP-002, 007      |
+| US-SOP-10 | FR-SOP-010, 033–035                  | SC-SOP-001, 005      |
+| US-SOP-11 | FR-SOP-060–063                       | SC-SOP-008           |
 
 Foundation mapping: productizes **US-002**; does not implement **US-003+**. Feature 002 remains SoT for brand facts.
 
