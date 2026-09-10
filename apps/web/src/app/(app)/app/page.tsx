@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../../../lib/api';
-import { useT } from '../../../lib/use-locale';
+import { useLocale, useT } from '../../../lib/use-locale';
 import type { BrandListItem, Paginated } from '../../../lib/brand-types';
 import { getApiError, isPermissionDenied } from '../../../lib/brand-api';
 import {
@@ -12,6 +12,9 @@ import {
   isBrandNeedingAction,
 } from '../../../lib/brand-attention';
 import { StatusChip } from '../../../components/ui/status-chip';
+import { DemoDisclosure } from '../../../components/demo/demo-disclosure';
+import { demoApi, isDemoForbidden, pickCopy } from '../../../lib/demo/use-demo-api';
+import type { DemoGraph } from '@oma/demo';
 
 type Me = { user: { name: string }; active_tenant_id: string | null };
 
@@ -21,6 +24,12 @@ type NotificationItem = {
   deepLinkPath: string | null;
   createdAt: string;
   readAt: string | null;
+};
+
+type DemoCommandCenter = DemoGraph['commandCenter'] & {
+  brands: DemoGraph['brands'];
+  campaigns: DemoGraph['campaigns'];
+  meta: DemoGraph['meta'];
 };
 
 function attentionLabel(t: (key: string) => string, brand: BrandListItem): string {
@@ -48,9 +57,11 @@ function notificationLabel(t: (key: string) => string, type: string): string {
 
 export default function AppHomePage() {
   const t = useT();
+  const locale = useLocale();
   const [me, setMe] = useState<Me | null>(null);
   const [brands, setBrands] = useState<BrandListItem[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [demoCc, setDemoCc] = useState<DemoCommandCenter | null>(null);
   const [denied, setDenied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -66,15 +77,20 @@ export default function AppHomePage() {
           setLoading(false);
           return;
         }
-        const [brandRes, notifRes] = await Promise.all([
+        const [brandRes, notifRes, demoRes] = await Promise.all([
           api<Paginated<BrandListItem>>('/api/v1/brands'),
           api<{ items: NotificationItem[] }>('/api/v1/notifications').catch(() => ({
             items: [] as NotificationItem[],
           })),
+          demoApi<DemoCommandCenter>('/command-center').catch((err) => {
+            if (isDemoForbidden(err)) return null;
+            return null;
+          }),
         ]);
         if (cancelled) return;
         setBrands(brandRes.data);
         setNotifications(notifRes.items.slice(0, 5));
+        setDemoCc(demoRes);
       } catch (err) {
         if (cancelled) return;
         if (isPermissionDenied(err)) setDenied(true);
@@ -140,6 +156,86 @@ export default function AppHomePage() {
         </div>
       ) : (
         <>
+          {demoCc ? (
+            <div data-testid="demo-command-center">
+              <DemoDisclosure />
+              <section className="oma-stat-strip" aria-label={t('home.demoProgress')}>
+                <div className="oma-stat">
+                  <span className="oma-stat-value">{demoCc.reviewQueueCount}</span>
+                  <span className="oma-stat-label">{t('home.demoReviewQueue')}</span>
+                </div>
+                <div className="oma-stat">
+                  <span className="oma-stat-value">{demoCc.overdueTasks}</span>
+                  <span className="oma-stat-label">{t('home.demoOverdue')}</span>
+                </div>
+                <div className="oma-stat">
+                  <span className="oma-stat-value">{demoCc.campaigns.length}</span>
+                  <span className="oma-stat-label">{t('nav.campaigns')}</span>
+                </div>
+                <div className="oma-stat">
+                  <span className="oma-stat-value">{demoCc.brands.length}</span>
+                  <span className="oma-stat-label">{t('home.demoPortfolio')}</span>
+                </div>
+              </section>
+              <div className="oma-home-grid">
+                <section className="oma-card" aria-labelledby="demo-next-heading">
+                  <div className="oma-section-head">
+                    <h2 id="demo-next-heading">{t('home.demoNextActions')}</h2>
+                  </div>
+                  <ul className="oma-action-list">
+                    {demoCc.nextActions.map((a) => (
+                      <li key={a.href}>
+                        <Link href={a.href} className="oma-action-row">
+                          <strong>{pickCopy(a.label, locale)}</strong>
+                          <span className="oma-action-cta">{t('home.action.open')}</span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+                <section className="oma-card" aria-labelledby="demo-deadlines-heading">
+                  <div className="oma-section-head">
+                    <h2 id="demo-deadlines-heading">{t('home.demoDeadlines')}</h2>
+                  </div>
+                  <ul className="oma-compact-list">
+                    {demoCc.upcomingDeadlines.map((d) => (
+                      <li key={d.href + d.at}>
+                        <Link href={d.href} className="oma-compact-row">
+                          <strong>{pickCopy(d.label, locale)}</strong>
+                          <span className="oma-muted">{d.at}</span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+                <section className="oma-card" aria-labelledby="demo-perf-heading">
+                  <div className="oma-section-head">
+                    <h2 id="demo-perf-heading">{t('home.demoPerformance')}</h2>
+                  </div>
+                  <p>{pickCopy(demoCc.performanceBlurb, locale)}</p>
+                  <Link href="/app/analytics" className="oma-text-link">
+                    {t('nav.analytics')}
+                  </Link>
+                </section>
+                <section className="oma-card" aria-labelledby="demo-campaigns-heading">
+                  <div className="oma-section-head">
+                    <h2 id="demo-campaigns-heading">{t('home.demoProgress')}</h2>
+                  </div>
+                  <ul className="oma-compact-list">
+                    {demoCc.campaigns.map((c) => (
+                      <li key={c.id}>
+                        <Link href={`/app/campaigns/${c.id}`} className="oma-compact-row">
+                          <strong>{pickCopy(c.name, locale)}</strong>
+                          <StatusChip status={c.status} />
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              </div>
+            </div>
+          ) : null}
+
           <section className="oma-stat-strip" aria-label={t('home.summaryLabel')}>
             <div className="oma-stat">
               <span className="oma-stat-value">{brands.length}</span>

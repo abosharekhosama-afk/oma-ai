@@ -19,6 +19,16 @@ const TONE_BY_STATUS: Record<string, Tone> = {
   NEEDS_REVIEW: 'warning',
   REJECTED: 'danger',
   PENDING: 'warning',
+  UPCOMING: 'info',
+  COMPLETED: 'neutral',
+  AWAITING_REVIEW: 'warning',
+  CHANGES_REQUESTED: 'warning',
+  IN_REVIEW: 'warning',
+  SCHEDULED: 'info',
+  PUBLISHED_DEMO: 'success',
+  OVERDUE: 'danger',
+  NOT_CONNECTED: 'neutral',
+  DEFERRED: 'neutral',
 };
 
 export function statusTone(status: string | null | undefined): Tone {

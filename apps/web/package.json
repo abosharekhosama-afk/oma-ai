@@ -9,6 +9,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@oma/demo": "workspace:*",
     "@oma/i18n": "workspace:*",
     "@oma/ui": "workspace:*",
     "next": "15.5.24",

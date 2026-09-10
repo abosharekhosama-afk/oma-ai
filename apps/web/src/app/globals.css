@@ -103,6 +103,11 @@ body {
   border-inline-end: 1px solid var(--oma-border);
   background: var(--oma-surface);
   padding: 1rem;
+  max-height: 100vh;
+  overflow-y: auto;
+  position: sticky;
+  top: 0;
+  align-self: start;
 }
 .oma-shell-column {
   min-width: 0;
@@ -247,6 +252,9 @@ body {
     border-inline-end: 0;
     border-bottom: 1px solid var(--oma-border);
     padding: 0.75rem 1rem;
+    max-height: none;
+    position: static;
+    overflow-x: auto;
   }
   .oma-rail-endorsement {
     margin-bottom: 0.75rem;
@@ -255,6 +263,7 @@ body {
     grid-auto-flow: column;
     justify-content: start;
     gap: 0.35rem;
+    overflow-x: auto;
   }
   .oma-select {
     max-width: 150px;
@@ -1023,6 +1032,153 @@ body {
   .oma-home-grid,
   .oma-skeleton-grid,
   .oma-scan-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Demo product surfaces — restrained Linear density + Planable content cards */
+.oma-demo-disclosure {
+  margin: 0 0 0.75rem;
+  padding: 0.45rem 0.65rem;
+  font-size: 12px;
+  color: var(--oma-muted);
+  background: var(--oma-canvas);
+  border: 1px solid var(--oma-border);
+  border-radius: 8px;
+}
+.oma-kanban {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  align-items: start;
+}
+.oma-kanban-col {
+  background: var(--oma-canvas);
+  border: 1px solid var(--oma-border);
+  border-radius: 10px;
+  padding: 0.65rem;
+  min-height: 120px;
+}
+.oma-kanban-col h3 {
+  margin: 0 0 0.5rem;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--oma-muted);
+}
+.oma-kanban-card {
+  display: block;
+  width: 100%;
+  text-align: start;
+  background: var(--oma-surface);
+  border: 1px solid var(--oma-border);
+  border-radius: 8px;
+  padding: 0.55rem 0.65rem;
+  margin-bottom: 0.45rem;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+.oma-kanban-card:hover {
+  border-color: var(--oma-primary);
+}
+.oma-calendar-grid {
+  display: grid;
+  gap: 0.65rem;
+}
+.oma-calendar-row {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--oma-border);
+  border-radius: 10px;
+  background: var(--oma-surface);
+}
+.oma-calendar-row time {
+  font-size: 13px;
+  color: var(--oma-muted);
+}
+.oma-content-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+.oma-content-card {
+  border: 1px solid var(--oma-border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--oma-surface);
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+}
+.oma-content-card img {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  object-fit: cover;
+  background: var(--oma-canvas);
+}
+.oma-content-card-body {
+  padding: 0.65rem 0.75rem 0.85rem;
+  display: grid;
+  gap: 0.35rem;
+}
+.oma-media-review-canvas {
+  background: #121417;
+  color: #f3f4f6;
+  border-radius: 12px;
+  padding: 1rem;
+  min-height: 280px;
+  display: grid;
+  gap: 0.75rem;
+}
+.oma-media-review-canvas img {
+  max-width: 100%;
+  max-height: 420px;
+  margin: 0 auto;
+  display: block;
+  border-radius: 4px;
+}
+.oma-media-review-canvas .oma-muted {
+  color: #9ca3af;
+}
+.oma-view-toggle {
+  display: inline-flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+.oma-view-toggle button[aria-pressed='true'] {
+  background: var(--oma-primary);
+  color: #fff;
+}
+.oma-progress-track {
+  height: 8px;
+  background: var(--oma-canvas);
+  border-radius: 999px;
+  overflow: hidden;
+  border: 1px solid var(--oma-border);
+}
+.oma-progress-fill {
+  height: 100%;
+  background: var(--oma-primary);
+  border-radius: inherit;
+}
+.oma-track-organic {
+  background: var(--oma-primary-soft);
+  color: var(--oma-primary);
+}
+.oma-track-paid {
+  background: #fef3c7;
+  color: #92400e;
+}
+@media (max-width: 640px) {
+  .oma-calendar-row {
+    grid-template-columns: 1fr;
+  }
+  .oma-kanban {
     grid-template-columns: 1fr;
   }
 }

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000" viewBox="0 0 800 1000">
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#6658E8"/><stop offset="1" stop-color="#12A7A1"/></linearGradient></defs>
+  <rect width="800" height="1000" fill="#14151A"/>
+  <rect x="40" y="40" width="720" height="920" rx="24" fill="url(#g)" opacity="0.35"/>
+  <text x="80" y="160" fill="#fff" font-family="system-ui" font-size="48" font-weight="700">Horizon Summer</text>
+  <text x="80" y="230" fill="#EEEAFE" font-family="system-ui" font-size="28">Demo creative · Static</text>
+</svg>

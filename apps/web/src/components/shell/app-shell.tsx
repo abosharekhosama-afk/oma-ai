@@ -34,6 +34,39 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
               <NavLink href="/app/brands" label={t(locale, 'nav.intelligence')} />
             </li>
             <li>
+              <NavLink href="/app/campaigns" label={t(locale, 'nav.campaigns')} />
+            </li>
+            <li>
+              <NavLink href="/app/content" label={t(locale, 'nav.content')} />
+            </li>
+            <li>
+              <NavLink href="/app/requests" label={t(locale, 'nav.requests')} />
+            </li>
+            <li>
+              <NavLink href="/app/tasks" label={t(locale, 'nav.tasks')} />
+            </li>
+            <li>
+              <NavLink href="/app/deliverables" label={t(locale, 'nav.deliverables')} />
+            </li>
+            <li>
+              <NavLink href="/app/reviews" label={t(locale, 'nav.reviews')} />
+            </li>
+            <li>
+              <NavLink href="/app/schedule" label={t(locale, 'nav.schedule')} />
+            </li>
+            <li>
+              <NavLink href="/app/analytics" label={t(locale, 'nav.analytics')} />
+            </li>
+            <li>
+              <NavLink href="/app/team" label={t(locale, 'nav.team')} />
+            </li>
+            <li>
+              <NavLink href="/app/activity" label={t(locale, 'nav.activity')} />
+            </li>
+            <li>
+              <NavLink href="/app/settings" label={t(locale, 'nav.settings')} />
+            </li>
+            <li>
               <NavLink href="/app/company/members" label={t(locale, 'nav.company')} />
             </li>
           </ul>
