@@ -1,0 +1,79 @@
+{
+  "meta": {
+    "project": "oma-ai",
+    "program": "004-visual-parity",
+    "note": "Statuses reflect visual quality rebuild need, not functional absence. Authenticated reference px are REFERENCE_LIMITED."
+  },
+  "rows": [
+    {
+      "referenceId": "linear",
+      "referencePath": "workspace shell / sidebar+header",
+      "referenceBehavior": "Compact grouped nav, dense top bar, detail drawers, restrained motion",
+      "ourSurface": "AppShell",
+      "currentBehavior": "Flat 14-link 220px rail; top bar without search/create; no elevation",
+      "status": "REBUILD",
+      "difference": "VG-001 VG-003 VG-005 VG-006",
+      "requiredCorrection": "Stage 1 golden shell",
+      "owner": "web-ui",
+      "targetPhase": "Stage 1",
+      "evidenceRefs": ["ours/measurements/command-center.json", "002-evidence/raw-linear.txt"],
+      "verificationResult": "PENDING_IMPLEMENTATION"
+    },
+    {
+      "referenceId": "planable",
+      "referencePath": "calendar / feed / grid / list + approvals",
+      "referenceBehavior": "Preview-led content planning; approvals near content",
+      "ourSurface": "/app/content /app/campaigns /app/reviews",
+      "currentBehavior": "Functional toggles; generic lists; weak previews",
+      "status": "REBUILD",
+      "difference": "VG-002 VG-007",
+      "requiredCorrection": "Stage 3 content-first surfaces",
+      "owner": "web-ui",
+      "targetPhase": "Stage 3",
+      "evidenceRefs": ["ours/measurements/content.json", "002-evidence/raw-planable.txt"],
+      "verificationResult": "PENDING_IMPLEMENTATION"
+    },
+    {
+      "referenceId": "frameio",
+      "referencePath": "review and approval / versioned media",
+      "referenceBehavior": "Dark focus canvas; feedback on exact version",
+      "ourSurface": "/app/deliverables/[id]",
+      "currentBehavior": "Light page review; local approve honesty",
+      "status": "REBUILD",
+      "difference": "VG-004",
+      "requiredCorrection": "Stage 5 MediaReviewCanvas",
+      "owner": "web-ui",
+      "targetPhase": "Stage 5",
+      "evidenceRefs": ["ours/measurements/deliverables.json", "DESIGN_REFERENCE_STRATEGY.md§Frame.io"],
+      "verificationResult": "REFERENCE_LIMITED"
+    },
+    {
+      "referenceId": "workfront",
+      "referencePath": "request-plan-produce-approve concepts",
+      "referenceBehavior": "Connected workflow states",
+      "ourSurface": "/app/requests /app/tasks",
+      "currentBehavior": "Demo boards exist; visual workflow weak",
+      "status": "PARTIAL",
+      "difference": "Workflow concepts present; visual polish missing",
+      "requiredCorrection": "Stage 4",
+      "owner": "web-ui",
+      "targetPhase": "Stage 4",
+      "evidenceRefs": ["docs/DESIGN_REFERENCE_STRATEGY.md"],
+      "verificationResult": "DOC_VERIFIED"
+    },
+    {
+      "referenceId": "semrush",
+      "referencePath": "scan/evidence tables",
+      "referenceBehavior": "Dense evidence-led tables",
+      "ourSurface": "/app/brands",
+      "currentBehavior": "Production 002 tables under weak shell",
+      "status": "PARTIAL",
+      "difference": "Domain strong; shell chrome weak",
+      "requiredCorrection": "Stage 2",
+      "owner": "web-ui",
+      "targetPhase": "Stage 2",
+      "evidenceRefs": ["specs/002-brand-website-intelligence/reference/07-reference-pattern-matrix.md"],
+      "verificationResult": "DOC_VERIFIED"
+    }
+  ]
+}

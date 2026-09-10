@@ -1,0 +1,33 @@
+{
+  "meta": {
+    "project": "oma-ai",
+    "program": "004-visual-parity",
+    "generatedAt": "2026-09-10T20:25:00.000Z",
+    "appHeadMeasured": "f3f450d4c8c39a34196e820c5751145d51ce1348",
+    "authority": "DEC-013",
+    "authenticatedReferenceParity": "PENDING",
+    "accessPolicyNote": "All DEC-013 references are PUBLIC_SOURCE_ONLY; no authenticated inspector runs in this stage."
+  },
+  "documents": [
+    "docs/REFERENCE_PARITY_AUDIT.md",
+    "docs/OMA_DESIGN_SYSTEM_BLUEPRINT.md",
+    "docs/COMPONENT_AND_INTERACTION_BLUEPRINT.md",
+    "docs/SURFACE_REBUILD_MATRIX.md",
+    "docs/VISUAL_ACCEPTANCE_CRITERIA.md"
+  ],
+  "oursMeasurementsDir": ".reference/004-visual-parity/ours/measurements",
+  "oursScreenshotDir": "artifacts/visual-parity-004",
+  "archivedReferenceEvidence": [
+    ".reference/002-evidence/raw-planable.txt",
+    ".reference/002-evidence/raw-linear.txt",
+    ".reference/002-evidence/raw-jasper.txt",
+    "specs/002-brand-website-intelligence/reference/07-reference-pattern-matrix.md"
+  ],
+  "counts": {
+    "omaSurfacesMeasured": 14,
+    "componentsSpecified": 32,
+    "interactionFamilies": 11,
+    "rebuildStages": 7,
+    "blockerGaps": 4
+  }
+}

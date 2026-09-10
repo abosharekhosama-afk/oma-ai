@@ -1,0 +1,32 @@
+{
+  "gitSha": "f3f450d4c8c39a34196e820c5751145d51ce1348",
+  "count": 14,
+  "surfaces": [
+    "command-center",
+    "brands",
+    "campaigns",
+    "content",
+    "requests",
+    "tasks",
+    "deliverables",
+    "reviews",
+    "schedule",
+    "analytics",
+    "team",
+    "activity",
+    "settings",
+    "company"
+  ],
+  "tokens": {
+    "--oma-ink": "#14151a",
+    "--oma-canvas": "#f6f7fb",
+    "--oma-surface": "#ffffff",
+    "--oma-primary": "#6658e8",
+    "--oma-primary-soft": "#eeeafe",
+    "--oma-signal": "#12a7a1",
+    "--oma-muted": "#667085",
+    "--oma-border": "#e3e6ed",
+    "--oma-review-canvas": "#121419",
+    "--font-sans": "'IBM Plex Sans', 'Segoe UI', sans-serif"
+  }
+}

@@ -143,3 +143,18 @@ The user approved the seven-reference assignment in section 2:
 No additional product may be added to the canonical hierarchy without an explicit decision update. The light/dark surface model and OMA Violet `#6658E8` plus Signal Teal `#12A7A1` remain working design inputs that must pass prototype, accessibility, EN/AR, and RTL/LTR validation; they are not copied from the reference products.
 
 Approval of the reference hierarchy authorizes a later design-system specification. It does not authorize UI code or choose a frontend stack.
+
+## 9. Visual rebuild program (post functional demo)
+
+Owner rejected visual acceptance of the certified functional demo (`OMA_FULL_DEMO_VISUAL_ACCEPTANCE: REJECTED`). The authorized blueprint pack is:
+
+| Document | Path |
+| --- | --- |
+| Reference parity audit | `docs/REFERENCE_PARITY_AUDIT.md` |
+| Golden design system | `docs/OMA_DESIGN_SYSTEM_BLUEPRINT.md` |
+| Components & interactions | `docs/COMPONENT_AND_INTERACTION_BLUEPRINT.md` |
+| Surface rebuild stages | `docs/SURFACE_REBUILD_MATRIX.md` |
+| Visual acceptance criteria | `docs/VISUAL_ACCEPTANCE_CRITERIA.md` |
+| Measurements | `.reference/004-visual-parity/` |
+
+Next implementation stage: **IMPLEMENT_OMA_GOLDEN_DESIGN_SYSTEM_AND_SHELL** (Stage 1 only until its V-SHELL criteria pass). Authenticated reference re-inspection remains blocked while `authenticatedReferenceParity` is `PENDING` and references stay `PUBLIC_SOURCE_ONLY`.

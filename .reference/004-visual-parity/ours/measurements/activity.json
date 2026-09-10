@@ -1,0 +1,125 @@
+{
+  "surfaceId": "activity",
+  "route": "/app/activity",
+  "gitSha": "f3f450d4c8c39a34196e820c5751145d51ce1348",
+  "viewport": "1440x900",
+  "measuredAt": "2026-09-10T20:19:48.881Z",
+  "screenshot": "artifacts/visual-parity-004/activity-1440.png",
+  "tokens": {
+    "--oma-ink": "#14151a",
+    "--oma-canvas": "#f6f7fb",
+    "--oma-surface": "#ffffff",
+    "--oma-primary": "#6658e8",
+    "--oma-primary-soft": "#eeeafe",
+    "--oma-signal": "#12a7a1",
+    "--oma-muted": "#667085",
+    "--oma-border": "#e3e6ed",
+    "--oma-review-canvas": "#121419",
+    "--font-sans": "'IBM Plex Sans', 'Segoe UI', sans-serif"
+  },
+  "body": {
+    "bg": "rgb(246, 247, 251)",
+    "color": "rgb(20, 21, 26)",
+    "font": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif"
+  },
+  "rail": {
+    "rect": {
+      "x": 0,
+      "y": 0,
+      "w": 220,
+      "h": 571.3125
+    },
+    "style": {
+      "fontFamily": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "normal",
+      "color": "rgb(20, 21, 26)",
+      "backgroundColor": "rgb(255, 255, 255)",
+      "borderRadius": "0px",
+      "borderTopWidth": "0px",
+      "borderColor": "rgb(20, 21, 26)",
+      "padding": "16px",
+      "boxShadow": "none",
+      "gap": "normal"
+    }
+  },
+  "top": {
+    "rect": {
+      "x": 220,
+      "y": 0,
+      "w": 1220,
+      "h": 65.78125
+    },
+    "style": {
+      "fontFamily": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+      "fontSize": "16px",
+      "fontWeight": "400",
+      "lineHeight": "normal",
+      "color": "rgb(20, 21, 26)",
+      "backgroundColor": "rgb(255, 255, 255)",
+      "borderRadius": "0px",
+      "borderTopWidth": "0px",
+      "borderColor": "rgb(20, 21, 26)",
+      "padding": "12px 16px",
+      "boxShadow": "none",
+      "gap": "16px"
+    }
+  },
+  "main": {
+    "rect": {
+      "x": 230,
+      "y": 65.78125,
+      "w": 1200,
+      "h": 98
+    }
+  },
+  "card": {
+    "rect": null,
+    "style": null
+  },
+  "button": {
+    "rect": {
+      "x": 1025.890625,
+      "y": 12,
+      "w": 130.890625,
+      "h": 40.78125
+    },
+    "style": {
+      "fontFamily": "\"IBM Plex Sans\", \"Segoe UI\", sans-serif",
+      "fontSize": "16px",
+      "fontWeight": "600",
+      "lineHeight": "normal",
+      "color": "rgb(20, 21, 26)",
+      "backgroundColor": "rgba(0, 0, 0, 0)",
+      "borderRadius": "8px",
+      "borderTopWidth": "1px",
+      "borderColor": "rgb(227, 230, 237)",
+      "padding": "10.4px 16px",
+      "boxShadow": "none",
+      "gap": "normal"
+    }
+  },
+  "h1": {
+    "text": null,
+    "style": null
+  },
+  "navLinkCount": 14,
+  "navSample": [
+    "Home",
+    "Brand Intelligence",
+    "Campaigns",
+    "Content Plan",
+    "Requests",
+    "Tasks",
+    "Deliverables",
+    "Reviews",
+    "Schedule",
+    "Analytics",
+    "Team",
+    "Activity",
+    "Settings",
+    "Company"
+  ],
+  "overflowX": false
+}

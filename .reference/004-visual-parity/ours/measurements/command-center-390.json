@@ -1,0 +1,15 @@
+{
+  "gitSha": "f3f450d4c8c39a34196e820c5751145d51ce1348",
+  "gridTemplateColumns": "390px",
+  "rail": {
+    "x": 0,
+    "y": 0,
+    "width": 390,
+    "height": 146.359375,
+    "top": 0,
+    "right": 390,
+    "bottom": 146.359375,
+    "left": 0
+  },
+  "overflowX": false
+}

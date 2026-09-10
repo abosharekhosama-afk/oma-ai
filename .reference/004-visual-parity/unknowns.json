@@ -1,0 +1,48 @@
+{
+  "unknowns": [
+    {
+      "unknownId": "UNK-004-001",
+      "reference": "planable",
+      "surface": "authenticated app shell exact px",
+      "question": "Current Planable expanded sidebar width and topbar height in px?",
+      "whyUnknown": "registry accessPolicy PUBLIC_SOURCE_ONLY; authenticatedReferenceParity PENDING; no fresh live inspection",
+      "accessLimitation": "AUTHENTICATED_NOT_PERMITTED",
+      "impact": "Stage 1 uses DEC-013 + Linear density targets; Planable informs content surfaces more than shell px",
+      "blocking": false,
+      "nextEvidenceNeeded": "Owner enables AUTHENTICATED_ALLOWED + session on app.planable.io"
+    },
+    {
+      "unknownId": "UNK-004-002",
+      "reference": "linear",
+      "surface": "current design-refresh exact token values",
+      "question": "Exact Linear sidebar width collapsed/expanded in latest refresh?",
+      "whyUnknown": "Only archived live notes + public design articles; no fresh authenticated measure",
+      "accessLimitation": "AUTHENTICATED_NOT_PERMITTED",
+      "impact": "OMA uses original 240/64 targets inspired by Linear density, not copied tokens",
+      "blocking": false,
+      "nextEvidenceNeeded": "AUTHENTICATED_ALLOWED + linear.app workspace measure"
+    },
+    {
+      "unknownId": "UNK-004-003",
+      "reference": "frameio",
+      "surface": "anchored comment geometry",
+      "question": "Exact comment pin UX metrics on current Frame.io?",
+      "whyUnknown": "DOC_VERIFIED public feature pages only",
+      "accessLimitation": "PUBLIC_SOURCE_ONLY",
+      "impact": "Stage 5 specifies OMA version-bound comments on dark canvas without copying Frame chrome",
+      "blocking": false,
+      "nextEvidenceNeeded": "Optional AUTHENTICATED_ALLOWED for Frame.io review sample"
+    },
+    {
+      "unknownId": "UNK-004-004",
+      "reference": "smartly",
+      "surface": "paid ops console density",
+      "question": "Internal Smartly layout measurements?",
+      "whyUnknown": "Public overview only",
+      "accessLimitation": "PUBLIC_SOURCE_ONLY",
+      "impact": "Analytics/schedule honesty patterns only; not visual cloning",
+      "blocking": false,
+      "nextEvidenceNeeded": "None for Stage 1–5"
+    }
+  ]
+}
