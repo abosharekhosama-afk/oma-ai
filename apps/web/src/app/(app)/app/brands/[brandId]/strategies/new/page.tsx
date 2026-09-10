@@ -5,7 +5,11 @@ import { useParams, useRouter } from 'next/navigation';
 import { FormEvent, useEffect, useState } from 'react';
 import { api } from '../../../../../../../lib/api';
 import type { BrandDetail } from '../../../../../../../lib/brand-types';
-import { getApiError, isPermissionDenied, isTenantRequired } from '../../../../../../../lib/brand-api';
+import {
+  getApiError,
+  isPermissionDenied,
+  isTenantRequired,
+} from '../../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand-workspace-shell';
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../components/shell/select-company';

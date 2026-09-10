@@ -22,7 +22,12 @@ import { strategyService } from '../container';
 export class StrategyController {
   private requireTenant(req: Request) {
     if (!req.oma?.tenantId) {
-      throw new DomainError('TENANT_REQUIRED', 'Active tenant required', 400, 'errors.tenant_required');
+      throw new DomainError(
+        'TENANT_REQUIRED',
+        'Active tenant required',
+        400,
+        'errors.tenant_required',
+      );
     }
   }
 
@@ -189,7 +194,8 @@ export class StrategyController {
     @Param('brandId') brandId: string,
     @Param('strategyId') strategyId: string,
     @Param('versionId') versionId: string,
-    @Body() body: { profile_version_id: string; role: 'approved' | 'draft_aid'; row_version: number },
+    @Body()
+    body: { profile_version_id: string; role: 'approved' | 'draft_aid'; row_version: number },
   ) {
     this.requireTenant(req);
     return strategyService.linkProfile(

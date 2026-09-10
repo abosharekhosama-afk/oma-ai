@@ -73,3 +73,12 @@
 - Verdict: plan **APPROVED FOR TASK DECOMPOSITION** + **IMPLEMENT_READINESS_003 READY** — Owner decisions applied; provider-neutral plan + tasks complete; no product code.
 - Exact next stage after implement authorization: `IMPLEMENT_003_STRATEGY_ORGANIC_PAID_PLANS`.
 - Remaining non-blocking gates: deferred Foundation provider DECs (`DEC-003`–`DEC-007` etc.) + Phase BG T300–T309 for live integrations only.
+
+## IMPLEMENT_003 evidence (provider-neutral)
+
+- [x] False-completion rules for PJ: visible UI navigation preferred; no `page.evaluate` tenant activation in strategy PJ-01; seed helpers only for deterministic API proofs; no live AI/ad credentials.
+- [x] Visual pass targets documented: inspect strategy list/foundation/organic/paid/review at **1440 / 1024 / 390** and EN LTR / AR RTL after deploy.
+- [x] Browser audit expectation: no unexpected vendor network calls; hydration must not error on strategy routes.
+- [x] Labels: `PROVIDER-NEUTRAL CORE` in progress → done when CORE tasks closed; `LIVE-INTEGRATION READY: NO`; Phase BG T300–T309 remain open.
+- [x] Scope boundary: calendar/Kanban/creative/publish/ad-account surfaces forbidden in 003.
+- [x] OpenAPI includes `/strategies` and `/current-strategy` paths under `packages/api-client/openapi.json`.

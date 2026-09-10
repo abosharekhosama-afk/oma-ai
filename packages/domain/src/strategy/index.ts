@@ -6,3 +6,4 @@ export * from './current-pointer';
 export * from './immutability';
 export * from './info-class';
 export * from './ai-honesty';
+export * from './integration-honesty';

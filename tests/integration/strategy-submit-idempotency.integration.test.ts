@@ -1,11 +1,18 @@
 import { afterAll, describe, expect, it } from 'vitest';
-import { authHeaders, createBrand, seedBrandTenant, seedReviewReadyStrategy } from '../helpers/strategy-test';
+import {
+  authHeaders,
+  createBrand,
+  seedBrandTenant,
+  seedReviewReadyStrategy,
+} from '../helpers/strategy-test';
 import { getPrisma } from '@oma/db';
 import { newId } from '@oma/domain';
 
 describe('strategy submit idempotency', () => {
   const closers: Array<() => Promise<void>> = [];
-  afterAll(async () => { for (const c of closers) await c(); });
+  afterAll(async () => {
+    for (const c of closers) await c();
+  });
 
   it('duplicate submit with same idempotency key yields one IN_REVIEW', async () => {
     const seed = await seedBrandTenant();
@@ -24,7 +31,9 @@ describe('strategy submit idempotency', () => {
       where: { strategyVersionId: ready.versionId, action: 'SUBMIT' },
     });
     expect(decisions.length).toBe(1);
-    const version = await getPrisma().strategyVersion.findUniqueOrThrow({ where: { id: ready.versionId } });
+    const version = await getPrisma().strategyVersion.findUniqueOrThrow({
+      where: { id: ready.versionId },
+    });
     expect(version.status).toBe('IN_REVIEW');
   });
 });

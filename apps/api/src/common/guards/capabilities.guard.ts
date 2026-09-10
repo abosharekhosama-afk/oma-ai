@@ -298,7 +298,10 @@ function matchRequirements(method: string, path: string): string[] | null {
       '/api/v1/brands/:brandId/strategies/:strategyId',
     )
     .replace(/\/api\/v1\/brands\/[^/]+\/strategies/, '/api/v1/brands/:brandId/strategies')
-    .replace(/\/api\/v1\/brands\/[^/]+\/current-strategy/, '/api/v1/brands/:brandId/current-strategy')
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/current-strategy/,
+      '/api/v1/brands/:brandId/current-strategy',
+    )
     .replace(
       /\/api\/v1\/brands\/[^/]+\/evidence\/[^/]+/,
       '/api/v1/brands/:brandId/evidence/:evidenceId',

@@ -232,3 +232,7 @@ CI must assert **zero** outbound ad/AI provider HTTP from strategy tests.
 
 Plan is **`APPROVED FOR TASK DECOMPOSITION`**. Tasks authored in [`tasks.md`](./tasks.md).
 Exact next stage after implement authorization: **`IMPLEMENT_003_STRATEGY_ORGANIC_PAID_PLANS`**. Live integrations remain forbidden under `DEC-016`.
+
+## IMPLEMENT wiring note
+
+Strategy 003 wires via `apps/api/src/container.ts` + `AppModule` controllers only — no Nest feature-module sprawl; no second tenant/auth/queue/ACL.

@@ -35,8 +35,8 @@ function foundationHasRequired(foundationJson: string | null | undefined): boole
       ? positioning.trim().length > 0
       : Boolean(
           positioning &&
-            typeof positioning === 'object' &&
-            (positioning as { value?: string }).value,
+          typeof positioning === 'object' &&
+          (positioning as { value?: string }).value,
         );
   return hasGoals && hasPositioning;
 }
@@ -134,7 +134,11 @@ export class StrategyService {
         name: s.name,
         status: s.status,
         version: s.version,
-        ...this.mapStrategyFlags(s, brand.currentApprovedStrategyId, approvedByStrategy.get(s.id) ?? 0),
+        ...this.mapStrategyFlags(
+          s,
+          brand.currentApprovedStrategyId,
+          approvedByStrategy.get(s.id) ?? 0,
+        ),
         updated_at: s.updatedAt.toISOString(),
         archived_at: s.archivedAt?.toISOString() ?? null,
       })),
@@ -160,7 +164,7 @@ export class StrategyService {
       throw new DomainError('VALIDATION_FAILED', 'Invalid name', 400, 'errors.validation_failed');
     }
 
-    let linkedApproved: string | null = input.linked_approved_profile_version_id ?? null;
+    const linkedApproved: string | null = input.linked_approved_profile_version_id ?? null;
     if (linkedApproved) {
       const profile = await getPrisma().profileVersion.findFirst({
         where: tenantWhere(tenantId, { id: linkedApproved, brandId, status: 'APPROVED' }),
@@ -303,7 +307,14 @@ export class StrategyService {
       targetId: strategyId,
       correlationId,
     });
-    return { data: { id: updated.id, name: updated.name, version: updated.version, status: updated.status } };
+    return {
+      data: {
+        id: updated.id,
+        name: updated.name,
+        version: updated.version,
+        status: updated.status,
+      },
+    };
   }
 
   async archive(
@@ -403,7 +414,9 @@ export class StrategyService {
           where: { strategyVersionId: versionId },
           orderBy: { sortOrder: 'asc' },
         }),
-        getPrisma().strategyCompetitorReference.findMany({ where: { strategyVersionId: versionId } }),
+        getPrisma().strategyCompetitorReference.findMany({
+          where: { strategyVersionId: versionId },
+        }),
         getPrisma().strategyKpi.findMany({ where: { strategyVersionId: versionId } }),
         getPrisma().strategyRiskAssumptionDependency.findMany({
           where: { strategyVersionId: versionId },
@@ -766,7 +779,12 @@ export class StrategyService {
       throw new DomainError('CONFLICT_VERSION', 'Stale version', 409, 'errors.conflict_version');
     }
     // Reject live provider ids if mistakenly sent
-    for (const forbidden of ['ad_account_id', 'pixel_id', 'provider_campaign_id', 'meta_campaign_id']) {
+    for (const forbidden of [
+      'ad_account_id',
+      'pixel_id',
+      'provider_campaign_id',
+      'meta_campaign_id',
+    ]) {
       if (input[forbidden] != null) {
         throw new DomainError(
           'VALIDATION_FAILED',
@@ -1723,7 +1741,12 @@ export class StrategyService {
   ) {
     const version = await this.requireVersion(tenantId, brandId, strategyId, versionId);
     if (!['CHANGES_REQUESTED', 'REJECTED', 'APPROVED'].includes(version.status)) {
-      throw new DomainError('CONFLICT_STATE', 'Cannot revise from status', 409, 'errors.conflict_state');
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'Cannot revise from status',
+        409,
+        'errors.conflict_state',
+      );
     }
     const max = await getPrisma().strategyVersion.aggregate({
       where: { strategyId },
@@ -1791,7 +1814,6 @@ export class StrategyService {
     await this.requireVersion(tenantId, brandId, strategyId, versionId);
     const sourceStrategy = await this.requireStrategy(tenantId, brandId, strategyId);
     const newStrategyId = newId();
-    let newVersionId = '';
     await getPrisma().$transaction(async (tx) => {
       await tx.strategy.create({
         data: {
@@ -1803,7 +1825,7 @@ export class StrategyService {
           createdByUserId: actorUserId,
         },
       });
-      newVersionId = await this.copyPackageToNewDraft(
+      await this.copyPackageToNewDraft(
         tx,
         tenantId,
         brandId,
@@ -1849,12 +1871,7 @@ export class StrategyService {
     };
   }
 
-  async aiPropose(
-    tenantId: string,
-    brandId: string,
-    strategyId: string,
-    versionId: string,
-  ) {
+  async aiPropose(tenantId: string, brandId: string, strategyId: string, versionId: string) {
     const version = await this.requireVersion(tenantId, brandId, strategyId, versionId);
     mustRefuseAiPropose(version.aiAvailability as never);
     const code = aiAvailabilityToErrorCode(version.aiAvailability as never);
@@ -1922,7 +1939,12 @@ export class StrategyService {
   ) {
     const brand = await this.requireBrand(tenantId, brandId);
     if (brand.version !== input.brand_version) {
-      throw new DomainError('CONFLICT_VERSION', 'Stale brand version', 409, 'errors.conflict_version');
+      throw new DomainError(
+        'CONFLICT_VERSION',
+        'Stale brand version',
+        409,
+        'errors.conflict_version',
+      );
     }
 
     if (input.strategy_id === null) {

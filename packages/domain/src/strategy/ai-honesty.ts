@@ -3,9 +3,7 @@ import type { StrategyAiAvailability } from './states';
 export const AI_HONESTY_CODES = ['AI_NOT_CONFIGURED', 'AI_UNAVAILABLE', 'AI_REFUSED'] as const;
 export type AiHonestyCode = (typeof AI_HONESTY_CODES)[number];
 
-export function aiAvailabilityToErrorCode(
-  availability: StrategyAiAvailability,
-): AiHonestyCode {
+export function aiAvailabilityToErrorCode(availability: StrategyAiAvailability): AiHonestyCode {
   switch (availability) {
     case 'UNAVAILABLE':
       return 'AI_UNAVAILABLE';

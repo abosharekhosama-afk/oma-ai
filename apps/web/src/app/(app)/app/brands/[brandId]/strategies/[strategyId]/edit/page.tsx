@@ -5,7 +5,11 @@ import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { api } from '../../../../../../../../lib/api';
 import type { BrandDetail } from '../../../../../../../../lib/brand-types';
 import type { StrategyVersionDetail } from '../../../../../../../../lib/strategy-types';
-import { getApiError, isPermissionDenied, isTenantRequired } from '../../../../../../../../lib/brand-api';
+import {
+  getApiError,
+  isPermissionDenied,
+  isTenantRequired,
+} from '../../../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../../../components/brand/brand-workspace-shell';
 import { StrategySubnav } from '../../../../../../../../components/strategy/strategy-subnav';
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
@@ -98,9 +102,7 @@ export default function StrategyFoundationPage() {
           {t('strategy.warning.missingProfile')}
         </p>
       ) : null}
-      {!editable ? (
-        <p role="status">{t('strategy.warning.immutable')}</p>
-      ) : null}
+      {!editable ? <p role="status">{t('strategy.warning.immutable')}</p> : null}
       <form className="oma-card" onSubmit={onSave} data-testid="strategy-foundation-form">
         <label>
           {t('strategy.foundation.goals')}

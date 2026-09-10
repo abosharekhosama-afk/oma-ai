@@ -3,7 +3,6 @@ import {
   approveStrategy,
   authHeaders,
   createBrand,
-  createStrategy,
   getStrategyVersion,
   seedBrandTenant,
   seedReviewReadyStrategy,
@@ -116,13 +115,7 @@ describe('strategy revise/clone/supersede', () => {
     const after = await getStrategyVersion(seed, brand.data.id, ready.strategyId, draftId);
     row = after.body.data.row_version;
     const s2 = await submitStrategy(seed, brand.data.id, ready.strategyId, draftId, row);
-    await approveStrategy(
-      seed,
-      brand.data.id,
-      ready.strategyId,
-      draftId,
-      s2.body.data.row_version,
-    );
+    await approveStrategy(seed, brand.data.id, ready.strategyId, draftId, s2.body.data.row_version);
     const prior = await getPrisma().strategyVersion.findUniqueOrThrow({
       where: { id: ready.versionId },
     });

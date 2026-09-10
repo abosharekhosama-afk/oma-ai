@@ -4,7 +4,11 @@ import { useParams, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { api } from '../../../../../../../../../lib/api';
 import type { BrandDetail } from '../../../../../../../../../lib/brand-types';
-import { getApiError, isPermissionDenied, isTenantRequired } from '../../../../../../../../../lib/brand-api';
+import {
+  getApiError,
+  isPermissionDenied,
+  isTenantRequired,
+} from '../../../../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../../../../components/brand/brand-workspace-shell';
 import { StrategySubnav } from '../../../../../../../../../components/strategy/strategy-subnav';
 import { PermissionDenied } from '../../../../../../../../../components/shell/permission-denied';

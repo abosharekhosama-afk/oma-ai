@@ -5,7 +5,11 @@ import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { api } from '../../../../../../../../lib/api';
 import type { BrandDetail } from '../../../../../../../../lib/brand-types';
 import type { StrategyVersionDetail } from '../../../../../../../../lib/strategy-types';
-import { getApiError, isPermissionDenied, isTenantRequired } from '../../../../../../../../lib/brand-api';
+import {
+  getApiError,
+  isPermissionDenied,
+  isTenantRequired,
+} from '../../../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../../../components/brand/brand-workspace-shell';
 import { StrategySubnav } from '../../../../../../../../components/strategy/strategy-subnav';
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
@@ -64,8 +68,8 @@ export default function StrategyOrganicPage() {
         {
           method: 'PATCH',
           body: JSON.stringify({
-            row_version: (version.organic as { rowVersion?: number; row_version?: number })
-              .row_version ??
+            row_version:
+              (version.organic as { rowVersion?: number; row_version?: number }).row_version ??
               (version.organic as { rowVersion?: number }).rowVersion ??
               1,
             frequency,

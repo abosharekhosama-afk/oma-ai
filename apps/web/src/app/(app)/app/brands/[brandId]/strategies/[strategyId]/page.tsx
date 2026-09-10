@@ -6,7 +6,11 @@ import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../../../../../../lib/api';
 import type { BrandDetail } from '../../../../../../../lib/brand-types';
 import type { StrategyDetail } from '../../../../../../../lib/strategy-types';
-import { getApiError, isPermissionDenied, isTenantRequired } from '../../../../../../../lib/brand-api';
+import {
+  getApiError,
+  isPermissionDenied,
+  isTenantRequired,
+} from '../../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand-workspace-shell';
 import { StrategySubnav } from '../../../../../../../components/strategy/strategy-subnav';
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
@@ -149,7 +153,11 @@ export default function StrategyOverviewPage() {
           </button>
         ) : null}
         {strategy.status === 'ACTIVE' ? (
-          <button type="button" className="oma-btn oma-btn-secondary" onClick={() => void archive()}>
+          <button
+            type="button"
+            className="oma-btn oma-btn-secondary"
+            onClick={() => void archive()}
+          >
             {t('strategy.overview.archive')}
           </button>
         ) : null}

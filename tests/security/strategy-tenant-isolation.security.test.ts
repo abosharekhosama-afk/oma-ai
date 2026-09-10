@@ -2,7 +2,6 @@ import { afterAll, describe, expect, it } from 'vitest';
 import {
   authHeaders,
   createBrand,
-  createStrategy,
   grantCapability,
   seedBrandTenant,
   seedMemberWithoutBrandCaps,

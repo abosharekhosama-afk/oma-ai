@@ -5,7 +5,11 @@ import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../../../../../../../lib/api';
 import type { BrandDetail } from '../../../../../../../../lib/brand-types';
 import type { StrategyVersionDetail } from '../../../../../../../../lib/strategy-types';
-import { getApiError, isPermissionDenied, isTenantRequired } from '../../../../../../../../lib/brand-api';
+import {
+  getApiError,
+  isPermissionDenied,
+  isTenantRequired,
+} from '../../../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../../../components/brand/brand-workspace-shell';
 import { StrategySubnav } from '../../../../../../../../components/strategy/strategy-subnav';
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
@@ -57,7 +61,9 @@ export default function StrategyEvidencePage() {
       {version.missing_source ? (
         <p role="status">{t('strategy.warning.missingProfile')}</p>
       ) : (
-        <p role="status">Evidence-backed: linked profile {version.linked_approved_profile_version_id}</p>
+        <p role="status">
+          Evidence-backed: linked profile {version.linked_approved_profile_version_id}
+        </p>
       )}
       {error ? <p role="alert">{error}</p> : null}
       {version.evidence_links.length === 0 ? (

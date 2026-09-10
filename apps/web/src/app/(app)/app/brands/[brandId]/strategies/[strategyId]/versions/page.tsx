@@ -5,7 +5,11 @@ import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../../../../../../../lib/api';
 import type { BrandDetail } from '../../../../../../../../lib/brand-types';
-import { getApiError, isPermissionDenied, isTenantRequired } from '../../../../../../../../lib/brand-api';
+import {
+  getApiError,
+  isPermissionDenied,
+  isTenantRequired,
+} from '../../../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../../../components/brand/brand-workspace-shell';
 import { StrategySubnav } from '../../../../../../../../components/strategy/strategy-subnav';
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
@@ -34,9 +38,7 @@ export default function StrategyVersionsPage() {
     try {
       const [brandRes, list] = await Promise.all([
         api<{ data: BrandDetail }>(`/api/v1/brands/${brandId}`),
-        api<{ data: VersionRow[] }>(
-          `/api/v1/brands/${brandId}/strategies/${strategyId}/versions`,
-        ),
+        api<{ data: VersionRow[] }>(`/api/v1/brands/${brandId}/strategies/${strategyId}/versions`),
       ]);
       setBrand(brandRes.data);
       setVersions(list.data);
@@ -53,10 +55,10 @@ export default function StrategyVersionsPage() {
 
   async function revise(versionId: string) {
     try {
-      await api(
-        `/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${versionId}/revise`,
-        { method: 'POST', body: '{}' },
-      );
+      await api(`/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${versionId}/revise`, {
+        method: 'POST',
+        body: '{}',
+      });
       await load();
     } catch (err) {
       setError(getApiError(err).message);

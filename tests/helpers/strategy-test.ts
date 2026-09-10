@@ -1,11 +1,6 @@
 import { getPrisma } from '@oma/db';
 import { newId } from '@oma/domain';
-import {
-  authHeaders,
-  createBrand,
-  seedBrandTenant,
-  type BrandSeed,
-} from './brand-test';
+import { authHeaders, createBrand, seedBrandTenant, type BrandSeed } from './brand-test';
 
 export { authHeaders, createBrand, seedBrandTenant };
 export type { BrandSeed };

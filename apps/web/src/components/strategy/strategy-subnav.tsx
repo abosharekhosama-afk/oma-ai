@@ -4,13 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useT } from '../../lib/use-locale';
 
-export function StrategySubnav({
-  brandId,
-  strategyId,
-}: {
-  brandId: string;
-  strategyId: string;
-}) {
+export function StrategySubnav({ brandId, strategyId }: { brandId: string; strategyId: string }) {
   const t = useT();
   const pathname = usePathname();
   const base = `/app/brands/${brandId}/strategies/${strategyId}`;
@@ -24,7 +18,11 @@ export function StrategySubnav({
     { href: `${base}/versions`, label: t('strategy.nav.versions') },
   ];
   return (
-    <nav className="oma-brand-nav" aria-label={t('strategy.nav.label')} data-testid="strategy-subnav">
+    <nav
+      className="oma-brand-nav"
+      aria-label={t('strategy.nav.label')}
+      data-testid="strategy-subnav"
+    >
       <ul>
         {links.map((link) => {
           const active = link.exact

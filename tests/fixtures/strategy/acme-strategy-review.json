@@ -36,9 +36,12 @@
     }
   ],
   "kpis": [
-    { "name": "Organic sessions", "target_value": "12000", "unit": "sessions", "applies_to": "ORGANIC" }
+    {
+      "name": "Organic sessions",
+      "target_value": "12000",
+      "unit": "sessions",
+      "applies_to": "ORGANIC"
+    }
   ],
-  "gaps": [
-    { "kind": "UNKNOWN", "text": "Exact competitor spend unknown", "info_class": "UNKNOWN" }
-  ]
+  "gaps": [{ "kind": "UNKNOWN", "text": "Exact competitor spend unknown", "info_class": "UNKNOWN" }]
 }

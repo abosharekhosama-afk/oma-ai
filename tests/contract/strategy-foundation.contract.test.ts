@@ -1,9 +1,7 @@
 import { afterAll, describe, expect, it } from 'vitest';
 import {
-  authHeaders,
   createBrand,
   createStrategy,
-  getStrategyVersion,
   patchFoundation,
   seedBrandTenant,
   seedReviewReadyStrategy,

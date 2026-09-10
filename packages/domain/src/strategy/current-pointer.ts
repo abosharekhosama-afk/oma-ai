@@ -31,10 +31,7 @@ export function evaluateSetCurrentEligibility(
   if (!input.hasNonSupersededApprovedVersion) {
     blockingReasons.push('NO_APPROVED_VERSION');
   }
-  if (
-    input.approvedVersionStatus &&
-    input.approvedVersionStatus !== 'APPROVED'
-  ) {
+  if (input.approvedVersionStatus && input.approvedVersionStatus !== 'APPROVED') {
     blockingReasons.push('APPROVED_VERSION_INELIGIBLE');
   }
   return { eligible: blockingReasons.length === 0, blockingReasons };
