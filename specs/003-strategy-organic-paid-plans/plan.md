@@ -4,7 +4,8 @@
 
 **Input**: Owner-resolved feature specification (`DP-003-001` B, `DP-003-002` A, `DP-003-003` B; slice resolutions `SR-003-001-B`, `SR-003-002-A`, `SR-003-003-B`, `SR-003-016-EXT`, `SR-003-MANUAL`, `SR-003-PAID-PLANNING`)
 
-**Plan status**: `READY_FOR_REVIEW` — provider-neutral technical plan only; **no** `tasks.md`, Prisma migration, or product code in this stage
+**Plan status**: `APPROVED FOR TASK DECOMPOSITION` — provider-neutral plan approved; `tasks.md` authored (`IMPLEMENT_READINESS_003`); **no** product code/migrations in TASKS stage
+**Tasks**: [`tasks.md`](./tasks.md) — CORE T001–T188; Phase BG T300–T309 deferred under `DEC-016`
 
 ---
 
@@ -229,5 +230,5 @@ CI must assert **zero** outbound ad/AI provider HTTP from strategy tests.
 
 ## Next stage
 
-After plan approval: **`TASKS_003_STRATEGY_ORGANIC_PAID_PLANS`** (`/speckit-tasks`).
-Do not implement until tasks are authorized.
+Plan is **`APPROVED FOR TASK DECOMPOSITION`**. Tasks authored in [`tasks.md`](./tasks.md).
+Exact next stage after implement authorization: **`IMPLEMENT_003_STRATEGY_ORGANIC_PAID_PLANS`**. Live integrations remain forbidden under `DEC-016`.
