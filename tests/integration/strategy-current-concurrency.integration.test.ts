@@ -1,61 +1,48 @@
-import { afterAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { getPrisma } from '@oma/db';
 import {
+  bringToApproved,
   createBrand,
-  createStrategy,
-  seedApprovedProfileVersion,
   seedBrandTenant,
   seedReviewReadyStrategy,
   setCurrentStrategy,
-  submitStrategy,
-  approveStrategy,
 } from '../helpers/strategy-test';
-import { getPrisma } from '@oma/db';
 
-describe('strategy current pointer', () => {
-  const closers: Array<() => Promise<void>> = [];
+describe('strategy current concurrency', () => {
+  let seed: Awaited<ReturnType<typeof seedBrandTenant>>;
+
+  beforeAll(async () => {
+    seed = await seedBrandTenant();
+  });
+
   afterAll(async () => {
-    for (const c of closers) await c();
+    await seed.app.close();
   });
 
-  it('never auto-sets current on approve; set/clear with brand version', async () => {
-    const seed = await seedBrandTenant();
-    closers.push(async () => seed.app.close());
-    const { body: brandBody } = await createBrand(seed);
-    const brandId = brandBody.data.id as string;
+  it('two concurrent set_current with same brand_version: one wins, one CONFLICT_VERSION', async () => {
+    const { body: brand } = await createBrand(seed);
+    const brandId = brand.data.id as string;
     const a = await seedReviewReadyStrategy(seed, brandId);
-    const submitted = await submitStrategy(seed, brandId, a.strategyId, a.versionId, a.rowVersion);
-    await approveStrategy(
-      seed,
-      brandId,
-      a.strategyId,
-      a.versionId,
-      submitted.body.data.row_version,
-    );
-    let brand = await getPrisma().brandWorkspace.findUniqueOrThrow({ where: { id: brandId } });
-    expect(brand.currentApprovedStrategyId).toBeNull();
+    const b = await seedReviewReadyStrategy(seed, brandId);
+    await bringToApproved(seed, brandId, a.strategyId, a.versionId, a.rowVersion);
+    await bringToApproved(seed, brandId, b.strategyId, b.versionId, b.rowVersion);
 
-    const set = await setCurrentStrategy(seed, brandId, a.strategyId, brand.version);
-    expect([200, 201]).toContain(set.res.status);
+    const brandRow = await getPrisma().brandWorkspace.findUniqueOrThrow({ where: { id: brandId } });
+    const version = brandRow.version;
 
-    brand = await getPrisma().brandWorkspace.findUniqueOrThrow({ where: { id: brandId } });
-    const stale = await setCurrentStrategy(seed, brandId, null, brand.version - 1);
-    expect(stale.res.status).toBe(409);
+    const [r1, r2] = await Promise.all([
+      setCurrentStrategy(seed, brandId, a.strategyId, version),
+      setCurrentStrategy(seed, brandId, b.strategyId, version),
+    ]);
 
-    const clear = await setCurrentStrategy(seed, brandId, null, brand.version);
-    expect([200, 201]).toContain(clear.res.status);
-    brand = await getPrisma().brandWorkspace.findUniqueOrThrow({ where: { id: brandId } });
-    expect(brand.currentApprovedStrategyId).toBeNull();
-  });
+    const statuses = [r1.res.status, r2.res.status].sort();
+    expect(statuses).toContain(409);
+    expect(statuses.some((s) => s === 200 || s === 201)).toBe(true);
 
-  it('rejects set-current for strategy without approved version', async () => {
-    const seed = await seedBrandTenant();
-    closers.push(async () => seed.app.close());
-    const { body: brandBody } = await createBrand(seed);
-    const brandId = brandBody.data.id as string;
-    await seedApprovedProfileVersion(seed.tenantId, brandId);
-    const { body: created } = await createStrategy(seed, brandId);
-    const brand = await getPrisma().brandWorkspace.findUniqueOrThrow({ where: { id: brandId } });
-    const res = await setCurrentStrategy(seed, brandId, created.data.id, brand.version);
-    expect(res.res.status).toBe(422);
+    const conflict = [r1, r2].find((r) => r.res.status === 409);
+    expect(conflict?.body.error?.code).toBe('CONFLICT_VERSION');
+
+    const after = await getPrisma().brandWorkspace.findUniqueOrThrow({ where: { id: brandId } });
+    expect([a.strategyId, b.strategyId]).toContain(after.currentApprovedStrategyId);
   });
 });

@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+
 describe('web honesty banners', () => {
-  it('documents required testids', () => {
-    expect(['strategy-ai-disclosure', 'paid-planning-banner']).toHaveLength(2);
+  it('exports AiHonestyBanner and PaidPlanningBanner with stable testids', () => {
+    const src = readFileSync(
+      path.join(process.cwd(), 'apps/web/src/components/strategy/honesty-banners.tsx'),
+      'utf8',
+    );
+    expect(src).toContain('strategy-ai-disclosure');
+    expect(src).toContain('paid-planning-banner');
+    expect(src).toContain('AiHonestyBanner');
+    expect(src).toContain('PaidPlanningBanner');
   });
 });

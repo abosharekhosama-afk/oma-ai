@@ -36,9 +36,12 @@ describe('outbox worker Q-08', () => {
       eventType: 'mail.test',
       payload: { to: 'test@example.com', jobRunId },
     });
-    const count = await publishPendingOutbox(connection, 100);
-    expect(count).toBeGreaterThanOrEqual(1);
-    const updated = await prisma.outboxEvent.findUniqueOrThrow({ where: { id: event.id } });
+    // Drain older PENDING rows from parallel suite pollution until this event publishes.
+    let updated = await prisma.outboxEvent.findUniqueOrThrow({ where: { id: event.id } });
+    for (let i = 0; i < 20 && updated.status !== 'PUBLISHED'; i += 1) {
+      await publishPendingOutbox(connection, 200);
+      updated = await prisma.outboxEvent.findUniqueOrThrow({ where: { id: event.id } });
+    }
     expect(updated.status).toBe('PUBLISHED');
 
     const mailQueue = new Queue('mail', { connection, ...bullmqOptions() });

@@ -1949,10 +1949,18 @@ export class StrategyService {
 
     if (input.strategy_id === null) {
       await getPrisma().$transaction(async (tx) => {
-        await tx.brandWorkspace.update({
-          where: { id: brandId },
+        const updated = await tx.brandWorkspace.updateMany({
+          where: { id: brandId, tenantId, version: input.brand_version },
           data: { currentApprovedStrategyId: null, version: { increment: 1 } },
         });
+        if (updated.count !== 1) {
+          throw new DomainError(
+            'CONFLICT_VERSION',
+            'Stale brand version',
+            409,
+            'errors.conflict_version',
+          );
+        }
         await this.writeOutbox(tx, tenantId, 'strategy.current_changed', {
           brandId,
           strategyId: null,
@@ -1993,13 +2001,21 @@ export class StrategyService {
     }
 
     await getPrisma().$transaction(async (tx) => {
-      await tx.brandWorkspace.update({
-        where: { id: brandId },
+      const updated = await tx.brandWorkspace.updateMany({
+        where: { id: brandId, tenantId, version: input.brand_version },
         data: {
           currentApprovedStrategyId: strategy.id,
           version: { increment: 1 },
         },
       });
+      if (updated.count !== 1) {
+        throw new DomainError(
+          'CONFLICT_VERSION',
+          'Stale brand version',
+          409,
+          'errors.conflict_version',
+        );
+      }
       await this.writeOutbox(tx, tenantId, 'strategy.current_changed', {
         brandId,
         strategyId: strategy.id,

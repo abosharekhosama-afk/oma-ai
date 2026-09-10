@@ -94,7 +94,7 @@ export async function uiApproveProfile(page: Page) {
   });
 }
 
-export async function collectPageErrors(page: Page) {
+export function collectPageErrors(page: Page) {
   const errors: string[] = [];
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (msg) => {

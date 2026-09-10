@@ -1,75 +1,72 @@
-import { afterAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { getPrisma } from '@oma/db';
 import {
-  authHeaders,
+  bringToApproved,
   createBrand,
   grantCapability,
+  memberAuthHeaders,
   seedBrandTenant,
   seedMemberWithoutBrandCaps,
-} from '../helpers/brand-test';
+  seedReviewReadyStrategy,
+  setCurrentStrategy,
+} from '../helpers/strategy-test';
 
-describe('strategy security', () => {
-  const closers: Array<() => Promise<void>> = [];
-  afterAll(async () => {
-    for (const c of closers) await c();
-  });
+describe('approve vs set_current separation', () => {
+  let owner: Awaited<ReturnType<typeof seedBrandTenant>>;
+  let brandId: string;
+  let strategyId: string;
 
-  it('denies cross-tenant strategy access without existence leak', async () => {
-    const ownerA = await seedBrandTenant({ tenantSlug: `a-${Date.now()}` });
-    closers.push(async () => ownerA.app.close());
-    const ownerB = await seedBrandTenant({ tenantSlug: `b-${Date.now()}` });
-    closers.push(async () => ownerB.app.close());
-    const { body: brandA } = await createBrand(ownerA);
-    const { body: stratA } = await createStrategyVia(ownerA, brandA.data.id);
-    const res = await fetch(
-      `${ownerB.baseUrl}/api/v1/brands/${brandA.data.id}/strategies/${stratA.data.id}`,
-      { headers: { cookie: authHeaders(ownerB).cookie } },
-    );
-    expect(res.status).toBe(404);
-    const body = await res.json();
-    expect(body.error?.code).toBe('NOT_FOUND');
-  });
-
-  it('denies member without strategy.read', async () => {
-    const owner = await seedBrandTenant();
-    closers.push(async () => owner.app.close());
-    const member = await seedMemberWithoutBrandCaps(owner);
+  beforeAll(async () => {
+    owner = await seedBrandTenant();
     const { body: brand } = await createBrand(owner);
-    await createStrategyVia(owner, brand.data.id);
-    const res = await fetch(`${owner.baseUrl}/api/v1/brands/${brand.data.id}/strategies`, {
-      headers: {
-        cookie: Object.entries(member.cookies)
-          .map(([k, v]) => `${k}=${v}`)
-          .join('; '),
-      },
-    });
-    expect(res.status).toBe(403);
+    brandId = brand.data.id as string;
+    const ready = await seedReviewReadyStrategy(owner, brandId);
+    await bringToApproved(owner, brandId, ready.strategyId, ready.versionId, ready.rowVersion);
+    strategyId = ready.strategyId;
   });
 
-  it('allows strategy.read after grant', async () => {
-    const owner = await seedBrandTenant();
-    closers.push(async () => owner.app.close());
+  afterAll(async () => {
+    await owner.app.close();
+  });
+
+  it('approve leaves currentApprovedStrategyId null', async () => {
+    const brand = await getPrisma().brandWorkspace.findUniqueOrThrow({ where: { id: brandId } });
+    expect(brand.currentApprovedStrategyId).toBeNull();
+  });
+
+  it('set_current requires separate strategy.set_current capability', async () => {
     const member = await seedMemberWithoutBrandCaps(owner);
     await grantCapability(owner.tenantId, member.membershipId, 'strategy.read', owner.userId);
-    const { body: brand } = await createBrand(owner);
-    const res = await fetch(`${owner.baseUrl}/api/v1/brands/${brand.data.id}/strategies`, {
-      headers: {
-        cookie: Object.entries(member.cookies)
-          .map(([k, v]) => `${k}=${v}`)
-          .join('; '),
-      },
+    await grantCapability(owner.tenantId, member.membershipId, 'strategy.approve', owner.userId);
+    const brand = await getPrisma().brandWorkspace.findUniqueOrThrow({ where: { id: brandId } });
+    const denied = await fetch(`${owner.baseUrl}/api/v1/brands/${brandId}/current-strategy`, {
+      method: 'POST',
+      headers: memberAuthHeaders(member),
+      body: JSON.stringify({ strategy_id: strategyId, brand_version: brand.version }),
     });
-    expect(res.status).toBe(200);
+    expect(denied.status).toBe(403);
+
+    await grantCapability(
+      owner.tenantId,
+      member.membershipId,
+      'strategy.set_current',
+      owner.userId,
+    );
+    const allowed = await fetch(`${owner.baseUrl}/api/v1/brands/${brandId}/current-strategy`, {
+      method: 'POST',
+      headers: memberAuthHeaders(member),
+      body: JSON.stringify({ strategy_id: strategyId, brand_version: brand.version }),
+    });
+    expect([200, 201]).toContain(allowed.status);
+    const after = await getPrisma().brandWorkspace.findUniqueOrThrow({ where: { id: brandId } });
+    expect(after.currentApprovedStrategyId).toBe(strategyId);
+  });
+
+  it('owner set_current still works as package control', async () => {
+    // Reset pointer then set as owner to prove approve≠current is the product rule
+    const brand = await getPrisma().brandWorkspace.findUniqueOrThrow({ where: { id: brandId } });
+    await setCurrentStrategy(owner, brandId, null, brand.version);
+    const cleared = await getPrisma().brandWorkspace.findUniqueOrThrow({ where: { id: brandId } });
+    expect(cleared.currentApprovedStrategyId).toBeNull();
   });
 });
-
-async function createStrategyVia(
-  seed: Awaited<ReturnType<typeof seedBrandTenant>>,
-  brandId: string,
-) {
-  const res = await fetch(`${seed.baseUrl}/api/v1/brands/${brandId}/strategies`, {
-    method: 'POST',
-    headers: authHeaders(seed),
-    body: JSON.stringify({ name: 'Sec Strategy' }),
-  });
-  return { res, body: await res.json() };
-}

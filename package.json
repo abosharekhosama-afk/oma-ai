@@ -33,6 +33,9 @@
     "db:seed:review:002": "pnpm --filter @oma/db seed:review:002",
     "review:002": "bash scripts/review-002.sh",
     "review:002:stop": "bash scripts/review-002-stop.sh",
+    "db:seed:review:003": "pnpm --filter @oma/db seed:review:003",
+    "review:003": "bash scripts/review-003.sh",
+    "review:003:stop": "bash scripts/review-003-stop.sh",
     "audit:deps": "pnpm audit --prod",
     "ref:launch": "node scripts/reference/launch-reference-browser.mjs",
     "ref:preflight": "node scripts/reference/cdp-preflight.mjs",
@@ -79,8 +82,10 @@
     "overrides": {
       "postcss": ">=8.5.23",
       "deepmerge-ts": ">=8.0.0",
-      "sharp": ">=0.35.0",
-      "qs": ">=6.16.0"
+      "sharp": ">=0.35.4",
+      "qs": ">=6.16.0",
+      "next": "15.5.24",
+      "multer": ">=2.3.0"
     }
   }
 }

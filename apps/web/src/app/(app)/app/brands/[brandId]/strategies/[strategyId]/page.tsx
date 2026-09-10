@@ -13,9 +13,12 @@ import {
 } from '../../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand-workspace-shell';
 import { StrategySubnav } from '../../../../../../../components/strategy/strategy-subnav';
+import { AiHonestyBanner } from '../../../../../../../components/strategy/honesty-banners';
+import { CurrentStrategyControls } from '../../../../../../../components/strategy/current-strategy-controls';
+import { ConflictBanner } from '../../../../../../../components/strategy/conflict-banner';
+import { StrategyStatusBadge } from '../../../../../../../components/strategy/status-badge';
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../components/shell/select-company';
-import { StatusChip } from '../../../../../../../components/ui/status-chip';
 import { useT } from '../../../../../../../lib/use-locale';
 
 export default function StrategyOverviewPage() {
@@ -101,8 +104,8 @@ export default function StrategyOverviewPage() {
         <div>
           <h2 data-testid="strategy-name-heading">{strategy.name}</h2>
           <div className="oma-chip-row">
-            <StatusChip status={strategy.status} />
-            {latest ? <StatusChip status={latest.status} /> : null}
+            <StrategyStatusBadge status={strategy.status} />
+            {latest ? <StrategyStatusBadge status={latest.status} /> : null}
             {strategy.is_current ? (
               <span className="oma-badge oma-badge-muted" data-testid="strategy-current-badge">
                 {t('strategy.list.current')}
@@ -121,37 +124,23 @@ export default function StrategyOverviewPage() {
         </div>
       ) : null}
 
-      <p className="oma-muted" role="note" data-testid="strategy-ai-disclosure">
-        {t('strategy.warning.aiNotConfigured')}
-      </p>
+      <AiHonestyBanner />
 
       {message ? <p role="status">{message}</p> : null}
-      {error ? (
+      <ConflictBanner show={Boolean(error && error === t('strategy.conflict'))} />
+      {error && error !== t('strategy.conflict') ? (
         <p role="alert" style={{ color: 'var(--status-danger)' }}>
           {error}
         </p>
       ) : null}
 
       <div className="oma-card" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-        {strategy.has_approved_version && !strategy.is_current ? (
-          <button
-            type="button"
-            className="oma-btn"
-            data-testid="strategy-set-current"
-            onClick={() => void setCurrent(strategyId)}
-          >
-            {t('strategy.overview.setCurrent')}
-          </button>
-        ) : null}
-        {strategy.is_current ? (
-          <button
-            type="button"
-            className="oma-btn oma-btn-secondary"
-            onClick={() => void setCurrent(null)}
-          >
-            {t('strategy.overview.clearCurrent')}
-          </button>
-        ) : null}
+        <CurrentStrategyControls
+          canSet={Boolean(strategy.has_approved_version)}
+          isCurrent={Boolean(strategy.is_current)}
+          onSet={() => void setCurrent(strategyId)}
+          onClear={() => void setCurrent(null)}
+        />
         {strategy.status === 'ACTIVE' ? (
           <button
             type="button"

@@ -1,39 +1,92 @@
-import { afterAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { getPrisma } from '@oma/db';
+import { newId } from '@oma/domain';
 import {
+  approveStrategy,
   authHeaders,
   createBrand,
   seedBrandTenant,
   seedReviewReadyStrategy,
+  submitStrategy,
 } from '../helpers/strategy-test';
-import { getPrisma } from '@oma/db';
-import { newId } from '@oma/domain';
 
-describe('strategy submit idempotency', () => {
-  const closers: Array<() => Promise<void>> = [];
-  afterAll(async () => {
-    for (const c of closers) await c();
+describe('strategy approve idempotency', () => {
+  let seed: Awaited<ReturnType<typeof seedBrandTenant>>;
+
+  beforeAll(async () => {
+    seed = await seedBrandTenant();
   });
 
-  it('duplicate submit with same idempotency key yields one IN_REVIEW', async () => {
-    const seed = await seedBrandTenant();
-    closers.push(async () => seed.app.close());
+  afterAll(async () => {
+    await seed.app.close();
+  });
+
+  it('double approve same version: same idempotency key is replay; exactly one approval record', async () => {
     const { body: brand } = await createBrand(seed);
-    const ready = await seedReviewReadyStrategy(seed, brand.data.id);
-    const key = `submit-${newId()}`;
-    const url = `${seed.baseUrl}/api/v1/brands/${brand.data.id}/strategies/${ready.strategyId}/versions/${ready.versionId}/submit`;
-    const body = JSON.stringify({ row_version: ready.rowVersion, unknowns_acknowledged: true });
+    const brandId = brand.data.id as string;
+    const ready = await seedReviewReadyStrategy(seed, brandId);
+    const submitted = await submitStrategy(
+      seed,
+      brandId,
+      ready.strategyId,
+      ready.versionId,
+      ready.rowVersion,
+    );
+    const key = `approve-${newId()}`;
+    const url = `${seed.baseUrl}/api/v1/brands/${brandId}/strategies/${ready.strategyId}/versions/${ready.versionId}/approve`;
+    const payload = JSON.stringify({
+      row_version: submitted.body.data.row_version,
+      unknowns_acknowledged: true,
+      comment: 'Once',
+    });
     const headers = { ...authHeaders(seed), 'idempotency-key': key };
-    const a = await fetch(url, { method: 'POST', headers, body });
-    const b = await fetch(url, { method: 'POST', headers, body });
-    expect([200, 201]).toContain(a.status);
-    expect([200, 201]).toContain(b.status);
-    const decisions = await getPrisma().strategyReviewDecision.findMany({
-      where: { strategyVersionId: ready.versionId, action: 'SUBMIT' },
+    const first = await fetch(url, { method: 'POST', headers, body: payload });
+    expect([200, 201]).toContain(first.status);
+    const firstBody = await first.json();
+    expect(firstBody.data.status).toBe('APPROVED');
+
+    const second = await fetch(url, { method: 'POST', headers, body: payload });
+    expect([200, 201]).toContain(second.status);
+    const secondBody = await second.json();
+    expect(secondBody.data.status).toBe('APPROVED');
+    expect(secondBody.data.id).toBe(firstBody.data.id);
+
+    const records = await getPrisma().strategyApprovalRecord.findMany({
+      where: { strategyVersionId: ready.versionId },
     });
-    expect(decisions.length).toBe(1);
-    const version = await getPrisma().strategyVersion.findUniqueOrThrow({
-      where: { id: ready.versionId },
+    expect(records).toHaveLength(1);
+  });
+
+  it('second approve without idempotency key conflicts and does not duplicate record', async () => {
+    const { body: brand } = await createBrand(seed);
+    const brandId = brand.data.id as string;
+    const ready = await seedReviewReadyStrategy(seed, brandId);
+    const submitted = await submitStrategy(
+      seed,
+      brandId,
+      ready.strategyId,
+      ready.versionId,
+      ready.rowVersion,
+    );
+    const first = await approveStrategy(
+      seed,
+      brandId,
+      ready.strategyId,
+      ready.versionId,
+      submitted.body.data.row_version,
+    );
+    expect([200, 201]).toContain(first.res.status);
+    const second = await approveStrategy(
+      seed,
+      brandId,
+      ready.strategyId,
+      ready.versionId,
+      first.body.data.row_version,
+    );
+    expect(second.res.status).toBe(409);
+    const records = await getPrisma().strategyApprovalRecord.findMany({
+      where: { strategyVersionId: ready.versionId },
     });
-    expect(version.status).toBe('IN_REVIEW');
+    expect(records).toHaveLength(1);
   });
 });

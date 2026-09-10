@@ -12,6 +12,7 @@ import {
 } from '../../../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../../../components/brand/brand-workspace-shell';
 import { StrategySubnav } from '../../../../../../../../components/strategy/strategy-subnav';
+import { TrackTabs } from '../../../../../../../../components/strategy/track-tabs';
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../../components/shell/select-company';
 import { useT } from '../../../../../../../../lib/use-locale';
@@ -92,6 +93,7 @@ export default function StrategyOrganicPage() {
   return (
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
       <StrategySubnav brandId={brandId} strategyId={strategyId} />
+      <TrackTabs brandId={brandId} strategyId={strategyId} />
       <header className="oma-page-header">
         <h2>{t('strategy.organic.title')}</h2>
       </header>

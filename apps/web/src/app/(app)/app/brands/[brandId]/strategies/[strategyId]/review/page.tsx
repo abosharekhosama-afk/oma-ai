@@ -12,9 +12,11 @@ import {
 } from '../../../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../../../components/brand/brand-workspace-shell';
 import { StrategySubnav } from '../../../../../../../../components/strategy/strategy-subnav';
+import { AiHonestyBanner } from '../../../../../../../../components/strategy/honesty-banners';
+import { StrategyStatusBadge } from '../../../../../../../../components/strategy/status-badge';
+import { SubmitEligibility } from '../../../../../../../../components/strategy/submit-eligibility';
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../../components/shell/select-company';
-import { StatusChip } from '../../../../../../../../components/ui/status-chip';
 import { useT } from '../../../../../../../../lib/use-locale';
 
 export default function StrategyReviewPage() {
@@ -90,11 +92,9 @@ export default function StrategyReviewPage() {
       <StrategySubnav brandId={brandId} strategyId={strategyId} />
       <header className="oma-page-header">
         <h2>{t('strategy.review.title')}</h2>
-        <StatusChip status={version.status} />
+        <StrategyStatusBadge status={version.status} />
       </header>
-      <p className="oma-muted" role="note">
-        {t('strategy.warning.aiNotConfigured')}
-      </p>
+      <AiHonestyBanner />
       {version.missing_source ? (
         <div className="oma-card" role="status">
           {t('strategy.warning.missingProfile')}
@@ -111,19 +111,16 @@ export default function StrategyReviewPage() {
       </label>
       <div className="oma-card" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
         {version.status === 'DRAFT' ? (
-          <button
-            type="button"
-            className="oma-btn"
-            data-testid="strategy-submit"
+          <SubmitEligibility
+            missingProfile={Boolean(version.missing_source)}
+            label={t('strategy.review.submit')}
             onClick={() =>
               void post(`${base}/submit`, {
                 row_version: version.row_version,
                 unknowns_acknowledged: unknowns,
               })
             }
-          >
-            {t('strategy.review.submit')}
-          </button>
+          />
         ) : null}
         {version.status === 'IN_REVIEW' ? (
           <>
@@ -167,7 +164,22 @@ export default function StrategyReviewPage() {
             </button>
           </>
         ) : null}
+        {['APPROVED', 'CHANGES_REQUESTED', 'REJECTED'].includes(version.status) ? (
+          <button
+            type="button"
+            className="oma-btn"
+            data-testid="strategy-revise"
+            onClick={() => void post(`${base}/revise`, {})}
+          >
+            Revise
+          </button>
+        ) : null}
       </div>
+      {error ? (
+        <p role="alert" style={{ color: 'var(--status-danger)' }}>
+          {error}
+        </p>
+      ) : null}
       <form className="oma-card" onSubmit={onComment}>
         <label>
           {t('strategy.review.comment')}
@@ -190,11 +202,6 @@ export default function StrategyReviewPage() {
         ))}
       </ul>
       {message ? <p role="status">{message}</p> : null}
-      {error ? (
-        <p role="alert" style={{ color: 'var(--status-danger)' }}>
-          {error}
-        </p>
-      ) : null}
     </BrandWorkspaceShell>
   );
 }

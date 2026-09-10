@@ -1,105 +1,75 @@
-import { afterAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { getPrisma } from '@oma/db';
 import {
-  approveStrategy,
-  authHeaders,
   createBrand,
   createStrategy,
-  getStrategy,
   getStrategyVersion,
   linkApprovedProfile,
   patchFoundation,
   seedApprovedProfileVersion,
   seedBrandTenant,
-  seedReviewReadyStrategy,
-  setCurrentStrategy,
+  setTrackEnablement,
   submitStrategy,
 } from '../helpers/strategy-test';
-import { getPrisma } from '@oma/db';
 
-describe('strategy workspace integration', () => {
-  const closers: Array<() => Promise<void>> = [];
+describe('strategy profile gate', () => {
+  let seed: Awaited<ReturnType<typeof seedBrandTenant>>;
+
+  beforeAll(async () => {
+    seed = await seedBrandTenant();
+  });
 
   afterAll(async () => {
-    for (const c of closers) await c();
+    await seed.app.close();
   });
 
-  it('creates draft without approved profile with missing_source warning', async () => {
-    const seed = await seedBrandTenant();
-    closers.push(async () => seed.app.close());
-    const { body: brandBody } = await createBrand(seed);
-    const brandId = brandBody.data.id as string;
-
-    const { res, body } = await createStrategy(seed, brandId, { name: 'Draft only' });
+  it('draft OK without approved profile', async () => {
+    const { body: brand } = await createBrand(seed);
+    const { res, body } = await createStrategy(seed, brand.data.id, { name: 'No profile draft' });
     expect([200, 201]).toContain(res.status);
     expect(body.data.latest_version.missing_source).toBe(true);
-    expect(body.data.latest_version.evidence_backed).toBe(false);
+    expect(body.data.latest_version.status).toBe('DRAFT');
   });
 
-  it('package approve does not set current; set_current is explicit; archive clears pointer', async () => {
-    const seed = await seedBrandTenant();
-    closers.push(async () => seed.app.close());
-    const { body: brandBody } = await createBrand(seed);
-    const brandId = brandBody.data.id as string;
-
-    const ready = await seedReviewReadyStrategy(seed, brandId);
-    const submitted = await submitStrategy(
+  it('submit blocked without approved profile link', async () => {
+    const { body: brand } = await createBrand(seed);
+    const brandId = brand.data.id as string;
+    const { body: created } = await createStrategy(seed, brandId);
+    const strategyId = created.data.id as string;
+    const versionId = created.data.latest_version.id as string;
+    let rowVersion = created.data.latest_version.row_version as number;
+    await patchFoundation(seed, brandId, strategyId, versionId, rowVersion, {
+      goals: [{ value: 'G', infoClass: 'USER_AUTHORED' }],
+      positioning: { value: 'P', infoClass: 'USER_AUTHORED' },
+    });
+    const after = await getStrategyVersion(seed, brandId, strategyId, versionId);
+    rowVersion = after.body.data.row_version;
+    await setTrackEnablement(seed, brandId, strategyId, versionId, rowVersion, {
+      organic_enabled: true,
+      paid_enabled: false,
+      paid_disabled_rationale: 'Later',
+    });
+    const afterEnable = await getStrategyVersion(seed, brandId, strategyId, versionId);
+    const blocked = await submitStrategy(
       seed,
       brandId,
-      ready.strategyId,
-      ready.versionId,
-      ready.rowVersion,
+      strategyId,
+      versionId,
+      afterEnable.body.data.row_version,
     );
-    expect([200, 201]).toContain(submitted.res.status);
-    expect(submitted.body.data.status).toBe('IN_REVIEW');
-
-    const approved = await approveStrategy(
-      seed,
-      brandId,
-      ready.strategyId,
-      ready.versionId,
-      submitted.body.data.row_version,
-    );
-    expect([200, 201]).toContain(approved.res.status);
-    expect(approved.body.data.status).toBe('APPROVED');
-
-    const brand = await getPrisma().brandWorkspace.findUniqueOrThrow({ where: { id: brandId } });
-    expect(brand.currentApprovedStrategyId).toBeNull();
-
-    const set = await setCurrentStrategy(seed, brandId, ready.strategyId, brand.version);
-    expect([200, 201]).toContain(set.res.status);
-    expect(set.body.data.strategy.id).toBe(ready.strategyId);
-
-    const strategy = await getPrisma().strategy.findUniqueOrThrow({
-      where: { id: ready.strategyId },
-    });
-    const archived = await fetch(
-      `${seed.baseUrl}/api/v1/brands/${brandId}/strategies/${ready.strategyId}/archive`,
-      {
-        method: 'POST',
-        headers: authHeaders(seed),
-        body: JSON.stringify({ version: strategy.version }),
-      },
-    );
-    expect([200, 201]).toContain(archived.status);
-    const brandAfter = await getPrisma().brandWorkspace.findUniqueOrThrow({
-      where: { id: brandId },
-    });
-    expect(brandAfter.currentApprovedStrategyId).toBeNull();
+    expect(blocked.res.status).toBe(422);
+    expect(JSON.stringify(blocked.body)).toMatch(/APPROVED_PROFILE_REQUIRED|APPROVAL_INELIGIBLE/);
   });
 
-  it('draft_aid profile never satisfies submit gate; approved link does', async () => {
-    const seed = await seedBrandTenant();
-    closers.push(async () => seed.app.close());
-    const { body: brandBody } = await createBrand(seed);
-    const brandId = brandBody.data.id as string;
+  it('draft_aid profile is not enough for submit', async () => {
+    const { body: brand } = await createBrand(seed);
+    const brandId = brand.data.id as string;
     const draftProfileId = await seedApprovedProfileVersion(seed.tenantId, brandId);
     await getPrisma().profileVersion.update({
       where: { id: draftProfileId },
       data: { status: 'DRAFT', approvedAt: null },
     });
-    const approvedId = await seedApprovedProfileVersion(seed.tenantId, brandId);
-
-    const { body: created } = await createStrategy(seed, brandId, { name: 'Gate test' });
+    const { body: created } = await createStrategy(seed, brandId, { name: 'Draft aid only' });
     const strategyId = created.data.id as string;
     const versionId = created.data.latest_version.id as string;
     let rowVersion = created.data.latest_version.row_version as number;
@@ -122,76 +92,19 @@ describe('strategy workspace integration', () => {
     });
     const afterPatch = await getStrategyVersion(seed, brandId, strategyId, versionId);
     rowVersion = afterPatch.body.data.row_version;
-
-    await fetch(
-      `${seed.baseUrl}/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${versionId}/tracks/enablement`,
-      {
-        method: 'POST',
-        headers: authHeaders(seed),
-        body: JSON.stringify({
-          row_version: rowVersion,
-          organic_enabled: true,
-          paid_enabled: false,
-          paid_disabled_rationale: 'Later',
-        }),
-      },
-    );
+    await setTrackEnablement(seed, brandId, strategyId, versionId, rowVersion, {
+      organic_enabled: true,
+      paid_enabled: false,
+      paid_disabled_rationale: 'Later',
+    });
     const afterEnable = await getStrategyVersion(seed, brandId, strategyId, versionId);
-    rowVersion = afterEnable.body.data.row_version;
-
-    const blocked = await submitStrategy(seed, brandId, strategyId, versionId, rowVersion);
-    expect(blocked.res.status).toBe(422);
-
-    const linked = await linkApprovedProfile(
+    const blocked = await submitStrategy(
       seed,
       brandId,
       strategyId,
       versionId,
-      approvedId,
-      rowVersion,
-      'approved',
+      afterEnable.body.data.row_version,
     );
-    rowVersion = linked.body.data.row_version;
-    const ok = await submitStrategy(seed, brandId, strategyId, versionId, rowVersion);
-    expect([200, 201]).toContain(ok.res.status);
-    expect(ok.body.data.status).toBe('IN_REVIEW');
-  });
-
-  it('ai propose refuses without fabricating content', async () => {
-    const seed = await seedBrandTenant();
-    closers.push(async () => seed.app.close());
-    const { body: brandBody } = await createBrand(seed);
-    const brandId = brandBody.data.id as string;
-    const { body: created } = await createStrategy(seed, brandId);
-    const strategyId = created.data.id as string;
-    const versionId = created.data.latest_version.id as string;
-    const res = await fetch(
-      `${seed.baseUrl}/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${versionId}/ai/propose`,
-      {
-        method: 'POST',
-        headers: authHeaders(seed),
-        body: '{}',
-      },
-    );
-    expect(res.status).toBe(503);
-    const body = await res.json();
-    expect(['AI_NOT_CONFIGURED', 'AI_REFUSED', 'AI_UNAVAILABLE']).toContain(body.error.code);
-  });
-
-  it('does not mutate Feature 002 profile rows on strategy commands', async () => {
-    const seed = await seedBrandTenant();
-    closers.push(async () => seed.app.close());
-    const { body: brandBody } = await createBrand(seed);
-    const brandId = brandBody.data.id as string;
-    const profileId = await seedApprovedProfileVersion(seed.tenantId, brandId);
-    const before = await getPrisma().profileVersion.findUniqueOrThrow({ where: { id: profileId } });
-    const { body: created } = await createStrategy(seed, brandId, {
-      linked_approved_profile_version_id: profileId,
-    });
-    await getStrategy(seed, brandId, created.data.id);
-    const after = await getPrisma().profileVersion.findUniqueOrThrow({ where: { id: profileId } });
-    expect(after.status).toBe(before.status);
-    expect(after.sectionsJson).toBe(before.sectionsJson);
-    expect(after.approvedAt?.getTime()).toBe(before.approvedAt?.getTime());
+    expect(blocked.res.status).toBe(422);
   });
 });

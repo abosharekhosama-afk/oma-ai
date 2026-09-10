@@ -1,75 +1,60 @@
-import { afterAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   authHeaders,
   createBrand,
-  grantCapability,
+  createEvidenceLink,
+  createStrategy,
+  openEvidenceLink,
   seedBrandTenant,
-  seedMemberWithoutBrandCaps,
-} from '../helpers/brand-test';
+  seedEvidenceExcerpt,
+} from '../helpers/strategy-test';
 
-describe('strategy security', () => {
-  const closers: Array<() => Promise<void>> = [];
-  afterAll(async () => {
-    for (const c of closers) await c();
+describe('strategy evidence reauth', () => {
+  let owner: Awaited<ReturnType<typeof seedBrandTenant>>;
+  let other: Awaited<ReturnType<typeof seedBrandTenant>>;
+  let brandId: string;
+  let strategyId: string;
+  let versionId: string;
+  let linkId: string;
+
+  beforeAll(async () => {
+    owner = await seedBrandTenant({ tenantSlug: `ev-a-${Date.now()}` });
+    other = await seedBrandTenant({ tenantSlug: `ev-b-${Date.now()}` });
+    const { body: brand } = await createBrand(owner);
+    brandId = brand.data.id as string;
+    const { body: created } = await createStrategy(owner, brandId, { name: 'Evidence Strat' });
+    strategyId = created.data.id as string;
+    versionId = created.data.latest_version.id as string;
+    const excerptId = await seedEvidenceExcerpt(owner.tenantId, brandId, owner.userId);
+    const link = await createEvidenceLink(owner, brandId, strategyId, versionId, {
+      evidence_excerpt_id: excerptId,
+      label: 'About page',
+    });
+    linkId = link.body.data.id as string;
   });
 
-  it('denies cross-tenant strategy access without existence leak', async () => {
-    const ownerA = await seedBrandTenant({ tenantSlug: `a-${Date.now()}` });
-    closers.push(async () => ownerA.app.close());
-    const ownerB = await seedBrandTenant({ tenantSlug: `b-${Date.now()}` });
-    closers.push(async () => ownerB.app.close());
-    const { body: brandA } = await createBrand(ownerA);
-    const { body: stratA } = await createStrategyVia(ownerA, brandA.data.id);
-    const res = await fetch(
-      `${ownerB.baseUrl}/api/v1/brands/${brandA.data.id}/strategies/${stratA.data.id}`,
-      { headers: { cookie: authHeaders(ownerB).cookie } },
-    );
+  afterAll(async () => {
+    await owner.app.close();
+    await other.app.close();
+  });
+
+  it('open evidence link requires auth', async () => {
+    const { res } = await openEvidenceLink(owner, brandId, strategyId, versionId, linkId, {});
+    expect([401, 403]).toContain(res.status);
+  });
+
+  it('cross-tenant evidence open returns 404', async () => {
+    const { res, body } = await openEvidenceLink(other, brandId, strategyId, versionId, linkId, {
+      cookie: authHeaders(other).cookie,
+    });
     expect(res.status).toBe(404);
-    const body = await res.json();
     expect(body.error?.code).toBe('NOT_FOUND');
   });
 
-  it('denies member without strategy.read', async () => {
-    const owner = await seedBrandTenant();
-    closers.push(async () => owner.app.close());
-    const member = await seedMemberWithoutBrandCaps(owner);
-    const { body: brand } = await createBrand(owner);
-    await createStrategyVia(owner, brand.data.id);
-    const res = await fetch(`${owner.baseUrl}/api/v1/brands/${brand.data.id}/strategies`, {
-      headers: {
-        cookie: Object.entries(member.cookies)
-          .map(([k, v]) => `${k}=${v}`)
-          .join('; '),
-      },
-    });
-    expect(res.status).toBe(403);
-  });
-
-  it('allows strategy.read after grant', async () => {
-    const owner = await seedBrandTenant();
-    closers.push(async () => owner.app.close());
-    const member = await seedMemberWithoutBrandCaps(owner);
-    await grantCapability(owner.tenantId, member.membershipId, 'strategy.read', owner.userId);
-    const { body: brand } = await createBrand(owner);
-    const res = await fetch(`${owner.baseUrl}/api/v1/brands/${brand.data.id}/strategies`, {
-      headers: {
-        cookie: Object.entries(member.cookies)
-          .map(([k, v]) => `${k}=${v}`)
-          .join('; '),
-      },
-    });
+  it('same-tenant open returns seeded excerpt', async () => {
+    const { res, body } = await openEvidenceLink(owner, brandId, strategyId, versionId, linkId);
     expect(res.status).toBe(200);
+    expect(body.data.excerpt?.excerpt_text).toContain('Evidence excerpt');
+    expect(body.data.label).toBe('About page');
   });
 });
-
-async function createStrategyVia(
-  seed: Awaited<ReturnType<typeof seedBrandTenant>>,
-  brandId: string,
-) {
-  const res = await fetch(`${seed.baseUrl}/api/v1/brands/${brandId}/strategies`, {
-    method: 'POST',
-    headers: authHeaders(seed),
-    body: JSON.stringify({ name: 'Sec Strategy' }),
-  });
-  return { res, body: await res.json() };
-}

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { getPrisma } from '@oma/db';
 
 describe('strategy schema integration', () => {
-  it('exposes strategy models on Prisma client', () => {
+  it('exposes all strategy Prisma models', () => {
     const prisma = getPrisma();
     expect(prisma.strategy).toBeDefined();
     expect(prisma.strategyVersion).toBeDefined();
@@ -17,15 +17,5 @@ describe('strategy schema integration', () => {
     expect(prisma.strategyReviewDecision).toBeDefined();
     expect(prisma.strategyApprovalRecord).toBeDefined();
     expect(prisma.strategyHumanEdit).toBeDefined();
-  });
-
-  it('BrandWorkspace has currentApprovedStrategyId field', async () => {
-    const prisma = getPrisma();
-    const sample = await prisma.brandWorkspace.findFirst();
-    if (sample) {
-      expect('currentApprovedStrategyId' in sample).toBe(true);
-    } else {
-      expect(true).toBe(true);
-    }
   });
 });

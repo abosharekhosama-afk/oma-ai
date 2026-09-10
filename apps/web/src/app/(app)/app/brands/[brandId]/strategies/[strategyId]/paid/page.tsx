@@ -12,6 +12,7 @@ import {
 } from '../../../../../../../../lib/brand-api';
 import { BrandWorkspaceShell } from '../../../../../../../../components/brand/brand-workspace-shell';
 import { StrategySubnav } from '../../../../../../../../components/strategy/strategy-subnav';
+import { PaidPlanningBanner } from '../../../../../../../../components/strategy/honesty-banners';
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../../components/shell/select-company';
 import { useT } from '../../../../../../../../lib/use-locale';
@@ -86,9 +87,7 @@ export default function StrategyPaidPage() {
       <header className="oma-page-header">
         <h2>{t('strategy.paid.title')}</h2>
       </header>
-      <div className="oma-card" role="note" data-testid="paid-planning-banner">
-        <p>{t('strategy.warning.paidPlanningOnly')}</p>
-      </div>
+      <PaidPlanningBanner />
       <form className="oma-card" onSubmit={onSave} data-testid="strategy-paid-form">
         <label>
           {t('strategy.paid.budget')}

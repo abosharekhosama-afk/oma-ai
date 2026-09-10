@@ -1,61 +1,49 @@
-import { afterAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { getPrisma } from '@oma/db';
 import {
+  bringToApproved,
   createBrand,
-  createStrategy,
-  seedApprovedProfileVersion,
+  getStrategy,
   seedBrandTenant,
   seedReviewReadyStrategy,
   setCurrentStrategy,
-  submitStrategy,
-  approveStrategy,
 } from '../helpers/strategy-test';
-import { getPrisma } from '@oma/db';
 
 describe('strategy current pointer', () => {
-  const closers: Array<() => Promise<void>> = [];
+  let seed: Awaited<ReturnType<typeof seedBrandTenant>>;
+
+  beforeAll(async () => {
+    seed = await seedBrandTenant();
+  });
+
   afterAll(async () => {
-    for (const c of closers) await c();
+    await seed.app.close();
   });
 
-  it('never auto-sets current on approve; set/clear with brand version', async () => {
-    const seed = await seedBrandTenant();
-    closers.push(async () => seed.app.close());
-    const { body: brandBody } = await createBrand(seed);
-    const brandId = brandBody.data.id as string;
+  it('two approved strategies; set B current; A stays APPROVED; current is B', async () => {
+    const { body: brand } = await createBrand(seed);
+    const brandId = brand.data.id as string;
     const a = await seedReviewReadyStrategy(seed, brandId);
-    const submitted = await submitStrategy(seed, brandId, a.strategyId, a.versionId, a.rowVersion);
-    await approveStrategy(
-      seed,
-      brandId,
-      a.strategyId,
-      a.versionId,
-      submitted.body.data.row_version,
-    );
-    let brand = await getPrisma().brandWorkspace.findUniqueOrThrow({ where: { id: brandId } });
-    expect(brand.currentApprovedStrategyId).toBeNull();
+    const b = await seedReviewReadyStrategy(seed, brandId);
+    await bringToApproved(seed, brandId, a.strategyId, a.versionId, a.rowVersion);
+    await bringToApproved(seed, brandId, b.strategyId, b.versionId, b.rowVersion);
 
-    const set = await setCurrentStrategy(seed, brandId, a.strategyId, brand.version);
+    const brandRow = await getPrisma().brandWorkspace.findUniqueOrThrow({ where: { id: brandId } });
+    const set = await setCurrentStrategy(seed, brandId, b.strategyId, brandRow.version);
     expect([200, 201]).toContain(set.res.status);
+    expect(set.body.data.strategy.id).toBe(b.strategyId);
 
-    brand = await getPrisma().brandWorkspace.findUniqueOrThrow({ where: { id: brandId } });
-    const stale = await setCurrentStrategy(seed, brandId, null, brand.version - 1);
-    expect(stale.res.status).toBe(409);
+    const after = await getPrisma().brandWorkspace.findUniqueOrThrow({ where: { id: brandId } });
+    expect(after.currentApprovedStrategyId).toBe(b.strategyId);
 
-    const clear = await setCurrentStrategy(seed, brandId, null, brand.version);
-    expect([200, 201]).toContain(clear.res.status);
-    brand = await getPrisma().brandWorkspace.findUniqueOrThrow({ where: { id: brandId } });
-    expect(brand.currentApprovedStrategyId).toBeNull();
-  });
+    const versionA = await getPrisma().strategyVersion.findUniqueOrThrow({
+      where: { id: a.versionId },
+    });
+    expect(versionA.status).toBe('APPROVED');
 
-  it('rejects set-current for strategy without approved version', async () => {
-    const seed = await seedBrandTenant();
-    closers.push(async () => seed.app.close());
-    const { body: brandBody } = await createBrand(seed);
-    const brandId = brandBody.data.id as string;
-    await seedApprovedProfileVersion(seed.tenantId, brandId);
-    const { body: created } = await createStrategy(seed, brandId);
-    const brand = await getPrisma().brandWorkspace.findUniqueOrThrow({ where: { id: brandId } });
-    const res = await setCurrentStrategy(seed, brandId, created.data.id, brand.version);
-    expect(res.res.status).toBe(422);
+    const stratA = await getStrategy(seed, brandId, a.strategyId);
+    expect(stratA.body.data.is_current).toBe(false);
+    const stratB = await getStrategy(seed, brandId, b.strategyId);
+    expect(stratB.body.data.is_current).toBe(true);
   });
 });

@@ -1,9 +1,25 @@
 import { getPrisma } from '@oma/db';
 import { newId } from '@oma/domain';
-import { authHeaders, createBrand, seedBrandTenant, type BrandSeed } from './brand-test';
+import {
+  authHeaders,
+  createBrand,
+  grantCapability,
+  seedBrandTenant,
+  seedMemberWithoutBrandCaps,
+  type BrandSeed,
+} from './brand-test';
+import { cookieHeader } from './app';
 
-export { authHeaders, createBrand, seedBrandTenant };
+export { authHeaders, createBrand, grantCapability, seedBrandTenant, seedMemberWithoutBrandCaps };
 export type { BrandSeed };
+
+export function memberAuthHeaders(member: { cookies: Record<string, string>; csrf: string }) {
+  return {
+    'content-type': 'application/json',
+    cookie: cookieHeader(member.cookies),
+    'x-csrf-token': member.csrf,
+  };
+}
 
 export async function createStrategy(
   seed: BrandSeed,
@@ -203,4 +219,227 @@ export async function seedReviewReadyStrategy(seed: BrandSeed, brandId: string) 
   rowVersion = afterEnable.body.data.row_version;
 
   return { strategyId, versionId, profileId, rowVersion };
+}
+
+export async function setTrackEnablement(
+  seed: BrandSeed,
+  brandId: string,
+  strategyId: string,
+  versionId: string,
+  rowVersion: number,
+  body: {
+    organic_enabled: boolean;
+    paid_enabled: boolean;
+    organic_disabled_rationale?: string | null;
+    paid_disabled_rationale?: string | null;
+  },
+) {
+  const res = await fetch(
+    `${seed.baseUrl}/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${versionId}/tracks/enablement`,
+    {
+      method: 'POST',
+      headers: authHeaders(seed),
+      body: JSON.stringify({ row_version: rowVersion, ...body }),
+    },
+  );
+  return { res, body: await res.json() };
+}
+
+export async function reviseStrategy(
+  seed: BrandSeed,
+  brandId: string,
+  strategyId: string,
+  versionId: string,
+) {
+  const res = await fetch(
+    `${seed.baseUrl}/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${versionId}/revise`,
+    { method: 'POST', headers: authHeaders(seed), body: '{}' },
+  );
+  return { res, body: await res.json() };
+}
+
+export async function cloneStrategy(
+  seed: BrandSeed,
+  brandId: string,
+  strategyId: string,
+  versionId: string,
+  name?: string,
+) {
+  const res = await fetch(
+    `${seed.baseUrl}/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${versionId}/clone`,
+    {
+      method: 'POST',
+      headers: authHeaders(seed),
+      body: JSON.stringify({ name: name ?? 'Cloned Strategy' }),
+    },
+  );
+  return { res, body: await res.json() };
+}
+
+export async function compareStrategyVersions(
+  seed: BrandSeed,
+  brandId: string,
+  strategyId: string,
+  leftId: string,
+  rightId: string,
+) {
+  const res = await fetch(
+    `${seed.baseUrl}/api/v1/brands/${brandId}/strategies/${strategyId}/versions/compare?leftId=${leftId}&rightId=${rightId}`,
+    { headers: { cookie: authHeaders(seed).cookie } },
+  );
+  return { res, body: await res.json() };
+}
+
+/** Organic + paid both enabled, foundation filled, ready to submit. */
+export async function seedBothTracksReadyStrategy(seed: BrandSeed, brandId: string) {
+  const profileId = await seedApprovedProfileVersion(seed.tenantId, brandId);
+  const { body: created } = await createStrategy(seed, brandId, {
+    name: 'Dual Track Strategy',
+    linked_approved_profile_version_id: profileId,
+    organic_enabled: true,
+    paid_enabled: true,
+  });
+  const strategyId = created.data.id as string;
+  const versionId = created.data.latest_version.id as string;
+  let rowVersion = created.data.latest_version.row_version as number;
+
+  const patched = await patchFoundation(seed, brandId, strategyId, versionId, rowVersion, {
+    goals: [{ value: 'Grow reach', infoClass: 'USER_AUTHORED' }],
+    positioning: { value: 'Trusted partner', infoClass: 'USER_AUTHORED' },
+    keyMessages: [{ value: 'Quality', infoClass: 'USER_AUTHORED' }],
+  });
+  rowVersion = patched.body.data.row_version;
+
+  const enabled = await setTrackEnablement(seed, brandId, strategyId, versionId, rowVersion, {
+    organic_enabled: true,
+    paid_enabled: true,
+  });
+  rowVersion = enabled.body.data.row_version;
+
+  return { strategyId, versionId, profileId, rowVersion };
+}
+
+export async function bringToApproved(
+  seed: BrandSeed,
+  brandId: string,
+  strategyId: string,
+  versionId: string,
+  rowVersion: number,
+) {
+  const submitted = await submitStrategy(seed, brandId, strategyId, versionId, rowVersion);
+  if (![200, 201].includes(submitted.res.status)) {
+    throw new Error(`submit failed: ${submitted.res.status} ${JSON.stringify(submitted.body)}`);
+  }
+  const approved = await approveStrategy(
+    seed,
+    brandId,
+    strategyId,
+    versionId,
+    submitted.body.data.row_version,
+  );
+  if (![200, 201].includes(approved.res.status)) {
+    throw new Error(`approve failed: ${approved.res.status} ${JSON.stringify(approved.body)}`);
+  }
+  return {
+    submitted,
+    approved,
+    rowVersion: approved.body.data.row_version as number,
+  };
+}
+
+/** Minimal scan chain so EvidenceExcerpt FK is satisfiable (strategy tests only). */
+export async function seedEvidenceExcerpt(
+  tenantId: string,
+  brandId: string,
+  actorUserId: string,
+  excerptText = 'Evidence excerpt for strategy link',
+) {
+  const prisma = getPrisma();
+  const websiteId = newId();
+  const jobId = newId();
+  const scanId = newId();
+  const excerptId = newId();
+  await prisma.websiteSource.create({
+    data: {
+      id: websiteId,
+      tenantId,
+      brandId,
+      normalizedUrl: 'https://acme.test/',
+      host: 'acme.test',
+      attestationAcceptedAt: new Date(),
+      attestedByUserId: actorUserId,
+      validationStatus: 'VALID',
+    },
+  });
+  await prisma.jobRun.create({
+    data: {
+      id: jobId,
+      tenantId,
+      queue: 'ingestion',
+      jobType: 'scan',
+      payloadJson: '{}',
+      actorUserId,
+      idempotencyKey: `strat-ev-${newId()}`,
+    },
+  });
+  await prisma.scanAttempt.create({
+    data: {
+      id: scanId,
+      tenantId,
+      brandId,
+      websiteSourceId: websiteId,
+      jobRunId: jobId,
+      idempotencyKey: `strat-scan-${newId()}`,
+      actorUserId,
+      status: 'SUCCEEDED',
+    },
+  });
+  await prisma.evidenceExcerpt.create({
+    data: {
+      id: excerptId,
+      tenantId,
+      brandId,
+      scanAttemptId: scanId,
+      sourceUrl: 'https://acme.test/about',
+      canonicalUrl: 'https://acme.test/about',
+      pageTitle: 'About',
+      excerptText,
+      contentHash: `hash-${excerptId.slice(-8)}`,
+      extractionMethod: 'USER',
+    },
+  });
+  return excerptId;
+}
+
+export async function createEvidenceLink(
+  seed: BrandSeed,
+  brandId: string,
+  strategyId: string,
+  versionId: string,
+  body: { evidence_excerpt_id?: string; label?: string },
+) {
+  const res = await fetch(
+    `${seed.baseUrl}/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${versionId}/evidence-links`,
+    {
+      method: 'POST',
+      headers: authHeaders(seed),
+      body: JSON.stringify(body),
+    },
+  );
+  return { res, body: await res.json() };
+}
+
+export async function openEvidenceLink(
+  seed: BrandSeed,
+  brandId: string,
+  strategyId: string,
+  versionId: string,
+  linkId: string,
+  headers?: Record<string, string>,
+) {
+  const res = await fetch(
+    `${seed.baseUrl}/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${versionId}/evidence-links/${linkId}`,
+    { headers: headers ?? { cookie: authHeaders(seed).cookie } },
+  );
+  return { res, body: await res.json() };
 }

@@ -1,7 +1,13 @@
 name: ci
 on:
   push:
-    branches: ['001-oma-ai-product-foundation', '002-brand-website-intelligence', 'main']
+    branches:
+      [
+        '001-oma-ai-product-foundation',
+        '002-brand-website-intelligence',
+        '003-strategy-organic-paid-plans',
+        'main',
+      ]
   pull_request:
 jobs:
   verify:
