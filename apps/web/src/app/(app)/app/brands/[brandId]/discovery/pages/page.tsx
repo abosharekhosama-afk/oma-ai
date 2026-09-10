@@ -19,6 +19,7 @@ import { getApiError, isPermissionDenied } from '../../../../../../../lib/brand-
 import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand-workspace-shell';
 import { EvidenceSidePanel } from '../../../../../../../components/brand/evidence-side-panel';
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
+import { StatusChip } from '../../../../../../../components/ui/status-chip';
 import { useT } from '../../../../../../../lib/use-locale';
 
 export default function DiscoveryPagesPage() {
@@ -170,27 +171,27 @@ export default function DiscoveryPagesPage() {
               {pages.map((page) => {
                 const linkedEvidence = evidenceByPage[page.id];
                 return (
-                  <li key={page.id} className="oma-card oma-discovery-item">
-                    <div>
-                      <strong>{page.title ?? page.url}</strong>
-                      <span className="oma-badge oma-badge-muted">{page.classification}</span>
-                      <span className="oma-badge">{page.fetch_status}</span>
-                    </div>
-                    <p className="oma-muted" style={{ fontSize: 14, margin: '0.25rem 0' }}>
-                      <a
-                        href={page.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="oma-ltr"
-                      >
-                        {page.canonical_url}
-                      </a>
-                    </p>
-                    <div className="oma-form-actions">
+                  <li key={page.id} className="oma-panel oma-discovery-item">
+                    <div className="oma-work-row" style={{ border: 0, padding: 0 }}>
+                      <div>
+                        <strong>{page.title ?? page.url}</strong>
+                        <div className="oma-work-row-meta">
+                          <StatusChip status={page.classification} />
+                          <StatusChip status={page.fetch_status} />
+                          <a
+                            href={page.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="oma-ltr"
+                          >
+                            {page.canonical_url}
+                          </a>
+                        </div>
+                      </div>
                       {linkedEvidence ? (
                         <button
                           type="button"
-                          className="oma-btn-secondary"
+                          className="oma-btn oma-btn-secondary oma-btn--sm"
                           data-testid={`view-evidence-${page.id}`}
                           onClick={() => setEvidenceId(linkedEvidence)}
                         >
@@ -211,7 +212,9 @@ export default function DiscoveryPagesPage() {
       <EvidenceSidePanel
         brandId={brandId}
         evidenceId={evidenceId}
+        evidenceIds={Object.values(evidenceByPage)}
         onClose={() => setEvidenceId(null)}
+        onNavigate={(id) => setEvidenceId(id)}
       />
     </BrandWorkspaceShell>
   );

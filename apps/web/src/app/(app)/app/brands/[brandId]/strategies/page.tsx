@@ -12,6 +12,8 @@ import { PermissionDenied } from '../../../../../../components/shell/permission-
 import { SelectCompany } from '../../../../../../components/shell/select-company';
 import { useT } from '../../../../../../lib/use-locale';
 import { StatusChip } from '../../../../../../components/ui/status-chip';
+import { EmptyState, ErrorState, Skeleton } from '../../../../../../components/ui/empty-state';
+import { Panel } from '../../../../../../components/ui/page-header';
 
 export default function StrategiesListPage() {
   const t = useT();
@@ -46,17 +48,26 @@ export default function StrategiesListPage() {
 
   if (denied) return <PermissionDenied message={t('errors.permission')} />;
   if (tenantRequired) return <SelectCompany />;
-  if (loading) return <p role="status">{t('common.loading')}</p>;
-  if (!brand) {
+  if (loading) {
     return (
-      <div className="oma-card" role="alert">
-        <p style={{ color: 'var(--status-danger)' }}>{error ?? t('common.notFound')}</p>
+      <div className="oma-stack" role="status" aria-label={t('common.loading')}>
+        <Skeleton height="8rem" />
       </div>
     );
   }
+  if (!brand) {
+    return <ErrorState title={t('common.error')} body={error ?? t('common.notFound')} />;
+  }
+
+  const missingProfile = !brand.current_approved_profile_version_id;
 
   return (
-    <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
+    <BrandWorkspaceShell
+      brandId={brandId}
+      brandName={brand.name}
+      websiteUrl={brand.website?.normalized_url}
+      brandStatus={brand.status}
+    >
       <header className="oma-page-header">
         <div>
           <h2>{t('strategy.list.title')}</h2>
@@ -70,36 +81,87 @@ export default function StrategiesListPage() {
           {t('strategy.list.create')}
         </Link>
       </header>
-      {error ? (
-        <div className="oma-card" role="alert">
-          <p style={{ color: 'var(--status-danger)' }}>{error}</p>
-        </div>
-      ) : rows.length === 0 ? (
-        <div className="oma-card" role="status" data-testid="strategy-empty">
-          <p>{t('strategy.list.empty')}</p>
-          <Link href={`/app/brands/${brandId}/strategies/new`} className="oma-btn">
-            {t('strategy.list.create')}
+
+      {missingProfile ? (
+        <div className="oma-banner-demo" role="status">
+          <span>{t('strategy.list.missingProfile')}</span>
+          <Link href={`/app/brands/${brandId}/profiles`} className="oma-text-link">
+            {t('brand.detail.intelligenceCta')}
           </Link>
         </div>
+      ) : null}
+
+      {error ? <ErrorState title={t('common.error')} body={error} /> : null}
+
+      {rows.length === 0 ? (
+        <div data-testid="strategy-empty">
+          <EmptyState
+            title={t('strategy.list.empty')}
+            action={
+              <Link href={`/app/brands/${brandId}/strategies/new`} className="oma-btn">
+                {t('strategy.list.create')}
+              </Link>
+            }
+          />
+        </div>
       ) : (
-        <ul className="oma-discovery-list" data-testid="strategy-list">
-          {rows.map((row) => (
-            <li key={row.id} className="oma-card oma-discovery-item">
-              <div>
-                <strong>
-                  <Link href={`/app/brands/${brandId}/strategies/${row.id}`}>{row.name}</Link>
-                </strong>
-                <StatusChip status={row.status} />
-                {row.is_current ? (
-                  <span className="oma-badge oma-badge-muted">{t('strategy.list.current')}</span>
-                ) : null}
-                {row.has_approved_version ? (
-                  <span className="oma-badge">{t('strategy.list.hasApproved')}</span>
-                ) : null}
-              </div>
-            </li>
-          ))}
-        </ul>
+        <Panel title={t('strategy.list.title')} labelledBy="strategy-list-heading">
+          <div className="oma-table-wrap">
+            <table className="oma-table oma-portfolio-table" data-testid="strategy-list">
+              <thead>
+                <tr>
+                  <th scope="col">{t('strategy.list.col.name')}</th>
+                  <th scope="col">{t('strategy.list.col.status')}</th>
+                  <th scope="col">{t('strategy.list.col.current')}</th>
+                  <th scope="col">{t('strategy.list.col.updated')}</th>
+                  <th scope="col">{t('strategy.list.col.action')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row) => (
+                  <tr key={row.id}>
+                    <td data-label={t('strategy.list.col.name')}>
+                      <Link
+                        href={`/app/brands/${brandId}/strategies/${row.id}`}
+                        className="oma-table-primary"
+                      >
+                        {row.name}
+                      </Link>
+                      <div className="oma-chip-row">
+                        {row.has_approved_version ? (
+                          <StatusChip tone="success" label={t('strategy.list.hasApproved')} />
+                        ) : null}
+                      </div>
+                    </td>
+                    <td data-label={t('strategy.list.col.status')}>
+                      <StatusChip status={row.status} />
+                    </td>
+                    <td data-label={t('strategy.list.col.current')}>
+                      {row.is_current ? (
+                        <StatusChip tone="info" label={t('strategy.list.current')} />
+                      ) : (
+                        <span className="oma-muted">—</span>
+                      )}
+                    </td>
+                    <td data-label={t('strategy.list.col.updated')}>
+                      <time dateTime={row.updated_at}>
+                        {new Date(row.updated_at).toLocaleString()}
+                      </time>
+                    </td>
+                    <td data-label={t('strategy.list.col.action')}>
+                      <Link
+                        href={`/app/brands/${brandId}/strategies/${row.id}`}
+                        className="oma-btn oma-btn-compact"
+                      >
+                        {t('home.action.open')}
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Panel>
       )}
     </BrandWorkspaceShell>
   );

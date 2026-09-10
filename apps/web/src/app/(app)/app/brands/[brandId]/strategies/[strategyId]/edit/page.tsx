@@ -103,30 +103,45 @@ export default function StrategyFoundationPage() {
         </p>
       ) : null}
       {!editable ? <p role="status">{t('strategy.warning.immutable')}</p> : null}
-      <form className="oma-card" onSubmit={onSave} data-testid="strategy-foundation-form">
-        <label>
-          {t('strategy.foundation.goals')}
-          <textarea
-            value={goals}
-            onChange={(e) => setGoals(e.target.value)}
-            disabled={!editable}
-            data-testid="strategy-goals"
-            rows={3}
-          />
-        </label>
-        <label>
-          {t('strategy.foundation.positioning')}
-          <textarea
-            value={positioning}
-            onChange={(e) => setPositioning(e.target.value)}
-            disabled={!editable}
-            data-testid="strategy-positioning"
-            rows={3}
-          />
-        </label>
-        {message ? <p role="status">{message}</p> : null}
+      <form
+        className="oma-panel oma-sectioned-form"
+        onSubmit={onSave}
+        data-testid="strategy-foundation-form"
+      >
+        <section className="oma-form-section">
+          <h2>{t('strategy.foundation.goals')}</h2>
+          <p className="oma-help">{t('strategy.list.hint')}</p>
+          <label className="oma-field-span">
+            <textarea
+              className="oma-input"
+              value={goals}
+              onChange={(e) => setGoals(e.target.value)}
+              disabled={!editable}
+              data-testid="strategy-goals"
+              rows={3}
+            />
+          </label>
+        </section>
+        <section className="oma-form-section">
+          <h2>{t('strategy.foundation.positioning')}</h2>
+          <label className="oma-field-span">
+            <textarea
+              className="oma-input"
+              value={positioning}
+              onChange={(e) => setPositioning(e.target.value)}
+              disabled={!editable}
+              data-testid="strategy-positioning"
+              rows={3}
+            />
+          </label>
+        </section>
+        {message ? (
+          <p className="oma-save-status" data-state="saved" role="status">
+            {message}
+          </p>
+        ) : null}
         {error ? (
-          <p role="alert" style={{ color: 'var(--status-danger)' }}>
+          <p className="oma-save-status" data-state="error" role="alert">
             {error}
           </p>
         ) : null}

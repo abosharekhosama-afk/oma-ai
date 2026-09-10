@@ -163,7 +163,7 @@ export default function ScanDetailPage() {
         </div>
       ) : null}
 
-      <div className="oma-card">
+      <div className="oma-panel">
         <h2>{t('brand.scan.progressTitle')}</h2>
         <div
           ref={liveRef}

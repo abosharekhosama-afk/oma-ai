@@ -111,12 +111,34 @@ export default function StrategyOverviewPage() {
                 {t('strategy.list.current')}
               </span>
             ) : null}
+            {latest ? (
+              <span className="oma-strategy-tracks">
+                <span
+                  className={
+                    latest.organic_enabled
+                      ? 'oma-track-pill oma-track-pill--organic'
+                      : 'oma-track-pill oma-track-pill--off'
+                  }
+                >
+                  {t('strategy.nav.organic')}
+                </span>
+                <span
+                  className={
+                    latest.paid_enabled
+                      ? 'oma-track-pill oma-track-pill--paid'
+                      : 'oma-track-pill oma-track-pill--off'
+                  }
+                >
+                  {t('strategy.nav.paid')}
+                </span>
+              </span>
+            ) : null}
           </div>
         </div>
       </header>
 
       {latest?.missing_source ? (
-        <div className="oma-card" role="status" data-testid="strategy-missing-profile">
+        <div className="oma-panel" role="status" data-testid="strategy-missing-profile">
           <p>{t('strategy.warning.missingProfile')}</p>
           <Link href={`/app/brands/${brandId}/strategies/${strategyId}/edit`} className="oma-btn">
             {t('strategy.nav.foundation')}
@@ -134,7 +156,7 @@ export default function StrategyOverviewPage() {
         </p>
       ) : null}
 
-      <div className="oma-card" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+      <div className="oma-panel" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
         <CurrentStrategyControls
           canSet={Boolean(strategy.has_approved_version)}
           isCurrent={Boolean(strategy.is_current)}

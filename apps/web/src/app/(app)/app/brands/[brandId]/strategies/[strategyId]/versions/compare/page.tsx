@@ -58,9 +58,18 @@ export default function StrategyComparePage() {
         <h2>{t('strategy.versions.compare')}</h2>
       </header>
       {error ? <p role="alert">{error}</p> : null}
-      <pre className="oma-card" data-testid="strategy-compare-diff">
-        {diff ? JSON.stringify(diff, null, 2) : t('common.loading')}
-      </pre>
+      <div className="oma-workboard-split" data-testid="strategy-compare-diff">
+        <div className="oma-panel">
+          <h2>{leftId || 'Left'}</h2>
+          <pre style={{ margin: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>
+            {diff ? JSON.stringify(diff, null, 2) : t('common.loading')}
+          </pre>
+        </div>
+        <div className="oma-panel">
+          <h2>{rightId || 'Right'}</h2>
+          <p className="oma-muted">{t('strategy.versions.compare')}</p>
+        </div>
+      </div>
     </BrandWorkspaceShell>
   );
 }

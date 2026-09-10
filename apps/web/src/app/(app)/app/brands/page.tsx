@@ -102,7 +102,7 @@ export default function BrandsListPage() {
       </header>
 
       <form
-        className="oma-filter-row"
+        className="oma-filter-row oma-panel"
         onSubmit={(event) => {
           event.preventDefault();
           setQuery(queryDraft.trim());
@@ -195,7 +195,7 @@ export default function BrandsListPage() {
             <tbody>
               {visible.map((brand) => (
                 <tr key={brand.id}>
-                  <td>
+                  <td data-label={t('brand.list.col.brand')}>
                     <Link href={`/app/brands/${brand.id}`} className="oma-table-primary">
                       {brand.name}
                     </Link>
@@ -206,33 +206,33 @@ export default function BrandsListPage() {
                       ) : null}
                     </div>
                   </td>
-                  <td>
+                  <td data-label={t('brand.list.col.website')}>
                     {brand.primary_website_url ? (
                       <span className="oma-ltr">{brand.primary_website_url}</span>
                     ) : (
                       <span className="oma-muted">{t('brand.list.noWebsite')}</span>
                     )}
                   </td>
-                  <td>
+                  <td data-label={t('brand.list.col.scan')}>
                     {brand.latest_scan_status ? (
                       <StatusChip status={brand.latest_scan_status} />
                     ) : (
                       <span className="oma-muted">—</span>
                     )}
                   </td>
-                  <td>
+                  <td data-label={t('brand.list.col.profile')}>
                     {brand.latest_profile_status ? (
                       <StatusChip status={brand.latest_profile_status} />
                     ) : (
                       <span className="oma-muted">—</span>
                     )}
                   </td>
-                  <td>
+                  <td data-label={t('brand.list.col.updated')}>
                     <time dateTime={brand.updated_at}>
                       {new Date(brand.updated_at).toLocaleString()}
                     </time>
                   </td>
-                  <td>
+                  <td data-label={t('brand.list.col.action')}>
                     <Link href={brandPrimaryHref(brand)} className="oma-btn oma-btn-compact">
                       {actionLabel(t, brand)}
                     </Link>

@@ -9,11 +9,13 @@ type BrandWorkspaceShellProps = {
   brandId: string;
   brandName: string;
   brandStatus?: string | null;
+  websiteUrl?: string | null;
   scanStatus?: string | null;
   profileStatus?: string | null;
   latestScanId?: string | null;
   nextStepHref?: string;
   nextStepLabel?: string;
+  journey?: Array<{ id: string; label: string; state: 'done' | 'current' | 'todo' }>;
   children: React.ReactNode;
   aside?: React.ReactNode;
 };
@@ -22,11 +24,13 @@ export function BrandWorkspaceShell({
   brandId,
   brandName,
   brandStatus,
+  websiteUrl,
   scanStatus,
   profileStatus,
   latestScanId,
   nextStepHref,
   nextStepLabel,
+  journey,
   children,
   aside,
 }: BrandWorkspaceShellProps) {
@@ -67,17 +71,31 @@ export function BrandWorkspaceShell({
     <div className="oma-brand-shell" data-testid="brand-workspace">
       <header className="oma-brand-header">
         <div>
-          <p className="oma-muted" style={{ margin: 0, fontSize: 12 }}>
+          <p className="oma-kicker">
             <Link href="/app/brands">{t('brand.list.title')}</Link>
             <span aria-hidden="true"> / </span>
             <span>{t('brand.workspace.context')}</span>
           </p>
-          <h1 style={{ margin: '0.25rem 0 0' }}>{brandName}</h1>
+          <h1>{brandName}</h1>
+          {websiteUrl ? (
+            <p className="oma-muted oma-ltr" style={{ margin: '0.25rem 0 0' }}>
+              {websiteUrl}
+            </p>
+          ) : null}
           <div className="oma-chip-row">
             {brandStatus ? <StatusChip status={brandStatus} /> : null}
             {scanStatus ? <StatusChip status={scanStatus} /> : null}
             {profileStatus ? <StatusChip status={profileStatus} /> : null}
           </div>
+          {journey && journey.length > 0 ? (
+            <ol className="oma-journey-compact" aria-label={t('home.journeyTitle')}>
+              {journey.map((step) => (
+                <li key={step.id} data-state={step.state}>
+                  {step.label}
+                </li>
+              ))}
+            </ol>
+          ) : null}
         </div>
         {nextStepHref && nextStepLabel ? (
           <Link href={nextStepHref} className="oma-btn">
@@ -100,7 +118,7 @@ export function BrandWorkspaceShell({
           ))}
         </ul>
       </nav>
-      <div className="oma-brand-body">
+      <div className={aside ? 'oma-brand-body' : 'oma-brand-body oma-brand-body--single'}>
         <div className="oma-brand-main">{children}</div>
         {aside ? <aside className="oma-brand-aside">{aside}</aside> : null}
       </div>

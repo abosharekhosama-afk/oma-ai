@@ -88,28 +88,45 @@ export default function StrategyPaidPage() {
         <h2>{t('strategy.paid.title')}</h2>
       </header>
       <PaidPlanningBanner />
-      <form className="oma-card" onSubmit={onSave} data-testid="strategy-paid-form">
-        <label>
-          {t('strategy.paid.budget')}
-          <input
-            value={budget}
-            onChange={(e) => setBudget(e.target.value)}
-            disabled={!editable}
-            data-testid="paid-budget"
-          />
-        </label>
-        <label>
-          Currency
-          <input
-            value={currency}
-            onChange={(e) => setCurrency(e.target.value)}
-            disabled={!editable}
-            data-testid="paid-currency"
-          />
-        </label>
-        {message ? <p role="status">{message}</p> : null}
+      <form
+        className="oma-panel oma-sectioned-form"
+        onSubmit={onSave}
+        data-testid="strategy-paid-form"
+      >
+        <section className="oma-form-section">
+          <h2>
+            <span className="oma-track-pill oma-track-pill--paid">{t('strategy.nav.paid')}</span>
+          </h2>
+          <div className="oma-form-grid">
+            <label>
+              {t('strategy.paid.budget')}
+              <input
+                className="oma-input"
+                value={budget}
+                onChange={(e) => setBudget(e.target.value)}
+                disabled={!editable}
+                data-testid="paid-budget"
+              />
+            </label>
+            <label>
+              Currency
+              <input
+                className="oma-input"
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                disabled={!editable}
+                data-testid="paid-currency"
+              />
+            </label>
+          </div>
+        </section>
+        {message ? (
+          <p className="oma-save-status" data-state="saved" role="status">
+            {message}
+          </p>
+        ) : null}
         {error ? (
-          <p role="alert" style={{ color: 'var(--status-danger)' }}>
+          <p className="oma-save-status" data-state="error" role="alert">
             {error}
           </p>
         ) : null}

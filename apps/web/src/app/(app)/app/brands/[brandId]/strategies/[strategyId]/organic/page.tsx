@@ -97,28 +97,47 @@ export default function StrategyOrganicPage() {
       <header className="oma-page-header">
         <h2>{t('strategy.organic.title')}</h2>
       </header>
-      <form className="oma-card" onSubmit={onSave} data-testid="strategy-organic-form">
-        <label>
-          Frequency
-          <input
-            value={frequency}
-            onChange={(e) => setFrequency(e.target.value)}
-            disabled={!editable}
-            data-testid="organic-frequency"
-          />
-        </label>
-        <label>
-          CTA
-          <input
-            value={cta}
-            onChange={(e) => setCta(e.target.value)}
-            disabled={!editable}
-            data-testid="organic-cta"
-          />
-        </label>
-        {message ? <p role="status">{message}</p> : null}
+      <form
+        className="oma-panel oma-sectioned-form"
+        onSubmit={onSave}
+        data-testid="strategy-organic-form"
+      >
+        <section className="oma-form-section">
+          <h2>
+            <span className="oma-track-pill oma-track-pill--organic">
+              {t('strategy.nav.organic')}
+            </span>
+          </h2>
+          <div className="oma-form-grid">
+            <label>
+              Frequency
+              <input
+                className="oma-input"
+                value={frequency}
+                onChange={(e) => setFrequency(e.target.value)}
+                disabled={!editable}
+                data-testid="organic-frequency"
+              />
+            </label>
+            <label>
+              CTA
+              <input
+                className="oma-input"
+                value={cta}
+                onChange={(e) => setCta(e.target.value)}
+                disabled={!editable}
+                data-testid="organic-cta"
+              />
+            </label>
+          </div>
+        </section>
+        {message ? (
+          <p className="oma-save-status" data-state="saved" role="status">
+            {message}
+          </p>
+        ) : null}
         {error ? (
-          <p role="alert" style={{ color: 'var(--status-danger)' }}>
+          <p className="oma-save-status" data-state="error" role="alert">
             {error}
           </p>
         ) : null}
