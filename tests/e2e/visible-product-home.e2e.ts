@@ -38,7 +38,7 @@ test.describe('Visible product home', () => {
     await expect(page.getByTestId('product-home')).toBeVisible({ timeout: 20_000 });
     await expect(page.getByRole('heading', { name: /command center|workspace/i })).toBeVisible();
     await expect(page.getByText(/brand portfolio/i).first()).toBeVisible();
-    await expect(page.getByText(/how brand intelligence works/i)).toBeVisible();
+    await expect(page.getByText(/needs your attention|needs action/i).first()).toBeVisible();
 
     const bodyText = await page.locator('[data-testid="product-home"]').innerText();
     expect(bodyText.length).toBeGreaterThan(120);

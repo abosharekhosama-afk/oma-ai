@@ -29,7 +29,7 @@ test.describe('brand intelligence discoverability', () => {
 
     // Find the brand through search rather than a remembered id.
     await page.getByLabel('Search brands by name').fill(brandName);
-    await page.getByRole('button', { name: 'Search' }).click();
+    await page.getByTestId('brand-portfolio').getByRole('button', { name: 'Search' }).click();
     await page.getByRole('link', { name: new RegExp(brandName) }).click();
     await expect(page).toHaveURL(`/app/brands/${brandId}`);
 
