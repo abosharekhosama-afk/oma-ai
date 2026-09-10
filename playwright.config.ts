@@ -40,6 +40,8 @@ const sharedServerEnv = {
   BULLMQ_PREFIX: `oma-e2e-${e2eRunId}`,
   OMA_WRITE_OPENAPI: '0',
   BRAND_FIXTURE_CONNECTOR: '1',
+  // Complete-product demo surfaces (never production).
+  OMA_DEMO_MODE: process.env.OMA_DEMO_MODE ?? '1',
   // Full multi-project suites exceed the default 120/min per-path budget on /auth/me.
   RATE_LIMIT_PER_MINUTE: process.env.RATE_LIMIT_PER_MINUTE ?? '0',
   NODE_ENV: process.env.NODE_ENV ?? 'test',

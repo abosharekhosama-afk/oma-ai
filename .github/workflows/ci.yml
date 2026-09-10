@@ -6,6 +6,7 @@ on:
         '001-oma-ai-product-foundation',
         '002-brand-website-intelligence',
         '003-strategy-organic-paid-plans',
+        '004-oma-complete-product-demo',
         'main',
       ]
   pull_request:
@@ -51,6 +52,7 @@ jobs:
       OMA_WRITE_OPENAPI: '0'
       E2E_REUSE_SERVERS: '1'
       BRAND_FIXTURE_CONNECTOR: '1'
+      OMA_DEMO_MODE: '1'
       RATE_LIMIT_PER_MINUTE: '0'
       CI: 'true'
     steps:
