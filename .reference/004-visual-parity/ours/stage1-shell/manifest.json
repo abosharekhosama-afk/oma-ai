@@ -1,0 +1,16 @@
+{
+  "stage": 1,
+  "gitSha": "29c005487e4e9e1ef270d64230ac1f4903f41177",
+  "capturedAt": "2026-09-10T20:45:47.906Z",
+  "shots": [
+    "desktop-expanded",
+    "desktop-collapsed",
+    "tablet-shell",
+    "mobile-nav-drawer",
+    "arabic-rtl-shell",
+    "modal-command-search",
+    "dropdown-user-menu",
+    "reduced-motion",
+    "surface-loading-or-empty"
+  ]
+}
