@@ -2,6 +2,7 @@
 @import '../../../../packages/ui/src/motion.css';
 @import '../../../../packages/ui/src/primitives.css';
 @import '../styles/shell.css';
+@import '../styles/stage2.css';
 
 * {
   box-sizing: border-box;
