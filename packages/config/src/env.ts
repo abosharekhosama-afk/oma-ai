@@ -20,6 +20,8 @@ export const envSchema = z.object({
   BRAND_MAX_DEPTH: z.coerce.number().default(3),
   BRAND_MAX_DURATION_SECONDS: z.coerce.number().default(600),
   BRAND_MAX_BYTES: z.coerce.number().default(1_000_000),
+  /** Feature 003: AI propose always refuses unless a future DEC enables a live adapter. */
+  STRATEGY_AI_MODE: z.enum(['refuse', 'not_configured']).default('refuse'),
 });
 
 export type Env = z.infer<typeof envSchema>;

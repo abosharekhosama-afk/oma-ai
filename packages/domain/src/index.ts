@@ -6,6 +6,7 @@ export * from './authz/capabilities';
 export * from './tenant/slug';
 export * from './tenant/membership-routing';
 export * from './brand';
+export * from './strategy';
 export * from './jobs/outbox';
 export * from './ports/mail-provider.port';
 export * from './ports/ai-provider.port';

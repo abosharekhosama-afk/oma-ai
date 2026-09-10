@@ -38,6 +38,89 @@ const routeRequirements: Record<string, string[]> = {
   'POST /api/v1/brands/:brandId/profiles/:versionId/reject': ['brand.version.approve'],
   'POST /api/v1/brands/:brandId/insights/:insightId/accept': ['brand.insight.decide'],
   'POST /api/v1/brands/:brandId/insights/:insightId/reject': ['brand.insight.decide'],
+  'GET /api/v1/brands/:brandId/strategies': ['strategy.read'],
+  'POST /api/v1/brands/:brandId/strategies': ['strategy.create'],
+  'GET /api/v1/brands/:brandId/strategies/:strategyId': ['strategy.read'],
+  'PATCH /api/v1/brands/:brandId/strategies/:strategyId': ['strategy.edit'],
+  'POST /api/v1/brands/:brandId/strategies/:strategyId/archive': ['strategy.archive'],
+  'GET /api/v1/brands/:brandId/strategies/:strategyId/versions': ['strategy.read'],
+  'GET /api/v1/brands/:brandId/strategies/:strategyId/versions/compare': ['strategy.compare'],
+  'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/from-approved': ['strategy.edit'],
+  'GET /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId': ['strategy.read'],
+  'PATCH /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId': ['strategy.edit'],
+  'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/link-profile': [
+    'strategy.edit',
+  ],
+  'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/tracks/enablement': [
+    'strategy.edit',
+  ],
+  'PATCH /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/organic': [
+    'strategy.organic.edit',
+  ],
+  'PATCH /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/paid': [
+    'strategy.paid.edit',
+  ],
+  'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/audiences': [
+    'strategy.edit',
+  ],
+  'DELETE /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/audiences/:audienceId':
+    ['strategy.edit'],
+  'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/competitors': [
+    'strategy.edit',
+  ],
+  'DELETE /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/competitors/:competitorId':
+    ['strategy.edit'],
+  'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/kpis': ['strategy.edit'],
+  'DELETE /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/kpis/:kpiId': [
+    'strategy.edit',
+  ],
+  'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/gaps': ['strategy.edit'],
+  'DELETE /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/gaps/:gapId': [
+    'strategy.edit',
+  ],
+  'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/evidence-links': [
+    'strategy.evidence.link',
+  ],
+  'DELETE /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/evidence-links/:linkId':
+    ['strategy.evidence.link'],
+  'GET /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/evidence-links/:linkId': [
+    'strategy.read',
+  ],
+  'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/submit': [
+    'strategy.submit',
+  ],
+  'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/approve': [
+    'strategy.approve',
+  ],
+  'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/request-changes': [
+    'strategy.approve',
+  ],
+  'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/reject': [
+    'strategy.approve',
+  ],
+  'GET /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/comments': [
+    'strategy.read',
+  ],
+  'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/comments': [
+    'strategy.comment',
+  ],
+  'GET /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/decisions': [
+    'strategy.read',
+  ],
+  'GET /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/approval': [
+    'strategy.read',
+  ],
+  'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/revise': [
+    'strategy.edit',
+  ],
+  'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/clone': [
+    'strategy.edit',
+  ],
+  'POST /api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/ai/propose': [
+    'strategy.edit',
+  ],
+  'GET /api/v1/brands/:brandId/current-strategy': ['strategy.read'],
+  'POST /api/v1/brands/:brandId/current-strategy': ['strategy.set_current'],
 };
 
 function matchRequirements(method: string, path: string): string[] | null {
@@ -95,6 +178,128 @@ function matchRequirements(method: string, path: string): string[] | null {
       '/api/v1/brands/:brandId/insights/:insightId/reject',
     )
     .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/compare/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/compare',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/from-approved/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/from-approved',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/link-profile/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/link-profile',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/tracks\/enablement/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/tracks/enablement',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/organic/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/organic',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/paid/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/paid',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/audiences\/[^/]+/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/audiences/:audienceId',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/audiences/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/audiences',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/competitors\/[^/]+/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/competitors/:competitorId',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/competitors/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/competitors',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/kpis\/[^/]+/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/kpis/:kpiId',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/kpis/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/kpis',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/gaps\/[^/]+/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/gaps/:gapId',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/gaps/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/gaps',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/evidence-links\/[^/]+/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/evidence-links/:linkId',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/evidence-links/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/evidence-links',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/submit/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/submit',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/approve/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/approve',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/request-changes/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/request-changes',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/reject/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/reject',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/comments/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/comments',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/decisions/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/decisions',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/approval/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/approval',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/revise/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/revise',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/clone/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/clone',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+\/ai\/propose/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId/ai/propose',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions\/[^/]+/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions/:versionId',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/versions/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/versions',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+\/archive/,
+      '/api/v1/brands/:brandId/strategies/:strategyId/archive',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/strategies\/[^/]+/,
+      '/api/v1/brands/:brandId/strategies/:strategyId',
+    )
+    .replace(/\/api\/v1\/brands\/[^/]+\/strategies/, '/api/v1/brands/:brandId/strategies')
+    .replace(/\/api\/v1\/brands\/[^/]+\/current-strategy/, '/api/v1/brands/:brandId/current-strategy')
+    .replace(
       /\/api\/v1\/brands\/[^/]+\/evidence\/[^/]+/,
       '/api/v1/brands/:brandId/evidence/:evidenceId',
     )
@@ -105,7 +310,13 @@ function matchRequirements(method: string, path: string): string[] | null {
       .replace(':id', '[^/]+')
       .replace(':brandId', '[^/]+')
       .replace(':scanId', '[^/]+')
+      .replace(':strategyId', '[^/]+')
       .replace(':versionId', '[^/]+')
+      .replace(':audienceId', '[^/]+')
+      .replace(':competitorId', '[^/]+')
+      .replace(':kpiId', '[^/]+')
+      .replace(':gapId', '[^/]+')
+      .replace(':linkId', '[^/]+')
       .replace(':insightId', '[^/]+')
       .replace(':evidenceId', '[^/]+');
     if (

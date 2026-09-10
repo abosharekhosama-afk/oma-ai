@@ -56,6 +56,11 @@ export function BrandWorkspaceShell({
       label: t('brand.nav.intelligence'),
       match: (p: string) => p.includes('/profiles'),
     },
+    {
+      href: `${base}/strategies`,
+      label: t('brand.nav.strategies'),
+      match: (p: string) => p.includes('/strategies'),
+    },
   ];
 
   return (

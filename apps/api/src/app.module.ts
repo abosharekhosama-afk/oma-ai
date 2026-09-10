@@ -18,6 +18,7 @@ import { WebsiteController } from './brand/website.controller';
 import { ScanController } from './brand/scan.controller';
 import { DiscoveryController } from './discovery/discovery.controller';
 import { ProfileController } from './intelligence/profile.controller';
+import { StrategyController } from './strategy/strategy.controller';
 
 @Module({
   controllers: [
@@ -35,6 +36,7 @@ import { ProfileController } from './intelligence/profile.controller';
     ScanController,
     DiscoveryController,
     ProfileController,
+    StrategyController,
   ],
   providers: [
     { provide: APP_FILTER, useClass: DomainExceptionFilter },

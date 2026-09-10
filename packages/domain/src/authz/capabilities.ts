@@ -22,8 +22,26 @@ export const BRAND_CAPABILITIES = [
   'brand.version.approve',
 ] as const;
 
+export const STRATEGY_CAPABILITIES = [
+  'strategy.read',
+  'strategy.create',
+  'strategy.edit',
+  'strategy.organic.edit',
+  'strategy.paid.edit',
+  'strategy.evidence.link',
+  'strategy.comment',
+  'strategy.submit',
+  'strategy.approve',
+  'strategy.archive',
+  'strategy.compare',
+  'strategy.set_current',
+] as const;
+
 export type CapabilityCode =
-  (typeof FOUNDATION_CAPABILITIES)[number] | (typeof BRAND_CAPABILITIES)[number] | string;
+  | (typeof FOUNDATION_CAPABILITIES)[number]
+  | (typeof BRAND_CAPABILITIES)[number]
+  | (typeof STRATEGY_CAPABILITIES)[number]
+  | string;
 
 export function hasCapability(
   grants: readonly string[],
@@ -34,6 +52,11 @@ export function hasCapability(
   if (needed.length === 0) return true;
   const set = new Set(grants);
   return mode === 'any' ? needed.some((c) => set.has(c)) : needed.every((c) => set.has(c));
+}
+
+/** Approve package does not grant set-current (DP-003-003). */
+export function approveImpliesSetCurrent(): boolean {
+  return false;
 }
 
 export const SYSTEM_PROFILES: Record<string, string[]> = {
@@ -48,6 +71,7 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     'job.read',
     'notification.read',
     ...BRAND_CAPABILITIES,
+    ...STRATEGY_CAPABILITIES,
   ],
   COMPANY_OWNER: [
     'tenant.manage',
@@ -58,6 +82,7 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     'job.read',
     'notification.read',
     ...BRAND_CAPABILITIES,
+    ...STRATEGY_CAPABILITIES,
   ],
   MEMBER: ['notification.read', 'job.read'],
 };

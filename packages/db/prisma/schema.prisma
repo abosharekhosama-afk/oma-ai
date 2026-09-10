@@ -375,12 +375,66 @@ enum InsightCreatedBy {
   USER
 }
 
+enum StrategyStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+enum StrategyVersionStatus {
+  DRAFT
+  IN_REVIEW
+  CHANGES_REQUESTED
+  APPROVED
+  REJECTED
+  SUPERSEDED
+  ARCHIVED
+}
+
+enum StrategyAiAvailability {
+  NOT_CONFIGURED
+  UNAVAILABLE
+  REFUSED
+}
+
+enum StrategyInfoClass {
+  BRAND_LINKED
+  USER_AUTHORED
+  ASSUMPTION
+  UNKNOWN
+  RECOMMENDATION
+  AI_PROPOSAL
+}
+
+enum StrategyKpiAppliesTo {
+  STRATEGY
+  ORGANIC
+  PAID
+}
+
+enum StrategyGapKind {
+  RISK
+  ASSUMPTION
+  DEPENDENCY
+  UNKNOWN
+}
+
+enum StrategyReviewAction {
+  SUBMIT
+  COMMENT
+  REQUEST_CHANGES
+  APPROVE_PACKAGE
+  REJECT
+  ARCHIVE
+}
+
 model BrandWorkspace {
   id                            String               @id
   tenantId                      String
   name                          String
   status                        BrandWorkspaceStatus @default(DRAFT)
   currentApprovedProfileVersionId String?
+  /// Brand current approved strategy pointer (Feature 003). Never auto-set on approve.
+  currentApprovedStrategyId     String?
   primaryWebsiteSourceId        String?
   version                       Int                  @default(1)
   createdAt                     DateTime             @default(now())
@@ -397,8 +451,10 @@ model BrandWorkspace {
   insightClaims                 InsightClaim[]
   humanEdits                    HumanEdit[]
   reviewDecisions               ReviewDecision[]
+  strategies                    Strategy[]
 
   @@index([tenantId, status, updatedAt])
+  @@index([tenantId, currentApprovedStrategyId])
 }
 
 model WebsiteSource {
@@ -648,3 +704,248 @@ model ApprovalRecord {
   createdAt             DateTime       @default(now())
   profileVersion        ProfileVersion @relation(fields: [profileVersionId], references: [id])
 }
+
+/// Feature 003 — Strategy container (soft-archive only).
+model Strategy {
+  id               String         @id
+  tenantId         String
+  brandId          String
+  name             String
+  status           StrategyStatus @default(ACTIVE)
+  originStrategyId String?
+  createdByUserId  String
+  version          Int            @default(1)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  archivedAt       DateTime?
+  brand            BrandWorkspace @relation(fields: [brandId], references: [id])
+  versions         StrategyVersion[]
+
+  @@index([tenantId, brandId, updatedAt])
+  @@index([tenantId, brandId, status])
+}
+
+/// Immutable when status not DRAFT. Content PATCH Draft-only.
+model StrategyVersion {
+  id                             String                 @id
+  tenantId                       String
+  brandId                        String
+  strategyId                     String
+  status                         StrategyVersionStatus  @default(DRAFT)
+  rowVersion                     Int                    @default(1)
+  versionNumber                  Int
+  linkedApprovedProfileVersionId String?
+  draftProfileVersionId          String?
+  organicEnabled                 Boolean                @default(true)
+  paidEnabled                    Boolean                @default(false)
+  organicDisabledRationale       String?
+  paidDisabledRationale          String?
+  aiAvailability                 StrategyAiAvailability @default(NOT_CONFIGURED)
+  foundationJson                 String?
+  unknownsAcknowledged           Boolean                @default(false)
+  submittedAt                    DateTime?
+  submittedByUserId              String?
+  approvedAt                     DateTime?
+  approvedByUserId               String?
+  rejectedAt                     DateTime?
+  rejectedByUserId               String?
+  supersedesVersionId            String?
+  createdAt                      DateTime               @default(now())
+  updatedAt                      DateTime               @updatedAt
+  strategy                       Strategy               @relation(fields: [strategyId], references: [id])
+  organicTrack                   StrategyOrganicTrack?
+  paidTrack                      StrategyPaidTrack?
+  audiences                      StrategyAudience[]
+  competitors                    StrategyCompetitorReference[]
+  kpis                           StrategyKpi[]
+  gaps                           StrategyRiskAssumptionDependency[]
+  evidenceLinks                  StrategyEvidenceLink[]
+  comments                       StrategyComment[]
+  reviewDecisions                StrategyReviewDecision[]
+  approvalRecord                 StrategyApprovalRecord?
+  humanEdits                     StrategyHumanEdit[]
+
+  @@unique([strategyId, versionNumber])
+  @@index([tenantId, brandId, strategyId, createdAt])
+  @@index([linkedApprovedProfileVersionId])
+}
+
+model StrategyOrganicTrack {
+  id                 String          @id
+  tenantId           String
+  brandId            String
+  strategyVersionId  String          @unique
+  pillarsJson        String?
+  channelsJson       String?
+  formatsJson        String?
+  frequency          String?
+  communityGoals     String?
+  growthGoals        String?
+  messageCta         String?
+  funnelStagesJson   String?
+  kpisJson           String?
+  ownerRoleLabelsJson String?
+  dependenciesJson   String?
+  rowVersion         Int             @default(1)
+  version            StrategyVersion @relation(fields: [strategyVersionId], references: [id])
+}
+
+model StrategyPaidTrack {
+  id                   String          @id
+  tenantId             String
+  brandId              String
+  strategyVersionId    String          @unique
+  campaignObjectivesJson String?
+  funnelStagesJson     String?
+  audiencesJson        String?
+  offerAngle           String?
+  formatsJson          String?
+  placementsJson       String?
+  /// Planning-only budget — not live spend.
+  budgetAmount         Decimal?        @db.Decimal(18, 2)
+  budgetCurrency       String?
+  allocationJson       String?
+  expectedKpisJson     String?
+  scheduleWindowStart  DateTime?
+  scheduleWindowEnd    DateTime?
+  landingDestination   String?
+  approvalNotes        String?
+  rowVersion           Int             @default(1)
+  version              StrategyVersion @relation(fields: [strategyVersionId], references: [id])
+}
+
+model StrategyAudience {
+  id                String            @id
+  tenantId          String
+  brandId           String
+  strategyVersionId String
+  name              String
+  description       String?
+  infoClass         StrategyInfoClass @default(USER_AUTHORED)
+  sortOrder         Int               @default(0)
+  version           StrategyVersion   @relation(fields: [strategyVersionId], references: [id])
+
+  @@index([tenantId, strategyVersionId])
+}
+
+model StrategyCompetitorReference {
+  id                String            @id
+  tenantId          String
+  brandId           String
+  strategyVersionId String
+  title             String
+  sourceUrl         String?
+  sourceNote        String?
+  capturedAt        DateTime?
+  uncertainty       String?
+  infoClass         StrategyInfoClass @default(USER_AUTHORED)
+  version           StrategyVersion   @relation(fields: [strategyVersionId], references: [id])
+
+  @@index([tenantId, strategyVersionId])
+}
+
+model StrategyKpi {
+  id                String               @id
+  tenantId          String
+  brandId           String
+  strategyVersionId String
+  name              String
+  targetValue       String?
+  unit              String?
+  appliesTo         StrategyKpiAppliesTo @default(STRATEGY)
+  infoClass         StrategyInfoClass    @default(USER_AUTHORED)
+  version           StrategyVersion      @relation(fields: [strategyVersionId], references: [id])
+
+  @@index([tenantId, strategyVersionId])
+}
+
+model StrategyRiskAssumptionDependency {
+  id                String            @id
+  tenantId          String
+  brandId           String
+  strategyVersionId String
+  kind              StrategyGapKind
+  text              String
+  infoClass         StrategyInfoClass @default(ASSUMPTION)
+  version           StrategyVersion   @relation(fields: [strategyVersionId], references: [id])
+
+  @@index([tenantId, strategyVersionId])
+}
+
+model StrategyEvidenceLink {
+  id                String          @id
+  tenantId          String
+  brandId           String
+  strategyVersionId String
+  evidenceExcerptId String?
+  profileFieldKey   String?
+  label             String?
+  createdByUserId   String
+  createdAt         DateTime        @default(now())
+  version           StrategyVersion @relation(fields: [strategyVersionId], references: [id])
+
+  @@index([tenantId, strategyVersionId])
+}
+
+model StrategyComment {
+  id                String          @id
+  tenantId          String
+  brandId           String
+  strategyVersionId String
+  actorUserId       String
+  body              String
+  anchorPath        String?
+  createdAt         DateTime        @default(now())
+  version           StrategyVersion @relation(fields: [strategyVersionId], references: [id])
+
+  @@index([tenantId, strategyVersionId, createdAt])
+}
+
+model StrategyReviewDecision {
+  id                String               @id
+  tenantId          String
+  brandId           String
+  strategyVersionId String
+  actorUserId       String
+  action            StrategyReviewAction
+  comment           String?
+  capabilityCode    String
+  correlationId     String?
+  createdAt         DateTime             @default(now())
+  version           StrategyVersion      @relation(fields: [strategyVersionId], references: [id])
+
+  @@index([tenantId, strategyVersionId, createdAt])
+}
+
+model StrategyApprovalRecord {
+  id                             String          @id
+  tenantId                       String
+  brandId                        String
+  strategyVersionId              String          @unique
+  actorUserId                    String
+  capabilityCode                 String
+  linkedApprovedProfileVersionId String
+  organicEnabled                 Boolean
+  paidEnabled                    Boolean
+  comment                        String?
+  unknownsAcknowledged           Boolean         @default(false)
+  createdAt                      DateTime        @default(now())
+  version                        StrategyVersion @relation(fields: [strategyVersionId], references: [id])
+}
+
+model StrategyHumanEdit {
+  id                String          @id
+  tenantId          String
+  brandId           String
+  strategyVersionId String
+  actorUserId       String
+  fieldPath         String
+  beforeRef         String?
+  afterRef          String?
+  correlationId     String?
+  createdAt         DateTime        @default(now())
+  version           StrategyVersion @relation(fields: [strategyVersionId], references: [id])
+
+  @@index([tenantId, strategyVersionId])
+}
+

@@ -1,0 +1,44 @@
+{
+  "name": "Acme Q3 Organic-led Strategy",
+  "foundation": {
+    "goals": [{ "value": "Increase qualified organic traffic 20%", "infoClass": "USER_AUTHORED" }],
+    "positioning": {
+      "value": "The reliable partner for regional B2B services",
+      "infoClass": "USER_AUTHORED"
+    },
+    "keyMessages": [{ "value": "Evidence-backed expertise", "infoClass": "BRAND_LINKED" }],
+    "constraints": [{ "value": "No paid launch this quarter", "infoClass": "ASSUMPTION" }],
+    "marketLocale": { "value": "en-AE", "infoClass": "USER_AUTHORED" },
+    "contentPillars": [{ "value": "Thought leadership", "infoClass": "USER_AUTHORED" }],
+    "sharedChannels": [{ "value": "LinkedIn", "infoClass": "RECOMMENDATION" }]
+  },
+  "tracks": {
+    "organicEnabled": true,
+    "paidEnabled": false,
+    "paidDisabledRationale": "Budget reserved for Q4; document planning-only later"
+  },
+  "organic": {
+    "pillars": ["Expertise", "Community"],
+    "channels": ["LinkedIn", "Blog"],
+    "frequency": "3 posts / week",
+    "messageCta": "Book a discovery call"
+  },
+  "audiences": [
+    { "name": "Ops leaders", "description": "Mid-market operations", "info_class": "USER_AUTHORED" }
+  ],
+  "competitors": [
+    {
+      "title": "Rival Co",
+      "source_url": "https://example.com/rival",
+      "source_note": "Manual capture",
+      "uncertainty": "Positioning may shift",
+      "info_class": "ASSUMPTION"
+    }
+  ],
+  "kpis": [
+    { "name": "Organic sessions", "target_value": "12000", "unit": "sessions", "applies_to": "ORGANIC" }
+  ],
+  "gaps": [
+    { "kind": "UNKNOWN", "text": "Exact competitor spend unknown", "info_class": "UNKNOWN" }
+  ]
+}

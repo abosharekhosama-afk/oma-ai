@@ -9,6 +9,7 @@ import { EvidenceService } from './discovery/evidence.service';
 import { ProfileService } from './intelligence/profile.service';
 import { InsightService } from './intelligence/insight.service';
 import { ApprovalService } from './intelligence/approval.service';
+import { StrategyService } from './strategy/strategy.service';
 
 export const auditService = new AuditService();
 export const identityService = new IdentityService(auditService);
@@ -21,3 +22,4 @@ export const evidenceService = new EvidenceService();
 export const profileService = new ProfileService(auditService);
 export const insightService = new InsightService(auditService);
 export const approvalService = new ApprovalService(auditService);
+export const strategyService = new StrategyService(auditService);

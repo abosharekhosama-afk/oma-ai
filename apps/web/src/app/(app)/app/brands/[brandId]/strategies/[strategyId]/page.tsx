@@ -1,0 +1,162 @@
+'use client';
+
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { useCallback, useEffect, useState } from 'react';
+import { api } from '../../../../../../../lib/api';
+import type { BrandDetail } from '../../../../../../../lib/brand-types';
+import type { StrategyDetail } from '../../../../../../../lib/strategy-types';
+import { getApiError, isPermissionDenied, isTenantRequired } from '../../../../../../../lib/brand-api';
+import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand-workspace-shell';
+import { StrategySubnav } from '../../../../../../../components/strategy/strategy-subnav';
+import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
+import { SelectCompany } from '../../../../../../../components/shell/select-company';
+import { StatusChip } from '../../../../../../../components/ui/status-chip';
+import { useT } from '../../../../../../../lib/use-locale';
+
+export default function StrategyOverviewPage() {
+  const t = useT();
+  const params = useParams<{ brandId: string; strategyId: string }>();
+  const { brandId, strategyId } = params;
+  const [brand, setBrand] = useState<BrandDetail | null>(null);
+  const [strategy, setStrategy] = useState<StrategyDetail | null>(null);
+  const [brandVersion, setBrandVersion] = useState(1);
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [denied, setDenied] = useState(false);
+  const [tenantRequired, setTenantRequired] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      const [brandRes, stratRes, currentRes] = await Promise.all([
+        api<{ data: BrandDetail }>(`/api/v1/brands/${brandId}`),
+        api<{ data: StrategyDetail }>(`/api/v1/brands/${brandId}/strategies/${strategyId}`),
+        api<{ data: { brand_version: number } }>(`/api/v1/brands/${brandId}/current-strategy`),
+      ]);
+      setBrand(brandRes.data);
+      setStrategy(stratRes.data);
+      setBrandVersion(currentRes.data.brand_version);
+    } catch (err) {
+      if (isTenantRequired(err)) setTenantRequired(true);
+      else if (isPermissionDenied(err)) setDenied(true);
+      else setError(getApiError(err).message);
+    }
+  }, [brandId, strategyId]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  async function setCurrent(strategy_id: string | null) {
+    setMessage(null);
+    setError(null);
+    try {
+      await api(`/api/v1/brands/${brandId}/current-strategy`, {
+        method: 'POST',
+        body: JSON.stringify({ strategy_id, brand_version: brandVersion }),
+      });
+      setMessage(t('strategy.saved'));
+      await load();
+    } catch (err) {
+      const apiErr = getApiError(err);
+      setError(apiErr.code === 'CONFLICT_VERSION' ? t('strategy.conflict') : apiErr.message);
+    }
+  }
+
+  async function archive() {
+    if (!strategy) return;
+    try {
+      await api(`/api/v1/brands/${brandId}/strategies/${strategyId}/archive`, {
+        method: 'POST',
+        body: JSON.stringify({ version: strategy.version }),
+      });
+      await load();
+    } catch (err) {
+      setError(getApiError(err).message);
+    }
+  }
+
+  if (denied) return <PermissionDenied message={t('errors.permission')} />;
+  if (tenantRequired) return <SelectCompany />;
+  if (!brand || !strategy) {
+    return error ? (
+      <div className="oma-card" role="alert">
+        {error}
+      </div>
+    ) : (
+      <p role="status">{t('common.loading')}</p>
+    );
+  }
+
+  const latest = strategy.latest_version;
+
+  return (
+    <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
+      <StrategySubnav brandId={brandId} strategyId={strategyId} />
+      <header className="oma-page-header">
+        <div>
+          <h2 data-testid="strategy-name-heading">{strategy.name}</h2>
+          <div className="oma-chip-row">
+            <StatusChip status={strategy.status} />
+            {latest ? <StatusChip status={latest.status} /> : null}
+            {strategy.is_current ? (
+              <span className="oma-badge oma-badge-muted" data-testid="strategy-current-badge">
+                {t('strategy.list.current')}
+              </span>
+            ) : null}
+          </div>
+        </div>
+      </header>
+
+      {latest?.missing_source ? (
+        <div className="oma-card" role="status" data-testid="strategy-missing-profile">
+          <p>{t('strategy.warning.missingProfile')}</p>
+          <Link href={`/app/brands/${brandId}/strategies/${strategyId}/edit`} className="oma-btn">
+            {t('strategy.nav.foundation')}
+          </Link>
+        </div>
+      ) : null}
+
+      <p className="oma-muted" role="note" data-testid="strategy-ai-disclosure">
+        {t('strategy.warning.aiNotConfigured')}
+      </p>
+
+      {message ? <p role="status">{message}</p> : null}
+      {error ? (
+        <p role="alert" style={{ color: 'var(--status-danger)' }}>
+          {error}
+        </p>
+      ) : null}
+
+      <div className="oma-card" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+        {strategy.has_approved_version && !strategy.is_current ? (
+          <button
+            type="button"
+            className="oma-btn"
+            data-testid="strategy-set-current"
+            onClick={() => void setCurrent(strategyId)}
+          >
+            {t('strategy.overview.setCurrent')}
+          </button>
+        ) : null}
+        {strategy.is_current ? (
+          <button
+            type="button"
+            className="oma-btn oma-btn-secondary"
+            onClick={() => void setCurrent(null)}
+          >
+            {t('strategy.overview.clearCurrent')}
+          </button>
+        ) : null}
+        {strategy.status === 'ACTIVE' ? (
+          <button type="button" className="oma-btn oma-btn-secondary" onClick={() => void archive()}>
+            {t('strategy.overview.archive')}
+          </button>
+        ) : null}
+        <Link href={`/app/brands/${brandId}/strategies/${strategyId}/review`} className="oma-btn">
+          {t('strategy.nav.review')}
+        </Link>
+      </div>
+    </BrandWorkspaceShell>
+  );
+}
