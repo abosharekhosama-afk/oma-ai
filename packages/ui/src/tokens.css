@@ -1,16 +1,97 @@
 :root {
+  /* Color — DEC-013 / Golden Design System */
   --oma-ink: #14151a;
+  --oma-ink-subtle: #3a3d46;
+  --oma-muted: #667085;
   --oma-canvas: #f6f7fb;
   --oma-surface: #ffffff;
+  --oma-surface-raised: #ffffff;
+  --oma-border: #e3e6ed;
+  --oma-border-strong: #c9ceda;
   --oma-primary: #6658e8;
   --oma-primary-soft: #eeeafe;
+  --oma-primary-ink: #ffffff;
   --oma-signal: #12a7a1;
-  --oma-muted: #667085;
-  --oma-border: #e3e6ed;
+  --oma-signal-soft: #e6f7f6;
   --oma-review-canvas: #121419;
+  --oma-review-ink: #f3f4f6;
   --status-info: #2f6fdb;
   --status-success: #21875a;
   --status-warning: #b7791f;
   --status-danger: #c43d4b;
-  --font-sans: 'IBM Plex Sans', 'Segoe UI', sans-serif;
+  --status-neutral: #667085;
+
+  /* Typography */
+  --font-sans:
+    var(--font-plex-sans), 'IBM Plex Sans', var(--font-noto-arabic), 'Noto Sans Arabic', 'Segoe UI',
+    sans-serif;
+  --font-mono: var(--font-plex-mono), 'IBM Plex Mono', ui-monospace, monospace;
+  --text-display: 28px;
+  --leading-display: 34px;
+  --text-title: 22px;
+  --leading-title: 28px;
+  --text-title-sm: 18px;
+  --leading-title-sm: 24px;
+  --text-body: 14px;
+  --leading-body: 20px;
+  --text-label: 12px;
+  --leading-label: 16px;
+  --text-meta: 12px;
+  --leading-meta: 16px;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* Spacing (4px base) */
+  --space-0: 0;
+  --space-0-5: 2px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  /* Elevation */
+  --elev-0: none;
+  --elev-1: 0 1px 2px rgba(20, 21, 26, 0.06);
+  --elev-2: 0 8px 24px rgba(20, 21, 26, 0.12);
+
+  /* Shell geometry */
+  --shell-rail-expanded: 240px;
+  --shell-rail-collapsed: 64px;
+  --shell-top-height: 56px;
+  --shell-drawer-width: 380px;
+  --shell-main-max: 1280px;
+  --shell-z-rail: 40;
+  --shell-z-top: 50;
+  --shell-z-overlay: 60;
+  --shell-z-modal: 70;
+  --shell-z-toast: 80;
+  --shell-z-tooltip: 90;
+
+  /* Motion */
+  --motion-micro: 140ms;
+  --motion-panel: 200ms;
+  --motion-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* Icons */
+  --icon-sm: 16px;
+  --icon-md: 20px;
+  --icon-lg: 24px;
+
+  /* Focus */
+  --focus-ring: 2px solid var(--oma-primary);
+  --focus-offset: 2px;
 }

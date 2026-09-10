@@ -8,8 +8,15 @@
     scroll-behavior: auto !important;
   }
 }
+
 .oma-fade {
   transition:
-    opacity 160ms ease,
-    transform 180ms ease;
+    opacity var(--motion-micro) var(--motion-ease),
+    transform var(--motion-panel) var(--motion-ease);
+}
+
+.oma-panel-enter {
+  transition:
+    opacity var(--motion-panel) var(--motion-ease),
+    transform var(--motion-panel) var(--motion-ease);
 }
