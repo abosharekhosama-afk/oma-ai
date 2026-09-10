@@ -16,6 +16,7 @@
     "@nestjs/swagger": "^11.0.6",
     "@oma/config": "workspace:*",
     "@oma/db": "workspace:*",
+    "@oma/demo": "workspace:*",
     "@oma/domain": "workspace:*",
     "@oma/observability": "workspace:*",
     "bullmq": "^5.41.0",

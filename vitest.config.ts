@@ -25,6 +25,7 @@ export default defineConfig({
       '@oma/config': path.resolve(__dirname, 'packages/config/src/index.ts'),
       '@oma/observability': path.resolve(__dirname, 'packages/observability/src/index.ts'),
       '@oma/i18n': path.resolve(__dirname, 'packages/i18n/src/index.ts'),
+      '@oma/demo': path.resolve(__dirname, 'packages/demo/src/index.ts'),
     },
   },
 });

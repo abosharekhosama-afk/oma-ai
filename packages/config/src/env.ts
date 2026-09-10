@@ -22,10 +22,22 @@ export const envSchema = z.object({
   BRAND_MAX_BYTES: z.coerce.number().default(1_000_000),
   /** Feature 003: AI propose always refuses unless a future DEC enables a live adapter. */
   STRATEGY_AI_MODE: z.enum(['refuse', 'not_configured']).default('refuse'),
+  /**
+   * Complete-product demo surfaces. Hard-disabled when NODE_ENV=production.
+   * Allowed values: unset/0/false (off) or 1/true (on in development|test only).
+   */
+  OMA_DEMO_MODE: z
+    .enum(['0', '1', 'true', 'false'])
+    .optional()
+    .transform((v) => v === '1' || v === 'true'),
 });
 
 export type Env = z.infer<typeof envSchema>;
 
 export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
-  return envSchema.parse(source);
+  const parsed = envSchema.parse(source);
+  if (parsed.NODE_ENV === 'production' && parsed.OMA_DEMO_MODE) {
+    throw new Error('OMA_DEMO_MODE cannot activate in production');
+  }
+  return parsed;
 }
