@@ -1,10 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api } from '../../lib/api';
 import { apiMutate, getApiError } from '../../lib/brand-api';
 import { useT } from '../../lib/use-locale';
+import { ShellIcon } from './shell-icons';
 
 type NotificationItem = {
   id: string;
@@ -25,6 +26,7 @@ export function NotificationsBell() {
   const [items, setItems] = useState<NotificationItem[] | null>(null);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     api<{ items: NotificationItem[] }>('/api/v1/notifications')
@@ -34,6 +36,22 @@ export function NotificationsBell() {
         else setError(err instanceof Error ? err.message : String(err));
       });
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    function onPointer(e: MouseEvent) {
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+    }
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpen(false);
+    }
+    document.addEventListener('mousedown', onPointer);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onPointer);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
 
   async function markRead(id: string) {
     try {
@@ -54,16 +72,17 @@ export function NotificationsBell() {
   const unread = (items ?? []).filter((n) => !n.readAt).length;
 
   return (
-    <div className="oma-notifications">
+    <div className="oma-notifications" ref={rootRef}>
       <button
         type="button"
-        className="oma-btn oma-btn-secondary"
+        className="oma-icon-btn"
+        aria-label={t('shell.notifications')}
         aria-expanded={open}
         aria-controls="notifications-panel"
         onClick={() => setOpen((v) => !v)}
       >
-        {t('shell.notifications')}
-        {unread > 0 ? <span className="oma-badge">{unread}</span> : null}
+        <ShellIcon name="bell" />
+        {unread > 0 ? <span className="oma-badge oma-badge--primary">{unread}</span> : null}
       </button>
       {open ? (
         <div id="notifications-panel" className="oma-notifications-panel" role="region">

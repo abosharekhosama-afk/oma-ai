@@ -1,0 +1,388 @@
+/* Stage 1 application shell — Golden Design System */
+
+.oma-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.oma-shell {
+  display: grid;
+  grid-template-columns: var(--shell-rail-expanded) minmax(0, 1fr);
+  min-height: 100vh;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+.oma-shell[data-rail='collapsed'] {
+  grid-template-columns: var(--shell-rail-collapsed) minmax(0, 1fr);
+}
+
+.oma-rail {
+  border-inline-end: 1px solid var(--oma-border);
+  background: var(--oma-surface);
+  padding: var(--space-4) var(--space-3);
+  max-height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: sticky;
+  top: 0;
+  align-self: start;
+  z-index: var(--shell-z-rail);
+  width: var(--shell-rail-expanded);
+  box-sizing: border-box;
+}
+.oma-shell[data-rail='collapsed'] .oma-rail {
+  width: var(--shell-rail-collapsed);
+  padding-inline: var(--space-2);
+}
+.oma-rail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.oma-rail-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.oma-rail-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 24px;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-sm);
+  background: var(--oma-primary);
+  color: #fff;
+  font-size: 11px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+.oma-rail-name {
+  font-weight: var(--weight-bold);
+  font-size: var(--text-body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.oma-rail-endorsement {
+  color: var(--oma-muted);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+  margin: var(--space-2) 0 var(--space-4);
+}
+.oma-shell[data-rail='collapsed'] .oma-rail-name,
+.oma-shell[data-rail='collapsed'] .oma-rail-endorsement,
+.oma-shell[data-rail='collapsed'] .oma-nav-section,
+.oma-shell[data-rail='collapsed'] .oma-nav-link-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.oma-shell[data-rail='collapsed'] .oma-rail-collapse svg {
+  transform: rotate(180deg);
+}
+[dir='rtl'] .oma-shell[data-rail='collapsed'] .oma-rail-collapse svg {
+  transform: rotate(0deg);
+}
+[dir='rtl'] .oma-rail-collapse svg {
+  transform: rotate(180deg);
+}
+
+.oma-nav {
+  display: grid;
+  gap: var(--space-4);
+}
+.oma-nav-group {
+  display: grid;
+  gap: var(--space-1);
+}
+.oma-nav-section {
+  margin: 0;
+  padding-inline: var(--space-2);
+  font-size: 11px;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--oma-muted);
+}
+.oma-nav-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 2px;
+}
+.oma-nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  font-weight: var(--weight-medium);
+  color: var(--oma-ink);
+  min-height: 36px;
+}
+.oma-nav-link-icon {
+  flex-shrink: 0;
+  width: var(--icon-md);
+  height: var(--icon-md);
+}
+.oma-nav-link:hover {
+  background: var(--oma-canvas);
+}
+.oma-nav-link[data-active='true'] {
+  background: var(--oma-primary-soft);
+  color: var(--oma-primary);
+  font-weight: var(--weight-semibold);
+}
+.oma-nav-tooltip-wrap {
+  display: block;
+  position: relative;
+}
+.oma-tooltip-anchor {
+  position: relative;
+  display: inline-flex;
+  width: 100%;
+}
+
+.oma-shell-column {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.oma-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--shell-top-height);
+  height: var(--shell-top-height);
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--oma-border);
+  background: var(--oma-surface);
+  padding: 0 var(--space-4);
+  position: sticky;
+  top: 0;
+  z-index: var(--shell-z-top);
+}
+.oma-top-start,
+.oma-top-center,
+.oma-top-actions,
+.oma-top-context {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.oma-top-start {
+  flex: 1 1 auto;
+}
+.oma-top-center {
+  flex: 0 1 320px;
+  justify-content: center;
+}
+.oma-top-actions {
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+}
+.oma-top-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  min-height: 40px;
+  padding: var(--space-2) var(--space-4);
+  border-bottom: 1px solid var(--oma-border);
+  background: var(--oma-canvas);
+}
+.oma-top-secondary-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+.oma-brand-context,
+.oma-brand-context-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-body);
+}
+.oma-command-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: min(280px, 100%);
+  min-height: 36px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--oma-border);
+  border-radius: var(--radius-md);
+  background: var(--oma-canvas);
+  color: var(--oma-muted);
+  font: inherit;
+  font-size: var(--text-body);
+  cursor: pointer;
+}
+.oma-command-trigger:hover,
+.oma-command-trigger:focus-visible {
+  border-color: var(--oma-primary);
+  color: var(--oma-ink);
+  outline: none;
+}
+.oma-command-kbd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--oma-border);
+  background: var(--oma-surface);
+}
+.oma-command-results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 320px;
+  overflow: auto;
+  display: grid;
+  gap: 2px;
+}
+.oma-user-menu {
+  position: relative;
+}
+.oma-user-menu-panel {
+  inset-inline-end: 0;
+  inset-block-start: calc(100% + 6px);
+}
+.oma-user-menu-heading {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-label);
+  color: var(--oma-muted);
+  font-weight: var(--weight-semibold);
+}
+.oma-user-menu-row {
+  padding: var(--space-2);
+}
+
+.oma-container {
+  max-width: var(--shell-main-max);
+  margin: 0 auto;
+  padding: var(--space-5);
+  width: 100%;
+}
+
+.oma-mobile-nav-trigger {
+  display: none;
+}
+.oma-mobile-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.oma-notifications {
+  position: relative;
+}
+.oma-notifications .oma-icon-btn {
+  position: relative;
+}
+.oma-notifications .oma-badge {
+  position: absolute;
+  inset-block-start: -2px;
+  inset-inline-end: -2px;
+  min-height: 18px;
+  min-width: 18px;
+  justify-content: center;
+  margin: 0;
+  padding: 0 4px;
+  font-size: 10px;
+}
+.oma-notifications-panel {
+  position: absolute;
+  inset-inline-end: 0;
+  inset-block-start: calc(100% + 6px);
+  z-index: var(--shell-z-overlay);
+  width: min(320px, calc(100vw - 24px));
+  max-height: 360px;
+  overflow: auto;
+  padding: var(--space-3);
+  border: 1px solid var(--oma-border);
+  border-radius: var(--radius-lg);
+  background: var(--oma-surface);
+  box-shadow: var(--elev-2);
+}
+
+@media (max-width: 1279px) {
+  .oma-shell,
+  .oma-shell[data-rail='collapsed'] {
+    grid-template-columns: var(--shell-rail-collapsed) minmax(0, 1fr);
+  }
+  .oma-rail,
+  .oma-shell[data-rail='collapsed'] .oma-rail {
+    width: var(--shell-rail-collapsed);
+    padding-inline: var(--space-2);
+  }
+  .oma-rail .oma-rail-name,
+  .oma-rail .oma-rail-endorsement,
+  .oma-rail .oma-nav-section,
+  .oma-rail .oma-nav-link-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  .oma-shell,
+  .oma-shell[data-rail='collapsed'] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .oma-rail {
+    display: none;
+  }
+  .oma-mobile-nav-trigger {
+    display: inline-flex;
+  }
+  .oma-top {
+    height: auto;
+    min-height: var(--shell-top-height);
+    flex-wrap: wrap;
+    padding-block: var(--space-2);
+  }
+  .oma-top-center {
+    order: 3;
+    flex: 1 1 100%;
+  }
+  .oma-command-trigger {
+    width: 100%;
+  }
+  .oma-top-context {
+    flex-wrap: wrap;
+  }
+}

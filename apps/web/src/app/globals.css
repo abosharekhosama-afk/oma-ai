@@ -1,5 +1,7 @@
 @import '../../../../packages/ui/src/tokens.css';
 @import '../../../../packages/ui/src/motion.css';
+@import '../../../../packages/ui/src/primitives.css';
+@import '../styles/shell.css';
 
 * {
   box-sizing: border-box;
@@ -11,6 +13,8 @@ body {
   background: var(--oma-canvas);
   color: var(--oma-ink);
   font-family: var(--font-sans);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
 }
 a {
   color: inherit;
@@ -44,186 +48,40 @@ body {
   padding: 0.5rem 0.75rem;
 }
 :focus-visible {
-  outline: 2px solid var(--oma-primary);
-  outline-offset: 2px;
-}
-.oma-container {
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 1.25rem;
-}
-.oma-card {
-  background: var(--oma-surface);
-  border: 1px solid var(--oma-border);
-  border-radius: 12px;
-  padding: 1.25rem;
-}
-.oma-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--oma-primary);
-  color: white;
-  border: 0;
-  border-radius: 8px;
-  padding: 0.65rem 1rem;
-  font: inherit;
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-}
-.oma-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-.oma-input {
-  width: 100%;
-  border: 1px solid var(--oma-border);
-  border-radius: 8px;
-  padding: 0.65rem 0.75rem;
-  margin-bottom: 0.75rem;
-  /* textarea defaults to monospace without this. */
-  font: inherit;
-  color: var(--oma-ink);
-  background: var(--oma-surface);
-}
-.oma-input:focus-visible {
-  outline: 2px solid var(--oma-primary);
-  outline-offset: 1px;
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
 }
 .oma-muted {
   color: var(--oma-muted);
 }
-.oma-shell {
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  min-height: 100vh;
-}
-.oma-rail {
-  border-inline-end: 1px solid var(--oma-border);
-  background: var(--oma-surface);
-  padding: 1rem;
-  max-height: 100vh;
-  overflow-y: auto;
-  position: sticky;
-  top: 0;
-  align-self: start;
-}
-.oma-shell-column {
-  min-width: 0;
-}
-.oma-rail-brand {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.oma-rail-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 34px;
-  height: 24px;
-  padding: 0 0.35rem;
-  border-radius: 6px;
-  background: var(--oma-primary);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-}
-.oma-rail-name {
-  font-weight: 700;
-}
-.oma-rail-endorsement {
-  color: var(--oma-muted);
-  font-size: 12px;
-  margin: 0.35rem 0 1.25rem;
-}
-.oma-nav-section {
-  margin: 0 0 0.4rem;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--oma-muted);
-}
-.oma-nav-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: grid;
-  gap: 0.15rem;
-}
-.oma-nav-link {
-  display: block;
-  padding: 0.45rem 0.6rem;
-  border-radius: 8px;
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--oma-ink);
-}
-.oma-nav-link:hover {
-  background: var(--oma-canvas);
-}
-.oma-nav-link[data-active='true'] {
-  background: var(--oma-primary-soft);
-  color: var(--oma-primary);
-  font-weight: 600;
-}
-.oma-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-  border-bottom: 1px solid var(--oma-border);
-  background: var(--oma-surface);
-  padding: 0.75rem 1rem;
-}
-.oma-top-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
 .oma-shell-note {
   margin: 0;
-  font-size: 14px;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
 }
 .oma-field-inline {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 13px;
+  gap: var(--space-2);
+  font-size: var(--text-body);
 }
 .oma-field-inline-label {
   color: var(--oma-muted);
   white-space: nowrap;
 }
-.oma-select {
-  border: 1px solid var(--oma-border);
-  border-radius: 8px;
-  background: var(--oma-surface);
-  color: var(--oma-ink);
-  padding: 0.35rem 0.5rem;
-  font: inherit;
-  font-size: 13px;
-  max-width: 220px;
-}
 .oma-stack {
   display: grid;
-  gap: 1rem;
+  gap: var(--space-4);
 }
 .oma-metric {
   display: flex;
   align-items: baseline;
-  gap: 0.4rem;
-  margin: 0.75rem 0;
+  gap: var(--space-2);
+  margin: var(--space-3) 0;
 }
 .oma-metric-value {
-  font-size: 28px;
-  font-weight: 700;
+  font-size: var(--text-display);
+  font-weight: var(--weight-bold);
   line-height: 1;
 }
 .oma-metric-label {
@@ -242,40 +100,9 @@ body {
   margin-bottom: 0.5rem;
 }
 @media (max-width: 800px) {
-  .oma-shell {
-    grid-template-columns: 1fr;
-    /* Stacked rows would otherwise stretch to share the 100vh minimum, leaving
-       a blank band under the navigation. */
-    grid-template-rows: auto 1fr;
-  }
-  .oma-rail {
-    border-inline-end: 0;
-    border-bottom: 1px solid var(--oma-border);
-    padding: 0.75rem 1rem;
-    max-height: none;
-    position: static;
-    overflow-x: auto;
-  }
-  .oma-rail-endorsement {
-    margin-bottom: 0.75rem;
-  }
-  .oma-nav-list {
-    grid-auto-flow: column;
-    justify-content: start;
-    gap: 0.35rem;
-    overflow-x: auto;
-  }
   .oma-select {
     max-width: 150px;
   }
-}
-.oma-page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
 }
 .oma-filter-row {
   display: flex;
@@ -291,27 +118,6 @@ body {
 .oma-filter-row .oma-input {
   max-width: 280px;
 }
-.oma-btn-secondary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
-  color: var(--oma-ink);
-  border: 1px solid var(--oma-border);
-  border-radius: 8px;
-  padding: 0.65rem 1rem;
-  font: inherit;
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-}
-.oma-btn-secondary:hover:not(:disabled) {
-  background: var(--oma-canvas);
-}
-.oma-btn-secondary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
 .oma-link-btn {
   background: none;
   border: 0;
@@ -320,16 +126,6 @@ body {
   text-decoration: underline;
   cursor: pointer;
   font: inherit;
-}
-.oma-badge {
-  display: inline-block;
-  font-size: 12px;
-  font-weight: 600;
-  padding: 0.15rem 0.45rem;
-  border-radius: 6px;
-  background: var(--oma-primary);
-  color: white;
-  margin-inline-start: 0.5rem;
 }
 .oma-badge-muted {
   background: var(--oma-border);
@@ -691,20 +487,6 @@ body {
   flex-wrap: wrap;
   gap: 0.75rem;
   align-items: center;
-}
-.oma-notifications {
-  position: relative;
-}
-.oma-notifications-panel {
-  position: absolute;
-  inset-inline-end: 0;
-  top: calc(100% + 0.35rem);
-  width: min(20rem, 80vw);
-  background: var(--surface-raised, #fff);
-  border: 1px solid var(--border-subtle, #d8d6e5);
-  border-radius: 0.5rem;
-  padding: 0.75rem;
-  z-index: 50;
 }
 .oma-code-block {
   display: block;
