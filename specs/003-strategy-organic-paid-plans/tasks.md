@@ -82,13 +82,13 @@ Blocked tasks live in **Phase BG** (T300+) and stay `[ ]`.
 
 **Purpose**: Capability catalog, domain/API folders, test helpers, wiring stubs — no parallel tenancy/auth; no Prisma strategy models yet.
 
-- [ ] T001 Add strategy capability codes (`strategy.read`, `strategy.create`, `strategy.edit`, `strategy.organic.edit`, `strategy.paid.edit`, `strategy.evidence.link`, `strategy.comment`, `strategy.submit`, `strategy.approve`, `strategy.archive`, `strategy.compare`, `strategy.set_current`) to `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/authz/capabilities.ts` and extend `SYSTEM_PROFILES` so `COMPANY_OWNER` receives all `strategy.*` (MEMBER remains deny-by-default)
-- [ ] T002 [P] Add unit tests for strategy capability helpers and approve≠set_current separation in `/Users/burhanbakri/Downloads/oma-ai/tests/unit/strategy/strategy-capabilities.test.ts`
-- [ ] T003 Create domain package folders and barrel exports in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/strategy/index.ts`
-- [ ] T004 Create API strategy folders (services/controllers stubs only) in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/.gitkeep`
-- [ ] T005 [P] Add shared strategy test helpers (login, tenant/brand seed, capability grant, Approved profile fixture link) in `/Users/burhanbakri/Downloads/oma-ai/tests/helpers/strategy-test.ts` reusing patterns from `/Users/burhanbakri/Downloads/oma-ai/tests/helpers/brand-test.ts`
-- [ ] T006 [P] Add strategy fixture seed data (realistic review package: foundation + Organic enabled + Paid disabled+rationale) in `/Users/burhanbakri/Downloads/oma-ai/tests/fixtures/strategy/acme-strategy-review.json`
-- [ ] T007 Document strategy-related env knobs without secrets (AI refuse mode flag only; no vendor keys) in `/Users/burhanbakri/Downloads/oma-ai/packages/config/src/env.ts` and `/Users/burhanbakri/Downloads/oma-ai/.env.example`
+- [x] T001 Add strategy capability codes (`strategy.read`, `strategy.create`, `strategy.edit`, `strategy.organic.edit`, `strategy.paid.edit`, `strategy.evidence.link`, `strategy.comment`, `strategy.submit`, `strategy.approve`, `strategy.archive`, `strategy.compare`, `strategy.set_current`) to `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/authz/capabilities.ts` and extend `SYSTEM_PROFILES` so `COMPANY_OWNER` receives all `strategy.*` (MEMBER remains deny-by-default)
+- [x] T002 [P] Add unit tests for strategy capability helpers and approve≠set_current separation in `/Users/burhanbakri/Downloads/oma-ai/tests/unit/strategy/strategy-capabilities.test.ts`
+- [x] T003 Create domain package folders and barrel exports in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/strategy/index.ts`
+- [x] T004 Create API strategy folders (services/controllers stubs only) in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/.gitkeep`
+- [x] T005 [P] Add shared strategy test helpers (login, tenant/brand seed, capability grant, Approved profile fixture link) in `/Users/burhanbakri/Downloads/oma-ai/tests/helpers/strategy-test.ts` reusing patterns from `/Users/burhanbakri/Downloads/oma-ai/tests/helpers/brand-test.ts`
+- [x] T006 [P] Add strategy fixture seed data (realistic review package: foundation + Organic enabled + Paid disabled+rationale) in `/Users/burhanbakri/Downloads/oma-ai/tests/fixtures/strategy/acme-strategy-review.json`
+- [x] T007 Document strategy-related env knobs without secrets (AI refuse mode flag only; no vendor keys) in `/Users/burhanbakri/Downloads/oma-ai/packages/config/src/env.ts` and `/Users/burhanbakri/Downloads/oma-ai/.env.example`
 - [ ] T008 Assert documentation that no second tenant/auth/queue/ACL system is introduced and wiring is container+AppModule (not Nest feature-module sprawl) in `/Users/burhanbakri/Downloads/oma-ai/specs/003-strategy-organic-paid-plans/plan.md` Decision Gates sync note only if drift found
 
 **Checkpoint**: Capabilities + helpers + folders exist; refusing AI ports untouched as production default; no Prisma strategy models yet.
@@ -101,21 +101,21 @@ Blocked tasks live in **Phase BG** (T300+) and stay `[ ]`.
 
 **⚠️ CRITICAL**: User-story API work waits until migration applies cleanly on empty DB.
 
-- [ ] T009 Write failing Prisma/schema expectation tests for strategy entities in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-schema.integration.test.ts`
-- [ ] T010 Extend `BrandWorkspace` with nullable `currentApprovedStrategyId` (logical FK same tenant/brand) without breaking Feature 002 fields in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
-- [ ] T011 Add `Strategy` model (`tenantId`, `brandId`, `name`, `status`, `originStrategyId`, `version`, archive timestamps) in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
-- [ ] T012 Add `StrategyVersion` model (status, `rowVersion`, `versionNumber`, profile link fields, track enablement + rationales, `foundationJson`, `aiAvailability`, immutability comment) in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
-- [ ] T013 Add `StrategyOrganicTrack` 1:1 version model in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
-- [ ] T014 Add `StrategyPaidTrack` 1:1 version model (**no** external account/pixel/provider campaign ids) in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
-- [ ] T015 Add `StrategyAudience` model with `infoClass` in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
-- [ ] T016 Add `StrategyCompetitorReference` model (manual provenance; no fetch required) in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
-- [ ] T017 Add `StrategyKpi` model (`appliesTo` STRATEGY|ORGANIC|PAID) in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
-- [ ] T018 Add `StrategyRiskAssumptionDependency` model in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
-- [ ] T019 Add `StrategyEvidenceLink` model (logical refs to 002 `EvidenceExcerpt` / profile field keys only) in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
-- [ ] T020 Add `StrategyComment`, `StrategyReviewDecision`, unique `StrategyApprovalRecord`, and optional append-only `StrategyHumanEdit` models in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
-- [ ] T021 Add indexes `(tenantId, brandId, updatedAt)` / `(tenantId, brandId, status)` on Strategy and unique `(strategyId, versionNumber)` on StrategyVersion in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
-- [ ] T022 Generate migration under `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/migrations/` with rollback notes in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/migrations/<timestamp>_strategy_organic_paid_plans/migration.sql`
-- [ ] T023 Prove migration applies on clean database in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-migration-clean.integration.test.ts`
+- [x] T009 Write failing Prisma/schema expectation tests for strategy entities in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-schema.integration.test.ts`
+- [x] T010 Extend `BrandWorkspace` with nullable `currentApprovedStrategyId` (logical FK same tenant/brand) without breaking Feature 002 fields in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
+- [x] T011 Add `Strategy` model (`tenantId`, `brandId`, `name`, `status`, `originStrategyId`, `version`, archive timestamps) in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
+- [x] T012 Add `StrategyVersion` model (status, `rowVersion`, `versionNumber`, profile link fields, track enablement + rationales, `foundationJson`, `aiAvailability`, immutability comment) in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
+- [x] T013 Add `StrategyOrganicTrack` 1:1 version model in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
+- [x] T014 Add `StrategyPaidTrack` 1:1 version model (**no** external account/pixel/provider campaign ids) in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
+- [x] T015 Add `StrategyAudience` model with `infoClass` in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
+- [x] T016 Add `StrategyCompetitorReference` model (manual provenance; no fetch required) in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
+- [x] T017 Add `StrategyKpi` model (`appliesTo` STRATEGY|ORGANIC|PAID) in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
+- [x] T018 Add `StrategyRiskAssumptionDependency` model in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
+- [x] T019 Add `StrategyEvidenceLink` model (logical refs to 002 `EvidenceExcerpt` / profile field keys only) in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
+- [x] T020 Add `StrategyComment`, `StrategyReviewDecision`, unique `StrategyApprovalRecord`, and optional append-only `StrategyHumanEdit` models in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
+- [x] T021 Add indexes `(tenantId, brandId, updatedAt)` / `(tenantId, brandId, status)` on Strategy and unique `(strategyId, versionNumber)` on StrategyVersion in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/schema.prisma`
+- [x] T022 Generate migration under `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/migrations/` with rollback notes in `/Users/burhanbakri/Downloads/oma-ai/packages/db/prisma/migrations/<timestamp>_strategy_organic_paid_plans/migration.sql`
+- [x] T023 Prove migration applies on clean database in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-migration-clean.integration.test.ts`
 
 **Checkpoint**: Clean migrate green; T009 green; Feature 002 profile tables unchanged as SoT; no live AI/ads.
 
@@ -125,15 +125,15 @@ Blocked tasks live in **Phase BG** (T300+) and stay `[ ]`.
 
 **Purpose**: Pure domain transitions, package eligibility, pointer rules, immutability — unit-tested before services.
 
-- [ ] T024 [P] Implement Strategy container status enums/guards (`ACTIVE`→`ARCHIVED`) in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/strategy/states.ts` with tests in `/Users/burhanbakri/Downloads/oma-ai/tests/unit/strategy/states.test.ts`
-- [ ] T025 [P] Implement StrategyVersion transition table (create→DRAFT, submit, approve/reject/request-changes, revise, supersede, archive) in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/strategy/version-transitions.ts` with tests in `/Users/burhanbakri/Downloads/oma-ai/tests/unit/strategy/version-transitions.test.ts`
-- [ ] T026 [P] Implement package eligibility guards (Approved profile linked; ≥1 track enabled; disabled rationales; required fields; unknowns acknowledgment hooks) in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/strategy/package-eligibility.ts` with tests in `/Users/burhanbakri/Downloads/oma-ai/tests/unit/strategy/package-eligibility.test.ts`
-- [ ] T027 [P] Implement track enablement rules (Draft-only toggle; rationale required when disabled at submit) in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/strategy/track-enablement.ts` with tests in `/Users/burhanbakri/Downloads/oma-ai/tests/unit/strategy/track-enablement.test.ts`
-- [ ] T028 [P] Implement Brand current-pointer eligibility + §8.4 clear rules (never auto-select replacement) in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/strategy/current-pointer.ts` with tests in `/Users/burhanbakri/Downloads/oma-ai/tests/unit/strategy/current-pointer.test.ts`
-- [ ] T029 [P] Implement immutability helpers (IN_REVIEW/APPROVED/SUPERSEDED/REJECTED/CHANGES_REQUESTED/ARCHIVED freeze; Draft-only PATCH) in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/strategy/immutability.ts` with tests in `/Users/burhanbakri/Downloads/oma-ai/tests/unit/strategy/immutability.test.ts`
-- [ ] T030 [P] Implement `infoClass` validators (`BRAND_LINKED`|`USER_AUTHORED`|`ASSUMPTION`|`UNKNOWN`|`RECOMMENDATION`|`AI_PROPOSAL`) in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/strategy/info-class.ts` with tests in `/Users/burhanbakri/Downloads/oma-ai/tests/unit/strategy/info-class.test.ts`
-- [ ] T031 [US10] Document refusing-AI honesty helpers (`NOT_CONFIGURED`/`UNAVAILABLE`/`REFUSED`; never fabricate proposals) in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/strategy/ai-honesty.ts` with tests in `/Users/burhanbakri/Downloads/oma-ai/tests/unit/strategy/ai-honesty.test.ts`
-- [ ] T032 Assert domain package exports all transition/eligibility helpers from `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/strategy/index.ts`
+- [x] T024 [P] Implement Strategy container status enums/guards (`ACTIVE`→`ARCHIVED`) in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/strategy/states.ts` with tests in `/Users/burhanbakri/Downloads/oma-ai/tests/unit/strategy/states.test.ts`
+- [x] T025 [P] Implement StrategyVersion transition table (create→DRAFT, submit, approve/reject/request-changes, revise, supersede, archive) in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/strategy/version-transitions.ts` with tests in `/Users/burhanbakri/Downloads/oma-ai/tests/unit/strategy/version-transitions.test.ts`
+- [x] T026 [P] Implement package eligibility guards (Approved profile linked; ≥1 track enabled; disabled rationales; required fields; unknowns acknowledgment hooks) in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/strategy/package-eligibility.ts` with tests in `/Users/burhanbakri/Downloads/oma-ai/tests/unit/strategy/package-eligibility.test.ts`
+- [x] T027 [P] Implement track enablement rules (Draft-only toggle; rationale required when disabled at submit) in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/strategy/track-enablement.ts` with tests in `/Users/burhanbakri/Downloads/oma-ai/tests/unit/strategy/track-enablement.test.ts`
+- [x] T028 [P] Implement Brand current-pointer eligibility + §8.4 clear rules (never auto-select replacement) in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/strategy/current-pointer.ts` with tests in `/Users/burhanbakri/Downloads/oma-ai/tests/unit/strategy/current-pointer.test.ts`
+- [x] T029 [P] Implement immutability helpers (IN_REVIEW/APPROVED/SUPERSEDED/REJECTED/CHANGES_REQUESTED/ARCHIVED freeze; Draft-only PATCH) in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/strategy/immutability.ts` with tests in `/Users/burhanbakri/Downloads/oma-ai/tests/unit/strategy/immutability.test.ts`
+- [x] T030 [P] Implement `infoClass` validators (`BRAND_LINKED`|`USER_AUTHORED`|`ASSUMPTION`|`UNKNOWN`|`RECOMMENDATION`|`AI_PROPOSAL`) in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/strategy/info-class.ts` with tests in `/Users/burhanbakri/Downloads/oma-ai/tests/unit/strategy/info-class.test.ts`
+- [x] T031 [US10] Document refusing-AI honesty helpers (`NOT_CONFIGURED`/`UNAVAILABLE`/`REFUSED`; never fabricate proposals) in `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/strategy/ai-honesty.ts` with tests in `/Users/burhanbakri/Downloads/oma-ai/tests/unit/strategy/ai-honesty.test.ts`
+- [x] T032 Assert domain package exports all transition/eligibility helpers from `/Users/burhanbakri/Downloads/oma-ai/packages/domain/src/strategy/index.ts`
 
 **Checkpoint**: Domain unit suite green for transitions, DP-003 gates, pointer §8.4, immutability, infoClass.
 
@@ -147,23 +147,23 @@ Blocked tasks live in **Phase BG** (T300+) and stay `[ ]`.
 ### Tests (write first; must fail)
 
 - [ ] T033 [P] [US1] Contract tests for strategy list/create/read/patch/archive per `contracts/strategy-api.md` in `/Users/burhanbakri/Downloads/oma-ai/tests/contract/strategy-workspace.contract.test.ts`
-- [ ] T034 [P] [US1] Integration tests for strategy CRUD under Brand + soft archive in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-workspace.integration.test.ts`
-- [ ] T035 [P] [US1] Security tests for cross-tenant strategy denial without existence leak in `/Users/burhanbakri/Downloads/oma-ai/tests/security/strategy-tenant-isolation.security.test.ts`
-- [ ] T036 [P] [US1] Capability matrix tests (missing `strategy.read`/`create`/`edit`/`archive`) in `/Users/burhanbakri/Downloads/oma-ai/tests/security/strategy-capabilities.security.test.ts`
-- [ ] T037 [P] [US2] Integration tests: Draft create **without** Approved profile succeeds; missing-source / not evidence-backed; link Draft profile as `draft_aid` never satisfies gate in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-profile-gate.integration.test.ts`
+- [x] T034 [P] [US1] Integration tests for strategy CRUD under Brand + soft archive in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-workspace.integration.test.ts`
+- [x] T035 [P] [US1] Security tests for cross-tenant strategy denial without existence leak in `/Users/burhanbakri/Downloads/oma-ai/tests/security/strategy-tenant-isolation.security.test.ts`
+- [x] T036 [P] [US1] Capability matrix tests (missing `strategy.read`/`create`/`edit`/`archive`) in `/Users/burhanbakri/Downloads/oma-ai/tests/security/strategy-capabilities.security.test.ts`
+- [x] T037 [P] [US2] Integration tests: Draft create **without** Approved profile succeeds; missing-source / not evidence-backed; link Draft profile as `draft_aid` never satisfies gate in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-profile-gate.integration.test.ts`
 - [ ] T038 [P] [US2] Contract tests for `POST .../link-profile` (`approved` vs `draft_aid`) in `/Users/burhanbakri/Downloads/oma-ai/tests/contract/strategy-profile-link.contract.test.ts`
 
 ### Implementation
 
-- [ ] T039 [US1] Implement `StrategyService` create/list/get/patch/archive with `tenantWhere` + optimistic `version` in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy.service.ts`
-- [ ] T040 [US1] Implement `StrategyController` routes under `/api/v1/brands/:brandId/strategies` in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy.controller.ts`
-- [ ] T041 [US1] Register strategy route capabilities in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/common/guards/capabilities.guard.ts`, wire controller in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/app.module.ts`, and export services from `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/container.ts`
-- [ ] T042 [US2] Implement create initial `DRAFT` StrategyVersion on strategy create (profile link optional) in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-version.service.ts`
-- [ ] T043 [US2] Implement `link-profile` command: store immutable Approved `ProfileVersion` id; re-check tenant/brand + APPROVED status; never mutate 002 profile SoT in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-version.service.ts`
-- [ ] T044 [US2] Persist missing-source / evidence-backed flags from linkage state for API responses in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-version.service.ts`
-- [ ] T045 [US2] Emit audit `strategy.created` and `strategy.profile_linked` via existing AuditService from `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy.service.ts` and `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-version.service.ts`
-- [ ] T046 [US1] Prove Feature 002 `ProfileVersion` / `EvidenceExcerpt` rows are never updated by strategy commands in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-no-profile-mutation.integration.test.ts`
-- [ ] T047 [P] [US1] Extend OpenAPI for strategy routes via `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/generate-openapi.ts` (write gated) and `/Users/burhanbakri/Downloads/oma-ai/packages/api-client/openapi.json` when generated
+- [x] T039 [US1] Implement `StrategyService` create/list/get/patch/archive with `tenantWhere` + optimistic `version` in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy.service.ts`
+- [x] T040 [US1] Implement `StrategyController` routes under `/api/v1/brands/:brandId/strategies` in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy.controller.ts`
+- [x] T041 [US1] Register strategy route capabilities in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/common/guards/capabilities.guard.ts`, wire controller in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/app.module.ts`, and export services from `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/container.ts`
+- [x] T042 [US2] Implement create initial `DRAFT` StrategyVersion on strategy create (profile link optional) in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-version.service.ts`
+- [x] T043 [US2] Implement `link-profile` command: store immutable Approved `ProfileVersion` id; re-check tenant/brand + APPROVED status; never mutate 002 profile SoT in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-version.service.ts`
+- [x] T044 [US2] Persist missing-source / evidence-backed flags from linkage state for API responses in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-version.service.ts`
+- [x] T045 [US2] Emit audit `strategy.created` and `strategy.profile_linked` via existing AuditService from `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy.service.ts` and `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-version.service.ts`
+- [x] T046 [US1] Prove Feature 002 `ProfileVersion` / `EvidenceExcerpt` rows are never updated by strategy commands in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-no-profile-mutation.integration.test.ts`
+- [x] T047 [P] [US1] Extend OpenAPI for strategy routes via `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/generate-openapi.ts` (write gated) and `/Users/burhanbakri/Downloads/oma-ai/packages/api-client/openapi.json` when generated
 - [ ] T048 [US2] Integration test: Feature 002 later approves newer profile → strategy linked version unchanged until human retargets on new Draft in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-profile-link-immutability.integration.test.ts`
 
 **Checkpoint**: Strategy CRUD + isolation + DP-003-001 B linkage tests green; profile SoT untouched.
@@ -177,17 +177,17 @@ Blocked tasks live in **Phase BG** (T300+) and stay `[ ]`.
 
 ### Tests (write first)
 
-- [ ] T049 [P] [US3] Contract tests for `PATCH .../versions/:versionId` foundation fields in `/Users/burhanbakri/Downloads/oma-ai/tests/contract/strategy-foundation.contract.test.ts`
-- [ ] T050 [P] [US3] Integration tests for foundation persist + optimistic concurrency CONFLICT in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-foundation.integration.test.ts`
+- [x] T049 [P] [US3] Contract tests for `PATCH .../versions/:versionId` foundation fields in `/Users/burhanbakri/Downloads/oma-ai/tests/contract/strategy-foundation.contract.test.ts`
+- [x] T050 [P] [US3] Integration tests for foundation persist + optimistic concurrency CONFLICT in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-foundation.integration.test.ts`
 - [ ] T051 [P] [US3] Unit/integration tests: material statements require `infoClass`; UNKNOWN stays UNKNOWN in `/Users/burhanbakri/Downloads/oma-ai/tests/unit/strategy/foundation-info-class.test.ts`
 
 ### Implementation
 
-- [ ] T052 [US3] Implement Draft-only foundation PATCH with `rowVersion` bump in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-version.service.ts`
-- [ ] T053 [US3] Reject PATCH on non-Draft versions with actionable error directing to revise in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-version.service.ts`
-- [ ] T054 [US3] Validate foundationJson schema (goals, audiences refs, positioning, keyMessages, constraints, marketLocale, shared objectives, funnel, formats, cadence, timeHorizon, pillars, channels) in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/dto/foundation.dto.ts`
-- [ ] T055 [US4] Persist shared pillars/channels/funnel/formats/horizon as planning labels only (no calendar entities) in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-version.service.ts`
-- [ ] T056 [US3] Optional append-only `StrategyHumanEdit` write for Draft field changes (requires T020 model) in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-human-edit.service.ts`
+- [x] T052 [US3] Implement Draft-only foundation PATCH with `rowVersion` bump in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-version.service.ts`
+- [x] T053 [US3] Reject PATCH on non-Draft versions with actionable error directing to revise in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-version.service.ts`
+- [x] T054 [US3] Validate foundationJson schema (goals, audiences refs, positioning, keyMessages, constraints, marketLocale, shared objectives, funnel, formats, cadence, timeHorizon, pillars, channels) in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/dto/foundation.dto.ts`
+- [x] T055 [US4] Persist shared pillars/channels/funnel/formats/horizon as planning labels only (no calendar entities) in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-version.service.ts`
+- [x] T056 [US3] Optional append-only `StrategyHumanEdit` write for Draft field changes (requires T020 model) in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-human-edit.service.ts`
 - [ ] T057 [P] [US3] Idempotency optional path for foundation PATCH via Foundation `IdempotencyRecord` in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-version.service.ts`
 
 **Checkpoint**: Foundation edit + concurrency green; no calendar/Kanban side effects.
@@ -285,22 +285,22 @@ Blocked tasks live in **Phase BG** (T300+) and stay `[ ]`.
 - [ ] T094 [P] [US8] Integration: disabled track remains disabled+rationale after package approve; no separate Paid approve endpoint required in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-package-disabled-track.integration.test.ts`
 - [ ] T095 [P] [US8] Security: missing `strategy.approve` cannot package approve; AI/system principal cannot approve in `/Users/burhanbakri/Downloads/oma-ai/tests/security/strategy-approve-authz.security.test.ts`
 - [ ] T096 [P] [US8] Idempotency: duplicate approve same key → exactly one approval record / one transition in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-approve-idempotency.integration.test.ts`
-- [ ] T096a [P] [US8] Idempotency: duplicate submit same key → exactly one `IN_REVIEW` transition / one decision row in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-submit-idempotency.integration.test.ts`
+- [x] T096a [P] [US8] Idempotency: duplicate submit same key → exactly one `IN_REVIEW` transition / one decision row in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-submit-idempotency.integration.test.ts`
 - [ ] T097 [P] [US10] Contract/integration: `POST .../ai/propose` refuses with `AI_NOT_CONFIGURED`/`AI_REFUSED` and creates no fake content in `/Users/burhanbakri/Downloads/oma-ai/tests/contract/strategy-ai-propose.contract.test.ts`
 - [ ] T098 [P] [US8] Integration: approve still requires valid Approved profile linkage at decision time in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-approve-profile-revalidate.integration.test.ts`
 
 ### Implementation
 
 - [ ] T099 [US8] Implement `StrategyReviewService` submit (`DRAFT`→`IN_REVIEW`) using package-eligibility domain guards in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-review.service.ts`
-- [ ] T100 [US8] Implement request-changes / reject transitions + `StrategyReviewDecision` rows in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-review.service.ts`
-- [ ] T101 [US8] Implement package approve: freeze version `APPROVED`, snapshot linked profile + track enablement into `StrategyApprovalRecord`, supersede prior approved same strategy, **never** set `currentApprovedStrategyId` in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-review.service.ts`
-- [ ] T102 [US8] Enforce human-only approve (deny AI/system actors explicitly) in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-review.service.ts`
-- [ ] T103 [US8] Implement review controller endpoints under version path in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-review.controller.ts`
-- [ ] T104 [US8] Wire review controller in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/app.module.ts` + `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/container.ts` and capabilities in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/common/guards/capabilities.guard.ts`
-- [ ] T105 [US10] Implement `POST .../ai/propose` calling refusing `AiProviderPort` only (no SDK) in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-ai.controller.ts`; register controller in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/app.module.ts` and wire any helpers via `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/container.ts`; add route capability in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/common/guards/capabilities.guard.ts`
-- [ ] T106 [US8] Single DB transaction for submit/approve: version status + decision/approval + audit + outbox row in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-review.service.ts`
-- [ ] T107 [US8] Optimistic concurrency: stale `rowVersion` on submit/approve → CONFLICT without applying in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-review.service.ts`
-- [ ] T108 [US2] Block submit when both tracks disabled or disabled track missing rationale in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-review.service.ts`
+- [x] T100 [US8] Implement request-changes / reject transitions + `StrategyReviewDecision` rows in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-review.service.ts`
+- [x] T101 [US8] Implement package approve: freeze version `APPROVED`, snapshot linked profile + track enablement into `StrategyApprovalRecord`, supersede prior approved same strategy, **never** set `currentApprovedStrategyId` in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-review.service.ts`
+- [x] T102 [US8] Enforce human-only approve (deny AI/system actors explicitly) in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-review.service.ts`
+- [x] T103 [US8] Implement review controller endpoints under version path in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-review.controller.ts`
+- [x] T104 [US8] Wire review controller in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/app.module.ts` + `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/container.ts` and capabilities in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/common/guards/capabilities.guard.ts`
+- [x] T105 [US10] Implement `POST .../ai/propose` calling refusing `AiProviderPort` only (no SDK) in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-ai.controller.ts`; register controller in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/app.module.ts` and wire any helpers via `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/container.ts`; add route capability in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/common/guards/capabilities.guard.ts`
+- [x] T106 [US8] Single DB transaction for submit/approve: version status + decision/approval + audit + outbox row in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-review.service.ts`
+- [x] T107 [US8] Optimistic concurrency: stale `rowVersion` on submit/approve → CONFLICT without applying in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-review.service.ts`
+- [x] T108 [US2] Block submit when both tracks disabled or disabled track missing rationale in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-review.service.ts`
 
 **Checkpoint**: Package approve + profile gate + AI refuse + idempotency green; Brand current unchanged on approve.
 
@@ -313,21 +313,21 @@ Blocked tasks live in **Phase BG** (T300+) and stay `[ ]`.
 
 ### Tests (write first)
 
-- [ ] T109 [P] [US9] Contract tests for versions list/get, revise, from-approved, clone, compare in `/Users/burhanbakri/Downloads/oma-ai/tests/contract/strategy-versions.contract.test.ts`
-- [ ] T110 [P] [US9] Integration: edit approved → rejected; revise creates new Draft with next versionNumber and no approval inheritance in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-revise.integration.test.ts`
-- [ ] T111 [P] [US9] Integration: approve newer version supersedes prior within same strategy only; other strategies untouched in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-supersede.integration.test.ts`
-- [ ] T112 [P] [US9] Integration: clone to new Strategy via `originStrategyId`; never inherits approval or Brand current in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-clone.integration.test.ts`
-- [ ] T113 [P] [US9] Integration/contract: compare returns foundation + Organic + Paid field diffs in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-compare.integration.test.ts`
+- [x] T109 [P] [US9] Contract tests for versions list/get, revise, from-approved, clone, compare in `/Users/burhanbakri/Downloads/oma-ai/tests/contract/strategy-versions.contract.test.ts`
+- [x] T110 [P] [US9] Integration: edit approved → rejected; revise creates new Draft with next versionNumber and no approval inheritance in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-revise.integration.test.ts`
+- [x] T111 [P] [US9] Integration: approve newer version supersedes prior within same strategy only; other strategies untouched in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-supersede.integration.test.ts`
+- [x] T112 [P] [US9] Integration: clone to new Strategy via `originStrategyId`; never inherits approval or Brand current in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-clone.integration.test.ts`
+- [x] T113 [P] [US9] Integration/contract: compare returns foundation + Organic + Paid field diffs in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-compare.integration.test.ts`
 
 ### Implementation
 
-- [ ] T114 [US9] Implement versions list/get full package read in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-version.service.ts`
-- [ ] T115 [US9] Implement `revise` and `from-approved` creating new Draft copy (tracks + children) without mutating source in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-version.service.ts`
-- [ ] T116 [US9] Implement `clone` to new Strategy + Draft with lineage in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy.service.ts`
-- [ ] T117 [US9] Implement read-only compare projection API in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-compare.service.ts`
-- [ ] T118 [US9] Implement archive strategy command clearing Brand current if pointer matches (delegate clear to pointer rules) in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy.service.ts`
+- [x] T114 [US9] Implement versions list/get full package read in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-version.service.ts`
+- [x] T115 [US9] Implement `revise` and `from-approved` creating new Draft copy (tracks + children) without mutating source in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-version.service.ts`
+- [x] T116 [US9] Implement `clone` to new Strategy + Draft with lineage in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy.service.ts`
+- [x] T117 [US9] Implement read-only compare projection API in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-compare.service.ts`
+- [x] T118 [US9] Implement archive strategy command clearing Brand current if pointer matches (delegate clear to pointer rules) in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy.service.ts`
 - [ ] T119 [US9] Preserve comments/decisions readable across revisions (history queries) in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-review.service.ts`
-- [ ] T120 [US9] Register compare/archive/revise/clone capabilities in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/common/guards/capabilities.guard.ts`
+- [x] T120 [US9] Register compare/archive/revise/clone capabilities in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/common/guards/capabilities.guard.ts`
 
 **Checkpoint**: Immutability + revise/clone/compare/archive green; SC-SOP-007 covered.
 
@@ -340,20 +340,20 @@ Blocked tasks live in **Phase BG** (T300+) and stay `[ ]`.
 
 ### Tests (write first)
 
-- [ ] T121 [P] [US12] Contract tests for GET/POST `/api/v1/brands/:brandId/current-strategy` in `/Users/burhanbakri/Downloads/oma-ai/tests/contract/strategy-current.contract.test.ts`
-- [ ] T122 [P] [US12] Integration: approve does not set current; set-current requires non-superseded APPROVED same brand; A stays APPROVED when B becomes current in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-current-pointer.integration.test.ts`
-- [ ] T123 [P] [US12] Integration: archive current strategy clears pointer; never auto-picks another (§8.4) in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-current-clear.integration.test.ts`
-- [ ] T124 [P] [US12] Security: cross-tenant set-current deny without leak; missing `strategy.set_current` deny; AI cannot set-current in `/Users/burhanbakri/Downloads/oma-ai/tests/security/strategy-current-authz.security.test.ts`
-- [ ] T125 [P] [US12] Integration: stale `brandVersion` set-current → CONFLICT; duplicate idempotency key → one pointer change in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-current-concurrency.integration.test.ts`
-- [ ] T126 [P] [US8] Prove `strategy.approve` does **not** imply `strategy.set_current` in capability separation test `/Users/burhanbakri/Downloads/oma-ai/tests/security/strategy-approve-vs-set-current.security.test.ts`
+- [x] T121 [P] [US12] Contract tests for GET/POST `/api/v1/brands/:brandId/current-strategy` in `/Users/burhanbakri/Downloads/oma-ai/tests/contract/strategy-current.contract.test.ts`
+- [x] T122 [P] [US12] Integration: approve does not set current; set-current requires non-superseded APPROVED same brand; A stays APPROVED when B becomes current in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-current-pointer.integration.test.ts`
+- [x] T123 [P] [US12] Integration: archive current strategy clears pointer; never auto-picks another (§8.4) in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-current-clear.integration.test.ts`
+- [x] T124 [P] [US12] Security: cross-tenant set-current deny without leak; missing `strategy.set_current` deny; AI cannot set-current in `/Users/burhanbakri/Downloads/oma-ai/tests/security/strategy-current-authz.security.test.ts`
+- [x] T125 [P] [US12] Integration: stale `brandVersion` set-current → CONFLICT; duplicate idempotency key → one pointer change in `/Users/burhanbakri/Downloads/oma-ai/tests/integration/strategy-current-concurrency.integration.test.ts`
+- [x] T126 [P] [US8] Prove `strategy.approve` does **not** imply `strategy.set_current` in capability separation test `/Users/burhanbakri/Downloads/oma-ai/tests/security/strategy-approve-vs-set-current.security.test.ts`
 
 ### Implementation
 
-- [ ] T127 [US12] Implement `StrategyCurrentService` set/clear with BrandWorkspace optimistic `version` in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-current.service.ts`
-- [ ] T128 [US12] Implement current-strategy controller routes on brand path in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-current.controller.ts`
-- [ ] T129 [US12] Wire current controller in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/app.module.ts` + `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/container.ts` and `strategy.set_current` in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/common/guards/capabilities.guard.ts`
-- [ ] T130 [US12] Single TX: validate eligibility → bump brand version → set/clear pointer → audit → outbox `strategy.current_changed` in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-current.service.ts`
-- [ ] T131 [US12] Emit audit `strategy.current_set` / `strategy.current_cleared` via AuditService in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-current.service.ts`
+- [x] T127 [US12] Implement `StrategyCurrentService` set/clear with BrandWorkspace optimistic `version` in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-current.service.ts`
+- [x] T128 [US12] Implement current-strategy controller routes on brand path in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-current.controller.ts`
+- [x] T129 [US12] Wire current controller in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/app.module.ts` + `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/container.ts` and `strategy.set_current` in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/common/guards/capabilities.guard.ts`
+- [x] T130 [US12] Single TX: validate eligibility → bump brand version → set/clear pointer → audit → outbox `strategy.current_changed` in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-current.service.ts`
+- [x] T131 [US12] Emit audit `strategy.current_set` / `strategy.current_cleared` via AuditService in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-current.service.ts`
 
 **Checkpoint**: Multi-approved + pointer SC-SOP-013 green; no auto-current.
 
@@ -374,11 +374,11 @@ Blocked tasks live in **Phase BG** (T300+) and stay `[ ]`.
 
 ### Implementation
 
-- [ ] T137 [US8] Implement comments create/list with optional `anchorPath` in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-comment.service.ts`
-- [ ] T138 [US8] Emit outbox `strategy.submitted` / `strategy.comment_added` / `strategy.changes_requested` / `strategy.approved` / `strategy.rejected` / `strategy.current_changed` using Foundation OutboxEvent in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-review.service.ts` and `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-current.service.ts`
+- [x] T137 [US8] Implement comments create/list with optional `anchorPath` in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-comment.service.ts`
+- [x] T138 [US8] Emit outbox `strategy.submitted` / `strategy.comment_added` / `strategy.changes_requested` / `strategy.approved` / `strategy.rejected` / `strategy.current_changed` using Foundation OutboxEvent in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-review.service.ts` and `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-current.service.ts`
 - [ ] T139 [US8] Ensure existing worker outbox publisher delivers strategy notifications without new strategy queue in `/Users/burhanbakri/Downloads/oma-ai/apps/worker/src/processors/outbox.publisher.ts` (extend event type allowlist only if required)
 - [ ] T140 [US8] Deep-link payloads re-authorize tenant/brand/strategy on open (document + server check) in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-notification.util.ts`
-- [ ] T141 [US8] Register `strategy.comment` capability routes in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/common/guards/capabilities.guard.ts`
+- [x] T141 [US8] Register `strategy.comment` capability routes in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/common/guards/capabilities.guard.ts`
 - [ ] T142 [P] [US8] Structured logs with correlation_id/tenant/brand/strategy/version on review commands in `/Users/burhanbakri/Downloads/oma-ai/apps/api/src/strategy/strategy-review.service.ts`
 
 **Checkpoint**: Comments + audit + outbox + notifications green; no parallel notification system.
@@ -397,17 +397,17 @@ Blocked tasks live in **Phase BG** (T300+) and stay `[ ]`.
 
 ### Implementation
 
-- [ ] T145 [US1] Add Strategy Workspace list page with current badge + empty state in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/strategies/page.tsx`
-- [ ] T146 [US2] Add create strategy page (Draft allowed without Approved profile; warning) in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/strategies/new/page.tsx`
-- [ ] T147 [US2] Add strategy overview page with missing-profile warning / not evidence-backed state + link-profile UI in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/strategies/[strategyId]/page.tsx`
-- [ ] T148 [US3] Add foundation editor (Strategy canvas archetype; Jasper+Linear density adaptation; original OMA tokens) in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/strategies/[strategyId]/edit/page.tsx`
-- [ ] T149 [US5] Add Organic track editor page (distinct from Paid) in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/strategies/[strategyId]/organic/page.tsx`
-- [ ] T150 [US6] Add Paid planning editor with **Planning budget — not live ad spend** banner and not-connected ad honesty in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/strategies/[strategyId]/paid/page.tsx`
-- [ ] T151 [US7] Add evidence links panel page in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/strategies/[strategyId]/evidence/page.tsx`
-- [ ] T152 [US8] Add review page (submit/comments/request-changes/reject/package approve; no separate track approve) in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/strategies/[strategyId]/review/page.tsx`
-- [ ] T153 [US9] Add versions history + compare pages in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/strategies/[strategyId]/versions/page.tsx` and `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/strategies/[strategyId]/versions/compare/page.tsx`
+- [x] T145 [US1] Add Strategy Workspace list page with current badge + empty state in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/strategies/page.tsx`
+- [x] T146 [US2] Add create strategy page (Draft allowed without Approved profile; warning) in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/strategies/new/page.tsx`
+- [x] T147 [US2] Add strategy overview page with missing-profile warning / not evidence-backed state + link-profile UI in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/strategies/[strategyId]/page.tsx`
+- [x] T148 [US3] Add foundation editor (Strategy canvas archetype; Jasper+Linear density adaptation; original OMA tokens) in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/strategies/[strategyId]/edit/page.tsx`
+- [x] T149 [US5] Add Organic track editor page (distinct from Paid) in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/strategies/[strategyId]/organic/page.tsx`
+- [x] T150 [US6] Add Paid planning editor with **Planning budget — not live ad spend** banner and not-connected ad honesty in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/strategies/[strategyId]/paid/page.tsx`
+- [x] T151 [US7] Add evidence links panel page in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/strategies/[strategyId]/evidence/page.tsx`
+- [x] T152 [US8] Add review page (submit/comments/request-changes/reject/package approve; no separate track approve) in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/strategies/[strategyId]/review/page.tsx`
+- [x] T153 [US9] Add versions history + compare pages in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/strategies/[strategyId]/versions/page.tsx` and `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/strategies/[strategyId]/versions/compare/page.tsx`
 - [ ] T154 [US12] Add set/clear current controls (capability-gated; approve does not auto-set) on overview in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/strategy/current-strategy-controls.tsx`
-- [ ] T155 [US1] Add Brand workspace Strategy nav/tab entry filtered by `strategy.read` in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/page.tsx` (and shell nav helper if present under `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/`)
+- [x] T155 [US1] Add Brand workspace Strategy nav/tab entry filtered by `strategy.read` in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/page.tsx` (and shell nav helper if present under `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/`)
 - [ ] T156 [US10] Add shared honesty banners (AI not configured; integrations deferred) in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/strategy/honesty-banners.tsx`
 - [ ] T157 [US8] Add conflict/stale-version UX for CONCURRENCY failures in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/strategy/conflict-banner.tsx`
 - [ ] T158 [US2] Disable submit CTA with clear reason when Approved profile missing or tracks invalid in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/strategy/submit-eligibility.tsx`
@@ -421,7 +421,7 @@ Blocked tasks live in **Phase BG** (T300+) and stay `[ ]`.
 **Goal**: Bilingual strategy surfaces; RTL; keyboard primary actions; responsive Organic/Paid reachability.
 **Independent Test**: AR+RTL review path; keyboard submit/approve; states localized without leaking enums only.
 
-- [ ] T159 [P] [US11] Add EN/AR message keys for strategy surfaces in `/Users/burhanbakri/Downloads/oma-ai/packages/i18n/messages/en.json` and `/Users/burhanbakri/Downloads/oma-ai/packages/i18n/messages/ar.json`
+- [x] T159 [P] [US11] Add EN/AR message keys for strategy surfaces in `/Users/burhanbakri/Downloads/oma-ai/packages/i18n/messages/en.json` and `/Users/burhanbakri/Downloads/oma-ai/packages/i18n/messages/ar.json`
 - [ ] T160 [US11] Ensure strategy pages respect locale/dir and RTL layout mirrors in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/app/(app)/app/brands/[brandId]/strategies/`
 - [ ] T161 [US11] Keep Organic and Paid separately reachable on narrow viewports (no collapsed single ambiguous list) in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/strategy/track-tabs.tsx`
 - [ ] T162 [US11] Keyboard access to primary create/edit/submit/approve actions + focus management on dialogs in `/Users/burhanbakri/Downloads/oma-ai/apps/web/src/components/strategy/`
@@ -447,7 +447,7 @@ Blocked tasks live in **Phase BG** (T300+) and stay `[ ]`.
 
 ### E2E / proof tasks
 
-- [ ] T167 [US2] E2E PJ-01: manual create without profile → warning → submit blocked → link Approved → submit succeeds in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/strategy-pj01-profile-gate.e2e.ts`
+- [x] T167 [US2] E2E PJ-01: manual create without profile → warning → submit blocked → link Approved → submit succeeds in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/strategy-pj01-profile-gate.e2e.ts`
 - [ ] T168 [US8] E2E PJ-02: Organic enabled + Paid disabled+rationale → package approve once; AI propose refuses; AI cannot approve in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/strategy-pj02-package-approve.e2e.ts`
 - [ ] T169 [US12] E2E PJ-03: multi-approved + set-current + archive clears pointer without auto-select + cross-tenant deny in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/strategy-pj03-current-pointer.e2e.ts`
 - [ ] T170 [US9] E2E PJ-04: immutability + revise + supersede; Brand current unchanged unless set-current in `/Users/burhanbakri/Downloads/oma-ai/tests/e2e/strategy-pj04-revise-immutability.e2e.ts`
