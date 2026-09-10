@@ -1196,6 +1196,258 @@
           "Strategy"
         ]
       }
+    },
+    "/api/v1/demo/status": {
+      "get": {
+        "operationId": "DemoController_status",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/graph": {
+      "get": {
+        "operationId": "DemoController_graph",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/journey": {
+      "get": {
+        "operationId": "DemoController_journey",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/campaigns": {
+      "get": {
+        "operationId": "DemoController_campaigns",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/campaigns/{id}": {
+      "get": {
+        "operationId": "DemoController_campaign",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/content": {
+      "get": {
+        "operationId": "DemoController_content",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/requests": {
+      "get": {
+        "operationId": "DemoController_requests",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/requests/{id}": {
+      "get": {
+        "operationId": "DemoController_request",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/tasks": {
+      "get": {
+        "operationId": "DemoController_tasks",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/deliverables": {
+      "get": {
+        "operationId": "DemoController_deliverables",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/deliverables/{id}": {
+      "get": {
+        "operationId": "DemoController_deliverable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/schedule": {
+      "get": {
+        "operationId": "DemoController_schedule",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/analytics": {
+      "get": {
+        "operationId": "DemoController_analytics",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/team": {
+      "get": {
+        "operationId": "DemoController_team",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/activity": {
+      "get": {
+        "operationId": "DemoController_activity",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/notifications": {
+      "get": {
+        "operationId": "DemoController_notifications",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/integrations": {
+      "get": {
+        "operationId": "DemoController_integrations",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/command-center": {
+      "get": {
+        "operationId": "DemoController_commandCenter",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
     }
   },
   "info": {
