@@ -78,10 +78,11 @@ Status: all rows below are **REBUILD** or **PARTIAL** unless noted.
 
 ## Stage 4 — Requests + Tasks + Production
 
-**Routes:** `/app/requests/**`, `/app/tasks`  
-**Components:** Kanban*, Drawer, CommentThread (light)  
-**Reference:** Linear board/drawer + Workfront workflow concepts  
-**Done when:** V-REQ-_, V-TSK-_ pass.
+**Routes:** `/app/requests/**`, `/app/tasks`
+**Components:** Kanban*, Drawer, CommentThread (light), structured Brief editor, Request inbox table
+**Reference:** Linear board/drawer + Workfront workflow concepts + Planable content-link cues
+**Evidence:** `artifacts/visual-parity-004/stage4-requests-tasks-production/` · `.reference/004-visual-parity/ours/stage4-requests-tasks-production/`
+**Done when:** V-REQ-01/02, V-BRF-01, V-TSK-01/02/03, V-WRK-01, V-LINK-02 pass with Playwright + Demo API persistence (not screenshots alone).
 
 ## Stage 5 — Deliverables + Reviews
 

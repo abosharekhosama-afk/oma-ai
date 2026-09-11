@@ -122,4 +122,106 @@ describe('demo API security', () => {
     expect([403, 404]).toContain(deniedPost.status);
     process.env.OMA_DEMO_MODE = prev;
   });
+
+  it('creates/updates request, brief, task move and rejects invalid transition + demo-off', async () => {
+    const prev = process.env.OMA_DEMO_MODE;
+    process.env.OMA_DEMO_MODE = '1';
+    const seed = await seedBrandTenant();
+    closers.push(async () => seed.app.close());
+    const headers = {
+      'content-type': 'application/json',
+      cookie: Object.entries(seed.cookies)
+        .map(([k, v]) => `${k}=${v}`)
+        .join('; '),
+      'x-csrf-token': seed.csrf ?? '',
+    };
+
+    const created = await fetch(`${seed.baseUrl}/api/v1/demo/requests`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        title: { en: 'Security request', ar: 'طلب أمني' },
+        description: { en: 'Body', ar: 'نص' },
+        type: 'DESIGN',
+        brandId: 'demo-brand-horizon',
+        priority: 'HIGH',
+        dueAt: '2026-09-28',
+        requester: 'Security Owner',
+        channels: ['Instagram'],
+        formats: ['Static'],
+      }),
+    });
+    expect([200, 201]).toContain(created.status);
+    const requestBody = (await created.json()) as { data: { id: string } };
+    const requestId = requestBody.data.id;
+
+    const brief = await fetch(`${seed.baseUrl}/api/v1/demo/requests/${requestId}/brief`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        overview: { en: 'O', ar: 'ن' },
+        objective: { en: 'Objective', ar: 'هدف' },
+        audience: { en: 'Audience', ar: 'جمهور' },
+        keyMessage: { en: 'Key', ar: 'رسالة' },
+        deliverableType: { en: 'Static', ar: 'ثابت' },
+        channels: ['Instagram'],
+        formats: ['1080'],
+        tone: { en: 'Calm', ar: 'هادئ' },
+        mandatory: { en: 'Logo', ar: 'شعار' },
+        cta: { en: 'Shop', ar: 'تسوق' },
+        acceptance: { en: 'OK', ar: 'موافق' },
+      }),
+    });
+    expect([200, 201]).toContain(brief.status);
+
+    const convert = await fetch(`${seed.baseUrl}/api/v1/demo/requests/${requestId}/convert`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({}),
+    });
+    expect([200, 201]).toContain(convert.status);
+    const convertBody = (await convert.json()) as {
+      data: { tasks: Array<{ id: string; status: string }> };
+    };
+    const taskId = convertBody.data.tasks[0]!.id;
+
+    const move = await fetch(`${seed.baseUrl}/api/v1/demo/tasks/${taskId}`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({ status: 'IN_PROGRESS' }),
+    });
+    expect([200, 201]).toContain(move.status);
+
+    const invalid = await fetch(`${seed.baseUrl}/api/v1/demo/tasks/${taskId}`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({ status: 'BACKLOG' }),
+    });
+    // IN_PROGRESS → BACKLOG not allowed
+    expect([400, 422]).toContain(invalid.status);
+
+    const comment = await fetch(`${seed.baseUrl}/api/v1/demo/tasks/${taskId}/comments`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        author: 'Security Owner',
+        body: { en: 'Note', ar: 'ملاحظة' },
+      }),
+    });
+    expect([200, 201]).toContain(comment.status);
+
+    process.env.OMA_DEMO_MODE = '0';
+    const denied = await fetch(`${seed.baseUrl}/api/v1/demo/requests`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        title: { en: 'Nope', ar: 'لا' },
+        brandId: 'demo-brand-horizon',
+        dueAt: '2026-09-28',
+        requester: 'X',
+      }),
+    });
+    expect([403, 404]).toContain(denied.status);
+    process.env.OMA_DEMO_MODE = prev;
+  });
 });

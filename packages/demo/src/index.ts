@@ -11,7 +11,7 @@ export type DemoCampaignStatus =
   'DRAFT' | 'ACTIVE' | 'NEEDS_ATTENTION' | 'IN_REVIEW' | 'UPCOMING' | 'COMPLETED' | 'ARCHIVED';
 export type DemoContentStatus = 'DRAFT' | 'SCHEDULED' | 'PUBLISHED_DEMO' | 'IN_REVIEW' | 'APPROVED';
 export type DemoTaskStatus =
-  'BACKLOG' | 'IN_PROGRESS' | 'BLOCKED' | 'IN_REVIEW' | 'DONE' | 'OVERDUE';
+  'BACKLOG' | 'READY' | 'IN_PROGRESS' | 'BLOCKED' | 'IN_REVIEW' | 'DONE' | 'OVERDUE';
 export type DemoDeliverableType =
   'STATIC' | 'CAROUSEL' | 'REEL' | 'LONG_VIDEO' | 'COPY' | 'PHOTOGRAPHY';
 export type DemoReviewStatus = 'AWAITING_REVIEW' | 'CHANGES_REQUESTED' | 'APPROVED' | 'REJECTED';
@@ -74,39 +74,76 @@ export type DemoGraph = {
     id: string;
     brandId: string;
     campaignId: string | null;
+    contentId: string | null;
     title: DemoLocaleCopy;
+    description: DemoLocaleCopy;
+    type: 'CONTENT' | 'DESIGN' | 'VIDEO' | 'CAMPAIGN_SUPPORT' | 'REVISION' | 'OTHER';
     priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
-    status: 'OPEN' | 'IN_BRIEF' | 'IN_PRODUCTION' | 'DONE';
+    status:
+      | 'OPEN'
+      | 'ASSIGNED'
+      | 'IN_BRIEF'
+      | 'WAITING_INFO'
+      | 'READY_FOR_PRODUCTION'
+      | 'IN_PRODUCTION'
+      | 'DONE'
+      | 'CLOSED';
     dueAt: string;
+    submittedAt: string;
     requester: string;
+    assignee: string | null;
     briefId: string | null;
+    outcome?: DemoLocaleCopy;
+    formats?: string[];
+    channels?: string[];
+    references?: string[];
+    conversionTaskIds?: string[];
   }>;
   briefs: Array<{
     id: string;
     requestId: string;
+    overview: DemoLocaleCopy;
     objective: DemoLocaleCopy;
     audience: DemoLocaleCopy;
+    keyMessage: DemoLocaleCopy;
+    deliverableType: DemoLocaleCopy;
     channels: string[];
     formats: string[];
+    tone: DemoLocaleCopy;
+    mandatory: DemoLocaleCopy;
+    cta: DemoLocaleCopy;
     references: string[];
+    doList: DemoLocaleCopy[];
+    dontList: DemoLocaleCopy[];
+    timelineNote: DemoLocaleCopy;
+    stakeholders: string[];
+    acceptance: DemoLocaleCopy;
     dueAt: string;
     attachmentAssets: string[];
+    readiness: 'DRAFT' | 'INCOMPLETE' | 'READY';
   }>;
   tasks: Array<{
     id: string;
     brandId: string;
+    campaignId: string | null;
+    contentId: string | null;
     requestId: string | null;
+    briefId: string | null;
     deliverableId: string | null;
     title: DemoLocaleCopy;
+    description: DemoLocaleCopy;
     type: 'DESIGN' | 'COPY' | 'VIDEO' | 'PHOTO';
     status: DemoTaskStatus;
     assignee: string;
     department: string;
     priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
     dueAt: string;
+    updatedAt: string;
+    blockedReason: DemoLocaleCopy | null;
     dependencies: string[];
     checklist: Array<{ id: string; label: DemoLocaleCopy; done: boolean }>;
     comments: Array<{ id: string; author: string; body: DemoLocaleCopy; at: string }>;
+    activity: Array<{ id: string; at: string; actor: string; summary: DemoLocaleCopy }>;
   }>;
   deliverables: Array<{
     id: string;
@@ -589,21 +626,237 @@ export const DEMO_GRAPH: DemoGraph = {
       id: 'demo-request-1',
       brandId: 'demo-brand-horizon',
       campaignId: 'demo-campaign-organic',
-      title: {
-        en: 'New autumn lookbook assets',
-        ar: 'أصول كتالوج الخريف الجديد',
+      contentId: 'demo-content-carousel',
+      title: { en: 'New autumn lookbook assets', ar: 'أصول كتالوج الخريف الجديد' },
+      description: {
+        en: 'Need bilingual autumn lookbook set for always-on organic.',
+        ar: 'نحتاج مجموعة كتالوج خريف ثنائية اللغة للحملة العضوية المستمرة.',
       },
+      type: 'DESIGN',
       priority: 'HIGH',
       status: 'IN_PRODUCTION',
       dueAt: '2026-09-18',
+      submittedAt: '2026-09-01',
       requester: 'Client — Horizon Marketing',
+      assignee: 'Layla Haddad',
       briefId: 'demo-brief-1',
+      outcome: {
+        en: 'Approved carousel + supporting statics ready for schedule',
+        ar: 'كاروسيل معتمد وثوابت داعمة جاهزة للجدول',
+      },
+      formats: ['Carousel', 'Static'],
+      channels: ['Instagram', 'TikTok'],
+      references: ['Q2 hero set'],
+      conversionTaskIds: ['demo-task-design', 'demo-task-overdue'],
+    },
+    {
+      id: 'demo-request-2',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-paid',
+      contentId: 'demo-content-paid-static',
+      title: { en: 'Paid launch cutdowns', ar: 'مقاطع إطلاق مدفوعة مختصرة' },
+      description: {
+        en: 'Six-second motion cutdowns for planning-only paid push.',
+        ar: 'مقاطع حركة من 6 ثوانٍ لدفعة مدفوعة تخطيطية فقط.',
+      },
+      type: 'VIDEO',
+      priority: 'URGENT',
+      status: 'WAITING_INFO',
+      dueAt: '2026-09-12',
+      submittedAt: '2026-09-05',
+      requester: 'Omar Faris',
+      assignee: null,
+      briefId: 'demo-brief-2',
+      formats: ['Reel', 'Story'],
+      channels: ['Meta Ads', 'TikTok Ads'],
+      references: [],
+      conversionTaskIds: [],
+    },
+    {
+      id: 'demo-request-3',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-organic',
+      contentId: null,
+      title: { en: 'LinkedIn founders note revision', ar: 'مراجعة رسالة المؤسسين على لينكدإن' },
+      description: {
+        en: 'Revise published demo note tone for executive audience.',
+        ar: 'مراجعة نبرة الرسالة التجريبية للجمهور التنفيذي.',
+      },
+      type: 'REVISION',
+      priority: 'MEDIUM',
+      status: 'ASSIGNED',
+      dueAt: '2026-09-22',
+      submittedAt: '2026-09-08',
+      requester: 'Layla Haddad',
+      assignee: 'Maya Nasser',
+      briefId: 'demo-brief-3',
+      formats: ['Post'],
+      channels: ['LinkedIn'],
+      conversionTaskIds: ['demo-task-copy-li'],
+    },
+    {
+      id: 'demo-request-4',
+      brandId: 'demo-brand-horizon',
+      campaignId: null,
+      contentId: null,
+      title: { en: 'Untriaged product drop teaser', ar: 'تشويقية إطلاق منتج غير مصنّفة' },
+      description: {
+        en: 'Client asked for a teaser but did not specify channel or format.',
+        ar: 'طلب العميل تشويقية دون تحديد القناة أو الصيغة.',
+      },
+      type: 'CONTENT',
+      priority: 'HIGH',
+      status: 'OPEN',
+      dueAt: '2026-09-25',
+      submittedAt: '2026-09-10',
+      requester: 'Client — Horizon Marketing',
+      assignee: null,
+      briefId: null,
+      formats: [],
+      channels: [],
+      conversionTaskIds: [],
+    },
+    {
+      id: 'demo-request-5',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-attention',
+      contentId: 'demo-content-overdue',
+      title: { en: 'Unblock retargeting square', ar: 'فك اختناق مربع إعادة الاستهداف' },
+      description: {
+        en: 'Creative stuck in review ahead of paid window.',
+        ar: 'إبداع عالق في المراجعة قبل نافذة المدفوع.',
+      },
+      type: 'CAMPAIGN_SUPPORT',
+      priority: 'URGENT',
+      status: 'READY_FOR_PRODUCTION',
+      dueAt: '2026-09-09',
+      submittedAt: '2026-09-03',
+      requester: 'Omar Faris',
+      assignee: 'Rami Khalil',
+      briefId: 'demo-brief-5',
+      formats: ['Static'],
+      channels: ['Meta Ads'],
+      conversionTaskIds: ['demo-task-ready-1'],
+    },
+    {
+      id: 'demo-request-6',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-draft',
+      contentId: 'demo-content-email',
+      title: { en: 'Holiday email soft teaser', ar: 'بريد تشويقي ناعم للعطلة' },
+      description: {
+        en: 'Warm the list without hard sell; draft campaign only.',
+        ar: 'تدفئة القائمة دون بيع قاسٍ؛ حملة مسودة فقط.',
+      },
+      type: 'CONTENT',
+      priority: 'LOW',
+      status: 'IN_BRIEF',
+      dueAt: '2026-10-05',
+      submittedAt: '2026-09-09',
+      requester: 'Sara Alami',
+      assignee: 'Sara Alami',
+      briefId: 'demo-brief-6',
+      formats: ['Email'],
+      channels: ['Email'],
+      conversionTaskIds: [],
+    },
+    {
+      id: 'demo-request-7',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-organic',
+      contentId: 'demo-content-tiktok',
+      title: { en: 'Behind-the-rack TikTok shoot', ar: 'تصوير تيك توك خلف الرف' },
+      description: {
+        en: 'Capture quiet chaos before doors open.',
+        ar: 'التقاط فوضى هادئة قبل فتح الأبواب.',
+      },
+      type: 'VIDEO',
+      priority: 'MEDIUM',
+      status: 'IN_PRODUCTION',
+      dueAt: '2026-09-17',
+      submittedAt: '2026-09-06',
+      requester: 'Maya Nasser',
+      assignee: 'Rami Khalil',
+      briefId: 'demo-brief-7',
+      formats: ['Reel'],
+      channels: ['TikTok'],
+      conversionTaskIds: ['demo-task-video-tiktok'],
+    },
+    {
+      id: 'demo-request-8',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-done',
+      contentId: null,
+      title: { en: 'Spring soft launch wrap-up', ar: 'إغلاق الإطلاق الناعم للربيع' },
+      description: {
+        en: 'Archive remaining assets from completed campaign.',
+        ar: 'أرشفة الأصول المتبقية من الحملة المكتملة.',
+      },
+      type: 'OTHER',
+      priority: 'LOW',
+      status: 'DONE',
+      dueAt: '2026-04-20',
+      submittedAt: '2026-04-10',
+      requester: 'Maya Nasser',
+      assignee: 'Layla Haddad',
+      briefId: null,
+      formats: [],
+      channels: ['Instagram'],
+      conversionTaskIds: [],
+    },
+    {
+      id: 'demo-request-9',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-organic',
+      contentId: 'demo-content-story',
+      title: { en: 'Fitting room poll story', ar: 'قصة استطلاع غرفة القياس' },
+      description: {
+        en: 'Light mid-week engagement story.',
+        ar: 'قصة تفاعل خفيفة لمنتصف الأسبوع.',
+      },
+      type: 'CONTENT',
+      priority: 'MEDIUM',
+      status: 'ASSIGNED',
+      dueAt: '2026-09-11',
+      submittedAt: '2026-09-07',
+      requester: 'Maya Nasser',
+      assignee: 'Maya Nasser',
+      briefId: 'demo-brief-9',
+      formats: ['Story'],
+      channels: ['Instagram'],
+      conversionTaskIds: ['demo-task-story'],
+    },
+    {
+      id: 'demo-request-10',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-paid',
+      contentId: null,
+      title: { en: 'Closed duplicate spend ask', ar: 'طلب إنفاق مكرر مغلق' },
+      description: {
+        en: 'Client asked for live ad spend — closed as planning-only.',
+        ar: 'طلب العميل إنفاقًا مباشرًا — أُغلق كتخطيط فقط.',
+      },
+      type: 'CAMPAIGN_SUPPORT',
+      priority: 'LOW',
+      status: 'CLOSED',
+      dueAt: '2026-09-05',
+      submittedAt: '2026-09-02',
+      requester: 'Client — Horizon Marketing',
+      assignee: 'Omar Faris',
+      briefId: null,
+      formats: [],
+      channels: ['Meta Ads'],
+      conversionTaskIds: [],
     },
   ],
   briefs: [
     {
       id: 'demo-brief-1',
       requestId: 'demo-request-1',
+      overview: {
+        en: 'Autumn lookbook package for organic always-on.',
+        ar: 'حزمة كتالوج الخريف للحملة العضوية المستمرة.',
+      },
       objective: {
         en: 'Launch autumn palette with bilingual captions',
         ar: 'إطلاق لوحة الخريف بعناوين ثنائية اللغة',
@@ -612,26 +865,208 @@ export const DEMO_GRAPH: DemoGraph = {
         en: 'Existing customers + warm prospects',
         ar: 'عملاء حاليون + مهتمون دافئون',
       },
+      keyMessage: {
+        en: 'Warm neutrals, unhurried craft.',
+        ar: 'حيادي دافئ وحرفية بلا استعجال.',
+      },
+      deliverableType: { en: 'Carousel + static set', ar: 'كاروسيل ومجموعة ثابتة' },
       channels: ['Instagram', 'TikTok'],
-      formats: ['Carousel', 'Reel', 'Static'],
+      formats: ['Carousel 1080×1080', 'Static 4:5'],
+      tone: { en: 'Calm, tactile, bilingual', ar: 'هادئ وملموس وثنائي اللغة' },
+      mandatory: {
+        en: 'Logo clear space, Arabic first on AR locale',
+        ar: 'مساحة شعار واضحة والعربية أولًا في الواجهة العربية',
+      },
+      cta: { en: 'Shop neutrals', ar: 'تسوق الحيادي' },
       references: ['Moodboard — warm neutrals', 'Prior Q2 hero set'],
+      doList: [{ en: 'Show fabric texture close-ups', ar: 'أظهر لقطات قريبة لملمس القماش' }],
+      dontList: [{ en: 'No hard sale overlays', ar: 'لا طبقات بيع قاسية' }],
+      timelineNote: {
+        en: 'Design due Sep 11; schedule window Sep 14',
+        ar: 'التصميم بحلول 11 سبتمبر؛ نافذة الجدول 14 سبتمبر',
+      },
+      stakeholders: ['Layla Haddad', 'Rami Khalil', 'Client — Horizon Marketing'],
+      acceptance: {
+        en: 'Client approves carousel v2 contrast fix',
+        ar: 'اعتماد العميل لإصلاح تباين كاروسيل v2',
+      },
       dueAt: '2026-09-18',
       attachmentAssets: ['/demo/poster-static.svg'],
+      readiness: 'READY',
+    },
+    {
+      id: 'demo-brief-2',
+      requestId: 'demo-request-2',
+      overview: { en: 'Paid cutdowns — incomplete', ar: 'مقاطع مدفوعة — ناقصة' },
+      objective: {
+        en: 'Produce 6s hooks for planning board',
+        ar: 'إنتاج خطافات 6 ثوانٍ للوحة التخطيط',
+      },
+      audience: { en: 'Cart abandoners', ar: 'متخلّو السلة' },
+      keyMessage: { en: '', ar: '' },
+      deliverableType: { en: 'Motion cutdown', ar: 'مقطع حركة مختصر' },
+      channels: ['Meta Ads'],
+      formats: ['6s vertical'],
+      tone: { en: '', ar: '' },
+      mandatory: { en: 'No live spend claims', ar: 'لا ادعاءات إنفاق مباشر' },
+      cta: { en: '', ar: '' },
+      references: [],
+      doList: [],
+      dontList: [{ en: 'Do not imply live Meta connection', ar: 'لا توحي باتصال ميتا حي' }],
+      timelineNote: { en: 'Blocked on brand end-frame asset', ar: 'متوقف على أصل الإطار الختامي' },
+      stakeholders: ['Omar Faris'],
+      acceptance: { en: '', ar: '' },
+      dueAt: '2026-09-12',
+      attachmentAssets: [],
+      readiness: 'INCOMPLETE',
+    },
+    {
+      id: 'demo-brief-3',
+      requestId: 'demo-request-3',
+      overview: { en: 'LinkedIn revision brief', ar: 'موجز مراجعة لينكدإن' },
+      objective: {
+        en: 'Soften founders note for executives',
+        ar: 'تلطيف رسالة المؤسسين للمديرين',
+      },
+      audience: { en: 'Gulf executives', ar: 'مديرون تنفيذيون في الخليج' },
+      keyMessage: {
+        en: 'Offline-first craft still matters',
+        ar: 'الحرفية دون اتصال ما زالت مهمة',
+      },
+      deliverableType: { en: 'Copy revision', ar: 'مراجعة نص' },
+      channels: ['LinkedIn'],
+      formats: ['Long post'],
+      tone: { en: 'Thoughtful, concise', ar: 'متأنٍ وموجز' },
+      mandatory: { en: 'Keep bilingual closing', ar: 'أبقِ خاتمة ثنائية اللغة' },
+      cta: { en: 'Read more', ar: 'اقرأ المزيد' },
+      references: ['Published demo note'],
+      doList: [{ en: 'Lead with craft', ar: 'ابدأ بالحرفية' }],
+      dontList: [{ en: 'No promo stickers', ar: 'لا ملصقات ترويجية' }],
+      timelineNote: { en: 'Due Sep 22', ar: 'الاستحقاق 22 سبتمبر' },
+      stakeholders: ['Layla Haddad', 'Maya Nasser'],
+      acceptance: { en: 'Layla signs off tone', ar: 'اعتماد ليلى للنبرة' },
+      dueAt: '2026-09-22',
+      attachmentAssets: ['/demo/poster-static.svg'],
+      readiness: 'READY',
+    },
+    {
+      id: 'demo-brief-5',
+      requestId: 'demo-request-5',
+      overview: { en: 'Retargeting square unblock', ar: 'فك اختناق مربع إعادة الاستهداف' },
+      objective: {
+        en: 'Clear review so paid planning window can proceed',
+        ar: 'إنهاء المراجعة لمتابعة نافذة التخطيط المدفوع',
+      },
+      audience: { en: 'Recent abandoners', ar: 'متخلّون حديثون' },
+      keyMessage: { en: 'Soft reminder, still deciding?', ar: 'تذكير لطيف، ما زلت تقرر؟' },
+      deliverableType: { en: '1:1 static', ar: 'ثابت 1:1' },
+      channels: ['Meta Ads'],
+      formats: ['1080×1080'],
+      tone: { en: 'Gentle urgency', ar: 'إلحاح لطيف' },
+      mandatory: { en: 'Planning-only badge in internal notes', ar: 'شارة تخطيط فقط في الملاحظات' },
+      cta: { en: 'Return to bag', ar: 'ارجع إلى الحقيبة' },
+      references: ['demo-content-overdue'],
+      doList: [{ en: 'Keep copy under 90 chars', ar: 'أبقِ النص أقل من 90 حرفًا' }],
+      dontList: [{ en: 'No discount claim', ar: 'لا ادعاء خصم' }],
+      timelineNote: { en: 'Overdue relative to Sep 8 review', ar: 'متأخر عن مراجعة 8 سبتمبر' },
+      stakeholders: ['Omar Faris', 'Rami Khalil'],
+      acceptance: { en: 'Approved static linked to deliverable', ar: 'ثابت معتمد مرتبط بالمخرج' },
+      dueAt: '2026-09-09',
+      attachmentAssets: ['/demo/poster-static.svg'],
+      readiness: 'READY',
+    },
+    {
+      id: 'demo-brief-6',
+      requestId: 'demo-request-6',
+      overview: { en: 'Holiday email — draft', ar: 'بريد العطلة — مسودة' },
+      objective: { en: 'Warm list without hard sell', ar: 'تدفئة القائمة دون بيع قاسٍ' },
+      audience: { en: 'Warm email list', ar: 'قائمة البريد الدافئة' },
+      keyMessage: { en: 'Something warm is coming', ar: 'شيء دافئ قادم' },
+      deliverableType: { en: 'Email', ar: 'بريد' },
+      channels: ['Email'],
+      formats: ['HTML email'],
+      tone: { en: 'Soft tease', ar: 'تشويق ناعم' },
+      mandatory: { en: '', ar: '' },
+      cta: { en: 'Stay close', ar: 'ابقَ قريبًا' },
+      references: [],
+      doList: [],
+      dontList: [],
+      timelineNote: { en: 'October send window', ar: 'نافذة إرسال أكتوبر' },
+      stakeholders: ['Sara Alami'],
+      acceptance: { en: '', ar: '' },
+      dueAt: '2026-10-05',
+      attachmentAssets: [],
+      readiness: 'DRAFT',
+    },
+    {
+      id: 'demo-brief-7',
+      requestId: 'demo-request-7',
+      overview: { en: 'TikTok behind-the-rack', ar: 'تيك توك خلف الرف' },
+      objective: { en: 'Show operational craft', ar: 'إظهار حرفية التشغيل' },
+      audience: { en: 'Young fashion followers', ar: 'متابعو الموضة الشباب' },
+      keyMessage: { en: 'Quiet chaos before doors open', ar: 'فوضى هادئة قبل فتح الأبواب' },
+      deliverableType: { en: 'Vertical reel', ar: 'ريل عمودي' },
+      channels: ['TikTok'],
+      formats: ['9:16'],
+      tone: { en: 'Documentary-lite', ar: 'وثائقي خفيف' },
+      mandatory: { en: 'No competitor logos in frame', ar: 'لا شعارات منافسين في الإطار' },
+      cta: { en: 'Follow', ar: 'تابع' },
+      references: ['Studio morning reel'],
+      doList: [{ en: 'Natural sound bed', ar: 'خلفية صوت طبيعية' }],
+      dontList: [{ en: 'No heavy text stickers', ar: 'لا ملصقات نصية ثقيلة' }],
+      timelineNote: { en: 'Shoot Sep 15, edit Sep 17', ar: 'تصوير 15 وتعديل 17 سبتمبر' },
+      stakeholders: ['Maya Nasser', 'Rami Khalil'],
+      acceptance: { en: 'Approved cut under 20s', ar: 'نسخة معتمدة أقل من 20 ثانية' },
+      dueAt: '2026-09-17',
+      attachmentAssets: ['/demo/video-poster.svg'],
+      readiness: 'READY',
+    },
+    {
+      id: 'demo-brief-9',
+      requestId: 'demo-request-9',
+      overview: { en: 'Poll story brief', ar: 'موجز قصة الاستطلاع' },
+      objective: { en: 'Light mid-week engagement', ar: 'تفاعل خفيف منتصف الأسبوع' },
+      audience: { en: 'IG story viewers', ar: 'مشاهدو قصص إنستغرام' },
+      keyMessage: { en: 'Which hem wins?', ar: 'أي طول يفوز؟' },
+      deliverableType: { en: 'Story poll', ar: 'استطلاع قصة' },
+      channels: ['Instagram'],
+      formats: ['Story 9:16'],
+      tone: { en: 'Playful', ar: 'مرح' },
+      mandatory: { en: 'Two clear options', ar: 'خياران واضحان' },
+      cta: { en: 'Vote', ar: 'صوّت' },
+      references: [],
+      doList: [{ en: 'Use studio lighting stills', ar: 'استخدم لقطات إضاءة الاستوديو' }],
+      dontList: [{ en: 'No paid media language', ar: 'لا لغة إعلام مدفوع' }],
+      timelineNote: { en: 'Publish Sep 11 evening', ar: 'نشر مساء 11 سبتمبر' },
+      stakeholders: ['Maya Nasser'],
+      acceptance: { en: 'Story approved in schedule preview', ar: 'قصة معتمدة في معاينة الجدول' },
+      dueAt: '2026-09-11',
+      attachmentAssets: ['/demo/poster-carousel-2.svg'],
+      readiness: 'READY',
     },
   ],
   tasks: [
     {
       id: 'demo-task-design',
       brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-organic',
+      contentId: 'demo-content-carousel',
       requestId: 'demo-request-1',
+      briefId: 'demo-brief-1',
       deliverableId: 'demo-deliv-carousel',
       title: { en: 'Design carousel v2', ar: 'تصميم الكاروسيل الإصدار 2' },
+      description: {
+        en: 'Strengthen CTA contrast and export 1080 assets.',
+        ar: 'تعزيز تباين الدعوة وتصدير أصول 1080.',
+      },
       type: 'DESIGN',
       status: 'IN_REVIEW',
       assignee: 'Rami Khalil',
       department: 'Design',
       priority: 'HIGH',
       dueAt: '2026-09-11',
+      updatedAt: '2026-09-09T16:00:00+03:00',
+      blockedReason: null,
       dependencies: [],
       checklist: [
         { id: 'c1', label: { en: 'Slide hierarchy', ar: 'تسلسل الشرائح' }, done: true },
@@ -649,38 +1084,431 @@ export const DEMO_GRAPH: DemoGraph = {
           at: '2026-09-09T14:20:00+03:00',
         },
       ],
+      activity: [
+        {
+          id: 'act1',
+          at: '2026-09-09T14:20:00+03:00',
+          actor: 'Layla Haddad',
+          summary: { en: 'Moved to In review', ar: 'نُقلت إلى قيد المراجعة' },
+        },
+      ],
     },
     {
       id: 'demo-task-overdue',
       brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-paid',
+      contentId: 'demo-content-paid-static',
       requestId: 'demo-request-1',
+      briefId: 'demo-brief-1',
       deliverableId: 'demo-deliv-static',
       title: { en: 'Paid hero retouch', ar: 'تنقيح بطل الإعلان المدفوع' },
+      description: {
+        en: 'Color grade and 4:5 crop for planning-only paid hero.',
+        ar: 'تصحيح ألوان وقص 4:5 لبطل مدفوع تخطيطي فقط.',
+      },
       type: 'PHOTO',
       status: 'OVERDUE',
       assignee: 'Sara Alami',
       department: 'Photography',
       priority: 'URGENT',
       dueAt: '2026-09-08',
+      updatedAt: '2026-09-08T18:00:00+03:00',
+      blockedReason: {
+        en: 'Waiting on approved crop notes',
+        ar: 'بانتظار ملاحظات القص المعتمدة',
+      },
       dependencies: [],
       checklist: [{ id: 'c4', label: { en: 'Color grade', ar: 'تصحيح الألوان' }, done: false }],
       comments: [],
+      activity: [
+        {
+          id: 'act2',
+          at: '2026-09-08T18:00:00+03:00',
+          actor: 'system',
+          summary: { en: 'Marked overdue', ar: 'وُسمت كمتأخرة' },
+        },
+      ],
     },
     {
       id: 'demo-task-video',
       brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-organic',
+      contentId: 'demo-content-reel',
       requestId: null,
+      briefId: null,
       deliverableId: 'demo-deliv-reel',
       title: { en: 'Edit morning reel', ar: 'مونتاج الريل الصباحي' },
+      description: { en: 'Final cut approved.', ar: 'النسخة النهائية معتمدة.' },
       type: 'VIDEO',
       status: 'DONE',
       assignee: 'Maya Nasser',
       department: 'Video',
       priority: 'MEDIUM',
       dueAt: '2026-09-10',
+      updatedAt: '2026-09-10T11:00:00+03:00',
+      blockedReason: null,
+      dependencies: [],
+      checklist: [
+        { id: 'c5', label: { en: 'Color pass', ar: 'مرور ألوان' }, done: true },
+        { id: 'c6', label: { en: 'Export master', ar: 'تصدير الماستر' }, done: true },
+      ],
+      comments: [],
+      activity: [],
+    },
+    {
+      id: 'demo-task-backlog-brief',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-organic',
+      contentId: null,
+      requestId: 'demo-request-4',
+      briefId: null,
+      deliverableId: null,
+      title: { en: 'Clarify teaser channel', ar: 'توضيح قناة التشويقية' },
+      description: {
+        en: 'Gather missing channel/format before briefing.',
+        ar: 'جمع القناة/الصيغة الناقصة قبل الموجز.',
+      },
+      type: 'COPY',
+      status: 'BACKLOG',
+      assignee: 'Unassigned',
+      department: 'Production',
+      priority: 'HIGH',
+      dueAt: '2026-09-20',
+      updatedAt: '2026-09-10T09:00:00+03:00',
+      blockedReason: null,
       dependencies: [],
       checklist: [],
       comments: [],
+      activity: [],
+    },
+    {
+      id: 'demo-task-ready-1',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-attention',
+      contentId: 'demo-content-overdue',
+      requestId: 'demo-request-5',
+      briefId: 'demo-brief-5',
+      deliverableId: 'demo-deliv-static',
+      title: { en: 'Prep retargeting square export', ar: 'تجهيز تصدير مربع إعادة الاستهداف' },
+      description: { en: 'Ready after brief completeness.', ar: 'جاهز بعد اكتمال الموجز.' },
+      type: 'DESIGN',
+      status: 'READY',
+      assignee: 'Rami Khalil',
+      department: 'Design',
+      priority: 'URGENT',
+      dueAt: '2026-09-10',
+      updatedAt: '2026-09-09T10:00:00+03:00',
+      blockedReason: null,
+      dependencies: [],
+      checklist: [
+        { id: 'c7', label: { en: 'Lock copy', ar: 'تثبيت النص' }, done: true },
+        { id: 'c8', label: { en: 'Export PNG', ar: 'تصدير PNG' }, done: false },
+      ],
+      comments: [],
+      activity: [],
+    },
+    {
+      id: 'demo-task-progress-1',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-organic',
+      contentId: 'demo-content-tiktok',
+      requestId: 'demo-request-7',
+      briefId: 'demo-brief-7',
+      deliverableId: null,
+      title: { en: 'Shoot behind-the-rack B-roll', ar: 'تصوير لقطات خلف الرف' },
+      description: { en: 'In-progress capture day.', ar: 'يوم تصوير قيد التنفيذ.' },
+      type: 'VIDEO',
+      status: 'IN_PROGRESS',
+      assignee: 'Maya Nasser',
+      department: 'Video',
+      priority: 'MEDIUM',
+      dueAt: '2026-09-15',
+      updatedAt: '2026-09-10T12:00:00+03:00',
+      blockedReason: null,
+      dependencies: [],
+      checklist: [
+        { id: 'c9', label: { en: 'Location scout', ar: 'معاينة الموقع' }, done: true },
+        { id: 'c10', label: { en: 'Capture takes', ar: 'التقاط اللقطات' }, done: false },
+        { id: 'c11', label: { en: 'Select selects', ar: 'اختيار اللقطات' }, done: false },
+      ],
+      comments: [
+        {
+          id: 'cm2',
+          author: 'Rami Khalil',
+          body: { en: 'Doorways look good at 7am light.', ar: 'المداخل تبدو جيدة بضوء السابعة.' },
+          at: '2026-09-10T08:00:00+03:00',
+        },
+      ],
+      activity: [],
+    },
+    {
+      id: 'demo-task-blocked-1',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-paid',
+      contentId: 'demo-content-paid-video',
+      requestId: 'demo-request-2',
+      briefId: 'demo-brief-2',
+      deliverableId: null,
+      title: { en: 'Assemble paid cutdown board', ar: 'تجميع لوحة المقاطع المدفوعة' },
+      description: {
+        en: 'Blocked on incomplete brief key message.',
+        ar: 'متوقف على رسالة الموجز الناقصة.',
+      },
+      type: 'VIDEO',
+      status: 'BLOCKED',
+      assignee: 'Maya Nasser',
+      department: 'Video',
+      priority: 'HIGH',
+      dueAt: '2026-09-13',
+      updatedAt: '2026-09-09T11:00:00+03:00',
+      blockedReason: {
+        en: 'Brief missing key message and CTA',
+        ar: 'الموجز ينقصه الرسالة الرئيسية ودعوة الإجراء',
+      },
+      dependencies: [],
+      checklist: [
+        { id: 'c12', label: { en: 'Receive end-frame', ar: 'استلام الإطار الختامي' }, done: false },
+      ],
+      comments: [],
+      activity: [
+        {
+          id: 'act3',
+          at: '2026-09-09T11:00:00+03:00',
+          actor: 'Maya Nasser',
+          summary: { en: 'Status → Blocked', ar: 'الحالة ← متوقف' },
+        },
+      ],
+    },
+    {
+      id: 'demo-task-copy-li',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-organic',
+      contentId: 'demo-content-published',
+      requestId: 'demo-request-3',
+      briefId: 'demo-brief-3',
+      deliverableId: 'demo-deliv-copy',
+      title: { en: 'Rewrite founders note', ar: 'إعادة كتابة رسالة المؤسسين' },
+      description: { en: 'Assigned LinkedIn revision.', ar: 'مراجعة لينكدإن معيّنة.' },
+      type: 'COPY',
+      status: 'READY',
+      assignee: 'Maya Nasser',
+      department: 'Copy',
+      priority: 'MEDIUM',
+      dueAt: '2026-09-22',
+      updatedAt: '2026-09-08T15:00:00+03:00',
+      blockedReason: null,
+      dependencies: [],
+      checklist: [
+        { id: 'c13', label: { en: 'Draft EN', ar: 'مسودة إنجليزية' }, done: true },
+        { id: 'c14', label: { en: 'Draft AR', ar: 'مسودة عربية' }, done: false },
+      ],
+      comments: [],
+      activity: [],
+    },
+    {
+      id: 'demo-task-story',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-organic',
+      contentId: 'demo-content-story',
+      requestId: 'demo-request-9',
+      briefId: 'demo-brief-9',
+      deliverableId: null,
+      title: { en: 'Build poll story frames', ar: 'بناء إطارات قصة الاستطلاع' },
+      description: { en: 'Two-option hem poll.', ar: 'استطلاع طول بخيارين.' },
+      type: 'DESIGN',
+      status: 'IN_PROGRESS',
+      assignee: 'Maya Nasser',
+      department: 'Design',
+      priority: 'MEDIUM',
+      dueAt: '2026-09-11',
+      updatedAt: '2026-09-10T10:00:00+03:00',
+      blockedReason: null,
+      dependencies: [],
+      checklist: [
+        { id: 'c15', label: { en: 'Frame A', ar: 'إطار أ' }, done: true },
+        { id: 'c16', label: { en: 'Frame B', ar: 'إطار ب' }, done: true },
+        { id: 'c17', label: { en: 'Sticker poll', ar: 'ملصق الاستطلاع' }, done: false },
+      ],
+      comments: [],
+      activity: [],
+    },
+    {
+      id: 'demo-task-video-tiktok',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-organic',
+      contentId: 'demo-content-tiktok',
+      requestId: 'demo-request-7',
+      briefId: 'demo-brief-7',
+      deliverableId: null,
+      title: { en: 'Edit TikTok cut', ar: 'مونتاج مقطع تيك توك' },
+      description: { en: 'Follows shoot task.', ar: 'يتبع مهمة التصوير.' },
+      type: 'VIDEO',
+      status: 'BACKLOG',
+      assignee: 'Rami Khalil',
+      department: 'Video',
+      priority: 'MEDIUM',
+      dueAt: '2026-09-17',
+      updatedAt: '2026-09-06T12:00:00+03:00',
+      blockedReason: null,
+      dependencies: ['demo-task-progress-1'],
+      checklist: [],
+      comments: [],
+      activity: [],
+    },
+    {
+      id: 'demo-task-email-draft',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-draft',
+      contentId: 'demo-content-email',
+      requestId: 'demo-request-6',
+      briefId: 'demo-brief-6',
+      deliverableId: null,
+      title: { en: 'Draft holiday email HTML', ar: 'مسودة HTML لبريد العطلة' },
+      description: { en: 'Waiting on brief readiness.', ar: 'بانتظار جاهزية الموجز.' },
+      type: 'COPY',
+      status: 'BACKLOG',
+      assignee: 'Sara Alami',
+      department: 'Copy',
+      priority: 'LOW',
+      dueAt: '2026-10-02',
+      updatedAt: '2026-09-09T09:00:00+03:00',
+      blockedReason: null,
+      dependencies: [],
+      checklist: [
+        { id: 'c18', label: { en: 'Outline sections', ar: 'تخطيط الأقسام' }, done: false },
+      ],
+      comments: [],
+      activity: [],
+    },
+    {
+      id: 'demo-task-review-hand',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-organic',
+      contentId: 'demo-content-carousel',
+      requestId: 'demo-request-1',
+      briefId: 'demo-brief-1',
+      deliverableId: 'demo-deliv-carousel',
+      title: { en: 'Handoff carousel to review', ar: 'تسليم الكاروسيل للمراجعة' },
+      description: {
+        en: 'Production handoff placeholder toward Stage 5 review.',
+        ar: 'تسليم إنتاجي مؤقت نحو مراجعة المرحلة 5.',
+      },
+      type: 'DESIGN',
+      status: 'IN_REVIEW',
+      assignee: 'Layla Haddad',
+      department: 'Production',
+      priority: 'HIGH',
+      dueAt: '2026-09-12',
+      updatedAt: '2026-09-10T13:00:00+03:00',
+      blockedReason: null,
+      dependencies: ['demo-task-design'],
+      checklist: [
+        { id: 'c19', label: { en: 'Link deliverable', ar: 'ربط المخرج' }, done: true },
+        { id: 'c20', label: { en: 'Notify reviewer', ar: 'إشعار المراجع' }, done: false },
+      ],
+      comments: [],
+      activity: [],
+    },
+    {
+      id: 'demo-task-done-archive',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-done',
+      contentId: null,
+      requestId: 'demo-request-8',
+      briefId: null,
+      deliverableId: null,
+      title: { en: 'Archive spring assets', ar: 'أرشفة أصول الربيع' },
+      description: { en: 'Completed wrap-up.', ar: 'إغلاق مكتمل.' },
+      type: 'PHOTO',
+      status: 'DONE',
+      assignee: 'Layla Haddad',
+      department: 'Production',
+      priority: 'LOW',
+      dueAt: '2026-04-18',
+      updatedAt: '2026-04-18T16:00:00+03:00',
+      blockedReason: null,
+      dependencies: [],
+      checklist: [
+        {
+          id: 'c21',
+          label: { en: 'Move to archive folder', ar: 'نقل إلى مجلد الأرشيف' },
+          done: true,
+        },
+      ],
+      comments: [],
+      activity: [],
+    },
+    {
+      id: 'demo-task-backlog-2',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-organic',
+      contentId: 'demo-content-li-carousel',
+      requestId: null,
+      briefId: null,
+      deliverableId: null,
+      title: { en: 'Team craft carousel outline', ar: 'مخطط كاروسيل حرفة الفريق' },
+      description: { en: 'Unassigned backlog item.', ar: 'عنصر تراكم غير معيّن.' },
+      type: 'COPY',
+      status: 'BACKLOG',
+      assignee: 'Unassigned',
+      department: 'Copy',
+      priority: 'LOW',
+      dueAt: '2026-09-24',
+      updatedAt: '2026-09-08T10:00:00+03:00',
+      blockedReason: null,
+      dependencies: [],
+      checklist: [],
+      comments: [],
+      activity: [],
+    },
+    {
+      id: 'demo-task-progress-2',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-organic',
+      contentId: null,
+      requestId: 'demo-request-1',
+      briefId: 'demo-brief-1',
+      deliverableId: null,
+      title: { en: 'Write bilingual captions pack', ar: 'كتابة حزمة عناوين ثنائية' },
+      description: { en: 'Caption variants for lookbook.', ar: 'تنويعات عناوين للكتالوج.' },
+      type: 'COPY',
+      status: 'IN_PROGRESS',
+      assignee: 'Layla Haddad',
+      department: 'Copy',
+      priority: 'HIGH',
+      dueAt: '2026-09-14',
+      updatedAt: '2026-09-10T11:30:00+03:00',
+      blockedReason: null,
+      dependencies: [],
+      checklist: [
+        { id: 'c22', label: { en: 'EN set', ar: 'مجموعة إنجليزية' }, done: true },
+        { id: 'c23', label: { en: 'AR set', ar: 'مجموعة عربية' }, done: false },
+      ],
+      comments: [],
+      activity: [],
+    },
+    {
+      id: 'demo-task-ready-2',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-organic',
+      contentId: 'demo-content-reel',
+      requestId: null,
+      briefId: null,
+      deliverableId: 'demo-deliv-reel',
+      title: { en: 'Schedule reel readiness check', ar: 'فحص جاهزية جدولة الريل' },
+      description: { en: 'Preview-only schedule readiness.', ar: 'جاهزية جدول للمعاينة فقط.' },
+      type: 'VIDEO',
+      status: 'READY',
+      assignee: 'Omar Faris',
+      department: 'Production',
+      priority: 'MEDIUM',
+      dueAt: '2026-09-12',
+      updatedAt: '2026-09-09T17:00:00+03:00',
+      blockedReason: null,
+      dependencies: ['demo-task-video'],
+      checklist: [{ id: 'c24', label: { en: 'Confirm poster', ar: 'تأكيد الملصق' }, done: true }],
+      comments: [],
+      activity: [],
     },
   ],
   deliverables: [
@@ -1210,6 +2038,376 @@ export class DemoDataProvider {
     return 'CLEAR';
   }
 
+  getTask(id: string) {
+    return this.graph.tasks.find((t) => t.id === id) ?? null;
+  }
+
+  getBrief(id: string) {
+    return this.graph.briefs.find((b) => b.id === id) ?? null;
+  }
+
+  createRequest(input: {
+    title: DemoLocaleCopy;
+    description?: DemoLocaleCopy;
+    type: DemoGraph['requests'][number]['type'];
+    brandId: string;
+    campaignId?: string | null;
+    contentId?: string | null;
+    priority: DemoGraph['requests'][number]['priority'];
+    dueAt: string;
+    requester: string;
+    assignee?: string | null;
+    channels?: string[];
+    formats?: string[];
+    outcome?: DemoLocaleCopy;
+  }) {
+    const id = `demo-request-${Date.now().toString(36)}`;
+    const row: DemoGraph['requests'][number] = {
+      id,
+      brandId: input.brandId,
+      campaignId: input.campaignId ?? null,
+      contentId: input.contentId ?? null,
+      title: input.title,
+      description: input.description ?? { en: '', ar: '' },
+      type: input.type,
+      priority: input.priority,
+      status: input.assignee ? 'ASSIGNED' : 'OPEN',
+      dueAt: input.dueAt,
+      submittedAt: new Date().toISOString().slice(0, 10),
+      requester: input.requester,
+      assignee: input.assignee ?? null,
+      briefId: null,
+      outcome: input.outcome,
+      formats: input.formats ?? [],
+      channels: input.channels ?? [],
+      references: [],
+      conversionTaskIds: [],
+    };
+    this.graph.requests = [row, ...this.graph.requests];
+    return row;
+  }
+
+  updateRequest(
+    id: string,
+    patch: Partial<
+      Pick<
+        DemoGraph['requests'][number],
+        | 'title'
+        | 'description'
+        | 'status'
+        | 'priority'
+        | 'assignee'
+        | 'dueAt'
+        | 'campaignId'
+        | 'contentId'
+        | 'briefId'
+        | 'conversionTaskIds'
+      >
+    >,
+  ) {
+    const idx = this.graph.requests.findIndex((r) => r.id === id);
+    if (idx < 0) return null;
+    const current = this.graph.requests[idx]!;
+    const next = { ...current, ...patch };
+    this.graph.requests = [
+      ...this.graph.requests.slice(0, idx),
+      next,
+      ...this.graph.requests.slice(idx + 1),
+    ];
+    return next;
+  }
+
+  upsertBrief(
+    requestId: string,
+    patch: Partial<DemoGraph['briefs'][number]> & {
+      readiness?: DemoGraph['briefs'][number]['readiness'];
+    },
+  ) {
+    const request = this.getRequest(requestId);
+    if (!request) throw new Error('Request not found');
+    const existing = this.graph.briefs.find((b) => b.requestId === requestId);
+    if (existing) {
+      const next = { ...existing, ...patch, requestId };
+      next.readiness = patch.readiness ?? this.briefReadiness(next);
+      this.graph.briefs = this.graph.briefs.map((b) => (b.id === existing.id ? next : b));
+      if (next.readiness === 'READY' && request.status === 'IN_BRIEF') {
+        this.updateRequest(requestId, { status: 'READY_FOR_PRODUCTION' });
+      }
+      return next;
+    }
+    const id = `demo-brief-${Date.now().toString(36)}`;
+    const empty = { en: '', ar: '' };
+    const row: DemoGraph['briefs'][number] = {
+      id,
+      requestId,
+      overview: patch.overview ?? empty,
+      objective: patch.objective ?? empty,
+      audience: patch.audience ?? empty,
+      keyMessage: patch.keyMessage ?? empty,
+      deliverableType: patch.deliverableType ?? empty,
+      channels: patch.channels ?? [],
+      formats: patch.formats ?? [],
+      tone: patch.tone ?? empty,
+      mandatory: patch.mandatory ?? empty,
+      cta: patch.cta ?? empty,
+      references: patch.references ?? [],
+      doList: patch.doList ?? [],
+      dontList: patch.dontList ?? [],
+      timelineNote: patch.timelineNote ?? empty,
+      stakeholders: patch.stakeholders ?? [],
+      acceptance: patch.acceptance ?? empty,
+      dueAt: patch.dueAt ?? request.dueAt,
+      attachmentAssets: patch.attachmentAssets ?? [],
+      readiness: 'DRAFT',
+    };
+    row.readiness = patch.readiness ?? this.briefReadiness(row);
+    this.graph.briefs = [row, ...this.graph.briefs];
+    this.updateRequest(requestId, {
+      briefId: id,
+      status: row.readiness === 'READY' ? 'READY_FOR_PRODUCTION' : 'IN_BRIEF',
+    });
+    return row;
+  }
+
+  briefReadiness(brief: DemoGraph['briefs'][number]): 'DRAFT' | 'INCOMPLETE' | 'READY' {
+    const required = [
+      brief.objective,
+      brief.audience,
+      brief.keyMessage,
+      brief.cta,
+      brief.acceptance,
+    ];
+    const filled = required.every((c) => c.en.trim().length > 0);
+    const hasChannels = brief.channels.length > 0 && brief.formats.length > 0;
+    if (!filled && !brief.overview.en.trim()) return 'DRAFT';
+    if (!filled || !hasChannels) return 'INCOMPLETE';
+    return 'READY';
+  }
+
+  convertBriefToTasks(requestId: string) {
+    const request = this.getRequest(requestId);
+    if (!request) throw new Error('Request not found');
+    if (request.conversionTaskIds && request.conversionTaskIds.length > 0) {
+      return this.graph.tasks.filter((t) => request.conversionTaskIds!.includes(t.id));
+    }
+    const brief = this.graph.briefs.find((b) => b.requestId === requestId);
+    if (!brief || this.briefReadiness(brief) !== 'READY') {
+      throw new Error('Brief is not ready for production');
+    }
+    const typeMap: Record<string, DemoGraph['tasks'][number]['type']> = {
+      DESIGN: 'DESIGN',
+      VIDEO: 'VIDEO',
+      CONTENT: 'COPY',
+      REVISION: 'COPY',
+      CAMPAIGN_SUPPORT: 'DESIGN',
+      OTHER: 'COPY',
+    };
+    const id = `demo-task-${Date.now().toString(36)}`;
+    const now = new Date().toISOString();
+    const task: DemoGraph['tasks'][number] = {
+      id,
+      brandId: request.brandId,
+      campaignId: request.campaignId,
+      contentId: request.contentId,
+      requestId,
+      briefId: brief.id,
+      deliverableId: null,
+      title: {
+        en: `Produce: ${request.title.en}`,
+        ar: `إنتاج: ${request.title.ar}`,
+      },
+      description: brief.objective,
+      type: typeMap[request.type] ?? 'DESIGN',
+      status: 'READY',
+      assignee: request.assignee ?? 'Unassigned',
+      department: 'Production',
+      priority: request.priority,
+      dueAt: brief.dueAt,
+      updatedAt: now,
+      blockedReason: null,
+      dependencies: [],
+      checklist: [
+        {
+          id: `${id}-c1`,
+          label: { en: 'Confirm brief acceptance', ar: 'تأكيد قبول الموجز' },
+          done: false,
+        },
+        {
+          id: `${id}-c2`,
+          label: { en: 'Deliver first draft', ar: 'تسليم المسودة الأولى' },
+          done: false,
+        },
+      ],
+      comments: [],
+      activity: [
+        {
+          id: `${id}-a1`,
+          at: now,
+          actor: 'system',
+          summary: {
+            en: 'Created from ready brief',
+            ar: 'أُنشئت من موجز جاهز',
+          },
+        },
+      ],
+    };
+    this.graph.tasks = [task, ...this.graph.tasks];
+    this.updateRequest(requestId, {
+      conversionTaskIds: [id],
+      status: 'IN_PRODUCTION',
+    });
+    return [task];
+  }
+
+  createTask(input: {
+    title: DemoLocaleCopy;
+    description?: DemoLocaleCopy;
+    brandId: string;
+    campaignId?: string | null;
+    contentId?: string | null;
+    requestId?: string | null;
+    briefId?: string | null;
+    type: DemoGraph['tasks'][number]['type'];
+    status?: DemoTaskStatus;
+    assignee: string;
+    priority: DemoGraph['tasks'][number]['priority'];
+    dueAt: string;
+  }) {
+    const id = `demo-task-${Date.now().toString(36)}`;
+    const now = new Date().toISOString();
+    const row: DemoGraph['tasks'][number] = {
+      id,
+      brandId: input.brandId,
+      campaignId: input.campaignId ?? null,
+      contentId: input.contentId ?? null,
+      requestId: input.requestId ?? null,
+      briefId: input.briefId ?? null,
+      deliverableId: null,
+      title: input.title,
+      description: input.description ?? { en: '', ar: '' },
+      type: input.type,
+      status: input.status ?? 'BACKLOG',
+      assignee: input.assignee,
+      department: 'Production',
+      priority: input.priority,
+      dueAt: input.dueAt,
+      updatedAt: now,
+      blockedReason: null,
+      dependencies: [],
+      checklist: [],
+      comments: [],
+      activity: [
+        {
+          id: `${id}-a0`,
+          at: now,
+          actor: 'system',
+          summary: { en: 'Task created', ar: 'تم إنشاء المهمة' },
+        },
+      ],
+    };
+    this.graph.tasks = [row, ...this.graph.tasks];
+    return row;
+  }
+
+  canTransitionTaskStatus(from: DemoTaskStatus, to: DemoTaskStatus): boolean {
+    if (from === to) return true;
+    const allowed: Record<DemoTaskStatus, DemoTaskStatus[]> = {
+      BACKLOG: ['READY', 'IN_PROGRESS'],
+      READY: ['BACKLOG', 'IN_PROGRESS', 'BLOCKED'],
+      IN_PROGRESS: ['READY', 'BLOCKED', 'IN_REVIEW', 'DONE', 'OVERDUE'],
+      BLOCKED: ['IN_PROGRESS', 'READY', 'BACKLOG'],
+      IN_REVIEW: ['IN_PROGRESS', 'DONE', 'BLOCKED'],
+      DONE: ['BACKLOG'],
+      OVERDUE: ['IN_PROGRESS', 'BLOCKED', 'IN_REVIEW', 'DONE'],
+    };
+    return allowed[from]?.includes(to) ?? false;
+  }
+
+  updateTask(
+    id: string,
+    patch: Partial<
+      Pick<
+        DemoGraph['tasks'][number],
+        | 'title'
+        | 'description'
+        | 'status'
+        | 'priority'
+        | 'assignee'
+        | 'dueAt'
+        | 'checklist'
+        | 'comments'
+        | 'activity'
+        | 'blockedReason'
+      >
+    >,
+  ) {
+    const idx = this.graph.tasks.findIndex((t) => t.id === id);
+    if (idx < 0) return null;
+    const current = this.graph.tasks[idx]!;
+    if (patch.status && !this.canTransitionTaskStatus(current.status, patch.status)) {
+      throw new Error(`Invalid task status transition ${current.status} → ${patch.status}`);
+    }
+    const now = new Date().toISOString();
+    const activity = [...(current.activity ?? [])];
+    if (patch.status && patch.status !== current.status) {
+      activity.unshift({
+        id: `${id}-a-${Date.now().toString(36)}`,
+        at: now,
+        actor: 'system',
+        summary: {
+          en: `Status → ${patch.status}`,
+          ar: `الحالة ← ${patch.status}`,
+        },
+      });
+    }
+    if (patch.assignee && patch.assignee !== current.assignee) {
+      activity.unshift({
+        id: `${id}-a-${Date.now().toString(36)}x`,
+        at: now,
+        actor: 'system',
+        summary: {
+          en: `Assignee → ${patch.assignee}`,
+          ar: `المكلَّف ← ${patch.assignee}`,
+        },
+      });
+    }
+    if (patch.dueAt && patch.dueAt !== current.dueAt) {
+      activity.unshift({
+        id: `${id}-a-${Date.now().toString(36)}d`,
+        at: now,
+        actor: 'system',
+        summary: {
+          en: `Due date → ${patch.dueAt}`,
+          ar: `الاستحقاق ← ${patch.dueAt}`,
+        },
+      });
+    }
+    const next = {
+      ...current,
+      ...patch,
+      activity: patch.activity ?? activity,
+      updatedAt: now,
+    };
+    this.graph.tasks = [
+      ...this.graph.tasks.slice(0, idx),
+      next,
+      ...this.graph.tasks.slice(idx + 1),
+    ];
+    return next;
+  }
+
+  addTaskComment(id: string, author: string, body: DemoLocaleCopy) {
+    const task = this.getTask(id);
+    if (!task) return null;
+    const comment = {
+      id: `cm-${Date.now().toString(36)}`,
+      author,
+      body,
+      at: new Date().toISOString(),
+    };
+    return this.updateTask(id, { comments: [comment, ...task.comments] });
+  }
+
   getLinkedJourney() {
     const brand = this.graph.brands.find((b) => b.state === 'healthy')!;
     const strategy = this.graph.strategies.find((s) => s.id === brand.strategyId)!;
@@ -1219,9 +2417,9 @@ export class DemoDataProvider {
     const paid = this.graph.campaigns.find(
       (c) => c.track === 'PAID' && c.id === 'demo-campaign-paid',
     )!;
-    const request = this.graph.requests[0]!;
+    const request = this.graph.requests.find((r) => r.id === 'demo-request-1')!;
     const brief = this.graph.briefs.find((b) => b.id === request.briefId)!;
-    const task = this.graph.tasks.find((t) => t.status === 'IN_REVIEW')!;
+    const task = this.graph.tasks.find((t) => t.id === 'demo-task-design')!;
     const deliverable = this.graph.deliverables.find((d) => d.id === task.deliverableId)!;
     const scheduled = this.graph.scheduledPosts[0]!;
     return {

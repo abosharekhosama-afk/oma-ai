@@ -1,0 +1,322 @@
+/* Stage 4 — Requests / Brief / Tasks production surfaces */
+
+.oma-stage4-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: flex-end;
+  margin-bottom: var(--space-3);
+}
+
+.oma-stage4-toolbar label {
+  display: grid;
+  gap: 2px;
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+  color: var(--oma-muted);
+}
+
+.oma-stage4-toolbar .oma-input,
+.oma-stage4-toolbar .oma-select {
+  min-height: 32px;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.oma-stage4-search {
+  min-width: min(220px, 100%);
+  flex: 1 1 160px;
+}
+
+.oma-req-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin-bottom: var(--space-3);
+}
+
+.oma-req-groups button[aria-pressed='true'] {
+  border-color: var(--oma-violet);
+  color: var(--oma-violet);
+  background: color-mix(in srgb, var(--oma-violet) 8%, var(--oma-surface));
+}
+
+.oma-req-table-wrap {
+  overflow: auto;
+  border: 1px solid var(--oma-border);
+  border-radius: var(--radius-lg);
+  background: var(--oma-surface);
+  box-shadow: var(--elev-1);
+}
+
+.oma-req-table,
+.oma-task-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.oma-req-table th,
+.oma-req-table td,
+.oma-task-table th,
+.oma-task-table td {
+  padding: 8px 10px;
+  text-align: start;
+  border-bottom: 1px solid var(--oma-border);
+  vertical-align: top;
+}
+
+.oma-req-table th,
+.oma-task-table th {
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+  color: var(--oma-muted);
+  font-weight: 600;
+  background: var(--oma-canvas);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.oma-req-table tr[data-overdue='true'],
+.oma-task-table tr[data-overdue='true'],
+.oma-kanban-card[data-overdue='true'] {
+  background: color-mix(in srgb, var(--status-danger) 6%, var(--oma-surface));
+}
+
+.oma-req-table tr[data-missing='true'] {
+  box-shadow: inset 3px 0 0 var(--status-warning);
+}
+
+.oma-req-mobile,
+.oma-task-mobile {
+  display: none;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  gap: var(--space-2);
+}
+
+.oma-req-mobile-card,
+.oma-task-mobile-card {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-3);
+  border: 1px solid var(--oma-border);
+  border-radius: var(--radius-md);
+  background: var(--oma-surface);
+  text-decoration: none;
+  color: inherit;
+  width: 100%;
+  text-align: start;
+  cursor: pointer;
+}
+
+.oma-brief-grid {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.oma-brief-section {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--oma-border);
+  border-radius: var(--radius-md);
+  background: var(--oma-surface);
+}
+
+.oma-brief-section h3 {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  font-weight: 600;
+}
+
+.oma-brief-section textarea,
+.oma-brief-section input {
+  width: 100%;
+}
+
+.oma-callout {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--oma-border);
+  background: color-mix(in srgb, var(--status-warning) 10%, var(--oma-surface));
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.oma-callout--info {
+  background: color-mix(in srgb, var(--oma-signal) 10%, var(--oma-surface));
+}
+
+.oma-prod-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.oma-prod-stat {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--oma-border);
+  border-radius: var(--radius-md);
+  background: var(--oma-surface);
+}
+
+.oma-prod-stat strong {
+  display: block;
+  font-size: 1.25rem;
+  line-height: 1.2;
+}
+
+.oma-prod-stat span {
+  font-size: var(--text-meta);
+  color: var(--oma-muted);
+}
+
+.oma-kanban {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(220px, 1fr);
+  gap: var(--space-2);
+  overflow-x: auto;
+  padding-bottom: var(--space-2);
+  min-height: 320px;
+}
+
+.oma-kanban-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 220px;
+  max-height: min(70vh, 720px);
+  padding: var(--space-2);
+  border: 1px solid var(--oma-border);
+  border-radius: var(--radius-md);
+  background: var(--oma-canvas);
+}
+
+.oma-kanban-col h3 {
+  margin: 0;
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+  font-weight: 600;
+  color: var(--oma-muted);
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.oma-kanban-cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  overflow: auto;
+  min-height: 80px;
+}
+
+.oma-kanban-card {
+  display: grid;
+  gap: 4px;
+  padding: var(--space-2);
+  border: 1px solid var(--oma-border);
+  border-radius: var(--radius-sm);
+  background: var(--oma-surface);
+  box-shadow: var(--elev-1);
+  text-align: start;
+  cursor: pointer;
+  color: inherit;
+  width: 100%;
+}
+
+.oma-kanban-card:hover,
+.oma-kanban-card:focus-visible {
+  border-color: var(--oma-violet);
+}
+
+.oma-kanban-card strong {
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.oma-kanban-meta {
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+  color: var(--oma-muted);
+}
+
+.oma-task-drawer-body {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  overflow: auto;
+}
+
+.oma-task-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-2);
+}
+
+.oma-checklist {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-1);
+}
+
+.oma-checklist li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 32px;
+}
+
+.oma-activity-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+.oma-activity-list li {
+  display: grid;
+  gap: 2px;
+  padding-block: var(--space-1);
+  border-bottom: 1px solid var(--oma-border);
+  font-size: var(--text-body);
+}
+
+.oma-activity-list time {
+  font-size: var(--text-meta);
+  color: var(--oma-muted);
+}
+
+@media (max-width: 900px) {
+  .oma-req-desktop,
+  .oma-task-desktop {
+    display: none;
+  }
+
+  .oma-req-mobile,
+  .oma-task-mobile {
+    display: grid;
+  }
+
+  .oma-kanban {
+    grid-auto-columns: minmax(85vw, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .oma-kanban-card,
+  .oma-req-mobile-card,
+  .oma-task-mobile-card {
+    transition: none;
+  }
+}

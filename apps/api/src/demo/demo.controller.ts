@@ -202,19 +202,235 @@ export class DemoController {
     return { data: demoDataProvider.getGraph().requests };
   }
 
+  @Post('requests')
+  createRequest(@Body() body: Record<string, unknown>) {
+    this.requireDemo();
+    try {
+      if (
+        !String(body.brandId ?? '').trim() ||
+        !String(body.dueAt ?? '').trim() ||
+        !String(body.requester ?? '').trim()
+      ) {
+        throw new BadRequestException('brandId, dueAt, and requester are required');
+      }
+      const type = String(body.type ?? 'OTHER').toUpperCase();
+      const allowed = [
+        'CONTENT',
+        'DESIGN',
+        'VIDEO',
+        'CAMPAIGN_SUPPORT',
+        'REVISION',
+        'OTHER',
+      ] as const;
+      const row = demoDataProvider.createRequest({
+        title: asCopy(body.title, 'title'),
+        description: body.description ? asCopy(body.description, 'description') : undefined,
+        type: (allowed as readonly string[]).includes(type)
+          ? (type as (typeof allowed)[number])
+          : 'OTHER',
+        brandId: String(body.brandId ?? ''),
+        campaignId: body.campaignId ? String(body.campaignId) : null,
+        contentId: body.contentId ? String(body.contentId) : null,
+        priority: (['LOW', 'MEDIUM', 'HIGH', 'URGENT'].includes(String(body.priority))
+          ? String(body.priority)
+          : 'MEDIUM') as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
+        dueAt: String(body.dueAt ?? ''),
+        requester: String(body.requester ?? '').trim(),
+        assignee: body.assignee ? String(body.assignee) : null,
+        channels: Array.isArray(body.channels) ? body.channels.map(String) : [],
+        formats: Array.isArray(body.formats) ? body.formats.map(String) : [],
+        outcome: body.outcome ? asCopy(body.outcome, 'outcome') : undefined,
+      });
+      return { data: row };
+    } catch (err) {
+      if (err instanceof BadRequestException) throw err;
+      throw new BadRequestException(err instanceof Error ? err.message : 'Invalid request');
+    }
+  }
+
   @Get('requests/:id')
   request(@Param('id') id: string) {
     this.requireDemo();
     const row = demoDataProvider.getRequest(id);
     if (!row) throw new NotFoundException('Not found');
     const brief = demoDataProvider.getGraph().briefs.find((b) => b.requestId === id) ?? null;
-    return { data: { ...row, brief } };
+    const tasks = demoDataProvider
+      .getGraph()
+      .tasks.filter((t) => t.requestId === id || (row.conversionTaskIds ?? []).includes(t.id));
+    return { data: { ...row, brief, tasks } };
+  }
+
+  @Patch('requests/:id')
+  updateRequest(@Param('id') id: string, @Body() body: Record<string, unknown>) {
+    this.requireDemo();
+    const patch: Parameters<typeof demoDataProvider.updateRequest>[1] = {};
+    if (body.title !== undefined) patch.title = asCopy(body.title, 'title');
+    if (body.description !== undefined) patch.description = asCopy(body.description, 'description');
+    if (typeof body.status === 'string') {
+      patch.status = body.status as NonNullable<typeof patch.status>;
+    }
+    if (typeof body.priority === 'string') {
+      patch.priority = body.priority as NonNullable<typeof patch.priority>;
+    }
+    if (body.assignee !== undefined) {
+      patch.assignee =
+        body.assignee === null || body.assignee === '' ? null : String(body.assignee);
+    }
+    if (typeof body.dueAt === 'string') patch.dueAt = body.dueAt;
+    if (body.campaignId !== undefined) {
+      patch.campaignId =
+        body.campaignId === null || body.campaignId === '' ? null : String(body.campaignId);
+    }
+    if (body.contentId !== undefined) {
+      patch.contentId =
+        body.contentId === null || body.contentId === '' ? null : String(body.contentId);
+    }
+    const row = demoDataProvider.updateRequest(id, patch);
+    if (!row) throw new NotFoundException('Not found');
+    return { data: row };
+  }
+
+  @Post('requests/:id/brief')
+  upsertBrief(@Param('id') id: string, @Body() body: Record<string, unknown>) {
+    this.requireDemo();
+    try {
+      const asList = (v: unknown) =>
+        Array.isArray(v)
+          ? v.map((item) => (typeof item === 'string' ? item : asCopy(item, 'item')))
+          : [];
+      const row = demoDataProvider.upsertBrief(id, {
+        overview: body.overview !== undefined ? asCopy(body.overview, 'overview') : undefined,
+        objective: body.objective !== undefined ? asCopy(body.objective, 'objective') : undefined,
+        audience: body.audience !== undefined ? asCopy(body.audience, 'audience') : undefined,
+        keyMessage:
+          body.keyMessage !== undefined ? asCopy(body.keyMessage, 'keyMessage') : undefined,
+        deliverableType:
+          body.deliverableType !== undefined
+            ? asCopy(body.deliverableType, 'deliverableType')
+            : undefined,
+        channels: Array.isArray(body.channels) ? body.channels.map(String) : undefined,
+        formats: Array.isArray(body.formats) ? body.formats.map(String) : undefined,
+        tone: body.tone !== undefined ? asCopy(body.tone, 'tone') : undefined,
+        mandatory: body.mandatory !== undefined ? asCopy(body.mandatory, 'mandatory') : undefined,
+        cta: body.cta !== undefined ? asCopy(body.cta, 'cta') : undefined,
+        references: Array.isArray(body.references) ? body.references.map(String) : undefined,
+        doList: body.doList !== undefined ? (asList(body.doList) as DemoLocaleCopy[]) : undefined,
+        dontList:
+          body.dontList !== undefined ? (asList(body.dontList) as DemoLocaleCopy[]) : undefined,
+        timelineNote:
+          body.timelineNote !== undefined ? asCopy(body.timelineNote, 'timelineNote') : undefined,
+        stakeholders: Array.isArray(body.stakeholders) ? body.stakeholders.map(String) : undefined,
+        acceptance:
+          body.acceptance !== undefined ? asCopy(body.acceptance, 'acceptance') : undefined,
+        dueAt: typeof body.dueAt === 'string' ? body.dueAt : undefined,
+        readiness:
+          body.readiness === 'READY' ||
+          body.readiness === 'INCOMPLETE' ||
+          body.readiness === 'DRAFT'
+            ? body.readiness
+            : undefined,
+      });
+      return { data: row };
+    } catch (err) {
+      if (err instanceof NotFoundException) throw err;
+      throw new BadRequestException(err instanceof Error ? err.message : 'Invalid brief');
+    }
+  }
+
+  @Post('requests/:id/convert')
+  convertRequest(@Param('id') id: string) {
+    this.requireDemo();
+    try {
+      const tasks = demoDataProvider.convertBriefToTasks(id);
+      const request = demoDataProvider.getRequest(id);
+      return { data: { request, tasks } };
+    } catch (err) {
+      throw new BadRequestException(err instanceof Error ? err.message : 'Convert failed');
+    }
   }
 
   @Get('tasks')
   tasks() {
     this.requireDemo();
     return { data: demoDataProvider.getGraph().tasks };
+  }
+
+  @Get('tasks/:id')
+  task(@Param('id') id: string) {
+    this.requireDemo();
+    const row = demoDataProvider.getTask(id);
+    if (!row) throw new NotFoundException('Not found');
+    return { data: row };
+  }
+
+  @Post('tasks')
+  createTask(@Body() body: Record<string, unknown>) {
+    this.requireDemo();
+    try {
+      const type = String(body.type ?? 'DESIGN').toUpperCase();
+      const row = demoDataProvider.createTask({
+        title: asCopy(body.title, 'title'),
+        description: body.description ? asCopy(body.description, 'description') : undefined,
+        brandId: String(body.brandId ?? ''),
+        campaignId: body.campaignId ? String(body.campaignId) : null,
+        contentId: body.contentId ? String(body.contentId) : null,
+        requestId: body.requestId ? String(body.requestId) : null,
+        briefId: body.briefId ? String(body.briefId) : null,
+        type: (['DESIGN', 'COPY', 'VIDEO', 'PHOTO'].includes(type) ? type : 'DESIGN') as
+          'DESIGN' | 'COPY' | 'VIDEO' | 'PHOTO',
+        status: typeof body.status === 'string' ? (body.status as never) : 'BACKLOG',
+        assignee: String(body.assignee ?? 'Unassigned').trim(),
+        priority: (['LOW', 'MEDIUM', 'HIGH', 'URGENT'].includes(String(body.priority))
+          ? String(body.priority)
+          : 'MEDIUM') as 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT',
+        dueAt: String(body.dueAt ?? ''),
+      });
+      if (!row.brandId || !row.dueAt) {
+        throw new BadRequestException('brandId and dueAt are required');
+      }
+      return { data: row };
+    } catch (err) {
+      if (err instanceof BadRequestException) throw err;
+      throw new BadRequestException(err instanceof Error ? err.message : 'Invalid task');
+    }
+  }
+
+  @Patch('tasks/:id')
+  updateTask(@Param('id') id: string, @Body() body: Record<string, unknown>) {
+    this.requireDemo();
+    try {
+      const patch: Parameters<typeof demoDataProvider.updateTask>[1] = {};
+      if (body.title !== undefined) patch.title = asCopy(body.title, 'title');
+      if (body.description !== undefined)
+        patch.description = asCopy(body.description, 'description');
+      if (typeof body.status === 'string') patch.status = body.status as never;
+      if (typeof body.priority === 'string') patch.priority = body.priority as never;
+      if (typeof body.assignee === 'string') patch.assignee = body.assignee;
+      if (typeof body.dueAt === 'string') patch.dueAt = body.dueAt;
+      if (Array.isArray(body.checklist)) {
+        patch.checklist = body.checklist as NonNullable<typeof patch.checklist>;
+      }
+      if (body.blockedReason !== undefined) {
+        patch.blockedReason =
+          body.blockedReason === null ? null : asCopy(body.blockedReason, 'blockedReason');
+      }
+      const row = demoDataProvider.updateTask(id, patch);
+      if (!row) throw new NotFoundException('Not found');
+      return { data: row };
+    } catch (err) {
+      if (err instanceof NotFoundException) throw err;
+      throw new BadRequestException(err instanceof Error ? err.message : 'Invalid task update');
+    }
+  }
+
+  @Post('tasks/:id/comments')
+  addTaskComment(@Param('id') id: string, @Body() body: Record<string, unknown>) {
+    this.requireDemo();
+    const author = String(body.author ?? '').trim();
+    if (!author) throw new BadRequestException('author is required');
+    const row = demoDataProvider.addTaskComment(id, author, asCopy(body.body, 'body'));
+    if (!row) throw new NotFoundException('Not found');
+    return { data: row };
   }
 
   @Get('deliverables')

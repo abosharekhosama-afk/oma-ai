@@ -4,6 +4,7 @@
 @import '../styles/shell.css';
 @import '../styles/stage2.css';
 @import '../styles/stage3.css';
+@import '../styles/stage4.css';
 
 * {
   box-sizing: border-box;
@@ -348,7 +349,7 @@ body {
   background: rgba(0, 0, 0, 0.35);
   border: 0;
   cursor: pointer;
-  z-index: 40;
+  z-index: var(--shell-z-modal, 70);
 }
 .oma-drawer {
   position: fixed;
@@ -358,7 +359,7 @@ body {
   background: var(--oma-surface);
   border-inline-start: 1px solid var(--oma-border);
   padding: 1rem;
-  z-index: 50;
+  z-index: calc(var(--shell-z-modal, 70) + 1);
   overflow-y: auto;
   box-shadow: -4px 0 24px rgba(0, 0, 0, 0.08);
 }

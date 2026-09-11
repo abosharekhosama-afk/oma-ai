@@ -57,11 +57,18 @@
 
 ## Stage 4 — Requests / Tasks
 
-| ID       | Criterion                                                         |
-| -------- | ----------------------------------------------------------------- |
-| V-REQ-01 | Request inbox + detail/brief in drawer or split without dead ends |
-| V-TSK-01 | Kanban columns labeled with counts; cards show priority+due       |
-| V-TSK-02 | Task drawer: Esc closes; focus trapped; checklist visible         |
+| ID        | Criterion                                                                                                                   | Alias / notes                  |
+| --------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------ |
+| V-REQ-01  | Requests inbox is dense/searchable/filterable; reveals unassigned, incomplete, and overdue work without metric-card walls   | Stage 4 primary                |
+| V-REQ-02  | Request detail/triage shows data, relationships, actions, and status clearly in workspace/drawer form                       | Extends inbox criterion        |
+| V-BRF-01  | Structured brief editor with completeness/readiness; links brand/campaign/content; AI assistance honesty                    | New Stage 4 mapping            |
+| V-TSK-01  | Professional usable Kanban; persisted status matches Demo API after reload (move via accessible control if DnD not shipped) |                                |
+| V-TSK-02  | List view is dense and functionally distinct from Board                                                                     |                                |
+| V-TSK-03  | Task drawer preserves context; supports edit/checklist/comments/keyboard (Esc, focus trap)                                  | Extends prior drawer criterion |
+| V-WRK-01  | Request → Brief → Task workflow is linked, persisted, and conversion is idempotent                                          | Stage 4 handoff                |
+| V-LINK-02 | Campaign/Content/Request/Task relationships navigate to correct records                                                     | Continues Stage 3 V-LINK-01    |
+
+**Stage 4 status:** implemented on `004-oma-complete-product-demo` — prove with Stage 4 Playwright + unit/security gates, not screenshots alone.
 
 ## Stage 5 — Deliverables / Reviews
 

@@ -1,0 +1,19 @@
+{
+  "gitSha": "pending-commit",
+  "route": "/app/requests",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "locale": "ar",
+  "direction": "rtl",
+  "demoState": "OMA_DEMO_MODE=1 deterministic seed",
+  "userRole": "owner",
+  "consoleErrorCount": 0,
+  "mappedReferencePattern": "Workfront intake + Planable content link cues",
+  "acceptanceIds": [
+    "V-REQ-01",
+    "V-G-03"
+  ],
+  "healthHint": "{\"error\":{\"code\":\"VALIDATION_FAILED\",\"me"
+}

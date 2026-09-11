@@ -1,0 +1,19 @@
+{
+  "gitSha": "pending-commit",
+  "route": "/app/tasks",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "locale": "en",
+  "direction": "ltr",
+  "demoState": "OMA_DEMO_MODE=1 deterministic seed",
+  "userRole": "owner",
+  "consoleErrorCount": 0,
+  "mappedReferencePattern": "Linear density / panels / status move",
+  "acceptanceIds": [
+    "V-TSK-01",
+    "V-TSK-02"
+  ],
+  "healthHint": "{\"error\":{\"code\":\"VALIDATION_FAILED\",\"me"
+}
