@@ -151,8 +151,8 @@ export default function TeamPage() {
                     return (
                       <tr
                         key={m.id}
+                        className="oma-team-row"
                         data-testid={`demo-team-row-${m.id}`}
-                        style={{ cursor: 'pointer' }}
                         onClick={() => setSelectedId(m.id)}
                       >
                         <td>

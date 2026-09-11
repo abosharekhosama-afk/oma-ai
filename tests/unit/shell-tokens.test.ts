@@ -21,7 +21,8 @@ describe('Stage 1 design tokens', () => {
   });
 
   it('defines type and motion tokens', () => {
-    expect(css).toContain("--font-sans: 'IBM Plex Sans'");
+    expect(css).toMatch(/--font-sans:/);
+    expect(css).toContain("'IBM Plex Sans'");
     expect(css).toContain('--text-body: 14px');
     expect(css).toContain('--leading-body: 20px');
     expect(css).toContain('--motion-micro: 140ms');

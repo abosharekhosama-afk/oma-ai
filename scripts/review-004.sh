@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Local owner-preview launcher for Complete Product Demo.
-# Isolated DB: oma_ai_acceptance · Redis DB 2 · binding 127.0.0.1 only.
-# USER_ACCEPTANCE remains PENDING — this prints OMA_FULL_PRODUCT_PREVIEW: READY only.
+# Local owner-preview launcher for Full Visual Product Certification (Stage 7).
+# Isolated DB: oma_ai_visual_cert_004 · Redis DB 3 · binding 127.0.0.1 only.
+# VISUAL_ACCEPTANCE remains PENDING_OWNER — prints OWNER_PREVIEW: READY only.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
@@ -33,10 +33,10 @@ export WEB_BASE_URL="${WEB_BASE_URL:-http://127.0.0.1:${WEB_PORT}}"
 export WEB_ORIGIN="${WEB_ORIGIN:-$WEB_BASE_URL}"
 export API_PUBLIC_URL="${API_PUBLIC_URL:-http://127.0.0.1:${API_PORT}}"
 
-# Dedicated review database (never e2e / never production)
-export DATABASE_URL="${REVIEW_DATABASE_URL:-postgresql://burhanbakri@127.0.0.1:5432/oma_ai_acceptance?schema=public}"
-export REDIS_URL="${REVIEW_REDIS_URL:-redis://127.0.0.1:6379/2}"
-export BULLMQ_PREFIX="${BULLMQ_PREFIX:-oma-review-004}"
+# Dedicated visual certification database (never e2e / never production / never acceptance alias alone)
+export DATABASE_URL="${REVIEW_DATABASE_URL:-postgresql://burhanbakri@127.0.0.1:5432/oma_ai_visual_cert_004?schema=public}"
+export REDIS_URL="${REVIEW_REDIS_URL:-redis://127.0.0.1:6379/3}"
+export BULLMQ_PREFIX="${BULLMQ_PREFIX:-oma-visual-cert-004}"
 
 assert_not_prod() {
   local url="$1"
@@ -46,8 +46,8 @@ assert_not_prod() {
       exit 1
     fi
   fi
-  if ! echo "$url" | grep -Eqi 'oma_ai_acceptance'; then
-    echo "Refusing review launcher: DATABASE_URL must target oma_ai_acceptance"
+  if ! echo "$url" | grep -Eqi 'oma_ai_visual_cert_004'; then
+    echo "Refusing review launcher: DATABASE_URL must target oma_ai_visual_cert_004"
     exit 1
   fi
 }
@@ -57,7 +57,6 @@ pick_port() {
   local preferred="$1"
   local alt="$2"
   if lsof -nP -iTCP:"$preferred" -sTCP:LISTEN >/dev/null 2>&1; then
-    # Only reclaim if our previous review pid owns it
     local existing
     existing="$(lsof -nP -iTCP:"$preferred" -sTCP:LISTEN -t 2>/dev/null | head -1 || true)"
     if [[ -n "${existing}" ]] && [[ -f "$PID_DIR/api.pid" || -f "$PID_DIR/web.pid" || -f "$PID_DIR/worker.pid" ]]; then
@@ -81,24 +80,22 @@ export API_PUBLIC_URL="http://127.0.0.1:${API_PORT}"
 SERVED_SHA="$(git rev-parse HEAD)"
 export OMA_REVIEW_SERVED_SHA="$SERVED_SHA"
 
-echo "==> OMA AI Complete Product Demo owner preview launcher"
+echo "==> OMA AI Full Visual Product Certification owner preview"
 echo "    Served SHA: $SERVED_SHA"
 echo "    Database:   $DATABASE_URL"
 echo "    Redis:      $REDIS_URL"
 echo "    Prefix:     $BULLMQ_PREFIX"
-echo "    Note:       USER_ACCEPTANCE remains PENDING"
+echo "    Note:       VISUAL_ACCEPTANCE=PENDING_OWNER · USER_ACCEPTANCE=PENDING"
 
-# Stop only prior review session PIDs
 if [[ -f "$ROOT/scripts/review-004-stop.sh" ]]; then
   bash "$ROOT/scripts/review-004-stop.sh" || true
 fi
 
-# Ensure DB exists
 psql "postgresql://burhanbakri@127.0.0.1:5432/postgres" -v ON_ERROR_STOP=1 -c \
-  "SELECT 1 FROM pg_database WHERE datname='oma_ai_acceptance'" >/dev/null \
-  || psql "postgresql://burhanbakri@127.0.0.1:5432/postgres" -c "CREATE DATABASE oma_ai_acceptance;"
+  "SELECT 1 FROM pg_database WHERE datname='oma_ai_visual_cert_004'" >/dev/null \
+  || psql "postgresql://burhanbakri@127.0.0.1:5432/postgres" -c "CREATE DATABASE oma_ai_visual_cert_004;"
 
-redis-cli -n 2 ping >/dev/null
+redis-cli -n 3 ping >/dev/null
 
 echo "==> Migrations"
 pnpm --filter @oma/db exec prisma migrate deploy
@@ -106,7 +103,6 @@ pnpm --filter @oma/db exec prisma migrate deploy
 echo "==> Review seed (idempotent)"
 pnpm --filter @oma/db exec tsx prisma/seed-review-003.ts
 
-# Alias credentials for complete-demo preview (Owner-only)
 cp -f "$ROOT/.review/003-credentials.json" "$ROOT/.review/004-credentials.json" 2>/dev/null || true
 cp -f "$ROOT/.review/003-credentials.txt" "$ROOT/.review/004-credentials.txt" 2>/dev/null || true
 if [[ -f "$ROOT/.review/004-credentials.txt" ]]; then
@@ -148,11 +144,14 @@ wait_http "${WEB_BASE_URL}" "Web"
 
 echo ""
 echo "=============================================="
-echo " OMA_FULL_PRODUCT_PREVIEW: READY"
+echo " OMA_FULL_VISUAL_PRODUCT_PREVIEW: READY"
+echo " OWNER_PREVIEW: READY"
+echo " (VISUAL_ACCEPTANCE remains PENDING_OWNER)"
 echo " (USER_ACCEPTANCE remains PENDING)"
 echo "=============================================="
 echo " Web:            $WEB_BASE_URL"
 echo " Login:          $WEB_BASE_URL/login"
+echo " Start at:       $WEB_BASE_URL/app  (Command Center)"
 echo " API health:     $API_PUBLIC_URL/api/v1/health/live"
 echo " Worker health:  http://127.0.0.1:${WORKER_HEALTH_PORT}/"
 echo " Served SHA:     $SERVED_SHA"
@@ -161,6 +160,15 @@ if [[ -f "$CRED_FILE" ]]; then
   echo ""
   cat "$CRED_FILE"
 fi
+echo ""
+echo " Owner path (6–8 steps):"
+echo "  1. Login → Command Center"
+echo "  2. Brand Intelligence → one brand workspace"
+echo "  3. Campaigns → Organic + Paid → Content calendar"
+echo "  4. Requests → Brief → Tasks board"
+echo "  5. Deliverable dark review → approve honesty"
+echo "  6. Schedule planning preview + Analytics sample"
+echo "  7. Team / Activity / Settings integrations (Not connected)"
 echo ""
 echo " Stop with:  pnpm review:004:stop"
 echo " Stack is running in background (PIDs under .review/pids)."

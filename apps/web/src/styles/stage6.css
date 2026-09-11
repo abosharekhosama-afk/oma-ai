@@ -180,6 +180,14 @@
   background: var(--oma-surface);
 }
 
+.oma-activity-day {
+  padding: var(--space-3);
+}
+
+.oma-team-row {
+  cursor: pointer;
+}
+
 .oma-capacity {
   font-size: var(--text-meta);
   font-weight: var(--weight-semibold);

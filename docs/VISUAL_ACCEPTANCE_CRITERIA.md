@@ -126,6 +126,16 @@
 | V-CERT-03 | No VG-001…004 blockers remain                                       |
 | V-CERT-04 | Owner visual session recorded as ACCEPTED or explicit residual list |
 
+**Stage 7 status:** Full Visual Certification pack on `004-oma-complete-product-demo`.
+
+- Evidence: `artifacts/full-visual-certification-004/` + `.reference/004-visual-parity/ours/full-certification/`
+- Journey: `tests/e2e/full-visual-certification.e2e.ts`
+- Matrix: `artifacts/full-visual-certification-004/CERTIFICATION_MATRIX.md`
+- Owner preview: `pnpm review:004` (DB `oma_ai_visual_cert_004`)
+- **VISUAL_ACCEPTANCE:** `PENDING_OWNER` (owner alone may set ACCEPTED)
+- **USER_ACCEPTANCE:** `PENDING`
+- V-CERT-04 remains owner-owned; certification does not auto-ACCEPT.
+
 ---
 
 ## Measurement method

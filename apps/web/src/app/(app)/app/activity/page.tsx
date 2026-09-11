@@ -136,7 +136,7 @@ export default function ActivityPage() {
           ) : (
             <div className="oma-activity-groups" data-testid="demo-activity-stream">
               {[...grouped.entries()].map(([day, items]) => (
-                <section key={day} style={{ padding: '12px' }}>
+                <section key={day} className="oma-activity-day">
                   <h3>{day}</h3>
                   <ol className="oma-activity-timeline">
                     {items.map((a) => (

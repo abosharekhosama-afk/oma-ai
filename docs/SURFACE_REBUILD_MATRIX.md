@@ -113,9 +113,14 @@ Status: all rows below are **REBUILD** or **PARTIAL** unless noted.
 - Re-measure all surfaces vs Stage targets
 - EN/AR · 1440/1024/390 · keyboard · reduced motion
 - No false parity claims
-- Owner visual acceptance session
+- Full lifecycle Playwright + Owner Preview (`pnpm review:004` → `oma_ai_visual_cert_004`)
+- Evidence: `artifacts/full-visual-certification-004/` · `.reference/004-visual-parity/ours/full-certification/`
 
-**Exit:** `OMA_FULL_DEMO_VISUAL_ACCEPTANCE: ACCEPTED` or listed residuals.
+**Done when:** Full Visual Certification PASS; Owner Preview READY; VISUAL_ACCEPTANCE remains PENDING_OWNER until owner decides.
+
+**Stage 7 status:** certification pack on `004-oma-complete-product-demo`.
+
+**Exit:** `FULL_VISUAL_CERTIFICATION: PASS` + `OWNER_PREVIEW: READY` (acceptance stays PENDING_OWNER).
 
 ---
 

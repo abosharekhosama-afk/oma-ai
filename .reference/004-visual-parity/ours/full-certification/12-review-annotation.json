@@ -1,0 +1,22 @@
+{
+  "gitSha": "pending",
+  "route": "/app/deliverables/demo-deliv-carousel?review=1",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "locale": "en",
+  "direction": "ltr",
+  "accountRole": "owner",
+  "companyBrandContext": "ephemeral e2e owner + deterministic demo graph",
+  "dataSource": "Demo-backed",
+  "demoState": "OMA_DEMO_MODE=1",
+  "consoleErrorCount": 0,
+  "failedRequestCount": 0,
+  "externalHostCount": 0,
+  "acceptanceIds": [
+    "V-REV-03",
+    "V-APR-01"
+  ],
+  "healthHint": "{\"status\":\"ok\"}"
+}

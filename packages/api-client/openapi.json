@@ -1225,6 +1225,20 @@
         ]
       }
     },
+    "/api/v1/demo/reset": {
+      "post": {
+        "operationId": "DemoController_reset",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
     "/api/v1/demo/journey": {
       "get": {
         "operationId": "DemoController_journey",
@@ -1343,6 +1357,18 @@
         "tags": [
           "Demo"
         ]
+      },
+      "post": {
+        "operationId": "DemoController_createRequest",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
       }
     },
     "/api/v1/demo/requests/{id}": {
@@ -1357,6 +1383,46 @@
         "tags": [
           "Demo"
         ]
+      },
+      "patch": {
+        "operationId": "DemoController_updateRequest",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/requests/{id}/brief": {
+      "post": {
+        "operationId": "DemoController_upsertBrief",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/requests/{id}/convert": {
+      "post": {
+        "operationId": "DemoController_convertRequest",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
       }
     },
     "/api/v1/demo/tasks": {
@@ -1365,6 +1431,58 @@
         "parameters": [],
         "responses": {
           "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      },
+      "post": {
+        "operationId": "DemoController_createTask",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/tasks/{id}": {
+      "get": {
+        "operationId": "DemoController_task",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      },
+      "patch": {
+        "operationId": "DemoController_updateTask",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/tasks/{id}/comments": {
+      "post": {
+        "operationId": "DemoController_addTaskComment",
+        "parameters": [],
+        "responses": {
+          "201": {
             "description": ""
           }
         },
@@ -1401,9 +1519,173 @@
         ]
       }
     },
+    "/api/v1/demo/deliverables/from-task/{taskId}": {
+      "post": {
+        "operationId": "DemoController_createFromTask",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/deliverables/{id}/revisions": {
+      "post": {
+        "operationId": "DemoController_addRevision",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/deliverables/{id}/current-version": {
+      "patch": {
+        "operationId": "DemoController_selectVersion",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/deliverables/{id}/annotations": {
+      "post": {
+        "operationId": "DemoController_addAnnotation",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/deliverables/{id}/comments": {
+      "post": {
+        "operationId": "DemoController_addDeliverableComment",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/deliverables/{id}/annotations/{annotationId}": {
+      "patch": {
+        "operationId": "DemoController_resolveAnnotation",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/deliverables/{id}/submit": {
+      "post": {
+        "operationId": "DemoController_submitReview",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/deliverables/{id}/decide": {
+      "post": {
+        "operationId": "DemoController_decide",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
     "/api/v1/demo/schedule": {
       "get": {
         "operationId": "DemoController_schedule",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/schedule/{id}": {
+      "patch": {
+        "operationId": "DemoController_updateSchedule",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      },
+      "delete": {
+        "operationId": "DemoController_removeSchedule",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/preferences": {
+      "get": {
+        "operationId": "DemoController_preferences",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      },
+      "patch": {
+        "operationId": "DemoController_updatePreferences",
         "parameters": [],
         "responses": {
           "200": {
