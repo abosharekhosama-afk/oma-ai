@@ -14,8 +14,52 @@ export type DemoTaskStatus =
   'BACKLOG' | 'READY' | 'IN_PROGRESS' | 'BLOCKED' | 'IN_REVIEW' | 'DONE' | 'OVERDUE';
 export type DemoDeliverableType =
   'STATIC' | 'CAROUSEL' | 'REEL' | 'LONG_VIDEO' | 'COPY' | 'PHOTOGRAPHY';
-export type DemoReviewStatus = 'AWAITING_REVIEW' | 'CHANGES_REQUESTED' | 'APPROVED' | 'REJECTED';
+export type DemoReviewStatus =
+  'DRAFT' | 'AWAITING_REVIEW' | 'IN_REVIEW' | 'CHANGES_REQUESTED' | 'APPROVED' | 'REJECTED';
+export type DemoVersionStatus = 'DRAFT' | 'SUBMITTED' | 'SUPERSEDED' | 'APPROVED' | 'REJECTED';
 export type DemoIntegrationStatus = 'NOT_CONNECTED' | 'DEFERRED';
+
+export type DemoDeliverableAnnotation = {
+  id: string;
+  versionId: string;
+  x: number;
+  y: number;
+  number: number;
+  author: string;
+  body: DemoLocaleCopy;
+  at: string;
+  resolved: boolean;
+  replies: Array<{ id: string; author: string; body: DemoLocaleCopy; at: string }>;
+  timestampLabel?: string | null;
+};
+
+export type DemoDeliverableComment = {
+  id: string;
+  versionId: string;
+  author: string;
+  body: DemoLocaleCopy;
+  at: string;
+  resolved: boolean;
+};
+
+export type DemoDeliverableActivity = {
+  id: string;
+  at: string;
+  actor: string;
+  summary: DemoLocaleCopy;
+  kind: string;
+};
+
+export type DemoDeliverableDecision = {
+  id: string;
+  at: string;
+  actor: string;
+  decision: string;
+  versionId: string;
+  reason: DemoLocaleCopy;
+  priorStatus: string;
+  newStatus: string;
+};
 
 export type DemoGraph = {
   meta: {
@@ -150,10 +194,17 @@ export type DemoGraph = {
     brandId: string;
     campaignId: string;
     taskId: string | null;
+    contentId: string | null;
+    requestId: string | null;
     title: DemoLocaleCopy;
     type: DemoDeliverableType;
     reviewStatus: DemoReviewStatus;
+    owner: string;
+    reviewer: string;
+    dueAt: string;
+    archived: boolean;
     currentVersionId: string;
+    approvedVersionId: string | null;
     versions: Array<{
       id: string;
       label: string;
@@ -161,8 +212,15 @@ export type DemoGraph = {
       notes: DemoLocaleCopy;
       createdAt: string;
       immutable: boolean;
+      createdBy: string;
+      reviewDecision: DemoReviewStatus | null;
+      status: DemoVersionStatus;
     }>;
     changeRequests: Array<{ id: string; body: DemoLocaleCopy; author: string; at: string }>;
+    annotations: DemoDeliverableAnnotation[];
+    comments: DemoDeliverableComment[];
+    activity: DemoDeliverableActivity[];
+    decisions: DemoDeliverableDecision[];
   }>;
   scheduledPosts: Array<{
     id: string;
@@ -1517,26 +1575,43 @@ export const DEMO_GRAPH: DemoGraph = {
       brandId: 'demo-brand-horizon',
       campaignId: 'demo-campaign-organic',
       taskId: 'demo-task-design',
+      contentId: 'demo-content-carousel',
+      requestId: 'demo-request-1',
       title: { en: 'Fabric story carousel', ar: 'كاروسيل قصة القماش' },
       type: 'CAROUSEL',
       reviewStatus: 'AWAITING_REVIEW',
+      owner: 'Rami Khalil',
+      reviewer: 'Layla Haddad',
+      dueAt: '2026-09-11',
+      archived: false,
       currentVersionId: 'demo-dv-car-v2',
+      approvedVersionId: null,
       versions: [
         {
           id: 'demo-dv-car-v1',
           label: 'v1',
-          assets: ['/demo/poster-carousel-1.svg'],
+          assets: ['/demo/stage5-carousel-v1.svg', '/demo/poster-carousel-1.svg'],
           notes: { en: 'Initial layout', ar: 'تخطيط أولي' },
           createdAt: '2026-09-05T10:00:00+03:00',
           immutable: true,
+          createdBy: 'Rami Khalil',
+          reviewDecision: 'CHANGES_REQUESTED',
+          status: 'SUPERSEDED',
         },
         {
           id: 'demo-dv-car-v2',
           label: 'v2',
-          assets: ['/demo/poster-carousel-1.svg', '/demo/poster-carousel-2.svg'],
+          assets: [
+            '/demo/stage5-carousel-v2.svg',
+            '/demo/poster-carousel-1.svg',
+            '/demo/poster-carousel-2.svg',
+          ],
           notes: { en: 'Added slide 2 texture', ar: 'أضيفت ملمس الشريحة 2' },
           createdAt: '2026-09-09T16:00:00+03:00',
           immutable: false,
+          createdBy: 'Rami Khalil',
+          reviewDecision: null,
+          status: 'SUBMITTED',
         },
       ],
       changeRequests: [
@@ -1550,16 +1625,87 @@ export const DEMO_GRAPH: DemoGraph = {
           at: '2026-09-09T14:20:00+03:00',
         },
       ],
+      annotations: [
+        {
+          id: 'ann-car-1',
+          versionId: 'demo-dv-car-v2',
+          x: 0.72,
+          y: 0.81,
+          number: 1,
+          author: 'Layla Haddad',
+          body: {
+            en: 'CTA still washes out against the weave.',
+            ar: 'زر الدعوة ما زال باهتًا أمام النسيج.',
+          },
+          at: '2026-09-09T16:10:00+03:00',
+          resolved: false,
+          replies: [],
+          timestampLabel: '0:00',
+        },
+        {
+          id: 'ann-car-2',
+          versionId: 'demo-dv-car-v2',
+          x: 0.28,
+          y: 0.22,
+          number: 2,
+          author: 'Omar Faris',
+          body: {
+            en: 'Logo clear space looks good — resolved.',
+            ar: 'مساحة الشعار جيدة — حُلّت.',
+          },
+          at: '2026-09-09T16:15:00+03:00',
+          resolved: true,
+          replies: [
+            {
+              id: 'ann-car-2-r1',
+              author: 'Rami Khalil',
+              body: { en: 'Thanks — locked from v1.', ar: 'شكرًا — ثُبّتت من الإصدار 1.' },
+              at: '2026-09-09T16:18:00+03:00',
+            },
+          ],
+          timestampLabel: null,
+        },
+      ],
+      comments: [
+        {
+          id: 'cmt-car-1',
+          versionId: 'demo-dv-car-v2',
+          author: 'Layla Haddad',
+          body: {
+            en: 'Overall craft direction is strong; focus on CTA contrast.',
+            ar: 'اتجاه الحرفية قوي عمومًا؛ ركّز على تباين زر الدعوة.',
+          },
+          at: '2026-09-09T16:12:00+03:00',
+          resolved: false,
+        },
+      ],
+      activity: [
+        {
+          id: 'da-car-1',
+          at: '2026-09-09T16:05:00+03:00',
+          actor: 'Rami Khalil',
+          summary: { en: 'Submitted carousel v2 for review', ar: 'أُرسل كاروسيل v2 للمراجعة' },
+          kind: 'submitted',
+        },
+      ],
+      decisions: [],
     },
     {
       id: 'demo-deliv-reel',
       brandId: 'demo-brand-horizon',
       campaignId: 'demo-campaign-organic',
       taskId: 'demo-task-video',
+      contentId: 'demo-content-reel',
+      requestId: null,
       title: { en: 'Studio morning reel', ar: 'ريل صباحي من الاستوديو' },
       type: 'REEL',
       reviewStatus: 'APPROVED',
+      owner: 'Maya Nasser',
+      reviewer: 'Layla Haddad',
+      dueAt: '2026-09-10',
+      archived: false,
       currentVersionId: 'demo-dv-reel-v1',
+      approvedVersionId: 'demo-dv-reel-v1',
       versions: [
         {
           id: 'demo-dv-reel-v1',
@@ -1568,27 +1714,63 @@ export const DEMO_GRAPH: DemoGraph = {
           notes: { en: 'Approved cut', ar: 'نسخة معتمدة' },
           createdAt: '2026-09-08T12:00:00+03:00',
           immutable: true,
+          createdBy: 'Maya Nasser',
+          reviewDecision: 'APPROVED',
+          status: 'APPROVED',
         },
       ],
       changeRequests: [],
+      annotations: [],
+      comments: [],
+      activity: [
+        {
+          id: 'da-reel-1',
+          at: '2026-09-08T12:10:00+03:00',
+          actor: 'Layla Haddad',
+          summary: { en: 'Approved morning reel v1', ar: 'اعتمدت ريل الصباح الإصدار 1' },
+          kind: 'approved',
+        },
+      ],
+      decisions: [
+        {
+          id: 'dec-reel-1',
+          at: '2026-09-08T12:10:00+03:00',
+          actor: 'Layla Haddad',
+          decision: 'APPROVED',
+          versionId: 'demo-dv-reel-v1',
+          reason: { en: 'Cut is clean and on-brand', ar: 'المونتاج نظيف ومتوافق مع العلامة' },
+          priorStatus: 'AWAITING_REVIEW',
+          newStatus: 'APPROVED',
+        },
+      ],
     },
     {
       id: 'demo-deliv-static',
       brandId: 'demo-brand-horizon',
       campaignId: 'demo-campaign-paid',
       taskId: 'demo-task-overdue',
+      contentId: 'demo-content-paid-static',
+      requestId: 'demo-request-1',
       title: { en: 'Paid collection hero', ar: 'بطل المجموعة المدفوعة' },
       type: 'STATIC',
       reviewStatus: 'CHANGES_REQUESTED',
+      owner: 'Sara Alami',
+      reviewer: 'Omar Faris',
+      dueAt: '2026-09-08',
+      archived: false,
       currentVersionId: 'demo-dv-static-v1',
+      approvedVersionId: null,
       versions: [
         {
           id: 'demo-dv-static-v1',
           label: 'v1',
-          assets: ['/demo/poster-static.svg'],
+          assets: ['/demo/stage5-static-v1.svg', '/demo/poster-static.svg'],
           notes: { en: 'Needs crop for 4:5', ar: 'يحتاج قص لنسبة 4:5' },
           createdAt: '2026-09-07T09:00:00+03:00',
           immutable: false,
+          createdBy: 'Sara Alami',
+          reviewDecision: 'CHANGES_REQUESTED',
+          status: 'SUBMITTED',
         },
       ],
       changeRequests: [
@@ -1599,16 +1781,59 @@ export const DEMO_GRAPH: DemoGraph = {
           at: '2026-09-07T15:00:00+03:00',
         },
       ],
+      annotations: [
+        {
+          id: 'ann-static-1',
+          versionId: 'demo-dv-static-v1',
+          x: 0.5,
+          y: 0.15,
+          number: 1,
+          author: 'Omar Faris',
+          body: { en: 'Top safe area clips on 4:5.', ar: 'المنطقة العلوية تُقص في 4:5.' },
+          at: '2026-09-07T15:05:00+03:00',
+          resolved: false,
+          replies: [],
+        },
+      ],
+      comments: [],
+      activity: [
+        {
+          id: 'da-static-1',
+          at: '2026-09-07T15:00:00+03:00',
+          actor: 'Omar Faris',
+          summary: { en: 'Requested 4:5 crop changes', ar: 'طلب تغييرات قص 4:5' },
+          kind: 'changes_requested',
+        },
+      ],
+      decisions: [
+        {
+          id: 'dec-static-1',
+          at: '2026-09-07T15:00:00+03:00',
+          actor: 'Omar Faris',
+          decision: 'CHANGES_REQUESTED',
+          versionId: 'demo-dv-static-v1',
+          reason: { en: 'Provide 4:5 crop', ar: 'توفير قص 4:5' },
+          priorStatus: 'AWAITING_REVIEW',
+          newStatus: 'CHANGES_REQUESTED',
+        },
+      ],
     },
     {
       id: 'demo-deliv-copy',
       brandId: 'demo-brand-horizon',
       campaignId: 'demo-campaign-organic',
-      taskId: null,
+      taskId: 'demo-task-copy-li',
+      contentId: 'demo-content-published',
+      requestId: 'demo-request-3',
       title: { en: 'Founders LinkedIn note', ar: 'ملاحظة المؤسسين على لينكدإن' },
       type: 'COPY',
       reviewStatus: 'APPROVED',
+      owner: 'Maya Nasser',
+      reviewer: 'Layla Haddad',
+      dueAt: '2026-08-18',
+      archived: false,
       currentVersionId: 'demo-dv-copy-v1',
+      approvedVersionId: 'demo-dv-copy-v1',
       versions: [
         {
           id: 'demo-dv-copy-v1',
@@ -1620,9 +1845,433 @@ export const DEMO_GRAPH: DemoGraph = {
           },
           createdAt: '2026-08-18T10:00:00+03:00',
           immutable: true,
+          createdBy: 'Maya Nasser',
+          reviewDecision: 'APPROVED',
+          status: 'APPROVED',
         },
       ],
       changeRequests: [],
+      annotations: [],
+      comments: [],
+      activity: [
+        {
+          id: 'da-copy-1',
+          at: '2026-08-18T10:30:00+03:00',
+          actor: 'Layla Haddad',
+          summary: { en: 'Approved founders note copy', ar: 'اعتمدت نص رسالة المؤسسين' },
+          kind: 'approved',
+        },
+      ],
+      decisions: [
+        {
+          id: 'dec-copy-1',
+          at: '2026-08-18T10:30:00+03:00',
+          actor: 'Layla Haddad',
+          decision: 'APPROVED',
+          versionId: 'demo-dv-copy-v1',
+          reason: { en: 'Tone fits executive audience', ar: 'النبرة تناسب الجمهور التنفيذي' },
+          priorStatus: 'IN_REVIEW',
+          newStatus: 'APPROVED',
+        },
+      ],
+    },
+    {
+      id: 'demo-deliv-storyboard',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-organic',
+      taskId: 'demo-task-story',
+      contentId: 'demo-content-story',
+      requestId: 'demo-request-9',
+      title: { en: 'Fitting room poll storyboard', ar: 'قصة مصورة لاستطلاع غرفة القياس' },
+      type: 'PHOTOGRAPHY',
+      reviewStatus: 'AWAITING_REVIEW',
+      owner: 'Maya Nasser',
+      reviewer: 'Layla Haddad',
+      dueAt: '2026-09-11',
+      archived: false,
+      currentVersionId: 'demo-dv-story-v1',
+      approvedVersionId: null,
+      versions: [
+        {
+          id: 'demo-dv-story-v1',
+          label: 'v1',
+          assets: ['/demo/stage5-carousel-v3.svg', '/demo/poster-carousel-2.svg'],
+          notes: { en: 'Two-frame hem poll boards', ar: 'لوحتان لاستطلاع الطول' },
+          createdAt: '2026-09-10T09:00:00+03:00',
+          immutable: false,
+          createdBy: 'Maya Nasser',
+          reviewDecision: null,
+          status: 'SUBMITTED',
+        },
+      ],
+      changeRequests: [],
+      annotations: [],
+      comments: [
+        {
+          id: 'cmt-story-1',
+          versionId: 'demo-dv-story-v1',
+          author: 'Layla Haddad',
+          body: { en: 'Option B hem reads clearer.', ar: 'طول الخيار ب أوضح.' },
+          at: '2026-09-10T11:00:00+03:00',
+          resolved: false,
+        },
+      ],
+      activity: [
+        {
+          id: 'da-story-1',
+          at: '2026-09-10T10:00:00+03:00',
+          actor: 'Maya Nasser',
+          summary: { en: 'Submitted storyboard for review', ar: 'أُرسلت القصة المصورة للمراجعة' },
+          kind: 'submitted',
+        },
+      ],
+      decisions: [],
+    },
+    {
+      id: 'demo-deliv-video',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-paid',
+      taskId: 'demo-task-blocked-1',
+      contentId: 'demo-content-paid-video',
+      requestId: 'demo-request-2',
+      title: { en: 'Paid motion cutdown', ar: 'مقطع حركة مدفوع مختصر' },
+      type: 'LONG_VIDEO',
+      reviewStatus: 'AWAITING_REVIEW',
+      owner: 'Maya Nasser',
+      reviewer: 'Omar Faris',
+      dueAt: '2026-09-13',
+      archived: false,
+      currentVersionId: 'demo-dv-video-v3',
+      approvedVersionId: 'demo-dv-video-v1',
+      versions: [
+        {
+          id: 'demo-dv-video-v1',
+          label: 'v1 Approved',
+          assets: ['/demo/stage5-video-v1.svg', '/demo/video-poster.svg'],
+          notes: { en: 'Approved 6s hook — older cut', ar: 'خطاف 6 ثوانٍ معتمد — نسخة أقدم' },
+          createdAt: '2026-09-04T11:00:00+03:00',
+          immutable: true,
+          createdBy: 'Maya Nasser',
+          reviewDecision: 'APPROVED',
+          status: 'APPROVED',
+        },
+        {
+          id: 'demo-dv-video-v2',
+          label: 'v2',
+          assets: ['/demo/stage5-video-v2.svg'],
+          notes: { en: 'Faster open — superseded', ar: 'افتتاح أسرع — أُلغيت' },
+          createdAt: '2026-09-08T14:00:00+03:00',
+          immutable: false,
+          createdBy: 'Maya Nasser',
+          reviewDecision: null,
+          status: 'SUPERSEDED',
+        },
+        {
+          id: 'demo-dv-video-v3',
+          label: 'v3',
+          assets: ['/demo/stage5-video-v2.svg', '/demo/video-poster.svg'],
+          notes: { en: 'New end-frame awaiting review', ar: 'إطار ختامي جديد بانتظار المراجعة' },
+          createdAt: '2026-09-10T15:00:00+03:00',
+          immutable: false,
+          createdBy: 'Maya Nasser',
+          reviewDecision: null,
+          status: 'SUBMITTED',
+        },
+      ],
+      changeRequests: [],
+      annotations: [],
+      comments: [],
+      activity: [
+        {
+          id: 'da-video-1',
+          at: '2026-09-04T12:00:00+03:00',
+          actor: 'Omar Faris',
+          summary: { en: 'Approved paid cutdown v1', ar: 'اعتمد مقطع المدفوع الإصدار 1' },
+          kind: 'approved',
+        },
+        {
+          id: 'da-video-2',
+          at: '2026-09-10T15:05:00+03:00',
+          actor: 'Maya Nasser',
+          summary: { en: 'Submitted v3 for review', ar: 'أُرسل الإصدار 3 للمراجعة' },
+          kind: 'submitted',
+        },
+      ],
+      decisions: [
+        {
+          id: 'dec-video-1',
+          at: '2026-09-04T12:00:00+03:00',
+          actor: 'Omar Faris',
+          decision: 'APPROVED',
+          versionId: 'demo-dv-video-v1',
+          reason: { en: 'Hook lands in first second', ar: 'الخطاف يصل في الثانية الأولى' },
+          priorStatus: 'AWAITING_REVIEW',
+          newStatus: 'APPROVED',
+        },
+      ],
+    },
+    {
+      id: 'demo-deliv-doc',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-organic',
+      taskId: null,
+      contentId: null,
+      requestId: 'demo-request-1',
+      title: { en: 'Autumn lookbook proof PDF', ar: 'إثبات كتالوج الخريف PDF' },
+      type: 'COPY',
+      reviewStatus: 'APPROVED',
+      owner: 'Layla Haddad',
+      reviewer: 'Client — Horizon Marketing',
+      dueAt: '2026-09-16',
+      archived: false,
+      currentVersionId: 'demo-dv-doc-v1',
+      approvedVersionId: 'demo-dv-doc-v1',
+      versions: [
+        {
+          id: 'demo-dv-doc-v1',
+          label: 'v1',
+          assets: ['/demo/stage5-doc-proof.svg'],
+          notes: { en: 'Client-facing proof sheet', ar: 'ورقة إثبات للعميل' },
+          createdAt: '2026-09-09T11:00:00+03:00',
+          immutable: true,
+          createdBy: 'Layla Haddad',
+          reviewDecision: 'APPROVED',
+          status: 'APPROVED',
+        },
+      ],
+      changeRequests: [],
+      annotations: [],
+      comments: [],
+      activity: [
+        {
+          id: 'da-doc-1',
+          at: '2026-09-09T12:00:00+03:00',
+          actor: 'Client — Horizon Marketing',
+          summary: { en: 'Approved lookbook proof', ar: 'اعتمد إثبات الكتالوج' },
+          kind: 'approved',
+        },
+      ],
+      decisions: [
+        {
+          id: 'dec-doc-1',
+          at: '2026-09-09T12:00:00+03:00',
+          actor: 'Client — Horizon Marketing',
+          decision: 'APPROVED',
+          versionId: 'demo-dv-doc-v1',
+          reason: { en: 'Proof matches brief acceptance', ar: 'الإثبات يطابق قبول الموجز' },
+          priorStatus: 'AWAITING_REVIEW',
+          newStatus: 'APPROVED',
+        },
+      ],
+    },
+    {
+      id: 'demo-deliv-overdue',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-attention',
+      taskId: 'demo-task-ready-1',
+      contentId: 'demo-content-overdue',
+      requestId: 'demo-request-5',
+      title: { en: 'Retargeting square (overdue)', ar: 'مربع إعادة الاستهداف (متأخر)' },
+      type: 'STATIC',
+      reviewStatus: 'AWAITING_REVIEW',
+      owner: 'Rami Khalil',
+      reviewer: 'Omar Faris',
+      dueAt: '2026-09-08',
+      archived: false,
+      currentVersionId: 'demo-dv-overdue-v1',
+      approvedVersionId: null,
+      versions: [
+        {
+          id: 'demo-dv-overdue-v1',
+          label: 'v1',
+          assets: ['/demo/stage5-static-v2.svg', '/demo/poster-static.svg'],
+          notes: { en: 'Overdue against paid window', ar: 'متأخر عن نافذة المدفوع' },
+          createdAt: '2026-09-07T18:00:00+03:00',
+          immutable: false,
+          createdBy: 'Rami Khalil',
+          reviewDecision: null,
+          status: 'SUBMITTED',
+        },
+      ],
+      changeRequests: [],
+      annotations: [],
+      comments: [],
+      activity: [
+        {
+          id: 'da-overdue-1',
+          at: '2026-09-07T18:05:00+03:00',
+          actor: 'Rami Khalil',
+          summary: {
+            en: 'Submitted overdue retargeting square',
+            ar: 'أُرسل مربع إعادة الاستهداف المتأخر',
+          },
+          kind: 'submitted',
+        },
+      ],
+      decisions: [],
+    },
+    {
+      id: 'demo-deliv-rejected',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-paid',
+      taskId: null,
+      contentId: null,
+      requestId: 'demo-request-10',
+      title: { en: 'Live spend claim banner', ar: 'لافتة ادعاء إنفاق مباشر' },
+      type: 'STATIC',
+      reviewStatus: 'REJECTED',
+      owner: 'Omar Faris',
+      reviewer: 'Layla Haddad',
+      dueAt: '2026-09-05',
+      archived: false,
+      currentVersionId: 'demo-dv-rej-v1',
+      approvedVersionId: null,
+      versions: [
+        {
+          id: 'demo-dv-rej-v1',
+          label: 'v1',
+          assets: ['/demo/stage5-static-v1.svg'],
+          notes: {
+            en: 'Implied live Meta connection — rejected',
+            ar: 'يوحي باتصال ميتا حي — مرفوض',
+          },
+          createdAt: '2026-09-03T10:00:00+03:00',
+          immutable: false,
+          createdBy: 'Omar Faris',
+          reviewDecision: 'REJECTED',
+          status: 'REJECTED',
+        },
+      ],
+      changeRequests: [],
+      annotations: [],
+      comments: [],
+      activity: [
+        {
+          id: 'da-rej-1',
+          at: '2026-09-03T11:00:00+03:00',
+          actor: 'Layla Haddad',
+          summary: {
+            en: 'Rejected live spend claim banner',
+            ar: 'رُفضت لافتة ادعاء الإنفاق المباشر',
+          },
+          kind: 'rejected',
+        },
+      ],
+      decisions: [
+        {
+          id: 'dec-rej-1',
+          at: '2026-09-03T11:00:00+03:00',
+          actor: 'Layla Haddad',
+          decision: 'REJECTED',
+          versionId: 'demo-dv-rej-v1',
+          reason: {
+            en: 'Planning-only — no live ad spend claims',
+            ar: 'تخطيط فقط — لا ادعاءات إنفاق مباشر',
+          },
+          priorStatus: 'AWAITING_REVIEW',
+          newStatus: 'REJECTED',
+        },
+      ],
+    },
+    {
+      id: 'demo-deliv-draft',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-draft',
+      taskId: 'demo-task-email-draft',
+      contentId: 'demo-content-email',
+      requestId: 'demo-request-6',
+      title: { en: 'Holiday email soft teaser', ar: 'بريد تشويقي ناعم للعطلة' },
+      type: 'COPY',
+      reviewStatus: 'DRAFT',
+      owner: 'Sara Alami',
+      reviewer: 'Layla Haddad',
+      dueAt: '2026-10-02',
+      archived: false,
+      currentVersionId: 'demo-dv-draft-v1',
+      approvedVersionId: null,
+      versions: [
+        {
+          id: 'demo-dv-draft-v1',
+          label: 'v1',
+          assets: ['/demo/stage5-doc-proof.svg'],
+          notes: { en: 'Draft HTML outline only', ar: 'مخطط HTML مسودة فقط' },
+          createdAt: '2026-09-09T09:30:00+03:00',
+          immutable: false,
+          createdBy: 'Sara Alami',
+          reviewDecision: null,
+          status: 'DRAFT',
+        },
+      ],
+      changeRequests: [],
+      annotations: [],
+      comments: [],
+      activity: [
+        {
+          id: 'da-draft-1',
+          at: '2026-09-09T09:30:00+03:00',
+          actor: 'Sara Alami',
+          summary: { en: 'Created draft deliverable', ar: 'أُنشئ مخرج مسودة' },
+          kind: 'created',
+        },
+      ],
+      decisions: [],
+    },
+    {
+      id: 'demo-deliv-in-review',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-organic',
+      taskId: 'demo-task-progress-1',
+      contentId: 'demo-content-tiktok',
+      requestId: 'demo-request-7',
+      title: { en: 'Behind-the-rack TikTok cut', ar: 'مقطع تيك توك خلف الرف' },
+      type: 'REEL',
+      reviewStatus: 'IN_REVIEW',
+      owner: 'Rami Khalil',
+      reviewer: 'Maya Nasser',
+      dueAt: '2026-09-17',
+      archived: false,
+      currentVersionId: 'demo-dv-inrev-v1',
+      approvedVersionId: null,
+      versions: [
+        {
+          id: 'demo-dv-inrev-v1',
+          label: 'v1',
+          assets: ['/demo/stage5-video-v1.svg', '/demo/video-poster.svg'],
+          notes: { en: 'Rough cut under active review', ar: 'مونتاج أولي قيد المراجعة النشطة' },
+          createdAt: '2026-09-10T12:30:00+03:00',
+          immutable: false,
+          createdBy: 'Rami Khalil',
+          reviewDecision: null,
+          status: 'SUBMITTED',
+        },
+      ],
+      changeRequests: [],
+      annotations: [
+        {
+          id: 'ann-inrev-1',
+          versionId: 'demo-dv-inrev-v1',
+          x: 0.4,
+          y: 0.55,
+          number: 1,
+          author: 'Maya Nasser',
+          body: { en: 'Hold on doorway light a beat longer.', ar: 'أطلِ ضوء المدخل ثانية أطول.' },
+          at: '2026-09-10T13:00:00+03:00',
+          resolved: false,
+          replies: [],
+          timestampLabel: '0:04',
+        },
+      ],
+      comments: [],
+      activity: [
+        {
+          id: 'da-inrev-1',
+          at: '2026-09-10T12:45:00+03:00',
+          actor: 'Maya Nasser',
+          summary: { en: 'Started active review', ar: 'بدأت مراجعة نشطة' },
+          kind: 'in_review',
+        },
+      ],
+      decisions: [],
     },
   ],
   scheduledPosts: [
@@ -1825,7 +2474,8 @@ export const DEMO_GRAPH: DemoGraph = {
     },
   ],
   commandCenter: {
-    reviewQueueCount: 2,
+    // AWAITING_REVIEW + CHANGES_REQUESTED + IN_REVIEW across seed deliverables
+    reviewQueueCount: 6,
     overdueTasks: 1,
     upcomingDeadlines: [
       {
@@ -1921,6 +2571,62 @@ function previewForType(type: DemoContentInput['contentType']): string {
   }
 }
 
+function revisionAssetsForType(type: DemoDeliverableType): string[] {
+  switch (type) {
+    case 'CAROUSEL':
+      return ['/demo/stage5-carousel-v3.svg', '/demo/poster-carousel-1.svg'];
+    case 'REEL':
+    case 'LONG_VIDEO':
+      return ['/demo/stage5-video-v2.svg', '/demo/video-poster.svg'];
+    case 'STATIC':
+    case 'PHOTOGRAPHY':
+      return ['/demo/stage5-static-v2.svg', '/demo/poster-static.svg'];
+    case 'COPY':
+      return ['/demo/stage5-doc-proof.svg'];
+    default:
+      return ['/demo/poster-static.svg'];
+  }
+}
+
+function taskTypeToDeliverableType(type: DemoGraph['tasks'][number]['type']): DemoDeliverableType {
+  switch (type) {
+    case 'VIDEO':
+      return 'REEL';
+    case 'PHOTO':
+      return 'PHOTOGRAPHY';
+    case 'COPY':
+      return 'COPY';
+    case 'DESIGN':
+    default:
+      return 'STATIC';
+  }
+}
+
+function syncReviewQueueCount(graph: DemoGraph): void {
+  graph.commandCenter.reviewQueueCount = graph.deliverables.filter(
+    (d) =>
+      d.reviewStatus === 'AWAITING_REVIEW' ||
+      d.reviewStatus === 'CHANGES_REQUESTED' ||
+      d.reviewStatus === 'IN_REVIEW',
+  ).length;
+}
+
+function replaceDeliverable(
+  graph: DemoGraph,
+  id: string,
+  next: DemoGraph['deliverables'][number],
+): DemoGraph['deliverables'][number] {
+  const idx = graph.deliverables.findIndex((d) => d.id === id);
+  if (idx < 0) throw new Error('Deliverable not found');
+  graph.deliverables = [
+    ...graph.deliverables.slice(0, idx),
+    next,
+    ...graph.deliverables.slice(idx + 1),
+  ];
+  syncReviewQueueCount(graph);
+  return next;
+}
+
 export class DemoDataProvider {
   private graph: DemoGraph;
 
@@ -1942,6 +2648,447 @@ export class DemoDataProvider {
 
   getDeliverable(id: string) {
     return this.graph.deliverables.find((d) => d.id === id) ?? null;
+  }
+
+  canTransitionReview(from: DemoReviewStatus, to: DemoReviewStatus): boolean {
+    if (from === to) return true;
+    const allowed: Record<DemoReviewStatus, DemoReviewStatus[]> = {
+      DRAFT: ['AWAITING_REVIEW'],
+      AWAITING_REVIEW: ['IN_REVIEW', 'CHANGES_REQUESTED', 'APPROVED', 'REJECTED', 'DRAFT'],
+      IN_REVIEW: ['CHANGES_REQUESTED', 'APPROVED', 'REJECTED', 'AWAITING_REVIEW'],
+      CHANGES_REQUESTED: ['DRAFT', 'AWAITING_REVIEW'],
+      APPROVED: [],
+      REJECTED: ['DRAFT', 'AWAITING_REVIEW'],
+    };
+    return allowed[from]?.includes(to) ?? false;
+  }
+
+  addDemoRevision(id: string, opts?: { clientRequestId?: string; createdBy?: string }) {
+    const current = this.getDeliverable(id);
+    if (!current) return null;
+    if (opts?.clientRequestId) {
+      const kind = `clientRequestId:${opts.clientRequestId}`;
+      if (current.activity.some((a) => a.kind === kind)) {
+        return current;
+      }
+    }
+    const now = new Date().toISOString();
+    const versionNum = current.versions.length + 1;
+    const versionId = `${id}-v${versionNum}-${Date.now().toString(36)}`;
+    const versions = current.versions.map((v) => {
+      if (v.immutable || v.status === 'APPROVED') return v;
+      if (v.status === 'SUPERSEDED') return v;
+      return { ...v, status: 'SUPERSEDED' as const };
+    });
+    const newVersion: DemoGraph['deliverables'][number]['versions'][number] = {
+      id: versionId,
+      label: `v${versionNum}`,
+      assets: revisionAssetsForType(current.type),
+      notes: {
+        en: `Revision ${versionNum} from fixture assets`,
+        ar: `مراجعة ${versionNum} من أصول تجريبية`,
+      },
+      createdAt: now,
+      immutable: false,
+      createdBy: opts?.createdBy ?? current.owner,
+      reviewDecision: null,
+      status: 'DRAFT',
+    };
+    versions.push(newVersion);
+    const activityKind = opts?.clientRequestId
+      ? `clientRequestId:${opts.clientRequestId}`
+      : 'revision';
+    const activity: DemoDeliverableActivity = {
+      id: `da-${Date.now().toString(36)}`,
+      at: now,
+      actor: opts?.createdBy ?? current.owner,
+      summary: {
+        en: `Created revision ${newVersion.label}`,
+        ar: `أُنشئت المراجعة ${newVersion.label}`,
+      },
+      kind: activityKind,
+    };
+    const next = {
+      ...current,
+      versions,
+      currentVersionId: versionId,
+      reviewStatus:
+        current.reviewStatus === 'APPROVED' || current.reviewStatus === 'REJECTED'
+          ? current.reviewStatus
+          : ('DRAFT' as DemoReviewStatus),
+      activity: [activity, ...current.activity],
+    };
+    // Do not reopen a fully approved deliverable via revision alone when approvedVersionId set
+    if (current.approvedVersionId && current.reviewStatus === 'APPROVED') {
+      next.reviewStatus = 'DRAFT';
+    }
+    return replaceDeliverable(this.graph, id, next);
+  }
+
+  selectCurrentVersion(id: string, versionId: string) {
+    const current = this.getDeliverable(id);
+    if (!current) return null;
+    const version = current.versions.find((v) => v.id === versionId);
+    if (!version) throw new Error('Version not found');
+    const next = {
+      ...current,
+      currentVersionId: versionId,
+      activity: [
+        {
+          id: `da-${Date.now().toString(36)}`,
+          at: new Date().toISOString(),
+          actor: 'system',
+          summary: {
+            en: `Selected ${version.label} as current`,
+            ar: `حُدّد ${version.label} كحالي`,
+          },
+          kind: 'select_version',
+        },
+        ...current.activity,
+      ],
+    };
+    return replaceDeliverable(this.graph, id, next);
+  }
+
+  addAnnotation(
+    id: string,
+    input: {
+      versionId: string;
+      x: number;
+      y: number;
+      author: string;
+      body: DemoLocaleCopy;
+      timestampLabel?: string | null;
+    },
+  ) {
+    const current = this.getDeliverable(id);
+    if (!current) return null;
+    const version = current.versions.find((v) => v.id === input.versionId);
+    if (!version) throw new Error('Version not found');
+    if (version.immutable || version.status === 'APPROVED') {
+      throw new Error('Cannot annotate an immutable or approved version');
+    }
+    const x = Math.min(1, Math.max(0, input.x));
+    const y = Math.min(1, Math.max(0, input.y));
+    const number = current.annotations.filter((a) => a.versionId === input.versionId).length + 1;
+    const now = new Date().toISOString();
+    const annotation: DemoDeliverableAnnotation = {
+      id: `ann-${Date.now().toString(36)}`,
+      versionId: input.versionId,
+      x,
+      y,
+      number,
+      author: input.author,
+      body: input.body,
+      at: now,
+      resolved: false,
+      replies: [],
+      timestampLabel: input.timestampLabel ?? null,
+    };
+    const next = {
+      ...current,
+      annotations: [...current.annotations, annotation],
+      activity: [
+        {
+          id: `da-${Date.now().toString(36)}`,
+          at: now,
+          actor: input.author,
+          summary: { en: `Pinned annotation #${number}`, ar: `ثُبّتت ملاحظة #${number}` },
+          kind: 'annotation',
+        },
+        ...current.activity,
+      ],
+    };
+    return replaceDeliverable(this.graph, id, next);
+  }
+
+  addGeneralComment(
+    id: string,
+    input: { versionId: string; author: string; body: DemoLocaleCopy },
+  ) {
+    const current = this.getDeliverable(id);
+    if (!current) return null;
+    if (!current.versions.some((v) => v.id === input.versionId)) {
+      throw new Error('Version not found');
+    }
+    const now = new Date().toISOString();
+    const comment: DemoDeliverableComment = {
+      id: `cmt-${Date.now().toString(36)}`,
+      versionId: input.versionId,
+      author: input.author,
+      body: input.body,
+      at: now,
+      resolved: false,
+    };
+    const next = {
+      ...current,
+      comments: [...current.comments, comment],
+      activity: [
+        {
+          id: `da-${Date.now().toString(36)}`,
+          at: now,
+          actor: input.author,
+          summary: { en: 'Added general comment', ar: 'أُضيف تعليق عام' },
+          kind: 'comment',
+        },
+        ...current.activity,
+      ],
+    };
+    return replaceDeliverable(this.graph, id, next);
+  }
+
+  resolveAnnotation(id: string, annotationId: string, resolved: boolean) {
+    const current = this.getDeliverable(id);
+    if (!current) return null;
+    const idx = current.annotations.findIndex((a) => a.id === annotationId);
+    if (idx < 0) throw new Error('Annotation not found');
+    const annotations = current.annotations.map((a) =>
+      a.id === annotationId ? { ...a, resolved } : a,
+    );
+    const now = new Date().toISOString();
+    const next = {
+      ...current,
+      annotations,
+      activity: [
+        {
+          id: `da-${Date.now().toString(36)}`,
+          at: now,
+          actor: 'system',
+          summary: {
+            en: resolved ? 'Resolved annotation' : 'Reopened annotation',
+            ar: resolved ? 'حُلّت الملاحظة' : 'أُعيد فتح الملاحظة',
+          },
+          kind: 'annotation_resolve',
+        },
+        ...current.activity,
+      ],
+    };
+    return replaceDeliverable(this.graph, id, next);
+  }
+
+  submitForReview(id: string, versionId: string) {
+    const current = this.getDeliverable(id);
+    if (!current) return null;
+    const version = current.versions.find((v) => v.id === versionId);
+    if (!version) throw new Error('Version not found');
+    if (version.immutable || version.status === 'APPROVED') {
+      throw new Error('Cannot submit an immutable or approved version');
+    }
+    const targetStatus: DemoReviewStatus = 'AWAITING_REVIEW';
+    if (
+      current.reviewStatus !== targetStatus &&
+      !this.canTransitionReview(current.reviewStatus, targetStatus)
+    ) {
+      throw new Error(`Invalid review transition ${current.reviewStatus} → ${targetStatus}`);
+    }
+    const now = new Date().toISOString();
+    const versions = current.versions.map((v) => {
+      if (v.id !== versionId) {
+        if (v.immutable || v.status === 'APPROVED') return v;
+        if (v.status === 'SUBMITTED') return { ...v, status: 'SUPERSEDED' as const };
+        return v;
+      }
+      return { ...v, status: 'SUBMITTED' as const, reviewDecision: null };
+    });
+    const next = {
+      ...current,
+      versions,
+      currentVersionId: versionId,
+      reviewStatus: targetStatus,
+      activity: [
+        {
+          id: `da-${Date.now().toString(36)}`,
+          at: now,
+          actor: current.owner,
+          summary: {
+            en: `Submitted ${version.label} for review`,
+            ar: `أُرسل ${version.label} للمراجعة`,
+          },
+          kind: 'submitted',
+        },
+        ...current.activity,
+      ],
+    };
+    return replaceDeliverable(this.graph, id, next);
+  }
+
+  decideReview(
+    id: string,
+    input: {
+      decision: 'APPROVED' | 'CHANGES_REQUESTED' | 'REJECTED';
+      versionId: string;
+      actor: string;
+      reason?: DemoLocaleCopy;
+    },
+  ) {
+    const current = this.getDeliverable(id);
+    if (!current) return null;
+    const version = current.versions.find((v) => v.id === input.versionId);
+    if (!version) throw new Error('Version not found');
+    if (version.immutable && input.decision !== 'APPROVED') {
+      throw new Error('Cannot mutate an immutable version');
+    }
+    if (version.status === 'APPROVED' && version.immutable && input.decision !== 'APPROVED') {
+      throw new Error('Cannot mutate an approved version');
+    }
+    const to = input.decision;
+    if (!this.canTransitionReview(current.reviewStatus, to)) {
+      throw new Error(`Invalid review transition ${current.reviewStatus} → ${to}`);
+    }
+    if (
+      (to === 'CHANGES_REQUESTED' || to === 'REJECTED') &&
+      (!input.reason || !input.reason.en.trim())
+    ) {
+      throw new Error('reason is required for CHANGES_REQUESTED and REJECTED');
+    }
+    const now = new Date().toISOString();
+    const reason = input.reason ?? { en: '', ar: '' };
+    const versions = current.versions.map((v) => {
+      if (v.id !== input.versionId) return v;
+      if (to === 'APPROVED') {
+        return {
+          ...v,
+          immutable: true,
+          status: 'APPROVED' as const,
+          reviewDecision: 'APPROVED' as const,
+        };
+      }
+      if (to === 'REJECTED') {
+        return {
+          ...v,
+          status: 'REJECTED' as const,
+          reviewDecision: 'REJECTED' as const,
+        };
+      }
+      return {
+        ...v,
+        status: 'SUBMITTED' as const,
+        reviewDecision: 'CHANGES_REQUESTED' as const,
+      };
+    });
+    const changeRequests =
+      to === 'CHANGES_REQUESTED'
+        ? [
+            {
+              id: `cr-${Date.now().toString(36)}`,
+              body: reason,
+              author: input.actor,
+              at: now,
+            },
+            ...current.changeRequests,
+          ]
+        : current.changeRequests;
+    const decision: DemoDeliverableDecision = {
+      id: `dec-${Date.now().toString(36)}`,
+      at: now,
+      actor: input.actor,
+      decision: to,
+      versionId: input.versionId,
+      reason,
+      priorStatus: current.reviewStatus,
+      newStatus: to,
+    };
+    const next = {
+      ...current,
+      versions,
+      reviewStatus: to,
+      approvedVersionId: to === 'APPROVED' ? input.versionId : current.approvedVersionId,
+      currentVersionId: input.versionId,
+      changeRequests,
+      decisions: [decision, ...current.decisions],
+      activity: [
+        {
+          id: `da-${Date.now().toString(36)}`,
+          at: now,
+          actor: input.actor,
+          summary: {
+            en: `Review decision: ${to}`,
+            ar: `قرار المراجعة: ${to}`,
+          },
+          kind: to.toLowerCase(),
+        },
+        ...current.activity,
+      ],
+    };
+    return replaceDeliverable(this.graph, id, next);
+  }
+
+  createDeliverableFromTask(taskId: string) {
+    const task = this.getTask(taskId);
+    if (!task) throw new Error('Task not found');
+    if (task.deliverableId) {
+      const existing = this.getDeliverable(task.deliverableId);
+      if (existing) return existing;
+    }
+    const existingLinked = this.graph.deliverables.find((d) => d.taskId === taskId);
+    if (existingLinked) {
+      const tIdx = this.graph.tasks.findIndex((t) => t.id === taskId);
+      if (tIdx >= 0 && this.graph.tasks[tIdx]!.deliverableId !== existingLinked.id) {
+        this.graph.tasks[tIdx] = {
+          ...this.graph.tasks[tIdx]!,
+          deliverableId: existingLinked.id,
+        };
+      }
+      return existingLinked;
+    }
+    const now = new Date().toISOString();
+    const id = `demo-deliv-${Date.now().toString(36)}`;
+    const versionId = `${id}-v1`;
+    const type = taskTypeToDeliverableType(task.type);
+    const owner = task.assignee === 'Unassigned' ? 'system' : task.assignee;
+    const row: DemoGraph['deliverables'][number] = {
+      id,
+      brandId: task.brandId,
+      campaignId: task.campaignId ?? 'demo-campaign-organic',
+      taskId,
+      contentId: task.contentId,
+      requestId: task.requestId,
+      title: task.title,
+      type,
+      reviewStatus: 'DRAFT',
+      owner,
+      reviewer: 'Layla Haddad',
+      dueAt: task.dueAt,
+      archived: false,
+      currentVersionId: versionId,
+      approvedVersionId: null,
+      versions: [
+        {
+          id: versionId,
+          label: 'v1',
+          assets: revisionAssetsForType(type),
+          notes: {
+            en: 'Created from task',
+            ar: 'أُنشئ من مهمة',
+          },
+          createdAt: now,
+          immutable: false,
+          createdBy: owner,
+          reviewDecision: null,
+          status: 'DRAFT',
+        },
+      ],
+      changeRequests: [],
+      annotations: [],
+      comments: [],
+      activity: [
+        {
+          id: `da-${Date.now().toString(36)}`,
+          at: now,
+          actor: 'system',
+          summary: { en: 'Created from task', ar: 'أُنشئ من مهمة' },
+          kind: 'created',
+        },
+      ],
+      decisions: [],
+    };
+    this.graph.deliverables = [row, ...this.graph.deliverables];
+    const tIdx = this.graph.tasks.findIndex((t) => t.id === taskId);
+    if (tIdx >= 0) {
+      this.graph.tasks[tIdx] = { ...this.graph.tasks[tIdx]!, deliverableId: id };
+    }
+    syncReviewQueueCount(this.graph);
+    return row;
   }
 
   getRequest(id: string) {

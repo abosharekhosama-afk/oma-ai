@@ -1,0 +1,20 @@
+{
+  "gitSha": "pending",
+  "route": "/app/deliverables/demo-deliv-carousel?review=1",
+  "viewport": {
+    "width": 1024,
+    "height": 768
+  },
+  "locale": "en",
+  "direction": "ltr",
+  "role": "owner",
+  "deliverableVersionState": "seed",
+  "demoAssetIdentifier": "local /demo/*",
+  "consoleErrorCount": 0,
+  "externalNetworkRequestCount": 0,
+  "evidenceReferencePattern": "Frame.io dark canvas + Planable approval clarity (DOC)",
+  "acceptanceIds": [
+    "V-REV-02"
+  ],
+  "healthHint": "{\"error\":{\"code\":\"VALIDATION_FAILED\",\"me"
+}

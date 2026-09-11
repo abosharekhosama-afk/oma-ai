@@ -80,13 +80,17 @@ test.describe('Complete product demo certification', () => {
     await expect(page.getByTestId('demo-deliverable-detail')).toBeVisible();
     await expect(page.getByText(/Increase CTA contrast|Layla Haddad/i).first()).toBeVisible();
 
-    // Approve is local UI only — then reload must restore seed status (honesty)
-    await page.getByRole('button', { name: /^Approve$/i }).click();
-    await expect(page.getByText('APPROVED').first()).toBeVisible();
+    // Approve persists via Demo API — reload must keep APPROVED (demo honesty still shown)
+    await page.getByTestId('demo-decide-approve').click();
+    await expect(page.getByTestId('demo-decision-dialog')).toBeVisible();
+    await page.getByTestId('demo-decision-confirm').click();
+    await expect(page.getByText('APPROVED').first()).toBeVisible({ timeout: 15_000 });
     await page.reload();
     await expect(page.getByTestId('demo-deliverable-detail')).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByText(/AWAITING_REVIEW/i).first()).toBeVisible();
-    await expect(page.getByText(/local UI only|Demo review/i).first()).toBeVisible();
+    await expect(page.getByText(/APPROVED/i).first()).toBeVisible();
+    await expect(
+      page.getByText(/Demo review|storage not connected|Local demonstration/i).first(),
+    ).toBeVisible();
 
     // Request + brief
     await page

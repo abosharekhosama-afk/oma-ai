@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="850" height="1100" viewBox="0 0 850 1100">
+  <rect width="850" height="1100" fill="#F7F6F9"/>
+  <rect x="40" y="40" width="770" height="1020" fill="#fff" stroke="#D8D5E3" stroke-width="2"/>
+  <text x="80" y="120" fill="#1B1C22" font-family="IBM Plex Sans, system-ui" font-size="40">Proof sheet</text>
+  <text x="80" y="180" fill="#5C5F6B" font-family="IBM Plex Sans, system-ui" font-size="24">Local demonstration asset · not storage</text>
+  <rect x="80" y="240" width="690" height="16" fill="#E4E1EE"/>
+  <rect x="80" y="280" width="620" height="16" fill="#E4E1EE"/>
+  <rect x="80" y="320" width="560" height="16" fill="#E4E1EE"/>
+  <rect x="80" y="400" width="690" height="280" fill="#EEECF6" rx="8"/>
+  <text x="110" y="540" fill="#6658E8" font-family="IBM Plex Sans, system-ui" font-size="28">Brand lockup zone</text>
+</svg>

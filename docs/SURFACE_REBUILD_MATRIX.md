@@ -86,10 +86,15 @@ Status: all rows below are **REBUILD** or **PARTIAL** unless noted.
 
 ## Stage 5 — Deliverables + Reviews
 
-**Routes:** `/app/deliverables/**`, `/app/reviews`  
-**Components:** MediaReviewCanvas, VersionCompare, ApprovalActions  
-**Reference:** Frame.io DOC + Planable approvals archived  
-**Done when:** V-DEL-_, V-REV-_ pass; review uses dark canvas; immutable approved version UX clear.
+**Routes:** `/app/deliverables/**`, `/app/reviews`
+
+**Components:** MediaReviewCanvas, VersionCompare, ApprovalActions, Annotation pins, Review queue
+
+**Reference:** Frame.io DOC + Planable approvals archived (LIVE inspection optional; DOC-only default)
+
+**Done when:** V-DEL-01, V-REV-01/02/03, V-VER-01, V-APR-01, V-WRK-02, V-LINK-03 pass; scoped dark canvas; immutable approved version UX clear; Task↔Deliverable handoff persisted.
+
+**Stage 5 status:** implemented on `004-oma-complete-product-demo`.
 
 ## Stage 6 — Schedule + Analytics + Team + Settings
 

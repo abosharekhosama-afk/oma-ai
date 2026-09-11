@@ -224,4 +224,136 @@ describe('demo API security', () => {
     expect([403, 404]).toContain(denied.status);
     process.env.OMA_DEMO_MODE = prev;
   });
+
+  it('persists deliverable revision, annotation, and decide; rejects when demo off', async () => {
+    const prev = process.env.OMA_DEMO_MODE;
+    process.env.OMA_DEMO_MODE = '1';
+    const seed = await seedBrandTenant();
+    closers.push(async () => seed.app.close());
+    const headers = {
+      'content-type': 'application/json',
+      cookie: Object.entries(seed.cookies)
+        .map(([k, v]) => `${k}=${v}`)
+        .join('; '),
+      'x-csrf-token': seed.csrf ?? '',
+    };
+
+    const list = await fetch(`${seed.baseUrl}/api/v1/demo/deliverables`, {
+      headers: { cookie: headers.cookie },
+    });
+    expect(list.status).toBe(200);
+    const listBody = (await list.json()) as {
+      data: Array<{ id: string; currentVersionId: string }>;
+    };
+    const target = listBody.data.find((d) => d.id === 'demo-deliv-carousel');
+    expect(target).toBeTruthy();
+    const versionId = target!.currentVersionId;
+
+    const annotation = await fetch(
+      `${seed.baseUrl}/api/v1/demo/deliverables/demo-deliv-carousel/annotations`,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          versionId,
+          x: 0.4,
+          y: 0.6,
+          author: 'Security Reviewer',
+          body: { en: 'Check contrast', ar: 'تحقق من التباين' },
+        }),
+      },
+    );
+    expect([200, 201]).toContain(annotation.status);
+
+    const changes = await fetch(
+      `${seed.baseUrl}/api/v1/demo/deliverables/demo-deliv-carousel/decide`,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          decision: 'CHANGES_REQUESTED',
+          versionId,
+          actor: 'Security Reviewer',
+          reason: { en: 'Need stronger CTA', ar: 'دعوة أقوى' },
+        }),
+      },
+    );
+    expect([200, 201]).toContain(changes.status);
+
+    const revision = await fetch(
+      `${seed.baseUrl}/api/v1/demo/deliverables/demo-deliv-carousel/revisions`,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ clientRequestId: 'sec-rev-1', createdBy: 'Security Owner' }),
+      },
+    );
+    expect([200, 201]).toContain(revision.status);
+    const revBody = (await revision.json()) as {
+      data: { currentVersionId: string; versions: Array<{ id: string }> };
+    };
+    const newVersionId = revBody.data.currentVersionId;
+    expect(revBody.data.versions.some((v) => v.id === versionId)).toBe(true);
+
+    const submit = await fetch(
+      `${seed.baseUrl}/api/v1/demo/deliverables/demo-deliv-carousel/submit`,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ versionId: newVersionId }),
+      },
+    );
+    expect([200, 201]).toContain(submit.status);
+
+    const approve = await fetch(
+      `${seed.baseUrl}/api/v1/demo/deliverables/demo-deliv-carousel/decide`,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          decision: 'APPROVED',
+          versionId: newVersionId,
+          actor: 'Security Reviewer',
+        }),
+      },
+    );
+    expect([200, 201]).toContain(approve.status);
+    const approvedBody = (await approve.json()) as {
+      data: {
+        reviewStatus: string;
+        approvedVersionId: string;
+        versions: Array<{ id: string; immutable: boolean }>;
+      };
+    };
+    expect(approvedBody.data.reviewStatus).toBe('APPROVED');
+    expect(approvedBody.data.approvedVersionId).toBe(newVersionId);
+    expect(approvedBody.data.versions.find((v) => v.id === newVersionId)?.immutable).toBe(true);
+
+    const invalid = await fetch(
+      `${seed.baseUrl}/api/v1/demo/deliverables/demo-deliv-carousel/decide`,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          decision: 'REJECTED',
+          versionId: newVersionId,
+          actor: 'Security Reviewer',
+          reason: { en: 'Too late', ar: 'متأخر' },
+        }),
+      },
+    );
+    expect([400, 422]).toContain(invalid.status);
+
+    process.env.OMA_DEMO_MODE = '0';
+    const denied = await fetch(
+      `${seed.baseUrl}/api/v1/demo/deliverables/demo-deliv-carousel/revisions`,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({}),
+      },
+    );
+    expect([403, 404]).toContain(denied.status);
+    process.env.OMA_DEMO_MODE = prev;
+  });
 });

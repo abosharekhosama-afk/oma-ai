@@ -185,6 +185,26 @@ export default function TasksPage() {
     await patchTask(selected.id, { checklist });
   }
 
+  async function createDeliverableFromTask() {
+    if (!selected) return;
+    setSaving(true);
+    try {
+      const deliv = await demoApi<DemoGraph['deliverables'][number]>(
+        `/deliverables/from-task/${selected.id}`,
+        { method: 'POST', body: JSON.stringify({}) },
+      );
+      setRows((list) =>
+        list.map((r) => (r.id === selected.id ? { ...r, deliverableId: deliv.id } : r)),
+      );
+      toast.push(t('demo.tasks.deliverableCreated'), 'success');
+      router.push(`/app/deliverables/${deliv.id}`);
+    } catch (err) {
+      toast.push(demoErrorMessage(err, t('demo.unavailable')), 'danger');
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function submitCreate() {
     if (!createForm.title.trim() || !createForm.brandId) {
       toast.push(t('demo.create.validation'), 'danger');
@@ -705,7 +725,18 @@ export default function TasksPage() {
                   {t('demo.tasks.deliverableHandoff')}: {selected.deliverableId}
                 </Link>
               ) : (
-                <span className="oma-muted">{t('demo.tasks.noDeliverable')}</span>
+                <div className="oma-chip-row">
+                  <span className="oma-muted">{t('demo.tasks.noDeliverable')}</span>
+                  <button
+                    type="button"
+                    className="oma-btn oma-btn-secondary"
+                    data-testid="demo-task-create-deliverable"
+                    disabled={saving}
+                    onClick={() => void createDeliverableFromTask()}
+                  >
+                    {t('demo.tasks.createDeliverable')}
+                  </button>
+                </div>
               )}
             </div>
 

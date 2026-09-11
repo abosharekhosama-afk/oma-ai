@@ -447,6 +447,147 @@ export class DemoController {
     return { data: row };
   }
 
+  @Post('deliverables/from-task/:taskId')
+  createFromTask(@Param('taskId') taskId: string) {
+    this.requireDemo();
+    try {
+      const row = demoDataProvider.createDeliverableFromTask(taskId);
+      return { data: row };
+    } catch (err) {
+      throw new BadRequestException(err instanceof Error ? err.message : 'Create failed');
+    }
+  }
+
+  @Post('deliverables/:id/revisions')
+  addRevision(@Param('id') id: string, @Body() body: Record<string, unknown>) {
+    this.requireDemo();
+    try {
+      const row = demoDataProvider.addDemoRevision(id, {
+        clientRequestId:
+          typeof body.clientRequestId === 'string' ? body.clientRequestId : undefined,
+        createdBy: typeof body.createdBy === 'string' ? body.createdBy : undefined,
+      });
+      if (!row) throw new NotFoundException('Not found');
+      return { data: row };
+    } catch (err) {
+      if (err instanceof NotFoundException) throw err;
+      throw new BadRequestException(err instanceof Error ? err.message : 'Revision failed');
+    }
+  }
+
+  @Patch('deliverables/:id/current-version')
+  selectVersion(@Param('id') id: string, @Body() body: Record<string, unknown>) {
+    this.requireDemo();
+    try {
+      const versionId = String(body.versionId ?? '');
+      if (!versionId) throw new BadRequestException('versionId is required');
+      const row = demoDataProvider.selectCurrentVersion(id, versionId);
+      if (!row) throw new NotFoundException('Not found');
+      return { data: row };
+    } catch (err) {
+      if (err instanceof NotFoundException) throw err;
+      throw new BadRequestException(err instanceof Error ? err.message : 'Select failed');
+    }
+  }
+
+  @Post('deliverables/:id/annotations')
+  addAnnotation(@Param('id') id: string, @Body() body: Record<string, unknown>) {
+    this.requireDemo();
+    try {
+      const x = Number(body.x);
+      const y = Number(body.y);
+      if (!Number.isFinite(x) || !Number.isFinite(y) || x < 0 || x > 1 || y < 0 || y > 1) {
+        throw new BadRequestException('x and y must be normalized 0..1');
+      }
+      const row = demoDataProvider.addAnnotation(id, {
+        versionId: String(body.versionId ?? ''),
+        x,
+        y,
+        author: String(body.author ?? 'Reviewer').trim(),
+        body: asCopy(body.body, 'body'),
+        timestampLabel:
+          body.timestampLabel === null || body.timestampLabel === undefined
+            ? null
+            : String(body.timestampLabel),
+      });
+      if (!row) throw new NotFoundException('Not found');
+      return { data: row };
+    } catch (err) {
+      if (err instanceof NotFoundException) throw err;
+      throw new BadRequestException(err instanceof Error ? err.message : 'Annotation failed');
+    }
+  }
+
+  @Post('deliverables/:id/comments')
+  addDeliverableComment(@Param('id') id: string, @Body() body: Record<string, unknown>) {
+    this.requireDemo();
+    try {
+      const row = demoDataProvider.addGeneralComment(id, {
+        versionId: String(body.versionId ?? ''),
+        author: String(body.author ?? 'Reviewer').trim(),
+        body: asCopy(body.body, 'body'),
+      });
+      if (!row) throw new NotFoundException('Not found');
+      return { data: row };
+    } catch (err) {
+      if (err instanceof NotFoundException) throw err;
+      throw new BadRequestException(err instanceof Error ? err.message : 'Comment failed');
+    }
+  }
+
+  @Patch('deliverables/:id/annotations/:annotationId')
+  resolveAnnotation(
+    @Param('id') id: string,
+    @Param('annotationId') annotationId: string,
+    @Body() body: Record<string, unknown>,
+  ) {
+    this.requireDemo();
+    try {
+      const resolved = Boolean(body.resolved);
+      const row = demoDataProvider.resolveAnnotation(id, annotationId, resolved);
+      if (!row) throw new NotFoundException('Not found');
+      return { data: row };
+    } catch (err) {
+      if (err instanceof NotFoundException) throw err;
+      throw new BadRequestException(err instanceof Error ? err.message : 'Resolve failed');
+    }
+  }
+
+  @Post('deliverables/:id/submit')
+  submitReview(@Param('id') id: string, @Body() body: Record<string, unknown>) {
+    this.requireDemo();
+    try {
+      const row = demoDataProvider.submitForReview(id, String(body.versionId ?? ''));
+      if (!row) throw new NotFoundException('Not found');
+      return { data: row };
+    } catch (err) {
+      if (err instanceof NotFoundException) throw err;
+      throw new BadRequestException(err instanceof Error ? err.message : 'Submit failed');
+    }
+  }
+
+  @Post('deliverables/:id/decide')
+  decide(@Param('id') id: string, @Body() body: Record<string, unknown>) {
+    this.requireDemo();
+    try {
+      const decision = String(body.decision ?? '').toUpperCase();
+      if (!['APPROVED', 'CHANGES_REQUESTED', 'REJECTED'].includes(decision)) {
+        throw new BadRequestException('Invalid decision');
+      }
+      const row = demoDataProvider.decideReview(id, {
+        decision: decision as 'APPROVED' | 'CHANGES_REQUESTED' | 'REJECTED',
+        versionId: String(body.versionId ?? ''),
+        actor: String(body.actor ?? 'Reviewer').trim(),
+        reason: body.reason ? asCopy(body.reason, 'reason') : undefined,
+      });
+      if (!row) throw new NotFoundException('Not found');
+      return { data: row };
+    } catch (err) {
+      if (err instanceof NotFoundException) throw err;
+      throw new BadRequestException(err instanceof Error ? err.message : 'Decision failed');
+    }
+  }
+
   @Get('schedule')
   schedule() {
     this.requireDemo();

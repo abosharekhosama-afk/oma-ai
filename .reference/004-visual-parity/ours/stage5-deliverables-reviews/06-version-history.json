@@ -1,0 +1,20 @@
+{
+  "gitSha": "pending",
+  "route": "/app/deliverables/demo-deliv-video?review=1",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "locale": "en",
+  "direction": "ltr",
+  "role": "owner",
+  "deliverableVersionState": "approved v1 + current v3",
+  "demoAssetIdentifier": "stage5-video-v2.svg",
+  "consoleErrorCount": 0,
+  "externalNetworkRequestCount": 0,
+  "evidenceReferencePattern": "Frame.io version rail / compare (DOC)",
+  "acceptanceIds": [
+    "V-VER-01"
+  ],
+  "healthHint": "{\"error\":{\"code\":\"VALIDATION_FAILED\",\"me"
+}

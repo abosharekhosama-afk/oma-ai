@@ -1,0 +1,21 @@
+{
+  "gitSha": "pending",
+  "route": "/app/deliverables/demo-deliv-carousel",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "locale": "en",
+  "direction": "ltr",
+  "role": "owner",
+  "deliverableVersionState": "AWAITING_REVIEW / carousel v2",
+  "demoAssetIdentifier": "stage5-carousel-v2.svg",
+  "consoleErrorCount": 0,
+  "externalNetworkRequestCount": 0,
+  "evidenceReferencePattern": "Workfront production handoff + Planable portfolio (DOC)",
+  "acceptanceIds": [
+    "V-DEL-01",
+    "V-LINK-03"
+  ],
+  "healthHint": "{\"error\":{\"code\":\"VALIDATION_FAILED\",\"me"
+}

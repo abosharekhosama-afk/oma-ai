@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080">
+  <rect width="1080" height="1080" fill="#14161C"/>
+  <rect x="80" y="80" width="920" height="920" fill="#243038" rx="24"/>
+  <text x="120" y="200" fill="#E8FFF9" font-family="IBM Plex Sans, system-ui" font-size="56">Carousel V3</text>
+  <text x="120" y="280" fill="#8FD9D2" font-family="IBM Plex Sans, system-ui" font-size="32">Signal accent · post-feedback</text>
+  <rect x="120" y="800" width="360" height="88" rx="8" fill="#12A7A1"/>
+  <text x="170" y="856" fill="#041413" font-family="IBM Plex Sans, system-ui" font-size="32" font-weight="600">Shop neutrals</text>
+</svg>

@@ -72,12 +72,27 @@
 
 ## Stage 5 — Deliverables / Reviews
 
-| ID       | Criterion                                                               |
-| -------- | ----------------------------------------------------------------------- |
-| V-DEL-01 | Media review uses `--oma-review-canvas`                                 |
-| V-DEL-02 | Active version label always visible                                     |
-| V-DEL-03 | Compare shows two named versions                                        |
-| V-REV-01 | Review inbox prioritizes awaiting items; deep link to deliverable works |
+| ID        | Criterion                                                                                                                    |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| V-DEL-01  | Deliverables portfolio shows asset, version, review state, owner/reviewer, relationships, next action at operational density |
+| V-REV-01  | Review queue reveals what needs review, who owns it, due date, and open feedback                                             |
+| V-REV-02  | Dark review workspace (`--oma-review-canvas`) keeps media central with version/comments/decisions                            |
+| V-REV-03  | Visual annotations persist normalized coords, bind to version+thread, survive resize/reload                                  |
+| V-VER-01  | Version history/compare distinguishes Latest vs Approved vs Superseded; no fake pixel-diff claim                             |
+| V-APR-01  | Approve / Request changes / Reject target a specific version with reason, capability, immutability                           |
+| V-WRK-02  | Task → Deliverable → Review → Revision → Approval is linked and Demo-API persisted                                           |
+| V-LINK-03 | Campaign / Content / Request / Task / Deliverable deep links resolve to the correct record                                   |
+
+**Legacy mapping (older IDs still referenced in matrix rows):**
+
+| Legacy                    | Maps to             |
+| ------------------------- | ------------------- |
+| V-DEL-01 (media canvas)   | V-REV-02            |
+| V-DEL-02 (active version) | V-VER-01 / V-REV-02 |
+| V-DEL-03 (compare)        | V-VER-01            |
+| V-REV-01 (inbox)          | V-REV-01 (expanded) |
+
+**Stage 5 status:** implemented on `004-oma-complete-product-demo` — prove with Stage 5 Playwright + unit/security gates, not screenshots alone.
 
 ## Stage 6 — Schedule / Analytics / Org
 

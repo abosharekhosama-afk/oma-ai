@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080">
+  <rect width="1080" height="1080" fill="#1C1E26"/>
+  <rect x="80" y="80" width="920" height="920" fill="#2F2850" rx="24"/>
+  <text x="120" y="200" fill="#F4F2FF" font-family="IBM Plex Sans, system-ui" font-size="56">Carousel V2</text>
+  <text x="120" y="280" fill="#B8B3D9" font-family="IBM Plex Sans, system-ui" font-size="32">Texture slide · stronger CTA</text>
+  <rect x="120" y="820" width="320" height="80" rx="8" fill="#6658E8"/>
+  <text x="160" y="870" fill="#fff" font-family="IBM Plex Sans, system-ui" font-size="30" font-weight="600">Shop neutrals</text>
+</svg>

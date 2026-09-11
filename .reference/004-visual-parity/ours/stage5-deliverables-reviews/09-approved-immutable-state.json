@@ -1,0 +1,21 @@
+{
+  "gitSha": "pending",
+  "route": "/app/deliverables/demo-deliv-reel",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "locale": "en",
+  "direction": "ltr",
+  "role": "owner",
+  "deliverableVersionState": "APPROVED immutable reel v1",
+  "demoAssetIdentifier": "video-poster.svg",
+  "consoleErrorCount": 0,
+  "externalNetworkRequestCount": 0,
+  "evidenceReferencePattern": "Workfront production handoff + Planable portfolio (DOC)",
+  "acceptanceIds": [
+    "V-APR-01",
+    "V-VER-01"
+  ],
+  "healthHint": "{\"error\":{\"code\":\"VALIDATION_FAILED\",\"me"
+}

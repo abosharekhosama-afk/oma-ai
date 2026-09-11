@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">
+  <rect width="1080" height="1920" fill="#0E1014"/>
+  <rect x="40" y="200" width="1000" height="1400" fill="#18242A" rx="20"/>
+  <circle cx="540" cy="900" r="90" fill="#12A7A1"/>
+  <polygon points="520,860 520,940 590,900" fill="#041413"/>
+  <text x="80" y="120" fill="#E8FFF9" font-family="IBM Plex Sans, system-ui" font-size="48">Reel poster V2</text>
+  <text x="80" y="1800" fill="#7FB8B3" font-family="IBM Plex Sans, system-ui" font-size="28">Preview timestamp 00:06 · Demo</text>
+</svg>

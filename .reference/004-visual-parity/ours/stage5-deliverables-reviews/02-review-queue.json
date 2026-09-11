@@ -1,0 +1,20 @@
+{
+  "gitSha": "pending",
+  "route": "/app/reviews",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "locale": "en",
+  "direction": "ltr",
+  "role": "owner",
+  "deliverableVersionState": "seed",
+  "demoAssetIdentifier": "local /demo/*",
+  "consoleErrorCount": 0,
+  "externalNetworkRequestCount": 0,
+  "evidenceReferencePattern": "Frame.io dark canvas + Planable approval clarity (DOC)",
+  "acceptanceIds": [
+    "V-REV-01"
+  ],
+  "healthHint": "{\"error\":{\"code\":\"VALIDATION_FAILED\",\"me"
+}

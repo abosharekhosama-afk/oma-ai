@@ -9,6 +9,7 @@
   --oma-border: #e3e6ed;
   --oma-border-strong: #c9ceda;
   --oma-primary: #6658e8;
+  --oma-violet: var(--oma-primary);
   --oma-primary-soft: #eeeafe;
   --oma-primary-ink: #ffffff;
   --oma-signal: #12a7a1;
