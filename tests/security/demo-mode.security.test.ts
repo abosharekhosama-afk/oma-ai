@@ -356,4 +356,88 @@ describe('demo API security', () => {
     expect([403, 404]).toContain(denied.status);
     process.env.OMA_DEMO_MODE = prev;
   });
+
+  it('persists schedule reschedule and preferences; rejects when demo off', async () => {
+    const prev = process.env.OMA_DEMO_MODE;
+    process.env.OMA_DEMO_MODE = '1';
+    const seed = await seedBrandTenant();
+    closers.push(async () => seed.app.close());
+    const headers = {
+      'content-type': 'application/json',
+      cookie: Object.entries(seed.cookies)
+        .map(([k, v]) => `${k}=${v}`)
+        .join('; '),
+      'x-csrf-token': seed.csrf ?? '',
+    };
+
+    const list = await fetch(`${seed.baseUrl}/api/v1/demo/schedule`, {
+      headers: { cookie: headers.cookie },
+    });
+    expect(list.status).toBe(200);
+    const listBody = (await list.json()) as { data: Array<{ id: string }> };
+    expect(listBody.data.length).toBeGreaterThan(3);
+    const id = listBody.data[0]!.id;
+
+    const patch = await fetch(`${seed.baseUrl}/api/v1/demo/schedule/${id}`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({
+        plannedAt: '2026-09-16T11:00:00+03:00',
+        channels: ['Instagram'],
+        state: 'SCHEDULED_PREVIEW',
+      }),
+    });
+    expect([200, 201]).toContain(patch.status);
+    const patched = (await patch.json()) as {
+      data: { plannedAt: string; externalPublishingConnected: boolean; state: string };
+    };
+    expect(patched.data.plannedAt).toContain('2026-09-16');
+    expect(patched.data.externalPublishingConnected).toBe(false);
+
+    const prefs = await fetch(`${seed.baseUrl}/api/v1/demo/preferences`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({ timezone: 'Asia/Riyadh', weekStart: 'sunday' }),
+    });
+    expect([200, 201]).toContain(prefs.status);
+    const prefBody = (await prefs.json()) as { data: { timezone: string; weekStart: string } };
+    expect(prefBody.data.timezone).toBe('Asia/Riyadh');
+
+    const analytics = await fetch(`${seed.baseUrl}/api/v1/demo/analytics`, {
+      headers: { cookie: headers.cookie },
+    });
+    expect(analytics.status).toBe(200);
+    const an = (await analytics.json()) as {
+      data: { disclosure: { en: string }; series: unknown[] };
+    };
+    expect(an.data.disclosure.en.toLowerCase()).toMatch(/demo|sample|not connected/);
+    expect(an.data.series.length).toBeGreaterThan(5);
+
+    const reset = await fetch(`${seed.baseUrl}/api/v1/demo/reset`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({}),
+    });
+    expect([200, 201]).toContain(reset.status);
+    const afterReset = await fetch(`${seed.baseUrl}/api/v1/demo/preferences`, {
+      headers: { cookie: headers.cookie },
+    });
+    const resetPrefs = (await afterReset.json()) as { data: { timezone: string } };
+    expect(resetPrefs.data.timezone).not.toBe('Asia/Riyadh');
+
+    process.env.OMA_DEMO_MODE = '0';
+    const denied = await fetch(`${seed.baseUrl}/api/v1/demo/schedule/${id}`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({ plannedAt: '2026-09-17T11:00:00+03:00' }),
+    });
+    expect([403, 404]).toContain(denied.status);
+    const deniedReset = await fetch(`${seed.baseUrl}/api/v1/demo/reset`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({}),
+    });
+    expect([403, 404]).toContain(deniedReset.status);
+    process.env.OMA_DEMO_MODE = prev;
+  });
 });

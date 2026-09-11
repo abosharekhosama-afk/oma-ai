@@ -226,30 +226,89 @@ export type DemoGraph = {
     id: string;
     contentId: string;
     brandId: string;
+    campaignId: string | null;
+    deliverableId: string | null;
+    title: DemoLocaleCopy;
     channels: string[];
     plannedAt: string;
     timezone: string;
     caption: DemoLocaleCopy;
-    readiness: Array<{ check: DemoLocaleCopy; ok: boolean }>;
-    state: 'PLANNED' | 'READY' | 'PUBLISHED_DEMO';
+    owner: string;
+    track: DemoTrack;
+    readiness: Array<{
+      check: DemoLocaleCopy;
+      ok: boolean;
+      kind: 'content' | 'approval' | 'channel' | 'metadata' | 'integration';
+    }>;
+    state: 'PLANNED' | 'READY' | 'SCHEDULED_PREVIEW' | 'BLOCKED' | 'PUBLISHED_SAMPLE';
+    blockingReason: DemoLocaleCopy | null;
     externalPublishingConnected: false;
   }>;
   analytics: {
     disclosure: DemoLocaleCopy;
     executiveSummary: DemoLocaleCopy;
-    channels: Array<{ channel: string; reach: number; engagement: number; track: DemoTrack }>;
-    campaigns: Array<{ campaignId: string; spendPlan: number; resultsIndex: number }>;
-    topContent: Array<{ contentId: string; metric: number }>;
+    brandId: string;
+    lastSimulatedRefresh: string;
+    period: { start: string; end: string; label: DemoLocaleCopy };
+    previousPeriod: { start: string; end: string; label: DemoLocaleCopy };
+    kpis: Array<{
+      id: string;
+      name: DemoLocaleCopy;
+      value: number;
+      previous: number;
+      unit: 'number' | 'percent' | 'currency';
+      higherIsBetter: boolean;
+      track?: DemoTrack | 'ALL';
+    }>;
+    series: Array<{
+      date: string;
+      impressions: number;
+      engagement: number;
+      clicks: number;
+      track: DemoTrack;
+    }>;
+    channels: Array<{
+      channel: string;
+      reach: number;
+      engagement: number;
+      clicks: number;
+      track: DemoTrack;
+    }>;
+    campaigns: Array<{
+      campaignId: string;
+      track: DemoTrack;
+      impressions: number;
+      engagement: number;
+      clicks: number;
+      spendPlan: number;
+      sampleSpend: number;
+      resultsIndex: number;
+    }>;
+    contentPerformance: Array<{
+      contentId: string;
+      campaignId: string;
+      channel: string;
+      track: DemoTrack;
+      impressions: number;
+      engagement: number;
+      clicks: number;
+    }>;
+    topContent: Array<{ contentId: string; metric: number; label: DemoLocaleCopy }>;
+    underperforming: Array<{ contentId: string; reason: DemoLocaleCopy }>;
     kpiProgress: Array<{ name: DemoLocaleCopy; value: number; target: number }>;
   };
   members: Array<{
     id: string;
     name: DemoLocaleCopy;
     role: string;
+    functionLabel: DemoLocaleCopy;
     workload: number;
     assignments: number;
     reviewQueue: number;
+    dueSoon: number;
+    overdue: number;
     restricted: boolean;
+    assigneeKey: string;
   }>;
   activity: Array<{
     id: string;
@@ -257,6 +316,13 @@ export type DemoGraph = {
     actor: string;
     summary: DemoLocaleCopy;
     href: string;
+    source: 'DEMO' | 'FOUNDATION';
+    objectType: string;
+    action: string;
+    brandId?: string | null;
+    campaignId?: string | null;
+    priorState?: string | null;
+    newState?: string | null;
   }>;
   notifications: Array<{
     id: string;
@@ -272,14 +338,39 @@ export type DemoGraph = {
     category: string;
     status: DemoIntegrationStatus;
     note: DemoLocaleCopy;
+    purpose: DemoLocaleCopy;
+    availableWithout: DemoLocaleCopy;
+    laterUnlocks: DemoLocaleCopy;
+    gate: DemoLocaleCopy;
   }>;
+  demoPreferences: {
+    timezone: string;
+    weekStart: 'monday' | 'sunday';
+    defaultContentView: 'list' | 'calendar';
+    defaultTaskView: 'board' | 'list';
+    reviewReminders: boolean;
+    localePreference: 'en' | 'ar' | 'system';
+  };
   commandCenter: {
     reviewQueueCount: number;
     overdueTasks: number;
     upcomingDeadlines: Array<{ label: DemoLocaleCopy; at: string; href: string }>;
     performanceBlurb: DemoLocaleCopy;
     nextActions: Array<{ label: DemoLocaleCopy; href: string }>;
+    scheduleThisWeek?: number;
+    publishingReadyCount?: number;
+    analyticsSampleBlurb?: DemoLocaleCopy;
+    workloadAtRisk?: number;
   };
+};
+
+export type DemoScheduledPost = DemoGraph['scheduledPosts'][number];
+export type DemoScheduleState = DemoScheduledPost['state'];
+export type DemoPreferences = DemoGraph['demoPreferences'];
+export type DemoScheduledPostPatch = {
+  plannedAt?: string;
+  channels?: string[];
+  state?: DemoScheduleState;
 };
 
 export function isDemoModeEnabled(env: { NODE_ENV?: string; OMA_DEMO_MODE?: string }): boolean {
@@ -2279,6 +2370,9 @@ export const DEMO_GRAPH: DemoGraph = {
       id: 'demo-sched-1',
       contentId: 'demo-content-reel',
       brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-organic',
+      deliverableId: 'demo-deliv-reel',
+      title: { en: 'Studio morning reel', ar: 'ريل صباحي من الاستوديو' },
       channels: ['Instagram'],
       plannedAt: '2026-09-12T09:00:00+03:00',
       timezone: 'Asia/Dubai',
@@ -2286,39 +2380,547 @@ export const DEMO_GRAPH: DemoGraph = {
         en: 'Morning light in the studio. New textures landing this week.',
         ar: 'ضوء الصباح في الاستوديو. خامات جديدة تصل هذا الأسبوع.',
       },
+      owner: 'Maya Nasser',
+      track: 'ORGANIC',
       readiness: [
-        { check: { en: 'Asset approved', ar: 'الأصل معتمد' }, ok: true },
-        { check: { en: 'Caption bilingual', ar: 'التعليق ثنائي اللغة' }, ok: true },
+        { check: { en: 'Content linked', ar: 'المحتوى مرتبط' }, ok: true, kind: 'content' },
+        { check: { en: 'Approval complete', ar: 'الاعتماد مكتمل' }, ok: true, kind: 'approval' },
+        { check: { en: 'Channel selected', ar: 'القناة محددة' }, ok: true, kind: 'channel' },
+        {
+          check: { en: 'Date & time set', ar: 'التاريخ والوقت محددان' },
+          ok: true,
+          kind: 'metadata',
+        },
         {
           check: { en: 'External publishing connected', ar: 'النشر الخارجي متصل' },
           ok: false,
+          kind: 'integration',
         },
       ],
       state: 'READY',
+      blockingReason: null,
+      externalPublishingConnected: false,
+    },
+    {
+      id: 'demo-sched-2',
+      contentId: 'demo-content-carousel',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-organic',
+      deliverableId: 'demo-deliv-carousel',
+      title: { en: 'Fabric story carousel', ar: 'كاروسيل قصة القماش' },
+      channels: ['Instagram'],
+      plannedAt: '2026-09-14T11:00:00+03:00',
+      timezone: 'Asia/Dubai',
+      caption: {
+        en: 'Four slides: weave → dye → fit → wear.',
+        ar: 'أربع شرائح: النسج ← الصبغ ← المقاس ← الارتداء.',
+      },
+      owner: 'Rami Khalil',
+      track: 'ORGANIC',
+      readiness: [
+        { check: { en: 'Content linked', ar: 'المحتوى مرتبط' }, ok: true, kind: 'content' },
+        { check: { en: 'Approval complete', ar: 'الاعتماد مكتمل' }, ok: false, kind: 'approval' },
+        { check: { en: 'Channel selected', ar: 'القناة محددة' }, ok: true, kind: 'channel' },
+        {
+          check: { en: 'Date & time set', ar: 'التاريخ والوقت محددان' },
+          ok: true,
+          kind: 'metadata',
+        },
+        {
+          check: { en: 'External publishing connected', ar: 'النشر الخارجي متصل' },
+          ok: false,
+          kind: 'integration',
+        },
+      ],
+      state: 'BLOCKED',
+      blockingReason: {
+        en: 'Deliverable still awaiting review — cannot mark ready',
+        ar: 'التسليم ما زال بانتظار المراجعة — لا يمكن التجهيز',
+      },
+      externalPublishingConnected: false,
+    },
+    {
+      id: 'demo-sched-3',
+      contentId: 'demo-content-tiktok',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-organic',
+      deliverableId: null,
+      title: { en: 'Behind-the-rack TikTok', ar: 'تيك توك خلف الرف' },
+      channels: [],
+      plannedAt: '2026-09-18T16:30:00+03:00',
+      timezone: 'Asia/Dubai',
+      caption: { en: 'Quiet chaos before doors open.', ar: 'فوضى هادئة قبل فتح الأبواب.' },
+      owner: 'Rami Khalil',
+      track: 'ORGANIC',
+      readiness: [
+        { check: { en: 'Content linked', ar: 'المحتوى مرتبط' }, ok: true, kind: 'content' },
+        { check: { en: 'Approval complete', ar: 'الاعتماد مكتمل' }, ok: false, kind: 'approval' },
+        { check: { en: 'Channel selected', ar: 'القناة محددة' }, ok: false, kind: 'channel' },
+        {
+          check: { en: 'Date & time set', ar: 'التاريخ والوقت محددان' },
+          ok: true,
+          kind: 'metadata',
+        },
+        {
+          check: { en: 'External publishing connected', ar: 'النشر الخارجي متصل' },
+          ok: false,
+          kind: 'integration',
+        },
+      ],
+      state: 'BLOCKED',
+      blockingReason: {
+        en: 'At least one channel is required',
+        ar: 'يلزم تحديد قناة واحدة على الأقل',
+      },
+      externalPublishingConnected: false,
+    },
+    {
+      id: 'demo-sched-4',
+      contentId: 'demo-content-story',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-organic',
+      deliverableId: null,
+      title: { en: 'Fitting room poll story', ar: 'قصة استطلاع غرفة القياس' },
+      channels: ['Instagram'],
+      plannedAt: '2026-09-11T18:00:00+03:00',
+      timezone: 'Asia/Dubai',
+      caption: { en: 'Which hem wins?', ar: 'أي طول يفوز؟' },
+      owner: 'Maya Nasser',
+      track: 'ORGANIC',
+      readiness: [
+        { check: { en: 'Content linked', ar: 'المحتوى مرتبط' }, ok: true, kind: 'content' },
+        { check: { en: 'Approval complete', ar: 'الاعتماد مكتمل' }, ok: true, kind: 'approval' },
+        { check: { en: 'Channel selected', ar: 'القناة محددة' }, ok: true, kind: 'channel' },
+        {
+          check: { en: 'Date & time set', ar: 'التاريخ والوقت محددان' },
+          ok: true,
+          kind: 'metadata',
+        },
+        {
+          check: { en: 'External publishing connected', ar: 'النشر الخارجي متصل' },
+          ok: false,
+          kind: 'integration',
+        },
+      ],
+      state: 'SCHEDULED_PREVIEW',
+      blockingReason: null,
+      externalPublishingConnected: false,
+    },
+    {
+      id: 'demo-sched-5',
+      contentId: 'demo-content-published',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-organic',
+      deliverableId: 'demo-deliv-copy',
+      title: { en: 'Founders note (sample published)', ar: 'رسالة المؤسسين (عينة منشورة)' },
+      channels: ['LinkedIn'],
+      plannedAt: '2026-08-20T11:00:00+03:00',
+      timezone: 'Asia/Dubai',
+      caption: {
+        en: 'Why we still design offline first. (Demo sample — not live.)',
+        ar: 'لماذا ما زلنا نصمم دون اتصال أولًا. (عينة تجريبية — ليست مباشرة.)',
+      },
+      owner: 'Layla Haddad',
+      track: 'ORGANIC',
+      readiness: [
+        { check: { en: 'Content linked', ar: 'المحتوى مرتبط' }, ok: true, kind: 'content' },
+        { check: { en: 'Approval complete', ar: 'الاعتماد مكتمل' }, ok: true, kind: 'approval' },
+        { check: { en: 'Channel selected', ar: 'القناة محددة' }, ok: true, kind: 'channel' },
+        {
+          check: { en: 'Date & time set', ar: 'التاريخ والوقت محددان' },
+          ok: true,
+          kind: 'metadata',
+        },
+        {
+          check: { en: 'External publishing connected', ar: 'النشر الخارجي متصل' },
+          ok: false,
+          kind: 'integration',
+        },
+      ],
+      state: 'PUBLISHED_SAMPLE',
+      blockingReason: null,
+      externalPublishingConnected: false,
+    },
+    {
+      id: 'demo-sched-6',
+      contentId: 'demo-content-li-carousel',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-organic',
+      deliverableId: null,
+      title: { en: 'Team craft carousel', ar: 'كاروسيل حرفة الفريق' },
+      channels: ['LinkedIn'],
+      plannedAt: '2026-09-22T12:00:00+03:00',
+      timezone: 'Asia/Dubai',
+      caption: { en: 'People behind the product.', ar: 'الناس خلف المنتج.' },
+      owner: 'Layla Haddad',
+      track: 'ORGANIC',
+      readiness: [
+        { check: { en: 'Content linked', ar: 'المحتوى مرتبط' }, ok: true, kind: 'content' },
+        { check: { en: 'Approval complete', ar: 'الاعتماد مكتمل' }, ok: false, kind: 'approval' },
+        { check: { en: 'Channel selected', ar: 'القناة محددة' }, ok: true, kind: 'channel' },
+        {
+          check: { en: 'Date & time set', ar: 'التاريخ والوقت محددان' },
+          ok: true,
+          kind: 'metadata',
+        },
+        {
+          check: { en: 'External publishing connected', ar: 'النشر الخارجي متصل' },
+          ok: false,
+          kind: 'integration',
+        },
+      ],
+      state: 'PLANNED',
+      blockingReason: null,
+      externalPublishingConnected: false,
+    },
+    {
+      id: 'demo-sched-7',
+      contentId: 'demo-content-paid-video',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-paid',
+      deliverableId: 'demo-deliv-reel',
+      title: { en: 'Paid motion cutdown', ar: 'مقطع حركة مدفوع مختصر' },
+      channels: ['TikTok Ads'],
+      plannedAt: '2026-09-19T14:00:00+03:00',
+      timezone: 'Asia/Dubai',
+      caption: { en: '6s hook for planning board only.', ar: 'خطاف 6 ثوانٍ للوحة التخطيط فقط.' },
+      owner: 'Maya Nasser',
+      track: 'PAID',
+      readiness: [
+        { check: { en: 'Content linked', ar: 'المحتوى مرتبط' }, ok: true, kind: 'content' },
+        { check: { en: 'Approval complete', ar: 'الاعتماد مكتمل' }, ok: true, kind: 'approval' },
+        { check: { en: 'Channel selected', ar: 'القناة محددة' }, ok: true, kind: 'channel' },
+        {
+          check: { en: 'Date & time set', ar: 'التاريخ والوقت محددان' },
+          ok: true,
+          kind: 'metadata',
+        },
+        {
+          check: { en: 'External publishing connected', ar: 'النشر الخارجي متصل' },
+          ok: false,
+          kind: 'integration',
+        },
+      ],
+      state: 'READY',
+      blockingReason: null,
+      externalPublishingConnected: false,
+    },
+    {
+      id: 'demo-sched-8',
+      contentId: 'demo-content-overdue',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-attention',
+      deliverableId: 'demo-deliv-static',
+      title: { en: 'Retargeting square (blocked)', ar: 'مربع إعادة الاستهداف (محظور)' },
+      channels: ['Meta Ads'],
+      plannedAt: '2026-09-08T09:00:00+03:00',
+      timezone: 'Asia/Dubai',
+      caption: { en: 'Still deciding? Soft reminder.', ar: 'ما زلت تقرر؟ تذكير لطيف.' },
+      owner: 'Omar Faris',
+      track: 'PAID',
+      readiness: [
+        { check: { en: 'Content linked', ar: 'المحتوى مرتبط' }, ok: true, kind: 'content' },
+        { check: { en: 'Approval complete', ar: 'الاعتماد مكتمل' }, ok: false, kind: 'approval' },
+        { check: { en: 'Channel selected', ar: 'القناة محددة' }, ok: true, kind: 'channel' },
+        {
+          check: { en: 'Date & time set', ar: 'التاريخ والوقت محددان' },
+          ok: true,
+          kind: 'metadata',
+        },
+        {
+          check: { en: 'External publishing connected', ar: 'النشر الخارجي متصل' },
+          ok: false,
+          kind: 'integration',
+        },
+      ],
+      state: 'BLOCKED',
+      blockingReason: {
+        en: 'Changes requested on deliverable — approval incomplete',
+        ar: 'طُلبت تعديلات على التسليم — الاعتماد غير مكتمل',
+      },
+      externalPublishingConnected: false,
+    },
+    {
+      id: 'demo-sched-9',
+      contentId: 'demo-content-paid-static',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-paid',
+      deliverableId: 'demo-deliv-static',
+      title: { en: 'Paid collection hero', ar: 'بطل المجموعة المدفوعة' },
+      channels: ['Meta Ads'],
+      plannedAt: '2026-09-16T10:00:00+03:00',
+      timezone: 'Asia/Dubai',
+      caption: {
+        en: 'Back-to-work layers that still feel like you.',
+        ar: 'طبقات العودة للعمل التي تظل على ذوقك.',
+      },
+      owner: 'Sara Alami',
+      track: 'PAID',
+      readiness: [
+        { check: { en: 'Content linked', ar: 'المحتوى مرتبط' }, ok: true, kind: 'content' },
+        { check: { en: 'Approval complete', ar: 'الاعتماد مكتمل' }, ok: false, kind: 'approval' },
+        { check: { en: 'Channel selected', ar: 'القناة محددة' }, ok: true, kind: 'channel' },
+        {
+          check: { en: 'Date & time set', ar: 'التاريخ والوقت محددان' },
+          ok: true,
+          kind: 'metadata',
+        },
+        {
+          check: { en: 'External publishing connected', ar: 'النشر الخارجي متصل' },
+          ok: false,
+          kind: 'integration',
+        },
+      ],
+      state: 'PLANNED',
+      blockingReason: null,
       externalPublishingConnected: false,
     },
   ],
   analytics: {
     disclosure: {
-      en: 'Demo data — external analytics not connected',
-      ar: 'بيانات تجريبية — التحليلات الخارجية غير متصلة',
+      en: 'Demo data — external analytics not connected. Paid spend figures are samples only.',
+      ar: 'بيانات تجريبية — التحليلات الخارجية غير متصلة. أرقام الإنفاق المدفوع عينات فقط.',
     },
     executiveSummary: {
-      en: 'Organic engagement is ahead of plan; paid push not yet live.',
-      ar: 'التفاعل العضوي متقدم على الخطة؛ الدفعة المدفوعة لم تبدأ بعد.',
+      en: 'Organic engagement is ahead of plan; paid push not yet live. Sample charts only.',
+      ar: 'التفاعل العضوي متقدم على الخطة؛ الدفعة المدفوعة لم تبدأ بعد. رسوم عينية فقط.',
     },
+    brandId: 'demo-brand-horizon',
+    lastSimulatedRefresh: '2026-09-11T08:00:00+03:00',
+    period: {
+      start: '2026-08-13',
+      end: '2026-09-11',
+      label: { en: 'Last 30 days', ar: 'آخر 30 يومًا' },
+    },
+    previousPeriod: {
+      start: '2026-07-14',
+      end: '2026-08-12',
+      label: { en: 'Prior 30 days', ar: 'الـ 30 يومًا السابقة' },
+    },
+    kpis: [
+      {
+        id: 'kpi-impressions',
+        name: { en: 'Impressions', ar: 'مرات الظهور' },
+        value: 214800,
+        previous: 186200,
+        unit: 'number',
+        higherIsBetter: true,
+        track: 'ALL',
+      },
+      {
+        id: 'kpi-engagement-rate',
+        name: { en: 'Engagement rate', ar: 'معدل التفاعل' },
+        value: 4.1,
+        previous: 3.6,
+        unit: 'percent',
+        higherIsBetter: true,
+        track: 'ORGANIC',
+      },
+      {
+        id: 'kpi-clicks',
+        name: { en: 'Clicks', ar: 'النقرات' },
+        value: 5760,
+        previous: 4980,
+        unit: 'number',
+        higherIsBetter: true,
+        track: 'ALL',
+      },
+      {
+        id: 'kpi-sample-spend',
+        name: { en: 'Sample paid spend', ar: 'إنفاق مدفوع عيّني' },
+        value: 4200,
+        previous: 0,
+        unit: 'currency',
+        higherIsBetter: false,
+        track: 'PAID',
+      },
+    ],
+    series: [
+      { date: '2026-08-29', impressions: 11800, engagement: 520, clicks: 310, track: 'ORGANIC' },
+      { date: '2026-08-30', impressions: 12400, engagement: 560, clicks: 340, track: 'ORGANIC' },
+      { date: '2026-08-31', impressions: 13100, engagement: 610, clicks: 360, track: 'ORGANIC' },
+      { date: '2026-09-01', impressions: 14200, engagement: 680, clicks: 390, track: 'ORGANIC' },
+      { date: '2026-09-02', impressions: 15100, engagement: 720, clicks: 410, track: 'ORGANIC' },
+      { date: '2026-09-03', impressions: 14800, engagement: 700, clicks: 400, track: 'ORGANIC' },
+      { date: '2026-09-04', impressions: 13900, engagement: 640, clicks: 370, track: 'ORGANIC' },
+      { date: '2026-09-05', impressions: 15600, engagement: 780, clicks: 440, track: 'ORGANIC' },
+      { date: '2026-09-06', impressions: 16200, engagement: 810, clicks: 460, track: 'ORGANIC' },
+      { date: '2026-09-07', impressions: 15800, engagement: 790, clicks: 450, track: 'ORGANIC' },
+      { date: '2026-09-08', impressions: 17100, engagement: 860, clicks: 490, track: 'ORGANIC' },
+      { date: '2026-09-09', impressions: 18400, engagement: 920, clicks: 520, track: 'ORGANIC' },
+      { date: '2026-09-10', impressions: 17600, engagement: 880, clicks: 500, track: 'ORGANIC' },
+      { date: '2026-09-11', impressions: 16800, engagement: 840, clicks: 480, track: 'ORGANIC' },
+      { date: '2026-09-08', impressions: 2100, engagement: 84, clicks: 95, track: 'PAID' },
+      { date: '2026-09-09', impressions: 2800, engagement: 112, clicks: 130, track: 'PAID' },
+      { date: '2026-09-10', impressions: 3200, engagement: 128, clicks: 155, track: 'PAID' },
+      { date: '2026-09-11', impressions: 3500, engagement: 140, clicks: 170, track: 'PAID' },
+    ],
     channels: [
-      { channel: 'Instagram', reach: 128400, engagement: 4.8, track: 'ORGANIC' },
-      { channel: 'LinkedIn', reach: 22100, engagement: 3.1, track: 'ORGANIC' },
-      { channel: 'Meta Ads', reach: 0, engagement: 0, track: 'PAID' },
+      {
+        channel: 'Instagram',
+        reach: 128400,
+        engagement: 6163,
+        clicks: 3200,
+        track: 'ORGANIC',
+      },
+      {
+        channel: 'LinkedIn',
+        reach: 22100,
+        engagement: 685,
+        clicks: 890,
+        track: 'ORGANIC',
+      },
+      {
+        channel: 'TikTok',
+        reach: 45200,
+        engagement: 2712,
+        clicks: 1100,
+        track: 'ORGANIC',
+      },
+      {
+        channel: 'Meta Ads',
+        reach: 8400,
+        engagement: 336,
+        clicks: 420,
+        track: 'PAID',
+      },
+      {
+        channel: 'TikTok Ads',
+        reach: 3200,
+        engagement: 128,
+        clicks: 150,
+        track: 'PAID',
+      },
     ],
     campaigns: [
-      { campaignId: 'demo-campaign-organic', spendPlan: 0, resultsIndex: 78 },
-      { campaignId: 'demo-campaign-paid', spendPlan: 48000, resultsIndex: 12 },
+      {
+        campaignId: 'demo-campaign-organic',
+        track: 'ORGANIC',
+        impressions: 195700,
+        engagement: 9560,
+        clicks: 5190,
+        spendPlan: 0,
+        sampleSpend: 0,
+        resultsIndex: 78,
+      },
+      {
+        campaignId: 'demo-campaign-paid',
+        track: 'PAID',
+        impressions: 11600,
+        engagement: 464,
+        clicks: 570,
+        spendPlan: 48000,
+        sampleSpend: 4200,
+        resultsIndex: 12,
+      },
+      {
+        campaignId: 'demo-campaign-attention',
+        track: 'PAID',
+        impressions: 0,
+        engagement: 0,
+        clicks: 0,
+        spendPlan: 22000,
+        sampleSpend: 0,
+        resultsIndex: 8,
+      },
+    ],
+    contentPerformance: [
+      {
+        contentId: 'demo-content-published',
+        campaignId: 'demo-campaign-organic',
+        channel: 'LinkedIn',
+        track: 'ORGANIC',
+        impressions: 18400,
+        engagement: 940,
+        clicks: 420,
+      },
+      {
+        contentId: 'demo-content-reel',
+        campaignId: 'demo-campaign-organic',
+        channel: 'Instagram',
+        track: 'ORGANIC',
+        impressions: 31200,
+        engagement: 1480,
+        clicks: 610,
+      },
+      {
+        contentId: 'demo-content-story',
+        campaignId: 'demo-campaign-organic',
+        channel: 'Instagram',
+        track: 'ORGANIC',
+        impressions: 22100,
+        engagement: 1320,
+        clicks: 280,
+      },
+      {
+        contentId: 'demo-content-tiktok',
+        campaignId: 'demo-campaign-organic',
+        channel: 'TikTok',
+        track: 'ORGANIC',
+        impressions: 27800,
+        engagement: 1670,
+        clicks: 540,
+      },
+      {
+        contentId: 'demo-content-carousel',
+        campaignId: 'demo-campaign-organic',
+        channel: 'Instagram',
+        track: 'ORGANIC',
+        impressions: 9600,
+        engagement: 410,
+        clicks: 190,
+      },
+      {
+        contentId: 'demo-content-paid-static',
+        campaignId: 'demo-campaign-paid',
+        channel: 'Meta Ads',
+        track: 'PAID',
+        impressions: 8400,
+        engagement: 336,
+        clicks: 420,
+      },
+      {
+        contentId: 'demo-content-paid-video',
+        campaignId: 'demo-campaign-paid',
+        channel: 'TikTok Ads',
+        track: 'PAID',
+        impressions: 3200,
+        engagement: 128,
+        clicks: 150,
+      },
     ],
     topContent: [
-      { contentId: 'demo-content-published', metric: 940 },
-      { contentId: 'demo-content-reel', metric: 610 },
+      {
+        contentId: 'demo-content-published',
+        metric: 940,
+        label: { en: 'Highest engagement (sample)', ar: 'أعلى تفاعل (عيّنة)' },
+      },
+      {
+        contentId: 'demo-content-reel',
+        metric: 610,
+        label: { en: 'Strong click-through (sample)', ar: 'نقرات قوية (عيّنة)' },
+      },
+      {
+        contentId: 'demo-content-tiktok',
+        metric: 1670,
+        label: { en: 'Top TikTok engagement (sample)', ar: 'أعلى تفاعل تيك توك (عيّنة)' },
+      },
+    ],
+    underperforming: [
+      {
+        contentId: 'demo-content-carousel',
+        reason: {
+          en: 'Still in review — limited sample reach while blocked',
+          ar: 'ما زال قيد المراجعة — وصول عيّني محدود أثناء الحظر',
+        },
+      },
+      {
+        contentId: 'demo-content-overdue',
+        reason: {
+          en: 'Approval incomplete ahead of paid window',
+          ar: 'الاعتماد غير مكتمل قبل نافذة المدفوع',
+        },
+      },
     ],
     kpiProgress: [
       {
@@ -2334,28 +2936,66 @@ export const DEMO_GRAPH: DemoGraph = {
       id: 'demo-member-layla',
       name: { en: 'Layla Haddad', ar: 'ليلى حداد' },
       role: 'Account Lead',
+      functionLabel: { en: 'Account & strategy', ar: 'الحساب والاستراتيجية' },
       workload: 0.82,
       assignments: 6,
       reviewQueue: 3,
+      dueSoon: 2,
+      overdue: 0,
       restricted: false,
+      assigneeKey: 'Layla Haddad',
     },
     {
       id: 'demo-member-rami',
       name: { en: 'Rami Khalil', ar: 'رامي خليل' },
       role: 'Designer',
-      workload: 0.91,
-      assignments: 5,
-      reviewQueue: 1,
+      functionLabel: { en: 'Design production', ar: 'إنتاج التصميم' },
+      workload: 0.95,
+      assignments: 7,
+      reviewQueue: 2,
+      dueSoon: 3,
+      overdue: 1,
       restricted: false,
+      assigneeKey: 'Rami Khalil',
     },
     {
       id: 'demo-member-reader',
       name: { en: 'Nour Reader', ar: 'نور قارئة' },
       role: 'Client Viewer',
+      functionLabel: { en: 'Client read-only', ar: 'عميل للقراءة فقط' },
       workload: 0.1,
       assignments: 0,
       reviewQueue: 0,
+      dueSoon: 0,
+      overdue: 0,
       restricted: true,
+      assigneeKey: 'Nour Reader',
+    },
+    {
+      id: 'demo-member-sara',
+      name: { en: 'Sara Alami', ar: 'سارة عالمي' },
+      role: 'Producer',
+      functionLabel: { en: 'Content production', ar: 'إنتاج المحتوى' },
+      workload: 0.55,
+      assignments: 4,
+      reviewQueue: 1,
+      dueSoon: 1,
+      overdue: 0,
+      restricted: false,
+      assigneeKey: 'Sara Alami',
+    },
+    {
+      id: 'demo-member-omar',
+      name: { en: 'Omar Faris', ar: 'عمر فارس' },
+      role: 'Paid Lead',
+      functionLabel: { en: 'Paid media planning', ar: 'تخطيط الإعلام المدفوع' },
+      workload: 0.82,
+      assignments: 5,
+      reviewQueue: 2,
+      dueSoon: 2,
+      overdue: 1,
+      restricted: false,
+      assigneeKey: 'Omar Faris',
     },
   ],
   activity: [
@@ -2368,6 +3008,13 @@ export const DEMO_GRAPH: DemoGraph = {
         ar: 'رفع كاروسيل الإصدار 2 للمراجعة',
       },
       href: '/app/deliverables/demo-deliv-carousel',
+      source: 'DEMO',
+      objectType: 'deliverable',
+      action: 'revision_uploaded',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-organic',
+      priorState: 'DRAFT',
+      newState: 'AWAITING_REVIEW',
     },
     {
       id: 'act-2',
@@ -2375,6 +3022,13 @@ export const DEMO_GRAPH: DemoGraph = {
       actor: 'Layla Haddad',
       summary: { en: 'Approved morning reel v1', ar: 'اعتمدت ريل الصباح الإصدار 1' },
       href: '/app/deliverables/demo-deliv-reel',
+      source: 'DEMO',
+      objectType: 'deliverable',
+      action: 'approved',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-organic',
+      priorState: 'IN_REVIEW',
+      newState: 'APPROVED',
     },
     {
       id: 'act-3',
@@ -2385,6 +3039,132 @@ export const DEMO_GRAPH: DemoGraph = {
         ar: 'ربط الحملة المدفوعة باستراتيجية الربع الثالث',
       },
       href: '/app/campaigns/demo-campaign-paid',
+      source: 'DEMO',
+      objectType: 'campaign',
+      action: 'linked_strategy',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-paid',
+      priorState: null,
+      newState: 'UPCOMING',
+    },
+    {
+      id: 'act-4',
+      at: '2026-09-10T10:20:00+03:00',
+      actor: 'Maya Nasser',
+      summary: {
+        en: 'Marked studio reel ready on schedule',
+        ar: 'جهّزت ريل الاستوديو على الجدول',
+      },
+      href: '/app/schedule',
+      source: 'DEMO',
+      objectType: 'scheduled_post',
+      action: 'marked_ready',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-organic',
+      priorState: 'PLANNED',
+      newState: 'READY',
+    },
+    {
+      id: 'act-5',
+      at: '2026-09-09T08:15:00+03:00',
+      actor: 'Omar Faris',
+      summary: {
+        en: 'Flagged retargeting square as blocked on approval',
+        ar: 'علّم مربع إعادة الاستهداف كمحظور بانتظار الاعتماد',
+      },
+      href: '/app/schedule',
+      source: 'DEMO',
+      objectType: 'scheduled_post',
+      action: 'blocked',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-attention',
+      priorState: 'PLANNED',
+      newState: 'BLOCKED',
+    },
+    {
+      id: 'act-6',
+      at: '2026-09-07T14:40:00+03:00',
+      actor: 'Sara Alami',
+      summary: {
+        en: 'Converted autumn lookbook brief into production tasks',
+        ar: 'حوّلت موجز كتالوج الخريف إلى مهام إنتاج',
+      },
+      href: '/app/requests/demo-request-1',
+      source: 'DEMO',
+      objectType: 'request',
+      action: 'converted_to_tasks',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-organic',
+      priorState: 'IN_BRIEF',
+      newState: 'IN_PRODUCTION',
+    },
+    {
+      id: 'act-7',
+      at: '2026-09-06T11:00:00+03:00',
+      actor: 'Layla Haddad',
+      summary: {
+        en: 'Opened review for paid collection hero static',
+        ar: 'فتحت مراجعة لثابت بطل المجموعة المدفوعة',
+      },
+      href: '/app/reviews',
+      source: 'DEMO',
+      objectType: 'deliverable',
+      action: 'submitted_for_review',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-paid',
+      priorState: 'DRAFT',
+      newState: 'CHANGES_REQUESTED',
+    },
+    {
+      id: 'act-8',
+      at: '2026-09-05T09:30:00+03:00',
+      actor: 'system',
+      summary: {
+        en: 'Membership activated for Sara Alami (demo tenant)',
+        ar: 'فُعّلت عضوية سارة عالمي (مستأجر تجريبي)',
+      },
+      href: '/app/team',
+      source: 'FOUNDATION',
+      objectType: 'membership',
+      action: 'activated',
+      brandId: null,
+      campaignId: null,
+      priorState: 'INVITED',
+      newState: 'ACTIVE',
+    },
+    {
+      id: 'act-9',
+      at: '2026-09-04T16:00:00+03:00',
+      actor: 'system',
+      summary: {
+        en: 'Invite accepted — Omar Faris joined demo workspace',
+        ar: 'قُبلت الدعوة — انضم عمر فارس لمساحة العمل التجريبية',
+      },
+      href: '/app/settings',
+      source: 'FOUNDATION',
+      objectType: 'invite',
+      action: 'accepted',
+      brandId: null,
+      campaignId: null,
+      priorState: 'PENDING',
+      newState: 'ACCEPTED',
+    },
+    {
+      id: 'act-10',
+      at: '2026-09-11T07:45:00+03:00',
+      actor: 'Maya Nasser',
+      summary: {
+        en: 'Scheduled preview for fitting room poll story',
+        ar: 'جدولة معاينة لقصة استطلاع غرفة القياس',
+      },
+      href: '/app/schedule',
+      source: 'DEMO',
+      objectType: 'scheduled_post',
+      action: 'scheduled_preview',
+      brandId: 'demo-brand-horizon',
+      campaignId: 'demo-campaign-organic',
+      priorState: 'PLANNED',
+      newState: 'SCHEDULED_PREVIEW',
     },
   ],
   notifications: [
@@ -2421,6 +3201,22 @@ export const DEMO_GRAPH: DemoGraph = {
         en: 'Not connected — DEC-016 / DEC-007',
         ar: 'غير متصل — DEC-016 / DEC-007',
       },
+      purpose: {
+        en: 'Generate strategy and copy proposals with provenance',
+        ar: 'توليد مقترحات استراتيجية ونصوص مع إثبات المصدر',
+      },
+      availableWithout: {
+        en: 'Manual briefs, copy, and strategy drafting',
+        ar: 'صياغة يدوية للموجزات والنصوص والاستراتيجية',
+      },
+      laterUnlocks: {
+        en: 'Assisted proposals after DEC-016 / DEC-007',
+        ar: 'مقترحات مساعدة بعد DEC-016 / DEC-007',
+      },
+      gate: {
+        en: 'Blocked until AI vendor decision closes',
+        ar: 'محظور حتى إغلاق قرار مزود الذكاء الاصطناعي',
+      },
     },
     {
       id: 'int-crawl',
@@ -2430,6 +3226,22 @@ export const DEMO_GRAPH: DemoGraph = {
       note: {
         en: 'Not connected — DEC-016 / DEC-004',
         ar: 'غير متصل — DEC-016 / DEC-004',
+      },
+      purpose: {
+        en: 'Ingest public site signals into brand profiles',
+        ar: 'استيعاب إشارات الموقع العامة في ملفات العلامة',
+      },
+      availableWithout: {
+        en: 'Manual brand profile and URL notes',
+        ar: 'ملف علامة يدوي وملاحظات الروابط',
+      },
+      laterUnlocks: {
+        en: 'Automated crawl after DEC-004',
+        ar: 'زحف آلي بعد DEC-004',
+      },
+      gate: {
+        en: 'Blocked until crawl vendor decision closes',
+        ar: 'محظور حتى إغلاق قرار مزود الزحف',
       },
     },
     {
@@ -2441,6 +3253,22 @@ export const DEMO_GRAPH: DemoGraph = {
         en: 'Planning only — no live ad account',
         ar: 'تخطيط فقط — لا حساب إعلانات مباشر',
       },
+      purpose: {
+        en: 'Plan paid campaigns and sample spend foresight',
+        ar: 'تخطيط الحملات المدفوعة ورؤية إنفاق عيّنية',
+      },
+      availableWithout: {
+        en: 'OMA paid planning boards and sample analytics',
+        ar: 'لوحات تخطيط مدفوعة وتحليلات عيّنية في أوما',
+      },
+      laterUnlocks: {
+        en: 'Live delivery sync when Meta is connected',
+        ar: 'مزامنة التسليم المباشر عند ربط ميتا',
+      },
+      gate: {
+        en: 'No live ad account in demo — planning only',
+        ar: 'لا حساب إعلانات مباشر في العرض — تخطيط فقط',
+      },
     },
     {
       id: 'int-publish',
@@ -2450,6 +3278,22 @@ export const DEMO_GRAPH: DemoGraph = {
       note: {
         en: 'External publishing not connected',
         ar: 'النشر الخارجي غير متصل',
+      },
+      purpose: {
+        en: 'Push approved posts to social channels',
+        ar: 'دفع المنشورات المعتمدة إلى القنوات الاجتماعية',
+      },
+      availableWithout: {
+        en: 'Internal schedule readiness and preview states',
+        ar: 'جاهزية الجدول الداخلي وحالات المعاينة',
+      },
+      laterUnlocks: {
+        en: 'External publish when a connector is approved',
+        ar: 'نشر خارجي عند اعتماد موصل',
+      },
+      gate: {
+        en: 'External publishing remains disconnected in demo',
+        ar: 'النشر الخارجي يبقى غير متصل في العرض',
       },
     },
     {
@@ -2461,6 +3305,22 @@ export const DEMO_GRAPH: DemoGraph = {
         en: 'Demo charts only',
         ar: 'رسوم تجريبية فقط',
       },
+      purpose: {
+        en: 'Import channel and campaign performance',
+        ar: 'استيراد أداء القنوات والحملات',
+      },
+      availableWithout: {
+        en: 'Simulated demo analytics and KPI progress',
+        ar: 'تحليلات تجريبية محاكاة وتقدّم مؤشرات',
+      },
+      laterUnlocks: {
+        en: 'Live metrics when analytics vendor is connected',
+        ar: 'مقاييس مباشرة عند ربط مزود التحليلات',
+      },
+      gate: {
+        en: 'Demo charts only — no external refresh',
+        ar: 'رسوم تجريبية فقط — بلا تحديث خارجي',
+      },
     },
     {
       id: 'int-storage',
@@ -2471,8 +3331,58 @@ export const DEMO_GRAPH: DemoGraph = {
         en: 'Not connected — DEC-003',
         ar: 'غير متصل — DEC-003',
       },
+      purpose: {
+        en: 'Authoritative file bytes for deliverable assets',
+        ar: 'بايتات ملفات موثوقة لأصول التسليم',
+      },
+      availableWithout: {
+        en: 'Fixture preview assets inside the demo graph',
+        ar: 'أصول معاينة تجريبية داخل رسم العرض',
+      },
+      laterUnlocks: {
+        en: 'WorkDrive adapter after DEC-003',
+        ar: 'محوّل وورك درايف بعد DEC-003',
+      },
+      gate: {
+        en: 'Blocked until storage ownership decision closes',
+        ar: 'محظور حتى إغلاق قرار ملكية التخزين',
+      },
+    },
+    {
+      id: 'int-notifications',
+      name: { en: 'Notifications channel', ar: 'قناة الإشعارات' },
+      category: 'Notifications',
+      status: 'NOT_CONNECTED',
+      note: {
+        en: 'In-app demo notifications only',
+        ar: 'إشعارات تجريبية داخل التطبيق فقط',
+      },
+      purpose: {
+        en: 'Email / push delivery for reviews and due dates',
+        ar: 'تسليم بريد / دفع للمراجعات والاستحقاقات',
+      },
+      availableWithout: {
+        en: 'In-app notification list in the demo shell',
+        ar: 'قائمة إشعارات داخل غلاف العرض',
+      },
+      laterUnlocks: {
+        en: 'External notification providers when approved',
+        ar: 'مزودو إشعارات خارجيون عند الاعتماد',
+      },
+      gate: {
+        en: 'No external notification provider in demo',
+        ar: 'لا مزود إشعارات خارجي في العرض',
+      },
     },
   ],
+  demoPreferences: {
+    timezone: 'Asia/Dubai',
+    weekStart: 'monday',
+    defaultContentView: 'list',
+    defaultTaskView: 'board',
+    reviewReminders: true,
+    localePreference: 'system',
+  },
   commandCenter: {
     // AWAITING_REVIEW + CHANGES_REQUESTED + IN_REVIEW across seed deliverables
     reviewQueueCount: 6,
@@ -2512,6 +3422,13 @@ export const DEMO_GRAPH: DemoGraph = {
         href: '/app/schedule',
       },
     ],
+    scheduleThisWeek: 4,
+    publishingReadyCount: 2,
+    analyticsSampleBlurb: {
+      en: 'Organic engagement 4.1% (target 4.5%). Paid campaign still upcoming.',
+      ar: 'التفاعل العضوي 4.1٪ (الهدف 4.5٪). الحملة المدفوعة لا تزال قادمة.',
+    },
+    workloadAtRisk: 3,
   },
 };
 
@@ -2627,11 +3544,138 @@ function replaceDeliverable(
   return next;
 }
 
+function isIsoDateTime(value: string): boolean {
+  if (!value || typeof value !== 'string') return false;
+  const ms = Date.parse(value);
+  return !Number.isNaN(ms);
+}
+
+function approvalSatisfied(
+  post: Pick<DemoScheduledPost, 'contentId' | 'deliverableId'>,
+  graph: DemoGraph,
+): boolean {
+  const content = graph.contentItems.find((c) => c.id === post.contentId);
+  if (!content) return false;
+  if (post.deliverableId) {
+    const deliverable = graph.deliverables.find((d) => d.id === post.deliverableId);
+    return deliverable?.reviewStatus === 'APPROVED';
+  }
+  return content.status === 'APPROVED' || content.status === 'PUBLISHED_DEMO';
+}
+
+/** Deterministic schedule readiness. Integration is always false and never blocks READY/SCHEDULED_PREVIEW. */
+export function computeScheduleReadiness(
+  post: Pick<
+    DemoScheduledPost,
+    'contentId' | 'campaignId' | 'deliverableId' | 'channels' | 'plannedAt'
+  >,
+  graph: DemoGraph,
+): DemoScheduledPost['readiness'] {
+  const content = graph.contentItems.find((c) => c.id === post.contentId);
+  const contentExists = Boolean(content);
+  const campaignOk = !post.campaignId || graph.campaigns.some((c) => c.id === post.campaignId);
+  const contentOk = contentExists && campaignOk;
+  const approvalOk = approvalSatisfied(post, graph);
+  const channelOk = post.channels.length > 0;
+  const plannedOk = isIsoDateTime(post.plannedAt);
+
+  return [
+    {
+      check: { en: 'Content linked', ar: 'المحتوى مرتبط' },
+      ok: contentOk,
+      kind: 'content',
+    },
+    {
+      check: { en: 'Approval complete', ar: 'الاعتماد مكتمل' },
+      ok: approvalOk,
+      kind: 'approval',
+    },
+    {
+      check: { en: 'Channel selected', ar: 'القناة محددة' },
+      ok: channelOk,
+      kind: 'channel',
+    },
+    {
+      check: { en: 'Date & time set', ar: 'التاريخ والوقت محددان' },
+      ok: plannedOk,
+      kind: 'metadata',
+    },
+    {
+      check: { en: 'External publishing connected', ar: 'النشر الخارجي متصل' },
+      ok: false,
+      kind: 'integration',
+    },
+  ];
+}
+
+function internalScheduleReady(readiness: DemoScheduledPost['readiness']): boolean {
+  return readiness.filter((r) => r.kind !== 'integration').every((r) => r.ok);
+}
+
+function blockingReasonForSchedule(
+  readiness: DemoScheduledPost['readiness'],
+  state: DemoScheduleState,
+): DemoLocaleCopy | null {
+  if (state === 'PUBLISHED_SAMPLE' || state === 'PLANNED') return null;
+  const approval = readiness.find((r) => r.kind === 'approval');
+  if (approval && !approval.ok) {
+    return {
+      en: 'Approval incomplete — cannot mark ready',
+      ar: 'الاعتماد غير مكتمل — لا يمكن التجهيز',
+    };
+  }
+  const channel = readiness.find((r) => r.kind === 'channel');
+  if (channel && !channel.ok) {
+    return {
+      en: 'At least one channel is required',
+      ar: 'يلزم تحديد قناة واحدة على الأقل',
+    };
+  }
+  const content = readiness.find((r) => r.kind === 'content');
+  if (content && !content.ok) {
+    return {
+      en: 'Content or campaign link is missing',
+      ar: 'رابط المحتوى أو الحملة مفقود',
+    };
+  }
+  const metadata = readiness.find((r) => r.kind === 'metadata');
+  if (metadata && !metadata.ok) {
+    return {
+      en: 'Planned date/time is invalid',
+      ar: 'تاريخ/وقت التخطيط غير صالح',
+    };
+  }
+  return null;
+}
+
+function syncScheduleCommandCenter(graph: DemoGraph): void {
+  const weekStart = new Date('2026-09-08T00:00:00+03:00').getTime();
+  const weekEnd = new Date('2026-09-14T23:59:59+03:00').getTime();
+  graph.commandCenter.scheduleThisWeek = graph.scheduledPosts.filter((p) => {
+    const t = Date.parse(p.plannedAt);
+    return !Number.isNaN(t) && t >= weekStart && t <= weekEnd;
+  }).length;
+  graph.commandCenter.publishingReadyCount = graph.scheduledPosts.filter(
+    (p) => p.state === 'READY',
+  ).length;
+  graph.commandCenter.workloadAtRisk = graph.members.filter(
+    (m) => !m.restricted && m.workload >= 0.8,
+  ).length;
+}
+
 export class DemoDataProvider {
   private graph: DemoGraph;
+  private readonly seed: DemoGraph;
 
   constructor(seed: DemoGraph = DEMO_GRAPH) {
+    this.seed = seed;
     this.graph = cloneDemoGraph(seed);
+  }
+
+  /** Restores the in-memory demo graph to the deterministic seed (E2E isolation). */
+  reset(): DemoGraph {
+    this.graph = cloneDemoGraph(this.seed);
+    return this.graph;
   }
 
   getGraph(): DemoGraph {
@@ -3553,6 +4597,163 @@ export class DemoDataProvider {
       at: new Date().toISOString(),
     };
     return this.updateTask(id, { comments: [comment, ...task.comments] });
+  }
+
+  getScheduledPost(id: string) {
+    return this.graph.scheduledPosts.find((p) => p.id === id) ?? null;
+  }
+
+  computeScheduleReadiness(
+    post: Pick<
+      DemoScheduledPost,
+      'contentId' | 'campaignId' | 'deliverableId' | 'channels' | 'plannedAt'
+    >,
+  ) {
+    return computeScheduleReadiness(post, this.graph);
+  }
+
+  updateScheduledPost(id: string, patch: DemoScheduledPostPatch) {
+    const idx = this.graph.scheduledPosts.findIndex((p) => p.id === id);
+    if (idx < 0) return null;
+    const current = this.graph.scheduledPosts[idx]!;
+
+    if (patch.plannedAt !== undefined && !isIsoDateTime(patch.plannedAt)) {
+      throw new Error('plannedAt must be a valid ISO datetime');
+    }
+
+    const nextState = patch.state ?? current.state;
+    const nextChannels = patch.channels ?? current.channels;
+    if (nextChannels.length === 0 && nextState !== 'BLOCKED') {
+      throw new Error('channels must be non-empty unless state is BLOCKED');
+    }
+
+    const priorState = current.state;
+    const merged: DemoScheduledPost = {
+      ...current,
+      plannedAt: patch.plannedAt ?? current.plannedAt,
+      channels: nextChannels,
+      state: nextState,
+      externalPublishingConnected: false,
+    };
+    const readiness = computeScheduleReadiness(merged, this.graph);
+    merged.readiness = readiness;
+    merged.blockingReason = blockingReasonForSchedule(readiness, merged.state);
+
+    // Integration never flips to published; keep PUBLISHED_SAMPLE seed-only unless already set
+    if (
+      merged.state === 'PUBLISHED_SAMPLE' &&
+      priorState !== 'PUBLISHED_SAMPLE' &&
+      patch.state === 'PUBLISHED_SAMPLE'
+    ) {
+      // allow explicit demo transition only when internal ready (still not live publish)
+      if (!internalScheduleReady(readiness)) {
+        throw new Error('Cannot mark PUBLISHED_SAMPLE when internal readiness fails');
+      }
+    }
+
+    this.graph.scheduledPosts = [
+      ...this.graph.scheduledPosts.slice(0, idx),
+      merged,
+      ...this.graph.scheduledPosts.slice(idx + 1),
+    ];
+
+    const now = new Date().toISOString();
+    this.graph.activity = [
+      {
+        id: `act-sched-${Date.now().toString(36)}`,
+        at: now,
+        actor: 'system',
+        summary: {
+          en: `Updated schedule ${id}`,
+          ar: `حُدّث الجدول ${id}`,
+        },
+        href: '/app/schedule',
+        source: 'DEMO',
+        objectType: 'scheduled_post',
+        action: 'updated',
+        brandId: merged.brandId,
+        campaignId: merged.campaignId,
+        priorState,
+        newState: merged.state,
+      },
+      ...this.graph.activity,
+    ];
+    syncScheduleCommandCenter(this.graph);
+    return merged;
+  }
+
+  removeScheduledPost(id: string) {
+    const idx = this.graph.scheduledPosts.findIndex((p) => p.id === id);
+    if (idx < 0) return false;
+    const removed = this.graph.scheduledPosts[idx]!;
+    this.graph.scheduledPosts = [
+      ...this.graph.scheduledPosts.slice(0, idx),
+      ...this.graph.scheduledPosts.slice(idx + 1),
+    ];
+    const now = new Date().toISOString();
+    this.graph.activity = [
+      {
+        id: `act-sched-rm-${Date.now().toString(36)}`,
+        at: now,
+        actor: 'system',
+        summary: {
+          en: `Removed schedule ${id}`,
+          ar: `أُزيل الجدول ${id}`,
+        },
+        href: '/app/schedule',
+        source: 'DEMO',
+        objectType: 'scheduled_post',
+        action: 'removed',
+        brandId: removed.brandId,
+        campaignId: removed.campaignId,
+        priorState: removed.state,
+        newState: null,
+      },
+      ...this.graph.activity,
+    ];
+    syncScheduleCommandCenter(this.graph);
+    return true;
+  }
+
+  getDemoPreferences() {
+    return this.graph.demoPreferences;
+  }
+
+  updateDemoPreferences(partial: Partial<DemoPreferences>) {
+    const next = { ...this.graph.demoPreferences };
+    if (partial.timezone !== undefined) {
+      if (!partial.timezone.trim()) throw new Error('timezone is required');
+      next.timezone = partial.timezone;
+    }
+    if (partial.weekStart !== undefined) {
+      if (partial.weekStart !== 'monday' && partial.weekStart !== 'sunday') {
+        throw new Error('weekStart must be monday or sunday');
+      }
+      next.weekStart = partial.weekStart;
+    }
+    if (partial.defaultContentView !== undefined) {
+      if (partial.defaultContentView !== 'list' && partial.defaultContentView !== 'calendar') {
+        throw new Error('defaultContentView must be list or calendar');
+      }
+      next.defaultContentView = partial.defaultContentView;
+    }
+    if (partial.defaultTaskView !== undefined) {
+      if (partial.defaultTaskView !== 'board' && partial.defaultTaskView !== 'list') {
+        throw new Error('defaultTaskView must be board or list');
+      }
+      next.defaultTaskView = partial.defaultTaskView;
+    }
+    if (partial.reviewReminders !== undefined) {
+      next.reviewReminders = Boolean(partial.reviewReminders);
+    }
+    if (partial.localePreference !== undefined) {
+      if (!['en', 'ar', 'system'].includes(partial.localePreference)) {
+        throw new Error('localePreference must be en, ar, or system');
+      }
+      next.localePreference = partial.localePreference;
+    }
+    this.graph.demoPreferences = next;
+    return next;
   }
 
   getLinkedJourney() {

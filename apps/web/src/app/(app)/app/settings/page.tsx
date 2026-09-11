@@ -1,9 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import type { DemoGraph } from '@oma/demo';
+import Link from 'next/link';
+import { useCallback, useEffect, useState } from 'react';
+import type { DemoGraph, DemoPreferences } from '@oma/demo';
 import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
+import { PageHeader } from '../../../../components/ui/page-header';
 import { StatusChip } from '../../../../components/ui/status-chip';
+import { useToast } from '../../../../components/ui/toast';
 import {
   demoApi,
   demoErrorMessage,
@@ -13,70 +16,281 @@ import {
 import { useLocale, useT } from '../../../../lib/use-locale';
 
 type Integration = DemoGraph['integrations'][number];
+type Section = 'general' | 'workflow' | 'notifications' | 'integrations' | 'localization' | 'demo';
 
 export default function SettingsPage() {
   const t = useT();
   const locale = useLocale();
+  const toast = useToast();
+  const [section, setSection] = useState<Section>('general');
+  const [prefs, setPrefs] = useState<DemoPreferences | null>(null);
+  const [draft, setDraft] = useState<DemoPreferences | null>(null);
   const [rows, setRows] = useState<Integration[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [unavailable, setUnavailable] = useState(false);
+  const [infoId, setInfoId] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [preferences, integrations] = await Promise.all([
+        demoApi<DemoPreferences>('/preferences'),
+        demoApi<Integration[]>('/integrations'),
+      ]);
+      setPrefs(preferences);
+      setDraft(preferences);
+      setRows(integrations);
+      setError(null);
+      setUnavailable(false);
+    } catch (err) {
+      if (isDemoForbidden(err)) setUnavailable(true);
+      else setError(demoErrorMessage(err, 'Demo unavailable'));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const data = await demoApi<Integration[]>('/integrations');
-        if (!cancelled) setRows(data);
-      } catch (err) {
-        if (cancelled) return;
-        if (isDemoForbidden(err)) setUnavailable(true);
-        else setError(demoErrorMessage(err, t('demo.unavailable')));
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [t]);
+    void load();
+  }, [load]);
+
+  async function savePrefs() {
+    if (!draft) return;
+    setSaving(true);
+    try {
+      const next = await demoApi<DemoPreferences>('/preferences', {
+        method: 'PATCH',
+        body: JSON.stringify(draft),
+      });
+      setPrefs(next);
+      setDraft(next);
+      toast.push(t('demo.settings.saved'), 'success');
+    } catch (err) {
+      toast.push(demoErrorMessage(err, 'Demo unavailable'), 'danger');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const info = rows.find((r) => r.id === infoId) ?? null;
+  const sections: Section[] = [
+    'general',
+    'workflow',
+    'notifications',
+    'integrations',
+    'localization',
+    'demo',
+  ];
 
   return (
     <div className="oma-stack" data-testid="demo-settings">
-      <header className="oma-page-header oma-page-header-stack">
-        <div>
-          <h1>{t('nav.settings')}</h1>
-          <p className="oma-muted">{t('demo.settings.subtitle')}</p>
-        </div>
-      </header>
+      <PageHeader title={t('demo.settings.title')} description={t('demo.settings.subtitle')} />
       <DemoDisclosure />
-      <section className="oma-card">
-        <h2>{t('demo.settings.workspace')}</h2>
-        <p className="oma-muted">{t('demo.settings.stubBody')}</p>
-      </section>
-      <section className="oma-card" data-testid="demo-integrations">
-        <h2>{t('demo.settings.integrations')}</h2>
-        <p className="oma-muted">{t('demo.integrationsDeferred')}</p>
-        {loading ? <p className="oma-muted">{t('demo.loading')}</p> : null}
-        {unavailable ? <p className="oma-muted">{t('demo.unavailable')}</p> : null}
-        {error ? (
-          <p role="alert" style={{ color: 'var(--status-danger)' }}>
-            {error}
-          </p>
-        ) : null}
-        <ul className="oma-compact-list">
-          {rows.map((i) => (
-            <li key={i.id} className="oma-compact-row">
-              <div>
-                <strong>{pickCopy(i.name, locale)}</strong>
-                <p className="oma-muted">{i.category}</p>
-                <p className="oma-muted">{pickCopy(i.note, locale)}</p>
-              </div>
-              <StatusChip status={i.status} />
-            </li>
-          ))}
-        </ul>
-      </section>
+
+      {loading ? <p className="oma-muted">{t('demo.loading')}</p> : null}
+      {unavailable ? <p className="oma-muted">{t('demo.unavailable')}</p> : null}
+      {error ? (
+        <p role="alert" style={{ color: 'var(--status-danger)' }}>
+          {error}
+        </p>
+      ) : null}
+
+      {!loading && !unavailable && draft ? (
+        <div className="oma-settings-layout">
+          <nav className="oma-settings-nav" aria-label={t('demo.settings.title')}>
+            {sections.map((s) => (
+              <button
+                key={s}
+                type="button"
+                className="oma-btn oma-btn-secondary"
+                aria-current={section === s ? 'true' : undefined}
+                data-testid={`demo-settings-nav-${s}`}
+                onClick={() => setSection(s)}
+              >
+                {t(`demo.settings.section.${s}`)}
+              </button>
+            ))}
+            <Link href="/app/company/members" className="oma-text-link">
+              {t('demo.settings.companyLink')}
+            </Link>
+          </nav>
+
+          <div className="oma-stack">
+            {section === 'general' || section === 'localization' || section === 'workflow' ? (
+              <section className="oma-card" data-testid="demo-settings-general">
+                <h2>{t(`demo.settings.section.${section}`)}</h2>
+                <p className="oma-muted">{t('demo.settings.demoPrefNote')}</p>
+                <label>
+                  {t('demo.settings.timezone')}
+                  <input
+                    className="oma-input"
+                    value={draft.timezone}
+                    data-testid="demo-settings-timezone"
+                    onChange={(e) => setDraft({ ...draft, timezone: e.target.value })}
+                  />
+                </label>
+                <label>
+                  {t('demo.settings.weekStart')}
+                  <select
+                    className="oma-select"
+                    value={draft.weekStart}
+                    data-testid="demo-settings-week-start"
+                    onChange={(e) =>
+                      setDraft({
+                        ...draft,
+                        weekStart: e.target.value as DemoPreferences['weekStart'],
+                      })
+                    }
+                  >
+                    <option value="monday">{t('demo.settings.monday')}</option>
+                    <option value="sunday">{t('demo.settings.sunday')}</option>
+                  </select>
+                </label>
+                <label>
+                  {t('demo.settings.localePref')}
+                  <select
+                    className="oma-select"
+                    value={draft.localePreference}
+                    data-testid="demo-settings-locale"
+                    onChange={(e) =>
+                      setDraft({
+                        ...draft,
+                        localePreference: e.target.value as DemoPreferences['localePreference'],
+                      })
+                    }
+                  >
+                    <option value="system">system</option>
+                    <option value="en">en</option>
+                    <option value="ar">ar</option>
+                  </select>
+                </label>
+                <label>
+                  {t('demo.settings.defaultContentView')}
+                  <select
+                    className="oma-select"
+                    value={draft.defaultContentView}
+                    data-testid="demo-settings-content-view"
+                    onChange={(e) =>
+                      setDraft({
+                        ...draft,
+                        defaultContentView: e.target.value as DemoPreferences['defaultContentView'],
+                      })
+                    }
+                  >
+                    <option value="list">list</option>
+                    <option value="calendar">calendar</option>
+                  </select>
+                </label>
+                <label>
+                  {t('demo.settings.defaultTaskView')}
+                  <select
+                    className="oma-select"
+                    value={draft.defaultTaskView}
+                    data-testid="demo-settings-task-view"
+                    onChange={(e) =>
+                      setDraft({
+                        ...draft,
+                        defaultTaskView: e.target.value as DemoPreferences['defaultTaskView'],
+                      })
+                    }
+                  >
+                    <option value="board">board</option>
+                    <option value="list">list</option>
+                  </select>
+                </label>
+                <div className="oma-chip-row">
+                  <button
+                    type="button"
+                    className="oma-btn oma-btn-secondary"
+                    onClick={() => setDraft(prefs)}
+                  >
+                    {t('demo.create.cancel')}
+                  </button>
+                  <button
+                    type="button"
+                    className="oma-btn"
+                    data-testid="demo-settings-save"
+                    disabled={saving}
+                    onClick={() => void savePrefs()}
+                  >
+                    {t('demo.settings.save')}
+                  </button>
+                </div>
+              </section>
+            ) : null}
+
+            {section === 'notifications' ? (
+              <section className="oma-card" data-testid="demo-settings-notifications">
+                <h2>{t('demo.settings.section.notifications')}</h2>
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={draft.reviewReminders}
+                    data-testid="demo-settings-review-reminders"
+                    onChange={(e) => setDraft({ ...draft, reviewReminders: e.target.checked })}
+                  />{' '}
+                  {t('demo.settings.reviewReminders')}
+                </label>
+                <p className="oma-muted">{t('demo.settings.notificationsHonesty')}</p>
+                <button
+                  type="button"
+                  className="oma-btn"
+                  data-testid="demo-settings-save-notifications"
+                  disabled={saving}
+                  onClick={() => void savePrefs()}
+                >
+                  {t('demo.settings.save')}
+                </button>
+              </section>
+            ) : null}
+
+            {section === 'integrations' || section === 'demo' ? (
+              <section className="oma-card" data-testid="demo-integrations">
+                <h2>{t('demo.settings.integrations')}</h2>
+                <p className="oma-muted">{t('demo.integrationsDeferred')}</p>
+                <ul className="oma-compact-list">
+                  {rows.map((i) => (
+                    <li key={i.id} className="oma-integration-row" data-testid={`demo-int-${i.id}`}>
+                      <div className="oma-chip-row">
+                        <strong>{pickCopy(i.name, locale)}</strong>
+                        <StatusChip status={i.status} />
+                      </div>
+                      <p className="oma-muted">{i.category}</p>
+                      <p>{pickCopy(i.purpose, locale)}</p>
+                      <p className="oma-muted">{pickCopy(i.availableWithout, locale)}</p>
+                      <p className="oma-muted">{pickCopy(i.gate, locale)}</p>
+                      <button
+                        type="button"
+                        className="oma-btn oma-btn-secondary"
+                        data-testid={`demo-int-plan-${i.id}`}
+                        onClick={() => setInfoId(i.id)}
+                      >
+                        {t('demo.settings.viewPlan')}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+                {info ? (
+                  <div className="oma-card" data-testid="demo-int-plan-drawer">
+                    <h3>{pickCopy(info.name, locale)}</h3>
+                    <p>{pickCopy(info.laterUnlocks, locale)}</p>
+                    <p className="oma-honesty-inline">{t('demo.settings.noConnect')}</p>
+                    <button
+                      type="button"
+                      className="oma-btn oma-btn-secondary"
+                      onClick={() => setInfoId(null)}
+                    >
+                      {t('demo.create.cancel')}
+                    </button>
+                  </div>
+                ) : null}
+              </section>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

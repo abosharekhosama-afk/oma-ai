@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { api } from '../../../../../lib/api';
 import { apiMutate, getApiError, isPermissionDenied } from '../../../../../lib/brand-api';
 import { PermissionDenied } from '../../../../../components/shell/permission-denied';
+import { StatusChip } from '../../../../../components/ui/status-chip';
 import { useT } from '../../../../../lib/use-locale';
 
 type Member = {
@@ -106,13 +107,14 @@ export default function CompanyMembersPage() {
   if (denied) return <PermissionDenied message={t('errors.permission')} />;
 
   return (
-    <div className="oma-stack">
+    <div className="oma-stack oma-members-foundation" data-testid="company-members">
       <header className="oma-page-header">
         <div>
           <h1>{t('company.membersTitle')}</h1>
           <p className="oma-muted">{t('company.membersBody')}</p>
         </div>
       </header>
+      <p className="oma-honesty-inline">{t('company.foundationNote')}</p>
 
       {error ? (
         <div className="oma-card" role="alert">
@@ -167,7 +169,7 @@ export default function CompanyMembersPage() {
                 <tr key={m.id}>
                   <td>{m.user?.email ?? m.invited_email ?? m.id.slice(-8)}</td>
                   <td>
-                    <span className="oma-badge">{m.status}</span>
+                    <StatusChip status={m.status} />
                   </td>
                   <td>{m.source_profiles.filter(Boolean).join(', ') || '—'}</td>
                   <td>

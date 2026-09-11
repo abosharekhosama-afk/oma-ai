@@ -1,0 +1,21 @@
+{
+  "gitSha": "pending",
+  "route": "/app/team",
+  "viewport": {
+    "width": 1024,
+    "height": 768
+  },
+  "locale": "en",
+  "direction": "ltr",
+  "role": "owner",
+  "sourceType": "Hybrid",
+  "dataState": "OMA_DEMO_MODE=1 deterministic seed",
+  "consoleErrorCount": 0,
+  "externalNetworkRequestCount": 0,
+  "evidenceReferencePattern": "Workfront workload / activity (DOC)",
+  "acceptanceIds": [
+    "V-TEAM-01",
+    "V-LINK-04"
+  ],
+  "healthHint": "{\"error\":{\"code\":\"VALIDATION_FAILED\",\"me"
+}

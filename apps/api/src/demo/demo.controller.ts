@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   ForbiddenException,
   Get,
   NotFoundException,
@@ -20,6 +21,8 @@ import {
   type DemoContentInput,
   type DemoContentPatch,
   type DemoLocaleCopy,
+  type DemoPreferences,
+  type DemoScheduleState,
 } from '@oma/demo';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { loadEnv } from '@oma/config';
@@ -62,6 +65,13 @@ export class DemoController {
     this.requireDemo();
     res.setHeader('x-oma-demo-data', '1');
     return { data: demoDataProvider.getGraph() };
+  }
+
+  @Post('reset')
+  reset(@Res({ passthrough: true }) res: Response) {
+    this.requireDemo();
+    res.setHeader('x-oma-demo-data', '1');
+    return { data: demoDataProvider.reset() };
   }
 
   @Get('journey')
@@ -592,6 +602,113 @@ export class DemoController {
   schedule() {
     this.requireDemo();
     return { data: demoDataProvider.getGraph().scheduledPosts };
+  }
+
+  @Patch('schedule/:id')
+  updateSchedule(@Param('id') id: string, @Body() body: Record<string, unknown>) {
+    this.requireDemo();
+    try {
+      const patch: {
+        plannedAt?: string;
+        channels?: string[];
+        state?: DemoScheduleState;
+      } = {};
+      if (body.plannedAt !== undefined) {
+        if (typeof body.plannedAt !== 'string' || !body.plannedAt.trim()) {
+          throw new BadRequestException('plannedAt must be a valid ISO datetime');
+        }
+        patch.plannedAt = body.plannedAt;
+      }
+      if (body.channels !== undefined) {
+        if (!Array.isArray(body.channels)) {
+          throw new BadRequestException('channels must be an array');
+        }
+        patch.channels = body.channels.map(String);
+      }
+      if (body.state !== undefined) {
+        const allowed: DemoScheduleState[] = [
+          'PLANNED',
+          'READY',
+          'SCHEDULED_PREVIEW',
+          'BLOCKED',
+          'PUBLISHED_SAMPLE',
+        ];
+        if (typeof body.state !== 'string' || !allowed.includes(body.state as DemoScheduleState)) {
+          throw new BadRequestException('Invalid schedule state');
+        }
+        patch.state = body.state as DemoScheduleState;
+      }
+      const row = demoDataProvider.updateScheduledPost(id, patch);
+      if (!row) throw new NotFoundException('Not found');
+      return { data: row };
+    } catch (err) {
+      if (err instanceof NotFoundException || err instanceof BadRequestException) throw err;
+      throw new BadRequestException(err instanceof Error ? err.message : 'Invalid schedule update');
+    }
+  }
+
+  @Delete('schedule/:id')
+  removeSchedule(@Param('id') id: string) {
+    this.requireDemo();
+    const ok = demoDataProvider.removeScheduledPost(id);
+    if (!ok) throw new NotFoundException('Not found');
+    return { data: { id, removed: true } };
+  }
+
+  @Get('preferences')
+  preferences() {
+    this.requireDemo();
+    return { data: demoDataProvider.getDemoPreferences() };
+  }
+
+  @Patch('preferences')
+  updatePreferences(@Body() body: Record<string, unknown>) {
+    this.requireDemo();
+    try {
+      const partial: Partial<DemoPreferences> = {};
+      if (body.timezone !== undefined) {
+        if (typeof body.timezone !== 'string' || !body.timezone.trim()) {
+          throw new BadRequestException('timezone is required');
+        }
+        partial.timezone = body.timezone.trim();
+      }
+      if (body.weekStart !== undefined) {
+        if (body.weekStart !== 'monday' && body.weekStart !== 'sunday') {
+          throw new BadRequestException('weekStart must be monday or sunday');
+        }
+        partial.weekStart = body.weekStart;
+      }
+      if (body.defaultContentView !== undefined) {
+        if (body.defaultContentView !== 'list' && body.defaultContentView !== 'calendar') {
+          throw new BadRequestException('defaultContentView must be list or calendar');
+        }
+        partial.defaultContentView = body.defaultContentView;
+      }
+      if (body.defaultTaskView !== undefined) {
+        if (body.defaultTaskView !== 'board' && body.defaultTaskView !== 'list') {
+          throw new BadRequestException('defaultTaskView must be board or list');
+        }
+        partial.defaultTaskView = body.defaultTaskView;
+      }
+      if (body.reviewReminders !== undefined) {
+        partial.reviewReminders = Boolean(body.reviewReminders);
+      }
+      if (body.localePreference !== undefined) {
+        if (
+          body.localePreference !== 'en' &&
+          body.localePreference !== 'ar' &&
+          body.localePreference !== 'system'
+        ) {
+          throw new BadRequestException('localePreference must be en, ar, or system');
+        }
+        partial.localePreference = body.localePreference;
+      }
+      const row = demoDataProvider.updateDemoPreferences(partial);
+      return { data: row };
+    } catch (err) {
+      if (err instanceof BadRequestException) throw err;
+      throw new BadRequestException(err instanceof Error ? err.message : 'Invalid preferences');
+    }
   }
 
   @Get('analytics')

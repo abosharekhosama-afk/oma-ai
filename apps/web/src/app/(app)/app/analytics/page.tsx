@@ -1,57 +1,97 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import type { DemoGraph } from '@oma/demo';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
+import { EmptyState } from '../../../../components/ui/empty-state';
+import { PageHeader } from '../../../../components/ui/page-header';
 import {
   demoApi,
   demoErrorMessage,
   isDemoForbidden,
   pickCopy,
 } from '../../../../lib/demo/use-demo-api';
+import {
+  EMPTY_ANALYTICS_FILTERS,
+  filterCampaignRows,
+  filterChannels,
+  filterContentPerf,
+  filterSeries,
+  kpiDeltaTone,
+  organicPaidComparison,
+  percentDelta,
+  sparklinePoints,
+  type AnalyticsData,
+  type AnalyticsFilters,
+} from '../../../../lib/demo/stage6-analytics';
 import { useLocale, useT } from '../../../../lib/use-locale';
 
-type Analytics = DemoGraph['analytics'];
+function formatKpi(value: number, unit: string): string {
+  if (unit === 'percent') return `${value}%`;
+  if (unit === 'currency') return `AED ${value.toLocaleString()}`;
+  return value.toLocaleString();
+}
 
 export default function AnalyticsPage() {
   const t = useT();
   const locale = useLocale();
-  const [data, setData] = useState<Analytics | null>(null);
+  const [data, setData] = useState<AnalyticsData | null>(null);
+  const [filters, setFilters] = useState<AnalyticsFilters>(EMPTY_ANALYTICS_FILTERS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [unavailable, setUnavailable] = useState(false);
 
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const next = await demoApi<AnalyticsData>('/analytics');
+      setData(next);
+      setError(null);
+      setUnavailable(false);
+    } catch (err) {
+      if (isDemoForbidden(err)) setUnavailable(true);
+      else setError(demoErrorMessage(err, 'Demo unavailable'));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const next = await demoApi<Analytics>('/analytics');
-        if (!cancelled) setData(next);
-      } catch (err) {
-        if (cancelled) return;
-        if (isDemoForbidden(err)) setUnavailable(true);
-        else setError(demoErrorMessage(err, t('demo.unavailable')));
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [t]);
+    void load();
+  }, [load]);
+
+  const series = useMemo(() => (data ? filterSeries(data, filters) : []), [data, filters]);
+  const channels = useMemo(() => (data ? filterChannels(data, filters) : []), [data, filters]);
+  const campaigns = useMemo(() => (data ? filterCampaignRows(data, filters) : []), [data, filters]);
+  const contentRows = useMemo(
+    () => (data ? filterContentPerf(data, filters) : []),
+    [data, filters],
+  );
+  const comparison = useMemo(() => (data ? organicPaidComparison(data) : null), [data]);
+  const spark = useMemo(() => {
+    const values = series.filter((p) => p.track !== 'PAID' || filters.track !== 'ORGANIC');
+    const organic = values.filter((p) => p.track === 'ORGANIC').map((p) => p.impressions);
+    return sparklinePoints(organic.length ? organic : values.map((p) => p.impressions));
+  }, [series, filters.track]);
 
   return (
     <div className="oma-stack" data-testid="demo-analytics">
-      <header className="oma-page-header oma-page-header-stack">
-        <div>
-          <h1>{t('demo.analytics.title')}</h1>
-          <p className="oma-muted">{t('demo.analytics.subtitle')}</p>
-        </div>
-      </header>
+      <PageHeader
+        title={t('demo.analytics.title')}
+        description={t('demo.analytics.subtitle')}
+        meta={
+          <span className="oma-badge oma-badge-muted" data-testid="demo-analytics-sample-badge">
+            {t('demo.analytics.sampleBadge')}
+          </span>
+        }
+      />
       <DemoDisclosure
         message={data ? pickCopy(data.disclosure, locale) : t('demo.analyticsDisclosure')}
       />
+      <p className="oma-honesty-inline" data-testid="demo-analytics-honesty">
+        {t('demo.analytics.externalNotConnected')}
+      </p>
+
       {loading ? <p className="oma-muted">{t('demo.loading')}</p> : null}
       {unavailable ? <p className="oma-muted">{t('demo.unavailable')}</p> : null}
       {error ? (
@@ -59,71 +99,262 @@ export default function AnalyticsPage() {
           <p style={{ color: 'var(--status-danger)', margin: 0 }}>{error}</p>
         </div>
       ) : null}
+
       {data ? (
         <>
-          <section className="oma-card">
-            <h2>{t('demo.analytics.title')}</h2>
-            <p>{pickCopy(data.executiveSummary, locale)}</p>
+          <p className="oma-muted" data-testid="demo-analytics-period">
+            {pickCopy(data.period.label, locale)} · {data.period.start} → {data.period.end}
+            {' · '}
+            {t('demo.analytics.lastRefresh')}: {data.lastSimulatedRefresh}
+          </p>
+
+          <div className="oma-stage6-toolbar" data-testid="demo-analytics-filters">
+            <label>
+              {t('demo.filter.track')}
+              <select
+                className="oma-select"
+                value={filters.track}
+                data-testid="demo-analytics-filter-track"
+                onChange={(e) =>
+                  setFilters((f) => ({
+                    ...f,
+                    track: e.target.value as AnalyticsFilters['track'],
+                  }))
+                }
+              >
+                <option value="all">{t('demo.filter.all')}</option>
+                <option value="ORGANIC">{t('demo.organic')}</option>
+                <option value="PAID">{t('demo.paid')}</option>
+              </select>
+            </label>
+            <label>
+              {t('demo.filter.channel')}
+              <select
+                className="oma-select"
+                value={filters.channel}
+                data-testid="demo-analytics-filter-channel"
+                onChange={(e) => setFilters((f) => ({ ...f, channel: e.target.value }))}
+              >
+                <option value="all">{t('demo.filter.all')}</option>
+                {[...new Set(data.channels.map((c) => c.channel))].map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              {t('demo.analytics.filter.campaign')}
+              <select
+                className="oma-select"
+                value={filters.campaignId}
+                data-testid="demo-analytics-filter-campaign"
+                onChange={(e) => setFilters((f) => ({ ...f, campaignId: e.target.value }))}
+              >
+                <option value="all">{t('demo.filter.all')}</option>
+                {data.campaigns.map((c) => (
+                  <option key={c.campaignId} value={c.campaignId}>
+                    {c.campaignId}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <section aria-label={t('demo.analytics.kpis')}>
+            <div className="oma-kpi-row" data-testid="demo-analytics-kpis">
+              {data.kpis.map((kpi) => {
+                const delta = percentDelta(kpi.value, kpi.previous);
+                const tone = kpiDeltaTone(delta, kpi.higherIsBetter);
+                return (
+                  <div key={kpi.id} className="oma-kpi-cell">
+                    <span className="oma-muted">{pickCopy(kpi.name, locale)}</span>
+                    <strong className="oma-ltr">{formatKpi(kpi.value, kpi.unit)}</strong>
+                    <span className="oma-kpi-delta oma-ltr" data-tone={tone}>
+                      {delta > 0 ? '+' : ''}
+                      {delta}% vs {pickCopy(data.previousPeriod.label, locale)}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           </section>
-          <section className="oma-card">
+
+          <section className="oma-chart-panel" data-testid="demo-analytics-trend">
+            <h2>{t('demo.analytics.trend')}</h2>
+            <p>{pickCopy(data.executiveSummary, locale)}</p>
+            <svg viewBox="0 0 320 80" role="img" aria-label={t('demo.analytics.trendSummary')}>
+              <polyline
+                fill="none"
+                stroke="var(--oma-violet)"
+                strokeWidth="2"
+                points={spark.points}
+              />
+            </svg>
+            <table className="oma-chart-sr" data-testid="demo-analytics-trend-table">
+              <caption>{t('demo.analytics.trendSummary')}</caption>
+              <thead>
+                <tr>
+                  <th>{t('demo.analytics.date')}</th>
+                  <th>{t('demo.analytics.impressions')}</th>
+                  <th>{t('demo.analytics.engagement')}</th>
+                  <th>{t('demo.analytics.clicks')}</th>
+                  <th>{t('demo.filter.track')}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {series.map((p, i) => (
+                  <tr key={`${p.date}-${p.track}-${i}`}>
+                    <td>{p.date}</td>
+                    <td>{p.impressions}</td>
+                    <td>{p.engagement}</td>
+                    <td>{p.clicks}</td>
+                    <td>{p.track}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <p className="oma-muted">{t('demo.analytics.chartAccessible')}</p>
+          </section>
+
+          {comparison ? (
+            <section className="oma-card" data-testid="demo-analytics-organic-paid">
+              <h2>{t('demo.analytics.organicPaid')}</h2>
+              <div className="oma-kpi-row">
+                <div className="oma-kpi-cell">
+                  <span className="oma-muted">{t('demo.organic')}</span>
+                  <strong className="oma-ltr">
+                    {comparison.organic.impressions.toLocaleString()}
+                  </strong>
+                  <span className="oma-muted">{t('demo.analytics.impressions')}</span>
+                </div>
+                <div className="oma-kpi-cell">
+                  <span className="oma-muted">{t('demo.paid')}</span>
+                  <strong className="oma-ltr">
+                    {comparison.paid.impressions.toLocaleString()}
+                  </strong>
+                  <span className="oma-muted">{t('demo.analytics.planningSampleSpend')}</span>
+                </div>
+              </div>
+            </section>
+          ) : null}
+
+          <section className="oma-card" data-testid="demo-analytics-channels">
             <h2>{t('demo.analytics.channels')}</h2>
+            {channels.length === 0 ? (
+              <EmptyState title={t('demo.empty')} body={t('demo.analytics.noData')} />
+            ) : (
+              <div className="oma-table-wrap">
+                <table className="oma-table">
+                  <thead>
+                    <tr>
+                      <th>{t('demo.filter.channel')}</th>
+                      <th>{t('demo.filter.track')}</th>
+                      <th>{t('demo.analytics.reach')}</th>
+                      <th>{t('demo.analytics.engagement')}</th>
+                      <th>{t('demo.analytics.clicks')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {channels.map((ch) => (
+                      <tr key={`${ch.channel}-${ch.track}`}>
+                        <td>{ch.channel}</td>
+                        <td>{ch.track === 'ORGANIC' ? t('demo.organic') : t('demo.paid')}</td>
+                        <td className="oma-ltr">{ch.reach.toLocaleString()}</td>
+                        <td className="oma-ltr">{ch.engagement}</td>
+                        <td className="oma-ltr">{ch.clicks.toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+
+          <section className="oma-card" data-testid="demo-analytics-campaigns">
+            <h2>{t('demo.analytics.campaigns')}</h2>
             <div className="oma-table-wrap">
               <table className="oma-table">
                 <thead>
                   <tr>
-                    <th>Channel</th>
-                    <th>Track</th>
-                    <th>Reach</th>
-                    <th>Engagement</th>
+                    <th>{t('demo.analytics.filter.campaign')}</th>
+                    <th>{t('demo.filter.track')}</th>
+                    <th>{t('demo.analytics.impressions')}</th>
+                    <th>{t('demo.analytics.sampleSpend')}</th>
+                    <th>{t('demo.analytics.index')}</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {data.channels.map((ch) => (
-                    <tr key={ch.channel}>
-                      <td>{ch.channel}</td>
-                      <td>{ch.track === 'ORGANIC' ? t('demo.organic') : t('demo.paid')}</td>
-                      <td className="oma-ltr">{ch.reach.toLocaleString()}</td>
-                      <td className="oma-ltr">{ch.engagement}%</td>
+                  {campaigns.map((c) => (
+                    <tr key={c.campaignId} data-testid={`demo-analytics-campaign-${c.campaignId}`}>
+                      <td>
+                        <Link href={`/app/campaigns/${c.campaignId}`} className="oma-text-link">
+                          {c.campaignId}
+                        </Link>
+                      </td>
+                      <td>{c.track}</td>
+                      <td className="oma-ltr">{c.impressions.toLocaleString()}</td>
+                      <td className="oma-ltr">{c.sampleSpend.toLocaleString()}</td>
+                      <td className="oma-ltr">{c.resultsIndex}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           </section>
-          <section className="oma-card">
-            <h2>{t('demo.analytics.kpis')}</h2>
-            <ul className="oma-stack">
-              {data.kpiProgress.map((kpi, i) => {
-                const pct = Math.min(100, Math.round((kpi.value / kpi.target) * 100));
-                return (
-                  <li key={i}>
-                    <div className="oma-section-head">
-                      <strong>{pickCopy(kpi.name, locale)}</strong>
-                      <span className="oma-muted oma-ltr">
-                        {kpi.value} / {kpi.target}
-                      </span>
-                    </div>
-                    <div className="oma-progress-track" aria-hidden="true">
-                      <div className="oma-progress-fill" style={{ width: `${pct}%` }} />
-                    </div>
-                  </li>
-                );
-              })}
+
+          <section className="oma-card" data-testid="demo-analytics-content">
+            <h2>{t('demo.analytics.contentPerf')}</h2>
+            <ul className="oma-compact-list">
+              {contentRows.map((item) => (
+                <li key={`${item.contentId}-${item.channel}`}>
+                  <Link
+                    href={`/app/content?item=${item.contentId}`}
+                    className="oma-compact-row"
+                    data-testid={`demo-analytics-content-${item.contentId}`}
+                  >
+                    <strong>{item.contentId}</strong>
+                    <span className="oma-muted oma-ltr">
+                      {item.channel} · {item.impressions.toLocaleString()}
+                    </span>
+                  </Link>
+                </li>
+              ))}
             </ul>
           </section>
+
           <section className="oma-card">
             <h2>{t('demo.analytics.topContent')}</h2>
             <ul className="oma-compact-list">
               {data.topContent.map((item) => (
                 <li key={item.contentId}>
-                  <Link href="/app/content" className="oma-compact-row">
-                    <strong>{item.contentId}</strong>
+                  <Link href={`/app/content?item=${item.contentId}`} className="oma-compact-row">
+                    <strong>{pickCopy(item.label, locale)}</strong>
                     <span className="oma-muted oma-ltr">{item.metric}</span>
                   </Link>
                 </li>
               ))}
             </ul>
           </section>
+
+          <section className="oma-card" data-testid="demo-analytics-under">
+            <h2>{t('demo.analytics.underperforming')}</h2>
+            <ul>
+              {data.underperforming.map((u) => (
+                <li key={u.contentId}>
+                  <Link href={`/app/content?item=${u.contentId}`} className="oma-text-link">
+                    {u.contentId}
+                  </Link>
+                  {' — '}
+                  {pickCopy(u.reason, locale)}
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <p className="oma-muted" data-testid="demo-analytics-source">
+            {t('demo.analytics.sourcePanel')}
+          </p>
         </>
       ) : null}
     </div>

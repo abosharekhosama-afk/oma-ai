@@ -1,0 +1,20 @@
+{
+  "gitSha": "pending",
+  "route": "/app/schedule",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "locale": "en",
+  "direction": "ltr",
+  "role": "owner",
+  "sourceType": "Demo",
+  "dataState": "OMA_DEMO_MODE=1 deterministic seed",
+  "consoleErrorCount": 0,
+  "externalNetworkRequestCount": 0,
+  "evidenceReferencePattern": "Planable scheduling calendar (DOC)",
+  "acceptanceIds": [
+    "V-SCH-02"
+  ],
+  "healthHint": "{\"error\":{\"code\":\"VALIDATION_FAILED\",\"me"
+}

@@ -96,12 +96,26 @@
 
 ## Stage 6 — Schedule / Analytics / Org
 
-| ID       | Criterion                                                     |
-| -------- | ------------------------------------------------------------- |
-| V-SCH-01 | Schedule shows readiness + not-connected publishing state     |
-| V-ANL-01 | Charts labeled Demo Data; Organic vs Paid comparison readable |
-| V-ORG-01 | Team workload readable; restricted presentation clear         |
-| V-ORG-02 | Integrations catalog: every row Not Connected/Deferred        |
+| ID        | Criterion                                                                                          |
+| --------- | -------------------------------------------------------------------------------------------------- |
+| V-SCH-01  | Schedule shows planning, timing, channels, state, and readiness without claiming live publishing   |
+| V-SCH-02  | Calendar/Agenda/Queue usable on desktop/mobile and EN/AR; reschedule persists via Demo API         |
+| V-ANL-01  | Analytics linked to campaigns/content, filterable, consistent numbers labeled Sample               |
+| V-ANL-02  | Charts understandable visually and via accessible summaries; no Live/AI claims                     |
+| V-TEAM-01 | Team/Workload binds Foundation membership CTA to Demo assignments without parallel membership SoT  |
+| V-ORG-01  | Company/Members keeps Foundation capabilities/invites with Golden UI                               |
+| V-ACT-01  | Activity distinguishes Foundation audited vs Demo workflow events with correct deep links          |
+| V-SET-01  | Settings IA organized; working prefs persist; non-working controls are not fake interactive        |
+| V-INT-01  | Integrations show Not Connected/Deferred/Manual fallback with no provider selection or credentials |
+| V-LINK-04 | Brand→Analytics path coherent; Team/Activity/Settings support without conflicting data             |
+
+**Legacy mapping:**
+
+| Legacy   | Maps to  |
+| -------- | -------- |
+| V-ORG-02 | V-INT-01 |
+
+**Stage 6 status:** implemented on `004-oma-complete-product-demo` — prove with Stage 6 Playwright + unit/security gates, not screenshots alone.
 
 ## Stage 7 — Certification pack
 

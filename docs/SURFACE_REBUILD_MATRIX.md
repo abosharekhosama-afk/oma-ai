@@ -98,10 +98,15 @@ Status: all rows below are **REBUILD** or **PARTIAL** unless noted.
 
 ## Stage 6 — Schedule + Analytics + Team + Settings
 
-**Routes:** `/app/schedule`, `/app/analytics`, `/app/team`, `/app/activity`, `/app/settings`, company  
-**Components:** charts honesty, integration catalog polish  
-**Reference:** Planable schedule; Smartly honesty; Linear members  
-**Done when:** V-SCH-_, V-ANL-_, V-ORG-* pass.
+**Routes:** `/app/schedule`, `/app/analytics`, `/app/team`, `/app/activity`, `/app/settings`, `/app/company/members`
+
+**Components:** Schedule calendar/agenda/queue, readiness drawer, sample analytics charts, team workload, activity stream, settings IA, integrations catalog
+
+**Reference:** Planable schedule (DOC); Smartly analytics organization (DOC); Linear settings density (DOC); Workfront workload (DOC)
+
+**Done when:** V-SCH-01/02, V-ANL-01/02, V-TEAM-01, V-ORG-01, V-ACT-01, V-SET-01, V-INT-01, V-LINK-04 pass with Playwright + Demo/Foundation ownership honesty.
+
+**Stage 6 status:** implemented on `004-oma-complete-product-demo`.
 
 ## Stage 7 — Full visual certification
 

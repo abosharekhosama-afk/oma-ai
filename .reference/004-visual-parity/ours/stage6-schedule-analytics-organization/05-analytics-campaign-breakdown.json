@@ -1,0 +1,20 @@
+{
+  "gitSha": "pending",
+  "route": "/app/analytics",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "locale": "en",
+  "direction": "ltr",
+  "role": "owner",
+  "sourceType": "Demo",
+  "dataState": "OMA_DEMO_MODE=1 deterministic seed",
+  "consoleErrorCount": 0,
+  "externalNetworkRequestCount": 0,
+  "evidenceReferencePattern": "Smartly performance organization honesty (DOC)",
+  "acceptanceIds": [
+    "V-ANL-01"
+  ],
+  "healthHint": "{\"error\":{\"code\":\"VALIDATION_FAILED\",\"me"
+}

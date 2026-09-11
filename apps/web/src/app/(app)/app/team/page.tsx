@@ -1,58 +1,76 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import type { DemoGraph } from '@oma/demo';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
+import { Drawer } from '../../../../components/ui/drawer';
+import { EmptyState } from '../../../../components/ui/empty-state';
+import { PageHeader } from '../../../../components/ui/page-header';
 import {
   demoApi,
   demoErrorMessage,
   isDemoForbidden,
   pickCopy,
 } from '../../../../lib/demo/use-demo-api';
+import {
+  EMPTY_TEAM_FILTERS,
+  capacityState,
+  filterTeam,
+  type TeamFilters,
+  type TeamMember,
+} from '../../../../lib/demo/stage6-team';
 import { useLocale, useT } from '../../../../lib/use-locale';
-
-type Member = DemoGraph['members'][number];
 
 export default function TeamPage() {
   const t = useT();
   const locale = useLocale();
-  const [rows, setRows] = useState<Member[]>([]);
+  const [rows, setRows] = useState<TeamMember[]>([]);
+  const [filters, setFilters] = useState<TeamFilters>(EMPTY_TEAM_FILTERS);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [unavailable, setUnavailable] = useState(false);
 
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await demoApi<TeamMember[]>('/team');
+      setRows(data);
+      setError(null);
+      setUnavailable(false);
+    } catch (err) {
+      if (isDemoForbidden(err)) setUnavailable(true);
+      else setError(demoErrorMessage(err, 'Demo unavailable'));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const data = await demoApi<Member[]>('/team');
-        if (!cancelled) setRows(data);
-      } catch (err) {
-        if (cancelled) return;
-        if (isDemoForbidden(err)) setUnavailable(true);
-        else setError(demoErrorMessage(err, t('demo.unavailable')));
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [t]);
+    void load();
+  }, [load]);
+
+  const filtered = useMemo(() => filterTeam(rows, filters, locale), [rows, filters, locale]);
+  const selected = rows.find((m) => m.id === selectedId) ?? null;
+  const roles = useMemo(() => [...new Set(rows.map((m) => m.role))], [rows]);
 
   return (
     <div className="oma-stack" data-testid="demo-team">
-      <header className="oma-page-header oma-page-header-stack">
-        <div>
-          <h1>{t('nav.team')}</h1>
-          <p className="oma-muted">{t('demo.team.subtitle')}</p>
-        </div>
-        <Link href="/app/company/members" className="oma-btn oma-btn-secondary">
-          {t('demo.teamInviteLink')}
-        </Link>
-      </header>
-      <DemoDisclosure />
+      <PageHeader
+        title={t('demo.team.title')}
+        description={t('demo.team.subtitle')}
+        actions={
+          <Link
+            href="/app/company/members"
+            className="oma-btn oma-btn-secondary"
+            data-testid="demo-team-members-link"
+          >
+            {t('demo.teamInviteLink')}
+          </Link>
+        }
+      />
+      <DemoDisclosure message={t('demo.team.workloadHonesty')} />
+
       {loading ? <p className="oma-muted">{t('demo.loading')}</p> : null}
       {unavailable ? <p className="oma-muted">{t('demo.unavailable')}</p> : null}
       {error ? (
@@ -60,19 +78,159 @@ export default function TeamPage() {
           {error}
         </div>
       ) : null}
-      <ul className="oma-compact-list">
-        {rows.map((m) => (
-          <li key={m.id} className="oma-card">
-            <strong>{pickCopy(m.name, locale)}</strong>
-            <p className="oma-muted">{m.role}</p>
+
+      {!loading && !unavailable && !error ? (
+        <>
+          <div className="oma-stage6-toolbar" data-testid="demo-team-filters">
+            <label className="oma-stage6-search">
+              {t('demo.team.search')}
+              <input
+                className="oma-input"
+                value={filters.q}
+                data-testid="demo-team-search"
+                onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
+              />
+            </label>
+            <label>
+              {t('demo.team.filter.role')}
+              <select
+                className="oma-select"
+                value={filters.role}
+                data-testid="demo-team-filter-role"
+                onChange={(e) => setFilters((f) => ({ ...f, role: e.target.value }))}
+              >
+                <option value="all">{t('demo.filter.all')}</option>
+                {roles.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              {t('demo.team.filter.workload')}
+              <select
+                className="oma-select"
+                value={filters.capacity}
+                data-testid="demo-team-filter-capacity"
+                onChange={(e) =>
+                  setFilters((f) => ({
+                    ...f,
+                    capacity: e.target.value as TeamFilters['capacity'],
+                  }))
+                }
+              >
+                <option value="all">{t('demo.filter.all')}</option>
+                <option value="available">{t('demo.team.capacity.available')}</option>
+                <option value="balanced">{t('demo.team.capacity.balanced')}</option>
+                <option value="at_risk">{t('demo.team.capacity.at_risk')}</option>
+                <option value="over_capacity">{t('demo.team.capacity.over_capacity')}</option>
+              </select>
+            </label>
+          </div>
+
+          {filtered.length === 0 ? (
+            <EmptyState title={t('demo.empty')} body={t('demo.team.emptyHint')} />
+          ) : (
+            <div className="oma-team-table-wrap" data-testid="demo-team-table">
+              <table className="oma-table">
+                <thead>
+                  <tr>
+                    <th>{t('demo.team.col.member')}</th>
+                    <th>{t('demo.team.filter.role')}</th>
+                    <th>{t('demo.team.col.workload')}</th>
+                    <th>{t('demo.team.col.assignments')}</th>
+                    <th>{t('demo.team.col.reviews')}</th>
+                    <th>{t('demo.team.col.due')}</th>
+                    <th>{t('demo.team.col.overdue')}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((m) => {
+                    const cap = capacityState(m.workload);
+                    return (
+                      <tr
+                        key={m.id}
+                        data-testid={`demo-team-row-${m.id}`}
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => setSelectedId(m.id)}
+                      >
+                        <td>
+                          <button
+                            type="button"
+                            className="oma-text-link"
+                            data-testid={`demo-team-open-${m.id}`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedId(m.id);
+                            }}
+                          >
+                            {pickCopy(m.name, locale)}
+                          </button>
+                          {m.restricted ? (
+                            <span className="oma-badge">{t('demo.teamRestricted')}</span>
+                          ) : null}
+                        </td>
+                        <td>{m.role}</td>
+                        <td>
+                          <span className="oma-capacity" data-state={cap}>
+                            {t(`demo.team.capacity.${cap}`)} ({Math.round(m.workload * 100)}%)
+                          </span>
+                        </td>
+                        <td className="oma-ltr">{m.assignments}</td>
+                        <td className="oma-ltr">{m.reviewQueue}</td>
+                        <td className="oma-ltr">{m.dueSoon}</td>
+                        <td className="oma-ltr">{m.overdue}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      ) : null}
+
+      <Drawer
+        open={Boolean(selected)}
+        onClose={() => setSelectedId(null)}
+        label={selected ? pickCopy(selected.name, locale) : t('demo.team.title')}
+      >
+        {selected ? (
+          <div className="oma-stack" data-testid="demo-team-drawer">
+            <p className="oma-muted">{selected.role}</p>
+            <p>{pickCopy(selected.functionLabel, locale)}</p>
             <p>
-              Workload {(m.workload * 100).toFixed(0)}% · {m.assignments} assignments ·{' '}
-              {m.reviewQueue} in review
+              <span className="oma-capacity" data-state={capacityState(selected.workload)}>
+                {t(`demo.team.capacity.${capacityState(selected.workload)}`)}
+              </span>
+              {' · '}
+              {Math.round(selected.workload * 100)}%
             </p>
-            {m.restricted ? <span className="oma-badge">{t('demo.teamRestricted')}</span> : null}
-          </li>
-        ))}
-      </ul>
+            <p className="oma-muted">{t('demo.team.workloadHonesty')}</p>
+            <div className="oma-chip-row">
+              <Link
+                href={`/app/tasks?assignee=${encodeURIComponent(selected.assigneeKey)}`}
+                className="oma-text-link"
+                data-testid="demo-team-tasks-link"
+              >
+                {t('demo.team.viewTasks')} ({selected.assignments})
+              </Link>
+              <Link
+                href="/app/reviews"
+                className="oma-text-link"
+                data-testid="demo-team-reviews-link"
+              >
+                {t('demo.team.viewReviews')} ({selected.reviewQueue})
+              </Link>
+              <Link href="/app/company/members" className="oma-text-link">
+                {t('demo.team.foundationMembers')}
+              </Link>
+            </div>
+            {selected.restricted ? <p role="status">{t('demo.team.restrictedDetail')}</p> : null}
+          </div>
+        ) : null}
+      </Drawer>
     </div>
   );
 }

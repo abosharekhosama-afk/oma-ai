@@ -5,8 +5,18 @@ export function webOrigin(): string {
   return process.env.WEB_BASE_URL ?? `http://127.0.0.1:${process.env.WEB_PORT ?? '3000'}`;
 }
 
+/** Restore deterministic demo seed so mutating journeys do not leak across E2E files. */
+export async function resetDemoGraph(
+  request: APIRequestContext,
+  cookies: { oma_session: string; oma_csrf: string },
+) {
+  const res = await apiPost(request, '/api/v1/demo/reset', cookies, {});
+  expect(res.ok(), await res.text()).toBeTruthy();
+}
+
 export async function installOwnerSession(page: Page, request: APIRequestContext) {
   const owner = await registerBrandOwner(request);
+  await resetDemoGraph(request, owner.cookies);
   const origin = webOrigin();
   await page.context().addCookies([
     { name: 'oma_session', value: owner.cookies.oma_session, url: origin },

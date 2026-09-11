@@ -172,9 +172,32 @@ export default function AppHomePage() {
               <strong>{strategyReady}</strong> {t('home.stat.strategyReady')}
             </span>
             {demoCc ? (
-              <span className="oma-metric-pill">
-                <strong>{demoCc.reviewQueueCount}</strong> {t('home.demoReviewQueue')}
-              </span>
+              <>
+                <span className="oma-metric-pill">
+                  <strong>{demoCc.reviewQueueCount}</strong> {t('home.demoReviewQueue')}
+                </span>
+                <span className="oma-metric-pill">
+                  <strong>{demoCc.overdueTasks}</strong> {t('home.demoOverdue')}
+                </span>
+                {typeof demoCc.scheduleThisWeek === 'number' ? (
+                  <Link
+                    href="/app/schedule"
+                    className="oma-metric-pill"
+                    data-testid="home-schedule-week"
+                  >
+                    <strong>{demoCc.scheduleThisWeek}</strong> {t('home.demoScheduleWeek')}
+                  </Link>
+                ) : null}
+                {typeof demoCc.workloadAtRisk === 'number' ? (
+                  <Link
+                    href="/app/team"
+                    className="oma-metric-pill"
+                    data-testid="home-workload-risk"
+                  >
+                    <strong>{demoCc.workloadAtRisk}</strong> {t('home.demoWorkloadRisk')}
+                  </Link>
+                ) : null}
+              </>
             ) : null}
           </div>
 

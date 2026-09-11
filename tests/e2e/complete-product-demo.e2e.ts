@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { createBrandFlow, registerBrandOwner } from './helpers/brand-api';
+import { apiPost, createBrandFlow, registerBrandOwner } from './helpers/brand-api';
 
 const BLOCKED_HOSTS =
   /facebook\.com|graph\.facebook|meta\.com|tiktok\.com|googleapis\.com|openai\.com|anthropic\.com|semrush\.com|smartly\.io|workdrive|zoho\.com/i;
@@ -13,6 +13,8 @@ async function createOwnerCreds(
 ): Promise<Creds> {
   const owner = await registerBrandOwner(request);
   await createBrandFlow(request, owner.cookies);
+  const reset = await apiPost(request, '/api/v1/demo/reset', owner.cookies, {});
+  expect(reset.ok(), await reset.text()).toBeTruthy();
   return { email: owner.email, password: owner.password };
 }
 
@@ -177,6 +179,8 @@ test.describe('Complete product demo certification', () => {
       .getByRole('navigation')
       .getByRole('link', { name: /^settings$/i })
       .click();
+    await expect(page.getByTestId('demo-settings')).toBeVisible();
+    await page.getByTestId('demo-settings-nav-integrations').click();
     await expect(page.getByTestId('demo-integrations')).toBeVisible();
     await expect(
       page.getByText(/NOT_CONNECTED|DEFERRED|Not Connected|Deferred/i).first(),
