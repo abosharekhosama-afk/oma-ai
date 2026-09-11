@@ -44,13 +44,16 @@
 
 ## Stage 3 — Campaigns / Content
 
-| ID       | Criterion                                                           |
-| -------- | ------------------------------------------------------------------- |
-| V-CMP-01 | Campaign cards/list show track, status, timeline, owner at a glance |
-| V-CMP-02 | Detail shows KPI progress without dashboard clutter                 |
-| V-CNT-01 | Calendar items show preview thumb ≥32px                             |
-| V-CNT-02 | Grid cards media-dominant (≥50% card height media)                  |
-| V-CNT-03 | List/Grid/Calendar switch preserves filters                         |
+| ID        | Criterion                                                                                                   | Alias / notes                          |
+| --------- | ----------------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| V-CMP-01  | Campaign portfolio is dense/filterable; shows track, status, strategy, owner, content count, next action    | V-CAM-01                               |
+| V-CMP-02  | Campaign workspace shows goal, progress, linked content, needs-attention without mini-dashboard clutter     | V-CAM-02                               |
+| V-CNT-01  | Content Hub is content-first with real Calendar / List / Grid views                                         | V-CONT-01; calendar items show channel |
+| V-CNT-02  | Calendar usable on desktop/mobile and EN/AR without overflow or fake interactions                           | V-CONT-02                              |
+| V-CNT-03  | Content detail/composer uses drawer/dialog with keyboard/focus; List/Grid/Calendar switch preserves filters | V-CONT-03                              |
+| V-LINK-01 | Strategy → Campaign → Content relationships and links resolve to correct records                            | Stage 3 cross-surface                  |
+
+**Stage 3 status:** implemented on `004-oma-complete-product-demo` — prove with Stage 3 Playwright + unit gates, not screenshots alone.
 
 ## Stage 4 — Requests / Tasks
 

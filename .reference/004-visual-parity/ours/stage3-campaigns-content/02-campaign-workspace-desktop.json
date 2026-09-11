@@ -1,0 +1,17 @@
+{
+  "route": "/app/campaigns/demo-campaign-organic",
+  "viewport": "1440x900",
+  "locale": "en",
+  "direction": "ltr",
+  "referencePattern": "Planable campaign context + Linear workspace tabs",
+  "acceptanceIds": [
+    "V-CMP-02",
+    "V-CAM-02",
+    "V-LINK-01"
+  ],
+  "name": "02-campaign-workspace-desktop",
+  "gitSha": "6ee5326bbe0e1101f1a77e644568b49f18a99e9e",
+  "consoleErrorCount": 0,
+  "demoState": "OMA_DEMO_MODE=1",
+  "capturedAt": "2026-09-11T12:11:21.979Z"
+}

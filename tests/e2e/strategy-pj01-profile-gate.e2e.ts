@@ -36,7 +36,10 @@ test.describe('PJ-01 profile gate', () => {
     const errors = collectPageErrors(page);
     const brandId = await registerOwnerAndBrand(page);
 
-    await page.locator('.oma-brand-nav').getByRole('link', { name: /strategies/i }).click();
+    await page
+      .locator('.oma-brand-nav')
+      .getByRole('link', { name: /strategies/i })
+      .click();
     await expect(page).toHaveURL(new RegExp(`/app/brands/${brandId}/strategies`));
     await page.getByTestId('strategy-create').click();
     await page.getByTestId('strategy-name').fill('Q3 Manual Strategy');

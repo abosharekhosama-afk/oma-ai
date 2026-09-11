@@ -1,0 +1,17 @@
+{
+  "route": "/app/content",
+  "viewport": "1440x900",
+  "locale": "en",
+  "direction": "ltr",
+  "referencePattern": "Planable calendar",
+  "acceptanceIds": [
+    "V-CNT-01",
+    "V-CONT-01",
+    "V-CONT-02"
+  ],
+  "name": "03-content-calendar-desktop",
+  "gitSha": "6ee5326bbe0e1101f1a77e644568b49f18a99e9e",
+  "consoleErrorCount": 0,
+  "demoState": "OMA_DEMO_MODE=1",
+  "capturedAt": "2026-09-11T12:11:22.698Z"
+}

@@ -1,0 +1,16 @@
+{
+  "route": "/app/content",
+  "viewport": "1440x900",
+  "locale": "en",
+  "direction": "ltr",
+  "referencePattern": "Linear drawer + Planable composer",
+  "acceptanceIds": [
+    "V-CNT-03",
+    "V-CONT-03"
+  ],
+  "name": "05-content-detail-drawer",
+  "gitSha": "6ee5326bbe0e1101f1a77e644568b49f18a99e9e",
+  "consoleErrorCount": 0,
+  "demoState": "OMA_DEMO_MODE=1",
+  "capturedAt": "2026-09-11T12:11:23.068Z"
+}

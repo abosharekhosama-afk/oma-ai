@@ -3,6 +3,7 @@
 @import '../../../../packages/ui/src/primitives.css';
 @import '../styles/shell.css';
 @import '../styles/stage2.css';
+@import '../styles/stage3.css';
 
 * {
   box-sizing: border-box;

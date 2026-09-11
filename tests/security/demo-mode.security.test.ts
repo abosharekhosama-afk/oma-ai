@@ -73,4 +73,53 @@ describe('demo API security', () => {
     expect([200, 403]).toContain(demo.status);
     process.env.OMA_DEMO_MODE = prev;
   });
+
+  it('creates demo campaign via POST only when demo mode is on and stays planning-only', async () => {
+    const prev = process.env.OMA_DEMO_MODE;
+    process.env.OMA_DEMO_MODE = '1';
+    const seed = await seedBrandTenant();
+    closers.push(async () => seed.app.close());
+    const headers = {
+      'content-type': 'application/json',
+      cookie: Object.entries(seed.cookies)
+        .map(([k, v]) => `${k}=${v}`)
+        .join('; '),
+      'x-csrf-token': seed.csrf ?? '',
+    };
+    const created = await fetch(`${seed.baseUrl}/api/v1/demo/campaigns`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        name: { en: 'Security Create', ar: 'إنشاء أمني' },
+        strategyId: 'demo-strategy-q3',
+        brandId: 'demo-brand-horizon',
+        track: 'PAID',
+        owner: 'Security Tester',
+        timeline: { start: '2026-09-20', end: '2026-10-01' },
+        channels: ['Meta Ads'],
+      }),
+    });
+    expect([200, 201]).toContain(created.status);
+    const body = (await created.json()) as {
+      data: { budget: { planningOnly: boolean }; id: string };
+    };
+    expect(body.data.budget.planningOnly).toBe(true);
+
+    process.env.OMA_DEMO_MODE = '0';
+    const deniedPost = await fetch(`${seed.baseUrl}/api/v1/demo/campaigns`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        name: { en: 'Nope', ar: 'لا' },
+        strategyId: 'demo-strategy-q3',
+        brandId: 'demo-brand-horizon',
+        track: 'ORGANIC',
+        owner: 'X',
+        timeline: { start: '2026-09-20', end: '2026-10-01' },
+        channels: ['Instagram'],
+      }),
+    });
+    expect([403, 404]).toContain(deniedPost.status);
+    process.env.OMA_DEMO_MODE = prev;
+  });
 });

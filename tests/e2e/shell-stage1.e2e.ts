@@ -15,9 +15,15 @@ test.describe('Stage 1 golden shell', () => {
 
     const sections = page.locator('.oma-nav-section');
     await expect(sections).toHaveCount(6);
-    await expect(page.getByRole('link', { name: msg(testInfo, 'nav.home') })).toBeVisible();
-    await expect(page.getByRole('link', { name: msg(testInfo, 'nav.campaigns') })).toBeVisible();
-    await expect(page.getByRole('link', { name: msg(testInfo, 'nav.settings') })).toBeVisible();
+    await expect(
+      page.getByRole('navigation').getByRole('link', { name: msg(testInfo, 'nav.home') }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('navigation').getByRole('link', { name: msg(testInfo, 'nav.campaigns') }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('navigation').getByRole('link', { name: msg(testInfo, 'nav.settings') }),
+    ).toBeVisible();
     await expect(page.getByTestId('shell-create')).toBeVisible();
     await expect(page.getByRole('button', { name: msg(testInfo, 'shell.search') })).toBeVisible();
     await expect(
@@ -55,12 +61,16 @@ test.describe('Stage 1 golden shell', () => {
     await page.keyboard.press('Escape');
     await expect(page.getByRole('menu')).toHaveCount(0);
 
-    await page.getByRole('link', { name: msg(testInfo, 'nav.campaigns') }).click();
+    await page
+      .getByRole('navigation', { name: /main navigation/i })
+      .getByRole('link', { name: msg(testInfo, 'nav.campaigns') })
+      .click();
     await expect(page).toHaveURL(/\/app\/campaigns/);
-    await expect(page.getByRole('link', { name: msg(testInfo, 'nav.campaigns') })).toHaveAttribute(
-      'aria-current',
-      'page',
-    );
+    await expect(
+      page
+        .getByRole('navigation', { name: /main navigation/i })
+        .getByRole('link', { name: msg(testInfo, 'nav.campaigns') }),
+    ).toHaveAttribute('aria-current', 'page');
 
     await page.setViewportSize({ width: 1024, height: 900 });
     await page.goto('/app');

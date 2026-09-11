@@ -1,0 +1,15 @@
+{
+  "route": "/app/content",
+  "viewport": "390x844",
+  "locale": "ar",
+  "direction": "rtl",
+  "referencePattern": "Mobile agenda (not cramped month grid)",
+  "acceptanceIds": [
+    "V-CONT-02"
+  ],
+  "name": "08-content-mobile-390",
+  "gitSha": "6ee5326bbe0e1101f1a77e644568b49f18a99e9e",
+  "consoleErrorCount": 0,
+  "demoState": "OMA_DEMO_MODE=1",
+  "capturedAt": "2026-09-11T12:11:24.731Z"
+}

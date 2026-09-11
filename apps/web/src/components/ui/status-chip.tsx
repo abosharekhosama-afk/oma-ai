@@ -20,6 +20,7 @@ const TONE_BY_STATUS: Record<string, Tone> = {
   REJECTED: 'danger',
   PENDING: 'warning',
   UPCOMING: 'info',
+  NEEDS_ATTENTION: 'danger',
   COMPLETED: 'neutral',
   AWAITING_REVIEW: 'warning',
   CHANGES_REQUESTED: 'warning',

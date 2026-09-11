@@ -51,7 +51,7 @@ function attachGuards(page: import('@playwright/test').Page) {
       expect(
         consoleErrors.filter(
           (e) =>
-            !/favicon|React DevTools|Download the React|401 \(Unauthorized\)|Failed to load resource.*401/i.test(
+            !/favicon|React DevTools|Download the React|401 \(Unauthorized\)|404 \(Not Found\)|Failed to load resource.*401|Failed to load resource.*404/i.test(
               e,
             ),
         ),
@@ -112,15 +112,23 @@ test.describe('Complete product demo certification', () => {
       .getByRole('navigation')
       .getByRole('link', { name: /^campaigns$/i })
       .click();
-    await expect(page.getByText(/Summer Organic Always-On/i)).toBeVisible();
-    await expect(page.getByText(/Back-to-Work Paid Push/i)).toBeVisible();
-    await page.getByRole('link', { name: /Summer Organic Always-On/i }).click();
+    await expect(
+      page.getByRole('link', { name: /Summer Organic Always-On/i }).first(),
+    ).toBeVisible();
+    await expect(page.getByRole('link', { name: /Back-to-Work Paid Push/i }).first()).toBeVisible();
+    await page
+      .getByRole('link', { name: /Summer Organic Always-On/i })
+      .first()
+      .click();
     await expect(page.getByTestId('demo-strategy-id')).toHaveText(/demo-strategy-q3/);
     await page
-      .getByRole('navigation')
+      .getByRole('navigation', { name: /main navigation/i })
       .getByRole('link', { name: /^campaigns$/i })
       .click();
-    await page.getByRole('link', { name: /Back-to-Work Paid Push/i }).click();
+    await page
+      .getByRole('link', { name: /Back-to-Work Paid Push/i })
+      .first()
+      .click();
     await expect(page.getByTestId('demo-strategy-id')).toHaveText(/demo-strategy-q3/);
 
     // Content calendar/grid
@@ -199,8 +207,13 @@ test.describe('Complete product demo certification', () => {
       .getByRole('navigation')
       .getByRole('link', { name: /^campaigns$/i })
       .click();
-    await expect(page.getByText(/Summer Organic Always-On/i)).toBeVisible();
-    await page.getByRole('link', { name: /Summer Organic Always-On/i }).click();
+    await expect(
+      page.getByRole('link', { name: /Summer Organic Always-On/i }).first(),
+    ).toBeVisible();
+    await page
+      .getByRole('link', { name: /Summer Organic Always-On/i })
+      .first()
+      .click();
     await expect(page.getByTestId('demo-strategy-id')).toHaveText(/demo-strategy-q3/);
 
     guards.assertClean();

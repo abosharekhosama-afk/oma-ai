@@ -1,0 +1,22 @@
+{
+  "stage": 3,
+  "gitSha": "6ee5326bbe0e1101f1a77e644568b49f18a99e9e",
+  "acceptance": [
+    "V-CMP-01",
+    "V-CMP-02",
+    "V-CNT-01",
+    "V-CNT-02",
+    "V-CNT-03",
+    "V-LINK-01"
+  ],
+  "shots": [
+    "01-campaign-portfolio-desktop",
+    "02-campaign-workspace-desktop",
+    "03-content-calendar-desktop",
+    "04-content-grid-desktop",
+    "05-content-detail-drawer",
+    "06-create-content-dialog",
+    "07-content-calendar-ar-rtl",
+    "08-content-mobile-390"
+  ]
+}

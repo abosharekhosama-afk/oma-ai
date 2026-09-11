@@ -1251,6 +1251,18 @@
         "tags": [
           "Demo"
         ]
+      },
+      "post": {
+        "operationId": "DemoController_createCampaign",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
       }
     },
     "/api/v1/demo/campaigns/{id}": {
@@ -1270,6 +1282,44 @@
     "/api/v1/demo/content": {
       "get": {
         "operationId": "DemoController_content",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      },
+      "post": {
+        "operationId": "DemoController_createContent",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      }
+    },
+    "/api/v1/demo/content/{id}": {
+      "get": {
+        "operationId": "DemoController_contentItem",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
+      },
+      "patch": {
+        "operationId": "DemoController_updateContent",
         "parameters": [],
         "responses": {
           "200": {

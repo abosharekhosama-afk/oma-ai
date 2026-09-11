@@ -7,7 +7,8 @@ export type DemoLocaleCopy = { en: string; ar: string };
 
 export type DemoBrandState = 'healthy' | 'partial' | 'draft';
 export type DemoTrack = 'ORGANIC' | 'PAID';
-export type DemoCampaignStatus = 'ACTIVE' | 'UPCOMING' | 'COMPLETED';
+export type DemoCampaignStatus =
+  'DRAFT' | 'ACTIVE' | 'NEEDS_ATTENTION' | 'IN_REVIEW' | 'UPCOMING' | 'COMPLETED' | 'ARCHIVED';
 export type DemoContentStatus = 'DRAFT' | 'SCHEDULED' | 'PUBLISHED_DEMO' | 'IN_REVIEW' | 'APPROVED';
 export type DemoTaskStatus =
   'BACKLOG' | 'IN_PROGRESS' | 'BLOCKED' | 'IN_REVIEW' | 'DONE' | 'OVERDUE';
@@ -59,11 +60,15 @@ export type DemoGraph = {
     title: DemoLocaleCopy;
     track: DemoTrack;
     channel: string;
+    contentType: 'REEL' | 'CAROUSEL' | 'STATIC' | 'STORY' | 'POST';
     status: DemoContentStatus;
     scheduledAt: string | null;
     assignee: string;
     previewAsset: string;
     deliverableId: string | null;
+    caption?: DemoLocaleCopy;
+    objective?: DemoLocaleCopy;
+    cta?: DemoLocaleCopy;
   }>;
   requests: Array<{
     id: string;
@@ -301,6 +306,87 @@ export const DEMO_GRAPH: DemoGraph = {
         },
       ],
     },
+    {
+      id: 'demo-campaign-draft',
+      brandId: 'demo-brand-horizon',
+      strategyId: 'demo-strategy-q3',
+      name: { en: 'Holiday Teaser Draft', ar: 'مسودة تشويقية للعطلة' },
+      track: 'ORGANIC',
+      status: 'DRAFT',
+      objective: {
+        en: 'Seed holiday narrative without publishing yet',
+        ar: 'تأسيس سرد العطلة دون نشر بعد',
+      },
+      audience: {
+        en: 'Existing customers warm list',
+        ar: 'قائمة العملاء الدافئة الحالية',
+      },
+      channels: ['Instagram', 'Email'],
+      timeline: { start: '2026-10-01', end: '2026-11-15' },
+      budget: { amount: 0, currency: 'AED', planningOnly: true },
+      owner: 'Sara Alami',
+      kpis: [
+        {
+          name: { en: 'Story completion', ar: 'إكمال القصة' },
+          target: '65%',
+          progress: 0.05,
+        },
+      ],
+    },
+    {
+      id: 'demo-campaign-attention',
+      brandId: 'demo-brand-horizon',
+      strategyId: 'demo-strategy-q3',
+      name: { en: 'Review Bottleneck Sprint', ar: 'سباق اختناق المراجعات' },
+      track: 'PAID',
+      status: 'NEEDS_ATTENTION',
+      objective: {
+        en: 'Clear overdue creatives before paid launch window',
+        ar: 'إنهاء الإبداعات المتأخرة قبل نافذة الإطلاق المدفوع',
+      },
+      audience: {
+        en: 'Cart abandoners last 30 days',
+        ar: 'متخلّو السلة خلال 30 يومًا',
+      },
+      channels: ['Meta Ads'],
+      timeline: { start: '2026-09-01', end: '2026-09-20' },
+      budget: { amount: 22000, currency: 'AED', planningOnly: true },
+      owner: 'Omar Faris',
+      kpis: [
+        {
+          name: { en: 'Assets approved', ar: 'أصول معتمدة' },
+          target: '8',
+          progress: 0.35,
+        },
+      ],
+    },
+    {
+      id: 'demo-campaign-done',
+      brandId: 'demo-brand-horizon',
+      strategyId: 'demo-strategy-q3',
+      name: { en: 'Spring Soft Launch (Complete)', ar: 'إطلاق الربيع الناعم (مكتمل)' },
+      track: 'ORGANIC',
+      status: 'COMPLETED',
+      objective: {
+        en: 'Validate bilingual caption system',
+        ar: 'التحقق من نظام العناوين ثنائية اللغة',
+      },
+      audience: {
+        en: 'Core Instagram followers',
+        ar: 'متابعو إنستغرام الأساسيون',
+      },
+      channels: ['Instagram'],
+      timeline: { start: '2026-03-01', end: '2026-04-15' },
+      budget: { amount: 0, currency: 'AED', planningOnly: true },
+      owner: 'Maya Nasser',
+      kpis: [
+        {
+          name: { en: 'Posts shipped', ar: 'منشورات أُنجزت' },
+          target: '12',
+          progress: 1,
+        },
+      ],
+    },
   ],
   contentItems: [
     {
@@ -310,11 +396,21 @@ export const DEMO_GRAPH: DemoGraph = {
       title: { en: 'Studio morning reel', ar: 'ريل صباحي من الاستوديو' },
       track: 'ORGANIC',
       channel: 'Instagram',
+      contentType: 'REEL',
       status: 'SCHEDULED',
       scheduledAt: '2026-09-12T09:00:00+03:00',
       assignee: 'Maya Nasser',
       previewAsset: '/demo/video-poster.svg',
       deliverableId: 'demo-deliv-reel',
+      caption: {
+        en: 'Morning light, slow fabric, no rush.',
+        ar: 'ضوء الصباح، قماش هادئ، بلا استعجال.',
+      },
+      objective: {
+        en: 'Warm the week with brand texture',
+        ar: 'تدفئة الأسبوع بملمس العلامة',
+      },
+      cta: { en: 'Shop neutrals', ar: 'تسوق الحيادي' },
     },
     {
       id: 'demo-content-carousel',
@@ -323,11 +419,21 @@ export const DEMO_GRAPH: DemoGraph = {
       title: { en: 'Fabric story carousel', ar: 'كاروسيل قصة القماش' },
       track: 'ORGANIC',
       channel: 'Instagram',
+      contentType: 'CAROUSEL',
       status: 'IN_REVIEW',
-      scheduledAt: null,
+      scheduledAt: '2026-09-14T11:00:00+03:00',
       assignee: 'Rami Khalil',
       previewAsset: '/demo/poster-carousel-1.svg',
       deliverableId: 'demo-deliv-carousel',
+      caption: {
+        en: 'Four slides: weave → dye → fit → wear.',
+        ar: 'أربع شرائح: النسج ← الصبغ ← المقاس ← الارتداء.',
+      },
+      objective: {
+        en: 'Explain craftsmanship in under 15 seconds of thumbing',
+        ar: 'شرح الحرفية في أقل من 15 ثانية تصفح',
+      },
+      cta: { en: 'Save for later', ar: 'احفظ لاحقًا' },
     },
     {
       id: 'demo-content-paid-static',
@@ -336,11 +442,21 @@ export const DEMO_GRAPH: DemoGraph = {
       title: { en: 'Paid collection hero', ar: 'بطل المجموعة المدفوعة' },
       track: 'PAID',
       channel: 'Meta Ads',
+      contentType: 'STATIC',
       status: 'DRAFT',
-      scheduledAt: null,
+      scheduledAt: '2026-09-16T10:00:00+03:00',
       assignee: 'Sara Alami',
       previewAsset: '/demo/poster-static.svg',
       deliverableId: 'demo-deliv-static',
+      caption: {
+        en: 'Back-to-work layers that still feel like you.',
+        ar: 'طبقات العودة للعمل التي تظل على ذوقك.',
+      },
+      objective: {
+        en: 'Hero creative for planning-only paid push',
+        ar: 'إبداع بطل لدفعة مدفوعة تخطيطية فقط',
+      },
+      cta: { en: 'Plan visit', ar: 'خطّط للزيارة' },
     },
     {
       id: 'demo-content-published',
@@ -349,11 +465,123 @@ export const DEMO_GRAPH: DemoGraph = {
       title: { en: 'Founders note (published demo)', ar: 'رسالة المؤسسين (نشر تجريبي)' },
       track: 'ORGANIC',
       channel: 'LinkedIn',
+      contentType: 'POST',
       status: 'PUBLISHED_DEMO',
       scheduledAt: '2026-08-20T11:00:00+03:00',
       assignee: 'Layla Haddad',
       previewAsset: '/demo/poster-static.svg',
       deliverableId: 'demo-deliv-copy',
+      caption: {
+        en: 'Why we still design offline first.',
+        ar: 'لماذا ما زلنا نصمم دون اتصال أولًا.',
+      },
+      objective: {
+        en: 'Thought-leadership tone for LinkedIn',
+        ar: 'نبرة قيادة فكرية لينكدإن',
+      },
+      cta: { en: 'Read more', ar: 'اقرأ المزيد' },
+    },
+    {
+      id: 'demo-content-story',
+      campaignId: 'demo-campaign-organic',
+      brandId: 'demo-brand-horizon',
+      title: { en: 'Fitting room poll story', ar: 'قصة استطلاع غرفة القياس' },
+      track: 'ORGANIC',
+      channel: 'Instagram',
+      contentType: 'STORY',
+      status: 'APPROVED',
+      scheduledAt: '2026-09-11T18:00:00+03:00',
+      assignee: 'Maya Nasser',
+      previewAsset: '/demo/poster-carousel-2.svg',
+      deliverableId: null,
+      caption: { en: 'Which hem wins?', ar: 'أي طول يفوز؟' },
+      objective: { en: 'Light engagement mid-week', ar: 'تفاعل خفيف منتصف الأسبوع' },
+      cta: { en: 'Vote', ar: 'صوّت' },
+    },
+    {
+      id: 'demo-content-tiktok',
+      campaignId: 'demo-campaign-organic',
+      brandId: 'demo-brand-horizon',
+      title: { en: 'Behind-the-rack TikTok', ar: 'تيك توك خلف الرف' },
+      track: 'ORGANIC',
+      channel: 'TikTok',
+      contentType: 'REEL',
+      status: 'SCHEDULED',
+      scheduledAt: '2026-09-18T16:30:00+03:00',
+      assignee: 'Rami Khalil',
+      previewAsset: '/demo/video-poster.svg',
+      deliverableId: null,
+      caption: { en: 'Quiet chaos before doors open.', ar: 'فوضى هادئة قبل فتح الأبواب.' },
+      objective: { en: 'Show operational craft', ar: 'إظهار حرفية التشغيل' },
+      cta: { en: 'Follow', ar: 'تابع' },
+    },
+    {
+      id: 'demo-content-overdue',
+      campaignId: 'demo-campaign-attention',
+      brandId: 'demo-brand-horizon',
+      title: { en: 'Retargeting square (overdue)', ar: 'مربع إعادة الاستهداف (متأخر)' },
+      track: 'PAID',
+      channel: 'Meta Ads',
+      contentType: 'STATIC',
+      status: 'IN_REVIEW',
+      scheduledAt: '2026-09-08T09:00:00+03:00',
+      assignee: 'Omar Faris',
+      previewAsset: '/demo/poster-static.svg',
+      deliverableId: 'demo-deliv-static',
+      caption: { en: 'Still deciding? Soft reminder.', ar: 'ما زلت تقرر؟ تذكير لطيف.' },
+      objective: { en: 'Unblock review for paid window', ar: 'فك اختناق المراجعة لنافذة المدفوع' },
+      cta: { en: 'Return to bag', ar: 'ارجع إلى الحقيبة' },
+    },
+    {
+      id: 'demo-content-li-carousel',
+      campaignId: 'demo-campaign-organic',
+      brandId: 'demo-brand-horizon',
+      title: { en: 'Team craft carousel', ar: 'كاروسيل حرفة الفريق' },
+      track: 'ORGANIC',
+      channel: 'LinkedIn',
+      contentType: 'CAROUSEL',
+      status: 'DRAFT',
+      scheduledAt: '2026-09-22T12:00:00+03:00',
+      assignee: 'Layla Haddad',
+      previewAsset: '/demo/poster-carousel-1.svg',
+      deliverableId: null,
+      caption: { en: 'People behind the product.', ar: 'الناس خلف المنتج.' },
+      objective: { en: 'Employer + brand trust', ar: 'ثقة العلامة وصاحب العمل' },
+      cta: { en: 'Meet the studio', ar: 'تعرّف على الاستوديو' },
+    },
+    {
+      id: 'demo-content-email',
+      campaignId: 'demo-campaign-draft',
+      brandId: 'demo-brand-horizon',
+      title: { en: 'Holiday soft teaser email', ar: 'بريد تشويقي ناعم للعطلة' },
+      track: 'ORGANIC',
+      channel: 'Email',
+      contentType: 'POST',
+      status: 'DRAFT',
+      scheduledAt: '2026-10-05T08:00:00+03:00',
+      assignee: 'Sara Alami',
+      previewAsset: '/demo/poster-carousel-2.svg',
+      deliverableId: null,
+      caption: { en: 'Something warm is coming.', ar: 'شيء دافئ قادم.' },
+      objective: { en: 'Warm list without hard sell', ar: 'تدفئة القائمة دون بيع قاسٍ' },
+      cta: { en: 'Stay close', ar: 'ابقَ قريبًا' },
+    },
+    {
+      id: 'demo-content-paid-video',
+      campaignId: 'demo-campaign-paid',
+      brandId: 'demo-brand-horizon',
+      title: { en: 'Paid motion cutdown', ar: 'مقطع حركة مدفوع مختصر' },
+      track: 'PAID',
+      channel: 'TikTok Ads',
+      contentType: 'REEL',
+      status: 'APPROVED',
+      scheduledAt: '2026-09-19T14:00:00+03:00',
+      assignee: 'Maya Nasser',
+      previewAsset: '/demo/video-poster.svg',
+      deliverableId: 'demo-deliv-reel',
+      caption: { en: '6s hook for planning board only.', ar: 'خطاف 6 ثوانٍ للوحة التخطيط فقط.' },
+      objective: { en: 'Approved creative waiting on schedule', ar: 'إبداع معتمد بانتظار الجدول' },
+      cta: { en: 'Discover', ar: 'اكتشف' },
     },
   ],
   requests: [
@@ -809,8 +1037,68 @@ export const DEMO_GRAPH: DemoGraph = {
   },
 };
 
+export type DemoCampaignInput = {
+  name: DemoLocaleCopy;
+  goal?: DemoLocaleCopy;
+  strategyId: string;
+  brandId: string;
+  track: DemoTrack;
+  owner: string;
+  timeline: { start: string; end: string };
+  channels: string[];
+  status?: DemoCampaignStatus;
+  audience?: DemoLocaleCopy;
+};
+
+export type DemoContentInput = {
+  title: DemoLocaleCopy;
+  campaignId: string;
+  brandId: string;
+  track: DemoTrack;
+  channel: string;
+  contentType: DemoGraph['contentItems'][number]['contentType'];
+  owner: string;
+  scheduledAt: string | null;
+  status?: DemoContentStatus;
+  caption?: DemoLocaleCopy;
+  objective?: DemoLocaleCopy;
+  cta?: DemoLocaleCopy;
+  previewAsset?: string;
+};
+
+export type DemoContentPatch = Partial<{
+  title: DemoLocaleCopy;
+  caption: DemoLocaleCopy;
+  objective: DemoLocaleCopy;
+  cta: DemoLocaleCopy;
+  status: DemoContentStatus;
+  scheduledAt: string | null;
+  assignee: string;
+  channel: string;
+}>;
+
+function cloneDemoGraph(seed: DemoGraph): DemoGraph {
+  return structuredClone(seed);
+}
+
+function previewForType(type: DemoContentInput['contentType']): string {
+  switch (type) {
+    case 'REEL':
+    case 'STORY':
+      return '/demo/video-poster.svg';
+    case 'CAROUSEL':
+      return '/demo/poster-carousel-1.svg';
+    default:
+      return '/demo/poster-static.svg';
+  }
+}
+
 export class DemoDataProvider {
-  constructor(private readonly graph: DemoGraph = DEMO_GRAPH) {}
+  private graph: DemoGraph;
+
+  constructor(seed: DemoGraph = DEMO_GRAPH) {
+    this.graph = cloneDemoGraph(seed);
+  }
 
   getGraph(): DemoGraph {
     return this.graph;
@@ -818,6 +1106,10 @@ export class DemoDataProvider {
 
   getCampaign(id: string) {
     return this.graph.campaigns.find((c) => c.id === id) ?? null;
+  }
+
+  getContent(id: string) {
+    return this.graph.contentItems.find((c) => c.id === id) ?? null;
   }
 
   getDeliverable(id: string) {
@@ -828,11 +1120,105 @@ export class DemoDataProvider {
     return this.graph.requests.find((r) => r.id === id) ?? null;
   }
 
+  createCampaign(input: DemoCampaignInput) {
+    const strategy = this.graph.strategies.find((s) => s.id === input.strategyId);
+    if (!strategy) throw new Error('Strategy not found');
+    const id = `demo-campaign-${Date.now().toString(36)}`;
+    const row: DemoGraph['campaigns'][number] = {
+      id,
+      brandId: input.brandId || strategy.brandId,
+      strategyId: input.strategyId,
+      name: input.name,
+      track: input.track,
+      status: input.status ?? 'DRAFT',
+      objective: input.goal ?? {
+        en: 'Campaign goal pending definition',
+        ar: 'هدف الحملة بانتظار التعريف',
+      },
+      audience: input.audience ?? {
+        en: 'Audience to be refined',
+        ar: 'الجمهور قيد التحديد',
+      },
+      channels: input.channels,
+      timeline: input.timeline,
+      budget: { amount: 0, currency: 'AED', planningOnly: true },
+      owner: input.owner,
+      kpis: [
+        {
+          name: { en: 'Plan progress', ar: 'تقدم الخطة' },
+          target: '—',
+          progress: 0.05,
+        },
+      ],
+    };
+    this.graph.campaigns = [row, ...this.graph.campaigns];
+    return row;
+  }
+
+  createContent(input: DemoContentInput) {
+    const campaign = this.getCampaign(input.campaignId);
+    if (!campaign) throw new Error('Campaign not found');
+    const id = `demo-content-${Date.now().toString(36)}`;
+    const row: DemoGraph['contentItems'][number] = {
+      id,
+      campaignId: input.campaignId,
+      brandId: input.brandId || campaign.brandId,
+      title: input.title,
+      track: input.track || campaign.track,
+      channel: input.channel,
+      contentType: input.contentType,
+      status: input.status ?? 'DRAFT',
+      scheduledAt: input.scheduledAt,
+      assignee: input.owner,
+      previewAsset: input.previewAsset ?? previewForType(input.contentType),
+      deliverableId: null,
+      caption: input.caption,
+      objective: input.objective,
+      cta: input.cta,
+    };
+    this.graph.contentItems = [row, ...this.graph.contentItems];
+    return row;
+  }
+
+  updateContent(id: string, patch: DemoContentPatch) {
+    const idx = this.graph.contentItems.findIndex((c) => c.id === id);
+    if (idx < 0) return null;
+    const current = this.graph.contentItems[idx]!;
+    const next = {
+      ...current,
+      ...patch,
+      assignee: patch.assignee ?? current.assignee,
+    };
+    this.graph.contentItems = [
+      ...this.graph.contentItems.slice(0, idx),
+      next,
+      ...this.graph.contentItems.slice(idx + 1),
+    ];
+    return next;
+  }
+
+  contentCountByCampaign(campaignId: string): number {
+    return this.graph.contentItems.filter((c) => c.campaignId === campaignId).length;
+  }
+
+  reviewStateForCampaign(campaignId: string): DemoContentStatus | 'CLEAR' {
+    const items = this.graph.contentItems.filter((c) => c.campaignId === campaignId);
+    if (items.some((i) => i.status === 'IN_REVIEW')) return 'IN_REVIEW';
+    if (items.some((i) => i.status === 'DRAFT')) return 'DRAFT';
+    if (items.some((i) => i.status === 'APPROVED')) return 'APPROVED';
+    if (items.some((i) => i.status === 'SCHEDULED')) return 'SCHEDULED';
+    return 'CLEAR';
+  }
+
   getLinkedJourney() {
     const brand = this.graph.brands.find((b) => b.state === 'healthy')!;
     const strategy = this.graph.strategies.find((s) => s.id === brand.strategyId)!;
-    const organic = this.graph.campaigns.find((c) => c.track === 'ORGANIC')!;
-    const paid = this.graph.campaigns.find((c) => c.track === 'PAID')!;
+    const organic = this.graph.campaigns.find(
+      (c) => c.track === 'ORGANIC' && c.id === 'demo-campaign-organic',
+    )!;
+    const paid = this.graph.campaigns.find(
+      (c) => c.track === 'PAID' && c.id === 'demo-campaign-paid',
+    )!;
     const request = this.graph.requests[0]!;
     const brief = this.graph.briefs.find((b) => b.id === request.briefId)!;
     const task = this.graph.tasks.find((t) => t.status === 'IN_REVIEW')!;
@@ -855,4 +1241,9 @@ export class DemoDataProvider {
   }
 }
 
-export const demoDataProvider = new DemoDataProvider();
+export const demoDataProvider =
+  (globalThis as { __omaDemoDataProvider?: DemoDataProvider }).__omaDemoDataProvider ??
+  new DemoDataProvider();
+
+(globalThis as { __omaDemoDataProvider?: DemoDataProvider }).__omaDemoDataProvider =
+  demoDataProvider;
