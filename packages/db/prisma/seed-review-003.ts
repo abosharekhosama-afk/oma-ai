@@ -56,9 +56,12 @@ function assertReviewSafe() {
   if (!LOCAL_DB_HOSTS.has(host)) {
     throw new Error(`review seed refused against non-local host (${host})`);
   }
-  if (!/oma_ai_acceptance/i.test(dbName) && process.env.OMA_REVIEW_ALLOW_ANY_LOCAL_DB !== '1') {
+  if (
+    !/oma_ai_acceptance|oma_ai_visual_cert_004/i.test(dbName) &&
+    process.env.OMA_REVIEW_ALLOW_ANY_LOCAL_DB !== '1'
+  ) {
     throw new Error(
-      `review seed requires database oma_ai_acceptance (got: ${dbName}). Set OMA_REVIEW_ALLOW_ANY_LOCAL_DB=1 only for explicit local override.`,
+      `review seed requires database oma_ai_acceptance or oma_ai_visual_cert_004 (got: ${dbName}). Set OMA_REVIEW_ALLOW_ANY_LOCAL_DB=1 only for explicit local override.`,
     );
   }
   if (/oma_ai_e2e|prod|production/i.test(dbName)) {
