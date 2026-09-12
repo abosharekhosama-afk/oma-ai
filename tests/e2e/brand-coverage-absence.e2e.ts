@@ -15,7 +15,7 @@ test.describe('Coverage + unknown/missing (T169/T170)', () => {
     ]);
 
     await page.goto(`/app/brands/${flow.brandId}`);
-    await expect(page.getByRole('heading', { name: 'Scan coverage' })).toBeVisible({
+    await expect(page.locator('#brand-coverage')).toBeVisible({
       timeout: 30_000,
     });
     await expect(page.getByText(/only the pages and fields this scan/i)).toBeVisible();

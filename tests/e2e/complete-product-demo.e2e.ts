@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { apiPost, createBrandFlow, registerBrandOwner } from './helpers/brand-api';
+import { signOutUi } from './helpers/brand-ui';
 
 const BLOCKED_HOSTS =
   /facebook\.com|graph\.facebook|meta\.com|tiktok\.com|googleapis\.com|openai\.com|anthropic\.com|semrush\.com|smartly\.io|workdrive|zoho\.com/i;
@@ -27,14 +28,7 @@ async function loginUi(page: import('@playwright/test').Page, creds: Creds) {
 }
 
 async function logoutUi(page: import('@playwright/test').Page) {
-  const logout = page.getByRole('button', { name: /sign out|log out|تسجيل الخروج/i });
-  if (await logout.count()) {
-    await logout.first().click();
-  } else {
-    await page.goto('/api/v1/auth/logout').catch(() => undefined);
-    await page.goto('/login');
-  }
-  await expect(page).toHaveURL(/\/login/, { timeout: 20_000 });
+  await signOutUi(page);
 }
 
 function attachGuards(page: import('@playwright/test').Page) {
@@ -243,22 +237,13 @@ test.describe('Complete product demo certification', () => {
     await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
 
     if (testInfo.project.name === 'ar-desktop') {
-      await page
-        .getByRole('navigation')
-        .getByRole('link', { name: /الحملات|campaigns/i })
-        .click();
+      await page.goto('/app/campaigns');
       await expect(page.getByTestId('demo-campaigns')).toBeVisible({ timeout: 15_000 });
       await expect(page.getByText(/هورايزون|عضوية|حملة/i).first()).toBeVisible();
-      await page
-        .getByRole('navigation')
-        .getByRole('link', { name: /المخرجات|deliverables/i })
-        .click();
+      await page.goto('/app/deliverables');
       await expect(page.getByTestId('demo-deliverables')).toBeVisible();
     } else {
-      await page
-        .getByRole('navigation')
-        .getByRole('link', { name: /المحتوى|content/i })
-        .click();
+      await page.goto('/app/content');
       await expect(page.getByTestId('demo-content')).toBeVisible({ timeout: 15_000 });
     }
     guards.assertClean();
@@ -273,15 +258,9 @@ test.describe('Complete product demo certification', () => {
     const creds = await createOwnerCreds(request);
     await loginUi(page, creds);
     await expect(page.getByTestId('demo-command-center')).toBeVisible({ timeout: 20_000 });
-    await page
-      .getByRole('navigation')
-      .getByRole('link', { name: /^tasks$/i })
-      .click();
+    await page.goto('/app/tasks');
     await expect(page.getByTestId('demo-tasks')).toBeVisible({ timeout: 15_000 });
-    await page
-      .getByRole('navigation')
-      .getByRole('link', { name: /^schedule$/i })
-      .click();
+    await page.goto('/app/schedule');
     await expect(page.getByTestId('demo-schedule')).toBeVisible();
     guards.assertClean();
   });

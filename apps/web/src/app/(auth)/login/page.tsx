@@ -1,5 +1,5 @@
 'use client';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
@@ -12,6 +12,11 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    setReady(true);
+  }, []);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -31,7 +36,7 @@ export default function LoginPage() {
   }
 
   return (
-    <main id="main" className="oma-auth">
+    <main id="main" className="oma-auth" data-auth-ready={ready ? '1' : '0'}>
       <div className="oma-auth-brand">
         <span className="oma-rail-mark" aria-hidden="true">
           OMA
@@ -39,7 +44,7 @@ export default function LoginPage() {
         <strong>{t('app.name')}</strong>
       </div>
       <h1>{t('auth.login')}</h1>
-      <form className="oma-card" onSubmit={onSubmit}>
+      <form className="oma-card" method="post" action="/login" onSubmit={onSubmit}>
         <label htmlFor="email">{t('auth.email')}</label>
         <input
           id="email"
@@ -68,7 +73,7 @@ export default function LoginPage() {
             {error}
           </p>
         ) : null}
-        <button className="oma-btn" type="submit" disabled={busy}>
+        <button className="oma-btn" type="submit" disabled={busy || !ready}>
           {t('auth.login')}
         </button>
       </form>

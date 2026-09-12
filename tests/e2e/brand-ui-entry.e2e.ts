@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { newId } from '@oma/domain';
 import { getPrisma } from '@oma/db';
 import { trackE2eTenant } from './helpers/brand-api';
+import { signOutUi } from './helpers/brand-ui';
 
 /**
  * T163: login form → company selector → create brand form → overview.
@@ -26,7 +27,7 @@ test.describe('Brand UI entry journey', () => {
     await page.getByRole('button', { name: /create a company/i }).click();
     await page.getByLabel(/company name/i).fill(companyA);
     await page.getByRole('button', { name: /^create company$/i }).click();
-    await expect(page.getByRole('heading', { name: /command center|workspace/i })).toBeVisible({
+    await expect(page.getByTestId('product-home')).toBeVisible({
       timeout: 20_000,
     });
 
@@ -56,35 +57,43 @@ test.describe('Brand UI entry journey', () => {
       data: { activeTenantId: null },
     });
 
-    await page.getByRole('button', { name: /sign out/i }).click();
-    await page.waitForURL(/\/(login)?$/);
+    await signOutUi(page);
     if (!page.url().includes('/login')) await page.goto('/login');
     await page.getByLabel('Email').fill(email);
     await page.getByLabel('Password').fill(password);
     await page.getByRole('button', { name: /sign in/i }).click();
 
-    await expect(page).toHaveURL(/select-company|onboarding|\/app/, { timeout: 20_000 });
-    // Prefer selector when multiple memberships
-    if (page.url().includes('select-company') || (await page.getByRole('combobox').count()) > 0) {
-      const box = page.getByRole('combobox').first();
-      if (await box.isVisible()) {
-        await box.fill(companyA.slice(0, 8));
-        await page.getByRole('option', { name: new RegExp(companyA, 'i') }).click();
-      } else {
-        await page.getByRole('button', { name: new RegExp(companyA, 'i') }).click();
-      }
-    }
-
-    await expect(page.getByRole('heading', { name: /command center|workspace/i })).toBeVisible({
+    await expect(page).toHaveURL(/\/app/, { timeout: 20_000 });
+    // Multiple memberships must land on the company selector before brand create.
+    await expect(page.getByRole('heading', { name: /choose a company|select company|اختر/i })).toBeVisible({
       timeout: 20_000,
     });
-    await page.getByRole('navigation').getByRole('link', { name: 'Brand Intelligence' }).click();
+    const box = page.locator('main').getByRole('combobox');
+    await expect(box).toBeVisible({ timeout: 20_000 });
+    await box.click();
+    await box.fill(companyA);
+    const option = page.locator('main').getByRole('option', { name: new RegExp(companyA, 'i') });
+    await expect(option).toBeVisible({ timeout: 10_000 });
+    await Promise.all([
+      page.waitForResponse(
+        (res) =>
+          res.url().includes('/api/v1/tenants/active') &&
+          res.request().method() === 'POST' &&
+          res.ok(),
+        { timeout: 20_000 },
+      ),
+      option.click(),
+    ]);
+    await expect(page.getByTestId('product-home')).toBeVisible({
+      timeout: 20_000,
+    });
+    await page.goto('/app/brands');
     await expect(page).toHaveURL(/\/app\/brands/);
-    await page.getByRole('link', { name: 'Create brand' }).first().click();
+    await page.getByRole('link', { name: /Create brand|إنشاء علامة/i }).first().click();
     const brandName = `Entry Brand ${newId().slice(-4)}`;
-    await page.getByLabel(/brand name/i).fill(brandName);
-    await page.getByRole('button', { name: /create/i }).click();
-    await expect(page).toHaveURL(/\/app\/brands\/[^/]+$/);
-    await expect(page.getByRole('heading', { name: /overview|brand/i }).first()).toBeVisible();
+    await page.getByLabel(/brand name|اسم العلامة/i).fill(brandName);
+    await page.getByRole('button', { name: /create|إنشاء/i }).click();
+    await expect(page).toHaveURL(/\/app\/brands\/[^/]+$/, { timeout: 20_000 });
+    await expect(page.getByRole('heading', { name: /overview|brand|نظرة/i }).first()).toBeVisible();
   });
 });

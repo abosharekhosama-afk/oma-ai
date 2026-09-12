@@ -38,6 +38,28 @@ export async function installOwnerSession(page: Page, request: APIRequestContext
   return owner;
 }
 
+/** Stage 1 shell keeps Sign out inside the Account menu. */
+export async function signOutUi(page: Page) {
+  await page.getByRole('button', { name: /account|الحساب/i }).click();
+  await page.getByRole('button', { name: /sign out|log out|تسجيل الخروج/i }).click();
+  await expect(page).toHaveURL(/\/login/, { timeout: 20_000 });
+  await expect(page.locator('[data-auth-ready="1"]')).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole('button', { name: /sign in|log in|تسجيل/i })).toBeEnabled();
+}
+
+/** Open mobile/tablet nav sheet when the rail is hidden. */
+export async function openPrimaryNavIfNeeded(page: Page) {
+  const rail = page.locator('.oma-rail');
+  if (await rail.isVisible()) return;
+  const openBtn = page.getByRole('button', { name: /open navigation|فتح التنقل/i });
+  if (await openBtn.isVisible()) {
+    await openBtn.click();
+    await expect(page.getByRole('dialog', { name: /main navigation|التنقل الرئيسي/i })).toBeVisible({
+      timeout: 10_000,
+    });
+  }
+}
+
 export async function uiCreateBrandConnectAndStartScan(
   page: Page,
   request: APIRequestContext,

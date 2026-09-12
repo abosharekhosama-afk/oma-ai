@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { createBrandFlow, registerBrandOwner, registerTenantMember } from './helpers/brand-api';
-import { webOrigin } from './helpers/brand-ui';
+import { signOutUi, webOrigin } from './helpers/brand-ui';
 
 async function installCookies(
   page: import('@playwright/test').Page,
@@ -37,10 +37,9 @@ test.describe('Review collaboration + permission (T130/T131)', () => {
 
     await page.reload();
     await expect(page.getByLabel('Review note')).toHaveValue(note);
-    await expect(page.getByRole('heading', { name: /review history/i })).toBeVisible();
+    await page.getByRole('heading', { name: /review history/i }).waitFor({ state: 'visible' });
 
-    await page.getByRole('button', { name: /sign out/i }).click();
-    await expect(page).toHaveURL(/\/(login)?$/, { timeout: 15_000 });
+    await signOutUi(page);
     await page.goto('/login');
     await page.getByLabel('Email').fill(owner.email);
     await page.getByLabel('Password').fill(owner.password);

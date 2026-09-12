@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { newId } from '@oma/domain';
+import { signOutUi } from './helpers/brand-ui';
 
 /**
  * True UI journey: register → onboarding → create company → Brand Intelligence via nav.
@@ -26,16 +27,16 @@ test.describe('Company onboarding UI', () => {
     await page.getByLabel(/company name/i).fill(`UI Co ${newId().slice(-4)}`);
     await page.getByRole('button', { name: /^create company$/i }).click();
 
-    await expect(page.getByRole('heading', { name: /command center|workspace/i })).toBeVisible({
+    await expect(page.getByTestId('product-home')).toBeVisible({
       timeout: 20_000,
     });
 
-    await page.getByRole('navigation').getByRole('link', { name: 'Brand Intelligence' }).click();
+    await page.goto('/app/brands');
     await expect(page).toHaveURL(/\/app\/brands/);
     await expect(page.getByRole('heading', { name: /brand intelligence/i })).toBeVisible();
 
     // Create brand through the form
-    await page.getByRole('link', { name: 'Create brand' }).first().click();
+    await page.getByRole('link', { name: /Create brand/i }).first().click();
     await page.getByLabel(/brand name/i).fill(`UI Brand ${newId().slice(-4)}`);
     await page.getByRole('button', { name: /create/i }).click();
     await expect(page).toHaveURL(/\/app\/brands\/[^/]+$/);
@@ -45,16 +46,17 @@ test.describe('Company onboarding UI', () => {
     await expect(page.getByRole('heading', { name: /overview|brand/i }).first()).toBeVisible();
 
     // Relogin persistence
-    await page.getByRole('button', { name: /sign out/i }).click();
-    await page.waitForURL(/\/(login)?$/);
+    await signOutUi(page);
     if (!page.url().includes('/login')) {
       await page.goto('/login');
     }
     await page.getByLabel('Email').fill(email);
     await page.getByLabel('Password').fill(password);
     await page.getByRole('button', { name: /sign in/i }).click();
-    await page.waitForURL(/\/app/);
-    await page.getByRole('navigation').getByRole('link', { name: 'Brand Intelligence' }).click();
-    await expect(page.getByText(/UI Brand/i).first()).toBeVisible({ timeout: 20_000 });
+    await page.waitForURL(/\/app/, { timeout: 20_000 });
+    await page.goto('/app/brands');
+    await expect(page.getByRole('link', { name: /UI Brand/i }).first()).toBeVisible({
+      timeout: 20_000,
+    });
   });
 });

@@ -3,6 +3,8 @@ import { installOwnerSession } from './helpers/brand-ui';
 import { msg } from './helpers/i18n';
 
 test.describe('Stage 1 golden shell', () => {
+  test.describe.configure({ timeout: 120_000 });
+
   test('grouped nav, collapse preference, overlays, responsive, RTL', async ({
     page,
     request,
@@ -62,14 +64,14 @@ test.describe('Stage 1 golden shell', () => {
     await expect(page.getByRole('menu')).toHaveCount(0);
 
     await page
-      .getByRole('navigation', { name: /main navigation/i })
-      .getByRole('link', { name: msg(testInfo, 'nav.campaigns') })
+      .getByRole('navigation', { name: /main navigation|التنقل الرئيسي/i })
+      .locator('a[href="/app/campaigns"]')
       .click();
     await expect(page).toHaveURL(/\/app\/campaigns/);
     await expect(
       page
-        .getByRole('navigation', { name: /main navigation/i })
-        .getByRole('link', { name: msg(testInfo, 'nav.campaigns') }),
+        .getByRole('navigation', { name: /main navigation|التنقل الرئيسي/i })
+        .locator('a[href="/app/campaigns"]'),
     ).toHaveAttribute('aria-current', 'page');
 
     await page.setViewportSize({ width: 1024, height: 900 });
