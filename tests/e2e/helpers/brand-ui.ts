@@ -54,9 +54,11 @@ export async function openPrimaryNavIfNeeded(page: Page) {
   const openBtn = page.getByRole('button', { name: /open navigation|فتح التنقل/i });
   if (await openBtn.isVisible()) {
     await openBtn.click();
-    await expect(page.getByRole('dialog', { name: /main navigation|التنقل الرئيسي/i })).toBeVisible({
-      timeout: 10_000,
-    });
+    await expect(page.getByRole('dialog', { name: /main navigation|التنقل الرئيسي/i })).toBeVisible(
+      {
+        timeout: 10_000,
+      },
+    );
   }
 }
 

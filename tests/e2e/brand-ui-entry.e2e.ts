@@ -65,7 +65,9 @@ test.describe('Brand UI entry journey', () => {
 
     await expect(page).toHaveURL(/\/app/, { timeout: 20_000 });
     // Multiple memberships must land on the company selector before brand create.
-    await expect(page.getByRole('heading', { name: /choose a company|select company|اختر/i })).toBeVisible({
+    await expect(
+      page.getByRole('heading', { name: /choose a company|select company|اختر/i }),
+    ).toBeVisible({
       timeout: 20_000,
     });
     const box = page.locator('main').getByRole('combobox');
@@ -89,7 +91,10 @@ test.describe('Brand UI entry journey', () => {
     });
     await page.goto('/app/brands');
     await expect(page).toHaveURL(/\/app\/brands/);
-    await page.getByRole('link', { name: /Create brand|إنشاء علامة/i }).first().click();
+    await page
+      .getByRole('link', { name: /Create brand|إنشاء علامة/i })
+      .first()
+      .click();
     const brandName = `Entry Brand ${newId().slice(-4)}`;
     await page.getByLabel(/brand name|اسم العلامة/i).fill(brandName);
     await page.getByRole('button', { name: /create|إنشاء/i }).click();

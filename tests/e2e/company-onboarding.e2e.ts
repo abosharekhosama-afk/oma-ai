@@ -36,7 +36,10 @@ test.describe('Company onboarding UI', () => {
     await expect(page.getByRole('heading', { name: /brand intelligence/i })).toBeVisible();
 
     // Create brand through the form
-    await page.getByRole('link', { name: /Create brand/i }).first().click();
+    await page
+      .getByRole('link', { name: /Create brand/i })
+      .first()
+      .click();
     await page.getByLabel(/brand name/i).fill(`UI Brand ${newId().slice(-4)}`);
     await page.getByRole('button', { name: /create/i }).click();
     await expect(page).toHaveURL(/\/app\/brands\/[^/]+$/);
