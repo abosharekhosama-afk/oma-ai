@@ -76,7 +76,8 @@
 
 ## Final pins
 
-- **Starting SHA:**
-- **Certification / fix commits:** → → → → → → →
-- **Final SHA:**
-- **CI:** https://github.com/burhanbakri1-spec/oma-ai/actions/runs/34879015519 — **success**
+- **Starting SHA:** 58949616b9c0a22d59ae2b00f196cea181552559
+- **Certification / fix commits:** 406a156 → 3fabdb9 → 6c7a21d → e605862 → 0ad467c → 1f92097 → 9f54cb2 → 15eb428 (CI green) → 8921375 (docs pin)
+- **Final SHA:** 892137573b267a02153dc1d444b4bf71645f4c2b
+- **CI (implementation tip):** https://github.com/burhanbakri1-spec/oma-ai/actions/runs/34879015519 — success on 15eb428
+- **Preview served:** 892137573b267a02153dc1d444b4bf71645f4c2b
