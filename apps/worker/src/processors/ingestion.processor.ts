@@ -36,6 +36,38 @@ async function reauthz(
   return membership.grants.some((g) => g.capabilityCode === 'brand.scan.control');
 }
 
+/** Never overwrite an API-cancelled scan; returns false when the attempt is no longer active. */
+async function advanceScanIfActive(
+  prisma: ReturnType<typeof getPrisma>,
+  scanId: string,
+  data: Record<string, unknown>,
+): Promise<boolean> {
+  const result = await prisma.scanAttempt.updateMany({
+    where: {
+      id: scanId,
+      status: { notIn: ['SUCCEEDED', 'PARTIAL', 'FAILED', 'CANCELLED'] },
+      cancelRequestedAt: null,
+    },
+    data,
+  });
+  return result.count > 0;
+}
+
+async function markScanCancelled(
+  prisma: ReturnType<typeof getPrisma>,
+  scanId: string,
+  jobRunId: string,
+) {
+  await prisma.scanAttempt.update({
+    where: { id: scanId },
+    data: { status: 'CANCELLED', finishedAt: new Date() },
+  });
+  await prisma.jobRun.update({
+    where: { id: jobRunId },
+    data: { status: 'CANCELLED', finishedAt: new Date() },
+  });
+}
+
 export type IngestionProcessorOptions = {
   connector?: WebsiteConnectorPort;
   beforeHandle?: (job: Job<IngestionJobPayload>) => Promise<void>;
@@ -105,15 +137,8 @@ export function startIngestionProcessor(
       });
       if (!scan) throw new Error('scan_attempt not found or mismatched');
 
-      if (scan.cancelRequestedAt) {
-        await prisma.scanAttempt.update({
-          where: { id: scan.id },
-          data: { status: 'CANCELLED', finishedAt: new Date() },
-        });
-        await prisma.jobRun.update({
-          where: { id: jobRun.id },
-          data: { status: 'CANCELLED', finishedAt: new Date() },
-        });
+      if (scan.cancelRequestedAt || scan.status === 'CANCELLED') {
+        await markScanCancelled(prisma, scan.id, jobRun.id);
         return { ok: true, cancelled: true };
       }
 
@@ -121,17 +146,19 @@ export function startIngestionProcessor(
         where: { id: jobRun.id },
         data: { status: 'RUNNING', startedAt: new Date() },
       });
-      await prisma.scanAttempt.update({
-        where: { id: scan.id },
-        data: {
+      if (
+        !(await advanceScanIfActive(prisma, scan.id, {
           status: 'CRAWLING',
           startedAt: new Date(),
           progressPercent: 5,
           // Recorded on the attempt that used it: the API process can be
           // reconfigured later and must not restate this scan's provenance.
           connectorMode: isBrandFixtureConnectorEnabled() ? 'FIXTURE' : 'NOT_CONFIGURED',
-        },
-      });
+        }))
+      ) {
+        await markScanCancelled(prisma, scan.id, jobRun.id);
+        return { ok: true, cancelled: true };
+      }
 
       const brand = await prisma.brandWorkspace.findFirst({ where: { id: scan.brandId } });
       if (brand?.currentApprovedProfileVersionId) {
@@ -146,10 +173,12 @@ export function startIngestionProcessor(
         }
       }
 
-      await prisma.scanAttempt.update({
-        where: { id: scan.id },
-        data: { status: 'EXTRACTING', progressPercent: 30 },
-      });
+      if (
+        !(await advanceScanIfActive(prisma, scan.id, { status: 'EXTRACTING', progressPercent: 30 }))
+      ) {
+        await markScanCancelled(prisma, scan.id, jobRun.id);
+        return { ok: true, cancelled: true };
+      }
 
       const stillAuthorized = await reauthz(jobRun.tenantId, jobRun.actorUserId);
       if (!stillAuthorized) {
@@ -218,12 +247,17 @@ export function startIngestionProcessor(
         throw new Error('worker reauthz failed before completion');
       }
 
+      const beforeComplete = await prisma.scanAttempt.findUnique({ where: { id: scan.id } });
+      if (beforeComplete?.cancelRequestedAt || beforeComplete?.status === 'CANCELLED') {
+        await markScanCancelled(prisma, scan.id, jobRun.id);
+        return { ok: true, cancelled: true };
+      }
+
       const finalStatus = usable ? 'PARTIAL' : counts.pagesFetched > 0 ? 'PARTIAL' : 'FAILED';
       const aiAvailability = 'NOT_CONFIGURED';
 
-      await prisma.scanAttempt.update({
-        where: { id: scan.id },
-        data: {
+      if (
+        !(await advanceScanIfActive(prisma, scan.id, {
           status: finalStatus,
           progressPercent: 100,
           pagesFetched: counts.pagesFetched,
@@ -232,8 +266,11 @@ export function startIngestionProcessor(
           coverageJson: JSON.stringify(coverage),
           aiAvailability,
           finishedAt: new Date(),
-        },
-      });
+        }))
+      ) {
+        await markScanCancelled(prisma, scan.id, jobRun.id);
+        return { ok: true, cancelled: true };
+      }
 
       if (usable || counts.pagesFetched > 0) {
         await createProfileDraftFromScan({

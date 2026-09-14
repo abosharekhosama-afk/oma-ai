@@ -11,21 +11,14 @@ test.describe('Q-BWI-04 cancel retry', () => {
     const owner = await installOwnerSession(page, request);
     const { brandId } = await uiCreateBrandConnectAndStartScan(page, request, owner);
 
+    // Cancel as soon as the control appears so the fixture worker cannot finish first.
     const cancel = page.getByRole('button', { name: 'Cancel scan' });
-    if (await cancel.isVisible({ timeout: 5_000 }).catch(() => false)) {
-      await cancel.click();
-      await expect(page.locator('.oma-badge', { hasText: 'CANCELLED' })).toBeVisible({
-        timeout: 30_000,
-      });
-    } else {
-      await uiWaitForScanTerminal(page);
-      await page.getByRole('button', { name: 'Retry scan' }).click();
-      await expect(page).toHaveURL(new RegExp(`/app/brands/${brandId}/scans/[^/]+$`));
-      await page.getByRole('button', { name: 'Cancel scan' }).click();
-      await expect(page.locator('.oma-badge', { hasText: 'CANCELLED' })).toBeVisible({
-        timeout: 30_000,
-      });
-    }
+    await expect(cancel).toBeVisible({ timeout: 15_000 });
+    await cancel.click();
+    await expect(page.getByTestId('scan-status')).toHaveText('CANCELLED', { timeout: 30_000 });
+    await expect(page.getByText(/scan cancelled|cancelled|تم الإلغاء/i).first()).toBeVisible({
+      timeout: 10_000,
+    });
 
     await page.getByRole('button', { name: 'Retry scan' }).click();
     await expect(page).toHaveURL(new RegExp(`/app/brands/${brandId}/scans/[^/]+$`));

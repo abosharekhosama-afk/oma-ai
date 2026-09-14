@@ -86,13 +86,17 @@ export default function ScanDetailPage() {
     setBusy(true);
     setActionError(null);
     try {
-      await apiMutate(`/api/v1/brands/${brandId}/scans/${scanId}/cancel`, {
-        method: 'POST',
-        body: JSON.stringify({}),
-      });
-      await loadScan();
+      const res = await apiMutate<{ data: ScanDetail }>(
+        `/api/v1/brands/${brandId}/scans/${scanId}/cancel`,
+        {
+          method: 'POST',
+          body: JSON.stringify({}),
+        },
+      );
+      setScan(res.data);
     } catch (err) {
       setActionError(getApiError(err).message);
+      await loadScan().catch(() => undefined);
     } finally {
       setBusy(false);
     }
@@ -201,7 +205,10 @@ export default function ScanDetailPage() {
           <div className="oma-progress-bar" style={{ width: `${scan.progress_percent}%` }} />
         </div>
         <p aria-hidden="true">
-          {scan.progress_percent}% — <span className="oma-badge">{scan.status}</span>
+          {scan.progress_percent}% —{' '}
+          <span className="oma-badge" data-testid="scan-status">
+            {scan.status}
+          </span>
         </p>
         <div className="oma-scan-stats" aria-label={t('brand.scan.progressTitle')}>
           <div className="oma-scan-stat">

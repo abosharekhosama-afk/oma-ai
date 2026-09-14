@@ -40,6 +40,8 @@ const sharedServerEnv = {
   BULLMQ_PREFIX: `oma-e2e-${e2eRunId}`,
   OMA_WRITE_OPENAPI: '0',
   BRAND_FIXTURE_CONNECTOR: '1',
+  // Give UI cancel a beat before fixture fetch completes (Q-BWI-04 race).
+  BRAND_FIXTURE_FETCH_DELAY_MS: process.env.BRAND_FIXTURE_FETCH_DELAY_MS ?? '400',
   // Complete-product demo surfaces (never production).
   OMA_DEMO_MODE: process.env.OMA_DEMO_MODE ?? '1',
   // Full multi-project suites exceed the default 120/min per-path budget on /auth/me.
