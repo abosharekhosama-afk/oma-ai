@@ -1,5 +1,5 @@
 {
-  "gitSha": "58949616b9c0a22d59ae2b00f196cea181552559",
+  "gitSha": "406a15621fe945d74a390406fbd8d3a1ef439a53",
   "route": "/app",
   "viewport": {
     "width": 1440,
@@ -11,7 +11,7 @@
   "evidenceLevel": "ARCHIVED+DOC",
   "interaction": "shell-nav+command-kanban",
   "consoleErrors": 0,
-  "failedRequests": 1,
+  "failedRequests": 0,
   "externalHosts": 0,
   "acceptanceIds": [
     "V-HOME-01",
