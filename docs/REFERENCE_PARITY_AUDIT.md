@@ -111,13 +111,13 @@ Screenshots: `artifacts/visual-parity-004/*-1440.png` (+ `command-center-390.png
 **Starting SHA for Stage 7:** `9c280437ffa32e06cc4a51c8171e34101c49f391`  
 **Scope:** Does not rewrite the historical rejection at `f3f450d`. Records rebuild closure for certification.
 
-| Gap ID | Historical severity | Certification verdict | Closed by |
-| --- | --- | --- | --- |
-| VG-001 | BLOCKER | CLOSED | Stage 1 shell IA grouping |
-| VG-002 | BLOCKER | CLOSED | Stages 2–3 content-first planning surfaces |
-| VG-003 | BLOCKER | CLOSED | Stages 3–6 drawers / right panels |
-| VG-004 | BLOCKER | CLOSED | Stage 5 scoped dark review canvas |
-| VG-005…009 | MAJOR | MITIGATED / TRACKED | Golden tokens + stage rebuilds; residual polish owner-owned |
+| Gap ID     | Historical severity | Certification verdict | Closed by                                                   |
+| ---------- | ------------------- | --------------------- | ----------------------------------------------------------- |
+| VG-001     | BLOCKER             | CLOSED                | Stage 1 shell IA grouping                                   |
+| VG-002     | BLOCKER             | CLOSED                | Stages 2–3 content-first planning surfaces                  |
+| VG-003     | BLOCKER             | CLOSED                | Stages 3–6 drawers / right panels                           |
+| VG-004     | BLOCKER             | CLOSED                | Stage 5 scoped dark review canvas                           |
+| VG-005…009 | MAJOR               | MITIGATED / TRACKED   | Golden tokens + stage rebuilds; residual polish owner-owned |
 
 **V-CERT-03:** No VG-001…004 blockers remain for Full Visual Certification.  
 **VISUAL_ACCEPTANCE:** `PENDING_OWNER` (owner alone may set ACCEPTED).
