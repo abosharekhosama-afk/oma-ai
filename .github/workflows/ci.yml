@@ -52,6 +52,7 @@ jobs:
       OMA_WRITE_OPENAPI: '0'
       E2E_REUSE_SERVERS: '1'
       BRAND_FIXTURE_CONNECTOR: '1'
+      BRAND_FIXTURE_FETCH_DELAY_MS: '600'
       OMA_DEMO_MODE: '1'
       RATE_LIMIT_PER_MINUTE: '0'
       CI: 'true'
