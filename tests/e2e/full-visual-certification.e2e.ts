@@ -61,7 +61,7 @@ test.describe('Full visual product certification', () => {
   test('linked lifecycle Brand→Analytics with review revision + org surfaces', async ({
     page,
     request,
-  }, testInfo) => {
+  }, _testInfo) => {
     test.skip(
       true,
       'SUPERSEDED by OWNER_REMEDIATION_CERTIFICATION (owner-remediation-certification.e2e.ts); prior FULL_VISUAL_CERTIFICATION revoked by owner rejection',
