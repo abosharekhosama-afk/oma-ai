@@ -1,0 +1,16 @@
+{
+  "file": "after-tasks-board-default.png",
+  "gitSha": "888c0cc8bfbe0e60be1da19cf51e87d97f2c8e87",
+  "route": "/app/tasks",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "locale": "en",
+  "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+  "consoleErrorCount": 0,
+  "failedRequests": 0,
+  "beforeAfter": "after",
+  "acceptanceCriterion": "Kanban default discoverable",
+  "referenceMapping": "Linear board density / Planable content hierarchy (DEC-013)"
+}

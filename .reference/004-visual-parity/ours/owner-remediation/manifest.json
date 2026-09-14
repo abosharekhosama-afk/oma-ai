@@ -1,0 +1,178 @@
+[
+  {
+    "file": "after-shell-home.png",
+    "gitSha": "888c0cc8bfbe0e60be1da19cf51e87d97f2c8e87",
+    "route": "/app",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "locale": "en",
+    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "consoleErrorCount": 0,
+    "failedRequests": 0,
+    "beforeAfter": "after",
+    "acceptanceCriterion": "IA Command Center + overdue→board",
+    "referenceMapping": "Linear board density / Planable content hierarchy (DEC-013)"
+  },
+  {
+    "file": "after-tasks-board-default.png",
+    "gitSha": "888c0cc8bfbe0e60be1da19cf51e87d97f2c8e87",
+    "route": "/app/tasks",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "locale": "en",
+    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "consoleErrorCount": 0,
+    "failedRequests": 0,
+    "beforeAfter": "after",
+    "acceptanceCriterion": "Kanban default discoverable",
+    "referenceMapping": "Linear board density / Planable content hierarchy (DEC-013)"
+  },
+  {
+    "file": "after-kanban-drag-state.png",
+    "gitSha": "888c0cc8bfbe0e60be1da19cf51e87d97f2c8e87",
+    "route": "/app/tasks",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "locale": "en",
+    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "consoleErrorCount": 0,
+    "failedRequests": 0,
+    "beforeAfter": "after",
+    "acceptanceCriterion": "DnD lift/drop",
+    "referenceMapping": "Linear board density / Planable content hierarchy (DEC-013)"
+  },
+  {
+    "file": "after-task-drawer.png",
+    "gitSha": "888c0cc8bfbe0e60be1da19cf51e87d97f2c8e87",
+    "route": "/app/tasks?task=demo-task-design",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "locale": "en",
+    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "consoleErrorCount": 0,
+    "failedRequests": 0,
+    "beforeAfter": "after",
+    "acceptanceCriterion": "Task drawer",
+    "referenceMapping": "Linear board density / Planable content hierarchy (DEC-013)"
+  },
+  {
+    "file": "after-content-calendar.png",
+    "gitSha": "888c0cc8bfbe0e60be1da19cf51e87d97f2c8e87",
+    "route": "/app/content",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "locale": "en",
+    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "consoleErrorCount": 0,
+    "failedRequests": 0,
+    "beforeAfter": "after",
+    "acceptanceCriterion": "Content surface",
+    "referenceMapping": "Linear board density / Planable content hierarchy (DEC-013)"
+  },
+  {
+    "file": "after-requests.png",
+    "gitSha": "888c0cc8bfbe0e60be1da19cf51e87d97f2c8e87",
+    "route": "/app/requests",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "locale": "en",
+    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "consoleErrorCount": 0,
+    "failedRequests": 0,
+    "beforeAfter": "after",
+    "acceptanceCriterion": "Requests",
+    "referenceMapping": "Linear board density / Planable content hierarchy (DEC-013)"
+  },
+  {
+    "file": "after-schedule.png",
+    "gitSha": "888c0cc8bfbe0e60be1da19cf51e87d97f2c8e87",
+    "route": "/app/schedule",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "locale": "en",
+    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "consoleErrorCount": 0,
+    "failedRequests": 0,
+    "beforeAfter": "after",
+    "acceptanceCriterion": "Schedule",
+    "referenceMapping": "Linear board density / Planable content hierarchy (DEC-013)"
+  },
+  {
+    "file": "after-analytics.png",
+    "gitSha": "888c0cc8bfbe0e60be1da19cf51e87d97f2c8e87",
+    "route": "/app/analytics",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "locale": "en",
+    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "consoleErrorCount": 0,
+    "failedRequests": 0,
+    "beforeAfter": "after",
+    "acceptanceCriterion": "Analytics",
+    "referenceMapping": "Linear board density / Planable content hierarchy (DEC-013)"
+  },
+  {
+    "file": "after-settings.png",
+    "gitSha": "888c0cc8bfbe0e60be1da19cf51e87d97f2c8e87",
+    "route": "/app/settings",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "locale": "en",
+    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "consoleErrorCount": 0,
+    "failedRequests": 0,
+    "beforeAfter": "after",
+    "acceptanceCriterion": "Settings prefs",
+    "referenceMapping": "Linear board density / Planable content hierarchy (DEC-013)"
+  },
+  {
+    "file": "after-mobile-tasks.png",
+    "gitSha": "888c0cc8bfbe0e60be1da19cf51e87d97f2c8e87",
+    "route": "/app/tasks",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "locale": "en",
+    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "consoleErrorCount": 0,
+    "failedRequests": 0,
+    "beforeAfter": "after",
+    "acceptanceCriterion": "Mobile Kanban",
+    "referenceMapping": "Linear board density / Planable content hierarchy (DEC-013)"
+  },
+  {
+    "file": "after-arabic-tasks-board.png",
+    "gitSha": "888c0cc8bfbe0e60be1da19cf51e87d97f2c8e87",
+    "route": "/app/tasks",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "locale": "ar",
+    "computedFontFamily": "\"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif, Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "consoleErrorCount": 0,
+    "failedRequests": 0,
+    "beforeAfter": "after",
+    "acceptanceCriterion": "AR RTL typography",
+    "referenceMapping": "Noto Sans Arabic companion"
+  }
+]
