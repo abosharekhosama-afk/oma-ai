@@ -1,0 +1,9 @@
+{
+  "computedFontFamily": "\"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif, Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+  "locale": "ar",
+  "dir": "rtl",
+  "acceptanceIds": [
+    "V-TSK-01",
+    "i18n-AR"
+  ]
+}

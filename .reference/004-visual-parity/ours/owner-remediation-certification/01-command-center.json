@@ -1,0 +1,21 @@
+{
+  "gitSha": "58949616b9c0a22d59ae2b00f196cea181552559",
+  "route": "/app",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "locale": "en",
+  "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+  "surfaceArchetype": "action-workboard",
+  "evidenceLevel": "ARCHIVED+DOC",
+  "interaction": "shell-nav+command-kanban",
+  "consoleErrors": 0,
+  "failedRequests": 1,
+  "externalHosts": 0,
+  "acceptanceIds": [
+    "V-HOME-01",
+    "V-SHELL-02",
+    "V-TSK-01"
+  ]
+}

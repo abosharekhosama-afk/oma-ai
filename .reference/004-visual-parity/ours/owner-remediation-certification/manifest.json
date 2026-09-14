@@ -1,0 +1,51 @@
+{
+  "startingSha": "58949616b9c0a22d59ae2b00f196cea181552559",
+  "evidenceCapturedAtSha": "58949616b9c0a22d59ae2b00f196cea181552559",
+  "screenshots": [
+    "01-command-center.png",
+    "02-brand-portfolio.png",
+    "02b-brand-workspace.png",
+    "03-strategy-workspace.png",
+    "04-campaign-portfolio.png",
+    "05-content-calendar.png",
+    "05b-content-composer.png",
+    "06-requests-triage.png",
+    "07-structured-brief.png",
+    "08-kanban-default.png",
+    "09-kanban-drag-state.png",
+    "10-task-drawer.png",
+    "11-deliverables-grid.png",
+    "12-dark-review.png",
+    "13-schedule.png",
+    "14-analytics.png",
+    "15-team-workload.png",
+    "15b-activity.png",
+    "16-settings.png",
+    "17-ar-desktop-kanban.png",
+    "18-mobile-kanban.png"
+  ],
+  "videos": [
+    "01-shell-navigation-and-command-menu.webm",
+    "02-kanban-drag-persist-reload.webm",
+    "03-content-calendar-and-drawer.webm",
+    "04-request-brief-task-handoff.webm",
+    "05-review-version-annotation-decision.webm",
+    "06-mobile-navigation-kanban.webm"
+  ],
+  "ownerVisualReview": "REJECTED",
+  "visualRebuild": "COMPLETE",
+  "ownerRemediationCertification": "PASS",
+  "fullVisualCertification": "SUPERSEDED",
+  "visualAcceptance": "PENDING_OWNER",
+  "auditorVerdicts": {
+    "kanban": "PASS",
+    "typography": "PASS",
+    "ia": "PASS",
+    "surfaceDepth": "PASS",
+    "referenceParity": "PASS",
+    "a11yRtl": "PASS",
+    "demoHonesty": "PASS",
+    "falseCompletion": "PASS",
+    "convergence": "PASS"
+  }
+}
