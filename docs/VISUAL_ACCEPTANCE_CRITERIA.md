@@ -131,11 +131,13 @@
 - Evidence (historical): `artifacts/full-visual-certification-004/` + `.reference/004-visual-parity/ours/full-certification/`
 - Owner remediation evidence: `artifacts/owner-rejection-remediation-004/` + `.reference/004-visual-parity/ours/owner-remediation/`
 - **OWNER_VISUAL_REVIEW:** `REJECTED`
-- **VISUAL_REBUILD:** `IN_PROGRESS` (core experience reopen)
+- **VISUAL_REBUILD:** `COMPLETE_PENDING_RECERTIFICATION`
 - **FULL_VISUAL_CERTIFICATION:** `INVALIDATED_BY_OWNER` / `REVOKED`
 - **VISUAL_ACCEPTANCE:** `REJECTED`
 - **USER_ACCEPTANCE:** `PENDING`
 - Do not treat green tests or prior Stage 7 PASS as visual acceptance.
+- Surface depth evidence: `artifacts/owner-surface-depth-rebuild-004/` + `.reference/004-visual-parity/ours/owner-surface-depth/`
+- Next: `CERTIFY_OMA_OWNER_REJECTION_REMEDIATION`
 
 ---
 

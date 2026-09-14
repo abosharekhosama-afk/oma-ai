@@ -102,7 +102,7 @@ test.describe('Complete product demo certification', () => {
     // Tasks kanban + overdue
     await page
       .getByRole('navigation')
-      .getByRole('link', { name: /^tasks$/i })
+      .getByRole('link', { name: /tasks board/i })
       .click();
     await expect(page.getByTestId('demo-tasks')).toBeVisible();
     await expect(page.getByText(/OVERDUE|overdue|photo|retouch/i).first()).toBeVisible();

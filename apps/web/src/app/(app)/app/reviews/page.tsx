@@ -130,68 +130,44 @@ export default function ReviewsPage() {
           {queue.length === 0 ? (
             <EmptyState title={t('demo.empty')} body={t('demo.reviews.emptyHint')} />
           ) : (
-            <div className="oma-deliv-table-wrap" data-testid="demo-review-queue">
-              <table className="oma-deliv-table">
-                <thead>
-                  <tr>
-                    <th />
-                    <th>{t('demo.deliverables.col.title')}</th>
-                    <th>{t('demo.deliverables.col.version')}</th>
-                    <th>{t('demo.deliverables.filter.campaign')}</th>
-                    <th>{t('demo.reviews.submitter')}</th>
-                    <th>{t('demo.deliverables.col.due')}</th>
-                    <th>{t('demo.deliverables.col.comments')}</th>
-                    <th>{t('demo.deliverables.filter.review')}</th>
-                    <th>{t('demo.reviews.action')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {queue.map((d) => {
-                    const ver = currentVersion(d);
-                    const thumb = ver?.assets[0];
-                    return (
-                      <tr
-                        key={d.id}
-                        data-overdue={deliverableIsOverdue(d) ? 'true' : 'false'}
-                        data-testid={`demo-review-row-${d.id}`}
-                      >
-                        <td>
-                          {thumb ? (
-                            <img className="oma-deliv-thumb" src={thumb} alt="" />
-                          ) : (
-                            <div className="oma-deliv-thumb" />
-                          )}
-                        </td>
-                        <td>
-                          <Link
-                            href={`/app/deliverables/${d.id}?review=1`}
-                            className="oma-text-link"
-                          >
-                            {pickCopy(d.title, locale)}
-                          </Link>
-                        </td>
-                        <td>{ver?.label ?? '—'}</td>
-                        <td>{d.campaignId}</td>
-                        <td>{d.owner}</td>
-                        <td>{d.dueAt}</td>
-                        <td>{unresolvedCount(d)}</td>
-                        <td>
-                          <StatusChip status={d.reviewStatus} />
-                        </td>
-                        <td>
-                          <Link
-                            href={`/app/deliverables/${d.id}?review=1`}
-                            className="oma-btn oma-btn-secondary"
-                            data-testid={`demo-review-open-${d.id}`}
-                          >
-                            {t('demo.reviews.openReview')}
-                          </Link>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            <div className="oma-review-queue-cards" data-testid="demo-review-queue">
+              {queue.map((d) => {
+                const ver = currentVersion(d);
+                const thumb = ver?.assets[0];
+                return (
+                  <Link
+                    key={d.id}
+                    href={`/app/deliverables/${d.id}?review=1`}
+                    className="oma-review-queue-card"
+                    data-overdue={deliverableIsOverdue(d) ? 'true' : 'false'}
+                    data-testid={`demo-review-row-${d.id}`}
+                  >
+                    {thumb ? (
+                      <img src={thumb} alt="" />
+                    ) : (
+                      <div className="oma-deliv-thumb-fallback" aria-hidden />
+                    )}
+                    <div>
+                      <strong>{pickCopy(d.title, locale)}</strong>
+                      <div className="oma-muted">
+                        {ver?.label ?? '—'} · {d.owner} · {d.dueAt}
+                      </div>
+                      <div className="oma-chip-row">
+                        <StatusChip status={d.reviewStatus} />
+                        <span className="oma-muted">
+                          {unresolvedCount(d)} {t('demo.deliverables.col.comments').toLowerCase()}
+                        </span>
+                      </div>
+                    </div>
+                    <span
+                      className="oma-btn oma-btn-secondary"
+                      data-testid={`demo-review-open-${d.id}`}
+                    >
+                      {t('demo.reviews.openReview')}
+                    </span>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </>

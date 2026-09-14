@@ -47,10 +47,12 @@ test.describe('Stage 5 Deliverables + Reviews visual rebuild', () => {
       .click();
     await expect(page.getByTestId('demo-deliverables')).toBeVisible();
     await expect(page.getByTestId('demo-deliv-filters')).toBeVisible();
-    await expect(page.getByTestId('demo-deliv-table')).toBeVisible();
+    await expect(page.getByTestId('demo-deliv-grid')).toBeVisible();
 
     await page.getByTestId('demo-deliv-group-needs_review').click();
-    await expect(page.getByTestId('demo-deliv-row-demo-deliv-carousel')).toBeVisible();
+    await expect(page.getByTestId('demo-deliv-card-demo-deliv-carousel')).toBeVisible();
+    await page.getByTestId('demo-deliv-view-list').click();
+    await expect(page.getByTestId('demo-deliv-table')).toBeVisible();
     await page.getByTestId('demo-deliv-view-grid').click();
     await expect(page.getByTestId('demo-deliv-grid')).toBeVisible();
     await page.getByTestId('demo-deliv-view-list').click();
@@ -128,7 +130,7 @@ test.describe('Stage 5 Deliverables + Reviews visual rebuild', () => {
 
     await page
       .getByRole('navigation')
-      .getByRole('link', { name: /^tasks$/i })
+      .getByRole('link', { name: /tasks board/i })
       .click();
     await expect(page.getByTestId('demo-tasks')).toBeVisible({ timeout: 15_000 });
     await page.goto('/app/tasks?task=demo-task-design');

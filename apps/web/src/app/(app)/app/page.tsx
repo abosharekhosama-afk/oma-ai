@@ -114,7 +114,10 @@ export default function AppHomePage() {
   const strategyReady = approvedCount;
 
   return (
-    <div className="oma-stack oma-workboard oma-product-home" data-testid="product-home">
+    <div
+      className="oma-stack oma-workboard oma-product-home oma-surface-cc"
+      data-testid="product-home"
+    >
       <PageHeader
         kicker={t('home.kicker')}
         title={t('home.title')}

@@ -265,7 +265,7 @@ export default function DeliverablesPage() {
                     {thumb ? (
                       <img src={thumb} alt="" />
                     ) : (
-                      <div className="oma-deliv-thumb" aria-hidden />
+                      <div className="oma-deliv-thumb-fallback" aria-hidden />
                     )}
                     <strong>{pickCopy(d.title, locale)}</strong>
                     <StatusChip status={d.reviewStatus} />

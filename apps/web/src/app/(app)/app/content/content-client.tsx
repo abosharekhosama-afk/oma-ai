@@ -814,90 +814,95 @@ export default function ContentPage() {
             <div className="oma-honesty-banner">{t('demo.content.aiNotConnected')}</div>
             <div className="oma-honesty-banner">{t('demo.content.noPublishing')}</div>
 
-            <div className="oma-composer-preview">
-              <img src={selected.previewAsset} alt="" />
-            </div>
+            <div className="oma-content-composer" data-testid="demo-content-composer">
+              <div className="oma-content-composer-preview">
+                <img
+                  src={selected.previewAsset}
+                  alt={pickCopy(selected.title, locale)}
+                  data-testid="demo-content-composer-preview"
+                />
+              </div>
+              <div className="oma-composer-fields">
+                <label>
+                  {t('demo.content.caption')}
+                  <textarea
+                    className="oma-input"
+                    rows={3}
+                    value={draft.caption}
+                    data-testid="demo-content-caption"
+                    onChange={(e) => setDraft((d) => ({ ...d, caption: e.target.value }))}
+                  />
+                </label>
+                <label>
+                  {t('demo.content.objective')}
+                  <textarea
+                    className="oma-input"
+                    rows={2}
+                    value={draft.objective}
+                    onChange={(e) => setDraft((d) => ({ ...d, objective: e.target.value }))}
+                  />
+                </label>
+                <label>
+                  {t('demo.content.cta')}
+                  <input
+                    className="oma-input"
+                    value={draft.cta}
+                    onChange={(e) => setDraft((d) => ({ ...d, cta: e.target.value }))}
+                  />
+                </label>
+                <label>
+                  {t('demo.filter.status')}
+                  <select
+                    className="oma-select"
+                    value={draft.status}
+                    onChange={(e) => setDraft((d) => ({ ...d, status: e.target.value }))}
+                  >
+                    {statuses.map((s) => (
+                      <option key={s} value={s}>
+                        {statusLabel(s, locale)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label>
+                  {t('demo.content.filter.assignee')}
+                  <input
+                    className="oma-input"
+                    value={draft.assignee}
+                    onChange={(e) => setDraft((d) => ({ ...d, assignee: e.target.value }))}
+                  />
+                </label>
+                <label>
+                  {t('demo.create.plannedDate')}
+                  <input
+                    type="datetime-local"
+                    className="oma-input"
+                    value={draft.scheduledAt}
+                    onChange={(e) => setDraft((d) => ({ ...d, scheduledAt: e.target.value }))}
+                  />
+                </label>
+              </div>
 
-            <div className="oma-composer-fields">
-              <label>
-                {t('demo.content.caption')}
-                <textarea
-                  className="oma-input"
-                  rows={3}
-                  value={draft.caption}
-                  data-testid="demo-content-caption"
-                  onChange={(e) => setDraft((d) => ({ ...d, caption: e.target.value }))}
-                />
-              </label>
-              <label>
-                {t('demo.content.objective')}
-                <textarea
-                  className="oma-input"
-                  rows={2}
-                  value={draft.objective}
-                  onChange={(e) => setDraft((d) => ({ ...d, objective: e.target.value }))}
-                />
-              </label>
-              <label>
-                {t('demo.content.cta')}
-                <input
-                  className="oma-input"
-                  value={draft.cta}
-                  onChange={(e) => setDraft((d) => ({ ...d, cta: e.target.value }))}
-                />
-              </label>
-              <label>
-                {t('demo.filter.status')}
-                <select
-                  className="oma-select"
-                  value={draft.status}
-                  onChange={(e) => setDraft((d) => ({ ...d, status: e.target.value }))}
+              <div className="oma-chip-row">
+                <button
+                  type="button"
+                  className="oma-btn oma-btn-primary"
+                  data-testid="demo-content-save"
+                  disabled={saving || !dirty}
+                  onClick={() => void saveItem()}
                 >
-                  {statuses.map((s) => (
-                    <option key={s} value={s}>
-                      {statusLabel(s, locale)}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                {t('demo.content.filter.assignee')}
-                <input
-                  className="oma-input"
-                  value={draft.assignee}
-                  onChange={(e) => setDraft((d) => ({ ...d, assignee: e.target.value }))}
-                />
-              </label>
-              <label>
-                {t('demo.create.plannedDate')}
-                <input
-                  type="datetime-local"
-                  className="oma-input"
-                  value={draft.scheduledAt}
-                  onChange={(e) => setDraft((d) => ({ ...d, scheduledAt: e.target.value }))}
-                />
-              </label>
-            </div>
-
-            <div className="oma-chip-row">
-              <button
-                type="button"
-                className="oma-btn oma-btn-primary"
-                data-testid="demo-content-save"
-                disabled={saving || !dirty}
-                onClick={() => void saveItem()}
-              >
-                {saving ? t('demo.content.saving') : t('demo.content.save')}
-              </button>
-              <span className="oma-save-state" data-state={saveState}>
-                {saveState === 'saved'
-                  ? t('demo.content.saved')
-                  : saveState === 'error'
-                    ? saveError
-                    : dirty
-                      ? '•'
-                      : null}
-              </span>
+                  {saving ? t('demo.content.saving') : t('demo.content.save')}
+                </button>
+                <span className="oma-save-state" data-state={saveState}>
+                  {saveState === 'saved'
+                    ? t('demo.content.saved')
+                    : saveState === 'error'
+                      ? saveError
+                      : dirty
+                        ? '•'
+                        : null}
+                </span>
+              </div>
             </div>
           </div>
         ) : null}

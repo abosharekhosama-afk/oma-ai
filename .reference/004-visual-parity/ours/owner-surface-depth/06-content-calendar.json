@@ -1,0 +1,17 @@
+{
+  "file": "06-content-calendar.png",
+  "gitSha": "951ed44f49178c11ad91d4a000eedd0a596d75ed",
+  "route": "/app/content",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "locale": "en",
+  "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+  "dataState": "demo-seed",
+  "primaryReference": "Planable",
+  "evidenceLevel": "ARCHIVED",
+  "consoleErrorCount": 0,
+  "beforeAfter": "after",
+  "acceptanceCriterion": "Content calendar"
+}

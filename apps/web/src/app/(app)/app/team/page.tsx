@@ -173,6 +173,16 @@ export default function TeamPage() {
                         </td>
                         <td>{m.role}</td>
                         <td>
+                          <div
+                            className="oma-workload-bar"
+                            data-risk={
+                              cap === 'at_risk' || cap === 'over_capacity' ? 'true' : 'false'
+                            }
+                          >
+                            <span
+                              style={{ width: `${Math.min(100, Math.round(m.workload * 100))}%` }}
+                            />
+                          </div>
                           <span className="oma-capacity" data-state={cap}>
                             {t(`demo.team.capacity.${cap}`)} ({Math.round(m.workload * 100)}%)
                           </span>

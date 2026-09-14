@@ -1,0 +1,17 @@
+{
+  "file": "12-deliverables-grid.png",
+  "gitSha": "951ed44f49178c11ad91d4a000eedd0a596d75ed",
+  "route": "/app/deliverables",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "locale": "en",
+  "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+  "dataState": "demo-seed",
+  "primaryReference": "Frame.io+Planable",
+  "evidenceLevel": "ARCHIVED",
+  "consoleErrorCount": 0,
+  "beforeAfter": "after",
+  "acceptanceCriterion": "Asset browser"
+}

@@ -177,7 +177,7 @@ test.describe('Full visual certification evidence', () => {
         source: 'Demo-backed',
         setup: async () => {
           await expect(page.getByTestId('demo-deliverables')).toBeVisible({ timeout: 20_000 });
-          await expect(page.getByTestId('demo-deliv-table')).toBeVisible();
+          await expect(page.getByTestId('demo-deliv-grid')).toBeVisible();
         },
       },
       {

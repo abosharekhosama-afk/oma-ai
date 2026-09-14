@@ -1,0 +1,17 @@
+{
+  "file": "08-requests-inbox.png",
+  "gitSha": "951ed44f49178c11ad91d4a000eedd0a596d75ed",
+  "route": "/app/requests",
+  "viewport": {
+    "width": 1440,
+    "height": 900
+  },
+  "locale": "en",
+  "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+  "dataState": "demo-seed",
+  "primaryReference": "Workfront",
+  "evidenceLevel": "DOC",
+  "consoleErrorCount": 0,
+  "beforeAfter": "after",
+  "acceptanceCriterion": "Requests triage"
+}

@@ -29,7 +29,7 @@ export const EMPTY_DELIVERABLE_FILTERS: DeliverableFilters = {
   reviewer: 'all',
   due: 'all',
   group: 'all',
-  view: 'list',
+  view: 'grid',
 };
 
 const TODAY = '2026-09-11';

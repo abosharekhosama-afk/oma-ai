@@ -101,7 +101,7 @@ export default function AnalyticsPage() {
       ) : null}
 
       {data ? (
-        <>
+        <div className="oma-analytics-layout">
           <p className="oma-muted" data-testid="demo-analytics-period">
             {pickCopy(data.period.label, locale)} · {data.period.start} → {data.period.end}
             {' · '}
@@ -161,7 +161,7 @@ export default function AnalyticsPage() {
             </label>
           </div>
 
-          <section aria-label={t('demo.analytics.kpis')}>
+          <section className="oma-analytics-kpis" aria-label={t('demo.analytics.kpis')}>
             <div className="oma-kpi-row" data-testid="demo-analytics-kpis">
               {data.kpis.map((kpi) => {
                 const delta = percentDelta(kpi.value, kpi.previous);
@@ -180,7 +180,10 @@ export default function AnalyticsPage() {
             </div>
           </section>
 
-          <section className="oma-chart-panel" data-testid="demo-analytics-trend">
+          <section
+            className="oma-chart-panel oma-analytics-primary"
+            data-testid="demo-analytics-trend"
+          >
             <h2>{t('demo.analytics.trend')}</h2>
             <p>{pickCopy(data.executiveSummary, locale)}</p>
             <svg viewBox="0 0 320 80" role="img" aria-label={t('demo.analytics.trendSummary')}>
@@ -355,7 +358,7 @@ export default function AnalyticsPage() {
           <p className="oma-muted" data-testid="demo-analytics-source">
             {t('demo.analytics.sourcePanel')}
           </p>
-        </>
+        </div>
       ) : null}
     </div>
   );

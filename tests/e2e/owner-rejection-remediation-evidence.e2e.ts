@@ -165,15 +165,13 @@ test.describe('Owner rejection remediation evidence', () => {
     }
 
     // Arabic sample
-    await page
-      .context()
-      .addCookies([
-        {
-          name: 'oma_locale',
-          value: 'ar',
-          url: process.env.WEB_BASE_URL ?? 'http://127.0.0.1:3000',
-        },
-      ]);
+    await page.context().addCookies([
+      {
+        name: 'oma_locale',
+        value: 'ar',
+        url: process.env.WEB_BASE_URL ?? 'http://127.0.0.1:3000',
+      },
+    ]);
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/app/tasks');
     await expect(page.getByTestId('demo-tasks-board')).toBeVisible({ timeout: 20_000 });

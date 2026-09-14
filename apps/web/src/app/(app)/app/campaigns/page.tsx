@@ -49,6 +49,7 @@ export default function CampaignsPage() {
   const [error, setError] = useState<string | null>(null);
   const [unavailable, setUnavailable] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [layout, setLayout] = useState<'portfolio' | 'table'>('portfolio');
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
@@ -162,14 +163,36 @@ export default function CampaignsPage() {
         title={t('demo.campaigns.title')}
         description={t('demo.campaigns.subtitle')}
         actions={
-          <button
-            type="button"
-            className="oma-btn oma-btn-primary"
-            data-testid="demo-create-campaign"
-            onClick={() => setCreateOpen(true)}
-          >
-            {t('demo.campaigns.create')}
-          </button>
+          <div className="oma-chip-row">
+            <div className="oma-view-toggle" role="group" aria-label={t('demo.campaigns.layouts')}>
+              <button
+                type="button"
+                className="oma-btn oma-btn-secondary"
+                aria-pressed={layout === 'portfolio'}
+                data-testid="demo-campaigns-view-portfolio"
+                onClick={() => setLayout('portfolio')}
+              >
+                {t('demo.campaigns.portfolio')}
+              </button>
+              <button
+                type="button"
+                className="oma-btn oma-btn-secondary"
+                aria-pressed={layout === 'table'}
+                data-testid="demo-campaigns-view-table"
+                onClick={() => setLayout('table')}
+              >
+                {t('demo.campaigns.table')}
+              </button>
+            </div>
+            <button
+              type="button"
+              className="oma-btn oma-btn-primary"
+              data-testid="demo-create-campaign"
+              onClick={() => setCreateOpen(true)}
+            >
+              {t('demo.campaigns.create')}
+            </button>
+          </div>
         }
         meta={<span className="oma-view-hint">{t('demo.campaigns.viewSession')}</span>}
       />
@@ -306,7 +329,48 @@ export default function CampaignsPage() {
         />
       ) : null}
 
-      {!loading && !unavailable && !error
+      {!loading && !unavailable && !error && filtered.length > 0 && layout === 'portfolio' ? (
+        <div className="oma-campaign-portfolio" data-testid="demo-campaign-portfolio">
+          {filtered.map((c) => {
+            const items = contentFor(c.id);
+            const review = campaignReviewState(items);
+            const progress = campaignProgress(c);
+            return (
+              <Link
+                key={c.id}
+                href={`/app/campaigns/${c.id}`}
+                className="oma-campaign-card"
+                data-testid={`demo-campaign-card-${c.id}`}
+                onClick={() => setSelectedId(c.id)}
+              >
+                <div className="oma-campaign-card-media" aria-hidden>
+                  <span>
+                    {c.track === 'ORGANIC' ? t('demo.organic') : t('demo.paid')} ·{' '}
+                    {statusLabel(c.status, locale)}
+                  </span>
+                </div>
+                <div className="oma-campaign-card-body">
+                  <strong>{pickCopy(c.name, locale)}</strong>
+                  <div className="oma-chip-row">
+                    <StatusChip status={c.status} label={statusLabel(c.status, locale)} />
+                    <span className="oma-muted">{brandName(c.brandId)}</span>
+                  </div>
+                  <div className="oma-campaign-progress" aria-hidden>
+                    <span style={{ width: `${progress}%` }} />
+                  </div>
+                  <span className="oma-muted">
+                    {c.owner} · {items.length} ·{' '}
+                    {statusLabel(review === 'CLEAR' ? 'APPROVED' : review, locale)}
+                  </span>
+                  <span className="oma-muted">{campaignNextAction(c, items, locale)}</span>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      ) : null}
+
+      {!loading && !unavailable && !error && layout === 'table'
         ? groups.map((group) => (
             <section key={group.status} className="oma-campaign-group">
               <h2 className="oma-campaign-group-title">

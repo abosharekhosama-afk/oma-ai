@@ -7,6 +7,7 @@
 @import '../styles/stage4.css';
 @import '../styles/stage5.css';
 @import '../styles/stage6.css';
+@import '../styles/stage-depth.css';
 
 * {
   box-sizing: border-box;

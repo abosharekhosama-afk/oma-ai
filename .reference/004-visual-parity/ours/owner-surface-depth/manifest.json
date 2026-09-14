@@ -1,0 +1,257 @@
+[
+  {
+    "file": "01-command-center.png",
+    "gitSha": "951ed44f49178c11ad91d4a000eedd0a596d75ed",
+    "route": "/app",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "locale": "en",
+    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "dataState": "demo-seed",
+    "primaryReference": "Linear+Workfront",
+    "evidenceLevel": "ARCHIVED",
+    "consoleErrorCount": 0,
+    "beforeAfter": "after",
+    "acceptanceCriterion": "CC action-first"
+  },
+  {
+    "file": "05-campaign-portfolio.png",
+    "gitSha": "951ed44f49178c11ad91d4a000eedd0a596d75ed",
+    "route": "/app/campaigns",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "locale": "en",
+    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "dataState": "demo-seed",
+    "primaryReference": "Planable",
+    "evidenceLevel": "ARCHIVED",
+    "consoleErrorCount": 0,
+    "beforeAfter": "after",
+    "acceptanceCriterion": "Campaign portfolio"
+  },
+  {
+    "file": "06-content-calendar.png",
+    "gitSha": "951ed44f49178c11ad91d4a000eedd0a596d75ed",
+    "route": "/app/content",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "locale": "en",
+    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "dataState": "demo-seed",
+    "primaryReference": "Planable",
+    "evidenceLevel": "ARCHIVED",
+    "consoleErrorCount": 0,
+    "beforeAfter": "after",
+    "acceptanceCriterion": "Content calendar"
+  },
+  {
+    "file": "07-content-composer.png",
+    "gitSha": "951ed44f49178c11ad91d4a000eedd0a596d75ed",
+    "route": "/app/content",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "locale": "en",
+    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "dataState": "demo-seed",
+    "primaryReference": "Planable",
+    "evidenceLevel": "ARCHIVED",
+    "consoleErrorCount": 0,
+    "beforeAfter": "after",
+    "acceptanceCriterion": "Content composer"
+  },
+  {
+    "file": "08-requests-inbox.png",
+    "gitSha": "951ed44f49178c11ad91d4a000eedd0a596d75ed",
+    "route": "/app/requests",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "locale": "en",
+    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "dataState": "demo-seed",
+    "primaryReference": "Workfront",
+    "evidenceLevel": "DOC",
+    "consoleErrorCount": 0,
+    "beforeAfter": "after",
+    "acceptanceCriterion": "Requests triage"
+  },
+  {
+    "file": "10-kanban.png",
+    "gitSha": "951ed44f49178c11ad91d4a000eedd0a596d75ed",
+    "route": "/app/tasks",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "locale": "en",
+    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "dataState": "demo-seed",
+    "primaryReference": "Linear",
+    "evidenceLevel": "ARCHIVED",
+    "consoleErrorCount": 0,
+    "beforeAfter": "after",
+    "acceptanceCriterion": "Kanban depth"
+  },
+  {
+    "file": "12-deliverables-grid.png",
+    "gitSha": "951ed44f49178c11ad91d4a000eedd0a596d75ed",
+    "route": "/app/deliverables",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "locale": "en",
+    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "dataState": "demo-seed",
+    "primaryReference": "Frame.io+Planable",
+    "evidenceLevel": "ARCHIVED",
+    "consoleErrorCount": 0,
+    "beforeAfter": "after",
+    "acceptanceCriterion": "Asset browser"
+  },
+  {
+    "file": "13-reviews-queue.png",
+    "gitSha": "951ed44f49178c11ad91d4a000eedd0a596d75ed",
+    "route": "/app/reviews",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "locale": "en",
+    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "dataState": "demo-seed",
+    "primaryReference": "Frame.io",
+    "evidenceLevel": "DOC",
+    "consoleErrorCount": 0,
+    "beforeAfter": "after",
+    "acceptanceCriterion": "Review queue cards"
+  },
+  {
+    "file": "14-schedule.png",
+    "gitSha": "951ed44f49178c11ad91d4a000eedd0a596d75ed",
+    "route": "/app/schedule",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "locale": "en",
+    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "dataState": "demo-seed",
+    "primaryReference": "Planable",
+    "evidenceLevel": "ARCHIVED",
+    "consoleErrorCount": 0,
+    "beforeAfter": "after",
+    "acceptanceCriterion": "Schedule"
+  },
+  {
+    "file": "15-analytics.png",
+    "gitSha": "951ed44f49178c11ad91d4a000eedd0a596d75ed",
+    "route": "/app/analytics",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "locale": "en",
+    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "dataState": "demo-seed",
+    "primaryReference": "Smartly DOC",
+    "evidenceLevel": "DOC",
+    "consoleErrorCount": 0,
+    "beforeAfter": "after",
+    "acceptanceCriterion": "Analytics chart-first"
+  },
+  {
+    "file": "16-team.png",
+    "gitSha": "951ed44f49178c11ad91d4a000eedd0a596d75ed",
+    "route": "/app/team",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "locale": "en",
+    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "dataState": "demo-seed",
+    "primaryReference": "Workfront",
+    "evidenceLevel": "DOC",
+    "consoleErrorCount": 0,
+    "beforeAfter": "after",
+    "acceptanceCriterion": "Team workload"
+  },
+  {
+    "file": "17-activity.png",
+    "gitSha": "951ed44f49178c11ad91d4a000eedd0a596d75ed",
+    "route": "/app/activity",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "locale": "en",
+    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "dataState": "demo-seed",
+    "primaryReference": "Linear",
+    "evidenceLevel": "ARCHIVED",
+    "consoleErrorCount": 0,
+    "beforeAfter": "after",
+    "acceptanceCriterion": "Activity"
+  },
+  {
+    "file": "18-settings.png",
+    "gitSha": "951ed44f49178c11ad91d4a000eedd0a596d75ed",
+    "route": "/app/settings",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "locale": "en",
+    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "dataState": "demo-seed",
+    "primaryReference": "Linear",
+    "evidenceLevel": "ARCHIVED",
+    "consoleErrorCount": 0,
+    "beforeAfter": "after",
+    "acceptanceCriterion": "Settings IA"
+  },
+  {
+    "file": "20-mobile-content.png",
+    "gitSha": "951ed44f49178c11ad91d4a000eedd0a596d75ed",
+    "route": "/app/content",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "locale": "en",
+    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "dataState": "demo-seed",
+    "primaryReference": "Planable",
+    "evidenceLevel": "ARCHIVED",
+    "consoleErrorCount": 0,
+    "beforeAfter": "after",
+    "acceptanceCriterion": "Mobile content"
+  },
+  {
+    "file": "19-arabic-desktop.png",
+    "gitSha": "951ed44f49178c11ad91d4a000eedd0a596d75ed",
+    "route": "/app/campaigns",
+    "viewport": {
+      "width": 1440,
+      "height": 900
+    },
+    "locale": "ar",
+    "computedFontFamily": "\"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif, Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "dataState": "demo-seed",
+    "primaryReference": "Planable+Noto",
+    "evidenceLevel": "ARCHIVED",
+    "consoleErrorCount": 0,
+    "beforeAfter": "after",
+    "acceptanceCriterion": "AR RTL portfolio"
+  }
+]

@@ -103,54 +103,69 @@ export default function StrategyFoundationPage() {
         </p>
       ) : null}
       {!editable ? <p role="status">{t('strategy.warning.immutable')}</p> : null}
-      <form
-        className="oma-panel oma-sectioned-form"
-        onSubmit={onSave}
-        data-testid="strategy-foundation-form"
-      >
-        <section className="oma-form-section">
-          <h2>{t('strategy.foundation.goals')}</h2>
-          <p className="oma-help">{t('strategy.list.hint')}</p>
-          <label className="oma-field-span">
-            <textarea
-              className="oma-input"
-              value={goals}
-              onChange={(e) => setGoals(e.target.value)}
-              disabled={!editable}
-              data-testid="strategy-goals"
-              rows={3}
-            />
-          </label>
-        </section>
-        <section className="oma-form-section">
-          <h2>{t('strategy.foundation.positioning')}</h2>
-          <label className="oma-field-span">
-            <textarea
-              className="oma-input"
-              value={positioning}
-              onChange={(e) => setPositioning(e.target.value)}
-              disabled={!editable}
-              data-testid="strategy-positioning"
-              rows={3}
-            />
-          </label>
-        </section>
-        {message ? (
-          <p className="oma-save-status" data-state="saved" role="status">
-            {message}
-          </p>
-        ) : null}
-        {error ? (
-          <p className="oma-save-status" data-state="error" role="alert">
-            {error}
-          </p>
-        ) : null}
-        {editable ? (
-          <button type="submit" className="oma-btn">
-            {t('strategy.foundation.save')}
-          </button>
-        ) : null}
-      </form>
+      <div className="oma-doc-canvas" data-testid="strategy-document-canvas">
+        <nav className="oma-doc-outline" aria-label={t('strategy.foundation.title')}>
+          <a href="#strategy-goals">{t('strategy.foundation.goals')}</a>
+          <a href="#strategy-positioning">{t('strategy.foundation.positioning')}</a>
+          <a href={`/app/brands/${brandId}/strategies/${strategyId}/organic`}>
+            {t('strategy.nav.organic')}
+          </a>
+          <a href={`/app/brands/${brandId}/strategies/${strategyId}/paid`}>
+            {t('strategy.nav.paid')}
+          </a>
+          <a href={`/app/brands/${brandId}/strategies/${strategyId}/evidence`}>
+            {t('strategy.nav.evidence')}
+          </a>
+        </nav>
+        <form
+          className="oma-panel oma-sectioned-form oma-doc-main"
+          onSubmit={onSave}
+          data-testid="strategy-foundation-form"
+        >
+          <section className="oma-form-section oma-doc-section" id="strategy-goals">
+            <h2>{t('strategy.foundation.goals')}</h2>
+            <p className="oma-help">{t('strategy.list.hint')}</p>
+            <label className="oma-field-span">
+              <textarea
+                className="oma-input"
+                value={goals}
+                onChange={(e) => setGoals(e.target.value)}
+                disabled={!editable}
+                data-testid="strategy-goals"
+                rows={3}
+              />
+            </label>
+          </section>
+          <section className="oma-form-section oma-doc-section" id="strategy-positioning">
+            <h2>{t('strategy.foundation.positioning')}</h2>
+            <label className="oma-field-span">
+              <textarea
+                className="oma-input"
+                value={positioning}
+                onChange={(e) => setPositioning(e.target.value)}
+                disabled={!editable}
+                data-testid="strategy-positioning"
+                rows={3}
+              />
+            </label>
+          </section>
+          {message ? (
+            <p className="oma-save-status" data-state="saved" role="status">
+              {message}
+            </p>
+          ) : null}
+          {error ? (
+            <p className="oma-save-status" data-state="error" role="alert">
+              {error}
+            </p>
+          ) : null}
+          {editable ? (
+            <button type="submit" className="oma-btn">
+              {t('strategy.foundation.save')}
+            </button>
+          ) : null}
+        </form>
+      </div>
     </BrandWorkspaceShell>
   );
 }

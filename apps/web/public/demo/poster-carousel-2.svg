@@ -1,1 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080"><rect width="1080" height="1080" fill="#12A7A1"/><text x="80" y="540" fill="#fff" font-family="system-ui" font-size="64">Slide 2 · Demo</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000" viewBox="0 0 800 1000" role="img" aria-label="OMA carousel frame two">
+  <rect width="800" height="1000" fill="#14151a"/>
+  <rect x="40" y="40" width="720" height="920" rx="20" fill="#1f2230"/>
+  <rect x="80" y="120" width="640" height="360" rx="12" fill="#12a7a1"/>
+  <text x="100" y="300" fill="#0b1210" font-family="Inter, sans-serif" font-size="42" font-weight="700">02 / Detail</text>
+  <text x="100" y="350" fill="#0b1210" font-family="Inter, sans-serif" font-size="22">Texture · material story</text>
+  <rect x="80" y="520" width="120" height="12" rx="6" fill="rgba(255,255,255,0.2)"/>
+  <rect x="220" y="520" width="200" height="12" rx="6" fill="#6658e8"/>
+  <rect x="440" y="520" width="120" height="12" rx="6" fill="rgba(255,255,255,0.2)"/>
+  <text x="80" y="600" fill="#c8cad3" font-family="Inter, sans-serif" font-size="18">Local OMA demo media</text>
+</svg>
