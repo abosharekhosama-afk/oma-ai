@@ -73,3 +73,9 @@
 - `artifacts/owner-remediation-certification-004/videos/` (6 webm)
 - `artifacts/owner-remediation-certification-004/screenshots/` (21 png)
 - `.reference/004-visual-parity/ours/owner-remediation-certification/`
+
+## Final pins
+
+- **Final SHA:** `e6058621fee40e79a0867702213f977086a58c81`
+- **CI:** https://github.com/burhanbakri1-spec/oma-ai/actions/runs/34868545167 — **success**
+- **Certification commits:** `406a156` (cert pack) → `3fabdb9` (e2e stabilize) → `6c7a21d` (screenshots) → `e605862` (lint)
