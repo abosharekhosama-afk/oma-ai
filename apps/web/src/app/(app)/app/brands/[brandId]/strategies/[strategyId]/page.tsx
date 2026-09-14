@@ -19,12 +19,25 @@ import { ConflictBanner } from '../../../../../../../components/strategy/conflic
 import { StrategyStatusBadge } from '../../../../../../../components/strategy/status-badge';
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../components/shell/select-company';
+import {
+  DemoStrategyDocument,
+  isDemoStrategyRoute,
+} from '../../../../../../../components/demo/demo-strategy-document';
 import { useT } from '../../../../../../../lib/use-locale';
 
 export default function StrategyOverviewPage() {
-  const t = useT();
   const params = useParams<{ brandId: string; strategyId: string }>();
   const { brandId, strategyId } = params;
+
+  if (isDemoStrategyRoute(brandId, strategyId)) {
+    return <DemoStrategyDocument brandId={brandId} strategyId={strategyId} />;
+  }
+
+  return <FeatureStrategyOverview brandId={brandId} strategyId={strategyId} />;
+}
+
+function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; strategyId: string }) {
+  const t = useT();
   const [brand, setBrand] = useState<BrandDetail | null>(null);
   const [strategy, setStrategy] = useState<StrategyDetail | null>(null);
   const [brandVersion, setBrandVersion] = useState(1);

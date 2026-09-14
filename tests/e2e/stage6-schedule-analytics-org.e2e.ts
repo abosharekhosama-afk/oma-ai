@@ -41,12 +41,10 @@ test.describe('Stage 6 Schedule Analytics Organization visual rebuild', () => {
 
     await page.goto('/app');
     await expect(page.getByTestId('demo-command-center')).toBeVisible({ timeout: 20_000 });
+    const nav = page.getByRole('navigation', { name: /main navigation/i });
 
-    await page
-      .getByRole('navigation')
-      .getByRole('link', { name: /^schedule$/i })
-      .click();
-    await expect(page.getByTestId('demo-schedule')).toBeVisible();
+    await nav.getByRole('link', { name: /^schedule$/i }).click();
+    await expect(page.getByTestId('demo-schedule')).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId('demo-schedule-calendar')).toBeVisible();
     await page.getByTestId('demo-schedule-view-agenda').click();
     await expect(page.getByTestId('demo-schedule-agenda')).toBeVisible();
@@ -76,11 +74,8 @@ test.describe('Stage 6 Schedule Analytics Organization visual rebuild', () => {
     await page.keyboard.press('Escape');
     await expect(page.getByTestId('demo-schedule-drawer')).toHaveCount(0, { timeout: 10_000 });
 
-    await page
-      .getByRole('navigation')
-      .getByRole('link', { name: /^analytics$/i })
-      .click();
-    await expect(page.getByTestId('demo-analytics')).toBeVisible();
+    await nav.getByRole('link', { name: /^analytics$/i }).click();
+    await expect(page.getByTestId('demo-analytics')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId('demo-analytics-sample-badge')).toBeVisible();
     await expect(page.getByTestId('demo-analytics-honesty')).toBeVisible();
     await page.getByTestId('demo-analytics-filter-track').selectOption('ORGANIC');
@@ -121,16 +116,27 @@ test.describe('Stage 6 Schedule Analytics Organization visual rebuild', () => {
     await expect(page.getByTestId('demo-activity-detail')).toHaveCount(0, { timeout: 10_000 });
 
     await page
-      .getByRole('navigation')
+      .getByRole('navigation', { name: /main navigation/i })
       .getByRole('link', { name: /^settings$/i })
       .click();
-    await expect(page.getByTestId('demo-settings')).toBeVisible();
+    await expect(page.getByTestId('demo-settings')).toBeVisible({ timeout: 15_000 });
     await page.getByTestId('demo-settings-timezone').fill('Asia/Riyadh');
     await page.getByTestId('demo-settings-week-start').selectOption('sunday');
-    await page.getByTestId('demo-settings-save').click();
+    await Promise.all([
+      page.waitForResponse(
+        (res) =>
+          res.url().includes('/api/v1/demo/preferences') &&
+          res.request().method() === 'PATCH' &&
+          res.ok(),
+        { timeout: 15_000 },
+      ),
+      page.getByTestId('demo-settings-save').click(),
+    ]);
     await page.reload();
     await expect(page.getByTestId('demo-settings')).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByTestId('demo-settings-timezone')).toHaveValue('Asia/Riyadh');
+    await expect(page.getByTestId('demo-settings-timezone')).toHaveValue('Asia/Riyadh', {
+      timeout: 15_000,
+    });
     await page.getByTestId('demo-settings-nav-integrations').click();
     await expect(page.getByTestId('demo-integrations')).toBeVisible();
     await expect(

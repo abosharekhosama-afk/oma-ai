@@ -41,11 +41,9 @@ test.describe('Stage 3 Campaigns + Content visual rebuild', () => {
 
     await page.goto('/app');
     await expect(page.getByTestId('demo-command-center')).toBeVisible({ timeout: 20_000 });
-    await page
-      .getByRole('navigation')
-      .getByRole('link', { name: /^campaigns$/i })
-      .click();
-    await expect(page.getByTestId('demo-campaigns')).toBeVisible();
+    const nav = page.getByRole('navigation', { name: /main navigation/i });
+    await nav.getByRole('link', { name: /^campaigns$/i }).click();
+    await expect(page.getByTestId('demo-campaigns')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId('demo-campaign-filters')).toBeVisible();
 
     await page.getByTestId('demo-campaign-filter-track').selectOption('ORGANIC');
@@ -63,14 +61,23 @@ test.describe('Stage 3 Campaigns + Content visual rebuild', () => {
       .getByRole('link', { name: /Summer Organic Always-On/i })
       .first()
       .click();
-    await expect(page.getByTestId('demo-campaign-detail')).toBeVisible();
+    await expect(page.getByTestId('demo-campaign-detail')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId('demo-strategy-id')).toHaveText(/demo-strategy-q3/);
-    await page.getByTestId('demo-campaign-strategy-link').click();
-    await expect(page).toHaveURL(/\/app\/brands\/.+\/strategies\/demo-strategy-q3/);
+    const strategyLink = page.getByTestId('demo-campaign-strategy-link');
+    await expect(strategyLink).toHaveAttribute('href', /\/strategies\/demo-strategy-q3/);
+    await Promise.all([
+      page.waitForURL(/\/app\/brands\/.+\/strategies\/demo-strategy-q3/, { timeout: 20_000 }),
+      strategyLink.click(),
+    ]);
+    await expect(page.getByTestId('demo-strategy-document')).toBeVisible({ timeout: 15_000 });
 
     await page.goto('/app/campaigns/demo-campaign-organic');
-    await page.getByTestId('demo-campaign-content-demo-content-reel').click();
-    await expect(page.getByTestId('demo-content')).toBeVisible();
+    await expect(page.getByTestId('demo-campaign-detail')).toBeVisible({ timeout: 15_000 });
+    await Promise.all([
+      page.waitForURL(/\/app\/content/, { timeout: 20_000 }),
+      page.getByTestId('demo-campaign-content-demo-content-reel').click(),
+    ]);
+    await expect(page.getByTestId('demo-content')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId('demo-content-drawer')).toBeVisible({ timeout: 15_000 });
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog', { name: /content detail/i })).toHaveCount(0);

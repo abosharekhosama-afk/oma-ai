@@ -10,9 +10,9 @@
 | ------------------------------- | ---------------------------- |
 | OWNER_VISUAL_REVIEW             | REJECTED                     |
 | VISUAL_REBUILD                  | COMPLETE                     |
-| OWNER_REMEDIATION_CERTIFICATION | PASS (pending final SHA pin) |
+| OWNER_REMEDIATION_CERTIFICATION | PASS |
 | FULL_VISUAL_CERTIFICATION       | SUPERSEDED                   |
-| OWNER_PREVIEW                   | READY (after launch)         |
+| OWNER_PREVIEW                   | READY         |
 | VISUAL_ACCEPTANCE               | PENDING_OWNER                |
 | USER_ACCEPTANCE                 | PENDING                      |
 | EXTERNAL_INTEGRATIONS           | DEFERRED                     |

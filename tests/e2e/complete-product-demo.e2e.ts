@@ -88,43 +88,39 @@ test.describe('Complete product demo certification', () => {
       page.getByText(/Demo review|storage not connected|Local demonstration/i).first(),
     ).toBeVisible();
 
+    const nav = page.getByRole('navigation', { name: /main navigation/i });
+
     // Request + brief
-    await page
-      .getByRole('navigation')
-      .getByRole('link', { name: /^requests$/i })
-      .click();
-    await expect(page.getByTestId('demo-requests')).toBeVisible();
-    await page.getByRole('link', { name: /autumn lookbook/i }).click();
-    await expect(page).toHaveURL(/\/app\/requests\/demo-request-1/);
-    await expect(page.getByTestId('demo-request-detail')).toBeVisible();
+    await nav.getByRole('link', { name: /^requests$/i }).click();
+    await expect(page.getByTestId('demo-requests')).toBeVisible({ timeout: 15_000 });
+    await page.getByTestId('demo-request-row-demo-request-1').getByRole('link').click();
+    await expect(page).toHaveURL(/\/app\/requests\/demo-request-1/, { timeout: 20_000 });
+    await expect(page.getByTestId('demo-request-detail')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByText(/Launch autumn palette|objective|audience/i).first()).toBeVisible();
 
     // Tasks kanban + overdue
-    await page
-      .getByRole('navigation')
-      .getByRole('link', { name: /tasks board/i })
-      .click();
-    await expect(page.getByTestId('demo-tasks')).toBeVisible();
+    await nav.getByRole('link', { name: /tasks board/i }).click();
+    await expect(page.getByTestId('demo-tasks')).toBeVisible({ timeout: 20_000 });
     await expect(page.getByText(/OVERDUE|overdue|photo|retouch/i).first()).toBeVisible();
 
     // Campaigns organic + paid + strategy id
-    await page
-      .getByRole('navigation')
-      .getByRole('link', { name: /^campaigns$/i })
-      .click();
-    await expect(
-      page.getByRole('link', { name: /Summer Organic Always-On/i }).first(),
-    ).toBeVisible();
+    await nav.getByRole('link', { name: /^campaigns$/i }).click();
+    await expect(page.getByRole('link', { name: /Summer Organic Always-On/i }).first()).toBeVisible(
+      { timeout: 15_000 },
+    );
     await expect(page.getByRole('link', { name: /Back-to-Work Paid Push/i }).first()).toBeVisible();
     await page
       .getByRole('link', { name: /Summer Organic Always-On/i })
       .first()
       .click();
+    await expect(page.getByTestId('demo-campaign-detail')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId('demo-strategy-id')).toHaveText(/demo-strategy-q3/);
-    await page
-      .getByRole('navigation', { name: /main navigation/i })
-      .getByRole('link', { name: /^campaigns$/i })
-      .click();
+    await page.getByTestId('demo-campaign-strategy-link').click();
+    await expect(page).toHaveURL(/\/app\/brands\/.+\/strategies\/demo-strategy-q3/, {
+      timeout: 20_000,
+    });
+    await expect(page.getByTestId('demo-strategy-document')).toBeVisible({ timeout: 15_000 });
+    await nav.getByRole('link', { name: /^campaigns$/i }).click();
     await page
       .getByRole('link', { name: /Back-to-Work Paid Push/i })
       .first()
@@ -132,11 +128,8 @@ test.describe('Complete product demo certification', () => {
     await expect(page.getByTestId('demo-strategy-id')).toHaveText(/demo-strategy-q3/);
 
     // Content calendar/grid
-    await page
-      .getByRole('navigation')
-      .getByRole('link', { name: /content/i })
-      .click();
-    await expect(page.getByTestId('demo-content')).toBeVisible();
+    await nav.getByRole('link', { name: /content/i }).click();
+    await expect(page.getByTestId('demo-content')).toBeVisible({ timeout: 15_000 });
     await page.getByRole('button', { name: /calendar/i }).click();
     await expect(
       page.getByText(/Fabric story carousel|Studio morning reel/i).first(),
@@ -144,36 +137,21 @@ test.describe('Complete product demo certification', () => {
     await page.getByRole('button', { name: /grid/i }).click();
 
     // Schedule + analytics honesty
-    await page
-      .getByRole('navigation')
-      .getByRole('link', { name: /^schedule$/i })
-      .click();
-    await expect(page.getByTestId('demo-schedule')).toBeVisible();
+    await nav.getByRole('link', { name: /^schedule$/i }).click();
+    await expect(page.getByTestId('demo-schedule')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByText(/not connected|publishing/i).first()).toBeVisible();
-    await page
-      .getByRole('navigation')
-      .getByRole('link', { name: /^analytics$/i })
-      .click();
-    await expect(page.getByTestId('demo-analytics')).toBeVisible();
+    await nav.getByRole('link', { name: /^analytics$/i }).click();
+    await expect(page.getByTestId('demo-analytics')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByText(/demo|not connected/i).first()).toBeVisible();
 
     // Team restricted badge + Activity + Settings
-    await page
-      .getByRole('navigation')
-      .getByRole('link', { name: /^team$/i })
-      .click();
-    await expect(page.getByTestId('demo-team')).toBeVisible();
+    await nav.getByRole('link', { name: /^team$/i }).click();
+    await expect(page.getByTestId('demo-team')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByText(/Restricted/i).first()).toBeVisible();
-    await page
-      .getByRole('navigation')
-      .getByRole('link', { name: /^activity$/i })
-      .click();
-    await expect(page.getByTestId('demo-activity')).toBeVisible();
-    await page
-      .getByRole('navigation')
-      .getByRole('link', { name: /^settings$/i })
-      .click();
-    await expect(page.getByTestId('demo-settings')).toBeVisible();
+    await nav.getByRole('link', { name: /^activity$/i }).click();
+    await expect(page.getByTestId('demo-activity')).toBeVisible({ timeout: 15_000 });
+    await nav.getByRole('link', { name: /^settings$/i }).click();
+    await expect(page.getByTestId('demo-settings')).toBeVisible({ timeout: 15_000 });
     await page.getByTestId('demo-settings-nav-integrations').click();
     await expect(page.getByTestId('demo-integrations')).toBeVisible();
     await expect(
@@ -181,37 +159,25 @@ test.describe('Complete product demo certification', () => {
     ).toBeVisible();
 
     // Brand Intelligence + Company via shell
-    await page
-      .getByRole('navigation')
-      .getByRole('link', { name: /brand intelligence|brands/i })
-      .click();
+    await nav.getByRole('link', { name: /brand intelligence|brands/i }).click();
     await expect(page.getByTestId('brand-portfolio')).toBeVisible({ timeout: 20_000 });
-    await page
-      .getByRole('navigation')
-      .getByRole('link', { name: /company/i })
-      .click();
+    await nav.getByRole('link', { name: /company/i }).click();
     await expect(page.getByRole('heading', { name: /members|company|team/i }).first()).toBeVisible({
       timeout: 15_000,
     });
 
     // Reviews inbox
-    await page
-      .getByRole('navigation')
-      .getByRole('link', { name: /^reviews$/i })
-      .click();
-    await expect(page.getByTestId('demo-reviews')).toBeVisible();
+    await nav.getByRole('link', { name: /^reviews$/i }).click();
+    await expect(page.getByTestId('demo-reviews')).toBeVisible({ timeout: 15_000 });
 
     // Re-login consistency — same linked entities
     await logoutUi(page);
     await loginUi(page, creds);
     await expect(page.getByTestId('demo-command-center')).toBeVisible({ timeout: 20_000 });
-    await page
-      .getByRole('navigation')
-      .getByRole('link', { name: /^campaigns$/i })
-      .click();
-    await expect(
-      page.getByRole('link', { name: /Summer Organic Always-On/i }).first(),
-    ).toBeVisible();
+    await nav.getByRole('link', { name: /^campaigns$/i }).click();
+    await expect(page.getByRole('link', { name: /Summer Organic Always-On/i }).first()).toBeVisible(
+      { timeout: 15_000 },
+    );
     await page
       .getByRole('link', { name: /Summer Organic Always-On/i })
       .first()

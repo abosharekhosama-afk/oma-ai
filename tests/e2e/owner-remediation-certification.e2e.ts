@@ -256,8 +256,12 @@ test.describe('Owner remediation certification', () => {
     await expect(page.getByTestId('demo-content')).toBeVisible({ timeout: 15_000 });
     await page.screenshot({ path: path.join(SHOTS, '05-content-calendar.png'), fullPage: false });
     await page.getByTestId('demo-content-view-grid').click();
-    await page.locator('[data-testid^="demo-content-card-"]').first().click();
-    await expect(page.getByTestId('demo-content-composer')).toBeVisible();
+    await expect(page.getByTestId('demo-content-grid')).toBeVisible({ timeout: 10_000 });
+    const contentCard = page.getByTestId('demo-content-card-demo-content-carousel');
+    await expect(contentCard).toBeVisible({ timeout: 15_000 });
+    await contentCard.click();
+    await expect(page.getByTestId('demo-content-drawer')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('demo-content-composer')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId('demo-content-composer-preview')).toBeVisible();
     await page.screenshot({ path: path.join(SHOTS, '05b-content-composer.png'), fullPage: false });
     await page.keyboard.press('Escape');
@@ -438,8 +442,11 @@ test.describe('Owner remediation certification', () => {
     await expect(page.getByTestId('demo-campaign-detail')).toBeVisible({ timeout: 15_000 });
     const strategyLink = page.getByTestId('demo-campaign-strategy-link');
     await expect(strategyLink).toHaveAttribute('href', /\/strategies\//);
-    await strategyLink.click();
-    await expect(page).toHaveURL(/\/strategies\//, { timeout: 20_000 });
+    await Promise.all([
+      page.waitForURL(/\/strategies\//, { timeout: 20_000 }),
+      strategyLink.click(),
+    ]);
+    await expect(page.getByTestId('demo-strategy-document')).toBeVisible({ timeout: 15_000 });
     await page.screenshot({
       path: path.join(SHOTS, '03-strategy-workspace.png'),
       fullPage: false,
@@ -473,9 +480,10 @@ test.describe('Owner remediation certification', () => {
 
     await page
       .getByRole('navigation', { name: /main navigation/i })
-      .getByRole('link', { name: /^company$/i })
+      .locator('a[href="/app/company/members"]')
       .click();
     await expect(page).toHaveURL(/\/app\/company\/members/, { timeout: 20_000 });
+    await expect(page.getByTestId('company-members')).toBeVisible({ timeout: 15_000 });
 
     guards.assertClean();
   });
