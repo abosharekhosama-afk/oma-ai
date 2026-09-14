@@ -6,17 +6,17 @@
 
 ## Binding status (owner acceptance not auto-changed)
 
-| State                           | Value                        |
-| ------------------------------- | ---------------------------- |
-| OWNER_VISUAL_REVIEW             | REJECTED                     |
-| VISUAL_REBUILD                  | COMPLETE                     |
-| OWNER_REMEDIATION_CERTIFICATION | PASS |
-| FULL_VISUAL_CERTIFICATION       | SUPERSEDED                   |
-| OWNER_PREVIEW                   | READY         |
-| VISUAL_ACCEPTANCE               | PENDING_OWNER                |
-| USER_ACCEPTANCE                 | PENDING                      |
-| EXTERNAL_INTEGRATIONS           | DEFERRED                     |
-| DEMO_MODULES                    | NOT_PRODUCTION_COMPLETE      |
+| State                           | Value                   |
+| ------------------------------- | ----------------------- |
+| OWNER_VISUAL_REVIEW             | REJECTED                |
+| VISUAL_REBUILD                  | COMPLETE                |
+| OWNER_REMEDIATION_CERTIFICATION | PASS                    |
+| FULL_VISUAL_CERTIFICATION       | SUPERSEDED              |
+| OWNER_PREVIEW                   | READY                   |
+| VISUAL_ACCEPTANCE               | PENDING_OWNER           |
+| USER_ACCEPTANCE                 | PENDING                 |
+| EXTERNAL_INTEGRATIONS           | DEFERRED                |
+| DEMO_MODULES                    | NOT_PRODUCTION_COMPLETE |
 
 ## Owner objections answered (independent)
 
@@ -76,6 +76,7 @@
 
 ## Final pins
 
-- **Final SHA:** `e6058621fee40e79a0867702213f977086a58c81`
-- **CI:** https://github.com/burhanbakri1-spec/oma-ai/actions/runs/34868545167 — **success**
-- **Certification commits:** `406a156` (cert pack) → `3fabdb9` (e2e stabilize) → `6c7a21d` (screenshots) → `e605862` (lint)
+- **Starting SHA:** `58949616b9c0a22d59ae2b00f196cea181552559`
+- **Certification commits:** `406a156` → `3fabdb9` → `6c7a21d` → `e605862` → `0ad467c` (docs pin) → `1f92097` (demo strategy + E2E harden)
+- **Final SHA:** _(pinned after green CI on tip)_
+- **CI (prior green cert gate):** https://github.com/burhanbakri1-spec/oma-ai/actions/runs/34868545167 — **success**
