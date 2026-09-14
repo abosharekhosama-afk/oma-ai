@@ -175,7 +175,15 @@ test.describe('Stage 5 Deliverables + Reviews visual rebuild', () => {
       await page.goto('/app/deliverables');
       await expect(page.getByTestId('demo-deliverables')).toBeVisible({ timeout: 20_000 });
       await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
-      await page.getByTestId('demo-deliv-row-demo-deliv-static').getByRole('link').click();
+      // Grid is default after surface-depth; open via grid card or table row.
+      if (await page.getByTestId('demo-deliv-grid').count()) {
+        await page
+          .locator('[data-testid^="demo-deliv-card-"], a[href*="/app/deliverables/"]')
+          .first()
+          .click();
+      } else {
+        await page.getByTestId('demo-deliv-row-demo-deliv-static').getByRole('link').click();
+      }
       await expect(page.getByTestId('demo-deliverable-detail')).toBeVisible({ timeout: 15_000 });
       await page.getByTestId('demo-open-review').click();
       await expect(page.getByTestId('demo-review-workspace')).toBeVisible();

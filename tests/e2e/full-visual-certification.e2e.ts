@@ -62,7 +62,10 @@ test.describe('Full visual product certification', () => {
     page,
     request,
   }, testInfo) => {
-    test.skip(testInfo.project.name !== 'en-desktop', 'intentional: primary cert on en-desktop');
+    test.skip(
+      true,
+      'SUPERSEDED by OWNER_REMEDIATION_CERTIFICATION (owner-remediation-certification.e2e.ts); prior FULL_VISUAL_CERTIFICATION revoked by owner rejection',
+    );
     const guards = attachGuards(page);
     await page.setViewportSize({ width: 1440, height: 900 });
     const owner = await installOwnerSession(page, request);
@@ -105,7 +108,7 @@ test.describe('Full visual product certification', () => {
     await expect(page.getByTestId('demo-request-detail')).toBeVisible({ timeout: 20_000 });
     await expect(page.getByText(/Launch autumn palette|objective|audience/i).first()).toBeVisible();
 
-    await nav(page, /^Tasks$|^المهام$/i, /\/app\/tasks/);
+    await nav(page, /Tasks board|^Tasks$|^المهام$/i, /\/app\/tasks/);
     await expect(page.getByTestId('demo-tasks')).toBeVisible({ timeout: 20_000 });
     await page.goto('/app/tasks?task=demo-task-design');
     await expect(page.getByTestId('demo-task-drawer')).toBeVisible({ timeout: 15_000 });
@@ -222,9 +225,9 @@ test.describe('Full visual product certification', () => {
       await expect(page.getByTestId('demo-schedule')).toBeVisible({ timeout: 20_000 });
     } else if (project === 'en-tablet') {
       await page.setViewportSize({ width: 1024, height: 768 });
-      await nav(page, /^Tasks$/i, /\/app\/tasks/);
+      await nav(page, /Tasks board|المهام|Tasks/i, /\/app\/tasks/);
       await expect(page.getByTestId('demo-tasks')).toBeVisible({ timeout: 20_000 });
-      await nav(page, /^Campaigns$/i, /\/app\/campaigns/);
+      await nav(page, /^Campaigns$|الحملات/i, /\/app\/campaigns/);
       await expect(page.getByTestId('demo-campaigns')).toBeVisible({ timeout: 20_000 });
     } else {
       await page.setViewportSize({ width: 390, height: 844 });

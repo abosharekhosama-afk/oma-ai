@@ -82,13 +82,16 @@ const VIDEO_NAMES: Record<string, string> = {
 };
 
 test.use({
-  video: { mode: 'on', size: { width: 1440, height: 900 } },
+  // Videos already archived under artifacts/; enable locally with OMA_CERT_VIDEO=1.
+  video:
+    process.env.OMA_CERT_VIDEO === '1' ? { mode: 'on', size: { width: 1440, height: 900 } } : 'off',
 });
 
 test.describe('Owner remediation certification', () => {
   test.describe.configure({ mode: 'serial' });
 
   test.afterEach(async ({ page }, testInfo) => {
+    if (process.env.OMA_CERT_VIDEO !== '1') return;
     const destName = VIDEO_NAMES[testInfo.title];
     if (!destName) return;
     if (testInfo.status !== 'passed' && testInfo.status !== 'skipped') return;
@@ -422,7 +425,7 @@ test.describe('Owner remediation certification', () => {
     await expect(page.getByTestId('brand-portfolio')).toBeVisible({ timeout: 20_000 });
     await page.screenshot({ path: path.join(SHOTS, '02-brand-portfolio.png'), fullPage: false });
 
-    // Strategy via Campaign → linked strategy (discoverable handoff)
+    // Strategy handoff: Campaign detail exposes linked strategy (href + navigation when available)
     await page
       .getByRole('navigation', { name: /main navigation/i })
       .getByRole('link', { name: /campaigns/i })
@@ -433,23 +436,16 @@ test.describe('Owner remediation certification', () => {
       .first()
       .click();
     await expect(page.getByTestId('demo-campaign-detail')).toBeVisible({ timeout: 15_000 });
-    await page.getByTestId('demo-campaign-strategy-link').click();
-    await expect(page).toHaveURL(/\/strategies\//);
-    const foundationEdit = page.locator('a[href$="/edit"]').first();
-    if (await foundationEdit.count()) {
-      await foundationEdit.click();
-    }
-    if (await page.getByTestId('strategy-document-canvas').count()) {
-      await expect(page.getByTestId('strategy-document-canvas')).toBeVisible({ timeout: 15_000 });
-      await page.screenshot({ path: path.join(SHOTS, '03-strategy-canvas.png'), fullPage: false });
-    } else {
-      await page.screenshot({
-        path: path.join(SHOTS, '03-strategy-workspace.png'),
-        fullPage: false,
-      });
-    }
+    const strategyLink = page.getByTestId('demo-campaign-strategy-link');
+    await expect(strategyLink).toHaveAttribute('href', /\/strategies\//);
+    await strategyLink.click();
+    await expect(page).toHaveURL(/\/strategies\//, { timeout: 20_000 });
+    await page.screenshot({
+      path: path.join(SHOTS, '03-strategy-workspace.png'),
+      fullPage: false,
+    });
 
-    // Brand Intelligence canvas — create brand via portfolio CTA when empty
+    // Brand create via portfolio CTA when empty — proves BI entry without URL memorization
     await page
       .getByRole('navigation', { name: /main navigation/i })
       .getByRole('link', { name: /brand intelligence/i })
@@ -470,23 +466,16 @@ test.describe('Owner remediation certification', () => {
       await page.getByRole('button', { name: /create brand/i }).click();
       await expect(page).toHaveURL(/\/app\/brands\/[^/]+/, { timeout: 20_000 });
     }
-    if (await page.getByTestId('brand-intelligence-canvas').count()) {
-      await page.screenshot({
-        path: path.join(SHOTS, '02b-brand-intelligence-canvas.png'),
-        fullPage: false,
-      });
-    } else {
-      await expect(page.getByTestId('brand-workspace').or(page.locator('h1'))).toBeVisible({
-        timeout: 15_000,
-      });
-      await page.screenshot({ path: path.join(SHOTS, '02b-brand-workspace.png'), fullPage: false });
-    }
+    await expect(page.getByTestId('brand-workspace').or(page.locator('h1'))).toBeVisible({
+      timeout: 15_000,
+    });
+    await page.screenshot({ path: path.join(SHOTS, '02b-brand-workspace.png'), fullPage: false });
 
     await page
       .getByRole('navigation', { name: /main navigation/i })
       .getByRole('link', { name: /^company$/i })
       .click();
-    await expect(page).toHaveURL(/\/app\/company\/members/);
+    await expect(page).toHaveURL(/\/app\/company\/members/, { timeout: 20_000 });
 
     guards.assertClean();
   });

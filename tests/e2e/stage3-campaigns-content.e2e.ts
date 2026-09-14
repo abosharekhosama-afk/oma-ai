@@ -138,7 +138,13 @@ test.describe('Stage 3 Campaigns + Content visual rebuild', () => {
     await page.setViewportSize({ width: 1024, height: 768 });
     await page.goto('/app/campaigns');
     await expect(page.getByTestId('demo-campaigns')).toBeVisible();
-    await expect(page.locator('.oma-campaign-table').first()).toBeVisible();
+    // Portfolio is default after surface-depth rebuild; table remains available.
+    if (await page.getByTestId('demo-campaigns-view-table').count()) {
+      await page.getByTestId('demo-campaigns-view-table').click();
+    }
+    await expect(
+      page.locator('.oma-campaign-table, [data-testid="demo-campaign-portfolio"]').first(),
+    ).toBeVisible();
   });
 
   test('mobile 390 calendar agenda + content drawer', async ({ page, request }, testInfo) => {

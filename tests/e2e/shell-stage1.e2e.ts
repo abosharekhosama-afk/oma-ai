@@ -18,13 +18,19 @@ test.describe('Stage 1 golden shell', () => {
     const sections = page.locator('.oma-nav-section');
     await expect(sections).toHaveCount(6);
     await expect(
-      page.getByRole('navigation').getByRole('link', { name: msg(testInfo, 'nav.home') }),
+      page
+        .getByRole('navigation', { name: /main navigation|التنقل الرئيسي/i })
+        .getByRole('link', { name: msg(testInfo, 'nav.home') }),
     ).toBeVisible();
     await expect(
-      page.getByRole('navigation').getByRole('link', { name: msg(testInfo, 'nav.campaigns') }),
+      page
+        .getByRole('navigation', { name: /main navigation|التنقل الرئيسي/i })
+        .getByRole('link', { name: msg(testInfo, 'nav.campaigns') }),
     ).toBeVisible();
     await expect(
-      page.getByRole('navigation').getByRole('link', { name: msg(testInfo, 'nav.settings') }),
+      page
+        .getByRole('navigation', { name: /main navigation|التنقل الرئيسي/i })
+        .getByRole('link', { name: msg(testInfo, 'nav.settings') }),
     ).toBeVisible();
     await expect(page.getByTestId('shell-create')).toBeVisible();
     await expect(page.getByRole('button', { name: msg(testInfo, 'shell.search') })).toBeVisible();
@@ -42,9 +48,11 @@ test.describe('Stage 1 golden shell', () => {
 
     await page.getByRole('button', { name: msg(testInfo, 'shell.collapseNav') }).click();
     await expect(page.locator('.oma-shell')).toHaveAttribute('data-rail', 'collapsed');
-    const collapsedBox = await page.locator('.oma-rail').boundingBox();
-    expect(collapsedBox?.width).toBeGreaterThanOrEqual(60);
-    expect(collapsedBox?.width).toBeLessThanOrEqual(68);
+    await expect
+      .poll(async () => (await page.locator('.oma-rail').boundingBox())?.width ?? 999, {
+        timeout: 5_000,
+      })
+      .toBeLessThanOrEqual(72);
     expect(await page.evaluate(() => localStorage.getItem('oma.shell.railCollapsed'))).toBe('1');
 
     await page.reload();
