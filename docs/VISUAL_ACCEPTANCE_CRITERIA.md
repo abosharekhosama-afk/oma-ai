@@ -1,8 +1,8 @@
 # Visual Acceptance Criteria — OMA Full Product Experience
 
-**Status:** Binding for Stages 1–7  
-**Baseline rejected:** functional demo at `f3f450d`  
-**How to prove:** Playwright visual journeys + measured DOM/styles + screenshots with git SHA metadata.  
+**Status:** Binding for Stages 1–7
+**Baseline rejected:** functional demo at `f3f450d`
+**How to prove:** Playwright visual journeys + measured DOM/styles + screenshots with git SHA metadata.
 **Forbidden proofs alone:** route exists, tests green, “looks Linear-like.”
 
 ## Global rules (all stages)
@@ -126,15 +126,16 @@
 | V-CERT-03 | No VG-001…004 blockers remain                                       |
 | V-CERT-04 | Owner visual session recorded as ACCEPTED or explicit residual list |
 
-**Stage 7 status:** Full Visual Certification pack on `004-oma-complete-product-demo`.
+**Stage 7 status:** Full Visual Certification pack was produced, then **invalidated by owner visual rejection** (2026-09-14).
 
-- Evidence: `artifacts/full-visual-certification-004/` + `.reference/004-visual-parity/ours/full-certification/`
-- Journey: `tests/e2e/full-visual-certification.e2e.ts`
-- Matrix: `artifacts/full-visual-certification-004/CERTIFICATION_MATRIX.md`
-- Owner preview: `pnpm review:004` (DB `oma_ai_visual_cert_004`)
-- **VISUAL_ACCEPTANCE:** `PENDING_OWNER` (owner alone may set ACCEPTED)
+- Evidence (historical): `artifacts/full-visual-certification-004/` + `.reference/004-visual-parity/ours/full-certification/`
+- Owner remediation evidence: `artifacts/owner-rejection-remediation-004/` + `.reference/004-visual-parity/ours/owner-remediation/`
+- **OWNER_VISUAL_REVIEW:** `REJECTED`
+- **VISUAL_REBUILD:** `IN_PROGRESS` (core experience reopen)
+- **FULL_VISUAL_CERTIFICATION:** `INVALIDATED_BY_OWNER` / `REVOKED`
+- **VISUAL_ACCEPTANCE:** `REJECTED`
 - **USER_ACCEPTANCE:** `PENDING`
-- V-CERT-04 remains owner-owned; certification does not auto-ACCEPT.
+- Do not treat green tests or prior Stage 7 PASS as visual acceptance.
 
 ---
 

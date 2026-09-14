@@ -7,6 +7,14 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+
+  .oma-kanban-card.is-dragging,
+  .oma-drawer,
+  .oma-dialog,
+  .oma-rail {
+    transition: none !important;
+    transform: none !important;
+  }
 }
 
 .oma-fade {
@@ -19,4 +27,56 @@
   transition:
     opacity var(--motion-panel) var(--motion-ease),
     transform var(--motion-panel) var(--motion-ease);
+}
+
+.oma-surface-transition {
+  transition:
+    background-color var(--motion-micro) var(--motion-ease),
+    border-color var(--motion-micro) var(--motion-ease),
+    box-shadow var(--motion-micro) var(--motion-ease),
+    color var(--motion-micro) var(--motion-ease);
+}
+
+.oma-rail,
+.oma-drawer,
+.oma-dialog-panel,
+.oma-popover,
+.oma-toast {
+  transition:
+    transform var(--motion-panel) var(--motion-ease),
+    opacity var(--motion-panel) var(--motion-ease),
+    width var(--motion-panel) var(--motion-ease);
+}
+
+.oma-kanban-card {
+  transition:
+    box-shadow var(--motion-micro) var(--motion-ease),
+    border-color var(--motion-micro) var(--motion-ease),
+    transform var(--motion-micro) var(--motion-ease),
+    opacity var(--motion-micro) var(--motion-ease);
+}
+
+.oma-kanban-card.is-dragging {
+  box-shadow: var(--elev-2);
+  transform: scale(1.02);
+  opacity: 0.96;
+  z-index: 5;
+  cursor: grabbing;
+}
+
+.oma-kanban-card.is-overlay {
+  cursor: grabbing;
+  box-shadow: var(--elev-2);
+}
+
+.oma-kanban-drop-indicator {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--oma-primary);
+  margin: 2px 0;
+}
+
+.oma-kanban-col.is-over {
+  border-color: var(--oma-primary);
+  background: color-mix(in srgb, var(--oma-primary-soft) 55%, var(--oma-canvas));
 }

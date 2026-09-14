@@ -20,6 +20,19 @@ body {
   font-family: var(--font-sans);
   font-size: var(--text-body);
   line-height: var(--leading-body);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-tight);
+}
+html[lang='ar'] body {
+  font-family: var(--font-arabic), var(--font-sans);
+  line-height: 1.55;
+}
+.oma-page-title,
+h1 {
+  font-size: var(--text-title);
+  line-height: var(--leading-title);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-tight);
 }
 a {
   color: inherit;

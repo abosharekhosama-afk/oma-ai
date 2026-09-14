@@ -17,6 +17,7 @@ import {
   isDemoForbidden,
   pickCopy,
 } from '../../../../lib/demo/use-demo-api';
+import { TasksKanbanBoard } from '../../../../components/demo/tasks-kanban-board';
 import {
   BOARD_COLUMNS,
   EMPTY_TASK_FILTERS,
@@ -46,6 +47,7 @@ export default function TasksPage() {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [view, setView] = useState<ViewMode>('board');
+  const [prefsLoaded, setPrefsLoaded] = useState(false);
   const [filters, setFilters] = useState<TaskFilters>(EMPTY_TASK_FILTERS);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -89,13 +91,51 @@ export default function TasksPage() {
   }, [load]);
 
   useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const prefs = await demoApi<{ defaultTaskView: ViewMode }>('/preferences');
+        if (cancelled) return;
+        if (prefs.defaultTaskView !== 'board' && prefs.defaultTaskView !== 'list') return;
+        const urlView = new URLSearchParams(window.location.search).get('view');
+        if (urlView !== 'board' && urlView !== 'list') {
+          setView(prefs.defaultTaskView);
+        }
+      } catch {
+        /* keep board default */
+      } finally {
+        if (!cancelled) setPrefsLoaded(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     const task = searchParams.get('task');
     if (!task) {
       setSelectedId(null);
-      return;
+    } else {
+      setSelectedId(task);
     }
-    setSelectedId(task);
+    const urlView = searchParams.get('view');
+    if (urlView === 'board' || urlView === 'list') {
+      setView(urlView);
+    }
   }, [searchParams]);
+
+  async function changeView(next: ViewMode) {
+    setView(next);
+    try {
+      await demoApi('/preferences', {
+        method: 'PATCH',
+        body: JSON.stringify({ defaultTaskView: next }),
+      });
+    } catch {
+      /* non-blocking */
+    }
+  }
 
   const filtered = useMemo(() => filterTasks(rows, filters, locale), [rows, filters, locale]);
   const byBoard = useMemo(() => groupTasksByBoard(filtered), [filtered]);
@@ -257,7 +297,12 @@ export default function TasksPage() {
     ).filter((s) => canTransitionTaskStatus(status, s));
 
   return (
-    <div className="oma-stack" data-testid="demo-tasks">
+    <div
+      className="oma-stack"
+      data-testid="demo-tasks"
+      data-view={view}
+      data-prefs={prefsLoaded ? '1' : '0'}
+    >
       <PageHeader
         title={t('demo.tasks.title')}
         description={t('demo.tasks.subtitle')}
@@ -269,7 +314,7 @@ export default function TasksPage() {
                 className="oma-btn oma-btn-secondary"
                 aria-pressed={view === 'board'}
                 data-testid="demo-tasks-view-board"
-                onClick={() => setView('board')}
+                onClick={() => void changeView('board')}
               >
                 {t('demo.view.kanban')}
               </button>
@@ -278,7 +323,7 @@ export default function TasksPage() {
                 className="oma-btn oma-btn-secondary"
                 aria-pressed={view === 'list'}
                 data-testid="demo-tasks-view-list"
-                onClick={() => setView('list')}
+                onClick={() => void changeView('list')}
               >
                 {t('demo.view.list')}
               </button>
@@ -437,84 +482,12 @@ export default function TasksPage() {
           {filtered.length === 0 ? (
             <EmptyState title={t('demo.empty')} body={t('demo.tasks.emptyHint')} />
           ) : view === 'board' ? (
-            <div className="oma-kanban" data-testid="demo-tasks-board">
-              {BOARD_COLUMNS.map((col) => (
-                <section
-                  key={col.id}
-                  className="oma-kanban-col"
-                  data-testid={`demo-kanban-${col.id}`}
-                >
-                  <h3>
-                    <span>{col.id}</span>
-                    <span>{byBoard[col.id]?.length ?? 0}</span>
-                  </h3>
-                  <div className="oma-kanban-cards">
-                    {(byBoard[col.id] ?? []).map((task) => {
-                      const progress = checklistProgress(task);
-                      return (
-                        <div
-                          key={task.id}
-                          className="oma-kanban-card"
-                          data-overdue={taskIsOverdue(task) ? 'true' : 'false'}
-                          data-testid={`demo-task-card-${task.id}`}
-                        >
-                          <button
-                            type="button"
-                            className="oma-linkish"
-                            style={{
-                              all: 'unset',
-                              cursor: 'pointer',
-                              display: 'grid',
-                              gap: 4,
-                            }}
-                            onClick={() => openTask(task.id)}
-                          >
-                            <strong>{pickCopy(task.title, locale)}</strong>
-                            <div className="oma-chip-row">
-                              <StatusChip status={task.priority} />
-                              <span className="oma-kanban-meta">{task.type}</span>
-                            </div>
-                            <div className="oma-kanban-meta">
-                              {task.assignee} · {task.dueAt}
-                              {taskIsOverdue(task) ? ` · ${t('demo.requests.overdue')}` : ''}
-                            </div>
-                            {task.requestId || task.campaignId ? (
-                              <div className="oma-kanban-meta">
-                                {task.campaignId ?? ''} {task.requestId ?? ''}
-                              </div>
-                            ) : null}
-                            {progress.total ? (
-                              <div className="oma-kanban-meta">
-                                {progress.done}/{progress.total}
-                              </div>
-                            ) : null}
-                            {task.status === 'BLOCKED' ? (
-                              <div className="oma-kanban-meta">{t('demo.tasks.blocked')}</div>
-                            ) : null}
-                          </button>
-                          <label className="oma-kanban-meta">
-                            {t('demo.tasks.move')}
-                            <select
-                              className="oma-select"
-                              value={task.status}
-                              aria-label={`${t('demo.tasks.move')} ${pickCopy(task.title, locale)}`}
-                              data-testid={`demo-task-move-${task.id}`}
-                              onChange={(e) => void patchTask(task.id, { status: e.target.value })}
-                            >
-                              {moveOptions(task.status).map((s) => (
-                                <option key={s} value={s}>
-                                  {s}
-                                </option>
-                              ))}
-                            </select>
-                          </label>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </section>
-              ))}
-            </div>
+            <TasksKanbanBoard
+              byBoard={byBoard}
+              onOpenTask={openTask}
+              disabled={saving}
+              onMoveTask={(id, status) => patchTask(id, { status })}
+            />
           ) : (
             <>
               <div className="oma-req-table-wrap oma-task-desktop" data-testid="demo-tasks-list">

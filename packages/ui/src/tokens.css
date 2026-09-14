@@ -22,13 +22,13 @@
   --status-danger: #c43d4b;
   --status-neutral: #667085;
 
-  /* Typography */
+  /* Typography — Owner rejection of IBM Plex (2026-09-14): Inter + Noto Arabic */
   --font-sans:
-    var(--font-plex-sans), 'IBM Plex Sans', var(--font-noto-arabic), 'Noto Sans Arabic', 'Segoe UI',
-    sans-serif;
-  --font-mono: var(--font-plex-mono), 'IBM Plex Mono', ui-monospace, monospace;
-  --text-display: 28px;
-  --leading-display: 34px;
+    var(--font-inter), 'Inter', var(--font-noto-arabic), 'Noto Sans Arabic', 'Segoe UI', sans-serif;
+  --font-mono: var(--font-jetbrains-mono), 'JetBrains Mono', ui-monospace, monospace;
+  --font-arabic: var(--font-noto-arabic), 'Noto Sans Arabic', 'Segoe UI', sans-serif;
+  --text-display: 30px;
+  --leading-display: 36px;
   --text-title: 22px;
   --leading-title: 28px;
   --text-title-sm: 18px;
@@ -39,6 +39,7 @@
   --leading-label: 16px;
   --text-meta: 12px;
   --leading-meta: 16px;
+  --tracking-tight: -0.01em;
   --weight-regular: 400;
   --weight-medium: 500;
   --weight-semibold: 600;

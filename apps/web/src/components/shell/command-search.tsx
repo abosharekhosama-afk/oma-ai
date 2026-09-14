@@ -30,12 +30,16 @@ export function CommandSearch() {
         href: item.href,
         label: t(item.labelKey),
         section: t(section.labelKey),
+        keywords: item.href === '/app/tasks' ? 'kanban board tasks board overdue production' : '',
       })),
     );
     const q = query.trim().toLowerCase();
     if (!q) return flat;
     return flat.filter(
-      (item) => item.label.toLowerCase().includes(q) || item.section.toLowerCase().includes(q),
+      (item) =>
+        item.label.toLowerCase().includes(q) ||
+        item.section.toLowerCase().includes(q) ||
+        item.keywords.toLowerCase().includes(q),
     );
   }, [query, t]);
 

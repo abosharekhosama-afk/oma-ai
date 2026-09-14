@@ -1,7 +1,7 @@
 # OMA Design System Blueprint (Golden)
 
-**Status:** READY for Stage 1 implementation (tokens + shell)  
-**Authority:** `DEC-013` · `docs/DESIGN_REFERENCE_STRATEGY.md` · `docs/REFERENCE_PARITY_AUDIT.md`  
+**Status:** READY for Stage 1 implementation (tokens + shell)
+**Authority:** `DEC-013` · `docs/DESIGN_REFERENCE_STRATEGY.md` · `docs/REFERENCE_PARITY_AUDIT.md`
 **Originality:** OMA tokens/layouts/icons/copy only — references authorize patterns, never assets.
 
 ## 1. Unified visual direction (one product)
@@ -52,21 +52,21 @@ Rules: color never sole status signal; review-dark only on Frame.io-scoped surfa
 
 ## 3. Typography scale
 
-**Family:** IBM Plex Sans (already in product) + system Arabic-capable fallback stack for AR.  
-Do not switch to Inter/Roboto/default system as primary.
+**Family:** Inter (Latin) + Noto Sans Arabic (AR) via `next/font` CSS variables. JetBrains Mono for mono.
+**Owner rejection (2026-09-14):** IBM Plex is rejected as the product typeface; Stage 7 visual certification is invalidated for typography until Inter/Noto proof passes.
 
 | Token      | Size / line / weight | Use                               |
 | ---------- | -------------------- | --------------------------------- |
-| `display`  | 28/34/600            | Rare page heroes (landing only)   |
+| `display`  | 30/36/600            | Rare page heroes (landing only)   |
 | `title`    | 22/28/600            | Page H1                           |
 | `title-sm` | 18/24/600            | Section H2                        |
 | `body`     | 14/20/400            | Default dense body (Linear-grade) |
 | `body-em`  | 14/20/500            | Emphasized body                   |
 | `label`    | 12/16/500            | Field labels, nav secondary       |
 | `meta`     | 12/16/400            | Timestamps, muted meta            |
-| `mono`     | 12/16 IBM Plex Mono  | IDs, hashes                       |
+| `mono`     | 12/16 JetBrains Mono | IDs, hashes                       |
 
-**Current gap:** measured shell body at 16px with `lineHeight: normal` — rebuild to 14/20 denser default for app chrome; keep 16 only for marketing/public pages.
+**Proof:** E2E `getComputedStyle` must show Inter (EN) / Noto Sans Arabic (AR); no mixed remote font calls.
 
 ## 4. Spacing scale
 
@@ -141,7 +141,7 @@ No decorative loops. Drag pickup/valid/invalid states required when DnD ships.
 
 - Logical properties only (`margin-inline`, `border-inline-end`, `inset-inline`).
 - Mirroring for drawers (open from inline-end).
-- Arabic uses same type tokens; verify IBM Plex Arabic coverage or approved Arabic companion font in Stage 1.
+- Arabic uses Noto Sans Arabic companion with Inter Latin; assert computed family in AR E2E.
 - No hardcoded left/right in new CSS.
 
 ## 10. Surfaces model

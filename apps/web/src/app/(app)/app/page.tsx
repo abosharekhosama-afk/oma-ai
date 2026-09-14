@@ -176,9 +176,13 @@ export default function AppHomePage() {
                 <span className="oma-metric-pill">
                   <strong>{demoCc.reviewQueueCount}</strong> {t('home.demoReviewQueue')}
                 </span>
-                <span className="oma-metric-pill">
+                <Link
+                  href="/app/tasks"
+                  className="oma-metric-pill"
+                  data-testid="home-overdue-tasks-board"
+                >
                   <strong>{demoCc.overdueTasks}</strong> {t('home.demoOverdue')}
-                </span>
+                </Link>
                 {typeof demoCc.scheduleThisWeek === 'number' ? (
                   <Link
                     href="/app/schedule"

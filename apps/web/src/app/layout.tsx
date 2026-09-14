@@ -1,21 +1,22 @@
 import type { Metadata } from 'next';
-import { IBM_Plex_Mono, IBM_Plex_Sans, Noto_Sans_Arabic } from 'next/font/google';
+import { Inter, JetBrains_Mono, Noto_Sans_Arabic } from 'next/font/google';
 import { cookies, headers } from 'next/headers';
 import { resolveDir, resolveLocale, t, type Locale } from '@oma/i18n';
 import { LocaleProvider } from '../lib/locale-context';
 import './globals.css';
 
-const plexSans = IBM_Plex_Sans({
+/** Owner rejection of IBM Plex: Inter for Latin density (Linear-grade), Noto for Arabic. */
+const inter = Inter({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
-  variable: '--font-plex-sans',
+  variable: '--font-inter',
   display: 'swap',
 });
 
-const plexMono = IBM_Plex_Mono({
+const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
   weight: ['400', '500'],
-  variable: '--font-plex-mono',
+  variable: '--font-jetbrains-mono',
   display: 'swap',
 });
 
@@ -41,15 +42,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html
       lang={locale}
       dir={dir}
-      className={`${plexSans.variable} ${plexMono.variable} ${notoArabic.variable}`}
+      className={`${inter.variable} ${jetbrainsMono.variable} ${notoArabic.variable}`}
+      data-oma-typeface="inter-noto"
     >
-      <body className={plexSans.className}>
+      <body data-oma-font="inter-noto">
         <a href="#main" className="oma-skip-link">
           {t(locale, 'shell.skip')}
         </a>
-        <LocaleProvider locale={locale}>
-          <div data-endorsement={t(locale, 'app.endorsement')}>{children}</div>
-        </LocaleProvider>
+        <LocaleProvider locale={locale}>{children}</LocaleProvider>
       </body>
     </html>
   );

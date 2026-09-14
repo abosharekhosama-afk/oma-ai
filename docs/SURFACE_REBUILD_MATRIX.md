@@ -1,7 +1,7 @@
 # Surface Rebuild Matrix — Visual Quality Program
 
-**Status:** READY — implementation stages are ordered and gated  
-**App baseline:** `f3f450d` functional demo  
+**Status:** READY — implementation stages are ordered and gated
+**App baseline:** `f3f450d` functional demo
 **Do not** rebuild functionality in Stage 0 (this doc). Stages 1–7 implement visuals/interaction only unless a Stage explicitly requires structural UI that already has domain APIs.
 
 Evidence refs:
@@ -11,7 +11,7 @@ Evidence refs:
 - Archived reference notes: `.reference/002-evidence/raw-planable.txt`, `raw-linear.txt`
 - Authority: DEC-013
 
-Severity: **B** = blocker for visual acceptance · **M** = major · **m** = minor  
+Severity: **B** = blocker for visual acceptance · **M** = major · **m** = minor
 Status: all rows below are **REBUILD** or **PARTIAL** unless noted.
 
 ---
@@ -57,23 +57,23 @@ Status: all rows below are **REBUILD** or **PARTIAL** unless noted.
 
 ## Stage 1 — Golden Design System + App Shell
 
-**Routes:** all authenticated `app/*` chrome  
-**Components:** tokens, type, space, elevation, AppShell, Nav*, TopBar, TenantBrandSwitcher, PageHeader, Button, Input, Toast stub, Skeleton  
-**Reference evidence:** Linear archived shell notes; DEC-013 §3–5  
+**Routes:** all authenticated `app/*` chrome
+**Components:** tokens, type, space, elevation, AppShell, Nav*, TopBar, TenantBrandSwitcher, PageHeader, Button, Input, Toast stub, Skeleton
+**Reference evidence:** Linear archived shell notes; DEC-013 §3–5
 **Done when:** V-SHELL-01…08 pass; no domain feature redesign required.
 
 ## Stage 2 — Command Center + Brand + Strategy
 
-**Routes:** `/app`, `/app/brands/**`, strategy routes  
-**Components:** PageHeader, DataTable polish, StatusChip unify, Empty/Error  
-**Reference:** Linear density + Semrush/Jasper patterns (DOC/archived)  
+**Routes:** `/app`, `/app/brands/**`, strategy routes
+**Components:** PageHeader, DataTable polish, StatusChip unify, Empty/Error
+**Reference:** Linear density + Semrush/Jasper patterns (DOC/archived)
 **Done when:** V-HOME-_, V-BWI-_, V-STR-* pass.
 
 ## Stage 3 — Campaigns + Content Planning
 
-**Routes:** `/app/campaigns`, `/app/campaigns/[id]`, `/app/content`  
-**Components:** ContentCard, Calendar*, FilterBar, Tabs  
-**Reference:** Planable archived calendar/feed/grid/list/approvals patterns  
+**Routes:** `/app/campaigns`, `/app/campaigns/[id]`, `/app/content`
+**Components:** ContentCard, Calendar*, FilterBar, Tabs
+**Reference:** Planable archived calendar/feed/grid/list/approvals patterns
 **Done when:** V-CMP-_, V-CNT-_ pass; previews dominant; Organic/Paid unmistakable.
 
 ## Stage 4 — Requests + Tasks + Production
@@ -120,7 +120,20 @@ Status: all rows below are **REBUILD** or **PARTIAL** unless noted.
 
 **Stage 7 status:** certification pack on `004-oma-complete-product-demo`.
 
-**Exit:** `FULL_VISUAL_CERTIFICATION: PASS` + `OWNER_PREVIEW: READY` (acceptance stays PENDING_OWNER).
+**Stage 7 status:** certification pack produced, then **invalidated by owner visual rejection**.
+
+**Exit (historical):** `FULL_VISUAL_CERTIFICATION: PASS` + `OWNER_PREVIEW: READY` — **superseded**.
+
+**Current binding status:**
+
+- `OWNER_VISUAL_REVIEW: REJECTED`
+- `VISUAL_REBUILD: IN_PROGRESS`
+- `FULL_VISUAL_CERTIFICATION: INVALIDATED_BY_OWNER`
+- `VISUAL_ACCEPTANCE: REJECTED`
+- `USER_ACCEPTANCE: PENDING`
+
+**Core remediation stage:** `IMPLEMENT_OMA_OWNER_REJECTION_CORE_EXPERIENCE_REBUILD`
+**Next:** `IMPLEMENT_OMA_OWNER_REJECTION_SURFACE_DEPTH_REBUILD`
 
 ---
 

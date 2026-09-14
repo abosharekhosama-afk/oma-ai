@@ -94,18 +94,36 @@ test.describe('Stage 4 Requests + Tasks visual rebuild', () => {
     await page.goto('/app/tasks');
     await expect(page.getByTestId('demo-tasks-board')).toBeVisible({ timeout: 15_000 });
 
-    const moveSelect = page.getByTestId('demo-task-move-demo-task-ready-1');
-    await moveSelect.selectOption('IN_PROGRESS');
+    await page.getByTestId('demo-tasks-board').evaluate((el) => {
+      el.scrollLeft = 0;
+    });
+    const source = page.getByTestId('demo-task-card-demo-task-ready-1');
+    const target = page.getByTestId('demo-kanban-IN_PROGRESS');
+    await source.scrollIntoViewIfNeeded();
+    await target.scrollIntoViewIfNeeded();
+    const s = await source.boundingBox();
+    const t = await target.boundingBox();
+    if (!s || !t) throw new Error('kanban drag boxes missing');
+    await page.mouse.move(s.x + 20, s.y + 16);
+    await page.mouse.down();
+    await page.mouse.move(t.x + t.width / 2, t.y + 56, { steps: 16 });
+    await page.mouse.up();
+    await expect(
+      page.getByTestId('demo-kanban-IN_PROGRESS').getByTestId('demo-task-card-demo-task-ready-1'),
+    ).toBeVisible({ timeout: 15_000 });
     await page.reload();
     await expect(page.getByTestId('demo-tasks-board')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId('demo-task-drawer')).toHaveCount(0);
+    await expect(
+      page.getByTestId('demo-kanban-IN_PROGRESS').getByTestId('demo-task-card-demo-task-ready-1'),
+    ).toBeVisible();
     await expect(page.getByTestId('demo-task-move-demo-task-ready-1')).toHaveValue('IN_PROGRESS');
 
     await page.getByTestId('demo-tasks-view-list').click();
     await expect(page.getByTestId('demo-tasks-list')).toBeVisible();
     await page.getByTestId('demo-tasks-view-board').click();
 
-    await page.getByTestId('demo-task-card-demo-task-design').click();
+    await page.getByTestId('demo-task-open-demo-task-design').click();
     await expect(page.getByTestId('demo-task-drawer')).toBeVisible();
     await page.getByTestId('demo-task-assignee').fill('Rami Khalil');
     await page.getByTestId('demo-task-assignee').blur();
