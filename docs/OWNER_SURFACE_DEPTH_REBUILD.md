@@ -1,7 +1,8 @@
 # Owner surface-depth rebuild
 
 **Stage:** `IMPLEMENT_OMA_OWNER_REJECTION_SURFACE_DEPTH_REBUILD`
-**Starting SHA:** `951ed44f49178c11ad91d4a000eedd0a596d75ed`
+**Starting SHA:** `951ed44f49178c11ad91d4a000eedd0a596d75ed`  
+**Feature/Final SHA:** `db0c7f0452c0a870f85f53abdfabf9f4a7f06e6b`  
 **Reference evidence:** ARCHIVED LIVE (`.reference/002-evidence`) + DOC; registry `PUBLIC_SOURCE_ONLY` — no new authenticated live claim.
 
 ## Binding status
