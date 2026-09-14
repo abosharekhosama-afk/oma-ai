@@ -3,6 +3,8 @@
 **Date:** 2026-09-14
 **Branch:** `004-oma-complete-product-demo`
 **Starting SHA:** `ca8a67388a36068eb0144241d474c081dde691fe`
+**Feature SHA:** `888c0cc8bfbe0e60be1da19cf51e87d97f2c8e87`
+**Tip SHA:** `e2a12b9945b43042db26946714707bbd09a935df`
 **Stage:** `IMPLEMENT_OMA_OWNER_REJECTION_CORE_EXPERIENCE_REBUILD`
 
 ## Binding status
