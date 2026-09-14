@@ -93,13 +93,13 @@ export async function uiCreateBrandConnectAndStartScan(
 }
 
 export async function uiWaitForScanTerminal(page: Page) {
-  await expect(
-    page.locator('.oma-badge', { hasText: /PARTIAL|SUCCEEDED|FAILED|CANCELLED/ }),
-  ).toBeVisible({
+  // Do not treat CANCELLED as a success terminal here — callers that cancel assert separately.
+  await expect(page.getByTestId('scan-status')).toHaveText(/PARTIAL|SUCCEEDED|FAILED/, {
     timeout: 90_000,
   });
-  await expect(page.getByRole('link', { name: 'View profile draft' })).toBeVisible({
-    timeout: 5_000,
+  // Draft link appears after the worker attaches profile_version_id (can lag past status flip).
+  await expect(page.getByRole('link', { name: /view profile draft/i })).toBeVisible({
+    timeout: 60_000,
   });
 }
 
