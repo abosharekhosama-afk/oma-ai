@@ -3,7 +3,7 @@
 **Branch:** `004-oma-complete-product-demo`  
 **Starting SHA:** `9c280437ffa32e06cc4a51c8171e34101c49f391`  
 **Certification pack SHA:** `07b8f87cbb4777fc848760030489264fc1d9676e`  
-**Final certification SHA:** ``  
+**Final certification SHA:** 
 **Status:** PASS when linked to journey + evidence + gates (not route-only)
 
 | Surface | Route | Source | Reference pattern | EN 1440 | AR 1440 | Tablet | Mobile | Keyboard | Semantic | Interaction | Persistence | Restricted | Empty/Error | Screenshot | Automated test | Status | Limitation |
