@@ -3,7 +3,7 @@
 **Branch:** `004-oma-complete-product-demo`  
 **Starting SHA:** `9c280437ffa32e06cc4a51c8171e34101c49f391`  
 **Certification pack SHA:** `07b8f87cbb4777fc848760030489264fc1d9676e`  
-**Final certification SHA:** `fdc0d064645c8891ddb99006579bcdf643abd860`  
+**Final certification SHA:** 
 **Evidence content SHA:** `6db7520d8f19190582bb099091c0bfe2c299b8ae` (shell-nav journey + VG addendum)
 **Status:** PASS when linked to journey + evidence + gates (not route-only)
 
