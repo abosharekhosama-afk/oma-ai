@@ -2,12 +2,24 @@
  * Stage 7 — Full Visual Product Certification lifecycle.
  * One linked Owner journey across Foundation + Demo surfaces.
  * Intentional project filter: primary journey on en-desktop only.
+ * Shell navigation proves IA; targeted deep links prove record integrity.
  */
 import { test, expect } from '@playwright/test';
 import { installOwnerSession, uiCreateBrandConnectAndStartScan } from './helpers/brand-ui';
 
 const BLOCKED_HOSTS =
   /facebook\.com|graph\.facebook|meta\.com|tiktok\.com|googleapis\.com|openai\.com|anthropic\.com|semrush\.com|smartly\.io|workdrive|zoho\.com/i;
+
+async function nav(page: import('@playwright/test').Page, name: RegExp, urlHint?: RegExp) {
+  await page
+    .getByRole('navigation', { name: /main navigation|التنقل الرئيسي/i })
+    .getByRole('link', { name })
+    .first()
+    .click();
+  if (urlHint) {
+    await expect(page).toHaveURL(urlHint, { timeout: 15_000 });
+  }
+}
 
 function attachGuards(page: import('@playwright/test').Page) {
   const consoleErrors: string[] = [];
@@ -61,39 +73,45 @@ test.describe('Full visual product certification', () => {
     await expect(page.locator('h1').first()).toBeVisible();
 
     const { brandId } = await uiCreateBrandConnectAndStartScan(page, request, owner);
-    await page.goto('/app/brands');
+    await page.goto('/app');
+    await expect(page.getByTestId('demo-command-center')).toBeVisible({ timeout: 20_000 });
+    await nav(page, /^Brand Intelligence$|^العلامات|^Brands$/i, /\/app\/brands/);
     await expect(page.getByTestId('brand-portfolio')).toBeVisible({ timeout: 20_000 });
+    // Deep links prove Brand/Strategy record integrity after portfolio context.
     await page.goto(`/app/brands/${brandId}`);
     await expect(page.getByTestId('brand-workspace')).toBeVisible();
     await page.goto(`/app/brands/${brandId}/strategies`);
     await expect(page.getByTestId('strategy-create')).toBeVisible();
 
-    await page.goto('/app/campaigns');
+    await nav(page, /^Campaigns$|^الحملات$/i, /\/app\/campaigns/);
     await expect(page.getByTestId('demo-campaigns')).toBeVisible({ timeout: 20_000 });
-    await page.goto('/app/campaigns/demo-campaign-organic');
+    await page
+      .getByRole('link', { name: /Summer Organic Always-On/i })
+      .first()
+      .click();
     await expect(page.getByTestId('demo-campaign-detail')).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId('demo-strategy-id')).toHaveText(/demo-strategy-q3/);
 
-    await page.goto('/app/content');
+    await nav(page, /^Content Plan$|^المحتوى|Content$/i, /\/app\/content/);
     await expect(page.getByTestId('demo-content')).toBeVisible({ timeout: 20_000 });
     await page.getByRole('button', { name: /calendar/i }).click();
     await expect(
       page.getByText(/Fabric story carousel|Studio morning reel/i).first(),
     ).toBeVisible();
 
-    await page.goto('/app/requests');
+    await nav(page, /^Requests$|^الطلبات$/i, /\/app\/requests/);
     await expect(page.getByTestId('demo-requests')).toBeVisible({ timeout: 20_000 });
-    await page.goto('/app/requests/demo-request-1');
+    await page.getByRole('link', { name: /autumn lookbook/i }).click();
     await expect(page.getByTestId('demo-request-detail')).toBeVisible({ timeout: 20_000 });
     await expect(page.getByText(/Launch autumn palette|objective|audience/i).first()).toBeVisible();
 
-    await page.goto('/app/tasks');
+    await nav(page, /^Tasks$|^المهام$/i, /\/app\/tasks/);
     await expect(page.getByTestId('demo-tasks')).toBeVisible({ timeout: 20_000 });
     await page.goto('/app/tasks?task=demo-task-design');
     await expect(page.getByTestId('demo-task-drawer')).toBeVisible({ timeout: 15_000 });
     await page.keyboard.press('Escape');
 
-    await page.goto('/app/deliverables');
+    await nav(page, /^Deliverables$|^المخرجات$/i, /\/app\/deliverables/);
     await expect(page.getByTestId('demo-deliverables')).toBeVisible({ timeout: 20_000 });
     await page.getByTestId('demo-deliv-group-needs_review').click();
     await page.getByTestId('demo-deliv-row-demo-deliv-carousel').getByRole('link').click();
@@ -130,7 +148,7 @@ test.describe('Full visual product certification', () => {
     await expect(page.getByText(/APPROVED/i).first()).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId('demo-approved-version')).toBeVisible();
 
-    await page.goto('/app/schedule');
+    await nav(page, /^Schedule$|^الجدول$/i, /\/app\/schedule/);
     await expect(page.getByTestId('demo-schedule')).toBeVisible({ timeout: 20_000 });
     await expect(
       page.getByText(/not connected|publishing|Planning preview/i).first(),
@@ -148,31 +166,32 @@ test.describe('Full visual product certification', () => {
     await page.reload();
     await expect(page.getByTestId('demo-schedule')).toBeVisible({ timeout: 15_000 });
 
-    await page.goto('/app/analytics');
+    await nav(page, /^Analytics$|^التحليلات$/i, /\/app\/analytics/);
     await expect(page.getByTestId('demo-analytics')).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId('demo-analytics-sample-badge')).toBeVisible();
     await expect(page.getByTestId('demo-analytics-trend-table')).toBeAttached();
 
-    await page.goto('/app/team');
+    await nav(page, /^Team$|^الفريق$/i, /\/app\/team/);
     await expect(page.getByTestId('demo-team')).toBeVisible({ timeout: 20_000 });
     await expect(page.getByTestId('demo-team-members-link')).toBeVisible();
 
-    await page.goto('/app/activity');
+    await nav(page, /^Activity$|^النشاط$/i, /\/app\/activity/);
     await expect(page.getByTestId('demo-activity')).toBeVisible({ timeout: 20_000 });
     await page.getByTestId('demo-activity-filter-source').selectOption('DEMO');
     await expect(page.getByText(/Demonstration|Demo|workflow/i).first()).toBeVisible();
     await expect(page.getByText(/^Audit Log$/i)).toHaveCount(0);
 
-    await page.goto('/app/settings');
+    await nav(page, /^Settings$|^الإعدادات$/i, /\/app\/settings/);
     await expect(page.getByTestId('demo-settings')).toBeVisible({ timeout: 20_000 });
     await page.getByTestId('demo-settings-nav-integrations').click();
     await expect(page.getByTestId('demo-integrations')).toBeVisible();
     await expect(page.getByRole('button', { name: /^connect$/i })).toHaveCount(0);
     await expect(page.locator('input[type="password"]')).toHaveCount(0);
 
-    await page.goto('/app/company/members');
+    await nav(page, /^Company$|^الشركة$/i, /\/app\/company/);
     await expect(page.getByTestId('company-members')).toBeVisible({ timeout: 20_000 });
 
+    // Deep-link integrity: campaign + content still resolve after org surfaces.
     await page.goto('/app/campaigns/demo-campaign-organic');
     await expect(page.getByTestId('demo-campaign-detail')).toBeVisible();
     await page.goto('/app/content');
@@ -197,22 +216,33 @@ test.describe('Full visual product certification', () => {
       await page.goto('/app', { waitUntil: 'domcontentloaded' });
       await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
       await expect(page.getByTestId('demo-command-center')).toBeVisible({ timeout: 20_000 });
-      await page.goto('/app/analytics', { waitUntil: 'domcontentloaded' });
+      await nav(page, /Analytics|التحليلات/i, /\/app\/analytics/);
       await expect(page.getByTestId('demo-analytics')).toBeVisible({ timeout: 20_000 });
-      await page.goto('/app/schedule', { waitUntil: 'domcontentloaded' });
+      await nav(page, /Schedule|الجدول/i, /\/app\/schedule/);
       await expect(page.getByTestId('demo-schedule')).toBeVisible({ timeout: 20_000 });
     } else if (project === 'en-tablet') {
       await page.setViewportSize({ width: 1024, height: 768 });
-      await page.goto('/app/tasks', { waitUntil: 'domcontentloaded' });
+      await nav(page, /^Tasks$/i, /\/app\/tasks/);
       await expect(page.getByTestId('demo-tasks')).toBeVisible({ timeout: 20_000 });
-      await page.goto('/app/campaigns', { waitUntil: 'domcontentloaded' });
+      await nav(page, /^Campaigns$/i, /\/app\/campaigns/);
       await expect(page.getByTestId('demo-campaigns')).toBeVisible({ timeout: 20_000 });
     } else {
       await page.setViewportSize({ width: 390, height: 844 });
-      await page.goto('/app/schedule', { waitUntil: 'domcontentloaded' });
+      const { openPrimaryNavIfNeeded } = await import('./helpers/brand-ui');
+      await openPrimaryNavIfNeeded(page);
+      await page
+        .getByRole('navigation', { name: /main navigation|التنقل الرئيسي/i })
+        .getByRole('link', { name: /^Schedule$/i })
+        .click();
+      await expect(page).toHaveURL(/\/app\/schedule/);
       await expect(page.getByTestId('demo-schedule')).toBeVisible({ timeout: 20_000 });
       await page.getByTestId('demo-schedule-view-agenda').click();
-      await page.goto('/app/content', { waitUntil: 'domcontentloaded' });
+      await openPrimaryNavIfNeeded(page);
+      await page
+        .getByRole('navigation', { name: /main navigation|التنقل الرئيسي/i })
+        .getByRole('link', { name: /Content/i })
+        .click();
+      await expect(page).toHaveURL(/\/app\/content/);
       await expect(page.getByTestId('demo-content')).toBeVisible({ timeout: 20_000 });
     }
 

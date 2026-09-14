@@ -1,8 +1,9 @@
 # Full Visual Certification Matrix — Feature 004
 
 **Branch:** `004-oma-complete-product-demo`  
-**Starting SHA:** `9c280437ffa32e06cc4a51c8171e34101c49f391`
-**Certification SHA:** `07b8f87cbb4777fc848760030489264fc1d9676e`  
+**Starting SHA:** `9c280437ffa32e06cc4a51c8171e34101c49f391`  
+**Certification pack SHA:** `07b8f87cbb4777fc848760030489264fc1d9676e`  
+**Final certification SHA:** ``  
 **Status:** PASS when linked to journey + evidence + gates (not route-only)
 
 | Surface | Route | Source | Reference pattern | EN 1440 | AR 1440 | Tablet | Mobile | Keyboard | Semantic | Interaction | Persistence | Restricted | Empty/Error | Screenshot | Automated test | Status | Limitation |
@@ -39,3 +40,10 @@
 - External AI / crawl / publishing / ads / analytics / storage / email-push: **DEFERRED**
 - Demo modules: **NOT_PRODUCTION_COMPLETE**
 - Visual/User Acceptance: **PENDING_OWNER / PENDING** (owner decides)
+- Screenshots live under gitignored `artifacts/`; SHA-stamped metadata is force-tracked under `.reference/`
+
+## Journey proof
+
+- Primary: `tests/e2e/full-visual-certification.e2e.ts` (shell navigation + targeted deep links; Demo reset isolation)
+- Evidence: `tests/e2e/full-visual-cert-evidence.e2e.ts` → `artifacts/full-visual-certification-004/screenshots/`
+- Owner preview: `pnpm review:004` / `pnpm review:004:stop` (DB `oma_ai_visual_cert_004`, Redis DB 3)
