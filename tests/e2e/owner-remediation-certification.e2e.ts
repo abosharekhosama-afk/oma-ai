@@ -138,7 +138,7 @@ test.describe('Owner remediation certification', () => {
     // Login surface font (already authenticated session; visit login after sign-out later optional)
     await page.goto('/app');
     await expect(page.getByTestId('product-home')).toBeVisible({ timeout: 20_000 });
-    const font = await assertFont(page, /inter/);
+    const font = await assertFont(page, /system-ui|segoe ui|-apple-system|roboto/);
     await expect(page.getByTestId('demo-command-center')).toBeVisible();
     await expect(page.getByTestId('home-overdue-tasks-board')).toBeVisible();
     await page.screenshot({ path: path.join(SHOTS, '01-command-center.png'), fullPage: false });

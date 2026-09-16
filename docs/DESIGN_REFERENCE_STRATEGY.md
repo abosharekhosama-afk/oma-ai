@@ -159,5 +159,7 @@ Owner visual review remains `REJECTED`. Previous golden-shell / owner-remediatio
 | Surface map | `docs/PLANABLE_TO_OMA_SURFACE_MAP.md` |
 | Acceptance | `docs/PLANABLE_VISUAL_ACCEPTANCE_CRITERIA.md` |
 | Evidence | `.reference/005-planable-ui-ux/` |
+| P1 compat aliases | `docs/PLANABLE_P1_COMPAT_INVENTORY.md` |
+| Demo SVG deferral | `docs/PLANABLE_P1_DEMO_SVG_DEFERRED.md` |
 
 Historical DEC-013 pack (`OMA_DESIGN_SYSTEM_BLUEPRINT.md`, Linear V-SHELL numbers, `.reference/004-visual-parity/`) is archive only.

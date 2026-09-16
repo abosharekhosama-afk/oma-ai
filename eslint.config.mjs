@@ -14,6 +14,7 @@ export default tseslint.config(
       '**/.reference/**',
       '**/next-env.d.ts',
       'scripts/capture-rebuild-*.mjs',
+      'scripts/reference/measure-planable-ui-ux.mjs',
     ],
   },
   js.configs.recommended,

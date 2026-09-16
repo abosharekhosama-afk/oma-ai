@@ -1,9 +1,4 @@
-/* Stage 5 — Deliverables / Reviews / dark review canvas */
-
-:root {
-  --oma-review-canvas: #121419;
-  --oma-review-ink: #f3f4f6;
-}
+/* Stage 5 — Deliverables / Reviews (Planable light chrome; Frame dark canvas revoked in P1) */
 
 .oma-stage5-toolbar {
   display: flex;
@@ -131,15 +126,15 @@
   background: color-mix(in srgb, var(--status-danger) 6%, var(--oma-surface));
 }
 
-/* Dark review workspace — scoped only */
+/* Review workspace — Planable light operational chrome (P1) */
 .oma-review-workspace {
-  --review-canvas: var(--oma-review-canvas);
-  --review-panel: #1a1d24;
-  --review-border: #2c303a;
-  --review-text: #e8eaef;
-  --review-muted: #9aa1b0;
-  --review-accent: #6658e8;
-  --review-signal: #12a7a1;
+  --review-canvas: var(--oma-canvas);
+  --review-panel: var(--oma-surface);
+  --review-border: var(--oma-border);
+  --review-text: var(--oma-ink);
+  --review-muted: var(--oma-muted);
+  --review-accent: var(--oma-primary);
+  --review-signal: var(--status-success);
   display: grid;
   grid-template-rows: auto 1fr;
   min-height: min(78vh, 820px);
@@ -340,9 +335,9 @@
 .oma-review-composer textarea,
 .oma-review-composer input,
 .oma-review-composer select {
-  background: #121419;
-  color: var(--review-text);
-  border-color: var(--review-border);
+  background: var(--oma-surface);
+  color: var(--oma-ink-strong);
+  border-color: var(--oma-border);
 }
 
 .oma-honesty-inline {

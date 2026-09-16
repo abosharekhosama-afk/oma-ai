@@ -1,10 +1,10 @@
 export const tokens = {
-  primary: '#6658E8',
-  signal: '#12A7A1',
-  canvas: '#F6F7FB',
-  ink: '#14151A',
+  primary: '#1677FF',
+  canvas: '#F5F6F7',
+  ink: '#333333',
   surface: '#FFFFFF',
-  railExpanded: 240,
+  railExpanded: 256,
   railCollapsed: 64,
-  topBar: 56,
+  controlHeight: 32,
+  radiusControl: 6,
 } as const;

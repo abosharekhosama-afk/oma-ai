@@ -1,0 +1,37 @@
+{
+  "name": "09-ar-rtl-1440",
+  "candidateSha": "7845837fbbca899f348b43df9c4f7647f856207d",
+  "route": "/app",
+  "viewport": "1440x900",
+  "locale": "ar",
+  "dir": "rtl",
+  "computedFont": "\"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", Tahoma, sans-serif, -apple-system, system-ui, \"Segoe UI\", Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif",
+  "computedColors": {
+    "canvas": "rgb(245, 246, 247)",
+    "ink": "rgb(51, 51, 51)",
+    "surface": "rgb(255, 255, 255)",
+    "primary": "rgb(22, 119, 255)"
+  },
+  "railGeometry": {
+    "width": 256
+  },
+  "buttonGeometry": {
+    "height": 32,
+    "radius": "6px"
+  },
+  "motionValues": {
+    "railDuration": "0.15s, 0.15s",
+    "railEase": "linear, linear"
+  },
+  "consoleErrors": [],
+  "failedRequests": [],
+  "overflowOk": true,
+  "liveMatch": true,
+  "evidenceLevel": "LIVE_MATCH",
+  "acceptanceIds": [
+    "PV-G-09"
+  ],
+  "rawScreenshot": "artifacts/planable-rebuild-004/p1-shell-system/09-ar-rtl-1440.png",
+  "gitignoredRaw": true,
+  "capturedAt": "2026-09-16T07:35:36.813Z"
+}

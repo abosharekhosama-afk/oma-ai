@@ -35,15 +35,17 @@ describe('Owner rejection — Tasks IA + Kanban core', () => {
     expect(canTransitionTaskStatus('DONE', 'BACKLOG')).toBe(true);
   });
 
-  it('uses Inter/Noto tokens and ships kanban board component', () => {
+  it('uses Planable system-UI tokens and ships kanban board component', () => {
     const tokens = readFileSync(join(process.cwd(), 'packages/ui/src/tokens.css'), 'utf8');
-    expect(tokens).toContain("'Inter'");
+    expect(tokens).toContain('-apple-system');
     expect(tokens).toContain("'Noto Sans Arabic'");
     expect(tokens).not.toContain("'IBM Plex Sans'");
+    expect(tokens).not.toContain("'Inter'");
     const layout = readFileSync(join(process.cwd(), 'apps/web/src/app/layout.tsx'), 'utf8');
-    expect(layout).toContain('Inter');
+    expect(layout).not.toMatch(/\bInter\b/);
     expect(layout).toContain('Noto_Sans_Arabic');
     expect(layout).not.toContain('IBM_Plex');
+    expect(layout).toContain('planable-system');
     const board = readFileSync(
       join(process.cwd(), 'apps/web/src/components/demo/tasks-kanban-board.tsx'),
       'utf8',

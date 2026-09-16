@@ -1,18 +1,11 @@
 import type { Metadata } from 'next';
-import { Inter, JetBrains_Mono, Noto_Sans_Arabic } from 'next/font/google';
+import { JetBrains_Mono, Noto_Sans_Arabic } from 'next/font/google';
 import { cookies, headers } from 'next/headers';
 import { resolveDir, resolveLocale, t, type Locale } from '@oma/i18n';
 import { LocaleProvider } from '../lib/locale-context';
 import './globals.css';
 
-/** Owner rejection of IBM Plex: Inter for Latin density (Linear-grade), Noto for Arabic. */
-const inter = Inter({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-inter',
-  display: 'swap',
-});
-
+/** DEC-017: English face is the Planable system-UI stack. Latin webfonts are not the product face. */
 const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
   weight: ['400', '500'],
@@ -42,10 +35,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html
       lang={locale}
       dir={dir}
-      className={`${inter.variable} ${jetbrainsMono.variable} ${notoArabic.variable}`}
-      data-oma-typeface="inter-noto"
+      className={`${jetbrainsMono.variable} ${notoArabic.variable}`}
+      data-oma-typeface="planable-system"
     >
-      <body data-oma-font="inter-noto">
+      <body data-oma-font="planable-system">
         <a href="#main" className="oma-skip-link">
           {t(locale, 'shell.skip')}
         </a>

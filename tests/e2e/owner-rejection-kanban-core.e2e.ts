@@ -62,7 +62,8 @@ test.describe('Owner rejection — Kanban + typography core', () => {
     await expect(page.getByTestId('demo-command-center')).toBeVisible({ timeout: 20_000 });
 
     const fontFamily = await page.evaluate(() => getComputedStyle(document.body).fontFamily);
-    expect(fontFamily.toLowerCase()).toMatch(/inter/);
+    expect(fontFamily.toLowerCase()).toMatch(/system-ui|segoe ui|-apple-system|roboto/);
+    expect(fontFamily.toLowerCase()).not.toMatch(/inter|ibm plex/);
 
     await page
       .getByRole('navigation')

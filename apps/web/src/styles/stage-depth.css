@@ -205,12 +205,11 @@
 
 .oma-campaign-card-media {
   aspect-ratio: 16 / 9;
-  background: linear-gradient(135deg, #1c1f2a, #3a3558 55%, #6658e8);
+  background: color-mix(in srgb, var(--oma-primary) 35%, var(--oma-canvas));
   display: grid;
   place-items: end start;
   padding: var(--space-2);
-  color: #fff;
-  font-size: var(--text-meta);
+  color: var(--oma-ink);
 }
 
 .oma-campaign-card-body {
@@ -272,7 +271,7 @@
   border: 1px solid var(--oma-border);
   border-radius: var(--radius-md);
   overflow: hidden;
-  background: #0f1117;
+  background: var(--oma-canvas);
 }
 
 .oma-content-composer-preview img {
@@ -294,7 +293,7 @@
   aspect-ratio: 4 / 3;
   object-fit: cover;
   display: block;
-  background: linear-gradient(145deg, #222636, #6658e8 70%);
+  background: color-mix(in srgb, var(--oma-primary) 45%, var(--oma-canvas));
 }
 
 .oma-deliv-grid-card {
@@ -347,7 +346,7 @@
   height: 72px;
   object-fit: cover;
   border-radius: var(--radius-sm);
-  background: #1a1d27;
+  background: var(--oma-canvas);
 }
 
 .oma-review-queue-card strong {

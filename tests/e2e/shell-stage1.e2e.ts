@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import { installOwnerSession } from './helpers/brand-ui';
 import { msg } from './helpers/i18n';
 
-test.describe('Stage 1 golden shell', () => {
+test.describe('Stage 1 Planable shell', () => {
   test.describe.configure({ timeout: 120_000 });
 
   test('grouped nav, collapse preference, overlays, responsive, RTL', async ({
@@ -39,12 +39,22 @@ test.describe('Stage 1 golden shell', () => {
     ).toBeVisible();
 
     const railBox = await page.locator('.oma-rail').boundingBox();
-    expect(railBox?.width).toBeGreaterThanOrEqual(236);
-    expect(railBox?.width).toBeLessThanOrEqual(244);
+    expect(railBox?.width).toBeGreaterThanOrEqual(252);
+    expect(railBox?.width).toBeLessThanOrEqual(260);
 
-    const topBox = await page.locator('header.oma-top').boundingBox();
-    expect(topBox?.height).toBeGreaterThanOrEqual(52);
-    expect(topBox?.height).toBeLessThanOrEqual(60);
+    const createBox = await page.getByTestId('shell-create').boundingBox();
+    expect(createBox?.height).toBeGreaterThanOrEqual(30);
+    expect(createBox?.height).toBeLessThanOrEqual(34);
+
+    await expect(
+      page.locator('.oma-rail').getByRole('button', { name: msg(testInfo, 'shell.search') }),
+    ).toBeVisible();
+    await expect(
+      page.locator('.oma-rail').getByRole('button', { name: msg(testInfo, 'shell.notifications') }),
+    ).toBeVisible();
+    await expect(
+      page.locator('.oma-rail').getByRole('button', { name: msg(testInfo, 'shell.account') }),
+    ).toBeVisible();
 
     await page.getByRole('button', { name: msg(testInfo, 'shell.collapseNav') }).click();
     await expect(page.locator('.oma-shell')).toHaveAttribute('data-rail', 'collapsed');
@@ -82,10 +92,11 @@ test.describe('Stage 1 golden shell', () => {
         .locator('a[href="/app/campaigns"]'),
     ).toHaveAttribute('aria-current', 'page');
 
-    await page.setViewportSize({ width: 1024, height: 900 });
+    await page.setViewportSize({ width: 1024, height: 768 });
     await page.goto('/app');
     const tabletRail = await page.locator('.oma-rail').boundingBox();
-    expect(tabletRail?.width).toBeLessThanOrEqual(68);
+    expect(tabletRail?.width).toBeGreaterThanOrEqual(252);
+    expect(tabletRail?.width).toBeLessThanOrEqual(260);
 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/app');

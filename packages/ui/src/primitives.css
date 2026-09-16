@@ -1,27 +1,23 @@
-/* Golden Design System — Stage 1 primitives */
+/* DEC-017 P1 primitives — Planable control metrics */
 
 .oma-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-2);
-  min-height: 36px;
-  padding: 0 var(--space-4);
+  gap: var(--oma-control-gap);
+  min-height: var(--oma-control-height);
+  height: var(--oma-control-height);
+  padding: 0 var(--oma-control-pad-x);
   border: 1px solid transparent;
-  border-radius: var(--radius-md);
+  border-radius: var(--oma-radius-control);
   background: var(--oma-primary);
   color: var(--oma-primary-ink);
   font: inherit;
-  font-size: var(--text-body);
-  font-weight: var(--weight-semibold);
-  line-height: var(--leading-body);
+  font-size: var(--text-control);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-control);
   text-decoration: none;
   cursor: pointer;
-  transition:
-    background var(--motion-micro) var(--motion-ease),
-    border-color var(--motion-micro) var(--motion-ease),
-    color var(--motion-micro) var(--motion-ease),
-    box-shadow var(--motion-micro) var(--motion-ease);
 }
 .oma-btn:hover:not(:disabled) {
   filter: brightness(0.96);
@@ -33,6 +29,7 @@
 .oma-btn:focus-visible {
   outline: var(--focus-ring);
   outline-offset: var(--focus-offset);
+  box-shadow: 0 0 0 3px var(--oma-focus-glow);
 }
 .oma-btn--secondary,
 .oma-btn-secondary {
@@ -49,15 +46,16 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-2);
-  min-height: 36px;
-  padding: 0 var(--space-4);
+  gap: var(--oma-control-gap);
+  min-height: var(--oma-control-height);
+  height: var(--oma-control-height);
+  padding: 0 var(--oma-control-pad-x);
   border: 1px solid var(--oma-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--oma-radius-control);
   font: inherit;
-  font-size: var(--text-body);
-  font-weight: var(--weight-semibold);
-  line-height: var(--leading-body);
+  font-size: var(--text-control);
+  font-weight: var(--weight-regular);
+  line-height: var(--leading-control);
   text-decoration: none;
   cursor: pointer;
 }
@@ -79,12 +77,14 @@
   color: #fff;
 }
 .oma-btn--sm {
-  min-height: 28px;
+  min-height: var(--oma-control-height);
+  height: var(--oma-control-height);
   padding: 0 var(--space-3);
-  font-size: var(--text-label);
+  font-size: var(--text-control);
 }
 .oma-btn--lg {
-  min-height: 44px;
+  min-height: var(--oma-control-height);
+  height: var(--oma-control-height);
   padding: 0 var(--space-5);
 }
 
@@ -92,11 +92,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: var(--oma-control-height);
+  height: var(--oma-control-height);
   padding: 0;
   border: 1px solid transparent;
-  border-radius: var(--radius-md);
+  border-radius: var(--oma-radius-control);
   background: transparent;
   color: var(--oma-ink);
   cursor: pointer;
@@ -120,16 +120,18 @@
 
 .oma-input {
   width: 100%;
-  min-height: 36px;
+  min-height: var(--oma-control-height);
+  height: var(--oma-control-height);
   border: 1px solid var(--oma-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-2) var(--space-3);
+  border-radius: var(--oma-radius-control);
+  padding: 0 11px;
   margin-bottom: var(--space-3);
   font: inherit;
-  font-size: var(--text-body);
-  line-height: var(--leading-body);
-  color: var(--oma-ink);
+  font-size: var(--text-control);
+  line-height: var(--leading-control);
+  color: var(--oma-ink-strong);
   background: var(--oma-surface);
+  box-sizing: border-box;
 }
 .oma-input:focus-visible {
   outline: var(--focus-ring);
@@ -147,14 +149,17 @@
 
 .oma-select {
   border: 1px solid var(--oma-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--oma-radius-control);
   background: var(--oma-surface);
-  color: var(--oma-ink);
-  padding: var(--space-2) var(--space-3);
+  color: var(--oma-ink-strong);
+  padding: 0 11px;
   font: inherit;
-  font-size: var(--text-body);
+  font-size: var(--text-control);
+  line-height: var(--leading-control);
   max-width: 240px;
-  min-height: 36px;
+  min-height: var(--oma-control-height);
+  height: var(--oma-control-height);
+  box-sizing: border-box;
 }
 .oma-select:focus-visible {
   outline: var(--focus-ring);
@@ -164,9 +169,9 @@
 .oma-card {
   background: var(--oma-surface);
   border: 1px solid var(--oma-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--oma-radius-control);
   padding: var(--space-5);
-  box-shadow: var(--elev-1);
+  box-shadow: var(--elev-0);
 }
 .oma-card--flat {
   box-shadow: var(--elev-0);
@@ -180,7 +185,7 @@
   padding: 0 var(--space-2);
   border-radius: var(--radius-sm);
   font-size: var(--text-label);
-  font-weight: var(--weight-semibold);
+  font-weight: var(--weight-regular);
   line-height: var(--leading-label);
   background: var(--oma-canvas);
   color: var(--oma-ink-subtle);
@@ -453,7 +458,7 @@
   position: fixed;
   inset: 0;
   z-index: var(--shell-z-modal);
-  background: rgba(20, 21, 26, 0.45);
+  background: rgba(0, 0, 0, 0.45);
 }
 .oma-dialog {
   position: fixed;

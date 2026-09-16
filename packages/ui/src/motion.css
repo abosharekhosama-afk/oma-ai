@@ -19,46 +19,72 @@
 
 .oma-fade {
   transition:
-    opacity var(--motion-micro) var(--motion-ease),
-    transform var(--motion-panel) var(--motion-ease);
+    opacity var(--oma-motion-control) var(--oma-motion-control-ease),
+    transform var(--oma-motion-control) var(--oma-motion-control-ease);
 }
 
 .oma-panel-enter {
   transition:
-    opacity var(--motion-panel) var(--motion-ease),
-    transform var(--motion-panel) var(--motion-ease);
+    opacity var(--oma-motion-control) var(--oma-motion-control-ease),
+    transform var(--oma-motion-control) var(--oma-motion-control-ease);
 }
 
 .oma-surface-transition {
   transition:
-    background-color var(--motion-micro) var(--motion-ease),
-    border-color var(--motion-micro) var(--motion-ease),
-    box-shadow var(--motion-micro) var(--motion-ease),
-    color var(--motion-micro) var(--motion-ease);
+    background-color var(--oma-motion-control) var(--oma-motion-control-ease),
+    border-color var(--oma-motion-control) var(--oma-motion-control-ease),
+    box-shadow var(--oma-motion-control) var(--oma-motion-control-ease),
+    color var(--oma-motion-control) var(--oma-motion-control-ease);
 }
 
-.oma-rail,
+.oma-rail {
+  transition:
+    width var(--oma-motion-sidebar) var(--oma-motion-sidebar-ease),
+    padding var(--oma-motion-sidebar) var(--oma-motion-sidebar-ease);
+}
+
+.oma-shell {
+  transition: grid-template-columns var(--oma-motion-sidebar) var(--oma-motion-sidebar-ease);
+}
+
 .oma-drawer,
 .oma-dialog-panel,
+.oma-dialog,
 .oma-popover,
 .oma-toast {
   transition:
-    transform var(--motion-panel) var(--motion-ease),
-    opacity var(--motion-panel) var(--motion-ease),
-    width var(--motion-panel) var(--motion-ease);
+    transform var(--oma-motion-control) var(--oma-motion-control-ease),
+    opacity var(--oma-motion-control) var(--oma-motion-control-ease);
+}
+
+.oma-btn,
+.oma-icon-btn,
+.oma-nav-link {
+  transition:
+    background-color var(--oma-motion-control) var(--oma-motion-control-ease),
+    border-color var(--oma-motion-control) var(--oma-motion-control-ease),
+    color var(--oma-motion-control) var(--oma-motion-control-ease),
+    box-shadow var(--oma-motion-control) var(--oma-motion-control-ease);
+}
+
+.oma-input,
+.oma-select,
+.oma-rail-search {
+  transition:
+    border-color var(--oma-motion-input) var(--oma-motion-input-ease),
+    box-shadow var(--oma-motion-input) var(--oma-motion-input-ease);
 }
 
 .oma-kanban-card {
   transition:
-    box-shadow var(--motion-micro) var(--motion-ease),
-    border-color var(--motion-micro) var(--motion-ease),
-    transform var(--motion-micro) var(--motion-ease),
-    opacity var(--motion-micro) var(--motion-ease);
+    box-shadow var(--oma-motion-sidebar) var(--oma-motion-sidebar-ease),
+    border-color var(--oma-motion-sidebar) var(--oma-motion-sidebar-ease),
+    opacity var(--oma-motion-sidebar) var(--oma-motion-sidebar-ease);
 }
 
 .oma-kanban-card.is-dragging {
-  box-shadow: var(--elev-2);
-  transform: scale(1.02);
+  box-shadow: none;
+  outline: 1px solid var(--oma-primary);
   opacity: 0.96;
   z-index: 5;
   cursor: grabbing;
@@ -78,5 +104,5 @@
 
 .oma-kanban-col.is-over {
   border-color: var(--oma-primary);
-  background: color-mix(in srgb, var(--oma-primary-soft) 55%, var(--oma-canvas));
+  background: var(--oma-primary-soft);
 }

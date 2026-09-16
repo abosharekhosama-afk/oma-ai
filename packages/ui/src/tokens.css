@@ -1,51 +1,68 @@
 :root {
-  /* Color — DEC-013 / Golden Design System */
-  --oma-ink: #14151a;
-  --oma-ink-subtle: #3a3d46;
-  --oma-muted: #667085;
-  --oma-canvas: #f6f7fb;
+  /*
+    DEC-017 / Stage P1 — single Planable token sheet.
+    LIVE values: app.planable.io 2026-09-16 (.reference/005-planable-ui-ux/).
+    Do not keep a second Linear/Frame palette.
+  */
+
+  /* Color — LIVE */
+  --oma-canvas: #f5f6f7;
   --oma-surface: #ffffff;
   --oma-surface-raised: #ffffff;
-  --oma-border: #e3e6ed;
-  --oma-border-strong: #c9ceda;
-  --oma-primary: #6658e8;
-  --oma-violet: var(--oma-primary);
-  --oma-primary-soft: #eeeafe;
+  --oma-ink: #333333;
+  --oma-ink-strong: rgba(0, 0, 0, 0.88);
+  --oma-primary: #1677ff;
   --oma-primary-ink: #ffffff;
-  --oma-signal: #12a7a1;
-  --oma-signal-soft: #e6f7f6;
-  --oma-review-canvas: #121419;
-  --oma-review-ink: #f3f4f6;
+  --oma-focus-glow: color-mix(in srgb, var(--oma-primary) 40%, transparent);
+
+  /* Color — OMA_ADAPTATION (not isolated as LIVE hex this capture) */
+  --oma-ink-subtle: rgba(51, 51, 51, 0.72);
+  --oma-muted: rgba(0, 0, 0, 0.45);
+  --oma-border: #e8e8e8;
+  --oma-border-strong: #d9d9d9;
+  --oma-primary-soft: color-mix(in srgb, var(--oma-primary) 12%, #ffffff);
   --status-info: #2f6fdb;
   --status-success: #21875a;
   --status-warning: #b7791f;
   --status-danger: #c43d4b;
-  --status-neutral: #667085;
+  --status-neutral: rgba(0, 0, 0, 0.45);
 
-  /* Typography — Owner rejection of IBM Plex (2026-09-14): Inter + Noto Arabic */
-  --font-sans:
-    var(--font-inter), 'Inter', var(--font-noto-arabic), 'Noto Sans Arabic', 'Segoe UI', sans-serif;
-  --font-mono: var(--font-jetbrains-mono), 'JetBrains Mono', ui-monospace, monospace;
-  --font-arabic: var(--font-noto-arabic), 'Noto Sans Arabic', 'Segoe UI', sans-serif;
-  --text-display: 30px;
-  --leading-display: 36px;
-  --text-title: 22px;
-  --leading-title: 28px;
-  --text-title-sm: 18px;
-  --leading-title-sm: 24px;
+  /* P1_COMPAT — remove in P2–P6 once call sites use primary/status tokens */
+  --oma-violet: var(--oma-primary); /* P1_COMPAT: was DEC-013 violet; now primary */
+  --oma-signal: var(--status-success); /* P1_COMPAT: was #12A7A1 */
+  --oma-signal-soft: color-mix(in srgb, var(--status-success) 12%, #ffffff); /* P1_COMPAT */
+  --oma-review-canvas: var(--oma-canvas); /* P1_COMPAT: Frame dark canvas revoked */
+  --oma-review-ink: var(--oma-ink); /* P1_COMPAT */
+
+  /* Typography — LIVE English stack. html 10px is Planable rem contract; OMA pages still use rem at 16px so we do not copy the 10px root (would crush P2–P6 rem layout). Body is 14px explicit. */
+  --oma-font-sans:
+    -apple-system, system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --oma-font-arabic: var(--font-noto-arabic), 'Noto Sans Arabic', 'Segoe UI', Tahoma, sans-serif;
+  --font-sans: var(--oma-font-sans);
+  --font-arabic: var(--oma-font-arabic);
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --text-html-root: 16px; /* OMA_ADAPTATION vs Planable 10px rem root */
   --text-body: 14px;
-  --leading-body: 20px;
+  --leading-body: 22px;
+  --text-control: 14px;
+  --leading-control: 22px;
+  --text-title: 18px; /* SANDBOX_DATA_REQUIRED — do not invent marketing display sizes */
+  --leading-title: 26px;
+  --text-title-sm: 16px;
+  --leading-title-sm: 24px;
+  --text-display: 22px;
+  --leading-display: 28px;
   --text-label: 12px;
   --leading-label: 16px;
   --text-meta: 12px;
   --leading-meta: 16px;
-  --tracking-tight: -0.01em;
+  --tracking-tight: 0;
   --weight-regular: 400;
   --weight-medium: 500;
   --weight-semibold: 600;
   --weight-bold: 700;
 
-  /* Spacing (4px base) */
+  /* Spacing (4px base — OMA_ADAPTATION; chrome inset LIVE 12px) */
   --space-0: 0;
   --space-0-5: 2px;
   --space-1: 4px;
@@ -59,23 +76,25 @@
   --space-12: 48px;
   --space-16: 64px;
 
-  /* Radius */
+  /* Radius — LIVE control 6px */
+  --oma-radius-control: 6px;
   --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
+  --radius-md: 6px;
+  --radius-lg: 6px;
+  --radius-xl: 8px;
 
-  /* Elevation */
+  /* Elevation — LIVE rail/body mostly none */
   --elev-0: none;
-  --elev-1: 0 1px 2px rgba(20, 21, 26, 0.06);
-  --elev-2: 0 8px 24px rgba(20, 21, 26, 0.12);
+  --elev-1: none;
+  --elev-2: 0 6px 16px rgba(0, 0, 0, 0.08); /* overlays; ARCHIVED */
 
-  /* Shell geometry */
-  --shell-rail-expanded: 240px;
-  --shell-rail-collapsed: 64px;
-  --shell-top-height: 56px;
-  --shell-drawer-width: 380px;
-  --shell-main-max: 1280px;
+  /* Shell geometry — LIVE 256px rail, 12px chrome inset, 32px controls */
+  --shell-rail-expanded: 256px;
+  --shell-rail-collapsed: 64px; /* SANDBOX_DATA_REQUIRED; OMA_ADAPTATION icon rail */
+  --shell-top-height: 56px; /* content header: 12px inset + 32px control; not Linear command bar */
+  --shell-drawer-width: 380px; /* ARCHIVED */
+  --shell-main-max: none;
+  --shell-chrome-inset: 12px;
   --shell-z-rail: 40;
   --shell-z-top: 50;
   --shell-z-overlay: 60;
@@ -83,10 +102,21 @@
   --shell-z-toast: 80;
   --shell-z-tooltip: 90;
 
-  /* Motion */
-  --motion-micro: 140ms;
-  --motion-panel: 200ms;
-  --motion-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --oma-control-height: 32px;
+  --oma-control-pad-x: 16px;
+  --oma-control-gap: 8px;
+  --oma-search-height-rail: 24px;
+
+  /* Motion — LIVE */
+  --oma-motion-sidebar: 150ms;
+  --oma-motion-sidebar-ease: linear;
+  --oma-motion-control: 300ms;
+  --oma-motion-control-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --oma-motion-input: 300ms;
+  --oma-motion-input-ease: ease;
+  --motion-micro: var(--oma-motion-sidebar); /* P1_COMPAT name */
+  --motion-panel: var(--oma-motion-control); /* P1_COMPAT name */
+  --motion-ease: var(--oma-motion-control-ease); /* P1_COMPAT name */
 
   /* Icons */
   --icon-sm: 16px;

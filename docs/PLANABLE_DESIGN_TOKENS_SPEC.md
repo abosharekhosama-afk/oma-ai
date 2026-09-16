@@ -1,6 +1,6 @@
 # Planable design tokens spec (OMA implementation contract)
 
-**Status:** SPEC only. No CSS/variables in product code in this stage.
+**Status:** P1 implemented in `packages/ui` CSS variables. Do not add a second token sheet.
 **Authority:** `DEC-017` · live `app.planable.io` computed styles 2026-09-16 · evidence `.reference/005-planable-ui-ux/measurements/`
 **Originality:** OMA implements equivalent tokens. Do not copy Planable logo, wordmark, or proprietary icons.
 
@@ -68,4 +68,4 @@ Planable uses compact line/glyph icons in the rail (channels, help, bell). OMA m
 
 ## 6. Implementation rule
 
-Stage P1 maps these tokens to OMA CSS variables. Do not keep a second Linear/Frame token sheet.
+Stage P1 maps these tokens to OMA CSS variables in `packages/ui/src/tokens.css`. Do not keep a second Linear/Frame token sheet.

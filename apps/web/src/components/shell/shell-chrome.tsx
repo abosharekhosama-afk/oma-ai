@@ -116,7 +116,12 @@ export function ShellChrome({ children }: { children: ReactNode }) {
         data-rail={collapsed ? 'collapsed' : 'expanded'}
         data-shell-hydrated={hydrated ? 'true' : 'false'}
       >
-        <aside className="oma-rail" aria-label={t('nav.primary')} data-collapsed={collapsed}>
+        <aside
+          className="oma-rail"
+          aria-label={t('nav.primary')}
+          data-collapsed={collapsed}
+          data-testid="oma-rail"
+        >
           <div className="oma-rail-header">
             <div className="oma-rail-brand">
               <span className="oma-rail-mark" aria-hidden="true">
@@ -135,7 +140,15 @@ export function ShellChrome({ children }: { children: ReactNode }) {
             </button>
           </div>
           <p className="oma-rail-endorsement">{t('app.endorsement')}</p>
+          <div className="oma-rail-workspace">
+            <TenantSwitcher />
+          </div>
+          <CommandSearch compact hotkey />
           <RailNav collapsed={collapsed} />
+          <div className="oma-rail-footer">
+            <NotificationsBell />
+            <UserMenu />
+          </div>
         </aside>
 
         <div className="oma-shell-column">
@@ -150,26 +163,20 @@ export function ShellChrome({ children }: { children: ReactNode }) {
                 <ShellIcon name="menu" />
               </button>
               <div className="oma-top-context">
-                <TenantSwitcher />
                 <BrandContext />
+                <ShellBreadcrumb />
               </div>
             </div>
             <div className="oma-top-center">
-              <CommandSearch />
+              <CommandSearch compact />
             </div>
             <div className="oma-top-actions">
-              <Link href="/app/requests" className="oma-btn oma-btn--sm" data-testid="shell-create">
+              <Link href="/app/requests" className="oma-btn" data-testid="shell-create">
                 <ShellIcon name="plus" size={16} />
                 <span>{t('shell.create')}</span>
               </Link>
-              <NotificationsBell />
-              <UserMenu />
             </div>
           </header>
-          <div className="oma-top-secondary">
-            <ShellBreadcrumb />
-            <div className="oma-top-secondary-actions" data-slot="page-actions" />
-          </div>
           <main id="main" className="oma-container">
             {children}
           </main>
@@ -187,8 +194,16 @@ export function ShellChrome({ children }: { children: ReactNode }) {
               ×
             </button>
           </div>
-          <div onClick={() => setMobileOpen(false)}>
+          <div className="oma-rail-workspace">
+            <TenantSwitcher />
+          </div>
+          <CommandSearch compact />
+          <div className="oma-mobile-drawer-nav" onClick={() => setMobileOpen(false)}>
             <RailNav collapsed={false} />
+          </div>
+          <div className="oma-rail-footer">
+            <NotificationsBell />
+            <UserMenu />
           </div>
         </Drawer>
       </div>

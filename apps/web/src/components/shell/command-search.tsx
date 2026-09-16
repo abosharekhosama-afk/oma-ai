@@ -6,7 +6,13 @@ import { Dialog } from '../ui/dialog';
 import { useT } from '../../lib/use-locale';
 import { SHELL_NAV_SECTIONS } from './nav-config';
 
-export function CommandSearch() {
+export function CommandSearch({
+  compact = false,
+  hotkey = false,
+}: {
+  compact?: boolean;
+  hotkey?: boolean;
+}) {
   const t = useT();
   const router = useRouter();
   const pathname = usePathname();
@@ -14,6 +20,7 @@ export function CommandSearch() {
   const [query, setQuery] = useState('');
 
   useEffect(() => {
+    if (!hotkey) return;
     function onKey(e: KeyboardEvent) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
@@ -22,7 +29,7 @@ export function CommandSearch() {
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [hotkey]);
 
   const entries = useMemo(() => {
     const flat = SHELL_NAV_SECTIONS.flatMap((section) =>
@@ -47,13 +54,14 @@ export function CommandSearch() {
     <>
       <button
         type="button"
-        className="oma-command-trigger"
+        className={compact ? 'oma-rail-search' : 'oma-command-trigger'}
         onClick={() => setOpen(true)}
         aria-haspopup="dialog"
         aria-expanded={open}
+        aria-label={t('shell.search')}
       >
         <span className="oma-command-trigger-label">{t('shell.search')}</span>
-        <kbd className="oma-command-kbd">⌘K</kbd>
+        {compact ? null : <kbd className="oma-command-kbd">⌘K</kbd>}
       </button>
       <Dialog open={open} onClose={() => setOpen(false)} title={t('shell.searchTitle')}>
         <label className="oma-sr-only" htmlFor="oma-command-input">

@@ -90,9 +90,13 @@ describe('OMA DEC-013 access policy', () => {
     readFileSync(join(REPO_ROOT, '.reference/registry.json'), 'utf8'),
   ) as { references: Array<{ referenceId: string; accessPolicy: string }> };
 
-  it('keeps every registered OMA reference public-source-only', () => {
+  it('keeps non-Planable registered OMA references public-source-only', () => {
     expect(registry.references.length).toBeGreaterThan(0);
     for (const reference of registry.references) {
+      if (reference.referenceId === 'planable') {
+        expect(reference.accessPolicy, 'planable access policy').toBe('AUTHENTICATED_ALLOWED');
+        continue;
+      }
       expect(reference.accessPolicy, `${reference.referenceId} access policy`).toBe(
         'PUBLIC_SOURCE_ONLY',
       );
