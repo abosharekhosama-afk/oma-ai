@@ -1,12 +1,13 @@
 # Reference Parity Audit — Complete Product Demo Visual Quality
 
-**Status:** COMPLETE for blueprint authorization  
-**Mode:** REFERENCE_DISCOVERY  
-**Branch:** `004-oma-complete-product-demo`  
-**App HEAD measured:** `f3f450d4c8c39a34196e820c5751145d51ce1348`  
-**Governing authority:** `DEC-013` via `docs/DESIGN_REFERENCE_STRATEGY.md`  
-**Protocol:** `docs/REFERENCE_PARITY_PROTOCOL.md`  
-**Registry:** `.reference/registry.json`  
+**Status:** COMPLETE for blueprint authorization
+**Mode:** REFERENCE_DISCOVERY
+**Branch:** `004-oma-complete-product-demo`
+**App HEAD measured:** `f3f450d4c8c39a34196e820c5751145d51ce1348`
+**Governing authority:** `DEC-017` (visual) · `DEC-013` historical
+**DEC-017 addendum:** Planable is sole UI/UX authority. This audit’s Linear/Frame visual gaps are historical. New evidence: `.reference/005-planable-ui-ux/`.
+**Protocol:** `docs/REFERENCE_PARITY_PROTOCOL.md`
+**Registry:** `.reference/registry.json`
 **Owner decision:** `OMA_FULL_DEMO_VISUAL_ACCEPTANCE: REJECTED` (functional demo certified; visual/product quality insufficient)
 
 ## 1. Access and authority validation
@@ -39,7 +40,7 @@
 
 ## 3. OMA surfaces measured (LIVE — our app)
 
-Evidence: `.reference/004-visual-parity/ours/measurements/*.json`  
+Evidence: `.reference/004-visual-parity/ours/measurements/*.json`
 Screenshots: `artifacts/visual-parity-004/*-1440.png` (+ `command-center-390.png`)
 
 | Surface            | Route                                   | Rail W | Top H | H1                    | Notes                          |
@@ -107,8 +108,8 @@ Screenshots: `artifacts/visual-parity-004/*-1440.png` (+ `command-center-390.png
 
 ## 8. Certification addendum (Stage 7)
 
-**Date:** 2026-09-14  
-**Starting SHA for Stage 7:** `9c280437ffa32e06cc4a51c8171e34101c49f391`  
+**Date:** 2026-09-14
+**Starting SHA for Stage 7:** `9c280437ffa32e06cc4a51c8171e34101c49f391`
 **Scope:** Does not rewrite the historical rejection at `f3f450d`. Records rebuild closure for certification.
 
 | Gap ID     | Historical severity | Certification verdict | Closed by                                                   |
@@ -119,5 +120,5 @@ Screenshots: `artifacts/visual-parity-004/*-1440.png` (+ `command-center-390.png
 | VG-004     | BLOCKER             | CLOSED                | Stage 5 scoped dark review canvas                           |
 | VG-005…009 | MAJOR               | MITIGATED / TRACKED   | Golden tokens + stage rebuilds; residual polish owner-owned |
 
-**V-CERT-03:** No VG-001…004 blockers remain for Full Visual Certification.  
+**V-CERT-03:** No VG-001…004 blockers remain for Full Visual Certification.
 **VISUAL_ACCEPTANCE:** `PENDING_OWNER` (owner alone may set ACCEPTED).

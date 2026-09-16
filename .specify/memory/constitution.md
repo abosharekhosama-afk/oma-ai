@@ -1,9 +1,9 @@
 # OMA AI Constitution
 
-**Version:** 0.2.0
+**Version:** 0.3.0
 **Status:** Ratified for product definition
 **Ratified:** 2026-08-25
-**Last amended:** 2026-08-25
+**Last amended:** 2026-09-16
 
 This constitution governs OMA AI specifications, plans, tasks, implementation, review, and convergence. It is technology-independent until the architecture plan is approved.
 
@@ -153,13 +153,13 @@ If an environment, account, credential, service, or dataset is unavailable, reco
 
 - OMA AI is an independent product under the IMKAN ecosystem. It owns its application experience, information architecture, visual language, motion language, and design tokens; it is not required to reproduce IMKAN ONE screens, colors, navigation, or transitions.
 - Express the IMKAN relationship through approved brand endorsement and explicit integrations, not through accidental visual or behavioral coupling.
-- Use one named visual North Star and one interaction reference. Assign every additional reference to a narrow functional domain so the product does not become a collage of competing design systems.
+- Use one named UI/UX North Star (`DEC-017`: Planable / `app.planable.io`). Assign every additional reference to functional logic, content model, or analysis model so the product does not become a collage of competing design systems. Linear, Frame.io, Workfront, Jasper, Semrush, Smartly, and ClickUp have **no visual authority**.
 - Treat references as pattern evidence only. Use original OMA layouts, components, copy, icons, imagery, and tokens; never copy proprietary assets or complete screen arrangements.
-- Keep operational surfaces visually consistent across intelligence, strategy, planning, production, client, and paid-media work. A focused review surface may change contrast when media accuracy requires it, but it remains part of the same token and interaction system.
+- Keep operational surfaces visually consistent across intelligence, strategy, planning, production, client, and paid-media work. Review stays inside the Planable light operational system unless a later live `app.planable.io` capture proves a distinct media canvas.
 - Motion must communicate hierarchy, state, progress, or spatial continuity. It must not obscure server-authoritative state, approval, external spend, or failure.
 - Validate the design direction in EN/AR, LTR/RTL, reduced motion, keyboard use, responsive layouts, contrast, and non-color status cues before implementation.
 
-**Gate:** Every UI plan must name its screen archetype, primary reference behavior, OMA adaptation, represented domain state, and accessibility proof. `DEC-013` must be approved before implementing the base design system.
+**Gate:** Every UI plan must name its screen archetype, primary Planable behavior, OMA adaptation, represented domain state, and accessibility proof. `DEC-017` must be approved before implementing the base design system. `DEC-013` does not authorize visual implementation.
 
 ## Delivery gates
 
@@ -207,4 +207,5 @@ If an environment, account, credential, service, or dataset is unavailable, reco
 
 ## Amendment record
 
+- **0.3.0 — 2026-09-16:** Principle XIII now binds a single UI/UX North Star (`DEC-017` Planable). Linear is no longer an interaction visual reference. Review remains in the Planable light operational system unless later live Planable evidence proves otherwise. Impact: design-system implementation must follow Planable tokens/shell; no product code in this amendment.
 - **0.2.0 — 2026-08-25:** Added Principle XIII after the product was confirmed as an independent OMA AI system under IMKAN and a coherent global-reference strategy was requested. Impact: UI specifications must use the OMA reference hierarchy and originality gate; no product code migration is required because implementation has not started.

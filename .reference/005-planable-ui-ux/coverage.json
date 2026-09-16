@@ -1,0 +1,58 @@
+{
+  "project": "oma-ai",
+  "decision": "DEC-017",
+  "originProduct": "https://app.planable.io",
+  "originMarketing": "https://planable.io/",
+  "accessStatus": "CDP_READY_AUTHENTICATED",
+  "capturedAt": "2026-09-16T06:17:51.137Z",
+  "startingSha": "6bb76a33de6529ce46af47e379743169599992fa",
+  "surfaces": [
+    {
+      "id": "shell-approvals-1440",
+      "label": "Approvals / shell (desktop)",
+      "evidenceLevel": "LIVE_VERIFIED",
+      "routePattern": "https://app.planable.io/{id}/{id}"
+    },
+    {
+      "id": "campaigns-all-1440",
+      "label": "Campaigns all",
+      "evidenceLevel": "LIVE_VERIFIED",
+      "routePattern": "https://app.planable.io/{id}/{id}/all"
+    },
+    {
+      "id": "calendar-1440",
+      "label": "Calendar",
+      "evidenceLevel": "PARTIAL",
+      "limitation": "loaderSplashScreen only",
+      "routePattern": "https://app.planable.io/{id}/{id}"
+    },
+    {
+      "id": "dashboard-1440",
+      "label": "Workspace dashboard",
+      "evidenceLevel": "LIVE_VERIFIED",
+      "routePattern": "https://app.planable.io/{id}"
+    },
+    {
+      "id": "shell-1024",
+      "label": "Shell 1024x768",
+      "evidenceLevel": "LIVE_VERIFIED",
+      "routePattern": "https://app.planable.io/{id}"
+    },
+    {
+      "id": "shell-390",
+      "label": "Shell 390x844",
+      "evidenceLevel": "LIVE_VERIFIED",
+      "routePattern": "https://app.planable.io/{id}"
+    }
+  ],
+  "interactions": [
+    "view-switcher"
+  ],
+  "liveCount": 5,
+    "partialCount": 1,
+    "archivedLiveCount": 18,
+    "docCount": 12,
+    "planGatedCount": 2,
+  "forbiddenClicksAvoided": "/upgrade|billing|invite|connect|publish|schedule post|delete|export|trial|pay|new post|create post|approve all|reject/i",
+  "notes": "Workspace identifiers stripped from stored URLs. Raw screenshots stay local/gitignored."
+}

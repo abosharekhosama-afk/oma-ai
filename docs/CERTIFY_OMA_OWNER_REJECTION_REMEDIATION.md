@@ -1,7 +1,9 @@
 # CERTIFY_OMA_OWNER_REJECTION_REMEDIATION
 
-**Mode:** `REVIEW_FIX_AND_CERTIFY`  
-**Starting SHA:** `58949616b9c0a22d59ae2b00f196cea181552559`  
+**DEC-017 (2026-09-16):** This certification is **not** visual acceptance. `PREVIOUS_VISUAL_CERTIFICATIONS: SUPERSEDED`. Next visual work is Planable P1.
+
+**Mode:** `REVIEW_FIX_AND_CERTIFY`
+**Starting SHA:** `58949616b9c0a22d59ae2b00f196cea181552559`
 **Branch:** `004-oma-complete-product-demo`
 
 ## Binding status (owner acceptance not auto-changed)
@@ -13,7 +15,8 @@
 | OWNER_REMEDIATION_CERTIFICATION | PASS                    |
 | FULL_VISUAL_CERTIFICATION       | SUPERSEDED              |
 | OWNER_PREVIEW                   | READY                   |
-| VISUAL_ACCEPTANCE               | PENDING_OWNER           |
+| VISUAL_ACCEPTANCE               | REJECTED (DEC-017)      |
+| PREVIOUS_VISUAL_CERTIFICATIONS  | SUPERSEDED              |
 | USER_ACCEPTANCE                 | PENDING                 |
 | EXTERNAL_INTEGRATIONS           | DEFERRED                |
 | DEMO_MODULES                    | NOT_PRODUCTION_COMPLETE |

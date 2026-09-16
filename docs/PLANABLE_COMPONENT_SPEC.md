@@ -1,0 +1,59 @@
+# Planable component spec (OMA)
+
+**Status:** SPEC only.
+**Authority:** `DEC-017` · `docs/PLANABLE_UI_UX_BASELINE.md`
+**Rule:** One OMA component kit in Planable visual language. Linear/Frame/Workfront chrome is not allowed.
+
+## Shell
+
+| OMA component                | Planable pattern                                          | Evidence                                            | Notes                                     |
+| ---------------------------- | --------------------------------------------------------- | --------------------------------------------------- | ----------------------------------------- |
+| `AppShell`                   | Persistent 256px rail + content canvas `#F5F6F7`          | LIVE approvals/campaigns                            | Not Linear top-bar product                |
+| `NavItem`                    | Content, Campaigns, Approvals, Inbox, Analytics, Channels | LIVE `data-cy`                                      | OMA labels stay OMA IA                    |
+| `WorkspaceSwitcher`          | `workspace-menu-button`                                   | LIVE + ARCHIVED menu                                | Do not copy Planable “New workspace” copy |
+| `GlobalSearch`               | Rail search, 14px, radius 6                               | LIVE                                                |                                           |
+| `CreateControl`              | Primary 32×h, `#1677FF`, radius 6                         | LIVE `reviewPostsButton` as primary-shape reference | OMA create menu; never Planable “Upgrade” |
+| `UserMenu` / `Notifications` | Rail footer / `notificationInbox`                         | LIVE presence                                       | Drawer contents `SANDBOX_DATA_REQUIRED`   |
+| `Breadcrumb`                 | `navBarBreadcrumbs`                                       | LIVE                                                | `{company} / {area} / {view}`             |
+
+## Content
+
+| OMA component       | Planable pattern                                                             | Evidence                                                              |
+| ------------------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `ViewSwitcher`      | Calendar / Feed / Grid / List / Approvals                                    | ARCHIVED LIVE menu; this run PARTIAL (selector missing on approvals)  |
+| `FilterBar`         | Approval, post status, campaign, labels, period, type, author                | ARCHIVED LIVE                                                         |
+| `ContentCalendar`   | Month/week cells, media thumbs, time, approval, comments                     | ARCHIVED LIVE; this-run calendar splash only                          |
+| `ContentFeed`       | Native-like stacked previews                                                 | ARCHIVED + DOC; direct `/feed` 404                                    |
+| `ContentGrid`       | Instagram-style grid                                                         | PLAN_GATED this account; DOC + marketing inventory                    |
+| `ContentList`       | Dense rows, bulk actions                                                     | PLAN_GATED; DOC bulk approve/schedule                                 |
+| `ContentCard`       | Media-first, channel, status, comments                                       | ARCHIVED LIVE                                                         |
+| `Composer`          | Modal: campaign, labels, Post/Story/Reels, editor, AI affordance, Save draft | ARCHIVED LIVE open/close no submit; this run control not on dashboard |
+| `PostModal`         | Preview + status + schedule/publish honesty + right Feedback drawer          | ARCHIVED LIVE                                                         |
+| `CommentThread`     | Author + relative time + mentions; internal vs external                      | ARCHIVED + DOC                                                        |
+| `SuggestionTab`     | Select text to suggest                                                       | ARCHIVED empty + DOC                                                  |
+| `ApprovalActions`   | Approve next to content; bulk review modal with skip/progress                | ARCHIVED LIVE opened/closed without decision                          |
+| `CampaignPortfolio` | `/campaigns/{id}/all` tabs All/Active/Planning/Completed                     | LIVE route this run                                                   |
+| `EmptyState`        | One illustration-free message + one primary CTA                              | ARCHIVED empty calendar/campaigns/analytics                           |
+| `StatusChip`        | Text status; not color-only                                                  | ARCHIVED vocabulary                                                   |
+
+## Overlays
+
+| OMA component      | Planable pattern                              | Evidence                                      |
+| ------------------ | --------------------------------------------- | --------------------------------------------- |
+| `Modal`            | Centered dialog, `closeModal`, Escape         | ARCHIVED compose + review; LIVE close pattern |
+| `Drawer`           | `post-modal-drawer` attached to content modal | ARCHIVED                                      |
+| `Menu` / `Popover` | `role=menu`, pointer + Escape                 | ARCHIVED view/workspace menus                 |
+| `DialogFooter`     | Primary 32px `#1677FF` + quiet secondary      | LIVE button metrics                           |
+
+## OMA-only functions in Planable language
+
+| OMA function                            | Visual rule                                                                                                              |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Tasks Kanban                            | Same type, 6px radius, `#F5F6F7` canvas, 32px controls, Planable cards/menus/status chips. **No Linear board chrome.**   |
+| Brand Intelligence / Strategy documents | Structured editor/workspace like Planable Universal Content / post editor density, not Jasper/Semrush visual systems.    |
+| Workfront-style request inbox           | Planable list/approvals language (columns, filters, primary review action).                                              |
+| Frame.io-style version lock             | Keep OMA immutable-version **logic**; present it as Planable activity + status next to preview, not a dark Frame player. |
+
+## Forbidden visual imports
+
+Linear issue panel, Linear command palette chrome, Frame.io dark theater, Workfront enterprise density, ClickUp board, marketing hero type.

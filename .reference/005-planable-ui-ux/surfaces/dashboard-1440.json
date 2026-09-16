@@ -1,0 +1,30 @@
+{
+  "id": "dashboard-1440",
+  "label": "Workspace dashboard",
+  "evidenceLevel": "LIVE_VERIFIED",
+  "routePattern": "https://app.planable.io/{id}",
+  "navLabels": [
+    "Planable"
+  ],
+  "dataCySample": [
+    "navBody",
+    "navHeader",
+    "navTopbar",
+    "navbarAppLogo",
+    "global-search-input",
+    "searchToggle",
+    "helpButton",
+    "{id}",
+    "user-dropdown",
+    "userAvatar",
+    "hamburgerMenu",
+    "{id}",
+    "newNavContent"
+  ],
+  "overflowX": false,
+  "viewport": {
+    "innerWidth": 1440,
+    "innerHeight": 900,
+    "dpr": 1
+  }
+}

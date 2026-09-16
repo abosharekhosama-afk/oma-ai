@@ -1,8 +1,7 @@
 # OMA Design System Blueprint (Golden)
 
-**Status:** READY for Stage 1 implementation (tokens + shell)
-**Authority:** `DEC-013` · `docs/DESIGN_REFERENCE_STRATEGY.md` · `docs/REFERENCE_PARITY_AUDIT.md`
-**Originality:** OMA tokens/layouts/icons/copy only — references authorize patterns, never assets.
+**Status:** `SUPERSEDED` as visual authority by `DEC-017` (`docs/PLANABLE_DESIGN_TOKENS_SPEC.md`). Kept as historical research.
+**Do not implement this file.** Planable tokens/shell replace Inter + OMA Violet + Linear geometry.
 
 ## 1. Unified visual direction (one product)
 

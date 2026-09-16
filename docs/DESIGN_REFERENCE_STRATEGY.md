@@ -1,9 +1,11 @@
 # OMA AI Design Reference Strategy
 
-**Status:** Approved reference hierarchy — palette and component details remain design-validation inputs
-**Updated:** 2026-08-25
-**Decision:** `DEC-013 — RESOLVED 2026-08-25`
+**Status:** `DEC-017` supersedes visual/UI/UX authority. `DEC-013` is historical functional assignment only.
+**Updated:** 2026-09-16
+**Decision:** `DEC-017 — RESOLVED 2026-09-16` (Planable sole UI/UX). `DEC-013` remains on file and is **not** visual authority.
 **Scope:** Product experience direction only; this is not a component library or implementation plan.
+
+> **Binding now:** Planable (`app.planable.io`) is `PRIMARY_AND_SOLE_UI_UX_AUTHORITY` for shell, type, color, space, motion, components, calendar/grid/feed/list, composer, comments, approvals, responsive, and RTL adaptation. Linear, Frame.io, Workfront, Jasper, Semrush, and Smartly are **not** visual authorities. ClickUp is `NOT_ADOPTED`. Specs: `docs/decisions/DEC-017-planable-single-ui-ux-reference.md`.
 
 ## 1. Fixed product boundary
 
@@ -13,24 +15,25 @@ The IMKAN relationship should initially be expressed through an approved endorse
 
 ## 2. Reference hierarchy
 
-OMA AI must not become a collage of unrelated products. One reference governs the content experience, one supports interaction quality, and the remaining references inform only their named functional domain.
+OMA AI must not become a collage of unrelated products. **One product** governs UI/UX. Other products inform named **functional logic** only.
 
-| Priority | Official reference | OMA use | Adopt as a pattern | Do not copy |
+| Priority | Official reference | Authority after DEC-017 | Adopt as a pattern | Do not copy |
 | --- | --- | --- | --- | --- |
-| Visual North Star | [Planable](https://planable.io/product/) | Primary visual reference for content planning, calendars, previews, and collaboration | Content-first cards, rich previews, approvals next to the content, role-aware workspaces | Brand colors, logo, illustrations, or exact screen composition |
-| Interaction reference | [Linear](https://linear.app/now/behind-the-latest-design-refresh) | Interface density, speed, side panels, and restrained motion | Calm hierarchy, compact navigation, fast transitions, detail drawer patterns | Linear's brand palette, issue model, or dark visual identity as the whole product |
-| Review reference | [Frame.io](https://frame.io/features/review-and-approval) | Image/video review with feedback tied to one exact version | Dark focus canvas, anchored feedback, review status tied to a version | Player chrome, icons, terminology, or proprietary assets |
-| Workflow reference | [Adobe Content Supply Chain / Workfront](https://business.adobe.com/solutions/content-supply-chain/workflow-planning.html) | Request, planning, production, and approval workflow | Connected workflow and approval concepts | Enterprise visual density or Adobe styling |
-| AI brand intelligence | [Jasper Brand IQ](https://www.jasper.ai/brand-iq) | Brand intelligence, voice, tone, and style | Explicit brand context and governed generation | Jasper's visual language or claims |
-| Website and competitor intelligence | [Semrush Competitor Analysis](https://www.semrush.com/features/competitor-analysis/) | Website, competitor, and evidence analysis | Source-backed comparisons, gaps, and confidence/freshness | Third-party metrics presented as OMA-owned facts |
-| Paid-media operations | [Smartly](https://www.smartly.io/platform-overview) | Connect approved content to paid-media planning and execution | One operational view linking creative, media intent, and external delivery state | Smartly's campaign model or provider-specific identifiers in shared OMA domains |
+| Sole UI/UX | [Planable app](https://app.planable.io/) | `PRIMARY_AND_SOLE_UI_UX_AUTHORITY` | Shell, type, color, density, calendar/feed/grid/list, composer, comments, approvals, motion, responsive | Logo, name in-product, illustrations, proprietary assets, marketing heroes |
+| Functional (not visual) | [Linear](https://linear.app/now/behind-the-latest-design-refresh) | `FUNCTIONAL_LOGIC_ONLY / NOT_VISUAL_AUTHORITY` | Issue/task workflow concepts only | Any Linear color, type, shell, motion, or layout |
+| Functional (not visual) | [Frame.io](https://frame.io/features/review-and-approval) | `FUNCTIONAL_LOGIC_ONLY / NOT_VISUAL_AUTHORITY` | Exact-version review *logic* | Dark theater chrome, player, icons |
+| Workflow (not visual) | [Adobe Workfront / CSC](https://business.adobe.com/solutions/content-supply-chain/workflow-planning.html) | `FUNCTIONAL_LOGIC_ONLY / NOT_VISUAL_AUTHORITY` | Request→production concepts | Adobe density or styling |
+| Content model only | [Jasper Brand IQ](https://www.jasper.ai/brand-iq) | `CONTENT_MODEL_ONLY` | Brand context, governed generation | Jasper UI |
+| Analysis model only | [Semrush](https://www.semrush.com/features/competitor-analysis/) | `ANALYSIS_MODEL_ONLY` | Evidence-led comparisons | Semrush chrome or third-party metrics as OMA facts |
+| Paid logic only | [Smartly](https://www.smartly.io/platform-overview) | `PAID_AND_ANALYTICS_LOGIC_ONLY` | Linking creative to paid delivery state | Smartly UI or provider IDs in shared domains |
+| Not adopted | ClickUp | `NOT_ADOPTED` | — | Any ClickUp visual or IA |
 
 ### Reference rule
 
-- **Planable + Linear** may influence the base product experience.
-- **Frame.io** may influence only the focused asset-review surface.
-- Workfront, Jasper, Semrush, and Smartly are functional references. They must not add competing color systems or navigation models.
-- References describe useful patterns, not requirements to clone source products. OMA must use original layouts, copy, icons, tokens, and assets.
+- **Planable** is the only visual, interaction, motion, and layout authority.
+- Linear, Frame.io, Workfront, Jasper, Semrush, and Smartly must not add competing color, type, shell, motion, or navigation models.
+- ClickUp is not adopted.
+- References describe useful patterns, not a license to clone. OMA keeps its name, logo, data, and original assets. Marketing `planable.io` is not a component source.
 
 ## 3. Initial OMA visual direction
 
@@ -43,6 +46,11 @@ OMA AI must not become a collage of unrelated products. One reference governs th
 - **Premium but practical:** polished surfaces without decorative complexity.
 
 ### Proposed color tokens
+
+**Superseded for implementation.** Historical DEC-013 violet/teal values remain below as archive only. Binding tokens: `docs/PLANABLE_DESIGN_TOKENS_SPEC.md` (canvas `#F5F6F7`, ink `#333333`, primary `#1677FF`, radius 6px, rail 256px).
+
+<details>
+<summary>Archived DEC-013 working palette (not visual authority)</summary>
 
 These tokens are a direction for approval, not a finished accessible design system. Contrast pairs must be tested before implementation.
 
@@ -62,42 +70,42 @@ These tokens are a direction for approval, not a finished accessible design syst
 | `status.warning` | `#B7791F` | Waiting, risk, partial, needs attention |
 | `status.danger` | `#C43D4B` | Failed, rejected, destructive action |
 
+</details>
+
 Color must never be the only status signal. Every state also needs text, iconography where helpful, and accessible focus/contrast behavior.
 
 ### Surface model
 
-1. **Operational workspace — light-first:** intelligence, strategy, plans, calendars, boards, dashboards, client portal, and paid operations.
-2. **Review focus — dark canvas:** video, photography, and design review where media accuracy and anchored feedback require reduced surrounding contrast.
-3. **Client view — simplified light surface:** the same OMA design system with internal-only controls removed, not a separate product theme.
-
-This is contextual surface switching, not two unrelated applications.
+1. **Operational workspace — light-first Planable canvas (`#F5F6F7`):** all OMA work including review comments beside content.
+2. **No second visual system:** Frame.io-style dark theater is not the OMA app chrome after DEC-017.
+3. **Client view:** the same Planable-language system with internal-only controls removed.
 
 ## 4. Proposed product shell
 
-### Persistent shell
+### Persistent shell (Planable)
 
-- Left rail: `Home`, `Intelligence`, `Strategy`, `Content Plan`, `Production`, `Reviews`, `Assets`, `Paid Media`, and `Client Portal`, filtered by capability.
-- Top context bar: active company/brand, global search, create action, notifications, help, and profile.
-- Contextual right panel: AI assistant, object details, evidence, activity, or approvals without losing the current workspace.
-- Company/brand context must always be visible when switching could affect tenant-scoped work.
+- Left rail **256px**: workspace switcher, search, Content / Campaigns / Approvals / related OMA items, channels/brands, user + notifications.
+- Content header: breadcrumbs + primary 32px action (`#1677FF`, radius 6px).
+- Detail: modal + attached comments/approvals drawer (not a Linear 56px global bar).
+- Company/brand context always visible when switching tenant-scoped work.
 
 ### Screen archetypes
 
 | Archetype | Primary job | Reference emphasis |
 | --- | --- | --- |
-| Intelligence workspace | Connect a website, inspect sources, products, competitors, evidence, confidence, and freshness | Semrush + Linear |
-| Strategy canvas | Review evidence, assumptions, objectives, recommendations, and separate Organic/Paid plans | Jasper + Linear |
-| Content plan | Switch among calendar, feed/grid preview, and list; filter by channel, campaign, status, and owner | Planable |
-| Production board | Convert plan items to tasks; assign, drag through valid states, expose blockers and workload | Linear interaction + Workfront workflow |
-| Content detail | Show brief, objective, references, files, comments, versions, approvals, and activity in one stable context | Planable + Frame.io when reviewing media |
-| Review room | Review one exact deliverable version with anchored feedback, decision history, and compare behavior | Frame.io |
-| Client portal | Request/price content, answer clarification, track milestones, review exposed versions, approve permitted actions | Planable collaboration + OMA simplified shell |
-| Paid command center | Link Paid-plan intent and approved creative to campaign drafts, approvals, sync, spend, and provider status | Smartly |
+| Intelligence workspace | Connect a website, inspect sources, products, competitors, evidence | Planable editor/detail language; Semrush **logic only** |
+| Strategy canvas | Evidence, objectives, Organic/Paid plans | Planable structured workspace; Jasper **model only** |
+| Content plan | Calendar, feed/grid, list | Planable |
+| Production board | Tasks through valid states | OMA Kanban in **Planable visual language** |
+| Content detail | Brief, files, comments, versions, approvals | Planable post modal + drawer |
+| Review room | Exact version + comments + decision | Planable approvals beside preview; Frame.io **logic only** |
+| Client portal | Request, review, approve | Planable collaboration |
+| Paid command center | Paid plan + creative + external status | Planable chrome; Smartly **logic only** |
 
 ## 5. Motion and interaction language
 
 - Motion communicates hierarchy or state change; it is not decorative branding.
-- Micro-interactions should normally complete in `120–180 ms`; panel and route transitions in `180–240 ms`.
+- Binding timings are Planable-measured: chrome **150ms linear**, controls **300ms cubic-bezier(0.4, 0, 0.2, 1)** or **300ms ease** (`docs/PLANABLE_MOTION_SPEC.md`). The older Linear 120–240ms sheet is not authority.
 - Drag-and-drop must show a clear pickup state, valid targets, invalid targets, optimistic waiting, server confirmation, and authoritative rollback on rejection.
 - AI generation uses a durable progress/state pattern rather than an indefinite shimmer that implies completion.
 - Approval, external spend, publishing, deletion, and replacement of an approved version require deliberate confirmation proportional to risk.
@@ -128,33 +136,28 @@ Before a UI plan or implementation is approved:
 4. Verify EN/AR, LTR/RTL, responsive layout, keyboard path, focus, contrast, non-color status, loading, empty, error, permission, stale, and conflict states.
 5. Verify the product remains visually coherent when intelligence, planning, production, review, client, and paid-media surfaces are traversed in one journey.
 
-## 8. Approved DEC-013 reference hierarchy
+## 8. DEC-013 (historical) vs DEC-017 (binding)
 
-The user approved the seven-reference assignment in section 2:
+DEC-013 seven-reference research is retained. It does **not** authorize visual implementation.
 
-- Planable for the primary visual content-planning, calendar, preview, and collaboration experience;
-- Linear for interface density, speed, side panels, and restrained motion;
-- Frame.io for exact-version image/video review and feedback;
-- Adobe Workfront for request, planning, production, and approval workflow;
-- Jasper Brand IQ for brand voice, tone, style, and governed brand intelligence;
-- Semrush for website, competitor, and evidence-led intelligence;
-- Smartly for connecting approved content to paid-media planning and execution.
+Visual implementation follows **DEC-017** and `docs/PLANABLE_DESIGN_TOKENS_SPEC.md`.
 
-No additional product may be added to the canonical hierarchy without an explicit decision update. The light/dark surface model and OMA Violet `#6658E8` plus Signal Teal `#12A7A1` remain working design inputs that must pass prototype, accessibility, EN/AR, and RTL/LTR validation; they are not copied from the reference products.
+Next stage when requested: **IMPLEMENT_OMA_PLANABLE_UI_UX_REBUILD_STAGE_P1**.
 
-Approval of the reference hierarchy authorizes a later design-system specification. It does not authorize UI code or choose a frontend stack.
+## 9. Visual rebuild program
 
-## 9. Visual rebuild program (post functional demo)
-
-Owner rejected visual acceptance of the certified functional demo (`OMA_FULL_DEMO_VISUAL_ACCEPTANCE: REJECTED`). The authorized blueprint pack is:
+Owner visual review remains `REJECTED`. Previous golden-shell / owner-remediation certifications are `SUPERSEDED`.
 
 | Document | Path |
 | --- | --- |
-| Reference parity audit | `docs/REFERENCE_PARITY_AUDIT.md` |
-| Golden design system | `docs/OMA_DESIGN_SYSTEM_BLUEPRINT.md` |
-| Components & interactions | `docs/COMPONENT_AND_INTERACTION_BLUEPRINT.md` |
-| Surface rebuild stages | `docs/SURFACE_REBUILD_MATRIX.md` |
-| Visual acceptance criteria | `docs/VISUAL_ACCEPTANCE_CRITERIA.md` |
-| Measurements | `.reference/004-visual-parity/` |
+| DEC-017 | `docs/decisions/DEC-017-planable-single-ui-ux-reference.md` |
+| Planable baseline | `docs/PLANABLE_UI_UX_BASELINE.md` |
+| Tokens | `docs/PLANABLE_DESIGN_TOKENS_SPEC.md` |
+| Components | `docs/PLANABLE_COMPONENT_SPEC.md` |
+| Motion | `docs/PLANABLE_MOTION_SPEC.md` |
+| Responsive | `docs/PLANABLE_RESPONSIVE_SPEC.md` |
+| Surface map | `docs/PLANABLE_TO_OMA_SURFACE_MAP.md` |
+| Acceptance | `docs/PLANABLE_VISUAL_ACCEPTANCE_CRITERIA.md` |
+| Evidence | `.reference/005-planable-ui-ux/` |
 
-Next implementation stage: **IMPLEMENT_OMA_GOLDEN_DESIGN_SYSTEM_AND_SHELL** (Stage 1 only until its V-SHELL criteria pass). Authenticated reference re-inspection remains blocked while `authenticatedReferenceParity` is `PENDING` and references stay `PUBLIC_SOURCE_ONLY`.
+Historical DEC-013 pack (`OMA_DESIGN_SYSTEM_BLUEPRINT.md`, Linear V-SHELL numbers, `.reference/004-visual-parity/`) is archive only.

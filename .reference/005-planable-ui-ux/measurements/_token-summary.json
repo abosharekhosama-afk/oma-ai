@@ -1,0 +1,25 @@
+{
+  "evidenceLevel": "LIVE_VERIFIED",
+  "source": "app.planable.io",
+  "sourceKind": "PRODUCT_APP",
+  "capturedAt": "2026-09-16T06:17:51.137Z",
+  "tokenSummary": {
+    "htmlBg": "rgba(0, 0, 0, 0)",
+    "bodyBg": "rgb(245, 246, 247)",
+    "bodyColor": "rgb(51, 51, 51)",
+    "bodyFont": "-apple-system, system-ui, \"system-ui\", \"Segoe UI\", Roboto, Oxygen-Sans, Ubuntu, Cantarell, \"Helvetica Neue\", sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\"",
+    "bodySize": "14px",
+    "bodyWeight": "400",
+    "bodyLine": "21.5384px",
+    "sidebarBg": "rgb(255, 255, 255)",
+    "workspaceRailWidthPx": 256,
+    "dashboardNavBodyWidthPx": 1440,
+    "sidebarWidthNote": "256px is LIVE navSidebar on workspace pages. 1440px is dashboard navBody (full viewport), not the workspace rail.",
+    "headerHeight": null,
+    "headerBg": null,
+    "buttonRadius": "6px",
+    "buttonHeight": 32,
+    "focusOutline": "oklab(0.598637 -0.0416862 -0.215336 / 0.4) solid 0px"
+  },
+  "workspaceIdPresent": true
+}

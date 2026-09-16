@@ -1,0 +1,13 @@
+{
+  "decision": "DEC-017",
+  "gatedOrMissing": [
+    { "id": "feed-view", "reason": "CONTROL_NOT_FOUND" },
+    { "id": "grid-view", "reason": "PLAN_GATED" },
+    { "id": "list-view", "reason": "PLAN_GATED" },
+    { "id": "settings", "reason": "SANDBOX_DATA_REQUIRED" },
+    { "id": "composer", "reason": "CONTROL_NOT_FOUND" },
+    { "id": "calendar-cells", "reason": "PARTIAL_SPLASH" },
+    { "id": "arabic-rtl", "reason": "NOT_IN_SESSION" },
+    { "id": "reduced-motion", "reason": "NOT_OBSERVED" }
+  ]
+}

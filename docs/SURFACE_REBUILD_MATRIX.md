@@ -1,15 +1,7 @@
 # Surface Rebuild Matrix — Visual Quality Program
 
-**Status:** READY — implementation stages are ordered and gated
-**App baseline:** `f3f450d` functional demo
-**Do not** rebuild functionality in Stage 0 (this doc). Stages 1–7 implement visuals/interaction only unless a Stage explicitly requires structural UI that already has domain APIs.
-
-Evidence refs:
-
-- OMA measurements: `.reference/004-visual-parity/ours/measurements/`
-- OMA shots: `artifacts/visual-parity-004/`
-- Archived reference notes: `.reference/002-evidence/raw-planable.txt`, `raw-linear.txt`
-- Authority: DEC-013
+**Status:** `SUPERSEDED` as the implementation sequence by Planable stages P1–P7 in `docs/PLANABLE_TO_OMA_SURFACE_MAP.md` (`DEC-017`).
+**Authority:** DEC-017. DEC-013 Linear/Frame rows below are historical.
 
 Severity: **B** = blocker for visual acceptance · **M** = major · **m** = minor
 Status: all rows below are **REBUILD** or **PARTIAL** unless noted.

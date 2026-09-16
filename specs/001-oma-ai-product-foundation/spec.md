@@ -859,15 +859,19 @@ This is product dependency order, not an implementation plan. Scope requires app
 
 **Question:** Required currencies, taxes/invoice boundary, cancellation/refund terms, asset retention, source snapshot retention, and audit retention by market.
 
-### DEC-013 — Product experience and global reference hierarchy `RESOLVED 2026-08-25`
+### DEC-013 — Product experience and global reference hierarchy `RESOLVED 2026-08-25` (historical)
 
-**Decision:** Use Planable as the primary visual reference for content planning, calendars, previews, and collaboration; Linear for interface density, speed, side panels, and restrained motion; Frame.io for exact-version image/video review; Adobe Workfront for request, planning, production, and approval workflow; Jasper Brand IQ for brand intelligence, voice, tone, and style; Semrush for website, competitor, and evidence analysis; and Smartly for connecting approved content to paid-media planning and execution.
+**Decision (historical):** Seven-reference research assigned Planable, Linear, Frame.io, Workfront, Jasper, Semrush, and Smartly to named roles. That visual split is **not** implementation authority after `DEC-017`.
 
-**Boundary:** Planable and Linear govern the base experience only within their named roles. Frame.io governs focused review only. Workfront, Jasper, Semrush, and Smartly are functional references and must not introduce competing navigation or color systems. No additional product is part of the canonical hierarchy unless a later decision adds it.
+**Supersession:** `DEC-017` (2026-09-16) makes Planable the sole UI/UX authority. Linear, Frame.io, and Workfront are functional-logic only. Jasper is content-model only. Semrush is analysis-model only. Smartly is paid/analytics-logic only. ClickUp is not adopted. Binding tokens and shell: `docs/PLANABLE_DESIGN_TOKENS_SPEC.md`. OMA Violet `#6658E8` is not a Planable app token.
 
-**Palette note:** The light/dark surface model and OMA Violet `#6658E8` plus Signal Teal `#12A7A1` are working design inputs, not copied reference colors. They require prototype, contrast, EN/AR, and RTL/LTR validation during design-system planning.
+**Impact:** Keep this section as research history. Do not implement DEC-013 visual chrome.
 
-**Impact:** The reference-hierarchy blocker is closed. A design-system specification may begin after repository inspection and explicit authorization; this decision does not authorize UI implementation.
+### DEC-017 — Planable as the single UI/UX reference `RESOLVED 2026-09-16`
+
+**Decision:** Planable (`https://app.planable.io/`) is `PRIMARY_AND_SOLE_UI_UX_AUTHORITY` for OMA shell, type, color, space, motion, components, content views, composer, comments, approvals, responsive behavior, and RTL adaptation.
+
+**Boundary:** Marketing `planable.io` is not a component source. OMA keeps its name, logo, data, and functions. No Planable proprietary assets. Implementation is not authorized until `IMPLEMENT_OMA_PLANABLE_UI_UX_REBUILD_STAGE_P1`.
 
 ### DEC-014 — Platform foundation technical stack `RESOLVED 2026-08-25`
 

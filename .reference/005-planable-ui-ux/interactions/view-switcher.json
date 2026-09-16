@@ -1,0 +1,7 @@
+{
+  "id": "view-switcher",
+  "evidenceLevel": "PARTIAL",
+  "action": "opened viewSelector; closed with Escape; no mutation",
+  "clickResult": "missing",
+  "menuTextSanitized": null
+}

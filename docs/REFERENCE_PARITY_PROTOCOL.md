@@ -45,11 +45,11 @@ These are not interchangeable. Reference inspection is not proof our implementat
 
 ## 4. Project reference authority
 
-Before any inspection, read the project's own reference strategy. In this repository that is `docs/DESIGN_REFERENCE_STRATEGY.md`, governed by `DEC-013`.
+Before any inspection, read the project's own reference strategy. In this repository that is `docs/DESIGN_REFERENCE_STRATEGY.md`, governed by `DEC-017` (visual) with `DEC-013` retained as historical functional assignment.
 
 Authority types a project may assign:
 
-`FUNCTIONAL_AUTHORITY`, `WORKFLOW_AUTHORITY`, `PLATFORM_SHELL_AUTHORITY`, `NAVIGATION_AUTHORITY`, `VISUAL_REFERENCE`, `BACKEND_LOGIC_REFERENCE`, `SECONDARY_REFERENCE`, `INSPIRATION_ONLY`.
+`PRIMARY_AND_SOLE_UI_UX_AUTHORITY`, `FUNCTIONAL_LOGIC_ONLY`, `CONTENT_MODEL_ONLY`, `ANALYSIS_MODEL_ONLY`, `PAID_AND_ANALYTICS_LOGIC_ONLY`, `NOT_ADOPTED`, plus historical labels `FUNCTIONAL_AUTHORITY`, `WORKFLOW_AUTHORITY`, `PLATFORM_SHELL_AUTHORITY`, `NAVIGATION_AUTHORITY`, `VISUAL_REFERENCE`, `BACKEND_LOGIC_REFERENCE`, `SECONDARY_REFERENCE`, `INSPIRATION_ONLY`.
 
 Never globally assume every reference must be cloned or has functional authority. A project may legitimately hold several references with different authority, and conflicting reference truths must never be merged silently.
 
@@ -58,7 +58,7 @@ Access policy is also per reference. `.reference/registry.json` records, for eac
 - `PUBLIC_SOURCE_ONLY` — only official public pages and documentation may be used; authenticated inspection is not permitted.
 - `AUTHENTICATED_ALLOWED` — the project has authorised inspection of a signed-in session the user owns.
 
-**OMA today:** every `DEC-013` reference is `PUBLIC_SOURCE_ONLY` and `AUTHENTICATED REFERENCE PARITY` is `PENDING`. No OMA-owned reference account exists, so authenticated inspection has no legitimate target in this repository. The subsystem is installed and validated, and it refuses authenticated inspection for these references until a project decision changes the policy.
+**OMA today:** `DEC-017` makes Planable `AUTHENTICATED_ALLOWED` for read-only inspection of an owner-held session. Other named references remain `PUBLIC_SOURCE_ONLY`. Authenticated inspection still never mutates the reference product.
 
 ## 5. Inspection modes
 

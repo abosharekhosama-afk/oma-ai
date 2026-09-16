@@ -1,9 +1,8 @@
 # Visual Acceptance Criteria — OMA Full Product Experience
 
-**Status:** Binding for Stages 1–7
-**Baseline rejected:** functional demo at `f3f450d`
-**How to prove:** Playwright visual journeys + measured DOM/styles + screenshots with git SHA metadata.
-**Forbidden proofs alone:** route exists, tests green, “looks Linear-like.”
+**Status:** `SUPERSEDED` as acceptance baseline by `docs/PLANABLE_VISUAL_ACCEPTANCE_CRITERIA.md` (`DEC-017`).
+**OWNER_VISUAL_REVIEW:** `REJECTED`
+**PREVIOUS_VISUAL_CERTIFICATIONS:** `SUPERSEDED`
 
 ## Global rules (all stages)
 

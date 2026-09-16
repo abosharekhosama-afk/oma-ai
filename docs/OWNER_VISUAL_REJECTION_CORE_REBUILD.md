@@ -1,5 +1,7 @@
 # Owner visual rejection — core experience rebuild
 
+**Status:** `SUPERSEDED` as visual authority by `DEC-017`. Inter/Noto/Linear-shell work here is historical. Owner visual review remains `REJECTED`.
+
 **Date:** 2026-09-14
 **Branch:** `004-oma-complete-product-demo`
 **Starting SHA:** `ca8a67388a36068eb0144241d474c081dde691fe`

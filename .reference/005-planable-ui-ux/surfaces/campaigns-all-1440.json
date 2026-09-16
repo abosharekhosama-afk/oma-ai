@@ -1,0 +1,25 @@
+{
+  "id": "campaigns-all-1440",
+  "label": "Campaigns all",
+  "evidenceLevel": "LIVE_VERIFIED",
+  "routePattern": "https://app.planable.io/{id}/{id}/all",
+  "navLabels": [
+    "New campaign"
+  ],
+  "dataCySample": [
+    "navBody",
+    "navSidebar",
+    "sidebarGhost",
+    "floatingSidebar",
+    "navHeader",
+    "navTopbar",
+    "{id}",
+    "newNavContent"
+  ],
+  "overflowX": false,
+  "viewport": {
+    "innerWidth": 1440,
+    "innerHeight": 900,
+    "dpr": 1
+  }
+}

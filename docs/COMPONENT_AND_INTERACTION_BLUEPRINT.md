@@ -1,8 +1,7 @@
 # Component and Interaction Blueprint
 
-**Status:** READY — binds Stage 1–6 rebuilds  
-**Authority:** DEC-013 + `docs/OMA_DESIGN_SYSTEM_BLUEPRINT.md`  
-**Rule:** One OMA component system. Reference patterns inform behavior; never copy proprietary chrome.
+**Status:** `SUPERSEDED` as visual/component authority by `DEC-017` (`docs/PLANABLE_COMPONENT_SPEC.md`). Linear/Frame rows below are historical.
+**Do not implement Linear chrome from this file.**
 
 ## 1. Component inventory (implement once, reuse everywhere)
 

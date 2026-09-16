@@ -1,9 +1,9 @@
 {
-  "$comment": "Which references exist and what authority each holds. Authority is project governance (DEC-013 via docs/DESIGN_REFERENCE_STRATEGY.md); this file only records it in machine-readable form. accessPolicy gates authenticated inspection.",
+  "$comment": "Authority is project governance (DEC-017 via docs/DESIGN_REFERENCE_STRATEGY.md). accessPolicy gates authenticated inspection.",
   "project": "oma-ai",
   "referenceStrategyDoc": "docs/DESIGN_REFERENCE_STRATEGY.md",
-  "governingDecision": "DEC-013",
-  "authenticatedReferenceParity": "PENDING",
+  "governingDecision": "DEC-017",
+  "authenticatedReferenceParity": "PLANABLE_SESSION_AUTHORIZED",
   "references": [
     {
       "referenceId": "fixture-reference",
@@ -19,18 +19,18 @@
     {
       "referenceId": "planable",
       "name": "Planable",
-      "authority": ["VISUAL_REFERENCE", "WORKFLOW_AUTHORITY"],
-      "authorityScope": "Content planning, calendar, preview, collaboration, review flow, approval visibility, status chips",
-      "accessPolicy": "PUBLIC_SOURCE_ONLY",
-      "publicSources": ["https://planable.io/product/"],
+      "authority": ["PRIMARY_AND_SOLE_UI_UX_AUTHORITY"],
+      "authorityScope": "Entire OMA UI/UX: shell, type, color, motion, content views, composer, comments, approvals, responsive, RTL adaptation",
+      "accessPolicy": "AUTHENTICATED_ALLOWED",
+      "publicSources": ["https://app.planable.io/", "https://planable.io/product/", "https://help.planable.io/"],
       "sessionProfile": null,
       "evidenceNamespace": ".reference/planable"
     },
     {
       "referenceId": "linear",
       "name": "Linear",
-      "authority": ["PLATFORM_SHELL_AUTHORITY", "NAVIGATION_AUTHORITY"],
-      "authorityScope": "Shell density, sidebar, side panels, spacing, speed, restrained motion",
+      "authority": ["FUNCTIONAL_LOGIC_ONLY"],
+      "authorityScope": "Not visual. Task/issue workflow concepts only.",
       "accessPolicy": "PUBLIC_SOURCE_ONLY",
       "publicSources": ["https://linear.app/now/behind-the-latest-design-refresh"],
       "sessionProfile": null,
@@ -39,8 +39,8 @@
     {
       "referenceId": "frameio",
       "name": "Frame.io",
-      "authority": ["SECONDARY_REFERENCE"],
-      "authorityScope": "Exact-version media review and anchored feedback only",
+      "authority": ["FUNCTIONAL_LOGIC_ONLY"],
+      "authorityScope": "Not visual. Exact-version review logic only.",
       "accessPolicy": "PUBLIC_SOURCE_ONLY",
       "publicSources": ["https://frame.io/features/review-and-approval"],
       "sessionProfile": null,
@@ -49,8 +49,8 @@
     {
       "referenceId": "workfront",
       "name": "Adobe Workfront / Content Supply Chain",
-      "authority": ["WORKFLOW_AUTHORITY"],
-      "authorityScope": "Request, planning, production, and approval workflow concepts only",
+      "authority": ["FUNCTIONAL_LOGIC_ONLY"],
+      "authorityScope": "Not visual. Request, planning, production workflow concepts only.",
       "accessPolicy": "PUBLIC_SOURCE_ONLY",
       "publicSources": [
         "https://business.adobe.com/solutions/content-supply-chain/workflow-planning.html"
@@ -61,8 +61,8 @@
     {
       "referenceId": "jasper-brand-iq",
       "name": "Jasper Brand IQ",
-      "authority": ["FUNCTIONAL_AUTHORITY"],
-      "authorityScope": "Brand profile organisation, voice and identity sections, incompleteness states, source clarity",
+      "authority": ["CONTENT_MODEL_ONLY"],
+      "authorityScope": "Not visual. Brand content model only.",
       "accessPolicy": "PUBLIC_SOURCE_ONLY",
       "publicSources": ["https://www.jasper.ai/brand-iq"],
       "sessionProfile": null,
@@ -71,18 +71,28 @@
     {
       "referenceId": "semrush",
       "name": "Semrush",
-      "authority": ["FUNCTIONAL_AUTHORITY"],
-      "authorityScope": "Website scan result clarity, tables and states, evidence and issues, progress and coverage, filters, data density",
+      "authority": ["ANALYSIS_MODEL_ONLY"],
+      "authorityScope": "Not visual. Website/competitor analysis model only.",
       "accessPolicy": "PUBLIC_SOURCE_ONLY",
       "publicSources": ["https://www.semrush.com/features/competitor-analysis/"],
       "sessionProfile": null,
       "evidenceNamespace": ".reference/semrush"
     },
     {
+      "referenceId": "clickup",
+      "name": "ClickUp",
+      "authority": ["NOT_ADOPTED"],
+      "authorityScope": "Not adopted. No visual, interaction, or functional authority for OMA.",
+      "accessPolicy": "PUBLIC_SOURCE_ONLY",
+      "publicSources": [],
+      "sessionProfile": null,
+      "evidenceNamespace": ".reference/clickup"
+    },
+    {
       "referenceId": "smartly",
       "name": "Smartly",
-      "authority": ["FUNCTIONAL_AUTHORITY"],
-      "authorityScope": "Linking approved content to paid-media planning and execution only",
+      "authority": ["PAID_AND_ANALYTICS_LOGIC_ONLY"],
+      "authorityScope": "Not visual. Paid-media planning/execution logic only.",
       "accessPolicy": "PUBLIC_SOURCE_ONLY",
       "publicSources": ["https://www.smartly.io/platform-overview"],
       "sessionProfile": null,

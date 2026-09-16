@@ -26,7 +26,8 @@ Report conflicts instead of silently choosing one source.
 - `specs/001-oma-ai-product-foundation/spec.md` is the current product baseline.
 - OMA AI is an independent product under the IMKAN ecosystem, with its own repository, deployable application boundary, information architecture, visual language, motion, and design tokens. It must not copy IMKAN ONE product behavior or visual design by default.
 - A separate repository shell named `oma-ai` and an OMA-owned account, login/session, user, tenant/company, membership, and capability boundary are approved (`DEC-001`, `DEC-002`).
-- Platform-foundation architecture and stack are an `APPROVED IMPLEMENTATION BASELINE` under `DEC-014` (TypeScript modular monolith: NestJS API, Next.js web, PostgreSQL/Prisma, Redis/BullMQ workers, pnpm, server-side sessions, Vitest, Playwright). Future IMKAN federation, final design-system component library, and slice-specific providers remain gated by open decisions.
+- Platform-foundation architecture and stack are an `APPROVED IMPLEMENTATION BASELINE` under `DEC-014` (TypeScript modular monolith: NestJS API, Next.js web, PostgreSQL/Prisma, Redis/BullMQ workers, pnpm, server-side sessions, Vitest, Playwright). Future IMKAN federation, the Planable-token design-system implementation (`DEC-017`, Stage P1+), and slice-specific providers remain gated until those stages are requested.
+- **`DEC-017` — PLANABLE_SINGLE_UI_UX_REFERENCE:** Planable (`app.planable.io`) is `PRIMARY_AND_SOLE_UI_UX_AUTHORITY`. Previous visual certifications are `SUPERSEDED`. Visual acceptance remains `REJECTED` until a Planable rebuild is owner-accepted. Spec pack: `docs/decisions/DEC-017-planable-single-ui-ux-reference.md`.
 - **`DEC-016` — PRODUCT-FIRST / EXTERNAL-INTEGRATIONS-LAST:** complete provider-neutral product features before the final live third-party integration phase. Keep ports, refusing/fixture adapters, and honest not-configured UI. No provider SDK/credentials/live calls until that phase. Policy: `docs/PRODUCT_DELIVERY_SEQUENCING.md`. `DEC-003`–`DEC-012` remain open; provider DECs carry `DEFERRED_TO_FINAL_INTEGRATION_PHASE` where tagged.
 - Do not create product code, schemas, routes, modules, implemented design systems, or navigation until `/speckit-implement` is explicitly authorized for approved tasks. `DEC-003`–`DEC-012` remain blockers for their named slices. Product/design specifications are allowed in `SPEC_ONLY` / planning modes.
 
@@ -57,7 +58,7 @@ Before editing:
 - OMA owns the initial account, session, user, tenant/company, membership, and capability boundary. A future IMKAN federation must preserve canonical OMA identifiers and cannot bypass OMA authorization.
 - External integrations use explicit adapters, idempotency keys, retry policy, webhook verification, reconciliation, and audit history.
 - Do not duplicate WorkDrive file bytes or external ad-platform delivery state when another system is authoritative.
-- Keep one coherent OMA experience under resolved `DEC-013`: Planable governs content visuals; Linear governs density, panels, speed, and restrained motion; Frame.io governs exact-version media review; Workfront, Jasper, Semrush, and Smartly are functional references only in their named domains.
+- Keep one coherent OMA experience under resolved `DEC-017`: Planable is the sole UI/UX authority. Linear, Frame.io, Workfront, Jasper, Semrush, and Smartly are functional-logic only and must not contribute visual systems. ClickUp is not adopted.
 - Use original OMA tokens, layouts, copy, icons, and assets. References authorize pattern study, never pixel copying or competing visual systems.
 - User-facing experiences must support EN/AR, LTR/RTL, responsive layouts, keyboard access, and understandable empty/loading/error states.
 

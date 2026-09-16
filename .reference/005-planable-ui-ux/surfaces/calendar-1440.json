@@ -1,0 +1,17 @@
+{
+  "id": "calendar-1440",
+  "label": "Calendar",
+  "evidenceLevel": "PARTIAL",
+  "limitation": "loaderSplashScreen only; calendar cells not measured this run",
+  "routePattern": "https://app.planable.io/{id}/{id}",
+  "navLabels": [],
+  "dataCySample": [
+    "{id}"
+  ],
+  "overflowX": false,
+  "viewport": {
+    "innerWidth": 1440,
+    "innerHeight": 900,
+    "dpr": 1
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "id": "shell-390",
+  "label": "Shell 390x844",
+  "evidenceLevel": "LIVE_VERIFIED",
+  "routePattern": "https://app.planable.io/{id}",
+  "navLabels": [
+    "Planable",
+    "I {companyName}",
+    "Upgrade",
+    "New workspace"
+  ],
+  "dataCySample": [
+    "navBody",
+    "navHeader",
+    "navTopbar",
+    "navbarAppLogo",
+    "global-search-input",
+    "searchToggle",
+    "helpButton",
+    "{id}",
+    "user-dropdown",
+    "userAvatar",
+    "hamburgerMenu",
+    "{id}",
+    "newNavContent",
+    "company-header-dropdown",
+    "upgradeButton",
+    "dashboard-workspace-grid-card",
+    "{id}",
+    "workspace-card-header",
+    "{id}",
+    "favoriteButton",
+    "{id}",
+    "create-workspace",
+    "{id}",
+    "analyticsButton"
+  ],
+  "overflowX": false,
+  "viewport": {
+    "innerWidth": 390,
+    "innerHeight": 844,
+    "dpr": 1
+  }
+}
