@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="400" viewBox="0 0 1200 400" role="img" aria-label="OMA campaign banner  summer organic always-on">
+  <rect width="1200" height="400" fill="#F5F6F7"/>
+  <rect x="16" y="16" width="1168" height="368" rx="6" fill="#FFFFFF" stroke="#E8E8E8"/>
+  <rect x="48" y="48" width="220" height="304" rx="6" fill="#E8E0D4"/>
+  <rect x="292" y="48" width="220" height="304" rx="6" fill="#D9C7B0"/>
+  <rect x="536" y="48" width="220" height="304" rx="6" fill="#C4A484"/>
+  <text x="788" y="170" fill="#333333" font-family="system-ui, sans-serif" font-size="32" font-weight="600">Summer Organic</text>
+  <text x="788" y="214" fill="#8C8C8C" font-family="system-ui, sans-serif" font-size="20">Campaign banner · planning only</text>
+  <rect x="788" y="248" width="120" height="8" rx="4" fill="#1677FF"/>
+</svg>

@@ -1,11 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000" viewBox="0 0 800 1000" role="img" aria-label="OMA carousel frame two">
-  <rect width="800" height="1000" fill="#14151a"/>
-  <rect x="40" y="40" width="720" height="920" rx="20" fill="#1f2230"/>
-  <rect x="80" y="120" width="640" height="360" rx="12" fill="#12a7a1"/>
-  <text x="100" y="300" fill="#0b1210" font-family="Inter, sans-serif" font-size="42" font-weight="700">02 / Detail</text>
-  <text x="100" y="350" fill="#0b1210" font-family="Inter, sans-serif" font-size="22">Texture · material story</text>
-  <rect x="80" y="520" width="120" height="12" rx="6" fill="rgba(255,255,255,0.2)"/>
-  <rect x="220" y="520" width="200" height="12" rx="6" fill="#6658e8"/>
-  <rect x="440" y="520" width="120" height="12" rx="6" fill="rgba(255,255,255,0.2)"/>
-  <text x="80" y="600" fill="#c8cad3" font-family="Inter, sans-serif" font-size="18">Local OMA demo media</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000" viewBox="0 0 800 1000" role="img" aria-label="OMA carousel frame two — dye bath still">
+  <rect width="800" height="1000" fill="#F5F6F7"/>
+  <rect x="32" y="32" width="736" height="936" rx="6" fill="#FFFFFF" stroke="#E8E8E8"/>
+  <text x="64" y="92" fill="#8C8C8C" font-family="system-ui, sans-serif" font-size="18">02 / Dye</text>
+  <rect x="64" y="128" width="672" height="420" rx="6" fill="#E8D5D0"/>
+  <circle cx="280" cy="340" r="110" fill="#C4A484"/>
+  <circle cx="430" cy="300" r="70" fill="#D9C7B0"/>
+  <circle cx="520" cy="390" r="90" fill="#A8B5A0"/>
+  <text x="64" y="620" fill="#333333" font-family="system-ui, sans-serif" font-size="36" font-weight="600">Color that stays quiet</text>
+  <text x="64" y="668" fill="#8C8C8C" font-family="system-ui, sans-serif" font-size="20">Carousel frame · OMA original still</text>
+  <rect x="64" y="720" width="48" height="8" rx="4" fill="#E8E8E8"/>
+  <rect x="124" y="720" width="48" height="8" rx="4" fill="#1677FF"/>
+  <rect x="184" y="720" width="48" height="8" rx="4" fill="#E8E8E8"/>
+  <rect x="244" y="720" width="48" height="8" rx="4" fill="#E8E8E8"/>
 </svg>

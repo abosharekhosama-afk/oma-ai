@@ -5,7 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import type { DemoGraph } from '@oma/demo';
 import { DemoDisclosure } from '../../../../../components/demo/demo-disclosure';
-import { EmptyState } from '../../../../../components/ui/empty-state';
+import { TrackPill } from '../../../../../components/demo/track-pill';
+import { EmptyState, ErrorState, DeniedState } from '../../../../../components/ui/empty-state';
 import { PageHeader, Panel } from '../../../../../components/ui/page-header';
 import { StatusChip } from '../../../../../components/ui/status-chip';
 import { Dialog } from '../../../../../components/ui/dialog';
@@ -15,13 +16,20 @@ import {
   isDemoForbidden,
   pickCopy,
 } from '../../../../../lib/demo/use-demo-api';
-import { strategyHref } from '../../../../../lib/demo/stage3-campaigns';
+import {
+  campaignNextAction,
+  campaignReviewState,
+  campaignScheduleReadiness,
+  strategyHref,
+} from '../../../../../lib/demo/stage3-campaigns';
+import { mediaAlt } from '../../../../../lib/demo/demo-media';
 import { statusLabel } from '../../../../../lib/demo/stage3-content';
 import { useLocale, useT } from '../../../../../lib/use-locale';
 
 type Campaign = DemoGraph['campaigns'][number];
 type ContentItem = DemoGraph['contentItems'][number];
 type Strategy = DemoGraph['strategies'][number];
+type Brand = DemoGraph['brands'][number];
 type Task = DemoGraph['tasks'][number];
 type Deliverable = DemoGraph['deliverables'][number];
 type Activity = DemoGraph['activity'][number];
@@ -35,6 +43,7 @@ export default function CampaignDetailPage() {
   const params = useParams<{ campaignId: string }>();
   const campaignId = params.campaignId;
   const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [brand, setBrand] = useState<Brand | null>(null);
   const [strategy, setStrategy] = useState<Strategy | null>(null);
   const [content, setContent] = useState<ContentItem[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -56,11 +65,13 @@ export default function CampaignDetailPage() {
         if (cancelled) return;
         const row = graph.campaigns.find((c) => c.id === campaignId) ?? null;
         setCampaign(row);
+        setBrand(graph.brands.find((b) => b.id === row?.brandId) ?? null);
         setStrategy(graph.strategies.find((s) => s.id === row?.strategyId) ?? null);
         setContent(graph.contentItems.filter((c) => c.campaignId === campaignId));
-        setTasks(graph.tasks.slice(0, 6));
+        setTasks(graph.tasks.filter((task) => task.campaignId === campaignId).slice(0, 6));
         setDeliverables(graph.deliverables.filter((d) => d.campaignId === campaignId));
-        setActivity(graph.activity.slice(0, 8));
+        const scoped = graph.activity.filter((a) => a.campaignId === campaignId);
+        setActivity((scoped.length ? scoped : graph.activity).slice(0, 8));
         setError(null);
         if (!row) setError('Not found');
       } catch (err) {
@@ -86,17 +97,20 @@ export default function CampaignDetailPage() {
     [content],
   );
 
-  const stages = ['Draft', 'Active', 'In review', 'Scheduled', 'Complete'];
-  const stageIndex =
-    campaign?.status === 'DRAFT'
-      ? 0
-      : campaign?.status === 'ACTIVE' || campaign?.status === 'NEEDS_ATTENTION'
-        ? 1
-        : campaign?.status === 'IN_REVIEW' || campaign?.status === 'UPCOMING'
-          ? 2
-          : campaign?.status === 'COMPLETED'
-            ? 4
-            : 3;
+  const pipeline = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const item of content) {
+      counts[item.status] = (counts[item.status] ?? 0) + 1;
+    }
+    return counts;
+  }, [content]);
+
+  const team = useMemo(
+    () => [...new Set(content.map((c) => c.assignee).concat(campaign?.owner ?? ''))],
+    [content, campaign],
+  );
+  const review = campaignReviewState(content);
+  const ready = campaignScheduleReadiness(content);
 
   return (
     <div className="oma-stack" data-testid="demo-campaign-detail">
@@ -108,75 +122,73 @@ export default function CampaignDetailPage() {
         <span>{campaign ? pickCopy(campaign.name, locale) : '…'}</span>
       </div>
 
-      <PageHeader
-        title={campaign ? pickCopy(campaign.name, locale) : t('demo.campaigns.title')}
-        description={campaign ? pickCopy(campaign.objective, locale) : undefined}
-        meta={
-          campaign ? (
+      <div className="oma-campaign-workspace-head">
+        <PageHeader
+          title={campaign ? pickCopy(campaign.name, locale) : t('demo.campaigns.title')}
+          description={campaign ? pickCopy(campaign.objective, locale) : undefined}
+          meta={
+            campaign ? (
+              <>
+                {brand ? <span className="oma-muted">{pickCopy(brand.name, locale)}</span> : null}
+                {strategy ? (
+                  <Link
+                    href={strategyHref(campaign.brandId, campaign.strategyId)}
+                    className="oma-text-link"
+                    data-testid="demo-campaign-strategy-link"
+                  >
+                    {pickCopy(strategy.name, locale)}
+                  </Link>
+                ) : null}
+                <TrackPill
+                  track={campaign.track}
+                  organicLabel={t('demo.organic')}
+                  paidLabel={t('demo.paid')}
+                />
+                <StatusChip status={campaign.status} label={statusLabel(campaign.status, locale)} />
+                <span className="oma-muted">{campaign.owner}</span>
+                <span className="oma-muted oma-ltr">
+                  {campaign.timeline.start} → {campaign.timeline.end}
+                </span>
+              </>
+            ) : null
+          }
+          actions={
             <>
-              <StatusChip status={campaign.status} label={statusLabel(campaign.status, locale)} />
-              <span
-                className={`oma-badge ${campaign.track === 'ORGANIC' ? 'oma-track-organic' : 'oma-track-paid'}`}
+              <Link
+                href={`/app/content?campaign=${campaignId}`}
+                className="oma-btn oma-btn-primary"
               >
-                {campaign.track === 'ORGANIC' ? t('demo.organic') : t('demo.paid')}
-              </span>
-              <span className="oma-muted">{campaign.owner}</span>
-              <span className="oma-muted oma-ltr">
-                {campaign.timeline.start} → {campaign.timeline.end}
-              </span>
-              {strategy ? (
-                <Link
-                  href={strategyHref(campaign.brandId, campaign.strategyId)}
-                  className="oma-text-link"
-                  data-testid="demo-campaign-strategy-link"
-                >
-                  {pickCopy(strategy.name, locale)}
-                </Link>
-              ) : null}
+                {t('demo.content.title')}
+              </Link>
+              <button
+                type="button"
+                className="oma-btn oma-btn-secondary"
+                onClick={() => setEditOpen(true)}
+              >
+                {t('demo.campaign.edit')}
+              </button>
+              <button
+                type="button"
+                className="oma-btn oma-btn-secondary"
+                aria-haspopup="menu"
+                aria-label={t('demo.create.cancel')}
+                onClick={() => setConfirmClose(true)}
+              >
+                ⋯
+              </button>
             </>
-          ) : null
-        }
-        actions={
-          <>
-            <button
-              type="button"
-              className="oma-btn oma-btn-secondary"
-              onClick={() => setEditOpen(true)}
-            >
-              {t('demo.campaign.edit')}
-            </button>
-            <button
-              type="button"
-              className="oma-btn oma-btn-secondary"
-              aria-haspopup="menu"
-              onClick={() => setConfirmClose(true)}
-            >
-              ⋯
-            </button>
-          </>
-        }
-      />
+          }
+        />
+      </div>
 
       <DemoDisclosure />
 
       {loading ? <p className="oma-muted">{t('demo.loading')}</p> : null}
-      {unavailable ? <EmptyState title={t('demo.unavailable')} /> : null}
-      {error ? (
-        <div className="oma-card" role="alert">
-          <p style={{ color: 'var(--status-danger)', margin: 0 }}>{error}</p>
-        </div>
-      ) : null}
+      {unavailable ? <DeniedState title={t('demo.unavailable')} /> : null}
+      {error ? <ErrorState title={error} /> : null}
 
       {campaign ? (
         <>
-          <div className="oma-stage-trail" aria-label={t('demo.campaign.milestones')}>
-            {stages.map((label, i) => (
-              <span key={label} className="oma-stage-trail-item" data-active={i === stageIndex}>
-                {label}
-              </span>
-            ))}
-          </div>
-
           {campaign.track === 'PAID' ? (
             <div className="oma-honesty-banner" data-testid="demo-paid-planning-only">
               {t('demo.planningOnly')} — {t('demo.campaign.externalNotConnected')}
@@ -215,18 +227,39 @@ export default function CampaignDetailPage() {
             <div className="oma-workboard-split">
               <div className="oma-workboard-primary">
                 <Panel title={t('demo.campaign.goal')}>
-                  <p style={{ marginTop: 0 }}>{pickCopy(campaign.objective, locale)}</p>
-                  <h3>{t('demo.campaign.audience')}</h3>
-                  <p>{pickCopy(campaign.audience, locale)}</p>
-                  <h3>{t('demo.campaign.channels')}</h3>
-                  <p>{campaign.channels.join(' · ')}</p>
-                  <h3>{t('demo.campaign.budget')}</h3>
-                  <p>
-                    {t('demo.planningOnly')}
-                    {campaign.budget.amount > 0
-                      ? ` — ${campaign.budget.currency} ${campaign.budget.amount.toLocaleString()}`
-                      : null}
-                  </p>
+                  <div className="oma-status-rows">
+                    <div>
+                      <span className="oma-status-label">{t('demo.campaign.objective')}</span>
+                      <span>{pickCopy(campaign.objective, locale)}</span>
+                    </div>
+                    <div>
+                      <span className="oma-status-label">{t('demo.campaign.audience')}</span>
+                      <span>{pickCopy(campaign.audience, locale)}</span>
+                    </div>
+                    <div>
+                      <span className="oma-status-label">{t('demo.campaign.channels')}</span>
+                      <span>{campaign.channels.join(' · ')}</span>
+                    </div>
+                    <div>
+                      <span className="oma-status-label">{t('demo.campaign.timeline')}</span>
+                      <span className="oma-ltr">
+                        {campaign.timeline.start} → {campaign.timeline.end}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="oma-status-label">{t('demo.campaign.budget')}</span>
+                      <span>
+                        {t('demo.planningOnly')}
+                        {campaign.budget.amount > 0
+                          ? ` — ${campaign.budget.currency} ${campaign.budget.amount.toLocaleString()}`
+                          : ''}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="oma-status-label">{t('demo.campaign.scheduleReady')}</span>
+                      <span>{t(`demo.campaign.scheduleReady.${ready}`)}</span>
+                    </div>
+                  </div>
                   <Link
                     href={strategyHref(campaign.brandId, campaign.strategyId)}
                     className="oma-text-link"
@@ -235,22 +268,31 @@ export default function CampaignDetailPage() {
                   </Link>
                 </Panel>
                 <Panel title={t('demo.campaign.kpis')}>
-                  <ul className="oma-stack">
+                  <div className="oma-status-rows">
                     {campaign.kpis.map((kpi, i) => (
-                      <li key={i}>
-                        <div className="oma-section-head">
-                          <strong>{pickCopy(kpi.name, locale)}</strong>
-                          <span className="oma-muted">{kpi.target}</span>
-                        </div>
-                        <div className="oma-progress-track" aria-hidden="true">
-                          <div
-                            className="oma-progress-fill"
-                            style={{ width: `${Math.round(kpi.progress * 100)}%` }}
-                          />
-                        </div>
-                      </li>
+                      <div key={i}>
+                        <span className="oma-status-label">{pickCopy(kpi.name, locale)}</span>
+                        <span>
+                          {kpi.target} · {Math.round(kpi.progress * 100)}%
+                        </span>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
+                </Panel>
+                <Panel title={t('demo.campaign.milestones')}>
+                  <div className="oma-status-rows">
+                    <div>
+                      <span className="oma-status-label">{t('demo.filter.status')}</span>
+                      <StatusChip
+                        status={campaign.status}
+                        label={statusLabel(campaign.status, locale)}
+                      />
+                    </div>
+                    <div>
+                      <span className="oma-status-label">{t('demo.campaigns.col.next')}</span>
+                      <span>{campaignNextAction(campaign, content, locale)}</span>
+                    </div>
+                  </div>
                 </Panel>
               </div>
               <div className="oma-workboard-side">
@@ -261,51 +303,77 @@ export default function CampaignDetailPage() {
                   {needsAttention.length === 0 ? (
                     <p className="oma-muted">{t('demo.empty')}</p>
                   ) : (
-                    <ul className="oma-compact-list">
+                    <ul className="oma-dense-list">
                       {needsAttention.map((item) => (
                         <li key={item.id}>
-                          <Link href={`/app/content?item=${item.id}`} className="oma-compact-row">
-                            <strong>{pickCopy(item.title, locale)}</strong>
-                            <StatusChip
-                              status={item.status}
-                              label={statusLabel(item.status, locale)}
-                            />
+                          <Link href={`/app/content?item=${item.id}`} className="oma-work-row">
+                            <span>
+                              <strong>{pickCopy(item.title, locale)}</strong>
+                              <StatusChip
+                                status={item.status}
+                                label={statusLabel(item.status, locale)}
+                              />
+                            </span>
                           </Link>
                         </li>
                       ))}
                     </ul>
                   )}
                 </Panel>
-                <Panel title={t('demo.campaign.content')}>
-                  <ul className="oma-compact-list">
+                <Panel title={t('demo.campaign.pipeline')}>
+                  <div className="oma-status-rows">
+                    {Object.entries(pipeline).map(([status, count]) => (
+                      <div key={status}>
+                        <span className="oma-status-label">{statusLabel(status, locale)}</span>
+                        <span>{count}</span>
+                      </div>
+                    ))}
+                    <div>
+                      <span className="oma-status-label">{t('demo.campaigns.col.review')}</span>
+                      <span>{statusLabel(review, locale)}</span>
+                    </div>
+                  </div>
+                  <ul className="oma-dense-list">
                     {content.slice(0, 5).map((item) => (
                       <li key={item.id}>
                         <Link
                           href={`/app/content?item=${item.id}&campaign=${campaign.id}`}
-                          className="oma-compact-row"
+                          className="oma-work-row"
                           data-testid={`demo-campaign-content-${item.id}`}
                         >
                           <span className="oma-chip-row">
                             <img
                               src={item.previewAsset}
-                              alt=""
+                              alt={mediaAlt(
+                                pickCopy(item.title, locale),
+                                item.channel,
+                                item.contentType,
+                              )}
                               width={32}
                               height={32}
-                              style={{ borderRadius: 4, objectFit: 'cover' }}
+                              className="oma-content-list-thumb"
                             />
                             <strong>{pickCopy(item.title, locale)}</strong>
                           </span>
-                          <StatusChip status={item.status} />
+                          <StatusChip
+                            status={item.status}
+                            label={statusLabel(item.status, locale)}
+                          />
                         </Link>
                       </li>
                     ))}
                   </ul>
                   <Link href={`/app/content?campaign=${campaign.id}`} className="oma-text-link">
-                    {t('demo.content.title')} →
+                    {t('demo.content.title')}
                   </Link>
                 </Panel>
+                <Panel title={t('demo.campaign.team')}>
+                  <p className="oma-muted" style={{ margin: 0 }}>
+                    {team.filter(Boolean).join(' · ')}
+                  </p>
+                </Panel>
                 <Panel title={t('demo.campaign.activity')}>
-                  <ul className="oma-compact-list">
+                  <ul className="oma-dense-list">
                     {activity.map((a) => (
                       <li key={a.id} className="oma-muted">
                         {pickCopy(a.summary, locale)}
@@ -320,20 +388,44 @@ export default function CampaignDetailPage() {
           {tab === 'content' ? (
             <Panel title={t('demo.campaign.content')}>
               {content.length === 0 ? (
-                <p className="oma-muted">{t('demo.empty')}</p>
+                <EmptyState
+                  title={t('demo.empty')}
+                  action={
+                    <Link
+                      href={`/app/content?campaign=${campaign.id}`}
+                      className="oma-btn oma-btn-primary"
+                    >
+                      {t('demo.content.create')}
+                    </Link>
+                  }
+                />
               ) : (
-                <ul className="oma-compact-list">
+                <ul className="oma-dense-list" data-testid="demo-campaign-content-tab">
                   {content.map((item) => (
                     <li key={item.id}>
                       <Link
                         href={`/app/content?item=${item.id}&campaign=${campaign.id}`}
-                        className="oma-compact-row"
+                        className="oma-work-row"
+                        data-testid={`demo-campaign-content-${item.id}`}
                       >
-                        <strong>{pickCopy(item.title, locale)}</strong>
+                        <span className="oma-chip-row">
+                          <img
+                            src={item.previewAsset}
+                            alt={mediaAlt(
+                              pickCopy(item.title, locale),
+                              item.channel,
+                              item.contentType,
+                            )}
+                            width={32}
+                            height={32}
+                            className="oma-content-list-thumb"
+                          />
+                          <strong>{pickCopy(item.title, locale)}</strong>
+                        </span>
                         <span className="oma-muted">
                           {item.assignee} · {item.scheduledAt?.slice(0, 10) ?? '—'}
                         </span>
-                        <StatusChip status={item.status} />
+                        <StatusChip status={item.status} label={statusLabel(item.status, locale)} />
                       </Link>
                     </li>
                   ))}
@@ -347,10 +439,10 @@ export default function CampaignDetailPage() {
               {tasks.length === 0 ? (
                 <p className="oma-muted">{t('demo.empty')}</p>
               ) : (
-                <ul className="oma-compact-list">
+                <ul className="oma-dense-list">
                   {tasks.map((task) => (
                     <li key={task.id}>
-                      <Link href="/app/tasks" className="oma-compact-row">
+                      <Link href="/app/tasks" className="oma-work-row">
                         <strong>{pickCopy(task.title, locale)}</strong>
                         <StatusChip status={task.status} />
                       </Link>
@@ -369,10 +461,10 @@ export default function CampaignDetailPage() {
               {deliverables.length === 0 ? (
                 <p className="oma-muted">{t('demo.empty')}</p>
               ) : (
-                <ul className="oma-compact-list">
+                <ul className="oma-dense-list">
                   {deliverables.map((d) => (
                     <li key={d.id}>
-                      <Link href={`/app/deliverables/${d.id}`} className="oma-compact-row">
+                      <Link href={`/app/deliverables/${d.id}`} className="oma-work-row">
                         <strong>{pickCopy(d.title, locale)}</strong>
                         <StatusChip status={d.reviewStatus} />
                       </Link>
@@ -385,10 +477,10 @@ export default function CampaignDetailPage() {
 
           {tab === 'activity' ? (
             <Panel title={t('demo.campaign.activity')}>
-              <ul className="oma-compact-list">
+              <ul className="oma-dense-list">
                 {activity.map((a) => (
                   <li key={a.id}>
-                    <div className="oma-compact-row">
+                    <div className="oma-work-row">
                       <strong>{pickCopy(a.summary, locale)}</strong>
                       <span className="oma-muted oma-ltr">{a.at}</span>
                     </div>

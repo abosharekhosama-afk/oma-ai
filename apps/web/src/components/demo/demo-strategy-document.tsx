@@ -116,7 +116,7 @@ export function DemoStrategyDocument({
                     <Link href={`/app/campaigns/${c.id}`} className="oma-compact-row">
                       <strong>{pickCopy(c.name, locale)}</strong>
                       <span
-                        className={`oma-badge ${c.track === 'ORGANIC' ? 'oma-track-organic' : 'oma-track-paid'}`}
+                        className={`oma-track-pill ${c.track === 'ORGANIC' ? 'oma-track-pill--organic' : 'oma-track-pill--paid'}`}
                       >
                         {c.track === 'ORGANIC' ? t('demo.organic') : t('demo.paid')}
                       </span>

@@ -10,8 +10,8 @@
 | Brands             | Workspaces / accounts as cards + switcher                                                           | LIVE dashboard cards + ARCHIVED switcher                                 | P2            |
 | Brand Intelligence | Content-detail / structured editor language (sections, evidence beside canvas)                      | DOC Universal Content + ARCHIVED post editor density                     | P2            |
 | Strategy           | Structured Planable editor/workspace (organic/paid as Planable labels/campaigns, not Jasper chrome) | DOC + ARCHIVED campaign linkage                                          | P2            |
-| Campaigns          | Campaign workspace tabs All/Active/Planning/Completed                                               | LIVE `/campaigns/{id}/all`                                               | P3            |
-| Content            | Calendar / Grid / Feed / List                                                                       | ARCHIVED calendar+filters; LIVE splash only; Grid/List PLAN_GATED        | P3            |
+| Campaigns          | Campaign workspace tabs All/Active/Planning/Completed                                               | LIVE `/campaigns/{id}/all`                                               | P3 COMPLETE   |
+| Content            | Calendar / Grid / Feed / List                                                                       | ARCHIVED calendar+filters; LIVE splash only; Grid/List PLAN_GATED        | P3 COMPLETE   |
 | Requests           | Inbox / list / approvals-queue language                                                             | ARCHIVED My approvals board                                              | P4            |
 | Briefs             | Composer / editor                                                                                   | ARCHIVED compose modal                                                   | P4            |
 | Tasks              | Board **in Planable cards/type/color/motion** (OMA function)                                        | No Planable Kanban LIVE                                                  | P4            |

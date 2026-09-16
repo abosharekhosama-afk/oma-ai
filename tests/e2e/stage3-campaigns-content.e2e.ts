@@ -30,7 +30,9 @@ function attachGuards(page: import('@playwright/test').Page) {
 }
 
 test.describe('Stage 3 Campaigns + Content visual rebuild', () => {
-  test('campaign portfolio filters, workspace, strategy link, content hub', async ({
+  test.describe.configure({ timeout: 180_000 });
+
+  test('campaign portfolio filters, create, workspace, strategy link, content hub', async ({
     page,
     request,
   }, testInfo) => {
@@ -57,6 +59,20 @@ test.describe('Stage 3 Campaigns + Content visual rebuild', () => {
     await expect(page.getByRole('link', { name: /Review Bottleneck Sprint/i })).toBeVisible();
     await page.getByTestId('demo-campaign-filter-status').selectOption('all');
 
+    await page.getByTestId('demo-create-campaign').click();
+    await expect(page.getByTestId('demo-create-campaign-dialog')).toBeVisible();
+    const campaignName = `P3 Campaign ${Date.now()}`;
+    await page.getByTestId('demo-create-campaign-name').fill(campaignName);
+    await page.getByTestId('demo-create-campaign-submit').click();
+    await expect(page.getByTestId('demo-campaign-detail')).toBeVisible({ timeout: 15_000 });
+    await page.reload();
+    await expect(page.getByRole('heading', { name: campaignName })).toBeVisible({
+      timeout: 15_000,
+    });
+
+    await page.goto('/app/campaigns');
+    await expect(page.getByRole('link', { name: campaignName })).toBeVisible();
+
     await page
       .getByRole('link', { name: /Summer Organic Always-On/i })
       .first()
@@ -73,6 +89,7 @@ test.describe('Stage 3 Campaigns + Content visual rebuild', () => {
 
     await page.goto('/app/campaigns/demo-campaign-organic');
     await expect(page.getByTestId('demo-campaign-detail')).toBeVisible({ timeout: 15_000 });
+    await page.getByTestId('demo-campaign-tab-content').click();
     await Promise.all([
       page.waitForURL(/\/app\/content/, { timeout: 20_000 }),
       page.getByTestId('demo-campaign-content-demo-content-reel').click(),
@@ -84,15 +101,35 @@ test.describe('Stage 3 Campaigns + Content visual rebuild', () => {
 
     await page.getByTestId('demo-content-view-calendar').click();
     await expect(page.getByTestId('demo-content-calendar')).toBeVisible();
+    await expect(page.getByTestId('demo-day-overflow')).toBeVisible();
+    await page.getByTestId('demo-day-overflow').click();
+    await expect(page.getByRole('dialog', { name: /day items/i })).toBeVisible();
+    await page.keyboard.press('Escape');
+
+    await page.getByTestId('demo-content-view-feed').click();
+    await expect(page.getByTestId('demo-content-feed')).toBeVisible();
     await page.getByTestId('demo-content-view-list').click();
     await expect(page.getByTestId('demo-content-list')).toBeVisible();
     await page.getByTestId('demo-content-view-grid').click();
     await expect(page.getByTestId('demo-content-grid')).toBeVisible();
 
+    await page.getByTestId('demo-content-filter-campaign').selectOption('demo-campaign-organic');
+    await expect(page.getByTestId('demo-content-filter-chips')).toBeVisible();
+    await page.getByTestId('demo-content-filter-channel').selectOption('Instagram');
+    await page.getByTestId('demo-content-filter-status').selectOption('IN_REVIEW');
+
     await page.getByTestId('demo-content-card-demo-content-carousel').click();
     await expect(page.getByTestId('demo-content-drawer')).toBeVisible();
+    await expect(page.getByTestId('demo-content-campaign-link')).toBeVisible();
+    await page.getByRole('tab', { name: /comments/i }).click();
+    await expect(page.getByTestId('demo-content-comments')).toBeVisible();
+    await page.getByRole('tab', { name: /edit/i }).click();
+    await page.getByTestId('demo-content-caption').fill('P3 caption persist');
+    await page.getByTestId('demo-content-save').click();
+    await expect(page.getByText('Saved').first()).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(page.getByTestId('demo-content-drawer')).toHaveCount(0);
+    await page.getByRole('button', { name: 'Clear all', exact: true }).click();
 
     await page.getByTestId('demo-create-content').click();
     await expect(page.getByTestId('demo-create-content-dialog')).toBeVisible();
@@ -117,6 +154,10 @@ test.describe('Stage 3 Campaigns + Content visual rebuild', () => {
     await expect(page.getByTestId('demo-content')).toBeVisible({ timeout: 15_000 });
     await page.getByTestId('demo-content-view-list').click();
     await expect(page.getByText(title).first()).toBeVisible({ timeout: 15_000 });
+
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.getByTestId('demo-content-view-calendar').click();
+    await expect(page.getByTestId('demo-content-calendar')).toBeVisible();
 
     guards.assertClean();
   });
@@ -145,7 +186,6 @@ test.describe('Stage 3 Campaigns + Content visual rebuild', () => {
     await page.setViewportSize({ width: 1024, height: 768 });
     await page.goto('/app/campaigns');
     await expect(page.getByTestId('demo-campaigns')).toBeVisible();
-    // Portfolio is default after surface-depth rebuild; table remains available.
     if (await page.getByTestId('demo-campaigns-view-table').count()) {
       await page.getByTestId('demo-campaigns-view-table').click();
     }
@@ -163,6 +203,12 @@ test.describe('Stage 3 Campaigns + Content visual rebuild', () => {
     await expect(page.getByTestId('demo-content')).toBeVisible();
     await page.getByTestId('demo-content-view-calendar').click();
     await expect(page.getByTestId('demo-content-agenda')).toBeVisible();
+    await expect(page.getByTestId('demo-content-date-strip')).toBeVisible();
+    await expect(page.locator('.oma-cal-grid')).toBeHidden();
+    await page.getByTestId('demo-create-content').scrollIntoViewIfNeeded();
+    await page.getByTestId('demo-create-content').click();
+    await expect(page.getByTestId('demo-create-content-dialog')).toBeVisible();
+    await page.keyboard.press('Escape');
     await page.getByTestId('demo-content-view-grid').click();
     await page.locator('[data-testid^="demo-content-card-"]').first().click();
     await expect(page.getByTestId('demo-content-drawer')).toBeVisible();

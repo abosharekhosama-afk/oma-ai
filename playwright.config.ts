@@ -40,6 +40,7 @@ const sharedServerEnv = {
   BULLMQ_PREFIX: `oma-e2e-${e2eRunId}`,
   OMA_WRITE_OPENAPI: '0',
   BRAND_FIXTURE_CONNECTOR: '1',
+  NEXT_DIST_DIR: process.env.NEXT_DIST_DIR ?? '.next-e2e',
   // Give UI cancel a beat before fixture fetch completes (Q-BWI-04 race).
   BRAND_FIXTURE_FETCH_DELAY_MS: process.env.BRAND_FIXTURE_FETCH_DELAY_MS ?? '600',
   // Complete-product demo surfaces (never production).

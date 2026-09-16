@@ -1,10 +1,13 @@
 import type { DemoGraph } from '@oma/demo';
 
 export type ContentRow = DemoGraph['contentItems'][number];
+export type DeliverableRow = DemoGraph['deliverables'][number];
+export type TaskRow = DemoGraph['tasks'][number];
 
 export type ContentFilters = {
   query: string;
   campaignId: string;
+  brandId: string;
   channel: string;
   contentType: string;
   status: string;
@@ -17,6 +20,7 @@ export type ContentFilters = {
 export const EMPTY_CONTENT_FILTERS: ContentFilters = {
   query: '',
   campaignId: 'all',
+  brandId: 'all',
   channel: 'all',
   contentType: 'all',
   status: 'all',
@@ -26,7 +30,9 @@ export const EMPTY_CONTENT_FILTERS: ContentFilters = {
   dateTo: '',
 };
 
-export type ContentViewMode = 'calendar' | 'list' | 'grid';
+export type ContentViewMode = 'calendar' | 'feed' | 'list' | 'grid';
+
+export const MAX_CELL_ITEMS = 2;
 
 export function filterContent(
   items: ContentRow[],
@@ -36,6 +42,7 @@ export function filterContent(
   const q = filters.query.trim().toLowerCase();
   return items.filter((item) => {
     if (filters.campaignId !== 'all' && item.campaignId !== filters.campaignId) return false;
+    if (filters.brandId !== 'all' && item.brandId !== filters.brandId) return false;
     if (filters.channel !== 'all' && item.channel !== filters.channel) return false;
     if (filters.contentType !== 'all' && item.contentType !== filters.contentType) return false;
     if (filters.status !== 'all' && item.status !== filters.status) return false;
@@ -61,6 +68,7 @@ export function activeContentFilterCount(filters: ContentFilters): number {
   let n = 0;
   if (filters.query.trim()) n += 1;
   if (filters.campaignId !== 'all') n += 1;
+  if (filters.brandId !== 'all') n += 1;
   if (filters.channel !== 'all') n += 1;
   if (filters.contentType !== 'all') n += 1;
   if (filters.status !== 'all') n += 1;
@@ -69,6 +77,48 @@ export function activeContentFilterCount(filters: ContentFilters): number {
   if (filters.dateFrom) n += 1;
   if (filters.dateTo) n += 1;
   return n;
+}
+
+export type NamedFilterChip = { id: string; label: string };
+
+export function contentFilterChips(
+  filters: ContentFilters,
+  labels: {
+    campaign: (id: string) => string;
+    brand: (id: string) => string;
+    status: (id: string) => string;
+    review: (id: string) => string;
+  },
+): NamedFilterChip[] {
+  const chips: NamedFilterChip[] = [];
+  if (filters.query.trim()) chips.push({ id: 'query', label: filters.query.trim() });
+  if (filters.campaignId !== 'all') {
+    chips.push({ id: 'campaignId', label: labels.campaign(filters.campaignId) });
+  }
+  if (filters.brandId !== 'all')
+    chips.push({ id: 'brandId', label: labels.brand(filters.brandId) });
+  if (filters.channel !== 'all') chips.push({ id: 'channel', label: filters.channel });
+  if (filters.contentType !== 'all') chips.push({ id: 'contentType', label: filters.contentType });
+  if (filters.status !== 'all') chips.push({ id: 'status', label: labels.status(filters.status) });
+  if (filters.review !== 'all') chips.push({ id: 'review', label: labels.review(filters.review) });
+  if (filters.assignee !== 'all') chips.push({ id: 'assignee', label: filters.assignee });
+  if (filters.dateFrom) chips.push({ id: 'dateFrom', label: filters.dateFrom });
+  if (filters.dateTo) chips.push({ id: 'dateTo', label: filters.dateTo });
+  return chips;
+}
+
+export function clearContentChip(filters: ContentFilters, id: string): ContentFilters {
+  if (id === 'query') return { ...filters, query: '' };
+  if (id === 'campaignId') return { ...filters, campaignId: 'all' };
+  if (id === 'brandId') return { ...filters, brandId: 'all' };
+  if (id === 'channel') return { ...filters, channel: 'all' };
+  if (id === 'contentType') return { ...filters, contentType: 'all' };
+  if (id === 'status') return { ...filters, status: 'all' };
+  if (id === 'review') return { ...filters, review: 'all' };
+  if (id === 'assignee') return { ...filters, assignee: 'all' };
+  if (id === 'dateFrom') return { ...filters, dateFrom: '' };
+  if (id === 'dateTo') return { ...filters, dateTo: '' };
+  return filters;
 }
 
 export function dayKey(iso: string | null | undefined): string | null {
@@ -89,6 +139,16 @@ export function groupContentByDay(items: ContentRow[]): Map<string, ContentRow[]
     list.sort((a, b) => (a.scheduledAt ?? '').localeCompare(b.scheduledAt ?? ''));
   }
   return map;
+}
+
+export function splitCellItems(
+  items: ContentRow[],
+  max = MAX_CELL_ITEMS,
+): { visible: ContentRow[]; extra: number } {
+  return {
+    visible: items.slice(0, max),
+    extra: Math.max(0, items.length - max),
+  };
 }
 
 /** Build month grid cells (Sun–Sat or Sat–Fri for AR can be handled by caller via weekStartsOn). */
@@ -152,4 +212,127 @@ export function statusLabel(status: string, locale: string): string {
   const row = map[status];
   if (!row) return status;
   return ar ? row.ar : row.en;
+}
+
+export type ContentSortKey =
+  'title' | 'channel' | 'campaign' | 'owner' | 'status' | 'review' | 'date' | 'updated';
+
+export function sortContent(
+  items: ContentRow[],
+  key: ContentSortKey,
+  dir: 'asc' | 'desc',
+  locale: string,
+  campaignName: (id: string) => string,
+): ContentRow[] {
+  const ar = locale.toLowerCase().startsWith('ar');
+  const mul = dir === 'asc' ? 1 : -1;
+  return [...items].sort((a, b) => {
+    let av = '';
+    let bv = '';
+    if (key === 'title') {
+      av = ar ? a.title.ar : a.title.en;
+      bv = ar ? b.title.ar : b.title.en;
+    } else if (key === 'channel') {
+      av = a.channel;
+      bv = b.channel;
+    } else if (key === 'campaign') {
+      av = campaignName(a.campaignId);
+      bv = campaignName(b.campaignId);
+    } else if (key === 'owner') {
+      av = a.assignee;
+      bv = b.assignee;
+    } else if (key === 'status' || key === 'review') {
+      av = a.status;
+      bv = b.status;
+    } else if (key === 'date' || key === 'updated') {
+      av = a.scheduledAt ?? '';
+      bv = b.scheduledAt ?? '';
+    }
+    return av.localeCompare(bv) * mul;
+  });
+}
+
+export type ContentComment = {
+  id: string;
+  author: string;
+  body: { en: string; ar: string };
+  at: string;
+  resolved?: boolean;
+  replies?: Array<{ id: string; author: string; body: { en: string; ar: string }; at: string }>;
+};
+
+export function commentsForContent(
+  tasks: TaskRow[],
+  deliverables: DeliverableRow[],
+  contentId: string,
+): ContentComment[] {
+  const fromTasks: ContentComment[] = tasks
+    .filter((task) => task.contentId === contentId)
+    .flatMap((task) =>
+      task.comments.map((c) => ({
+        id: c.id,
+        author: c.author,
+        body: c.body,
+        at: c.at,
+        resolved: false,
+      })),
+    );
+  const fromDeliverables: ContentComment[] = deliverables
+    .filter((d) => d.contentId === contentId)
+    .flatMap((d) =>
+      d.comments.map((c) => ({
+        id: c.id,
+        author: c.author,
+        body: c.body,
+        at: c.at,
+        resolved: c.resolved,
+      })),
+    );
+  return [...fromDeliverables, ...fromTasks].sort((a, b) => a.at.localeCompare(b.at));
+}
+
+export function reviewPresentation(
+  status: string,
+  locale: string,
+): {
+  label: string;
+  state: 'draft' | 'review' | 'approved' | 'changes' | 'scheduled' | 'published';
+  disabledReason: string | null;
+} {
+  const ar = locale.toLowerCase().startsWith('ar');
+  if (status === 'IN_REVIEW') {
+    return {
+      label: statusLabel(status, locale),
+      state: 'review',
+      disabledReason: ar
+        ? 'الموافقة المباشرة غير متصلة — هذا عرض تخطيطي.'
+        : 'Live approval is not connected — planning presentation only.',
+    };
+  }
+  if (status === 'APPROVED') {
+    return { label: statusLabel(status, locale), state: 'approved', disabledReason: null };
+  }
+  if (status === 'SCHEDULED') {
+    return { label: statusLabel(status, locale), state: 'scheduled', disabledReason: null };
+  }
+  if (status === 'PUBLISHED_DEMO') {
+    return { label: statusLabel(status, locale), state: 'published', disabledReason: null };
+  }
+  return { label: statusLabel(status, locale), state: 'draft', disabledReason: null };
+}
+
+export function linkedIdsForContent(
+  tasks: TaskRow[],
+  deliverables: DeliverableRow[],
+  requests: DemoGraph['requests'],
+  contentId: string,
+): { taskId: string | null; deliverableId: string | null; requestId: string | null } {
+  const task = tasks.find((t) => t.contentId === contentId);
+  const deliverable = deliverables.find((d) => d.contentId === contentId);
+  const request = requests.find((r) => r.contentId === contentId);
+  return {
+    taskId: task?.id ?? null,
+    deliverableId: deliverable?.id ?? null,
+    requestId: request?.id ?? null,
+  };
 }

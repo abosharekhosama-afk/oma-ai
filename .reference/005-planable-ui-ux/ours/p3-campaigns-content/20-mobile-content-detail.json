@@ -1,0 +1,36 @@
+{
+  "name": "20-mobile-content-detail",
+  "candidateSha": "de05bb235fcaa9f3b18214b9191c047e516661d8",
+  "route": "/app/content",
+  "viewport": "390x844",
+  "locale": "en",
+  "dir": "ltr",
+  "computedFont": "-apple-system, system-ui, \"Segoe UI\", Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif",
+  "computedColors": {
+    "canvas": "rgb(245, 246, 247)",
+    "ink": "rgb(51, 51, 51)"
+  },
+  "computedTokens": {
+    "fontFamily": "-apple-system, system-ui, \"Segoe UI\", Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif",
+    "canvas": "rgb(245, 246, 247)",
+    "ink": "rgb(51, 51, 51)",
+    "overflow": true,
+    "dir": "ltr"
+  },
+  "viewType": "mobile-detail",
+  "consoleErrors": [],
+  "failedRequests": [],
+  "overflowOk": true,
+  "evidenceLevel": "OMA_ADAPTATION",
+  "match": "OMA_ADAPTATION",
+  "contentFixtureId": null,
+  "mediaFixtureId": null,
+  "acceptanceIds": [
+    "PV-G-01",
+    "PV-G-09"
+  ],
+  "featureState": "20-mobile-content-detail",
+  "rawScreenshot": "artifacts/planable-rebuild-004/p3-campaigns-content/20-mobile-content-detail.png",
+  "gitignoredRaw": true,
+  "capturedAt": "2026-09-16T09:07:59.521Z"
+}

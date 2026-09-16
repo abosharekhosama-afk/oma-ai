@@ -174,6 +174,10 @@ export class DemoController {
         caption: body.caption ? asCopy(body.caption, 'caption') : undefined,
         objective: body.objective ? asCopy(body.objective, 'objective') : undefined,
         cta: body.cta ? asCopy(body.cta, 'cta') : undefined,
+        previewAsset:
+          typeof body.previewAsset === 'string' && body.previewAsset.startsWith('/demo/')
+            ? body.previewAsset
+            : undefined,
       };
       if (!input.campaignId || !input.channel || !input.owner) {
         throw new BadRequestException('campaignId, channel, and owner are required');

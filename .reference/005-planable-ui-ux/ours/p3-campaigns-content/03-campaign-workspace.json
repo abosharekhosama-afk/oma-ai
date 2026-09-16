@@ -1,0 +1,36 @@
+{
+  "name": "03-campaign-workspace",
+  "candidateSha": "de05bb235fcaa9f3b18214b9191c047e516661d8",
+  "route": "/app/campaigns/demo-campaign-organic",
+  "viewport": "1440x900",
+  "locale": "en",
+  "dir": "ltr",
+  "computedFont": "-apple-system, system-ui, \"Segoe UI\", Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif",
+  "computedColors": {
+    "canvas": "rgb(245, 246, 247)",
+    "ink": "rgb(51, 51, 51)"
+  },
+  "computedTokens": {
+    "fontFamily": "-apple-system, system-ui, \"Segoe UI\", Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif",
+    "canvas": "rgb(245, 246, 247)",
+    "ink": "rgb(51, 51, 51)",
+    "overflow": true,
+    "dir": "ltr"
+  },
+  "viewType": "campaign-workspace",
+  "consoleErrors": [],
+  "failedRequests": [],
+  "overflowOk": true,
+  "evidenceLevel": "LIVE_VERIFIED",
+  "match": "LIVE_MATCH",
+  "contentFixtureId": null,
+  "mediaFixtureId": null,
+  "acceptanceIds": [
+    "PV-G-01",
+    "PV-G-09"
+  ],
+  "featureState": "03-campaign-workspace",
+  "rawScreenshot": "artifacts/planable-rebuild-004/p3-campaigns-content/03-campaign-workspace.png",
+  "gitignoredRaw": true,
+  "capturedAt": "2026-09-16T09:07:53.369Z"
+}

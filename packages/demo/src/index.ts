@@ -655,7 +655,7 @@ export const DEMO_GRAPH: DemoGraph = {
       status: 'PUBLISHED_DEMO',
       scheduledAt: '2026-08-20T11:00:00+03:00',
       assignee: 'Layla Haddad',
-      previewAsset: '/demo/poster-static.svg',
+      previewAsset: '/demo/poster-ar.svg',
       deliverableId: 'demo-deliv-copy',
       caption: {
         en: 'Why we still design offline first.',
@@ -678,7 +678,7 @@ export const DEMO_GRAPH: DemoGraph = {
       status: 'APPROVED',
       scheduledAt: '2026-09-11T18:00:00+03:00',
       assignee: 'Maya Nasser',
-      previewAsset: '/demo/poster-carousel-2.svg',
+      previewAsset: '/demo/poster-story.svg',
       deliverableId: null,
       caption: { en: 'Which hem wins?', ar: 'أي طول يفوز؟' },
       objective: { en: 'Light engagement mid-week', ar: 'تفاعل خفيف منتصف الأسبوع' },
@@ -746,7 +746,7 @@ export const DEMO_GRAPH: DemoGraph = {
       status: 'DRAFT',
       scheduledAt: '2026-10-05T08:00:00+03:00',
       assignee: 'Sara Alami',
-      previewAsset: '/demo/poster-carousel-2.svg',
+      previewAsset: '/demo/poster-product.svg',
       deliverableId: null,
       caption: { en: 'Something warm is coming.', ar: 'شيء دافئ قادم.' },
       objective: { en: 'Warm list without hard sell', ar: 'تدفئة القائمة دون بيع قاسٍ' },
@@ -768,6 +768,40 @@ export const DEMO_GRAPH: DemoGraph = {
       caption: { en: '6s hook for planning board only.', ar: 'خطاف 6 ثوانٍ للوحة التخطيط فقط.' },
       objective: { en: 'Approved creative waiting on schedule', ar: 'إبداع معتمد بانتظار الجدول' },
       cta: { en: 'Discover', ar: 'اكتشف' },
+    },
+    {
+      id: 'demo-content-overflow-a',
+      campaignId: 'demo-campaign-organic',
+      brandId: 'demo-brand-horizon',
+      title: { en: 'Studio still for the same morning', ar: 'لقطة استوديو لنفس الصباح' },
+      track: 'ORGANIC',
+      channel: 'Instagram',
+      contentType: 'STATIC',
+      status: 'DRAFT',
+      scheduledAt: '2026-09-12T11:30:00+03:00',
+      assignee: 'Maya Nasser',
+      previewAsset: '/demo/poster-static.svg',
+      deliverableId: null,
+      caption: { en: 'Same morning, quieter crop.', ar: 'نفس الصباح، قص أهدأ.' },
+      objective: { en: 'Populate calendar overflow on 12 Sep', ar: 'ملء فيض التقويم في 12 سبتمبر' },
+      cta: { en: 'Save', ar: 'احفظ' },
+    },
+    {
+      id: 'demo-content-overflow-b',
+      campaignId: 'demo-campaign-organic',
+      brandId: 'demo-brand-horizon',
+      title: { en: 'Rack detail story cut', ar: 'قصة تفصيل الرف' },
+      track: 'ORGANIC',
+      channel: 'Instagram',
+      contentType: 'STORY',
+      status: 'APPROVED',
+      scheduledAt: '2026-09-12T18:00:00+03:00',
+      assignee: 'Rami Khalil',
+      previewAsset: '/demo/poster-story.svg',
+      deliverableId: null,
+      caption: { en: 'Close on hangers, no rush.', ar: 'لقطة قريبة على العلاق، بلا استعجال.' },
+      objective: { en: 'Third item on 12 Sep for +N more', ar: 'عنصر ثالث في 12 سبتمبر لـ +N' },
+      cta: { en: 'View', ar: 'عرض' },
     },
   ],
   requests: [
@@ -3479,12 +3513,15 @@ function cloneDemoGraph(seed: DemoGraph): DemoGraph {
 function previewForType(type: DemoContentInput['contentType']): string {
   switch (type) {
     case 'REEL':
-    case 'STORY':
       return '/demo/video-poster.svg';
+    case 'STORY':
+      return '/demo/poster-story.svg';
     case 'CAROUSEL':
       return '/demo/poster-carousel-1.svg';
-    default:
+    case 'STATIC':
       return '/demo/poster-static.svg';
+    default:
+      return '/demo/poster-product.svg';
   }
 }
 

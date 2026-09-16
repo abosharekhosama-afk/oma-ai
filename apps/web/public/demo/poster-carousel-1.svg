@@ -1,11 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000" viewBox="0 0 800 1000" role="img" aria-label="OMA carousel frame one">
-  <rect width="800" height="1000" fill="#14151a"/>
-  <rect x="40" y="40" width="720" height="920" rx="20" fill="#1f2230"/>
-  <rect x="80" y="120" width="640" height="360" rx="12" fill="#6658e8"/>
-  <text x="100" y="300" fill="#fff" font-family="Inter, sans-serif" font-size="42" font-weight="700">01 / Frame</text>
-  <text x="100" y="350" fill="#e8e9f2" font-family="Inter, sans-serif" font-size="22">Carousel story · product focus</text>
-  <rect x="80" y="520" width="200" height="12" rx="6" fill="#12a7a1"/>
-  <rect x="300" y="520" width="120" height="12" rx="6" fill="rgba(255,255,255,0.2)"/>
-  <rect x="440" y="520" width="120" height="12" rx="6" fill="rgba(255,255,255,0.2)"/>
-  <text x="80" y="600" fill="#c8cad3" font-family="Inter, sans-serif" font-size="18">Local OMA demo media</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000" viewBox="0 0 800 1000" role="img" aria-label="OMA carousel frame one — weave close-up">
+  <rect width="800" height="1000" fill="#F5F6F7"/>
+  <rect x="32" y="32" width="736" height="936" rx="6" fill="#FFFFFF" stroke="#E8E8E8"/>
+  <text x="64" y="92" fill="#8C8C8C" font-family="system-ui, sans-serif" font-size="18">01 / Weave</text>
+  <rect x="64" y="128" width="672" height="420" rx="6" fill="#E8E0D4"/>
+  <rect x="96" y="176" width="240" height="16" rx="4" fill="#C4A484"/>
+  <rect x="96" y="216" width="560" height="16" rx="4" fill="#D9C7B0"/>
+  <rect x="96" y="256" width="400" height="16" rx="4" fill="#C4A484"/>
+  <rect x="96" y="296" width="520" height="16" rx="4" fill="#A8B5A0"/>
+  <rect x="96" y="336" width="280" height="16" rx="4" fill="#D9C7B0"/>
+  <rect x="96" y="376" width="480" height="16" rx="4" fill="#C4A484"/>
+  <text x="64" y="620" fill="#333333" font-family="system-ui, sans-serif" font-size="36" font-weight="600">Fabric story</text>
+  <text x="64" y="668" fill="#8C8C8C" font-family="system-ui, sans-serif" font-size="20">Carousel · product focus · local OMA media</text>
+  <rect x="64" y="720" width="48" height="8" rx="4" fill="#1677FF"/>
+  <rect x="124" y="720" width="48" height="8" rx="4" fill="#E8E8E8"/>
+  <rect x="184" y="720" width="48" height="8" rx="4" fill="#E8E8E8"/>
+  <rect x="244" y="720" width="48" height="8" rx="4" fill="#E8E8E8"/>
 </svg>

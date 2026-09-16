@@ -6,6 +6,7 @@ export type StrategyRow = DemoGraph['strategies'][number];
 
 export type CampaignFilters = {
   query: string;
+  brandId: string;
   status: string;
   track: string;
   strategyId: string;
@@ -16,6 +17,7 @@ export type CampaignFilters = {
 
 export const EMPTY_CAMPAIGN_FILTERS: CampaignFilters = {
   query: '',
+  brandId: 'all',
   status: 'all',
   track: 'all',
   strategyId: 'all',
@@ -37,6 +39,13 @@ export function campaignReviewState(items: ContentRow[]): string {
   if (items.some((i) => i.status === 'SCHEDULED')) return 'SCHEDULED';
   if (items.some((i) => i.status === 'PUBLISHED_DEMO')) return 'PUBLISHED_DEMO';
   return 'CLEAR';
+}
+
+export function campaignScheduleReadiness(items: ContentRow[]): 'ready' | 'drafts' | 'blocked' {
+  if (items.some((i) => i.status === 'IN_REVIEW')) return 'blocked';
+  if (items.some((i) => i.status === 'DRAFT')) return 'drafts';
+  if (items.length === 0) return 'drafts';
+  return 'ready';
 }
 
 export function campaignNextAction(
@@ -73,6 +82,7 @@ export function filterCampaigns(
 ): CampaignRow[] {
   const q = filters.query.trim().toLowerCase();
   return campaigns.filter((c) => {
+    if (filters.brandId !== 'all' && c.brandId !== filters.brandId) return false;
     if (filters.status !== 'all' && c.status !== filters.status) return false;
     if (filters.track !== 'all' && c.track !== filters.track) return false;
     if (filters.strategyId !== 'all' && c.strategyId !== filters.strategyId) return false;
@@ -128,6 +138,7 @@ export function strategyHref(brandId: string, strategyId: string): string {
 export function activeFilterCount(filters: CampaignFilters): number {
   let n = 0;
   if (filters.query.trim()) n += 1;
+  if (filters.brandId !== 'all') n += 1;
   if (filters.status !== 'all') n += 1;
   if (filters.track !== 'all') n += 1;
   if (filters.strategyId !== 'all') n += 1;
@@ -135,4 +146,42 @@ export function activeFilterCount(filters: CampaignFilters): number {
   if (filters.startFrom) n += 1;
   if (filters.endTo) n += 1;
   return n;
+}
+
+export type NamedFilterChip = { id: string; label: string };
+
+export function campaignFilterChips(
+  filters: CampaignFilters,
+  labels: {
+    brand: (id: string) => string;
+    status: (id: string) => string;
+    track: (id: string) => string;
+    strategy: (id: string) => string;
+  },
+): NamedFilterChip[] {
+  const chips: NamedFilterChip[] = [];
+  if (filters.query.trim()) chips.push({ id: 'query', label: filters.query.trim() });
+  if (filters.brandId !== 'all')
+    chips.push({ id: 'brandId', label: labels.brand(filters.brandId) });
+  if (filters.status !== 'all') chips.push({ id: 'status', label: labels.status(filters.status) });
+  if (filters.track !== 'all') chips.push({ id: 'track', label: labels.track(filters.track) });
+  if (filters.strategyId !== 'all') {
+    chips.push({ id: 'strategyId', label: labels.strategy(filters.strategyId) });
+  }
+  if (filters.owner !== 'all') chips.push({ id: 'owner', label: filters.owner });
+  if (filters.startFrom) chips.push({ id: 'startFrom', label: filters.startFrom });
+  if (filters.endTo) chips.push({ id: 'endTo', label: filters.endTo });
+  return chips;
+}
+
+export function clearCampaignChip(filters: CampaignFilters, id: string): CampaignFilters {
+  if (id === 'query') return { ...filters, query: '' };
+  if (id === 'brandId') return { ...filters, brandId: 'all' };
+  if (id === 'status') return { ...filters, status: 'all' };
+  if (id === 'track') return { ...filters, track: 'all' };
+  if (id === 'strategyId') return { ...filters, strategyId: 'all' };
+  if (id === 'owner') return { ...filters, owner: 'all' };
+  if (id === 'startFrom') return { ...filters, startFrom: '' };
+  if (id === 'endTo') return { ...filters, endTo: '' };
+  return filters;
 }

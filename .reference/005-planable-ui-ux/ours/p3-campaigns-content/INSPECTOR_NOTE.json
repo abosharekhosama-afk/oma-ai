@@ -1,0 +1,22 @@
+{
+  "stage": "P3",
+  "parentSha": "de05bb235fcaa9f3b18214b9191c047e516661d8",
+  "branch": "004-oma-complete-product-demo",
+  "capturedAt": "2026-09-16",
+  "routes": ["/app/campaigns", "/app/campaigns/demo-campaign-organic", "/app/content"],
+  "evidenceDir": "artifacts/planable-rebuild-004/p3-campaigns-content",
+  "metadataDir": ".reference/005-planable-ui-ux/ours/p3-campaigns-content",
+  "gitignoredRawScreenshots": true,
+  "evidenceLevels": {
+    "campaignShell": "LIVE_VERIFIED",
+    "calendarDesktop": "ARCHIVED_MATCH",
+    "calendarMobile": "OMA_ADAPTATION",
+    "composer": "ARCHIVED_MATCH",
+    "comments": "ARCHIVED_MATCH",
+    "feed": "ARCHIVED_MATCH",
+    "grid": "OMA_ADAPTATION",
+    "list": "OMA_ADAPTATION"
+  },
+  "noNewLivePlanableInspection": true,
+  "verdict": "PLANABLE_CAMPAIGNS_CONTENT_SURFACES: VERIFIED"
+}

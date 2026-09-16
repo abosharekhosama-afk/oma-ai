@@ -1,8 +1,8 @@
 # Planable UI/UX baseline (OMA)
 
-**P2 inspection:** Implementation used the approved baseline in this file plus `docs/PLANABLE_TO_OMA_SURFACE_MAP.md` and `docs/PLANABLE_VISUAL_ACCEPTANCE_CRITERIA.md`. No new live Planable mutations or CDP re-exploration.
+**P3 inspection:** Implementation used this baseline plus archived calendar/composer/comments notes. No new live Planable mutations. Calendar geometry is ARCHIVED LIVE + PARTIAL current. Grid/List are PLAN_GATED → `OMA_ADAPTATION`. Mobile calendar/composer are `OMA_ADAPTATION`.
 
-**Status:** `P2_IMPLEMENTED` for Command Center, Brands, Brand Intelligence, Strategy. P3–P6 not rebuilt.
+**Status:** `P3_IMPLEMENTED` for Campaigns and Content (Calendar/Feed/Grid/List, Composer, comments presentation, local P3 media). P4–P6 not rebuilt.
 **Decision:** `DEC-017`
 **Product source of visual truth:** `https://app.planable.io/` (PRODUCT_APP)
 **Marketing (not component source):** `https://planable.io/`, `https://planable.io/product/`
@@ -64,9 +64,9 @@ Statuses (observed, not OMA copy): Not approved yet, Pending, Approved by {user}
 
 ## Binding rebuild sequence (docs only)
 
-P1 tokens + type + shell + nav + base components + motion → **P1_COMPLETE**. P2 Command Center / Brands / Intelligence / Strategy → **P2_COMPLETE in product CSS/surfaces**. P3–P7 not started.
+P1 tokens + type + shell + nav + base components + motion → **P1_COMPLETE**. P2 Command Center / Brands / Intelligence / Strategy → **P2_COMPLETE**. P3 Campaigns / Content Calendar-Feed-Grid-List / Composer → **P3_COMPLETE in product CSS/surfaces**. P4–P7 not started.
 
-`P1_COMPAT` aliases remaining after P2 are listed in `docs/PLANABLE_P1_COMPAT_INVENTORY.md`. `--oma-signal` / `--oma-signal-soft` were removed from Stage 2 CSS.
+`P1_COMPAT` aliases remaining after P3 are listed in `docs/PLANABLE_P1_COMPAT_INVENTORY.md`. `--oma-signal` was removed from Stage 3 CSS. P3 demo posters were replaced; P5 `stage5-*` fixtures remain deferred.
 
 ## Conflicts with previous OMA visual system
 

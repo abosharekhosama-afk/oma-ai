@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920" role="img" aria-label="OMA story poster  fitting room poll">
+  <rect width="1080" height="1920" fill="#F5F6F7"/>
+  <rect x="48" y="48" width="984" height="1824" rx="6" fill="#FFFFFF" stroke="#E8E8E8"/>
+  <text x="88" y="140" fill="#8C8C8C" font-family="system-ui, sans-serif" font-size="28">STORY · 9:16</text>
+  <rect x="88" y="200" width="904" height="1100" rx="6" fill="#E8E0D4"/>
+  <rect x="180" y="420" width="720" height="660" rx="6" fill="#D9C7B0"/>
+  <text x="88" y="1400" fill="#333333" font-family="system-ui, sans-serif" font-size="48" font-weight="600">Which hem wins?</text>
+  <rect x="88" y="1480" width="420" height="72" rx="6" fill="#FFFFFF" stroke="#1677FF"/>
+  <text x="140" y="1528" fill="#1677FF" font-family="system-ui, sans-serif" font-size="28">Crop</text>
+  <rect x="540" y="1480" width="420" height="72" rx="6" fill="#FFFFFF" stroke="#E8E8E8"/>
+  <text x="600" y="1528" fill="#333333" font-family="system-ui, sans-serif" font-size="28">Full</text>
+  <text x="88" y="1640" fill="#8C8C8C" font-family="system-ui, sans-serif" font-size="24">OMA original story poster</text>
+</svg>
