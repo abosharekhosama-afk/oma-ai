@@ -106,60 +106,42 @@ export default function StrategiesListPage() {
         </div>
       ) : (
         <Panel title={t('strategy.list.title')} labelledBy="strategy-list-heading">
-          <div className="oma-table-wrap">
-            <table className="oma-table oma-portfolio-table" data-testid="strategy-list">
-              <thead>
-                <tr>
-                  <th scope="col">{t('strategy.list.col.name')}</th>
-                  <th scope="col">{t('strategy.list.col.status')}</th>
-                  <th scope="col">{t('strategy.list.col.current')}</th>
-                  <th scope="col">{t('strategy.list.col.updated')}</th>
-                  <th scope="col">{t('strategy.list.col.action')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr key={row.id}>
-                    <td data-label={t('strategy.list.col.name')}>
-                      <Link
-                        href={`/app/brands/${brandId}/strategies/${row.id}`}
-                        className="oma-table-primary"
-                      >
-                        {row.name}
-                      </Link>
-                      <div className="oma-chip-row">
-                        {row.has_approved_version ? (
-                          <StatusChip tone="success" label={t('strategy.list.hasApproved')} />
-                        ) : null}
-                      </div>
-                    </td>
-                    <td data-label={t('strategy.list.col.status')}>
+          <div className="oma-workspace-grid" data-testid="strategy-list">
+            {rows.map((row) => (
+              <article key={row.id} className="oma-workspace-card">
+                <Link
+                  href={`/app/brands/${brandId}/strategies/${row.id}`}
+                  className="oma-workspace-card-main"
+                >
+                  <span className="oma-brand-mark" aria-hidden="true">
+                    S
+                  </span>
+                  <div className="oma-workspace-card-copy">
+                    <h3>{row.name}</h3>
+                    <div className="oma-chip-row">
                       <StatusChip status={row.status} />
-                    </td>
-                    <td data-label={t('strategy.list.col.current')}>
                       {row.is_current ? (
                         <StatusChip tone="info" label={t('strategy.list.current')} />
-                      ) : (
-                        <span className="oma-muted">—</span>
-                      )}
-                    </td>
-                    <td data-label={t('strategy.list.col.updated')}>
-                      <time dateTime={row.updated_at}>
+                      ) : null}
+                      {row.has_approved_version ? (
+                        <StatusChip tone="success" label={t('strategy.list.hasApproved')} />
+                      ) : null}
+                    </div>
+                    <p className="oma-workspace-card-meta">
+                      <time dateTime={row.updated_at} suppressHydrationWarning>
                         {new Date(row.updated_at).toLocaleString()}
                       </time>
-                    </td>
-                    <td data-label={t('strategy.list.col.action')}>
-                      <Link
-                        href={`/app/brands/${brandId}/strategies/${row.id}`}
-                        className="oma-btn oma-btn-compact"
-                      >
-                        {t('home.action.open')}
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </p>
+                  </div>
+                </Link>
+                <Link
+                  href={`/app/brands/${brandId}/strategies/${row.id}`}
+                  className="oma-btn oma-btn--sm"
+                >
+                  {t('home.action.open')}
+                </Link>
+              </article>
+            ))}
           </div>
         </Panel>
       )}

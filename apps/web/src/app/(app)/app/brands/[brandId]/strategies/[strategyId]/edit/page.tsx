@@ -103,7 +103,7 @@ export default function StrategyFoundationPage() {
         </p>
       ) : null}
       {!editable ? <p role="status">{t('strategy.warning.immutable')}</p> : null}
-      <div className="oma-doc-canvas" data-testid="strategy-document-canvas">
+      <div className="oma-doc-canvas oma-editor-shell" data-testid="strategy-document-canvas">
         <nav className="oma-doc-outline" aria-label={t('strategy.foundation.title')}>
           <a href="#strategy-goals">{t('strategy.foundation.goals')}</a>
           <a href="#strategy-positioning">{t('strategy.foundation.positioning')}</a>

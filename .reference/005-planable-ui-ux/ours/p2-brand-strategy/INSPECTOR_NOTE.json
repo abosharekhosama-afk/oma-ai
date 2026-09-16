@@ -1,0 +1,11 @@
+{
+  "inspection": "NO_NEW_LIVE_PLANABLE",
+  "reason": "P2 implementation used the approved Planable baseline, surface map, and visual acceptance criteria. No live Planable create/edit/comment/approve/upload/save/invite/connect/billing was performed.",
+  "authority": [
+    "docs/PLANABLE_UI_UX_BASELINE.md",
+    "docs/PLANABLE_TO_OMA_SURFACE_MAP.md",
+    "docs/PLANABLE_VISUAL_ACCEPTANCE_CRITERIA.md",
+    "docs/PLANABLE_P1_COMPAT_INVENTORY.md"
+  ],
+  "capturedAt": "2026-09-16T08:17:04.914Z"
+}

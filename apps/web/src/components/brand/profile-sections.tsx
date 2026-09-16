@@ -67,8 +67,7 @@ function sectionTitle(t: (key: string) => string, key: string) {
 }
 
 /**
- * Brand Intelligence canvas: sticky section outline + central editable document
- * (Jasper Brand IQ pattern adapted to OMA tokens — not a card stack).
+ * Brand Intelligence editor: Planable section navigation + white editor surface.
  */
 export function ProfileSections({
   sections,
@@ -117,7 +116,7 @@ export function ProfileSections({
           {filled}/{insights.length || 0}
         </span>
       </div>
-      <div className="oma-doc-canvas">
+      <div className="oma-doc-canvas oma-editor-shell">
         <nav className="oma-doc-outline" aria-label={t('brand.profile.outline')}>
           {sectionKeys.map((key) => (
             <a key={key} href={`#section-${key}`}>

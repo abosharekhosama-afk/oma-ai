@@ -105,8 +105,10 @@ test.describe('Feature 002 visible surface gaps', () => {
     );
     await page.reload();
 
-    await page.getByRole('button', { name: 'Notifications' }).click();
-    await page.locator('#notifications-panel a[data-testid^="notification-link-"]').first().click();
+    await page
+      .getByRole('link', { name: /Brand profile needs review/i })
+      .first()
+      .click();
     await expect(page).toHaveURL(new RegExp(deepLinkPath.replace(/\//g, '\\/')));
     await expect(page.getByRole('heading', { name: 'Brand intelligence' })).toBeVisible({
       timeout: 20_000,

@@ -67,13 +67,13 @@ export default function StrategyEvidencePage() {
       )}
       {error ? <p role="alert">{error}</p> : null}
       {version.evidence_links.length === 0 ? (
-        <div className="oma-card" data-testid="strategy-evidence-empty">
+        <div className="oma-panel" data-testid="strategy-evidence-empty">
           <p>{t('strategy.evidence.empty')}</p>
         </div>
       ) : (
         <ul className="oma-discovery-list" data-testid="strategy-evidence-list">
           {version.evidence_links.map((link) => (
-            <li key={link.id} className="oma-card">
+            <li key={link.id} className="oma-discovery-item">
               {link.label ?? link.evidence_excerpt_id ?? link.id}
             </li>
           ))}

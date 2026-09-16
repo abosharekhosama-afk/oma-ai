@@ -20,6 +20,7 @@ import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand
 import { EvidenceSidePanel } from '../../../../../../../components/brand/evidence-side-panel';
 import { PermissionDenied } from '../../../../../../../components/shell/permission-denied';
 import { StatusChip } from '../../../../../../../components/ui/status-chip';
+import { filterDiscoveryPages } from '../../../../../../../lib/discovery-filter';
 import { useT } from '../../../../../../../lib/use-locale';
 
 export default function DiscoveryPagesPage() {
@@ -37,6 +38,8 @@ export default function DiscoveryPagesPage() {
   const [evidenceByPage, setEvidenceByPage] = useState<Record<string, string>>({});
   const [classification, setClassification] = useState('');
   const [fetchStatus, setFetchStatus] = useState('');
+  const [query, setQuery] = useState('');
+  const [evidenceOnly, setEvidenceOnly] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -81,9 +84,21 @@ export default function DiscoveryPagesPage() {
     void load();
   }, [brandId, classification, fetchStatus]);
 
+  const visiblePages = useMemo(
+    () =>
+      filterDiscoveryPages(pages, {
+        query,
+        evidenceOnly,
+        evidenceByPage,
+      }),
+    [pages, query, evidenceOnly, evidenceByPage],
+  );
   const filterHint = useMemo(
-    () => (classification || fetchStatus ? t('brand.discovery.filtersActive') : null),
-    [classification, fetchStatus, t],
+    () =>
+      classification || fetchStatus || query || evidenceOnly
+        ? t('brand.discovery.filtersActive')
+        : null,
+    [classification, fetchStatus, query, evidenceOnly, t],
   );
 
   if (denied) return <PermissionDenied message={t('errors.permission')} />;
@@ -124,10 +139,20 @@ export default function DiscoveryPagesPage() {
       ) : (
         <>
           <form
-            className="oma-card oma-filter-bar"
+            className="oma-filter-bar"
             onSubmit={(e) => e.preventDefault()}
             aria-label={t('brand.discovery.filtersTitle')}
           >
+            <label className="oma-field">
+              <span>{t('brand.discovery.searchLabel')}</span>
+              <input
+                className="oma-input"
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={t('brand.discovery.searchPlaceholder')}
+              />
+            </label>
             <label className="oma-field">
               <span>{t('brand.discovery.filterClassification')}</span>
               <select
@@ -155,23 +180,48 @@ export default function DiscoveryPagesPage() {
                 <option value="SKIPPED">SKIPPED</option>
               </select>
             </label>
-            {filterHint ? <p className="oma-muted">{filterHint}</p> : null}
+            <label className="oma-checkbox-label">
+              <input
+                type="checkbox"
+                checked={evidenceOnly}
+                onChange={(e) => setEvidenceOnly(e.target.checked)}
+              />{' '}
+              {t('brand.discovery.evidenceAvailable')}
+            </label>
+            {filterHint ? (
+              <div className="oma-filter-chips">
+                {query ? <span className="oma-filter-chip">{query}</span> : null}
+                {classification ? <span className="oma-filter-chip">{classification}</span> : null}
+                {fetchStatus ? <span className="oma-filter-chip">{fetchStatus}</span> : null}
+                {evidenceOnly ? (
+                  <span className="oma-filter-chip">{t('brand.discovery.evidenceAvailable')}</span>
+                ) : null}
+                <p className="oma-muted">{filterHint}</p>
+              </div>
+            ) : null}
           </form>
 
           {error ? (
             <div className="oma-card" role="alert">
               <p style={{ color: 'var(--status-danger)' }}>{error}</p>
             </div>
-          ) : pages.length === 0 ? (
+          ) : visiblePages.length === 0 ? (
             <div className="oma-card" role="status">
               <p>{t('brand.discovery.pagesEmpty')}</p>
             </div>
           ) : (
             <ul className="oma-discovery-list">
-              {pages.map((page) => {
+              {visiblePages.map((page) => {
                 const linkedEvidence = evidenceByPage[page.id];
                 return (
-                  <li key={page.id} className="oma-panel oma-discovery-item">
+                  <li
+                    key={page.id}
+                    className={
+                      linkedEvidence && evidenceId === linkedEvidence
+                        ? 'oma-discovery-item is-selected'
+                        : 'oma-discovery-item'
+                    }
+                  >
                     <div className="oma-work-row" style={{ border: 0, padding: 0 }}>
                       <div>
                         <strong>{page.title ?? page.url}</strong>

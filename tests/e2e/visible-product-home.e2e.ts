@@ -53,10 +53,9 @@ test.describe('Visible product home', () => {
         .click();
     }
     await expect(page.getByTestId('brand-portfolio')).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByRole('table')).toBeVisible();
-    await expect(page.getByRole('columnheader', { name: /brand/i })).toBeVisible();
-    await expect(page.getByRole('columnheader', { name: /scan/i })).toBeVisible();
-    await expect(page.getByRole('columnheader', { name: /profile/i })).toBeVisible();
+    await expect(
+      page.getByTestId('brand-workspace-grid').or(page.locator('.oma-empty')),
+    ).toBeVisible();
 
     expect(consoleErrors.filter((e) => !/favicon/i.test(e))).toEqual([]);
   });

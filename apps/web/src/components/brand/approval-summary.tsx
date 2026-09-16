@@ -63,7 +63,7 @@ export function ApprovalSummary({
   if (profile.status !== 'NEEDS_REVIEW') return null;
 
   return (
-    <section className="oma-card oma-approval-summary" aria-labelledby="approval-summary-title">
+    <section className="oma-panel oma-approval-summary" aria-labelledby="approval-summary-title">
       <h2 id="approval-summary-title">{t('brand.approval.title')}</h2>
 
       {isPartial ? (

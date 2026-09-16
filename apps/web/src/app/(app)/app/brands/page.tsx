@@ -8,27 +8,11 @@ import { getApiError, isPermissionDenied, isTenantRequired } from '../../../../l
 import { PermissionDenied } from '../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../components/shell/select-company';
 import { useT } from '../../../../lib/use-locale';
-import { StatusChip } from '../../../../components/ui/status-chip';
-import { brandAttention, brandPrimaryHref } from '../../../../lib/brand-attention';
+import { WorkspaceCard } from '../../../../components/brand/workspace-card';
+import { brandAttention } from '../../../../lib/brand-attention';
+import { EmptyState, ErrorState } from '../../../../components/ui/empty-state';
 
 type SortKey = 'name' | 'updated' | 'status';
-
-function actionLabel(t: (key: string) => string, brand: BrandListItem): string {
-  switch (brandAttention(brand)) {
-    case 'connect_website':
-      return t('home.action.connect');
-    case 'start_scan':
-      return t('home.action.scan');
-    case 'review_partial':
-      return t('home.action.reviewScan');
-    case 'review_profile':
-      return t('home.action.reviewProfile');
-    case 'open_approved':
-      return t('home.action.viewApproved');
-    default:
-      return t('home.action.open');
-  }
-}
 
 export default function BrandsListPage() {
   const t = useT();
@@ -102,7 +86,7 @@ export default function BrandsListPage() {
       </header>
 
       <form
-        className="oma-filter-row oma-panel"
+        className="oma-filter-bar"
         onSubmit={(event) => {
           event.preventDefault();
           setQuery(queryDraft.trim());
@@ -159,88 +143,27 @@ export default function BrandsListPage() {
         </select>
       </form>
 
-      {error ? (
-        <div className="oma-card" role="alert">
-          <p style={{ color: 'var(--status-danger)', margin: 0 }}>{error}</p>
-        </div>
-      ) : null}
+      {error ? <ErrorState title={t('common.error')} body={error} /> : null}
 
       {loading ? (
         <div className="oma-skeleton" role="status" aria-label={t('common.loading')} />
       ) : visible.length === 0 && query ? (
-        <div className="oma-card" role="status">
-          <p>{t('brand.list.noResults')}</p>
-        </div>
+        <EmptyState title={t('brand.list.noResults')} />
       ) : visible.length === 0 ? (
-        <div className="oma-card oma-empty-state" role="status">
-          <h2>{t('brand.list.emptyTitle')}</h2>
-          <p className="oma-muted">{t('brand.list.emptyBody')}</p>
-          <Link href="/app/brands/new" className="oma-btn">
-            {t('brand.list.create')}
-          </Link>
-        </div>
+        <EmptyState
+          title={t('brand.list.emptyTitle')}
+          body={t('brand.list.emptyBody')}
+          action={
+            <Link href="/app/brands/new" className="oma-btn">
+              {t('brand.list.create')}
+            </Link>
+          }
+        />
       ) : (
-        <div className="oma-table-wrap">
-          <table className="oma-table oma-portfolio-table">
-            <thead>
-              <tr>
-                <th scope="col">{t('brand.list.col.brand')}</th>
-                <th scope="col">{t('brand.list.col.website')}</th>
-                <th scope="col">{t('brand.list.col.scan')}</th>
-                <th scope="col">{t('brand.list.col.profile')}</th>
-                <th scope="col">{t('brand.list.col.updated')}</th>
-                <th scope="col">{t('brand.list.col.action')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visible.map((brand) => (
-                <tr key={brand.id}>
-                  <td data-label={t('brand.list.col.brand')}>
-                    <Link href={`/app/brands/${brand.id}`} className="oma-table-primary">
-                      {brand.name}
-                    </Link>
-                    <div className="oma-chip-row">
-                      <StatusChip status={brand.status} />
-                      {brand.current_approved_profile_version_id ? (
-                        <StatusChip tone="success" label={t('brand.versions.current')} />
-                      ) : null}
-                    </div>
-                  </td>
-                  <td data-label={t('brand.list.col.website')}>
-                    {brand.primary_website_url ? (
-                      <span className="oma-ltr">{brand.primary_website_url}</span>
-                    ) : (
-                      <span className="oma-muted">{t('brand.list.noWebsite')}</span>
-                    )}
-                  </td>
-                  <td data-label={t('brand.list.col.scan')}>
-                    {brand.latest_scan_status ? (
-                      <StatusChip status={brand.latest_scan_status} />
-                    ) : (
-                      <span className="oma-muted">—</span>
-                    )}
-                  </td>
-                  <td data-label={t('brand.list.col.profile')}>
-                    {brand.latest_profile_status ? (
-                      <StatusChip status={brand.latest_profile_status} />
-                    ) : (
-                      <span className="oma-muted">—</span>
-                    )}
-                  </td>
-                  <td data-label={t('brand.list.col.updated')}>
-                    <time dateTime={brand.updated_at}>
-                      {new Date(brand.updated_at).toLocaleString()}
-                    </time>
-                  </td>
-                  <td data-label={t('brand.list.col.action')}>
-                    <Link href={brandPrimaryHref(brand)} className="oma-btn oma-btn-compact">
-                      {actionLabel(t, brand)}
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="oma-workspace-grid" data-testid="brand-workspace-grid">
+          {visible.map((brand) => (
+            <WorkspaceCard key={brand.id} brand={brand} />
+          ))}
         </div>
       )}
     </div>

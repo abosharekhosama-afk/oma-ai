@@ -77,12 +77,17 @@ export default function ConnectWebsitePage() {
   }
 
   return (
-    <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
-      <div style={{ maxWidth: 520 }}>
+    <BrandWorkspaceShell
+      brandId={brandId}
+      brandName={brand.name}
+      brandStatus={brand.status}
+      websiteUrl={brand.website?.normalized_url}
+    >
+      <div className="oma-panel" style={{ maxWidth: 520 }}>
         <ConnectorModeBanner mode={brand.next_scan_connector_mode} />
         <h2>{t('brand.connect.title')}</h2>
         <p className="oma-muted">{t('brand.connect.hint')}</p>
-        <form className="oma-card" onSubmit={onSubmit}>
+        <form onSubmit={onSubmit}>
           <label htmlFor="website-url">{t('brand.connect.urlLabel')}</label>
           <input
             id="website-url"

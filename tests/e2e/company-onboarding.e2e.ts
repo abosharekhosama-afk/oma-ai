@@ -42,7 +42,7 @@ test.describe('Company onboarding UI', () => {
       .click();
     await page.getByLabel(/brand name/i).fill(`UI Brand ${newId().slice(-4)}`);
     await page.getByRole('button', { name: /create/i }).click();
-    await expect(page).toHaveURL(/\/app\/brands\/[^/]+$/);
+    await expect(page).toHaveURL(/\/app\/brands\/(?!new$)[^/]+$/);
 
     // Refresh persistence
     await page.reload();

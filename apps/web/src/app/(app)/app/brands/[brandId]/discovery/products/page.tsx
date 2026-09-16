@@ -121,7 +121,7 @@ export default function DiscoveryProductsPage() {
             const linked =
               product.source_page_id != null ? evidenceByPage[product.source_page_id] : undefined;
             return (
-              <li key={product.id} className="oma-card oma-discovery-item">
+              <li key={product.id} className="oma-discovery-item">
                 <div>
                   <strong>{product.name}</strong>
                   <span className="oma-badge oma-badge-muted">{product.kind}</span>

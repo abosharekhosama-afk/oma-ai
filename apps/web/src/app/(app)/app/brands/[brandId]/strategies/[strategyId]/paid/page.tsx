@@ -13,6 +13,7 @@ import {
 import { BrandWorkspaceShell } from '../../../../../../../../components/brand/brand-workspace-shell';
 import { StrategySubnav } from '../../../../../../../../components/strategy/strategy-subnav';
 import { PaidPlanningBanner } from '../../../../../../../../components/strategy/honesty-banners';
+import { TrackTabs } from '../../../../../../../../components/strategy/track-tabs';
 import { PermissionDenied } from '../../../../../../../../components/shell/permission-denied';
 import { SelectCompany } from '../../../../../../../../components/shell/select-company';
 import { useT } from '../../../../../../../../lib/use-locale';
@@ -84,6 +85,7 @@ export default function StrategyPaidPage() {
   return (
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
       <StrategySubnav brandId={brandId} strategyId={strategyId} />
+      <TrackTabs brandId={brandId} strategyId={strategyId} />
       <header className="oma-page-header">
         <h2>{t('strategy.paid.title')}</h2>
       </header>

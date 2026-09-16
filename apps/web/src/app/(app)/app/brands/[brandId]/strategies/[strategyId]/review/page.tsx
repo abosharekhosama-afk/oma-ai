@@ -96,11 +96,11 @@ export default function StrategyReviewPage() {
       </header>
       <AiHonestyBanner />
       {version.missing_source ? (
-        <div className="oma-card" role="status">
+        <div className="oma-panel" role="status" data-testid="strategy-missing-profile">
           {t('strategy.warning.missingProfile')}
         </div>
       ) : null}
-      <label className="oma-card">
+      <label className="oma-panel">
         <input
           type="checkbox"
           checked={unknowns}
@@ -109,7 +109,7 @@ export default function StrategyReviewPage() {
         />{' '}
         {t('strategy.review.unknowns')}
       </label>
-      <div className="oma-card" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+      <div className="oma-panel oma-form-actions">
         {version.status === 'DRAFT' ? (
           <SubmitEligibility
             missingProfile={Boolean(version.missing_source)}
@@ -180,7 +180,7 @@ export default function StrategyReviewPage() {
           {error}
         </p>
       ) : null}
-      <form className="oma-card" onSubmit={onComment}>
+      <form className="oma-panel" onSubmit={onComment}>
         <label>
           {t('strategy.review.comment')}
           <textarea
@@ -196,7 +196,7 @@ export default function StrategyReviewPage() {
       </form>
       <ul className="oma-discovery-list">
         {version.comments.map((c) => (
-          <li key={c.id} className="oma-card">
+          <li key={c.id} className="oma-discovery-item">
             {c.body}
           </li>
         ))}

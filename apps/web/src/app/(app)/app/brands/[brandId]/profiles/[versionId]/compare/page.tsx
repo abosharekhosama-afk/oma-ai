@@ -109,12 +109,12 @@ export default function ProfileComparePage() {
           <p>{t('brand.compare.noChanges')}</p>
         </div>
       ) : (
-        <div className="oma-compare-grid">
-          <div className="oma-card">
+        <div className="oma-compare-panels">
+          <div className="oma-panel">
             <h3>{t('brand.compare.current')}</h3>
             <p className="oma-muted">{compare.left.status}</p>
           </div>
-          <div className="oma-card">
+          <div className="oma-panel">
             <h3>{rightLabel}</h3>
             <p className="oma-muted">{compare.right.status}</p>
           </div>

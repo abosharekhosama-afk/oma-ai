@@ -207,32 +207,28 @@ export default function BrandDetailPage() {
                 {t('brand.scan.historyEmpty')}
               </p>
             ) : (
-              <div className="oma-table-wrap">
-                <table className="oma-table">
-                  <thead>
-                    <tr>
-                      <th scope="col">{t('brand.scan.historyStatus')}</th>
-                      <th scope="col">{t('brand.scan.historyProgress')}</th>
-                      <th scope="col">{t('brand.scan.historyActions')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {scanHistory.map((item) => (
-                      <tr key={item.id}>
-                        <td>
+              <ul className="oma-dense-list">
+                {scanHistory.map((item) => (
+                  <li key={item.id}>
+                    <Link href={`/app/brands/${brandId}/scans/${item.id}`} className="oma-work-row">
+                      <div>
+                        <strong>
+                          {item.progress_percent}% · {item.status}
+                        </strong>
+                        <div className="oma-work-row-meta">
                           <StatusChip status={item.status} />
-                        </td>
-                        <td>{item.progress_percent}%</td>
-                        <td>
-                          <Link href={`/app/brands/${brandId}/scans/${item.id}`}>
-                            {t('brand.scan.historyOpen')}
-                          </Link>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                          {item.started_at ? (
+                            <time dateTime={item.started_at} suppressHydrationWarning>
+                              {new Date(item.started_at).toLocaleString()}
+                            </time>
+                          ) : null}
+                        </div>
+                      </div>
+                      <span className="oma-work-row-cta">{t('brand.scan.historyOpen')}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             )}
           </Panel>
         </div>

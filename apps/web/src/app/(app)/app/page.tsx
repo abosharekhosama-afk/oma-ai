@@ -15,6 +15,7 @@ import { StatusChip } from '../../../components/ui/status-chip';
 import { PageHeader, Panel } from '../../../components/ui/page-header';
 import { EmptyState, ErrorState, DeniedState, Skeleton } from '../../../components/ui/empty-state';
 import { DemoDisclosure } from '../../../components/demo/demo-disclosure';
+import { WorkspaceCard } from '../../../components/brand/workspace-card';
 import { demoApi, isDemoForbidden, pickCopy } from '../../../lib/demo/use-demo-api';
 import type { DemoGraph } from '@oma/demo';
 
@@ -111,13 +112,9 @@ export default function AppHomePage() {
   const scanningCount = brands.filter((b) =>
     ['QUEUED', 'RUNNING'].includes(b.latest_scan_status ?? ''),
   ).length;
-  const strategyReady = approvedCount;
 
   return (
-    <div
-      className="oma-stack oma-workboard oma-product-home oma-surface-cc"
-      data-testid="product-home"
-    >
+    <div className="oma-stack oma-cc oma-surface-cc" data-testid="product-home">
       <PageHeader
         kicker={t('home.kicker')}
         title={t('home.title')}
@@ -142,7 +139,6 @@ export default function AppHomePage() {
         <div className="oma-stack" role="status" aria-label={t('common.loading')}>
           <Skeleton height="2.5rem" />
           <Skeleton height="12rem" />
-          <Skeleton height="8rem" />
         </div>
       ) : !me ? null : !me.active_tenant_id ? (
         <EmptyState
@@ -158,58 +154,39 @@ export default function AppHomePage() {
         <DeniedState title={t('errors.permission')} />
       ) : (
         <>
-          <div className="oma-metric-rail" aria-label={t('home.summaryLabel')}>
-            <span className="oma-metric-pill">
-              <strong>{needingAction.length}</strong> {t('home.stat.needsAction')}
-            </span>
-            <span className="oma-metric-pill">
-              <strong>{brands.length}</strong> {t('home.stat.brands')}
-            </span>
-            <span className="oma-metric-pill">
-              <strong>{approvedCount}</strong> {t('home.stat.approved')}
-            </span>
-            <span className="oma-metric-pill">
-              <strong>{scanningCount}</strong> {t('home.stat.inProgress')}
-            </span>
-            <span className="oma-metric-pill">
-              <strong>{strategyReady}</strong> {t('home.stat.strategyReady')}
-            </span>
-            {demoCc ? (
-              <>
-                <span className="oma-metric-pill">
-                  <strong>{demoCc.reviewQueueCount}</strong> {t('home.demoReviewQueue')}
-                </span>
-                <Link
-                  href="/app/tasks"
-                  className="oma-metric-pill"
-                  data-testid="home-overdue-tasks-board"
-                >
-                  <strong>{demoCc.overdueTasks}</strong> {t('home.demoOverdue')}
-                </Link>
-                {typeof demoCc.scheduleThisWeek === 'number' ? (
-                  <Link
-                    href="/app/schedule"
-                    className="oma-metric-pill"
-                    data-testid="home-schedule-week"
-                  >
-                    <strong>{demoCc.scheduleThisWeek}</strong> {t('home.demoScheduleWeek')}
-                  </Link>
-                ) : null}
-                {typeof demoCc.workloadAtRisk === 'number' ? (
-                  <Link
-                    href="/app/team"
-                    className="oma-metric-pill"
-                    data-testid="home-workload-risk"
-                  >
-                    <strong>{demoCc.workloadAtRisk}</strong> {t('home.demoWorkloadRisk')}
-                  </Link>
-                ) : null}
-              </>
-            ) : null}
-          </div>
-
           <div className="oma-workboard-split">
             <div className="oma-workboard-primary">
+              <Panel
+                title={t('home.portfolioTitle')}
+                description={t('home.portfolioBody')}
+                labelledBy="portfolio-heading"
+                action={
+                  <Link href="/app/brands" className="oma-text-link">
+                    {t('home.viewPortfolio')}
+                  </Link>
+                }
+              >
+                <div data-testid="command-center-workspaces">
+                  {brands.length === 0 ? (
+                    <EmptyState
+                      title={t('brand.list.emptyTitle')}
+                      body={t('brand.list.emptyBody')}
+                      action={
+                        <Link href="/app/brands/new" className="oma-btn">
+                          {t('brand.list.create')}
+                        </Link>
+                      }
+                    />
+                  ) : (
+                    <div className="oma-workspace-grid">
+                      {brands.slice(0, 8).map((brand) => (
+                        <WorkspaceCard key={brand.id} brand={brand} compact />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </Panel>
+
               <Panel
                 title={t('home.needsActionTitle')}
                 description={t('home.needsActionBody')}
@@ -240,7 +217,6 @@ export default function AppHomePage() {
                               {brand.latest_profile_status ? (
                                 <StatusChip status={brand.latest_profile_status} />
                               ) : null}
-                              <span>{new Date(brand.updated_at).toLocaleDateString()}</span>
                             </div>
                           </div>
                           <span className="oma-work-row-cta">{attentionLabel(t, brand)}</span>
@@ -272,54 +248,56 @@ export default function AppHomePage() {
                   </div>
                 </Panel>
               ) : null}
-
-              <Panel
-                title={t('home.portfolioTitle')}
-                description={t('home.portfolioBody')}
-                labelledBy="portfolio-heading"
-                action={
-                  <Link href="/app/brands" className="oma-text-link">
-                    {t('home.viewPortfolio')}
-                  </Link>
-                }
-              >
-                {brands.length === 0 ? (
-                  <EmptyState
-                    title={t('brand.list.emptyTitle')}
-                    body={t('brand.list.emptyBody')}
-                    action={
-                      <Link href="/app/brands/new" className="oma-btn">
-                        {t('brand.list.create')}
-                      </Link>
-                    }
-                  />
-                ) : (
-                  <ul className="oma-dense-list">
-                    {brands.slice(0, 6).map((brand) => (
-                      <li key={brand.id}>
-                        <Link href={`/app/brands/${brand.id}`} className="oma-work-row">
-                          <div>
-                            <strong>{brand.name}</strong>
-                            <div className="oma-work-row-meta">
-                              <StatusChip status={brand.status} />
-                              <span className="oma-ltr">
-                                {brand.primary_website_url ?? t('brand.list.noWebsite')}
-                              </span>
-                              {brand.current_approved_profile_version_id ? (
-                                <StatusChip tone="success" label={t('brand.versions.current')} />
-                              ) : null}
-                            </div>
-                          </div>
-                          <span className="oma-work-row-cta">{t('home.action.open')}</span>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </Panel>
             </div>
 
             <aside className="oma-workboard-side">
+              <div className="oma-metric-rail" aria-label={t('home.summaryLabel')}>
+                <span className="oma-metric-pill">
+                  <strong>{needingAction.length}</strong> {t('home.stat.needsAction')}
+                </span>
+                <span className="oma-metric-pill">
+                  <strong>{brands.length}</strong> {t('home.stat.brands')}
+                </span>
+                <span className="oma-metric-pill">
+                  <strong>{approvedCount}</strong> {t('home.stat.approved')}
+                </span>
+                <span className="oma-metric-pill">
+                  <strong>{scanningCount}</strong> {t('home.stat.inProgress')}
+                </span>
+                {demoCc ? (
+                  <>
+                    <span className="oma-metric-pill">
+                      <strong>{demoCc.reviewQueueCount}</strong> {t('home.demoReviewQueue')}
+                    </span>
+                    <Link
+                      href="/app/tasks"
+                      className="oma-metric-pill"
+                      data-testid="home-overdue-tasks-board"
+                    >
+                      <strong>{demoCc.overdueTasks}</strong> {t('home.demoOverdue')}
+                    </Link>
+                    {typeof demoCc.scheduleThisWeek === 'number' ? (
+                      <Link
+                        href="/app/schedule"
+                        className="oma-metric-pill"
+                        data-testid="home-schedule-week"
+                      >
+                        <strong>{demoCc.scheduleThisWeek}</strong> {t('home.demoScheduleWeek')}
+                      </Link>
+                    ) : null}
+                    {typeof demoCc.workloadAtRisk === 'number' ? (
+                      <Link
+                        href="/app/team"
+                        className="oma-metric-pill"
+                        data-testid="home-workload-risk"
+                      >
+                        <strong>{demoCc.workloadAtRisk}</strong> {t('home.demoWorkloadRisk')}
+                      </Link>
+                    ) : null}
+                  </>
+                ) : null}
+              </div>
+
               {demoCc ? (
                 <>
                   <div className="oma-banner-demo">
@@ -342,52 +320,6 @@ export default function AppHomePage() {
                       ))}
                     </ul>
                   </Panel>
-                  <Panel
-                    title={t('home.demoProgress')}
-                    labelledBy="demo-campaigns-heading"
-                    action={
-                      <Link href="/app/campaigns" className="oma-text-link">
-                        {t('nav.campaigns')}
-                      </Link>
-                    }
-                  >
-                    <ul className="oma-dense-list">
-                      {demoCc.campaigns.map((c) => (
-                        <li key={c.id}>
-                          <Link href={`/app/campaigns/${c.id}`} className="oma-work-row">
-                            <div>
-                              <strong>{pickCopy(c.name, locale)}</strong>
-                              <div className="oma-work-row-meta">
-                                <StatusChip status={c.status} />
-                                <span
-                                  className={
-                                    c.track === 'PAID'
-                                      ? 'oma-track-pill oma-track-pill--paid'
-                                      : 'oma-track-pill oma-track-pill--organic'
-                                  }
-                                >
-                                  {c.track}
-                                </span>
-                              </div>
-                            </div>
-                            <span className="oma-work-row-cta">{t('home.action.open')}</span>
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </Panel>
-                  <Panel
-                    title={t('home.demoPerformance')}
-                    labelledBy="demo-perf-heading"
-                    action={<span className="oma-badge oma-badge--warning">Demo</span>}
-                  >
-                    <p style={{ margin: 0 }}>{pickCopy(demoCc.performanceBlurb, locale)}</p>
-                    <p style={{ marginTop: '0.75rem' }}>
-                      <Link href="/app/analytics" className="oma-text-link">
-                        {t('nav.analytics')}
-                      </Link>
-                    </p>
-                  </Panel>
                 </>
               ) : null}
 
@@ -395,11 +327,6 @@ export default function AppHomePage() {
                 title={t('home.activityTitle')}
                 description={t('home.activityBody')}
                 labelledBy="activity-heading"
-                action={
-                  <Link href="/app/reviews" className="oma-text-link">
-                    {t('nav.reviews')}
-                  </Link>
-                }
               >
                 {notifications.length === 0 ? (
                   <p className="oma-muted" role="status">
@@ -414,7 +341,10 @@ export default function AppHomePage() {
                             <div>
                               <strong>{notificationLabel(t, n.type)}</strong>
                               <div className="oma-work-row-meta">
-                                <span>{new Date(n.createdAt).toLocaleString()}</span>
+                                <span>{me.user.name}</span>
+                                <time dateTime={n.createdAt} suppressHydrationWarning>
+                                  {new Date(n.createdAt).toLocaleString()}
+                                </time>
                               </div>
                             </div>
                             <span className="oma-work-row-cta">{t('home.action.open')}</span>
@@ -424,7 +354,10 @@ export default function AppHomePage() {
                             <div>
                               <strong>{notificationLabel(t, n.type)}</strong>
                               <div className="oma-work-row-meta">
-                                <span>{new Date(n.createdAt).toLocaleString()}</span>
+                                <span>{me.user.name}</span>
+                                <time dateTime={n.createdAt} suppressHydrationWarning>
+                                  {new Date(n.createdAt).toLocaleString()}
+                                </time>
                               </div>
                             </div>
                           </div>
@@ -433,39 +366,6 @@ export default function AppHomePage() {
                     ))}
                   </ul>
                 )}
-              </Panel>
-
-              <Panel title={t('home.strategyStatusTitle')} labelledBy="strategy-status-heading">
-                <ul className="oma-dense-list">
-                  <li>
-                    <div className="oma-work-row">
-                      <div>
-                        <strong>{t('home.strategyReadyCount')}</strong>
-                        <div className="oma-work-row-meta">
-                          <span>
-                            {strategyReady} / {brands.length}
-                          </span>
-                        </div>
-                      </div>
-                      <Link href="/app/brands" className="oma-work-row-cta">
-                        {t('home.action.open')}
-                      </Link>
-                    </div>
-                  </li>
-                  <li>
-                    <div className="oma-work-row">
-                      <div>
-                        <strong>{t('nav.reviews')}</strong>
-                        <div className="oma-work-row-meta">
-                          <span>{demoCc?.reviewQueueCount ?? needingAction.length}</span>
-                        </div>
-                      </div>
-                      <Link href="/app/reviews" className="oma-work-row-cta">
-                        {t('home.action.open')}
-                      </Link>
-                    </div>
-                  </li>
-                </ul>
               </Panel>
             </aside>
           </div>

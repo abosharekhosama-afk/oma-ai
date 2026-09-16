@@ -58,7 +58,7 @@ export default function StrategyComparePage() {
         <h2>{t('strategy.versions.compare')}</h2>
       </header>
       {error ? <p role="alert">{error}</p> : null}
-      <div className="oma-workboard-split" data-testid="strategy-compare-diff">
+      <div className="oma-compare-panels" data-testid="strategy-compare-diff">
         <div className="oma-panel">
           <h2>{leftId || 'Left'}</h2>
           <pre style={{ margin: 0, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>

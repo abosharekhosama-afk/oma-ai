@@ -90,7 +90,7 @@ export default function StrategyVersionsPage() {
       {error ? <p role="alert">{error}</p> : null}
       <ul className="oma-discovery-list" data-testid="strategy-versions">
         {versions.map((v) => (
-          <li key={v.id} className="oma-card oma-discovery-item">
+          <li key={v.id} className="oma-discovery-item">
             <div>
               <strong>v{v.version_number}</strong> <StatusChip status={v.status} />
             </div>

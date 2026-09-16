@@ -1,6 +1,8 @@
 # Planable UI/UX baseline (OMA)
 
-**Status:** `P1_IMPLEMENTED` for tokens, type, shell, nav, base components, overlays, motion, responsive shell, RTL. Surfaces P2–P6 not rebuilt.
+**P2 inspection:** Implementation used the approved baseline in this file plus `docs/PLANABLE_TO_OMA_SURFACE_MAP.md` and `docs/PLANABLE_VISUAL_ACCEPTANCE_CRITERIA.md`. No new live Planable mutations or CDP re-exploration.
+
+**Status:** `P2_IMPLEMENTED` for Command Center, Brands, Brand Intelligence, Strategy. P3–P6 not rebuilt.
 **Decision:** `DEC-017`
 **Product source of visual truth:** `https://app.planable.io/` (PRODUCT_APP)
 **Marketing (not component source):** `https://planable.io/`, `https://planable.io/product/`
@@ -62,9 +64,9 @@ Statuses (observed, not OMA copy): Not approved yet, Pending, Approved by {user}
 
 ## Binding rebuild sequence (docs only)
 
-P1 tokens + type + shell + nav + base components + motion → **P1_COMPLETE in product CSS/shell**. P2–P7 not started.
+P1 tokens + type + shell + nav + base components + motion → **P1_COMPLETE**. P2 Command Center / Brands / Intelligence / Strategy → **P2_COMPLETE in product CSS/surfaces**. P3–P7 not started.
 
-`P1_COMPAT` aliases in `packages/ui/src/tokens.css` (`--oma-violet`, `--oma-signal`, `--oma-review-canvas`, `--motion-*`) map old names onto Planable tokens and must be removed as P2–P6 surfaces are rebuilt.
+`P1_COMPAT` aliases remaining after P2 are listed in `docs/PLANABLE_P1_COMPAT_INVENTORY.md`. `--oma-signal` / `--oma-signal-soft` were removed from Stage 2 CSS.
 
 ## Conflicts with previous OMA visual system
 

@@ -25,12 +25,12 @@ test.describe('Stage 2 Command Center / Brand / Strategy visuals', () => {
 
     await uiCreateBrandConnectAndStartScan(page, request, owner);
     await page.goto('/app/brands');
-    await expect(page.locator('.oma-portfolio-table')).toBeVisible();
-    await expect(page.locator('.oma-portfolio-table tbody tr').first()).toBeVisible();
-    await page.locator('.oma-portfolio-table tbody tr').first().getByRole('link').first().click();
+    await expect(page.getByTestId('brand-workspace-grid')).toBeVisible();
+    await expect(page.locator('.oma-workspace-card').first()).toBeVisible();
+    await page.locator('.oma-workspace-card').first().getByRole('link').first().click();
     await expect(page.getByTestId('brand-workspace')).toBeVisible();
     await expect(page.locator('.oma-brand-nav')).toBeVisible();
-    await expect(page.locator('.oma-journey-compact')).toBeVisible();
+    await expect(page.locator('.oma-brand-header')).toBeVisible();
   });
 
   test('discovery evidence drawer and strategy tracks', async ({ page, request }, testInfo) => {

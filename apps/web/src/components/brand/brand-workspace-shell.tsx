@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useT } from '../../lib/use-locale';
 import { StatusChip } from '../ui/status-chip';
+import { BrandMark } from './workspace-card';
 
 type BrandWorkspaceShellProps = {
   brandId: string;
@@ -70,32 +71,17 @@ export function BrandWorkspaceShell({
   return (
     <div className="oma-brand-shell" data-testid="brand-workspace">
       <header className="oma-brand-header">
-        <div>
-          <p className="oma-kicker">
-            <Link href="/app/brands">{t('brand.list.title')}</Link>
-            <span aria-hidden="true"> / </span>
-            <span>{t('brand.workspace.context')}</span>
-          </p>
-          <h1>{brandName}</h1>
-          {websiteUrl ? (
-            <p className="oma-muted oma-ltr" style={{ margin: '0.25rem 0 0' }}>
-              {websiteUrl}
-            </p>
-          ) : null}
-          <div className="oma-chip-row">
-            {brandStatus ? <StatusChip status={brandStatus} /> : null}
-            {scanStatus ? <StatusChip status={scanStatus} /> : null}
-            {profileStatus ? <StatusChip status={profileStatus} /> : null}
+        <div className="oma-brand-header-identity">
+          <BrandMark name={brandName} />
+          <div>
+            <h1>{brandName}</h1>
+            {websiteUrl ? <p className="oma-muted oma-ltr">{websiteUrl}</p> : null}
+            <div className="oma-chip-row">
+              {brandStatus ? <StatusChip status={brandStatus} /> : null}
+              {scanStatus ? <StatusChip status={scanStatus} /> : null}
+              {profileStatus ? <StatusChip status={profileStatus} /> : null}
+            </div>
           </div>
-          {journey && journey.length > 0 ? (
-            <ol className="oma-journey-compact" aria-label={t('home.journeyTitle')}>
-              {journey.map((step) => (
-                <li key={step.id} data-state={step.state}>
-                  {step.label}
-                </li>
-              ))}
-            </ol>
-          ) : null}
         </div>
         {nextStepHref && nextStepLabel ? (
           <Link href={nextStepHref} className="oma-btn">
@@ -103,6 +89,15 @@ export function BrandWorkspaceShell({
           </Link>
         ) : null}
       </header>
+      {journey && journey.length > 0 ? (
+        <ol className="oma-status-row oma-journey-compact" aria-label={t('home.journeyTitle')}>
+          {journey.map((step) => (
+            <li key={step.id} data-state={step.state}>
+              {step.label}
+            </li>
+          ))}
+        </ol>
+      ) : null}
       <nav className="oma-brand-nav" aria-label={t('brand.nav.label')}>
         <ul>
           {links.map((link) => (

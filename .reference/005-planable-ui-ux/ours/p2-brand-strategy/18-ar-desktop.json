@@ -1,0 +1,26 @@
+{
+  "name": "18-ar-desktop",
+  "candidateSha": "82e52724b94a81613c44a29167b4f5af1378c7b2",
+  "route": "/app",
+  "viewport": "1440x900",
+  "locale": "ar",
+  "dir": "rtl",
+  "computedFont": "\"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", Tahoma, sans-serif, -apple-system, system-ui, \"Segoe UI\", Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif",
+  "computedColors": {
+    "canvas": "rgb(245, 246, 247)",
+    "ink": "rgb(51, 51, 51)"
+  },
+  "consoleErrors": [],
+  "overflowOk": true,
+  "evidenceLevel": "OMA_ADAPTATION",
+  "planablePattern": "dashboard/workspace",
+  "acceptanceIds": [
+    "PV-G-01",
+    "PV-G-03",
+    "PV-G-09"
+  ],
+  "featureState": "18-ar-desktop",
+  "rawScreenshot": "artifacts/planable-rebuild-004/p2-brand-strategy/18-ar-desktop.png",
+  "gitignoredRaw": true,
+  "capturedAt": "2026-09-16T08:17:12.064Z"
+}

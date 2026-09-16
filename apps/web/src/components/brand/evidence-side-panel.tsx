@@ -53,6 +53,17 @@ export function EvidenceSidePanel({
   const prevId = index > 0 ? evidenceIds[index - 1] : null;
   const nextId = index >= 0 && index < evidenceIds.length - 1 ? evidenceIds[index + 1] : null;
 
+  useEffect(() => {
+    if (!evidenceId || !onNavigate) return;
+    const navigate = onNavigate;
+    function onKey(event: KeyboardEvent) {
+      if (event.key === 'ArrowLeft' && prevId) navigate(prevId);
+      if (event.key === 'ArrowRight' && nextId) navigate(nextId);
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [evidenceId, nextId, onNavigate, prevId]);
+
   return (
     <Drawer open={Boolean(evidenceId)} onClose={onClose} label={t('brand.evidence.title')}>
       <header className="oma-drawer-header">

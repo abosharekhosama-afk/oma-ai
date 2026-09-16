@@ -87,7 +87,7 @@ export default function BrandProfileVersionsPage() {
       ) : (
         <ul className="oma-discovery-list">
           {versions.map((version) => (
-            <li key={version.id} className="oma-card oma-discovery-item">
+            <li key={version.id} className="oma-discovery-item">
               <div>
                 <strong>
                   <Link href={`/app/brands/${brandId}/profiles/${version.id}`}>
