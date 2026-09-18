@@ -39,6 +39,7 @@ test.describe('P2 Planable brand and strategy surfaces', () => {
 
     const createBrand = page
       .getByTestId('brand-portfolio')
+      .locator('header.oma-page-header')
       .getByRole('link', { name: msg(testInfo, 'brand.list.create') });
     await Promise.all([
       page.waitForURL(/\/app\/brands\/new/, { timeout: 15_000 }),
@@ -55,6 +56,7 @@ test.describe('P2 Planable brand and strategy surfaces', () => {
       page.waitForURL(/\/app\/brands\/new/, { timeout: 15_000 }),
       page
         .getByTestId('brand-portfolio')
+        .locator('header.oma-page-header')
         .getByRole('link', { name: msg(testInfo, 'brand.list.create') })
         .click(),
     ]);
