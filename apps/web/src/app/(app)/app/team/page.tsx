@@ -132,71 +132,102 @@ export default function TeamPage() {
           {filtered.length === 0 ? (
             <EmptyState title={t('demo.empty')} body={t('demo.team.emptyHint')} />
           ) : (
-            <div className="oma-team-table-wrap" data-testid="demo-team-table">
-              <table className="oma-table">
-                <thead>
-                  <tr>
-                    <th>{t('demo.team.col.member')}</th>
-                    <th>{t('demo.team.filter.role')}</th>
-                    <th>{t('demo.team.col.workload')}</th>
-                    <th>{t('demo.team.col.assignments')}</th>
-                    <th>{t('demo.team.col.reviews')}</th>
-                    <th>{t('demo.team.col.due')}</th>
-                    <th>{t('demo.team.col.overdue')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((m) => {
-                    const cap = capacityState(m.workload);
-                    return (
-                      <tr
-                        key={m.id}
-                        className="oma-team-row"
-                        data-testid={`demo-team-row-${m.id}`}
+            <>
+              <div className="oma-team-table-wrap" data-testid="demo-team-table">
+                <table className="oma-table">
+                  <thead>
+                    <tr>
+                      <th>{t('demo.team.col.member')}</th>
+                      <th>{t('demo.team.filter.role')}</th>
+                      <th>{t('demo.team.col.workload')}</th>
+                      <th>{t('demo.team.col.assignments')}</th>
+                      <th>{t('demo.team.col.reviews')}</th>
+                      <th>{t('demo.team.col.due')}</th>
+                      <th>{t('demo.team.col.overdue')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filtered.map((m) => {
+                      const cap = capacityState(m.workload);
+                      return (
+                        <tr
+                          key={m.id}
+                          className="oma-team-row"
+                          data-testid={`demo-team-row-${m.id}`}
+                          onClick={() => setSelectedId(m.id)}
+                        >
+                          <td>
+                            <button
+                              type="button"
+                              className="oma-text-link"
+                              data-testid={`demo-team-open-${m.id}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedId(m.id);
+                              }}
+                            >
+                              {pickCopy(m.name, locale)}
+                            </button>
+                            {m.restricted ? (
+                              <span className="oma-badge">{t('demo.teamRestricted')}</span>
+                            ) : null}
+                          </td>
+                          <td>{m.role}</td>
+                          <td>
+                            <div
+                              className="oma-workload-bar"
+                              data-risk={
+                                cap === 'at_risk' || cap === 'over_capacity' ? 'true' : 'false'
+                              }
+                              aria-hidden="true"
+                            >
+                              <span
+                                style={{ width: `${Math.min(100, Math.round(m.workload * 100))}%` }}
+                              />
+                            </div>
+                            <span className="oma-capacity" data-state={cap}>
+                              {t(`demo.team.capacity.${cap}`)} ({Math.round(m.workload * 100)}%)
+                            </span>
+                          </td>
+                          <td className="oma-ltr">{m.assignments}</td>
+                          <td className="oma-ltr">{m.reviewQueue}</td>
+                          <td className="oma-ltr">{m.dueSoon}</td>
+                          <td className="oma-ltr">{m.overdue}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              <div className="oma-team-mobile-list" data-testid="demo-team-mobile">
+                {filtered.map((m) => {
+                  const cap = capacityState(m.workload);
+                  return (
+                    <article
+                      key={m.id}
+                      className="oma-team-mobile-card"
+                      data-testid={`demo-team-mobile-${m.id}`}
+                    >
+                      <button
+                        type="button"
+                        className="oma-text-link"
                         onClick={() => setSelectedId(m.id)}
                       >
-                        <td>
-                          <button
-                            type="button"
-                            className="oma-text-link"
-                            data-testid={`demo-team-open-${m.id}`}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedId(m.id);
-                            }}
-                          >
-                            {pickCopy(m.name, locale)}
-                          </button>
-                          {m.restricted ? (
-                            <span className="oma-badge">{t('demo.teamRestricted')}</span>
-                          ) : null}
-                        </td>
-                        <td>{m.role}</td>
-                        <td>
-                          <div
-                            className="oma-workload-bar"
-                            data-risk={
-                              cap === 'at_risk' || cap === 'over_capacity' ? 'true' : 'false'
-                            }
-                          >
-                            <span
-                              style={{ width: `${Math.min(100, Math.round(m.workload * 100))}%` }}
-                            />
-                          </div>
-                          <span className="oma-capacity" data-state={cap}>
-                            {t(`demo.team.capacity.${cap}`)} ({Math.round(m.workload * 100)}%)
-                          </span>
-                        </td>
-                        <td className="oma-ltr">{m.assignments}</td>
-                        <td className="oma-ltr">{m.reviewQueue}</td>
-                        <td className="oma-ltr">{m.dueSoon}</td>
-                        <td className="oma-ltr">{m.overdue}</td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                        {pickCopy(m.name, locale)}
+                      </button>
+                      <p className="oma-muted">{m.role}</p>
+                      <p className="oma-capacity" data-state={cap}>
+                        {t(`demo.team.capacity.${cap}`)} · {Math.round(m.workload * 100)}%
+                      </p>
+                      <p className="oma-muted oma-ltr">
+                        {t('demo.team.col.assignments')}: {m.assignments} ·{' '}
+                        {t('demo.team.col.overdue')}: {m.overdue}
+                      </p>
+                    </article>
+                  );
+                })}
+              </div>
+            </>
           )}
         </>
       ) : null}

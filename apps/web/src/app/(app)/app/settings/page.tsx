@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { DemoGraph, DemoPreferences } from '@oma/demo';
 import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
 import { PageHeader } from '../../../../components/ui/page-header';
@@ -26,6 +26,8 @@ export default function SettingsPage() {
   const [prefs, setPrefs] = useState<DemoPreferences | null>(null);
   const [draft, setDraft] = useState<DemoPreferences | null>(null);
   const [rows, setRows] = useState<Integration[]>([]);
+  const [intQ, setIntQ] = useState('');
+  const [intCategory, setIntCategory] = useState('all');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,6 +76,18 @@ export default function SettingsPage() {
     }
   }
 
+  const dirty = Boolean(prefs && draft && JSON.stringify(prefs) !== JSON.stringify(draft));
+  const categories = useMemo(() => [...new Set(rows.map((r) => r.category))], [rows]);
+  const filteredIntegrations = useMemo(() => {
+    const q = intQ.trim().toLowerCase();
+    return rows.filter((i) => {
+      if (intCategory !== 'all' && i.category !== intCategory) return false;
+      if (!q) return true;
+      const name = pickCopy(i.name, locale).toLowerCase();
+      const purpose = pickCopy(i.purpose, locale).toLowerCase();
+      return name.includes(q) || purpose.includes(q) || i.category.toLowerCase().includes(q);
+    });
+  }, [rows, intQ, intCategory, locale]);
   const info = rows.find((r) => r.id === infoId) ?? null;
   const sections: Section[] = [
     'general',
@@ -112,16 +126,25 @@ export default function SettingsPage() {
                 {t(`demo.settings.section.${s}`)}
               </button>
             ))}
-            <Link href="/app/company/members" className="oma-text-link">
+            <Link
+              href="/app/company/members"
+              className="oma-text-link"
+              data-testid="demo-settings-members-link"
+            >
               {t('demo.settings.companyLink')}
             </Link>
           </nav>
 
           <div className="oma-stack">
             {section === 'general' || section === 'localization' || section === 'workflow' ? (
-              <section className="oma-card" data-testid="demo-settings-general">
+              <section className="oma-settings-panel" data-testid="demo-settings-general">
                 <h2>{t(`demo.settings.section.${section}`)}</h2>
                 <p className="oma-muted">{t('demo.settings.demoPrefNote')}</p>
+                {dirty ? (
+                  <p className="oma-settings-dirty" data-testid="demo-settings-dirty" role="status">
+                    {t('demo.settings.dirty')}
+                  </p>
+                ) : null}
                 <label>
                   {t('demo.settings.timezone')}
                   <input
@@ -200,10 +223,12 @@ export default function SettingsPage() {
                     <option value="list">list</option>
                   </select>
                 </label>
+                <p className="oma-muted">{t('demo.settings.reducedMotionNote')}</p>
                 <div className="oma-chip-row">
                   <button
                     type="button"
                     className="oma-btn oma-btn-secondary"
+                    disabled={!dirty || saving}
                     onClick={() => setDraft(prefs)}
                   >
                     {t('demo.create.cancel')}
@@ -212,7 +237,7 @@ export default function SettingsPage() {
                     type="button"
                     className="oma-btn"
                     data-testid="demo-settings-save"
-                    disabled={saving}
+                    disabled={!dirty || saving}
                     onClick={() => void savePrefs()}
                   >
                     {t('demo.settings.save')}
@@ -222,7 +247,7 @@ export default function SettingsPage() {
             ) : null}
 
             {section === 'notifications' ? (
-              <section className="oma-card" data-testid="demo-settings-notifications">
+              <section className="oma-settings-panel" data-testid="demo-settings-notifications">
                 <h2>{t('demo.settings.section.notifications')}</h2>
                 <label>
                   <input
@@ -238,7 +263,7 @@ export default function SettingsPage() {
                   type="button"
                   className="oma-btn"
                   data-testid="demo-settings-save-notifications"
-                  disabled={saving}
+                  disabled={!dirty || saving}
                   onClick={() => void savePrefs()}
                 >
                   {t('demo.settings.save')}
@@ -247,11 +272,38 @@ export default function SettingsPage() {
             ) : null}
 
             {section === 'integrations' || section === 'demo' ? (
-              <section className="oma-card" data-testid="demo-integrations">
+              <section className="oma-settings-panel" data-testid="demo-integrations">
                 <h2>{t('demo.settings.integrations')}</h2>
                 <p className="oma-muted">{t('demo.integrationsDeferred')}</p>
-                <ul className="oma-compact-list">
-                  {rows.map((i) => (
+                <div className="oma-integration-toolbar" data-testid="demo-integrations-filters">
+                  <label className="oma-stage6-search">
+                    {t('demo.settings.integrationsSearch')}
+                    <input
+                      className="oma-input"
+                      value={intQ}
+                      data-testid="demo-integrations-search"
+                      onChange={(e) => setIntQ(e.target.value)}
+                    />
+                  </label>
+                  <label>
+                    {t('demo.settings.integrationsCategory')}
+                    <select
+                      className="oma-select"
+                      value={intCategory}
+                      data-testid="demo-integrations-category"
+                      onChange={(e) => setIntCategory(e.target.value)}
+                    >
+                      <option value="all">{t('demo.filter.all')}</option>
+                      {categories.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+                <ul className="oma-integration-list">
+                  {filteredIntegrations.map((i) => (
                     <li key={i.id} className="oma-integration-row" data-testid={`demo-int-${i.id}`}>
                       <div className="oma-chip-row">
                         <strong>{pickCopy(i.name, locale)}</strong>
@@ -273,7 +325,7 @@ export default function SettingsPage() {
                   ))}
                 </ul>
                 {info ? (
-                  <div className="oma-card" data-testid="demo-int-plan-drawer">
+                  <div className="oma-settings-panel" data-testid="demo-int-plan-drawer">
                     <h3>{pickCopy(info.name, locale)}</h3>
                     <p>{pickCopy(info.laterUnlocks, locale)}</p>
                     <p className="oma-honesty-inline">{t('demo.settings.noConnect')}</p>

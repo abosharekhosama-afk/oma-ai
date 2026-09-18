@@ -68,11 +68,14 @@ export default function AnalyticsPage() {
     [data, filters],
   );
   const comparison = useMemo(() => (data ? organicPaidComparison(data) : null), [data]);
-  const spark = useMemo(() => {
-    const values = series.filter((p) => p.track !== 'PAID' || filters.track !== 'ORGANIC');
-    const organic = values.filter((p) => p.track === 'ORGANIC').map((p) => p.impressions);
-    return sparklinePoints(organic.length ? organic : values.map((p) => p.impressions));
-  }, [series, filters.track]);
+  const organicSpark = useMemo(() => {
+    const organic = series.filter((p) => p.track === 'ORGANIC').map((p) => p.impressions);
+    return sparklinePoints(organic);
+  }, [series]);
+  const paidSpark = useMemo(() => {
+    const paid = series.filter((p) => p.track === 'PAID').map((p) => p.impressions);
+    return sparklinePoints(paid);
+  }, [series]);
 
   return (
     <div className="oma-stack" data-testid="demo-analytics">
@@ -102,11 +105,26 @@ export default function AnalyticsPage() {
 
       {data ? (
         <div className="oma-analytics-layout">
-          <p className="oma-muted" data-testid="demo-analytics-period">
-            {pickCopy(data.period.label, locale)} · {data.period.start} → {data.period.end}
-            {' · '}
-            {t('demo.analytics.lastRefresh')}: {data.lastSimulatedRefresh}
-          </p>
+          <div className="oma-analytics-period" data-testid="demo-analytics-period">
+            <span>
+              {t('demo.analytics.dateRange')}: {pickCopy(data.period.label, locale)} ·{' '}
+              <span className="oma-ltr">
+                {data.period.start} → {data.period.end}
+              </span>
+            </span>
+            <span data-testid="demo-analytics-comparison">
+              {t('demo.analytics.comparisonPeriod')}: {pickCopy(data.previousPeriod.label, locale)}{' '}
+              ·{' '}
+              <span className="oma-ltr">
+                {data.previousPeriod.start} → {data.previousPeriod.end}
+              </span>
+            </span>
+            <span>
+              {t('demo.analytics.lastRefresh')}:{' '}
+              <span className="oma-ltr">{data.lastSimulatedRefresh}</span>
+            </span>
+            <span className="oma-badge oma-badge-muted">{t('demo.analytics.planningPreview')}</span>
+          </div>
 
           <div className="oma-stage6-toolbar" data-testid="demo-analytics-filters">
             <label>
@@ -166,11 +184,17 @@ export default function AnalyticsPage() {
               {data.kpis.map((kpi) => {
                 const delta = percentDelta(kpi.value, kpi.previous);
                 const tone = kpiDeltaTone(delta, kpi.higherIsBetter);
+                const dir = delta > 0.05 ? 'up' : delta < -0.05 ? 'down' : 'flat';
                 return (
                   <div key={kpi.id} className="oma-kpi-cell">
                     <span className="oma-muted">{pickCopy(kpi.name, locale)}</span>
                     <strong className="oma-ltr">{formatKpi(kpi.value, kpi.unit)}</strong>
-                    <span className="oma-kpi-delta oma-ltr" data-tone={tone}>
+                    <span
+                      className="oma-kpi-delta oma-ltr"
+                      data-tone={tone}
+                      data-dir={dir === 'flat' ? undefined : dir}
+                      data-testid={`demo-analytics-kpi-delta-${kpi.id}`}
+                    >
                       {delta > 0 ? '+' : ''}
                       {delta}% vs {pickCopy(data.previousPeriod.label, locale)}
                     </span>
@@ -186,13 +210,43 @@ export default function AnalyticsPage() {
           >
             <h2>{t('demo.analytics.trend')}</h2>
             <p>{pickCopy(data.executiveSummary, locale)}</p>
-            <svg viewBox="0 0 320 80" role="img" aria-label={t('demo.analytics.trendSummary')}>
-              <polyline
-                fill="none"
-                stroke="var(--oma-violet)"
-                strokeWidth="2"
-                points={spark.points}
-              />
+            <div className="oma-chart-legend" aria-hidden="true">
+              {(filters.track === 'all' || filters.track === 'ORGANIC') && organicSpark.points ? (
+                <span className="oma-chart-legend-item">
+                  <span className="oma-chart-legend-swatch" data-series="organic" />
+                  {t('demo.organic')} (solid)
+                </span>
+              ) : null}
+              {(filters.track === 'all' || filters.track === 'PAID') && paidSpark.points ? (
+                <span className="oma-chart-legend-item">
+                  <span className="oma-chart-legend-swatch" data-series="paid" />
+                  {t('demo.paid')} (dashed)
+                </span>
+              ) : null}
+            </div>
+            <svg
+              viewBox="0 0 320 80"
+              role="img"
+              aria-label={t('demo.analytics.trendSummary')}
+              data-testid="demo-analytics-trend-svg"
+            >
+              {(filters.track === 'all' || filters.track === 'ORGANIC') && organicSpark.points ? (
+                <polyline
+                  fill="none"
+                  stroke="var(--oma-primary)"
+                  strokeWidth="2"
+                  points={organicSpark.points}
+                />
+              ) : null}
+              {(filters.track === 'all' || filters.track === 'PAID') && paidSpark.points ? (
+                <polyline
+                  fill="none"
+                  stroke="var(--oma-ink)"
+                  strokeWidth="2"
+                  strokeDasharray="4 3"
+                  points={paidSpark.points}
+                />
+              ) : null}
             </svg>
             <table className="oma-chart-sr" data-testid="demo-analytics-trend-table">
               <caption>{t('demo.analytics.trendSummary')}</caption>

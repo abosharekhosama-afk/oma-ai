@@ -32,7 +32,8 @@ describe('P1 Planable design tokens', () => {
     expect(css).toContain('-apple-system');
     expect(css).toContain("'Segoe UI'");
     expect(css).toContain("'Noto Sans Arabic'");
-    expect(css).toContain('P1_COMPAT');
+    expect(css).toContain('--shell-header-height');
+    expect(css).not.toContain('P1_COMPAT');
   });
 
   it('keeps a single :root token sheet and no English webfont product face', () => {

@@ -27,11 +27,6 @@
   --status-danger: #c43d4b;
   --status-neutral: rgba(0, 0, 0, 0.45);
 
-  /* P1_COMPAT — remove in P2–P6 once call sites use primary/status tokens */
-  --oma-violet: var(--oma-primary); /* P1_COMPAT: was DEC-013 violet; now primary — P6 call sites */
-  --oma-signal: var(--status-success); /* P1_COMPAT: was #12A7A1 — P6 call sites */
-  --oma-signal-soft: color-mix(in srgb, var(--status-success) 12%, #ffffff); /* P1_COMPAT — P6 */
-
   /* Typography — LIVE English stack. html 10px is Planable rem contract; OMA pages still use rem at 16px so we do not copy the 10px root (would crush P2–P6 rem layout). Body is 14px explicit. */
   --oma-font-sans:
     -apple-system, system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif;
@@ -89,7 +84,7 @@
   /* Shell geometry — LIVE 256px rail, 12px chrome inset, 32px controls */
   --shell-rail-expanded: 256px;
   --shell-rail-collapsed: 64px; /* SANDBOX_DATA_REQUIRED; OMA_ADAPTATION icon rail */
-  --shell-top-height: 56px; /* content header: 12px inset + 32px control; not Linear command bar */
+  --shell-header-height: 56px; /* content header: 12px inset + 32px control */
   --shell-drawer-width: 380px; /* ARCHIVED */
   --shell-main-max: none;
   --shell-chrome-inset: 12px;
@@ -112,9 +107,6 @@
   --oma-motion-control-ease: cubic-bezier(0.4, 0, 0.2, 1);
   --oma-motion-input: 300ms;
   --oma-motion-input-ease: ease;
-  --motion-micro: var(--oma-motion-sidebar); /* P1_COMPAT name */
-  --motion-panel: var(--oma-motion-control); /* P1_COMPAT name */
-  --motion-ease: var(--oma-motion-control-ease); /* P1_COMPAT name */
 
   /* Icons */
   --icon-sm: 16px;

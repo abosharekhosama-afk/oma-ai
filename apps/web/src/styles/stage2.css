@@ -347,7 +347,7 @@
 
 .oma-brand-aside .oma-panel {
   position: sticky;
-  top: calc(var(--shell-top-height) + 96px);
+  top: calc(var(--shell-header-height) + 96px);
 }
 
 .oma-strategy-shell {
@@ -671,7 +671,7 @@
   }
 
   .oma-brand-nav {
-    top: var(--shell-top-height);
+    top: var(--shell-header-height);
   }
 
   .oma-portfolio-table thead {
@@ -707,6 +707,6 @@
   }
 
   .oma-brand-nav {
-    top: var(--shell-top-height);
+    top: var(--shell-header-height);
   }
 }

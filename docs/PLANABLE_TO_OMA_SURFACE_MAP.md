@@ -18,10 +18,10 @@
 | Deliverables       | Media grid / content assets                                                                         | ARCHIVED cards + DOC media library                                       | P5            |
 | Reviews            | Content preview + comments + approvals                                                              | ARCHIVED post modal + bulk review                                        | P5            |
 | Schedule           | Calendar / scheduling                                                                               | ARCHIVED calendar + DOC schedule                                         | P5            |
-| Analytics          | Planable analytics empty/workspace charts language                                                  | ARCHIVED analytics empty; DOC reports                                    | P6            |
-| Team               | Workspace members                                                                                   | DOC members/roles; LIVE `inviteMembersButton` presence only (not opened) | P6            |
-| Activity           | Collaboration activity list                                                                         | ARCHIVED `activityList`                                                  | P6            |
-| Settings           | Workspace settings IA                                                                               | Company Settings link ARCHIVED (not opened); `SANDBOX_DATA_REQUIRED`     | P6            |
+| Analytics          | Planable analytics empty/workspace charts language                                                  | ARCHIVED analytics empty; DOC reports                                    | P6 COMPLETE   |
+| Team               | Workspace members                                                                                   | DOC members/roles; LIVE `inviteMembersButton` presence only (not opened) | P6 COMPLETE   |
+| Activity           | Collaboration activity list                                                                         | ARCHIVED `activityList`                                                  | P6 COMPLETE   |
+| Settings           | Workspace settings IA                                                                               | Company Settings link ARCHIVED (not opened); `SANDBOX_DATA_REQUIRED`     | P6 COMPLETE   |
 
 ## Rebuild sequence (docs only — no product code in this stage)
 
@@ -32,8 +32,8 @@
 | **P3** | Campaigns, Content Calendar/Grid/Feed/List, Composer                    | After P2                                                                                                                   |
 | **P4** | Requests, Briefs, Tasks/Kanban in Planable language                     | After P3                                                                                                                   |
 | **P5** | Deliverables, Reviews, Schedule                                         | After P4                                                                                                                   |
-| **P6** | Analytics, Team, Activity, Settings                                     | After P5                                                                                                                   |
-| **P7** | Full visual parity certification + owner preview                        | After P1–P6                                                                                                                |
+| **P6** | Analytics, Team, Activity, Settings                                     | **COMPLETE**                                                                                                               |
+| **P7** | Full visual parity certification + owner preview                        | After P1–P6 — `CERTIFY_OMA_PLANABLE_FULL_UI_UX_EXPERIENCE`                                                                 |
 
 Do not start any implementation stage from this document.
 

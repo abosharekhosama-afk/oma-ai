@@ -1,9 +1,10 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { api } from '../../../../../lib/api';
 import { apiMutate, getApiError, isPermissionDenied } from '../../../../../lib/brand-api';
 import { PermissionDenied } from '../../../../../components/shell/permission-denied';
+import { PageHeader } from '../../../../../components/ui/page-header';
 import { StatusChip } from '../../../../../components/ui/status-chip';
 import { useT } from '../../../../../lib/use-locale';
 
@@ -22,6 +23,7 @@ export default function CompanyMembersPage() {
   const t = useT();
   const [members, setMembers] = useState<Member[]>([]);
   const [email, setEmail] = useState('');
+  const [q, setQ] = useState('');
   const [inviteLink, setInviteLink] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -44,6 +46,18 @@ export default function CompanyMembersPage() {
   useEffect(() => {
     void load();
   }, []);
+
+  const filtered = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    if (!needle) return members;
+    return members.filter((m) => {
+      const hay = [m.user?.email, m.user?.name, m.invited_email, ...(m.source_profiles ?? [])]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return hay.includes(needle);
+    });
+  }, [members, q]);
 
   async function invite(e: FormEvent) {
     e.preventDefault();
@@ -108,21 +122,16 @@ export default function CompanyMembersPage() {
 
   return (
     <div className="oma-stack oma-members-foundation" data-testid="company-members">
-      <header className="oma-page-header">
-        <div>
-          <h1>{t('company.membersTitle')}</h1>
-          <p className="oma-muted">{t('company.membersBody')}</p>
-        </div>
-      </header>
+      <PageHeader title={t('company.membersTitle')} description={t('company.membersBody')} />
       <p className="oma-honesty-inline">{t('company.foundationNote')}</p>
 
       {error ? (
-        <div className="oma-card" role="alert">
+        <div className="oma-settings-panel" role="alert" data-testid="company-members-error">
           <p style={{ color: 'var(--status-danger)', margin: 0 }}>{error}</p>
         </div>
       ) : null}
 
-      <form className="oma-card oma-stack" onSubmit={invite}>
+      <form className="oma-members-invite" onSubmit={invite} data-testid="company-members-invite">
         <h2>{t('company.inviteTitle')}</h2>
         <label className="oma-field">
           <span>{t('auth.email')}</span>
@@ -131,15 +140,21 @@ export default function CompanyMembersPage() {
             type="email"
             required
             value={email}
+            data-testid="company-members-invite-email"
             onChange={(e) => setEmail(e.target.value)}
             disabled={busy}
           />
         </label>
-        <button type="submit" className="oma-btn" disabled={busy}>
+        <button
+          type="submit"
+          className="oma-btn"
+          disabled={busy}
+          data-testid="company-members-invite-submit"
+        >
           {t('company.inviteSubmit')}
         </button>
         {inviteLink ? (
-          <div role="status" className="oma-stack">
+          <div role="status" className="oma-stack" data-testid="company-members-invite-link">
             <p className="oma-muted">{t('company.inviteLinkHint')}</p>
             <code className="oma-code-block">{inviteLink}</code>
             <button type="button" className="oma-btn oma-btn-secondary" onClick={copyLink}>
@@ -149,12 +164,26 @@ export default function CompanyMembersPage() {
         ) : null}
       </form>
 
-      <div className="oma-card">
-        <h2>{t('company.membersList')}</h2>
-        {members.length === 0 ? (
-          <p className="oma-muted">{t('company.membersEmpty')}</p>
+      <div className="oma-stage6-toolbar">
+        <label className="oma-stage6-search">
+          {t('company.membersSearch')}
+          <input
+            className="oma-input"
+            value={q}
+            data-testid="company-members-search"
+            onChange={(e) => setQ(e.target.value)}
+          />
+        </label>
+      </div>
+
+      <div className="oma-members-table-wrap">
+        <h2 className="oma-sr-only">{t('company.membersList')}</h2>
+        {filtered.length === 0 ? (
+          <p className="oma-muted" style={{ padding: 'var(--space-3)' }}>
+            {t('company.membersEmpty')}
+          </p>
         ) : (
-          <table className="oma-table">
+          <table className="oma-table" data-testid="company-members-table">
             <thead>
               <tr>
                 <th>{t('company.colPerson')}</th>
@@ -165,15 +194,15 @@ export default function CompanyMembersPage() {
               </tr>
             </thead>
             <tbody>
-              {members.map((m) => (
-                <tr key={m.id}>
+              {filtered.map((m) => (
+                <tr key={m.id} data-testid={`company-member-row-${m.id}`}>
                   <td>{m.user?.email ?? m.invited_email ?? m.id.slice(-8)}</td>
                   <td>
                     <StatusChip status={m.status} />
                   </td>
                   <td>{m.source_profiles.filter(Boolean).join(', ') || '—'}</td>
                   <td>
-                    <span className="oma-muted" style={{ fontSize: 13 }}>
+                    <span className="oma-muted" style={{ fontSize: 'var(--text-meta)' }}>
                       {m.capabilities.length > 0 ? m.capabilities.join(', ') : '—'}
                     </span>
                   </td>
@@ -202,7 +231,7 @@ export default function CompanyMembersPage() {
                           </label>
                           <button
                             type="button"
-                            className="oma-btn-secondary"
+                            className="oma-btn oma-btn-secondary"
                             disabled={busy || !profileByMember[m.id]}
                             onClick={() => void attachProfile(m.id)}
                           >

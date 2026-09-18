@@ -5,7 +5,7 @@
 **Owner:** Binding owner decision
 **Starting SHA:** `6bb76a33de6529ce46af47e379743169599992fa`
 **Mode:** `REFERENCE_AND_SPEC_ONLY`
-**Implementation:** `PLANABLE_UI_UX_STAGE_P5: COMPLETE`. Overall `PLANABLE_UI_UX_IMPLEMENTATION: IN_PROGRESS` until P6–P7.
+**Implementation:** `PLANABLE_UI_UX_STAGE_P6: COMPLETE`. Overall `PLANABLE_UI_UX_IMPLEMENTATION: COMPLETE_PENDING_CERTIFICATION` (P7 certification not started).
 
 | State                          | Value                                        |
 | ------------------------------ | -------------------------------------------- |
@@ -19,7 +19,8 @@
 | PLANABLE_UI_UX_STAGE_P3        | `COMPLETE`                                   |
 | PLANABLE_UI_UX_STAGE_P4        | `COMPLETE`                                   |
 | PLANABLE_UI_UX_STAGE_P5        | `COMPLETE`                                   |
-| PLANABLE_UI_UX_IMPLEMENTATION  | `IN_PROGRESS`                                |
+| PLANABLE_UI_UX_STAGE_P6        | `COMPLETE`                                   |
+| PLANABLE_UI_UX_IMPLEMENTATION  | `COMPLETE_PENDING_CERTIFICATION`             |
 | VISUAL_ACCEPTANCE              | `REJECTED`                                   |
 | USER_ACCEPTANCE                | `PENDING`                                    |
 | EXTERNAL_INTEGRATIONS          | `DEFERRED`                                   |

@@ -207,8 +207,8 @@
   color: var(--status-danger);
 }
 .oma-badge--signal {
-  background: var(--oma-signal-soft);
-  color: var(--oma-signal);
+  background: color-mix(in srgb, var(--status-success) 12%, #ffffff);
+  color: var(--status-success);
 }
 .oma-badge--primary {
   background: var(--oma-primary-soft);

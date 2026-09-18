@@ -77,7 +77,9 @@ describe('P5 Planable deliverables/reviews/schedule surfaces', () => {
 
   it('documents remaining P6 aliases outside stage5', () => {
     const inventory = read('docs/PLANABLE_P1_COMPAT_INVENTORY.md');
-    expect(inventory).toMatch(/Stage:\s*P5|P5/);
-    expect(inventory).toContain('stage6.css');
+    expect(inventory).toMatch(/Stage:\s*P6|P6/);
+    expect(inventory).toMatch(/CLOSED|Deleted/i);
+    const finalInv = read('docs/FINAL_COMPATIBILITY_INVENTORY.md');
+    expect(finalInv).toMatch(/Runtime alias definitions\s*=\s*0/i);
   });
 });

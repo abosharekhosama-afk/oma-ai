@@ -62,7 +62,7 @@
 
 .oma-doc-outline {
   position: sticky;
-  top: calc(var(--shell-top-height) + var(--space-3));
+  top: calc(var(--shell-header-height) + var(--space-3));
   display: grid;
   gap: 2px;
   padding: var(--space-2);
@@ -101,7 +101,7 @@
 }
 
 .oma-doc-section {
-  scroll-margin-top: calc(var(--shell-top-height) + var(--space-4));
+  scroll-margin-top: calc(var(--shell-header-height) + var(--space-4));
   padding-bottom: var(--space-4);
   border-bottom: 1px solid var(--oma-border);
 }
@@ -391,7 +391,7 @@ html[dir='rtl'] .oma-req-table tbody tr[data-priority='high'] {
 
 .oma-settings-nav {
   position: sticky;
-  top: calc(var(--shell-top-height) + var(--space-3));
+  top: calc(var(--shell-header-height) + var(--space-3));
   display: grid;
   gap: 2px;
 }

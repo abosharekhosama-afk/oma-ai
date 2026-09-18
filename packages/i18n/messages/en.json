@@ -898,5 +898,14 @@
   "demo.settings.noConnect": "No connect flow, OAuth, or API keys in this phase.",
   "company.foundationNote": "Memberships, invites, and capabilities are Foundation-authoritative.",
   "home.demoScheduleWeek": "Schedule this week",
-  "home.demoWorkloadRisk": "Workload at risk"
+  "home.demoWorkloadRisk": "Workload at risk",
+  "demo.analytics.dateRange": "Date range",
+  "demo.analytics.comparisonPeriod": "Comparison period",
+  "demo.analytics.planningPreview": "Planning preview",
+  "demo.settings.dirty": "Unsaved preference changes",
+  "demo.settings.reducedMotionNote": "Reduced motion follows the operating system preference — no separate toggle.",
+  "demo.settings.integrationsSearch": "Search integrations",
+  "demo.settings.integrationsCategory": "Category",
+  "company.membersSearch": "Search members",
+  "shell.notificationsInApp": "In-app"
 }

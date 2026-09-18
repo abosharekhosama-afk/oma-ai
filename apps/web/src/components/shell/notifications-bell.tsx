@@ -21,12 +21,21 @@ function notificationLabel(t: (key: string) => string, type: string): string {
   return translated === key ? type : translated;
 }
 
+function formatWhen(iso: string): string {
+  try {
+    return new Date(iso).toLocaleString();
+  } catch {
+    return iso;
+  }
+}
+
 export function NotificationsBell() {
   const t = useT();
   const [items, setItems] = useState<NotificationItem[] | null>(null);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     api<{ items: NotificationItem[] }>('/api/v1/notifications')
@@ -43,7 +52,10 @@ export function NotificationsBell() {
       if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
     }
     function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key === 'Escape') {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
     }
     document.addEventListener('mousedown', onPointer);
     document.addEventListener('keydown', onKey);
@@ -74,18 +86,29 @@ export function NotificationsBell() {
   return (
     <div className="oma-notifications" ref={rootRef}>
       <button
+        ref={triggerRef}
         type="button"
         className="oma-icon-btn"
         aria-label={t('shell.notifications')}
         aria-expanded={open}
         aria-controls="notifications-panel"
+        data-testid="shell-notifications-trigger"
         onClick={() => setOpen((v) => !v)}
       >
         <ShellIcon name="bell" />
-        {unread > 0 ? <span className="oma-badge oma-badge--primary">{unread}</span> : null}
+        {unread > 0 ? (
+          <span className="oma-badge oma-badge--primary" data-testid="shell-notifications-unread">
+            {unread}
+          </span>
+        ) : null}
       </button>
       {open ? (
-        <div id="notifications-panel" className="oma-notifications-panel" role="region">
+        <div
+          id="notifications-panel"
+          className="oma-notifications-panel"
+          role="region"
+          data-testid="shell-notifications-panel"
+        >
           {error ? (
             <p role="alert">{error}</p>
           ) : items === null ? (
@@ -95,7 +118,12 @@ export function NotificationsBell() {
           ) : (
             <ul>
               {items.map((n) => (
-                <li key={n.id} className={n.readAt ? undefined : 'oma-notification-unread'}>
+                <li
+                  key={n.id}
+                  className={n.readAt ? undefined : 'oma-notification-unread'}
+                  data-testid={`notification-item-${n.id}`}
+                  data-read={n.readAt ? 'true' : 'false'}
+                >
                   {n.deepLinkPath ? (
                     <Link
                       href={n.deepLinkPath}
@@ -110,6 +138,7 @@ export function NotificationsBell() {
                     <button
                       type="button"
                       className="oma-linkish"
+                      data-testid={`notification-mark-${n.id}`}
                       onClick={() => {
                         if (!n.readAt) void markRead(n.id);
                       }}
@@ -117,6 +146,9 @@ export function NotificationsBell() {
                       {notificationLabel(t, n.type)}
                     </button>
                   )}
+                  <span className="oma-notification-meta">
+                    {t('shell.notificationsInApp')} · {formatWhen(n.createdAt)}
+                  </span>
                 </li>
               ))}
             </ul>

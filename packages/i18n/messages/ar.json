@@ -898,5 +898,14 @@
   "demo.settings.noConnect": "لا مسار ربط أو OAuth أو مفاتيح API في هذه المرحلة.",
   "company.foundationNote": "العضويات والدعوات والقدرات تخضع لـ Foundation كمصدر سلطة.",
   "home.demoScheduleWeek": "الجدول هذا الأسبوع",
-  "home.demoWorkloadRisk": "عبء عمل معرّض للخطر"
+  "home.demoWorkloadRisk": "عبء عمل معرّض للخطر",
+  "demo.analytics.dateRange": "نطاق التاريخ",
+  "demo.analytics.comparisonPeriod": "فترة المقارنة",
+  "demo.analytics.planningPreview": "معاينة التخطيط",
+  "demo.settings.dirty": "تغييرات تفضيلات غير محفوظة",
+  "demo.settings.reducedMotionNote": "تقليل الحركة يتبع إعداد نظام التشغيل — بدون مفتاح منفصل.",
+  "demo.settings.integrationsSearch": "بحث التكاملات",
+  "demo.settings.integrationsCategory": "الفئة",
+  "company.membersSearch": "بحث الأعضاء",
+  "shell.notificationsInApp": "داخل التطبيق"
 }

@@ -83,6 +83,6 @@ describe('P3 Planable campaign/content surfaces', () => {
     const inventory = read('docs/PLANABLE_P1_COMPAT_INVENTORY.md');
     const stage3 = read('apps/web/src/styles/stage3.css');
     expect(stage3).not.toContain('--oma-signal');
-    expect(inventory).toMatch(/stage4\.css|stage6\.css/);
+    expect(inventory).toMatch(/P6|CLOSED|Deleted/);
   });
 });

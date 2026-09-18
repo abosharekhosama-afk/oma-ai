@@ -2,7 +2,7 @@
 
 **P3 inspection:** Implementation used this baseline plus archived calendar/composer/comments notes. No new live Planable mutations. Calendar geometry is ARCHIVED LIVE + PARTIAL current. Grid/List are PLAN_GATED → `OMA_ADAPTATION`. Mobile calendar/composer are `OMA_ADAPTATION`.
 
-**Status:** `P5_IMPLEMENTED` for Deliverables, Reviews workspace, Versions/Compare, Schedule Calendar/Agenda/Queue. P6 not rebuilt.
+**Status:** `P6_IMPLEMENTED` for Analytics, Team/Workload, Activity, Settings IA, Integrations catalog, Company Members polish, Notifications presentation, and final alias purge. P7 certification / owner preview not started.
 **Decision:** `DEC-017`
 **Product source of visual truth:** `https://app.planable.io/` (PRODUCT_APP)
 **Marketing (not component source):** `https://planable.io/`, `https://planable.io/product/`
@@ -64,9 +64,9 @@ Statuses (observed, not OMA copy): Not approved yet, Pending, Approved by {user}
 
 ## Binding rebuild sequence (docs only)
 
-P1 tokens + type + shell + nav + base components + motion → **P1_COMPLETE**. P2 Command Center / Brands / Intelligence / Strategy → **P2_COMPLETE**. P3 Campaigns / Content Calendar-Feed-Grid-List / Composer → **P3_COMPLETE**. P4 Requests / Briefs / Tasks Kanban → **P4_COMPLETE**. P5 Deliverables / Reviews / Schedule → **P5_COMPLETE in product CSS/surfaces**. P6–P7 not started.
+P1 tokens + type + shell + nav + base components + motion → **P1_COMPLETE**. P2 Command Center / Brands / Intelligence / Strategy → **P2_COMPLETE**. P3 Campaigns / Content Calendar-Feed-Grid-List / Composer → **P3_COMPLETE**. P4 Requests / Briefs / Tasks Kanban → **P4_COMPLETE**. P5 Deliverables / Reviews / Schedule → **P5_COMPLETE**. P6 Analytics / Team / Activity / Settings / Integrations / alias purge → **P6_COMPLETE**. P7 certification not started.
 
-`P1_COMPAT` aliases remaining after P3 are listed in `docs/PLANABLE_P1_COMPAT_INVENTORY.md`. `--oma-signal` was removed from Stage 3 CSS. P3 demo posters were replaced; P5 `stage5-*` fixtures remain deferred.
+`P1_COMPAT` aliases are closed — see `docs/FINAL_COMPATIBILITY_INVENTORY.md` (runtime definitions/usages = 0).
 
 ## Conflicts with previous OMA visual system
 

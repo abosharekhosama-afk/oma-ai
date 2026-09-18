@@ -140,7 +140,11 @@ export default function ActivityPage() {
                   <h3>{day}</h3>
                   <ol className="oma-activity-timeline">
                     {items.map((a) => (
-                      <li key={a.id} className="oma-card" data-testid={`demo-activity-row-${a.id}`}>
+                      <li
+                        key={a.id}
+                        className="oma-activity-row"
+                        data-testid={`demo-activity-row-${a.id}`}
+                      >
                         <div className="oma-chip-row">
                           <span className="oma-source-badge" data-source={a.source}>
                             {a.source === 'FOUNDATION'
