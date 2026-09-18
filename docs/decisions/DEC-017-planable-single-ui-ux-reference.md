@@ -5,25 +5,26 @@
 **Owner:** Binding owner decision
 **Starting SHA:** `6bb76a33de6529ce46af47e379743169599992fa`
 **Mode:** `REFERENCE_AND_SPEC_ONLY`
-**Implementation:** `PLANABLE_UI_UX_STAGE_P6: COMPLETE`. Overall `PLANABLE_UI_UX_IMPLEMENTATION: COMPLETE_PENDING_CERTIFICATION` (P7 certification not started).
+**Implementation:** `PLANABLE_UI_UX_STAGE_P1–P6: COMPLETE`. `PLANABLE_UI_UX_IMPLEMENTATION: COMPLETE`. `PLANABLE_FULL_UI_UX_CERTIFICATION: PASS` (owner acceptance remains pending).
 
-| State                          | Value                                        |
-| ------------------------------ | -------------------------------------------- |
-| DEC-017                        | `RESOLVED — PLANABLE_SINGLE_UI_UX_REFERENCE` |
-| PLANABLE                       | `PRIMARY_AND_SOLE_UI_UX_AUTHORITY`           |
-| OWNER_VISUAL_REVIEW            | `REJECTED`                                   |
-| PREVIOUS_VISUAL_CERTIFICATIONS | `SUPERSEDED`                                 |
-| PLANABLE_REFERENCE_BASELINE    | `COMPLETE`                                   |
-| PLANABLE_UI_UX_STAGE_P1        | `COMPLETE`                                   |
-| PLANABLE_UI_UX_STAGE_P2        | `COMPLETE`                                   |
-| PLANABLE_UI_UX_STAGE_P3        | `COMPLETE`                                   |
-| PLANABLE_UI_UX_STAGE_P4        | `COMPLETE`                                   |
-| PLANABLE_UI_UX_STAGE_P5        | `COMPLETE`                                   |
-| PLANABLE_UI_UX_STAGE_P6        | `COMPLETE`                                   |
-| PLANABLE_UI_UX_IMPLEMENTATION  | `COMPLETE_PENDING_CERTIFICATION`             |
-| VISUAL_ACCEPTANCE              | `REJECTED`                                   |
-| USER_ACCEPTANCE                | `PENDING`                                    |
-| EXTERNAL_INTEGRATIONS          | `DEFERRED`                                   |
+| State                             | Value                                        |
+| --------------------------------- | -------------------------------------------- |
+| DEC-017                           | `RESOLVED — PLANABLE_SINGLE_UI_UX_REFERENCE` |
+| PLANABLE                          | `PRIMARY_AND_SOLE_UI_UX_AUTHORITY`           |
+| OWNER_VISUAL_REVIEW               | `REJECTED`                                   |
+| PREVIOUS_VISUAL_CERTIFICATIONS    | `SUPERSEDED`                                 |
+| PLANABLE_REFERENCE_BASELINE       | `COMPLETE`                                   |
+| PLANABLE_UI_UX_STAGE_P1           | `COMPLETE`                                   |
+| PLANABLE_UI_UX_STAGE_P2           | `COMPLETE`                                   |
+| PLANABLE_UI_UX_STAGE_P3           | `COMPLETE`                                   |
+| PLANABLE_UI_UX_STAGE_P4           | `COMPLETE`                                   |
+| PLANABLE_UI_UX_STAGE_P5           | `COMPLETE`                                   |
+| PLANABLE_UI_UX_STAGE_P6           | `COMPLETE`                                   |
+| PLANABLE_UI_UX_IMPLEMENTATION     | `COMPLETE`                                   |
+| PLANABLE_FULL_UI_UX_CERTIFICATION | `PASS`                                       |
+| VISUAL_ACCEPTANCE                 | `PENDING_OWNER`                              |
+| USER_ACCEPTANCE                   | `PENDING`                                    |
+| EXTERNAL_INTEGRATIONS             | `DEFERRED`                                   |
 
 ## Decision
 

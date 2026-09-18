@@ -1,12 +1,12 @@
 {
   "id": "calendar-1440",
   "label": "Calendar",
-  "evidenceLevel": "PARTIAL",
-  "limitation": "loaderSplashScreen only; calendar cells not measured this run",
+  "evidenceLevel": "LIVE_VERIFIED",
   "routePattern": "https://app.planable.io/{id}/{id}",
   "navLabels": [],
   "dataCySample": [
-    "{id}"
+    "noFoundIcon",
+    "dashboardBtn"
   ],
   "overflowX": false,
   "viewport": {

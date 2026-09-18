@@ -2,7 +2,7 @@
   "id": "dashboard-1440",
   "label": "Workspace dashboard",
   "evidenceLevel": "LIVE_VERIFIED",
-  "capturedAt": "2026-09-16T06:17:51.137Z",
+  "capturedAt": "2026-09-18T13:26:14.898Z",
   "source": "app.planable.io",
   "sourceKind": "PRODUCT_APP",
   "measurement": {
@@ -160,7 +160,10 @@
     "dialog": null,
     "menu": null,
     "navLabels": [
-      "Planable"
+      "Planable",
+      "I imkan",
+      "Upgrade",
+      "New workspace"
     ],
     "dataCySample": [
       "navBody",
@@ -170,12 +173,23 @@
       "global-search-input",
       "searchToggle",
       "helpButton",
-      "{id}",
+      "notificationInbox",
       "user-dropdown",
       "userAvatar",
       "hamburgerMenu",
-      "{id}",
-      "newNavContent"
+      "hamburgerMenuButton",
+      "newNavContent",
+      "company-header-dropdown",
+      "upgradeButton",
+      "dashboard-workspace-grid-card",
+      "aJE6Dvxa2xnMxtYqm",
+      "workspace-card-header",
+      "workspaceCardProfilePic",
+      "favoriteButton",
+      "favoriteButtonEmpty",
+      "create-workspace",
+      "HAZEMExM6ZmwncfjD",
+      "analyticsButton"
     ]
   }
 }

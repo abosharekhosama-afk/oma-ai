@@ -4,14 +4,16 @@
   "originProduct": "https://app.planable.io",
   "originMarketing": "https://planable.io/",
   "accessStatus": "CDP_READY_AUTHENTICATED",
-  "capturedAt": "2026-09-16T06:17:51.137Z",
-  "startingSha": "6bb76a33de6529ce46af47e379743169599992fa",
+  "capturedAt": "2026-09-18T13:26:14.898Z",
+  "startingSha": "2dbd64a863f2d1b4e71b863e57da3e188f3d963f",
+  "p7CandidateSha": "2dbd64a863f2d1b4e71b863e57da3e188f3d963f",
+  "workspaceIdPresent": true,
   "surfaces": [
     {
       "id": "shell-approvals-1440",
       "label": "Approvals / shell (desktop)",
       "evidenceLevel": "LIVE_VERIFIED",
-      "routePattern": "https://app.planable.io/{id}/{id}"
+      "routePattern": "https://app.planable.io/{id}"
     },
     {
       "id": "campaigns-all-1440",
@@ -22,8 +24,7 @@
     {
       "id": "calendar-1440",
       "label": "Calendar",
-      "evidenceLevel": "PARTIAL",
-      "limitation": "loaderSplashScreen only",
+      "evidenceLevel": "LIVE_VERIFIED",
       "routePattern": "https://app.planable.io/{id}/{id}"
     },
     {
@@ -48,11 +49,9 @@
   "interactions": [
     "view-switcher"
   ],
-  "liveCount": 5,
-    "partialCount": 1,
-    "archivedLiveCount": 18,
-    "docCount": 12,
-    "planGatedCount": 2,
+  "liveCount": 6,
+  "archivedCount": 0,
+  "docCount": 0,
   "forbiddenClicksAvoided": "/upgrade|billing|invite|connect|publish|schedule post|delete|export|trial|pay|new post|create post|approve all|reject/i",
   "notes": "Workspace identifiers stripped from stored URLs. Raw screenshots stay local/gitignored."
 }

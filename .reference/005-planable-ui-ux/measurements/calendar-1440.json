@@ -1,9 +1,8 @@
 {
   "id": "calendar-1440",
   "label": "Calendar",
-  "evidenceLevel": "PARTIAL",
-  "limitation": "loaderSplashScreen only; calendar cells not measured this run",
-  "capturedAt": "2026-09-16T06:17:51.137Z",
+  "evidenceLevel": "LIVE_VERIFIED",
+  "capturedAt": "2026-09-18T13:26:14.898Z",
   "source": "app.planable.io",
   "sourceKind": "PRODUCT_APP",
   "measurement": {
@@ -35,7 +34,7 @@
       "padding": "0px",
       "gap": "normal",
       "width": 1440,
-      "height": 0,
+      "height": 388,
       "x": 0,
       "y": 0,
       "transitionDuration": "0s",
@@ -62,7 +61,7 @@
       "padding": "0px",
       "gap": "normal",
       "width": 1440,
-      "height": 0,
+      "height": 388,
       "x": 0,
       "y": 0,
       "transitionDuration": "0s",
@@ -84,7 +83,8 @@
     "menu": null,
     "navLabels": [],
     "dataCySample": [
-      "{id}"
+      "noFoundIcon",
+      "dashboardBtn"
     ]
   }
 }

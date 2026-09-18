@@ -2,7 +2,7 @@
   "id": "shell-390",
   "label": "Shell 390x844",
   "evidenceLevel": "LIVE_VERIFIED",
-  "capturedAt": "2026-09-16T06:17:51.137Z",
+  "capturedAt": "2026-09-18T13:26:14.898Z",
   "source": "app.planable.io",
   "sourceKind": "PRODUCT_APP",
   "viewportIntent": {
@@ -166,7 +166,7 @@
     "menu": null,
     "navLabels": [
       "Planable",
-      "I {companyName}",
+      "I imkan",
       "Upgrade",
       "New workspace"
     ],
@@ -178,22 +178,22 @@
       "global-search-input",
       "searchToggle",
       "helpButton",
-      "{id}",
+      "notificationInbox",
       "user-dropdown",
       "userAvatar",
       "hamburgerMenu",
-      "{id}",
+      "hamburgerMenuButton",
       "newNavContent",
       "company-header-dropdown",
       "upgradeButton",
       "dashboard-workspace-grid-card",
-      "{id}",
+      "aJE6Dvxa2xnMxtYqm",
       "workspace-card-header",
-      "{id}",
+      "workspaceCardProfilePic",
       "favoriteButton",
-      "{id}",
+      "favoriteButtonEmpty",
       "create-workspace",
-      "{id}",
+      "HAZEMExM6ZmwncfjD",
       "analyticsButton"
     ]
   }

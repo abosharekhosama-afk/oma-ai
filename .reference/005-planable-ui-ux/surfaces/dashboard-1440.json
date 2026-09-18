@@ -4,7 +4,10 @@
   "evidenceLevel": "LIVE_VERIFIED",
   "routePattern": "https://app.planable.io/{id}",
   "navLabels": [
-    "Planable"
+    "Planable",
+    "I imkan",
+    "Upgrade",
+    "New workspace"
   ],
   "dataCySample": [
     "navBody",
@@ -14,12 +17,23 @@
     "global-search-input",
     "searchToggle",
     "helpButton",
-    "{id}",
+    "notificationInbox",
     "user-dropdown",
     "userAvatar",
     "hamburgerMenu",
-    "{id}",
-    "newNavContent"
+    "hamburgerMenuButton",
+    "newNavContent",
+    "company-header-dropdown",
+    "upgradeButton",
+    "dashboard-workspace-grid-card",
+    "aJE6Dvxa2xnMxtYqm",
+    "workspace-card-header",
+    "workspaceCardProfilePic",
+    "favoriteButton",
+    "favoriteButtonEmpty",
+    "create-workspace",
+    "HAZEMExM6ZmwncfjD",
+    "analyticsButton"
   ],
   "overflowX": false,
   "viewport": {

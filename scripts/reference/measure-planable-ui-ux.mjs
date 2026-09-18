@@ -187,8 +187,50 @@ async function main() {
     return;
   }
 
-  const wsMatch = sessionUrl.match(/app\.planable\.io\/[a-z-]+\/([A-Za-z0-9_-]+)/);
-  const workspaceId = wsMatch?.[1] ?? null;
+  // Dashboard often has no workspace id in the URL — open an existing card (never Create).
+  let workspaceId =
+    sessionUrl.match(
+      /app\.planable\.io\/(?:campaigns|calendar|approvals|media|analytics)\/([A-Za-z0-9_-]+)/,
+    )?.[1] ?? null;
+  if (!workspaceId) {
+    workspaceId = await page.evaluate(() => {
+      const cards = [...document.querySelectorAll('[data-cy="dashboard-workspace-grid-card"]')];
+      // Prefer non-empty workspace cards; skip Create tiles.
+      for (const card of cards) {
+        if (/create a workspace/i.test(card.innerText || '')) continue;
+        const withId = card.querySelector('[data-cy]');
+        const ids = [...card.querySelectorAll('[data-cy]')].map((el) => el.getAttribute('data-cy'));
+        const candidate = ids.find(
+          (id) => id && !/workspace|favorite|profile|create|dashboard/i.test(id) && id.length >= 8,
+        );
+        if (candidate) return candidate;
+        if (withId) {
+          const cy = withId.getAttribute('data-cy');
+          if (cy && cy.length >= 8 && !/workspace|favorite|profile|create|dashboard/i.test(cy)) {
+            return cy;
+          }
+        }
+      }
+      // Fallback: any data-cy that looks like a Meteor-style id on the page.
+      for (const el of document.querySelectorAll('[data-cy]')) {
+        const cy = el.getAttribute('data-cy') || '';
+        if (/^[A-Za-z0-9]{12,}$/.test(cy)) return cy;
+      }
+      return null;
+    });
+    if (workspaceId) {
+      await page.evaluate((id) => {
+        const el = document.querySelector(`[data-cy="${id}"]`);
+        if (el && !/create|invite|upgrade/i.test(el.innerText || '')) el.click();
+      }, workspaceId);
+      await waitQuiet(page, 2000);
+      const after = page.url();
+      const fromUrl = after.match(
+        /app\.planable\.io\/(?:campaigns|calendar|approvals|media|analytics|w)\/([A-Za-z0-9_-]+)/,
+      )?.[1];
+      if (fromUrl) workspaceId = fromUrl;
+    }
+  }
 
   const surfaces = [];
   const interactions = [];
@@ -436,7 +478,9 @@ async function main() {
     originMarketing: 'https://planable.io/',
     accessStatus: 'CDP_READY_AUTHENTICATED',
     capturedAt: CAPTURED_AT,
-    startingSha: '6bb76a33de6529ce46af47e379743169599992fa',
+    startingSha: process.env.GIT_SHA ?? 'pending',
+    p7CandidateSha: process.env.GIT_SHA ?? 'pending',
+    workspaceIdPresent: Boolean(workspaceId),
     surfaces,
     interactions,
     liveCount: surfaces.filter((s) => s.evidenceLevel === 'LIVE_VERIFIED').length,
@@ -462,7 +506,11 @@ async function main() {
       2,
     ),
   );
-  await browser.disconnect();
+  try {
+    if (typeof browser.close === 'function') await browser.close();
+  } catch {
+    // CDP attach: close may be unsupported; leave the reference session running.
+  }
 }
 
 main().catch((err) => {

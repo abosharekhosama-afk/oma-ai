@@ -4,13 +4,17 @@ import { join } from 'node:path';
 import { EMPTY_DELIVERABLE_FILTERS } from '../../apps/web/src/lib/demo/stage5-deliverables';
 
 describe('Owner surface-depth rebuild', () => {
-  it('ships specialized depth CSS archetypes', () => {
-    const css = readFileSync(join(process.cwd(), 'apps/web/src/styles/stage-depth.css'), 'utf8');
-    expect(css).toContain('.oma-doc-canvas');
-    expect(css).toContain('.oma-campaign-portfolio');
-    expect(css).toContain('.oma-review-queue-cards');
-    expect(css).toContain('.oma-analytics-layout');
-    expect(css).toContain('.oma-content-composer');
+  it('ships specialized depth CSS archetypes across Planable stage sheets', () => {
+    const depth = readFileSync(join(process.cwd(), 'apps/web/src/styles/stage-depth.css'), 'utf8');
+    const stage3 = readFileSync(join(process.cwd(), 'apps/web/src/styles/stage3.css'), 'utf8');
+    const stage6 = readFileSync(join(process.cwd(), 'apps/web/src/styles/stage6.css'), 'utf8');
+    expect(depth).toContain('.oma-doc-canvas');
+    expect(depth).toContain('.oma-review-queue-cards');
+    expect(depth).toContain('.oma-content-composer');
+    // Campaign portfolio lives in Stage 3 Planable ownership (DEC-017 P3).
+    expect(stage3).toContain('.oma-campaign-portfolio');
+    // Analytics chart-first layout is Stage 6 Planable ownership (DEC-017 P6).
+    expect(stage6).toContain('.oma-analytics-layout');
     const globals = readFileSync(join(process.cwd(), 'apps/web/src/app/globals.css'), 'utf8');
     expect(globals).toContain('stage-depth.css');
   });
@@ -35,7 +39,7 @@ describe('Owner surface-depth rebuild', () => {
       'utf8',
     );
     expect(campaigns).toContain('demo-campaign-portfolio');
-    expect(campaigns).toContain("useState<'portfolio' | 'table'>('portfolio')");
+    expect(campaigns).toContain("useState<CampaignLayout>('portfolio')");
     const strategy = readFileSync(
       join(
         process.cwd(),
@@ -46,13 +50,19 @@ describe('Owner surface-depth rebuild', () => {
     expect(strategy).toContain('strategy-document-canvas');
   });
 
-  it('uses distinct local demo posters', () => {
+  it('uses distinct local demo posters under Planable tokens (DEC-017)', () => {
     const poster = readFileSync(
       join(process.cwd(), 'apps/web/public/demo/poster-static.svg'),
       'utf8',
     );
-    expect(poster).toContain('Quiet craft');
+    // Supersedes pre-DEC-017 "Quiet craft" copy — P3/P5 Planable fixture language.
+    expect(poster).toContain('Back-to-work layers');
+    expect(poster).toContain('#F5F6F7');
+    expect(poster).toContain('#1677FF');
+    expect(poster).toContain('system-ui');
+    expect(poster).not.toContain('Quiet craft');
     expect(poster).not.toContain('planable');
     expect(poster).not.toContain('linear.app');
+    expect(poster).not.toMatch(/#6658|#121419/i);
   });
 });

@@ -64,7 +64,7 @@ test.describe('Full visual product certification', () => {
   }, _testInfo) => {
     test.skip(
       true,
-      'SUPERSEDED by OWNER_REMEDIATION_CERTIFICATION (owner-remediation-certification.e2e.ts); prior FULL_VISUAL_CERTIFICATION revoked by owner rejection',
+      'SUPERSEDED by DEC-017 Planable P7: tests/e2e/planable-p7-certification.e2e.ts (and planable-p7-cert-evidence.e2e.ts)',
     );
     const guards = attachGuards(page);
     await page.setViewportSize({ width: 1440, height: 900 });

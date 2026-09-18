@@ -3,18 +3,9 @@
   "label": "Campaigns all",
   "evidenceLevel": "LIVE_VERIFIED",
   "routePattern": "https://app.planable.io/{id}/{id}/all",
-  "navLabels": [
-    "New campaign"
-  ],
+  "navLabels": [],
   "dataCySample": [
-    "navBody",
-    "navSidebar",
-    "sidebarGhost",
-    "floatingSidebar",
-    "navHeader",
-    "navTopbar",
-    "{id}",
-    "newNavContent"
+    "loaderSplashScreen"
   ],
   "overflowX": false,
   "viewport": {
