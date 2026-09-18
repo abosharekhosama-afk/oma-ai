@@ -32,49 +32,73 @@ test.describe('P2 Planable brand and strategy surfaces', () => {
     await expect(page.getByTestId('brand-portfolio')).toBeVisible();
     await page.getByLabel(msg(testInfo, 'brand.list.searchLabel')).fill('Horizon');
     await page.getByTestId('brand-portfolio').getByRole('button', { name: 'Search' }).click();
+    // Wait for search settle before create — racing the list reload drops the soft nav.
+    await expect(
+      page.getByRole('heading', { name: msg(testInfo, 'brand.list.noResults') }),
+    ).toBeVisible({ timeout: 15_000 });
 
-    await page
-      .getByRole('link', { name: msg(testInfo, 'brand.list.create') })
-      .first()
-      .click();
+    const createBrand = page
+      .getByTestId('brand-portfolio')
+      .getByRole('link', { name: msg(testInfo, 'brand.list.create') });
+    await Promise.all([
+      page.waitForURL(/\/app\/brands\/new/, { timeout: 15_000 }),
+      createBrand.click(),
+    ]);
     await expect(
       page.getByRole('dialog', { name: msg(testInfo, 'brand.create.title') }),
-    ).toBeVisible();
+    ).toBeVisible({ timeout: 15_000 });
     await page.keyboard.press('Escape');
-    await expect(page).toHaveURL(/\/app\/brands/);
+    await expect(page).toHaveURL(/\/app\/brands\/?$/, { timeout: 15_000 });
+    await expect(page.getByTestId('brand-portfolio')).toBeVisible();
 
-    await page
-      .getByRole('link', { name: msg(testInfo, 'brand.list.create') })
-      .first()
-      .click();
+    await Promise.all([
+      page.waitForURL(/\/app\/brands\/new/, { timeout: 15_000 }),
+      page
+        .getByTestId('brand-portfolio')
+        .getByRole('link', { name: msg(testInfo, 'brand.list.create') })
+        .click(),
+    ]);
     await page
       .getByLabel(msg(testInfo, 'brand.create.nameLabel'))
       .fill(`P2 ${Date.now().toString().slice(-4)}`);
     await page.getByRole('button', { name: msg(testInfo, 'brand.create.submit') }).click();
     await expect(page.getByTestId('brand-workspace')).toBeVisible({ timeout: 20_000 });
-    await expect(
-      page.getByRole('navigation', { name: msg(testInfo, 'brand.nav.label') }),
-    ).toBeVisible();
+    const brandNav = page.getByRole('navigation', { name: msg(testInfo, 'brand.nav.label') });
+    await expect(brandNav).toBeVisible();
 
     const { brandId } = await uiCreateBrandConnectAndStartScan(page, request, owner);
     await page.goto(`/app/brands/${brandId}`);
-    await page.getByRole('link', { name: msg(testInfo, 'brand.nav.website'), exact: true }).click();
-    await expect(page).toHaveURL(new RegExp(`/app/brands/${brandId}/connect`));
-    await page.getByRole('link', { name: msg(testInfo, 'brand.nav.discovery') }).click();
-    await expect(page).toHaveURL(new RegExp(`/discovery`));
+    await expect(brandNav).toBeVisible({ timeout: 15_000 });
+    await Promise.all([
+      page.waitForURL(new RegExp(`/app/brands/${brandId}/connect`), { timeout: 15_000 }),
+      brandNav.getByRole('link', { name: msg(testInfo, 'brand.nav.website'), exact: true }).click(),
+    ]);
+    await Promise.all([
+      page.waitForURL(new RegExp(`/app/brands/${brandId}/discovery`), { timeout: 15_000 }),
+      brandNav.getByRole('link', { name: msg(testInfo, 'brand.nav.discovery') }).click(),
+    ]);
     const evidenceBtn = page.locator('[data-testid^="view-evidence-"]').first();
     if (await evidenceBtn.count()) {
       await evidenceBtn.click();
       await expect(
         page.getByRole('dialog', { name: msg(testInfo, 'brand.evidence.title') }),
-      ).toBeVisible();
+      ).toBeVisible({ timeout: 15_000 });
       await page.keyboard.press('Escape');
+      await expect(
+        page.getByRole('dialog', { name: msg(testInfo, 'brand.evidence.title') }),
+      ).toHaveCount(0);
     }
-    await page
-      .getByRole('link', { name: msg(testInfo, 'brand.nav.intelligence'), exact: true })
-      .click();
-    await page.getByRole('link', { name: msg(testInfo, 'brand.nav.strategies') }).click();
-    await expect(page.getByTestId('strategy-create')).toBeVisible();
+    await Promise.all([
+      page.waitForURL(new RegExp(`/app/brands/${brandId}/profiles`), { timeout: 15_000 }),
+      brandNav
+        .getByRole('link', { name: msg(testInfo, 'brand.nav.intelligence'), exact: true })
+        .click(),
+    ]);
+    await Promise.all([
+      page.waitForURL(new RegExp(`/app/brands/${brandId}/strategies`), { timeout: 15_000 }),
+      brandNav.getByRole('link', { name: msg(testInfo, 'brand.nav.strategies') }).click(),
+    ]);
+    await expect(page.getByTestId('strategy-create')).toBeVisible({ timeout: 20_000 });
 
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/app');
