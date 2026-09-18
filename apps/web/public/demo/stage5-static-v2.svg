@@ -1,8 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350">
-  <rect width="1080" height="1350" fill="#121419"/>
-  <rect x="90" y="40" width="900" height="1270" fill="#2C241F" rx="12"/>
-  <text x="130" y="160" fill="#FFF8F2" font-family="IBM Plex Sans, system-ui" font-size="52">Hero Static V2</text>
-  <text x="130" y="230" fill="#D4C4B4" font-family="IBM Plex Sans, system-ui" font-size="28">4:5 crop applied · Demo</text>
-  <rect x="130" y="1180" width="300" height="70" rx="8" fill="#6658E8"/>
-  <text x="180" y="1225" fill="#fff" font-family="IBM Plex Sans, system-ui" font-size="26">View look</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350" role="img" aria-label="OMA hero static V2 — revised crop with stronger CTA">
+  <rect width="1080" height="1350" fill="#F5F6F7"/>
+  <rect x="64" y="64" width="952" height="1222" rx="6" fill="#FFFFFF" stroke="#E8E8E8"/>
+  <rect x="100" y="120" width="880" height="780" rx="6" fill="#EDE6DC"/>
+  <rect x="180" y="220" width="460" height="400" rx="4" fill="#D2C0AA"/>
+  <rect x="540" y="340" width="360" height="260" rx="4" fill="#B8956E"/>
+  <rect x="140" y="980" width="220" height="56" rx="6" fill="#1677FF"/>
+  <text x="188" y="1016" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="28" font-weight="600">Shop</text>
+  <text x="140" y="1100" fill="#333333" font-family="system-ui, sans-serif" font-size="44" font-weight="600">Hero Static V2</text>
+  <text x="140" y="1156" fill="#8C8C8C" font-family="system-ui, sans-serif" font-size="24">CTA contrast raised · OMA demo</text>
 </svg>

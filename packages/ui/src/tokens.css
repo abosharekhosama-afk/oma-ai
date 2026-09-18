@@ -28,11 +28,9 @@
   --status-neutral: rgba(0, 0, 0, 0.45);
 
   /* P1_COMPAT — remove in P2–P6 once call sites use primary/status tokens */
-  --oma-violet: var(--oma-primary); /* P1_COMPAT: was DEC-013 violet; now primary */
-  --oma-signal: var(--status-success); /* P1_COMPAT: was #12A7A1 */
-  --oma-signal-soft: color-mix(in srgb, var(--status-success) 12%, #ffffff); /* P1_COMPAT */
-  --oma-review-canvas: var(--oma-canvas); /* P1_COMPAT: Frame dark canvas revoked */
-  --oma-review-ink: var(--oma-ink); /* P1_COMPAT */
+  --oma-violet: var(--oma-primary); /* P1_COMPAT: was DEC-013 violet; now primary — P6 call sites */
+  --oma-signal: var(--status-success); /* P1_COMPAT: was #12A7A1 — P6 call sites */
+  --oma-signal-soft: color-mix(in srgb, var(--status-success) 12%, #ffffff); /* P1_COMPAT — P6 */
 
   /* Typography — LIVE English stack. html 10px is Planable rem contract; OMA pages still use rem at 16px so we do not copy the 10px root (would crush P2–P6 rem layout). Body is 14px explicit. */
   --oma-font-sans:

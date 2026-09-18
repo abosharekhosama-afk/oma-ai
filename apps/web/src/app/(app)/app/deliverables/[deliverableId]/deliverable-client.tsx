@@ -432,7 +432,6 @@ export default function DeliverableDetailClient() {
               className="oma-review-workspace"
               data-testid="demo-review-workspace"
               aria-label={t('demo.reviews.openReview')}
-              style={{ background: 'var(--oma-review-canvas)' }}
             >
               <div className="oma-review-toolbar">
                 <div className="oma-chip-row">

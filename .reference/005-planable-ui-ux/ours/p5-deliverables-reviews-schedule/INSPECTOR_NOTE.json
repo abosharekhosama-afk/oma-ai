@@ -1,0 +1,26 @@
+{
+  "stage": "P5",
+  "parentSha": "a734122afd75fc066d17b917e4ded91268112371",
+  "branch": "004-oma-complete-product-demo",
+  "capturedAt": "2026-09-18",
+  "routes": [
+    "/app/deliverables",
+    "/app/deliverables/demo-deliv-carousel",
+    "/app/reviews",
+    "/app/schedule"
+  ],
+  "evidenceDir": "artifacts/planable-rebuild-004/p5-deliverables-reviews-schedule",
+  "metadataDir": ".reference/005-planable-ui-ux/ours/p5-deliverables-reviews-schedule",
+  "gitignoredRawScreenshots": true,
+  "referenceSession": "NOT_REQUIRED — APPROVED_BASELINE_SUFFICIENT",
+  "evidenceLevels": {
+    "deliverables": "ARCHIVED_MATCH",
+    "reviewWorkspace": "ARCHIVED_MATCH",
+    "schedule": "ARCHIVED_MATCH",
+    "compare": "OMA_ADAPTATION"
+  },
+  "noNewLivePlanableInspection": true,
+  "frameIoVisual": "NOT_USED",
+  "videoCapture": "OFF — screenshots + Playwright traces only",
+  "verdict": "PLANABLE_DELIVERABLES_REVIEWS_SCHEDULE_SURFACES: VERIFIED"
+}

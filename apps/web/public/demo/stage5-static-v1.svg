@@ -1,6 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350">
-  <rect width="1080" height="1350" fill="#1A1C22"/>
-  <rect x="60" y="60" width="960" height="1230" fill="#3A2F28" rx="16"/>
-  <text x="100" y="180" fill="#F5EDE6" font-family="IBM Plex Sans, system-ui" font-size="52">Hero Static V1</text>
-  <text x="100" y="250" fill="#C9B8A8" font-family="IBM Plex Sans, system-ui" font-size="28">Needs 4:5 crop · Demo</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350" role="img" aria-label="OMA hero static V1 — warm linen still life">
+  <rect width="1080" height="1350" fill="#F5F6F7"/>
+  <rect x="64" y="64" width="952" height="1222" rx="6" fill="#FFFFFF" stroke="#E8E8E8"/>
+  <rect x="120" y="160" width="840" height="720" rx="6" fill="#E8E0D4"/>
+  <rect x="200" y="260" width="420" height="360" rx="4" fill="#D9C7B0"/>
+  <rect x="520" y="360" width="360" height="240" rx="4" fill="#C4A484"/>
+  <text x="140" y="980" fill="#333333" font-family="system-ui, sans-serif" font-size="48" font-weight="600">Hero Static V1</text>
+  <text x="140" y="1040" fill="#8C8C8C" font-family="system-ui, sans-serif" font-size="26">Needs 4:5 crop · OMA demo</text>
+  <rect x="140" y="1100" width="160" height="8" rx="4" fill="#1677FF"/>
 </svg>

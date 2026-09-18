@@ -210,4 +210,36 @@ test.describe('Stage 5 Deliverables + Reviews visual rebuild', () => {
 
     guards.assertClean();
   });
+
+  test('schedule calendar agenda queue + reschedule honesty', async ({
+    page,
+    request,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== 'en-desktop', 'schedule once');
+    const guards = attachGuards(page);
+    await installOwnerSession(page, request);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto('/app/schedule');
+    await expect(page.getByTestId('demo-schedule')).toBeVisible({ timeout: 20_000 });
+    await page.getByTestId('demo-schedule-view-calendar').click();
+    await expect(page.getByTestId('demo-schedule-calendar')).toBeVisible();
+    await page.getByTestId('demo-schedule-view-agenda').click();
+    await expect(page.getByTestId('demo-schedule-agenda')).toBeVisible();
+    await page.getByTestId('demo-schedule-view-queue').click();
+    await expect(page.getByTestId('demo-schedule-queue')).toBeVisible();
+    await page.getByTestId('demo-schedule-view-agenda').click();
+    await page.getByTestId('demo-sched-card-demo-sched-1').getByRole('button').click();
+    await expect(page.getByTestId('demo-schedule-drawer')).toBeVisible();
+    await expect(page.getByTestId('demo-publish-blocked')).toBeVisible();
+    await page.getByTestId('demo-schedule-reschedule').click();
+    await expect(page.getByTestId('demo-schedule-reschedule-dialog')).toBeVisible();
+    await page.getByTestId('demo-schedule-planned-at').fill('2026-09-22T11:00');
+    await page.getByTestId('demo-schedule-save').click();
+    await expect(page.getByTestId('demo-schedule-reschedule-dialog')).toHaveCount(0, {
+      timeout: 12_000,
+    });
+    await page.reload();
+    await expect(page.getByTestId('demo-schedule')).toBeVisible({ timeout: 15_000 });
+    guards.assertClean();
+  });
 });

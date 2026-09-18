@@ -1,8 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080">
-  <rect width="1080" height="1080" fill="#14161C"/>
-  <rect x="80" y="80" width="920" height="920" fill="#243038" rx="24"/>
-  <text x="120" y="200" fill="#E8FFF9" font-family="IBM Plex Sans, system-ui" font-size="56">Carousel V3</text>
-  <text x="120" y="280" fill="#8FD9D2" font-family="IBM Plex Sans, system-ui" font-size="32">Signal accent · post-feedback</text>
-  <rect x="120" y="800" width="360" height="88" rx="8" fill="#12A7A1"/>
-  <text x="170" y="856" fill="#041413" font-family="IBM Plex Sans, system-ui" font-size="32" font-weight="600">Shop neutrals</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080" role="img" aria-label="OMA carousel V3 — approved final slide">
+  <rect width="1080" height="1080" fill="#F5F6F7"/>
+  <rect x="56" y="56" width="968" height="968" rx="6" fill="#FFFFFF" stroke="#E8E8E8"/>
+  <rect x="120" y="140" width="840" height="520" rx="6" fill="#DDD5C8"/>
+  <rect x="200" y="240" width="280" height="320" rx="4" fill="#C4A484"/>
+  <rect x="520" y="280" width="360" height="240" rx="4" fill="#B8956E"/>
+  <text x="140" y="760" fill="#333333" font-family="system-ui, sans-serif" font-size="48" font-weight="600">Carousel V3</text>
+  <text x="140" y="820" fill="#8C8C8C" font-family="system-ui, sans-serif" font-size="26">Approved final · OMA demo</text>
+  <rect x="140" y="880" width="240" height="52" rx="6" fill="#1677FF"/>
+  <text x="188" y="914" fill="#FFFFFF" font-family="system-ui, sans-serif" font-size="24" font-weight="600">Explore set</text>
+  <rect x="900" y="900" width="80" height="8" rx="4" fill="#52C41A"/>
 </svg>

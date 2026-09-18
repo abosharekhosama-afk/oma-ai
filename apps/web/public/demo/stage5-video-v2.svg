@@ -1,8 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">
-  <rect width="1080" height="1920" fill="#0E1014"/>
-  <rect x="40" y="200" width="1000" height="1400" fill="#18242A" rx="20"/>
-  <circle cx="540" cy="900" r="90" fill="#12A7A1"/>
-  <polygon points="520,860 520,940 590,900" fill="#041413"/>
-  <text x="80" y="120" fill="#E8FFF9" font-family="IBM Plex Sans, system-ui" font-size="48">Reel poster V2</text>
-  <text x="80" y="1800" fill="#7FB8B3" font-family="IBM Plex Sans, system-ui" font-size="28">Preview timestamp 00:06 · Demo</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920" role="img" aria-label="OMA video poster V2 — revised reel frame">
+  <rect width="1080" height="1920" fill="#F5F6F7"/>
+  <rect x="48" y="48" width="984" height="1824" rx="6" fill="#FFFFFF" stroke="#E8E8E8"/>
+  <rect x="120" y="280" width="840" height="1040" rx="6" fill="#DDD5C8"/>
+  <rect x="220" y="480" width="640" height="420" rx="4" fill="#C4A484"/>
+  <circle cx="540" cy="700" r="96" fill="#FFFFFF" stroke="#1677FF" stroke-width="6"/>
+  <polygon points="516,652 608,700 516,748" fill="#1677FF"/>
+  <text x="140" y="1480" fill="#333333" font-family="system-ui, sans-serif" font-size="44" font-weight="600">Video Poster V2</text>
+  <text x="140" y="1540" fill="#8C8C8C" font-family="system-ui, sans-serif" font-size="26">Revised cut · OMA demo</text>
+  <rect x="140" y="1600" width="180" height="8" rx="4" fill="#1677FF"/>
 </svg>

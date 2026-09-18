@@ -1,8 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">
-  <rect width="1080" height="1920" fill="#0E1014"/>
-  <rect x="40" y="200" width="1000" height="1400" fill="#1E2430" rx="20"/>
-  <circle cx="540" cy="900" r="90" fill="#6658E8"/>
-  <polygon points="520,860 520,940 590,900" fill="#fff"/>
-  <text x="80" y="120" fill="#E6EAF2" font-family="IBM Plex Sans, system-ui" font-size="48">Reel poster V1</text>
-  <text x="80" y="1800" fill="#8B93A7" font-family="IBM Plex Sans, system-ui" font-size="28">Preview timestamp 00:00 · Demo</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920" role="img" aria-label="OMA video poster V1 — short reel frame">
+  <rect width="1080" height="1920" fill="#F5F6F7"/>
+  <rect x="48" y="48" width="984" height="1824" rx="6" fill="#FFFFFF" stroke="#E8E8E8"/>
+  <rect x="120" y="320" width="840" height="980" rx="6" fill="#E8E0D4"/>
+  <circle cx="540" cy="780" r="88" fill="#FFFFFF" stroke="#1677FF" stroke-width="6"/>
+  <polygon points="520,740 600,780 520,820" fill="#1677FF"/>
+  <text x="140" y="1440" fill="#333333" font-family="system-ui, sans-serif" font-size="44" font-weight="600">Video Poster V1</text>
+  <text x="140" y="1500" fill="#8C8C8C" font-family="system-ui, sans-serif" font-size="26">Short reel · planning preview · OMA demo</text>
 </svg>

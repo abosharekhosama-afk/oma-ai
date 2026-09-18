@@ -37,12 +37,15 @@ const GROUPS: DeliverableFilters['group'][] = [
   'archived',
 ];
 
+const VIEW_PREF_KEY = 'oma-demo-deliv-view';
+
 export default function DeliverablesPage() {
   const t = useT();
   const locale = useLocale();
   const [rows, setRows] = useState<DeliverableRow[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [filters, setFilters] = useState<DeliverableFilters>(EMPTY_DELIVERABLE_FILTERS);
+  const [prefsLoaded, setPrefsLoaded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [unavailable, setUnavailable] = useState(false);
@@ -67,6 +70,31 @@ export default function DeliverablesPage() {
     void load();
   }, [load]);
 
+  useEffect(() => {
+    try {
+      const stored = window.localStorage.getItem(VIEW_PREF_KEY);
+      if (stored === 'list' || stored === 'grid') {
+        setFilters((f) => ({ ...f, view: stored }));
+      }
+    } catch {
+      /* ignore */
+    }
+    setPrefsLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (!prefsLoaded) return;
+    try {
+      window.localStorage.setItem(VIEW_PREF_KEY, filters.view);
+    } catch {
+      /* ignore */
+    }
+  }, [filters.view, prefsLoaded]);
+
+  function changeView(view: DeliverableFilters['view']) {
+    setFilters((f) => ({ ...f, view }));
+  }
+
   const filtered = useMemo(
     () => filterDeliverables(rows, filters, locale),
     [rows, filters, locale],
@@ -76,7 +104,7 @@ export default function DeliverablesPage() {
   const reviewers = useMemo(() => [...new Set(rows.map((r) => r.reviewer))], [rows]);
 
   return (
-    <div className="oma-stack" data-testid="demo-deliverables">
+    <div className="oma-stack" data-testid="demo-deliverables" data-prefs={prefsLoaded ? '1' : '0'}>
       <PageHeader
         title={t('demo.deliverables.title')}
         description={t('demo.deliverables.subtitle')}
@@ -87,7 +115,7 @@ export default function DeliverablesPage() {
               className="oma-btn oma-btn-secondary"
               aria-pressed={filters.view === 'list'}
               data-testid="demo-deliv-view-list"
-              onClick={() => setFilters((f) => ({ ...f, view: 'list' }))}
+              onClick={() => changeView('list')}
             >
               {t('demo.view.list')}
             </button>
@@ -96,7 +124,7 @@ export default function DeliverablesPage() {
               className="oma-btn oma-btn-secondary"
               aria-pressed={filters.view === 'grid'}
               data-testid="demo-deliv-view-grid"
-              onClick={() => setFilters((f) => ({ ...f, view: 'grid' }))}
+              onClick={() => changeView('grid')}
             >
               {t('demo.view.grid')}
             </button>
@@ -207,6 +235,7 @@ export default function DeliverablesPage() {
               <select
                 className="oma-select"
                 value={filters.owner}
+                data-testid="demo-deliv-filter-owner"
                 onChange={(e) => setFilters((f) => ({ ...f, owner: e.target.value }))}
               >
                 <option value="all">{t('demo.filter.all')}</option>
@@ -222,6 +251,7 @@ export default function DeliverablesPage() {
               <select
                 className="oma-select"
                 value={filters.reviewer}
+                data-testid="demo-deliv-filter-reviewer"
                 onChange={(e) => setFilters((f) => ({ ...f, reviewer: e.target.value }))}
               >
                 <option value="all">{t('demo.filter.all')}</option>
@@ -234,13 +264,17 @@ export default function DeliverablesPage() {
             </label>
           </div>
 
+          <p className="oma-muted" data-testid="demo-deliv-result-count">
+            {filtered.length} / {rows.length}
+          </p>
+
           {filterCount > 0 ? (
             <div className="oma-filter-chips">
               <button
                 type="button"
                 className="oma-btn oma-btn-secondary"
                 data-testid="demo-deliv-clear-filters"
-                onClick={() => setFilters(EMPTY_DELIVERABLE_FILTERS)}
+                onClick={() => setFilters({ ...EMPTY_DELIVERABLE_FILTERS, view: filters.view })}
               >
                 {t('demo.requests.clearFilters')}
               </button>
@@ -268,9 +302,13 @@ export default function DeliverablesPage() {
                       <div className="oma-deliv-thumb-fallback" aria-hidden />
                     )}
                     <strong>{pickCopy(d.title, locale)}</strong>
-                    <StatusChip status={d.reviewStatus} />
+                    <div className="oma-chip-row">
+                      <StatusChip status={d.reviewStatus} />
+                      <span className="oma-muted">{d.type}</span>
+                    </div>
                     <span className="oma-muted">
                       {ver?.label} · {d.owner}
+                      {unresolvedCount(d) ? ` · ${unresolvedCount(d)}` : ''}
                     </span>
                   </Link>
                 );

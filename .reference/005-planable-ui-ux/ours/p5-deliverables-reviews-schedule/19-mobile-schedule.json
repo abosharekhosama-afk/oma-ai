@@ -1,0 +1,36 @@
+{
+  "name": "19-mobile-schedule",
+  "candidateSha": "a734122afd75fc066d17b917e4ded91268112371",
+  "route": "/app/schedule",
+  "viewport": "390x844",
+  "locale": "en",
+  "dir": "ltr",
+  "computedFont": "-apple-system, system-ui, \"Segoe UI\", Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif",
+  "computedColors": {
+    "canvas": "rgb(245, 246, 247)",
+    "ink": "rgb(51, 51, 51)",
+    "primary": "#1677ff"
+  },
+  "computedTokens": {
+    "fontFamily": "-apple-system, system-ui, \"Segoe UI\", Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif",
+    "canvas": "rgb(245, 246, 247)",
+    "ink": "rgb(51, 51, 51)",
+    "primary": "#1677ff",
+    "overflow": true,
+    "dir": "ltr"
+  },
+  "viewType": "mobile-schedule",
+  "consoleErrors": [],
+  "failedRequests": [],
+  "overflowOk": true,
+  "evidenceLevel": "OMA_ADAPTATION",
+  "match": "OMA_ADAPTATION",
+  "acceptanceIds": [
+    "PV-G-01",
+    "PV-G-09"
+  ],
+  "featureState": "19-mobile-schedule",
+  "rawScreenshot": "artifacts/planable-rebuild-004/p5-deliverables-reviews-schedule/19-mobile-schedule.png",
+  "gitignoredRaw": true,
+  "capturedAt": "2026-09-18T12:38:10.261Z"
+}

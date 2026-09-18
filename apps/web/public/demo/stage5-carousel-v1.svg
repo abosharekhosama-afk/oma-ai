@@ -1,8 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080">
-  <rect width="1080" height="1080" fill="#2A2D36"/>
-  <rect x="80" y="80" width="920" height="920" fill="#3D3558" rx="24"/>
-  <text x="120" y="200" fill="#E8E6F5" font-family="IBM Plex Sans, system-ui" font-size="56">Carousel V1</text>
-  <text x="120" y="280" fill="#A8A3C7" font-family="IBM Plex Sans, system-ui" font-size="32">Weak CTA · Demo asset</text>
-  <rect x="120" y="820" width="280" height="72" rx="8" fill="#6658E8" opacity="0.45"/>
-  <text x="150" y="866" fill="#fff" font-family="IBM Plex Sans, system-ui" font-size="28">Shop</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080" role="img" aria-label="OMA carousel V1 — weak CTA demo slide">
+  <rect width="1080" height="1080" fill="#F5F6F7"/>
+  <rect x="56" y="56" width="968" height="968" rx="6" fill="#FFFFFF" stroke="#E8E8E8"/>
+  <rect x="120" y="140" width="840" height="520" rx="6" fill="#E8E0D4"/>
+  <circle cx="300" cy="360" r="90" fill="#D9C7B0"/>
+  <circle cx="520" cy="360" r="90" fill="#C4A484"/>
+  <circle cx="740" cy="360" r="90" fill="#B8956E"/>
+  <text x="140" y="760" fill="#333333" font-family="system-ui, sans-serif" font-size="48" font-weight="600">Carousel V1</text>
+  <text x="140" y="820" fill="#8C8C8C" font-family="system-ui, sans-serif" font-size="26">Weak CTA · OMA demo</text>
+  <rect x="140" y="880" width="200" height="48" rx="6" fill="#D0D5DD"/>
+  <text x="196" y="912" fill="#333333" font-family="system-ui, sans-serif" font-size="22">Shop</text>
 </svg>

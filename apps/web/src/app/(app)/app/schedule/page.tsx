@@ -171,7 +171,7 @@ export default function SchedulePage() {
 
       {!loading && !unavailable && !error ? (
         <>
-          <div className="oma-stage6-tabs" role="tablist" data-testid="demo-schedule-views">
+          <div className="oma-stage5-tabs" role="tablist" data-testid="demo-schedule-views">
             {(['calendar', 'agenda', 'queue'] as ScheduleView[]).map((v) => (
               <button
                 key={v}
@@ -216,8 +216,8 @@ export default function SchedulePage() {
             </span>
           </div>
 
-          <div className="oma-stage6-toolbar" data-testid="demo-schedule-filters">
-            <label className="oma-stage6-search">
+          <div className="oma-stage5-toolbar" data-testid="demo-schedule-filters">
+            <label className="oma-stage5-search">
               {t('demo.schedule.search')}
               <input
                 className="oma-input"

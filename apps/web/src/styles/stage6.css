@@ -1,4 +1,6 @@
-/* Stage 6 — Schedule / Analytics / Team / Activity / Settings */
+/* Stage 6 — Analytics / Team / Activity / Settings
+ * Schedule calendar/agenda/queue styles moved to stage5.css (P5 ownership).
+ */
 
 .oma-stage6-toolbar {
   display: flex;
@@ -32,92 +34,6 @@
   border-color: var(--oma-violet);
   color: var(--oma-violet);
   background: color-mix(in srgb, var(--oma-violet) 8%, var(--oma-surface));
-}
-
-.oma-sched-week {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: var(--space-2);
-  margin-bottom: var(--space-4);
-}
-
-.oma-sched-day {
-  border: 1px solid var(--oma-border);
-  border-radius: var(--radius-md);
-  background: var(--oma-surface);
-  min-height: 140px;
-  padding: var(--space-2);
-  display: grid;
-  gap: var(--space-1);
-  align-content: start;
-}
-
-.oma-sched-day[data-today='true'] {
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--oma-violet) 45%, transparent);
-}
-
-.oma-sched-day-label {
-  font-size: var(--text-meta);
-  color: var(--oma-muted);
-  font-weight: var(--weight-semibold);
-}
-
-.oma-sched-pill {
-  display: grid;
-  gap: 2px;
-  width: 100%;
-  text-align: start;
-  padding: var(--space-1) var(--space-2);
-  border: 1px solid var(--oma-border);
-  border-radius: var(--radius-sm);
-  background: var(--oma-canvas);
-  color: inherit;
-  cursor: pointer;
-  font-size: 12px;
-  line-height: 1.3;
-}
-
-.oma-sched-pill[data-state='BLOCKED'] {
-  border-color: color-mix(in srgb, var(--status-danger) 40%, var(--oma-border));
-}
-
-.oma-sched-pill[data-state='READY'],
-.oma-sched-pill[data-state='SCHEDULED_PREVIEW'] {
-  border-color: color-mix(in srgb, var(--oma-signal) 40%, var(--oma-border));
-}
-
-.oma-sched-agenda,
-.oma-sched-queue {
-  display: grid;
-  gap: var(--space-2);
-}
-
-.oma-sched-card {
-  display: grid;
-  gap: var(--space-2);
-  padding: var(--space-3);
-  border: 1px solid var(--oma-border);
-  border-radius: var(--radius-lg);
-  background: var(--oma-surface);
-  box-shadow: var(--elev-1);
-}
-
-.oma-sched-card-head {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  justify-content: space-between;
-  align-items: flex-start;
-}
-
-.oma-readiness-list {
-  margin: 0;
-  padding-inline-start: 1.1rem;
-  font-size: var(--text-body);
-}
-
-.oma-readiness-list [data-ok='false'] {
-  color: var(--status-danger);
 }
 
 .oma-kpi-row {
@@ -265,10 +181,6 @@
 }
 
 @media (max-width: 1024px) {
-  .oma-sched-week {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
   .oma-settings-layout {
     grid-template-columns: 1fr;
   }
@@ -278,22 +190,6 @@
     grid-auto-flow: column;
     grid-auto-columns: max-content;
     overflow: auto;
-  }
-}
-
-@media (max-width: 640px) {
-  .oma-sched-week {
-    display: none;
-  }
-
-  .oma-sched-mobile-only {
-    display: grid;
-  }
-}
-
-@media (min-width: 641px) {
-  .oma-sched-mobile-only {
-    display: none;
   }
 }
 

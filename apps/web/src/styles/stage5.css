@@ -1,4 +1,4 @@
-/* Stage 5 — Deliverables / Reviews (Planable light chrome; Frame dark canvas revoked in P1) */
+/* Stage 5 — Deliverables / Reviews / Schedule (Planable P5 language) */
 
 .oma-stage5-toolbar {
   display: flex;
@@ -6,6 +6,10 @@
   gap: var(--space-2);
   align-items: flex-end;
   margin-bottom: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--oma-border);
+  border-radius: var(--oma-radius-control);
+  background: var(--oma-surface);
 }
 
 .oma-stage5-toolbar label {
@@ -16,11 +20,20 @@
   color: var(--oma-muted);
 }
 
+.oma-stage5-toolbar .oma-input,
+.oma-stage5-toolbar .oma-select {
+  min-height: 32px;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  border-radius: var(--oma-radius-control);
+}
+
 .oma-stage5-search {
   min-width: min(220px, 100%);
   flex: 1 1 160px;
 }
 
+.oma-stage5-tabs,
 .oma-deliv-groups,
 .oma-review-tabs {
   display: flex;
@@ -29,19 +42,44 @@
   margin-bottom: var(--space-3);
 }
 
+.oma-stage5-tabs button,
+.oma-deliv-groups button,
+.oma-review-tabs button {
+  min-height: 28px;
+  padding: 0 var(--space-2);
+  border: 1px solid var(--oma-border);
+  border-radius: var(--oma-radius-control);
+  background: var(--oma-surface);
+  color: var(--oma-ink);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+  cursor: pointer;
+  transition:
+    border-color var(--oma-motion-control) var(--oma-motion-control-ease),
+    background-color var(--oma-motion-control) var(--oma-motion-control-ease),
+    color var(--oma-motion-control) var(--oma-motion-control-ease);
+}
+
+.oma-stage5-tabs button[aria-pressed='true'],
 .oma-deliv-groups button[aria-pressed='true'],
 .oma-review-tabs button[aria-pressed='true'] {
-  border-color: var(--oma-violet);
-  color: var(--oma-violet);
-  background: color-mix(in srgb, var(--oma-violet) 8%, var(--oma-surface));
+  border-color: var(--oma-primary);
+  color: var(--oma-primary);
+  background: var(--oma-primary-soft);
+}
+
+.oma-stage5-tabs button:focus-visible,
+.oma-deliv-groups button:focus-visible,
+.oma-review-tabs button:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
 }
 
 .oma-deliv-table-wrap {
   overflow: auto;
   border: 1px solid var(--oma-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--oma-radius-control);
   background: var(--oma-surface);
-  box-shadow: var(--elev-1);
 }
 
 .oma-deliv-table {
@@ -61,44 +99,88 @@
 
 .oma-deliv-table th {
   font-size: var(--text-meta);
+  line-height: var(--leading-meta);
   color: var(--oma-muted);
   background: var(--oma-canvas);
   position: sticky;
   top: 0;
+  z-index: 1;
+}
+
+.oma-deliv-table tbody tr:hover {
+  background: color-mix(in srgb, var(--oma-primary) 4%, var(--oma-surface));
 }
 
 .oma-deliv-thumb {
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   object-fit: cover;
-  border-radius: var(--radius-sm);
+  border-radius: var(--oma-radius-control);
   background: var(--oma-canvas);
   border: 1px solid var(--oma-border);
+}
+
+.oma-deliv-thumb-fallback {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: var(--oma-canvas);
+  border-bottom: 1px solid var(--oma-border);
 }
 
 .oma-deliv-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--space-2);
 }
 
 .oma-deliv-grid-card {
   display: grid;
-  gap: var(--space-2);
-  padding: var(--space-2);
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
   border: 1px solid var(--oma-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--oma-radius-control);
   background: var(--oma-surface);
   text-decoration: none;
   color: inherit;
+  transition:
+    border-color var(--oma-motion-sidebar) var(--oma-motion-sidebar-ease),
+    box-shadow var(--oma-motion-sidebar) var(--oma-motion-sidebar-ease);
+}
+
+.oma-deliv-grid-card:hover,
+.oma-deliv-grid-card:focus-visible {
+  border-color: var(--oma-primary);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--oma-ink) 8%, transparent);
 }
 
 .oma-deliv-grid-card img {
   width: 100%;
-  aspect-ratio: 1;
+  aspect-ratio: 4 / 3;
   object-fit: cover;
-  border-radius: var(--radius-sm);
   background: var(--oma-canvas);
+  border-radius: 0;
+}
+
+.oma-deliv-grid-card strong,
+.oma-deliv-grid-card .oma-chip-row,
+.oma-deliv-grid-card .oma-muted,
+.oma-deliv-grid-card .oma-status-chip {
+  padding-inline: var(--space-2);
+}
+
+.oma-deliv-grid-card strong {
+  display: block;
+  padding-top: var(--space-2);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  font-weight: var(--weight-semibold);
+}
+
+.oma-deliv-grid-card .oma-muted {
+  padding-bottom: var(--space-2);
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
 }
 
 .oma-deliv-mobile {
@@ -112,9 +194,9 @@
 .oma-deliv-mobile-card {
   display: grid;
   gap: var(--space-1);
-  padding: var(--space-3);
+  padding: var(--space-2) var(--space-3);
   border: 1px solid var(--oma-border);
-  border-radius: var(--radius-md);
+  border-radius: var(--oma-radius-control);
   background: var(--oma-surface);
   text-decoration: none;
   color: inherit;
@@ -122,13 +204,56 @@
 
 .oma-deliv-table tr[data-overdue='true'],
 .oma-deliv-grid-card[data-overdue='true'],
-.oma-deliv-mobile-card[data-overdue='true'] {
+.oma-deliv-mobile-card[data-overdue='true'],
+.oma-review-queue-card[data-overdue='true'] {
   background: color-mix(in srgb, var(--status-danger) 6%, var(--oma-surface));
 }
 
-/* Review workspace — Planable light operational chrome (P1) */
+/* Review queue — media-first Planable rows */
+.oma-review-queue-cards {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.oma-review-queue-card {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-2);
+  border: 1px solid var(--oma-border);
+  border-radius: var(--oma-radius-control);
+  background: var(--oma-surface);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color var(--oma-motion-sidebar) var(--oma-motion-sidebar-ease);
+}
+
+.oma-review-queue-card:hover,
+.oma-review-queue-card:focus-visible {
+  border-color: var(--oma-primary);
+}
+
+.oma-review-queue-card img,
+.oma-review-queue-card .oma-deliv-thumb-fallback {
+  width: 88px;
+  height: 66px;
+  object-fit: cover;
+  border-radius: var(--oma-radius-control);
+  background: var(--oma-canvas);
+  border: 1px solid var(--oma-border);
+}
+
+.oma-review-queue-card strong {
+  display: block;
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+/* Review workspace — light Planable chrome (not Frame dark) */
 .oma-review-workspace {
-  --review-canvas: var(--oma-canvas);
+  --review-canvas: #eceef0;
   --review-panel: var(--oma-surface);
   --review-border: var(--oma-border);
   --review-text: var(--oma-ink);
@@ -139,9 +264,9 @@
   grid-template-rows: auto 1fr;
   min-height: min(78vh, 820px);
   border: 1px solid var(--review-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--oma-radius-control);
   overflow: hidden;
-  background: var(--review-canvas);
+  background: var(--oma-surface);
   color: var(--review-text);
 }
 
@@ -164,8 +289,9 @@
 
 .oma-review-body {
   display: grid;
-  grid-template-columns: 200px minmax(0, 1fr) minmax(260px, 320px);
+  grid-template-columns: 184px minmax(0, 1fr) minmax(260px, 300px);
   min-height: 0;
+  background: var(--oma-surface);
 }
 
 .oma-review-versions,
@@ -184,9 +310,12 @@
 .oma-review-versions h3,
 .oma-review-comments h3 {
   margin: 0 0 var(--space-2);
-  font-size: var(--text-meta);
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
   color: var(--review-muted);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
 }
 
 .oma-review-version-item {
@@ -197,17 +326,20 @@
   padding: var(--space-2);
   margin-bottom: var(--space-1);
   border: 1px solid transparent;
-  border-radius: var(--radius-sm);
+  border-radius: var(--oma-radius-control);
   background: transparent;
   color: inherit;
   cursor: pointer;
+  transition:
+    border-color var(--oma-motion-sidebar) var(--oma-motion-sidebar-ease),
+    background-color var(--oma-motion-sidebar) var(--oma-motion-sidebar-ease);
 }
 
 .oma-review-version-item[aria-current='true'],
 .oma-review-version-item:hover,
 .oma-review-version-item:focus-visible {
   border-color: var(--review-accent);
-  background: color-mix(in srgb, var(--review-accent) 16%, transparent);
+  background: var(--oma-primary-soft);
 }
 
 .oma-review-canvas-wrap {
@@ -224,12 +356,16 @@
   position: relative;
   max-width: 100%;
   max-height: min(64vh, 680px);
+  background: var(--oma-surface);
+  border: 1px solid var(--oma-border);
+  border-radius: var(--oma-radius-control);
+  padding: var(--space-2);
 }
 
 .oma-review-canvas-stage img {
   display: block;
   max-width: 100%;
-  max-height: min(64vh, 680px);
+  max-height: min(60vh, 640px);
   width: auto;
   height: auto;
   object-fit: contain;
@@ -245,8 +381,8 @@
 .oma-review-pin {
   position: absolute;
   transform: translate(-50%, -50%);
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border-radius: 999px;
   border: 2px solid #fff;
   background: var(--review-accent);
@@ -257,6 +393,7 @@
   place-items: center;
   cursor: pointer;
   z-index: 2;
+  transition: transform var(--oma-motion-sidebar) var(--oma-motion-sidebar-ease);
 }
 
 .oma-review-pin[data-resolved='true'] {
@@ -264,12 +401,12 @@
 }
 
 .oma-review-pin[data-selected='true'] {
-  outline: 2px solid #fff;
+  outline: 2px solid var(--oma-ink);
   outline-offset: 2px;
 }
 
 .oma-review-pin-draft {
-  background: #c45c26;
+  background: var(--status-warning);
 }
 
 .oma-review-version-label {
@@ -277,8 +414,8 @@
   inset-block-start: var(--space-2);
   inset-inline-start: var(--space-2);
   padding: 4px 8px;
-  border-radius: var(--radius-sm);
-  background: rgba(0, 0, 0, 0.55);
+  border-radius: var(--oma-radius-control);
+  background: color-mix(in srgb, var(--oma-ink) 72%, transparent);
   color: #fff;
   font-size: var(--text-meta);
   z-index: 3;
@@ -295,6 +432,10 @@
 .oma-review-compare figure {
   margin: 0;
   text-align: center;
+  background: var(--oma-surface);
+  border: 1px solid var(--oma-border);
+  border-radius: var(--oma-radius-control);
+  padding: var(--space-2);
 }
 
 .oma-review-compare img {
@@ -315,10 +456,11 @@
   padding: var(--space-2) 0;
   border-bottom: 1px solid var(--review-border);
   font-size: var(--text-body);
+  line-height: var(--leading-body);
 }
 
 .oma-review-thread[data-selected='true'] {
-  background: color-mix(in srgb, var(--review-accent) 12%, transparent);
+  background: var(--oma-primary-soft);
 }
 
 .oma-review-thread time {
@@ -336,19 +478,120 @@
 .oma-review-composer input,
 .oma-review-composer select {
   background: var(--oma-surface);
-  color: var(--oma-ink-strong);
+  color: var(--oma-ink);
   border-color: var(--oma-border);
+  border-radius: var(--oma-radius-control);
+  min-height: 32px;
 }
 
 .oma-honesty-inline {
   font-size: var(--text-meta);
+  line-height: var(--leading-meta);
   color: var(--oma-muted);
   margin: 0;
 }
 
+/* Schedule — Planable calendar language (owned by P5) */
+.oma-sched-week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
+.oma-sched-day {
+  border: 1px solid var(--oma-border);
+  border-radius: var(--oma-radius-control);
+  background: var(--oma-surface);
+  min-height: 132px;
+  padding: var(--space-2);
+  display: grid;
+  gap: var(--space-1);
+  align-content: start;
+}
+
+.oma-sched-day[data-today='true'] {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--oma-primary) 45%, transparent);
+}
+
+.oma-sched-day-label {
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+  color: var(--oma-muted);
+  font-weight: var(--weight-semibold);
+}
+
+.oma-sched-pill {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  text-align: start;
+  padding: 4px 6px;
+  border: 1px solid var(--oma-border);
+  border-radius: var(--oma-radius-control);
+  background: var(--oma-canvas);
+  color: inherit;
+  cursor: pointer;
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+  transition: border-color var(--oma-motion-sidebar) var(--oma-motion-sidebar-ease);
+}
+
+.oma-sched-pill:hover,
+.oma-sched-pill:focus-visible {
+  border-color: var(--oma-primary);
+}
+
+.oma-sched-pill[data-state='BLOCKED'] {
+  border-color: color-mix(in srgb, var(--status-danger) 40%, var(--oma-border));
+}
+
+.oma-sched-pill[data-state='READY'],
+.oma-sched-pill[data-state='SCHEDULED_PREVIEW'] {
+  border-color: color-mix(in srgb, var(--status-success) 40%, var(--oma-border));
+}
+
+.oma-sched-agenda,
+.oma-sched-queue {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.oma-sched-card {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--oma-border);
+  border-radius: var(--oma-radius-control);
+  background: var(--oma-surface);
+}
+
+.oma-sched-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.oma-readiness-list {
+  margin: 0;
+  padding-inline-start: 1.1rem;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+}
+
+.oma-readiness-list [data-ok='false'] {
+  color: var(--status-danger);
+}
+
+.oma-sched-mobile-only {
+  display: none;
+}
+
 @media (max-width: 1100px) {
   .oma-review-body {
-    grid-template-columns: 160px minmax(0, 1fr);
+    grid-template-columns: 148px minmax(0, 1fr);
   }
 
   .oma-review-comments {
@@ -381,11 +624,33 @@
   .oma-review-compare {
     grid-template-columns: 1fr;
   }
+
+  .oma-review-queue-card {
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+
+  .oma-review-queue-card .oma-btn {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  .oma-sched-week {
+    display: none;
+  }
+
+  .oma-sched-mobile-only {
+    display: grid;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .oma-review-pin,
-  .oma-deliv-grid-card {
+  .oma-deliv-grid-card,
+  .oma-review-queue-card,
+  .oma-sched-pill,
+  .oma-stage5-tabs button,
+  .oma-deliv-groups button,
+  .oma-review-tabs button {
     transition: none;
   }
 }
