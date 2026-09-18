@@ -134,6 +134,8 @@ export type DemoGraph = {
       | 'CLOSED';
     dueAt: string;
     submittedAt: string;
+    /** ISO or date string; falls back to submittedAt in UI when absent on older fixtures */
+    updatedAt?: string;
     requester: string;
     assignee: string | null;
     briefId: string | null;
@@ -4302,6 +4304,7 @@ export class DemoDataProvider {
       status: input.assignee ? 'ASSIGNED' : 'OPEN',
       dueAt: input.dueAt,
       submittedAt: new Date().toISOString().slice(0, 10),
+      updatedAt: new Date().toISOString(),
       requester: input.requester,
       assignee: input.assignee ?? null,
       briefId: null,
@@ -4336,7 +4339,7 @@ export class DemoDataProvider {
     const idx = this.graph.requests.findIndex((r) => r.id === id);
     if (idx < 0) return null;
     const current = this.graph.requests[idx]!;
-    const next = { ...current, ...patch };
+    const next = { ...current, ...patch, updatedAt: new Date().toISOString() };
     this.graph.requests = [
       ...this.graph.requests.slice(0, idx),
       next,

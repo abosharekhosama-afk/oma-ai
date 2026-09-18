@@ -43,6 +43,13 @@ const GROUPS: RequestGroup[] = [
   'completed',
 ];
 
+function initials(value: string): string {
+  const parts = value.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '?';
+  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
+  return `${parts[0]![0] ?? ''}${parts[1]![0] ?? ''}`.toUpperCase();
+}
+
 export default function RequestsPage() {
   const t = useT();
   const locale = useLocale();
@@ -57,6 +64,8 @@ export default function RequestsPage() {
   const [error, setError] = useState<string | null>(null);
   const [unavailable, setUnavailable] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [createDirty, setCreateDirty] = useState(false);
+  const [unsavedOpen, setUnsavedOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [form, setForm] = useState({
@@ -74,6 +83,28 @@ export default function RequestsPage() {
     formats: 'Static',
     outcome: '',
   });
+
+  function patchForm(patch: Partial<typeof form>) {
+    setForm((f) => ({ ...f, ...patch }));
+    setCreateDirty(true);
+  }
+
+  function requestCloseCreate() {
+    if (creating) return;
+    if (createDirty && (form.title.trim() || form.description.trim() || form.outcome.trim())) {
+      setUnsavedOpen(true);
+      return;
+    }
+    setCreateOpen(false);
+    setCreateDirty(false);
+  }
+
+  function discardCreate() {
+    setUnsavedOpen(false);
+    setCreateOpen(false);
+    setCreateDirty(false);
+    setCreateError(null);
+  }
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -171,6 +202,7 @@ export default function RequestsPage() {
       });
       toast.push(t('demo.create.successRequest'), 'success');
       setCreateOpen(false);
+      setCreateDirty(false);
       setForm((f) => ({ ...f, title: '', description: '', outcome: '' }));
       await load();
       router.push(`/app/requests/${created.id}`);
@@ -403,6 +435,10 @@ export default function RequestsPage() {
             </div>
           ) : null}
 
+          <p className="oma-muted" data-testid="demo-request-result-count">
+            {filtered.length} / {rows.length}
+          </p>
+
           {filtered.length === 0 ? (
             <EmptyState title={t('demo.empty')} body={t('demo.requests.emptyHint')} />
           ) : (
@@ -437,15 +473,27 @@ export default function RequestsPage() {
                           data-testid={`demo-request-row-${r.id}`}
                         >
                           <td>
-                            <Link href={`/app/requests/${r.id}`} className="oma-text-link">
-                              {pickCopy(r.title, locale)}
-                            </Link>
-                            <div className="oma-muted" style={{ fontSize: 12 }}>
-                              {r.id.replace('demo-request-', '#')} · {requestCompleteness(r, brief)}
-                              %{missing.length ? ` · ${missing.join(', ')}` : ''}
+                            <div className="oma-req-title-cell">
+                              <span className="oma-req-avatar" aria-hidden>
+                                {initials(r.requester)}
+                              </span>
+                              <div>
+                                <Link href={`/app/requests/${r.id}`} className="oma-text-link">
+                                  {pickCopy(r.title, locale)}
+                                </Link>
+                                <div className="oma-muted" style={{ fontSize: 12 }}>
+                                  {r.id.replace('demo-request-', '#')} ·{' '}
+                                  {requestCompleteness(r, brief)}%
+                                  {missing.length ? ` · ${missing.join(', ')}` : ''}
+                                  {` · ${r.updatedAt ?? r.submittedAt}`}
+                                </div>
+                              </div>
                             </div>
                           </td>
-                          <td>{r.type}</td>
+                          <td>
+                            <span className="oma-sr-only">{t('demo.requests.col.type')}: </span>
+                            {r.type}
+                          </td>
                           <td>{r.requester}</td>
                           <td>
                             {brandName(r.brandId)}
@@ -463,7 +511,14 @@ export default function RequestsPage() {
                               }
                             />
                           </td>
-                          <td>{r.assignee ?? t('demo.requests.unassigned')}</td>
+                          <td>
+                            <div className="oma-req-title-cell">
+                              <span className="oma-req-avatar" aria-hidden>
+                                {initials(r.assignee ?? t('demo.requests.unassigned'))}
+                              </span>
+                              <span>{r.assignee ?? t('demo.requests.unassigned')}</span>
+                            </div>
+                          </td>
                           <td>{r.submittedAt}</td>
                           <td>{r.dueAt}</td>
                           <td>
@@ -509,7 +564,7 @@ export default function RequestsPage() {
 
       <Dialog
         open={createOpen}
-        onClose={() => !creating && setCreateOpen(false)}
+        onClose={requestCloseCreate}
         title={t('demo.create.requestTitle')}
         labelledBy="demo-create-request-title"
       >
@@ -528,7 +583,7 @@ export default function RequestsPage() {
               className="oma-select"
               value={form.type}
               data-testid="demo-create-request-type"
-              onChange={(e) => setForm((f) => ({ ...f, type: e.target.value }))}
+              onChange={(e) => patchForm({ type: e.target.value })}
             >
               {['CONTENT', 'DESIGN', 'VIDEO', 'CAMPAIGN_SUPPORT', 'REVISION', 'OTHER'].map((s) => (
                 <option key={s} value={s}>
@@ -543,7 +598,7 @@ export default function RequestsPage() {
               className="oma-input"
               value={form.title}
               data-testid="demo-create-request-title-input"
-              onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+              onChange={(e) => patchForm({ title: e.target.value })}
             />
           </label>
           <label>
@@ -553,7 +608,7 @@ export default function RequestsPage() {
               rows={3}
               value={form.description}
               data-testid="demo-create-request-description"
-              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+              onChange={(e) => patchForm({ description: e.target.value })}
             />
           </label>
           <label>
@@ -562,7 +617,7 @@ export default function RequestsPage() {
               className="oma-select"
               value={form.brandId}
               data-testid="demo-create-request-brand"
-              onChange={(e) => setForm((f) => ({ ...f, brandId: e.target.value }))}
+              onChange={(e) => patchForm({ brandId: e.target.value })}
             >
               {brands.map((b) => (
                 <option key={b.id} value={b.id}>
@@ -577,7 +632,7 @@ export default function RequestsPage() {
               className="oma-select"
               value={form.campaignId}
               data-testid="demo-create-request-campaign"
-              onChange={(e) => setForm((f) => ({ ...f, campaignId: e.target.value }))}
+              onChange={(e) => patchForm({ campaignId: e.target.value })}
             >
               <option value="">{t('demo.optional')}</option>
               {campaigns.map((c) => (
@@ -592,7 +647,8 @@ export default function RequestsPage() {
             <input
               className="oma-input"
               value={form.outcome}
-              onChange={(e) => setForm((f) => ({ ...f, outcome: e.target.value }))}
+              data-testid="demo-create-request-objective"
+              onChange={(e) => patchForm({ outcome: e.target.value })}
             />
           </label>
           <label>
@@ -600,7 +656,8 @@ export default function RequestsPage() {
             <input
               className="oma-input"
               value={form.channels}
-              onChange={(e) => setForm((f) => ({ ...f, channels: e.target.value }))}
+              data-testid="demo-create-request-channels"
+              onChange={(e) => patchForm({ channels: e.target.value })}
             />
           </label>
           <label>
@@ -608,7 +665,8 @@ export default function RequestsPage() {
             <input
               className="oma-input"
               value={form.formats}
-              onChange={(e) => setForm((f) => ({ ...f, formats: e.target.value }))}
+              data-testid="demo-create-request-formats"
+              onChange={(e) => patchForm({ formats: e.target.value })}
             />
           </label>
           <label>
@@ -617,7 +675,7 @@ export default function RequestsPage() {
               className="oma-select"
               value={form.priority}
               data-testid="demo-create-request-priority"
-              onChange={(e) => setForm((f) => ({ ...f, priority: e.target.value }))}
+              onChange={(e) => patchForm({ priority: e.target.value })}
             >
               {['URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((s) => (
                 <option key={s} value={s}>
@@ -633,7 +691,7 @@ export default function RequestsPage() {
               type="date"
               value={form.dueAt}
               data-testid="demo-create-request-due"
-              onChange={(e) => setForm((f) => ({ ...f, dueAt: e.target.value }))}
+              onChange={(e) => patchForm({ dueAt: e.target.value })}
             />
           </label>
           <label>
@@ -642,7 +700,7 @@ export default function RequestsPage() {
               className="oma-input"
               value={form.requester}
               data-testid="demo-create-request-requester"
-              onChange={(e) => setForm((f) => ({ ...f, requester: e.target.value }))}
+              onChange={(e) => patchForm({ requester: e.target.value })}
             />
           </label>
           <label>
@@ -651,16 +709,19 @@ export default function RequestsPage() {
               className="oma-input"
               value={form.assignee}
               data-testid="demo-create-request-assignee"
-              onChange={(e) => setForm((f) => ({ ...f, assignee: e.target.value }))}
+              onChange={(e) => patchForm({ assignee: e.target.value })}
               placeholder={t('demo.optional')}
             />
           </label>
+          <p className="oma-muted" data-testid="demo-create-request-refs">
+            {t('demo.optional')}: content / reference placeholders (Demo)
+          </p>
           <div className="oma-chip-row">
             <button
               type="button"
               className="oma-btn oma-btn-secondary"
               disabled={creating}
-              onClick={() => setCreateOpen(false)}
+              onClick={requestCloseCreate}
             >
               {t('demo.create.cancel')}
             </button>
@@ -674,6 +735,26 @@ export default function RequestsPage() {
               {creating ? t('demo.create.creating') : t('demo.create.confirm')}
             </button>
           </div>
+        </div>
+      </Dialog>
+
+      <Dialog
+        open={unsavedOpen}
+        title={t('demo.create.cancel')}
+        onClose={() => setUnsavedOpen(false)}
+      >
+        <p data-testid="demo-create-request-unsaved">{t('demo.content.unsaved')}</p>
+        <div className="oma-chip-row">
+          <button
+            type="button"
+            className="oma-btn oma-btn-secondary"
+            onClick={() => setUnsavedOpen(false)}
+          >
+            {t('demo.create.cancel')}
+          </button>
+          <button type="button" className="oma-btn oma-btn-primary" onClick={discardCreate}>
+            OK
+          </button>
         </div>
       </Dialog>
 

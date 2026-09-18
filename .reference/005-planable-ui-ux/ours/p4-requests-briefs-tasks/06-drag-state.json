@@ -1,0 +1,36 @@
+{
+  "name": "06-drag-state",
+  "candidateSha": "05d1b65d00c23b215fafd41642a261e4d1f8709b",
+  "route": "/app/tasks",
+  "viewport": "1440x900",
+  "locale": "en",
+  "dir": "ltr",
+  "computedFont": "-apple-system, system-ui, \"Segoe UI\", Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif",
+  "computedColors": {
+    "canvas": "rgb(245, 246, 247)",
+    "ink": "rgb(51, 51, 51)",
+    "primary": "#1677ff"
+  },
+  "computedTokens": {
+    "fontFamily": "-apple-system, system-ui, \"Segoe UI\", Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif",
+    "canvas": "rgb(245, 246, 247)",
+    "ink": "rgb(51, 51, 51)",
+    "primary": "#1677ff",
+    "overflow": true,
+    "dir": "ltr"
+  },
+  "viewType": "kanban-drag",
+  "consoleErrors": [],
+  "failedRequests": [],
+  "overflowOk": true,
+  "evidenceLevel": "OMA_ADAPTATION",
+  "match": "OMA_ADAPTATION",
+  "acceptanceIds": [
+    "PV-G-01",
+    "PV-G-09"
+  ],
+  "featureState": "06-drag-state",
+  "rawScreenshot": "artifacts/planable-rebuild-004/p4-requests-briefs-tasks/06-drag-state.png",
+  "gitignoredRaw": true,
+  "capturedAt": "2026-09-18T12:26:00.382Z"
+}

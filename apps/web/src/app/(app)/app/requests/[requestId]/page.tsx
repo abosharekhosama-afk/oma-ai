@@ -406,147 +406,173 @@ export default function RequestDetailPage() {
               <p className="oma-callout oma-callout--info" data-testid="demo-brief-ai-honesty">
                 {t('demo.honesty.ai')}
               </p>
-              <div className="oma-brief-grid" data-testid="demo-structured-brief">
-                <div className="oma-brief-section">
-                  <h3>{t('demo.brief.overview')}</h3>
-                  <BriefField
-                    label={t('demo.brief.overview')}
-                    value={pickCopy(briefDraft.overview, locale)}
-                    testId="demo-brief-overview"
-                    onChange={(v) => patchBriefCopy('overview', v)}
-                  />
-                  <BriefField
-                    label={t('demo.campaign.objective')}
-                    value={pickCopy(briefDraft.objective, locale)}
-                    testId="demo-brief-objective"
-                    onChange={(v) => patchBriefCopy('objective', v)}
-                  />
-                  <BriefField
-                    label={t('demo.campaign.audience')}
-                    value={pickCopy(briefDraft.audience, locale)}
-                    testId="demo-brief-audience"
-                    onChange={(v) => patchBriefCopy('audience', v)}
-                  />
-                  <BriefField
-                    label={t('demo.brief.keyMessage')}
-                    value={pickCopy(briefDraft.keyMessage, locale)}
-                    testId="demo-brief-key-message"
-                    onChange={(v) => patchBriefCopy('keyMessage', v)}
-                  />
-                </div>
-                <div className="oma-brief-section">
-                  <h3>{t('demo.brief.deliverable')}</h3>
-                  <BriefField
-                    label={t('demo.brief.deliverable')}
-                    value={pickCopy(briefDraft.deliverableType, locale)}
-                    testId="demo-brief-deliverable"
-                    onChange={(v) => patchBriefCopy('deliverableType', v)}
-                  />
-                  <label>
-                    {t('demo.create.channels')}
-                    <input
-                      className="oma-input"
-                      value={briefDraft.channels.join(', ')}
-                      data-testid="demo-brief-channels"
-                      onChange={(e) => {
-                        setBriefDraft((b) =>
-                          b
-                            ? {
-                                ...b,
-                                channels: e.target.value
-                                  .split(',')
-                                  .map((c) => c.trim())
-                                  .filter(Boolean),
-                              }
-                            : b,
-                        );
-                        setDirty(true);
-                      }}
-                    />
-                  </label>
-                  <label>
-                    {t('demo.requests.formats')}
-                    <input
-                      className="oma-input"
-                      value={briefDraft.formats.join(', ')}
-                      data-testid="demo-brief-formats"
-                      onChange={(e) => {
-                        setBriefDraft((b) =>
-                          b
-                            ? {
-                                ...b,
-                                formats: e.target.value
-                                  .split(',')
-                                  .map((c) => c.trim())
-                                  .filter(Boolean),
-                              }
-                            : b,
-                        );
-                        setDirty(true);
-                      }}
-                    />
-                  </label>
-                  <BriefField
-                    label={t('demo.brief.tone')}
-                    value={pickCopy(briefDraft.tone, locale)}
-                    testId="demo-brief-tone"
-                    onChange={(v) => patchBriefCopy('tone', v)}
-                  />
-                  <BriefField
-                    label={t('demo.brief.mandatory')}
-                    value={pickCopy(briefDraft.mandatory, locale)}
-                    testId="demo-brief-mandatory"
-                    onChange={(v) => patchBriefCopy('mandatory', v)}
-                  />
-                  <BriefField
-                    label={t('demo.brief.cta')}
-                    value={pickCopy(briefDraft.cta, locale)}
-                    testId="demo-brief-cta"
-                    onChange={(v) => patchBriefCopy('cta', v)}
-                  />
-                </div>
-                <div className="oma-brief-section">
-                  <h3>{t('demo.brief.acceptance')}</h3>
-                  <BriefField
-                    label={t('demo.brief.acceptance')}
-                    value={pickCopy(briefDraft.acceptance, locale)}
-                    testId="demo-brief-acceptance"
-                    onChange={(v) => patchBriefCopy('acceptance', v)}
-                  />
-                  <BriefField
-                    label={t('demo.brief.timeline')}
-                    value={pickCopy(briefDraft.timelineNote, locale)}
-                    testId="demo-brief-timeline"
-                    onChange={(v) => patchBriefCopy('timelineNote', v)}
-                  />
-                  <p className="oma-muted">
-                    {t('demo.brief.stakeholders')}:{' '}
-                    {briefDraft.stakeholders.join(' · ') || t('demo.optional')}
-                  </p>
-                  <ul>
-                    {briefDraft.references.map((ref) => (
-                      <li key={ref}>{ref}</li>
-                    ))}
-                  </ul>
-                  {briefDraft.attachmentAssets.length ? (
-                    <div className="oma-chip-row">
-                      {briefDraft.attachmentAssets.map((src) => (
-                        <img
-                          key={src}
-                          src={src}
-                          alt=""
-                          width={96}
-                          height={120}
-                          style={{ borderRadius: 8 }}
-                        />
-                      ))}
+              <div className="oma-brief-layout">
+                <nav className="oma-brief-toc" aria-label={t('demo.brief.title')}>
+                  <a href="#brief-overview">{t('demo.brief.overview')}</a>
+                  <a href="#brief-objective">{t('demo.campaign.objective')}</a>
+                  <a href="#brief-deliverable">{t('demo.brief.deliverable')}</a>
+                  <a href="#brief-requirements">{t('demo.brief.acceptance')}</a>
+                  <a href="#brief-timeline">{t('demo.brief.timeline')}</a>
+                </nav>
+                <div className="oma-brief-canvas">
+                  <div className="oma-brief-grid" data-testid="demo-structured-brief">
+                    <div className="oma-brief-section" id="brief-overview">
+                      <h3>{t('demo.brief.overview')}</h3>
+                      <BriefField
+                        label={t('demo.brief.overview')}
+                        value={pickCopy(briefDraft.overview, locale)}
+                        testId="demo-brief-overview"
+                        onChange={(v) => patchBriefCopy('overview', v)}
+                      />
                     </div>
-                  ) : null}
+                    <div className="oma-brief-section" id="brief-objective">
+                      <h3>{t('demo.campaign.objective')}</h3>
+                      <BriefField
+                        label={t('demo.campaign.objective')}
+                        value={pickCopy(briefDraft.objective, locale)}
+                        testId="demo-brief-objective"
+                        onChange={(v) => patchBriefCopy('objective', v)}
+                      />
+                      <BriefField
+                        label={t('demo.campaign.audience')}
+                        value={pickCopy(briefDraft.audience, locale)}
+                        testId="demo-brief-audience"
+                        onChange={(v) => patchBriefCopy('audience', v)}
+                      />
+                      <BriefField
+                        label={t('demo.brief.keyMessage')}
+                        value={pickCopy(briefDraft.keyMessage, locale)}
+                        testId="demo-brief-key-message"
+                        onChange={(v) => patchBriefCopy('keyMessage', v)}
+                      />
+                    </div>
+                    <div className="oma-brief-section" id="brief-deliverable">
+                      <h3>{t('demo.brief.deliverable')}</h3>
+                      <BriefField
+                        label={t('demo.brief.deliverable')}
+                        value={pickCopy(briefDraft.deliverableType, locale)}
+                        testId="demo-brief-deliverable"
+                        onChange={(v) => patchBriefCopy('deliverableType', v)}
+                      />
+                      <label>
+                        {t('demo.create.channels')}
+                        <input
+                          className="oma-input"
+                          value={briefDraft.channels.join(', ')}
+                          data-testid="demo-brief-channels"
+                          onChange={(e) => {
+                            setBriefDraft((b) =>
+                              b
+                                ? {
+                                    ...b,
+                                    channels: e.target.value
+                                      .split(',')
+                                      .map((c) => c.trim())
+                                      .filter(Boolean),
+                                  }
+                                : b,
+                            );
+                            setDirty(true);
+                          }}
+                        />
+                      </label>
+                      <label>
+                        {t('demo.requests.formats')}
+                        <input
+                          className="oma-input"
+                          value={briefDraft.formats.join(', ')}
+                          data-testid="demo-brief-formats"
+                          onChange={(e) => {
+                            setBriefDraft((b) =>
+                              b
+                                ? {
+                                    ...b,
+                                    formats: e.target.value
+                                      .split(',')
+                                      .map((c) => c.trim())
+                                      .filter(Boolean),
+                                  }
+                                : b,
+                            );
+                            setDirty(true);
+                          }}
+                        />
+                      </label>
+                      <BriefField
+                        label={t('demo.brief.tone')}
+                        value={pickCopy(briefDraft.tone, locale)}
+                        testId="demo-brief-tone"
+                        onChange={(v) => patchBriefCopy('tone', v)}
+                      />
+                      <BriefField
+                        label={t('demo.brief.mandatory')}
+                        value={pickCopy(briefDraft.mandatory, locale)}
+                        testId="demo-brief-mandatory"
+                        onChange={(v) => patchBriefCopy('mandatory', v)}
+                      />
+                      <BriefField
+                        label={t('demo.brief.cta')}
+                        value={pickCopy(briefDraft.cta, locale)}
+                        testId="demo-brief-cta"
+                        onChange={(v) => patchBriefCopy('cta', v)}
+                      />
+                    </div>
+                    <div className="oma-brief-section" id="brief-requirements">
+                      <h3>{t('demo.brief.acceptance')}</h3>
+                      <BriefField
+                        label={t('demo.brief.acceptance')}
+                        value={pickCopy(briefDraft.acceptance, locale)}
+                        testId="demo-brief-acceptance"
+                        onChange={(v) => patchBriefCopy('acceptance', v)}
+                      />
+                      <p className="oma-muted">
+                        {t('demo.brief.stakeholders')}:{' '}
+                        {briefDraft.stakeholders.join(' · ') || t('demo.optional')}
+                      </p>
+                      <ul data-testid="demo-brief-references">
+                        {briefDraft.references.map((ref) => (
+                          <li key={ref}>{ref}</li>
+                        ))}
+                      </ul>
+                      {briefDraft.attachmentAssets.length ? (
+                        <div className="oma-chip-row">
+                          {briefDraft.attachmentAssets.map((src) => (
+                            <img
+                              key={src}
+                              src={src}
+                              alt=""
+                              width={96}
+                              height={120}
+                              style={{ borderRadius: 8 }}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="oma-muted" data-testid="demo-brief-no-upload">
+                          Demo: no upload backend — references are text/asset placeholders only.
+                        </p>
+                      )}
+                    </div>
+                    <div className="oma-brief-section" id="brief-timeline">
+                      <h3>{t('demo.brief.timeline')}</h3>
+                      <BriefField
+                        label={t('demo.brief.timeline')}
+                        value={pickCopy(briefDraft.timelineNote, locale)}
+                        testId="demo-brief-timeline"
+                        onChange={(v) => patchBriefCopy('timelineNote', v)}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
               <p data-testid="demo-brief-ready-state">
                 {ready ? t('demo.brief.ready') : t('demo.brief.notReady')}
               </p>
+              {!ready ? (
+                <p className="oma-callout" data-testid="demo-brief-missing">
+                  {t('demo.requests.missing')}: completeness {briefCompleteness(briefDraft)}%
+                </p>
+              ) : null}
             </Panel>
           ) : null}
 

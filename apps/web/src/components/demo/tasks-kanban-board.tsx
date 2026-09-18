@@ -61,6 +61,13 @@ function findColumnForTask(
   return null;
 }
 
+function initials(value: string): string {
+  const parts = value.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '?';
+  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
+  return `${parts[0]![0] ?? ''}${parts[1]![0] ?? ''}`.toUpperCase();
+}
+
 function KanbanCardBody({
   task,
   dragHandleProps,
@@ -83,19 +90,27 @@ function KanbanCardBody({
           ) : null}
         </div>
         <div className="oma-kanban-meta">
-          {task.assignee} · {task.dueAt}
+          {task.dueAt}
           {taskIsOverdue(task) ? ` · ${t('demo.requests.overdue')}` : ''}
         </div>
         {task.campaignId || task.requestId ? (
           <div className="oma-kanban-meta">
-            {[task.campaignId, task.requestId].filter(Boolean).join(' · ')}
+            {[task.brandId, task.campaignId, task.requestId].filter(Boolean).join(' · ')}
           </div>
         ) : null}
-        {progress.total ? (
-          <div className="oma-kanban-meta" data-testid={`demo-task-progress-${task.id}`}>
-            {progress.done}/{progress.total} · {progress.pct}%
-          </div>
-        ) : null}
+        <div className="oma-kanban-card-footer">
+          <span className="oma-task-avatar" aria-hidden title={task.assignee}>
+            {initials(task.assignee)}
+          </span>
+          {progress.total ? (
+            <div className="oma-kanban-meta" data-testid={`demo-task-progress-${task.id}`}>
+              {progress.done}/{progress.total} · {progress.pct}%
+              {task.comments?.length ? ` · ${task.comments.length}` : ''}
+            </div>
+          ) : (
+            <span className="oma-kanban-meta">{task.assignee}</span>
+          )}
+        </div>
       </div>
     </>
   );
@@ -311,7 +326,13 @@ export function TasksKanbanBoard({ byBoard, onOpenTask, onMoveTask, disabled }: 
         setOverColumn(null);
       }}
     >
-      <div className="oma-kanban" data-testid="demo-tasks-board" data-dnd="true">
+      <div
+        className="oma-kanban"
+        data-testid="demo-tasks-board"
+        data-dnd="true"
+        data-reorder-persistence="local-only"
+        title="Within-column reorder is local-only until Demo API persists order"
+      >
         {BOARD_COLUMNS.map((col) => {
           const items = localBoard[col.id] ?? [];
           return (
@@ -347,7 +368,10 @@ export function TasksKanbanBoard({ byBoard, onOpenTask, onMoveTask, disabled }: 
       </div>
       <DragOverlay dropAnimation={null}>
         {activeTask ? (
-          <div className="oma-kanban-card is-overlay" data-testid="demo-kanban-drag-overlay">
+          <div
+            className="oma-kanban-card oma-kanban-overlay is-overlay"
+            data-testid="demo-kanban-drag-overlay"
+          >
             <KanbanCardBody task={activeTask} />
           </div>
         ) : null}

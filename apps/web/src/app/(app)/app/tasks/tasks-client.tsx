@@ -479,6 +479,10 @@ export default function TasksPage() {
             </div>
           ) : null}
 
+          <p className="oma-muted" data-testid="demo-task-result-count">
+            {filtered.length} / {rows.length}
+          </p>
+
           {filtered.length === 0 ? (
             <EmptyState title={t('demo.empty')} body={t('demo.tasks.emptyHint')} />
           ) : view === 'board' ? (

@@ -1,0 +1,26 @@
+{
+  "stage": "P4",
+  "parentSha": "05d1b65d00c23b215fafd41642a261e4d1f8709b",
+  "branch": "004-oma-complete-product-demo",
+  "capturedAt": "2026-09-18",
+  "routes": [
+    "/app/requests",
+    "/app/requests/demo-request-1",
+    "/app/tasks"
+  ],
+  "evidenceDir": "artifacts/planable-rebuild-004/p4-requests-briefs-tasks",
+  "metadataDir": ".reference/005-planable-ui-ux/ours/p4-requests-briefs-tasks",
+  "gitignoredRawScreenshots": true,
+  "referenceSession": "NOT_REQUIRED — APPROVED_BASELINE_SUFFICIENT",
+  "evidenceLevels": {
+    "requestsInbox": "ARCHIVED_MATCH",
+    "createDialog": "ARCHIVED_MATCH",
+    "briefEditor": "OMA_ADAPTATION",
+    "tasksBoard": "OMA_ADAPTATION",
+    "taskDrawer": "ARCHIVED_MATCH"
+  },
+  "noNewLivePlanableInspection": true,
+  "withinColumnReorder": "local-only",
+  "myWorkView": "NOT_SHIPPED — no authenticated current-user assignee model in Demo graph",
+  "verdict": "PLANABLE_REQUESTS_BRIEFS_TASKS_SURFACES: VERIFIED"
+}

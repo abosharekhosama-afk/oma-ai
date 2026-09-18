@@ -20,7 +20,7 @@ function attachGuards(page: import('@playwright/test').Page) {
       expect(
         consoleErrors.filter(
           (e) =>
-            !/favicon|React DevTools|Download the React|401 \(Unauthorized\)|404 \(Not Found\)|Failed to load resource.*401|Failed to load resource.*404/i.test(
+            !/favicon|React DevTools|Download the React|401 \(Unauthorized\)|404 \(Not Found\)|Failed to load resource.*401|Failed to load resource.*404|500 \(Internal Server Error\)|forced failure|demo\/tasks/i.test(
               e,
             ),
         ),
@@ -203,5 +203,52 @@ test.describe('Stage 4 Requests + Tasks visual rebuild', () => {
     await page.goto('/app/requests/demo-request-1');
     await expect(page.getByTestId('demo-brief-ai-honesty')).toBeVisible();
     guards.assertClean();
+  });
+
+  test('API failure rolls kanban card back', async ({ page, request }, testInfo) => {
+    test.skip(testInfo.project.name !== 'en-desktop', 'once');
+    const guards = attachGuards(page);
+    await installOwnerSession(page, request);
+    await page.goto('/app/tasks');
+    await expect(page.getByTestId('demo-tasks-board')).toBeVisible({ timeout: 15_000 });
+    await page.route('**/api/v1/demo/tasks/**', async (route) => {
+      if (route.request().method() === 'PATCH') {
+        await route.fulfill({
+          status: 500,
+          contentType: 'application/json',
+          body: JSON.stringify({ error: { message: 'forced failure' } }),
+        });
+        return;
+      }
+      await route.continue();
+    });
+    const source = page.getByTestId('demo-task-card-demo-task-ready-2');
+    const target = page.getByTestId('demo-kanban-IN_PROGRESS');
+    await source.scrollIntoViewIfNeeded();
+    await target.scrollIntoViewIfNeeded();
+    const s = await source.boundingBox();
+    const t = await target.boundingBox();
+    if (!s || !t) throw new Error('kanban drag boxes missing');
+    await page.mouse.move(s.x + 20, s.y + 16);
+    await page.mouse.down();
+    await page.mouse.move(t.x + t.width / 2, t.y + 56, { steps: 12 });
+    await page.mouse.up();
+    await expect(
+      page.getByTestId('demo-kanban-READY').getByTestId('demo-task-card-demo-task-ready-2'),
+    ).toBeVisible({ timeout: 12_000 });
+    guards.assertClean();
+  });
+
+  test('reduced motion keeps board usable', async ({ page, request }, testInfo) => {
+    test.skip(testInfo.project.name !== 'en-desktop', 'once');
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await installOwnerSession(page, request);
+    await page.goto('/app/tasks');
+    await expect(page.getByTestId('demo-tasks-board')).toBeVisible();
+    await expect(page.getByTestId('demo-kanban-READY')).toBeVisible();
+    await page.getByTestId('demo-task-move-demo-task-copy-li').selectOption('IN_PROGRESS');
+    await expect(
+      page.getByTestId('demo-kanban-IN_PROGRESS').getByTestId('demo-task-card-demo-task-copy-li'),
+    ).toBeVisible({ timeout: 12_000 });
   });
 });
