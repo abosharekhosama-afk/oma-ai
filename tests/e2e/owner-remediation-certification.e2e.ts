@@ -89,6 +89,8 @@ test.use({
 
 test.describe('Owner remediation certification', () => {
   test.describe.configure({ mode: 'serial' });
+  // Pre-DEC-017 remediation pack retained for regression anchors.
+  // Active Planable full certification: planable-p7-certification.e2e.ts
 
   test.afterEach(async ({ page }, testInfo) => {
     if (process.env.OMA_CERT_VIDEO !== '1') return;
@@ -473,7 +475,7 @@ test.describe('Owner remediation certification', () => {
       await page.getByRole('button', { name: /create brand/i }).click();
       await expect(page).toHaveURL(/\/app\/brands\/[^/]+/, { timeout: 20_000 });
     }
-    await expect(page.getByTestId('brand-workspace').or(page.locator('h1'))).toBeVisible({
+    await expect(page.getByTestId('brand-workspace')).toBeVisible({
       timeout: 15_000,
     });
     await page.screenshot({ path: path.join(SHOTS, '02b-brand-workspace.png'), fullPage: false });
