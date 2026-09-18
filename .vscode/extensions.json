@@ -1,0 +1,16 @@
+{
+  "recommendations": [
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "Prisma.prisma",
+    "ms-playwright.playwright",
+    "ms-azuretools.vscode-docker"
+  ],
+  "unwantedRecommendations": [
+    "GitHub.copilot",
+    "GitHub.copilot-chat",
+    "Continue.continue",
+    "saoudrizwan.claude-dev",
+    "RooVeterinaryInc.roo-cline"
+  ]
+}

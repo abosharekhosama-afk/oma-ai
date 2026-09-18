@@ -1,0 +1,67 @@
+{
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma"
+  },
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"],
+  "files.exclude": {
+    "**/.next": true,
+    "**/.next-e2e": true,
+    "**/coverage": true,
+    "**/playwright-report": true,
+    "**/test-results": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/.next-e2e": true,
+    "**/coverage": true,
+    "**/playwright-report": true,
+    "**/test-results": true,
+    "**/dist": true,
+    "**/.reference/**/*.png": true,
+    "**/.reference/**/*.jpg": true,
+    "**/.reference/**/*.jpeg": true,
+    "**/.reference/**/*.webp": true,
+    "**/.reference/**/*.gif": true,
+    "**/.reference/**/*.mp4": true,
+    "**/.reference/**/*.webm": true,
+    "**/artifacts/**/*.png": true,
+    "**/artifacts/**/*.jpg": true,
+    "**/artifacts/**/*.jpeg": true,
+    "**/artifacts/**/*.webp": true,
+    "**/artifacts/**/*.gif": true,
+    "**/artifacts/**/*.mp4": true,
+    "**/artifacts/**/*.webm": true
+  },
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/.next/**": true,
+    "**/.next-e2e/**": true,
+    "**/dist/**": true,
+    "**/coverage/**": true,
+    "**/playwright-report/**": true,
+    "**/test-results/**": true
+  }
+}
