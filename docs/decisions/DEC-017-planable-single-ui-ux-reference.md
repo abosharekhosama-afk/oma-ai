@@ -23,7 +23,7 @@
 | PLANABLE_UI_UX_IMPLEMENTATION     | `COMPLETE`                                   |
 | PLANABLE_FULL_UI_UX_CERTIFICATION | `TECHNICAL_PASS_VISUAL_REJECTED_BY_OWNER`    |
 | PLANABLE_COMPONENT_PARITY_REBUILD | `COMPLETE_PENDING_OWNER_REVIEW`              |
-| VISUAL_ACCEPTANCE                 | `REJECTED`                                   |
+| VISUAL_ACCEPTANCE                 | `PENDING_OWNER`                              |
 | USER_ACCEPTANCE                   | `PENDING`                                    |
 | EXTERNAL_INTEGRATIONS             | `DEFERRED`                                   |
 

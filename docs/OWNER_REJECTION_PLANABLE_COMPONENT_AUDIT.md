@@ -10,7 +10,7 @@
 | State                                  | Value                                       |
 | -------------------------------------- | ------------------------------------------- |
 | OWNER_VISUAL_REVIEW                    | **REJECTED**                                |
-| VISUAL_ACCEPTANCE                      | **REJECTED**                                |
+| VISUAL_ACCEPTANCE                      | **PENDING_OWNER**                           |
 | PLANABLE_FULL_UI_UX_CERTIFICATION      | **TECHNICAL_PASS_VISUAL_REJECTED_BY_OWNER** |
 | PREVIOUS_PLANABLE_VISUAL_CERTIFICATION | **SUPERSEDED_BY_OWNER_REJECTION**           |
 | PLANABLE_COMPONENT_PARITY_REBUILD      | **COMPLETE_PENDING_OWNER_REVIEW**           |

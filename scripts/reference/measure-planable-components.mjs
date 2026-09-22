@@ -3,6 +3,7 @@
  * Read-only Planable component probe over CDP 127.0.0.1:9333.
  * No mutations. Captures computed styles for dialogs/forms/nav/motion.
  */
+/* eslint-disable no-undef -- browser APIs run inside Playwright evaluate() */
 import { chromium } from '@playwright/test';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -10,12 +11,6 @@ import { join } from 'node:path';
 const CDP = 'http://127.0.0.1:9333';
 const OUT = join(process.cwd(), 'artifacts/planable-component-parity-004');
 const REF = join(process.cwd(), '.reference/005-planable-ui-ux/ours/component-parity-rebuild');
-
-function pick(cs, keys) {
-  const o = {};
-  for (const k of keys) o[k] = cs[k];
-  return o;
-}
 
 const STYLE_KEYS = [
   'fontFamily',
