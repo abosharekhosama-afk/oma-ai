@@ -53,4 +53,14 @@ for (const file of files) {
 mkdirSync(OUT_DIR, { recursive: true });
 const out = join(OUT_DIR, 'visual-primitive-inventory.json');
 writeFileSync(out, JSON.stringify(report, null, 2));
-console.log(JSON.stringify({ out, filesScanned: report.filesScanned, summary: Object.fromEntries(Object.entries(report.hits).map(([k, v]) => [k, v.count])) }, null, 2));
+console.log(
+  JSON.stringify(
+    {
+      out,
+      filesScanned: report.filesScanned,
+      summary: Object.fromEntries(Object.entries(report.hits).map(([k, v]) => [k, v.count])),
+    },
+    null,
+    2,
+  ),
+);

@@ -98,9 +98,18 @@ async function probeRoute(page, path, shotsDir) {
 
   // soft open menus / dialogs without committing (Escape after)
   const softClicks = [
-    { name: 'workspace_menu', sel: '[data-cy="workspace-menu-button"], button:has-text("Workspace")' },
-    { name: 'view_switcher', sel: '[data-cy*="view"], button:has-text("Calendar"), button:has-text("Feed")' },
-    { name: 'createish', sel: '[data-cy*="create"], button:has-text("New"), button:has-text("Compose")' },
+    {
+      name: 'workspace_menu',
+      sel: '[data-cy="workspace-menu-button"], button:has-text("Workspace")',
+    },
+    {
+      name: 'view_switcher',
+      sel: '[data-cy*="view"], button:has-text("Calendar"), button:has-text("Feed")',
+    },
+    {
+      name: 'createish',
+      sel: '[data-cy*="create"], button:has-text("New"), button:has-text("Compose")',
+    },
   ];
   const soft = [];
   for (const c of softClicks) {
@@ -112,7 +121,11 @@ async function probeRoute(page, path, shotsDir) {
     try {
       await loc.click({ timeout: 3000, trial: false });
       await page.waitForTimeout(600);
-      const dialog = await measure(page, '[role="dialog"], [role="menu"], [role="listbox"]', `${c.name}_surface`);
+      const dialog = await measure(
+        page,
+        '[role="dialog"], [role="menu"], [role="listbox"]',
+        `${c.name}_surface`,
+      );
       soft.push({ name: c.name, opened: true, surface: dialog });
       await page.keyboard.press('Escape');
       await page.waitForTimeout(400);
@@ -191,9 +204,15 @@ async function main() {
   writeFileSync(join(REF, 'component-probe.json'), JSON.stringify(summary, null, 2));
 
   // compact delta seeds for known OMA tokens
-  const foundInputs = results.flatMap((r) => r.probes || []).filter((p) => p.found && p.label === 'input');
-  const foundPrimary = results.flatMap((r) => r.probes || []).filter((p) => p.found && p.label === 'primary_btn');
-  const foundDialog = results.flatMap((r) => [...(r.probes || []), ...(r.soft || []).map((s) => s.surface)].filter(Boolean)).filter((p) => p?.found && /dialog|menu|_surface/.test(p.label));
+  const foundInputs = results
+    .flatMap((r) => r.probes || [])
+    .filter((p) => p.found && p.label === 'input');
+  const foundPrimary = results
+    .flatMap((r) => r.probes || [])
+    .filter((p) => p.found && p.label === 'primary_btn');
+  const foundDialog = results
+    .flatMap((r) => [...(r.probes || []), ...(r.soft || []).map((s) => s.surface)].filter(Boolean))
+    .filter((p) => p?.found && /dialog|menu|_surface/.test(p.label));
 
   const compact = {
     inputSample: foundInputs[0] || null,
