@@ -22,7 +22,8 @@ describe('P5 Planable deliverables/reviews/schedule surfaces', () => {
     expect(css).toContain('.oma-sched-week');
     expect(css).not.toContain('--oma-violet');
     expect(css).not.toContain('--oma-signal');
-    expect(css).not.toContain('--oma-review-canvas');
+    // light Planable review well token is allowed; Frame dark #121419 is not
+    expect(css).toContain('var(--oma-review-canvas)');
     expect(css).not.toContain('#6658');
     expect(css).not.toContain('#121419');
     expect(css).not.toContain('--motion-micro');
@@ -34,8 +35,8 @@ describe('P5 Planable deliverables/reviews/schedule surfaces', () => {
     );
     expect(client).toContain('demo-review-workspace');
     expect(client).toContain('demo-version-compare');
-    expect(client).not.toContain('--oma-review-canvas');
     expect(client).not.toContain('--oma-review-ink');
+    expect(client).not.toContain('#121419');
   });
 
   it('rebuilds stage5 demo SVGs without violet/dark Frame branding', () => {
