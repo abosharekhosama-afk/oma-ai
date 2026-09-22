@@ -16,6 +16,11 @@ import { PageHeader, Panel } from '../../../components/ui/page-header';
 import { EmptyState, ErrorState, DeniedState, Skeleton } from '../../../components/ui/empty-state';
 import { DemoDisclosure } from '../../../components/demo/demo-disclosure';
 import { WorkspaceCard } from '../../../components/brand/workspace-card';
+import {
+  ConnectionHonestyPanel,
+  GettingStartedChecklist,
+  JourneyStrip,
+} from '../../../components/shell/getting-started';
 import { demoApi, isDemoForbidden, pickCopy } from '../../../lib/demo/use-demo-api';
 import type { DemoGraph } from '@oma/demo';
 
@@ -154,6 +159,14 @@ export default function AppHomePage() {
         <DeniedState title={t('errors.permission')} />
       ) : (
         <>
+          <JourneyStrip />
+          <GettingStartedChecklist
+            hasTenant={Boolean(me.active_tenant_id)}
+            brandCount={brands.length}
+            approvedProfileCount={approvedCount}
+            hasCampaign={Boolean(demoCc?.campaigns?.length)}
+          />
+          <ConnectionHonestyPanel />
           <div className="oma-workboard-split">
             <div className="oma-workboard-primary">
               <Panel

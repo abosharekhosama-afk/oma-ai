@@ -3,16 +3,36 @@ import type { ReactNode } from 'react';
 export function EmptyState({
   title,
   body,
+  why,
+  next,
+  previous,
   action,
+  demoHint,
 }: {
   title: string;
   body?: string;
+  /** Why this page exists */
+  why?: string;
+  /** What to do next */
+  next?: string;
+  /** Link/control for the prior journey step when input is missing */
+  previous?: ReactNode;
   action?: ReactNode;
+  /** Demo-mode only hint — must already be honest copy */
+  demoHint?: ReactNode;
 }) {
   return (
-    <div className="oma-empty" role="status">
+    <div className="oma-empty" role="status" data-testid="empty-state">
       <h2>{title}</h2>
+      {why ? <p className="oma-empty-why">{why}</p> : null}
       {body ? <p>{body}</p> : null}
+      {next ? (
+        <p className="oma-empty-next">
+          <strong>{next}</strong>
+        </p>
+      ) : null}
+      {previous}
+      {demoHint}
       {action}
     </div>
   );

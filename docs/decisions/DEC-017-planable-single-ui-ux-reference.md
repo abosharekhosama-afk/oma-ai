@@ -5,14 +5,14 @@
 **Owner:** Binding owner decision
 **Starting SHA:** `6bb76a33de6529ce46af47e379743169599992fa`
 **Mode:** `REFERENCE_AND_SPEC_ONLY`
-**Implementation:** `PLANABLE_UI_UX_STAGE_P1–P6: COMPLETE`. `PLANABLE_UI_UX_IMPLEMENTATION: COMPLETE`. `PLANABLE_FULL_UI_UX_CERTIFICATION: PASS` (owner acceptance remains pending).
+**Implementation:** P1–P6 engineering complete. Owner visual review **REJECTED** (2026-09-22). P7 visual certification superseded. Component-parity rebuild required — see `docs/OWNER_REJECTION_PLANABLE_COMPONENT_AUDIT.md`.
 
 | State                             | Value                                        |
 | --------------------------------- | -------------------------------------------- |
 | DEC-017                           | `RESOLVED — PLANABLE_SINGLE_UI_UX_REFERENCE` |
 | PLANABLE                          | `PRIMARY_AND_SOLE_UI_UX_AUTHORITY`           |
 | OWNER_VISUAL_REVIEW               | `REJECTED`                                   |
-| PREVIOUS_VISUAL_CERTIFICATIONS    | `SUPERSEDED`                                 |
+| PREVIOUS_VISUAL_CERTIFICATIONS    | `SUPERSEDED_BY_OWNER_REJECTION`              |
 | PLANABLE_REFERENCE_BASELINE       | `COMPLETE`                                   |
 | PLANABLE_UI_UX_STAGE_P1           | `COMPLETE`                                   |
 | PLANABLE_UI_UX_STAGE_P2           | `COMPLETE`                                   |
@@ -21,8 +21,9 @@
 | PLANABLE_UI_UX_STAGE_P5           | `COMPLETE`                                   |
 | PLANABLE_UI_UX_STAGE_P6           | `COMPLETE`                                   |
 | PLANABLE_UI_UX_IMPLEMENTATION     | `COMPLETE`                                   |
-| PLANABLE_FULL_UI_UX_CERTIFICATION | `PASS`                                       |
-| VISUAL_ACCEPTANCE                 | `PENDING_OWNER`                              |
+| PLANABLE_FULL_UI_UX_CERTIFICATION | `TECHNICAL_PASS_VISUAL_REJECTED_BY_OWNER`    |
+| PLANABLE_COMPONENT_PARITY_REBUILD | `IN_PROGRESS`                                |
+| VISUAL_ACCEPTANCE                 | `REJECTED`                                   |
 | USER_ACCEPTANCE                   | `PENDING`                                    |
 | EXTERNAL_INTEGRATIONS             | `DEFERRED`                                   |
 

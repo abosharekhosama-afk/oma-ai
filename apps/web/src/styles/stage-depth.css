@@ -416,3 +416,107 @@ html[dir='rtl'] .oma-req-table tbody tr[data-priority='high'] {
   color: var(--oma-ink);
   font-weight: var(--weight-semibold);
 }
+
+/* Command Center — journey + checklist + honesty (owner clarity rebuild) */
+.oma-journey-strip {
+  overflow-x: auto;
+  border: 1px solid var(--oma-border);
+  border-radius: var(--oma-radius-control);
+  background: var(--oma-surface);
+  padding: var(--space-2) var(--space-3);
+}
+.oma-journey-strip ol {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-width: max-content;
+}
+.oma-journey-strip a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--oma-control-height-compact);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-meta);
+  color: var(--oma-ink-subtle);
+  text-decoration: none;
+}
+.oma-journey-strip a:hover,
+.oma-journey-strip a:focus-visible {
+  color: var(--oma-primary);
+  background: var(--oma-primary-soft);
+}
+.oma-journey-sep {
+  color: var(--oma-muted);
+  margin-inline: 2px;
+}
+
+.oma-getting-started-head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  align-items: flex-start;
+  margin-bottom: var(--space-3);
+}
+.oma-getting-started-head h2 {
+  margin: 0;
+  font-size: var(--text-title-sm);
+  line-height: var(--leading-title-sm);
+}
+.oma-getting-started-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+.oma-getting-started-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--oma-control-height);
+  padding: 0 var(--space-2);
+  border-radius: var(--oma-radius-control);
+  text-decoration: none;
+  color: inherit;
+}
+.oma-getting-started-row:hover {
+  background: var(--oma-canvas);
+}
+.oma-getting-started-list li[data-done='true'] .oma-getting-started-row {
+  color: var(--oma-muted);
+}
+.oma-getting-started-mark {
+  width: 1.25rem;
+  text-align: center;
+  color: var(--oma-primary);
+}
+.oma-getting-started-next {
+  margin: var(--space-3) 0 0;
+}
+
+.oma-connection-honesty h2 {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-title-sm);
+}
+.oma-connection-honesty li {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--oma-border);
+}
+.oma-connection-honesty li:last-child {
+  border-bottom: 0;
+}
+.oma-connection-honesty .oma-badge {
+  justify-self: start;
+}
+.oma-empty-why,
+.oma-empty-next {
+  margin: 0;
+  color: var(--oma-ink-subtle);
+  font-size: var(--text-body);
+}

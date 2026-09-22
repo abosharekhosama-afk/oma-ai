@@ -10,17 +10,27 @@
 | --------------------------------- | ----------------------------------- |
 | PLANABLE_UI_UX_STAGE_P1–P6        | COMPLETE                            |
 | PLANABLE_UI_UX_IMPLEMENTATION     | COMPLETE                            |
-| PLANABLE_FULL_UI_UX_CERTIFICATION | PASS                                |
-| OWNER_PREVIEW                     | READY (after `pnpm review:004`)     |
-| Runtime compatibility aliases     | 0                                   |
-| Known Quiet craft failure         | RESOLVED (superseded under DEC-017) |
+| PLANABLE_FULL_UI_UX_CERTIFICATION | TECHNICAL_PASS_VISUAL_REJECTED_BY_OWNER |
+| OWNER_PREVIEW                     | SUPERSEDED (owner rejected visual)      |
+| Runtime compatibility aliases     | 0                                       |
+| Known Quiet craft failure         | RESOLVED (superseded under DEC-017)     |
+
+## Owner decision (2026-09-22) — binding
+
+| Claim                            | Verdict                              |
+| -------------------------------- | ------------------------------------ |
+| OWNER_VISUAL_REVIEW              | REJECTED                             |
+| VISUAL_ACCEPTANCE                | REJECTED                             |
+| PREVIOUS_PLANABLE_VISUAL_CERT    | SUPERSEDED_BY_OWNER_REJECTION        |
+
+See `docs/OWNER_REJECTION_PLANABLE_COMPONENT_AUDIT.md`. P7 is **not** visual acceptance proof.
 
 ## Not claimable (owner / deferred)
 
 | Claim                            | Verdict       |
 | -------------------------------- | ------------- |
 | OWNER_VISUAL_REVIEW              | REJECTED      |
-| VISUAL_ACCEPTANCE                | PENDING_OWNER |
+| VISUAL_ACCEPTANCE                | REJECTED      |
 | USER_ACCEPTANCE                  | PENDING       |
 | PRODUCTION LAUNCH READY          | NO            |
 | LIVE INTEGRATION READY           | NO            |

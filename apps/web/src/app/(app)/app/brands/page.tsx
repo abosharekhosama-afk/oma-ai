@@ -152,7 +152,9 @@ export default function BrandsListPage() {
       ) : visible.length === 0 ? (
         <EmptyState
           title={t('brand.list.emptyTitle')}
+          why={t('home.journeyStrip.brand')}
           body={t('brand.list.emptyBody')}
+          next={t('home.gettingStarted.brand')}
           action={
             <Link href="/app/brands/new" className="oma-btn">
               {t('brand.list.create')}

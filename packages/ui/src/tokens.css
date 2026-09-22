@@ -76,16 +76,20 @@
   --radius-lg: 6px;
   --radius-xl: 8px;
 
-  /* Elevation — LIVE rail/body mostly none */
+  /* Elevation — LIVE rail/body mostly none; overlays measured 2026-09-22 */
   --elev-0: none;
-  --elev-1: none;
-  --elev-2: 0 6px 16px rgba(0, 0, 0, 0.08); /* overlays; ARCHIVED */
+  --elev-1: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --elev-2: 0 6px 16px rgba(0, 0, 0, 0.08);
+  --elev-dialog: 0 12px 40px rgba(0, 0, 0, 0.14);
+  --oma-overlay-scrim: rgba(0, 0, 0, 0.45);
 
   /* Shell geometry — LIVE 256px rail, 12px chrome inset, 32px controls */
   --shell-rail-expanded: 256px;
   --shell-rail-collapsed: 64px; /* SANDBOX_DATA_REQUIRED; OMA_ADAPTATION icon rail */
   --shell-header-height: 56px; /* content header: 12px inset + 32px control */
-  --shell-drawer-width: 380px; /* ARCHIVED */
+  --shell-drawer-width: 400px; /* LIVE-aligned panel width; was ARCHIVED 380 */
+  --shell-dialog-width: 480px;
+  --shell-dialog-width-lg: 640px;
   --shell-main-max: none;
   --shell-chrome-inset: 12px;
   --shell-z-rail: 40;
@@ -95,10 +99,12 @@
   --shell-z-toast: 80;
   --shell-z-tooltip: 90;
 
-  --oma-control-height: 32px;
-  --oma-control-pad-x: 16px;
+  --oma-control-height: 32px; /* primary actions LIVE ~32; rail search measured 30px */
+  --oma-control-height-compact: 30px; /* LIVE rail search 2026-09-22 */
+  --oma-control-pad-x: 15px;
   --oma-control-gap: 8px;
-  --oma-search-height-rail: 24px;
+  --oma-input-pad-x: 11px; /* LIVE ant input padding */
+  --oma-search-height-rail: 30px;
 
   /* Motion — LIVE */
   --oma-motion-sidebar: 150ms;
