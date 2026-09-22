@@ -65,4 +65,6 @@ Read-only rules observed: no Create/Edit/Upload/Comment/Approve/Invite/Publish/S
 
 ## Exact next
 
-`OWNER_PREVIEW_AND_ACCEPTANCE_OMA_PLANABLE_COMPONENT_PARITY` after implementation gates + Owner Preview.
+`OWNER_PREVIEW_AND_ACCEPTANCE_OMA_PLANABLE_COMPONENT_PARITY` only after
+`PLANABLE_FINAL_STYLE_CONVERGENCE: PASS` (see `docs/PLANABLE_FINAL_STYLE_CONVERGENCE.md`)
+and green CI + Preview on the Final SHA.

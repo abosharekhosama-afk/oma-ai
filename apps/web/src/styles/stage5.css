@@ -20,13 +20,7 @@
   color: var(--oma-muted);
 }
 
-.oma-stage5-toolbar .oma-input,
-.oma-stage5-toolbar .oma-select {
-  min-height: 32px;
-  font-size: var(--text-body);
-  line-height: var(--leading-body);
-  border-radius: var(--oma-radius-control);
-}
+/* toolbar fields use shared .oma-input / .oma-select primitives */
 
 .oma-stage5-search {
   min-width: min(220px, 100%);
@@ -45,7 +39,7 @@
 .oma-stage5-tabs button,
 .oma-deliv-groups button,
 .oma-review-tabs button {
-  min-height: 28px;
+  min-height: var(--oma-control-height-compact);
   padding: 0 var(--space-2);
   border: 1px solid var(--oma-border);
   border-radius: var(--oma-radius-control);
@@ -72,7 +66,7 @@
 .oma-deliv-groups button:focus-visible,
 .oma-review-tabs button:focus-visible {
   outline: var(--focus-ring);
-  outline-offset: 2px;
+  outline-offset: var(--focus-offset);
 }
 
 .oma-deliv-table-wrap {
@@ -151,7 +145,7 @@
 .oma-deliv-grid-card:hover,
 .oma-deliv-grid-card:focus-visible {
   border-color: var(--oma-primary);
-  box-shadow: 0 1px 2px color-mix(in srgb, var(--oma-ink) 8%, transparent);
+  box-shadow: var(--elev-1);
 }
 
 .oma-deliv-grid-card img {
@@ -253,7 +247,7 @@
 
 /* Review workspace — light Planable chrome (not Frame dark) */
 .oma-review-workspace {
-  --review-canvas: #eceef0;
+  --review-canvas: var(--oma-review-canvas);
   --review-panel: var(--oma-surface);
   --review-border: var(--oma-border);
   --review-text: var(--oma-ink);
@@ -283,13 +277,10 @@
   line-height: var(--leading-body);
 }
 
-.oma-review-toolbar .oma-btn {
-  min-height: 32px;
-}
-
 .oma-review-body {
   display: grid;
   grid-template-columns: 184px minmax(0, 1fr) minmax(260px, 300px);
+  /* INTENTIONAL_EXCEPTION: review workspace layout region */
   min-height: 0;
   background: var(--oma-surface);
 }
@@ -383,10 +374,10 @@
   transform: translate(-50%, -50%);
   width: 22px;
   height: 22px;
-  border-radius: 999px;
-  border: 2px solid #fff;
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--oma-surface);
   background: var(--review-accent);
-  color: #fff;
+  color: var(--oma-on-accent);
   font-size: 11px;
   font-weight: 700;
   display: grid;
@@ -401,8 +392,8 @@
 }
 
 .oma-review-pin[data-selected='true'] {
-  outline: 2px solid var(--oma-ink);
-  outline-offset: 2px;
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
 }
 
 .oma-review-pin-draft {
@@ -416,7 +407,7 @@
   padding: 4px 8px;
   border-radius: var(--oma-radius-control);
   background: color-mix(in srgb, var(--oma-ink) 72%, transparent);
-  color: #fff;
+  color: var(--oma-on-accent);
   font-size: var(--text-meta);
   z-index: 3;
 }
@@ -481,7 +472,7 @@
   color: var(--oma-ink);
   border-color: var(--oma-border);
   border-radius: var(--oma-radius-control);
-  min-height: 32px;
+  min-height: var(--oma-control-height);
 }
 
 .oma-honesty-inline {
@@ -511,7 +502,7 @@
 }
 
 .oma-sched-day[data-today='true'] {
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--oma-primary) 45%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--oma-primary) 45%, transparent); /* INTENTIONAL_EXCEPTION: review pin */
 }
 
 .oma-sched-day-label {

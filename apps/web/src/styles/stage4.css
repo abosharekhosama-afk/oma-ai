@@ -20,13 +20,7 @@
   color: var(--oma-muted);
 }
 
-.oma-stage4-toolbar .oma-input,
-.oma-stage4-toolbar .oma-select {
-  min-height: 32px;
-  font-size: var(--text-body);
-  line-height: var(--leading-body);
-  border-radius: var(--oma-radius-control);
-}
+/* toolbar fields use shared .oma-input / .oma-select primitives */
 
 .oma-stage4-search {
   min-width: min(220px, 100%);
@@ -41,7 +35,7 @@
 }
 
 .oma-req-groups button {
-  min-height: 28px;
+  min-height: var(--oma-control-height-compact);
   padding: 0 var(--space-2);
   border: 1px solid var(--oma-border);
   border-radius: var(--oma-radius-control);
@@ -64,7 +58,7 @@
 
 .oma-req-groups button:focus-visible {
   outline: var(--focus-ring);
-  outline-offset: 2px;
+  outline-offset: var(--focus-offset);
 }
 
 .oma-req-table-wrap {
@@ -119,7 +113,7 @@
 .oma-req-table tbody tr[aria-selected='true'],
 .oma-task-table tbody tr[aria-selected='true'] {
   background: var(--oma-primary-soft);
-  box-shadow: inset 3px 0 0 var(--oma-primary);
+  box-shadow: var(--elev-inset-selected);
 }
 
 .oma-req-table tr[data-overdue='true'],
@@ -129,7 +123,7 @@
 }
 
 .oma-req-table tr[data-missing='true'] {
-  box-shadow: inset 3px 0 0 var(--status-warning);
+  box-shadow: var(--elev-inset-warning);
 }
 
 .oma-req-title-cell {
@@ -142,8 +136,8 @@
 .oma-req-avatar,
 .oma-task-avatar {
   width: 28px;
-  height: 28px;
-  border-radius: 999px;
+  height: var(--oma-control-height-compact);
+  border-radius: var(--radius-pill);
   display: grid;
   place-items: center;
   font-size: 11px;
@@ -186,7 +180,7 @@
 .oma-req-mobile-card:focus-visible,
 .oma-task-mobile-card:focus-visible {
   border-color: var(--oma-primary);
-  box-shadow: 0 0 0 2px var(--oma-primary-soft);
+  box-shadow: var(--elev-ring-soft);
 }
 
 .oma-brief-layout {
@@ -246,7 +240,7 @@
 .oma-brief-section textarea,
 .oma-brief-section input {
   width: 100%;
-  min-height: 32px;
+  min-height: var(--oma-control-height);
   border-radius: var(--oma-radius-control);
 }
 
@@ -308,7 +302,7 @@
 }
 
 .oma-tasks-view-tabs button {
-  min-height: 28px;
+  min-height: var(--oma-control-height-compact);
   padding: 0 var(--space-3);
   border: 0;
   border-radius: calc(var(--oma-radius-control) - 1px);
@@ -448,13 +442,6 @@
   margin-top: 2px;
 }
 
-.oma-kanban-a11y-move .oma-select {
-  min-height: 28px;
-  font-size: var(--text-meta);
-  opacity: 0.85;
-  border-radius: var(--oma-radius-control);
-}
-
 .oma-kanban-drop-hint {
   min-height: 48px;
   border: 1px dashed var(--oma-border-strong);
@@ -469,7 +456,7 @@
 .oma-kanban-card:hover,
 .oma-kanban-card:focus-within {
   border-color: var(--oma-primary);
-  box-shadow: 0 1px 2px color-mix(in srgb, var(--oma-ink) 8%, transparent);
+  box-shadow: var(--elev-1);
 }
 
 .oma-kanban-card strong {
@@ -498,7 +485,7 @@
   border: 1px solid var(--oma-primary);
   border-radius: var(--oma-radius-control);
   background: var(--oma-surface);
-  box-shadow: var(--elev-2, 0 8px 24px color-mix(in srgb, var(--oma-ink) 12%, transparent));
+  box-shadow: var(--elev-menu);
   pointer-events: none;
 }
 
@@ -527,7 +514,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  min-height: 32px;
+  min-height: var(--oma-control-height);
 }
 
 .oma-activity-list {

@@ -172,7 +172,7 @@ function SortableTaskCard({
       <label className="oma-kanban-a11y-move" onPointerDown={(e) => e.stopPropagation()}>
         <span className="oma-sr-only">{t('demo.tasks.move')}</span>
         <select
-          className="oma-select"
+          className="oma-select oma-select--compact"
           value={task.status === 'OVERDUE' ? 'IN_PROGRESS' : task.status}
           aria-label={`${t('demo.tasks.move')} ${pickCopy(task.title, locale)}`}
           data-testid={`demo-task-move-${task.id}`}

@@ -351,9 +351,11 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  /* INTENTIONAL_EXCEPTION: shell chrome inset — page/shell layout, not control chrome */
   padding: var(--shell-chrome-inset);
 }
 .oma-drawer.oma-drawer--nav .oma-mobile-drawer-nav {
+  /* INTENTIONAL_EXCEPTION: flex child scroll region */
   min-height: 0;
   overflow-y: auto;
   flex: 1 1 auto;
@@ -367,8 +369,6 @@
 .oma-drawer--nav .oma-rail-search {
   display: inline-flex;
   width: 100%;
-  height: var(--oma-control-height);
-  min-height: var(--oma-control-height);
 }
 
 .oma-notifications {
@@ -400,7 +400,7 @@
   border: 1px solid var(--oma-border);
   border-radius: var(--oma-radius-control);
   background: var(--oma-surface);
-  box-shadow: var(--elev-2);
+  box-shadow: var(--elev-menu);
 }
 
 @media (max-width: 767px) {

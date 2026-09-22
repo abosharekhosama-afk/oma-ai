@@ -142,7 +142,7 @@
 .oma-completeness-bar {
   flex: 1 1 120px;
   height: 6px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--oma-border);
   overflow: hidden;
 }
@@ -307,11 +307,11 @@
 
 /* Requests triage density */
 .oma-req-table tbody tr[data-priority='high'] {
-  box-shadow: inset 3px 0 0 var(--status-danger);
+  box-shadow: var(--elev-inset-danger);
 }
 
 html[dir='rtl'] .oma-req-table tbody tr[data-priority='high'] {
-  box-shadow: inset -3px 0 0 var(--status-danger);
+  box-shadow: inset -3px 0 0 var(--status-danger); /* INTENTIONAL_EXCEPTION: RTL mirror */
 }
 
 .oma-brief-canvas {
@@ -329,7 +329,7 @@ html[dir='rtl'] .oma-req-table tbody tr[data-priority='high'] {
 /* Team workload */
 .oma-workload-bar {
   height: 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--oma-border);
   overflow: hidden;
   min-width: 80px;
@@ -519,4 +519,11 @@ html[dir='rtl'] .oma-req-table tbody tr[data-priority='high'] {
   margin: 0;
   color: var(--oma-ink-subtle);
   font-size: var(--text-body);
+}
+
+.oma-thumb-rounded {
+  border-radius: var(--radius-xl);
+  object-fit: cover;
+  display: block;
+  background: var(--oma-canvas);
 }

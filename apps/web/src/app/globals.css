@@ -126,13 +126,14 @@ body {
 .oma-filter-row {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--space-3);
   flex-wrap: wrap;
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-4);
 }
 .oma-filter-row label {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--text-body);
+  font-weight: var(--weight-semibold);
+  color: var(--oma-ink);
 }
 .oma-filter-row .oma-input {
   max-width: 280px;
@@ -151,9 +152,9 @@ body {
   color: var(--oma-ink);
 }
 .oma-badge-warning {
-  background: color-mix(in srgb, var(--status-warning, #b45309) 16%, transparent);
-  border: 1px solid color-mix(in srgb, var(--status-warning, #b45309) 45%, transparent);
-  color: var(--status-warning, #b45309);
+  background: color-mix(in srgb, var(--status-warning) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--status-warning) 45%, transparent);
+  color: var(--status-warning);
   font-weight: 600;
 }
 .oma-title-row {
@@ -167,17 +168,17 @@ body {
   margin: 0;
 }
 .oma-banner {
-  border-radius: 8px;
+  border-radius: var(--radius-xl);
   padding: 0.75rem 1rem;
   margin-bottom: 1rem;
 }
 .oma-banner-warning {
-  background: color-mix(in srgb, var(--status-warning, #b45309) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--status-warning, #b45309) 40%, transparent);
+  background: color-mix(in srgb, var(--status-warning) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--status-warning) 40%, transparent);
 }
 .oma-banner-danger {
-  background: color-mix(in srgb, var(--status-danger, #b91c1c) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--status-danger, #b91c1c) 40%, transparent);
+  background: color-mix(in srgb, var(--status-danger) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--status-danger) 40%, transparent);
 }
 .oma-banner-info {
   background: color-mix(in srgb, var(--oma-primary) 10%, transparent);
@@ -242,14 +243,14 @@ body {
 .oma-progress {
   height: 8px;
   background: var(--oma-border);
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
   margin: 0.75rem 0;
 }
 .oma-progress-bar {
   height: 100%;
   background: var(--oma-primary);
-  transition: width 300ms ease;
+  transition: width var(--oma-motion-control) var(--oma-motion-input-ease);
 }
 .oma-discovery-list {
   list-style: none;
@@ -308,7 +309,7 @@ body {
   grid-template-columns: minmax(120px, 30%) 1fr;
   gap: 0.75rem;
   padding: 0.35rem 0.5rem;
-  border-radius: 6px;
+  border-radius: var(--oma-radius-control);
   background: var(--oma-canvas);
   font-size: 13px;
 }
@@ -329,13 +330,6 @@ body {
   gap: 0.75rem;
   flex-wrap: wrap;
   margin-top: 0.75rem;
-}
-.oma-drawer-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
 }
 .oma-evidence-meta {
   display: grid;
@@ -422,35 +416,35 @@ body {
   list-style: none;
   max-height: 16rem;
   overflow: auto;
-  background: var(--surface-raised, #fff);
-  border: 1px solid var(--border-subtle, #d8d6e5);
-  border-radius: 0.5rem;
-  box-shadow: 0 8px 24px rgb(20 16 40 / 12%);
+  background: var(--oma-surface);
+  border: 1px solid var(--oma-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--elev-menu);
 }
 .oma-combobox-option {
   padding: 0.45rem 0.6rem;
   cursor: pointer;
-  border-radius: 0.35rem;
+  border-radius: var(--radius-sm);
 }
 .oma-combobox-option.is-active,
 .oma-combobox-option:hover {
-  background: var(--surface-muted, #f4f3f8);
+  background: var(--oma-canvas);
 }
 .oma-combobox-empty {
   padding: 0.5rem 0.6rem;
-  color: var(--text-muted, #6b6780);
+  color: var(--oma-muted);
 }
 .oma-card-button {
   text-align: start;
   cursor: pointer;
-  border: 1px solid var(--border-subtle, #d8d6e5);
-  background: var(--surface-raised, #fff);
+  border: 1px solid var(--oma-border);
+  background: var(--oma-surface);
   width: 100%;
 }
 .oma-card-button:hover,
 .oma-card-button:focus-visible {
-  outline: 2px solid var(--oma-primary);
-  outline-offset: 2px;
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
 }
 .oma-row {
   display: flex;
@@ -462,8 +456,8 @@ body {
   display: block;
   padding: 0.5rem;
   overflow-wrap: anywhere;
-  background: var(--surface-muted, #f4f3f8);
-  border-radius: 0.35rem;
+  background: var(--oma-canvas);
+  border-radius: var(--radius-sm);
   font-size: 0.85rem;
 }
 .oma-table {
@@ -474,7 +468,7 @@ body {
 .oma-table td {
   text-align: start;
   padding: 0.5rem 0.35rem;
-  border-bottom: 1px solid var(--border-subtle, #d8d6e5);
+  border-bottom: 1px solid var(--oma-border);
 }
 
 /* Product experience rebuild — denser SaaS surfaces */
@@ -511,7 +505,7 @@ body {
 .oma-stat {
   background: var(--oma-surface);
   border: 1px solid var(--oma-border);
-  border-radius: 10px;
+  border-radius: var(--radius-xl);
   padding: 0.85rem 1rem;
 }
 .oma-stat-value {
@@ -563,7 +557,7 @@ body {
   gap: 0.75rem;
   text-decoration: none;
   padding: 0.55rem 0.65rem;
-  border-radius: 8px;
+  border-radius: var(--radius-xl);
   border: 1px solid var(--oma-border);
   background: var(--oma-canvas);
 }
@@ -589,7 +583,7 @@ body {
   font-size: 11px;
   font-weight: 700;
   padding: 0.12rem 0.4rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   border: 1px solid transparent;
 }
 .oma-chip-neutral {
@@ -636,8 +630,8 @@ body {
 }
 .oma-skeleton {
   min-height: 4.5rem;
-  border-radius: 10px;
-  background: linear-gradient(90deg, #eceef3, #f7f8fb, #eceef3);
+  border-radius: var(--radius-xl);
+  background: linear-gradient(90deg, var(--oma-canvas), var(--oma-surface), var(--oma-canvas));
   background-size: 200% 100%;
   animation: oma-shimmer 1.2s ease-in-out infinite;
 }
@@ -660,7 +654,7 @@ body {
 .oma-table-wrap {
   overflow-x: auto;
   border: 1px solid var(--oma-border);
-  border-radius: 10px;
+  border-radius: var(--radius-xl);
   background: var(--oma-surface);
 }
 .oma-portfolio-table {
@@ -683,10 +677,7 @@ body {
   font-weight: 700;
   text-decoration: none;
 }
-.oma-btn-compact {
-  padding: 0.4rem 0.7rem;
-  font-size: 12px;
-}
+/* .oma-btn-compact visual owned by packages/ui primitives */
 .oma-input-inline {
   margin-bottom: 0;
   max-width: 240px;
@@ -743,7 +734,7 @@ body {
   color: var(--oma-muted);
   background: var(--oma-canvas);
   border: 1px solid var(--oma-border);
-  border-radius: 8px;
+  border-radius: var(--radius-xl);
 }
 .oma-kanban {
   display: grid;
@@ -754,7 +745,7 @@ body {
 .oma-kanban-col {
   background: var(--oma-canvas);
   border: 1px solid var(--oma-border);
-  border-radius: 10px;
+  border-radius: var(--radius-xl);
   padding: 0.65rem;
   min-height: 120px;
 }
@@ -772,7 +763,7 @@ body {
   text-align: start;
   background: var(--oma-surface);
   border: 1px solid var(--oma-border);
-  border-radius: 8px;
+  border-radius: var(--radius-xl);
   padding: 0.55rem 0.65rem;
   margin-bottom: 0.45rem;
   cursor: pointer;
@@ -792,7 +783,7 @@ body {
   gap: 0.75rem;
   padding: 0.75rem;
   border: 1px solid var(--oma-border);
-  border-radius: 10px;
+  border-radius: var(--radius-xl);
   background: var(--oma-surface);
 }
 .oma-calendar-row time {
@@ -806,7 +797,7 @@ body {
 }
 .oma-content-card {
   border: 1px solid var(--oma-border);
-  border-radius: 10px;
+  border-radius: var(--radius-xl);
   overflow: hidden;
   background: var(--oma-surface);
   text-decoration: none;
@@ -840,7 +831,7 @@ body {
   max-height: 420px;
   margin: 0 auto;
   display: block;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
 }
 .oma-media-review-canvas .oma-muted {
   color: var(--oma-muted);
@@ -852,12 +843,12 @@ body {
 }
 .oma-view-toggle button[aria-pressed='true'] {
   background: var(--oma-primary);
-  color: #fff;
+  color: var(--oma-on-accent);
 }
 .oma-progress-track {
   height: 8px;
   background: var(--oma-canvas);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   overflow: hidden;
   border: 1px solid var(--oma-border);
 }
@@ -871,8 +862,8 @@ body {
   color: var(--oma-primary);
 }
 .oma-track-paid {
-  background: #fef3c7;
-  color: #92400e;
+  background: color-mix(in srgb, var(--status-warning) 18%, var(--oma-surface));
+  color: var(--status-warning);
 }
 @media (max-width: 640px) {
   .oma-calendar-row {

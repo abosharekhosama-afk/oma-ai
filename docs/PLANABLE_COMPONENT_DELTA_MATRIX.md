@@ -26,15 +26,15 @@ See `docs/OWNER_REJECTION_PLANABLE_COMPONENT_AUDIT.md`.
 
 ## Closure checklist
 
-| Gap                                                | Status                                              |
-| -------------------------------------------------- | --------------------------------------------------- |
-| Dialog structure                                   | FIXED in shared Dialog + CSS                        |
-| Input/select/textarea states                       | FIXED in primitives                                 |
-| Drawer elevation/width                             | FIXED in tokens/primitives                          |
-| Journey clarity                                    | FIXED Command Center checklist + strip + honesty    |
-| AI/integration honesty                             | FIXED ConnectionHonestyPanel                        |
-| Duplicate primitives inventory                     | Script `scripts/ui/inventory-visual-primitives.mjs` |
-| Full surface migration of every page-local control | IN PROGRESS — inventory drives remaining cleanup    |
+| Gap                                                | Status                                                                                                                    |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Dialog structure                                   | FIXED in shared Dialog + CSS                                                                                              |
+| Input/select/textarea states                       | FIXED in primitives                                                                                                       |
+| Drawer elevation/width                             | FIXED in tokens/primitives                                                                                                |
+| Journey clarity                                    | FIXED Command Center checklist + strip + honesty                                                                          |
+| AI/integration honesty                             | FIXED ConnectionHonestyPanel                                                                                              |
+| Duplicate primitives inventory                     | Script `scripts/ui/inventory-visual-primitives.mjs`                                                                       |
+| Full surface migration of every page-local control | **CLOSED** by `RESUME_AND_COMPLETE_OMA_PLANABLE_FINAL_STYLE_CONVERGENCE` — see `docs/PLANABLE_FINAL_STYLE_CONVERGENCE.md` |
 
 ## Evidence paths
 

@@ -33,7 +33,7 @@
 .oma-btn:focus-visible {
   outline: var(--focus-ring);
   outline-offset: var(--focus-offset);
-  box-shadow: 0 0 0 3px var(--oma-focus-glow);
+  box-shadow: var(--elev-focus-strong);
 }
 .oma-btn--secondary,
 .oma-btn-secondary {
@@ -78,13 +78,15 @@
 }
 .oma-btn--danger {
   background: var(--status-danger);
-  color: #fff;
+  color: var(--oma-on-accent);
 }
-.oma-btn--sm {
-  min-height: var(--oma-control-height);
-  height: var(--oma-control-height);
+.oma-btn--sm,
+.oma-btn-compact {
+  min-height: var(--oma-control-height-compact);
+  height: var(--oma-control-height-compact);
   padding: 0 var(--space-3);
-  font-size: var(--text-control);
+  font-size: var(--text-label);
+  line-height: var(--leading-label);
 }
 .oma-btn--lg {
   min-height: var(--oma-control-height);
@@ -170,7 +172,7 @@
 .oma-select:focus-visible {
   outline: none;
   border-color: var(--oma-primary);
-  box-shadow: 0 0 0 2px var(--oma-focus-glow);
+  box-shadow: var(--elev-focus);
 }
 .oma-input:disabled,
 .oma-textarea:disabled,
@@ -189,13 +191,21 @@
 .oma-input[aria-invalid='true']:focus-visible,
 .oma-textarea[aria-invalid='true']:focus-visible,
 .oma-input.oma-input--error:focus-visible {
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--status-danger) 28%, transparent);
+  box-shadow: var(--elev-focus-danger);
 }
 .oma-input--search {
   margin-bottom: 0;
   height: var(--oma-control-height-compact);
   min-height: var(--oma-control-height-compact);
   padding-inline-start: var(--space-8);
+}
+.oma-input--compact,
+.oma-select--compact {
+  height: var(--oma-control-height-compact);
+  min-height: var(--oma-control-height-compact);
+  margin-bottom: 0;
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
 }
 
 .oma-card {
@@ -223,23 +233,23 @@
   color: var(--oma-ink-subtle);
 }
 .oma-badge--info {
-  background: #e8f0fc;
+  background: var(--oma-badge-info-bg);
   color: var(--status-info);
 }
 .oma-badge--success {
-  background: #e8f6ef;
+  background: var(--oma-badge-success-bg);
   color: var(--status-success);
 }
 .oma-badge--warning {
-  background: #fbf0dc;
+  background: var(--oma-badge-warning-bg);
   color: var(--status-warning);
 }
 .oma-badge--danger {
-  background: #fce8eb;
+  background: var(--oma-badge-danger-bg);
   color: var(--status-danger);
 }
 .oma-badge--signal {
-  background: color-mix(in srgb, var(--status-success) 12%, #ffffff);
+  background: color-mix(in srgb, var(--status-success) 12%, var(--oma-surface));
   color: var(--status-success);
 }
 .oma-badge--primary {
@@ -308,7 +318,7 @@
 .oma-skeleton {
   display: block;
   border-radius: var(--radius-sm);
-  background: linear-gradient(90deg, var(--oma-canvas), #eceef4, var(--oma-canvas));
+  background: linear-gradient(90deg, var(--oma-canvas), var(--oma-skeleton-mid), var(--oma-canvas));
   background-size: 200% 100%;
   animation: oma-skeleton-shimmer 1.2s ease-in-out infinite;
   min-height: 1em;
@@ -434,7 +444,7 @@
   padding: var(--space-1) var(--space-2);
   border-radius: var(--radius-sm);
   background: var(--oma-ink);
-  color: #fff;
+  color: var(--oma-on-accent);
   font-size: var(--text-label);
   line-height: var(--leading-label);
   pointer-events: none;
@@ -451,7 +461,7 @@
   border: 1px solid var(--oma-border);
   border-radius: var(--radius-lg);
   background: var(--oma-surface);
-  box-shadow: var(--elev-2);
+  box-shadow: var(--elev-menu);
 }
 .oma-menu {
   padding: var(--space-1);
@@ -506,7 +516,7 @@
   max-height: min(84vh, 720px);
   padding: 0;
   border: 1px solid var(--oma-border);
-  border-radius: 8px;
+  border-radius: var(--radius-dialog);
   background: var(--oma-surface);
   box-shadow: var(--elev-dialog);
   overflow: hidden;
@@ -595,6 +605,14 @@
   gap: var(--space-3);
   padding: var(--space-4) var(--space-5);
   border-bottom: 1px solid var(--oma-border);
+}
+.oma-drawer-header h2,
+.oma-drawer-title {
+  margin: 0;
+  font-size: var(--text-title-sm);
+  line-height: var(--leading-title-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--oma-ink-strong);
 }
 .oma-drawer-body {
   flex: 1 1 auto;

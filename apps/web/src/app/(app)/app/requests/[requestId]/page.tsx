@@ -543,7 +543,11 @@ export default function RequestDetailPage() {
                               alt=""
                               width={96}
                               height={120}
-                              style={{ borderRadius: 8 }}
+                              className="oma-thumb-rounded"
+                              style={{
+                                width: 96,
+                                height: 120,
+                              }} /* INTENTIONAL_EXCEPTION: layout size only */
                             />
                           ))}
                         </div>

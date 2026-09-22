@@ -67,7 +67,7 @@
   display: inline-flex;
   align-items: baseline;
   gap: var(--space-2);
-  min-height: 32px;
+  min-height: var(--oma-control-height);
   padding: 0 var(--space-3);
   border: 1px solid var(--oma-border);
   border-radius: var(--radius-md);
@@ -249,13 +249,6 @@
   margin-top: var(--space-1);
 }
 
-.oma-btn-compact,
-.oma-btn--sm.oma-btn-compact {
-  min-height: 28px;
-  padding: 0 var(--space-3);
-  font-size: var(--text-label);
-}
-
 .oma-table-primary {
   font-weight: var(--weight-semibold);
   text-decoration: none;
@@ -404,7 +397,7 @@
   display: inline-flex;
   align-items: baseline;
   gap: var(--space-2);
-  min-height: 32px;
+  min-height: var(--oma-control-height);
   padding: 0 var(--space-3);
   border: 1px solid var(--oma-border);
   border-radius: var(--oma-radius-control);
@@ -436,11 +429,11 @@
 
 .oma-discovery-item.is-selected {
   background: color-mix(in srgb, var(--oma-primary) 8%, var(--oma-surface));
-  box-shadow: inset 3px 0 0 var(--oma-primary);
+  box-shadow: var(--elev-inset-selected);
 }
 
 [dir='rtl'] .oma-discovery-item.is-selected {
-  box-shadow: inset -3px 0 0 var(--oma-primary);
+  box-shadow: inset -3px 0 0 var(--oma-primary); /* INTENTIONAL_EXCEPTION: RTL mirror of elev-inset-selected */
 }
 
 .oma-filter-chips {
@@ -551,20 +544,6 @@
   display: none;
 }
 
-.oma-drawer-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  margin-bottom: var(--space-4);
-}
-
-.oma-drawer-header h2 {
-  margin: 0;
-  font-size: var(--text-title-sm);
-  line-height: var(--leading-title-sm);
-}
-
 .oma-evidence-dl {
   display: grid;
   gap: var(--space-3);
@@ -612,7 +591,7 @@
   content: '';
   width: 6px;
   height: 6px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--oma-border-strong);
 }
 

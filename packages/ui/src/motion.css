@@ -97,7 +97,7 @@
 
 .oma-kanban-drop-indicator {
   height: 3px;
-  border-radius: 2px;
+  border-radius: var(--radius-hairline);
   background: var(--oma-primary);
   margin: 2px 0;
 }

@@ -69,19 +69,38 @@
   --space-12: 48px;
   --space-16: 64px;
 
-  /* Radius — LIVE control 6px */
+  /* Radius — LIVE control 6px; dialog panel 8px measured adaptation */
   --oma-radius-control: 6px;
   --radius-sm: 6px;
   --radius-md: 6px;
   --radius-lg: 6px;
   --radius-xl: 8px;
+  --radius-dialog: 8px;
+  --radius-pill: 999px;
+  --radius-hairline: 2px; /* kanban drop indicator */
 
   /* Elevation — LIVE rail/body mostly none; overlays measured 2026-09-22 */
   --elev-0: none;
   --elev-1: 0 1px 2px rgba(0, 0, 0, 0.04);
   --elev-2: 0 6px 16px rgba(0, 0, 0, 0.08);
   --elev-dialog: 0 12px 40px rgba(0, 0, 0, 0.14);
+  --elev-menu: 0 8px 24px rgba(0, 0, 0, 0.12);
+  --elev-inset-selected: inset 3px 0 0 var(--oma-primary);
+  --elev-inset-warning: inset 3px 0 0 var(--status-warning);
+  --elev-inset-danger: inset 3px 0 0 var(--status-danger);
+  --elev-ring-primary: 0 0 0 2px var(--oma-primary);
+  --elev-ring-soft: 0 0 0 2px var(--oma-primary-soft);
+  --elev-focus: 0 0 0 2px var(--oma-focus-glow);
+  --elev-focus-strong: 0 0 0 3px var(--oma-focus-glow);
+  --elev-focus-danger: 0 0 0 2px color-mix(in srgb, var(--status-danger) 28%, transparent);
   --oma-overlay-scrim: rgba(0, 0, 0, 0.45);
+  --oma-on-accent: #ffffff;
+  --oma-review-canvas: #eceef0; /* light Planable review well — not Frame dark */
+  --oma-skeleton-mid: #eceef4;
+  --oma-badge-info-bg: #e8f0fc;
+  --oma-badge-success-bg: #e8f6ef;
+  --oma-badge-warning-bg: #fbf0dc;
+  --oma-badge-danger-bg: #fce8eb;
 
   /* Shell geometry — LIVE 256px rail, 12px chrome inset, 32px controls */
   --shell-rail-expanded: 256px;
