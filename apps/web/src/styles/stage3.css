@@ -500,9 +500,145 @@
   align-items: center;
 }
 
+.oma-post-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  text-align: start;
+}
+
+.oma-post-card--calendar,
+.oma-post-card--saved {
+  width: 126px;
+  padding: 6px;
+  border: 1px solid #e2e3e5;
+  border-radius: 8px;
+  background: #fff;
+  transition:
+    border-color 150ms ease-out,
+    box-shadow 150ms ease-out;
+}
+
+.oma-post-card--calendar:hover,
+.oma-post-card--saved:hover,
+.oma-cal-item:hover .oma-post-card--calendar,
+.oma-cal-item:hover .oma-post-card--saved {
+  border-color: #cacdd0;
+  box-shadow:
+    0 0 1px rgba(50, 79, 58, 0.15),
+    0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.oma-post-card[data-selected='true'] {
+  outline: 2px solid #232426;
+  outline-offset: 1px;
+}
+
+.oma-post-card__media {
+  width: 100%;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: #f4f5f6;
+}
+
+.oma-post-card__media--row {
+  width: 40px;
+  height: 40px;
+}
+
+.oma-post-card--list {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.oma-post-card__title {
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.oma-post-card__caption {
+  font-size: 12px;
+  line-height: 16px;
+  color: #5c5f66;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.oma-post-card__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  font-size: 11px;
+  line-height: 16px;
+  color: #5c5f66;
+}
+
+.oma-status-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: fit-content;
+  height: 20px;
+  padding: 0 6px 0 4px;
+  border-radius: 9999px;
+  border: 1px solid #e2e3e5;
+  background: #fff;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.oma-status-mark--APPROVED,
+.oma-status-mark--SCHEDULED_LOCAL {
+  color: #237804;
+  background: #f6ffed;
+  border-color: #d9f7be;
+}
+
+.oma-status-mark--PARTIALLY_APPROVED,
+.oma-status-mark--APPROVAL_PENDING {
+  color: #874d00;
+  background: #fff7e6;
+  border-color: #ffe7ba;
+}
+
+.oma-status-mark--FAILED_SAMPLE {
+  color: #a8071a;
+  background: #fff1f0;
+  border-color: #ffccc7;
+}
+
+.oma-composer-section {
+  margin: 8px 0 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+[data-testid='demo-content-saved'] {
+  width: 200px;
+  background: #fff;
+  border-inline-start: 1px solid #e2e3e5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .oma-post-card--calendar,
+  .oma-post-card--saved {
+    transition: none;
+  }
+}
+
 .oma-cal-with-saved {
   display: grid;
-  grid-template-columns: minmax(140px, 180px) minmax(0, 1fr);
+  grid-template-columns: 200px minmax(0, 1fr);
   gap: 12px;
   align-items: start;
 }
@@ -565,6 +701,15 @@
   font-size: var(--text-meta);
   line-height: var(--leading-meta);
   font-weight: var(--weight-semibold);
+}
+
+.oma-cal-item:has(.oma-post-card) {
+  display: block;
+  width: 126px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
 
 .oma-cal-item {

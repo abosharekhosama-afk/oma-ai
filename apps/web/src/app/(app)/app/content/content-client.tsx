@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { resolveContentWorkflow, type ApprovalPolicy, type DemoGraph } from '@oma/demo';
+import { ContentFace, faceDisplay } from '../../../../components/content/content-card';
 import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
 import { TrackPill } from '../../../../components/demo/track-pill';
 import { Dialog } from '../../../../components/ui/dialog';
@@ -617,7 +618,7 @@ export default function ContentPage() {
           </option>
         </select>
       </label>
-      <label className="oma-filter-desktop">
+      <label>
         {t('demo.content.filter.approval')}
         <select
           className="oma-select"
@@ -628,6 +629,7 @@ export default function ContentPage() {
           <option value="all">{t('demo.filter.all')}</option>
           <option value="NOT_REQUESTED">{t('demo.content.approval.notRequested')}</option>
           <option value="PENDING">{t('demo.content.approval.pending')}</option>
+          <option value="PARTIALLY_APPROVED">{t('demo.content.approval.partial')}</option>
           <option value="APPROVED">{t('demo.content.approval.approved')}</option>
         </select>
       </label>
@@ -802,7 +804,9 @@ export default function ContentPage() {
       {!loading && !unavailable && !error && filtered.length > 0 && view === 'calendar' ? (
         <section data-testid="demo-content-calendar" className="oma-cal-with-saved">
           <aside data-testid="demo-content-saved" aria-label={t('demo.content.savedColumn')}>
-            <strong>{t('demo.content.savedColumn')}</strong>
+            <strong>
+              {t('demo.content.savedColumn')} ({savedItems.length})
+            </strong>
             {savedItems.length === 0 ? (
               <p>{t('demo.content.savedEmpty')}</p>
             ) : (
@@ -812,9 +816,20 @@ export default function ContentPage() {
                   type="button"
                   className="oma-cal-item"
                   data-testid={`demo-saved-item-${item.id}`}
+                  data-selected={selectedId === item.id ? 'true' : 'false'}
                   onClick={() => openItem(item)}
                 >
-                  {pickCopy(item.title, locale)}
+                  <ContentFace
+                    variant="saved"
+                    title={pickCopy(item.title, locale)}
+                    caption={item.caption ? pickCopy(item.caption, locale) : ''}
+                    channel={item.channel}
+                    when="—"
+                    asset={item.previewAsset}
+                    display={faceDisplay(item, policy)}
+                    locale={locale}
+                    selected={selectedId === item.id}
+                  />
                 </button>
               ))
             )}
@@ -899,15 +914,23 @@ export default function ContentPage() {
                       className="oma-cal-item"
                       data-status={item.status}
                       data-testid={`demo-cal-item-${item.id}`}
+                      data-selected={selectedId === item.id ? 'true' : 'false'}
                       onClick={(e) => {
                         e.stopPropagation();
                         openItem(item);
                       }}
                     >
-                      <img className="oma-cal-thumb" src={item.previewAsset} alt="" />
-                      <span>
-                        {channelMarker(item.channel)} · {pickCopy(item.title, locale)}
-                      </span>
+                      <ContentFace
+                        variant="calendar"
+                        title={pickCopy(item.title, locale)}
+                        caption={item.caption ? pickCopy(item.caption, locale) : ''}
+                        channel={item.channel}
+                        when={item.scheduledAt ? item.scheduledAt.slice(11, 16) : '—'}
+                        asset={item.previewAsset}
+                        display={faceDisplay(item, policy)}
+                        locale={locale}
+                        selected={selectedId === item.id}
+                      />
                     </button>
                   ))}
                   {extra > 0 ? (
@@ -1265,6 +1288,7 @@ export default function ContentPage() {
                         onChange={(e) => setDraft((d) => ({ ...d, cta: e.target.value }))}
                       />
                     </label>
+                    <p className="oma-composer-section">{t('demo.content.section.approval')}</p>
                     <p data-testid="demo-content-publish-state">
                       {t(
                         `demo.content.publish.${resolveContentWorkflow(selected, policy).publishDisplay}`,
@@ -1280,6 +1304,7 @@ export default function ContentPage() {
                         onChange={(e) => setDraft((d) => ({ ...d, assignee: e.target.value }))}
                       />
                     </label>
+                    <p className="oma-composer-section">{t('demo.content.section.planning')}</p>
                     <label>
                       {t('demo.create.plannedDate')}
                       <input
@@ -1303,6 +1328,11 @@ export default function ContentPage() {
                         type="button"
                         className="oma-btn oma-btn-secondary"
                         data-testid="demo-content-schedule"
+                        title={
+                          resolveContentWorkflow(selected, policy).scheduleBlocked
+                            ? t('demo.content.scheduleBlocked')
+                            : undefined
+                        }
                         disabled={
                           saving || resolveContentWorkflow(selected, policy).scheduleBlocked
                         }

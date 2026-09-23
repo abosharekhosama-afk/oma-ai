@@ -29,13 +29,21 @@ test('W1 content views keep a dated draft unscheduled until Schedule', async ({ 
   }
   await page.getByTestId('demo-content-view-calendar').click();
   await expect(page.getByTestId('demo-content-saved')).toBeVisible();
+  const approval = page.getByTestId('demo-content-filter-approval');
+  if (await approval.isVisible()) {
+    await approval.selectOption('PARTIALLY_APPROVED');
+    await page.getByTestId('demo-content-view-list').click();
+    await expect(page.getByTestId('demo-content-card-demo-content-carousel')).toBeVisible();
+    await approval.selectOption('all');
+    await page.getByTestId('demo-content-view-calendar').click();
+  }
   await page.getByTestId('demo-content-approval-policy').selectOption('OPTIONAL');
   await page.getByTestId('demo-create-content').click();
   const title = `W1 draft ${Date.now()}`;
   await page.getByTestId('demo-create-content-title').fill(title);
   await page.getByTestId('demo-create-content-submit').click();
   await page.getByRole('tab', { name: /edit|تحرير/i }).click();
-  await expect(page.getByTestId('demo-content-publish-state')).toContainText(/Draft|مسودة/);
+  await expect(page.getByTestId('demo-content-publish-state')).toContainText(/Planned date|تاريخ مخطط/);
   await page.getByTestId('demo-content-schedule').click();
   await expect(page.getByTestId('demo-content-publish-state')).toContainText(
     /Scheduled locally|مجدول/,

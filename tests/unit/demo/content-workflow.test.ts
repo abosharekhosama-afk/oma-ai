@@ -21,7 +21,7 @@ describe('content workflow separation', () => {
     });
     expect(saved?.scheduleState).toBe('UNSCHEDULED');
     expect(saved?.status).not.toBe('SCHEDULED');
-    expect(resolveContentWorkflow(saved!).publishDisplay).toBe('DRAFT');
+    expect(resolveContentWorkflow(saved!).publishDisplay).toBe('PLANNED_DATE');
     const scheduled = provider.scheduleContent(created.id);
     expect('row' in scheduled).toBe(true);
     if ('row' in scheduled && scheduled.row) {
@@ -51,6 +51,22 @@ describe('content workflow separation', () => {
     provider.updateContent(created.id, { approvalState: 'APPROVED', status: 'APPROVED' });
     const allowed = provider.scheduleContent(created.id);
     expect('row' in allowed && allowed.row?.scheduleState).toBe('SCHEDULED');
+  });
+
+  it('derives partial approval and blocks required scheduling', () => {
+    const workflow = resolveContentWorkflow(
+      {
+        status: 'IN_REVIEW',
+        scheduledAt: '2026-10-01T09:00:00.000Z',
+        scheduleState: 'UNSCHEDULED',
+        approverApproved: 1,
+        approverRequired: 2,
+      },
+      'REQUIRED',
+    );
+    expect(workflow.approvalState).toBe('PARTIALLY_APPROVED');
+    expect(workflow.publishDisplay).toBe('PARTIALLY_APPROVED');
+    expect(assertCanSchedule(workflow)).toBe('APPROVAL_REQUIRED');
   });
 
   it('disables approval requests when policy is NONE', () => {

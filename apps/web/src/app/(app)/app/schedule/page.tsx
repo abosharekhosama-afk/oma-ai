@@ -110,11 +110,27 @@ export default function SchedulePage() {
                 ? plannedAtDraft
                 : `${plannedAtDraft}+03:00`,
           channels: channels.length ? channels : selected.channels,
-          state: 'SCHEDULED_PREVIEW',
         }),
       });
       setRows((list) => list.map((r) => (r.id === updated.id ? updated : r)));
       setRescheduleOpen(false);
+      toast.push(t('demo.schedule.saved'), 'success');
+    } catch (err) {
+      toast.push(demoErrorMessage(err, 'Demo unavailable'), 'danger');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function setScheduleState(state: ScheduleRow['state']) {
+    if (!selected) return;
+    setSaving(true);
+    try {
+      const updated = await demoApi<ScheduleRow>(`/schedule/${selected.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ state }),
+      });
+      setRows((list) => list.map((r) => (r.id === updated.id ? updated : r)));
       toast.push(t('demo.schedule.saved'), 'success');
     } catch (err) {
       toast.push(demoErrorMessage(err, 'Demo unavailable'), 'danger');
@@ -425,6 +441,33 @@ export default function SchedulePage() {
         {selected ? (
           <div className="oma-stack" data-testid="demo-schedule-drawer">
             <StatusChip status={selected.state} />
+            <p data-testid="demo-schedule-truth">
+              {selected.state === 'SCHEDULED_PREVIEW'
+                ? t('demo.schedule.truth.scheduled')
+                : selected.state === 'BLOCKED'
+                  ? t('demo.schedule.truth.blocked')
+                  : t('demo.schedule.truth.planned')}
+            </p>
+            <div className="oma-chip-row">
+              <button
+                type="button"
+                className="oma-btn oma-btn-primary"
+                data-testid="demo-schedule-command"
+                disabled={saving || selected.state === 'BLOCKED'}
+                onClick={() => void setScheduleState('SCHEDULED_PREVIEW')}
+              >
+                {t('demo.content.schedule')}
+              </button>
+              <button
+                type="button"
+                className="oma-btn oma-btn-secondary"
+                data-testid="demo-schedule-unschedule"
+                disabled={saving}
+                onClick={() => void setScheduleState('PLANNED')}
+              >
+                {t('demo.content.unschedule')}
+              </button>
+            </div>
             <p className="oma-muted">
               {selected.plannedAt} · {selected.timezone}
             </p>

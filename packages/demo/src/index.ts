@@ -8,10 +8,11 @@ import {
   resolveContentWorkflow,
   type ApprovalPolicy,
   type ApprovalState,
+  type PublishDisplay,
   type ScheduleState,
 } from './content-workflow';
 
-export type { ApprovalPolicy, ApprovalState, ScheduleState };
+export type { ApprovalPolicy, ApprovalState, PublishDisplay, ScheduleState };
 export { assertCanSchedule, resolveContentWorkflow };
 
 export type DemoLocaleCopy = { en: string; ar: string };
@@ -121,6 +122,8 @@ export type DemoGraph = {
     plannedAt?: string | null;
     scheduleState?: ScheduleState;
     approvalState?: ApprovalState;
+    approverApproved?: number;
+    approverRequired?: number;
     publishSample?: 'PUBLISHED_SAMPLE' | 'FAILED_SAMPLE';
     assignee: string;
     previewAsset: string;
@@ -625,6 +628,8 @@ export const DEMO_GRAPH: DemoGraph = {
       channel: 'Instagram',
       contentType: 'CAROUSEL',
       status: 'IN_REVIEW',
+      approverApproved: 1,
+      approverRequired: 2,
       scheduledAt: '2026-09-14T11:00:00+03:00',
       assignee: 'Rami Khalil',
       previewAsset: '/demo/poster-carousel-1.svg',
@@ -648,7 +653,9 @@ export const DEMO_GRAPH: DemoGraph = {
       channel: 'Meta Ads',
       contentType: 'STATIC',
       status: 'DRAFT',
-      scheduledAt: '2026-09-16T10:00:00+03:00',
+      scheduledAt: null,
+      plannedAt: null,
+      scheduleState: 'UNSCHEDULED',
       assignee: 'Sara Alami',
       previewAsset: '/demo/poster-static.svg',
       deliverableId: 'demo-deliv-static',
