@@ -37,6 +37,10 @@ A route or a test is not UX parity.
 | G-029  | Client visibility                                    | `MISSING`                       | Team-only vs all-members filter is not on content                                                | Visibility control on the item                                            | Filter hides team-only items from clients          | EV-HC-FILTER                               | P1       | W2   | Production-shaped                                              | No                 |
 | G-030  | Mobile views                                         | `UNKNOWN`                       | Help proves a mobile view switcher only                                                          | Do not claim breakpoint parity                                            | Measured later                                     | EV-HC-CAL                                  | P3       | W4   | —                                                              | No                 |
 
+## W1 implementation note (2026-09-23)
+
+G-007, G-008, G-009, G-014, G-015, and G-016 are **not closed**. The demo content workflow now has four views, a Saved column, save-draft versus Schedule, None/Optional/Required, and text publish labels. Planable icon art, partial-approval filter, and the schedule page itself are still open. Visual differential is `NOT_PASS`.
+
 ## Wave order
 
 1. **W1** G-007, G-008, G-009, G-014, G-015, G-016 — views, draft versus schedule, approval policy, publish states.
