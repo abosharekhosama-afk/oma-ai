@@ -1,0 +1,35 @@
+{
+  "stage": "PLANABLE_OFFICIAL_PRODUCT_REFERENCE_EXPANSION_AND_OMA_GAP_MATRIX",
+  "accessDate": "2026-09-23",
+  "liveApp": "NOT_OPENED",
+  "helpCenterDirectFetch": "ACCESS_BLOCKED_CLOUDFLARE",
+  "evidence": [
+    "EV-HC-INDEX",
+    "EV-HC-CAL",
+    "EV-HC-FILTER",
+    "EV-HC-CUSTOM",
+    "EV-HC-CUSTOM-USE",
+    "EV-HC-SCHED",
+    "EV-HC-STATUS",
+    "EV-HC-APPROVAL",
+    "EV-HC-ML",
+    "EV-HC-APPROVE",
+    "EV-HC-WS",
+    "EV-HC-API",
+    "EV-GUIDE-API",
+    "EV-API-DOCS",
+    "EV-CHG-V2",
+    "EV-CHG-HOME",
+    "EV-MKT-HOME",
+    "EV-CREATE"
+  ],
+  "measurementsProven": [],
+  "limitations": [
+    "Help Center HTML blocked by Cloudflare; facts taken from official URL snippets.",
+    "Create-a-post article body not retrieved.",
+    "Interactive API reference not fetched.",
+    "No new live UI measurements.",
+    "Reject and request-changes commands are UNKNOWN.",
+    "Colors, spacing, and motion timings are UNKNOWN."
+  ]
+}

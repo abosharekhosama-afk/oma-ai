@@ -7,29 +7,34 @@
 **Mode:** `REFERENCE_AND_SPEC_ONLY`
 **Implementation:** P1–P6 engineering complete. Owner visual review **REJECTED** (2026-09-22). P7 visual certification superseded. Component-parity rebuild required — see `docs/OWNER_REJECTION_PLANABLE_COMPONENT_AUDIT.md`.
 
-| State                             | Value                                        |
-| --------------------------------- | -------------------------------------------- |
-| DEC-017                           | `RESOLVED — PLANABLE_SINGLE_UI_UX_REFERENCE` |
-| PLANABLE                          | `PRIMARY_AND_SOLE_UI_UX_AUTHORITY`           |
-| OWNER_VISUAL_REVIEW               | `REJECTED`                                   |
-| PREVIOUS_VISUAL_CERTIFICATIONS    | `SUPERSEDED_BY_OWNER_REJECTION`              |
-| PLANABLE_REFERENCE_BASELINE       | `COMPLETE`                                   |
-| PLANABLE_UI_UX_STAGE_P1           | `COMPLETE`                                   |
-| PLANABLE_UI_UX_STAGE_P2           | `COMPLETE`                                   |
-| PLANABLE_UI_UX_STAGE_P3           | `COMPLETE`                                   |
-| PLANABLE_UI_UX_STAGE_P4           | `COMPLETE`                                   |
-| PLANABLE_UI_UX_STAGE_P5           | `COMPLETE`                                   |
-| PLANABLE_UI_UX_STAGE_P6           | `COMPLETE`                                   |
-| PLANABLE_UI_UX_IMPLEMENTATION     | `COMPLETE`                                   |
-| PLANABLE_FULL_UI_UX_CERTIFICATION | `TECHNICAL_PASS_VISUAL_REJECTED_BY_OWNER`    |
-| PLANABLE_COMPONENT_PARITY_REBUILD | `COMPLETE_PENDING_OWNER_REVIEW`              |
-| VISUAL_ACCEPTANCE                 | `PENDING_OWNER`                              |
-| USER_ACCEPTANCE                   | `PENDING`                                    |
-| EXTERNAL_INTEGRATIONS             | `DEFERRED`                                   |
+| State                                 | Value                                           |
+| ------------------------------------- | ----------------------------------------------- |
+| DEC-017                               | `RESOLVED — PLANABLE_SINGLE_UI_UX_REFERENCE`    |
+| PLANABLE                              | `PRIMARY_AND_SOLE_UI_UX_AND_WORKFLOW_REFERENCE` |
+| OWNER_VISUAL_REVIEW                   | `REJECTED`                                      |
+| PREVIOUS_VISUAL_CERTIFICATIONS        | `SUPERSEDED_BY_OWNER_REJECTION`                 |
+| PLANABLE_REFERENCE_BASELINE           | `COMPLETE`                                      |
+| PLANABLE_UI_UX_STAGE_P1               | `COMPLETE`                                      |
+| PLANABLE_UI_UX_STAGE_P2               | `COMPLETE`                                      |
+| PLANABLE_UI_UX_STAGE_P3               | `COMPLETE`                                      |
+| PLANABLE_UI_UX_STAGE_P4               | `COMPLETE`                                      |
+| PLANABLE_UI_UX_STAGE_P5               | `COMPLETE`                                      |
+| PLANABLE_UI_UX_STAGE_P6               | `COMPLETE`                                      |
+| PLANABLE_UI_UX_IMPLEMENTATION         | `COMPLETE`                                      |
+| PLANABLE_FULL_UI_UX_CERTIFICATION     | `TECHNICAL_PASS_VISUAL_REJECTED_BY_OWNER`       |
+| PLANABLE_COMPONENT_PARITY_REBUILD     | `COMPLETE_PENDING_OWNER_REVIEW`                 |
+| VISUAL_ACCEPTANCE                     | `REJECTED`                                      |
+| USER_ACCEPTANCE                       | `PENDING`                                       |
+| EXTERNAL_INTEGRATIONS                 | `DEFERRED`                                      |
+| PLANABLE_OFFICIAL_REFERENCE_EXPANSION | `COMPLETE`                                      |
+| PLANABLE_FULL_PRODUCT_GAP_MATRIX      | `READY_FOR_IMPLEMENTATION`                      |
+| OPENAI_OFFLINE_CERTIFICATION_GAPS     | `PAUSED_PENDING_REFERENCE_ALIGNMENT`            |
+| OPENAI_LIVE_ACCESS                    | `NOT_VERIFIED`                                  |
+| AI_LIVE_ENABLED                       | `FALSE`                                         |
 
 ## Decision
 
-Planable is the **primary and sole UI/UX authority** for OMA.
+Planable is the **primary and sole UI/UX and workflow reference** for OMA.
 
 Product app (authoritative for components): `https://app.planable.io/`
 Marketing (brand context only): `https://planable.io/` and `https://planable.io/product/`
@@ -95,6 +100,26 @@ Authenticated read-only inspection of an existing `app.planable.io` session over
 
 ## Next permitted stage
 
-`IMPLEMENT_OMA_PLANABLE_UI_UX_REBUILD_STAGE_P1`
+`IMPLEMENT_OMA_PLANABLE_OFFICIAL_REFERENCE_GAPS`
 
 Do not implement until that stage is explicitly requested.
+
+## 2026-09-23 official product expansion
+
+Prior sections stay in force. This expansion adds workflow authority. It does not delete the 2026-09-16 decision or the 2026-09-22 owner rejection.
+
+Planable is the sole reference for UI language, interaction language, content-planning workflow, collaboration UX, approval UX, scheduling UX, view organization, and component behavior.
+
+Explicit limits:
+
+- This is not a literal copy of the Planable brand.
+- OMA does not copy Planable code, assets, or logos.
+- OMA identity, tenancy, authentication, capabilities, audit, immutable approvals, Brand Intelligence, Organic/Paid strategy, AI governance, and DEC-016 stay independent.
+- On conflict, OMA security, tenancy, audit, and immutability win.
+- The public API does not prove Planable's internal architecture.
+
+Source order, conflict rules, and Evidence IDs: `docs/PLANABLE_REFERENCE_AUTHORITY.md` and `docs/PLANABLE_OFFICIAL_SOURCE_REGISTRY.md`.
+
+Historical live measurements in `.reference/005-planable-ui-ux/` remain. Where a 2026-09-23 Help Center statement is more specific about workflow, the new Evidence ID supersedes the older workflow claim. Pixel measurements from 2026-09-22 are not re-proven by this expansion (`SUPERSEDED_BY` does not apply to unmeasured color or motion).
+
+`IMPLEMENT_OMA_OPENAI_TEXT_INTELLIGENCE_OFFLINE_CERTIFICATION_GAPS` is paused until the Planable journey is the implementation baseline. Existing AI code is unchanged in this expansion.
