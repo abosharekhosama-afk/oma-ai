@@ -193,6 +193,38 @@ export class DemoController {
   @Patch('content/:id')
   updateContent(@Param('id') id: string, @Body() body: Record<string, unknown>) {
     this.requireDemo();
+    if (body.command === 'schedule') {
+      const result = demoDataProvider.scheduleContent(id);
+      if ('error' in result) {
+        throw new BadRequestException(result.error);
+      }
+      return { data: result.row };
+    }
+    if (body.command === 'unschedule') {
+      const row = demoDataProvider.unscheduleContent(id);
+      if (!row) throw new NotFoundException('Not found');
+      return { data: row };
+    }
+    if (body.command === 'request-approval') {
+      const result = demoDataProvider.requestContentApproval(id);
+      if ('error' in result) throw new BadRequestException(result.error);
+      return { data: result.row };
+    }
+    if (body.command === 'save-draft') {
+      const patch: DemoContentPatch = {};
+      if (body.caption !== undefined) patch.caption = asCopy(body.caption, 'caption');
+      if (body.objective !== undefined) patch.objective = asCopy(body.objective, 'objective');
+      if (body.cta !== undefined) patch.cta = asCopy(body.cta, 'cta');
+      if (typeof body.assignee === 'string') patch.assignee = body.assignee;
+      if (typeof body.channel === 'string') patch.channel = body.channel;
+      if (body.plannedAt !== undefined || body.scheduledAt !== undefined) {
+        const raw = body.plannedAt !== undefined ? body.plannedAt : body.scheduledAt;
+        patch.plannedAt = raw === null || raw === '' ? null : String(raw);
+      }
+      const row = demoDataProvider.saveContentDraft(id, patch);
+      if (!row) throw new NotFoundException('Not found');
+      return { data: row };
+    }
     const patch: DemoContentPatch = {};
     if (body.title !== undefined) patch.title = asCopy(body.title, 'title');
     if (body.caption !== undefined) patch.caption = asCopy(body.caption, 'caption');
@@ -683,10 +715,25 @@ export class DemoController {
         partial.weekStart = body.weekStart;
       }
       if (body.defaultContentView !== undefined) {
-        if (body.defaultContentView !== 'list' && body.defaultContentView !== 'calendar') {
-          throw new BadRequestException('defaultContentView must be list or calendar');
+        if (
+          body.defaultContentView !== 'list' &&
+          body.defaultContentView !== 'calendar' &&
+          body.defaultContentView !== 'feed' &&
+          body.defaultContentView !== 'grid'
+        ) {
+          throw new BadRequestException('defaultContentView must be list, calendar, feed, or grid');
         }
         partial.defaultContentView = body.defaultContentView;
+      }
+      if (body.approvalPolicy !== undefined) {
+        if (
+          body.approvalPolicy !== 'NONE' &&
+          body.approvalPolicy !== 'OPTIONAL' &&
+          body.approvalPolicy !== 'REQUIRED'
+        ) {
+          throw new BadRequestException('approvalPolicy must be NONE, OPTIONAL, or REQUIRED');
+        }
+        partial.approvalPolicy = body.approvalPolicy;
       }
       if (body.defaultTaskView !== undefined) {
         if (body.defaultTaskView !== 'board' && body.defaultTaskView !== 'list') {

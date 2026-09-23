@@ -500,6 +500,19 @@
   align-items: center;
 }
 
+.oma-cal-with-saved {
+  display: grid;
+  grid-template-columns: minmax(140px, 180px) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+[data-testid='demo-content-saved'] {
+  border: 1px solid var(--oma-border);
+  border-radius: var(--oma-radius-control);
+  padding: 8px;
+}
+
 .oma-cal-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -789,6 +802,10 @@
 }
 
 @media (max-width: 1024px) {
+  .oma-cal-with-saved {
+    grid-template-columns: 1fr;
+  }
+
   .oma-content-list-head {
     display: none;
   }

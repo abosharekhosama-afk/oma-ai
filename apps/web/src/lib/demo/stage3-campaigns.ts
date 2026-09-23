@@ -36,7 +36,14 @@ export function campaignReviewState(items: ContentRow[]): string {
   if (items.some((i) => i.status === 'IN_REVIEW')) return 'IN_REVIEW';
   if (items.some((i) => i.status === 'DRAFT')) return 'DRAFT';
   if (items.some((i) => i.status === 'APPROVED')) return 'APPROVED';
-  if (items.some((i) => i.status === 'SCHEDULED')) return 'SCHEDULED';
+  if (
+    items.some(
+      (i) =>
+        i.scheduleState === 'SCHEDULED' || (i.scheduleState == null && i.status === 'SCHEDULED'),
+    )
+  ) {
+    return 'SCHEDULED';
+  }
   if (items.some((i) => i.status === 'PUBLISHED_DEMO')) return 'PUBLISHED_DEMO';
   return 'CLEAR';
 }

@@ -1,4 +1,4 @@
-import type { DemoGraph } from '@oma/demo';
+import { resolveContentWorkflow, type ApprovalPolicy, type DemoGraph } from '@oma/demo';
 
 export type ContentRow = DemoGraph['contentItems'][number];
 export type DeliverableRow = DemoGraph['deliverables'][number];
@@ -12,6 +12,7 @@ export type ContentFilters = {
   contentType: string;
   status: string;
   review: string;
+  approval: string;
   assignee: string;
   dateFrom: string;
   dateTo: string;
@@ -25,6 +26,7 @@ export const EMPTY_CONTENT_FILTERS: ContentFilters = {
   contentType: 'all',
   status: 'all',
   review: 'all',
+  approval: 'all',
   assignee: 'all',
   dateFrom: '',
   dateTo: '',
@@ -49,6 +51,10 @@ export function filterContent(
     if (filters.assignee !== 'all' && item.assignee !== filters.assignee) return false;
     if (filters.review === 'needs' && item.status !== 'IN_REVIEW') return false;
     if (filters.review === 'approved' && item.status !== 'APPROVED') return false;
+    if (filters.approval !== 'all') {
+      const approval = resolveContentWorkflow(item).approvalState;
+      if (approval !== filters.approval) return false;
+    }
     if (filters.dateFrom || filters.dateTo) {
       if (!item.scheduledAt) return false;
       const day = item.scheduledAt.slice(0, 10);
@@ -73,6 +79,7 @@ export function activeContentFilterCount(filters: ContentFilters): number {
   if (filters.contentType !== 'all') n += 1;
   if (filters.status !== 'all') n += 1;
   if (filters.review !== 'all') n += 1;
+  if (filters.approval !== 'all') n += 1;
   if (filters.assignee !== 'all') n += 1;
   if (filters.dateFrom) n += 1;
   if (filters.dateTo) n += 1;
@@ -101,6 +108,7 @@ export function contentFilterChips(
   if (filters.contentType !== 'all') chips.push({ id: 'contentType', label: filters.contentType });
   if (filters.status !== 'all') chips.push({ id: 'status', label: labels.status(filters.status) });
   if (filters.review !== 'all') chips.push({ id: 'review', label: labels.review(filters.review) });
+  if (filters.approval !== 'all') chips.push({ id: 'approval', label: filters.approval });
   if (filters.assignee !== 'all') chips.push({ id: 'assignee', label: filters.assignee });
   if (filters.dateFrom) chips.push({ id: 'dateFrom', label: filters.dateFrom });
   if (filters.dateTo) chips.push({ id: 'dateTo', label: filters.dateTo });
@@ -115,6 +123,7 @@ export function clearContentChip(filters: ContentFilters, id: string): ContentFi
   if (id === 'contentType') return { ...filters, contentType: 'all' };
   if (id === 'status') return { ...filters, status: 'all' };
   if (id === 'review') return { ...filters, review: 'all' };
+  if (id === 'approval') return { ...filters, approval: 'all' };
   if (id === 'assignee') return { ...filters, assignee: 'all' };
   if (id === 'dateFrom') return { ...filters, dateFrom: '' };
   if (id === 'dateTo') return { ...filters, dateTo: '' };
@@ -129,7 +138,7 @@ export function dayKey(iso: string | null | undefined): string | null {
 export function groupContentByDay(items: ContentRow[]): Map<string, ContentRow[]> {
   const map = new Map<string, ContentRow[]>();
   for (const item of items) {
-    const key = dayKey(item.scheduledAt);
+    const key = dayKey(resolveContentWorkflow(item).plannedAt);
     if (!key) continue;
     const list = map.get(key) ?? [];
     list.push(item);

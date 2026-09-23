@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { DemoGraph } from '@oma/demo';
+import { resolveContentWorkflow, type ApprovalPolicy, type DemoGraph } from '@oma/demo';
 import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
 import { TrackPill } from '../../../../components/demo/track-pill';
 import { Dialog } from '../../../../components/ui/dialog';
@@ -144,6 +144,7 @@ export default function ContentPage() {
   const [error, setError] = useState<string | null>(null);
   const [unavailable, setUnavailable] = useState(false);
   const [filterSheet, setFilterSheet] = useState(false);
+  const [policy, setPolicy] = useState<ApprovalPolicy>('OPTIONAL');
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<DraftFields>(emptyDraft());
@@ -183,6 +184,7 @@ export default function ContentPage() {
     try {
       const graph = await demoApi<DemoGraph>('/graph');
       setRows(graph.contentItems);
+      setPolicy(graph.demoPreferences.approvalPolicy ?? 'OPTIONAL');
       setCampaigns(graph.campaigns);
       setBrands(graph.brands);
       setTasks(graph.tasks);
@@ -239,6 +241,10 @@ export default function ContentPage() {
   );
 
   const filtered = useMemo(() => filterContent(rows, filters, locale), [rows, filters, locale]);
+  const savedItems = useMemo(
+    () => filtered.filter((item) => !resolveContentWorkflow(item, policy).plannedAt),
+    [filtered, policy],
+  );
   const sorted = useMemo(
     () => sortContent(filtered, sortKey, sortDir, locale, campaignName),
     [filtered, sortKey, sortDir, locale, campaignName],
@@ -364,10 +370,10 @@ export default function ContentPage() {
           caption: mergeLocaleCopy(selected.caption, draft.caption, locale),
           objective: mergeLocaleCopy(selected.objective, draft.objective, locale),
           cta: mergeLocaleCopy(selected.cta, draft.cta, locale),
-          status: draft.status,
           assignee: draft.assignee,
           channel: draft.channel,
-          scheduledAt: draft.scheduledAt ? new Date(draft.scheduledAt).toISOString() : null,
+          command: 'save-draft',
+          plannedAt: draft.scheduledAt ? new Date(draft.scheduledAt).toISOString() : null,
         }),
       });
       setRows((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
@@ -380,6 +386,37 @@ export default function ContentPage() {
       const msg = demoErrorMessage(err, t('demo.create.validation'));
       setSaveError(msg);
       setSaveState('error');
+      toast.push(msg, 'danger');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function changePolicy(next: ApprovalPolicy) {
+    setPolicy(next);
+    await demoApi('/preferences', {
+      method: 'PATCH',
+      body: JSON.stringify({ approvalPolicy: next }),
+    });
+  }
+
+  async function runCommand(command: 'schedule' | 'unschedule' | 'request-approval') {
+    if (!selectedId) return;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const updated = await demoApi<ContentRow>(`/content/${selectedId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ command }),
+      });
+      setRows((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
+      const next = draftFromItem(updated, locale);
+      setDraft(next);
+      setBaseline(next);
+      toast.push(t('demo.content.saved'), 'success');
+    } catch (err) {
+      const msg = demoErrorMessage(err, t('demo.content.scheduleBlocked'));
+      setSaveError(msg);
       toast.push(msg, 'danger');
     } finally {
       setSaving(false);
@@ -581,6 +618,20 @@ export default function ContentPage() {
         </select>
       </label>
       <label className="oma-filter-desktop">
+        {t('demo.content.filter.approval')}
+        <select
+          className="oma-select"
+          value={filters.approval}
+          data-testid="demo-content-filter-approval"
+          onChange={(e) => setFilters((f) => ({ ...f, approval: e.target.value }))}
+        >
+          <option value="all">{t('demo.filter.all')}</option>
+          <option value="NOT_REQUESTED">{t('demo.content.approval.notRequested')}</option>
+          <option value="PENDING">{t('demo.content.approval.pending')}</option>
+          <option value="APPROVED">{t('demo.content.approval.approved')}</option>
+        </select>
+      </label>
+      <label className="oma-filter-desktop">
         {t('demo.content.filter.owner')}
         <select
           className="oma-select"
@@ -646,6 +697,19 @@ export default function ContentPage() {
                 </button>
               ))}
             </div>
+            <label>
+              {t('demo.content.policy')}
+              <select
+                className="oma-select"
+                value={policy}
+                data-testid="demo-content-approval-policy"
+                onChange={(e) => void changePolicy(e.target.value as ApprovalPolicy)}
+              >
+                <option value="NONE">NONE</option>
+                <option value="OPTIONAL">OPTIONAL</option>
+                <option value="REQUIRED">REQUIRED</option>
+              </select>
+            </label>
             <span className="oma-item-count">
               {filtered.length} / {rows.length}
             </span>
@@ -736,7 +800,25 @@ export default function ContentPage() {
       ) : null}
 
       {!loading && !unavailable && !error && filtered.length > 0 && view === 'calendar' ? (
-        <section data-testid="demo-content-calendar">
+        <section data-testid="demo-content-calendar" className="oma-cal-with-saved">
+          <aside data-testid="demo-content-saved" aria-label={t('demo.content.savedColumn')}>
+            <strong>{t('demo.content.savedColumn')}</strong>
+            {savedItems.length === 0 ? (
+              <p>{t('demo.content.savedEmpty')}</p>
+            ) : (
+              savedItems.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className="oma-cal-item"
+                  data-testid={`demo-saved-item-${item.id}`}
+                  onClick={() => openItem(item)}
+                >
+                  {pickCopy(item.title, locale)}
+                </button>
+              ))
+            )}
+          </aside>
           <div className="oma-cal-toolbar">
             <strong>{monthLabel(cursor.year, cursor.monthIndex, locale)}</strong>
             <div className="oma-cal-nav">
@@ -916,7 +998,12 @@ export default function ContentPage() {
               </p>
               <span className="oma-muted">{campaignName(item.campaignId)}</span>
               <div className="oma-chip-row">
-                <StatusChip status={item.status} label={statusLabel(item.status, locale)} />
+                <StatusChip
+                  status={item.status}
+                  label={t(
+                    `demo.content.publish.${resolveContentWorkflow(item, policy).publishDisplay}`,
+                  )}
+                />
                 <span className="oma-muted">{item.assignee}</span>
                 <span className="oma-ltr oma-muted">
                   {item.scheduledAt ? item.scheduledAt.slice(0, 16) : '—'}
@@ -983,7 +1070,12 @@ export default function ContentPage() {
               <span className="oma-muted">{item.channel}</span>
               <span className="oma-muted">{campaignName(item.campaignId)}</span>
               <span className="oma-muted">{item.assignee}</span>
-              <StatusChip status={item.status} label={statusLabel(item.status, locale)} />
+              <StatusChip
+                status={item.status}
+                label={t(
+                  `demo.content.publish.${resolveContentWorkflow(item, policy).publishDisplay}`,
+                )}
+              />
               <span className="oma-muted">{statusLabel(item.status, locale)}</span>
               <span className="oma-ltr oma-muted">
                 {item.scheduledAt ? item.scheduledAt.slice(0, 10) : '—'}
@@ -1019,7 +1111,12 @@ export default function ContentPage() {
                 <strong>{pickCopy(item.title, locale)}</strong>
                 <div className="oma-chip-row">
                   <span className="oma-cal-marker">{channelMarker(item.channel)}</span>
-                  <StatusChip status={item.status} label={statusLabel(item.status, locale)} />
+                  <StatusChip
+                    status={item.status}
+                    label={t(
+                      `demo.content.publish.${resolveContentWorkflow(item, policy).publishDisplay}`,
+                    )}
+                  />
                 </div>
                 <span className="oma-muted">{campaignName(item.campaignId)}</span>
                 <span className="oma-ltr oma-muted">
@@ -1168,20 +1265,13 @@ export default function ContentPage() {
                         onChange={(e) => setDraft((d) => ({ ...d, cta: e.target.value }))}
                       />
                     </label>
-                    <label>
-                      {t('demo.filter.status')}
-                      <select
-                        className="oma-select"
-                        value={draft.status}
-                        onChange={(e) => setDraft((d) => ({ ...d, status: e.target.value }))}
-                      >
-                        {statuses.map((s) => (
-                          <option key={s} value={s}>
-                            {statusLabel(s, locale)}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+                    <p data-testid="demo-content-publish-state">
+                      {t(
+                        `demo.content.publish.${resolveContentWorkflow(selected, policy).publishDisplay}`,
+                      )}
+                      {' · '}
+                      {t('demo.content.noPublishing')}
+                    </p>
                     <label>
                       {t('demo.content.filter.owner')}
                       <input
@@ -1209,6 +1299,37 @@ export default function ContentPage() {
                       >
                         {saving ? t('demo.content.saving') : t('demo.content.save')}
                       </button>
+                      <button
+                        type="button"
+                        className="oma-btn oma-btn-secondary"
+                        data-testid="demo-content-schedule"
+                        disabled={
+                          saving || resolveContentWorkflow(selected, policy).scheduleBlocked
+                        }
+                        onClick={() => void runCommand('schedule')}
+                      >
+                        {t('demo.content.schedule')}
+                      </button>
+                      <button
+                        type="button"
+                        className="oma-btn oma-btn-secondary"
+                        data-testid="demo-content-unschedule"
+                        disabled={saving}
+                        onClick={() => void runCommand('unschedule')}
+                      >
+                        {t('demo.content.unschedule')}
+                      </button>
+                      {policy !== 'NONE' ? (
+                        <button
+                          type="button"
+                          className="oma-btn oma-btn-secondary"
+                          data-testid="demo-content-request-approval"
+                          disabled={saving}
+                          onClick={() => void runCommand('request-approval')}
+                        >
+                          {t('demo.content.requestApproval')}
+                        </button>
+                      ) : null}
                     </div>
                   </div>
                 ) : (

@@ -3,6 +3,17 @@
  * Guarded by assertDemoModeAllowed(); never active in production.
  */
 
+import {
+  assertCanSchedule,
+  resolveContentWorkflow,
+  type ApprovalPolicy,
+  type ApprovalState,
+  type ScheduleState,
+} from './content-workflow';
+
+export type { ApprovalPolicy, ApprovalState, ScheduleState };
+export { assertCanSchedule, resolveContentWorkflow };
+
 export type DemoLocaleCopy = { en: string; ar: string };
 
 export type DemoBrandState = 'healthy' | 'partial' | 'draft';
@@ -107,6 +118,10 @@ export type DemoGraph = {
     contentType: 'REEL' | 'CAROUSEL' | 'STATIC' | 'STORY' | 'POST';
     status: DemoContentStatus;
     scheduledAt: string | null;
+    plannedAt?: string | null;
+    scheduleState?: ScheduleState;
+    approvalState?: ApprovalState;
+    publishSample?: 'PUBLISHED_SAMPLE' | 'FAILED_SAMPLE';
     assignee: string;
     previewAsset: string;
     deliverableId: string | null;
@@ -348,7 +363,8 @@ export type DemoGraph = {
   demoPreferences: {
     timezone: string;
     weekStart: 'monday' | 'sunday';
-    defaultContentView: 'list' | 'calendar';
+    defaultContentView: 'list' | 'calendar' | 'feed' | 'grid';
+    approvalPolicy: ApprovalPolicy;
     defaultTaskView: 'board' | 'list';
     reviewReminders: boolean;
     localePreference: 'en' | 'ar' | 'system';
@@ -3415,6 +3431,7 @@ export const DEMO_GRAPH: DemoGraph = {
     timezone: 'Asia/Dubai',
     weekStart: 'monday',
     defaultContentView: 'list',
+    approvalPolicy: 'OPTIONAL',
     defaultTaskView: 'board',
     reviewReminders: true,
     localePreference: 'system',
@@ -3491,6 +3508,9 @@ export type DemoContentInput = {
   owner: string;
   scheduledAt: string | null;
   status?: DemoContentStatus;
+  plannedAt?: string | null;
+  scheduleState?: ScheduleState;
+  approvalState?: ApprovalState;
   caption?: DemoLocaleCopy;
   objective?: DemoLocaleCopy;
   cta?: DemoLocaleCopy;
@@ -3504,6 +3524,9 @@ export type DemoContentPatch = Partial<{
   cta: DemoLocaleCopy;
   status: DemoContentStatus;
   scheduledAt: string | null;
+  plannedAt?: string | null;
+  scheduleState?: ScheduleState;
+  approvalState?: ApprovalState;
   assignee: string;
   channel: string;
 }>;
@@ -4225,8 +4248,11 @@ export class DemoDataProvider {
       track: input.track || campaign.track,
       channel: input.channel,
       contentType: input.contentType,
-      status: input.status ?? 'DRAFT',
+      status: input.status === 'SCHEDULED' ? 'DRAFT' : (input.status ?? 'DRAFT'),
       scheduledAt: input.scheduledAt,
+      plannedAt: input.plannedAt !== undefined ? input.plannedAt : input.scheduledAt,
+      scheduleState: input.scheduleState ?? 'UNSCHEDULED',
+      approvalState: input.approvalState ?? 'NOT_REQUESTED',
       assignee: input.owner,
       previewAsset: input.previewAsset ?? previewForType(input.contentType),
       deliverableId: null,
@@ -4255,6 +4281,50 @@ export class DemoDataProvider {
     return next;
   }
 
+  saveContentDraft(id: string, patch: DemoContentPatch) {
+    const current = this.graph.contentItems.find((c) => c.id === id);
+    if (!current) return null;
+    const plannedAt = patch.plannedAt !== undefined ? patch.plannedAt : patch.scheduledAt;
+    return this.updateContent(id, {
+      ...patch,
+      status: current.status === 'SCHEDULED' ? 'DRAFT' : current.status,
+      plannedAt: plannedAt === undefined ? current.plannedAt : plannedAt,
+      scheduledAt: plannedAt === undefined ? current.scheduledAt : plannedAt,
+      scheduleState:
+        current.scheduleState ?? (current.status === 'SCHEDULED' ? 'SCHEDULED' : 'UNSCHEDULED'),
+    });
+  }
+
+  scheduleContent(id: string) {
+    const current = this.graph.contentItems.find((c) => c.id === id);
+    if (!current) return { error: 'NOT_FOUND' as const };
+    const policy = this.graph.demoPreferences.approvalPolicy ?? 'OPTIONAL';
+    const workflow = resolveContentWorkflow(current, policy);
+    const gate = assertCanSchedule(workflow);
+    if (gate !== 'OK') return { error: gate };
+    const row = this.updateContent(id, {
+      scheduleState: 'SCHEDULED',
+      plannedAt: workflow.plannedAt,
+      scheduledAt: workflow.plannedAt,
+      status: current.status === 'SCHEDULED' ? 'DRAFT' : current.status,
+    });
+    return { row };
+  }
+
+  unscheduleContent(id: string) {
+    const current = this.graph.contentItems.find((c) => c.id === id);
+    if (!current) return null;
+    return this.updateContent(id, { scheduleState: 'UNSCHEDULED' });
+  }
+
+  requestContentApproval(id: string) {
+    const policy = this.graph.demoPreferences.approvalPolicy ?? 'OPTIONAL';
+    if (policy === 'NONE') return { error: 'APPROVAL_DISABLED' as const };
+    const row = this.updateContent(id, { approvalState: 'PENDING', status: 'IN_REVIEW' });
+    if (!row) return { error: 'NOT_FOUND' as const };
+    return { row };
+  }
+
   contentCountByCampaign(campaignId: string): number {
     return this.graph.contentItems.filter((c) => c.campaignId === campaignId).length;
   }
@@ -4264,7 +4334,15 @@ export class DemoDataProvider {
     if (items.some((i) => i.status === 'IN_REVIEW')) return 'IN_REVIEW';
     if (items.some((i) => i.status === 'DRAFT')) return 'DRAFT';
     if (items.some((i) => i.status === 'APPROVED')) return 'APPROVED';
-    if (items.some((i) => i.status === 'SCHEDULED')) return 'SCHEDULED';
+    if (
+      items.some(
+        (i) =>
+          resolveContentWorkflow(i, this.graph.demoPreferences.approvalPolicy).scheduleState ===
+          'SCHEDULED',
+      )
+    ) {
+      return 'SCHEDULED';
+    }
     return 'CLEAR';
   }
 
@@ -4772,10 +4850,16 @@ export class DemoDataProvider {
       next.weekStart = partial.weekStart;
     }
     if (partial.defaultContentView !== undefined) {
-      if (partial.defaultContentView !== 'list' && partial.defaultContentView !== 'calendar') {
-        throw new Error('defaultContentView must be list or calendar');
+      if (!['list', 'calendar', 'feed', 'grid'].includes(partial.defaultContentView)) {
+        throw new Error('defaultContentView must be list, calendar, feed, or grid');
       }
       next.defaultContentView = partial.defaultContentView;
+    }
+    if (partial.approvalPolicy !== undefined) {
+      if (!['NONE', 'OPTIONAL', 'REQUIRED'].includes(partial.approvalPolicy)) {
+        throw new Error('approvalPolicy must be NONE, OPTIONAL, or REQUIRED');
+      }
+      next.approvalPolicy = partial.approvalPolicy;
     }
     if (partial.defaultTaskView !== undefined) {
       if (partial.defaultTaskView !== 'board' && partial.defaultTaskView !== 'list') {
