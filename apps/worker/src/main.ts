@@ -4,6 +4,7 @@ import { publishPendingOutbox } from './processors/outbox.publisher';
 import { startMailProcessor } from './processors/mail.processor';
 import { startIngestionProcessor } from './processors/ingestion.processor';
 import { startAnalysisProcessor } from './processors/analysis.processor';
+import { startAiProcessor } from './processors/ai.processor';
 import IORedis from 'ioredis';
 import { WorkerModule } from './worker.module';
 
@@ -16,6 +17,7 @@ async function main() {
   startMailProcessor(connection);
   startIngestionProcessor(connection);
   startAnalysisProcessor(connection);
+  startAiProcessor(connection);
   setInterval(() => {
     void publishPendingOutbox(connection);
   }, 1500);

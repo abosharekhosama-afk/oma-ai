@@ -37,6 +37,7 @@
     "review:003": "bash scripts/review-003.sh",
     "review:003:stop": "bash scripts/review-003-stop.sh",
     "audit:deps": "pnpm audit --prod",
+    "ai:openai:smoke": "node scripts/ai/openai-smoke.mjs",
     "ui:inventory-runtime": "node scripts/ui/inventory-runtime-styles.mjs",
     "ui:inventory-visual": "node scripts/ui/inventory-visual-primitives.mjs",
     "ref:launch": "node scripts/reference/launch-reference-browser.mjs",

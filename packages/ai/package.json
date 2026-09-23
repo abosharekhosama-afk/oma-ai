@@ -1,0 +1,20 @@
+{
+  "name": "@oma/ai",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/openai-adapter.ts",
+  "types": "./src/openai-adapter.ts",
+  "exports": {
+    ".": "./src/openai-adapter.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@oma/domain": "workspace:*",
+    "openai": "^7.23.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.2"
+  }
+}

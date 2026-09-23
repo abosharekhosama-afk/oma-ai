@@ -11,6 +11,7 @@
   "dependencies": {
     "@oma/db": "workspace:*",
     "@oma/domain": "workspace:*",
+    "@oma/ai": "workspace:*",
     "@oma/observability": "workspace:*",
     "bullmq": "^5.41.0",
     "ioredis": "^5.5.0"

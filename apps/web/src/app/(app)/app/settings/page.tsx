@@ -14,6 +14,7 @@ import {
   pickCopy,
 } from '../../../../lib/demo/use-demo-api';
 import { useLocale, useT } from '../../../../lib/use-locale';
+import { AiStatusNote } from '../../../../components/ai/ai-status-note';
 
 type Integration = DemoGraph['integrations'][number];
 type Section = 'general' | 'workflow' | 'notifications' | 'integrations' | 'localization' | 'demo';
@@ -101,6 +102,7 @@ export default function SettingsPage() {
   return (
     <div className="oma-stack" data-testid="demo-settings">
       <PageHeader title={t('demo.settings.title')} description={t('demo.settings.subtitle')} />
+      <AiStatusNote />
       <DemoDisclosure />
 
       {loading ? <p className="oma-muted">{t('demo.loading')}</p> : null}

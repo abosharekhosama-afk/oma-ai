@@ -22,6 +22,14 @@ export const BRAND_CAPABILITIES = [
   'brand.version.approve',
 ] as const;
 
+export const AI_CAPABILITIES = [
+  'ai.propose.brand',
+  'ai.propose.strategy',
+  'ai.propose.brief',
+  'ai.compare',
+  'ai.configure',
+] as const;
+
 export const STRATEGY_CAPABILITIES = [
   'strategy.read',
   'strategy.create',
@@ -41,6 +49,7 @@ export type CapabilityCode =
   | (typeof FOUNDATION_CAPABILITIES)[number]
   | (typeof BRAND_CAPABILITIES)[number]
   | (typeof STRATEGY_CAPABILITIES)[number]
+  | (typeof AI_CAPABILITIES)[number]
   | string;
 
 export function hasCapability(
@@ -72,6 +81,7 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     'notification.read',
     ...BRAND_CAPABILITIES,
     ...STRATEGY_CAPABILITIES,
+    ...AI_CAPABILITIES,
   ],
   COMPANY_OWNER: [
     'tenant.manage',
@@ -83,6 +93,7 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     'notification.read',
     ...BRAND_CAPABILITIES,
     ...STRATEGY_CAPABILITIES,
+    ...AI_CAPABILITIES,
   ],
   MEMBER: ['notification.read', 'job.read'],
 };

@@ -17,3 +17,8 @@ export * from './ports/fixture-website-connector';
 export * from './ports/paid-media-connector.port';
 export * from './ports/retention-policy.port';
 export * from './ports/refusing-adapters';
+export * from './ai/use-cases';
+export * from './ai/router';
+export * from './ai/budget';
+export * from './ai/proposal';
+export * from './ai/status';

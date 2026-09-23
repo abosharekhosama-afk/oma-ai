@@ -92,6 +92,55 @@ model Tenant {
   notifications Notification[]
   idempotency   IdempotencyRecord[]
   brandWorkspaces BrandWorkspace[]
+  aiRuns          AiRun[]
+}
+
+enum AiRunStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+  DISABLED
+  SCHEMA_INVALID
+  REFUSED
+}
+
+/// Tenant-scoped text-intelligence run. No prompts, chain-of-thought, or secrets.
+model AiRun {
+  id               String      @id
+  tenantId         String
+  actorUserId      String
+  useCase          String
+  provider         String
+  model            String
+  promptVersion    String
+  schemaVersion    String
+  sourceEntityType String
+  sourceEntityId   String
+  sourceVersion    String
+  status           AiRunStatus @default(DISABLED)
+  idempotencyKey   String
+  correlationId    String?
+  inputHash        String
+  outputHash       String?
+  inputTokens      Int         @default(0)
+  outputTokens     Int         @default(0)
+  estimatedCost    String      @default("0")
+  reservedCost     String      @default("0")
+  settledCost      String      @default("0")
+  latencyMs        Int?
+  errorCode        String?
+  refusalReason    String?
+  proposalJson     String?
+  version          Int         @default(1)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  tenant           Tenant      @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, idempotencyKey])
+  @@index([tenantId, createdAt])
+  @@index([tenantId, status])
 }
 
 model Membership {

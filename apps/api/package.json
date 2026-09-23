@@ -18,6 +18,7 @@
     "@oma/db": "workspace:*",
     "@oma/demo": "workspace:*",
     "@oma/domain": "workspace:*",
+    "@oma/ai": "workspace:*",
     "@oma/observability": "workspace:*",
     "bullmq": "^5.41.0",
     "cookie-parser": "^1.4.7",

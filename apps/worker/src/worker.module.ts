@@ -6,12 +6,13 @@
  */
 export const WorkerModule = {
   name: 'WorkerModule',
-  queues: ['mail', 'ingestion', 'analysis', 'outbox'],
+  queues: ['mail', 'ingestion', 'analysis', 'ai', 'outbox'],
   processors: [
     'outbox.publisher',
     'mail.processor',
     'ingestion.processor',
     'analysis.processor',
+    'ai.processor',
     'notification.processor',
   ],
 } as const;

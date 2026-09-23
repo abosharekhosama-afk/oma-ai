@@ -20,6 +20,7 @@ import { DiscoveryController } from './discovery/discovery.controller';
 import { ProfileController } from './intelligence/profile.controller';
 import { StrategyController } from './strategy/strategy.controller';
 import { DemoController } from './demo/demo.controller';
+import { AiController } from './ai/ai.controller';
 
 @Module({
   controllers: [
@@ -39,6 +40,7 @@ import { DemoController } from './demo/demo.controller';
     ProfileController,
     StrategyController,
     DemoController,
+    AiController,
   ],
   providers: [
     { provide: APP_FILTER, useClass: DomainExceptionFilter },
