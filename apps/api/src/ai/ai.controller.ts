@@ -2,7 +2,7 @@ import { Body, Controller, Get, Param, Post, Req, UseGuards } from '@nestjs/comm
 import type { Request } from 'express';
 import { DomainError } from '@oma/domain';
 import { CsrfGuard } from '../common/guards/csrf.guard';
-import { aiStatus, cancelAiRun, createAiRun, readAiRun } from './ai.service';
+import { aiStatus, acceptAiRun, cancelAiRun, createAiRun, readAiRun } from './ai.service';
 
 @Controller('api/v1/ai')
 export class AiController {
@@ -86,14 +86,9 @@ export class AiController {
 
   @Post('runs/:id/accept')
   @UseGuards(CsrfGuard)
-  accept() {
-    throw new DomainError(
-      'AI_DISABLED',
-      'Accept is a human edit into a draft and is unavailable while AI is offline.',
-      503,
-      'errors.ai_disabled',
-      [{ manual_journey: true }],
-    );
+  async accept(@Req() req: Request, @Param('id') id: string) {
+    const actor = this.requireTenant(req);
+    return { data: await acceptAiRun(actor.tenantId!, id) };
   }
 
   @Post('runs/:id/reject')

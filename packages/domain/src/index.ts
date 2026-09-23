@@ -22,3 +22,5 @@ export * from './ai/router';
 export * from './ai/budget';
 export * from './ai/proposal';
 export * from './ai/status';
+export * from './ai/test-adapter';
+export * from './ai/ledger';
