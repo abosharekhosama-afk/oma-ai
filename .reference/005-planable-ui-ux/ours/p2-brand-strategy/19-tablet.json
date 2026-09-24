@@ -1,6 +1,6 @@
 {
   "name": "19-tablet",
-  "candidateSha": "82e52724b94a81613c44a29167b4f5af1378c7b2",
+  "candidateSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
   "route": "/app",
   "viewport": "1024x768",
   "locale": "en",
@@ -22,5 +22,5 @@
   "featureState": "19-tablet",
   "rawScreenshot": "artifacts/planable-rebuild-004/p2-brand-strategy/19-tablet.png",
   "gitignoredRaw": true,
-  "capturedAt": "2026-09-16T08:17:12.861Z"
+  "capturedAt": "2026-09-24T19:07:53.572Z"
 }

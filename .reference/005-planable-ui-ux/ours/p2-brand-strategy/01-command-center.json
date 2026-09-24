@@ -1,6 +1,6 @@
 {
   "name": "01-command-center",
-  "candidateSha": "82e52724b94a81613c44a29167b4f5af1378c7b2",
+  "candidateSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
   "route": "/app",
   "viewport": "1440x900",
   "locale": "en",
@@ -22,5 +22,5 @@
   "featureState": "01-command-center",
   "rawScreenshot": "artifacts/planable-rebuild-004/p2-brand-strategy/01-command-center.png",
   "gitignoredRaw": true,
-  "capturedAt": "2026-09-16T08:17:04.914Z"
+  "capturedAt": "2026-09-24T19:07:44.016Z"
 }

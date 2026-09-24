@@ -1,6 +1,6 @@
 {
   "name": "03-selected-navigation",
-  "candidateSha": "7845837fbbca899f348b43df9c4f7647f856207d",
+  "candidateSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
   "route": "/app/campaigns",
   "viewport": "1440x900",
   "locale": "en",
@@ -33,5 +33,5 @@
   ],
   "rawScreenshot": "artifacts/planable-rebuild-004/p1-shell-system/03-selected-navigation.png",
   "gitignoredRaw": true,
-  "capturedAt": "2026-09-16T07:35:31.206Z"
+  "capturedAt": "2026-09-24T19:07:02.702Z"
 }

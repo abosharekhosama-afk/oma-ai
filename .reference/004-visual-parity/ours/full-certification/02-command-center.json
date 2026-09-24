@@ -1,5 +1,5 @@
 {
-  "gitSha": "6db7520d8f19190582bb099091c0bfe2c299b8ae",
+  "gitSha": "pending",
   "route": "/app",
   "viewport": {
     "width": 1440,
@@ -11,7 +11,7 @@
   "companyBrandContext": "ephemeral e2e owner + deterministic demo graph",
   "dataSource": "Hybrid",
   "demoState": "OMA_DEMO_MODE=1",
-  "consoleErrorCount": 1,
+  "consoleErrorCount": 0,
   "failedRequestCount": 0,
   "externalHostCount": 0,
   "acceptanceIds": [

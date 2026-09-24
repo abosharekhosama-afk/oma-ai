@@ -1,8 +1,8 @@
 'use client';
 
+import { Drawer as AntDrawer } from '@oma/ui/controls';
 import type { ReactNode } from 'react';
 import { useCallback } from 'react';
-import { useEscape, useFocusTrap, useScrollLock } from './use-focus-trap';
 
 export function Drawer({
   open,
@@ -20,22 +20,19 @@ export function Drawer({
   wide?: boolean;
 }) {
   const close = useCallback(() => onClose(), [onClose]);
-  const trapRef = useFocusTrap(open);
-  useScrollLock(open);
-  useEscape(open, close);
-
-  if (!open) return null;
-
-  const className = ['oma-drawer', nav ? 'oma-drawer--nav' : '', wide ? 'oma-drawer--wide' : '']
-    .filter(Boolean)
-    .join(' ');
-
   return (
-    <>
-      <div className="oma-overlay-backdrop" onClick={close} aria-hidden="true" />
-      <div ref={trapRef} className={className} role="dialog" aria-modal="true" aria-label={label}>
-        {children}
-      </div>
-    </>
+    <AntDrawer
+      open={open}
+      onClose={close}
+      title={label}
+      placement={nav ? 'left' : 'right'}
+      size={wide ? 'large' : nav ? 256 : 'default'}
+      destroyOnHidden
+      closable={{ 'aria-label': 'Dismiss' }}
+      mask={{ closable: true }}
+      aria-label={label}
+    >
+      {children}
+    </AntDrawer>
   );
 }

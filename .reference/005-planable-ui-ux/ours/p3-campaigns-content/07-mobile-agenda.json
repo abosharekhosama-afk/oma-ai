@@ -1,6 +1,6 @@
 {
   "name": "07-mobile-agenda",
-  "candidateSha": "de05bb235fcaa9f3b18214b9191c047e516661d8",
+  "candidateSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
   "route": "/app/content",
   "viewport": "390x844",
   "locale": "en",
@@ -32,5 +32,5 @@
   "featureState": "07-mobile-agenda",
   "rawScreenshot": "artifacts/planable-rebuild-004/p3-campaigns-content/07-mobile-agenda.png",
   "gitignoredRaw": true,
-  "capturedAt": "2026-09-16T09:07:59.152Z"
+  "capturedAt": "2026-09-24T19:08:09.034Z"
 }

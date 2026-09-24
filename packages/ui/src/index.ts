@@ -1,10 +1,14 @@
+import { omaAntdTheme, omaArabicFontFamily } from './antd-theme';
+
+export { omaAntdTheme, omaArabicFontFamily };
+
 export const tokens = {
-  primary: '#1677FF',
-  canvas: '#F5F6F7',
-  ink: '#333333',
-  surface: '#FFFFFF',
+  primary: omaAntdTheme.token.colorPrimary,
+  canvas: omaAntdTheme.token.colorBgLayout,
+  ink: omaAntdTheme.token.colorText,
+  surface: omaAntdTheme.token.colorBgContainer,
   railExpanded: 256,
   railCollapsed: 64,
-  controlHeight: 32,
-  radiusControl: 6,
+  controlHeight: omaAntdTheme.token.controlHeight,
+  radiusControl: omaAntdTheme.token.borderRadius,
 } as const;

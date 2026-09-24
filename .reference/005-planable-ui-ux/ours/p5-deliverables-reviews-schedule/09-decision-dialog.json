@@ -1,6 +1,6 @@
 {
   "name": "09-decision-dialog",
-  "candidateSha": "a734122afd75fc066d17b917e4ded91268112371",
+  "candidateSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
   "route": "/app/deliverables/demo-deliv-carousel?review=1",
   "viewport": "1440x900",
   "locale": "en",
@@ -32,5 +32,5 @@
   "featureState": "09-decision-dialog",
   "rawScreenshot": "artifacts/planable-rebuild-004/p5-deliverables-reviews-schedule/09-decision-dialog.png",
   "gitignoredRaw": true,
-  "capturedAt": "2026-09-18T12:38:06.796Z"
+  "capturedAt": "2026-09-24T19:08:37.833Z"
 }

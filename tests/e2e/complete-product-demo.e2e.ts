@@ -130,11 +130,11 @@ test.describe('Complete product demo certification', () => {
     // Content calendar/grid
     await nav.getByRole('link', { name: /content/i }).click();
     await expect(page.getByTestId('demo-content')).toBeVisible({ timeout: 15_000 });
-    await page.getByRole('button', { name: /calendar/i }).click();
+    await page.getByTestId('demo-content-view-calendar').click();
     await expect(
       page.getByText(/Fabric story carousel|Studio morning reel/i).first(),
     ).toBeVisible();
-    await page.getByRole('button', { name: /grid/i }).click();
+    await page.getByTestId('demo-content-view-grid').click();
 
     // Schedule + analytics honesty
     await nav.getByRole('link', { name: /^schedule$/i }).click();

@@ -7,6 +7,8 @@ import { resolveContentWorkflow, type ApprovalPolicy, type DemoGraph } from '@om
 import { ContentFace, StatusMark, faceDisplay } from '../../../../components/content/content-card';
 import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
 import { TrackPill } from '../../../../components/demo/track-pill';
+import { Button, DatePicker, Input, OmaSelect, Segmented, Tabs, TextArea } from '@oma/ui/controls';
+import dayjs from 'dayjs';
 import { Dialog } from '../../../../components/ui/dialog';
 import { Drawer } from '../../../../components/ui/drawer';
 import { EmptyState, ErrorState, DeniedState } from '../../../../components/ui/empty-state';
@@ -510,8 +512,7 @@ export default function ContentPage() {
     <>
       <label className="oma-stage3-search">
         {t('demo.content.search')}
-        <input
-          className="oma-input"
+        <Input
           value={filters.query}
           onChange={(e) => setFilters((f) => ({ ...f, query: e.target.value }))}
           data-testid="demo-content-search"
@@ -519,150 +520,134 @@ export default function ContentPage() {
       </label>
       <label className="oma-filter-desktop">
         {t('demo.content.filter.campaign')}
-        <select
-          className="oma-select"
+        <OmaSelect
           value={filters.campaignId}
-          data-testid="demo-content-filter-campaign"
-          onChange={(e) => {
-            const campaignId = e.target.value;
+          testId="demo-content-filter-campaign"
+          onChange={(campaignId) => {
             setFilters((f) => ({ ...f, campaignId }));
             replaceParams((params) => {
               if (campaignId === 'all') params.delete('campaign');
               else params.set('campaign', campaignId);
             });
           }}
-        >
-          <option value="all">{t('demo.filter.all')}</option>
-          {campaigns.map((c) => (
-            <option key={c.id} value={c.id}>
-              {pickCopy(c.name, locale)}
-            </option>
-          ))}
-        </select>
+          options={[
+            { value: 'all', label: t('demo.filter.all') },
+            ...campaigns.map((c) => ({ value: c.id, label: pickCopy(c.name, locale) })),
+          ]}
+        />
       </label>
       <label className="oma-filter-desktop">
         {t('demo.content.filter.brand')}
-        <select
-          className="oma-select"
+        <OmaSelect
           value={filters.brandId}
-          data-testid="demo-content-filter-brand"
-          onChange={(e) => setFilters((f) => ({ ...f, brandId: e.target.value }))}
-        >
-          <option value="all">{t('demo.filter.all')}</option>
-          {brands.map((b) => (
-            <option key={b.id} value={b.id}>
-              {pickCopy(b.name, locale)}
-            </option>
-          ))}
-        </select>
+          testId="demo-content-filter-brand"
+          onChange={(brandId) => setFilters((f) => ({ ...f, brandId }))}
+          options={[
+            { value: 'all', label: t('demo.filter.all') },
+            ...brands.map((b) => ({ value: b.id, label: pickCopy(b.name, locale) })),
+          ]}
+        />
       </label>
       <label className="oma-filter-desktop">
         {t('demo.filter.channel')}
-        <select
-          className="oma-select"
+        <OmaSelect
           value={filters.channel}
-          data-testid="demo-content-filter-channel"
-          onChange={(e) => setFilters((f) => ({ ...f, channel: e.target.value }))}
-        >
-          <option value="all">{t('demo.filter.all')}</option>
-          {channels.map((ch) => (
-            <option key={ch} value={ch}>
-              {ch}
-            </option>
-          ))}
-        </select>
+          testId="demo-content-filter-channel"
+          onChange={(channel) => setFilters((f) => ({ ...f, channel }))}
+          options={[
+            { value: 'all', label: t('demo.filter.all') },
+            ...channels.map((ch) => ({ value: ch, label: ch })),
+          ]}
+        />
       </label>
       <label className="oma-filter-desktop">
         {t('demo.content.filter.type')}
-        <select
-          className="oma-select"
+        <OmaSelect
           value={filters.contentType}
-          onChange={(e) => setFilters((f) => ({ ...f, contentType: e.target.value }))}
-        >
-          <option value="all">{t('demo.filter.all')}</option>
-          {types.map((ty) => (
-            <option key={ty} value={ty}>
-              {ty}
-            </option>
-          ))}
-        </select>
+          onChange={(contentType) => setFilters((f) => ({ ...f, contentType }))}
+          options={[
+            { value: 'all', label: t('demo.filter.all') },
+            ...types.map((ty) => ({ value: ty, label: ty })),
+          ]}
+        />
       </label>
       <label className="oma-filter-desktop">
         {t('demo.filter.status')}
-        <select
-          className="oma-select"
+        <OmaSelect
           value={filters.status}
-          data-testid="demo-content-filter-status"
-          onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
-        >
-          <option value="all">{t('demo.filter.all')}</option>
-          {statuses.map((s) => (
-            <option key={s} value={s}>
-              {statusLabel(s, locale)}
-            </option>
-          ))}
-        </select>
+          testId="demo-content-filter-status"
+          onChange={(status) => setFilters((f) => ({ ...f, status }))}
+          options={[
+            { value: 'all', label: t('demo.filter.all') },
+            ...statuses.map((s) => ({ value: s, label: statusLabel(s, locale) })),
+          ]}
+        />
       </label>
       <label className="oma-filter-desktop">
         {t('demo.content.filter.review')}
-        <select
-          className="oma-select"
+        <OmaSelect
           value={filters.review}
-          onChange={(e) => setFilters((f) => ({ ...f, review: e.target.value }))}
-        >
-          <option value="all">{t('demo.filter.all')}</option>
-          <option value="needs">{reviewFilterLabel('needs', locale, t('demo.filter.all'))}</option>
-          <option value="approved">
-            {reviewFilterLabel('approved', locale, t('demo.filter.all'))}
-          </option>
-        </select>
+          onChange={(review) => setFilters((f) => ({ ...f, review }))}
+          options={[
+            { value: 'all', label: t('demo.filter.all') },
+            { value: 'needs', label: reviewFilterLabel('needs', locale, t('demo.filter.all')) },
+            {
+              value: 'approved',
+              label: reviewFilterLabel('approved', locale, t('demo.filter.all')),
+            },
+          ]}
+        />
       </label>
       <label>
         {t('demo.content.filter.approval')}
-        <select
-          className="oma-select"
+        <OmaSelect
           value={filters.approval}
-          data-testid="demo-content-filter-approval"
-          onChange={(e) => setFilters((f) => ({ ...f, approval: e.target.value }))}
-        >
-          <option value="all">{t('demo.filter.all')}</option>
-          <option value="NOT_REQUESTED">{t('demo.content.approval.notRequested')}</option>
-          <option value="PENDING">{t('demo.content.approval.pending')}</option>
-          <option value="PARTIALLY_APPROVED">{t('demo.content.approval.partial')}</option>
-          <option value="APPROVED">{t('demo.content.approval.approved')}</option>
-        </select>
+          testId="demo-content-filter-approval"
+          onChange={(approval) => setFilters((f) => ({ ...f, approval }))}
+          options={[
+            { value: 'all', label: t('demo.filter.all') },
+            { value: 'NOT_REQUESTED', label: t('demo.content.approval.notRequested') },
+            { value: 'PENDING', label: t('demo.content.approval.pending') },
+            { value: 'PARTIALLY_APPROVED', label: t('demo.content.approval.partial') },
+            { value: 'APPROVED', label: t('demo.content.approval.approved') },
+          ]}
+        />
       </label>
       <label className="oma-filter-desktop">
         {t('demo.content.filter.owner')}
-        <select
-          className="oma-select"
+        <OmaSelect
           value={filters.assignee}
-          onChange={(e) => setFilters((f) => ({ ...f, assignee: e.target.value }))}
-        >
-          <option value="all">{t('demo.filter.all')}</option>
-          {assignees.map((a) => (
-            <option key={a} value={a}>
-              {a}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className="oma-filter-desktop">
-        {t('demo.content.filter.date')}
-        <input
-          type="date"
-          className="oma-input"
-          value={filters.dateFrom}
-          onChange={(e) => setFilters((f) => ({ ...f, dateFrom: e.target.value }))}
+          onChange={(assignee) => setFilters((f) => ({ ...f, assignee }))}
+          options={[
+            { value: 'all', label: t('demo.filter.all') },
+            ...assignees.map((a) => ({ value: a, label: a })),
+          ]}
         />
       </label>
       <label className="oma-filter-desktop">
         {t('demo.content.filter.date')}
-        <input
-          type="date"
-          className="oma-input"
-          value={filters.dateTo}
-          onChange={(e) => setFilters((f) => ({ ...f, dateTo: e.target.value }))}
+        <DatePicker
+          value={filters.dateFrom ? dayjs(filters.dateFrom) : null}
+          onChange={(_, dateString) =>
+            setFilters((f) => ({
+              ...f,
+              dateFrom: Array.isArray(dateString) ? (dateString[0] ?? '') : dateString,
+            }))
+          }
+          allowClear
+        />
+      </label>
+      <label className="oma-filter-desktop">
+        {t('demo.content.filter.date')}
+        <DatePicker
+          value={filters.dateTo ? dayjs(filters.dateTo) : null}
+          onChange={(_, dateString) =>
+            setFilters((f) => ({
+              ...f,
+              dateTo: Array.isArray(dateString) ? (dateString[0] ?? '') : dateString,
+            }))
+          }
+          allowClear
         />
       </label>
     </>
@@ -674,42 +659,39 @@ export default function ContentPage() {
         title={t('demo.content.title')}
         description={t('demo.content.subtitle')}
         actions={
-          <button
-            type="button"
-            className="oma-btn oma-btn-primary"
+          <Button
+            type="primary"
             data-testid="demo-create-content"
             onClick={() => setCreateOpen(true)}
           >
             {t('demo.content.create')}
-          </button>
+          </Button>
         }
         meta={
           <>
-            <div className="oma-view-switch" role="group" aria-label={t('demo.content.title')}>
-              {(['calendar', 'feed', 'grid', 'list'] as ContentViewMode[]).map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  aria-pressed={view === mode}
-                  data-testid={`demo-content-view-${mode}`}
-                  onClick={() => changeView(mode)}
-                >
-                  {t(`demo.view.${mode}`)}
-                </button>
-              ))}
-            </div>
+            <Segmented
+              aria-label={t('demo.content.title')}
+              value={view}
+              onChange={(next) => changeView(next as ContentViewMode)}
+              options={(['calendar', 'feed', 'grid', 'list'] as ContentViewMode[]).map((mode) => ({
+                value: mode,
+                label: (
+                  <span data-testid={`demo-content-view-${mode}`}>{t(`demo.view.${mode}`)}</span>
+                ),
+              }))}
+            />
             <label>
               {t('demo.content.policy')}
-              <select
-                className="oma-select"
+              <OmaSelect
                 value={policy}
-                data-testid="demo-content-approval-policy"
-                onChange={(e) => void changePolicy(e.target.value as ApprovalPolicy)}
-              >
-                <option value="NONE">NONE</option>
-                <option value="OPTIONAL">OPTIONAL</option>
-                <option value="REQUIRED">REQUIRED</option>
-              </select>
+                testId="demo-content-approval-policy"
+                onChange={(next) => void changePolicy(next as ApprovalPolicy)}
+                options={[
+                  { value: 'NONE', label: 'NONE' },
+                  { value: 'OPTIONAL', label: 'OPTIONAL' },
+                  { value: 'REQUIRED', label: 'REQUIRED' },
+                ]}
+              />
             </label>
             <span className="oma-item-count">
               {filtered.length} / {rows.length}
@@ -1186,38 +1168,21 @@ export default function ContentPage() {
                           : null}
                 </span>
               </div>
-              <button
-                type="button"
-                className="oma-btn oma-btn-secondary"
-                onClick={requestCloseDrawer}
-              >
-                {t('demo.create.cancel')}
-              </button>
+              <Button onClick={requestCloseDrawer}>{t('demo.create.cancel')}</Button>
             </header>
 
             <div className="oma-honesty-banner">{t('demo.content.aiNotConnected')}</div>
             <div className="oma-honesty-banner">{t('demo.content.noPublishing')}</div>
 
-            <div className="oma-workspace-tabs" role="tablist">
-              {(
-                [
-                  ['preview', t('demo.content.media')],
-                  ['edit', t('demo.content.edit')],
-                  ['comments', t('demo.content.comments')],
-                ] as const
-              ).map(([id, label]) => (
-                <button
-                  key={id}
-                  type="button"
-                  role="tab"
-                  className="oma-workspace-tab"
-                  aria-selected={detailTab === id}
-                  onClick={() => setDetailTab(id)}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+            <Tabs
+              activeKey={detailTab}
+              onChange={(key) => setDetailTab(key as typeof detailTab)}
+              items={[
+                { key: 'preview', label: t('demo.content.media') },
+                { key: 'edit', label: t('demo.content.edit') },
+                { key: 'comments', label: t('demo.content.comments') },
+              ]}
+            />
 
             {detailTab !== 'comments' ? (
               <div className="oma-content-composer" data-testid="demo-content-composer">
@@ -1236,16 +1201,14 @@ export default function ContentPage() {
                   <div className="oma-composer-fields">
                     <label>
                       {t('demo.content.channelAccount')}
-                      <input
-                        className="oma-input"
+                      <Input
                         value={draft.channel}
                         onChange={(e) => setDraft((d) => ({ ...d, channel: e.target.value }))}
                       />
                     </label>
                     <label>
                       {t('demo.content.caption')}
-                      <textarea
-                        className="oma-input"
+                      <TextArea
                         rows={3}
                         value={draft.caption}
                         data-testid="demo-content-caption"
@@ -1254,8 +1217,7 @@ export default function ContentPage() {
                     </label>
                     <label>
                       {t('demo.content.objective')}
-                      <textarea
-                        className="oma-input"
+                      <TextArea
                         rows={2}
                         value={draft.objective}
                         onChange={(e) => setDraft((d) => ({ ...d, objective: e.target.value }))}
@@ -1263,8 +1225,7 @@ export default function ContentPage() {
                     </label>
                     <label>
                       {t('demo.content.cta')}
-                      <input
-                        className="oma-input"
+                      <Input
                         value={draft.cta}
                         onChange={(e) => setDraft((d) => ({ ...d, cta: e.target.value }))}
                       />
@@ -1311,8 +1272,7 @@ export default function ContentPage() {
                     </p>
                     <label>
                       {t('demo.content.filter.owner')}
-                      <input
-                        className="oma-input"
+                      <Input
                         value={draft.assignee}
                         onChange={(e) => setDraft((d) => ({ ...d, assignee: e.target.value }))}
                       />
@@ -1320,26 +1280,31 @@ export default function ContentPage() {
                     <p className="oma-composer-section">{t('demo.content.section.planning')}</p>
                     <label>
                       {t('demo.create.plannedDate')}
-                      <input
-                        type="datetime-local"
-                        className="oma-input"
-                        value={draft.scheduledAt}
-                        onChange={(e) => setDraft((d) => ({ ...d, scheduledAt: e.target.value }))}
+                      <DatePicker
+                        showTime={{ format: 'HH:mm' }}
+                        format="YYYY-MM-DDTHH:mm"
+                        value={draft.scheduledAt ? dayjs(draft.scheduledAt) : null}
+                        onChange={(_, dateString) =>
+                          setDraft((d) => ({
+                            ...d,
+                            scheduledAt: Array.isArray(dateString)
+                              ? (dateString[0] ?? '')
+                              : dateString,
+                          }))
+                        }
                       />
                     </label>
                     <div className="oma-chip-row">
-                      <button
-                        type="button"
-                        className="oma-btn oma-btn-primary"
+                      <Button
+                        type="primary"
                         data-testid="demo-content-save"
-                        disabled={saving || !dirty}
+                        disabled={!dirty}
+                        loading={saving}
                         onClick={() => void saveItem()}
                       >
-                        {saving ? t('demo.content.saving') : t('demo.content.save')}
-                      </button>
-                      <button
-                        type="button"
-                        className="oma-btn oma-btn-secondary"
+                        {t('demo.content.save')}
+                      </Button>
+                      <Button
                         data-testid="demo-content-schedule"
                         title={
                           resolveContentWorkflow(selected, policy).scheduleBlocked
@@ -1352,26 +1317,22 @@ export default function ContentPage() {
                         onClick={() => void runCommand('schedule')}
                       >
                         {t('demo.content.schedule')}
-                      </button>
-                      <button
-                        type="button"
-                        className="oma-btn oma-btn-secondary"
+                      </Button>
+                      <Button
                         data-testid="demo-content-unschedule"
                         disabled={saving}
                         onClick={() => void runCommand('unschedule')}
                       >
                         {t('demo.content.unschedule')}
-                      </button>
+                      </Button>
                       {policy !== 'NONE' ? (
-                        <button
-                          type="button"
-                          className="oma-btn oma-btn-secondary"
+                        <Button
                           data-testid="demo-content-request-approval"
                           disabled={saving}
                           onClick={() => void runCommand('request-approval')}
                         >
                           {t('demo.content.requestApproval')}
-                        </button>
+                        </Button>
                       ) : null}
                     </div>
                   </div>
@@ -1522,8 +1483,7 @@ export default function ContentPage() {
         <div className="oma-composer-fields" data-testid="demo-create-content-dialog">
           <label>
             {t('demo.create.title')}
-            <input
-              className="oma-input"
+            <Input
               value={createForm.title}
               data-testid="demo-create-content-title"
               onChange={(e) => setCreateForm((f) => ({ ...f, title: e.target.value }))}
@@ -1531,11 +1491,9 @@ export default function ContentPage() {
           </label>
           <label>
             {t('demo.create.campaign')}
-            <select
-              className="oma-select"
+            <OmaSelect
               value={createForm.campaignId}
-              onChange={(e) => {
-                const campaignId = e.target.value;
+              onChange={(campaignId) => {
                 const campaign = campaigns.find((c) => c.id === campaignId);
                 setCreateForm((f) => ({
                   ...f,
@@ -1543,82 +1501,68 @@ export default function ContentPage() {
                   track: campaign?.track ?? f.track,
                 }));
               }}
-            >
-              {campaigns.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {pickCopy(c.name, locale)}
-                </option>
-              ))}
-            </select>
+              options={campaigns.map((c) => ({ value: c.id, label: pickCopy(c.name, locale) }))}
+            />
           </label>
           <label>
             {t('demo.create.type')}
-            <select
-              className="oma-select"
+            <OmaSelect
               value={createForm.contentType}
-              onChange={(e) => setCreateForm((f) => ({ ...f, contentType: e.target.value }))}
-            >
-              {['POST', 'REEL', 'CAROUSEL', 'STATIC', 'STORY'].map((ty) => (
-                <option key={ty} value={ty}>
-                  {ty}
-                </option>
-              ))}
-            </select>
+              onChange={(contentType) => setCreateForm((f) => ({ ...f, contentType }))}
+              options={['POST', 'REEL', 'CAROUSEL', 'STATIC', 'STORY'].map((ty) => ({
+                value: ty,
+                label: ty,
+              }))}
+            />
           </label>
           <label>
             {t('demo.content.channelAccount')}
-            <input
-              className="oma-input"
+            <Input
               value={createForm.channel}
               onChange={(e) => setCreateForm((f) => ({ ...f, channel: e.target.value }))}
             />
           </label>
           <label>
             {t('demo.content.media')}
-            <select
-              className="oma-select"
+            <OmaSelect
               value={createForm.previewAsset}
-              onChange={(e) => setCreateForm((f) => ({ ...f, previewAsset: e.target.value }))}
-            >
-              {Object.entries(P3_MEDIA).map(([id, src]) => (
-                <option key={id} value={src}>
-                  {id}
-                </option>
-              ))}
-            </select>
+              onChange={(previewAsset) => setCreateForm((f) => ({ ...f, previewAsset }))}
+              options={Object.entries(P3_MEDIA).map(([id, src]) => ({ value: src, label: id }))}
+            />
           </label>
           <label>
             {t('demo.create.owner')}
-            <input
-              className="oma-input"
+            <Input
               value={createForm.owner}
               onChange={(e) => setCreateForm((f) => ({ ...f, owner: e.target.value }))}
             />
           </label>
           <label>
             {t('demo.create.plannedDate')}
-            <input
-              type="date"
-              className="oma-input"
-              value={createForm.plannedDate}
-              onChange={(e) => setCreateForm((f) => ({ ...f, plannedDate: e.target.value }))}
+            <DatePicker
+              value={createForm.plannedDate ? dayjs(createForm.plannedDate) : null}
+              onChange={(_, dateString) =>
+                setCreateForm((f) => ({
+                  ...f,
+                  plannedDate: Array.isArray(dateString) ? (dateString[0] ?? '') : dateString,
+                }))
+              }
             />
           </label>
           <label>
             {t('demo.create.track')}
-            <select
-              className="oma-select"
+            <OmaSelect
               value={createForm.track}
-              onChange={(e) => setCreateForm((f) => ({ ...f, track: e.target.value }))}
-            >
-              <option value="ORGANIC">{t('demo.organic')}</option>
-              <option value="PAID">{t('demo.paid')}</option>
-            </select>
+              onChange={(track) => setCreateForm((f) => ({ ...f, track }))}
+              options={[
+                { value: 'ORGANIC', label: t('demo.organic') },
+                { value: 'PAID', label: t('demo.paid') },
+              ]}
+            />
           </label>
           <label>
             {t('demo.content.caption')}
-            <textarea
-              className="oma-input"
+            <TextArea
               rows={2}
               value={createForm.caption}
               onChange={(e) => setCreateForm((f) => ({ ...f, caption: e.target.value }))}
@@ -1626,8 +1570,7 @@ export default function ContentPage() {
           </label>
           <label>
             {t('demo.create.brief')}
-            <textarea
-              className="oma-input"
+            <TextArea
               rows={2}
               value={createForm.brief}
               onChange={(e) => setCreateForm((f) => ({ ...f, brief: e.target.value }))}
@@ -1639,23 +1582,17 @@ export default function ContentPage() {
             </p>
           ) : null}
           <div className="oma-dialog-footer">
-            <button
-              type="button"
-              className="oma-btn oma-btn-secondary"
-              disabled={creating}
-              onClick={() => setCreateOpen(false)}
-            >
+            <Button type="default" disabled={creating} onClick={() => setCreateOpen(false)}>
               {t('demo.create.cancel')}
-            </button>
-            <button
-              type="button"
-              className="oma-btn oma-btn-primary"
-              disabled={creating}
+            </Button>
+            <Button
+              type="primary"
+              loading={creating}
               data-testid="demo-create-content-submit"
               onClick={() => void submitCreate()}
             >
-              {creating ? t('demo.create.creating') : t('demo.create.confirm')}
-            </button>
+              {t('demo.create.confirm')}
+            </Button>
           </div>
         </div>
       </Dialog>

@@ -1,5 +1,6 @@
 'use client';
 
+import { Button, Field, Input } from '@oma/ui/controls';
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiMutate, getApiError, isPermissionDenied, newIdempotencyKey } from '../../lib/brand-api';
@@ -39,34 +40,25 @@ export function CreateBrandForm({
 
   return (
     <form className="oma-create-brand-form" onSubmit={onSubmit}>
-      <label htmlFor="brand-name">{t('brand.create.nameLabel')}</label>
-      <input
-        id="brand-name"
-        className="oma-input"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        required
-        maxLength={120}
-        autoFocus
-        aria-invalid={error ? true : undefined}
-      />
-      {error ? (
-        <p role="alert" className="oma-field-error">
-          {error}
-        </p>
-      ) : null}
+      <Field label={t('brand.create.nameLabel')} htmlFor="brand-name" error={error ?? undefined}>
+        <Input
+          id="brand-name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+          maxLength={120}
+          autoFocus
+          status={error ? 'error' : undefined}
+          aria-invalid={error ? true : undefined}
+        />
+      </Field>
       <div className="oma-dialog-actions">
-        <button
-          type="button"
-          className="oma-btn oma-btn-secondary"
-          onClick={onCancel}
-          disabled={busy}
-        >
+        <Button type="default" htmlType="button" onClick={onCancel} disabled={busy}>
           {t('common.cancel')}
-        </button>
-        <button className="oma-btn" type="submit" disabled={busy || !name.trim()}>
-          {busy ? t('common.loading') : t('brand.create.submit')}
-        </button>
+        </Button>
+        <Button type="primary" htmlType="submit" loading={busy} disabled={!name.trim()}>
+          {t('brand.create.submit')}
+        </Button>
       </div>
     </form>
   );

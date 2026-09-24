@@ -25,6 +25,7 @@ const e2eRedisUrl =
   (baseRedis.includes('/1') || baseRedis.includes('/2')
     ? baseRedis
     : baseRedis.replace(/\/?\d?$/, '') + '/1');
+process.env.REDIS_URL = e2eRedisUrl;
 
 const sharedServerEnv = {
   ...process.env,

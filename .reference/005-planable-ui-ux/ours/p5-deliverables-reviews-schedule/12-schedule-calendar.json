@@ -1,6 +1,6 @@
 {
   "name": "12-schedule-calendar",
-  "candidateSha": "a734122afd75fc066d17b917e4ded91268112371",
+  "candidateSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
   "route": "/app/schedule",
   "viewport": "1440x900",
   "locale": "en",
@@ -32,5 +32,5 @@
   "featureState": "12-schedule-calendar",
   "rawScreenshot": "artifacts/planable-rebuild-004/p5-deliverables-reviews-schedule/12-schedule-calendar.png",
   "gitignoredRaw": true,
-  "capturedAt": "2026-09-18T12:38:08.311Z"
+  "capturedAt": "2026-09-24T19:08:43.416Z"
 }

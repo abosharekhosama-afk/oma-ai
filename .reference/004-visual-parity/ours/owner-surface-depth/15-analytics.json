@@ -1,13 +1,13 @@
 {
   "file": "15-analytics.png",
-  "gitSha": "951ed44f49178c11ad91d4a000eedd0a596d75ed",
+  "gitSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
   "route": "/app/analytics",
   "viewport": {
     "width": 1440,
     "height": 900
   },
   "locale": "en",
-  "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+  "computedFontFamily": "-apple-system, system-ui, \"Segoe UI\", Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif",
   "dataState": "demo-seed",
   "primaryReference": "Smartly DOC",
   "evidenceLevel": "DOC",

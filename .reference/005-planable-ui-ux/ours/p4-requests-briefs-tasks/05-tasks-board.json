@@ -1,6 +1,6 @@
 {
   "name": "05-tasks-board",
-  "candidateSha": "05d1b65d00c23b215fafd41642a261e4d1f8709b",
+  "candidateSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
   "route": "/app/tasks",
   "viewport": "1440x900",
   "locale": "en",
@@ -32,5 +32,5 @@
   "featureState": "05-tasks-board",
   "rawScreenshot": "artifacts/planable-rebuild-004/p4-requests-briefs-tasks/05-tasks-board.png",
   "gitignoredRaw": true,
-  "capturedAt": "2026-09-18T12:26:00.225Z"
+  "capturedAt": "2026-09-24T19:08:19.311Z"
 }

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { chooseOmaSelect } from './helpers/antd-select';
 import { installOwnerSession } from './helpers/brand-ui';
 
 const BLOCKED_HOSTS =
@@ -127,7 +128,7 @@ test.describe('Stage 4 Requests + Tasks visual rebuild', () => {
     await expect(page.getByTestId('demo-task-drawer')).toBeVisible();
     await page.getByTestId('demo-task-assignee').fill('Rami Khalil');
     await page.getByTestId('demo-task-assignee').blur();
-    await page.getByTestId('demo-task-priority').selectOption('URGENT');
+    await chooseOmaSelect(page, 'demo-task-priority', 'URGENT');
     await page.getByTestId('demo-checklist-new').fill('Stage4 checklist item');
     await page.getByTestId('demo-checklist-new').press('Enter');
     await expect(page.getByText('Stage4 checklist item')).toBeVisible({ timeout: 15_000 });

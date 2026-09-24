@@ -1,6 +1,6 @@
 {
   "name": "16-ar-desktop",
-  "candidateSha": "a734122afd75fc066d17b917e4ded91268112371",
+  "candidateSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
   "route": "/app/deliverables",
   "viewport": "1440x900",
   "locale": "ar",
@@ -32,5 +32,5 @@
   "featureState": "16-ar-desktop",
   "rawScreenshot": "artifacts/planable-rebuild-004/p5-deliverables-reviews-schedule/16-ar-desktop.png",
   "gitignoredRaw": true,
-  "capturedAt": "2026-09-18T12:38:09.022Z"
+  "capturedAt": "2026-09-24T19:08:45.554Z"
 }

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { chooseOmaSelect } from './helpers/antd-select';
 import { installOwnerSession } from './helpers/brand-ui';
 
 const BLOCKED_HOSTS =
@@ -113,10 +114,10 @@ test.describe('Stage 3 Campaigns + Content visual rebuild', () => {
     await page.getByTestId('demo-content-view-grid').click();
     await expect(page.getByTestId('demo-content-grid')).toBeVisible();
 
-    await page.getByTestId('demo-content-filter-campaign').selectOption('demo-campaign-organic');
+    await chooseOmaSelect(page, 'demo-content-filter-campaign', 'demo-campaign-organic');
     await expect(page.getByTestId('demo-content-filter-chips')).toBeVisible();
-    await page.getByTestId('demo-content-filter-channel').selectOption('Instagram');
-    await page.getByTestId('demo-content-filter-status').selectOption('IN_REVIEW');
+    await chooseOmaSelect(page, 'demo-content-filter-channel', 'Instagram');
+    await chooseOmaSelect(page, 'demo-content-filter-status', 'IN_REVIEW');
 
     await page.getByTestId('demo-content-card-demo-content-carousel').click();
     await expect(page.getByTestId('demo-content-drawer')).toBeVisible();

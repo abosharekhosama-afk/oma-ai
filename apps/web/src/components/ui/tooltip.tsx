@@ -1,6 +1,7 @@
 'use client';
 
-import { useId, useState, type ReactNode } from 'react';
+import { Tooltip as AntTooltip } from '@oma/ui/controls';
+import type { ReactNode } from 'react';
 
 export function Tooltip({
   label,
@@ -11,24 +12,6 @@ export function Tooltip({
   children: ReactNode;
   disabled?: boolean;
 }) {
-  const id = useId();
-  const [visible, setVisible] = useState(false);
   if (disabled) return <>{children}</>;
-
-  return (
-    <span
-      className="oma-tooltip-anchor"
-      onMouseEnter={() => setVisible(true)}
-      onMouseLeave={() => setVisible(false)}
-      onFocus={() => setVisible(true)}
-      onBlur={() => setVisible(false)}
-    >
-      {children}
-      {visible ? (
-        <span role="tooltip" id={id} className="oma-tooltip">
-          {label}
-        </span>
-      ) : null}
-    </span>
-  );
+  return <AntTooltip title={label}>{children}</AntTooltip>;
 }

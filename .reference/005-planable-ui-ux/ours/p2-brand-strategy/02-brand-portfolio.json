@@ -1,6 +1,6 @@
 {
   "name": "02-brand-portfolio",
-  "candidateSha": "82e52724b94a81613c44a29167b4f5af1378c7b2",
+  "candidateSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
   "route": "/app/brands",
   "viewport": "1440x900",
   "locale": "en",
@@ -22,5 +22,5 @@
   "featureState": "02-brand-portfolio",
   "rawScreenshot": "artifacts/planable-rebuild-004/p2-brand-strategy/02-brand-portfolio.png",
   "gitignoredRaw": true,
-  "capturedAt": "2026-09-16T08:17:05.822Z"
+  "capturedAt": "2026-09-24T19:07:45.168Z"
 }

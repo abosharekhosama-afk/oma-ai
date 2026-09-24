@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { DemoGraph } from '@oma/demo';
+import { Button, DatePicker, Input, OmaSelect, TextArea } from '@oma/ui/controls';
+import dayjs from 'dayjs';
 import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
 import { Dialog } from '../../../../components/ui/dialog';
 import { EmptyState } from '../../../../components/ui/empty-state';
@@ -579,23 +581,18 @@ export default function RequestsPage() {
           ) : null}
           <label>
             {t('demo.requests.filter.type')}
-            <select
-              className="oma-select"
+            <OmaSelect
               value={form.type}
-              data-testid="demo-create-request-type"
-              onChange={(e) => patchForm({ type: e.target.value })}
-            >
-              {['CONTENT', 'DESIGN', 'VIDEO', 'CAMPAIGN_SUPPORT', 'REVISION', 'OTHER'].map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
+              testId="demo-create-request-type"
+              onChange={(type) => patchForm({ type })}
+              options={['CONTENT', 'DESIGN', 'VIDEO', 'CAMPAIGN_SUPPORT', 'REVISION', 'OTHER'].map(
+                (s) => ({ value: s, label: s }),
+              )}
+            />
           </label>
           <label>
             {t('demo.create.title')}
-            <input
-              className="oma-input"
+            <Input
               value={form.title}
               data-testid="demo-create-request-title-input"
               onChange={(e) => patchForm({ title: e.target.value })}
@@ -603,8 +600,7 @@ export default function RequestsPage() {
           </label>
           <label>
             {t('demo.requests.description')}
-            <textarea
-              className="oma-input"
+            <TextArea
               rows={3}
               value={form.description}
               data-testid="demo-create-request-description"
@@ -613,39 +609,28 @@ export default function RequestsPage() {
           </label>
           <label>
             {t('demo.requests.filter.brand')}
-            <select
-              className="oma-select"
+            <OmaSelect
               value={form.brandId}
-              data-testid="demo-create-request-brand"
-              onChange={(e) => patchForm({ brandId: e.target.value })}
-            >
-              {brands.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {pickCopy(b.name, locale)}
-                </option>
-              ))}
-            </select>
+              testId="demo-create-request-brand"
+              onChange={(brandId) => patchForm({ brandId })}
+              options={brands.map((b) => ({ value: b.id, label: pickCopy(b.name, locale) }))}
+            />
           </label>
           <label>
             {t('demo.create.campaign')}
-            <select
-              className="oma-select"
+            <OmaSelect
               value={form.campaignId}
-              data-testid="demo-create-request-campaign"
-              onChange={(e) => patchForm({ campaignId: e.target.value })}
-            >
-              <option value="">{t('demo.optional')}</option>
-              {campaigns.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {pickCopy(c.name, locale)}
-                </option>
-              ))}
-            </select>
+              testId="demo-create-request-campaign"
+              onChange={(campaignId) => patchForm({ campaignId })}
+              options={[
+                { value: '', label: t('demo.optional') },
+                ...campaigns.map((c) => ({ value: c.id, label: pickCopy(c.name, locale) })),
+              ]}
+            />
           </label>
           <label>
             {t('demo.requests.outcome')}
-            <input
-              className="oma-input"
+            <Input
               value={form.outcome}
               data-testid="demo-create-request-objective"
               onChange={(e) => patchForm({ outcome: e.target.value })}
@@ -653,8 +638,7 @@ export default function RequestsPage() {
           </label>
           <label>
             {t('demo.create.channels')}
-            <input
-              className="oma-input"
+            <Input
               value={form.channels}
               data-testid="demo-create-request-channels"
               onChange={(e) => patchForm({ channels: e.target.value })}
@@ -662,8 +646,7 @@ export default function RequestsPage() {
           </label>
           <label>
             {t('demo.requests.formats')}
-            <input
-              className="oma-input"
+            <Input
               value={form.formats}
               data-testid="demo-create-request-formats"
               onChange={(e) => patchForm({ formats: e.target.value })}
@@ -671,33 +654,28 @@ export default function RequestsPage() {
           </label>
           <label>
             {t('demo.requests.filter.priority')}
-            <select
-              className="oma-select"
+            <OmaSelect
               value={form.priority}
-              data-testid="demo-create-request-priority"
-              onChange={(e) => patchForm({ priority: e.target.value })}
-            >
-              {['URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
+              testId="demo-create-request-priority"
+              onChange={(priority) => patchForm({ priority })}
+              options={['URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((s) => ({ value: s, label: s }))}
+            />
           </label>
           <label>
             {t('demo.requests.col.due')}
-            <input
-              className="oma-input"
-              type="date"
-              value={form.dueAt}
+            <DatePicker
               data-testid="demo-create-request-due"
-              onChange={(e) => patchForm({ dueAt: e.target.value })}
+              value={form.dueAt ? dayjs(form.dueAt) : null}
+              onChange={(_, dateString) =>
+                patchForm({
+                  dueAt: Array.isArray(dateString) ? (dateString[0] ?? '') : dateString,
+                })
+              }
             />
           </label>
           <label>
             {t('demo.requests.filter.requester')}
-            <input
-              className="oma-input"
+            <Input
               value={form.requester}
               data-testid="demo-create-request-requester"
               onChange={(e) => patchForm({ requester: e.target.value })}
@@ -705,8 +683,7 @@ export default function RequestsPage() {
           </label>
           <label>
             {t('demo.requests.filter.assignee')}
-            <input
-              className="oma-input"
+            <Input
               value={form.assignee}
               data-testid="demo-create-request-assignee"
               onChange={(e) => patchForm({ assignee: e.target.value })}
@@ -717,23 +694,17 @@ export default function RequestsPage() {
             {t('demo.optional')}: content / reference placeholders (Demo)
           </p>
           <div className="oma-chip-row">
-            <button
-              type="button"
-              className="oma-btn oma-btn-secondary"
-              disabled={creating}
-              onClick={requestCloseCreate}
-            >
+            <Button disabled={creating} onClick={requestCloseCreate}>
               {t('demo.create.cancel')}
-            </button>
-            <button
-              type="button"
-              className="oma-btn oma-btn-primary"
-              disabled={creating}
+            </Button>
+            <Button
+              type="primary"
+              loading={creating}
               data-testid="demo-create-request-submit"
               onClick={() => void submitCreate()}
             >
-              {creating ? t('demo.create.creating') : t('demo.create.confirm')}
-            </button>
+              {t('demo.create.confirm')}
+            </Button>
           </div>
         </div>
       </Dialog>

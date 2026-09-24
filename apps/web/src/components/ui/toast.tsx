@@ -1,50 +1,32 @@
 'use client';
 
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
+import { useOmaFeedback } from '@oma/ui/controls';
+import { createContext, useCallback, useContext, useMemo, type ReactNode } from 'react';
 
-type ToastItem = { id: string; message: string; tone?: 'default' | 'success' | 'danger' };
+type ToastTone = 'default' | 'success' | 'danger';
 
 type ToastApi = {
-  push: (message: string, tone?: ToastItem['tone']) => void;
+  push: (message: string, tone?: ToastTone) => void;
 };
 
 const ToastContext = createContext<ToastApi | null>(null);
 
 export function ToastProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<ToastItem[]>([]);
+  const { notification } = useOmaFeedback();
 
-  const push = useCallback((message: string, tone: ToastItem['tone'] = 'default') => {
-    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    setItems((prev) => [...prev, { id, message, tone }]);
-    window.setTimeout(() => {
-      setItems((prev) => prev.filter((t) => t.id !== id));
-    }, 4000);
-  }, []);
+  const push = useCallback(
+    (message: string, tone: ToastTone = 'default') => {
+      notification.open({
+        title: message,
+        type: tone === 'danger' ? 'error' : tone === 'success' ? 'success' : 'info',
+      });
+    },
+    [notification],
+  );
 
   const api = useMemo(() => ({ push }), [push]);
 
-  return (
-    <ToastContext.Provider value={api}>
-      {children}
-      <div className="oma-toast-region" aria-live="polite" aria-relevant="additions">
-        {items.map((item) => (
-          <div
-            key={item.id}
-            className={
-              item.tone === 'success'
-                ? 'oma-toast oma-toast--success'
-                : item.tone === 'danger'
-                  ? 'oma-toast oma-toast--danger'
-                  : 'oma-toast'
-            }
-            role="status"
-          >
-            {item.message}
-          </div>
-        ))}
-      </div>
-    </ToastContext.Provider>
-  );
+  return <ToastContext.Provider value={api}>{children}</ToastContext.Provider>;
 }
 
 export function useToast() {

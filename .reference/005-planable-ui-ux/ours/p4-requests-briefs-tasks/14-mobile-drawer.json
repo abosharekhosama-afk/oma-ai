@@ -1,6 +1,6 @@
 {
   "name": "14-mobile-drawer",
-  "candidateSha": "05d1b65d00c23b215fafd41642a261e4d1f8709b",
+  "candidateSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
   "route": "/app/tasks?task=demo-task-design",
   "viewport": "390x844",
   "locale": "en",
@@ -32,5 +32,5 @@
   "featureState": "14-mobile-drawer",
   "rawScreenshot": "artifacts/planable-rebuild-004/p4-requests-briefs-tasks/14-mobile-drawer.png",
   "gitignoredRaw": true,
-  "capturedAt": "2026-09-18T12:26:02.576Z"
+  "capturedAt": "2026-09-24T19:08:24.498Z"
 }

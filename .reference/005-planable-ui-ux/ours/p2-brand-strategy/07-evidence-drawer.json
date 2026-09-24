@@ -1,7 +1,7 @@
 {
   "name": "07-evidence-drawer",
-  "candidateSha": "82e52724b94a81613c44a29167b4f5af1378c7b2",
-  "route": "/app/brands/01M2MMMTDC3FK9YR6FCXT42HZ3/discovery/pages",
+  "candidateSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
+  "route": "/app/brands/01M3AD1YBZ7QVFRK1JJKYFTPZF/discovery/pages",
   "viewport": "1440x900",
   "locale": "en",
   "dir": "ltr",
@@ -22,5 +22,5 @@
   "featureState": "07-evidence-drawer",
   "rawScreenshot": "artifacts/planable-rebuild-004/p2-brand-strategy/07-evidence-drawer.png",
   "gitignoredRaw": true,
-  "capturedAt": "2026-09-16T08:17:09.269Z"
+  "capturedAt": "2026-09-24T19:07:49.181Z"
 }

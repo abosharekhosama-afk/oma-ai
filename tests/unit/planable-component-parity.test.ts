@@ -29,9 +29,10 @@ describe('Planable component parity primitives', () => {
     expect(primitives).toMatch(/\.oma-dialog-header/);
     expect(primitives).toMatch(/\.oma-dialog-body/);
     expect(primitives).toMatch(/\.oma-dialog-footer/);
-    expect(dialog).toMatch(/oma-dialog-header/);
-    expect(dialog).toMatch(/oma-dialog-body/);
-    expect(dialog).toMatch(/oma-icon-btn/);
+    expect(dialog).toMatch(/<Modal/);
+    expect(dialog).toMatch(/onCancel/);
+    expect(dialog).toMatch(/destroyOnHidden/);
+    expect(dialog).toMatch(/focusTriggerAfterClose: true/);
   });
 
   it('strengthens form hover/focus/error/disabled states', () => {

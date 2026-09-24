@@ -1,7 +1,8 @@
 'use client';
 
+import { IconButton, Popover } from '@oma/ui/controls';
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { apiMutate, getApiError } from '../../lib/brand-api';
 import { useT } from '../../lib/use-locale';
@@ -34,8 +35,6 @@ export function NotificationsBell() {
   const [items, setItems] = useState<NotificationItem[] | null>(null);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     api<{ items: NotificationItem[] }>('/api/v1/notifications')
@@ -45,25 +44,6 @@ export function NotificationsBell() {
         else setError(err instanceof Error ? err.message : String(err));
       });
   }, []);
-
-  useEffect(() => {
-    if (!open) return;
-    function onPointer(e: MouseEvent) {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
-    }
-    function onKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
-        setOpen(false);
-        triggerRef.current?.focus();
-      }
-    }
-    document.addEventListener('mousedown', onPointer);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('mousedown', onPointer);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [open]);
 
   async function markRead(id: string) {
     try {
@@ -83,78 +63,82 @@ export function NotificationsBell() {
 
   const unread = (items ?? []).filter((n) => !n.readAt).length;
 
+  const panel = (
+    <div
+      id="notifications-panel"
+      className="oma-notifications-panel"
+      role="region"
+      data-testid="shell-notifications-panel"
+    >
+      {error ? (
+        <p role="alert">{error}</p>
+      ) : items === null ? (
+        <p role="status">{t('common.loading')}</p>
+      ) : items.length === 0 ? (
+        <p className="oma-muted">{t('shell.notificationsEmpty')}</p>
+      ) : (
+        <ul>
+          {items.map((n) => (
+            <li
+              key={n.id}
+              className={n.readAt ? undefined : 'oma-notification-unread'}
+              data-testid={`notification-item-${n.id}`}
+              data-read={n.readAt ? 'true' : 'false'}
+            >
+              {n.deepLinkPath ? (
+                <Link
+                  href={n.deepLinkPath}
+                  data-testid={`notification-link-${n.id}`}
+                  onClick={() => {
+                    if (!n.readAt) void markRead(n.id);
+                  }}
+                >
+                  {notificationLabel(t, n.type)}
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  className="oma-linkish"
+                  data-testid={`notification-mark-${n.id}`}
+                  onClick={() => {
+                    if (!n.readAt) void markRead(n.id);
+                  }}
+                >
+                  {notificationLabel(t, n.type)}
+                </button>
+              )}
+              <span className="oma-notification-meta">
+                {t('shell.notificationsInApp')} · {formatWhen(n.createdAt)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+
   return (
-    <div className="oma-notifications" ref={rootRef}>
-      <button
-        ref={triggerRef}
-        type="button"
-        className="oma-icon-btn"
-        aria-label={t('shell.notifications')}
+    <Popover
+      open={open}
+      onOpenChange={setOpen}
+      trigger="click"
+      placement="bottomRight"
+      content={panel}
+      classNames={{ root: 'oma-notifications' }}
+    >
+      <IconButton
+        label={t('shell.notifications')}
         aria-expanded={open}
         aria-controls="notifications-panel"
         data-testid="shell-notifications-trigger"
-        onClick={() => setOpen((v) => !v)}
+        icon={<ShellIcon name="bell" />}
       >
-        <ShellIcon name="bell" />
         {unread > 0 ? (
           <span className="oma-badge oma-badge--primary" data-testid="shell-notifications-unread">
             {unread}
           </span>
         ) : null}
-      </button>
-      {open ? (
-        <div
-          id="notifications-panel"
-          className="oma-notifications-panel"
-          role="region"
-          data-testid="shell-notifications-panel"
-        >
-          {error ? (
-            <p role="alert">{error}</p>
-          ) : items === null ? (
-            <p role="status">{t('common.loading')}</p>
-          ) : items.length === 0 ? (
-            <p className="oma-muted">{t('shell.notificationsEmpty')}</p>
-          ) : (
-            <ul>
-              {items.map((n) => (
-                <li
-                  key={n.id}
-                  className={n.readAt ? undefined : 'oma-notification-unread'}
-                  data-testid={`notification-item-${n.id}`}
-                  data-read={n.readAt ? 'true' : 'false'}
-                >
-                  {n.deepLinkPath ? (
-                    <Link
-                      href={n.deepLinkPath}
-                      data-testid={`notification-link-${n.id}`}
-                      onClick={() => {
-                        if (!n.readAt) void markRead(n.id);
-                      }}
-                    >
-                      {notificationLabel(t, n.type)}
-                    </Link>
-                  ) : (
-                    <button
-                      type="button"
-                      className="oma-linkish"
-                      data-testid={`notification-mark-${n.id}`}
-                      onClick={() => {
-                        if (!n.readAt) void markRead(n.id);
-                      }}
-                    >
-                      {notificationLabel(t, n.type)}
-                    </button>
-                  )}
-                  <span className="oma-notification-meta">
-                    {t('shell.notificationsInApp')} · {formatWhen(n.createdAt)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      ) : null}
-    </div>
+      </IconButton>
+    </Popover>
   );
 }

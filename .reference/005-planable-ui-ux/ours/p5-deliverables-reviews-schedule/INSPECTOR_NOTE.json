@@ -1,8 +1,8 @@
 {
   "stage": "P5",
-  "parentSha": "a734122afd75fc066d17b917e4ded91268112371",
+  "parentSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
   "branch": "004-oma-complete-product-demo",
-  "capturedAt": "2026-09-18",
+  "capturedAt": "2026-09-24",
   "routes": [
     "/app/deliverables",
     "/app/deliverables/demo-deliv-carousel",

@@ -97,7 +97,7 @@ test.describe('Full visual product certification', () => {
 
     await nav(page, /^Content Plan$|^المحتوى|Content$/i, /\/app\/content/);
     await expect(page.getByTestId('demo-content')).toBeVisible({ timeout: 20_000 });
-    await page.getByRole('button', { name: /calendar/i }).click();
+    await page.getByTestId('demo-content-view-calendar').click();
     await expect(
       page.getByText(/Fabric story carousel|Studio morning reel/i).first(),
     ).toBeVisible();

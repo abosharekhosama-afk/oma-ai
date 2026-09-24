@@ -1,14 +1,14 @@
 [
   {
     "file": "after-shell-home.png",
-    "gitSha": "888c0cc8bfbe0e60be1da19cf51e87d97f2c8e87",
+    "gitSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
     "route": "/app",
     "viewport": {
       "width": 1440,
       "height": 900
     },
     "locale": "en",
-    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "computedFontFamily": "-apple-system, system-ui, \"Segoe UI\", Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif",
     "consoleErrorCount": 0,
     "failedRequests": 0,
     "beforeAfter": "after",
@@ -17,14 +17,14 @@
   },
   {
     "file": "after-tasks-board-default.png",
-    "gitSha": "888c0cc8bfbe0e60be1da19cf51e87d97f2c8e87",
+    "gitSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
     "route": "/app/tasks",
     "viewport": {
       "width": 1440,
       "height": 900
     },
     "locale": "en",
-    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "computedFontFamily": "-apple-system, system-ui, \"Segoe UI\", Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif",
     "consoleErrorCount": 0,
     "failedRequests": 0,
     "beforeAfter": "after",
@@ -33,14 +33,14 @@
   },
   {
     "file": "after-kanban-drag-state.png",
-    "gitSha": "888c0cc8bfbe0e60be1da19cf51e87d97f2c8e87",
+    "gitSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
     "route": "/app/tasks",
     "viewport": {
       "width": 1440,
       "height": 900
     },
     "locale": "en",
-    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "computedFontFamily": "-apple-system, system-ui, \"Segoe UI\", Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif",
     "consoleErrorCount": 0,
     "failedRequests": 0,
     "beforeAfter": "after",
@@ -49,14 +49,14 @@
   },
   {
     "file": "after-task-drawer.png",
-    "gitSha": "888c0cc8bfbe0e60be1da19cf51e87d97f2c8e87",
+    "gitSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
     "route": "/app/tasks?task=demo-task-design",
     "viewport": {
       "width": 1440,
       "height": 900
     },
     "locale": "en",
-    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "computedFontFamily": "-apple-system, system-ui, \"Segoe UI\", Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif",
     "consoleErrorCount": 0,
     "failedRequests": 0,
     "beforeAfter": "after",
@@ -65,14 +65,14 @@
   },
   {
     "file": "after-content-calendar.png",
-    "gitSha": "888c0cc8bfbe0e60be1da19cf51e87d97f2c8e87",
+    "gitSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
     "route": "/app/content",
     "viewport": {
       "width": 1440,
       "height": 900
     },
     "locale": "en",
-    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "computedFontFamily": "-apple-system, system-ui, \"Segoe UI\", Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif",
     "consoleErrorCount": 0,
     "failedRequests": 0,
     "beforeAfter": "after",
@@ -81,14 +81,14 @@
   },
   {
     "file": "after-requests.png",
-    "gitSha": "888c0cc8bfbe0e60be1da19cf51e87d97f2c8e87",
+    "gitSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
     "route": "/app/requests",
     "viewport": {
       "width": 1440,
       "height": 900
     },
     "locale": "en",
-    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "computedFontFamily": "-apple-system, system-ui, \"Segoe UI\", Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif",
     "consoleErrorCount": 0,
     "failedRequests": 0,
     "beforeAfter": "after",
@@ -97,14 +97,14 @@
   },
   {
     "file": "after-schedule.png",
-    "gitSha": "888c0cc8bfbe0e60be1da19cf51e87d97f2c8e87",
+    "gitSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
     "route": "/app/schedule",
     "viewport": {
       "width": 1440,
       "height": 900
     },
     "locale": "en",
-    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "computedFontFamily": "-apple-system, system-ui, \"Segoe UI\", Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif",
     "consoleErrorCount": 0,
     "failedRequests": 0,
     "beforeAfter": "after",
@@ -113,14 +113,14 @@
   },
   {
     "file": "after-analytics.png",
-    "gitSha": "888c0cc8bfbe0e60be1da19cf51e87d97f2c8e87",
+    "gitSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
     "route": "/app/analytics",
     "viewport": {
       "width": 1440,
       "height": 900
     },
     "locale": "en",
-    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "computedFontFamily": "-apple-system, system-ui, \"Segoe UI\", Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif",
     "consoleErrorCount": 0,
     "failedRequests": 0,
     "beforeAfter": "after",
@@ -129,14 +129,14 @@
   },
   {
     "file": "after-settings.png",
-    "gitSha": "888c0cc8bfbe0e60be1da19cf51e87d97f2c8e87",
+    "gitSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
     "route": "/app/settings",
     "viewport": {
       "width": 1440,
       "height": 900
     },
     "locale": "en",
-    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "computedFontFamily": "-apple-system, system-ui, \"Segoe UI\", Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif",
     "consoleErrorCount": 0,
     "failedRequests": 0,
     "beforeAfter": "after",
@@ -145,14 +145,14 @@
   },
   {
     "file": "after-mobile-tasks.png",
-    "gitSha": "888c0cc8bfbe0e60be1da19cf51e87d97f2c8e87",
+    "gitSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
     "route": "/app/tasks",
     "viewport": {
       "width": 390,
       "height": 844
     },
     "locale": "en",
-    "computedFontFamily": "Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "computedFontFamily": "-apple-system, system-ui, \"Segoe UI\", Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif",
     "consoleErrorCount": 0,
     "failedRequests": 0,
     "beforeAfter": "after",
@@ -161,14 +161,14 @@
   },
   {
     "file": "after-arabic-tasks-board.png",
-    "gitSha": "888c0cc8bfbe0e60be1da19cf51e87d97f2c8e87",
+    "gitSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
     "route": "/app/tasks",
     "viewport": {
       "width": 1440,
       "height": 900
     },
     "locale": "ar",
-    "computedFontFamily": "\"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif, Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+    "computedFontFamily": "\"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", Tahoma, sans-serif, -apple-system, system-ui, \"Segoe UI\", Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif",
     "consoleErrorCount": 0,
     "failedRequests": 0,
     "beforeAfter": "after",

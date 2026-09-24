@@ -1,5 +1,5 @@
 {
-  "computedFontFamily": "\"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif, Inter, \"Inter Fallback\", Inter, \"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", sans-serif",
+  "computedFontFamily": "\"Noto Sans Arabic\", \"Noto Sans Arabic Fallback\", \"Noto Sans Arabic\", \"Segoe UI\", Tahoma, sans-serif, -apple-system, system-ui, \"Segoe UI\", Roboto, \"Helvetica Neue\", Helvetica, Arial, sans-serif",
   "locale": "ar",
   "dir": "rtl",
   "acceptanceIds": [

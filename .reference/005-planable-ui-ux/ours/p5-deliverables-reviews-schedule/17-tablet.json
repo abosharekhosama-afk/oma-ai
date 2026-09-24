@@ -1,6 +1,6 @@
 {
   "name": "17-tablet",
-  "candidateSha": "a734122afd75fc066d17b917e4ded91268112371",
+  "candidateSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
   "route": "/app/reviews",
   "viewport": "1024x768",
   "locale": "en",
@@ -32,5 +32,5 @@
   "featureState": "17-tablet",
   "rawScreenshot": "artifacts/planable-rebuild-004/p5-deliverables-reviews-schedule/17-tablet.png",
   "gitignoredRaw": true,
-  "capturedAt": "2026-09-18T12:38:09.433Z"
+  "capturedAt": "2026-09-24T19:08:46.465Z"
 }

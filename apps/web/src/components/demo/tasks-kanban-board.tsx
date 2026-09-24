@@ -159,7 +159,10 @@ function SortableTaskCard({
           className="oma-kanban-card-open"
           data-testid={`demo-task-open-${task.id}`}
           aria-label={`${t('demo.tasks.detail')}: ${pickCopy(task.title, locale)}`}
-          onPointerDown={(e) => e.stopPropagation()}
+          onPointerDown={(e) => {
+            e.stopPropagation();
+            onOpen();
+          }}
           onClick={(e) => {
             e.stopPropagation();
             onOpen();

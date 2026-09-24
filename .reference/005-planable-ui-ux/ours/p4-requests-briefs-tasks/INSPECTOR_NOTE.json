@@ -1,8 +1,8 @@
 {
   "stage": "P4",
-  "parentSha": "05d1b65d00c23b215fafd41642a261e4d1f8709b",
+  "parentSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
   "branch": "004-oma-complete-product-demo",
-  "capturedAt": "2026-09-18",
+  "capturedAt": "2026-09-24",
   "routes": [
     "/app/requests",
     "/app/requests/demo-request-1",

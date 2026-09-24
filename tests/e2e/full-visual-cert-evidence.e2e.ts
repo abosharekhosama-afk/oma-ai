@@ -125,7 +125,7 @@ test.describe('Full visual certification evidence', () => {
         source: 'Demo-backed',
         setup: async () => {
           await expect(page.getByTestId('demo-content')).toBeVisible({ timeout: 20_000 });
-          await page.getByRole('button', { name: /calendar/i }).click();
+          await page.getByTestId('demo-content-view-calendar').click();
           await expect(
             page.getByText(/Fabric story carousel|Studio morning reel/i).first(),
           ).toBeVisible({ timeout: 15_000 });

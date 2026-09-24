@@ -7,6 +7,7 @@ export default tseslint.config(
       '**/dist/**',
       '**/.next/**',
       '**/.next-e2e/**',
+      '**/.next-w1/**',
       '**/node_modules/**',
       '**/coverage/**',
       '**/playwright-report/**',

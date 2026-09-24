@@ -1,6 +1,6 @@
 {
   "name": "13-content-detail",
-  "candidateSha": "de05bb235fcaa9f3b18214b9191c047e516661d8",
+  "candidateSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
   "route": "/app/content",
   "viewport": "1440x900",
   "locale": "en",
@@ -32,5 +32,5 @@
   "featureState": "13-content-detail",
   "rawScreenshot": "artifacts/planable-rebuild-004/p3-campaigns-content/13-content-detail.png",
   "gitignoredRaw": true,
-  "capturedAt": "2026-09-16T09:07:55.639Z"
+  "capturedAt": "2026-09-24T19:08:03.952Z"
 }

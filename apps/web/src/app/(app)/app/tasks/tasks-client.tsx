@@ -2,8 +2,10 @@
 
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { DemoGraph, DemoTaskStatus } from '@oma/demo';
+import { Button, Checkbox, DatePicker, Input, OmaSelect } from '@oma/ui/controls';
+import dayjs from 'dayjs';
 import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
 import { Dialog } from '../../../../components/ui/dialog';
 import { Drawer } from '../../../../components/ui/drawer';
@@ -112,12 +114,17 @@ export default function TasksPage() {
     };
   }, []);
 
+  const pendingTask = useRef<string | null>(null);
+
   useEffect(() => {
     const task = searchParams.get('task');
-    if (!task) {
-      setSelectedId(null);
-    } else {
+    if (task) {
+      pendingTask.current = null;
       setSelectedId(task);
+    } else if (pendingTask.current) {
+      setSelectedId(pendingTask.current);
+    } else {
+      setSelectedId(null);
     }
     const urlView = searchParams.get('view');
     if (urlView === 'board' || urlView === 'list') {
@@ -145,11 +152,13 @@ export default function TasksPage() {
   const assignees = useMemo(() => [...new Set(rows.map((r) => r.assignee))], [rows]);
 
   function openTask(id: string) {
+    pendingTask.current = id;
     setSelectedId(id);
     router.replace(`/app/tasks?task=${id}`, { scroll: false });
   }
 
   function closeTask() {
+    pendingTask.current = null;
     router.replace('/app/tasks', { scroll: false });
     setSelectedId(null);
   }
@@ -576,8 +585,7 @@ export default function TasksPage() {
               <div>
                 <p className="oma-muted">{selected.id}</p>
                 <h2 id="task-drawer-title">
-                  <input
-                    className="oma-input"
+                  <Input
                     defaultValue={pickCopy(selected.title, locale)}
                     data-testid="demo-task-title"
                     aria-label={t('demo.create.title')}
@@ -591,56 +599,39 @@ export default function TasksPage() {
                 </h2>
               </div>
               <div className="oma-chip-row">
-                <button
-                  type="button"
-                  className="oma-btn oma-btn-secondary"
-                  data-testid="demo-task-copy-link"
-                  onClick={() => void copyLink()}
-                >
+                <Button data-testid="demo-task-copy-link" onClick={() => void copyLink()}>
                   {t('demo.tasks.copyLink')}
-                </button>
-                <button type="button" className="oma-btn oma-btn-secondary" onClick={closeTask}>
-                  {t('common.cancel')}
-                </button>
+                </Button>
+                <Button onClick={closeTask}>{t('common.cancel')}</Button>
               </div>
             </div>
 
             <div className="oma-task-fields">
               <label>
                 {t('demo.tasks.filter.status')}
-                <select
-                  className="oma-select"
+                <OmaSelect
                   value={selected.status}
-                  data-testid="demo-task-status"
+                  testId="demo-task-status"
                   disabled={saving}
-                  onChange={(e) => void patchTask(selected.id, { status: e.target.value })}
-                >
-                  {moveOptions(selected.status).map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(status) => void patchTask(selected.id, { status })}
+                  options={moveOptions(selected.status).map((s) => ({ value: s, label: s }))}
+                />
               </label>
               <label>
                 {t('demo.tasks.filter.priority')}
-                <select
-                  className="oma-select"
+                <OmaSelect
                   value={selected.priority}
-                  data-testid="demo-task-priority"
-                  onChange={(e) => void patchTask(selected.id, { priority: e.target.value })}
-                >
-                  {['URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((p) => (
-                    <option key={p} value={p}>
-                      {p}
-                    </option>
-                  ))}
-                </select>
+                  testId="demo-task-priority"
+                  onChange={(priority) => void patchTask(selected.id, { priority })}
+                  options={['URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((p) => ({
+                    value: p,
+                    label: p,
+                  }))}
+                />
               </label>
               <label>
                 {t('demo.tasks.filter.assignee')}
-                <input
-                  className="oma-input"
+                <Input
                   defaultValue={selected.assignee}
                   data-testid="demo-task-assignee"
                   onBlur={(e) => void patchTask(selected.id, { assignee: e.target.value })}
@@ -648,12 +639,14 @@ export default function TasksPage() {
               </label>
               <label>
                 {t('demo.requests.col.due')}
-                <input
-                  className="oma-input"
-                  type="date"
-                  defaultValue={selected.dueAt}
+                <DatePicker
                   data-testid="demo-task-due"
-                  onBlur={(e) => void patchTask(selected.id, { dueAt: e.target.value })}
+                  defaultValue={selected.dueAt ? dayjs(selected.dueAt) : undefined}
+                  onChange={(_, dateString) =>
+                    void patchTask(selected.id, {
+                      dueAt: Array.isArray(dateString) ? (dateString[0] ?? '') : dateString,
+                    })
+                  }
                 />
               </label>
             </div>
@@ -704,15 +697,13 @@ export default function TasksPage() {
               ) : (
                 <div className="oma-chip-row">
                   <span className="oma-muted">{t('demo.tasks.noDeliverable')}</span>
-                  <button
-                    type="button"
-                    className="oma-btn oma-btn-secondary"
+                  <Button
                     data-testid="demo-task-create-deliverable"
                     disabled={saving}
                     onClick={() => void createDeliverableFromTask()}
                   >
                     {t('demo.tasks.createDeliverable')}
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>
@@ -726,8 +717,7 @@ export default function TasksPage() {
                   selected.checklist.map((c) => (
                     <li key={c.id}>
                       <label>
-                        <input
-                          type="checkbox"
+                        <Checkbox
                           checked={c.done}
                           data-testid={`demo-checklist-${c.id}`}
                           onChange={() => void toggleChecklist(c.id)}
@@ -747,19 +737,14 @@ export default function TasksPage() {
                     void addChecklistFromForm(e.currentTarget);
                   }}
                 >
-                  <input
-                    className="oma-input"
+                  <Input
                     name="item"
                     data-testid="demo-checklist-new"
                     placeholder={t('demo.tasks.addChecklist')}
                   />
-                  <button
-                    type="submit"
-                    className="oma-btn oma-btn-secondary"
-                    data-testid="demo-checklist-add"
-                  >
+                  <Button htmlType="submit" data-testid="demo-checklist-add">
                     {t('demo.tasks.addChecklist')}
-                  </button>
+                  </Button>
                 </form>
               </div>
             </section>
@@ -782,14 +767,10 @@ export default function TasksPage() {
                   void addCommentFromForm(e.currentTarget);
                 }}
               >
-                <input className="oma-input" name="comment" data-testid="demo-task-comment-input" />
-                <button
-                  type="submit"
-                  className="oma-btn oma-btn-primary"
-                  data-testid="demo-task-comment-submit"
-                >
+                <Input name="comment" data-testid="demo-task-comment-input" />
+                <Button type="primary" htmlType="submit" data-testid="demo-task-comment-submit">
                   {t('demo.tasks.addComment')}
-                </button>
+                </Button>
               </form>
             </section>
 

@@ -1,6 +1,6 @@
 {
   "name": "05-content-calendar",
-  "candidateSha": "de05bb235fcaa9f3b18214b9191c047e516661d8",
+  "candidateSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
   "route": "/app/content",
   "viewport": "1440x900",
   "locale": "en",
@@ -32,5 +32,5 @@
   "featureState": "05-content-calendar",
   "rawScreenshot": "artifacts/planable-rebuild-004/p3-campaigns-content/05-content-calendar.png",
   "gitignoredRaw": true,
-  "capturedAt": "2026-09-16T09:07:54.717Z"
+  "capturedAt": "2026-09-24T19:08:02.193Z"
 }

@@ -1,6 +1,6 @@
 {
   "name": "02-create-request-dialog",
-  "candidateSha": "05d1b65d00c23b215fafd41642a261e4d1f8709b",
+  "candidateSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
   "route": "/app/requests",
   "viewport": "1440x900",
   "locale": "en",
@@ -32,5 +32,5 @@
   "featureState": "02-create-request-dialog",
   "rawScreenshot": "artifacts/planable-rebuild-004/p4-requests-briefs-tasks/02-create-request-dialog.png",
   "gitignoredRaw": true,
-  "capturedAt": "2026-09-18T12:25:58.792Z"
+  "capturedAt": "2026-09-24T19:08:12.960Z"
 }

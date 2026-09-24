@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { JetBrains_Mono, Noto_Sans_Arabic } from 'next/font/google';
 import { cookies, headers } from 'next/headers';
 import { resolveDir, resolveLocale, t, type Locale } from '@oma/i18n';
+import { OmaAntdProvider } from '../components/ui/oma-antd-provider';
 import { LocaleProvider } from '../lib/locale-context';
 import './globals.css';
 
@@ -42,7 +43,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         <a href="#main" className="oma-skip-link">
           {t(locale, 'shell.skip')}
         </a>
-        <LocaleProvider locale={locale}>{children}</LocaleProvider>
+        <OmaAntdProvider locale={locale}>
+          <LocaleProvider locale={locale}>{children}</LocaleProvider>
+        </OmaAntdProvider>
       </body>
     </html>
   );

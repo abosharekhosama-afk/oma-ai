@@ -1,6 +1,6 @@
 {
   "name": "12-mobile-390",
-  "candidateSha": "7845837fbbca899f348b43df9c4f7647f856207d",
+  "candidateSha": "53275409b0dbbbe71ef33c82844e300260bfb8b9",
   "route": "/app",
   "viewport": "390x844",
   "locale": "en",
@@ -34,5 +34,5 @@
   ],
   "rawScreenshot": "artifacts/planable-rebuild-004/p1-shell-system/12-mobile-390.png",
   "gitignoredRaw": true,
-  "capturedAt": "2026-09-16T07:35:38.457Z"
+  "capturedAt": "2026-09-24T19:07:09.422Z"
 }
