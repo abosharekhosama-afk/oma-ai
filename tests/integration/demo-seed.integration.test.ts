@@ -1,6 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { describe, expect, it } from 'vitest';
 import { getPrisma } from '@oma/db';
+import { ensurePlatformOwner } from '../helpers/platform-owner';
 
 const REPO_ROOT = new URL('../../', import.meta.url).pathname;
 
@@ -19,6 +20,7 @@ function runSeed(env: NodeJS.ProcessEnv = {}) {
  */
 describe('demo seed', () => {
   it('is idempotent and leaves one demo tenant carrying its fixture brands', async () => {
+    await ensurePlatformOwner();
     runSeed();
     const prisma = getPrisma();
     const tenant = await prisma.tenant.findFirstOrThrow({ where: { slug: 'oma-demo' } });

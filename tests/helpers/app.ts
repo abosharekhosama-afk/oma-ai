@@ -3,12 +3,14 @@ import cookieParser from 'cookie-parser';
 import { AppModule } from '../../apps/api/src/app.module';
 import type { INestApplication } from '@nestjs/common';
 import type { Server } from 'node:http';
+import { ensurePlatformOwner } from './platform-owner';
 
 export async function createTestApp(): Promise<{
   app: INestApplication;
   server: Server;
   baseUrl: string;
 }> {
+  await ensurePlatformOwner();
   const app = await NestFactory.create(AppModule, { logger: false });
   app.use(cookieParser());
   await app.listen(0, '127.0.0.1');

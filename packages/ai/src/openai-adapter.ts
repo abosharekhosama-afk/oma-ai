@@ -39,10 +39,7 @@ export class OpenAiProviderAdapter implements AiProviderPort {
     throw error;
   }
 
-  async completeStructured(input: {
-    useCase: AiUseCase;
-    payload: unknown;
-  }): Promise<
+  async completeStructured(input: { useCase: AiUseCase; payload: unknown }): Promise<
     | {
         ok: false;
         code: 'AI_DISABLED' | 'BILLING_NOT_ENABLED' | 'SCHEMA_INVALID' | 'MODEL_NOT_VERIFIED';

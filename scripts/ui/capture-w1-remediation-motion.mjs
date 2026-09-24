@@ -1,3 +1,4 @@
+/* global getComputedStyle */
 import { chromium } from '@playwright/test';
 import fs from 'node:fs';
 

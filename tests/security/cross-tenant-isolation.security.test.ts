@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { cookieHeader, createTestApp, parseCookies } from '../helpers/app';
+import { platformOwnerCredentials } from '../helpers/platform-owner';
 import type { INestApplication } from '@nestjs/common';
 import { newId } from '@oma/domain';
 
@@ -25,11 +26,9 @@ describe('cross-tenant isolation Q-05', () => {
   });
 
   it('denies foreign membership id', async () => {
-    const ownerCookies = await login(
-      baseUrl,
-      'platform-owner@example.com',
-      'ChangeMe_PlatformOwner_1!',
-    );
+    const owner = platformOwnerCredentials();
+    const ownerCookies = await login(baseUrl, owner.email, owner.password);
+    expect(ownerCookies.oma_session).toBeTruthy();
     const slug1 = `t1-${newId().toLowerCase().slice(-6)}`;
     const t1 = await (
       await fetch(`${baseUrl}/api/v1/tenants`, {

@@ -1,4 +1,4 @@
-import { resolveContentWorkflow, type ApprovalPolicy, type DemoGraph } from '@oma/demo';
+import { resolveContentWorkflow, type DemoGraph } from '@oma/demo';
 
 export type ContentRow = DemoGraph['contentItems'][number];
 export type DeliverableRow = DemoGraph['deliverables'][number];

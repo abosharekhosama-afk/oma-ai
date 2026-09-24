@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { cookieHeader, createTestApp, parseCookies } from '../helpers/app';
+import { cookieHeader, createTestApp } from '../helpers/app';
+import { loginPlatformOwner } from '../helpers/platform-owner';
 import type { INestApplication } from '@nestjs/common';
 import { newId } from '@oma/domain';
 
@@ -15,15 +16,7 @@ describe('tenant switch Q-04', () => {
     await app.close();
   });
   it('allows authorized switch and denies unknown', async () => {
-    const login = await fetch(`${baseUrl}/api/v1/auth/login`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        email: 'platform-owner@example.com',
-        password: 'ChangeMe_PlatformOwner_1!',
-      }),
-    });
-    const cookies = parseCookies(login);
+    const cookies = await loginPlatformOwner(baseUrl);
     const bad = await fetch(`${baseUrl}/api/v1/tenants/active`, {
       method: 'POST',
       headers: {

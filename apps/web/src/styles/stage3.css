@@ -511,27 +511,32 @@
 .oma-post-card--calendar,
 .oma-post-card--saved {
   width: 126px;
+  box-sizing: border-box;
   padding: 6px;
-  border: 1px solid #e2e3e5;
-  border-radius: 8px;
-  background: #fff;
+  border: 1px solid #e2e3e5; /* INTENTIONAL_EXCEPTION: live Planable card border */
+  border-radius: 8px; /* INTENTIONAL_EXCEPTION: live Planable card radius */
+  background: #fff; /* INTENTIONAL_EXCEPTION: live Planable card surface */
   transition:
     border-color 150ms ease-out,
     box-shadow 150ms ease-out;
+}
+
+.oma-post-card--calendar {
+  min-height: 172px;
 }
 
 .oma-post-card--calendar:hover,
 .oma-post-card--saved:hover,
 .oma-cal-item:hover .oma-post-card--calendar,
 .oma-cal-item:hover .oma-post-card--saved {
-  border-color: #cacdd0;
+  border-color: #cacdd0; /* INTENTIONAL_EXCEPTION: live Planable hover border */
   box-shadow:
     0 0 1px rgba(50, 79, 58, 0.15),
     0 2px 4px rgba(0, 0, 0, 0.08);
 }
 
 .oma-post-card[data-selected='true'] {
-  outline: 2px solid #232426;
+  outline: 2px solid #232426; /* INTENTIONAL_EXCEPTION: selected card, not color-only */
   outline-offset: 1px;
 }
 
@@ -539,8 +544,8 @@
   width: 100%;
   height: 72px;
   object-fit: cover;
-  border-radius: 6px;
-  background: #f4f5f6;
+  border-radius: 6px; /* INTENTIONAL_EXCEPTION: live Planable media radius */
+  background: #f4f5f6; /* INTENTIONAL_EXCEPTION: media fallback surface */
 }
 
 .oma-post-card__media--row {
@@ -567,7 +572,7 @@
 .oma-post-card__caption {
   font-size: 12px;
   line-height: 16px;
-  color: #5c5f66;
+  color: #5c5f66; /* INTENTIONAL_EXCEPTION: measured secondary text */
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -580,7 +585,7 @@
   gap: 4px;
   font-size: 11px;
   line-height: 16px;
-  color: #5c5f66;
+  color: #5c5f66; /* INTENTIONAL_EXCEPTION: measured secondary text */
 }
 
 .oma-status-mark {
@@ -590,31 +595,45 @@
   width: fit-content;
   height: 20px;
   padding: 0 6px 0 4px;
-  border-radius: 9999px;
-  border: 1px solid #e2e3e5;
-  background: #fff;
+  border-radius: 9999px; /* INTENTIONAL_EXCEPTION: live Planable status pill */
+  border: 1px solid #e2e3e5; /* INTENTIONAL_EXCEPTION: live Planable status border */
+  background: #fff; /* INTENTIONAL_EXCEPTION: status pill surface */
   font-size: 12px;
   line-height: 18px;
 }
 
 .oma-status-mark--APPROVED,
+.oma-status-mark--PUBLISHED_SAMPLE {
+  color: #237804; /* INTENTIONAL_EXCEPTION: approved tone, paired with a check glyph */
+  background: #f6ffed; /* INTENTIONAL_EXCEPTION: approved tone */
+  border-color: #d9f7be; /* INTENTIONAL_EXCEPTION: approved tone */
+}
+
 .oma-status-mark--SCHEDULED_LOCAL {
-  color: #237804;
-  background: #f6ffed;
-  border-color: #d9f7be;
+  color: #0958d9; /* INTENTIONAL_EXCEPTION: scheduled tone, paired with a clock glyph */
+  background: #e6f4ff; /* INTENTIONAL_EXCEPTION: scheduled tone */
+  border-color: #91caff; /* INTENTIONAL_EXCEPTION: scheduled tone */
+}
+
+.oma-status-mark--PLANNED_DATE,
+.oma-status-mark--DRAFT,
+.oma-status-mark--PUBLISHING_NOT_CONNECTED {
+  color: #3d4250; /* INTENTIONAL_EXCEPTION: planned/draft tone */
+  background: #f7f8fa; /* INTENTIONAL_EXCEPTION: planned/draft tone */
+  border-color: #e2e3e5; /* INTENTIONAL_EXCEPTION: planned/draft tone */
 }
 
 .oma-status-mark--PARTIALLY_APPROVED,
 .oma-status-mark--APPROVAL_PENDING {
-  color: #874d00;
-  background: #fff7e6;
-  border-color: #ffe7ba;
+  color: #874d00; /* INTENTIONAL_EXCEPTION: pending tone, paired with a distinct glyph */
+  background: #fff7e6; /* INTENTIONAL_EXCEPTION: pending tone */
+  border-color: #ffe7ba; /* INTENTIONAL_EXCEPTION: pending tone */
 }
 
 .oma-status-mark--FAILED_SAMPLE {
-  color: #a8071a;
-  background: #fff1f0;
-  border-color: #ffccc7;
+  color: #a8071a; /* INTENTIONAL_EXCEPTION: failed sample tone, paired with an x glyph */
+  background: #fff1f0; /* INTENTIONAL_EXCEPTION: failed sample tone */
+  border-color: #ffccc7; /* INTENTIONAL_EXCEPTION: failed sample tone */
 }
 
 .oma-composer-section {
@@ -625,8 +644,8 @@
 
 [data-testid='demo-content-saved'] {
   width: 200px;
-  background: #fff;
-  border-inline-start: 1px solid #e2e3e5;
+  background: #fff; /* INTENTIONAL_EXCEPTION: live Planable saved column */
+  border-inline-start: 1px solid #e2e3e5; /* INTENTIONAL_EXCEPTION: live Planable saved column */
 }
 
 @media (prefers-reduced-motion: reduce) {

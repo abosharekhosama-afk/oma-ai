@@ -1,4 +1,4 @@
-import type { DemoGraph } from '@oma/demo';
+import type { DemoGraph, PublishDisplay } from '@oma/demo';
 
 export type ScheduleRow = DemoGraph['scheduledPosts'][number];
 
@@ -27,6 +27,30 @@ export const EMPTY_SCHEDULE_FILTERS: ScheduleFilters = {
 };
 
 const ANCHOR = '2026-09-11';
+
+export type ScheduleBucket =
+  'saved' | 'planned' | 'approval_blocked' | 'ready' | 'scheduled' | 'publishing_not_connected';
+
+export function bucketForScheduleRow(row: ScheduleRow): ScheduleBucket {
+  if (!row.plannedAt) return 'saved';
+  if (row.state === 'SCHEDULED_PREVIEW') return 'scheduled';
+  if (row.state === 'PUBLISHED_SAMPLE') return 'publishing_not_connected';
+  if (row.state === 'READY') return 'ready';
+  if (row.state === 'BLOCKED') {
+    const approvalOpen = row.readiness?.some((check) => check.kind === 'approval' && !check.ok);
+    return approvalOpen ? 'approval_blocked' : 'planned';
+  }
+  return 'planned';
+}
+
+export function displayForScheduleBucket(bucket: ScheduleBucket): PublishDisplay {
+  if (bucket === 'saved') return 'DRAFT';
+  if (bucket === 'approval_blocked') return 'PARTIALLY_APPROVED';
+  if (bucket === 'ready') return 'APPROVED';
+  if (bucket === 'scheduled') return 'SCHEDULED_LOCAL';
+  if (bucket === 'publishing_not_connected') return 'PUBLISHING_NOT_CONNECTED';
+  return 'PLANNED_DATE';
+}
 
 export function scheduleDayKey(iso: string): string {
   return iso.slice(0, 10);

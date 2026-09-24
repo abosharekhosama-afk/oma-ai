@@ -29,6 +29,8 @@ export type ContentWorkflow = {
   scheduleState: ScheduleState;
   approvalState: ApprovalState;
   policy: ApprovalPolicy;
+  approverApproved: number;
+  approverRequired: number;
   scheduleBlocked: boolean;
   publishDisplay: PublishDisplay;
   publishingConnected: false;
@@ -56,6 +58,14 @@ export function resolveContentWorkflow(
     } else if (approved < item.approverRequired) approvalState = 'PARTIALLY_APPROVED';
     else approvalState = 'APPROVED';
   }
+  const approverRequired = item.approverRequired ?? (approvalState === 'APPROVED' ? 1 : 1);
+  const approverApproved =
+    item.approverApproved ??
+    (approvalState === 'APPROVED'
+      ? approverRequired
+      : approvalState === 'PARTIALLY_APPROVED'
+        ? 1
+        : 0);
   const scheduleBlockedFinal = policy === 'REQUIRED' && approvalState !== 'APPROVED';
   let publishDisplay: PublishDisplay = 'DRAFT';
   if (item.publishSample === 'FAILED_SAMPLE') publishDisplay = 'FAILED_SAMPLE';
@@ -72,6 +82,8 @@ export function resolveContentWorkflow(
     scheduleState,
     approvalState,
     policy,
+    approverApproved,
+    approverRequired,
     scheduleBlocked: scheduleBlockedFinal,
     publishDisplay,
     publishingConnected: false,

@@ -4,14 +4,13 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { resolveContentWorkflow, type ApprovalPolicy, type DemoGraph } from '@oma/demo';
-import { ContentFace, faceDisplay } from '../../../../components/content/content-card';
+import { ContentFace, StatusMark, faceDisplay } from '../../../../components/content/content-card';
 import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
 import { TrackPill } from '../../../../components/demo/track-pill';
 import { Dialog } from '../../../../components/ui/dialog';
 import { Drawer } from '../../../../components/ui/drawer';
 import { EmptyState, ErrorState, DeniedState } from '../../../../components/ui/empty-state';
 import { PageHeader } from '../../../../components/ui/page-header';
-import { StatusChip } from '../../../../components/ui/status-chip';
 import { useToast } from '../../../../components/ui/toast';
 import { mediaAlt, P3_MEDIA } from '../../../../lib/demo/demo-media';
 import {
@@ -1021,12 +1020,7 @@ export default function ContentPage() {
               </p>
               <span className="oma-muted">{campaignName(item.campaignId)}</span>
               <div className="oma-chip-row">
-                <StatusChip
-                  status={item.status}
-                  label={t(
-                    `demo.content.publish.${resolveContentWorkflow(item, policy).publishDisplay}`,
-                  )}
-                />
+                <StatusMark display={faceDisplay(item, policy)} locale={locale} />
                 <span className="oma-muted">{item.assignee}</span>
                 <span className="oma-ltr oma-muted">
                   {item.scheduledAt ? item.scheduledAt.slice(0, 16) : '—'}
@@ -1093,12 +1087,7 @@ export default function ContentPage() {
               <span className="oma-muted">{item.channel}</span>
               <span className="oma-muted">{campaignName(item.campaignId)}</span>
               <span className="oma-muted">{item.assignee}</span>
-              <StatusChip
-                status={item.status}
-                label={t(
-                  `demo.content.publish.${resolveContentWorkflow(item, policy).publishDisplay}`,
-                )}
-              />
+              <StatusMark display={faceDisplay(item, policy)} locale={locale} />
               <span className="oma-muted">{statusLabel(item.status, locale)}</span>
               <span className="oma-ltr oma-muted">
                 {item.scheduledAt ? item.scheduledAt.slice(0, 10) : '—'}
@@ -1134,12 +1123,7 @@ export default function ContentPage() {
                 <strong>{pickCopy(item.title, locale)}</strong>
                 <div className="oma-chip-row">
                   <span className="oma-cal-marker">{channelMarker(item.channel)}</span>
-                  <StatusChip
-                    status={item.status}
-                    label={t(
-                      `demo.content.publish.${resolveContentWorkflow(item, policy).publishDisplay}`,
-                    )}
-                  />
+                  <StatusMark display={faceDisplay(item, policy)} locale={locale} />
                 </div>
                 <span className="oma-muted">{campaignName(item.campaignId)}</span>
                 <span className="oma-ltr oma-muted">
@@ -1173,10 +1157,7 @@ export default function ContentPage() {
               <div>
                 <h2>{pickCopy(selected.title, locale)}</h2>
                 <div className="oma-chip-row">
-                  <StatusChip
-                    status={selected.status}
-                    label={statusLabel(selected.status, locale)}
-                  />
+                  <StatusMark display={faceDisplay(selected, policy)} locale={locale} />
                   <span className="oma-badge">{selected.channel}</span>
                   <TrackPill
                     track={selected.track}
@@ -1289,6 +1270,38 @@ export default function ContentPage() {
                       />
                     </label>
                     <p className="oma-composer-section">{t('demo.content.section.approval')}</p>
+                    <p data-testid="demo-content-policy-explainer">
+                      {policy === 'NONE'
+                        ? t('demo.content.policy.none')
+                        : policy === 'OPTIONAL'
+                          ? t('demo.content.policy.optional')
+                          : t('demo.content.policy.required')}
+                    </p>
+                    <p data-testid="demo-content-approver-progress">
+                      {t('demo.content.approverProgress')
+                        .replace(
+                          '{approved}',
+                          String(resolveContentWorkflow(selected, policy).approverApproved),
+                        )
+                        .replace(
+                          '{required}',
+                          String(resolveContentWorkflow(selected, policy).approverRequired),
+                        )}
+                    </p>
+                    <p data-testid="demo-content-next-action">
+                      {policy === 'NONE'
+                        ? t('demo.content.next.none')
+                        : policy === 'OPTIONAL'
+                          ? t('demo.content.next.optional')
+                          : resolveContentWorkflow(selected, policy).scheduleBlocked
+                            ? t('demo.content.next.approve')
+                            : t('demo.content.next.schedule')}
+                    </p>
+                    {resolveContentWorkflow(selected, policy).scheduleBlocked ? (
+                      <p data-testid="demo-content-schedule-reason">
+                        {t('demo.content.scheduleBlocked')}
+                      </p>
+                    ) : null}
                     <p data-testid="demo-content-publish-state">
                       {t(
                         `demo.content.publish.${resolveContentWorkflow(selected, policy).publishDisplay}`,

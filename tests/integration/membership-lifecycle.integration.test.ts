@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { cookieHeader, createTestApp, parseCookies } from '../helpers/app';
+import { platformOwnerCredentials } from '../helpers/platform-owner';
 import type { INestApplication } from '@nestjs/common';
 import { newId } from '@oma/domain';
 
@@ -27,7 +28,8 @@ describe('membership lifecycle Q-03', () => {
 
   it('invite accept suspend', async () => {
     // use bootstrap platform owner
-    const cookies = await login(baseUrl, 'platform-owner@example.com', 'ChangeMe_PlatformOwner_1!');
+    const owner = platformOwnerCredentials();
+    const cookies = await login(baseUrl, owner.email, owner.password);
     const slug = `co-${newId().toLowerCase().slice(-8)}`;
     const created = await fetch(`${baseUrl}/api/v1/tenants`, {
       method: 'POST',

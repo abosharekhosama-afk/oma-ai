@@ -12,3 +12,22 @@
 | Reduced motion         | UNKNOWN                        | Existing CSS not remeasured | UNKNOWN                             |
 
 Escape, click-outside, and focus restoration were not timed in this pass.
+
+## W1 final closure sequences
+
+Twelve Playwright screenshot sequences, six frames each, under `artifacts/planable-oma-visual-differential/w1-final-closure/oma/motion/`. ffmpeg was not installed. Each `meta.json` records start, end, duration, and the Escape / outside / reduced-motion notes for that pass.
+
+| Sequence                         | Duration |
+| -------------------------------- | -------- |
+| View switch                      | 887ms    |
+| Approval filter                  | 256ms    |
+| Card hover/focus                 | 307ms    |
+| Saved open                       | 458ms    |
+| Composer open/close              | 292ms    |
+| Date change stays draft          | 517ms    |
+| Partial approval blocks Schedule | 395ms    |
+| Explicit Schedule                | 549ms    |
+| Unschedule                       | 304ms    |
+| Schedule Calendar/Agenda/Queue   | 316ms    |
+| Mobile                           | 755ms    |
+| Keyboard                         | 542ms    |

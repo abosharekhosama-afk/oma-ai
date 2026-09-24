@@ -33,3 +33,18 @@ OMA before shots: 85 viewport captures under `artifacts/planable-oma-visual-diff
 | Motion timings              | UNKNOWN        | Not measured.                                                                                                                                                                             |
 
 `PLANABLE_W1_VISUAL_DIFFERENTIAL: NOT_PASS` while those high gaps remain.
+
+## W1 final closure
+
+Measured on 2026-09-23 after `min-height: 172px` on `.oma-post-card--calendar` only. Computed style at 1440×900, reduced motion off:
+
+| Property   | Planable live      | OMA                | Delta |
+| ---------- | ------------------ | ------------------ | ----- |
+| width      | 126px              | 126px              | 0     |
+| height     | 172px              | 172px              | 0     |
+| padding    | 6px                | 6px                | 0     |
+| radius     | 8px                | 8px                | 0     |
+| border     | rgb(226, 227, 229) | rgb(226, 227, 229) | 0     |
+| transition | 150ms ease-out     | 0.15s ease-out     | 0     |
+
+Feed, List, and Grid remain `OFFICIAL_DOC_VERIFIED` for the reference and `VERIFIED_OMA_ADAPTATION` for the product. The measured card meets the live box. The stage stays `PLANABLE_W1_VISUAL_DIFFERENTIAL: NOT_PASS` until the integration login gate is green. Owner review stays `REJECTED`.

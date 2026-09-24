@@ -1780,6 +1780,104 @@
           "Demo"
         ]
       }
+    },
+    "/api/v1/ai/status": {
+      "get": {
+        "operationId": "AiController_status",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ai"
+        ]
+      }
+    },
+    "/api/v1/ai/budget": {
+      "get": {
+        "operationId": "AiController_budget",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ai"
+        ]
+      }
+    },
+    "/api/v1/ai/runs": {
+      "post": {
+        "operationId": "AiController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ai"
+        ]
+      }
+    },
+    "/api/v1/ai/runs/{id}": {
+      "get": {
+        "operationId": "AiController_read",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ai"
+        ]
+      }
+    },
+    "/api/v1/ai/runs/{id}/cancel": {
+      "post": {
+        "operationId": "AiController_cancel",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ai"
+        ]
+      }
+    },
+    "/api/v1/ai/runs/{id}/accept": {
+      "post": {
+        "operationId": "AiController_accept",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ai"
+        ]
+      }
+    },
+    "/api/v1/ai/runs/{id}/reject": {
+      "post": {
+        "operationId": "AiController_reject",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ai"
+        ]
+      }
     }
   },
   "info": {

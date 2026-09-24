@@ -1,3 +1,4 @@
+/* global document */
 /**
  * Read-only OMA screenshot inventory for the W1 visual differential.
  * Images go to artifacts/ (gitignored). Metadata JSON is written beside them

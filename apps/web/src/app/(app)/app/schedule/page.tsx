@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { DemoGraph } from '@oma/demo';
+import type { ApprovalPolicy, DemoGraph } from '@oma/demo';
+import { resolveContentWorkflow } from '@oma/demo';
 import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
 import { Dialog } from '../../../../components/ui/dialog';
 import { Drawer } from '../../../../components/ui/drawer';
 import { EmptyState } from '../../../../components/ui/empty-state';
 import { PageHeader } from '../../../../components/ui/page-header';
-import { StatusChip } from '../../../../components/ui/status-chip';
+import { StatusMark } from '../../../../components/content/content-card';
 import { useToast } from '../../../../components/ui/toast';
 import {
   demoApi,
@@ -19,6 +20,8 @@ import {
 import {
   EMPTY_SCHEDULE_FILTERS,
   activeScheduleFilterCount,
+  bucketForScheduleRow,
+  displayForScheduleBucket,
   filterSchedule,
   groupScheduleByDay,
   hasIntegrationBlocker,
@@ -40,6 +43,8 @@ export default function SchedulePage() {
   const toast = useToast();
   const [rows, setRows] = useState<ScheduleRow[]>([]);
   const [campaigns, setCampaigns] = useState<DemoGraph['campaigns']>([]);
+  const [contents, setContents] = useState<DemoGraph['contentItems']>([]);
+  const [policy, setPolicy] = useState<ApprovalPolicy>('OPTIONAL');
   const [filters, setFilters] = useState<ScheduleFilters>(EMPTY_SCHEDULE_FILTERS);
   const [view, setView] = useState<ScheduleView>('calendar');
   const [anchor, setAnchor] = useState('2026-09-11');
@@ -60,7 +65,11 @@ export default function SchedulePage() {
         demoApi<DemoGraph>('/graph').catch(() => null),
       ]);
       setRows(posts);
-      if (graph) setCampaigns(graph.campaigns);
+      if (graph) {
+        setCampaigns(graph.campaigns);
+        setContents(graph.contentItems);
+        setPolicy(graph.demoPreferences.approvalPolicy);
+      }
       setError(null);
       setUnavailable(false);
     } catch (err) {
@@ -79,6 +88,10 @@ export default function SchedulePage() {
   const days = useMemo(() => weekDays(anchor), [anchor]);
   const byDay = useMemo(() => groupScheduleByDay(filtered), [filtered]);
   const selected = rows.find((r) => r.id === selectedId) ?? null;
+  const selectedContent = contents.find((item) => item.id === selected?.contentId) ?? null;
+  const selectedWorkflow = selectedContent ? resolveContentWorkflow(selectedContent, policy) : null;
+  const scheduleBlocked =
+    selected?.state === 'BLOCKED' || Boolean(selectedWorkflow?.scheduleBlocked);
   const filterCount = activeScheduleFilterCount(filters);
   const channels = useMemo(
     () => [...new Set(rows.flatMap((r) => r.channels).filter(Boolean))],
@@ -323,6 +336,17 @@ export default function SchedulePage() {
             <EmptyState title={t('demo.empty')} body={t('demo.schedule.emptyHint')} />
           ) : null}
 
+          <section data-testid="demo-schedule-saved" className="oma-stack">
+            <h2>{t('demo.content.savedColumn')}</h2>
+            {contents
+              .filter((item) => resolveContentWorkflow(item, policy).plannedAt == null)
+              .map((item) => (
+                <Link key={item.id} href={`/app/content?item=${item.id}`} className="oma-text-link">
+                  {pickCopy(item.title, locale)}
+                </Link>
+              ))}
+          </section>
+
           {view === 'calendar' ? (
             <div className="oma-sched-week" data-testid="demo-schedule-calendar">
               {days.map((day) => (
@@ -344,7 +368,13 @@ export default function SchedulePage() {
                     >
                       <strong>{pickCopy(post.title, locale)}</strong>
                       <span>{post.channels.join(', ') || '—'}</span>
-                      <StatusChip status={post.state} />
+                      <StatusMark
+                        display={displayForScheduleBucket(bucketForScheduleRow(post))}
+                        locale={locale}
+                      />
+                      <span data-testid={`demo-sched-bucket-${post.id}`}>
+                        {t(`demo.schedule.bucket.${bucketForScheduleRow(post)}`)}
+                      </span>
                     </button>
                   ))}
                 </div>
@@ -372,7 +402,13 @@ export default function SchedulePage() {
                           {post.plannedAt} · {post.timezone} · {post.channels.join(', ') || '—'}
                         </p>
                       </div>
-                      <StatusChip status={post.state} />
+                      <StatusMark
+                        display={displayForScheduleBucket(bucketForScheduleRow(post))}
+                        locale={locale}
+                      />
+                      <span data-testid={`demo-sched-bucket-${post.id}`}>
+                        {t(`demo.schedule.bucket.${bucketForScheduleRow(post)}`)}
+                      </span>
                     </div>
                     <p>
                       {t('demo.schedule.readiness')}: {score.ok}/{score.total} ({score.pct}%)
@@ -384,6 +420,30 @@ export default function SchedulePage() {
                     {post.blockingReason ? (
                       <p className="oma-muted">{pickCopy(post.blockingReason, locale)}</p>
                     ) : null}
+                    <p className="oma-muted" data-testid={`demo-sched-policy-${post.id}`}>
+                      {policy}
+                      {contents.find((item) => item.id === post.contentId)
+                        ? ` · ${t('demo.content.approverProgress')
+                            .replace(
+                              '{approved}',
+                              String(
+                                resolveContentWorkflow(
+                                  contents.find((item) => item.id === post.contentId)!,
+                                  policy,
+                                ).approverApproved,
+                              ),
+                            )
+                            .replace(
+                              '{required}',
+                              String(
+                                resolveContentWorkflow(
+                                  contents.find((item) => item.id === post.contentId)!,
+                                  policy,
+                                ).approverRequired,
+                              ),
+                            )}`
+                        : ''}
+                    </p>
                     <div className="oma-chip-row">
                       <button
                         type="button"
@@ -426,7 +486,11 @@ export default function SchedulePage() {
                 >
                   <strong>{pickCopy(post.title, locale)}</strong>
                   <span className="oma-muted">{post.plannedAt}</span>
-                  <StatusChip status={post.state} />
+                  <StatusMark
+                    display={displayForScheduleBucket(bucketForScheduleRow(post))}
+                    locale={locale}
+                  />
+                  <span>{t(`demo.schedule.bucket.${bucketForScheduleRow(post)}`)}</span>
                 </button>
               ))}
           </div>
@@ -440,7 +504,10 @@ export default function SchedulePage() {
       >
         {selected ? (
           <div className="oma-stack" data-testid="demo-schedule-drawer">
-            <StatusChip status={selected.state} />
+            <StatusMark
+              display={displayForScheduleBucket(bucketForScheduleRow(selected))}
+              locale={locale}
+            />
             <p data-testid="demo-schedule-truth">
               {selected.state === 'SCHEDULED_PREVIEW'
                 ? t('demo.schedule.truth.scheduled')
@@ -448,12 +515,48 @@ export default function SchedulePage() {
                   ? t('demo.schedule.truth.blocked')
                   : t('demo.schedule.truth.planned')}
             </p>
+            {scheduleBlocked ? (
+              <p data-testid="demo-schedule-block-reason">
+                {selectedWorkflow?.scheduleBlocked
+                  ? t('demo.content.scheduleBlocked')
+                  : selected.blockingReason
+                    ? pickCopy(selected.blockingReason, locale)
+                    : t('demo.schedule.truth.blocked')}
+              </p>
+            ) : null}
+            <p data-testid="demo-schedule-policy">
+              {t('demo.content.policy')}: {policy}
+            </p>
+            {contents.find((item) => item.id === selected.contentId) ? (
+              <p data-testid="demo-schedule-approver-progress">
+                {t('demo.content.approverProgress')
+                  .replace(
+                    '{approved}',
+                    String(
+                      resolveContentWorkflow(
+                        contents.find((item) => item.id === selected.contentId)!,
+                        policy,
+                      ).approverApproved,
+                    ),
+                  )
+                  .replace(
+                    '{required}',
+                    String(
+                      resolveContentWorkflow(
+                        contents.find((item) => item.id === selected.contentId)!,
+                        policy,
+                      ).approverRequired,
+                    ),
+                  )}
+              </p>
+            ) : null}
             <div className="oma-chip-row">
               <button
                 type="button"
                 className="oma-btn oma-btn-primary"
                 data-testid="demo-schedule-command"
-                disabled={saving || selected.state === 'BLOCKED'}
+                disabled={saving || scheduleBlocked}
+                title={scheduleBlocked ? t('demo.content.scheduleBlocked') : undefined}
                 onClick={() => void setScheduleState('SCHEDULED_PREVIEW')}
               >
                 {t('demo.content.schedule')}
