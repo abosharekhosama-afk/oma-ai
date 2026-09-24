@@ -95,8 +95,6 @@ jobs:
       - name: Install Playwright Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Start API, Worker, and Web for E2E
-        env:
-          NEXT_DIST_DIR: .next-e2e
         run: |
           set -euo pipefail
           pnpm --filter @oma/api exec tsx src/main.ts > /tmp/oma-api.log 2>&1 &
