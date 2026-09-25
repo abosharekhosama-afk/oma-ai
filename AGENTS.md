@@ -74,6 +74,7 @@ Before editing:
 - OpenCode may be the default implementation worker only after its installed version and authentication are verified.
 - Codex is preferred for difficult architecture, review, migrations, debugging, and convergence work. The parent agent remains accountable for every handoff.
 - Do not pin or spend on premium models unless the user explicitly approves the model/cost choice.
+- Remote monitoring must never block the agent for more than 60 seconds. Never use `gh run watch` in the foreground. Poll once, report the current remote state, then yield control. Do not cancel a remote GitHub Actions run unless the user explicitly asks.
 
 ## Implementation standards
 

@@ -40,6 +40,16 @@ Run 36054174908 is the newest run for `3e60c2b8`. A separate dist dir stopped th
 
 `apps/web/next.config.ts` deletes a finished production `BUILD_ID` only when CI starts `next dev` without `NEXT_DIST_DIR`, and it switches that process from `NODE_ENV=test` to `development`. That stopped the stale-chunk error. Run `36116320431` on `c4d91272eb225d674a19d02f8a51b5670ea48a98` still failed Playwright: the same journeys compiled each route on demand and exceeded the 90s test budget (`demo-activity` was not visible before the test timeout). The CI token cannot update `.github/workflows/ci.yml`, so the pinned Next patch makes `next dev` serve the existing production build when `CI=true` and `NEXT_DIST_DIR` is unset. Local Playwright sets `NEXT_DIST_DIR=.next-e2e` and stays on the dev server. Run `36124182165` on `30404848f703cc793bd9779b425c015eeaed387b` then failed only `brand-navigation`: production prefetch of `/app/brands/:id/scans` returned 404 because that segment had no page. The index now redirects to the new-scan route. No test was skipped and no assertion was removed.
 
-Sanitized failed logs stay gitignored under `artifacts/planable-ant-design-a1/ci/`. A2 surface migration is still open. Owner visual acceptance stays pending.
+Sanitized failed logs stay gitignored under `artifacts/planable-ant-design-a1/ci/`.
+
+Run `36145779939` on product SHA `03a6106e3add71ef58f014e6cb33de4f23137024` completed with conclusion `success`: https://github.com/burhanbakri1-spec/oma-ai/actions/runs/36145779939. That run certifies the product commit. No test was skipped and no assertion was removed. Owner visual acceptance is not claimed.
+
+Local handoff proof used a recreated `oma_ai_ci` database, Redis DB 3, no leftover worker, and the production web server. Playwright ran with one worker and retries=0. `pj07` and `pj09` passed together: 2 passed, 6 intentional project skips. The preceding strategy files through `pj09` then passed: 11 passed, 33 intentional project skips. The full suite passed: 174 passed, 318 intentional project skips, 0 failed. No test was skipped by removing it, and no assertion was weakened. No product or test-isolation change was required.
+
+`PLANABLE_ANT_DESIGN_FOUNDATION_A1: COMPLETE_ON_GREEN_PRODUCT_SHA`
+`A1_REPOSITORY_HANDOFF: PENDING_CI`
+`A2_READY: NO`
+
+A2 surface migration is still open. Owner visual acceptance stays pending.
 
 Sampled desktop Ant button: 32px height, 14px type, 6px radius, ink `rgb(51, 51, 51)`, transition `0.15s`. The first button on the shell is a text icon button, so its background is transparent. Primary blue is the theme token `#1677FF`. At 390px the first sampled button is in the hidden rail, so its measured height is 0; the desktop control contract is the 32px sample. Reduced motion shortens the sampled transition to a near-zero duration. No hydration error and no horizontal overflow were recorded on these shots. The recapture after the foundation commit records tree `9ec6779abbd3d862b40d2548be73eaee631e6e95` and 15 shots. Raw files stay gitignored.
