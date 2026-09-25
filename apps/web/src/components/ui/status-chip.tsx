@@ -1,5 +1,7 @@
 'use client';
 
+import { Tag } from '@oma/ui/controls';
+
 type Tone = 'neutral' | 'info' | 'success' | 'warning' | 'danger';
 
 const TONE_BY_STATUS: Record<string, Tone> = {
@@ -54,5 +56,15 @@ export function StatusChip({
 }) {
   const resolved = tone ?? statusTone(status);
   const text = label ?? status ?? '—';
-  return <span className={`oma-chip oma-chip-${resolved}`}>{text}</span>;
+  const color =
+    resolved === 'success'
+      ? 'success'
+      : resolved === 'warning'
+        ? 'warning'
+        : resolved === 'danger'
+          ? 'error'
+          : resolved === 'info'
+            ? 'processing'
+            : 'default';
+  return <Tag color={color}>{text}</Tag>;
 }

@@ -1,4 +1,5 @@
 'use client';
+import { Button, Input } from '@oma/ui/controls';
 
 import { useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
@@ -52,8 +53,8 @@ export function CommandSearch({
 
   return (
     <>
-      <button
-        type="button"
+      <Button
+        type="text"
         className={compact ? 'oma-rail-search' : 'oma-command-trigger'}
         onClick={() => setOpen(true)}
         aria-haspopup="dialog"
@@ -62,14 +63,13 @@ export function CommandSearch({
       >
         <span className="oma-command-trigger-label">{t('shell.search')}</span>
         {compact ? null : <kbd className="oma-command-kbd">⌘K</kbd>}
-      </button>
+      </Button>
       <Dialog open={open} onClose={() => setOpen(false)} title={t('shell.searchTitle')}>
         <label className="oma-sr-only" htmlFor="oma-command-input">
           {t('shell.search')}
         </label>
-        <input
+        <Input
           id="oma-command-input"
-          className="oma-input"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t('shell.searchPlaceholder')}
@@ -81,18 +81,18 @@ export function CommandSearch({
           ) : (
             entries.map((item) => (
               <li key={item.href} role="option" aria-selected={pathname === item.href}>
-                <button
-                  type="button"
-                  className="oma-menu-item"
+                <Button
+                  type="default"
                   onClick={() => {
                     setOpen(false);
                     setQuery('');
                     router.push(item.href);
                   }}
+                  className="oma-menu-item"
                 >
                   <span>{item.label}</span>
                   <span className="oma-muted">{item.section}</span>
-                </button>
+                </Button>
               </li>
             ))
           )}

@@ -144,11 +144,6 @@
   background: var(--oma-surface);
 }
 
-.oma-filter-bar .oma-input {
-  margin-bottom: 0;
-  max-width: 280px;
-}
-
 .oma-brand-header-identity {
   display: flex;
   align-items: flex-start;
@@ -641,12 +636,6 @@
   .oma-filter-bar {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .oma-filter-bar .oma-input,
-  .oma-filter-bar .oma-select {
-    max-width: none;
-    width: 100%;
   }
 
   .oma-brand-nav {

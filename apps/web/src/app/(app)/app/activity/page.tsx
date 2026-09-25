@@ -1,4 +1,5 @@
 'use client';
+import { Button, Input, SelectField } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -74,8 +75,7 @@ export default function ActivityPage() {
           <div className="oma-stage6-toolbar" data-testid="demo-activity-filters">
             <label className="oma-stage6-search">
               {t('demo.activity.search')}
-              <input
-                className="oma-input"
+              <Input
                 value={filters.q}
                 data-testid="demo-activity-search"
                 onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
@@ -83,8 +83,7 @@ export default function ActivityPage() {
             </label>
             <label>
               {t('demo.activity.filter.source')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.source}
                 data-testid="demo-activity-filter-source"
                 onChange={(e) =>
@@ -97,12 +96,11 @@ export default function ActivityPage() {
                 <option value="all">{t('demo.filter.all')}</option>
                 <option value="DEMO">{t('demo.activity.source.demo')}</option>
                 <option value="FOUNDATION">{t('demo.activity.source.foundation')}</option>
-              </select>
+              </SelectField>
             </label>
             <label>
               {t('demo.activity.filter.object')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.objectType}
                 onChange={(e) => setFilters((f) => ({ ...f, objectType: e.target.value }))}
               >
@@ -112,12 +110,11 @@ export default function ActivityPage() {
                     {o}
                   </option>
                 ))}
-              </select>
+              </SelectField>
             </label>
             <label>
               {t('demo.activity.filter.actor')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.actor}
                 onChange={(e) => setFilters((f) => ({ ...f, actor: e.target.value }))}
               >
@@ -127,7 +124,7 @@ export default function ActivityPage() {
                     {a}
                   </option>
                 ))}
-              </select>
+              </SelectField>
             </label>
           </div>
 
@@ -157,14 +154,13 @@ export default function ActivityPage() {
                           <strong>{a.actor}</strong> — {pickCopy(a.summary, locale)}
                         </p>
                         <div className="oma-chip-row">
-                          <button
-                            type="button"
-                            className="oma-btn oma-btn-secondary"
+                          <Button
+                            type="default"
                             data-testid={`demo-activity-open-${a.id}`}
                             onClick={() => setSelectedId(a.id)}
                           >
                             {t('demo.activity.details')}
-                          </button>
+                          </Button>
                           <Link
                             href={a.href}
                             className="oma-text-link"

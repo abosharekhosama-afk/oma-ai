@@ -1,4 +1,5 @@
 'use client';
+import { Button } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
@@ -119,9 +120,9 @@ export function GettingStartedChecklist({
           <h2 id="getting-started-title">{t('home.gettingStarted.title')}</h2>
           <p className="oma-muted">{t('home.gettingStarted.body')}</p>
         </div>
-        <button type="button" className="oma-btn oma-btn-secondary" onClick={dismiss}>
+        <Button type="default" onClick={dismiss}>
           {t('home.gettingStarted.dismiss')}
-        </button>
+        </Button>
       </header>
       <ol className="oma-getting-started-list">
         {steps.map((step) => (

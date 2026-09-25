@@ -1,4 +1,5 @@
 'use client';
+import { Button, Input } from '@oma/ui/controls';
 
 import { useParams } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
@@ -102,8 +103,7 @@ export default function StrategyPaidPage() {
           <div className="oma-form-grid">
             <label>
               {t('strategy.paid.budget')}
-              <input
-                className="oma-input"
+              <Input
                 value={budget}
                 onChange={(e) => setBudget(e.target.value)}
                 disabled={!editable}
@@ -112,8 +112,7 @@ export default function StrategyPaidPage() {
             </label>
             <label>
               Currency
-              <input
-                className="oma-input"
+              <Input
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
                 disabled={!editable}
@@ -133,9 +132,9 @@ export default function StrategyPaidPage() {
           </p>
         ) : null}
         {editable ? (
-          <button type="submit" className="oma-btn">
+          <Button type="primary" htmlType="submit">
             {t('strategy.paid.save')}
-          </button>
+          </Button>
         ) : (
           <p>{t('strategy.warning.immutable')}</p>
         )}

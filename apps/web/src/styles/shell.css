@@ -127,10 +127,6 @@
   font-size: var(--text-meta);
   color: var(--oma-muted);
 }
-.oma-rail-workspace .oma-select {
-  max-width: none;
-  width: 100%;
-}
 .oma-rail-footer {
   margin-top: auto;
   flex-shrink: 0;

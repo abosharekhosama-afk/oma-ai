@@ -1,6 +1,6 @@
 'use client';
 
-import { IconButton, Popover } from '@oma/ui/controls';
+import { Button, IconButton, Popover } from '@oma/ui/controls';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
@@ -96,16 +96,16 @@ export function NotificationsBell() {
                   {notificationLabel(t, n.type)}
                 </Link>
               ) : (
-                <button
-                  type="button"
-                  className="oma-linkish"
+                <Button
+                  type="default"
                   data-testid={`notification-mark-${n.id}`}
                   onClick={() => {
                     if (!n.readAt) void markRead(n.id);
                   }}
+                  className="oma-linkish"
                 >
                   {notificationLabel(t, n.type)}
-                </button>
+                </Button>
               )}
               <span className="oma-notification-meta">
                 {t('shell.notificationsInApp')} · {formatWhen(n.createdAt)}

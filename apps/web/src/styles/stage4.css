@@ -20,45 +20,11 @@
   color: var(--oma-muted);
 }
 
-/* toolbar fields use shared .oma-input / .oma-select primitives */
-
-.oma-stage4-search {
-  min-width: min(220px, 100%);
-  flex: 1 1 160px;
-}
-
 .oma-req-groups {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-1);
   margin-bottom: var(--space-3);
-}
-
-.oma-req-groups button {
-  min-height: var(--oma-control-height-compact);
-  padding: 0 var(--space-2);
-  border: 1px solid var(--oma-border);
-  border-radius: var(--oma-radius-control);
-  background: var(--oma-surface);
-  color: var(--oma-ink);
-  font-size: var(--text-meta);
-  line-height: var(--leading-meta);
-  cursor: pointer;
-  transition:
-    border-color var(--oma-motion-control) var(--oma-motion-control-ease),
-    background-color var(--oma-motion-control) var(--oma-motion-control-ease),
-    color var(--oma-motion-control) var(--oma-motion-control-ease);
-}
-
-.oma-req-groups button[aria-pressed='true'] {
-  border-color: var(--oma-primary);
-  color: var(--oma-primary);
-  background: var(--oma-primary-soft);
-}
-
-.oma-req-groups button:focus-visible {
-  outline: var(--focus-ring);
-  outline-offset: var(--focus-offset);
 }
 
 .oma-req-table-wrap {
@@ -237,13 +203,6 @@
   font-weight: var(--weight-semibold);
 }
 
-.oma-brief-section textarea,
-.oma-brief-section input {
-  width: 100%;
-  min-height: var(--oma-control-height);
-  border-radius: var(--oma-radius-control);
-}
-
 .oma-brief-canvas {
   border: 1px solid var(--oma-border);
   border-radius: var(--oma-radius-control);
@@ -299,23 +258,6 @@
   border-radius: var(--oma-radius-control);
   background: var(--oma-canvas);
   margin-bottom: var(--space-3);
-}
-
-.oma-tasks-view-tabs button {
-  min-height: var(--oma-control-height-compact);
-  padding: 0 var(--space-3);
-  border: 0;
-  border-radius: calc(var(--oma-radius-control) - 1px);
-  background: transparent;
-  color: var(--oma-muted);
-  font-size: var(--text-meta);
-  cursor: pointer;
-}
-
-.oma-tasks-view-tabs button[aria-pressed='true'] {
-  background: var(--oma-surface);
-  color: var(--oma-ink);
-  box-shadow: var(--elev-1);
 }
 
 .oma-kanban {
@@ -585,13 +527,4 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .oma-kanban-card,
-  .oma-req-mobile-card,
-  .oma-task-mobile-card,
-  .oma-req-groups button,
-  .oma-kanban-col,
-  .oma-req-table tbody tr,
-  .oma-task-table tbody tr {
-    transition: none !important;
-  }
 }

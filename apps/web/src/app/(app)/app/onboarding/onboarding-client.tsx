@@ -1,4 +1,5 @@
 'use client';
+import { Button, Input } from '@oma/ui/controls';
 
 import { FormEvent, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -72,13 +73,9 @@ export default function OnboardingClient() {
       {error ? (
         <div className="oma-card" role="alert">
           <p style={{ color: 'var(--status-danger)', margin: 0 }}>{error}</p>
-          <button
-            type="button"
-            className="oma-btn oma-btn-secondary"
-            onClick={() => setError(null)}
-          >
+          <Button type="default" onClick={() => setError(null)}>
             {t('common.retry')}
-          </button>
+          </Button>
         </div>
       ) : null}
       {status ? (
@@ -89,22 +86,14 @@ export default function OnboardingClient() {
 
       {mode === 'choose' ? (
         <div className="oma-action-grid" role="group" aria-label={t('onboarding.choices')}>
-          <button
-            type="button"
-            className="oma-card oma-card-button"
-            onClick={() => setMode('create')}
-          >
+          <Button type="default" onClick={() => setMode('create')} className="oma-card">
             <h2>{t('onboarding.createTitle')}</h2>
             <p className="oma-muted">{t('onboarding.createBody')}</p>
-          </button>
-          <button
-            type="button"
-            className="oma-card oma-card-button"
-            onClick={() => setMode('join')}
-          >
+          </Button>
+          <Button type="default" onClick={() => setMode('join')} className="oma-card">
             <h2>{t('onboarding.joinTitle')}</h2>
             <p className="oma-muted">{t('onboarding.joinBody')}</p>
-          </button>
+          </Button>
         </div>
       ) : null}
 
@@ -113,10 +102,8 @@ export default function OnboardingClient() {
           <h2>{t('onboarding.createTitle')}</h2>
           <label className="oma-field">
             <span>{t('onboarding.companyName')}</span>
-            <input
-              className="oma-input"
+            <Input
               required
-              minLength={2}
               maxLength={120}
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -125,17 +112,12 @@ export default function OnboardingClient() {
             />
           </label>
           <div className="oma-row">
-            <button type="submit" className="oma-btn" disabled={busy}>
+            <Button type="primary" disabled={busy} htmlType="submit">
               {busy ? t('common.loading') : t('onboarding.createSubmit')}
-            </button>
-            <button
-              type="button"
-              className="oma-btn oma-btn-secondary"
-              disabled={busy}
-              onClick={() => setMode('choose')}
-            >
+            </Button>
+            <Button type="default" disabled={busy} onClick={() => setMode('choose')}>
               {t('common.cancel')}
-            </button>
+            </Button>
           </div>
         </form>
       ) : null}
@@ -146,8 +128,7 @@ export default function OnboardingClient() {
           <p className="oma-muted">{t('onboarding.joinHint')}</p>
           <label className="oma-field">
             <span>{t('onboarding.inviteToken')}</span>
-            <input
-              className="oma-input"
+            <Input
               required
               value={token}
               onChange={(e) => setToken(e.target.value)}
@@ -157,17 +138,12 @@ export default function OnboardingClient() {
             />
           </label>
           <div className="oma-row">
-            <button type="submit" className="oma-btn" disabled={busy}>
+            <Button type="primary" disabled={busy} htmlType="submit">
               {busy ? t('common.loading') : t('onboarding.joinSubmit')}
-            </button>
-            <button
-              type="button"
-              className="oma-btn oma-btn-secondary"
-              disabled={busy}
-              onClick={() => setMode('choose')}
-            >
+            </Button>
+            <Button type="default" disabled={busy} onClick={() => setMode('choose')}>
               {t('common.cancel')}
-            </button>
+            </Button>
           </div>
         </form>
       ) : null}

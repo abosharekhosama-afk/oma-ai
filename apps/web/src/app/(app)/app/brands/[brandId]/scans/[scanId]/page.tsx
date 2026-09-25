@@ -1,4 +1,5 @@
 'use client';
+import { Button } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
@@ -231,24 +232,14 @@ export default function ScanDetailPage() {
         ) : null}
         <div className="oma-form-actions">
           {inProgress ? (
-            <button
-              type="button"
-              className="oma-btn-secondary"
-              disabled={busy}
-              onClick={() => void handleCancel()}
-            >
+            <Button type="default" disabled={busy} onClick={() => void handleCancel()}>
               {t('brand.scan.cancel')}
-            </button>
+            </Button>
           ) : null}
           {canRetry ? (
-            <button
-              type="button"
-              className="oma-btn"
-              disabled={busy}
-              onClick={() => void handleRetry()}
-            >
+            <Button type="primary" disabled={busy} onClick={() => void handleRetry()}>
               {t('brand.scan.retry')}
-            </button>
+            </Button>
           ) : null}
           {scan.profile_version_id ? (
             <Link

@@ -1,4 +1,5 @@
 'use client';
+import { Button } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -95,9 +96,9 @@ export default function StrategyVersionsPage() {
               <strong>v{v.version_number}</strong> <StatusChip status={v.status} />
             </div>
             {['APPROVED', 'REJECTED', 'CHANGES_REQUESTED'].includes(v.status) ? (
-              <button type="button" className="oma-btn" onClick={() => void revise(v.id)}>
+              <Button type="primary" onClick={() => void revise(v.id)}>
                 {t('strategy.versions.revise')}
-              </button>
+              </Button>
             ) : null}
           </li>
         ))}

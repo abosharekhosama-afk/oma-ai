@@ -1,4 +1,5 @@
 'use client';
+import { Button, CheckboxField } from '@oma/ui/controls';
 
 import { FormEvent, useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -121,12 +122,10 @@ export default function NewScanPage() {
         </div>
         <form onSubmit={onSubmit}>
           <label htmlFor="scan-confirm" className="oma-checkbox-label">
-            <input
+            <CheckboxField
               id="scan-confirm"
-              type="checkbox"
               checked={confirmed}
               onChange={(e) => setConfirmed(e.target.checked)}
-              required
             />{' '}
             {t('brand.scan.confirmBounds')}
           </label>
@@ -136,9 +135,9 @@ export default function NewScanPage() {
             </p>
           ) : null}
           <div className="oma-form-actions">
-            <button className="oma-btn" type="submit" disabled={busy || !confirmed}>
+            <Button type="primary" disabled={busy || !confirmed} htmlType="submit">
               {t('brand.scan.start')}
-            </button>
+            </Button>
             <Link href={`/app/brands/${brandId}`}>{t('common.cancel')}</Link>
           </div>
         </form>

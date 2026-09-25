@@ -1,4 +1,5 @@
 'use client';
+import { Button, DateField, Input, SelectField, TextArea } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
@@ -47,13 +48,11 @@ function BriefField({
   return (
     <label>
       {label}
-      <textarea
-        className="oma-input"
+      <TextArea
         rows={rows}
         value={value}
         data-testid={testId}
         onChange={(e) => onChange(e.target.value)}
-        onInput={(e) => onChange((e.target as HTMLTextAreaElement).value)}
       />
     </label>
   );
@@ -253,23 +252,21 @@ export default function RequestDetailPage() {
         actions={
           row ? (
             <div className="oma-chip-row">
-              <button
-                type="button"
-                className="oma-btn oma-btn-secondary"
+              <Button
+                type="default"
                 data-testid="demo-request-close"
                 onClick={() => setConfirmClose(true)}
               >
                 {t('demo.requests.close')}
-              </button>
-              <button
-                type="button"
-                className="oma-btn oma-btn-primary"
+              </Button>
+              <Button
+                type="primary"
                 data-testid="demo-request-convert"
                 disabled={!ready || converting}
                 onClick={() => void convert()}
               >
                 {converting ? t('demo.create.creating') : t('demo.requests.convert')}
-              </button>
+              </Button>
             </div>
           ) : null
         }
@@ -305,8 +302,7 @@ export default function RequestDetailPage() {
             <div className="oma-task-fields">
               <label>
                 {t('demo.requests.filter.status')}
-                <select
-                  className="oma-select"
+                <SelectField
                   value={row.status}
                   data-testid="demo-request-status"
                   onChange={(e) => void patchRequest({ status: e.target.value })}
@@ -325,12 +321,11 @@ export default function RequestDetailPage() {
                       {s}
                     </option>
                   ))}
-                </select>
+                </SelectField>
               </label>
               <label>
                 {t('demo.requests.filter.priority')}
-                <select
-                  className="oma-select"
+                <SelectField
                   value={row.priority}
                   data-testid="demo-request-priority"
                   onChange={(e) => void patchRequest({ priority: e.target.value })}
@@ -340,12 +335,11 @@ export default function RequestDetailPage() {
                       {s}
                     </option>
                   ))}
-                </select>
+                </SelectField>
               </label>
               <label>
                 {t('demo.requests.filter.assignee')}
-                <input
-                  className="oma-input"
+                <Input
                   defaultValue={row.assignee ?? ''}
                   data-testid="demo-request-assignee"
                   onBlur={(e) => void patchRequest({ assignee: e.target.value.trim() || null })}
@@ -353,9 +347,7 @@ export default function RequestDetailPage() {
               </label>
               <label>
                 {t('demo.requests.col.due')}
-                <input
-                  className="oma-input"
-                  type="date"
+                <DateField
                   defaultValue={row.dueAt}
                   data-testid="demo-request-due"
                   onBlur={(e) => void patchRequest({ dueAt: e.target.value })}
@@ -392,15 +384,14 @@ export default function RequestDetailPage() {
               title={t('demo.request.brief')}
               description={`${t('demo.brief.readiness')}: ${briefDraft.readiness} · ${briefCompleteness(briefDraft)}%`}
               action={
-                <button
-                  type="button"
-                  className="oma-btn oma-btn-primary"
+                <Button
+                  type="primary"
                   data-testid="demo-brief-save"
                   disabled={saving}
                   onClick={() => void saveBrief()}
                 >
                   {saving ? t('demo.brief.saving') : t('demo.brief.save')}
-                </button>
+                </Button>
               }
             >
               <p className="oma-callout oma-callout--info" data-testid="demo-brief-ai-honesty">
@@ -456,8 +447,7 @@ export default function RequestDetailPage() {
                       />
                       <label>
                         {t('demo.create.channels')}
-                        <input
-                          className="oma-input"
+                        <Input
                           value={briefDraft.channels.join(', ')}
                           data-testid="demo-brief-channels"
                           onChange={(e) => {
@@ -478,8 +468,7 @@ export default function RequestDetailPage() {
                       </label>
                       <label>
                         {t('demo.requests.formats')}
-                        <input
-                          className="oma-input"
+                        <Input
                           value={briefDraft.formats.join(', ')}
                           data-testid="demo-brief-formats"
                           onChange={(e) => {
@@ -610,24 +599,18 @@ export default function RequestDetailPage() {
         <div className="oma-stack">
           <label>
             {t('demo.requests.closeReason')}
-            <textarea
-              className="oma-input"
+            <TextArea
               value={closeReason}
               data-testid="demo-request-close-reason"
               onChange={(e) => setCloseReason(e.target.value)}
             />
           </label>
           <div className="oma-chip-row">
-            <button
-              type="button"
-              className="oma-btn oma-btn-secondary"
-              onClick={() => setConfirmClose(false)}
-            >
+            <Button type="default" onClick={() => setConfirmClose(false)}>
               {t('demo.create.cancel')}
-            </button>
-            <button
-              type="button"
-              className="oma-btn oma-btn-primary"
+            </Button>
+            <Button
+              type="primary"
               data-testid="demo-request-close-confirm"
               disabled={!closeReason.trim()}
               onClick={() => {
@@ -636,7 +619,7 @@ export default function RequestDetailPage() {
               }}
             >
               {t('demo.requests.close')}
-            </button>
+            </Button>
           </div>
         </div>
       </Dialog>

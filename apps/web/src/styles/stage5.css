@@ -20,13 +20,6 @@
   color: var(--oma-muted);
 }
 
-/* toolbar fields use shared .oma-input / .oma-select primitives */
-
-.oma-stage5-search {
-  min-width: min(220px, 100%);
-  flex: 1 1 160px;
-}
-
 .oma-stage5-tabs,
 .oma-deliv-groups,
 .oma-review-tabs {
@@ -34,39 +27,6 @@
   flex-wrap: wrap;
   gap: var(--space-1);
   margin-bottom: var(--space-3);
-}
-
-.oma-stage5-tabs button,
-.oma-deliv-groups button,
-.oma-review-tabs button {
-  min-height: var(--oma-control-height-compact);
-  padding: 0 var(--space-2);
-  border: 1px solid var(--oma-border);
-  border-radius: var(--oma-radius-control);
-  background: var(--oma-surface);
-  color: var(--oma-ink);
-  font-size: var(--text-meta);
-  line-height: var(--leading-meta);
-  cursor: pointer;
-  transition:
-    border-color var(--oma-motion-control) var(--oma-motion-control-ease),
-    background-color var(--oma-motion-control) var(--oma-motion-control-ease),
-    color var(--oma-motion-control) var(--oma-motion-control-ease);
-}
-
-.oma-stage5-tabs button[aria-pressed='true'],
-.oma-deliv-groups button[aria-pressed='true'],
-.oma-review-tabs button[aria-pressed='true'] {
-  border-color: var(--oma-primary);
-  color: var(--oma-primary);
-  background: var(--oma-primary-soft);
-}
-
-.oma-stage5-tabs button:focus-visible,
-.oma-deliv-groups button:focus-visible,
-.oma-review-tabs button:focus-visible {
-  outline: var(--focus-ring);
-  outline-offset: var(--focus-offset);
 }
 
 .oma-deliv-table-wrap {
@@ -465,16 +425,6 @@
   margin-top: var(--space-3);
 }
 
-.oma-review-composer textarea,
-.oma-review-composer input,
-.oma-review-composer select {
-  background: var(--oma-surface);
-  color: var(--oma-ink);
-  border-color: var(--oma-border);
-  border-radius: var(--oma-radius-control);
-  min-height: var(--oma-control-height);
-}
-
 .oma-honesty-inline {
   font-size: var(--text-meta);
   line-height: var(--leading-meta);
@@ -635,13 +585,4 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .oma-review-pin,
-  .oma-deliv-grid-card,
-  .oma-review-queue-card,
-  .oma-sched-pill,
-  .oma-stage5-tabs button,
-  .oma-deliv-groups button,
-  .oma-review-tabs button {
-    transition: none;
-  }
 }

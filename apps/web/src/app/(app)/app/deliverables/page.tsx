@@ -1,4 +1,5 @@
 'use client';
+import { Button, Input, SelectField } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -110,24 +111,22 @@ export default function DeliverablesPage() {
         description={t('demo.deliverables.subtitle')}
         actions={
           <div className="oma-view-toggle" role="group">
-            <button
-              type="button"
-              className="oma-btn oma-btn-secondary"
+            <Button
+              type={filters.view === 'list' ? 'primary' : 'default'}
               aria-pressed={filters.view === 'list'}
               data-testid="demo-deliv-view-list"
               onClick={() => changeView('list')}
             >
               {t('demo.view.list')}
-            </button>
-            <button
-              type="button"
-              className="oma-btn oma-btn-secondary"
+            </Button>
+            <Button
+              type={filters.view === 'grid' ? 'primary' : 'default'}
               aria-pressed={filters.view === 'grid'}
               data-testid="demo-deliv-view-grid"
               onClick={() => changeView('grid')}
             >
               {t('demo.view.grid')}
-            </button>
+            </Button>
           </div>
         }
       />
@@ -152,24 +151,21 @@ export default function DeliverablesPage() {
         <>
           <div className="oma-deliv-groups" data-testid="demo-deliv-groups">
             {GROUPS.map((g) => (
-              <button
-                key={g}
-                type="button"
-                className="oma-btn oma-btn-secondary"
+              <Button
+                type={filters.group === g ? 'primary' : 'default'}
                 aria-pressed={filters.group === g}
                 data-testid={`demo-deliv-group-${g}`}
                 onClick={() => setFilters((f) => ({ ...f, group: g }))}
               >
                 {t(`demo.deliverables.group.${g}`)}
-              </button>
+              </Button>
             ))}
           </div>
 
           <div className="oma-stage5-toolbar" data-testid="demo-deliv-filters">
             <label className="oma-stage5-search">
               {t('demo.deliverables.search')}
-              <input
-                className="oma-input"
+              <Input
                 value={filters.q}
                 data-testid="demo-deliv-search"
                 onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
@@ -177,8 +173,7 @@ export default function DeliverablesPage() {
             </label>
             <label>
               {t('demo.deliverables.filter.review')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.reviewState}
                 data-testid="demo-deliv-filter-review"
                 onChange={(e) => setFilters((f) => ({ ...f, reviewState: e.target.value }))}
@@ -196,12 +191,11 @@ export default function DeliverablesPage() {
                     {s}
                   </option>
                 ))}
-              </select>
+              </SelectField>
             </label>
             <label>
               {t('demo.deliverables.filter.type')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.assetType}
                 data-testid="demo-deliv-filter-type"
                 onChange={(e) => setFilters((f) => ({ ...f, assetType: e.target.value }))}
@@ -212,12 +206,11 @@ export default function DeliverablesPage() {
                     {s}
                   </option>
                 ))}
-              </select>
+              </SelectField>
             </label>
             <label>
               {t('demo.deliverables.filter.campaign')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.campaignId}
                 data-testid="demo-deliv-filter-campaign"
                 onChange={(e) => setFilters((f) => ({ ...f, campaignId: e.target.value }))}
@@ -228,12 +221,11 @@ export default function DeliverablesPage() {
                     {pickCopy(c.name, locale)}
                   </option>
                 ))}
-              </select>
+              </SelectField>
             </label>
             <label>
               {t('demo.deliverables.filter.owner')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.owner}
                 data-testid="demo-deliv-filter-owner"
                 onChange={(e) => setFilters((f) => ({ ...f, owner: e.target.value }))}
@@ -244,12 +236,11 @@ export default function DeliverablesPage() {
                     {o}
                   </option>
                 ))}
-              </select>
+              </SelectField>
             </label>
             <label>
               {t('demo.deliverables.filter.reviewer')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.reviewer}
                 data-testid="demo-deliv-filter-reviewer"
                 onChange={(e) => setFilters((f) => ({ ...f, reviewer: e.target.value }))}
@@ -260,7 +251,7 @@ export default function DeliverablesPage() {
                     {o}
                   </option>
                 ))}
-              </select>
+              </SelectField>
             </label>
           </div>
 
@@ -270,14 +261,13 @@ export default function DeliverablesPage() {
 
           {filterCount > 0 ? (
             <div className="oma-filter-chips">
-              <button
-                type="button"
-                className="oma-btn oma-btn-secondary"
+              <Button
+                type="default"
                 data-testid="demo-deliv-clear-filters"
                 onClick={() => setFilters({ ...EMPTY_DELIVERABLE_FILTERS, view: filters.view })}
               >
                 {t('demo.requests.clearFilters')}
-              </button>
+              </Button>
             </div>
           ) : null}
 

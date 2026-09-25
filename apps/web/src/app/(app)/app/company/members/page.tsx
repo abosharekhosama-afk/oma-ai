@@ -1,4 +1,5 @@
 'use client';
+import { Button, Input, SelectField } from '@oma/ui/controls';
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { api } from '../../../../../lib/api';
@@ -135,31 +136,30 @@ export default function CompanyMembersPage() {
         <h2>{t('company.inviteTitle')}</h2>
         <label className="oma-field">
           <span>{t('auth.email')}</span>
-          <input
-            className="oma-input"
-            type="email"
+          <Input
             required
             value={email}
             data-testid="company-members-invite-email"
             onChange={(e) => setEmail(e.target.value)}
             disabled={busy}
+            type="email"
           />
         </label>
-        <button
-          type="submit"
-          className="oma-btn"
+        <Button
+          type="primary"
           disabled={busy}
           data-testid="company-members-invite-submit"
+          htmlType="submit"
         >
           {t('company.inviteSubmit')}
-        </button>
+        </Button>
         {inviteLink ? (
           <div role="status" className="oma-stack" data-testid="company-members-invite-link">
             <p className="oma-muted">{t('company.inviteLinkHint')}</p>
             <code className="oma-code-block">{inviteLink}</code>
-            <button type="button" className="oma-btn oma-btn-secondary" onClick={copyLink}>
+            <Button type="default" onClick={copyLink}>
               {copied ? t('company.inviteCopied') : t('company.inviteCopy')}
-            </button>
+            </Button>
           </div>
         ) : null}
       </form>
@@ -167,8 +167,7 @@ export default function CompanyMembersPage() {
       <div className="oma-stage6-toolbar">
         <label className="oma-stage6-search">
           {t('company.membersSearch')}
-          <input
-            className="oma-input"
+          <Input
             value={q}
             data-testid="company-members-search"
             onChange={(e) => setQ(e.target.value)}
@@ -212,8 +211,7 @@ export default function CompanyMembersPage() {
                         <>
                           <label className="oma-field">
                             <span className="oma-sr-only">{t('company.assignProfile')}</span>
-                            <select
-                              className="oma-input"
+                            <SelectField
                               value={profileByMember[m.id] ?? ''}
                               data-testid={`assign-profile-${m.id}`}
                               onChange={(e) =>
@@ -227,24 +225,18 @@ export default function CompanyMembersPage() {
                                   {code}
                                 </option>
                               ))}
-                            </select>
+                            </SelectField>
                           </label>
-                          <button
-                            type="button"
-                            className="oma-btn oma-btn-secondary"
+                          <Button
+                            type="default"
                             disabled={busy || !profileByMember[m.id]}
                             onClick={() => void attachProfile(m.id)}
                           >
                             {t('company.assignProfile')}
-                          </button>
-                          <button
-                            type="button"
-                            className="oma-btn oma-btn-secondary"
-                            disabled={busy}
-                            onClick={() => void suspend(m.id)}
-                          >
+                          </Button>
+                          <Button type="default" disabled={busy} onClick={() => void suspend(m.id)}>
                             {t('company.suspend')}
-                          </button>
+                          </Button>
                         </>
                       ) : null}
                     </div>

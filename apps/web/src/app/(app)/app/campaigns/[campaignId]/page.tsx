@@ -1,4 +1,5 @@
 'use client';
+import { Button } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
@@ -160,22 +161,17 @@ export default function CampaignDetailPage() {
               >
                 {t('demo.content.title')}
               </Link>
-              <button
-                type="button"
-                className="oma-btn oma-btn-secondary"
-                onClick={() => setEditOpen(true)}
-              >
+              <Button type="default" onClick={() => setEditOpen(true)}>
                 {t('demo.campaign.edit')}
-              </button>
-              <button
-                type="button"
-                className="oma-btn oma-btn-secondary"
+              </Button>
+              <Button
+                type="default"
                 aria-haspopup="menu"
                 aria-label={t('demo.create.cancel')}
                 onClick={() => setConfirmClose(true)}
               >
                 ⋯
-              </button>
+              </Button>
             </>
           }
         />
@@ -209,17 +205,16 @@ export default function CampaignDetailPage() {
                 ['activity', t('demo.campaign.activity')],
               ] as const
             ).map(([id, label]) => (
-              <button
-                key={id}
-                type="button"
+              <Button
+                type="default"
                 role="tab"
-                className="oma-workspace-tab"
                 aria-selected={tab === id}
                 data-testid={`demo-campaign-tab-${id}`}
                 onClick={() => setTab(id)}
+                className="oma-workspace-tab"
               >
                 {label}
-              </button>
+              </Button>
             ))}
           </div>
 
@@ -495,13 +490,9 @@ export default function CampaignDetailPage() {
       <Dialog open={editOpen} title={t('demo.campaign.edit')} onClose={() => setEditOpen(false)}>
         <p className="oma-muted">{t('demo.campaign.tabLater')}</p>
         <p className="oma-honesty-banner">{t('demo.planningOnly')}</p>
-        <button
-          type="button"
-          className="oma-btn oma-btn-secondary"
-          onClick={() => setEditOpen(false)}
-        >
+        <Button type="default" onClick={() => setEditOpen(false)}>
           {t('demo.create.cancel')}
-        </button>
+        </Button>
       </Dialog>
 
       <Dialog
@@ -511,23 +502,18 @@ export default function CampaignDetailPage() {
       >
         <p>{t('demo.content.unsaved')}</p>
         <div className="oma-chip-row">
-          <button
-            type="button"
-            className="oma-btn oma-btn-secondary"
-            onClick={() => setConfirmClose(false)}
-          >
+          <Button type="default" onClick={() => setConfirmClose(false)}>
             {t('demo.create.cancel')}
-          </button>
-          <button
-            type="button"
-            className="oma-btn oma-btn-primary"
+          </Button>
+          <Button
+            type="primary"
             onClick={() => {
               setConfirmClose(false);
               router.push('/app/campaigns');
             }}
           >
             OK
-          </button>
+          </Button>
         </div>
       </Dialog>
     </div>

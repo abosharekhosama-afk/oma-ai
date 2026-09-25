@@ -1,4 +1,5 @@
 'use client';
+import { Button } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
@@ -261,24 +262,14 @@ export default function ProfileEditorPage() {
       {editable ? (
         <div className="oma-form-actions">
           {Object.keys(pendingEdits).length > 0 ? (
-            <button
-              type="button"
-              className="oma-btn"
-              disabled={busy}
-              onClick={() => void saveEdits()}
-            >
+            <Button type="primary" disabled={busy} onClick={() => void saveEdits()}>
               {t('brand.profile.save')}
-            </button>
+            </Button>
           ) : null}
           {profile.status === 'DRAFT' ? (
-            <button
-              type="button"
-              className="oma-btn-secondary"
-              disabled={busy}
-              onClick={() => void submitForReview()}
-            >
+            <Button type="default" disabled={busy} onClick={() => void submitForReview()}>
               {t('brand.profile.submitReview')}
-            </button>
+            </Button>
           ) : null}
         </div>
       ) : null}

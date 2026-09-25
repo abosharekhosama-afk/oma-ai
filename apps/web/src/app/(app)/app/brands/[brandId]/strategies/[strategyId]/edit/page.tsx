@@ -1,4 +1,5 @@
 'use client';
+import { Button, TextArea } from '@oma/ui/controls';
 
 import { useParams } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
@@ -126,8 +127,7 @@ export default function StrategyFoundationPage() {
             <h2>{t('strategy.foundation.goals')}</h2>
             <p className="oma-help">{t('strategy.list.hint')}</p>
             <label className="oma-field-span">
-              <textarea
-                className="oma-input"
+              <TextArea
                 value={goals}
                 onChange={(e) => setGoals(e.target.value)}
                 disabled={!editable}
@@ -139,8 +139,7 @@ export default function StrategyFoundationPage() {
           <section className="oma-form-section oma-doc-section" id="strategy-positioning">
             <h2>{t('strategy.foundation.positioning')}</h2>
             <label className="oma-field-span">
-              <textarea
-                className="oma-input"
+              <TextArea
                 value={positioning}
                 onChange={(e) => setPositioning(e.target.value)}
                 disabled={!editable}
@@ -160,9 +159,9 @@ export default function StrategyFoundationPage() {
             </p>
           ) : null}
           {editable ? (
-            <button type="submit" className="oma-btn">
+            <Button type="primary" htmlType="submit">
               {t('strategy.foundation.save')}
-            </button>
+            </Button>
           ) : null}
         </form>
       </div>

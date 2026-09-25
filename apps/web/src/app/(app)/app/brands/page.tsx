@@ -1,4 +1,5 @@
 'use client';
+import { Button, SearchInput, SelectField } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
@@ -93,54 +94,49 @@ export default function BrandsListPage() {
         }}
       >
         <label htmlFor="brand-search">{t('brand.list.searchLabel')}</label>
-        <input
+        <SearchInput
           id="brand-search"
-          className="oma-input oma-input-inline"
-          type="search"
           value={queryDraft}
           onChange={(event) => setQueryDraft(event.target.value)}
         />
-        <button type="submit" className="oma-btn">
+        <Button type="primary" htmlType="submit">
           {t('brand.list.searchSubmit')}
-        </button>
+        </Button>
         {query ? (
-          <button
-            type="button"
-            className="oma-btn oma-btn-secondary"
+          <Button
+            type="default"
             onClick={() => {
               setQueryDraft('');
               setQuery('');
             }}
           >
             {t('brand.list.searchClear')}
-          </button>
+          </Button>
         ) : null}
         <label htmlFor="brand-filter" className="oma-sr-only">
           {t('brand.list.filterLabel')}
         </label>
-        <select
+        <SelectField
           id="brand-filter"
-          className="oma-select"
           value={filter}
           onChange={(e) => setFilter(e.target.value as typeof filter)}
         >
           <option value="all">{t('brand.list.filterAll')}</option>
           <option value="needs_action">{t('brand.list.filterNeedsAction')}</option>
           <option value="approved">{t('brand.list.filterApproved')}</option>
-        </select>
+        </SelectField>
         <label htmlFor="brand-sort" className="oma-sr-only">
           {t('brand.list.sortLabel')}
         </label>
-        <select
+        <SelectField
           id="brand-sort"
-          className="oma-select"
           value={sortKey}
           onChange={(e) => setSortKey(e.target.value as SortKey)}
         >
           <option value="updated">{t('brand.list.sortUpdated')}</option>
           <option value="name">{t('brand.list.sortName')}</option>
           <option value="status">{t('brand.list.sortStatus')}</option>
-        </select>
+        </SelectField>
       </form>
 
       {error ? <ErrorState title={t('common.error')} body={error} /> : null}

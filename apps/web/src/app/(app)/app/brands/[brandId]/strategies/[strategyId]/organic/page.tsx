@@ -1,4 +1,5 @@
 'use client';
+import { Button, Input } from '@oma/ui/controls';
 
 import { useParams } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
@@ -111,8 +112,7 @@ export default function StrategyOrganicPage() {
           <div className="oma-form-grid">
             <label>
               Frequency
-              <input
-                className="oma-input"
+              <Input
                 value={frequency}
                 onChange={(e) => setFrequency(e.target.value)}
                 disabled={!editable}
@@ -121,8 +121,7 @@ export default function StrategyOrganicPage() {
             </label>
             <label>
               CTA
-              <input
-                className="oma-input"
+              <Input
                 value={cta}
                 onChange={(e) => setCta(e.target.value)}
                 disabled={!editable}
@@ -142,9 +141,9 @@ export default function StrategyOrganicPage() {
           </p>
         ) : null}
         {editable ? (
-          <button type="submit" className="oma-btn">
+          <Button type="primary" htmlType="submit">
             {t('strategy.organic.save')}
-          </button>
+          </Button>
         ) : (
           <p>{t('strategy.warning.immutable')}</p>
         )}

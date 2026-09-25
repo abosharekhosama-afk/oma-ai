@@ -1,4 +1,5 @@
 'use client';
+import { Button, CheckboxField, Input, SelectField } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -117,16 +118,14 @@ export default function SettingsPage() {
         <div className="oma-settings-layout">
           <nav className="oma-settings-nav" aria-label={t('demo.settings.title')}>
             {sections.map((s) => (
-              <button
-                key={s}
-                type="button"
-                className="oma-btn oma-btn-secondary"
+              <Button
+                type="default"
                 aria-current={section === s ? 'true' : undefined}
                 data-testid={`demo-settings-nav-${s}`}
                 onClick={() => setSection(s)}
               >
                 {t(`demo.settings.section.${s}`)}
-              </button>
+              </Button>
             ))}
             <Link
               href="/app/company/members"
@@ -149,8 +148,7 @@ export default function SettingsPage() {
                 ) : null}
                 <label>
                   {t('demo.settings.timezone')}
-                  <input
-                    className="oma-input"
+                  <Input
                     value={draft.timezone}
                     data-testid="demo-settings-timezone"
                     onChange={(e) => setDraft({ ...draft, timezone: e.target.value })}
@@ -158,8 +156,7 @@ export default function SettingsPage() {
                 </label>
                 <label>
                   {t('demo.settings.weekStart')}
-                  <select
-                    className="oma-select"
+                  <SelectField
                     value={draft.weekStart}
                     data-testid="demo-settings-week-start"
                     onChange={(e) =>
@@ -171,12 +168,11 @@ export default function SettingsPage() {
                   >
                     <option value="monday">{t('demo.settings.monday')}</option>
                     <option value="sunday">{t('demo.settings.sunday')}</option>
-                  </select>
+                  </SelectField>
                 </label>
                 <label>
                   {t('demo.settings.localePref')}
-                  <select
-                    className="oma-select"
+                  <SelectField
                     value={draft.localePreference}
                     data-testid="demo-settings-locale"
                     onChange={(e) =>
@@ -189,12 +185,11 @@ export default function SettingsPage() {
                     <option value="system">system</option>
                     <option value="en">en</option>
                     <option value="ar">ar</option>
-                  </select>
+                  </SelectField>
                 </label>
                 <label>
                   {t('demo.settings.defaultContentView')}
-                  <select
-                    className="oma-select"
+                  <SelectField
                     value={draft.defaultContentView}
                     data-testid="demo-settings-content-view"
                     onChange={(e) =>
@@ -206,12 +201,11 @@ export default function SettingsPage() {
                   >
                     <option value="list">list</option>
                     <option value="calendar">calendar</option>
-                  </select>
+                  </SelectField>
                 </label>
                 <label>
                   {t('demo.settings.defaultTaskView')}
-                  <select
-                    className="oma-select"
+                  <SelectField
                     value={draft.defaultTaskView}
                     data-testid="demo-settings-task-view"
                     onChange={(e) =>
@@ -223,27 +217,25 @@ export default function SettingsPage() {
                   >
                     <option value="board">board</option>
                     <option value="list">list</option>
-                  </select>
+                  </SelectField>
                 </label>
                 <p className="oma-muted">{t('demo.settings.reducedMotionNote')}</p>
                 <div className="oma-chip-row">
-                  <button
-                    type="button"
-                    className="oma-btn oma-btn-secondary"
+                  <Button
+                    type="default"
                     disabled={!dirty || saving}
                     onClick={() => setDraft(prefs)}
                   >
                     {t('demo.create.cancel')}
-                  </button>
-                  <button
-                    type="button"
-                    className="oma-btn"
+                  </Button>
+                  <Button
+                    type="primary"
                     data-testid="demo-settings-save"
                     disabled={!dirty || saving}
                     onClick={() => void savePrefs()}
                   >
                     {t('demo.settings.save')}
-                  </button>
+                  </Button>
                 </div>
               </section>
             ) : null}
@@ -252,8 +244,7 @@ export default function SettingsPage() {
               <section className="oma-settings-panel" data-testid="demo-settings-notifications">
                 <h2>{t('demo.settings.section.notifications')}</h2>
                 <label>
-                  <input
-                    type="checkbox"
+                  <CheckboxField
                     checked={draft.reviewReminders}
                     data-testid="demo-settings-review-reminders"
                     onChange={(e) => setDraft({ ...draft, reviewReminders: e.target.checked })}
@@ -261,15 +252,14 @@ export default function SettingsPage() {
                   {t('demo.settings.reviewReminders')}
                 </label>
                 <p className="oma-muted">{t('demo.settings.notificationsHonesty')}</p>
-                <button
-                  type="button"
-                  className="oma-btn"
+                <Button
+                  type="primary"
                   data-testid="demo-settings-save-notifications"
                   disabled={!dirty || saving}
                   onClick={() => void savePrefs()}
                 >
                   {t('demo.settings.save')}
-                </button>
+                </Button>
               </section>
             ) : null}
 
@@ -280,8 +270,7 @@ export default function SettingsPage() {
                 <div className="oma-integration-toolbar" data-testid="demo-integrations-filters">
                   <label className="oma-stage6-search">
                     {t('demo.settings.integrationsSearch')}
-                    <input
-                      className="oma-input"
+                    <Input
                       value={intQ}
                       data-testid="demo-integrations-search"
                       onChange={(e) => setIntQ(e.target.value)}
@@ -289,8 +278,7 @@ export default function SettingsPage() {
                   </label>
                   <label>
                     {t('demo.settings.integrationsCategory')}
-                    <select
-                      className="oma-select"
+                    <SelectField
                       value={intCategory}
                       data-testid="demo-integrations-category"
                       onChange={(e) => setIntCategory(e.target.value)}
@@ -301,7 +289,7 @@ export default function SettingsPage() {
                           {c}
                         </option>
                       ))}
-                    </select>
+                    </SelectField>
                   </label>
                 </div>
                 <ul className="oma-integration-list">
@@ -315,14 +303,13 @@ export default function SettingsPage() {
                       <p>{pickCopy(i.purpose, locale)}</p>
                       <p className="oma-muted">{pickCopy(i.availableWithout, locale)}</p>
                       <p className="oma-muted">{pickCopy(i.gate, locale)}</p>
-                      <button
-                        type="button"
-                        className="oma-btn oma-btn-secondary"
+                      <Button
+                        type="default"
                         data-testid={`demo-int-plan-${i.id}`}
                         onClick={() => setInfoId(i.id)}
                       >
                         {t('demo.settings.viewPlan')}
-                      </button>
+                      </Button>
                     </li>
                   ))}
                 </ul>
@@ -331,13 +318,9 @@ export default function SettingsPage() {
                     <h3>{pickCopy(info.name, locale)}</h3>
                     <p>{pickCopy(info.laterUnlocks, locale)}</p>
                     <p className="oma-honesty-inline">{t('demo.settings.noConnect')}</p>
-                    <button
-                      type="button"
-                      className="oma-btn oma-btn-secondary"
-                      onClick={() => setInfoId(null)}
-                    >
+                    <Button type="default" onClick={() => setInfoId(null)}>
                       {t('demo.create.cancel')}
-                    </button>
+                    </Button>
                   </div>
                 ) : null}
               </section>

@@ -1,4 +1,5 @@
 'use client';
+import { Button, TextArea } from '@oma/ui/controls';
 
 import { FormEvent, useState } from 'react';
 import { useT } from '../../lib/use-locale';
@@ -73,17 +74,16 @@ export function ReviewCollaboration({
         <form className="oma-stack" onSubmit={save}>
           <label className="oma-field">
             <span>{t('brand.review.noteLabel')}</span>
-            <textarea
-              className="oma-input"
+            <TextArea
               rows={3}
               value={note}
               onChange={(e) => setNote(e.target.value)}
               disabled={busy}
             />
           </label>
-          <button type="submit" className="oma-btn oma-btn-secondary" disabled={busy}>
+          <Button type="default" disabled={busy} htmlType="submit">
             {t('brand.review.noteSave')}
-          </button>
+          </Button>
           {saved ? (
             <p role="status" className="oma-muted">
               {t('brand.review.noteSaved')}

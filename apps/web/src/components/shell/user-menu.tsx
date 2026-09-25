@@ -1,4 +1,5 @@
 'use client';
+import { Button } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
@@ -30,9 +31,8 @@ export function UserMenu() {
 
   return (
     <div className="oma-user-menu" ref={rootRef}>
-      <button
-        type="button"
-        className="oma-icon-btn"
+      <Button
+        type="text"
         aria-label={t('shell.account')}
         aria-expanded={open}
         aria-haspopup="menu"
@@ -41,7 +41,7 @@ export function UserMenu() {
         <span className="oma-avatar" aria-hidden="true">
           <ShellIcon name="user" size={16} />
         </span>
-      </button>
+      </Button>
       {open ? (
         <div className="oma-menu oma-user-menu-panel" role="menu">
           <p className="oma-user-menu-heading">{t('shell.account')}</p>

@@ -1,4 +1,5 @@
 'use client';
+import { Button } from '@oma/ui/controls';
 export function CurrentStrategyControls(props: {
   canSet: boolean;
   isCurrent: boolean;
@@ -7,22 +8,12 @@ export function CurrentStrategyControls(props: {
 }) {
   if (!props.canSet) return null;
   return props.isCurrent ? (
-    <button
-      type="button"
-      className="oma-btn"
-      onClick={props.onClear}
-      data-testid="strategy-clear-current"
-    >
+    <Button type="primary" onClick={props.onClear} data-testid="strategy-clear-current">
       Clear current
-    </button>
+    </Button>
   ) : (
-    <button
-      type="button"
-      className="oma-btn"
-      onClick={props.onSet}
-      data-testid="strategy-set-current"
-    >
+    <Button type="primary" onClick={props.onSet} data-testid="strategy-set-current">
       Set current
-    </button>
+    </Button>
   );
 }

@@ -1,4 +1,5 @@
 'use client';
+import { Button, SelectField, TextArea } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
@@ -334,25 +335,23 @@ export default function DeliverableDetailClient() {
         actions={
           row ? (
             <div className="oma-chip-row">
-              <button
-                type="button"
-                className="oma-btn oma-btn-secondary"
+              <Button
+                type="default"
                 data-testid="demo-open-review"
                 onClick={() =>
                   setReviewUrl({ review: true, version: selectedVersionId ?? undefined })
                 }
               >
                 {t('demo.reviews.openReview')}
-              </button>
-              <button
-                type="button"
-                className="oma-btn oma-btn-secondary"
+              </Button>
+              <Button
+                type="default"
                 data-testid="demo-add-revision"
                 disabled={saving}
                 onClick={() => void addRevision()}
               >
                 {t('demo.review.addRevision')}
-              </button>
+              </Button>
             </div>
           ) : null
         }
@@ -440,25 +439,22 @@ export default function DeliverableDetailClient() {
                   <StatusChip status={row.reviewStatus} />
                 </div>
                 <div className="oma-chip-row">
-                  <button
-                    type="button"
-                    className="oma-btn oma-btn-secondary"
+                  <Button
+                    type="default"
                     data-testid="demo-review-zoom-fit"
                     onClick={() => setZoom('fit')}
                   >
                     {t('demo.review.fit')}
-                  </button>
-                  <button
-                    type="button"
-                    className="oma-btn oma-btn-secondary"
+                  </Button>
+                  <Button
+                    type="default"
                     data-testid="demo-review-zoom-in"
                     onClick={() => setZoom('in')}
                   >
                     {t('demo.review.zoomIn')}
-                  </button>
-                  <button
-                    type="button"
-                    className="oma-btn oma-btn-secondary"
+                  </Button>
+                  <Button
+                    type={compareMode ? 'primary' : 'default'}
                     aria-pressed={compareMode}
                     data-testid="demo-review-compare-toggle"
                     onClick={() =>
@@ -470,15 +466,14 @@ export default function DeliverableDetailClient() {
                     }
                   >
                     {t('demo.deliverable.compare')}
-                  </button>
-                  <button
-                    type="button"
-                    className="oma-btn oma-btn-secondary"
+                  </Button>
+                  <Button
+                    type="default"
                     data-testid="demo-review-exit"
                     onClick={() => setReviewUrl({ review: false, compare: false })}
                   >
                     {t('common.cancel')}
-                  </button>
+                  </Button>
                 </div>
               </div>
 
@@ -486,18 +481,17 @@ export default function DeliverableDetailClient() {
                 <aside className="oma-review-versions" data-testid="demo-version-rail">
                   <h3>{t('demo.deliverable.versions')}</h3>
                   {row.versions.map((v) => (
-                    <button
-                      key={v.id}
-                      type="button"
-                      className="oma-review-version-item"
+                    <Button
+                      type="default"
                       aria-current={v.id === selectedVersion?.id ? 'true' : undefined}
                       data-testid={`demo-version-${v.id}`}
                       onClick={() => void selectVersion(v.id)}
+                      className="oma-review-version-item"
                     >
                       <strong>{v.label}</strong>
                       <span>{v.status}</span>
                       <span>{v.createdBy}</span>
-                    </button>
+                    </Button>
                   ))}
                 </aside>
 
@@ -507,8 +501,7 @@ export default function DeliverableDetailClient() {
                       <div className="oma-chip-row" style={{ gridColumn: '1 / -1' }}>
                         <label>
                           A
-                          <select
-                            className="oma-select"
+                          <SelectField
                             value={compareA}
                             data-testid="demo-compare-a"
                             onChange={(e) => setCompareA(e.target.value)}
@@ -518,12 +511,11 @@ export default function DeliverableDetailClient() {
                                 {v.label}
                               </option>
                             ))}
-                          </select>
+                          </SelectField>
                         </label>
                         <label>
                           B
-                          <select
-                            className="oma-select"
+                          <SelectField
                             value={compareB}
                             data-testid="demo-compare-b"
                             onChange={(e) => setCompareB(e.target.value)}
@@ -533,7 +525,7 @@ export default function DeliverableDetailClient() {
                                 {v.label}
                               </option>
                             ))}
-                          </select>
+                          </SelectField>
                         </label>
                       </div>
                       {[compareA, compareB].map((id, idx) => {
@@ -584,11 +576,9 @@ export default function DeliverableDetailClient() {
                       {versionAnnotations.map((a) => {
                         const pos = mapNormalizedToPercent(a.x, a.y);
                         return (
-                          <button
-                            key={a.id}
-                            type="button"
-                            className="oma-review-pin"
-                            style={{ left: pos.left, top: pos.top }}
+                          <Button
+                            type="default"
+                            style={pos}
                             data-resolved={a.resolved ? 'true' : 'false'}
                             data-selected={selectedPinId === a.id ? 'true' : 'false'}
                             data-testid={`demo-pin-${a.id}`}
@@ -597,9 +587,10 @@ export default function DeliverableDetailClient() {
                               e.stopPropagation();
                               setSelectedPinId(a.id);
                             }}
+                            className="oma-review-pin"
                           >
                             {a.number}
-                          </button>
+                          </Button>
                         );
                       })}
                       {draftPin ? (
@@ -621,45 +612,37 @@ export default function DeliverableDetailClient() {
                   <h3>{t('demo.review.comments')}</h3>
                   <div className="oma-chip-row">
                     {(['all', 'unresolved', 'resolved'] as CommentFilter[]).map((f) => (
-                      <button
-                        key={f}
-                        type="button"
-                        className="oma-btn oma-btn-secondary"
+                      <Button
+                        type={commentFilter === f ? 'primary' : 'default'}
                         aria-pressed={commentFilter === f}
                         onClick={() => setCommentFilter(f)}
                       >
                         {t(`demo.review.filter.${f}`)}
-                      </button>
+                      </Button>
                     ))}
                   </div>
 
                   {draftPin ? (
                     <div className="oma-review-composer" data-testid="demo-annotation-draft">
                       <p>{t('demo.review.draftPin')}</p>
-                      <textarea
-                        className="oma-input"
+                      <TextArea
                         rows={3}
                         value={draftBody}
                         data-testid="demo-annotation-body"
                         onChange={(e) => setDraftBody(e.target.value)}
                       />
                       <div className="oma-chip-row">
-                        <button
-                          type="button"
-                          className="oma-btn oma-btn-secondary"
-                          onClick={() => setDraftPin(null)}
-                        >
+                        <Button type="default" onClick={() => setDraftPin(null)}>
                           {t('common.cancel')}
-                        </button>
-                        <button
-                          type="button"
-                          className="oma-btn oma-btn-primary"
+                        </Button>
+                        <Button
+                          type="primary"
                           data-testid="demo-annotation-save"
                           disabled={saving || !draftBody.trim()}
                           onClick={() => void saveAnnotation()}
                         >
                           {t('demo.review.saveAnnotation')}
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   ) : null}
@@ -677,9 +660,8 @@ export default function DeliverableDetailClient() {
                       </strong>
                       <p>{pickCopy(a.body, locale)}</p>
                       <time dateTime={a.at}>{a.at}</time>
-                      <button
-                        type="button"
-                        className="oma-btn oma-btn-secondary"
+                      <Button
+                        type="default"
                         data-testid={`demo-resolve-${a.id}`}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -687,7 +669,7 @@ export default function DeliverableDetailClient() {
                         }}
                       >
                         {a.resolved ? t('demo.review.reopen') : t('demo.review.resolve')}
-                      </button>
+                      </Button>
                     </article>
                   ))}
 
@@ -700,58 +682,52 @@ export default function DeliverableDetailClient() {
                   ))}
 
                   <div className="oma-review-composer">
-                    <textarea
-                      className="oma-input"
+                    <TextArea
                       rows={2}
                       value={generalBody}
                       data-testid="demo-general-comment"
                       placeholder={t('demo.review.generalComment')}
                       onChange={(e) => setGeneralBody(e.target.value)}
                     />
-                    <button
-                      type="button"
-                      className="oma-btn oma-btn-primary"
+                    <Button
+                      type="primary"
                       data-testid="demo-general-comment-submit"
                       disabled={saving}
                       onClick={() => void addGeneral()}
                     >
                       {t('demo.tasks.addComment')}
-                    </button>
+                    </Button>
                   </div>
 
                   <div className="oma-approval-actions" style={{ marginTop: 16 }}>
-                    <button
-                      type="button"
-                      className="oma-btn"
+                    <Button
+                      type="primary"
                       data-testid="demo-decide-approve"
                       onClick={() => setDecisionOpen('APPROVED')}
                     >
                       {t('demo.deliverable.approve')}
-                    </button>
-                    <button
-                      type="button"
-                      className="oma-btn oma-btn-secondary"
+                    </Button>
+                    <Button
+                      type="default"
                       data-testid="demo-decide-changes"
                       onClick={() => setDecisionOpen('CHANGES_REQUESTED')}
                     >
                       {t('demo.deliverable.requestChanges')}
-                    </button>
-                    <button
-                      type="button"
-                      className="oma-btn oma-btn-secondary"
+                    </Button>
+                    <Button
+                      type="default"
                       data-testid="demo-decide-reject"
                       onClick={() => setDecisionOpen('REJECTED')}
                     >
                       {t('demo.deliverable.reject')}
-                    </button>
-                    <button
-                      type="button"
-                      className="oma-btn oma-btn-secondary"
+                    </Button>
+                    <Button
+                      type="default"
                       data-testid="demo-submit-review"
                       onClick={() => void submitForReview()}
                     >
                       {t('demo.review.submit')}
-                    </button>
+                    </Button>
                   </div>
                   <p className="oma-honesty-inline">{t('demo.reviewHonesty')}</p>
                 </aside>
@@ -761,13 +737,9 @@ export default function DeliverableDetailClient() {
             <Panel
               title={t('demo.deliverable.preview')}
               action={
-                <button
-                  type="button"
-                  className="oma-btn oma-btn-primary"
-                  onClick={() => setReviewUrl({ review: true })}
-                >
+                <Button type="primary" onClick={() => setReviewUrl({ review: true })}>
                   {t('demo.reviews.openReview')}
-                </button>
+                </Button>
               }
             >
               {selectedVersion?.assets[0] ? (
@@ -780,9 +752,8 @@ export default function DeliverableDetailClient() {
                 <p className="oma-muted">{t('demo.review.unsupported')}</p>
               )}
               <div className="oma-approval-actions">
-                <button
-                  type="button"
-                  className="oma-btn"
+                <Button
+                  type="primary"
                   data-testid="demo-decide-approve"
                   onClick={() => {
                     setReviewUrl({ review: true });
@@ -790,10 +761,9 @@ export default function DeliverableDetailClient() {
                   }}
                 >
                   {t('demo.deliverable.approve')}
-                </button>
-                <button
-                  type="button"
-                  className="oma-btn oma-btn-secondary"
+                </Button>
+                <Button
+                  type="default"
                   data-testid="demo-decide-changes"
                   onClick={() => {
                     setReviewUrl({ review: true });
@@ -801,10 +771,9 @@ export default function DeliverableDetailClient() {
                   }}
                 >
                   {t('demo.deliverable.requestChanges')}
-                </button>
-                <button
-                  type="button"
-                  className="oma-btn oma-btn-secondary"
+                </Button>
+                <Button
+                  type="default"
                   data-testid="demo-decide-reject"
                   onClick={() => {
                     setReviewUrl({ review: true });
@@ -812,7 +781,7 @@ export default function DeliverableDetailClient() {
                   }}
                 >
                   {t('demo.deliverable.reject')}
-                </button>
+                </Button>
               </div>
             </Panel>
           )}
@@ -854,8 +823,7 @@ export default function DeliverableDetailClient() {
           {decisionOpen !== 'APPROVED' ? (
             <label>
               {t('demo.review.reason')}
-              <textarea
-                className="oma-input"
+              <TextArea
                 rows={3}
                 value={decisionReason}
                 data-testid="demo-decision-reason"
@@ -865,8 +833,7 @@ export default function DeliverableDetailClient() {
           ) : (
             <label>
               {t('demo.review.optionalNote')}
-              <textarea
-                className="oma-input"
+              <TextArea
                 rows={2}
                 value={decisionReason}
                 data-testid="demo-decision-reason"
@@ -875,22 +842,17 @@ export default function DeliverableDetailClient() {
             </label>
           )}
           <div className="oma-chip-row">
-            <button
-              type="button"
-              className="oma-btn oma-btn-secondary"
-              onClick={() => setDecisionOpen(null)}
-            >
+            <Button type="default" onClick={() => setDecisionOpen(null)}>
               {t('demo.create.cancel')}
-            </button>
-            <button
-              type="button"
-              className="oma-btn oma-btn-primary"
+            </Button>
+            <Button
+              type="primary"
               data-testid="demo-decision-confirm"
               disabled={saving}
               onClick={() => void confirmDecision()}
             >
               {t('demo.review.confirm')}
-            </button>
+            </Button>
           </div>
         </div>
       </Dialog>

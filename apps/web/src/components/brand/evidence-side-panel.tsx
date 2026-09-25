@@ -1,4 +1,5 @@
 'use client';
+import { Button } from '@oma/ui/controls';
 
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../lib/api';
@@ -68,9 +69,9 @@ export function EvidenceSidePanel({
     <Drawer open={Boolean(evidenceId)} onClose={onClose} label={t('brand.evidence.title')}>
       <header className="oma-drawer-header">
         <h2 id="evidence-panel-title">{t('brand.evidence.title')}</h2>
-        <button type="button" className="oma-btn oma-btn-secondary oma-btn--sm" onClick={onClose}>
+        <Button type="default" onClick={onClose}>
           {t('brand.evidence.close')}
-        </button>
+        </Button>
       </header>
       {loading ? <p className="oma-muted">{t('common.loading')}</p> : null}
       {error ? (
@@ -81,22 +82,12 @@ export function EvidenceSidePanel({
       {evidence ? <EvidenceClarity evidence={evidence} /> : null}
       {(prevId || nextId) && onNavigate ? (
         <div className="oma-header-actions" style={{ marginTop: '1rem' }}>
-          <button
-            type="button"
-            className="oma-btn oma-btn-secondary oma-btn--sm"
-            disabled={!prevId}
-            onClick={() => prevId && onNavigate(prevId)}
-          >
+          <Button type="default" disabled={!prevId} onClick={() => prevId && onNavigate(prevId)}>
             {t('brand.evidence.prev')}
-          </button>
-          <button
-            type="button"
-            className="oma-btn oma-btn-secondary oma-btn--sm"
-            disabled={!nextId}
-            onClick={() => nextId && onNavigate(nextId)}
-          >
+          </Button>
+          <Button type="default" disabled={!nextId} onClick={() => nextId && onNavigate(nextId)}>
             {t('brand.evidence.next')}
-          </button>
+          </Button>
         </div>
       ) : null}
     </Drawer>

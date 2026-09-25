@@ -703,13 +703,13 @@ export default function ContentPage() {
 
       <div className="oma-stage3-toolbar" data-testid="demo-content-filters">
         {filterControls}
-        <button
-          type="button"
-          className="oma-btn oma-btn-secondary oma-filter-sheet-trigger"
+        <Button
+          type="default"
           onClick={() => setFilterSheet(true)}
+          className="oma-filter-sheet-trigger"
         >
           {t('demo.content.openFilters')}
-        </button>
+        </Button>
       </div>
 
       {filterCount > 0 ? (
@@ -717,8 +717,8 @@ export default function ContentPage() {
           {chips.map((chip) => (
             <span key={chip.id} className="oma-filter-chip">
               {chip.label}
-              <button
-                type="button"
+              <Button
+                type="default"
                 aria-label={`${t('demo.content.clearFilters')}: ${chip.label}`}
                 onClick={() => {
                   const next = clearContentChip(filters, chip.id);
@@ -729,12 +729,11 @@ export default function ContentPage() {
                 }}
               >
                 ×
-              </button>
+              </Button>
             </span>
           ))}
-          <button
-            type="button"
-            className="oma-btn oma-btn-secondary"
+          <Button
+            type="default"
             onClick={() => {
               setFilters(EMPTY_CONTENT_FILTERS);
               replaceParams((params) => {
@@ -743,7 +742,7 @@ export default function ContentPage() {
             }}
           >
             {t('demo.content.clearFilters')}
-          </button>
+          </Button>
         </div>
       ) : null}
 
@@ -760,9 +759,9 @@ export default function ContentPage() {
         <ErrorState
           title={error}
           action={
-            <button type="button" className="oma-btn oma-btn-secondary" onClick={() => void load()}>
+            <Button type="default" onClick={() => void load()}>
               {t('common.retry')}
-            </button>
+            </Button>
           }
         />
       ) : null}
@@ -771,13 +770,9 @@ export default function ContentPage() {
         <EmptyState
           title={t('demo.empty')}
           action={
-            <button
-              type="button"
-              className="oma-btn oma-btn-primary"
-              onClick={() => setCreateOpen(true)}
-            >
+            <Button type="primary" onClick={() => setCreateOpen(true)}>
               {t('demo.content.create')}
-            </button>
+            </Button>
           }
         />
       ) : null}
@@ -792,13 +787,12 @@ export default function ContentPage() {
               <p>{t('demo.content.savedEmpty')}</p>
             ) : (
               savedItems.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  className="oma-cal-item"
+                <Button
+                  type="default"
                   data-testid={`demo-saved-item-${item.id}`}
                   data-selected={selectedId === item.id ? 'true' : 'false'}
                   onClick={() => openItem(item)}
+                  className="oma-cal-item"
                 >
                   <ContentFace
                     variant="saved"
@@ -811,41 +805,32 @@ export default function ContentPage() {
                     locale={locale}
                     selected={selectedId === item.id}
                   />
-                </button>
+                </Button>
               ))
             )}
           </aside>
           <div className="oma-cal-toolbar">
             <strong>{monthLabel(cursor.year, cursor.monthIndex, locale)}</strong>
             <div className="oma-cal-nav">
-              <button
-                type="button"
-                className="oma-btn oma-btn-secondary"
-                onClick={() => shiftMonth(-1)}
-              >
+              <Button type="default" onClick={() => shiftMonth(-1)}>
                 {t('demo.content.prev')}
-              </button>
-              <button type="button" className="oma-btn oma-btn-secondary" onClick={goToday}>
+              </Button>
+              <Button type="default" onClick={goToday}>
                 {t('demo.content.today')}
-              </button>
-              <button
-                type="button"
-                className="oma-btn oma-btn-secondary"
-                onClick={() => shiftMonth(1)}
-              >
+              </Button>
+              <Button type="default" onClick={() => shiftMonth(1)}>
                 {t('demo.content.next')}
-              </button>
+              </Button>
               {selectedDay ? (
-                <button
-                  type="button"
-                  className="oma-btn oma-btn-secondary"
+                <Button
+                  type="default"
                   onClick={() => {
                     setCreateForm((f) => ({ ...f, plannedDate: selectedDay }));
                     setCreateOpen(true);
                   }}
                 >
                   {t('demo.content.createOnDate')}
-                </button>
+                </Button>
               ) : null}
             </div>
           </div>
@@ -856,14 +841,13 @@ export default function ContentPage() {
             aria-label={t('demo.view.calendar')}
           >
             {dateStripDays.map((key) => (
-              <button
-                key={key}
-                type="button"
+              <Button
+                type="default"
                 data-selected={key === selectedDay ? 'true' : 'false'}
                 onClick={() => setSelectedDay(key)}
               >
                 {key.slice(8)}
-              </button>
+              </Button>
             ))}
           </div>
 
@@ -889,10 +873,8 @@ export default function ContentPage() {
                 >
                   <span className="oma-cal-daynum oma-ltr">{cell.date.getUTCDate()}</span>
                   {visible.map((item) => (
-                    <button
-                      key={item.id}
-                      type="button"
-                      className="oma-cal-item"
+                    <Button
+                      type="default"
                       data-status={item.status}
                       data-testid={`demo-cal-item-${item.id}`}
                       data-selected={selectedId === item.id ? 'true' : 'false'}
@@ -900,6 +882,7 @@ export default function ContentPage() {
                         e.stopPropagation();
                         openItem(item);
                       }}
+                      className="oma-cal-item"
                     >
                       <ContentFace
                         variant="calendar"
@@ -912,21 +895,21 @@ export default function ContentPage() {
                         locale={locale}
                         selected={selectedId === item.id}
                       />
-                    </button>
+                    </Button>
                   ))}
                   {extra > 0 ? (
-                    <button
-                      type="button"
-                      className="oma-cal-more"
+                    <Button
+                      type="default"
                       data-testid="demo-day-overflow"
                       onClick={(e) => {
                         e.stopPropagation();
                         setSelectedDay(cell.key);
                         setOverflowDay(cell.key);
                       }}
+                      className="oma-cal-more"
                     >
                       +{extra} {t('demo.content.more')}
-                    </button>
+                    </Button>
                   ) : null}
                 </div>
               );
@@ -944,20 +927,19 @@ export default function ContentPage() {
                 ) : (
                   <div className="oma-stack" style={{ marginTop: 8, gap: 6 }}>
                     {day.items.map((item) => (
-                      <button
-                        key={item.id}
-                        type="button"
-                        className="oma-cal-item"
+                      <Button
+                        type="default"
                         data-status={item.status}
                         data-testid={`demo-cal-item-${item.id}`}
                         onClick={() => openItem(item)}
+                        className="oma-cal-item"
                       >
                         <img className="oma-cal-thumb" src={item.previewAsset} alt="" />
                         <span>
                           {pickCopy(item.title, locale)} · {item.channel} ·{' '}
                           {statusLabel(item.status, locale)}
                         </span>
-                      </button>
+                      </Button>
                     ))}
                   </div>
                 )}
@@ -970,13 +952,12 @@ export default function ContentPage() {
       {!loading && !unavailable && !error && filtered.length > 0 && view === 'feed' ? (
         <div className="oma-content-feed" data-testid="demo-content-feed">
           {filtered.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className="oma-content-feed-item"
+            <Button
+              type="default"
               data-testid={`demo-content-card-${item.id}`}
               data-selected={selectedId === item.id ? 'true' : 'false'}
               onClick={() => openItem(item)}
+              className="oma-content-feed-item"
             >
               <div
                 className="oma-content-feed-media"
@@ -1011,7 +992,7 @@ export default function ContentPage() {
                   {commentsForContent(tasks, deliverables, item.id).length}
                 </span>
               </div>
-            </button>
+            </Button>
           ))}
         </div>
       ) : null}
@@ -1020,34 +1001,32 @@ export default function ContentPage() {
         <div className="oma-content-list-stage3" data-testid="demo-content-list">
           <div className="oma-content-list-head">
             <span />
-            <button type="button" onClick={() => toggleSort('title')}>
+            <Button type="default" onClick={() => toggleSort('title')}>
               {t('demo.create.title')}
-            </button>
-            <button type="button" onClick={() => toggleSort('channel')}>
+            </Button>
+            <Button type="default" onClick={() => toggleSort('channel')}>
               {t('demo.filter.channel')}
-            </button>
-            <button type="button" onClick={() => toggleSort('campaign')}>
+            </Button>
+            <Button type="default" onClick={() => toggleSort('campaign')}>
               {t('demo.create.campaign')}
-            </button>
-            <button type="button" onClick={() => toggleSort('owner')}>
+            </Button>
+            <Button type="default" onClick={() => toggleSort('owner')}>
               {t('demo.create.owner')}
-            </button>
-            <button type="button" onClick={() => toggleSort('status')}>
+            </Button>
+            <Button type="default" onClick={() => toggleSort('status')}>
               {t('demo.filter.status')}
-            </button>
-            <button type="button" onClick={() => toggleSort('review')}>
+            </Button>
+            <Button type="default" onClick={() => toggleSort('review')}>
               {t('demo.content.filter.review')}
-            </button>
-            <button type="button" onClick={() => toggleSort('date')}>
+            </Button>
+            <Button type="default" onClick={() => toggleSort('date')}>
               {t('demo.create.plannedDate')}
-            </button>
+            </Button>
             <span />
           </div>
           {sorted.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className="oma-content-list-row"
+            <Button
+              type="default"
               data-testid={`demo-content-card-${item.id}`}
               data-selected={selectedId === item.id ? 'true' : 'false'}
               onClick={() => openItem(item)}
@@ -1057,6 +1036,7 @@ export default function ContentPage() {
                   openItem(item);
                 }
               }}
+              className="oma-content-list-row"
             >
               <img
                 className="oma-content-list-thumb"
@@ -1079,7 +1059,7 @@ export default function ContentPage() {
                 organicLabel={t('demo.organic')}
                 paidLabel={t('demo.paid')}
               />
-            </button>
+            </Button>
           ))}
         </div>
       ) : null}
@@ -1087,13 +1067,12 @@ export default function ContentPage() {
       {!loading && !unavailable && !error && filtered.length > 0 && view === 'grid' ? (
         <div className="oma-content-grid-stage3" data-testid="demo-content-grid">
           {filtered.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className="oma-content-card-stage3"
+            <Button
+              type="default"
               data-testid={`demo-content-card-${item.id}`}
               data-selected={selectedId === item.id ? 'true' : 'false'}
               onClick={() => openItem(item)}
+              className="oma-content-card-stage3"
             >
               <div className="oma-content-card-media">
                 <img
@@ -1112,7 +1091,7 @@ export default function ContentPage() {
                   {item.scheduledAt ? item.scheduledAt.slice(0, 10) : '—'}
                 </span>
               </div>
-            </button>
+            </Button>
           ))}
         </div>
       ) : null}
@@ -1369,13 +1348,9 @@ export default function ContentPage() {
                       </span>
                     </div>
                     <div>
-                      <button
-                        type="button"
-                        className="oma-btn oma-btn-secondary"
-                        onClick={() => setDetailTab('edit')}
-                      >
+                      <Button type="default" onClick={() => setDetailTab('edit')}>
                         {t('demo.content.edit')}
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -1441,19 +1416,18 @@ export default function ContentPage() {
         <div className="oma-stack">
           <p className="oma-ltr oma-muted">{overflowDay}</p>
           {overflowItems.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              className="oma-cal-item"
+            <Button
+              type="default"
               data-status={item.status}
               data-testid={`demo-cal-item-${item.id}`}
               onClick={() => openItem(item)}
+              className="oma-cal-item"
             >
               <img className="oma-cal-thumb" src={item.previewAsset} alt="" />
               <span>
                 {pickCopy(item.title, locale)} · {statusLabel(item.status, locale)}
               </span>
-            </button>
+            </Button>
           ))}
         </div>
       </Dialog>
@@ -1465,13 +1439,9 @@ export default function ContentPage() {
       >
         <div className="oma-composer-fields">{filterControls}</div>
         <div className="oma-dialog-footer">
-          <button
-            type="button"
-            className="oma-btn oma-btn-primary"
-            onClick={() => setFilterSheet(false)}
-          >
+          <Button type="primary" onClick={() => setFilterSheet(false)}>
             {t('demo.create.confirm')}
-          </button>
+          </Button>
         </div>
       </Dialog>
 
@@ -1604,16 +1574,12 @@ export default function ContentPage() {
       >
         <p>{t('demo.content.unsaved')}</p>
         <div className="oma-chip-row">
-          <button
-            type="button"
-            className="oma-btn oma-btn-secondary"
-            onClick={() => setUnsavedOpen(false)}
-          >
+          <Button type="default" onClick={() => setUnsavedOpen(false)}>
             {t('demo.create.cancel')}
-          </button>
-          <button type="button" className="oma-btn oma-btn-primary" onClick={closeDrawer}>
+          </Button>
+          <Button type="primary" onClick={closeDrawer}>
             OK
-          </button>
+          </Button>
         </div>
       </Dialog>
     </div>

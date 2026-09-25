@@ -1,4 +1,5 @@
 'use client';
+import { SelectField } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -84,8 +85,7 @@ export default function ProfileComparePage() {
       <form className="oma-card oma-filter-bar" onSubmit={(e) => e.preventDefault()}>
         <label className="oma-field">
           <span>{t('brand.compare.againstLabel')}</span>
-          <select
-            className="oma-input"
+          <SelectField
             value={against}
             data-testid="compare-against"
             onChange={(e) => setAgainst(e.target.value)}
@@ -96,7 +96,7 @@ export default function ProfileComparePage() {
                 {v.status} · {v.id.slice(-8)}
               </option>
             ))}
-          </select>
+          </SelectField>
         </label>
       </form>
 

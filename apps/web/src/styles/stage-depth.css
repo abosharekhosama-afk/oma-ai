@@ -73,27 +73,6 @@
   overflow: auto;
 }
 
-.oma-doc-outline a,
-.oma-doc-outline button {
-  all: unset;
-  cursor: pointer;
-  display: block;
-  padding: 6px 8px;
-  border-radius: var(--radius-sm);
-  font-size: var(--text-meta);
-  line-height: var(--leading-meta);
-  color: var(--oma-muted);
-}
-
-.oma-doc-outline a:hover,
-.oma-doc-outline button:hover,
-.oma-doc-outline a[aria-current='true'],
-.oma-doc-outline button[aria-current='true'] {
-  color: var(--oma-ink);
-  background: color-mix(in srgb, var(--oma-primary) 10%, var(--oma-surface));
-  font-weight: var(--weight-medium);
-}
-
 .oma-doc-main {
   display: grid;
   gap: var(--space-4);
@@ -165,11 +144,6 @@
     overflow-x: auto;
     max-height: none;
     gap: var(--space-1);
-  }
-
-  .oma-doc-outline a,
-  .oma-doc-outline button {
-    white-space: nowrap;
   }
 }
 
@@ -407,14 +381,6 @@ html[dir='rtl'] .oma-req-table tbody tr[data-priority='high'] {
     overflow-x: auto;
     gap: var(--space-1);
   }
-}
-
-/* Shared view transition hint */
-.oma-view-toggle button[aria-pressed='true'] {
-  border-color: var(--oma-primary);
-  background: color-mix(in srgb, var(--oma-primary) 10%, var(--oma-surface));
-  color: var(--oma-ink);
-  font-weight: var(--weight-semibold);
 }
 
 /* Command Center — journey + checklist + honesty (owner clarity rebuild) */

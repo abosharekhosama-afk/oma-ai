@@ -1,4 +1,5 @@
 'use client';
+import { Button, SelectField } from '@oma/ui/controls';
 
 import {
   DndContext,
@@ -154,9 +155,8 @@ function SortableTaskCard({
         <span className="oma-kanban-drag-affordance" aria-hidden>
           ⋮⋮
         </span>
-        <button
-          type="button"
-          className="oma-kanban-card-open"
+        <Button
+          type="default"
           data-testid={`demo-task-open-${task.id}`}
           aria-label={`${t('demo.tasks.detail')}: ${pickCopy(task.title, locale)}`}
           onPointerDown={(e) => {
@@ -167,15 +167,15 @@ function SortableTaskCard({
             e.stopPropagation();
             onOpen();
           }}
+          className="oma-kanban-card-open"
         >
           {t('demo.tasks.open')}
-        </button>
+        </Button>
       </div>
       <KanbanCardBody task={task} />
       <label className="oma-kanban-a11y-move" onPointerDown={(e) => e.stopPropagation()}>
         <span className="oma-sr-only">{t('demo.tasks.move')}</span>
-        <select
-          className="oma-select oma-select--compact"
+        <SelectField
           value={task.status === 'OVERDUE' ? 'IN_PROGRESS' : task.status}
           aria-label={`${t('demo.tasks.move')} ${pickCopy(task.title, locale)}`}
           data-testid={`demo-task-move-${task.id}`}
@@ -186,7 +186,7 @@ function SortableTaskCard({
               {s}
             </option>
           ))}
-        </select>
+        </SelectField>
       </label>
     </article>
   );

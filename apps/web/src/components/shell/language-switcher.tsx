@@ -1,4 +1,5 @@
 'use client';
+import { SelectField } from '@oma/ui/controls';
 
 import { useRouter } from 'next/navigation';
 import { useLocale, useT } from '../../lib/use-locale';
@@ -16,8 +17,7 @@ export function LanguageSwitcher() {
   return (
     <label className="oma-field-inline">
       <span className="oma-field-inline-label">{t('shell.language')}</span>
-      <select
-        className="oma-select"
+      <SelectField
         aria-label={t('shell.language')}
         value={current}
         onChange={(e) => {
@@ -31,7 +31,7 @@ export function LanguageSwitcher() {
             {l.label}
           </option>
         ))}
-      </select>
+      </SelectField>
     </label>
   );
 }

@@ -1,4 +1,5 @@
 'use client';
+import { Button } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -129,15 +130,15 @@ export function ShellChrome({ children }: { children: ReactNode }) {
               </span>
               <span className="oma-rail-name">{t('app.name')}</span>
             </div>
-            <button
-              type="button"
-              className="oma-icon-btn oma-rail-collapse"
+            <Button
+              type="text"
               aria-label={collapsed ? t('shell.expandNav') : t('shell.collapseNav')}
               aria-pressed={collapsed}
               onClick={toggleCollapsed}
+              className="oma-rail-collapse"
             >
               <ShellIcon name="collapse" />
-            </button>
+            </Button>
           </div>
           <p className="oma-rail-endorsement">{t('app.endorsement')}</p>
           <div className="oma-rail-workspace">
@@ -154,14 +155,14 @@ export function ShellChrome({ children }: { children: ReactNode }) {
         <div className="oma-shell-column">
           <header className="oma-top">
             <div className="oma-top-start">
-              <button
-                type="button"
-                className="oma-icon-btn oma-mobile-nav-trigger"
+              <Button
+                type="text"
                 aria-label={t('shell.openNav')}
                 onClick={() => setMobileOpen(true)}
+                className="oma-mobile-nav-trigger"
               >
                 <ShellIcon name="menu" />
-              </button>
+              </Button>
               <div className="oma-top-context">
                 <BrandContext />
                 <ShellBreadcrumb />
@@ -185,14 +186,13 @@ export function ShellChrome({ children }: { children: ReactNode }) {
         <Drawer open={mobileOpen} onClose={() => setMobileOpen(false)} label={t('nav.primary')} nav>
           <div className="oma-mobile-drawer-header">
             <span className="oma-rail-name">{t('app.name')}</span>
-            <button
-              type="button"
-              className="oma-icon-btn"
+            <Button
+              type="text"
               aria-label={t('shell.closeNav')}
               onClick={() => setMobileOpen(false)}
             >
               ×
-            </button>
+            </Button>
           </div>
           <div className="oma-rail-workspace">
             <TenantSwitcher />

@@ -1,4 +1,5 @@
 'use client';
+import { Button, DateField, Input, SelectField, TextArea } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -196,8 +197,7 @@ export default function CampaignsPage() {
     <>
       <label className="oma-stage3-search">
         {t('demo.campaigns.search')}
-        <input
-          className="oma-input"
+        <Input
           value={filters.query}
           onChange={(e) => setFilters((f) => ({ ...f, query: e.target.value }))}
           data-testid="demo-campaign-search"
@@ -205,8 +205,7 @@ export default function CampaignsPage() {
       </label>
       <label className="oma-filter-desktop">
         {t('demo.campaigns.filter.brand')}
-        <select
-          className="oma-select"
+        <SelectField
           value={filters.brandId}
           onChange={(e) => setFilters((f) => ({ ...f, brandId: e.target.value }))}
           data-testid="demo-campaign-filter-brand"
@@ -217,12 +216,11 @@ export default function CampaignsPage() {
               {pickCopy(b.name, locale)}
             </option>
           ))}
-        </select>
+        </SelectField>
       </label>
       <label className="oma-filter-desktop">
         {t('demo.filter.status')}
-        <select
-          className="oma-select"
+        <SelectField
           value={filters.status}
           onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
           data-testid="demo-campaign-filter-status"
@@ -233,12 +231,11 @@ export default function CampaignsPage() {
               {statusLabel(s, locale)}
             </option>
           ))}
-        </select>
+        </SelectField>
       </label>
       <label className="oma-filter-desktop">
         {t('demo.filter.track')}
-        <select
-          className="oma-select"
+        <SelectField
           value={filters.track}
           onChange={(e) => setFilters((f) => ({ ...f, track: e.target.value }))}
           data-testid="demo-campaign-filter-track"
@@ -246,12 +243,11 @@ export default function CampaignsPage() {
           <option value="all">{t('demo.filter.all')}</option>
           <option value="ORGANIC">{t('demo.organic')}</option>
           <option value="PAID">{t('demo.paid')}</option>
-        </select>
+        </SelectField>
       </label>
       <label className="oma-filter-desktop">
         {t('demo.campaigns.filter.strategy')}
-        <select
-          className="oma-select"
+        <SelectField
           value={filters.strategyId}
           onChange={(e) => setFilters((f) => ({ ...f, strategyId: e.target.value }))}
         >
@@ -261,12 +257,11 @@ export default function CampaignsPage() {
               {pickCopy(s.name, locale)}
             </option>
           ))}
-        </select>
+        </SelectField>
       </label>
       <label className="oma-filter-desktop">
         {t('demo.campaigns.filter.owner')}
-        <select
-          className="oma-select"
+        <SelectField
           value={filters.owner}
           onChange={(e) => setFilters((f) => ({ ...f, owner: e.target.value }))}
         >
@@ -276,22 +271,18 @@ export default function CampaignsPage() {
               {o}
             </option>
           ))}
-        </select>
+        </SelectField>
       </label>
       <label className="oma-filter-desktop">
         {t('demo.campaigns.filter.from')}
-        <input
-          type="date"
-          className="oma-input"
+        <DateField
           value={filters.startFrom}
           onChange={(e) => setFilters((f) => ({ ...f, startFrom: e.target.value }))}
         />
       </label>
       <label className="oma-filter-desktop">
         {t('demo.campaigns.filter.to')}
-        <input
-          type="date"
-          className="oma-input"
+        <DateField
           value={filters.endTo}
           onChange={(e) => setFilters((f) => ({ ...f, endTo: e.target.value }))}
         />
@@ -307,31 +298,30 @@ export default function CampaignsPage() {
         actions={
           <div className="oma-chip-row">
             <div className="oma-view-switch" role="group" aria-label={t('demo.campaigns.layouts')}>
-              <button
-                type="button"
+              <Button
+                type={layout === 'portfolio' ? 'primary' : 'default'}
                 aria-pressed={layout === 'portfolio'}
                 data-testid="demo-campaigns-view-portfolio"
                 onClick={() => setLayoutPref('portfolio')}
               >
                 {t('demo.campaigns.portfolio')}
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                type={layout === 'list' ? 'primary' : 'default'}
                 aria-pressed={layout === 'list'}
                 data-testid="demo-campaigns-view-table"
                 onClick={() => setLayoutPref('list')}
               >
                 {t('demo.campaigns.table')}
-              </button>
+              </Button>
             </div>
-            <button
-              type="button"
-              className="oma-btn oma-btn-primary"
+            <Button
+              type="primary"
               data-testid="demo-create-campaign"
               onClick={() => setCreateOpen(true)}
             >
               {t('demo.campaigns.create')}
-            </button>
+            </Button>
           </div>
         }
         meta={
@@ -344,13 +334,13 @@ export default function CampaignsPage() {
 
       <div className="oma-stage3-toolbar" data-testid="demo-campaign-filters">
         {filterFields}
-        <button
-          type="button"
-          className="oma-btn oma-btn-secondary oma-filter-sheet-trigger"
+        <Button
+          type="default"
           onClick={() => setFilterSheet(true)}
+          className="oma-filter-sheet-trigger"
         >
           {t('demo.campaigns.openFilters')}
-        </button>
+        </Button>
       </div>
 
       {filterCount > 0 ? (
@@ -358,22 +348,18 @@ export default function CampaignsPage() {
           {chips.map((chip) => (
             <span key={chip.id} className="oma-filter-chip">
               {chip.label}
-              <button
-                type="button"
+              <Button
+                type="default"
                 aria-label={`${t('demo.campaigns.clearFilters')}: ${chip.label}`}
                 onClick={() => setFilters((f) => clearCampaignChip(f, chip.id))}
               >
                 ×
-              </button>
+              </Button>
             </span>
           ))}
-          <button
-            type="button"
-            className="oma-btn oma-btn-secondary"
-            onClick={() => setFilters(EMPTY_CAMPAIGN_FILTERS)}
-          >
+          <Button type="default" onClick={() => setFilters(EMPTY_CAMPAIGN_FILTERS)}>
             {t('demo.campaigns.clearFilters')}
-          </button>
+          </Button>
         </div>
       ) : null}
 
@@ -390,9 +376,9 @@ export default function CampaignsPage() {
         <ErrorState
           title={error}
           action={
-            <button type="button" className="oma-btn oma-btn-secondary" onClick={() => void load()}>
+            <Button type="default" onClick={() => void load()}>
               {t('common.retry')}
-            </button>
+            </Button>
           }
         />
       ) : null}
@@ -401,21 +387,13 @@ export default function CampaignsPage() {
           title={rows.length === 0 ? t('demo.empty') : t('demo.campaigns.emptyFiltered')}
           action={
             rows.length === 0 ? (
-              <button
-                type="button"
-                className="oma-btn oma-btn-primary"
-                onClick={() => setCreateOpen(true)}
-              >
+              <Button type="primary" onClick={() => setCreateOpen(true)}>
                 {t('demo.campaigns.create')}
-              </button>
+              </Button>
             ) : (
-              <button
-                type="button"
-                className="oma-btn oma-btn-secondary"
-                onClick={() => setFilters(EMPTY_CAMPAIGN_FILTERS)}
-              >
+              <Button type="default" onClick={() => setFilters(EMPTY_CAMPAIGN_FILTERS)}>
                 {t('demo.campaigns.clearFilters')}
-              </button>
+              </Button>
             )
           }
         />
@@ -572,13 +550,9 @@ export default function CampaignsPage() {
       >
         <div className="oma-composer-fields">{filterFields}</div>
         <div className="oma-dialog-footer">
-          <button
-            type="button"
-            className="oma-btn oma-btn-primary"
-            onClick={() => setFilterSheet(false)}
-          >
+          <Button type="primary" onClick={() => setFilterSheet(false)}>
             {t('demo.create.confirm')}
-          </button>
+          </Button>
         </div>
       </Dialog>
 
@@ -591,8 +565,7 @@ export default function CampaignsPage() {
           <div className="oma-composer-group">
             <label>
               {t('demo.create.name')}
-              <input
-                className="oma-input"
+              <Input
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                 data-testid="demo-create-campaign-name"
@@ -600,8 +573,7 @@ export default function CampaignsPage() {
             </label>
             <label>
               {t('demo.create.brand')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={form.brandId}
                 onChange={(e) => {
                   const brandId = e.target.value;
@@ -617,12 +589,11 @@ export default function CampaignsPage() {
                     {pickCopy(b.name, locale)}
                   </option>
                 ))}
-              </select>
+              </SelectField>
             </label>
             <label>
               {t('demo.create.strategy')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={form.strategyId}
                 onChange={(e) => setForm((f) => ({ ...f, strategyId: e.target.value }))}
               >
@@ -631,25 +602,23 @@ export default function CampaignsPage() {
                     {pickCopy(s.name, locale)}
                   </option>
                 ))}
-              </select>
+              </SelectField>
             </label>
           </div>
           <div className="oma-composer-group">
             <label>
               {t('demo.create.track')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={form.track}
                 onChange={(e) => setForm((f) => ({ ...f, track: e.target.value }))}
               >
                 <option value="ORGANIC">{t('demo.organic')}</option>
                 <option value="PAID">{t('demo.paid')}</option>
-              </select>
+              </SelectField>
             </label>
             <label>
               {t('demo.create.objective')}
-              <textarea
-                className="oma-input"
+              <TextArea
                 rows={2}
                 value={form.goal}
                 onChange={(e) => setForm((f) => ({ ...f, goal: e.target.value }))}
@@ -657,8 +626,7 @@ export default function CampaignsPage() {
             </label>
             <label>
               {t('demo.create.owner')}
-              <input
-                className="oma-input"
+              <Input
                 value={form.owner}
                 onChange={(e) => setForm((f) => ({ ...f, owner: e.target.value }))}
               />
@@ -667,34 +635,28 @@ export default function CampaignsPage() {
           <div className="oma-composer-group">
             <label>
               {t('demo.create.start')}
-              <input
-                type="date"
-                className="oma-input"
+              <DateField
                 value={form.start}
                 onChange={(e) => setForm((f) => ({ ...f, start: e.target.value }))}
               />
             </label>
             <label>
               {t('demo.create.end')}
-              <input
-                type="date"
-                className="oma-input"
+              <DateField
                 value={form.end}
                 onChange={(e) => setForm((f) => ({ ...f, end: e.target.value }))}
               />
             </label>
             <label>
               {t('demo.create.channels')}
-              <input
-                className="oma-input"
+              <Input
                 value={form.channels}
                 onChange={(e) => setForm((f) => ({ ...f, channels: e.target.value }))}
               />
             </label>
             <label>
               {t('demo.create.status')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={form.status}
                 onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
               >
@@ -703,7 +665,7 @@ export default function CampaignsPage() {
                     {statusLabel(s, locale)}
                   </option>
                 ))}
-              </select>
+              </SelectField>
             </label>
           </div>
           {createError ? (
@@ -712,23 +674,17 @@ export default function CampaignsPage() {
             </p>
           ) : null}
           <div className="oma-dialog-footer">
-            <button
-              type="button"
-              className="oma-btn oma-btn-secondary"
-              disabled={creating}
-              onClick={() => setCreateOpen(false)}
-            >
+            <Button type="default" disabled={creating} onClick={() => setCreateOpen(false)}>
               {t('demo.create.cancel')}
-            </button>
-            <button
-              type="button"
-              className="oma-btn oma-btn-primary"
+            </Button>
+            <Button
+              type="primary"
               disabled={creating}
               data-testid="demo-create-campaign-submit"
               onClick={() => void submitCreate()}
             >
               {creating ? t('demo.create.creating') : t('demo.create.confirm')}
-            </button>
+            </Button>
           </div>
         </div>
       </Dialog>

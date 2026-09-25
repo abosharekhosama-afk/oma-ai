@@ -1,4 +1,5 @@
 'use client';
+import { Button } from '@oma/ui/controls';
 
 export function SubmitEligibility({
   missingProfile,
@@ -12,15 +13,14 @@ export function SubmitEligibility({
   label?: string;
 }) {
   return (
-    <button
-      type="button"
-      className="oma-btn"
+    <Button
+      type="primary"
       disabled={disabled || missingProfile}
       data-testid="strategy-submit"
       aria-disabled={disabled || missingProfile}
       onClick={onClick}
     >
       {label}
-    </button>
+    </Button>
   );
 }

@@ -1,4 +1,5 @@
 'use client';
+import { Button, CheckboxField, Input } from '@oma/ui/controls';
 
 import { FormEvent, useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -89,23 +90,20 @@ export default function ConnectWebsitePage() {
         <p className="oma-muted">{t('brand.connect.hint')}</p>
         <form onSubmit={onSubmit}>
           <label htmlFor="website-url">{t('brand.connect.urlLabel')}</label>
-          <input
+          <Input
             id="website-url"
-            type="url"
-            className="oma-input"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="https://example.com"
             required
             autoFocus
+            type="url"
           />
           <label htmlFor="attestation" className="oma-checkbox-label">
-            <input
+            <CheckboxField
               id="attestation"
-              type="checkbox"
               checked={attested}
               onChange={(e) => setAttested(e.target.checked)}
-              required
             />{' '}
             {t('brand.connect.attestation')}
           </label>
@@ -115,9 +113,9 @@ export default function ConnectWebsitePage() {
             </p>
           ) : null}
           <div className="oma-form-actions">
-            <button className="oma-btn" type="submit" disabled={busy || !attested || !url.trim()}>
+            <Button type="primary" disabled={busy || !attested || !url.trim()} htmlType="submit">
               {t('brand.connect.submit')}
-            </button>
+            </Button>
             <Link href={`/app/brands/${brandId}`}>{t('common.cancel')}</Link>
           </div>
         </form>

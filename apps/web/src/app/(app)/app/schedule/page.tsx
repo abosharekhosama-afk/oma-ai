@@ -1,4 +1,5 @@
 'use client';
+import { Button, DateField, Input, SelectField } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -202,44 +203,39 @@ export default function SchedulePage() {
         <>
           <div className="oma-stage5-tabs" role="tablist" data-testid="demo-schedule-views">
             {(['calendar', 'agenda', 'queue'] as ScheduleView[]).map((v) => (
-              <button
-                key={v}
-                type="button"
-                className="oma-btn oma-btn-secondary"
+              <Button
+                type={view === v ? 'primary' : 'default'}
                 aria-pressed={view === v}
                 data-testid={`demo-schedule-view-${v}`}
                 onClick={() => setView(v)}
               >
                 {t(`demo.schedule.view.${v}`)}
-              </button>
+              </Button>
             ))}
           </div>
 
           <div className="oma-chip-row">
-            <button
-              type="button"
-              className="oma-btn oma-btn-secondary"
+            <Button
+              type="default"
               data-testid="demo-schedule-prev"
               onClick={() => setAnchor((a) => shiftWeek(a, -1))}
             >
               {t('demo.schedule.prev')}
-            </button>
-            <button
-              type="button"
-              className="oma-btn oma-btn-secondary"
+            </Button>
+            <Button
+              type="default"
               data-testid="demo-schedule-today"
               onClick={() => setAnchor('2026-09-11')}
             >
               {t('demo.schedule.today')}
-            </button>
-            <button
-              type="button"
-              className="oma-btn oma-btn-secondary"
+            </Button>
+            <Button
+              type="default"
               data-testid="demo-schedule-next"
               onClick={() => setAnchor((a) => shiftWeek(a, 1))}
             >
               {t('demo.schedule.next')}
-            </button>
+            </Button>
             <span className="oma-muted" data-testid="demo-schedule-range">
               {days[0]} → {days[6]}
             </span>
@@ -248,8 +244,7 @@ export default function SchedulePage() {
           <div className="oma-stage5-toolbar" data-testid="demo-schedule-filters">
             <label className="oma-stage5-search">
               {t('demo.schedule.search')}
-              <input
-                className="oma-input"
+              <Input
                 value={filters.q}
                 data-testid="demo-schedule-search"
                 onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
@@ -257,8 +252,7 @@ export default function SchedulePage() {
             </label>
             <label>
               {t('demo.schedule.filter.channel')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.channel}
                 data-testid="demo-schedule-filter-channel"
                 onChange={(e) => setFilters((f) => ({ ...f, channel: e.target.value }))}
@@ -269,12 +263,11 @@ export default function SchedulePage() {
                     {c}
                   </option>
                 ))}
-              </select>
+              </SelectField>
             </label>
             <label>
               {t('demo.schedule.filter.readiness')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.readiness}
                 data-testid="demo-schedule-filter-readiness"
                 onChange={(e) =>
@@ -288,12 +281,11 @@ export default function SchedulePage() {
                 <option value="ready">{t('demo.schedule.ready')}</option>
                 <option value="blocked">{t('demo.schedule.blocked')}</option>
                 <option value="integration">{t('demo.schedule.integrationBlock')}</option>
-              </select>
+              </SelectField>
             </label>
             <label>
               {t('demo.schedule.filter.campaign')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.campaignId}
                 onChange={(e) => setFilters((f) => ({ ...f, campaignId: e.target.value }))}
               >
@@ -303,12 +295,11 @@ export default function SchedulePage() {
                     {pickCopy(c.name, locale)}
                   </option>
                 ))}
-              </select>
+              </SelectField>
             </label>
             <label>
               {t('demo.schedule.filter.owner')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.owner}
                 onChange={(e) => setFilters((f) => ({ ...f, owner: e.target.value }))}
               >
@@ -318,17 +309,16 @@ export default function SchedulePage() {
                     {o}
                   </option>
                 ))}
-              </select>
+              </SelectField>
             </label>
             {filterCount > 0 ? (
-              <button
-                type="button"
-                className="oma-btn oma-btn-secondary"
+              <Button
+                type="default"
                 data-testid="demo-schedule-clear"
                 onClick={() => setFilters(EMPTY_SCHEDULE_FILTERS)}
               >
                 {t('demo.requests.clearFilters')} ({filterCount})
-              </button>
+              </Button>
             ) : null}
           </div>
 
@@ -358,13 +348,12 @@ export default function SchedulePage() {
                 >
                   <div className="oma-sched-day-label">{day}</div>
                   {(byDay.get(day) ?? []).map((post) => (
-                    <button
-                      key={post.id}
-                      type="button"
-                      className="oma-sched-pill"
+                    <Button
+                      type="default"
                       data-state={post.state}
                       data-testid={`demo-sched-item-${post.id}`}
                       onClick={() => openItem(post.id)}
+                      className="oma-sched-pill"
                     >
                       <strong>{pickCopy(post.title, locale)}</strong>
                       <span>{post.channels.join(', ') || '—'}</span>
@@ -375,7 +364,7 @@ export default function SchedulePage() {
                       <span data-testid={`demo-sched-bucket-${post.id}`}>
                         {t(`demo.schedule.bucket.${bucketForScheduleRow(post)}`)}
                       </span>
-                    </button>
+                    </Button>
                   ))}
                 </div>
               ))}
@@ -445,13 +434,9 @@ export default function SchedulePage() {
                         : ''}
                     </p>
                     <div className="oma-chip-row">
-                      <button
-                        type="button"
-                        className="oma-btn oma-btn-secondary"
-                        onClick={() => openItem(post.id)}
-                      >
+                      <Button type="default" onClick={() => openItem(post.id)}>
                         {t('demo.schedule.open')}
-                      </button>
+                      </Button>
                       {post.contentId ? (
                         <Link
                           href={`/app/content?item=${post.contentId}`}
@@ -478,12 +463,7 @@ export default function SchedulePage() {
                   scheduleDayKey(p.plannedAt) <= days[6]!,
               )
               .map((post) => (
-                <button
-                  key={`m-${post.id}`}
-                  type="button"
-                  className="oma-sched-card"
-                  onClick={() => openItem(post.id)}
-                >
+                <Button type="default" onClick={() => openItem(post.id)} className="oma-sched-card">
                   <strong>{pickCopy(post.title, locale)}</strong>
                   <span className="oma-muted">{post.plannedAt}</span>
                   <StatusMark
@@ -491,7 +471,7 @@ export default function SchedulePage() {
                     locale={locale}
                   />
                   <span>{t(`demo.schedule.bucket.${bucketForScheduleRow(post)}`)}</span>
-                </button>
+                </Button>
               ))}
           </div>
         </>
@@ -551,25 +531,23 @@ export default function SchedulePage() {
               </p>
             ) : null}
             <div className="oma-chip-row">
-              <button
-                type="button"
-                className="oma-btn oma-btn-primary"
+              <Button
+                type="primary"
                 data-testid="demo-schedule-command"
                 disabled={saving || scheduleBlocked}
                 title={scheduleBlocked ? t('demo.content.scheduleBlocked') : undefined}
                 onClick={() => void setScheduleState('SCHEDULED_PREVIEW')}
               >
                 {t('demo.content.schedule')}
-              </button>
-              <button
-                type="button"
-                className="oma-btn oma-btn-secondary"
+              </Button>
+              <Button
+                type="default"
                 data-testid="demo-schedule-unschedule"
                 disabled={saving}
                 onClick={() => void setScheduleState('PLANNED')}
               >
                 {t('demo.content.unschedule')}
-              </button>
+              </Button>
             </div>
             <p className="oma-muted">
               {selected.plannedAt} · {selected.timezone}
@@ -594,23 +572,21 @@ export default function SchedulePage() {
               {t('demo.schedule.publishBlocked')}
             </p>
             <div className="oma-chip-row">
-              <button
-                type="button"
-                className="oma-btn"
+              <Button
+                type="primary"
                 data-testid="demo-schedule-reschedule"
                 onClick={() => setRescheduleOpen(true)}
               >
                 {t('demo.schedule.reschedule')}
-              </button>
-              <button
-                type="button"
-                className="oma-btn oma-btn-secondary"
+              </Button>
+              <Button
+                type="default"
                 data-testid="demo-schedule-remove"
                 disabled={saving}
                 onClick={() => void removeSelected()}
               >
                 {t('demo.schedule.remove')}
-              </button>
+              </Button>
               {selected.contentId ? (
                 <Link
                   href={`/app/content?item=${selected.contentId}`}
@@ -651,18 +627,16 @@ export default function SchedulePage() {
         <div className="oma-stack" data-testid="demo-schedule-reschedule-dialog">
           <label>
             {t('demo.schedule.plannedAt')}
-            <input
-              className="oma-input"
-              type="datetime-local"
+            <DateField
               value={plannedAtDraft.includes('T') ? plannedAtDraft.slice(0, 16) : plannedAtDraft}
               data-testid="demo-schedule-planned-at"
               onChange={(e) => setPlannedAtDraft(e.target.value)}
+              showTime
             />
           </label>
           <label>
             {t('demo.schedule.filter.channel')}
-            <input
-              className="oma-input"
+            <Input
               value={channelDraft}
               data-testid="demo-schedule-channels"
               onChange={(e) => setChannelDraft(e.target.value)}
@@ -671,22 +645,17 @@ export default function SchedulePage() {
           </label>
           <p className="oma-muted">{t('demo.schedule.publishBlocked')}</p>
           <div className="oma-chip-row">
-            <button
-              type="button"
-              className="oma-btn oma-btn-secondary"
-              onClick={() => setRescheduleOpen(false)}
-            >
+            <Button type="default" onClick={() => setRescheduleOpen(false)}>
               {t('demo.create.cancel')}
-            </button>
-            <button
-              type="button"
-              className="oma-btn"
+            </Button>
+            <Button
+              type="primary"
               data-testid="demo-schedule-save"
               disabled={saving}
               onClick={() => void saveReschedule()}
             >
               {t('demo.schedule.save')}
-            </button>
+            </Button>
           </div>
         </div>
       </Dialog>

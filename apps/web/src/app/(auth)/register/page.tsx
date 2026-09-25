@@ -1,4 +1,5 @@
 'use client';
+import { Button, Input, PasswordInput } from '@oma/ui/controls';
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -46,47 +47,42 @@ export default function RegisterPage() {
       <h1>{t('auth.register')}</h1>
       <form className="oma-card" onSubmit={onSubmit}>
         <label htmlFor="name">{t('auth.name')}</label>
-        <input
+        <Input
           id="name"
           name="name"
-          className="oma-input"
           value={name}
           onChange={(e) => setName(e.target.value)}
           autoComplete="name"
           required
         />
         <label htmlFor="email">{t('auth.email')}</label>
-        <input
+        <Input
           id="email"
           name="email"
-          type="email"
           inputMode="email"
-          className="oma-input"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           autoComplete="email"
           required
+          type="email"
         />
         <label htmlFor="password">{t('auth.password')}</label>
-        <input
+        <PasswordInput
           id="password"
           name="password"
-          type="password"
-          className="oma-input"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           autoComplete="new-password"
           required
-          minLength={12}
         />
         {error ? (
           <p role="alert" style={{ color: 'var(--status-danger)' }}>
             {error}
           </p>
         ) : null}
-        <button className="oma-btn" type="submit" disabled={busy}>
+        <Button type="primary" disabled={busy} htmlType="submit">
           {t('auth.register')}
-        </button>
+        </Button>
       </form>
       <p className="oma-muted">
         {t('auth.haveAccount')} <Link href="/login">{t('auth.login')}</Link>

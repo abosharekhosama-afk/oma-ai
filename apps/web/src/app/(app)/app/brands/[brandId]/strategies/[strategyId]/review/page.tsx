@@ -1,4 +1,5 @@
 'use client';
+import { Button, CheckboxField, TextArea } from '@oma/ui/controls';
 
 import { useParams } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useState } from 'react';
@@ -101,8 +102,7 @@ export default function StrategyReviewPage() {
         </div>
       ) : null}
       <label className="oma-panel">
-        <input
-          type="checkbox"
+        <CheckboxField
           checked={unknowns}
           onChange={(e) => setUnknowns(e.target.checked)}
           data-testid="strategy-unknowns"
@@ -124,9 +124,8 @@ export default function StrategyReviewPage() {
         ) : null}
         {version.status === 'IN_REVIEW' ? (
           <>
-            <button
-              type="button"
-              className="oma-btn"
+            <Button
+              type="primary"
               data-testid="strategy-approve"
               onClick={() =>
                 void post(`${base}/approve`, {
@@ -137,10 +136,9 @@ export default function StrategyReviewPage() {
               }
             >
               {t('strategy.review.approve')}
-            </button>
-            <button
-              type="button"
-              className="oma-btn oma-btn-secondary"
+            </Button>
+            <Button
+              type="default"
               onClick={() =>
                 void post(`${base}/request-changes`, {
                   row_version: version.row_version,
@@ -149,10 +147,9 @@ export default function StrategyReviewPage() {
               }
             >
               {t('strategy.review.requestChanges')}
-            </button>
-            <button
-              type="button"
-              className="oma-btn oma-btn-secondary"
+            </Button>
+            <Button
+              type="default"
               onClick={() =>
                 void post(`${base}/reject`, {
                   row_version: version.row_version,
@@ -161,18 +158,17 @@ export default function StrategyReviewPage() {
               }
             >
               {t('strategy.review.reject')}
-            </button>
+            </Button>
           </>
         ) : null}
         {['APPROVED', 'CHANGES_REQUESTED', 'REJECTED'].includes(version.status) ? (
-          <button
-            type="button"
-            className="oma-btn"
+          <Button
+            type="primary"
             data-testid="strategy-revise"
             onClick={() => void post(`${base}/revise`, {})}
           >
             Revise
-          </button>
+          </Button>
         ) : null}
       </div>
       {error ? (
@@ -183,16 +179,16 @@ export default function StrategyReviewPage() {
       <form className="oma-panel" onSubmit={onComment}>
         <label>
           {t('strategy.review.comment')}
-          <textarea
+          <TextArea
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             data-testid="strategy-comment"
             rows={3}
           />
         </label>
-        <button type="submit" className="oma-btn">
+        <Button type="primary" htmlType="submit">
           {t('strategy.review.comment')}
-        </button>
+        </Button>
       </form>
       <ul className="oma-discovery-list">
         {version.comments.map((c) => (

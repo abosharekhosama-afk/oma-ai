@@ -1,4 +1,5 @@
 'use client';
+import { Button } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -177,13 +178,9 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
           onClear={() => void setCurrent(null)}
         />
         {strategy.status === 'ACTIVE' ? (
-          <button
-            type="button"
-            className="oma-btn oma-btn-secondary"
-            onClick={() => void archive()}
-          >
+          <Button type="default" onClick={() => void archive()}>
             {t('strategy.overview.archive')}
-          </button>
+          </Button>
         ) : null}
         <Link href={`/app/brands/${brandId}/strategies/${strategyId}/review`} className="oma-btn">
           {t('strategy.nav.review')}

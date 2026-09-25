@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { DemoGraph, DemoTaskStatus } from '@oma/demo';
-import { Button, Checkbox, DatePicker, Input, OmaSelect } from '@oma/ui/controls';
+import { Button, Checkbox, DatePicker, Input, OmaSelect, SelectField } from '@oma/ui/controls';
 import dayjs from 'dayjs';
 import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
 import { Dialog } from '../../../../components/ui/dialog';
@@ -318,33 +318,30 @@ export default function TasksPage() {
         actions={
           <div className="oma-chip-row">
             <div className="oma-view-toggle" role="group" aria-label={t('demo.tasks.views')}>
-              <button
-                type="button"
-                className="oma-btn oma-btn-secondary"
+              <Button
+                type={view === 'board' ? 'primary' : 'default'}
                 aria-pressed={view === 'board'}
                 data-testid="demo-tasks-view-board"
                 onClick={() => void changeView('board')}
               >
                 {t('demo.view.kanban')}
-              </button>
-              <button
-                type="button"
-                className="oma-btn oma-btn-secondary"
+              </Button>
+              <Button
+                type={view === 'list' ? 'primary' : 'default'}
                 aria-pressed={view === 'list'}
                 data-testid="demo-tasks-view-list"
                 onClick={() => void changeView('list')}
               >
                 {t('demo.view.list')}
-              </button>
+              </Button>
             </div>
-            <button
-              type="button"
-              className="oma-btn oma-btn-primary"
+            <Button
+              type="primary"
               data-testid="demo-create-task"
               onClick={() => setCreateOpen(true)}
             >
               {t('demo.tasks.create')}
-            </button>
+            </Button>
           </div>
         }
       />
@@ -386,8 +383,7 @@ export default function TasksPage() {
           <div className="oma-stage4-toolbar" data-testid="demo-task-filters">
             <label className="oma-stage4-search">
               {t('demo.tasks.search')}
-              <input
-                className="oma-input"
+              <Input
                 value={filters.q}
                 data-testid="demo-task-search"
                 onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
@@ -395,8 +391,7 @@ export default function TasksPage() {
             </label>
             <label>
               {t('demo.tasks.filter.status')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.status}
                 data-testid="demo-task-filter-status"
                 onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
@@ -407,12 +402,11 @@ export default function TasksPage() {
                     {c.id}
                   </option>
                 ))}
-              </select>
+              </SelectField>
             </label>
             <label>
               {t('demo.tasks.filter.assignee')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.assignee}
                 data-testid="demo-task-filter-assignee"
                 onChange={(e) => setFilters((f) => ({ ...f, assignee: e.target.value }))}
@@ -424,12 +418,11 @@ export default function TasksPage() {
                     {a}
                   </option>
                 ))}
-              </select>
+              </SelectField>
             </label>
             <label>
               {t('demo.tasks.filter.priority')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.priority}
                 data-testid="demo-task-filter-priority"
                 onChange={(e) => setFilters((f) => ({ ...f, priority: e.target.value }))}
@@ -440,12 +433,11 @@ export default function TasksPage() {
                     {p}
                   </option>
                 ))}
-              </select>
+              </SelectField>
             </label>
             <label>
               {t('demo.tasks.filter.campaign')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.campaignId}
                 data-testid="demo-task-filter-campaign"
                 onChange={(e) => setFilters((f) => ({ ...f, campaignId: e.target.value }))}
@@ -456,12 +448,11 @@ export default function TasksPage() {
                     {pickCopy(c.name, locale)}
                   </option>
                 ))}
-              </select>
+              </SelectField>
             </label>
             <label>
               {t('demo.tasks.sort')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.sort}
                 data-testid="demo-task-sort"
                 onChange={(e) =>
@@ -472,19 +463,15 @@ export default function TasksPage() {
                 <option value="priority">{t('demo.tasks.sortPriority')}</option>
                 <option value="updated">{t('demo.tasks.sortUpdated')}</option>
                 <option value="title">{t('demo.tasks.sortTitle')}</option>
-              </select>
+              </SelectField>
             </label>
           </div>
 
           {filterCount > 0 ? (
             <div className="oma-filter-chips">
-              <button
-                type="button"
-                className="oma-btn oma-btn-secondary"
-                onClick={() => setFilters(EMPTY_TASK_FILTERS)}
-              >
+              <Button type="default" onClick={() => setFilters(EMPTY_TASK_FILTERS)}>
                 {t('demo.requests.clearFilters')}
-              </button>
+              </Button>
             </div>
           ) : null}
 
@@ -559,17 +546,17 @@ export default function TasksPage() {
               <ul className="oma-task-mobile" aria-label={t('demo.tasks.title')}>
                 {filtered.map((task) => (
                   <li key={task.id}>
-                    <button
-                      type="button"
-                      className="oma-task-mobile-card"
+                    <Button
+                      type="default"
                       onClick={() => openTask(task.id)}
+                      className="oma-task-mobile-card"
                     >
                       <strong>{pickCopy(task.title, locale)}</strong>
                       <StatusChip status={task.status} />
                       <span className="oma-muted">
                         {task.assignee} · {task.dueAt}
                       </span>
-                    </button>
+                    </Button>
                   </li>
                 ))}
               </ul>
@@ -798,8 +785,7 @@ export default function TasksPage() {
         <div className="oma-stack" data-testid="demo-create-task-dialog">
           <label>
             {t('demo.create.title')}
-            <input
-              className="oma-input"
+            <Input
               value={createForm.title}
               data-testid="demo-create-task-title"
               onChange={(e) => setCreateForm((f) => ({ ...f, title: e.target.value }))}
@@ -807,8 +793,7 @@ export default function TasksPage() {
           </label>
           <label>
             {t('demo.requests.filter.brand')}
-            <select
-              className="oma-select"
+            <SelectField
               value={createForm.brandId}
               onChange={(e) => setCreateForm((f) => ({ ...f, brandId: e.target.value }))}
             >
@@ -817,25 +802,20 @@ export default function TasksPage() {
                   {pickCopy(b.name, locale)}
                 </option>
               ))}
-            </select>
+            </SelectField>
           </label>
           <div className="oma-chip-row">
-            <button
-              type="button"
-              className="oma-btn oma-btn-secondary"
-              onClick={() => setCreateOpen(false)}
-            >
+            <Button type="default" onClick={() => setCreateOpen(false)}>
               {t('demo.create.cancel')}
-            </button>
-            <button
-              type="button"
-              className="oma-btn oma-btn-primary"
+            </Button>
+            <Button
+              type="primary"
               data-testid="demo-create-task-submit"
               disabled={creating}
               onClick={() => void submitCreate()}
             >
               {creating ? t('demo.create.creating') : t('demo.create.confirm')}
-            </button>
+            </Button>
           </div>
         </div>
       </Dialog>

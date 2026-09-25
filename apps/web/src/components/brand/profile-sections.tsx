@@ -1,4 +1,5 @@
 'use client';
+import { Button, TextArea } from '@oma/ui/controls';
 
 import type { InsightItem } from '../../lib/brand-types';
 import { useT } from '../../lib/use-locale';
@@ -166,8 +167,7 @@ export function ProfileSections({
                     {editable ? (
                       <label className="oma-insight-edit">
                         <span className="oma-sr-only">{insight.field_key}</span>
-                        <textarea
-                          className="oma-input"
+                        <TextArea
                           rows={2}
                           value={insight.text_value ?? ''}
                           onChange={(e) => onInsightChange?.(insight.id, e.target.value)}
@@ -177,13 +177,9 @@ export function ProfileSections({
                       <p>{insight.text_value ?? t('brand.profile.emptyValue')}</p>
                     )}
                     {insight.evidence_id ? (
-                      <button
-                        type="button"
-                        className="oma-link-btn"
-                        onClick={() => onViewEvidence?.(insight.evidence_id!)}
-                      >
+                      <Button type="link" onClick={() => onViewEvidence?.(insight.evidence_id!)}>
                         {t('brand.evidence.view')}
-                      </button>
+                      </Button>
                     ) : (
                       <p className="oma-muted" style={{ fontSize: 12 }}>
                         {t('brand.evidence.none')}

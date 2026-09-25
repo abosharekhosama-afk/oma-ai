@@ -1,4 +1,5 @@
 'use client';
+import { Button, Input } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -103,23 +104,20 @@ export default function ReviewsPage() {
         <>
           <div className="oma-review-tabs" role="tablist" data-testid="demo-review-tabs">
             {TABS.map((item) => (
-              <button
-                key={item}
-                type="button"
-                className="oma-btn oma-btn-secondary"
+              <Button
+                type={tab === item ? 'primary' : 'default'}
                 aria-pressed={tab === item}
                 data-testid={`demo-review-tab-${item}`}
                 onClick={() => setTab(item)}
               >
                 {t(`demo.reviews.tab.${item}`)}
-              </button>
+              </Button>
             ))}
           </div>
           <div className="oma-stage5-toolbar">
             <label className="oma-stage5-search">
               {t('demo.reviews.search')}
-              <input
-                className="oma-input"
+              <Input
                 value={q}
                 data-testid="demo-review-search"
                 onChange={(e) => setQ(e.target.value)}

@@ -1,4 +1,5 @@
 'use client';
+import { Button, CheckboxField, TextArea } from '@oma/ui/controls';
 
 import { useId, useState } from 'react';
 import type { ProfileDetail } from '../../lib/brand-types';
@@ -92,9 +93,8 @@ export function ApprovalSummary({
       ) : null}
 
       <label htmlFor={confirmId}>
-        <input
+        <CheckboxField
           id={confirmId}
-          type="checkbox"
           checked={confirmSummary}
           onChange={(e) => setConfirmSummary(e.target.checked)}
         />{' '}
@@ -103,9 +103,8 @@ export function ApprovalSummary({
 
       {isPartial ? (
         <label htmlFor={ackId}>
-          <input
+          <CheckboxField
             id={ackId}
-            type="checkbox"
             checked={ackIncomplete}
             onChange={(e) => setAckIncomplete(e.target.checked)}
           />{' '}
@@ -115,31 +114,20 @@ export function ApprovalSummary({
 
       <label>
         {t('brand.approval.reason')}
-        <textarea
-          className="oma-input"
-          rows={2}
-          value={reason}
-          onChange={(e) => setReason(e.target.value)}
-        />
+        <TextArea rows={2} value={reason} onChange={(e) => setReason(e.target.value)} />
       </label>
 
       <div className="oma-approval-actions">
-        <button
-          type="button"
-          className="oma-btn"
+        <Button
+          type="primary"
           disabled={disabled || busy || approveBlocked}
           onClick={() => void handleApprove()}
         >
           {t('brand.approval.approve')}
-        </button>
-        <button
-          type="button"
-          className="oma-btn-secondary"
-          disabled={disabled || busy}
-          onClick={() => void handleReject()}
-        >
+        </Button>
+        <Button type="default" disabled={disabled || busy} onClick={() => void handleReject()}>
           {t('brand.approval.rejectVersion')}
-        </button>
+        </Button>
       </div>
     </section>
   );

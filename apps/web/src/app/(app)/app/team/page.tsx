@@ -1,4 +1,5 @@
 'use client';
+import { Button, Input, SelectField } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -84,8 +85,7 @@ export default function TeamPage() {
           <div className="oma-stage6-toolbar" data-testid="demo-team-filters">
             <label className="oma-stage6-search">
               {t('demo.team.search')}
-              <input
-                className="oma-input"
+              <Input
                 value={filters.q}
                 data-testid="demo-team-search"
                 onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
@@ -93,8 +93,7 @@ export default function TeamPage() {
             </label>
             <label>
               {t('demo.team.filter.role')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.role}
                 data-testid="demo-team-filter-role"
                 onChange={(e) => setFilters((f) => ({ ...f, role: e.target.value }))}
@@ -105,12 +104,11 @@ export default function TeamPage() {
                     {r}
                   </option>
                 ))}
-              </select>
+              </SelectField>
             </label>
             <label>
               {t('demo.team.filter.workload')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.capacity}
                 data-testid="demo-team-filter-capacity"
                 onChange={(e) =>
@@ -125,7 +123,7 @@ export default function TeamPage() {
                 <option value="balanced">{t('demo.team.capacity.balanced')}</option>
                 <option value="at_risk">{t('demo.team.capacity.at_risk')}</option>
                 <option value="over_capacity">{t('demo.team.capacity.over_capacity')}</option>
-              </select>
+              </SelectField>
             </label>
           </div>
 
@@ -157,17 +155,17 @@ export default function TeamPage() {
                           onClick={() => setSelectedId(m.id)}
                         >
                           <td>
-                            <button
-                              type="button"
-                              className="oma-text-link"
+                            <Button
+                              type="default"
                               data-testid={`demo-team-open-${m.id}`}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedId(m.id);
                               }}
+                              className="oma-text-link"
                             >
                               {pickCopy(m.name, locale)}
-                            </button>
+                            </Button>
                             {m.restricted ? (
                               <span className="oma-badge">{t('demo.teamRestricted')}</span>
                             ) : null}
@@ -208,13 +206,13 @@ export default function TeamPage() {
                       className="oma-team-mobile-card"
                       data-testid={`demo-team-mobile-${m.id}`}
                     >
-                      <button
-                        type="button"
-                        className="oma-text-link"
+                      <Button
+                        type="default"
                         onClick={() => setSelectedId(m.id)}
+                        className="oma-text-link"
                       >
                         {pickCopy(m.name, locale)}
-                      </button>
+                      </Button>
                       <p className="oma-muted">{m.role}</p>
                       <p className="oma-capacity" data-state={cap}>
                         {t(`demo.team.capacity.${cap}`)} · {Math.round(m.workload * 100)}%

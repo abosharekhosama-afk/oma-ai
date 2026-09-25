@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { DemoGraph } from '@oma/demo';
-import { Button, DatePicker, Input, OmaSelect, TextArea } from '@oma/ui/controls';
+import { Button, DatePicker, Input, OmaSelect, SelectField, TextArea } from '@oma/ui/controls';
 import dayjs from 'dayjs';
 import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
 import { Dialog } from '../../../../components/ui/dialog';
@@ -221,14 +221,13 @@ export default function RequestsPage() {
         title={t('demo.requests.title')}
         description={t('demo.requests.subtitle')}
         actions={
-          <button
-            type="button"
-            className="oma-btn oma-btn-primary"
+          <Button
+            type="primary"
             data-testid="demo-create-request"
             onClick={() => setCreateOpen(true)}
           >
             {t('demo.requests.new')}
-          </button>
+          </Button>
         }
       />
       <DemoDisclosure />
@@ -253,24 +252,21 @@ export default function RequestsPage() {
         <>
           <div className="oma-req-groups" role="tablist" data-testid="demo-request-groups">
             {GROUPS.map((g) => (
-              <button
-                key={g}
-                type="button"
-                className="oma-btn oma-btn-secondary"
+              <Button
+                type={filters.group === g ? 'primary' : 'default'}
                 aria-pressed={filters.group === g}
                 data-testid={`demo-request-group-${g}`}
                 onClick={() => setFilters((f) => ({ ...f, group: g }))}
               >
                 {t(`demo.requests.group.${g}`)}
-              </button>
+              </Button>
             ))}
           </div>
 
           <div className="oma-stage4-toolbar" data-testid="demo-request-filters">
             <label className="oma-stage4-search">
               {t('demo.requests.search')}
-              <input
-                className="oma-input"
+              <Input
                 value={filters.q}
                 data-testid="demo-request-search"
                 onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
@@ -278,8 +274,7 @@ export default function RequestsPage() {
             </label>
             <label>
               {t('demo.requests.filter.status')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.status}
                 data-testid="demo-request-filter-status"
                 onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
@@ -299,12 +294,11 @@ export default function RequestsPage() {
                     {s}
                   </option>
                 ))}
-              </select>
+              </SelectField>
             </label>
             <label>
               {t('demo.requests.filter.priority')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.priority}
                 data-testid="demo-request-filter-priority"
                 onChange={(e) => setFilters((f) => ({ ...f, priority: e.target.value }))}
@@ -315,12 +309,11 @@ export default function RequestsPage() {
                     {s}
                   </option>
                 ))}
-              </select>
+              </SelectField>
             </label>
             <label>
               {t('demo.requests.filter.type')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.type}
                 data-testid="demo-request-filter-type"
                 onChange={(e) => setFilters((f) => ({ ...f, type: e.target.value }))}
@@ -333,12 +326,11 @@ export default function RequestsPage() {
                     </option>
                   ),
                 )}
-              </select>
+              </SelectField>
             </label>
             <label>
               {t('demo.requests.filter.brand')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.brandId}
                 data-testid="demo-request-filter-brand"
                 onChange={(e) => setFilters((f) => ({ ...f, brandId: e.target.value }))}
@@ -349,12 +341,11 @@ export default function RequestsPage() {
                     {pickCopy(b.name, locale)}
                   </option>
                 ))}
-              </select>
+              </SelectField>
             </label>
             <label>
               {t('demo.requests.filter.campaign')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.campaignId}
                 data-testid="demo-request-filter-campaign"
                 onChange={(e) => setFilters((f) => ({ ...f, campaignId: e.target.value }))}
@@ -365,12 +356,11 @@ export default function RequestsPage() {
                     {pickCopy(c.name, locale)}
                   </option>
                 ))}
-              </select>
+              </SelectField>
             </label>
             <label>
               {t('demo.requests.filter.requester')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.requester}
                 data-testid="demo-request-filter-requester"
                 onChange={(e) => setFilters((f) => ({ ...f, requester: e.target.value }))}
@@ -381,12 +371,11 @@ export default function RequestsPage() {
                     {r}
                   </option>
                 ))}
-              </select>
+              </SelectField>
             </label>
             <label>
               {t('demo.requests.filter.assignee')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.assignee}
                 data-testid="demo-request-filter-assignee"
                 onChange={(e) => setFilters((f) => ({ ...f, assignee: e.target.value }))}
@@ -398,12 +387,11 @@ export default function RequestsPage() {
                     {a}
                   </option>
                 ))}
-              </select>
+              </SelectField>
             </label>
             <label>
               {t('demo.requests.filter.due')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.due}
                 data-testid="demo-request-filter-due"
                 onChange={(e) =>
@@ -417,7 +405,7 @@ export default function RequestsPage() {
                 <option value="overdue">{t('demo.requests.overdue')}</option>
                 <option value="soon">{t('demo.requests.dueSoon')}</option>
                 <option value="later">{t('demo.requests.dueLater')}</option>
-              </select>
+              </SelectField>
             </label>
           </div>
 
@@ -426,14 +414,13 @@ export default function RequestsPage() {
               <span className="oma-filter-chip">
                 {filterCount} {t('demo.requests.activeFilters')}
               </span>
-              <button
-                type="button"
-                className="oma-btn oma-btn-secondary"
+              <Button
+                type="default"
                 data-testid="demo-request-clear-filters"
                 onClick={() => setFilters(EMPTY_REQUEST_FILTERS)}
               >
                 {t('demo.requests.clearFilters')}
-              </button>
+              </Button>
             </div>
           ) : null}
 
@@ -716,16 +703,12 @@ export default function RequestsPage() {
       >
         <p data-testid="demo-create-request-unsaved">{t('demo.content.unsaved')}</p>
         <div className="oma-chip-row">
-          <button
-            type="button"
-            className="oma-btn oma-btn-secondary"
-            onClick={() => setUnsavedOpen(false)}
-          >
+          <Button type="default" onClick={() => setUnsavedOpen(false)}>
             {t('demo.create.cancel')}
-          </button>
-          <button type="button" className="oma-btn oma-btn-primary" onClick={discardCreate}>
+          </Button>
+          <Button type="primary" onClick={discardCreate}>
             OK
-          </button>
+          </Button>
         </div>
       </Dialog>
 

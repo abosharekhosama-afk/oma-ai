@@ -1,4 +1,5 @@
 'use client';
+import { Input } from '@oma/ui/controls';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../../lib/api';
@@ -86,8 +87,7 @@ export function TenantSwitcher() {
         {t('shell.tenant')}
       </span>
       <div className="oma-combobox">
-        <input
-          className="oma-select"
+        <Input
           role="combobox"
           aria-expanded={open}
           aria-controls="tenant-switcher-list"

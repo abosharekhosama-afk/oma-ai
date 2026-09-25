@@ -20,13 +20,6 @@
   color: var(--oma-muted);
 }
 
-/* toolbar fields use shared .oma-input / .oma-select primitives */
-
-.oma-stage3-search {
-  min-width: min(240px, 100%);
-  flex: 1 1 180px;
-}
-
 .oma-filter-sheet-trigger {
   display: none;
 }
@@ -51,17 +44,6 @@
   font-size: var(--text-meta);
   line-height: var(--leading-meta);
   color: var(--oma-ink);
-}
-
-.oma-filter-chip button {
-  border: 0;
-  background: transparent;
-  color: var(--oma-muted);
-  cursor: pointer;
-  min-width: 20px;
-  min-height: 20px;
-  padding: 0;
-  font: inherit;
 }
 
 .oma-view-hint {
@@ -296,33 +278,6 @@
   background: var(--oma-surface);
 }
 
-.oma-view-switch button {
-  min-height: var(--oma-control-height);
-  padding: 0 var(--space-3);
-  border: none;
-  border-inline-end: 1px solid var(--oma-border);
-  background: transparent;
-  font: inherit;
-  font-size: var(--text-body);
-  color: var(--oma-muted);
-  cursor: pointer;
-}
-
-.oma-view-switch button:last-child {
-  border-inline-end: none;
-}
-
-.oma-view-switch button[aria-pressed='true'] {
-  background: var(--oma-primary-soft);
-  color: var(--oma-primary);
-  font-weight: var(--weight-semibold);
-}
-
-.oma-view-switch button:focus-visible {
-  outline: var(--focus-ring);
-  outline-offset: -2px;
-}
-
 .oma-content-grid-stage3 {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -446,17 +401,6 @@
   color: var(--oma-muted);
   background: var(--oma-canvas);
   font-weight: var(--weight-semibold);
-}
-
-.oma-content-list-head button {
-  border: 0;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  text-align: start;
-  cursor: pointer;
-  padding: 0;
-  min-height: 24px;
 }
 
 .oma-content-list-row {
@@ -810,24 +754,6 @@
   padding-bottom: var(--space-2);
 }
 
-.oma-cal-date-strip button {
-  min-width: 44px;
-  min-height: 44px;
-  padding: 4px 8px;
-  border: 1px solid var(--oma-border);
-  border-radius: var(--oma-radius-control);
-  background: var(--oma-surface);
-  font: inherit;
-  font-size: var(--text-meta);
-  cursor: pointer;
-}
-
-.oma-cal-date-strip button[data-selected='true'] {
-  border-color: var(--oma-primary);
-  color: var(--oma-primary);
-  background: var(--oma-primary-soft);
-}
-
 .oma-cal-agenda-day {
   border: 1px solid var(--oma-border);
   border-radius: var(--oma-radius-control);
@@ -867,12 +793,6 @@
   gap: 4px;
   font-size: var(--text-meta);
   color: var(--oma-muted);
-}
-
-.oma-composer-fields textarea,
-.oma-composer-fields input,
-.oma-composer-fields select {
-  font: inherit;
 }
 
 .oma-composer-group {
@@ -1048,10 +968,4 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .oma-campaign-card,
-  .oma-content-card-stage3,
-  .oma-view-switch button,
-  .oma-cal-cell {
-    transition: none;
-  }
 }

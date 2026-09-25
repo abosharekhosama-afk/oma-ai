@@ -1,4 +1,5 @@
 'use client';
+import { Button } from '@oma/ui/controls';
 
 import type { InsightItem } from '../../lib/brand-types';
 import { useT } from '../../lib/use-locale';
@@ -30,22 +31,12 @@ export function InsightDecisionControls({
 
   return (
     <div className="oma-insight-decisions" role="group" aria-label={t('brand.insight.decide')}>
-      <button
-        type="button"
-        className="oma-btn"
-        disabled={disabled}
-        onClick={() => void onAccept(insight.id)}
-      >
+      <Button type="primary" disabled={disabled} onClick={() => void onAccept(insight.id)}>
         {t('brand.insight.accept')}
-      </button>
-      <button
-        type="button"
-        className="oma-btn-secondary"
-        disabled={disabled}
-        onClick={() => void onReject(insight.id)}
-      >
+      </Button>
+      <Button type="default" disabled={disabled} onClick={() => void onReject(insight.id)}>
         {t('brand.insight.reject')}
-      </button>
+      </Button>
     </div>
   );
 }

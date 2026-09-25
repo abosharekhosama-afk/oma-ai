@@ -1,4 +1,5 @@
 'use client';
+import { Button } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -149,13 +150,9 @@ export default function DiscoveryProductsPage() {
                 </dl>
                 <div className="oma-form-actions">
                   {linked ? (
-                    <button
-                      type="button"
-                      className="oma-btn-secondary"
-                      onClick={() => setEvidenceId(linked)}
-                    >
+                    <Button type="default" onClick={() => setEvidenceId(linked)}>
                       {t('brand.evidence.view')}
-                    </button>
+                    </Button>
                   ) : (
                     <span className="oma-muted">{t('brand.evidence.none')}</span>
                   )}

@@ -1,4 +1,5 @@
 'use client';
+import { SelectField } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -129,8 +130,7 @@ export default function AnalyticsPage() {
           <div className="oma-stage6-toolbar" data-testid="demo-analytics-filters">
             <label>
               {t('demo.filter.track')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.track}
                 data-testid="demo-analytics-filter-track"
                 onChange={(e) =>
@@ -143,12 +143,11 @@ export default function AnalyticsPage() {
                 <option value="all">{t('demo.filter.all')}</option>
                 <option value="ORGANIC">{t('demo.organic')}</option>
                 <option value="PAID">{t('demo.paid')}</option>
-              </select>
+              </SelectField>
             </label>
             <label>
               {t('demo.filter.channel')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.channel}
                 data-testid="demo-analytics-filter-channel"
                 onChange={(e) => setFilters((f) => ({ ...f, channel: e.target.value }))}
@@ -159,12 +158,11 @@ export default function AnalyticsPage() {
                     {c}
                   </option>
                 ))}
-              </select>
+              </SelectField>
             </label>
             <label>
               {t('demo.analytics.filter.campaign')}
-              <select
-                className="oma-select"
+              <SelectField
                 value={filters.campaignId}
                 data-testid="demo-analytics-filter-campaign"
                 onChange={(e) => setFilters((f) => ({ ...f, campaignId: e.target.value }))}
@@ -175,7 +173,7 @@ export default function AnalyticsPage() {
                     {c.campaignId}
                   </option>
                 ))}
-              </select>
+              </SelectField>
             </label>
           </div>
 

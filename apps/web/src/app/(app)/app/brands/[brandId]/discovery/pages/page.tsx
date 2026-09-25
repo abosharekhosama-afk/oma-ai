@@ -1,4 +1,5 @@
 'use client';
+import { Button, CheckboxField, SearchInput, SelectField } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -145,9 +146,7 @@ export default function DiscoveryPagesPage() {
           >
             <label className="oma-field">
               <span>{t('brand.discovery.searchLabel')}</span>
-              <input
-                className="oma-input"
-                type="search"
+              <SearchInput
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={t('brand.discovery.searchPlaceholder')}
@@ -155,8 +154,7 @@ export default function DiscoveryPagesPage() {
             </label>
             <label className="oma-field">
               <span>{t('brand.discovery.filterClassification')}</span>
-              <select
-                className="oma-input"
+              <SelectField
                 value={classification}
                 onChange={(e) => setClassification(e.target.value)}
               >
@@ -165,24 +163,19 @@ export default function DiscoveryPagesPage() {
                 <option value="PRODUCT">PRODUCT</option>
                 <option value="ABOUT">ABOUT</option>
                 <option value="OTHER">OTHER</option>
-              </select>
+              </SelectField>
             </label>
             <label className="oma-field">
               <span>{t('brand.discovery.filterFetchStatus')}</span>
-              <select
-                className="oma-input"
-                value={fetchStatus}
-                onChange={(e) => setFetchStatus(e.target.value)}
-              >
+              <SelectField value={fetchStatus} onChange={(e) => setFetchStatus(e.target.value)}>
                 <option value="">{t('brand.discovery.filterAll')}</option>
                 <option value="FETCHED">FETCHED</option>
                 <option value="FAILED">FAILED</option>
                 <option value="SKIPPED">SKIPPED</option>
-              </select>
+              </SelectField>
             </label>
             <label className="oma-checkbox-label">
-              <input
-                type="checkbox"
+              <CheckboxField
                 checked={evidenceOnly}
                 onChange={(e) => setEvidenceOnly(e.target.checked)}
               />{' '}
@@ -239,14 +232,13 @@ export default function DiscoveryPagesPage() {
                         </div>
                       </div>
                       {linkedEvidence ? (
-                        <button
-                          type="button"
-                          className="oma-btn oma-btn-secondary oma-btn--sm"
+                        <Button
+                          type="default"
                           data-testid={`view-evidence-${page.id}`}
                           onClick={() => setEvidenceId(linkedEvidence)}
                         >
                           {t('brand.evidence.view')}
-                        </button>
+                        </Button>
                       ) : (
                         <span className="oma-muted">{t('brand.evidence.none')}</span>
                       )}

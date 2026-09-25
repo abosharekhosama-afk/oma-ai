@@ -119,9 +119,6 @@ body {
   margin-bottom: 0.5rem;
 }
 @media (max-width: 800px) {
-  .oma-select {
-    max-width: 150px;
-  }
 }
 .oma-filter-row {
   display: flex;
@@ -134,9 +131,6 @@ body {
   font-size: var(--text-body);
   font-weight: var(--weight-semibold);
   color: var(--oma-ink);
-}
-.oma-filter-row .oma-input {
-  max-width: 280px;
 }
 .oma-link-btn {
   background: none;
@@ -434,18 +428,6 @@ body {
   padding: 0.5rem 0.6rem;
   color: var(--oma-muted);
 }
-.oma-card-button {
-  text-align: start;
-  cursor: pointer;
-  border: 1px solid var(--oma-border);
-  background: var(--oma-surface);
-  width: 100%;
-}
-.oma-card-button:hover,
-.oma-card-button:focus-visible {
-  outline: var(--focus-ring);
-  outline-offset: var(--focus-offset);
-}
 .oma-row {
   display: flex;
   flex-wrap: wrap;
@@ -677,11 +659,6 @@ body {
   font-weight: 700;
   text-decoration: none;
 }
-/* .oma-btn-compact visual owned by packages/ui primitives */
-.oma-input-inline {
-  margin-bottom: 0;
-  max-width: 240px;
-}
 .oma-scan-phases {
   display: flex;
   flex-wrap: wrap;
@@ -696,10 +673,6 @@ body {
 .oma-scan-phase.is-done,
 .oma-scan-phase.is-current {
   opacity: 1;
-}
-.oma-notification-unread a,
-.oma-notification-unread button {
-  font-weight: 700;
 }
 .oma-linkish {
   background: none;
@@ -840,10 +813,6 @@ body {
   display: inline-flex;
   gap: 0.25rem;
   flex-wrap: wrap;
-}
-.oma-view-toggle button[aria-pressed='true'] {
-  background: var(--oma-primary);
-  color: var(--oma-on-accent);
 }
 .oma-progress-track {
   height: 8px;

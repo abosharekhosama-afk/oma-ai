@@ -1,4 +1,5 @@
 'use client';
+import { Button, Input } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
@@ -70,7 +71,7 @@ export default function NewStrategyPage() {
       <form className="oma-card" onSubmit={onSubmit} data-testid="strategy-create-form">
         <label>
           {t('strategy.new.name')}
-          <input
+          <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
@@ -83,9 +84,9 @@ export default function NewStrategyPage() {
             {error}
           </p>
         ) : null}
-        <button type="submit" className="oma-btn" disabled={saving}>
+        <Button type="primary" disabled={saving} htmlType="submit">
           {t('strategy.new.submit')}
-        </button>
+        </Button>
       </form>
     </BrandWorkspaceShell>
   );

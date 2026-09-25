@@ -1,4 +1,5 @@
 'use client';
+import { SelectField } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
@@ -57,8 +58,7 @@ export function BrandContext() {
   return (
     <label className="oma-brand-context">
       <span className="oma-field-inline-label">{t('shell.brand')}</span>
-      <select
-        className="oma-select"
+      <SelectField
         aria-label={t('shell.brand')}
         value={active?.id ?? ''}
         onChange={(e) => {
@@ -73,7 +73,7 @@ export function BrandContext() {
             {b.name}
           </option>
         ))}
-      </select>
+      </SelectField>
     </label>
   );
 }
