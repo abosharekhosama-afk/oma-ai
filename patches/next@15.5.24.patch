@@ -1,0 +1,19 @@
+diff --git a/dist/cli/next-dev.js b/dist/cli/next-dev.js
+index f5478f00dedf1810787a0ec1c71045413ed025a5..2e97fe7e45efab01345746235f4bac8dcfbfddd6 100644
+--- a/dist/cli/next-dev.js
++++ b/dist/cli/next-dev.js
+@@ -147,6 +147,14 @@ process.on('SIGTERM', ()=>handleSessionStop('SIGTERM'));
+ // exit event must be synchronous
+ process.on('exit', ()=>child == null ? void 0 : child.kill('SIGKILL'));
+ const nextDev = async (options, portSource, directory)=>{
++    // CI builds production output, then the workflow starts `next dev`.
++    // On-demand compilation drops client navigations and exceeds the Playwright
++    // budget. Serve that build instead. Local runs set NEXT_DIST_DIR and stay on dev.
++    if (process.env.CI === 'true' && !process.env.NEXT_DIST_DIR) {
++        process.env.NODE_ENV = 'production';
++        const { nextStart } = require('./next-start');
++        return nextStart(options, directory);
++    }
+     const isTurbopack = Boolean(options.turbo || options.turbopack || process.env.IS_TURBOPACK_TEST);
+     if (isTurbopack) {
+         process.env.TURBOPACK = '1';

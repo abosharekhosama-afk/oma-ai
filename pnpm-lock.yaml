@@ -12,6 +12,11 @@ overrides:
   next: 15.5.24
   multer: '>=2.3.0'
 
+patchedDependencies:
+  next@15.5.24:
+    hash: n4teynu2dirjabjnkrotcg2a2i
+    path: patches/next@15.5.24.patch
+
 importers:
 
   .:
@@ -145,7 +150,7 @@ importers:
         version: 6.3.4(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@ant-design/nextjs-registry':
         specifier: 1.3.0
-        version: 1.3.0(@ant-design/cssinjs@2.1.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(antd@6.6.5(luxon@3.7.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(next@15.5.24(@playwright/test@1.62.1)(@types/node@22.20.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        version: 1.3.0(@ant-design/cssinjs@2.1.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(antd@6.6.5(luxon@3.7.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(next@15.5.24(patch_hash=n4teynu2dirjabjnkrotcg2a2i)(@playwright/test@1.62.1)(@types/node@22.20.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       '@dnd-kit/core':
         specifier: ^6.3.1
         version: 6.3.1(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
@@ -172,7 +177,7 @@ importers:
         version: 1.11.23
       next:
         specifier: 15.5.24
-        version: 15.5.24(@playwright/test@1.62.1)(@types/node@22.20.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        version: 15.5.24(patch_hash=n4teynu2dirjabjnkrotcg2a2i)(@playwright/test@1.62.1)(@types/node@22.20.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       react:
         specifier: ^19.0.0
         version: 19.2.8
@@ -2879,11 +2884,11 @@ snapshots:
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
 
-  '@ant-design/nextjs-registry@1.3.0(@ant-design/cssinjs@2.1.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(antd@6.6.5(luxon@3.7.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(next@15.5.24(@playwright/test@1.62.1)(@types/node@22.20.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
+  '@ant-design/nextjs-registry@1.3.0(@ant-design/cssinjs@2.1.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(antd@6.6.5(luxon@3.7.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(next@15.5.24(patch_hash=n4teynu2dirjabjnkrotcg2a2i)(@playwright/test@1.62.1)(@types/node@22.20.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react-dom@19.2.8(react@19.2.8))(react@19.2.8)':
     dependencies:
       '@ant-design/cssinjs': 2.1.2(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       antd: 6.6.5(luxon@3.7.2)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-      next: 15.5.24(@playwright/test@1.62.1)(@types/node@22.20.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+      next: 15.5.24(patch_hash=n4teynu2dirjabjnkrotcg2a2i)(@playwright/test@1.62.1)(@types/node@22.20.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       react: 19.2.8
       react-dom: 19.2.8(react@19.2.8)
 
@@ -4701,7 +4706,7 @@ snapshots:
     dependencies:
       content-type: 2.1.0
 
-  next@15.5.24(@playwright/test@1.62.1)(@types/node@22.20.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8):
+  next@15.5.24(patch_hash=n4teynu2dirjabjnkrotcg2a2i)(@playwright/test@1.62.1)(@types/node@22.20.1)(react-dom@19.2.8(react@19.2.8))(react@19.2.8):
     dependencies:
       '@next/env': 15.5.24
       '@swc/helpers': 0.5.15
