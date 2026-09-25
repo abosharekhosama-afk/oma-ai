@@ -1,0 +1,9 @@
+{
+  "stage": "PLANABLE_ANT_DESIGN_A2",
+  "evidence": {
+    "tokens": "OFFICIAL_DOC_VERIFIED",
+    "controls": "OMA_ADAPTATION",
+    "livePlanableSession": "REFERENCE_UNAVAILABLE"
+  },
+  "screenshots": "gitignored; not captured into this folder during the code migration"
+}
