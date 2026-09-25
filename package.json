@@ -40,6 +40,7 @@
     "ai:openai:smoke": "node scripts/ai/openai-smoke.mjs",
     "ui:inventory-runtime": "node scripts/ui/inventory-runtime-styles.mjs",
     "ui:inventory-visual": "node scripts/ui/inventory-visual-primitives.mjs",
+    "ui:ant-migration-inventory": "node scripts/ui/ant-migration-inventory.mjs",
     "ref:launch": "node scripts/reference/launch-reference-browser.mjs",
     "ref:preflight": "node scripts/reference/cdp-preflight.mjs",
     "ref:smoke": "node scripts/reference/reference-worker-smoke.mjs",
