@@ -27,4 +27,19 @@ Label: `PLANABLE_ANT_RUNTIME_EVIDENCE: LIVE_VERIFIED_WITHIN_INSPECTED_SCOPE`.
 
 PNG files stay gitignored under `artifacts/planable-ant-design-a1/oma/`. Sanitized metadata stays gitignored under `.reference/008-planable-ant-design-a1/oma-captures.json`.
 
+## CI repair
+
+Two push runs failed only in Playwright E2E. Earlier steps, including the production web build and the server health check, succeeded.
+
+| Run         | SHA                                        | URL                                                                  | Job    | Step           | First causal error                                                                                                                                              | Class              |
+| ----------- | ------------------------------------------ | -------------------------------------------------------------------- | ------ | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| 36048294405 | `1bd0bf26cb1e2c5c5e89446b8e03994132d8f68b` | https://github.com/burhanbakri1-spec/oma-ai/actions/runs/36048294405 | verify | Playwright E2E | `ChunkLoadError` loading `app/(app)/app/brands/[brandId]/profiles/page` from a dev server that reused the production `.next` output                             | BUILD_OR_HYDRATION |
+| 36054174908 | `3e60c2b8e80d3f9a05285b68e2458801154110f8` | https://github.com/burhanbakri1-spec/oma-ai/actions/runs/36054174908 | verify | Playwright E2E | Click on `Review carousel v2` finished without a navigation; the trace then logged `[Fast Refresh] rebuilding`. Received URL stayed `http://127.0.0.1:3000/app` | PROCESS_LIFECYCLE  |
+
+Run 36054174908 is the newest run for `3e60c2b8`. A separate dist dir stopped the stale-chunk error and rewrote `next-env.d.ts` while `next dev` was already serving tests. That rewrite is what Fast Refresh rebuilt, and client navigations during the rebuild did not run. CI also starts `next dev` with `NODE_ENV=test`.
+
+The fix stays in `apps/web/next.config.ts`. On the development-server phase, when `CI=true` and `NEXT_DIST_DIR` is unset, a finished production `BUILD_ID` is removed so dev recompiles into `.next`, the path `next-env.d.ts` already names. The same phase sets `NODE_ENV` from `test` to `development` for that dev process only. Local Playwright still passes `NEXT_DIST_DIR=.next-e2e`, so this cleanup does not run there. No test was skipped and no assertion was removed.
+
+Sanitized failed logs stay gitignored under `artifacts/planable-ant-design-a1/ci/`. A2 surface migration is still open. Owner visual acceptance stays pending.
+
 Sampled desktop Ant button: 32px height, 14px type, 6px radius, ink `rgb(51, 51, 51)`, transition `0.15s`. The first button on the shell is a text icon button, so its background is transparent. Primary blue is the theme token `#1677FF`. At 390px the first sampled button is in the hidden rail, so its measured height is 0; the desktop control contract is the 32px sample. Reduced motion shortens the sampled transition to a near-zero duration. No hydration error and no horizontal overflow were recorded on these shots. The recapture after the foundation commit records tree `9ec6779abbd3d862b40d2548be73eaee631e6e95` and 15 shots. Raw files stay gitignored.
