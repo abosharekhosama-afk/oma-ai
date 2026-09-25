@@ -101,7 +101,9 @@ jobs:
           echo $! > /tmp/oma-api.pid
           MAIL_PROVIDER=recording pnpm --filter @oma/worker exec tsx src/main.ts > /tmp/oma-worker.log 2>&1 &
           echo $! > /tmp/oma-worker.pid
-          pnpm --filter @oma/web exec next dev -p 3000 -H 127.0.0.1 > /tmp/oma-web.log 2>&1 &
+          # Serve the production build from the previous step. `next dev` recompiles
+          # every route on demand and drops client navigations while Fast Refresh runs.
+          NODE_ENV=production pnpm --filter @oma/web exec next start -p 3000 -H 127.0.0.1 > /tmp/oma-web.log 2>&1 &
           echo $! > /tmp/oma-web.pid
           for i in $(seq 1 60); do
             if curl -sf http://127.0.0.1:3001/api/v1/health/ready >/dev/null \
@@ -137,5 +139,6 @@ jobs:
           done
           sleep 1
           pkill -f 'tsx src/main.ts' 2>/dev/null || true
+          pkill -f 'next start -p 3000' 2>/dev/null || true
           pkill -f 'next dev -p 3000' 2>/dev/null || true
           true
