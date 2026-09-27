@@ -86,11 +86,21 @@ export default function OnboardingClient() {
 
       {mode === 'choose' ? (
         <div className="oma-action-grid" role="group" aria-label={t('onboarding.choices')}>
-          <Button type="default" onClick={() => setMode('create')} className="oma-card">
+          <Button
+            type="default"
+            onClick={() => setMode('create')}
+            className="oma-card"
+            style={{ height: 'auto', whiteSpace: 'normal', textAlign: 'start' }}
+          >
             <h2>{t('onboarding.createTitle')}</h2>
             <p className="oma-muted">{t('onboarding.createBody')}</p>
           </Button>
-          <Button type="default" onClick={() => setMode('join')} className="oma-card">
+          <Button
+            type="default"
+            onClick={() => setMode('join')}
+            className="oma-card"
+            style={{ height: 'auto', whiteSpace: 'normal', textAlign: 'start' }}
+          >
             <h2>{t('onboarding.joinTitle')}</h2>
             <p className="oma-muted">{t('onboarding.joinBody')}</p>
           </Button>

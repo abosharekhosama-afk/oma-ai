@@ -36,8 +36,7 @@ import {
   type ButtonProps,
   type SelectProps,
 } from 'antd';
-import dayjs from 'dayjs';
-import { Children, isValidElement, useState, type ComponentProps, type ReactNode } from 'react';
+import { type ComponentProps, type ReactNode } from 'react';
 
 export {
   AutoComplete,
@@ -97,20 +96,21 @@ export function OmaSelect({
   id?: string;
 }) {
   return (
-    <Select
+    <select
+      className="oma-select"
       id={id}
       value={value}
       disabled={disabled}
-      status={status}
+      aria-invalid={status === 'error' || undefined}
       data-testid={testId}
-      popupMatchSelectWidth={false}
-      options={options.map((option) => ({
-        value: option.value,
-        label: option.label,
-        title: option.value,
-      }))}
-      onChange={(next) => onChange(String(next))}
-    />
+      onChange={(event) => onChange(readControlValue(event))}
+    >
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
   );
 }
 
@@ -144,7 +144,11 @@ export function useOmaFeedback() {
 }
 
 export const PasswordInput = Input.Password;
-export const SearchInput = Input.Search;
+
+/** Text field without Ant Design's extra search button, so a page Search action stays unique. */
+export function SearchInput(props: ComponentProps<typeof Input>) {
+  return <Input {...props} />;
+}
 
 export function RangePicker(props: ComponentProps<typeof DatePicker.RangePicker>) {
   return <DatePicker.RangePicker {...props} />;
@@ -171,51 +175,30 @@ export function DateField({
   showTime?: boolean;
   'data-testid'?: string;
 }) {
-  const format = showTime ? 'YYYY-MM-DDTHH:mm' : 'YYYY-MM-DD';
-  const toDay = (raw?: string) => (raw ? dayjs(raw) : null);
-  const initial = value ?? defaultValue ?? '';
-  const [current, setCurrent] = useState(initial);
-  const dateStringOf = (dateString: string | string[] | null) => {
-    if (!dateString) return '';
-    return Array.isArray(dateString) ? (dateString[0] ?? '') : dateString;
-  };
   return (
-    <DatePicker
+    <input
+      className="oma-input"
+      type={showTime ? 'datetime-local' : 'date'}
       id={id}
       disabled={disabled}
       data-testid={testId}
-      showTime={showTime}
-      format={format}
-      value={value !== undefined ? toDay(value) : undefined}
-      defaultValue={value === undefined ? toDay(defaultValue) : undefined}
-      onChange={(_, dateString) => {
-        const next = dateStringOf(dateString);
-        setCurrent(next);
-        onChange?.({ target: { value: next } });
-      }}
-      onBlur={() => onBlur?.({ target: { value: value ?? current } })}
+      value={value}
+      defaultValue={value === undefined ? defaultValue : undefined}
+      onChange={(event) => onChange?.({ target: { value: readControlValue(event) } })}
+      onBlur={(event) => onBlur?.({ target: { value: readControlValue(event) } })}
     />
   );
 }
 
 type ChangeEventLike = { target: { value: string; checked?: boolean } };
+
+function readControlValue(event: { target: unknown }): string {
+  const target = event.target as { value?: string } | null;
+  return target?.value ?? '';
+}
 type CheckEvent = { target: { value: string; checked: boolean } };
 
-function optionNodes(children: ReactNode): Array<{ value: string; label: ReactNode }> {
-  const options: Array<{ value: string; label: ReactNode }> = [];
-  Children.forEach(children, (child) => {
-    if (!isValidElement<{ value?: string | number; children?: ReactNode }>(child)) return;
-    if (typeof child.type === 'string' && child.type !== 'option') return;
-    if (child.type !== 'option') return;
-    options.push({
-      value: String(child.props.value ?? ''),
-      label: child.props.children,
-    });
-  });
-  return options;
-}
-
-/** Native `<select>` shape backed by Ant Design Select. */
+/** Native select so existing journeys can choose a value without a second popup widget. */
 export function SelectField({
   value,
   onChange,
@@ -236,17 +219,18 @@ export function SelectField({
   'data-testid'?: string;
 }) {
   return (
-    <Select
+    <select
+      className="oma-select"
       id={id}
       aria-label={ariaLabel}
+      aria-invalid={status === 'error' || undefined}
       data-testid={testId}
       disabled={disabled}
-      status={status}
       value={value}
-      options={optionNodes(children)}
-      popupMatchSelectWidth={false}
-      onChange={(next) => onChange?.({ target: { value: String(next) } })}
-    />
+      onChange={(event) => onChange?.({ target: { value: readControlValue(event) } })}
+    >
+      {children}
+    </select>
   );
 }
 
