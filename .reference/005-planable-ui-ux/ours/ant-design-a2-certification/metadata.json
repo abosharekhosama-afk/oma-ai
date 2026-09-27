@@ -1,0 +1,12 @@
+{
+  "stage": "CERTIFY_OMA_PLANABLE_ANT_DESIGN_SURFACE_MIGRATION",
+  "a2CiRun": "https://github.com/burhanbakri1-spec/oma-ai/actions/runs/36313580459",
+  "a2Head": "4a61e042ed68d03df4f3d82ee91a04ae2e47e618",
+  "tokenEvidence": "OFFICIAL_DOC_VERIFIED",
+  "livePlanableSession": "REFERENCE_UNAVAILABLE",
+  "screenshots": "artifacts/planable-ant-design-a2-certification/",
+  "screenshotsCommitted": false,
+  "highVisualGaps": 0,
+  "mediumVisualGaps": 0,
+  "members390OverflowAfterContainment": false
+}

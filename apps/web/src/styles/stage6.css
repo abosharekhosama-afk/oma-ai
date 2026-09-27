@@ -318,10 +318,16 @@
 .oma-members-foundation {
   display: grid;
   gap: var(--space-4);
+  min-width: 0;
+  max-width: 100%;
 }
 
 .oma-members-table-wrap {
+  position: relative;
   overflow: auto;
+  max-width: 100%;
+  min-width: 0;
+  contain: paint;
   border: 1px solid var(--oma-border);
   border-radius: var(--oma-radius-control);
   background: var(--oma-surface);
