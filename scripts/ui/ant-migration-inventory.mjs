@@ -4,6 +4,7 @@
  * Default: write the report and exit 0.
  * `--check`: exit 1 while any MIGRATE finding remains.
  */
+import { spawnSync } from 'node:child_process';
 import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 
@@ -206,7 +207,13 @@ for (const [file, items] of [...byFile.entries()].sort()) {
 }
 
 mkdirSync(join(ROOT, 'docs'), { recursive: true });
-writeFileSync(OUT, lines.join('\n'));
+writeFileSync(OUT, `${lines.join('\n')}\n`);
+const formatted = spawnSync(
+  process.execPath,
+  [join(ROOT, 'node_modules/prettier/bin/prettier.cjs'), '--write', OUT],
+  { cwd: ROOT, stdio: 'inherit' },
+);
+if (formatted.status !== 0) process.exit(formatted.status ?? 1);
 console.log(
   JSON.stringify(
     {
