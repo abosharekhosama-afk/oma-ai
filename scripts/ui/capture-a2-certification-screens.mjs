@@ -87,9 +87,10 @@ for (const [sizeName, width, height, locale, criticalOnly] of sizes) {
     await page.waitForTimeout(400);
     const file = `${sizeName}-${name}.png`;
     await page.screenshot({ path: join(out, file), fullPage: false });
-    const overflow = await page.evaluate(
-      () => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1,
-    );
+    const overflow = await page.evaluate(() => {
+      const root = globalThis.document.documentElement;
+      return root.scrollWidth > root.clientWidth + 1;
+    });
     shots.push({ file, path, size: sizeName, overflow });
   }
   await context.close();
