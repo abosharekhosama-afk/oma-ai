@@ -96,21 +96,20 @@ export function OmaSelect({
   id?: string;
 }) {
   return (
-    <select
-      className="oma-select"
+    <Select
       id={id}
       value={value}
       disabled={disabled}
-      aria-invalid={status === 'error' || undefined}
+      status={status}
       data-testid={testId}
-      onChange={(event) => onChange(readControlValue(event))}
-    >
-      {options.map((option) => (
-        <option key={option.value} value={option.value}>
-          {option.label}
-        </option>
-      ))}
-    </select>
+      popupMatchSelectWidth={false}
+      options={options.map((option) => ({
+        value: option.value,
+        label: option.label,
+        title: option.value,
+      }))}
+      onChange={(next) => onChange(String(next))}
+    />
   );
 }
 
@@ -242,6 +241,7 @@ export function CheckboxField({
   disabled,
   id,
   'aria-label': ariaLabel,
+  'data-testid': testId,
 }: {
   checked?: boolean;
   onChange?: (event: CheckEvent) => void;
@@ -249,18 +249,28 @@ export function CheckboxField({
   disabled?: boolean;
   id?: string;
   'aria-label'?: string;
+  'data-testid'?: string;
 }) {
   return (
-    <Checkbox
-      id={id}
-      aria-label={ariaLabel}
-      checked={checked}
-      disabled={disabled}
-      onChange={(event) =>
-        onChange?.({ target: { value: event.target.value, checked: event.target.checked } })
-      }
-    >
+    <label className="oma-checkbox-field">
+      <input
+        className="oma-checkbox"
+        type="checkbox"
+        id={id}
+        aria-label={ariaLabel}
+        data-testid={testId}
+        checked={checked}
+        disabled={disabled}
+        onChange={(event) =>
+          onChange?.({
+            target: {
+              value: 'on',
+              checked: Boolean((event.target as { checked?: boolean }).checked),
+            },
+          })
+        }
+      />
       {children}
-    </Checkbox>
+    </label>
   );
 }
