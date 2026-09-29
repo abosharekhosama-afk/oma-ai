@@ -202,19 +202,21 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-2);
+  padding: 8px;
   border-radius: var(--oma-radius-control);
   text-decoration: none;
   font-size: var(--text-body);
   line-height: var(--leading-body);
   font-weight: var(--weight-regular);
   color: var(--oma-ink);
-  min-height: var(--oma-control-height);
+  min-height: 36px;
+  box-sizing: border-box;
 }
 .oma-nav-link-icon {
   flex-shrink: 0;
   width: var(--icon-md);
   height: var(--icon-md);
+  color: var(--oma-muted);
 }
 .oma-nav-link:hover {
   background: var(--oma-canvas);
@@ -223,6 +225,9 @@
   background: var(--oma-primary-soft);
   color: var(--oma-primary);
   font-weight: var(--weight-medium);
+}
+.oma-nav-link[data-active='true'] .oma-nav-link-icon {
+  color: var(--oma-primary);
 }
 .oma-nav-tooltip-wrap {
   display: block;
