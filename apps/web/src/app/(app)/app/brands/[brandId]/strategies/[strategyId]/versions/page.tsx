@@ -79,7 +79,11 @@ export default function StrategyVersionsPage() {
       <header className="oma-page-header">
         <h2>{t('strategy.versions.title')}</h2>
         {left && right ? (
-          <OmaLinkButton href={`/app/brands/${brandId}/strategies/${strategyId}/versions/compare?leftId=${left}&rightId=${right}`} type="primary" data-testid="strategy-compare">
+          <OmaLinkButton
+            href={`/app/brands/${brandId}/strategies/${strategyId}/versions/compare?leftId=${left}&rightId=${right}`}
+            type="primary"
+            data-testid="strategy-compare"
+          >
             {t('strategy.versions.compare')}
           </OmaLinkButton>
         ) : null}

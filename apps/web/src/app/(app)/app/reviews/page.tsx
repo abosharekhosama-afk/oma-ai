@@ -159,10 +159,7 @@ export default function ReviewsPage() {
                         </span>
                       </div>
                     </div>
-                    <Button
-                      type="default"
-                      data-testid={`demo-review-open-${d.id}`}
-                    >
+                    <Button type="default" data-testid={`demo-review-open-${d.id}`}>
                       {t('demo.reviews.openReview')}
                     </Button>
                   </Link>

@@ -62,7 +62,11 @@ export default function TeamPage() {
         title={t('demo.team.title')}
         description={t('demo.team.subtitle')}
         actions={
-          <OmaLinkButton href="/app/company/members" type="default" data-testid="demo-team-members-link">
+          <OmaLinkButton
+            href="/app/company/members"
+            type="default"
+            data-testid="demo-team-members-link"
+          >
             {t('demo.teamInviteLink')}
           </OmaLinkButton>
         }

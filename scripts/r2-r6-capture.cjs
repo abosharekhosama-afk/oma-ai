@@ -46,8 +46,12 @@ function ensure(dir) {
 
 async function integrity(page) {
   return page.evaluate(() => {
-    const broken = [...document.images].filter((i) => i.complete && i.naturalWidth === 0 && i.src).length;
-    const nextDev = !!document.querySelector('#__next-build-watcher, [data-nextjs-toast], nextjs-portal');
+    const broken = [...document.images].filter(
+      (i) => i.complete && i.naturalWidth === 0 && i.src,
+    ).length;
+    const nextDev = !!document.querySelector(
+      '#__next-build-watcher, [data-nextjs-toast], nextjs-portal',
+    );
     const overflowX = document.body.scrollWidth > document.body.clientWidth + 1;
     const clipped = [
       ...document.querySelectorAll(
@@ -162,10 +166,16 @@ async function main() {
     document.cookie = 'oma_locale=ar; path=/';
   });
   await page.goto(`${OMA}/app`, { waitUntil: 'domcontentloaded', timeout: 60000 });
-  await page.screenshot({ path: path.join(OUT, 'oma-after/shell-ar-rtl-1440.png'), fullPage: false });
+  await page.screenshot({
+    path: path.join(OUT, 'oma-after/shell-ar-rtl-1440.png'),
+    fullPage: false,
+  });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`${OMA}/app`, { waitUntil: 'domcontentloaded', timeout: 60000 });
-  await page.screenshot({ path: path.join(OUT, 'oma-after/shell-ar-rtl-390.png'), fullPage: false });
+  await page.screenshot({
+    path: path.join(OUT, 'oma-after/shell-ar-rtl-390.png'),
+    fullPage: false,
+  });
 
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.evaluate(() => {
@@ -239,7 +249,14 @@ async function main() {
   };
   fs.writeFileSync(path.join(META, 'capture-summary.json'), JSON.stringify(meta, null, 2));
   fs.writeFileSync(path.join(OUT, 'capture-summary.json'), JSON.stringify(meta, null, 2));
-  console.log('\n' + JSON.stringify({ ok: true, routeCoverage: meta.routeCoveragePercent, summary, planable }, null, 2));
+  console.log(
+    '\n' +
+      JSON.stringify(
+        { ok: true, routeCoverage: meta.routeCoveragePercent, summary, planable },
+        null,
+        2,
+      ),
+  );
   await browser.close();
 }
 

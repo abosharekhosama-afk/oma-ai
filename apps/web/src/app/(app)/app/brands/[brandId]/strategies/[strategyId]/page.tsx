@@ -154,7 +154,10 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
       {latest?.missing_source ? (
         <div className="oma-panel" role="status" data-testid="strategy-missing-profile">
           <p>{t('strategy.warning.missingProfile')}</p>
-          <OmaLinkButton href={`/app/brands/${brandId}/strategies/${strategyId}/edit`} type="primary">
+          <OmaLinkButton
+            href={`/app/brands/${brandId}/strategies/${strategyId}/edit`}
+            type="primary"
+          >
             {t('strategy.nav.foundation')}
           </OmaLinkButton>
         </div>
@@ -182,7 +185,10 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
             {t('strategy.overview.archive')}
           </Button>
         ) : null}
-        <OmaLinkButton href={`/app/brands/${brandId}/strategies/${strategyId}/review`} type="primary">
+        <OmaLinkButton
+          href={`/app/brands/${brandId}/strategies/${strategyId}/review`}
+          type="primary"
+        >
           {t('strategy.nav.review')}
         </OmaLinkButton>
       </div>

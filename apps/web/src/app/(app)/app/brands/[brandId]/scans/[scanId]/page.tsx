@@ -243,7 +243,10 @@ export default function ScanDetailPage() {
             </Button>
           ) : null}
           {scan.profile_version_id ? (
-            <OmaLinkButton href={`/app/brands/${brandId}/profiles/${scan.profile_version_id}`} type="primary">
+            <OmaLinkButton
+              href={`/app/brands/${brandId}/profiles/${scan.profile_version_id}`}
+              type="primary"
+            >
               {t('brand.scan.viewProfile')}
             </OmaLinkButton>
           ) : null}

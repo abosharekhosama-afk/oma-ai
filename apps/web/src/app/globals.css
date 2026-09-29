@@ -855,5 +855,7 @@ a.oma-link-button {
 /* R2: Ant Design 6 overlay sections must stay opaque Planable surfaces */
 .ant-drawer-section,
 .ant-modal-container {
-  background: var(--oma-surface) !important; /* DOCUMENTED: AD6 section bg can inherit transparent */
+  background: var(
+    --oma-surface
+  ) !important; /* DOCUMENTED: AD6 section bg can inherit transparent */
 }

@@ -74,7 +74,11 @@ export default function StrategiesListPage() {
           <h2>{t('strategy.list.title')}</h2>
           <p className="oma-muted">{t('strategy.list.hint')}</p>
         </div>
-        <OmaLinkButton href={`/app/brands/${brandId}/strategies/new`} type="primary" data-testid="strategy-create">
+        <OmaLinkButton
+          href={`/app/brands/${brandId}/strategies/new`}
+          type="primary"
+          data-testid="strategy-create"
+        >
           {t('strategy.list.create')}
         </OmaLinkButton>
       </header>
@@ -131,7 +135,11 @@ export default function StrategiesListPage() {
                     </p>
                   </div>
                 </Link>
-                <OmaLinkButton href={`/app/brands/${brandId}/strategies/${row.id}`} type="primary" size="small">
+                <OmaLinkButton
+                  href={`/app/brands/${brandId}/strategies/${row.id}`}
+                  type="primary"
+                  size="small"
+                >
                   {t('home.action.open')}
                 </OmaLinkButton>
               </article>
