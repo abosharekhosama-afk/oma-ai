@@ -13,7 +13,11 @@ const OUT = path.join(ROOT, 'artifacts/oma-planable-forensic-parity/r2-r6');
 const META = path.join(ROOT, '.reference/008-oma-planable-forensic-parity/r2-r6');
 const OMA = process.env.OMA_BASE || 'http://127.0.0.1:3010';
 const EMAIL = process.env.OMA_REVIEW_EMAIL || 'review-owner-003@oma.local';
-const PASS = process.env.OMA_REVIEW_PASSWORD || 'ReviewOwner_003_ChangeMe!';
+const PASS = process.env.OMA_REVIEW_PASSWORD;
+if (!PASS) {
+  console.error('Set OMA_REVIEW_PASSWORD (do not commit secrets).');
+  process.exit(1);
+}
 
 const ROUTES = [
   { id: 'command-center', path: '/app', feature: 'shell' },
