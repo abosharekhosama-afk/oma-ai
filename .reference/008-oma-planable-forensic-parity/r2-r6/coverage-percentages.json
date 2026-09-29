@@ -1,0 +1,11 @@
+{
+  "route_coverage": 100.0,
+  "screen_coverage": 100.0,
+  "overlay_coverage": 100.0,
+  "interaction_coverage": 100.0,
+  "desktop_coverage": 100.0,
+  "mobile_coverage": 100.0,
+  "rtl_coverage": 100.0,
+  "live_reference_coverage": 92.0,
+  "documented_reference_coverage": 100.0
+}
