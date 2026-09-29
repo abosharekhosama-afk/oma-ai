@@ -21,6 +21,11 @@
 }
 
 .oma-filter-sheet-trigger {
+  display: inline-flex;
+}
+
+/* R4: Planable progressive disclosure — search + Filters CTA; full controls in sheet */
+.oma-stage3-toolbar .oma-filter-desktop {
   display: none;
 }
 

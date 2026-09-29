@@ -607,7 +607,7 @@ export default function ContentPage() {
           ]}
         />
       </label>
-      <label>
+      <label className="oma-filter-desktop">
         {t('demo.content.filter.approval')}
         <OmaSelect
           value={filters.approval}
@@ -716,8 +716,10 @@ export default function ContentPage() {
           type="default"
           onClick={() => setFilterSheet(true)}
           className="oma-filter-sheet-trigger"
+          data-testid="demo-content-open-filters"
         >
           {t('demo.content.openFilters')}
+          {filterCount > 0 ? ` (${filterCount})` : ''}
         </Button>
       </div>
 
