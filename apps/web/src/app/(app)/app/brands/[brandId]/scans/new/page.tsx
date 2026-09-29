@@ -1,4 +1,5 @@
 'use client';
+import { OmaLinkButton } from '../../../../../../../components/ui/oma-link-button';
 import { Button, CheckboxField } from '@oma/ui/controls';
 
 import { FormEvent, useEffect, useState } from 'react';
@@ -82,9 +83,9 @@ export default function NewScanPage() {
       <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
         <div className="oma-card" role="status">
           <p>{t('brand.scan.noWebsite')}</p>
-          <Link href={`/app/brands/${brandId}/connect`} className="oma-btn">
+          <OmaLinkButton href={`/app/brands/${brandId}/connect`} type="primary">
             {t('brand.detail.connectCta')}
-          </Link>
+          </OmaLinkButton>
         </div>
       </BrandWorkspaceShell>
     );

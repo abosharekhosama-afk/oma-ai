@@ -1,4 +1,5 @@
 'use client';
+import { OmaLinkButton } from '../../../../../../components/ui/oma-link-button';
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -80,9 +81,9 @@ export default function BrandProfileVersionsPage() {
       ) : versions.length === 0 ? (
         <div className="oma-card" role="status">
           <p>{t('brand.versions.empty')}</p>
-          <Link href={`/app/brands/${brandId}/scans/new`} className="oma-btn">
+          <OmaLinkButton href={`/app/brands/${brandId}/scans/new`} type="primary">
             {t('brand.scan.start')}
-          </Link>
+          </OmaLinkButton>
         </div>
       ) : (
         <ul className="oma-discovery-list">

@@ -16,6 +16,7 @@ export default tseslint.config(
       '**/.reference/**',
       '**/next-env.d.ts',
       'scripts/capture-rebuild-*.mjs',
+      'scripts/r2-r6-capture.cjs',
       'scripts/reference/measure-planable-ui-ux.mjs',
       'scripts/reference/measure-planable-components.mjs',
       'scripts/ui/inventory-visual-primitives.mjs',

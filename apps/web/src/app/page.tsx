@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { OmaLinkButton } from '../components/ui/oma-link-button';
 import { cookies, headers } from 'next/headers';
 import { resolveLocale, t } from '@oma/i18n';
 
@@ -19,12 +19,12 @@ export default async function HomePage() {
       <p className="oma-muted">{t(locale, 'landing.tagline')}</p>
       <p className="oma-muted">{t(locale, 'app.endorsement')}</p>
       <div className="oma-form-actions">
-        <Link href="/login" className="oma-btn">
+        <OmaLinkButton href="/login" type="primary">
           {t(locale, 'auth.login')}
-        </Link>
-        <Link href="/register" className="oma-btn-secondary">
+        </OmaLinkButton>
+        <OmaLinkButton href="/register" type="default">
           {t(locale, 'auth.register')}
-        </Link>
+        </OmaLinkButton>
       </div>
     </main>
   );

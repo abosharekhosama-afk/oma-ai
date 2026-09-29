@@ -1,4 +1,5 @@
 'use client';
+import { OmaLinkButton } from '../ui/oma-link-button';
 import { Button } from '@oma/ui/controls';
 
 import Link from 'next/link';
@@ -137,9 +138,9 @@ export function GettingStartedChecklist({
         ))}
       </ol>
       <p className="oma-getting-started-next">
-        <Link href={next.href} className="oma-btn">
+        <OmaLinkButton href={next.href} type="primary">
           {t('home.gettingStarted.nextPrefix')}: {t(next.labelKey)}
-        </Link>
+        </OmaLinkButton>
       </p>
     </section>
   );

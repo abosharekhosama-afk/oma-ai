@@ -1,4 +1,5 @@
 'use client';
+import { OmaLinkButton } from '../../../../components/ui/oma-link-button';
 import { Button, Input, SelectField } from '@oma/ui/controls';
 
 import Link from 'next/link';
@@ -61,13 +62,9 @@ export default function TeamPage() {
         title={t('demo.team.title')}
         description={t('demo.team.subtitle')}
         actions={
-          <Link
-            href="/app/company/members"
-            className="oma-btn oma-btn-secondary"
-            data-testid="demo-team-members-link"
-          >
+          <OmaLinkButton href="/app/company/members" type="default" data-testid="demo-team-members-link">
             {t('demo.teamInviteLink')}
-          </Link>
+          </OmaLinkButton>
         }
       />
       <DemoDisclosure message={t('demo.team.workloadHonesty')} />

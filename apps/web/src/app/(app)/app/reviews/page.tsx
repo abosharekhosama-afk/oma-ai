@@ -1,4 +1,5 @@
 'use client';
+
 import { Button, Input } from '@oma/ui/controls';
 
 import Link from 'next/link';
@@ -158,12 +159,12 @@ export default function ReviewsPage() {
                         </span>
                       </div>
                     </div>
-                    <span
-                      className="oma-btn oma-btn-secondary"
+                    <Button
+                      type="default"
                       data-testid={`demo-review-open-${d.id}`}
                     >
                       {t('demo.reviews.openReview')}
-                    </span>
+                    </Button>
                   </Link>
                 );
               })}

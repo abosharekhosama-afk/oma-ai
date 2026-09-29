@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { OmaLinkButton } from '../ui/oma-link-button';
 import type { BrandListItem } from '../../lib/brand-types';
 import { brandAttention, brandPrimaryHref } from '../../lib/brand-attention';
 import { StatusChip } from '../ui/status-chip';
@@ -54,9 +55,9 @@ export function WorkspaceCard({ brand }: { brand: BrandListItem; compact?: boole
           </div>
         </div>
       </Link>
-      <Link href={brandPrimaryHref(brand)} className="oma-btn oma-btn--sm">
+      <OmaLinkButton href={brandPrimaryHref(brand)} type="primary" size="small">
         {brandActionLabel(t, brand)}
-      </Link>
+      </OmaLinkButton>
     </article>
   );
 }

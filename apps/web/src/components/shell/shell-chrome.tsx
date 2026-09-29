@@ -172,7 +172,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
               <CommandSearch compact />
             </div>
             <div className="oma-top-actions">
-              <Link href="/app/requests" className="oma-btn" data-testid="shell-create">
+              <Link href="/app/requests" data-testid="shell-create">
                 <ShellIcon name="plus" size={16} />
                 <span>{t('shell.create')}</span>
               </Link>

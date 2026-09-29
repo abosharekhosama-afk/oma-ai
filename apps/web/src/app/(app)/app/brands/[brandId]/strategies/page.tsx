@@ -1,4 +1,5 @@
 'use client';
+import { OmaLinkButton } from '../../../../../../components/ui/oma-link-button';
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -73,13 +74,9 @@ export default function StrategiesListPage() {
           <h2>{t('strategy.list.title')}</h2>
           <p className="oma-muted">{t('strategy.list.hint')}</p>
         </div>
-        <Link
-          href={`/app/brands/${brandId}/strategies/new`}
-          className="oma-btn"
-          data-testid="strategy-create"
-        >
+        <OmaLinkButton href={`/app/brands/${brandId}/strategies/new`} type="primary" data-testid="strategy-create">
           {t('strategy.list.create')}
-        </Link>
+        </OmaLinkButton>
       </header>
 
       {missingProfile ? (
@@ -98,9 +95,9 @@ export default function StrategiesListPage() {
           <EmptyState
             title={t('strategy.list.empty')}
             action={
-              <Link href={`/app/brands/${brandId}/strategies/new`} className="oma-btn">
+              <OmaLinkButton href={`/app/brands/${brandId}/strategies/new`} type="primary">
                 {t('strategy.list.create')}
-              </Link>
+              </OmaLinkButton>
             }
           />
         </div>
@@ -134,12 +131,9 @@ export default function StrategiesListPage() {
                     </p>
                   </div>
                 </Link>
-                <Link
-                  href={`/app/brands/${brandId}/strategies/${row.id}`}
-                  className="oma-btn oma-btn--sm"
-                >
+                <OmaLinkButton href={`/app/brands/${brandId}/strategies/${row.id}`} type="primary" size="small">
                   {t('home.action.open')}
-                </Link>
+                </OmaLinkButton>
               </article>
             ))}
           </div>

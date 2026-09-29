@@ -1,7 +1,7 @@
 'use client';
+import { OmaLinkButton } from '../../../../../../../components/ui/oma-link-button';
 import { Button } from '@oma/ui/controls';
 
-import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../../../../../../lib/api';
@@ -154,9 +154,9 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
       {latest?.missing_source ? (
         <div className="oma-panel" role="status" data-testid="strategy-missing-profile">
           <p>{t('strategy.warning.missingProfile')}</p>
-          <Link href={`/app/brands/${brandId}/strategies/${strategyId}/edit`} className="oma-btn">
+          <OmaLinkButton href={`/app/brands/${brandId}/strategies/${strategyId}/edit`} type="primary">
             {t('strategy.nav.foundation')}
-          </Link>
+          </OmaLinkButton>
         </div>
       ) : null}
 
@@ -182,9 +182,9 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
             {t('strategy.overview.archive')}
           </Button>
         ) : null}
-        <Link href={`/app/brands/${brandId}/strategies/${strategyId}/review`} className="oma-btn">
+        <OmaLinkButton href={`/app/brands/${brandId}/strategies/${strategyId}/review`} type="primary">
           {t('strategy.nav.review')}
-        </Link>
+        </OmaLinkButton>
       </div>
     </BrandWorkspaceShell>
   );

@@ -1,4 +1,5 @@
 'use client';
+import { OmaLinkButton } from '../../../../../../../components/ui/oma-link-button';
 import { Button, CheckboxField, SearchInput, SelectField } from '@oma/ui/controls';
 
 import Link from 'next/link';
@@ -133,9 +134,9 @@ export default function DiscoveryPagesPage() {
       {!scanId ? (
         <div className="oma-card" role="status">
           <p>{t('brand.discovery.noScan')}</p>
-          <Link href={`/app/brands/${brandId}/scans/new`} className="oma-btn">
+          <OmaLinkButton href={`/app/brands/${brandId}/scans/new`} type="primary">
             {t('brand.scan.start')}
-          </Link>
+          </OmaLinkButton>
         </div>
       ) : (
         <>

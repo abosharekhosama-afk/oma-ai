@@ -1,4 +1,5 @@
 'use client';
+import { OmaLinkButton } from '../../../components/ui/oma-link-button';
 
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
@@ -127,12 +128,12 @@ export default function AppHomePage() {
         actions={
           me?.active_tenant_id ? (
             <>
-              <Link href="/app/brands/new" className="oma-btn">
+              <OmaLinkButton href="/app/brands/new" type="primary">
                 {t('brand.list.create')}
-              </Link>
-              <Link href="/app/brands" className="oma-btn oma-btn-secondary">
+              </OmaLinkButton>
+              <OmaLinkButton href="/app/brands" type="default">
                 {t('home.viewPortfolio')}
-              </Link>
+              </OmaLinkButton>
             </>
           ) : null
         }
@@ -150,9 +151,9 @@ export default function AppHomePage() {
           title={t('home.noTenantTitle')}
           body={t('home.noTenantBody')}
           action={
-            <Link href="/app/onboarding" className="oma-btn">
+            <OmaLinkButton href="/app/onboarding" type="primary">
               {t('shell.emptyMembershipCta')}
-            </Link>
+            </OmaLinkButton>
           }
         />
       ) : denied ? (
@@ -185,9 +186,9 @@ export default function AppHomePage() {
                       title={t('brand.list.emptyTitle')}
                       body={t('brand.list.emptyBody')}
                       action={
-                        <Link href="/app/brands/new" className="oma-btn">
+                        <OmaLinkButton href="/app/brands/new" type="primary">
                           {t('brand.list.create')}
-                        </Link>
+                        </OmaLinkButton>
                       }
                     />
                   ) : (

@@ -1,4 +1,5 @@
 'use client';
+import { OmaLinkButton } from '../../../../../../../components/ui/oma-link-button';
 import { Button } from '@oma/ui/controls';
 
 import Link from 'next/link';
@@ -242,12 +243,9 @@ export default function ScanDetailPage() {
             </Button>
           ) : null}
           {scan.profile_version_id ? (
-            <Link
-              href={`/app/brands/${brandId}/profiles/${scan.profile_version_id}`}
-              className="oma-btn"
-            >
+            <OmaLinkButton href={`/app/brands/${brandId}/profiles/${scan.profile_version_id}`} type="primary">
               {t('brand.scan.viewProfile')}
-            </Link>
+            </OmaLinkButton>
           ) : null}
           <Link href={`/app/brands/${brandId}/discovery/pages`}>
             {t('brand.discovery.pagesTitle')}

@@ -1,4 +1,5 @@
 'use client';
+import { OmaLinkButton } from '../ui/oma-link-button';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -84,9 +85,9 @@ export function BrandWorkspaceShell({
           </div>
         </div>
         {nextStepHref && nextStepLabel ? (
-          <Link href={nextStepHref} className="oma-btn">
+          <OmaLinkButton href={nextStepHref} type="primary">
             {nextStepLabel}
-          </Link>
+          </OmaLinkButton>
         ) : null}
       </header>
       {journey && journey.length > 0 ? (

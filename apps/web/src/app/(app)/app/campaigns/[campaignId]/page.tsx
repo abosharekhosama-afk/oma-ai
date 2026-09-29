@@ -1,4 +1,5 @@
 'use client';
+import { OmaLinkButton } from '../../../../../components/ui/oma-link-button';
 import { Button } from '@oma/ui/controls';
 
 import Link from 'next/link';
@@ -155,12 +156,9 @@ export default function CampaignDetailPage() {
           }
           actions={
             <>
-              <Link
-                href={`/app/content?campaign=${campaignId}`}
-                className="oma-btn oma-btn-primary"
-              >
+              <OmaLinkButton href={`/app/content?campaign=${campaignId}`} type="primary">
                 {t('demo.content.title')}
-              </Link>
+              </OmaLinkButton>
               <Button type="default" onClick={() => setEditOpen(true)}>
                 {t('demo.campaign.edit')}
               </Button>
@@ -386,12 +384,9 @@ export default function CampaignDetailPage() {
                 <EmptyState
                   title={t('demo.empty')}
                   action={
-                    <Link
-                      href={`/app/content?campaign=${campaign.id}`}
-                      className="oma-btn oma-btn-primary"
-                    >
+                    <OmaLinkButton href={`/app/content?campaign=${campaign.id}`} type="primary">
                       {t('demo.content.create')}
-                    </Link>
+                    </OmaLinkButton>
                   }
                 />
               ) : (

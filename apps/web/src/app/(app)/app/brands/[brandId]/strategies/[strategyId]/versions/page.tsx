@@ -1,7 +1,7 @@
 'use client';
+import { OmaLinkButton } from '../../../../../../../../components/ui/oma-link-button';
 import { Button } from '@oma/ui/controls';
 
-import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../../../../../../../lib/api';
@@ -79,13 +79,9 @@ export default function StrategyVersionsPage() {
       <header className="oma-page-header">
         <h2>{t('strategy.versions.title')}</h2>
         {left && right ? (
-          <Link
-            href={`/app/brands/${brandId}/strategies/${strategyId}/versions/compare?leftId=${left}&rightId=${right}`}
-            className="oma-btn"
-            data-testid="strategy-compare"
-          >
+          <OmaLinkButton href={`/app/brands/${brandId}/strategies/${strategyId}/versions/compare?leftId=${left}&rightId=${right}`} type="primary" data-testid="strategy-compare">
             {t('strategy.versions.compare')}
-          </Link>
+          </OmaLinkButton>
         ) : null}
       </header>
       {error ? <p role="alert">{error}</p> : null}

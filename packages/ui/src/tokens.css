@@ -17,8 +17,8 @@
 
   /* Color — OMA_ADAPTATION (not isolated as LIVE hex this capture) */
   --oma-ink-subtle: rgba(51, 51, 51, 0.72);
-  --oma-muted: rgba(0, 0, 0, 0.45);
-  --oma-border: #e8e8e8;
+  --oma-muted: #5e6166;
+  --oma-border: #e2e3e5;
   --oma-border-strong: #d9d9d9;
   --oma-primary-soft: color-mix(in srgb, var(--oma-primary) 12%, #ffffff);
   --status-info: #2f6fdb;

@@ -72,6 +72,8 @@ export {
   Breadcrumb,
 };
 
+export type { ButtonProps, SelectProps };
+
 export const TextArea = Input.TextArea;
 
 export function IconButton({ label, ...props }: ButtonProps & { label: string }) {

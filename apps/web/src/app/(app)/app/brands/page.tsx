@@ -1,7 +1,7 @@
 'use client';
+import { OmaLinkButton } from '../../../../components/ui/oma-link-button';
 import { Button, SearchInput, SelectField } from '@oma/ui/controls';
 
-import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../../../../lib/api';
 import type { BrandListItem, Paginated } from '../../../../lib/brand-types';
@@ -81,9 +81,9 @@ export default function BrandsListPage() {
           <h1>{t('brand.list.title')}</h1>
           <p className="oma-muted">{t('brand.list.subtitle')}</p>
         </div>
-        <Link href="/app/brands/new" className="oma-btn">
+        <OmaLinkButton href="/app/brands/new" type="primary">
           {t('brand.list.create')}
-        </Link>
+        </OmaLinkButton>
       </header>
 
       <form
@@ -152,9 +152,9 @@ export default function BrandsListPage() {
           body={t('brand.list.emptyBody')}
           next={t('home.gettingStarted.brand')}
           action={
-            <Link href="/app/brands/new" className="oma-btn">
+            <OmaLinkButton href="/app/brands/new" type="primary">
               {t('brand.list.create')}
-            </Link>
+            </OmaLinkButton>
           }
         />
       ) : (
