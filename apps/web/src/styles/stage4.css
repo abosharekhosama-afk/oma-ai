@@ -136,6 +136,9 @@
   width: 100%;
   text-align: start;
   cursor: pointer;
+  height: auto;
+  min-height: 0;
+  box-sizing: border-box;
   transition:
     border-color var(--oma-motion-control) var(--oma-motion-control-ease),
     box-shadow var(--oma-motion-control) var(--oma-motion-control-ease);

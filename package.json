@@ -62,6 +62,7 @@
     "dev-os:test": "vitest run tests/dev-os",
     "dev-os:test-all": "vitest run tests/dev-os && node scripts/dev-os/cost/test-cost-routing.mjs && node scripts/dev-os/cost/test-auto-ledger.mjs && node scripts/dev-os/cost/token-waste-audit.mjs && node scripts/dev-os/golden/compare-golden-baseline.mjs && node scripts/dev-os/validate-development-os.mjs",
     "review:004": "bash scripts/review-004.sh",
+    "review:004:dev": "OMA_REVIEW_WEB_MODE=dev bash scripts/review-004.sh",
     "review:004:stop": "bash scripts/review-004-stop.sh"
   },
   "devDependencies": {

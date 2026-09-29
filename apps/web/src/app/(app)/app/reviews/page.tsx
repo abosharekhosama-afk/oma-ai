@@ -105,6 +105,7 @@ export default function ReviewsPage() {
           <div className="oma-review-tabs" role="tablist" data-testid="demo-review-tabs">
             {TABS.map((item) => (
               <Button
+                key={item}
                 type={tab === item ? 'primary' : 'default'}
                 aria-pressed={tab === item}
                 data-testid={`demo-review-tab-${item}`}

@@ -7,7 +7,16 @@ import { resolveContentWorkflow, type ApprovalPolicy, type DemoGraph } from '@om
 import { ContentFace, StatusMark, faceDisplay } from '../../../../components/content/content-card';
 import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
 import { TrackPill } from '../../../../components/demo/track-pill';
-import { Button, DatePicker, Input, OmaSelect, Segmented, Tabs, TextArea } from '@oma/ui/controls';
+import {
+  Button,
+  DatePicker,
+  Input,
+  OmaSelect,
+  Segmented,
+  SurfaceButton,
+  Tabs,
+  TextArea,
+} from '@oma/ui/controls';
 import dayjs from 'dayjs';
 import { Dialog } from '../../../../components/ui/dialog';
 import { Drawer } from '../../../../components/ui/drawer';
@@ -787,8 +796,8 @@ export default function ContentPage() {
               <p>{t('demo.content.savedEmpty')}</p>
             ) : (
               savedItems.map((item) => (
-                <Button
-                  type="default"
+                <SurfaceButton
+                  key={item.id}
                   data-testid={`demo-saved-item-${item.id}`}
                   data-selected={selectedId === item.id ? 'true' : 'false'}
                   onClick={() => openItem(item)}
@@ -805,7 +814,7 @@ export default function ContentPage() {
                     locale={locale}
                     selected={selectedId === item.id}
                   />
-                </Button>
+                </SurfaceButton>
               ))
             )}
           </aside>
@@ -842,6 +851,7 @@ export default function ContentPage() {
           >
             {dateStripDays.map((key) => (
               <Button
+                key={key}
                 type="default"
                 data-selected={key === selectedDay ? 'true' : 'false'}
                 onClick={() => setSelectedDay(key)}
@@ -873,8 +883,8 @@ export default function ContentPage() {
                 >
                   <span className="oma-cal-daynum oma-ltr">{cell.date.getUTCDate()}</span>
                   {visible.map((item) => (
-                    <Button
-                      type="default"
+                    <SurfaceButton
+                      key={item.id}
                       data-status={item.status}
                       data-testid={`demo-cal-item-${item.id}`}
                       data-selected={selectedId === item.id ? 'true' : 'false'}
@@ -895,7 +905,7 @@ export default function ContentPage() {
                         locale={locale}
                         selected={selectedId === item.id}
                       />
-                    </Button>
+                    </SurfaceButton>
                   ))}
                   {extra > 0 ? (
                     <Button
@@ -927,8 +937,8 @@ export default function ContentPage() {
                 ) : (
                   <div className="oma-stack" style={{ marginTop: 8, gap: 6 }}>
                     {day.items.map((item) => (
-                      <Button
-                        type="default"
+                      <SurfaceButton
+                        key={item.id}
                         data-status={item.status}
                         data-testid={`demo-cal-item-${item.id}`}
                         onClick={() => openItem(item)}
@@ -939,7 +949,7 @@ export default function ContentPage() {
                           {pickCopy(item.title, locale)} · {item.channel} ·{' '}
                           {statusLabel(item.status, locale)}
                         </span>
-                      </Button>
+                      </SurfaceButton>
                     ))}
                   </div>
                 )}
@@ -952,8 +962,8 @@ export default function ContentPage() {
       {!loading && !unavailable && !error && filtered.length > 0 && view === 'feed' ? (
         <div className="oma-content-feed" data-testid="demo-content-feed">
           {filtered.map((item) => (
-            <Button
-              type="default"
+            <SurfaceButton
+              key={item.id}
               data-testid={`demo-content-card-${item.id}`}
               data-selected={selectedId === item.id ? 'true' : 'false'}
               onClick={() => openItem(item)}
@@ -992,7 +1002,7 @@ export default function ContentPage() {
                   {commentsForContent(tasks, deliverables, item.id).length}
                 </span>
               </div>
-            </Button>
+            </SurfaceButton>
           ))}
         </div>
       ) : null}
@@ -1025,8 +1035,8 @@ export default function ContentPage() {
             <span />
           </div>
           {sorted.map((item) => (
-            <Button
-              type="default"
+            <SurfaceButton
+              key={item.id}
               data-testid={`demo-content-card-${item.id}`}
               data-selected={selectedId === item.id ? 'true' : 'false'}
               onClick={() => openItem(item)}
@@ -1059,7 +1069,7 @@ export default function ContentPage() {
                 organicLabel={t('demo.organic')}
                 paidLabel={t('demo.paid')}
               />
-            </Button>
+            </SurfaceButton>
           ))}
         </div>
       ) : null}
@@ -1067,8 +1077,8 @@ export default function ContentPage() {
       {!loading && !unavailable && !error && filtered.length > 0 && view === 'grid' ? (
         <div className="oma-content-grid-stage3" data-testid="demo-content-grid">
           {filtered.map((item) => (
-            <Button
-              type="default"
+            <SurfaceButton
+              key={item.id}
               data-testid={`demo-content-card-${item.id}`}
               data-selected={selectedId === item.id ? 'true' : 'false'}
               onClick={() => openItem(item)}
@@ -1091,7 +1101,7 @@ export default function ContentPage() {
                   {item.scheduledAt ? item.scheduledAt.slice(0, 10) : '—'}
                 </span>
               </div>
-            </Button>
+            </SurfaceButton>
           ))}
         </div>
       ) : null}
@@ -1416,8 +1426,8 @@ export default function ContentPage() {
         <div className="oma-stack">
           <p className="oma-ltr oma-muted">{overflowDay}</p>
           {overflowItems.map((item) => (
-            <Button
-              type="default"
+            <SurfaceButton
+              key={item.id}
               data-status={item.status}
               data-testid={`demo-cal-item-${item.id}`}
               onClick={() => openItem(item)}
@@ -1427,7 +1437,7 @@ export default function ContentPage() {
               <span>
                 {pickCopy(item.title, locale)} · {statusLabel(item.status, locale)}
               </span>
-            </Button>
+            </SurfaceButton>
           ))}
         </div>
       </Dialog>

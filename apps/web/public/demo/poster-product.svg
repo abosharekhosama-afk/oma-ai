@@ -1,11 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350" role="img" aria-label="OMA product post  folded knit on a light table">
-  <rect width="1080" height="1350" fill="#F5F6F7"/>
-  <rect x="48" y="48" width="984" height="1254" rx="6" fill="#FFFFFF" stroke="#E8E8E8"/>
-  <rect x="96" y="120" width="888" height="780" rx="6" fill="#EDE6DC"/>
-  <rect x="220" y="280" width="640" height="420" rx="8" fill="#C4A484"/>
-  <rect x="280" y="340" width="520" height="80" rx="4" fill="#D9C7B0"/>
-  <rect x="280" y="460" width="360" height="80" rx="4" fill="#E8E0D4"/>
-  <text x="96" y="980" fill="#333333" font-family="system-ui, sans-serif" font-size="42" font-weight="600">Quiet knit, weekday cut</text>
-  <text x="96" y="1040" fill="#8C8C8C" font-family="system-ui, sans-serif" font-size="24">Product post · 4:5 · OMA demo media</text>
-  <rect x="96" y="1100" width="160" height="8" rx="4" fill="#1677FF"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350" role="img" aria-label="OMA product poster sample">
+<rect width="1080" height="1350" fill="#F5F6F7"/>
+<rect x="48" y="48" width="984" height="1254" rx="6" fill="#FFFFFF" stroke="#E8E8E8"/>
+<rect x="96" y="120" width="888" height="780" rx="6" fill="#EDE6DC"/>
+<rect x="220" y="280" width="640" height="420" rx="8" fill="#C4A484"/>
+<text x="540" y="1000" text-anchor="middle" fill="#333333" font-family="system-ui,sans-serif" font-size="40" font-weight="600">Product sample</text>
 </svg>

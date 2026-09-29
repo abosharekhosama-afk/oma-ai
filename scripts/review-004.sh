@@ -2,6 +2,9 @@
 # Local owner-preview launcher for Full Visual Product Certification (Stage 7).
 # Isolated DB: oma_ai_visual_cert_004 · Redis DB 3 · binding 127.0.0.1 only.
 # VISUAL_ACCEPTANCE remains PENDING_OWNER — prints OWNER_PREVIEW: READY only.
+#
+# Acceptance / certification must use a clean Next.js production build (`next start`).
+# Development: OMA_REVIEW_WEB_MODE=dev pnpm review:004   or   pnpm review:004:dev
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
@@ -32,6 +35,8 @@ export WORKER_HEALTH_PORT="${WORKER_HEALTH_PORT:-3002}"
 export WEB_BASE_URL="${WEB_BASE_URL:-http://127.0.0.1:${WEB_PORT}}"
 export WEB_ORIGIN="${WEB_ORIGIN:-$WEB_BASE_URL}"
 export API_PUBLIC_URL="${API_PUBLIC_URL:-http://127.0.0.1:${API_PORT}}"
+# production (default) | dev — acceptance must never use next dev
+export OMA_REVIEW_WEB_MODE="${OMA_REVIEW_WEB_MODE:-production}"
 
 # Dedicated visual certification database (never e2e / never production / never acceptance alias alone)
 export DATABASE_URL="${REVIEW_DATABASE_URL:-postgresql://burhanbakri@127.0.0.1:5432/oma_ai_visual_cert_004?schema=public}"
@@ -57,11 +62,26 @@ pick_port() {
   local preferred="$1"
   local alt="$2"
   if lsof -nP -iTCP:"$preferred" -sTCP:LISTEN >/dev/null 2>&1; then
-    local existing
+    local existing listener
     existing="$(lsof -nP -iTCP:"$preferred" -sTCP:LISTEN -t 2>/dev/null | head -1 || true)"
+    listener="$existing"
+    # Reuse preferred only when our recorded pid is the actual listener.
     if [[ -n "${existing}" ]] && [[ -f "$PID_DIR/api.pid" || -f "$PID_DIR/web.pid" || -f "$PID_DIR/worker.pid" ]]; then
-      echo "$preferred"
-      return
+      local ours=""
+      for name in api web worker; do
+        if [[ -f "$PID_DIR/${name}.pid" ]]; then
+          ours="$(cat "$PID_DIR/${name}.pid" 2>/dev/null || true)"
+          if [[ -n "$ours" && "$ours" == "$listener" ]]; then
+            echo "$preferred"
+            return
+          fi
+          # also accept child of recorded pid
+          if [[ -n "$ours" ]] && pgrep -P "$ours" 2>/dev/null | grep -qx "$listener"; then
+            echo "$preferred"
+            return
+          fi
+        fi
+      done
     fi
     echo "$alt"
   else
@@ -82,6 +102,7 @@ export OMA_REVIEW_SERVED_SHA="$SERVED_SHA"
 
 echo "==> OMA AI Full Visual Product Certification owner preview"
 echo "    Served SHA: $SERVED_SHA"
+echo "    Web mode:   $OMA_REVIEW_WEB_MODE"
 echo "    Database:   $DATABASE_URL"
 echo "    Redis:      $REDIS_URL"
 echo "    Prefix:     $BULLMQ_PREFIX"
@@ -120,7 +141,21 @@ start_bg() {
 
 start_bg api pnpm --filter @oma/api exec tsx src/main.ts
 start_bg worker env MAIL_PROVIDER=recording pnpm --filter @oma/worker exec tsx src/main.ts
-start_bg web pnpm --filter @oma/web exec next dev -p "$WEB_PORT" -H 127.0.0.1
+
+if [[ "$OMA_REVIEW_WEB_MODE" == "dev" ]]; then
+  echo "==> Web: next dev (development only — not for owner acceptance)"
+  start_bg web pnpm --filter @oma/web exec next dev -p "$WEB_PORT" -H 127.0.0.1
+else
+  echo "==> Web: clean production build + next start"
+  unset NEXT_DIST_DIR || true
+  # Force a real production build even if .env exports NODE_ENV=development
+  if [[ "${OMA_REVIEW_SKIP_WEB_BUILD:-0}" != "1" ]]; then
+    env NODE_ENV=production pnpm --filter @oma/web exec next build
+  else
+    echo "    skipping next build (OMA_REVIEW_SKIP_WEB_BUILD=1)"
+  fi
+  start_bg web env NODE_ENV=production pnpm --filter @oma/web exec next start -p "$WEB_PORT" -H 127.0.0.1
+fi
 
 wait_http() {
   local url="$1"
@@ -128,7 +163,7 @@ wait_http() {
   local n=0
   until curl -sf "$url" >/dev/null 2>&1; do
     n=$((n + 1))
-    if [[ $n -gt 90 ]]; then
+    if [[ $n -gt 120 ]]; then
       echo "Timeout waiting for $label ($url)"
       echo "See $LOG_DIR"
       exit 1
@@ -146,6 +181,7 @@ echo ""
 echo "=============================================="
 echo " OMA_FULL_VISUAL_PRODUCT_PREVIEW: READY"
 echo " OWNER_PREVIEW: READY"
+echo " WEB_MODE: $OMA_REVIEW_WEB_MODE"
 echo " (VISUAL_ACCEPTANCE remains PENDING_OWNER)"
 echo " (USER_ACCEPTANCE remains PENDING)"
 echo "=============================================="

@@ -475,6 +475,9 @@
   cursor: pointer;
   font-size: var(--text-meta);
   line-height: var(--leading-meta);
+  height: auto;
+  min-height: 0;
+  box-sizing: border-box;
   transition: border-color var(--oma-motion-sidebar) var(--oma-motion-sidebar-ease);
 }
 

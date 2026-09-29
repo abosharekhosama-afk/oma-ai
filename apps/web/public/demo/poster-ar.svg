@@ -1,10 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080" role="img" aria-label="EF4H1 #HE' ('D91(J)  ED'-8) 'DE$33JF">
-  <rect width="1080" height="1080" fill="#F5F6F7"/>
-  <rect x="72" y="72" width="936" height="936" rx="6" fill="#FFFFFF" stroke="#E8E8E8"/>
-  <rect x="140" y="160" width="800" height="420" rx="6" fill="#EDE6DC"/>
-  <text x="940" y="340" text-anchor="end" fill="#333333" font-family="Noto Sans Arabic, system-ui, sans-serif" font-size="48" font-weight="600">F5EQE /HF '*5'D #HDK'</text>
-  <text x="940" y="410" text-anchor="end" fill="#8C8C8C" font-family="Noto Sans Arabic, system-ui, sans-serif" font-size="26">13'D) 'DE$33JF · EF4H1 91(J *,1J(J</text>
-  <rect x="760" y="460" width="180" height="8" rx="4" fill="#1677FF"/>
-  <text x="940" y="720" text-anchor="end" fill="#333333" font-family="Noto Sans Arabic, system-ui, sans-serif" font-size="28">GH1'J2HF #*JDJG</text>
-  <text x="940" y="770" text-anchor="end" fill="#8C8C8C" font-family="system-ui, sans-serif" font-size="20">OMA · EN/AR demo fixture</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080" role="img" aria-label="OMA Arabic poster sample">
+<rect width="1080" height="1080" fill="#F5F6F7"/>
+<rect x="72" y="72" width="936" height="936" rx="6" fill="#FFFFFF" stroke="#E8E8E8"/>
+<rect x="140" y="160" width="800" height="420" rx="6" fill="#EDE6DC"/>
+<text x="540" y="700" text-anchor="middle" fill="#333333" font-family="system-ui,sans-serif" font-size="42" font-weight="600">Arabic sample</text>
+<text x="540" y="760" text-anchor="middle" fill="#8C8C8C" font-family="system-ui,sans-serif" font-size="28">OMA demo media</text>
 </svg>

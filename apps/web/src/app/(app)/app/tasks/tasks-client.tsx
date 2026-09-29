@@ -4,7 +4,15 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { DemoGraph, DemoTaskStatus } from '@oma/demo';
-import { Button, Checkbox, DatePicker, Input, OmaSelect, SelectField } from '@oma/ui/controls';
+import {
+  Button,
+  Checkbox,
+  DatePicker,
+  Input,
+  OmaSelect,
+  SelectField,
+  SurfaceButton,
+} from '@oma/ui/controls';
 import dayjs from 'dayjs';
 import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
 import { Dialog } from '../../../../components/ui/dialog';
@@ -546,8 +554,7 @@ export default function TasksPage() {
               <ul className="oma-task-mobile" aria-label={t('demo.tasks.title')}>
                 {filtered.map((task) => (
                   <li key={task.id}>
-                    <Button
-                      type="default"
+                    <SurfaceButton
                       onClick={() => openTask(task.id)}
                       className="oma-task-mobile-card"
                     >
@@ -556,7 +563,7 @@ export default function TasksPage() {
                       <span className="oma-muted">
                         {task.assignee} · {task.dueAt}
                       </span>
-                    </Button>
+                    </SurfaceButton>
                   </li>
                 ))}
               </ul>

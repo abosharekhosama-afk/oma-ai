@@ -296,6 +296,10 @@
   padding: 0;
   font: inherit;
   color: inherit;
+  height: auto;
+  min-height: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .oma-content-card-stage3:hover,
@@ -343,6 +347,9 @@
   color: inherit;
   cursor: pointer;
   width: 100%;
+  height: auto;
+  min-height: 0;
+  box-sizing: border-box;
 }
 
 .oma-content-feed-item:last-child {
@@ -412,6 +419,9 @@
   font: inherit;
   color: inherit;
   cursor: pointer;
+  height: auto;
+  min-height: 0;
+  box-sizing: border-box;
 }
 
 .oma-content-list-row:hover,
@@ -682,6 +692,7 @@
   align-items: center;
   width: 100%;
   min-height: 22px;
+  height: auto;
   padding: 2px 4px;
   border: 1px solid var(--oma-border);
   border-radius: var(--oma-radius-control);
@@ -692,6 +703,7 @@
   text-align: start;
   cursor: pointer;
   color: inherit;
+  box-sizing: border-box;
 }
 
 .oma-cal-item[data-status='IN_REVIEW'] {

@@ -78,6 +78,23 @@ export function IconButton({ label, ...props }: ButtonProps & { label: string })
   return <Button type="text" aria-label={label} {...props} />;
 }
 
+/**
+ * Content-surface press target (cards, list rows, feed items, calendar tiles).
+ * Uses a native button so Ant Design controlHeight does not clip media or multi-line rows.
+ */
+export function SurfaceButton({
+  className,
+  children,
+  type = 'button',
+  ...props
+}: ComponentProps<'button'>) {
+  return (
+    <button type={type} className={className} {...props}>
+      {children}
+    </button>
+  );
+}
+
 export function OmaSelect({
   value,
   onChange,

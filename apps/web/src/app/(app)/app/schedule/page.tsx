@@ -1,5 +1,5 @@
 'use client';
-import { Button, DateField, Input, SelectField } from '@oma/ui/controls';
+import { Button, DateField, Input, SelectField, SurfaceButton } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -348,8 +348,8 @@ export default function SchedulePage() {
                 >
                   <div className="oma-sched-day-label">{day}</div>
                   {(byDay.get(day) ?? []).map((post) => (
-                    <Button
-                      type="default"
+                    <SurfaceButton
+                      key={post.id}
                       data-state={post.state}
                       data-testid={`demo-sched-item-${post.id}`}
                       onClick={() => openItem(post.id)}
@@ -364,7 +364,7 @@ export default function SchedulePage() {
                       <span data-testid={`demo-sched-bucket-${post.id}`}>
                         {t(`demo.schedule.bucket.${bucketForScheduleRow(post)}`)}
                       </span>
-                    </Button>
+                    </SurfaceButton>
                   ))}
                 </div>
               ))}
@@ -463,7 +463,11 @@ export default function SchedulePage() {
                   scheduleDayKey(p.plannedAt) <= days[6]!,
               )
               .map((post) => (
-                <Button type="default" onClick={() => openItem(post.id)} className="oma-sched-card">
+                <SurfaceButton
+                  key={post.id}
+                  onClick={() => openItem(post.id)}
+                  className="oma-sched-card"
+                >
                   <strong>{pickCopy(post.title, locale)}</strong>
                   <span className="oma-muted">{post.plannedAt}</span>
                   <StatusMark
@@ -471,7 +475,7 @@ export default function SchedulePage() {
                     locale={locale}
                   />
                   <span>{t(`demo.schedule.bucket.${bucketForScheduleRow(post)}`)}</span>
-                </Button>
+                </SurfaceButton>
               ))}
           </div>
         </>
