@@ -165,13 +165,19 @@ if [[ "$OMA_REVIEW_WEB_MODE" == "dev" ]]; then
 else
   echo "==> Web: clean production build + next start"
   unset NEXT_DIST_DIR || true
-  # Force a real production build even if .env exports NODE_ENV=development
+  # Force a real production build even if .env exports NODE_ENV=development.
+  # Bake rewrite destination to this review API port (never foreign 3001).
+  export API_PUBLIC_URL="http://127.0.0.1:${API_PORT}"
+  export WEB_BASE_URL="http://127.0.0.1:${WEB_PORT}"
+  export WEB_ORIGIN="$WEB_BASE_URL"
   if [[ "${OMA_REVIEW_SKIP_WEB_BUILD:-0}" != "1" ]]; then
-    env NODE_ENV=production pnpm --filter @oma/web exec next build
+    env NODE_ENV=production API_PUBLIC_URL="$API_PUBLIC_URL" WEB_BASE_URL="$WEB_BASE_URL" WEB_ORIGIN="$WEB_ORIGIN" \
+      pnpm --filter @oma/web exec next build
   else
     echo "    skipping next build (OMA_REVIEW_SKIP_WEB_BUILD=1)"
   fi
-  start_bg web env NODE_ENV=production pnpm --filter @oma/web exec next start -p "$WEB_PORT" -H 127.0.0.1
+  start_bg web env NODE_ENV=production API_PUBLIC_URL="$API_PUBLIC_URL" WEB_BASE_URL="$WEB_BASE_URL" WEB_ORIGIN="$WEB_ORIGIN" OMA_REVIEW_SERVED_SHA="$SERVED_SHA" \
+    pnpm --filter @oma/web exec next start -p "$WEB_PORT" -H 127.0.0.1
 fi
 
 wait_http() {
