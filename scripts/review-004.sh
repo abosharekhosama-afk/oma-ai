@@ -29,14 +29,26 @@ export OMA_ENV="${OMA_ENV:-development}"
 export MAIL_PROVIDER="${MAIL_PROVIDER:-recording}"
 export BRAND_FIXTURE_CONNECTOR="${BRAND_FIXTURE_CONNECTOR:-1}"
 export OMA_DEMO_MODE="${OMA_DEMO_MODE:-1}"
-export WEB_PORT="${WEB_PORT:-3000}"
-export API_PORT="${API_PORT:-3001}"
-export WORKER_HEALTH_PORT="${WORKER_HEALTH_PORT:-3002}"
+export WEB_PORT="${WEB_PORT:-3010}"
+export API_PORT="${API_PORT:-3011}"
+export WORKER_HEALTH_PORT="${WORKER_HEALTH_PORT:-3012}"
 export WEB_BASE_URL="${WEB_BASE_URL:-http://127.0.0.1:${WEB_PORT}}"
 export WEB_ORIGIN="${WEB_ORIGIN:-$WEB_BASE_URL}"
 export API_PUBLIC_URL="${API_PUBLIC_URL:-http://127.0.0.1:${API_PORT}}"
 # production (default) | dev — acceptance must never use next dev
 export OMA_REVIEW_WEB_MODE="${OMA_REVIEW_WEB_MODE:-production}"
+
+# Owner preview must never bind the foreign local apps on 3000/3100.
+# Ignore .env WEB_PORT/API_PORT when they point at reserved foreign ports.
+case "${WEB_PORT}" in
+  3000|3100) WEB_PORT=3010 ;;
+esac
+case "${API_PORT}" in
+  3001) API_PORT=3011 ;;
+esac
+case "${WORKER_HEALTH_PORT}" in
+  3002) WORKER_HEALTH_PORT=3012 ;;
+esac
 
 # Dedicated visual certification database (never e2e / never production / never acceptance alias alone)
 export DATABASE_URL="${REVIEW_DATABASE_URL:-postgresql://burhanbakri@127.0.0.1:5432/oma_ai_visual_cert_004?schema=public}"
@@ -89,6 +101,20 @@ pick_port() {
   fi
 }
 
+SERVED_SHA="$(git rev-parse HEAD)"
+export OMA_REVIEW_SERVED_SHA="$SERVED_SHA"
+
+echo "==> OMA AI Full Visual Product Certification owner preview"
+echo "    Served SHA: $SERVED_SHA"
+echo "    Note:       VISUAL_ACCEPTANCE=PENDING_OWNER · USER_ACCEPTANCE=PENDING"
+
+# Stop previous review listeners before port selection so we never reuse a foreign
+# process on preferred ports 3000/3001/3002 (e.g. another local app).
+if [[ -f "$ROOT/scripts/review-004-stop.sh" ]]; then
+  bash "$ROOT/scripts/review-004-stop.sh" || true
+fi
+rm -f "$PID_DIR"/*.pid
+
 API_PORT="$(pick_port "$API_PORT" 3011)"
 WEB_PORT="$(pick_port "$WEB_PORT" 3010)"
 WORKER_HEALTH_PORT="$(pick_port "$WORKER_HEALTH_PORT" 3012)"
@@ -97,20 +123,11 @@ export WEB_BASE_URL="http://127.0.0.1:${WEB_PORT}"
 export WEB_ORIGIN="$WEB_BASE_URL"
 export API_PUBLIC_URL="http://127.0.0.1:${API_PORT}"
 
-SERVED_SHA="$(git rev-parse HEAD)"
-export OMA_REVIEW_SERVED_SHA="$SERVED_SHA"
-
-echo "==> OMA AI Full Visual Product Certification owner preview"
-echo "    Served SHA: $SERVED_SHA"
 echo "    Web mode:   $OMA_REVIEW_WEB_MODE"
 echo "    Database:   $DATABASE_URL"
 echo "    Redis:      $REDIS_URL"
 echo "    Prefix:     $BULLMQ_PREFIX"
-echo "    Note:       VISUAL_ACCEPTANCE=PENDING_OWNER · USER_ACCEPTANCE=PENDING"
-
-if [[ -f "$ROOT/scripts/review-004-stop.sh" ]]; then
-  bash "$ROOT/scripts/review-004-stop.sh" || true
-fi
+echo "    Ports:      web=${WEB_PORT} api=${API_PORT} worker=${WORKER_HEALTH_PORT}"
 
 psql "postgresql://burhanbakri@127.0.0.1:5432/postgres" -v ON_ERROR_STOP=1 -c \
   "SELECT 1 FROM pg_database WHERE datname='oma_ai_visual_cert_004'" >/dev/null \
