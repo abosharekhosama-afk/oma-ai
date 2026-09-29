@@ -1,0 +1,14 @@
+{
+  "stage": "oma-planable-forensic-parity",
+  "startedFromSha": "96753384d5f8bfd633a51faadeddf3c41b98639e",
+  "planableAccess": "CDP_READY_AUTHENTICATED",
+  "previousVisualVerdict": "SUPERSEDED_BY_OWNER_EVIDENCE",
+  "r1": {
+    "surfaceButton": true,
+    "brokenSvgRewrite": true,
+    "productionPreviewLauncher": true,
+    "reviewsKeyFix": true
+  },
+  "rawEvidence": "artifacts/oma-planable-forensic-parity/",
+  "pii": "Planable workspace ids scrubbed from docs; screenshots remain gitignored"
+}
