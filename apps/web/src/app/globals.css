@@ -856,6 +856,16 @@ a.oma-link-button.ant-btn {
   border-radius: var(--oma-radius-control, 6px);
   box-sizing: border-box;
 }
+a.oma-link-button.ant-btn-primary {
+  background: var(--oma-primary);
+  color: var(--oma-primary-ink);
+  border-color: var(--oma-primary);
+}
+a.oma-link-button.ant-btn-default {
+  background: var(--oma-surface);
+  color: var(--oma-ink);
+  border: 1px solid var(--oma-border);
+}
 
 /* R2: Ant Design 6 overlay sections must stay opaque Planable surfaces */
 .ant-drawer-section,
