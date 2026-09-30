@@ -18,16 +18,13 @@ export async function openContentFilters(page: Page) {
 async function closeFilterSheet(page: Page, sheetTestId: string) {
   const sheet = page.getByTestId(sheetTestId);
   if (!(await sheet.isVisible().catch(() => false))) return;
-  const dialog = page.getByRole('dialog').filter({ has: sheet });
-  const confirm = dialog
-    .locator('.oma-dialog-footer .ant-btn-primary, .oma-dialog-footer button')
-    .first();
-  if (await confirm.isVisible().catch(() => false)) {
-    await confirm.click();
-  } else {
-    await page.keyboard.press('Escape');
-  }
-  await expect(sheet).toHaveCount(0);
+  // Dismiss Ant dropdown/picker overlays first.
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(150);
+  const confirm = page.locator('.ant-modal-body .oma-dialog-footer .ant-btn-primary').last();
+  await expect(confirm).toBeVisible({ timeout: 5_000 });
+  await confirm.click();
+  await expect(sheet).toHaveCount(0, { timeout: 10_000 });
 }
 
 export async function applyCampaignFilters(page: Page) {

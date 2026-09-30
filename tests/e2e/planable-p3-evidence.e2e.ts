@@ -194,8 +194,9 @@ test.describe('P3 Planable campaigns/content evidence pack', () => {
     await openContentFilters(page);
     await chooseOmaSelect(page, 'demo-content-filter-campaign', 'demo-campaign-organic');
     await applyContentFilters(page);
+    await expect(page.getByTestId('demo-content-filter-chips')).toBeVisible({ timeout: 10_000 });
     await shot('15-filter-chips', '/app/content', '1440x900', { viewType: 'filters' });
-    await page.getByRole('button', { name: 'Clear all', exact: true }).click();
+    await page.getByTestId('demo-content-filter-chips').getByRole('button').last().click();
     await page.getByTestId('demo-content-search').fill('zzzz-no-match');
     await shot('16-empty-state', '/app/content', '1440x900', { viewType: 'empty' });
 

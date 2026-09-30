@@ -853,6 +853,7 @@ a.oma-link-button.ant-btn {
   height: var(--oma-control-height, 32px);
   min-height: var(--oma-control-height, 32px);
   padding-inline: 15px;
+  border-radius: var(--oma-radius-control, 6px);
   box-sizing: border-box;
 }
 
