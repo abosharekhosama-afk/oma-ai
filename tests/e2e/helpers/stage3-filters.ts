@@ -15,22 +15,22 @@ export async function openContentFilters(page: Page) {
   await expect(sheet).toBeVisible({ timeout: 10_000 });
 }
 
-async function closeFilterSheet(page: Page, sheetTestId: string) {
+async function applyFilterSheet(page: Page, sheetTestId: string, applyTestId: string) {
   const sheet = page.getByTestId(sheetTestId);
   if (!(await sheet.isVisible().catch(() => false))) return;
-  // Dismiss Ant dropdown/picker overlays first.
-  await page.keyboard.press('Escape');
-  await page.waitForTimeout(150);
-  const confirm = page.locator('.ant-modal-body .oma-dialog-footer .ant-btn-primary').last();
-  await expect(confirm).toBeVisible({ timeout: 5_000 });
-  await confirm.click();
+  // Confirm via the Modal footer Apply control — never Escape first (closes/animates away).
+  const dialog = page.getByRole('dialog');
+  const apply = dialog.getByTestId(applyTestId);
+  await expect(apply).toBeVisible({ timeout: 5_000 });
+  await expect(apply).toBeEnabled();
+  await apply.click();
   await expect(sheet).toHaveCount(0, { timeout: 10_000 });
 }
 
 export async function applyCampaignFilters(page: Page) {
-  await closeFilterSheet(page, 'demo-campaign-filter-sheet');
+  await applyFilterSheet(page, 'demo-campaign-filter-sheet', 'demo-campaign-filter-apply');
 }
 
 export async function applyContentFilters(page: Page) {
-  await closeFilterSheet(page, 'demo-content-filter-sheet');
+  await applyFilterSheet(page, 'demo-content-filter-sheet', 'demo-content-filter-apply');
 }

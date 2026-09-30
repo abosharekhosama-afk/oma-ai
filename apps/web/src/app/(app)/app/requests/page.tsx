@@ -253,6 +253,7 @@ export default function RequestsPage() {
           <div className="oma-req-groups" role="tablist" data-testid="demo-request-groups">
             {GROUPS.map((g) => (
               <Button
+                key={g}
                 type={filters.group === g ? 'primary' : 'default'}
                 aria-pressed={filters.group === g}
                 data-testid={`demo-request-group-${g}`}

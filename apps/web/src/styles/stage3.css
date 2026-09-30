@@ -24,6 +24,24 @@
   display: inline-flex;
 }
 
+/* Filter sheet actions live in Modal footer (sticky below scrollable fields). */
+.oma-filter-sheet-footer {
+  width: 100%;
+  justify-content: flex-end;
+  margin: 0;
+  padding: 0;
+  border-top: 0;
+  background: transparent;
+}
+
+@media (max-width: 767px) {
+  .ant-modal .oma-filter-sheet-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+  }
+}
+
 /* R4: Planable progressive disclosure — search + Filters CTA; full controls in sheet */
 .oma-stage3-toolbar .oma-filter-desktop {
   display: none;

@@ -119,6 +119,7 @@ export default function SettingsPage() {
           <nav className="oma-settings-nav" aria-label={t('demo.settings.title')}>
             {sections.map((s) => (
               <Button
+                key={s}
                 type="default"
                 aria-current={section === s ? 'true' : undefined}
                 data-testid={`demo-settings-nav-${s}`}

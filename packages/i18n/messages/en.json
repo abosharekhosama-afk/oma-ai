@@ -339,6 +339,7 @@
   "demo.campaigns.emptyFiltered": "No campaigns match these filters.",
   "demo.campaigns.filters": "Filters",
   "demo.campaigns.openFilters": "Open filters",
+  "demo.filters.apply": "Apply",
   "demo.campaign.objective": "Objective",
   "demo.campaign.audience": "Audience",
   "demo.campaign.channels": "Channels",

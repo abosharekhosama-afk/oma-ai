@@ -204,6 +204,7 @@ export default function SchedulePage() {
           <div className="oma-stage5-tabs" role="tablist" data-testid="demo-schedule-views">
             {(['calendar', 'agenda', 'queue'] as ScheduleView[]).map((v) => (
               <Button
+                key={v}
                 type={view === v ? 'primary' : 'default'}
                 aria-pressed={view === v}
                 data-testid={`demo-schedule-view-${v}`}

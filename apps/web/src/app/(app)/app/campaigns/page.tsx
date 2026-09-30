@@ -552,14 +552,27 @@ export default function CampaignsPage() {
         open={filterSheet}
         title={t('demo.campaigns.filters')}
         onClose={() => setFilterSheet(false)}
+        footer={
+          <div className="oma-dialog-footer oma-filter-sheet-footer">
+            <Button
+              type="default"
+              onClick={() => setFilters(EMPTY_CAMPAIGN_FILTERS)}
+              data-testid="demo-campaign-filter-clear"
+            >
+              {t('demo.campaigns.clearFilters')}
+            </Button>
+            <Button
+              type="primary"
+              onClick={() => setFilterSheet(false)}
+              data-testid="demo-campaign-filter-apply"
+            >
+              {t('demo.filters.apply')}
+            </Button>
+          </div>
+        }
       >
         <div className="oma-composer-fields" data-testid="demo-campaign-filter-sheet">
           {advancedFilterFields}
-        </div>
-        <div className="oma-dialog-footer">
-          <Button type="primary" onClick={() => setFilterSheet(false)}>
-            {t('demo.create.confirm')}
-          </Button>
         </div>
       </Dialog>
 

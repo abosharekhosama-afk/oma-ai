@@ -152,6 +152,7 @@ export default function DeliverablesPage() {
           <div className="oma-deliv-groups" data-testid="demo-deliv-groups">
             {GROUPS.map((g) => (
               <Button
+                key={g}
                 type={filters.group === g ? 'primary' : 'default'}
                 aria-pressed={filters.group === g}
                 data-testid={`demo-deliv-group-${g}`}

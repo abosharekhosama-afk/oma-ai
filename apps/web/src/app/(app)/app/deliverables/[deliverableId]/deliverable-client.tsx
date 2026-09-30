@@ -482,6 +482,7 @@ export default function DeliverableDetailClient() {
                   <h3>{t('demo.deliverable.versions')}</h3>
                   {row.versions.map((v) => (
                     <Button
+                      key={v.id}
                       type="default"
                       aria-current={v.id === selectedVersion?.id ? 'true' : undefined}
                       data-testid={`demo-version-${v.id}`}
@@ -613,6 +614,7 @@ export default function DeliverableDetailClient() {
                   <div className="oma-chip-row">
                     {(['all', 'unresolved', 'resolved'] as CommentFilter[]).map((f) => (
                       <Button
+                        key={f}
                         type={commentFilter === f ? 'primary' : 'default'}
                         aria-pressed={commentFilter === f}
                         onClick={() => setCommentFilter(f)}

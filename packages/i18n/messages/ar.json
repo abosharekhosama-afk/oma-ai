@@ -339,6 +339,7 @@
   "demo.campaigns.emptyFiltered": "لا توجد حملات مطابقة لهذه الفلاتر.",
   "demo.campaigns.filters": "الفلاتر",
   "demo.campaigns.openFilters": "فتح الفلاتر",
+  "demo.filters.apply": "تطبيق",
   "demo.campaign.objective": "الهدف",
   "demo.campaign.audience": "الجمهور",
   "demo.campaign.channels": "القنوات",

@@ -204,6 +204,7 @@ export default function CampaignDetailPage() {
               ] as const
             ).map(([id, label]) => (
               <Button
+                key={id}
                 type="default"
                 role="tab"
                 aria-selected={tab === id}

@@ -1451,14 +1451,27 @@ export default function ContentPage() {
         open={filterSheet}
         title={t('demo.content.filters')}
         onClose={() => setFilterSheet(false)}
+        footer={
+          <div className="oma-dialog-footer oma-filter-sheet-footer">
+            <Button
+              type="default"
+              onClick={() => setFilters(EMPTY_CONTENT_FILTERS)}
+              data-testid="demo-content-filter-clear"
+            >
+              {t('demo.content.clearFilters')}
+            </Button>
+            <Button
+              type="primary"
+              onClick={() => setFilterSheet(false)}
+              data-testid="demo-content-filter-apply"
+            >
+              {t('demo.filters.apply')}
+            </Button>
+          </div>
+        }
       >
         <div className="oma-composer-fields" data-testid="demo-content-filter-sheet">
           {advancedFilterFields}
-        </div>
-        <div className="oma-dialog-footer">
-          <Button type="primary" onClick={() => setFilterSheet(false)}>
-            {t('demo.create.confirm')}
-          </Button>
         </div>
       </Dialog>
 
