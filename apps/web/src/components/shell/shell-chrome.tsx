@@ -2,6 +2,7 @@
 import { Button } from '@oma/ui/controls';
 
 import Link from 'next/link';
+import { OmaLinkButton } from '../ui/oma-link-button';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { Drawer } from '../ui/drawer';
@@ -172,10 +173,10 @@ export function ShellChrome({ children }: { children: ReactNode }) {
               <CommandSearch compact />
             </div>
             <div className="oma-top-actions">
-              <Link href="/app/requests" data-testid="shell-create">
+              <OmaLinkButton href="/app/requests" type="primary" data-testid="shell-create">
                 <ShellIcon name="plus" size={16} />
                 <span>{t('shell.create')}</span>
-              </Link>
+              </OmaLinkButton>
             </div>
           </header>
           <main id="main" className="oma-container">

@@ -1,5 +1,11 @@
 import { test, expect } from '@playwright/test';
 import { chooseOmaSelect } from './helpers/antd-select';
+import {
+  applyCampaignFilters,
+  applyContentFilters,
+  openCampaignFilters,
+  openContentFilters,
+} from './helpers/stage3-filters';
 import { installOwnerSession } from './helpers/brand-ui';
 
 const BLOCKED_HOSTS =
@@ -49,16 +55,24 @@ test.describe('Stage 3 Campaigns + Content visual rebuild', () => {
     await expect(page.getByTestId('demo-campaigns')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId('demo-campaign-filters')).toBeVisible();
 
+    await openCampaignFilters(page);
     await page.getByTestId('demo-campaign-filter-track').selectOption('ORGANIC');
+    await applyCampaignFilters(page);
     await expect(page.getByRole('link', { name: /Summer Organic Always-On/i })).toBeVisible();
     await expect(page.getByRole('link', { name: /Back-to-Work Paid Push/i })).toHaveCount(0);
 
+    await openCampaignFilters(page);
     await page.getByTestId('demo-campaign-filter-track').selectOption('PAID');
+    await applyCampaignFilters(page);
     await expect(page.getByRole('link', { name: /Back-to-Work Paid Push/i })).toBeVisible();
+    await openCampaignFilters(page);
     await page.getByTestId('demo-campaign-filter-track').selectOption('all');
     await page.getByTestId('demo-campaign-filter-status').selectOption('NEEDS_ATTENTION');
+    await applyCampaignFilters(page);
     await expect(page.getByRole('link', { name: /Review Bottleneck Sprint/i })).toBeVisible();
+    await openCampaignFilters(page);
     await page.getByTestId('demo-campaign-filter-status').selectOption('all');
+    await applyCampaignFilters(page);
 
     await page.getByTestId('demo-create-campaign').click();
     await expect(page.getByTestId('demo-create-campaign-dialog')).toBeVisible();
@@ -114,10 +128,12 @@ test.describe('Stage 3 Campaigns + Content visual rebuild', () => {
     await page.getByTestId('demo-content-view-grid').click();
     await expect(page.getByTestId('demo-content-grid')).toBeVisible();
 
+    await openContentFilters(page);
     await chooseOmaSelect(page, 'demo-content-filter-campaign', 'demo-campaign-organic');
-    await expect(page.getByTestId('demo-content-filter-chips')).toBeVisible();
     await chooseOmaSelect(page, 'demo-content-filter-channel', 'Instagram');
     await chooseOmaSelect(page, 'demo-content-filter-status', 'IN_REVIEW');
+    await applyContentFilters(page);
+    await expect(page.getByTestId('demo-content-filter-chips')).toBeVisible();
 
     await page.getByTestId('demo-content-card-demo-content-carousel').click();
     await expect(page.getByTestId('demo-content-drawer')).toBeVisible();

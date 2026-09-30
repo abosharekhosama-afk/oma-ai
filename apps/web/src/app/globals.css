@@ -843,13 +843,17 @@ body {
   }
 }
 
-/* R2: Next Link painted as Ant Button — no nested <button> */
-a.oma-link-button {
+/* R2: Next Link painted as Ant Button — no nested button element */
+a.oma-link-button.ant-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   text-decoration: none;
   gap: 8px;
+  height: var(--oma-control-height, 32px);
+  min-height: var(--oma-control-height, 32px);
+  padding-inline: 15px;
+  box-sizing: border-box;
 }
 
 /* R2: Ant Design 6 overlay sections must stay opaque Planable surfaces */

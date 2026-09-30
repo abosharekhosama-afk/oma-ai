@@ -517,17 +517,20 @@ export default function ContentPage() {
     [monthCells],
   );
 
-  const filterControls = (
+  const searchField = (
+    <label className="oma-stage3-search">
+      {t('demo.content.search')}
+      <Input
+        value={filters.query}
+        onChange={(e) => setFilters((f) => ({ ...f, query: e.target.value }))}
+        data-testid="demo-content-search"
+      />
+    </label>
+  );
+
+  const advancedFilterFields = (
     <>
-      <label className="oma-stage3-search">
-        {t('demo.content.search')}
-        <Input
-          value={filters.query}
-          onChange={(e) => setFilters((f) => ({ ...f, query: e.target.value }))}
-          data-testid="demo-content-search"
-        />
-      </label>
-      <label className="oma-filter-desktop">
+      <label>
         {t('demo.content.filter.campaign')}
         <OmaSelect
           value={filters.campaignId}
@@ -545,7 +548,7 @@ export default function ContentPage() {
           ]}
         />
       </label>
-      <label className="oma-filter-desktop">
+      <label>
         {t('demo.content.filter.brand')}
         <OmaSelect
           value={filters.brandId}
@@ -557,7 +560,7 @@ export default function ContentPage() {
           ]}
         />
       </label>
-      <label className="oma-filter-desktop">
+      <label>
         {t('demo.filter.channel')}
         <OmaSelect
           value={filters.channel}
@@ -569,7 +572,7 @@ export default function ContentPage() {
           ]}
         />
       </label>
-      <label className="oma-filter-desktop">
+      <label>
         {t('demo.content.filter.type')}
         <OmaSelect
           value={filters.contentType}
@@ -580,7 +583,7 @@ export default function ContentPage() {
           ]}
         />
       </label>
-      <label className="oma-filter-desktop">
+      <label>
         {t('demo.filter.status')}
         <OmaSelect
           value={filters.status}
@@ -592,7 +595,7 @@ export default function ContentPage() {
           ]}
         />
       </label>
-      <label className="oma-filter-desktop">
+      <label>
         {t('demo.content.filter.review')}
         <OmaSelect
           value={filters.review}
@@ -607,7 +610,7 @@ export default function ContentPage() {
           ]}
         />
       </label>
-      <label className="oma-filter-desktop">
+      <label>
         {t('demo.content.filter.approval')}
         <OmaSelect
           value={filters.approval}
@@ -622,7 +625,7 @@ export default function ContentPage() {
           ]}
         />
       </label>
-      <label className="oma-filter-desktop">
+      <label>
         {t('demo.content.filter.owner')}
         <OmaSelect
           value={filters.assignee}
@@ -633,7 +636,7 @@ export default function ContentPage() {
           ]}
         />
       </label>
-      <label className="oma-filter-desktop">
+      <label>
         {t('demo.content.filter.date')}
         <DatePicker
           value={filters.dateFrom ? dayjs(filters.dateFrom) : null}
@@ -646,7 +649,7 @@ export default function ContentPage() {
           allowClear
         />
       </label>
-      <label className="oma-filter-desktop">
+      <label>
         {t('demo.content.filter.date')}
         <DatePicker
           value={filters.dateTo ? dayjs(filters.dateTo) : null}
@@ -711,7 +714,7 @@ export default function ContentPage() {
       <DemoDisclosure message={t('demo.content.noPublishing')} />
 
       <div className="oma-stage3-toolbar" data-testid="demo-content-filters">
-        {filterControls}
+        {searchField}
         <Button
           type="default"
           onClick={() => setFilterSheet(true)}
@@ -1449,7 +1452,9 @@ export default function ContentPage() {
         title={t('demo.content.filters')}
         onClose={() => setFilterSheet(false)}
       >
-        <div className="oma-composer-fields">{filterControls}</div>
+        <div className="oma-composer-fields" data-testid="demo-content-filter-sheet">
+          {advancedFilterFields}
+        </div>
         <div className="oma-dialog-footer">
           <Button type="primary" onClick={() => setFilterSheet(false)}>
             {t('demo.create.confirm')}

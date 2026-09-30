@@ -141,6 +141,8 @@ test('A1 foundation visual and interaction evidence', async ({ page }, testInfo)
 
   await page.goto('/app/content');
   await expect(page.getByTestId('demo-content-filters')).toBeVisible();
+  await page.getByTestId('demo-content-open-filters').click();
+  await expect(page.getByTestId('demo-content-filter-sheet')).toBeVisible();
   const dateField = page.locator('.ant-picker').first();
   await expect(dateField).toBeVisible();
   await dateField.click();
@@ -151,6 +153,8 @@ test('A1 foundation visual and interaction evidence', async ({ page }, testInfo)
   await expect(page.locator('.ant-select-dropdown:not(.ant-select-dropdown-hidden)')).toBeVisible();
   shots.push(await probe(page, 'en-1440-dropdown', 'en'));
   await page.keyboard.press('Escape');
+  await page.keyboard.press('Escape');
+  await expect(page.getByTestId('demo-content-filter-sheet')).toHaveCount(0);
   await page.getByTestId('demo-create-content').click();
   await expect(page.getByTestId('demo-create-content-dialog')).toBeVisible();
   shots.push(await probe(page, 'en-1440-composer', 'en'));

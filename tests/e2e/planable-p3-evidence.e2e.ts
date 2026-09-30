@@ -3,6 +3,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { execSync } from 'node:child_process';
 import { chooseOmaSelect } from './helpers/antd-select';
+import { applyContentFilters, openContentFilters } from './helpers/stage3-filters';
 import { installOwnerSession } from './helpers/brand-ui';
 
 const OUT = join(process.cwd(), 'artifacts', 'planable-rebuild-004', 'p3-campaigns-content');
@@ -190,7 +191,9 @@ test.describe('P3 Planable campaigns/content evidence pack', () => {
     await expect(page.getByTestId('demo-content')).toBeVisible();
     await page.getByTestId('demo-content-view-list').click();
 
+    await openContentFilters(page);
     await chooseOmaSelect(page, 'demo-content-filter-campaign', 'demo-campaign-organic');
+    await applyContentFilters(page);
     await shot('15-filter-chips', '/app/content', '1440x900', { viewType: 'filters' });
     await page.getByRole('button', { name: 'Clear all', exact: true }).click();
     await page.getByTestId('demo-content-search').fill('zzzz-no-match');

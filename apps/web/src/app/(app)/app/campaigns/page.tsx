@@ -193,17 +193,20 @@ export default function CampaignsPage() {
     }
   }
 
-  const filterFields = (
+  const searchField = (
+    <label className="oma-stage3-search">
+      {t('demo.campaigns.search')}
+      <Input
+        value={filters.query}
+        onChange={(e) => setFilters((f) => ({ ...f, query: e.target.value }))}
+        data-testid="demo-campaign-search"
+      />
+    </label>
+  );
+
+  const advancedFilterFields = (
     <>
-      <label className="oma-stage3-search">
-        {t('demo.campaigns.search')}
-        <Input
-          value={filters.query}
-          onChange={(e) => setFilters((f) => ({ ...f, query: e.target.value }))}
-          data-testid="demo-campaign-search"
-        />
-      </label>
-      <label className="oma-filter-desktop">
+      <label>
         {t('demo.campaigns.filter.brand')}
         <SelectField
           value={filters.brandId}
@@ -218,7 +221,7 @@ export default function CampaignsPage() {
           ))}
         </SelectField>
       </label>
-      <label className="oma-filter-desktop">
+      <label>
         {t('demo.filter.status')}
         <SelectField
           value={filters.status}
@@ -233,7 +236,7 @@ export default function CampaignsPage() {
           ))}
         </SelectField>
       </label>
-      <label className="oma-filter-desktop">
+      <label>
         {t('demo.filter.track')}
         <SelectField
           value={filters.track}
@@ -245,7 +248,7 @@ export default function CampaignsPage() {
           <option value="PAID">{t('demo.paid')}</option>
         </SelectField>
       </label>
-      <label className="oma-filter-desktop">
+      <label>
         {t('demo.campaigns.filter.strategy')}
         <SelectField
           value={filters.strategyId}
@@ -259,7 +262,7 @@ export default function CampaignsPage() {
           ))}
         </SelectField>
       </label>
-      <label className="oma-filter-desktop">
+      <label>
         {t('demo.campaigns.filter.owner')}
         <SelectField
           value={filters.owner}
@@ -273,14 +276,14 @@ export default function CampaignsPage() {
           ))}
         </SelectField>
       </label>
-      <label className="oma-filter-desktop">
+      <label>
         {t('demo.campaigns.filter.from')}
         <DateField
           value={filters.startFrom}
           onChange={(e) => setFilters((f) => ({ ...f, startFrom: e.target.value }))}
         />
       </label>
-      <label className="oma-filter-desktop">
+      <label>
         {t('demo.campaigns.filter.to')}
         <DateField
           value={filters.endTo}
@@ -333,13 +336,15 @@ export default function CampaignsPage() {
       <DemoDisclosure />
 
       <div className="oma-stage3-toolbar" data-testid="demo-campaign-filters">
-        {filterFields}
+        {searchField}
         <Button
           type="default"
           onClick={() => setFilterSheet(true)}
           className="oma-filter-sheet-trigger"
+          data-testid="demo-campaign-open-filters"
         >
           {t('demo.campaigns.openFilters')}
+          {filterCount > 0 ? ` (${filterCount})` : ''}
         </Button>
       </div>
 
@@ -548,7 +553,9 @@ export default function CampaignsPage() {
         title={t('demo.campaigns.filters')}
         onClose={() => setFilterSheet(false)}
       >
-        <div className="oma-composer-fields">{filterFields}</div>
+        <div className="oma-composer-fields" data-testid="demo-campaign-filter-sheet">
+          {advancedFilterFields}
+        </div>
         <div className="oma-dialog-footer">
           <Button type="primary" onClick={() => setFilterSheet(false)}>
             {t('demo.create.confirm')}

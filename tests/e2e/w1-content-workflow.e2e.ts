@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { chooseOmaSelect } from './helpers/antd-select';
+import { applyContentFilters, openContentFilters } from './helpers/stage3-filters';
 import { installOwnerSession } from './helpers/brand-ui';
 
 test('W1 content views keep a dated draft unscheduled until Schedule', async ({
@@ -26,12 +27,15 @@ test('W1 content views keep a dated draft unscheduled until Schedule', async ({
     expect(box?.height ?? 0).toBeGreaterThanOrEqual(170);
     expect(box?.height ?? 0).toBeLessThanOrEqual(174);
   }
-  const approval = page.getByTestId('demo-content-filter-approval');
-  if (await approval.isVisible()) {
+  if (await page.getByTestId('demo-content-open-filters').isVisible()) {
+    await openContentFilters(page);
     await chooseOmaSelect(page, 'demo-content-filter-approval', 'PARTIALLY_APPROVED');
+    await applyContentFilters(page);
     await page.getByTestId('demo-content-view-list').click();
     await expect(page.getByTestId('demo-content-card-demo-content-carousel')).toBeVisible();
+    await openContentFilters(page);
     await chooseOmaSelect(page, 'demo-content-filter-approval', 'all');
+    await applyContentFilters(page);
     await page.getByTestId('demo-content-view-calendar').click();
   }
   await chooseOmaSelect(page, 'demo-content-approval-policy', 'OPTIONAL');
