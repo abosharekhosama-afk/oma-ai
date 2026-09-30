@@ -65,6 +65,8 @@ function classifyCss(file, rule) {
   ) {
     return 'REMOVE_DUPLICATE';
   }
+  // Next Link + Ant button classes (OmaLinkButton) — intentional R2 adapter surface.
+  if (/oma-link-button/.test(rule)) return 'DOCUMENTED_EXCEPTION';
   if (/\b(button|input|textarea|select)\b/.test(rule)) return 'MIGRATE';
   if (/kanban|calendar|chart|card|feed|row|pin|tab/.test(rule)) return 'KEEP_DOMAIN_SPECIFIC';
   return 'KEEP_LAYOUT_ONLY';
