@@ -1,3 +1,4 @@
+/* eslint-disable no-undef -- browser APIs run inside Playwright evaluate() */
 /**
  * Phase 4 — read-only Planable capture via OMA References CDP :9333.
  * Never mutates (no create/save/upload/approve/schedule/publish/settings).

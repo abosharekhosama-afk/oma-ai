@@ -1,3 +1,4 @@
+/* eslint-disable no-undef -- browser APIs run inside Playwright evaluate() */
 /** Shared settle protocol for PIXEL_LEVEL_REFERENCE_PARITY captures. */
 
 export async function settlePage(page, { networkIdleMs = 800 } = {}) {

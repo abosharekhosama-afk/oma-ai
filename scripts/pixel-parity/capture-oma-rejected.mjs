@@ -1,3 +1,4 @@
+/* eslint-disable no-undef -- browser APIs run inside Playwright evaluate() */
 /**
  * Phase 3 — capture rejected OMA baseline at production preview (PIXEL_LEVEL).
  * Requires: production next on 3010, OMA_REVIEW_PASSWORD or .review/pixel-parity.env
