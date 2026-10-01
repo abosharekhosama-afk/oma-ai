@@ -711,8 +711,8 @@ export default function ContentPage() {
           <>
             {/* Planable LIVE_VERIFIED: view switcher is a dropdown, not always-visible tabs. */}
             <div className="oma-view-menu" data-testid="demo-content-view-menu">
-              <button
-                type="button"
+              <Button
+                type="default"
                 className="oma-view-menu__trigger"
                 data-testid="demo-content-view-trigger"
                 aria-haspopup="menu"
@@ -726,13 +726,13 @@ export default function ContentPage() {
                 <span className="oma-view-menu__caret" aria-hidden>
                   ▾
                 </span>
-              </button>
+              </Button>
               {viewMenuOpen ? (
                 <ul className="oma-view-menu__list" role="menu">
                   {(['calendar', 'feed', 'grid', 'list'] as ContentViewMode[]).map((mode) => (
                     <li key={mode} role="none">
-                      <button
-                        type="button"
+                      <Button
+                        type="text"
                         role="menuitemradio"
                         aria-checked={view === mode}
                         data-testid={`demo-content-view-${mode}`}
@@ -747,7 +747,7 @@ export default function ContentPage() {
                           {view === mode ? '✓' : ''}
                         </span>
                         {t(`demo.view.${mode}`)}
-                      </button>
+                      </Button>
                     </li>
                   ))}
                 </ul>
@@ -861,8 +861,8 @@ export default function ContentPage() {
           <div className="oma-cal-main">
             <div className="oma-cal-toolbar">
               <div className="oma-cal-span" role="group" aria-label={t('demo.view.calendar')}>
-                <button
-                  type="button"
+                <Button
+                  type="text"
                   className="oma-cal-span__btn"
                   data-active={calSpan === 'month' ? 'true' : 'false'}
                   aria-pressed={calSpan === 'month'}
@@ -870,9 +870,9 @@ export default function ContentPage() {
                   onClick={() => setCalSpan('month')}
                 >
                   {t('demo.content.calMonth')}
-                </button>
-                <button
-                  type="button"
+                </Button>
+                <Button
+                  type="text"
                   className="oma-cal-span__btn"
                   data-active={calSpan === 'week' ? 'true' : 'false'}
                   aria-pressed={calSpan === 'week'}
@@ -880,38 +880,38 @@ export default function ContentPage() {
                   onClick={() => setCalSpan('week')}
                 >
                   {t('demo.content.calWeek')}
-                </button>
+                </Button>
               </div>
               <div className="oma-cal-nav">
-                <button
-                  type="button"
+                <Button
+                  type="default"
                   className="oma-cal-nav__btn"
                   aria-label={t('demo.content.prev')}
                   data-testid="demo-content-cal-prev"
                   onClick={() => shiftMonth(-1)}
                 >
                   ‹
-                </button>
+                </Button>
                 <strong className="oma-cal-month-label">
                   {monthLabel(cursor.year, cursor.monthIndex, locale)}
                 </strong>
-                <button
-                  type="button"
+                <Button
+                  type="default"
                   className="oma-cal-nav__btn"
                   aria-label={t('demo.content.next')}
                   data-testid="demo-content-cal-next"
                   onClick={() => shiftMonth(1)}
                 >
                   ›
-                </button>
-                <button
-                  type="button"
+                </Button>
+                <Button
+                  type="default"
                   className="oma-cal-nav__today"
                   data-testid="demo-content-cal-today"
                   onClick={goToday}
                 >
                   {t('demo.content.today')}
-                </button>
+                </Button>
                 {selectedDay ? (
                   <Button
                     type="default"
