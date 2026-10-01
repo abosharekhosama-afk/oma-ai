@@ -43,13 +43,19 @@ for (const row of rows) {
     console.error('PASS forbidden while ownerVisualReview=REJECTED', row.id);
     errors++;
   }
-  for (const key of ['planableScreenshot', 'omaBeforeScreenshot', 'omaAfterScreenshot', 'diff']) {
-    const p = row[key];
-    if (typeof p === 'string' && p && !fs.existsSync(path.join(ROOT, p)) && !fs.existsSync(p)) {
-      // Allow relative under artifacts
-      const alt = path.join(ROOT, 'artifacts/oma-planable-pixel-parity', p);
-      if (!fs.existsSync(alt) && !String(p).startsWith('PENDING')) {
-        console.error('file missing', row.id, key, p);
+  // Raw PNGs are gitignored under artifacts/. CI validates metadata contract only.
+  // File presence is required locally when verdict claims READY_FOR_OWNER_REVIEW.
+  if (row.verdict === 'READY_FOR_OWNER_REVIEW') {
+    for (const key of ['planableScreenshot', 'omaBeforeScreenshot', 'omaAfterScreenshot', 'diff']) {
+      const p = row[key];
+      if (typeof p !== 'string' || !p || p.startsWith('PENDING')) {
+        console.error('READY row missing path', row.id, key);
+        errors++;
+        continue;
+      }
+      const abs = path.isAbsolute(p) ? p : path.join(ROOT, p);
+      if (!fs.existsSync(abs)) {
+        console.error('READY row file missing', row.id, key, p);
         errors++;
       }
     }

@@ -974,7 +974,7 @@
       "sha": "e576570631b948c11b8a0a57d0d83614abd9e765",
       "shaShort": "e576570",
       "screenshot": "OMA-DELIVERABLES-deliverables-list-default-en-1440x900-e576570.png",
-      "url": "http://127.0.0.1:3010/app/deliverables",
+      "url": "http://127.0.0.1:3010/app/[workspace]",
       "consoleErrors": [],
       "brokenImages": 0,
       "geometry": {
