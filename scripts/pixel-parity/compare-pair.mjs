@@ -63,7 +63,8 @@ const report = {
   mismatchPixels: mismatch,
   mismatchPercent: Number(pct.toFixed(4)),
   sizeDelta: { ref: { w: ref.width, h: ref.height }, oma: { w: oma.width, h: oma.height } },
-  thresholdNote: '≤3% chrome mismatch after content-only normalization is a target, not an override for visible defects',
+  thresholdNote:
+    '≤3% chrome mismatch after content-only normalization is a target, not an override for visible defects',
   diff: path.basename(diffFile),
   heatmap: path.basename(heatFile),
 };

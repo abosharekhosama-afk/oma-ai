@@ -1,9 +1,11 @@
 /** Shared settle protocol for PIXEL_LEVEL_REFERENCE_PARITY captures. */
 
 export async function settlePage(page, { networkIdleMs = 800 } = {}) {
-  await page.waitForFunction(() => document.fonts?.status === 'loaded' || document.fonts?.ready, {
-    timeout: 15_000,
-  }).catch(() => {});
+  await page
+    .waitForFunction(() => document.fonts?.status === 'loaded' || document.fonts?.ready, {
+      timeout: 15_000,
+    })
+    .catch(() => {});
   await page.evaluate(async () => {
     if (document.fonts?.ready) await document.fonts.ready;
   });
@@ -13,7 +15,9 @@ export async function settlePage(page, { networkIdleMs = 800 } = {}) {
   await page
     .waitForFunction(
       () => {
-        const busy = document.querySelectorAll('[aria-busy="true"], .oma-skeleton, .ant-skeleton').length;
+        const busy = document.querySelectorAll(
+          '[aria-busy="true"], .oma-skeleton, .ant-skeleton',
+        ).length;
         return busy === 0;
       },
       { timeout: 15_000 },

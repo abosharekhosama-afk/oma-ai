@@ -51,7 +51,9 @@ async function measureCore(page) {
     };
     const byText = (re) =>
       [...document.querySelectorAll('button, a, [role="tab"], [role="button"]')].find((el) =>
-        re.test((el.getAttribute('aria-label') || el.textContent || '').replace(/\s+/g, ' ').trim()),
+        re.test(
+          (el.getAttribute('aria-label') || el.textContent || '').replace(/\s+/g, ' ').trim(),
+        ),
       );
     const nav = document.querySelector('nav, [class*="Sidebar"], [class*="sidebar"]');
     const main = document.querySelector('main, [role="main"]');
@@ -91,7 +93,10 @@ async function shot(page, { id, view, state, locale, width, height, note }) {
     timestamp: new Date().toISOString(),
     pii: 'path-scrubbed-no-workspace-ids-in-filename',
   };
-  fs.writeFileSync(path.join(META, `${file.replace(/\.png$/, '')}.json`), JSON.stringify(entry, null, 2));
+  fs.writeFileSync(
+    path.join(META, `${file.replace(/\.png$/, '')}.json`),
+    JSON.stringify(entry, null, 2),
+  );
   manifest.push(entry);
   console.log('ok', file, scrubUrl(page.url()));
 }
@@ -150,8 +155,7 @@ async function main() {
     console.error('CDP_NO_CONTEXT');
     process.exit(2);
   }
-  let page =
-    context.pages().find((p) => /app\.planable\.io/i.test(p.url())) ?? context.pages()[0];
+  let page = context.pages().find((p) => /app\.planable\.io/i.test(p.url())) ?? context.pages()[0];
   if (!page) {
     page = await context.newPage();
     await page.goto('https://app.planable.io/', { waitUntil: 'domcontentloaded' });

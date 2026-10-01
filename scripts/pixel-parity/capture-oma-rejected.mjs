@@ -106,7 +106,10 @@ async function capture(page, { id, route, view, state, locale, width, height }) 
     geometry,
     timestamp: new Date().toISOString(),
   };
-  fs.writeFileSync(path.join(META, `${file.replace(/\.png$/, '')}.json`), JSON.stringify(entry, null, 2));
+  fs.writeFileSync(
+    path.join(META, `${file.replace(/\.png$/, '')}.json`),
+    JSON.stringify(entry, null, 2),
+  );
   manifest.push(entry);
   console.log('ok', file);
   consoleErrors.length = 0;
@@ -164,7 +167,9 @@ async function main() {
         const btn = page.getByTestId('demo-content-open-filters');
         if (await btn.count()) {
           await btn.click();
-          const track = page.getByTestId('demo-content-filter-type').or(page.getByTestId('demo-content-filter-status'));
+          const track = page
+            .getByTestId('demo-content-filter-type')
+            .or(page.getByTestId('demo-content-filter-status'));
           if (await track.count()) {
             const opts = await track.locator('option').allTextContents();
             if (opts.length > 1) await track.selectOption({ index: 1 });
@@ -182,7 +187,9 @@ async function main() {
       state: 'composer-open',
       path: '/app/content?view=calendar',
       after: async () => {
-        const create = page.getByTestId('demo-create-content').or(page.getByRole('button', { name: /create content/i }));
+        const create = page
+          .getByTestId('demo-create-content')
+          .or(page.getByRole('button', { name: /create content/i }));
         if (await create.count()) await create.first().click();
       },
     },
@@ -286,8 +293,18 @@ async function main() {
     });
   }
 
-  fs.writeFileSync(path.join(META, 'manifest.json'), JSON.stringify({ sha: FULL_SHA, count: manifest.length, items: manifest }, null, 2));
-  fs.writeFileSync(path.join(OUT, 'manifest.json'), JSON.stringify({ sha: FULL_SHA, count: manifest.length, items: manifest.map((m) => m.screenshot) }, null, 2));
+  fs.writeFileSync(
+    path.join(META, 'manifest.json'),
+    JSON.stringify({ sha: FULL_SHA, count: manifest.length, items: manifest }, null, 2),
+  );
+  fs.writeFileSync(
+    path.join(OUT, 'manifest.json'),
+    JSON.stringify(
+      { sha: FULL_SHA, count: manifest.length, items: manifest.map((m) => m.screenshot) },
+      null,
+      2,
+    ),
+  );
   console.log('DONE', manifest.length, 'captures sha', SHA);
   await browser.close();
 }
