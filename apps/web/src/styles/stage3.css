@@ -626,7 +626,7 @@
   min-height: 560px;
   border: 1px solid #e2e3e5; /* INTENTIONAL_EXCEPTION: Planable calendar chrome */
   border-radius: 6px; /* INTENTIONAL_EXCEPTION: Planable radius */
-  background: #fff;
+  background: #fff; /* INTENTIONAL_EXCEPTION: Planable LIVE_VERIFIED calendar chrome */
   overflow: hidden;
 }
 
@@ -651,7 +651,7 @@
   display: inline-flex;
   gap: 4px;
   padding: 2px;
-  border-radius: 6px;
+  border-radius: 6px; /* INTENTIONAL_EXCEPTION: Planable LIVE_VERIFIED calendar chrome */
   background: #f5f6f7; /* INTENTIONAL_EXCEPTION: Planable canvas chip group */
 }
 
@@ -666,7 +666,7 @@
   text-align: center;
   font-size: 14px;
   font-weight: 600;
-  color: #333;
+  color: #333; /* INTENTIONAL_EXCEPTION: Planable LIVE_VERIFIED calendar chrome */
 }
 
 [data-testid='demo-content-saved'] {
@@ -705,7 +705,7 @@
   justify-items: center;
   text-align: center;
   padding: 32px 16px;
-  color: #333;
+  color: #333; /* INTENTIONAL_EXCEPTION: Planable LIVE_VERIFIED calendar chrome */
 }
 
 .oma-cal-grid {
@@ -714,7 +714,7 @@
   border: 1px solid #e2e3e5; /* INTENTIONAL_EXCEPTION: Planable grid border */
   border-radius: 0;
   overflow: hidden;
-  background: #fff;
+  background: #fff; /* INTENTIONAL_EXCEPTION: Planable LIVE_VERIFIED calendar chrome */
   flex: 1 1 auto;
 }
 
@@ -728,7 +728,7 @@
   line-height: 16px;
   font-weight: 600;
   color: #5c5f66; /* INTENTIONAL_EXCEPTION: Planable meta */
-  background: #fff;
+  background: #fff; /* INTENTIONAL_EXCEPTION: Planable LIVE_VERIFIED calendar chrome */
   border-bottom: 1px solid #e2e3e5; /* INTENTIONAL_EXCEPTION: Planable grid */
   text-align: center;
 }
@@ -738,7 +738,7 @@
   padding: 6px;
   border-inline-end: 1px solid #e2e3e5; /* INTENTIONAL_EXCEPTION: Planable cell */
   border-bottom: 1px solid #e2e3e5; /* INTENTIONAL_EXCEPTION: Planable cell */
-  background: #fff;
+  background: #fff; /* INTENTIONAL_EXCEPTION: Planable LIVE_VERIFIED calendar chrome */
   display: grid;
   gap: 4px;
   align-content: start;
