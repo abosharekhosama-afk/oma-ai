@@ -1,0 +1,91 @@
+---
+description: Binding pixel-level Planable visual parity method — screenshots, geometry, diffs required; no PASS while Owner review is rejected.
+alwaysApply: true
+---
+
+# PIXEL_LEVEL_REFERENCE_PARITY
+
+Binding method for all OMA visual / UI / UX parity work against Planable (`DEC-017`). Supersedes auditor text-only or inventory-only visual PASS claims.
+
+## 1. Invalid evidence for visual PASS
+
+A page **cannot** pass from any of:
+
+- CSS token inspection alone
+- component inventory alone
+- unit tests alone
+- route availability alone
+- DOM class names alone
+- an auditor’s text-only verdict alone
+
+## 2. Required evidence per visible surface
+
+Every visible surface requires:
+
+1. Planable reference screenshot (or `OFFICIAL_DOC_REFERENCE` / `OMA_ADAPTATION` with closest grammar)
+2. OMA rejected/before screenshot
+3. OMA after screenshot
+4. Comparable component crops
+5. Measured geometry (JSON)
+6. Interaction proof
+7. Visual diff / heatmap
+8. Final human-readable verdict
+
+## 3. OMA-only functionality
+
+When OMA has no direct Planable screen:
+
+- Map to Planable’s closest component and interaction grammar
+- Label `OMA_ADAPTATION`
+- Still provide screenshots and measurements
+
+## 4. Owner review gate
+
+**No visual status may become PASS while Owner review is rejected.**
+
+Allowed labels while Owner has rejected: `NOT_PASS`, `REVOKED_BY_OWNER`, `READY_FOR_OWNER_REVIEW`, `PENDING_OWNER`, `REJECTED`.
+
+## 5. Screenshot validity
+
+Screenshot evidence must use:
+
+- production Web build (`next start`, not `next dev`)
+- loaded fonts (`document.fonts.ready`)
+- stable seeded data
+- completed relevant network requests
+- settled animations
+- exact target viewport
+- zoom 100%, consistent device scale
+- no DevTools / terminal overlay on the capture viewport
+- no development badge
+
+## 6. Invalid screenshots
+
+Screenshots from any of the following are **invalid**:
+
+- `next dev`
+- loading / skeleton frames
+- broken assets
+- unstable animation frames
+
+## 7. Capture roots (gitignored raw media)
+
+- OMA rejected: `artifacts/oma-planable-pixel-parity/oma-rejected/`
+- Planable reference: `artifacts/oma-planable-pixel-parity/planable-reference/`
+- OMA after + diffs: `artifacts/oma-planable-pixel-parity/`
+- Scrubbed metadata: `.reference/009-planable-pixel-parity/`
+
+Filenames must include evidence ID, route, view, state, locale, viewport, SHA.
+
+## 8. Geometry / pixel targets (LIVE_VERIFIED)
+
+Comparable component targets after content-only normalization:
+
+- geometry / spacing delta ≤ 2px
+- radius exact where LIVE_VERIFIED
+- control height exact
+- reference colors exact
+- typography size / line-height exact
+- chrome pixel mismatch ≤ 3%
+
+A numeric threshold alone does **not** override an obvious visible defect.

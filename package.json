@@ -63,7 +63,11 @@
     "dev-os:test-all": "vitest run tests/dev-os && node scripts/dev-os/cost/test-cost-routing.mjs && node scripts/dev-os/cost/test-auto-ledger.mjs && node scripts/dev-os/cost/token-waste-audit.mjs && node scripts/dev-os/golden/compare-golden-baseline.mjs && node scripts/dev-os/validate-development-os.mjs",
     "review:004": "bash scripts/review-004.sh",
     "review:004:dev": "OMA_REVIEW_WEB_MODE=dev bash scripts/review-004.sh",
-    "review:004:stop": "bash scripts/review-004-stop.sh"
+    "review:004:stop": "bash scripts/review-004-stop.sh",
+    "ui:pixel-capture-oma-rejected": "node scripts/pixel-parity/capture-oma-rejected.mjs",
+    "ui:pixel-capture-planable": "node scripts/pixel-parity/capture-planable-reference.mjs",
+    "ui:pixel-compare": "node scripts/pixel-parity/compare-pair.mjs",
+    "ui:pixel-parity-coverage": "node scripts/pixel-parity/validate-coverage.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
@@ -78,6 +82,8 @@
     "dotenv": "^17.4.2",
     "eslint": "^9.22.0",
     "ioredis": "^5.5.0",
+    "pixelmatch": "^7.2.0",
+    "pngjs": "^7.0.0",
     "prettier": "^3.5.3",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
