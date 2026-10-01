@@ -478,7 +478,9 @@
 
 .oma-post-card--calendar,
 .oma-post-card--saved {
-  width: 126px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   box-sizing: border-box;
   padding: 6px;
   border: 1px solid #e2e3e5; /* INTENTIONAL_EXCEPTION: live Planable card border */
@@ -490,7 +492,11 @@
 }
 
 .oma-post-card--calendar {
-  min-height: 172px;
+  min-height: 120px;
+}
+
+.oma-post-card--saved {
+  width: 100%;
 }
 
 .oma-post-card--calendar:hover,
@@ -735,6 +741,7 @@
 
 .oma-cal-cell {
   min-height: 110px;
+  min-width: 0;
   padding: 6px;
   border-inline-end: 1px solid #e2e3e5; /* INTENTIONAL_EXCEPTION: Planable cell */
   border-bottom: 1px solid #e2e3e5; /* INTENTIONAL_EXCEPTION: Planable cell */
@@ -743,6 +750,7 @@
   gap: 4px;
   align-content: start;
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .oma-cal-cell:nth-child(7n) {
@@ -768,28 +776,13 @@
   font-weight: var(--weight-semibold);
 }
 
-.oma-cal-item:has(.oma-post-card) {
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  min-height: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-}
-
-.oma-cal-cell .oma-post-card--calendar {
-  width: 100%;
-  max-width: 100%;
-  min-height: 0;
-}
-
 .oma-cal-item {
   display: grid;
   grid-template-columns: 18px minmax(0, 1fr);
   gap: 4px;
   align-items: center;
   width: 100%;
+  min-width: 0;
   min-height: 22px;
   height: auto;
   padding: 2px 4px;
@@ -803,6 +796,26 @@
   cursor: pointer;
   color: inherit;
   box-sizing: border-box;
+}
+
+/* Planable LIVE_VERIFIED: post cards fluidly fill the day cell (must win over .oma-cal-item). */
+.oma-cal-item:has(.oma-post-card) {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  overflow: hidden;
+}
+
+.oma-cal-cell .oma-post-card--calendar {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 120px;
 }
 
 .oma-cal-item[data-status='IN_REVIEW'] {

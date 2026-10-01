@@ -18,14 +18,20 @@ test('W1 content views keep a dated draft unscheduled until Schedule', async ({
   }
   await page.getByTestId('demo-content-view-calendar').click();
   await expect(page.getByTestId('demo-content-saved')).toBeVisible();
+  await expect(page.getByTestId('demo-content-cal-grid')).toHaveAttribute('data-columns', '7');
   if ((page.viewportSize()?.width ?? 1440) >= 1024) {
     const card = page.locator('.oma-post-card--calendar').first();
     await expect(card).toBeVisible();
     const box = await card.boundingBox();
-    expect(box?.width ?? 0).toBeGreaterThanOrEqual(124);
-    expect(box?.width ?? 0).toBeLessThanOrEqual(128);
-    expect(box?.height ?? 0).toBeGreaterThanOrEqual(170);
-    expect(box?.height ?? 0).toBeLessThanOrEqual(174);
+    const cell = page.locator('.oma-cal-cell').filter({ has: card }).first();
+    const cellBox = await cell.boundingBox();
+    // Planable LIVE_VERIFIED: cards fluidly fill the day cell (not a fixed 126px chrome).
+    expect(box?.width ?? 0).toBeGreaterThanOrEqual(80);
+    expect(box?.height ?? 0).toBeGreaterThanOrEqual(80);
+    expect(cellBox).toBeTruthy();
+    expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(
+      (cellBox?.x ?? 0) + (cellBox?.width ?? 0) + 2,
+    );
   }
   if (await page.getByTestId('demo-content-open-filters').isVisible()) {
     await openContentFilters(page);

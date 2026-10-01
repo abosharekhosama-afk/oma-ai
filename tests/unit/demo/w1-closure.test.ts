@@ -7,10 +7,12 @@ import {
 } from '../../../apps/web/src/lib/demo/stage6-schedule';
 
 describe('W1 closure contracts', () => {
-  it('pins the calendar card to the live Planable box', () => {
+  it('pins calendar cards to Planable cell-contained chrome', () => {
     const css = readFileSync('apps/web/src/styles/stage3.css', 'utf8');
-    expect(css).toContain('width: 126px');
-    expect(css).toContain('min-height: 172px');
+    // LIVE_VERIFIED rebuild: cards fluidly fill the day cell (not a fixed 126×172 box).
+    expect(css).toContain('.oma-cal-cell .oma-post-card--calendar');
+    expect(css).toContain('max-width: 100%');
+    expect(css).toContain('min-height: 120px');
     expect(css).toContain('padding: 6px');
     expect(css).toContain('border-radius: 8px');
     expect(css).toContain('150ms ease-out');
