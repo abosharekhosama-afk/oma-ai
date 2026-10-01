@@ -877,18 +877,33 @@
   color: var(--oma-muted);
 }
 
-.oma-cal-cell[data-today='true'] {
-  box-shadow: inset 0 0 0 1px var(--oma-primary); /* INTENTIONAL_EXCEPTION: kanban selected edge */
-}
-
 .oma-cal-cell[data-selected='true'] {
   background: var(--oma-primary-soft);
 }
 
 .oma-cal-daynum {
-  font-size: var(--text-meta);
-  line-height: var(--leading-meta);
-  font-weight: var(--weight-semibold);
+  justify-self: end;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 4px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: #5c5f66; /* INTENTIONAL_EXCEPTION: Planable LIVE_VERIFIED day number */
+}
+
+.oma-cal-cell[data-today='true'] {
+  box-shadow: none;
+}
+
+.oma-cal-cell[data-today='true'] .oma-cal-daynum {
+  background: #e5484d; /* INTENTIONAL_EXCEPTION: Planable LIVE_VERIFIED today mark */
+  color: #fff; /* INTENTIONAL_EXCEPTION: Planable LIVE_VERIFIED today mark */
+  font-weight: 600;
 }
 
 .oma-cal-item {
