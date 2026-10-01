@@ -6,6 +6,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
 import { installOwnerSession } from './helpers/brand-ui';
+import { switchContentView } from './helpers/content-view';
 
 const OUT = path.join(process.cwd(), 'artifacts/owner-surface-depth-rebuild-004');
 const META = path.join(process.cwd(), '.reference/004-visual-parity/ours/owner-surface-depth');
@@ -73,7 +74,7 @@ test.describe('Owner surface-depth evidence', () => {
         ref: 'Planable',
         evidence: 'ARCHIVED',
         setup: async () => {
-          await page.getByTestId('demo-content-view-grid').click();
+          await switchContentView(page, 'grid');
           await page.locator('[data-testid^="demo-content-card-"]').first().click();
           await expect(page.getByTestId('demo-content-composer')).toBeVisible();
         },

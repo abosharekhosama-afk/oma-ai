@@ -7,6 +7,7 @@ import {
   openContentFilters,
 } from './helpers/stage3-filters';
 import { installOwnerSession } from './helpers/brand-ui';
+import { switchContentView } from './helpers/content-view';
 
 const BLOCKED_HOSTS =
   /facebook\.com|graph\.facebook|meta\.com|tiktok\.com|googleapis\.com|openai\.com|anthropic\.com|semrush\.com|smartly\.io|workdrive|zoho\.com/i;
@@ -114,18 +115,18 @@ test.describe('Stage 3 Campaigns + Content visual rebuild', () => {
     await page.keyboard.press('Escape');
     await expect(page.getByRole('dialog', { name: /content detail/i })).toHaveCount(0);
 
-    await page.getByTestId('demo-content-view-calendar').click();
+    await switchContentView(page, 'calendar');
     await expect(page.getByTestId('demo-content-calendar')).toBeVisible();
     await expect(page.getByTestId('demo-day-overflow')).toBeVisible();
     await page.getByTestId('demo-day-overflow').click();
     await expect(page.getByRole('dialog', { name: /day items/i })).toBeVisible();
     await page.keyboard.press('Escape');
 
-    await page.getByTestId('demo-content-view-feed').click();
+    await switchContentView(page, 'feed');
     await expect(page.getByTestId('demo-content-feed')).toBeVisible();
-    await page.getByTestId('demo-content-view-list').click();
+    await switchContentView(page, 'list');
     await expect(page.getByTestId('demo-content-list')).toBeVisible();
-    await page.getByTestId('demo-content-view-grid').click();
+    await switchContentView(page, 'grid');
     await expect(page.getByTestId('demo-content-grid')).toBeVisible();
 
     await openContentFilters(page);
@@ -164,16 +165,16 @@ test.describe('Stage 3 Campaigns + Content visual rebuild', () => {
     await expect(page.getByText(title).first()).toBeVisible();
     await page.goto('/app/content');
     await expect(page.getByTestId('demo-content')).toBeVisible({ timeout: 15_000 });
-    await page.getByTestId('demo-content-view-list').click();
+    await switchContentView(page, 'list');
     await expect(page.getByTestId('demo-content-list')).toBeVisible();
     await expect(page.getByText(title).first()).toBeVisible({ timeout: 15_000 });
     await page.reload();
     await expect(page.getByTestId('demo-content')).toBeVisible({ timeout: 15_000 });
-    await page.getByTestId('demo-content-view-list').click();
+    await switchContentView(page, 'list');
     await expect(page.getByText(title).first()).toBeVisible({ timeout: 15_000 });
 
     await page.emulateMedia({ reducedMotion: 'reduce' });
-    await page.getByTestId('demo-content-view-calendar').click();
+    await switchContentView(page, 'calendar');
     await expect(page.getByTestId('demo-content-calendar')).toBeVisible();
 
     guards.assertClean();
@@ -192,7 +193,7 @@ test.describe('Stage 3 Campaigns + Content visual rebuild', () => {
     await expect(page.getByTestId('demo-campaigns')).toBeVisible();
     await page.goto('/app/content');
     await expect(page.getByTestId('demo-content')).toBeVisible();
-    await page.getByTestId('demo-content-view-calendar').click();
+    await switchContentView(page, 'calendar');
     await expect(page.getByTestId('demo-content-calendar')).toBeVisible();
     guards.assertClean();
   });
@@ -218,7 +219,7 @@ test.describe('Stage 3 Campaigns + Content visual rebuild', () => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/app/content');
     await expect(page.getByTestId('demo-content')).toBeVisible();
-    await page.getByTestId('demo-content-view-calendar').click();
+    await switchContentView(page, 'calendar');
     await expect(page.getByTestId('demo-content-agenda')).toBeVisible();
     await expect(page.getByTestId('demo-content-date-strip')).toBeVisible();
     await expect(page.locator('.oma-cal-grid')).toBeHidden();
@@ -226,7 +227,7 @@ test.describe('Stage 3 Campaigns + Content visual rebuild', () => {
     await page.getByTestId('demo-create-content').click();
     await expect(page.getByTestId('demo-create-content-dialog')).toBeVisible();
     await page.keyboard.press('Escape');
-    await page.getByTestId('demo-content-view-grid').click();
+    await switchContentView(page, 'grid');
     await page.locator('[data-testid^="demo-content-card-"]').first().click();
     await expect(page.getByTestId('demo-content-drawer')).toBeVisible();
     await page.keyboard.press('Escape');

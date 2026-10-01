@@ -3,6 +3,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { execSync } from 'node:child_process';
 import { installOwnerSession } from './helpers/brand-ui';
+import { switchContentView } from './helpers/content-view';
 
 const OUT = join(process.cwd(), 'artifacts', 'visual-parity-004', 'stage3-campaigns-content');
 const REF = join(
@@ -71,7 +72,7 @@ test('Stage 3 visual evidence pack', async ({ page, request }, testInfo) => {
   });
 
   await page.goto('/app/content');
-  await page.getByTestId('demo-content-view-calendar').click();
+  await switchContentView(page, 'calendar');
   await expect(page.getByTestId('demo-content-calendar')).toBeVisible();
   await shot(page, '03-content-calendar-desktop', {
     route: '/app/content',
@@ -82,7 +83,7 @@ test('Stage 3 visual evidence pack', async ({ page, request }, testInfo) => {
     acceptanceIds: ['V-CNT-01', 'V-CONT-01', 'V-CONT-02'],
   });
 
-  await page.getByTestId('demo-content-view-grid').click();
+  await switchContentView(page, 'grid');
   await expect(page.getByTestId('demo-content-grid')).toBeVisible();
   await shot(page, '04-content-grid-desktop', {
     route: '/app/content',
@@ -121,7 +122,7 @@ test('Stage 3 visual evidence pack', async ({ page, request }, testInfo) => {
   await page.context().addCookies([{ name: 'oma_locale', value: 'ar', url: WEB }]);
   await page.goto('/app/content');
   await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
-  await page.getByTestId('demo-content-view-calendar').click();
+  await switchContentView(page, 'calendar');
   await shot(page, '07-content-calendar-ar-rtl', {
     route: '/app/content',
     viewport: '1440x900',
@@ -133,7 +134,7 @@ test('Stage 3 visual evidence pack', async ({ page, request }, testInfo) => {
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/app/content');
-  await page.getByTestId('demo-content-view-calendar').click();
+  await switchContentView(page, 'calendar');
   await expect(page.getByTestId('demo-content-agenda')).toBeVisible();
   await shot(page, '08-content-mobile-390', {
     route: '/app/content',

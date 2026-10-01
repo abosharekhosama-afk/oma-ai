@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { installOwnerSession } from './helpers/brand-ui';
+import { switchContentView } from './helpers/content-view';
 
 const BLOCKED =
   /facebook\.com|graph\.facebook|meta\.com|tiktok\.com|googleapis\.com|openai\.com|anthropic\.com|semrush\.com|smartly\.io|workdrive|zoho\.com/i;
@@ -37,7 +38,7 @@ test.describe('Owner surface-depth journey', () => {
       .getByRole('link', { name: /content plan/i })
       .click();
     await expect(page.getByTestId('demo-content')).toBeVisible({ timeout: 15_000 });
-    await page.getByTestId('demo-content-view-grid').click();
+    await switchContentView(page, 'grid');
     await expect(page.getByTestId('demo-content-grid')).toBeVisible();
     await page.locator('[data-testid^="demo-content-card-"]').first().click();
     await expect(page.getByTestId('demo-content-composer')).toBeVisible();

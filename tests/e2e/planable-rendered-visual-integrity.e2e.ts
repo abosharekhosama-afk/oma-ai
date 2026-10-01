@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { installOwnerSession } from './helpers/brand-ui';
+import { switchContentView } from './helpers/content-view';
 
 type IntegrityReport = {
   brokenImages: string[];
@@ -61,8 +62,8 @@ async function integrity(page: Page, selectors: string): Promise<IntegrityReport
 }
 
 async function openContentView(page: Page, mode: 'grid' | 'list' | 'feed' | 'calendar') {
-  await page.getByTestId(`demo-content-view-${mode}`).click();
-  await expect(page.getByTestId(`demo-content-view-${mode}`)).toBeVisible();
+  await switchContentView(page, mode);
+  await expect(page.getByTestId(`demo-content-view-current-${mode}`)).toBeVisible();
   await page.waitForTimeout(300);
 }
 

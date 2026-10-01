@@ -5,6 +5,7 @@ import { execSync } from 'node:child_process';
 import { chooseOmaSelect } from './helpers/antd-select';
 import { applyContentFilters, openContentFilters } from './helpers/stage3-filters';
 import { installOwnerSession } from './helpers/brand-ui';
+import { switchContentView } from './helpers/content-view';
 
 const OUT = join(process.cwd(), 'artifacts', 'planable-rebuild-004', 'p3-campaigns-content');
 const META = join(
@@ -118,7 +119,7 @@ test.describe('P3 Planable campaigns/content evidence pack', () => {
     });
 
     await page.goto('/app/content');
-    await page.getByTestId('demo-content-view-calendar').click();
+    await switchContentView(page, 'calendar');
     await expect(page.getByTestId('demo-content-calendar')).toBeVisible();
     await shot('05-content-calendar', '/app/content', '1440x900', {
       evidenceLevel: 'ARCHIVED_MATCH',
@@ -133,21 +134,21 @@ test.describe('P3 Planable campaigns/content evidence pack', () => {
       mediaFixtureId: '/demo/video-poster.svg',
     });
 
-    await page.getByTestId('demo-content-view-feed').click();
+    await switchContentView(page, 'feed');
     await expect(page.getByTestId('demo-content-feed')).toBeVisible();
     await shot('08-feed', '/app/content', '1440x900', {
       evidenceLevel: 'ARCHIVED_MATCH',
       match: 'ARCHIVED_MATCH',
       viewType: 'feed',
     });
-    await page.getByTestId('demo-content-view-grid').click();
+    await switchContentView(page, 'grid');
     await expect(page.getByTestId('demo-content-grid')).toBeVisible();
     await shot('09-grid', '/app/content', '1440x900', {
       evidenceLevel: 'PLAN_GATED',
       match: 'OMA_ADAPTATION',
       viewType: 'grid',
     });
-    await page.getByTestId('demo-content-view-list').click();
+    await switchContentView(page, 'list');
     await expect(page.getByTestId('demo-content-list')).toBeVisible();
     await shot('10-list', '/app/content', '1440x900', {
       evidenceLevel: 'PLAN_GATED',
@@ -189,7 +190,7 @@ test.describe('P3 Planable campaigns/content evidence pack', () => {
     await expect(page.getByTestId('demo-content-drawer')).toHaveCount(0);
     await page.goto('/app/content');
     await expect(page.getByTestId('demo-content')).toBeVisible();
-    await page.getByTestId('demo-content-view-list').click();
+    await switchContentView(page, 'list');
 
     await openContentFilters(page);
     await chooseOmaSelect(page, 'demo-content-filter-campaign', 'demo-campaign-organic');
@@ -203,7 +204,7 @@ test.describe('P3 Planable campaigns/content evidence pack', () => {
     await page.context().addCookies([{ name: 'oma_locale', value: 'ar', url: WEB }]);
     await page.goto('/app/content');
     await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
-    await page.getByTestId('demo-content-view-calendar').click();
+    await switchContentView(page, 'calendar');
     await shot('17-ar-desktop', '/app/content', '1440x900', {
       locale: 'ar',
       viewType: 'calendar-ar',
@@ -216,7 +217,7 @@ test.describe('P3 Planable campaigns/content evidence pack', () => {
 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/app/content');
-    await page.getByTestId('demo-content-view-calendar').click();
+    await switchContentView(page, 'calendar');
     await expect(page.getByTestId('demo-content-agenda')).toBeVisible();
     await shot('07-mobile-agenda', '/app/content', '390x844', {
       evidenceLevel: 'OMA_ADAPTATION',
@@ -230,7 +231,7 @@ test.describe('P3 Planable campaigns/content evidence pack', () => {
       viewType: 'mobile-composer',
     });
     await page.keyboard.press('Escape');
-    await page.getByTestId('demo-content-view-grid').click();
+    await switchContentView(page, 'grid');
     await page.locator('[data-testid^="demo-content-card-"]').first().click();
     await expect(page.getByTestId('demo-content-drawer')).toBeVisible();
     await shot('20-mobile-content-detail', '/app/content', '390x844', {

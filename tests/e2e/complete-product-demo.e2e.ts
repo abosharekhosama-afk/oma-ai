@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { apiPost, createBrandFlow, registerBrandOwner } from './helpers/brand-api';
 import { signOutUi } from './helpers/brand-ui';
+import { switchContentView } from './helpers/content-view';
 
 const BLOCKED_HOSTS =
   /facebook\.com|graph\.facebook|meta\.com|tiktok\.com|googleapis\.com|openai\.com|anthropic\.com|semrush\.com|smartly\.io|workdrive|zoho\.com/i;
@@ -130,11 +131,11 @@ test.describe('Complete product demo certification', () => {
     // Content calendar/grid
     await nav.getByRole('link', { name: /content/i }).click();
     await expect(page.getByTestId('demo-content')).toBeVisible({ timeout: 15_000 });
-    await page.getByTestId('demo-content-view-calendar').click();
+    await switchContentView(page, 'calendar');
     await expect(
       page.getByText(/Fabric story carousel|Studio morning reel/i).first(),
     ).toBeVisible();
-    await page.getByTestId('demo-content-view-grid').click();
+    await switchContentView(page, 'grid');
 
     // Schedule + analytics honesty
     await nav.getByRole('link', { name: /^schedule$/i }).click();

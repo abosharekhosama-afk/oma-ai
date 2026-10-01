@@ -62,10 +62,10 @@ test.describe('Coverage + unknown/missing (T169/T170)', () => {
     ]);
 
     await page.goto(`/app/brands/${flow.brandId}/profiles/${flow.profileVersionId}`);
-    await expect(page.locator('[data-absence="required-not-found"]')).toBeVisible({
+    await expect(page.locator('[data-absence="required-not-found"]').first()).toBeVisible({
       timeout: 30_000,
     });
-    await expect(page.locator('[data-absence="optional-unknown"]')).toBeVisible();
+    await expect(page.locator('[data-absence="optional-unknown"]').first()).toBeVisible();
     await expect(page.getByText(/Required — not found in sources/i)).toBeVisible();
     await expect(page.getByText(/Optional — not observed/i)).toBeVisible();
   });

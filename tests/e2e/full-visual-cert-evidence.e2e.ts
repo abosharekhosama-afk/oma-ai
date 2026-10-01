@@ -6,6 +6,7 @@ import { test, expect } from '@playwright/test';
 import fs from 'node:fs';
 import path from 'node:path';
 import { installOwnerSession } from './helpers/brand-ui';
+import { switchContentView } from './helpers/content-view';
 
 const OUT = path.join(process.cwd(), 'artifacts/full-visual-certification-004/screenshots');
 const META = path.join(process.cwd(), '.reference/004-visual-parity/ours/full-certification');
@@ -125,7 +126,7 @@ test.describe('Full visual certification evidence', () => {
         source: 'Demo-backed',
         setup: async () => {
           await expect(page.getByTestId('demo-content')).toBeVisible({ timeout: 20_000 });
-          await page.getByTestId('demo-content-view-calendar').click();
+          await switchContentView(page, 'calendar');
           await expect(
             page.getByText(/Fabric story carousel|Studio morning reel/i).first(),
           ).toBeVisible({ timeout: 15_000 });

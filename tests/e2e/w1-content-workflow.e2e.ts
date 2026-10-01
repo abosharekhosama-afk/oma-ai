@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { chooseOmaSelect } from './helpers/antd-select';
 import { applyContentFilters, openContentFilters } from './helpers/stage3-filters';
 import { installOwnerSession } from './helpers/brand-ui';
+import { switchContentView } from './helpers/content-view';
 
 test('W1 content views keep a dated draft unscheduled until Schedule', async ({
   page,
@@ -11,15 +12,15 @@ test('W1 content views keep a dated draft unscheduled until Schedule', async ({
   await page.goto('/app/content');
   await expect(page.getByTestId('demo-content')).toBeVisible();
   for (const mode of ['feed', 'calendar', 'list', 'grid'] as const) {
-    await page.getByTestId(`demo-content-view-${mode}`).click();
+    await switchContentView(page, mode);
     await expect(
       page.getByTestId(`demo-content-${mode === 'calendar' ? 'calendar' : mode}`),
     ).toBeVisible();
   }
-  await page.getByTestId('demo-content-view-calendar').click();
-  await expect(page.getByTestId('demo-content-saved')).toBeVisible();
+  await switchContentView(page, 'calendar');
   await expect(page.getByTestId('demo-content-cal-grid')).toHaveAttribute('data-columns', '7');
   if ((page.viewportSize()?.width ?? 1440) >= 1024) {
+    await expect(page.getByTestId('demo-content-saved')).toBeVisible();
     const card = page.locator('.oma-post-card--calendar').first();
     await expect(card).toBeVisible();
     const box = await card.boundingBox();
@@ -32,17 +33,20 @@ test('W1 content views keep a dated draft unscheduled until Schedule', async ({
     expect((box?.x ?? 0) + (box?.width ?? 0)).toBeLessThanOrEqual(
       (cellBox?.x ?? 0) + (cellBox?.width ?? 0) + 2,
     );
+  } else {
+    // Planable LIVE_VERIFIED mobile: Saved column collapses; agenda is the mobile calendar surface.
+    await expect(page.getByTestId('demo-content-agenda')).toBeVisible();
   }
   if (await page.getByTestId('demo-content-open-filters').isVisible()) {
     await openContentFilters(page);
     await chooseOmaSelect(page, 'demo-content-filter-approval', 'PARTIALLY_APPROVED');
     await applyContentFilters(page);
-    await page.getByTestId('demo-content-view-list').click();
+    await switchContentView(page, 'list');
     await expect(page.getByTestId('demo-content-card-demo-content-carousel')).toBeVisible();
     await openContentFilters(page);
     await chooseOmaSelect(page, 'demo-content-filter-approval', 'all');
     await applyContentFilters(page);
-    await page.getByTestId('demo-content-view-calendar').click();
+    await switchContentView(page, 'calendar');
   }
   await chooseOmaSelect(page, 'demo-content-approval-policy', 'OPTIONAL');
   await page.getByTestId('demo-create-content').click();

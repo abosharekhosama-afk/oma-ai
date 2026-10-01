@@ -7,6 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
 import { installOwnerSession } from './helpers/brand-ui';
+import { switchContentView } from './helpers/content-view';
 
 const OUT = path.join(process.cwd(), 'artifacts/owner-remediation-certification-004');
 const SHOTS = path.join(OUT, 'screenshots');
@@ -257,7 +258,7 @@ test.describe('Owner remediation certification', () => {
       .click();
     await expect(page.getByTestId('demo-content')).toBeVisible({ timeout: 15_000 });
     await page.screenshot({ path: path.join(SHOTS, '05-content-calendar.png'), fullPage: false });
-    await page.getByTestId('demo-content-view-grid').click();
+    await switchContentView(page, 'grid');
     await expect(page.getByTestId('demo-content-grid')).toBeVisible({ timeout: 10_000 });
     const contentCard = page.getByTestId('demo-content-card-demo-content-carousel');
     await expect(contentCard).toBeVisible({ timeout: 15_000 });

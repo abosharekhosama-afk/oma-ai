@@ -13,8 +13,17 @@ const ROOT = path.resolve(import.meta.dirname, '../..');
 const SHA = execSync('git rev-parse --short HEAD', { cwd: ROOT }).toString().trim();
 const FULL_SHA = execSync('git rev-parse HEAD', { cwd: ROOT }).toString().trim();
 const BASE = process.env.OMA_BASE || 'http://127.0.0.1:3010';
-const OUT = path.join(ROOT, 'artifacts/oma-planable-pixel-parity/oma-rejected');
-const META = path.join(ROOT, '.reference/009-planable-pixel-parity/oma-rejected');
+const PHASE = process.env.OMA_PIXEL_PHASE === 'after' ? 'after' : 'rejected';
+const OUT = path.join(
+  ROOT,
+  process.env.OMA_PIXEL_OUT ||
+    `artifacts/oma-planable-pixel-parity/oma-${PHASE === 'after' ? 'after' : 'rejected'}`,
+);
+const META = path.join(
+  ROOT,
+  process.env.OMA_PIXEL_META ||
+    `.reference/009-planable-pixel-parity/oma-${PHASE === 'after' ? 'after' : 'rejected'}`,
+);
 
 function loadEnv() {
   const envPath = path.join(ROOT, '.review/pixel-parity.env');
@@ -92,7 +101,7 @@ async function capture(page, { id, route, view, state, locale, width, height }) 
   const entry = {
     evidenceId: id,
     product: 'OMA',
-    phase: 'rejected-baseline',
+    phase: PHASE === 'after' ? 'after-rebuild' : 'rejected-baseline',
     route,
     view,
     state,
