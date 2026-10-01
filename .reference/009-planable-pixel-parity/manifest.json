@@ -1,0 +1,26 @@
+{
+  "method": "PIXEL_LEVEL_REFERENCE_PARITY",
+  "ownerVisualReview": "REJECTED",
+  "visualAcceptance": "REJECTED",
+  "startingSha": "e576570631b948c11b8a0a57d0d83614abd9e765",
+  "notes": [
+    "No row may use verdict PASS while ownerVisualReview is REJECTED.",
+    "Full-page mismatch includes non-comparable chrome (workspace names, survey overlays)."
+  ],
+  "rows": [
+    {
+      "id": "SCR-CP-CAL-1440",
+      "feature": "content-plan",
+      "planableScreenshot": "artifacts/oma-planable-pixel-parity/planable-reference/PL-CONTENT-calendar-default-en-1440x900.png",
+      "omaBeforeScreenshot": "artifacts/oma-planable-pixel-parity/oma-rejected/OMA-CONTENT-content-calendar-default-en-1440x900-e576570.png",
+      "omaAfterScreenshot": "artifacts/oma-planable-pixel-parity/oma-after/OMA-CONTENT-content-calendar-default-en-1440x900-dc65cdb-wip.png",
+      "diff": "artifacts/oma-planable-pixel-parity/diffs/content-calendar-after-en-1440-diff.png",
+      "measurements": ".reference/009-planable-pixel-parity/reference/PL-CONTENT-calendar-default-en-1440x900.json",
+      "test": "PENDING",
+      "verdict": "NOT_PASS",
+      "evidenceLevel": "LIVE_VERIFIED",
+      "mismatchPercent": 4.9036,
+      "notes": "Saved column moved end-side; Mon-start week; Month/Week toggle. Full-page still >3% vs Planable chrome."
+    }
+  ]
+}

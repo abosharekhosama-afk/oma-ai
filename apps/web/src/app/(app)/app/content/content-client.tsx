@@ -116,13 +116,18 @@ function mergeLocaleCopy(
   };
 }
 
-function weekdayLabels(locale: string, weekStartsOn: 0 | 6): string[] {
+function weekdayLabels(locale: string, weekStartsOn: 0 | 1 | 6): string[] {
   const fmt = new Intl.DateTimeFormat(locale.toLowerCase().startsWith('ar') ? 'ar' : 'en', {
     weekday: 'short',
     timeZone: 'UTC',
   });
   const sunday = Date.UTC(2026, 0, 4);
-  const order = weekStartsOn === 6 ? [6, 0, 1, 2, 3, 4, 5] : [0, 1, 2, 3, 4, 5, 6];
+  const order =
+    weekStartsOn === 6
+      ? [6, 0, 1, 2, 3, 4, 5]
+      : weekStartsOn === 1
+        ? [1, 2, 3, 4, 5, 6, 0]
+        : [0, 1, 2, 3, 4, 5, 6];
   return order.map((dow) => fmt.format(new Date(sunday + dow * 86400000)));
 }
 
@@ -150,6 +155,7 @@ export default function ContentPage() {
   const [sortKey, setSortKey] = useState<ContentSortKey>('date');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [cursor, setCursor] = useState({ year: DEFAULT_YEAR, monthIndex: DEFAULT_MONTH });
+  const [calSpan, setCalSpan] = useState<'month' | 'week'>('month');
   const [selectedDay, setSelectedDay] = useState<string | null>(TODAY_KEY);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -184,7 +190,8 @@ export default function ContentPage() {
   });
 
   const isAr = locale.toLowerCase().startsWith('ar');
-  const weekStartsOn: 0 | 6 = isAr ? 6 : 0;
+  // EN Monday matches Planable LIVE_VERIFIED calendar; AR Saturday.
+  const weekStartsOn: 0 | 1 | 6 = isAr ? 6 : 1;
   const dirty = useMemo(
     () => JSON.stringify(draft) !== JSON.stringify(baseline),
     [draft, baseline],
@@ -211,7 +218,12 @@ export default function ContentPage() {
       }));
       const stored = readContentViewPref();
       const pref = graph.demoPreferences.defaultContentView;
+      const urlView =
+        typeof window !== 'undefined'
+          ? new URLSearchParams(window.location.search).get('view')
+          : null;
       setView(() => {
+        if (isContentViewMode(urlView)) return urlView;
         if (hasContentViewPref() && isContentViewMode(stored)) return stored;
         if (pref === 'list' || pref === 'calendar') return pref;
         return 'calendar';
@@ -225,9 +237,15 @@ export default function ContentPage() {
   }, []);
 
   useEffect(() => {
-    setView(readContentViewPref());
     void load();
   }, [load]);
+
+  useEffect(() => {
+    const urlView = search.get('view');
+    if (isContentViewMode(urlView)) {
+      setView((current) => (current === urlView ? current : urlView));
+    }
+  }, [search]);
 
   useEffect(() => {
     const campaign = search.get('campaign');
@@ -280,6 +298,13 @@ export default function ContentPage() {
     () => buildMonthCells(cursor.year, cursor.monthIndex, weekStartsOn),
     [cursor.year, cursor.monthIndex, weekStartsOn],
   );
+  const visibleCells = useMemo(() => {
+    if (calSpan === 'month') return monthCells;
+    const anchor = selectedDay ?? TODAY_KEY;
+    const idx = monthCells.findIndex((c) => c.key === anchor);
+    const start = idx >= 0 ? idx - (idx % 7) : 0;
+    return monthCells.slice(start, start + 7);
+  }, [calSpan, monthCells, selectedDay]);
   const dows = useMemo(() => weekdayLabels(locale, weekStartsOn), [locale, weekStartsOn]);
   const selected = useMemo(
     () => (selectedId ? (rows.find((r) => r.id === selectedId) ?? null) : null),
@@ -305,6 +330,9 @@ export default function ContentPage() {
   function changeView(mode: ContentViewMode) {
     setView(mode);
     writeContentViewPref(mode);
+    replaceParams((params) => {
+      params.set('view', mode);
+    });
   }
 
   function openItem(item: ContentRow, tab: 'preview' | 'edit' | 'comments' = 'preview') {
@@ -792,175 +820,227 @@ export default function ContentPage() {
       ) : null}
 
       {!loading && !unavailable && !error && filtered.length > 0 && view === 'calendar' ? (
-        <section data-testid="demo-content-calendar" className="oma-cal-with-saved">
-          <aside data-testid="demo-content-saved" aria-label={t('demo.content.savedColumn')}>
-            <strong>
-              {t('demo.content.savedColumn')} ({savedItems.length})
-            </strong>
-            {savedItems.length === 0 ? (
-              <p>{t('demo.content.savedEmpty')}</p>
-            ) : (
-              savedItems.map((item) => (
-                <SurfaceButton
-                  key={item.id}
-                  data-testid={`demo-saved-item-${item.id}`}
-                  data-selected={selectedId === item.id ? 'true' : 'false'}
-                  onClick={() => openItem(item)}
-                  className="oma-cal-item"
+        <section
+          data-testid="demo-content-calendar"
+          className="oma-cal-with-saved"
+          data-cal-span={calSpan}
+        >
+          <div className="oma-cal-main">
+            <div className="oma-cal-toolbar">
+              <div className="oma-cal-span" role="group" aria-label={t('demo.view.calendar')}>
+                <Button
+                  type={calSpan === 'month' ? 'primary' : 'default'}
+                  aria-pressed={calSpan === 'month'}
+                  data-testid="demo-content-cal-month"
+                  onClick={() => setCalSpan('month')}
                 >
-                  <ContentFace
-                    variant="saved"
-                    title={pickCopy(item.title, locale)}
-                    caption={item.caption ? pickCopy(item.caption, locale) : ''}
-                    channel={item.channel}
-                    when="—"
-                    asset={item.previewAsset}
-                    display={faceDisplay(item, policy)}
-                    locale={locale}
-                    selected={selectedId === item.id}
-                  />
-                </SurfaceButton>
-              ))
-            )}
-          </aside>
-          <div className="oma-cal-toolbar">
-            <strong>{monthLabel(cursor.year, cursor.monthIndex, locale)}</strong>
-            <div className="oma-cal-nav">
-              <Button type="default" onClick={() => shiftMonth(-1)}>
-                {t('demo.content.prev')}
-              </Button>
-              <Button type="default" onClick={goToday}>
-                {t('demo.content.today')}
-              </Button>
-              <Button type="default" onClick={() => shiftMonth(1)}>
-                {t('demo.content.next')}
-              </Button>
-              {selectedDay ? (
+                  {t('demo.content.calMonth')}
+                </Button>
+                <Button
+                  type={calSpan === 'week' ? 'primary' : 'default'}
+                  aria-pressed={calSpan === 'week'}
+                  data-testid="demo-content-cal-week"
+                  onClick={() => setCalSpan('week')}
+                >
+                  {t('demo.content.calWeek')}
+                </Button>
+              </div>
+              <div className="oma-cal-nav">
                 <Button
                   type="default"
-                  onClick={() => {
-                    setCreateForm((f) => ({ ...f, plannedDate: selectedDay }));
-                    setCreateOpen(true);
-                  }}
+                  aria-label={t('demo.content.prev')}
+                  data-testid="demo-content-cal-prev"
+                  onClick={() => shiftMonth(-1)}
                 >
-                  {t('demo.content.createOnDate')}
+                  ‹
                 </Button>
-              ) : null}
-            </div>
-          </div>
-
-          <div
-            className="oma-cal-date-strip"
-            data-testid="demo-content-date-strip"
-            aria-label={t('demo.view.calendar')}
-          >
-            {dateStripDays.map((key) => (
-              <Button
-                key={key}
-                type="default"
-                data-selected={key === selectedDay ? 'true' : 'false'}
-                onClick={() => setSelectedDay(key)}
-              >
-                {key.slice(8)}
-              </Button>
-            ))}
-          </div>
-
-          <div className="oma-cal-grid" role="grid" aria-label={t('demo.view.calendar')}>
-            {dows.map((dow) => (
-              <div key={dow} className="oma-cal-dow" role="columnheader">
-                {dow}
-              </div>
-            ))}
-            {monthCells.map((cell) => {
-              const items = byDay.get(cell.key) ?? [];
-              const { visible, extra } = splitCellItems(items);
-              return (
-                <div
-                  key={cell.key}
-                  className="oma-cal-cell"
-                  role="gridcell"
-                  aria-selected={cell.key === selectedDay}
-                  data-out={cell.inMonth ? 'false' : 'true'}
-                  data-today={cell.key === TODAY_KEY ? 'true' : 'false'}
-                  data-selected={cell.key === selectedDay ? 'true' : 'false'}
-                  onClick={() => setSelectedDay(cell.key)}
+                <strong className="oma-cal-month-label">
+                  {monthLabel(cursor.year, cursor.monthIndex, locale)}
+                </strong>
+                <Button
+                  type="default"
+                  aria-label={t('demo.content.next')}
+                  data-testid="demo-content-cal-next"
+                  onClick={() => shiftMonth(1)}
                 >
-                  <span className="oma-cal-daynum oma-ltr">{cell.date.getUTCDate()}</span>
-                  {visible.map((item) => (
-                    <SurfaceButton
-                      key={item.id}
-                      data-status={item.status}
-                      data-testid={`demo-cal-item-${item.id}`}
-                      data-selected={selectedId === item.id ? 'true' : 'false'}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openItem(item);
-                      }}
-                      className="oma-cal-item"
-                    >
-                      <ContentFace
-                        variant="calendar"
-                        title={pickCopy(item.title, locale)}
-                        caption={item.caption ? pickCopy(item.caption, locale) : ''}
-                        channel={item.channel}
-                        when={item.scheduledAt ? item.scheduledAt.slice(11, 16) : '—'}
-                        asset={item.previewAsset}
-                        display={faceDisplay(item, policy)}
-                        locale={locale}
-                        selected={selectedId === item.id}
-                      />
-                    </SurfaceButton>
-                  ))}
-                  {extra > 0 ? (
-                    <Button
-                      type="default"
-                      data-testid="demo-day-overflow"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedDay(cell.key);
-                        setOverflowDay(cell.key);
-                      }}
-                      className="oma-cal-more"
-                    >
-                      +{extra} {t('demo.content.more')}
-                    </Button>
-                  ) : null}
-                </div>
-              );
-            })}
-          </div>
+                  ›
+                </Button>
+                <Button type="default" data-testid="demo-content-cal-today" onClick={goToday}>
+                  {t('demo.content.today')}
+                </Button>
+                {selectedDay ? (
+                  <Button
+                    type="default"
+                    onClick={() => {
+                      setCreateForm((f) => ({ ...f, plannedDate: selectedDay }));
+                      setCreateOpen(true);
+                    }}
+                  >
+                    {t('demo.content.createOnDate')}
+                  </Button>
+                ) : null}
+              </div>
+            </div>
 
-          <div className="oma-cal-agenda" data-testid="demo-content-agenda">
-            {agendaDays.map((day) => (
-              <div key={day.key} className="oma-cal-agenda-day">
-                <strong className="oma-ltr">{day.key}</strong>
-                {day.items.length === 0 ? (
-                  <p className="oma-muted" style={{ margin: '8px 0 0' }}>
-                    {t('demo.empty')}
-                  </p>
-                ) : (
-                  <div className="oma-stack" style={{ marginTop: 8, gap: 6 }}>
-                    {day.items.map((item) => (
+            <div
+              className="oma-cal-date-strip"
+              data-testid="demo-content-date-strip"
+              aria-label={t('demo.view.calendar')}
+            >
+              {dateStripDays.map((key) => (
+                <Button
+                  key={key}
+                  type="default"
+                  data-selected={key === selectedDay ? 'true' : 'false'}
+                  onClick={() => setSelectedDay(key)}
+                >
+                  {key.slice(8)}
+                </Button>
+              ))}
+            </div>
+
+            <div
+              className="oma-cal-grid"
+              role="grid"
+              aria-label={t('demo.view.calendar')}
+              data-testid="demo-content-cal-grid"
+              data-columns="7"
+            >
+              {dows.map((dow) => (
+                <div key={dow} className="oma-cal-dow" role="columnheader">
+                  {dow}
+                </div>
+              ))}
+              {visibleCells.map((cell) => {
+                const items = byDay.get(cell.key) ?? [];
+                const { visible, extra } = splitCellItems(items);
+                return (
+                  <div
+                    key={cell.key}
+                    className="oma-cal-cell"
+                    role="gridcell"
+                    aria-selected={cell.key === selectedDay}
+                    data-out={cell.inMonth ? 'false' : 'true'}
+                    data-today={cell.key === TODAY_KEY ? 'true' : 'false'}
+                    data-selected={cell.key === selectedDay ? 'true' : 'false'}
+                    onClick={() => setSelectedDay(cell.key)}
+                  >
+                    <span className="oma-cal-daynum oma-ltr">{cell.date.getUTCDate()}</span>
+                    {visible.map((item) => (
                       <SurfaceButton
                         key={item.id}
                         data-status={item.status}
                         data-testid={`demo-cal-item-${item.id}`}
-                        onClick={() => openItem(item)}
+                        data-selected={selectedId === item.id ? 'true' : 'false'}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openItem(item);
+                        }}
                         className="oma-cal-item"
                       >
-                        <img className="oma-cal-thumb" src={item.previewAsset} alt="" />
-                        <span>
-                          {pickCopy(item.title, locale)} · {item.channel} ·{' '}
-                          {statusLabel(item.status, locale)}
-                        </span>
+                        <ContentFace
+                          variant="calendar"
+                          title={pickCopy(item.title, locale)}
+                          caption={item.caption ? pickCopy(item.caption, locale) : ''}
+                          channel={item.channel}
+                          when={item.scheduledAt ? item.scheduledAt.slice(11, 16) : '—'}
+                          asset={item.previewAsset}
+                          display={faceDisplay(item, policy)}
+                          locale={locale}
+                          selected={selectedId === item.id}
+                        />
                       </SurfaceButton>
                     ))}
+                    {extra > 0 ? (
+                      <Button
+                        type="default"
+                        data-testid="demo-day-overflow"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedDay(cell.key);
+                          setOverflowDay(cell.key);
+                        }}
+                        className="oma-cal-more"
+                      >
+                        +{extra}
+                      </Button>
+                    ) : null}
                   </div>
-                )}
-              </div>
-            ))}
+                );
+              })}
+            </div>
+
+            <div className="oma-cal-agenda" data-testid="demo-content-agenda">
+              {agendaDays.map((day) => (
+                <div key={day.key} className="oma-cal-agenda-day">
+                  <strong className="oma-ltr">{day.key}</strong>
+                  {day.items.length === 0 ? (
+                    <p className="oma-muted" style={{ margin: '8px 0 0' }}>
+                      {t('demo.empty')}
+                    </p>
+                  ) : (
+                    <div className="oma-stack" style={{ marginTop: 8, gap: 6 }}>
+                      {day.items.map((item) => (
+                        <SurfaceButton
+                          key={item.id}
+                          data-status={item.status}
+                          data-testid={`demo-cal-item-${item.id}`}
+                          onClick={() => openItem(item)}
+                          className="oma-cal-item"
+                        >
+                          <img className="oma-cal-thumb" src={item.previewAsset} alt="" />
+                          <span>
+                            {pickCopy(item.title, locale)} · {item.channel} ·{' '}
+                            {statusLabel(item.status, locale)}
+                          </span>
+                        </SurfaceButton>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
+
+          <aside data-testid="demo-content-saved" aria-label={t('demo.content.savedColumn')}>
+            <header className="oma-cal-saved-head">
+              <strong>{t('demo.content.savedColumn')}</strong>
+              <span className="oma-muted oma-ltr">{savedItems.length}</span>
+            </header>
+            {savedItems.length === 0 ? (
+              <div className="oma-cal-saved-empty" data-testid="demo-content-saved-empty">
+                <p>{t('demo.content.savedEmpty')}</p>
+                <p className="oma-muted">{t('demo.content.savedEmptyHint')}</p>
+                <Button type="default" onClick={() => setCreateOpen(true)}>
+                  {t('demo.content.create')}
+                </Button>
+              </div>
+            ) : (
+              <div className="oma-cal-saved-list">
+                {savedItems.map((item) => (
+                  <SurfaceButton
+                    key={item.id}
+                    data-testid={`demo-saved-item-${item.id}`}
+                    data-selected={selectedId === item.id ? 'true' : 'false'}
+                    onClick={() => openItem(item)}
+                    className="oma-cal-item"
+                  >
+                    <ContentFace
+                      variant="saved"
+                      title={pickCopy(item.title, locale)}
+                      caption={item.caption ? pickCopy(item.caption, locale) : ''}
+                      channel={item.channel}
+                      when="—"
+                      asset={item.previewAsset}
+                      display={faceDisplay(item, policy)}
+                      locale={locale}
+                      selected={selectedId === item.id}
+                    />
+                  </SurfaceButton>
+                ))}
+              </div>
+            )}
+          </aside>
         </section>
       ) : null}
 

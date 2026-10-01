@@ -5,8 +5,8 @@ const CAMPAIGN_LAYOUT_KEY = 'oma-demo-campaign-layout';
 
 export const CONTENT_VIEW_MODES: ContentViewMode[] = ['calendar', 'feed', 'grid', 'list'];
 
-export function isContentViewMode(value: string): value is ContentViewMode {
-  return (CONTENT_VIEW_MODES as string[]).includes(value);
+export function isContentViewMode(value: string | null | undefined): value is ContentViewMode {
+  return typeof value === 'string' && (CONTENT_VIEW_MODES as string[]).includes(value);
 }
 
 export function hasContentViewPref(): boolean {

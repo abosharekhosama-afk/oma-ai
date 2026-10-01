@@ -160,15 +160,18 @@ export function splitCellItems(
   };
 }
 
-/** Build month grid cells (Sun–Sat or Sat–Fri for AR can be handled by caller via weekStartsOn). */
+/**
+ * Build month grid cells.
+ * weekStartsOn: 0=Sunday, 1=Monday (Planable EN LIVE_VERIFIED), 6=Saturday (AR).
+ */
 export function buildMonthCells(
   year: number,
   monthIndex: number,
-  weekStartsOn: 0 | 6 = 0,
+  weekStartsOn: 0 | 1 | 6 = 1,
 ): Array<{ date: Date; inMonth: boolean; key: string }> {
   const first = new Date(Date.UTC(year, monthIndex, 1));
   const startDow = first.getUTCDay();
-  const offset = weekStartsOn === 6 ? (startDow + 1) % 7 : startDow; /* Sat start: shift so Sat=0 */
+  const offset = (startDow - weekStartsOn + 7) % 7;
   const gridStart = new Date(Date.UTC(year, monthIndex, 1 - offset));
   const cells: Array<{ date: Date; inMonth: boolean; key: string }> = [];
   for (let i = 0; i < 42; i++) {

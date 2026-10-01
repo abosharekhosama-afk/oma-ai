@@ -462,18 +462,9 @@
   background: var(--oma-canvas);
 }
 
-.oma-cal-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--space-3);
-}
-
 .oma-cal-nav {
   display: inline-flex;
-  gap: var(--space-1);
+  gap: 4px;
   align-items: center;
 }
 
@@ -619,12 +610,6 @@
   font-weight: 600;
 }
 
-[data-testid='demo-content-saved'] {
-  width: 200px;
-  background: #fff; /* INTENTIONAL_EXCEPTION: live Planable saved column */
-  border-inline-start: 1px solid #e2e3e5; /* INTENTIONAL_EXCEPTION: live Planable saved column */
-}
-
 @media (prefers-reduced-motion: reduce) {
   .oma-post-card--calendar,
   .oma-post-card--saved {
@@ -632,48 +617,132 @@
   }
 }
 
+/* Planable LIVE_VERIFIED: calendar main + Saved column on the inline-end */
 .oma-cal-with-saved {
   display: grid;
-  grid-template-columns: 200px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 0;
+  align-items: stretch;
+  min-height: 560px;
+  border: 1px solid #e2e3e5; /* INTENTIONAL_EXCEPTION: Planable calendar chrome */
+  border-radius: 6px; /* INTENTIONAL_EXCEPTION: Planable radius */
+  background: #fff;
+  overflow: hidden;
+}
+
+.oma-cal-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 16px 16px;
+  border-inline-end: 1px solid #e2e3e5; /* INTENTIONAL_EXCEPTION: Planable divider */
+}
+
+.oma-cal-toolbar {
+  display: flex;
+  flex-wrap: wrap;
   gap: 12px;
-  align-items: start;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.oma-cal-span {
+  display: inline-flex;
+  gap: 4px;
+  padding: 2px;
+  border-radius: 6px;
+  background: #f5f6f7; /* INTENTIONAL_EXCEPTION: Planable canvas chip group */
+}
+
+.oma-cal-span .ant-btn {
+  min-width: 64px;
+  height: 28px;
+  font-size: 13px;
+}
+
+.oma-cal-month-label {
+  min-width: 120px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
 }
 
 [data-testid='demo-content-saved'] {
-  border: 1px solid var(--oma-border);
-  border-radius: var(--oma-radius-control);
-  padding: 8px;
+  width: 280px;
+  max-width: 280px;
+  display: flex;
+  flex-direction: column;
+  background: #fff; /* INTENTIONAL_EXCEPTION: Planable saved column */
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.oma-cal-saved-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid #e2e3e5; /* INTENTIONAL_EXCEPTION: Planable saved head */
+}
+
+.oma-cal-saved-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  overflow: auto;
+  flex: 1 1 auto;
+}
+
+.oma-cal-saved-empty {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  text-align: center;
+  padding: 32px 16px;
+  color: #333;
 }
 
 .oma-cal-grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  border: 1px solid var(--oma-border);
-  border-radius: var(--oma-radius-control);
+  border: 1px solid #e2e3e5; /* INTENTIONAL_EXCEPTION: Planable grid border */
+  border-radius: 0;
   overflow: hidden;
-  background: var(--oma-surface);
+  background: #fff;
+  flex: 1 1 auto;
+}
+
+.oma-cal-with-saved[data-cal-span='week'] .oma-cal-cell {
+  min-height: 220px;
 }
 
 .oma-cal-dow {
-  padding: 6px 8px;
-  font-size: var(--text-meta);
-  line-height: var(--leading-meta);
-  font-weight: var(--weight-semibold);
-  color: var(--oma-muted);
-  background: var(--oma-canvas);
-  border-bottom: 1px solid var(--oma-border);
+  padding: 8px 6px;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 600;
+  color: #5c5f66; /* INTENTIONAL_EXCEPTION: Planable meta */
+  background: #fff;
+  border-bottom: 1px solid #e2e3e5; /* INTENTIONAL_EXCEPTION: Planable grid */
   text-align: center;
 }
 
 .oma-cal-cell {
-  min-height: 92px;
+  min-height: 110px;
   padding: 6px;
-  border-inline-end: 1px solid var(--oma-border);
-  border-bottom: 1px solid var(--oma-border);
-  background: var(--oma-surface);
+  border-inline-end: 1px solid #e2e3e5; /* INTENTIONAL_EXCEPTION: Planable cell */
+  border-bottom: 1px solid #e2e3e5; /* INTENTIONAL_EXCEPTION: Planable cell */
+  background: #fff;
   display: grid;
   gap: 4px;
   align-content: start;
+  overflow: hidden;
 }
 
 .oma-cal-cell:nth-child(7n) {
@@ -701,11 +770,18 @@
 
 .oma-cal-item:has(.oma-post-card) {
   display: block;
-  width: 126px;
+  width: 100%;
+  max-width: 100%;
   min-height: 0;
   padding: 0;
   border: 0;
   background: transparent;
+}
+
+.oma-cal-cell .oma-post-card--calendar {
+  width: 100%;
+  max-width: 100%;
+  min-height: 0;
 }
 
 .oma-cal-item {
@@ -925,6 +1001,16 @@
     grid-template-columns: 1fr;
   }
 
+  .oma-cal-main {
+    border-inline-end: 0;
+    border-bottom: 1px solid #e2e3e5; /* INTENTIONAL_EXCEPTION: Planable divider */
+  }
+
+  [data-testid='demo-content-saved'] {
+    width: 100%;
+    max-width: none;
+  }
+
   .oma-content-list-head {
     display: none;
   }
@@ -979,6 +1065,10 @@
     display: none;
   }
 
+  .oma-cal-main {
+    padding: 8px;
+  }
+
   .oma-cal-agenda,
   .oma-cal-date-strip {
     display: flex;
@@ -987,6 +1077,10 @@
 
   .oma-cal-date-strip {
     flex-direction: row;
+  }
+
+  [data-testid='demo-content-saved'] {
+    display: none;
   }
 
   .oma-drawer.oma-drawer--wide {
