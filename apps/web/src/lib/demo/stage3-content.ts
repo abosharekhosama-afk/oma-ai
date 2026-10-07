@@ -188,8 +188,9 @@ export function buildMonthCells(
 
 export function monthLabel(year: number, monthIndex: number, locale: string): string {
   const d = new Date(Date.UTC(year, monthIndex, 1));
+  // Planable LIVE_VERIFIED calendar chrome uses short month ("Oct 2026").
   return new Intl.DateTimeFormat(locale.toLowerCase().startsWith('ar') ? 'ar' : 'en', {
-    month: 'long',
+    month: 'short',
     year: 'numeric',
     timeZone: 'UTC',
   }).format(d);

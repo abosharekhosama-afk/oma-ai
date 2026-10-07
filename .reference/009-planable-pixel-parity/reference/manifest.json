@@ -13,7 +13,7 @@
         "height": 900
       },
       "screenshot": "PL-SHELL-workspace-default-en-1440x900.png",
-      "urlPath": "https://app.planable.io/calendar/[workspace]",
+      "urlPath": "https://app.planable.io/b/HAZEMExM6ZmwncfjD/HukMc5CjrKSWzMMDE",
       "note": "Authenticated shell — read-only",
       "geometry": {
         "sidebar": {
@@ -39,13 +39,14 @@
           "transition": "all"
         },
         "main": null,
-        "calendarBtn": {
+        "calendarBtn": null,
+        "feedBtn": {
           "tag": "button",
           "role": null,
-          "text": "calendar",
+          "text": "feed",
           "x": 553,
           "y": 12,
-          "width": 106,
+          "width": 80,
           "height": 32,
           "padding": "0px",
           "margin": "0px",
@@ -61,7 +62,6 @@
           "zIndex": "auto",
           "transition": "0.3s cubic-bezier(0.4, 0, 0.2, 1)"
         },
-        "feedBtn": null,
         "gridBtn": null,
         "listBtn": null,
         "filterBtn": {
@@ -90,23 +90,31 @@
         "rootFont": "-apple-system, system-ui, \"system-ui\", \"Segoe UI\", Roboto, Oxygen-Sans, Ubuntu, Cantarell, \"Helvetica Neue\", sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\""
       },
       "brokenImages": 1,
-      "timestamp": "2026-10-01T07:14:42.547Z",
+      "timestamp": "2026-10-07T11:41:59.845Z",
       "pii": "path-scrubbed-no-workspace-ids-in-filename"
+    },
+    {
+      "evidenceId": "PL-CONTENT",
+      "view": "calendar",
+      "state": "default",
+      "sourceLevel": "ACCESS_BLOCKED",
+      "note": "Control Calendar not found",
+      "timestamp": "2026-10-07T11:41:59.875Z"
     },
     {
       "evidenceId": "PL-CONTENT",
       "product": "Planable",
       "sourceLevel": "LIVE_VERIFIED",
-      "view": "calendar",
+      "view": "feed",
       "state": "default",
       "locale": "en",
       "viewport": {
         "width": 1440,
         "height": 900
       },
-      "screenshot": "PL-CONTENT-calendar-default-en-1440x900.png",
-      "urlPath": "https://app.planable.io/calendar/[workspace]",
-      "note": "View switch Calendar — no mutate",
+      "screenshot": "PL-CONTENT-feed-default-en-1440x900.png",
+      "urlPath": "https://app.planable.io/b/HAZEMExM6ZmwncfjD/HukMc5CjrKSWzMMDE",
+      "note": "View switch Feed — no mutate",
       "geometry": {
         "sidebar": {
           "tag": "div",
@@ -131,13 +139,14 @@
           "transition": "all"
         },
         "main": null,
-        "calendarBtn": {
+        "calendarBtn": null,
+        "feedBtn": {
           "tag": "button",
           "role": null,
-          "text": "calendar",
+          "text": "feed",
           "x": 553,
           "y": 12,
-          "width": 106,
+          "width": 80,
           "height": 32,
           "padding": "0px",
           "margin": "0px",
@@ -153,7 +162,6 @@
           "zIndex": "auto",
           "transition": "0.3s cubic-bezier(0.4, 0, 0.2, 1)"
         },
-        "feedBtn": null,
         "gridBtn": null,
         "listBtn": null,
         "filterBtn": {
@@ -182,16 +190,8 @@
         "rootFont": "-apple-system, system-ui, \"system-ui\", \"Segoe UI\", Roboto, Oxygen-Sans, Ubuntu, Cantarell, \"Helvetica Neue\", sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\""
       },
       "brokenImages": 1,
-      "timestamp": "2026-10-01T07:15:14.222Z",
+      "timestamp": "2026-10-07T11:42:31.764Z",
       "pii": "path-scrubbed-no-workspace-ids-in-filename"
-    },
-    {
-      "evidenceId": "PL-CONTENT",
-      "view": "feed",
-      "state": "default",
-      "sourceLevel": "ACCESS_BLOCKED",
-      "note": "Control Feed not found",
-      "timestamp": "2026-10-01T07:15:14.231Z"
     },
     {
       "evidenceId": "PL-CONTENT",
@@ -199,7 +199,7 @@
       "state": "default",
       "sourceLevel": "ACCESS_BLOCKED",
       "note": "Control Grid not found",
-      "timestamp": "2026-10-01T07:15:14.235Z"
+      "timestamp": "2026-10-07T11:42:31.773Z"
     },
     {
       "evidenceId": "PL-CONTENT",
@@ -207,7 +207,7 @@
       "state": "default",
       "sourceLevel": "ACCESS_BLOCKED",
       "note": "Control List not found",
-      "timestamp": "2026-10-01T07:15:14.239Z"
+      "timestamp": "2026-10-07T11:42:31.780Z"
     },
     {
       "evidenceId": "PL-CONTENT",
@@ -221,7 +221,7 @@
         "height": 768
       },
       "screenshot": "PL-CONTENT-calendar-default-en-1024x768.png",
-      "urlPath": "https://app.planable.io/calendar/[workspace]",
+      "urlPath": "https://app.planable.io/b/HAZEMExM6ZmwncfjD/HukMc5CjrKSWzMMDE",
       "note": "Tablet width",
       "geometry": {
         "sidebar": {
@@ -247,13 +247,14 @@
           "transition": "all"
         },
         "main": null,
-        "calendarBtn": {
+        "calendarBtn": null,
+        "feedBtn": {
           "tag": "button",
           "role": null,
-          "text": "calendar",
+          "text": "feed",
           "x": 537,
           "y": 12,
-          "width": 106,
+          "width": 80,
           "height": 32,
           "padding": "0px",
           "margin": "0px",
@@ -269,7 +270,6 @@
           "zIndex": "auto",
           "transition": "0.3s cubic-bezier(0.4, 0, 0.2, 1)"
         },
-        "feedBtn": null,
         "gridBtn": null,
         "listBtn": null,
         "filterBtn": {
@@ -298,7 +298,7 @@
         "rootFont": "-apple-system, system-ui, \"system-ui\", \"Segoe UI\", Roboto, Oxygen-Sans, Ubuntu, Cantarell, \"Helvetica Neue\", sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\""
       },
       "brokenImages": 1,
-      "timestamp": "2026-10-01T07:15:45.330Z",
+      "timestamp": "2026-10-07T11:43:03.002Z",
       "pii": "path-scrubbed-no-workspace-ids-in-filename"
     },
     {
@@ -313,7 +313,7 @@
         "height": 844
       },
       "screenshot": "PL-CONTENT-calendar-mobile-en-390x844.png",
-      "urlPath": "https://app.planable.io/calendar/[workspace]",
+      "urlPath": "https://app.planable.io/b/HAZEMExM6ZmwncfjD/HukMc5CjrKSWzMMDE",
       "note": "Mobile width — read-only",
       "geometry": {
         "sidebar": {
@@ -348,15 +348,8 @@
         "rootFont": "-apple-system, system-ui, \"system-ui\", \"Segoe UI\", Roboto, Oxygen-Sans, Ubuntu, Cantarell, \"Helvetica Neue\", sans-serif, \"Apple Color Emoji\", \"Segoe UI Emoji\", \"Segoe UI Symbol\""
       },
       "brokenImages": 1,
-      "timestamp": "2026-10-01T07:16:16.413Z",
+      "timestamp": "2026-10-07T11:43:34.389Z",
       "pii": "path-scrubbed-no-workspace-ids-in-filename"
     }
-  ],
-  "viewAccess": {
-    "calendar": "LIVE_VERIFIED",
-    "feed": "LIVE_VERIFIED",
-    "grid": "PLAN_GATED_PRO",
-    "list": "PLAN_GATED_ENT",
-    "note": "Grid/List show PRO/ENT badges in live view menu — not live parity; OFFICIAL_DOC_REFERENCE required for those views."
-  }
+  ]
 }

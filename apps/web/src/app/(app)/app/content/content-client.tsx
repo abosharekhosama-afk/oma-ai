@@ -65,9 +65,10 @@ type Task = DemoGraph['tasks'][number];
 type Deliverable = DemoGraph['deliverables'][number];
 type RequestRow = DemoGraph['requests'][number];
 
-const TODAY_KEY = '2026-09-10';
+/* Planable LIVE_VERIFIED capture window: real “today” for Oct 2026 parity runs. */
+const TODAY_KEY = '2026-10-07';
 const DEFAULT_YEAR = 2026;
-const DEFAULT_MONTH = 8;
+const DEFAULT_MONTH = 9;
 
 type DraftFields = {
   caption: string;
@@ -694,18 +695,33 @@ export default function ContentPage() {
   );
 
   return (
-    <div className="oma-stack" data-testid="demo-content">
+    <div className="oma-stack oma-content-plan" data-testid="demo-content">
+      {/*
+        Planable LIVE_VERIFIED Content chrome: breadcrumb-level title (shell),
+        compact view/filter/compose row — not a marketing page header stack.
+      */}
       <PageHeader
         title={t('demo.content.title')}
         description={t('demo.content.subtitle')}
         actions={
-          <Button
-            type="primary"
-            data-testid="demo-create-content"
-            onClick={() => setCreateOpen(true)}
-          >
-            {t('demo.content.create')}
-          </Button>
+          <div className="oma-content-plan__actions">
+            <Button
+              type="default"
+              onClick={() => setFilterSheet(true)}
+              className="oma-filter-sheet-trigger"
+              data-testid="demo-content-open-filters"
+            >
+              {t('demo.content.openFilters')}
+              {filterCount > 0 ? ` (${filterCount})` : ''}
+            </Button>
+            <Button
+              type="primary"
+              data-testid="demo-create-content"
+              onClick={() => setCreateOpen(true)}
+            >
+              {t('demo.content.create')}
+            </Button>
+          </div>
         }
         meta={
           <>
@@ -776,15 +792,6 @@ export default function ContentPage() {
 
       <div className="oma-stage3-toolbar" data-testid="demo-content-filters">
         {searchField}
-        <Button
-          type="default"
-          onClick={() => setFilterSheet(true)}
-          className="oma-filter-sheet-trigger"
-          data-testid="demo-content-open-filters"
-        >
-          {t('demo.content.openFilters')}
-          {filterCount > 0 ? ` (${filterCount})` : ''}
-        </Button>
       </div>
 
       {filterCount > 0 ? (
@@ -1049,11 +1056,19 @@ export default function ContentPage() {
           <aside data-testid="demo-content-saved" aria-label={t('demo.content.savedColumn')}>
             <header className="oma-cal-saved-head">
               <strong>{t('demo.content.savedColumn')}</strong>
-              <span className="oma-muted oma-ltr">{savedItems.length}</span>
+              <div className="oma-cal-saved-head__meta">
+                {savedItems.length > 0 ? (
+                  <span className="oma-muted oma-ltr">{savedItems.length}</span>
+                ) : null}
+                <span className="oma-cal-saved-close" aria-hidden>
+                  ×
+                </span>
+              </div>
             </header>
             {savedItems.length === 0 ? (
               <div className="oma-cal-saved-empty" data-testid="demo-content-saved-empty">
-                <p>{t('demo.content.savedEmpty')}</p>
+                <div className="oma-cal-saved-empty__art" aria-hidden />
+                <strong>{t('demo.content.savedEmpty')}</strong>
                 <p className="oma-muted">{t('demo.content.savedEmptyHint')}</p>
                 <Button type="default" onClick={() => setCreateOpen(true)}>
                   {t('demo.content.create')}

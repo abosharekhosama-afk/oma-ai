@@ -654,7 +654,8 @@ export const DEMO_GRAPH: DemoGraph = {
       contentType: 'STATIC',
       status: 'DRAFT',
       scheduledAt: null,
-      plannedAt: null,
+      // Align with schedule fixture so Saved column can show Planable empty anatomy on Oct.
+      plannedAt: '2026-09-16T10:00:00+03:00',
       scheduleState: 'UNSCHEDULED',
       assignee: 'Sara Alami',
       previewAsset: '/demo/poster-static.svg',
@@ -769,7 +770,8 @@ export const DEMO_GRAPH: DemoGraph = {
       channel: 'Email',
       contentType: 'POST',
       status: 'DRAFT',
-      scheduledAt: '2026-10-05T08:00:00+03:00',
+      // Keep off the Oct 2026 golden Content Plan month (Planable LIVE empty grid).
+      scheduledAt: '2026-09-05T08:00:00+03:00',
       assignee: 'Sara Alami',
       previewAsset: '/demo/poster-product.svg',
       deliverableId: null,
