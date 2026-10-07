@@ -663,7 +663,11 @@
 }
 
 .oma-content-plan .oma-stage3-toolbar {
-  display: none; /* Search available via Filter sheet — Planable calendar has no search row */
+  /* Keep search row interactive (E2E + empty-state); densify toward Planable chrome. */
+  margin: 0;
+  padding: 0 0 4px;
+  min-height: 0;
+  gap: 8px;
 }
 
 .oma-content-plan .oma-demo-disclosure {
