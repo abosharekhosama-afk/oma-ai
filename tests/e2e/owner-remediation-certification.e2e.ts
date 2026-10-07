@@ -171,9 +171,9 @@ test.describe('Owner remediation certification', () => {
     await page.locator('#oma-command-input').fill('kanban');
     await page
       .locator('.oma-command-results')
-      .getByRole('button', { name: /tasks board/i })
-      .first()
-      .click({ force: true });
+      .getByRole('link', { name: /tasks board/i })
+      .click();
+    await expect(page).toHaveURL(/\/app\/tasks/);
     await expect(page.getByTestId('demo-tasks-board')).toBeVisible({ timeout: 15_000 });
 
     fs.writeFileSync(

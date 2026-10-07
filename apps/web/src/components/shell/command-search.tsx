@@ -1,11 +1,16 @@
 'use client';
 import { Button, Input } from '@oma/ui/controls';
 
+import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { Dialog } from '../ui/dialog';
 import { useT } from '../../lib/use-locale';
 import { SHELL_NAV_SECTIONS } from './nav-config';
+
+function navTestId(href: string) {
+  return `demo-command-nav${href.split('/').join('-')}`;
+}
 
 export function CommandSearch({
   compact = false,
@@ -51,6 +56,17 @@ export function CommandSearch({
     );
   }, [query, t]);
 
+  function closePalette() {
+    setOpen(false);
+    setQuery('');
+  }
+
+  function goTo(href: string) {
+    // Navigate first — Modal destroyOnHidden must not race ahead of routing.
+    router.push(href);
+    closePalette();
+  }
+
   return (
     <>
       <Button
@@ -64,7 +80,7 @@ export function CommandSearch({
         <span className="oma-command-trigger-label">{t('shell.search')}</span>
         {compact ? null : <kbd className="oma-command-kbd">⌘K</kbd>}
       </Button>
-      <Dialog open={open} onClose={() => setOpen(false)} title={t('shell.searchTitle')}>
+      <Dialog open={open} onClose={closePalette} title={t('shell.searchTitle')}>
         <label className="oma-sr-only" htmlFor="oma-command-input">
           {t('shell.search')}
         </label>
@@ -74,6 +90,12 @@ export function CommandSearch({
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t('shell.searchPlaceholder')}
           autoFocus
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && entries[0]) {
+              e.preventDefault();
+              goTo(entries[0].href);
+            }
+          }}
         />
         <ul className="oma-command-results" role="listbox">
           {entries.length === 0 ? (
@@ -81,18 +103,19 @@ export function CommandSearch({
           ) : (
             entries.map((item) => (
               <li key={item.href} role="option" aria-selected={pathname === item.href}>
-                <Button
-                  type="default"
-                  onClick={() => {
-                    setOpen(false);
-                    setQuery('');
-                    router.push(item.href);
-                  }}
+                {/* Real link navigation — Ant Button onClick inside Modal was failing to route in CI. */}
+                <Link
+                  href={item.href}
                   className="oma-menu-item"
+                  data-testid={navTestId(item.href)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    goTo(item.href);
+                  }}
                 >
                   <span>{item.label}</span>
                   <span className="oma-muted">{item.section}</span>
-                </Button>
+                </Link>
               </li>
             ))
           )}

@@ -302,6 +302,27 @@
   border: 1px solid var(--oma-border);
   background: var(--oma-surface);
 }
+
+.oma-command-results .oma-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 36px;
+  padding: 8px 12px;
+  border-radius: var(--oma-radius-control);
+  border: 1px solid transparent;
+  color: inherit;
+  text-decoration: none;
+  background: transparent;
+  cursor: pointer;
+}
+.oma-command-results .oma-menu-item:hover,
+.oma-command-results .oma-menu-item:focus-visible {
+  background: var(--oma-primary-soft);
+  outline: none;
+}
 .oma-command-results {
   list-style: none;
   margin: 0;
