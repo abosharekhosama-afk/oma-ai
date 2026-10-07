@@ -916,7 +916,7 @@
   border-radius: 14px; /* INTENTIONAL_EXCEPTION: Planable empty illustration */
   background:
     linear-gradient(180deg, #cfe8ff 0%, #eaf4ff 100%), #eaf4ff; /* INTENTIONAL_EXCEPTION: Planable empty art wash */
-  box-shadow: inset 0 0 0 1px #bfdfff;
+  box-shadow: inset 0 0 0 1px #bfdfff; /* INTENTIONAL_EXCEPTION: Planable empty art edge */
   position: relative;
   margin-bottom: 4px;
 }
@@ -925,9 +925,9 @@
 .oma-cal-saved-empty__art::after {
   content: '';
   position: absolute;
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+  border-radius: 8px; /* INTENTIONAL_EXCEPTION: Planable empty card stack */
+  background: #fff; /* INTENTIONAL_EXCEPTION: Planable empty card stack */
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08); /* INTENTIONAL_EXCEPTION: Planable empty card stack */
 }
 
 .oma-cal-saved-empty__art::before {
