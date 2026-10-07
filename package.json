@@ -95,13 +95,13 @@
     "overrides": {
       "postcss": ">=8.5.23",
       "deepmerge-ts": ">=8.0.0",
-        "sharp": ">=0.35.5",
-        "qs": ">=6.16.0",
-        "next": "15.5.24",
-        "multer": ">=2.4.0",
-        "js-yaml": ">=5.4.1",
-        "proxy-addr": ">=2.0.8",
-        "source-map-js": ">=1.2.2"
+      "sharp": ">=0.35.5",
+      "qs": ">=6.16.0",
+      "next": "15.5.24",
+      "multer": ">=2.4.0",
+      "js-yaml": ">=5.4.1",
+      "proxy-addr": ">=2.0.8",
+      "source-map-js": ">=1.2.2"
     },
     "patchedDependencies": {
       "next@15.5.24": "patches/next@15.5.24.patch"
