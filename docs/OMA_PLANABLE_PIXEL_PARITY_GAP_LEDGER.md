@@ -27,9 +27,9 @@
 | P0                                      | many (Owner reject) | 0 (Content Plan golden scope)                                  |
 | P1                                      | many                | 0 (Content Plan golden scope)                                  |
 | Unexplained P2                          | many                | 0 for Content Plan chrome; PX-CP-005 remains REFERENCE_LIMITED |
-| Full-page calendar mismatch vs Planable | 5.54% (menu-open)   | **3.4278%** closed EN 1440 (`a6c4850` after vs LIVE)             |
-| Normalized content-no-rail mismatch     | n/a                 | **2.5955% ≤ 3%**                                                 |
-| Calendar-stage crop                     | n/a                 | **1.3778%**                                                      |
+| Full-page calendar mismatch vs Planable | 5.54% (menu-open)   | **3.4278%** closed EN 1440 (`a6c4850` after vs LIVE)           |
+| Normalized content-no-rail mismatch     | n/a                 | **2.5955% ≤ 3%**                                               |
+| Calendar-stage crop                     | n/a                 | **1.3778%**                                                    |
 | Broken images                           | 0 (sample)          | 0                                                              |
 | Content Plan golden screen              | NOT_PASS            | **PASS** (normalized chrome + working views)                   |
 | Overlay coverage                        | incomplete          | view-menu / filters / composer documented                      |
@@ -48,13 +48,13 @@
 
 ## Content Plan (Golden Screen) — blockers
 
-| ID        | Severity | Surface         | Defect                                                        | Evidence                                                       | Status     |
-| --------- | -------- | --------------- | ------------------------------------------------------------- | -------------------------------------------------------------- | ---------- |
+| ID        | Severity | Surface         | Defect                                                        | Evidence                                                         | Status     |
+| --------- | -------- | --------------- | ------------------------------------------------------------- | ---------------------------------------------------------------- | ---------- |
 | PX-CP-001 | P0       | Calendar chrome | Full-page hierarchy still not Planable-like (shell/IA differ) | diffs/content-calendar-closed-after-en-1440 + normalized 2.5955% | **CLOSED** |
-| PX-CP-002 | P0       | Feed/Grid/List  | Feed LIVE_VERIFIED; Grid/List plan-gated                      | planable view-menu + OMA feed/grid/list after                  | **CLOSED** |
-| PX-CP-003 | P1       | View switcher   | Dropdown grammar landed; visual weight still diverges         | OMA after view-menu PNG                                        | MITIGATED  |
-| PX-CP-004 | P1       | Cards in cells  | Fluid cell containment landed; density still diverges         | W1 containment + after PNG                                     | MITIGATED  |
-| PX-CP-005 | P2       | Composer        | Live Planable composer still read-only constrained            | REFERENCE_LIMITED                                              | OPEN       |
+| PX-CP-002 | P0       | Feed/Grid/List  | Feed LIVE_VERIFIED; Grid/List plan-gated                      | planable view-menu + OMA feed/grid/list after                    | **CLOSED** |
+| PX-CP-003 | P1       | View switcher   | Dropdown grammar landed; visual weight still diverges         | OMA after view-menu PNG                                          | MITIGATED  |
+| PX-CP-004 | P1       | Cards in cells  | Fluid cell containment landed; density still diverges         | W1 containment + after PNG                                       | MITIGATED  |
+| PX-CP-005 | P2       | Composer        | Live Planable composer still read-only constrained            | REFERENCE_LIMITED                                                | OPEN       |
 
 ### Closure notes
 
