@@ -102,15 +102,15 @@ describe('stage3 campaign filters/grouping', () => {
 describe('stage3 content calendar mapping', () => {
   it('groups scheduled items by day and builds overflow-capable month cells', () => {
     const byDay = groupContentByDay(DEMO_GRAPH.contentItems);
-    const sept12 = byDay.get('2026-09-12') ?? [];
-    expect(sept12.some((i) => i.id === 'demo-content-reel')).toBe(true);
-    expect(sept12.length).toBeGreaterThanOrEqual(3);
-    const { visible, extra } = splitCellItems(sept12, 2);
+    const oct7 = byDay.get('2026-10-07') ?? [];
+    expect(oct7.some((i) => i.id === 'demo-content-reel')).toBe(true);
+    expect(oct7.length).toBeGreaterThanOrEqual(3);
+    const { visible, extra } = splitCellItems(oct7, 2);
     expect(visible).toHaveLength(2);
     expect(extra).toBeGreaterThan(0);
-    const cells = buildMonthCells(2026, 8, 0);
+    const cells = buildMonthCells(2026, 9, 0);
     expect(cells).toHaveLength(42);
-    expect(cells.some((c) => c.key === '2026-09-01' && c.inMonth)).toBe(true);
+    expect(cells.some((c) => c.key === '2026-10-01' && c.inMonth)).toBe(true);
   });
 
   it('filters content by campaign and brand and maps semantic status labels', () => {

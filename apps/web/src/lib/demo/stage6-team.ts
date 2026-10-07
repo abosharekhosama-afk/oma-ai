@@ -87,8 +87,9 @@ export function groupActivityByDay(rows: ActivityRow[]): Map<string, ActivityRow
 }
 
 export function commandCenterScheduleCounts(posts: DemoGraph['scheduledPosts']) {
-  const today = '2026-09-11';
-  const weekEnd = '2026-09-17';
+  // Demo “today” window aligned with Content Plan golden cursor (Oct 2026).
+  const today = '2026-10-05';
+  const weekEnd = '2026-10-11';
   const thisWeek = posts.filter((p) => {
     const d = p.plannedAt.slice(0, 10);
     return d >= today && d <= weekEnd;
