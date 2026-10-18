@@ -102,7 +102,7 @@ export function ContentFace({
   when,
   asset,
   display,
-  locale,
+  locale: _locale,
   selected,
 }: {
   variant: 'feed' | 'calendar' | 'saved' | 'grid' | 'list';
