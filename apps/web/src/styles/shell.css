@@ -1,4 +1,4 @@
-/* DEC-017 P1 application shell — Planable rail + top chrome (2026-10-18 screenshots) */
+/* DEC-017 P1 application shell — Planable rail, not Linear top-bar product */
 
 .oma-sr-only {
   position: absolute;
@@ -18,7 +18,6 @@
   min-height: 100vh;
   font-size: var(--text-body);
   line-height: var(--leading-body);
-  font-family: var(--oma-font-sans);
   background: var(--oma-canvas);
   color: var(--oma-ink);
 }
@@ -26,11 +25,10 @@
   grid-template-columns: var(--shell-rail-collapsed) minmax(0, 1fr);
 }
 
-/* ---- Rail (Planable left sidebar) ---- */
 .oma-rail {
   border-inline-end: 1px solid var(--oma-border);
   background: var(--oma-surface);
-  padding: 12px 10px 12px;
+  padding: var(--shell-chrome-inset);
   height: 100vh;
   max-height: 100vh;
   overflow: hidden;
@@ -42,108 +40,100 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--oma-control-gap);
 }
 .oma-shell[data-rail='collapsed'] .oma-rail {
   width: var(--shell-rail-collapsed);
-  padding-inline: 8px;
+  padding-inline: var(--space-2);
 }
-
 .oma-rail-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  min-height: 32px;
-  padding-inline: 4px;
+  gap: var(--space-2);
 }
 .oma-rail-brand {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-2);
   min-width: 0;
 }
 .oma-rail-mark {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 28px;
-  height: 22px;
-  padding: 0 6px;
-  border-radius: 6px;
+  min-width: 32px;
+  height: 24px;
+  padding: 0 var(--space-1);
+  border-radius: var(--oma-radius-control);
   background: var(--oma-primary);
   color: var(--oma-primary-ink);
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-weight: var(--weight-bold);
+  letter-spacing: 0.04em;
   flex-shrink: 0;
 }
 .oma-rail-name {
-  font-weight: 600;
-  font-size: 14px;
-  color: var(--oma-ink);
+  font-weight: var(--weight-medium);
+  font-size: var(--text-body);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .oma-rail-endorsement {
   color: var(--oma-muted);
-  font-size: 12px;
-  line-height: 16px;
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
   margin: 0;
 }
-
 .oma-rail-search {
   display: inline-flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 8px;
+  gap: var(--space-2);
   width: 100%;
-  height: 32px;
-  min-height: 32px;
-  padding: 0 10px;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--oma-ink);
+  height: var(--oma-search-height-rail);
+  min-height: var(--oma-search-height-rail);
+  padding: 0 11px 0 8px;
+  border: 1px solid var(--oma-border);
+  border-radius: var(--oma-radius-control);
+  background: var(--oma-surface);
+  color: var(--oma-muted);
   font: inherit;
-  font-size: 14px;
-  line-height: 20px;
+  font-size: var(--text-control);
+  line-height: var(--leading-control);
   cursor: pointer;
   box-sizing: border-box;
-  transition: background 150ms ease;
 }
 .oma-rail-search:hover,
 .oma-rail-search:focus-visible {
-  background: var(--oma-canvas);
+  border-color: var(--oma-primary);
+  color: var(--oma-ink);
   outline: none;
 }
 .oma-rail-search .oma-command-kbd {
   margin-inline-start: auto;
   font-size: 10px;
-  padding: 1px 5px;
-  border-radius: 4px;
-  background: var(--oma-canvas);
-  color: var(--oma-muted);
+  padding: 0 4px;
 }
-
-.oma-rail-workspace { min-width: 0; }
-.oma-rail-workspace .oma-field-inline { display: grid; gap: 4px; }
+.oma-rail-workspace {
+  min-width: 0;
+}
+.oma-rail-workspace .oma-field-inline {
+  display: grid;
+  gap: 4px;
+}
 .oma-rail-workspace .oma-field-inline-label {
-  font-size: 11px;
+  font-size: var(--text-meta);
   color: var(--oma-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-weight: 500;
 }
-
 .oma-rail-footer {
   margin-top: auto;
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding-top: 8px;
+  gap: var(--space-1);
+  padding-top: var(--space-2);
   border-top: 1px solid var(--oma-border);
 }
 .oma-rail .oma-user-menu-panel,
@@ -157,356 +147,315 @@
 .oma-shell[data-rail='collapsed'] .oma-rail-name,
 .oma-shell[data-rail='collapsed'] .oma-rail-endorsement,
 .oma-shell[data-rail='collapsed'] .oma-nav-section,
-.oma-shell[data-rail='collapsed'] .oma-nav-link-label {
-  display: none;
+.oma-shell[data-rail='collapsed'] .oma-nav-link-label,
+.oma-shell[data-rail='collapsed'] .oma-rail-workspace,
+.oma-shell[data-rail='collapsed'] .oma-rail-search .oma-command-trigger-label,
+.oma-shell[data-rail='collapsed'] .oma-rail-search .oma-command-kbd {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.oma-shell[data-rail='collapsed'] .oma-rail-collapse svg {
+  transform: rotate(180deg);
+}
+[dir='rtl'] .oma-shell[data-rail='collapsed'] .oma-rail-collapse svg {
+  transform: rotate(0deg);
+}
+[dir='rtl'] .oma-rail-collapse svg {
+  transform: rotate(180deg);
 }
 
-/* ---- Nav ---- */
 .oma-nav {
   display: grid;
-  gap: 12px;
-  overflow: auto;
+  gap: var(--space-3);
   flex: 1 1 auto;
-  padding-inline: 2px;
-  scrollbar-width: thin;
+  min-height: 0;
+  overflow-y: auto;
 }
-.oma-nav-group { display: grid; gap: 2px; }
+.oma-nav-group {
+  display: grid;
+  gap: var(--space-1);
+}
 .oma-nav-section {
-  margin: 0 0 4px;
-  padding-inline: 10px;
+  margin: 0;
+  padding-inline: var(--space-2);
   font-size: 11px;
-  font-weight: 500;
+  font-weight: var(--weight-medium);
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--oma-muted-soft);
+  color: var(--oma-muted);
 }
 .oma-nav-list {
   list-style: none;
   padding: 0;
   margin: 0;
   display: grid;
-  gap: 1px;
+  gap: 2px;
 }
 .oma-nav-link {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 7px 10px;
-  border-radius: 8px;
+  gap: var(--space-2);
+  padding: 8px;
+  border-radius: var(--oma-radius-control);
   text-decoration: none;
-  font-size: 14px;
-  line-height: 20px;
-  font-weight: 400;
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  font-weight: var(--weight-regular);
   color: var(--oma-ink);
   min-height: 36px;
   box-sizing: border-box;
-  transition: background 150ms ease, color 150ms ease;
 }
 .oma-nav-link-icon {
   flex-shrink: 0;
-  width: 18px;
-  height: 18px;
+  width: var(--icon-md);
+  height: var(--icon-md);
   color: var(--oma-muted);
 }
 .oma-nav-link:hover {
   background: var(--oma-canvas);
 }
-/* Planable: active = neutral gray wash, dark ink — not primary blue */
 .oma-nav-link[data-active='true'] {
-  background: #eceef0;
-  color: var(--oma-ink);
-  font-weight: 500;
+  background: var(--oma-primary-soft);
+  color: var(--oma-primary);
+  font-weight: var(--weight-medium);
 }
 .oma-nav-link[data-active='true'] .oma-nav-link-icon {
-  color: var(--oma-ink);
+  color: var(--oma-primary);
 }
-.oma-nav-tooltip-wrap { display: block; position: relative; }
-.oma-tooltip-anchor { position: relative; display: inline-flex; width: 100%; }
+.oma-nav-tooltip-wrap {
+  display: block;
+  position: relative;
+}
+.oma-tooltip-anchor {
+  position: relative;
+  display: inline-flex;
+  width: 100%;
+}
 
-/* ---- Main column ---- */
 .oma-shell-column {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  background: var(--oma-canvas);
 }
 
-/* Primary top bar — Planable breadcrumb + actions row */
 .oma-top {
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-height: var(--shell-header-height);
+  gap: var(--space-3);
+  min-height: calc(var(--oma-control-height) + (var(--shell-chrome-inset) * 2));
   box-sizing: border-box;
   border-bottom: 1px solid var(--oma-border);
   background: var(--oma-surface);
-  padding: 0 12px;
+  padding: var(--shell-chrome-inset) var(--space-4);
   position: sticky;
   top: 0;
   z-index: var(--shell-z-top);
 }
+.oma-top-start,
+.oma-top-center,
+.oma-top-actions,
+.oma-top-context {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
 .oma-top-start {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
   flex: 1 1 auto;
 }
-.oma-top-end {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-  margin-inline-start: auto;
-}
-
-/* Breadcrumb / context trail — Planable: Workspace / Content / View */
-.oma-context-trail,
-.oma-breadcrumb {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  font-size: 13px;
-  line-height: 20px;
-  color: var(--oma-muted);
-}
-.oma-breadcrumb li {
-  display: inline-flex;
-  align-items: center;
-  gap: 0;
-}
-.oma-breadcrumb a {
-  color: var(--oma-muted);
-  text-decoration: none;
-  padding: 2px 4px;
-  border-radius: 4px;
-}
-.oma-breadcrumb a:hover {
-  color: var(--oma-ink);
-  background: var(--oma-canvas);
-}
-.oma-breadcrumb [aria-current='page'] {
-  color: var(--oma-ink);
-  font-weight: 500;
-}
-.oma-breadcrumb-sep {
-  color: var(--oma-border-strong);
-  margin: 0 2px;
-  user-select: none;
-}
-
-/* Workspace chip in top bar */
-.oma-top-workspace {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 28px;
-  padding: 0 8px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--oma-ink);
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-}
-.oma-top-workspace:hover {
-  background: var(--oma-canvas);
-}
-.oma-top-workspace__mark {
-  width: 16px;
-  height: 16px;
-  border-radius: 4px;
-  background: var(--oma-primary);
-  flex-shrink: 0;
-}
-
-/* Top action buttons — Filter, Media, Share, Compose */
-.oma-top-action {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 32px;
-  padding: 0 10px;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--oma-ink);
-  font: inherit;
-  font-size: 13px;
-  line-height: 20px;
-  cursor: pointer;
-  transition: background 150ms ease, border-color 150ms ease;
-}
-.oma-top-action:hover {
-  background: var(--oma-canvas);
-}
-.oma-top-action--outline {
-  border-color: var(--oma-border);
-  background: var(--oma-surface);
-}
-.oma-top-action--outline:hover {
-  border-color: var(--oma-border-strong);
-  background: var(--oma-canvas);
-}
-.oma-top-action--primary {
-  background: var(--oma-primary);
-  color: var(--oma-primary-ink);
-  border-color: var(--oma-primary);
-  font-weight: 500;
-}
-.oma-top-action--primary:hover {
-  background: var(--oma-primary-hover);
-  border-color: var(--oma-primary-hover);
-}
-.oma-top-action--icon {
-  width: 32px;
-  padding: 0;
-  justify-content: center;
-  background: var(--oma-primary);
-  color: #fff;
-  border-radius: 6px;
-}
-.oma-top-action--icon:hover {
-  background: var(--oma-primary-hover);
-}
-
-/* Secondary toolbar under top (Month/Week, calendar nav) */
-.oma-subheader {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: var(--shell-subheader-height);
-  padding: 0 12px;
-  background: var(--oma-surface);
-  border-bottom: 1px solid var(--oma-border);
-  flex-wrap: wrap;
-}
-.oma-subheader-meta {
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  margin-inline-start: auto;
-  font-size: 13px;
-  color: var(--oma-muted);
-}
-
-/* Main content area */
-.oma-main {
-  flex: 1 1 auto;
-  min-width: 0;
-  padding: 0;
-  background: var(--oma-canvas);
-}
-.oma-main--padded {
-  padding: 16px;
-}
-
-/* Page header inside content (Planable keeps this minimal / hidden for content plan) */
-.oma-page-header-stack {
-  display: none; /* Planable content chrome has no large page title stack */
-}
-.oma-content-plan .oma-page-header-stack {
+.oma-top-center {
   display: none;
 }
-
-/* Collapse rail button */
-.oma-rail-collapse {
+.oma-top-actions {
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+}
+.oma-top-secondary {
+  display: none;
+}
+.oma-top-secondary-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+.oma-brand-context,
+.oma-brand-context-link {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--oma-muted);
-  cursor: pointer;
+  gap: var(--space-2);
+  font-size: var(--text-body);
 }
-.oma-rail-collapse:hover {
-  background: var(--oma-canvas);
-  color: var(--oma-ink);
+.oma-command-trigger {
+  display: none;
+}
+.oma-command-kbd {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: var(--oma-radius-control);
+  border: 1px solid var(--oma-border);
+  background: var(--oma-surface);
 }
 
-/* Channels block in rail */
-.oma-rail-channels {
-  margin-top: 4px;
-  padding-top: 8px;
-  border-top: 1px solid var(--oma-border-soft);
-}
-.oma-rail-channels__head {
+.oma-command-results .oma-menu-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 4px 10px;
-  font-size: 11px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--oma-muted-soft);
-}
-.oma-rail-channel {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  border-radius: 8px;
-  font-size: 13px;
-  color: var(--oma-ink);
+  gap: var(--space-3);
+  width: 100%;
+  min-height: 36px;
+  padding: 8px 12px;
+  border-radius: var(--oma-radius-control);
+  border: 1px solid transparent;
+  color: inherit;
   text-decoration: none;
-}
-.oma-rail-channel:hover {
-  background: var(--oma-canvas);
-}
-.oma-rail-channel__dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--oma-primary);
-  flex-shrink: 0;
-}
-
-/* Get started footer chip */
-.oma-rail-get-started {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid var(--oma-border);
-  background: var(--oma-surface);
-  font-size: 12px;
-  color: var(--oma-ink);
+  background: transparent;
   cursor: pointer;
 }
-.oma-rail-get-started:hover {
-  background: var(--oma-canvas);
+.oma-command-results .oma-menu-item:hover,
+.oma-command-results .oma-menu-item:focus-visible {
+  background: var(--oma-primary-soft);
+  outline: none;
+}
+.oma-command-results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 320px;
+  overflow: auto;
+  display: grid;
+  gap: 2px;
+}
+.oma-user-menu {
+  position: relative;
+}
+.oma-user-menu-panel {
+  inset-inline-end: 0;
+  inset-block-start: calc(100% + 6px);
+}
+.oma-user-menu-heading {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-label);
+  color: var(--oma-muted);
+  font-weight: var(--weight-medium);
+}
+.oma-user-menu-row {
+  padding: var(--space-2);
 }
 
-/* Responsive: hide rail on narrow */
-@media (max-width: 900px) {
-  .oma-shell {
-    grid-template-columns: 1fr;
+.oma-container {
+  max-width: var(--shell-main-max);
+  margin: 0;
+  padding: var(--space-5);
+  width: 100%;
+}
+
+.oma-mobile-nav-trigger,
+.oma-mobile-only {
+  display: none;
+}
+.oma-mobile-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+.oma-drawer.oma-drawer--nav {
+  inset-inline-end: auto;
+  inset-inline-start: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  /* INTENTIONAL_EXCEPTION: shell chrome inset — page/shell layout, not control chrome */
+  padding: var(--shell-chrome-inset);
+}
+.oma-drawer.oma-drawer--nav .oma-mobile-drawer-nav {
+  /* INTENTIONAL_EXCEPTION: flex child scroll region */
+  min-height: 0;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+.oma-drawer.oma-drawer--nav .oma-rail-footer {
+  margin-top: auto;
+  flex-shrink: 0;
+}
+.oma-drawer--nav .oma-rail-search {
+  display: inline-flex;
+  width: 100%;
+}
+
+.oma-notifications {
+  position: relative;
+}
+.oma-notifications .oma-icon-btn {
+  position: relative;
+}
+.oma-notifications .oma-badge {
+  position: absolute;
+  inset-block-start: -2px;
+  inset-inline-end: -2px;
+  min-height: 18px;
+  min-width: 18px;
+  justify-content: center;
+  margin: 0;
+  padding: 0 4px;
+  font-size: 10px;
+}
+.oma-notifications-panel {
+  position: absolute;
+  inset-inline-end: 0;
+  inset-block-start: calc(100% + 6px);
+  z-index: var(--shell-z-overlay);
+  width: min(320px, calc(100vw - 24px));
+  max-height: 360px;
+  overflow: auto;
+  padding: var(--space-3);
+  border: 1px solid var(--oma-border);
+  border-radius: var(--oma-radius-control);
+  background: var(--oma-surface);
+  box-shadow: var(--elev-menu);
+}
+
+@media (max-width: 767px) {
+  .oma-shell,
+  .oma-shell[data-rail='collapsed'] {
+    grid-template-columns: minmax(0, 1fr);
   }
   .oma-rail {
-    position: fixed;
-    inset-inline-start: 0;
-    top: 0;
-    transform: translateX(-100%);
-    transition: transform 200ms ease;
-    box-shadow: var(--elev-menu);
+    display: none;
   }
-  [dir='rtl'] .oma-rail {
-    transform: translateX(100%);
-  }
-  .oma-shell[data-rail-mobile='open'] .oma-rail {
-    transform: translateX(0);
+  .oma-mobile-nav-trigger,
+  .oma-mobile-only {
+    display: inline-flex;
   }
   .oma-top {
-    padding-inline: 8px;
+    height: auto;
+    min-height: calc(var(--oma-control-height) + (var(--shell-chrome-inset) * 2));
+    flex-wrap: wrap;
+  }
+  .oma-top-center {
+    display: flex;
+    order: 3;
+    flex: 1 1 100%;
+  }
+  .oma-command-trigger,
+  .oma-mobile-only.oma-rail-search,
+  .oma-top-center .oma-rail-search {
+    display: inline-flex;
+    width: 100%;
+    height: var(--oma-control-height);
+    min-height: var(--oma-control-height);
+  }
+  .oma-top-context {
+    flex-wrap: wrap;
   }
 }
