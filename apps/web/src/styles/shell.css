@@ -222,12 +222,12 @@
   background: var(--oma-canvas);
 }
 .oma-nav-link[data-active='true'] {
-  background: #eceef0;
-  color: var(--oma-ink);
-  font-weight: 500;
+  background: var(--oma-primary-soft);
+  color: var(--oma-primary);
+  font-weight: var(--weight-medium);
 }
 .oma-nav-link[data-active='true'] .oma-nav-link-icon {
-  color: var(--oma-ink);
+  color: var(--oma-primary);
 }
 .oma-nav-tooltip-wrap {
   display: block;
@@ -527,4 +527,28 @@
   .oma-shell .oma-container {
     padding: 6px 8px 18px;
   }
+}
+
+/* Content workspace top bar — Planable */
+.oma-top[data-content-workspace='true'] {
+  min-height: 48px;
+  padding-inline: 12px;
+}
+.oma-top[data-content-workspace='true'] .oma-top-center {
+  display: none;
+}
+.oma-top[data-content-workspace='true'] .oma-top-context {
+  /* breadcrumb only: Workspace / Content */
+  font-size: 13px;
+}
+/* Brand picker never on content top */
+.oma-top[data-content-workspace='true'] .oma-brand-context,
+.oma-top[data-content-workspace='true'] [data-testid='brand-context'] {
+  display: none !important;
+}
+.oma-main:has(.oma-content-plan),
+.oma-container:has(.oma-content-plan) {
+  max-width: none !important;
+  padding: 0 !important;
+  width: 100%;
 }

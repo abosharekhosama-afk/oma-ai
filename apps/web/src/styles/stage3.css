@@ -2788,3 +2788,65 @@
   gap: 10px;
   border-bottom: 1px solid #eef0f2;
 }
+
+/* ===== Content primary chrome (replaces PageHeader) ===== */
+.oma-content-chrome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 0 12px;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e3e5;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+.oma-content-chrome__trail {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.oma-content-chrome__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  margin-inline-start: auto;
+}
+.oma-content-chrome__actions .ant-btn {
+  height: 32px;
+  font-size: 13px;
+}
+.oma-content-chrome__actions .ant-btn-primary {
+  border-radius: 6px;
+}
+
+/* Hide leftover marketing chrome */
+.oma-content-plan > .oma-page-header,
+.oma-content-plan > .oma-page-header-stack,
+.oma-content-plan .oma-demo-disclosure,
+.oma-content-plan .oma-stage3-toolbar {
+  display: none !important;
+}
+
+/* Secondary calendar toolbar stays visible */
+.oma-cal-toolbar {
+  display: flex !important;
+  position: sticky;
+  top: 48px;
+  z-index: 20;
+  background: #fff;
+}
+
+/* Content plan full-bleed — no container padding fight */
+.oma-shell .oma-container:has(.oma-content-plan) {
+  max-width: none;
+  padding: 0;
+  width: 100%;
+}
+.oma-content-plan.oma-stack {
+  gap: 0;
+}
