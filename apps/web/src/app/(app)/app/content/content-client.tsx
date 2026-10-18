@@ -704,12 +704,14 @@ export default function ContentPage() {
         title={t('demo.content.title')}
         description={t('demo.content.subtitle')}
         actions={
-          <div className="oma-content-plan__actions">
+          <div className="oma-content-plan__actions" data-testid="demo-content-filters">
             <Button
               type="default"
               onClick={() => setFilterSheet(true)}
               className="oma-filter-sheet-trigger"
               data-testid="demo-content-open-filters"
+              aria-haspopup="dialog"
+              aria-expanded={filterSheet}
             >
               {t('demo.content.openFilters')}
               {filterCount > 0 ? ` (${filterCount})` : ''}
@@ -790,10 +792,6 @@ export default function ContentPage() {
       />
       <DemoDisclosure message={t('demo.content.noPublishing')} />
 
-      <div className="oma-stage3-toolbar" data-testid="demo-content-filters">
-        {searchField}
-      </div>
-
       {filterCount > 0 ? (
         <div className="oma-filter-chips" data-testid="demo-content-filter-chips">
           {chips.map((chip) => (
@@ -850,7 +848,12 @@ export default function ContentPage() {
 
       {!loading && !unavailable && !error && filtered.length === 0 ? (
         <EmptyState
-          title={t('demo.empty')}
+          title={t(
+            rows.length === 0 ? 'demo.content.empty.title' : 'demo.content.empty.filteredTitle',
+          )}
+          body={t(
+            rows.length === 0 ? 'demo.content.empty.body' : 'demo.content.empty.filteredBody',
+          )}
           action={
             <Button type="primary" onClick={() => setCreateOpen(true)}>
               {t('demo.content.create')}
@@ -1586,10 +1589,12 @@ export default function ContentPage() {
         </div>
       </Dialog>
 
-      <Dialog
+      <Drawer
         open={filterSheet}
-        title={t('demo.content.filters')}
         onClose={() => setFilterSheet(false)}
+        label={t('demo.content.filters')}
+        placement={isAr ? 'left' : 'right'}
+        className="oma-content-filter-drawer"
         footer={
           <div className="oma-dialog-footer oma-filter-sheet-footer">
             <Button
@@ -1609,17 +1614,22 @@ export default function ContentPage() {
           </div>
         }
       >
-        <div className="oma-composer-fields" data-testid="demo-content-filter-sheet">
-          {advancedFilterFields}
+        <div className="oma-content-filter-fields" data-testid="demo-content-filter-sheet">
+          {searchField}
+          <div className="oma-composer-fields">{advancedFilterFields}</div>
         </div>
-      </Dialog>
+      </Drawer>
 
       <Dialog
         open={createOpen}
         title={t('demo.create.contentTitle')}
         onClose={() => (!creating ? setCreateOpen(false) : undefined)}
+        size="lg"
       >
-        <div className="oma-composer-fields" data-testid="demo-create-content-dialog">
+        <div
+          className="oma-composer-fields oma-content-create-fields"
+          data-testid="demo-create-content-dialog"
+        >
           <label>
             {t('demo.create.title')}
             <Input
