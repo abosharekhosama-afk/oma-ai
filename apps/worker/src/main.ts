@@ -29,7 +29,8 @@ async function main() {
   });
   await new Promise<void>((resolve, reject) => {
     health.once('error', reject);
-    health.listen(healthPort, '127.0.0.1', () => resolve());
+    const host = process.env.NODE_ENV === 'production' ? '0.0.0.0' : '127.0.0.1';
+     health.listen(healthPort, host, () => resolve());
   });
 
   log.info(
