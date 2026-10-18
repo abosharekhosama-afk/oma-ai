@@ -1111,7 +1111,9 @@ export default function ContentPage() {
           {filtered.map((item) => {
             const when = item.scheduledAt
               ? item.scheduledAt.slice(0, 16).replace('T', ', ')
-              : item.plannedDate || '—';
+              : item.plannedAt
+                ? String(item.plannedAt).slice(0, 16).replace('T', ', ')
+                : '—';
             const title = pickCopy(item.title, locale);
             const caption = item.caption ? pickCopy(item.caption, locale) : '';
             return (
