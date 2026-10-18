@@ -85,6 +85,8 @@ function ShellBreadcrumb() {
 
 export function ShellChrome({ children }: { children: ReactNode }) {
   const t = useT();
+  const pathname = usePathname() || '/app';
+  const isContentWorkspace = pathname === '/app/content' || pathname.startsWith('/app/content/');
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -172,12 +174,14 @@ export function ShellChrome({ children }: { children: ReactNode }) {
             <div className="oma-top-center">
               <CommandSearch compact />
             </div>
-            <div className="oma-top-actions">
-              <OmaLinkButton href="/app/requests" type="primary" data-testid="shell-create">
-                <ShellIcon name="plus" size={16} />
-                <span>{t('shell.create')}</span>
-              </OmaLinkButton>
-            </div>
+            {!isContentWorkspace ? (
+              <div className="oma-top-actions">
+                <OmaLinkButton href="/app/requests" type="primary" data-testid="shell-create">
+                  <ShellIcon name="plus" size={16} />
+                  <span>{t('shell.create')}</span>
+                </OmaLinkButton>
+              </div>
+            ) : null}
           </header>
           <main id="main" className="oma-container">
             {children}
