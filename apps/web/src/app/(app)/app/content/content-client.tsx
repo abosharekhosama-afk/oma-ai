@@ -1056,6 +1056,34 @@ export default function ContentPage() {
                         +{extra}
                       </Button>
                     ) : null}
+                    {/* Planable empty/hover cell actions */}
+                    <div className="oma-cal-cell-actions">
+                      <button
+                        type="button"
+                        className="oma-cal-cell-actions__btn"
+                        data-testid={`demo-cal-post-${cell.key}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedDay(cell.key);
+                          setCreateForm((f) => ({ ...f, plannedDate: cell.key }));
+                          setCreateOpen(true);
+                        }}
+                      >
+                        ✎ Post
+                      </button>
+                      <button
+                        type="button"
+                        className="oma-cal-cell-actions__btn"
+                        data-testid={`demo-cal-note-${cell.key}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedDay(cell.key);
+                        }}
+                        title={isAr ? 'ملاحظة خاصة' : 'Only visible to you'}
+                      >
+                        🗒 Note
+                      </button>
+                    </div>
                   </div>
                 );
               })}
