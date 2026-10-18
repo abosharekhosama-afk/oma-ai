@@ -18,9 +18,8 @@ export async function openContentFilters(page: Page) {
 async function applyFilterSheet(page: Page, sheetTestId: string, applyTestId: string) {
   const sheet = page.getByTestId(sheetTestId);
   if (!(await sheet.isVisible().catch(() => false))) return;
-  // Confirm via the Modal footer Apply control — never Escape first (closes/animates away).
-  const dialog = page.getByRole('dialog');
-  const apply = dialog.getByTestId(applyTestId);
+  // Apply in the overlay footer (a centered dialog or the content filter drawer).
+  const apply = page.getByTestId(applyTestId);
   await expect(apply).toBeVisible({ timeout: 5_000 });
   await expect(apply).toBeEnabled();
   await apply.click();
