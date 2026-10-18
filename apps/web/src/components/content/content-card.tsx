@@ -102,7 +102,7 @@ export function ContentFace({
   when,
   asset,
   display,
-  locale: _locale,
+  locale,
   selected,
 }: {
   variant: 'feed' | 'calendar' | 'saved' | 'grid' | 'list';
@@ -115,49 +115,26 @@ export function ContentFace({
   locale: string;
   selected?: boolean;
 }) {
-  /* Planable Feed: white card body with date head, title, caption — media optional */
-  if (variant === 'feed') {
-    return (
-      <span
-        className="oma-feed-card__body"
-        data-selected={selected ? 'true' : 'false'}
-        data-publish={display}
-      >
-        <span className="oma-feed-card__head">
-          <button type="button" className="oma-feed-card__date" tabIndex={-1}>
-            <span className="oma-ltr">{when}</span>
-            <span aria-hidden>▾</span>
-          </button>
-          <button type="button" className="oma-feed-card__menu" aria-label="More" tabIndex={-1}>
-            …
-          </button>
-        </span>
-        <span className="oma-feed-card__title">{title}</span>
-        {caption ? <span className="oma-feed-card__caption">{caption}</span> : null}
-      </span>
-    );
-  }
-
   return (
     <span
       className={`oma-post-card oma-post-card--${variant}`}
       data-selected={selected ? 'true' : 'false'}
       data-publish={display}
     >
-      {variant === 'list' ? (
-        <img className="oma-post-card__media oma-post-card__media--row" src={asset} alt="" />
-      ) : variant === 'grid' ? (
+      {variant !== 'list' ? (
         <img className="oma-post-card__media" src={asset} alt="" />
       ) : (
-        /* calendar / saved: compact — channel + time meta, no large media */
-        null
+        <img className="oma-post-card__media oma-post-card__media--row" src={asset} alt="" />
       )}
+      <span className="oma-post-card__title">{title}</span>
+      {variant !== 'calendar' && variant !== 'saved' ? (
+        <span className="oma-post-card__caption">{caption}</span>
+      ) : null}
       <span className="oma-post-card__meta">
         <span>{channel}</span>
         <span className="oma-ltr">{when}</span>
       </span>
-      <span className="oma-post-card__title">{title}</span>
-      {variant === 'grid' ? <span className="oma-post-card__caption">{caption}</span> : null}
+      <StatusMark display={display} locale={locale} />
     </span>
   );
 }
