@@ -18,7 +18,6 @@ import {
 } from '@oma/ui/controls';
 import dayjs from 'dayjs';
 import { Dialog } from '../../../../components/ui/dialog';
-import { Drawer } from '../../../../components/ui/drawer';
 import { EmptyState, ErrorState, DeniedState } from '../../../../components/ui/empty-state';
 import { PageHeader } from '../../../../components/ui/page-header';
 import { useToast } from '../../../../components/ui/toast';
@@ -175,6 +174,7 @@ export default function ContentPage() {
 
   const [overflowDay, setOverflowDay] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [mediaLibraryOpen, setMediaLibraryOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [createForm, setCreateForm] = useState({
@@ -526,11 +526,29 @@ export default function ContentPage() {
     setSelectedDay(TODAY_KEY);
   }
 
+  function showApprovalQueue() {
+    setFilters((current) => ({ ...current, review: 'needs' }));
+  }
+
   function toggleSort(key: ContentSortKey) {
     if (sortKey === key) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
     else {
       setSortKey(key);
       setSortDir('asc');
+    }
+  }
+
+  async function shareContentWorkspace() {
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    try {
+      if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(url);
+      else throw new Error('Clipboard unavailable');
+      toast.push(isAr ? 'تم نسخ رابط مساحة المحتوى' : 'Content link copied', 'success');
+    } catch {
+      toast.push(
+        isAr ? 'تعذّر نسخ الرابط من هذا المتصفح' : 'This browser could not copy the link',
+        'danger',
+      );
     }
   }
 
@@ -702,7 +720,6 @@ export default function ContentPage() {
       */}
       <PageHeader
         title={t('demo.content.title')}
-        description={t('demo.content.subtitle')}
         actions={
           <div className="oma-content-plan__actions">
             <Button
@@ -713,6 +730,21 @@ export default function ContentPage() {
             >
               {t('demo.content.openFilters')}
               {filterCount > 0 ? ` (${filterCount})` : ''}
+            </Button>
+            <Button
+              type="default"
+              onClick={() => setMediaLibraryOpen(true)}
+              className="oma-content-media-trigger"
+              data-testid="demo-content-open-media"
+            >
+              {t('demo.content.media')}
+            </Button>
+            <Button
+              type="default"
+              onClick={() => void shareContentWorkspace()}
+              data-testid="demo-content-share"
+            >
+              {isAr ? 'مشاركة' : 'Share'}
             </Button>
             <Button
               type="primary"
@@ -930,6 +962,14 @@ export default function ContentPage() {
                     {t('demo.content.createOnDate')}
                   </Button>
                 ) : null}
+                <Button
+                  type="default"
+                  className="oma-cal-request-approvals"
+                  data-testid="demo-content-request-approvals"
+                  onClick={showApprovalQueue}
+                >
+                  {isAr ? 'طلب الموافقات' : 'Request approvals'}
+                </Button>
               </div>
             </div>
 
@@ -1250,14 +1290,15 @@ export default function ContentPage() {
         </div>
       ) : null}
 
-      <Drawer
+      <Dialog
         open={Boolean(selected)}
         onClose={requestCloseDrawer}
-        label={t('demo.content.drawerTitle')}
-        wide
+        title={t('demo.content.drawerTitle')}
+        size="xl"
+        className="oma-content-detail-modal"
       >
         {selected ? (
-          <div className="oma-stack" data-testid="demo-content-drawer" style={{ padding: 16 }}>
+          <div className="oma-stack oma-content-detail" data-testid="demo-content-drawer">
             <div className="oma-breadcrumb">
               <Link href="/app/content">{t('demo.content.title')}</Link>
               <span aria-hidden="true">/</span>
@@ -1268,7 +1309,7 @@ export default function ContentPage() {
                 {campaignName(selected.campaignId)}
               </Link>
             </div>
-            <header className="oma-page-header oma-page-header-stack">
+            <header className="oma-page-header oma-page-header-stack oma-content-detail__header">
               <div>
                 <h2>{pickCopy(selected.title, locale)}</h2>
                 <div className="oma-chip-row">
@@ -1560,7 +1601,7 @@ export default function ContentPage() {
             )}
           </div>
         ) : null}
-      </Drawer>
+      </Dialog>
 
       <Dialog
         open={Boolean(overflowDay)}
@@ -1610,7 +1651,34 @@ export default function ContentPage() {
         }
       >
         <div className="oma-composer-fields" data-testid="demo-content-filter-sheet">
+          {searchField}
           {advancedFilterFields}
+        </div>
+      </Dialog>
+
+      <Dialog
+        open={mediaLibraryOpen}
+        title={isAr ? 'مكتبة الوسائط' : 'Media library'}
+        onClose={() => setMediaLibraryOpen(false)}
+        size="lg"
+        className="oma-content-media-modal"
+      >
+        <div className="oma-media-library-grid" data-testid="demo-content-media-library">
+          {Object.entries(P3_MEDIA).map(([name, src]) => (
+            <button
+              key={name}
+              type="button"
+              className="oma-media-library-item"
+              onClick={() => {
+                setCreateForm((f) => ({ ...f, previewAsset: src }));
+                setMediaLibraryOpen(false);
+                setCreateOpen(true);
+              }}
+            >
+              <img src={src} alt={name} />
+              <span>{name.replaceAll('_', ' ')}</span>
+            </button>
+          ))}
         </div>
       </Dialog>
 
