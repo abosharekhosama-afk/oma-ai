@@ -704,14 +704,12 @@ export default function ContentPage() {
         title={t('demo.content.title')}
         description={t('demo.content.subtitle')}
         actions={
-          <div className="oma-content-plan__actions" data-testid="demo-content-filters">
+          <div className="oma-content-plan__actions">
             <Button
               type="default"
               onClick={() => setFilterSheet(true)}
               className="oma-filter-sheet-trigger"
               data-testid="demo-content-open-filters"
-              aria-haspopup="dialog"
-              aria-expanded={filterSheet}
             >
               {t('demo.content.openFilters')}
               {filterCount > 0 ? ` (${filterCount})` : ''}
@@ -792,6 +790,10 @@ export default function ContentPage() {
       />
       <DemoDisclosure message={t('demo.content.noPublishing')} />
 
+      <div className="oma-stage3-toolbar" data-testid="demo-content-filters">
+        {searchField}
+      </div>
+
       {filterCount > 0 ? (
         <div className="oma-filter-chips" data-testid="demo-content-filter-chips">
           {chips.map((chip) => (
@@ -848,12 +850,7 @@ export default function ContentPage() {
 
       {!loading && !unavailable && !error && filtered.length === 0 ? (
         <EmptyState
-          title={t(
-            rows.length === 0 ? 'demo.content.empty.title' : 'demo.content.empty.filteredTitle',
-          )}
-          body={t(
-            rows.length === 0 ? 'demo.content.empty.body' : 'demo.content.empty.filteredBody',
-          )}
+          title={t('demo.empty')}
           action={
             <Button type="primary" onClick={() => setCreateOpen(true)}>
               {t('demo.content.create')}
@@ -1108,57 +1105,49 @@ export default function ContentPage() {
 
       {!loading && !unavailable && !error && filtered.length > 0 && view === 'feed' ? (
         <div className="oma-content-feed" data-testid="demo-content-feed">
-          {filtered.map((item) => {
-            const when = item.scheduledAt
-              ? item.scheduledAt.slice(0, 16).replace('T', ', ')
-              : item.plannedAt
-                ? String(item.plannedAt).slice(0, 16).replace('T', ', ')
-                : '—';
-            const title = pickCopy(item.title, locale);
-            const caption = item.caption ? pickCopy(item.caption, locale) : '';
-            return (
+          {filtered.map((item) => (
+            <SurfaceButton
+              key={item.id}
+              data-testid={`demo-content-card-${item.id}`}
+              data-selected={selectedId === item.id ? 'true' : 'false'}
+              onClick={() => openItem(item)}
+              className="oma-content-feed-item"
+            >
               <div
-                key={item.id}
-                className="oma-feed-card"
-                data-testid={`demo-content-card-${item.id}`}
-                data-selected={selectedId === item.id ? 'true' : 'false'}
+                className="oma-content-feed-media"
+                data-ratio={item.contentType === 'REEL' ? 'video' : 'post'}
               >
-                <div className="oma-feed-card__rail" aria-hidden>
-                  <button type="button" className="oma-feed-card__status" tabIndex={-1}>
-                    ✓
-                  </button>
-                  <div className="oma-feed-card__channels">
-                    <span className="oma-feed-card__channel" title={item.channel}>
-                      {channelMarker(item.channel)}
-                    </span>
-                  </div>
-                </div>
-                <SurfaceButton
-                  onClick={() => openItem(item)}
-                  className="oma-feed-card__body"
-                  style={{ display: 'flex', flexDirection: 'column', width: '100%' }}
-                >
-                  <span className="oma-feed-card__head">
-                    <span className="oma-feed-card__date">
-                      <span className="oma-ltr">{when}</span>
-                      <span aria-hidden> ▾</span>
-                    </span>
-                    <span className="oma-feed-card__menu" aria-hidden>
-                      …
-                    </span>
-                  </span>
-                  <span className="oma-feed-card__title">{title}</span>
-                  {caption ? <span className="oma-feed-card__caption">{caption}</span> : null}
-                </SurfaceButton>
-                <div className="oma-feed-card__comment" onClick={() => openItem(item, 'comments')}>
-                  <span className="oma-feed-card__comment-dot">
-                    {commentsForContent(tasks, deliverables, item.id).length}
-                  </span>
-                  <span>Say something…</span>
-                </div>
+                <img
+                  src={item.previewAsset}
+                  alt={mediaAlt(pickCopy(item.title, locale), item.channel, item.contentType)}
+                />
               </div>
-            );
-          })}
+              <div className="oma-chip-row">
+                <span className="oma-cal-marker">{channelMarker(item.channel)}</span>
+                <span>{item.channel}</span>
+                <TrackPill
+                  track={item.track}
+                  organicLabel={t('demo.organic')}
+                  paidLabel={t('demo.paid')}
+                />
+              </div>
+              <strong>{pickCopy(item.title, locale)}</strong>
+              <p className="oma-muted" style={{ margin: 0 }}>
+                {item.caption ? pickCopy(item.caption, locale) : t('demo.content.unsupported')}
+              </p>
+              <span className="oma-muted">{campaignName(item.campaignId)}</span>
+              <div className="oma-chip-row">
+                <StatusMark display={faceDisplay(item, policy)} locale={locale} />
+                <span className="oma-muted">{item.assignee}</span>
+                <span className="oma-ltr oma-muted">
+                  {item.scheduledAt ? item.scheduledAt.slice(0, 16) : '—'}
+                </span>
+                <span className="oma-muted">
+                  {commentsForContent(tasks, deliverables, item.id).length}
+                </span>
+              </div>
+            </SurfaceButton>
+          ))}
         </div>
       ) : null}
 
@@ -1597,12 +1586,10 @@ export default function ContentPage() {
         </div>
       </Dialog>
 
-      <Drawer
+      <Dialog
         open={filterSheet}
+        title={t('demo.content.filters')}
         onClose={() => setFilterSheet(false)}
-        label={t('demo.content.filters')}
-        placement={isAr ? 'left' : 'right'}
-        className="oma-content-filter-drawer"
         footer={
           <div className="oma-dialog-footer oma-filter-sheet-footer">
             <Button
@@ -1622,22 +1609,17 @@ export default function ContentPage() {
           </div>
         }
       >
-        <div className="oma-content-filter-fields" data-testid="demo-content-filter-sheet">
-          {searchField}
-          <div className="oma-composer-fields">{advancedFilterFields}</div>
+        <div className="oma-composer-fields" data-testid="demo-content-filter-sheet">
+          {advancedFilterFields}
         </div>
-      </Drawer>
+      </Dialog>
 
       <Dialog
         open={createOpen}
         title={t('demo.create.contentTitle')}
         onClose={() => (!creating ? setCreateOpen(false) : undefined)}
-        size="lg"
       >
-        <div
-          className="oma-composer-fields oma-content-create-fields"
-          data-testid="demo-create-content-dialog"
-        >
+        <div className="oma-composer-fields" data-testid="demo-create-content-dialog">
           <label>
             {t('demo.create.title')}
             <Input
