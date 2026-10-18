@@ -24,7 +24,6 @@ import {
   campaignFilterChips,
   campaignNextAction,
   campaignReviewState,
-  campaignScheduleReadiness,
   clearCampaignChip,
   filterCampaigns,
   groupCampaignsByStatus,
@@ -43,10 +42,12 @@ import { useLocale, useT } from '../../../../lib/use-locale';
 
 type Brand = DemoGraph['brands'][number];
 type Strategy = DemoGraph['strategies'][number];
+type CampaignTab = 'all' | 'active' | 'planning' | 'completed';
 
 export default function CampaignsPage() {
   const t = useT();
   const locale = useLocale();
+  const isAr = locale.toLowerCase().startsWith('ar');
   const router = useRouter();
   const toast = useToast();
   const [rows, setRows] = useState<CampaignRow[]>([]);
@@ -59,6 +60,14 @@ export default function CampaignsPage() {
   const [unavailable, setUnavailable] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [layout, setLayout] = useState<CampaignLayout>('portfolio');
+  const [campaignTab, setCampaignTab] = useState<CampaignTab>('all');
+  const [menuId, setMenuId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [archiveTarget, setArchiveTarget] = useState<string | null>(null);
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+  const [linkEditorOpen, setLinkEditorOpen] = useState(false);
+  const [linkDraft, setLinkDraft] = useState('');
+  const [linkError, setLinkError] = useState<string | null>(null);
   const [filterSheet, setFilterSheet] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -74,6 +83,7 @@ export default function CampaignsPage() {
     end: '2026-10-31',
     channels: 'Instagram, LinkedIn',
     status: 'DRAFT',
+    links: [] as string[],
   });
 
   useEffect(() => {
@@ -128,7 +138,23 @@ export default function CampaignsPage() {
     [strategies, locale],
   );
 
-  const filtered = useMemo(() => filterCampaigns(rows, filters, locale), [rows, filters, locale]);
+  const filtered = useMemo(() => {
+    const matchesFilters = filterCampaigns(rows, filters, locale);
+    if (campaignTab === 'active') {
+      return matchesFilters.filter((campaign) =>
+        ['ACTIVE', 'NEEDS_ATTENTION', 'IN_REVIEW'].includes(campaign.status),
+      );
+    }
+    if (campaignTab === 'planning') {
+      return matchesFilters.filter((campaign) => ['DRAFT', 'UPCOMING'].includes(campaign.status));
+    }
+    if (campaignTab === 'completed') {
+      return matchesFilters.filter((campaign) =>
+        ['COMPLETED', 'ARCHIVED'].includes(campaign.status),
+      );
+    }
+    return matchesFilters;
+  }, [rows, filters, locale, campaignTab]);
   const groups = useMemo(() => groupCampaignsByStatus(filtered), [filtered]);
   const owners = useMemo(() => [...new Set(rows.map((r) => r.owner))], [rows]);
   const filterCount = activeFilterCount(filters);
@@ -163,33 +189,123 @@ export default function CampaignsPage() {
     setCreating(true);
     try {
       const strategy = strategies.find((s) => s.id === form.strategyId);
-      const created = await demoApi<CampaignRow>('/campaigns', {
-        method: 'POST',
-        body: JSON.stringify({
-          name: { en: form.name.trim(), ar: form.name.trim() },
-          goal: form.goal.trim() ? { en: form.goal.trim(), ar: form.goal.trim() } : undefined,
-          strategyId: form.strategyId,
-          brandId: form.brandId || strategy?.brandId || '',
-          track: form.track,
-          owner: form.owner.trim(),
-          timeline: { start: form.start, end: form.end },
-          channels: form.channels
-            .split(',')
-            .map((c) => c.trim())
-            .filter(Boolean),
-          status: form.status,
-        }),
-      });
-      toast.push(t('demo.create.successCampaign'), 'success');
+      const payload = {
+        name: { en: form.name.trim(), ar: form.name.trim() },
+        goal: form.goal.trim() ? { en: form.goal.trim(), ar: form.goal.trim() } : undefined,
+        strategyId: form.strategyId,
+        brandId: form.brandId || strategy?.brandId || '',
+        track: form.track,
+        owner: form.owner.trim(),
+        timeline: { start: form.start, end: form.end },
+        channels: form.channels
+          .split(',')
+          .map((c) => c.trim())
+          .filter(Boolean),
+        status: form.status,
+        links: form.links,
+      };
+      const saved = await demoApi<CampaignRow>(
+        editingId ? `/campaigns/${editingId}` : '/campaigns',
+        {
+          method: editingId ? 'PATCH' : 'POST',
+          body: JSON.stringify(payload),
+        },
+      );
+      toast.push(
+        editingId
+          ? isAr
+            ? 'تم تحديث الحملة'
+            : 'Campaign updated'
+          : t('demo.create.successCampaign'),
+        'success',
+      );
       setCreateOpen(false);
+      setEditingId(null);
       setForm((f) => ({ ...f, name: '', goal: '' }));
       await load();
-      router.push(`/app/campaigns/${created.id}`);
+      if (!editingId) router.push(`/app/campaigns/${saved.id}`);
     } catch (err) {
       setCreateError(demoErrorMessage(err, t('demo.create.validation')));
       toast.push(demoErrorMessage(err, t('demo.create.validation')), 'danger');
     } finally {
       setCreating(false);
+    }
+  }
+
+  function openEdit(campaign: CampaignRow) {
+    setEditingId(campaign.id);
+    setMenuId(null);
+    setForm({
+      name: pickCopy(campaign.name, locale),
+      goal: pickCopy(campaign.objective, locale),
+      brandId: campaign.brandId,
+      strategyId: campaign.strategyId,
+      track: campaign.track,
+      owner: campaign.owner,
+      start: campaign.timeline.start,
+      end: campaign.timeline.end,
+      channels: campaign.channels.join(', '),
+      status: campaign.status,
+      links: campaign.links ?? [],
+    });
+    setCreateError(null);
+    setCreateOpen(true);
+  }
+
+  async function duplicateCampaign(campaign: CampaignRow) {
+    setMenuId(null);
+    const copy = locale.toLowerCase().startsWith('ar') ? 'نسخة' : 'copy';
+    try {
+      const duplicated = await demoApi<CampaignRow>('/campaigns', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: {
+            en: `${campaign.name.en} (${copy})`,
+            ar: `${campaign.name.ar} (${copy})`,
+          },
+          goal: campaign.objective,
+          strategyId: campaign.strategyId,
+          brandId: campaign.brandId,
+          track: campaign.track,
+          owner: campaign.owner,
+          timeline: campaign.timeline,
+          channels: campaign.channels,
+          status: campaign.status,
+          audience: campaign.audience,
+          links: campaign.links ?? [],
+        }),
+      });
+      toast.push(isAr ? 'تم نسخ الحملة' : 'Campaign duplicated', 'success');
+      await load();
+      router.push(`/app/campaigns/${duplicated.id}`);
+    } catch (err) {
+      toast.push(demoErrorMessage(err, t('demo.create.validation')), 'danger');
+    }
+  }
+
+  async function copyCampaignLink(campaign: CampaignRow) {
+    setMenuId(null);
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/app/campaigns/${campaign.id}`);
+      toast.push(isAr ? 'تم نسخ رابط الحملة' : 'Campaign link copied', 'success');
+    } catch {
+      toast.push(isAr ? 'تعذّر نسخ الرابط' : 'Could not copy the campaign link', 'danger');
+    }
+  }
+
+  async function archiveCampaign() {
+    if (!archiveTarget) return;
+    try {
+      await demoApi<CampaignRow>(`/campaigns/${archiveTarget}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status: 'ARCHIVED' }),
+      });
+      setArchiveTarget(null);
+      setMenuId(null);
+      await load();
+      toast.push(isAr ? 'تمت أرشفة الحملة' : 'Campaign archived', 'success');
+    } catch (err) {
+      toast.push(demoErrorMessage(err, t('demo.create.validation')), 'danger');
     }
   }
 
@@ -294,43 +410,85 @@ export default function CampaignsPage() {
   );
 
   return (
-    <div className="oma-stack" data-testid="demo-campaigns">
+    <div className="oma-stack oma-campaigns-page" data-testid="demo-campaigns">
       <PageHeader
         title={t('demo.campaigns.title')}
         description={t('demo.campaigns.subtitle')}
         actions={
-          <div className="oma-chip-row">
-            <div className="oma-view-switch" role="group" aria-label={t('demo.campaigns.layouts')}>
+          <div className="oma-campaign-header-actions">
+            <Button
+              type="text"
+              className="oma-campaign-filter-trigger"
+              data-testid="demo-campaign-open-filters"
+              onClick={() => setFilterSheet(true)}
+            >
+              {isAr ? 'تصفية' : 'Filter'}
+              {filterCount > 0 ? ` (${filterCount})` : ''}
+            </Button>
+            <div
+              className="oma-campaign-layout-switch"
+              role="group"
+              aria-label={t('demo.campaigns.layouts')}
+            >
               <Button
-                type={layout === 'portfolio' ? 'primary' : 'default'}
+                type="text"
                 aria-pressed={layout === 'portfolio'}
                 data-testid="demo-campaigns-view-portfolio"
                 onClick={() => setLayoutPref('portfolio')}
+                aria-label={isAr ? 'عرض البطاقات' : 'Card view'}
               >
-                {t('demo.campaigns.portfolio')}
+                ▦
               </Button>
               <Button
-                type={layout === 'list' ? 'primary' : 'default'}
+                type="text"
                 aria-pressed={layout === 'list'}
                 data-testid="demo-campaigns-view-table"
                 onClick={() => setLayoutPref('list')}
+                aria-label={isAr ? 'عرض القائمة' : 'List view'}
               >
-                {t('demo.campaigns.table')}
+                ☷
               </Button>
             </div>
             <Button
               type="primary"
               data-testid="demo-create-campaign"
-              onClick={() => setCreateOpen(true)}
+              onClick={() => {
+                setEditingId(null);
+                setCreateError(null);
+                setCreateOpen(true);
+              }}
             >
-              {t('demo.campaigns.create')}
+              {isAr ? 'حملة جديدة' : 'New campaign'}
             </Button>
           </div>
         }
         meta={
-          <span className="oma-item-count">
-            {filtered.length} / {rows.length}
-          </span>
+          <div
+            className="oma-campaign-status-tabs"
+            role="tablist"
+            aria-label={t('demo.campaigns.title')}
+          >
+            {(
+              [
+                ['all', isAr ? 'الكل' : 'All'],
+                ['active', isAr ? 'نشطة' : 'Active'],
+                ['planning', isAr ? 'قيد التخطيط' : 'Planning'],
+                ['completed', isAr ? 'مكتملة' : 'Completed'],
+              ] as const
+            ).map(([key, label]) => (
+              <Button
+                key={key}
+                type="text"
+                role="tab"
+                aria-selected={campaignTab === key}
+                data-active={campaignTab === key ? 'true' : 'false'}
+                data-testid={`demo-campaign-tab-${key}`}
+                onClick={() => setCampaignTab(key)}
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
         }
       />
       <DemoDisclosure />
@@ -407,45 +565,104 @@ export default function CampaignsPage() {
       {!loading && !unavailable && !error && filtered.length > 0 && layout === 'portfolio' ? (
         <div className="oma-campaign-portfolio" data-testid="demo-campaign-portfolio">
           {filtered.map((c) => {
-            const items = contentFor(c.id);
-            const review = campaignReviewState(items);
-            const ready = campaignScheduleReadiness(items);
             return (
-              <Link
+              <article
                 key={c.id}
-                href={`/app/campaigns/${c.id}`}
                 className="oma-campaign-card"
                 data-testid={`demo-campaign-card-${c.id}`}
-                onClick={() => setSelectedId(c.id)}
               >
-                <span className="oma-campaign-mark" aria-hidden>
-                  {pickCopy(c.name, locale).slice(0, 1)}
-                </span>
-                <div className="oma-campaign-card-body">
-                  <strong>{pickCopy(c.name, locale)}</strong>
-                  <div className="oma-chip-row">
-                    <StatusChip status={c.status} label={statusLabel(c.status, locale)} />
-                    <TrackPill
-                      track={c.track}
-                      organicLabel={t('demo.organic')}
-                      paidLabel={t('demo.paid')}
-                    />
+                <Link
+                  href={`/app/campaigns/${c.id}`}
+                  className="oma-campaign-card-main"
+                  data-selected={selectedId === c.id ? 'true' : 'false'}
+                  onClick={() => setSelectedId(c.id)}
+                >
+                  <span className="oma-campaign-mark" aria-hidden>
+                    ▣
+                  </span>
+                  <div className="oma-campaign-card-body">
+                    <strong>{pickCopy(c.name, locale)}</strong>
+                    <span className="oma-campaign-card-dates oma-ltr">
+                      {c.timeline.start} – {c.timeline.end}
+                    </span>
+                    <span className="oma-campaign-card-status">
+                      <span className="oma-campaign-status-dot" data-status={c.status} />
+                      {statusLabel(c.status, locale)}
+                    </span>
                   </div>
-                  <span className="oma-muted">
-                    {brandName(c.brandId)} · {strategyName(c.strategyId)}
-                  </span>
-                  <span className="oma-muted">
-                    {c.owner} · {items.length} · {statusLabel(review, locale)} ·{' '}
-                    {t(`demo.campaign.scheduleReady.${ready}`)}
-                  </span>
-                  <span className="oma-ltr oma-muted">
-                    {c.timeline.start} → {c.timeline.end}
-                  </span>
-                  <span>{campaignNextAction(c, items, locale)}</span>
+                </Link>
+                <div className="oma-campaign-card-actions">
+                  <Button
+                    type="text"
+                    aria-label={
+                      favoriteIds.includes(c.id)
+                        ? isAr
+                          ? 'إزالة من المفضلة'
+                          : 'Remove from favorites'
+                        : isAr
+                          ? 'إضافة إلى المفضلة'
+                          : 'Add to favorites'
+                    }
+                    aria-pressed={favoriteIds.includes(c.id)}
+                    onClick={() =>
+                      setFavoriteIds((ids) =>
+                        ids.includes(c.id) ? ids.filter((id) => id !== c.id) : [...ids, c.id],
+                      )
+                    }
+                  >
+                    {favoriteIds.includes(c.id) ? '★' : '☆'}
+                  </Button>
+                  <div className="oma-campaign-menu-wrap">
+                    <Button
+                      type="text"
+                      aria-label={isAr ? 'إجراءات الحملة' : 'Campaign actions'}
+                      aria-haspopup="menu"
+                      aria-expanded={menuId === c.id}
+                      onClick={() => setMenuId((id) => (id === c.id ? null : c.id))}
+                    >
+                      ⋯
+                    </Button>
+                    {menuId === c.id ? (
+                      <div className="oma-campaign-menu" role="menu">
+                        <button role="menuitem" onClick={() => openEdit(c)}>
+                          {isAr ? 'تعديل' : 'Edit'}
+                        </button>
+                        <button role="menuitem" onClick={() => void duplicateCampaign(c)}>
+                          {isAr ? 'نسخ' : 'Duplicate'}
+                        </button>
+                        <button role="menuitem" onClick={() => void copyCampaignLink(c)}>
+                          {isAr ? 'نسخ الرابط' : 'Copy link'}
+                        </button>
+                        <button
+                          role="menuitem"
+                          className="is-danger"
+                          onClick={() => {
+                            setMenuId(null);
+                            setArchiveTarget(c.id);
+                          }}
+                        >
+                          {isAr ? 'أرشفة الحملة' : 'Archive campaign'}
+                        </button>
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
-              </Link>
+              </article>
             );
           })}
+          <button
+            type="button"
+            className="oma-campaign-create-card"
+            data-testid="demo-campaign-create-card"
+            onClick={() => {
+              setEditingId(null);
+              setCreateError(null);
+              setCreateOpen(true);
+            }}
+          >
+            <span aria-hidden="true">+</span>
+            {isAr ? 'إنشاء حملة' : 'Create campaign'}
+          </button>
         </div>
       ) : null}
 
@@ -572,122 +789,179 @@ export default function CampaignsPage() {
         }
       >
         <div className="oma-composer-fields" data-testid="demo-campaign-filter-sheet">
+          {searchField}
           {advancedFilterFields}
         </div>
       </Dialog>
 
       <Dialog
         open={createOpen}
-        title={t('demo.create.campaignTitle')}
-        onClose={() => (!creating ? setCreateOpen(false) : undefined)}
+        title={
+          editingId
+            ? isAr
+              ? 'تعديل الحملة'
+              : 'Edit campaign'
+            : isAr
+              ? 'إنشاء حملة جديدة'
+              : 'Create new campaign'
+        }
+        onClose={() => {
+          if (!creating) {
+            setCreateOpen(false);
+            setEditingId(null);
+          }
+        }}
+        size="lg"
+        className="oma-campaign-compose-modal"
       >
-        <div className="oma-composer-fields" data-testid="demo-create-campaign-dialog">
-          <div className="oma-composer-group">
+        <div className="oma-campaign-compose" data-testid="demo-create-campaign-dialog">
+          <label className="oma-campaign-compose-title">
+            <span className="oma-sr-only">{t('demo.create.name')}</span>
+            <Input
+              value={form.name}
+              placeholder={isAr ? 'اسم الحملة' : 'Campaign name'}
+              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              data-testid="demo-create-campaign-name"
+            />
+          </label>
+          <div className="oma-campaign-properties">
             <label>
-              {t('demo.create.name')}
-              <Input
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                data-testid="demo-create-campaign-name"
-              />
-            </label>
-            <label>
-              {t('demo.create.brand')}
-              <SelectField
-                value={form.brandId}
-                onChange={(e) => {
-                  const brandId = e.target.value;
-                  const nextStrategy =
-                    strategies.find((s) => s.brandId === brandId && s.isCurrent)?.id ??
-                    strategies.find((s) => s.brandId === brandId)?.id ??
-                    '';
-                  setForm((f) => ({ ...f, brandId, strategyId: nextStrategy }));
-                }}
-              >
-                {brands.map((b) => (
-                  <option key={b.id} value={b.id}>
-                    {pickCopy(b.name, locale)}
-                  </option>
-                ))}
-              </SelectField>
-            </label>
-            <label>
-              {t('demo.create.strategy')}
-              <SelectField
-                value={form.strategyId}
-                onChange={(e) => setForm((f) => ({ ...f, strategyId: e.target.value }))}
-              >
-                {strategiesForBrand.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {pickCopy(s.name, locale)}
-                  </option>
-                ))}
-              </SelectField>
-            </label>
-          </div>
-          <div className="oma-composer-group">
-            <label>
-              {t('demo.create.track')}
-              <SelectField
-                value={form.track}
-                onChange={(e) => setForm((f) => ({ ...f, track: e.target.value }))}
-              >
-                <option value="ORGANIC">{t('demo.organic')}</option>
-                <option value="PAID">{t('demo.paid')}</option>
-              </SelectField>
-            </label>
-            <label>
-              {t('demo.create.objective')}
-              <TextArea
-                rows={2}
-                value={form.goal}
-                onChange={(e) => setForm((f) => ({ ...f, goal: e.target.value }))}
-              />
-            </label>
-            <label>
-              {t('demo.create.owner')}
-              <Input
-                value={form.owner}
-                onChange={(e) => setForm((f) => ({ ...f, owner: e.target.value }))}
-              />
-            </label>
-          </div>
-          <div className="oma-composer-group">
-            <label>
-              {t('demo.create.start')}
-              <DateField
-                value={form.start}
-                onChange={(e) => setForm((f) => ({ ...f, start: e.target.value }))}
-              />
-            </label>
-            <label>
-              {t('demo.create.end')}
-              <DateField
-                value={form.end}
-                onChange={(e) => setForm((f) => ({ ...f, end: e.target.value }))}
-              />
-            </label>
-            <label>
-              {t('demo.create.channels')}
-              <Input
-                value={form.channels}
-                onChange={(e) => setForm((f) => ({ ...f, channels: e.target.value }))}
-              />
-            </label>
-            <label>
-              {t('demo.create.status')}
+              <span>{isAr ? 'الحالة' : 'Status'}</span>
               <SelectField
                 value={form.status}
                 onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}
               >
-                {['DRAFT', 'ACTIVE', 'UPCOMING'].map((s) => (
+                {['DRAFT', 'UPCOMING', 'ACTIVE', 'COMPLETED'].map((s) => (
                   <option key={s} value={s}>
                     {statusLabel(s, locale)}
                   </option>
                 ))}
               </SelectField>
             </label>
+            <label>
+              <span>{isAr ? 'تاريخ البداية' : 'Start date'}</span>
+              <DateField
+                value={form.start}
+                onChange={(e) => setForm((f) => ({ ...f, start: e.target.value }))}
+              />
+            </label>
+            <label>
+              <span>{isAr ? 'تاريخ الانتهاء' : 'End date'}</span>
+              <DateField
+                value={form.end}
+                onChange={(e) => setForm((f) => ({ ...f, end: e.target.value }))}
+              />
+            </label>
           </div>
+          <section className="oma-campaign-links">
+            <div className="oma-campaign-compose-label">{isAr ? 'الروابط' : 'Links'}</div>
+            {form.links.length ? (
+              <ul>
+                {form.links.map((link) => (
+                  <li key={link}>
+                    <a href={link} target="_blank" rel="noreferrer">
+                      {link}
+                    </a>
+                    <Button
+                      type="text"
+                      aria-label={isAr ? 'إزالة الرابط' : 'Remove link'}
+                      onClick={() =>
+                        setForm((f) => ({ ...f, links: f.links.filter((item) => item !== link) }))
+                      }
+                    >
+                      ×
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            <Button
+              type="text"
+              className="oma-campaign-add-link"
+              onClick={() => {
+                setLinkDraft('');
+                setLinkError(null);
+                setLinkEditorOpen(true);
+              }}
+            >
+              + {isAr ? 'إضافة رابط' : 'Add link'}
+            </Button>
+          </section>
+          <label className="oma-campaign-description">
+            <span>{isAr ? 'الوصف' : 'Description'}</span>
+            <TextArea
+              rows={4}
+              value={form.goal}
+              placeholder={
+                isAr
+                  ? 'أضف وصفًا للحملة أو اكتب / للأوامر...'
+                  : 'Add a description, a campaign brief, or type / for commands...'
+              }
+              onChange={(e) => setForm((f) => ({ ...f, goal: e.target.value }))}
+            />
+          </label>
+          <details className="oma-campaign-extra-fields">
+            <summary>{isAr ? 'تفاصيل التخطيط' : 'Planning details'}</summary>
+            <div className="oma-campaign-extra-grid">
+              <label>
+                {t('demo.create.brand')}
+                <SelectField
+                  value={form.brandId}
+                  onChange={(e) => {
+                    const brandId = e.target.value;
+                    const nextStrategy =
+                      strategies.find((s) => s.brandId === brandId && s.isCurrent)?.id ??
+                      strategies.find((s) => s.brandId === brandId)?.id ??
+                      '';
+                    setForm((f) => ({ ...f, brandId, strategyId: nextStrategy }));
+                  }}
+                >
+                  {brands.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {pickCopy(b.name, locale)}
+                    </option>
+                  ))}
+                </SelectField>
+              </label>
+              <label>
+                {t('demo.create.strategy')}
+                <SelectField
+                  value={form.strategyId}
+                  onChange={(e) => setForm((f) => ({ ...f, strategyId: e.target.value }))}
+                >
+                  {strategiesForBrand.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {pickCopy(s.name, locale)}
+                    </option>
+                  ))}
+                </SelectField>
+              </label>
+              <label>
+                {t('demo.create.track')}
+                <SelectField
+                  value={form.track}
+                  onChange={(e) => setForm((f) => ({ ...f, track: e.target.value }))}
+                >
+                  <option value="ORGANIC">{t('demo.organic')}</option>
+                  <option value="PAID">{t('demo.paid')}</option>
+                </SelectField>
+              </label>
+              <label>
+                {t('demo.create.owner')}
+                <Input
+                  value={form.owner}
+                  onChange={(e) => setForm((f) => ({ ...f, owner: e.target.value }))}
+                />
+              </label>
+              <label>
+                {t('demo.create.channels')}
+                <Input
+                  value={form.channels}
+                  onChange={(e) => setForm((f) => ({ ...f, channels: e.target.value }))}
+                />
+              </label>
+            </div>
+          </details>
           {createError ? (
             <p role="alert" style={{ color: 'var(--status-danger)', margin: 0 }}>
               {createError}
@@ -703,9 +977,86 @@ export default function CampaignsPage() {
               data-testid="demo-create-campaign-submit"
               onClick={() => void submitCreate()}
             >
-              {creating ? t('demo.create.creating') : t('demo.create.confirm')}
+              {creating
+                ? t('demo.create.creating')
+                : editingId
+                  ? isAr
+                    ? 'حفظ التغييرات'
+                    : 'Save changes'
+                  : isAr
+                    ? 'إنشاء الحملة'
+                    : 'Create campaign'}
             </Button>
           </div>
+        </div>
+      </Dialog>
+
+      <Dialog
+        open={linkEditorOpen}
+        title={isAr ? 'إضافة رابط إلى الحملة' : 'Add link to this campaign'}
+        onClose={() => setLinkEditorOpen(false)}
+      >
+        <div className="oma-campaign-link-editor">
+          <label>
+            URL
+            <Input
+              type="url"
+              value={linkDraft}
+              placeholder="https://"
+              onChange={(e) => setLinkDraft(e.target.value)}
+              autoFocus
+            />
+          </label>
+          {linkError ? <p role="alert">{linkError}</p> : null}
+          <div className="oma-dialog-footer">
+            <Button type="default" onClick={() => setLinkEditorOpen(false)}>
+              {isAr ? 'إلغاء' : 'Cancel'}
+            </Button>
+            <Button
+              type="primary"
+              onClick={() => {
+                try {
+                  const parsed = new URL(linkDraft.trim());
+                  if (!['http:', 'https:'].includes(parsed.protocol)) throw new Error();
+                  setForm((f) => ({
+                    ...f,
+                    links: f.links.includes(parsed.toString())
+                      ? f.links
+                      : [...f.links, parsed.toString()],
+                  }));
+                  setLinkEditorOpen(false);
+                } catch {
+                  setLinkError(
+                    isAr
+                      ? 'أدخل رابطًا صالحًا يبدأ بـ http أو https.'
+                      : 'Enter a valid http or https URL.',
+                  );
+                }
+              }}
+            >
+              {isAr ? 'إضافة الرابط' : 'Add link'}
+            </Button>
+          </div>
+        </div>
+      </Dialog>
+
+      <Dialog
+        open={Boolean(archiveTarget)}
+        title={isAr ? 'أرشفة الحملة' : 'Archive campaign'}
+        onClose={() => setArchiveTarget(null)}
+      >
+        <p>
+          {isAr
+            ? 'ستُنقل الحملة إلى المكتملة/المؤرشفة. تبقى عناصر المحتوى والمهام مرتبطة بها.'
+            : 'This moves the campaign to archived. Its posts and tasks remain linked.'}
+        </p>
+        <div className="oma-dialog-footer">
+          <Button type="default" onClick={() => setArchiveTarget(null)}>
+            {isAr ? 'إلغاء' : 'Cancel'}
+          </Button>
+          <Button type="primary" onClick={() => void archiveCampaign()}>
+            {isAr ? 'أرشفة الحملة' : 'Archive campaign'}
+          </Button>
         </div>
       </Dialog>
     </div>
