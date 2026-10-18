@@ -138,6 +138,27 @@
   --icon-md: 20px;
   --icon-lg: 24px;
 
+
+  /* Planable LIVE 2026-10-18 — calendar & content surface tokens (from owner screenshots) */
+  --oma-cal-holiday-bg: #e8f6ef;
+  --oma-cal-holiday-ink: #1f7a4d;
+  --oma-cal-holiday-dot: #2f9e66;
+  --oma-cal-campaign-bg: #f7f8f9;
+  --oma-cal-campaign-ink: #5e6166;
+  --oma-cal-note-bg: #fff6d6;
+  --oma-cal-note-border: #f0e2a8;
+  --oma-cal-today-bg: #fff1f0;
+  --oma-cal-today-mark: #e5484d;
+  --oma-cal-out-month-ink: #b0b3b8;
+  --oma-cal-cell-min: 110px;
+  --oma-cal-post-min: 72px;
+  --oma-saved-width: 280px;
+  --oma-phone-frame: #c8c9cc;
+  --oma-phone-bezel: #e8e9eb;
+  --oma-overlay-scrim-strong: rgba(0, 0, 0, 0.45);
+  --oma-menu-shadow: 0 0 1px rgba(50, 79, 58, 0.15), 0 8px 24px rgba(0, 0, 0, 0.12);
+  --oma-card-hover-shadow: 0 0 1px rgba(50, 79, 58, 0.15), 0 2px 4px rgba(0, 0, 0, 0.08);
+
   /* Focus */
   --focus-ring: 2px solid var(--oma-primary);
   --focus-offset: 2px;
