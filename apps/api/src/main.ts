@@ -10,23 +10,37 @@ import { join } from 'node:path';
 
 async function bootstrap() {
   const env = loadEnv();
-  const app = await NestFactory.create(AppModule, { cors: false });
+  const isProd = env.NODE_ENV === 'production';
+
+  const app = await NestFactory.create(AppModule, {
+    cors: isProd
+      ? {
+          origin: env.WEB_ORIGIN,
+          credentials: true,
+        }
+      : false,
+  });
+
   app.use(cookieParser());
   app.setGlobalPrefix('');
+
   const document = setupOpenApi(app);
-  // OpenAPI artifact is generated only via `pnpm openapi:generate` (or OMA_WRITE_OPENAPI=1)
-  // so API boot / tests / builds do not dirty the worktree.
   if (process.env.OMA_WRITE_OPENAPI === '1') {
     try {
       const outDir = join(process.cwd(), '../../packages/api-client');
       mkdirSync(outDir, { recursive: true });
       writeFileSync(join(outDir, 'openapi.json'), `${JSON.stringify(document, null, 2)}\n`);
     } catch {
-      // optional in some run contexts
+      // optional
     }
   }
-  await app.listen(env.API_PORT, '127.0.0.1');
-  console.log(`API listening on http://127.0.0.1:${env.API_PORT}`);
+
+  // Render يمرر PORT — محلياً نستخدم API_PORT
+  const port = Number(process.env.PORT ?? env.API_PORT ?? 3001);
+  const host = isProd ? '0.0.0.0' : '127.0.0.1';
+
+  await app.listen(port, host);
+  console.log(`API listening on http://\( {host}: \){port}`);
 }
 
 bootstrap();
