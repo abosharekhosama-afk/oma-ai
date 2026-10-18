@@ -11,6 +11,9 @@ export function Drawer({
   label,
   nav = false,
   wide = false,
+  placement,
+  className,
+  footer,
 }: {
   open: boolean;
   onClose: () => void;
@@ -18,6 +21,9 @@ export function Drawer({
   label: string;
   nav?: boolean;
   wide?: boolean;
+  placement?: 'left' | 'right';
+  className?: string;
+  footer?: ReactNode;
 }) {
   const close = useCallback(() => onClose(), [onClose]);
   return (
@@ -25,12 +31,14 @@ export function Drawer({
       open={open}
       onClose={close}
       title={label}
-      placement={nav ? 'left' : 'right'}
+      placement={placement ?? (nav ? 'left' : 'right')}
       size={wide ? 'large' : nav ? 256 : 'default'}
       destroyOnHidden
       closable={{ 'aria-label': 'Dismiss' }}
       mask={{ closable: true }}
       aria-label={label}
+      className={className}
+      footer={footer}
     >
       {children}
     </AntDrawer>
