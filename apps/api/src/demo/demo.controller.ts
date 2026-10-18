@@ -18,6 +18,7 @@ import {
   demoDataProvider,
   isDemoModeEnabled,
   type DemoCampaignInput,
+  type DemoCampaignPatch,
   type DemoContentInput,
   type DemoContentPatch,
   type DemoLocaleCopy,
@@ -112,6 +113,7 @@ export class DemoController {
               .split(',')
               .map((c) => c.trim())
               .filter(Boolean),
+        links: Array.isArray(body.links) ? body.links.map(String).filter(Boolean) : [],
         status:
           typeof body.status === 'string' ? (body.status as DemoCampaignInput['status']) : 'DRAFT',
         audience: body.audience ? asCopy(body.audience, 'audience') : undefined,
@@ -136,6 +138,44 @@ export class DemoController {
     const row = demoDataProvider.getCampaign(id);
     if (!row) throw new NotFoundException('Not found');
     return { data: row };
+  }
+
+  @Patch('campaigns/:id')
+  updateCampaign(@Param('id') id: string, @Body() body: Record<string, unknown>) {
+    this.requireDemo();
+    try {
+      const patch: DemoCampaignPatch = {};
+      if (body.name !== undefined) patch.name = asCopy(body.name, 'name');
+      if (body.goal !== undefined) patch.goal = asCopy(body.goal, 'goal');
+      if (body.audience !== undefined) patch.audience = asCopy(body.audience, 'audience');
+      if (typeof body.strategyId === 'string') patch.strategyId = body.strategyId;
+      if (typeof body.brandId === 'string') patch.brandId = body.brandId;
+      if (body.track === 'ORGANIC' || body.track === 'PAID') patch.track = body.track;
+      if (typeof body.owner === 'string') patch.owner = body.owner.trim();
+      if (typeof body.status === 'string') {
+        patch.status = body.status as DemoCampaignInput['status'];
+      }
+      if (body.timeline && typeof body.timeline === 'object') {
+        const timeline = body.timeline as { start?: unknown; end?: unknown };
+        if (typeof timeline.start === 'string' && typeof timeline.end === 'string') {
+          patch.timeline = { start: timeline.start, end: timeline.end };
+        }
+      }
+      if (Array.isArray(body.channels)) patch.channels = body.channels.map(String);
+      else if (typeof body.channels === 'string') {
+        patch.channels = body.channels
+          .split(',')
+          .map((channel) => channel.trim())
+          .filter(Boolean);
+      }
+      if (Array.isArray(body.links)) patch.links = body.links.map(String).filter(Boolean);
+      const row = demoDataProvider.updateCampaign(id, patch);
+      if (!row) throw new NotFoundException('Not found');
+      return { data: row };
+    } catch (err) {
+      if (err instanceof NotFoundException || err instanceof BadRequestException) throw err;
+      throw new BadRequestException(err instanceof Error ? err.message : 'Invalid campaign');
+    }
   }
 
   @Get('content')
