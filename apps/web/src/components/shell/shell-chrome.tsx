@@ -156,7 +156,10 @@ export function ShellChrome({ children }: { children: ReactNode }) {
         </aside>
 
         <div className="oma-shell-column">
-          <header className="oma-top">
+          <header
+            className="oma-top"
+            data-content-workspace={isContentWorkspace ? 'true' : 'false'}
+          >
             <div className="oma-top-start">
               <Button
                 type="text"
@@ -166,14 +169,18 @@ export function ShellChrome({ children }: { children: ReactNode }) {
               >
                 <ShellIcon name="menu" />
               </Button>
+              {/* Planable: workspace trail only — no BrandContext on Content */}
               <div className="oma-top-context">
-                <BrandContext />
+                {isContentWorkspace ? null : <BrandContext />}
                 <ShellBreadcrumb />
               </div>
             </div>
-            <div className="oma-top-center">
-              <CommandSearch compact />
-            </div>
+            {/* Planable Content: no center search — actions live on the right */}
+            {isContentWorkspace ? null : (
+              <div className="oma-top-center">
+                <CommandSearch compact />
+              </div>
+            )}
             {!isContentWorkspace ? (
               <div className="oma-top-actions">
                 <OmaLinkButton href="/app/requests" type="primary" data-testid="shell-create">
@@ -181,7 +188,10 @@ export function ShellChrome({ children }: { children: ReactNode }) {
                   <span>{t('shell.create')}</span>
                 </OmaLinkButton>
               </div>
-            ) : null}
+            ) : (
+              /* Slot for content page actions (Filter / Media / Share / Compose) */
+              <div className="oma-top-actions oma-top-actions--content" id="oma-content-top-actions" />
+            )}
           </header>
           <main id="main" className="oma-container">
             {children}
