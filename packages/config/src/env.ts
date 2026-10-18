@@ -31,6 +31,14 @@ export const envSchema = z
       .enum(['0', '1', 'true', 'false'])
       .optional()
       .transform((v) => v === '1' || v === 'true'),
+    /**
+     * Explicit opt-in to allow demo surfaces when NODE_ENV=production.
+     * For preview/staging only — never enable on real customer production.
+     */
+    OMA_DEMO_ALLOW_PRODUCTION: z
+      .enum(['0', '1', 'true', 'false'])
+      .optional()
+      .transform((v) => v === '1' || v === 'true'),
     /** Text intelligence only. Production stays offline unless explicitly enabled. */
     AI_PROVIDER: z.enum(['openai']).default('openai'),
     AI_LIVE_ENABLED: z
@@ -75,8 +83,14 @@ export type Env = z.infer<typeof envSchema>;
 
 export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
   const parsed = envSchema.parse(source);
-  if (parsed.NODE_ENV === 'production' && parsed.OMA_DEMO_MODE) {
-    throw new Error('OMA_DEMO_MODE cannot activate in production');
+  if (
+    parsed.NODE_ENV === 'production' &&
+    parsed.OMA_DEMO_MODE &&
+    !parsed.OMA_DEMO_ALLOW_PRODUCTION
+  ) {
+    throw new Error(
+      'OMA_DEMO_MODE requires OMA_DEMO_ALLOW_PRODUCTION=1 in production',
+    );
   }
   return parsed;
 }
