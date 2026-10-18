@@ -14,6 +14,7 @@ export function Dialog({
   footer,
   size = 'md',
   closeLabel,
+  className,
 }: {
   open: boolean;
   title?: string;
@@ -21,8 +22,9 @@ export function Dialog({
   children: ReactNode;
   labelledBy?: string;
   footer?: ReactNode;
-  size?: 'md' | 'lg';
+  size?: 'md' | 'lg' | 'xl';
   closeLabel?: string;
+  className?: string;
 }) {
   const t = useT();
   const close = useCallback(() => onClose(), [onClose]);
@@ -33,7 +35,8 @@ export function Dialog({
       title={title ? <h2 id={labelledBy ?? titleId}>{title}</h2> : undefined}
       onCancel={close}
       footer={footer ?? null}
-      width={size === 'lg' ? 720 : 480}
+      width={size === 'xl' ? 1180 : size === 'lg' ? 720 : 480}
+      className={className}
       destroyOnHidden
       closable={{ 'aria-label': 'Dismiss' }}
       mask={{ closable: true }}
