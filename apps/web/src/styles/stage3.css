@@ -492,7 +492,8 @@
 }
 
 .oma-post-card--calendar {
-  min-height: 120px;
+  /* Planable LIVE 2026-10-18: denser calendar cards (was 120px mismatch driver) */
+  min-height: var(--oma-cal-post-min, 72px);
 }
 
 .oma-post-card--saved {
@@ -654,18 +655,20 @@
 
 .oma-content-plan__actions {
   display: inline-flex;
-  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
 }
 
-.oma-content-plan .oma-page-header-actions {
-  display: flex;
-  justify-content: flex-end;
-}
-
 .oma-content-plan.oma-stack {
   gap: 8px; /* INTENTIONAL_EXCEPTION: Planable denser content stage */
+}
+
+.oma-content-plan .oma-stage3-toolbar {
+  /* Keep search row interactive (E2E + empty-state); densify toward Planable chrome. */
+  margin: 0;
+  padding: 0 0 4px;
+  min-height: 0;
+  gap: 8px;
 }
 
 .oma-content-plan .oma-demo-disclosure {
@@ -679,60 +682,6 @@
 .oma-content-plan .oma-item-count {
   font-size: 12px;
   color: #5c5f66; /* INTENTIONAL_EXCEPTION: Planable meta */
-}
-
-.oma-content-plan .oma-empty {
-  min-height: 320px;
-  align-content: center;
-  justify-items: center;
-  padding: 48px 24px;
-  border: 0;
-  background: transparent;
-  text-align: center;
-}
-
-.oma-content-plan .oma-empty .ant-empty-image {
-  display: none; /* OMA empty state stays illustration-free per the component spec. */
-}
-
-.oma-content-filter-drawer .ant-drawer-content-wrapper {
-  width: min(400px, 100vw) !important;
-  max-width: 100vw;
-}
-
-.oma-content-filter-drawer .ant-drawer-body {
-  padding: 0;
-}
-
-.oma-content-filter-drawer .ant-drawer-footer {
-  padding: 12px 16px;
-  border-top: 1px solid var(--oma-border);
-  background: var(--oma-surface);
-}
-
-.oma-content-filter-fields {
-  display: grid;
-  gap: 16px;
-  padding: 16px;
-}
-
-.oma-content-filter-fields > .oma-stage3-search {
-  display: grid;
-  gap: 4px;
-  color: var(--oma-muted);
-  font-size: var(--text-meta);
-}
-
-.oma-content-create-fields {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.oma-content-create-fields > label:nth-of-type(1),
-.oma-content-create-fields > label:nth-of-type(9),
-.oma-content-create-fields > label:nth-of-type(10),
-.oma-content-create-fields > [role='alert'],
-.oma-content-create-fields > .oma-dialog-footer {
-  grid-column: 1 / -1;
 }
 
 /* Planable LIVE_VERIFIED: calendar main + Saved column on the inline-end */
@@ -1050,8 +999,8 @@
 }
 
 .oma-cal-cell[data-out='true'] {
-  background: var(--oma-canvas);
-  color: var(--oma-muted);
+  background: #fafbfc; /* Planable LIVE 2026-10-18 out-of-month wash */
+  color: var(--oma-cal-out-month-ink, #b0b3b8);
 }
 
 .oma-cal-cell[data-selected='true'] {
@@ -1075,11 +1024,12 @@
 
 .oma-cal-cell[data-today='true'] {
   box-shadow: none;
+  background: var(--oma-cal-today-bg, #fff1f0); /* Planable LIVE 2026-10-18 today cell wash */
 }
 
 .oma-cal-cell[data-today='true'] .oma-cal-daynum {
-  background: #e5484d; /* INTENTIONAL_EXCEPTION: Planable LIVE_VERIFIED today mark */
-  color: #fff; /* INTENTIONAL_EXCEPTION: Planable LIVE_VERIFIED today mark */
+  background: var(--oma-cal-today-mark, #e5484d);
+  color: #fff;
   font-weight: 600;
 }
 
@@ -1361,33 +1311,6 @@
     width: 100%;
   }
 
-  .oma-content-plan .oma-page-header-actions {
-    justify-content: space-between;
-  }
-
-  .oma-content-plan__actions {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .oma-content-plan__actions > button {
-    flex: 1 1 auto;
-  }
-
-  .oma-content-filter-drawer .ant-drawer-content-wrapper {
-    width: 100vw !important;
-  }
-
-  .oma-content-create-fields {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .oma-content-create-fields > label,
-  .oma-content-create-fields > [role='alert'],
-  .oma-content-create-fields > .oma-dialog-footer {
-    grid-column: 1;
-  }
-
   .oma-view-switch {
     flex-wrap: wrap;
   }
@@ -1444,4 +1367,396 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+}
+
+/* =============================================================================
+   Planable LIVE 2026-10-18 reference pass (owner screenshots)
+   Holiday chips, campaign span bars, private notes, phone preview, empty feed
+   ============================================================================= */
+
+.oma-cal-holiday-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  min-height: 22px;
+  padding: 0 8px 0 6px;
+  border-radius: 4px;
+  background: var(--oma-cal-holiday-bg, #e8f6ef);
+  color: var(--oma-cal-holiday-ink, #1f7a4d);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.oma-cal-holiday-chip::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--oma-cal-holiday-dot, #2f9e66);
+  flex-shrink: 0;
+}
+
+.oma-cal-campaign-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  min-height: 22px;
+  padding: 0 8px;
+  margin: 2px 0;
+  border-radius: 4px;
+  background: var(--oma-cal-campaign-bg, #f7f8f9);
+  border: 1px solid #eef0f2;
+  color: var(--oma-cal-campaign-ink, #5e6166);
+  font-size: 12px;
+  line-height: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.oma-cal-campaign-bar__icon {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.oma-cal-note {
+  display: grid;
+  gap: 4px;
+  width: 100%;
+  min-height: 56px;
+  padding: 8px;
+  border-radius: 6px;
+  background: var(--oma-cal-note-bg, #fff6d6);
+  border: 1px solid var(--oma-cal-note-border, #f0e2a8);
+  color: #5c5340;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.oma-cal-note__lock {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+/* Phone device frame — Planable post detail preview */
+.oma-phone-preview {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 24px 16px 40px;
+  width: 100%;
+}
+
+.oma-phone-frame {
+  width: min(280px, 100%);
+  min-height: 480px;
+  border: 10px solid var(--oma-phone-bezel, #e8e9eb);
+  border-radius: 28px;
+  background: #fff;
+  box-shadow:
+    0 0 0 1px var(--oma-phone-frame, #c8c9cc),
+    0 8px 24px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  position: relative;
+}
+
+.oma-phone-frame__notch {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 72px;
+  height: 8px;
+  border-radius: 999px;
+  background: #e8e9eb;
+}
+
+.oma-phone-frame__body {
+  padding: 28px 14px 16px;
+  font-size: 13px;
+  line-height: 18px;
+  color: #333;
+}
+
+.oma-phone-frame__meta {
+  font-size: 11px;
+  line-height: 14px;
+  color: #8c8c8c;
+  margin-bottom: 8px;
+}
+
+.oma-phone-frame__title {
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.oma-phone-frame__caption {
+  font-size: 13px;
+  line-height: 18px;
+  color: #5e6166;
+  white-space: pre-wrap;
+}
+
+/* Post detail chrome — Campaign / Labels + approval row */
+.oma-post-detail-chrome {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #e2e3e5;
+  background: #fff;
+}
+
+.oma-post-detail-chrome__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid #e2e3e5;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 13px;
+  color: #333;
+}
+
+.oma-post-approval-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  font-size: 13px;
+  color: #5e6166;
+}
+
+.oma-post-approval-row__toggle {
+  width: 36px;
+  height: 20px;
+  border-radius: 999px;
+  background: #e2e3e5;
+  position: relative;
+}
+
+/* Feedback panel (Planable right rail on post detail) */
+.oma-feedback-panel {
+  display: flex;
+  flex-direction: column;
+  width: 320px;
+  max-width: 100%;
+  border-inline-start: 1px solid #e2e3e5;
+  background: #fff;
+  min-height: 100%;
+}
+
+.oma-feedback-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e2e3e5;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.oma-feedback-panel__tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid #e2e3e5;
+  padding: 0 8px;
+}
+
+.oma-feedback-panel__tab {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: #5e6166;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+
+.oma-feedback-panel__tab[data-active='true'] {
+  color: #333;
+  font-weight: 600;
+  border-bottom-color: #1677ff;
+}
+
+.oma-feedback-panel__composer {
+  margin: 12px;
+  padding: 10px 12px;
+  border: 1px solid #1677ff;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.oma-feedback-panel__empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: #5e6166;
+  font-size: 13px;
+}
+
+/* Filter drawer — Planable right sheet */
+.oma-filter-drawer-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #232426;
+}
+
+.oma-filter-section-label {
+  margin: 16px 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #8c8c8c;
+}
+
+.oma-filter-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 0 4px;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+}
+
+.oma-filter-row:hover {
+  background: #f5f6f7;
+}
+
+/* Empty feed state — Planable centered illustration + CTA */
+.oma-content-empty {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 12px;
+  min-height: 420px;
+  padding: 48px 24px;
+  text-align: center;
+  color: #333;
+}
+
+.oma-content-empty__art {
+  width: 120px;
+  height: 88px;
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, #d6ebff 0%, #eef6ff 100%);
+  box-shadow: inset 0 0 0 1px #c5def8;
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.oma-content-empty__art::before,
+.oma-content-empty__art::after {
+  content: '';
+  position: absolute;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+
+.oma-content-empty__art::before {
+  inset: 16px 36px 28px 16px;
+}
+
+.oma-content-empty__art::after {
+  inset: 28px 16px 16px 36px;
+}
+
+.oma-content-empty h2,
+.oma-content-empty strong {
+  margin: 0;
+  font-size: 18px;
+  line-height: 26px;
+  font-weight: 600;
+}
+
+.oma-content-empty p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: #5e6166;
+  max-width: 320px;
+}
+
+/* Composer modal footer — Planable Select date + Save draft */
+.oma-composer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e2e3e5;
+}
+
+.oma-composer-footer__date {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid #e2e3e5;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 13px;
+  color: #5e6166;
+}
+
+.oma-composer-footer__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* View menu PRO/ENT badges (Planable visual language; labels informational only) */
+.oma-view-menu__badge {
+  margin-inline-start: auto;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #f3e8ff;
+  color: #7c3aed;
+}
+
+.oma-view-menu__badge--ent {
+  background: #fff7e6;
+  color: #d48806;
+}
+
+/* Request approvals / calendar count chips in calendar toolbar */
+.oma-cal-toolbar-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-inline-start: auto;
+  font-size: 13px;
+  color: #5e6166;
+}
+
+.oma-cal-toolbar-meta__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #2f9e66;
+  display: inline-block;
 }

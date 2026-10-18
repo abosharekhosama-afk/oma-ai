@@ -221,13 +221,14 @@
 .oma-nav-link:hover {
   background: var(--oma-canvas);
 }
+/* Planable LIVE 2026-10-18: active rail item is neutral canvas wash, ink stays dark */
 .oma-nav-link[data-active='true'] {
-  background: var(--oma-primary-soft);
-  color: var(--oma-primary);
+  background: var(--oma-canvas);
+  color: var(--oma-ink);
   font-weight: var(--weight-medium);
 }
 .oma-nav-link[data-active='true'] .oma-nav-link-icon {
-  color: var(--oma-primary);
+  color: var(--oma-ink);
 }
 .oma-nav-tooltip-wrap {
   display: block;
@@ -246,6 +247,7 @@
 }
 
 .oma-top {
+  /* Planable LIVE 2026-10-18 top chrome */
   display: flex;
   align-items: center;
   gap: var(--space-3);
