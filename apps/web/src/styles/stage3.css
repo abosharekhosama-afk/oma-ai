@@ -2665,3 +2665,126 @@
   border-bottom: 1px solid #e8e9eb;
   text-align: center;
 }
+
+/* Tooltips (Planable black tip) */
+.oma-tip {
+  position: absolute;
+  z-index: 80;
+  max-width: 240px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #2b2d31;
+  color: #fff;
+  font-size: 12px;
+  line-height: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* Context menu — Planable soft card */
+.oma-post-menu,
+.oma-cal-context-menu {
+  position: absolute;
+  z-index: 70;
+  min-width: 220px;
+  padding: 6px 0;
+  border: 1px solid #e2e3e5;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 0 1px rgba(50, 79, 58, 0.12), 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+.oma-post-menu__item,
+.oma-cal-context-menu button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  color: #333;
+  text-align: start;
+  cursor: pointer;
+}
+.oma-post-menu__item:hover,
+.oma-cal-context-menu button:hover {
+  background: #f5f6f7;
+}
+
+/* Bulk selection bar (Planable dark floating bar) */
+.oma-bulk-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 90;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: #2b2d31;
+  color: #fff;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+  font-size: 13px;
+}
+.oma-bulk-bar__btn {
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 6px;
+  border: 0;
+  background: #3a3d42;
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.oma-bulk-bar__btn--primary {
+  background: #1677ff;
+}
+
+/* Private note active editor */
+.oma-cal-note--editing {
+  background: #e8fff6;
+  border-color: #b7ead4;
+  min-height: 72px;
+}
+.oma-cal-note__toolbar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+.oma-cal-note__toolbar button {
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  color: #5e6166;
+}
+.oma-cal-note__toolbar button:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+/* Top bar Compose primary */
+.oma-content-plan__actions .ant-btn-primary,
+.oma-top-action--primary {
+  height: 32px;
+  padding-inline: 14px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+/* Calendar toolbar density */
+.oma-cal-toolbar {
+  padding: 8px 12px;
+  gap: 10px;
+  border-bottom: 1px solid #eef0f2;
+}
