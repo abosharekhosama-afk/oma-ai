@@ -104,6 +104,7 @@ export type DemoGraph = {
     objective: DemoLocaleCopy;
     audience: DemoLocaleCopy;
     channels: string[];
+    links?: string[];
     timeline: { start: string; end: string };
     budget: { amount: number; currency: string; planningOnly: true };
     owner: string;
@@ -3510,9 +3511,12 @@ export type DemoCampaignInput = {
   owner: string;
   timeline: { start: string; end: string };
   channels: string[];
+  links?: string[];
   status?: DemoCampaignStatus;
   audience?: DemoLocaleCopy;
 };
+
+export type DemoCampaignPatch = Partial<DemoCampaignInput>;
 
 export type DemoContentInput = {
   title: DemoLocaleCopy;
@@ -4237,6 +4241,7 @@ export class DemoDataProvider {
         ar: 'الجمهور قيد التحديد',
       },
       channels: input.channels,
+      links: input.links ?? [],
       timeline: input.timeline,
       budget: { amount: 0, currency: 'AED', planningOnly: true },
       owner: input.owner,
@@ -4250,6 +4255,35 @@ export class DemoDataProvider {
     };
     this.graph.campaigns = [row, ...this.graph.campaigns];
     return row;
+  }
+
+  updateCampaign(id: string, patch: DemoCampaignPatch) {
+    const index = this.graph.campaigns.findIndex((campaign) => campaign.id === id);
+    if (index < 0) return null;
+    const current = this.graph.campaigns[index]!;
+    const strategyId = patch.strategyId ?? current.strategyId;
+    const strategy = this.graph.strategies.find((item) => item.id === strategyId);
+    if (!strategy) throw new Error('Strategy not found');
+    const next: DemoGraph['campaigns'][number] = {
+      ...current,
+      name: patch.name ?? current.name,
+      brandId: patch.brandId ?? current.brandId ?? strategy.brandId,
+      strategyId,
+      track: patch.track ?? current.track,
+      status: patch.status ?? current.status,
+      objective: patch.goal ?? current.objective,
+      audience: patch.audience ?? current.audience,
+      timeline: patch.timeline ?? current.timeline,
+      channels: patch.channels ?? current.channels,
+      links: patch.links ?? current.links,
+      owner: patch.owner ?? current.owner,
+    };
+    this.graph.campaigns = [
+      ...this.graph.campaigns.slice(0, index),
+      next,
+      ...this.graph.campaigns.slice(index + 1),
+    ];
+    return next;
   }
 
   createContent(input: DemoContentInput) {
