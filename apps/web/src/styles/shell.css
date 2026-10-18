@@ -222,12 +222,12 @@
   background: var(--oma-canvas);
 }
 .oma-nav-link[data-active='true'] {
-  background: var(--oma-primary-soft);
-  color: var(--oma-primary);
-  font-weight: var(--weight-medium);
+  background: #eceef0;
+  color: var(--oma-ink);
+  font-weight: 500;
 }
 .oma-nav-link[data-active='true'] .oma-nav-link-icon {
-  color: var(--oma-primary);
+  color: var(--oma-ink);
 }
 .oma-nav-tooltip-wrap {
   display: block;
