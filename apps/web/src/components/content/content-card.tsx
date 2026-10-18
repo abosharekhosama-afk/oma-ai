@@ -94,6 +94,11 @@ export function StatusMark({ display, locale }: { display: PublishDisplay; local
   );
 }
 
+/**
+ * Planable-aligned content face.
+ * Calendar/saved: compact dashed card — channel icon + name + optional Draft + time + title only.
+ * No media, no status pill, no caption clutter (Planable 2026-10-19 screenshots).
+ */
 export function ContentFace({
   variant,
   title,
@@ -102,7 +107,7 @@ export function ContentFace({
   when,
   asset,
   display,
-  locale,
+  locale: _locale,
   selected,
 }: {
   variant: 'feed' | 'calendar' | 'saved' | 'grid' | 'list';
@@ -115,26 +120,84 @@ export function ContentFace({
   locale: string;
   selected?: boolean;
 }) {
+  const isDraft =
+    display === 'DRAFT' || display === 'PLANNED_DATE' || display === 'APPROVAL_PENDING';
+  const channelShort = channel.length > 18 ? `${channel.slice(0, 16)}…` : channel;
+
+  if (variant === 'calendar' || variant === 'saved') {
+    return (
+      <span
+        className={`oma-post-card oma-post-card--${variant}`}
+        data-selected={selected ? 'true' : 'false'}
+        data-publish={display}
+        data-draft={isDraft ? 'true' : 'false'}
+      >
+        <span className="oma-post-card__row">
+          <span className="oma-post-card__channel" title={channel}>
+            <span className="oma-post-card__channel-icon" aria-hidden>
+              ▣
+            </span>
+            <span className="oma-post-card__channel-name">{channelShort}</span>
+          </span>
+          <span className="oma-post-card__when">
+            {isDraft ? <span className="oma-post-card__draft">Draft</span> : null}
+            <span className="oma-ltr oma-post-card__time">{when}</span>
+          </span>
+        </span>
+        <span className="oma-post-card__title">{title}</span>
+      </span>
+    );
+  }
+
+  if (variant === 'feed') {
+    return (
+      <span
+        className="oma-feed-card__body"
+        data-selected={selected ? 'true' : 'false'}
+        data-publish={display}
+        data-draft={isDraft ? 'true' : 'false'}
+      >
+        <span className="oma-feed-card__head">
+          <span className="oma-feed-card__date">
+            <span className="oma-ltr">{when}</span>
+            <span aria-hidden> ▾</span>
+          </span>
+          <span className="oma-feed-card__menu" aria-hidden>
+            …
+          </span>
+        </span>
+        <span className="oma-feed-card__title">{title}</span>
+        {caption ? <span className="oma-feed-card__caption">{caption}</span> : null}
+      </span>
+    );
+  }
+
+  if (variant === 'list') {
+    return (
+      <span
+        className="oma-post-card oma-post-card--list"
+        data-selected={selected ? 'true' : 'false'}
+        data-publish={display}
+      >
+        <img className="oma-post-card__media oma-post-card__media--row" src={asset} alt="" />
+        <span className="oma-post-card__list-text">
+          <span className="oma-post-card__channel-name">{channel}</span>
+          <span className="oma-post-card__title">{title}</span>
+        </span>
+      </span>
+    );
+  }
+
+  /* grid */
   return (
     <span
-      className={`oma-post-card oma-post-card--${variant}`}
+      className="oma-post-card oma-post-card--grid"
       data-selected={selected ? 'true' : 'false'}
       data-publish={display}
     >
-      {variant !== 'list' ? (
-        <img className="oma-post-card__media" src={asset} alt="" />
-      ) : (
-        <img className="oma-post-card__media oma-post-card__media--row" src={asset} alt="" />
-      )}
+      <img className="oma-post-card__media" src={asset} alt="" />
       <span className="oma-post-card__title">{title}</span>
-      {variant !== 'calendar' && variant !== 'saved' ? (
-        <span className="oma-post-card__caption">{caption}</span>
-      ) : null}
-      <span className="oma-post-card__meta">
-        <span>{channel}</span>
-        <span className="oma-ltr">{when}</span>
-      </span>
-      <StatusMark display={display} locale={locale} />
+      {caption ? <span className="oma-post-card__caption">{caption}</span> : null}
     </span>
   );
 }
