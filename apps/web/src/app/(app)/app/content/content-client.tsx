@@ -1108,49 +1108,55 @@ export default function ContentPage() {
 
       {!loading && !unavailable && !error && filtered.length > 0 && view === 'feed' ? (
         <div className="oma-content-feed" data-testid="demo-content-feed">
-          {filtered.map((item) => (
-            <SurfaceButton
-              key={item.id}
-              data-testid={`demo-content-card-${item.id}`}
-              data-selected={selectedId === item.id ? 'true' : 'false'}
-              onClick={() => openItem(item)}
-              className="oma-content-feed-item"
-            >
+          {filtered.map((item) => {
+            const when = item.scheduledAt
+              ? item.scheduledAt.slice(0, 16).replace('T', ', ')
+              : item.plannedDate || '—';
+            const title = pickCopy(item.title, locale);
+            const caption = item.caption ? pickCopy(item.caption, locale) : '';
+            return (
               <div
-                className="oma-content-feed-media"
-                data-ratio={item.contentType === 'REEL' ? 'video' : 'post'}
+                key={item.id}
+                className="oma-feed-card"
+                data-testid={`demo-content-card-${item.id}`}
+                data-selected={selectedId === item.id ? 'true' : 'false'}
               >
-                <img
-                  src={item.previewAsset}
-                  alt={mediaAlt(pickCopy(item.title, locale), item.channel, item.contentType)}
-                />
+                <div className="oma-feed-card__rail" aria-hidden>
+                  <button type="button" className="oma-feed-card__status" tabIndex={-1}>
+                    ✓
+                  </button>
+                  <div className="oma-feed-card__channels">
+                    <span className="oma-feed-card__channel" title={item.channel}>
+                      {channelMarker(item.channel)}
+                    </span>
+                  </div>
+                </div>
+                <SurfaceButton
+                  onClick={() => openItem(item)}
+                  className="oma-feed-card__body"
+                  style={{ display: 'flex', flexDirection: 'column', width: '100%' }}
+                >
+                  <span className="oma-feed-card__head">
+                    <span className="oma-feed-card__date">
+                      <span className="oma-ltr">{when}</span>
+                      <span aria-hidden> ▾</span>
+                    </span>
+                    <span className="oma-feed-card__menu" aria-hidden>
+                      …
+                    </span>
+                  </span>
+                  <span className="oma-feed-card__title">{title}</span>
+                  {caption ? <span className="oma-feed-card__caption">{caption}</span> : null}
+                </SurfaceButton>
+                <div className="oma-feed-card__comment" onClick={() => openItem(item, 'comments')}>
+                  <span className="oma-feed-card__comment-dot">
+                    {commentsForContent(tasks, deliverables, item.id).length}
+                  </span>
+                  <span>Say something…</span>
+                </div>
               </div>
-              <div className="oma-chip-row">
-                <span className="oma-cal-marker">{channelMarker(item.channel)}</span>
-                <span>{item.channel}</span>
-                <TrackPill
-                  track={item.track}
-                  organicLabel={t('demo.organic')}
-                  paidLabel={t('demo.paid')}
-                />
-              </div>
-              <strong>{pickCopy(item.title, locale)}</strong>
-              <p className="oma-muted" style={{ margin: 0 }}>
-                {item.caption ? pickCopy(item.caption, locale) : t('demo.content.unsupported')}
-              </p>
-              <span className="oma-muted">{campaignName(item.campaignId)}</span>
-              <div className="oma-chip-row">
-                <StatusMark display={faceDisplay(item, policy)} locale={locale} />
-                <span className="oma-muted">{item.assignee}</span>
-                <span className="oma-ltr oma-muted">
-                  {item.scheduledAt ? item.scheduledAt.slice(0, 16) : '—'}
-                </span>
-                <span className="oma-muted">
-                  {commentsForContent(tasks, deliverables, item.id).length}
-                </span>
-              </div>
-            </SurfaceButton>
-          ))}
+            );
+          })}
         </div>
       ) : null}
 
