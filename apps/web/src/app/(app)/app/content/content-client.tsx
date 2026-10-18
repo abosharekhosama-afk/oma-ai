@@ -19,7 +19,6 @@ import {
 import dayjs from 'dayjs';
 import { Dialog } from '../../../../components/ui/dialog';
 import { EmptyState, ErrorState, DeniedState } from '../../../../components/ui/empty-state';
-import { PageHeader } from '../../../../components/ui/page-header';
 import { useToast } from '../../../../components/ui/toast';
 import { mediaAlt, P3_MEDIA } from '../../../../lib/demo/demo-media';
 import {
@@ -714,113 +713,61 @@ export default function ContentPage() {
 
   return (
     <div className="oma-stack oma-content-plan" data-testid="demo-content">
-      {/*
-        Planable LIVE_VERIFIED Content chrome: breadcrumb-level title (shell),
-        compact view/filter/compose row — not a marketing page header stack.
-      */}
-      <PageHeader
-        title={t('demo.content.title')}
-        actions={
-          <div className="oma-content-plan__actions">
+      <div className="oma-content-chrome" data-testid="demo-content-chrome">
+        <div className="oma-content-chrome__trail">
+          <div className="oma-view-menu" data-testid="demo-content-view-menu">
             <Button
-              type="default"
-              onClick={() => setFilterSheet(true)}
-              className="oma-filter-sheet-trigger"
-              data-testid="demo-content-open-filters"
+              type="text"
+              className="oma-view-menu__trigger"
+              data-testid="demo-content-view-trigger"
+              aria-haspopup="menu"
+              aria-expanded={viewMenuOpen}
+              onClick={() => setViewMenuOpen((open) => !open)}
             >
-              {t('demo.content.openFilters')}
-              {filterCount > 0 ? ` (${filterCount})` : ''}
+              <span data-testid={`demo-content-view-current-${view}`}>{t(`demo.view.${view}`)}</span>
+              <span className="oma-view-menu__caret" aria-hidden>▾</span>
             </Button>
-            <Button
-              type="default"
-              onClick={() => setMediaLibraryOpen(true)}
-              className="oma-content-media-trigger"
-              data-testid="demo-content-open-media"
-            >
-              {t('demo.content.media')}
-            </Button>
-            <Button
-              type="default"
-              onClick={() => void shareContentWorkspace()}
-              data-testid="demo-content-share"
-            >
-              {isAr ? 'مشاركة' : 'Share'}
-            </Button>
-            <Button
-              type="primary"
-              data-testid="demo-create-content"
-              onClick={() => setCreateOpen(true)}
-            >
-              {t('demo.content.create')}
-            </Button>
+            {viewMenuOpen ? (
+              <ul className="oma-view-menu__list" role="menu">
+                {(['calendar', 'feed', 'grid', 'list'] as const).map((id) => (
+                  <li key={id} role="none">
+                    <button
+                      type="button"
+                      role="menuitemradio"
+                      aria-checked={view === id}
+                      data-selected={view === id ? 'true' : 'false'}
+                      data-testid={`demo-content-view-${id}`}
+                      className="oma-view-menu__item"
+                      onClick={() => {
+                        setView(id);
+                        setViewMenuOpen(false);
+                      }}
+                    >
+                      <span className="oma-view-menu__check" aria-hidden>{view === id ? '✓' : ''}</span>
+                      {t(`demo.view.${id}`)}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
           </div>
-        }
-        meta={
-          <>
-            {/* Planable LIVE_VERIFIED: view switcher is a dropdown, not always-visible tabs. */}
-            <div className="oma-view-menu" data-testid="demo-content-view-menu">
-              <Button
-                type="default"
-                className="oma-view-menu__trigger"
-                data-testid="demo-content-view-trigger"
-                aria-haspopup="menu"
-                aria-expanded={viewMenuOpen}
-                aria-label={t('demo.content.title')}
-                onClick={() => setViewMenuOpen((open) => !open)}
-              >
-                <span data-testid={`demo-content-view-current-${view}`}>
-                  {t(`demo.view.${view}`)}
-                </span>
-                <span className="oma-view-menu__caret" aria-hidden>
-                  ▾
-                </span>
-              </Button>
-              {viewMenuOpen ? (
-                <ul className="oma-view-menu__list" role="menu">
-                  {(['calendar', 'feed', 'grid', 'list'] as ContentViewMode[]).map((mode) => (
-                    <li key={mode} role="none">
-                      <Button
-                        type="text"
-                        role="menuitemradio"
-                        aria-checked={view === mode}
-                        data-testid={`demo-content-view-${mode}`}
-                        data-selected={view === mode ? 'true' : 'false'}
-                        className="oma-view-menu__item"
-                        onClick={() => {
-                          changeView(mode);
-                          setViewMenuOpen(false);
-                        }}
-                      >
-                        <span className="oma-view-menu__check" aria-hidden>
-                          {view === mode ? '✓' : ''}
-                        </span>
-                        {t(`demo.view.${mode}`)}
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-            </div>
-            <label className="oma-content-policy">
-              {t('demo.content.policy')}
-              <OmaSelect
-                value={policy}
-                testId="demo-content-approval-policy"
-                onChange={(next) => void changePolicy(next as ApprovalPolicy)}
-                options={[
-                  { value: 'NONE', label: 'NONE' },
-                  { value: 'OPTIONAL', label: 'OPTIONAL' },
-                  { value: 'REQUIRED', label: 'REQUIRED' },
-                ]}
-              />
-            </label>
-            <span className="oma-item-count">
-              {filtered.length} / {rows.length}
-            </span>
-          </>
-        }
-      />
-      <DemoDisclosure message={t('demo.content.noPublishing')} />
+        </div>
+        <div className="oma-content-chrome__actions">
+          <Button type="text" onClick={() => setFilterSheet(true)} className="oma-filter-sheet-trigger" data-testid="demo-content-open-filters">
+            {t('demo.content.openFilters')}{filterCount > 0 ? ` (${filterCount})` : ''}
+          </Button>
+          <Button type="text" onClick={() => setMediaLibraryOpen(true)} data-testid="demo-content-open-media">
+            {t('demo.content.media')}
+          </Button>
+          <Button type="default" onClick={() => void shareContentWorkspace()} data-testid="demo-content-share">
+            {isAr ? 'مشاركة' : 'Share'}
+          </Button>
+          <Button type="primary" data-testid="demo-create-content" onClick={() => setCreateOpen(true)}>
+            {t('demo.content.create')}
+          </Button>
+        </div>
+      </div>
+
 
       <div className="oma-stage3-toolbar" data-testid="demo-content-filters">
         {searchField}
@@ -1173,49 +1120,49 @@ export default function ContentPage() {
 
       {!loading && !unavailable && !error && filtered.length > 0 && view === 'feed' ? (
         <div className="oma-content-feed" data-testid="demo-content-feed">
-          {filtered.map((item) => (
-            <SurfaceButton
-              key={item.id}
-              data-testid={`demo-content-card-${item.id}`}
-              data-selected={selectedId === item.id ? 'true' : 'false'}
-              onClick={() => openItem(item)}
-              className="oma-content-feed-item"
-            >
+          {filtered.map((item) => {
+            const when = item.scheduledAt
+              ? item.scheduledAt.slice(0, 16).replace('T', ', ')
+              : item.plannedAt
+                ? String(item.plannedAt).slice(0, 16).replace('T', ', ')
+                : '—';
+            const title = pickCopy(item.title, locale);
+            const caption = item.caption ? pickCopy(item.caption, locale) : '';
+            return (
               <div
-                className="oma-content-feed-media"
-                data-ratio={item.contentType === 'REEL' ? 'video' : 'post'}
+                key={item.id}
+                className="oma-feed-card"
+                data-testid={`demo-content-card-${item.id}`}
+                data-selected={selectedId === item.id ? 'true' : 'false'}
               >
-                <img
-                  src={item.previewAsset}
-                  alt={mediaAlt(pickCopy(item.title, locale), item.channel, item.contentType)}
-                />
+                <div className="oma-feed-card__rail" aria-hidden>
+                  <button type="button" className="oma-feed-card__status" tabIndex={-1}>✓</button>
+                  <span className="oma-feed-card__channel">{channelMarker(item.channel)}</span>
+                </div>
+                <SurfaceButton
+                  onClick={() => openItem(item)}
+                  className="oma-feed-card__body"
+                  style={{ display: 'flex', flexDirection: 'column', width: '100%' }}
+                >
+                  <span className="oma-feed-card__head">
+                    <span className="oma-feed-card__date">
+                      <span className="oma-ltr">{when}</span>
+                      <span aria-hidden> ▾</span>
+                    </span>
+                    <span className="oma-feed-card__menu" aria-hidden>…</span>
+                  </span>
+                  <span className="oma-feed-card__title">{title}</span>
+                  {caption ? <span className="oma-feed-card__caption">{caption}</span> : null}
+                </SurfaceButton>
+                <div className="oma-feed-card__comment" onClick={() => openItem(item)}>
+                  <span className="oma-feed-card__comment-dot">
+                    {commentsForContent(tasks, deliverables, item.id).length}
+                  </span>
+                  <span>Say something…</span>
+                </div>
               </div>
-              <div className="oma-chip-row">
-                <span className="oma-cal-marker">{channelMarker(item.channel)}</span>
-                <span>{item.channel}</span>
-                <TrackPill
-                  track={item.track}
-                  organicLabel={t('demo.organic')}
-                  paidLabel={t('demo.paid')}
-                />
-              </div>
-              <strong>{pickCopy(item.title, locale)}</strong>
-              <p className="oma-muted" style={{ margin: 0 }}>
-                {item.caption ? pickCopy(item.caption, locale) : t('demo.content.unsupported')}
-              </p>
-              <span className="oma-muted">{campaignName(item.campaignId)}</span>
-              <div className="oma-chip-row">
-                <StatusMark display={faceDisplay(item, policy)} locale={locale} />
-                <span className="oma-muted">{item.assignee}</span>
-                <span className="oma-ltr oma-muted">
-                  {item.scheduledAt ? item.scheduledAt.slice(0, 16) : '—'}
-                </span>
-                <span className="oma-muted">
-                  {commentsForContent(tasks, deliverables, item.id).length}
-                </span>
-              </div>
-            </SurfaceButton>
-          ))}
+            );
+          })}
         </div>
       ) : null}
 
