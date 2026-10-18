@@ -394,18 +394,25 @@ export type DemoScheduledPostPatch = {
   state?: DemoScheduleState;
 };
 
-export function isDemoModeEnabled(env: { NODE_ENV?: string; OMA_DEMO_MODE?: string }): boolean {
-  if (env.NODE_ENV === 'production') return false;
-  return env.OMA_DEMO_MODE === '1' || env.OMA_DEMO_MODE === 'true';
+export function isDemoModeEnabled(env: {
+  NODE_ENV?: string;
+  OMA_DEMO_MODE?: string;
+  OMA_DEMO_ALLOW_PRODUCTION?: string;
+}): boolean {
+  const demoOn = env.OMA_DEMO_MODE === '1' || env.OMA_DEMO_MODE === 'true';
+  if (!demoOn) return false;
+  if (env.NODE_ENV !== 'production') return true;
+  return (
+    env.OMA_DEMO_ALLOW_PRODUCTION === '1' ||
+    env.OMA_DEMO_ALLOW_PRODUCTION === 'true'
+  );
 }
 
-export function assertDemoModeAllowed(env: { NODE_ENV?: string; OMA_DEMO_MODE?: string }): void {
-  if (
-    env.NODE_ENV === 'production' &&
-    (env.OMA_DEMO_MODE === '1' || env.OMA_DEMO_MODE === 'true')
-  ) {
-    throw new Error('OMA_DEMO_MODE cannot activate in production');
-  }
+export function assertDemoModeAllowed(env: {
+  NODE_ENV?: string;
+  OMA_DEMO_MODE?: string;
+  OMA_DEMO_ALLOW_PRODUCTION?: string;
+}): void {
   if (!isDemoModeEnabled(env)) {
     throw new Error('Demo mode is not enabled');
   }
