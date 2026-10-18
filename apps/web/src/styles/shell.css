@@ -459,3 +459,72 @@
     flex-wrap: wrap;
   }
 }
+
+/* Product workspace chrome: compact white rail and breadcrumb bar. */
+.oma-shell .oma-top {
+  min-height: 48px;
+  padding: 8px 12px;
+  gap: 8px;
+  border-bottom-color: #e6e7e9;
+  background: #fff;
+}
+
+.oma-shell .oma-top-start,
+.oma-shell .oma-top-context {
+  gap: 8px;
+}
+
+.oma-shell .oma-context-trail,
+.oma-shell .oma-breadcrumb {
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.oma-shell .oma-container {
+  width: 100%;
+  max-width: none;
+  padding: 8px 12px 24px;
+}
+
+.oma-shell .oma-rail {
+  padding: 10px 12px;
+  border-inline-end-color: #e6e7e9;
+  background: #fff;
+}
+
+.oma-shell .oma-nav {
+  gap: 14px;
+}
+
+.oma-shell .oma-nav-group {
+  gap: 4px;
+}
+
+.oma-shell .oma-nav-link {
+  min-height: 30px;
+  padding: 5px 8px;
+  border-radius: 5px;
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.oma-shell .oma-nav-link-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.oma-shell .oma-nav-section {
+  padding-inline: 8px;
+  font-size: 10px;
+}
+
+@media (max-width: 767px) {
+  .oma-shell .oma-top {
+    min-height: 44px;
+    padding: 6px 8px;
+  }
+
+  .oma-shell .oma-container {
+    padding: 6px 8px 18px;
+  }
+}
