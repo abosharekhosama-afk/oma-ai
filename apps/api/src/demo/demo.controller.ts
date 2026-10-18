@@ -53,9 +53,11 @@ export class DemoController {
         enabled: isDemoModeEnabled({
           NODE_ENV: env.NODE_ENV,
           OMA_DEMO_MODE: env.OMA_DEMO_MODE ? '1' : '0',
+          OMA_DEMO_ALLOW_PRODUCTION: env.OMA_DEMO_ALLOW_PRODUCTION ? '1' : '0',
         }),
         label: demoDataProvider.getGraph().meta.label,
-        production_blocked: env.NODE_ENV === 'production',
+        production_blocked:
+          env.NODE_ENV === 'production' && !env.OMA_DEMO_ALLOW_PRODUCTION,
       },
     };
   }
@@ -812,9 +814,12 @@ export class DemoController {
       assertDemoModeAllowed({
         NODE_ENV: env.NODE_ENV,
         OMA_DEMO_MODE: env.OMA_DEMO_MODE ? '1' : '0',
+        OMA_DEMO_ALLOW_PRODUCTION: env.OMA_DEMO_ALLOW_PRODUCTION ? '1' : '0',
       });
     } catch (err) {
-      throw new ForbiddenException(err instanceof Error ? err.message : 'Demo mode is not enabled');
+      throw new ForbiddenException(
+        err instanceof Error ? err.message : 'Demo mode is not enabled',
+      );
     }
   }
 }
