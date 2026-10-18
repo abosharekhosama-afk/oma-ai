@@ -1034,7 +1034,7 @@ export default function ContentPage() {
                           title={pickCopy(item.title, locale)}
                           caption={item.caption ? pickCopy(item.caption, locale) : ''}
                           channel={item.channel}
-                          when={item.scheduledAt ? item.scheduledAt.slice(11, 16) : '—'}
+                          when={item.scheduledAt ? item.scheduledAt.slice(11, 16) : item.plannedAt ? String(item.plannedAt).slice(11, 16) || String(item.plannedAt).slice(0, 5) : '—'}
                           asset={item.previewAsset}
                           display={faceDisplay(item, policy)}
                           locale={locale}
