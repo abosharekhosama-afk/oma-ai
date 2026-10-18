@@ -79,7 +79,7 @@ test.describe('Planable rendered visual integrity', () => {
 
     await installOwnerSession(page, page.request);
     await page.goto('/app/content');
-    await expect(page.getByTestId('demo-content-filters')).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId('demo-content-open-filters')).toBeVisible({ timeout: 20_000 });
 
     for (const mode of ['grid', 'list', 'feed'] as const) {
       await openContentView(page, mode);

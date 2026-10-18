@@ -141,7 +141,7 @@ test('A1 foundation visual and interaction evidence', async ({ page }, testInfo)
   await expect(dialog).toHaveCount(0);
 
   await page.goto('/app/content');
-  await expect(page.getByTestId('demo-content-filters')).toBeVisible();
+  await expect(page.getByTestId('demo-content-open-filters')).toBeVisible();
   await openContentFilters(page);
   const dateField = page.locator('.ant-picker').first();
   await expect(dateField).toBeVisible();

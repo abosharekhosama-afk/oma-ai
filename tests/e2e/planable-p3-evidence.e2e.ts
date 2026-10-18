@@ -198,7 +198,10 @@ test.describe('P3 Planable campaigns/content evidence pack', () => {
     await expect(page.getByTestId('demo-content-filter-chips')).toBeVisible({ timeout: 10_000 });
     await shot('15-filter-chips', '/app/content', '1440x900', { viewType: 'filters' });
     await page.getByTestId('demo-content-filter-chips').getByRole('button').last().click();
+    await openContentFilters(page);
     await page.getByTestId('demo-content-search').fill('zzzz-no-match');
+    await applyContentFilters(page);
+    await expect(page.getByText(/No content matches these filters/i)).toBeVisible();
     await shot('16-empty-state', '/app/content', '1440x900', { viewType: 'empty' });
 
     await page.context().addCookies([{ name: 'oma_locale', value: 'ar', url: WEB }]);
