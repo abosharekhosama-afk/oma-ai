@@ -1,9 +1,6 @@
 /**
- * Single Planable-derived Ant Design theme.
- * Planable remains the visual authority. Values measured from live app.planable.io
- * and owner reference screenshots 2026-10-18 (calendar, composer, feed, shell).
- * R2 live measures: body 14/400/~21.5, ink #333, muted ~#5E6166,
- * control height 32, radius 6, compose radius 8, motion 0.15s–0.3s.
+ * Planable-derived Ant Design theme (DEC-018).
+ * Visual authority: Planable screenshots 2026-10-18.
  */
 export const omaAntdTheme = {
   token: {
@@ -23,7 +20,7 @@ export const omaAntdTheme = {
     controlHeight: 32,
     controlHeightSM: 28,
     borderRadius: 6,
-    borderRadiusLG: 8,
+    borderRadiusLG: 10,
     borderRadiusSM: 4,
     fontSize: 14,
     fontSizeSM: 12,
@@ -31,9 +28,9 @@ export const omaAntdTheme = {
     fontWeightStrong: 500,
     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif',
     motionDurationMid: '0.15s',
-    motionDurationSlow: '0.3s',
+    motionDurationSlow: '0.2s',
     motionEaseInOut: 'cubic-bezier(0.4, 0, 0.2, 1)',
-    boxShadow: '0 0 1px rgba(50, 79, 58, 0.15), 0 2px 4px rgba(0, 0, 0, 0.08)',
+    boxShadow: '0 0 1px rgba(50, 79, 58, 0.12), 0 2px 6px rgba(0, 0, 0, 0.06)',
     boxShadowSecondary: '0 0 1px rgba(50, 79, 58, 0.15), 0 8px 24px rgba(0, 0, 0, 0.12)',
   },
   components: {
@@ -43,7 +40,7 @@ export const omaAntdTheme = {
       defaultShadow: 'none',
       fontWeight: 400,
       controlHeight: 32,
-      paddingInline: 15,
+      paddingInline: 12,
     },
     Input: {
       borderRadius: 6,
@@ -58,7 +55,7 @@ export const omaAntdTheme = {
       optionSelectedBg: '#F5F6F7',
     },
     Modal: {
-      borderRadiusLG: 8,
+      borderRadiusLG: 12,
       contentBg: '#FFFFFF',
       headerBg: '#FFFFFF',
       footerBg: '#FFFFFF',
@@ -66,20 +63,17 @@ export const omaAntdTheme = {
     Drawer: {
       borderRadiusLG: 0,
       colorBgElevated: '#FFFFFF',
-      paddingLG: 0,
     },
-    Card: { borderRadiusLG: 8 },
+    Card: { borderRadiusLG: 10 },
     Tabs: {
       horizontalItemPadding: '8px 12px',
       titleFontSize: 14,
       itemSelectedColor: '#333333',
       inkBarColor: '#1677FF',
     },
-    Tooltip: {
-      borderRadius: 6,
-    },
+    Tooltip: { borderRadius: 6 },
     Dropdown: {
-      borderRadiusLG: 8,
+      borderRadiusLG: 10,
       paddingBlock: 6,
       controlItemBgHover: '#F5F6F7',
       controlItemBgActive: '#F5F6F7',
@@ -92,12 +86,8 @@ export const omaAntdTheme = {
       itemSelectedColor: '#333333',
       activeBarBorderWidth: 0,
     },
-    Popover: {
-      borderRadiusLG: 8,
-    },
-    Empty: {
-      colorTextDescription: '#5E6166',
-    },
+    Popover: { borderRadiusLG: 10 },
+    Empty: { colorTextDescription: '#5E6166' },
   },
 } as const;
 
