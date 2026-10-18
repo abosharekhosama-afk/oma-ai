@@ -5,7 +5,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { resolveContentWorkflow, type ApprovalPolicy, type DemoGraph } from '@oma/demo';
 import { ContentFace, StatusMark, faceDisplay } from '../../../../components/content/content-card';
-import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
 import { TrackPill } from '../../../../components/demo/track-pill';
 import {
   Button,
@@ -327,7 +326,7 @@ export default function ContentPage() {
     router.replace(href, { scroll: false });
   }
 
-  function changeView(mode: ContentViewMode) {
+  function _changeView(mode: ContentViewMode) {
     setView(mode);
     writeContentViewPref(mode);
     replaceParams((params) => {
@@ -431,7 +430,7 @@ export default function ContentPage() {
     }
   }
 
-  async function changePolicy(next: ApprovalPolicy) {
+  async function _changePolicy(next: ApprovalPolicy) {
     setPolicy(next);
     await demoApi('/preferences', {
       method: 'PATCH',
