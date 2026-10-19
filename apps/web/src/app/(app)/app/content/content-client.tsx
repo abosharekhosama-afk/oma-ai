@@ -1536,19 +1536,111 @@ export default function ContentPage() {
                               +{extra}
                             </Button>
                           ) : null}
-                          {note ? (
+                          {(note || noteDay === cell.key) ? (
                             <div
-                              className="oma-cal-note"
-                              data-color={note.color}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setNoteDay(cell.key);
-                              }}
+                              className="oma-cal-note oma-cal-note--inline"
+                              data-color={(note?.color ?? dayNotes[cell.key]?.color) || 'yellow'}
+                              data-active={noteDay === cell.key ? 'true' : 'false'}
+                              onClick={(e) => e.stopPropagation()}
                             >
-                              <span>{note.text || (isAr ? 'ملاحظة' : 'Note')}</span>
-                              <span className="oma-cal-note__lock" aria-hidden>
-                                🔒
-                              </span>
+                              <textarea
+                                className="oma-cal-note__input"
+                                placeholder={isAr ? 'اكتب ملاحظة خاصة…' : 'Type a private note…'}
+                                value={dayNotes[cell.key]?.text ?? ''}
+                                rows={3}
+                                autoFocus={noteDay === cell.key}
+                                onChange={(e) => {
+                                  const text = e.target.value;
+                                  setDayNotes((prev) => ({
+                                    ...prev,
+                                    [cell.key]: {
+                                      text,
+                                      color: prev[cell.key]?.color ?? 'yellow',
+                                    },
+                                  }));
+                                }}
+                                onFocus={() => setNoteDay(cell.key)}
+                              />
+                              <div className="oma-cal-note__actions">
+                                <div className="oma-cal-note__color-wrap">
+                                  <button
+                                    type="button"
+                                    className="oma-cal-note__action"
+                                    data-tooltip={isAr ? 'لون الملاحظة' : 'Note color'}
+                                    aria-label="Color"
+                                    onClick={() =>
+                                      setNoteDay((d) => (d === cell.key ? d : cell.key))
+                                    }
+                                  >
+                                    <span
+                                      className="oma-cal-note__color-dot"
+                                      data-color={(dayNotes[cell.key]?.color ?? 'yellow')}
+                                    />
+                                    ▾
+                                  </button>
+                                  {noteDay === cell.key ? (
+                                    <div className="oma-cal-note__swatches">
+                                      {['yellow', 'mint', 'pink', 'lavender', 'blue'].map((c) => (
+                                        <button
+                                          key={c}
+                                          type="button"
+                                          className="oma-cal-note-swatch"
+                                          data-color={c}
+                                          data-active={
+                                            (dayNotes[cell.key]?.color ?? 'yellow') === c
+                                              ? 'true'
+                                              : 'false'
+                                          }
+                                          data-tooltip={c}
+                                          onClick={() =>
+                                            setDayNotes((prev) => ({
+                                              ...prev,
+                                              [cell.key]: {
+                                                text: prev[cell.key]?.text ?? '',
+                                                color: c,
+                                              },
+                                            }))
+                                          }
+                                          aria-label={c}
+                                        />
+                                      ))}
+                                    </div>
+                                  ) : null}
+                                </div>
+                                <button
+                                  type="button"
+                                  className="oma-cal-note__action"
+                                  data-tooltip={isAr ? 'تعديل' : 'Edit'}
+                                  aria-label="Edit"
+                                  onClick={() => setNoteDay(cell.key)}
+                                >
+                                  ✎
+                                </button>
+                                <button
+                                  type="button"
+                                  className="oma-cal-note__action"
+                                  data-tooltip={isAr ? 'مرئي لك فقط' : 'Only visible to you'}
+                                  aria-label="Private"
+                                >
+                                  🔒
+                                </button>
+                                <button
+                                  type="button"
+                                  className="oma-cal-note__action"
+                                  data-tooltip={isAr ? 'حذف' : 'Delete'}
+                                  aria-label="Delete"
+                                  onClick={() => {
+                                    setDayNotes((prev) => {
+                                      const next = { ...prev };
+                                      delete next[cell.key];
+                                      return next;
+                                    });
+                                    setNoteDay(null);
+                                  }}
+                                >
+                                  🗑
+                                </button>
+                              </div>
                             </div>
                           ) : null}
                           <div className="oma-cal-cell-actions">
@@ -1572,12 +1664,12 @@ export default function ContentPage() {
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setSelectedDay(cell.key);
-                                setNoteDay(cell.key);
                                 setDayNotes((prev) =>
                                   prev[cell.key]
                                     ? prev
-                                    : { ...prev, [cell.key]: { text: '', color: 'yellow' } },
+                                    : { ...prev, [cell.key]: { text: '', color: 'mint' } },
                                 );
+                                setNoteDay(cell.key);
                               }}
                               title={isAr ? 'مرئي لك فقط' : 'Only visible to you'}
                             >
@@ -1730,69 +1822,124 @@ export default function ContentPage() {
       ) : null}
 
       {!loading && !unavailable && !error && filtered.length > 0 && view === 'list' ? (
-        <div className="oma-content-list-stage3" data-testid="demo-content-list">
-          <div className="oma-content-list-head">
-            <span />
-            <Button type="default" onClick={() => toggleSort('title')}>
-              {t('demo.create.title')}
-            </Button>
-            <Button type="default" onClick={() => toggleSort('channel')}>
-              {t('demo.filter.channel')}
-            </Button>
-            <Button type="default" onClick={() => toggleSort('campaign')}>
-              {t('demo.create.campaign')}
-            </Button>
-            <Button type="default" onClick={() => toggleSort('owner')}>
-              {t('demo.create.owner')}
-            </Button>
-            <Button type="default" onClick={() => toggleSort('status')}>
-              {t('demo.filter.status')}
-            </Button>
-            <Button type="default" onClick={() => toggleSort('review')}>
-              {t('demo.content.filter.review')}
-            </Button>
-            <Button type="default" onClick={() => toggleSort('date')}>
-              {t('demo.create.plannedDate')}
-            </Button>
-            <span />
-          </div>
-          {sorted.map((item) => (
-            <SurfaceButton
-              key={item.id}
-              data-testid={`demo-content-card-${item.id}`}
-              data-selected={selectedId === item.id ? 'true' : 'false'}
-              onClick={() => openItem(item)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  openItem(item);
-                }
-              }}
-              className="oma-content-list-row"
-            >
-              <img
-                className="oma-content-list-thumb"
-                src={item.previewAsset}
-                alt={mediaAlt(pickCopy(item.title, locale), item.channel, item.contentType)}
+        <div className="oma-plan-list" data-testid="demo-content-list">
+          <div className="oma-plan-list__head">
+            <label className="oma-plan-list__select-all">
+              <input
+                type="checkbox"
+                checked={selectedIds.length > 0 && selectedIds.length === sorted.length}
+                onChange={(e) => {
+                  if (e.target.checked) setSelectedIds(sorted.map((r) => r.id));
+                  else setSelectedIds([]);
+                }}
               />
-              <div>
-                <strong>{pickCopy(item.title, locale)}</strong>
-              </div>
-              <span className="oma-muted">{item.channel}</span>
-              <span className="oma-muted">{campaignName(item.campaignId)}</span>
-              <span className="oma-muted">{item.assignee}</span>
-              <StatusMark display={faceDisplay(item, policy)} locale={locale} />
-              <span className="oma-muted">{statusLabel(item.status, locale)}</span>
-              <span className="oma-ltr oma-muted">
-                {item.scheduledAt ? item.scheduledAt.slice(0, 10) : '—'}
+              <span>
+                {isAr ? `تحديد الكل (${sorted.length})` : `Select all (${sorted.length})`}
               </span>
-              <TrackPill
-                track={item.track}
-                organicLabel={t('demo.organic')}
-                paidLabel={t('demo.paid')}
-              />
-            </SurfaceButton>
-          ))}
+            </label>
+            <button
+              type="button"
+              className="oma-plan-list__sort"
+              onClick={() => toggleSort('date')}
+            >
+              {isAr ? 'آخر إنشاء' : 'Last created'} {sortDir === 'asc' ? '↑' : '↓'}
+            </button>
+          </div>
+          <div className="oma-plan-list__body">
+            {sorted.map((item) => {
+              const when = item.scheduledAt
+                ? item.scheduledAt.slice(0, 16).replace('T', ', ')
+                : item.plannedAt
+                  ? String(item.plannedAt).slice(0, 16).replace('T', ', ')
+                  : '—';
+              const selected = selectedIds.includes(item.id);
+              return (
+                <div
+                  key={item.id}
+                  className="oma-plan-list__row"
+                  data-testid={`demo-content-card-${item.id}`}
+                  data-selected={selected ? 'true' : 'false'}
+                  onClick={() => openItem(item)}
+                >
+                  <label
+                    className="oma-plan-list__check"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selected}
+                      onChange={() => toggleSelectId(item.id)}
+                    />
+                  </label>
+                  <div className="oma-plan-list__thumb" aria-hidden>
+                    {item.previewAsset ? (
+                      <img src={item.previewAsset} alt="" />
+                    ) : (
+                      <span className="oma-plan-list__thumb-ph">▣</span>
+                    )}
+                  </div>
+                  <div className="oma-plan-list__main">
+                    <div className="oma-plan-list__page">
+                      <span className="oma-plan-list__page-ico" aria-hidden>
+                        ▣
+                      </span>
+                      <span className="oma-plan-list__page-name">{item.channel || 'Osama page'}</span>
+                    </div>
+                    <div className="oma-plan-list__title">{pickCopy(item.title, locale)}</div>
+                  </div>
+                  <div className="oma-plan-list__mid" aria-hidden>
+                    {item.status === 'DRAFT' ? null : (
+                      <span className="oma-plan-list__ico" data-tooltip="Status">
+                        ↻
+                      </span>
+                    )}
+                  </div>
+                  <div className="oma-plan-list__hover">
+                    <button
+                      type="button"
+                      className="oma-plan-list__ico-btn"
+                      data-tooltip={isAr ? 'موافقة' : 'Approve'}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setApprovalMode(true);
+                        setSelectedIds([item.id]);
+                      }}
+                    >
+                      ✓
+                    </button>
+                    <button
+                      type="button"
+                      className="oma-plan-list__ico-btn"
+                      data-tooltip={isAr ? 'إخفاء عن العملاء' : 'Hide from clients'}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      ⊘
+                    </button>
+                    <button
+                      type="button"
+                      className="oma-plan-list__ico-btn"
+                      data-tooltip={isAr ? 'نسخ الرابط' : 'Copy link'}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      🔗
+                    </button>
+                    <button
+                      type="button"
+                      className="oma-plan-list__ico-btn"
+                      data-tooltip={isAr ? 'المزيد' : 'More'}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCardMenuId(item.id);
+                      }}
+                    >
+                      ⋯
+                    </button>
+                  </div>
+                  <div className="oma-plan-list__when oma-ltr">{when}</div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       ) : null}
 
@@ -2293,61 +2440,8 @@ export default function ContentPage() {
       ) : null}
 
       {/* Planable private note editor */}
-      {noteDay ? (
-        <div className="oma-cal-note-editor" data-testid="demo-content-note-editor">
-          <div className="oma-cal-note-editor__card">
-            <textarea
-              className="oma-cal-note-editor__input"
-              placeholder={isAr ? 'اكتب ملاحظة خاصة…' : 'Type a private note…'}
-              value={dayNotes[noteDay]?.text ?? ''}
-              onChange={(e) =>
-                setDayNotes((prev) => ({
-                  ...prev,
-                  [noteDay]: { text: e.target.value, color: prev[noteDay]?.color ?? 'yellow' },
-                }))
-              }
-              rows={4}
-            />
-            <div className="oma-cal-note-editor__toolbar">
-              <span className="oma-cal-note-editor__hint">{isAr ? 'مرئي لك فقط' : 'Only visible to you'}</span>
-              <div className="oma-cal-note-editor__swatches">
-                {['yellow', 'mint', 'pink', 'lavender', 'blue'].map((c) => (
-                  <button
-                    key={c}
-                    type="button"
-                    className="oma-cal-note-swatch"
-                    data-color={c}
-                    data-active={dayNotes[noteDay]?.color === c ? 'true' : 'false'}
-                    onClick={() =>
-                      setDayNotes((prev) => ({
-                        ...prev,
-                        [noteDay]: { text: prev[noteDay]?.text ?? '', color: c },
-                      }))
-                    }
-                    aria-label={c}
-                  />
-                ))}
-              </div>
-              <Button
-                type="default"
-                onClick={() => {
-                  setDayNotes((prev) => {
-                    const next = { ...prev };
-                    delete next[noteDay];
-                    return next;
-                  });
-                  setNoteDay(null);
-                }}
-              >
-                {isAr ? 'حذف' : 'Delete'}
-              </Button>
-              <Button type="primary" onClick={() => setNoteDay(null)}>
-                {isAr ? 'تم' : 'Done'}
-              </Button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+            {/* Note editor is inline inside calendar cells */}
+
 
       <Dialog
         open={createOpen}
