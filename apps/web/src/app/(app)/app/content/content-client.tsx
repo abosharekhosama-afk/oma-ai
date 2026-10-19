@@ -517,11 +517,6 @@ export default function ContentPage() {
     });
   }
 
-  function goToday() {
-    setCursor({ year: DEFAULT_YEAR, monthIndex: DEFAULT_MONTH });
-    setSelectedDay(TODAY_KEY);
-  }
-
   function showApprovalQueue() {
     setFilters((current) => ({ ...current, review: 'needs' }));
   }
@@ -971,21 +966,11 @@ export default function ContentPage() {
                     {weekCampaigns.map((c) => {
                       const s = c.timeline.start;
                       const e = c.timeline.end;
-                      let startCol = 1;
-                      let endCol = 8;
-                      week.forEach((cell, i) => {
-                        if (cell.key >= s && startCol === 1 && cell.key >= s) {
-                          /* first intersecting */
-                        }
-                      });
                       const first = week.findIndex((cell) => cell.key >= s && cell.key <= e);
-                      const last = (() => {
-                        let idx = -1;
-                        week.forEach((cell, i) => {
-                          if (cell.key >= s && cell.key <= e) idx = i;
-                        });
-                        return idx;
-                      })();
+                      let last = -1;
+                      week.forEach((cell, idx) => {
+                        if (cell.key >= s && cell.key <= e) last = idx;
+                      });
                       if (first < 0 || last < 0) return null;
                       return (
                         <div
