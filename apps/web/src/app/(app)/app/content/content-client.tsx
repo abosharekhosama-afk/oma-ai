@@ -2508,7 +2508,7 @@ export default function ContentPage() {
               type="button"
               className="oma-plan-selbar__btn"
               disabled={saving || selectedIds.length === 0}
-              onClick={() => void sendApprovals()}
+              onClick={() => void sendForApproval()}
             >
               <FlagOutlined /> {isAr ? 'طلب موافقة' : 'Request approval'}
             </button>
