@@ -5831,3 +5831,162 @@ button.oma-cal-item {
 .oma-plan-post__save-state[data-state='saved'] {
   color: #16a34a !important;
 }
+
+/* ==== v6: grid flush + saved expand + filter icons ==== */
+
+/* Calendar expands when Saved is closed */
+.oma-cal-with-saved[data-saved-open='false'] {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+.oma-cal-with-saved[data-saved-open='false'] .oma-cal-main {
+  border-inline-end: 0 !important;
+}
+
+/* Official close icon for Saved */
+.oma-cal-saved-close {
+  width: 28px !important;
+  height: 28px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: #8c8c8c !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  font-size: 14px !important;
+  line-height: 1 !important;
+}
+.oma-cal-saved-close:hover {
+  background: #f0f1f3 !important;
+  color: #333 !important;
+}
+
+/* Filter accordion official icons */
+.oma-filter-accordion__ico {
+  width: 18px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #8c8c8c !important;
+  font-size: 14px !important;
+}
+.oma-filter-accordion__caret {
+  display: inline-flex !important;
+  align-items: center !important;
+  color: #8c8c8c !important;
+  font-size: 11px !important;
+}
+
+/* Planable grid: equal tiles, no gaps, tight */
+.oma-plan-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 0 !important;
+  column-gap: 0 !important;
+  row-gap: 0 !important;
+  justify-content: stretch !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: #e8e9eb !important;
+  min-height: calc(100vh - 56px) !important;
+  width: 100% !important;
+  max-width: 720px !important;
+  margin-inline: auto !important;
+}
+@media (max-width: 900px) {
+  .oma-plan-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    max-width: 100% !important;
+  }
+}
+@media (max-width: 560px) {
+  .oma-plan-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+.oma-plan-grid__card {
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+.oma-plan-grid__media {
+  position: relative !important;
+  width: 100% !important;
+  aspect-ratio: 1 / 1 !important;
+  background: linear-gradient(180deg, #6b7280 0%, #c4c8ce 100%) !important;
+  overflow: hidden !important;
+}
+.oma-plan-grid__media img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+  transition: transform 0.25s ease, filter 0.25s ease !important;
+}
+.oma-plan-grid__shade {
+  position: absolute !important;
+  inset: 0 !important;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.4) 0%,
+    rgba(0, 0, 0, 0.05) 45%,
+    rgba(0, 0, 0, 0.5) 100%
+  ) !important;
+  transition: background 0.2s ease !important;
+  pointer-events: none !important;
+}
+.oma-plan-grid__card:hover .oma-plan-grid__media img {
+  transform: scale(1.04) !important;
+  filter: brightness(1.05) !important;
+}
+.oma-plan-grid__card:hover .oma-plan-grid__shade {
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.5) 0%,
+    rgba(0, 0, 0, 0.1) 45%,
+    rgba(0, 0, 0, 0.55) 100%
+  ) !important;
+}
+.oma-plan-grid__card[data-selected='true'] {
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: -2px !important;
+  z-index: 1 !important;
+}
+.oma-plan-grid__overlay {
+  position: absolute !important;
+  inset: 0 !important;
+  padding: 12px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  color: #fff !important;
+  pointer-events: none !important;
+}
+.oma-plan-grid__when {
+  font-size: 11px !important;
+  opacity: 0.92 !important;
+  font-weight: 500 !important;
+}
+.oma-plan-grid__title {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+  line-height: 1.3 !important;
+}
+.oma-plan-grid__corner {
+  position: absolute !important;
+  right: 10px !important;
+  bottom: 10px !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-size: 13px !important;
+  opacity: 0.85 !important;
+}
+.oma-plan-grid__card:hover .oma-plan-grid__corner {
+  opacity: 1 !important;
+}
