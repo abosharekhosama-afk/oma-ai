@@ -13,39 +13,48 @@ import {
   Input,
   OmaSelect,
   SurfaceButton,
-  Tabs,
   TextArea,
 } from '@oma/ui/controls';
 import dayjs from 'dayjs';
 import {
-  FilterOutlined,
-  PictureOutlined,
-  EditOutlined,
-  ShareAltOutlined,
-  CalendarOutlined,
-  UnorderedListOutlined,
+  ,
   AppstoreOutlined,
   BarsOutlined,
+  CalendarOutlined,
   CheckCircleOutlined,
-  LockOutlined,
-  DeleteOutlined,
-  DownOutlined,
   CheckOutlined,
-  EyeInvisibleOutlined,
-  LinkOutlined,
-  MoreOutlined,
+  ClockCircleOutlined,
   CloseOutlined,
+  CommentOutlined,
   CopyOutlined,
-  InboxOutlined,
+  DeleteOutlined,
+  DesktopOutlined,
+  DownOutlined,
+  EditOutlined,
+  EyeInvisibleOutlined,
+  EyeOutlined,
+  FileTextOutlined,
+  FilterOutlined,
   FlagOutlined,
-  SyncOutlined,
   FormOutlined,
-  UserOutlined,          
-  ClockCircleOutlined,   
-  EyeOutlined,           
-  SnippetsOutlined,      
-  NotificationOutlined,  
-  TagOutlined,           
+  GlobalOutlined,
+  HistoryOutlined,
+  InboxOutlined,
+  LinkOutlined,
+  LockOutlined,
+  MessageOutlined,
+  MobileOutlined,
+  MoreOutlined,
+  NotificationOutlined,
+  PictureOutlined,
+  PlusOutlined,
+  ShareAltOutlined,
+  SnippetsOutlined,
+  StopOutlined,
+  SyncOutlined,
+  TagOutlined,
+  UnorderedListOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
 
 import { Dialog } from '../../../../components/ui/dialog';
@@ -465,6 +474,14 @@ export default function ContentPage() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [unsavedOpen, setUnsavedOpen] = useState(false);
   const [detailTab, setDetailTab] = useState<'preview' | 'edit' | 'comments'>('preview');
+  const [detailSidePanel, setDetailSidePanel] = useState<'none' | 'activity' | 'feedback'>('none');
+  const [detailPreviewMode, setDetailPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
+  const [detailMoreOpen, setDetailMoreOpen] = useState(false);
+  const [approvalTipOpen, setApprovalTipOpen] = useState(false);
+  const [publishTipOpen, setPublishTipOpen] = useState(false);
+  const [editTitle, setEditTitle] = useState('');
+  const [feedbackTab, setFeedbackTab] = useState<'comments' | 'suggestions'>('comments');
+  const [commentDraft, setCommentDraft] = useState('');
 
   const [overflowDay, setOverflowDay] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
@@ -666,6 +683,13 @@ export default function ContentPage() {
 
 
   function openItem(item: ContentRow, tab: 'preview' | 'edit' | 'comments' = 'preview') {
+    setDetailSidePanel('none');
+    setDetailPreviewMode('desktop');
+    setDetailMoreOpen(false);
+    setApprovalTipOpen(false);
+    setPublishTipOpen(false);
+    setEditTitle(pickCopy(item.title, locale));
+    setCommentDraft('');
     const next = draftFromItem(item, locale);
     setSelectedId(item.id);
     setDraft(next);
@@ -2279,312 +2303,436 @@ export default function ContentPage() {
       <Dialog
         open={Boolean(selected)}
         onClose={requestCloseDrawer}
-        title={t('demo.content.drawerTitle')}
+        title=""
         size="xl"
-        className="oma-content-detail-modal"
+        className="oma-plan-post-modal"
       >
         {selected ? (
-          <div className="oma-stack oma-content-detail" data-testid="demo-content-drawer">
-            <div className="oma-breadcrumb">
-              <Link href="/app/content">{t('demo.content.title')}</Link>
-              <span aria-hidden="true">/</span>
-              <Link
-                href={`/app/campaigns/${selected.campaignId}`}
-                data-testid="demo-content-campaign-link"
-              >
-                {campaignName(selected.campaignId)}
-              </Link>
-            </div>
-            <header className="oma-page-header oma-page-header-stack oma-content-detail__header">
-              <div>
-                <h2>{pickCopy(selected.title, locale)}</h2>
-                <div className="oma-chip-row">
-                  <StatusMark display={faceDisplay(selected, policy)} locale={locale} />
-                  <span className="oma-badge">{selected.channel}</span>
-                  <TrackPill
-                    track={selected.track}
-                    organicLabel={t('demo.organic')}
-                    paidLabel={t('demo.paid')}
-                  />
-                  {review ? (
-                    <span data-testid="demo-content-review-state">{review.label}</span>
-                  ) : null}
+          <div className="oma-plan-post" data-testid="demo-content-drawer" data-detail-tab={detailTab}>
+            {/* Left rail */}
+            <aside className="oma-plan-post__rail" aria-hidden>
+              <span className="oma-plan-post__rail-ico">
+                <EditOutlined />
+              </span>
+            </aside>
+
+            <div className="oma-plan-post__main">
+              {/* Top toolbar */}
+              <header className="oma-plan-post__top">
+                <div className="oma-plan-post__top-start">
+                  <button type="button" className="oma-plan-post__chip">
+                    <FlagOutlined /> {isAr ? 'حملة' : 'Campaign'}
+                  </button>
+                  <button type="button" className="oma-plan-post__chip">
+                    <TagOutlined /> {isAr ? 'تصنيفات' : 'Labels'}
+                  </button>
                 </div>
-                <p className="oma-muted">
-                  {selected.assignee} ·{' '}
-                  <span className="oma-ltr">
-                    {selected.scheduledAt ? selected.scheduledAt.slice(0, 16) : '—'}
+                <div className="oma-plan-post__top-end">
+                  <span
+                    className="oma-plan-post__approve-count"
+                    data-tooltip={isAr ? 'لم تتم الموافقة بعد' : 'Not approved yet'}
+                  >
+                    <CheckOutlined />
+                    <span>0</span>
                   </span>
-                </p>
-                <span className="oma-save-state" data-state={saveState}>
-                  {saveState === 'saved'
-                    ? t('demo.content.saved')
-                    : saveState === 'saving'
-                      ? t('demo.content.saving')
-                      : saveState === 'error'
-                        ? saveError
-                        : dirty
-                          ? '•'
-                          : null}
-                </span>
-              </div>
-              <Button onClick={requestCloseDrawer}>{t('demo.create.cancel')}</Button>
-            </header>
-
-            <div className="oma-honesty-banner">{t('demo.content.aiNotConnected')}</div>
-            <div className="oma-honesty-banner">{t('demo.content.noPublishing')}</div>
-
-            <Tabs
-              activeKey={detailTab}
-              onChange={(key) => setDetailTab(key as typeof detailTab)}
-              items={[
-                { key: 'preview', label: t('demo.content.media') },
-                { key: 'edit', label: t('demo.content.edit') },
-                { key: 'comments', label: t('demo.content.comments') },
-              ]}
-            />
-
-            {detailTab !== 'comments' ? (
-              <div className="oma-content-composer" data-testid="demo-content-composer">
-                <div className="oma-content-composer-preview">
-                  <img
-                    src={selected.previewAsset}
-                    alt={mediaAlt(
-                      pickCopy(selected.title, locale),
-                      selected.channel,
-                      selected.contentType,
-                    )}
-                    data-testid="demo-content-composer-preview"
-                  />
-                </div>
-                {detailTab === 'edit' ? (
-                  <div className="oma-composer-fields">
-                    <label>
-                      {t('demo.content.channelAccount')}
-                      <Input
-                        value={draft.channel}
-                        onChange={(e) => setDraft((d) => ({ ...d, channel: e.target.value }))}
-                      />
-                    </label>
-                    <label>
-                      {t('demo.content.caption')}
-                      <TextArea
-                        rows={3}
-                        value={draft.caption}
-                        data-testid="demo-content-caption"
-                        onChange={(e) => setDraft((d) => ({ ...d, caption: e.target.value }))}
-                      />
-                    </label>
-                    <label>
-                      {t('demo.content.objective')}
-                      <TextArea
-                        rows={2}
-                        value={draft.objective}
-                        onChange={(e) => setDraft((d) => ({ ...d, objective: e.target.value }))}
-                      />
-                    </label>
-                    <label>
-                      {t('demo.content.cta')}
-                      <Input
-                        value={draft.cta}
-                        onChange={(e) => setDraft((d) => ({ ...d, cta: e.target.value }))}
-                      />
-                    </label>
-                    <p className="oma-composer-section">{t('demo.content.section.approval')}</p>
-                    <p data-testid="demo-content-policy-explainer">
-                      {policy === 'NONE'
-                        ? t('demo.content.policy.none')
-                        : policy === 'OPTIONAL'
-                          ? t('demo.content.policy.optional')
-                          : t('demo.content.policy.required')}
-                    </p>
-                    <p data-testid="demo-content-approver-progress">
-                      {t('demo.content.approverProgress')
-                        .replace(
-                          '{approved}',
-                          String(resolveContentWorkflow(selected, policy).approverApproved),
-                        )
-                        .replace(
-                          '{required}',
-                          String(resolveContentWorkflow(selected, policy).approverRequired),
-                        )}
-                    </p>
-                    <p data-testid="demo-content-next-action">
-                      {policy === 'NONE'
-                        ? t('demo.content.next.none')
-                        : policy === 'OPTIONAL'
-                          ? t('demo.content.next.optional')
-                          : resolveContentWorkflow(selected, policy).scheduleBlocked
-                            ? t('demo.content.next.approve')
-                            : t('demo.content.next.schedule')}
-                    </p>
-                    {resolveContentWorkflow(selected, policy).scheduleBlocked ? (
-                      <p data-testid="demo-content-schedule-reason">
-                        {t('demo.content.scheduleBlocked')}
-                      </p>
+                  <button type="button" className="oma-plan-post__tool-btn">
+                    {isAr ? 'مشاركة' : 'Share'}
+                  </button>
+                  <button
+                    type="button"
+                    className="oma-plan-post__icon-btn"
+                    data-tooltip={isAr ? 'التعليقات' : 'Feedback'}
+                    data-active={detailSidePanel === 'feedback' ? 'true' : 'false'}
+                    onClick={() =>
+                      setDetailSidePanel((p) => (p === 'feedback' ? 'none' : 'feedback'))
+                    }
+                  >
+                    <MessageOutlined />
+                  </button>
+                  <button
+                    type="button"
+                    className="oma-plan-post__icon-btn"
+                    data-tooltip={isAr ? 'النشاط' : 'Activity'}
+                    data-active={detailSidePanel === 'activity' ? 'true' : 'false'}
+                    onClick={() =>
+                      setDetailSidePanel((p) => (p === 'activity' ? 'none' : 'activity'))
+                    }
+                  >
+                    <HistoryOutlined />
+                  </button>
+                  <button
+                    type="button"
+                    className="oma-plan-post__icon-btn"
+                    data-tooltip={isAr ? 'إظهار للعملاء' : 'Make visible to clients'}
+                  >
+                    <EyeInvisibleOutlined />
+                  </button>
+                  <button type="button" className="oma-plan-post__icon-btn" data-tooltip={isAr ? 'حذف' : 'Delete'}>
+                    <DeleteOutlined />
+                  </button>
+                  <div className="oma-plan-post__more-wrap">
+                    <button
+                      type="button"
+                      className="oma-plan-post__icon-btn"
+                      onClick={() => setDetailMoreOpen((v) => !v)}
+                    >
+                      <MoreOutlined />
+                    </button>
+                    {detailMoreOpen ? (
+                      <ul className="oma-plan-post__more-menu" role="menu">
+                        <li>
+                          <button type="button" role="menuitem">
+                            <FlagOutlined /> {isAr ? 'إضافة إلى حملة' : 'Add to campaign'}
+                          </button>
+                        </li>
+                        <li>
+                          <button type="button" role="menuitem">
+                            <TagOutlined /> {isAr ? 'إدارة التصنيفات' : 'Manage labels'}
+                          </button>
+                        </li>
+                        <li>
+                          <button type="button" role="menuitem">
+                            <CheckOutlined /> {isAr ? 'تعليم كمنشور' : 'Mark as published'}
+                          </button>
+                        </li>
+                        <li>
+                          <button type="button" role="menuitem">
+                            <EyeInvisibleOutlined /> {isAr ? 'إخفاء عن العملاء' : 'Hide from clients'}
+                          </button>
+                        </li>
+                        <li>
+                          <button type="button" role="menuitem" onClick={() => void runCommand('request-approval')}>
+                            <FlagOutlined /> {isAr ? 'طلب موافقة' : 'Request approval'}
+                          </button>
+                        </li>
+                        <li>
+                          <button type="button" role="menuitem">
+                            <FileTextOutlined /> {isAr ? 'حفظ كقالب' : 'Save as template'}
+                          </button>
+                        </li>
+                        <li>
+                          <button type="button" role="menuitem">
+                            <DeleteOutlined /> {isAr ? 'أرشفة' : 'Archive post'}
+                          </button>
+                        </li>
+                      </ul>
                     ) : null}
-                    <p data-testid="demo-content-publish-state">
-                      {t(
-                        `demo.content.publish.${resolveContentWorkflow(selected, policy).publishDisplay}`,
-                      )}
-                      {' · '}
-                      {t('demo.content.noPublishing')}
-                    </p>
-                    <label>
-                      {t('demo.content.filter.owner')}
-                      <Input
-                        value={draft.assignee}
-                        onChange={(e) => setDraft((d) => ({ ...d, assignee: e.target.value }))}
-                      />
-                    </label>
-                    <p className="oma-composer-section">{t('demo.content.section.planning')}</p>
-                    <label>
-                      {t('demo.create.plannedDate')}
-                      <DatePicker
-                        showTime={{ format: 'HH:mm' }}
-                        format="YYYY-MM-DDTHH:mm"
-                        value={draft.scheduledAt ? dayjs(draft.scheduledAt) : null}
-                        onChange={(_, dateString) =>
-                          setDraft((d) => ({
-                            ...d,
-                            scheduledAt: Array.isArray(dateString)
-                              ? (dateString[0] ?? '')
-                              : dateString,
-                          }))
-                        }
-                      />
-                    </label>
-                    <div className="oma-chip-row">
-                      <Button
-                        type="primary"
-                        data-testid="demo-content-save"
-                        disabled={!dirty}
-                        loading={saving}
-                        onClick={() => void saveItem()}
-                      >
-                        {t('demo.content.save')}
-                      </Button>
-                      <Button
-                        data-testid="demo-content-schedule"
-                        title={
-                          resolveContentWorkflow(selected, policy).scheduleBlocked
-                            ? t('demo.content.scheduleBlocked')
-                            : undefined
-                        }
-                        disabled={
-                          saving || resolveContentWorkflow(selected, policy).scheduleBlocked
-                        }
-                        onClick={() => void runCommand('schedule')}
-                      >
-                        {t('demo.content.schedule')}
-                      </Button>
-                      <Button
-                        data-testid="demo-content-unschedule"
-                        disabled={saving}
-                        onClick={() => void runCommand('unschedule')}
-                      >
-                        {t('demo.content.unschedule')}
-                      </Button>
-                      {policy !== 'NONE' ? (
-                        <Button
-                          data-testid="demo-content-request-approval"
-                          disabled={saving}
-                          onClick={() => void runCommand('request-approval')}
-                        >
-                          {t('demo.content.requestApproval')}
-                        </Button>
-                      ) : null}
-                    </div>
                   </div>
-                ) : (
-                  <div className="oma-status-rows">
-                    <div>
-                      <span className="oma-status-label">{t('demo.create.campaign')}</span>
-                      <Link href={`/app/campaigns/${selected.campaignId}`}>
-                        {campaignName(selected.campaignId)}
-                      </Link>
-                    </div>
-                    <div>
-                      <span className="oma-status-label">{t('demo.create.type')}</span>
-                      <span>{selected.contentType}</span>
-                    </div>
-                    <div>
-                      <span className="oma-status-label">{t('demo.content.caption')}</span>
-                      <span>{selected.caption ? pickCopy(selected.caption, locale) : '—'}</span>
-                    </div>
-                    <div>
-                      <span className="oma-status-label">{t('demo.content.linked')}</span>
-                      <span className="oma-chip-row">
-                        {linked.taskId ? (
-                          <Link href="/app/tasks">{t('demo.campaign.tasks')}</Link>
-                        ) : null}
-                        {linked.requestId ? (
-                          <Link href="/app/requests">{t('demo.requests.title')}</Link>
-                        ) : null}
-                        {linked.deliverableId ? (
-                          <Link href={`/app/deliverables/${linked.deliverableId}`}>
-                            {t('demo.campaign.deliverables')}
-                          </Link>
-                        ) : null}
-                      </span>
-                    </div>
-                    <div>
-                      <Button type="default" onClick={() => setDetailTab('edit')}>
-                        {t('demo.content.edit')}
-                      </Button>
-                    </div>
+                  <button
+                    type="button"
+                    className="oma-plan-post__icon-btn oma-plan-post__close"
+                    onClick={requestCloseDrawer}
+                    aria-label="Close"
+                  >
+                    <CloseOutlined />
+                  </button>
+                </div>
+              </header>
+
+              <div className="oma-plan-post__body">
+                <div className="oma-plan-post__canvas">
+                  {/* Desktop / Mobile toggle */}
+                  <div className="oma-plan-post__preview-toggle">
+                    <button
+                      type="button"
+                      data-active={detailPreviewMode === 'desktop' ? 'true' : 'false'}
+                      onClick={() => setDetailPreviewMode('desktop')}
+                      aria-label="Desktop"
+                    >
+                      <DesktopOutlined />
+                    </button>
+                    <button
+                      type="button"
+                      data-active={detailPreviewMode === 'mobile' ? 'true' : 'false'}
+                      onClick={() => setDetailPreviewMode('mobile')}
+                      aria-label="Mobile"
+                    >
+                      <MobileOutlined />
+                    </button>
                   </div>
-                )}
-              </div>
-            ) : (
-              <div data-testid="demo-content-comments">
-                {review?.disabledReason ? (
-                  <p className="oma-honesty-banner">{review.disabledReason}</p>
-                ) : null}
-                {review ? (
-                  <div className="oma-status-rows">
-                    <div>
-                      <span className="oma-status-label">{t('demo.content.reviewState')}</span>
-                      <span>{review.label}</span>
-                    </div>
-                    <div>
-                      <span className="oma-status-label">{t('demo.content.reviewer')}</span>
-                      <span>{comments[0]?.author ?? selected.assignee}</span>
-                    </div>
-                    <div>
-                      <span className="oma-status-label">{t('demo.content.approvalStep')}</span>
-                      <span>
-                        {review.state === 'approved'
-                          ? statusLabel('APPROVED', locale)
-                          : review.state === 'review'
-                            ? t('demo.content.changesRequested')
-                            : review.label}
-                      </span>
-                    </div>
-                  </div>
-                ) : null}
-                {comments.length === 0 ? (
-                  <p className="oma-muted">{t('demo.content.noComments')}</p>
-                ) : (
-                  <div className="oma-comment-thread">
-                    {comments.map((c) => (
-                      <article key={c.id} className="oma-comment">
-                        <span className="oma-comment-avatar" aria-hidden>
-                          {c.author.slice(0, 1)}
-                        </span>
-                        <div>
-                          <div className="oma-comment-meta">
-                            {c.author} · <span className="oma-ltr">{c.at}</span>
-                            {c.resolved ? ` · ${t('demo.content.resolved')}` : ''}
-                          </div>
-                          <p className="oma-comment-body">{pickCopy(c.body, locale)}</p>
+
+                  {detailPreviewMode === 'mobile' ? (
+                    <div className="oma-plan-post__phone">
+                      <div className="oma-plan-post__phone-screen">
+                        <div className="oma-plan-post__phone-meta">
+                          {selected.channel || 'Osama page'} ·{' '}
+                          <span className="oma-ltr">
+                            {selected.scheduledAt
+                              ? selected.scheduledAt.slice(0, 16).replace('T', ', ')
+                              : '—'}
+                          </span>
                         </div>
-                      </article>
-                    ))}
-                  </div>
-                )}
+                        <strong className="oma-plan-post__phone-title">
+                          {editTitle || pickCopy(selected.title, locale)}
+                        </strong>
+                        <p className="oma-plan-post__phone-body">{draft.caption}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="oma-plan-post__editor">
+                      <div className="oma-plan-post__status-col">
+                        <div className="oma-plan-post__status-item">
+                          <button
+                            type="button"
+                            className="oma-plan-post__status-btn"
+                            data-tooltip={isAr ? 'لم تتم الموافقة بعد' : 'Not approved yet'}
+                            onClick={() => setApprovalTipOpen((v) => !v)}
+                          >
+                            <CheckOutlined />
+                          </button>
+                          <span className="oma-plan-post__status-label">
+                            {isAr ? 'لم تتم الموافقة بعد' : 'Not approved yet'}
+                          </span>
+                          {approvalTipOpen ? (
+                            <div className="oma-plan-post__tip-card">
+                              <strong>
+                                {isAr ? 'لم يوافق أحد على هذا المنشور بعد' : 'No one approved this post yet'}
+                              </strong>
+                              <p>
+                                {isAr
+                                  ? 'بانتظار الموافقة من أي من هؤلاء:'
+                                  : 'Pending approval from any of these users:'}
+                              </p>
+                              <p className="oma-plan-post__tip-section">{isAr ? 'الفريق' : 'Team'}</p>
+                              <div className="oma-plan-post__tip-user">
+                                <span className="oma-plan-post__avatar">O</span>
+                                <span>
+                                  {selected.assignee || 'Osama'} ({isAr ? 'أنت' : 'You'})
+                                </span>
+                              </div>
+                            </div>
+                          ) : null}
+                        </div>
+                        <div className="oma-plan-post__status-item">
+                          <button
+                            type="button"
+                            className="oma-plan-post__status-btn"
+                            data-tooltip={isAr ? 'المنشور غير منشور بعد' : 'Post is not published yet'}
+                            onClick={() => setPublishTipOpen((v) => !v)}
+                          >
+                            <EditOutlined />
+                          </button>
+                          {publishTipOpen ? (
+                            <div className="oma-plan-post__tip-card oma-plan-post__tip-card--sm">
+                              {isAr ? 'المنشور غير منشور بعد' : 'Post is not published yet'}
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+
+                      <div className="oma-plan-post__fields">
+                        <div className="oma-plan-post__meta-line">
+                          <span className="oma-plan-post__page">{selected.channel || 'Osama page'}</span>
+                          <span className="oma-plan-post__dot">·</span>
+                          <button type="button" className="oma-plan-post__date-btn">
+                            <span className="oma-ltr">
+                              {selected.scheduledAt
+                                ? selected.scheduledAt.slice(0, 16).replace('T', ', ')
+                                : draft.scheduledAt
+                                  ? draft.scheduledAt.slice(0, 16).replace('T', ', ')
+                                  : '—'}
+                            </span>
+                            <DownOutlined />
+                          </button>
+                        </div>
+                        <input
+                          className="oma-plan-post__title-input"
+                          value={editTitle}
+                          onChange={(e) => setEditTitle(e.target.value)}
+                          placeholder={isAr ? 'العنوان' : 'Title'}
+                          data-testid="demo-content-detail-title"
+                        />
+                        <textarea
+                          className="oma-plan-post__body-input"
+                          value={draft.caption}
+                          onChange={(e) => setDraft((d) => ({ ...d, caption: e.target.value }))}
+                          placeholder={
+                            isAr
+                              ? "اكتب '/' لإضافة عناوين ووسائط والمزيد…"
+                              : "Type '/' to add headlines, media and more…"
+                          }
+                          rows={8}
+                          data-testid="demo-content-caption"
+                        />
+                        <div className="oma-plan-post__count">
+                          {draft.caption.length} {isAr ? 'حرف' : 'characters'} ·{' '}
+                          {draft.caption.trim()
+                            ? draft.caption.trim().split(/\s+/).length
+                            : 0}{' '}
+                          {isAr ? 'كلمة' : 'word'}
+                          {draft.caption.trim().split(/\s+/).filter(Boolean).length === 1
+                            ? ''
+                            : draft.caption.trim()
+                              ? 's'
+                              : ''}
+                        </div>
+                        {dirty ? (
+                          <div className="oma-plan-post__save-row">
+                            <Button
+                              type="primary"
+                              loading={saving}
+                              onClick={() => void saveItem()}
+                              data-testid="demo-content-save"
+                            >
+                              {isAr ? 'حفظ المسودة' : 'Save draft'}
+                            </Button>
+                            <Button
+                              type="default"
+                              disabled={saving}
+                              onClick={() => void runCommand('schedule')}
+                            >
+                              {t('demo.content.schedule')}
+                            </Button>
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Right side panel */}
+                {detailSidePanel !== 'none' ? (
+                  <aside className="oma-plan-post__side" data-testid="demo-content-side-panel">
+                    <header className="oma-plan-post__side-head">
+                      <strong>
+                        {detailSidePanel === 'activity'
+                          ? isAr
+                            ? 'النشاط'
+                            : 'Activity'
+                          : isAr
+                            ? 'الملاحظات'
+                            : 'Feedback'}
+                      </strong>
+                      <button
+                        type="button"
+                        className="oma-plan-post__icon-btn"
+                        onClick={() => setDetailSidePanel('none')}
+                        aria-label="Close"
+                      >
+                        <CloseOutlined />
+                      </button>
+                    </header>
+
+                    {detailSidePanel === 'activity' ? (
+                      <div className="oma-plan-post__activity">
+                        {(comments.length
+                          ? comments.map((c) => ({
+                              id: c.id,
+                              text: isAr
+                                ? `${c.author} عدّل النص.`
+                                : `${c.author === selected.assignee ? 'You' : c.author} edited the text.`,
+                              at: c.at,
+                            }))
+                          : [
+                              {
+                                id: 'seed',
+                                text: isAr ? 'أضفت هذا المنشور.' : 'You added this post.',
+                                at: selected.scheduledAt?.slice(0, 10) ?? '—',
+                              },
+                            ]
+                        ).map((row) => (
+                          <div key={row.id} className="oma-plan-post__activity-row">
+                            <span className="oma-plan-post__avatar">O</span>
+                            <div>
+                              <p>
+                                <strong>{isAr ? 'أنت' : 'You'}</strong>{' '}
+                                {row.text.replace(/^(You|أنت)\s*/, '')}
+                              </p>
+                              <span className="oma-plan-post__activity-meta">
+                                <span className="oma-ltr">{row.at}</span>
+                                {' · '}
+                                <button type="button" className="oma-plan-post__link">
+                                  {isAr ? 'معاينة' : 'Preview'}
+                                </button>
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="oma-plan-post__feedback">
+                        <div className="oma-plan-post__feedback-tabs">
+                          <button
+                            type="button"
+                            data-active={feedbackTab === 'comments' ? 'true' : 'false'}
+                            onClick={() => setFeedbackTab('comments')}
+                          >
+                            {isAr ? 'تعليقات' : 'Comments'}
+                          </button>
+                          <button
+                            type="button"
+                            data-active={feedbackTab === 'suggestions' ? 'true' : 'false'}
+                            onClick={() => setFeedbackTab('suggestions')}
+                          >
+                            {isAr ? 'اقتراحات' : 'Suggestions'}
+                          </button>
+                        </div>
+                        {feedbackTab === 'comments' ? (
+                          <>
+                            <div className="oma-plan-post__comment-box">
+                              <div className="oma-plan-post__comment-input-row">
+                                <span className="oma-plan-post__avatar">O</span>
+                                <input
+                                  value={commentDraft}
+                                  onChange={(e) => setCommentDraft(e.target.value)}
+                                  placeholder={isAr ? 'اكتب شيئاً…' : 'Say something…'}
+                                />
+                              </div>
+                              <div className="oma-plan-post__comment-tools">
+                                <span className="oma-plan-post__internal">
+                                  {isAr ? 'داخلي' : 'Internal'}
+                                </span>
+                                <div className="oma-plan-post__comment-actions">
+                                  <button type="button" className="oma-plan-post__link">
+                                    {isAr ? 'إلغاء' : 'Cancel'}
+                                  </button>
+                                  <button type="button" className="oma-plan-post__post-btn">
+                                    {isAr ? 'نشر' : 'Post'}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                            {comments.length === 0 ? (
+                              <div className="oma-plan-post__empty">
+                                <strong>{isAr ? 'لا تعليقات بعد' : 'No comments yet'}</strong>
+                                <p>
+                                  {isAr
+                                    ? 'ابدأ المحادثة بترك أول تعليق.'
+                                    : 'Start the conversation by leaving the first comment.'}
+                                </p>
+                              </div>
+                            ) : (
+                              <div className="oma-comment-thread">
+                                {comments.map((c) => (
+                                  <article key={c.id} className="oma-comment">
+                                    <span className="oma-plan-post__avatar">{c.author.slice(0, 1)}</span>
+                                    <div>
+                                      <div className="oma-comment-meta">
+                                        {c.author} · <span className="oma-ltr">{c.at}</span>
+                                      </div>
+                                      <p className="oma-comment-body">{pickCopy(c.body, locale)}</p>
+                                    </div>
+                                  </article>
+                                ))}
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          <div className="oma-plan-post__empty">
+                            <strong>{isAr ? 'لا اقتراحات بعد' : 'No suggestions yet'}</strong>
+                            <p>
+                              {isAr
+                                ? 'حدد نصاً لاقتراح تعديلات.'
+                                : 'Select some text to suggest edits.'}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </aside>
+                ) : null}
               </div>
-            )}
+            </div>
           </div>
         ) : null}
       </Dialog>
