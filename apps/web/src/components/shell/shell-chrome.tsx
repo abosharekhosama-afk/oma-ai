@@ -47,8 +47,43 @@ function RailNav({ collapsed }: { collapsed: boolean }) {
 function ShellBreadcrumb() {
   const t = useT();
   const pathname = usePathname() || '/app';
-  const segments = pathname.split('/').filter(Boolean);
+  const isContent = pathname === '/app/content' || pathname.startsWith('/app/content/');
 
+  /* Planable Content trail: Workspace / Content / View — view switch lives in path */
+  if (isContent) {
+    return (
+      <nav aria-label={t('shell.breadcrumb')} className="oma-context-trail oma-context-trail--content">
+        <ol className="oma-breadcrumb oma-breadcrumb--planable">
+          <li>
+            <span className="oma-breadcrumb-workspace">
+              <span className="oma-breadcrumb-workspace-mark" aria-hidden />
+              <span>Osama</span>
+              <span className="oma-breadcrumb-caret" aria-hidden>
+                ▾
+              </span>
+            </span>
+          </li>
+          <li>
+            <span className="oma-breadcrumb-sep" aria-hidden>
+              /
+            </span>
+            <Link href="/app/content">{t('nav.content') || 'Content'}</Link>
+          </li>
+          <li>
+            <span className="oma-breadcrumb-sep" aria-hidden>
+              /
+            </span>
+            <span className="oma-breadcrumb-view" id="oma-content-view-slot" data-testid="shell-content-view-slot">
+              {/* filled by content-client via portal or sibling chrome */}
+              Calendar
+            </span>
+          </li>
+        </ol>
+      </nav>
+    );
+  }
+
+  const segments = pathname.split('/').filter(Boolean);
   const crumbs = segments.map((seg, idx) => {
     const href = `/${segments.slice(0, idx + 1).join('/')}`;
     const key = `nav.${seg}`;
