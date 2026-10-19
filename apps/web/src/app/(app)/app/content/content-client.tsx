@@ -16,7 +16,17 @@ import {
   TextArea,
 } from '@oma/ui/controls';
 import dayjs from 'dayjs';
-import { FilterOutlined, PictureOutlined, EditOutlined } from '@ant-design/icons';
+import {
+  FilterOutlined,
+  PictureOutlined,
+  EditOutlined,
+  ShareAltOutlined,
+  CalendarOutlined,
+  UnorderedListOutlined,
+  AppstoreOutlined,
+  BarsOutlined,
+  CheckCircleOutlined,
+} from '@ant-design/icons';
 import { Dialog } from '../../../../components/ui/dialog';
 import { EmptyState, ErrorState, DeniedState } from '../../../../components/ui/empty-state';
 import { useToast } from '../../../../components/ui/toast';
@@ -255,6 +265,22 @@ export default function ContentPage() {
     document.addEventListener('click', onDoc);
     return () => document.removeEventListener('click', onDoc);
   }, [cardMenuId, viewMenuOpen, extCalOpen]);
+
+
+  /* Path view slot in shell: click opens view switcher card */
+  useEffect(() => {
+    const el = document.getElementById('oma-content-view-slot');
+    if (!el) return;
+    el.setAttribute('role', 'button');
+    el.setAttribute('tabindex', '0');
+    el.style.cursor = 'pointer';
+    const open = (e: Event) => {
+      e.stopPropagation();
+      setViewMenuOpen((v) => !v);
+    };
+    el.addEventListener('click', open);
+    return () => el.removeEventListener('click', open);
+  }, []);
 
   /* Keep Planable path view label in shell breadcrumb in sync */
   useEffect(() => {
@@ -536,9 +562,9 @@ export default function ContentPage() {
   }
 
   function showApprovalQueue() {
+    /* Planable: enter selection mode + bottom bar — do NOT filter the grid */
     setApprovalMode(true);
     setSelectedIds([]);
-    setFilters((current) => ({ ...current, review: 'needs' }));
   }
 
   function toggleSelectId(id: string) {
@@ -752,66 +778,48 @@ export default function ContentPage() {
 
   return (
     <div className="oma-stack oma-content-plan" data-testid="demo-content">
-      <div className="oma-content-chrome" data-testid="demo-content-chrome">
-        <div className="oma-content-chrome__trail">
-          <div className="oma-view-menu" data-testid="demo-content-view-menu">
-            <button
-              type="button"
-              className="oma-view-menu__trigger"
-              data-testid="demo-content-view-trigger"
-              aria-haspopup="menu"
-              aria-expanded={viewMenuOpen}
-              onClick={() => setViewMenuOpen((open) => !open)}
-            >
-              <span className="oma-view-menu__icon" aria-hidden>
-                {view === 'calendar' ? '▦' : view === 'feed' ? '☰' : view === 'list' ? '☰' : '▣'}
-              </span>
-              <span data-testid={`demo-content-view-current-${view}`}>{t(`demo.view.${view}`)}</span>
-              <span className="oma-view-menu__caret" aria-hidden>
-                ▾
-              </span>
-            </button>
-            {viewMenuOpen ? (
-              <ul className="oma-view-menu__list oma-view-menu__list--card" role="menu">
-                {(
-                  [
-                    { id: 'calendar' as const, icon: '▦' },
-                    { id: 'feed' as const, icon: '☰' },
-                    { id: 'list' as const, icon: '☰' },
-                    { id: 'grid' as const, icon: '▣' },
-                  ] as const
-                ).map(({ id, icon }) => (
-                  <li key={id} role="none">
-                    <button
-                      type="button"
-                      role="menuitemradio"
-                      aria-checked={view === id}
-                      data-selected={view === id ? 'true' : 'false'}
-                      data-testid={`demo-content-view-${id}`}
-                      className="oma-view-menu__item"
-                      onClick={() => {
-                        setView(id);
-                        writeContentViewPref(id);
-                        replaceParams((params) => {
-                          params.set('view', id);
-                        });
-                        setViewMenuOpen(false);
-                      }}
-                    >
-                      <span className="oma-view-menu__item-icon" aria-hidden>
-                        {icon}
-                      </span>
-                      <span>{t(`demo.view.${id}`)}</span>
-                      <span className="oma-view-menu__check" aria-hidden>
-                        {view === id ? '✓' : ''}
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </div>
-        </div>
+            <div className="oma-content-chrome oma-content-chrome--actions-only" data-testid="demo-content-chrome">
+        {/* View switcher menu — anchored under path slot in shell header */}
+        {viewMenuOpen ? (
+          <ul className="oma-view-menu__list oma-view-menu__list--card oma-view-menu__list--path" role="menu">
+            {(
+              [
+                { id: 'calendar' as const, icon: <CalendarOutlined /> },
+                { id: 'feed' as const, icon: <BarsOutlined /> },
+                { id: 'list' as const, icon: <UnorderedListOutlined /> },
+                { id: 'grid' as const, icon: <AppstoreOutlined /> },
+              ] as const
+            ).map(({ id, icon }) => (
+              <li key={id} role="none">
+                <button
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={view === id}
+                  data-selected={view === id ? 'true' : 'false'}
+                  data-testid={`demo-content-view-${id}`}
+                  className="oma-view-menu__item"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setView(id);
+                    writeContentViewPref(id);
+                    replaceParams((params) => {
+                      params.set('view', id);
+                    });
+                    setViewMenuOpen(false);
+                  }}
+                >
+                  <span className="oma-view-menu__item-icon" aria-hidden>
+                    {icon}
+                  </span>
+                  <span>{t(`demo.view.${id}`)}</span>
+                  <span className="oma-view-menu__check" aria-hidden>
+                    {view === id ? '✓' : ''}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : null}
         <div className="oma-content-chrome__actions">
           <button
             type="button"
@@ -820,7 +828,7 @@ export default function ContentPage() {
             onClick={() => setFilterSheet(true)}
             data-testid="demo-content-open-filters"
           >
-            <FilterOutlined className="oma-top-action__icon" aria-hidden />
+            <FilterOutlined className="oma-top-action__icon" />
             {isAr ? 'تصفية' : 'Filter'}
             {filterCount > 0 ? ` (${filterCount})` : ''}
           </button>
@@ -831,7 +839,7 @@ export default function ContentPage() {
             onClick={() => setMediaLibraryOpen(true)}
             data-testid="demo-content-open-media"
           >
-            <PictureOutlined className="oma-top-action__icon" aria-hidden />
+            <PictureOutlined className="oma-top-action__icon" />
             {isAr ? 'الوسائط' : 'Media'}
           </button>
           <button
@@ -841,6 +849,7 @@ export default function ContentPage() {
             onClick={() => void shareContentWorkspace()}
             data-testid="demo-content-share"
           >
+            <ShareAltOutlined className="oma-top-action__icon" />
             {isAr ? 'مشاركة' : 'Share'}
           </button>
           <button
@@ -850,11 +859,12 @@ export default function ContentPage() {
             data-testid="demo-create-content"
             onClick={() => setCreateOpen(true)}
           >
-            <EditOutlined className="oma-top-action__icon" aria-hidden />
+            <EditOutlined className="oma-top-action__icon" />
             {isAr ? 'إنشاء' : 'Compose'}
           </button>
         </div>
       </div>
+
 
 
       <div className="oma-stage3-toolbar" data-testid="demo-content-filters">
@@ -982,14 +992,16 @@ export default function ContentPage() {
                 </div>
               </div>
               <div className="oma-cal-toolbar__end">
-                <Button
-                  type="text"
+                <button
+                  type="button"
                   className="oma-cal-request-approvals"
                   data-testid="demo-content-request-approvals"
+                  data-tooltip={isAr ? 'طلب موافقات' : 'Request approvals'}
                   onClick={showApprovalQueue}
                 >
-                  {isAr ? 'طلب الموافقات' : 'Request approvals'}
-                </Button>
+                  <CheckCircleOutlined />
+                  <span>{approvalMode ? (isAr ? 'جاري الطلب…' : 'Requesting approvals') : isAr ? 'طلب الموافقات' : 'Request approvals'}</span>
+                </button>
                 <span className="oma-cal-ext-wrap">
                   <button
                     type="button"
@@ -1852,67 +1864,66 @@ export default function ContentPage() {
         </div>
       </Dialog>
 
-      <Dialog
-        open={filterSheet}
-        className="oma-content-filter-modal"
-        title={isAr ? 'تصفية وترتيب' : 'Filter & sort'}
-        onClose={() => setFilterSheet(false)}
-        footer={
-          <div className="oma-dialog-footer oma-filter-sheet-footer">
-            <Button
-              type="default"
-              onClick={() => setFilters(EMPTY_CONTENT_FILTERS)}
-              data-testid="demo-content-filter-clear"
-            >
-              {t('demo.content.clearFilters')}
-            </Button>
-            <Button
-              type="primary"
-              onClick={() => setFilterSheet(false)}
-              data-testid="demo-content-filter-apply"
-            >
-              {t('demo.filters.apply')}
-            </Button>
-          </div>
-        }
-      >
-        <div className="oma-content-filter-panel" data-testid="demo-content-filter-sheet">
-          <section className="oma-content-filter-sort">
-            <p className="oma-content-filter-eyebrow">{isAr ? 'ترتيب حسب' : 'SORT BY'}</p>
-            <label>
-              <span>{isAr ? 'حقل الترتيب' : 'Sort field'}</span>
-              <OmaSelect
-                value={sortKey}
-                onChange={(value) => setSortKey(value as ContentSortKey)}
-                options={[
-                  { value: 'date', label: isAr ? 'التاريخ' : 'Date' },
-                  { value: 'updated', label: isAr ? 'آخر تحديث' : 'Last updated' },
-                  { value: 'title', label: isAr ? 'العنوان' : 'Title' },
-                  { value: 'channel', label: isAr ? 'القناة' : 'Channel' },
-                  { value: 'campaign', label: isAr ? 'الحملة' : 'Campaign' },
-                  { value: 'owner', label: isAr ? 'المسؤول' : 'Author' },
-                  { value: 'status', label: isAr ? 'الحالة' : 'Status' },
-                ]}
-              />
-            </label>
-            <label>
-              <span>{isAr ? 'الاتجاه' : 'Direction'}</span>
-              <OmaSelect
-                value={sortDir}
-                onChange={(value) => setSortDir(value as 'asc' | 'desc')}
-                options={[
-                  { value: 'desc', label: isAr ? 'الأحدث أولاً' : 'Newest first' },
-                  { value: 'asc', label: isAr ? 'الأقدم أولاً' : 'Oldest first' },
-                ]}
-              />
-            </label>
-          </section>
-          <div className="oma-content-filter-divider" />
-          <p className="oma-content-filter-eyebrow">{isAr ? 'تصفية حسب' : 'FILTER BY'}</p>
-          {searchField}
-          {advancedFilterFields}
-        </div>
-      </Dialog>
+      {filterSheet ? (
+        <>
+          <button
+            type="button"
+            className="oma-filter-backdrop"
+            aria-label="Close filters"
+            onClick={() => setFilterSheet(false)}
+          />
+          <aside className="oma-filter-sidepanel" data-testid="demo-content-filter-sheet" role="dialog" aria-label="Filter & sort">
+            <header className="oma-filter-sidepanel__head">
+              <strong>{isAr ? 'تصفية وترتيب' : 'Filter & sort'}</strong>
+              <button type="button" className="oma-filter-sidepanel__close" onClick={() => setFilterSheet(false)} aria-label="Close">
+                ×
+              </button>
+            </header>
+            <div className="oma-filter-sidepanel__body">
+              <p className="oma-content-filter-eyebrow">{isAr ? 'ترتيب حسب' : 'SORT BY'}</p>
+              <label className="oma-filter-sidepanel__row">
+                <span>{isAr ? 'حقل الترتيب' : 'Sort field'}</span>
+                <OmaSelect
+                  value={sortKey}
+                  onChange={(value) => setSortKey(value as ContentSortKey)}
+                  options={[
+                    { value: 'date', label: isAr ? 'التاريخ' : 'Date' },
+                    { value: 'updated', label: isAr ? 'آخر تحديث' : 'Last updated' },
+                    { value: 'title', label: isAr ? 'العنوان' : 'Title' },
+                    { value: 'channel', label: isAr ? 'القناة' : 'Channel' },
+                    { value: 'campaign', label: isAr ? 'الحملة' : 'Campaign' },
+                    { value: 'owner', label: isAr ? 'المسؤول' : 'Author' },
+                    { value: 'status', label: isAr ? 'الحالة' : 'Status' },
+                  ]}
+                />
+              </label>
+              <label className="oma-filter-sidepanel__row">
+                <span>{isAr ? 'الاتجاه' : 'Direction'}</span>
+                <OmaSelect
+                  value={sortDir}
+                  onChange={(value) => setSortDir(value as 'asc' | 'desc')}
+                  options={[
+                    { value: 'desc', label: isAr ? 'الأحدث أولاً' : 'Newest first' },
+                    { value: 'asc', label: isAr ? 'الأقدم أولاً' : 'Oldest first' },
+                  ]}
+                />
+              </label>
+              <div className="oma-content-filter-divider" />
+              <p className="oma-content-filter-eyebrow">{isAr ? 'تصفية حسب' : 'FILTER BY'}</p>
+              {searchField}
+              {advancedFilterFields}
+            </div>
+            <footer className="oma-filter-sidepanel__foot">
+              <Button type="default" onClick={() => setFilters(EMPTY_CONTENT_FILTERS)} data-testid="demo-content-filter-clear">
+                {t('demo.content.clearFilters')}
+              </Button>
+              <Button type="primary" onClick={() => setFilterSheet(false)} data-testid="demo-content-filter-apply">
+                {t('demo.filters.apply')}
+              </Button>
+            </footer>
+          </aside>
+        </>
+      ) : null}
 
       <Dialog
         open={mediaLibraryOpen}
