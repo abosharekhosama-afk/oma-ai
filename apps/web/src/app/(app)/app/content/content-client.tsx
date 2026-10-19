@@ -708,7 +708,7 @@ export default function ContentPage() {
 
   return (
     <div className="oma-stack oma-content-plan" data-testid="demo-content">
-      <div className="oma-content-chrome" data-testid="demo-content-chrome">
+      <div className="oma-content-chrome oma-content-chrome--actions-only" data-testid="demo-content-chrome">
         <div className="oma-content-chrome__trail">
           <div className="oma-view-menu" data-testid="demo-content-view-menu">
             <Button
@@ -753,16 +753,16 @@ export default function ContentPage() {
         </div>
         <div className="oma-content-chrome__actions">
           <Button type="text" onClick={() => setFilterSheet(true)} className="oma-filter-sheet-trigger" data-testid="demo-content-open-filters">
-            {t('demo.content.openFilters')}{filterCount > 0 ? ` (${filterCount})` : ''}
+            {isAr ? 'تصفية' : 'Filter'}{filterCount > 0 ? ` (${filterCount})` : ''}
           </Button>
           <Button type="text" onClick={() => setMediaLibraryOpen(true)} data-testid="demo-content-open-media">
-            {t('demo.content.media')}
+            {isAr ? 'الوسائط' : 'Media'}
           </Button>
           <Button type="default" onClick={() => void shareContentWorkspace()} data-testid="demo-content-share">
             {isAr ? 'مشاركة' : 'Share'}
           </Button>
           <Button type="primary" data-testid="demo-create-content" onClick={() => setCreateOpen(true)}>
-            {t('demo.content.create')}
+            {isAr ? 'إنشاء' : 'Compose'}
           </Button>
         </div>
       </div>
@@ -845,76 +845,68 @@ export default function ContentPage() {
         >
           <div className="oma-cal-main">
             <div className="oma-cal-toolbar">
-              <div className="oma-cal-span" role="group" aria-label={t('demo.view.calendar')}>
-                <Button
-                  type="text"
-                  className="oma-cal-span__btn"
-                  data-active={calSpan === 'month' ? 'true' : 'false'}
-                  aria-pressed={calSpan === 'month'}
-                  data-testid="demo-content-cal-month"
-                  onClick={() => setCalSpan('month')}
-                >
-                  {t('demo.content.calMonth')}
-                </Button>
-                <Button
-                  type="text"
-                  className="oma-cal-span__btn"
-                  data-active={calSpan === 'week' ? 'true' : 'false'}
-                  aria-pressed={calSpan === 'week'}
-                  data-testid="demo-content-cal-week"
-                  onClick={() => setCalSpan('week')}
-                >
-                  {t('demo.content.calWeek')}
-                </Button>
-              </div>
-              <div className="oma-cal-nav">
-                <Button
-                  type="default"
-                  className="oma-cal-nav__btn"
-                  aria-label={t('demo.content.prev')}
-                  data-testid="demo-content-cal-prev"
-                  onClick={() => shiftMonth(-1)}
-                >
-                  ‹
-                </Button>
-                <strong className="oma-cal-month-label">
-                  {monthLabel(cursor.year, cursor.monthIndex, locale)}
-                </strong>
-                <Button
-                  type="default"
-                  className="oma-cal-nav__btn"
-                  aria-label={t('demo.content.next')}
-                  data-testid="demo-content-cal-next"
-                  onClick={() => shiftMonth(1)}
-                >
-                  ›
-                </Button>
-                <Button
-                  type="default"
-                  className="oma-cal-nav__today"
-                  data-testid="demo-content-cal-today"
-                  onClick={goToday}
-                >
-                  {t('demo.content.today')}
-                </Button>
-                {selectedDay ? (
+              <div className="oma-cal-toolbar__start">
+                <div className="oma-cal-span" role="group" aria-label={t('demo.view.calendar')}>
                   <Button
-                    type="default"
-                    onClick={() => {
-                      setCreateForm((f) => ({ ...f, plannedDate: selectedDay }));
-                      setCreateOpen(true);
-                    }}
+                    type="text"
+                    className="oma-cal-span__btn"
+                    data-active={calSpan === 'month' ? 'true' : 'false'}
+                    aria-pressed={calSpan === 'month'}
+                    data-testid="demo-content-cal-month"
+                    onClick={() => setCalSpan('month')}
                   >
-                    {t('demo.content.createOnDate')}
+                    {t('demo.content.calMonth')}
                   </Button>
-                ) : null}
+                  <Button
+                    type="text"
+                    className="oma-cal-span__btn"
+                    data-active={calSpan === 'week' ? 'true' : 'false'}
+                    aria-pressed={calSpan === 'week'}
+                    data-testid="demo-content-cal-week"
+                    onClick={() => setCalSpan('week')}
+                  >
+                    {t('demo.content.calWeek')}
+                  </Button>
+                </div>
+                <div className="oma-cal-nav">
+                  <Button
+                    type="text"
+                    className="oma-cal-nav__btn"
+                    aria-label={t('demo.content.prev')}
+                    data-testid="demo-content-cal-prev"
+                    onClick={() => shiftMonth(-1)}
+                  >
+                    ‹
+                  </Button>
+                  <Button
+                    type="text"
+                    className="oma-cal-nav__btn"
+                    aria-label={t('demo.content.next')}
+                    data-testid="demo-content-cal-next"
+                    onClick={() => shiftMonth(1)}
+                  >
+                    ›
+                  </Button>
+                  <strong className="oma-cal-month-label">
+                    {monthLabel(cursor.year, cursor.monthIndex, locale)}
+                  </strong>
+                </div>
+              </div>
+              <div className="oma-cal-toolbar__end">
                 <Button
-                  type="default"
+                  type="text"
                   className="oma-cal-request-approvals"
                   data-testid="demo-content-request-approvals"
                   onClick={showApprovalQueue}
                 >
                   {isAr ? 'طلب الموافقات' : 'Request approvals'}
+                </Button>
+                <span className="oma-cal-ext-indicator" title="1 calendar">
+                  <span className="oma-cal-ext-dot" aria-hidden />
+                  1 calendar
+                </span>
+                <Button type="default" className="oma-cal-saved-toggle" data-testid="demo-content-saved-toggle">
+                  Saved
                 </Button>
               </div>
             </div>
@@ -925,7 +917,7 @@ export default function ContentPage() {
               {campaigns.slice(0, 3).map((c) => (
                 <div key={c.id} className="oma-cal-campaign-bar" title={pickCopy(c.name, locale)}>
                   <span className="oma-cal-campaign-bar__icon" aria-hidden>
-                    📅
+                    ▢
                   </span>
                   <span className="oma-cal-campaign-bar__name">{pickCopy(c.name, locale)}</span>
                 </div>
