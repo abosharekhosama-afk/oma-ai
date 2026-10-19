@@ -178,6 +178,7 @@ export default function ContentPage() {
   const [approvalMode, setApprovalMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [cardMenuId, setCardMenuId] = useState<string | null>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
   const [extCalOpen, setExtCalOpen] = useState(false);
   const [savedOpen, setSavedOpen] = useState(true);
   const [policy, setPolicy] = useState<ApprovalPolicy>('OPTIONAL');
@@ -1028,7 +1029,7 @@ export default function ContentPage() {
   );
 
   return (
-    <div className="oma-stack oma-content-plan" data-testid="demo-content">
+    <div className="oma-stack oma-content-plan oma-content-plan--tight" data-testid="demo-content">
                   {/* Portal: Filter / Media / Share / Compose into shell header */}
       {headerSlot &&
         createPortal(
@@ -1130,9 +1131,7 @@ export default function ContentPage() {
 
 
 
-      <div className="oma-stage3-toolbar" data-testid="demo-content-filters">
-        {searchField}
-      </div>
+      {/* Search lives in Filter side panel — no extra toolbar under header */}
 
       {filterCount > 0 ? (
         <div className="oma-filter-chips" data-testid="demo-content-filter-chips">
@@ -1399,8 +1398,76 @@ export default function ContentPage() {
                         >
                           <span className="oma-cal-daynum oma-ltr">{cell.date.getUTCDate()}</span>
                           {visible.map((item) => (
-                            <div key={item.id} className="oma-cal-item-wrap">
-                              {approvalMode ? (
+                            <div
+                              key={item.id}
+                              className="oma-cal-item-wrap"
+                              onMouseEnter={(e) => {
+                                const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                                setCardMenuId(item.id);
+                                setMenuPos({ top: r.top, left: r.right + 4 });
+                              }}
+                              onMouseLeave={() => {
+                                window.setTimeout(() => {
+                                  setCardMenuId(null);
+                                  setMenuPos(null);
+                                }, 180);
+                              }}
+                            >
+                        
+      {cardMenuId && menuPos
+        ? createPortal(
+            <div
+              className="oma-card-menu oma-card-menu--float"
+              role="menu"
+              data-testid="demo-content-card-menu"
+              style={{
+                position: 'fixed',
+                top: menuPos.top,
+                left: menuPos.left,
+                zIndex: 9999,
+              }}
+              onMouseEnter={() => {
+                /* keep open while pointer on menu */
+              }}
+              onMouseLeave={() => {
+                setCardMenuId(null);
+                setMenuPos(null);
+              }}
+            >
+              {(
+                [
+                  'Request approval',
+                  'Approve post',
+                  'Mark as published',
+                  'Hide from clients',
+                  'Archive post',
+                  'Repost',
+                ] as const
+              ).map((label) => (
+                <button
+                  key={label}
+                  type="button"
+                  role="menuitem"
+                  className="oma-card-menu__item"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (label === 'Request approval' && cardMenuId) {
+                      setApprovalMode(true);
+                      setSelectedIds([cardMenuId]);
+                    }
+                    setCardMenuId(null);
+                    setMenuPos(null);
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>,
+            document.body,
+          )
+        : null}
+
+      {approvalMode ? (
                                 <label className="oma-cal-select" onClick={(e) => e.stopPropagation()}>
                                   <input
                                     type="checkbox"
@@ -1428,7 +1495,9 @@ export default function ContentPage() {
                                 onContextMenu={(e) => {
                                   e.preventDefault();
                                   e.stopPropagation();
+                                  const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
                                   setCardMenuId(item.id);
+                                  setMenuPos({ top: r.top, left: r.right + 4 });
                                 }}
                                 className="oma-cal-item"
                               >
@@ -1451,35 +1520,6 @@ export default function ContentPage() {
                                   selected={selectedId === item.id}
                                 />
                               </SurfaceButton>
-                              <div className="oma-card-menu" role="menu">
-                                {(
-                                  [
-                                    'Request approval',
-                                    'Approve post',
-                                    'Mark as published',
-                                    'Hide from clients',
-                                    'Archive post',
-                                    'Repost',
-                                  ] as const
-                                ).map((label) => (
-                                  <button
-                                    key={label}
-                                    type="button"
-                                    role="menuitem"
-                                    className="oma-card-menu__item"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      if (label === 'Request approval') {
-                                        setApprovalMode(true);
-                                        setSelectedIds([item.id]);
-                                      }
-                                      setCardMenuId(null);
-                                    }}
-                                  >
-                                    {label}
-                                  </button>
-                                ))}
-                              </div>
                             </div>
                           ))}
                           {extra > 0 ? (
