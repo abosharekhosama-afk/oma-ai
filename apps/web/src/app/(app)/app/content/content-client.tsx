@@ -235,6 +235,16 @@ export default function ContentPage() {
     }
   }, []);
 
+
+  /* Keep Planable path view label in shell breadcrumb in sync */
+  useEffect(() => {
+    const el = document.getElementById('oma-content-view-slot');
+    if (!el) return;
+    const label = t(`demo.view.${view}`);
+    el.textContent = label;
+    el.setAttribute('data-view', view);
+  }, [view, t]);
+
   useEffect(() => {
     void load();
   }, [load]);
@@ -907,6 +917,19 @@ export default function ContentPage() {
                   {isAr ? 'طلب الموافقات' : 'Request approvals'}
                 </Button>
               </div>
+            </div>
+
+
+            {/* Planable campaign span bars */}
+            <div className="oma-cal-campaign-rails" data-testid="demo-content-campaign-bars">
+              {campaigns.slice(0, 3).map((c) => (
+                <div key={c.id} className="oma-cal-campaign-bar" title={pickCopy(c.name, locale)}>
+                  <span className="oma-cal-campaign-bar__icon" aria-hidden>
+                    📅
+                  </span>
+                  <span className="oma-cal-campaign-bar__name">{pickCopy(c.name, locale)}</span>
+                </div>
+              ))}
             </div>
 
             <div
