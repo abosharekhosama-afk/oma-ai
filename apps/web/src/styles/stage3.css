@@ -4279,3 +4279,57 @@ button.oma-cal-item {
   inset-inline-start: auto !important;
   inset-inline-end: calc(100% - 8px) !important;
 }
+
+/* ==== OMA PLANABLE FIX 2026-10-19-v3: gap + float menu ==== */
+.oma-content-plan--tight.oma-stack,
+.oma-content-plan--tight {
+  gap: 0 !important;
+  row-gap: 0 !important;
+  column-gap: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.oma-content-plan--tight > .oma-stage3-toolbar {
+  display: none !important;
+}
+.oma-cal-with-saved,
+.oma-cal-main,
+.oma-cal-toolbar {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+.oma-cal-toolbar {
+  padding: 8px 12px !important;
+  border-bottom: 1px solid #eef0f2 !important;
+}
+
+/* Floating menu portaled to body */
+.oma-card-menu--float {
+  display: block !important;
+  position: fixed !important;
+  z-index: 9999 !important;
+  min-width: 200px !important;
+  padding: 6px !important;
+  margin: 0 !important;
+  background: #ffffff !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 10px !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18) !important;
+}
+.oma-card-menu--float .oma-card-menu__item {
+  display: block !important;
+  width: 100% !important;
+  min-height: 34px !important;
+  padding: 0 12px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: #333 !important;
+  font-size: 13px !important;
+  text-align: start !important;
+  cursor: pointer !important;
+}
+.oma-card-menu--float .oma-card-menu__item:hover {
+  background: #f5f6f7 !important;
+}
+/* ==== end OMA PLANABLE FIX v3 ==== */
