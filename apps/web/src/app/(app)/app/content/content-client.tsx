@@ -725,6 +725,10 @@ export default function ContentPage() {
                       className="oma-view-menu__item"
                       onClick={() => {
                         setView(id);
+                        writeContentViewPref(id);
+                        replaceParams((params) => {
+                          params.set('view', id);
+                        });
                         setViewMenuOpen(false);
                       }}
                     >
