@@ -4333,3 +4333,298 @@ button.oma-cal-item {
   background: #f5f6f7 !important;
 }
 /* ==== end OMA PLANABLE FIX v3 ==== */
+
+/* ==== Inline private notes inside calendar cells (Planable) ==== */
+.oma-cal-note--inline {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  width: 100% !important;
+  min-height: 88px !important;
+  margin-top: 4px !important;
+  padding: 8px 8px 6px !important;
+  border-radius: 6px 8px 6px 6px !important;
+  border: 0 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06) !important;
+  position: relative !important;
+  cursor: text !important;
+}
+.oma-cal-note--inline[data-color='yellow'] {
+  background: #fde68a !important;
+}
+.oma-cal-note--inline[data-color='mint'] {
+  background: #a7f3d0 !important;
+}
+.oma-cal-note--inline[data-color='pink'] {
+  background: #fbcfe8 !important;
+}
+.oma-cal-note--inline[data-color='lavender'] {
+  background: #ddd6fe !important;
+}
+.oma-cal-note--inline[data-color='blue'] {
+  background: #bfdbfe !important;
+}
+.oma-cal-note__input {
+  width: 100% !important;
+  border: 0 !important;
+  outline: none !important;
+  resize: none !important;
+  background: transparent !important;
+  font-size: 13px !important;
+  line-height: 18px !important;
+  color: #1f2937 !important;
+  font-family: inherit !important;
+  min-height: 48px !important;
+}
+.oma-cal-note__input::placeholder {
+  color: #6b7280 !important;
+}
+.oma-cal-note__actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 2px !important;
+}
+.oma-cal-note__action {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 26px !important;
+  height: 26px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: #4b5563 !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+  position: relative !important;
+}
+.oma-cal-note__action:hover {
+  background: rgba(255, 255, 255, 0.45) !important;
+}
+.oma-cal-note__color-dot {
+  width: 10px !important;
+  height: 10px !important;
+  border-radius: 50% !important;
+  display: inline-block !important;
+  margin-inline-end: 2px !important;
+}
+.oma-cal-note__color-dot[data-color='yellow'],
+.oma-cal-note-swatch[data-color='yellow'] {
+  background: #fbbf24 !important;
+}
+.oma-cal-note__color-dot[data-color='mint'],
+.oma-cal-note-swatch[data-color='mint'] {
+  background: #34d399 !important;
+}
+.oma-cal-note__color-dot[data-color='pink'],
+.oma-cal-note-swatch[data-color='pink'] {
+  background: #f472b6 !important;
+}
+.oma-cal-note__color-dot[data-color='lavender'],
+.oma-cal-note-swatch[data-color='lavender'] {
+  background: #a78bfa !important;
+}
+.oma-cal-note__color-dot[data-color='blue'],
+.oma-cal-note-swatch[data-color='blue'] {
+  background: #60a5fa !important;
+}
+.oma-cal-note__color-wrap {
+  position: relative !important;
+}
+.oma-cal-note__swatches {
+  position: absolute !important;
+  bottom: calc(100% + 6px) !important;
+  inset-inline-start: 0 !important;
+  z-index: 20 !important;
+  display: grid !important;
+  grid-template-columns: repeat(3, 18px) !important;
+  gap: 6px !important;
+  padding: 8px !important;
+  background: #fff !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14) !important;
+  border: 1px solid #e8e9eb !important;
+}
+.oma-cal-note-swatch {
+  width: 16px !important;
+  height: 16px !important;
+  border-radius: 50% !important;
+  border: 2px solid transparent !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+}
+.oma-cal-note-swatch[data-active='true'] {
+  border-color: #111 !important;
+}
+
+/* Tooltips for note actions */
+.oma-cal-note__action[data-tooltip]:hover::after,
+.oma-plan-list__ico-btn[data-tooltip]:hover::after {
+  content: attr(data-tooltip) !important;
+  position: absolute !important;
+  bottom: calc(100% + 8px) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 50 !important;
+  padding: 6px 10px !important;
+  border-radius: 6px !important;
+  background: #1f1f1f !important;
+  color: #fff !important;
+  font-size: 12px !important;
+  white-space: nowrap !important;
+  pointer-events: none !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18) !important;
+}
+
+/* ==== Planable List view ==== */
+.oma-plan-list {
+  background: #f5f6f7 !important;
+  min-height: calc(100vh - 56px) !important;
+  padding: 16px 20px 80px !important;
+}
+.oma-plan-list__head {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  max-width: 920px !important;
+  margin: 0 auto 8px !important;
+  padding: 10px 14px !important;
+  background: #fff !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 10px 10px 0 0 !important;
+  font-size: 13px !important;
+  color: #5e6166 !important;
+}
+.oma-plan-list__select-all {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  cursor: pointer !important;
+}
+.oma-plan-list__sort {
+  border: 0 !important;
+  background: transparent !important;
+  color: #8c8c8c !important;
+  font-size: 12px !important;
+  cursor: pointer !important;
+}
+.oma-plan-list__body {
+  max-width: 920px !important;
+  margin: 0 auto !important;
+  background: #fff !important;
+  border: 1px solid #e8e9eb !important;
+  border-top: 0 !important;
+  border-radius: 0 0 10px 10px !important;
+  overflow: hidden !important;
+}
+.oma-plan-list__row {
+  display: grid !important;
+  grid-template-columns: 36px 48px minmax(0, 1fr) 40px 120px 140px !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-height: 64px !important;
+  padding: 10px 14px !important;
+  border-bottom: 1px solid #f0f1f3 !important;
+  cursor: pointer !important;
+  background: #fff !important;
+}
+.oma-plan-list__row:last-child {
+  border-bottom: 0 !important;
+}
+.oma-plan-list__row:hover {
+  background: #f7f8f9 !important;
+}
+.oma-plan-list__row[data-selected='true'] {
+  background: #e8f3ff !important;
+}
+.oma-plan-list__check {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.oma-plan-list__thumb {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 6px !important;
+  background: #eef0f2 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.oma-plan-list__thumb img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+.oma-plan-list__thumb-ph {
+  color: #9ca3af !important;
+  font-size: 16px !important;
+}
+.oma-plan-list__main {
+  min-width: 0 !important;
+}
+.oma-plan-list__page {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 12px !important;
+  color: #5e6166 !important;
+  font-weight: 500 !important;
+}
+.oma-plan-list__page-ico {
+  width: 16px !important;
+  height: 16px !important;
+  border-radius: 4px !important;
+  background: #111 !important;
+  color: #fff !important;
+  font-size: 10px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.oma-plan-list__title {
+  font-size: 14px !important;
+  color: #1f1f1f !important;
+  margin-top: 2px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+.oma-plan-list__mid {
+  display: flex !important;
+  justify-content: center !important;
+  color: #52c41a !important;
+}
+.oma-plan-list__hover {
+  display: none !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 2px !important;
+}
+.oma-plan-list__row:hover .oma-plan-list__hover {
+  display: inline-flex !important;
+}
+.oma-plan-list__row:hover .oma-plan-list__when {
+  display: none !important;
+}
+.oma-plan-list__ico-btn {
+  position: relative !important;
+  width: 28px !important;
+  height: 28px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: #5e6166 !important;
+  cursor: pointer !important;
+  font-size: 13px !important;
+}
+.oma-plan-list__ico-btn:hover {
+  background: #eef0f2 !important;
+}
+.oma-plan-list__when {
+  text-align: end !important;
+  font-size: 12px !important;
+  color: #8c8c8c !important;
+  white-space: nowrap !important;
+}
