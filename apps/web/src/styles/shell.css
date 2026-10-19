@@ -629,3 +629,12 @@
   color: #8c8c8c;
   font-size: 10px;
 }
+
+.oma-main:has(.oma-content-plan),
+.oma-container:has(.oma-content-plan) {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+.oma-top[data-content-workspace='true'] {
+  border-bottom: 1px solid #eef0f2;
+}

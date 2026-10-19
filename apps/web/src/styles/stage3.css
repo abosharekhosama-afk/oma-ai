@@ -4200,3 +4200,82 @@ button.oma-cal-item {
   color: #8c8c8c !important;
   font-size: 12px !important;
 }
+
+/* ===== Fix: floating card action menu + no gap under header ===== */
+
+/* Remove vertical gap between shell header and calendar */
+.oma-content-plan.oma-stack {
+  gap: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.oma-content-plan > *:first-child {
+  margin-top: 0 !important;
+}
+.oma-cal-with-saved {
+  margin-top: 0 !important;
+  gap: 0 !important;
+}
+.oma-cal-main {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+.oma-cal-toolbar {
+  margin: 0 !important;
+  padding: 6px 12px !important;
+  border-top: 0 !important;
+}
+.oma-content-chrome,
+.oma-content-chrome--actions-only {
+  display: none !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Allow menus to escape cell clipping */
+.oma-cal-grid,
+.oma-cal-week,
+.oma-cal-day,
+.oma-cal-day__body,
+.oma-cal-item-wrap {
+  overflow: visible !important;
+}
+
+/* Floating action menu over the card (not pushing layout) */
+.oma-cal-item-wrap {
+  position: relative !important;
+  z-index: 1 !important;
+}
+.oma-cal-item-wrap:hover {
+  z-index: 50 !important;
+}
+.oma-cal-item-wrap > .oma-card-menu {
+  display: none !important;
+  position: absolute !important;
+  top: 0 !important;
+  inset-inline-start: calc(100% - 8px) !important;
+  inset-inline-end: auto !important;
+  bottom: auto !important;
+  z-index: 200 !important;
+  min-width: 200px !important;
+  margin: 0 !important;
+  padding: 6px !important;
+  background: #fff !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 10px !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.16) !important;
+  pointer-events: auto !important;
+}
+.oma-cal-item-wrap:hover > .oma-card-menu {
+  display: block !important;
+}
+
+/* RTL: float menu to the other side */
+[dir='rtl'] .oma-cal-item-wrap > .oma-card-menu {
+  inset-inline-start: auto !important;
+  inset-inline-end: calc(100% - 8px) !important;
+}
