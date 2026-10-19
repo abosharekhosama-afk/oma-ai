@@ -26,6 +26,7 @@ import {
   DeleteOutlined,
   DesktopOutlined,
   DownOutlined,
+  UpOutlined,
   EditOutlined,
   EyeInvisibleOutlined,
   EyeOutlined,
