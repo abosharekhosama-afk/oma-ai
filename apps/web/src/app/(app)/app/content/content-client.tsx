@@ -2039,7 +2039,6 @@ export default function ContentPage() {
       ) : null}
 
       <Dialog
-        open={mediaLibraryOpen}<Dialog
         open={mediaLibraryOpen}
         title={isAr ? 'مكتبة الوسائط' : 'Media library'}
         onClose={() => setMediaLibraryOpen(false)}
