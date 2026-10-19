@@ -5650,3 +5650,184 @@ button.oma-cal-item {
     grid-template-columns: 72px minmax(0, 1fr) !important;
   }
 }
+
+/* ==== Notes polish + float-within-bounds + grid (v5) ==== */
+
+/* Sticky note closer to Planable */
+.oma-cal-note--inline {
+  border-radius: 4px 10px 10px 10px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+  min-height: 96px !important;
+}
+.oma-cal-note__actions {
+  opacity: 0.85 !important;
+}
+.oma-cal-note--inline:hover .oma-cal-note__actions,
+.oma-cal-note--inline[data-active='true'] .oma-cal-note__actions {
+  opacity: 1 !important;
+}
+.oma-cal-note__swatches {
+  top: calc(100% + 4px) !important;
+  bottom: auto !important;
+  inset-inline-start: 4px !important;
+  z-index: 80 !important;
+}
+
+/* Mobile note: always modal */
+@media (max-width: 767px) {
+  .oma-cal-note--inline {
+    display: none !important;
+  }
+  .oma-cal-note-modal {
+    display: flex !important;
+  }
+}
+
+/* Tooltips: high contrast + never clip out of dialogs */
+.oma-plan-post,
+.oma-plan-post__main,
+.oma-plan-post__canvas,
+.oma-plan-post__editor,
+.oma-plan-post__status-col,
+.oma-plan-post__status-item,
+.oma-plan-post__top,
+.oma-plan-post__more-wrap {
+  overflow: visible !important;
+}
+.oma-plan-post__tip-card {
+  z-index: 100 !important;
+  max-width: min(260px, 70vw) !important;
+}
+/* Flip tip inward if near left edge */
+.oma-plan-post__status-item .oma-plan-post__tip-card {
+  inset-inline-end: auto !important;
+  inset-inline-start: calc(100% + 10px) !important;
+}
+.oma-plan-post__icon-btn[data-tooltip]:hover::after,
+.oma-cal-note__action[data-tooltip]:hover::after,
+.oma-plan-list__ico-btn[data-tooltip]:hover::after {
+  z-index: 200 !important;
+  background: #111 !important;
+  color: #fff !important;
+  font-weight: 500 !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22) !important;
+  padding: 7px 11px !important;
+}
+
+/* More menu stays inside modal */
+.oma-plan-post__more-menu {
+  z-index: 120 !important;
+  max-height: min(70vh, 420px) !important;
+  overflow: auto !important;
+}
+
+/* Dialog shell must allow overflow for tooltips */
+.oma-plan-post-modal,
+.oma-plan-post-modal .oma-dialog__body,
+.oma-plan-post-modal [class*='Dialog'] {
+  overflow: visible !important;
+}
+
+/* ==== Planable Grid view ==== */
+.oma-plan-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 220px)) !important;
+  gap: 12px !important;
+  justify-content: center !important;
+  padding: 28px 20px 80px !important;
+  background: #f5f6f7 !important;
+  min-height: calc(100vh - 56px) !important;
+}
+@media (max-width: 900px) {
+  .oma-plan-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+@media (max-width: 560px) {
+  .oma-plan-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+.oma-plan-grid__card {
+  border: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  cursor: pointer !important;
+  border-radius: 4px !important;
+  overflow: hidden !important;
+  text-align: start !important;
+}
+.oma-plan-grid__card[data-selected='true'] {
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: 2px !important;
+}
+.oma-plan-grid__media {
+  position: relative !important;
+  aspect-ratio: 1 / 1.15 !important;
+  background: linear-gradient(180deg, #6b7280 0%, #d1d5db 55%, #e5e7eb 100%) !important;
+  overflow: hidden !important;
+}
+.oma-plan-grid__media img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+  filter: saturate(0.85) !important;
+}
+.oma-plan-grid__shade {
+  position: absolute !important;
+  inset: 0 !important;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.35) 0%,
+    rgba(0, 0, 0, 0.05) 40%,
+    rgba(0, 0, 0, 0.45) 100%
+  ) !important;
+  pointer-events: none !important;
+}
+.oma-plan-grid__overlay {
+  position: absolute !important;
+  inset: 0 !important;
+  padding: 12px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  color: #fff !important;
+  pointer-events: none !important;
+}
+.oma-plan-grid__when {
+  font-size: 11px !important;
+  opacity: 0.9 !important;
+}
+.oma-plan-grid__title {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35) !important;
+}
+.oma-plan-grid__corner {
+  position: absolute !important;
+  right: 10px !important;
+  bottom: 10px !important;
+  color: rgba(255, 255, 255, 0.85) !important;
+  font-size: 14px !important;
+}
+.oma-plan-grid__ph {
+  position: absolute !important;
+  inset: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: rgba(255, 255, 255, 0.45) !important;
+  font-size: 28px !important;
+}
+.oma-plan-post__save-state {
+  font-size: 12px !important;
+  color: #8c8c8c !important;
+  margin-inline-end: auto !important;
+}
+.oma-plan-post__save-state[data-state='error'] {
+  color: #dc2626 !important;
+}
+.oma-plan-post__save-state[data-state='saved'] {
+  color: #16a34a !important;
+}
