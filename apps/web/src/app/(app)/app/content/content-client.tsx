@@ -1316,6 +1316,7 @@ export default function ContentPage() {
             </div>
           </div>
 
+          {savedOpen ? (
           <aside data-testid="demo-content-saved" aria-label={t('demo.content.savedColumn')}>
             <header className="oma-cal-saved-head">
               <strong>{t('demo.content.savedColumn')}</strong>
@@ -1323,9 +1324,14 @@ export default function ContentPage() {
                 {savedItems.length > 0 ? (
                   <span className="oma-muted oma-ltr">{savedItems.length}</span>
                 ) : null}
-                <span className="oma-cal-saved-close" aria-hidden>
+                <button
+                  type="button"
+                  className="oma-cal-saved-close"
+                  aria-label="Close"
+                  onClick={() => setSavedOpen(false)}
+                >
                   ×
-                </span>
+                </button>
               </div>
             </header>
             {savedItems.length === 0 ? (
@@ -1363,6 +1369,7 @@ export default function ContentPage() {
               </div>
             )}
           </aside>
+          ) : null}
         </section>
       ) : null}
 
