@@ -7,7 +7,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { DemoGraph, DemoLocaleCopy } from '@oma/demo';
 import { DemoDisclosure } from '../../../../../components/demo/demo-disclosure';
 import { Dialog } from '../../../../../components/ui/dialog';
-import { PageHeader, Panel } from '../../../../../components/ui/page-header';
 import { StatusChip } from '../../../../../components/ui/status-chip';
 import { useToast } from '../../../../../components/ui/toast';
 import {
@@ -27,7 +26,6 @@ import {
 import { useLocale, useT } from '../../../../../lib/use-locale';
 import {
   ArrowLeftOutlined,
-  CloseOutlined,
   CheckOutlined,
   UserOutlined,
   CalendarOutlined,
@@ -40,6 +38,17 @@ type Task = DemoGraph['tasks'][number];
 type RequestDetail = RequestRow & { brief: Brief | null; tasks?: Task[] };
 
 const emptyCopy = (): DemoLocaleCopy => ({ en: '', ar: '' });
+
+function safeCopy(value: unknown, locale: string): string {
+  if (!value) return '';
+  if (typeof value === 'string') return value;
+  if (Array.isArray(value)) return value.map(String).join(', ');
+  if (typeof value === 'object' && value !== null && 'en' in value && 'ar' in value) {
+    return pickCopy(value as DemoLocaleCopy, locale);
+  }
+  return String(value);
+}
+
 
 function BriefField({
   label,
@@ -288,8 +297,8 @@ export default function RequestDetailPage() {
                 <StatusChip status={row.priority} />
                 <span className="oma-req-detail__id">{row.id.replace('demo-request-', '#')}</span>
               </div>
-              <h1 className="oma-req-detail__title">{pickCopy(row.title, locale)}</h1>
-              <p className="oma-req-detail__desc">{pickCopy(row.description, locale)}</p>
+              <h1 className="oma-req-detail__title">{safeCopy(row.title, locale)}</h1>
+              <p className="oma-req-detail__desc">{safeCopy(row.description, locale)}</p>
             </div>
 
             <section className="oma-req-detail__card" data-testid="demo-request-completeness">
@@ -310,14 +319,7 @@ export default function RequestDetailPage() {
                   <SelectField
                     value={row.status}
                     data-testid="demo-request-status"
-                    onChange={(e) => {
-                      const next = e.target.value;
-                      if (!canTransitionRequestStatus(row.status, next)) {
-                        toast.push(t('demo.requests.invalidTransition'), 'danger');
-                        return;
-                      }
-                      void patchRequest({ status: next });
-                    }}
+                    onChange={(e) => void patchRequest({ status: e.target.value })}
                   >
                     {[
                       'OPEN',
@@ -414,52 +416,106 @@ export default function RequestDetailPage() {
                 <div className="oma-brief-layout">
                   <div className="oma-brief-col">
                     <BriefField
+                      label={t('demo.brief.overview') || 'Overview'}
+                      value={safeCopy(briefDraft.overview, locale)}
+                      testId="demo-brief-overview"
+                      onChange={(v) => patchBriefCopy('overview', v)}
+                    />
+                    <BriefField
                       label={t('demo.brief.objective')}
-                      value={pickCopy(briefDraft.objective, locale)}
+                      value={safeCopy(briefDraft.objective, locale)}
                       testId="demo-brief-objective"
                       onChange={(v) => patchBriefCopy('objective', v)}
                     />
                     <BriefField
                       label={t('demo.brief.audience')}
-                      value={pickCopy(briefDraft.audience, locale)}
+                      value={safeCopy(briefDraft.audience, locale)}
                       testId="demo-brief-audience"
                       onChange={(v) => patchBriefCopy('audience', v)}
                     />
                     <BriefField
                       label={t('demo.brief.message')}
-                      value={pickCopy(briefDraft.keyMessage, locale)}
-                      testId="demo-brief-message"
+                      value={safeCopy(briefDraft.keyMessage, locale)}
+                      testId="demo-brief-key-message"
                       onChange={(v) => patchBriefCopy('keyMessage', v)}
                     />
                     <BriefField
-                      label={t('demo.brief.channels')}
-                      value={pickCopy(briefDraft.channels, locale)}
-                      testId="demo-brief-channels"
-                      onChange={(v) => patchBriefCopy('channels', v)}
+                      label={t('demo.brief.deliverable') || 'Deliverable'}
+                      value={safeCopy(briefDraft.deliverableType, locale)}
+                      testId="demo-brief-deliverable"
+                      onChange={(v) => patchBriefCopy('deliverableType', v)}
                     />
+                    <label>
+                      {t('demo.brief.channels')}
+                      <Input
+                        data-testid="demo-brief-channels"
+                        value={safeCopy(briefDraft.channels, locale)}
+                        onChange={(e) => {
+                          setBriefDraft((b) =>
+                            b
+                              ? {
+                                  ...b,
+                                  channels: e.target.value
+                                    .split(',')
+                                    .map((c) => c.trim())
+                                    .filter(Boolean),
+                                }
+                              : b,
+                          );
+                          setDirty(true);
+                        }}
+                      />
+                    </label>
                   </div>
                   <div className="oma-brief-col">
+                    <label>
+                      {t('demo.brief.formats') || 'Formats'}
+                      <Input
+                        data-testid="demo-brief-formats"
+                        value={safeCopy(briefDraft.formats, locale)}
+                        onChange={(e) => {
+                          setBriefDraft((b) =>
+                            b
+                              ? {
+                                  ...b,
+                                  formats: e.target.value
+                                    .split(',')
+                                    .map((c) => c.trim())
+                                    .filter(Boolean),
+                                }
+                              : b,
+                          );
+                          setDirty(true);
+                        }}
+                      />
+                    </label>
                     <BriefField
-                      label={t('demo.brief.assets')}
-                      value={pickCopy(briefDraft.assetsNeeded, locale)}
-                      testId="demo-brief-assets"
-                      onChange={(v) => patchBriefCopy('assetsNeeded', v)}
+                      label={t('demo.brief.tone') || 'Tone'}
+                      value={safeCopy(briefDraft.tone, locale)}
+                      testId="demo-brief-tone"
+                      onChange={(v) => patchBriefCopy('tone', v)}
                     />
                     <BriefField
-                      label={t('demo.brief.constraints')}
-                      value={pickCopy(briefDraft.constraints, locale)}
-                      testId="demo-brief-constraints"
-                      onChange={(v) => patchBriefCopy('constraints', v)}
+                      label={t('demo.brief.mandatory') || 'Mandatory'}
+                      value={safeCopy(briefDraft.mandatory, locale)}
+                      testId="demo-brief-mandatory"
+                      onChange={(v) => patchBriefCopy('mandatory', v)}
                     />
                     <BriefField
-                      label={t('demo.brief.success')}
-                      value={pickCopy(briefDraft.successMetrics, locale)}
-                      testId="demo-brief-success"
-                      onChange={(v) => patchBriefCopy('successMetrics', v)}
+                      label={t('demo.brief.cta') || 'CTA'}
+                      value={safeCopy(briefDraft.cta, locale)}
+                      testId="demo-brief-cta"
+                      onChange={(v) => patchBriefCopy('cta', v)}
+                    />
+                    <BriefField
+                      label={t('demo.brief.acceptance') || 'Acceptance'}
+                      value={safeCopy(briefDraft.acceptance, locale)}
+                      testId="demo-brief-acceptance"
+                      onChange={(v) => patchBriefCopy('acceptance', v)}
                     />
                     <BriefField
                       label={t('demo.brief.timeline')}
-                      value={pickCopy(briefDraft.timelineNote, locale)}
+                      value={safeCopy(briefDraft.timelineNote, locale)}
                       testId="demo-brief-timeline"
                       onChange={(v) => patchBriefCopy('timelineNote', v)}
                     />
