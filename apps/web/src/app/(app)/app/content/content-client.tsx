@@ -40,7 +40,14 @@ import {
   FlagOutlined,
   SyncOutlined,
   FormOutlined,
+  UserOutlined,          // ← جديد
+  ClockCircleOutlined,   // ← جديد
+  EyeOutlined,           // ← جديد
+  SnippetsOutlined,      // ← جديد
+  NotificationOutlined,  // ← جديد
+  TagOutlined,           // ← جديد
 } from '@ant-design/icons';
+
 import { Dialog } from '../../../../components/ui/dialog';
 import { EmptyState, ErrorState, DeniedState } from '../../../../components/ui/empty-state';
 import { useToast } from '../../../../components/ui/toast';
@@ -158,6 +165,251 @@ function reviewFilterLabel(value: string, locale: string, allLabel: string): str
   if (value === 'approved') return statusLabel('APPROVED', locale);
   return allLabel;
 }
+/* ── Planable-style compose card ─────────────────────────────── */
+
+type ComposeForm = {
+  title: string;
+  campaignId: string;
+  contentType: string;
+  channel: string;
+  previewAsset: string;
+  owner: string;
+  plannedDate: string;
+  track: string;
+  caption: string;
+  brief: string;
+};
+
+function PlanableComposeCard({
+  open,
+  creating,
+  error,
+  form,
+  campaigns,
+  locale,
+  onChange,
+  onClose,
+  onSubmit,
+}: {
+  open: boolean;
+  creating: boolean;
+  error: string | null;
+  form: ComposeForm;
+  campaigns: Campaign[];
+  locale: string;
+  onChange: (patch: Partial<ComposeForm>) => void;
+  onClose: () => void;
+  onSubmit: () => void;
+}) {
+  const [campaignMenu, setCampaignMenu] = useState(false);
+  if (!open) return null;
+  const selectedCampaign = campaigns.find((c) => c.id === form.campaignId);
+  return createPortal(
+    <div className="oma-compose-overlay" onClick={creating ? undefined : onClose}>
+      <div
+        className="oma-compose-card"
+        role="dialog"
+        aria-modal="true"
+        data-testid="demo-create-content-dialog"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          type="button"
+          className="oma-compose-close"
+          aria-label="Dismiss"
+          disabled={creating}
+          onClick={onClose}
+        >
+          <CloseOutlined />
+        </button>
+
+        <div className="oma-compose-pills">
+          <button type="button" className="oma-compose-pill">
+            <SnippetsOutlined />
+            Template
+          </button>
+          <div className="oma-compose-pill-wrap">
+            <button
+              type="button"
+              className="oma-compose-pill"
+              aria-expanded={campaignMenu}
+              data-testid="demo-create-content-campaign"
+              onClick={() => setCampaignMenu((v) => !v)}
+            >
+              <NotificationOutlined />
+              {selectedCampaign ? pickCopy(selectedCampaign.name, locale) : 'Campaign'}
+              <DownOutlined style={{ fontSize: 10 }} />
+            </button>
+            {campaignMenu ? (
+              <div className="oma-compose-menu" role="menu">
+                <button
+                  type="button"
+                  className="oma-compose-menu__item"
+                  onClick={() => {
+                    onChange({ campaignId: '' });
+                    setCampaignMenu(false);
+                  }}
+                >
+                  No campaign
+                </button>
+                {campaigns.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    className="oma-compose-menu__item"
+                    onClick={() => {
+                      onChange({ campaignId: c.id, track: c.track ?? form.track });
+                      setCampaignMenu(false);
+                    }}
+                  >
+                    {pickCopy(c.name, locale)}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
+          <button type="button" className="oma-compose-pill">
+            <TagOutlined />
+            Labels
+          </button>
+        </div>
+
+        <div className="oma-compose-body">
+          <div className="oma-compose-side">
+            <div className="oma-compose-avatar">
+              <UserOutlined />
+              <span className="oma-compose-avatar-badge">
+                <EditOutlined />
+              </span>
+            </div>
+            <button type="button" className="oma-compose-media" aria-label="Media">
+              <PictureOutlined />
+            </button>
+          </div>
+          <div className="oma-compose-main">
+            <Input
+              className="oma-compose-title"
+              placeholder="Title"
+              value={form.title}
+              data-testid="demo-create-content-title"
+              onChange={(e) => onChange({ title: e.target.value })}
+            />
+            <TextArea
+              className="oma-compose-text"
+              rows={4}
+              placeholder={"Type '/' to add headlines, media and more..."}
+              value={form.caption}
+              onChange={(e) => onChange({ caption: e.target.value })}
+            />
+          </div>
+        </div>
+
+        <div className="oma-compose-extras">
+          <label>
+            Type
+            <OmaSelect
+              value={form.contentType}
+              onChange={(contentType) => onChange({ contentType })}
+              options={['POST', 'REEL', 'CAROUSEL', 'STATIC', 'STORY'].map((ty) => ({
+                value: ty,
+                label: ty,
+              }))}
+            />
+          </label>
+          <label>
+            Channel
+            <Input
+              value={form.channel}
+              onChange={(e) => onChange({ channel: e.target.value })}
+            />
+          </label>
+          <label>
+            Owner
+            <Input
+              value={form.owner}
+              onChange={(e) => onChange({ owner: e.target.value })}
+            />
+          </label>
+          <label>
+            Track
+            <OmaSelect
+              value={form.track}
+              onChange={(track) => onChange({ track })}
+              options={[
+                { value: 'ORGANIC', label: 'Organic' },
+                { value: 'PAID', label: 'Paid' },
+              ]}
+            />
+          </label>
+          <label>
+            Media
+            <OmaSelect
+              value={form.previewAsset}
+              onChange={(previewAsset) => onChange({ previewAsset })}
+              options={Object.entries(P3_MEDIA).map(([id, src]) => ({
+                value: src,
+                label: id,
+              }))}
+            />
+          </label>
+          <label>
+            Brief
+            <TextArea
+              rows={1}
+              value={form.brief}
+              onChange={(e) => onChange({ brief: e.target.value })}
+            />
+          </label>
+        </div>
+
+        {error ? (
+          <p role="alert" className="oma-compose-error">
+            {error}
+          </p>
+        ) : null}
+
+        <div className="oma-compose-footer">
+          <div className="oma-compose-meta">
+            <ClockCircleOutlined />
+            <DatePicker
+              showTime={{ format: 'HH:mm' }}
+              format="MMM DD, HH:mm"
+              value={form.plannedDate ? dayjs(form.plannedDate) : null}
+              onChange={(_, dateString) =>
+                onChange({
+                  plannedDate: Array.isArray(dateString)
+                    ? (dateString[0] ?? '')
+                    : dateString,
+                })
+              }
+              suffixIcon={<DownOutlined style={{ fontSize: 10 }} />}
+            />
+            <span className="oma-compose-tz">(Asia: Jerusalem)</span>
+          </div>
+          <div className="oma-compose-actions">
+            <button type="button" className="oma-compose-view" aria-label="Preview">
+              <EyeOutlined />
+            </button>
+            <button
+              type="button"
+              className="oma-compose-save"
+              disabled={creating}
+              data-testid="demo-create-content-submit"
+              onClick={onSubmit}
+            >
+              <span>{creating ? 'Saving…' : 'Save draft'}</span>
+              <span className="oma-compose-save__caret">
+                <DownOutlined style={{ fontSize: 10 }} />
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 
 export default function ContentPage() {
   const t = useT();
