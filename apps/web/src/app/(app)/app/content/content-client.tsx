@@ -171,7 +171,6 @@ export default function ContentPage() {
   const [error, setError] = useState<string | null>(null);
   const [unavailable, setUnavailable] = useState(false);
   const [filterSheet, setFilterSheet] = useState(false);
-  const [filterSection, setFilterSection] = useState<string | null>('campaign');
   const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
   const [dayNotes, setDayNotes] = useState<Record<string, { text: string; color: string }>>({});
   const [noteDay, setNoteDay] = useState<string | null>(null);
@@ -352,6 +351,10 @@ export default function ContentPage() {
       }),
     [filters, campaignName, brandName, locale, t],
   );
+  const channels = useMemo(() => [...new Set(rows.map((r) => r.channel))].sort(), [rows]);
+  const types = useMemo(() => [...new Set(rows.map((r) => r.contentType))].sort(), [rows]);
+  const statuses = useMemo(() => [...new Set(rows.map((r) => r.status))].sort(), [rows]);
+  const assignees = useMemo(() => [...new Set(rows.map((r) => r.assignee))].sort(), [rows]);
   const monthCells = useMemo(
     () => buildMonthCells(cursor.year, cursor.monthIndex, weekStartsOn),
     [cursor.year, cursor.monthIndex, weekStartsOn],
@@ -640,6 +643,143 @@ export default function ContentPage() {
         data-testid="demo-content-search"
       />
     </label>
+  );
+
+  const advancedFilterFields = (
+    <>
+      <label>
+        {t('demo.content.filter.campaign')}
+        <OmaSelect
+          value={filters.campaignId}
+          testId="demo-content-filter-campaign"
+          onChange={(campaignId) => {
+            setFilters((f) => ({ ...f, campaignId }));
+            replaceParams((params) => {
+              if (campaignId === 'all') params.delete('campaign');
+              else params.set('campaign', campaignId);
+            });
+          }}
+          options={[
+            { value: 'all', label: t('demo.filter.all') },
+            ...campaigns.map((c) => ({ value: c.id, label: pickCopy(c.name, locale) })),
+          ]}
+        />
+      </label>
+      <label>
+        {t('demo.content.filter.brand')}
+        <OmaSelect
+          value={filters.brandId}
+          testId="demo-content-filter-brand"
+          onChange={(brandId) => setFilters((f) => ({ ...f, brandId }))}
+          options={[
+            { value: 'all', label: t('demo.filter.all') },
+            ...brands.map((b) => ({ value: b.id, label: pickCopy(b.name, locale) })),
+          ]}
+        />
+      </label>
+      <label>
+        {t('demo.filter.channel')}
+        <OmaSelect
+          value={filters.channel}
+          testId="demo-content-filter-channel"
+          onChange={(channel) => setFilters((f) => ({ ...f, channel }))}
+          options={[
+            { value: 'all', label: t('demo.filter.all') },
+            ...channels.map((ch) => ({ value: ch, label: ch })),
+          ]}
+        />
+      </label>
+      <label>
+        {t('demo.content.filter.type')}
+        <OmaSelect
+          value={filters.contentType}
+          onChange={(contentType) => setFilters((f) => ({ ...f, contentType }))}
+          options={[
+            { value: 'all', label: t('demo.filter.all') },
+            ...types.map((ty) => ({ value: ty, label: ty })),
+          ]}
+        />
+      </label>
+      <label>
+        {t('demo.filter.status')}
+        <OmaSelect
+          value={filters.status}
+          testId="demo-content-filter-status"
+          onChange={(status) => setFilters((f) => ({ ...f, status }))}
+          options={[
+            { value: 'all', label: t('demo.filter.all') },
+            ...statuses.map((s) => ({ value: s, label: statusLabel(s, locale) })),
+          ]}
+        />
+      </label>
+      <label>
+        {t('demo.content.filter.review')}
+        <OmaSelect
+          value={filters.review}
+          onChange={(review) => setFilters((f) => ({ ...f, review }))}
+          options={[
+            { value: 'all', label: t('demo.filter.all') },
+            { value: 'needs', label: reviewFilterLabel('needs', locale, t('demo.filter.all')) },
+            {
+              value: 'approved',
+              label: reviewFilterLabel('approved', locale, t('demo.filter.all')),
+            },
+          ]}
+        />
+      </label>
+      <label>
+        {t('demo.content.filter.approval')}
+        <OmaSelect
+          value={filters.approval}
+          testId="demo-content-filter-approval"
+          onChange={(approval) => setFilters((f) => ({ ...f, approval }))}
+          options={[
+            { value: 'all', label: t('demo.filter.all') },
+            { value: 'NOT_REQUESTED', label: t('demo.content.approval.notRequested') },
+            { value: 'PENDING', label: t('demo.content.approval.pending') },
+            { value: 'PARTIALLY_APPROVED', label: t('demo.content.approval.partial') },
+            { value: 'APPROVED', label: t('demo.content.approval.approved') },
+          ]}
+        />
+      </label>
+      <label>
+        {t('demo.content.filter.owner')}
+        <OmaSelect
+          value={filters.assignee}
+          onChange={(assignee) => setFilters((f) => ({ ...f, assignee }))}
+          options={[
+            { value: 'all', label: t('demo.filter.all') },
+            ...assignees.map((a) => ({ value: a, label: a })),
+          ]}
+        />
+      </label>
+      <label>
+        {t('demo.content.filter.date')}
+        <DatePicker
+          value={filters.dateFrom ? dayjs(filters.dateFrom) : null}
+          onChange={(_, dateString) =>
+            setFilters((f) => ({
+              ...f,
+              dateFrom: Array.isArray(dateString) ? (dateString[0] ?? '') : dateString,
+            }))
+          }
+          allowClear
+        />
+      </label>
+      <label>
+        {t('demo.content.filter.date')}
+        <DatePicker
+          value={filters.dateTo ? dayjs(filters.dateTo) : null}
+          onChange={(_, dateString) =>
+            setFilters((f) => ({
+              ...f,
+              dateTo: Array.isArray(dateString) ? (dateString[0] ?? '') : dateString,
+            }))
+          }
+          allowClear
+        />
+      </label>
+    </>
   );
 
   return (
@@ -1767,132 +1907,54 @@ export default function ContentPage() {
             </header>
             <div className="oma-filter-sidepanel__body">
               <p className="oma-content-filter-eyebrow">{isAr ? 'ترتيب حسب' : 'SORT BY'}</p>
-              <button
-                type="button"
-                className="oma-filter-accordion__row oma-filter-accordion__row--static"
-              >
-                <span className="oma-filter-accordion__ico" aria-hidden>
-                  ⇅
-                </span>
-                {isAr ? 'آخر إنشاء' : 'Last created'}
-              </button>
-
+              <label className="oma-filter-sidepanel__row">
+                <span>{isAr ? 'حقل الترتيب' : 'Sort field'}</span>
+                <OmaSelect
+                  value={sortKey}
+                  onChange={(value) => setSortKey(value as ContentSortKey)}
+                  options={[
+                    { value: 'date', label: isAr ? 'التاريخ' : 'Date' },
+                    { value: 'updated', label: isAr ? 'آخر تحديث' : 'Last updated' },
+                    { value: 'title', label: isAr ? 'العنوان' : 'Title' },
+                    { value: 'channel', label: isAr ? 'القناة' : 'Channel' },
+                    { value: 'campaign', label: isAr ? 'الحملة' : 'Campaign' },
+                    { value: 'owner', label: isAr ? 'المسؤول' : 'Author' },
+                    { value: 'status', label: isAr ? 'الحالة' : 'Status' },
+                  ]}
+                />
+              </label>
+              <label className="oma-filter-sidepanel__row">
+                <span>{isAr ? 'الاتجاه' : 'Direction'}</span>
+                <OmaSelect
+                  value={sortDir}
+                  onChange={(value) => setSortDir(value as 'asc' | 'desc')}
+                  options={[
+                    { value: 'desc', label: isAr ? 'الأحدث أولاً' : 'Newest first' },
+                    { value: 'asc', label: isAr ? 'الأقدم أولاً' : 'Oldest first' },
+                  ]}
+                />
+              </label>
+              <div className="oma-content-filter-divider" />
               <p className="oma-content-filter-eyebrow">{isAr ? 'تصفية حسب' : 'FILTER BY'}</p>
-
-              {(
-                [
-                  { id: 'approval', label: isAr ? 'حالة الموافقة' : 'Approval Status', icon: '✓' },
-                  { id: 'postStatus', label: isAr ? 'حالة المنشور' : 'Post Status', icon: '◷' },
-                  { id: 'feedback', label: isAr ? 'التعليقات والنشاط' : 'Feedback & Activity', icon: '💬' },
-                  { id: 'campaign', label: isAr ? 'الحملة' : 'Campaign', icon: '⚑' },
-                  { id: 'labels', label: isAr ? 'التسميات' : 'Labels', icon: '🏷' },
-                  { id: 'period', label: isAr ? 'الفترة' : 'Period', icon: '📅' },
-                  { id: 'postType', label: isAr ? 'نوع المنشور' : 'Post Type', icon: '▦' },
-                  { id: 'content', label: isAr ? 'المحتوى' : 'Content', icon: '▣' },
-                  { id: 'author', label: isAr ? 'المؤلف' : 'Author', icon: '👤' },
-                ] as const
-              ).map((sec) => (
-                <div key={sec.id} className="oma-filter-accordion">
-                  <button
-                    type="button"
-                    className="oma-filter-accordion__row"
-                    data-open={filterSection === sec.id ? 'true' : 'false'}
-                    onClick={() => setFilterSection((s) => (s === sec.id ? null : sec.id))}
-                  >
-                    <span className="oma-filter-accordion__ico" aria-hidden>
-                      {sec.icon}
-                    </span>
-                    <span>{sec.label}</span>
-                    <span className="oma-filter-accordion__caret" aria-hidden>
-                      {filterSection === sec.id ? '▴' : '▾'}
-                    </span>
-                  </button>
-                  {filterSection === sec.id && sec.id === 'campaign' ? (
-                    <div className="oma-filter-accordion__body">
-                      <label className="oma-filter-check">
-                        <input
-                          type="checkbox"
-                          checked={!filters.campaignId}
-                          onChange={() => setFilters((f) => ({ ...f, campaignId: '' }))}
-                        />
-                        <span>{isAr ? 'بدون حملة' : 'No Campaign'}</span>
-                        <span className="oma-filter-check__count">{rows.filter((r) => !r.campaignId).length}</span>
-                      </label>
-                      {campaigns.map((c) => (
-                        <label key={c.id} className="oma-filter-check">
-                          <input
-                            type="checkbox"
-                            checked={filters.campaignId === c.id}
-                            onChange={() =>
-                              setFilters((f) => ({
-                                ...f,
-                                campaignId: f.campaignId === c.id ? '' : c.id,
-                              }))
-                            }
-                          />
-                          <span>{pickCopy(c.name, locale)}</span>
-                          <span className="oma-filter-check__count">
-                            {rows.filter((r) => r.campaignId === c.id).length}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  ) : null}
-                  {filterSection === sec.id && sec.id === 'postType' ? (
-                    <div className="oma-filter-accordion__body">
-                      {['POST', 'STORY', 'REEL', 'CAROUSEL', 'STATIC'].map((ty) => (
-                        <label key={ty} className="oma-filter-check">
-                          <input
-                            type="checkbox"
-                            checked={filters.contentType === ty}
-                            onChange={() =>
-                              setFilters((f) => ({
-                                ...f,
-                                contentType: f.contentType === ty ? '' : ty,
-                              }))
-                            }
-                          />
-                          <span>{ty === 'POST' ? 'Posts' : ty === 'STORY' ? 'Stories' : ty === 'REEL' ? 'Reels' : ty}</span>
-                          <span className="oma-filter-check__count">
-                            {rows.filter((r) => r.contentType === ty).length}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  ) : null}
-                  {filterSection === sec.id && sec.id === 'content' ? (
-                    <div className="oma-filter-accordion__body">
-                      {(
-                        [
-                          { id: 'images', label: 'Images' },
-                          { id: 'video', label: 'Video' },
-                          { id: 'gif', label: 'GIF' },
-                          { id: 'none', label: 'No media' },
-                        ] as const
-                      ).map((c) => (
-                        <label key={c.id} className="oma-filter-check">
-                          <input type="checkbox" />
-                          <span>{c.label}</span>
-                          <span className="oma-filter-check__count">
-                            {c.id === 'none' ? rows.filter((r) => !r.previewAsset).length : 0}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  ) : null}
-                  {filterSection === sec.id && sec.id === 'period' ? (
-                    <div className="oma-filter-accordion__body">{searchField}</div>
-                  ) : null}
-                </div>
-              ))}
-
-              <button type="button" className="oma-filter-accordion__row oma-filter-accordion__row--static">
-                <span className="oma-filter-accordion__ico" aria-hidden>
-                  🔍
-                </span>
-                {isAr ? 'بحث في المنشورات' : 'Search in posts'}
-              </button>
+              {searchField}
+              {advancedFilterFields}
             </div>
+            <footer className="oma-filter-sidepanel__foot">
+              <Button
+                type="default"
+                onClick={() => setFilters(EMPTY_CONTENT_FILTERS)}
+                data-testid="demo-content-filter-clear"
+              >
+                {t('demo.content.clearFilters')}
+              </Button>
+              <Button
+                type="primary"
+                onClick={() => setFilterSheet(false)}
+                data-testid="demo-content-filter-apply"
+              >
+                {t('demo.filters.apply')}
+              </Button>
+            </footer>
           </aside>
         </>
       ) : null}
