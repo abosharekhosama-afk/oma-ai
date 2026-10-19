@@ -552,3 +552,62 @@
   padding: 0 !important;
   width: 100%;
 }
+
+/* Planable content path trail */
+.oma-breadcrumb--planable {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  flex-wrap: nowrap;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 13px;
+  line-height: 20px;
+  color: #333;
+}
+.oma-breadcrumb--planable li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.oma-breadcrumb-sep {
+  color: #c5c8ce;
+  margin-inline: 4px;
+}
+.oma-breadcrumb-workspace {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+.oma-breadcrumb-workspace-mark {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: #1677ff;
+  display: inline-block;
+}
+.oma-breadcrumb-caret {
+  color: #8c8c8c;
+  font-size: 10px;
+}
+.oma-breadcrumb-view {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+  cursor: default;
+}
+.oma-breadcrumb-view::after {
+  content: '▾';
+  color: #8c8c8c;
+  font-size: 10px;
+}
+.oma-top[data-content-workspace='true'] {
+  border-bottom: 1px solid #eef0f2;
+  background: #fff;
+}
+.oma-top[data-content-workspace='true'] .oma-top-actions--content {
+  min-height: 32px;
+}
