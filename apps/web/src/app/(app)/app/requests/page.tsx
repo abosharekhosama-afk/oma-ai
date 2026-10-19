@@ -237,15 +237,6 @@ export default function RequestsPage() {
       <PageHeader
         title={t('demo.requests.title')}
         description={t('demo.requests.subtitle')}
-        actions={
-          <Button
-            type="primary"
-            data-testid="demo-create-request"
-            onClick={() => setCreateOpen(true)}
-          >
-            {t('demo.requests.new')}
-          </Button>
-        }
       />
       <DemoDisclosure />
 
@@ -293,15 +284,147 @@ export default function RequestsPage() {
                 onClick={() => setFilterSheet((v) => !v)}
               >
                 <FilterOutlined />
-                <span>{t('demo.requests.search')}</span>
+                <span>{locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter'}</span>
                 {filterCount > 0 ? (
                   <span className="oma-req-filter-btn__count">{filterCount}</span>
                 ) : null}
               </button>
+              <Button
+                type="primary"
+                data-testid="demo-create-request"
+                onClick={() => setCreateOpen(true)}
+              >
+                {t('demo.requests.new')}
+              </Button>
             </div>
           </div>
 
           <div className="oma-req-workspace" data-filter-open={filterSheet ? 'true' : 'false'}>
+            <div className="oma-req-main">
+          <p className="oma-muted" data-testid="demo-request-result-count">
+            {filtered.length} / {rows.length}
+          </p>
+
+          {filtered.length === 0 ? (
+            <EmptyState title={t('demo.empty')} body={t('demo.requests.emptyHint')} />
+          ) : (
+            <>
+              <div className="oma-req-table-wrap oma-req-desktop" data-testid="demo-request-table">
+                <table className="oma-req-table">
+                  <thead>
+                    <tr>
+                      <th>{t('demo.requests.col.request')}</th>
+                      <th>{t('demo.requests.col.type')}</th>
+                      <th>{t('demo.requests.col.requester')}</th>
+                      <th>{t('demo.requests.col.brandCampaign')}</th>
+                      <th>{t('demo.requests.col.priority')}</th>
+                      <th>{t('demo.requests.col.assignee')}</th>
+                      <th>{t('demo.requests.col.submitted')}</th>
+                      <th>{t('demo.requests.col.due')}</th>
+                      <th>{t('demo.requests.col.status')}</th>
+                      <th>{t('demo.requests.col.next')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filtered.map((r) => {
+                      const brief = briefByRequest.get(r.id) ?? null;
+                      const missing = requestMissingFields(r);
+                      const overdue = requestIsOverdue(r);
+                      const next = requestNextAction(r, brief);
+                      return (
+                        <tr
+                          key={r.id}
+                          data-overdue={overdue ? 'true' : 'false'}
+                          data-missing={missing.length ? 'true' : 'false'}
+                          data-testid={`demo-request-row-${r.id}`}
+                        >
+                          <td>
+                            <div className="oma-req-title-cell">
+                              <span className="oma-req-avatar" aria-hidden>
+                                {initials(r.requester)}
+                              </span>
+                              <div>
+                                <Link href={`/app/requests/${r.id}`} className="oma-text-link">
+                                  {pickCopy(r.title, locale)}
+                                </Link>
+                                <div className="oma-muted" style={{ fontSize: 12 }}>
+                                  {r.id.replace('demo-request-', '#')} ·{' '}
+                                  {requestCompleteness(r, brief)}%
+                                  {missing.length ? ` · ${missing.join(', ')}` : ''}
+                                  {` · ${r.updatedAt ?? r.submittedAt}`}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td>
+                            <span className="oma-sr-only">{t('demo.requests.col.type')}: </span>
+                            {r.type}
+                          </td>
+                          <td>{r.requester}</td>
+                          <td>
+                            {brandName(r.brandId)}
+                            <div className="oma-muted" style={{ fontSize: 12 }}>
+                              {campaignName(r.campaignId)}
+                            </div>
+                          </td>
+                          <td>
+                            <StatusChip
+                              status={r.priority}
+                              tone={
+                                r.priority === 'URGENT' || r.priority === 'HIGH'
+                                  ? 'warning'
+                                  : 'neutral'
+                              }
+                            />
+                          </td>
+                          <td>
+                            <div className="oma-req-title-cell">
+                              <span className="oma-req-avatar" aria-hidden>
+                                {initials(r.assignee ?? t('demo.requests.unassigned'))}
+                              </span>
+                              <span>{r.assignee ?? t('demo.requests.unassigned')}</span>
+                            </div>
+                          </td>
+                          <td>{r.submittedAt}</td>
+                          <td>{r.dueAt}</td>
+                          <td>
+                            <StatusChip status={r.status} />
+                          </td>
+                          <td>{pickCopy(next, locale)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              <ul className="oma-req-mobile" aria-label={t('demo.requests.title')}>
+                {filtered.map((r) => {
+                  const brief = briefByRequest.get(r.id) ?? null;
+                  const next = requestNextAction(r, brief);
+                  return (
+                    <li key={r.id}>
+                      <Link
+                        href={`/app/requests/${r.id}`}
+                        className="oma-req-mobile-card"
+                        data-testid={`demo-request-mobile-${r.id}`}
+                      >
+                        <strong>{pickCopy(r.title, locale)}</strong>
+                        <div className="oma-chip-row">
+                          <StatusChip status={r.status} />
+                          <StatusChip status={r.priority} />
+                        </div>
+                        <span className="oma-muted">
+                          {r.assignee ?? t('demo.requests.unassigned')} · {r.dueAt}
+                        </span>
+                        <span>{pickCopy(next, locale)}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          )}
             {filterSheet ? (
               <aside className="oma-req-filter-panel" data-testid="demo-request-filters">
                 <header className="oma-req-filter-panel__head">
@@ -653,131 +776,6 @@ export default function RequestsPage() {
               </aside>
             ) : null}
 
-            <div className="oma-req-main">
-          <p className="oma-muted" data-testid="demo-request-result-count">
-            {filtered.length} / {rows.length}
-          </p>
-
-          {filtered.length === 0 ? (
-            <EmptyState title={t('demo.empty')} body={t('demo.requests.emptyHint')} />
-          ) : (
-            <>
-              <div className="oma-req-table-wrap oma-req-desktop" data-testid="demo-request-table">
-                <table className="oma-req-table">
-                  <thead>
-                    <tr>
-                      <th>{t('demo.requests.col.request')}</th>
-                      <th>{t('demo.requests.col.type')}</th>
-                      <th>{t('demo.requests.col.requester')}</th>
-                      <th>{t('demo.requests.col.brandCampaign')}</th>
-                      <th>{t('demo.requests.col.priority')}</th>
-                      <th>{t('demo.requests.col.assignee')}</th>
-                      <th>{t('demo.requests.col.submitted')}</th>
-                      <th>{t('demo.requests.col.due')}</th>
-                      <th>{t('demo.requests.col.status')}</th>
-                      <th>{t('demo.requests.col.next')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filtered.map((r) => {
-                      const brief = briefByRequest.get(r.id) ?? null;
-                      const missing = requestMissingFields(r);
-                      const overdue = requestIsOverdue(r);
-                      const next = requestNextAction(r, brief);
-                      return (
-                        <tr
-                          key={r.id}
-                          data-overdue={overdue ? 'true' : 'false'}
-                          data-missing={missing.length ? 'true' : 'false'}
-                          data-testid={`demo-request-row-${r.id}`}
-                        >
-                          <td>
-                            <div className="oma-req-title-cell">
-                              <span className="oma-req-avatar" aria-hidden>
-                                {initials(r.requester)}
-                              </span>
-                              <div>
-                                <Link href={`/app/requests/${r.id}`} className="oma-text-link">
-                                  {pickCopy(r.title, locale)}
-                                </Link>
-                                <div className="oma-muted" style={{ fontSize: 12 }}>
-                                  {r.id.replace('demo-request-', '#')} ·{' '}
-                                  {requestCompleteness(r, brief)}%
-                                  {missing.length ? ` · ${missing.join(', ')}` : ''}
-                                  {` · ${r.updatedAt ?? r.submittedAt}`}
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-                          <td>
-                            <span className="oma-sr-only">{t('demo.requests.col.type')}: </span>
-                            {r.type}
-                          </td>
-                          <td>{r.requester}</td>
-                          <td>
-                            {brandName(r.brandId)}
-                            <div className="oma-muted" style={{ fontSize: 12 }}>
-                              {campaignName(r.campaignId)}
-                            </div>
-                          </td>
-                          <td>
-                            <StatusChip
-                              status={r.priority}
-                              tone={
-                                r.priority === 'URGENT' || r.priority === 'HIGH'
-                                  ? 'warning'
-                                  : 'neutral'
-                              }
-                            />
-                          </td>
-                          <td>
-                            <div className="oma-req-title-cell">
-                              <span className="oma-req-avatar" aria-hidden>
-                                {initials(r.assignee ?? t('demo.requests.unassigned'))}
-                              </span>
-                              <span>{r.assignee ?? t('demo.requests.unassigned')}</span>
-                            </div>
-                          </td>
-                          <td>{r.submittedAt}</td>
-                          <td>{r.dueAt}</td>
-                          <td>
-                            <StatusChip status={r.status} />
-                          </td>
-                          <td>{pickCopy(next, locale)}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              <ul className="oma-req-mobile" aria-label={t('demo.requests.title')}>
-                {filtered.map((r) => {
-                  const brief = briefByRequest.get(r.id) ?? null;
-                  const next = requestNextAction(r, brief);
-                  return (
-                    <li key={r.id}>
-                      <Link
-                        href={`/app/requests/${r.id}`}
-                        className="oma-req-mobile-card"
-                        data-testid={`demo-request-mobile-${r.id}`}
-                      >
-                        <strong>{pickCopy(r.title, locale)}</strong>
-                        <div className="oma-chip-row">
-                          <StatusChip status={r.status} />
-                          <StatusChip status={r.priority} />
-                        </div>
-                        <span className="oma-muted">
-                          {r.assignee ?? t('demo.requests.unassigned')} · {r.dueAt}
-                        </span>
-                        <span>{pickCopy(next, locale)}</span>
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </>
-          )}
             </div>
           </div>
         </>
@@ -789,7 +787,7 @@ export default function RequestsPage() {
         title={t('demo.create.requestTitle')}
         labelledBy="demo-create-request-title"
       >
-        <div data-testid="demo-create-request-dialog" className="oma-stack">
+        <div data-testid="demo-create-request-dialog" className="oma-stack oma-req-create">
           <h2 id="demo-create-request-title" className="oma-dialog-title">
             {t('demo.create.requestTitle')}
           </h2>
@@ -912,7 +910,7 @@ export default function RequestsPage() {
           <p className="oma-muted" data-testid="demo-create-request-refs">
             {t('demo.optional')}: content / reference placeholders (Demo)
           </p>
-          <div className="oma-chip-row">
+          <div className="oma-req-create__footer">
             <Button disabled={creating} onClick={requestCloseCreate}>
               {t('demo.create.cancel')}
             </Button>
