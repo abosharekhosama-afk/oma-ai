@@ -3443,3 +3443,311 @@ button.oma-cal-item {
 .oma-cal-note-swatch[data-active='true'] {
   box-shadow: 0 0 0 2px #fff, 0 0 0 3px #333 !important;
 }
+
+/* Top action buttons with icons + tooltips */
+.oma-content-chrome {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  min-height: 48px !important;
+  padding: 0 12px !important;
+  background: #fff !important;
+  border-bottom: 1px solid #eef0f2 !important;
+  position: relative !important;
+  z-index: 20 !important;
+}
+.oma-content-chrome__trail {
+  display: flex !important;
+  align-items: center !important;
+}
+.oma-content-chrome__actions {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  margin-inline-start: auto !important;
+}
+.oma-top-action {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  height: 32px !important;
+  padding: 0 10px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: #333 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  position: relative !important;
+}
+.oma-top-action:hover {
+  background: #f0f1f3 !important;
+}
+.oma-top-action--ghost {
+  border: 1px solid #e2e3e5 !important;
+  background: #fff !important;
+}
+.oma-top-action--primary {
+  background: #1677ff !important;
+  color: #fff !important;
+  padding-inline: 14px !important;
+}
+.oma-top-action--primary:hover {
+  background: #3c8cff !important;
+}
+.oma-top-action__icon {
+  font-size: 14px !important;
+  line-height: 1 !important;
+  opacity: 0.85 !important;
+}
+
+/* Tooltip pattern — project-wide via data-tooltip */
+[data-tooltip] {
+  position: relative !important;
+}
+[data-tooltip]:hover::after {
+  content: attr(data-tooltip) !important;
+  position: absolute !important;
+  z-index: 200 !important;
+  bottom: calc(100% + 8px) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  padding: 6px 10px !important;
+  border-radius: 6px !important;
+  background: #1f1f1f !important;
+  color: #fff !important;
+  font-size: 12px !important;
+  line-height: 16px !important;
+  white-space: nowrap !important;
+  pointer-events: none !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18) !important;
+}
+
+/* View menu card */
+.oma-view-menu {
+  position: relative !important;
+}
+.oma-view-menu__trigger {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  height: 32px !important;
+  padding: 0 8px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: #333 !important;
+  cursor: pointer !important;
+}
+.oma-view-menu__trigger:hover {
+  background: #f0f1f3 !important;
+}
+.oma-view-menu__list--card {
+  position: absolute !important;
+  top: calc(100% + 4px) !important;
+  inset-inline-start: 0 !important;
+  z-index: 50 !important;
+  min-width: 180px !important;
+  margin: 0 !important;
+  padding: 6px !important;
+  list-style: none !important;
+  background: #fff !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+}
+.oma-view-menu__item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-height: 36px !important;
+  padding: 0 10px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: #333 !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+  text-align: start !important;
+}
+.oma-view-menu__item:hover,
+.oma-view-menu__item[data-selected='true'] {
+  background: #f5f6f7 !important;
+}
+.oma-view-menu__check {
+  margin-inline-start: auto !important;
+  color: #1677ff !important;
+}
+
+/* Card context menu */
+.oma-cal-item-wrap {
+  position: relative !important;
+  width: 100% !important;
+}
+.oma-card-menu {
+  position: absolute !important;
+  top: 100% !important;
+  inset-inline-start: 0 !important;
+  z-index: 40 !important;
+  min-width: 200px !important;
+  padding: 6px !important;
+  background: #fff !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+}
+.oma-card-menu__item {
+  display: block !important;
+  width: 100% !important;
+  min-height: 34px !important;
+  padding: 0 12px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: #333 !important;
+  font-size: 13px !important;
+  text-align: start !important;
+  cursor: pointer !important;
+}
+.oma-card-menu__item:hover {
+  background: #f5f6f7 !important;
+}
+.oma-cal-select {
+  position: absolute !important;
+  top: 4px !important;
+  inset-inline-start: 4px !important;
+  z-index: 3 !important;
+}
+
+/* Approval bottom bar */
+.oma-approval-bar {
+  position: fixed !important;
+  bottom: 24px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 90 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  min-height: 48px !important;
+  padding: 8px 16px !important;
+  border-radius: 12px !important;
+  background: #1f1f1f !important;
+  color: #fff !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28) !important;
+}
+.oma-approval-bar__close {
+  border: 0 !important;
+  background: transparent !important;
+  color: #fff !important;
+  font-size: 18px !important;
+  cursor: pointer !important;
+}
+.oma-approval-bar__count {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+.oma-approval-bar__link {
+  border: 0 !important;
+  background: transparent !important;
+  color: #9ec5ff !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+}
+.oma-approval-bar__send {
+  margin-inline-start: 8px !important;
+  height: 32px !important;
+  padding: 0 14px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: #1677ff !important;
+  color: #fff !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+}
+.oma-approval-bar__send:disabled {
+  opacity: 0.45 !important;
+  cursor: not-allowed !important;
+}
+
+/* External calendars popover */
+.oma-cal-ext-wrap {
+  position: relative !important;
+}
+.oma-ext-cal-pop {
+  position: absolute !important;
+  top: calc(100% + 6px) !important;
+  inset-inline-end: 0 !important;
+  z-index: 50 !important;
+  width: 260px !important;
+  padding: 12px !important;
+  background: #fff !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+}
+.oma-ext-cal-pop__head {
+  display: flex !important;
+  justify-content: space-between !important;
+  margin-bottom: 10px !important;
+  font-size: 13px !important;
+}
+.oma-ext-cal-pop__sync {
+  color: #8c8c8c !important;
+  font-size: 12px !important;
+}
+.oma-ext-cal-pop__row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-height: 32px !important;
+  font-size: 13px !important;
+}
+.oma-ext-cal-pop__add {
+  margin-top: 8px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #1677ff !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+}
+
+/* Media library drop zone */
+.oma-media-library-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
+  gap: 12px !important;
+}
+.oma-media-library-item {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  padding: 8px !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  cursor: pointer !important;
+}
+.oma-media-library-item img {
+  width: 100% !important;
+  aspect-ratio: 1 !important;
+  object-fit: cover !important;
+  border-radius: 6px !important;
+}
+.oma-media-library-item:hover {
+  border-color: #1677ff !important;
+  box-shadow: 0 0 0 1px rgba(22, 119, 255, 0.2) !important;
+}
+
+/* Filter sheet planable density */
+.oma-content-filter-modal .oma-composer-fields label,
+[data-testid='demo-content-filter-sheet'] label {
+  font-size: 13px !important;
+  color: #5e6166 !important;
+}
