@@ -732,9 +732,10 @@ export default function ContentPage() {
                       data-testid={`demo-content-view-${id}`}
                       className="oma-view-menu__item"
                       onClick={() => {
-                        setView(id);
-                        setViewMenuOpen(false);
+                      _changeView(id);
+                      setViewMenuOpen(false);
                       }}
+
                     >
                       <span className="oma-view-menu__check" aria-hidden>{view === id ? '✓' : ''}</span>
                       {t(`demo.view.${id}`)}
