@@ -3981,3 +3981,222 @@ button.oma-cal-item {
   white-space: nowrap !important;
   text-overflow: ellipsis !important;
 }
+
+/* Hide separate content chrome bar entirely — actions live in shell header */
+.oma-content-chrome,
+.oma-content-chrome--actions-only {
+  display: none !important;
+}
+
+/* Header top actions for content */
+.oma-top-actions--content {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+.oma-top-actions--content .oma-top-action {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  height: 32px !important;
+  padding: 0 10px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: #333 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+}
+.oma-top-actions--content .oma-top-action:hover {
+  background: #f0f1f3 !important;
+}
+.oma-top-actions--content .oma-top-action--ghost {
+  border: 1px solid #e2e3e5 !important;
+  background: #fff !important;
+}
+.oma-top-actions--content .oma-top-action--primary {
+  background: #1677ff !important;
+  color: #fff !important;
+  padding-inline: 14px !important;
+}
+.oma-top-actions--content .oma-top-action--primary:hover {
+  background: #3c8cff !important;
+}
+
+/* View menu above everything */
+.oma-view-menu__list--path {
+  position: fixed !important;
+  top: 48px !important;
+  inset-inline-start: 200px !important;
+  z-index: 1000 !important;
+  min-width: 200px !important;
+  margin: 0 !important;
+  padding: 6px !important;
+  list-style: none !important;
+  background: #fff !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 10px !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14) !important;
+}
+
+/* Calendar cell: Post/Note at TOP on hover */
+.oma-cal-day {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  min-height: 110px !important;
+  padding: 6px !important;
+}
+.oma-cal-cell-actions {
+  display: none !important;
+  order: -1 !important;
+  gap: 6px !important;
+  margin-bottom: 2px !important;
+}
+.oma-cal-day:hover .oma-cal-cell-actions {
+  display: inline-flex !important;
+}
+.oma-cal-cell-actions__btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  height: 26px !important;
+  padding: 0 8px !important;
+  border: 1px dashed #d0d3d6 !important;
+  border-radius: 6px !important;
+  background: #fff !important;
+  color: #5e6166 !important;
+  font-size: 12px !important;
+  cursor: pointer !important;
+}
+.oma-cal-cell-actions__btn:hover {
+  border-color: #1677ff !important;
+  color: #1677ff !important;
+}
+
+/* Campaign bar full span Planable style */
+.oma-cal-campaign-bar,
+.oma-cal-campaign-bar--span {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  min-height: 22px !important;
+  margin: 0 0 4px !important;
+  padding: 0 8px !important;
+  border: 1px solid #e6e7e9 !important;
+  border-radius: 4px !important;
+  background: #fff !important;
+  color: #5e6166 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+}
+.oma-cal-campaign-bar__icon {
+  color: #8c8c8c !important;
+  font-size: 11px !important;
+}
+
+/* Saved / 1 calendar pill buttons */
+.oma-cal-saved-toggle,
+.oma-cal-ext-indicator {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  height: 28px !important;
+  padding: 0 10px !important;
+  border: 1px solid #e2e3e5 !important;
+  border-radius: 6px !important;
+  background: #fff !important;
+  color: #333 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+}
+.oma-cal-ext-dot {
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  background: #52c41a !important;
+  display: inline-block !important;
+}
+
+/* Card hover action menu */
+.oma-cal-item-wrap {
+  position: relative !important;
+}
+.oma-cal-item-wrap:hover .oma-card-menu--hover,
+.oma-cal-item-wrap[data-menu='true'] .oma-card-menu {
+  display: block !important;
+}
+.oma-card-menu {
+  display: none;
+  position: absolute !important;
+  top: 100% !important;
+  inset-inline-start: 0 !important;
+  z-index: 30 !important;
+  min-width: 200px !important;
+  padding: 6px !important;
+  background: #fff !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+}
+.oma-cal-item-wrap:hover > .oma-card-menu {
+  display: block !important;
+}
+
+/* Filter accordion Planable style */
+.oma-filter-accordion__row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-height: 40px !important;
+  padding: 0 4px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #333 !important;
+  font-size: 13px !important;
+  text-align: start !important;
+  cursor: pointer !important;
+  border-radius: 6px !important;
+}
+.oma-filter-accordion__row:hover,
+.oma-filter-accordion__row[data-open='true'] {
+  background: #f5f6f7 !important;
+}
+.oma-filter-accordion__ico {
+  width: 18px !important;
+  text-align: center !important;
+  opacity: 0.7 !important;
+}
+.oma-filter-accordion__caret {
+  margin-inline-start: auto !important;
+  color: #8c8c8c !important;
+  font-size: 10px !important;
+}
+.oma-filter-accordion__body {
+  padding: 4px 8px 10px 28px !important;
+  background: #f7f8f9 !important;
+  border-radius: 0 0 8px 8px !important;
+  margin-bottom: 4px !important;
+}
+.oma-filter-check {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-height: 32px !important;
+  font-size: 13px !important;
+  color: #333 !important;
+  cursor: pointer !important;
+}
+.oma-filter-check__count {
+  margin-inline-start: auto !important;
+  color: #8c8c8c !important;
+  font-size: 12px !important;
+}
