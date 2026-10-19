@@ -16,6 +16,7 @@ import {
   TextArea,
 } from '@oma/ui/controls';
 import dayjs from 'dayjs';
+import { FilterOutlined, PictureOutlined, EditOutlined } from '@ant-design/icons';
 import { Dialog } from '../../../../components/ui/dialog';
 import { EmptyState, ErrorState, DeniedState } from '../../../../components/ui/empty-state';
 import { useToast } from '../../../../components/ui/toast';
@@ -819,9 +820,7 @@ export default function ContentPage() {
             onClick={() => setFilterSheet(true)}
             data-testid="demo-content-open-filters"
           >
-            <span className="oma-top-action__icon" aria-hidden>
-              ▿
-            </span>
+            <FilterOutlined className="oma-top-action__icon" aria-hidden />
             {isAr ? 'تصفية' : 'Filter'}
             {filterCount > 0 ? ` (${filterCount})` : ''}
           </button>
@@ -832,9 +831,7 @@ export default function ContentPage() {
             onClick={() => setMediaLibraryOpen(true)}
             data-testid="demo-content-open-media"
           >
-            <span className="oma-top-action__icon" aria-hidden>
-              ▣
-            </span>
+            <PictureOutlined className="oma-top-action__icon" aria-hidden />
             {isAr ? 'الوسائط' : 'Media'}
           </button>
           <button
@@ -853,9 +850,7 @@ export default function ContentPage() {
             data-testid="demo-create-content"
             onClick={() => setCreateOpen(true)}
           >
-            <span className="oma-top-action__icon" aria-hidden>
-              ✎
-            </span>
+            <EditOutlined className="oma-top-action__icon" aria-hidden />
             {isAr ? 'إنشاء' : 'Compose'}
           </button>
         </div>
@@ -1859,6 +1854,7 @@ export default function ContentPage() {
 
       <Dialog
         open={filterSheet}
+        className="oma-content-filter-modal"
         title={isAr ? 'تصفية وترتيب' : 'Filter & sort'}
         onClose={() => setFilterSheet(false)}
         footer={
@@ -1880,7 +1876,39 @@ export default function ContentPage() {
           </div>
         }
       >
-        <div className="oma-composer-fields" data-testid="demo-content-filter-sheet">
+        <div className="oma-content-filter-panel" data-testid="demo-content-filter-sheet">
+          <section className="oma-content-filter-sort">
+            <p className="oma-content-filter-eyebrow">{isAr ? 'ترتيب حسب' : 'SORT BY'}</p>
+            <label>
+              <span>{isAr ? 'حقل الترتيب' : 'Sort field'}</span>
+              <OmaSelect
+                value={sortKey}
+                onChange={(value) => setSortKey(value as ContentSortKey)}
+                options={[
+                  { value: 'date', label: isAr ? 'التاريخ' : 'Date' },
+                  { value: 'updated', label: isAr ? 'آخر تحديث' : 'Last updated' },
+                  { value: 'title', label: isAr ? 'العنوان' : 'Title' },
+                  { value: 'channel', label: isAr ? 'القناة' : 'Channel' },
+                  { value: 'campaign', label: isAr ? 'الحملة' : 'Campaign' },
+                  { value: 'owner', label: isAr ? 'المسؤول' : 'Author' },
+                  { value: 'status', label: isAr ? 'الحالة' : 'Status' },
+                ]}
+              />
+            </label>
+            <label>
+              <span>{isAr ? 'الاتجاه' : 'Direction'}</span>
+              <OmaSelect
+                value={sortDir}
+                onChange={(value) => setSortDir(value as 'asc' | 'desc')}
+                options={[
+                  { value: 'desc', label: isAr ? 'الأحدث أولاً' : 'Newest first' },
+                  { value: 'asc', label: isAr ? 'الأقدم أولاً' : 'Oldest first' },
+                ]}
+              />
+            </label>
+          </section>
+          <div className="oma-content-filter-divider" />
+          <p className="oma-content-filter-eyebrow">{isAr ? 'تصفية حسب' : 'FILTER BY'}</p>
           {searchField}
           {advancedFilterFields}
         </div>
