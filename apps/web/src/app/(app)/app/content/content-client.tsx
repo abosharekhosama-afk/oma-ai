@@ -1,12 +1,10 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { resolveContentWorkflow, type ApprovalPolicy, type DemoGraph } from '@oma/demo';
 import { ContentFace, StatusMark, faceDisplay } from '../../../../components/content/content-card';
-import { TrackPill } from '../../../../components/demo/track-pill';
 import {
   Button,
   DatePicker,
@@ -24,7 +22,6 @@ import {
   CheckOutlined,
   ClockCircleOutlined,
   CloseOutlined,
-  CommentOutlined,
   CopyOutlined,
   DeleteOutlined,
   DesktopOutlined,
@@ -36,7 +33,6 @@ import {
   FilterOutlined,
   FlagOutlined,
   FormOutlined,
-  GlobalOutlined,
   HistoryOutlined,
   InboxOutlined,
   LinkOutlined,
@@ -46,10 +42,8 @@ import {
   MoreOutlined,
   NotificationOutlined,
   PictureOutlined,
-  PlusOutlined,
   ShareAltOutlined,
   SnippetsOutlined,
-  StopOutlined,
   SyncOutlined,
   TagOutlined,
   UnorderedListOutlined,
@@ -669,6 +663,9 @@ export default function ContentPage() {
     ? linkedIdsForContent(tasks, deliverables, requests, selected.id)
     : { taskId: null, deliverableId: null, requestId: null };
   const review = selected ? reviewPresentation(selected.status, locale) : null;
+  // Keep linkage metadata available for detail chrome / future deep links.
+  const detailMeta = { linked, review };
+  void detailMeta;
 
   function replaceParams(mutate: (params: URLSearchParams) => void) {
     const current =
@@ -2268,34 +2265,46 @@ export default function ContentPage() {
       ) : null}
 
       {!loading && !unavailable && !error && filtered.length > 0 && view === 'grid' ? (
-        <div className="oma-content-grid-stage3" data-testid="demo-content-grid">
-          {filtered.map((item) => (
-            <SurfaceButton
-              key={item.id}
-              data-testid={`demo-content-card-${item.id}`}
-              data-selected={selectedId === item.id ? 'true' : 'false'}
-              onClick={() => openItem(item)}
-              className="oma-content-card-stage3"
-            >
-              <div className="oma-content-card-media">
-                <img
-                  src={item.previewAsset}
-                  alt={mediaAlt(pickCopy(item.title, locale), item.channel, item.contentType)}
-                />
-              </div>
-              <div className="oma-content-card-body">
-                <strong>{pickCopy(item.title, locale)}</strong>
-                <div className="oma-chip-row">
-                  <span className="oma-cal-marker">{channelMarker(item.channel)}</span>
-                  <StatusMark display={faceDisplay(item, policy)} locale={locale} />
+        <div className="oma-plan-grid" data-testid="demo-content-grid">
+          {filtered.map((item) => {
+            const title = pickCopy(item.title, locale);
+            const when = item.scheduledAt
+              ? item.scheduledAt.slice(0, 16).replace('T', ' at ')
+              : '';
+            return (
+              <button
+                key={item.id}
+                type="button"
+                className="oma-plan-grid__card"
+                data-testid={`demo-content-card-${item.id}`}
+                data-selected={selectedId === item.id ? 'true' : 'false'}
+                onClick={() => openItem(item)}
+              >
+                <div className="oma-plan-grid__media">
+                  {item.previewAsset ? (
+                    <img
+                      src={item.previewAsset}
+                      alt={mediaAlt(title, item.channel, item.contentType)}
+                    />
+                  ) : (
+                    <span className="oma-plan-grid__ph" aria-hidden>
+                      ▣
+                    </span>
+                  )}
+                  <div className="oma-plan-grid__shade" />
+                  <div className="oma-plan-grid__overlay">
+                    {when ? (
+                      <span className="oma-plan-grid__when oma-ltr">{when}</span>
+                    ) : null}
+                    <span className="oma-plan-grid__title">{title}</span>
+                  </div>
+                  <span className="oma-plan-grid__corner" aria-hidden>
+                    <SyncOutlined />
+                  </span>
                 </div>
-                <span className="oma-muted">{campaignName(item.campaignId)}</span>
-                <span className="oma-ltr oma-muted">
-                  {item.scheduledAt ? item.scheduledAt.slice(0, 10) : '—'}
-                </span>
-              </div>
-            </SurfaceButton>
-          ))}
+              </button>
+            );
+          })}
         </div>
       ) : null}
 
@@ -2307,7 +2316,7 @@ export default function ContentPage() {
         className="oma-plan-post-modal"
       >
         {selected ? (
-          <div className="oma-plan-post" data-testid="demo-content-drawer" data-detail-tab={detailTab}>
+          <div className="oma-plan-post" data-testid="demo-content-drawer" data-detail-tab={detailTab} data-review={review?.state ?? ''}>
             {/* Left rail */}
             <aside className="oma-plan-post__rail" aria-hidden>
               <span className="oma-plan-post__rail-ico">
@@ -2565,8 +2574,17 @@ export default function ContentPage() {
                               ? 's'
                               : ''}
                         </div>
-                        {dirty ? (
+                        {(dirty || saveState !== 'idle') ? (
                           <div className="oma-plan-post__save-row">
+                            <span className="oma-plan-post__save-state" data-state={saveState}>
+                              {saveState === 'saved'
+                                ? t('demo.content.saved')
+                                : saveState === 'saving'
+                                  ? t('demo.content.saving')
+                                  : saveState === 'error'
+                                    ? saveError
+                                    : null}
+                            </span>
                             <Button
                               type="primary"
                               loading={saving}
