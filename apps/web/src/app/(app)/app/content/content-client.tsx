@@ -161,6 +161,11 @@ export default function ContentPage() {
   const [filterSheet, setFilterSheet] = useState(false);
   const [dayNotes, setDayNotes] = useState<Record<string, { text: string; color: string }>>({});
   const [noteDay, setNoteDay] = useState<string | null>(null);
+  const [approvalMode, setApprovalMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [cardMenuId, setCardMenuId] = useState<string | null>(null);
+  const [extCalOpen, setExtCalOpen] = useState(false);
+  const [savedOpen, setSavedOpen] = useState(true);
   const [policy, setPolicy] = useState<ApprovalPolicy>('OPTIONAL');
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -237,6 +242,18 @@ export default function ContentPage() {
     }
   }, []);
 
+
+
+  useEffect(() => {
+    if (!cardMenuId && !viewMenuOpen && !extCalOpen) return;
+    const onDoc = () => {
+      setCardMenuId(null);
+      setViewMenuOpen(false);
+      setExtCalOpen(false);
+    };
+    document.addEventListener('click', onDoc);
+    return () => document.removeEventListener('click', onDoc);
+  }, [cardMenuId, viewMenuOpen, extCalOpen]);
 
   /* Keep Planable path view label in shell breadcrumb in sync */
   useEffect(() => {
@@ -518,7 +535,36 @@ export default function ContentPage() {
   }
 
   function showApprovalQueue() {
+    setApprovalMode(true);
+    setSelectedIds([]);
     setFilters((current) => ({ ...current, review: 'needs' }));
+  }
+
+  function toggleSelectId(id: string) {
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  }
+
+  function clearSelection() {
+    setSelectedIds([]);
+    setApprovalMode(false);
+  }
+
+  async function sendForApproval() {
+    if (!selectedIds.length) return;
+    for (const id of selectedIds) {
+      try {
+        await demoApi(`/content/${id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ command: 'request-approval' }),
+        });
+      } catch {
+        /* demo continue */
+      }
+    }
+    setSelectedIds([]);
+    setApprovalMode(false);
+    toast.push(isAr ? 'تم إرسال طلب الموافقة' : 'Approval request sent', 'success');
+    void load();
   }
 
   function toggleSort(key: ContentSortKey) {
@@ -705,23 +751,35 @@ export default function ContentPage() {
 
   return (
     <div className="oma-stack oma-content-plan" data-testid="demo-content">
-      <div className="oma-content-chrome oma-content-chrome--actions-only" data-testid="demo-content-chrome">
+      <div className="oma-content-chrome" data-testid="demo-content-chrome">
         <div className="oma-content-chrome__trail">
           <div className="oma-view-menu" data-testid="demo-content-view-menu">
-            <Button
-              type="text"
+            <button
+              type="button"
               className="oma-view-menu__trigger"
               data-testid="demo-content-view-trigger"
               aria-haspopup="menu"
               aria-expanded={viewMenuOpen}
               onClick={() => setViewMenuOpen((open) => !open)}
             >
+              <span className="oma-view-menu__icon" aria-hidden>
+                {view === 'calendar' ? '▦' : view === 'feed' ? '☰' : view === 'list' ? '☰' : '▣'}
+              </span>
               <span data-testid={`demo-content-view-current-${view}`}>{t(`demo.view.${view}`)}</span>
-              <span className="oma-view-menu__caret" aria-hidden>▾</span>
-            </Button>
+              <span className="oma-view-menu__caret" aria-hidden>
+                ▾
+              </span>
+            </button>
             {viewMenuOpen ? (
-              <ul className="oma-view-menu__list" role="menu">
-                {(['calendar', 'feed', 'grid', 'list'] as const).map((id) => (
+              <ul className="oma-view-menu__list oma-view-menu__list--card" role="menu">
+                {(
+                  [
+                    { id: 'calendar' as const, icon: '▦' },
+                    { id: 'feed' as const, icon: '☰' },
+                    { id: 'list' as const, icon: '☰' },
+                    { id: 'grid' as const, icon: '▣' },
+                  ] as const
+                ).map(({ id, icon }) => (
                   <li key={id} role="none">
                     <button
                       type="button"
@@ -739,8 +797,13 @@ export default function ContentPage() {
                         setViewMenuOpen(false);
                       }}
                     >
-                      <span className="oma-view-menu__check" aria-hidden>{view === id ? '✓' : ''}</span>
-                      {t(`demo.view.${id}`)}
+                      <span className="oma-view-menu__item-icon" aria-hidden>
+                        {icon}
+                      </span>
+                      <span>{t(`demo.view.${id}`)}</span>
+                      <span className="oma-view-menu__check" aria-hidden>
+                        {view === id ? '✓' : ''}
+                      </span>
                     </button>
                   </li>
                 ))}
@@ -749,18 +812,52 @@ export default function ContentPage() {
           </div>
         </div>
         <div className="oma-content-chrome__actions">
-          <Button type="text" onClick={() => setFilterSheet(true)} className="oma-filter-sheet-trigger" data-testid="demo-content-open-filters">
-            {isAr ? 'تصفية' : 'Filter'}{filterCount > 0 ? ` (${filterCount})` : ''}
-          </Button>
-          <Button type="text" onClick={() => setMediaLibraryOpen(true)} data-testid="demo-content-open-media">
+          <button
+            type="button"
+            className="oma-top-action"
+            data-tooltip={isAr ? 'تصفية وترتيب' : 'Filter & sort'}
+            onClick={() => setFilterSheet(true)}
+            data-testid="demo-content-open-filters"
+          >
+            <span className="oma-top-action__icon" aria-hidden>
+              ▿
+            </span>
+            {isAr ? 'تصفية' : 'Filter'}
+            {filterCount > 0 ? ` (${filterCount})` : ''}
+          </button>
+          <button
+            type="button"
+            className="oma-top-action"
+            data-tooltip={isAr ? 'مكتبة الوسائط' : 'Media library'}
+            onClick={() => setMediaLibraryOpen(true)}
+            data-testid="demo-content-open-media"
+          >
+            <span className="oma-top-action__icon" aria-hidden>
+              ▣
+            </span>
             {isAr ? 'الوسائط' : 'Media'}
-          </Button>
-          <Button type="default" onClick={() => void shareContentWorkspace()} data-testid="demo-content-share">
+          </button>
+          <button
+            type="button"
+            className="oma-top-action oma-top-action--ghost"
+            data-tooltip={isAr ? 'مشاركة العرض' : 'Share view'}
+            onClick={() => void shareContentWorkspace()}
+            data-testid="demo-content-share"
+          >
             {isAr ? 'مشاركة' : 'Share'}
-          </Button>
-          <Button type="primary" data-testid="demo-create-content" onClick={() => setCreateOpen(true)}>
+          </button>
+          <button
+            type="button"
+            className="oma-top-action oma-top-action--primary"
+            data-tooltip={isAr ? 'إنشاء محتوى' : 'Compose'}
+            data-testid="demo-create-content"
+            onClick={() => setCreateOpen(true)}
+          >
+            <span className="oma-top-action__icon" aria-hidden>
+              ✎
+            </span>
             {isAr ? 'إنشاء' : 'Compose'}
-          </Button>
+          </button>
         </div>
       </div>
 
@@ -898,13 +995,42 @@ export default function ContentPage() {
                 >
                   {isAr ? 'طلب الموافقات' : 'Request approvals'}
                 </Button>
-                <span className="oma-cal-ext-indicator" title="1 calendar">
-                  <span className="oma-cal-ext-dot" aria-hidden />
-                  1 calendar
+                <span className="oma-cal-ext-wrap">
+                  <button
+                    type="button"
+                    className="oma-cal-ext-indicator"
+                    data-tooltip={isAr ? 'تقويمات خارجية' : 'External calendars'}
+                    onClick={() => setExtCalOpen((v) => !v)}
+                    data-testid="demo-content-ext-cal"
+                  >
+                    <span className="oma-cal-ext-dot" aria-hidden />
+                    1 calendar
+                  </button>
+                  {extCalOpen ? (
+                    <div className="oma-ext-cal-pop" data-testid="demo-content-ext-cal-pop">
+                      <div className="oma-ext-cal-pop__head">
+                        <strong>External calendars</strong>
+                        <span className="oma-ext-cal-pop__sync">Synced</span>
+                      </div>
+                      <label className="oma-ext-cal-pop__row">
+                        <input type="checkbox" defaultChecked />
+                        <span className="oma-cal-ext-dot" aria-hidden />
+                        Israel Holidays
+                      </label>
+                      <button type="button" className="oma-ext-cal-pop__add">
+                        + Add external calendar
+                      </button>
+                    </div>
+                  ) : null}
                 </span>
-                <Button type="default" className="oma-cal-saved-toggle" data-testid="demo-content-saved-toggle">
+                <button
+                  type="button"
+                  className="oma-cal-saved-toggle"
+                  data-testid="demo-content-saved-toggle"
+                  onClick={() => setSavedOpen((v) => !v)}
+                >
                   Saved
-                </Button>
+                </button>
               </div>
             </div>
 
@@ -1003,36 +1129,90 @@ export default function ContentPage() {
                         >
                           <span className="oma-cal-daynum oma-ltr">{cell.date.getUTCDate()}</span>
                           {visible.map((item) => (
-                            <SurfaceButton
-                              key={item.id}
-                              data-status={item.status}
-                              data-testid={`demo-cal-item-${item.id}`}
-                              data-selected={selectedId === item.id ? 'true' : 'false'}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openItem(item);
-                              }}
-                              className="oma-cal-item"
-                            >
-                              <ContentFace
-                                variant="calendar"
-                                title={pickCopy(item.title, locale)}
-                                caption={item.caption ? pickCopy(item.caption, locale) : ''}
-                                channel={item.channel}
-                                when={
-                                  item.scheduledAt
-                                    ? item.scheduledAt.slice(11, 16)
-                                    : item.plannedAt
-                                      ? String(item.plannedAt).slice(11, 16) ||
-                                        String(item.plannedAt).slice(0, 5)
-                                      : '—'
+                            <div key={item.id} className="oma-cal-item-wrap">
+                              {approvalMode ? (
+                                <label className="oma-cal-select" onClick={(e) => e.stopPropagation()}>
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedIds.includes(item.id)}
+                                    onChange={() => toggleSelectId(item.id)}
+                                  />
+                                </label>
+                              ) : null}
+                              <SurfaceButton
+                                data-status={item.status}
+                                data-testid={`demo-cal-item-${item.id}`}
+                                data-selected={
+                                  selectedId === item.id || selectedIds.includes(item.id)
+                                    ? 'true'
+                                    : 'false'
                                 }
-                                asset={item.previewAsset}
-                                display={faceDisplay(item, policy)}
-                                locale={locale}
-                                selected={selectedId === item.id}
-                              />
-                            </SurfaceButton>
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (approvalMode) {
+                                    toggleSelectId(item.id);
+                                    return;
+                                  }
+                                  openItem(item);
+                                }}
+                                onContextMenu={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  setCardMenuId(item.id);
+                                }}
+                                className="oma-cal-item"
+                              >
+                                <ContentFace
+                                  variant="calendar"
+                                  title={pickCopy(item.title, locale)}
+                                  caption={item.caption ? pickCopy(item.caption, locale) : ''}
+                                  channel={item.channel}
+                                  when={
+                                    item.scheduledAt
+                                      ? item.scheduledAt.slice(11, 16)
+                                      : item.plannedAt
+                                        ? String(item.plannedAt).slice(11, 16) ||
+                                          String(item.plannedAt).slice(0, 5)
+                                        : '—'
+                                  }
+                                  asset={item.previewAsset}
+                                  display={faceDisplay(item, policy)}
+                                  locale={locale}
+                                  selected={selectedId === item.id}
+                                />
+                              </SurfaceButton>
+                              {cardMenuId === item.id ? (
+                                <div className="oma-card-menu" role="menu">
+                                  {(
+                                    [
+                                      'Request approval',
+                                      'Approve post',
+                                      'Mark as published',
+                                      'Hide from clients',
+                                      'Archive post',
+                                      'Repost',
+                                    ] as const
+                                  ).map((label) => (
+                                    <button
+                                      key={label}
+                                      type="button"
+                                      role="menuitem"
+                                      className="oma-card-menu__item"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (label === 'Request approval') {
+                                          setApprovalMode(true);
+                                          setSelectedIds([item.id]);
+                                        }
+                                        setCardMenuId(null);
+                                      }}
+                                    >
+                                      {label}
+                                    </button>
+                                  ))}
+                                </div>
+                              ) : null}
+                            </div>
                           ))}
                           {extra > 0 ? (
                             <Button
@@ -1672,7 +1852,7 @@ export default function ContentPage() {
 
       <Dialog
         open={filterSheet}
-        title={t('demo.content.filters')}
+        title={isAr ? 'تصفية وترتيب' : 'Filter & sort'}
         onClose={() => setFilterSheet(false)}
         footer={
           <div className="oma-dialog-footer oma-filter-sheet-footer">
@@ -1724,6 +1904,29 @@ export default function ContentPage() {
           ))}
         </div>
       </Dialog>
+
+
+      {approvalMode ? (
+        <div className="oma-approval-bar" data-testid="demo-content-approval-bar">
+          <button type="button" className="oma-approval-bar__close" onClick={clearSelection} aria-label="Close">
+            ×
+          </button>
+          <span className="oma-approval-bar__count">
+            {selectedIds.length} {selectedIds.length === 1 ? 'post' : 'posts'} selected
+          </span>
+          <button type="button" className="oma-approval-bar__link" onClick={() => setSelectedIds(sorted.map((r) => r.id))}>
+            Select all
+          </button>
+          <button
+            type="button"
+            className="oma-approval-bar__send"
+            disabled={!selectedIds.length}
+            onClick={() => void sendForApproval()}
+          >
+            Send for approval
+          </button>
+        </div>
+      ) : null}
 
       {/* Planable private note editor */}
       {noteDay ? (
