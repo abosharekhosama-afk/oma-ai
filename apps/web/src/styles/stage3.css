@@ -3345,3 +3345,101 @@ button.oma-cal-item {
 .oma-cal-cell .oma-post-card__channel-name {
   max-width: 72px !important;
 }
+
+/* Campaign bar spanning columns inside week grid */
+.oma-cal-campaign-bar--span {
+  grid-row: auto !important;
+  align-self: start !important;
+  z-index: 2 !important;
+  margin: 2px 4px !important;
+  min-height: 22px !important;
+  pointer-events: auto !important;
+}
+
+/* Note sticky on cell */
+.oma-cal-note {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  width: 100% !important;
+  min-height: 52px !important;
+  padding: 8px !important;
+  border-radius: 6px !important;
+  background: #fff6d6 !important;
+  border: 1px solid #f0e2a8 !important;
+  color: #5c5340 !important;
+  font-size: 12px !important;
+  line-height: 16px !important;
+  cursor: pointer !important;
+  position: relative !important;
+}
+.oma-cal-note[data-color='mint'] { background: #e8fff6 !important; border-color: #b7ead4 !important; }
+.oma-cal-note[data-color='pink'] { background: #ffe8f0 !important; border-color: #f0c0d0 !important; }
+.oma-cal-note[data-color='lavender'] { background: #f0e8ff !important; border-color: #d8c8f0 !important; }
+.oma-cal-note[data-color='blue'] { background: #e8f2ff !important; border-color: #c0d8f0 !important; }
+.oma-cal-note__lock {
+  margin-top: auto !important;
+  font-size: 12px !important;
+  opacity: 0.7 !important;
+}
+
+/* Note editor overlay */
+.oma-cal-note-editor {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 100 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(0, 0, 0, 0.25) !important;
+}
+.oma-cal-note-editor__card {
+  width: min(360px, 92vw) !important;
+  padding: 12px !important;
+  border-radius: 10px !important;
+  background: #fff6d6 !important;
+  border: 1px solid #f0e2a8 !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18) !important;
+}
+.oma-cal-note-editor__input {
+  width: 100% !important;
+  border: 0 !important;
+  background: transparent !important;
+  resize: vertical !important;
+  font: inherit !important;
+  font-size: 14px !important;
+  color: #333 !important;
+  outline: none !important;
+}
+.oma-cal-note-editor__toolbar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-top: 10px !important;
+}
+.oma-cal-note-editor__hint {
+  font-size: 12px !important;
+  color: #5e6166 !important;
+  margin-inline-end: auto !important;
+}
+.oma-cal-note-editor__swatches {
+  display: inline-flex !important;
+  gap: 4px !important;
+}
+.oma-cal-note-swatch {
+  width: 16px !important;
+  height: 16px !important;
+  border-radius: 50% !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+}
+.oma-cal-note-swatch[data-color='yellow'] { background: #f5d76e !important; }
+.oma-cal-note-swatch[data-color='mint'] { background: #7dcea0 !important; }
+.oma-cal-note-swatch[data-color='pink'] { background: #f5b7b1 !important; }
+.oma-cal-note-swatch[data-color='lavender'] { background: #d2b4de !important; }
+.oma-cal-note-swatch[data-color='blue'] { background: #85c1e9 !important; }
+.oma-cal-note-swatch[data-active='true'] {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3px #333 !important;
+}
