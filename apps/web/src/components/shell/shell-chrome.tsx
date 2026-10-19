@@ -122,6 +122,8 @@ export function ShellChrome({ children }: { children: ReactNode }) {
   const t = useT();
   const pathname = usePathname() || '/app';
   const isContentWorkspace = pathname === '/app/content' || pathname.startsWith('/app/content/');
+  const isRequestsWorkspace = pathname === '/app/requests' || pathname.startsWith('/app/requests/');
+  const hideBrandTrail = isContentWorkspace || isRequestsWorkspace;
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -206,7 +208,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
               </Button>
               {/* Planable: workspace trail only — no BrandContext on Content */}
               <div className="oma-top-context">
-                {isContentWorkspace ? null : <BrandContext />}
+                {hideBrandTrail ? null : <BrandContext />}
                 <ShellBreadcrumb />
               </div>
             </div>
