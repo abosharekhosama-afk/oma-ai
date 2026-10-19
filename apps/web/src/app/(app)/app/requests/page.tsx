@@ -425,6 +425,8 @@ export default function RequestsPage() {
               </ul>
             </>
           )}
+            </div>
+
             {filterSheet ? (
               <aside className="oma-req-filter-panel" data-testid="demo-request-filters">
                 <header className="oma-req-filter-panel__head">
@@ -775,8 +777,6 @@ export default function RequestsPage() {
                 ) : null}
               </aside>
             ) : null}
-
-            </div>
           </div>
         </>
       ) : null}
