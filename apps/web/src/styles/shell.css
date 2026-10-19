@@ -638,3 +638,39 @@
 .oma-top[data-content-workspace='true'] {
   border-bottom: 1px solid #eef0f2;
 }
+
+/* ==== Mobile nav: tighter gaps (match header density) ==== */
+.oma-drawer.oma-drawer--nav .oma-mobile-drawer-nav {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  padding: 8px 10px 12px !important;
+}
+.oma-drawer.oma-drawer--nav .oma-nav-link {
+  min-height: 40px !important;
+  padding: 0 10px !important;
+  border-radius: 8px !important;
+  gap: 10px !important;
+  margin: 0 !important;
+}
+.oma-drawer.oma-drawer--nav .oma-nav-section,
+.oma-drawer.oma-drawer--nav .oma-nav-group {
+  margin: 0 !important;
+  padding: 0 !important;
+  gap: 2px !important;
+}
+.oma-drawer.oma-drawer--nav .oma-mobile-drawer-header {
+  min-height: 48px !important;
+  padding: 0 12px !important;
+  margin: 0 !important;
+  border-bottom: 1px solid #eef0f2 !important;
+}
+.oma-drawer.oma-drawer--nav .oma-rail-footer {
+  margin-top: auto !important;
+  padding: 10px !important;
+  gap: 6px !important;
+  border-top: 1px solid #eef0f2 !important;
+}
+.oma-drawer.oma-drawer--nav .oma-rail-search {
+  margin: 8px 10px !important;
+}

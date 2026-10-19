@@ -786,3 +786,148 @@
     max-height: 100vh !important;
   }
 }
+
+/* ==== Requests v2: filter right, scroll table, create modal ==== */
+
+/* Filter panel on the RIGHT */
+.oma-req-workspace {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  min-height: calc(100vh - 180px) !important;
+  background: #f7f8f9 !important;
+}
+.oma-req-workspace[data-filter-open='true'] {
+  grid-template-columns: minmax(0, 1fr) 320px !important;
+}
+.oma-req-filter-panel {
+  background: #fff !important;
+  border-inline-start: 1px solid #eef0f2 !important;
+  border-inline-end: 0 !important;
+  order: 2 !important;
+  max-height: calc(100vh - 160px) !important;
+  overflow: auto !important;
+}
+.oma-req-main {
+  order: 1 !important;
+  min-width: 0 !important;
+  padding: 16px 20px 32px !important;
+  overflow: hidden !important;
+}
+
+/* Scrollable table — no text crush */
+.oma-req-page .oma-req-table-wrap {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  max-height: calc(100vh - 260px) !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+.oma-req-page .oma-req-table {
+  width: max-content !important;
+  min-width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  font-size: 13px !important;
+  table-layout: auto !important;
+}
+.oma-req-page .oma-req-table th,
+.oma-req-page .oma-req-table td {
+  white-space: nowrap !important;
+  padding: 12px 16px !important;
+  min-width: 100px !important;
+}
+.oma-req-page .oma-req-table th:first-child,
+.oma-req-page .oma-req-table td:first-child {
+  min-width: 260px !important;
+  white-space: normal !important;
+  position: sticky !important;
+  inset-inline-start: 0 !important;
+  background: #fff !important;
+  z-index: 2 !important;
+  box-shadow: 4px 0 8px rgba(0, 0, 0, 0.03) !important;
+}
+.oma-req-page .oma-req-table thead th:first-child {
+  background: #fafbfc !important;
+  z-index: 3 !important;
+}
+.oma-req-page .oma-req-table th {
+  padding: 11px 16px !important;
+  background: #fafbfc !important;
+  color: #8c8c8c !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  border-bottom: 1px solid #eef0f2 !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1 !important;
+}
+.oma-req-page .oma-req-table td {
+  border-bottom: 1px solid #f0f1f3 !important;
+  color: #333 !important;
+}
+.oma-req-page .oma-req-table tbody tr:hover td {
+  background: #f8f9fa !important;
+}
+.oma-req-page .oma-req-table tbody tr:hover td:first-child {
+  background: #f8f9fa !important;
+}
+.oma-req-page .oma-req-title-cell {
+  white-space: normal !important;
+  min-width: 240px !important;
+}
+
+/* Create request Planable-like */
+.oma-req-create {
+  gap: 14px !important;
+  max-width: 520px !important;
+}
+.oma-req-create .oma-dialog-title {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  margin: 0 0 4px !important;
+}
+.oma-req-create label {
+  display: grid !important;
+  gap: 6px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #5e6166 !important;
+}
+.oma-req-create input,
+.oma-req-create textarea,
+.oma-req-create .ant-picker,
+.oma-req-create .oma-select {
+  border-radius: 8px !important;
+}
+.oma-req-create__footer {
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+  margin-top: 8px !important;
+  padding-top: 12px !important;
+  border-top: 1px solid #eef0f2 !important;
+}
+
+@media (max-width: 900px) {
+  .oma-req-workspace[data-filter-open='true'] {
+    grid-template-columns: 1fr !important;
+  }
+  .oma-req-filter-panel {
+    position: fixed !important;
+    inset: 0 0 0 auto !important;
+    width: min(320px, 92vw) !important;
+    z-index: 90 !important;
+    box-shadow: -8px 0 24px rgba(0, 0, 0, 0.12) !important;
+    max-height: 100vh !important;
+    border-inline-start: 1px solid #eef0f2 !important;
+  }
+  [dir='rtl'] .oma-req-filter-panel {
+    inset: 0 auto 0 0 !important;
+    box-shadow: 8px 0 24px rgba(0, 0, 0, 0.12) !important;
+  }
+}
