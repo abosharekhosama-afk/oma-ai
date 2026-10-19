@@ -33,6 +33,7 @@ import {
   FilterOutlined,
   FlagOutlined,
   FormOutlined,
+  GlobalOutlined,
   HistoryOutlined,
   InboxOutlined,
   LinkOutlined,
@@ -48,6 +49,9 @@ import {
   TagOutlined,
   UnorderedListOutlined,
   UserOutlined,
+  TeamOutlined,
+  CheckSquareOutlined,
+  ApartmentOutlined,
 } from '@ant-design/icons';
 
 import { Dialog } from '../../../../components/ui/dialog';
@@ -955,9 +959,9 @@ export default function ContentPage() {
           data-open={filterSection === 'approval' ? 'true' : 'false'}
           onClick={() => toggleFilterSection('approval')}
         >
-          <span className="oma-filter-accordion__ico" aria-hidden>✓</span>
+          <span className="oma-filter-accordion__ico" aria-hidden><CheckCircleOutlined /></span>
           <span>{isAr ? 'حالة الموافقة' : 'Approval Status'}</span>
-          <span className="oma-filter-accordion__caret">{filterSection === 'approval' ? '▴' : '▾'}</span>
+          <span className="oma-filter-accordion__caret">{filterSection === 'approval' ? <UpOutlined /> : <DownOutlined />}</span>
         </button>
         {filterSection === 'approval' ? (
           <div className="oma-filter-accordion__body">
@@ -991,9 +995,9 @@ export default function ContentPage() {
           data-open={filterSection === 'status' ? 'true' : 'false'}
           onClick={() => toggleFilterSection('status')}
         >
-          <span className="oma-filter-accordion__ico" aria-hidden>◷</span>
+          <span className="oma-filter-accordion__ico" aria-hidden><ClockCircleOutlined /></span>
           <span>{isAr ? 'حالة المنشور' : 'Post Status'}</span>
-          <span className="oma-filter-accordion__caret">{filterSection === 'status' ? '▴' : '▾'}</span>
+          <span className="oma-filter-accordion__caret">{filterSection === 'status' ? <UpOutlined /> : <DownOutlined />}</span>
         </button>
         {filterSection === 'status' ? (
           <div className="oma-filter-accordion__body">
@@ -1031,9 +1035,9 @@ export default function ContentPage() {
           data-testid="demo-content-filter-campaign-section"
           onClick={() => toggleFilterSection('campaign')}
         >
-          <span className="oma-filter-accordion__ico" aria-hidden>⚑</span>
+          <span className="oma-filter-accordion__ico" aria-hidden><FlagOutlined /></span>
           <span>{isAr ? 'الحملة' : 'Campaign'}</span>
-          <span className="oma-filter-accordion__caret">{filterSection === 'campaign' ? '▴' : '▾'}</span>
+          <span className="oma-filter-accordion__caret">{filterSection === 'campaign' ? <UpOutlined /> : <DownOutlined />}</span>
         </button>
         {filterSection === 'campaign' ? (
           <div className="oma-filter-accordion__body">
@@ -1083,9 +1087,9 @@ export default function ContentPage() {
           data-open={filterSection === 'postType' ? 'true' : 'false'}
           onClick={() => toggleFilterSection('postType')}
         >
-          <span className="oma-filter-accordion__ico" aria-hidden>▦</span>
+          <span className="oma-filter-accordion__ico" aria-hidden><AppstoreOutlined /></span>
           <span>{isAr ? 'نوع المنشور' : 'Post Type'}</span>
-          <span className="oma-filter-accordion__caret">{filterSection === 'postType' ? '▴' : '▾'}</span>
+          <span className="oma-filter-accordion__caret">{filterSection === 'postType' ? <UpOutlined /> : <DownOutlined />}</span>
         </button>
         {filterSection === 'postType' ? (
           <div className="oma-filter-accordion__body">
@@ -1129,9 +1133,9 @@ export default function ContentPage() {
           data-open={filterSection === 'channel' ? 'true' : 'false'}
           onClick={() => toggleFilterSection('channel')}
         >
-          <span className="oma-filter-accordion__ico" aria-hidden>◎</span>
+          <span className="oma-filter-accordion__ico" aria-hidden><GlobalOutlined /></span>
           <span>{isAr ? 'القناة والعلامة' : 'Channel & Brand'}</span>
-          <span className="oma-filter-accordion__caret">{filterSection === 'channel' ? '▴' : '▾'}</span>
+          <span className="oma-filter-accordion__caret">{filterSection === 'channel' ? <UpOutlined /> : <DownOutlined />}</span>
         </button>
         {filterSection === 'channel' ? (
           <div className="oma-filter-accordion__body">
@@ -1192,9 +1196,9 @@ export default function ContentPage() {
           data-open={filterSection === 'review' ? 'true' : 'false'}
           onClick={() => toggleFilterSection('review')}
         >
-          <span className="oma-filter-accordion__ico" aria-hidden>💬</span>
+          <span className="oma-filter-accordion__ico" aria-hidden><MessageOutlined /></span>
           <span>{isAr ? 'المراجعة' : 'Feedback & Activity'}</span>
-          <span className="oma-filter-accordion__caret">{filterSection === 'review' ? '▴' : '▾'}</span>
+          <span className="oma-filter-accordion__caret">{filterSection === 'review' ? <UpOutlined /> : <DownOutlined />}</span>
         </button>
         {filterSection === 'review' ? (
           <div className="oma-filter-accordion__body">
@@ -1229,9 +1233,9 @@ export default function ContentPage() {
           data-open={filterSection === 'author' ? 'true' : 'false'}
           onClick={() => toggleFilterSection('author')}
         >
-          <span className="oma-filter-accordion__ico" aria-hidden>👤</span>
+          <span className="oma-filter-accordion__ico" aria-hidden><UserOutlined /></span>
           <span>{isAr ? 'المؤلف' : 'Author'}</span>
-          <span className="oma-filter-accordion__caret">{filterSection === 'author' ? '▴' : '▾'}</span>
+          <span className="oma-filter-accordion__caret">{filterSection === 'author' ? <UpOutlined /> : <DownOutlined />}</span>
         </button>
         {filterSection === 'author' ? (
           <div className="oma-filter-accordion__body">
@@ -1267,9 +1271,9 @@ export default function ContentPage() {
           data-open={filterSection === 'period' ? 'true' : 'false'}
           onClick={() => toggleFilterSection('period')}
         >
-          <span className="oma-filter-accordion__ico" aria-hidden>📅</span>
+          <span className="oma-filter-accordion__ico" aria-hidden><CalendarOutlined /></span>
           <span>{isAr ? 'الفترة' : 'Period'}</span>
-          <span className="oma-filter-accordion__caret">{filterSection === 'period' ? '▴' : '▾'}</span>
+          <span className="oma-filter-accordion__caret">{filterSection === 'period' ? <UpOutlined /> : <DownOutlined />}</span>
         </button>
         {filterSection === 'period' ? (
           <div className="oma-filter-accordion__body">
@@ -1311,9 +1315,9 @@ export default function ContentPage() {
           data-open={filterSection === 'search' ? 'true' : 'false'}
           onClick={() => toggleFilterSection('search')}
         >
-          <span className="oma-filter-accordion__ico" aria-hidden>🔍</span>
+          <span className="oma-filter-accordion__ico" aria-hidden><FilterOutlined /></span>
           <span>{isAr ? 'بحث في المنشورات' : 'Search in posts'}</span>
-          <span className="oma-filter-accordion__caret">{filterSection === 'search' ? '▴' : '▾'}</span>
+          <span className="oma-filter-accordion__caret">{filterSection === 'search' ? <UpOutlined /> : <DownOutlined />}</span>
         </button>
         {filterSection === 'search' ? (
           <div className="oma-filter-accordion__body">{searchField}</div>
@@ -1497,6 +1501,7 @@ export default function ContentPage() {
           data-testid="demo-content-calendar"
           className="oma-cal-with-saved"
           data-cal-span={calSpan}
+          data-saved-open={savedOpen ? 'true' : 'false'}
         >
           <div className="oma-cal-main">
             <div className="oma-cal-toolbar">
@@ -2035,7 +2040,11 @@ export default function ContentPage() {
           </div>
 
           {savedOpen ? (
-          <aside data-testid="demo-content-saved" aria-label={t('demo.content.savedColumn')}>
+          <aside
+            className="oma-cal-saved"
+            data-testid="demo-content-saved"
+            aria-label={t('demo.content.savedColumn')}
+          >
             <header className="oma-cal-saved-head">
               <strong>{t('demo.content.savedColumn')}</strong>
               <div className="oma-cal-saved-head__meta">
@@ -2045,10 +2054,11 @@ export default function ContentPage() {
                 <button
                   type="button"
                   className="oma-cal-saved-close"
-                  aria-label="Close"
+                  aria-label={isAr ? 'إغلاق' : 'Close'}
+                  data-tooltip={isAr ? 'إغلاق' : 'Close'}
                   onClick={() => setSavedOpen(false)}
                 >
-                  ×
+                  <CloseOutlined />
                 </button>
               </div>
             </header>
