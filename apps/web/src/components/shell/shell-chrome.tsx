@@ -198,6 +198,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
             data-content-workspace={isContentWorkspace ? 'true' : 'false'}
           >
             <div className="oma-top-start">
+              {isRequestsWorkspace ? null : (
               <Button
                 type="text"
                 aria-label={t('shell.openNav')}
@@ -206,6 +207,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
               >
                 <ShellIcon name="menu" />
               </Button>
+              )}
               {/* Planable: workspace trail only — no BrandContext on Content */}
               <div className="oma-top-context">
                 {hideBrandTrail ? null : <BrandContext />}
@@ -218,16 +220,15 @@ export function ShellChrome({ children }: { children: ReactNode }) {
                 <CommandSearch compact />
               </div>
             )}
-            {!isContentWorkspace ? (
+            {isContentWorkspace ? (
+              <div className="oma-top-actions oma-top-actions--content" id="oma-content-top-actions" />
+            ) : isRequestsWorkspace ? null : (
               <div className="oma-top-actions">
                 <OmaLinkButton href="/app/requests" type="primary" data-testid="shell-create">
                   <ShellIcon name="plus" size={16} />
                   <span>{t('shell.create')}</span>
                 </OmaLinkButton>
               </div>
-            ) : (
-              /* Slot for content page actions (Filter / Media / Share / Compose) */
-              <div className="oma-top-actions oma-top-actions--content" id="oma-content-top-actions" />
             )}
           </header>
           <main id="main" className="oma-container">
