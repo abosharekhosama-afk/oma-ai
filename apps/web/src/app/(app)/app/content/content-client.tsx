@@ -326,13 +326,6 @@ export default function ContentPage() {
     router.replace(href, { scroll: false });
   }
 
-  function _changeView(mode: ContentViewMode) {
-    setView(mode);
-    writeContentViewPref(mode);
-    replaceParams((params) => {
-      params.set('view', mode);
-    });
-  }
 
   function openItem(item: ContentRow, tab: 'preview' | 'edit' | 'comments' = 'preview') {
     const next = draftFromItem(item, locale);
@@ -430,7 +423,6 @@ export default function ContentPage() {
     }
   }
 
-  
 
   async function runCommand(command: 'schedule' | 'unschedule' | 'request-approval') {
     if (!selectedId) return;
@@ -732,10 +724,9 @@ export default function ContentPage() {
                       data-testid={`demo-content-view-${id}`}
                       className="oma-view-menu__item"
                       onClick={() => {
-                      _changeView(id);
-                      setViewMenuOpen(false);
+                        setView(id);
+                        setViewMenuOpen(false);
                       }}
-
                     >
                       <span className="oma-view-menu__check" aria-hidden>{view === id ? '✓' : ''}</span>
                       {t(`demo.view.${id}`)}
