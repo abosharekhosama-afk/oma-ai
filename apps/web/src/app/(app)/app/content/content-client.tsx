@@ -430,13 +430,7 @@ export default function ContentPage() {
     }
   }
 
-  async function _changePolicy(next: ApprovalPolicy) {
-    setPolicy(next);
-    await demoApi('/preferences', {
-      method: 'PATCH',
-      body: JSON.stringify({ approvalPolicy: next }),
-    });
-  }
+  
 
   async function runCommand(command: 'schedule' | 'unschedule' | 'request-approval') {
     if (!selectedId) return;
