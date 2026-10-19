@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { resolveContentWorkflow, type ApprovalPolicy, type DemoGraph } from '@oma/demo';
 import { ContentFace, StatusMark, faceDisplay } from '../../../../components/content/content-card';
 import { TrackPill } from '../../../../components/demo/track-pill';
@@ -170,6 +171,8 @@ export default function ContentPage() {
   const [error, setError] = useState<string | null>(null);
   const [unavailable, setUnavailable] = useState(false);
   const [filterSheet, setFilterSheet] = useState(false);
+  const [filterSection, setFilterSection] = useState<string | null>('campaign');
+  const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
   const [dayNotes, setDayNotes] = useState<Record<string, { text: string; color: string }>>({});
   const [noteDay, setNoteDay] = useState<string | null>(null);
   const [approvalMode, setApprovalMode] = useState(false);
@@ -266,6 +269,10 @@ export default function ContentPage() {
     return () => document.removeEventListener('click', onDoc);
   }, [cardMenuId, viewMenuOpen, extCalOpen]);
 
+
+  useEffect(() => {
+    setHeaderSlot(document.getElementById('oma-content-top-actions'));
+  }, []);
 
   /* Path view slot in shell: click opens view switcher card */
   useEffect(() => {
@@ -778,92 +785,104 @@ export default function ContentPage() {
 
   return (
     <div className="oma-stack oma-content-plan" data-testid="demo-content">
-            <div className="oma-content-chrome oma-content-chrome--actions-only" data-testid="demo-content-chrome">
-        {/* View switcher menu — anchored under path slot in shell header */}
-        {viewMenuOpen ? (
-          <ul className="oma-view-menu__list oma-view-menu__list--card oma-view-menu__list--path" role="menu">
-            {(
-              [
-                { id: 'calendar' as const, icon: <CalendarOutlined /> },
-                { id: 'feed' as const, icon: <BarsOutlined /> },
-                { id: 'list' as const, icon: <UnorderedListOutlined /> },
-                { id: 'grid' as const, icon: <AppstoreOutlined /> },
-              ] as const
-            ).map(({ id, icon }) => (
-              <li key={id} role="none">
-                <button
-                  type="button"
-                  role="menuitemradio"
-                  aria-checked={view === id}
-                  data-selected={view === id ? 'true' : 'false'}
-                  data-testid={`demo-content-view-${id}`}
-                  className="oma-view-menu__item"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setView(id);
-                    writeContentViewPref(id);
-                    replaceParams((params) => {
-                      params.set('view', id);
-                    });
-                    setViewMenuOpen(false);
-                  }}
-                >
-                  <span className="oma-view-menu__item-icon" aria-hidden>
-                    {icon}
-                  </span>
-                  <span>{t(`demo.view.${id}`)}</span>
-                  <span className="oma-view-menu__check" aria-hidden>
-                    {view === id ? '✓' : ''}
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : null}
-        <div className="oma-content-chrome__actions">
-          <button
-            type="button"
-            className="oma-top-action"
-            data-tooltip={isAr ? 'تصفية وترتيب' : 'Filter & sort'}
-            onClick={() => setFilterSheet(true)}
-            data-testid="demo-content-open-filters"
-          >
-            <FilterOutlined className="oma-top-action__icon" />
-            {isAr ? 'تصفية' : 'Filter'}
-            {filterCount > 0 ? ` (${filterCount})` : ''}
-          </button>
-          <button
-            type="button"
-            className="oma-top-action"
-            data-tooltip={isAr ? 'مكتبة الوسائط' : 'Media library'}
-            onClick={() => setMediaLibraryOpen(true)}
-            data-testid="demo-content-open-media"
-          >
-            <PictureOutlined className="oma-top-action__icon" />
-            {isAr ? 'الوسائط' : 'Media'}
-          </button>
-          <button
-            type="button"
-            className="oma-top-action oma-top-action--ghost"
-            data-tooltip={isAr ? 'مشاركة العرض' : 'Share view'}
-            onClick={() => void shareContentWorkspace()}
-            data-testid="demo-content-share"
-          >
-            <ShareAltOutlined className="oma-top-action__icon" />
-            {isAr ? 'مشاركة' : 'Share'}
-          </button>
-          <button
-            type="button"
-            className="oma-top-action oma-top-action--primary"
-            data-tooltip={isAr ? 'إنشاء محتوى' : 'Compose'}
-            data-testid="demo-create-content"
-            onClick={() => setCreateOpen(true)}
-          >
-            <EditOutlined className="oma-top-action__icon" />
-            {isAr ? 'إنشاء' : 'Compose'}
-          </button>
-        </div>
-      </div>
+                  {/* Portal: Filter / Media / Share / Compose into shell header */}
+      {headerSlot &&
+        createPortal(
+          <>
+            <button
+              type="button"
+              className="oma-top-action"
+              data-tooltip={isAr ? 'تصفية وترتيب' : 'Filter & sort'}
+              onClick={() => setFilterSheet(true)}
+              data-testid="demo-content-open-filters"
+            >
+              <FilterOutlined className="oma-top-action__icon" />
+              {isAr ? 'تصفية' : 'Filter'}
+              {filterCount > 0 ? ` (${filterCount})` : ''}
+            </button>
+            <button
+              type="button"
+              className="oma-top-action"
+              data-tooltip={isAr ? 'مكتبة الوسائط' : 'Media library'}
+              onClick={() => setMediaLibraryOpen(true)}
+              data-testid="demo-content-open-media"
+            >
+              <PictureOutlined className="oma-top-action__icon" />
+              {isAr ? 'الوسائط' : 'Media'}
+            </button>
+            <button
+              type="button"
+              className="oma-top-action oma-top-action--ghost"
+              data-tooltip={isAr ? 'مشاركة العرض' : 'Share view'}
+              onClick={() => void shareContentWorkspace()}
+              data-testid="demo-content-share"
+            >
+              <ShareAltOutlined className="oma-top-action__icon" />
+              {isAr ? 'مشاركة' : 'Share'}
+            </button>
+            <button
+              type="button"
+              className="oma-top-action oma-top-action--primary"
+              data-tooltip={isAr ? 'إنشاء محتوى' : 'Compose'}
+              data-testid="demo-create-content"
+              onClick={() => setCreateOpen(true)}
+            >
+              <EditOutlined className="oma-top-action__icon" />
+              {isAr ? 'إنشاء' : 'Compose'}
+            </button>
+          </>,
+          headerSlot,
+        )}
+
+      {/* View switcher under path — high z-index above calendar toolbar */}
+      {viewMenuOpen && typeof document !== 'undefined'
+        ? createPortal(
+            <ul
+              className="oma-view-menu__list oma-view-menu__list--card oma-view-menu__list--path"
+              role="menu"
+              data-testid="demo-content-view-menu"
+            >
+              {(
+                [
+                  { id: 'calendar' as const, icon: <CalendarOutlined />, label: t('demo.view.calendar') },
+                  { id: 'feed' as const, icon: <BarsOutlined />, label: t('demo.view.feed') },
+                  { id: 'list' as const, icon: <UnorderedListOutlined />, label: t('demo.view.list') },
+                  { id: 'grid' as const, icon: <AppstoreOutlined />, label: t('demo.view.grid') },
+                ] as const
+              ).map(({ id, icon, label }) => (
+                <li key={id} role="none">
+                  <button
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={view === id}
+                    data-selected={view === id ? 'true' : 'false'}
+                    data-testid={`demo-content-view-${id}`}
+                    className="oma-view-menu__item"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setView(id);
+                      writeContentViewPref(id);
+                      replaceParams((params) => {
+                        params.set('view', id);
+                      });
+                      setViewMenuOpen(false);
+                    }}
+                  >
+                    <span className="oma-view-menu__item-icon" aria-hidden>
+                      {icon}
+                    </span>
+                    <span>{label}</span>
+                    <span className="oma-view-menu__check" aria-hidden>
+                      {view === id ? '✓' : ''}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>,
+            document.body,
+          )
+        : null}
+
 
 
 
@@ -1188,37 +1207,35 @@ export default function ContentPage() {
                                   selected={selectedId === item.id}
                                 />
                               </SurfaceButton>
-                              {cardMenuId === item.id ? (
-                                <div className="oma-card-menu" role="menu">
-                                  {(
-                                    [
-                                      'Request approval',
-                                      'Approve post',
-                                      'Mark as published',
-                                      'Hide from clients',
-                                      'Archive post',
-                                      'Repost',
-                                    ] as const
-                                  ).map((label) => (
-                                    <button
-                                      key={label}
-                                      type="button"
-                                      role="menuitem"
-                                      className="oma-card-menu__item"
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (label === 'Request approval') {
-                                          setApprovalMode(true);
-                                          setSelectedIds([item.id]);
-                                        }
-                                        setCardMenuId(null);
-                                      }}
-                                    >
-                                      {label}
-                                    </button>
-                                  ))}
-                                </div>
-                              ) : null}
+                              <div className="oma-card-menu" role="menu">
+                                {(
+                                  [
+                                    'Request approval',
+                                    'Approve post',
+                                    'Mark as published',
+                                    'Hide from clients',
+                                    'Archive post',
+                                    'Repost',
+                                  ] as const
+                                ).map((label) => (
+                                  <button
+                                    key={label}
+                                    type="button"
+                                    role="menuitem"
+                                    className="oma-card-menu__item"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (label === 'Request approval') {
+                                        setApprovalMode(true);
+                                        setSelectedIds([item.id]);
+                                      }
+                                      setCardMenuId(null);
+                                    }}
+                                  >
+                                    {label}
+                                  </button>
+                                ))}
+                              </div>
                             </div>
                           ))}
                           {extra > 0 ? (
@@ -1872,60 +1889,157 @@ export default function ContentPage() {
             aria-label="Close filters"
             onClick={() => setFilterSheet(false)}
           />
-          <aside className="oma-filter-sidepanel" data-testid="demo-content-filter-sheet" role="dialog" aria-label="Filter & sort">
+          <aside
+            className="oma-filter-sidepanel"
+            data-testid="demo-content-filter-sheet"
+            role="dialog"
+            aria-label="Filter & sort"
+          >
             <header className="oma-filter-sidepanel__head">
               <strong>{isAr ? 'تصفية وترتيب' : 'Filter & sort'}</strong>
-              <button type="button" className="oma-filter-sidepanel__close" onClick={() => setFilterSheet(false)} aria-label="Close">
+              <button
+                type="button"
+                className="oma-filter-sidepanel__close"
+                onClick={() => setFilterSheet(false)}
+                aria-label="Close"
+              >
                 ×
               </button>
             </header>
             <div className="oma-filter-sidepanel__body">
               <p className="oma-content-filter-eyebrow">{isAr ? 'ترتيب حسب' : 'SORT BY'}</p>
-              <label className="oma-filter-sidepanel__row">
-                <span>{isAr ? 'حقل الترتيب' : 'Sort field'}</span>
-                <OmaSelect
-                  value={sortKey}
-                  onChange={(value) => setSortKey(value as ContentSortKey)}
-                  options={[
-                    { value: 'date', label: isAr ? 'التاريخ' : 'Date' },
-                    { value: 'updated', label: isAr ? 'آخر تحديث' : 'Last updated' },
-                    { value: 'title', label: isAr ? 'العنوان' : 'Title' },
-                    { value: 'channel', label: isAr ? 'القناة' : 'Channel' },
-                    { value: 'campaign', label: isAr ? 'الحملة' : 'Campaign' },
-                    { value: 'owner', label: isAr ? 'المسؤول' : 'Author' },
-                    { value: 'status', label: isAr ? 'الحالة' : 'Status' },
-                  ]}
-                />
-              </label>
-              <label className="oma-filter-sidepanel__row">
-                <span>{isAr ? 'الاتجاه' : 'Direction'}</span>
-                <OmaSelect
-                  value={sortDir}
-                  onChange={(value) => setSortDir(value as 'asc' | 'desc')}
-                  options={[
-                    { value: 'desc', label: isAr ? 'الأحدث أولاً' : 'Newest first' },
-                    { value: 'asc', label: isAr ? 'الأقدم أولاً' : 'Oldest first' },
-                  ]}
-                />
-              </label>
-              <div className="oma-content-filter-divider" />
+              <button
+                type="button"
+                className="oma-filter-accordion__row oma-filter-accordion__row--static"
+              >
+                <span className="oma-filter-accordion__ico" aria-hidden>
+                  ⇅
+                </span>
+                {isAr ? 'آخر إنشاء' : 'Last created'}
+              </button>
+
               <p className="oma-content-filter-eyebrow">{isAr ? 'تصفية حسب' : 'FILTER BY'}</p>
-              {searchField}
-              {advancedFilterFields}
+
+              {(
+                [
+                  { id: 'approval', label: isAr ? 'حالة الموافقة' : 'Approval Status', icon: '✓' },
+                  { id: 'postStatus', label: isAr ? 'حالة المنشور' : 'Post Status', icon: '◷' },
+                  { id: 'feedback', label: isAr ? 'التعليقات والنشاط' : 'Feedback & Activity', icon: '💬' },
+                  { id: 'campaign', label: isAr ? 'الحملة' : 'Campaign', icon: '⚑' },
+                  { id: 'labels', label: isAr ? 'التسميات' : 'Labels', icon: '🏷' },
+                  { id: 'period', label: isAr ? 'الفترة' : 'Period', icon: '📅' },
+                  { id: 'postType', label: isAr ? 'نوع المنشور' : 'Post Type', icon: '▦' },
+                  { id: 'content', label: isAr ? 'المحتوى' : 'Content', icon: '▣' },
+                  { id: 'author', label: isAr ? 'المؤلف' : 'Author', icon: '👤' },
+                ] as const
+              ).map((sec) => (
+                <div key={sec.id} className="oma-filter-accordion">
+                  <button
+                    type="button"
+                    className="oma-filter-accordion__row"
+                    data-open={filterSection === sec.id ? 'true' : 'false'}
+                    onClick={() => setFilterSection((s) => (s === sec.id ? null : sec.id))}
+                  >
+                    <span className="oma-filter-accordion__ico" aria-hidden>
+                      {sec.icon}
+                    </span>
+                    <span>{sec.label}</span>
+                    <span className="oma-filter-accordion__caret" aria-hidden>
+                      {filterSection === sec.id ? '▴' : '▾'}
+                    </span>
+                  </button>
+                  {filterSection === sec.id && sec.id === 'campaign' ? (
+                    <div className="oma-filter-accordion__body">
+                      <label className="oma-filter-check">
+                        <input
+                          type="checkbox"
+                          checked={!filters.campaignId}
+                          onChange={() => setFilters((f) => ({ ...f, campaignId: '' }))}
+                        />
+                        <span>{isAr ? 'بدون حملة' : 'No Campaign'}</span>
+                        <span className="oma-filter-check__count">{rows.filter((r) => !r.campaignId).length}</span>
+                      </label>
+                      {campaigns.map((c) => (
+                        <label key={c.id} className="oma-filter-check">
+                          <input
+                            type="checkbox"
+                            checked={filters.campaignId === c.id}
+                            onChange={() =>
+                              setFilters((f) => ({
+                                ...f,
+                                campaignId: f.campaignId === c.id ? '' : c.id,
+                              }))
+                            }
+                          />
+                          <span>{pickCopy(c.name, locale)}</span>
+                          <span className="oma-filter-check__count">
+                            {rows.filter((r) => r.campaignId === c.id).length}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  ) : null}
+                  {filterSection === sec.id && sec.id === 'postType' ? (
+                    <div className="oma-filter-accordion__body">
+                      {['POST', 'STORY', 'REEL', 'CAROUSEL', 'STATIC'].map((ty) => (
+                        <label key={ty} className="oma-filter-check">
+                          <input
+                            type="checkbox"
+                            checked={filters.contentType === ty}
+                            onChange={() =>
+                              setFilters((f) => ({
+                                ...f,
+                                contentType: f.contentType === ty ? '' : ty,
+                              }))
+                            }
+                          />
+                          <span>{ty === 'POST' ? 'Posts' : ty === 'STORY' ? 'Stories' : ty === 'REEL' ? 'Reels' : ty}</span>
+                          <span className="oma-filter-check__count">
+                            {rows.filter((r) => r.contentType === ty).length}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  ) : null}
+                  {filterSection === sec.id && sec.id === 'content' ? (
+                    <div className="oma-filter-accordion__body">
+                      {(
+                        [
+                          { id: 'images', label: 'Images' },
+                          { id: 'video', label: 'Video' },
+                          { id: 'gif', label: 'GIF' },
+                          { id: 'none', label: 'No media' },
+                        ] as const
+                      ).map((c) => (
+                        <label key={c.id} className="oma-filter-check">
+                          <input type="checkbox" />
+                          <span>{c.label}</span>
+                          <span className="oma-filter-check__count">
+                            {c.id === 'none' ? rows.filter((r) => !r.previewAsset).length : 0}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  ) : null}
+                  {filterSection === sec.id && sec.id === 'period' ? (
+                    <div className="oma-filter-accordion__body">{searchField}</div>
+                  ) : null}
+                </div>
+              ))}
+
+              <button type="button" className="oma-filter-accordion__row oma-filter-accordion__row--static">
+                <span className="oma-filter-accordion__ico" aria-hidden>
+                  🔍
+                </span>
+                {isAr ? 'بحث في المنشورات' : 'Search in posts'}
+              </button>
             </div>
-            <footer className="oma-filter-sidepanel__foot">
-              <Button type="default" onClick={() => setFilters(EMPTY_CONTENT_FILTERS)} data-testid="demo-content-filter-clear">
-                {t('demo.content.clearFilters')}
-              </Button>
-              <Button type="primary" onClick={() => setFilterSheet(false)} data-testid="demo-content-filter-apply">
-                {t('demo.filters.apply')}
-              </Button>
-            </footer>
           </aside>
         </>
       ) : null}
 
       <Dialog
+        open={mediaLibraryOpen}<Dialog
         open={mediaLibraryOpen}
         title={isAr ? 'مكتبة الوسائط' : 'Media library'}
         onClose={() => setMediaLibraryOpen(false)}
