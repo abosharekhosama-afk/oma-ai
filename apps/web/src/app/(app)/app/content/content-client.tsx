@@ -352,10 +352,6 @@ export default function ContentPage() {
       }),
     [filters, campaignName, brandName, locale, t],
   );
-  const channels = useMemo(() => [...new Set(rows.map((r) => r.channel))].sort(), [rows]);
-  const types = useMemo(() => [...new Set(rows.map((r) => r.contentType))].sort(), [rows]);
-  const statuses = useMemo(() => [...new Set(rows.map((r) => r.status))].sort(), [rows]);
-  const assignees = useMemo(() => [...new Set(rows.map((r) => r.assignee))].sort(), [rows]);
   const monthCells = useMemo(
     () => buildMonthCells(cursor.year, cursor.monthIndex, weekStartsOn),
     [cursor.year, cursor.monthIndex, weekStartsOn],
