@@ -40,12 +40,12 @@ import {
   FlagOutlined,
   SyncOutlined,
   FormOutlined,
-  UserOutlined,          // ← جديد
-  ClockCircleOutlined,   // ← جديد
-  EyeOutlined,           // ← جديد
-  SnippetsOutlined,      // ← جديد
-  NotificationOutlined,  // ← جديد
-  TagOutlined,           // ← جديد
+  UserOutlined,          
+  ClockCircleOutlined,   
+  EyeOutlined,           
+  SnippetsOutlined,      
+  NotificationOutlined,  
+  TagOutlined,           
 } from '@ant-design/icons';
 
 import { Dialog } from '../../../../components/ui/dialog';
@@ -2900,127 +2900,17 @@ export default function ContentPage() {
 
 
 
-      <Dialog
+      <PlanableComposeCard
         open={createOpen}
-        title={t('demo.create.contentTitle')}
-        onClose={() => (!creating ? setCreateOpen(false) : undefined)}
-      >
-        <div className="oma-composer-fields" data-testid="demo-create-content-dialog">
-          <label>
-            {t('demo.create.title')}
-            <Input
-              value={createForm.title}
-              data-testid="demo-create-content-title"
-              onChange={(e) => setCreateForm((f) => ({ ...f, title: e.target.value }))}
-            />
-          </label>
-          <label>
-            {t('demo.create.campaign')}
-            <OmaSelect
-              value={createForm.campaignId}
-              onChange={(campaignId) => {
-                const campaign = campaigns.find((c) => c.id === campaignId);
-                setCreateForm((f) => ({
-                  ...f,
-                  campaignId,
-                  track: campaign?.track ?? f.track,
-                }));
-              }}
-              options={campaigns.map((c) => ({ value: c.id, label: pickCopy(c.name, locale) }))}
-            />
-          </label>
-          <label>
-            {t('demo.create.type')}
-            <OmaSelect
-              value={createForm.contentType}
-              onChange={(contentType) => setCreateForm((f) => ({ ...f, contentType }))}
-              options={['POST', 'REEL', 'CAROUSEL', 'STATIC', 'STORY'].map((ty) => ({
-                value: ty,
-                label: ty,
-              }))}
-            />
-          </label>
-          <label>
-            {t('demo.content.channelAccount')}
-            <Input
-              value={createForm.channel}
-              onChange={(e) => setCreateForm((f) => ({ ...f, channel: e.target.value }))}
-            />
-          </label>
-          <label>
-            {t('demo.content.media')}
-            <OmaSelect
-              value={createForm.previewAsset}
-              onChange={(previewAsset) => setCreateForm((f) => ({ ...f, previewAsset }))}
-              options={Object.entries(P3_MEDIA).map(([id, src]) => ({ value: src, label: id }))}
-            />
-          </label>
-          <label>
-            {t('demo.create.owner')}
-            <Input
-              value={createForm.owner}
-              onChange={(e) => setCreateForm((f) => ({ ...f, owner: e.target.value }))}
-            />
-          </label>
-          <label>
-            {t('demo.create.plannedDate')}
-            <DatePicker
-              value={createForm.plannedDate ? dayjs(createForm.plannedDate) : null}
-              onChange={(_, dateString) =>
-                setCreateForm((f) => ({
-                  ...f,
-                  plannedDate: Array.isArray(dateString) ? (dateString[0] ?? '') : dateString,
-                }))
-              }
-            />
-          </label>
-          <label>
-            {t('demo.create.track')}
-            <OmaSelect
-              value={createForm.track}
-              onChange={(track) => setCreateForm((f) => ({ ...f, track }))}
-              options={[
-                { value: 'ORGANIC', label: t('demo.organic') },
-                { value: 'PAID', label: t('demo.paid') },
-              ]}
-            />
-          </label>
-          <label>
-            {t('demo.content.caption')}
-            <TextArea
-              rows={2}
-              value={createForm.caption}
-              onChange={(e) => setCreateForm((f) => ({ ...f, caption: e.target.value }))}
-            />
-          </label>
-          <label>
-            {t('demo.create.brief')}
-            <TextArea
-              rows={2}
-              value={createForm.brief}
-              onChange={(e) => setCreateForm((f) => ({ ...f, brief: e.target.value }))}
-            />
-          </label>
-          {createError ? (
-            <p role="alert" style={{ color: 'var(--status-danger)', margin: 0 }}>
-              {createError}
-            </p>
-          ) : null}
-          <div className="oma-dialog-footer">
-            <Button type="default" disabled={creating} onClick={() => setCreateOpen(false)}>
-              {t('demo.create.cancel')}
-            </Button>
-            <Button
-              type="primary"
-              loading={creating}
-              data-testid="demo-create-content-submit"
-              onClick={() => void submitCreate()}
-            >
-              {t('demo.create.confirm')}
-            </Button>
-          </div>
-        </div>
-      </Dialog>
+        creating={creating}
+        error={createError}
+        form={createForm}
+        campaigns={campaigns}
+        locale={locale}
+        onChange={(patch) => setCreateForm((f) => ({ ...f, ...patch }))}
+        onClose={() => setCreateOpen(false)}
+        onSubmit={() => void submitCreate()}
+      />
 
       <Dialog
         open={unsavedOpen}
