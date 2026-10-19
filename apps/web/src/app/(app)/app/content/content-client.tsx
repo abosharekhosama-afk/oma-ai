@@ -159,6 +159,8 @@ export default function ContentPage() {
   const [error, setError] = useState<string | null>(null);
   const [unavailable, setUnavailable] = useState(false);
   const [filterSheet, setFilterSheet] = useState(false);
+  const [dayNotes, setDayNotes] = useState<Record<string, { text: string; color: string }>>({});
+  const [noteDay, setNoteDay] = useState<string | null>(null);
   const [policy, setPolicy] = useState<ApprovalPolicy>('OPTIONAL');
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -953,88 +955,165 @@ export default function ContentPage() {
                   {dow}
                 </div>
               ))}
-              {visibleCells.map((cell) => {
-                const items = byDay.get(cell.key) ?? [];
-                const { visible, extra } = splitCellItems(items);
+              {Array.from({ length: Math.ceil(visibleCells.length / 7) }, (_, wi) => {
+                const week = visibleCells.slice(wi * 7, wi * 7 + 7);
+                if (!week.length) return null;
+                const weekStart = week[0]!.key;
+                const weekEnd = week[week.length - 1]!.key;
+                const weekCampaigns = campaigns.filter((c) => {
+                  const s = c.timeline?.start;
+                  const e = c.timeline?.end;
+                  if (!s || !e) return false;
+                  return s <= weekEnd && e >= weekStart;
+                });
                 return (
-                  <div
-                    key={cell.key}
-                    className="oma-cal-cell"
-                    role="gridcell"
-                    aria-selected={cell.key === selectedDay}
-                    data-out={cell.inMonth ? 'false' : 'true'}
-                    data-today={cell.key === TODAY_KEY ? 'true' : 'false'}
-                    data-selected={cell.key === selectedDay ? 'true' : 'false'}
-                    onClick={() => setSelectedDay(cell.key)}
-                  >
-                    <span className="oma-cal-daynum oma-ltr">{cell.date.getUTCDate()}</span>
-                    {visible.map((item) => (
-                      <SurfaceButton
-                        key={item.id}
-                        data-status={item.status}
-                        data-testid={`demo-cal-item-${item.id}`}
-                        data-selected={selectedId === item.id ? 'true' : 'false'}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openItem(item);
-                        }}
-                        className="oma-cal-item"
-                      >
-                        <ContentFace
-                          variant="calendar"
-                          title={pickCopy(item.title, locale)}
-                          caption={item.caption ? pickCopy(item.caption, locale) : ''}
-                          channel={item.channel}
-                          when={item.scheduledAt ? item.scheduledAt.slice(11, 16) : item.plannedAt ? String(item.plannedAt).slice(11, 16) || String(item.plannedAt).slice(0, 5) : '—'}
-                          asset={item.previewAsset}
-                          display={faceDisplay(item, policy)}
-                          locale={locale}
-                          selected={selectedId === item.id}
-                        />
-                      </SurfaceButton>
-                    ))}
-                    {extra > 0 ? (
-                      <Button
-                        type="default"
-                        data-testid="demo-day-overflow"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedDay(cell.key);
-                          setOverflowDay(cell.key);
-                        }}
-                        className="oma-cal-more"
-                      >
-                        +{extra}
-                      </Button>
-                    ) : null}
-                    {/* Planable empty/hover cell actions */}
-                    <div className="oma-cal-cell-actions">
-                      <button
-                        type="button"
-                        className="oma-cal-cell-actions__btn"
-                        data-testid={`demo-cal-post-${cell.key}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedDay(cell.key);
-                          setCreateForm((f) => ({ ...f, plannedDate: cell.key }));
-                          setCreateOpen(true);
-                        }}
-                      >
-                        ✎ Post
-                      </button>
-                      <button
-                        type="button"
-                        className="oma-cal-cell-actions__btn"
-                        data-testid={`demo-cal-note-${cell.key}`}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedDay(cell.key);
-                        }}
-                        title={isAr ? 'ملاحظة خاصة' : 'Only visible to you'}
-                      >
-                        🗒 Note
-                      </button>
-                    </div>
+                  <div key={`week-${weekStart}`} className="oma-cal-week" style={{ display: 'contents' }}>
+                    {weekCampaigns.map((c) => {
+                      const s = c.timeline.start;
+                      const e = c.timeline.end;
+                      let startCol = 1;
+                      let endCol = 8;
+                      week.forEach((cell, i) => {
+                        if (cell.key >= s && startCol === 1 && cell.key >= s) {
+                          /* first intersecting */
+                        }
+                      });
+                      const first = week.findIndex((cell) => cell.key >= s && cell.key <= e);
+                      const last = (() => {
+                        let idx = -1;
+                        week.forEach((cell, i) => {
+                          if (cell.key >= s && cell.key <= e) idx = i;
+                        });
+                        return idx;
+                      })();
+                      if (first < 0 || last < 0) return null;
+                      return (
+                        <div
+                          key={`camp-${c.id}-${weekStart}`}
+                          className="oma-cal-campaign-bar oma-cal-campaign-bar--span"
+                          style={{ gridColumn: `${first + 1} / ${last + 2}` }}
+                          title={pickCopy(c.name, locale)}
+                        >
+                          <span className="oma-cal-campaign-bar__icon" aria-hidden>
+                            ▢
+                          </span>
+                          <span className="oma-cal-campaign-bar__name">{pickCopy(c.name, locale)}</span>
+                        </div>
+                      );
+                    })}
+                    {week.map((cell) => {
+                      const items = byDay.get(cell.key) ?? [];
+                      const { visible, extra } = splitCellItems(items);
+                      const note = dayNotes[cell.key];
+                      return (
+                        <div
+                          key={cell.key}
+                          className="oma-cal-cell"
+                          role="gridcell"
+                          aria-selected={cell.key === selectedDay}
+                          data-out={cell.inMonth ? 'false' : 'true'}
+                          data-today={cell.key === TODAY_KEY ? 'true' : 'false'}
+                          data-selected={cell.key === selectedDay ? 'true' : 'false'}
+                          onClick={() => setSelectedDay(cell.key)}
+                        >
+                          <span className="oma-cal-daynum oma-ltr">{cell.date.getUTCDate()}</span>
+                          {visible.map((item) => (
+                            <SurfaceButton
+                              key={item.id}
+                              data-status={item.status}
+                              data-testid={`demo-cal-item-${item.id}`}
+                              data-selected={selectedId === item.id ? 'true' : 'false'}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openItem(item);
+                              }}
+                              className="oma-cal-item"
+                            >
+                              <ContentFace
+                                variant="calendar"
+                                title={pickCopy(item.title, locale)}
+                                caption={item.caption ? pickCopy(item.caption, locale) : ''}
+                                channel={item.channel}
+                                when={
+                                  item.scheduledAt
+                                    ? item.scheduledAt.slice(11, 16)
+                                    : item.plannedAt
+                                      ? String(item.plannedAt).slice(11, 16) ||
+                                        String(item.plannedAt).slice(0, 5)
+                                      : '—'
+                                }
+                                asset={item.previewAsset}
+                                display={faceDisplay(item, policy)}
+                                locale={locale}
+                                selected={selectedId === item.id}
+                              />
+                            </SurfaceButton>
+                          ))}
+                          {extra > 0 ? (
+                            <Button
+                              type="default"
+                              data-testid="demo-day-overflow"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedDay(cell.key);
+                                setOverflowDay(cell.key);
+                              }}
+                              className="oma-cal-more"
+                            >
+                              +{extra}
+                            </Button>
+                          ) : null}
+                          {note ? (
+                            <div
+                              className="oma-cal-note"
+                              data-color={note.color}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setNoteDay(cell.key);
+                              }}
+                            >
+                              <span>{note.text || (isAr ? 'ملاحظة' : 'Note')}</span>
+                              <span className="oma-cal-note__lock" aria-hidden>
+                                🔒
+                              </span>
+                            </div>
+                          ) : null}
+                          <div className="oma-cal-cell-actions">
+                            <button
+                              type="button"
+                              className="oma-cal-cell-actions__btn"
+                              data-testid={`demo-cal-post-${cell.key}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedDay(cell.key);
+                                setCreateForm((f) => ({ ...f, plannedDate: cell.key }));
+                                setCreateOpen(true);
+                              }}
+                            >
+                              ✎ Post
+                            </button>
+                            <button
+                              type="button"
+                              className="oma-cal-cell-actions__btn"
+                              data-testid={`demo-cal-note-${cell.key}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedDay(cell.key);
+                                setNoteDay(cell.key);
+                                setDayNotes((prev) =>
+                                  prev[cell.key]
+                                    ? prev
+                                    : { ...prev, [cell.key]: { text: '', color: 'yellow' } },
+                                );
+                              }}
+                              title={isAr ? 'مرئي لك فقط' : 'Only visible to you'}
+                            >
+                              🗒 Note
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 );
               })}
@@ -1662,6 +1741,63 @@ export default function ContentPage() {
       </Dialog>
 
       <Dialog
+        {/* Planable private note editor */}
+        {noteDay ? (
+          <div className="oma-cal-note-editor" data-testid="demo-content-note-editor">
+            <div className="oma-cal-note-editor__card">
+              <textarea
+                className="oma-cal-note-editor__input"
+                placeholder={isAr ? 'اكتب ملاحظة خاصة…' : 'Type a private note…'}
+                value={dayNotes[noteDay]?.text ?? ''}
+                onChange={(e) =>
+                  setDayNotes((prev) => ({
+                    ...prev,
+                    [noteDay]: { text: e.target.value, color: prev[noteDay]?.color ?? 'yellow' },
+                  }))
+                }
+                rows={4}
+              />
+              <div className="oma-cal-note-editor__toolbar">
+                <span className="oma-cal-note-editor__hint">{isAr ? 'مرئي لك فقط' : 'Only visible to you'}</span>
+                <div className="oma-cal-note-editor__swatches">
+                  {['yellow', 'mint', 'pink', 'lavender', 'blue'].map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      className="oma-cal-note-swatch"
+                      data-color={c}
+                      data-active={dayNotes[noteDay]?.color === c ? 'true' : 'false'}
+                      onClick={() =>
+                        setDayNotes((prev) => ({
+                          ...prev,
+                          [noteDay]: { text: prev[noteDay]?.text ?? '', color: c },
+                        }))
+                      }
+                      aria-label={c}
+                    />
+                  ))}
+                </div>
+                <Button
+                  type="default"
+                  onClick={() => {
+                    setDayNotes((prev) => {
+                      const next = { ...prev };
+                      delete next[noteDay];
+                      return next;
+                    });
+                    setNoteDay(null);
+                  }}
+                >
+                  {isAr ? 'حذف' : 'Delete'}
+                </Button>
+                <Button type="primary" onClick={() => setNoteDay(null)}>
+                  {isAr ? 'تم' : 'Done'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         open={createOpen}
         title={t('demo.create.contentTitle')}
         onClose={() => (!creating ? setCreateOpen(false) : undefined)}
