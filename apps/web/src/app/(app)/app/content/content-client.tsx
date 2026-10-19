@@ -1740,64 +1740,64 @@ export default function ContentPage() {
         </div>
       </Dialog>
 
-      <Dialog
-        {/* Planable private note editor */}
-        {noteDay ? (
-          <div className="oma-cal-note-editor" data-testid="demo-content-note-editor">
-            <div className="oma-cal-note-editor__card">
-              <textarea
-                className="oma-cal-note-editor__input"
-                placeholder={isAr ? 'اكتب ملاحظة خاصة…' : 'Type a private note…'}
-                value={dayNotes[noteDay]?.text ?? ''}
-                onChange={(e) =>
-                  setDayNotes((prev) => ({
-                    ...prev,
-                    [noteDay]: { text: e.target.value, color: prev[noteDay]?.color ?? 'yellow' },
-                  }))
-                }
-                rows={4}
-              />
-              <div className="oma-cal-note-editor__toolbar">
-                <span className="oma-cal-note-editor__hint">{isAr ? 'مرئي لك فقط' : 'Only visible to you'}</span>
-                <div className="oma-cal-note-editor__swatches">
-                  {['yellow', 'mint', 'pink', 'lavender', 'blue'].map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      className="oma-cal-note-swatch"
-                      data-color={c}
-                      data-active={dayNotes[noteDay]?.color === c ? 'true' : 'false'}
-                      onClick={() =>
-                        setDayNotes((prev) => ({
-                          ...prev,
-                          [noteDay]: { text: prev[noteDay]?.text ?? '', color: c },
-                        }))
-                      }
-                      aria-label={c}
-                    />
-                  ))}
-                </div>
-                <Button
-                  type="default"
-                  onClick={() => {
-                    setDayNotes((prev) => {
-                      const next = { ...prev };
-                      delete next[noteDay];
-                      return next;
-                    });
-                    setNoteDay(null);
-                  }}
-                >
-                  {isAr ? 'حذف' : 'Delete'}
-                </Button>
-                <Button type="primary" onClick={() => setNoteDay(null)}>
-                  {isAr ? 'تم' : 'Done'}
-                </Button>
+      {/* Planable private note editor */}
+      {noteDay ? (
+        <div className="oma-cal-note-editor" data-testid="demo-content-note-editor">
+          <div className="oma-cal-note-editor__card">
+            <textarea
+              className="oma-cal-note-editor__input"
+              placeholder={isAr ? 'اكتب ملاحظة خاصة…' : 'Type a private note…'}
+              value={dayNotes[noteDay]?.text ?? ''}
+              onChange={(e) =>
+                setDayNotes((prev) => ({
+                  ...prev,
+                  [noteDay]: { text: e.target.value, color: prev[noteDay]?.color ?? 'yellow' },
+                }))
+              }
+              rows={4}
+            />
+            <div className="oma-cal-note-editor__toolbar">
+              <span className="oma-cal-note-editor__hint">{isAr ? 'مرئي لك فقط' : 'Only visible to you'}</span>
+              <div className="oma-cal-note-editor__swatches">
+                {['yellow', 'mint', 'pink', 'lavender', 'blue'].map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    className="oma-cal-note-swatch"
+                    data-color={c}
+                    data-active={dayNotes[noteDay]?.color === c ? 'true' : 'false'}
+                    onClick={() =>
+                      setDayNotes((prev) => ({
+                        ...prev,
+                        [noteDay]: { text: prev[noteDay]?.text ?? '', color: c },
+                      }))
+                    }
+                    aria-label={c}
+                  />
+                ))}
               </div>
+              <Button
+                type="default"
+                onClick={() => {
+                  setDayNotes((prev) => {
+                    const next = { ...prev };
+                    delete next[noteDay];
+                    return next;
+                  });
+                  setNoteDay(null);
+                }}
+              >
+                {isAr ? 'حذف' : 'Delete'}
+              </Button>
+              <Button type="primary" onClick={() => setNoteDay(null)}>
+                {isAr ? 'تم' : 'Done'}
+              </Button>
             </div>
           </div>
-        ) : null}
+        </div>
+      ) : null}
 
+      <Dialog
         open={createOpen}
         title={t('demo.create.contentTitle')}
         onClose={() => (!creating ? setCreateOpen(false) : undefined)}
