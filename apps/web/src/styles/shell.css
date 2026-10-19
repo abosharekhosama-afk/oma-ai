@@ -611,3 +611,21 @@
 .oma-top[data-content-workspace='true'] .oma-top-actions--content {
   min-height: 32px;
 }
+
+#oma-content-view-slot {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+#oma-content-view-slot:hover {
+  background: #f0f1f3;
+}
+#oma-content-view-slot::after {
+  content: '▾';
+  color: #8c8c8c;
+  font-size: 10px;
+}
