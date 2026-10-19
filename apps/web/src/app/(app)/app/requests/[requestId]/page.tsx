@@ -25,6 +25,15 @@ import {
   type RequestRow,
 } from '../../../../../lib/demo/stage4-requests';
 import { useLocale, useT } from '../../../../../lib/use-locale';
+import {
+  ArrowLeftOutlined,
+  CloseOutlined,
+  CheckOutlined,
+  UserOutlined,
+  CalendarOutlined,
+  FlagOutlined,
+  LinkOutlined,
+} from '@ant-design/icons';
 
 type Brief = DemoGraph['briefs'][number];
 type Task = DemoGraph['tasks'][number];
@@ -229,366 +238,310 @@ export default function RequestDetailPage() {
   }
 
   return (
-    <div className="oma-stack" data-testid="demo-request-detail">
-      <div>
-        <Link href="/app/requests" className="oma-text-link">
-          ← {t('demo.requests.back')}
+    <div className="oma-req-detail" data-testid="demo-request-detail">
+      <header className="oma-req-detail__top">
+        <Link href="/app/requests" className="oma-req-detail__back" data-testid="demo-request-back">
+          <ArrowLeftOutlined />
+          <span>{t('demo.requests.back')}</span>
         </Link>
-      </div>
-      <PageHeader
-        title={row ? pickCopy(row.title, locale) : t('demo.requests.title')}
-        description={row ? row.id : undefined}
-        meta={
-          row ? (
-            <>
-              <StatusChip status={row.status} />
-              <StatusChip status={row.priority} />
-              <span className="oma-muted">
-                {row.requester} · {row.assignee ?? t('demo.requests.unassigned')} · {row.dueAt}
-              </span>
-            </>
-          ) : null
-        }
-        actions={
-          row ? (
-            <div className="oma-chip-row">
-              <Button
-                type="default"
-                data-testid="demo-request-close"
-                onClick={() => setConfirmClose(true)}
-              >
-                {t('demo.requests.close')}
-              </Button>
-              <Button
-                type="primary"
-                data-testid="demo-request-convert"
-                disabled={!ready || converting}
-                onClick={() => void convert()}
-              >
-                {converting ? t('demo.create.creating') : t('demo.requests.convert')}
-              </Button>
-            </div>
-          ) : null
-        }
-      />
+        {row ? (
+          <div className="oma-req-detail__top-actions">
+            <Button
+              type="default"
+              data-testid="demo-request-close"
+              onClick={() => setConfirmClose(true)}
+            >
+              {t('demo.requests.close')}
+            </Button>
+            <Button
+              type="primary"
+              data-testid="demo-request-convert"
+              disabled={!ready || converting}
+              onClick={() => void convert()}
+            >
+              {converting ? t('demo.create.creating') : t('demo.requests.convert')}
+            </Button>
+          </div>
+        ) : null}
+      </header>
+
       <DemoDisclosure />
 
-      {loading ? <p className="oma-muted">{t('demo.loading')}</p> : null}
+      {loading ? <p className="oma-muted oma-req-detail__pad">{t('demo.loading')}</p> : null}
       {unavailable ? (
-        <p className="oma-muted" data-testid="demo-request-denied">
+        <p className="oma-muted oma-req-detail__pad" data-testid="demo-request-denied">
           {t('demo.unavailable')}
         </p>
       ) : null}
       {error ? (
-        <div className="oma-card" role="alert">
+        <div className="oma-card oma-req-detail__pad" role="alert">
           <p style={{ color: 'var(--status-danger)', margin: 0 }}>{error}</p>
         </div>
       ) : null}
 
       {row ? (
-        <>
-          <div className="oma-chip-row" data-testid="demo-request-completeness">
-            <span>
-              {t('demo.requests.completeness')}: {completeness}%
-            </span>
-            {missing.length ? (
-              <span className="oma-callout" data-testid="demo-request-missing">
-                {t('demo.requests.missing')}: {missing.join(', ')}
-              </span>
-            ) : null}
-          </div>
-
-          <Panel title={t('demo.requests.triage')}>
-            <div className="oma-task-fields">
-              <label>
-                {t('demo.requests.filter.status')}
-                <SelectField
-                  value={row.status}
-                  data-testid="demo-request-status"
-                  onChange={(e) => void patchRequest({ status: e.target.value })}
-                >
-                  {[
-                    'OPEN',
-                    'ASSIGNED',
-                    'IN_BRIEF',
-                    'WAITING_INFO',
-                    'READY_FOR_PRODUCTION',
-                    'IN_PRODUCTION',
-                    'DONE',
-                    'CLOSED',
-                  ].map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </SelectField>
-              </label>
-              <label>
-                {t('demo.requests.filter.priority')}
-                <SelectField
-                  value={row.priority}
-                  data-testid="demo-request-priority"
-                  onChange={(e) => void patchRequest({ priority: e.target.value })}
-                >
-                  {['URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </SelectField>
-              </label>
-              <label>
-                {t('demo.requests.filter.assignee')}
-                <Input
-                  defaultValue={row.assignee ?? ''}
-                  data-testid="demo-request-assignee"
-                  onBlur={(e) => void patchRequest({ assignee: e.target.value.trim() || null })}
-                />
-              </label>
-              <label>
-                {t('demo.requests.col.due')}
-                <DateField
-                  defaultValue={row.dueAt}
-                  data-testid="demo-request-due"
-                  onBlur={(e) => void patchRequest({ dueAt: e.target.value })}
-                />
-              </label>
-            </div>
-            <div className="oma-stack" style={{ marginTop: 12 }}>
-              <p>{pickCopy(row.description, locale)}</p>
-              {row.campaignId ? (
-                <Link
-                  href={`/app/campaigns/${row.campaignId}`}
-                  className="oma-text-link"
-                  data-testid="demo-request-campaign-link"
-                >
-                  {t('demo.create.campaign')}: {row.campaignId}
-                </Link>
-              ) : (
-                <p className="oma-muted">{t('demo.requests.noCampaign')}</p>
-              )}
-              {row.contentId ? (
-                <Link
-                  href={`/app/content?item=${row.contentId}`}
-                  className="oma-text-link"
-                  data-testid="demo-request-content-link"
-                >
-                  {t('nav.content')}: {row.contentId}
-                </Link>
-              ) : null}
-            </div>
-          </Panel>
-
-          {briefDraft ? (
-            <Panel
-              title={t('demo.request.brief')}
-              description={`${t('demo.brief.readiness')}: ${briefDraft.readiness} · ${briefCompleteness(briefDraft)}%`}
-              action={
-                <Button
-                  type="primary"
-                  data-testid="demo-brief-save"
-                  disabled={saving}
-                  onClick={() => void saveBrief()}
-                >
-                  {saving ? t('demo.brief.saving') : t('demo.brief.save')}
-                </Button>
-              }
-            >
-              <p className="oma-callout oma-callout--info" data-testid="demo-brief-ai-honesty">
-                {t('demo.honesty.ai')}
-              </p>
-              <div className="oma-brief-layout">
-                <nav className="oma-brief-toc" aria-label={t('demo.brief.title')}>
-                  <a href="#brief-overview">{t('demo.brief.overview')}</a>
-                  <a href="#brief-objective">{t('demo.campaign.objective')}</a>
-                  <a href="#brief-deliverable">{t('demo.brief.deliverable')}</a>
-                  <a href="#brief-requirements">{t('demo.brief.acceptance')}</a>
-                  <a href="#brief-timeline">{t('demo.brief.timeline')}</a>
-                </nav>
-                <div className="oma-brief-canvas">
-                  <div className="oma-brief-grid" data-testid="demo-structured-brief">
-                    <div className="oma-brief-section" id="brief-overview">
-                      <h3>{t('demo.brief.overview')}</h3>
-                      <BriefField
-                        label={t('demo.brief.overview')}
-                        value={pickCopy(briefDraft.overview, locale)}
-                        testId="demo-brief-overview"
-                        onChange={(v) => patchBriefCopy('overview', v)}
-                      />
-                    </div>
-                    <div className="oma-brief-section" id="brief-objective">
-                      <h3>{t('demo.campaign.objective')}</h3>
-                      <BriefField
-                        label={t('demo.campaign.objective')}
-                        value={pickCopy(briefDraft.objective, locale)}
-                        testId="demo-brief-objective"
-                        onChange={(v) => patchBriefCopy('objective', v)}
-                      />
-                      <BriefField
-                        label={t('demo.campaign.audience')}
-                        value={pickCopy(briefDraft.audience, locale)}
-                        testId="demo-brief-audience"
-                        onChange={(v) => patchBriefCopy('audience', v)}
-                      />
-                      <BriefField
-                        label={t('demo.brief.keyMessage')}
-                        value={pickCopy(briefDraft.keyMessage, locale)}
-                        testId="demo-brief-key-message"
-                        onChange={(v) => patchBriefCopy('keyMessage', v)}
-                      />
-                    </div>
-                    <div className="oma-brief-section" id="brief-deliverable">
-                      <h3>{t('demo.brief.deliverable')}</h3>
-                      <BriefField
-                        label={t('demo.brief.deliverable')}
-                        value={pickCopy(briefDraft.deliverableType, locale)}
-                        testId="demo-brief-deliverable"
-                        onChange={(v) => patchBriefCopy('deliverableType', v)}
-                      />
-                      <label>
-                        {t('demo.create.channels')}
-                        <Input
-                          value={briefDraft.channels.join(', ')}
-                          data-testid="demo-brief-channels"
-                          onChange={(e) => {
-                            setBriefDraft((b) =>
-                              b
-                                ? {
-                                    ...b,
-                                    channels: e.target.value
-                                      .split(',')
-                                      .map((c) => c.trim())
-                                      .filter(Boolean),
-                                  }
-                                : b,
-                            );
-                            setDirty(true);
-                          }}
-                        />
-                      </label>
-                      <label>
-                        {t('demo.requests.formats')}
-                        <Input
-                          value={briefDraft.formats.join(', ')}
-                          data-testid="demo-brief-formats"
-                          onChange={(e) => {
-                            setBriefDraft((b) =>
-                              b
-                                ? {
-                                    ...b,
-                                    formats: e.target.value
-                                      .split(',')
-                                      .map((c) => c.trim())
-                                      .filter(Boolean),
-                                  }
-                                : b,
-                            );
-                            setDirty(true);
-                          }}
-                        />
-                      </label>
-                      <BriefField
-                        label={t('demo.brief.tone')}
-                        value={pickCopy(briefDraft.tone, locale)}
-                        testId="demo-brief-tone"
-                        onChange={(v) => patchBriefCopy('tone', v)}
-                      />
-                      <BriefField
-                        label={t('demo.brief.mandatory')}
-                        value={pickCopy(briefDraft.mandatory, locale)}
-                        testId="demo-brief-mandatory"
-                        onChange={(v) => patchBriefCopy('mandatory', v)}
-                      />
-                      <BriefField
-                        label={t('demo.brief.cta')}
-                        value={pickCopy(briefDraft.cta, locale)}
-                        testId="demo-brief-cta"
-                        onChange={(v) => patchBriefCopy('cta', v)}
-                      />
-                    </div>
-                    <div className="oma-brief-section" id="brief-requirements">
-                      <h3>{t('demo.brief.acceptance')}</h3>
-                      <BriefField
-                        label={t('demo.brief.acceptance')}
-                        value={pickCopy(briefDraft.acceptance, locale)}
-                        testId="demo-brief-acceptance"
-                        onChange={(v) => patchBriefCopy('acceptance', v)}
-                      />
-                      <p className="oma-muted">
-                        {t('demo.brief.stakeholders')}:{' '}
-                        {briefDraft.stakeholders.join(' · ') || t('demo.optional')}
-                      </p>
-                      <ul data-testid="demo-brief-references">
-                        {briefDraft.references.map((ref) => (
-                          <li key={ref}>{ref}</li>
-                        ))}
-                      </ul>
-                      {briefDraft.attachmentAssets.length ? (
-                        <div className="oma-chip-row">
-                          {briefDraft.attachmentAssets.map((src) => (
-                            <img
-                              key={src}
-                              src={src}
-                              alt=""
-                              width={96}
-                              height={120}
-                              className="oma-thumb-rounded"
-                              style={{
-                                width: 96,
-                                height: 120,
-                              }} /* INTENTIONAL_EXCEPTION: layout size only */
-                            />
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="oma-muted" data-testid="demo-brief-no-upload">
-                          Demo: no upload backend — references are text/asset placeholders only.
-                        </p>
-                      )}
-                    </div>
-                    <div className="oma-brief-section" id="brief-timeline">
-                      <h3>{t('demo.brief.timeline')}</h3>
-                      <BriefField
-                        label={t('demo.brief.timeline')}
-                        value={pickCopy(briefDraft.timelineNote, locale)}
-                        testId="demo-brief-timeline"
-                        onChange={(v) => patchBriefCopy('timelineNote', v)}
-                      />
-                    </div>
-                  </div>
-                </div>
+        <div className="oma-req-detail__workspace">
+          <div className="oma-req-detail__main">
+            <div className="oma-req-detail__title-block">
+              <div className="oma-req-detail__chips">
+                <StatusChip status={row.status} />
+                <StatusChip status={row.priority} />
+                <span className="oma-req-detail__id">{row.id.replace('demo-request-', '#')}</span>
               </div>
-              <p data-testid="demo-brief-ready-state">
-                {ready ? t('demo.brief.ready') : t('demo.brief.notReady')}
-              </p>
-              {!ready ? (
-                <p className="oma-callout" data-testid="demo-brief-missing">
-                  {t('demo.requests.missing')}: completeness {briefCompleteness(briefDraft)}%
+              <h1 className="oma-req-detail__title">{pickCopy(row.title, locale)}</h1>
+              <p className="oma-req-detail__desc">{pickCopy(row.description, locale)}</p>
+            </div>
+
+            <section className="oma-req-detail__card" data-testid="demo-request-completeness">
+              <header className="oma-req-detail__card-head">
+                <strong>{t('demo.requests.triage')}</strong>
+                <span className="oma-req-detail__meta">
+                  {requestCompleteness(row, briefDraft)}%
+                </span>
+              </header>
+              {requestMissingFields(row).length ? (
+                <p className="oma-callout" data-testid="demo-request-missing">
+                  {t('demo.requests.missing')}: {requestMissingFields(row).join(', ')}
                 </p>
               ) : null}
-            </Panel>
-          ) : null}
+              <div className="oma-req-detail__fields">
+                <label>
+                  {t('demo.requests.filter.status')}
+                  <SelectField
+                    value={row.status}
+                    data-testid="demo-request-status"
+                    onChange={(e) => {
+                      const next = e.target.value;
+                      if (!canTransitionRequestStatus(row.status, next)) {
+                        toast.push(t('demo.requests.invalidTransition'), 'danger');
+                        return;
+                      }
+                      void patchRequest({ status: next });
+                    }}
+                  >
+                    {[
+                      'OPEN',
+                      'ASSIGNED',
+                      'IN_BRIEF',
+                      'WAITING_INFO',
+                      'READY_FOR_PRODUCTION',
+                      'IN_PRODUCTION',
+                      'DONE',
+                      'CLOSED',
+                    ].map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </SelectField>
+                </label>
+                <label>
+                  {t('demo.requests.filter.priority')}
+                  <SelectField
+                    value={row.priority}
+                    data-testid="demo-request-priority"
+                    onChange={(e) => void patchRequest({ priority: e.target.value })}
+                  >
+                    {['URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </SelectField>
+                </label>
+                <label>
+                  {t('demo.requests.filter.assignee')}
+                  <Input
+                    defaultValue={row.assignee ?? ''}
+                    data-testid="demo-request-assignee"
+                    onBlur={(e) => void patchRequest({ assignee: e.target.value.trim() || null })}
+                  />
+                </label>
+                <label>
+                  {t('demo.requests.col.due')}
+                  <DateField
+                    defaultValue={row.dueAt}
+                    data-testid="demo-request-due"
+                    onBlur={(e) => void patchRequest({ dueAt: e.target.value })}
+                  />
+                </label>
+              </div>
+              <div className="oma-req-detail__links">
+                {row.campaignId ? (
+                  <Link
+                    href={`/app/campaigns/${row.campaignId}`}
+                    className="oma-req-detail__link"
+                    data-testid="demo-request-campaign-link"
+                  >
+                    <LinkOutlined /> {t('demo.create.campaign')}: {row.campaignId}
+                  </Link>
+                ) : (
+                  <span className="oma-muted">{t('demo.requests.noCampaign')}</span>
+                )}
+                {row.contentId ? (
+                  <Link
+                    href={`/app/content?item=${row.contentId}`}
+                    className="oma-req-detail__link"
+                    data-testid="demo-request-content-link"
+                  >
+                    <LinkOutlined /> {t('nav.content')}: {row.contentId}
+                  </Link>
+                ) : null}
+              </div>
+            </section>
 
-          <Panel title={t('demo.tasks.title')}>
-            {(row.tasks ?? []).length === 0 ? (
-              <p className="oma-muted">{t('demo.requests.noTasks')}</p>
-            ) : (
-              <ul className="oma-compact-list">
-                {(row.tasks ?? []).map((task) => (
-                  <li key={task.id}>
-                    <Link
-                      href={`/app/tasks?task=${task.id}`}
-                      className="oma-text-link"
-                      data-testid={`demo-request-task-${task.id}`}
-                    >
-                      {pickCopy(task.title, locale)} · {task.status}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Panel>
-        </>
+            {briefDraft ? (
+              <section className="oma-req-detail__card">
+                <header className="oma-req-detail__card-head">
+                  <div>
+                    <strong>{t('demo.request.brief')}</strong>
+                    <span className="oma-req-detail__meta">
+                      {t('demo.brief.readiness')}: {briefDraft.readiness} · {briefCompleteness(briefDraft)}%
+                    </span>
+                  </div>
+                  <Button
+                    type="primary"
+                    data-testid="demo-brief-save"
+                    disabled={saving}
+                    onClick={() => void saveBrief()}
+                  >
+                    {saving ? t('demo.brief.saving') : t('demo.brief.save')}
+                  </Button>
+                </header>
+                <p className="oma-callout oma-callout--info" data-testid="demo-brief-ai-honesty">
+                  {t('demo.honesty.ai')}
+                </p>
+                <div className="oma-brief-layout">
+                  <div className="oma-brief-col">
+                    <BriefField
+                      label={t('demo.brief.objective')}
+                      value={pickCopy(briefDraft.objective, locale)}
+                      testId="demo-brief-objective"
+                      onChange={(v) => patchBriefCopy('objective', v)}
+                    />
+                    <BriefField
+                      label={t('demo.brief.audience')}
+                      value={pickCopy(briefDraft.audience, locale)}
+                      testId="demo-brief-audience"
+                      onChange={(v) => patchBriefCopy('audience', v)}
+                    />
+                    <BriefField
+                      label={t('demo.brief.message')}
+                      value={pickCopy(briefDraft.keyMessage, locale)}
+                      testId="demo-brief-message"
+                      onChange={(v) => patchBriefCopy('keyMessage', v)}
+                    />
+                    <BriefField
+                      label={t('demo.brief.channels')}
+                      value={pickCopy(briefDraft.channels, locale)}
+                      testId="demo-brief-channels"
+                      onChange={(v) => patchBriefCopy('channels', v)}
+                    />
+                  </div>
+                  <div className="oma-brief-col">
+                    <BriefField
+                      label={t('demo.brief.assets')}
+                      value={pickCopy(briefDraft.assetsNeeded, locale)}
+                      testId="demo-brief-assets"
+                      onChange={(v) => patchBriefCopy('assetsNeeded', v)}
+                    />
+                    <BriefField
+                      label={t('demo.brief.constraints')}
+                      value={pickCopy(briefDraft.constraints, locale)}
+                      testId="demo-brief-constraints"
+                      onChange={(v) => patchBriefCopy('constraints', v)}
+                    />
+                    <BriefField
+                      label={t('demo.brief.success')}
+                      value={pickCopy(briefDraft.successMetrics, locale)}
+                      testId="demo-brief-success"
+                      onChange={(v) => patchBriefCopy('successMetrics', v)}
+                    />
+                    <BriefField
+                      label={t('demo.brief.timeline')}
+                      value={pickCopy(briefDraft.timelineNote, locale)}
+                      testId="demo-brief-timeline"
+                      onChange={(v) => patchBriefCopy('timelineNote', v)}
+                    />
+                  </div>
+                </div>
+                <p data-testid="demo-brief-ready-state">
+                  {ready ? t('demo.brief.ready') : t('demo.brief.notReady')}
+                </p>
+                {!ready ? (
+                  <p className="oma-callout" data-testid="demo-brief-missing">
+                    {t('demo.requests.missing')}: completeness {briefCompleteness(briefDraft)}%
+                  </p>
+                ) : null}
+              </section>
+            ) : null}
+
+            <section className="oma-req-detail__card">
+              <header className="oma-req-detail__card-head">
+                <strong>{t('demo.tasks.title')}</strong>
+              </header>
+              {(row.tasks ?? []).length === 0 ? (
+                <p className="oma-muted">{t('demo.requests.noTasks')}</p>
+              ) : (
+                <ul className="oma-req-detail__task-list">
+                  {(row.tasks ?? []).map((task) => (
+                    <li key={task.id}>
+                      <Link
+                        href={`/app/tasks?task=${task.id}`}
+                        className="oma-req-detail__link"
+                        data-testid={`demo-request-task-${task.id}`}
+                      >
+                        {pickCopy(task.title, locale)}
+                        <span className="oma-req-detail__task-status">{task.status}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          </div>
+
+          <aside className="oma-req-detail__side">
+            <div className="oma-req-detail__side-card">
+              <h3>{locale.toLowerCase().startsWith('ar') ? 'الملخص' : 'Summary'}</h3>
+              <div className="oma-req-detail__side-row">
+                <UserOutlined />
+                <div>
+                  <span className="oma-req-detail__side-label">{t('demo.requests.filter.requester')}</span>
+                  <strong>{row.requester}</strong>
+                </div>
+              </div>
+              <div className="oma-req-detail__side-row">
+                <UserOutlined />
+                <div>
+                  <span className="oma-req-detail__side-label">{t('demo.requests.filter.assignee')}</span>
+                  <strong>{row.assignee ?? t('demo.requests.unassigned')}</strong>
+                </div>
+              </div>
+              <div className="oma-req-detail__side-row">
+                <CalendarOutlined />
+                <div>
+                  <span className="oma-req-detail__side-label">{t('demo.requests.col.due')}</span>
+                  <strong className="oma-ltr">{row.dueAt}</strong>
+                </div>
+              </div>
+              <div className="oma-req-detail__side-row">
+                <FlagOutlined />
+                <div>
+                  <span className="oma-req-detail__side-label">{t('demo.requests.filter.priority')}</span>
+                  <strong>{row.priority}</strong>
+                </div>
+              </div>
+              <div className="oma-req-detail__side-row">
+                <CheckOutlined />
+                <div>
+                  <span className="oma-req-detail__side-label">{t('demo.requests.filter.status')}</span>
+                  <strong>{row.status}</strong>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
       ) : null}
 
       <Dialog
