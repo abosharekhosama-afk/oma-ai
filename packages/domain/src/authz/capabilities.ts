@@ -102,6 +102,8 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     ...BRAND_CAPABILITIES,
     ...STRATEGY_CAPABILITIES,
     ...AI_CAPABILITIES,
+    ...CAMPAIGN_CAPABILITIES,
+    ...CONTENT_CAPABILITIES,
   ],
   COMPANY_OWNER: [
     'tenant.manage',
@@ -114,6 +116,13 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     ...BRAND_CAPABILITIES,
     ...STRATEGY_CAPABILITIES,
     ...AI_CAPABILITIES,
+    ...CAMPAIGN_CAPABILITIES,
+    ...CONTENT_CAPABILITIES,
   ],
-  MEMBER: ['notification.read', 'job.read'],
+  MEMBER: [
+    'notification.read',
+    'job.read',
+    'campaign.read',
+    'content.read',
+  ],
 };
