@@ -36,6 +36,7 @@ import {
   SearchOutlined,
   DownOutlined,
   UpOutlined,
+  UnorderedListOutlined,
 } from '@ant-design/icons';
 
 type Campaign = DemoGraph['campaigns'][number];
@@ -183,12 +184,12 @@ export default function DeliverablesPage() {
       {viewSlot && viewSlot.isConnected
         ? createPortal(
             <span
-              className="oma-view-path oma-view-path--inline"
+              className="oma-view-path oma-view-path--text"
               onClick={(e) => e.stopPropagation()}
             >
               <button
                 type="button"
-                className="oma-view-path__btn oma-view-path__btn--ghost"
+                className="oma-view-path__text"
                 data-testid="demo-deliv-view-toggle"
                 aria-expanded={viewMenuOpen}
                 onClick={(e) => {
@@ -196,10 +197,7 @@ export default function DeliverablesPage() {
                   setViewMenuOpen((v) => !v);
                 }}
               >
-                {filters.view === 'grid' ? <AppstoreOutlined /> : <BarsOutlined />}
-                <span>
-                  {filters.view === 'grid' ? t('demo.view.grid') : t('demo.view.list')}
-                </span>
+                {filters.view === 'grid' ? t('demo.view.grid') : t('demo.view.list')}
                 <DownOutlined className="oma-view-path__caret" />
               </button>
               {viewMenuOpen ? (
