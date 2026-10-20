@@ -2,7 +2,9 @@
 import { Button, Input, SelectField } from '@oma/ui/controls';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { DemoGraph } from '@oma/demo';
 import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
 import { EmptyState } from '../../../../components/ui/empty-state';
@@ -52,6 +54,7 @@ const VIEW_PREF_KEY = 'oma-demo-deliv-view';
 export default function DeliverablesPage() {
   const t = useT();
   const locale = useLocale();
+  const router = useRouter();
   const [rows, setRows] = useState<DeliverableRow[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [filters, setFilters] = useState<DeliverableFilters>(EMPTY_DELIVERABLE_FILTERS);
@@ -62,6 +65,8 @@ export default function DeliverablesPage() {
   const [filterSheet, setFilterSheet] = useState(false);
   const [viewMenuOpen, setViewMenuOpen] = useState(false);
   const [filterSection, setFilterSection] = useState<string | null>('search');
+  const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
+  const [viewSlot, setViewSlot] = useState<HTMLElement | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -108,6 +113,21 @@ export default function DeliverablesPage() {
     setFilters((f) => ({ ...f, view }));
   }
 
+  useEffect(() => {
+    setHeaderSlot(document.getElementById('oma-workspace-top-actions'));
+    setViewSlot(document.getElementById('oma-content-view-slot'));
+  }, []);
+
+  useEffect(() => {
+    if (!viewMenuOpen) return;
+    const onDoc = () => setViewMenuOpen(false);
+    const tmr = window.setTimeout(() => document.addEventListener('click', onDoc), 0);
+    return () => {
+      window.clearTimeout(tmr);
+      document.removeEventListener('click', onDoc);
+    };
+  }, [viewMenuOpen]);
+
   const filtered = useMemo(
     () => filterDeliverables(rows, filters, locale),
     [rows, filters, locale],
@@ -120,6 +140,85 @@ export default function DeliverablesPage() {
     <div className="oma-deliv-page" data-testid="demo-deliverables" data-prefs={prefsLoaded ? '1' : '0'}>
       <PageHeader title={t('demo.deliverables.title')} description={t('demo.deliverables.subtitle')} />
       <DemoDisclosure />
+
+      {headerSlot
+        ? createPortal(
+            <div className="oma-workspace-header-actions">
+              <button
+                type="button"
+                className="oma-req-filter-btn"
+                data-testid="demo-deliv-open-filters"
+                data-active={filterSheet ? 'true' : 'false'}
+                onClick={() => setFilterSheet((v) => !v)}
+              >
+                <FilterOutlined />
+                <span>{locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter'}</span>
+                {filterCount > 0 ? (
+                  <span className="oma-req-filter-btn__count">{filterCount}</span>
+                ) : null}
+              </button>
+            </div>,
+            headerSlot,
+          )
+        : null}
+
+      {viewSlot
+        ? createPortal(
+            <span
+              className="oma-view-path oma-view-path--inline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                className="oma-view-path__btn oma-view-path__btn--ghost"
+                data-testid="demo-deliv-view-toggle"
+                aria-expanded={viewMenuOpen}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setViewMenuOpen((v) => !v);
+                }}
+              >
+                {filters.view === 'grid' ? <AppstoreOutlined /> : <BarsOutlined />}
+                <span>
+                  {filters.view === 'grid' ? t('demo.view.grid') : t('demo.view.list')}
+                </span>
+                <DownOutlined className="oma-view-path__caret" />
+              </button>
+              {viewMenuOpen ? (
+                <div className="oma-view-path__menu" role="menu" data-testid="demo-deliv-view-menu">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    data-active={filters.view === 'list' ? 'true' : 'false'}
+                    data-testid="demo-deliv-view-list"
+                    onClick={() => {
+                      changeView('list');
+                      setViewMenuOpen(false);
+                    }}
+                  >
+                    <BarsOutlined />
+                    <span>{t('demo.view.list')}</span>
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    data-active={filters.view === 'grid' ? 'true' : 'false'}
+                    data-testid="demo-deliv-view-grid"
+                    onClick={() => {
+                      changeView('grid');
+                      setViewMenuOpen(false);
+                    }}
+                  >
+                    <AppstoreOutlined />
+                    <span>{t('demo.view.grid')}</span>
+                  </button>
+                </div>
+              ) : null}
+            </span>,
+            viewSlot,
+          )
+        : null}
+
       <p className="oma-honesty-inline" data-testid="demo-storage-honesty">
         {t('demo.deliverable.storageHonesty')}
       </p>
@@ -154,66 +253,6 @@ export default function DeliverablesPage() {
                   {t(`demo.deliverables.group.${g}`)}
                 </button>
               ))}
-            </div>
-            <div className="oma-req-topbar__actions">
-              <div className="oma-view-path">
-                <button
-                  type="button"
-                  className="oma-view-path__btn"
-                  data-testid="demo-deliv-view-toggle"
-                  aria-expanded={viewMenuOpen}
-                  onClick={() => setViewMenuOpen((v) => !v)}
-                >
-                  {filters.view === 'grid' ? <AppstoreOutlined /> : <BarsOutlined />}
-                  <span>
-                    {filters.view === 'grid' ? t('demo.view.grid') : t('demo.view.list')}
-                  </span>
-                  <DownOutlined className="oma-view-path__caret" />
-                </button>
-                {viewMenuOpen ? (
-                  <div className="oma-view-path__menu" role="menu" data-testid="demo-deliv-view-menu">
-                    <button
-                      type="button"
-                      role="menuitem"
-                      data-active={filters.view === 'list' ? 'true' : 'false'}
-                      data-testid="demo-deliv-view-list"
-                      onClick={() => {
-                        changeView('list');
-                        setViewMenuOpen(false);
-                      }}
-                    >
-                      <BarsOutlined />
-                      <span>{t('demo.view.list')}</span>
-                    </button>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      data-active={filters.view === 'grid' ? 'true' : 'false'}
-                      data-testid="demo-deliv-view-grid"
-                      onClick={() => {
-                        changeView('grid');
-                        setViewMenuOpen(false);
-                      }}
-                    >
-                      <AppstoreOutlined />
-                      <span>{t('demo.view.grid')}</span>
-                    </button>
-                  </div>
-                ) : null}
-              </div>
-              <button
-                type="button"
-                className="oma-req-filter-btn"
-                data-testid="demo-deliv-open-filters"
-                data-active={filterSheet ? 'true' : 'false'}
-                onClick={() => setFilterSheet((v) => !v)}
-              >
-                <FilterOutlined />
-                <span>{locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter'}</span>
-                {filterCount > 0 ? (
-                  <span className="oma-req-filter-btn__count">{filterCount}</span>
-                ) : null}
-              </button>
             </div>
           </div>
 
@@ -282,7 +321,17 @@ export default function DeliverablesPage() {
                               key={d.id}
                               data-overdue={deliverableIsOverdue(d) ? 'true' : 'false'}
                               data-testid={`demo-deliv-row-${d.id}`}
-                            >
+                          className="oma-deliv-row"
+                          role="link"
+                          tabIndex={0}
+                          onClick={() => router.push(`/app/deliverables/${d.id}`)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              router.push(`/app/deliverables/${d.id}`);
+                            }
+                          }}
+                        >
                               <td>
                                 {thumb ? (
                                   <img className="oma-deliv-thumb" src={thumb} alt="" />
