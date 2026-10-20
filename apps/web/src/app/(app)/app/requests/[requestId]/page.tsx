@@ -64,8 +64,8 @@ function BriefField({
   rows?: number;
 }) {
   return (
-    <label>
-      {label}
+    <label className="oma-brief-field">
+      <span className="oma-brief-field__label">{label}</span>
       <TextArea
         rows={rows}
         value={value}
@@ -393,9 +393,9 @@ export default function RequestDetailPage() {
             </section>
 
             {briefDraft ? (
-              <section className="oma-req-detail__card">
+              <section className="oma-req-detail__card oma-req-detail__card--brief">
                 <header className="oma-req-detail__card-head">
-                  <div>
+                  <div className="oma-req-detail__card-head-text">
                     <strong>{t('demo.request.brief')}</strong>
                     <span className="oma-req-detail__meta">
                       {t('demo.brief.readiness')}: {briefDraft.readiness} · {briefCompleteness(briefDraft)}%
