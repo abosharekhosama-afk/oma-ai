@@ -22,6 +22,7 @@ import { StrategyController } from './strategy/strategy.controller';
 import { DemoController } from './demo/demo.controller';
 import { CampaignController } from './content/campaign.controller';
 import { ContentController } from './content/content.controller';
+import { ContentExtrasController } from './content/content-extras.controller';
 import { AiController } from './ai/ai.controller';
 
 @Module({
@@ -44,6 +45,7 @@ import { AiController } from './ai/ai.controller';
     DemoController,
     CampaignController,
     ContentController,
+    ContentExtrasController,
     AiController,
   ],
   providers: [
