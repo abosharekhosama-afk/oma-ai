@@ -359,7 +359,10 @@ export default function DeliverableDetailClient() {
                 })
               }
             >
-              <EyeOutlined /> {t('demo.reviews.openReview')}
+              {reviewMode ? <CloseOutlined /> : <EyeOutlined />}{' '}
+              {reviewMode
+                ? t('demo.reviews.closeReview') || (locale.toLowerCase().startsWith('ar') ? 'إغلاق المراجعة' : 'Close review')
+                : t('demo.reviews.openReview')}
             </Button>
             <Button
               type="default"
@@ -601,16 +604,22 @@ export default function DeliverableDetailClient() {
                 <h3>
                   <CommentOutlined /> {t('demo.review.comments') || 'Comments'}
                 </h3>
-                <div className="oma-chip-row" style={{ marginBottom: 8 }}>
+                <div className="oma-review-seg" role="tablist" aria-label="Comments filter">
                   {(['all', 'unresolved', 'resolved'] as CommentFilter[]).map((f) => (
-                    <Button
+                    <button
                       key={f}
-                      type={commentFilter === f ? 'primary' : 'default'}
+                      type="button"
+                      role="tab"
+                      aria-selected={commentFilter === f}
+                      className="oma-review-seg__btn"
+                      data-active={commentFilter === f ? 'true' : 'false'}
                       data-testid={`demo-comment-filter-${f}`}
                       onClick={() => setCommentFilter(f)}
                     >
-                      {f}
-                    </Button>
+                      {f === 'all' ? (locale.toLowerCase().startsWith('ar') ? 'الكل' : 'All')
+                        : f === 'unresolved' ? (locale.toLowerCase().startsWith('ar') ? 'مفتوح' : 'Open')
+                        : (locale.toLowerCase().startsWith('ar') ? 'محلول' : 'Resolved')}
+                    </button>
                   ))}
                 </div>
                 <ul className="oma-review-thread-list">
