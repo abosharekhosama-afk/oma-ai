@@ -1826,3 +1826,270 @@ main.oma-container:has(.oma-req-page) {
   background: #22c55e !important;
   display: inline-block !important;
 }
+
+/* ==== Tasks board: 3 columns per row, auto-hide scroll, Planable stats ==== */
+
+.oma-tasks-page .oma-kanban,
+.oma-kanban {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  grid-auto-rows: minmax(280px, auto) !important;
+  gap: 14px !important;
+  align-items: start !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  max-width: 100% !important;
+  max-height: calc(100vh - 260px) !important;
+  padding: 4px 4px 20px !important;
+  flex-direction: unset !important;
+  grid-auto-flow: unset !important;
+  grid-auto-columns: unset !important;
+  /* scrollbar hidden until interaction */
+  scrollbar-width: thin !important;
+  scrollbar-color: transparent transparent !important;
+}
+.oma-kanban:hover,
+.oma-kanban:focus-within {
+  scrollbar-color: #c5c9ce transparent !important;
+}
+.oma-kanban::-webkit-scrollbar {
+  width: 8px !important;
+  height: 8px !important;
+}
+.oma-kanban::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+.oma-kanban::-webkit-scrollbar-thumb {
+  background: transparent !important;
+  border-radius: 8px !important;
+}
+.oma-kanban:hover::-webkit-scrollbar-thumb,
+.oma-kanban:focus-within::-webkit-scrollbar-thumb {
+  background: #c5c9ce !important;
+}
+
+.oma-kanban-col {
+  flex: unset !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  height: 100% !important;
+  max-height: 420px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background: #f3f4f6 !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 12px !important;
+  padding: 10px !important;
+  box-sizing: border-box !important;
+}
+.oma-kanban-cards {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  flex: 1 1 auto !important;
+  min-height: 120px !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: transparent transparent !important;
+}
+.oma-kanban-cards:hover {
+  scrollbar-color: #c5c9ce transparent !important;
+}
+.oma-kanban-cards::-webkit-scrollbar {
+  width: 6px !important;
+}
+.oma-kanban-cards::-webkit-scrollbar-thumb {
+  background: transparent !important;
+  border-radius: 6px !important;
+}
+.oma-kanban-cards:hover::-webkit-scrollbar-thumb {
+  background: #c5c9ce !important;
+}
+
+@media (max-width: 1100px) {
+  .oma-kanban {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+@media (max-width: 700px) {
+  .oma-kanban {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Production summary cards — Planable tone */
+.oma-prod-strip {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+  padding: 14px 16px !important;
+  margin: 0 !important;
+  background: #fff !important;
+  border-bottom: 1px solid #eef0f2 !important;
+}
+.oma-prod-stat {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+  padding: 12px 14px !important;
+  border-radius: 12px !important;
+  border: 1px solid #eef0f2 !important;
+  background: #fafbfc !important;
+}
+.oma-prod-stat__label {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: #8c8c8c !important;
+  line-height: 1.2 !important;
+}
+.oma-prod-stat__value {
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  color: #111 !important;
+  line-height: 1.1 !important;
+}
+.oma-prod-stat[data-tone='wip'] {
+  background: #f0f7ff !important;
+  border-color: #d6e8ff !important;
+}
+.oma-prod-stat[data-tone='wip'] .oma-prod-stat__value {
+  color: #1d4ed8 !important;
+}
+.oma-prod-stat[data-tone='soon'] {
+  background: #fff8eb !important;
+  border-color: #fde7c3 !important;
+}
+.oma-prod-stat[data-tone='soon'] .oma-prod-stat__value {
+  color: #b45309 !important;
+}
+.oma-prod-stat[data-tone='blocked'] {
+  background: #fff1f1 !important;
+  border-color: #fdd6d6 !important;
+}
+.oma-prod-stat[data-tone='blocked'] .oma-prod-stat__value {
+  color: #b91c1c !important;
+}
+.oma-prod-stat[data-tone='review'] {
+  background: #f3faf3 !important;
+  border-color: #d5efd8 !important;
+}
+.oma-prod-stat[data-tone='review'] .oma-prod-stat__value {
+  color: #15803d !important;
+}
+@media (max-width: 800px) {
+  .oma-prod-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+/* View path in header — match Content trail weight/color */
+.oma-context-trail--content .oma-breadcrumb-view,
+.oma-breadcrumb-view {
+  color: #111 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+.oma-view-path__btn--ghost {
+  color: #111 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  height: 26px !important;
+  padding: 0 6px !important;
+  border: 0 !important;
+  background: transparent !important;
+  gap: 5px !important;
+}
+.oma-view-path__btn--ghost:hover,
+.oma-view-path__btn--ghost[aria-expanded='true'] {
+  background: rgba(0, 0, 0, 0.05) !important;
+  border-radius: 6px !important;
+  border-color: transparent !important;
+}
+.oma-view-path__btn--ghost .anticon {
+  font-size: 13px !important;
+  color: #5e6166 !important;
+}
+.oma-view-path__caret {
+  font-size: 9px !important;
+  color: #8c8c8c !important;
+}
+.oma-breadcrumb--planable a,
+.oma-breadcrumb--planable span {
+  font-size: 13px !important;
+  color: #5e6166 !important;
+}
+.oma-breadcrumb-view,
+.oma-breadcrumb-view .oma-view-path__btn--ghost span {
+  color: #111 !important;
+}
+
+/* Tasks filter panel — content-like accordion density */
+.oma-tasks-page .oma-req-filter-panel,
+.oma-tasks-workspace .oma-req-filter-panel {
+  width: 300px !important;
+  min-width: 300px !important;
+  max-width: 300px !important;
+  background: #fff !important;
+  border-inline-start: 1px solid #eef0f2 !important;
+}
+.oma-tasks-page .oma-filter-accordion__row,
+.oma-tasks-workspace .oma-filter-accordion__row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-height: 40px !important;
+  padding: 0 8px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #333 !important;
+  font-size: 13px !important;
+  text-align: start !important;
+  cursor: pointer !important;
+  border-radius: 6px !important;
+}
+.oma-tasks-page .oma-filter-accordion__row:hover,
+.oma-tasks-page .oma-filter-accordion__row[data-open='true'],
+.oma-tasks-workspace .oma-filter-accordion__row:hover,
+.oma-tasks-workspace .oma-filter-accordion__row[data-open='true'] {
+  background: #f5f6f7 !important;
+}
+.oma-tasks-page .oma-filter-accordion__ico,
+.oma-tasks-workspace .oma-filter-accordion__ico {
+  width: 18px !important;
+  display: inline-flex !important;
+  justify-content: center !important;
+  color: #5e6166 !important;
+  opacity: 0.85 !important;
+  font-size: 14px !important;
+}
+.oma-tasks-page .oma-filter-accordion__caret,
+.oma-tasks-workspace .oma-filter-accordion__caret {
+  margin-inline-start: auto !important;
+  color: #8c8c8c !important;
+  font-size: 10px !important;
+}
+.oma-tasks-page .oma-filter-accordion__body,
+.oma-tasks-workspace .oma-filter-accordion__body {
+  padding: 6px 10px 12px 32px !important;
+  background: #f7f8f9 !important;
+  border-radius: 0 0 8px 8px !important;
+  margin: 0 4px 6px !important;
+}
+.oma-tasks-page .oma-filter-check,
+.oma-tasks-workspace .oma-filter-check {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-height: 32px !important;
+  font-size: 13px !important;
+  color: #333 !important;
+  cursor: pointer !important;
+}
+.oma-tasks-page .oma-req-filter-panel__head,
+.oma-tasks-workspace .oma-req-filter-panel__head {
+  min-height: 48px !important;
+  padding: 0 12px !important;
+  border-bottom: 1px solid #eef0f2 !important;
+  font-size: 14px !important;
+}
