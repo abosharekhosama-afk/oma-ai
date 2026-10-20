@@ -67,7 +67,6 @@ export default function DeliverablesPage() {
   const [viewMenuOpen, setViewMenuOpen] = useState(false);
   const [filterSection, setFilterSection] = useState<string | null>('search');
   const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
-  const [viewSlot, setViewSlot] = useState<HTMLElement | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -121,11 +120,9 @@ export default function DeliverablesPage() {
     const sync = () => {
       if (cancelled) return;
       const header = document.getElementById('oma-workspace-top-actions');
-      const view = document.getElementById('oma-content-view-slot');
       setHeaderSlot(header);
-      setViewSlot(view);
       tries += 1;
-      if ((!header || !view) && tries < 30) {
+      if (!header && tries < 30) {
         window.setTimeout(sync, 50);
       }
     };
@@ -133,9 +130,30 @@ export default function DeliverablesPage() {
     return () => {
       cancelled = true;
       setHeaderSlot(null);
-      setViewSlot(null);
     };
   }, []);
+
+  useEffect(() => {
+    const el = document.getElementById('oma-content-view-slot');
+    if (!el) return;
+    el.setAttribute('role', 'button');
+    el.setAttribute('tabindex', '0');
+    el.setAttribute('data-testid', 'demo-deliv-view-toggle');
+    el.style.cursor = 'pointer';
+    const open = (e: Event) => {
+      e.stopPropagation();
+      setViewMenuOpen((v) => !v);
+    };
+    el.addEventListener('click', open);
+    return () => el.removeEventListener('click', open);
+  }, []);
+
+  useEffect(() => {
+    const el = document.getElementById('oma-content-view-slot');
+    if (!el) return;
+    el.textContent = filters.view === 'grid' ? t('demo.view.grid') : t('demo.view.list');
+    el.setAttribute('data-view', filters.view);
+  }, [filters.view, t]);
 
   useEffect(() => {
     if (!viewMenuOpen) return;
@@ -181,57 +199,61 @@ export default function DeliverablesPage() {
           )
         : null}
 
-      {viewSlot && viewSlot.isConnected
+      {viewMenuOpen && typeof document !== 'undefined'
         ? createPortal(
-            <span
-              className="oma-view-path oma-view-path--text"
-              onClick={(e) => e.stopPropagation()}
+            <ul
+              className="oma-view-menu__list oma-view-menu__list--card oma-view-menu__list--path"
+              role="menu"
+              data-testid="demo-deliv-view-menu"
             >
-              <button
-                type="button"
-                className="oma-view-path__text"
-                data-testid="demo-deliv-view-toggle"
-                aria-expanded={viewMenuOpen}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setViewMenuOpen((v) => !v);
-                }}
-              >
-                {filters.view === 'grid' ? t('demo.view.grid') : t('demo.view.list')}
-                <DownOutlined className="oma-view-path__caret" />
-              </button>
-              {viewMenuOpen ? (
-                <div className="oma-view-path__menu" role="menu" data-testid="demo-deliv-view-menu">
-                  <button
-                    type="button"
-                    role="menuitem"
-                    data-active={filters.view === 'list' ? 'true' : 'false'}
-                    data-testid="demo-deliv-view-list"
-                    onClick={() => {
-                      changeView('list');
-                      setViewMenuOpen(false);
-                    }}
-                  >
+              <li role="none">
+                <button
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={filters.view === 'list'}
+                  data-selected={filters.view === 'list' ? 'true' : 'false'}
+                  data-testid="demo-deliv-view-list"
+                  className="oma-view-menu__item"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    changeView('list');
+                    setViewMenuOpen(false);
+                  }}
+                >
+                  <span className="oma-view-menu__item-icon" aria-hidden>
                     <BarsOutlined />
-                    <span>{t('demo.view.list')}</span>
-                  </button>
-                  <button
-                    type="button"
-                    role="menuitem"
-                    data-active={filters.view === 'grid' ? 'true' : 'false'}
-                    data-testid="demo-deliv-view-grid"
-                    onClick={() => {
-                      changeView('grid');
-                      setViewMenuOpen(false);
-                    }}
-                  >
+                  </span>
+                  <span>{t('demo.view.list')}</span>
+                  <span className="oma-view-menu__check" aria-hidden>
+                    {filters.view === 'list' ? '✓' : ''}
+                  </span>
+                </button>
+              </li>
+              <li role="none">
+                <button
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={filters.view === 'grid'}
+                  data-selected={filters.view === 'grid' ? 'true' : 'false'}
+                  data-testid="demo-deliv-view-grid"
+                  className="oma-view-menu__item"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    changeView('grid');
+                    setViewMenuOpen(false);
+                  }}
+                >
+                  <span className="oma-view-menu__item-icon" aria-hidden>
                     <AppstoreOutlined />
-                    <span>{t('demo.view.grid')}</span>
-                  </button>
-                </div>
-              ) : null}
-            </span>,
-            viewSlot,
+                  </span>
+                  <span>{t('demo.view.grid')}</span>
+                  <span className="oma-view-menu__check" aria-hidden>
+                    {filters.view === 'grid' ? '✓' : ''}
+                  </span>
+                </button>
+              </li>
+            </ul>,
+            document.body,
           )
         : null}
 
