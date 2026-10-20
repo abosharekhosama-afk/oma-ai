@@ -2627,3 +2627,12 @@ main.oma-container:has(.oma-req-page) {
 #oma-content-view-slot {
   align-self: center !important;
 }
+
+#oma-content-view-slot,
+.oma-view-path__text {
+  text-decoration: none !important;
+}
+#oma-content-view-slot:hover,
+.oma-view-path__text:hover {
+  text-decoration: none !important;
+}
