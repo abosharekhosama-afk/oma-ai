@@ -42,16 +42,16 @@ enum JobStatus {
 }
 
 model User {
-  id               String     @id
-  email            String     @unique
+  id               String       @id
+  email            String       @unique
   emailVerifiedAt  DateTime?
   passwordHash     String?
   name             String
-  preferredLocale  String     @default("en")
-  preferredDir     String     @default("ltr")
-  status           UserStatus @default(ACTIVE)
-  createdAt        DateTime   @default(now())
-  updatedAt        DateTime   @updatedAt
+  preferredLocale  String       @default("en")
+  preferredDir     String       @default("ltr")
+  status           UserStatus   @default(ACTIVE)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
   sessions         Session[]
   memberships      Membership[]
   auditEvents      AuditEvent[] @relation("ActorUser")
@@ -75,22 +75,22 @@ model Session {
 }
 
 model Tenant {
-  id            String       @id
-  name          String
-  slug          String       @unique
-  status        TenantStatus @default(ACTIVE)
-  defaultLocale String       @default("en")
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
-  version       Int          @default(1)
-  memberships   Membership[]
-  sessions      Session[]
-  grants        CapabilityGrant[]
-  audits        AuditEvent[]
-  outbox        OutboxEvent[]
-  jobs          JobRun[]
-  notifications Notification[]
-  idempotency   IdempotencyRecord[]
+  id              String              @id
+  name            String
+  slug            String              @unique
+  status          TenantStatus        @default(ACTIVE)
+  defaultLocale   String              @default("en")
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  version         Int                 @default(1)
+  memberships     Membership[]
+  sessions        Session[]
+  grants          CapabilityGrant[]
+  audits          AuditEvent[]
+  outbox          OutboxEvent[]
+  jobs            JobRun[]
+  notifications   Notification[]
+  idempotency     IdempotencyRecord[]
   brandWorkspaces BrandWorkspace[]
   aiRuns          AiRun[]
 }
@@ -167,9 +167,9 @@ model Membership {
 }
 
 model Invitation {
-  id           String    @id
+  id           String     @id
   membershipId String
-  tokenHash    String    @unique
+  tokenHash    String     @unique
   expiresAt    DateTime
   acceptedAt   DateTime?
   revokedAt    DateTime?
@@ -189,17 +189,17 @@ model CapabilityProfile {
 }
 
 model CapabilityGrant {
-  id               String    @id
-  membershipId     String
-  tenantId         String
-  capabilityCode   String
-  scopeJson        String?
+  id                String     @id
+  membershipId      String
+  tenantId          String
+  capabilityCode    String
+  scopeJson         String?
   sourceProfileCode String?
-  grantedBy        String?
-  grantedAt        DateTime  @default(now())
-  revokedAt        DateTime?
-  membership       Membership @relation(fields: [membershipId], references: [id])
-  tenant           Tenant     @relation(fields: [tenantId], references: [id])
+  grantedBy         String?
+  grantedAt         DateTime   @default(now())
+  revokedAt         DateTime?
+  membership        Membership @relation(fields: [membershipId], references: [id])
+  tenant            Tenant     @relation(fields: [tenantId], references: [id])
 
   @@index([tenantId, membershipId])
   @@index([membershipId, capabilityCode])
@@ -277,18 +277,18 @@ model JobRun {
 }
 
 model Notification {
-  id                 String    @id
-  tenantId           String
-  recipientUserId    String
-  type               String
-  objectType         String?
-  objectId           String?
-  deepLinkPath       String
-  readAt             DateTime?
-  dedupeKey          String
+  id                  String    @id
+  tenantId            String
+  recipientUserId     String
+  type                String
+  objectType          String?
+  objectId            String?
+  deepLinkPath        String
+  readAt              DateTime?
+  dedupeKey           String
   sourceOutboxEventId String?
-  createdAt          DateTime  @default(now())
-  tenant             Tenant    @relation(fields: [tenantId], references: [id])
+  createdAt           DateTime  @default(now())
+  tenant              Tenant    @relation(fields: [tenantId], references: [id])
 
   @@unique([tenantId, dedupeKey])
   @@index([recipientUserId, createdAt])
@@ -477,109 +477,109 @@ enum StrategyReviewAction {
 }
 
 model BrandWorkspace {
-  id                            String               @id
-  tenantId                      String
-  name                          String
-  status                        BrandWorkspaceStatus @default(DRAFT)
+  id                              String                     @id
+  tenantId                        String
+  name                            String
+  status                          BrandWorkspaceStatus       @default(DRAFT)
   currentApprovedProfileVersionId String?
   /// Brand current approved strategy pointer (Feature 003). Never auto-set on approve.
-  currentApprovedStrategyId     String?
-  primaryWebsiteSourceId        String?
-  version                       Int                  @default(1)
-  createdAt                     DateTime             @default(now())
-  updatedAt                     DateTime             @updatedAt
-  archivedAt                    DateTime?
-  tenant                        Tenant               @relation(fields: [tenantId], references: [id])
-  websiteSources                WebsiteSource[]
-  scanAttempts                  ScanAttempt[]
-  discoveredPages               DiscoveredPage[]
-  discoveredProducts            DiscoveredProductService[]
-  extractedObservations         ExtractedObservation[]
-  evidenceExcerpts              EvidenceExcerpt[]
-  profileVersions               ProfileVersion[]
-  insightClaims                 InsightClaim[]
-  humanEdits                    HumanEdit[]
-  reviewDecisions               ReviewDecision[]
-  strategies                    Strategy[]
+  currentApprovedStrategyId       String?
+  primaryWebsiteSourceId          String?
+  version                         Int                        @default(1)
+  createdAt                       DateTime                   @default(now())
+  updatedAt                       DateTime                   @updatedAt
+  archivedAt                      DateTime?
+  tenant                          Tenant                     @relation(fields: [tenantId], references: [id])
+  websiteSources                  WebsiteSource[]
+  scanAttempts                    ScanAttempt[]
+  discoveredPages                 DiscoveredPage[]
+  discoveredProducts              DiscoveredProductService[]
+  extractedObservations           ExtractedObservation[]
+  evidenceExcerpts                EvidenceExcerpt[]
+  profileVersions                 ProfileVersion[]
+  insightClaims                   InsightClaim[]
+  humanEdits                      HumanEdit[]
+  reviewDecisions                 ReviewDecision[]
+  strategies                      Strategy[]
 
   @@index([tenantId, status, updatedAt])
   @@index([tenantId, currentApprovedStrategyId])
 }
 
 model WebsiteSource {
-  id                  String                  @id
-  tenantId            String
-  brandId             String
-  normalizedUrl       String
-  host                String
+  id                    String                  @id
+  tenantId              String
+  brandId               String
+  normalizedUrl         String
+  host                  String
   attestationAcceptedAt DateTime
-  attestedByUserId    String
-  validationStatus    WebsiteValidationStatus @default(VALID)
-  validationReason    String?
-  sourceRevision      Int                     @default(1)
-  notes               String?
-  createdAt           DateTime                @default(now())
-  replacedAt          DateTime?
-  brand               BrandWorkspace          @relation(fields: [brandId], references: [id])
-  scanAttempts        ScanAttempt[]
+  attestedByUserId      String
+  validationStatus      WebsiteValidationStatus @default(VALID)
+  validationReason      String?
+  sourceRevision        Int                     @default(1)
+  notes                 String?
+  createdAt             DateTime                @default(now())
+  replacedAt            DateTime?
+  brand                 BrandWorkspace          @relation(fields: [brandId], references: [id])
+  scanAttempts          ScanAttempt[]
 
   @@index([tenantId, brandId])
 }
 
 model ScanAttempt {
-  id               String              @id
-  tenantId         String
-  brandId          String
-  websiteSourceId  String
-  status           ScanAttemptStatus   @default(QUEUED)
-  trigger          ScanTrigger         @default(START)
-  parentAttemptId  String?
-  jobRunId         String              @unique
-  idempotencyKey   String              @unique
-  actorUserId      String
-  correlationId    String?
-  progressPercent  Int                 @default(0)
-  pagesFetched     Int                 @default(0)
-  pagesFailed      Int                 @default(0)
-  pagesSkipped     Int                 @default(0)
-  coverageJson     String?
-  aiAvailability   BrandAiAvailability @default(NOT_CONFIGURED)
-  connectorMode    BrandConnectorMode  @default(NOT_CONFIGURED)
-  errorCode        String?
-  errorDetail      String?
-  startedAt        DateTime?
-  finishedAt       DateTime?
-  cancelRequestedAt DateTime?
-  createdAt        DateTime            @default(now())
-  brand            BrandWorkspace      @relation(fields: [brandId], references: [id])
-  websiteSource    WebsiteSource       @relation(fields: [websiteSourceId], references: [id])
-  discoveredPages  DiscoveredPage[]
-  discoveredProducts DiscoveredProductService[]
+  id                    String                     @id
+  tenantId              String
+  brandId               String
+  websiteSourceId       String
+  status                ScanAttemptStatus          @default(QUEUED)
+  trigger               ScanTrigger                @default(START)
+  parentAttemptId       String?
+  jobRunId              String                     @unique
+  idempotencyKey        String                     @unique
+  actorUserId           String
+  correlationId         String?
+  progressPercent       Int                        @default(0)
+  pagesFetched          Int                        @default(0)
+  pagesFailed           Int                        @default(0)
+  pagesSkipped          Int                        @default(0)
+  coverageJson          String?
+  aiAvailability        BrandAiAvailability        @default(NOT_CONFIGURED)
+  connectorMode         BrandConnectorMode         @default(NOT_CONFIGURED)
+  errorCode             String?
+  errorDetail           String?
+  startedAt             DateTime?
+  finishedAt            DateTime?
+  cancelRequestedAt     DateTime?
+  createdAt             DateTime                   @default(now())
+  brand                 BrandWorkspace             @relation(fields: [brandId], references: [id])
+  websiteSource         WebsiteSource              @relation(fields: [websiteSourceId], references: [id])
+  discoveredPages       DiscoveredPage[]
+  discoveredProducts    DiscoveredProductService[]
   extractedObservations ExtractedObservation[]
-  evidenceExcerpts EvidenceExcerpt[]
-  profileVersions  ProfileVersion[]
+  evidenceExcerpts      EvidenceExcerpt[]
+  profileVersions       ProfileVersion[]
 
   @@index([tenantId, brandId, createdAt])
 }
 
 model DiscoveredPage {
-  id             String             @id
-  tenantId       String
-  brandId        String
-  scanAttemptId  String
-  url            String
-  canonicalUrl   String
-  canonicalHash  String
-  title          String?
-  httpStatus     Int?
-  contentType    String?
-  classification PageClassification @default(UNKNOWN)
-  fetchStatus    PageFetchStatus    @default(FETCHED)
-  failureReason  String?
-  localeHint     String?
-  discoveredAt   DateTime           @default(now())
-  brand          BrandWorkspace     @relation(fields: [brandId], references: [id])
-  scanAttempt    ScanAttempt        @relation(fields: [scanAttemptId], references: [id])
+  id               String             @id
+  tenantId         String
+  brandId          String
+  scanAttemptId    String
+  url              String
+  canonicalUrl     String
+  canonicalHash    String
+  title            String?
+  httpStatus       Int?
+  contentType      String?
+  classification   PageClassification @default(UNKNOWN)
+  fetchStatus      PageFetchStatus    @default(FETCHED)
+  failureReason    String?
+  localeHint       String?
+  discoveredAt     DateTime           @default(now())
+  brand            BrandWorkspace     @relation(fields: [brandId], references: [id])
+  scanAttempt      ScanAttempt        @relation(fields: [scanAttemptId], references: [id])
   evidenceExcerpts EvidenceExcerpt[]
 
   @@unique([scanAttemptId, canonicalHash])
@@ -587,45 +587,45 @@ model DiscoveredPage {
 }
 
 model DiscoveredProductService {
-  id             String             @id
-  tenantId       String
-  brandId        String
-  scanAttemptId  String
-  kind           ProductServiceKind
-  name           String
-  description    String?
-  category       String?
-  skuPublic      String?
-  priceAmount    String?
-  priceCurrency  String?
-  availability   String?
-  sourcePageId   String?
+  id              String             @id
+  tenantId        String
+  brandId         String
+  scanAttemptId   String
+  kind            ProductServiceKind
+  name            String
+  description     String?
+  category        String?
+  skuPublic       String?
+  priceAmount     String?
+  priceCurrency   String?
+  availability    String?
+  sourcePageId    String?
   parentProductId String?
-  dedupeKey      String
-  brand          BrandWorkspace     @relation(fields: [brandId], references: [id])
-  scanAttempt    ScanAttempt        @relation(fields: [scanAttemptId], references: [id])
+  dedupeKey       String
+  brand           BrandWorkspace     @relation(fields: [brandId], references: [id])
+  scanAttempt     ScanAttempt        @relation(fields: [scanAttemptId], references: [id])
 
   @@unique([scanAttemptId, dedupeKey])
   @@index([tenantId, scanAttemptId])
 }
 
 model ExtractedObservation {
-  id                String          @id
-  tenantId          String
-  brandId           String
-  scanAttemptId     String
-  fieldKey          String
-  discoveryTier     DiscoveryTier
-  valueJson         String?
-  isUnknown         Boolean         @default(false)
-  infoState         BrandInfoState  @default(OBSERVED)
-  confidence        Float?
-  evidenceId        String?
-  profileVersionId  String?
-  immutable         Boolean         @default(true)
-  brand             BrandWorkspace  @relation(fields: [brandId], references: [id])
-  scanAttempt       ScanAttempt     @relation(fields: [scanAttemptId], references: [id])
-  profileVersion    ProfileVersion? @relation(fields: [profileVersionId], references: [id])
+  id               String          @id
+  tenantId         String
+  brandId          String
+  scanAttemptId    String
+  fieldKey         String
+  discoveryTier    DiscoveryTier
+  valueJson        String?
+  isUnknown        Boolean         @default(false)
+  infoState        BrandInfoState  @default(OBSERVED)
+  confidence       Float?
+  evidenceId       String?
+  profileVersionId String?
+  immutable        Boolean         @default(true)
+  brand            BrandWorkspace  @relation(fields: [brandId], references: [id])
+  scanAttempt      ScanAttempt     @relation(fields: [scanAttemptId], references: [id])
+  profileVersion   ProfileVersion? @relation(fields: [profileVersionId], references: [id])
 
   @@index([tenantId, scanAttemptId])
   @@index([profileVersionId])
@@ -654,120 +654,120 @@ model EvidenceExcerpt {
 
 /// Profile sections stored as JSON document on ProfileVersion.sectionsJson (overview, catalog, etc.)
 model ProfileVersion {
-  id                   String               @id
-  tenantId             String
-  brandId              String
-  scanAttemptId        String?
-  status               ProfileVersionStatus @default(DRAFT)
-  rowVersion           Int                  @default(1)
-  aiAvailability       BrandAiAvailability  @default(NOT_CONFIGURED)
-  coverageSnapshotJson String?
-  sectionsJson         String?
-  approvedAt           DateTime?
-  approvedByUserId     String?
-  rejectedAt           DateTime?
-  rejectedByUserId     String?
-  incompletenessAcknowledged Boolean        @default(false)
-  createdAt            DateTime             @default(now())
-  brand                BrandWorkspace       @relation(fields: [brandId], references: [id])
-  scanAttempt          ScanAttempt?         @relation(fields: [scanAttemptId], references: [id])
-  observations         ExtractedObservation[]
-  insightClaims        InsightClaim[]
-  humanEdits           HumanEdit[]
-  reviewDecisions      ReviewDecision[]
-  approvalRecord       ApprovalRecord?
+  id                         String               @id
+  tenantId                   String
+  brandId                    String
+  scanAttemptId              String?
+  status                     ProfileVersionStatus @default(DRAFT)
+  rowVersion                 Int                  @default(1)
+  aiAvailability             BrandAiAvailability  @default(NOT_CONFIGURED)
+  coverageSnapshotJson       String?
+  sectionsJson               String?
+  approvedAt                 DateTime?
+  approvedByUserId           String?
+  rejectedAt                 DateTime?
+  rejectedByUserId           String?
+  incompletenessAcknowledged Boolean              @default(false)
+  createdAt                  DateTime             @default(now())
+  brand                      BrandWorkspace       @relation(fields: [brandId], references: [id])
+  scanAttempt                ScanAttempt?         @relation(fields: [scanAttemptId], references: [id])
+  observations               ExtractedObservation[]
+  insightClaims              InsightClaim[]
+  humanEdits                 HumanEdit[]
+  reviewDecisions            ReviewDecision[]
+  approvalRecord             ApprovalRecord?
 
   @@index([tenantId, brandId, createdAt])
 }
 
 model InsightClaim {
-  id                String              @id
-  tenantId          String
-  brandId           String
-  profileVersionId  String
-  fieldKey          String
-  infoState         BrandInfoState      @default(OBSERVED)
-  reviewStatus      InsightReviewStatus @default(PENDING)
-  textValue         String?
-  valueJson         String?
-  evidenceId        String?
-  discoveryTier     DiscoveryTier
-  createdBy         InsightCreatedBy    @default(SYSTEM)
-  rowVersion        Int                 @default(1)
-  brand             BrandWorkspace      @relation(fields: [brandId], references: [id])
-  profileVersion    ProfileVersion      @relation(fields: [profileVersionId], references: [id])
-  evidence          EvidenceExcerpt?    @relation(fields: [evidenceId], references: [id])
-  humanEdits        HumanEdit[]
+  id               String              @id
+  tenantId         String
+  brandId          String
+  profileVersionId String
+  fieldKey         String
+  infoState        BrandInfoState      @default(OBSERVED)
+  reviewStatus     InsightReviewStatus @default(PENDING)
+  textValue        String?
+  valueJson        String?
+  evidenceId       String?
+  discoveryTier    DiscoveryTier
+  createdBy        InsightCreatedBy    @default(SYSTEM)
+  rowVersion       Int                 @default(1)
+  brand            BrandWorkspace      @relation(fields: [brandId], references: [id])
+  profileVersion   ProfileVersion      @relation(fields: [profileVersionId], references: [id])
+  evidence         EvidenceExcerpt?    @relation(fields: [evidenceId], references: [id])
+  humanEdits       HumanEdit[]
 
   @@index([tenantId, profileVersionId])
 }
 
 model HumanEdit {
-  id               String          @id
-  tenantId         String
-  brandId          String
-  profileVersionId String
-  insightId        String?
-  actorUserId      String
-  action           HumanEditAction
-  beforeRef        String?
-  afterRef         String?
-  acknowledgeIncomplete Boolean     @default(false)
-  correlationId    String?
-  createdAt        DateTime        @default(now())
-  brand            BrandWorkspace  @relation(fields: [brandId], references: [id])
-  profileVersion   ProfileVersion  @relation(fields: [profileVersionId], references: [id])
-  insight          InsightClaim?   @relation(fields: [insightId], references: [id])
+  id                    String          @id
+  tenantId              String
+  brandId               String
+  profileVersionId      String
+  insightId             String?
+  actorUserId           String
+  action                HumanEditAction
+  beforeRef             String?
+  afterRef              String?
+  acknowledgeIncomplete Boolean         @default(false)
+  correlationId         String?
+  createdAt             DateTime        @default(now())
+  brand                 BrandWorkspace  @relation(fields: [brandId], references: [id])
+  profileVersion        ProfileVersion  @relation(fields: [profileVersionId], references: [id])
+  insight               InsightClaim?   @relation(fields: [insightId], references: [id])
 
   @@index([tenantId, profileVersionId])
 }
 
 model ReviewDecision {
-  id               String          @id
-  tenantId         String
-  brandId          String
-  profileVersionId String
-  insightId        String?
-  actorUserId      String
-  action           HumanEditAction
-  beforeRef        String?
-  afterRef         String?
-  acknowledgeIncomplete Boolean     @default(false)
-  correlationId    String?
-  createdAt        DateTime        @default(now())
-  brand            BrandWorkspace  @relation(fields: [brandId], references: [id])
-  profileVersion   ProfileVersion  @relation(fields: [profileVersionId], references: [id])
+  id                    String          @id
+  tenantId              String
+  brandId               String
+  profileVersionId      String
+  insightId             String?
+  actorUserId           String
+  action                HumanEditAction
+  beforeRef             String?
+  afterRef              String?
+  acknowledgeIncomplete Boolean         @default(false)
+  correlationId         String?
+  createdAt             DateTime        @default(now())
+  brand                 BrandWorkspace  @relation(fields: [brandId], references: [id])
+  profileVersion        ProfileVersion  @relation(fields: [profileVersionId], references: [id])
 
   @@index([tenantId, profileVersionId])
 }
 
 model ApprovalRecord {
-  id                    String         @id
-  tenantId              String
-  brandId               String
-  profileVersionId      String         @unique
-  actorUserId           String
-  acknowledgedIncomplete Boolean       @default(false)
-  warningsJson          String?
-  coverageSnapshotJson  String?
-  createdAt             DateTime       @default(now())
-  profileVersion        ProfileVersion @relation(fields: [profileVersionId], references: [id])
+  id                     String         @id
+  tenantId               String
+  brandId                String
+  profileVersionId       String         @unique
+  actorUserId            String
+  acknowledgedIncomplete Boolean        @default(false)
+  warningsJson           String?
+  coverageSnapshotJson   String?
+  createdAt              DateTime       @default(now())
+  profileVersion         ProfileVersion @relation(fields: [profileVersionId], references: [id])
 }
 
 /// Feature 003 — Strategy container (soft-archive only).
 model Strategy {
-  id               String         @id
+  id               String            @id
   tenantId         String
   brandId          String
   name             String
-  status           StrategyStatus @default(ACTIVE)
+  status           StrategyStatus    @default(ACTIVE)
   originStrategyId String?
   createdByUserId  String
-  version          Int            @default(1)
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+  version          Int               @default(1)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
   archivedAt       DateTime?
-  brand            BrandWorkspace @relation(fields: [brandId], references: [id])
+  brand            BrandWorkspace    @relation(fields: [brandId], references: [id])
   versions         StrategyVersion[]
 
   @@index([tenantId, brandId, updatedAt])
@@ -776,22 +776,22 @@ model Strategy {
 
 /// Immutable when status not DRAFT. Content PATCH Draft-only.
 model StrategyVersion {
-  id                             String                 @id
+  id                             String                             @id
   tenantId                       String
   brandId                        String
   strategyId                     String
-  status                         StrategyVersionStatus  @default(DRAFT)
-  rowVersion                     Int                    @default(1)
+  status                         StrategyVersionStatus              @default(DRAFT)
+  rowVersion                     Int                                @default(1)
   versionNumber                  Int
   linkedApprovedProfileVersionId String?
   draftProfileVersionId          String?
-  organicEnabled                 Boolean                @default(true)
-  paidEnabled                    Boolean                @default(false)
+  organicEnabled                 Boolean                            @default(true)
+  paidEnabled                    Boolean                            @default(false)
   organicDisabledRationale       String?
   paidDisabledRationale          String?
-  aiAvailability                 StrategyAiAvailability @default(NOT_CONFIGURED)
+  aiAvailability                 StrategyAiAvailability             @default(NOT_CONFIGURED)
   foundationJson                 String?
-  unknownsAcknowledged           Boolean                @default(false)
+  unknownsAcknowledged           Boolean                            @default(false)
   submittedAt                    DateTime?
   submittedByUserId              String?
   approvedAt                     DateTime?
@@ -799,9 +799,9 @@ model StrategyVersion {
   rejectedAt                     DateTime?
   rejectedByUserId               String?
   supersedesVersionId            String?
-  createdAt                      DateTime               @default(now())
-  updatedAt                      DateTime               @updatedAt
-  strategy                       Strategy               @relation(fields: [strategyId], references: [id])
+  createdAt                      DateTime                           @default(now())
+  updatedAt                      DateTime                           @updatedAt
+  strategy                       Strategy                           @relation(fields: [strategyId], references: [id])
   organicTrack                   StrategyOrganicTrack?
   paidTrack                      StrategyPaidTrack?
   audiences                      StrategyAudience[]
@@ -820,47 +820,47 @@ model StrategyVersion {
 }
 
 model StrategyOrganicTrack {
-  id                 String          @id
-  tenantId           String
-  brandId            String
-  strategyVersionId  String          @unique
-  pillarsJson        String?
-  channelsJson       String?
-  formatsJson        String?
-  frequency          String?
-  communityGoals     String?
-  growthGoals        String?
-  messageCta         String?
-  funnelStagesJson   String?
-  kpisJson           String?
+  id                  String          @id
+  tenantId            String
+  brandId             String
+  strategyVersionId   String          @unique
+  pillarsJson         String?
+  channelsJson        String?
+  formatsJson         String?
+  frequency           String?
+  communityGoals      String?
+  growthGoals         String?
+  messageCta          String?
+  funnelStagesJson    String?
+  kpisJson            String?
   ownerRoleLabelsJson String?
-  dependenciesJson   String?
-  rowVersion         Int             @default(1)
-  version            StrategyVersion @relation(fields: [strategyVersionId], references: [id])
+  dependenciesJson    String?
+  rowVersion          Int             @default(1)
+  version             StrategyVersion @relation(fields: [strategyVersionId], references: [id])
 }
 
 model StrategyPaidTrack {
-  id                   String          @id
-  tenantId             String
-  brandId              String
-  strategyVersionId    String          @unique
+  id                     String          @id
+  tenantId               String
+  brandId                String
+  strategyVersionId      String          @unique
   campaignObjectivesJson String?
-  funnelStagesJson     String?
-  audiencesJson        String?
-  offerAngle           String?
-  formatsJson          String?
-  placementsJson       String?
+  funnelStagesJson       String?
+  audiencesJson          String?
+  offerAngle             String?
+  formatsJson            String?
+  placementsJson         String?
   /// Planning-only budget — not live spend.
-  budgetAmount         Decimal?        @db.Decimal(18, 2)
-  budgetCurrency       String?
-  allocationJson       String?
-  expectedKpisJson     String?
-  scheduleWindowStart  DateTime?
-  scheduleWindowEnd    DateTime?
-  landingDestination   String?
-  approvalNotes        String?
-  rowVersion           Int             @default(1)
-  version              StrategyVersion @relation(fields: [strategyVersionId], references: [id])
+  budgetAmount           Decimal?        @db.Decimal(18, 2)
+  budgetCurrency         String?
+  allocationJson         String?
+  expectedKpisJson       String?
+  scheduleWindowStart    DateTime?
+  scheduleWindowEnd      DateTime?
+  landingDestination     String?
+  approvalNotes          String?
+  rowVersion             Int             @default(1)
+  version                StrategyVersion @relation(fields: [strategyVersionId], references: [id])
 }
 
 model StrategyAudience {
@@ -1052,31 +1052,31 @@ enum ContentApprovalPolicy {
 }
 
 model Campaign {
-  id            String         @id
-  tenantId      String
-  brandId       String
-  nameEn        String
-  nameAr        String
-  descriptionEn String?
-  descriptionAr String?
-  objectiveEn   String?
-  objectiveAr   String?
-  audienceEn    String?
-  audienceAr    String?
-  channels      String[]       @default([])
-  strategyId    String?
-  budgetAmount  Float?
-  budgetCurrency String?       @default("USD")
-  track         Track
-  status        CampaignStatus @default(DRAFT)
-  timelineStart DateTime       @db.Date
-  timelineEnd   DateTime       @db.Date
-  ownerUserId   String?
-  links         String[]       @default([])
-  archivedAt    DateTime?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  contentItems  ContentItem[]
+  id             String         @id
+  tenantId       String
+  brandId        String
+  nameEn         String
+  nameAr         String
+  descriptionEn  String?
+  descriptionAr  String?
+  objectiveEn    String?
+  objectiveAr    String?
+  audienceEn     String?
+  audienceAr     String?
+  channels       String[]       @default([])
+  strategyId     String?
+  budgetAmount   Float?
+  budgetCurrency String?        @default("USD")
+  track          Track
+  status         CampaignStatus @default(DRAFT)
+  timelineStart  DateTime       @db.Date
+  timelineEnd    DateTime       @db.Date
+  ownerUserId    String?
+  links          String[]       @default([])
+  archivedAt     DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  contentItems   ContentItem[]
 
   @@index([tenantId, brandId])
   @@index([brandId, status])
@@ -1141,4 +1141,59 @@ model ContentPreferences {
   approvalPolicy  ContentApprovalPolicy @default(OPTIONAL)
   defaultTimezone String                @default("Asia/Dubai")
   updatedAt       DateTime              @updatedAt
+}
+
+// --- CalendarDayNote Added Models ---
+
+model CalendarDayNote {
+  id        String   @id
+  tenantId  String
+  brandId   String
+  dayKey    String
+  textEn    String   @default("")
+  textAr    String   @default("")
+  color     String   @default("yellow")
+  locked    Boolean  @default(false)
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([brandId, dayKey])
+  @@index([tenantId, brandId])
+}
+
+model ContentLabel {
+  id        String   @id
+  tenantId  String
+  brandId   String
+  nameEn    String
+  nameAr    String
+  color     String   @default("#6366f1")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([brandId, nameEn])
+  @@index([tenantId, brandId])
+}
+
+model ContentTemplate {
+  id              String      @id
+  tenantId        String
+  brandId         String
+  nameEn          String
+  nameAr          String
+  titleEn         String?
+  titleAr         String?
+  captionEn       String?
+  captionAr       String?
+  contentType     ContentType @default(POST)
+  channel         String      @default("instagram")
+  track           Track       @default(ORGANIC)
+  labels          String[]    @default([])
+  previewAssetUrl String?
+  createdBy       String
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([tenantId, brandId])
 }
