@@ -124,9 +124,27 @@ export async function getCampaignProduction(campaignId: string): Promise<ApiCamp
 }
 
 export function apiErrorMessage(err: unknown, fallback: string): string {
-  if (err && typeof err === 'object' && 'data' in err) {
-    const data = (err as { data?: { error?: { message?: string } } }).data;
-    if (data?.error?.message) return data.error.message;
+  if (err && typeof err === 'object') {
+    const e = err as {
+      message?: string;
+      status?: number;
+      data?: { error?: { message?: string; code?: string; message_key?: string } };
+    };
+    const domainMsg = e.data?.error?.message;
+    if (domainMsg) {
+      const code = e.data?.error?.code;
+      if (code === 'PERMISSION_DENIED') {
+        return `${domainMsg} (missing campaign/content capability — re-run seed)`;
+      }
+      if (code === 'NOT_FOUND') {
+        return domainMsg;
+      }
+      return domainMsg;
+    }
+    if (e.message && e.message !== 'Not Found' && e.message !== 'Forbidden') return e.message;
+    if (e.status === 403) return 'Permission denied (campaign capability required)';
+    if (e.status === 404) return 'Not found — ensure migration is applied and brand exists';
+    if (e.status === 500) return 'Server error — check Campaign table migration / prisma generate';
   }
   if (err instanceof Error && err.message) return err.message;
   return fallback;
