@@ -967,7 +967,7 @@ export default function TasksPage() {
             </div>
           </div>
         ) : null}
-
+      </Drawer>
 
       <Dialog
         open={createOpen}
