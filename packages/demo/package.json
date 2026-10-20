@@ -13,5 +13,8 @@
   },
   "devDependencies": {
     "typescript": "^5.8.2"
+  },
+  "dependencies": {
+    "@oma/domain": "workspace:*"
   }
 }
