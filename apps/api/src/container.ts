@@ -23,3 +23,8 @@ export const profileService = new ProfileService(auditService);
 export const insightService = new InsightService(auditService);
 export const approvalService = new ApprovalService(auditService);
 export const strategyService = new StrategyService(auditService);
+import { CampaignService } from './content/campaign.service';
+import { ContentService } from './content/content.service';
+
+export const campaignService = new CampaignService(auditService);
+export const contentService = new ContentService(auditService);

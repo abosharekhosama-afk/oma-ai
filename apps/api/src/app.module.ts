@@ -20,6 +20,8 @@ import { DiscoveryController } from './discovery/discovery.controller';
 import { ProfileController } from './intelligence/profile.controller';
 import { StrategyController } from './strategy/strategy.controller';
 import { DemoController } from './demo/demo.controller';
+import { CampaignController } from './content/campaign.controller';
+import { ContentController } from './content/content.controller';
 import { AiController } from './ai/ai.controller';
 
 @Module({
@@ -40,6 +42,8 @@ import { AiController } from './ai/ai.controller';
     ProfileController,
     StrategyController,
     DemoController,
+    CampaignController,
+    ContentController,
     AiController,
   ],
   providers: [
