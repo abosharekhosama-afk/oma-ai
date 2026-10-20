@@ -248,10 +248,13 @@ export default function CampaignsPage() {
           brandId: payload.brandId,
           name: payload.name,
           description: payload.goal,
+          objective: payload.goal,
+          channels: payload.channels,
           track: payload.track,
           timelineStart: payload.timeline.start,
           timelineEnd: payload.timeline.end,
           links: payload.links,
+          status: payload.status,
         });
         saved = toCampaignRow(created);
       }
