@@ -1604,17 +1604,6 @@ export default function ContentPage() {
             </div>
 
 
-            {/* Planable campaign span bars */}
-            <div className="oma-cal-campaign-rails" data-testid="demo-content-campaign-bars">
-              {campaigns.slice(0, 3).map((c) => (
-                <div key={c.id} className="oma-cal-campaign-bar" title={pickCopy(c.name, locale)}>
-                  <span className="oma-cal-campaign-bar__icon" aria-hidden>
-                    ▢
-                  </span>
-                  <span className="oma-cal-campaign-bar__name">{pickCopy(c.name, locale)}</span>
-                </div>
-              ))}
-            </div>
 
             <div
               className="oma-cal-date-strip"
@@ -1649,38 +1638,8 @@ export default function ContentPage() {
                 const week = visibleCells.slice(wi * 7, wi * 7 + 7);
                 if (!week.length) return null;
                 const weekStart = week[0]!.key;
-                const weekEnd = week[week.length - 1]!.key;
-                const weekCampaigns = campaigns.filter((c) => {
-                  const s = c.timeline?.start;
-                  const e = c.timeline?.end;
-                  if (!s || !e) return false;
-                  return s <= weekEnd && e >= weekStart;
-                });
                 return (
                   <div key={`week-${weekStart}`} className="oma-cal-week" style={{ display: 'contents' }}>
-                    {weekCampaigns.map((c) => {
-                      const s = c.timeline.start;
-                      const e = c.timeline.end;
-                      const first = week.findIndex((cell) => cell.key >= s && cell.key <= e);
-                      let last = -1;
-                      week.forEach((cell, idx) => {
-                        if (cell.key >= s && cell.key <= e) last = idx;
-                      });
-                      if (first < 0 || last < 0) return null;
-                      return (
-                        <div
-                          key={`camp-${c.id}-${weekStart}`}
-                          className="oma-cal-campaign-bar oma-cal-campaign-bar--span"
-                          style={{ gridColumn: `${first + 1} / ${last + 2}` }}
-                          title={pickCopy(c.name, locale)}
-                        >
-                          <span className="oma-cal-campaign-bar__icon" aria-hidden>
-                            ▢
-                          </span>
-                          <span className="oma-cal-campaign-bar__name">{pickCopy(c.name, locale)}</span>
-                        </div>
-                      );
-                    })}
                     {week.map((cell) => {
                       const items = byDay.get(cell.key) ?? [];
                       const { visible, extra } = splitCellItems(items);
@@ -1697,6 +1656,41 @@ export default function ContentPage() {
                           onClick={() => setSelectedDay(cell.key)}
                         >
                           <span className="oma-cal-daynum oma-ltr">{cell.date.getUTCDate()}</span>
+                          <div className="oma-cal-cell-actions">
+                            <button
+                              type="button"
+                              className="oma-cal-cell-actions__btn"
+                              data-testid={`demo-cal-post-${cell.key}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedDay(cell.key);
+                                setCreateForm((f) => ({ ...f, plannedDate: cell.key }));
+                                setCreateOpen(true);
+                              }}
+                            >
+                              <EditOutlined />
+                              <span>{isAr ? 'منشور' : 'Post'}</span>
+                            </button>
+                            <button
+                              type="button"
+                              className="oma-cal-cell-actions__btn"
+                              data-testid={`demo-cal-note-${cell.key}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedDay(cell.key);
+                                setDayNotes((prev) =>
+                                  prev[cell.key]
+                                    ? prev
+                                    : { ...prev, [cell.key]: { text: '', color: 'mint' } },
+                                );
+                                setNoteDay(cell.key);
+                              }}
+                              title={isAr ? 'مرئي لك فقط' : 'Only visible to you'}
+                            >
+                              <FileTextOutlined />
+                              <span>{isAr ? 'ملاحظة' : 'Note'}</span>
+                            </button>
+                          </div>
                           {visible.map((item) => (
                             <div
                               key={item.id}
@@ -1704,7 +1698,9 @@ export default function ContentPage() {
                               onMouseEnter={(e) => {
                                 const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
                                 setCardMenuId(item.id);
-                                setMenuPos({ top: r.top, left: r.right + 4 });
+                                const menuW = 220;
+                                const left = Math.min(r.right + 6, window.innerWidth - menuW - 8);
+                                setMenuPos({ top: r.top, left: Math.max(8, left) });
                               }}
                               onMouseLeave={() => {
                                 window.setTimeout(() => {
@@ -1736,14 +1732,12 @@ export default function ContentPage() {
             >
               {(
                 [
-                  { id: 'campaign', label: isAr ? 'إضافة إلى حملة' : 'Add to campaign', icon: <FlagOutlined /> },
-                  { id: 'labels', label: isAr ? 'إدارة التصنيفات' : 'Manage labels', icon: <FormOutlined /> },
-                  { id: 'repost', label: isAr ? 'إعادة نشر' : 'Repost', icon: <SyncOutlined /> },
+                  { id: 'request', label: isAr ? 'طلب موافقة' : 'Request approval', icon: <SyncOutlined /> },
+                  { id: 'approve', label: isAr ? 'الموافقة على المنشور' : 'Approve post', icon: <CheckOutlined /> },
+                  { id: 'published', label: isAr ? 'تعليم كمنشور' : 'Mark as published', icon: <FlagOutlined /> },
                   { id: 'hide', label: isAr ? 'إخفاء عن العملاء' : 'Hide from clients', icon: <EyeInvisibleOutlined /> },
-                  { id: 'published', label: isAr ? 'تعليم كمنشور' : 'Mark as published', icon: <CheckOutlined /> },
-                  { id: 'link', label: isAr ? 'نسخ رابط المشاركة' : 'Copy public share link', icon: <LinkOutlined /> },
-                  { id: 'copy', label: isAr ? 'نسخ إلى…' : 'Copy to…', icon: <CopyOutlined /> },
-                  { id: 'archive', label: isAr ? 'أرشفة' : 'Archive post', icon: <InboxOutlined /> },
+                  { id: 'archive', label: isAr ? 'أرشفة المنشور' : 'Archive post', icon: <InboxOutlined /> },
+                  { id: 'repost', label: isAr ? 'إعادة نشر' : 'Repost', icon: <SyncOutlined /> },
                 ] as const
               ).map((row) => (
                 <button
@@ -1967,39 +1961,7 @@ export default function ContentPage() {
                               ) : null}
                             </div>
                           ) : null}
-                          <div className="oma-cal-cell-actions">
-                            <button
-                              type="button"
-                              className="oma-cal-cell-actions__btn"
-                              data-testid={`demo-cal-post-${cell.key}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedDay(cell.key);
-                                setCreateForm((f) => ({ ...f, plannedDate: cell.key }));
-                                setCreateOpen(true);
-                              }}
-                            >
-                              ✎ Post
-                            </button>
-                            <button
-                              type="button"
-                              className="oma-cal-cell-actions__btn"
-                              data-testid={`demo-cal-note-${cell.key}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedDay(cell.key);
-                                setDayNotes((prev) =>
-                                  prev[cell.key]
-                                    ? prev
-                                    : { ...prev, [cell.key]: { text: '', color: 'mint' } },
-                                );
-                                setNoteDay(cell.key);
-                              }}
-                              title={isAr ? 'مرئي لك فقط' : 'Only visible to you'}
-                            >
-                              🗒 Note
-                            </button>
-                          </div>
+
                         </div>
                       );
                     })}
