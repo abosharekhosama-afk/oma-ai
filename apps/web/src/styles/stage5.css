@@ -589,3 +589,147 @@
 
 @media (prefers-reduced-motion: reduce) {
 }
+
+/* ==== Deliverables parity with Requests ==== */
+.oma-deliv-page {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
+.oma-deliv-workspace {
+  display: flex !important;
+  flex-direction: row !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  background: #f7f8f9 !important;
+}
+.oma-deliv-workspace .oma-req-main {
+  flex: 1 1 0% !important;
+  min-width: 0 !important;
+  padding: 16px 20px 32px !important;
+  overflow-x: hidden !important;
+}
+.oma-deliv-table-wrap {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: auto !important;
+  max-height: calc(100vh - 280px) !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+}
+.oma-deliv-table {
+  width: max-content !important;
+  min-width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  font-size: 13px !important;
+}
+.oma-deliv-table th,
+.oma-deliv-table td {
+  padding: 12px 14px !important;
+  white-space: nowrap !important;
+  border-bottom: 1px solid #f0f1f3 !important;
+  text-align: start !important;
+}
+.oma-deliv-table th {
+  position: sticky !important;
+  top: 0 !important;
+  background: #fafbfc !important;
+  color: #8c8c8c !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  z-index: 1 !important;
+}
+.oma-deliv-table tbody tr:hover {
+  background: #f8f9fa !important;
+}
+.oma-deliv-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+  gap: 12px !important;
+}
+.oma-deliv-grid-card {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  padding: 0 0 12px !important;
+  background: #fff !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+  text-decoration: none !important;
+  color: inherit !important;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease !important;
+}
+.oma-deliv-grid-card:hover {
+  border-color: #c9cdd3 !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08) !important;
+}
+.oma-deliv-grid-card img,
+.oma-deliv-grid-card .oma-deliv-thumb-fallback {
+  width: 100% !important;
+  aspect-ratio: 1 / 1 !important;
+  object-fit: cover !important;
+  background: #eef0f2 !important;
+  display: block !important;
+}
+.oma-deliv-grid-card strong,
+.oma-deliv-grid-card .oma-chip-row,
+.oma-deliv-grid-card .oma-muted {
+  padding: 0 12px !important;
+}
+.oma-deliv-grid-card strong {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #111 !important;
+}
+.oma-deliv-thumb {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 6px !important;
+  object-fit: cover !important;
+  background: #eef0f2 !important;
+}
+.oma-req-tabs {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 4px !important;
+  align-items: center !important;
+}
+.oma-req-tab {
+  height: 32px !important;
+  padding: 0 12px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: #5e6166 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+}
+.oma-req-tab[data-active='true'],
+.oma-req-tab[aria-selected='true'] {
+  background: #eef5ff !important;
+  color: #1d4ed8 !important;
+  font-weight: 600 !important;
+}
+.oma-req-topbar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  padding: 10px 16px !important;
+  background: #fff !important;
+  border-bottom: 1px solid #eef0f2 !important;
+}
+.oma-req-topbar__actions {
+  display: inline-flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 8px !important;
+}

@@ -1364,3 +1364,182 @@ main.oma-container:has(.oma-req-page) {
     max-height: calc(100vh - 240px) !important;
   }
 }
+
+/* ==== Shared view-path switcher (Deliverables / Tasks) ==== */
+.oma-view-path {
+  position: relative !important;
+  display: inline-flex !important;
+}
+.oma-view-path__btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  height: 32px !important;
+  padding: 0 10px !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  color: #333 !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+}
+.oma-view-path__btn:hover {
+  background: #f7f8f9 !important;
+}
+.oma-view-path__caret {
+  font-size: 10px !important;
+  color: #8c8c8c !important;
+}
+.oma-view-path__menu {
+  position: absolute !important;
+  top: calc(100% + 6px) !important;
+  inset-inline-end: 0 !important;
+  z-index: 50 !important;
+  min-width: 180px !important;
+  padding: 6px !important;
+  background: #fff !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 10px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+}
+.oma-view-path__menu button {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  width: 100% !important;
+  padding: 8px 10px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: #333 !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+  text-align: start !important;
+}
+.oma-view-path__menu button:hover {
+  background: #f5f6f7 !important;
+}
+.oma-view-path__menu button[data-active='true'] {
+  background: #eef5ff !important;
+  color: #1d4ed8 !important;
+}
+
+/* Tasks page */
+.oma-tasks-page {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+}
+.oma-tasks-workspace {
+  display: flex !important;
+  flex-direction: row !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  background: #f7f8f9 !important;
+}
+.oma-tasks-workspace .oma-req-main {
+  flex: 1 1 0% !important;
+  min-width: 0 !important;
+  padding: 12px 16px 24px !important;
+  overflow-x: auto !important;
+}
+
+/* Kanban Planable-like cards */
+.oma-kanban-board {
+  display: flex !important;
+  gap: 12px !important;
+  align-items: flex-start !important;
+  overflow-x: auto !important;
+  padding-bottom: 12px !important;
+  min-height: 420px !important;
+}
+.oma-kanban-col {
+  flex: 0 0 260px !important;
+  width: 260px !important;
+  background: #f0f1f3 !important;
+  border-radius: 12px !important;
+  padding: 10px !important;
+  min-height: 360px !important;
+  border: 1px solid #e8e9eb !important;
+}
+.oma-kanban-col.is-over {
+  background: #e8f0fe !important;
+  border-color: #93c5fd !important;
+}
+.oma-kanban-col h3 {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin: 0 0 10px !important;
+  padding: 2px 4px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: #5e6166 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.02em !important;
+}
+.oma-kanban-col h3 span:last-child {
+  background: #fff !important;
+  border-radius: 999px !important;
+  padding: 1px 8px !important;
+  font-size: 11px !important;
+  color: #8c8c8c !important;
+  font-weight: 600 !important;
+}
+.oma-kanban-cards {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  min-height: 40px !important;
+}
+.oma-kanban-card {
+  background: #fff !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 10px !important;
+  padding: 10px 12px !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  cursor: grab !important;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease !important;
+}
+.oma-kanban-card:hover {
+  border-color: #c9cdd3 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+}
+.oma-kanban-card:active {
+  cursor: grabbing !important;
+}
+.oma-kanban-card-open {
+  font-size: 12px !important;
+}
+.oma-kanban-a11y-move {
+  display: block !important;
+  margin-top: 8px !important;
+}
+.oma-prod-strip {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+  padding: 12px 16px !important;
+  margin: 0 0 8px !important;
+  background: #fff !important;
+  border-bottom: 1px solid #eef0f2 !important;
+}
+.oma-prod-stat {
+  display: flex !important;
+  flex-direction: column !important;
+  min-width: 88px !important;
+  padding: 8px 12px !important;
+  background: #f7f8f9 !important;
+  border-radius: 8px !important;
+}
+.oma-prod-stat strong {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  color: #111 !important;
+}
+.oma-prod-stat span {
+  font-size: 11px !important;
+  color: #8c8c8c !important;
+}
