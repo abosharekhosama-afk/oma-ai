@@ -19,6 +19,16 @@ import {
   pickCopy,
 } from '../../../../lib/demo/use-demo-api';
 import {
+  listBrandsProduction,
+  listAllCampaigns,
+  createCampaignProduction,
+  updateCampaignProduction,
+  archiveCampaignProduction,
+  toCampaignRow,
+  apiErrorMessage,
+  isForbidden as isApiForbidden,
+} from '../../../../lib/campaign-api';
+import {
   EMPTY_CAMPAIGN_FILTERS,
   activeFilterCount,
   campaignFilterChips,
@@ -93,25 +103,55 @@ export default function CampaignsPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const graph = await demoApi<DemoGraph>('/graph');
-      setRows(graph.campaigns);
-      setContent(graph.contentItems);
-      setBrands(graph.brands);
-      setStrategies(graph.strategies);
-      setError(null);
-      setUnavailable(false);
-      setForm((f) => {
-        if (f.strategyId) return f;
-        const strategy = graph.strategies.find((s) => s.isCurrent) ?? graph.strategies[0];
-        return {
+      // Prefer production Campaign API; fall back to demo graph if brands API unavailable.
+      try {
+        const brandRows = await listBrandsProduction();
+        const brandIds = brandRows.map((b) => b.id);
+        const campaigns = brandIds.length ? await listAllCampaigns(brandIds) : [];
+        setBrands(
+          brandRows.map((b) => ({
+            id: b.id,
+            name: { en: b.name, ar: b.name },
+            state: b.status === 'ARCHIVED' ? 'draft' : 'healthy',
+            profileStatus: b.status,
+            strategyId: null,
+          })) as Brand[],
+        );
+        setRows(campaigns.map((c) => toCampaignRow(c)));
+        setContent([]); // content counts come from API content_count later; detail still demo-linked
+        setStrategies([]);
+        setError(null);
+        setUnavailable(false);
+        setForm((f) => ({
           ...f,
-          strategyId: strategy?.id ?? '',
-          brandId: strategy?.brandId ?? graph.brands[0]?.id ?? '',
-          owner: f.owner || graph.campaigns[0]?.owner || 'Layla Haddad',
-        };
-      });
+          brandId: f.brandId || brandIds[0] || '',
+          owner: f.owner || 'Owner',
+        }));
+      } catch (prodErr) {
+        // Demo fallback keeps product demo usable before migrate/capabilities are applied.
+        const graph = await demoApi<DemoGraph>('/graph');
+        setRows(graph.campaigns);
+        setContent(graph.contentItems);
+        setBrands(graph.brands);
+        setStrategies(graph.strategies);
+        setError(null);
+        setUnavailable(false);
+        setForm((f) => {
+          if (f.strategyId) return f;
+          const strategy = graph.strategies.find((s) => s.isCurrent) ?? graph.strategies[0];
+          return {
+            ...f,
+            strategyId: strategy?.id ?? '',
+            brandId: strategy?.brandId ?? graph.brands[0]?.id ?? '',
+            owner: f.owner || graph.campaigns[0]?.owner || 'Layla Haddad',
+          };
+        });
+        if (isApiForbidden(prodErr)) {
+          /* silent fallback */
+        }
+      }
     } catch (err) {
-      if (isDemoForbidden(err)) setUnavailable(true);
+      if (isDemoForbidden(err) || isApiForbidden(err)) setUnavailable(true);
       else setError(demoErrorMessage(err, 'Demo unavailable'));
     } finally {
       setLoading(false);
@@ -182,7 +222,7 @@ export default function CampaignsPage() {
 
   async function submitCreate() {
     setCreateError(null);
-    if (!form.name.trim() || !form.strategyId || !form.owner.trim() || !form.start || !form.end) {
+    if (!form.name.trim() || !form.brandId || !form.start || !form.end) {
       setCreateError(t('demo.create.validation'));
       return;
     }
@@ -204,13 +244,44 @@ export default function CampaignsPage() {
         status: form.status,
         links: form.links,
       };
-      const saved = await demoApi<CampaignRow>(
-        editingId ? `/campaigns/${editingId}` : '/campaigns',
-        {
-          method: editingId ? 'PATCH' : 'POST',
-          body: JSON.stringify(payload),
-        },
-      );
+      let saved: CampaignRow;
+      try {
+        if (editingId) {
+          const updated = await updateCampaignProduction(editingId, {
+            name: payload.name,
+            description: payload.goal,
+            track: payload.track,
+            timelineStart: payload.timeline.start,
+            timelineEnd: payload.timeline.end,
+            links: payload.links,
+            status: payload.status,
+          });
+          saved = toCampaignRow(updated);
+        } else {
+          const created = await createCampaignProduction({
+            brandId: payload.brandId,
+            name: payload.name,
+            description: payload.goal,
+            track: payload.track,
+            timelineStart: payload.timeline.start,
+            timelineEnd: payload.timeline.end,
+            links: payload.links,
+          });
+          saved = toCampaignRow(created);
+        }
+      } catch (prodErr) {
+        // Fallback to demo API for local product demos without migrate
+        saved = await demoApi<CampaignRow>(
+          editingId ? `/campaigns/${editingId}` : '/campaigns',
+          {
+            method: editingId ? 'PATCH' : 'POST',
+            body: JSON.stringify(payload),
+          },
+        );
+        if (isApiForbidden(prodErr)) {
+          /* demo path */
+        }
+      }
       toast.push(
         editingId
           ? isAr
@@ -256,25 +327,42 @@ export default function CampaignsPage() {
     setMenuId(null);
     const copy = locale.toLowerCase().startsWith('ar') ? 'نسخة' : 'copy';
     try {
-      const duplicated = await demoApi<CampaignRow>('/campaigns', {
-        method: 'POST',
-        body: JSON.stringify({
+      let duplicated: CampaignRow;
+      try {
+        const created = await createCampaignProduction({
+          brandId: campaign.brandId,
           name: {
             en: `${campaign.name.en} (${copy})`,
             ar: `${campaign.name.ar} (${copy})`,
           },
-          goal: campaign.objective,
-          strategyId: campaign.strategyId,
-          brandId: campaign.brandId,
+          description: campaign.objective,
           track: campaign.track,
-          owner: campaign.owner,
-          timeline: campaign.timeline,
-          channels: campaign.channels,
-          status: campaign.status,
-          audience: campaign.audience,
+          timelineStart: campaign.timeline.start,
+          timelineEnd: campaign.timeline.end,
           links: campaign.links ?? [],
-        }),
-      });
+        });
+        duplicated = toCampaignRow(created);
+      } catch {
+        duplicated = await demoApi<CampaignRow>('/campaigns', {
+          method: 'POST',
+          body: JSON.stringify({
+            name: {
+              en: `${campaign.name.en} (${copy})`,
+              ar: `${campaign.name.ar} (${copy})`,
+            },
+            goal: campaign.objective,
+            strategyId: campaign.strategyId,
+            brandId: campaign.brandId,
+            track: campaign.track,
+            owner: campaign.owner,
+            timeline: campaign.timeline,
+            channels: campaign.channels,
+            status: campaign.status,
+            audience: campaign.audience,
+            links: campaign.links ?? [],
+          }),
+        });
+      }
       toast.push(isAr ? 'تم نسخ الحملة' : 'Campaign duplicated', 'success');
       await load();
       router.push(`/app/campaigns/${duplicated.id}`);
@@ -296,10 +384,14 @@ export default function CampaignsPage() {
   async function archiveCampaign() {
     if (!archiveTarget) return;
     try {
-      await demoApi<CampaignRow>(`/campaigns/${archiveTarget}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ status: 'ARCHIVED' }),
-      });
+      try {
+        await archiveCampaignProduction(archiveTarget);
+      } catch {
+        await demoApi<CampaignRow>(`/campaigns/${archiveTarget}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ status: 'ARCHIVED' }),
+        });
+      }
       setArchiveTarget(null);
       setMenuId(null);
       await load();
