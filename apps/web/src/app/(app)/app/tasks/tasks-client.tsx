@@ -52,6 +52,9 @@ import {
   DownOutlined,
   UpOutlined,
   PlusOutlined,
+  UserOutlined,
+  FlagOutlined,
+  UnorderedListOutlined,
 } from '@ant-design/icons';
 
 type ViewMode = 'board' | 'list';
@@ -457,21 +460,21 @@ export default function TasksPage() {
 
 
       <div className="oma-prod-strip" data-testid="demo-production-summary">
-        <div className="oma-prod-stat">
-          <strong>{summary.wip}</strong>
-          <span>{t('demo.tasks.wip')}</span>
+        <div className="oma-prod-stat" data-tone="wip">
+          <span className="oma-prod-stat__label">{t('demo.tasks.wip')}</span>
+          <strong className="oma-prod-stat__value">{summary.wip}</strong>
         </div>
-        <div className="oma-prod-stat">
-          <strong>{summary.dueSoon}</strong>
-          <span>{t('demo.tasks.dueSoon')}</span>
+        <div className="oma-prod-stat" data-tone="soon">
+          <span className="oma-prod-stat__label">{t('demo.tasks.dueSoon')}</span>
+          <strong className="oma-prod-stat__value">{summary.dueSoon}</strong>
         </div>
-        <div className="oma-prod-stat">
-          <strong>{summary.blocked}</strong>
-          <span>{t('demo.tasks.blocked')}</span>
+        <div className="oma-prod-stat" data-tone="blocked">
+          <span className="oma-prod-stat__label">{t('demo.tasks.blocked')}</span>
+          <strong className="oma-prod-stat__value">{summary.blocked}</strong>
         </div>
-        <div className="oma-prod-stat">
-          <strong>{summary.awaitingReview}</strong>
-          <span>{t('demo.tasks.awaitingReview')}</span>
+        <div className="oma-prod-stat" data-tone="review">
+          <span className="oma-prod-stat__label">{t('demo.tasks.awaitingReview')}</span>
+          <strong className="oma-prod-stat__value">{summary.awaitingReview}</strong>
         </div>
       </div>
 
@@ -602,7 +605,7 @@ export default function TasksPage() {
                       onClick={() => setFilterSection((s) => (s === 'status' ? null : 'status'))}
                     >
                       <span className="oma-filter-accordion__ico">
-                        <FilterOutlined />
+                        <UnorderedListOutlined />
                       </span>
                       <span>{t('demo.tasks.filter.status')}</span>
                       <span className="oma-filter-accordion__caret">
@@ -644,7 +647,7 @@ export default function TasksPage() {
                       onClick={() => setFilterSection((s) => (s === 'assignee' ? null : 'assignee'))}
                     >
                       <span className="oma-filter-accordion__ico">
-                        <FilterOutlined />
+                        <UserOutlined />
                       </span>
                       <span>{t('demo.tasks.filter.assignee')}</span>
                       <span className="oma-filter-accordion__caret">
@@ -695,7 +698,7 @@ export default function TasksPage() {
                       onClick={() => setFilterSection((s) => (s === 'priority' ? null : 'priority'))}
                     >
                       <span className="oma-filter-accordion__ico">
-                        <FilterOutlined />
+                        <FlagOutlined />
                       </span>
                       <span>{t('demo.tasks.filter.priority')}</span>
                       <span className="oma-filter-accordion__caret">
