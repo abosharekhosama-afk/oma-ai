@@ -998,3 +998,140 @@ model StrategyHumanEdit {
   @@index([tenantId, strategyVersionId])
 }
 
+
+// ─── Campaign & Content (operations domain) ───────────────────────────
+
+enum Track {
+  ORGANIC
+  PAID
+}
+
+enum CampaignStatus {
+  DRAFT
+  UPCOMING
+  ACTIVE
+  IN_REVIEW
+  NEEDS_ATTENTION
+  COMPLETED
+  ARCHIVED
+}
+
+enum ContentType {
+  POST
+  REEL
+  CAROUSEL
+  STATIC
+  STORY
+}
+
+enum ContentStatus {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  SCHEDULED
+  PUBLISHED_SAMPLE
+}
+
+enum ContentApprovalState {
+  NOT_REQUESTED
+  PENDING
+  PARTIALLY_APPROVED
+  APPROVED
+  CHANGES_REQUESTED
+  REJECTED
+}
+
+enum ContentScheduleState {
+  UNSCHEDULED
+  SCHEDULED
+}
+
+enum ContentApprovalPolicy {
+  NONE
+  OPTIONAL
+  REQUIRED
+}
+
+model Campaign {
+  id            String         @id
+  tenantId      String
+  brandId       String
+  nameEn        String
+  nameAr        String
+  descriptionEn String?
+  descriptionAr String?
+  track         Track
+  status        CampaignStatus @default(DRAFT)
+  timelineStart DateTime       @db.Date
+  timelineEnd   DateTime       @db.Date
+  ownerUserId   String?
+  links         String[]       @default([])
+  archivedAt    DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  contentItems  ContentItem[]
+
+  @@index([tenantId, brandId])
+  @@index([brandId, status])
+  @@index([tenantId, status])
+}
+
+model ContentItem {
+  id               String               @id
+  tenantId         String
+  brandId          String
+  campaignId       String?
+  titleEn          String
+  titleAr          String
+  captionEn        String?
+  captionAr        String?
+  contentType      ContentType
+  channel          String
+  track            Track
+  status           ContentStatus        @default(DRAFT)
+  approvalState    ContentApprovalState @default(NOT_REQUESTED)
+  scheduleState    ContentScheduleState @default(UNSCHEDULED)
+  plannedAt        DateTime?
+  scheduledAt      DateTime?
+  timezone         String               @default("Asia/Dubai")
+  approverRequired Int                  @default(1)
+  approverApproved Int                  @default(0)
+  previewAssetUrl  String?
+  labels           String[]             @default([])
+  assigneeUserId   String?
+  clientVisible    Boolean              @default(true)
+  archivedAt       DateTime?
+  createdBy        String
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  campaign         Campaign?            @relation(fields: [campaignId], references: [id])
+  approvalEvents   ContentApprovalEvent[]
+
+  @@index([tenantId, brandId])
+  @@index([brandId, campaignId])
+  @@index([brandId, status])
+  @@index([scheduledAt])
+}
+
+model ContentApprovalEvent {
+  id          String      @id
+  tenantId    String
+  contentId   String
+  actorUserId String
+  action      String
+  noteEn      String?
+  noteAr      String?
+  at          DateTime    @default(now())
+  content     ContentItem @relation(fields: [contentId], references: [id])
+
+  @@index([contentId, at])
+  @@index([tenantId, contentId])
+}
+
+model ContentPreferences {
+  brandId         String                @id
+  tenantId        String
+  approvalPolicy  ContentApprovalPolicy @default(OPTIONAL)
+  defaultTimezone String                @default("Asia/Dubai")
+  updatedAt       DateTime              @updatedAt
+}
