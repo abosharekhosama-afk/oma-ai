@@ -103,6 +103,16 @@ import {
   archiveContent,
   toContentRow,
   contentApiError,
+  listDayNotes,
+  upsertDayNote,
+  deleteDayNote,
+  setClientVisible,
+  setContentLabels,
+  listContentLabels,
+  createContentLabel,
+  saveContentAsTemplate,
+  listContentTemplates,
+  useContentTemplate,
 } from '../../../../lib/content-api';
 import { useLocale, useT } from '../../../../lib/use-locale';
 
@@ -524,6 +534,25 @@ export default function ContentPage() {
     try {
       const ws = await loadContentWorkspace();
       setRows(ws.content);
+      // Load calendar day notes for primary brand
+      try {
+        const primaryBrand = ws.brands[0]?.id;
+        if (primaryBrand) {
+          const notes = await listDayNotes(primaryBrand);
+          const map: Record<string, { text: string; color: string; locked?: boolean }> = {};
+          for (const n of notes) {
+            map[n.day_key] = {
+              text: locale.toLowerCase().startsWith('ar') ? n.text.ar || n.text.en : n.text.en,
+              color: n.color,
+              locked: n.locked,
+            };
+          }
+          setDayNotes(map);
+        }
+      } catch {
+        /* notes optional */
+      }
+
       setPolicy(ws.policy);
       setCampaigns(ws.campaigns as typeof campaigns);
       setBrands(ws.brands as typeof brands);
@@ -602,6 +631,69 @@ export default function ContentPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const activeBrandId = brands[0]?.id || campaigns[0]?.brandId || '';
+
+  async function persistNote(dayKey: string, patch: { text?: string; color?: string; locked?: boolean; remove?: boolean }) {
+    if (!activeBrandId || !dayKey) return;
+    try {
+      if (patch.remove) {
+        await deleteDayNote(activeBrandId, dayKey);
+        setDayNotes((prev) => {
+          const next = { ...prev };
+          delete next[dayKey];
+          return next;
+        });
+        return;
+      }
+      const current = dayNotes[dayKey];
+      const text = patch.text !== undefined ? patch.text : current?.text ?? '';
+      const color = patch.color ?? current?.color ?? 'yellow';
+      const locked = patch.locked ?? false;
+      await upsertDayNote(activeBrandId, { dayKey, text, color, locked });
+      setDayNotes((prev) => ({
+        ...prev,
+        [dayKey]: { text, color, locked },
+      }));
+    } catch (err) {
+      toast.push(contentApiError(err, isAr ? 'تعذّر حفظ الملاحظة' : 'Failed to save note'), 'danger');
+    }
+  }
+
+  async function toggleHideFromClients(contentId: string) {
+    const row = rows.find((r) => r.id === contentId);
+    // clientVisible not always on ContentRow — default true
+    const currentlyVisible = (row as { clientVisible?: boolean })?.clientVisible !== false;
+    try {
+      const updated = await setClientVisible(contentId, !currentlyVisible);
+      setRows((prev) => prev.map((r) => (r.id === contentId ? toContentRow(updated) : r)));
+      toast.push(
+        isAr
+          ? !currentlyVisible
+            ? 'ظاهر للعملاء'
+            : 'مخفي عن العملاء'
+          : !currentlyVisible
+            ? 'Visible to clients'
+            : 'Hidden from clients',
+        'success',
+      );
+    } catch (err) {
+      toast.push(contentApiError(err, 'Visibility update failed'), 'danger');
+    }
+  }
+
+  async function saveAsTemplate(contentId: string) {
+    if (!activeBrandId) return;
+    const row = rows.find((r) => r.id === contentId);
+    const name = row ? (isAr ? row.title.ar : row.title.en) : 'Template';
+    try {
+      await saveContentAsTemplate(activeBrandId, { name: `${name} template`, fromContentId: contentId });
+      toast.push(isAr ? 'تم حفظ القالب' : 'Saved as template', 'success');
+    } catch (err) {
+      toast.push(contentApiError(err, 'Template save failed'), 'danger');
+    }
+  }
+
 
   useEffect(() => {
     const urlView = search.get('view');
@@ -1768,9 +1860,36 @@ export default function ContentPage() {
                       void navigator.clipboard?.writeText(window.location.href);
                       toast.push(isAr ? 'تم نسخ الرابط' : 'Link copied', 'success');
                     }
-                    if (row.id === 'hide' || row.id === 'campaign' || row.id === 'labels') {
-                      /* demo no-op with feedback */
-                      toast.push(row.label, 'success');
+                    if (row.id === 'hide') {
+                      void toggleHideFromClients(cardMenuId);
+                    }
+                    if (row.id === 'labels') {
+                      const current = rows.find((r) => r.id === cardMenuId);
+                      const next = window.prompt(
+                        isAr ? 'التصنيفات (مفصولة بفاصلة)' : 'Labels (comma-separated)',
+                        '',
+                      );
+                      if (next != null && cardMenuId) {
+                        void setContentLabels(
+                          cardMenuId,
+                          next.split(',').map((s) => s.trim()).filter(Boolean),
+                        )
+                          .then((updated) => {
+                            setRows((prev) =>
+                              prev.map((r) => (r.id === cardMenuId ? toContentRow(updated) : r)),
+                            );
+                            toast.push(isAr ? 'تم تحديث التصنيفات' : 'Labels updated', 'success');
+                          })
+                          .catch((err) =>
+                            toast.push(contentApiError(err, 'Labels failed'), 'danger'),
+                          );
+                      }
+                    }
+                    if (row.id === 'template' || row.label.toLowerCase().includes('template') || row.label.includes('قالب')) {
+                      void saveAsTemplate(cardMenuId);
+                    }
+                    if (row.id === 'campaign') {
+                      toast.push(isAr ? 'اربط الحملة من تفاصيل المنشور' : 'Link campaign from post details', 'success');
                     }
                     setCardMenuId(null);
                     setMenuPos(null);
@@ -1933,11 +2052,7 @@ export default function ContentPage() {
                                   aria-label="Delete"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setDayNotes((prev) => {
-                                      const next = { ...prev };
-                                      delete next[cell.key];
-                                      return next;
-                                    });
+                                    void persistNote(cell.key, { remove: true });
                                     setNoteDay(null);
                                     setNoteColorOpen(false);
                                   }}
@@ -1958,13 +2073,7 @@ export default function ContentPage() {
                                       }
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        setDayNotes((prev) => ({
-                                          ...prev,
-                                          [cell.key]: {
-                                            text: prev[cell.key]?.text ?? '',
-                                            color: c,
-                                          },
-                                        }));
+                                        void persistNote(cell.key, { color: c });
                                         setNoteColorOpen(false);
                                       }}
                                       aria-label={c}
@@ -2979,6 +3088,7 @@ export default function ContentPage() {
                       },
                     }));
                   }}
+                                onBlur={(e) => void persistNote(cell.key, { text: e.target.value })}
                 />
                 <div className="oma-cal-note__actions">
                   <button
