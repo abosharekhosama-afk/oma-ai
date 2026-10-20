@@ -19,6 +19,11 @@ import {
   pickCopy,
 } from '../../../../../lib/demo/use-demo-api';
 import {
+  getCampaignProduction,
+  toCampaignRow,
+  listBrandsProduction,
+} from '../../../../../lib/campaign-api';
+import {
   campaignNextAction,
   campaignReviewState,
   campaignScheduleReadiness,
@@ -63,17 +68,47 @@ export default function CampaignDetailPage() {
     let cancelled = false;
     (async () => {
       try {
-        const graph = await demoApi<DemoGraph>('/graph');
+        // Production campaign first; related tabs still use demo graph when available.
+        let row: Campaign | null = null;
+        let brandRow: Brand | null = null;
+        try {
+          const apiCamp = await getCampaignProduction(campaignId);
+          row = toCampaignRow(apiCamp);
+          const brands = await listBrandsProduction();
+          const b = brands.find((x) => x.id === apiCamp.brand_id);
+          brandRow = b
+            ? ({
+                id: b.id,
+                name: { en: b.name, ar: b.name },
+                state: 'healthy',
+                profileStatus: b.status,
+                strategyId: null,
+              } as Brand)
+            : null;
+        } catch {
+          /* fall through to demo */
+        }
+        let graph: DemoGraph | null = null;
+        try {
+          graph = await demoApi<DemoGraph>('/graph');
+        } catch {
+          graph = null;
+        }
         if (cancelled) return;
-        const row = graph.campaigns.find((c) => c.id === campaignId) ?? null;
+        if (!row && graph) {
+          row = graph.campaigns.find((c) => c.id === campaignId) ?? null;
+        }
         setCampaign(row);
-        setBrand(graph.brands.find((b) => b.id === row?.brandId) ?? null);
-        setStrategy(graph.strategies.find((s) => s.id === row?.strategyId) ?? null);
-        setContent(graph.contentItems.filter((c) => c.campaignId === campaignId));
-        setTasks(graph.tasks.filter((task) => task.campaignId === campaignId).slice(0, 6));
-        setDeliverables(graph.deliverables.filter((d) => d.campaignId === campaignId));
-        const scoped = graph.activity.filter((a) => a.campaignId === campaignId);
-        setActivity((scoped.length ? scoped : graph.activity).slice(0, 8));
+        setBrand(
+          brandRow ??
+            (graph && row ? graph.brands.find((b) => b.id === row?.brandId) ?? null : null),
+        );
+        setStrategy(graph && row ? graph.strategies.find((s) => s.id === row?.strategyId) ?? null : null);
+        setContent(graph ? graph.contentItems.filter((c) => c.campaignId === campaignId) : []);
+        setTasks(graph ? graph.tasks.filter((task) => task.campaignId === campaignId).slice(0, 6) : []);
+        setDeliverables(graph ? graph.deliverables.filter((d) => d.campaignId === campaignId) : []);
+        const scoped = graph ? graph.activity.filter((a) => a.campaignId === campaignId) : [];
+        setActivity((scoped.length ? scoped : graph?.activity ?? []).slice(0, 8));
         setError(null);
         if (!row) setError('Not found');
       } catch (err) {
