@@ -406,12 +406,12 @@ export default function TasksPage() {
       {viewSlot && viewSlot.isConnected
         ? createPortal(
             <span
-              className="oma-view-path oma-view-path--inline"
+              className="oma-view-path oma-view-path--text"
               onClick={(e) => e.stopPropagation()}
             >
               <button
                 type="button"
-                className="oma-view-path__btn oma-view-path__btn--ghost"
+                className="oma-view-path__text"
                 data-testid="demo-tasks-view-toggle"
                 aria-expanded={viewMenuOpen}
                 onClick={(e) => {
@@ -419,8 +419,7 @@ export default function TasksPage() {
                   setViewMenuOpen((v) => !v);
                 }}
               >
-                {view === 'board' ? <AppstoreOutlined /> : <BarsOutlined />}
-                <span>{view === 'board' ? t('demo.view.kanban') : t('demo.view.list')}</span>
+                {view === 'board' ? t('demo.view.kanban') : t('demo.view.list')}
                 <DownOutlined className="oma-view-path__caret" />
               </button>
               {viewMenuOpen ? (
@@ -435,7 +434,7 @@ export default function TasksPage() {
                       setViewMenuOpen(false);
                     }}
                   >
-                    <AppstoreOutlined />
+                    <UnorderedListOutlined />
                     <span>{t('demo.view.kanban')}</span>
                   </button>
                   <button
@@ -743,158 +742,171 @@ export default function TasksPage() {
 
       <Drawer open={Boolean(selected)} onClose={closeTask} label={t('demo.tasks.detail')} wide>
         {selected ? (
-          <div className="oma-task-drawer-body" data-testid="demo-task-drawer">
-            <div className="oma-drawer-header">
-              <div>
-                <p className="oma-muted">{selected.id}</p>
-                <h2 id="task-drawer-title">
-                  <Input
-                    defaultValue={pickCopy(selected.title, locale)}
-                    data-testid="demo-task-title"
-                    aria-label={t('demo.create.title')}
-                    onBlur={(e) => {
-                      const v = e.target.value.trim();
-                      if (v && v !== pickCopy(selected.title, locale)) {
-                        void patchTask(selected.id, { title: { en: v, ar: v } });
-                      }
-                    }}
-                  />
-                </h2>
+          <div className="oma-task-detail" data-testid="demo-task-drawer">
+            <header className="oma-task-detail__head">
+              <div className="oma-task-detail__head-main">
+                <p className="oma-task-detail__id">{selected.id}</p>
+                <Input
+                  className="oma-task-detail__title-input"
+                  defaultValue={pickCopy(selected.title, locale)}
+                  data-testid="demo-task-title"
+                  aria-label={t('demo.create.title')}
+                  onBlur={(e) => {
+                    const v = e.target.value.trim();
+                    if (v && v !== pickCopy(selected.title, locale)) {
+                      void patchTask(selected.id, { title: { en: v, ar: v } });
+                    }
+                  }}
+                />
+                <div className="oma-task-detail__chips">
+                  <StatusChip status={selected.status} />
+                  <StatusChip status={selected.priority} />
+                </div>
               </div>
-              <div className="oma-chip-row">
+              <div className="oma-task-detail__head-actions">
                 <Button data-testid="demo-task-copy-link" onClick={() => void copyLink()}>
                   {t('demo.tasks.copyLink')}
                 </Button>
                 <Button onClick={closeTask}>{t('common.cancel')}</Button>
               </div>
-            </div>
+            </header>
 
-            <div className="oma-task-fields">
-              <label>
-                {t('demo.tasks.filter.status')}
-                <OmaSelect
-                  value={selected.status}
-                  testId="demo-task-status"
-                  disabled={saving}
-                  onChange={(status) => void patchTask(selected.id, { status })}
-                  options={moveOptions(selected.status).map((s) => ({ value: s, label: s }))}
-                />
-              </label>
-              <label>
-                {t('demo.tasks.filter.priority')}
-                <OmaSelect
-                  value={selected.priority}
-                  testId="demo-task-priority"
-                  onChange={(priority) => void patchTask(selected.id, { priority })}
-                  options={['URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((p) => ({
-                    value: p,
-                    label: p,
-                  }))}
-                />
-              </label>
-              <label>
-                {t('demo.tasks.filter.assignee')}
-                <Input
-                  defaultValue={selected.assignee}
-                  data-testid="demo-task-assignee"
-                  onBlur={(e) => void patchTask(selected.id, { assignee: e.target.value })}
-                />
-              </label>
-              <label>
-                {t('demo.requests.col.due')}
-                <DatePicker
-                  data-testid="demo-task-due"
-                  defaultValue={selected.dueAt ? dayjs(selected.dueAt) : undefined}
-                  onChange={(_, dateString) =>
-                    void patchTask(selected.id, {
-                      dueAt: Array.isArray(dateString) ? (dateString[0] ?? '') : dateString,
-                    })
-                  }
-                />
-              </label>
-            </div>
-
-            <p>{pickCopy(selected.description, locale)}</p>
-            {selected.blockedReason ? (
-              <p className="oma-callout" data-testid="demo-task-blocked-reason">
-                {pickCopy(selected.blockedReason, locale)}
-              </p>
-            ) : null}
-
-            <div className="oma-chip-row">
-              {selected.campaignId ? (
-                <Link
-                  href={`/app/campaigns/${selected.campaignId}`}
-                  className="oma-text-link"
-                  data-testid="demo-task-campaign-link"
-                >
-                  {selected.campaignId}
-                </Link>
-              ) : null}
-              {selected.contentId ? (
-                <Link
-                  href={`/app/content?item=${selected.contentId}`}
-                  className="oma-text-link"
-                  data-testid="demo-task-content-link"
-                >
-                  {selected.contentId}
-                </Link>
-              ) : null}
-              {selected.requestId ? (
-                <Link
-                  href={`/app/requests/${selected.requestId}`}
-                  className="oma-text-link"
-                  data-testid="demo-task-request-link"
-                >
-                  {selected.requestId}
-                </Link>
-              ) : null}
-              {selected.deliverableId ? (
-                <Link
-                  href={`/app/deliverables/${selected.deliverableId}`}
-                  className="oma-text-link"
-                  data-testid="demo-task-deliverable-link"
-                >
-                  {t('demo.tasks.deliverableHandoff')}: {selected.deliverableId}
-                </Link>
-              ) : (
-                <div className="oma-chip-row">
-                  <span className="oma-muted">{t('demo.tasks.noDeliverable')}</span>
-                  <Button
-                    data-testid="demo-task-create-deliverable"
-                    disabled={saving}
-                    onClick={() => void createDeliverableFromTask()}
-                  >
-                    {t('demo.tasks.createDeliverable')}
-                  </Button>
+            <div className="oma-task-detail__grid">
+              <section className="oma-task-detail__card">
+                <h3>{t('demo.tasks.filter.status')}</h3>
+                <div className="oma-task-detail__fields">
+                  <label>
+                    {t('demo.tasks.filter.status')}
+                    <SelectField
+                      value={selected.status === 'OVERDUE' ? 'IN_PROGRESS' : selected.status}
+                      data-testid="demo-task-status"
+                      onChange={(e) => void patchTask(selected.id, { status: e.target.value })}
+                    >
+                      {moveOptions(selected.status).map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </SelectField>
+                  </label>
+                  <label>
+                    {t('demo.tasks.filter.priority')}
+                    <SelectField
+                      value={selected.priority}
+                      data-testid="demo-task-priority"
+                      onChange={(e) => void patchTask(selected.id, { priority: e.target.value })}
+                    >
+                      {['URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((s) => (
+                        <option key={s} value={s}>
+                          {s}
+                        </option>
+                      ))}
+                    </SelectField>
+                  </label>
+                  <label>
+                    {t('demo.tasks.filter.assignee')}
+                    <Input
+                      defaultValue={selected.assignee ?? ''}
+                      data-testid="demo-task-assignee"
+                      onBlur={(e) =>
+                        void patchTask(selected.id, {
+                          assignee: e.target.value.trim() || '',
+                        })
+                      }
+                    />
+                  </label>
+                  <label>
+                    {t('demo.requests.col.due')}
+                    <Input
+                      className="oma-ltr"
+                      defaultValue={selected.dueAt}
+                      data-testid="demo-task-due"
+                      onBlur={(e) => void patchTask(selected.id, { dueAt: e.target.value })}
+                    />
+                  </label>
                 </div>
-              )}
-            </div>
+                {selected.blockedReason ? (
+                  <p className="oma-callout" data-testid="demo-task-blocked-reason">
+                    {pickCopy(selected.blockedReason, locale)}
+                  </p>
+                ) : null}
+              </section>
 
-            <section data-testid="demo-task-checklist">
-              <h3>{t('demo.tasks.checklist')}</h3>
-              <ul className="oma-checklist">
-                {selected.checklist.length === 0 ? (
-                  <li className="oma-muted">{t('demo.tasks.checklistEmpty')}</li>
-                ) : (
-                  selected.checklist.map((c) => (
-                    <li key={c.id}>
-                      <label>
-                        <Checkbox
-                          checked={c.done}
-                          data-testid={`demo-checklist-${c.id}`}
-                          onChange={() => void toggleChecklist(c.id)}
-                        />{' '}
-                        {pickCopy(c.label, locale)}
-                      </label>
-                    </li>
-                  ))
-                )}
-              </ul>
-              <div className="oma-chip-row">
+              <section className="oma-task-detail__card">
+                <h3>{locale.toLowerCase().startsWith('ar') ? 'روابط' : 'Links'}</h3>
+                <div className="oma-task-detail__links">
+                  {selected.campaignId ? (
+                    <Link
+                      href={`/app/campaigns/${selected.campaignId}`}
+                      className="oma-task-detail__link"
+                      data-testid="demo-task-campaign-link"
+                    >
+                      {selected.campaignId}
+                    </Link>
+                  ) : null}
+                  {selected.contentId ? (
+                    <Link
+                      href={`/app/content?item=${selected.contentId}`}
+                      className="oma-task-detail__link"
+                      data-testid="demo-task-content-link"
+                    >
+                      {selected.contentId}
+                    </Link>
+                  ) : null}
+                  {selected.requestId ? (
+                    <Link
+                      href={`/app/requests/${selected.requestId}`}
+                      className="oma-task-detail__link"
+                      data-testid="demo-task-request-link"
+                    >
+                      {selected.requestId}
+                    </Link>
+                  ) : null}
+                  {selected.deliverableId ? (
+                    <Link
+                      href={`/app/deliverables/${selected.deliverableId}`}
+                      className="oma-task-detail__link"
+                      data-testid="demo-task-deliverable-link"
+                    >
+                      {t('demo.tasks.deliverableHandoff')}: {selected.deliverableId}
+                    </Link>
+                  ) : (
+                    <div className="oma-task-detail__handoff">
+                      <span className="oma-muted">{t('demo.tasks.noDeliverable')}</span>
+                      <Button
+                        data-testid="demo-task-create-deliverable"
+                        disabled={saving}
+                        onClick={() => void createDeliverableFromTask()}
+                      >
+                        {t('demo.tasks.createDeliverable')}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              <section className="oma-task-detail__card" data-testid="demo-task-checklist">
+                <h3>{t('demo.tasks.checklist')}</h3>
+                <ul className="oma-task-detail__checklist">
+                  {selected.checklist.length === 0 ? (
+                    <li className="oma-muted">{t('demo.tasks.checklistEmpty')}</li>
+                  ) : (
+                    selected.checklist.map((c) => (
+                      <li key={c.id}>
+                        <label>
+                          <Checkbox
+                            checked={c.done}
+                            data-testid={`demo-checklist-${c.id}`}
+                            onChange={() => void toggleChecklist(c.id)}
+                          />
+                          <span data-done={c.done ? 'true' : 'false'}>{pickCopy(c.label, locale)}</span>
+                        </label>
+                      </li>
+                    ))
+                  )}
+                </ul>
                 <form
-                  className="oma-chip-row"
-                  style={{ flex: 1 }}
+                  className="oma-task-detail__add-row"
                   onSubmit={(e) => {
                     e.preventDefault();
                     void addChecklistFromForm(e.currentTarget);
@@ -909,49 +921,53 @@ export default function TasksPage() {
                     {t('demo.tasks.addChecklist')}
                   </Button>
                 </form>
-              </div>
-            </section>
+              </section>
 
-            <section data-testid="demo-task-comments">
-              <h3>{t('demo.tasks.comments')}</h3>
-              <ul className="oma-activity-list">
-                {selected.comments.map((c) => (
-                  <li key={c.id}>
-                    <strong>{c.author}</strong>
-                    <span>{pickCopy(c.body, locale)}</span>
-                    <time dateTime={c.at}>{c.at}</time>
-                  </li>
-                ))}
-              </ul>
-              <form
-                className="oma-chip-row"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  void addCommentFromForm(e.currentTarget);
-                }}
-              >
-                <Input name="comment" data-testid="demo-task-comment-input" />
-                <Button type="primary" htmlType="submit" data-testid="demo-task-comment-submit">
-                  {t('demo.tasks.addComment')}
-                </Button>
-              </form>
-            </section>
+              <section className="oma-task-detail__card" data-testid="demo-task-comments">
+                <h3>{t('demo.tasks.comments')}</h3>
+                <ul className="oma-task-detail__feed">
+                  {selected.comments.map((c) => (
+                    <li key={c.id}>
+                      <div className="oma-task-detail__feed-head">
+                        <strong>{c.author}</strong>
+                        <time dateTime={c.at}>{c.at}</time>
+                      </div>
+                      <p>{pickCopy(c.body, locale)}</p>
+                    </li>
+                  ))}
+                </ul>
+                <form
+                  className="oma-task-detail__add-row"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    void addCommentFromForm(e.currentTarget);
+                  }}
+                >
+                  <Input name="comment" data-testid="demo-task-comment-input" />
+                  <Button type="primary" htmlType="submit" data-testid="demo-task-comment-submit">
+                    {t('demo.tasks.addComment')}
+                  </Button>
+                </form>
+              </section>
 
-            <section data-testid="demo-task-activity">
-              <h3>{t('demo.tasks.activity')}</h3>
-              <ul className="oma-activity-list">
-                {(selected.activity ?? []).map((a) => (
-                  <li key={a.id}>
-                    <strong>{a.actor}</strong>
-                    <span>{pickCopy(a.summary, locale)}</span>
-                    <time dateTime={a.at}>{a.at}</time>
-                  </li>
-                ))}
-              </ul>
-            </section>
+              <section className="oma-task-detail__card" data-testid="demo-task-activity">
+                <h3>{t('demo.tasks.activity')}</h3>
+                <ul className="oma-task-detail__feed">
+                  {(selected.activity ?? []).map((a) => (
+                    <li key={a.id}>
+                      <div className="oma-task-detail__feed-head">
+                        <strong>{a.actor}</strong>
+                        <time dateTime={a.at}>{a.at}</time>
+                      </div>
+                      <p>{pickCopy(a.summary, locale)}</p>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </div>
           </div>
         ) : null}
-      </Drawer>
+
 
       <Dialog
         open={createOpen}
