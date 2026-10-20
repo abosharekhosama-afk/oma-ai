@@ -12,6 +12,11 @@ export type ApiCampaign = {
   brand_id: string;
   name: ApiLocale;
   description: ApiLocale | null;
+  objective?: ApiLocale | null;
+  audience?: ApiLocale | null;
+  channels?: string[];
+  strategy_id?: string | null;
+  budget?: { amount: number; currency: string; planning_only?: boolean } | null;
   track: 'ORGANIC' | 'PAID';
   status: CampaignRow['status'];
   timeline: { start: string; end: string };
@@ -35,16 +40,20 @@ export function toCampaignRow(c: ApiCampaign, ownerLabel?: string): CampaignRow 
   return {
     id: c.id,
     brandId: c.brand_id,
-    strategyId: '',
+    strategyId: c.strategy_id ?? '',
     name: c.name,
     track: c.track,
     status: c.status,
-    objective: c.description ?? { en: '', ar: '' },
-    audience: { en: '', ar: '' },
-    channels: [],
+    objective: c.objective ?? c.description ?? { en: '', ar: '' },
+    audience: c.audience ?? { en: '', ar: '' },
+    channels: c.channels ?? [],
     links: c.links ?? [],
     timeline: c.timeline,
-    budget: { amount: 0, currency: 'USD', planningOnly: true as const },
+    budget: {
+      amount: c.budget?.amount ?? 0,
+      currency: c.budget?.currency ?? 'USD',
+      planningOnly: true as const,
+    },
     owner: ownerLabel || c.owner_user_id || '—',
     kpis: [],
   };
@@ -86,10 +95,15 @@ export async function createCampaignProduction(input: {
   brandId: string;
   name: ApiLocale | string;
   description?: ApiLocale | string;
+  objective?: ApiLocale | string;
+  audience?: ApiLocale | string;
+  channels?: string[];
+  strategyId?: string | null;
   track: 'ORGANIC' | 'PAID';
   timelineStart: string;
   timelineEnd: string;
   links?: string[];
+  status?: string;
 }): Promise<ApiCampaign> {
   const { brandId, ...body } = input;
   const res = await api<{ data: ApiCampaign }>(`/api/v1/brands/${brandId}/campaigns`, {
