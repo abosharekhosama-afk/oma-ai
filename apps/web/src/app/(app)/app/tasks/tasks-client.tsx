@@ -42,6 +42,16 @@ import {
   type TaskRow,
 } from '../../../../lib/demo/stage4-tasks';
 import { useLocale, useT } from '../../../../lib/use-locale';
+import {
+  AppstoreOutlined,
+  BarsOutlined,
+  CloseOutlined,
+  FilterOutlined,
+  SearchOutlined,
+  DownOutlined,
+  UpOutlined,
+  PlusOutlined,
+} from '@ant-design/icons';
 
 type ViewMode = 'board' | 'list';
 type Brand = DemoGraph['brands'][number];
@@ -65,6 +75,9 @@ export default function TasksPage() {
   const [unavailable, setUnavailable] = useState(false);
   const [saving, setSaving] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [filterSheet, setFilterSheet] = useState(false);
+  const [viewMenuOpen, setViewMenuOpen] = useState(false);
+  const [filterSection, setFilterSection] = useState<string | null>('search');
   const [creating, setCreating] = useState(false);
   const [createForm, setCreateForm] = useState({
     title: '',
@@ -315,44 +328,12 @@ export default function TasksPage() {
 
   return (
     <div
-      className="oma-stack"
+      className="oma-tasks-page"
       data-testid="demo-tasks"
       data-view={view}
       data-prefs={prefsLoaded ? '1' : '0'}
     >
-      <PageHeader
-        title={t('demo.tasks.title')}
-        description={t('demo.tasks.subtitle')}
-        actions={
-          <div className="oma-chip-row">
-            <div className="oma-view-toggle" role="group" aria-label={t('demo.tasks.views')}>
-              <Button
-                type={view === 'board' ? 'primary' : 'default'}
-                aria-pressed={view === 'board'}
-                data-testid="demo-tasks-view-board"
-                onClick={() => void changeView('board')}
-              >
-                {t('demo.view.kanban')}
-              </Button>
-              <Button
-                type={view === 'list' ? 'primary' : 'default'}
-                aria-pressed={view === 'list'}
-                data-testid="demo-tasks-view-list"
-                onClick={() => void changeView('list')}
-              >
-                {t('demo.view.list')}
-              </Button>
-            </div>
-            <Button
-              type="primary"
-              data-testid="demo-create-task"
-              onClick={() => setCreateOpen(true)}
-            >
-              {t('demo.tasks.create')}
-            </Button>
-          </div>
-        }
-      />
+      <PageHeader title={t('demo.tasks.title')} description={t('demo.tasks.subtitle')} />
       <DemoDisclosure />
 
       <div className="oma-prod-strip" data-testid="demo-production-summary">
@@ -388,187 +369,324 @@ export default function TasksPage() {
 
       {!loading && !unavailable && !error ? (
         <>
-          <div className="oma-stage4-toolbar" data-testid="demo-task-filters">
-            <label className="oma-stage4-search">
-              {t('demo.tasks.search')}
-              <Input
-                value={filters.q}
-                data-testid="demo-task-search"
-                onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
-              />
-            </label>
-            <label>
-              {t('demo.tasks.filter.status')}
-              <SelectField
-                value={filters.status}
-                data-testid="demo-task-filter-status"
-                onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
+          <div className="oma-req-topbar oma-tasks-topbar">
+            <div className="oma-req-tabs" role="tablist">
+              <span className="oma-req-tab" data-active="true">
+                {t('demo.tasks.title')}
+              </span>
+              <span className="oma-muted" style={{ fontSize: 13, alignSelf: 'center' }}>
+                {filtered.length} / {rows.length}
+              </span>
+            </div>
+            <div className="oma-req-topbar__actions">
+              <div className="oma-view-path">
+                <button
+                  type="button"
+                  className="oma-view-path__btn"
+                  data-testid="demo-tasks-view-toggle"
+                  aria-expanded={viewMenuOpen}
+                  onClick={() => setViewMenuOpen((v) => !v)}
+                >
+                  {view === 'board' ? <AppstoreOutlined /> : <BarsOutlined />}
+                  <span>{view === 'board' ? t('demo.view.kanban') : t('demo.view.list')}</span>
+                  <DownOutlined className="oma-view-path__caret" />
+                </button>
+                {viewMenuOpen ? (
+                  <div className="oma-view-path__menu" role="menu" data-testid="demo-tasks-view-menu">
+                    <button
+                      type="button"
+                      role="menuitem"
+                      data-active={view === 'board' ? 'true' : 'false'}
+                      data-testid="demo-tasks-view-board"
+                      onClick={() => {
+                        void changeView('board');
+                        setViewMenuOpen(false);
+                      }}
+                    >
+                      <AppstoreOutlined />
+                      <span>{t('demo.view.kanban')}</span>
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      data-active={view === 'list' ? 'true' : 'false'}
+                      data-testid="demo-tasks-view-list"
+                      onClick={() => {
+                        void changeView('list');
+                        setViewMenuOpen(false);
+                      }}
+                    >
+                      <BarsOutlined />
+                      <span>{t('demo.view.list')}</span>
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+              <button
+                type="button"
+                className="oma-req-filter-btn"
+                data-testid="demo-task-open-filters"
+                data-active={filterSheet ? 'true' : 'false'}
+                onClick={() => setFilterSheet((v) => !v)}
               >
-                <option value="all">{t('demo.filter.all')}</option>
-                {BOARD_COLUMNS.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.id}
-                  </option>
-                ))}
-              </SelectField>
-            </label>
-            <label>
-              {t('demo.tasks.filter.assignee')}
-              <SelectField
-                value={filters.assignee}
-                data-testid="demo-task-filter-assignee"
-                onChange={(e) => setFilters((f) => ({ ...f, assignee: e.target.value }))}
+                <FilterOutlined />
+                <span>{locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter'}</span>
+                {filterCount > 0 ? (
+                  <span className="oma-req-filter-btn__count">{filterCount}</span>
+                ) : null}
+              </button>
+              <Button
+                type="primary"
+                data-testid="demo-create-task"
+                onClick={() => setCreateOpen(true)}
               >
-                <option value="all">{t('demo.filter.all')}</option>
-                <option value="unassigned">Unassigned</option>
-                {assignees.map((a) => (
-                  <option key={a} value={a}>
-                    {a}
-                  </option>
-                ))}
-              </SelectField>
-            </label>
-            <label>
-              {t('demo.tasks.filter.priority')}
-              <SelectField
-                value={filters.priority}
-                data-testid="demo-task-filter-priority"
-                onChange={(e) => setFilters((f) => ({ ...f, priority: e.target.value }))}
-              >
-                <option value="all">{t('demo.filter.all')}</option>
-                {['URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((p) => (
-                  <option key={p} value={p}>
-                    {p}
-                  </option>
-                ))}
-              </SelectField>
-            </label>
-            <label>
-              {t('demo.tasks.filter.campaign')}
-              <SelectField
-                value={filters.campaignId}
-                data-testid="demo-task-filter-campaign"
-                onChange={(e) => setFilters((f) => ({ ...f, campaignId: e.target.value }))}
-              >
-                <option value="all">{t('demo.filter.all')}</option>
-                {campaigns.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {pickCopy(c.name, locale)}
-                  </option>
-                ))}
-              </SelectField>
-            </label>
-            <label>
-              {t('demo.tasks.sort')}
-              <SelectField
-                value={filters.sort}
-                data-testid="demo-task-sort"
-                onChange={(e) =>
-                  setFilters((f) => ({ ...f, sort: e.target.value as TaskFilters['sort'] }))
-                }
-              >
-                <option value="due">{t('demo.tasks.sortDue')}</option>
-                <option value="priority">{t('demo.tasks.sortPriority')}</option>
-                <option value="updated">{t('demo.tasks.sortUpdated')}</option>
-                <option value="title">{t('demo.tasks.sortTitle')}</option>
-              </SelectField>
-            </label>
-          </div>
-
-          {filterCount > 0 ? (
-            <div className="oma-filter-chips">
-              <Button type="default" onClick={() => setFilters(EMPTY_TASK_FILTERS)}>
-                {t('demo.requests.clearFilters')}
+                <PlusOutlined /> {t('demo.tasks.create')}
               </Button>
             </div>
-          ) : null}
+          </div>
 
-          <p className="oma-muted" data-testid="demo-task-result-count">
-            {filtered.length} / {rows.length}
-          </p>
-
-          {filtered.length === 0 ? (
-            <EmptyState title={t('demo.empty')} body={t('demo.tasks.emptyHint')} />
-          ) : view === 'board' ? (
-            <TasksKanbanBoard
-              byBoard={byBoard}
-              onOpenTask={openTask}
-              disabled={saving}
-              onMoveTask={(id, status) => patchTask(id, { status })}
-            />
-          ) : (
-            <>
-              <div className="oma-req-table-wrap oma-task-desktop" data-testid="demo-tasks-list">
-                <table className="oma-task-table">
-                  <thead>
-                    <tr>
-                      <th>ID</th>
-                      <th>{t('demo.create.title')}</th>
-                      <th>{t('demo.tasks.filter.status')}</th>
-                      <th>{t('demo.tasks.filter.priority')}</th>
-                      <th>{t('demo.tasks.filter.assignee')}</th>
-                      <th>{t('demo.tasks.filter.campaign')}</th>
-                      <th>{t('demo.requests.title')}</th>
-                      <th>{t('demo.requests.col.due')}</th>
-                      <th>{t('demo.tasks.updated')}</th>
-                      <th>{t('demo.tasks.progress')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filtered.map((task) => {
-                      const progress = checklistProgress(task);
-                      return (
+          <div className="oma-req-workspace oma-tasks-workspace" data-filter-open={filterSheet ? 'true' : 'false'}>
+            <div className="oma-req-main">
+              {view === 'board' ? (
+                <TasksKanbanBoard
+                  byBoard={byBoard}
+                  onOpenTask={openTask}
+                  onMoveTask={(id, status) => void patchTask(id, { status })}
+                  disabled={saving}
+                />
+              ) : (
+                <div className="oma-req-table-wrap" data-testid="demo-task-table">
+                  <table className="oma-req-table oma-task-table">
+                    <thead>
+                      <tr>
+                        <th>{t('demo.tasks.col.title') || 'Task'}</th>
+                        <th>{t('demo.tasks.filter.status')}</th>
+                        <th>{t('demo.tasks.filter.assignee')}</th>
+                        <th>{t('demo.tasks.filter.priority')}</th>
+                        <th>{t('demo.tasks.filter.campaign')}</th>
+                        <th>{t('demo.requests.col.due')}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filtered.map((task) => (
                         <tr
                           key={task.id}
-                          data-overdue={taskIsOverdue(task) ? 'true' : 'false'}
                           data-testid={`demo-task-row-${task.id}`}
-                          tabIndex={0}
                           onClick={() => openTask(task.id)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault();
-                              openTask(task.id);
-                            }
-                          }}
+                          style={{ cursor: 'pointer' }}
                         >
-                          <td>{task.id.replace('demo-task-', '#')}</td>
-                          <td>{pickCopy(task.title, locale)}</td>
+                          <td>
+                            <button
+                              type="button"
+                              className="oma-text-link"
+                              data-testid={`demo-task-open-${task.id}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openTask(task.id);
+                              }}
+                            >
+                              {pickCopy(task.title, locale)}
+                            </button>
+                          </td>
                           <td>
                             <StatusChip status={task.status} />
                           </td>
+                          <td>{task.assignee || t('demo.requests.unassigned')}</td>
                           <td>
                             <StatusChip status={task.priority} />
                           </td>
-                          <td>{task.assignee}</td>
                           <td>{task.campaignId ?? '—'}</td>
-                          <td>{task.requestId ?? '—'}</td>
-                          <td>{task.dueAt}</td>
-                          <td>{task.updatedAt.slice(0, 10)}</td>
-                          <td>{progress.total ? `${progress.done}/${progress.total}` : '—'}</td>
+                          <td className="oma-ltr">{task.dueAt}</td>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-              <ul className="oma-task-mobile" aria-label={t('demo.tasks.title')}>
-                {filtered.map((task) => (
-                  <li key={task.id}>
-                    <SurfaceButton
-                      onClick={() => openTask(task.id)}
-                      className="oma-task-mobile-card"
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            {filterSheet ? (
+              <aside className="oma-req-filter-panel" data-testid="demo-task-filters">
+                <header className="oma-req-filter-panel__head">
+                  <strong>{locale.toLowerCase().startsWith('ar') ? 'تصفية وترتيب' : 'Filter & sort'}</strong>
+                  <button
+                    type="button"
+                    className="oma-req-filter-panel__close"
+                    aria-label="Close"
+                    onClick={() => setFilterSheet(false)}
+                  >
+                    <CloseOutlined />
+                  </button>
+                </header>
+                <div className="oma-filter-accordion-list">
+                  <div className="oma-filter-accordion">
+                    <button
+                      type="button"
+                      className="oma-filter-accordion__row"
+                      data-open={filterSection === 'search' ? 'true' : 'false'}
+                      onClick={() => setFilterSection((s) => (s === 'search' ? null : 'search'))}
                     >
-                      <strong>{pickCopy(task.title, locale)}</strong>
-                      <StatusChip status={task.status} />
-                      <span className="oma-muted">
-                        {task.assignee} · {task.dueAt}
+                      <span className="oma-filter-accordion__ico">
+                        <SearchOutlined />
                       </span>
-                    </SurfaceButton>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
+                      <span>{t('demo.tasks.search')}</span>
+                      <span className="oma-filter-accordion__caret">
+                        {filterSection === 'search' ? <UpOutlined /> : <DownOutlined />}
+                      </span>
+                    </button>
+                    {filterSection === 'search' ? (
+                      <div className="oma-filter-accordion__body">
+                        <Input
+                          value={filters.q}
+                          data-testid="demo-task-search"
+                          onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
+                          placeholder={t('demo.tasks.search')}
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="oma-filter-accordion">
+                    <button
+                      type="button"
+                      className="oma-filter-accordion__row"
+                      data-open={filterSection === 'status' ? 'true' : 'false'}
+                      onClick={() => setFilterSection((s) => (s === 'status' ? null : 'status'))}
+                    >
+                      <span className="oma-filter-accordion__ico">
+                        <FilterOutlined />
+                      </span>
+                      <span>{t('demo.tasks.filter.status')}</span>
+                      <span className="oma-filter-accordion__caret">
+                        {filterSection === 'status' ? <UpOutlined /> : <DownOutlined />}
+                      </span>
+                    </button>
+                    {filterSection === 'status' ? (
+                      <div className="oma-filter-accordion__body">
+                        <label className="oma-filter-check">
+                          <input
+                            type="radio"
+                            name="task-status"
+                            data-testid="demo-task-filter-status"
+                            checked={filters.status === 'all'}
+                            onChange={() => setFilters((f) => ({ ...f, status: 'all' }))}
+                          />
+                          <span>{t('demo.filter.all')}</span>
+                        </label>
+                        {BOARD_COLUMNS.map((c) => (
+                          <label key={c.id} className="oma-filter-check">
+                            <input
+                              type="radio"
+                              name="task-status"
+                              checked={filters.status === c.id}
+                              onChange={() => setFilters((f) => ({ ...f, status: c.id }))}
+                            />
+                            <span>{c.id}</span>
+                          </label>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="oma-filter-accordion">
+                    <button
+                      type="button"
+                      className="oma-filter-accordion__row"
+                      data-open={filterSection === 'assignee' ? 'true' : 'false'}
+                      onClick={() => setFilterSection((s) => (s === 'assignee' ? null : 'assignee'))}
+                    >
+                      <span className="oma-filter-accordion__ico">
+                        <FilterOutlined />
+                      </span>
+                      <span>{t('demo.tasks.filter.assignee')}</span>
+                      <span className="oma-filter-accordion__caret">
+                        {filterSection === 'assignee' ? <UpOutlined /> : <DownOutlined />}
+                      </span>
+                    </button>
+                    {filterSection === 'assignee' ? (
+                      <div className="oma-filter-accordion__body">
+                        <label className="oma-filter-check">
+                          <input
+                            type="radio"
+                            name="task-assignee"
+                            data-testid="demo-task-filter-assignee"
+                            checked={filters.assignee === 'all'}
+                            onChange={() => setFilters((f) => ({ ...f, assignee: 'all' }))}
+                          />
+                          <span>{t('demo.filter.all')}</span>
+                        </label>
+                        <label className="oma-filter-check">
+                          <input
+                            type="radio"
+                            name="task-assignee"
+                            checked={filters.assignee === 'unassigned'}
+                            onChange={() => setFilters((f) => ({ ...f, assignee: 'unassigned' }))}
+                          />
+                          <span>Unassigned</span>
+                        </label>
+                        {assignees.map((a) => (
+                          <label key={a} className="oma-filter-check">
+                            <input
+                              type="radio"
+                              name="task-assignee"
+                              checked={filters.assignee === a}
+                              onChange={() => setFilters((f) => ({ ...f, assignee: a }))}
+                            />
+                            <span>{a}</span>
+                          </label>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="oma-filter-accordion">
+                    <button
+                      type="button"
+                      className="oma-filter-accordion__row"
+                      data-open={filterSection === 'priority' ? 'true' : 'false'}
+                      onClick={() => setFilterSection((s) => (s === 'priority' ? null : 'priority'))}
+                    >
+                      <span className="oma-filter-accordion__ico">
+                        <FilterOutlined />
+                      </span>
+                      <span>{t('demo.tasks.filter.priority')}</span>
+                      <span className="oma-filter-accordion__caret">
+                        {filterSection === 'priority' ? <UpOutlined /> : <DownOutlined />}
+                      </span>
+                    </button>
+                    {filterSection === 'priority' ? (
+                      <div className="oma-filter-accordion__body">
+                        {(['all', 'URGENT', 'HIGH', 'MEDIUM', 'LOW'] as const).map((pr) => (
+                          <label key={pr} className="oma-filter-check">
+                            <input
+                              type="radio"
+                              name="task-priority"
+                              data-testid={pr === 'all' ? 'demo-task-filter-priority' : undefined}
+                              checked={filters.priority === pr}
+                              onChange={() => setFilters((f) => ({ ...f, priority: pr }))}
+                            />
+                            <span>{pr === 'all' ? t('demo.filter.all') : pr}</span>
+                          </label>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+
+                {filterCount > 0 ? (
+                  <div className="oma-req-filter-panel__foot">
+                    <Button
+                      type="default"
+                      data-testid="demo-task-clear-filters"
+                      onClick={() => setFilters(EMPTY_TASK_FILTERS)}
+                    >
+                      {t('demo.requests.clearFilters') || 'Clear filters'}
+                    </Button>
+                  </div>
+                ) : null}
+              </aside>
+            ) : null}
+          </div>
         </>
       ) : null}
 
