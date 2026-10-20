@@ -88,11 +88,22 @@ import {
   type ContentViewMode,
 } from '../../../../lib/demo/stage3-content';
 import {
-  demoApi,
   demoErrorMessage,
   isDemoForbidden,
   pickCopy,
 } from '../../../../lib/demo/use-demo-api';
+import {
+  loadContentWorkspace,
+  createContentProduction,
+  updateContentProduction,
+  requestContentApproval,
+  approveContent,
+  scheduleContent,
+  unscheduleContent,
+  archiveContent,
+  toContentRow,
+  contentApiError,
+} from '../../../../lib/content-api';
 import { useLocale, useT } from '../../../../lib/use-locale';
 
 type Campaign = DemoGraph['campaigns'][number];
@@ -489,6 +500,7 @@ export default function ContentPage() {
   const [createForm, setCreateForm] = useState({
     title: '',
     campaignId: '',
+    brandId: '',
     channel: 'Instagram',
     contentType: 'POST',
     owner: '',
@@ -510,24 +522,24 @@ export default function ContentPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const graph = await demoApi<DemoGraph>('/graph');
-      setRows(graph.contentItems);
-      setPolicy(graph.demoPreferences.approvalPolicy ?? 'OPTIONAL');
-      setCampaigns(graph.campaigns);
-      setBrands(graph.brands);
-      setTasks(graph.tasks);
-      setDeliverables(graph.deliverables);
-      setRequests(graph.requests);
+      const ws = await loadContentWorkspace();
+      setRows(ws.content);
+      setPolicy(ws.policy);
+      setCampaigns(ws.campaigns as typeof campaigns);
+      setBrands(ws.brands as typeof brands);
+      setTasks([]);
+      setDeliverables([]);
+      setRequests([]);
       setError(null);
       setUnavailable(false);
       setCreateForm((f) => ({
         ...f,
-        campaignId: f.campaignId || graph.campaigns[0]?.id || '',
-        owner: f.owner || graph.contentItems[0]?.assignee || 'Maya Nasser',
-        track: f.track || graph.campaigns[0]?.track || 'ORGANIC',
+        campaignId: f.campaignId || ws.campaigns[0]?.id || '',
+        brandId: f.brandId || ws.brands[0]?.id || ws.campaigns[0]?.brandId || '',
+        owner: f.owner || 'Owner',
+        track: f.track || ws.campaigns[0]?.track || 'ORGANIC',
       }));
       const stored = readContentViewPref();
-      const pref = graph.demoPreferences.defaultContentView;
       const urlView =
         typeof window !== 'undefined'
           ? new URLSearchParams(window.location.search).get('view')
@@ -535,16 +547,15 @@ export default function ContentPage() {
       setView(() => {
         if (isContentViewMode(urlView)) return urlView;
         if (hasContentViewPref() && isContentViewMode(stored)) return stored;
-        if (pref === 'list' || pref === 'calendar') return pref;
         return 'calendar';
       });
     } catch (err) {
-      if (isDemoForbidden(err)) setUnavailable(true);
-      else setError(demoErrorMessage(err, 'Demo unavailable'));
+      setError(contentApiError(err, isAr ? 'تعذّر تحميل المحتوى' : 'Failed to load content'));
+      setRows([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAr]);
 
 
 
@@ -758,18 +769,12 @@ export default function ContentPage() {
     setSaveState('saving');
     setSaveError(null);
     try {
-      const updated = await demoApi<ContentRow>(`/content/${selectedId}`, {
-        method: 'PATCH',
-        body: JSON.stringify({
-          caption: mergeLocaleCopy(selected.caption, draft.caption, locale),
-          objective: mergeLocaleCopy(selected.objective, draft.objective, locale),
-          cta: mergeLocaleCopy(selected.cta, draft.cta, locale),
-          assignee: draft.assignee,
-          channel: draft.channel,
-          command: 'save-draft',
-          plannedAt: draft.scheduledAt ? new Date(draft.scheduledAt).toISOString() : null,
-        }),
+      const apiRow = await updateContentProduction(selectedId, {
+        caption: mergeLocaleCopy(selected.caption, draft.caption, locale),
+        channel: draft.channel,
+        plannedAt: draft.scheduledAt ? new Date(draft.scheduledAt).toISOString() : null,
       });
+      const updated = toContentRow(apiRow);
       setRows((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
       const next = draftFromItem(updated, locale);
       setDraft(next);
@@ -777,7 +782,7 @@ export default function ContentPage() {
       setSaveState('saved');
       toast.push(t('demo.content.saved'), 'success');
     } catch (err) {
-      const msg = demoErrorMessage(err, t('demo.create.validation'));
+      const msg = contentApiError(err, t('demo.create.validation'));
       setSaveError(msg);
       setSaveState('error');
       toast.push(msg, 'danger');
@@ -792,17 +797,27 @@ export default function ContentPage() {
     setSaving(true);
     setSaveError(null);
     try {
-      const updated = await demoApi<ContentRow>(`/content/${selectedId}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ command }),
-      });
+      let apiRow;
+      if (command === 'request-approval') {
+        apiRow = await requestContentApproval(selectedId);
+      } else if (command === 'schedule') {
+        const when =
+          draft.scheduledAt ||
+          selected?.scheduledAt ||
+          selected?.plannedAt ||
+          new Date().toISOString();
+        apiRow = await scheduleContent(selectedId, { scheduledAt: when });
+      } else {
+        apiRow = await unscheduleContent(selectedId);
+      }
+      const updated = toContentRow(apiRow);
       setRows((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
       const next = draftFromItem(updated, locale);
       setDraft(next);
       setBaseline(next);
       toast.push(t('demo.content.saved'), 'success');
     } catch (err) {
-      const msg = demoErrorMessage(err, t('demo.content.scheduleBlocked'));
+      const msg = contentApiError(err, t('demo.content.scheduleBlocked'));
       setSaveError(msg);
       toast.push(msg, 'danger');
     } finally {
@@ -824,28 +839,29 @@ export default function ContentPage() {
     setCreating(true);
     try {
       const campaign = campaigns.find((c) => c.id === createForm.campaignId);
-      const created = await demoApi<ContentRow>('/content', {
-        method: 'POST',
-        body: JSON.stringify({
-          title: { en: createForm.title.trim(), ar: createForm.title.trim() },
-          campaignId: createForm.campaignId,
-          brandId: campaign?.brandId ?? '',
-          track: createForm.track || campaign?.track || 'ORGANIC',
-          channel: createForm.channel.trim(),
-          contentType: createForm.contentType,
-          owner: createForm.owner.trim(),
-          assignee: createForm.owner.trim(),
-          scheduledAt: createForm.plannedDate ? `${createForm.plannedDate}T10:00:00+03:00` : null,
-          status: 'DRAFT',
-          previewAsset: createForm.previewAsset,
-          caption: createForm.caption.trim()
-            ? { en: createForm.caption.trim(), ar: createForm.caption.trim() }
-            : undefined,
-          objective: createForm.brief.trim()
-            ? { en: createForm.brief.trim(), ar: createForm.brief.trim() }
-            : undefined,
-        }),
+      const brandId =
+        createForm.brandId ||
+        campaign?.brandId ||
+        brands[0]?.id ||
+        '';
+      if (!brandId) {
+        throw new Error(isAr ? 'اختر البراند' : 'Select a brand');
+      }
+      const apiCreated = await createContentProduction({
+        brandId,
+        title: { en: createForm.title.trim(), ar: createForm.title.trim() },
+        caption: createForm.caption.trim()
+          ? { en: createForm.caption.trim(), ar: createForm.caption.trim() }
+          : undefined,
+        campaignId: createForm.campaignId || null,
+        contentType: createForm.contentType,
+        channel: createForm.channel.trim(),
+        track: createForm.track || campaign?.track || 'ORGANIC',
+        plannedAt: createForm.plannedDate
+          ? `${createForm.plannedDate}T10:00:00.000Z`
+          : null,
       });
+      const created = toContentRow(apiCreated);
       toast.push(t('demo.create.successContent'), 'success');
       setCreateOpen(false);
       setCreateForm((f) => ({ ...f, title: '', brief: '', caption: '' }));
@@ -853,7 +869,7 @@ export default function ContentPage() {
       setRows((prev) => (prev.some((r) => r.id === created.id) ? prev : [created, ...prev]));
       void load();
     } catch (err) {
-      const msg = demoErrorMessage(err, t('demo.create.validation'));
+      const msg = contentApiError(err, t('demo.create.validation'));
       setCreateError(msg);
       toast.push(msg, 'danger');
     } finally {
@@ -887,12 +903,9 @@ export default function ContentPage() {
     if (!selectedIds.length) return;
     for (const id of selectedIds) {
       try {
-        await demoApi(`/content/${id}`, {
-          method: 'PATCH',
-          body: JSON.stringify({ command: 'request-approval' }),
-        });
+        await requestContentApproval(id);
       } catch {
-        /* demo continue */
+        /* continue remaining */
       }
     }
     setSelectedIds([]);
