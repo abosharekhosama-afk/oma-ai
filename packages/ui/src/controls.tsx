@@ -1,6 +1,17 @@
 'use client';
 
 import {
+  Children,
+  isValidElement,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentProps,
+  type ReactNode,
+} from 'react';
+
+import {
   App,
   AutoComplete,
   Avatar,
@@ -36,7 +47,6 @@ import {
   type ButtonProps,
   type SelectProps,
 } from 'antd';
-import { type ComponentProps, type ReactNode } from 'react';
 
 export {
   AutoComplete,
@@ -216,7 +226,7 @@ function readControlValue(event: { target: unknown }): string {
 }
 type CheckEvent = { target: { value: string; checked: boolean } };
 
-/** Native select so existing journeys can choose a value without a second popup widget. */
+/** Card-style select (Planable choice card) — replaces native <select>. */
 export function SelectField({
   value,
   onChange,
@@ -236,19 +246,115 @@ export function SelectField({
   'aria-label'?: string;
   'data-testid'?: string;
 }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement | null>(null);
+
+  const options = useMemo(() => {
+    const list: Array<{ value: string; label: string; disabled?: boolean }> = [];
+    Children.forEach(children, (child) => {
+      if (!isValidElement(child)) return;
+      const props = child.props as {
+        value?: string | number;
+        children?: ReactNode;
+        disabled?: boolean;
+      };
+      const optValue = props.value != null ? String(props.value) : '';
+      const label =
+        typeof props.children === 'string' || typeof props.children === 'number'
+          ? String(props.children)
+          : optValue;
+      list.push({ value: optValue, label, disabled: props.disabled });
+    });
+    return list;
+  }, [children]);
+
+  const selected = options.find((o) => o.value === value) ?? options[0];
+  const display = selected?.label ?? '';
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (!rootRef.current) return;
+      if (e.target instanceof Node && !rootRef.current.contains(e.target)) {
+        setOpen(false);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDoc);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
   return (
-    <select
-      className="oma-select"
-      id={id}
-      aria-label={ariaLabel}
-      aria-invalid={status === 'error' || undefined}
-      data-testid={testId}
-      disabled={disabled}
-      value={value}
-      onChange={(event) => onChange?.({ target: { value: readControlValue(event) } })}
+    <div
+      className="oma-choice-select"
+      ref={rootRef}
+      data-open={open ? 'true' : 'false'}
+      data-disabled={disabled ? 'true' : 'false'}
+      data-invalid={status === 'error' ? 'true' : undefined}
     >
-      {children}
-    </select>
+      <button
+        type="button"
+        id={id}
+        className="oma-choice-select__trigger"
+        aria-label={ariaLabel}
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        aria-invalid={status === 'error' || undefined}
+        data-testid={testId}
+        disabled={disabled}
+        onClick={() => {
+          if (!disabled) setOpen((v) => !v);
+        }}
+      >
+        <span className="oma-choice-select__value">{display || '—'}</span>
+        <span className="oma-choice-select__caret" aria-hidden>
+          ▾
+        </span>
+      </button>
+      {open ? (
+        <ul className="oma-choice-select__menu" role="listbox" data-testid={testId ? `${testId}-menu` : undefined}>
+          {options.map((opt) => (
+            <li key={opt.value || '__empty'} role="none">
+              <button
+                type="button"
+                role="option"
+                aria-selected={opt.value === value}
+                data-selected={opt.value === value ? 'true' : 'false'}
+                disabled={opt.disabled}
+                className="oma-choice-select__option"
+                onClick={() => {
+                  if (opt.disabled) return;
+                  onChange?.({ target: { value: opt.value } });
+                  setOpen(false);
+                }}
+              >
+                <span>{opt.label}</span>
+                <span className="oma-choice-select__check" aria-hidden>
+                  {opt.value === value ? '✓' : ''}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      {/* Keep a hidden native select for form / a11y fallbacks when needed */}
+      <select
+        className="oma-choice-select__native"
+        tabIndex={-1}
+        aria-hidden
+        disabled={disabled}
+        value={value}
+        onChange={(event) => onChange?.({ target: { value: readControlValue(event) } })}
+      >
+        {children}
+      </select>
+    </div>
   );
 }
 
