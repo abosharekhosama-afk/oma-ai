@@ -25,7 +25,9 @@ export type ErrorCode =
   | 'URL_SCHEME_DENIED'
   | 'URL_SSRF_DENIED'
   | 'WEBSITE_NOT_CONNECTED'
-  | 'BRAND_ARCHIVED';
+  | 'BRAND_ARCHIVED'
+  | 'SCHEDULE_BLOCKED'
+  | 'CAMPAIGN_ARCHIVED'
 
 export class DomainError extends Error {
   constructor(
