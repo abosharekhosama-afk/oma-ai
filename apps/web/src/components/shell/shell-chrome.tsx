@@ -123,7 +123,15 @@ export function ShellChrome({ children }: { children: ReactNode }) {
   const pathname = usePathname() || '/app';
   const isContentWorkspace = pathname === '/app/content' || pathname.startsWith('/app/content/');
   const isRequestsWorkspace = pathname === '/app/requests' || pathname.startsWith('/app/requests/');
-  const hideBrandTrail = isContentWorkspace || isRequestsWorkspace;
+  const isDeliverablesWorkspace =
+    pathname === '/app/deliverables' || pathname.startsWith('/app/deliverables/');
+  const isTasksWorkspace = pathname === '/app/tasks' || pathname.startsWith('/app/tasks/');
+  const hideBrandTrail =
+    isContentWorkspace || isRequestsWorkspace || isDeliverablesWorkspace || isTasksWorkspace;
+  const hideShellCreate =
+    isContentWorkspace || isRequestsWorkspace || isDeliverablesWorkspace || isTasksWorkspace;
+  const hideMobileNav =
+    isRequestsWorkspace || isDeliverablesWorkspace || isTasksWorkspace;
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -198,7 +206,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
             data-content-workspace={isContentWorkspace ? 'true' : 'false'}
           >
             <div className="oma-top-start">
-              {isRequestsWorkspace ? null : (
+              {hideMobileNav ? null : (
               <Button
                 type="text"
                 aria-label={t('shell.openNav')}
@@ -222,7 +230,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
             )}
             {isContentWorkspace ? (
               <div className="oma-top-actions oma-top-actions--content" id="oma-content-top-actions" />
-            ) : isRequestsWorkspace ? null : (
+            ) : hideShellCreate ? null : (
               <div className="oma-top-actions">
                 <OmaLinkButton href="/app/requests" type="primary" data-testid="shell-create">
                   <ShellIcon name="plus" size={16} />
