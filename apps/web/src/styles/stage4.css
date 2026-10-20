@@ -2093,3 +2093,271 @@ main.oma-container:has(.oma-req-page) {
   border-bottom: 1px solid #eef0f2 !important;
   font-size: 14px !important;
 }
+
+/* ==== Prod strip: white cards, no white bar bg ==== */
+.oma-prod-strip {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+  padding: 14px 16px !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border-bottom: 0 !important;
+}
+.oma-prod-stat {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  padding: 14px 16px !important;
+  border-radius: 12px !important;
+  border: 1px solid #e8e9eb !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+.oma-prod-stat[data-tone='wip'],
+.oma-prod-stat[data-tone='soon'],
+.oma-prod-stat[data-tone='blocked'],
+.oma-prod-stat[data-tone='review'] {
+  background: #fff !important;
+  border-color: #e8e9eb !important;
+}
+.oma-prod-stat__label {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: #8c8c8c !important;
+}
+.oma-prod-stat__value {
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  color: #111 !important;
+}
+.oma-prod-stat[data-tone='wip'] .oma-prod-stat__value,
+.oma-prod-stat[data-tone='soon'] .oma-prod-stat__value,
+.oma-prod-stat[data-tone='blocked'] .oma-prod-stat__value,
+.oma-prod-stat[data-tone='review'] .oma-prod-stat__value {
+  color: #111 !important;
+}
+
+/* View path: plain text in breadcrumb */
+.oma-view-path--text {
+  display: inline-flex !important;
+  position: relative !important;
+  align-items: center !important;
+}
+.oma-view-path__text {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #111 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  cursor: pointer !important;
+  height: auto !important;
+}
+.oma-view-path__text:hover {
+  background: transparent !important;
+  color: #111 !important;
+  text-decoration: underline !important;
+  text-underline-offset: 3px !important;
+}
+.oma-view-path__text .oma-view-path__caret {
+  font-size: 10px !important;
+  color: #8c8c8c !important;
+}
+
+/* Task list table row alignment */
+.oma-task-table th,
+.oma-task-table td,
+.oma-tasks-page .oma-req-table th,
+.oma-tasks-page .oma-req-table td {
+  vertical-align: middle !important;
+  padding: 12px 14px !important;
+  line-height: 1.35 !important;
+}
+.oma-task-table tbody tr,
+.oma-tasks-page .oma-req-table tbody tr {
+  height: auto !important;
+}
+.oma-task-title-cell {
+  vertical-align: middle !important;
+}
+.oma-task-title-btn {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 2px !important;
+  min-height: 36px !important;
+}
+.oma-task-table .oma-ltr,
+.oma-tasks-page .oma-req-table td.oma-ltr {
+  vertical-align: middle !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+/* Task detail drawer — Planable clean layout */
+.oma-task-detail {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  min-height: 100% !important;
+  background: #f7f8f9 !important;
+}
+.oma-task-detail__head {
+  display: flex !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  padding: 16px 18px !important;
+  background: #fff !important;
+  border-bottom: 1px solid #eef0f2 !important;
+}
+.oma-task-detail__id {
+  margin: 0 0 4px !important;
+  font-size: 11px !important;
+  color: #8c8c8c !important;
+}
+.oma-task-detail__title-input {
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  background: transparent !important;
+  width: 100% !important;
+  color: #111 !important;
+}
+.oma-task-detail__title-input:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.oma-task-detail__chips {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+  margin-top: 8px !important;
+}
+.oma-task-detail__head-actions {
+  display: inline-flex !important;
+  gap: 8px !important;
+  flex-shrink: 0 !important;
+}
+.oma-task-detail__grid {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  padding: 14px 16px 28px !important;
+}
+.oma-task-detail__card {
+  background: #fff !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 12px !important;
+  padding: 14px 16px !important;
+}
+.oma-task-detail__card h3 {
+  margin: 0 0 12px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.03em !important;
+  color: #8c8c8c !important;
+}
+.oma-task-detail__fields {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 12px !important;
+}
+.oma-task-detail__fields label {
+  display: grid !important;
+  gap: 6px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #5e6166 !important;
+}
+.oma-task-detail__links {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+.oma-task-detail__link {
+  font-size: 13px !important;
+  color: #2563eb !important;
+  text-decoration: none !important;
+  word-break: break-all !important;
+}
+.oma-task-detail__link:hover {
+  text-decoration: underline !important;
+}
+.oma-task-detail__handoff {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+.oma-task-detail__checklist {
+  list-style: none !important;
+  margin: 0 0 12px !important;
+  padding: 0 !important;
+}
+.oma-task-detail__checklist li {
+  padding: 6px 0 !important;
+  border-bottom: 1px solid #f0f1f3 !important;
+}
+.oma-task-detail__checklist label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+}
+.oma-task-detail__checklist span[data-done='true'] {
+  text-decoration: line-through !important;
+  color: #8c8c8c !important;
+}
+.oma-task-detail__add-row {
+  display: flex !important;
+  gap: 8px !important;
+  align-items: center !important;
+}
+.oma-task-detail__feed {
+  list-style: none !important;
+  margin: 0 0 12px !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+.oma-task-detail__feed li {
+  padding: 10px 12px !important;
+  background: #f7f8f9 !important;
+  border-radius: 8px !important;
+}
+.oma-task-detail__feed-head {
+  display: flex !important;
+  justify-content: space-between !important;
+  gap: 8px !important;
+  margin-bottom: 4px !important;
+  font-size: 12px !important;
+}
+.oma-task-detail__feed p {
+  margin: 0 !important;
+  font-size: 13px !important;
+  color: #333 !important;
+  line-height: 1.4 !important;
+}
+.oma-task-detail__feed time {
+  color: #8c8c8c !important;
+}
+@media (max-width: 560px) {
+  .oma-task-detail__fields {
+    grid-template-columns: 1fr !important;
+  }
+  .oma-task-detail__head {
+    flex-direction: column !important;
+  }
+}
