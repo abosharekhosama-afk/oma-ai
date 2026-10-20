@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { DemoGraph, DemoTaskStatus } from '@oma/demo';
 import {
   Button,
@@ -78,6 +79,8 @@ export default function TasksPage() {
   const [filterSheet, setFilterSheet] = useState(false);
   const [viewMenuOpen, setViewMenuOpen] = useState(false);
   const [filterSection, setFilterSection] = useState<string | null>('search');
+  const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
+  const [viewSlot, setViewSlot] = useState<HTMLElement | null>(null);
   const [creating, setCreating] = useState(false);
   const [createForm, setCreateForm] = useState({
     title: '',
@@ -152,6 +155,21 @@ export default function TasksPage() {
       setView(urlView);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    setHeaderSlot(document.getElementById('oma-workspace-top-actions'));
+    setViewSlot(document.getElementById('oma-content-view-slot'));
+  }, []);
+
+  useEffect(() => {
+    if (!viewMenuOpen) return;
+    const onDoc = () => setViewMenuOpen(false);
+    const tmr = window.setTimeout(() => document.addEventListener('click', onDoc), 0);
+    return () => {
+      window.clearTimeout(tmr);
+      document.removeEventListener('click', onDoc);
+    };
+  }, [viewMenuOpen]);
 
   async function changeView(next: ViewMode) {
     setView(next);
@@ -336,6 +354,90 @@ export default function TasksPage() {
       <PageHeader title={t('demo.tasks.title')} description={t('demo.tasks.subtitle')} />
       <DemoDisclosure />
 
+      {headerSlot
+        ? createPortal(
+            <div className="oma-workspace-header-actions">
+              <button
+                type="button"
+                className="oma-req-filter-btn"
+                data-testid="demo-task-open-filters"
+                data-active={filterSheet ? 'true' : 'false'}
+                onClick={() => setFilterSheet((v) => !v)}
+              >
+                <FilterOutlined />
+                <span>{locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter'}</span>
+                {filterCount > 0 ? (
+                  <span className="oma-req-filter-btn__count">{filterCount}</span>
+                ) : null}
+              </button>
+              <Button
+                type="primary"
+                data-testid="demo-create-task"
+                onClick={() => setCreateOpen(true)}
+              >
+                <PlusOutlined /> {t('demo.tasks.create')}
+              </Button>
+            </div>,
+            headerSlot,
+          )
+        : null}
+
+      {viewSlot
+        ? createPortal(
+            <span
+              className="oma-view-path oma-view-path--inline"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                className="oma-view-path__btn oma-view-path__btn--ghost"
+                data-testid="demo-tasks-view-toggle"
+                aria-expanded={viewMenuOpen}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setViewMenuOpen((v) => !v);
+                }}
+              >
+                {view === 'board' ? <AppstoreOutlined /> : <BarsOutlined />}
+                <span>{view === 'board' ? t('demo.view.kanban') : t('demo.view.list')}</span>
+                <DownOutlined className="oma-view-path__caret" />
+              </button>
+              {viewMenuOpen ? (
+                <div className="oma-view-path__menu" role="menu" data-testid="demo-tasks-view-menu">
+                  <button
+                    type="button"
+                    role="menuitem"
+                    data-active={view === 'board' ? 'true' : 'false'}
+                    data-testid="demo-tasks-view-board"
+                    onClick={() => {
+                      void changeView('board');
+                      setViewMenuOpen(false);
+                    }}
+                  >
+                    <AppstoreOutlined />
+                    <span>{t('demo.view.kanban')}</span>
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    data-active={view === 'list' ? 'true' : 'false'}
+                    data-testid="demo-tasks-view-list"
+                    onClick={() => {
+                      void changeView('list');
+                      setViewMenuOpen(false);
+                    }}
+                  >
+                    <BarsOutlined />
+                    <span>{t('demo.view.list')}</span>
+                  </button>
+                </div>
+              ) : null}
+            </span>,
+            viewSlot,
+          )
+        : null}
+
+
       <div className="oma-prod-strip" data-testid="demo-production-summary">
         <div className="oma-prod-stat">
           <strong>{summary.wip}</strong>
@@ -369,82 +471,6 @@ export default function TasksPage() {
 
       {!loading && !unavailable && !error ? (
         <>
-          <div className="oma-req-topbar oma-tasks-topbar">
-            <div className="oma-req-tabs" role="tablist">
-              <span className="oma-req-tab" data-active="true">
-                {t('demo.tasks.title')}
-              </span>
-              <span className="oma-muted" style={{ fontSize: 13, alignSelf: 'center' }}>
-                {filtered.length} / {rows.length}
-              </span>
-            </div>
-            <div className="oma-req-topbar__actions">
-              <div className="oma-view-path">
-                <button
-                  type="button"
-                  className="oma-view-path__btn"
-                  data-testid="demo-tasks-view-toggle"
-                  aria-expanded={viewMenuOpen}
-                  onClick={() => setViewMenuOpen((v) => !v)}
-                >
-                  {view === 'board' ? <AppstoreOutlined /> : <BarsOutlined />}
-                  <span>{view === 'board' ? t('demo.view.kanban') : t('demo.view.list')}</span>
-                  <DownOutlined className="oma-view-path__caret" />
-                </button>
-                {viewMenuOpen ? (
-                  <div className="oma-view-path__menu" role="menu" data-testid="demo-tasks-view-menu">
-                    <button
-                      type="button"
-                      role="menuitem"
-                      data-active={view === 'board' ? 'true' : 'false'}
-                      data-testid="demo-tasks-view-board"
-                      onClick={() => {
-                        void changeView('board');
-                        setViewMenuOpen(false);
-                      }}
-                    >
-                      <AppstoreOutlined />
-                      <span>{t('demo.view.kanban')}</span>
-                    </button>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      data-active={view === 'list' ? 'true' : 'false'}
-                      data-testid="demo-tasks-view-list"
-                      onClick={() => {
-                        void changeView('list');
-                        setViewMenuOpen(false);
-                      }}
-                    >
-                      <BarsOutlined />
-                      <span>{t('demo.view.list')}</span>
-                    </button>
-                  </div>
-                ) : null}
-              </div>
-              <button
-                type="button"
-                className="oma-req-filter-btn"
-                data-testid="demo-task-open-filters"
-                data-active={filterSheet ? 'true' : 'false'}
-                onClick={() => setFilterSheet((v) => !v)}
-              >
-                <FilterOutlined />
-                <span>{locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter'}</span>
-                {filterCount > 0 ? (
-                  <span className="oma-req-filter-btn__count">{filterCount}</span>
-                ) : null}
-              </button>
-              <Button
-                type="primary"
-                data-testid="demo-create-task"
-                onClick={() => setCreateOpen(true)}
-              >
-                <PlusOutlined /> {t('demo.tasks.create')}
-              </Button>
-            </div>
-          </div>
-
           <div className="oma-req-workspace oma-tasks-workspace" data-filter-open={filterSheet ? 'true' : 'false'}>
             <div className="oma-req-main">
               {view === 'board' ? (
@@ -475,17 +501,21 @@ export default function TasksPage() {
                           onClick={() => openTask(task.id)}
                           style={{ cursor: 'pointer' }}
                         >
-                          <td>
+                          <td className="oma-task-title-cell">
                             <button
                               type="button"
-                              className="oma-text-link"
+                              className="oma-task-title-btn"
                               data-testid={`demo-task-open-${task.id}`}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 openTask(task.id);
                               }}
                             >
-                              {pickCopy(task.title, locale)}
+                              <span className="oma-task-title-text">{pickCopy(task.title, locale)}</span>
+                              <span className="oma-task-title-meta">
+                                {task.type}
+                                {task.campaignId ? ` · ${task.campaignId.replace(/^demo-campaign-/, '')}` : ''}
+                              </span>
                             </button>
                           </td>
                           <td>
