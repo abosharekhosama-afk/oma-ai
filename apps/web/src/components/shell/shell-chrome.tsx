@@ -48,9 +48,23 @@ function ShellBreadcrumb() {
   const t = useT();
   const pathname = usePathname() || '/app';
   const isContent = pathname === '/app/content' || pathname.startsWith('/app/content/');
+  const isDeliverables =
+    pathname === '/app/deliverables' || pathname.startsWith('/app/deliverables/');
+  const isTasks = pathname === '/app/tasks' || pathname.startsWith('/app/tasks/');
 
-  /* Planable Content trail: Workspace / Content / View — view switch lives in path */
-  if (isContent) {
+  /* Planable trail: Workspace / Section / View — view switch lives in path */
+  if (isContent || isDeliverables || isTasks) {
+    const sectionHref = isContent
+      ? '/app/content'
+      : isDeliverables
+        ? '/app/deliverables'
+        : '/app/tasks';
+    const sectionLabel = isContent
+      ? t('nav.content') || 'Content'
+      : isDeliverables
+        ? t('nav.deliverables') || t('demo.deliverables.title') || 'Deliverables'
+        : t('nav.tasks') || t('demo.tasks.title') || 'Tasks';
+    const defaultView = isContent ? 'Calendar' : isDeliverables ? 'Grid' : 'Board';
     return (
       <nav aria-label={t('shell.breadcrumb')} className="oma-context-trail oma-context-trail--content">
         <ol className="oma-breadcrumb oma-breadcrumb--planable">
@@ -67,15 +81,18 @@ function ShellBreadcrumb() {
             <span className="oma-breadcrumb-sep" aria-hidden>
               /
             </span>
-            <Link href="/app/content">{t('nav.content') || 'Content'}</Link>
+            <Link href={sectionHref}>{sectionLabel}</Link>
           </li>
           <li>
             <span className="oma-breadcrumb-sep" aria-hidden>
               /
             </span>
-            <span className="oma-breadcrumb-view" id="oma-content-view-slot" data-testid="shell-content-view-slot">
-              {/* filled by content-client via portal or sibling chrome */}
-              Calendar
+            <span
+              className="oma-breadcrumb-view"
+              id="oma-content-view-slot"
+              data-testid="shell-content-view-slot"
+            >
+              {defaultView}
             </span>
           </li>
         </ol>
@@ -223,13 +240,18 @@ export function ShellChrome({ children }: { children: ReactNode }) {
               </div>
             </div>
             {/* Planable Content: no center search — actions live on the right */}
-            {isContentWorkspace ? null : (
+            {isContentWorkspace || isDeliverablesWorkspace || isTasksWorkspace ? null : (
               <div className="oma-top-center">
                 <CommandSearch compact />
               </div>
             )}
             {isContentWorkspace ? (
               <div className="oma-top-actions oma-top-actions--content" id="oma-content-top-actions" />
+            ) : isDeliverablesWorkspace || isTasksWorkspace ? (
+              <div
+                className="oma-top-actions oma-top-actions--workspace"
+                id="oma-workspace-top-actions"
+              />
             ) : hideShellCreate ? null : (
               <div className="oma-top-actions">
                 <OmaLinkButton href="/app/requests" type="primary" data-testid="shell-create">
