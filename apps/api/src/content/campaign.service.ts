@@ -41,26 +41,52 @@ function mapCampaign(row: {
   createdAt: Date;
   updatedAt: Date;
 }, extras?: { content_count?: number; review_hint?: string }) {
+  const r = row as typeof row & {
+    objectiveEn?: string | null;
+    objectiveAr?: string | null;
+    audienceEn?: string | null;
+    audienceAr?: string | null;
+    channels?: string[];
+    strategyId?: string | null;
+    budgetAmount?: number | null;
+    budgetCurrency?: string | null;
+  };
   return {
-    id: row.id,
-    tenant_id: row.tenantId,
-    brand_id: row.brandId,
-    name: { en: row.nameEn, ar: row.nameAr },
+    id: r.id,
+    tenant_id: r.tenantId,
+    brand_id: r.brandId,
+    name: { en: r.nameEn, ar: r.nameAr },
     description:
-      row.descriptionEn || row.descriptionAr
-        ? { en: row.descriptionEn ?? '', ar: row.descriptionAr ?? '' }
+      r.descriptionEn || r.descriptionAr
+        ? { en: r.descriptionEn ?? '', ar: r.descriptionAr ?? '' }
         : null,
-    track: row.track,
-    status: row.status,
+    objective:
+      r.objectiveEn || r.objectiveAr
+        ? { en: r.objectiveEn ?? '', ar: r.objectiveAr ?? '' }
+        : r.descriptionEn || r.descriptionAr
+          ? { en: r.descriptionEn ?? '', ar: r.descriptionAr ?? '' }
+          : null,
+    audience:
+      r.audienceEn || r.audienceAr
+        ? { en: r.audienceEn ?? '', ar: r.audienceAr ?? '' }
+        : null,
+    channels: r.channels ?? [],
+    strategy_id: r.strategyId ?? null,
+    budget:
+      r.budgetAmount != null
+        ? { amount: r.budgetAmount, currency: r.budgetCurrency ?? 'USD', planning_only: true }
+        : null,
+    track: r.track,
+    status: r.status,
     timeline: {
-      start: row.timelineStart.toISOString().slice(0, 10),
-      end: row.timelineEnd.toISOString().slice(0, 10),
+      start: r.timelineStart.toISOString().slice(0, 10),
+      end: r.timelineEnd.toISOString().slice(0, 10),
     },
-    owner_user_id: row.ownerUserId,
-    links: row.links ?? [],
-    archived_at: row.archivedAt?.toISOString() ?? null,
-    created_at: row.createdAt.toISOString(),
-    updated_at: row.updatedAt.toISOString(),
+    owner_user_id: r.ownerUserId,
+    links: r.links ?? [],
+    archived_at: r.archivedAt?.toISOString() ?? null,
+    created_at: r.createdAt.toISOString(),
+    updated_at: r.updatedAt.toISOString(),
     content_count: extras?.content_count ?? 0,
     review_hint: extras?.review_hint ?? 'CLEAR',
   };
@@ -199,10 +225,17 @@ export class CampaignService {
     input: {
       name: LocaleInput;
       description?: LocaleInput;
+      objective?: LocaleInput;
+      audience?: LocaleInput;
+      channels?: string[];
+      strategyId?: string | null;
+      budgetAmount?: number | null;
+      budgetCurrency?: string | null;
       track: Track;
       timelineStart: string;
       timelineEnd: string;
       links?: string[];
+      status?: CampaignStatus;
     },
     correlationId?: string,
   ) {
@@ -216,6 +249,8 @@ export class CampaignService {
     }
     assertValidTimeline(input.timelineStart, input.timelineEnd);
     const desc = input.description ? localePair(input.description) : null;
+    const objective = input.objective ? localePair(input.objective) : desc;
+    const audience = input.audience ? localePair(input.audience) : null;
 
     const row = await getPrisma().campaign.create({
       data: {
@@ -226,8 +261,16 @@ export class CampaignService {
         nameAr: name.ar,
         descriptionEn: desc?.en ?? null,
         descriptionAr: desc?.ar ?? null,
+        objectiveEn: objective?.en ?? null,
+        objectiveAr: objective?.ar ?? null,
+        audienceEn: audience?.en ?? null,
+        audienceAr: audience?.ar ?? null,
+        channels: input.channels ?? [],
+        strategyId: input.strategyId ?? null,
+        budgetAmount: input.budgetAmount ?? null,
+        budgetCurrency: input.budgetCurrency ?? 'USD',
         track: input.track,
-        status: 'DRAFT',
+        status: input.status ?? 'DRAFT',
         timelineStart: new Date(input.timelineStart),
         timelineEnd: new Date(input.timelineEnd),
         ownerUserId: actorUserId,
@@ -254,6 +297,12 @@ export class CampaignService {
     patch: {
       name?: LocaleInput;
       description?: LocaleInput | null;
+      objective?: LocaleInput | null;
+      audience?: LocaleInput | null;
+      channels?: string[];
+      strategyId?: string | null;
+      budgetAmount?: number | null;
+      budgetCurrency?: string | null;
       track?: Track;
       timelineStart?: string;
       timelineEnd?: string;
@@ -303,6 +352,19 @@ export class CampaignService {
       assertValidTimeline(start, end);
     }
 
+    const objective =
+      patch.objective === null
+        ? { en: null as string | null, ar: null as string | null }
+        : patch.objective
+          ? localePair(patch.objective)
+          : null;
+    const audience =
+      patch.audience === null
+        ? { en: null as string | null, ar: null as string | null }
+        : patch.audience
+          ? localePair(patch.audience)
+          : null;
+
     const row = await getPrisma().campaign.update({
       where: { id: campaignId },
       data: {
@@ -313,6 +375,16 @@ export class CampaignService {
               descriptionAr: desc.ar,
             }
           : {}),
+        ...(objective
+          ? { objectiveEn: objective.en, objectiveAr: objective.ar }
+          : {}),
+        ...(audience
+          ? { audienceEn: audience.en, audienceAr: audience.ar }
+          : {}),
+        ...(patch.channels ? { channels: patch.channels } : {}),
+        ...(patch.strategyId !== undefined ? { strategyId: patch.strategyId } : {}),
+        ...(patch.budgetAmount !== undefined ? { budgetAmount: patch.budgetAmount } : {}),
+        ...(patch.budgetCurrency ? { budgetCurrency: patch.budgetCurrency } : {}),
         ...(patch.track ? { track: patch.track } : {}),
         ...(patch.timelineStart ? { timelineStart: new Date(patch.timelineStart) } : {}),
         ...(patch.timelineEnd ? { timelineEnd: new Date(patch.timelineEnd) } : {}),
