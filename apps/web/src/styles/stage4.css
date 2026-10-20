@@ -1183,3 +1183,184 @@
     position: static !important;
   }
 }
+
+/* ==== Requests layout containment fix (v4) — stop page overflow, restore scroll ==== */
+
+/* Page must not grow past viewport width */
+.oma-req-page {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
+}
+
+.oma-req-page .oma-page-header {
+  max-width: 100% !important;
+}
+
+.oma-req-topbar {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Workspace: flex row, contained */
+.oma-req-workspace {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: stretch !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: hidden !important;
+  background: #f7f8f9 !important;
+  box-sizing: border-box !important;
+}
+
+/* Override older grid column recipes that pushed content off-screen */
+.oma-req-workspace[data-filter-open='true'] {
+  grid-template-columns: unset !important;
+}
+
+.oma-req-main {
+  flex: 1 1 0% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  order: 1 !important;
+  padding: 16px 20px 32px !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+  box-sizing: border-box !important;
+}
+
+/* Filter on the right — fixed width, does not expand page */
+.oma-req-filter-panel {
+  flex: 0 0 300px !important;
+  width: 300px !important;
+  max-width: 300px !important;
+  min-width: 300px !important;
+  order: 2 !important;
+  position: sticky !important;
+  top: 0 !important;
+  align-self: flex-start !important;
+  max-height: calc(100vh - 140px) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  background: #fff !important;
+  border-inline-start: 1px solid #eef0f2 !important;
+  border-inline-end: 0 !important;
+  box-sizing: border-box !important;
+}
+
+.oma-req-workspace[data-filter-open='false'] .oma-req-filter-panel {
+  display: none !important;
+}
+
+/* Table wrapper: the ONLY scroll container for wide tables */
+.oma-req-page .oma-req-table-wrap,
+.oma-req-main .oma-req-table-wrap {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  overflow-x: auto !important;
+  overflow-y: auto !important;
+  max-height: calc(100vh - 280px) !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  -webkit-overflow-scrolling: touch !important;
+  box-sizing: border-box !important;
+}
+
+/* Table can be wider than wrap; wrap scrolls — do NOT use width:max-content on page */
+.oma-req-page .oma-req-table,
+.oma-req-main .oma-req-table {
+  width: max-content !important;
+  min-width: 100% !important;
+  max-width: none !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  font-size: 13px !important;
+  table-layout: auto !important;
+}
+
+.oma-req-page .oma-req-table th,
+.oma-req-page .oma-req-table td,
+.oma-req-main .oma-req-table th,
+.oma-req-main .oma-req-table td {
+  padding: 12px 14px !important;
+  white-space: nowrap !important;
+  min-width: 96px !important;
+  max-width: none !important;
+  box-sizing: border-box !important;
+}
+
+/* Title column can wrap and stays readable */
+.oma-req-page .oma-req-table th:first-child,
+.oma-req-page .oma-req-table td:first-child,
+.oma-req-main .oma-req-table th:first-child,
+.oma-req-main .oma-req-table td:first-child {
+  min-width: 220px !important;
+  max-width: 320px !important;
+  white-space: normal !important;
+  position: sticky !important;
+  inset-inline-start: 0 !important;
+  background: #fff !important;
+  z-index: 2 !important;
+  box-shadow: 4px 0 8px rgba(0, 0, 0, 0.04) !important;
+}
+
+.oma-req-page .oma-req-table thead th,
+.oma-req-main .oma-req-table thead th {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1 !important;
+  background: #fafbfc !important;
+}
+
+.oma-req-page .oma-req-table thead th:first-child,
+.oma-req-main .oma-req-table thead th:first-child {
+  z-index: 3 !important;
+  background: #fafbfc !important;
+}
+
+.oma-req-page .oma-req-title-cell {
+  white-space: normal !important;
+  min-width: 0 !important;
+  max-width: 300px !important;
+}
+
+/* Shell main container must not expand horizontally on this page */
+.oma-container:has(.oma-req-page),
+main.oma-container:has(.oma-req-page) {
+  max-width: 100% !important;
+  overflow-x: hidden !important;
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 900px) {
+  .oma-req-workspace[data-filter-open='true'] {
+    grid-template-columns: unset !important;
+  }
+  .oma-req-filter-panel {
+    position: fixed !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    inset-inline-end: 0 !important;
+    inset-inline-start: auto !important;
+    width: min(300px, 92vw) !important;
+    max-width: min(300px, 92vw) !important;
+    min-width: 0 !important;
+    max-height: 100vh !important;
+    z-index: 100 !important;
+    box-shadow: -8px 0 28px rgba(0, 0, 0, 0.14) !important;
+  }
+  .oma-req-page .oma-req-table-wrap,
+  .oma-req-main .oma-req-table-wrap {
+    max-height: calc(100vh - 240px) !important;
+  }
+}
