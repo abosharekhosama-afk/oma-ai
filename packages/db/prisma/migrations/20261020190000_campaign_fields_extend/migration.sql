@@ -1,0 +1,9 @@
+-- Extend Campaign with planning fields used by UI
+ALTER TABLE "Campaign" ADD COLUMN IF NOT EXISTS "objectiveEn" TEXT;
+ALTER TABLE "Campaign" ADD COLUMN IF NOT EXISTS "objectiveAr" TEXT;
+ALTER TABLE "Campaign" ADD COLUMN IF NOT EXISTS "audienceEn" TEXT;
+ALTER TABLE "Campaign" ADD COLUMN IF NOT EXISTS "audienceAr" TEXT;
+ALTER TABLE "Campaign" ADD COLUMN IF NOT EXISTS "channels" TEXT[] DEFAULT ARRAY[]::TEXT[];
+ALTER TABLE "Campaign" ADD COLUMN IF NOT EXISTS "strategyId" TEXT;
+ALTER TABLE "Campaign" ADD COLUMN IF NOT EXISTS "budgetAmount" DOUBLE PRECISION;
+ALTER TABLE "Campaign" ADD COLUMN IF NOT EXISTS "budgetCurrency" TEXT DEFAULT 'USD';
