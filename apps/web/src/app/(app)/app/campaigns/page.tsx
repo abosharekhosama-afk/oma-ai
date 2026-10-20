@@ -13,9 +13,6 @@ import { StatusChip } from '../../../../components/ui/status-chip';
 import { useToast } from '../../../../components/ui/toast';
 import { Dialog } from '../../../../components/ui/dialog';
 import {
-  demoApi,
-  demoErrorMessage,
-  isDemoForbidden,
   pickCopy,
 } from '../../../../lib/demo/use-demo-api';
 import {
@@ -102,61 +99,46 @@ export default function CampaignsPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError(null);
+    setUnavailable(false);
     try {
-      // Prefer production Campaign API; fall back to demo graph if brands API unavailable.
-      try {
-        const brandRows = await listBrandsProduction();
-        const brandIds = brandRows.map((b) => b.id);
-        const campaigns = brandIds.length ? await listAllCampaigns(brandIds) : [];
-        setBrands(
-          brandRows.map((b) => ({
-            id: b.id,
-            name: { en: b.name, ar: b.name },
-            state: b.status === 'ARCHIVED' ? 'draft' : 'healthy',
-            profileStatus: b.status,
-            strategyId: null,
-          })) as Brand[],
-        );
-        setRows(campaigns.map((c) => toCampaignRow(c)));
-        setContent([]); // content counts come from API content_count later; detail still demo-linked
-        setStrategies([]);
-        setError(null);
-        setUnavailable(false);
-        setForm((f) => ({
-          ...f,
-          brandId: f.brandId || brandIds[0] || '',
-          owner: f.owner || 'Owner',
-        }));
-      } catch (prodErr) {
-        // Demo fallback keeps product demo usable before migrate/capabilities are applied.
-        const graph = await demoApi<DemoGraph>('/graph');
-        setRows(graph.campaigns);
-        setContent(graph.contentItems);
-        setBrands(graph.brands);
-        setStrategies(graph.strategies);
-        setError(null);
-        setUnavailable(false);
-        setForm((f) => {
-          if (f.strategyId) return f;
-          const strategy = graph.strategies.find((s) => s.isCurrent) ?? graph.strategies[0];
-          return {
-            ...f,
-            strategyId: strategy?.id ?? '',
-            brandId: strategy?.brandId ?? graph.brands[0]?.id ?? '',
-            owner: f.owner || graph.campaigns[0]?.owner || 'Layla Haddad',
-          };
-        });
-        if (isApiForbidden(prodErr)) {
-          /* silent fallback */
-        }
-      }
+      const brandRows = await listBrandsProduction();
+      const brandIds = brandRows.map((b) => b.id);
+      const campaigns = brandIds.length ? await listAllCampaigns(brandIds) : [];
+      setBrands(
+        brandRows.map((b) => ({
+          id: b.id,
+          name: { en: b.name, ar: b.name },
+          state: b.status === 'ARCHIVED' ? ('draft' as const) : ('healthy' as const),
+          profileStatus: b.status,
+          strategyId: null,
+        })) as Brand[],
+      );
+      setRows(campaigns.map((c) => toCampaignRow(c)));
+      setContent([]);
+      setStrategies([]);
+      setForm((f) => ({
+        ...f,
+        brandId: f.brandId || brandIds[0] || '',
+        owner: f.owner || 'Owner',
+      }));
     } catch (err) {
-      if (isDemoForbidden(err) || isApiForbidden(err)) setUnavailable(true);
-      else setError(demoErrorMessage(err, 'Demo unavailable'));
+      if (isApiForbidden(err)) {
+        setUnavailable(true);
+        setError(
+          isAr
+            ? 'لا توجد صلاحية لعرض الحملات (campaign.read). أعد تشغيل seed أو امنح الصلاحية.'
+            : 'Missing campaign.read capability. Re-run seed or grant the capability.',
+        );
+      } else {
+        setError(apiErrorMessage(err, isAr ? 'تعذّر تحميل الحملات' : 'Failed to load campaigns'));
+      }
+      setRows([]);
+      setBrands([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isAr]);
 
   useEffect(() => {
     void load();
@@ -244,43 +226,34 @@ export default function CampaignsPage() {
         status: form.status,
         links: form.links,
       };
+      if (!payload.brandId) {
+        setCreateError(isAr ? 'اختر البراند' : 'Select a brand');
+        setCreating(false);
+        return;
+      }
       let saved: CampaignRow;
-      try {
-        if (editingId) {
-          const updated = await updateCampaignProduction(editingId, {
-            name: payload.name,
-            description: payload.goal,
-            track: payload.track,
-            timelineStart: payload.timeline.start,
-            timelineEnd: payload.timeline.end,
-            links: payload.links,
-            status: payload.status,
-          });
-          saved = toCampaignRow(updated);
-        } else {
-          const created = await createCampaignProduction({
-            brandId: payload.brandId,
-            name: payload.name,
-            description: payload.goal,
-            track: payload.track,
-            timelineStart: payload.timeline.start,
-            timelineEnd: payload.timeline.end,
-            links: payload.links,
-          });
-          saved = toCampaignRow(created);
-        }
-      } catch (prodErr) {
-        // Fallback to demo API for local product demos without migrate
-        saved = await demoApi<CampaignRow>(
-          editingId ? `/campaigns/${editingId}` : '/campaigns',
-          {
-            method: editingId ? 'PATCH' : 'POST',
-            body: JSON.stringify(payload),
-          },
-        );
-        if (isApiForbidden(prodErr)) {
-          /* demo path */
-        }
+      if (editingId) {
+        const updated = await updateCampaignProduction(editingId, {
+          name: payload.name,
+          description: payload.goal,
+          track: payload.track,
+          timelineStart: payload.timeline.start,
+          timelineEnd: payload.timeline.end,
+          links: payload.links,
+          status: payload.status,
+        });
+        saved = toCampaignRow(updated);
+      } else {
+        const created = await createCampaignProduction({
+          brandId: payload.brandId,
+          name: payload.name,
+          description: payload.goal,
+          track: payload.track,
+          timelineStart: payload.timeline.start,
+          timelineEnd: payload.timeline.end,
+          links: payload.links,
+        });
+        saved = toCampaignRow(created);
       }
       toast.push(
         editingId
@@ -296,8 +269,9 @@ export default function CampaignsPage() {
       await load();
       if (!editingId) router.push(`/app/campaigns/${saved.id}`);
     } catch (err) {
-      setCreateError(demoErrorMessage(err, t('demo.create.validation')));
-      toast.push(demoErrorMessage(err, t('demo.create.validation')), 'danger');
+      const msg = apiErrorMessage(err, t('demo.create.validation'));
+      setCreateError(msg);
+      toast.push(msg, 'danger');
     } finally {
       setCreating(false);
     }
@@ -327,47 +301,28 @@ export default function CampaignsPage() {
     setMenuId(null);
     const copy = locale.toLowerCase().startsWith('ar') ? 'نسخة' : 'copy';
     try {
-      let duplicated: CampaignRow;
-      try {
-        const created = await createCampaignProduction({
-          brandId: campaign.brandId,
-          name: {
-            en: `${campaign.name.en} (${copy})`,
-            ar: `${campaign.name.ar} (${copy})`,
-          },
-          description: campaign.objective,
-          track: campaign.track,
-          timelineStart: campaign.timeline.start,
-          timelineEnd: campaign.timeline.end,
-          links: campaign.links ?? [],
-        });
-        duplicated = toCampaignRow(created);
-      } catch {
-        duplicated = await demoApi<CampaignRow>('/campaigns', {
-          method: 'POST',
-          body: JSON.stringify({
-            name: {
-              en: `${campaign.name.en} (${copy})`,
-              ar: `${campaign.name.ar} (${copy})`,
-            },
-            goal: campaign.objective,
-            strategyId: campaign.strategyId,
-            brandId: campaign.brandId,
-            track: campaign.track,
-            owner: campaign.owner,
-            timeline: campaign.timeline,
-            channels: campaign.channels,
-            status: campaign.status,
-            audience: campaign.audience,
-            links: campaign.links ?? [],
-          }),
-        });
+      if (!campaign.brandId) {
+        toast.push(isAr ? 'الحملة بلا براند' : 'Campaign has no brand', 'danger');
+        return;
       }
+      const created = await createCampaignProduction({
+        brandId: campaign.brandId,
+        name: {
+          en: `${campaign.name.en} (${copy})`,
+          ar: `${campaign.name.ar} (${copy})`,
+        },
+        description: campaign.objective,
+        track: campaign.track,
+        timelineStart: campaign.timeline.start,
+        timelineEnd: campaign.timeline.end,
+        links: campaign.links ?? [],
+      });
+      const duplicated = toCampaignRow(created);
       toast.push(isAr ? 'تم نسخ الحملة' : 'Campaign duplicated', 'success');
       await load();
       router.push(`/app/campaigns/${duplicated.id}`);
     } catch (err) {
-      toast.push(demoErrorMessage(err, t('demo.create.validation')), 'danger');
+      toast.push(apiErrorMessage(err, t('demo.create.validation')), 'danger');
     }
   }
 
@@ -384,20 +339,13 @@ export default function CampaignsPage() {
   async function archiveCampaign() {
     if (!archiveTarget) return;
     try {
-      try {
-        await archiveCampaignProduction(archiveTarget);
-      } catch {
-        await demoApi<CampaignRow>(`/campaigns/${archiveTarget}`, {
-          method: 'PATCH',
-          body: JSON.stringify({ status: 'ARCHIVED' }),
-        });
-      }
+      await archiveCampaignProduction(archiveTarget);
       setArchiveTarget(null);
       setMenuId(null);
       await load();
       toast.push(isAr ? 'تمت أرشفة الحملة' : 'Campaign archived', 'success');
     } catch (err) {
-      toast.push(demoErrorMessage(err, t('demo.create.validation')), 'danger');
+      toast.push(apiErrorMessage(err, t('demo.create.validation')), 'danger');
     }
   }
 
