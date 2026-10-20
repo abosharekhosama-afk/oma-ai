@@ -127,6 +127,24 @@ const routeRequirements: Record<string, string[]> = {
   ],
   'GET /api/v1/brands/:brandId/current-strategy': ['strategy.read'],
   'POST /api/v1/brands/:brandId/current-strategy': ['strategy.set_current'],
+
+  'GET /api/v1/brands/:brandId/campaigns': ['campaign.read'],
+  'POST /api/v1/brands/:brandId/campaigns': ['campaign.create'],
+  'GET /api/v1/campaigns/:campaignId': ['campaign.read'],
+  'PATCH /api/v1/campaigns/:campaignId': ['campaign.update'],
+  'POST /api/v1/campaigns/:campaignId/archive': ['campaign.archive'],
+  'GET /api/v1/brands/:brandId/content': ['content.read'],
+  'POST /api/v1/brands/:brandId/content': ['content.create'],
+  'GET /api/v1/content/:contentId': ['content.read'],
+  'PATCH /api/v1/content/:contentId': ['content.update'],
+  'POST /api/v1/content/:contentId/request-approval': ['content.request_approval'],
+  'POST /api/v1/content/:contentId/approve': ['content.approve'],
+  'POST /api/v1/content/:contentId/request-changes': ['content.approve'],
+  'POST /api/v1/content/:contentId/schedule': ['content.schedule'],
+  'POST /api/v1/content/:contentId/unschedule': ['content.schedule'],
+  'POST /api/v1/content/:contentId/archive': ['content.archive'],
+  'GET /api/v1/brands/:brandId/content-preferences': ['content.read'],
+  'PATCH /api/v1/brands/:brandId/content-preferences': ['content.update'],
 };
 
 function matchRequirements(method: string, path: string): string[] | null {
@@ -327,6 +345,8 @@ function matchRequirements(method: string, path: string): string[] | null {
       .replace(':gapId', '[^/]+')
       .replace(':linkId', '[^/]+')
       .replace(':insightId', '[^/]+')
+      .replace(':campaignId', '[^/]+')
+      .replace(':contentId', '[^/]+')
       .replace(':evidenceId', '[^/]+');
     if (
       new RegExp('^' + pattern.replace(/\//g, '\\/') + '$').test(`${method.toUpperCase()} ${path}`)
