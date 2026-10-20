@@ -91,9 +91,8 @@ function ShellBreadcrumb() {
               className="oma-breadcrumb-view"
               id="oma-content-view-slot"
               data-testid="shell-content-view-slot"
-            >
-              {defaultView}
-            </span>
+              data-default-view={defaultView}
+            />
           </li>
         </ol>
       </nav>
