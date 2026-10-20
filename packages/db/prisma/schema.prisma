@@ -1059,6 +1059,14 @@ model Campaign {
   nameAr        String
   descriptionEn String?
   descriptionAr String?
+  objectiveEn   String?
+  objectiveAr   String?
+  audienceEn    String?
+  audienceAr    String?
+  channels      String[]       @default([])
+  strategyId    String?
+  budgetAmount  Float?
+  budgetCurrency String?       @default("USD")
   track         Track
   status        CampaignStatus @default(DRAFT)
   timelineStart DateTime       @db.Date
