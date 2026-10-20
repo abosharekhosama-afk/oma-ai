@@ -1,4 +1,5 @@
 'use client';
+import { SearchOutlined } from '@ant-design/icons';
 
 import { Button, Input } from '@oma/ui/controls';
 
@@ -32,6 +33,7 @@ export default function ReviewsPage() {
   const [rows, setRows] = useState<DeliverableRow[]>([]);
   const [tab, setTab] = useState<ReviewQueueTab>('waiting');
   const [q, setQ] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [unavailable, setUnavailable] = useState(false);
@@ -103,28 +105,46 @@ export default function ReviewsPage() {
 
       {!loading && !unavailable && !error ? (
         <>
-          <div className="oma-review-tabs" role="tablist" data-testid="demo-review-tabs">
-            {TABS.map((item) => (
-              <Button
-                key={item}
-                type={tab === item ? 'primary' : 'default'}
-                aria-pressed={tab === item}
-                data-testid={`demo-review-tab-${item}`}
-                onClick={() => setTab(item)}
+          <div className="oma-reviews-toolbar" data-testid="demo-review-tabs">
+            <div className="oma-reviews-tabs" role="tablist">
+              {TABS.map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  role="tab"
+                  aria-selected={tab === item}
+                  className="oma-reviews-tabs__btn"
+                  data-active={tab === item ? 'true' : 'false'}
+                  data-testid={`demo-review-tab-${item}`}
+                  onClick={() => setTab(item)}
+                >
+                  {t(`demo.reviews.tab.${item}`)}
+                </button>
+              ))}
+            </div>
+            <div className="oma-reviews-search" data-expanded={searchOpen || q ? 'true' : 'false'}>
+              <button
+                type="button"
+                className="oma-reviews-search__icon"
+                aria-label={t('demo.reviews.search')}
+                data-testid="demo-review-search-toggle"
+                onClick={() => setSearchOpen((v) => !v)}
               >
-                {t(`demo.reviews.tab.${item}`)}
-              </Button>
-            ))}
-          </div>
-          <div className="oma-stage5-toolbar">
-            <label className="oma-stage5-search">
-              {t('demo.reviews.search')}
-              <Input
-                value={q}
-                data-testid="demo-review-search"
-                onChange={(e) => setQ(e.target.value)}
-              />
-            </label>
+                <SearchOutlined />
+              </button>
+              {searchOpen || q ? (
+                <Input
+                  autoFocus
+                  value={q}
+                  data-testid="demo-review-search"
+                  placeholder={t('demo.reviews.search')}
+                  onChange={(e) => setQ(e.target.value)}
+                  onBlur={() => {
+                    if (!q.trim()) setSearchOpen(false);
+                  }}
+                />
+              ) : null}
+            </div>
           </div>
 
           {queue.length === 0 ? (
