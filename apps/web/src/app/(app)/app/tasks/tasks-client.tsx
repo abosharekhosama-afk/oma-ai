@@ -156,9 +156,27 @@ export default function TasksPage() {
     }
   }, [searchParams]);
 
+
   useEffect(() => {
-    setHeaderSlot(document.getElementById('oma-workspace-top-actions'));
-    setViewSlot(document.getElementById('oma-content-view-slot'));
+    let cancelled = false;
+    let tries = 0;
+    const sync = () => {
+      if (cancelled) return;
+      const header = document.getElementById('oma-workspace-top-actions');
+      const view = document.getElementById('oma-content-view-slot');
+      setHeaderSlot(header);
+      setViewSlot(view);
+      tries += 1;
+      if ((!header || !view) && tries < 30) {
+        window.setTimeout(sync, 50);
+      }
+    };
+    sync();
+    return () => {
+      cancelled = true;
+      setHeaderSlot(null);
+      setViewSlot(null);
+    };
   }, []);
 
   useEffect(() => {
@@ -354,7 +372,7 @@ export default function TasksPage() {
       <PageHeader title={t('demo.tasks.title')} description={t('demo.tasks.subtitle')} />
       <DemoDisclosure />
 
-      {headerSlot
+      {headerSlot && headerSlot.isConnected
         ? createPortal(
             <div className="oma-workspace-header-actions">
               <button
@@ -382,7 +400,7 @@ export default function TasksPage() {
           )
         : null}
 
-      {viewSlot
+      {viewSlot && viewSlot.isConnected
         ? createPortal(
             <span
               className="oma-view-path oma-view-path--inline"
