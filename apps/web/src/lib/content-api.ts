@@ -240,3 +240,65 @@ export function contentApiError(err: unknown, fallback: string): string {
   }
   return fallback;
 }
+
+
+export type ApiDayNote = {
+  id: string;
+  brand_id: string;
+  day_key: string;
+  text: { en: string; ar: string };
+  color: string;
+  locked: boolean;
+};
+
+export async function listDayNotes(brandId: string, from?: string, to?: string) {
+  const params = new URLSearchParams();
+  if (from) params.set("from", from);
+  if (to) params.set("to", to);
+  const qs = params.toString();
+  const res = await api<{ data: ApiDayNote[] }>(`/api/v1/brands/${brandId}/day-notes${qs ? `?${qs}` : ""}`);
+  return res.data ?? [];
+}
+
+export async function upsertDayNote(brandId: string, input: { dayKey: string; text?: string; color?: string; locked?: boolean }) {
+  const res = await api<{ data: ApiDayNote }>(`/api/v1/brands/${brandId}/day-notes`, { method: "POST", body: JSON.stringify(input) });
+  return res.data;
+}
+
+export async function deleteDayNote(brandId: string, dayKey: string) {
+  return api(`/api/v1/brands/${brandId}/day-notes/${dayKey}`, { method: "DELETE", body: JSON.stringify({}) });
+}
+
+export async function setClientVisible(contentId: string, clientVisible: boolean) {
+  const res = await api<{ data: ApiContent }>(`/api/v1/content/${contentId}/visibility`, { method: "POST", body: JSON.stringify({ clientVisible }) });
+  return res.data;
+}
+
+export async function setContentLabels(contentId: string, labels: string[]) {
+  const res = await api<{ data: ApiContent }>(`/api/v1/content/${contentId}/labels`, { method: "POST", body: JSON.stringify({ labels }) });
+  return res.data;
+}
+
+export async function listContentLabels(brandId: string) {
+  const res = await api<{ data: Array<{ id: string; name: { en: string; ar: string }; color: string }> }>(`/api/v1/brands/${brandId}/content-labels`);
+  return res.data ?? [];
+}
+
+export async function createContentLabel(brandId: string, name: string, color?: string) {
+  const res = await api<{ data: { id: string; name: { en: string; ar: string }; color: string } }>(`/api/v1/brands/${brandId}/content-labels`, { method: "POST", body: JSON.stringify({ name, color }) });
+  return res.data;
+}
+
+export async function saveContentAsTemplate(brandId: string, input: { name: string; fromContentId: string }) {
+  return api(`/api/v1/brands/${brandId}/content-templates`, { method: "POST", body: JSON.stringify(input) });
+}
+
+export async function listContentTemplates(brandId: string) {
+  const res = await api<{ data: Array<{ id: string; name: { en: string; ar: string } }> }>(`/api/v1/brands/${brandId}/content-templates`);
+  return res.data ?? [];
+}
+
+export async function useContentTemplate(brandId: string, templateId: string, overrides?: { campaignId?: string | null; plannedAt?: string | null }) {
+  const res = await api<{ data: ApiContent }>(`/api/v1/brands/${brandId}/content-templates/${templateId}/use`, { method: "POST", body: JSON.stringify(overrides ?? {}) });
+  return res.data;
+}
