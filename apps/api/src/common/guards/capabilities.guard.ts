@@ -145,6 +145,20 @@ const routeRequirements: Record<string, string[]> = {
   'POST /api/v1/content/:contentId/archive': ['content.archive'],
   'GET /api/v1/brands/:brandId/content-preferences': ['content.read'],
   'PATCH /api/v1/brands/:brandId/content-preferences': ['content.update'],
+
+  'GET /api/v1/brands/:brandId/day-notes': ['content.read'],
+  'POST /api/v1/brands/:brandId/day-notes': ['content.update'],
+  'DELETE /api/v1/brands/:brandId/day-notes/:dayKey': ['content.update'],
+  'GET /api/v1/brands/:brandId/content-labels': ['content.read'],
+  'POST /api/v1/brands/:brandId/content-labels': ['content.update'],
+  'DELETE /api/v1/brands/:brandId/content-labels/:labelId': ['content.update'],
+  'POST /api/v1/content/:contentId/labels': ['content.update'],
+  'POST /api/v1/content/:contentId/visibility': ['content.update'],
+  'GET /api/v1/brands/:brandId/content-templates': ['content.read'],
+  'POST /api/v1/brands/:brandId/content-templates': ['content.create'],
+  'DELETE /api/v1/brands/:brandId/content-templates/:templateId': ['content.update'],
+  'POST /api/v1/brands/:brandId/content-templates/:templateId/use': ['content.create'],
+
 };
 
 function matchRequirements(method: string, path: string): string[] | null {
@@ -323,6 +337,40 @@ function matchRequirements(method: string, path: string): string[] | null {
     )
     .replace(/\/api\/v1\/brands\/[^/]+\/strategies/, '/api/v1/brands/:brandId/strategies')
     .replace(
+      /\/api\/v1\/brands\/[^/]+\/day-notes\/[^/]+/,
+      '/api/v1/brands/:brandId/day-notes/:dayKey',
+    )
+    .replace(/\/api\/v1\/brands\/[^/]+\/day-notes/, '/api/v1/brands/:brandId/day-notes')
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/content-labels\/[^/]+/,
+      '/api/v1/brands/:brandId/content-labels/:labelId',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/content-labels/,
+      '/api/v1/brands/:brandId/content-labels',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/content-templates\/[^/]+\/use/,
+      '/api/v1/brands/:brandId/content-templates/:templateId/use',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/content-templates\/[^/]+/,
+      '/api/v1/brands/:brandId/content-templates/:templateId',
+    )
+    .replace(
+      /\/api\/v1\/brands\/[^/]+\/content-templates/,
+      '/api/v1/brands/:brandId/content-templates',
+    )
+    .replace(
+      /\/api\/v1\/content\/[^/]+\/labels/,
+      '/api/v1/content/:contentId/labels',
+    )
+    .replace(
+      /\/api\/v1\/content\/[^/]+\/visibility/,
+      '/api/v1/content/:contentId/visibility',
+    )
+
+    .replace(
       /\/api\/v1\/brands\/[^/]+\/current-strategy/,
       '/api/v1/brands/:brandId/current-strategy',
     )
@@ -347,6 +395,9 @@ function matchRequirements(method: string, path: string): string[] | null {
       .replace(':insightId', '[^/]+')
       .replace(':campaignId', '[^/]+')
       .replace(':contentId', '[^/]+')
+      .replace(':dayKey', '[^/]+')
+      .replace(':labelId', '[^/]+')
+      .replace(':templateId', '[^/]+')
       .replace(':evidenceId', '[^/]+');
     if (
       new RegExp('^' + pattern.replace(/\//g, '\\/') + '$').test(`${method.toUpperCase()} ${path}`)
