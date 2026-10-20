@@ -2361,3 +2361,130 @@ main.oma-container:has(.oma-req-page) {
     flex-direction: column !important;
   }
 }
+
+/* View path slot = plain text like Content Plan */
+#oma-content-view-slot {
+  display: inline !important;
+  border: 0 !important;
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  color: #111 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  line-height: inherit !important;
+  height: auto !important;
+}
+#oma-content-view-slot:hover {
+  text-decoration: underline !important;
+  text-underline-offset: 3px !important;
+}
+
+/* Content-style view menu card (tasks/deliverables) */
+.oma-view-menu__list--path {
+  position: fixed !important;
+  top: 56px !important;
+  inset-inline-start: 280px !important;
+  z-index: 200 !important;
+  list-style: none !important;
+  margin: 0 !important;
+  min-width: 220px !important;
+  padding: 6px !important;
+  background: #fff !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 12px !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14) !important;
+}
+.oma-view-menu__item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  width: 100% !important;
+  padding: 10px 12px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: #333 !important;
+  font-size: 13px !important;
+  cursor: pointer !important;
+  text-align: start !important;
+}
+.oma-view-menu__item:hover {
+  background: #f5f6f7 !important;
+}
+.oma-view-menu__item[data-selected='true'] {
+  background: #eef5ff !important;
+  color: #1d4ed8 !important;
+  font-weight: 600 !important;
+}
+.oma-view-menu__item-icon {
+  width: 18px !important;
+  display: inline-flex !important;
+  justify-content: center !important;
+  color: #5e6166 !important;
+}
+.oma-view-menu__check {
+  margin-inline-start: auto !important;
+  color: #1d4ed8 !important;
+  font-size: 12px !important;
+}
+
+/* Task table Due alignment */
+.oma-task-table th,
+.oma-task-table td {
+  vertical-align: middle !important;
+  height: 52px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  padding-inline: 14px !important;
+}
+.oma-task-due-cell {
+  vertical-align: middle !important;
+}
+.oma-task-due-text {
+  display: inline-flex !important;
+  align-items: center !important;
+  height: 28px !important;
+  font-size: 13px !important;
+  line-height: 28px !important;
+  white-space: nowrap !important;
+}
+.oma-task-table .oma-task-title-btn {
+  min-height: 36px !important;
+  justify-content: center !important;
+}
+.oma-task-table td .oma-status-chip,
+.oma-task-table td [class*='StatusChip'],
+.oma-task-table td span[class*='chip'] {
+  vertical-align: middle !important;
+}
+
+/* Task detail selects restored */
+.oma-task-detail__fields select,
+.oma-task-detail__fields .oma-select,
+.oma-task-detail__fields [data-testid='demo-task-status'],
+.oma-task-detail__fields [data-testid='demo-task-priority'] {
+  display: block !important;
+  width: 100% !important;
+  min-height: 36px !important;
+  padding: 6px 10px !important;
+  border: 1px solid #d9dce1 !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  font-size: 13px !important;
+  color: #111 !important;
+  box-sizing: border-box !important;
+}
+.oma-task-detail__fields input {
+  display: block !important;
+  width: 100% !important;
+  min-height: 36px !important;
+  padding: 6px 10px !important;
+  border: 1px solid #d9dce1 !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  font-size: 13px !important;
+  box-sizing: border-box !important;
+}
