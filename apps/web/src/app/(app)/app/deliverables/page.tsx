@@ -26,6 +26,15 @@ import {
   type DeliverableRow,
 } from '../../../../lib/demo/stage5-deliverables';
 import { useLocale, useT } from '../../../../lib/use-locale';
+import {
+  AppstoreOutlined,
+  BarsOutlined,
+  CloseOutlined,
+  FilterOutlined,
+  SearchOutlined,
+  DownOutlined,
+  UpOutlined,
+} from '@ant-design/icons';
 
 type Campaign = DemoGraph['campaigns'][number];
 
@@ -50,6 +59,9 @@ export default function DeliverablesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [unavailable, setUnavailable] = useState(false);
+  const [filterSheet, setFilterSheet] = useState(false);
+  const [viewMenuOpen, setViewMenuOpen] = useState(false);
+  const [filterSection, setFilterSection] = useState<string | null>('search');
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -105,31 +117,8 @@ export default function DeliverablesPage() {
   const reviewers = useMemo(() => [...new Set(rows.map((r) => r.reviewer))], [rows]);
 
   return (
-    <div className="oma-stack" data-testid="demo-deliverables" data-prefs={prefsLoaded ? '1' : '0'}>
-      <PageHeader
-        title={t('demo.deliverables.title')}
-        description={t('demo.deliverables.subtitle')}
-        actions={
-          <div className="oma-view-toggle" role="group">
-            <Button
-              type={filters.view === 'list' ? 'primary' : 'default'}
-              aria-pressed={filters.view === 'list'}
-              data-testid="demo-deliv-view-list"
-              onClick={() => changeView('list')}
-            >
-              {t('demo.view.list')}
-            </Button>
-            <Button
-              type={filters.view === 'grid' ? 'primary' : 'default'}
-              aria-pressed={filters.view === 'grid'}
-              data-testid="demo-deliv-view-grid"
-              onClick={() => changeView('grid')}
-            >
-              {t('demo.view.grid')}
-            </Button>
-          </div>
-        }
-      />
+    <div className="oma-deliv-page" data-testid="demo-deliverables" data-prefs={prefsLoaded ? '1' : '0'}>
+      <PageHeader title={t('demo.deliverables.title')} description={t('demo.deliverables.subtitle')} />
       <DemoDisclosure />
       <p className="oma-honesty-inline" data-testid="demo-storage-honesty">
         {t('demo.deliverable.storageHonesty')}
@@ -149,244 +138,463 @@ export default function DeliverablesPage() {
 
       {!loading && !unavailable && !error ? (
         <>
-          <div className="oma-deliv-groups" data-testid="demo-deliv-groups">
-            {GROUPS.map((g) => (
-              <Button
-                key={g}
-                type={filters.group === g ? 'primary' : 'default'}
-                aria-pressed={filters.group === g}
-                data-testid={`demo-deliv-group-${g}`}
-                onClick={() => setFilters((f) => ({ ...f, group: g }))}
-              >
-                {t(`demo.deliverables.group.${g}`)}
-              </Button>
-            ))}
-          </div>
-
-          <div className="oma-stage5-toolbar" data-testid="demo-deliv-filters">
-            <label className="oma-stage5-search">
-              {t('demo.deliverables.search')}
-              <Input
-                value={filters.q}
-                data-testid="demo-deliv-search"
-                onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
-              />
-            </label>
-            <label>
-              {t('demo.deliverables.filter.review')}
-              <SelectField
-                value={filters.reviewState}
-                data-testid="demo-deliv-filter-review"
-                onChange={(e) => setFilters((f) => ({ ...f, reviewState: e.target.value }))}
-              >
-                <option value="all">{t('demo.filter.all')}</option>
-                {[
-                  'DRAFT',
-                  'AWAITING_REVIEW',
-                  'IN_REVIEW',
-                  'CHANGES_REQUESTED',
-                  'APPROVED',
-                  'REJECTED',
-                ].map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </SelectField>
-            </label>
-            <label>
-              {t('demo.deliverables.filter.type')}
-              <SelectField
-                value={filters.assetType}
-                data-testid="demo-deliv-filter-type"
-                onChange={(e) => setFilters((f) => ({ ...f, assetType: e.target.value }))}
-              >
-                <option value="all">{t('demo.filter.all')}</option>
-                {['STATIC', 'CAROUSEL', 'REEL', 'LONG_VIDEO', 'COPY', 'PHOTOGRAPHY'].map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </SelectField>
-            </label>
-            <label>
-              {t('demo.deliverables.filter.campaign')}
-              <SelectField
-                value={filters.campaignId}
-                data-testid="demo-deliv-filter-campaign"
-                onChange={(e) => setFilters((f) => ({ ...f, campaignId: e.target.value }))}
-              >
-                <option value="all">{t('demo.filter.all')}</option>
-                {campaigns.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {pickCopy(c.name, locale)}
-                  </option>
-                ))}
-              </SelectField>
-            </label>
-            <label>
-              {t('demo.deliverables.filter.owner')}
-              <SelectField
-                value={filters.owner}
-                data-testid="demo-deliv-filter-owner"
-                onChange={(e) => setFilters((f) => ({ ...f, owner: e.target.value }))}
-              >
-                <option value="all">{t('demo.filter.all')}</option>
-                {owners.map((o) => (
-                  <option key={o} value={o}>
-                    {o}
-                  </option>
-                ))}
-              </SelectField>
-            </label>
-            <label>
-              {t('demo.deliverables.filter.reviewer')}
-              <SelectField
-                value={filters.reviewer}
-                data-testid="demo-deliv-filter-reviewer"
-                onChange={(e) => setFilters((f) => ({ ...f, reviewer: e.target.value }))}
-              >
-                <option value="all">{t('demo.filter.all')}</option>
-                {reviewers.map((o) => (
-                  <option key={o} value={o}>
-                    {o}
-                  </option>
-                ))}
-              </SelectField>
-            </label>
-          </div>
-
-          <p className="oma-muted" data-testid="demo-deliv-result-count">
-            {filtered.length} / {rows.length}
-          </p>
-
-          {filterCount > 0 ? (
-            <div className="oma-filter-chips">
-              <Button
-                type="default"
-                data-testid="demo-deliv-clear-filters"
-                onClick={() => setFilters({ ...EMPTY_DELIVERABLE_FILTERS, view: filters.view })}
-              >
-                {t('demo.requests.clearFilters')}
-              </Button>
+          <div className="oma-req-topbar oma-deliv-topbar">
+            <div className="oma-req-tabs" data-testid="demo-deliv-groups" role="tablist">
+              {GROUPS.map((g) => (
+                <button
+                  key={g}
+                  type="button"
+                  role="tab"
+                  className="oma-req-tab"
+                  aria-selected={filters.group === g}
+                  data-active={filters.group === g ? 'true' : 'false'}
+                  data-testid={`demo-deliv-group-${g}`}
+                  onClick={() => setFilters((f) => ({ ...f, group: g }))}
+                >
+                  {t(`demo.deliverables.group.${g}`)}
+                </button>
+              ))}
             </div>
-          ) : null}
-
-          {filtered.length === 0 ? (
-            <EmptyState title={t('demo.empty')} body={t('demo.deliverables.emptyHint')} />
-          ) : filters.view === 'grid' ? (
-            <div className="oma-deliv-grid" data-testid="demo-deliv-grid">
-              {filtered.map((d) => {
-                const ver = currentVersion(d);
-                const thumb = ver?.assets[0];
-                return (
-                  <Link
-                    key={d.id}
-                    href={`/app/deliverables/${d.id}`}
-                    className="oma-deliv-grid-card"
-                    data-overdue={deliverableIsOverdue(d) ? 'true' : 'false'}
-                    data-testid={`demo-deliv-card-${d.id}`}
-                  >
-                    {thumb ? (
-                      <img src={thumb} alt="" />
-                    ) : (
-                      <div className="oma-deliv-thumb-fallback" aria-hidden />
-                    )}
-                    <strong>{pickCopy(d.title, locale)}</strong>
-                    <div className="oma-chip-row">
-                      <StatusChip status={d.reviewStatus} />
-                      <span className="oma-muted">{d.type}</span>
-                    </div>
-                    <span className="oma-muted">
-                      {ver?.label} · {d.owner}
-                      {unresolvedCount(d) ? ` · ${unresolvedCount(d)}` : ''}
-                    </span>
-                  </Link>
-                );
-              })}
-            </div>
-          ) : (
-            <>
-              <div
-                className="oma-deliv-table-wrap oma-deliv-desktop"
-                data-testid="demo-deliv-table"
-              >
-                <table className="oma-deliv-table">
-                  <thead>
-                    <tr>
-                      <th />
-                      <th>{t('demo.deliverables.col.title')}</th>
-                      <th>{t('demo.deliverables.filter.type')}</th>
-                      <th>{t('demo.deliverables.col.version')}</th>
-                      <th>{t('demo.deliverables.filter.review')}</th>
-                      <th>{t('demo.deliverables.filter.owner')}</th>
-                      <th>{t('demo.deliverables.filter.reviewer')}</th>
-                      <th>{t('demo.deliverables.col.due')}</th>
-                      <th>{t('demo.deliverables.col.comments')}</th>
-                      <th>{t('demo.deliverables.col.next')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filtered.map((d) => {
-                      const ver = currentVersion(d);
-                      const thumb = ver?.assets[0];
-                      const next = deliverableNextAction(d);
-                      return (
-                        <tr
-                          key={d.id}
-                          data-overdue={deliverableIsOverdue(d) ? 'true' : 'false'}
-                          data-testid={`demo-deliv-row-${d.id}`}
-                        >
-                          <td>
-                            {thumb ? (
-                              <img className="oma-deliv-thumb" src={thumb} alt="" />
-                            ) : (
-                              <div className="oma-deliv-thumb" />
-                            )}
-                          </td>
-                          <td>
-                            <Link href={`/app/deliverables/${d.id}`} className="oma-text-link">
-                              {pickCopy(d.title, locale)}
-                            </Link>
-                            <div className="oma-muted" style={{ fontSize: 12 }}>
-                              {d.taskId ?? '—'} · {d.campaignId}
-                            </div>
-                          </td>
-                          <td>{d.type}</td>
-                          <td>{ver?.label ?? '—'}</td>
-                          <td>
-                            <StatusChip status={d.reviewStatus} />
-                          </td>
-                          <td>{d.owner}</td>
-                          <td>{d.reviewer}</td>
-                          <td>{d.dueAt}</td>
-                          <td>{unresolvedCount(d)}</td>
-                          <td>{pickCopy(next, locale)}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-              <ul className="oma-deliv-mobile" aria-label={t('demo.deliverables.title')}>
-                {filtered.map((d) => (
-                  <li key={d.id}>
-                    <Link
-                      href={`/app/deliverables/${d.id}`}
-                      className="oma-deliv-mobile-card"
-                      data-overdue={deliverableIsOverdue(d) ? 'true' : 'false'}
+            <div className="oma-req-topbar__actions">
+              <div className="oma-view-path">
+                <button
+                  type="button"
+                  className="oma-view-path__btn"
+                  data-testid="demo-deliv-view-toggle"
+                  aria-expanded={viewMenuOpen}
+                  onClick={() => setViewMenuOpen((v) => !v)}
+                >
+                  {filters.view === 'grid' ? <AppstoreOutlined /> : <BarsOutlined />}
+                  <span>
+                    {filters.view === 'grid' ? t('demo.view.grid') : t('demo.view.list')}
+                  </span>
+                  <DownOutlined className="oma-view-path__caret" />
+                </button>
+                {viewMenuOpen ? (
+                  <div className="oma-view-path__menu" role="menu" data-testid="demo-deliv-view-menu">
+                    <button
+                      type="button"
+                      role="menuitem"
+                      data-active={filters.view === 'list' ? 'true' : 'false'}
+                      data-testid="demo-deliv-view-list"
+                      onClick={() => {
+                        changeView('list');
+                        setViewMenuOpen(false);
+                      }}
                     >
-                      <strong>{pickCopy(d.title, locale)}</strong>
-                      <StatusChip status={d.reviewStatus} />
-                      <span className="oma-muted">
-                        {d.owner} · {d.dueAt}
+                      <BarsOutlined />
+                      <span>{t('demo.view.list')}</span>
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      data-active={filters.view === 'grid' ? 'true' : 'false'}
+                      data-testid="demo-deliv-view-grid"
+                      onClick={() => {
+                        changeView('grid');
+                        setViewMenuOpen(false);
+                      }}
+                    >
+                      <AppstoreOutlined />
+                      <span>{t('demo.view.grid')}</span>
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+              <button
+                type="button"
+                className="oma-req-filter-btn"
+                data-testid="demo-deliv-open-filters"
+                data-active={filterSheet ? 'true' : 'false'}
+                onClick={() => setFilterSheet((v) => !v)}
+              >
+                <FilterOutlined />
+                <span>{locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter'}</span>
+                {filterCount > 0 ? (
+                  <span className="oma-req-filter-btn__count">{filterCount}</span>
+                ) : null}
+              </button>
+            </div>
+          </div>
+
+          <div className="oma-req-workspace oma-deliv-workspace" data-filter-open={filterSheet ? 'true' : 'false'}>
+            <div className="oma-req-main">
+              <p className="oma-muted" data-testid="demo-deliv-result-count">
+                {filtered.length} / {rows.length}
+              </p>
+
+              {filtered.length === 0 ? (
+                <EmptyState title={t('demo.empty')} body={t('demo.deliverables.emptyHint')} />
+              ) : filters.view === 'grid' ? (
+                <div className="oma-deliv-grid" data-testid="demo-deliv-grid">
+                  {filtered.map((d) => {
+                    const ver = currentVersion(d);
+                    const thumb = ver?.previewUrl;
+                    return (
+                      <Link
+                        key={d.id}
+                        href={`/app/deliverables/${d.id}`}
+                        className="oma-deliv-grid-card"
+                        data-overdue={deliverableIsOverdue(d) ? 'true' : 'false'}
+                        data-testid={`demo-deliv-card-${d.id}`}
+                      >
+                        {thumb ? (
+                          <img src={thumb} alt="" />
+                        ) : (
+                          <div className="oma-deliv-thumb-fallback" />
+                        )}
+                        <strong>{pickCopy(d.title, locale)}</strong>
+                        <div className="oma-chip-row">
+                          <StatusChip status={d.reviewStatus} />
+                        </div>
+                        <span className="oma-muted">
+                          {d.owner} · {d.dueAt}
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              ) : (
+                <>
+                  <div className="oma-deliv-table-wrap oma-deliv-desktop" data-testid="demo-deliv-table">
+                    <table className="oma-deliv-table">
+                      <thead>
+                        <tr>
+                          <th />
+                          <th>{t('demo.deliverables.col.title')}</th>
+                          <th>{t('demo.deliverables.col.type')}</th>
+                          <th>{t('demo.deliverables.col.version')}</th>
+                          <th>{t('demo.deliverables.col.status')}</th>
+                          <th>{t('demo.deliverables.col.owner')}</th>
+                          <th>{t('demo.deliverables.col.reviewer')}</th>
+                          <th>{t('demo.deliverables.col.due')}</th>
+                          <th>{t('demo.deliverables.col.comments')}</th>
+                          <th>{t('demo.deliverables.col.next')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filtered.map((d) => {
+                          const ver = currentVersion(d);
+                          const thumb = ver?.previewUrl;
+                          const next = deliverableNextAction(d);
+                          return (
+                            <tr
+                              key={d.id}
+                              data-overdue={deliverableIsOverdue(d) ? 'true' : 'false'}
+                              data-testid={`demo-deliv-row-${d.id}`}
+                            >
+                              <td>
+                                {thumb ? (
+                                  <img className="oma-deliv-thumb" src={thumb} alt="" />
+                                ) : (
+                                  <div className="oma-deliv-thumb" />
+                                )}
+                              </td>
+                              <td>
+                                <Link href={`/app/deliverables/${d.id}`} className="oma-text-link">
+                                  {pickCopy(d.title, locale)}
+                                </Link>
+                                <div className="oma-muted" style={{ fontSize: 12 }}>
+                                  {d.taskId ?? '—'} · {d.campaignId}
+                                </div>
+                              </td>
+                              <td>{d.type}</td>
+                              <td>{ver?.label ?? '—'}</td>
+                              <td>
+                                <StatusChip status={d.reviewStatus} />
+                              </td>
+                              <td>{d.owner}</td>
+                              <td>{d.reviewer}</td>
+                              <td>{d.dueAt}</td>
+                              <td>{unresolvedCount(d)}</td>
+                              <td>{pickCopy(next, locale)}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                  <ul className="oma-deliv-mobile" aria-label={t('demo.deliverables.title')}>
+                    {filtered.map((d) => (
+                      <li key={d.id}>
+                        <Link
+                          href={`/app/deliverables/${d.id}`}
+                          className="oma-deliv-mobile-card"
+                          data-overdue={deliverableIsOverdue(d) ? 'true' : 'false'}
+                        >
+                          <strong>{pickCopy(d.title, locale)}</strong>
+                          <StatusChip status={d.reviewStatus} />
+                          <span className="oma-muted">
+                            {d.owner} · {d.dueAt}
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </div>
+
+            {filterSheet ? (
+              <aside className="oma-req-filter-panel" data-testid="demo-deliv-filters">
+                <header className="oma-req-filter-panel__head">
+                  <strong>{locale.toLowerCase().startsWith('ar') ? 'تصفية وترتيب' : 'Filter & sort'}</strong>
+                  <button
+                    type="button"
+                    className="oma-req-filter-panel__close"
+                    aria-label="Close"
+                    onClick={() => setFilterSheet(false)}
+                  >
+                    <CloseOutlined />
+                  </button>
+                </header>
+                <div className="oma-filter-accordion-list">
+                  <div className="oma-filter-accordion">
+                    <button
+                      type="button"
+                      className="oma-filter-accordion__row"
+                      data-open={filterSection === 'search' ? 'true' : 'false'}
+                      onClick={() => setFilterSection((s) => (s === 'search' ? null : 'search'))}
+                    >
+                      <span className="oma-filter-accordion__ico">
+                        <SearchOutlined />
                       </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
+                      <span>{t('demo.deliverables.search')}</span>
+                      <span className="oma-filter-accordion__caret">
+                        {filterSection === 'search' ? <UpOutlined /> : <DownOutlined />}
+                      </span>
+                    </button>
+                    {filterSection === 'search' ? (
+                      <div className="oma-filter-accordion__body">
+                        <Input
+                          value={filters.q}
+                          data-testid="demo-deliv-search"
+                          onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
+                          placeholder={t('demo.deliverables.search')}
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="oma-filter-accordion">
+                    <button
+                      type="button"
+                      className="oma-filter-accordion__row"
+                      data-open={filterSection === 'review' ? 'true' : 'false'}
+                      onClick={() => setFilterSection((s) => (s === 'review' ? null : 'review'))}
+                    >
+                      <span className="oma-filter-accordion__ico">
+                        <FilterOutlined />
+                      </span>
+                      <span>{t('demo.deliverables.filter.review')}</span>
+                      <span className="oma-filter-accordion__caret">
+                        {filterSection === 'review' ? <UpOutlined /> : <DownOutlined />}
+                      </span>
+                    </button>
+                    {filterSection === 'review' ? (
+                      <div className="oma-filter-accordion__body">
+                        {(
+                          [
+                            'all',
+                            'DRAFT',
+                            'AWAITING_REVIEW',
+                            'IN_REVIEW',
+                            'CHANGES_REQUESTED',
+                            'APPROVED',
+                            'REJECTED',
+                          ] as const
+                        ).map((s) => (
+                          <label key={s} className="oma-filter-check">
+                            <input
+                              type="radio"
+                              name="deliv-review"
+                              data-testid={s === 'all' ? 'demo-deliv-filter-review' : undefined}
+                              checked={filters.reviewState === s}
+                              onChange={() => setFilters((f) => ({ ...f, reviewState: s }))}
+                            />
+                            <span>{s === 'all' ? t('demo.filter.all') : s}</span>
+                          </label>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="oma-filter-accordion">
+                    <button
+                      type="button"
+                      className="oma-filter-accordion__row"
+                      data-open={filterSection === 'type' ? 'true' : 'false'}
+                      onClick={() => setFilterSection((s) => (s === 'type' ? null : 'type'))}
+                    >
+                      <span className="oma-filter-accordion__ico">
+                        <AppstoreOutlined />
+                      </span>
+                      <span>{t('demo.deliverables.filter.type')}</span>
+                      <span className="oma-filter-accordion__caret">
+                        {filterSection === 'type' ? <UpOutlined /> : <DownOutlined />}
+                      </span>
+                    </button>
+                    {filterSection === 'type' ? (
+                      <div className="oma-filter-accordion__body">
+                        {(['all', 'STATIC', 'CAROUSEL', 'REEL', 'LONG_VIDEO', 'COPY', 'PHOTOGRAPHY'] as const).map(
+                          (s) => (
+                            <label key={s} className="oma-filter-check">
+                              <input
+                                type="radio"
+                                name="deliv-type"
+                                data-testid={s === 'all' ? 'demo-deliv-filter-type' : undefined}
+                                checked={filters.assetType === s}
+                                onChange={() => setFilters((f) => ({ ...f, assetType: s }))}
+                              />
+                              <span>{s === 'all' ? t('demo.filter.all') : s}</span>
+                            </label>
+                          ),
+                        )}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="oma-filter-accordion">
+                    <button
+                      type="button"
+                      className="oma-filter-accordion__row"
+                      data-open={filterSection === 'campaign' ? 'true' : 'false'}
+                      onClick={() => setFilterSection((s) => (s === 'campaign' ? null : 'campaign'))}
+                    >
+                      <span className="oma-filter-accordion__ico">
+                        <FilterOutlined />
+                      </span>
+                      <span>{t('demo.deliverables.filter.campaign')}</span>
+                      <span className="oma-filter-accordion__caret">
+                        {filterSection === 'campaign' ? <UpOutlined /> : <DownOutlined />}
+                      </span>
+                    </button>
+                    {filterSection === 'campaign' ? (
+                      <div className="oma-filter-accordion__body">
+                        <label className="oma-filter-check">
+                          <input
+                            type="radio"
+                            name="deliv-campaign"
+                            data-testid="demo-deliv-filter-campaign"
+                            checked={filters.campaignId === 'all'}
+                            onChange={() => setFilters((f) => ({ ...f, campaignId: 'all' }))}
+                          />
+                          <span>{t('demo.filter.all')}</span>
+                        </label>
+                        {campaigns.map((c) => (
+                          <label key={c.id} className="oma-filter-check">
+                            <input
+                              type="radio"
+                              name="deliv-campaign"
+                              checked={filters.campaignId === c.id}
+                              onChange={() => setFilters((f) => ({ ...f, campaignId: c.id }))}
+                            />
+                            <span>{pickCopy(c.name, locale)}</span>
+                          </label>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="oma-filter-accordion">
+                    <button
+                      type="button"
+                      className="oma-filter-accordion__row"
+                      data-open={filterSection === 'owner' ? 'true' : 'false'}
+                      onClick={() => setFilterSection((s) => (s === 'owner' ? null : 'owner'))}
+                    >
+                      <span className="oma-filter-accordion__ico">
+                        <FilterOutlined />
+                      </span>
+                      <span>{t('demo.deliverables.filter.owner')}</span>
+                      <span className="oma-filter-accordion__caret">
+                        {filterSection === 'owner' ? <UpOutlined /> : <DownOutlined />}
+                      </span>
+                    </button>
+                    {filterSection === 'owner' ? (
+                      <div className="oma-filter-accordion__body">
+                        <label className="oma-filter-check">
+                          <input
+                            type="radio"
+                            name="deliv-owner"
+                            data-testid="demo-deliv-filter-owner"
+                            checked={filters.owner === 'all'}
+                            onChange={() => setFilters((f) => ({ ...f, owner: 'all' }))}
+                          />
+                          <span>{t('demo.filter.all')}</span>
+                        </label>
+                        {owners.map((o) => (
+                          <label key={o} className="oma-filter-check">
+                            <input
+                              type="radio"
+                              name="deliv-owner"
+                              checked={filters.owner === o}
+                              onChange={() => setFilters((f) => ({ ...f, owner: o }))}
+                            />
+                            <span>{o}</span>
+                          </label>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="oma-filter-accordion">
+                    <button
+                      type="button"
+                      className="oma-filter-accordion__row"
+                      data-open={filterSection === 'reviewer' ? 'true' : 'false'}
+                      onClick={() => setFilterSection((s) => (s === 'reviewer' ? null : 'reviewer'))}
+                    >
+                      <span className="oma-filter-accordion__ico">
+                        <FilterOutlined />
+                      </span>
+                      <span>{t('demo.deliverables.filter.reviewer')}</span>
+                      <span className="oma-filter-accordion__caret">
+                        {filterSection === 'reviewer' ? <UpOutlined /> : <DownOutlined />}
+                      </span>
+                    </button>
+                    {filterSection === 'reviewer' ? (
+                      <div className="oma-filter-accordion__body">
+                        <label className="oma-filter-check">
+                          <input
+                            type="radio"
+                            name="deliv-reviewer"
+                            data-testid="demo-deliv-filter-reviewer"
+                            checked={filters.reviewer === 'all'}
+                            onChange={() => setFilters((f) => ({ ...f, reviewer: 'all' }))}
+                          />
+                          <span>{t('demo.filter.all')}</span>
+                        </label>
+                        {reviewers.map((r) => (
+                          <label key={r} className="oma-filter-check">
+                            <input
+                              type="radio"
+                              name="deliv-reviewer"
+                              checked={filters.reviewer === r}
+                              onChange={() => setFilters((f) => ({ ...f, reviewer: r }))}
+                            />
+                            <span>{r}</span>
+                          </label>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+
+                {filterCount > 0 ? (
+                  <div className="oma-req-filter-panel__foot">
+                    <Button
+                      type="default"
+                      data-testid="demo-deliv-clear-filters"
+                      onClick={() => setFilters((f) => ({ ...EMPTY_DELIVERABLE_FILTERS, view: f.view, group: f.group }))}
+                    >
+                      {t('demo.requests.clearFilters') || 'Clear filters'}
+                    </Button>
+                  </div>
+                ) : null}
+              </aside>
+            ) : null}
+          </div>
         </>
       ) : null}
     </div>
