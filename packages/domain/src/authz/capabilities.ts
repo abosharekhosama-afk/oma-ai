@@ -45,11 +45,31 @@ export const STRATEGY_CAPABILITIES = [
   'strategy.set_current',
 ] as const;
 
+
+export const CAMPAIGN_CAPABILITIES = [
+  'campaign.read',
+  'campaign.create',
+  'campaign.update',
+  'campaign.archive',
+] as const;
+
+export const CONTENT_CAPABILITIES = [
+  'content.read',
+  'content.create',
+  'content.update',
+  'content.request_approval',
+  'content.approve',
+  'content.schedule',
+  'content.archive',
+] as const;
+
 export type CapabilityCode =
   | (typeof FOUNDATION_CAPABILITIES)[number]
   | (typeof BRAND_CAPABILITIES)[number]
   | (typeof STRATEGY_CAPABILITIES)[number]
   | (typeof AI_CAPABILITIES)[number]
+  | (typeof CAMPAIGN_CAPABILITIES)[number]
+  | (typeof CONTENT_CAPABILITIES)[number]
   | string;
 
 export function hasCapability(
