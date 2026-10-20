@@ -12,17 +12,18 @@ import { EmptyState, ErrorState, DeniedState } from '../../../../../components/u
 import { PageHeader, Panel } from '../../../../../components/ui/page-header';
 import { StatusChip } from '../../../../../components/ui/status-chip';
 import { Dialog } from '../../../../../components/ui/dialog';
-import {
-  demoApi,
-  demoErrorMessage,
-  isDemoForbidden,
-  pickCopy,
-} from '../../../../../lib/demo/use-demo-api';
+import { pickCopy } from '../../../../../lib/demo/use-demo-api';
 import {
   getCampaignProduction,
   toCampaignRow,
   listBrandsProduction,
+  updateCampaignProduction,
+  archiveCampaignProduction,
+  apiErrorMessage,
 } from '../../../../../lib/campaign-api';
+import { listContentForBrand, toContentRow } from '../../../../../lib/content-api';
+import { Input, TextArea, SelectField, DateField } from '@oma/ui/controls';
+import { useToast } from '../../../../../components/ui/toast';
 import {
   campaignNextAction,
   campaignReviewState,
@@ -62,59 +63,66 @@ export default function CampaignDetailPage() {
   const [unavailable, setUnavailable] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [confirmClose, setConfirmClose] = useState(false);
+  const toast = useToast();
+  const [saving, setSaving] = useState(false);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    objective: '',
+    audience: '',
+    channels: '',
+    start: '',
+    end: '',
+    track: 'ORGANIC' as 'ORGANIC' | 'PAID',
+    status: 'DRAFT' as string,
+  });
 
   useEffect(() => {
     if (!campaignId) return;
     let cancelled = false;
     (async () => {
       try {
-        // Production campaign first; related tabs still use demo graph when available.
-        let row: Campaign | null = null;
-        let brandRow: Brand | null = null;
-        try {
-          const apiCamp = await getCampaignProduction(campaignId);
-          row = toCampaignRow(apiCamp);
-          const brands = await listBrandsProduction();
-          const b = brands.find((x) => x.id === apiCamp.brand_id);
-          brandRow = b
-            ? ({
-                id: b.id,
-                name: { en: b.name, ar: b.name },
-                state: 'healthy',
-                profileStatus: b.status,
-                strategyId: null,
-              } as Brand)
-            : null;
-        } catch {
-          /* fall through to demo */
-        }
-        let graph: DemoGraph | null = null;
-        try {
-          graph = await demoApi<DemoGraph>('/graph');
-        } catch {
-          graph = null;
-        }
+        const apiCamp = await getCampaignProduction(campaignId);
+        const row = toCampaignRow(apiCamp);
+        const brands = await listBrandsProduction();
+        const b = brands.find((x) => x.id === apiCamp.brand_id);
+        const brandRow = b
+          ? ({
+              id: b.id,
+              name: { en: b.name, ar: b.name },
+              state: 'healthy',
+              profileStatus: b.status,
+              strategyId: null,
+            } as Brand)
+          : null;
         if (cancelled) return;
-        if (!row && graph) {
-          row = graph.campaigns.find((c) => c.id === campaignId) ?? null;
-        }
         setCampaign(row);
-        setBrand(
-          brandRow ??
-            (graph && row ? graph.brands.find((b) => b.id === row?.brandId) ?? null : null),
-        );
-        setStrategy(graph && row ? graph.strategies.find((s) => s.id === row?.strategyId) ?? null : null);
-        setContent(graph ? graph.contentItems.filter((c) => c.campaignId === campaignId) : []);
-        setTasks(graph ? graph.tasks.filter((task) => task.campaignId === campaignId).slice(0, 6) : []);
-        setDeliverables(graph ? graph.deliverables.filter((d) => d.campaignId === campaignId) : []);
-        const scoped = graph ? graph.activity.filter((a) => a.campaignId === campaignId) : [];
-        setActivity((scoped.length ? scoped : graph?.activity ?? []).slice(0, 8));
+        setBrand(brandRow);
+        setStrategy(null);
+        // Linked content from production Content API
+        try {
+          const items = await listContentForBrand(apiCamp.brand_id, { campaignId });
+          if (!cancelled) setContent(items.map((c) => toContentRow(c)) as ContentItem[]);
+        } catch {
+          if (!cancelled) setContent([]);
+        }
+        setTasks([]);
+        setDeliverables([]);
+        setActivity([]);
         setError(null);
-        if (!row) setError('Not found');
+        setEditForm({
+          name: pickCopy(row.name, locale),
+          objective: pickCopy(row.objective, locale),
+          audience: pickCopy(row.audience, locale),
+          channels: row.channels.join(', '),
+          start: row.timeline.start,
+          end: row.timeline.end,
+          track: row.track,
+          status: row.status,
+        });
       } catch (err) {
         if (cancelled) return;
-        if (isDemoForbidden(err)) setUnavailable(true);
-        else setError(demoErrorMessage(err, 'Demo unavailable'));
+        setError(apiErrorMessage(err, locale.toLowerCase().startsWith('ar') ? 'تعذّر تحميل الحملة' : 'Failed to load campaign'));
+        setCampaign(null);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -519,11 +527,155 @@ export default function CampaignDetailPage() {
       ) : null}
 
       <Dialog open={editOpen} title={t('demo.campaign.edit')} onClose={() => setEditOpen(false)}>
-        <p className="oma-muted">{t('demo.campaign.tabLater')}</p>
-        <p className="oma-honesty-banner">{t('demo.planningOnly')}</p>
-        <Button type="default" onClick={() => setEditOpen(false)}>
-          {t('demo.create.cancel')}
-        </Button>
+        <div className="oma-stack" style={{ gap: 12 }}>
+          <label>
+            {t('demo.create.name') || 'Name'}
+            <Input
+              value={editForm.name}
+              onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
+            />
+          </label>
+          <label>
+            {t('demo.campaign.objective')}
+            <TextArea
+              value={editForm.objective}
+              onChange={(e) => setEditForm((f) => ({ ...f, objective: e.target.value }))}
+              rows={3}
+            />
+          </label>
+          <label>
+            {t('demo.campaign.audience')}
+            <TextArea
+              value={editForm.audience}
+              onChange={(e) => setEditForm((f) => ({ ...f, audience: e.target.value }))}
+              rows={2}
+            />
+          </label>
+          <label>
+            {t('demo.campaign.channels')}
+            <Input
+              value={editForm.channels}
+              onChange={(e) => setEditForm((f) => ({ ...f, channels: e.target.value }))}
+              placeholder="instagram, tiktok"
+            />
+          </label>
+          <div className="oma-chip-row">
+            <label>
+              {t('demo.campaign.timeline')}
+              <DateField
+                value={editForm.start}
+                onChange={(e) => setEditForm((f) => ({ ...f, start: e.target.value }))}
+              />
+            </label>
+            <label>
+              →
+              <DateField
+                value={editForm.end}
+                onChange={(e) => setEditForm((f) => ({ ...f, end: e.target.value }))}
+              />
+            </label>
+          </div>
+          <label>
+            Track
+            <SelectField
+              value={editForm.track}
+              onChange={(e) =>
+                setEditForm((f) => ({ ...f, track: e.target.value as 'ORGANIC' | 'PAID' }))
+              }
+            >
+              <option value="ORGANIC">{t('demo.organic')}</option>
+              <option value="PAID">{t('demo.paid')}</option>
+            </SelectField>
+          </label>
+          <label>
+            {t('demo.filter.status')}
+            <SelectField
+              value={editForm.status}
+              onChange={(e) => setEditForm((f) => ({ ...f, status: e.target.value }))}
+            >
+              {['DRAFT', 'UPCOMING', 'ACTIVE', 'IN_REVIEW', 'NEEDS_ATTENTION', 'COMPLETED'].map(
+                (s) => (
+                  <option key={s} value={s}>
+                    {statusLabel(s, locale)}
+                  </option>
+                ),
+              )}
+            </SelectField>
+          </label>
+          <div className="oma-chip-row">
+            <Button type="default" onClick={() => setEditOpen(false)} disabled={saving}>
+              {t('demo.create.cancel')}
+            </Button>
+            <Button
+              type="primary"
+              disabled={saving || !editForm.name.trim()}
+              onClick={() => {
+                void (async () => {
+                  if (!campaignId) return;
+                  setSaving(true);
+                  try {
+                    const updated = await updateCampaignProduction(campaignId, {
+                      name: { en: editForm.name.trim(), ar: editForm.name.trim() },
+                      objective: {
+                        en: editForm.objective.trim(),
+                        ar: editForm.objective.trim(),
+                      },
+                      audience: {
+                        en: editForm.audience.trim(),
+                        ar: editForm.audience.trim(),
+                      },
+                      channels: editForm.channels
+                        .split(',')
+                        .map((c) => c.trim())
+                        .filter(Boolean),
+                      track: editForm.track,
+                      timelineStart: editForm.start,
+                      timelineEnd: editForm.end,
+                      status: editForm.status,
+                    });
+                    setCampaign(toCampaignRow(updated));
+                    setEditOpen(false);
+                    toast.push(
+                      locale.toLowerCase().startsWith('ar') ? 'تم حفظ الحملة' : 'Campaign saved',
+                      'success',
+                    );
+                  } catch (err) {
+                    toast.push(apiErrorMessage(err, 'Save failed'), 'danger');
+                  } finally {
+                    setSaving(false);
+                  }
+                })();
+              }}
+            >
+              {saving ? '…' : t('demo.content.saved') || 'Save'}
+            </Button>
+            <Button
+              type="default"
+              disabled={saving}
+              onClick={() => {
+                void (async () => {
+                  if (!campaignId) return;
+                  setSaving(true);
+                  try {
+                    await archiveCampaignProduction(campaignId);
+                    toast.push(
+                      locale.toLowerCase().startsWith('ar') ? 'تمت الأرشفة' : 'Archived',
+                      'success',
+                    );
+                    setEditOpen(false);
+                    router.push('/app/campaigns');
+                  } catch (err) {
+                    toast.push(apiErrorMessage(err, 'Archive failed'), 'danger');
+                  } finally {
+                    setSaving(false);
+                  }
+                })();
+              }}
+            >
+              Archive
+            </Button>
+          </div>
+        </div>
       </Dialog>
 
       <Dialog
