@@ -1721,3 +1721,108 @@ main.oma-container:has(.oma-req-page) {
 .oma-deliv-row:hover {
   background: #f8f9fa !important;
 }
+
+/* ==== View path in breadcrumb — Planable organized control ==== */
+.oma-breadcrumb-view {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  min-height: 28px !important;
+}
+.oma-view-path--inline {
+  display: inline-flex !important;
+  position: relative !important;
+  align-items: center !important;
+}
+.oma-view-path__btn--ghost {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  height: 28px !important;
+  padding: 0 10px !important;
+  border: 1px solid transparent !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: #111 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  line-height: 1 !important;
+}
+.oma-view-path__btn--ghost:hover,
+.oma-view-path__btn--ghost[aria-expanded='true'] {
+  background: #f0f1f3 !important;
+  border-color: #e8e9eb !important;
+}
+.oma-view-path__caret {
+  font-size: 10px !important;
+  color: #8c8c8c !important;
+  margin-inline-start: 2px !important;
+}
+.oma-breadcrumb-view .oma-view-path__menu,
+.oma-view-path--inline .oma-view-path__menu {
+  position: absolute !important;
+  top: calc(100% + 6px) !important;
+  inset-inline-start: 0 !important;
+  z-index: 80 !important;
+  min-width: 200px !important;
+  padding: 6px !important;
+  background: #fff !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 12px !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14) !important;
+}
+.oma-view-path__menu button {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  width: 100% !important;
+  padding: 10px 12px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: #333 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  text-align: start !important;
+}
+.oma-view-path__menu button:hover {
+  background: #f5f6f7 !important;
+}
+.oma-view-path__menu button[data-active='true'] {
+  background: #eef5ff !important;
+  color: #1d4ed8 !important;
+  font-weight: 600 !important;
+}
+.oma-breadcrumb--planable {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 0 !important;
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.oma-breadcrumb--planable li {
+  display: inline-flex !important;
+  align-items: center !important;
+}
+.oma-breadcrumb-sep {
+  margin: 0 6px !important;
+  color: #c0c4c9 !important;
+}
+.oma-breadcrumb-workspace {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+}
+.oma-breadcrumb-workspace-mark {
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  background: #22c55e !important;
+  display: inline-block !important;
+}
