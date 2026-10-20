@@ -44,7 +44,6 @@ import {
 } from '../../../../lib/demo/stage4-tasks';
 import { useLocale, useT } from '../../../../lib/use-locale';
 import {
-  AppstoreOutlined,
   BarsOutlined,
   CloseOutlined,
   FilterOutlined,
@@ -83,7 +82,6 @@ export default function TasksPage() {
   const [viewMenuOpen, setViewMenuOpen] = useState(false);
   const [filterSection, setFilterSection] = useState<string | null>('search');
   const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
-  const [viewSlot, setViewSlot] = useState<HTMLElement | null>(null);
   const [creating, setCreating] = useState(false);
   const [createForm, setCreateForm] = useState({
     title: '',
@@ -166,11 +164,9 @@ export default function TasksPage() {
     const sync = () => {
       if (cancelled) return;
       const header = document.getElementById('oma-workspace-top-actions');
-      const view = document.getElementById('oma-content-view-slot');
       setHeaderSlot(header);
-      setViewSlot(view);
       tries += 1;
-      if ((!header || !view) && tries < 30) {
+      if (!header && tries < 30) {
         window.setTimeout(sync, 50);
       }
     };
@@ -178,9 +174,30 @@ export default function TasksPage() {
     return () => {
       cancelled = true;
       setHeaderSlot(null);
-      setViewSlot(null);
     };
   }, []);
+
+  useEffect(() => {
+    const el = document.getElementById('oma-content-view-slot');
+    if (!el) return;
+    el.setAttribute('role', 'button');
+    el.setAttribute('tabindex', '0');
+    el.setAttribute('data-testid', 'demo-tasks-view-toggle');
+    el.style.cursor = 'pointer';
+    const open = (e: Event) => {
+      e.stopPropagation();
+      setViewMenuOpen((v) => !v);
+    };
+    el.addEventListener('click', open);
+    return () => el.removeEventListener('click', open);
+  }, []);
+
+  useEffect(() => {
+    const el = document.getElementById('oma-content-view-slot');
+    if (!el) return;
+    el.textContent = view === 'board' ? t('demo.view.kanban') : t('demo.view.list');
+    el.setAttribute('data-view', view);
+  }, [view, t]);
 
   useEffect(() => {
     if (!viewMenuOpen) return;
@@ -403,57 +420,61 @@ export default function TasksPage() {
           )
         : null}
 
-      {viewSlot && viewSlot.isConnected
+      {viewMenuOpen && typeof document !== 'undefined'
         ? createPortal(
-            <span
-              className="oma-view-path oma-view-path--text"
-              onClick={(e) => e.stopPropagation()}
+            <ul
+              className="oma-view-menu__list oma-view-menu__list--card oma-view-menu__list--path"
+              role="menu"
+              data-testid="demo-tasks-view-menu"
             >
-              <button
-                type="button"
-                className="oma-view-path__text"
-                data-testid="demo-tasks-view-toggle"
-                aria-expanded={viewMenuOpen}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setViewMenuOpen((v) => !v);
-                }}
-              >
-                {view === 'board' ? t('demo.view.kanban') : t('demo.view.list')}
-                <DownOutlined className="oma-view-path__caret" />
-              </button>
-              {viewMenuOpen ? (
-                <div className="oma-view-path__menu" role="menu" data-testid="demo-tasks-view-menu">
-                  <button
-                    type="button"
-                    role="menuitem"
-                    data-active={view === 'board' ? 'true' : 'false'}
-                    data-testid="demo-tasks-view-board"
-                    onClick={() => {
-                      void changeView('board');
-                      setViewMenuOpen(false);
-                    }}
-                  >
+              <li role="none">
+                <button
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={view === 'board'}
+                  data-selected={view === 'board' ? 'true' : 'false'}
+                  data-testid="demo-tasks-view-board"
+                  className="oma-view-menu__item"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    void changeView('board');
+                    setViewMenuOpen(false);
+                  }}
+                >
+                  <span className="oma-view-menu__item-icon" aria-hidden>
                     <UnorderedListOutlined />
-                    <span>{t('demo.view.kanban')}</span>
-                  </button>
-                  <button
-                    type="button"
-                    role="menuitem"
-                    data-active={view === 'list' ? 'true' : 'false'}
-                    data-testid="demo-tasks-view-list"
-                    onClick={() => {
-                      void changeView('list');
-                      setViewMenuOpen(false);
-                    }}
-                  >
+                  </span>
+                  <span>{t('demo.view.kanban')}</span>
+                  <span className="oma-view-menu__check" aria-hidden>
+                    {view === 'board' ? '✓' : ''}
+                  </span>
+                </button>
+              </li>
+              <li role="none">
+                <button
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={view === 'list'}
+                  data-selected={view === 'list' ? 'true' : 'false'}
+                  data-testid="demo-tasks-view-list"
+                  className="oma-view-menu__item"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    void changeView('list');
+                    setViewMenuOpen(false);
+                  }}
+                >
+                  <span className="oma-view-menu__item-icon" aria-hidden>
                     <BarsOutlined />
-                    <span>{t('demo.view.list')}</span>
-                  </button>
-                </div>
-              ) : null}
-            </span>,
-            viewSlot,
+                  </span>
+                  <span>{t('demo.view.list')}</span>
+                  <span className="oma-view-menu__check" aria-hidden>
+                    {view === 'list' ? '✓' : ''}
+                  </span>
+                </button>
+              </li>
+            </ul>,
+            document.body,
           )
         : null}
 
@@ -546,7 +567,7 @@ export default function TasksPage() {
                             <StatusChip status={task.priority} />
                           </td>
                           <td>{task.campaignId ?? '—'}</td>
-                          <td className="oma-ltr">{task.dueAt}</td>
+                          <td className="oma-ltr oma-task-due-cell"><span className="oma-task-due-text">{task.dueAt}</span></td>
                         </tr>
                       ))}
                     </tbody>
