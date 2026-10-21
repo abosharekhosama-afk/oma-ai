@@ -6,6 +6,7 @@ import type { ApiLocale } from './campaign-api';
 import { listBrandsProduction, listAllCampaigns, toCampaignRow } from './campaign-api';
 import type { RequestRow } from './demo/stage4-requests';
 import type { TaskRow } from './demo/stage4-tasks';
+import type { DeliverableRow } from './demo/stage4-deliverables';
 
 export type ApiWorkRequest = {
   id: string;
@@ -46,13 +47,20 @@ export type ApiWorkTask = {
 
 export type ApiWorkDeliverable = {
   id: string;
+  tenant_id?: string;
   brand_id: string;
+  campaign_id?: string | null;
   request_id: string | null;
   task_id: string | null;
   content_id: string | null;
   title: ApiLocale;
+  description?: ApiLocale;
   status: string;
   review_status: string;
+  asset_url?: string | null;
+  created_by?: string;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export function opsError(err: unknown, fallback: string): string {
@@ -151,6 +159,62 @@ export function toTaskRow(task: ApiWorkTask): TaskRow {
   };
 }
 
+export function toDeliverableRow(d: ApiWorkDeliverable): DeliverableRow {
+  const review = mapReviewStatus(d.review_status || d.status);
+  const versionId = `v1-${d.id}`;
+  return {
+    id: d.id,
+    brandId: d.brand_id,
+    campaignId: d.campaign_id ?? '',
+    taskId: d.task_id,
+    contentId: d.content_id,
+    requestId: d.request_id,
+    title: d.title,
+    type: 'STATIC',
+    reviewStatus: review,
+    owner: d.created_by || '—',
+    reviewer: '—',
+    dueAt: d.updated_at ? d.updated_at.slice(0, 10) : '',
+    archived: d.status === 'ARCHIVED' || d.status === 'CANCELLED',
+    currentVersionId: versionId,
+    approvedVersionId: review === 'APPROVED' ? versionId : null,
+    versions: [
+      {
+        id: versionId,
+        label: 'v1',
+        assets: d.asset_url ? [d.asset_url] : [],
+        notes: d.description ?? { en: '', ar: '' },
+        createdAt: d.created_at ?? new Date().toISOString(),
+        immutable: false,
+        createdBy: d.created_by || '—',
+        reviewDecision: review === 'APPROVED' || review === 'REJECTED' ? review : null,
+        status: 'DRAFT',
+      },
+    ],
+    changeRequests: [],
+    annotations: [],
+    comments: [],
+    activity: [],
+    decisions: [],
+  };
+}
+
+function mapReviewStatus(s: string): DeliverableRow['reviewStatus'] {
+  const map: Record<string, DeliverableRow['reviewStatus']> = {
+    DRAFT: 'DRAFT',
+    IN_PROGRESS: 'DRAFT',
+    AWAITING_REVIEW: 'AWAITING_REVIEW',
+    IN_REVIEW: 'IN_REVIEW',
+    CHANGES_REQUESTED: 'CHANGES_REQUESTED',
+    APPROVED: 'APPROVED',
+    REJECTED: 'REJECTED',
+    DONE: 'APPROVED',
+    ARCHIVED: 'APPROVED',
+  };
+  return map[s] ?? 'DRAFT';
+}
+
+// --- Requests ---
 export async function listRequests(
   brandId: string,
   query?: { status?: string; q?: string },
@@ -221,6 +285,7 @@ export async function convertRequestToTask(requestId: string): Promise<ApiWorkTa
   return res.data;
 }
 
+// --- Tasks ---
 export async function listTasks(brandId: string, status?: string): Promise<ApiWorkTask[]> {
   const qs = status ? `?status=${encodeURIComponent(status)}` : '';
   const res = await api<{ data: ApiWorkTask[] }>(`/api/v1/brands/${brandId}/tasks${qs}`);
@@ -266,9 +331,26 @@ export async function convertTaskToDeliverable(taskId: string): Promise<ApiWorkD
   return res.data;
 }
 
+// --- Deliverables ---
 export async function listDeliverables(brandId: string): Promise<ApiWorkDeliverable[]> {
   const res = await api<{ data: ApiWorkDeliverable[] }>(`/api/v1/brands/${brandId}/deliverables`);
   return res.data ?? [];
+}
+
+export async function getDeliverable(deliverableId: string): Promise<ApiWorkDeliverable> {
+  const res = await api<{ data: ApiWorkDeliverable }>(`/api/v1/deliverables/${deliverableId}`);
+  return res.data;
+}
+
+export async function updateDeliverable(
+  deliverableId: string,
+  patch: Record<string, unknown>,
+): Promise<ApiWorkDeliverable> {
+  const res = await api<{ data: ApiWorkDeliverable }>(`/api/v1/deliverables/${deliverableId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(patch),
+  });
+  return res.data;
 }
 
 export async function loadRequestsWorkspace(): Promise<{
@@ -337,5 +419,43 @@ export async function loadTasksWorkspace(): Promise<{
       return { id: row.id, brandId: row.brandId, name: row.name };
     }),
     tasks,
+  };
+}
+
+export async function loadDeliverablesWorkspace(): Promise<{
+  brands: {
+    id: string;
+    name: { en: string; ar: string };
+    state: string;
+    profileStatus: string;
+    strategyId: null;
+  }[];
+  campaigns: { id: string; brandId: string; name: { en: string; ar: string } }[];
+  deliverables: DeliverableRow[];
+}> {
+  const brandRows = await listBrandsProduction();
+  const brandIds = brandRows.map((b) => b.id);
+  const [campaigns, delBatches] = await Promise.all([
+    brandIds.length ? listAllCampaigns(brandIds) : Promise.resolve([]),
+    brandIds.length
+      ? Promise.all(brandIds.map((id) => listDeliverables(id).catch(() => [] as ApiWorkDeliverable[])))
+      : Promise.resolve([] as ApiWorkDeliverable[][]),
+  ]);
+  const deliverables = (delBatches as ApiWorkDeliverable[][])
+    .flat()
+    .map((x) => toDeliverableRow(x));
+  return {
+    brands: brandRows.map((b) => ({
+      id: b.id,
+      name: { en: b.name, ar: b.name },
+      state: b.status === 'ARCHIVED' ? 'draft' : 'healthy',
+      profileStatus: b.status,
+      strategyId: null,
+    })),
+    campaigns: campaigns.map((c) => {
+      const row = toCampaignRow(c);
+      return { id: row.id, brandId: row.brandId, name: row.name };
+    }),
+    deliverables,
   };
 }
