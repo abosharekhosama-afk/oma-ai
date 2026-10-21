@@ -151,7 +151,7 @@ export default function AppHomePage() {
           title={t('home.noTenantTitle')}
           body={t('home.noTenantBody')}
           action={
-            <OmaLinkButton href="/app/onboarding" type="primary">
+            <OmaLinkButton href="/app/select-company" type="primary">
               {t('shell.emptyMembershipCta')}
             </OmaLinkButton>
           }
