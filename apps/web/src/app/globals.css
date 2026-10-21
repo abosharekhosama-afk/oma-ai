@@ -8,6 +8,7 @@
 @import '../styles/stage5.css';
 @import '../styles/stage6.css';
 @import '../styles/stage-depth.css';
+@import '../styles/planable-org.css';
 
 * {
   box-sizing: border-box;
