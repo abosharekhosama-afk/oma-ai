@@ -349,7 +349,17 @@ export class OpsService {
     return { data: rows.map(mapDeliverable) };
   }
 
-  async updateDeliverable(
+  async getDeliverable(tenantId: string, deliverableId: string) {
+    const row = await getPrisma().workDeliverable.findFirst({
+      where: tenantWhere(tenantId, { id: deliverableId }),
+    });
+    if (!row) {
+      throw new DomainError('NOT_FOUND', 'Deliverable not found', 404, 'errors.not_found');
+    }
+    return { data: mapDeliverable(row) };
+  }
+
+    async updateDeliverable(
     tenantId: string,
     actorUserId: string,
     deliverableId: string,

@@ -140,6 +140,13 @@ export class OpsController {
     return opsService.listDeliverables(req.oma!.tenantId!, brandId);
   }
 
+  
+  @Get('api/v1/deliverables/:deliverableId')
+  async getDeliverable(@Req() req: Request, @Param('deliverableId') deliverableId: string) {
+    this.requireTenant(req);
+    return opsService.getDeliverable(req.oma!.tenantId!, deliverableId);
+  }
+
   @Patch('api/v1/deliverables/:deliverableId')
   @UseGuards(CsrfGuard)
   async updateDeliverable(
