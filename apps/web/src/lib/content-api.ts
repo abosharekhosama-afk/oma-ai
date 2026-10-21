@@ -302,3 +302,106 @@ export async function useContentTemplate(brandId: string, templateId: string, ov
   const res = await api<{ data: ApiContent }>(`/api/v1/brands/${brandId}/content-templates/${templateId}/use`, { method: "POST", body: JSON.stringify(overrides ?? {}) });
   return res.data;
 }
+
+export type ApprovalEvent = {
+  id: string;
+  action: string;
+  actor_user_id: string;
+  note: { en: string; ar: string } | null;
+  at: string;
+};
+
+export type ContentCommentDto = {
+  id: string;
+  author_user_id: string;
+  body: { en: string; ar: string };
+  at: string;
+};
+
+export async function getContentDetail(contentId: string): Promise<{
+  data: ApiContent;
+  approval_events: ApprovalEvent[];
+  comments: ContentCommentDto[];
+}> {
+  return api(`/api/v1/content/${contentId}`);
+}
+
+export async function addContentComment(contentId: string, body: ApiLocale | string) {
+  const res = await api<{ data: ContentCommentDto }>(`/api/v1/content/${contentId}/comments`, {
+    method: 'POST',
+    body: JSON.stringify({ body }),
+  });
+  return res.data;
+}
+
+export async function deleteContentComment(contentId: string, commentId: string) {
+  return api(`/api/v1/content/${contentId}/comments/${commentId}`, { method: 'DELETE' });
+}
+
+export async function requestContentChanges(contentId: string, note?: ApiLocale | string) {
+  const res = await api<{ data: ApiContent }>(`/api/v1/content/${contentId}/request-changes`, {
+    method: 'POST',
+    body: JSON.stringify({ note: note ?? { en: 'Changes requested', ar: 'تم طلب تعديلات' } }),
+  });
+  return res.data;
+}
+
+export async function rejectContent(contentId: string, note?: ApiLocale | string) {
+  const res = await api<{ data: ApiContent }>(`/api/v1/content/${contentId}/reject`, {
+    method: 'POST',
+    body: JSON.stringify({ note }),
+  });
+  return res.data;
+}
+
+export async function markContentPublished(contentId: string) {
+  const res = await api<{ data: ApiContent }>(`/api/v1/content/${contentId}/mark-published`, {
+    method: 'POST',
+    body: JSON.stringify({}),
+  });
+  return res.data;
+}
+
+export async function listBrandLabels(brandId: string) {
+  const res = await api<{ data: { id: string; name: ApiLocale; color: string }[] }>(
+    `/api/v1/brands/${brandId}/content-labels`,
+  );
+  return res.data ?? [];
+}
+
+export async function createBrandLabel(brandId: string, name: ApiLocale | string, color?: string) {
+  const res = await api<{ data: { id: string; name: ApiLocale; color: string } }>(
+    `/api/v1/brands/${brandId}/content-labels`,
+    { method: 'POST', body: JSON.stringify({ name, color }) },
+  );
+  return res.data;
+}
+
+export async function listBrandTemplates(brandId: string) {
+  const res = await api<{ data: unknown[] }>(`/api/v1/brands/${brandId}/content-templates`);
+  return res.data ?? [];
+}
+
+export async function useContentTemplate(brandId: string, templateId: string) {
+  const res = await api<{ data: ApiContent }>(
+    `/api/v1/brands/${brandId}/content-templates/${templateId}/use`,
+    { method: 'POST', body: JSON.stringify({}) },
+  );
+  return res.data;
+}
+
+export function workflowLabel(
+  item: { status: string; approvalState?: string; scheduleState?: string },
+  isAr: boolean,
+): string {
+  if (item.status === 'PUBLISHED_SAMPLE') return isAr ? 'منشور (تجريبي)' : 'Published (sample)';
+  if (item.approvalState === 'PENDING') return isAr ? 'بانتظار الموافقة' : 'Pending approval';
+  if (item.approvalState === 'CHANGES_REQUESTED') return isAr ? 'تعديلات مطلوبة' : 'Changes requested';
+  if (item.approvalState === 'REJECTED') return isAr ? 'مرفوض' : 'Rejected';
+  if (item.approvalState === 'APPROVED' && item.scheduleState === 'SCHEDULED') {
+    return isAr ? 'مجدول' : 'Scheduled';
+  }
+  if (item.approvalState === 'APPROVED') return isAr ? 'معتمد' : 'Approved';
+  if (item.status === 'IN_REVIEW') return isAr ? 'قيد المراجعة' : 'In review';
+  return isAr ? 'مسودة' : 'Draft';
+}
