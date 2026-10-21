@@ -68,7 +68,7 @@ export function TenantSwitcher() {
   if (me.memberships.length === 0)
     return (
       <p className="oma-shell-note">
-        <a href="/app/onboarding">{t('shell.emptyMembershipCta')}</a>
+        <a href="/app/select-company">{t('shell.emptyMembershipCta')}</a>
       </p>
     );
 
