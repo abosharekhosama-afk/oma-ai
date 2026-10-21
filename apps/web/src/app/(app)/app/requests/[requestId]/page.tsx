@@ -9,12 +9,14 @@ import { DemoDisclosure } from '../../../../../components/demo/demo-disclosure';
 import { Dialog } from '../../../../../components/ui/dialog';
 import { StatusChip } from '../../../../../components/ui/status-chip';
 import { useToast } from '../../../../../components/ui/toast';
+import { pickCopy } from '../../../../../lib/demo/use-demo-api';
 import {
-  demoApi,
-  demoErrorMessage,
-  isDemoForbidden,
-  pickCopy,
-} from '../../../../../lib/demo/use-demo-api';
+  getRequest,
+  updateRequest,
+  convertRequestToTask,
+  toRequestRow,
+  opsError,
+} from '../../../../../lib/ops-api';
 import {
   briefCompleteness,
   briefIsReady,
@@ -98,39 +100,40 @@ export default function RequestDetailPage() {
     if (!requestId) return;
     setLoading(true);
     try {
-      const data = await demoApi<RequestDetail>(`/requests/${requestId}`);
+      const detail = await getRequest(requestId);
+      const data = toRequestRow(detail.data);
+      // Attach conversion task ids from production tasks
+      data.conversionTaskIds = (detail.tasks ?? []).map((x) => x.id);
       setRow(data);
-      setBriefDraft(
-        data.brief ?? {
-          id: '',
-          requestId,
-          overview: emptyCopy(),
-          objective: emptyCopy(),
-          audience: emptyCopy(),
-          keyMessage: emptyCopy(),
-          deliverableType: emptyCopy(),
-          channels: [],
-          formats: [],
-          tone: emptyCopy(),
-          mandatory: emptyCopy(),
-          cta: emptyCopy(),
-          references: [],
-          doList: [],
-          dontList: [],
-          timelineNote: emptyCopy(),
-          stakeholders: [],
-          acceptance: emptyCopy(),
-          dueAt: data.dueAt,
-          attachmentAssets: [],
-          readiness: 'DRAFT',
-        },
-      );
+      setBriefDraft({
+        id: '',
+        requestId,
+        overview: emptyCopy(),
+        objective: emptyCopy(),
+        audience: emptyCopy(),
+        keyMessage: emptyCopy(),
+        deliverableType: emptyCopy(),
+        channels: data.channels ?? [],
+        formats: data.formats ?? [],
+        tone: emptyCopy(),
+        mandatory: emptyCopy(),
+        cta: emptyCopy(),
+        references: [],
+        doList: [],
+        dontList: [],
+        timelineNote: emptyCopy(),
+        stakeholders: [],
+        acceptance: emptyCopy(),
+        dueAt: data.dueAt,
+        attachmentAssets: [],
+        readiness: 'DRAFT',
+      });
       setDirty(false);
       setError(null);
       setUnavailable(false);
     } catch (err) {
-      if (isDemoForbidden(err)) setUnavailable(true);
-      else setError(demoErrorMessage(err, 'Demo unavailable'));
+      setError(opsError(err, 'Failed to load request'));
+      setRow(null);
     } finally {
       setLoading(false);
     }
@@ -173,33 +176,20 @@ export default function RequestDetailPage() {
     if (!requestId || !briefDraft) return;
     setSaving(true);
     try {
-      const saved = await demoApi<Brief>(`/requests/${requestId}/brief`, {
-        method: 'POST',
-        body: JSON.stringify({
-          ...briefDraft,
-          channels:
-            typeof briefDraft.channels === 'string'
-              ? String(briefDraft.channels)
-                  .split(',')
-                  .map((c) => c.trim())
-                  .filter(Boolean)
-              : briefDraft.channels,
-          formats:
-            typeof briefDraft.formats === 'string'
-              ? String(briefDraft.formats)
-                  .split(',')
-                  .map((c) => c.trim())
-                  .filter(Boolean)
-              : briefDraft.formats,
-          readiness: ready ? 'READY' : briefCompleteness(briefDraft) < 40 ? 'DRAFT' : 'INCOMPLETE',
-        }),
-      });
+      // Brief persistence is planning-only until Brief domain ships; keep local draft.
+      const saved = briefDraft;
+      toast.push(
+        locale.toLowerCase().startsWith('ar')
+          ? 'الموجز محفوظ محلياً (قريباً على الخادم)'
+          : 'Brief saved locally (server brief domain coming next)',
+        'success',
+      );
       setBriefDraft(saved);
       setDirty(false);
       toast.push(t('demo.brief.saved'), 'success');
       await load();
     } catch (err) {
-      toast.push(demoErrorMessage(err, t('demo.unavailable')), 'danger');
+      toast.push(opsError(err, t('demo.unavailable')), 'danger');
     } finally {
       setSaving(false);
     }
@@ -215,14 +205,21 @@ export default function RequestDetailPage() {
       return;
     }
     try {
-      await demoApi(`/requests/${requestId}`, {
-        method: 'PATCH',
-        body: JSON.stringify(patch),
+      // Map UI status fields to production API
+      await updateRequest(requestId, {
+        status: patch.status,
+        priority: patch.priority,
+        assigneeUserId: patch.assignee ?? undefined,
+        dueAt: patch.dueAt,
+        campaignId: patch.campaignId,
+        contentId: patch.contentId,
+        title: patch.title,
+        description: patch.description,
       });
       toast.push(t('demo.requests.updated'), 'success');
       await load();
     } catch (err) {
-      toast.push(demoErrorMessage(err, t('demo.unavailable')), 'danger');
+      toast.push(opsError(err, t('demo.unavailable')), 'danger');
     }
   }
 
@@ -230,17 +227,12 @@ export default function RequestDetailPage() {
     if (!requestId) return;
     setConverting(true);
     try {
-      if (dirty) await saveBrief();
-      const result = await demoApi<{ tasks: Task[] }>(`/requests/${requestId}/convert`, {
-        method: 'POST',
-        body: JSON.stringify({}),
-      });
+      const task = await convertRequestToTask(requestId);
       toast.push(t('demo.requests.converted'), 'success');
       await load();
-      const first = result.tasks[0];
-      if (first) router.push(`/app/tasks?task=${first.id}`);
+      if (task?.id) router.push(`/app/tasks?task=${task.id}`);
     } catch (err) {
-      toast.push(demoErrorMessage(err, t('demo.requests.convertFailed')), 'danger');
+      toast.push(opsError(err, t('demo.requests.convertFailed')), 'danger');
     } finally {
       setConverting(false);
     }
