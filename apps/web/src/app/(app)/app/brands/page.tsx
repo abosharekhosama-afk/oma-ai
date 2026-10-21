@@ -74,7 +74,7 @@ export default function BrandsListPage() {
   }
 
   return (
-    <div className="oma-stack" data-testid="brand-portfolio">
+    <div className="oma-stack plx-org" data-testid="brand-portfolio" data-surface="brands">
       <header className="oma-page-header">
         <div>
           <p className="oma-kicker">{t('brand.list.kicker')}</p>
