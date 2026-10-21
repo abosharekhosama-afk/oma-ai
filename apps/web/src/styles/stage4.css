@@ -2636,3 +2636,62 @@ main.oma-container:has(.oma-req-page) {
 .oma-view-path__text:hover {
   text-decoration: none !important;
 }
+/* ==== Request detail: Planable unified top bar ==== */
+.oma-req-detail__top {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  min-height: 52px !important;
+  padding: 0 20px !important;
+  background: #fff !important;
+  border-bottom: 1px solid #eef0f2 !important;
+}
+.oma-req-detail__top-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 16px !important;
+  min-width: 0 !important;
+}
+.oma-req-detail__top-meta {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+}
+.oma-req-detail__top-id {
+  font-size: 12px !important;
+  color: #8c8c8c !important;
+  font-weight: 500 !important;
+}
+.oma-req-detail__top-actions {
+  display: inline-flex !important;
+  gap: 8px !important;
+  flex-shrink: 0 !important;
+}
+.oma-req-detail__card-head-text {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+}
+.oma-brief-field {
+  display: grid !important;
+  gap: 6px !important;
+  margin-bottom: 12px !important;
+}
+.oma-brief-field__label {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #5e6166 !important;
+}
+@media (max-width: 767px) {
+  .oma-req-detail__top {
+    flex-wrap: wrap !important;
+    padding: 8px 12px !important;
+    min-height: auto !important;
+  }
+  .oma-req-detail__top-left {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+}
