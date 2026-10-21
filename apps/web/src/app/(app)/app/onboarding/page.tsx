@@ -1,10 +1,6 @@
-import { Suspense } from 'react';
-import OnboardingClient from './onboarding-client';
+import { redirect } from 'next/navigation';
 
+/** Legacy OMA onboarding is replaced by Planable select-company create flow. */
 export default function OnboardingPage() {
-  return (
-    <Suspense fallback={<p role="status">Loading…</p>}>
-      <OnboardingClient />
-    </Suspense>
-  );
+  redirect('/app/select-company');
 }
