@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { resolveContentWorkflow, type ApprovalPolicy, type DemoGraph } from '@oma/demo';
 import { ContentFace, StatusMark, faceDisplay } from '../../../../components/content/content-card';
@@ -134,10 +134,27 @@ type Task = DemoGraph['tasks'][number];
 type Deliverable = DemoGraph['deliverables'][number];
 type RequestRow = DemoGraph['requests'][number];
 
-/* Planable LIVE_VERIFIED capture window: real “today” for Oct 2026 parity runs. */
+/* Planable LIVE_VERIFIED capture window: real "today" for Oct 2026 parity runs. */
 const TODAY_KEY = '2026-10-07';
 const DEFAULT_YEAR = 2026;
 const DEFAULT_MONTH = 9;
+
+/* ── Static demo external calendars (mirrors Planable capture) ── */
+const DEMO_EXTERNAL_CALENDARS = [
+  { id: 'israel-holidays', name: 'Israel Holidays', enabled: true },
+];
+
+/* ── Demo holidays rendered as green chips inside cells (like Planable) ── */
+const DEMO_HOLIDAYS: Record<string, string> = {
+  '2026-10-26': 'Election Day',
+  '2026-11-01': 'Aliyah Day School Observance',
+  '2026-12-06': 'Asarah B’Tevet (Tenth of Tevet)',
+  '2026-12-24': 'Catholic/Protestant Christmas Eve',
+  '2026-12-25': 'Catholic/Protestant Christmas Day',
+  '2026-12-26': 'Catholic/Protestant Boxing Day',
+  '2026-12-31': "New Year's Eve",
+  '2027-01-01': "New Year's Day",
+};
 
 type DraftFields = {
   caption: string;
@@ -205,6 +222,7 @@ function reviewFilterLabel(value: string, locale: string, allLabel: string): str
   if (value === 'approved') return statusLabel('APPROVED', locale);
   return allLabel;
 }
+
 /* ── Planable-style compose card ─────────────────────────────── */
 
 type ComposeForm = {
@@ -450,7 +468,136 @@ function PlanableComposeCard({
   );
 }
 
+/* ── Floating card action menu (Planable right-click hover menu) ── */
 
+type CardMenuAction =
+  | 'request'
+  | 'approve'
+  | 'published'
+  | 'changes'
+  | 'reject'
+  | 'hide'
+  | 'ops'
+  | 'archive'
+  | 'template'
+  | 'repost'
+  | 'labels';
+
+function CardFloatingMenu({
+  open,
+  pos,
+  itemId,
+  locale,
+  onAction,
+  onClose,
+}: {
+  open: boolean;
+  pos: { top: number; left: number } | null;
+  itemId: string | null;
+  locale: string;
+  onAction: (action: CardMenuAction, id: string) => void;
+  onClose: () => void;
+}) {
+  const isAr = locale.toLowerCase().startsWith('ar');
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [realPos, setRealPos] = useState<{ top: number; left: number } | null>(pos);
+
+  useEffect(() => {
+    if (!open || !pos) {
+      setRealPos(null);
+      return;
+    }
+    setRealPos(pos);
+  }, [open, pos]);
+
+  /* Clamp within viewport */
+  useEffect(() => {
+    if (!realPos || !ref.current) return;
+    const el = ref.current;
+    const rect = el.getBoundingClientRect();
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    let nextLeft = realPos.left;
+    let nextTop = realPos.top;
+    if (nextLeft + rect.width + 8 > vw) nextLeft = vw - rect.width - 8;
+    if (nextTop + rect.height + 8 > vh) nextTop = vh - rect.height - 8;
+    if (nextLeft < 8) nextLeft = 8;
+    if (nextTop < 8) nextTop = 8;
+    if (nextLeft !== realPos.left || nextTop !== realPos.top) {
+      setRealPos({ left: nextLeft, top: nextTop });
+    }
+  }, [realPos]);
+
+  if (!open || !realPos || !itemId) return null;
+
+  return createPortal(
+    <div
+      ref={ref}
+      className="oma-card-menu--float"
+      role="menu"
+      data-testid="demo-content-card-menu"
+      style={{ position: 'fixed', top: realPos.top, left: realPos.left, zIndex: 9999 }}
+      onMouseLeave={onClose}
+    >
+      <button
+        type="button"
+        role="menuitem"
+        className="oma-card-menu__item"
+        onClick={() => onAction('request', itemId)}
+      >
+        <span className="oma-card-menu__item-ico"><SyncOutlined /></span>
+        <span>{isAr ? 'طلب موافقة' : 'Request approval'}</span>
+      </button>
+      <button
+        type="button"
+        role="menuitem"
+        className="oma-card-menu__item"
+        onClick={() => onAction('approve', itemId)}
+      >
+        <span className="oma-card-menu__item-ico"><CheckOutlined /></span>
+        <span>{isAr ? 'الموافقة على المنشور' : 'Approve post'}</span>
+      </button>
+      <button
+        type="button"
+        role="menuitem"
+        className="oma-card-menu__item"
+        onClick={() => onAction('published', itemId)}
+      >
+        <span className="oma-card-menu__item-ico"><FlagOutlined /></span>
+        <span>{isAr ? 'تم كمنشور' : 'Mark as published'}</span>
+      </button>
+      <button
+        type="button"
+        role="menuitem"
+        className="oma-card-menu__item"
+        onClick={() => onAction('hide', itemId)}
+      >
+        <span className="oma-card-menu__item-ico"><EyeInvisibleOutlined /></span>
+        <span>{isAr ? 'إخفاء عن العملاء' : 'Hide from clients'}</span>
+        <span className="oma-card-menu__badge">✕</span>
+      </button>
+      <button
+        type="button"
+        role="menuitem"
+        className="oma-card-menu__item"
+        onClick={() => onAction('archive', itemId)}
+      >
+        <span className="oma-card-menu__item-ico"><InboxOutlined /></span>
+        <span>{isAr ? 'أرشفة المنشور' : 'Archive post'}</span>
+      </button>
+      <button
+        type="button"
+        role="menuitem"
+        className="oma-card-menu__item oma-card-menu__item--danger"
+        onClick={() => onAction('repost', itemId)}
+      >
+        <span className="oma-card-menu__item-ico"><CloseOutlined /></span>
+        <span>{isAr ? 'إعادة نشر' : 'Repost'}</span>
+      </button>
+    </div>,
+    document.body,
+  );
+              }
 export default function ContentPage() {
   const t = useT();
   const locale = useLocale();
@@ -493,6 +640,7 @@ export default function ContentPage() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [cardMenuId, setCardMenuId] = useState<string | null>(null);
   const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
+  const hoverTimerRef = useRef<number | null>(null);
   const [extCalOpen, setExtCalOpen] = useState(false);
   const [savedOpen, setSavedOpen] = useState(true);
   const [policy, setPolicy] = useState<ApprovalPolicy>('OPTIONAL');
@@ -555,7 +703,6 @@ export default function ContentPage() {
     try {
       const ws = await loadContentWorkspace();
       setRows(ws.content);
-      // Load calendar day notes for primary brand
       try {
         const primaryBrand = ws.brands[0]?.id;
         if (primaryBrand) {
@@ -607,19 +754,21 @@ export default function ContentPage() {
     }
   }, [isAr]);
 
-
-
   useEffect(() => {
     if (!cardMenuId && !viewMenuOpen && !extCalOpen) return;
-    const onDoc = () => {
+    const onDoc = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target?.closest('.oma-card-menu--float')) return;
+      if (target?.closest('.oma-ext-cal-pop')) return;
+      if (target?.closest('[data-testid="demo-content-ext-cal"]')) return;
       setCardMenuId(null);
+      setMenuPos(null);
       setViewMenuOpen(false);
       setExtCalOpen(false);
     };
     document.addEventListener('click', onDoc);
     return () => document.removeEventListener('click', onDoc);
   }, [cardMenuId, viewMenuOpen, extCalOpen]);
-
 
   useEffect(() => {
     setHeaderSlot(document.getElementById('oma-content-top-actions'));
@@ -683,10 +832,12 @@ export default function ContentPage() {
     };
   }, [selectedId]);
 
-
   const activeBrandId = brands[0]?.id || campaigns[0]?.brandId || '';
 
-  async function persistNote(dayKey: string, patch: { text?: string; color?: string; locked?: boolean; remove?: boolean }) {
+  async function persistNote(
+    dayKey: string,
+    patch: { text?: string; color?: string; locked?: boolean; remove?: boolean },
+  ) {
     if (!activeBrandId || !dayKey) return;
     try {
       if (patch.remove) {
@@ -708,13 +859,15 @@ export default function ContentPage() {
         [dayKey]: { text, color, locked },
       }));
     } catch (err) {
-      toast.push(contentApiError(err, isAr ? 'تعذّر حفظ الملاحظة' : 'Failed to save note'), 'danger');
+      toast.push(
+        contentApiError(err, isAr ? 'تعذّر حفظ الملاحظة' : 'Failed to save note'),
+        'danger',
+      );
     }
   }
 
   async function toggleHideFromClients(contentId: string) {
     const row = rows.find((r) => r.id === contentId);
-    // clientVisible not always on ContentRow — default true
     const currentlyVisible = (row as { clientVisible?: boolean })?.clientVisible !== false;
     try {
       const updated = await setClientVisible(contentId, !currentlyVisible);
@@ -739,13 +892,15 @@ export default function ContentPage() {
     const row = rows.find((r) => r.id === contentId);
     const name = row ? (isAr ? row.title.ar : row.title.en) : 'Template';
     try {
-      await saveContentAsTemplate(activeBrandId, { name: `${name} template`, fromContentId: contentId });
+      await saveContentAsTemplate(activeBrandId, {
+        name: `${name} template`,
+        fromContentId: contentId,
+      });
       toast.push(isAr ? 'تم حفظ القالب' : 'Saved as template', 'success');
     } catch (err) {
       toast.push(contentApiError(err, 'Template save failed'), 'danger');
     }
   }
-
 
   useEffect(() => {
     const urlView = search.get('view');
@@ -823,20 +978,20 @@ export default function ContentPage() {
     ? linkedIdsForContent(tasks, deliverables, requests, selected.id)
     : { taskId: null, deliverableId: null, requestId: null };
   const review = selected ? reviewPresentation(selected.status, locale) : null;
-  // Keep linkage metadata available for detail chrome / future deep links.
   const detailMeta = { linked, review };
   void detailMeta;
 
   function replaceParams(mutate: (params: URLSearchParams) => void) {
     const current =
-      typeof window !== 'undefined' ? window.location.search.replace(/^\?/, '') : search.toString();
+      typeof window !== 'undefined'
+        ? window.location.search.replace(/^\?/, '')
+        : search.toString();
     const params = new URLSearchParams(current);
     mutate(params);
     const qs = params.toString();
     const href = qs ? `/app/content?${qs}` : '/app/content';
     router.replace(href, { scroll: false });
   }
-
 
   function openItem(item: ContentRow, tab: 'preview' | 'edit' | 'comments' = 'preview') {
     setDetailSidePanel('none');
@@ -935,8 +1090,7 @@ export default function ContentPage() {
     }
   }
 
-
-    async function runLifecycle(
+  async function runLifecycle(
     command:
       | 'schedule'
       | 'unschedule'
@@ -969,10 +1123,7 @@ export default function ContentPage() {
       } else if (command === 'schedule') {
         const row = rows.find((r) => r.id === id) || selected;
         const when =
-          draft.scheduledAt ||
-          row?.scheduledAt ||
-          row?.plannedAt ||
-          new Date().toISOString();
+          draft.scheduledAt || row?.scheduledAt || row?.plannedAt || new Date().toISOString();
         apiRow = await scheduleContent(id, { scheduledAt: when });
       } else {
         apiRow = await unscheduleContent(id);
@@ -1017,9 +1168,7 @@ export default function ContentPage() {
       const task = await convertRequestToTask(req.id);
       const deliv = await convertTaskToDeliverable(task.id);
       toast.push(
-        isAr
-          ? 'تم إنشاء طلب → مهمة → تسليم'
-          : 'Created Request → Task → Deliverable',
+        isAr ? 'تم إنشاء طلب → مهمة → تسليم' : 'Created Request → Task → Deliverable',
         'success',
       );
       return { requestId: req.id, taskId: task.id, deliverableId: deliv.id };
@@ -1028,7 +1177,6 @@ export default function ContentPage() {
       return null;
     }
   }
-
 
   async function submitCreate() {
     setCreateError(null);
@@ -1044,11 +1192,7 @@ export default function ContentPage() {
     setCreating(true);
     try {
       const campaign = campaigns.find((c) => c.id === createForm.campaignId);
-      const brandId =
-        createForm.brandId ||
-        campaign?.brandId ||
-        brands[0]?.id ||
-        '';
+      const brandId = createForm.brandId || campaign?.brandId || brands[0]?.id || '';
       if (!brandId) {
         throw new Error(isAr ? 'اختر البراند' : 'Select a brand');
       }
@@ -1062,12 +1206,9 @@ export default function ContentPage() {
         contentType: createForm.contentType,
         channel: createForm.channel.trim(),
         track: createForm.track || campaign?.track || 'ORGANIC',
-        plannedAt: createForm.plannedDate
-          ? `${createForm.plannedDate}T10:00:00.000Z`
-          : null,
+        plannedAt: createForm.plannedDate ? `${createForm.plannedDate}T10:00:00.000Z` : null,
       });
       let createdRow = toContentRow(apiCreated);
-      // Optional: if policy requires approval path stays DRAFT until request-approval
       if (createForm.plannedDate) {
         try {
           const scheduled = await scheduleContent(createdRow.id, {
@@ -1101,7 +1242,6 @@ export default function ContentPage() {
   }
 
   function showApprovalQueue() {
-    /* Planable: enter selection mode + bottom bar — do NOT filter the grid */
     setApprovalMode(true);
     setSelectedIds([]);
   }
@@ -1152,6 +1292,65 @@ export default function ContentPage() {
     }
   }
 
+  /* ── Card menu action handler (used by hover floating menu) ── */
+  function handleCardMenuAction(action: CardMenuAction, id: string) {
+    setCardMenuId(null);
+    setMenuPos(null);
+    if (action === 'request') void runLifecycle('request-approval', id);
+    else if (action === 'approve') void runLifecycle('approve', id);
+    else if (action === 'published') void runLifecycle('mark-published', id);
+    else if (action === 'changes') void runLifecycle('request-changes', id);
+    else if (action === 'reject') void runLifecycle('reject', id);
+    else if (action === 'hide') void toggleHideFromClients(id);
+    else if (action === 'archive') void runLifecycle('archive', id);
+    else if (action === 'template') void saveAsTemplate(id);
+    else if (action === 'ops') {
+      void convertContentToOps(id).then((ids) => {
+        if (ids?.requestId) window.location.href = `/app/requests/${ids.requestId}`;
+      });
+    } else if (action === 'repost') {
+      void convertContentToOps(id).then((ids) => {
+        if (ids?.deliverableId) window.location.href = `/app/deliverables/${ids.deliverableId}`;
+      });
+    } else if (action === 'labels') {
+      setSelectedId(id);
+      const brandId = rows.find((r) => r.id === id)?.brandId || brands[0]?.id;
+      if (brandId) {
+        void listBrandLabels(brandId)
+          .then((labs) => setBrandLabels(labs as typeof brandLabels))
+          .catch(() => setBrandLabels([]));
+      }
+      setLabelPickerOpen(true);
+    }
+  }
+
+  /* ── Card hover with delay ── */
+  function scheduleCardMenu(itemId: string, target: HTMLElement) {
+    if (hoverTimerRef.current) window.clearTimeout(hoverTimerRef.current);
+    hoverTimerRef.current = window.setTimeout(() => {
+      if (!target.matches(':hover')) return;
+      const rect = target.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const menuW = 240;
+      const menuH = 340;
+      let left = rect.right + 8;
+      let top = rect.top;
+      if (left + menuW + 8 > vw) left = rect.left - menuW - 8;
+      if (left < 8) left = 8;
+      if (top + menuH + 8 > vh) top = Math.max(8, vh - menuH - 8);
+      setCardMenuId(itemId);
+      setMenuPos({ top, left });
+    }, 260);
+  }
+
+  function cancelCardMenu() {
+    if (hoverTimerRef.current) {
+      window.clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
+    }
+  }
+
   const agendaDays = useMemo(() => {
     const keys = monthCells.filter((c) => c.inMonth).map((c) => c.key);
     return keys
@@ -1178,10 +1377,8 @@ export default function ContentPage() {
   const toggleFilterSection = (id: string) => {
     setFilterSection((s) => (s === id ? null : id));
   };
-
-  const advancedFilterFields = (
+    const advancedFilterFields = (
     <div className="oma-filter-accordion-list" data-testid="demo-content-filter-sheet-fields">
-      {/* Approval Status */}
       <div className="oma-filter-accordion">
         <button
           type="button"
@@ -1217,7 +1414,6 @@ export default function ContentPage() {
         ) : null}
       </div>
 
-      {/* Post Status */}
       <div className="oma-filter-accordion">
         <button
           type="button"
@@ -1256,7 +1452,6 @@ export default function ContentPage() {
         ) : null}
       </div>
 
-      {/* Campaign */}
       <div className="oma-filter-accordion">
         <button
           type="button"
@@ -1309,7 +1504,6 @@ export default function ContentPage() {
         ) : null}
       </div>
 
-      {/* Post Type */}
       <div className="oma-filter-accordion">
         <button
           type="button"
@@ -1355,7 +1549,6 @@ export default function ContentPage() {
         ) : null}
       </div>
 
-      {/* Channel / Brand */}
       <div className="oma-filter-accordion">
         <button
           type="button"
@@ -1418,7 +1611,6 @@ export default function ContentPage() {
         ) : null}
       </div>
 
-      {/* Review */}
       <div className="oma-filter-accordion">
         <button
           type="button"
@@ -1455,7 +1647,6 @@ export default function ContentPage() {
         ) : null}
       </div>
 
-      {/* Author */}
       <div className="oma-filter-accordion">
         <button
           type="button"
@@ -1493,7 +1684,6 @@ export default function ContentPage() {
         ) : null}
       </div>
 
-      {/* Period */}
       <div className="oma-filter-accordion">
         <button
           type="button"
@@ -1537,7 +1727,6 @@ export default function ContentPage() {
         ) : null}
       </div>
 
-      {/* Search */}
       <div className="oma-filter-accordion">
         <button
           type="button"
@@ -1558,7 +1747,7 @@ export default function ContentPage() {
 
   return (
     <div className="oma-stack oma-content-plan oma-content-plan--tight" data-testid="demo-content">
-                  {/* Portal: Filter / Media / Share / Compose into shell header */}
+      {/* Portal: Filter / Media / Share / Compose into shell header */}
       {headerSlot &&
         createPortal(
           <>
@@ -1607,11 +1796,11 @@ export default function ContentPage() {
           headerSlot,
         )}
 
-      {/* View switcher under path — high z-index above calendar toolbar */}
+      {/* View switcher card under path */}
       {viewMenuOpen && typeof document !== 'undefined'
         ? createPortal(
             <ul
-              className="oma-view-menu__list oma-view-menu__list--card oma-view-menu__list--path"
+              className="oma-view-menu__list oma-view-menu__list--path"
               role="menu"
               data-testid="demo-content-view-menu"
             >
@@ -1641,9 +1830,7 @@ export default function ContentPage() {
                       setViewMenuOpen(false);
                     }}
                   >
-                    <span className="oma-view-menu__item-icon" aria-hidden>
-                      {icon}
-                    </span>
+                    <span className="oma-view-menu__item-icon" aria-hidden>{icon}</span>
                     <span>{label}</span>
                     <span className="oma-view-menu__check" aria-hidden>
                       {view === id ? '✓' : ''}
@@ -1655,11 +1842,6 @@ export default function ContentPage() {
             document.body,
           )
         : null}
-
-
-
-
-      {/* Search lives in Filter side panel — no extra toolbar under header */}
 
       {filterCount > 0 ? (
         <div className="oma-filter-chips" data-testid="demo-content-filter-chips">
@@ -1726,6 +1908,7 @@ export default function ContentPage() {
         />
       ) : null}
 
+      {/* ── CALENDAR VIEW ── */}
       {!loading && !unavailable && !error && filtered.length > 0 && view === 'calendar' ? (
         <section
           data-testid="demo-content-calendar"
@@ -1798,25 +1981,38 @@ export default function ContentPage() {
                     type="button"
                     className="oma-cal-ext-indicator"
                     data-tooltip={isAr ? 'تقويمات خارجية' : 'External calendars'}
-                    onClick={() => setExtCalOpen((v) => !v)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setExtCalOpen((v) => !v);
+                    }}
                     data-testid="demo-content-ext-cal"
                   >
                     <span className="oma-cal-ext-dot" aria-hidden />
-                    1 calendar
+                    {DEMO_EXTERNAL_CALENDARS.filter((c) => c.enabled).length} calendar
                   </button>
                   {extCalOpen ? (
-                    <div className="oma-ext-cal-pop" data-testid="demo-content-ext-cal-pop">
+                    <div
+                      className="oma-ext-cal-pop"
+                      data-testid="demo-content-ext-cal-pop"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <div className="oma-ext-cal-pop__head">
                         <strong>External calendars</strong>
-                        <span className="oma-ext-cal-pop__sync">Synced</span>
+                        <span className="oma-ext-cal-pop__sync">Synced 5h ago ↻</span>
                       </div>
-                      <label className="oma-ext-cal-pop__row">
-                        <input type="checkbox" defaultChecked />
-                        <span className="oma-cal-ext-dot" aria-hidden />
-                        Israel Holidays
-                      </label>
+                      {DEMO_EXTERNAL_CALENDARS.map((cal) => (
+                        <label key={cal.id} className="oma-ext-cal-pop__row">
+                          <input type="checkbox" defaultChecked={cal.enabled} />
+                          <span className="oma-cal-ext-dot" aria-hidden />
+                          <span>{cal.name}</span>
+                          <span className="oma-ext-cal-pop__users" aria-hidden>
+                            <TeamOutlined />
+                          </span>
+                        </label>
+                      ))}
                       <button type="button" className="oma-ext-cal-pop__add">
-                        + Add external calendar
+                        <span>+</span>
+                        <span>Add external calendar</span>
                       </button>
                     </div>
                   ) : null}
@@ -1830,25 +2026,6 @@ export default function ContentPage() {
                   Saved
                 </button>
               </div>
-            </div>
-
-
-
-            <div
-              className="oma-cal-date-strip"
-              data-testid="demo-content-date-strip"
-              aria-label={t('demo.view.calendar')}
-            >
-              {dateStripDays.map((key) => (
-                <Button
-                  key={key}
-                  type="default"
-                  data-selected={key === selectedDay ? 'true' : 'false'}
-                  onClick={() => setSelectedDay(key)}
-                >
-                  {key.slice(8)}
-                </Button>
-              ))}
             </div>
 
             <div
@@ -1873,6 +2050,7 @@ export default function ContentPage() {
                       const items = byDay.get(cell.key) ?? [];
                       const { visible, extra } = splitCellItems(items);
                       const note = dayNotes[cell.key];
+                      const holiday = DEMO_HOLIDAYS[cell.key];
                       return (
                         <div
                           key={cell.key}
@@ -1885,6 +2063,8 @@ export default function ContentPage() {
                           onClick={() => setSelectedDay(cell.key)}
                         >
                           <span className="oma-cal-daynum oma-ltr">{cell.date.getUTCDate()}</span>
+
+                          {/* Post/Note hover actions at top */}
                           <div className="oma-cal-cell-actions">
                             <button
                               type="button"
@@ -1914,194 +2094,14 @@ export default function ContentPage() {
                                 );
                                 setNoteDay(cell.key);
                               }}
-                              title={isAr ? 'مرئي لك فقط' : 'Only visible to you'}
                             >
                               <FileTextOutlined />
                               <span>{isAr ? 'ملاحظة' : 'Note'}</span>
                             </button>
                           </div>
-                          {visible.map((item) => (
-                            <div
-                              key={item.id}
-                              className="oma-cal-item-wrap"
-                              onMouseEnter={(e) => {
-                                const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                                setCardMenuId(item.id);
-                                const menuW = 220;
-                                const left = Math.min(r.right + 6, window.innerWidth - menuW - 8);
-                                setMenuPos({ top: r.top, left: Math.max(8, left) });
-                              }}
-                              onMouseLeave={() => {
-                                window.setTimeout(() => {
-                                  setCardMenuId(null);
-                                  setMenuPos(null);
-                                }, 180);
-                              }}
-                            >
-                        
-      {cardMenuId && menuPos
-        ? createPortal(
-            <div
-              className="oma-card-menu oma-card-menu--float"
-              role="menu"
-              data-testid="demo-content-card-menu"
-              style={{
-                position: 'fixed',
-                top: menuPos.top,
-                left: menuPos.left,
-                zIndex: 9999,
-              }}
-              onMouseEnter={() => {
-                /* keep open while pointer on menu */
-              }}
-              onMouseLeave={() => {
-                setCardMenuId(null);
-                setMenuPos(null);
-              }}
-            >
-              {(
-                [
-                  { id: 'request', label: isAr ? 'طلب موافقة' : 'Request approval', icon: <SyncOutlined /> },
-                  { id: 'approve', label: isAr ? 'الموافقة على المنشور' : 'Approve post', icon: <CheckOutlined /> },
-                  { id: 'changes', label: isAr ? 'طلب تعديلات' : 'Request changes', icon: <EditOutlined /> },
-                  { id: 'reject', label: isAr ? 'رفض' : 'Reject', icon: <CloseOutlined /> },
-                  { id: 'published', label: isAr ? 'تم كمنشور' : 'Mark as published', icon: <FlagOutlined /> },
-                  { id: 'hide', label: isAr ? 'إخفاء عن العملاء' : 'Hide from clients', icon: <EyeInvisibleOutlined /> },
-                  { id: 'ops', label: isAr ? 'تحويل لطلب/مهمة/تسليم' : 'Convert to Request → Task → Deliverable', icon: <FlagOutlined /> },
-                  { id: 'archive', label: isAr ? 'أرشفة المنشور' : 'Archive post', icon: <InboxOutlined /> },
-                  { id: 'template', label: isAr ? 'حفظ كقالب' : 'Save as template', icon: <FileTextOutlined /> },
-                ] as const
-              ).map((row) => (
-                <button
-                  key={row.id}
-                  type="button"
-                  role="menuitem"
-                  className="oma-card-menu__item"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const id = cardMenuId;
-                    if (!id) return;
-                    if (row.id === 'request') {
-                      void runLifecycle('request-approval', id);
-                    } else if (row.id === 'approve') {
-                      void runLifecycle('approve', id);
-                    } else if (row.id === 'published') {
-                      void runLifecycle('mark-published', id);
-                    } else if (row.id === 'changes') {
-                      void runLifecycle('request-changes', id);
-                    } else if (row.id === 'reject') {
-                      void runLifecycle('reject', id);
-                    } else if (row.id === 'ops') {
-                      void convertContentToOps(id).then((ids) => {
-                        if (ids?.requestId) {
-                          window.location.href = `/app/requests/${ids.requestId}`;
-                        }
-                      });
-                    } else if (row.id === 'hide') {
-                      void toggleHideFromClients(id);
-                    } else if (row.id === 'archive') {
-                      void runLifecycle('archive', id);
-                    } else if (row.id === 'repost') {
-                      void convertContentToOps(id).then((ids) => {
-                        if (ids?.deliverableId) {
-                          window.location.href = `/app/deliverables/${ids.deliverableId}`;
-                        }
-                      });
-                    } else if (row.id === 'labels') {
-                      setSelectedId(id);
-                      const brandId = rows.find((r) => r.id === id)?.brandId || brands[0]?.id;
-                      if (brandId) {
-                        void listBrandLabels(brandId)
-                          .then((labs) => setBrandLabels(labs as typeof brandLabels))
-                          .catch(() => setBrandLabels([]));
-                      }
-                      setLabelPickerOpen(true);
-                    } else if (row.id === 'template') {
-                      void saveAsTemplate(id);
-                    }
-                    setCardMenuId(null);
-                    setMenuPos(null);
-                  }}
-                >
-                  <span className="oma-card-menu__item-ico">{row.icon}</span>
-                  <span>{row.label}</span>
-                </button>
-              ))}
-            </div>,
-            document.body,
-          )
-        : null}
 
-      {approvalMode ? (
-                                <label className="oma-cal-select" onClick={(e) => e.stopPropagation()}>
-                                  <input
-                                    type="checkbox"
-                                    checked={selectedIds.includes(item.id)}
-                                    onChange={() => toggleSelectId(item.id)}
-                                  />
-                                </label>
-                              ) : null}
-                              <SurfaceButton
-                                data-status={item.status}
-                                data-testid={`demo-cal-item-${item.id}`}
-                                data-selected={
-                                  selectedId === item.id || selectedIds.includes(item.id)
-                                    ? 'true'
-                                    : 'false'
-                                }
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  if (approvalMode) {
-                                    toggleSelectId(item.id);
-                                    return;
-                                  }
-                                  openItem(item);
-                                }}
-                                onContextMenu={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                                  setCardMenuId(item.id);
-                                  setMenuPos({ top: r.top, left: r.right + 4 });
-                                }}
-                                className="oma-cal-item"
-                              >
-                                <ContentFace
-                                  variant="calendar"
-                                  title={pickCopy(item.title, locale)}
-                                  caption={item.caption ? pickCopy(item.caption, locale) : ''}
-                                  channel={item.channel}
-                                  when={
-                                    item.scheduledAt
-                                      ? item.scheduledAt.slice(11, 16)
-                                      : item.plannedAt
-                                        ? String(item.plannedAt).slice(11, 16) ||
-                                          String(item.plannedAt).slice(0, 5)
-                                        : '—'
-                                  }
-                                  asset={item.previewAsset}
-                                  display={faceDisplay(item, policy)}
-                                  locale={locale}
-                                  selected={selectedId === item.id}
-                                />
-                              </SurfaceButton>
-                            </div>
-                          ))}
-                          {extra > 0 ? (
-                            <Button
-                              type="default"
-                              data-testid="demo-day-overflow"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedDay(cell.key);
-                                setOverflowDay(cell.key);
-                              }}
-                              className="oma-cal-more"
-                            >
-                              +{extra}
-                            </Button>
-                          ) : null}
-                          {(note || noteDay === cell.key) ? (
+                          {/* Private sticky note — appears ABOVE cards */}
+                          {note || noteDay === cell.key ? (
                             <div
                               className="oma-cal-note oma-cal-note--inline"
                               data-color={(note?.color ?? dayNotes[cell.key]?.color) || 'yellow'}
@@ -2128,6 +2128,7 @@ export default function ContentPage() {
                                   setNoteDay(cell.key);
                                   if (isMobile) setNoteColorOpen(false);
                                 }}
+                                onBlur={(e) => void persistNote(cell.key, { text: e.target.value })}
                               />
                               <div className="oma-cal-note__actions">
                                 <button
@@ -2155,7 +2156,6 @@ export default function ContentPage() {
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setNoteDay(cell.key);
-                                    // focus textarea
                                     const ta = (e.currentTarget.closest('.oma-cal-note') as HTMLElement | null)?.querySelector(
                                       'textarea',
                                     );
@@ -2212,6 +2212,99 @@ export default function ContentPage() {
                             </div>
                           ) : null}
 
+                          {/* Campaign bar + holiday chip */}
+                          {holiday ? (
+                            <div className="oma-cal-holiday-chip" title={holiday}>
+                              {holiday}
+                            </div>
+                          ) : null}
+
+                          {/* Post cards */}
+                          {visible.map((item) => (
+                            <div
+                              key={item.id}
+                              className="oma-cal-item-wrap"
+                              data-selected={selectedId === item.id ? 'true' : 'false'}
+                              onMouseEnter={(e) => scheduleCardMenu(item.id, e.currentTarget)}
+                              onMouseLeave={() => cancelCardMenu()}
+                            >
+                              {approvalMode ? (
+                                <label
+                                  className="oma-cal-select"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedIds.includes(item.id)}
+                                    onChange={() => toggleSelectId(item.id)}
+                                  />
+                                </label>
+                              ) : null}
+                              <SurfaceButton
+                                data-status={item.status}
+                                data-testid={`demo-cal-item-${item.id}`}
+                                data-selected={selectedId === item.id ? 'true' : 'false'}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (approvalMode) {
+                                    toggleSelectId(item.id);
+                                    return;
+                                  }
+                                  openItem(item);
+                                }}
+                                onContextMenu={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                                  setCardMenuId(item.id);
+                                  setMenuPos({ top: r.top, left: r.right + 8 });
+                                }}
+                                className="oma-cal-item"
+                              >
+                                <div className="oma-cal-card">
+                                  <div className="oma-cal-card__row">
+                                    <span className="oma-cal-card__channel">
+                                      <span className="oma-cal-card__icon" aria-hidden>▣</span>
+                                      <span className="oma-cal-card__name">
+                                        {item.channel || 'Osama page'}
+                                      </span>
+                                    </span>
+                                    <span className="oma-cal-card__meta">
+                                      {item.status === 'DRAFT' ? (
+                                        <span className="oma-cal-card__draft">Draft</span>
+                                      ) : item.status === 'APPROVED' ? (
+                                        <span className="oma-cal-card__green-dot" aria-hidden />
+                                      ) : null}
+                                      <span className="oma-cal-card__time oma-ltr">
+                                        {item.scheduledAt
+                                          ? item.scheduledAt.slice(11, 16)
+                                          : item.plannedAt
+                                            ? String(item.plannedAt).slice(11, 16) || '10:00'
+                                            : '16:45'}
+                                      </span>
+                                    </span>
+                                  </div>
+                                  <div className="oma-cal-card__title">
+                                    {pickCopy(item.title, locale)}
+                                  </div>
+                                </div>
+                              </SurfaceButton>
+                            </div>
+                          ))}
+                          {extra > 0 ? (
+                            <Button
+                              type="default"
+                              data-testid="demo-day-overflow"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedDay(cell.key);
+                                setOverflowDay(cell.key);
+                              }}
+                              className="oma-cal-more"
+                            >
+                              +{extra}
+                            </Button>
+                          ) : null}
                         </div>
                       );
                     })}
@@ -2220,6 +2313,7 @@ export default function ContentPage() {
               })}
             </div>
 
+            {/* Mobile agenda (hidden on desktop) */}
             <div className="oma-cal-agenda" data-testid="demo-content-agenda">
               {agendaDays.map((day) => (
                 <div key={day.key} className="oma-cal-agenda-day">
@@ -2253,67 +2347,68 @@ export default function ContentPage() {
           </div>
 
           {savedOpen ? (
-          <aside
-            className="oma-cal-saved"
-            data-testid="demo-content-saved"
-            aria-label={t('demo.content.savedColumn')}
-          >
-            <header className="oma-cal-saved-head">
-              <strong>{t('demo.content.savedColumn')}</strong>
-              <div className="oma-cal-saved-head__meta">
-                {savedItems.length > 0 ? (
-                  <span className="oma-muted oma-ltr">{savedItems.length}</span>
-                ) : null}
-                <button
-                  type="button"
-                  className="oma-cal-saved-close"
-                  aria-label={isAr ? 'إغلاق' : 'Close'}
-                  data-tooltip={isAr ? 'إغلاق' : 'Close'}
-                  onClick={() => setSavedOpen(false)}
-                >
-                  <CloseOutlined />
-                </button>
-              </div>
-            </header>
-            {savedItems.length === 0 ? (
-              <div className="oma-cal-saved-empty" data-testid="demo-content-saved-empty">
-                <div className="oma-cal-saved-empty__art" aria-hidden />
-                <strong>{t('demo.content.savedEmpty')}</strong>
-                <p className="oma-muted">{t('demo.content.savedEmptyHint')}</p>
-                <Button type="default" onClick={() => setCreateOpen(true)}>
-                  {t('demo.content.create')}
-                </Button>
-              </div>
-            ) : (
-              <div className="oma-cal-saved-list">
-                {savedItems.map((item) => (
-                  <SurfaceButton
-                    key={item.id}
-                    data-testid={`demo-saved-item-${item.id}`}
-                    data-selected={selectedId === item.id ? 'true' : 'false'}
-                    onClick={() => openItem(item)}
-                    className="oma-cal-item"
+            <aside
+              className="oma-cal-saved"
+              data-testid="demo-content-saved"
+              aria-label={t('demo.content.savedColumn')}
+            >
+              <header className="oma-cal-saved-head">
+                <strong>{t('demo.content.savedColumn')}</strong>
+                <div className="oma-cal-saved-head__meta">
+                  {savedItems.length > 0 ? (
+                    <span className="oma-muted oma-ltr">{savedItems.length}</span>
+                  ) : null}
+                  <button
+                    type="button"
+                    className="oma-cal-saved-close"
+                    aria-label={isAr ? 'إغلاق' : 'Close'}
+                    data-tooltip={isAr ? 'إغلاق' : 'Close'}
+                    onClick={() => setSavedOpen(false)}
                   >
-                    <ContentFace
-                      variant="saved"
-                      title={pickCopy(item.title, locale)}
-                      caption={item.caption ? pickCopy(item.caption, locale) : ''}
-                      channel={item.channel}
-                      when="—"
-                      asset={item.previewAsset}
-                      display={faceDisplay(item, policy)}
-                      locale={locale}
-                      selected={selectedId === item.id}
-                    />
-                  </SurfaceButton>
-                ))}
-              </div>
-            )}
-          </aside>
+                    <CloseOutlined />
+                  </button>
+                </div>
+              </header>
+              {savedItems.length === 0 ? (
+                <div className="oma-cal-saved-empty" data-testid="demo-content-saved-empty">
+                  <div className="oma-cal-saved-empty__art" aria-hidden />
+                  <strong>{t('demo.content.savedEmpty')}</strong>
+                  <p className="oma-muted">{t('demo.content.savedEmptyHint')}</p>
+                  <Button type="default" onClick={() => setCreateOpen(true)}>
+                    {t('demo.content.create')}
+                  </Button>
+                </div>
+              ) : (
+                <div className="oma-cal-saved-list">
+                  {savedItems.map((item) => (
+                    <SurfaceButton
+                      key={item.id}
+                      data-testid={`demo-saved-item-${item.id}`}
+                      data-selected={selectedId === item.id ? 'true' : 'false'}
+                      onClick={() => openItem(item)}
+                      className="oma-cal-item"
+                    >
+                      <ContentFace
+                        variant="saved"
+                        title={pickCopy(item.title, locale)}
+                        caption={item.caption ? pickCopy(item.caption, locale) : ''}
+                        channel={item.channel}
+                        when="—"
+                        asset={item.previewAsset}
+                        display={faceDisplay(item, policy)}
+                        locale={locale}
+                        selected={selectedId === item.id}
+                      />
+                    </SurfaceButton>
+                  ))}
+                </div>
+              )}
+            </aside>
           ) : null}
         </section>
       ) : null}
 
+      {/* ── FEED VIEW ── */}
       {!loading && !unavailable && !error && filtered.length > 0 && view === 'feed' ? (
         <div className="oma-content-feed" data-testid="demo-content-feed">
           {filtered.map((item) => {
@@ -2362,6 +2457,7 @@ export default function ContentPage() {
         </div>
       ) : null}
 
+      {/* ── LIST VIEW ── */}
       {!loading && !unavailable && !error && filtered.length > 0 && view === 'list' ? (
         <div className="oma-plan-list" data-testid="demo-content-list">
           <div className="oma-plan-list__head">
@@ -2421,9 +2517,7 @@ export default function ContentPage() {
                   </div>
                   <div className="oma-plan-list__main">
                     <div className="oma-plan-list__page">
-                      <span className="oma-plan-list__page-ico" aria-hidden>
-                        ▣
-                      </span>
+                      <span className="oma-plan-list__page-ico" aria-hidden>▣</span>
                       <span className="oma-plan-list__page-name">{item.channel || 'Osama page'}</span>
                     </div>
                     <div className="oma-plan-list__title">{pickCopy(item.title, locale)}</div>
@@ -2440,7 +2534,7 @@ export default function ContentPage() {
                       data-tooltip={isAr ? 'موافقة' : 'Approve'}
                       onClick={(e) => {
                         e.stopPropagation();
-                        void runLifecycle('approve', selectedId);
+                        void runLifecycle('approve', item.id);
                       }}
                     >
                       <CheckOutlined />
@@ -2473,7 +2567,7 @@ export default function ContentPage() {
                         e.stopPropagation();
                         const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
                         setCardMenuId(item.id);
-                        setMenuPos({ top: r.bottom + 4, left: r.right - 220 });
+                        setMenuPos({ top: r.bottom + 4, left: r.right - 240 });
                       }}
                     >
                       <MoreOutlined />
@@ -2487,6 +2581,7 @@ export default function ContentPage() {
         </div>
       ) : null}
 
+      {/* ── GRID VIEW ── */}
       {!loading && !unavailable && !error && filtered.length > 0 && view === 'grid' ? (
         <div className="oma-plan-grid" data-testid="demo-content-grid">
           {filtered.map((item) => {
@@ -2510,20 +2605,13 @@ export default function ContentPage() {
                       alt={mediaAlt(title, item.channel, item.contentType)}
                     />
                   ) : (
-                    <span className="oma-plan-grid__ph" aria-hidden>
-                      ▣
-                    </span>
+                    <span className="oma-plan-grid__ph" aria-hidden>▣</span>
                   )}
                   <div className="oma-plan-grid__shade" />
                   <div className="oma-plan-grid__overlay">
-                    {when ? (
-                      <span className="oma-plan-grid__when oma-ltr">{when}</span>
-                    ) : null}
+                    {when ? <span className="oma-plan-grid__when oma-ltr">{when}</span> : null}
                     <span className="oma-plan-grid__title">{title}</span>
                   </div>
-                  <span className="oma-plan-grid__corner" aria-hidden>
-                    <SyncOutlined />
-                  </span>
                 </div>
               </button>
             );
@@ -2531,6 +2619,7 @@ export default function ContentPage() {
         </div>
       ) : null}
 
+      {/* ── Post detail modal (drawer) ── */}
       <Dialog
         open={Boolean(selected)}
         onClose={requestCloseDrawer}
@@ -2539,16 +2628,17 @@ export default function ContentPage() {
         className="oma-plan-post-modal"
       >
         {selected ? (
-          <div className="oma-plan-post" data-testid="demo-content-drawer" data-detail-tab={detailTab} data-review={review?.state ?? ''}>
-            {/* Left rail */}
+          <div
+            className="oma-plan-post"
+            data-testid="demo-content-drawer"
+            data-detail-tab={detailTab}
+            data-review={review?.state ?? ''}
+          >
             <aside className="oma-plan-post__rail" aria-hidden>
-              <span className="oma-plan-post__rail-ico">
-                <EditOutlined />
-              </span>
+              <span className="oma-plan-post__rail-ico"><EditOutlined /></span>
             </aside>
 
             <div className="oma-plan-post__main">
-              {/* Top toolbar */}
               <header className="oma-plan-post__top">
                 <div className="oma-plan-post__top-start">
                   <button type="button" className="oma-plan-post__chip">
@@ -2621,26 +2711,6 @@ export default function ContentPage() {
                     </button>
                     {detailMoreOpen ? (
                       <ul className="oma-plan-post__more-menu" role="menu">
-                        <li>
-                          <button type="button" role="menuitem">
-                            <FlagOutlined /> {isAr ? 'إضافة إلى حملة' : 'Add to campaign'}
-                          </button>
-                        </li>
-                        <li>
-                          <button type="button" role="menuitem">
-                            <TagOutlined /> {isAr ? 'إدارة التصنيفات' : 'Manage labels'}
-                          </button>
-                        </li>
-                        <li>
-                          <button type="button" role="menuitem">
-                            <CheckOutlined /> {isAr ? 'تعليم كمنشور' : 'Mark as published'}
-                          </button>
-                        </li>
-                        <li>
-                          <button type="button" role="menuitem">
-                            <EyeInvisibleOutlined /> {isAr ? 'إخفاء عن العملاء' : 'Hide from clients'}
-                          </button>
-                        </li>
                         <li>
                           <button type="button" role="menuitem" onClick={() => void runLifecycle('request-approval', selectedId)}>
                             <FlagOutlined /> {isAr ? 'طلب موافقة' : 'Request approval'}
@@ -2719,7 +2789,6 @@ export default function ContentPage() {
 
               <div className="oma-plan-post__body">
                 <div className="oma-plan-post__canvas">
-                  {/* Desktop / Mobile toggle */}
                   <div className="oma-plan-post__preview-toggle">
                     <button
                       type="button"
@@ -2784,9 +2853,7 @@ export default function ContentPage() {
                               <p className="oma-plan-post__tip-section">{isAr ? 'الفريق' : 'Team'}</p>
                               <div className="oma-plan-post__tip-user">
                                 <span className="oma-plan-post__avatar">O</span>
-                                <span>
-                                  {selected.assignee || 'Osama'} ({isAr ? 'أنت' : 'You'})
-                                </span>
+                                <span>{selected.assignee || 'Osama'} ({isAr ? 'أنت' : 'You'})</span>
                               </div>
                             </div>
                           ) : null}
@@ -2844,15 +2911,9 @@ export default function ContentPage() {
                         />
                         <div className="oma-plan-post__count">
                           {draft.caption.length} {isAr ? 'حرف' : 'characters'} ·{' '}
-                          {draft.caption.trim()
-                            ? draft.caption.trim().split(/\s+/).length
-                            : 0}{' '}
+                          {draft.caption.trim() ? draft.caption.trim().split(/\s+/).length : 0}{' '}
                           {isAr ? 'كلمة' : 'word'}
-                          {draft.caption.trim().split(/\s+/).filter(Boolean).length === 1
-                            ? ''
-                            : draft.caption.trim()
-                              ? 's'
-                              : ''}
+                          {draft.caption.trim().split(/\s+/).filter(Boolean).length === 1 ? '' : draft.caption.trim() ? 's' : ''}
                         </div>
                         {(dirty || saveState !== 'idle') ? (
                           <div className="oma-plan-post__save-row">
@@ -2887,18 +2948,13 @@ export default function ContentPage() {
                   )}
                 </div>
 
-                {/* Right side panel */}
                 {detailSidePanel !== 'none' ? (
                   <aside className="oma-plan-post__side" data-testid="demo-content-side-panel">
                     <header className="oma-plan-post__side-head">
                       <strong>
                         {detailSidePanel === 'activity'
-                          ? isAr
-                            ? 'النشاط'
-                            : 'Activity'
-                          : isAr
-                            ? 'الملاحظات'
-                            : 'Feedback'}
+                          ? isAr ? 'النشاط' : 'Activity'
+                          : isAr ? 'الملاحظات' : 'Feedback'}
                       </strong>
                       <button
                         type="button"
@@ -3058,6 +3114,7 @@ export default function ContentPage() {
         ) : null}
       </Dialog>
 
+      {/* Overflow day dialog */}
       <Dialog
         open={Boolean(overflowDay)}
         title={t('demo.content.openDay')}
@@ -3082,6 +3139,7 @@ export default function ContentPage() {
         </div>
       </Dialog>
 
+      {/* Filter side panel */}
       {filterSheet ? (
         <>
           <button
@@ -3160,6 +3218,7 @@ export default function ContentPage() {
         </>
       ) : null}
 
+      {/* Media library */}
       <Dialog
         open={mediaLibraryOpen}
         title={isAr ? 'مكتبة الوسائط' : 'Media library'}
@@ -3186,7 +3245,7 @@ export default function ContentPage() {
         </div>
       </Dialog>
 
-
+      {/* Approval selection bar */}
       {selectedIds.length > 0 ? (
         <div className="oma-plan-selbar" data-testid="demo-content-approval-bar">
           <div className="oma-plan-selbar__top">
@@ -3201,12 +3260,8 @@ export default function ContentPage() {
             <span className="oma-plan-selbar__badge">{selectedIds.length}</span>
             <span className="oma-plan-selbar__label">
               {selectedIds.length === 1
-                ? isAr
-                  ? 'منشور محدد'
-                  : 'Post selected'
-                : isAr
-                  ? 'منشورات محددة'
-                  : 'Posts selected'}
+                ? isAr ? 'منشور محدد' : 'Post selected'
+                : isAr ? 'منشورات محددة' : 'Posts selected'}
             </span>
             <button
               type="button"
@@ -3236,26 +3291,13 @@ export default function ContentPage() {
             <button type="button" className="oma-plan-selbar__btn" onClick={() => undefined}>
               <CopyOutlined /> {isAr ? 'نسخ إلى…' : 'Copy to…'}
             </button>
-            <button
-              type="button"
-              className="oma-plan-selbar__icon"
-              onClick={(e) => {
-                const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                setCardMenuId(selectedIds[0] ?? null);
-                setMenuPos({ top: r.top - 8, left: r.left });
-              }}
-            >
-              <MoreOutlined />
-            </button>
             <button type="button" className="oma-plan-selbar__icon" onClick={() => undefined}>
               <InboxOutlined />
             </button>
             <button
               type="button"
               className="oma-plan-selbar__icon"
-              onClick={() => {
-                clearSelection();
-              }}
+              onClick={clearSelection}
             >
               <DeleteOutlined />
             </button>
@@ -3263,8 +3305,7 @@ export default function ContentPage() {
         </div>
       ) : null}
 
-      {/* Planable private note editor */}
-                  {/* Mobile note editor modal */}
+      {/* Mobile note editor modal */}
       {noteDay && isMobile
         ? createPortal(
             <div className="oma-cal-note-modal" data-testid="demo-content-note-modal">
@@ -3291,13 +3332,10 @@ export default function ContentPage() {
                     const text = e.target.value;
                     setDayNotes((prev) => ({
                       ...prev,
-                      [noteDay]: {
-                        text,
-                        color: prev[noteDay]?.color ?? 'yellow',
-                      },
+                      [noteDay]: { text, color: prev[noteDay]?.color ?? 'yellow' },
                     }));
                   }}
-                                onBlur={(e) => void persistNote(cell.key, { text: e.target.value })}
+                  onBlur={(e) => void persistNote(noteDay, { text: e.target.value })}
                 />
                 <div className="oma-cal-note__actions">
                   <button
@@ -3312,7 +3350,11 @@ export default function ContentPage() {
                     />
                     <DownOutlined />
                   </button>
-                  <button type="button" className="oma-cal-note__action" data-tooltip={isAr ? 'مرئي لك فقط' : 'Only visible to you'}>
+                  <button
+                    type="button"
+                    className="oma-cal-note__action"
+                    data-tooltip={isAr ? 'مرئي لك فقط' : 'Only visible to you'}
+                  >
                     <LockOutlined />
                   </button>
                   <button
@@ -3320,11 +3362,7 @@ export default function ContentPage() {
                     className="oma-cal-note__action"
                     data-tooltip={isAr ? 'حذف' : 'Delete'}
                     onClick={() => {
-                      setDayNotes((prev) => {
-                        const next = { ...prev };
-                        delete next[noteDay];
-                        return next;
-                      });
+                      void persistNote(noteDay, { remove: true });
                       setNoteDay(null);
                     }}
                   >
@@ -3351,10 +3389,7 @@ export default function ContentPage() {
                         data-color={c}
                         data-active={(dayNotes[noteDay]?.color ?? 'yellow') === c ? 'true' : 'false'}
                         onClick={() => {
-                          setDayNotes((prev) => ({
-                            ...prev,
-                            [noteDay]: { text: prev[noteDay]?.text ?? '', color: c },
-                          }));
+                          void persistNote(noteDay, { color: c });
                           setNoteColorOpen(false);
                         }}
                       />
@@ -3367,8 +3402,18 @@ export default function ContentPage() {
           )
         : null}
 
-
-
+      {/* Floating card hover menu (portal) */}
+      <CardFloatingMenu
+        open={!!cardMenuId && !!menuPos}
+        pos={menuPos}
+        itemId={cardMenuId}
+        locale={locale}
+        onAction={handleCardMenuAction}
+        onClose={() => {
+          setCardMenuId(null);
+          setMenuPos(null);
+        }}
+      />
 
       <PlanableComposeCard
         open={createOpen}
@@ -3392,9 +3437,7 @@ export default function ContentPage() {
           <Button type="default" onClick={() => setUnsavedOpen(false)}>
             {t('demo.create.cancel')}
           </Button>
-          <Button type="primary" onClick={closeDrawer}>
-            OK
-          </Button>
+          <Button type="primary" onClick={closeDrawer}>OK</Button>
         </div>
       </Dialog>
 
@@ -3501,4 +3544,4 @@ export default function ContentPage() {
       </Dialog>
     </div>
   );
-}
+      }
