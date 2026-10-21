@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { resolveContentWorkflow, type ApprovalPolicy, type DemoGraph } from '@oma/demo';
-import { ContentFace, StatusMark, faceDisplay } from '../../../../components/content/content-card';
+import { ContentFace, faceDisplay } from '../../../../components/content/content-card';
 import {
   Button,
   DatePicker,
@@ -50,8 +50,6 @@ import {
   TagOutlined,
   UnorderedListOutlined,
   UserOutlined,
-  TeamOutlined,
-  CheckSquareOutlined,
   ApartmentOutlined,
 } from '@ant-design/icons';
 
@@ -87,11 +85,7 @@ import {
   type ContentSortKey,
   type ContentViewMode,
 } from '../../../../lib/demo/stage3-content';
-import {
-  demoErrorMessage,
-  isDemoForbidden,
-  pickCopy,
-} from '../../../../lib/demo/use-demo-api';
+import { pickCopy } from '../../../../lib/demo/use-demo-api';
 import {
   loadContentWorkspace,
   createContentProduction,
@@ -117,9 +111,6 @@ import {
   requestContentChanges,
   rejectContent,
   markContentPublished,
-  listBrandLabels,
-  createBrandLabel,
-  listBrandTemplates,
   useContentTemplate,
   workflowLabel,
   type ApprovalEvent,
@@ -209,6 +200,7 @@ function reviewFilterLabel(value: string, locale: string, allLabel: string): str
 type ComposeForm = {
   title: string;
   campaignId: string;
+  brandId: string;
   contentType: string;
   channel: string;
   previewAsset: string;
@@ -229,6 +221,7 @@ function PlanableComposeCard({
   onChange,
   onClose,
   onSubmit,
+  onOpenTemplates,
 }: {
   open: boolean;
   creating: boolean;
@@ -239,6 +232,7 @@ function PlanableComposeCard({
   onChange: (patch: Partial<ComposeForm>) => void;
   onClose: () => void;
   onSubmit: () => void;
+  onOpenTemplates?: () => void;
 }) {
   const [campaignMenu, setCampaignMenu] = useState(false);
   if (!open) return null;
@@ -263,7 +257,11 @@ function PlanableComposeCard({
         </button>
 
         <div className="oma-compose-pills">
-          <button type="button" className="oma-compose-pill">
+          <button
+            type="button"
+            className="oma-compose-pill"
+            onClick={() => onOpenTemplates?.()}
+          >
             <SnippetsOutlined />
             Template
           </button>
@@ -509,6 +507,10 @@ export default function ContentPage() {
   const [prodComments, setProdComments] = useState<ContentCommentDto[]>([]);
   const [commentDraft, setCommentDraft] = useState('');
   const [labelPickerOpen, setLabelPickerOpen] = useState(false);
+  const [campaignPickerOpen, setCampaignPickerOpen] = useState(false);
+  const [campaignPickerId, setCampaignPickerId] = useState<string | null>(null);
+  const [campaignSaving, setCampaignSaving] = useState(false);
+  const [labelTargetId, setLabelTargetId] = useState<string | null>(null);
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
   const [brandLabels, setBrandLabels] = useState<{ id: string; name: { en: string; ar: string }; color: string }[]>([]);
   const [brandTemplates, setBrandTemplates] = useState<
@@ -527,7 +529,7 @@ export default function ContentPage() {
   const [mediaLibraryOpen, setMediaLibraryOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
-  const [createForm, setCreateForm] = useState({
+  const [createForm, setCreateForm] = useState<ComposeForm>({
     title: '',
     campaignId: '',
     brandId: '',
@@ -745,6 +747,100 @@ export default function ContentPage() {
     }
   }
 
+  /* Open the templates picker for a brand. */
+  async function openTemplatePicker(brandId: string) {
+    try {
+      const tpls = await listContentTemplates(brandId);
+      setBrandTemplates(tpls as typeof brandTemplates);
+      setTemplatePickerOpen(true);
+    } catch (err) {
+      toast.push(contentApiError(err, isAr ? 'تعذّر تحميل القوالب' : 'Templates failed'), 'danger');
+    }
+  }
+
+  async function applyTemplate(brandId: string, templateId: string) {
+    setSaving(true);
+    try {
+      const created = await useContentTemplate(brandId, templateId);
+      const row = toContentRow(created);
+      setRows((prev) => [row, ...prev]);
+      setTemplatePickerOpen(false);
+      toast.push(isAr ? 'تم إنشاء منشور من القالب' : 'Created from template', 'success');
+      openItem(row, 'edit');
+    } catch (err) {
+      toast.push(contentApiError(err, isAr ? 'تعذّر استخدام القالب' : 'Template failed'), 'danger');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  /* Open the campaign picker for a content item (Add to campaign). */
+  function openCampaignPicker(contentId: string) {
+    setSelectedId(contentId);
+    setCampaignPickerId(contentId);
+    setCampaignPickerOpen(true);
+  }
+
+  const campaignPickerOptions = useMemo(() => {
+    if (!campaignPickerId) return [] as Campaign[];
+    const row = rows.find((r) => r.id === campaignPickerId);
+    if (!row) return [] as Campaign[];
+    return campaigns.filter((c) => c.brandId === row.brandId);
+  }, [campaignPickerId, campaigns, rows]);
+
+  async function applyCampaign(campaignId: string | null) {
+    if (!campaignPickerId) return;
+    setCampaignSaving(true);
+    try {
+      const updated = await updateContentProduction(campaignPickerId, { campaignId });
+      setRows((prev) => prev.map((r) => (r.id === campaignPickerId ? toContentRow(updated) : r)));
+      setCampaignPickerOpen(false);
+      setCampaignPickerId(null);
+      toast.push(
+        campaignId
+          ? isAr
+            ? 'تمت إضافة المنشور إلى الحملة'
+            : 'Post added to campaign'
+          : isAr
+            ? 'تم إزالة المنشور من الحملة'
+            : 'Post removed from campaign',
+        'success',
+      );
+    } catch (err) {
+      toast.push(contentApiError(err, isAr ? 'تعذّر تحديث الحملة' : 'Campaign update failed'), 'danger');
+    } finally {
+      setCampaignSaving(false);
+    }
+  }
+
+  /* Open the labels picker for a content item (Manage labels). */
+  function openLabelPicker(contentId: string) {
+    setSelectedId(contentId);
+    setLabelTargetId(contentId);
+    const brandId = rows.find((r) => r.id === contentId)?.brandId || brands[0]?.id;
+    if (brandId) {
+      void listContentLabels(brandId)
+        .then((labs) => setBrandLabels(labs as typeof brandLabels))
+        .catch(() => setBrandLabels([]));
+    }
+    setLabelPickerOpen(true);
+  }
+
+  async function toggleLabelOnContent(contentId: string, labelName: string) {
+    const current = rows.find((r) => r.id === contentId);
+    const existing = (current as { labels?: string[] })?.labels ?? [];
+    const next = existing.includes(labelName)
+      ? existing.filter((x) => x !== labelName)
+      : [...existing, labelName];
+    try {
+      const updated = await setContentLabels(contentId, next);
+      setRows((prev) => prev.map((r) => (r.id === contentId ? toContentRow(updated) : r)));
+      toast.push(isAr ? 'تم تحديث التصنيفات' : 'Labels updated', 'success');
+    } catch (err) {
+      toast.push(contentApiError(err, isAr ? 'تعذّر تحديث التصنيفات' : 'Labels update failed'), 'danger');
+    }
+  }
+
 
   useEffect(() => {
     const urlView = search.get('view');
@@ -817,7 +913,6 @@ export default function ContentPage() {
     [rows, selectedId],
   );
   const overflowItems = overflowDay ? (byDay.get(overflowDay) ?? []) : [];
-  const comments = selected ? commentsForContent(tasks, deliverables, selected.id) : [];
   const linked = selected
     ? linkedIdsForContent(tasks, deliverables, requests, selected.id)
     : { taskId: null, deliverableId: null, requestId: null };
@@ -935,29 +1030,32 @@ export default function ContentPage() {
   }
 
 
-  async function runCommand(command: 'schedule' | 'unschedule' | 'request-approval') {
-    if (!selectedId) return;
+  async function runCommand(command: 'schedule' | 'unschedule' | 'request-approval', id?: string) {
+    const targetId = id ?? selectedId;
+    if (!targetId) return;
     setSaving(true);
     setSaveError(null);
     try {
       let apiRow;
       if (command === 'request-approval') {
-        apiRow = await requestContentApproval(selectedId);
+        apiRow = await requestContentApproval(targetId);
       } else if (command === 'schedule') {
         const when =
-          draft.scheduledAt ||
+          (targetId === selectedId ? draft.scheduledAt : '') ||
           selected?.scheduledAt ||
           selected?.plannedAt ||
           new Date().toISOString();
-        apiRow = await scheduleContent(selectedId, { scheduledAt: when });
+        apiRow = await scheduleContent(targetId, { scheduledAt: when });
       } else {
-        apiRow = await unscheduleContent(selectedId);
+        apiRow = await unscheduleContent(targetId);
       }
       const updated = toContentRow(apiRow);
       setRows((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
-      const next = draftFromItem(updated, locale);
-      setDraft(next);
-      setBaseline(next);
+      if (targetId === selectedId) {
+        const next = draftFromItem(updated, locale);
+        setDraft(next);
+        setBaseline(next);
+      }
       toast.push(t('demo.content.saved'), 'success');
     } catch (err) {
       const msg = contentApiError(err, t('demo.content.scheduleBlocked'));
@@ -997,9 +1095,9 @@ export default function ContentPage() {
           ? { en: createForm.caption.trim(), ar: createForm.caption.trim() }
           : undefined,
         campaignId: createForm.campaignId || null,
-        contentType: createForm.contentType,
+        contentType: createForm.contentType as ContentRow['contentType'],
         channel: createForm.channel.trim(),
-        track: createForm.track || campaign?.track || 'ORGANIC',
+        track: (createForm.track || campaign?.track || 'ORGANIC') as ContentRow['track'],
         plannedAt: createForm.plannedDate
           ? `${createForm.plannedDate}T10:00:00.000Z`
           : null,
@@ -1891,6 +1989,10 @@ export default function ContentPage() {
                   { id: 'request', label: isAr ? 'طلب موافقة' : 'Request approval', icon: <SyncOutlined /> },
                   { id: 'approve', label: isAr ? 'الموافقة على المنشور' : 'Approve post', icon: <CheckOutlined /> },
                   { id: 'published', label: isAr ? 'تعليم كمنشور' : 'Mark as published', icon: <FlagOutlined /> },
+                  { id: 'campaign', label: isAr ? 'إضافة إلى حملة' : 'Add to campaign', icon: <ApartmentOutlined /> },
+                  { id: 'labels', label: isAr ? 'إدارة التصنيفات' : 'Manage labels', icon: <TagOutlined /> },
+                  { id: 'template', label: isAr ? 'حفظ كقالب' : 'Save as template', icon: <FileTextOutlined /> },
+                  { id: 'link', label: isAr ? 'نسخ الرابط' : 'Copy link', icon: <LinkOutlined /> },
                   { id: 'hide', label: isAr ? 'إخفاء عن العملاء' : 'Hide from clients', icon: <EyeInvisibleOutlined /> },
                   { id: 'archive', label: isAr ? 'أرشفة المنشور' : 'Archive post', icon: <InboxOutlined /> },
                   { id: 'repost', label: isAr ? 'إعادة نشر' : 'Repost', icon: <SyncOutlined /> },
@@ -1903,36 +2005,64 @@ export default function ContentPage() {
                   className="oma-card-menu__item"
                   onClick={(e) => {
                     e.stopPropagation();
+                    if (row.id === 'request' && cardMenuId) {
+                      setSelectedId(cardMenuId);
+                      void runCommand('request-approval', cardMenuId);
+                    }
+                    if (row.id === 'approve' && cardMenuId) {
+                      setSelectedId(cardMenuId);
+                      void approveContent(cardMenuId)
+                        .then((updated) => {
+                          setRows((prev) =>
+                            prev.map((r) => (r.id === cardMenuId ? toContentRow(updated) : r)),
+                          );
+                          toast.push(isAr ? 'تمت الموافقة' : 'Post approved', 'success');
+                        })
+                        .catch((err) =>
+                          toast.push(contentApiError(err, isAr ? 'تعذّرت الموافقة' : 'Approval failed'), 'danger'),
+                        );
+                    }
                     if (row.id === 'published' && cardMenuId) {
                       setSelectedId(cardMenuId);
-                      void runCommand('request-approval');
+                      void markContentPublished(cardMenuId)
+                        .then((updated) => {
+                          setRows((prev) =>
+                            prev.map((r) => (r.id === cardMenuId ? toContentRow(updated) : r)),
+                          );
+                          toast.push(isAr ? 'تم التعليم كمنشور' : 'Marked as published', 'success');
+                        })
+                        .catch((err) =>
+                          toast.push(contentApiError(err, isAr ? 'تعذّر التعليم كمنشور' : 'Mark as published failed'), 'danger'),
+                        );
+                    }
+                    if (row.id === 'hide' && cardMenuId) {
+                      setSelectedId(cardMenuId);
+                      void toggleHideFromClients(cardMenuId);
+                    }
+                    if (row.id === 'archive' && cardMenuId) {
+                      setSelectedId(cardMenuId);
+                      void archiveContent(cardMenuId)
+                        .then(() => {
+                          toast.push(isAr ? 'تمت أرشفة المنشور' : 'Post archived', 'success');
+                          void load();
+                        })
+                        .catch((err) =>
+                          toast.push(contentApiError(err, isAr ? 'تعذّرت الأرشفة' : 'Archive failed'), 'danger'),
+                        );
+                    }
+                    if (row.id === 'campaign' && cardMenuId) {
+                      openCampaignPicker(cardMenuId);
+                    }
+                    if (row.id === 'labels' && cardMenuId) {
+                      openLabelPicker(cardMenuId);
+                    }
+                    if (row.id === 'template' && cardMenuId) {
+                      setSelectedId(cardMenuId);
+                      void saveAsTemplate(cardMenuId);
                     }
                     if (row.id === 'link') {
                       void navigator.clipboard?.writeText(window.location.href);
                       toast.push(isAr ? 'تم نسخ الرابط' : 'Link copied', 'success');
-                    }
-                    if (row.id === 'hide') {
-                      void toggleHideFromClients(cardMenuId);
-                    }
-                    if (row.id === 'labels') {
-                      const current = rows.find((r) => r.id === cardMenuId);
-                      if (cardMenuId) {
-                        setSelectedId(cardMenuId);
-                        const brandId =
-                          rows.find((r) => r.id === cardMenuId)?.brandId || brands[0]?.id;
-                        if (brandId) {
-                          void listBrandLabels(brandId)
-                            .then((labs) => setBrandLabels(labs as typeof brandLabels))
-                            .catch(() => setBrandLabels([]));
-                        }
-                        setLabelPickerOpen(true);
-                      }
-                    }
-                    if (row.id === 'template' || row.label.toLowerCase().includes('template') || row.label.includes('قالب')) {
-                      void saveAsTemplate(cardMenuId);
-                    }
-                    if (row.id === 'campaign') {
-                      toast.push(isAr ? 'اربط الحملة من تفاصيل المنشور' : 'Link campaign from post details', 'success');
                     }
                     setCardMenuId(null);
                     setMenuPos(null);
@@ -2466,10 +2596,18 @@ export default function ContentPage() {
               {/* Top toolbar */}
               <header className="oma-plan-post__top">
                 <div className="oma-plan-post__top-start">
-                  <button type="button" className="oma-plan-post__chip">
+                  <button
+                    type="button"
+                    className="oma-plan-post__chip"
+                    onClick={() => selected && openCampaignPicker(selected.id)}
+                  >
                     <FlagOutlined /> {isAr ? 'حملة' : 'Campaign'}
                   </button>
-                  <button type="button" className="oma-plan-post__chip">
+                  <button
+                    type="button"
+                    className="oma-plan-post__chip"
+                    onClick={() => selected && openLabelPicker(selected.id)}
+                  >
                     <TagOutlined /> {isAr ? 'تصنيفات' : 'Labels'}
                   </button>
                 </div>
@@ -2520,8 +2658,64 @@ export default function ContentPage() {
                     type="button"
                     className="oma-plan-post__icon-btn"
                     data-tooltip={isAr ? 'إظهار للعملاء' : 'Make visible to clients'}
+                    data-active={selected?.clientVisible === false ? 'false' : 'true'}
+                    onClick={() => {
+                      if (!selected) return;
+                      void toggleHideFromClients(selected.id);
+                    }}
                   >
                     <EyeInvisibleOutlined />
+                  </button>
+                  <button
+                    type="button"
+                    className="oma-plan-post__icon-btn"
+                    data-tooltip={isAr ? 'طلب تعديلات' : 'Request changes'}
+                    onClick={() => {
+                      if (!selected) return;
+                      setSelectedId(selected.id);
+                      void requestContentChanges(selected.id)
+                        .then((updated) => {
+                          setRows((prev) =>
+                            prev.map((r) => (r.id === selected.id ? toContentRow(updated) : r)),
+                          );
+                          toast.push(
+                            isAr ? 'تم طلب تعديلات' : 'Changes requested',
+                            'success',
+                          );
+                        })
+                        .catch((err) =>
+                          toast.push(
+                            contentApiError(err, isAr ? 'تعذّر طلب التعديلات' : 'Request changes failed'),
+                            'danger',
+                          ),
+                        );
+                    }}
+                  >
+                    <EditOutlined />
+                  </button>
+                  <button
+                    type="button"
+                    className="oma-plan-post__icon-btn"
+                    data-tooltip={isAr ? 'رفض' : 'Reject'}
+                    onClick={() => {
+                      if (!selected) return;
+                      setSelectedId(selected.id);
+                      void rejectContent(selected.id)
+                        .then((updated) => {
+                          setRows((prev) =>
+                            prev.map((r) => (r.id === selected.id ? toContentRow(updated) : r)),
+                          );
+                          toast.push(isAr ? 'تم رفض المنشور' : 'Post rejected', 'success');
+                        })
+                        .catch((err) =>
+                          toast.push(
+                            contentApiError(err, isAr ? 'تعذّر الرفض' : 'Reject failed'),
+                            'danger',
+                          ),
+                        );
+                    }}
+                  >
+                    <CloseOutlined />
                   </button>
                   <button type="button" className="oma-plan-post__icon-btn" data-tooltip={isAr ? 'حذف' : 'Delete'}>
                     <DeleteOutlined />
@@ -2537,37 +2731,76 @@ export default function ContentPage() {
                     {detailMoreOpen ? (
                       <ul className="oma-plan-post__more-menu" role="menu">
                         <li>
-                          <button type="button" role="menuitem">
+                          <button type="button" role="menuitem" onClick={() => selected && openCampaignPicker(selected.id)}>
                             <FlagOutlined /> {isAr ? 'إضافة إلى حملة' : 'Add to campaign'}
                           </button>
                         </li>
                         <li>
-                          <button type="button" role="menuitem">
+                          <button type="button" role="menuitem" onClick={() => selected && openLabelPicker(selected.id)}>
                             <TagOutlined /> {isAr ? 'إدارة التصنيفات' : 'Manage labels'}
                           </button>
                         </li>
                         <li>
-                          <button type="button" role="menuitem">
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              if (!selected) return;
+                              setSelectedId(selected.id);
+                              void markContentPublished(selected.id);
+                            }}
+                          >
                             <CheckOutlined /> {isAr ? 'تعليم كمنشور' : 'Mark as published'}
                           </button>
                         </li>
                         <li>
-                          <button type="button" role="menuitem">
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              if (!selected) return;
+                              setSelectedId(selected.id);
+                              void toggleHideFromClients(selected.id);
+                            }}
+                          >
                             <EyeInvisibleOutlined /> {isAr ? 'إخفاء عن العملاء' : 'Hide from clients'}
                           </button>
                         </li>
                         <li>
-                          <button type="button" role="menuitem" onClick={() => void runCommand('request-approval')}>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              if (!selected) return;
+                              setSelectedId(selected.id);
+                              void runCommand('request-approval', selected.id);
+                            }}
+                          >
                             <FlagOutlined /> {isAr ? 'طلب موافقة' : 'Request approval'}
                           </button>
                         </li>
                         <li>
-                          <button type="button" role="menuitem">
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              if (!selected) return;
+                              void saveAsTemplate(selected.id);
+                            }}
+                          >
                             <FileTextOutlined /> {isAr ? 'حفظ كقالب' : 'Save as template'}
                           </button>
                         </li>
                         <li>
-                          <button type="button" role="menuitem">
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              if (!selected) return;
+                              setSelectedId(selected.id);
+                              void archiveContent(selected.id).then(() => void load());
+                            }}
+                          >
                             <DeleteOutlined /> {isAr ? 'أرشفة' : 'Archive post'}
                           </button>
                         </li>
@@ -3165,7 +3398,7 @@ export default function ContentPage() {
                       },
                     }));
                   }}
-                                onBlur={(e) => void persistNote(cell.key, { text: e.target.value })}
+                                onBlur={(e) => void persistNote(noteDay, { text: e.target.value })}
                 />
                 <div className="oma-cal-note__actions">
                   <button
@@ -3248,6 +3481,11 @@ export default function ContentPage() {
         onChange={(patch) => setCreateForm((f) => ({ ...f, ...patch }))}
         onClose={() => setCreateOpen(false)}
         onSubmit={() => void submitCreate()}
+        onOpenTemplates={() => {
+          const brandId = createForm.brandId || brands[0]?.id;
+          if (!brandId) return;
+          void openTemplatePicker(brandId);
+        }}
       />
 
       <Dialog
@@ -3267,39 +3505,84 @@ export default function ContentPage() {
       </Dialog>
 
       <Dialog
+        open={campaignPickerOpen}
+        title={isAr ? 'إضافة إلى حملة' : 'Add to campaign'}
+        onClose={() => {
+          setCampaignPickerOpen(false);
+          setCampaignPickerId(null);
+        }}
+      >
+        <div className="oma-stack" style={{ gap: 8 }}>
+          {campaignPickerOptions.length === 0 ? (
+            <p className="oma-muted">{isAr ? 'لا توجد حملات متاحة' : 'No campaigns available'}</p>
+          ) : (
+            campaignPickerOptions.map((c) => {
+              const currentCampaignId =
+                rows.find((r) => r.id === campaignPickerId)?.campaignId ?? '';
+              const active = currentCampaignId === c.id;
+              return (
+                <button
+                  key={c.id}
+                  type="button"
+                  className="oma-plan-post__chip"
+                  data-active={active ? 'true' : 'false'}
+                  disabled={campaignSaving}
+                  onClick={() => void applyCampaign(c.id)}
+                >
+                  {pickCopy(c.name, locale)}
+                </button>
+              );
+            })
+          )}
+          <div className="oma-chip-row">
+            <Button
+              type="default"
+              disabled={campaignSaving}
+              onClick={() => void applyCampaign(null)}
+            >
+              {isAr ? 'إزالة من الحملة' : 'Remove from campaign'}
+            </Button>
+          </div>
+        </div>
+      </Dialog>
+
+      <Dialog
         open={labelPickerOpen}
         title={isAr ? 'التصنيفات' : 'Labels'}
-        onClose={() => setLabelPickerOpen(false)}
+        onClose={() => {
+          setLabelPickerOpen(false);
+          setLabelTargetId(null);
+        }}
       >
         <div className="oma-stack" style={{ gap: 8 }}>
           <div className="oma-chip-row" style={{ flexWrap: 'wrap', gap: 8 }}>
-            {brandLabels.map((lab) => (
-              <button
-                key={lab.id}
-                type="button"
-                className="oma-plan-post__chip"
-                style={{ borderColor: lab.color }}
-                onClick={() => {
-                  if (!selectedId) return;
-                  const current = rows.find((r) => r.id === selectedId);
-                  const existing = (current as { labels?: string[] })?.labels ?? [];
-                  const name = lab.name?.en || lab.id;
-                  const next = existing.includes(name)
-                    ? existing.filter((x) => x !== name)
-                    : [...existing, name];
-                  void setContentLabels(selectedId, next)
-                    .then((updated) => {
-                      setRows((prev) =>
-                        prev.map((r) => (r.id === selectedId ? toContentRow(updated) : r)),
-                      );
-                      toast.push(isAr ? 'تم تحديث التصنيفات' : 'Labels updated', 'success');
-                    })
-                    .catch((err) => toast.push(contentApiError(err, 'Labels failed'), 'danger'));
-                }}
-              >
-                {lab.name?.en || lab.id}
-              </button>
-            ))}
+            {brandLabels.length === 0 ? (
+              <p className="oma-muted">{isAr ? 'لا توجد تصنيفات' : 'No labels'}</p>
+            ) : (
+              brandLabels.map((lab) => {
+                const targetId = labelTargetId ?? selectedId;
+                const target = rows.find((r) => r.id === targetId);
+                const existing = (target as { labels?: string[] })?.labels ?? [];
+                const name = lab.name?.en || lab.id;
+                const active = existing.includes(name);
+                return (
+                  <button
+                    key={lab.id}
+                    type="button"
+                    className="oma-plan-post__chip"
+                    data-active={active ? 'true' : 'false'}
+                    style={{ borderColor: lab.color }}
+                    onClick={() => {
+                      if (!targetId) return;
+                      void toggleLabelOnContent(targetId, name);
+                    }}
+                  >
+                    {active ? '✓ ' : ''}
+                    {lab.name?.en || lab.id}
+                  </button>
+                );
+              })
+            )}
           </div>
           <div className="oma-chip-row">
             <input
@@ -3310,12 +3593,11 @@ export default function ContentPage() {
             <Button
               type="primary"
               onClick={() => {
-                const brandId = selected?.brandId || brands[0]?.id;
+                const targetId = labelTargetId ?? selectedId;
+                const brandId =
+                  rows.find((r) => r.id === targetId)?.brandId || selected?.brandId || brands[0]?.id;
                 if (!brandId || !labelDraft.trim()) return;
-                void createBrandLabel(brandId, {
-                  en: labelDraft.trim(),
-                  ar: labelDraft.trim(),
-                })
+                void createContentLabel(brandId, labelDraft.trim())
                   .then((lab) => {
                     setBrandLabels((prev) => [...prev, lab as (typeof brandLabels)[0]]);
                     setLabelDraft('');
@@ -3343,18 +3625,11 @@ export default function ContentPage() {
                 key={tpl.id}
                 type="button"
                 className="oma-work-row"
+                disabled={saving}
                 onClick={() => {
                   const brandId = selected?.brandId || brands[0]?.id;
                   if (!brandId) return;
-                  void useContentTemplate(brandId, tpl.id)
-                    .then((created) => {
-                      const row = toContentRow(created);
-                      setRows((prev) => [row, ...prev]);
-                      setTemplatePickerOpen(false);
-                      toast.push(isAr ? 'تم إنشاء منشور من القالب' : 'Created from template', 'success');
-                      openItem(row, 'edit');
-                    })
-                    .catch((err) => toast.push(contentApiError(err, 'Template failed'), 'danger'));
+                  void applyTemplate(brandId, tpl.id);
                 }}
               >
                 <strong>

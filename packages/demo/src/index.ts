@@ -132,6 +132,8 @@ export type DemoGraph = {
     caption?: DemoLocaleCopy;
     objective?: DemoLocaleCopy;
     cta?: DemoLocaleCopy;
+    labels?: string[];
+    clientVisible?: boolean;
   }>;
   requests: Array<{
     id: string;

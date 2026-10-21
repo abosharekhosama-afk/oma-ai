@@ -68,6 +68,8 @@ export function toContentRow(c: ApiContent): ContentRow {
     previewAsset: c.preview_asset_url ?? '',
     deliverableId: null,
     caption: c.caption ?? undefined,
+    labels: c.labels ?? [],
+    clientVisible: c.client_visible,
   };
 }
 
