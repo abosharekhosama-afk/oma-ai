@@ -57,7 +57,7 @@ export default function TeamPage() {
   const roles = useMemo(() => [...new Set(rows.map((m) => m.role))], [rows]);
 
   return (
-    <div className="oma-stack" data-testid="demo-team">
+    <div className="oma-stack plx-org" data-testid="demo-team" data-surface="team">
       <PageHeader
         title={t('demo.team.title')}
         description={t('demo.team.subtitle')}
