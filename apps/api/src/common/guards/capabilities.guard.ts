@@ -139,6 +139,23 @@ const routeRequirements: Record<string, string[]> = {
   'PATCH /api/v1/content/:contentId': ['content.update'],
   'POST /api/v1/content/:contentId/request-approval': ['content.request_approval'],
   'POST /api/v1/content/:contentId/approve': ['content.approve'],
+  'POST /api/v1/content/:contentId/reject': ['content.approve'],
+  'POST /api/v1/content/:contentId/mark-published': ['content.update'],
+  'GET /api/v1/content/:contentId/comments': ['content.read'],
+  'POST /api/v1/content/:contentId/comments': ['content.update'],
+  'DELETE /api/v1/content/:contentId/comments/:commentId': ['content.update'],
+  'GET /api/v1/brands/:brandId/requests': ['content.read'],
+  'POST /api/v1/brands/:brandId/requests': ['content.create'],
+  'GET /api/v1/requests/:requestId': ['content.read'],
+  'PATCH /api/v1/requests/:requestId': ['content.update'],
+  'POST /api/v1/requests/:requestId/convert-to-task': ['content.update'],
+  'GET /api/v1/brands/:brandId/tasks': ['content.read'],
+  'POST /api/v1/brands/:brandId/tasks': ['content.create'],
+  'PATCH /api/v1/tasks/:taskId': ['content.update'],
+  'POST /api/v1/tasks/:taskId/convert-to-deliverable': ['content.update'],
+  'GET /api/v1/brands/:brandId/deliverables': ['content.read'],
+  'PATCH /api/v1/deliverables/:deliverableId': ['content.update'],
+
   'POST /api/v1/content/:contentId/request-changes': ['content.approve'],
   'POST /api/v1/content/:contentId/schedule': ['content.schedule'],
   'POST /api/v1/content/:contentId/unschedule': ['content.schedule'],
@@ -395,6 +412,10 @@ function matchRequirements(method: string, path: string): string[] | null {
       .replace(':insightId', '[^/]+')
       .replace(':campaignId', '[^/]+')
       .replace(':contentId', '[^/]+')
+      .replace(':deliverableId', '[^/]+')
+      .replace(':taskId', '[^/]+')
+      .replace(':requestId', '[^/]+')
+      .replace(':commentId', '[^/]+')
       .replace(':dayKey', '[^/]+')
       .replace(':labelId', '[^/]+')
       .replace(':templateId', '[^/]+')
