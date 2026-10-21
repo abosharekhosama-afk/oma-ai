@@ -22,6 +22,7 @@ import { StrategyController } from './strategy/strategy.controller';
 import { DemoController } from './demo/demo.controller';
 import { CampaignController } from './content/campaign.controller';
 import { ContentController } from './content/content.controller';
+import { OpsController } from './content/ops.controller';
 import { ContentExtrasController } from './content/content-extras.controller';
 import { AiController } from './ai/ai.controller';
 
@@ -46,6 +47,7 @@ import { AiController } from './ai/ai.controller';
     CampaignController,
     ContentController,
     ContentExtrasController,
+    OpsController,
     AiController,
   ],
   providers: [

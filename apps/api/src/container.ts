@@ -13,6 +13,7 @@ import { StrategyService } from './strategy/strategy.service';
 import { CampaignService } from './content/campaign.service';
 import { ContentService } from './content/content.service';
 import { ContentExtrasService } from './content/content-extras.service';
+import { OpsService } from './content/ops.service';
 
 export const auditService = new AuditService();
 export const identityService = new IdentityService(auditService);
@@ -29,3 +30,4 @@ export const strategyService = new StrategyService(auditService);
 export const campaignService = new CampaignService(auditService);
 export const contentService = new ContentService(auditService);
 export const contentExtrasService = new ContentExtrasService(auditService, contentService);
+export const opsService = new OpsService(auditService);
