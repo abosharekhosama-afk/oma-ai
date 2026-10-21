@@ -973,3 +973,165 @@
   align-items: center !important;
   gap: 8px !important;
 }
+
+/* ── Sidebar responsive + density fixes ── */
+.oma-rail {
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  min-width: 0;
+}
+.oma-rail .oma-nav {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-block: 4px;
+  scrollbar-width: thin;
+}
+.oma-rail-footer {
+  margin-top: auto;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--oma-border, #eef0f2);
+}
+.oma-rail-header {
+  flex-shrink: 0;
+}
+.oma-rail-workspace,
+.oma-rail-endorsement {
+  flex-shrink: 0;
+}
+.oma-nav-group {
+  margin-bottom: 10px;
+}
+.oma-nav-section {
+  margin: 0 0 4px;
+  padding-inline: 8px;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--oma-muted, #8c8c8c);
+}
+.oma-nav-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+}
+.oma-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  padding: 0 10px;
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none;
+  font-size: 13px;
+}
+.oma-nav-link:hover,
+.oma-nav-link[aria-current='page'] {
+  background: #f5f6f7;
+}
+.oma-nav-link[aria-current='page'] {
+  color: #1677ff;
+  font-weight: 600;
+}
+.oma-shell[data-rail='collapsed'] .oma-nav-link {
+  justify-content: center;
+  padding: 0;
+  width: 36px;
+  margin-inline: auto;
+}
+
+/* Mobile nav: not in header — floating edge control */
+.oma-mobile-nav-fab {
+  display: none !important;
+  position: fixed !important;
+  inset-inline-start: 12px !important;
+  bottom: 16px !important;
+  z-index: 90 !important;
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 12px !important;
+  background: #fff !important;
+  border: 1px solid #e8e9eb !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.oma-mobile-nav-trigger {
+  display: none !important; /* removed from all headers */
+}
+
+@media (max-width: 1024px) and (min-width: 768px) {
+  .oma-shell {
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+  .oma-shell[data-rail='expanded'] {
+    grid-template-columns: minmax(200px, 240px) minmax(0, 1fr);
+  }
+  .oma-rail {
+    width: 100%;
+  }
+}
+
+@media (max-width: 767px) {
+  .oma-mobile-nav-fab {
+    display: inline-flex !important;
+  }
+  .oma-rail {
+    display: none !important;
+  }
+  .oma-shell,
+  .oma-shell[data-rail='collapsed'],
+  .oma-shell[data-rail='expanded'] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+}
+
+/* Workspace top actions slot (requests / deliverables / tasks) */
+.oma-top-actions--workspace {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-inline-start: auto;
+}
+.oma-top-actions--workspace .oma-req-filter-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #e8e9eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #333;
+  cursor: pointer;
+  position: relative;
+}
+.oma-top-actions--workspace .oma-req-filter-icon:hover,
+.oma-top-actions--workspace .oma-req-filter-icon[data-active='true'] {
+  background: #f5f6f7;
+  border-color: #d0d3d8;
+}
+.oma-top-actions--workspace .oma-req-filter-icon__count {
+  position: absolute;
+  top: -4px;
+  inset-inline-end: -4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #111;
+  color: #fff;
+  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
