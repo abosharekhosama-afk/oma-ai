@@ -1,0 +1,35 @@
+.oma-dots {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+.oma-dots-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #5cc98e;
+  animation: oma-dots-bounce 1s infinite ease-in-out both;
+}
+.oma-dots-dot:nth-child(2) { animation-delay: 0.15s; }
+.oma-dots-dot:nth-child(3) { animation-delay: 0.3s; }
+@keyframes oma-dots-bounce {
+  0%, 80%, 100% { transform: scale(0.55); opacity: 0.35; }
+  40% { transform: scale(1); opacity: 1; }
+}
+.oma-dots-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.78);
+  border-radius: inherit;
+}
+.oma-route-loading {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
