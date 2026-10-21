@@ -10,12 +10,11 @@ import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
 import { EmptyState } from '../../../../components/ui/empty-state';
 import { PageHeader } from '../../../../components/ui/page-header';
 import { StatusChip } from '../../../../components/ui/status-chip';
+import { pickCopy } from '../../../../lib/demo/use-demo-api';
 import {
-  demoApi,
-  demoErrorMessage,
-  isDemoForbidden,
-  pickCopy,
-} from '../../../../lib/demo/use-demo-api';
+  loadDeliverablesWorkspace,
+  opsError,
+} from '../../../../lib/ops-api';
 import {
   EMPTY_DELIVERABLE_FILTERS,
   activeDeliverableFilterCount,
@@ -68,17 +67,17 @@ export default function DeliverablesPage() {
   const [filterSection, setFilterSection] = useState<string | null>('search');
   const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
 
-  const load = useCallback(async () => {
+    const load = useCallback(async () => {
     setLoading(true);
     try {
-      const graph = await demoApi<DemoGraph>('/graph');
-      setRows(graph.deliverables);
-      setCampaigns(graph.campaigns);
+      const ws = await loadDeliverablesWorkspace();
+      setRows(ws.deliverables);
+      setCampaigns(ws.campaigns as Campaign[]);
       setError(null);
       setUnavailable(false);
     } catch (err) {
-      if (isDemoForbidden(err)) setUnavailable(true);
-      else setError(demoErrorMessage(err, 'Demo unavailable'));
+      setError(opsError(err, 'Failed to load deliverables'));
+      setRows([]);
     } finally {
       setLoading(false);
     }
