@@ -1,12 +1,10 @@
 'use client';
 
-import { useT } from '../../lib/use-locale';
-
-export function DemoDisclosure({ message }: { message?: string }) {
-  const t = useT();
-  return (
-    <p className="oma-demo-disclosure" data-testid="demo-disclosure" role="note">
-      {message ?? t('demo.disclosure')}
-    </p>
-  );
+/**
+ * Demo disclosure banner — intentionally silent.
+ * Planable-style product surfaces do not show "Demo Data" notices.
+ * Component kept as a no-op so call sites do not break.
+ */
+export function DemoDisclosure(_props?: { message?: string }) {
+  return null;
 }

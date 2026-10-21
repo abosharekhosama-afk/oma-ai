@@ -228,6 +228,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
                 aria-label={t('shell.openNav')}
                 onClick={() => setMobileOpen(true)}
                 className="oma-mobile-nav-trigger"
+                data-testid="mobile-nav-trigger"
               >
                 <ShellIcon name="menu" />
               </Button>

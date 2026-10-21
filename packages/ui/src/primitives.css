@@ -670,3 +670,191 @@
 body.oma-scroll-lock {
   overflow: hidden;
 }
+
+/* ── Planable parity: empty + skeleton ─────────────────────────────── */
+.oma-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+  padding: var(--space-8) var(--space-6);
+  text-align: center;
+}
+.oma-empty .ant-empty-image {
+  margin-bottom: var(--space-4);
+  opacity: 0.55;
+}
+.oma-empty-title {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-title-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--oma-ink);
+  line-height: var(--leading-title-sm);
+}
+.oma-empty-why,
+.oma-empty-desc {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-body);
+  line-height: var(--leading-body);
+  color: var(--oma-muted);
+  max-width: 36rem;
+}
+.oma-empty-next {
+  margin: var(--space-3) 0 0;
+  font-size: var(--text-body);
+  color: var(--oma-ink);
+}
+.oma-empty-action {
+  margin-top: var(--space-5);
+  display: flex;
+  gap: var(--space-2);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Page skeleton — soft pulse, Planable density */
+.oma-page-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-2) 0;
+}
+.oma-page-skeleton-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.oma-page-skeleton-toolbar {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+.oma-page-skeleton-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+.oma-page-skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--oma-surface);
+  border: 1px solid var(--oma-border);
+  border-radius: var(--radius-md);
+}
+.oma-page-skeleton-row-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/* Demo disclosure — removed visually */
+.oma-demo-disclosure {
+  display: none !important;
+}
+
+/* Team / Members / Settings denser cards */
+.oma-stage6-toolbar,
+.oma-settings-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+.oma-stage6-search {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--text-label);
+  color: var(--oma-muted);
+  min-width: 200px;
+}
+.oma-member-row,
+.oma-team-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  gap: var(--space-3);
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  background: var(--oma-surface);
+  border: 1px solid var(--oma-border);
+  border-radius: var(--radius-md);
+  min-height: 56px;
+}
+.oma-member-row + .oma-member-row,
+.oma-team-row + .oma-team-row {
+  margin-top: var(--space-2);
+}
+.oma-settings-section {
+  background: var(--oma-surface);
+  border: 1px solid var(--oma-border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  margin-bottom: var(--space-4);
+}
+.oma-settings-section h2 {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-title-sm);
+  font-weight: var(--weight-semibold);
+}
+.oma-settings-section p.oma-muted {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-body);
+}
+
+/* Onboarding cards — Planable density */
+.oma-onboarding-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-4);
+  max-width: 720px;
+}
+.oma-onboarding-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  background: var(--oma-surface);
+  border: 1px solid var(--oma-border);
+  border-radius: var(--radius-xl);
+  text-align: start;
+  height: auto;
+  white-space: normal;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.oma-onboarding-card:hover {
+  border-color: var(--oma-primary);
+  box-shadow: 0 0 0 2px var(--oma-primary-soft);
+}
+.oma-onboarding-card h2 {
+  margin: 0;
+  font-size: var(--text-title-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--oma-ink);
+}
+.oma-onboarding-card p {
+  margin: 0;
+  font-size: var(--text-body);
+  color: var(--oma-muted);
+  line-height: var(--leading-body);
+}
+
+/* Hide mobile nav trigger on desktop — Planable has no hamburger in desktop header */
+.oma-mobile-nav-trigger {
+  display: none;
+}
+@media (max-width: 767px) {
+  .oma-mobile-nav-trigger {
+    display: inline-flex;
+  }
+  /* On mobile the rail is hidden; header shows hamburger */
+  .oma-rail {
+    display: none !important;
+  }
+}

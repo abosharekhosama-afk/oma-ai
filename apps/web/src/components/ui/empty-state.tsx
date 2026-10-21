@@ -10,33 +10,36 @@ export function EmptyState({
   next,
   previous,
   action,
-  demoHint,
+  demoHint: _demoHint,
 }: {
   title: string;
   body?: string;
-  /** Why this page exists */
   why?: string;
-  /** What to do next */
   next?: string;
-  /** Link/control for the prior journey step when input is missing */
   previous?: ReactNode;
   action?: ReactNode;
-  /** Demo-mode only hint — must already be honest copy */
+  /** @deprecated Demo hints removed for Planable parity */
   demoHint?: ReactNode;
 }) {
   return (
     <div className="oma-empty" role="status" data-testid="empty-state">
-      <Empty description={<h2 className="oma-empty-title">{title}</h2>}>
-        {why ? <p className="oma-empty-why">{why}</p> : null}
-        {body ? <p>{body}</p> : null}
-        {next ? (
-          <p className="oma-empty-next">
-            <strong>{next}</strong>
-          </p>
-        ) : null}
+      <Empty
+        image={Empty.PRESENTED_IMAGE_SIMPLE}
+        description={
+          <div className="oma-empty-body">
+            <h2 className="oma-empty-title">{title}</h2>
+            {why ? <p className="oma-empty-why">{why}</p> : null}
+            {body ? <p className="oma-empty-desc">{body}</p> : null}
+            {next ? (
+              <p className="oma-empty-next">
+                <strong>{next}</strong>
+              </p>
+            ) : null}
+          </div>
+        }
+      >
         {previous}
-        {demoHint}
-        {action}
+        {action ? <div className="oma-empty-action">{action}</div> : null}
       </Empty>
     </div>
   );
@@ -74,6 +77,56 @@ export function DeniedState({
   );
 }
 
-export function Skeleton({ width = '100%', height = '1rem' }: { width?: string; height?: string }) {
-  return <AntSkeleton.Input active style={{ width, height }} aria-hidden="true" />;
+/** Planable-style skeleton block — consistent height, soft pulse */
+export function Skeleton({
+  width = '100%',
+  height = '14px',
+  rounded = true,
+}: {
+  width?: string;
+  height?: string;
+  rounded?: boolean;
+}) {
+  return (
+    <AntSkeleton.Input
+      active
+      size="small"
+      style={{
+        width,
+        height,
+        minWidth: 0,
+        borderRadius: rounded ? 6 : 0,
+      }}
+      aria-hidden="true"
+    />
+  );
+}
+
+/** Page-level loading surface matching Planable density */
+export function PageSkeleton({ rows = 6 }: { rows?: number }) {
+  return (
+    <div className="oma-page-skeleton" role="status" aria-busy="true" aria-label="Loading">
+      <div className="oma-page-skeleton-header">
+        <Skeleton width="180px" height="22px" />
+        <Skeleton width="280px" height="14px" />
+      </div>
+      <div className="oma-page-skeleton-toolbar">
+        <Skeleton width="120px" height="32px" />
+        <Skeleton width="120px" height="32px" />
+        <Skeleton width="80px" height="32px" />
+      </div>
+      <div className="oma-page-skeleton-list">
+        {Array.from({ length: rows }).map((_, i) => (
+          <div key={i} className="oma-page-skeleton-row">
+            <Skeleton width="40px" height="40px" />
+            <div className="oma-page-skeleton-row-text">
+              <Skeleton width="40%" height="14px" />
+              <Skeleton width="70%" height="12px" />
+            </div>
+            <Skeleton width="64px" height="24px" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }

@@ -62,7 +62,7 @@ export default function OnboardingClient() {
   }
 
   return (
-    <div className="oma-stack">
+    <div className="oma-stack oma-onboarding" data-testid="onboarding">
       <header className="oma-page-header">
         <div>
           <h1>{t('onboarding.title')}</h1>
@@ -73,7 +73,7 @@ export default function OnboardingClient() {
       {error ? (
         <div className="oma-card" role="alert">
           <p style={{ color: 'var(--status-danger)', margin: 0 }}>{error}</p>
-          <Button type="default" onClick={() => setError(null)}>
+          <Button type="default" onClick={() => setError(null)} style={{ marginTop: 12 }}>
             {t('common.retry')}
           </Button>
         </div>
@@ -85,31 +85,31 @@ export default function OnboardingClient() {
       ) : null}
 
       {mode === 'choose' ? (
-        <div className="oma-action-grid" role="group" aria-label={t('onboarding.choices')}>
-          <Button
-            type="default"
+        <div className="oma-onboarding-grid" role="group" aria-label={t('onboarding.choices')}>
+          <button
+            type="button"
+            className="oma-onboarding-card"
             onClick={() => setMode('create')}
-            className="oma-card"
-            style={{ height: 'auto', whiteSpace: 'normal', textAlign: 'start' }}
+            data-testid="onboarding-create"
           >
             <h2>{t('onboarding.createTitle')}</h2>
-            <p className="oma-muted">{t('onboarding.createBody')}</p>
-          </Button>
-          <Button
-            type="default"
+            <p>{t('onboarding.createBody')}</p>
+          </button>
+          <button
+            type="button"
+            className="oma-onboarding-card"
             onClick={() => setMode('join')}
-            className="oma-card"
-            style={{ height: 'auto', whiteSpace: 'normal', textAlign: 'start' }}
+            data-testid="onboarding-join"
           >
             <h2>{t('onboarding.joinTitle')}</h2>
-            <p className="oma-muted">{t('onboarding.joinBody')}</p>
-          </Button>
+            <p>{t('onboarding.joinBody')}</p>
+          </button>
         </div>
       ) : null}
 
       {mode === 'create' ? (
-        <form className="oma-card oma-stack" onSubmit={createCompany} aria-busy={busy}>
-          <h2>{t('onboarding.createTitle')}</h2>
+        <form className="oma-card oma-stack" style={{ maxWidth: 420 }} onSubmit={createCompany} aria-busy={busy}>
+          <h2 style={{ margin: 0, fontSize: 'var(--text-title-sm)' }}>{t('onboarding.createTitle')}</h2>
           <label className="oma-field">
             <span>{t('onboarding.companyName')}</span>
             <Input
@@ -121,7 +121,7 @@ export default function OnboardingClient() {
               autoFocus
             />
           </label>
-          <div className="oma-row">
+          <div className="oma-row" style={{ gap: 8 }}>
             <Button type="primary" disabled={busy} htmlType="submit">
               {busy ? t('common.loading') : t('onboarding.createSubmit')}
             </Button>
@@ -133,9 +133,9 @@ export default function OnboardingClient() {
       ) : null}
 
       {mode === 'join' ? (
-        <form className="oma-card oma-stack" onSubmit={joinCompany} aria-busy={busy}>
-          <h2>{t('onboarding.joinTitle')}</h2>
-          <p className="oma-muted">{t('onboarding.joinHint')}</p>
+        <form className="oma-card oma-stack" style={{ maxWidth: 420 }} onSubmit={joinCompany} aria-busy={busy}>
+          <h2 style={{ margin: 0, fontSize: 'var(--text-title-sm)' }}>{t('onboarding.joinTitle')}</h2>
+          <p className="oma-muted" style={{ margin: 0 }}>{t('onboarding.joinHint')}</p>
           <label className="oma-field">
             <span>{t('onboarding.inviteToken')}</span>
             <Input
@@ -147,7 +147,7 @@ export default function OnboardingClient() {
               autoComplete="off"
             />
           </label>
-          <div className="oma-row">
+          <div className="oma-row" style={{ gap: 8 }}>
             <Button type="primary" disabled={busy} htmlType="submit">
               {busy ? t('common.loading') : t('onboarding.joinSubmit')}
             </Button>

@@ -73,7 +73,7 @@ export default function TeamPage() {
       />
       <DemoDisclosure message={t('demo.team.workloadHonesty')} />
 
-      {loading ? <p className="oma-muted">{t('demo.loading')}</p> : null}
+      {loading ? <PageSkeleton rows={5} /> : null}
       {unavailable ? <p className="oma-muted">{t('demo.unavailable')}</p> : null}
       {error ? (
         <div className="oma-card" role="alert">

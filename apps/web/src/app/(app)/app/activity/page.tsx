@@ -21,6 +21,7 @@ import {
   type ActivityRow,
 } from '../../../../lib/demo/stage6-team';
 import { useLocale, useT } from '../../../../lib/use-locale';
+import { PageSkeleton } from '../../../../components/ui/empty-state';
 
 export default function ActivityPage() {
   const t = useT();
@@ -62,7 +63,7 @@ export default function ActivityPage() {
       <PageHeader title={t('demo.activity.title')} description={t('demo.activity.subtitle')} />
       <DemoDisclosure message={t('demo.activity.sourceHonesty')} />
 
-      {loading ? <p className="oma-muted">{t('demo.loading')}</p> : null}
+      {loading ? <PageSkeleton rows={6} /> : null}
       {unavailable ? <p className="oma-muted">{t('demo.unavailable')}</p> : null}
       {error ? (
         <div className="oma-card" role="alert">
