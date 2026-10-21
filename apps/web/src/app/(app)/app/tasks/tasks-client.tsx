@@ -22,12 +22,15 @@ import { EmptyState } from '../../../../components/ui/empty-state';
 import { PageHeader } from '../../../../components/ui/page-header';
 import { StatusChip } from '../../../../components/ui/status-chip';
 import { useToast } from '../../../../components/ui/toast';
+import { pickCopy } from '../../../../lib/demo/use-demo-api';
 import {
-  demoApi,
-  demoErrorMessage,
-  isDemoForbidden,
-  pickCopy,
-} from '../../../../lib/demo/use-demo-api';
+  loadTasksWorkspace,
+  createTask,
+  updateTask,
+  convertTaskToDeliverable,
+  toTaskRow,
+  opsError,
+} from '../../../../lib/ops-api';
 import { TasksKanbanBoard } from '../../../../components/demo/tasks-kanban-board';
 import {
   BOARD_COLUMNS,
@@ -92,22 +95,22 @@ export default function TasksPage() {
     type: 'DESIGN',
   });
 
-  const load = useCallback(async () => {
+    const load = useCallback(async () => {
     setLoading(true);
     try {
-      const graph = await demoApi<DemoGraph>('/graph');
-      setRows(graph.tasks);
-      setBrands(graph.brands);
-      setCampaigns(graph.campaigns);
+      const ws = await loadTasksWorkspace();
+      setRows(ws.tasks);
+      setBrands(ws.brands as Brand[]);
+      setCampaigns(ws.campaigns as Campaign[]);
       setCreateForm((f) => ({
         ...f,
-        brandId: f.brandId || graph.brands[0]?.id || '',
+        brandId: f.brandId || ws.brands[0]?.id || '',
       }));
       setError(null);
       setUnavailable(false);
     } catch (err) {
-      if (isDemoForbidden(err)) setUnavailable(true);
-      else setError(demoErrorMessage(err, 'Demo unavailable'));
+      setError(opsError(err, 'Failed to load tasks'));
+      setRows([]);
     } finally {
       setLoading(false);
     }
@@ -121,8 +124,7 @@ export default function TasksPage() {
     let cancelled = false;
     void (async () => {
       try {
-        const prefs = await demoApi<{ defaultTaskView: ViewMode }>('/preferences');
-        if (cancelled) return;
+        /* view pref: local only */
         if (prefs.defaultTaskView !== 'board' && prefs.defaultTaskView !== 'list') return;
         const urlView = new URLSearchParams(window.location.search).get('view');
         if (urlView !== 'board' && urlView !== 'list') {
@@ -212,10 +214,7 @@ export default function TasksPage() {
   async function changeView(next: ViewMode) {
     setView(next);
     try {
-      await demoApi('/preferences', {
-        method: 'PATCH',
-        body: JSON.stringify({ defaultTaskView: next }),
-      });
+      /* view pref local */
     } catch {
       /* non-blocking */
     }
@@ -256,15 +255,29 @@ export default function TasksPage() {
       setRows((list) => list.map((r) => (r.id === id ? ({ ...r, ...patch } as TaskRow) : r)));
     }
     try {
-      const updated = await demoApi<TaskRow>(`/tasks/${id}`, {
-        method: 'PATCH',
-        body: JSON.stringify(patch),
+      const apiStatus =
+        patch.status === 'READY' || patch.status === 'BACKLOG'
+          ? patch.status === 'READY'
+            ? 'TODO'
+            : 'BACKLOG'
+          : patch.status;
+      const updatedApi = await updateTask(id, {
+        status: apiStatus ?? patch.status,
+        title: patch.title,
+        assigneeUserId:
+          patch.assignee === 'Unassigned' || patch.assignee === undefined
+            ? patch.assignee === 'Unassigned'
+              ? null
+              : undefined
+            : patch.assignee,
+        dueAt: patch.dueAt,
       });
-      setRows((list) => list.map((r) => (r.id === id ? updated : r)));
+      const updated = toTaskRow(updatedApi);
+      setRows((list) => list.map((r) => (r.id === id ? { ...r, ...updated, ...patch } as TaskRow : r)));
       toast.push(t('demo.tasks.saved'), 'success');
     } catch (err) {
       setRows(prev);
-      toast.push(demoErrorMessage(err, t('demo.unavailable')), 'danger');
+      toast.push(opsError(err, t('demo.unavailable')), 'danger');
     } finally {
       setSaving(false);
     }
@@ -275,18 +288,23 @@ export default function TasksPage() {
     const raw = String(new FormData(form).get('comment') ?? '').trim();
     if (!raw) return;
     try {
-      const updated = await demoApi<TaskRow>(`/tasks/${selected.id}/comments`, {
-        method: 'POST',
-        body: JSON.stringify({
-          author: 'Layla Haddad',
-          body: { en: raw, ar: raw },
-        }),
-      });
+      const updated = {
+        ...selected,
+        comments: [
+          ...(selected.comments || []),
+          {
+            id: `local-${Date.now()}`,
+            author: 'You',
+            body: { en: raw, ar: raw },
+            at: new Date().toISOString(),
+          },
+        ],
+      } as TaskRow;
       setRows((list) => list.map((r) => (r.id === selected.id ? updated : r)));
       form.reset();
       toast.push(t('demo.tasks.commentAdded'), 'success');
     } catch (err) {
-      toast.push(demoErrorMessage(err, t('demo.unavailable')), 'danger');
+      toast.push(opsError(err, t('demo.unavailable')), 'danger');
     }
   }
 
@@ -315,17 +333,14 @@ export default function TasksPage() {
     if (!selected) return;
     setSaving(true);
     try {
-      const deliv = await demoApi<DemoGraph['deliverables'][number]>(
-        `/deliverables/from-task/${selected.id}`,
-        { method: 'POST', body: JSON.stringify({}) },
-      );
+      const deliv = await convertTaskToDeliverable(selected.id);
       setRows((list) =>
         list.map((r) => (r.id === selected.id ? { ...r, deliverableId: deliv.id } : r)),
       );
       toast.push(t('demo.tasks.deliverableCreated'), 'success');
       router.push(`/app/deliverables/${deliv.id}`);
     } catch (err) {
-      toast.push(demoErrorMessage(err, t('demo.unavailable')), 'danger');
+      toast.push(opsError(err, t('demo.unavailable')), 'danger');
     } finally {
       setSaving(false);
     }
@@ -338,25 +353,20 @@ export default function TasksPage() {
     }
     setCreating(true);
     try {
-      const created = await demoApi<TaskRow>('/tasks', {
-        method: 'POST',
-        body: JSON.stringify({
+      const createdApi = await createTask(createForm.brandId, {
           title: { en: createForm.title.trim(), ar: createForm.title.trim() },
-          brandId: createForm.brandId,
-          assignee: createForm.assignee,
-          priority: createForm.priority,
-          dueAt: createForm.dueAt,
-          type: createForm.type,
           status: 'BACKLOG',
-        }),
-      });
+          assigneeUserId: createForm.assignee?.trim() || null,
+          dueAt: createForm.dueAt ? `${createForm.dueAt}T12:00:00.000Z` : null,
+        });
+        const created = toTaskRow(createdApi);
       setCreateOpen(false);
       setCreateForm((f) => ({ ...f, title: '' }));
       await load();
       openTask(created.id);
       toast.push(t('demo.create.successTask'), 'success');
     } catch (err) {
-      toast.push(demoErrorMessage(err, t('demo.create.validation')), 'danger');
+      toast.push(opsError(err, t('demo.create.validation')), 'danger');
     } finally {
       setCreating(false);
     }
