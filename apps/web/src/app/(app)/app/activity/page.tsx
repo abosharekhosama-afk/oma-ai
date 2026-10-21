@@ -59,7 +59,7 @@ export default function ActivityPage() {
   const objectTypes = useMemo(() => [...new Set(rows.map((a) => a.objectType))], [rows]);
 
   return (
-    <div className="oma-stack" data-testid="demo-activity">
+    <div className="oma-stack plx-org" data-testid="demo-activity" data-surface="activity">
       <PageHeader title={t('demo.activity.title')} description={t('demo.activity.subtitle')} />
       <DemoDisclosure message={t('demo.activity.sourceHonesty')} />
 
