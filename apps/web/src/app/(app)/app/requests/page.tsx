@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { DemoGraph } from '@oma/demo';
 import { Button, DatePicker, Input, OmaSelect, SelectField, TextArea } from '@oma/ui/controls';
 import dayjs from 'dayjs';
@@ -83,6 +84,7 @@ export default function RequestsPage() {
   const [unavailable, setUnavailable] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [filterSheet, setFilterSheet] = useState(false);
+  const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
   const [filterSection, setFilterSection] = useState<string | null>('status');
   const [createDirty, setCreateDirty] = useState(false);
   const [unsavedOpen, setUnsavedOpen] = useState(false);
@@ -150,6 +152,10 @@ export default function RequestsPage() {
       setLoading(false);
     }
   }, [locale]);
+
+  useEffect(() => {
+    setHeaderSlot(document.getElementById('oma-workspace-top-actions'));
+  }, []);
 
   useEffect(() => {
     void load();
@@ -257,29 +263,35 @@ export default function RequestsPage() {
             ))}
           </div>
         </div>
-        <div className="oma-req-header__actions">
-          <button
-            type="button"
-            className="oma-req-filter-btn"
-            data-testid="demo-request-open-filters"
-            data-active={filterSheet ? 'true' : 'false'}
-            onClick={() => setFilterSheet((v) => !v)}
-          >
-            <FilterOutlined />
-            <span>{locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter'}</span>
-            {filterCount > 0 ? (
-              <span className="oma-req-filter-btn__count">{filterCount}</span>
-            ) : null}
-          </button>
-          <Button
-            type="primary"
-            data-testid="demo-create-request"
-            onClick={() => setCreateOpen(true)}
-          >
-            {t('demo.requests.new')}
-          </Button>
-        </div>
       </div>
+
+      {headerSlot
+        ? createPortal(
+            <>
+              <button
+                type="button"
+                className="oma-req-filter-icon"
+                data-testid="demo-request-open-filters"
+                data-active={filterSheet ? 'true' : 'false'}
+                aria-label={locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter'}
+                onClick={() => setFilterSheet((v) => !v)}
+              >
+                <FilterOutlined />
+                {filterCount > 0 ? (
+                  <span className="oma-req-filter-icon__count">{filterCount}</span>
+                ) : null}
+              </button>
+              <Button
+                type="primary"
+                data-testid="demo-create-request"
+                onClick={() => setCreateOpen(true)}
+              >
+                {t('demo.requests.new')}
+              </Button>
+            </>,
+            headerSlot,
+          )
+        : null}
 
       <DemoDisclosure />
 
