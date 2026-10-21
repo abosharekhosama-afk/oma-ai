@@ -122,7 +122,7 @@ export default function CompanyMembersPage() {
   if (denied) return <PermissionDenied message={t('errors.permission')} />;
 
   return (
-    <div className="oma-stack oma-members-foundation" data-testid="company-members">
+    <div className="oma-stack oma-members-foundation plx-org" data-testid="company-members" data-surface="company">
       <PageHeader title={t('company.membersTitle')} description={t('company.membersBody')} />
       <p className="oma-honesty-inline">{t('company.foundationNote')}</p>
 
