@@ -217,23 +217,21 @@ export function ShellChrome({ children }: { children: ReactNode }) {
         </aside>
 
         <div className="oma-shell-column">
+          <Button
+            type="text"
+            aria-label={t('shell.openNav')}
+            onClick={() => setMobileOpen(true)}
+            className="oma-mobile-nav-fab"
+            data-testid="mobile-nav-trigger"
+          >
+            <ShellIcon name="menu" />
+          </Button>
           <header
             className="oma-top"
             data-content-workspace={isContentWorkspace ? 'true' : 'false'}
           >
             <div className="oma-top-start">
-              {hideMobileNav ? null : (
-              <Button
-                type="text"
-                aria-label={t('shell.openNav')}
-                onClick={() => setMobileOpen(true)}
-                className="oma-mobile-nav-trigger"
-                data-testid="mobile-nav-trigger"
-              >
-                <ShellIcon name="menu" />
-              </Button>
-              )}
-              {/* Planable: workspace trail only — no BrandContext on Content */}
+              {/* Mobile nav trigger removed from all headers per product request */}
               <div className="oma-top-context">
                 {hideBrandTrail ? null : <BrandContext />}
                 <ShellBreadcrumb />
@@ -247,7 +245,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
             )}
             {isContentWorkspace ? (
               <div className="oma-top-actions oma-top-actions--content" id="oma-content-top-actions" />
-            ) : isDeliverablesWorkspace || isTasksWorkspace ? (
+            ) : isRequestsWorkspace || isDeliverablesWorkspace || isTasksWorkspace ? (
               <div
                 className="oma-top-actions oma-top-actions--workspace"
                 id="oma-workspace-top-actions"
