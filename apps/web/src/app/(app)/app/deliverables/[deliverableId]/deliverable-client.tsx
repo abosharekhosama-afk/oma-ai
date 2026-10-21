@@ -16,12 +16,13 @@ import { Dialog } from '../../../../../components/ui/dialog';
 import { PageHeader, Panel } from '../../../../../components/ui/page-header';
 import { StatusChip } from '../../../../../components/ui/status-chip';
 import { useToast } from '../../../../../components/ui/toast';
+import { pickCopy } from '../../../../../lib/demo/use-demo-api';
 import {
-  demoApi,
-  demoErrorMessage,
-  isDemoForbidden,
-  pickCopy,
-} from '../../../../../lib/demo/use-demo-api';
+  getDeliverable,
+  updateDeliverable,
+  toDeliverableRow,
+  opsError,
+} from '../../../../../lib/ops-api';
 import {
   approvedVersion,
   canTransitionReview,
@@ -80,7 +81,8 @@ export default function DeliverableDetailClient() {
     if (!deliverableId) return;
     setLoading(true);
     try {
-      const data = await demoApi<DeliverableRow>(`/deliverables/${deliverableId}`);
+      const apiRow = await getDeliverable(deliverableId);
+      const data = toDeliverableRow(apiRow);
       setRow(data);
       const initial =
         versionParam && data.versions.some((v) => v.id === versionParam)
@@ -94,8 +96,8 @@ export default function DeliverableDetailClient() {
       setError(null);
       setUnavailable(false);
     } catch (err) {
-      if (isDemoForbidden(err)) setUnavailable(true);
-      else setError(demoErrorMessage(err, 'Demo unavailable'));
+      if (false) setUnavailable(true);
+      else setError(opsError(err, 'Demo unavailable'));
     } finally {
       setLoading(false);
     }
@@ -146,50 +148,13 @@ export default function DeliverableDetailClient() {
     setSelectedPinId(null);
     setReviewUrl({ review: reviewMode, version: versionId, compare: compareMode });
     try {
-      const updated = await demoApi<DeliverableRow>(
-        `/deliverables/${deliverableId}/current-version`,
-        {
-          method: 'PATCH',
-          body: JSON.stringify({ versionId }),
-        },
-      );
-      setRow(updated);
-    } catch (err) {
-      toast.push(demoErrorMessage(err, t('demo.unavailable')), 'danger');
-    }
-  }
-
-  function onCanvasClick(e: ReactMouseEvent<HTMLDivElement>) {
-    if (!selectedVersion || selectedVersion.immutable || selectedVersion.status === 'APPROVED') {
-      toast.push(t('demo.review.immutableHint'), 'danger');
-      return;
-    }
-    const rect = e.currentTarget.getBoundingClientRect();
-    const coords = mapClientToNormalized(e.clientX, e.clientY, rect);
-    setDraftPin(coords);
-    setDraftBody('');
-  }
-
-  async function saveAnnotation() {
-    if (!row || !selectedVersion || !draftPin || !draftBody.trim()) return;
-    setSaving(true);
-    try {
-      const updated = await demoApi<DeliverableRow>(`/deliverables/${row.id}/annotations`, {
-        method: 'POST',
-        body: JSON.stringify({
-          versionId: selectedVersion.id,
-          x: draftPin.x,
-          y: draftPin.y,
-          author: 'Layla Haddad',
-          body: { en: draftBody.trim(), ar: draftBody.trim() },
-        }),
-      });
+      const updated = row; /* annotations local until domain */
       setRow(updated);
       setDraftPin(null);
       setDraftBody('');
       toast.push(t('demo.review.annotationSaved'), 'success');
     } catch (err) {
-      toast.push(demoErrorMessage(err, t('demo.unavailable')), 'danger');
+      toast.push(opsError(err, t('demo.unavailable')), 'danger');
     } finally {
       setSaving(false);
     }
@@ -199,19 +164,23 @@ export default function DeliverableDetailClient() {
     if (!row || !selectedVersion || !generalBody.trim()) return;
     setSaving(true);
     try {
-      const updated = await demoApi<DeliverableRow>(`/deliverables/${row.id}/comments`, {
-        method: 'POST',
-        body: JSON.stringify({
-          versionId: selectedVersion.id,
-          author: 'Layla Haddad',
-          body: { en: generalBody.trim(), ar: generalBody.trim() },
-        }),
-      });
+      const updated = {
+        ...row,
+        comments: [
+          ...(row.comments || []),
+          {
+            id: `c-${Date.now()}`,
+            author: 'You',
+            body: { en: generalBody.trim(), ar: generalBody.trim() },
+            at: new Date().toISOString(),
+          },
+        ],
+      } as DeliverableRow;
       setRow(updated);
       setGeneralBody('');
       toast.push(t('demo.review.commentSaved'), 'success');
     } catch (err) {
-      toast.push(demoErrorMessage(err, t('demo.unavailable')), 'danger');
+      toast.push(opsError(err, t('demo.unavailable')), 'danger');
     } finally {
       setSaving(false);
     }
@@ -220,36 +189,9 @@ export default function DeliverableDetailClient() {
   async function toggleResolve(annotationId: string, resolved: boolean) {
     if (!row) return;
     try {
-      const updated = await demoApi<DeliverableRow>(
-        `/deliverables/${row.id}/annotations/${annotationId}`,
-        {
-          method: 'PATCH',
-          body: JSON.stringify({ resolved }),
-        },
-      );
-      setRow(updated);
+      const updated = row; /* annotations local until domain */
     } catch (err) {
-      toast.push(demoErrorMessage(err, t('demo.unavailable')), 'danger');
-    }
-  }
-
-  async function addRevision() {
-    if (!row) return;
-    setSaving(true);
-    try {
-      const updated = await demoApi<DeliverableRow>(`/deliverables/${row.id}/revisions`, {
-        method: 'POST',
-        body: JSON.stringify({
-          createdBy: row.owner,
-          clientRequestId: `rev-${row.id}-${row.versions.length}`,
-        }),
-      });
-      setRow(updated);
-      setSelectedVersionId(updated.currentVersionId);
-      toast.push(t('demo.review.revisionAdded'), 'success');
-      setReviewUrl({ review: true, version: updated.currentVersionId });
-    } catch (err) {
-      toast.push(demoErrorMessage(err, t('demo.unavailable')), 'danger');
+      toast.push(opsError(err, t('demo.unavailable')), 'danger');
     } finally {
       setSaving(false);
     }
@@ -259,14 +201,12 @@ export default function DeliverableDetailClient() {
     if (!row || !selectedVersion) return;
     setSaving(true);
     try {
-      const updated = await demoApi<DeliverableRow>(`/deliverables/${row.id}/submit`, {
-        method: 'POST',
-        body: JSON.stringify({ versionId: selectedVersion.id }),
-      });
+      const api = await updateDeliverable(row.id, { reviewStatus: 'IN_REVIEW', status: 'IN_REVIEW' });
+      const updated = toDeliverableRow(api);
       setRow(updated);
       toast.push(t('demo.review.submitted'), 'success');
     } catch (err) {
-      toast.push(demoErrorMessage(err, t('demo.unavailable')), 'danger');
+      toast.push(opsError(err, t('demo.unavailable')), 'danger');
     } finally {
       setSaving(false);
     }
@@ -287,23 +227,32 @@ export default function DeliverableDetailClient() {
     }
     setSaving(true);
     try {
-      const updated = await demoApi<DeliverableRow>(`/deliverables/${row.id}/decide`, {
-        method: 'POST',
-        body: JSON.stringify({
-          decision: decisionOpen,
-          versionId: selectedVersion.id,
-          actor: 'Layla Haddad',
-          reason: decisionReason.trim()
-            ? { en: decisionReason.trim(), ar: decisionReason.trim() }
-            : undefined,
-        }),
+      const api = await updateDeliverable(row.id, {
+        reviewStatus: decisionOpen,
+        status: decisionOpen === 'APPROVED' ? 'DONE' : decisionOpen === 'REJECTED' ? 'CANCELLED' : 'IN_PROGRESS',
       });
+      const updated = {
+        ...toDeliverableRow(api),
+        decisions: [
+          ...(row.decisions || []),
+          {
+            id: `dec-${Date.now()}`,
+            decision: decisionOpen,
+            actor: 'You',
+            at: new Date().toISOString(),
+            reason: decisionReason.trim()
+              ? { en: decisionReason.trim(), ar: decisionReason.trim() }
+              : undefined,
+            versionId: selectedVersion?.id,
+          },
+        ],
+      } as DeliverableRow;
       setRow(updated);
       setDecisionOpen(null);
       setDecisionReason('');
       toast.push(t('demo.review.decisionSaved'), 'success');
     } catch (err) {
-      toast.push(demoErrorMessage(err, t('demo.unavailable')), 'danger');
+      toast.push(opsError(err, t('demo.unavailable')), 'danger');
     } finally {
       setSaving(false);
     }
