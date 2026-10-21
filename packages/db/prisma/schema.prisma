@@ -1113,6 +1113,7 @@ model ContentItem {
   updatedAt        DateTime             @updatedAt
   campaign         Campaign?            @relation(fields: [campaignId], references: [id])
   approvalEvents   ContentApprovalEvent[]
+  comments         ContentComment[]
 
   @@index([tenantId, brandId])
   @@index([brandId, campaignId])
@@ -1196,4 +1197,140 @@ model ContentTemplate {
   updatedAt       DateTime    @updatedAt
 
   @@index([tenantId, brandId])
+}
+
+
+model ContentComment {
+  id          String      @id
+  tenantId    String
+  contentId   String
+  authorUserId String
+  bodyEn      String
+  bodyAr      String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  content     ContentItem @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@index([contentId, createdAt])
+  @@index([tenantId, contentId])
+}
+
+enum WorkRequestStatus {
+  OPEN
+  ASSIGNED
+  IN_PROGRESS
+  BLOCKED
+  DONE
+  CANCELLED
+}
+
+enum WorkRequestPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum WorkRequestType {
+  CONTENT
+  DESIGN
+  REVIEW
+  OTHER
+}
+
+model WorkRequest {
+  id             String             @id
+  tenantId       String
+  brandId        String
+  campaignId     String?
+  contentId      String?
+  titleEn        String
+  titleAr        String
+  descriptionEn  String             @default("")
+  descriptionAr  String             @default("")
+  type           WorkRequestType    @default(CONTENT)
+  priority       WorkRequestPriority @default(MEDIUM)
+  status         WorkRequestStatus  @default(OPEN)
+  dueAt          DateTime?
+  requesterUserId String
+  assigneeUserId String?
+  channels       String[]           @default([])
+  formats        String[]           @default([])
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  tasks          WorkTask[]
+  deliverables   WorkDeliverable[]
+
+  @@index([tenantId, brandId])
+  @@index([brandId, status])
+  @@index([contentId])
+}
+
+enum WorkTaskStatus {
+  BACKLOG
+  TODO
+  IN_PROGRESS
+  BLOCKED
+  IN_REVIEW
+  DONE
+  CANCELLED
+}
+
+model WorkTask {
+  id              String         @id
+  tenantId        String
+  brandId         String
+  campaignId      String?
+  requestId       String?
+  contentId       String?
+  titleEn         String
+  titleAr         String
+  descriptionEn   String         @default("")
+  descriptionAr   String         @default("")
+  status          WorkTaskStatus @default(TODO)
+  assigneeUserId  String?
+  dueAt           DateTime?
+  createdBy       String
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  request         WorkRequest?   @relation(fields: [requestId], references: [id])
+  deliverables    WorkDeliverable[]
+
+  @@index([tenantId, brandId])
+  @@index([brandId, status])
+  @@index([requestId])
+}
+
+enum WorkDeliverableStatus {
+  DRAFT
+  IN_REVIEW
+  CHANGES_REQUESTED
+  APPROVED
+  DELIVERED
+  ARCHIVED
+}
+
+model WorkDeliverable {
+  id              String                 @id
+  tenantId        String
+  brandId         String
+  campaignId      String?
+  requestId       String?
+  taskId          String?
+  contentId       String?
+  titleEn         String
+  titleAr         String
+  status          WorkDeliverableStatus  @default(DRAFT)
+  reviewStatus    String                 @default("NOT_STARTED")
+  assetUrl        String?
+  createdBy       String
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  request         WorkRequest?           @relation(fields: [requestId], references: [id])
+  task            WorkTask?              @relation(fields: [taskId], references: [id])
+
+  @@index([tenantId, brandId])
+  @@index([brandId, status])
+  @@index([requestId])
+  @@index([taskId])
 }
