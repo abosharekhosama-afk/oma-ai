@@ -204,7 +204,7 @@ function mergeLocaleCopy(
 
 function weekdayLabels(locale: string, weekStartsOn: 0 | 1 | 6): string[] {
   const fmt = new Intl.DateTimeFormat(locale.toLowerCase().startsWith('ar') ? 'ar' : 'en', {
-    weekday: 'narrow',
+    weekday: 'short',
     timeZone: 'UTC',
   });
   const sunday = Date.UTC(2026, 0, 4);
@@ -214,11 +214,7 @@ function weekdayLabels(locale: string, weekStartsOn: 0 | 1 | 6): string[] {
       : weekStartsOn === 1
         ? [1, 2, 3, 4, 5, 6, 0]
         : [0, 1, 2, 3, 4, 5, 6];
-  return order.map((dow) => {
-    const label = fmt.format(new Date(sunday + dow * 86400000));
-    // Keep calendar day headers compact (single glyph / short token).
-    return label.length > 2 ? label.slice(0, 1) : label;
-  });
+  return order.map((dow) => fmt.format(new Date(sunday + dow * 86400000)));
 }
 
 function reviewFilterLabel(value: string, locale: string, allLabel: string): string {
@@ -2547,7 +2543,10 @@ export default function ContentPage() {
                       type="button"
                       className="oma-plan-list__ico-btn"
                       data-tooltip={isAr ? 'إخفاء عن العملاء' : 'Hide from clients'}
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        void toggleHideFromClients(item.id);
+                      }}
                     >
                       <EyeInvisibleOutlined />
                     </button>
@@ -2645,10 +2644,23 @@ export default function ContentPage() {
             <div className="oma-plan-post__main">
               <header className="oma-plan-post__top">
                 <div className="oma-plan-post__top-start">
-                  <button type="button" className="oma-plan-post__chip">
+                  <button type="button" className="oma-plan-post__chip" title={selected.campaignId || undefined}>
                     <FlagOutlined /> {isAr ? 'حملة' : 'Campaign'}
                   </button>
-                  <button type="button" className="oma-plan-post__chip">
+                  <button
+                    type="button"
+                    className="oma-plan-post__chip"
+                    onClick={() => {
+                      if (!selectedId) return;
+                      const brandId = selected.brandId || brands[0]?.id;
+                      if (brandId) {
+                        void listBrandLabels(brandId)
+                          .then((labs) => setBrandLabels(labs as typeof brandLabels))
+                          .catch(() => setBrandLabels([]));
+                      }
+                      setLabelPickerOpen(true);
+                    }}
+                  >
                     <TagOutlined /> {isAr ? 'تصنيفات' : 'Labels'}
                   </button>
                 </div>
@@ -2660,7 +2672,11 @@ export default function ContentPage() {
                     <CheckOutlined />
                     <span>0</span>
                   </span>
-                  <button type="button" className="oma-plan-post__tool-btn">
+                  <button
+                    type="button"
+                    className="oma-plan-post__tool-btn"
+                    onClick={() => void shareContentWorkspace()}
+                  >
                     {isAr ? 'مشاركة' : 'Share'}
                   </button>
                   <span className="oma-plan-post__chip" data-testid="demo-content-workflow">
@@ -2699,10 +2715,20 @@ export default function ContentPage() {
                     type="button"
                     className="oma-plan-post__icon-btn"
                     data-tooltip={isAr ? 'إظهار للعملاء' : 'Make visible to clients'}
+                    onClick={() => {
+                      if (selectedId) void toggleHideFromClients(selectedId);
+                    }}
                   >
                     <EyeInvisibleOutlined />
                   </button>
-                  <button type="button" className="oma-plan-post__icon-btn" data-tooltip={isAr ? 'حذف' : 'Delete'}>
+                  <button
+                    type="button"
+                    className="oma-plan-post__icon-btn"
+                    data-tooltip={isAr ? 'حذف' : 'Delete'}
+                    onClick={() => {
+                      if (selectedId) void runLifecycle('archive', selectedId);
+                    }}
+                  >
                     <DeleteOutlined />
                   </button>
                   <div className="oma-plan-post__more-wrap">
