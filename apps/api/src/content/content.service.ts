@@ -192,6 +192,11 @@ export class ContentService {
       orderBy: { at: 'desc' },
       take: 50,
     });
+    const comments = await getPrisma().contentComment.findMany({
+      where: { tenantId, contentId },
+      orderBy: { createdAt: 'asc' },
+      take: 100,
+    });
     return {
       data: mapContent(row, policy),
       approval_events: events.map((e) => ({
@@ -200,6 +205,12 @@ export class ContentService {
         actor_user_id: e.actorUserId,
         note: e.noteEn || e.noteAr ? { en: e.noteEn ?? '', ar: e.noteAr ?? '' } : null,
         at: e.at.toISOString(),
+      })),
+      comments: comments.map((c) => ({
+        id: c.id,
+        author_user_id: c.authorUserId,
+        body: { en: c.bodyEn, ar: c.bodyAr },
+        at: c.createdAt.toISOString(),
       })),
     };
   }
@@ -528,6 +539,71 @@ export class ContentService {
     return { data: mapContent(row, policy) };
   }
 
+  async reject(
+    tenantId: string,
+    actorUserId: string,
+    contentId: string,
+    note?: LocaleInput,
+    correlationId?: string,
+  ) {
+    const current = await getPrisma().contentItem.findFirst({
+      where: tenantWhere(tenantId, { id: contentId }),
+    });
+    if (!current) throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
+    let next;
+    try {
+      next = applyContentApprovalTransition({
+        command: 'reject',
+        approvalState: current.approvalState as ApprovalState,
+        status: current.status as ContentStatus,
+        approverApproved: current.approverApproved,
+        approverRequired: current.approverRequired,
+      });
+    } catch {
+      throw new DomainError('CONFLICT_STATE', 'Cannot reject in current state', 409, 'error.conflict_state');
+    }
+    const row = await getPrisma().contentItem.update({
+      where: { id: contentId },
+      data: { approvalState: next.approvalState, status: next.status, approverApproved: 0 },
+    });
+    await this.writeEvent(tenantId, contentId, actorUserId, 'REJECT', note);
+    await this.audit.write({
+      actorUserId, tenantId, action: 'content.rejected',
+      targetType: 'ContentItem', targetId: contentId, correlationId,
+    });
+    const pol = await this.policyForBrand(tenantId, row.brandId);
+    return { data: mapContent(row, pol) };
+  }
+
+  async markPublishedSample(
+    tenantId: string,
+    actorUserId: string,
+    contentId: string,
+    correlationId?: string,
+  ) {
+    const current = await getPrisma().contentItem.findFirst({
+      where: tenantWhere(tenantId, { id: contentId }),
+    });
+    if (!current) throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
+    if (current.archivedAt) {
+      throw new DomainError('CONFLICT_STATE', 'Content is archived', 409, 'error.conflict_state');
+    }
+    const row = await getPrisma().contentItem.update({
+      where: { id: contentId },
+      data: { status: 'PUBLISHED_SAMPLE' },
+    });
+    await this.writeEvent(tenantId, contentId, actorUserId, 'PUBLISH_SAMPLE', {
+      en: 'Marked as published (sample)',
+      ar: 'تم التعليم كمنشور (تجريبي)',
+    });
+    await this.audit.write({
+      actorUserId, tenantId, action: 'content.published_sample',
+      targetType: 'ContentItem', targetId: contentId, correlationId,
+    });
+    const pol = await this.policyForBrand(tenantId, row.brandId);
+    return { data: mapContent(row, pol) };
+  }
+
   async schedule(
     tenantId: string,
     actorUserId: string,
@@ -683,4 +759,91 @@ export class ContentService {
       },
     };
   }
+
+  async listComments(tenantId: string, contentId: string) {
+    const row = await getPrisma().contentItem.findFirst({
+      where: tenantWhere(tenantId, { id: contentId }),
+    });
+    if (!row) throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
+    const comments = await getPrisma().contentComment.findMany({
+      where: { tenantId, contentId },
+      orderBy: { createdAt: 'asc' },
+      take: 100,
+    });
+    return {
+      data: comments.map((c) => ({
+        id: c.id,
+        author_user_id: c.authorUserId,
+        body: { en: c.bodyEn, ar: c.bodyAr },
+        at: c.createdAt.toISOString(),
+      })),
+    };
+  }
+
+  async addComment(
+    tenantId: string,
+    actorUserId: string,
+    contentId: string,
+    body: LocaleInput,
+    correlationId?: string,
+  ) {
+    const row = await getPrisma().contentItem.findFirst({
+      where: tenantWhere(tenantId, { id: contentId }),
+    });
+    if (!row) throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
+    const pair = localePair(body);
+    if (!pair.en.trim()) {
+      throw new DomainError('VALIDATION', 'Comment body required', 400, 'errors.validation');
+    }
+    const comment = await getPrisma().contentComment.create({
+      data: {
+        id: newId(),
+        tenantId,
+        contentId,
+        authorUserId: actorUserId,
+        bodyEn: pair.en,
+        bodyAr: pair.ar,
+      },
+    });
+    await this.audit.write({
+      actorUserId,
+      tenantId,
+      action: 'content.comment_added',
+      targetType: 'ContentItem',
+      targetId: contentId,
+      correlationId,
+    });
+    return {
+      data: {
+        id: comment.id,
+        author_user_id: comment.authorUserId,
+        body: { en: comment.bodyEn, ar: comment.bodyAr },
+        at: comment.createdAt.toISOString(),
+      },
+    };
+  }
+
+  async deleteComment(
+    tenantId: string,
+    actorUserId: string,
+    contentId: string,
+    commentId: string,
+    correlationId?: string,
+  ) {
+    const comment = await getPrisma().contentComment.findFirst({
+      where: { id: commentId, tenantId, contentId },
+    });
+    if (!comment) throw new DomainError('NOT_FOUND', 'Comment not found', 404, 'errors.not_found');
+    await getPrisma().contentComment.delete({ where: { id: commentId } });
+    await this.audit.write({
+      actorUserId,
+      tenantId,
+      action: 'content.comment_deleted',
+      targetType: 'ContentComment',
+      targetId: commentId,
+      correlationId,
+    });
+    return { data: { id: commentId, deleted: true } };
+  }
+
 }

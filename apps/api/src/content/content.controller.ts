@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { CsrfGuard } from '../common/guards/csrf.guard';
@@ -124,6 +124,76 @@ export class ContentController {
       req.oma!.userId!,
       contentId,
       body.note,
+      req.oma!.correlationId,
+    );
+  }
+
+
+  @Post('api/v1/content/:contentId/reject')
+  @UseGuards(CsrfGuard)
+  async reject(
+    @Req() req: Request,
+    @Param('contentId') contentId: string,
+    @Body() body: { note?: { en: string; ar?: string } | string },
+  ) {
+    this.requireTenant(req);
+    return contentService.reject(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      contentId,
+      body?.note,
+      req.oma!.correlationId,
+    );
+  }
+
+  @Post('api/v1/content/:contentId/mark-published')
+  @UseGuards(CsrfGuard)
+  async markPublished(@Req() req: Request, @Param('contentId') contentId: string) {
+    this.requireTenant(req);
+    return contentService.markPublishedSample(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      contentId,
+      req.oma!.correlationId,
+    );
+  }
+
+  @Get('api/v1/content/:contentId/comments')
+  async listComments(@Req() req: Request, @Param('contentId') contentId: string) {
+    this.requireTenant(req);
+    return contentService.listComments(req.oma!.tenantId!, contentId);
+  }
+
+  @Post('api/v1/content/:contentId/comments')
+  @UseGuards(CsrfGuard)
+  async addComment(
+    @Req() req: Request,
+    @Param('contentId') contentId: string,
+    @Body() body: { body: { en: string; ar?: string } | string },
+  ) {
+    this.requireTenant(req);
+    return contentService.addComment(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      contentId,
+      body.body,
+      req.oma!.correlationId,
+    );
+  }
+
+  @Delete('api/v1/content/:contentId/comments/:commentId')
+  @UseGuards(CsrfGuard)
+  async deleteComment(
+    @Req() req: Request,
+    @Param('contentId') contentId: string,
+    @Param('commentId') commentId: string,
+  ) {
+    this.requireTenant(req);
+    return contentService.deleteComment(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      contentId,
+      commentId,
       req.oma!.correlationId,
     );
   }
