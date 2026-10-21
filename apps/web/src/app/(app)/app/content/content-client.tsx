@@ -521,7 +521,6 @@ export default function ContentPage() {
   const [publishTipOpen, setPublishTipOpen] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [feedbackTab, setFeedbackTab] = useState<'comments' | 'suggestions'>('comments');
-  const [commentDraft, setCommentDraft] = useState('');
 
   const [overflowDay, setOverflowDay] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
