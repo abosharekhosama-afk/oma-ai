@@ -204,7 +204,7 @@ function mergeLocaleCopy(
 
 function weekdayLabels(locale: string, weekStartsOn: 0 | 1 | 6): string[] {
   const fmt = new Intl.DateTimeFormat(locale.toLowerCase().startsWith('ar') ? 'ar' : 'en', {
-    weekday: 'short',
+    weekday: 'narrow',
     timeZone: 'UTC',
   });
   const sunday = Date.UTC(2026, 0, 4);
@@ -214,7 +214,11 @@ function weekdayLabels(locale: string, weekStartsOn: 0 | 1 | 6): string[] {
       : weekStartsOn === 1
         ? [1, 2, 3, 4, 5, 6, 0]
         : [0, 1, 2, 3, 4, 5, 6];
-  return order.map((dow) => fmt.format(new Date(sunday + dow * 86400000)));
+  return order.map((dow) => {
+    const label = fmt.format(new Date(sunday + dow * 86400000));
+    // Keep calendar day headers compact (single glyph / short token).
+    return label.length > 2 ? label.slice(0, 1) : label;
+  });
 }
 
 function reviewFilterLabel(value: string, locale: string, allLabel: string): string {
