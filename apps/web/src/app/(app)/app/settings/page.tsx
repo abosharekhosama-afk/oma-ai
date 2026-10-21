@@ -101,7 +101,7 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="oma-stack" data-testid="demo-settings">
+    <div className="oma-stack plx-org" data-testid="demo-settings" data-surface="settings">
       <PageHeader title={t('demo.settings.title')} description={t('demo.settings.subtitle')} />
       <AiStatusNote />
       <DemoDisclosure />
