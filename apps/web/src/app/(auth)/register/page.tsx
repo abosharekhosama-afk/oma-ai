@@ -8,7 +8,7 @@ import { OmaDotsLoader } from '../../../components/ui/oma-dots-loader';
 import {
   PlxLogo, GoogleIcon, FacebookIcon, LockIcon, EyeIcon, EyeOffIcon,
 } from '../../../components/ui/plx-icons';
-import './auth-planable.css';
+import '../auth-planable.css';
 
 export default function RegisterPage() {
   const t = useT();
