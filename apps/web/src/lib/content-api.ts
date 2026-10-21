@@ -48,7 +48,14 @@ export type ApiContent = {
   workflow: ApiContentWorkflow;
 };
 
-export function toContentRow(c: ApiContent): ContentRow {
+export type ContentRowExtra = ContentRow & {
+  labels?: string[];
+  clientVisible?: boolean;
+  requestId?: string | null;
+  taskId?: string | null;
+};
+
+export function toContentRow(c: ApiContent): ContentRowExtra {
   return {
     id: c.id,
     campaignId: c.campaign_id ?? '',
@@ -69,7 +76,7 @@ export function toContentRow(c: ApiContent): ContentRow {
     deliverableId: null,
     caption: c.caption ?? undefined,
     labels: c.labels ?? [],
-    clientVisible: c.client_visible,
+    clientVisible: c.client_visible !== false,
   };
 }
 
