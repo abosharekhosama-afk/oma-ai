@@ -6253,3 +6253,433 @@ button.oma-cal-item {
   text-decoration: none !important;
   background: transparent !important;
 }
+/* ═══════════════════════════════════════════════════════════════
+   v7 — FINAL OVERRIDES (2026-10-21)
+   - Note ABOVE cards (order: -3)
+   - Post/Note hover buttons at TOP (order: -1)
+   - Hover floating menu (portal)
+   - External calendar popover exact match
+   - Holiday chips with green dot
+   - Header actions exact match
+   - Tooltips high contrast
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── 1. Cell layout: strict order ── */
+.oma-cal-cell {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  min-height: 130px !important;
+  padding: 6px 8px 8px !important;
+  position: relative !important;
+}
+
+/* Day number at top-start */
+.oma-cal-daynum {
+  align-self: flex-start !important;
+  min-width: 22px !important;
+  height: 22px !important;
+  padding: 0 5px !important;
+  border-radius: 999px !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
+  font-weight: 500 !important;
+  color: #8c8c8c !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  order: -4 !important;
+}
+
+/* Post/Note buttons at TOP (below daynum), only on hover */
+.oma-cal-cell-actions {
+  display: none !important;
+  justify-content: center !important;
+  align-items: center !important;
+  gap: 6px !important;
+  width: 100% !important;
+  margin: 2px 0 4px !important;
+  order: -3 !important;
+}
+.oma-cal-cell:hover .oma-cal-cell-actions,
+.oma-cal-cell:focus-within .oma-cal-cell-actions {
+  display: flex !important;
+}
+
+/* Note ABOVE cards */
+.oma-cal-note--inline {
+  order: -2 !important;
+  margin-top: 0 !important;
+  margin-bottom: 4px !important;
+  position: relative !important;
+}
+
+/* Holiday chip ABOVE cards but below note */
+.oma-cal-holiday-chip {
+  order: -1 !important;
+  margin-bottom: 2px !important;
+}
+
+/* Post cards LAST */
+.oma-cal-item-wrap {
+  order: 0 !important;
+}
+
+/* ── 2. Post card hover polish ── */
+.oma-cal-item-wrap {
+  position: relative !important;
+  z-index: 1 !important;
+}
+.oma-cal-item-wrap:hover {
+  z-index: 10 !important;
+}
+.oma-cal-card {
+  transition: border-color 0.12s ease, box-shadow 0.12s ease, border-style 0.12s ease, transform 0.12s ease !important;
+}
+.oma-cal-item-wrap:hover .oma-cal-card {
+  border-style: solid !important;
+  border-color: #b8bcc2 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* ── 3. Floating hover menu — match screenshot exactly ── */
+.oma-card-menu--float {
+  position: fixed !important;
+  z-index: 9999 !important;
+  min-width: 220px !important;
+  padding: 6px !important;
+  margin: 0 !important;
+  background: #ffffff !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 12px !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14) !important;
+  animation: oma-menu-fade 0.1s ease-out !important;
+}
+@keyframes oma-menu-fade {
+  from { opacity: 0; transform: translateY(-2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.oma-card-menu__item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-height: 38px !important;
+  padding: 8px 12px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: #333 !important;
+  font: inherit !important;
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+  text-align: start !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  transition: background 0.1s ease !important;
+}
+.oma-card-menu__item:hover {
+  background: #f5f6f7 !important;
+}
+.oma-card-menu__item-ico {
+  width: 16px !important;
+  display: inline-flex !important;
+  justify-content: center !important;
+  color: #5e6166 !important;
+  font-size: 14px !important;
+  flex-shrink: 0 !important;
+}
+.oma-card-menu__item--danger {
+  color: #dc2626 !important;
+}
+.oma-card-menu__item--danger .oma-card-menu__item-ico {
+  color: #dc2626 !important;
+}
+.oma-card-menu__badge {
+  margin-inline-start: auto !important;
+  color: #8c8c8c !important;
+  font-size: 11px !important;
+}
+
+/* ── 4. External calendar popover — exact match ── */
+.oma-ext-cal-pop {
+  position: absolute !important;
+  top: calc(100% + 6px) !important;
+  inset-inline-end: 0 !important;
+  z-index: 200 !important;
+  width: 280px !important;
+  padding: 14px !important;
+  background: #ffffff !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 12px !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14) !important;
+}
+.oma-ext-cal-pop__head {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-bottom: 12px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #111 !important;
+}
+.oma-ext-cal-pop__sync {
+  color: #8c8c8c !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+}
+.oma-ext-cal-pop__row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  min-height: 32px !important;
+  padding: 0 4px !important;
+  border-radius: 6px !important;
+  font-size: 13px !important;
+  color: #333 !important;
+  cursor: pointer !important;
+}
+.oma-ext-cal-pop__row:hover {
+  background: #f7f8f9 !important;
+}
+.oma-ext-cal-pop__row input[type='checkbox'] {
+  width: 16px !important;
+  height: 16px !important;
+  accent-color: #2563eb !important;
+  cursor: pointer !important;
+}
+.oma-ext-cal-pop__users {
+  margin-inline-start: auto !important;
+  color: #8c8c8c !important;
+  font-size: 12px !important;
+}
+.oma-ext-cal-pop__add {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  width: 100% !important;
+  margin-top: 10px !important;
+  padding: 8px 4px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #333 !important;
+  font: inherit !important;
+  font-size: 13px !important;
+  text-align: start !important;
+  cursor: pointer !important;
+  border-radius: 6px !important;
+}
+.oma-ext-cal-pop__add:hover {
+  background: #f7f8f9 !important;
+  color: #1d4ed8 !important;
+}
+.oma-ext-cal-pop__add span:first-child {
+  width: 16px !important;
+  text-align: center !important;
+  font-size: 14px !important;
+  color: #5e6166 !important;
+}
+
+/* ── 5. Tooltip — high contrast, never clipped ── */
+[data-tooltip] {
+  position: relative !important;
+}
+[data-tooltip]:hover::after {
+  content: attr(data-tooltip) !important;
+  position: absolute !important;
+  z-index: 9999 !important;
+  bottom: calc(100% + 8px) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  padding: 6px 10px !important;
+  border-radius: 6px !important;
+  background: #1f1f1f !important;
+  color: #fff !important;
+  font-size: 12px !important;
+  line-height: 16px !important;
+  font-weight: 500 !important;
+  white-space: nowrap !important;
+  pointer-events: none !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18) !important;
+}
+
+/* ── 6. Note action buttons — hover state ── */
+.oma-cal-note__action {
+  transition: background 0.1s ease, color 0.1s ease !important;
+}
+.oma-cal-note__action:hover {
+  background: rgba(0, 0, 0, 0.07) !important;
+  color: #111 !important;
+}
+
+/* ── 7. Header top actions — exact spacing ── */
+.oma-top-actions--content {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+.oma-top-actions--content .oma-top-action {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  height: 32px !important;
+  padding: 0 12px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: #333 !important;
+  font: inherit !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+  transition: background 0.12s ease !important;
+}
+.oma-top-actions--content .oma-top-action:hover {
+  background: #f5f6f7 !important;
+}
+.oma-top-actions--content .oma-top-action--ghost {
+  border: 1px solid #e2e3e5 !important;
+  background: #fff !important;
+}
+.oma-top-actions--content .oma-top-action--ghost:hover {
+  background: #f5f6f7 !important;
+  border-color: #d0d3d8 !important;
+}
+.oma-top-actions--content .oma-top-action--primary {
+  background: #2563eb !important;
+  color: #fff !important;
+  border: 1px solid #2563eb !important;
+  padding-inline: 16px !important;
+}
+.oma-top-actions--content .oma-top-action--primary:hover {
+  background: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
+}
+.oma-top-actions--content .oma-top-action--primary .oma-top-action__icon {
+  color: #fff !important;
+}
+.oma-top-action__icon {
+  font-size: 14px !important;
+  line-height: 1 !important;
+  opacity: 0.85 !important;
+  color: inherit !important;
+}
+
+/* ── 8. External calendar indicator polish ── */
+.oma-cal-ext-indicator {
+  height: 30px !important;
+  padding: 0 10px !important;
+  border: 1px solid #eef0f2 !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: #333 !important;
+}
+.oma-cal-ext-indicator:hover {
+  background: #f7f8f9 !important;
+}
+.oma-cal-ext-dot {
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  background: #22c55e !important;
+  display: inline-block !important;
+}
+
+/* ── 9. Saved toggle polish ── */
+.oma-cal-saved-toggle {
+  height: 30px !important;
+  padding: 0 12px !important;
+  border: 1px solid #eef0f2 !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  color: #333 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+}
+.oma-cal-saved-toggle:hover {
+  background: #f7f8f9 !important;
+}
+
+/* ── 10. Request approvals button ── */
+.oma-cal-request-approvals {
+  height: 30px !important;
+  padding: 0 10px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: #5e6166 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+.oma-cal-request-approvals:hover {
+  background: #f0f1f3 !important;
+  color: #111 !important;
+}
+
+/* ── 11. Cards look tighter, more Planable ── */
+.oma-cal-card {
+  padding: 6px 8px !important;
+  gap: 3px !important;
+  border-radius: 8px !important;
+}
+.oma-cal-card__title {
+  font-size: 12px !important;
+  line-height: 15px !important;
+  margin-top: 1px !important;
+}
+.oma-cal-card__name {
+  font-size: 11px !important;
+  line-height: 14px !important;
+}
+.oma-cal-card__draft {
+  font-size: 10px !important;
+  height: 16px !important;
+  padding: 0 5px !important;
+  line-height: 16px !important;
+}
+.oma-cal-card__time {
+  font-size: 11px !important;
+  line-height: 14px !important;
+}
+
+/* ── 12. Dialog shell overflow visible for tooltips ── */
+.oma-plan-post,
+.oma-plan-post__main,
+.oma-plan-post__canvas,
+.oma-plan-post__top,
+.oma-plan-post__more-wrap,
+.oma-plan-post__status-item {
+  overflow: visible !important;
+}
+
+/* ── 13. Dialog scrollable body ── */
+.oma-plan-post__canvas {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+/* ── 14. Notes mobile modal fixed position ── */
+.oma-cal-note-modal {
+  z-index: 10000 !important;
+}
+
+/* ── 15. Compose card z-index above everything ── */
+.oma-compose-overlay {
+  z-index: 1050 !important;
+}
+
+/* ── 16. View menu (path) fixed position ── */
+.oma-view-menu__list--path {
+  position: fixed !important;
+  top: 56px !important;
+  inset-inline-start: 240px !important;
+  z-index: 800 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   END v7
+   ═══════════════════════════════════════════════════════════════ */
