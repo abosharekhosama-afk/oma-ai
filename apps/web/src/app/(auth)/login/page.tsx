@@ -1,156 +1,124 @@
 'use client';
-
+import { FormEvent, useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { FormEvent, Suspense, useEffect, useState } from 'react';
-import { useLocale, useT } from '../../../lib/use-locale';
+import { api } from '../../../lib/api';
+import { useT } from '../../../lib/use-locale';
 import { OmaDotsLoader } from '../../../components/ui/oma-dots-loader';
+import {
+  PlxLogo, GoogleIcon, FacebookIcon, LockIcon, EyeIcon, EyeOffIcon,
+} from '../../../components/ui/plx-icons';
 import '../auth-planable.css';
 
-function LoginForm() {
+export default function LoginPage() {
   const t = useT();
-  const locale = useLocale();
-  const isAr = locale.toLowerCase().startsWith('ar');
   const router = useRouter();
-  const search = useSearchParams();
-  const nextPath = search.get('next') || '/app';
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [checking, setChecking] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [ready, setReady] = useState(false);
 
-  // Already signed in → go to app (has session cookie)
   useEffect(() => {
-    let cancelled = false;
-    fetch('/api/v1/auth/me', { credentials: 'include' })
-      .then((res) => {
-        if (cancelled) return;
-        if (res.ok) {
-          window.location.replace(nextPath.startsWith('/app') ? nextPath : '/app');
-          return;
-        }
-        setChecking(false);
-      })
-      .catch(() => {
-        if (!cancelled) setChecking(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [nextPath]);
+    setReady(true);
+  }, []);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setError(null);
-    setSubmitting(true);
+    setBusy(true);
     try {
-      const res = await fetch('/api/v1/auth/login', {
+      await api('/api/v1/auth/login', {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ email: email.trim(), password }),
+        body: JSON.stringify({ email, password }),
       });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setError(
-          data?.error?.message ||
-            t('auth.loginFailed') ||
-            (isAr ? 'فشل تسجيل الدخول' : 'Sign in failed'),
-        );
-        setSubmitting(false);
-        return;
-      }
-      // Session cookie is set by the API response — hard navigate into the app
-      window.location.assign(nextPath.startsWith('/') ? nextPath : '/app');
-    } catch {
-      setError(t('auth.loginFailed') || (isAr ? 'فشل تسجيل الدخول' : 'Sign in failed'));
-      setSubmitting(false);
+      // Hard navigation so the session cookie from Set-Cookie is present for middleware
+      window.location.assign('/app');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('auth.loginFailed'));
+    } finally {
+      setBusy(false);
     }
   }
 
-  if (checking) {
-    return (
-      <main id="main" className="plx-auth-page">
-        <OmaDotsLoader label={isAr ? 'جاري التحقق…' : 'Checking session…'} />
-      </main>
-    );
-  }
-
   return (
-    <main id="main" className="plx-auth-page" data-testid="login-page">
+    <main id="main" className="plx-auth-page" dir="ltr" data-auth-ready={ready ? '1' : '0'}>
       <div className="plx-auth-card">
-        <div className="plx-logo">
-          <span className="plx-logo-word">OMA</span>
-          <span className="plx-logo-sub">AI</span>
-        </div>
-        <h1 className="plx-auth-title">{t('auth.login') || (isAr ? 'تسجيل الدخول' : 'Sign in')}</h1>
+        <PlxLogo sub="by IMKAN" />
+        <h1 className="plx-auth-title">Log in to your account</h1>
 
-        <form className="plx-auth-form" onSubmit={onSubmit} noValidate>
-          <label className="plx-sr-only" htmlFor="login-email">
-            {t('auth.email') || 'Email'}
-          </label>
+        <button type="button" className="plx-btn plx-btn--google plx-btn--block">
+          <GoogleIcon /> Continue with Google
+        </button>
+        <div className="plx-auth-social-row">
+          <button type="button" className="plx-btn plx-btn--ghost">
+            <FacebookIcon /> Facebook
+          </button>
+          <button type="button" className="plx-btn plx-btn--ghost">
+            <LockIcon /> SAML SSO
+          </button>
+        </div>
+
+        <div className="plx-divider" aria-hidden="true">
+          <span>or</span>
+        </div>
+
+        <form className="plx-auth-form" onSubmit={onSubmit}>
           <input
-            id="login-email"
-            className="plx-input"
-            type="email"
+            id="email"
             name="email"
+            type="email"
+            inputMode="email"
             autoComplete="email"
             required
-            placeholder={t('auth.email') || (isAr ? 'البريد الإلكتروني' : 'Email')}
+            className="plx-input"
+            placeholder="Enter your work email address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            disabled={submitting}
           />
-          <label className="plx-sr-only" htmlFor="login-password">
-            {t('auth.password') || 'Password'}
-          </label>
-          <input
-            id="login-password"
-            className="plx-input"
-            type="password"
-            name="password"
-            autoComplete="current-password"
-            required
-            placeholder={t('auth.password') || (isAr ? 'كلمة المرور' : 'Password')}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            disabled={submitting}
-          />
+          <div className="plx-input-wrap">
+            <input
+              id="password"
+              name="password"
+              type={showPassword ? 'text' : 'password'}
+              autoComplete="current-password"
+              required
+              className="plx-input"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <button
+              type="button"
+              className="plx-eye"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              onClick={() => setShowPassword((v) => !v)}
+            >
+              {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+            </button>
+          </div>
           {error ? (
-            <p className="plx-auth-error" role="alert" data-testid="login-error">
+            <p role="alert" className="plx-error">
               {error}
             </p>
           ) : null}
-          <button type="submit" className="plx-btn plx-btn--dark plx-btn--block" disabled={submitting}>
-            {submitting ? (
-              <OmaDotsLoader label={isAr ? 'جاري الدخول…' : 'Signing in…'} />
-            ) : (
-              t('auth.login') || (isAr ? 'تسجيل الدخول' : 'Sign in')
-            )}
+          <button type="submit" className="plx-btn plx-btn--dark plx-btn--block" disabled={busy || !ready}>
+            {busy ? <OmaDotsLoader label="Logging in" /> : 'Log in'}
           </button>
         </form>
 
+        <p className="plx-auth-link-row">
+          <Link href="#">Forgot your password?</Link>
+        </p>
         <p className="plx-auth-switch">
-          {t('auth.needAccount') || (isAr ? 'ليس لديك حساب؟' : 'Need an account?')}{' '}
-          <Link href="/register">{t('auth.register') || (isAr ? 'إنشاء حساب' : 'Create account')}</Link>
+          Don&apos;t have an account yet? <Link href="/register">Get started</Link>
         </p>
       </div>
+      <p className="plx-auth-terms">
+        By continuing, you agree to our <a href="#">Terms of Service</a> and{' '}
+        <a href="#">Privacy Policy</a>.
+      </p>
     </main>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense
-      fallback={
-        <main id="main" className="plx-auth-page">
-          <OmaDotsLoader />
-        </main>
-      }
-    >
-      <LoginForm />
-    </Suspense>
   );
 }
