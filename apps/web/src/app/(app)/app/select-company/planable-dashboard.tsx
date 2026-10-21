@@ -213,9 +213,9 @@ export function PlanableDashboard() {
         body: JSON.stringify({ name: wsName, website: wsUrl, timezone: wsTz }),
       });
       window.location.assign('/app');
-    } catch {
-      // Fallback to the existing onboarding-based tenant creation flow.
-      window.location.assign('/app/onboarding');
+    } catch (err) {
+      // Stay on Planable create UI — do not send users to legacy OMA onboarding.
+      setCreateError(err instanceof Error ? err.message : 'Could not create workspace');
     } finally {
       setCreateBusy(false);
     }
@@ -251,7 +251,7 @@ export function PlanableDashboard() {
         <div className="plx-dash-body">
           <div className="plx-empty" role="alert">
             <p>{error}</p>
-            <Link href="/login">Sign in</Link>
+            <Link href="/app">Sign in</Link>
           </div>
         </div>
       ) : (
