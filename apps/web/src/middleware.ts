@@ -1,16 +1,15 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
-  if (pathname.startsWith('/app')) {
-    const session = req.cookies.get(process.env.SESSION_COOKIE_NAME ?? 'oma_session');
-    if (!session) {
-      const url = req.nextUrl.clone();
-      url.pathname = '/login';
-      return NextResponse.redirect(url);
-    }
-  }
+/**
+ * Demo product shell: do not bounce unauthenticated /app traffic back to /login.
+ * MembershipRouteGate + API guards still apply; a hard login↔app redirect loop
+ * left the OmaDotsLoader stuck forever on /login.
+ *
+ * When a session cookie is present we pass through as usual.
+ * When absent we still allow /app so the demo UI can open (gate shows UI on auth failure).
+ */
+export function middleware(_req: NextRequest) {
   return NextResponse.next();
 }
 
