@@ -382,13 +382,6 @@ export async function listBrandTemplates(brandId: string) {
   return res.data ?? [];
 }
 
-export async function useContentTemplate(brandId: string, templateId: string) {
-  const res = await api<{ data: ApiContent }>(
-    `/api/v1/brands/${brandId}/content-templates/${templateId}/use`,
-    { method: 'POST', body: JSON.stringify({}) },
-  );
-  return res.data;
-}
 
 export function workflowLabel(
   item: { status: string; approvalState?: string; scheduleState?: string },
