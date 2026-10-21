@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
+import { OmaDotsLoader } from '../ui/oma-dots-loader';
 
 type Me = {
   active_tenant_id: string | null;
@@ -66,7 +67,11 @@ export function MembershipRouteGate({ children }: { children: React.ReactNode })
     );
   }
   if (!ready) {
-    return <p role="status">Loading…</p>;
+    return (
+      <div className="oma-route-loading" role="status" aria-label="Loading">
+        <OmaDotsLoader />
+      </div>
+    );
   }
   return children;
 }
