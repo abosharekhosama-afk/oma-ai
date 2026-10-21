@@ -1135,3 +1135,216 @@
   align-items: center;
   justify-content: center;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   Planable shell rail — match login / select-company language
+   ═══════════════════════════════════════════════════════════ */
+
+.oma-shell {
+  background: #f5f6f8 !important;
+  font-family: -apple-system, system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+}
+
+.oma-rail {
+  background: #ffffff !important;
+  border-inline-end: 1px solid #eceef1 !important;
+  padding: 14px 12px !important;
+  gap: 6px !important;
+  width: 240px !important;
+  box-shadow: 1px 0 0 rgba(17, 24, 39, 0.02);
+}
+
+.oma-shell {
+  grid-template-columns: 240px minmax(0, 1fr) !important;
+}
+.oma-shell[data-rail='collapsed'] {
+  grid-template-columns: 72px minmax(0, 1fr) !important;
+}
+.oma-shell[data-rail='collapsed'] .oma-rail {
+  width: 72px !important;
+  padding: 12px 8px !important;
+}
+
+.oma-rail-header {
+  padding: 4px 6px 10px !important;
+  margin-bottom: 4px !important;
+}
+
+.oma-rail-mark {
+  min-width: 34px !important;
+  height: 28px !important;
+  border-radius: 8px !important;
+  background: #111827 !important;
+  color: #fff !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.02em !important;
+}
+
+.oma-rail-name {
+  font-size: 15px !important;
+  font-weight: 800 !important;
+  color: #111827 !important;
+  letter-spacing: -0.2px !important;
+}
+
+.oma-rail-endorsement {
+  display: none !important; /* cleaner Planable rail */
+}
+
+.oma-rail-collapse {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 8px !important;
+  color: #9ca3af !important;
+}
+.oma-rail-collapse:hover {
+  background: #f3f4f6 !important;
+  color: #374151 !important;
+}
+
+.oma-rail-workspace {
+  padding: 4px 4px 8px !important;
+  margin-bottom: 4px !important;
+}
+
+.oma-nav {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  padding: 4px 0 !important;
+  scrollbar-width: thin !important;
+}
+
+.oma-nav-group {
+  margin-bottom: 12px !important;
+}
+
+.oma-nav-section {
+  margin: 0 8px 6px !important;
+  padding: 0 !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  color: #9ca3af !important;
+}
+
+.oma-nav-list {
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: grid !important;
+  gap: 2px !important;
+}
+
+.oma-nav-link {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  min-height: 38px !important;
+  padding: 0 10px !important;
+  border-radius: 10px !important;
+  color: #374151 !important;
+  text-decoration: none !important;
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+  transition: background 0.12s ease, color 0.12s ease !important;
+}
+
+.oma-nav-link:hover {
+  background: #f3f4f6 !important;
+  color: #111827 !important;
+}
+
+.oma-nav-link[data-active='true'],
+.oma-nav-link[aria-current='page'] {
+  background: #eef2ff !important;
+  color: #1d4ed8 !important;
+  font-weight: 600 !important;
+}
+
+.oma-nav-link-icon {
+  width: 18px !important;
+  height: 18px !important;
+  flex-shrink: 0 !important;
+  opacity: 0.85 !important;
+}
+
+.oma-nav-link[data-active='true'] .oma-nav-link-icon,
+.oma-nav-link[aria-current='page'] .oma-nav-link-icon {
+  opacity: 1 !important;
+}
+
+.oma-shell[data-rail='collapsed'] .oma-nav-link {
+  justify-content: center !important;
+  width: 44px !important;
+  margin-inline: auto !important;
+  padding: 0 !important;
+}
+
+.oma-rail-footer {
+  margin-top: auto !important;
+  padding-top: 10px !important;
+  border-top: 1px solid #eceef1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+}
+
+.oma-top {
+  background: #fff !important;
+  border-bottom: 1px solid #eceef1 !important;
+  min-height: 56px !important;
+  padding: 8px 20px !important;
+}
+
+.oma-shell-column {
+  background: #f5f6f8 !important;
+  min-width: 0 !important;
+}
+
+.oma-container {
+  max-width: 1280px !important;
+  margin: 0 auto !important;
+  padding: 20px 24px 40px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Soften command search in rail */
+.oma-rail .oma-rail-search,
+.oma-rail [class*='command'] button,
+.oma-rail .oma-command-trigger {
+  background: #f3f4f6 !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  color: #9ca3af !important;
+  height: 36px !important;
+  font-size: 13px !important;
+}
+
+@media (max-width: 767px) {
+  .oma-shell,
+  .oma-shell[data-rail='collapsed'],
+  .oma-shell[data-rail='expanded'] {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .oma-rail {
+    display: none !important;
+  }
+  .oma-container {
+    padding: 16px 14px 32px !important;
+  }
+}
+.oma-rail-name {
+  display: inline-flex !important;
+  align-items: baseline !important;
+  gap: 4px !important;
+}
+.oma-rail-name-sub {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  color: #6b7280 !important;
+  letter-spacing: 0.02em !important;
+}

@@ -1,0 +1,314 @@
+/* ═══════════════════════════════════════════════════════════
+   Planable org surfaces — brands / team / company / activity / settings
+   Visual language aligned with login + select-company (plx-*)
+   ═══════════════════════════════════════════════════════════ */
+
+.plx-org {
+  --plx-bg: #f5f6f8;
+  --plx-surface: #ffffff;
+  --plx-ink: #111827;
+  --plx-muted: #6b7280;
+  --plx-border: #e5e7eb;
+  --plx-border-soft: #eceef1;
+  --plx-primary: #2e3a4e;
+  --plx-accent: #4c8dff;
+  --plx-radius: 16px;
+  --plx-radius-sm: 12px;
+  --plx-shadow: 0 8px 28px rgba(17, 24, 39, 0.06), 0 1px 3px rgba(17, 24, 39, 0.04);
+  gap: 0 !important;
+  padding: 0 0 48px !important;
+  min-height: calc(100vh - 64px);
+  background: transparent;
+  color: var(--plx-ink);
+}
+
+/* Page header — Planable density */
+.plx-org .oma-page-header,
+.plx-org > header,
+.plx-org .oma-page-header-stack {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: flex-start !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  margin: 0 0 20px !important;
+  padding: 8px 4px 4px !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+
+.plx-org .oma-page-header h1,
+.plx-org h1 {
+  margin: 0 !important;
+  font-size: 26px !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.4px !important;
+  color: var(--plx-ink) !important;
+  line-height: 1.25 !important;
+}
+
+.plx-org .oma-page-header p,
+.plx-org .oma-lead,
+.plx-org .oma-page-header .oma-muted {
+  margin: 6px 0 0 !important;
+  font-size: 14px !important;
+  color: var(--plx-muted) !important;
+  max-width: 560px !important;
+}
+
+.plx-org .oma-page-header-actions,
+.plx-org .oma-page-header > div:last-child {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+/* Cards / panels */
+.plx-org .oma-card,
+.plx-org .oma-panel,
+.plx-org [class*='Panel'],
+.plx-org .oma-workspace-grid > *,
+.plx-org .oma-team-card,
+.plx-org article.oma-card {
+  background: var(--plx-surface) !important;
+  border: 1px solid var(--plx-border-soft) !important;
+  border-radius: var(--plx-radius) !important;
+  box-shadow: var(--plx-shadow) !important;
+  padding: 18px 20px !important;
+}
+
+.plx-org .oma-workspace-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) !important;
+  gap: 16px !important;
+  margin-top: 8px !important;
+}
+
+.plx-org .oma-workspace-grid a,
+.plx-org .oma-workspace-grid article {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease !important;
+  text-decoration: none !important;
+  color: inherit !important;
+}
+
+.plx-org .oma-workspace-grid a:hover,
+.plx-org .oma-workspace-grid article:hover {
+  border-color: #d1d5db !important;
+  box-shadow: 0 12px 32px rgba(17, 24, 39, 0.1) !important;
+  transform: translateY(-1px);
+}
+
+/* Toolbar / filters */
+.plx-org .oma-stage6-toolbar,
+.plx-org form.oma-toolbar,
+.plx-org form[class*='toolbar'],
+.plx-org .oma-filter-bar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: flex-end !important;
+  gap: 10px !important;
+  margin: 0 0 18px !important;
+  padding: 14px 16px !important;
+  background: var(--plx-surface) !important;
+  border: 1px solid var(--plx-border-soft) !important;
+  border-radius: var(--plx-radius-sm) !important;
+  box-shadow: 0 1px 2px rgba(17, 24, 39, 0.04) !important;
+}
+
+.plx-org .oma-stage6-toolbar label,
+.plx-org .oma-stage6-search {
+  display: grid !important;
+  gap: 6px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: var(--plx-muted) !important;
+}
+
+.plx-org .plx-input,
+.plx-org input[type='search'],
+.plx-org input[type='text'],
+.plx-org input[type='email'],
+.plx-org .ant-input,
+.plx-org .oma-stage6-search input,
+.plx-org select,
+.plx-org .ant-select-selector {
+  height: 40px !important;
+  min-height: 40px !important;
+  border-radius: 10px !important;
+  background: #f3f4f6 !important;
+  border: 1.5px solid transparent !important;
+  padding: 0 12px !important;
+  font-size: 14px !important;
+  color: var(--plx-ink) !important;
+  box-shadow: none !important;
+}
+
+.plx-org input:focus,
+.plx-org select:focus,
+.plx-org .ant-input:focus,
+.plx-org .ant-select-focused .ant-select-selector {
+  outline: none !important;
+  background: #fff !important;
+  border-color: var(--plx-accent) !important;
+  box-shadow: 0 0 0 3px rgba(76, 141, 255, 0.18) !important;
+}
+
+/* Primary / secondary buttons */
+.plx-org .ant-btn-primary,
+.plx-org button.plx-btn--dark,
+.plx-org a.oma-btn-primary {
+  height: 40px !important;
+  padding: 0 16px !important;
+  border-radius: 10px !important;
+  background: var(--plx-primary) !important;
+  border-color: var(--plx-primary) !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  box-shadow: none !important;
+}
+
+.plx-org .ant-btn-primary:hover {
+  background: #253041 !important;
+  border-color: #253041 !important;
+}
+
+.plx-org .ant-btn-default,
+.plx-org .ant-btn {
+  height: 40px !important;
+  border-radius: 10px !important;
+  font-weight: 600 !important;
+  border-color: var(--plx-border) !important;
+}
+
+/* Tables */
+.plx-org table,
+.plx-org .oma-table,
+.plx-org .oma-req-table {
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  background: var(--plx-surface) !important;
+  border: 1px solid var(--plx-border-soft) !important;
+  border-radius: var(--plx-radius) !important;
+  overflow: hidden !important;
+  box-shadow: var(--plx-shadow) !important;
+}
+
+.plx-org thead th {
+  background: #fafbfc !important;
+  color: var(--plx-muted) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  padding: 12px 16px !important;
+  border-bottom: 1px solid var(--plx-border-soft) !important;
+}
+
+.plx-org tbody td {
+  padding: 14px 16px !important;
+  border-bottom: 1px solid #f0f1f3 !important;
+  font-size: 14px !important;
+  color: var(--plx-ink) !important;
+  vertical-align: middle !important;
+}
+
+.plx-org tbody tr:last-child td {
+  border-bottom: 0 !important;
+}
+
+.plx-org tbody tr:hover td {
+  background: #f9fafb !important;
+}
+
+/* Settings sections */
+.plx-org .oma-settings-section,
+.plx-org .oma-stack > .oma-card {
+  margin-bottom: 16px !important;
+}
+
+.plx-org label {
+  font-size: 13px !important;
+  color: #374151 !important;
+}
+
+/* Activity feed */
+.plx-org .oma-activity-day,
+.plx-org [data-testid='demo-activity'] .oma-stack {
+  gap: 12px !important;
+}
+
+.plx-org .oma-activity-item,
+.plx-org [class*='activity-row'] {
+  display: grid !important;
+  gap: 4px !important;
+  padding: 14px 16px !important;
+  background: var(--plx-surface) !important;
+  border: 1px solid var(--plx-border-soft) !important;
+  border-radius: 12px !important;
+  margin-bottom: 8px !important;
+}
+
+/* Disclosure / honesty banners */
+.plx-org .oma-demo-disclosure,
+.plx-org [class*='DemoDisclosure'] {
+  margin: 0 0 16px !important;
+  padding: 10px 14px !important;
+  border-radius: 10px !important;
+  background: #f9fafb !important;
+  border: 1px dashed var(--plx-border) !important;
+  font-size: 13px !important;
+  color: var(--plx-muted) !important;
+}
+
+/* Empty states */
+.plx-org .oma-empty,
+.plx-org [class*='EmptyState'] {
+  padding: 48px 24px !important;
+  text-align: center !important;
+  background: var(--plx-surface) !important;
+  border: 1px solid var(--plx-border-soft) !important;
+  border-radius: var(--plx-radius) !important;
+}
+
+/* Team capacity chips */
+.plx-org .oma-capacity {
+  display: inline-flex !important;
+  align-items: center !important;
+  height: 24px !important;
+  padding: 0 10px !important;
+  border-radius: 999px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+
+/* Two-column layouts */
+.plx-org .oma-split,
+.plx-org .oma-settings-layout {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 360px) !important;
+  gap: 20px !important;
+  align-items: start !important;
+}
+
+@media (max-width: 900px) {
+  .plx-org .oma-split,
+  .plx-org .oma-settings-layout {
+    grid-template-columns: 1fr !important;
+  }
+  .plx-org .oma-page-header h1,
+  .plx-org h1 {
+    font-size: 22px !important;
+  }
+}
+
+/* Brand new form page */
+.plx-org--form {
+  max-width: 640px !important;
+  margin: 0 auto !important;
+  padding: 24px 16px 64px !important;
+}
+
+.plx-org--form .oma-card {
+  padding: 28px 28px 24px !important;
+}
