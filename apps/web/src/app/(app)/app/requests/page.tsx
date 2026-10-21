@@ -12,12 +12,13 @@ import { EmptyState } from '../../../../components/ui/empty-state';
 import { PageHeader, Panel } from '../../../../components/ui/page-header';
 import { StatusChip } from '../../../../components/ui/status-chip';
 import { useToast } from '../../../../components/ui/toast';
+import { pickCopy } from '../../../../lib/demo/use-demo-api';
 import {
-  demoApi,
-  demoErrorMessage,
-  isDemoForbidden,
-  pickCopy,
-} from '../../../../lib/demo/use-demo-api';
+  loadRequestsWorkspace,
+  createRequest,
+  toRequestRow,
+  opsError,
+} from '../../../../lib/ops-api';
 import {
   EMPTY_REQUEST_FILTERS,
   activeRequestFilterCount,
@@ -128,24 +129,27 @@ export default function RequestsPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const graph = await demoApi<DemoGraph>('/graph');
-      setRows(graph.requests);
-      setBriefs(graph.briefs);
-      setBrands(graph.brands);
-      setCampaigns(graph.campaigns);
+      const ws = await loadRequestsWorkspace();
+      setRows(ws.requests);
+      setBriefs([]);
+      setBrands(ws.brands as Brand[]);
+      setCampaigns(ws.campaigns as Campaign[]);
       setError(null);
       setUnavailable(false);
       setForm((f) => ({
         ...f,
-        brandId: f.brandId || graph.brands[0]?.id || '',
+        brandId: f.brandId || ws.brands[0]?.id || '',
+        requester: f.requester || 'Owner',
       }));
     } catch (err) {
-      if (isDemoForbidden(err)) setUnavailable(true);
-      else setError(demoErrorMessage(err, 'Demo unavailable'));
+      setError(opsError(err, locale.toLowerCase().startsWith('ar') ? 'تعذّر تحميل الطلبات' : 'Failed to load requests'));
+      setRows([]);
+      setBrands([]);
+      setCampaigns([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [locale]);
 
   useEffect(() => {
     void load();
@@ -190,22 +194,17 @@ export default function RequestsPage() {
     }
     setCreating(true);
     try {
-      const created = await demoApi<RequestRow>('/requests', {
-        method: 'POST',
-        body: JSON.stringify({
+      const createdApi = await createRequest(form.brandId, {
           title: { en: form.title.trim(), ar: form.title.trim() },
           description: {
             en: form.description.trim(),
             ar: form.description.trim(),
           },
           type: form.type,
-          brandId: form.brandId,
           campaignId: form.campaignId || null,
           contentId: form.contentId || null,
           priority: form.priority,
-          dueAt: form.dueAt,
-          requester: form.requester.trim(),
-          assignee: form.assignee.trim() || null,
+          dueAt: form.dueAt ? `${form.dueAt}T12:00:00.000Z` : null,
           channels: form.channels
             .split(',')
             .map((c) => c.trim())
@@ -214,11 +213,8 @@ export default function RequestsPage() {
             .split(',')
             .map((c) => c.trim())
             .filter(Boolean),
-          outcome: form.outcome.trim()
-            ? { en: form.outcome.trim(), ar: form.outcome.trim() }
-            : undefined,
-        }),
-      });
+        });
+        const created = toRequestRow(createdApi);
       toast.push(t('demo.create.successRequest'), 'success');
       setCreateOpen(false);
       setCreateDirty(false);
@@ -226,7 +222,7 @@ export default function RequestsPage() {
       await load();
       router.push(`/app/requests/${created.id}`);
     } catch (err) {
-      setCreateError(demoErrorMessage(err, t('demo.create.validation')));
+      setCreateError(opsError(err, t('demo.create.validation')));
     } finally {
       setCreating(false);
     }
