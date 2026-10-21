@@ -33,6 +33,7 @@ import {
   CalendarOutlined,
   FlagOutlined,
   LinkOutlined,
+  FileTextOutlined,
 } from '@ant-design/icons';
 
 type Brief = DemoGraph['briefs'][number];
@@ -50,7 +51,6 @@ function safeCopy(value: unknown, locale: string): string {
   }
   return String(value);
 }
-
 
 function BriefField({
   label,
@@ -102,7 +102,6 @@ export default function RequestDetailPage() {
     try {
       const detail = await getRequest(requestId);
       const data = toRequestRow(detail.data);
-      // Attach conversion task ids from production tasks
       data.conversionTaskIds = (detail.tasks ?? []).map((x) => x.id);
       setRow(data);
       setBriefDraft({
@@ -176,7 +175,6 @@ export default function RequestDetailPage() {
     if (!requestId || !briefDraft) return;
     setSaving(true);
     try {
-      // Brief persistence is planning-only until Brief domain ships; keep local draft.
       const saved = briefDraft;
       toast.push(
         locale.toLowerCase().startsWith('ar')
@@ -205,7 +203,6 @@ export default function RequestDetailPage() {
       return;
     }
     try {
-      // Map UI status fields to production API
       await updateRequest(requestId, {
         status: patch.status,
         priority: patch.priority,
@@ -240,11 +237,21 @@ export default function RequestDetailPage() {
 
   return (
     <div className="oma-req-detail" data-testid="demo-request-detail">
+      {/* Planable-style top bar: back + title chips + actions */}
       <header className="oma-req-detail__top">
-        <Link href="/app/requests" className="oma-req-detail__back" data-testid="demo-request-back">
-          <ArrowLeftOutlined />
-          <span>{t('demo.requests.back')}</span>
-        </Link>
+        <div className="oma-req-detail__top-left">
+          <Link href="/app/requests" className="oma-req-detail__back" data-testid="demo-request-back">
+            <ArrowLeftOutlined />
+            <span>{t('demo.requests.back')}</span>
+          </Link>
+          {row ? (
+            <div className="oma-req-detail__top-meta">
+              <span className="oma-req-detail__top-id">{row.id.replace('demo-request-', '#')}</span>
+              <StatusChip status={row.status} />
+              <StatusChip status={row.priority} />
+            </div>
+          ) : null}
+        </div>
         {row ? (
           <div className="oma-req-detail__top-actions">
             <Button
@@ -283,6 +290,7 @@ export default function RequestDetailPage() {
       {row ? (
         <div className="oma-req-detail__workspace">
           <div className="oma-req-detail__main">
+            {/* Title block */}
             <div className="oma-req-detail__title-block">
               <div className="oma-req-detail__chips">
                 <StatusChip status={row.status} />
@@ -293,6 +301,7 @@ export default function RequestDetailPage() {
               <p className="oma-req-detail__desc">{safeCopy(row.description, locale)}</p>
             </div>
 
+            {/* Triage card */}
             <section className="oma-req-detail__card" data-testid="demo-request-completeness">
               <header className="oma-req-detail__card-head">
                 <strong>{t('demo.requests.triage')}</strong>
@@ -384,11 +393,14 @@ export default function RequestDetailPage() {
               </div>
             </section>
 
+            {/* Brief card */}
             {briefDraft ? (
               <section className="oma-req-detail__card oma-req-detail__card--brief">
                 <header className="oma-req-detail__card-head">
                   <div className="oma-req-detail__card-head-text">
-                    <strong>{t('demo.request.brief')}</strong>
+                    <strong>
+                      <FileTextOutlined /> {t('demo.request.brief')}
+                    </strong>
                     <span className="oma-req-detail__meta">
                       {t('demo.brief.readiness')}: {briefDraft.readiness} · {briefCompleteness(briefDraft)}%
                     </span>
@@ -437,8 +449,8 @@ export default function RequestDetailPage() {
                       testId="demo-brief-deliverable"
                       onChange={(v) => patchBriefCopy('deliverableType', v)}
                     />
-                    <label>
-                      {t('demo.brief.channels')}
+                    <label className="oma-brief-field">
+                      <span className="oma-brief-field__label">{t('demo.brief.channels')}</span>
                       <Input
                         data-testid="demo-brief-channels"
                         value={safeCopy(briefDraft.channels, locale)}
@@ -460,8 +472,10 @@ export default function RequestDetailPage() {
                     </label>
                   </div>
                   <div className="oma-brief-col">
-                    <label>
-                      {t('demo.brief.formats') || 'Formats'}
+                    <label className="oma-brief-field">
+                      <span className="oma-brief-field__label">
+                        {t('demo.brief.formats') || 'Formats'}
+                      </span>
                       <Input
                         data-testid="demo-brief-formats"
                         value={safeCopy(briefDraft.formats, locale)}
@@ -524,6 +538,7 @@ export default function RequestDetailPage() {
               </section>
             ) : null}
 
+            {/* Tasks card */}
             <section className="oma-req-detail__card">
               <header className="oma-req-detail__card-head">
                 <strong>{t('demo.tasks.title')}</strong>
@@ -549,20 +564,25 @@ export default function RequestDetailPage() {
             </section>
           </div>
 
+          {/* Sidebar summary */}
           <aside className="oma-req-detail__side">
             <div className="oma-req-detail__side-card">
               <h3>{locale.toLowerCase().startsWith('ar') ? 'الملخص' : 'Summary'}</h3>
               <div className="oma-req-detail__side-row">
                 <UserOutlined />
                 <div>
-                  <span className="oma-req-detail__side-label">{t('demo.requests.filter.requester')}</span>
+                  <span className="oma-req-detail__side-label">
+                    {t('demo.requests.filter.requester')}
+                  </span>
                   <strong>{row.requester}</strong>
                 </div>
               </div>
               <div className="oma-req-detail__side-row">
                 <UserOutlined />
                 <div>
-                  <span className="oma-req-detail__side-label">{t('demo.requests.filter.assignee')}</span>
+                  <span className="oma-req-detail__side-label">
+                    {t('demo.requests.filter.assignee')}
+                  </span>
                   <strong>{row.assignee ?? t('demo.requests.unassigned')}</strong>
                 </div>
               </div>
@@ -576,14 +596,18 @@ export default function RequestDetailPage() {
               <div className="oma-req-detail__side-row">
                 <FlagOutlined />
                 <div>
-                  <span className="oma-req-detail__side-label">{t('demo.requests.filter.priority')}</span>
+                  <span className="oma-req-detail__side-label">
+                    {t('demo.requests.filter.priority')}
+                  </span>
                   <strong>{row.priority}</strong>
                 </div>
               </div>
               <div className="oma-req-detail__side-row">
                 <CheckOutlined />
                 <div>
-                  <span className="oma-req-detail__side-label">{t('demo.requests.filter.status')}</span>
+                  <span className="oma-req-detail__side-label">
+                    {t('demo.requests.filter.status')}
+                  </span>
                   <strong>{row.status}</strong>
                 </div>
               </div>
