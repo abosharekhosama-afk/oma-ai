@@ -192,7 +192,10 @@ export function ShellChrome({ children }: { children: ReactNode }) {
               <span className="oma-rail-mark" aria-hidden="true">
                 OMA
               </span>
-              <span className="oma-rail-name">{t('app.name')}</span>
+              <span className="oma-rail-name">
+                {t('app.name')}
+                <span className="oma-rail-name-sub">AI</span>
+              </span>
             </div>
             <Button
               type="text"
