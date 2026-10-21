@@ -112,7 +112,18 @@ import {
   createContentLabel,
   saveContentAsTemplate,
   listContentTemplates,
+  getContentDetail,
+  addContentComment,
+  requestContentChanges,
+  rejectContent,
+  markContentPublished,
+  listBrandLabels,
+  createBrandLabel,
+  listBrandTemplates,
   useContentTemplate,
+  workflowLabel,
+  type ApprovalEvent,
+  type ContentCommentDto,
 } from '../../../../lib/content-api';
 import { useLocale, useT } from '../../../../lib/use-locale';
 
@@ -494,6 +505,16 @@ export default function ContentPage() {
   const [unsavedOpen, setUnsavedOpen] = useState(false);
   const [detailTab, setDetailTab] = useState<'preview' | 'edit' | 'comments'>('preview');
   const [detailSidePanel, setDetailSidePanel] = useState<'none' | 'activity' | 'feedback'>('none');
+  const [approvalEvents, setApprovalEvents] = useState<ApprovalEvent[]>([]);
+  const [prodComments, setProdComments] = useState<ContentCommentDto[]>([]);
+  const [commentDraft, setCommentDraft] = useState('');
+  const [labelPickerOpen, setLabelPickerOpen] = useState(false);
+  const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
+  const [brandLabels, setBrandLabels] = useState<{ id: string; name: { en: string; ar: string }; color: string }[]>([]);
+  const [brandTemplates, setBrandTemplates] = useState<
+    { id: string; name?: { en: string; ar: string }; name_en?: string }[]
+  >([]);
+  const [labelDraft, setLabelDraft] = useState('');
   const [detailPreviewMode, setDetailPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
   const [detailMoreOpen, setDetailMoreOpen] = useState(false);
   const [approvalTipOpen, setApprovalTipOpen] = useState(false);
@@ -631,6 +652,37 @@ export default function ContentPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (!selectedId) {
+      setApprovalEvents([]);
+      setProdComments([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      try {
+        const detail = await getContentDetail(selectedId);
+        if (cancelled) return;
+        setApprovalEvents(detail.approval_events ?? []);
+        setProdComments(detail.comments ?? []);
+        if (detail.data) {
+          setRows((prev) =>
+            prev.map((r) => (r.id === detail.data.id ? toContentRow(detail.data) : r)),
+          );
+        }
+      } catch {
+        if (!cancelled) {
+          setApprovalEvents([]);
+          setProdComments([]);
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedId]);
+
 
   const activeBrandId = brands[0]?.id || campaigns[0]?.brandId || '';
 
@@ -1865,24 +1917,16 @@ export default function ContentPage() {
                     }
                     if (row.id === 'labels') {
                       const current = rows.find((r) => r.id === cardMenuId);
-                      const next = window.prompt(
-                        isAr ? 'التصنيفات (مفصولة بفاصلة)' : 'Labels (comma-separated)',
-                        '',
-                      );
-                      if (next != null && cardMenuId) {
-                        void setContentLabels(
-                          cardMenuId,
-                          next.split(',').map((s) => s.trim()).filter(Boolean),
-                        )
-                          .then((updated) => {
-                            setRows((prev) =>
-                              prev.map((r) => (r.id === cardMenuId ? toContentRow(updated) : r)),
-                            );
-                            toast.push(isAr ? 'تم تحديث التصنيفات' : 'Labels updated', 'success');
-                          })
-                          .catch((err) =>
-                            toast.push(contentApiError(err, 'Labels failed'), 'danger'),
-                          );
+                      if (cardMenuId) {
+                        setSelectedId(cardMenuId);
+                        const brandId =
+                          rows.find((r) => r.id === cardMenuId)?.brandId || brands[0]?.id;
+                        if (brandId) {
+                          void listBrandLabels(brandId)
+                            .then((labs) => setBrandLabels(labs as typeof brandLabels))
+                            .catch(() => setBrandLabels([]));
+                        }
+                        setLabelPickerOpen(true);
                       }
                     }
                     if (row.id === 'template' || row.label.toLowerCase().includes('template') || row.label.includes('قالب')) {
@@ -2441,6 +2485,16 @@ export default function ContentPage() {
                   <button type="button" className="oma-plan-post__tool-btn">
                     {isAr ? 'مشاركة' : 'Share'}
                   </button>
+                  <span className="oma-plan-post__chip" data-testid="demo-content-workflow">
+                    {workflowLabel(
+                      {
+                        status: selected.status,
+                        approvalState: selected.approvalState,
+                        scheduleState: selected.scheduleState,
+                      },
+                      isAr,
+                    )}
+                  </span>
                   <button
                     type="button"
                     className="oma-plan-post__icon-btn"
@@ -2727,39 +2781,47 @@ export default function ContentPage() {
 
                     {detailSidePanel === 'activity' ? (
                       <div className="oma-plan-post__activity">
-                        {(comments.length
-                          ? comments.map((c) => ({
-                              id: c.id,
-                              text: isAr
-                                ? `${c.author} عدّل النص.`
-                                : `${c.author === selected.assignee ? 'You' : c.author} edited the text.`,
-                              at: c.at,
-                            }))
-                          : [
+                        <div className="oma-plan-post__workflow-chip" style={{ marginBottom: 12 }}>
+                          <strong>{isAr ? 'حالة المسار' : 'Workflow'}</strong>
+                          <span>
+                            {workflowLabel(
                               {
-                                id: 'seed',
-                                text: isAr ? 'أضفت هذا المنشور.' : 'You added this post.',
-                                at: selected.scheduledAt?.slice(0, 10) ?? '—',
+                                status: selected.status,
+                                approvalState: selected.approvalState,
+                                scheduleState: selected.scheduleState,
                               },
-                            ]
-                        ).map((row) => (
-                          <div key={row.id} className="oma-plan-post__activity-row">
-                            <span className="oma-plan-post__avatar">O</span>
-                            <div>
-                              <p>
-                                <strong>{isAr ? 'أنت' : 'You'}</strong>{' '}
-                                {row.text.replace(/^(You|أنت)\s*/, '')}
-                              </p>
-                              <span className="oma-plan-post__activity-meta">
-                                <span className="oma-ltr">{row.at}</span>
-                                {' · '}
-                                <button type="button" className="oma-plan-post__link">
-                                  {isAr ? 'معاينة' : 'Preview'}
-                                </button>
+                              isAr,
+                            )}
+                          </span>
+                          <span className="oma-muted">
+                            {selected.approverApproved}/{selected.approverRequired}{' '}
+                            {isAr ? 'موافقات' : 'approvals'}
+                          </span>
+                        </div>
+                        {approvalEvents.length === 0 ? (
+                          <p className="oma-muted">
+                            {isAr ? 'لا أحداث موافقة بعد.' : 'No approval events yet.'}
+                          </p>
+                        ) : (
+                          approvalEvents.map((ev) => (
+                            <div key={ev.id} className="oma-plan-post__activity-row">
+                              <span className="oma-plan-post__avatar">
+                                {ev.action.slice(0, 1)}
                               </span>
+                              <div>
+                                <p>
+                                  <strong>{ev.action}</strong>
+                                  {ev.note
+                                    ? ` — ${isAr ? ev.note.ar || ev.note.en : ev.note.en || ev.note.ar}`
+                                    : ''}
+                                </p>
+                                <span className="oma-plan-post__activity-meta">
+                                  <span className="oma-ltr">{ev.at.slice(0, 19).replace('T', ' ')}</span>
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          ))
+                        )}
                       </div>
                     ) : (
                       <div className="oma-plan-post__feedback">
@@ -2783,28 +2845,40 @@ export default function ContentPage() {
                           <>
                             <div className="oma-plan-post__comment-box">
                               <div className="oma-plan-post__comment-input-row">
-                                <span className="oma-plan-post__avatar">O</span>
-                                <input
+                                <span className="oma-plan-post__avatar">U</span>
+                                <textarea
+                                  className="oma-plan-post__comment-input"
+                                  rows={2}
                                   value={commentDraft}
+                                  placeholder={isAr ? 'اكتب تعليقاً…' : 'Leave a comment…'}
                                   onChange={(e) => setCommentDraft(e.target.value)}
-                                  placeholder={isAr ? 'اكتب شيئاً…' : 'Say something…'}
                                 />
                               </div>
-                              <div className="oma-plan-post__comment-tools">
-                                <span className="oma-plan-post__internal">
-                                  {isAr ? 'داخلي' : 'Internal'}
-                                </span>
-                                <div className="oma-plan-post__comment-actions">
-                                  <button type="button" className="oma-plan-post__link">
-                                    {isAr ? 'إلغاء' : 'Cancel'}
-                                  </button>
-                                  <button type="button" className="oma-plan-post__post-btn">
-                                    {isAr ? 'نشر' : 'Post'}
-                                  </button>
-                                </div>
-                              </div>
+                              <button
+                                type="button"
+                                className="oma-plan-post__comment-send"
+                                disabled={!commentDraft.trim() || !selectedId}
+                                onClick={() => {
+                                  void (async () => {
+                                    if (!selectedId || !commentDraft.trim()) return;
+                                    try {
+                                      const c = await addContentComment(selectedId, {
+                                        en: commentDraft.trim(),
+                                        ar: commentDraft.trim(),
+                                      });
+                                      setProdComments((prev) => [...prev, c]);
+                                      setCommentDraft('');
+                                      toast.push(isAr ? 'تم إضافة التعليق' : 'Comment added', 'success');
+                                    } catch (err) {
+                                      toast.push(contentApiError(err, 'Comment failed'), 'danger');
+                                    }
+                                  })();
+                                }}
+                              >
+                                {isAr ? 'إرسال' : 'Send'}
+                              </button>
                             </div>
-                            {comments.length === 0 ? (
+                            {prodComments.length === 0 ? (
                               <div className="oma-plan-post__empty">
                                 <strong>{isAr ? 'لا تعليقات بعد' : 'No comments yet'}</strong>
                                 <p>
@@ -2815,14 +2889,18 @@ export default function ContentPage() {
                               </div>
                             ) : (
                               <div className="oma-comment-thread">
-                                {comments.map((c) => (
+                                {prodComments.map((c) => (
                                   <article key={c.id} className="oma-comment">
-                                    <span className="oma-plan-post__avatar">{c.author.slice(0, 1)}</span>
+                                    <span className="oma-plan-post__avatar">
+                                      {(c.author_user_id || 'U').slice(0, 1)}
+                                    </span>
                                     <div>
                                       <div className="oma-comment-meta">
-                                        {c.author} · <span className="oma-ltr">{c.at}</span>
+                                        <span className="oma-ltr">{c.at.slice(0, 16).replace('T', ' ')}</span>
                                       </div>
-                                      <p className="oma-comment-body">{pickCopy(c.body, locale)}</p>
+                                      <p className="oma-comment-body">
+                                        {isAr ? c.body.ar || c.body.en : c.body.en || c.body.ar}
+                                      </p>
                                     </div>
                                   </article>
                                 ))}
@@ -3186,6 +3264,108 @@ export default function ContentPage() {
           <Button type="primary" onClick={closeDrawer}>
             OK
           </Button>
+        </div>
+      </Dialog>
+
+      <Dialog
+        open={labelPickerOpen}
+        title={isAr ? 'التصنيفات' : 'Labels'}
+        onClose={() => setLabelPickerOpen(false)}
+      >
+        <div className="oma-stack" style={{ gap: 8 }}>
+          <div className="oma-chip-row" style={{ flexWrap: 'wrap', gap: 8 }}>
+            {brandLabels.map((lab) => (
+              <button
+                key={lab.id}
+                type="button"
+                className="oma-plan-post__chip"
+                style={{ borderColor: lab.color }}
+                onClick={() => {
+                  if (!selectedId) return;
+                  const current = rows.find((r) => r.id === selectedId);
+                  const existing = (current as { labels?: string[] })?.labels ?? [];
+                  const name = lab.name?.en || lab.id;
+                  const next = existing.includes(name)
+                    ? existing.filter((x) => x !== name)
+                    : [...existing, name];
+                  void setContentLabels(selectedId, next)
+                    .then((updated) => {
+                      setRows((prev) =>
+                        prev.map((r) => (r.id === selectedId ? toContentRow(updated) : r)),
+                      );
+                      toast.push(isAr ? 'تم تحديث التصنيفات' : 'Labels updated', 'success');
+                    })
+                    .catch((err) => toast.push(contentApiError(err, 'Labels failed'), 'danger'));
+                }}
+              >
+                {lab.name?.en || lab.id}
+              </button>
+            ))}
+          </div>
+          <div className="oma-chip-row">
+            <input
+              value={labelDraft}
+              onChange={(e) => setLabelDraft(e.target.value)}
+              placeholder={isAr ? 'تصنيف جديد' : 'New label'}
+            />
+            <Button
+              type="primary"
+              onClick={() => {
+                const brandId = selected?.brandId || brands[0]?.id;
+                if (!brandId || !labelDraft.trim()) return;
+                void createBrandLabel(brandId, {
+                  en: labelDraft.trim(),
+                  ar: labelDraft.trim(),
+                })
+                  .then((lab) => {
+                    setBrandLabels((prev) => [...prev, lab as (typeof brandLabels)[0]]);
+                    setLabelDraft('');
+                  })
+                  .catch((err) => toast.push(contentApiError(err, 'Create label failed'), 'danger'));
+              }}
+            >
+              {isAr ? 'إضافة' : 'Add'}
+            </Button>
+          </div>
+        </div>
+      </Dialog>
+
+      <Dialog
+        open={templatePickerOpen}
+        title={isAr ? 'القوالب' : 'Templates'}
+        onClose={() => setTemplatePickerOpen(false)}
+      >
+        <div className="oma-stack" style={{ gap: 8 }}>
+          {brandTemplates.length === 0 ? (
+            <p className="oma-muted">{isAr ? 'لا قوالب' : 'No templates'}</p>
+          ) : (
+            brandTemplates.map((tpl) => (
+              <button
+                key={tpl.id}
+                type="button"
+                className="oma-work-row"
+                onClick={() => {
+                  const brandId = selected?.brandId || brands[0]?.id;
+                  if (!brandId) return;
+                  void useContentTemplate(brandId, tpl.id)
+                    .then((created) => {
+                      const row = toContentRow(created);
+                      setRows((prev) => [row, ...prev]);
+                      setTemplatePickerOpen(false);
+                      toast.push(isAr ? 'تم إنشاء منشور من القالب' : 'Created from template', 'success');
+                      openItem(row, 'edit');
+                    })
+                    .catch((err) => toast.push(contentApiError(err, 'Template failed'), 'danger'));
+                }}
+              >
+                <strong>
+                  {(tpl as { name?: { en: string } }).name?.en ||
+                    (tpl as { name_en?: string }).name_en ||
+                    tpl.id}
+                </strong>
+              </button>
+            ))
+          )}
         </div>
       </Dialog>
     </div>
