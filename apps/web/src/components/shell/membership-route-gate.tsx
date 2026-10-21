@@ -12,11 +12,8 @@ type Me = {
 };
 
 /**
- * Server returns membership_route from /auth/me after DEC-015 reconciliation.
- * Company creation uses Planable select-company (not legacy /app/onboarding).
- * Auth failures still open the new UI so the demo is not blocked on OMA login.
- *
  * Ready is always set after the check (or on timeout) so the dots loader never sticks.
+ * Auth failures still open the workspace UI for the demo product.
  */
 export function MembershipRouteGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -32,15 +29,13 @@ export function MembershipRouteGate({ children }: { children: React.ReactNode })
       if (!cancelled) setReady(true);
     };
 
-    // Hard timeout so dots never hang if /auth/me stalls
-    const timeoutId = window.setTimeout(finish, 4000);
+    const timeoutId = window.setTimeout(finish, 2500);
 
     api<Me>('/api/v1/auth/me')
       .then((me) => {
         if (cancelled) return;
         const route = me.membership_route;
 
-        // Legacy onboarding chrome is retired — always use Planable select-company.
         if (onOnboarding) {
           finish();
           router.replace('/app/select-company');
@@ -69,12 +64,12 @@ export function MembershipRouteGate({ children }: { children: React.ReactNode })
       })
       .catch(() => {
         if (cancelled) return;
-        // Demo path: do not bounce to OMA login — open new workspace UI.
         if (onOnboarding) {
           finish();
           router.replace('/app/select-company');
           return;
         }
+        // Demo: open UI even when unauthenticated
         finish();
       })
       .finally(() => {
