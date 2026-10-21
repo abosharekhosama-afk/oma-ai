@@ -373,11 +373,9 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  /* INTENTIONAL_EXCEPTION: shell chrome inset — page/shell layout, not control chrome */
   padding: var(--shell-chrome-inset);
 }
 .oma-drawer.oma-drawer--nav .oma-mobile-drawer-nav {
-  /* INTENTIONAL_EXCEPTION: flex child scroll region */
   min-height: 0;
   overflow-y: auto;
   flex: 1 1 auto;
@@ -460,12 +458,15 @@
   }
 }
 
-/* Product workspace chrome: compact white rail and breadcrumb bar. */
+/* ─────────────────────────────────────────────────────────────
+   Product workspace chrome — Planable density
+   ───────────────────────────────────────────────────────────── */
+
 .oma-shell .oma-top {
-  min-height: 48px;
-  padding: 8px 12px;
-  gap: 8px;
-  border-bottom-color: #e6e7e9;
+  min-height: 52px;
+  padding: 8px 16px;
+  gap: 12px;
+  border-bottom-color: #eef0f2;
   background: #fff;
 }
 
@@ -476,8 +477,8 @@
 
 .oma-shell .oma-context-trail,
 .oma-shell .oma-breadcrumb {
-  font-size: 12px;
-  line-height: 18px;
+  font-size: 13px;
+  line-height: 20px;
 }
 
 .oma-shell .oma-container {
@@ -501,10 +502,10 @@
 }
 
 .oma-shell .oma-nav-link {
-  min-height: 30px;
-  padding: 5px 8px;
-  border-radius: 5px;
-  font-size: 12px;
+  min-height: 32px;
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-size: 13px;
   line-height: 18px;
 }
 
@@ -520,7 +521,7 @@
 
 @media (max-width: 767px) {
   .oma-shell .oma-top {
-    min-height: 44px;
+    min-height: 48px;
     padding: 6px 8px;
   }
 
@@ -529,117 +530,329 @@
   }
 }
 
-/* Content workspace top bar — Planable */
-.oma-top[data-content-workspace='true'] {
-  min-height: 48px;
-  padding-inline: 12px;
-}
+/* ─────────────────────────────────────────────────────────────
+   Content workspace — Planable header (breadcrumb + actions)
+   ───────────────────────────────────────────────────────────── */
+
+/* Hide center area on content pages */
 .oma-top[data-content-workspace='true'] .oma-top-center {
-  display: none;
+  display: none !important;
 }
-.oma-top[data-content-workspace='true'] .oma-top-context {
-  /* breadcrumb only: Workspace / Content */
-  font-size: 13px;
-}
+
 /* Brand picker never on content top */
 .oma-top[data-content-workspace='true'] .oma-brand-context,
 .oma-top[data-content-workspace='true'] [data-testid='brand-context'] {
   display: none !important;
 }
+
+/* Content top bar exact layout */
+.oma-top[data-content-workspace='true'] {
+  min-height: 52px !important;
+  padding: 8px 16px !important;
+  gap: 16px !important;
+  border-bottom: 1px solid #eef0f2 !important;
+  background: #fff !important;
+}
+.oma-top[data-content-workspace='true'] .oma-top-start {
+  flex: 0 0 auto !important;
+  gap: 12px !important;
+}
+.oma-top[data-content-workspace='true'] .oma-top-context {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  font-size: 13px !important;
+}
+.oma-top[data-content-workspace='true'] .oma-top-actions--content {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin-inline-start: auto !important;
+  flex-shrink: 0 !important;
+}
+
+/* Breadcrumb — Planable trail */
+.oma-breadcrumb--planable {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0 !important;
+  flex-wrap: nowrap !important;
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: 13px !important;
+  line-height: 20px !important;
+  color: #333 !important;
+}
+.oma-breadcrumb--planable li {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  white-space: nowrap !important;
+}
+.oma-breadcrumb--planable a,
+.oma-breadcrumb--planable span {
+  color: #5e6166 !important;
+  text-decoration: none !important;
+  font-size: 13px !important;
+}
+.oma-breadcrumb--planable a:hover {
+  color: #111 !important;
+  text-decoration: none !important;
+}
+
+.oma-breadcrumb-sep {
+  color: #c5c8ce !important;
+  margin-inline: 6px !important;
+  font-size: 13px !important;
+}
+
+.oma-breadcrumb-workspace {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-weight: 500 !important;
+  color: #111 !important;
+}
+.oma-breadcrumb-workspace-mark {
+  width: 18px !important;
+  height: 18px !important;
+  border-radius: 4px !important;
+  background: #2563eb !important;
+  display: inline-block !important;
+  flex-shrink: 0 !important;
+}
+.oma-breadcrumb-workspace-label {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: #111 !important;
+}
+.oma-breadcrumb-caret {
+  color: #8c8c8c !important;
+  font-size: 10px !important;
+  margin-inline-start: 2px !important;
+}
+
+/* View switcher in breadcrumb (Calendar ▾) */
+.oma-breadcrumb-view {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  font-weight: 500 !important;
+  color: #111 !important;
+  cursor: pointer !important;
+}
+.oma-breadcrumb-view::after {
+  content: '▾' !important;
+  color: #8c8c8c !important;
+  font-size: 10px !important;
+  margin-inline-start: 2px !important;
+}
+
+/* Path view slot — plain text button, no chrome */
+#oma-content-view-slot {
+  display: inline !important;
+  border: 0 !important;
+  background: transparent !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  color: #111 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  line-height: inherit !important;
+  height: auto !important;
+  position: relative !important;
+  top: 0 !important;
+  vertical-align: baseline !important;
+  text-decoration: none !important;
+}
+#oma-content-view-slot:hover {
+  text-decoration: none !important;
+  color: #111 !important;
+}
+#oma-content-view-slot::after {
+  content: '▾' !important;
+  color: #8c8c8c !important;
+  font-size: 10px !important;
+  margin-inline-start: 3px !important;
+}
+
+/* Page name (Osama page) with pinned icon */
+.oma-breadcrumb-page {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-weight: 500 !important;
+  color: #111 !important;
+}
+.oma-breadcrumb-page-mark {
+  width: 16px !important;
+  height: 16px !important;
+  border-radius: 3px !important;
+  background: #1f2937 !important;
+  color: #fff !important;
+  font-size: 10px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+}
+.oma-breadcrumb-pin {
+  color: #8c8c8c !important;
+  font-size: 12px !important;
+  margin-inline-start: 2px !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Header action buttons (Filter / Media / Share / Compose)
+   ───────────────────────────────────────────────────────────── */
+
+.oma-top-actions--content {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+.oma-top-actions--content .oma-top-action {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  height: 32px !important;
+  padding: 0 12px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: #333 !important;
+  font: inherit !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  position: relative !important;
+  white-space: nowrap !important;
+}
+.oma-top-actions--content .oma-top-action:hover {
+  background: #f5f6f7 !important;
+}
+.oma-top-actions--content .oma-top-action--ghost {
+  border: 1px solid #e2e3e5 !important;
+  background: #fff !important;
+  color: #333 !important;
+}
+.oma-top-actions--content .oma-top-action--ghost:hover {
+  background: #f5f6f7 !important;
+  border-color: #d0d3d8 !important;
+}
+.oma-top-actions--content .oma-top-action--primary {
+  background: #2563eb !important;
+  color: #fff !important;
+  border: 1px solid #2563eb !important;
+  padding-inline: 16px !important;
+}
+.oma-top-actions--content .oma-top-action--primary:hover {
+  background: #1d4ed8 !important;
+  border-color: #1d4ed8 !important;
+}
+.oma-top-actions--content .oma-top-action--primary .oma-top-action__icon {
+  color: #fff !important;
+}
+.oma-top-action__icon {
+  font-size: 14px !important;
+  line-height: 1 !important;
+  opacity: 0.85 !important;
+  color: inherit !important;
+}
+.oma-top-actions--content .oma-top-action--primary .oma-top-action__icon {
+  opacity: 1 !important;
+}
+
+/* Tooltip for header actions */
+.oma-top-action[data-tooltip]:hover::after {
+  content: attr(data-tooltip) !important;
+  position: absolute !important;
+  z-index: 9999 !important;
+  bottom: calc(100% + 8px) !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  padding: 6px 10px !important;
+  border-radius: 6px !important;
+  background: #1f1f1f !important;
+  color: #fff !important;
+  font-size: 12px !important;
+  line-height: 16px !important;
+  font-weight: 500 !important;
+  white-space: nowrap !important;
+  pointer-events: none !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18) !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Content page — full bleed
+   ───────────────────────────────────────────────────────────── */
+
 .oma-main:has(.oma-content-plan),
 .oma-container:has(.oma-content-plan) {
   max-width: none !important;
   padding: 0 !important;
-  width: 100%;
+  margin: 0 !important;
+  width: 100% !important;
 }
 
-/* Planable content path trail */
-.oma-breadcrumb--planable {
-  display: inline-flex;
-  align-items: center;
-  gap: 0;
-  flex-wrap: nowrap;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  font-size: 13px;
-  line-height: 20px;
-  color: #333;
+/* ─────────────────────────────────────────────────────────────
+   View menu card (under breadcrumb path) — like Planable
+   ───────────────────────────────────────────────────────────── */
+
+.oma-view-menu__list--path {
+  position: fixed !important;
+  top: 56px !important;
+  inset-inline-start: 240px !important;
+  z-index: 500 !important;
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 6px !important;
+  min-width: 200px !important;
+  background: #fff !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 12px !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.14) !important;
 }
-.oma-breadcrumb--planable li {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+.oma-view-menu__item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-height: 36px !important;
+  padding: 8px 10px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: #333 !important;
+  font: inherit !important;
+  font-size: 13px !important;
+  text-align: start !important;
+  cursor: pointer !important;
 }
-.oma-breadcrumb-sep {
-  color: #c5c8ce;
-  margin-inline: 4px;
+.oma-view-menu__item:hover,
+.oma-view-menu__item[data-selected='true'] {
+  background: #f5f6f7 !important;
 }
-.oma-breadcrumb-workspace {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-weight: 500;
+.oma-view-menu__item-icon {
+  width: 18px !important;
+  display: inline-flex !important;
+  justify-content: center !important;
+  color: #5e6166 !important;
+  font-size: 14px !important;
 }
-.oma-breadcrumb-workspace-mark {
-  width: 18px;
-  height: 18px;
-  border-radius: 4px;
-  background: #1677ff;
-  display: inline-block;
-}
-.oma-breadcrumb-caret {
-  color: #8c8c8c;
-  font-size: 10px;
-}
-.oma-breadcrumb-view {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-weight: 500;
-  cursor: default;
-}
-.oma-breadcrumb-view::after {
-  content: '▾';
-  color: #8c8c8c;
-  font-size: 10px;
-}
-.oma-top[data-content-workspace='true'] {
-  border-bottom: 1px solid #eef0f2;
-  background: #fff;
-}
-.oma-top[data-content-workspace='true'] .oma-top-actions--content {
-  min-height: 32px;
+.oma-view-menu__check {
+  margin-inline-start: auto !important;
+  color: #2563eb !important;
+  font-size: 12px !important;
 }
 
-#oma-content-view-slot {
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 6px;
-  border-radius: 6px;
-  font-weight: 500;
-}
-#oma-content-view-slot:hover {
-  background: #f0f1f3;
-}
-#oma-content-view-slot::after {
-  content: '▾';
-  color: #8c8c8c;
-  font-size: 10px;
-}
+/* ─────────────────────────────────────────────────────────────
+   Mobile nav drawer — tighter gaps to match header density
+   ───────────────────────────────────────────────────────────── */
 
-.oma-main:has(.oma-content-plan),
-.oma-container:has(.oma-content-plan) {
-  padding-top: 0 !important;
-  margin-top: 0 !important;
-}
-.oma-top[data-content-workspace='true'] {
-  border-bottom: 1px solid #eef0f2;
-}
-
-/* ==== Mobile nav: tighter gaps (match header density) ==== */
 .oma-drawer.oma-drawer--nav .oma-mobile-drawer-nav {
   display: flex !important;
   flex-direction: column !important;
@@ -673,4 +886,92 @@
 }
 .oma-drawer.oma-drawer--nav .oma-rail-search {
   margin: 8px 10px !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Tasks / Deliverables view path (reuses same shell slot)
+   ───────────────────────────────────────────────────────────── */
+
+.oma-view-path {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+.oma-view-path--inline {
+  display: inline-flex !important;
+  position: relative !important;
+  vertical-align: middle !important;
+}
+.oma-view-path__btn--ghost {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  height: 26px !important;
+  padding: 0 6px !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: #111 !important;
+  font: inherit !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  line-height: 1 !important;
+  text-decoration: none !important;
+}
+.oma-view-path__btn--ghost:hover,
+.oma-view-path__btn--ghost[aria-expanded='true'] {
+  background: rgba(0, 0, 0, 0.05) !important;
+}
+.oma-view-path__btn--ghost .anticon {
+  font-size: 13px !important;
+  color: #5e6166 !important;
+}
+.oma-view-path__caret {
+  font-size: 10px !important;
+  color: #8c8c8c !important;
+  margin-inline-start: 2px !important;
+}
+.oma-view-path__text {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #111 !important;
+  font: inherit !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  line-height: 1.2 !important;
+  cursor: pointer !important;
+  height: auto !important;
+  text-decoration: none !important;
+}
+.oma-view-path__text:hover {
+  background: transparent !important;
+  color: #111 !important;
+  text-decoration: none !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   RTL tweaks
+   ───────────────────────────────────────────────────────────── */
+
+[dir='rtl'] .oma-breadcrumb-view::after,
+[dir='rtl'] #oma-content-view-slot::after {
+  margin-inline-start: 3px !important;
+  margin-inline-end: 0 !important;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Workspace header actions cluster (Tasks / Deliverables)
+   ───────────────────────────────────────────────────────────── */
+
+.oma-workspace-header-actions {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
 }
