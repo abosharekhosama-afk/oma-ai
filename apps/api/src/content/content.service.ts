@@ -793,7 +793,7 @@ export class ContentService {
     if (!row) throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
     const pair = localePair(body);
     if (!pair.en.trim()) {
-      throw new DomainError('VALIDATION', 'Comment body required', 400, 'errors.validation');
+      throw new DomainError('VALIDATION_FAILED', 'Comment body required', 400, 'errors.validation_failed');
     }
     const comment = await getPrisma().contentComment.create({
       data: {
