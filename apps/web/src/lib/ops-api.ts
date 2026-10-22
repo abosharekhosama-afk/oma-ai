@@ -105,7 +105,10 @@ export function toRequestRow(r: ApiWorkRequest): RequestRow {
 }
 
 function mapRequestStatus(status: string): RequestRow['status'] {
-  if (status === 'BLOCKED') return 'WAITING_INFO' as RequestRow['status'];
+  const s = (status || 'OPEN').toUpperCase();
+  if (s === 'BLOCKED') return 'WAITING_INFO' as RequestRow['status'];
+  if (s === 'CANCELLED') return 'CLOSED' as RequestRow['status'];
+  if (s === 'IN_PROGRESS') return 'IN_PROGRESS' as RequestRow['status'];
   const allowed = [
     'OPEN',
     'ASSIGNED',
@@ -115,9 +118,8 @@ function mapRequestStatus(status: string): RequestRow['status'] {
     'IN_PRODUCTION',
     'DONE',
     'CLOSED',
-    'CANCELLED',
   ];
-  if (allowed.includes(status)) return status as RequestRow['status'];
+  if (allowed.includes(s)) return s as RequestRow['status'];
   return 'OPEN' as RequestRow['status'];
 }
 
