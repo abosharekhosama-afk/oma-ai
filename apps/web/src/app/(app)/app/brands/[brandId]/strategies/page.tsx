@@ -1,4 +1,6 @@
 'use client';
+
+import { OmaTopLoader } from '../../../../../../components/ui/oma-top-loader';
 import { OmaLinkButton } from '../../../../../../components/ui/oma-link-button';
 
 import Link from 'next/link';
@@ -50,11 +52,7 @@ export default function StrategiesListPage() {
   if (denied) return <PermissionDenied message={t('errors.permission')} />;
   if (tenantRequired) return <SelectCompany />;
   if (loading) {
-    return (
-      <div className="oma-stack" role="status" aria-label={t('common.loading')}>
-        <Skeleton height="8rem" />
-      </div>
-    );
+    return <OmaTopLoader label={t('common.loading')} />;
   }
   if (!brand) {
     return <ErrorState title={t('common.error')} body={error ?? t('common.notFound')} />;
