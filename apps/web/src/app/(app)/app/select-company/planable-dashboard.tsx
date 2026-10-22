@@ -21,6 +21,15 @@ type Me = {
   memberships: Array<{ id: string; tenant_id: string; tenant_name: string }>;
 };
 
+/** Planable "workspace" = brand workspace under the active company (tenant). */
+type BrandWorkspace = {
+  id: string;
+  name: string;
+  status?: string;
+  primary_website_url?: string | null;
+  updated_at?: string;
+};
+
 const FAV_KEY = 'plx-favorite-workspaces';
 
 const ROLES = [
@@ -91,6 +100,8 @@ function initials(name: string) {
 export function PlanableDashboard() {
   const router = useRouter();
   const [me, setMe] = useState<Me | null>(null);
+  const [brands, setBrands] = useState<BrandWorkspace[]>([]);
+  const [brandsLoading, setBrandsLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activating, setActivating] = useState<string | null>(null);
@@ -113,15 +124,37 @@ export function PlanableDashboard() {
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    api<Me>('/api/v1/auth/me')
-      .then((m) => setMe(m))
-      .catch((e) => setError(e instanceof Error ? e.message : String(e)))
-      .finally(() => setLoading(false));
+    let cancelled = false;
+    (async () => {
+      try {
+        const m = await api<Me>('/api/v1/auth/me');
+        if (cancelled) return;
+        setMe(m);
+        if (m.active_tenant_id) {
+          setBrandsLoading(true);
+          try {
+            const list = await api<{ data: BrandWorkspace[] }>('/api/v1/brands?limit=100');
+            if (!cancelled) setBrands(Array.isArray(list.data) ? list.data : []);
+          } catch {
+            if (!cancelled) setBrands([]);
+          } finally {
+            if (!cancelled) setBrandsLoading(false);
+          }
+        }
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : String(e));
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
     try {
       setFavorites(JSON.parse(localStorage.getItem(FAV_KEY) ?? '[]'));
     } catch {
       setFavorites([]);
     }
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -206,15 +239,57 @@ export function PlanableDashboard() {
   async function finishCreate(e: FormEvent) {
     e.preventDefault();
     setCreateError(null);
+    if (!wsName.trim()) {
+      setCreateError('Workspace name is required');
+      return;
+    }
     setCreateBusy(true);
     try {
-      await api('/api/v1/tenants', {
+      // Ensure an active company (tenant) exists — self-serve allows one company;
+      // additional Planable "workspaces" are brand workspaces under that company.
+      let tenantId = me?.active_tenant_id;
+      if (!tenantId) {
+        const created = await api<{ data?: { id: string }; id?: string }>('/api/v1/tenants', {
+          method: 'POST',
+          body: JSON.stringify({ name: wsName.trim() }),
+        });
+        tenantId = created.data?.id ?? created.id ?? null;
+        if (tenantId) {
+          try {
+            await api('/api/v1/tenants/active', {
+              method: 'POST',
+              body: JSON.stringify({ tenant_id: tenantId }),
+            });
+          } catch { /* session may already be active */ }
+        }
+      }
+
+      // Create brand workspace (unlimited under the company)
+      const brandRes = await api<{ data: { id: string } }>('/api/v1/brands', {
         method: 'POST',
-        body: JSON.stringify({ name: wsName, website: wsUrl, timezone: wsTz }),
+        body: JSON.stringify({ name: wsName.trim() }),
       });
-      window.location.assign('/app');
+      const brandId = brandRes.data?.id;
+      setCreateOpen(false);
+
+      // Optional website connect step
+      if (brandId && wsUrl.trim()) {
+        try {
+          await api(`/api/v1/brands/${brandId}/website`, {
+            method: 'POST',
+            body: JSON.stringify({ url: wsUrl.trim().startsWith('http') ? wsUrl.trim() : `https://${wsUrl.trim()}` }),
+          });
+        } catch {
+          /* website connect optional — user can retry in brand UI */
+        }
+      }
+
+      if (brandId) {
+        window.location.assign(`/app/brands/${brandId}`);
+      } else {
+        window.location.assign('/app/brands');
+      }
     } catch (err) {
-      // Stay on Planable create UI — do not send users to legacy OMA onboarding.
       setCreateError(err instanceof Error ? err.message : 'Could not create workspace');
     } finally {
       setCreateBusy(false);
@@ -320,29 +395,42 @@ export function PlanableDashboard() {
             </button>
           </div>
 
-          <div className="plx-ws-grid">
-            {primary.map((m) => (
+          <div className="plx-ws-grid" data-testid="plx-workspaces-grid">
+            {brandsLoading ? (
+              <p className="plx-muted">Loading workspaces…</p>
+            ) : null}
+            {brands.map((b) => (
               <WorkspaceCard
-                key={m.tenant_id}
-                id={m.id || m.tenant_id}
-                tenantId={m.tenant_id}
-                name={m.tenant_name}
-                fav={favorites.includes(m.id || m.tenant_id)}
-                busy={activating === m.tenant_id}
-                menuOpen={wsMenuFor === (m.id || m.tenant_id)}
-                onActivate={() => activate(m.tenant_id)}
-                onToggleFav={() => toggleFav(m.id || m.tenant_id)}
+                key={b.id}
+                id={b.id}
+                name={b.name}
+                meta={b.primary_website_url || b.status || 'Workspace'}
+                fav={favorites.includes(b.id)}
+                busy={activating === b.id}
+                menuOpen={wsMenuFor === b.id}
+                onActivate={() => {
+                  window.location.assign(`/app/brands/${b.id}`);
+                }}
+                onToggleFav={() => toggleFav(b.id)}
                 onToggleMenu={() =>
-                  setWsMenuFor((cur) => (cur === (m.id || m.tenant_id) ? null : m.id || m.tenant_id))
+                  setWsMenuFor((cur) => (cur === b.id ? null : b.id))
                 }
                 onCloseMenu={() => setWsMenuFor(null)}
                 onInvite={() => {
                   setWsMenuFor(null);
-                  setInviteOpen(true);
+                  window.location.assign('/app/company/members');
                 }}
                 onSettings={() => {
                   setWsMenuFor(null);
-                  router.push('/app/settings');
+                  window.location.assign(`/app/brands/${b.id}`);
+                }}
+                onConnect={() => {
+                  setWsMenuFor(null);
+                  window.location.assign(`/app/brands/${b.id}/connect`);
+                }}
+                onOpenContent={() => {
+                  setWsMenuFor(null);
+                  window.location.assign('/app/content');
                 }}
               />
             ))}
@@ -546,8 +634,9 @@ export function PlanableDashboard() {
 
 function WorkspaceCard(props: {
   id: string;
-  tenantId: string;
+  tenantId?: string;
   name: string;
+  meta?: string;
   fav: boolean;
   busy: boolean;
   menuOpen: boolean;
@@ -557,6 +646,8 @@ function WorkspaceCard(props: {
   onCloseMenu: () => void;
   onInvite: () => void;
   onSettings: () => void;
+  onConnect?: () => void;
+  onOpenContent?: () => void;
 }) {
   const truncate = (n: string) => (n.length > 14 ? `${n.slice(0, 14)}…` : n);
   return (
@@ -564,6 +655,7 @@ function WorkspaceCard(props: {
       role="button"
       tabIndex={0}
       className="plx-ws-card"
+      data-testid={`plx-workspace-card-${props.id}`}
       onClick={props.onActivate}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
@@ -588,7 +680,7 @@ function WorkspaceCard(props: {
         <ImageIcon width={22} height={22} />
       </span>
       <span className="plx-ws-name">{truncate(props.name)}</span>
-      <span className="plx-ws-meta">Workspace</span>
+      <span className="plx-ws-meta">{props.meta || 'Workspace'}</span>
       <div className="plx-ws-menu-wrap">
         <button
           type="button"
@@ -604,26 +696,44 @@ function WorkspaceCard(props: {
         </button>
         {props.menuOpen ? (
           <div className="plx-menu plx-menu--up" role="menu" onClick={(e) => e.stopPropagation()}>
-            <button type="button" className="plx-menu-item" onClick={props.onCloseMenu}>
-              <ClockIcon /> Configure timetable
+            <button
+              type="button"
+              className="plx-menu-item"
+              onClick={() => {
+                props.onActivate();
+                props.onCloseMenu();
+              }}
+            >
+              <BriefcaseIcon /> Open workspace
             </button>
-            <button type="button" className="plx-menu-item" onClick={props.onCloseMenu}>
-              <TagIcon /> Manage labels
+            <button
+              type="button"
+              className="plx-menu-item"
+              onClick={() => {
+                props.onConnect?.();
+                props.onCloseMenu();
+              }}
+            >
+              <LinkIcon /> Connect website
+            </button>
+            <button
+              type="button"
+              className="plx-menu-item"
+              onClick={() => {
+                props.onOpenContent?.();
+                props.onCloseMenu();
+              }}
+            >
+              <ImageIcon /> Content calendar
             </button>
             <button type="button" className="plx-menu-item" onClick={props.onInvite}>
               <UsersIcon /> Manage people
             </button>
             <button type="button" className="plx-menu-item" onClick={props.onSettings}>
-              <SettingsIcon /> Settings
+              <SettingsIcon /> Workspace settings
             </button>
             <button type="button" className="plx-menu-item" onClick={props.onCloseMenu}>
-              <BriefcaseIcon /> Brand context
-            </button>
-            <button type="button" className="plx-menu-item" onClick={props.onCloseMenu}>
-              <CheckSquareIcon /> Approvals settings
-            </button>
-            <button type="button" className="plx-menu-item plx-menu-item--danger" onClick={props.onCloseMenu}>
-              <TrashIcon /> Delete
+              <CheckSquareIcon /> Approvals
             </button>
           </div>
         ) : null}
