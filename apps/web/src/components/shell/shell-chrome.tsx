@@ -16,6 +16,7 @@ import { SHELL_NAV_SECTIONS, SHELL_RAIL_PREF_KEY } from './nav-config';
 import { ShellIcon } from './shell-icons';
 import { TenantSwitcher } from './tenant-switcher';
 import { UserMenu } from './user-menu';
+import { PlxLogo } from '../ui/plx-icons';
 
 function RailNav({ collapsed }: { collapsed: boolean }) {
   const t = useT();
@@ -142,8 +143,24 @@ export function ShellChrome({ children }: { children: ReactNode }) {
   const isDeliverablesWorkspace =
     pathname === '/app/deliverables' || pathname.startsWith('/app/deliverables/');
   const isTasksWorkspace = pathname === '/app/tasks' || pathname.startsWith('/app/tasks/');
+  const isBrandsList = pathname === '/app/brands' || pathname === '/app/brands/';
+  const isBrandDetail =
+    pathname.startsWith('/app/brands/') &&
+    pathname !== '/app/brands/new' &&
+    !pathname.startsWith('/app/brands/new/');
+  const brandIdFromPath = (() => {
+    if (!isBrandDetail) return null;
+    const parts = pathname.split('/').filter(Boolean);
+    // app / brands / :brandId / ...
+    return parts.length >= 3 ? parts[2] : null;
+  })();
   const hideBrandTrail =
-    isContentWorkspace || isRequestsWorkspace || isDeliverablesWorkspace || isTasksWorkspace;
+    isContentWorkspace ||
+    isRequestsWorkspace ||
+    isDeliverablesWorkspace ||
+    isTasksWorkspace ||
+    isBrandsList ||
+    isBrandDetail;
   const hideShellCreate =
     isContentWorkspace || isRequestsWorkspace || isDeliverablesWorkspace || isTasksWorkspace;
   const hideMobileNav =
@@ -189,13 +206,9 @@ export function ShellChrome({ children }: { children: ReactNode }) {
         >
           <div className="oma-rail-header">
             <div className="oma-rail-brand">
-              <span className="oma-rail-mark" aria-hidden="true">
-                OMA
-              </span>
-              <span className="oma-rail-name">
-                {t('app.name')}
-                <span className="oma-rail-name-sub">AI</span>
-              </span>
+              <Link href="/app" className="oma-rail-logo-link" aria-label={t('app.name')}>
+                <PlxLogo sub={collapsed ? null : 'AI'} compact={collapsed} />
+              </Link>
             </div>
             <Button
               type="text"
@@ -253,7 +266,24 @@ export function ShellChrome({ children }: { children: ReactNode }) {
                 className="oma-top-actions oma-top-actions--workspace"
                 id="oma-workspace-top-actions"
               />
-            ) : hideShellCreate ? null : (
+            ) : hideShellCreate ? null : isBrandsList ? (
+              <div className="oma-top-actions">
+                <OmaLinkButton href="/app/brands/new" type="primary" data-testid="shell-create-brand">
+                  <ShellIcon name="plus" size={16} />
+                  <span>{t('brand.list.create')}</span>
+                </OmaLinkButton>
+              </div>
+            ) : isBrandDetail && brandIdFromPath ? (
+              <div className="oma-top-actions">
+                <OmaLinkButton
+                  href={`/app/brands/${brandIdFromPath}/connect`}
+                  type="primary"
+                  data-testid="shell-connect-website"
+                >
+                  <span>{t('brand.detail.connectCta')}</span>
+                </OmaLinkButton>
+              </div>
+            ) : (
               <div className="oma-top-actions">
                 <OmaLinkButton href="/app/requests" type="primary" data-testid="shell-create">
                   <ShellIcon name="plus" size={16} />
@@ -269,11 +299,12 @@ export function ShellChrome({ children }: { children: ReactNode }) {
 
         <Drawer open={mobileOpen} onClose={() => setMobileOpen(false)} label={t('nav.primary')} nav>
           <div className="oma-mobile-drawer-header">
-            <span className="oma-rail-name">{t('app.name')}</span>
+            <PlxLogo sub="AI" />
             <Button
               type="text"
               aria-label={t('shell.closeNav')}
               onClick={() => setMobileOpen(false)}
+              className="oma-rail-collapse"
             >
               ×
             </Button>
