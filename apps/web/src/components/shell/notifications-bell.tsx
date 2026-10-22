@@ -5,7 +5,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { Popover } from 'antd';
 import { Button } from '@oma/ui/controls';
 import { ShellIcon } from './shell-icons';
-import { IconButton } from '../ui/icon-button';
 import { useT } from '../../lib/use-locale';
 import {
   listNotifications,
@@ -178,19 +177,21 @@ export function NotificationsBell() {
       content={panel}
       classNames={{ root: 'oma-notifications' }}
     >
-      <IconButton
-        label={t('shell.notifications')}
+      <button
+        type="button"
+        className="oma-icon-btn"
+        aria-label={t('shell.notifications')}
         aria-expanded={open}
         aria-controls="notifications-panel"
         data-testid="shell-notifications-trigger"
-        icon={<ShellIcon name="bell" />}
       >
+        <ShellIcon name="bell" />
         {unread > 0 ? (
           <span className="oma-badge oma-badge--primary" data-testid="shell-notifications-unread">
             {unread > 99 ? '99+' : unread}
           </span>
         ) : null}
-      </IconButton>
+      </button>
     </Popover>
   );
 }
