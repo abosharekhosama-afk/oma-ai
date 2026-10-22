@@ -93,6 +93,8 @@ model Tenant {
   idempotency     IdempotencyRecord[]
   brandWorkspaces BrandWorkspace[]
   aiRuns          AiRun[]
+  workspaceSetting WorkspaceSetting?
+  timeSlots       WorkspaceTimeSlot[]
 }
 
 enum AiRunStatus {
@@ -144,25 +146,30 @@ model AiRun {
 }
 
 model Membership {
-  id           String           @id
-  tenantId     String
-  userId       String?
-  status       MembershipStatus @default(INVITED)
-  invitedEmail String?
-  invitedBy    String?
-  invitedAt    DateTime?
-  acceptedAt   DateTime?
-  suspendedAt  DateTime?
-  removedAt    DateTime?
-  version      Int              @default(1)
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
-  tenant       Tenant           @relation(fields: [tenantId], references: [id])
-  user         User?            @relation(fields: [userId], references: [id])
-  grants       CapabilityGrant[]
-  invitations  Invitation[]
+  id             String           @id
+  tenantId       String
+  userId         String?
+  status         MembershipStatus @default(INVITED)
+  /// Planable: team | client
+  membershipKind String           @default("team")
+  /// Planable display role e.g. Owner, Contributor, Approver
+  displayRole    String?
+  invitedEmail   String?
+  invitedBy      String?
+  invitedAt      DateTime?
+  acceptedAt     DateTime?
+  suspendedAt    DateTime?
+  removedAt      DateTime?
+  version        Int              @default(1)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  tenant         Tenant           @relation(fields: [tenantId], references: [id])
+  user           User?            @relation(fields: [userId], references: [id])
+  grants         CapabilityGrant[]
+  invitations    Invitation[]
 
   @@index([tenantId, status])
+  @@index([tenantId, membershipKind])
   @@index([userId])
 }
 
@@ -1198,6 +1205,45 @@ model ContentTemplate {
 
   @@index([tenantId, brandId])
 }
+
+/// Tenant-scoped workspace general + approval settings (Planable Workspace Settings).
+model WorkspaceSetting {
+  id                    String   @id
+  tenantId              String   @unique
+  websiteUrl            String?
+  timezone              String   @default("Asia/Jerusalem")
+  createPostsAsInternal Boolean  @default(false)
+  hideEmailsFromClients Boolean  @default(false)
+  autoCropImages        Boolean  @default(true)
+  /// none | optional | required | multi_level
+  approvalMode          String   @default("optional")
+  scheduleOnApproval    Boolean  @default(false)
+  lockAfterApproval     Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  tenant                Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+}
+
+/// Preferred publishing time slots (Planable Timetable).
+model WorkspaceTimeSlot {
+  id        String   @id
+  tenantId  String
+  /// 0=Sunday .. 6=Saturday (or 1=Monday..7 — app uses 0-6 Mon-first via label)
+  dayOfWeek Int
+  /// HH:mm local
+  timeLocal String
+  color     String   @default("#fde68a")
+  label     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, dayOfWeek, timeLocal])
+  @@index([tenantId])
+}
+
 
 
 model ContentComment {

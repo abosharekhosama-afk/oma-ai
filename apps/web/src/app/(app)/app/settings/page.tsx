@@ -5,8 +5,6 @@ import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { DemoGraph, DemoPreferences } from '@oma/demo';
 import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
-import { PageHeader } from '../../../../components/ui/page-header';
-import { StatusChip } from '../../../../components/ui/status-chip';
 import { useToast } from '../../../../components/ui/toast';
 import {
   demoApi,
@@ -16,9 +14,20 @@ import {
 } from '../../../../lib/demo/use-demo-api';
 import { useLocale, useT } from '../../../../lib/use-locale';
 import { AiStatusNote } from '../../../../components/ai/ai-status-note';
+import { ShellIcon } from '../../../../components/shell/shell-icons';
+import type { NavIconId } from '../../../../components/shell/nav-config';
 
 type Integration = DemoGraph['integrations'][number];
 type Section = 'general' | 'workflow' | 'notifications' | 'integrations' | 'localization' | 'demo';
+
+const NAV: Array<{ id: Section; label: string; icon: NavIconId }> = [
+  { id: 'general', label: 'General', icon: 'settings' },
+  { id: 'workflow', label: 'Workflow', icon: 'tasks' },
+  { id: 'notifications', label: 'Notifications', icon: 'bell' },
+  { id: 'integrations', label: 'Integrations', icon: 'company' },
+  { id: 'localization', label: 'Localization', icon: 'activity' },
+  { id: 'demo', label: 'Demo', icon: 'home' },
+];
 
 export default function SettingsPage() {
   const t = useT();
@@ -91,78 +100,73 @@ export default function SettingsPage() {
     });
   }, [rows, intQ, intCategory, locale]);
   const info = rows.find((r) => r.id === infoId) ?? null;
-  const sections: Section[] = [
-    'general',
-    'workflow',
-    'notifications',
-    'integrations',
-    'localization',
-    'demo',
-  ];
 
   return (
-    <div className="plx-page" data-testid="demo-settings" data-surface="settings">
-      <div className="plx-page__bar">
-        <div className="plx-page__title-block">
-          <h1 className="plx-page__title">{t('demo.settings.title')}</h1>
-          <p className="plx-page__sub">{t('demo.settings.subtitle')}</p>
+    <div className="oma-planable-page" data-testid="demo-settings" data-surface="settings">
+      <div className="oma-planable-page__header">
+        <div>
+          <h1 className="oma-planable-page__title">{t('demo.settings.title') || 'Settings'}</h1>
+          <p className="oma-planable-page__sub">
+            {t('demo.settings.subtitle') || 'Preferences, workflow, and integrations'}
+          </p>
         </div>
+        <Button type="default" onClick={() => (window.location.href = '/app/company/members')}>
+          <ShellIcon name="company" size={14} />
+          <span>{t('demo.settings.companyLink') || 'Company members'}</span>
+        </Button>
       </div>
+
       <AiStatusNote />
-      <div className="plx-page__body">
       <DemoDisclosure />
 
-      {loading ? <p className="oma-muted">{t('demo.loading')}</p> : null}
+      {loading ? <div className="oma-skeleton" role="status" /> : null}
       {unavailable ? <p className="oma-muted">{t('demo.unavailable')}</p> : null}
       {error ? (
-        <p role="alert" style={{ color: 'var(--status-danger)' }}>
-          {error}
-        </p>
+        <div className="plx-empty" role="alert">
+          <strong>{error}</strong>
+        </div>
       ) : null}
 
       {!loading && !unavailable && draft ? (
-        <div className="plx-settings">
-          <nav className="plx-settings__nav" aria-label={t('demo.settings.title')}>
-            {sections.map((s) => (
-              <Button
-                key={s}
-                type="default"
-                aria-current={section === s ? 'true' : undefined}
-                className="plx-settings__nav-btn" data-active={section === s ? 'true' : 'false'} data-testid={`demo-settings-nav-${s}`}
-                onClick={() => setSection(s)}
+        <div className="oma-settings-shell">
+          <aside className="oma-ws-panel-nav oma-settings-shell__nav">
+            {NAV.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                className={`oma-ws-panel-nav-item${section === item.id ? ' is-active' : ''}`}
+                data-testid={`demo-settings-nav-${item.id}`}
+                onClick={() => setSection(item.id)}
               >
-                {t(`demo.settings.section.${s}`)}
-              </Button>
+                <ShellIcon name={item.icon} size={16} />
+                <span>{t(`demo.settings.section.${item.id}`) || item.label}</span>
+              </button>
             ))}
-            <Link
-              href="/app/company/members"
-              className="oma-text-link"
-              data-testid="demo-settings-members-link"
-            >
-              {t('demo.settings.companyLink')}
-            </Link>
-          </nav>
+          </aside>
 
-          <div className="oma-stack">
-            {section === 'general' || section === 'localization' || section === 'workflow' ? (
-              <section className="plx-settings__panel" data-testid="demo-settings-general">
-                <h2>{t(`demo.settings.section.${section}`)}</h2>
-                <p className="oma-muted">{t('demo.settings.demoPrefNote')}</p>
+          <div className="oma-planable-card oma-settings-shell__main">
+            {(section === 'general' || section === 'localization' || section === 'workflow') && (
+              <section data-testid="demo-settings-general">
+                <h2 className="oma-ws-section-title">
+                  {t(`demo.settings.section.${section}`) || section}
+                </h2>
+                <p className="oma-ws-empty-desc">{t('demo.settings.demoPrefNote')}</p>
                 {dirty ? (
                   <p className="oma-settings-dirty" data-testid="demo-settings-dirty" role="status">
                     {t('demo.settings.dirty')}
                   </p>
                 ) : null}
-                <label>
-                  {t('demo.settings.timezone')}
+
+                <div className="oma-ws-field">
+                  <label className="oma-ws-label">{t('demo.settings.timezone')}</label>
                   <Input
                     value={draft.timezone}
                     data-testid="demo-settings-timezone"
                     onChange={(e) => setDraft({ ...draft, timezone: e.target.value })}
                   />
-                </label>
-                <label>
-                  {t('demo.settings.weekStart')}
+                </div>
+                <div className="oma-ws-field">
+                  <label className="oma-ws-label">{t('demo.settings.weekStart')}</label>
                   <SelectField
                     value={draft.weekStart}
                     data-testid="demo-settings-week-start"
@@ -176,9 +180,9 @@ export default function SettingsPage() {
                     <option value="monday">{t('demo.settings.monday')}</option>
                     <option value="sunday">{t('demo.settings.sunday')}</option>
                   </SelectField>
-                </label>
-                <label>
-                  {t('demo.settings.localePref')}
+                </div>
+                <div className="oma-ws-field">
+                  <label className="oma-ws-label">{t('demo.settings.localePref')}</label>
                   <SelectField
                     value={draft.localePreference}
                     data-testid="demo-settings-locale"
@@ -193,9 +197,9 @@ export default function SettingsPage() {
                     <option value="en">en</option>
                     <option value="ar">ar</option>
                   </SelectField>
-                </label>
-                <label>
-                  {t('demo.settings.defaultContentView')}
+                </div>
+                <div className="oma-ws-field">
+                  <label className="oma-ws-label">{t('demo.settings.defaultContentView')}</label>
                   <SelectField
                     value={draft.defaultContentView}
                     data-testid="demo-settings-content-view"
@@ -209,9 +213,9 @@ export default function SettingsPage() {
                     <option value="list">list</option>
                     <option value="calendar">calendar</option>
                   </SelectField>
-                </label>
-                <label>
-                  {t('demo.settings.defaultTaskView')}
+                </div>
+                <div className="oma-ws-field">
+                  <label className="oma-ws-label">{t('demo.settings.defaultTaskView')}</label>
                   <SelectField
                     value={draft.defaultTaskView}
                     data-testid="demo-settings-task-view"
@@ -225,14 +229,10 @@ export default function SettingsPage() {
                     <option value="board">board</option>
                     <option value="list">list</option>
                   </SelectField>
-                </label>
+                </div>
                 <p className="oma-muted">{t('demo.settings.reducedMotionNote')}</p>
-                <div className="oma-chip-row">
-                  <Button
-                    type="default"
-                    disabled={!dirty || saving}
-                    onClick={() => setDraft(prefs)}
-                  >
+                <div className="oma-ws-action-row">
+                  <Button type="default" disabled={!dirty || saving} onClick={() => setDraft(prefs)}>
                     {t('demo.create.cancel')}
                   </Button>
                   <Button
@@ -245,97 +245,85 @@ export default function SettingsPage() {
                   </Button>
                 </div>
               </section>
-            ) : null}
+            )}
 
-            {section === 'notifications' ? (
-              <section className="plx-settings__panel" data-testid="demo-settings-notifications">
-                <h2>{t('demo.settings.section.notifications')}</h2>
-                <label>
-                  <CheckboxField
-                    checked={draft.reviewReminders}
-                    data-testid="demo-settings-review-reminders"
-                    onChange={(e) => setDraft({ ...draft, reviewReminders: e.target.checked })}
-                  />{' '}
-                  {t('demo.settings.reviewReminders')}
-                </label>
-                <p className="oma-muted">{t('demo.settings.notificationsHonesty')}</p>
-                <Button
-                  type="primary"
-                  data-testid="demo-settings-save-notifications"
-                  disabled={!dirty || saving}
-                  onClick={() => void savePrefs()}
-                >
-                  {t('demo.settings.save')}
-                </Button>
-              </section>
-            ) : null}
-
-            {section === 'integrations' || section === 'demo' ? (
-              <section className="plx-settings__panel" data-testid="demo-integrations">
-                <h2>{t('demo.settings.integrations')}</h2>
-                <p className="oma-muted">{t('demo.integrationsDeferred')}</p>
-                <div className="oma-integration-toolbar" data-testid="demo-integrations-filters">
-                  <label className="oma-stage6-search">
-                    {t('demo.settings.integrationsSearch')}
-                    <Input
-                      value={intQ}
-                      data-testid="demo-integrations-search"
-                      onChange={(e) => setIntQ(e.target.value)}
-                    />
-                  </label>
-                  <label>
-                    {t('demo.settings.integrationsCategory')}
-                    <SelectField
-                      value={intCategory}
-                      data-testid="demo-integrations-category"
-                      onChange={(e) => setIntCategory(e.target.value)}
-                    >
-                      <option value="all">{t('demo.filter.all')}</option>
-                      {categories.map((c) => (
-                        <option key={c} value={c}>
-                          {c}
-                        </option>
-                      ))}
-                    </SelectField>
-                  </label>
+            {section === 'notifications' && (
+              <section>
+                <h2 className="oma-ws-section-title">{t('demo.settings.section.notifications')}</h2>
+                <p className="oma-ws-empty-desc">
+                  Notification channels and digests. Workspace-level member notification matrix is
+                  on the Team page.
+                </p>
+                <div className="oma-ws-action-row">
+                  <Button type="default" onClick={() => (window.location.href = '/app/team')}>
+                    <ShellIcon name="team" size={14} />
+                    <span>Team notifications</span>
+                  </Button>
                 </div>
-                <ul className="oma-integration-list">
+              </section>
+            )}
+
+            {section === 'integrations' && (
+              <section data-testid="demo-settings-integrations">
+                <h2 className="oma-ws-section-title">{t('demo.settings.section.integrations')}</h2>
+                <div className="oma-planable-toolbar" style={{ display: 'flex', gap: 8, maxWidth: '100%' }}>
+                  <Input
+                    value={intQ}
+                    placeholder="Search integrations…"
+                    onChange={(e) => setIntQ(e.target.value)}
+                  />
+                  <SelectField value={intCategory} onChange={(e) => setIntCategory(e.target.value)}>
+                    <option value="all">all</option>
+                    {categories.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
+                  </SelectField>
+                </div>
+                <div className="oma-integrations-grid">
                   {filteredIntegrations.map((i) => (
-                    <li key={i.id} className="oma-integration-row" data-testid={`demo-int-${i.id}`}>
-                      <div className="oma-chip-row">
-                        <strong>{pickCopy(i.name, locale)}</strong>
-                        <StatusChip status={i.status} />
-                      </div>
-                      <p className="oma-muted">{i.category}</p>
+                    <button
+                      key={i.id}
+                      type="button"
+                      className="oma-integration-card"
+                      onClick={() => setInfoId(i.id)}
+                    >
+                      <strong>{pickCopy(i.name, locale)}</strong>
+                      <span className="oma-ws-badge oma-ws-badge--ghost">{i.category}</span>
                       <p>{pickCopy(i.purpose, locale)}</p>
-                      <p className="oma-muted">{pickCopy(i.availableWithout, locale)}</p>
-                      <p className="oma-muted">{pickCopy(i.gate, locale)}</p>
-                      <Button
-                        type="default"
-                        data-testid={`demo-int-plan-${i.id}`}
-                        onClick={() => setInfoId(i.id)}
-                      >
-                        {t('demo.settings.viewPlan')}
-                      </Button>
-                    </li>
+                    </button>
                   ))}
-                </ul>
+                </div>
                 {info ? (
-                  <div className="plx-settings__panel" data-testid="demo-int-plan-drawer">
-                    <h3>{pickCopy(info.name, locale)}</h3>
-                    <p>{pickCopy(info.laterUnlocks, locale)}</p>
-                    <p className="oma-honesty-inline">{t('demo.settings.noConnect')}</p>
+                  <div className="oma-ws-slack-card" style={{ marginTop: 16 }}>
+                    <div>
+                      <strong>{pickCopy(info.name, locale)}</strong>
+                      <p>{pickCopy(info.laterUnlocks, locale)}</p>
+                      <p className="oma-muted">{pickCopy(info.gate, locale)}</p>
+                    </div>
                     <Button type="default" onClick={() => setInfoId(null)}>
-                      {t('demo.create.cancel')}
+                      Close
                     </Button>
                   </div>
                 ) : null}
               </section>
-            ) : null}
+            )}
+
+            {section === 'demo' && (
+              <section>
+                <h2 className="oma-ws-section-title">{t('demo.settings.section.demo')}</h2>
+                <p className="oma-ws-empty-desc">
+                  Demo graph and disclosure settings remain available for certification scenarios.
+                </p>
+                <Button type="default" onClick={() => void load()}>
+                  Reload demo data
+                </Button>
+              </section>
+            )}
           </div>
         </div>
       ) : null}
-      </div>
     </div>
   );
 }

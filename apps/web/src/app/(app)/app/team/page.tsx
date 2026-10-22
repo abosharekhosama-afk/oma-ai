@@ -1,227 +1,534 @@
 'use client';
-import { OmaLinkButton } from '../../../../components/ui/oma-link-button';
-import { Button, Input, SelectField } from '@oma/ui/controls';
 
-import Link from 'next/link';
+import { Button, Input, SelectField } from '@oma/ui/controls';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
-import { Drawer } from '../../../../components/ui/drawer';
-import { EmptyState } from '../../../../components/ui/empty-state';
-import { PageHeader } from '../../../../components/ui/page-header';
+import { useT } from '../../../../lib/use-locale';
+import {
+  attachMemberProfile,
+  inviteMember,
+  listWorkspaceMembers,
+  permissionsToCapabilityCodes,
+  removeMember,
+  updateMemberCapabilities,
+  type MembershipType,
+  type PlanablePerm,
+  type WorkspaceMember,
+} from '../../../../lib/team-api';
 import {
   demoApi,
   demoErrorMessage,
   isDemoForbidden,
-  pickCopy,
 } from '../../../../lib/demo/use-demo-api';
-import {
-  EMPTY_TEAM_FILTERS,
-  capacityState,
-  filterTeam,
-  type TeamFilters,
-  type TeamMember,
-} from '../../../../lib/demo/stage6-team';
-import { useLocale, useT } from '../../../../lib/use-locale';
+import { ShellIcon } from '../../../../components/shell/shell-icons';
+
+type Tab = 'members' | 'permissions' | 'notifications';
+
+const PERM_COLS: PlanablePerm[] = [
+  'view',
+  'approve',
+  'edit',
+  'publish',
+  'analyze',
+  'engage',
+  'admin',
+];
+
+const ROLE_OPTIONS = [
+  'Owner',
+  'Administrator',
+  'Contributor',
+  'Writer',
+  'Approver',
+  'Guest',
+];
 
 export default function TeamPage() {
   const t = useT();
-  const locale = useLocale();
-  const [rows, setRows] = useState<TeamMember[]>([]);
-  const [filters, setFilters] = useState<TeamFilters>(EMPTY_TEAM_FILTERS);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [tab, setTab] = useState<Tab>('members');
+  const [rows, setRows] = useState<WorkspaceMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [unavailable, setUnavailable] = useState(false);
+  const [source, setSource] = useState<'api' | 'demo'>('api');
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState('Contributor');
+  const [inviteMembership, setInviteMembership] = useState<MembershipType>('team');
+  const [busy, setBusy] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const [q, setQ] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
-      const data = await demoApi<TeamMember[]>('/team');
+      const data = await listWorkspaceMembers();
       setRows(data);
-      setError(null);
-      setUnavailable(false);
-    } catch (err) {
-      if (isDemoForbidden(err)) setUnavailable(true);
-      else setError(demoErrorMessage(err, 'Demo unavailable'));
+      setSource('api');
+    } catch {
+      try {
+        const demo = await demoApi<
+          Array<{
+            id: string;
+            name?: string;
+            email?: string;
+            role?: string;
+            status?: string;
+          }>
+        >('/team');
+        setRows(
+          demo.map((m) => ({
+            id: m.id,
+            status: m.status || 'ACTIVE',
+            invited_email: m.email,
+            user: {
+              id: m.id,
+              email: m.email || '',
+              name: m.name || null,
+            },
+            capabilities: [],
+            source_profiles: m.role ? [m.role] : [],
+            role: m.role || 'Member',
+            membership: 'team' as const,
+            permissions: {
+              view: true,
+              approve: false,
+              edit: true,
+              publish: false,
+              analyze: false,
+              engage: false,
+              admin: false,
+            },
+            last_online: '—',
+          })),
+        );
+        setSource('demo');
+      } catch (err) {
+        if (isDemoForbidden(err)) setError(t('demo.unavailable') || 'Unavailable');
+        else setError(demoErrorMessage(err, 'Failed to load team'));
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
-  const filtered = useMemo(() => filterTeam(rows, filters, locale), [rows, filters, locale]);
-  const selected = rows.find((m) => m.id === selectedId) ?? null;
-  const roles = useMemo(() => [...new Set(rows.map((m) => m.role))], [rows]);
+  const filtered = useMemo(() => {
+    const query = q.trim().toLowerCase();
+    if (!query) return rows;
+    return rows.filter((m) => {
+      const name = m.user?.name || '';
+      const email = m.user?.email || m.invited_email || '';
+      return (
+        name.toLowerCase().includes(query) ||
+        email.toLowerCase().includes(query) ||
+        (m.role || '').toLowerCase().includes(query)
+      );
+    });
+  }, [rows, q]);
+
+  async function onInvite() {
+    if (!inviteEmail.trim()) return;
+    setBusy(true);
+    setToast(null);
+    try {
+      if (source === 'api') {
+        await inviteMember({
+          email: inviteEmail.trim(),
+          role: inviteRole,
+          membership: inviteMembership,
+        });
+      } else {
+        setRows((prev) => [
+          ...prev,
+          {
+            id: `local-${Date.now()}`,
+            status: 'INVITED',
+            invited_email: inviteEmail.trim(),
+            user: null,
+            capabilities: [],
+            source_profiles: [inviteRole],
+            role: inviteRole,
+            membership: inviteMembership,
+            permissions: {
+              view: true,
+              approve: inviteRole === 'Approver' || inviteRole === 'Administrator',
+              edit: !['Guest', 'Approver'].includes(inviteRole),
+              publish: ['Contributor', 'Administrator', 'Owner'].includes(inviteRole),
+              analyze: ['Administrator', 'Owner'].includes(inviteRole),
+              engage: false,
+              admin: ['Administrator', 'Owner'].includes(inviteRole),
+            },
+            last_online: 'Invited',
+          },
+        ]);
+      }
+      setInviteOpen(false);
+      setInviteEmail('');
+      setToast('Invitation sent');
+      if (source === 'api') await load();
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : 'Invite failed');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onTogglePerm(member: WorkspaceMember, perm: PlanablePerm) {
+    if (!member.permissions) return;
+    const next = { ...member.permissions, [perm]: !member.permissions[perm] };
+    setRows((prev) =>
+      prev.map((r) => (r.id === member.id ? { ...r, permissions: next } : r)),
+    );
+    if (source !== 'api') return;
+    try {
+      await updateMemberCapabilities(member.id, permissionsToCapabilityCodes(next));
+      setToast('Permissions updated');
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : 'Update failed');
+      await load();
+    }
+  }
+
+  async function onRemove(member: WorkspaceMember) {
+    if (!window.confirm(`Remove ${member.user?.email || member.invited_email}?`)) return;
+    setBusy(true);
+    try {
+      if (source === 'api') await removeMember(member.id);
+      setRows((prev) => prev.filter((r) => r.id !== member.id));
+      setToast('Member removed');
+    } catch (err) {
+      setToast(err instanceof Error ? err.message : 'Remove failed');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onChangeRole(member: WorkspaceMember, role: string) {
+    setRows((prev) => prev.map((r) => (r.id === member.id ? { ...r, role } : r)));
+    if (source !== 'api') return;
+    const map: Record<string, string> = {
+      Owner: 'COMPANY_OWNER',
+      Administrator: 'ADMIN',
+      Contributor: 'MEMBER',
+      Writer: 'WRITER',
+      Approver: 'APPROVER',
+      Guest: 'GUEST',
+    };
+    const code = map[role];
+    if (!code) return;
+    try {
+      await attachMemberProfile(member.id, code);
+      setToast('Role updated');
+      await load();
+    } catch {
+      setToast('Role profile not available; UI updated only');
+    }
+  }
 
   return (
-    <div className="plx-page" data-testid="demo-team" data-surface="team">
-      <div className="plx-page__bar">
-        <div className="plx-page__title-block">
-          <h1 className="plx-page__title">{t('demo.team.title')}</h1>
-          <p className="plx-page__sub">{t('demo.team.subtitle')}</p>
+    <div className="oma-planable-page" data-testid="team-page-planable">
+      <div className="oma-planable-page__header">
+        <div>
+          <h1 className="oma-planable-page__title">Team & clients</h1>
+          <p className="oma-planable-page__sub">
+            Invite collaborators, set Team/Client membership, and adjust permissions.
+            {source === 'demo' ? ' (demo data)' : null}
+          </p>
         </div>
+        <Button type="primary" onClick={() => setInviteOpen(true)} disabled={busy}>
+          <ShellIcon name="plus" size={14} />
+          <span>Invite members</span>
+        </Button>
       </div>
-      <DemoDisclosure message={t('demo.team.sourceHonesty')} />
-      <div className="plx-page__body">
-        {loading ? <div className="oma-skeleton" role="status" /> : null}
-        {unavailable ? <p className="oma-muted">{t('demo.unavailable')}</p> : null}
-        {error ? (
-          <div className="plx-empty" role="alert">
-            <strong>{error}</strong>
-          </div>
-        ) : null}
 
-        {!loading && !unavailable && !error ? (
-          <>
-            <div className="plx-toolbar" data-testid="demo-team-filters">
-              <div className="plx-toolbar__search">
-                <Input
-                  value={filters.q}
-                  placeholder={t('demo.team.search')}
-                  onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
-                  data-testid="demo-team-search"
-                />
-              </div>
-              <SelectField
-                value={filters.role}
-                aria-label={t('demo.team.filterRole')}
-                onChange={(e) => setFilters((f) => ({ ...f, role: e.target.value }))}
-              >
-                <option value="all">{t('demo.team.filterAllRoles')}</option>
-                {roles.map((r) => (
+      {toast ? (
+        <div className="oma-planable-toast" role="status">
+          {toast}
+          <button type="button" onClick={() => setToast(null)} aria-label="Dismiss">
+            ×
+          </button>
+        </div>
+      ) : null}
+
+      <div className="oma-ws-tabs">
+        {(
+          [
+            ['members', 'Members'],
+            ['permissions', 'Permissions'],
+            ['notifications', 'Notifications'],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            className={`oma-ws-tab${tab === id ? ' is-active' : ''}`}
+            onClick={() => setTab(id)}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {loading ? <div className="oma-skeleton" role="status" /> : null}
+      {error ? (
+        <div className="plx-empty" role="alert">
+          <strong>{error}</strong>
+        </div>
+      ) : null}
+
+      {!loading && !error && tab === 'members' ? (
+        <>
+          <div className="oma-planable-toolbar">
+            <Input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search members…"
+            />
+          </div>
+          <div className="oma-planable-card">
+            <table className="oma-ws-table">
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Membership</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Last online</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={6}>
+                      <div className="oma-ws-empty-block">
+                        <h3>No members yet</h3>
+                        <p>Invite teammates or clients to collaborate in this workspace.</p>
+                        <Button type="primary" onClick={() => setInviteOpen(true)}>
+                          Invite members
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filtered.map((m) => {
+                    const label = m.user?.name || m.user?.email || m.invited_email || 'User';
+                    const email = m.user?.email || m.invited_email || '';
+                    return (
+                      <tr key={m.id}>
+                        <td>
+                          <div className="oma-ws-user-cell">
+                            <span className="oma-ws-avatar oma-ws-avatar--sm">
+                              {(label[0] || 'U').toUpperCase()}
+                            </span>
+                            <div>
+                              <div className="oma-ws-user-name">{label}</div>
+                              {email ? <div className="oma-ws-user-email">{email}</div> : null}
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          <span
+                            className={`oma-ws-badge${
+                              m.membership === 'client' ? ' oma-ws-badge--client' : ''
+                            }`}
+                          >
+                            {m.membership === 'client' ? 'Client' : 'Team'}
+                          </span>
+                        </td>
+                        <td>
+                          <SelectField
+                            value={m.role || 'Member'}
+                            onChange={(e) => void onChangeRole(m, e.target.value)}
+                          >
+                            {ROLE_OPTIONS.map((r) => (
+                              <option key={r} value={r}>
+                                {r}
+                              </option>
+                            ))}
+                          </SelectField>
+                        </td>
+                        <td>
+                          <span className="oma-ws-badge oma-ws-badge--ghost">{m.status}</span>
+                        </td>
+                        <td>{m.last_online || '—'}</td>
+                        <td>
+                          <button
+                            type="button"
+                            className="oma-ws-danger-btn"
+                            onClick={() => void onRemove(m)}
+                            disabled={busy}
+                          >
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </>
+      ) : null}
+
+      {!loading && !error && tab === 'permissions' ? (
+        <div className="oma-planable-card">
+          <h3 className="oma-ws-subhead">Adjust permissions</h3>
+          <p className="oma-ws-empty-desc">
+            Set who can view, approve, edit, publish, analyze, engage, and administer the workspace.
+          </p>
+          <table className="oma-ws-table oma-ws-table--perms">
+            <thead>
+              <tr>
+                <th>User</th>
+                {PERM_COLS.map((p) => (
+                  <th key={p}>{p[0].toUpperCase() + p.slice(1)}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((m) => {
+                const label = m.user?.name || m.user?.email || m.invited_email || 'User';
+                return (
+                  <tr key={m.id}>
+                    <td>
+                      <div className="oma-ws-user-cell">
+                        <span className="oma-ws-avatar oma-ws-avatar--sm">
+                          {(label[0] || 'U').toUpperCase()}
+                        </span>
+                        <div>
+                          <div className="oma-ws-user-name">{label}</div>
+                          <div className="oma-muted">{m.role}</div>
+                        </div>
+                      </div>
+                    </td>
+                    {PERM_COLS.map((p) => (
+                      <td key={p} className="oma-ws-check-cell">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(m.permissions?.[p])}
+                          onChange={() => void onTogglePerm(m, p)}
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : null}
+
+      {!loading && !error && tab === 'notifications' ? (
+        <div className="oma-planable-card">
+          <h3 className="oma-ws-subhead">Manage notifications</h3>
+          <p className="oma-ws-empty-desc">
+            Choose which events each member receives. Connect Slack from Settings → Integrations.
+          </p>
+          <table className="oma-ws-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Posts updates</th>
+                <th>Approvals</th>
+                <th>Your posts</th>
+                <th>Other posts</th>
+                <th>Social inbox</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((m) => {
+                const label = m.user?.name || m.user?.email || m.invited_email || 'User';
+                return (
+                  <tr key={m.id}>
+                    <td>
+                      <div className="oma-ws-user-cell">
+                        <span className="oma-ws-avatar oma-ws-avatar--sm">
+                          {(label[0] || 'U').toUpperCase()}
+                        </span>
+                        <div className="oma-ws-user-name">{label}</div>
+                      </div>
+                    </td>
+                    {['posts', 'approvals', 'yours', 'others', 'inbox'].map((k) => (
+                      <td key={k} className="oma-ws-check-cell">
+                        <input type="checkbox" defaultChecked={k === 'approvals' || k === 'yours'} />
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <div className="oma-ws-slack-card">
+            <div>
+              <strong>Connect your Slack</strong>
+              <p>Receive approval requests and mentions in Slack.</p>
+            </div>
+            <Button type="default" onClick={() => (window.location.href = '/app/settings')}>
+              Open integrations
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+      {inviteOpen ? (
+        <div className="oma-ws-overlay" role="presentation" onClick={() => setInviteOpen(false)}>
+          <div
+            className="oma-ws-modal-card"
+            role="dialog"
+            aria-label="Invite members"
+            onClick={(e) => e.stopPropagation()}
+            style={{ margin: 'auto' }}
+          >
+            <div className="oma-ws-modal-head">
+              <h3>Invite members</h3>
+              <button type="button" onClick={() => setInviteOpen(false)} aria-label="Close">
+                ×
+              </button>
+            </div>
+            <div className="oma-ws-field">
+              <label className="oma-ws-label">Email</label>
+              <Input
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                placeholder="name@company.com"
+              />
+            </div>
+            <div className="oma-ws-field">
+              <label className="oma-ws-label">Role</label>
+              <SelectField value={inviteRole} onChange={(e) => setInviteRole(e.target.value)}>
+                {ROLE_OPTIONS.map((r) => (
                   <option key={r} value={r}>
                     {r}
                   </option>
                 ))}
               </SelectField>
+            </div>
+            <div className="oma-ws-field">
+              <label className="oma-ws-label">Membership</label>
               <SelectField
-                value={filters.capacity}
-                aria-label={t('demo.team.filterCapacity')}
-                onChange={(e) =>
-                  setFilters((f) => ({
-                    ...f,
-                    capacity: e.target.value as typeof filters.capacity,
-                  }))
-                }
+                value={inviteMembership}
+                onChange={(e) => setInviteMembership(e.target.value as MembershipType)}
               >
-                <option value="all">{t('demo.team.filterAllCapacity')}</option>
-                <option value="available">{t('demo.team.capacity.available')}</option>
-                <option value="balanced">{t('demo.team.capacity.balanced')}</option>
-                <option value="at_risk">{t('demo.team.capacity.at_risk')}</option>
-                <option value="over_capacity">{t('demo.team.capacity.over_capacity')}</option>
+                <option value="team">Team</option>
+                <option value="client">Client</option>
               </SelectField>
             </div>
-
-            {filtered.length === 0 ? (
-              <div className="plx-empty">
-                <strong>{t('demo.empty')}</strong>
-              </div>
-            ) : (
-              <div className="plx-list" data-testid="demo-team-list">
-                <div className="plx-list__head">
-                  <span>{t('demo.team.col.name')}</span>
-                  <span>{t('demo.team.col.role')}</span>
-                  <span>{t('demo.team.col.capacity')}</span>
-                  <span>{t('demo.team.col.assignments')}</span>
-                  <span />
-                </div>
-                {filtered.map((m) => {
-                  const cap = capacityState(m.workload);
-                  const name = pickCopy(m.name, locale);
-                  const initial = (name || '?').trim().charAt(0).toUpperCase();
-                  return (
-                    <button
-                      key={m.id}
-                      type="button"
-                      className="plx-list__row"
-                      data-testid={`demo-team-row-${m.id}`}
-                      onClick={() => setSelectedId(m.id)}
-                    >
-                      <div className="plx-person">
-                        <span className="plx-person__av" aria-hidden>
-                          {initial}
-                        </span>
-                        <span>
-                          <span className="plx-person__name">{name}</span>
-                          <span className="plx-person__sub">{pickCopy(m.functionLabel, locale)}</span>
-                        </span>
-                      </div>
-                      <span className="plx-list__cell">{m.role}</span>
-                      <span className="plx-list__cell">
-                        <span className={`plx-pill ${cap === 'available' || cap === 'balanced' ? 'plx-pill--ok' : cap === 'over_capacity' ? 'plx-pill--warn' : 'plx-pill--info'}`}>
-                          {t(`demo.team.capacity.${cap}`)} · {Math.round(m.workload * 100)}%
-                        </span>
-                      </span>
-                      <span className="plx-list__cell oma-ltr">
-                        {m.assignments}
-                        {m.overdue ? ` · ${m.overdue} overdue` : ''}
-                      </span>
-                      <span className="plx-list__actions">
-                        <span className="plx-btn plx-btn--soft" style={{ height: 32, padding: '0 10px', fontSize: 12 }}>
-                          {t('demo.team.viewTasks')}
-                        </span>
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </>
-        ) : null}
-      </div>
-
-      <Drawer
-        open={Boolean(selected)}
-        onClose={() => setSelectedId(null)}
-        label={selected ? pickCopy(selected.name, locale) : t('demo.team.title')}
-      >
-        {selected ? (
-          <div className="oma-stack" data-testid="demo-team-drawer">
-            <div className="plx-person" style={{ marginBottom: 12 }}>
-              <span className="plx-person__av" style={{ width: 48, height: 48, fontSize: 18 }}>
-                {(pickCopy(selected.name, locale) || '?').charAt(0).toUpperCase()}
-              </span>
-              <span>
-                <span className="plx-person__name" style={{ fontSize: 16 }}>
-                  {pickCopy(selected.name, locale)}
-                </span>
-                <span className="plx-person__sub">{selected.role}</span>
-              </span>
+            <div className="oma-ws-modal-actions">
+              <Button type="default" onClick={() => setInviteOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="primary" onClick={() => void onInvite()} disabled={busy}>
+                {busy ? 'Sending…' : 'Send invite'}
+              </Button>
             </div>
-            <p>{pickCopy(selected.functionLabel, locale)}</p>
-            <p>
-              <span className={`plx-pill ${capacityState(selected.workload) === 'over_capacity' || capacityState(selected.workload) === 'at_risk' ? 'plx-pill--warn' : 'plx-pill--ok'}`}>
-                {t(`demo.team.capacity.${capacityState(selected.workload)}`)} ·{' '}
-                {Math.round(selected.workload * 100)}%
-              </span>
-            </p>
-            <p className="oma-muted">{t('demo.team.workloadHonesty')}</p>
-            <div className="oma-chip-row" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
-              <Link
-                href={`/app/tasks?assignee=${encodeURIComponent(selected.assigneeKey)}`}
-                className="plx-btn plx-btn--ghost"
-                data-testid="demo-team-tasks-link"
-              >
-                {t('demo.team.viewTasks')} ({selected.assignments})
-              </Link>
-              <Link
-                href="/app/reviews"
-                className="plx-btn plx-btn--ghost"
-                data-testid="demo-team-reviews-link"
-              >
-                {t('demo.team.viewReviews')} ({selected.reviewQueue})
-              </Link>
-              <Link href="/app/company/members" className="plx-btn plx-btn--ghost">
-                {t('demo.team.foundationMembers')}
-              </Link>
-            </div>
-            {selected.restricted ? <p role="status">{t('demo.team.restrictedDetail')}</p> : null}
           </div>
-        ) : null}
-      </Drawer>
+        </div>
+      ) : null}
     </div>
-  )
+  );
 }

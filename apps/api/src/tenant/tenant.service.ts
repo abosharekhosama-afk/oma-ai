@@ -241,6 +241,8 @@ export class TenantService {
       status: m.status,
       invited_email: m.invitedEmail,
       accepted_at: m.acceptedAt,
+      membership_kind: (m as { membershipKind?: string }).membershipKind ?? 'team',
+      display_role: (m as { displayRole?: string | null }).displayRole ?? null,
       user: m.user ? { id: m.user.id, email: m.user.email, name: m.user.name } : null,
       capabilities: [...new Set(m.grants.map((g) => g.capabilityCode))],
       source_profiles: [...new Set(m.grants.map((g) => g.sourceProfileCode).filter(Boolean))],
@@ -265,6 +267,7 @@ export class TenantService {
         invitedEmail: normalizedEmail,
         invitedBy: actorUserId,
         invitedAt: new Date(),
+        membershipKind: 'team',
       },
     });
     const { token, tokenHash } = issueSessionToken();

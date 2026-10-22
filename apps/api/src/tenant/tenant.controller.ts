@@ -60,6 +60,20 @@ export class TenantController {
     return { data: await tenantService.listCurrentMemberships(req.oma.tenantId) };
   }
 
+  /** Read-only member list for Team UI (any authenticated tenant member). */
+  @Get('tenants/current/members')
+  @UseGuards(AuthGuard)
+  async membersRead(@Req() req: Request) {
+    if (!req.oma?.tenantId)
+      throw new DomainError(
+        'TENANT_REQUIRED',
+        'Active tenant required',
+        409,
+        'errors.tenant_required',
+      );
+    return { data: await tenantService.listCurrentMemberships(req.oma.tenantId) };
+  }
+
   @Post('tenants/active')
   @UseGuards(AuthGuard, CsrfGuard)
   async activate(@Req() req: Request, @Body() body: { tenant_id: string }) {

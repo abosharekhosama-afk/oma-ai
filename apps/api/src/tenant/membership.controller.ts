@@ -12,7 +12,16 @@ export class MembershipController {
   @Post('tenants/current/invitations')
   @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
   @RequireCapabilities('membership.invite')
-  async invite(@Req() req: Request, @Body() body: { email: string }) {
+  async invite(
+    @Req() req: Request,
+    @Body()
+    body: {
+      email: string;
+      role?: string;
+      membership?: 'team' | 'client';
+      profile_code?: string;
+    },
+  ) {
     if (!req.oma?.userId || !req.oma.tenantId) {
       throw new DomainError(
         'TENANT_REQUIRED',
@@ -21,12 +30,46 @@ export class MembershipController {
         'errors.tenant_required',
       );
     }
-    return tenantService.invite(
+    const result = await tenantService.invite(
       req.oma.userId,
       req.oma.tenantId,
       body.email,
       req.oma.correlationId,
     );
+
+    // Optional Planable role → capability profile after invite
+    const profileCode =
+      body.profile_code ||
+      (body.role
+        ? {
+            owner: 'COMPANY_OWNER',
+            administrator: 'ADMIN',
+            admin: 'ADMIN',
+            contributor: 'MEMBER',
+            writer: 'WRITER',
+            approver: 'APPROVER',
+            guest: 'GUEST',
+          }[body.role.trim().toLowerCase()]
+        : undefined);
+
+    if (profileCode && result?.membership_id) {
+      try {
+        await tenantService.attachProfile(
+          req.oma.userId,
+          req.oma.tenantId,
+          result.membership_id,
+          profileCode,
+        );
+      } catch {
+        /* profile may not exist yet — invite still succeeds */
+      }
+    }
+
+    return {
+      ...result,
+      role: body.role ?? null,
+      membership: body.membership ?? 'team',
+    };
   }
 
   @Post('invitations/accept')
