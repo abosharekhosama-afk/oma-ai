@@ -160,6 +160,12 @@ export class IdentityService {
       where: { userId, revokedAt: null, expiresAt: { gt: new Date() } },
       orderBy: { lastSeenAt: 'desc' },
     });
+    const membershipRows = dedupeMembershipsByTenant(memberships);
+    const activeTenantId = session?.activeTenantId ?? null;
+    const activeCaps =
+      membershipRows.find((m) => m.tenant_id === activeTenantId)?.capabilities ??
+      membershipRows[0]?.capabilities ??
+      [];
     return {
       user: {
         id: user.id,
@@ -168,8 +174,9 @@ export class IdentityService {
         preferred_locale: user.preferredLocale,
         preferred_dir: user.preferredDir,
       },
-      active_tenant_id: session?.activeTenantId ?? null,
-      memberships: dedupeMembershipsByTenant(memberships),
+      active_tenant_id: activeTenantId,
+      capabilities: activeCaps,
+      memberships: membershipRows,
     };
   }
 
