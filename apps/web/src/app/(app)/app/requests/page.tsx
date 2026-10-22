@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { OmaTopLoader } from '../../../../components/ui/oma-top-loader';
 import { createPortal } from 'react-dom';
 import type { DemoGraph } from '@oma/demo';
 import { Button, DatePicker, Input, OmaSelect, SelectField, TextArea } from '@oma/ui/controls';
@@ -295,11 +296,7 @@ export default function RequestsPage() {
 
       <DemoDisclosure />
 
-      {loading ? (
-        <p className="oma-muted oma-req-main" style={{ padding: '16px 20px' }} data-testid="demo-requests-loading">
-          {t('demo.loading')}
-        </p>
-      ) : null}
+      {loading ? <OmaTopLoader label={t('demo.loading')} /> : null}
       {unavailable ? (
         <p className="oma-muted" data-testid="demo-requests-denied">
           {t('demo.unavailable')}
