@@ -1,9 +1,11 @@
+import { createPortal } from 'react-dom';
 'use client';
 import { Button, DateField, Input, SelectField, TextArea } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { FilterOutlined } from '@ant-design/icons';
 import type { DemoGraph } from '@oma/demo';
 import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
 import { TrackPill } from '../../../../components/demo/track-pill';
@@ -76,6 +78,7 @@ export default function CampaignsPage() {
   const [linkDraft, setLinkDraft] = useState('');
   const [linkError, setLinkError] = useState<string | null>(null);
   const [filterSheet, setFilterSheet] = useState(false);
+  const [actionsHost, setActionsHost] = useState<HTMLElement | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
@@ -139,6 +142,10 @@ export default function CampaignsPage() {
       setLoading(false);
     }
   }, [isAr]);
+
+  useEffect(() => {
+    setActionsHost(document.getElementById('oma-workspace-top-actions'));
+  }, []);
 
   useEffect(() => {
     void load();
@@ -454,57 +461,41 @@ export default function CampaignsPage() {
 
   return (
     <div className="oma-stack oma-campaigns-page" data-testid="demo-campaigns">
+      {actionsHost
+        ? createPortal(
+            <div className="oma-workspace-top-actions-inner">
+              <button
+                type="button"
+                className="oma-header-icon-btn"
+                data-testid="demo-campaign-open-filters"
+                aria-label={t('demo.campaigns.openFilters')}
+                onClick={() => setFilterSheet(true)}
+              >
+                <FilterOutlined />
+                {filterCount > 0 ? (
+                  <span className="oma-header-icon-btn__badge">{filterCount}</span>
+                ) : null}
+              </button>
+              <Button
+                type="primary"
+                data-testid="demo-create-campaign"
+                onClick={() => {
+                  setEditingId(null);
+                  setCreateError(null);
+                  setCreateOpen(true);
+                }}
+              >
+                {isAr ? 'إنشاء حملة' : 'Create campaign'}
+              </Button>
+            </div>,
+            actionsHost,
+          )
+        : null}
+
       <PageHeader
         title={t('demo.campaigns.title')}
         description={t('demo.campaigns.subtitle')}
-        actions={
-          <div className="oma-campaign-header-actions">
-            <Button
-              type="text"
-              className="oma-campaign-filter-trigger"
-              data-testid="demo-campaign-open-filters"
-              onClick={() => setFilterSheet(true)}
-            >
-              {isAr ? 'تصفية' : 'Filter'}
-              {filterCount > 0 ? ` (${filterCount})` : ''}
-            </Button>
-            <div
-              className="oma-campaign-layout-switch"
-              role="group"
-              aria-label={t('demo.campaigns.layouts')}
-            >
-              <Button
-                type="text"
-                aria-pressed={layout === 'portfolio'}
-                data-testid="demo-campaigns-view-portfolio"
-                onClick={() => setLayoutPref('portfolio')}
-                aria-label={isAr ? 'عرض البطاقات' : 'Card view'}
-              >
-                ▦
-              </Button>
-              <Button
-                type="text"
-                aria-pressed={layout === 'list'}
-                data-testid="demo-campaigns-view-table"
-                onClick={() => setLayoutPref('list')}
-                aria-label={isAr ? 'عرض القائمة' : 'List view'}
-              >
-                ☷
-              </Button>
-            </div>
-            <Button
-              type="primary"
-              data-testid="demo-create-campaign"
-              onClick={() => {
-                setEditingId(null);
-                setCreateError(null);
-                setCreateOpen(true);
-              }}
-            >
-              {isAr ? 'حملة جديدة' : 'New campaign'}
-            </Button>
-          </div>
-        }
+        actions={null}
         meta={
           <div
             className="oma-campaign-status-tabs"
@@ -535,19 +526,6 @@ export default function CampaignsPage() {
         }
       />
       <DemoDisclosure />
-
-      <div className="oma-stage3-toolbar" data-testid="demo-campaign-filters">
-        {searchField}
-        <Button
-          type="default"
-          onClick={() => setFilterSheet(true)}
-          className="oma-filter-sheet-trigger"
-          data-testid="demo-campaign-open-filters"
-        >
-          {t('demo.campaigns.openFilters')}
-          {filterCount > 0 ? ` (${filterCount})` : ''}
-        </Button>
-      </div>
 
       {filterCount > 0 ? (
         <div className="oma-filter-chips" data-testid="demo-campaign-filter-chips">
@@ -693,19 +671,7 @@ export default function CampaignsPage() {
               </article>
             );
           })}
-          <button
-            type="button"
-            className="oma-campaign-create-card"
-            data-testid="demo-campaign-create-card"
-            onClick={() => {
-              setEditingId(null);
-              setCreateError(null);
-              setCreateOpen(true);
-            }}
-          >
-            <span aria-hidden="true">+</span>
-            {isAr ? 'إنشاء حملة' : 'Create campaign'}
-          </button>
+          
         </div>
       ) : null}
 
@@ -808,12 +774,24 @@ export default function CampaignsPage() {
           ))
         : null}
 
-      <Dialog
-        open={filterSheet}
-        title={t('demo.campaigns.filters')}
-        onClose={() => setFilterSheet(false)}
-        footer={
-          <div className="oma-dialog-footer oma-filter-sheet-footer">
+      {filterSheet ? (
+        <aside className="oma-req-filter-panel" data-testid="demo-campaign-filter-sheet">
+          <header className="oma-req-filter-panel__head">
+            <strong>{t('demo.campaigns.filters')}</strong>
+            <button
+              type="button"
+              className="oma-req-filter-panel__close"
+              aria-label={isAr ? 'إغلاق' : 'Close'}
+              onClick={() => setFilterSheet(false)}
+            >
+              ×
+            </button>
+          </header>
+          <div className="oma-composer-fields oma-filter-accordion-list">
+            {searchField}
+            {advancedFilterFields}
+          </div>
+          <footer className="oma-req-filter-panel__foot">
             <Button
               type="default"
               onClick={() => setFilters(EMPTY_CAMPAIGN_FILTERS)}
@@ -828,14 +806,9 @@ export default function CampaignsPage() {
             >
               {t('demo.filters.apply')}
             </Button>
-          </div>
-        }
-      >
-        <div className="oma-composer-fields" data-testid="demo-campaign-filter-sheet">
-          {searchField}
-          {advancedFilterFields}
-        </div>
-      </Dialog>
+          </footer>
+        </aside>
+      ) : null}
 
       <Dialog
         open={createOpen}
