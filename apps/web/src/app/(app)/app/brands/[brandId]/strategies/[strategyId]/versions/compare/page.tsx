@@ -1,5 +1,7 @@
 'use client';
 
+import { OmaTopLoader } from '../../../../../../../../../components/ui/oma-top-loader';
+
 import { useParams, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { api } from '../../../../../../../../../lib/api';
@@ -49,7 +51,7 @@ export default function StrategyComparePage() {
 
   if (denied) return <PermissionDenied message={t('errors.permission')} />;
   if (tenantRequired) return <SelectCompany />;
-  if (!brand) return <p role="status">{t('common.loading')}</p>;
+  if (!brand) return <OmaTopLoader label={t('common.loading')} />;
 
   return (
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>
