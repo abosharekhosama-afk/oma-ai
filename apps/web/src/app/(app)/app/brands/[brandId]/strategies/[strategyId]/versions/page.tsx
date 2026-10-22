@@ -1,4 +1,6 @@
 'use client';
+
+import { OmaTopLoader } from '../../../../../../../../components/ui/oma-top-loader';
 import { OmaLinkButton } from '../../../../../../../../components/ui/oma-link-button';
 import { Button } from '@oma/ui/controls';
 
@@ -68,7 +70,7 @@ export default function StrategyVersionsPage() {
 
   if (denied) return <PermissionDenied message={t('errors.permission')} />;
   if (tenantRequired) return <SelectCompany />;
-  if (!brand) return <p role="status">{t('common.loading')}</p>;
+  if (!brand) return <OmaTopLoader label={t('common.loading')} />;
 
   const left = versions[1]?.id;
   const right = versions[0]?.id;
