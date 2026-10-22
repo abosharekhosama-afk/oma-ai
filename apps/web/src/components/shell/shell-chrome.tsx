@@ -339,7 +339,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
           </div>
         </Drawer>
 
-        <WorkspaceSettingsPanel open={wsSettingsOpen} onClose={() => setWsSettingsOpen(false)} />
+                <WorkspaceSettingsPanel open={wsSettingsOpen} onClose={() => setWsSettingsOpen(false)} />
       </div>
     </ToastProvider>
   );
