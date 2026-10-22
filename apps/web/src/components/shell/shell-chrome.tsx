@@ -14,8 +14,9 @@ import { NavLink } from './nav-link';
 import { NotificationsBell } from './notifications-bell';
 import { SHELL_NAV_SECTIONS, SHELL_RAIL_PREF_KEY } from './nav-config';
 import { ShellIcon } from './shell-icons';
-import { TenantSwitcher } from './tenant-switcher';
 import { UserMenu } from './user-menu';
+import { WorkspaceRow } from './workspace-row';
+import { WorkspaceSettingsPanel } from './workspace-settings-panel';
 import { PlxLogo } from '../ui/plx-icons';
 
 function RailNav({ collapsed }: { collapsed: boolean }) {
@@ -24,20 +25,27 @@ function RailNav({ collapsed }: { collapsed: boolean }) {
     <nav className="oma-nav" aria-label={t('nav.primary')}>
       {SHELL_NAV_SECTIONS.map((section) => (
         <div key={section.id} className="oma-nav-group">
-          <p className="oma-nav-section" id={`nav-${section.id}`}>
-            {t(section.labelKey)}
-          </p>
-          <ul className="oma-nav-list" aria-labelledby={`nav-${section.id}`}>
-            {section.items.map((item) => (
-              <li key={item.href}>
-                <NavLink
-                  href={item.href}
-                  label={t(item.labelKey)}
-                  icon={item.icon}
-                  collapsed={collapsed}
-                />
-              </li>
-            ))}
+          {section.id !== 'primary' ? (
+            <p className="oma-nav-section" id={`nav-${section.id}`}>
+              {t(section.labelKey)}
+            </p>
+          ) : null}
+          <ul
+            className="oma-nav-list"
+            aria-labelledby={section.id !== 'primary' ? `nav-${section.id}` : undefined}
+          >
+            {section.items.map((item) => {
+              const translated = t(item.labelKey);
+              const label =
+                translated === item.labelKey && item.labelFallback
+                  ? item.labelFallback
+                  : translated;
+              return (
+                <li key={item.href}>
+                  <NavLink href={item.href} label={label} icon={item.icon} collapsed={collapsed} />
+                </li>
+              );
+            })}
           </ul>
         </div>
       ))}
@@ -176,6 +184,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
+  const [wsSettingsOpen, setWsSettingsOpen] = useState(false);
 
   useEffect(() => {
     setHydrated(true);
@@ -230,8 +239,28 @@ export function ShellChrome({ children }: { children: ReactNode }) {
           </div>
           <p className="oma-rail-endorsement">{t('app.endorsement')}</p>
           <div className="oma-rail-workspace">
-            <TenantSwitcher />
+            <WorkspaceRow collapsed={collapsed} onOpenSettings={() => setWsSettingsOpen(true)} />
           </div>
+          {/* Search + Notifications entry points at top of nav (Planable) */}
+          {!collapsed ? (
+            <div className="oma-rail-quick">
+              <button
+                type="button"
+                className="oma-rail-quick-item"
+                onClick={() => {
+                  const el = document.querySelector<HTMLElement>('[data-testid="command-search-trigger"], .oma-command-trigger');
+                  el?.click();
+                }}
+              >
+                <ShellIcon name="search" size={18} />
+                <span>{t('shell.search') || 'Search'}</span>
+              </button>
+              <div className="oma-rail-quick-item oma-rail-quick-bell">
+                <NotificationsBell />
+                <span className="oma-nav-link-label">{t('shell.notifications') || 'Notifications'}</span>
+              </div>
+            </div>
+          ) : null}
           <RailNav collapsed={collapsed} />
           <div className="oma-rail-footer">
             <NotificationsBell />
@@ -317,7 +346,13 @@ export function ShellChrome({ children }: { children: ReactNode }) {
             </Button>
           </div>
           <div className="oma-rail-workspace">
-            <TenantSwitcher />
+            <WorkspaceRow
+              collapsed={false}
+              onOpenSettings={() => {
+                setMobileOpen(false);
+                setWsSettingsOpen(true);
+              }}
+            />
           </div>
           <div className="oma-mobile-drawer-nav" onClick={() => setMobileOpen(false)}>
             <RailNav collapsed={false} />
@@ -327,6 +362,8 @@ export function ShellChrome({ children }: { children: ReactNode }) {
             <UserMenu />
           </div>
         </Drawer>
+
+        <WorkspaceSettingsPanel open={wsSettingsOpen} onClose={() => setWsSettingsOpen(false)} />
       </div>
     </ToastProvider>
   );

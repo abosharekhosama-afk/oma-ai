@@ -30,6 +30,13 @@ const paths: Record<NavIconId, string> = {
   bell: 'M12 3a5 5 0 0 1 5 5v3.2l1.4 2.1A1 1 0 0 1 17.6 15H6.4a1 1 0 0 1-.8-1.7L7 11.2V8a5 5 0 0 1 5-5Zm-2 14a2 2 0 0 0 4 0h-4Z',
   plus: 'M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5Z',
   user: 'M12 4a4 4 0 1 1 0 8 4 4 0 0 1 0-8Zm0 10c3.3 0 6 2 6 4.5V20H6v-1.5C6 16 8.7 14 12 14Z',
+  /* Planable-aligned extras */
+  approvals:
+    'M9 12.5 11 14.5 15.5 10 14 8.5 11 11.5 9.5 10 8 11.5 9 12.5ZM12 3a9 9 0 1 1 0 18 9 9 0 0 1 0-18Zm0 2a7 7 0 1 0 0 14 7 7 0 0 0 0-14Z',
+  inbox:
+    'M4 6h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1Zm1 2v2.2l7 3.8 7-3.8V8H5Zm0 4.5V17h14v-4.5l-7 3.8-7-3.8Z',
+  listening:
+    'M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3Zm-7 8a1 1 0 0 1 1 1 6 6 0 0 0 12 0 1 1 0 1 1 2 0 8 8 0 0 1-7 7.9V22h2v2H8v-2h2v-2.1A8 8 0 0 1 4 12a1 1 0 0 1 1-1Z',
 };
 
 export function ShellIcon({
