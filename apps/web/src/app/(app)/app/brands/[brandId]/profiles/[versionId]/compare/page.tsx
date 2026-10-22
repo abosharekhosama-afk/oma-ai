@@ -1,4 +1,6 @@
 'use client';
+
+import { OmaTopLoader } from '../../../../../../../../components/ui/oma-top-loader';
 import { SelectField } from '@oma/ui/controls';
 
 import Link from 'next/link';
@@ -64,7 +66,7 @@ export default function ProfileComparePage() {
   }, [brandId, versionId, against]);
 
   if (denied) return <PermissionDenied message={t('errors.permission')} />;
-  if (loading) return <p role="status">{t('common.loading')}</p>;
+  if (loading) return <OmaTopLoader label={t('common.loading')} />;
   if (error || !brand || !compare) {
     return (
       <div className="oma-card" role="alert">
