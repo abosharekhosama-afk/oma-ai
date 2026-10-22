@@ -3,16 +3,30 @@ import { DomainError } from '@oma/domain';
 
 const hits = new Map<string, { count: number; reset: number }>();
 
+/** Normalize path so /members and /memberships share one bucket (read endpoints). */
+function normalizePath(path: string): string {
+  if (!path) return path;
+  return path
+    .replace(/\/tenants\/current\/memberships\/?$/, '/tenants/current/members')
+    .replace(/\/tenants\/current\/members\/?$/, '/tenants/current/members');
+}
+
 @Injectable()
 export class RateLimitGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
-    const limit = Number(process.env.RATE_LIMIT_PER_MINUTE ?? 120);
+    // Default raised from 120 → 300 for SPA shells that mount multiple org surfaces.
+    const limit = Number(process.env.RATE_LIMIT_PER_MINUTE ?? 300);
     // 0 or negative disables the guard (used by deterministic e2e/cert suites).
     if (!Number.isFinite(limit) || limit <= 0) {
       return true;
     }
-    const req = context.switchToHttp().getRequest<{ ip?: string; path: string }>();
-    const key = `${req.ip ?? 'unknown'}:${req.path}`;
+    const req = context.switchToHttp().getRequest<{
+      ip?: string;
+      path: string;
+      method?: string;
+    }>();
+    const pathKey = normalizePath(req.path);
+    const key = `${req.ip ?? 'unknown'}:${req.method ?? 'GET'}:${pathKey}`;
     const now = Date.now();
     const windowMs = 60_000;
     const cur = hits.get(key);
