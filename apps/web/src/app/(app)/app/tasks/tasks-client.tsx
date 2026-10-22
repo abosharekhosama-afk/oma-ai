@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { OmaTopLoader } from '../../../../components/ui/oma-top-loader';
 import { createPortal } from 'react-dom';
 import type { DemoGraph, DemoTaskStatus } from '@oma/demo';
 import {
@@ -508,7 +509,7 @@ export default function TasksPage() {
         </div>
       </div>
 
-      {loading ? <p className="oma-muted">{t('demo.loading')}</p> : null}
+      {loading ? <OmaTopLoader label={t('demo.loading')} /> : null}
       {unavailable ? (
         <p className="oma-muted" data-testid="demo-tasks-denied">
           {t('demo.unavailable')}
