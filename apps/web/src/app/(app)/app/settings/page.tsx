@@ -3,6 +3,7 @@ import { Button, CheckboxField, Input, SelectField } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { OmaTopLoader } from '../../../../components/ui/oma-top-loader';
 import type { DemoGraph, DemoPreferences } from '@oma/demo';
 import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
 import { useToast } from '../../../../components/ui/toast';
@@ -119,7 +120,7 @@ export default function SettingsPage() {
       <AiStatusNote />
       <DemoDisclosure />
 
-      {loading ? <div className="oma-skeleton" role="status" /> : null}
+      {loading ? <OmaTopLoader /> : null}
       {unavailable ? <p className="oma-muted">{t('demo.unavailable')}</p> : null}
       {error ? (
         <div className="plx-empty" role="alert">
