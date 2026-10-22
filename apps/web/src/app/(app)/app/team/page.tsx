@@ -2,6 +2,7 @@
 
 import { Button, Input, SelectField } from '@oma/ui/controls';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { OmaTopLoader } from '../../../../components/ui/oma-top-loader';
 import {
   attachMemberProfile,
   inviteMember,
@@ -270,7 +271,7 @@ export default function TeamPage() {
         ))}
       </div>
 
-      {loading ? <div className="oma-skeleton" role="status" /> : null}
+      {loading ? <OmaTopLoader /> : null}
       {error ? (
         <div className="plx-empty" role="alert">
           <strong>{error}</strong>
