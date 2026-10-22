@@ -203,9 +203,8 @@ export function ShellChrome({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <>
+    <ToastProvider>
       <SessionInvalidOverlay />
-      <ToastProvider>
       <div
         className="oma-shell"
         data-rail={collapsed ? 'collapsed' : 'expanded'}
