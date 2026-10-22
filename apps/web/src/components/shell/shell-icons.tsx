@@ -51,7 +51,7 @@ export function ShellIcon({
       aria-hidden="true"
       focusable="false"
     >
-      <path d={paths[name]} />
+      <path d={paths[name] ?? paths.home} />
     </svg>
   );
 }

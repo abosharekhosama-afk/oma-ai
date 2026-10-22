@@ -1,8 +1,7 @@
 'use client';
 
 import { Button, Input, SelectField } from '@oma/ui/controls';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useT } from '../../../../lib/use-locale';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   attachMemberProfile,
   inviteMember,
@@ -43,7 +42,6 @@ const ROLE_OPTIONS = [
 ];
 
 export default function TeamPage() {
-  const t = useT();
   const [tab, setTab] = useState<Tab>('members');
   const [rows, setRows] = useState<WorkspaceMember[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,15 +54,20 @@ export default function TeamPage() {
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [q, setQ] = useState('');
+  const loadingRef = useRef(false);
+  const mountedRef = useRef(true);
 
-  const load = useCallback(async () => {
+  async function load(force = false) {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
     setLoading(true);
     setError(null);
     try {
-      const data = await listWorkspaceMembers();
+      const data = await listWorkspaceMembers({ force });
+      if (!mountedRef.current) return;
       setRows(data);
       setSource('api');
-    } catch {
+    } catch (err) {
       try {
         const demo = await demoApi<
           Array<{
@@ -75,16 +78,13 @@ export default function TeamPage() {
             status?: string;
           }>
         >('/team');
+        if (!mountedRef.current) return;
         setRows(
           demo.map((m) => ({
             id: m.id,
             status: m.status || 'ACTIVE',
             invited_email: m.email,
-            user: {
-              id: m.id,
-              email: m.email || '',
-              name: m.name || null,
-            },
+            user: { id: m.id, email: m.email || '', name: m.name || null },
             capabilities: [],
             source_profiles: m.role ? [m.role] : [],
             role: m.role || 'Member',
@@ -102,18 +102,26 @@ export default function TeamPage() {
           })),
         );
         setSource('demo');
-      } catch (err) {
-        if (isDemoForbidden(err)) setError(t('demo.unavailable') || 'Unavailable');
-        else setError(demoErrorMessage(err, 'Failed to load team'));
+      } catch (demoErr) {
+        if (!mountedRef.current) return;
+        if (isDemoForbidden(demoErr)) setError('Unavailable');
+        else setError(demoErrorMessage(demoErr, 'Failed to load team'));
       }
     } finally {
-      setLoading(false);
+      loadingRef.current = false;
+      if (mountedRef.current) setLoading(false);
     }
-  }, [t]);
+  }
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    mountedRef.current = true;
+    void load(false);
+    return () => {
+      mountedRef.current = false;
+    };
+    // Mount-once — avoid re-fetch loops from unstable callbacks/locale.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
@@ -130,7 +138,7 @@ export default function TeamPage() {
   }, [rows, q]);
 
   async function onInvite() {
-    if (!inviteEmail.trim()) return;
+    if (!inviteEmail.trim() || busy) return;
     setBusy(true);
     setToast(null);
     try {
@@ -140,6 +148,7 @@ export default function TeamPage() {
           role: inviteRole,
           membership: inviteMembership,
         });
+        await load(true);
       } else {
         setRows((prev) => [
           ...prev,
@@ -168,7 +177,6 @@ export default function TeamPage() {
       setInviteOpen(false);
       setInviteEmail('');
       setToast('Invitation sent');
-      if (source === 'api') await load();
     } catch (err) {
       setToast(err instanceof Error ? err.message : 'Invite failed');
     } finally {
@@ -179,16 +187,14 @@ export default function TeamPage() {
   async function onTogglePerm(member: WorkspaceMember, perm: PlanablePerm) {
     if (!member.permissions) return;
     const next = { ...member.permissions, [perm]: !member.permissions[perm] };
-    setRows((prev) =>
-      prev.map((r) => (r.id === member.id ? { ...r, permissions: next } : r)),
-    );
+    setRows((prev) => prev.map((r) => (r.id === member.id ? { ...r, permissions: next } : r)));
     if (source !== 'api') return;
     try {
       await updateMemberCapabilities(member.id, permissionsToCapabilityCodes(next));
       setToast('Permissions updated');
     } catch (err) {
       setToast(err instanceof Error ? err.message : 'Update failed');
-      await load();
+      await load(true);
     }
   }
 
@@ -222,7 +228,6 @@ export default function TeamPage() {
     try {
       await attachMemberProfile(member.id, code);
       setToast('Role updated');
-      await load();
     } catch {
       setToast('Role profile not available; UI updated only');
     }
@@ -276,17 +281,18 @@ export default function TeamPage() {
       {error ? (
         <div className="plx-empty" role="alert">
           <strong>{error}</strong>
+          <div style={{ marginTop: 12 }}>
+            <Button type="default" onClick={() => void load(true)}>
+              Retry
+            </Button>
+          </div>
         </div>
       ) : null}
 
       {!loading && !error && tab === 'members' ? (
         <>
           <div className="oma-planable-toolbar">
-            <Input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search members…"
-            />
+            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search members…" />
           </div>
           <div className="oma-planable-card">
             <table className="oma-ws-table">
@@ -463,15 +469,6 @@ export default function TeamPage() {
               })}
             </tbody>
           </table>
-          <div className="oma-ws-slack-card">
-            <div>
-              <strong>Connect your Slack</strong>
-              <p>Receive approval requests and mentions in Slack.</p>
-            </div>
-            <Button type="default" onClick={() => (window.location.href = '/app/settings')}>
-              Open integrations
-            </Button>
-          </div>
         </div>
       ) : null}
 

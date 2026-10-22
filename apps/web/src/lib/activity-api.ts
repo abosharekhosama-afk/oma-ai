@@ -36,9 +36,7 @@ function categorize(action: string): ActivityItem['category'] {
 }
 
 function humanize(action: string): string {
-  return action
-    .replace(/[._]/g, ' ')
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+  return action.replace(/[._]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 export function mapAuditToActivity(e: AuditEvent): ActivityItem {
@@ -55,22 +53,54 @@ export function mapAuditToActivity(e: AuditEvent): ActivityItem {
   };
 }
 
+let cache: { at: number; data: { items: ActivityItem[]; next_cursor: string | null } } | null =
+  null;
+let inflight: Promise<{ items: ActivityItem[]; next_cursor: string | null }> | null = null;
+const CACHE_MS = 10_000;
+
 export async function listActivity(params?: {
   limit?: number;
   cursor?: string;
 }): Promise<{ items: ActivityItem[]; next_cursor: string | null }> {
+  // Only cache the first page without cursor
+  const useCache = !params?.cursor;
+  if (useCache && cache && Date.now() - cache.at < CACHE_MS) {
+    return cache.data;
+  }
+  if (useCache && inflight) return inflight;
+
   const qs = new URLSearchParams();
   if (params?.limit) qs.set('limit', String(params.limit));
   if (params?.cursor) qs.set('cursor', params.cursor);
   const q = qs.toString() ? `?${qs}` : '';
-  let res: { items: AuditEvent[]; next_cursor: string | null };
-  try {
-    res = await api(`/api/v1/audit-events/feed${q}`);
-  } catch {
-    res = await api(`/api/v1/audit-events${q}`);
-  }
-  return {
-    items: (res.items || []).map(mapAuditToActivity),
-    next_cursor: res.next_cursor ?? null,
+
+  const run = async () => {
+    let res: { items: AuditEvent[]; next_cursor: string | null };
+    try {
+      res = await api(`/api/v1/audit-events/feed${q}`);
+    } catch (err: unknown) {
+      const status = (err as { status?: number })?.status;
+      if (status === 429) throw err;
+      // Only fall back when feed is missing / forbidden — not on rate limit
+      if (status === 403 || status === 404) {
+        res = await api(`/api/v1/audit-events${q}`);
+      } else {
+        throw err;
+      }
+    }
+    const mapped = {
+      items: (res.items || []).map(mapAuditToActivity),
+      next_cursor: res.next_cursor ?? null,
+    };
+    if (useCache) cache = { at: Date.now(), data: mapped };
+    return mapped;
   };
+
+  if (useCache) {
+    inflight = run().finally(() => {
+      inflight = null;
+    });
+    return inflight;
+  }
+  return run();
 }

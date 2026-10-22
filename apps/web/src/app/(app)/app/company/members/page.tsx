@@ -1,8 +1,7 @@
 'use client';
 
 import { Button, Input, SelectField } from '@oma/ui/controls';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useT } from '../../../../../lib/use-locale';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ShellIcon } from '../../../../../components/shell/shell-icons';
 import {
   attachMemberProfile,
@@ -22,7 +21,6 @@ const COMPANY_ROLES = [
 ];
 
 export default function CompanyMembersPage() {
-  const t = useT();
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [q, setQ] = useState('');
   const [loading, setLoading] = useState(true);
@@ -34,25 +32,37 @@ export default function CompanyMembersPage() {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('Contributor');
   const [inviteLink, setInviteLink] = useState<string | null>(null);
+  const loadingRef = useRef(false);
+  const mountedRef = useRef(true);
 
-  const load = useCallback(async () => {
+  async function load(force = false) {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
     setLoading(true);
     setError(null);
     try {
-      const data = await listWorkspaceMembers();
+      const data = await listWorkspaceMembers({ force });
+      if (!mountedRef.current) return;
       setMembers(data);
       setDenied(false);
     } catch (err) {
+      if (!mountedRef.current) return;
       if (isPermissionDenied(err)) setDenied(true);
       else setError(err instanceof Error ? err.message : 'Failed to load members');
     } finally {
-      setLoading(false);
+      loadingRef.current = false;
+      if (mountedRef.current) setLoading(false);
     }
-  }, []);
+  }
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    mountedRef.current = true;
+    void load(false);
+    return () => {
+      mountedRef.current = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -67,7 +77,7 @@ export default function CompanyMembersPage() {
   }, [members, q]);
 
   async function onInvite() {
-    if (!email.trim()) return;
+    if (!email.trim() || busy) return;
     setBusy(true);
     setToast(null);
     setInviteLink(null);
@@ -76,14 +86,14 @@ export default function CompanyMembersPage() {
         email: email.trim(),
         role,
         membership: 'team',
-      })) as { invite_token?: string; membership_id?: string };
+      })) as { invite_token?: string };
       if (res?.invite_token) {
         setInviteLink(`${window.location.origin}/invite?token=${res.invite_token}`);
       }
       setToast('Invitation sent');
       setEmail('');
       setInviteOpen(false);
-      await load();
+      await load(true);
     } catch (err) {
       setToast(err instanceof Error ? err.message : 'Invite failed');
     } finally {
@@ -98,7 +108,6 @@ export default function CompanyMembersPage() {
     try {
       await attachMemberProfile(member.id, profile);
       setToast('Role updated');
-      await load();
     } catch {
       setToast('Role profile not available on server; UI updated');
     }
@@ -155,8 +164,12 @@ export default function CompanyMembersPage() {
           <Button
             type="default"
             onClick={async () => {
-              await navigator.clipboard.writeText(inviteLink);
-              setToast('Link copied');
+              try {
+                await navigator.clipboard.writeText(inviteLink);
+                setToast('Link copied');
+              } catch {
+                setToast('Could not copy');
+              }
             }}
           >
             Copy link
@@ -172,6 +185,11 @@ export default function CompanyMembersPage() {
       {error ? (
         <div className="plx-empty" role="alert">
           <strong>{error}</strong>
+          <div style={{ marginTop: 12 }}>
+            <Button type="default" onClick={() => void load(true)}>
+              Retry
+            </Button>
+          </div>
         </div>
       ) : null}
 
@@ -260,9 +278,7 @@ export default function CompanyMembersPage() {
       <div className="oma-ws-slack-card" style={{ marginTop: 16 }}>
         <div>
           <strong>Workspace team</strong>
-          <p>
-            For per-workspace Team/Client membership and permission grids, use the Team page.
-          </p>
+          <p>For per-workspace Team/Client membership and permission grids, use the Team page.</p>
         </div>
         <Button type="default" onClick={() => (window.location.href = '/app/team')}>
           <ShellIcon name="team" size={14} />
@@ -302,9 +318,6 @@ export default function CompanyMembersPage() {
                   </option>
                 ))}
               </SelectField>
-              <p className="oma-muted" style={{ fontSize: 12, margin: 0 }}>
-                {COMPANY_ROLES.find((r) => r.value === role)?.desc}
-              </p>
             </div>
             <div className="oma-ws-modal-actions">
               <Button type="default" onClick={() => setInviteOpen(false)}>
