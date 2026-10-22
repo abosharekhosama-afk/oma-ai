@@ -16,7 +16,21 @@ import {
   convertRequestToTask,
   toRequestRow,
   opsError,
+  encodeRequestBrief,
+  decodeRequestBrief,
+  type RequestBriefPayload,
 } from '../../../../../lib/ops-api';
+import {
+  allowedNextStatuses,
+  canConvertRequest,
+  canTransitionApiRequestStatus,
+  toApiRequestStatus,
+  statusLabel,
+  priorityLabel,
+  canCloseRequest,
+} from '../../../../../lib/request-workflow-ui';
+import { OmaTopLoader } from '../../../../../components/ui/oma-top-loader';
+import { listWorkspaceMembers, type WorkspaceMember } from '../../../../../lib/team-api';
 import {
   briefCompleteness,
   briefIsReady,
@@ -25,13 +39,7 @@ import {
   type RequestRow,
 } from '../../../../../lib/demo/stage4-requests';
 import { useLocale, useT } from '../../../../../lib/use-locale';
-import {
-  allowedNextStatuses,
-  canConvertRequest,
-  canTransitionApiRequestStatus,
-  toApiRequestStatus,
-  statusLabel,
-} from '../../../../../lib/request-workflow-ui';
+
 import {
   ArrowLeftOutlined,
   CheckOutlined,
@@ -44,7 +52,14 @@ import {
 
 type Brief = DemoGraph['briefs'][number];
 type Task = DemoGraph['tasks'][number];
-type RequestDetail = RequestRow & { brief: Brief | null; tasks?: Task[] };
+type LinkedTask = {
+  id: string;
+  status: string;
+  title?: unknown;
+  assignee?: string | null;
+  dueAt?: string;
+};
+type RequestDetail = RequestRow & { brief: Brief | null; tasks?: LinkedTask[] };
 
 const emptyCopy = (): DemoLocaleCopy => ({ en: '', ar: '' });
 
@@ -102,52 +117,77 @@ export default function RequestDetailPage() {
   const [confirmClose, setConfirmClose] = useState(false);
   const [closeReason, setCloseReason] = useState('');
   const [converting, setConverting] = useState(false);
+  const [members, setMembers] = useState<WorkspaceMember[]>([]);
 
   const load = useCallback(async () => {
     if (!requestId) return;
     setLoading(true);
     try {
       const detail = await getRequest(requestId);
-      const data = toRequestRow(detail.data);
+      const data = toRequestRow(detail.data) as RequestDetail;
       data.conversionTaskIds = (detail.tasks ?? []).map((x) => x.id);
+      data.tasks = (detail.tasks ?? []).map((task) => ({
+        id: task.id,
+        status: task.status,
+        title: task.title,
+        assignee: task.assignee_user_id ?? null,
+        dueAt: task.due_at ? String(task.due_at).slice(0, 10) : '',
+      })) as RequestDetail['tasks'];
       setRow(data);
+
+      const decoded = decodeRequestBrief(detail.data.description);
+      const empty = emptyCopy();
       setBriefDraft({
-        id: '',
+        id: decoded ? 'server' : '',
         requestId,
-        overview: emptyCopy(),
-        objective: emptyCopy(),
-        audience: emptyCopy(),
-        keyMessage: emptyCopy(),
-        deliverableType: emptyCopy(),
-        channels: data.channels ?? [],
-        formats: data.formats ?? [],
-        tone: emptyCopy(),
-        mandatory: emptyCopy(),
-        cta: emptyCopy(),
+        overview: decoded?.overview ?? empty,
+        objective: decoded?.objective ?? empty,
+        audience: decoded?.audience ?? empty,
+        keyMessage: decoded?.keyMessage ?? empty,
+        deliverableType: decoded?.deliverableType ?? empty,
+        channels: decoded?.channels ?? data.channels ?? [],
+        formats: decoded?.formats ?? data.formats ?? [],
+        tone: decoded?.tone ?? empty,
+        mandatory: decoded?.mandatory ?? empty,
+        cta: decoded?.cta ?? empty,
         references: [],
         doList: [],
         dontList: [],
-        timelineNote: emptyCopy(),
+        timelineNote: decoded?.timelineNote ?? empty,
         stakeholders: [],
-        acceptance: emptyCopy(),
+        acceptance: decoded?.acceptance ?? empty,
         dueAt: data.dueAt,
         attachmentAssets: [],
-        readiness: 'DRAFT',
+        readiness: (decoded?.readiness as Brief['readiness']) || 'DRAFT',
       });
       setDirty(false);
       setError(null);
       setUnavailable(false);
     } catch (err) {
-      setError(opsError(err, 'Failed to load request'));
+      setError(opsError(err, locale.toLowerCase().startsWith('ar') ? 'تعذّر تحميل الطلب' : 'Failed to load request'));
       setRow(null);
     } finally {
       setLoading(false);
     }
-  }, [requestId]);
+  }, [requestId, locale]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    let cancelled = false;
+    listWorkspaceMembers()
+      .then((data) => {
+        if (!cancelled) setMembers(data);
+      })
+      .catch(() => {
+        if (!cancelled) setMembers([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     const onBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -179,20 +219,41 @@ export default function RequestDetailPage() {
   }
 
   async function saveBrief() {
-    if (!requestId || !briefDraft) return;
+    if (!requestId || !briefDraft || !row) return;
     setSaving(true);
     try {
-      const saved = briefDraft;
+      const payload: RequestBriefPayload = {
+        overview: briefDraft.overview,
+        objective: briefDraft.objective,
+        audience: briefDraft.audience,
+        keyMessage: briefDraft.keyMessage,
+        deliverableType: briefDraft.deliverableType,
+        tone: briefDraft.tone,
+        mandatory: briefDraft.mandatory,
+        cta: briefDraft.cta,
+        acceptance: briefDraft.acceptance,
+        timelineNote: briefDraft.timelineNote,
+        channels: briefDraft.channels,
+        formats: briefDraft.formats,
+        readiness: briefCompleteness(briefDraft) >= 80 ? 'READY' : 'DRAFT',
+      };
+      const plain =
+        (typeof briefDraft.overview === 'object' && briefDraft.overview?.en) ||
+        (typeof briefDraft.objective === 'object' && briefDraft.objective?.en) ||
+        '';
+      const description = encodeRequestBrief(payload, String(plain || ''));
+      const updated = await updateRequest(requestId, {
+        description,
+        channels: briefDraft.channels ?? [],
+        formats: briefDraft.formats ?? [],
+      });
+      setRow((prev) => ({ ...(prev || ({} as RequestDetail)), ...toRequestRow(updated) }));
+      setBriefDraft((b) => (b ? { ...b, readiness: payload.readiness as Brief['readiness'], id: 'server' } : b));
+      setDirty(false);
       toast.push(
-        locale.toLowerCase().startsWith('ar')
-          ? 'الموجز محفوظ محلياً (قريباً على الخادم)'
-          : 'Brief saved locally (server brief domain coming next)',
+        locale.toLowerCase().startsWith('ar') ? 'تم حفظ الموجز' : 'Brief saved',
         'success',
       );
-      setBriefDraft(saved);
-      setDirty(false);
-      toast.push(t('demo.brief.saved'), 'success');
-      await load();
     } catch (err) {
       toast.push(opsError(err, t('demo.unavailable')), 'danger');
     } finally {
@@ -211,8 +272,9 @@ export default function RequestDetailPage() {
     }
     try {
       const body: Record<string, unknown> = { ...patch };
+      if (body.status === undefined) delete body.status;
       if ('assignee' in body) {
-        body.assigneeUserId = body.assignee;
+        body.assigneeUserId = body.assignee || null;
         delete body.assignee;
       }
       if (typeof body.dueAt === 'string' && body.dueAt && !String(body.dueAt).includes('T')) {
@@ -270,6 +332,7 @@ export default function RequestDetailPage() {
             <Button
               type="default"
               data-testid="demo-request-close"
+              disabled={!canCloseRequest(row.status)}
               onClick={() => setConfirmClose(true)}
             >
               {t('demo.requests.close')}
@@ -288,7 +351,7 @@ export default function RequestDetailPage() {
 
       <DemoDisclosure />
 
-      {loading ? <p className="oma-muted oma-req-detail__pad">{t('demo.loading')}</p> : null}
+      {loading ? <OmaTopLoader /> : null}
       {unavailable ? (
         <p className="oma-muted oma-req-detail__pad" data-testid="demo-request-denied">
           {t('demo.unavailable')}
@@ -310,7 +373,19 @@ export default function RequestDetailPage() {
                 <StatusChip status={row.priority} />
                 <span className="oma-req-detail__id">{row.id.replace('demo-request-', '#')}</span>
               </div>
-              <h1 className="oma-req-detail__title">{safeCopy(row.title, locale)}</h1>
+              <h1 className="oma-req-detail__title">
+                <Input
+                  key={row.id + '-title'}
+                  defaultValue={safeCopy(row.title, locale)}
+                  data-testid="demo-request-title-edit"
+                  onBlur={(e) => {
+                    const v = e.target.value.trim();
+                    if (v && v !== safeCopy(row.title, locale)) {
+                      void patchRequest({ title: { en: v, ar: v } });
+                    }
+                  }}
+                />
+              </h1>
               <p className="oma-req-detail__desc">{safeCopy(row.description, locale)}</p>
             </div>
 
@@ -358,11 +433,37 @@ export default function RequestDetailPage() {
                 </label>
                 <label>
                   {t('demo.requests.filter.assignee')}
-                  <Input
-                    defaultValue={row.assignee ?? ''}
-                    data-testid="demo-request-assignee"
-                    onBlur={(e) => void patchRequest({ assignee: e.target.value.trim() || null })}
-                  />
+                  {members.length > 0 ? (
+                    <SelectField
+                      value={row.assignee ?? ''}
+                      data-testid="demo-request-assignee"
+                      onChange={(e) =>
+                        void patchRequest({
+                          assignee: e.target.value || null,
+                          status:
+                            e.target.value && toApiRequestStatus(row.status) === 'OPEN'
+                              ? 'ASSIGNED'
+                              : undefined,
+                        })
+                      }
+                    >
+                      <option value="">{t('demo.requests.unassigned')}</option>
+                      {members
+                        .filter((m) => m.user?.id)
+                        .map((m) => (
+                          <option key={m.id} value={m.user!.id}>
+                            {m.user?.name || m.user?.email || m.user!.id}
+                          </option>
+                        ))}
+                    </SelectField>
+                  ) : (
+                    <Input
+                      defaultValue={row.assignee ?? ''}
+                      data-testid="demo-request-assignee"
+                      placeholder="User id"
+                      onBlur={(e) => void patchRequest({ assignee: e.target.value.trim() || null })}
+                    />
+                  )}
                 </label>
                 <label>
                   {t('demo.requests.col.due')}
@@ -603,7 +704,7 @@ export default function RequestDetailPage() {
                   <span className="oma-req-detail__side-label">
                     {t('demo.requests.filter.priority')}
                   </span>
-                  <strong>{row.priority}</strong>
+                  <strong>{priorityLabel(row.priority, isAr)}</strong>
                 </div>
               </div>
               <div className="oma-req-detail__side-row">
@@ -612,7 +713,7 @@ export default function RequestDetailPage() {
                   <span className="oma-req-detail__side-label">
                     {t('demo.requests.filter.status')}
                   </span>
-                  <strong>{row.status}</strong>
+                  <strong>{statusLabel(row.status, isAr)}</strong>
                 </div>
               </div>
             </div>
