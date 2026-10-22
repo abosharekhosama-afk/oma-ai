@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { OmaTopLoader } from '../../../../components/ui/oma-top-loader';
 import { createPortal } from 'react-dom';
 import { resolveContentWorkflow, type ApprovalPolicy, type DemoGraph } from '@oma/demo';
@@ -128,6 +128,16 @@ import {
 } from '../../../../lib/content-api';
 import { createRequest, convertRequestToTask, convertTaskToDeliverable, opsError } from '../../../../lib/ops-api';
 import { useLocale, useT } from '../../../../lib/use-locale';
+import {
+  canRequestApproval,
+  canApprove,
+  canRequestChanges,
+  canReject,
+  canScheduleItem,
+  canMarkPublished,
+  canArchive,
+  lifecycleHint,
+} from '../../../../lib/content-workflow-ui';
 
 type Campaign = DemoGraph['campaigns'][number];
 type Brand = DemoGraph['brands'][number];
@@ -506,6 +516,7 @@ function CardFloatingMenu({
   open,
   pos,
   itemId,
+  item,
   locale,
   onAction,
   onClose,
@@ -513,41 +524,116 @@ function CardFloatingMenu({
   open: boolean;
   pos: { top: number; left: number } | null;
   itemId: string | null;
+  item: {
+    approvalState?: string;
+    scheduleState?: string;
+    scheduleBlocked?: boolean;
+    clientVisible?: boolean;
+  } | null;
   locale: string;
   onAction: (action: CardMenuAction, id: string) => void;
   onClose: () => void;
 }) {
   const isAr = locale.toLowerCase().startsWith('ar');
   const ref = useRef<HTMLDivElement | null>(null);
-  const [realPos, setRealPos] = useState<{ top: number; left: number } | null>(pos);
+  const [realPos, setRealPos] = useState(pos);
 
   useEffect(() => {
-    if (!open || !pos) {
-      setRealPos(null);
-      return;
-    }
     setRealPos(pos);
-  }, [open, pos]);
+  }, [pos]);
 
-  /* Clamp within viewport */
   useEffect(() => {
-    if (!realPos || !ref.current) return;
-    const el = ref.current;
-    const rect = el.getBoundingClientRect();
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
+    if (!open || !realPos || !ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const pad = 8;
     let nextLeft = realPos.left;
     let nextTop = realPos.top;
-    if (nextLeft + rect.width + 8 > vw) nextLeft = vw - rect.width - 8;
-    if (nextTop + rect.height + 8 > vh) nextTop = vh - rect.height - 8;
-    if (nextLeft < 8) nextLeft = 8;
-    if (nextTop < 8) nextTop = 8;
+    if (nextLeft + rect.width > window.innerWidth - pad) {
+      nextLeft = Math.max(pad, window.innerWidth - rect.width - pad);
+    }
+    if (nextTop + rect.height > window.innerHeight - pad) {
+      nextTop = Math.max(pad, window.innerHeight - rect.height - pad);
+    }
     if (nextLeft !== realPos.left || nextTop !== realPos.top) {
       setRealPos({ left: nextLeft, top: nextTop });
     }
-  }, [realPos]);
+  }, [realPos, open]);
 
   if (!open || !realPos || !itemId) return null;
+
+  const src = item || {};
+  const items: Array<{
+    action: CardMenuAction;
+    label: string;
+    icon: ReactNode;
+    danger?: boolean;
+    disabled?: boolean;
+  }> = [
+    {
+      action: 'request',
+      label: isAr ? 'طلب موافقة' : 'Request approval',
+      icon: <SyncOutlined />,
+      disabled: !canRequestApproval(src),
+    },
+    {
+      action: 'approve',
+      label: isAr ? 'الموافقة على المنشور' : 'Approve post',
+      icon: <CheckOutlined />,
+      disabled: !canApprove(src),
+    },
+    {
+      action: 'changes',
+      label: isAr ? 'طلب تعديلات' : 'Request changes',
+      icon: <FormOutlined />,
+      disabled: !canRequestChanges(src),
+    },
+    {
+      action: 'reject',
+      label: isAr ? 'رفض' : 'Reject',
+      icon: <CloseOutlined />,
+      disabled: !canReject(src),
+      danger: true,
+    },
+    {
+      action: 'published',
+      label: isAr ? 'تم كمنشور' : 'Mark as published',
+      icon: <FlagOutlined />,
+      disabled: !canMarkPublished(src),
+    },
+    {
+      action: 'hide',
+      label:
+        src.clientVisible === false
+          ? isAr
+            ? 'إظهار للعملاء'
+            : 'Show to clients'
+          : isAr
+            ? 'إخفاء عن العملاء'
+            : 'Hide from clients',
+      icon: <EyeInvisibleOutlined />,
+    },
+    {
+      action: 'labels',
+      label: isAr ? 'التصنيفات' : 'Labels',
+      icon: <TagOutlined />,
+    },
+    {
+      action: 'template',
+      label: isAr ? 'حفظ كقالب' : 'Save as template',
+      icon: <CopyOutlined />,
+    },
+    {
+      action: 'ops',
+      label: isAr ? 'تحويل إلى طلب' : 'Convert to request',
+      icon: <UnorderedListOutlined />,
+    },
+    {
+      action: 'archive',
+      label: isAr ? 'أرشفة المنشور' : 'Archive post',
+      icon: <InboxOutlined />,
+      disabled: !canArchive(src),
+    },
+  ];
 
   return createPortal(
     <div
@@ -558,65 +644,30 @@ function CardFloatingMenu({
       style={{ position: 'fixed', top: realPos.top, left: realPos.left, zIndex: 9999 }}
       onMouseLeave={onClose}
     >
-      <button
-        type="button"
-        role="menuitem"
-        className="oma-card-menu__item"
-        onClick={() => onAction('request', itemId)}
-      >
-        <span className="oma-card-menu__item-ico"><SyncOutlined /></span>
-        <span>{isAr ? 'طلب موافقة' : 'Request approval'}</span>
-      </button>
-      <button
-        type="button"
-        role="menuitem"
-        className="oma-card-menu__item"
-        onClick={() => onAction('approve', itemId)}
-      >
-        <span className="oma-card-menu__item-ico"><CheckOutlined /></span>
-        <span>{isAr ? 'الموافقة على المنشور' : 'Approve post'}</span>
-      </button>
-      <button
-        type="button"
-        role="menuitem"
-        className="oma-card-menu__item"
-        onClick={() => onAction('published', itemId)}
-      >
-        <span className="oma-card-menu__item-ico"><FlagOutlined /></span>
-        <span>{isAr ? 'تم كمنشور' : 'Mark as published'}</span>
-      </button>
-      <button
-        type="button"
-        role="menuitem"
-        className="oma-card-menu__item"
-        onClick={() => onAction('hide', itemId)}
-      >
-        <span className="oma-card-menu__item-ico"><EyeInvisibleOutlined /></span>
-        <span>{isAr ? 'إخفاء عن العملاء' : 'Hide from clients'}</span>
-        <span className="oma-card-menu__badge">✕</span>
-      </button>
-      <button
-        type="button"
-        role="menuitem"
-        className="oma-card-menu__item"
-        onClick={() => onAction('archive', itemId)}
-      >
-        <span className="oma-card-menu__item-ico"><InboxOutlined /></span>
-        <span>{isAr ? 'أرشفة المنشور' : 'Archive post'}</span>
-      </button>
-      <button
-        type="button"
-        role="menuitem"
-        className="oma-card-menu__item oma-card-menu__item--danger"
-        onClick={() => onAction('repost', itemId)}
-      >
-        <span className="oma-card-menu__item-ico"><CloseOutlined /></span>
-        <span>{isAr ? 'إعادة نشر' : 'Repost'}</span>
-      </button>
+      {items.map((it) => (
+        <button
+          key={it.action}
+          type="button"
+          role="menuitem"
+          className={
+            it.danger ? 'oma-card-menu__item oma-card-menu__item--danger' : 'oma-card-menu__item'
+          }
+          disabled={it.disabled}
+          data-disabled={it.disabled ? 'true' : undefined}
+          onClick={() => {
+            if (it.disabled) return;
+            onAction(it.action, itemId);
+          }}
+        >
+          <span className="oma-card-menu__item-ico">{it.icon}</span>
+          <span>{it.label}</span>
+        </button>
+      ))}
     </div>,
     document.body,
   );
-              }
+}
+
 export default function ContentPage() {
   const t = useT();
   const locale = useLocale();
@@ -1131,6 +1182,30 @@ export default function ContentPage() {
   ) {
     const id = contentId || selectedId;
     if (!id) return;
+    const target = rows.find((r) => r.id === id);
+    if (target) {
+      const hint = lifecycleHint(
+        command === 'request-approval'
+          ? 'request'
+          : command === 'request-changes'
+            ? 'changes'
+            : command === 'mark-published'
+              ? 'published'
+              : command,
+        target,
+        isAr,
+      );
+      if (hint && (command === 'approve' || command === 'schedule' || command === 'request-approval')) {
+        if (command === 'schedule' && !canScheduleItem(target, 'OPTIONAL') && target.approvalState !== 'APPROVED') {
+          toast.push(hint, 'danger');
+          return;
+        }
+        if (command === 'approve' && !canApprove(target)) {
+          toast.push(hint, 'danger');
+          return;
+        }
+      }
+    }
     setSaving(true);
     setSaveError(null);
     try {
@@ -1168,6 +1243,33 @@ export default function ContentPage() {
       const msg = contentApiError(err, t('demo.unavailable'));
       setSaveError(msg);
       toast.push(msg, 'danger');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+
+  async function rescheduleContentToDay(contentId: string, dayKey: string) {
+    const row = rows.find((r) => r.id === contentId);
+    if (!row) return;
+    if (!canScheduleItem(row, 'OPTIONAL') && row.approvalState !== 'APPROVED') {
+      toast.push(
+        isAr
+          ? 'الجدولة محظورة حتى اعتماد المنشور'
+          : 'Scheduling blocked until content is approved',
+        'danger',
+      );
+      return;
+    }
+    const scheduledAt = `${dayKey}T10:00:00.000Z`;
+    setSaving(true);
+    try {
+      const updated = await scheduleContent(contentId, { scheduledAt });
+      const next = toContentRow(updated);
+      setRows((prev) => prev.map((r) => (r.id === contentId ? next : r)));
+      toast.push(isAr ? 'تم تحديث موعد المنشور' : 'Post rescheduled', 'success');
+    } catch (err) {
+      toast.push(contentApiError(err, t('demo.unavailable')), 'danger');
     } finally {
       setSaving(false);
     }
@@ -2083,6 +2185,15 @@ export default function ContentPage() {
                           data-today={cell.key === TODAY_KEY ? 'true' : 'false'}
                           data-selected={cell.key === selectedDay ? 'true' : 'false'}
                           onClick={() => setSelectedDay(cell.key)}
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = 'move';
+                          }}
+                          onDrop={(e) => {
+                            e.preventDefault();
+                            const id = e.dataTransfer.getData('text/oma-content-id');
+                            if (id) void rescheduleContentToDay(id, cell.key);
+                          }}
                         >
                           <span className="oma-cal-daynum oma-ltr">{cell.date.getUTCDate()}</span>
 
@@ -2247,6 +2358,11 @@ export default function ContentPage() {
                               key={item.id}
                               className="oma-cal-item-wrap"
                               data-selected={selectedId === item.id ? 'true' : 'false'}
+                              draggable
+                              onDragStart={(e) => {
+                                e.dataTransfer.setData('text/oma-content-id', item.id);
+                                e.dataTransfer.effectAllowed = 'move';
+                              }}
                               onMouseEnter={(e) => scheduleCardMenu(item.id, e.currentTarget)}
                               onMouseLeave={() => cancelCardMenu()}
                             >
@@ -3458,6 +3574,7 @@ export default function ContentPage() {
       <CardFloatingMenu
         open={!!cardMenuId && !!menuPos}
         pos={menuPos}
+        item={rows.find((r) => r.id === cardMenuId) || null}
         itemId={cardMenuId}
         locale={locale}
         onAction={handleCardMenuAction}
