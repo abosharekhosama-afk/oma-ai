@@ -1,5 +1,7 @@
 'use client';
 
+import { OmaTopLoader } from '../../../../../components/ui/oma-top-loader';
+
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
@@ -97,12 +99,7 @@ export default function BrandDetailPage() {
   if (denied) return <PermissionDenied message={t('errors.permission')} />;
   if (tenantRequired) return <SelectCompany />;
   if (loading) {
-    return (
-      <div className="oma-stack" role="status" aria-label={t('common.loading')}>
-        <Skeleton height="3rem" />
-        <Skeleton height="10rem" />
-      </div>
-    );
+    return <OmaTopLoader label={t('common.loading')} />;
   }
   if (error || !brand) {
     return (
