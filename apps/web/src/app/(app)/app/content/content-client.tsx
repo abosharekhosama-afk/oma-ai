@@ -248,6 +248,8 @@ function PlanableComposeCard({
   onChange,
   onClose,
   onSubmit,
+  onOpenLabels,
+  onOpenTemplates,
 }: {
   open: boolean;
   creating: boolean;
@@ -258,6 +260,8 @@ function PlanableComposeCard({
   onChange: (patch: Partial<ComposeForm>) => void;
   onClose: () => void;
   onSubmit: () => void;
+  onOpenLabels?: () => void;
+  onOpenTemplates?: () => void;
 }) {
   const [campaignMenu, setCampaignMenu] = useState(false);
   if (!open) return null;
@@ -326,9 +330,23 @@ function PlanableComposeCard({
               </div>
             ) : null}
           </div>
-          <button type="button" className="oma-compose-pill">
+          <button
+            type="button"
+            className="oma-compose-pill"
+            onClick={() => onOpenLabels?.()}
+            data-testid="demo-compose-labels"
+          >
             <TagOutlined />
             Labels
+          </button>
+          <button
+            type="button"
+            className="oma-compose-pill"
+            onClick={() => onOpenTemplates?.()}
+            data-testid="demo-compose-templates"
+          >
+            <FileTextOutlined />
+            Templates
           </button>
         </div>
 
@@ -789,13 +807,21 @@ export default function ContentPage() {
     return () => el.removeEventListener('click', open);
   }, []);
 
-  /* Keep Planable path view label in shell breadcrumb in sync */
+  /* Keep Planable path view label in shell breadcrumb in sync (icon + text, path style) */
   useEffect(() => {
     const el = document.getElementById('oma-content-view-slot');
     if (!el) return;
     const label = t(`demo.view.${view}`);
-    el.textContent = label;
+    const icons: Record<string, string> = {
+      calendar:
+        '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M7 3h2v2h6V3h2v2h2a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h2V3Zm12 7H5v9h14v-9Z"/></svg>',
+      feed: '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M4 6h16v2H4V6Zm0 5h16v2H4v-2Zm0 5h16v2H4v-2Z"/></svg>',
+      list: '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M8 6h12v2H8V6Zm0 5h12v2H8v-2Zm0 5h12v2H8v-2ZM4 6h2v2H4V6Zm0 5h2v2H4v-2Zm0 5h2v2H4v-2Z"/></svg>',
+      grid: '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M4 4h7v7H4V4Zm9 0h7v7h-7V4ZM4 13h7v7H4v-7Zm9 0h7v7h-7v-7Z"/></svg>',
+    };
+    el.innerHTML = `<span class="oma-breadcrumb-view-inner">${icons[view] || icons.calendar}<span class="oma-breadcrumb-view-label">${label}</span><span class="oma-breadcrumb-view-caret" aria-hidden>▾</span></span>`;
     el.setAttribute('data-view', view);
+    el.classList.add('oma-breadcrumb-view--interactive');
   }, [view, t]);
 
   useEffect(() => {
@@ -3466,6 +3492,27 @@ export default function ContentPage() {
       />
 
       <PlanableComposeCard
+        onOpenLabels={() => {
+          const campaign = campaigns.find((c) => c.id === createForm.campaignId);
+          const bid = campaign?.brandId || brands[0]?.id;
+          if (bid) {
+            void listBrandLabels(bid)
+              .then((labs) => setBrandLabels(labs as typeof brandLabels))
+              .catch(() => setBrandLabels([]));
+          }
+          setLabelPickerOpen(true);
+        }}
+        onOpenTemplates={() => {
+          const bid = brands[0]?.id;
+          if (bid) {
+            void listBrandTemplates(bid)
+              .then((tpls) => setBrandTemplates(tpls as typeof brandTemplates))
+              .catch(() => setBrandTemplates([]));
+          } else {
+            setBrandTemplates([]);
+          }
+          setTemplatePickerOpen(true);
+        }}
         open={createOpen}
         creating={creating}
         error={createError}

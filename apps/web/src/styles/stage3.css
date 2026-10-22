@@ -6253,3 +6253,134 @@ button.oma-cal-item {
   text-decoration: none !important;
   background: transparent !important;
 }
+
+/* ── Content calendar polish (Planable denser chrome) ── */
+.oma-content-plan.oma-stack {
+  gap: 0 !important;
+  padding-top: 0 !important;
+}
+.oma-content-plan .oma-demo-disclosure {
+  display: none !important; /* reduce top dead space above calendar */
+}
+.oma-cal-main {
+  padding: 4px 8px 8px !important;
+}
+.oma-cal-toolbar {
+  margin-bottom: 4px !important;
+  min-height: 36px !important;
+  padding: 2px 4px !important;
+  border-bottom: 0 !important;
+}
+.oma-cal-with-saved {
+  min-height: calc(100vh - 96px) !important;
+}
+
+/* Weekday headers more Planable-like */
+.oma-cal-dow {
+  padding: 10px 6px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: uppercase !important;
+  color: #6b7280 !important;
+  background: #fafbfc !important;
+  border-bottom: 1px solid #e8e9eb !important;
+}
+
+/* Calendar post cards */
+.oma-cal-cell .oma-post-card--calendar {
+  min-height: 96px !important;
+  border-radius: 10px !important;
+  border: 1px solid #e8e9eb !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+  overflow: hidden !important;
+}
+.oma-post-card--calendar .oma-post-card__media {
+  border-radius: 8px 8px 0 0 !important;
+}
+.oma-post-card--calendar .oma-post-card__title {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  line-height: 1.3 !important;
+}
+.oma-post-card--calendar .oma-post-card__caption {
+  font-size: 11px !important;
+  color: #6b7280 !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+.oma-post-card--calendar .oma-post-card__meta {
+  font-size: 10px !important;
+  color: #9ca3af !important;
+}
+
+/* Comment input */
+.oma-plan-post__comment-box {
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  padding: 10px 12px !important;
+  background: #fafbfc !important;
+}
+.oma-plan-post__comment-input-row {
+  display: flex !important;
+  gap: 8px !important;
+  align-items: flex-end !important;
+}
+.oma-plan-post__comment-input {
+  flex: 1 !important;
+  min-height: 40px !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 10px !important;
+  padding: 8px 12px !important;
+  font: inherit !important;
+  font-size: 13px !important;
+  resize: vertical !important;
+  background: #fff !important;
+}
+.oma-plan-post__comment-input:focus {
+  outline: none !important;
+  border-color: #93c5fd !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+}
+.oma-plan-post__comment-send {
+  border-radius: 10px !important;
+}
+
+/* Detail tool tooltips — full readable tip below control */
+.oma-plan-post__tool-btn,
+.oma-plan-post__status-btn,
+.oma-plan-post__approve-count,
+.oma-plan-list__ico {
+  position: relative !important;
+}
+.oma-plan-post__tool-btn[data-tooltip]:hover::after,
+.oma-plan-post__status-btn[data-tooltip]:hover::after,
+.oma-plan-post__approve-count[data-tooltip]:hover::after,
+.oma-plan-list__ico[data-tooltip]:hover::after,
+.oma-cal-cell-actions__btn[data-tooltip]:hover::after,
+.oma-cal-request-approvals[data-tooltip]:hover::after,
+.oma-cal-ext-indicator[data-tooltip]:hover::after {
+  content: attr(data-tooltip) !important;
+  position: absolute !important;
+  z-index: 10050 !important;
+  top: calc(100% + 8px) !important;
+  bottom: auto !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  padding: 7px 11px !important;
+  border-radius: 8px !important;
+  background: #1f2937 !important;
+  color: #fff !important;
+  font-size: 12px !important;
+  line-height: 1.35 !important;
+  font-weight: 500 !important;
+  white-space: normal !important;
+  max-width: 240px !important;
+  min-width: 0 !important;
+  width: max-content !important;
+  text-align: center !important;
+  pointer-events: none !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2) !important;
+}
