@@ -1,4 +1,6 @@
 'use client';
+
+import { OmaTopLoader } from '../../../../../../../../components/ui/oma-top-loader';
 import { Button, Input } from '@oma/ui/controls';
 
 import { useParams } from 'next/navigation';
@@ -88,7 +90,7 @@ export default function StrategyOrganicPage() {
 
   if (denied) return <PermissionDenied message={t('errors.permission')} />;
   if (tenantRequired) return <SelectCompany />;
-  if (!brand || !version) return <p role="status">{t('common.loading')}</p>;
+  if (!brand || !version) return <OmaTopLoader label={t('common.loading')} />;
   const editable = version.status === 'DRAFT';
 
   return (
