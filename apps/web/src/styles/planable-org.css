@@ -873,3 +873,179 @@
 .plx-page .oma-filter-accordion__body {
   padding: 0 0 12px !important;
 }
+
+
+/* Content calendar loading skeleton — mimics calendar chrome */
+.oma-content-cal-skeleton {
+  background: #fff;
+  border: 1px solid #eceef1;
+  border-radius: 14px;
+  padding: 16px 18px 20px;
+  margin: 8px 0 24px;
+  box-shadow: 0 1px 2px rgba(17, 24, 39, 0.04);
+}
+.oma-content-cal-skeleton__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.oma-content-cal-skeleton__chip {
+  width: 72px;
+  height: 28px;
+  border-radius: 8px;
+}
+.oma-content-cal-skeleton__label {
+  width: 140px;
+  height: 20px;
+  border-radius: 6px;
+}
+.oma-content-cal-skeleton__spacer { flex: 1; }
+.oma-content-cal-skeleton__btn {
+  width: 36px;
+  height: 28px;
+  border-radius: 8px;
+}
+.oma-content-cal-skeleton__dows {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.oma-content-cal-skeleton__dow {
+  height: 12px;
+  border-radius: 4px;
+  width: 40%;
+  margin-inline: auto;
+}
+.oma-content-cal-skeleton__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+.oma-content-cal-skeleton__cell {
+  min-height: 88px;
+  border: 1px solid #f0f1f3;
+  border-radius: 10px;
+  background: #fafbfc;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.oma-content-cal-skeleton__daynum {
+  width: 18px;
+  height: 12px;
+  border-radius: 4px;
+}
+.oma-content-cal-skeleton__post {
+  height: 28px;
+  border-radius: 8px;
+  width: 100%;
+}
+.oma-content-cal-skeleton__post--sm {
+  height: 18px;
+  width: 70%;
+}
+
+/* Soft white skeleton pulse */
+.oma-content-cal-skeleton .oma-skeleton {
+  background: linear-gradient(90deg, #f3f4f6 0%, #eef0f3 40%, #f3f4f6 80%) !important;
+  background-size: 200% 100% !important;
+  animation: oma-skel-shimmer 1.2s ease-in-out infinite !important;
+  border: 0 !important;
+}
+@keyframes oma-skel-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+/* Layout switch active state */
+.oma-campaign-layout-switch {
+  display: inline-flex;
+  gap: 4px;
+  padding: 2px;
+  background: #f3f4f6;
+  border-radius: 10px;
+}
+.oma-campaign-layout-switch .oma-header-icon-btn {
+  border: 0 !important;
+  background: transparent !important;
+  width: 32px !important;
+  height: 32px !important;
+  min-width: 32px !important;
+}
+.oma-campaign-layout-switch .oma-header-icon-btn[data-active='true'],
+.oma-campaign-layout-switch .oma-header-icon-btn[aria-pressed='true'] {
+  background: #fff !important;
+  box-shadow: 0 1px 2px rgba(17, 24, 39, 0.08) !important;
+  color: #1d4ed8 !important;
+}
+
+/* Tasks-parity filter accordion (brands + campaigns drawers) */
+.plx-page .oma-filter-accordion,
+.oma-campaigns-page .oma-filter-accordion {
+  border-bottom: 1px solid #f0f1f3;
+}
+.plx-page .oma-filter-accordion__row,
+.oma-campaigns-page .oma-filter-accordion__row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  width: 100% !important;
+  min-height: 40px !important;
+  padding: 0 4px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #333 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  text-align: start !important;
+  cursor: pointer !important;
+  border-radius: 6px !important;
+  font-family: inherit !important;
+}
+.plx-page .oma-filter-accordion__row:hover,
+.plx-page .oma-filter-accordion__row[data-open='true'],
+.oma-campaigns-page .oma-filter-accordion__row:hover,
+.oma-campaigns-page .oma-filter-accordion__row[data-open='true'] {
+  background: #f5f6f7 !important;
+}
+.plx-page .oma-filter-accordion__ico,
+.oma-campaigns-page .oma-filter-accordion__ico {
+  width: 18px !important;
+  text-align: center !important;
+  opacity: 0.7 !important;
+  flex-shrink: 0 !important;
+}
+.plx-page .oma-filter-accordion__caret,
+.oma-campaigns-page .oma-filter-accordion__caret {
+  margin-inline-start: auto !important;
+  color: #8c8c8c !important;
+  font-size: 10px !important;
+}
+.plx-page .oma-filter-accordion__body,
+.oma-campaigns-page .oma-filter-accordion__body {
+  padding: 4px 8px 10px 28px !important;
+  background: #f7f8f9 !important;
+  border-radius: 0 0 8px 8px !important;
+  margin-bottom: 4px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+}
+.plx-page .oma-filter-check,
+.oma-campaigns-page .oma-filter-check {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  min-height: 32px !important;
+  font-size: 13px !important;
+  color: #333 !important;
+  cursor: pointer !important;
+}
+.plx-page .oma-filter-check input,
+.oma-campaigns-page .oma-filter-check input {
+  accent-color: #4c8dff;
+}
