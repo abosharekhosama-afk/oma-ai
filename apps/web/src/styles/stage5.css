@@ -433,22 +433,85 @@
 }
 
 /* Schedule — Planable calendar language (owned by P5) */
+.oma-sched-calendar {
+  display: grid;
+  gap: 0;
+  margin-bottom: var(--space-4);
+  border: 1px solid var(--oma-border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--oma-surface);
+}
+.oma-sched-dow-row,
 .oma-sched-week {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: var(--space-2);
-  margin-bottom: var(--space-4);
+}
+.oma-sched-dow {
+  padding: 10px 8px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #6b7280;
+  background: #fafbfc;
+  border-bottom: 1px solid var(--oma-border);
+  border-inline-end: 1px solid var(--oma-border);
+}
+.oma-sched-dow:last-child {
+  border-inline-end: 0;
+}
+.oma-sched-week {
+  gap: 0;
+  margin-bottom: 0;
 }
 
 .oma-sched-day {
-  border: 1px solid var(--oma-border);
-  border-radius: var(--oma-radius-control);
+  border: 0;
+  border-inline-end: 1px solid var(--oma-border);
+  border-radius: 0;
   background: var(--oma-surface);
-  min-height: 132px;
+  min-height: 148px;
   padding: var(--space-2);
   display: grid;
   gap: var(--space-1);
   align-content: start;
+}
+.oma-sched-day:last-child {
+  border-inline-end: 0;
+}
+.oma-sched-day-label {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  text-align: center;
+}
+.oma-sched-day-label__dow {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+.oma-sched-day-label__num {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+.oma-sched-day[data-today='true'] .oma-sched-day-label__num {
+  background: #e5484d;
+  color: #fff;
+}
+.oma-sched-day-label__key {
+  font-size: 10px;
+  color: #9ca3af;
 }
 
 .oma-sched-day[data-today='true'] {
@@ -578,7 +641,9 @@
     justify-self: start;
   }
 
-  .oma-sched-week {
+  .oma-sched-calendar,
+  .oma-sched-week,
+  .oma-sched-dow-row {
     display: none;
   }
 
@@ -663,7 +728,9 @@
   overflow: hidden !important;
   text-decoration: none !important;
   color: inherit !important;
-  transition: box-shadow 0.15s ease, border-color 0.15s ease !important;
+  transition:
+    box-shadow 0.15s ease,
+    border-color 0.15s ease !important;
 }
 .oma-deliv-grid-card:hover {
   border-color: #c9cdd3 !important;
@@ -1260,7 +1327,9 @@
   min-height: 36px !important;
   padding: 0 4px !important;
   border-radius: 8px !important;
-  transition: background 0.15s ease, width 0.15s ease !important;
+  transition:
+    background 0.15s ease,
+    width 0.15s ease !important;
 }
 .oma-reviews-search[data-expanded='true'] {
   background: #f5f6f7 !important;
