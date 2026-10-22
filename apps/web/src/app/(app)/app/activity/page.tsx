@@ -2,6 +2,7 @@
 
 import { Button } from '@oma/ui/controls';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { OmaTopLoader } from '../../../../components/ui/oma-top-loader';
 import { listActivity, type ActivityItem } from '../../../../lib/activity-api';
 import { useToast } from '../../../../components/ui/toast';
 import { ShellIcon } from '../../../../components/shell/shell-icons';
@@ -118,7 +119,7 @@ export default function ActivityPage() {
         ))}
       </div>
 
-      {loading ? <div className="oma-skeleton" role="status" /> : null}
+      {loading ? <OmaTopLoader /> : null}
       {error ? (
         <div className="plx-empty" role="alert">
           <strong>{error}</strong>
