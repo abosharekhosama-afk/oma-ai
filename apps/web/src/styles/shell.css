@@ -1530,3 +1530,44 @@
 .oma-drawer.oma-drawer--nav [data-testid='command-search'] {
   display: none !important;
 }
+
+/* Independent scroll: rail fixed, main content scrolls alone */
+.oma-shell {
+  height: 100vh !important;
+  max-height: 100vh !important;
+  overflow: hidden !important;
+}
+.oma-rail {
+  height: 100vh !important;
+  max-height: 100vh !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  position: sticky !important;
+  top: 0 !important;
+}
+.oma-shell-column {
+  height: 100vh !important;
+  max-height: 100vh !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+.oma-shell-column > .oma-top {
+  flex-shrink: 0 !important;
+}
+.oma-shell-column > .oma-container,
+.oma-shell-column > main.oma-container {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+}
+@media (max-width: 767px) {
+  .oma-shell,
+  .oma-shell-column {
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+  }
+}
