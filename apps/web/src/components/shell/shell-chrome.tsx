@@ -148,6 +148,8 @@ export function ShellChrome({ children }: { children: ReactNode }) {
     pathname.startsWith('/app/brands/') &&
     pathname !== '/app/brands/new' &&
     !pathname.startsWith('/app/brands/new/');
+  const isCampaignsWorkspace =
+    pathname === '/app/campaigns' || pathname.startsWith('/app/campaigns/');
   const brandIdFromPath = (() => {
     if (!isBrandDetail) return null;
     const parts = pathname.split('/').filter(Boolean);
@@ -160,9 +162,15 @@ export function ShellChrome({ children }: { children: ReactNode }) {
     isDeliverablesWorkspace ||
     isTasksWorkspace ||
     isBrandsList ||
-    isBrandDetail;
+    isBrandDetail ||
+    isCampaignsWorkspace;
   const hideShellCreate =
-    isContentWorkspace || isRequestsWorkspace || isDeliverablesWorkspace || isTasksWorkspace;
+    isContentWorkspace ||
+    isRequestsWorkspace ||
+    isDeliverablesWorkspace ||
+    isTasksWorkspace ||
+    isCampaignsWorkspace ||
+    isBrandsList;
   const hideMobileNav =
     isRequestsWorkspace || isDeliverablesWorkspace || isTasksWorkspace;
   const [collapsed, setCollapsed] = useState(false);
@@ -260,7 +268,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
             )}
             {isContentWorkspace ? (
               <div className="oma-top-actions oma-top-actions--content" id="oma-content-top-actions" />
-            ) : isRequestsWorkspace || isDeliverablesWorkspace || isTasksWorkspace ? (
+            ) : isRequestsWorkspace || isDeliverablesWorkspace || isTasksWorkspace || isCampaignsWorkspace || isBrandsList ? (
               <div
                 className="oma-top-actions oma-top-actions--workspace"
                 id="oma-workspace-top-actions"
