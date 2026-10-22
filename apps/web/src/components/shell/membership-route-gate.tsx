@@ -29,7 +29,7 @@ export function MembershipRouteGate({ children }: { children: React.ReactNode })
       if (!cancelled) setReady(true);
     };
 
-    const timeoutId = window.setTimeout(finish, 2500);
+    const timeoutId = window.setTimeout(finish, 800);
 
     api<Me>('/api/v1/auth/me')
       .then((me) => {
@@ -62,14 +62,18 @@ export function MembershipRouteGate({ children }: { children: React.ReactNode })
         }
         finish();
       })
-      .catch(() => {
+      .catch((err: unknown) => {
         if (cancelled) return;
+        const status = (err as { status?: number })?.status;
+        if (status === 401) {
+          window.location.replace('/login?reason=session');
+          return;
+        }
         if (onOnboarding) {
           finish();
           router.replace('/app/select-company');
           return;
         }
-        // Demo: open UI even when unauthenticated
         finish();
       })
       .finally(() => {

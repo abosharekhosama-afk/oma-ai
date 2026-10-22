@@ -6,6 +6,7 @@ import { OmaLinkButton } from '../ui/oma-link-button';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { Drawer } from '../ui/drawer';
+import { SessionInvalidOverlay } from './session-invalid';
 import { ToastProvider } from '../ui/toast';
 import { useT } from '../../lib/use-locale';
 import { BrandContext } from './brand-context';
@@ -202,7 +203,9 @@ export function ShellChrome({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <ToastProvider>
+    <>
+      <SessionInvalidOverlay />
+      <ToastProvider>
       <div
         className="oma-shell"
         data-rail={collapsed ? 'collapsed' : 'expanded'}
