@@ -128,7 +128,7 @@ export default function SettingsPage() {
                 key={s}
                 type="default"
                 aria-current={section === s ? 'true' : undefined}
-                className="plx-settings__nav-btn" data-active={section === s ? \'true\' : \'false\'} data-testid={`demo-settings-nav-${s}`}
+                className="plx-settings__nav-btn" data-active={section === s ? 'true' : 'false'} data-testid={`demo-settings-nav-${s}`}
                 onClick={() => setSection(s)}
               >
                 {t(`demo.settings.section.${s}`)}
