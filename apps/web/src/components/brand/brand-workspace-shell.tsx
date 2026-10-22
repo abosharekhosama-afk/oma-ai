@@ -84,7 +84,7 @@ export function BrandWorkspaceShell({
             </div>
           </div>
         </div>
-        {nextStepHref && nextStepLabel ? (
+        {nextStepHref && nextStepLabel && !nextStepHref.includes('/connect') ? (
           <OmaLinkButton href={nextStepHref} type="primary">
             {nextStepLabel}
           </OmaLinkButton>
