@@ -59,168 +59,110 @@ export default function ActivityPage() {
   const objectTypes = useMemo(() => [...new Set(rows.map((a) => a.objectType))], [rows]);
 
   return (
-    <div className="oma-stack plx-org" data-testid="demo-activity" data-surface="activity">
-      <PageHeader title={t('demo.activity.title')} description={t('demo.activity.subtitle')} />
-      <DemoDisclosure message={t('demo.activity.sourceHonesty')} />
-
-      {loading ? <PageSkeleton rows={6} /> : null}
-      {unavailable ? <p className="oma-muted">{t('demo.unavailable')}</p> : null}
-      {error ? (
-        <div className="oma-card" role="alert">
-          {error}
+    <div className="plx-page" data-testid="demo-activity" data-surface="activity">
+      <div className="plx-page__bar">
+        <div className="plx-page__title-block">
+          <h1 className="plx-page__title">{t('demo.activity.title')}</h1>
+          <p className="plx-page__sub">{t('demo.activity.subtitle')}</p>
         </div>
-      ) : null}
+      </div>
+      <DemoDisclosure message={t('demo.activity.sourceHonesty')} />
+      <div className="plx-page__body">
+        {loading ? <div className="oma-skeleton" role="status" /> : null}
+        {unavailable ? <p className="oma-muted">{t('demo.unavailable')}</p> : null}
+        {error ? (
+          <div className="plx-empty" role="alert">
+            <strong>{error}</strong>
+          </div>
+        ) : null}
 
-      {!loading && !unavailable && !error ? (
-        <>
-          <div className="oma-stage6-toolbar" data-testid="demo-activity-filters">
-            <label className="oma-stage6-search">
-              {t('demo.activity.search')}
-              <Input
-                value={filters.q}
-                data-testid="demo-activity-search"
-                onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
-              />
-            </label>
-            <label>
-              {t('demo.activity.filter.source')}
-              <SelectField
-                value={filters.source}
-                data-testid="demo-activity-filter-source"
-                onChange={(e) =>
-                  setFilters((f) => ({
-                    ...f,
-                    source: e.target.value as ActivityFilters['source'],
-                  }))
-                }
-              >
-                <option value="all">{t('demo.filter.all')}</option>
-                <option value="DEMO">{t('demo.activity.source.demo')}</option>
-                <option value="FOUNDATION">{t('demo.activity.source.foundation')}</option>
-              </SelectField>
-            </label>
-            <label>
-              {t('demo.activity.filter.object')}
-              <SelectField
-                value={filters.objectType}
-                onChange={(e) => setFilters((f) => ({ ...f, objectType: e.target.value }))}
-              >
-                <option value="all">{t('demo.filter.all')}</option>
-                {objectTypes.map((o) => (
-                  <option key={o} value={o}>
-                    {o}
-                  </option>
-                ))}
-              </SelectField>
-            </label>
-            <label>
-              {t('demo.activity.filter.actor')}
+        {!loading && !unavailable && !error ? (
+          <>
+            <div className="plx-toolbar" data-testid="demo-activity-filters">
+              <div className="plx-toolbar__search">
+                <Input
+                  value={filters.q}
+                  placeholder={t('demo.activity.search')}
+                  onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
+                  data-testid="demo-activity-search"
+                />
+              </div>
               <SelectField
                 value={filters.actor}
+                aria-label={t('demo.activity.filterActor')}
                 onChange={(e) => setFilters((f) => ({ ...f, actor: e.target.value }))}
               >
-                <option value="all">{t('demo.filter.all')}</option>
+                <option value="all">{t('demo.activity.allActors')}</option>
                 {actors.map((a) => (
                   <option key={a} value={a}>
                     {a}
                   </option>
                 ))}
               </SelectField>
-            </label>
-          </div>
-
-          {filtered.length === 0 ? (
-            <EmptyState title={t('demo.empty')} body={t('demo.activity.emptyHint')} />
-          ) : (
-            <div className="oma-activity-groups" data-testid="demo-activity-stream">
-              {[...grouped.entries()].map(([day, items]) => (
-                <section key={day} className="oma-activity-day">
-                  <h3>{day}</h3>
-                  <ol className="oma-activity-timeline">
-                    {items.map((a) => (
-                      <li
-                        key={a.id}
-                        className="oma-activity-row"
-                        data-testid={`demo-activity-row-${a.id}`}
-                      >
-                        <div className="oma-chip-row">
-                          <span className="oma-source-badge" data-source={a.source}>
-                            {a.source === 'FOUNDATION'
-                              ? t('demo.activity.audited')
-                              : t('demo.activity.demoEvent')}
-                          </span>
-                          <time dateTime={a.at}>{a.at}</time>
-                        </div>
-                        <p>
-                          <strong>{a.actor}</strong> — {pickCopy(a.summary, locale)}
-                        </p>
-                        <div className="oma-chip-row">
-                          <Button
-                            type="default"
-                            data-testid={`demo-activity-open-${a.id}`}
-                            onClick={() => setSelectedId(a.id)}
-                          >
-                            {t('demo.activity.details')}
-                          </Button>
-                          <Link
-                            href={a.href}
-                            className="oma-text-link"
-                            data-testid={`demo-activity-link-${a.id}`}
-                          >
-                            {t('home.action.open')}
-                          </Link>
-                        </div>
-                      </li>
-                    ))}
-                  </ol>
-                </section>
-              ))}
+              <SelectField
+                value={filters.objectType}
+                aria-label={t('demo.activity.filterType')}
+                onChange={(e) => setFilters((f) => ({ ...f, objectType: e.target.value }))}
+              >
+                <option value="all">{t('demo.activity.allTypes')}</option>
+                {objectTypes.map((o) => (
+                  <option key={o} value={o}>
+                    {o}
+                  </option>
+                ))}
+              </SelectField>
             </div>
-          )}
-        </>
-      ) : null}
 
-      <Drawer
-        open={Boolean(selected)}
-        onClose={() => setSelectedId(null)}
-        label={t('demo.activity.details')}
-      >
-        {selected ? (
-          <div className="oma-stack" data-testid="demo-activity-detail">
-            <span className="oma-source-badge" data-source={selected.source}>
-              {selected.source === 'FOUNDATION'
-                ? t('demo.activity.audited')
-                : t('demo.activity.demoEvent')}
-            </span>
-            <p>
-              <strong>{selected.actor}</strong>
-            </p>
-            <p>{pickCopy(selected.summary, locale)}</p>
-            <p className="oma-muted">
-              {selected.objectType} · {selected.action}
-            </p>
-            <p className="oma-muted">{selected.at}</p>
-            {selected.priorState || selected.newState ? (
-              <p>
-                {selected.priorState ?? '—'} → {selected.newState ?? '—'}
-              </p>
+            {filtered.length === 0 ? (
+              <div className="plx-empty">
+                <strong>{t('demo.empty')}</strong>
+              </div>
+            ) : (
+              <div className="plx-timeline" data-testid="demo-activity-list">
+                {[...grouped.entries()].map(([day, items]) => (
+                  <div key={day}>
+                    <p className="plx-timeline__day">{day}</p>
+                    {items.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        className="plx-timeline__item"
+                        data-selected={selectedId === item.id ? 'true' : 'false'}
+                        data-testid={`demo-activity-row-${item.id}`}
+                        onClick={() => setSelectedId(item.id)}
+                      >
+                        <span className="plx-person__av" aria-hidden>
+                          {(item.actor || '?').charAt(0).toUpperCase()}
+                        </span>
+                        <span className="plx-timeline__body">
+                          <strong>{item.actor}</strong>
+                          <span>
+                            {pickCopy(item.summary, locale) || item.action || item.objectType}
+                          </span>
+                        </span>
+                        <span className="plx-timeline__time oma-ltr">
+                          {String(item.at || '').slice(11, 16) || '—'}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {selected ? (
+              <div className="plx-settings__panel" style={{ marginTop: 16 }} data-testid="demo-activity-detail">
+                <h2 style={{ marginTop: 0 }}>{selected.actor}</h2>
+                <p>{pickCopy(selected.summary, locale)}</p>
+                <p className="oma-muted oma-ltr">{String(selected.at || '')}</p>
+                <p className="oma-muted">
+                  {selected.objectType} · {selected.action}
+                </p>
+              </div>
             ) : null}
-            {selected.campaignId ? (
-              <Link href={`/app/campaigns/${selected.campaignId}`} className="oma-text-link">
-                {selected.campaignId}
-              </Link>
-            ) : null}
-            <Link
-              href={selected.href}
-              className="oma-text-link"
-              data-testid="demo-activity-detail-link"
-            >
-              {selected.href}
-            </Link>
-            <p className="oma-honesty-inline">{t('demo.activity.noSecrets')}</p>
-          </div>
+          </>
         ) : null}
-      </Drawer>
+      </div>
     </div>
-  );
+  )
 }
