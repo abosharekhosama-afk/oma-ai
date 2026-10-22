@@ -101,9 +101,15 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="oma-stack plx-org" data-testid="demo-settings" data-surface="settings">
-      <PageHeader title={t('demo.settings.title')} description={t('demo.settings.subtitle')} />
+    <div className="plx-page" data-testid="demo-settings" data-surface="settings">
+      <div className="plx-page__bar">
+        <div className="plx-page__title-block">
+          <h1 className="plx-page__title">{t('demo.settings.title')}</h1>
+          <p className="plx-page__sub">{t('demo.settings.subtitle')}</p>
+        </div>
+      </div>
       <AiStatusNote />
+      <div className="plx-page__body">
       <DemoDisclosure />
 
       {loading ? <p className="oma-muted">{t('demo.loading')}</p> : null}
@@ -115,14 +121,14 @@ export default function SettingsPage() {
       ) : null}
 
       {!loading && !unavailable && draft ? (
-        <div className="oma-settings-layout">
-          <nav className="oma-settings-nav" aria-label={t('demo.settings.title')}>
+        <div className="plx-settings">
+          <nav className="plx-settings__nav" aria-label={t('demo.settings.title')}>
             {sections.map((s) => (
               <Button
                 key={s}
                 type="default"
                 aria-current={section === s ? 'true' : undefined}
-                data-testid={`demo-settings-nav-${s}`}
+                className="plx-settings__nav-btn" data-active={section === s ? \'true\' : \'false\'} data-testid={`demo-settings-nav-${s}`}
                 onClick={() => setSection(s)}
               >
                 {t(`demo.settings.section.${s}`)}
@@ -139,7 +145,7 @@ export default function SettingsPage() {
 
           <div className="oma-stack">
             {section === 'general' || section === 'localization' || section === 'workflow' ? (
-              <section className="oma-settings-panel" data-testid="demo-settings-general">
+              <section className="plx-settings__panel" data-testid="demo-settings-general">
                 <h2>{t(`demo.settings.section.${section}`)}</h2>
                 <p className="oma-muted">{t('demo.settings.demoPrefNote')}</p>
                 {dirty ? (
@@ -242,7 +248,7 @@ export default function SettingsPage() {
             ) : null}
 
             {section === 'notifications' ? (
-              <section className="oma-settings-panel" data-testid="demo-settings-notifications">
+              <section className="plx-settings__panel" data-testid="demo-settings-notifications">
                 <h2>{t('demo.settings.section.notifications')}</h2>
                 <label>
                   <CheckboxField
@@ -265,7 +271,7 @@ export default function SettingsPage() {
             ) : null}
 
             {section === 'integrations' || section === 'demo' ? (
-              <section className="oma-settings-panel" data-testid="demo-integrations">
+              <section className="plx-settings__panel" data-testid="demo-integrations">
                 <h2>{t('demo.settings.integrations')}</h2>
                 <p className="oma-muted">{t('demo.integrationsDeferred')}</p>
                 <div className="oma-integration-toolbar" data-testid="demo-integrations-filters">
@@ -315,7 +321,7 @@ export default function SettingsPage() {
                   ))}
                 </ul>
                 {info ? (
-                  <div className="oma-settings-panel" data-testid="demo-int-plan-drawer">
+                  <div className="plx-settings__panel" data-testid="demo-int-plan-drawer">
                     <h3>{pickCopy(info.name, locale)}</h3>
                     <p>{pickCopy(info.laterUnlocks, locale)}</p>
                     <p className="oma-honesty-inline">{t('demo.settings.noConnect')}</p>
@@ -329,6 +335,7 @@ export default function SettingsPage() {
           </div>
         </div>
       ) : null}
+      </div>
     </div>
   );
 }
