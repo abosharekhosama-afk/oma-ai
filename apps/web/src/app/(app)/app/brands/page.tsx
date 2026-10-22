@@ -74,96 +74,98 @@ export default function BrandsListPage() {
   }
 
   return (
-    <div className="oma-stack plx-org" data-testid="brand-portfolio" data-surface="brands">
-      <header className="oma-page-header">
-        <div>
-          <p className="oma-kicker">{t('brand.list.kicker')}</p>
-          <h1>{t('brand.list.title')}</h1>
-          <p className="oma-muted">{t('brand.list.subtitle')}</p>
+    <div className="plx-page" data-testid="brand-portfolio" data-surface="brands">
+      <div className="plx-page__bar">
+        <div className="plx-page__title-block">
+          <p className="plx-page__kicker">{t('brand.list.kicker')}</p>
+          <h1 className="plx-page__title">{t('brand.list.title')}</h1>
+          <p className="plx-page__sub">{t('brand.list.subtitle')}</p>
         </div>
-        <OmaLinkButton href="/app/brands/new" type="primary">
-          {t('brand.list.create')}
-        </OmaLinkButton>
-      </header>
+        <div className="plx-page__actions">
+          <OmaLinkButton href="/app/brands/new" type="primary">
+            {t('brand.list.create')}
+          </OmaLinkButton>
+        </div>
+      </div>
 
-      <form
-        className="oma-filter-bar"
-        onSubmit={(event) => {
-          event.preventDefault();
-          setQuery(queryDraft.trim());
-        }}
-      >
-        <label htmlFor="brand-search">{t('brand.list.searchLabel')}</label>
-        <SearchInput
-          id="brand-search"
-          value={queryDraft}
-          onChange={(event) => setQueryDraft(event.target.value)}
-        />
-        <Button type="primary" htmlType="submit">
-          {t('brand.list.searchSubmit')}
-        </Button>
-        {query ? (
-          <Button
-            type="default"
-            onClick={() => {
-              setQueryDraft('');
-              setQuery('');
-            }}
-          >
-            {t('brand.list.searchClear')}
+      <div className="plx-page__body">
+        <form
+          className="plx-toolbar"
+          onSubmit={(event) => {
+            event.preventDefault();
+            setQuery(queryDraft.trim());
+          }}
+        >
+          <div className="plx-toolbar__search">
+            <SearchInput
+              id="brand-search"
+              value={queryDraft}
+              onChange={(event) => setQueryDraft(event.target.value)}
+              placeholder={t('brand.list.searchLabel')}
+            />
+          </div>
+          <Button type="primary" htmlType="submit">
+            {t('brand.list.searchSubmit')}
           </Button>
-        ) : null}
-        <label htmlFor="brand-filter" className="oma-sr-only">
-          {t('brand.list.filterLabel')}
-        </label>
-        <SelectField
-          id="brand-filter"
-          value={filter}
-          onChange={(e) => setFilter(e.target.value as typeof filter)}
-        >
-          <option value="all">{t('brand.list.filterAll')}</option>
-          <option value="needs_action">{t('brand.list.filterNeedsAction')}</option>
-          <option value="approved">{t('brand.list.filterApproved')}</option>
-        </SelectField>
-        <label htmlFor="brand-sort" className="oma-sr-only">
-          {t('brand.list.sortLabel')}
-        </label>
-        <SelectField
-          id="brand-sort"
-          value={sortKey}
-          onChange={(e) => setSortKey(e.target.value as SortKey)}
-        >
-          <option value="updated">{t('brand.list.sortUpdated')}</option>
-          <option value="name">{t('brand.list.sortName')}</option>
-          <option value="status">{t('brand.list.sortStatus')}</option>
-        </SelectField>
-      </form>
+          {query ? (
+            <Button
+              type="default"
+              onClick={() => {
+                setQueryDraft('');
+                setQuery('');
+              }}
+            >
+              {t('brand.list.searchClear')}
+            </Button>
+          ) : null}
+          <SelectField
+            id="brand-filter"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value as typeof filter)}
+            aria-label={t('brand.list.filterLabel')}
+          >
+            <option value="all">{t('brand.list.filterAll')}</option>
+            <option value="needs_action">{t('brand.list.filterNeedsAction')}</option>
+            <option value="approved">{t('brand.list.filterApproved')}</option>
+          </SelectField>
+          <SelectField
+            id="brand-sort"
+            value={sortKey}
+            onChange={(e) => setSortKey(e.target.value as SortKey)}
+            aria-label={t('brand.list.sortLabel')}
+          >
+            <option value="updated">{t('brand.list.sortUpdated')}</option>
+            <option value="name">{t('brand.list.sortName')}</option>
+            <option value="status">{t('brand.list.sortStatus')}</option>
+          </SelectField>
+        </form>
 
-      {error ? <ErrorState title={t('common.error')} body={error} /> : null}
+        {error ? <ErrorState title={t('common.error')} body={error} /> : null}
 
-      {loading ? (
-        <div className="oma-skeleton" role="status" aria-label={t('common.loading')} />
-      ) : visible.length === 0 && query ? (
-        <EmptyState title={t('brand.list.noResults')} />
-      ) : visible.length === 0 ? (
-        <EmptyState
-          title={t('brand.list.emptyTitle')}
-          why={t('home.journeyStrip.brand')}
-          body={t('brand.list.emptyBody')}
-          next={t('home.gettingStarted.brand')}
-          action={
-            <OmaLinkButton href="/app/brands/new" type="primary">
-              {t('brand.list.create')}
-            </OmaLinkButton>
-          }
-        />
-      ) : (
-        <div className="oma-workspace-grid" data-testid="brand-workspace-grid">
-          {visible.map((brand) => (
-            <WorkspaceCard key={brand.id} brand={brand} />
-          ))}
-        </div>
-      )}
+        {loading ? (
+          <div className="oma-skeleton" role="status" aria-label={t('common.loading')} />
+        ) : visible.length === 0 && query ? (
+          <div className="plx-empty">
+            <strong>{t('brand.list.noResults')}</strong>
+          </div>
+        ) : visible.length === 0 ? (
+          <div className="plx-empty">
+            <strong>{t('brand.list.emptyTitle')}</strong>
+            <p>{t('brand.list.emptyBody')}</p>
+            <div style={{ marginTop: 16 }}>
+              <OmaLinkButton href="/app/brands/new" type="primary">
+                {t('brand.list.create')}
+              </OmaLinkButton>
+            </div>
+          </div>
+        ) : (
+          <div className="plx-card-grid" data-testid="brand-workspace-grid">
+            {visible.map((brand) => (
+              <WorkspaceCard key={brand.id} brand={brand} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
-  );
+  )
 }
