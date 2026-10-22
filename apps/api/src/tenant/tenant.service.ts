@@ -249,7 +249,13 @@ export class TenantService {
     }));
   }
 
-  async invite(actorUserId: string, tenantId: string, email: string, correlationId?: string) {
+  async invite(
+    actorUserId: string,
+    tenantId: string,
+    email: string,
+    correlationId?: string,
+    opts?: { membershipKind?: string; displayRole?: string },
+  ) {
     const prisma = getPrisma();
     const tenant = await prisma.tenant.findFirst({ where: { id: tenantId, status: 'ACTIVE' } });
     if (!tenant) {
@@ -267,7 +273,8 @@ export class TenantService {
         invitedEmail: normalizedEmail,
         invitedBy: actorUserId,
         invitedAt: new Date(),
-        membershipKind: 'team',
+        membershipKind: opts?.membershipKind === 'client' ? 'client' : 'team',
+        displayRole: opts?.displayRole ?? null,
       },
     });
     const { token, tokenHash } = issueSessionToken();

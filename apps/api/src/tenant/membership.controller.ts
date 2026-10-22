@@ -35,6 +35,10 @@ export class MembershipController {
       req.oma.tenantId,
       body.email,
       req.oma.correlationId,
+      {
+        membershipKind: body.membership === 'client' ? 'client' : 'team',
+        displayRole: body.role ?? null,
+      },
     );
 
     // Optional Planable role → capability profile after invite
@@ -46,9 +50,12 @@ export class MembershipController {
             administrator: 'ADMIN',
             admin: 'ADMIN',
             contributor: 'MEMBER',
+            member: 'MEMBER',
             writer: 'WRITER',
             approver: 'APPROVER',
+            client: 'CLIENT',
             guest: 'GUEST',
+            viewer: 'VIEWER',
           }[body.role.trim().toLowerCase()]
         : undefined);
 
