@@ -2742,3 +2742,58 @@ main.oma-container:has(.oma-req-page) {
     gap: 8px !important;
   }
 }
+
+/* Request row quick actions */
+.oma-req-row-actions__btns {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+}
+.oma-req-row-action {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #374151;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.oma-req-row-action:hover:not(:disabled) {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+.oma-req-row-action:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.oma-req-row-action--danger:hover:not(:disabled) {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+
+.oma-req-row-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+.oma-req-row-convert {
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 8px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1d4ed8;
+  cursor: pointer;
+}
+.oma-req-row-convert:hover {
+  background: #eff6ff;
+}
