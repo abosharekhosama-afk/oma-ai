@@ -1,9 +1,9 @@
 'use client';
 
 import { SearchIcon } from '../../../../components/ui/plx-icons';
-import { FilterOutlined } from '@ant-design/icons';
+import { FilterOutlined, SearchOutlined, DownOutlined, UpOutlined, UnorderedListOutlined } from '@ant-design/icons';
 import { OmaLinkButton } from '../../../../components/ui/oma-link-button';
-import { Button, SelectField } from '@oma/ui/controls';
+import { Button, Input } from '@oma/ui/controls';
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { api } from '../../../../lib/api';
@@ -163,23 +163,23 @@ export default function BrandsListPage() {
                 data-open={filterSection === 'search' ? 'true' : 'false'}
                 onClick={() => setFilterSection((s) => (s === 'search' ? null : 'search'))}
               >
+                <span className="oma-filter-accordion__ico">
+                  <SearchOutlined />
+                </span>
                 <span>{t('brand.list.searchLabel')}</span>
                 <span className="oma-filter-accordion__caret">
-                  {filterSection === 'search' ? '▴' : '▾'}
+                  {filterSection === 'search' ? <UpOutlined /> : <DownOutlined />}
                 </span>
               </button>
               {filterSection === 'search' ? (
                 <div className="oma-filter-accordion__body">
-                  <div className="plx-toolbar__search" style={{ width: '100%', maxWidth: 'none' }}>
-                    <SearchIcon width={16} height={16} aria-hidden />
-                    <input
-                      type="search"
-                      value={queryDraft}
-                      onChange={(e) => setQueryDraft(e.target.value)}
-                      placeholder={t('brand.list.searchLabel')}
-                      aria-label={t('brand.list.searchLabel')}
-                    />
-                  </div>
+                  <Input
+                    type="search"
+                    value={queryDraft}
+                    onChange={(e) => setQueryDraft(e.target.value)}
+                    placeholder={t('brand.list.searchLabel')}
+                    aria-label={t('brand.list.searchLabel')}
+                  />
                 </div>
               ) : null}
             </div>
@@ -191,23 +191,33 @@ export default function BrandsListPage() {
                 data-open={filterSection === 'status' ? 'true' : 'false'}
                 onClick={() => setFilterSection((s) => (s === 'status' ? null : 'status'))}
               >
+                <span className="oma-filter-accordion__ico">
+                  <UnorderedListOutlined />
+                </span>
                 <span>{t('brand.list.filterLabel')}</span>
                 <span className="oma-filter-accordion__caret">
-                  {filterSection === 'status' ? '▴' : '▾'}
+                  {filterSection === 'status' ? <UpOutlined /> : <DownOutlined />}
                 </span>
               </button>
               {filterSection === 'status' ? (
                 <div className="oma-filter-accordion__body">
-                  <SelectField
-                    id="brand-filter"
-                    value={filter}
-                    onChange={(e) => setFilter(e.target.value as typeof filter)}
-                    aria-label={t('brand.list.filterLabel')}
-                  >
-                    <option value="all">{t('brand.list.filterAll')}</option>
-                    <option value="needs_action">{t('brand.list.filterNeedsAction')}</option>
-                    <option value="approved">{t('brand.list.filterApproved')}</option>
-                  </SelectField>
+                  {(
+                    [
+                      ['all', t('brand.list.filterAll')],
+                      ['needs_action', t('brand.list.filterNeedsAction')],
+                      ['approved', t('brand.list.filterApproved')],
+                    ] as const
+                  ).map(([val, label]) => (
+                    <label key={val} className="oma-filter-check">
+                      <input
+                        type="radio"
+                        name="brand-filter"
+                        checked={filter === val}
+                        onChange={() => setFilter(val)}
+                      />
+                      <span>{label}</span>
+                    </label>
+                  ))}
                 </div>
               ) : null}
             </div>
@@ -219,23 +229,31 @@ export default function BrandsListPage() {
                 data-open={filterSection === 'sort' ? 'true' : 'false'}
                 onClick={() => setFilterSection((s) => (s === 'sort' ? null : 'sort'))}
               >
+                <span className="oma-filter-accordion__ico">⇅</span>
                 <span>{t('brand.list.sortLabel')}</span>
                 <span className="oma-filter-accordion__caret">
-                  {filterSection === 'sort' ? '▴' : '▾'}
+                  {filterSection === 'sort' ? <UpOutlined /> : <DownOutlined />}
                 </span>
               </button>
               {filterSection === 'sort' ? (
                 <div className="oma-filter-accordion__body">
-                  <SelectField
-                    id="brand-sort"
-                    value={sortKey}
-                    onChange={(e) => setSortKey(e.target.value as SortKey)}
-                    aria-label={t('brand.list.sortLabel')}
-                  >
-                    <option value="updated">{t('brand.list.sortUpdated')}</option>
-                    <option value="name">{t('brand.list.sortName')}</option>
-                    <option value="status">{t('brand.list.sortStatus')}</option>
-                  </SelectField>
+                  {(
+                    [
+                      ['updated', t('brand.list.sortUpdated')],
+                      ['name', t('brand.list.sortName')],
+                      ['status', t('brand.list.sortStatus')],
+                    ] as const
+                  ).map(([val, label]) => (
+                    <label key={val} className="oma-filter-check">
+                      <input
+                        type="radio"
+                        name="brand-sort"
+                        checked={sortKey === val}
+                        onChange={() => setSortKey(val)}
+                      />
+                      <span>{label}</span>
+                    </label>
+                  ))}
                 </div>
               ) : null}
             </div>
