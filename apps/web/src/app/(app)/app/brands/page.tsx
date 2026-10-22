@@ -1,9 +1,11 @@
 'use client';
-import { SearchIcon } from '../../../../components/ui/plx-icons';
-import { OmaLinkButton } from '../../../../components/ui/oma-link-button';
-import { Button, SearchInput, SelectField } from '@oma/ui/controls';
 
+import { SearchIcon } from '../../../../components/ui/plx-icons';
+import { FilterOutlined } from '@ant-design/icons';
+import { OmaLinkButton } from '../../../../components/ui/oma-link-button';
+import { Button, SelectField } from '@oma/ui/controls';
 import { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { api } from '../../../../lib/api';
 import type { BrandListItem, Paginated } from '../../../../lib/brand-types';
 import { getApiError, isPermissionDenied, isTenantRequired } from '../../../../lib/brand-api';
@@ -27,6 +29,13 @@ export default function BrandsListPage() {
   const [query, setQuery] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('updated');
   const [filter, setFilter] = useState<'all' | 'needs_action' | 'approved'>('all');
+  const [filterSheet, setFilterSheet] = useState(false);
+  const [filterSection, setFilterSection] = useState<string | null>('search');
+  const [actionsHost, setActionsHost] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    setActionsHost(document.getElementById('oma-workspace-top-actions'));
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -56,90 +65,53 @@ export default function BrandsListPage() {
     }
     rows.sort((a, b) => {
       if (sortKey === 'name') return a.name.localeCompare(b.name);
-      if (sortKey === 'status') return a.status.localeCompare(b.status);
-      return b.updated_at.localeCompare(a.updated_at);
+      if (sortKey === 'status') return (a.status || '').localeCompare(b.status || '');
+      const au = a.updated_at || a.created_at || '';
+      const bu = b.updated_at || b.created_at || '';
+      return bu.localeCompare(au);
     });
     return rows;
   }, [brands, filter, sortKey]);
 
-  if (denied) return <PermissionDenied message={t('errors.permission')} />;
-  if (tenantRequired) {
-    return (
-      <div>
-        <header className="oma-page-header">
-          <h1>{t('brand.list.title')}</h1>
-        </header>
-        <SelectCompany />
-      </div>
-    );
-  }
+  const activeFilterCount =
+    (query ? 1 : 0) + (filter !== 'all' ? 1 : 0) + (sortKey !== 'updated' ? 1 : 0);
+
+  if (tenantRequired) return <SelectCompany />;
+  if (denied) return <PermissionDenied />;
+
+  const headerActions = (
+    <div className="oma-workspace-top-actions-inner">
+      <button
+        type="button"
+        className="oma-header-icon-btn"
+        data-testid="brand-open-filters"
+        aria-label={t('brand.list.filterLabel')}
+        onClick={() => setFilterSheet(true)}
+      >
+        <FilterOutlined />
+        {activeFilterCount > 0 ? (
+          <span className="oma-header-icon-btn__badge">{activeFilterCount}</span>
+        ) : null}
+      </button>
+      <OmaLinkButton href="/app/brands/new" type="primary" data-testid="shell-create-brand">
+        {t('brand.list.create')}
+      </OmaLinkButton>
+    </div>
+  );
 
   return (
     <div className="plx-page" data-testid="brand-portfolio" data-surface="brands">
+      {actionsHost ? createPortal(headerActions, actionsHost) : null}
+
       <div className="plx-page__bar">
         <div className="plx-page__title-block">
           <p className="plx-page__kicker">{t('brand.list.kicker')}</p>
           <h1 className="plx-page__title">{t('brand.list.title')}</h1>
           <p className="plx-page__sub">{t('brand.list.subtitle')}</p>
         </div>
-        
       </div>
 
       <div className="plx-page__body">
-        <form
-          className="plx-toolbar plx-toolbar--brands"
-          onSubmit={(event) => {
-            event.preventDefault();
-            setQuery(queryDraft.trim());
-          }}
-          data-testid="brand-filter-card"
-        >
-          <div className="plx-toolbar__search">
-            <SearchIcon width={16} height={16} aria-hidden />
-            <input
-              id="brand-search"
-              type="search"
-              value={queryDraft}
-              onChange={(event) => setQueryDraft(event.target.value)}
-              placeholder={t('brand.list.searchLabel')}
-              aria-label={t('brand.list.searchLabel')}
-            />
-            {queryDraft || query ? (
-              <button
-                type="button"
-                className="plx-toolbar__clear"
-                aria-label={t('brand.list.searchClear')}
-                onClick={() => {
-                  setQueryDraft('');
-                  setQuery('');
-                }}
-              >
-                ×
-              </button>
-            ) : null}
-          </div>
-          <SelectField
-            id="brand-filter"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value as typeof filter)}
-            aria-label={t('brand.list.filterLabel')}
-          >
-            <option value="all">{t('brand.list.filterAll')}</option>
-            <option value="needs_action">{t('brand.list.filterNeedsAction')}</option>
-            <option value="approved">{t('brand.list.filterApproved')}</option>
-          </SelectField>
-          <SelectField
-            id="brand-sort"
-            value={sortKey}
-            onChange={(e) => setSortKey(e.target.value as SortKey)}
-            aria-label={t('brand.list.sortLabel')}
-          >
-            <option value="updated">{t('brand.list.sortUpdated')}</option>
-            <option value="name">{t('brand.list.sortName')}</option>
-            <option value="status">{t('brand.list.sortStatus')}</option>
-          </SelectField>
-        </form>
-
         {error ? <ErrorState title={t('common.error')} body={error} /> : null}
 
         {loading ? (
@@ -166,6 +138,132 @@ export default function BrandsListPage() {
           </div>
         )}
       </div>
+
+      {filterSheet ? (
+        <aside className="oma-req-filter-panel" data-testid="brand-filter-panel">
+          <header className="oma-req-filter-panel__head">
+            <strong>{t('brand.list.filterLabel')}</strong>
+            <button
+              type="button"
+              className="oma-req-filter-panel__close"
+              aria-label={t('common.close') || 'Close'}
+              onClick={() => {
+                setQuery(queryDraft.trim());
+                setFilterSheet(false);
+              }}
+            >
+              ×
+            </button>
+          </header>
+          <div className="oma-filter-accordion-list">
+            <div className="oma-filter-accordion">
+              <button
+                type="button"
+                className="oma-filter-accordion__row"
+                data-open={filterSection === 'search' ? 'true' : 'false'}
+                onClick={() => setFilterSection((s) => (s === 'search' ? null : 'search'))}
+              >
+                <span>{t('brand.list.searchLabel')}</span>
+                <span className="oma-filter-accordion__caret">
+                  {filterSection === 'search' ? '▴' : '▾'}
+                </span>
+              </button>
+              {filterSection === 'search' ? (
+                <div className="oma-filter-accordion__body">
+                  <div className="plx-toolbar__search" style={{ width: '100%', maxWidth: 'none' }}>
+                    <SearchIcon width={16} height={16} aria-hidden />
+                    <input
+                      type="search"
+                      value={queryDraft}
+                      onChange={(e) => setQueryDraft(e.target.value)}
+                      placeholder={t('brand.list.searchLabel')}
+                      aria-label={t('brand.list.searchLabel')}
+                    />
+                  </div>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="oma-filter-accordion">
+              <button
+                type="button"
+                className="oma-filter-accordion__row"
+                data-open={filterSection === 'status' ? 'true' : 'false'}
+                onClick={() => setFilterSection((s) => (s === 'status' ? null : 'status'))}
+              >
+                <span>{t('brand.list.filterLabel')}</span>
+                <span className="oma-filter-accordion__caret">
+                  {filterSection === 'status' ? '▴' : '▾'}
+                </span>
+              </button>
+              {filterSection === 'status' ? (
+                <div className="oma-filter-accordion__body">
+                  <SelectField
+                    id="brand-filter"
+                    value={filter}
+                    onChange={(e) => setFilter(e.target.value as typeof filter)}
+                    aria-label={t('brand.list.filterLabel')}
+                  >
+                    <option value="all">{t('brand.list.filterAll')}</option>
+                    <option value="needs_action">{t('brand.list.filterNeedsAction')}</option>
+                    <option value="approved">{t('brand.list.filterApproved')}</option>
+                  </SelectField>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="oma-filter-accordion">
+              <button
+                type="button"
+                className="oma-filter-accordion__row"
+                data-open={filterSection === 'sort' ? 'true' : 'false'}
+                onClick={() => setFilterSection((s) => (s === 'sort' ? null : 'sort'))}
+              >
+                <span>{t('brand.list.sortLabel')}</span>
+                <span className="oma-filter-accordion__caret">
+                  {filterSection === 'sort' ? '▴' : '▾'}
+                </span>
+              </button>
+              {filterSection === 'sort' ? (
+                <div className="oma-filter-accordion__body">
+                  <SelectField
+                    id="brand-sort"
+                    value={sortKey}
+                    onChange={(e) => setSortKey(e.target.value as SortKey)}
+                    aria-label={t('brand.list.sortLabel')}
+                  >
+                    <option value="updated">{t('brand.list.sortUpdated')}</option>
+                    <option value="name">{t('brand.list.sortName')}</option>
+                    <option value="status">{t('brand.list.sortStatus')}</option>
+                  </SelectField>
+                </div>
+              ) : null}
+            </div>
+          </div>
+          <footer className="oma-req-filter-panel__foot">
+            <Button
+              type="default"
+              onClick={() => {
+                setQueryDraft('');
+                setQuery('');
+                setFilter('all');
+                setSortKey('updated');
+              }}
+            >
+              {t('brand.list.searchClear')}
+            </Button>
+            <Button
+              type="primary"
+              onClick={() => {
+                setQuery(queryDraft.trim());
+                setFilterSheet(false);
+              }}
+            >
+              {t('brand.list.searchSubmit')}
+            </Button>
+          </footer>
+        </aside>
+      ) : null}
     </div>
-  )
+  );
 }
