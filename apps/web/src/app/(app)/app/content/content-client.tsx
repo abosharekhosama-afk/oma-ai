@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { OmaTopLoader } from '../../../../components/ui/oma-top-loader';
 import { createPortal } from 'react-dom';
 import { resolveContentWorkflow, type ApprovalPolicy, type DemoGraph } from '@oma/demo';
 import { ContentFace, StatusMark, faceDisplay } from '../../../../components/content/content-card';
@@ -1903,32 +1904,7 @@ export default function ContentPage() {
         </div>
       ) : null}
 
-      {loading ? (
-        <div className="oma-content-cal-skeleton" aria-busy="true" aria-label={t('common.loading')}>
-          <div className="oma-content-cal-skeleton__toolbar">
-            <div className="oma-skeleton oma-content-cal-skeleton__chip" />
-            <div className="oma-skeleton oma-content-cal-skeleton__chip" />
-            <div className="oma-skeleton oma-content-cal-skeleton__label" />
-            <div className="oma-content-cal-skeleton__spacer" />
-            <div className="oma-skeleton oma-content-cal-skeleton__btn" />
-            <div className="oma-skeleton oma-content-cal-skeleton__btn" />
-          </div>
-          <div className="oma-content-cal-skeleton__dows">
-            {Array.from({ length: 7 }).map((_, i) => (
-              <div key={i} className="oma-skeleton oma-content-cal-skeleton__dow" />
-            ))}
-          </div>
-          <div className="oma-content-cal-skeleton__grid">
-            {Array.from({ length: 35 }).map((_, i) => (
-              <div key={i} className="oma-content-cal-skeleton__cell">
-                <div className="oma-skeleton oma-content-cal-skeleton__daynum" />
-                {i % 4 === 1 ? <div className="oma-skeleton oma-content-cal-skeleton__post" /> : null}
-                {i % 7 === 3 ? <div className="oma-skeleton oma-content-cal-skeleton__post oma-content-cal-skeleton__post--sm" /> : null}
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : null}
+      {loading ? <OmaTopLoader label={t('common.loading')} /> : null}
       {unavailable ? (
         <DeniedState title={t('demo.unavailable')} body={t('demo.disclosure')} />
       ) : null}
