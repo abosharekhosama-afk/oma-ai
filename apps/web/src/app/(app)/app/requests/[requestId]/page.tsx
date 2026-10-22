@@ -20,12 +20,18 @@ import {
 import {
   briefCompleteness,
   briefIsReady,
-  canTransitionRequestStatus,
   requestCompleteness,
   requestMissingFields,
   type RequestRow,
 } from '../../../../../lib/demo/stage4-requests';
 import { useLocale, useT } from '../../../../../lib/use-locale';
+import {
+  allowedNextStatuses,
+  canConvertRequest,
+  canTransitionApiRequestStatus,
+  toApiRequestStatus,
+  statusLabel,
+} from '../../../../../lib/request-workflow-ui';
 import {
   ArrowLeftOutlined,
   CheckOutlined,
@@ -81,6 +87,7 @@ function BriefField({
 export default function RequestDetailPage() {
   const t = useT();
   const locale = useLocale();
+  const isAr = locale.toLowerCase().startsWith('ar');
   const router = useRouter();
   const toast = useToast();
   const params = useParams<{ requestId: string }>();
@@ -195,26 +202,25 @@ export default function RequestDetailPage() {
 
   async function patchRequest(patch: Record<string, unknown>) {
     if (!requestId || !row) return;
-    if (
-      typeof patch.status === 'string' &&
-      !canTransitionRequestStatus(row.status, patch.status as RequestRow['status'])
-    ) {
-      toast.push(t('demo.requests.invalidTransition'), 'danger');
-      return;
+    if (typeof patch.status === 'string') {
+      if (!canTransitionApiRequestStatus(row.status, patch.status)) {
+        toast.push(t('demo.requests.invalidTransition'), 'danger');
+        return;
+      }
+      patch = { ...patch, status: toApiRequestStatus(patch.status) };
     }
     try {
-      await updateRequest(requestId, {
-        status: patch.status,
-        priority: patch.priority,
-        assigneeUserId: patch.assignee ?? undefined,
-        dueAt: patch.dueAt,
-        campaignId: patch.campaignId,
-        contentId: patch.contentId,
-        title: patch.title,
-        description: patch.description,
-      });
-      toast.push(t('demo.requests.updated'), 'success');
-      await load();
+      const body: Record<string, unknown> = { ...patch };
+      if ('assignee' in body) {
+        body.assigneeUserId = body.assignee;
+        delete body.assignee;
+      }
+      if (typeof body.dueAt === 'string' && body.dueAt && !String(body.dueAt).includes('T')) {
+        body.dueAt = `${body.dueAt}T12:00:00.000Z`;
+      }
+      const updated = await updateRequest(requestId, body);
+      setRow((prev) => ({ ...(prev || ({} as RequestDetail)), ...toRequestRow(updated) }));
+      toast.push(t('demo.requests.saved'), 'success');
     } catch (err) {
       toast.push(opsError(err, t('demo.unavailable')), 'danger');
     }
@@ -222,6 +228,13 @@ export default function RequestDetailPage() {
 
   async function convert() {
     if (!requestId) return;
+    if (row && !canConvertRequest(row.status)) {
+      toast.push(
+        isAr ? 'لا يمكن تحويل الطلب في الحالة الحالية' : 'Cannot convert request in current state',
+        'danger',
+      );
+      return;
+    }
     setConverting(true);
     try {
       const task = await convertRequestToTask(requestId);
@@ -264,7 +277,7 @@ export default function RequestDetailPage() {
             <Button
               type="primary"
               data-testid="demo-request-convert"
-              disabled={!ready || converting}
+              disabled={!ready || converting || !canConvertRequest(row.status)}
               onClick={() => void convert()}
             >
               {converting ? t('demo.create.creating') : t('demo.requests.convert')}
@@ -318,22 +331,13 @@ export default function RequestDetailPage() {
                 <label>
                   {t('demo.requests.filter.status')}
                   <SelectField
-                    value={row.status}
+                    value={toApiRequestStatus(row.status)}
                     data-testid="demo-request-status"
                     onChange={(e) => void patchRequest({ status: e.target.value })}
                   >
-                    {[
-                      'OPEN',
-                      'ASSIGNED',
-                      'IN_BRIEF',
-                      'WAITING_INFO',
-                      'READY_FOR_PRODUCTION',
-                      'IN_PRODUCTION',
-                      'DONE',
-                      'CLOSED',
-                    ].map((s) => (
+                    {allowedNextStatuses(row.status).map((s) => (
                       <option key={s} value={s}>
-                        {s}
+                        {statusLabel(s, isAr)}
                       </option>
                     ))}
                   </SelectField>
@@ -639,7 +643,7 @@ export default function RequestDetailPage() {
               data-testid="demo-request-close-confirm"
               disabled={!closeReason.trim()}
               onClick={() => {
-                void patchRequest({ status: 'CLOSED' });
+                void patchRequest({ status: 'CANCELLED' });
                 setConfirmClose(false);
               }}
             >
