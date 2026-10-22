@@ -1,5 +1,5 @@
-'use client';
 import { SearchIcon } from '../../../../components/ui/plx-icons';
+'use client';
 import { OmaLinkButton } from '../../../../components/ui/oma-link-button';
 import { Button, SearchInput, SelectField } from '@oma/ui/controls';
 
