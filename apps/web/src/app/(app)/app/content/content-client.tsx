@@ -1878,9 +1878,29 @@ export default function ContentPage() {
       ) : null}
 
       {loading ? (
-        <div className="oma-skeleton-block" aria-busy="true">
-          <div className="oma-skeleton" style={{ height: 28, width: '40%' }} />
-          <div className="oma-skeleton" style={{ height: 220, marginTop: 12 }} />
+        <div className="oma-content-cal-skeleton" aria-busy="true" aria-label={t('common.loading')}>
+          <div className="oma-content-cal-skeleton__toolbar">
+            <div className="oma-skeleton oma-content-cal-skeleton__chip" />
+            <div className="oma-skeleton oma-content-cal-skeleton__chip" />
+            <div className="oma-skeleton oma-content-cal-skeleton__label" />
+            <div className="oma-content-cal-skeleton__spacer" />
+            <div className="oma-skeleton oma-content-cal-skeleton__btn" />
+            <div className="oma-skeleton oma-content-cal-skeleton__btn" />
+          </div>
+          <div className="oma-content-cal-skeleton__dows">
+            {Array.from({ length: 7 }).map((_, i) => (
+              <div key={i} className="oma-skeleton oma-content-cal-skeleton__dow" />
+            ))}
+          </div>
+          <div className="oma-content-cal-skeleton__grid">
+            {Array.from({ length: 35 }).map((_, i) => (
+              <div key={i} className="oma-content-cal-skeleton__cell">
+                <div className="oma-skeleton oma-content-cal-skeleton__daynum" />
+                {i % 4 === 1 ? <div className="oma-skeleton oma-content-cal-skeleton__post" /> : null}
+                {i % 7 === 3 ? <div className="oma-skeleton oma-content-cal-skeleton__post oma-content-cal-skeleton__post--sm" /> : null}
+              </div>
+            ))}
+          </div>
         </div>
       ) : null}
       {unavailable ? (
