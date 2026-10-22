@@ -57,179 +57,121 @@ export default function TeamPage() {
   const roles = useMemo(() => [...new Set(rows.map((m) => m.role))], [rows]);
 
   return (
-    <div className="oma-stack plx-org" data-testid="demo-team" data-surface="team">
-      <PageHeader
-        title={t('demo.team.title')}
-        description={t('demo.team.subtitle')}
-        actions={
-          <OmaLinkButton
-            href="/app/company/members"
-            type="default"
-            data-testid="demo-team-members-link"
-          >
-            {t('demo.teamInviteLink')}
-          </OmaLinkButton>
-        }
-      />
-      <DemoDisclosure message={t('demo.team.workloadHonesty')} />
-
-      {loading ? <PageSkeleton rows={5} /> : null}
-      {unavailable ? <p className="oma-muted">{t('demo.unavailable')}</p> : null}
-      {error ? (
-        <div className="oma-card" role="alert">
-          {error}
+    <div className="plx-page" data-testid="demo-team" data-surface="team">
+      <div className="plx-page__bar">
+        <div className="plx-page__title-block">
+          <h1 className="plx-page__title">{t('demo.team.title')}</h1>
+          <p className="plx-page__sub">{t('demo.team.subtitle')}</p>
         </div>
-      ) : null}
+      </div>
+      <DemoDisclosure message={t('demo.team.sourceHonesty')} />
+      <div className="plx-page__body">
+        {loading ? <div className="oma-skeleton" role="status" /> : null}
+        {unavailable ? <p className="oma-muted">{t('demo.unavailable')}</p> : null}
+        {error ? (
+          <div className="plx-empty" role="alert">
+            <strong>{error}</strong>
+          </div>
+        ) : null}
 
-      {!loading && !unavailable && !error ? (
-        <>
-          <div className="oma-stage6-toolbar" data-testid="demo-team-filters">
-            <label className="oma-stage6-search">
-              {t('demo.team.search')}
-              <Input
-                value={filters.q}
-                data-testid="demo-team-search"
-                onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
-              />
-            </label>
-            <label>
-              {t('demo.team.filter.role')}
+        {!loading && !unavailable && !error ? (
+          <>
+            <div className="plx-toolbar" data-testid="demo-team-filters">
+              <div className="plx-toolbar__search">
+                <Input
+                  value={filters.q}
+                  placeholder={t('demo.team.search')}
+                  onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
+                  data-testid="demo-team-search"
+                />
+              </div>
               <SelectField
                 value={filters.role}
-                data-testid="demo-team-filter-role"
+                aria-label={t('demo.team.filterRole')}
                 onChange={(e) => setFilters((f) => ({ ...f, role: e.target.value }))}
               >
-                <option value="all">{t('demo.filter.all')}</option>
+                <option value="all">{t('demo.team.filterAllRoles')}</option>
                 {roles.map((r) => (
                   <option key={r} value={r}>
                     {r}
                   </option>
                 ))}
               </SelectField>
-            </label>
-            <label>
-              {t('demo.team.filter.workload')}
               <SelectField
                 value={filters.capacity}
-                data-testid="demo-team-filter-capacity"
+                aria-label={t('demo.team.filterCapacity')}
                 onChange={(e) =>
                   setFilters((f) => ({
                     ...f,
-                    capacity: e.target.value as TeamFilters['capacity'],
+                    capacity: e.target.value as typeof filters.capacity,
                   }))
                 }
               >
-                <option value="all">{t('demo.filter.all')}</option>
+                <option value="all">{t('demo.team.filterAllCapacity')}</option>
                 <option value="available">{t('demo.team.capacity.available')}</option>
                 <option value="balanced">{t('demo.team.capacity.balanced')}</option>
                 <option value="at_risk">{t('demo.team.capacity.at_risk')}</option>
                 <option value="over_capacity">{t('demo.team.capacity.over_capacity')}</option>
               </SelectField>
-            </label>
-          </div>
+            </div>
 
-          {filtered.length === 0 ? (
-            <EmptyState title={t('demo.empty')} body={t('demo.team.emptyHint')} />
-          ) : (
-            <>
-              <div className="oma-team-table-wrap" data-testid="demo-team-table">
-                <table className="oma-table">
-                  <thead>
-                    <tr>
-                      <th>{t('demo.team.col.member')}</th>
-                      <th>{t('demo.team.filter.role')}</th>
-                      <th>{t('demo.team.col.workload')}</th>
-                      <th>{t('demo.team.col.assignments')}</th>
-                      <th>{t('demo.team.col.reviews')}</th>
-                      <th>{t('demo.team.col.due')}</th>
-                      <th>{t('demo.team.col.overdue')}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filtered.map((m) => {
-                      const cap = capacityState(m.workload);
-                      return (
-                        <tr
-                          key={m.id}
-                          className="oma-team-row"
-                          data-testid={`demo-team-row-${m.id}`}
-                          onClick={() => setSelectedId(m.id)}
-                        >
-                          <td>
-                            <Button
-                              type="default"
-                              data-testid={`demo-team-open-${m.id}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedId(m.id);
-                              }}
-                              className="oma-text-link"
-                            >
-                              {pickCopy(m.name, locale)}
-                            </Button>
-                            {m.restricted ? (
-                              <span className="oma-badge">{t('demo.teamRestricted')}</span>
-                            ) : null}
-                          </td>
-                          <td>{m.role}</td>
-                          <td>
-                            <div
-                              className="oma-workload-bar"
-                              data-risk={
-                                cap === 'at_risk' || cap === 'over_capacity' ? 'true' : 'false'
-                              }
-                              aria-hidden="true"
-                            >
-                              <span
-                                style={{ width: `${Math.min(100, Math.round(m.workload * 100))}%` }}
-                              />
-                            </div>
-                            <span className="oma-capacity" data-state={cap}>
-                              {t(`demo.team.capacity.${cap}`)} ({Math.round(m.workload * 100)}%)
-                            </span>
-                          </td>
-                          <td className="oma-ltr">{m.assignments}</td>
-                          <td className="oma-ltr">{m.reviewQueue}</td>
-                          <td className="oma-ltr">{m.dueSoon}</td>
-                          <td className="oma-ltr">{m.overdue}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+            {filtered.length === 0 ? (
+              <div className="plx-empty">
+                <strong>{t('demo.empty')}</strong>
               </div>
-              <div className="oma-team-mobile-list" data-testid="demo-team-mobile">
+            ) : (
+              <div className="plx-list" data-testid="demo-team-list">
+                <div className="plx-list__head">
+                  <span>{t('demo.team.col.name')}</span>
+                  <span>{t('demo.team.col.role')}</span>
+                  <span>{t('demo.team.col.capacity')}</span>
+                  <span>{t('demo.team.col.assignments')}</span>
+                  <span />
+                </div>
                 {filtered.map((m) => {
                   const cap = capacityState(m.workload);
+                  const name = pickCopy(m.name, locale);
+                  const initial = (name || '?').trim().charAt(0).toUpperCase();
                   return (
-                    <article
+                    <button
                       key={m.id}
-                      className="oma-team-mobile-card"
-                      data-testid={`demo-team-mobile-${m.id}`}
+                      type="button"
+                      className="plx-list__row"
+                      data-testid={`demo-team-row-${m.id}`}
+                      onClick={() => setSelectedId(m.id)}
                     >
-                      <Button
-                        type="default"
-                        onClick={() => setSelectedId(m.id)}
-                        className="oma-text-link"
-                      >
-                        {pickCopy(m.name, locale)}
-                      </Button>
-                      <p className="oma-muted">{m.role}</p>
-                      <p className="oma-capacity" data-state={cap}>
-                        {t(`demo.team.capacity.${cap}`)} · {Math.round(m.workload * 100)}%
-                      </p>
-                      <p className="oma-muted oma-ltr">
-                        {t('demo.team.col.assignments')}: {m.assignments} ·{' '}
-                        {t('demo.team.col.overdue')}: {m.overdue}
-                      </p>
-                    </article>
+                      <div className="plx-person">
+                        <span className="plx-person__av" aria-hidden>
+                          {initial}
+                        </span>
+                        <span>
+                          <span className="plx-person__name">{name}</span>
+                          <span className="plx-person__sub">{pickCopy(m.functionLabel, locale)}</span>
+                        </span>
+                      </div>
+                      <span className="plx-list__cell">{m.role}</span>
+                      <span className="plx-list__cell">
+                        <span className={`plx-pill ${cap === 'available' || cap === 'balanced' ? 'plx-pill--ok' : cap === 'over_capacity' ? 'plx-pill--warn' : 'plx-pill--info'}`}>
+                          {t(`demo.team.capacity.${cap}`)} · {Math.round(m.workload * 100)}%
+                        </span>
+                      </span>
+                      <span className="plx-list__cell oma-ltr">
+                        {m.assignments}
+                        {m.overdue ? ` · ${m.overdue} overdue` : ''}
+                      </span>
+                      <span className="plx-list__actions">
+                        <span className="plx-btn plx-btn--soft" style={{ height: 32, padding: '0 10px', fontSize: 12 }}>
+                          {t('demo.team.viewTasks')}
+                        </span>
+                      </span>
+                    </button>
                   );
                 })}
               </div>
-            </>
-          )}
-        </>
-      ) : null}
+            )}
+          </>
+        ) : null}
+      </div>
 
       <Drawer
         open={Boolean(selected)}
@@ -238,32 +180,41 @@ export default function TeamPage() {
       >
         {selected ? (
           <div className="oma-stack" data-testid="demo-team-drawer">
-            <p className="oma-muted">{selected.role}</p>
+            <div className="plx-person" style={{ marginBottom: 12 }}>
+              <span className="plx-person__av" style={{ width: 48, height: 48, fontSize: 18 }}>
+                {(pickCopy(selected.name, locale) || '?').charAt(0).toUpperCase()}
+              </span>
+              <span>
+                <span className="plx-person__name" style={{ fontSize: 16 }}>
+                  {pickCopy(selected.name, locale)}
+                </span>
+                <span className="plx-person__sub">{selected.role}</span>
+              </span>
+            </div>
             <p>{pickCopy(selected.functionLabel, locale)}</p>
             <p>
-              <span className="oma-capacity" data-state={capacityState(selected.workload)}>
-                {t(`demo.team.capacity.${capacityState(selected.workload)}`)}
+              <span className={`plx-pill ${capacityState(selected.workload) === 'over_capacity' || capacityState(selected.workload) === 'at_risk' ? 'plx-pill--warn' : 'plx-pill--ok'}`}>
+                {t(`demo.team.capacity.${capacityState(selected.workload)}`)} ·{' '}
+                {Math.round(selected.workload * 100)}%
               </span>
-              {' · '}
-              {Math.round(selected.workload * 100)}%
             </p>
             <p className="oma-muted">{t('demo.team.workloadHonesty')}</p>
-            <div className="oma-chip-row">
+            <div className="oma-chip-row" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 12 }}>
               <Link
                 href={`/app/tasks?assignee=${encodeURIComponent(selected.assigneeKey)}`}
-                className="oma-text-link"
+                className="plx-btn plx-btn--ghost"
                 data-testid="demo-team-tasks-link"
               >
                 {t('demo.team.viewTasks')} ({selected.assignments})
               </Link>
               <Link
                 href="/app/reviews"
-                className="oma-text-link"
+                className="plx-btn plx-btn--ghost"
                 data-testid="demo-team-reviews-link"
               >
                 {t('demo.team.viewReviews')} ({selected.reviewQueue})
               </Link>
-              <Link href="/app/company/members" className="oma-text-link">
+              <Link href="/app/company/members" className="plx-btn plx-btn--ghost">
                 {t('demo.team.foundationMembers')}
               </Link>
             </div>
@@ -272,5 +223,5 @@ export default function TeamPage() {
         ) : null}
       </Drawer>
     </div>
-  );
+  )
 }
