@@ -122,131 +122,143 @@ export default function CompanyMembersPage() {
   if (denied) return <PermissionDenied message={t('errors.permission')} />;
 
   return (
-    <div className="oma-stack oma-members-foundation plx-org" data-testid="company-members" data-surface="company">
-      <PageHeader title={t('company.membersTitle')} description={t('company.membersBody')} />
-      <p className="oma-honesty-inline">{t('company.foundationNote')}</p>
-
-      {error ? (
-        <div className="oma-settings-panel" role="alert" data-testid="company-members-error">
-          <p style={{ color: 'var(--status-danger)', margin: 0 }}>{error}</p>
+    <div className="plx-page" data-testid="company-members" data-surface="company">
+      <div className="plx-page__bar">
+        <div className="plx-page__title-block">
+          <h1 className="plx-page__title">{t('company.membersTitle')}</h1>
+          <p className="plx-page__sub">{t('company.membersBody')}</p>
         </div>
-      ) : null}
-
-      <form className="oma-members-invite" onSubmit={invite} data-testid="company-members-invite">
-        <h2>{t('company.inviteTitle')}</h2>
-        <label className="oma-field">
-          <span>{t('auth.email')}</span>
-          <Input
-            required
-            value={email}
-            data-testid="company-members-invite-email"
-            onChange={(e) => setEmail(e.target.value)}
-            disabled={busy}
-            type="email"
-          />
-        </label>
-        <Button
-          type="primary"
-          disabled={busy}
-          data-testid="company-members-invite-submit"
-          htmlType="submit"
-        >
-          {t('company.inviteSubmit')}
-        </Button>
-        {inviteLink ? (
-          <div role="status" className="oma-stack" data-testid="company-members-invite-link">
-            <p className="oma-muted">{t('company.inviteLinkHint')}</p>
-            <code className="oma-code-block">{inviteLink}</code>
-            <Button type="default" onClick={copyLink}>
-              {copied ? t('company.inviteCopied') : t('company.inviteCopy')}
-            </Button>
-          </div>
-        ) : null}
-      </form>
-
-      <div className="oma-stage6-toolbar">
-        <label className="oma-stage6-search">
-          {t('company.membersSearch')}
-          <Input
-            value={q}
-            data-testid="company-members-search"
-            onChange={(e) => setQ(e.target.value)}
-          />
-        </label>
       </div>
 
-      <div className="oma-members-table-wrap">
-        <h2 className="oma-sr-only">{t('company.membersList')}</h2>
+      <div className="plx-page__body">
+        {error ? (
+          <div className="plx-empty" role="alert" data-testid="company-members-error">
+            <strong>{error}</strong>
+          </div>
+        ) : null}
+
+        <form className="plx-toolbar" onSubmit={invite} style={{ marginBottom: 16 }}>
+          <div className="plx-toolbar__search" style={{ flex: '1 1 240px' }}>
+            <Input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder={t('company.inviteEmail')}
+              data-testid="company-invite-email"
+              disabled={busy}
+            />
+          </div>
+          <Button type="primary" htmlType="submit" disabled={busy} data-testid="company-invite-submit">
+            {t('company.invite')}
+          </Button>
+        </form>
+
+        {inviteLink ? (
+          <div className="plx-settings__panel" style={{ marginBottom: 16 }} data-testid="company-members-invite-link">
+            <p style={{ margin: '0 0 8px', fontSize: 13, color: '#6b7280' }}>{t('company.inviteLinkHint')}</p>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <code style={{ flex: 1, fontSize: 12, wordBreak: 'break-all' }}>{inviteLink}</code>
+              <Button
+                type="default"
+                onClick={async () => {
+                  await navigator.clipboard?.writeText(inviteLink);
+                  setCopied(true);
+                }}
+              >
+                {copied ? t('company.copied') : t('company.copyLink')}
+              </Button>
+            </div>
+          </div>
+        ) : null}
+
+        <div className="plx-toolbar" style={{ marginBottom: 16 }}>
+          <div className="plx-toolbar__search">
+            <Input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder={t('company.searchMembers')}
+              data-testid="company-members-search"
+            />
+          </div>
+        </div>
+
         {filtered.length === 0 ? (
-          <p className="oma-muted" style={{ padding: 'var(--space-3)' }}>
-            {t('company.membersEmpty')}
-          </p>
+          <div className="plx-empty">
+            <strong>{t('company.noMembers')}</strong>
+          </div>
         ) : (
-          <table className="oma-table" data-testid="company-members-table">
-            <thead>
-              <tr>
-                <th>{t('company.colPerson')}</th>
-                <th>{t('company.colStatus')}</th>
-                <th>{t('company.colProfile')}</th>
-                <th>{t('company.colCapabilities')}</th>
-                <th>{t('company.colActions')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map((m) => (
-                <tr key={m.id} data-testid={`company-member-row-${m.id}`}>
-                  <td>{m.user?.email ?? m.invited_email ?? m.id.slice(-8)}</td>
-                  <td>
-                    <StatusChip status={m.status} />
-                  </td>
-                  <td>{m.source_profiles.filter(Boolean).join(', ') || '—'}</td>
-                  <td>
-                    <span className="oma-muted" style={{ fontSize: 'var(--text-meta)' }}>
-                      {m.capabilities.length > 0 ? m.capabilities.join(', ') : '—'}
+          <div className="plx-list" data-testid="company-members-table">
+            <div className="plx-list__head">
+              <span>{t('company.col.member')}</span>
+              <span>{t('company.col.status')}</span>
+              <span>{t('company.col.profiles')}</span>
+              <span>{t('company.col.capabilities')}</span>
+              <span />
+            </div>
+            {filtered.map((m) => {
+              const label = m.user?.name || m.user?.email || m.invited_email || m.id.slice(-8);
+              const initial = (label || '?').trim().charAt(0).toUpperCase();
+              return (
+                <div key={m.id} className="plx-list__row" data-testid={`company-member-row-${m.id}`} style={{ cursor: 'default' }}>
+                  <div className="plx-person">
+                    <span className="plx-person__av" aria-hidden>
+                      {initial}
                     </span>
-                  </td>
-                  <td>
-                    <div className="oma-form-actions">
-                      {m.status === 'ACTIVE' ? (
-                        <>
-                          <label className="oma-field">
-                            <span className="oma-sr-only">{t('company.assignProfile')}</span>
-                            <SelectField
-                              value={profileByMember[m.id] ?? ''}
-                              data-testid={`assign-profile-${m.id}`}
-                              onChange={(e) =>
-                                setProfileByMember((prev) => ({ ...prev, [m.id]: e.target.value }))
-                              }
-                              disabled={busy}
-                            >
-                              <option value="">{t('company.assignProfilePlaceholder')}</option>
-                              {ASSIGNABLE_PROFILES.map((code) => (
-                                <option key={code} value={code}>
-                                  {code}
-                                </option>
-                              ))}
-                            </SelectField>
-                          </label>
-                          <Button
-                            type="default"
-                            disabled={busy || !profileByMember[m.id]}
-                            onClick={() => void attachProfile(m.id)}
-                          >
-                            {t('company.assignProfile')}
-                          </Button>
-                          <Button type="default" disabled={busy} onClick={() => void suspend(m.id)}>
-                            {t('company.suspend')}
-                          </Button>
-                        </>
-                      ) : null}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    <span>
+                      <span className="plx-person__name">{label}</span>
+                      <span className="plx-person__sub">{m.user?.email || m.invited_email || ''}</span>
+                    </span>
+                  </div>
+                  <span className="plx-list__cell">
+                    <StatusChip status={m.status} />
+                  </span>
+                  <span className="plx-list__cell">
+                    {m.source_profiles.filter(Boolean).join(', ') || '—'}
+                  </span>
+                  <span className="plx-list__cell" style={{ fontSize: 12, color: '#9ca3af' }}>
+                    {m.capabilities.length > 0 ? m.capabilities.slice(0, 3).join(', ') : '—'}
+                  </span>
+                  <span className="plx-list__actions">
+                    {m.status === 'ACTIVE' ? (
+                      <>
+                        <SelectField
+                          value={profileByMember[m.id] ?? ''}
+                          data-testid={`assign-profile-${m.id}`}
+                          onChange={(e) =>
+                            setProfileByMember((prev) => ({ ...prev, [m.id]: e.target.value }))
+                          }
+                          disabled={busy}
+                          aria-label={t('company.assignProfile')}
+                          style={{ height: 32, fontSize: 12, maxWidth: 140 }}
+                        >
+                          <option value="">{t('company.assignProfilePlaceholder')}</option>
+                          {ASSIGNABLE_PROFILES.map((code) => (
+                            <option key={code} value={code}>
+                              {code}
+                            </option>
+                          ))}
+                        </SelectField>
+                        <Button
+                          type="default"
+                          disabled={busy || !profileByMember[m.id]}
+                          onClick={() => void attachProfile(m.id)}
+                          style={{ height: 32, fontSize: 12 }}
+                        >
+                          {t('company.assignProfile')}
+                        </Button>
+                        <Button type="default" disabled={busy} onClick={() => void suspend(m.id)} style={{ height: 32, fontSize: 12 }}>
+                          {t('company.suspend')}
+                        </Button>
+                      </>
+                    ) : null}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
     </div>
-  );
+  )
 }
