@@ -15,10 +15,13 @@ import { isPermissionDenied } from '../../../../../lib/brand-api';
 import { PermissionDenied } from '../../../../../components/shell/permission-denied';
 
 const COMPANY_ROLES = [
-  { value: 'Administrator', profile: 'ADMIN', desc: 'Manage workspaces, people, and settings' },
-  { value: 'Writer', profile: 'WRITER', desc: 'Edit access across workspaces' },
-  { value: 'Contributor', profile: 'MEMBER', desc: 'Standard collaborator access' },
-  { value: 'Owner', profile: 'COMPANY_OWNER', desc: 'Full company ownership' },
+  { value: 'Owner', profile: 'COMPANY_OWNER', kind: 'team' as const, desc: 'Full company ownership' },
+  { value: 'Administrator', profile: 'ADMIN', kind: 'team' as const, desc: 'Manage workspaces, people, and settings' },
+  { value: 'Writer', profile: 'WRITER', kind: 'team' as const, desc: 'Create and edit posts and campaigns' },
+  { value: 'Approver', profile: 'APPROVER', kind: 'team' as const, desc: 'Review and approve content' },
+  { value: 'Contributor', profile: 'MEMBER', kind: 'team' as const, desc: 'Standard collaborator access' },
+  { value: 'Client', profile: 'CLIENT', kind: 'client' as const, desc: 'External client — view and approve' },
+  { value: 'Guest', profile: 'GUEST', kind: 'client' as const, desc: 'Limited view access' },
 ];
 
 export default function CompanyMembersPage() {
@@ -82,10 +85,11 @@ export default function CompanyMembersPage() {
     setBusy(true);
     setInviteLink(null);
     try {
+      const roleMeta = COMPANY_ROLES.find((r) => r.value === role);
       const res = (await inviteMember({
         email: email.trim(),
         role,
-        membership: 'team',
+        membership: roleMeta?.kind === 'client' ? 'client' : 'team',
       })) as { invite_token?: string };
       if (res?.invite_token) {
         setInviteLink(`${window.location.origin}/invite?token=${res.invite_token}`);
