@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useT } from '../../lib/use-locale';
 import { api } from '../../lib/api';
+import { ShellIcon } from './shell-icons';
 
 type Me = {
   active_tenant_id: string | null;
@@ -127,9 +128,7 @@ export function WorkspaceRow({ collapsed = false, onOpenSettings }: WorkspaceRow
                       onOpenSettings();
                     }}
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                      <path d="M12 8.5a3.5 3.5 0 1 1 0 7 3.5 3.5 0 0 1 0-7Zm8.1 2.8-.9-1.6 1.2-1.5-1.7-1.7-1.5 1.2-1.6-.9L14.5 4h-5l-.2 2.8-1.6.9-1.5-1.2-1.7 1.7 1.2 1.5-.9 1.6L3 12.5v5l2.8.2.9 1.6-1.2 1.5 1.7 1.7 1.5-1.2 1.6.9.2 2.8h5l.2-2.8 1.6-.9 1.5 1.2 1.7-1.7-1.2-1.5.9-1.6 2.8-.2v-5l-2.8-.2Z" />
-                    </svg>
+                    <ShellIcon name="settings" size={14} />
                     <span>{t('shell.workspaceSettings') || 'Workspace settings'}</span>
                   </button>
                   <button
@@ -141,9 +140,7 @@ export function WorkspaceRow({ collapsed = false, onOpenSettings }: WorkspaceRow
                       window.location.assign('/app/select-company');
                     }}
                   >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                      <path d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6V5Z" />
-                    </svg>
+                    <ShellIcon name="plus" size={14} />
                     <span>{t('shell.newWorkspace') || 'New workspace'}</span>
                   </button>
                 </div>

@@ -2155,3 +2155,44 @@
     display: none;
   }
 }
+
+
+.oma-ws-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 8px;
+}
+.oma-ws-action-row .oma-btn,
+.oma-ws-action-row button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.oma-ws-save-msg {
+  margin-inline-start: 12px;
+  font-size: 13px;
+  color: #059669;
+}
+.oma-ws-swatch.is-selected {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+.oma-ws-label-list {
+  list-style: none;
+  margin: 0 0 16px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  max-width: 420px;
+}
+.oma-ws-label-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+}

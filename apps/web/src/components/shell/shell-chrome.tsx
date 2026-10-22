@@ -25,27 +25,20 @@ function RailNav({ collapsed }: { collapsed: boolean }) {
     <nav className="oma-nav" aria-label={t('nav.primary')}>
       {SHELL_NAV_SECTIONS.map((section) => (
         <div key={section.id} className="oma-nav-group">
-          {section.id !== 'primary' ? (
-            <p className="oma-nav-section" id={`nav-${section.id}`}>
-              {t(section.labelKey)}
-            </p>
-          ) : null}
-          <ul
-            className="oma-nav-list"
-            aria-labelledby={section.id !== 'primary' ? `nav-${section.id}` : undefined}
-          >
-            {section.items.map((item) => {
-              const translated = t(item.labelKey);
-              const label =
-                translated === item.labelKey && item.labelFallback
-                  ? item.labelFallback
-                  : translated;
-              return (
-                <li key={item.href}>
-                  <NavLink href={item.href} label={label} icon={item.icon} collapsed={collapsed} />
-                </li>
-              );
-            })}
+          <p className="oma-nav-section" id={`nav-${section.id}`}>
+            {t(section.labelKey)}
+          </p>
+          <ul className="oma-nav-list" aria-labelledby={`nav-${section.id}`}>
+            {section.items.map((item) => (
+              <li key={item.href}>
+                <NavLink
+                  href={item.href}
+                  label={t(item.labelKey)}
+                  icon={item.icon}
+                  collapsed={collapsed}
+                />
+              </li>
+            ))}
           </ul>
         </div>
       ))}
@@ -241,26 +234,6 @@ export function ShellChrome({ children }: { children: ReactNode }) {
           <div className="oma-rail-workspace">
             <WorkspaceRow collapsed={collapsed} onOpenSettings={() => setWsSettingsOpen(true)} />
           </div>
-          {/* Search + Notifications entry points at top of nav (Planable) */}
-          {!collapsed ? (
-            <div className="oma-rail-quick">
-              <button
-                type="button"
-                className="oma-rail-quick-item"
-                onClick={() => {
-                  const el = document.querySelector<HTMLElement>('[data-testid="command-search-trigger"], .oma-command-trigger');
-                  el?.click();
-                }}
-              >
-                <ShellIcon name="search" size={18} />
-                <span>{t('shell.search') || 'Search'}</span>
-              </button>
-              <div className="oma-rail-quick-item oma-rail-quick-bell">
-                <NotificationsBell />
-                <span className="oma-nav-link-label">{t('shell.notifications') || 'Notifications'}</span>
-              </div>
-            </div>
-          ) : null}
           <RailNav collapsed={collapsed} />
           <div className="oma-rail-footer">
             <NotificationsBell />
