@@ -3,22 +3,18 @@
 import { Button } from '@oma/ui/controls';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { listActivity, type ActivityItem } from '../../../../lib/activity-api';
-import {
-  demoApi,
-  demoErrorMessage,
-  isDemoForbidden,
-} from '../../../../lib/demo/use-demo-api';
+import { useToast } from '../../../../components/ui/toast';
 import { ShellIcon } from '../../../../components/shell/shell-icons';
 import type { NavIconId } from '../../../../components/shell/nav-config';
 
 type Filter = 'all' | 'members' | 'approvals' | 'content' | 'settings';
 
 export default function ActivityPage() {
+  const toast = useToast();
   const [items, setItems] = useState<ActivityItem[]>([]);
   const [filter, setFilter] = useState<Filter>('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [source, setSource] = useState<'api' | 'demo'>('api');
   const [cursor, setCursor] = useState<string | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
   const loadingRef = useRef(false);
@@ -37,44 +33,11 @@ export default function ActivityPage() {
       if (!mountedRef.current) return;
       setItems((prev) => (append ? [...prev, ...res.items] : res.items));
       setCursor(res.next_cursor);
-      setSource('api');
-    } catch {
-      if (append) {
-        if (mountedRef.current) setLoadingMore(false);
-        loadingRef.current = false;
-        return;
-      }
-      try {
-        const demo = await demoApi<
-          Array<{
-            id: string;
-            at?: string;
-            createdAt?: string;
-            action?: string;
-            type?: string;
-            summary?: string;
-            actor?: string;
-          }>
-        >('/activity');
-        if (!mountedRef.current) return;
-        setItems(
-          demo.map((d) => ({
-            id: d.id,
-            at: d.at || d.createdAt || new Date().toISOString(),
-            action: d.action || d.type || 'event',
-            category:
-              (d.type as ActivityItem['category']) ||
-              (String(d.action || '').includes('approv') ? 'approvals' : 'other'),
-            title: d.summary || d.action || d.type || 'Activity',
-            actor: d.actor,
-          })),
-        );
-        setCursor(null);
-        setSource('demo');
-      } catch (err) {
-        if (!mountedRef.current) return;
-        if (isDemoForbidden(err)) setError('Unavailable');
-        else setError(demoErrorMessage(err, 'Failed to load activity'));
+    } catch (err) {
+      if (!mountedRef.current) return;
+      if (!append) {
+        setError(err instanceof Error ? err.message : 'Failed to load activity');
+        toast.push('Could not load activity', 'danger');
       }
     } finally {
       loadingRef.current = false;
@@ -126,8 +89,7 @@ export default function ActivityPage() {
         <div>
           <h1 className="oma-planable-page__title">Activity</h1>
           <p className="oma-planable-page__sub">
-            Workspace events: invites, permissions, approvals, and content changes.
-            {source === 'demo' ? ' (demo data)' : null}
+            Recent workspace events — invites, permissions, approvals, and content changes.
           </p>
         </div>
         <Button type="default" onClick={() => void load()} disabled={loading}>
@@ -178,30 +140,34 @@ export default function ActivityPage() {
           ) : (
             <ul className="oma-activity-list">
               {filtered.map((item) => (
-                <li key={item.id} className="oma-activity-item">
+                <li key={item.id} className="oma-activity-card">
                   <span className={`oma-activity-icon oma-activity-icon--${item.category}`}>
                     <ShellIcon name={iconFor(item.category)} size={16} />
                   </span>
                   <div className="oma-activity-body">
                     <div className="oma-activity-title-row">
-                      <strong>{item.title}</strong>
-                      <time dateTime={item.at}>{formatWhen(item.at)}</time>
+                      <strong className="oma-activity-title">{item.title}</strong>
+                      <time className="oma-activity-time" dateTime={item.at}>
+                        {formatWhen(item.at)}
+                      </time>
                     </div>
-                    {item.detail ? <p className="oma-activity-detail">{item.detail}</p> : null}
-                    {item.actor ? <p className="oma-activity-actor">Actor: {item.actor}</p> : null}
+                    <p className="oma-activity-summary">{item.summary}</p>
+                    <p className="oma-activity-actor">
+                      <span className="oma-activity-actor-label">By</span>{' '}
+                      {item.actor_name}
+                      {item.actor_email && item.actor_name !== item.actor_email ? (
+                        <span className="oma-muted"> · {item.actor_email}</span>
+                      ) : null}
+                    </p>
                   </div>
                 </li>
               ))}
             </ul>
           )}
 
-          {cursor && source === 'api' ? (
+          {cursor ? (
             <div style={{ marginTop: 16, textAlign: 'center' }}>
-              <Button
-                type="default"
-                disabled={loadingMore}
-                onClick={() => void load(cursor, true)}
-              >
+              <Button type="default" disabled={loadingMore} onClick={() => void load(cursor, true)}>
                 {loadingMore ? 'Loading…' : 'Load more'}
               </Button>
             </div>

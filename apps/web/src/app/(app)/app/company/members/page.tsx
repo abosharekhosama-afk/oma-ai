@@ -10,6 +10,7 @@ import {
   removeMember,
   type WorkspaceMember,
 } from '../../../../../lib/team-api';
+import { useToast } from '../../../../../components/ui/toast';
 import { isPermissionDenied } from '../../../../../lib/brand-api';
 import { PermissionDenied } from '../../../../../components/shell/permission-denied';
 
@@ -21,13 +22,13 @@ const COMPANY_ROLES = [
 ];
 
 export default function CompanyMembersPage() {
+  const toast = useToast();
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [q, setQ] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('Contributor');
@@ -79,7 +80,6 @@ export default function CompanyMembersPage() {
   async function onInvite() {
     if (!email.trim() || busy) return;
     setBusy(true);
-    setToast(null);
     setInviteLink(null);
     try {
       const res = (await inviteMember({
@@ -90,12 +90,12 @@ export default function CompanyMembersPage() {
       if (res?.invite_token) {
         setInviteLink(`${window.location.origin}/invite?token=${res.invite_token}`);
       }
-      setToast('Invitation sent');
+      toast.push('Invitation sent', 'success');
       setEmail('');
       setInviteOpen(false);
       await load(true);
     } catch (err) {
-      setToast(err instanceof Error ? err.message : 'Invite failed');
+      toast.push(err instanceof Error ? err.message : 'Invite failed', 'danger');
     } finally {
       setBusy(false);
     }
@@ -107,9 +107,9 @@ export default function CompanyMembersPage() {
     if (!profile) return;
     try {
       await attachMemberProfile(member.id, profile);
-      setToast('Role updated');
+      toast.push('Role updated', 'success');
     } catch {
-      setToast('Role profile not available on server; UI updated');
+      toast.push('Role profile not available on server; UI updated', 'success');
     }
   }
 
@@ -120,9 +120,9 @@ export default function CompanyMembersPage() {
     try {
       await removeMember(member.id);
       setMembers((prev) => prev.filter((m) => m.id !== member.id));
-      setToast('Member removed');
+      toast.push('Member removed', 'success');
     } catch (err) {
-      setToast(err instanceof Error ? err.message : 'Remove failed');
+      toast.push(err instanceof Error ? err.message : 'Remove failed', 'danger');
     } finally {
       setBusy(false);
     }
@@ -146,14 +146,7 @@ export default function CompanyMembersPage() {
         </Button>
       </div>
 
-      {toast ? (
-        <div className="oma-planable-toast" role="status">
-          <span>{toast}</span>
-          <button type="button" onClick={() => setToast(null)} aria-label="Dismiss">
-            ×
-          </button>
-        </div>
-      ) : null}
+      
 
       {inviteLink ? (
         <div className="oma-planable-card" style={{ marginBottom: 12 }}>
@@ -166,9 +159,9 @@ export default function CompanyMembersPage() {
             onClick={async () => {
               try {
                 await navigator.clipboard.writeText(inviteLink);
-                setToast('Link copied');
+                toast.push('Link copied', 'success');
               } catch {
-                setToast('Could not copy');
+                toast.push('Could not copy', 'danger');
               }
             }}
           >

@@ -13,6 +13,7 @@ import {
   type PlanablePerm,
   type WorkspaceMember,
 } from '../../../../lib/team-api';
+import { useToast } from '../../../../components/ui/toast';
 import {
   demoApi,
   demoErrorMessage,
@@ -42,6 +43,7 @@ const ROLE_OPTIONS = [
 ];
 
 export default function TeamPage() {
+  const toast = useToast();
   const [tab, setTab] = useState<Tab>('members');
   const [rows, setRows] = useState<WorkspaceMember[]>([]);
   const [loading, setLoading] = useState(true);
@@ -52,7 +54,6 @@ export default function TeamPage() {
   const [inviteRole, setInviteRole] = useState('Contributor');
   const [inviteMembership, setInviteMembership] = useState<MembershipType>('team');
   const [busy, setBusy] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
   const [q, setQ] = useState('');
   const loadingRef = useRef(false);
   const mountedRef = useRef(true);
@@ -140,7 +141,6 @@ export default function TeamPage() {
   async function onInvite() {
     if (!inviteEmail.trim() || busy) return;
     setBusy(true);
-    setToast(null);
     try {
       if (source === 'api') {
         await inviteMember({
@@ -176,9 +176,9 @@ export default function TeamPage() {
       }
       setInviteOpen(false);
       setInviteEmail('');
-      setToast('Invitation sent');
+      toast.push('Invitation sent', 'success');
     } catch (err) {
-      setToast(err instanceof Error ? err.message : 'Invite failed');
+      toast.push(err instanceof Error ? err.message : 'Invite failed', 'danger');
     } finally {
       setBusy(false);
     }
@@ -191,9 +191,9 @@ export default function TeamPage() {
     if (source !== 'api') return;
     try {
       await updateMemberCapabilities(member.id, permissionsToCapabilityCodes(next));
-      setToast('Permissions updated');
+      toast.push('Permissions updated', 'success');
     } catch (err) {
-      setToast(err instanceof Error ? err.message : 'Update failed');
+      toast.push(err instanceof Error ? err.message : 'Update failed', 'danger');
       await load(true);
     }
   }
@@ -204,9 +204,9 @@ export default function TeamPage() {
     try {
       if (source === 'api') await removeMember(member.id);
       setRows((prev) => prev.filter((r) => r.id !== member.id));
-      setToast('Member removed');
+      toast.push('Member removed', 'success');
     } catch (err) {
-      setToast(err instanceof Error ? err.message : 'Remove failed');
+      toast.push(err instanceof Error ? err.message : 'Remove failed', 'danger');
     } finally {
       setBusy(false);
     }
@@ -227,9 +227,9 @@ export default function TeamPage() {
     if (!code) return;
     try {
       await attachMemberProfile(member.id, code);
-      setToast('Role updated');
+      toast.push('Role updated', 'success');
     } catch {
-      setToast('Role profile not available; UI updated only');
+      toast.push('Role profile not available; UI updated only', 'success');
     }
   }
 
@@ -249,14 +249,7 @@ export default function TeamPage() {
         </Button>
       </div>
 
-      {toast ? (
-        <div className="oma-planable-toast" role="status">
-          {toast}
-          <button type="button" onClick={() => setToast(null)} aria-label="Dismiss">
-            ×
-          </button>
-        </div>
-      ) : null}
+      
 
       <div className="oma-ws-tabs">
         {(
