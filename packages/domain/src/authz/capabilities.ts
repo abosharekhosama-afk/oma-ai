@@ -45,7 +45,6 @@ export const STRATEGY_CAPABILITIES = [
   'strategy.set_current',
 ] as const;
 
-
 export const CAMPAIGN_CAPABILITIES = [
   'campaign.read',
   'campaign.create',
@@ -63,6 +62,20 @@ export const CONTENT_CAPABILITIES = [
   'content.archive',
 ] as const;
 
+export const OPS_CAPABILITIES = [
+  'request.read',
+  'request.create',
+  'request.update',
+  'request.convert',
+  'task.read',
+  'task.create',
+  'task.update',
+  'task.convert',
+  'deliverable.read',
+  'deliverable.update',
+  'deliverable.review',
+] as const;
+
 export type CapabilityCode =
   | (typeof FOUNDATION_CAPABILITIES)[number]
   | (typeof BRAND_CAPABILITIES)[number]
@@ -70,6 +83,7 @@ export type CapabilityCode =
   | (typeof AI_CAPABILITIES)[number]
   | (typeof CAMPAIGN_CAPABILITIES)[number]
   | (typeof CONTENT_CAPABILITIES)[number]
+  | (typeof OPS_CAPABILITIES)[number]
   | string;
 
 export function hasCapability(
@@ -83,11 +97,48 @@ export function hasCapability(
   return mode === 'any' ? needed.some((c) => set.has(c)) : needed.every((c) => set.has(c));
 }
 
-/** Approve package does not grant set-current (DP-003-003). */
 export function approveImpliesSetCurrent(): boolean {
   return false;
 }
 
+const CONTENT_AUTHOR = [
+  'content.read',
+  'content.create',
+  'content.update',
+  'content.request_approval',
+  'content.schedule',
+  'content.archive',
+  'campaign.read',
+  'campaign.create',
+  'campaign.update',
+] as const;
+
+const CONTENT_APPROVER = [
+  'content.read',
+  'content.approve',
+  'content.request_approval',
+  'campaign.read',
+  'notification.read',
+] as const;
+
+const OPS_MEMBER = [
+  'request.read',
+  'request.create',
+  'request.update',
+  'request.convert',
+  'task.read',
+  'task.create',
+  'task.update',
+  'task.convert',
+  'deliverable.read',
+  'deliverable.update',
+  'deliverable.review',
+] as const;
+
+/**
+ * Planable-aligned system profiles.
+ * Seeded into CapabilityProfile (tenantId null) via prisma seed.
+ */
 export const SYSTEM_PROFILES: Record<string, string[]> = {
   PLATFORM_OWNER: [
     'platform.tenant.create',
@@ -104,6 +155,7 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     ...AI_CAPABILITIES,
     ...CAMPAIGN_CAPABILITIES,
     ...CONTENT_CAPABILITIES,
+    ...OPS_CAPABILITIES,
   ],
   COMPANY_OWNER: [
     'tenant.manage',
@@ -118,11 +170,77 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     ...AI_CAPABILITIES,
     ...CAMPAIGN_CAPABILITIES,
     ...CONTENT_CAPABILITIES,
+    ...OPS_CAPABILITIES,
   ],
+  /** Planable Administrator */
+  ADMIN: [
+    'tenant.manage',
+    'membership.invite',
+    'membership.manage',
+    'capability.assign',
+    'audit.read',
+    'job.read',
+    'notification.read',
+    ...BRAND_CAPABILITIES,
+    ...STRATEGY_CAPABILITIES,
+    ...CAMPAIGN_CAPABILITIES,
+    ...CONTENT_CAPABILITIES,
+    ...OPS_CAPABILITIES,
+    'ai.propose.strategy',
+    'ai.propose.brief',
+  ],
+  /** Planable Writer — create/edit content & campaigns */
+  WRITER: [
+    'notification.read',
+    'job.read',
+    'brand.read',
+    'strategy.read',
+    'strategy.comment',
+    ...CONTENT_AUTHOR,
+    ...OPS_CAPABILITIES.filter((c) => c.startsWith('request.') || c.startsWith('task.')),
+    'deliverable.read',
+    'deliverable.update',
+  ],
+  /** Planable Approver — approve content only */
+  APPROVER: [...CONTENT_APPROVER, 'brand.read', 'strategy.read', 'strategy.approve', 'deliverable.review', 'deliverable.read'],
+  /** Standard collaborator */
   MEMBER: [
     'notification.read',
     'job.read',
+    'brand.read',
+    'strategy.read',
+    'strategy.comment',
     'campaign.read',
     'content.read',
+    'content.create',
+    'content.update',
+    'content.request_approval',
+    'request.read',
+    'request.create',
+    'task.read',
+    'task.update',
+    'deliverable.read',
   ],
+  /** External client / guest — view & approve limited */
+  CLIENT: [
+    'notification.read',
+    'brand.read',
+    'campaign.read',
+    'content.read',
+    'content.approve',
+    'deliverable.read',
+    'deliverable.review',
+  ],
+  GUEST: ['notification.read', 'content.read', 'campaign.read', 'brand.read'],
+  VIEWER: ['notification.read', 'content.read', 'campaign.read', 'brand.read', 'strategy.read'],
 };
+
+export const PLANABLE_ROLE_OPTIONS = [
+  { role: 'Owner', profile: 'COMPANY_OWNER', kind: 'team' as const },
+  { role: 'Administrator', profile: 'ADMIN', kind: 'team' as const },
+  { role: 'Writer', profile: 'WRITER', kind: 'team' as const },
+  { role: 'Approver', profile: 'APPROVER', kind: 'team' as const },
+  { role: 'Contributor', profile: 'MEMBER', kind: 'team' as const },
+  { role: 'Client', profile: 'CLIENT', kind: 'client' as const },
+  { role: 'Guest', profile: 'GUEST', kind: 'client' as const },
+] as const;
