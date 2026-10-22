@@ -18,6 +18,7 @@ import { pickCopy } from '../../../../lib/demo/use-demo-api';
 import {
   loadRequestsWorkspace,
   createRequest,
+  convertRequestToTask,
   toRequestRow,
   opsError,
 } from '../../../../lib/ops-api';
@@ -34,6 +35,11 @@ import {
   type RequestRow,
 } from '../../../../lib/demo/stage4-requests';
 import { useLocale, useT } from '../../../../lib/use-locale';
+import {
+  canConvertRequest,
+  statusLabel,
+  toApiRequestStatus,
+} from '../../../../lib/request-workflow-ui';
 import {
   FilterOutlined,
   CloseOutlined,
@@ -235,6 +241,27 @@ export default function RequestsPage() {
     }
   }
 
+
+  async function convertFromList(id: string, status: string) {
+    if (!canConvertRequest(status)) {
+      toast.push(
+        locale.toLowerCase().startsWith('ar')
+          ? 'لا يمكن تحويل الطلب في الحالة الحالية'
+          : 'Cannot convert request in current state',
+        'danger',
+      );
+      return;
+    }
+    try {
+      const task = await convertRequestToTask(id);
+      toast.push(t('demo.requests.converted'), 'success');
+      await load();
+      if (task?.id) router.push(`/app/tasks?task=${task.id}`);
+    } catch (err) {
+      toast.push(opsError(err, t('demo.requests.convertFailed')), 'danger');
+    }
+  }
+
   return (
     <div className="oma-stack oma-req-page" data-testid="demo-requests">
       {/* Unified Planable-style header: title + tabs + actions */}
@@ -400,7 +427,25 @@ export default function RequestsPage() {
                             <td>
                               <StatusChip status={r.status} />
                             </td>
-                            <td>{pickCopy(next, locale)}</td>
+                            <td>
+                              <div className="oma-req-row-actions">
+                                <span>{pickCopy(next, locale)}</span>
+                                {canConvertRequest(r.status) ? (
+                                  <button
+                                    type="button"
+                                    className="oma-req-row-convert"
+                                    data-testid={`demo-request-convert-${r.id}`}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      void convertFromList(r.id, r.status);
+                                    }}
+                                  >
+                                    {locale.toLowerCase().startsWith('ar') ? 'تحويل لمهمة' : 'Convert'}
+                                  </button>
+                                ) : null}
+                              </div>
+                            </td>
                           </tr>
                         );
                       })}
@@ -496,21 +541,24 @@ export default function RequestsPage() {
                         'all',
                         'OPEN',
                         'ASSIGNED',
-                        'IN_BRIEF',
+                        'IN_PROGRESS',
                         'WAITING_INFO',
-                        'READY_FOR_PRODUCTION',
-                        'IN_PRODUCTION',
                         'DONE',
                         'CLOSED',
                       ].map((s) => (
                         <label key={s} className="oma-filter-check">
                           <input
-                            type="checkbox"
+                            type="radio"
+                            name="req-filter-status"
                             data-testid={s === 'all' ? 'demo-request-filter-status' : undefined}
                             checked={(filters.status || 'all') === s}
                             onChange={() => setFilters((f) => ({ ...f, status: s }))}
                           />
-                          <span>{s === 'all' ? t('demo.filter.all') : s}</span>
+                          <span>
+                            {s === 'all'
+                              ? t('demo.filter.all')
+                              : statusLabel(s === 'WAITING_INFO' ? 'BLOCKED' : s === 'CLOSED' ? 'CANCELLED' : s, locale.toLowerCase().startsWith('ar'))}
+                          </span>
                         </label>
                       ))}
                     </div>
