@@ -1,4 +1,6 @@
 'use client';
+
+import { OmaTopLoader } from '../../../../../../../components/ui/oma-top-loader';
 import { OmaLinkButton } from '../../../../../../../components/ui/oma-link-button';
 import { Button } from '@oma/ui/controls';
 
@@ -125,7 +127,7 @@ export default function ScanDetailPage() {
   }
 
   if (denied) return <PermissionDenied message={t('errors.permission')} />;
-  if (loading) return <p role="status">{t('common.loading')}</p>;
+  if (loading) return <OmaTopLoader label={t('common.loading')} />;
   if (error || !brand || !scan) {
     return (
       <div className="oma-card" role="alert">
