@@ -1,3 +1,4 @@
+import { SearchIcon } from '../../../../components/ui/plx-icons';
 'use client';
 import { OmaLinkButton } from '../../../../components/ui/oma-link-button';
 import { Button, SearchInput, SelectField } from '@oma/ui/controls';
@@ -81,43 +82,42 @@ export default function BrandsListPage() {
           <h1 className="plx-page__title">{t('brand.list.title')}</h1>
           <p className="plx-page__sub">{t('brand.list.subtitle')}</p>
         </div>
-        <div className="plx-page__actions">
-          <OmaLinkButton href="/app/brands/new" type="primary">
-            {t('brand.list.create')}
-          </OmaLinkButton>
-        </div>
+        
       </div>
 
       <div className="plx-page__body">
         <form
-          className="plx-toolbar"
+          className="plx-toolbar plx-toolbar--brands"
           onSubmit={(event) => {
             event.preventDefault();
             setQuery(queryDraft.trim());
           }}
+          data-testid="brand-filter-card"
         >
           <div className="plx-toolbar__search">
-            <SearchInput
+            <SearchIcon width={16} height={16} aria-hidden />
+            <input
               id="brand-search"
+              type="search"
               value={queryDraft}
               onChange={(event) => setQueryDraft(event.target.value)}
               placeholder={t('brand.list.searchLabel')}
+              aria-label={t('brand.list.searchLabel')}
             />
+            {queryDraft || query ? (
+              <button
+                type="button"
+                className="plx-toolbar__clear"
+                aria-label={t('brand.list.searchClear')}
+                onClick={() => {
+                  setQueryDraft('');
+                  setQuery('');
+                }}
+              >
+                ×
+              </button>
+            ) : null}
           </div>
-          <Button type="primary" htmlType="submit">
-            {t('brand.list.searchSubmit')}
-          </Button>
-          {query ? (
-            <Button
-              type="default"
-              onClick={() => {
-                setQueryDraft('');
-                setQuery('');
-              }}
-            >
-              {t('brand.list.searchClear')}
-            </Button>
-          ) : null}
           <SelectField
             id="brand-filter"
             value={filter}
