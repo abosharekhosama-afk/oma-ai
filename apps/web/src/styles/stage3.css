@@ -6384,3 +6384,154 @@ button.oma-cal-item {
   pointer-events: none !important;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2) !important;
 }
+
+/* ── Planable calendar tightness (flush under toolbar) ── */
+.oma-cal-with-saved {
+  gap: 0 !important;
+  margin-top: 0 !important;
+}
+.oma-cal-main {
+  gap: 0 !important;
+}
+.oma-cal-toolbar {
+  margin-bottom: 0 !important;
+  padding: 8px 12px !important;
+  border-bottom: 1px solid #e8eaed !important;
+  background: #fff !important;
+}
+.oma-cal-grid {
+  border-radius: 0 !important;
+  border-top: 0 !important;
+  border-color: #e8eaed !important;
+}
+.oma-cal-dow {
+  padding: 10px 6px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: #8b8f97 !important;
+  background: #fafbfc !important;
+  border-bottom: 1px solid #e8eaed !important;
+}
+.oma-cal-cell {
+  min-height: 118px !important;
+  padding: 6px 6px 8px !important;
+  border-color: #e8eaed !important;
+  background: #fff !important;
+  gap: 4px !important;
+}
+.oma-cal-cell[data-out='true'] {
+  background: #fafbfc !important;
+  color: #c0c4cc !important;
+}
+.oma-cal-daynum {
+  justify-self: end !important;
+  min-width: 24px !important;
+  height: 24px !important;
+  font-size: 12px !important;
+  color: #6b7280 !important;
+}
+.oma-cal-cell[data-today='true'] .oma-cal-daynum {
+  background: #e5484d !important;
+  color: #fff !important;
+}
+
+/* Content post card on calendar — dashed Planable style */
+.oma-cal-cell .oma-post-card--calendar,
+.oma-cal-cell .oma-post-card.oma-post-card--calendar {
+  border: 1px dashed #d0d4db !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  padding: 6px 8px !important;
+  min-height: 44px !important;
+  box-shadow: none !important;
+}
+.oma-cal-cell .oma-post-card--calendar:hover {
+  border-color: #4c8dff !important;
+  background: #f8faff !important;
+}
+
+/* Note sticky card */
+.oma-cal-note,
+.oma-cal-note--inline {
+  position: relative !important;
+  border-radius: 8px !important;
+  border: 0 !important;
+  padding: 8px 10px 28px !important;
+  min-height: 64px !important;
+  box-shadow: 0 1px 2px rgba(17, 24, 39, 0.06) !important;
+  z-index: 1 !important;
+}
+.oma-cal-note[data-color='yellow'],
+.oma-cal-note--inline[data-color='yellow'] { background: #fef6c7 !important; }
+.oma-cal-note[data-color='mint'],
+.oma-cal-note--inline[data-color='mint'] { background: #d1fae5 !important; }
+.oma-cal-note[data-color='pink'],
+.oma-cal-note--inline[data-color='pink'] { background: #fce7f3 !important; }
+.oma-cal-note[data-color='blue'],
+.oma-cal-note--inline[data-color='blue'] { background: #dbeafe !important; }
+.oma-cal-note[data-color='purple'],
+.oma-cal-note--inline[data-color='purple'] { background: #ede9fe !important; }
+.oma-cal-note[data-color='orange'],
+.oma-cal-note--inline[data-color='orange'] { background: #ffedd5 !important; }
+
+.oma-cal-note__input {
+  background: transparent !important;
+  border: 0 !important;
+  width: 100% !important;
+  font-size: 12px !important;
+  color: #374151 !important;
+  resize: none !important;
+  outline: none !important;
+  min-height: 36px !important;
+}
+
+/* Floating color swatches ABOVE note content */
+.oma-cal-note__swatches {
+  position: absolute !important;
+  bottom: calc(100% + 6px) !important;
+  inset-inline-start: 4px !important;
+  z-index: 40 !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 6px !important;
+  padding: 8px !important;
+  background: #fff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 24px rgba(17, 24, 39, 0.14) !important;
+  width: max-content !important;
+  max-width: 140px !important;
+}
+.oma-cal-note-swatch {
+  width: 18px !important;
+  height: 18px !important;
+  border-radius: 999px !important;
+  border: 2px solid #fff !important;
+  box-shadow: 0 0 0 1px #e5e7eb !important;
+  cursor: pointer !important;
+  padding: 0 !important;
+}
+.oma-cal-note-swatch[data-color='yellow'] { background: #fde68a !important; }
+.oma-cal-note-swatch[data-color='mint'] { background: #6ee7b7 !important; }
+.oma-cal-note-swatch[data-color='pink'] { background: #f9a8d4 !important; }
+.oma-cal-note-swatch[data-color='blue'] { background: #93c5fd !important; }
+.oma-cal-note-swatch[data-color='purple'] { background: #c4b5fd !important; }
+.oma-cal-note-swatch[data-color='orange'] { background: #fdba74 !important; }
+
+.oma-cal-note__actions {
+  position: absolute !important;
+  inset-inline-end: 4px !important;
+  bottom: 4px !important;
+  display: flex !important;
+  gap: 2px !important;
+}
+
+/* Campaign-name band across week rows */
+.oma-cal-campaign-band,
+.oma-cal-week-label {
+  border: 1px solid #e8eaed !important;
+  border-radius: 6px !important;
+  background: #fff !important;
+  font-size: 12px !important;
+  color: #6b7280 !important;
+}

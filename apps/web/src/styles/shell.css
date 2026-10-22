@@ -2582,3 +2582,180 @@
   display: inline-flex !important;
   align-items: center !important;
 }
+
+/* ── Session invalid overlay ── */
+.oma-session-invalid {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(17, 24, 39, 0.45);
+  backdrop-filter: blur(6px);
+  padding: 24px;
+}
+.oma-session-invalid__card {
+  width: min(400px, 100%);
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px 28px 28px;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(17, 24, 39, 0.18);
+}
+.oma-session-invalid__icon {
+  color: #4c8dff;
+  margin-bottom: 12px;
+}
+.oma-session-invalid__title {
+  margin: 0 0 8px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+  letter-spacing: -0.02em;
+}
+.oma-session-invalid__body {
+  margin: 0 0 20px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #6b7280;
+}
+.oma-session-invalid__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 20px;
+  border-radius: 10px;
+  background: #4c8dff;
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+}
+.oma-session-invalid__btn:hover {
+  background: #3b7aef;
+}
+.oma-session-invalid__hint {
+  margin: 14px 0 0;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* ── Planable-like rail ── */
+.oma-rail {
+  background: #f7f8fa !important;
+  border-inline-end: 1px solid #e8eaed !important;
+  overflow-x: hidden !important;
+  overflow-y: hidden !important; /* no scrollbar */
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  gap: 4px !important;
+  padding: 10px 8px 12px !important;
+}
+.oma-rail::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+.oma-rail-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 6px !important;
+  min-height: 40px !important;
+  padding: 0 4px !important;
+  margin-bottom: 4px !important;
+}
+.oma-rail-logo-link {
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+.oma-rail-collapse {
+  flex-shrink: 0 !important;
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  padding: 0 !important;
+  border-radius: 8px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #6b7280 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.oma-rail-collapse:hover {
+  background: #eef0f3 !important;
+  color: #111827 !important;
+}
+.oma-shell[data-rail='collapsed'] .oma-rail {
+  width: 56px !important;
+  min-width: 56px !important;
+  padding: 10px 6px !important;
+  align-items: center !important;
+}
+.oma-shell[data-rail='collapsed'] .oma-rail-header {
+  justify-content: center !important;
+}
+.oma-shell[data-rail='collapsed'] .oma-rail-brand,
+.oma-shell[data-rail='collapsed'] .oma-rail-endorsement,
+.oma-shell[data-rail='collapsed'] .oma-rail-workspace,
+.oma-shell[data-rail='collapsed'] .oma-nav,
+.oma-shell[data-rail='collapsed'] .oma-rail-footer {
+  display: none !important;
+}
+.oma-shell[data-rail='collapsed'] .oma-rail-collapse {
+  margin: 0 auto !important;
+}
+
+.oma-nav {
+  overflow-y: auto !important;
+  scrollbar-width: none !important;
+  flex: 0 1 auto !important;
+  gap: 2px !important;
+}
+.oma-nav::-webkit-scrollbar { display: none !important; width: 0 !important; }
+
+.oma-nav-section {
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: #9ca3af !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  margin: 10px 8px 4px !important;
+  padding: 0 !important;
+}
+.oma-nav-link {
+  min-height: 36px !important;
+  padding: 6px 10px !important;
+  border-radius: 10px !important;
+  gap: 10px !important;
+  color: #374151 !important;
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+.oma-nav-link:hover {
+  background: #eef0f3 !important;
+  color: #111827 !important;
+}
+.oma-nav-link[data-active='true'] {
+  background: #e8ebf0 !important;
+  color: #111827 !important;
+  font-weight: 600 !important;
+}
+.oma-nav-link-icon {
+  width: 18px !important;
+  height: 18px !important;
+  opacity: 0.85 !important;
+  color: inherit !important;
+}
+
+/* Top loader placement */
+.oma-top-loader {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0 4px;
+}
