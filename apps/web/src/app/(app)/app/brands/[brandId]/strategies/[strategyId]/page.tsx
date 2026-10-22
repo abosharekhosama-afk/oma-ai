@@ -1,4 +1,6 @@
 'use client';
+
+import { OmaTopLoader } from '../../../../../../../components/ui/oma-top-loader';
 import { OmaLinkButton } from '../../../../../../../components/ui/oma-link-button';
 import { Button } from '@oma/ui/controls';
 
@@ -105,7 +107,7 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
         {error}
       </div>
     ) : (
-      <p role="status">{t('common.loading')}</p>
+      <OmaTopLoader label={t('common.loading')} />
     );
   }
 
