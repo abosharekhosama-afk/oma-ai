@@ -4,6 +4,7 @@ import { Button, Input, SelectField } from '@oma/ui/controls';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { OmaTopLoader } from '../../../../components/ui/oma-top-loader';
 import { createPortal } from 'react-dom';
 import type { DemoGraph } from '@oma/demo';
 import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
@@ -260,7 +261,7 @@ export default function DeliverablesPage() {
         {t('demo.deliverable.storageHonesty')}
       </p>
 
-      {loading ? <p className="oma-muted">{t('demo.loading')}</p> : null}
+      {loading ? <OmaTopLoader label={t('demo.loading')} /> : null}
       {unavailable ? (
         <p className="oma-muted" data-testid="demo-deliverables-denied">
           {t('demo.unavailable')}
