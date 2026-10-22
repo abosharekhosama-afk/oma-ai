@@ -10,6 +10,13 @@ type Me = {
   memberships: Array<{ id: string; tenant_id: string; tenant_name: string }>;
 };
 
+type BrandItem = {
+  id: string;
+  name: string;
+  status?: string;
+  primary_website_url?: string | null;
+};
+
 type WorkspaceRowProps = {
   collapsed?: boolean;
   onOpenSettings: () => void;
@@ -17,21 +24,39 @@ type WorkspaceRowProps = {
 
 /**
  * Planable-style Workspace row in the rail:
- * - Label "Workspace" + chevron
- * - Workspace name
- * - Actions (⋯) menu: Workspace settings / New workspace
+ * - Shows active brand workspace name (not only company)
+ * - Menu: settings, switch workspace, new workspace (→ /app/brands/new)
  */
 export function WorkspaceRow({ collapsed = false, onOpenSettings }: WorkspaceRowProps) {
   const t = useT();
   const [me, setMe] = useState<Me | null>(null);
+  const [brands, setBrands] = useState<BrandItem[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [expanded, setExpanded] = useState(true);
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    api<Me>('/api/v1/auth/me')
-      .then(setMe)
-      .catch(() => setMe(null));
+    let cancelled = false;
+    (async () => {
+      try {
+        const m = await api<Me>('/api/v1/auth/me');
+        if (cancelled) return;
+        setMe(m);
+        if (m.active_tenant_id) {
+          try {
+            const list = await api<{ data: BrandItem[] }>('/api/v1/brands?limit=50');
+            if (!cancelled) setBrands(Array.isArray(list.data) ? list.data : []);
+          } catch {
+            if (!cancelled) setBrands([]);
+          }
+        }
+      } catch {
+        if (!cancelled) setMe(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -50,12 +75,15 @@ export function WorkspaceRow({ collapsed = false, onOpenSettings }: WorkspaceRow
     };
   }, [menuOpen]);
 
-  const active = me?.memberships.find((m) => m.tenant_id === me.active_tenant_id);
-  const name =
-    active?.tenant_name ||
+  const company =
+    me?.memberships.find((m) => m.tenant_id === me.active_tenant_id)?.tenant_name ||
     me?.memberships[0]?.tenant_name ||
     t('shell.workspace') ||
     'Workspace';
+
+  // Prefer first brand as active workspace label (Planable: workspace = brand)
+  const activeBrand = brands[0];
+  const name = activeBrand?.name || company;
 
   if (collapsed) {
     return (
@@ -96,9 +124,17 @@ export function WorkspaceRow({ collapsed = false, onOpenSettings }: WorkspaceRow
       {expanded ? (
         <div className="oma-ws-body">
           <div className="oma-ws-name-row">
-            <span className="oma-ws-name" title={name}>
+            <button
+              type="button"
+              className="oma-ws-name"
+              title={name}
+              onClick={() => {
+                if (activeBrand) window.location.assign(`/app/brands/${activeBrand.id}`);
+                else window.location.assign('/app/brands');
+              }}
+            >
               {name}
-            </span>
+            </button>
             <div className="oma-ws-actions">
               <button
                 type="button"
@@ -106,6 +142,7 @@ export function WorkspaceRow({ collapsed = false, onOpenSettings }: WorkspaceRow
                 aria-label={t('shell.workspaceActions') || 'Workspace actions'}
                 aria-expanded={menuOpen}
                 aria-haspopup="menu"
+                data-testid="workspace-row-menu"
                 onClick={(e) => {
                   e.stopPropagation();
                   setMenuOpen((v) => !v);
@@ -131,6 +168,34 @@ export function WorkspaceRow({ collapsed = false, onOpenSettings }: WorkspaceRow
                     <ShellIcon name="settings" size={14} />
                     <span>{t('shell.workspaceSettings') || 'Workspace settings'}</span>
                   </button>
+                  {brands.slice(0, 6).map((b) => (
+                    <button
+                      key={b.id}
+                      type="button"
+                      role="menuitem"
+                      className="oma-ws-menu-item"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        window.location.assign(`/app/brands/${b.id}`);
+                      }}
+                    >
+                      <ShellIcon name="grid" size={14} />
+                      <span>{b.name}</span>
+                    </button>
+                  ))}
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="oma-ws-menu-item"
+                    data-testid="workspace-row-new"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      window.location.assign('/app/brands/new');
+                    }}
+                  >
+                    <ShellIcon name="plus" size={14} />
+                    <span>{t('shell.newWorkspace') || 'New workspace'}</span>
+                  </button>
                   <button
                     type="button"
                     role="menuitem"
@@ -140,8 +205,8 @@ export function WorkspaceRow({ collapsed = false, onOpenSettings }: WorkspaceRow
                       window.location.assign('/app/select-company');
                     }}
                   >
-                    <ShellIcon name="plus" size={14} />
-                    <span>{t('shell.newWorkspace') || 'New workspace'}</span>
+                    <ShellIcon name="grid" size={14} />
+                    <span>{t('shell.allWorkspaces') || 'All workspaces'}</span>
                   </button>
                 </div>
               ) : null}
