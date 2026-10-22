@@ -1348,3 +1348,125 @@
   color: #6b7280 !important;
   letter-spacing: 0.02em !important;
 }
+
+/* PlxLogo in rail */
+.oma-rail-logo-link {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  color: inherit;
+  min-width: 0;
+}
+.oma-rail-logo-link .plx-logo {
+  gap: 8px;
+}
+.oma-rail-logo-link .plx-logo-word {
+  font-size: 18px !important;
+  font-weight: 800 !important;
+  color: #111827 !important;
+  letter-spacing: -0.4px !important;
+}
+.oma-rail-logo-link .plx-logo-sub {
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  color: #6b7280 !important;
+  margin: 0 !important;
+  align-self: flex-end !important;
+}
+.oma-shell[data-rail='collapsed'] .oma-rail-logo-link .plx-logo-word,
+.oma-shell[data-rail='collapsed'] .oma-rail-logo-link .plx-logo-sub {
+  display: none !important;
+}
+
+/* Smooth rail open/close */
+.oma-shell {
+  transition: grid-template-columns 0.22s ease !important;
+}
+.oma-rail {
+  transition: width 0.22s ease, padding 0.22s ease !important;
+  overflow-x: hidden !important;
+}
+.oma-nav-link-label {
+  transition: opacity 0.15s ease !important;
+}
+.oma-shell[data-rail='collapsed'] .oma-nav-link-label,
+.oma-shell[data-rail='collapsed'] .oma-nav-section,
+.oma-shell[data-rail='collapsed'] .oma-rail-workspace,
+.oma-shell[data-rail='collapsed'] .oma-rail-endorsement {
+  opacity: 0 !important;
+  width: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  height: 0 !important;
+}
+.oma-shell[data-rail='collapsed'] .oma-nav-section {
+  display: none !important;
+}
+.oma-shell[data-rail='collapsed'] .oma-nav-link {
+  justify-content: center !important;
+}
+
+/* Mobile nav: tight spacing between items (was oversized) */
+@media (max-width: 767px) {
+  .oma-drawer.oma-drawer--nav .oma-nav {
+    gap: 4px !important;
+  }
+  .oma-drawer.oma-drawer--nav .oma-nav-group {
+    margin-bottom: 6px !important;
+    gap: 0 !important;
+  }
+  .oma-drawer.oma-drawer--nav .oma-nav-section {
+    margin: 8px 8px 4px !important;
+    padding: 0 !important;
+    font-size: 11px !important;
+  }
+  .oma-drawer.oma-drawer--nav .oma-nav-list {
+    gap: 0 !important;
+  }
+  .oma-drawer.oma-drawer--nav .oma-nav-link {
+    min-height: 40px !important;
+    padding: 8px 12px !important;
+    border-radius: 10px !important;
+    gap: 10px !important;
+  }
+  .oma-drawer.oma-drawer--nav .oma-mobile-drawer-header {
+    margin-bottom: 12px !important;
+    padding-bottom: 8px !important;
+    border-bottom: 1px solid #eceef1 !important;
+  }
+  .oma-drawer.oma-drawer--nav .oma-rail-workspace {
+    margin-bottom: 8px !important;
+  }
+  .oma-drawer.oma-drawer--nav .oma-rail-footer {
+    margin-top: 8px !important;
+    padding-top: 8px !important;
+    gap: 4px !important;
+  }
+  /* Also reduce desktop gap override if it leaks */
+  .oma-shell .oma-nav {
+    gap: 8px !important;
+  }
+  .oma-shell .oma-nav-group {
+    gap: 2px !important;
+    margin-bottom: 4px !important;
+  }
+}
+
+/* Desktop nav tighter groups */
+.oma-shell .oma-nav {
+  gap: 8px !important;
+}
+.oma-shell .oma-nav-group {
+  gap: 2px !important;
+  margin-bottom: 6px !important;
+}
+.oma-shell .oma-nav-list {
+  gap: 1px !important;
+}
+.oma-shell .oma-nav-link {
+  min-height: 36px !important;
+  padding: 6px 10px !important;
+  border-radius: 10px !important;
+}
