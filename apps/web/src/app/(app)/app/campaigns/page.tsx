@@ -1,11 +1,11 @@
-'use client';
 import { createPortal } from 'react-dom';
+'use client';
 import { Button, DateField, Input, SelectField, TextArea } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { FilterOutlined } from '@ant-design/icons';
+import { FilterOutlined, AppstoreOutlined, UnorderedListOutlined, SearchOutlined, DownOutlined, UpOutlined } from '@ant-design/icons';
 import type { DemoGraph } from '@oma/demo';
 import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
 import { TrackPill } from '../../../../components/demo/track-pill';
@@ -78,6 +78,7 @@ export default function CampaignsPage() {
   const [linkDraft, setLinkDraft] = useState('');
   const [linkError, setLinkError] = useState<string | null>(null);
   const [filterSheet, setFilterSheet] = useState(false);
+  const [filterSection, setFilterSection] = useState<string | null>('search');
   const [actionsHost, setActionsHost] = useState<HTMLElement | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -359,111 +360,263 @@ export default function CampaignsPage() {
     }
   }
 
-  const searchField = (
-    <label className="oma-stage3-search">
-      {t('demo.campaigns.search')}
-      <Input
-        value={filters.query}
-        onChange={(e) => setFilters((f) => ({ ...f, query: e.target.value }))}
-        data-testid="demo-campaign-search"
-      />
-    </label>
+  const statusOptions = [...new Set(rows.map((r) => r.status))];
+  const ownerOptions = [...new Set(rows.map((r) => r.owner).filter(Boolean))];
+
+  const filterPanelBody = (
+    <div className="oma-filter-accordion-list">
+      <div className="oma-filter-accordion">
+        <button
+          type="button"
+          className="oma-filter-accordion__row"
+          data-open={filterSection === 'search' ? 'true' : 'false'}
+          onClick={() => setFilterSection((s) => (s === 'search' ? null : 'search'))}
+        >
+          <span className="oma-filter-accordion__ico">
+            <SearchOutlined />
+          </span>
+          <span>{t('demo.campaigns.search')}</span>
+          <span className="oma-filter-accordion__caret">
+            {filterSection === 'search' ? <UpOutlined /> : <DownOutlined />}
+          </span>
+        </button>
+        {filterSection === 'search' ? (
+          <div className="oma-filter-accordion__body">
+            <Input
+              value={filters.query}
+              onChange={(e) => setFilters((f) => ({ ...f, query: e.target.value }))}
+              data-testid="demo-campaign-search"
+              placeholder={t('demo.campaigns.search')}
+            />
+          </div>
+        ) : null}
+      </div>
+
+      <div className="oma-filter-accordion">
+        <button
+          type="button"
+          className="oma-filter-accordion__row"
+          data-open={filterSection === 'brand' ? 'true' : 'false'}
+          onClick={() => setFilterSection((s) => (s === 'brand' ? null : 'brand'))}
+        >
+          <span className="oma-filter-accordion__ico">▣</span>
+          <span>{t('demo.campaigns.filter.brand')}</span>
+          <span className="oma-filter-accordion__caret">
+            {filterSection === 'brand' ? <UpOutlined /> : <DownOutlined />}
+          </span>
+        </button>
+        {filterSection === 'brand' ? (
+          <div className="oma-filter-accordion__body">
+            <label className="oma-filter-check">
+              <input
+                type="radio"
+                name="campaign-brand"
+                checked={filters.brandId === 'all'}
+                onChange={() => setFilters((f) => ({ ...f, brandId: 'all' }))}
+              />
+              <span>{t('demo.filter.all')}</span>
+            </label>
+            {brands.map((b) => (
+              <label key={b.id} className="oma-filter-check">
+                <input
+                  type="radio"
+                  name="campaign-brand"
+                  checked={filters.brandId === b.id}
+                  onChange={() => setFilters((f) => ({ ...f, brandId: b.id }))}
+                />
+                <span>{pickCopy(b.name, locale)}</span>
+              </label>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
+      <div className="oma-filter-accordion">
+        <button
+          type="button"
+          className="oma-filter-accordion__row"
+          data-open={filterSection === 'status' ? 'true' : 'false'}
+          onClick={() => setFilterSection((s) => (s === 'status' ? null : 'status'))}
+        >
+          <span className="oma-filter-accordion__ico">
+            <UnorderedListOutlined />
+          </span>
+          <span>{t('demo.filter.status')}</span>
+          <span className="oma-filter-accordion__caret">
+            {filterSection === 'status' ? <UpOutlined /> : <DownOutlined />}
+          </span>
+        </button>
+        {filterSection === 'status' ? (
+          <div className="oma-filter-accordion__body">
+            <label className="oma-filter-check">
+              <input
+                type="radio"
+                name="campaign-status"
+                data-testid="demo-campaign-filter-status"
+                checked={filters.status === 'all'}
+                onChange={() => setFilters((f) => ({ ...f, status: 'all' }))}
+              />
+              <span>{t('demo.filter.all')}</span>
+            </label>
+            {statusOptions.map((s) => (
+              <label key={s} className="oma-filter-check">
+                <input
+                  type="radio"
+                  name="campaign-status"
+                  checked={filters.status === s}
+                  onChange={() => setFilters((f) => ({ ...f, status: s }))}
+                />
+                <span>{statusLabel(s, locale)}</span>
+              </label>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
+      <div className="oma-filter-accordion">
+        <button
+          type="button"
+          className="oma-filter-accordion__row"
+          data-open={filterSection === 'track' ? 'true' : 'false'}
+          onClick={() => setFilterSection((s) => (s === 'track' ? null : 'track'))}
+        >
+          <span className="oma-filter-accordion__ico">◎</span>
+          <span>{t('demo.filter.track')}</span>
+          <span className="oma-filter-accordion__caret">
+            {filterSection === 'track' ? <UpOutlined /> : <DownOutlined />}
+          </span>
+        </button>
+        {filterSection === 'track' ? (
+          <div className="oma-filter-accordion__body">
+            {[
+              ['all', t('demo.filter.all')],
+              ['ORGANIC', t('demo.organic')],
+              ['PAID', t('demo.paid')],
+            ].map(([val, label]) => (
+              <label key={val} className="oma-filter-check">
+                <input
+                  type="radio"
+                  name="campaign-track"
+                  checked={filters.track === val}
+                  onChange={() => setFilters((f) => ({ ...f, track: val }))}
+                />
+                <span>{label}</span>
+              </label>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
+      <div className="oma-filter-accordion">
+        <button
+          type="button"
+          className="oma-filter-accordion__row"
+          data-open={filterSection === 'strategy' ? 'true' : 'false'}
+          onClick={() => setFilterSection((s) => (s === 'strategy' ? null : 'strategy'))}
+        >
+          <span className="oma-filter-accordion__ico">◇</span>
+          <span>{t('demo.campaigns.filter.strategy')}</span>
+          <span className="oma-filter-accordion__caret">
+            {filterSection === 'strategy' ? <UpOutlined /> : <DownOutlined />}
+          </span>
+        </button>
+        {filterSection === 'strategy' ? (
+          <div className="oma-filter-accordion__body">
+            <label className="oma-filter-check">
+              <input
+                type="radio"
+                name="campaign-strategy"
+                checked={filters.strategyId === 'all'}
+                onChange={() => setFilters((f) => ({ ...f, strategyId: 'all' }))}
+              />
+              <span>{t('demo.filter.all')}</span>
+            </label>
+            {strategies.map((s) => (
+              <label key={s.id} className="oma-filter-check">
+                <input
+                  type="radio"
+                  name="campaign-strategy"
+                  checked={filters.strategyId === s.id}
+                  onChange={() => setFilters((f) => ({ ...f, strategyId: s.id }))}
+                />
+                <span>{pickCopy(s.name, locale)}</span>
+              </label>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
+      <div className="oma-filter-accordion">
+        <button
+          type="button"
+          className="oma-filter-accordion__row"
+          data-open={filterSection === 'owner' ? 'true' : 'false'}
+          onClick={() => setFilterSection((s) => (s === 'owner' ? null : 'owner'))}
+        >
+          <span className="oma-filter-accordion__ico">👤</span>
+          <span>{t('demo.campaigns.filter.owner')}</span>
+          <span className="oma-filter-accordion__caret">
+            {filterSection === 'owner' ? <UpOutlined /> : <DownOutlined />}
+          </span>
+        </button>
+        {filterSection === 'owner' ? (
+          <div className="oma-filter-accordion__body">
+            <label className="oma-filter-check">
+              <input
+                type="radio"
+                name="campaign-owner"
+                checked={filters.owner === 'all'}
+                onChange={() => setFilters((f) => ({ ...f, owner: 'all' }))}
+              />
+              <span>{t('demo.filter.all')}</span>
+            </label>
+            {ownerOptions.map((o) => (
+              <label key={String(o)} className="oma-filter-check">
+                <input
+                  type="radio"
+                  name="campaign-owner"
+                  checked={filters.owner === o}
+                  onChange={() => setFilters((f) => ({ ...f, owner: String(o) }))}
+                />
+                <span>{String(o)}</span>
+              </label>
+            ))}
+          </div>
+        ) : null}
+      </div>
+    </div>
   );
 
-  const advancedFilterFields = (
-    <>
-      <label>
-        {t('demo.campaigns.filter.brand')}
-        <SelectField
-          value={filters.brandId}
-          onChange={(e) => setFilters((f) => ({ ...f, brandId: e.target.value }))}
-          data-testid="demo-campaign-filter-brand"
-        >
-          <option value="all">{t('demo.filter.all')}</option>
-          {brands.map((b) => (
-            <option key={b.id} value={b.id}>
-              {pickCopy(b.name, locale)}
-            </option>
-          ))}
-        </SelectField>
-      </label>
-      <label>
-        {t('demo.filter.status')}
-        <SelectField
-          value={filters.status}
-          onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value }))}
-          data-testid="demo-campaign-filter-status"
-        >
-          <option value="all">{t('demo.filter.all')}</option>
-          {[...new Set(rows.map((r) => r.status))].map((s) => (
-            <option key={s} value={s}>
-              {statusLabel(s, locale)}
-            </option>
-          ))}
-        </SelectField>
-      </label>
-      <label>
-        {t('demo.filter.track')}
-        <SelectField
-          value={filters.track}
-          onChange={(e) => setFilters((f) => ({ ...f, track: e.target.value }))}
-          data-testid="demo-campaign-filter-track"
-        >
-          <option value="all">{t('demo.filter.all')}</option>
-          <option value="ORGANIC">{t('demo.organic')}</option>
-          <option value="PAID">{t('demo.paid')}</option>
-        </SelectField>
-      </label>
-      <label>
-        {t('demo.campaigns.filter.strategy')}
-        <SelectField
-          value={filters.strategyId}
-          onChange={(e) => setFilters((f) => ({ ...f, strategyId: e.target.value }))}
-        >
-          <option value="all">{t('demo.filter.all')}</option>
-          {strategies.map((s) => (
-            <option key={s.id} value={s.id}>
-              {pickCopy(s.name, locale)}
-            </option>
-          ))}
-        </SelectField>
-      </label>
-      <label>
-        {t('demo.campaigns.filter.owner')}
-        <SelectField
-          value={filters.owner}
-          onChange={(e) => setFilters((f) => ({ ...f, owner: e.target.value }))}
-        >
-          <option value="all">{t('demo.filter.all')}</option>
-          {owners.map((o) => (
-            <option key={o} value={o}>
-              {o}
-            </option>
-          ))}
-        </SelectField>
-      </label>
-      <label>
-        {t('demo.campaigns.filter.from')}
-        <DateField
-          value={filters.startFrom}
-          onChange={(e) => setFilters((f) => ({ ...f, startFrom: e.target.value }))}
-        />
-      </label>
-      <label>
-        {t('demo.campaigns.filter.to')}
-        <DateField
-          value={filters.endTo}
-          onChange={(e) => setFilters((f) => ({ ...f, endTo: e.target.value }))}
-        />
-      </label>
-    </>
-  );
 
   return (
     <div className="oma-stack oma-campaigns-page" data-testid="demo-campaigns">
       {actionsHost
         ? createPortal(
             <div className="oma-workspace-top-actions-inner">
+              <div className="oma-campaign-layout-switch" role="group" aria-label={t('demo.campaigns.layouts')}>
+                <button
+                  type="button"
+                  className="oma-header-icon-btn"
+                  aria-pressed={layout === 'portfolio'}
+                  data-active={layout === 'portfolio' ? 'true' : undefined}
+                  data-testid="demo-campaigns-view-portfolio"
+                  onClick={() => setLayoutPref('portfolio')}
+                  aria-label={isAr ? 'عرض البطاقات' : 'Card view'}
+                >
+                  <AppstoreOutlined />
+                </button>
+                <button
+                  type="button"
+                  className="oma-header-icon-btn"
+                  aria-pressed={layout === 'list'}
+                  data-active={layout === 'list' ? 'true' : undefined}
+                  data-testid="demo-campaigns-view-table"
+                  onClick={() => setLayoutPref('list')}
+                  aria-label={isAr ? 'عرض القائمة' : 'List view'}
+                >
+                  <UnorderedListOutlined />
+                </button>
+              </div>
               <button
                 type="button"
                 className="oma-header-icon-btn"
@@ -672,7 +825,21 @@ export default function CampaignsPage() {
             );
           })}
           
-        </div>
+        
+          <button
+            type="button"
+            className="oma-campaign-create-card"
+            data-testid="demo-campaign-create-card"
+            onClick={() => {
+              setEditingId(null);
+              setCreateError(null);
+              setCreateOpen(true);
+            }}
+          >
+            <span aria-hidden>+</span>
+            {isAr ? 'إنشاء حملة' : 'Create campaign'}
+          </button>
+</div>
       ) : null}
 
       {!loading && !unavailable && !error && layout === 'list'
@@ -787,10 +954,7 @@ export default function CampaignsPage() {
               ×
             </button>
           </header>
-          <div className="oma-composer-fields oma-filter-accordion-list">
-            {searchField}
-            {advancedFilterFields}
-          </div>
+          {filterPanelBody}
           <footer className="oma-req-filter-panel__foot">
             <Button
               type="default"
