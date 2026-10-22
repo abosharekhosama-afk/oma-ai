@@ -224,7 +224,6 @@ export function ShellChrome({ children }: { children: ReactNode }) {
           <div className="oma-rail-workspace">
             <TenantSwitcher />
           </div>
-          <CommandSearch compact hotkey />
           <RailNav collapsed={collapsed} />
           <div className="oma-rail-footer">
             <NotificationsBell />
@@ -312,7 +311,6 @@ export function ShellChrome({ children }: { children: ReactNode }) {
           <div className="oma-rail-workspace">
             <TenantSwitcher />
           </div>
-          <CommandSearch compact />
           <div className="oma-mobile-drawer-nav" onClick={() => setMobileOpen(false)}>
             <RailNav collapsed={false} />
           </div>
