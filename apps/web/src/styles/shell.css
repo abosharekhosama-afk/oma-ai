@@ -1470,3 +1470,63 @@
   padding: 6px 10px !important;
   border-radius: 10px !important;
 }
+
+/* Sidebar: pack nav items at the top — do NOT stretch gaps across viewport height */
+.oma-rail {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  gap: 8px !important;
+}
+.oma-rail .oma-nav,
+.oma-shell .oma-nav,
+.oma-drawer.oma-drawer--nav .oma-nav {
+  flex: 0 1 auto !important;
+  flex-grow: 0 !important;
+  justify-content: flex-start !important;
+  gap: 4px !important;
+  overflow-y: auto !important;
+  min-height: 0 !important;
+}
+.oma-rail .oma-nav-group,
+.oma-shell .oma-nav-group,
+.oma-drawer.oma-drawer--nav .oma-nav-group {
+  margin: 0 0 4px !important;
+  gap: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+}
+.oma-rail .oma-nav-list,
+.oma-shell .oma-nav-list,
+.oma-drawer.oma-drawer--nav .oma-nav-list {
+  gap: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.oma-rail .oma-nav-link,
+.oma-shell .oma-nav-link,
+.oma-drawer.oma-drawer--nav .oma-nav-link {
+  min-height: 34px !important;
+  padding: 6px 10px !important;
+  margin: 0 !important;
+}
+.oma-rail .oma-nav-section,
+.oma-shell .oma-nav-section,
+.oma-drawer.oma-drawer--nav .oma-nav-section {
+  margin: 6px 8px 2px !important;
+  padding: 0 !important;
+  line-height: 1.2 !important;
+}
+/* Keep footer at bottom without stretching nav items */
+.oma-rail-footer {
+  margin-top: auto !important;
+  flex-shrink: 0 !important;
+}
+/* Hide any leftover rail search chrome */
+.oma-rail .oma-rail-search,
+.oma-rail [data-testid='command-search'],
+.oma-drawer.oma-drawer--nav .oma-rail-search,
+.oma-drawer.oma-drawer--nav [data-testid='command-search'] {
+  display: none !important;
+}

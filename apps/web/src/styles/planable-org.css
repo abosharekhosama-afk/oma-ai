@@ -694,3 +694,32 @@
 .oma-top-loader .oma-dots {
   transform: scale(0.9);
 }
+
+/* Force brands filter controls on ONE row */
+.plx-toolbar--brands {
+  flex-wrap: nowrap !important;
+  width: auto !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+}
+.plx-toolbar--brands .plx-toolbar__search {
+  flex: 0 0 220px !important;
+  min-width: 180px !important;
+  max-width: 220px !important;
+}
+.plx-toolbar--brands select,
+.plx-toolbar--brands .ant-select {
+  flex: 0 0 auto !important;
+  width: auto !important;
+  min-width: 130px !important;
+  max-width: 180px !important;
+}
+@media (max-width: 560px) {
+  .plx-toolbar--brands {
+    flex-wrap: nowrap !important;
+  }
+  .plx-toolbar--brands .plx-toolbar__search {
+    flex: 0 0 160px !important;
+    min-width: 140px !important;
+  }
+}
