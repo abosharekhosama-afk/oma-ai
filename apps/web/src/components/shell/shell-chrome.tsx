@@ -6,7 +6,6 @@ import { OmaLinkButton } from '../ui/oma-link-button';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { Drawer } from '../ui/drawer';
-import { SessionInvalidOverlay } from './session-invalid';
 import { ToastProvider } from '../ui/toast';
 import { useT } from '../../lib/use-locale';
 import { BrandContext } from './brand-context';
@@ -17,9 +16,7 @@ import { SHELL_NAV_SECTIONS, SHELL_RAIL_PREF_KEY } from './nav-config';
 import { ShellIcon } from './shell-icons';
 import { UserMenu } from './user-menu';
 import { WorkspaceRow } from './workspace-row';
-import { WorkspacePathMenu } from './workspace-path-menu';
-import dynamic from 'next/dynamic';
-const WorkspaceSettingsPanel = dynamic(() => import('./workspace-settings-panel').then(m => ({ default: m.WorkspaceSettingsPanel })), { ssr: false });
+import { WorkspaceSettingsPanel } from './workspace-settings-panel';
 import { PlxLogo } from '../ui/plx-icons';
 
 function RailNav({ collapsed }: { collapsed: boolean }) {
@@ -49,43 +46,55 @@ function RailNav({ collapsed }: { collapsed: boolean }) {
   );
 }
 
-function ShellBreadcrumb({ onOpenSettings }: { onOpenSettings: () => void }) {
+function ShellBreadcrumb() {
   const t = useT();
   const pathname = usePathname() || '/app';
   const isContent = pathname === '/app/content' || pathname.startsWith('/app/content/');
   const isDeliverables =
     pathname === '/app/deliverables' || pathname.startsWith('/app/deliverables/');
   const isTasks = pathname === '/app/tasks' || pathname.startsWith('/app/tasks/');
+  const isRequests = pathname === '/app/requests' || pathname.startsWith('/app/requests/');
   const isCampaigns = pathname === '/app/campaigns' || pathname.startsWith('/app/campaigns/');
 
-  /* Planable trail: Workspace / Section / View — view switch lives in path */
-  if (isContent || isDeliverables || isTasks || isCampaigns) {
+  /* Planable trail: Workspace / Section [/ View] */
+  if (isContent || isDeliverables || isTasks || isRequests || isCampaigns) {
     const sectionHref = isContent
       ? '/app/content'
       : isDeliverables
         ? '/app/deliverables'
-        : isCampaigns
-          ? '/app/campaigns'
-          : '/app/tasks';
+        : isTasks
+          ? '/app/tasks'
+          : isRequests
+            ? '/app/requests'
+            : '/app/campaigns';
     const sectionLabel = isContent
       ? t('nav.content') || 'Content'
       : isDeliverables
         ? t('nav.deliverables') || t('demo.deliverables.title') || 'Deliverables'
-        : isCampaigns
-          ? t('nav.campaigns') || 'Campaigns'
-          : t('nav.tasks') || t('demo.tasks.title') || 'Tasks';
+        : isTasks
+          ? t('nav.tasks') || t('demo.tasks.title') || 'Tasks'
+          : isRequests
+            ? t('nav.requests') || t('demo.requests.title') || 'Requests'
+            : t('nav.campaigns') || t('demo.campaigns.title') || 'Campaigns';
     const defaultView = isContent
       ? 'Calendar'
       : isDeliverables
         ? 'Grid'
-        : isCampaigns
-          ? 'Portfolio'
-          : 'Board';
+        : isTasks
+          ? 'Board'
+          : '';
+    const showViewSlot = isContent || isDeliverables || isTasks;
     return (
       <nav aria-label={t('shell.breadcrumb')} className="oma-context-trail oma-context-trail--content">
         <ol className="oma-breadcrumb oma-breadcrumb--planable">
           <li>
-            <WorkspacePathMenu onOpenSettings={onOpenSettings} />
+            <button type="button" className="oma-breadcrumb-workspace" data-testid="shell-workspace-switch">
+              <span className="oma-breadcrumb-workspace-mark" aria-hidden />
+              <span className="oma-breadcrumb-workspace-label">Osama</span>
+              <span className="oma-breadcrumb-caret" aria-hidden>
+                ▾
+              </span>
+            </button>
           </li>
           <li>
             <span className="oma-breadcrumb-sep" aria-hidden>
@@ -93,17 +102,19 @@ function ShellBreadcrumb({ onOpenSettings }: { onOpenSettings: () => void }) {
             </span>
             <Link href={sectionHref}>{sectionLabel}</Link>
           </li>
-          <li>
-            <span className="oma-breadcrumb-sep" aria-hidden>
-              /
-            </span>
-            <span
-              className="oma-breadcrumb-view"
-              id="oma-content-view-slot"
-              data-testid="shell-content-view-slot"
-              data-default-view={defaultView}
-            />
-          </li>
+          {showViewSlot ? (
+            <li>
+              <span className="oma-breadcrumb-sep" aria-hidden>
+                /
+              </span>
+              <span
+                className="oma-breadcrumb-view"
+                id="oma-content-view-slot"
+                data-testid="shell-content-view-slot"
+                data-default-view={defaultView}
+              />
+            </li>
+          ) : null}
         </ol>
       </nav>
     );
@@ -211,7 +222,6 @@ export function ShellChrome({ children }: { children: ReactNode }) {
 
   return (
     <ToastProvider>
-      <SessionInvalidOverlay />
       <div
         className="oma-shell"
         data-rail={collapsed ? 'collapsed' : 'expanded'}
@@ -268,7 +278,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
               {/* Mobile nav trigger removed from all headers per product request */}
               <div className="oma-top-context">
                 {hideBrandTrail ? null : <BrandContext />}
-                <ShellBreadcrumb onOpenSettings={() => setWsSettingsOpen(true)} />
+                <ShellBreadcrumb />
               </div>
             </div>
             {/* Planable Content: no center search — actions live on the right */}
