@@ -38,7 +38,7 @@ const nextConfig = (phase: string): NextConfig => {
     outputFileTracingRoot: path.join(__dirname, '../..'),
     transpilePackages: ['@oma/i18n', '@oma/ui'],
     experimental: {
-      optimizePackageImports: ['@ant-design/icons', '@oma/ui', 'dayjs'],
+      optimizePackageImports: ['@ant-design/icons', '@oma/ui', 'dayjs', 'antd'],
     },
     ...(distDir ? { distDir } : {}),
     
