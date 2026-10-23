@@ -73,6 +73,42 @@ export type ApiWorkDeliverable = {
   campaign_name?: string | null;
   request_title?: string | null;
   task_title?: string | null;
+  current_version_id?: string | null;
+  approved_version_id?: string | null;
+};
+
+export type ApiDeliverableVersion = {
+  id: string;
+  label: string;
+  version_number: number;
+  asset_url: string | null;
+  notes?: ApiLocale;
+  status: string;
+  created_by: string;
+  created_by_name?: string;
+  created_at: string;
+};
+
+export type ApiDeliverableAnnotation = {
+  id: string;
+  version_id: string | null;
+  author_user_id: string;
+  author_name?: string;
+  body: ApiLocale;
+  x: number;
+  y: number;
+  resolved: boolean;
+  created_at: string;
+};
+
+export type ApiDeliverableComment = {
+  id: string;
+  version_id: string | null;
+  author_user_id: string;
+  author_name?: string;
+  body: ApiLocale;
+  resolved: boolean;
+  created_at: string;
 };
 
 export function opsError(err: unknown, fallback: string): string {
@@ -171,7 +207,8 @@ export function toTaskRow(task: ApiWorkTask): TaskRow {
     status,
     assignee: task.assignee_name || (task.assignee_user_id ? 'Team member' : 'Unassigned'),
     department: '—',
-    priority: 'MEDIUM',
+    priority: (task.priority as TaskRow['priority']) || 'MEDIUM',
+    department: task.department || '—',
     dueAt: task.due_at ? task.due_at.slice(0, 10) : '',
     updatedAt: task.updated_at ?? new Date().toISOString(),
     blockedReason: null,
@@ -189,6 +226,54 @@ export type DeliverableRowExtra = DeliverableRow & {
   taskTitle?: string | null;
   createdByName?: string | null;
 };
+
+export function toDeliverableRowFromDetail(payload: {
+  data: ApiWorkDeliverable;
+  versions?: ApiDeliverableVersion[];
+  annotations?: ApiDeliverableAnnotation[];
+  comments?: ApiDeliverableComment[];
+}): DeliverableRowExtra {
+  const base = toDeliverableRow(payload.data);
+  if (payload.versions?.length) {
+    base.versions = payload.versions.map((v) => ({
+      id: v.id,
+      label: v.label,
+      createdAt: v.created_at,
+      createdBy: v.created_by_name || 'Team member',
+      previewUrl: v.asset_url || '',
+      isApproved: v.status === 'APPROVED',
+      reviewDecision:
+        v.status === 'APPROVED' || v.status === 'REJECTED' ? (v.status as 'APPROVED' | 'REJECTED') : null,
+      status: v.status,
+    }));
+    base.currentVersionId =
+      payload.data.current_version_id || payload.versions[payload.versions.length - 1]?.id || base.id;
+    base.approvedVersionId = payload.data.approved_version_id || null;
+  }
+  if (payload.annotations?.length) {
+    base.annotations = payload.annotations.map((a) => ({
+      id: a.id,
+      body: a.body,
+      author: a.author_name || 'Team member',
+      at: a.created_at,
+      x: a.x,
+      y: a.y,
+      resolved: a.resolved,
+      versionId: a.version_id || undefined,
+    })) as DeliverableRow['annotations'];
+  }
+  if (payload.comments?.length) {
+    base.comments = payload.comments.map((c) => ({
+      id: c.id,
+      body: c.body,
+      author: c.author_name || 'Team member',
+      at: c.created_at,
+      resolved: c.resolved,
+      versionId: c.version_id || undefined,
+    })) as DeliverableRow['comments'];
+  }
+  return base;
+}
 
 export function toDeliverableRow(d: ApiWorkDeliverable): DeliverableRowExtra {
   const review = mapReviewStatus(d.review_status || d.status);
@@ -376,6 +461,91 @@ export async function listDeliverables(brandId: string): Promise<ApiWorkDelivera
 export async function getDeliverable(deliverableId: string): Promise<ApiWorkDeliverable> {
   const res = await api<{ data: ApiWorkDeliverable }>(`/api/v1/deliverables/${deliverableId}`);
   return res.data;
+}
+
+export async function getDeliverableDetail(deliverableId: string): Promise<{
+  data: ApiWorkDeliverable;
+  versions: ApiDeliverableVersion[];
+  annotations: ApiDeliverableAnnotation[];
+  comments: ApiDeliverableComment[];
+}> {
+  return api(`/api/v1/deliverables/${deliverableId}`);
+}
+
+export async function addDeliverableVersion(
+  deliverableId: string,
+  input: { assetUrl?: string | null; label?: string; notes?: ApiLocale | string },
+) {
+  return api(`/api/v1/deliverables/${deliverableId}/versions`, {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export async function addDeliverableAnnotation(
+  deliverableId: string,
+  input: { body: ApiLocale | string; x?: number; y?: number; versionId?: string | null },
+) {
+  return api(`/api/v1/deliverables/${deliverableId}/annotations`, {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export async function resolveDeliverableAnnotation(annotationId: string, resolved = true) {
+  return api(`/api/v1/deliverable-annotations/${annotationId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ resolved }),
+  });
+}
+
+export async function addDeliverableComment(
+  deliverableId: string,
+  input: { body: ApiLocale | string; versionId?: string | null },
+) {
+  return api(`/api/v1/deliverables/${deliverableId}/comments`, {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export async function getTaskDetail(taskId: string) {
+  return api<{
+    data: ApiWorkTask;
+    checklist: { id: string; title: ApiLocale; done: boolean; sort_order: number }[];
+    comments: {
+      id: string;
+      author_user_id: string;
+      author_name?: string;
+      body: ApiLocale;
+      created_at: string;
+    }[];
+  }>(`/api/v1/tasks/${taskId}`);
+}
+
+export async function addTaskChecklistItem(taskId: string, title: ApiLocale | string) {
+  return api(`/api/v1/tasks/${taskId}/checklist`, {
+    method: 'POST',
+    body: JSON.stringify({ title }),
+  });
+}
+
+export async function updateTaskChecklistItem(
+  taskId: string,
+  itemId: string,
+  patch: { done?: boolean; title?: ApiLocale | string },
+) {
+  return api(`/api/v1/tasks/${taskId}/checklist/${itemId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(patch),
+  });
+}
+
+export async function addTaskComment(taskId: string, body: ApiLocale | string) {
+  return api(`/api/v1/tasks/${taskId}/comments`, {
+    method: 'POST',
+    body: JSON.stringify({ body }),
+  });
 }
 
 export async function updateDeliverable(
