@@ -44,7 +44,8 @@ export class OpsService {
       orderBy: { updatedAt: 'desc' },
       take: 100,
     });
-    return { data: rows.map(mapRequest) };
+    const enriched = await this.enrichRequests(rows);
+    return { data: enriched };
   }
 
   async getRequest(tenantId: string, requestId: string) {
@@ -53,11 +54,133 @@ export class OpsService {
       include: { tasks: true, deliverables: true },
     });
     if (!row) throw new DomainError('NOT_FOUND', 'Request not found', 404, 'errors.not_found');
+    const [data] = await this.enrichRequests([row]);
+    const tasks = await this.enrichTasks(row.tasks);
     return {
-      data: mapRequest(row),
-      tasks: row.tasks.map(mapTask),
+      data,
+      tasks,
       deliverables: row.deliverables.map(mapDeliverable),
     };
+  }
+
+  /** Resolve user / brand / campaign labels so the UI never shows raw ULID strings. */
+  private async enrichRequests(
+    rows: Array<{
+      id: string;
+      tenantId: string;
+      brandId: string;
+      campaignId: string | null;
+      contentId: string | null;
+      titleEn: string;
+      titleAr: string;
+      descriptionEn: string;
+      descriptionAr: string;
+      type: string;
+      priority: string;
+      status: string;
+      dueAt: Date | null;
+      requesterUserId: string;
+      assigneeUserId: string | null;
+      channels: string[];
+      formats: string[];
+      createdAt: Date;
+      updatedAt: Date;
+    }>,
+  ) {
+    if (!rows.length) return [];
+    const userIds = new Set<string>();
+    const brandIds = new Set<string>();
+    const campaignIds = new Set<string>();
+    for (const r of rows) {
+      if (r.requesterUserId) userIds.add(r.requesterUserId);
+      if (r.assigneeUserId) userIds.add(r.assigneeUserId);
+      brandIds.add(r.brandId);
+      if (r.campaignId) campaignIds.add(r.campaignId);
+    }
+    const prisma = getPrisma();
+    const [users, brands, campaigns] = await Promise.all([
+      userIds.size
+        ? prisma.user.findMany({
+            where: { id: { in: [...userIds] } },
+            select: { id: true, name: true, email: true },
+          })
+        : Promise.resolve([]),
+      brandIds.size
+        ? prisma.brandWorkspace.findMany({
+            where: { id: { in: [...brandIds] } },
+            select: { id: true, name: true },
+          })
+        : Promise.resolve([]),
+      campaignIds.size
+        ? prisma.campaign.findMany({
+            where: { id: { in: [...campaignIds] } },
+            select: { id: true, nameEn: true, nameAr: true },
+          })
+        : Promise.resolve([]),
+    ]);
+    const userMap = new Map(
+      users.map((u) => [u.id, (u.name && u.name.trim()) || u.email || 'Team member']),
+    );
+    const brandMap = new Map(brands.map((b) => [b.id, b.name || 'Brand']));
+    const campaignMap = new Map(
+      campaigns.map((c) => [c.id, c.nameEn || c.nameAr || 'Campaign']),
+    );
+    return rows.map((row) => {
+      const base = mapRequest(row);
+      return {
+        ...base,
+        requester_name: userMap.get(row.requesterUserId) || 'Team member',
+        assignee_name: row.assigneeUserId
+          ? userMap.get(row.assigneeUserId) || 'Team member'
+          : null,
+        brand_name: brandMap.get(row.brandId) || 'Brand',
+        campaign_name: row.campaignId ? campaignMap.get(row.campaignId) || null : null,
+      };
+    });
+  }
+
+  private async enrichTasks(
+    rows: Array<{
+      id: string;
+      tenantId: string;
+      brandId: string;
+      campaignId: string | null;
+      requestId: string | null;
+      contentId: string | null;
+      titleEn: string;
+      titleAr: string;
+      descriptionEn: string;
+      descriptionAr: string;
+      status: string;
+      assigneeUserId: string | null;
+      dueAt: Date | null;
+      createdBy: string;
+      createdAt: Date;
+      updatedAt: Date;
+    }>,
+  ) {
+    if (!rows.length) return [];
+    const userIds = new Set<string>();
+    for (const r of rows) {
+      if (r.assigneeUserId) userIds.add(r.assigneeUserId);
+      if (r.createdBy) userIds.add(r.createdBy);
+    }
+    const users = userIds.size
+      ? await getPrisma().user.findMany({
+          where: { id: { in: [...userIds] } },
+          select: { id: true, name: true, email: true },
+        })
+      : [];
+    const userMap = new Map(
+      users.map((u) => [u.id, (u.name && u.name.trim()) || u.email || 'Team member']),
+    );
+    return rows.map((row) => ({
+      ...mapTask(row),
+      assignee_name: row.assigneeUserId
+        ? userMap.get(row.assigneeUserId) || 'Team member'
+        : null,
+      created_by_name: userMap.get(row.createdBy) || 'Team member',
+    }));
   }
 
   async createRequest(

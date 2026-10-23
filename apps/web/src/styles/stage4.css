@@ -2797,3 +2797,42 @@ main.oma-container:has(.oma-req-page) {
 .oma-req-row-convert:hover {
   background: #eff6ff;
 }
+
+/* Requests tabs — match Team & clients (oma-ws-tabs) */
+.oma-req-page .oma-ws-tabs,
+.oma-req-page .oma-req-tabs.oma-ws-tabs {
+  display: flex !important;
+  gap: 4px !important;
+  flex-wrap: wrap !important;
+  margin: 8px 0 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+}
+.oma-req-page .oma-ws-tab {
+  appearance: none !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #6b7280 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  padding: 8px 12px !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  line-height: 1.2 !important;
+}
+.oma-req-page .oma-ws-tab:hover {
+  background: #f3f4f6 !important;
+  color: #111827 !important;
+}
+.oma-req-page .oma-ws-tab.is-active,
+.oma-req-page .oma-ws-tab[data-active='true'],
+.oma-req-page .oma-ws-tab[aria-selected='true'] {
+  background: #e8f1ff !important;
+  color: #1677ff !important;
+  font-weight: 600 !important;
+}
+.oma-req-title-cell .oma-muted {
+  word-break: normal !important;
+  overflow-wrap: anywhere !important;
+}

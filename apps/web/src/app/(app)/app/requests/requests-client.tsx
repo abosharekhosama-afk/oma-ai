@@ -76,6 +76,15 @@ function initials(value: string): string {
   return `${parts[0]![0] ?? ''}${parts[1]![0] ?? ''}`.toUpperCase();
 }
 
+function formatWhen(iso?: string) {
+  if (!iso) return '—';
+  try {
+    return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  } catch {
+    return String(iso).slice(0, 10);
+  }
+}
+
 export default function RequestsPage() {
   const t = useT();
   const locale = useLocale();
@@ -274,13 +283,12 @@ export default function RequestsPage() {
             </span>
           </div>
           <p className="oma-req-header__subtitle">{t('demo.requests.subtitle')}</p>
-          <div className="oma-req-tabs" role="tablist" data-testid="demo-request-groups">
+          <div className="oma-ws-tabs oma-req-tabs" role="tablist" data-testid="demo-request-groups">
             {GROUPS.map((g) => (
               <button
                 key={g}
                 type="button"
-                role="tab"
-                className="oma-req-tab"
+                role="tab" className={`oma-ws-tab${filters.group === g ? " is-active" : ""}`}
                 aria-selected={filters.group === g}
                 data-active={filters.group === g ? 'true' : 'false'}
                 data-testid={`demo-request-group-${g}`}
@@ -385,10 +393,11 @@ export default function RequestsPage() {
                                     {pickCopy(r.title, locale)}
                                   </Link>
                                   <div className="oma-muted" style={{ fontSize: 12 }}>
-                                    {r.id.replace('demo-request-', '#')} ·{' '}
-                                    {requestCompleteness(r, brief)}%
-                                    {missing.length ? ` · ${missing.join(', ')}` : ''}
-                                    {` · ${r.updatedAt ?? r.submittedAt}`}
+                                    {(r as { brandName?: string }).brandName || brandName(r.brandId)}
+                                    {' · '}
+                                    {requestCompleteness(r, brief)}% complete
+                                    {missing.length ? ` · missing: ${missing.join(', ')}` : ''}
+                                    {` · updated ${formatWhen(r.updatedAt ?? r.submittedAt)}`}
                                   </div>
                                 </div>
                               </div>
@@ -399,9 +408,9 @@ export default function RequestsPage() {
                             </td>
                             <td>{r.requester}</td>
                             <td>
-                              {brandName(r.brandId)}
+                              {(r as { brandName?: string }).brandName || brandName(r.brandId)}
                               <div className="oma-muted" style={{ fontSize: 12 }}>
-                                {campaignName(r.campaignId)}
+                                {(r as { campaignName?: string | null }).campaignName || campaignName(r.campaignId)}
                               </div>
                             </td>
                             <td>

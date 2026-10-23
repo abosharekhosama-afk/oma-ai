@@ -26,6 +26,11 @@ export type ApiWorkRequest = {
   formats: string[];
   created_at: string;
   updated_at: string;
+  /** Human-readable labels from API enrichment */
+  requester_name?: string | null;
+  assignee_name?: string | null;
+  brand_name?: string | null;
+  campaign_name?: string | null;
 };
 
 export type ApiWorkTask = {
@@ -43,6 +48,8 @@ export type ApiWorkTask = {
   created_by?: string;
   created_at?: string;
   updated_at?: string;
+  assignee_name?: string | null;
+  created_by_name?: string | null;
 };
 
 export type ApiWorkDeliverable = {
@@ -78,7 +85,12 @@ export function opsError(err: unknown, fallback: string): string {
   return fallback;
 }
 
-export function toRequestRow(r: ApiWorkRequest): RequestRow {
+export function toRequestRow(r: ApiWorkRequest): RequestRow & {
+  brandName?: string;
+  campaignName?: string | null;
+  requesterId?: string;
+  assigneeId?: string | null;
+} {
   const due = r.due_at ? r.due_at.slice(0, 10) : '';
   return {
     id: r.id,
@@ -93,8 +105,12 @@ export function toRequestRow(r: ApiWorkRequest): RequestRow {
     dueAt: due,
     submittedAt: r.created_at.slice(0, 10),
     updatedAt: r.updated_at,
-    requester: r.requester_user_id || '—',
-    assignee: r.assignee_user_id,
+    requester: r.requester_name || 'Team member',
+    assignee: r.assignee_name || null,
+    requesterId: r.requester_user_id,
+    assigneeId: r.assignee_user_id,
+    brandName: r.brand_name || undefined,
+    campaignName: r.campaign_name ?? null,
     briefId: null,
     outcome: undefined,
     formats: r.formats ?? [],
@@ -148,7 +164,7 @@ export function toTaskRow(task: ApiWorkTask): TaskRow {
     description: task.description ?? { en: '', ar: '' },
     type: 'COPY',
     status,
-    assignee: task.assignee_user_id || 'Unassigned',
+    assignee: task.assignee_name || (task.assignee_user_id ? 'Team member' : 'Unassigned'),
     department: '—',
     priority: 'MEDIUM',
     dueAt: task.due_at ? task.due_at.slice(0, 10) : '',

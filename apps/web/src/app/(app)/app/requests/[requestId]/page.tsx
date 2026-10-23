@@ -141,7 +141,9 @@ export default function RequestDetailPage() {
         id: task.id,
         status: task.status,
         title: task.title,
-        assignee: task.assignee_user_id ?? null,
+        assignee:
+          (task as { assignee_name?: string | null }).assignee_name ||
+          (task.assignee_user_id ? 'Team member' : null),
         dueAt: task.due_at ? String(task.due_at).slice(0, 10) : '',
       })) as RequestDetail['tasks'];
       setRow(data);
@@ -342,7 +344,7 @@ export default function RequestDetailPage() {
           </Link>
           {row ? (
             <div className="oma-req-detail__top-meta">
-              <span className="oma-req-detail__top-id">{row.id.replace('demo-request-', '#')}</span>
+              <span className="oma-req-detail__top-id">{pickCopy(row.title, locale)}</span>
               <StatusChip status={row.status} />
               <StatusChip status={row.priority} />
             </div>
@@ -451,7 +453,7 @@ export default function RequestDetailPage() {
                   {t('demo.requests.filter.assignee')}
                   {members.length > 0 ? (
                     <SelectField
-                      value={row.assignee ?? ''}
+                      value={(row as { assigneeId?: string | null }).assigneeId ?? ''}
                       data-testid="demo-request-assignee"
                       onChange={(e) =>
                         void patchRequest({
@@ -474,7 +476,7 @@ export default function RequestDetailPage() {
                     </SelectField>
                   ) : (
                     <Input
-                      defaultValue={row.assignee ?? ''}
+                      defaultValue={(row as { assigneeId?: string | null }).assigneeId ?? ''}
                       data-testid="demo-request-assignee"
                       placeholder="User id"
                       onBlur={(e) => void patchRequest({ assignee: e.target.value.trim() || null })}
