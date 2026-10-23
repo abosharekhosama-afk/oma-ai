@@ -2836,3 +2836,329 @@ main.oma-container:has(.oma-req-page) {
   word-break: normal !important;
   overflow-wrap: anywhere !important;
 }
+
+/* ============================================================
+   Tasks Kanban Board — modern redesign (oma-kb-*)
+   ============================================================ */
+
+.oma-kb-board {
+  background: #f1f5f9;
+  padding: 16px 20px;
+  border-radius: 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  max-width: 100%;
+  min-height: 420px;
+}
+
+.oma-kb-board__track {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  min-width: min-content;
+  padding-bottom: 8px;
+}
+
+/* ---- Column ---- */
+.oma-kb-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 260px;
+  width: 280px;
+  flex-shrink: 0;
+  min-height: 480px;
+  padding: 14px;
+  background: #f8fafc;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 12px;
+  border-top-width: 3px;
+  border-top-color: #94a3b8;
+  transition: box-shadow 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.oma-kb-col.is-over {
+  background: rgba(239, 246, 255, 0.55);
+  box-shadow: 0 0 0 2px rgba(147, 197, 253, 0.55);
+}
+
+.oma-kb-col--backlog { border-top-color: #94a3b8; }
+.oma-kb-col--ready   { border-top-color: #0ea5e9; }
+.oma-kb-col--progress{ border-top-color: #3b82f6; }
+.oma-kb-col--review  { border-top-color: #f59e0b; }
+.oma-kb-col--blocked { border-top-color: #ef4444; }
+.oma-kb-col--done    { border-top-color: #10b981; }
+.oma-kb-col--overdue { border-top-color: #f43f5e; }
+
+.oma-kb-col__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+}
+
+.oma-kb-col__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #94a3b8;
+}
+.oma-kb-col--backlog .oma-kb-col__dot { background: #94a3b8; }
+.oma-kb-col--ready   .oma-kb-col__dot { background: #0ea5e9; }
+.oma-kb-col--progress.oma-kb-col__dot,
+.oma-kb-col--progress .oma-kb-col__dot { background: #3b82f6; }
+.oma-kb-col--review  .oma-kb-col__dot { background: #f59e0b; }
+.oma-kb-col--blocked .oma-kb-col__dot { background: #ef4444; }
+.oma-kb-col--done    .oma-kb-col__dot { background: #10b981; }
+.oma-kb-col--overdue .oma-kb-col__dot { background: #f43f5e; }
+
+.oma-kb-col__title {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.oma-kb-col__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  color: #334155;
+  font-size: 11px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.oma-kb-col__add {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #64748b;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.oma-kb-col__add:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+.oma-kb-col__cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  min-height: 48px;
+}
+
+.oma-kb-col__empty {
+  border: 2px dashed #e2e8f0;
+  border-radius: 12px;
+  padding: 24px 12px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 12px;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.oma-kb-col__empty.is-over {
+  border-color: #60a5fa;
+  background: rgba(239, 246, 255, 0.6);
+  color: #3b82f6;
+}
+
+/* ---- Card ---- */
+.oma-kb-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 14px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  cursor: grab;
+  touch-action: none;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+  width: 100%;
+  color: inherit;
+}
+.oma-kb-card:hover {
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  border-color: #cbd5e1;
+}
+.oma-kb-card.is-dragging {
+  opacity: 0.4;
+  box-shadow: none;
+  cursor: grabbing;
+  outline: 2px solid #93c5fd;
+  outline-offset: 0;
+}
+.oma-kb-card--overlay {
+  width: 260px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.14);
+  transform: rotate(2deg);
+  cursor: grabbing;
+  opacity: 1;
+}
+
+.oma-kb-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.oma-kb-card__grip {
+  color: #cbd5e1;
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: -1px;
+  user-select: none;
+  padding-top: 2px;
+  transition: color 0.12s ease;
+}
+.oma-kb-card:hover .oma-kb-card__grip {
+  color: #64748b;
+}
+
+.oma-kb-card__title {
+  margin: 0 0 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.oma-kb-card__sub {
+  margin: 0 0 0;
+  font-size: 12px;
+  color: #64748b;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.oma-kb-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.oma-kb-card__due {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #64748b;
+}
+.oma-kb-card__due.is-overdue {
+  color: #e11d48;
+  font-weight: 600;
+}
+.oma-kb-card__due svg {
+  flex-shrink: 0;
+}
+
+.oma-kb-card__avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #4f46e5;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: 0.02em;
+}
+.oma-kb-card__avatar--empty {
+  background: #f1f5f9;
+  color: #94a3b8;
+  border: 1px solid #e2e8f0;
+  font-weight: 600;
+}
+
+/* Priority badges */
+.oma-kb-priority {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  border: 1px solid transparent;
+  line-height: 1.4;
+}
+.oma-kb-priority--low {
+  background: #f8fafc;
+  color: #64748b;
+  border-color: #e2e8f0;
+}
+.oma-kb-priority--medium {
+  background: #fffbeb;
+  color: #b45309;
+  border-color: #fde68a;
+}
+.oma-kb-priority--high {
+  background: #fff7ed;
+  color: #c2410c;
+  border-color: #fed7aa;
+}
+.oma-kb-priority--urgent {
+  background: #fff1f2;
+  color: #be123c;
+  border-color: #fecdd3;
+}
+
+/* RTL fine-tuning */
+[dir='rtl'] .oma-kb-board__track {
+  flex-direction: row;
+}
+[dir='rtl'] .oma-kb-card__head,
+[dir='rtl'] .oma-kb-card__foot,
+[dir='rtl'] .oma-kb-col__head {
+  flex-direction: row;
+}
+
+@media (max-width: 640px) {
+  .oma-kb-board {
+    padding: 12px;
+  }
+  .oma-kb-col {
+    min-width: 240px;
+    width: 260px;
+    min-height: 360px;
+  }
+}
