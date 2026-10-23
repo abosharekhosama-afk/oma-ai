@@ -870,8 +870,7 @@ export default function TasksPage() {
                           {m.user?.name || m.user?.email || m.invited_email || 'Member'}
                         </option>
                       ))}
-                    </select
-                    />
+                    </select>
                   </label>
                   <label>
                     {t('demo.requests.col.due')}
