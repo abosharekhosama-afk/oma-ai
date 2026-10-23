@@ -547,6 +547,8 @@ export default function TasksPage() {
                   onOpenTask={openTask}
                   onMoveTask={(id, status) => void patchTask(id, { status })}
                   disabled={saving}
+                
+                  onAddInColumn={() => setCreateOpen(true)}
                 />
               ) : (
                 <div className="oma-req-table-wrap" data-testid="demo-task-table">
