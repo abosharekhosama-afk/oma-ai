@@ -37,6 +37,9 @@ const nextConfig = (phase: string): NextConfig => {
   return {
     outputFileTracingRoot: path.join(__dirname, '../..'),
     transpilePackages: ['@oma/i18n', '@oma/ui'],
+    experimental: {
+      optimizePackageImports: ['@ant-design/icons', '@oma/ui', 'dayjs'],
+    },
     ...(distDir ? { distDir } : {}),
     
     // 👇 إضافات لتجاوز فحص ESLint و TypeScript أثناء البناء على Vercel

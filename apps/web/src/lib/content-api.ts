@@ -4,7 +4,7 @@
 import { api } from './api';
 import type { ContentRow } from './demo/stage3-campaigns';
 import type { ApiLocale } from './campaign-api';
-import { listBrandsProduction, listAllCampaigns, toCampaignRow } from './campaign-api';
+import { listBrandsProduction, listAllCampaigns, listCampaignsForBrand, toCampaignRow } from './campaign-api';
 import type { CampaignRow } from './demo/stage3-campaigns';
 
 export type ApiContentWorkflow = {
@@ -190,28 +190,43 @@ export async function getContentPreferences(brandId: string) {
   }>(`/api/v1/brands/${brandId}/content-preferences`);
 }
 
-/** Load brands + campaigns + content for Content Plan screen (production). */
-export async function loadContentWorkspace(): Promise<{
+/** Load brands + campaigns + content for Content Plan screen (production).
+ *  Fast path: primary brand first so the calendar can paint quickly.
+ *  Pass `{ full: true }` or call `loadContentWorkspaceRest` for remaining brands.
+ */
+export async function loadContentWorkspace(opts?: {
+  full?: boolean;
+}): Promise<{
   brands: { id: string; name: { en: string; ar: string }; state: string; profileStatus: string; strategyId: null }[];
   campaigns: CampaignRow[];
   content: ContentRow[];
   policy: 'NONE' | 'OPTIONAL' | 'REQUIRED';
+  remainingBrandIds: string[];
 }> {
   const brandRows = await listBrandsProduction();
   const brandIds = brandRows.map((b) => b.id);
-  const [campaigns, contentItems] = await Promise.all([
-    brandIds.length ? listAllCampaigns(brandIds) : Promise.resolve([]),
-    brandIds.length ? listAllContent(brandIds) : Promise.resolve([]),
+  const primary = brandIds[0];
+  const rest = brandIds.slice(1);
+
+  // Parallel: primary campaigns + content + prefs (non-blocking default)
+  const [campaigns, contentItems, policy] = await Promise.all([
+    primary
+      ? opts?.full
+        ? listAllCampaigns(brandIds).catch(() => [] as Awaited<ReturnType<typeof listAllCampaigns>>)
+        : listCampaignsForBrand(primary).catch(() => [] as Awaited<ReturnType<typeof listCampaignsForBrand>>)
+      : Promise.resolve([]),
+    primary
+      ? opts?.full
+        ? listAllContent(brandIds)
+        : listContentForBrand(primary).catch(() => [] as ApiContent[])
+      : Promise.resolve([] as ApiContent[]),
+    primary
+      ? getContentPreferences(primary)
+          .then((p) => (p.data.approval_policy as 'NONE' | 'OPTIONAL' | 'REQUIRED') || 'OPTIONAL')
+          .catch(() => 'OPTIONAL' as const)
+      : Promise.resolve('OPTIONAL' as const),
   ]);
-  let policy: 'NONE' | 'OPTIONAL' | 'REQUIRED' = 'OPTIONAL';
-  if (brandIds[0]) {
-    try {
-      const prefs = await getContentPreferences(brandIds[0]);
-      policy = (prefs.data.approval_policy as typeof policy) || 'OPTIONAL';
-    } catch {
-      /* keep default */
-    }
-  }
+
   return {
     brands: brandRows.map((b) => ({
       id: b.id,
@@ -220,9 +235,26 @@ export async function loadContentWorkspace(): Promise<{
       profileStatus: b.status,
       strategyId: null,
     })),
-    campaigns: campaigns.map((c) => toCampaignRow(c)),
+    campaigns: (Array.isArray(campaigns) ? campaigns : []).map((c) => toCampaignRow(c)),
     content: contentItems.map((c) => toContentRow(c)),
     policy,
+    remainingBrandIds: opts?.full ? [] : rest,
+  };
+}
+
+/** Background hydrate remaining brands after first paint. */
+export async function loadContentWorkspaceRest(brandIds: string[]): Promise<{
+  campaigns: CampaignRow[];
+  content: ContentRow[];
+}> {
+  if (!brandIds.length) return { campaigns: [], content: [] };
+  const [campaigns, contentItems] = await Promise.all([
+    listAllCampaigns(brandIds).catch(() => []),
+    listAllContent(brandIds),
+  ]);
+  return {
+    campaigns: campaigns.map((c) => toCampaignRow(c)),
+    content: contentItems.map((c) => toContentRow(c)),
   };
 }
 

@@ -18,7 +18,8 @@ import { ShellIcon } from './shell-icons';
 import { UserMenu } from './user-menu';
 import { WorkspaceRow } from './workspace-row';
 import { WorkspacePathMenu } from './workspace-path-menu';
-import { WorkspaceSettingsPanel } from './workspace-settings-panel';
+import dynamic from 'next/dynamic';
+const WorkspaceSettingsPanel = dynamic(() => import('./workspace-settings-panel').then(m => ({ default: m.WorkspaceSettingsPanel })), { ssr: false });
 import { PlxLogo } from '../ui/plx-icons';
 
 function RailNav({ collapsed }: { collapsed: boolean }) {

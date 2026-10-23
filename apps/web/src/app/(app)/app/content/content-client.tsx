@@ -81,6 +81,7 @@ import {
 import { pickCopy } from '../../../../lib/demo/use-demo-api';
 import {
   loadContentWorkspace,
+  loadContentWorkspaceRest,
   createContentProduction,
   updateContentProduction,
   requestContentApproval,
@@ -877,26 +878,9 @@ export default function ContentPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const ws = await loadContentWorkspace();
+      // Fast path: primary brand only — paint calendar ASAP
+      const ws = await loadContentWorkspace({ full: false });
       setRows(ws.content);
-      try {
-        const primaryBrand = ws.brands[0]?.id;
-        if (primaryBrand) {
-          const notes = await listDayNotes(primaryBrand);
-          const map: Record<string, { text: string; color: string; locked?: boolean }> = {};
-          for (const n of notes) {
-            map[n.day_key] = {
-              text: locale.toLowerCase().startsWith('ar') ? n.text.ar || n.text.en : n.text.en,
-              color: n.color,
-              locked: n.locked,
-            };
-          }
-          setDayNotes(map);
-        }
-      } catch {
-        /* notes optional */
-      }
-
       setPolicy(ws.policy);
       setCampaigns(ws.campaigns as typeof campaigns);
       setBrands(ws.brands as typeof brands);
@@ -941,13 +925,48 @@ export default function ContentPage() {
         if (hasContentViewPref() && isContentViewMode(stored)) return stored;
         return 'calendar';
       });
+      // End loading so UI paints before notes / extra brands
+      setLoading(false);
+
+      // Optional notes (do not block first paint)
+      const primaryBrand = ws.brands[0]?.id;
+      if (primaryBrand) {
+        void listDayNotes(primaryBrand)
+          .then((notes) => {
+            const map: Record<string, { text: string; color: string; locked?: boolean }> = {};
+            for (const n of notes) {
+              map[n.day_key] = {
+                text: locale.toLowerCase().startsWith('ar') ? n.text.ar || n.text.en : n.text.en,
+                color: n.color,
+                locked: n.locked,
+              };
+            }
+            setDayNotes(map);
+          })
+          .catch(() => undefined);
+      }
+
+      // Background hydrate other brands
+      if (ws.remainingBrandIds?.length) {
+        void loadContentWorkspaceRest(ws.remainingBrandIds)
+          .then((rest) => {
+            setCampaigns((prev) => {
+              const ids = new Set(prev.map((c) => c.id));
+              return [...prev, ...rest.campaigns.filter((c) => !ids.has(c.id))];
+            });
+            setRows((prev) => {
+              const ids = new Set(prev.map((r) => r.id));
+              return [...prev, ...rest.content.filter((r) => !ids.has(r.id))];
+            });
+          })
+          .catch(() => undefined);
+      }
     } catch (err) {
       setError(contentApiError(err, isAr ? 'تعذّر تحميل المحتوى' : 'Failed to load content'));
       setRows([]);
-    } finally {
       setLoading(false);
     }
-  }, [isAr]);
+  }, [isAr, locale]);
 
   useEffect(() => {
     if (!cardMenuId && !viewMenuOpen && !extCalOpen) return;
