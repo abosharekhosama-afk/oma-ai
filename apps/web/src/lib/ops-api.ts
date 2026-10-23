@@ -461,3 +461,50 @@ export async function loadDeliverablesWorkspace(): Promise<{
     deliverables,
   };
 }
+
+
+/** Persist structured brief fields inside description until a Brief domain exists. */
+export const BRIEF_MARKER = '__OMA_BRIEF_V1__';
+
+export type RequestBriefPayload = {
+  overview?: { en: string; ar: string };
+  objective?: { en: string; ar: string };
+  audience?: { en: string; ar: string };
+  keyMessage?: { en: string; ar: string };
+  deliverableType?: { en: string; ar: string };
+  tone?: { en: string; ar: string };
+  mandatory?: { en: string; ar: string };
+  cta?: { en: string; ar: string };
+  acceptance?: { en: string; ar: string };
+  timelineNote?: { en: string; ar: string };
+  channels?: string[];
+  formats?: string[];
+  readiness?: string;
+};
+
+export function encodeRequestBrief(payload: RequestBriefPayload, plainFallback: string): { en: string; ar: string } {
+  const json = JSON.stringify(payload);
+  const body = `${BRIEF_MARKER}${json}`;
+  // Keep a human-readable prefix for list views
+  const plain = plainFallback.trim() || payload.overview?.en || payload.objective?.en || '';
+  return {
+    en: plain ? `${plain}\n\n${body}` : body,
+    ar: plain ? `${plain}\n\n${body}` : body,
+  };
+}
+
+export function decodeRequestBrief(description: unknown): RequestBriefPayload | null {
+  const text =
+    typeof description === 'string'
+      ? description
+      : description && typeof description === 'object' && description !== null && 'en' in (description as object)
+        ? String((description as { en?: string }).en ?? '')
+        : '';
+  const idx = text.indexOf(BRIEF_MARKER);
+  if (idx < 0) return null;
+  try {
+    return JSON.parse(text.slice(idx + BRIEF_MARKER.length)) as RequestBriefPayload;
+  } catch {
+    return null;
+  }
+}
