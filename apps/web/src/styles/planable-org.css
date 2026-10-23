@@ -724,38 +724,46 @@
   }
 }
 
-/* Campaign status tabs — thinner Planable underline style */
+/* Campaign status tabs — unified with Team tabs */
 .oma-campaign-status-tabs {
   display: flex !important;
-  align-items: center !important;
+  align-items: stretch !important;
   gap: 4px !important;
-  border-bottom: 1px solid #eceef1 !important;
-  margin: 0 0 12px !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  margin: 0 0 16px !important;
   padding: 0 !important;
-  min-height: 36px !important;
+  min-height: 0 !important;
+  background: transparent !important;
 }
 .oma-campaign-status-tabs .ant-btn,
 .oma-campaign-status-tabs button {
-  height: 34px !important;
-  min-height: 34px !important;
-  padding: 0 12px !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding: 10px 14px !important;
   border: 0 !important;
   border-radius: 0 !important;
   box-shadow: none !important;
   background: transparent !important;
-  font-size: 13px !important;
-  font-weight: 500 !important;
+  font-size: 13.5px !important;
+  font-weight: 400 !important;
   color: #6b7280 !important;
   border-bottom: 2px solid transparent !important;
   margin-bottom: -1px !important;
+  line-height: 1.4 !important;
+}
+.oma-campaign-status-tabs .ant-btn:hover,
+.oma-campaign-status-tabs button:hover {
+  color: #111827 !important;
+  background: transparent !important;
 }
 .oma-campaign-status-tabs .ant-btn[data-active='true'],
 .oma-campaign-status-tabs button[data-active='true'],
 .oma-campaign-status-tabs .ant-btn[aria-selected='true'],
 .oma-campaign-status-tabs button[aria-selected='true'] {
-  color: #1d4ed8 !important;
-  font-weight: 600 !important;
-  border-bottom-color: #4c8dff !important;
+  color: #111827 !important;
+  font-weight: 500 !important;
+  border-bottom-color: #2563eb !important;
+  background: transparent !important;
 }
 
 /* Header icon button for filter */
