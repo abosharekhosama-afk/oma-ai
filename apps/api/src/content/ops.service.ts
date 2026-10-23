@@ -161,18 +161,52 @@ export class OpsService {
   ) {
     if (!rows.length) return [];
     const userIds = new Set<string>();
+    const brandIds = new Set<string>();
+    const campaignIds = new Set<string>();
+    const requestIds = new Set<string>();
     for (const r of rows) {
       if (r.assigneeUserId) userIds.add(r.assigneeUserId);
       if (r.createdBy) userIds.add(r.createdBy);
+      brandIds.add(r.brandId);
+      if (r.campaignId) campaignIds.add(r.campaignId);
+      if (r.requestId) requestIds.add(r.requestId);
     }
-    const users = userIds.size
-      ? await getPrisma().user.findMany({
-          where: { id: { in: [...userIds] } },
-          select: { id: true, name: true, email: true },
-        })
-      : [];
+    const prisma = getPrisma();
+    const [users, brands, campaigns, requests] = await Promise.all([
+      userIds.size
+        ? prisma.user.findMany({
+            where: { id: { in: [...userIds] } },
+            select: { id: true, name: true, email: true },
+          })
+        : Promise.resolve([]),
+      brandIds.size
+        ? prisma.brandWorkspace.findMany({
+            where: { id: { in: [...brandIds] } },
+            select: { id: true, name: true },
+          })
+        : Promise.resolve([]),
+      campaignIds.size
+        ? prisma.campaign.findMany({
+            where: { id: { in: [...campaignIds] } },
+            select: { id: true, nameEn: true, nameAr: true },
+          })
+        : Promise.resolve([]),
+      requestIds.size
+        ? prisma.workRequest.findMany({
+            where: { id: { in: [...requestIds] } },
+            select: { id: true, titleEn: true, titleAr: true },
+          })
+        : Promise.resolve([]),
+    ]);
     const userMap = new Map(
       users.map((u) => [u.id, (u.name && u.name.trim()) || u.email || 'Team member']),
+    );
+    const brandMap = new Map(brands.map((b) => [b.id, b.name || 'Brand']));
+    const campaignMap = new Map(
+      campaigns.map((c) => [c.id, c.nameEn || c.nameAr || 'Campaign']),
+    );
+    const requestMap = new Map(
+      requests.map((r) => [r.id, r.titleEn || r.titleAr || 'Request']),
     );
     return rows.map((row) => ({
       ...mapTask(row),
@@ -180,6 +214,9 @@ export class OpsService {
         ? userMap.get(row.assigneeUserId) || 'Team member'
         : null,
       created_by_name: userMap.get(row.createdBy) || 'Team member',
+      brand_name: brandMap.get(row.brandId) || 'Brand',
+      campaign_name: row.campaignId ? campaignMap.get(row.campaignId) || null : null,
+      request_title: row.requestId ? requestMap.get(row.requestId) || null : null,
     }));
   }
 
@@ -322,7 +359,8 @@ export class OpsService {
       targetId: task.id,
       correlationId,
     });
-    return { data: mapTask(task) };
+    const [enriched] = await this.enrichTasks([task]);
+    return { data: enriched };
   }
 
   // --- Tasks ---
@@ -335,7 +373,7 @@ export class OpsService {
       orderBy: { updatedAt: 'desc' },
       take: 200,
     });
-    return { data: rows.map(mapTask) };
+    return { data: await this.enrichTasks(rows) };
   }
 
   async createTask(
@@ -383,7 +421,8 @@ export class OpsService {
       targetId: row.id,
       correlationId,
     });
-    return { data: mapTask(row) };
+    const [enriched] = await this.enrichTasks([row]);
+    return { data: enriched };
   }
 
   async updateTask(
@@ -419,7 +458,8 @@ export class OpsService {
       targetId: taskId,
       correlationId,
     });
-    return { data: mapTask(row) };
+    const [enriched] = await this.enrichTasks([row]);
+    return { data: enriched };
   }
 
   /** Convert task → deliverable. */
