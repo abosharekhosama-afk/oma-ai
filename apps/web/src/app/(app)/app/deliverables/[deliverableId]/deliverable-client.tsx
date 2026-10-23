@@ -18,10 +18,15 @@ import { StatusChip } from '../../../../../components/ui/status-chip';
 import { useToast } from '../../../../../components/ui/toast';
 import { pickCopy } from '../../../../../lib/demo/use-demo-api';
 import {
-  getDeliverable,
+  getDeliverableDetail,
   updateDeliverable,
   reviewDeliverable,
   toDeliverableRow,
+  toDeliverableRowFromDetail,
+  addDeliverableVersion,
+  addDeliverableAnnotation,
+  resolveDeliverableAnnotation,
+  addDeliverableComment,
   opsError,
 } from '../../../../../lib/ops-api';
 import {
@@ -82,8 +87,8 @@ export default function DeliverableDetailClient() {
     if (!deliverableId) return;
     setLoading(true);
     try {
-      const apiRow = await getDeliverable(deliverableId);
-      const data = toDeliverableRow(apiRow);
+      const payload = await getDeliverableDetail(deliverableId);
+      const data = toDeliverableRowFromDetail(payload);
       setRow(data);
       const initial =
         versionParam && data.versions.some((v) => v.id === versionParam)
@@ -98,7 +103,7 @@ export default function DeliverableDetailClient() {
       setUnavailable(false);
     } catch (err) {
       if (false) setUnavailable(true);
-      else setError(opsError(err, 'Demo unavailable'));
+      else setError(opsError(err, t('demo.unavailable')));
     } finally {
       setLoading(false);
     }
@@ -148,9 +153,20 @@ export default function DeliverableDetailClient() {
     setDraftPin(null);
     setSelectedPinId(null);
     setReviewUrl({ review: reviewMode, version: versionId, compare: compareMode });
+  }
+
+  async function saveAnnotation() {
+    if (!row || !selectedVersion || !draftPin || !draftBody.trim()) return;
+    setSaving(true);
     try {
-      const updated = row; /* annotations local until domain */
-      setRow(updated);
+      await addDeliverableAnnotation(row.id, {
+        body: draftBody.trim(),
+        x: draftPin.x,
+        y: draftPin.y,
+        versionId: selectedVersion.id,
+      });
+      const payload = await getDeliverableDetail(row.id);
+      setRow(toDeliverableRowFromDetail(payload));
       setDraftPin(null);
       setDraftBody('');
       toast.push(t('demo.review.annotationSaved'), 'success');
@@ -165,19 +181,12 @@ export default function DeliverableDetailClient() {
     if (!row || !selectedVersion || !generalBody.trim()) return;
     setSaving(true);
     try {
-      const updated = {
-        ...row,
-        comments: [
-          ...(row.comments || []),
-          {
-            id: `c-${Date.now()}`,
-            author: 'You',
-            body: { en: generalBody.trim(), ar: generalBody.trim() },
-            at: new Date().toISOString(),
-          },
-        ],
-      } as DeliverableRow;
-      setRow(updated);
+      await addDeliverableComment(row.id, {
+        body: generalBody.trim(),
+        versionId: selectedVersion.id,
+      });
+      const payload = await getDeliverableDetail(row.id);
+      setRow(toDeliverableRowFromDetail(payload));
       setGeneralBody('');
       toast.push(t('demo.review.commentSaved'), 'success');
     } catch (err) {
@@ -189,8 +198,29 @@ export default function DeliverableDetailClient() {
 
   async function toggleResolve(annotationId: string, resolved: boolean) {
     if (!row) return;
+    setSaving(true);
     try {
-      const updated = row; /* annotations local until domain */
+      await resolveDeliverableAnnotation(annotationId, resolved);
+      const payload = await getDeliverableDetail(row.id);
+      setRow(toDeliverableRowFromDetail(payload));
+    } catch (err) {
+      toast.push(opsError(err, t('demo.unavailable')), 'danger');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function addRevision() {
+    if (!row) return;
+    setSaving(true);
+    try {
+      await addDeliverableVersion(row.id, { label: undefined });
+      const payload = await getDeliverableDetail(row.id);
+      const data = toDeliverableRowFromDetail(payload);
+      setRow(data);
+      const latest = data.versions[data.versions.length - 1];
+      if (latest) setSelectedVersionId(latest.id);
+      toast.push(t('demo.review.revisionAdded') || 'Revision added', 'success');
     } catch (err) {
       toast.push(opsError(err, t('demo.unavailable')), 'danger');
     } finally {
@@ -202,9 +232,9 @@ export default function DeliverableDetailClient() {
     if (!row || !selectedVersion) return;
     setSaving(true);
     try {
-      const api = await reviewDeliverable(row.id, 'submit');
-      const updated = toDeliverableRow(api);
-      setRow(updated);
+      await reviewDeliverable(row.id, 'submit');
+      const payload = await getDeliverableDetail(row.id);
+      setRow(toDeliverableRowFromDetail(payload));
       toast.push(t('demo.review.submitted'), 'success');
     } catch (err) {
       toast.push(opsError(err, t('demo.unavailable')), 'danger');
