@@ -332,10 +332,6 @@ function PlanableComposeCard({
         </button>
 
         <div className="oma-compose-pills">
-          <button type="button" className="oma-compose-pill" onClick={() => onOpenTemplates?.()}>
-            <SnippetsOutlined />
-            Template
-          </button>
           <div className="oma-compose-pill-wrap">
             <button
               type="button"
@@ -404,9 +400,27 @@ function PlanableComposeCard({
                 <EditOutlined />
               </span>
             </div>
-            <button type="button" className="oma-compose-media" aria-label="Media">
+            <label className="oma-compose-media" aria-label="Media">
               <PictureOutlined />
-            </button>
+              <input
+                type="file"
+                accept="image/*,video/*"
+                multiple
+                hidden
+                data-testid="demo-compose-media-input"
+                onChange={(e) => {
+                  const files = Array.from(e.target.files ?? []);
+                  if (!files.length) return;
+                  const names = files.map((f) => f.name).join(', ');
+                  const note =
+                    form.caption && form.caption.trim()
+                      ? `${form.caption}\n\n[Media: ${names}]`
+                      : `[Media: ${names}]`;
+                  onChange({ caption: note });
+                  e.target.value = '';
+                }}
+              />
+            </label>
           </div>
           <div className="oma-compose-main">
             <Input
@@ -4058,6 +4072,7 @@ export default function ContentPage() {
         title={isAr ? 'التصنيفات' : 'Labels'}
         size="lg"
         className="oma-label-dialog"
+        zIndex={1200}
         onClose={() => setLabelPickerOpen(false)}
       >
         <div className="oma-label-panel" data-testid="demo-content-labels">
@@ -4178,6 +4193,7 @@ export default function ContentPage() {
       </Dialog>
 
       <Dialog
+        zIndex={1200}
         open={templatePickerOpen}
         title={isAr ? 'القوالب' : 'Templates'}
         size="lg"
