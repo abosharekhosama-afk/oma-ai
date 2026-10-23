@@ -142,6 +142,9 @@ export class OpsService {
           : {}),
         ...(patch.contentId !== undefined ? { contentId: patch.contentId as string | null } : {}),
         ...(patch.campaignId !== undefined ? { campaignId: patch.campaignId as string | null } : {}),
+        ...(patch.channels !== undefined ? { channels: patch.channels as string[] } : {}),
+        ...(patch.formats !== undefined ? { formats: patch.formats as string[] } : {}),
+        ...(patch.type !== undefined ? { type: patch.type as never } : {}),
       },
     });
     await this.audit.write({
