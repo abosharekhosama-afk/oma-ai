@@ -96,7 +96,7 @@ function KanbanCardBody({
         </div>
         {task.campaignId || task.requestId ? (
           <div className="oma-kanban-meta">
-            {[task.brandId, task.campaignId, task.requestId].filter(Boolean).join(' · ')}
+            {[(task as { brandName?: string }).brandName, (task as { campaignName?: string | null }).campaignName, (task as { requestTitle?: string | null }).requestTitle].filter(Boolean).join(' · ')}
           </div>
         ) : null}
         <div className="oma-kanban-card-footer">
