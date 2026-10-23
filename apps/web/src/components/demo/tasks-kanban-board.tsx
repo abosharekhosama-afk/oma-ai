@@ -391,7 +391,7 @@ export function TasksKanbanBoard({
         data-reorder-persistence="local-only"
         dir="auto"
       >
-        <div className="oma-kb-board__track">
+        <div className="oma-kb-board__grid">
           {BOARD_COLUMNS.map((col) => {
             const items = localBoard[col.id] ?? [];
             return (
