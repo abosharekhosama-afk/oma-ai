@@ -6838,3 +6838,184 @@ button.oma-cal-item {
   justify-self: start;
   margin-top: 4px;
 }
+
+
+/* ========== Content UI fixes (compose pickers, calendar, path view) ========== */
+
+/* Label/template dialogs above compose overlay (z-index 1050) */
+.oma-label-dialog,
+.oma-template-dialog,
+.ant-modal-wrap:has(.oma-label-panel),
+.ant-modal-wrap:has(.oma-template-panel) {
+  z-index: 1200 !important;
+}
+.ant-modal-mask:has(+ .ant-modal-wrap .oma-label-panel),
+.ant-modal-root:has(.oma-label-panel) .ant-modal-mask,
+.ant-modal-root:has(.oma-template-panel) .ant-modal-mask {
+  z-index: 1190 !important;
+}
+
+/* Compose media control is a label */
+label.oma-compose-media {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Path view switcher — same alignment/type as breadcrumb text */
+.oma-breadcrumb-view,
+.oma-breadcrumb-view--interactive {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: inherit !important;
+  font-size: inherit !important;
+  font-weight: 600 !important;
+  line-height: inherit !important;
+  vertical-align: baseline !important;
+  box-shadow: none !important;
+}
+.oma-breadcrumb-view-inner {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  color: inherit !important;
+}
+.oma-breadcrumb-view-label {
+  font-size: inherit !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+}
+.oma-breadcrumb-view-caret {
+  font-size: 10px !important;
+  opacity: 0.7 !important;
+  line-height: 1 !important;
+}
+.oma-breadcrumb-view--interactive:hover .oma-breadcrumb-view-label {
+  color: #1677ff !important;
+}
+
+/* View menu anchored under path (not floating far left) */
+.oma-view-menu__list--path {
+  position: fixed !important;
+  top: 48px !important;
+  inset-inline-start: max(16px, calc(var(--oma-rail-width, 220px) + 24px)) !important;
+  z-index: 1100 !important;
+  min-width: 200px !important;
+  padding: 6px !important;
+  margin: 0 !important;
+  list-style: none !important;
+  background: #fff !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 10px !important;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14) !important;
+}
+.oma-view-menu__list--path button {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  width: 100% !important;
+  padding: 8px 10px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: #374151 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  text-align: start !important;
+  cursor: pointer !important;
+}
+.oma-view-menu__list--path button[data-selected='true'] {
+  background: #f0f6ff !important;
+  color: #1677ff !important;
+}
+.oma-view-menu__list--path button:hover {
+  background: #f5f6f8 !important;
+}
+
+/* Calendar Planable polish */
+.oma-cal-grid {
+  border: 1px solid #e8e9eb !important;
+  border-radius: 0 0 10px 10px !important;
+  overflow: hidden !important;
+  background: #fff !important;
+}
+.oma-cal-dow {
+  background: #fafbfc !important;
+  border-bottom: 1px solid #eef0f2 !important;
+  padding: 8px 6px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  color: #8c9199 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.03em !important;
+}
+.oma-cal-cell,
+.oma-cal-day {
+  border-right: 1px solid #eef0f2 !important;
+  border-bottom: 1px solid #eef0f2 !important;
+  min-height: 120px !important;
+  padding: 6px !important;
+  background: #fff !important;
+}
+.oma-cal-daynum {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #5e6166 !important;
+  margin-bottom: 4px !important;
+}
+.oma-cal-cell[data-today='true'] .oma-cal-daynum,
+.oma-cal-day[data-today='true'] .oma-cal-daynum {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 22px !important;
+  height: 22px !important;
+  border-radius: 50% !important;
+  background: #1677ff !important;
+  color: #fff !important;
+}
+.oma-cal-toolbar,
+.oma-cal-main > .oma-cal-toolbar {
+  margin-bottom: 0 !important;
+  border-bottom: 1px solid #eef0f2 !important;
+  padding: 8px 12px !important;
+  background: #fff !important;
+}
+.oma-cal-item,
+.oma-post-card--calendar {
+  width: 100% !important;
+  border: 1px dashed #d8dbe0 !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  padding: 6px 8px !important;
+  box-shadow: none !important;
+}
+.oma-post-card--calendar:hover {
+  border-color: #1677ff !important;
+  background: #f8faff !important;
+}
+
+/* Content card (grid/list/feed) cleaner Planable face */
+.oma-workspace-card,
+.oma-content-card,
+.oma-post-card {
+  border-radius: 10px !important;
+}
+.oma-post-card--grid,
+.oma-post-card--feed {
+  border: 1px solid #e8e9eb !important;
+  background: #fff !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+.oma-post-card--grid:hover,
+.oma-post-card--feed:hover {
+  border-color: #cfd4dc !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08) !important;
+}
