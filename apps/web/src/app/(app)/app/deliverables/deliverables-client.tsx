@@ -257,9 +257,7 @@ export default function DeliverablesPage() {
           )
         : null}
 
-      <p className="oma-honesty-inline" data-testid="demo-storage-honesty">
-        {t('demo.deliverable.storageHonesty')}
-      </p>
+      
 
       {loading ? <OmaTopLoader label={t('demo.loading')} /> : null}
       {unavailable ? (
@@ -276,13 +274,13 @@ export default function DeliverablesPage() {
       {!loading && !unavailable && !error ? (
         <>
           <div className="oma-req-topbar oma-deliv-topbar">
-            <div className="oma-req-tabs" data-testid="demo-deliv-groups" role="tablist">
+            <div className="oma-ws-tabs oma-req-tabs" data-testid="demo-deliv-groups" role="tablist">
               {GROUPS.map((g) => (
                 <button
                   key={g}
                   type="button"
                   role="tab"
-                  className="oma-req-tab"
+                  className={`oma-ws-tab${filters.group === g ? " is-active" : ""}`}
                   aria-selected={filters.group === g}
                   data-active={filters.group === g ? 'true' : 'false'}
                   data-testid={`demo-deliv-group-${g}`}
@@ -382,7 +380,7 @@ export default function DeliverablesPage() {
                                   {pickCopy(d.title, locale)}
                                 </Link>
                                 <div className="oma-muted" style={{ fontSize: 12 }}>
-                                  {d.taskId ?? '—'} · {d.campaignId}
+                                  {d.taskId ?? '—'} · {(d as { campaignName?: string | null }).campaignName}
                                 </div>
                               </td>
                               <td>{d.type}</td>
