@@ -32,6 +32,7 @@ import {
   toTaskRow,
   opsError,
 } from '../../../../lib/ops-api';
+import { listWorkspaceMembers, type WorkspaceMember } from '../../../../lib/team-api';
 import { TasksKanbanBoard } from '../../../../components/demo/tasks-kanban-board';
 import {
   BOARD_COLUMNS,
@@ -87,10 +88,11 @@ export default function TasksPage() {
   const [filterSection, setFilterSection] = useState<string | null>('search');
   const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
   const [creating, setCreating] = useState(false);
+  const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [createForm, setCreateForm] = useState({
     title: '',
     brandId: '',
-    assignee: 'Unassigned',
+    assignee: '',
     priority: 'MEDIUM',
     dueAt: '2026-09-20',
     type: 'DESIGN',
@@ -101,6 +103,12 @@ export default function TasksPage() {
     try {
       const ws = await loadTasksWorkspace();
       setRows(ws.tasks);
+      try {
+        const mems = await listWorkspaceMembers();
+        setMembers(mems);
+      } catch {
+        setMembers([]);
+      }
       setBrands(ws.brands as Brand[]);
       setCampaigns(ws.campaigns as Campaign[]);
       setCreateForm((f) => ({
@@ -265,12 +273,20 @@ export default function TasksPage() {
       const updatedApi = await updateTask(id, {
         status: apiStatus ?? patch.status,
         title: patch.title,
-        assigneeUserId:
-          patch.assignee === 'Unassigned' || patch.assignee === undefined
-            ? patch.assignee === 'Unassigned'
-              ? null
-              : undefined
-            : patch.assignee,
+        assigneeUserId: (() => {
+          const p = patch as { assignee?: string; assigneeId?: string | null };
+          if (p.assigneeId !== undefined) return p.assigneeId;
+          if (p.assignee === 'Unassigned') return null;
+          if (p.assignee === undefined) return undefined;
+          // Resolve display name → user id
+          const hit = members.find(
+            (m) =>
+              m.user?.id === p.assignee ||
+              m.user?.name === p.assignee ||
+              m.user?.email === p.assignee,
+          );
+          return hit?.user?.id || (p.assignee && p.assignee.length > 20 ? p.assignee : null);
+        })(),
         dueAt: patch.dueAt,
       });
       const updated = toTaskRow(updatedApi);
@@ -357,7 +373,7 @@ export default function TasksPage() {
       const createdApi = await createTask(createForm.brandId, {
           title: { en: createForm.title.trim(), ar: createForm.title.trim() },
           status: 'BACKLOG',
-          assigneeUserId: createForm.assignee?.trim() || null,
+          assigneeUserId: createForm.assignee?.trim() ? createForm.assignee.trim() : null,
           dueAt: createForm.dueAt ? `${createForm.dueAt}T12:00:00.000Z` : null,
         });
         const created = toTaskRow(createdApi);
@@ -566,7 +582,7 @@ export default function TasksPage() {
                               <span className="oma-task-title-text">{pickCopy(task.title, locale)}</span>
                               <span className="oma-task-title-meta">
                                 {task.type}
-                                {task.campaignId ? ` · ${task.campaignId.replace(/^demo-campaign-/, '')}` : ''}
+                                {(task as { campaignName?: string | null }).campaignName ? ` · ${(task as { campaignName?: string | null }).campaignName}` : (task as { requestTitle?: string | null }).requestTitle ? ` · ${(task as { requestTitle?: string | null }).requestTitle}` : ''}
                               </span>
                             </button>
                           </td>
@@ -577,7 +593,7 @@ export default function TasksPage() {
                           <td>
                             <StatusChip status={task.priority} />
                           </td>
-                          <td>{task.campaignId ?? '—'}</td>
+                          <td>{(task as { campaignName?: string | null; brandName?: string }).campaignName || (task as { brandName?: string }).brandName || '—'}</td>
                           <td className="oma-ltr oma-task-due-cell"><span className="oma-task-due-text">{task.dueAt}</span></td>
                         </tr>
                       ))}
@@ -837,14 +853,24 @@ export default function TasksPage() {
                   </label>
                   <label>
                     {t('demo.tasks.filter.assignee')}
-                    <Input
-                      defaultValue={selected.assignee ?? ''}
+                    <select
+                      className="oma-input"
+                      defaultValue={(selected as { assigneeId?: string | null }).assigneeId ?? ''}
                       data-testid="demo-task-assignee"
-                      onBlur={(e) =>
+                      onChange={(e) =>
                         void patchTask(selected.id, {
-                          assignee: e.target.value.trim() || '',
-                        })
+                          assignee: e.target.value || 'Unassigned',
+                          assigneeId: e.target.value || null,
+                        } as never)
                       }
+                    >
+                      <option value="">{t('demo.requests.unassigned')}</option>
+                      {members.map((m) => (
+                        <option key={m.id} value={m.user?.id || m.id}>
+                          {m.user?.name || m.user?.email || m.invited_email || 'Member'}
+                        </option>
+                      ))}
+                    </select
                     />
                   </label>
                   <label>
@@ -1024,6 +1050,21 @@ export default function TasksPage() {
               {brands.map((b) => (
                 <option key={b.id} value={b.id}>
                   {pickCopy(b.name, locale)}
+                </option>
+              ))}
+            </SelectField>
+          </label>
+          <label>
+            {t('demo.tasks.filter.assignee')}
+            <SelectField
+              value={createForm.assignee}
+              data-testid="demo-create-task-assignee"
+              onChange={(e) => setCreateForm((f) => ({ ...f, assignee: e.target.value }))}
+            >
+              <option value="">{t('demo.requests.unassigned')}</option>
+              {members.map((m) => (
+                <option key={m.id} value={m.user?.id || ''}>
+                  {m.user?.name || m.user?.email || m.invited_email || 'Member'}
                 </option>
               ))}
             </SelectField>
