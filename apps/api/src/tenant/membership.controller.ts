@@ -37,7 +37,7 @@ export class MembershipController {
       req.oma.correlationId,
       {
         membershipKind: body.membership === 'client' ? 'client' : 'team',
-        displayRole: body.role ?? null,
+        displayRole: body.role ?? undefined,
       },
     );
 
