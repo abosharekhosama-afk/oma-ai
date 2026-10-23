@@ -5961,18 +5961,17 @@ main.oma-container:has(.oma-req-page) {
   overflow-wrap: anywhere !important;
 }
 
+/* OMA-UI-PATCH v2026-10-24-path-tabs-cal — do not remove */
 
-/* ═══════════════════════════════════════════════════════════════
-   FIX 2026-10-24 — Team tabs + calendar density + path view text
-   ═══════════════════════════════════════════════════════════════ */
-
-/* --- 1) Tab bars: Tasks/Deliverables/Campaigns/Campaign detail = Team --- */
+/* ========== TABS = Team style (Requests / Deliverables / Campaigns / Campaign detail / Tasks) ========== */
 .oma-ws-tabs,
 .oma-req-tabs,
 .oma-campaign-status-tabs,
 .oma-workspace-tabs,
 .oma-deliv-topbar .oma-req-tabs,
-.oma-tasks-page .oma-req-tabs {
+.oma-tasks-page .oma-req-tabs,
+.oma-req-page .oma-req-tabs,
+.oma-campaigns-page .oma-campaign-status-tabs {
   display: flex !important;
   align-items: stretch !important;
   gap: 4px !important;
@@ -5980,24 +5979,20 @@ main.oma-container:has(.oma-req-page) {
   margin: 0 0 16px !important;
   padding: 0 !important;
   min-height: 0 !important;
+  height: auto !important;
   background: transparent !important;
   overflow-x: auto !important;
-  scrollbar-width: none !important;
+  box-shadow: none !important;
 }
-.oma-ws-tabs::-webkit-scrollbar,
-.oma-req-tabs::-webkit-scrollbar,
-.oma-campaign-status-tabs::-webkit-scrollbar,
-.oma-workspace-tabs::-webkit-scrollbar {
-  display: none !important;
-}
-
 .oma-ws-tab,
 .oma-req-tab,
 .oma-workspace-tab,
+.oma-campaign-status-tabs > button,
 .oma-campaign-status-tabs .ant-btn,
-.oma-campaign-status-tabs button,
-.oma-workspace-tabs .ant-btn {
-  position: relative !important;
+.oma-workspace-tabs > button,
+.oma-workspace-tabs .ant-btn,
+.oma-req-page .oma-req-tab,
+.oma-deliv-topbar .oma-req-tab {
   border: 0 !important;
   border-radius: 0 !important;
   background: transparent !important;
@@ -6014,82 +6009,78 @@ main.oma-container:has(.oma-req-page) {
   margin-bottom: -1px !important;
   line-height: 1.4 !important;
 }
-.oma-ws-tab:hover,
-.oma-req-tab:hover,
-.oma-workspace-tab:hover,
-.oma-campaign-status-tabs .ant-btn:hover,
-.oma-campaign-status-tabs button:hover,
-.oma-workspace-tabs .ant-btn:hover {
-  color: #111827 !important;
-  background: transparent !important;
-}
 .oma-ws-tab.is-active,
-.oma-req-tab[data-active='true'],
-.oma-req-tab[aria-selected='true'],
-.oma-workspace-tab[aria-selected='true'],
+.oma-req-tab[data-active="true"],
+.oma-req-tab[aria-selected="true"],
+.oma-workspace-tab[aria-selected="true"],
 .oma-workspace-tab.is-active,
-.oma-campaign-status-tabs .ant-btn[data-active='true'],
-.oma-campaign-status-tabs button[data-active='true'],
-.oma-campaign-status-tabs .ant-btn[aria-selected='true'],
-.oma-campaign-status-tabs button[aria-selected='true'],
-.oma-workspace-tabs .ant-btn[aria-selected='true'] {
+.oma-campaign-status-tabs > button[data-active="true"],
+.oma-campaign-status-tabs > button[aria-selected="true"],
+.oma-campaign-status-tabs .ant-btn[data-active="true"],
+.oma-campaign-status-tabs .ant-btn[aria-selected="true"],
+.oma-workspace-tabs .ant-btn[aria-selected="true"],
+.oma-workspace-tabs > button[aria-selected="true"] {
   color: #111827 !important;
   font-weight: 500 !important;
   border-bottom-color: #2563eb !important;
   background: transparent !important;
 }
-.oma-req-tab[data-active='true']::after,
-.oma-req-tab[aria-selected='true']::after {
+.oma-req-tab[data-active="true"]::after,
+.oma-req-tab[aria-selected="true"]::after {
   display: none !important;
   content: none !important;
+  height: 0 !important;
 }
 
-/* --- 2) Calendar: remove excess gap under shell header --- */
-.oma-content-plan {
+/* ========== CALENDAR header: kill excess gap under shell top ========== */
+.oma-content-plan,
+.oma-content-plan__body,
+.oma-workspace-main:has(.oma-content-plan) {
   margin-top: 0 !important;
   padding-top: 0 !important;
 }
 .oma-content-chrome {
   min-height: 0 !important;
-  padding: 4px 12px !important;
+  height: auto !important;
+  padding: 2px 12px !important;
   margin: 0 !important;
   border-bottom: 1px solid #eef0f2 !important;
   background: #fff !important;
 }
-.oma-content-chrome__actions {
-  gap: 4px !important;
-}
-.oma-cal-toolbar {
+.oma-cal-toolbar,
+.oma-content-plan .oma-cal-toolbar {
   display: flex !important;
   align-items: center !important;
   gap: 8px !important;
-  min-height: 36px !important;
-  padding: 4px 12px !important;
+  min-height: 32px !important;
+  height: auto !important;
+  padding: 2px 12px !important;
   margin: 0 !important;
   background: #fff !important;
   border-bottom: 1px solid #eef0f2 !important;
 }
-.oma-content-plan .oma-page-header,
-.oma-content-plan .oma-page-header-stack,
-.oma-content-plan > .oma-stage3-toolbar {
+.oma-content-plan > .oma-page-header,
+.oma-content-plan > .oma-page-header-stack,
+.oma-content-plan > .oma-stage3-toolbar,
+.oma-content-plan .oma-demo-disclosure {
   display: none !important;
   margin: 0 !important;
   padding: 0 !important;
   min-height: 0 !important;
-}
-/* Tighten workspace main top when content calendar is open */
-.oma-workspace-main:has(.oma-content-plan),
-.oma-main:has(.oma-content-plan) {
-  padding-top: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
 }
 .oma-content-plan .oma-cal-with-saved {
   margin-top: 0 !important;
 }
 
-/* --- 3) View switcher in header = exact breadcrumb path text --- */
+/* ========== HEADER view switcher = exact breadcrumb path text ========== */
+.oma-top .oma-breadcrumb-view,
+.oma-top .oma-breadcrumb-view--interactive,
+.oma-context-trail .oma-breadcrumb-view,
+.oma-context-trail--content .oma-breadcrumb-view,
 .oma-breadcrumb-view,
-.oma-breadcrumb-view--interactive,
-.oma-context-trail--content .oma-breadcrumb-view {
+.oma-breadcrumb-view--interactive {
   display: inline-flex !important;
   align-items: center !important;
   gap: 4px !important;
@@ -6107,22 +6098,16 @@ main.oma-container:has(.oma-req-page) {
   vertical-align: baseline !important;
   cursor: pointer !important;
 }
-.oma-breadcrumb-view-inner,
-.oma-breadcrumb-view-label {
-  font-size: inherit !important;
-  font-weight: inherit !important;
-  color: inherit !important;
+.oma-breadcrumb-view-label,
+.oma-breadcrumb-view-inner {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: #111 !important;
   line-height: inherit !important;
 }
-.oma-breadcrumb-view-caret,
-.oma-view-path__caret {
-  font-size: 10px !important;
-  color: #8c8c8c !important;
-  margin-inline-start: 3px !important;
-  opacity: 1 !important;
-}
 .oma-view-path__btn--ghost,
-.oma-view-path--inline .oma-view-path__btn--ghost {
+.oma-view-path--inline .oma-view-path__btn--ghost,
+.oma-top .oma-view-path__btn--ghost {
   display: inline-flex !important;
   align-items: center !important;
   gap: 4px !important;
@@ -6140,13 +6125,14 @@ main.oma-container:has(.oma-req-page) {
   cursor: pointer !important;
 }
 .oma-view-path__btn--ghost:hover,
-.oma-view-path__btn--ghost[aria-expanded='true'],
+.oma-view-path__btn--ghost[aria-expanded="true"],
 .oma-breadcrumb-view--interactive:hover .oma-breadcrumb-view-label {
   background: transparent !important;
-  border-color: transparent !important;
+  border: 0 !important;
   color: #111 !important;
   text-decoration: none !important;
 }
+.oma-top #oma-content-view-slot,
 #oma-content-view-slot {
   display: inline !important;
   border: 0 !important;
@@ -6158,12 +6144,12 @@ main.oma-container:has(.oma-req-page) {
   color: #111 !important;
   font-size: 13px !important;
   font-weight: 500 !important;
-  cursor: pointer !important;
-  line-height: inherit !important;
   height: auto !important;
   min-height: 0 !important;
+  line-height: inherit !important;
   vertical-align: baseline !important;
   text-decoration: none !important;
+  cursor: pointer !important;
 }
 #oma-content-view-slot:hover {
   color: #111 !important;
@@ -6171,8 +6157,14 @@ main.oma-container:has(.oma-req-page) {
   text-decoration: none !important;
 }
 #oma-content-view-slot::after {
-  content: '▾' !important;
+  content: "▾" !important;
   color: #8c8c8c !important;
   font-size: 10px !important;
+  margin-inline-start: 3px !important;
+}
+.oma-breadcrumb-view-caret,
+.oma-view-path__caret {
+  font-size: 10px !important;
+  color: #8c8c8c !important;
   margin-inline-start: 3px !important;
 }

@@ -1057,3 +1057,36 @@
 .oma-campaigns-page .oma-filter-check input {
   accent-color: #4c8dff;
 }
+
+/* OMA-UI-PATCH v2026-10-24-camp-tabs — do not remove */
+
+.oma-campaign-status-tabs {
+  display: flex !important;
+  gap: 4px !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  margin: 0 0 16px !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+.oma-campaign-status-tabs .ant-btn,
+.oma-campaign-status-tabs button {
+  height: auto !important;
+  padding: 10px 14px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 13.5px !important;
+  font-weight: 400 !important;
+  color: #6b7280 !important;
+  border-bottom: 2px solid transparent !important;
+  margin-bottom: -1px !important;
+}
+.oma-campaign-status-tabs .ant-btn[data-active="true"],
+.oma-campaign-status-tabs button[data-active="true"],
+.oma-campaign-status-tabs .ant-btn[aria-selected="true"],
+.oma-campaign-status-tabs button[aria-selected="true"] {
+  color: #111827 !important;
+  font-weight: 500 !important;
+  border-bottom-color: #2563eb !important;
+}

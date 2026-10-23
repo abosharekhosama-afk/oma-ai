@@ -2197,8 +2197,8 @@
   font-size: 14px;
 }
 
+/* OMA-UI-PATCH v2026-10-24-viewslot — do not remove */
 
-/* FIX 2026-10-24 — path view slot = breadcrumb text */
 #oma-content-view-slot {
   display: inline !important;
   border: 0 !important;
