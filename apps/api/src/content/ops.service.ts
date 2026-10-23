@@ -436,6 +436,8 @@ export class OpsService {
       contentId?: string | null;
       campaignId?: string | null;
       status?: string;
+      priority?: string;
+      department?: string;
       assigneeUserId?: string | null;
       dueAt?: string | null;
     },
@@ -623,7 +625,17 @@ export class OpsService {
     );
     return {
       data,
-      versions: row.versions.map((v) => ({
+      versions: (row.versions as Array<{
+        id: string;
+        label: string;
+        versionNumber: number;
+        assetUrl: string | null;
+        notesEn: string;
+        notesAr: string;
+        status: string;
+        createdBy: string;
+        createdAt: Date;
+      }>).map((v) => ({
         id: v.id,
         label: v.label,
         version_number: v.versionNumber,
@@ -634,7 +646,17 @@ export class OpsService {
         created_by_name: userMap.get(v.createdBy) || 'Team member',
         created_at: v.createdAt.toISOString(),
       })),
-      annotations: row.annotations.map((a) => ({
+      annotations: (row.annotations as Array<{
+        id: string;
+        versionId: string | null;
+        authorUserId: string;
+        bodyEn: string;
+        bodyAr: string;
+        x: number;
+        y: number;
+        resolved: boolean;
+        createdAt: Date;
+      }>).map((a) => ({
         id: a.id,
         version_id: a.versionId,
         author_user_id: a.authorUserId,
@@ -645,7 +667,15 @@ export class OpsService {
         resolved: a.resolved,
         created_at: a.createdAt.toISOString(),
       })),
-      comments: row.comments.map((c) => ({
+      comments: (row.comments as Array<{
+        id: string;
+        versionId: string | null;
+        authorUserId: string;
+        bodyEn: string;
+        bodyAr: string;
+        resolved: boolean;
+        createdAt: Date;
+      }>).map((c) => ({
         id: c.id,
         version_id: c.versionId,
         author_user_id: c.authorUserId,
@@ -677,7 +707,7 @@ export class OpsService {
       data: {
         ...(title ? { titleEn: title.en, titleAr: title.ar } : {}),
         ...(patch.status ? { status: patch.status as never } : {}),
-        ...(patch.reviewStatus ? { reviewStatus: String(patch.reviewStatus) } : {}),
+        ...(patch.reviewStatus ? { reviewStatus: String(patch.reviewStatus) as never } : {}),
         ...(patch.assetUrl !== undefined ? { assetUrl: patch.assetUrl as string | null } : {}),
         ...(patch.contentId !== undefined ? { contentId: patch.contentId as string | null } : {}),
       },
@@ -722,7 +752,7 @@ export class OpsService {
     const step = transitions[normalized];
     if (!step) {
       throw new DomainError(
-        'INVALID_INPUT',
+        'VALIDATION_FAILED',
         'Unknown review action',
         400,
         'errors.invalid_input',
@@ -740,7 +770,7 @@ export class OpsService {
     const fromKey = from in allowed ? from : 'NOT_STARTED';
     if (!(allowed[fromKey] || []).includes(normalized)) {
       throw new DomainError(
-        'INVALID_TRANSITION',
+        'CONFLICT_STATE',
         `Cannot ${normalized} from ${from}`,
         409,
         'errors.invalid_transition',
@@ -749,7 +779,7 @@ export class OpsService {
     const row = await getPrisma().workDeliverable.update({
       where: { id: deliverableId },
       data: {
-        reviewStatus: step.next,
+        reviewStatus: step.next as never,
         ...(step.status ? { status: step.status as never } : {}),
       },
     });
