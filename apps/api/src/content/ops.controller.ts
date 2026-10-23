@@ -163,4 +163,21 @@ export class OpsController {
       req.oma!.correlationId,
     );
   }
+
+  @Post('api/v1/deliverables/:deliverableId/review')
+  @UseGuards(CsrfGuard)
+  async reviewDeliverable(
+    @Req() req: Request,
+    @Param('deliverableId') deliverableId: string,
+    @Body() body: { action?: string },
+  ) {
+    this.requireTenant(req);
+    return opsService.reviewDeliverable(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      deliverableId,
+      String(body?.action || ''),
+      req.oma!.correlationId,
+    );
+  }
 }

@@ -59,7 +59,7 @@ export class OpsService {
     return {
       data,
       tasks,
-      deliverables: row.deliverables.map(mapDeliverable),
+      deliverables: await this.enrichDeliverables(row.deliverables),
     };
   }
 
@@ -161,18 +161,63 @@ export class OpsService {
   ) {
     if (!rows.length) return [];
     const userIds = new Set<string>();
+    for (const r of rows) {
+      if (r.assigneeUserId) userIds.add(r.assigneeUserId);
+      if (r.createdBy) userIds.add(r.createdBy);
+    }
+    const users = userIds.size
+      ? await getPrisma().user.findMany({
+          where: { id: { in: [...userIds] } },
+          select: { id: true, name: true, email: true },
+        })
+      : [];
+    const userMap = new Map(
+      users.map((u) => [u.id, (u.name && u.name.trim()) || u.email || 'Team member']),
+    );
+    return rows.map((row) => ({
+      ...mapTask(row),
+      assignee_name: row.assigneeUserId
+        ? userMap.get(row.assigneeUserId) || 'Team member'
+        : null,
+      created_by_name: userMap.get(row.createdBy) || 'Team member',
+    }));
+  }
+
+
+  private async enrichDeliverables(
+    rows: Array<{
+      id: string;
+      tenantId: string;
+      brandId: string;
+      campaignId: string | null;
+      requestId: string | null;
+      taskId: string | null;
+      contentId: string | null;
+      titleEn: string;
+      titleAr: string;
+      status: string;
+      reviewStatus: string;
+      assetUrl: string | null;
+      createdBy: string;
+      createdAt: Date;
+      updatedAt: Date;
+    }>,
+  ) {
+    if (!rows.length) return [];
+    const userIds = new Set<string>();
     const brandIds = new Set<string>();
     const campaignIds = new Set<string>();
     const requestIds = new Set<string>();
+    const taskIds = new Set<string>();
     for (const r of rows) {
-      if (r.assigneeUserId) userIds.add(r.assigneeUserId);
       if (r.createdBy) userIds.add(r.createdBy);
       brandIds.add(r.brandId);
       if (r.campaignId) campaignIds.add(r.campaignId);
       if (r.requestId) requestIds.add(r.requestId);
+      if (r.taskId) taskIds.add(r.taskId);
     }
     const prisma = getPrisma();
-    const [users, brands, campaigns, requests] = await Promise.all([
+    const [users, brands, campaigns, requests, tasks] = await Promise.all([
       userIds.size
         ? prisma.user.findMany({
             where: { id: { in: [...userIds] } },
@@ -197,6 +242,12 @@ export class OpsService {
             select: { id: true, titleEn: true, titleAr: true },
           })
         : Promise.resolve([]),
+      taskIds.size
+        ? prisma.workTask.findMany({
+            where: { id: { in: [...taskIds] } },
+            select: { id: true, titleEn: true, titleAr: true },
+          })
+        : Promise.resolve([]),
     ]);
     const userMap = new Map(
       users.map((u) => [u.id, (u.name && u.name.trim()) || u.email || 'Team member']),
@@ -208,15 +259,14 @@ export class OpsService {
     const requestMap = new Map(
       requests.map((r) => [r.id, r.titleEn || r.titleAr || 'Request']),
     );
+    const taskMap = new Map(tasks.map((t) => [t.id, t.titleEn || t.titleAr || 'Task']));
     return rows.map((row) => ({
-      ...mapTask(row),
-      assignee_name: row.assigneeUserId
-        ? userMap.get(row.assigneeUserId) || 'Team member'
-        : null,
+      ...mapDeliverable(row),
       created_by_name: userMap.get(row.createdBy) || 'Team member',
       brand_name: brandMap.get(row.brandId) || 'Brand',
       campaign_name: row.campaignId ? campaignMap.get(row.campaignId) || null : null,
       request_title: row.requestId ? requestMap.get(row.requestId) || null : null,
+      task_title: row.taskId ? taskMap.get(row.taskId) || null : null,
     }));
   }
 
@@ -359,8 +409,7 @@ export class OpsService {
       targetId: task.id,
       correlationId,
     });
-    const [enriched] = await this.enrichTasks([task]);
-    return { data: enriched };
+    return { data: mapTask(task) };
   }
 
   // --- Tasks ---
@@ -373,7 +422,7 @@ export class OpsService {
       orderBy: { updatedAt: 'desc' },
       take: 200,
     });
-    return { data: await this.enrichTasks(rows) };
+    return { data: rows.map(mapTask) };
   }
 
   async createTask(
@@ -421,8 +470,7 @@ export class OpsService {
       targetId: row.id,
       correlationId,
     });
-    const [enriched] = await this.enrichTasks([row]);
-    return { data: enriched };
+    return { data: mapTask(row) };
   }
 
   async updateTask(
@@ -458,8 +506,7 @@ export class OpsService {
       targetId: taskId,
       correlationId,
     });
-    const [enriched] = await this.enrichTasks([row]);
-    return { data: enriched };
+    return { data: mapTask(row) };
   }
 
   /** Convert task → deliverable. */
@@ -501,7 +548,8 @@ export class OpsService {
       targetId: del.id,
       correlationId,
     });
-    return { data: mapDeliverable(del) };
+    const [enrichedDel] = await this.enrichDeliverables([del]);
+    return { data: enrichedDel };
   }
 
   // --- Deliverables ---
@@ -512,7 +560,7 @@ export class OpsService {
       orderBy: { updatedAt: 'desc' },
       take: 200,
     });
-    return { data: rows.map(mapDeliverable) };
+    return { data: await this.enrichDeliverables(rows) };
   }
 
   async getDeliverable(tenantId: string, deliverableId: string) {
@@ -522,10 +570,11 @@ export class OpsService {
     if (!row) {
       throw new DomainError('NOT_FOUND', 'Deliverable not found', 404, 'errors.not_found');
     }
-    return { data: mapDeliverable(row) };
+    const [data] = await this.enrichDeliverables([row]);
+    return { data };
   }
 
-    async updateDeliverable(
+  async updateDeliverable(
     tenantId: string,
     actorUserId: string,
     deliverableId: string,
@@ -538,9 +587,12 @@ export class OpsService {
     if (!current) {
       throw new DomainError('NOT_FOUND', 'Deliverable not found', 404, 'errors.not_found');
     }
+    const title =
+      patch.title != null ? localePair(patch.title as LocaleInput) : null;
     const row = await getPrisma().workDeliverable.update({
       where: { id: deliverableId },
       data: {
+        ...(title ? { titleEn: title.en, titleAr: title.ar } : {}),
         ...(patch.status ? { status: patch.status as never } : {}),
         ...(patch.reviewStatus ? { reviewStatus: String(patch.reviewStatus) } : {}),
         ...(patch.assetUrl !== undefined ? { assetUrl: patch.assetUrl as string | null } : {}),
@@ -555,9 +607,83 @@ export class OpsService {
       targetId: deliverableId,
       correlationId,
     });
-    return { data: mapDeliverable(row) };
+    const [data] = await this.enrichDeliverables([row]);
+    return { data };
+  }
+
+  /**
+   * Explicit review workflow:
+   * submit | approve | request_changes | reject
+   */
+  async reviewDeliverable(
+    tenantId: string,
+    actorUserId: string,
+    deliverableId: string,
+    action: string,
+    correlationId?: string,
+  ) {
+    const current = await getPrisma().workDeliverable.findFirst({
+      where: tenantWhere(tenantId, { id: deliverableId }),
+    });
+    if (!current) {
+      throw new DomainError('NOT_FOUND', 'Deliverable not found', 404, 'errors.not_found');
+    }
+    const from = (current.reviewStatus || 'NOT_STARTED').toUpperCase();
+    const normalized = action.toLowerCase().replace(/-/g, '_');
+    const transitions: Record<string, { next: string; status?: string }> = {
+      submit: { next: 'IN_REVIEW', status: 'IN_REVIEW' },
+      approve: { next: 'APPROVED', status: 'APPROVED' },
+      request_changes: { next: 'CHANGES_REQUESTED', status: 'CHANGES_REQUESTED' },
+      reject: { next: 'REJECTED', status: 'REJECTED' },
+    };
+    const step = transitions[normalized];
+    if (!step) {
+      throw new DomainError(
+        'INVALID_INPUT',
+        'Unknown review action',
+        400,
+        'errors.invalid_input',
+      );
+    }
+    const allowed: Record<string, string[]> = {
+      NOT_STARTED: ['submit'],
+      DRAFT: ['submit'],
+      AWAITING_REVIEW: ['approve', 'request_changes', 'reject'],
+      IN_REVIEW: ['approve', 'request_changes', 'reject'],
+      CHANGES_REQUESTED: ['submit'],
+      APPROVED: [],
+      REJECTED: [],
+    };
+    const fromKey = from in allowed ? from : 'NOT_STARTED';
+    if (!(allowed[fromKey] || []).includes(normalized)) {
+      throw new DomainError(
+        'INVALID_TRANSITION',
+        `Cannot ${normalized} from ${from}`,
+        409,
+        'errors.invalid_transition',
+      );
+    }
+    const row = await getPrisma().workDeliverable.update({
+      where: { id: deliverableId },
+      data: {
+        reviewStatus: step.next,
+        ...(step.status ? { status: step.status as never } : {}),
+      },
+    });
+    await this.audit.write({
+      actorUserId,
+      tenantId,
+      action: `deliverable.review.${normalized}`,
+      targetType: 'WorkDeliverable',
+      targetId: deliverableId,
+      afterRef: step.next,
+      correlationId,
+    });
+    const [data] = await this.enrichDeliverables([row]);
+    return { data };
   }
 }
+
 
 function mapRequest(row: {
   id: string;
