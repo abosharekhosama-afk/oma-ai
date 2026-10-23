@@ -582,17 +582,31 @@ export class OpsService {
   }
 
   async getDeliverable(tenantId: string, deliverableId: string) {
-    const row = await getPrisma().workDeliverable.findFirst({
-      where: tenantWhere(tenantId, { id: deliverableId }),
-      include: {
-        versions: { orderBy: { versionNumber: 'asc' } },
-        annotations: { orderBy: { createdAt: 'asc' } },
-        comments: { orderBy: { createdAt: 'asc' } },
-      },
-    });
+    let row: any;
+    try {
+      row = await getPrisma().workDeliverable.findFirst({
+        where: tenantWhere(tenantId, { id: deliverableId }),
+        include: {
+          versions: { orderBy: { versionNumber: 'asc' } },
+          annotations: { orderBy: { createdAt: 'asc' } },
+          comments: { orderBy: { createdAt: 'asc' } },
+        },
+      });
+    } catch {
+      // Schema/client without relation tables yet — fall back to base row
+      row = await getPrisma().workDeliverable.findFirst({
+        where: tenantWhere(tenantId, { id: deliverableId }),
+      });
+      if (row) {
+        row = { ...row, versions: [], annotations: [], comments: [] };
+      }
+    }
     if (!row) {
       throw new DomainError('NOT_FOUND', 'Deliverable not found', 404, 'errors.not_found');
     }
+    if (!row.versions) row.versions = [];
+    if (!row.annotations) row.annotations = [];
+    if (!row.comments) row.comments = [];
     const [data] = await this.enrichDeliverables([row]);
     const userIds = new Set<string>();
     for (const v of row.versions) userIds.add(v.createdBy);
