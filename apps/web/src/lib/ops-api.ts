@@ -50,6 +50,9 @@ export type ApiWorkTask = {
   updated_at?: string;
   assignee_name?: string | null;
   created_by_name?: string | null;
+  brand_name?: string | null;
+  campaign_name?: string | null;
+  request_title?: string | null;
 };
 
 export type ApiWorkDeliverable = {
@@ -139,7 +142,15 @@ function mapRequestStatus(status: string): RequestRow['status'] {
   return 'OPEN' as RequestRow['status'];
 }
 
-export function toTaskRow(task: ApiWorkTask): TaskRow {
+export type TaskRowExtra = TaskRow & {
+  assigneeId?: string | null;
+  brandName?: string;
+  campaignName?: string | null;
+  requestTitle?: string | null;
+  createdByName?: string | null;
+};
+
+export function toTaskRow(task: ApiWorkTask): TaskRowExtra {
   const statusMap: Record<string, TaskRow['status']> = {
     BACKLOG: 'BACKLOG',
     TODO: 'BACKLOG',
@@ -151,7 +162,7 @@ export function toTaskRow(task: ApiWorkTask): TaskRow {
     CANCELLED: 'DONE',
     OVERDUE: 'OVERDUE',
   };
-  const status = statusMap[task.status] ?? 'BACKLOG';
+  const status = statusMap[task.status] ?? (task.status as TaskRow['status']) ?? 'BACKLOG';
   return {
     id: task.id,
     brandId: task.brand_id,
@@ -165,7 +176,8 @@ export function toTaskRow(task: ApiWorkTask): TaskRow {
     type: 'COPY',
     status,
     assignee: task.assignee_name || (task.assignee_user_id ? 'Team member' : 'Unassigned'),
-    department: '—',
+    assigneeId: task.assignee_user_id,
+    department: task.brand_name || '—',
     priority: 'MEDIUM',
     dueAt: task.due_at ? task.due_at.slice(0, 10) : '',
     updatedAt: task.updated_at ?? new Date().toISOString(),
@@ -174,6 +186,10 @@ export function toTaskRow(task: ApiWorkTask): TaskRow {
     checklist: [],
     comments: [],
     activity: [],
+    brandName: task.brand_name || undefined,
+    campaignName: task.campaign_name ?? null,
+    requestTitle: task.request_title ?? null,
+    createdByName: task.created_by_name ?? null,
   };
 }
 
