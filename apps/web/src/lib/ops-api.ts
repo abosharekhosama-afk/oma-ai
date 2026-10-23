@@ -235,42 +235,54 @@ export function toDeliverableRowFromDetail(payload: {
 }): DeliverableRowExtra {
   const base = toDeliverableRow(payload.data);
   if (payload.versions?.length) {
-    base.versions = payload.versions.map((v) => ({
-      id: v.id,
-      label: v.label,
-      createdAt: v.created_at,
-      createdBy: v.created_by_name || 'Team member',
-      previewUrl: v.asset_url || '',
-      isApproved: v.status === 'APPROVED',
-      reviewDecision:
-        v.status === 'APPROVED' || v.status === 'REJECTED' ? (v.status as 'APPROVED' | 'REJECTED') : null,
-      status: v.status,
-    }));
+    base.versions = payload.versions.map((v) => {
+      const url = v.asset_url || '';
+      const approved = v.status === 'APPROVED';
+      return {
+        id: v.id,
+        label: v.label || 'v1',
+        assets: url ? [url] : [],
+        notes: v.notes || { en: '', ar: '' },
+        createdAt: v.created_at,
+        createdBy: v.created_by_name || 'Team member',
+        immutable: approved,
+        reviewDecision:
+          v.status === 'APPROVED' || v.status === 'REJECTED'
+            ? (v.status as 'APPROVED' | 'REJECTED')
+            : null,
+        status: (v.status as never) || 'DRAFT',
+        // keep optional UI helpers without breaking demo shape
+        previewUrl: url,
+        isApproved: approved,
+      };
+    }) as DeliverableRow['versions'];
     base.currentVersionId =
-      payload.data.current_version_id || payload.versions[payload.versions.length - 1]?.id || base.id;
+      payload.data.current_version_id ||
+      payload.versions[payload.versions.length - 1]?.id ||
+      base.id;
     base.approvedVersionId = payload.data.approved_version_id || null;
   }
-  if (payload.annotations?.length) {
-    base.annotations = payload.annotations.map((a) => ({
-      id: a.id,
-      body: a.body,
-      author: a.author_name || 'Team member',
-      at: a.created_at,
-      x: a.x,
-      y: a.y,
-      resolved: a.resolved,
-      versionId: a.version_id || undefined,
-    })) as DeliverableRow['annotations'];
-  }
-  if (payload.comments?.length) {
-    base.comments = payload.comments.map((c) => ({
-      id: c.id,
-      body: c.body,
-      author: c.author_name || 'Team member',
-      at: c.created_at,
-      resolved: c.resolved,
-      versionId: c.version_id || undefined,
-    })) as DeliverableRow['comments'];
+  // Always ensure arrays so UI .filter/.map never throws
+  base.annotations = (payload.annotations ?? []).map((a) => ({
+    id: a.id,
+    body: a.body || { en: '', ar: '' },
+    author: a.author_name || 'Team member',
+    at: a.created_at,
+    x: typeof a.x === 'number' ? a.x : 0.5,
+    y: typeof a.y === 'number' ? a.y : 0.5,
+    resolved: !!a.resolved,
+    versionId: a.version_id || base.currentVersionId,
+  })) as DeliverableRow['annotations'];
+  base.comments = (payload.comments ?? []).map((c) => ({
+    id: c.id,
+    body: c.body || { en: '', ar: '' },
+    author: c.author_name || 'Team member',
+    at: c.created_at,
+    resolved: !!c.resolved,
+    versionId: c.version_id || base.currentVersionId,
+  })) as DeliverableRow['comments'];
+  if (!Array.isArray(base.versions) || base.versions.length === 0) {
+    // fallback already from toDeliverableRow
   }
   return base;
 }
@@ -297,14 +309,17 @@ export function toDeliverableRow(d: ApiWorkDeliverable): DeliverableRowExtra {
     versions: [
       {
         id: versionId,
-        label: 'Current',
+        label: 'v1',
+        assets: d.asset_url ? [d.asset_url] : [],
+        notes: { en: '', ar: '' },
         createdAt: d.created_at || new Date().toISOString(),
         createdBy: creator,
+        immutable: review === 'APPROVED',
+        reviewDecision: review === 'APPROVED' || review === 'REJECTED' ? review : null,
+        status: (d.status as never) || 'DRAFT',
         previewUrl: d.asset_url || '',
         isApproved: review === 'APPROVED',
-        reviewDecision: review === 'APPROVED' || review === 'REJECTED' ? review : null,
-        status: d.status || 'DRAFT',
-      },
+      } as DeliverableRow['versions'][number],
     ],
     changeRequests: [],
     annotations: [],
@@ -469,7 +484,26 @@ export async function getDeliverableDetail(deliverableId: string): Promise<{
   annotations: ApiDeliverableAnnotation[];
   comments: ApiDeliverableComment[];
 }> {
-  return api(`/api/v1/deliverables/${deliverableId}`);
+  const res = await api<{
+    data: ApiWorkDeliverable;
+    versions?: ApiDeliverableVersion[];
+    annotations?: ApiDeliverableAnnotation[];
+    comments?: ApiDeliverableComment[];
+  }>(`/api/v1/deliverables/${deliverableId}`);
+  // Support both enriched payload and legacy { data } only
+  const data = (res as { data: ApiWorkDeliverable }).data ?? (res as unknown as ApiWorkDeliverable);
+  const full = res as {
+    data?: ApiWorkDeliverable;
+    versions?: ApiDeliverableVersion[];
+    annotations?: ApiDeliverableAnnotation[];
+    comments?: ApiDeliverableComment[];
+  };
+  return {
+    data,
+    versions: full.versions ?? [],
+    annotations: full.annotations ?? [],
+    comments: full.comments ?? [],
+  };
 }
 
 export async function addDeliverableVersion(
