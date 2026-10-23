@@ -7107,3 +7107,21 @@ label.oma-compose-media {
   gap: 8px !important;
   margin-top: 12px !important;
 }
+
+
+/* FIX 2026-10-24 — calendar header density */
+.oma-content-chrome {
+  min-height: 0 !important;
+  padding: 4px 12px !important;
+  margin: 0 !important;
+}
+.oma-cal-toolbar {
+  min-height: 36px !important;
+  padding: 4px 12px !important;
+  margin: 0 !important;
+  gap: 8px !important;
+}
+.oma-content-plan {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
