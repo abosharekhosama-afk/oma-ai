@@ -15,6 +15,7 @@ export function Dialog({
   size = 'md',
   closeLabel,
   className,
+  zIndex,
 }: {
   open: boolean;
   title?: string;
@@ -25,6 +26,7 @@ export function Dialog({
   size?: 'md' | 'lg' | 'xl';
   closeLabel?: string;
   className?: string;
+  zIndex?: number;
 }) {
   const t = useT();
   const close = useCallback(() => onClose(), [onClose]);
@@ -37,6 +39,7 @@ export function Dialog({
       footer={footer ?? null}
       width={size === 'xl' ? 1180 : size === 'lg' ? 720 : 480}
       className={className}
+      zIndex={zIndex}
       destroyOnHidden
       closable={{ 'aria-label': 'Dismiss' }}
       mask={{ closable: true }}
