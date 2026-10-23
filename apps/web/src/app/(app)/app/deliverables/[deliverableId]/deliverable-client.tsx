@@ -20,6 +20,7 @@ import { pickCopy } from '../../../../../lib/demo/use-demo-api';
 import {
   getDeliverable,
   updateDeliverable,
+  reviewDeliverable,
   toDeliverableRow,
   opsError,
 } from '../../../../../lib/ops-api';
@@ -201,7 +202,7 @@ export default function DeliverableDetailClient() {
     if (!row || !selectedVersion) return;
     setSaving(true);
     try {
-      const api = await updateDeliverable(row.id, { reviewStatus: 'IN_REVIEW', status: 'IN_REVIEW' });
+      const api = await reviewDeliverable(row.id, 'submit');
       const updated = toDeliverableRow(api);
       setRow(updated);
       toast.push(t('demo.review.submitted'), 'success');
@@ -227,10 +228,15 @@ export default function DeliverableDetailClient() {
     }
     setSaving(true);
     try {
-      const api = await updateDeliverable(row.id, {
-        reviewStatus: decisionOpen,
-        status: decisionOpen === 'APPROVED' ? 'DONE' : decisionOpen === 'REJECTED' ? 'CANCELLED' : 'IN_PROGRESS',
-      });
+      const action =
+        decisionOpen === 'APPROVED'
+          ? 'approve'
+          : decisionOpen === 'REJECTED'
+            ? 'reject'
+            : decisionOpen === 'CHANGES_REQUESTED'
+              ? 'request_changes'
+              : 'submit';
+      const api = await reviewDeliverable(row.id, action as 'submit' | 'approve' | 'request_changes' | 'reject');
       const updated = {
         ...toDeliverableRow(api),
         decisions: [
