@@ -457,6 +457,8 @@ export class OpsService {
         descriptionEn: desc.en,
         descriptionAr: desc.ar,
         status: (input.status as never) ?? 'TODO',
+        priority: (input.priority as never) ?? 'MEDIUM',
+        department: typeof input.department === 'string' ? input.department : '',
         assigneeUserId: input.assigneeUserId ?? null,
         dueAt: input.dueAt ? new Date(input.dueAt) : null,
         createdBy: actorUserId,
@@ -520,9 +522,11 @@ export class OpsService {
       where: tenantWhere(tenantId, { id: taskId }),
     });
     if (!task) throw new DomainError('NOT_FOUND', 'Task not found', 404, 'errors.not_found');
+    const delId = newId();
+    const verId = newId();
     const del = await getPrisma().workDeliverable.create({
       data: {
-        id: newId(),
+        id: delId,
         tenantId,
         brandId: task.brandId,
         campaignId: task.campaignId,
@@ -533,7 +537,21 @@ export class OpsService {
         titleAr: task.titleAr,
         status: 'DRAFT',
         reviewStatus: 'NOT_STARTED',
+        currentVersionId: verId,
         createdBy: actorUserId,
+      },
+    });
+    await getPrisma().workDeliverableVersion.create({
+      data: {
+        id: verId,
+        tenantId,
+        deliverableId: delId,
+        label: 'v1',
+        versionNumber: 1,
+        assetUrl: null,
+        status: 'DRAFT',
+        createdBy: actorUserId,
+        updatedAt: new Date(),
       },
     });
     await getPrisma().workTask.update({
@@ -566,12 +584,63 @@ export class OpsService {
   async getDeliverable(tenantId: string, deliverableId: string) {
     const row = await getPrisma().workDeliverable.findFirst({
       where: tenantWhere(tenantId, { id: deliverableId }),
+      include: {
+        versions: { orderBy: { versionNumber: 'asc' } },
+        annotations: { orderBy: { createdAt: 'asc' } },
+        comments: { orderBy: { createdAt: 'asc' } },
+      },
     });
     if (!row) {
       throw new DomainError('NOT_FOUND', 'Deliverable not found', 404, 'errors.not_found');
     }
     const [data] = await this.enrichDeliverables([row]);
-    return { data };
+    const userIds = new Set<string>();
+    for (const v of row.versions) userIds.add(v.createdBy);
+    for (const a of row.annotations) userIds.add(a.authorUserId);
+    for (const c of row.comments) userIds.add(c.authorUserId);
+    const users = userIds.size
+      ? await getPrisma().user.findMany({
+          where: { id: { in: [...userIds] } },
+          select: { id: true, name: true, email: true },
+        })
+      : [];
+    const userMap = new Map(
+      users.map((u) => [u.id, (u.name && u.name.trim()) || u.email || 'Team member']),
+    );
+    return {
+      data,
+      versions: row.versions.map((v) => ({
+        id: v.id,
+        label: v.label,
+        version_number: v.versionNumber,
+        asset_url: v.assetUrl,
+        notes: { en: v.notesEn, ar: v.notesAr },
+        status: v.status,
+        created_by: v.createdBy,
+        created_by_name: userMap.get(v.createdBy) || 'Team member',
+        created_at: v.createdAt.toISOString(),
+      })),
+      annotations: row.annotations.map((a) => ({
+        id: a.id,
+        version_id: a.versionId,
+        author_user_id: a.authorUserId,
+        author_name: userMap.get(a.authorUserId) || 'Team member',
+        body: { en: a.bodyEn, ar: a.bodyAr },
+        x: a.x,
+        y: a.y,
+        resolved: a.resolved,
+        created_at: a.createdAt.toISOString(),
+      })),
+      comments: row.comments.map((c) => ({
+        id: c.id,
+        version_id: c.versionId,
+        author_user_id: c.authorUserId,
+        author_name: userMap.get(c.authorUserId) || 'Team member',
+        body: { en: c.bodyEn, ar: c.bodyAr },
+        resolved: c.resolved,
+        created_at: c.createdAt.toISOString(),
+      })),
+    };
   }
 
   async updateDeliverable(
@@ -682,6 +751,259 @@ export class OpsService {
     const [data] = await this.enrichDeliverables([row]);
     return { data };
   }
+
+  async addDeliverableVersion(
+    tenantId: string,
+    actorUserId: string,
+    deliverableId: string,
+    input: { assetUrl?: string | null; label?: string; notes?: LocaleInput },
+    correlationId?: string,
+  ) {
+    const del = await getPrisma().workDeliverable.findFirst({
+      where: tenantWhere(tenantId, { id: deliverableId }),
+    });
+    if (!del) throw new DomainError('NOT_FOUND', 'Deliverable not found', 404, 'errors.not_found');
+    const last = await getPrisma().workDeliverableVersion.findFirst({
+      where: { deliverableId },
+      orderBy: { versionNumber: 'desc' },
+    });
+    const n = (last?.versionNumber ?? 0) + 1;
+    const notes = localePair(input.notes);
+    const ver = await getPrisma().workDeliverableVersion.create({
+      data: {
+        id: newId(),
+        tenantId,
+        deliverableId,
+        label: input.label?.trim() || `v${n}`,
+        versionNumber: n,
+        assetUrl: input.assetUrl ?? del.assetUrl,
+        notesEn: notes.en,
+        notesAr: notes.ar,
+        status: 'DRAFT',
+        createdBy: actorUserId,
+        updatedAt: new Date(),
+      },
+    });
+    await getPrisma().workDeliverable.update({
+      where: { id: deliverableId },
+      data: { currentVersionId: ver.id, assetUrl: ver.assetUrl, reviewStatus: 'NOT_STARTED' as never, status: 'DRAFT' as never },
+    });
+    await this.audit.write({
+      actorUserId,
+      tenantId,
+      action: 'deliverable.version.added',
+      targetType: 'WorkDeliverableVersion',
+      targetId: ver.id,
+      correlationId,
+    });
+    return this.getDeliverable(tenantId, deliverableId);
+  }
+
+  async addDeliverableAnnotation(
+    tenantId: string,
+    actorUserId: string,
+    deliverableId: string,
+    input: { body: LocaleInput; x?: number; y?: number; versionId?: string | null },
+  ) {
+    await this.requireDeliverable(tenantId, deliverableId);
+    const body = localePair(input.body);
+    const row = await getPrisma().workDeliverableAnnotation.create({
+      data: {
+        id: newId(),
+        tenantId,
+        deliverableId,
+        versionId: input.versionId ?? null,
+        authorUserId: actorUserId,
+        bodyEn: body.en,
+        bodyAr: body.ar,
+        x: input.x ?? 0.5,
+        y: input.y ?? 0.5,
+        updatedAt: new Date(),
+      },
+    });
+    return {
+      data: {
+        id: row.id,
+        version_id: row.versionId,
+        author_user_id: row.authorUserId,
+        body: { en: row.bodyEn, ar: row.bodyAr },
+        x: row.x,
+        y: row.y,
+        resolved: row.resolved,
+        created_at: row.createdAt.toISOString(),
+      },
+    };
+  }
+
+  async resolveDeliverableAnnotation(
+    tenantId: string,
+    actorUserId: string,
+    annotationId: string,
+    resolved = true,
+  ) {
+    const current = await getPrisma().workDeliverableAnnotation.findFirst({
+      where: { id: annotationId, tenantId },
+    });
+    if (!current) throw new DomainError('NOT_FOUND', 'Annotation not found', 404, 'errors.not_found');
+    const row = await getPrisma().workDeliverableAnnotation.update({
+      where: { id: annotationId },
+      data: { resolved },
+    });
+    return { data: { id: row.id, resolved: row.resolved } };
+  }
+
+  async addDeliverableComment(
+    tenantId: string,
+    actorUserId: string,
+    deliverableId: string,
+    input: { body: LocaleInput; versionId?: string | null },
+  ) {
+    await this.requireDeliverable(tenantId, deliverableId);
+    const body = localePair(input.body);
+    const row = await getPrisma().workDeliverableComment.create({
+      data: {
+        id: newId(),
+        tenantId,
+        deliverableId,
+        versionId: input.versionId ?? null,
+        authorUserId: actorUserId,
+        bodyEn: body.en,
+        bodyAr: body.ar,
+        updatedAt: new Date(),
+      },
+    });
+    return {
+      data: {
+        id: row.id,
+        version_id: row.versionId,
+        author_user_id: row.authorUserId,
+        body: { en: row.bodyEn, ar: row.bodyAr },
+        resolved: row.resolved,
+        created_at: row.createdAt.toISOString(),
+      },
+    };
+  }
+
+  async getTaskDetail(tenantId: string, taskId: string) {
+    const row = await getPrisma().workTask.findFirst({
+      where: tenantWhere(tenantId, { id: taskId }),
+      include: {
+        checklistItems: { orderBy: { sortOrder: 'asc' } },
+        comments: { orderBy: { createdAt: 'asc' } },
+      },
+    });
+    if (!row) throw new DomainError('NOT_FOUND', 'Task not found', 404, 'errors.not_found');
+    const [data] = await this.enrichTasks([row]);
+    const userIds = new Set<string>(row.comments.map((c) => c.authorUserId));
+    const users = userIds.size
+      ? await getPrisma().user.findMany({
+          where: { id: { in: [...userIds] } },
+          select: { id: true, name: true, email: true },
+        })
+      : [];
+    const userMap = new Map(
+      users.map((u) => [u.id, (u.name && u.name.trim()) || u.email || 'Team member']),
+    );
+    return {
+      data,
+      checklist: row.checklistItems.map((i) => ({
+        id: i.id,
+        title: { en: i.titleEn, ar: i.titleAr },
+        done: i.done,
+        sort_order: i.sortOrder,
+      })),
+      comments: row.comments.map((c) => ({
+        id: c.id,
+        author_user_id: c.authorUserId,
+        author_name: userMap.get(c.authorUserId) || 'Team member',
+        body: { en: c.bodyEn, ar: c.bodyAr },
+        created_at: c.createdAt.toISOString(),
+      })),
+    };
+  }
+
+  async addTaskChecklistItem(
+    tenantId: string,
+    actorUserId: string,
+    taskId: string,
+    input: { title: LocaleInput },
+  ) {
+    const task = await getPrisma().workTask.findFirst({ where: tenantWhere(tenantId, { id: taskId }) });
+    if (!task) throw new DomainError('NOT_FOUND', 'Task not found', 404, 'errors.not_found');
+    const title = localePair(input.title);
+    const count = await getPrisma().workTaskChecklistItem.count({ where: { taskId } });
+    const row = await getPrisma().workTaskChecklistItem.create({
+      data: {
+        id: newId(),
+        tenantId,
+        taskId,
+        titleEn: title.en,
+        titleAr: title.ar,
+        sortOrder: count,
+        updatedAt: new Date(),
+      },
+    });
+    return { data: { id: row.id, title: { en: row.titleEn, ar: row.titleAr }, done: row.done, sort_order: row.sortOrder } };
+  }
+
+  async updateTaskChecklistItem(
+    tenantId: string,
+    taskId: string,
+    itemId: string,
+    patch: { done?: boolean; title?: LocaleInput },
+  ) {
+    const current = await getPrisma().workTaskChecklistItem.findFirst({
+      where: { id: itemId, taskId, tenantId },
+    });
+    if (!current) throw new DomainError('NOT_FOUND', 'Checklist item not found', 404, 'errors.not_found');
+    const title = patch.title != null ? localePair(patch.title) : null;
+    const row = await getPrisma().workTaskChecklistItem.update({
+      where: { id: itemId },
+      data: {
+        ...(patch.done !== undefined ? { done: patch.done } : {}),
+        ...(title ? { titleEn: title.en, titleAr: title.ar } : {}),
+      },
+    });
+    return { data: { id: row.id, title: { en: row.titleEn, ar: row.titleAr }, done: row.done, sort_order: row.sortOrder } };
+  }
+
+  async addTaskComment(
+    tenantId: string,
+    actorUserId: string,
+    taskId: string,
+    input: { body: LocaleInput },
+  ) {
+    const task = await getPrisma().workTask.findFirst({ where: tenantWhere(tenantId, { id: taskId }) });
+    if (!task) throw new DomainError('NOT_FOUND', 'Task not found', 404, 'errors.not_found');
+    const body = localePair(input.body);
+    const row = await getPrisma().workTaskComment.create({
+      data: {
+        id: newId(),
+        tenantId,
+        taskId,
+        authorUserId: actorUserId,
+        bodyEn: body.en,
+        bodyAr: body.ar,
+        updatedAt: new Date(),
+      },
+    });
+    return {
+      data: {
+        id: row.id,
+        author_user_id: row.authorUserId,
+        body: { en: row.bodyEn, ar: row.bodyAr },
+        created_at: row.createdAt.toISOString(),
+      },
+    };
+  }
+
+  private async requireDeliverable(tenantId: string, deliverableId: string) {
+    const row = await getPrisma().workDeliverable.findFirst({
+      where: tenantWhere(tenantId, { id: deliverableId }),
+    });
+    if (!row) throw new DomainError('NOT_FOUND', 'Deliverable not found', 404, 'errors.not_found');
+    return row;
+  }
 }
 
 
@@ -739,6 +1061,8 @@ function mapTask(row: {
   descriptionEn: string;
   descriptionAr: string;
   status: string;
+  priority?: string;
+  department?: string;
   assigneeUserId: string | null;
   dueAt: Date | null;
   createdBy: string;
@@ -755,6 +1079,8 @@ function mapTask(row: {
     title: { en: row.titleEn, ar: row.titleAr },
     description: { en: row.descriptionEn, ar: row.descriptionAr },
     status: row.status,
+    priority: row.priority || 'MEDIUM',
+    department: row.department || '',
     assignee_user_id: row.assigneeUserId,
     due_at: row.dueAt?.toISOString() ?? null,
     created_by: row.createdBy,
@@ -776,6 +1102,8 @@ function mapDeliverable(row: {
   status: string;
   reviewStatus: string;
   assetUrl: string | null;
+  currentVersionId?: string | null;
+  approvedVersionId?: string | null;
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;
@@ -792,6 +1120,8 @@ function mapDeliverable(row: {
     status: row.status,
     review_status: row.reviewStatus,
     asset_url: row.assetUrl,
+    current_version_id: row.currentVersionId ?? null,
+    approved_version_id: row.approvedVersionId ?? null,
     created_by: row.createdBy,
     created_at: row.createdAt.toISOString(),
     updated_at: row.updatedAt.toISOString(),

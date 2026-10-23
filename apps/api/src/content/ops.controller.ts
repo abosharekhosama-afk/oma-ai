@@ -180,4 +180,125 @@ export class OpsController {
       req.oma!.correlationId,
     );
   }
+
+
+  @Post('api/v1/deliverables/:deliverableId/versions')
+  @UseGuards(CsrfGuard)
+  async addDeliverableVersion(
+    @Req() req: Request,
+    @Param('deliverableId') deliverableId: string,
+    @Body() body: Record<string, unknown>,
+  ) {
+    this.requireTenant(req);
+    return opsService.addDeliverableVersion(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      deliverableId,
+      body as never,
+      req.oma!.correlationId,
+    );
+  }
+
+  @Post('api/v1/deliverables/:deliverableId/annotations')
+  @UseGuards(CsrfGuard)
+  async addDeliverableAnnotation(
+    @Req() req: Request,
+    @Param('deliverableId') deliverableId: string,
+    @Body() body: Record<string, unknown>,
+  ) {
+    this.requireTenant(req);
+    return opsService.addDeliverableAnnotation(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      deliverableId,
+      body as never,
+    );
+  }
+
+  @Patch('api/v1/deliverable-annotations/:annotationId')
+  @UseGuards(CsrfGuard)
+  async resolveAnnotation(
+    @Req() req: Request,
+    @Param('annotationId') annotationId: string,
+    @Body() body: { resolved?: boolean },
+  ) {
+    this.requireTenant(req);
+    return opsService.resolveDeliverableAnnotation(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      annotationId,
+      body?.resolved !== false,
+    );
+  }
+
+  @Post('api/v1/deliverables/:deliverableId/comments')
+  @UseGuards(CsrfGuard)
+  async addDeliverableComment(
+    @Req() req: Request,
+    @Param('deliverableId') deliverableId: string,
+    @Body() body: Record<string, unknown>,
+  ) {
+    this.requireTenant(req);
+    return opsService.addDeliverableComment(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      deliverableId,
+      body as never,
+    );
+  }
+
+  @Get('api/v1/tasks/:taskId')
+  async getTask(@Req() req: Request, @Param('taskId') taskId: string) {
+    this.requireTenant(req);
+    return opsService.getTaskDetail(req.oma!.tenantId!, taskId);
+  }
+
+  @Post('api/v1/tasks/:taskId/checklist')
+  @UseGuards(CsrfGuard)
+  async addChecklist(
+    @Req() req: Request,
+    @Param('taskId') taskId: string,
+    @Body() body: Record<string, unknown>,
+  ) {
+    this.requireTenant(req);
+    return opsService.addTaskChecklistItem(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      taskId,
+      body as never,
+    );
+  }
+
+  @Patch('api/v1/tasks/:taskId/checklist/:itemId')
+  @UseGuards(CsrfGuard)
+  async updateChecklist(
+    @Req() req: Request,
+    @Param('taskId') taskId: string,
+    @Param('itemId') itemId: string,
+    @Body() body: Record<string, unknown>,
+  ) {
+    this.requireTenant(req);
+    return opsService.updateTaskChecklistItem(
+      req.oma!.tenantId!,
+      taskId,
+      itemId,
+      body as never,
+    );
+  }
+
+  @Post('api/v1/tasks/:taskId/comments')
+  @UseGuards(CsrfGuard)
+  async addTaskComment(
+    @Req() req: Request,
+    @Param('taskId') taskId: string,
+    @Body() body: Record<string, unknown>,
+  ) {
+    this.requireTenant(req);
+    return opsService.addTaskComment(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      taskId,
+      body as never,
+    );
+  }
 }
