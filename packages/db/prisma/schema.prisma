@@ -1315,15 +1315,34 @@ model WorkRequest {
 enum WorkTaskStatus {
   BACKLOG
   TODO
+  READY
   IN_PROGRESS
   BLOCKED
   IN_REVIEW
   DONE
   CANCELLED
+  OVERDUE
+}
+
+enum WorkTaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum WorkDeliverableReviewStatus {
+  NOT_STARTED
+  DRAFT
+  AWAITING_REVIEW
+  IN_REVIEW
+  CHANGES_REQUESTED
+  APPROVED
+  REJECTED
 }
 
 model WorkTask {
-  id              String         @id
+  id              String           @id
   tenantId        String
   brandId         String
   campaignId      String?
@@ -1331,16 +1350,20 @@ model WorkTask {
   contentId       String?
   titleEn         String
   titleAr         String
-  descriptionEn   String         @default("")
-  descriptionAr   String         @default("")
-  status          WorkTaskStatus @default(TODO)
+  descriptionEn   String           @default("")
+  descriptionAr   String           @default("")
+  status          WorkTaskStatus   @default(TODO)
+  priority        WorkTaskPriority @default(MEDIUM)
+  department      String           @default("")
   assigneeUserId  String?
   dueAt           DateTime?
   createdBy       String
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  request         WorkRequest?   @relation(fields: [requestId], references: [id])
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  request         WorkRequest?     @relation(fields: [requestId], references: [id])
   deliverables    WorkDeliverable[]
+  checklistItems  WorkTaskChecklistItem[]
+  comments        WorkTaskComment[]
 
   @@index([tenantId, brandId])
   @@index([brandId, status])
@@ -1357,7 +1380,7 @@ enum WorkDeliverableStatus {
 }
 
 model WorkDeliverable {
-  id              String                 @id
+  id              String                       @id
   tenantId        String
   brandId         String
   campaignId      String?
@@ -1366,17 +1389,111 @@ model WorkDeliverable {
   contentId       String?
   titleEn         String
   titleAr         String
-  status          WorkDeliverableStatus  @default(DRAFT)
-  reviewStatus    String                 @default("NOT_STARTED")
+  status          WorkDeliverableStatus        @default(DRAFT)
+  reviewStatus    WorkDeliverableReviewStatus  @default(NOT_STARTED)
   assetUrl        String?
+  currentVersionId String?
+  approvedVersionId String?
   createdBy       String
-  createdAt       DateTime               @default(now())
-  updatedAt       DateTime               @updatedAt
-  request         WorkRequest?           @relation(fields: [requestId], references: [id])
-  task            WorkTask?              @relation(fields: [taskId], references: [id])
+  createdAt       DateTime                     @default(now())
+  updatedAt       DateTime                     @updatedAt
+  request         WorkRequest?                 @relation(fields: [requestId], references: [id])
+  task            WorkTask?                    @relation(fields: [taskId], references: [id])
+  versions        WorkDeliverableVersion[]
+  annotations     WorkDeliverableAnnotation[]
+  comments        WorkDeliverableComment[]
 
   @@index([tenantId, brandId])
   @@index([brandId, status])
   @@index([requestId])
   @@index([taskId])
+}
+
+/// Production parity with demo multi-version review.
+model WorkDeliverableVersion {
+  id              String         @id
+  tenantId        String
+  deliverableId   String
+  label           String         @default("v1")
+  versionNumber   Int            @default(1)
+  assetUrl        String?
+  notesEn         String         @default("")
+  notesAr         String         @default("")
+  /// DRAFT | IN_REVIEW | APPROVED | REJECTED | SUPERSEDED
+  status          String         @default("DRAFT")
+  createdBy       String
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  deliverable     WorkDeliverable @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+
+  @@index([deliverableId, versionNumber])
+  @@index([tenantId, deliverableId])
+}
+
+model WorkDeliverableAnnotation {
+  id              String         @id
+  tenantId        String
+  deliverableId   String
+  versionId       String?
+  authorUserId    String
+  bodyEn          String
+  bodyAr          String         @default("")
+  /// normalized 0..1 canvas coords
+  x               Float          @default(0.5)
+  y               Float          @default(0.5)
+  resolved        Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  deliverable     WorkDeliverable @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+
+  @@index([deliverableId, createdAt])
+  @@index([tenantId, deliverableId])
+}
+
+model WorkDeliverableComment {
+  id              String         @id
+  tenantId        String
+  deliverableId   String
+  versionId       String?
+  authorUserId    String
+  bodyEn          String
+  bodyAr          String         @default("")
+  resolved        Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  deliverable     WorkDeliverable @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+
+  @@index([deliverableId, createdAt])
+  @@index([tenantId, deliverableId])
+}
+
+model WorkTaskChecklistItem {
+  id          String   @id
+  tenantId    String
+  taskId      String
+  titleEn     String
+  titleAr     String   @default("")
+  done        Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  task        WorkTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId, sortOrder])
+  @@index([tenantId, taskId])
+}
+
+model WorkTaskComment {
+  id           String   @id
+  tenantId     String
+  taskId       String
+  authorUserId String
+  bodyEn       String
+  bodyAr       String   @default("")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  task         WorkTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId, createdAt])
+  @@index([tenantId, taskId])
 }
