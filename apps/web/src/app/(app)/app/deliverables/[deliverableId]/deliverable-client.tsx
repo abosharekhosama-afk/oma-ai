@@ -89,15 +89,34 @@ export default function DeliverableDetailClient() {
     try {
       const payload = await getDeliverableDetail(deliverableId);
       const data = toDeliverableRowFromDetail(payload);
+      const versions = Array.isArray(data.versions) ? data.versions : [];
+      if (!versions.length) {
+        // ensure at least one version slot so render never touches empty assets
+        data.versions = [
+          {
+            id: data.id,
+            label: 'v1',
+            assets: [],
+            notes: { en: '', ar: '' },
+            createdAt: new Date().toISOString(),
+            createdBy: data.reviewer || 'Team member',
+            immutable: false,
+            reviewDecision: null,
+            status: 'DRAFT' as never,
+          },
+        ];
+        data.currentVersionId = data.id;
+      }
       setRow(data);
+      const vs = data.versions;
       const initial =
-        versionParam && data.versions.some((v) => v.id === versionParam)
+        versionParam && vs.some((v) => v.id === versionParam)
           ? versionParam
-          : data.currentVersionId;
+          : data.currentVersionId || vs[0]?.id || data.id;
       setSelectedVersionId(initial);
-      const v0 = data.versions[0]?.id ?? '';
-      const v1 = data.versions[1]?.id ?? v0;
-      setCompareA(data.versions.find((v) => v.id === data.approvedVersionId)?.id ?? v0);
+      const v0 = vs[0]?.id ?? data.id;
+      const v1 = vs[1]?.id ?? v0;
+      setCompareA(vs.find((v) => v.id === data.approvedVersionId)?.id ?? v0);
       setCompareB(data.currentVersionId || v1);
       setError(null);
       setUnavailable(false);
@@ -107,7 +126,7 @@ export default function DeliverableDetailClient() {
     } finally {
       setLoading(false);
     }
-  }, [deliverableId, versionParam]);
+  }, [deliverableId, versionParam, t, locale]);
 
   useEffect(() => {
     void load();
@@ -122,7 +141,7 @@ export default function DeliverableDetailClient() {
 
   const versionAnnotations = useMemo(() => {
     if (!row || !selectedVersion) return [];
-    return row.annotations.filter((a) => a.versionId === selectedVersion.id);
+    return (row.annotations ?? []).filter((a) => a.versionId === selectedVersion.id);
   }, [row, selectedVersion]);
 
   const filteredThreads = useMemo(() => {
@@ -134,7 +153,7 @@ export default function DeliverableDetailClient() {
 
   const generalComments = useMemo(() => {
     if (!row || !selectedVersion) return [];
-    return row.comments.filter((c) => c.versionId === selectedVersion.id);
+    return (row.comments ?? []).filter((c) => c.versionId === selectedVersion.id);
   }, [row, selectedVersion]);
 
   function setReviewUrl(next: { review?: boolean; version?: string; compare?: boolean }) {
@@ -484,7 +503,7 @@ export default function DeliverableDetailClient() {
                       const v = row.versions.find((x) => x.id === id);
                       return (
                         <figure key={`${id}-${idx}`}>
-                          <img src={v?.assets[0] ?? ''} alt="" />
+                          <img src={(v?.assets && (v.assets && v.assets[0])) ?? ''} alt="" />
                           <figcaption>
                             {v?.label} · {v?.status} · {v?.createdBy}
                           </figcaption>
@@ -495,7 +514,7 @@ export default function DeliverableDetailClient() {
                       {t('demo.review.noPixelDiff')}
                     </p>
                   </div>
-                ) : selectedVersion?.assets[0] ? (
+                ) : (selectedVersion?.assets && selectedVersion.assets[0]) ? (
                   <div
                     ref={stageRef}
                     className="oma-review-canvas-stage"
@@ -524,7 +543,7 @@ export default function DeliverableDetailClient() {
                       {selectedVersion.label}
                       {selectedVersion.immutable ? ` · ${t('demo.review.immutable')}` : ''}
                     </span>
-                    <img src={selectedVersion.assets[0]} alt="" draggable={false} />
+                    <img src={(selectedVersion.assets && selectedVersion.assets[0])} alt="" draggable={false} />
                     {versionAnnotations.map((a) => {
                       const pos = mapNormalizedToPercent(a.x, a.y);
                       return (
@@ -673,9 +692,9 @@ export default function DeliverableDetailClient() {
           <div className="oma-deliv-detail__workspace">
             <div className="oma-deliv-detail__main">
               <section className="oma-deliv-detail__card oma-deliv-detail__preview">
-                {selectedVersion?.assets[0] ? (
+                {(selectedVersion?.assets && selectedVersion.assets[0]) ? (
                   <img
-                    src={selectedVersion.assets[0]}
+                    src={(selectedVersion.assets && selectedVersion.assets[0])}
                     alt=""
                     className="oma-deliv-detail__hero"
                     data-testid="demo-deliv-preview"
@@ -728,7 +747,7 @@ export default function DeliverableDetailClient() {
                       data-testid={`demo-version-${v.id}`}
                       onClick={() => void selectVersion(v.id)}
                     >
-                      {v.assets[0] ? <img src={v.assets[0]} alt="" /> : <div className="oma-deliv-detail__version-ph" />}
+                      {(v.assets && v.assets[0]) ? <img src={(v.assets && v.assets[0])} alt="" /> : <div className="oma-deliv-detail__version-ph" />}
                       <span>
                         <strong>{v.label}</strong>
                         <span className="oma-muted">{v.status}</span>
