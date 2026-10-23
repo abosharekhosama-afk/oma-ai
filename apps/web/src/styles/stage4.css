@@ -2952,7 +2952,6 @@ main.oma-container:has(.oma-req-page) {
   color: #6b7280;
   font-size: 11px;
   font-weight: 600;
-  tabular-nums: true;
   font-variant-numeric: tabular-nums;
 }
 
@@ -3201,7 +3200,8 @@ main.oma-container:has(.oma-req-page) {
     min-height: 360px;
   }
 }
-* Stage 4 — Requests / Brief / Tasks (Planable P4 language) */
+
+/* Stage 4 — Requests / Brief / Tasks (Planable P4 language) */
 
 .oma-stage4-toolbar {
   display: flex;
