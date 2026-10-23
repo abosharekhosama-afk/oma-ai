@@ -236,7 +236,7 @@ export default function CampaignDetailPage() {
             {campaign.strategyId}
           </p>
 
-          <div className="oma-workspace-tabs" role="tablist" aria-label="Campaign workspace">
+          <div className="oma-ws-tabs oma-workspace-tabs" role="tablist" aria-label="Campaign workspace">
             {(
               [
                 ['overview', t('demo.campaign.overview')],
@@ -246,17 +246,17 @@ export default function CampaignDetailPage() {
                 ['activity', t('demo.campaign.activity')],
               ] as const
             ).map(([id, label]) => (
-              <Button
+              <button
                 key={id}
-                type="default"
+                type="button"
                 role="tab"
                 aria-selected={tab === id}
                 data-testid={`demo-campaign-tab-${id}`}
                 onClick={() => setTab(id)}
-                className="oma-workspace-tab"
+                className={`oma-ws-tab oma-workspace-tab${tab === id ? ' is-active' : ''}`}
               >
                 {label}
-              </Button>
+              </button>
             ))}
           </div>
 
