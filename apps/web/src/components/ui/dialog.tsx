@@ -16,6 +16,7 @@ export function Dialog({
   closeLabel,
   className,
   zIndex,
+  hideClose = false,
 }: {
   open: boolean;
   title?: string;
@@ -27,6 +28,7 @@ export function Dialog({
   closeLabel?: string;
   className?: string;
   zIndex?: number;
+  hideClose?: boolean;
 }) {
   const t = useT();
   const close = useCallback(() => onClose(), [onClose]);
@@ -41,9 +43,9 @@ export function Dialog({
       className={className}
       zIndex={zIndex}
       destroyOnHidden
-      closable={{ 'aria-label': 'Dismiss' }}
+      closable={hideClose ? false : { 'aria-label': 'Dismiss' }}
       mask={{ closable: true }}
-      focusable={{ focusTriggerAfterClose: true }}
+      focusable={{ focusTriggerAfterClose: false }}
       cancelText={closeLabel ?? t('common.close')}
     >
       {children}

@@ -13,12 +13,17 @@ import { EmptyState } from '../../../../components/ui/empty-state';
 import { PageHeader } from '../../../../components/ui/page-header';
 import { StatusMark } from '../../../../components/content/content-card';
 import { useToast } from '../../../../components/ui/toast';
+import { pickCopy } from '../../../../lib/demo/use-demo-api';
 import {
-  demoApi,
-  demoErrorMessage,
-  isDemoForbidden,
-  pickCopy,
-} from '../../../../lib/demo/use-demo-api';
+  archiveContent,
+  contentApiError,
+  loadContentWorkspace,
+  scheduleContent,
+  toContentRow,
+  unscheduleContent,
+} from '../../../../lib/content-api';
+import { todayKey } from '../../../../lib/calendar-today';
+import { contentToScheduleRow } from '../../../../lib/schedule-production';
 import {
   EMPTY_SCHEDULE_FILTERS,
   activeScheduleFilterCount,
@@ -58,7 +63,7 @@ export default function SchedulePage() {
   const [policy, setPolicy] = useState<ApprovalPolicy>('OPTIONAL');
   const [filters, setFilters] = useState<ScheduleFilters>(EMPTY_SCHEDULE_FILTERS);
   const [view, setView] = useState<ScheduleView>('calendar');
-  const [anchor, setAnchor] = useState('2026-09-11');
+  const [anchor, setAnchor] = useState(todayKey());
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
   const [plannedAtDraft, setPlannedAtDraft] = useState('');
@@ -72,21 +77,15 @@ export default function SchedulePage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [posts, graph] = await Promise.all([
-        demoApi<ScheduleRow[]>('/schedule'),
-        demoApi<DemoGraph>('/graph').catch(() => null),
-      ]);
-      setRows(posts);
-      if (graph) {
-        setCampaigns(graph.campaigns);
-        setContents(graph.contentItems);
-        setPolicy(graph.demoPreferences.approvalPolicy);
-      }
+      const workspace = await loadContentWorkspace();
+      setPolicy(workspace.policy);
+      setCampaigns(workspace.campaigns as DemoGraph['campaigns']);
+      setContents(workspace.content as DemoGraph['contentItems']);
+      setRows(workspace.content.map((item) => contentToScheduleRow(item, workspace.policy)));
       setError(null);
       setUnavailable(false);
     } catch (err) {
-      if (isDemoForbidden(err)) setUnavailable(true);
-      else setError(demoErrorMessage(err, 'Demo unavailable'));
+      setError(contentApiError(err, 'Failed to load schedule'));
     } finally {
       setLoading(false);
     }
@@ -98,7 +97,8 @@ export default function SchedulePage() {
 
   const filtered = useMemo(() => filterSchedule(rows, filters, locale), [rows, filters, locale]);
   const days = useMemo(() => weekDays(anchor), [anchor]);
-  const byDay = useMemo(() => groupScheduleByDay(filtered), [filtered]);
+  const datedRows = useMemo(() => filtered.filter((row) => Boolean(row.plannedAt)), [filtered]);
+  const byDay = useMemo(() => groupScheduleByDay(datedRows), [datedRows]);
   const selected = rows.find((r) => r.id === selectedId) ?? null;
   const selectedContent = contents.find((item) => item.id === selected?.contentId) ?? null;
   const selectedWorkflow = selectedContent ? resolveContentWorkflow(selectedContent, policy) : null;
@@ -125,23 +125,21 @@ export default function SchedulePage() {
       .filter(Boolean);
     setSaving(true);
     try {
-      const updated = await demoApi<ScheduleRow>(`/schedule/${selected.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({
-          plannedAt:
-            plannedAtDraft.length === 16
-              ? `${plannedAtDraft}:00+03:00`
-              : plannedAtDraft.includes('+')
-                ? plannedAtDraft
-                : `${plannedAtDraft}+03:00`,
-          channels: channels.length ? channels : selected.channels,
-        }),
-      });
-      setRows((list) => list.map((r) => (r.id === updated.id ? updated : r)));
+      const scheduledAt =
+        plannedAtDraft.length === 16
+          ? `${plannedAtDraft}:00+03:00`
+          : plannedAtDraft.includes('+')
+            ? plannedAtDraft
+            : `${plannedAtDraft}+03:00`;
+      const updated = await scheduleContent(selected.contentId, { scheduledAt });
+      const next = contentToScheduleRow(toContentRow(updated), policy);
+      if (channels.length) next.channels = channels;
+      setContents((list) => list.map((item) => (item.id === updated.id ? toContentRow(updated) : item)));
+      setRows((list) => list.map((r) => (r.id === next.id ? next : r)));
       setRescheduleOpen(false);
       toast.push(t('demo.schedule.saved'), 'success');
     } catch (err) {
-      toast.push(demoErrorMessage(err, 'Demo unavailable'), 'danger');
+      toast.push(contentApiError(err, t('demo.unavailable')), 'danger');
     } finally {
       setSaving(false);
     }
@@ -151,14 +149,18 @@ export default function SchedulePage() {
     if (!selected) return;
     setSaving(true);
     try {
-      const updated = await demoApi<ScheduleRow>(`/schedule/${selected.id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ state }),
-      });
-      setRows((list) => list.map((r) => (r.id === updated.id ? updated : r)));
+      const updated =
+        state === 'PLANNED'
+          ? await unscheduleContent(selected.contentId)
+          : await scheduleContent(selected.contentId, {
+              scheduledAt: selected.plannedAt || new Date().toISOString(),
+            });
+      const next = contentToScheduleRow(toContentRow(updated), policy);
+      setContents((list) => list.map((item) => (item.id === updated.id ? toContentRow(updated) : item)));
+      setRows((list) => list.map((r) => (r.id === next.id ? next : r)));
       toast.push(t('demo.schedule.saved'), 'success');
     } catch (err) {
-      toast.push(demoErrorMessage(err, 'Demo unavailable'), 'danger');
+      toast.push(contentApiError(err, t('demo.unavailable')), 'danger');
     } finally {
       setSaving(false);
     }
@@ -168,12 +170,13 @@ export default function SchedulePage() {
     if (!selected) return;
     setSaving(true);
     try {
-      await demoApi(`/schedule/${selected.id}`, { method: 'DELETE', body: '{}' });
+      await archiveContent(selected.contentId);
       setRows((list) => list.filter((r) => r.id !== selected.id));
+      setContents((list) => list.filter((item) => item.id !== selected.contentId));
       setSelectedId(null);
       toast.push(t('demo.schedule.removed'), 'success');
     } catch (err) {
-      toast.push(demoErrorMessage(err, 'Demo unavailable'), 'danger');
+      toast.push(contentApiError(err, t('demo.unavailable')), 'danger');
     } finally {
       setSaving(false);
     }
@@ -241,7 +244,7 @@ export default function SchedulePage() {
                 <Button
                   type="default"
                   data-testid="demo-schedule-today"
-                  onClick={() => setAnchor('2026-09-11')}
+                  onClick={() => setAnchor(todayKey())}
                 >
                   {t('demo.schedule.today')}
                 </Button>
@@ -307,7 +310,7 @@ export default function SchedulePage() {
                       <div
                         key={day}
                         className="oma-sched-day"
-                        data-today={day === '2026-09-11' ? 'true' : 'false'}
+                        data-today={day === todayKey() ? 'true' : 'false'}
                         data-testid={`demo-sched-day-${day}`}
                       >
                         <div className="oma-sched-day-label">

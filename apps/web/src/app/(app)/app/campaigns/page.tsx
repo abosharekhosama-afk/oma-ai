@@ -48,6 +48,7 @@ import {
   type CampaignLayout,
 } from '../../../../lib/demo/demo-view-pref';
 import { useLocale, useT } from '../../../../lib/use-locale';
+import { addDays, todayKey } from '../../../../lib/calendar-today';
 
 type Brand = DemoGraph['brands'][number];
 type Strategy = DemoGraph['strategies'][number];
@@ -90,8 +91,8 @@ export default function CampaignsPage() {
     strategyId: '',
     track: 'ORGANIC',
     owner: '',
-    start: '2026-09-20',
-    end: '2026-10-31',
+    start: todayKey(),
+    end: addDays(todayKey(), 41),
     channels: 'Instagram, LinkedIn',
     status: 'DRAFT',
     links: [] as string[],

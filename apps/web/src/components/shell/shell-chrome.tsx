@@ -17,6 +17,7 @@ import { SHELL_NAV_SECTIONS, SHELL_RAIL_PREF_KEY } from './nav-config';
 import { ShellIcon } from './shell-icons';
 import { UserMenu } from './user-menu';
 import { WorkspaceRow } from './workspace-row';
+import { WorkspacePathMenu } from './workspace-path-menu';
 import { WorkspaceSettingsPanel } from './workspace-settings-panel';
 import { PlxLogo } from '../ui/plx-icons';
 
@@ -47,38 +48,43 @@ function RailNav({ collapsed }: { collapsed: boolean }) {
   );
 }
 
-function ShellBreadcrumb() {
+function ShellBreadcrumb({ onOpenSettings }: { onOpenSettings: () => void }) {
   const t = useT();
   const pathname = usePathname() || '/app';
   const isContent = pathname === '/app/content' || pathname.startsWith('/app/content/');
   const isDeliverables =
     pathname === '/app/deliverables' || pathname.startsWith('/app/deliverables/');
   const isTasks = pathname === '/app/tasks' || pathname.startsWith('/app/tasks/');
+  const isCampaigns = pathname === '/app/campaigns' || pathname.startsWith('/app/campaigns/');
 
   /* Planable trail: Workspace / Section / View — view switch lives in path */
-  if (isContent || isDeliverables || isTasks) {
+  if (isContent || isDeliverables || isTasks || isCampaigns) {
     const sectionHref = isContent
       ? '/app/content'
       : isDeliverables
         ? '/app/deliverables'
-        : '/app/tasks';
+        : isCampaigns
+          ? '/app/campaigns'
+          : '/app/tasks';
     const sectionLabel = isContent
       ? t('nav.content') || 'Content'
       : isDeliverables
         ? t('nav.deliverables') || t('demo.deliverables.title') || 'Deliverables'
-        : t('nav.tasks') || t('demo.tasks.title') || 'Tasks';
-    const defaultView = isContent ? 'Calendar' : isDeliverables ? 'Grid' : 'Board';
+        : isCampaigns
+          ? t('nav.campaigns') || 'Campaigns'
+          : t('nav.tasks') || t('demo.tasks.title') || 'Tasks';
+    const defaultView = isContent
+      ? 'Calendar'
+      : isDeliverables
+        ? 'Grid'
+        : isCampaigns
+          ? 'Portfolio'
+          : 'Board';
     return (
       <nav aria-label={t('shell.breadcrumb')} className="oma-context-trail oma-context-trail--content">
         <ol className="oma-breadcrumb oma-breadcrumb--planable">
           <li>
-            <span className="oma-breadcrumb-workspace">
-              <span className="oma-breadcrumb-workspace-mark" aria-hidden />
-              <span>Osama</span>
-              <span className="oma-breadcrumb-caret" aria-hidden>
-                ▾
-              </span>
-            </span>
+            <WorkspacePathMenu onOpenSettings={onOpenSettings} />
           </li>
           <li>
             <span className="oma-breadcrumb-sep" aria-hidden>
@@ -261,7 +267,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
               {/* Mobile nav trigger removed from all headers per product request */}
               <div className="oma-top-context">
                 {hideBrandTrail ? null : <BrandContext />}
-                <ShellBreadcrumb />
+                <ShellBreadcrumb onOpenSettings={() => setWsSettingsOpen(true)} />
               </div>
             </div>
             {/* Planable Content: no center search — actions live on the right */}

@@ -21,6 +21,14 @@ import {
   type RequestBriefPayload,
 } from '../../../../../lib/ops-api';
 import {
+  addContentComment,
+  contentApiError,
+  deleteContentComment,
+  getContentDetail,
+  type ContentCommentDto,
+} from '../../../../../lib/content-api';
+import { formatCommentTime } from '../../../../../lib/calendar-today';
+import {
   allowedNextStatuses,
   canConvertRequest,
   canTransitionApiRequestStatus,
@@ -118,6 +126,9 @@ export default function RequestDetailPage() {
   const [closeReason, setCloseReason] = useState('');
   const [converting, setConverting] = useState(false);
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
+  const [comments, setComments] = useState<ContentCommentDto[]>([]);
+  const [commentDraft, setCommentDraft] = useState('');
+  const [commentSaving, setCommentSaving] = useState(false);
 
   const load = useCallback(async () => {
     if (!requestId) return;
@@ -163,6 +174,16 @@ export default function RequestDetailPage() {
       setDirty(false);
       setError(null);
       setUnavailable(false);
+      if (data.contentId) {
+        try {
+          const detail = await getContentDetail(data.contentId);
+          setComments(detail.comments ?? []);
+        } catch {
+          setComments([]);
+        }
+      } else {
+        setComments([]);
+      }
     } catch (err) {
       setError(opsError(err, locale.toLowerCase().startsWith('ar') ? 'تعذّر تحميل الطلب' : 'Failed to load request'));
       setRow(null);
@@ -368,11 +389,6 @@ export default function RequestDetailPage() {
           <div className="oma-req-detail__main">
             {/* Title block */}
             <div className="oma-req-detail__title-block">
-              <div className="oma-req-detail__chips">
-                <StatusChip status={row.status} />
-                <StatusChip status={row.priority} />
-                <span className="oma-req-detail__id">{row.id.replace('demo-request-', '#')}</span>
-              </div>
               <h1 className="oma-req-detail__title">
                 <Input
                   key={row.id + '-title'}
@@ -643,6 +659,99 @@ export default function RequestDetailPage() {
               </section>
             ) : null}
 
+            <section className="oma-req-detail__card oma-req-detail__comments" data-testid="demo-request-comments">
+              <header className="oma-req-detail__card-head">
+                <strong>{isAr ? 'التعليقات' : 'Comments'}</strong>
+                <span className="oma-req-detail__meta">{comments.length}</span>
+              </header>
+              {row.contentId ? (
+                <>
+                  {comments.length === 0 ? (
+                    <p className="oma-muted">
+                      {isAr
+                        ? 'لا تعليقات بعد. ابدأ المحادثة من هنا أو من بطاقة المحتوى.'
+                        : 'No comments yet. Start the conversation here or from the content card.'}
+                    </p>
+                  ) : (
+                    <div className="oma-comment-thread">
+                      {comments.map((comment) => (
+                        <article key={comment.id} className="oma-comment">
+                          <span className="oma-plan-post__avatar">
+                            {(comment.author_user_id || 'U').slice(0, 1).toUpperCase()}
+                          </span>
+                          <div className="oma-comment__body">
+                            <div className="oma-comment-meta">
+                              <strong>{comment.author_user_id?.slice(0, 8) || (isAr ? 'أنت' : 'You')}</strong>
+                              <span className="oma-ltr">{formatCommentTime(comment.at, locale)}</span>
+                            </div>
+                            <p className="oma-comment-body">
+                              {isAr
+                                ? comment.body.ar || comment.body.en
+                                : comment.body.en || comment.body.ar}
+                            </p>
+                            <button
+                              type="button"
+                              className="oma-comment-delete"
+                              onClick={() => {
+                                if (!row.contentId) return;
+                                void deleteContentComment(row.contentId, comment.id)
+                                  .then(() =>
+                                    setComments((prev) => prev.filter((item) => item.id !== comment.id)),
+                                  )
+                                  .catch((err) =>
+                                    toast.push(contentApiError(err, 'Comment delete failed'), 'danger'),
+                                  );
+                              }}
+                            >
+                              {isAr ? 'حذف' : 'Delete'}
+                            </button>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  )}
+                  <div className="oma-plan-post__comment-box">
+                    <textarea
+                      className="oma-plan-post__comment-input"
+                      rows={2}
+                      value={commentDraft}
+                      placeholder={isAr ? 'اكتب تعليقاً…' : 'Leave a comment…'}
+                      onChange={(e) => setCommentDraft(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      className="oma-plan-post__comment-send"
+                      disabled={!commentDraft.trim() || commentSaving}
+                      onClick={() => {
+                        if (!row.contentId || !commentDraft.trim()) return;
+                        setCommentSaving(true);
+                        void addContentComment(row.contentId, {
+                          en: commentDraft.trim(),
+                          ar: commentDraft.trim(),
+                        })
+                          .then((created) => {
+                            setComments((prev) => [...prev, created]);
+                            setCommentDraft('');
+                          })
+                          .catch((err) =>
+                            toast.push(contentApiError(err, 'Comment failed'), 'danger'),
+                          )
+                          .finally(() => setCommentSaving(false));
+                      }}
+                    >
+                      {isAr ? 'إرسال' : 'Send'}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <p className="oma-muted">
+                  {isAr
+                    ? 'اربط هذا الطلب بمحتوى لتفعيل تعليقات دورة الحياة.'
+                    : 'Link this request to content to enable lifecycle comments.'}
+                </p>
+              )}
+            </section>
+
             {/* Tasks card */}
             <section className="oma-req-detail__card">
               <header className="oma-req-detail__card-head">
@@ -659,7 +768,7 @@ export default function RequestDetailPage() {
                         className="oma-req-detail__link"
                         data-testid={`demo-request-task-${task.id}`}
                       >
-                        {pickCopy(task.title, locale)}
+                        {safeCopy(task.title, locale)}
                         <span className="oma-req-detail__task-status">{task.status}</span>
                       </Link>
                     </li>

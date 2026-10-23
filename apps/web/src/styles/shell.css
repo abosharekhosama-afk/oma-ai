@@ -606,12 +606,36 @@
   font-size: 13px !important;
 }
 
+.oma-path-ws {
+  position: relative !important;
+  display: inline-flex !important;
+}
 .oma-breadcrumb-workspace {
   display: inline-flex !important;
   align-items: center !important;
   gap: 6px !important;
   font-weight: 500 !important;
   color: #111 !important;
+  border: 0 !important;
+  background: transparent !important;
+  padding: 2px 4px !important;
+  border-radius: 6px !important;
+  cursor: pointer !important;
+}
+.oma-breadcrumb-workspace:hover {
+  background: #f3f4f6 !important;
+}
+.oma-path-ws-menu {
+  position: absolute !important;
+  top: calc(100% + 8px) !important;
+  inset-inline-start: 0 !important;
+  z-index: 80 !important;
+  min-width: 220px !important;
+  padding: 6px !important;
+  border-radius: 10px !important;
+  border: 1px solid #e5e7eb !important;
+  background: #fff !important;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12) !important;
 }
 .oma-breadcrumb-workspace-mark {
   width: 18px !important;
