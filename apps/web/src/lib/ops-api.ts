@@ -50,9 +50,6 @@ export type ApiWorkTask = {
   updated_at?: string;
   assignee_name?: string | null;
   created_by_name?: string | null;
-  brand_name?: string | null;
-  campaign_name?: string | null;
-  request_title?: string | null;
 };
 
 export type ApiWorkDeliverable = {
@@ -71,6 +68,11 @@ export type ApiWorkDeliverable = {
   created_by?: string;
   created_at?: string;
   updated_at?: string;
+  created_by_name?: string | null;
+  brand_name?: string | null;
+  campaign_name?: string | null;
+  request_title?: string | null;
+  task_title?: string | null;
 };
 
 export function opsError(err: unknown, fallback: string): string {
@@ -142,15 +144,7 @@ function mapRequestStatus(status: string): RequestRow['status'] {
   return 'OPEN' as RequestRow['status'];
 }
 
-export type TaskRowExtra = TaskRow & {
-  assigneeId?: string | null;
-  brandName?: string;
-  campaignName?: string | null;
-  requestTitle?: string | null;
-  createdByName?: string | null;
-};
-
-export function toTaskRow(task: ApiWorkTask): TaskRowExtra {
+export function toTaskRow(task: ApiWorkTask): TaskRow {
   const statusMap: Record<string, TaskRow['status']> = {
     BACKLOG: 'BACKLOG',
     TODO: 'BACKLOG',
@@ -162,7 +156,7 @@ export function toTaskRow(task: ApiWorkTask): TaskRowExtra {
     CANCELLED: 'DONE',
     OVERDUE: 'OVERDUE',
   };
-  const status = statusMap[task.status] ?? (task.status as TaskRow['status']) ?? 'BACKLOG';
+  const status = statusMap[task.status] ?? 'BACKLOG';
   return {
     id: task.id,
     brandId: task.brand_id,
@@ -176,8 +170,7 @@ export function toTaskRow(task: ApiWorkTask): TaskRowExtra {
     type: 'COPY',
     status,
     assignee: task.assignee_name || (task.assignee_user_id ? 'Team member' : 'Unassigned'),
-    assigneeId: task.assignee_user_id,
-    department: task.brand_name || '—',
+    department: '—',
     priority: 'MEDIUM',
     dueAt: task.due_at ? task.due_at.slice(0, 10) : '',
     updatedAt: task.updated_at ?? new Date().toISOString(),
@@ -186,43 +179,46 @@ export function toTaskRow(task: ApiWorkTask): TaskRowExtra {
     checklist: [],
     comments: [],
     activity: [],
-    brandName: task.brand_name || undefined,
-    campaignName: task.campaign_name ?? null,
-    requestTitle: task.request_title ?? null,
-    createdByName: task.created_by_name ?? null,
   };
 }
 
-export function toDeliverableRow(d: ApiWorkDeliverable): DeliverableRow {
+export type DeliverableRowExtra = DeliverableRow & {
+  brandName?: string;
+  campaignName?: string | null;
+  requestTitle?: string | null;
+  taskTitle?: string | null;
+  createdByName?: string | null;
+};
+
+export function toDeliverableRow(d: ApiWorkDeliverable): DeliverableRowExtra {
   const review = mapReviewStatus(d.review_status || d.status);
-  const versionId = `v1-${d.id}`;
+  const creator = d.created_by_name || 'Team member';
+  const versionId = d.id;
   return {
     id: d.id,
     brandId: d.brand_id,
     campaignId: d.campaign_id ?? '',
+    requestId: d.request_id,
     taskId: d.task_id,
     contentId: d.content_id,
-    requestId: d.request_id,
     title: d.title,
-    type: 'STATIC',
+    channel: '—',
+    format: 'FILE',
     reviewStatus: review,
-    owner: d.created_by || '—',
-    reviewer: '—',
-    dueAt: d.updated_at ? d.updated_at.slice(0, 10) : '',
-    archived: d.status === 'ARCHIVED' || d.status === 'CANCELLED',
+    dueAt: '',
+    reviewer: creator,
     currentVersionId: versionId,
     approvedVersionId: review === 'APPROVED' ? versionId : null,
     versions: [
       {
         id: versionId,
-        label: 'v1',
-        assets: d.asset_url ? [d.asset_url] : [],
-        notes: d.description ?? { en: '', ar: '' },
-        createdAt: d.created_at ?? new Date().toISOString(),
-        immutable: false,
-        createdBy: d.created_by || '—',
+        label: 'Current',
+        createdAt: d.created_at || new Date().toISOString(),
+        createdBy: creator,
+        previewUrl: d.asset_url || '',
+        isApproved: review === 'APPROVED',
         reviewDecision: review === 'APPROVED' || review === 'REJECTED' ? review : null,
-        status: 'DRAFT',
+        status: d.status || 'DRAFT',
       },
     ],
     changeRequests: [],
@@ -230,11 +226,17 @@ export function toDeliverableRow(d: ApiWorkDeliverable): DeliverableRow {
     comments: [],
     activity: [],
     decisions: [],
+    brandName: d.brand_name || undefined,
+    campaignName: d.campaign_name ?? null,
+    requestTitle: d.request_title ?? null,
+    taskTitle: d.task_title ?? null,
+    createdByName: creator,
   };
 }
 
 function mapReviewStatus(s: string): DeliverableRow['reviewStatus'] {
   const map: Record<string, DeliverableRow['reviewStatus']> = {
+    NOT_STARTED: 'DRAFT',
     DRAFT: 'DRAFT',
     IN_PROGRESS: 'DRAFT',
     AWAITING_REVIEW: 'AWAITING_REVIEW',
@@ -384,6 +386,17 @@ export async function updateDeliverable(
     method: 'PATCH',
     body: JSON.stringify(patch),
   });
+  return res.data;
+}
+
+export async function reviewDeliverable(
+  deliverableId: string,
+  action: 'submit' | 'approve' | 'request_changes' | 'reject',
+): Promise<ApiWorkDeliverable> {
+  const res = await api<{ data: ApiWorkDeliverable }>(
+    `/api/v1/deliverables/${deliverableId}/review`,
+    { method: 'POST', body: JSON.stringify({ action }) },
+  );
   return res.data;
 }
 
