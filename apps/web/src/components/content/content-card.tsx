@@ -127,7 +127,7 @@ export function ContentFace({
   if (variant === 'calendar' || variant === 'saved') {
     return (
       <span
-        className={`oma-post-card oma-post-card--${variant}`}
+        className={`oma-post-card oma-post-card--${variant} oma-post-card--planable`}
         data-selected={selected ? 'true' : 'false'}
         data-publish={display}
         data-draft={isDraft ? 'true' : 'false'}
