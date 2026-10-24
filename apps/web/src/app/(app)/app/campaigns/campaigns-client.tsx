@@ -642,7 +642,7 @@ export default function CampaignsPage() {
                   setCreateOpen(true);
                 }}
               >
-                {isAr ? 'إنشاء حملة' : 'Create campaign'}
+                {isAr ? '+ حملة جديدة' : '+ New campaign'}
               </Button>
             </div>,
             actionsHost,
@@ -839,7 +839,7 @@ export default function CampaignsPage() {
             }}
           >
             <span aria-hidden>+</span>
-            {isAr ? 'إنشاء حملة' : 'Create campaign'}
+            {isAr ? '+ حملة جديدة' : '+ New campaign'}
           </button>
 </div>
       ) : null}
