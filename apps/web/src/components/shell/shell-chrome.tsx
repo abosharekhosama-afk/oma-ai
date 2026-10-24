@@ -4,7 +4,7 @@ import { Button } from '@oma/ui/controls';
 import Link from 'next/link';
 import { OmaLinkButton } from '../ui/oma-link-button';
 import { usePathname } from 'next/navigation';
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Drawer } from '../ui/drawer';
 import { ToastProvider } from '../ui/toast';
 import { useT } from '../../lib/use-locale';
@@ -46,9 +46,11 @@ function RailNav({ collapsed }: { collapsed: boolean }) {
   );
 }
 
-function ShellBreadcrumb({ onWorkspaceClick }: { onWorkspaceClick?: () => void }) {
+function ShellBreadcrumb() {
   const t = useT();
   const pathname = usePathname() || '/app';
+  const [wsMenuOpen, setWsMenuOpen] = useState(false);
+  const wsMenuRef = useRef<HTMLLIElement | null>(null);
   const isContent = pathname === '/app/content' || pathname.startsWith('/app/content/');
   const isDeliverables =
     pathname === '/app/deliverables' || pathname.startsWith('/app/deliverables/');
@@ -56,7 +58,18 @@ function ShellBreadcrumb({ onWorkspaceClick }: { onWorkspaceClick?: () => void }
   const isRequests = pathname === '/app/requests' || pathname.startsWith('/app/requests/');
   const isCampaigns = pathname === '/app/campaigns' || pathname.startsWith('/app/campaigns/');
 
-  /* Planable trail: Workspace / Section [/ View] */
+  useEffect(() => {
+    if (!wsMenuOpen) return;
+    function onDoc(e: MouseEvent) {
+      if (wsMenuRef.current && !wsMenuRef.current.contains(e.target as Node)) {
+        setWsMenuOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [wsMenuOpen]);
+
+  /* Planable trail: Workspace / Section [/ View] — no brand switcher */
   if (isContent || isDeliverables || isTasks || isRequests || isCampaigns) {
     const sectionHref = isContent
       ? '/app/content'
@@ -87,13 +100,14 @@ function ShellBreadcrumb({ onWorkspaceClick }: { onWorkspaceClick?: () => void }
     return (
       <nav aria-label={t('shell.breadcrumb')} className="oma-context-trail oma-context-trail--content">
         <ol className="oma-breadcrumb oma-breadcrumb--planable">
-          <li>
+          <li ref={wsMenuRef} className="oma-breadcrumb-ws-wrap">
             <button
               type="button"
               className="oma-breadcrumb-workspace"
               data-testid="shell-workspace-switch"
-              aria-haspopup="dialog"
-              onClick={() => onWorkspaceClick?.()}
+              aria-haspopup="menu"
+              aria-expanded={wsMenuOpen}
+              onClick={() => setWsMenuOpen((v) => !v)}
             >
               <span className="oma-breadcrumb-workspace-mark" aria-hidden />
               <span className="oma-breadcrumb-workspace-label">Osama</span>
@@ -101,6 +115,43 @@ function ShellBreadcrumb({ onWorkspaceClick }: { onWorkspaceClick?: () => void }
                 ▾
               </span>
             </button>
+            {wsMenuOpen ? (
+              <div className="oma-breadcrumb-ws-menu" role="menu" data-testid="shell-workspace-menu">
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="oma-breadcrumb-ws-menu__item"
+                  onClick={() => {
+                    setWsMenuOpen(false);
+                    window.location.assign('/app/settings');
+                  }}
+                >
+                  {t('shell.workspaceSettings') || 'Workspace settings'}
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="oma-breadcrumb-ws-menu__item"
+                  onClick={() => {
+                    setWsMenuOpen(false);
+                    window.location.assign('/app/brands/new');
+                  }}
+                >
+                  {t('shell.newWorkspace') || 'New workspace'}
+                </button>
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="oma-breadcrumb-ws-menu__item"
+                  onClick={() => {
+                    setWsMenuOpen(false);
+                    window.location.assign('/app/team');
+                  }}
+                >
+                  {t('nav.team') || 'Team & members'}
+                </button>
+              </div>
+            ) : null}
           </li>
           <li>
             <span className="oma-breadcrumb-sep" aria-hidden>
@@ -283,8 +334,8 @@ export function ShellChrome({ children }: { children: ReactNode }) {
             <div className="oma-top-start">
               {/* Mobile nav trigger removed from all headers per product request */}
               <div className="oma-top-context">
-                {hideBrandTrail ? null : <BrandContext />}
-                <ShellBreadcrumb onWorkspaceClick={() => setWsSettingsOpen(true)} />
+                {/* Brand switcher removed from header trail */}
+                <ShellBreadcrumb />
               </div>
             </div>
             {/* Planable Content: no center search — actions live on the right */}
