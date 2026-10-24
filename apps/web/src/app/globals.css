@@ -875,3 +875,287 @@ a.oma-link-button.ant-btn-default {
     --oma-surface
   ) !important; /* DOCUMENTED: AD6 section bg can inherit transparent */
 }
+
+/* ============================================================
+   OMA-FINAL-CASCADE-LOCK 2026-10-24
+   Lives in globals.css AFTER every @import — highest priority
+   ============================================================ */
+
+/* Content calendar: zero gap under shell header */
+.oma-main:has(.oma-content-plan),
+.oma-container:has(.oma-content-plan),
+main.oma-container:has(.oma-content-plan),
+.oma-shell-column > main.oma-container:has(.oma-content-plan) {
+  padding: 0 !important;
+  margin: 0 !important;
+  max-width: none !important;
+}
+.oma-content-plan,
+.oma-content-plan.oma-stack,
+.oma-content-plan.oma-content-plan--tight {
+  gap: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.oma-content-chrome {
+  display: none !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  overflow: hidden !important;
+}
+.oma-content-plan .oma-cal-with-saved {
+  margin: 0 !important;
+  border-radius: 0 !important;
+  border-top: 0 !important;
+}
+.oma-content-plan .oma-cal-main {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.oma-cal-toolbar,
+.oma-content-plan .oma-cal-toolbar,
+.oma-cal-main > .oma-cal-toolbar {
+  margin: 0 !important;
+  padding: 4px 12px !important;
+  min-height: 36px !important;
+  border-top: 0 !important;
+}
+
+/* Weekday labels: text-only height */
+.oma-cal-dow-row,
+.oma-cal-grid > .oma-cal-dow-row,
+[data-testid='demo-content-cal-grid'] > .oma-cal-dow-row {
+  min-height: 0 !important;
+  max-height: 16px !important;
+  height: auto !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+.oma-cal-dow,
+.oma-cal-dow-row .oma-cal-dow,
+[data-testid='demo-content-weekdays'] .oma-cal-dow {
+  min-height: 0 !important;
+  height: 14px !important;
+  max-height: 14px !important;
+  padding: 0 2px !important;
+  font-size: 10px !important;
+  line-height: 14px !important;
+}
+
+/* Campaign header: force filter + actions visible */
+#oma-workspace-top-actions,
+.oma-top-actions--workspace {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  min-width: 0 !important;
+}
+.oma-workspace-top-actions-inner {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  visibility: visible !important;
+}
+.oma-workspace-top-actions-inner .oma-header-icon-btn,
+.oma-workspace-top-actions-inner .oma-campaign-layout-switch {
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+.oma-header-icon-btn {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  color: #374151 !important;
+  cursor: pointer !important;
+}
+
+/* Campaign tabs in header trail */
+.oma-campaign-tabs-slot,
+.oma-breadcrumb-campaign-tabs-wrap {
+  display: inline-flex !important;
+  align-items: center !important;
+  visibility: visible !important;
+}
+.oma-campaign-status-tabs--header,
+.oma-campaign-tabs-slot .oma-campaign-status-tabs {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 2px !important;
+  margin: 0 !important;
+  margin-bottom: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-bottom: 0 !important;
+  background: transparent !important;
+}
+.oma-campaign-tab-btn,
+.oma-campaign-status-tabs--header button,
+.oma-campaign-tabs-slot .oma-campaign-status-tabs button {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  padding: 0 10px !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: #5c5f66 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+}
+.oma-campaign-tab-btn[data-active='true'],
+.oma-campaign-status-tabs--header button[data-active='true'],
+.oma-campaign-tabs-slot button[data-active='true'] {
+  background: #f3f4f6 !important;
+  color: #111827 !important;
+  font-weight: 600 !important;
+}
+.oma-campaign-tab-btn__ico {
+  font-size: 12px !important;
+  line-height: 1 !important;
+  opacity: 0.85 !important;
+}
+.oma-campaigns-page > .oma-page-header {
+  display: none !important;
+}
+
+/* Campaign cards — Planable capture parity */
+.oma-campaign-portfolio {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important;
+  gap: 12px !important;
+  padding: 12px 16px 24px !important;
+  background: #f7f8fa !important;
+  align-content: start !important;
+}
+.oma-campaign-card {
+  position: relative !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 140px !important;
+  background: #fff !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
+  overflow: hidden !important;
+}
+.oma-campaign-card-main {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  padding: 14px 14px 12px !important;
+  text-decoration: none !important;
+  color: inherit !important;
+  gap: 8px !important;
+}
+.oma-campaign-card-body {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+  flex: 1 1 auto !important;
+}
+.oma-campaign-card-body strong {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #232426 !important;
+  line-height: 20px !important;
+}
+.oma-campaign-card-dates {
+  font-size: 12px !important;
+  color: #8c8c8c !important;
+  line-height: 16px !important;
+}
+.oma-campaign-card-status {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  margin-top: auto !important;
+  font-size: 12px !important;
+  color: #5c5f66 !important;
+}
+.oma-campaign-status-dot[data-status='COMPLETED'],
+.oma-campaign-status-dot[data-status='completed'] {
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  background: #22c55e !important;
+}
+.oma-campaign-card-actions {
+  position: absolute !important;
+  top: 8px !important;
+  inset-inline-end: 8px !important;
+}
+.oma-campaign-create-card {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  min-height: 140px !important;
+  border: 1px dashed #d5d7db !important;
+  border-radius: 12px !important;
+  background: #f0f1f3 !important;
+  color: #5c5f66 !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+}
+.oma-campaign-create-card:hover {
+  background: #e8e9eb !important;
+  border-color: #c4c6ca !important;
+}
+.oma-campaign-create-card > span {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 50% !important;
+  border: 1px solid #c4c6ca !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+  color: #8c8c8c !important;
+}
+
+/* Breadcrumb must not clip campaign tabs / filter actions */
+.oma-top {
+  overflow: visible !important;
+}
+.oma-top-start,
+.oma-top-context,
+.oma-context-trail,
+.oma-breadcrumb,
+.oma-breadcrumb--planable {
+  overflow: visible !important;
+  flex-wrap: wrap !important;
+  max-width: none !important;
+}
+.oma-breadcrumb--planable {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.oma-breadcrumb-campaign-tabs-wrap {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
