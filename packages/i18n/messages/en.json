@@ -995,5 +995,10 @@
   "status.user.sampleData": "Sample data",
   "status.user.notConnected": "Not connected",
   "status.user.deferred": "Deferred",
-  "status.user.manualAvailable": "Manual workflow available"
+  "status.user.manualAvailable": "Manual workflow available",
+  "shell.workspace": "Workspace",
+  "shell.workspaceActions": "Workspace actions",
+  "shell.workspaceSettings": "Workspace settings",
+  "shell.newWorkspace": "New workspace",
+  "shell.allWorkspaces": "All workspaces"
 }

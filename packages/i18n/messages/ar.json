@@ -995,5 +995,10 @@
   "status.user.sampleData": "بيانات عيّنة",
   "status.user.notConnected": "غير متصل",
   "status.user.deferred": "مؤجّل",
-  "status.user.manualAvailable": "مسار يدوي متاح"
+  "status.user.manualAvailable": "مسار يدوي متاح",
+  "shell.workspace": "مساحة العمل",
+  "shell.workspaceActions": "إجراءات مساحة العمل",
+  "shell.workspaceSettings": "إعدادات مساحة العمل",
+  "shell.newWorkspace": "مساحة عمل جديدة",
+  "shell.allWorkspaces": "كل مساحات العمل"
 }
