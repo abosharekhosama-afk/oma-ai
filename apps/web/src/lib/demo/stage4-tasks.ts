@@ -1,4 +1,5 @@
 import type { DemoGraph, DemoTaskStatus } from '@oma/demo';
+import { addDays, todayKey } from '../calendar-today';
 
 export type TaskRow = DemoGraph['tasks'][number];
 
@@ -38,9 +39,7 @@ export const BOARD_COLUMNS: Array<{ id: DemoTaskStatus; statuses: DemoTaskStatus
   { id: 'DONE', statuses: ['DONE'] },
 ];
 
-const TODAY = '2026-09-11';
-
-export function taskIsOverdue(task: TaskRow, today = TODAY): boolean {
+export function taskIsOverdue(task: TaskRow, today = todayKey()): boolean {
   if (task.status === 'DONE') return false;
   return task.status === 'OVERDUE' || task.dueAt < today;
 }
@@ -66,8 +65,9 @@ export function filterTasks(
   rows: TaskRow[],
   filters: TaskFilters,
   locale: 'en' | 'ar',
-  today = TODAY,
+  today = todayKey(),
 ): TaskRow[] {
+  const soonHorizon = addDays(today, 7);
   const q = filters.q.trim().toLowerCase();
   let next = rows.filter((row) => {
     if (filters.status !== 'all') {
@@ -89,7 +89,10 @@ export function filterTasks(
     if (filters.requestId !== 'all' && row.requestId !== filters.requestId) return false;
     if (filters.contentType !== 'all' && row.type !== filters.contentType) return false;
     if (filters.due === 'overdue' && !taskIsOverdue(row, today)) return false;
-    if (filters.due === 'soon' && (taskIsOverdue(row, today) || row.dueAt > '2026-09-18')) {
+    if (
+      filters.due === 'soon' &&
+      (taskIsOverdue(row, today) || !row.dueAt || row.dueAt > soonHorizon)
+    ) {
       return false;
     }
     if (!q) return true;
@@ -145,11 +148,17 @@ export function canTransitionTaskStatus(from: DemoTaskStatus, to: DemoTaskStatus
   return TASK_STATUS_TRANSITIONS[from]?.includes(to) ?? false;
 }
 
-export function productionSummary(tasks: TaskRow[]) {
+export function productionSummary(tasks: TaskRow[], today = todayKey()) {
+  const soonHorizon = addDays(today, 7);
   return {
     wip: tasks.filter((t) => t.status === 'IN_PROGRESS' || t.status === 'OVERDUE').length,
     dueSoon: tasks.filter(
-      (t) => !taskIsOverdue(t) && t.dueAt <= '2026-09-18' && t.status !== 'DONE',
+      (t) =>
+        !taskIsOverdue(t, today) &&
+        Boolean(t.dueAt) &&
+        t.dueAt >= today &&
+        t.dueAt <= soonHorizon &&
+        t.status !== 'DONE',
     ).length,
     blocked: tasks.filter((t) => t.status === 'BLOCKED').length,
     awaitingReview: tasks.filter((t) => t.status === 'IN_REVIEW').length,

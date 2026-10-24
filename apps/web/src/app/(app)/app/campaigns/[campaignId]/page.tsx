@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import type { DemoGraph } from '@oma/demo';
-import { DemoDisclosure } from '../../../../../components/demo/demo-disclosure';
 import { TrackPill } from '../../../../../components/demo/track-pill';
 import { EmptyState, ErrorState, DeniedState } from '../../../../../components/ui/empty-state';
 import { PageHeader, Panel } from '../../../../../components/ui/page-header';
@@ -22,6 +21,13 @@ import {
   apiErrorMessage,
 } from '../../../../../lib/campaign-api';
 import { listContentForBrand, toContentRow } from '../../../../../lib/content-api';
+import {
+  listDeliverables,
+  listTasks,
+  toDeliverableRow,
+  toTaskRow,
+} from '../../../../../lib/ops-api';
+import { todayKey } from '../../../../../lib/calendar-today';
 import { Input, TextArea, SelectField, DateField } from '@oma/ui/controls';
 import { useToast } from '../../../../../components/ui/toast';
 import {
@@ -105,8 +111,29 @@ export default function CampaignDetailPage() {
         } catch {
           if (!cancelled) setContent([]);
         }
-        setTasks([]);
-        setDeliverables([]);
+        try {
+          const [taskRows, delRows] = await Promise.all([
+            listTasks(apiCamp.brand_id).catch(() => []),
+            listDeliverables(apiCamp.brand_id).catch(() => []),
+          ]);
+          if (!cancelled) {
+            setTasks(
+              taskRows
+                .filter((t) => t.campaign_id === campaignId)
+                .map((t) => toTaskRow(t)) as Task[],
+            );
+            setDeliverables(
+              delRows
+                .filter((d) => d.campaign_id === campaignId)
+                .map((d) => toDeliverableRow(d)) as Deliverable[],
+            );
+          }
+        } catch {
+          if (!cancelled) {
+            setTasks([]);
+            setDeliverables([]);
+          }
+        }
         setActivity([]);
         setError(null);
         setEditForm({
@@ -137,7 +164,9 @@ export default function CampaignDetailPage() {
       content.filter(
         (c) =>
           c.status === 'IN_REVIEW' ||
-          (c.scheduledAt && c.scheduledAt < '2026-09-10' && c.status !== 'PUBLISHED_DEMO'),
+          (c.scheduledAt &&
+            c.scheduledAt.slice(0, 10) < todayKey() &&
+            c.status !== 'PUBLISHED_DEMO'),
       ),
     [content],
   );
@@ -218,7 +247,6 @@ export default function CampaignDetailPage() {
         />
       </div>
 
-      <DemoDisclosure />
 
       {loading ? <p className="oma-muted">{t('demo.loading')}</p> : null}
       {unavailable ? <DeniedState title={t('demo.unavailable')} /> : null}

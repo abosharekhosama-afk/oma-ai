@@ -7,13 +7,13 @@ import { createPortal } from 'react-dom';
 import type { DemoGraph } from '@oma/demo';
 import { Button, DatePicker, Input, OmaSelect, SelectField, TextArea } from '@oma/ui/controls';
 import dayjs from 'dayjs';
-import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
 import { Dialog } from '../../../../components/ui/dialog';
 import { EmptyState } from '../../../../components/ui/empty-state';
 import { Panel } from '../../../../components/ui/page-header';
 import { StatusChip } from '../../../../components/ui/status-chip';
 import { useToast } from '../../../../components/ui/toast';
 import { pickCopy } from '../../../../lib/demo/use-demo-api';
+import { daysFromToday } from '../../../../lib/calendar-today';
 import {
   loadRequestsWorkspace,
   createRequest,
@@ -98,7 +98,7 @@ export default function RequestsPage() {
     campaignId: '',
     contentId: '',
     priority: 'MEDIUM',
-    dueAt: '2026-09-20',
+    dueAt: daysFromToday(14),
     requester: 'Client — Horizon Marketing',
     assignee: '',
     channels: 'Instagram',
@@ -292,8 +292,6 @@ export default function RequestsPage() {
             headerSlot,
           )
         : null}
-
-      <DemoDisclosure />
 
       {loading ? (
         <p className="oma-muted oma-req-main" style={{ padding: '16px 20px' }} data-testid="demo-requests-loading">

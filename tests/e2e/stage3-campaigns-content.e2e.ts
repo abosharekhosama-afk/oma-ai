@@ -242,7 +242,7 @@ test.describe('Stage 3 Campaigns + Content visual rebuild', () => {
     test.skip(testInfo.project.name !== 'en-desktop', 'once');
     await installOwnerSession(page, request);
     await page.goto('/app/campaigns');
-    await expect(page.getByTestId('demo-disclosure').first()).toBeVisible();
+    await expect(page.getByTestId('demo-campaigns')).toBeVisible();
     await page.goto('/app/campaigns/demo-campaign-paid');
     await expect(page.getByTestId('demo-paid-planning-only')).toBeVisible();
     await expect(page.getByText(/Planning only|Not Connected/i).first()).toBeVisible();

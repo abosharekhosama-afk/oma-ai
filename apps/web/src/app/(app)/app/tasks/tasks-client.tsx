@@ -16,13 +16,13 @@ import {
   SurfaceButton,
 } from '@oma/ui/controls';
 import dayjs from 'dayjs';
-import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
 import { Dialog } from '../../../../components/ui/dialog';
 import { Drawer } from '../../../../components/ui/drawer';
 import { EmptyState } from '../../../../components/ui/empty-state';
 import { PageHeader } from '../../../../components/ui/page-header';
 import { StatusChip } from '../../../../components/ui/status-chip';
 import { useToast } from '../../../../components/ui/toast';
+import { daysFromToday } from '../../../../lib/calendar-today';
 import { pickCopy } from '../../../../lib/demo/use-demo-api';
 import {
   loadTasksWorkspace,
@@ -94,7 +94,7 @@ export default function TasksPage() {
     brandId: '',
     assignee: '',
     priority: 'MEDIUM',
-    dueAt: '2026-09-20',
+    dueAt: daysFromToday(14),
     type: 'DESIGN',
   });
 
@@ -416,7 +416,6 @@ export default function TasksPage() {
       data-prefs={prefsLoaded ? '1' : '0'}
     >
       <PageHeader title={t('demo.tasks.title')} description={t('demo.tasks.subtitle')} />
-      <DemoDisclosure />
 
       {headerSlot && headerSlot.isConnected
         ? createPortal(

@@ -11,7 +11,6 @@ import {
   useState,
   type MouseEvent as ReactMouseEvent,
 } from 'react';
-import { DemoDisclosure } from '../../../../../components/demo/demo-disclosure';
 import { Dialog } from '../../../../../components/ui/dialog';
 import { PageHeader, Panel } from '../../../../../components/ui/page-header';
 import { StatusChip } from '../../../../../components/ui/status-chip';
@@ -380,7 +379,7 @@ export default function DeliverableDetailClient() {
         ) : null}
       </header>
 
-      <DemoDisclosure message={t('demo.reviewHonesty')} />
+      <p className="oma-muted oma-honesty-inline">{t('demo.reviewHonesty')}</p>
       <p className="oma-honesty-inline oma-deliv-detail__honesty">{t('demo.deliverable.storageHonesty')}</p>
 
       {loading ? <p className="oma-muted oma-deliv-detail__pad">{t('demo.loading')}</p> : null}

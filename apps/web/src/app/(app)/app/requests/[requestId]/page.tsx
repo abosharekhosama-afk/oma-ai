@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { DemoGraph, DemoLocaleCopy } from '@oma/demo';
-import { DemoDisclosure } from '../../../../../components/demo/demo-disclosure';
 import { Dialog } from '../../../../../components/ui/dialog';
 import { StatusChip } from '../../../../../components/ui/status-chip';
 import { useToast } from '../../../../../components/ui/toast';
@@ -372,7 +371,6 @@ export default function RequestDetailPage() {
         ) : null}
       </header>
 
-      <DemoDisclosure />
 
       {loading ? <OmaTopLoader /> : null}
       {unavailable ? (

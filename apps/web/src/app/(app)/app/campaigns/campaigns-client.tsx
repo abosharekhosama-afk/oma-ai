@@ -7,7 +7,6 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FilterOutlined, AppstoreOutlined, UnorderedListOutlined, SearchOutlined, DownOutlined, UpOutlined } from '@ant-design/icons';
 import type { DemoGraph } from '@oma/demo';
-import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
 import { TrackPill } from '../../../../components/demo/track-pill';
 import { EmptyState, ErrorState, DeniedState } from '../../../../components/ui/empty-state';
 import { PageHeader } from '../../../../components/ui/page-header';
@@ -27,6 +26,7 @@ import {
   apiErrorMessage,
   isForbidden as isApiForbidden,
 } from '../../../../lib/campaign-api';
+import { listAllContent, toContentRow } from '../../../../lib/content-api';
 import {
   EMPTY_CAMPAIGN_FILTERS,
   activeFilterCount,
@@ -109,7 +109,10 @@ export default function CampaignsPage() {
     try {
       const brandRows = await listBrandsProduction();
       const brandIds = brandRows.map((b) => b.id);
-      const campaigns = brandIds.length ? await listAllCampaigns(brandIds) : [];
+      const [campaigns, contentItems] = await Promise.all([
+        brandIds.length ? listAllCampaigns(brandIds) : Promise.resolve([]),
+        brandIds.length ? listAllContent(brandIds).catch(() => []) : Promise.resolve([]),
+      ]);
       setBrands(
         brandRows.map((b) => ({
           id: b.id,
@@ -120,7 +123,7 @@ export default function CampaignsPage() {
         })) as Brand[],
       );
       setRows(campaigns.map((c) => toCampaignRow(c)));
-      setContent([]);
+      setContent(contentItems.map((c) => toContentRow(c)));
       setStrategies([]);
       setForm((f) => ({
         ...f,
@@ -679,8 +682,6 @@ export default function CampaignsPage() {
           </div>
         }
       />
-      <DemoDisclosure />
-
       {filterCount > 0 ? (
         <div className="oma-filter-chips" data-testid="demo-campaign-filter-chips">
           {chips.map((chip) => (

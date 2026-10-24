@@ -1,4 +1,5 @@
 import type { DemoGraph, DemoLocaleCopy } from '@oma/demo';
+import { addDays, todayKey } from '../calendar-today';
 
 export type RequestRow = DemoGraph['requests'][number];
 export type BriefRow = DemoGraph['briefs'][number];
@@ -31,9 +32,7 @@ export const EMPTY_REQUEST_FILTERS: RequestFilters = {
   group: 'all',
 };
 
-const TODAY = '2026-09-11';
-
-export function requestIsOverdue(row: RequestRow, today = TODAY): boolean {
+export function requestIsOverdue(row: RequestRow, today = todayKey()): boolean {
   if (row.status === 'DONE' || row.status === 'CLOSED') return false;
   return row.dueAt < today;
 }
@@ -113,8 +112,9 @@ export function filterRequests(
   rows: RequestRow[],
   filters: RequestFilters,
   locale: 'en' | 'ar',
-  today = TODAY,
+  today = todayKey(),
 ): RequestRow[] {
+  const soonHorizon = addDays(today, 7);
   const q = filters.q.trim().toLowerCase();
   return rows.filter((row) => {
     if (!matchesRequestGroup(row, filters.group)) return false;
@@ -133,10 +133,13 @@ export function filterRequests(
       return false;
     }
     if (filters.due === 'overdue' && !requestIsOverdue(row, today)) return false;
-    if (filters.due === 'soon' && (requestIsOverdue(row, today) || row.dueAt > '2026-09-18')) {
+    if (
+      filters.due === 'soon' &&
+      (requestIsOverdue(row, today) || !row.dueAt || row.dueAt > soonHorizon)
+    ) {
       return false;
     }
-    if (filters.due === 'later' && row.dueAt <= '2026-09-18') return false;
+    if (filters.due === 'later' && row.dueAt && row.dueAt <= soonHorizon) return false;
     if (!q) return true;
     const hay = [
       row.title[locale],

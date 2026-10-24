@@ -25,6 +25,11 @@ export function addDays(key: string, days: number): string {
   return next.toISOString().slice(0, 10);
 }
 
+/** Calendar day key N days after today in workspace TZ. */
+export function daysFromToday(days: number, timeZone = WORKSPACE_TZ): string {
+  return addDays(todayKey(timeZone), days);
+}
+
 export function formatCommentTime(iso: string, locale: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return iso.slice(0, 16).replace('T', ' ');

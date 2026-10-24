@@ -1,4 +1,5 @@
 import type { DemoGraph, PublishDisplay } from '@oma/demo';
+import { todayKey } from '../calendar-today';
 
 export type ScheduleRow = DemoGraph['scheduledPosts'][number];
 
@@ -25,8 +26,6 @@ export const EMPTY_SCHEDULE_FILTERS: ScheduleFilters = {
   readiness: 'all',
   track: 'all',
 };
-
-const ANCHOR = '2026-09-11';
 
 export type ScheduleBucket =
   'saved' | 'planned' | 'approval_blocked' | 'ready' | 'scheduled' | 'publishing_not_connected';
@@ -122,7 +121,7 @@ export function groupScheduleByDay(rows: ScheduleRow[]): Map<string, ScheduleRow
 }
 
 /** Build 7-day window starting Monday of the week containing `anchor`. */
-export function weekDays(anchor = ANCHOR): string[] {
+export function weekDays(anchor = todayKey()): string[] {
   const d = new Date(`${anchor}T12:00:00+03:00`);
   const day = d.getUTCDay(); // 0 Sun
   const mondayOffset = day === 0 ? -6 : 1 - day;

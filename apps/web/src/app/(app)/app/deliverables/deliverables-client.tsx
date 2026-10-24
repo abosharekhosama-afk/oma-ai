@@ -7,7 +7,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { OmaTopLoader } from '../../../../components/ui/oma-top-loader';
 import { createPortal } from 'react-dom';
 import type { DemoGraph } from '@oma/demo';
-import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
 import { EmptyState } from '../../../../components/ui/empty-state';
 import { PageHeader } from '../../../../components/ui/page-header';
 import { StatusChip } from '../../../../components/ui/status-chip';
@@ -176,7 +175,6 @@ export default function DeliverablesPage() {
   return (
     <div className="oma-deliv-page" data-testid="demo-deliverables" data-prefs={prefsLoaded ? '1' : '0'}>
       <PageHeader title={t('demo.deliverables.title')} description={t('demo.deliverables.subtitle')} />
-      <DemoDisclosure />
 
       {headerSlot && headerSlot.isConnected
         ? createPortal(
