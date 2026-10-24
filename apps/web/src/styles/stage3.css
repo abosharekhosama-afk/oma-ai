@@ -7211,3 +7211,260 @@ label.oma-compose-media {
   width: 100% !important;
   min-height: 32px !important;
 }
+
+/* ============================================================
+   OMA-UI-PATCH v2026-10-24-user-request — FINAL (wins all prior)
+   - Filter + view switcher stay in shell header (campaigns/content)
+   - Calendar action toolbar flush under header (no extra gap)
+   - Weekday row height = text only
+   - Feed + Grid Planable parity lock
+   ============================================================ */
+
+/* 1) Kill any residual gap above the calendar stage */
+.oma-content-plan.oma-stack,
+.oma-content-plan.oma-content-plan--tight,
+.oma-content-plan {
+  gap: 0 !important;
+  row-gap: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+.oma-content-plan > .oma-filter-chips {
+  margin: 0 !important;
+  padding: 4px 12px !important;
+}
+.oma-content-plan .oma-cal-with-saved {
+  margin: 0 !important;
+  border-radius: 0 !important;
+}
+.oma-content-plan .oma-cal-main {
+  margin: 0 !important;
+  padding: 0 !important;
+  border-inline-end: 1px solid #e2e3e5 !important;
+}
+
+/* 2) Action toolbar (Month/Week, nav, Request approvals) — flush under header */
+.oma-cal-toolbar,
+.oma-content-plan .oma-cal-toolbar,
+.oma-cal-main > .oma-cal-toolbar {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  min-height: 40px !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 6px 12px !important;
+  border-bottom: 1px solid #eef0f2 !important;
+  background: #fff !important;
+  box-sizing: border-box !important;
+}
+
+/* 3) Weekday row — text height only (no tall chrome) */
+.oma-cal-dow-row {
+  display: grid !important;
+  grid-column: 1 / -1 !important;
+  grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #fafbfc !important;
+  border-bottom: 1px solid #e8e9eb !important;
+}
+.oma-cal-grid > .oma-cal-dow,
+.oma-cal-dow-row > .oma-cal-dow,
+.oma-cal-dow {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 2px 4px !important;
+  margin: 0 !important;
+  font-size: 11px !important;
+  line-height: 14px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: uppercase !important;
+  color: #6b7280 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-bottom: 0 !important;
+  text-align: center !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 5 !important;
+}
+
+/* 4) Campaigns: keep filter + layout switch in header slot; densify tabs */
+.oma-workspace-top-actions-inner {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+.oma-campaign-layout-switch {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0 !important;
+}
+.oma-campaigns-page > .oma-page-header {
+  margin: 0 !important;
+  padding: 0 8px !important;
+  min-height: 44px !important;
+  border-bottom: 1px solid #e6e7e9 !important;
+}
+.oma-campaign-status-tabs {
+  min-height: 44px !important;
+}
+
+/* 5) Feed — Planable capture parity */
+/* feed list alias */
+[data-testid='demo-content-feed'] {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+  padding: 16px 20px 32px !important;
+  background: #f5f6f7 !important;
+  max-width: 920px !important;
+  margin: 0 auto !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+.oma-feed-card {
+  display: grid !important;
+  grid-template-columns: 40px minmax(0, 1fr) minmax(180px, 240px) !important;
+  gap: 12px !important;
+  align-items: start !important;
+}
+.oma-feed-card__body {
+  background: #fff !important;
+  border: 1px solid #e8e9eb !important;
+  border-radius: 12px !important;
+  padding: 12px 14px 14px !important;
+  min-height: 88px !important;
+}
+.oma-feed-card__title {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  color: #232426 !important;
+}
+.oma-feed-card__comment {
+  min-height: 40px !important;
+  border-radius: 8px !important;
+  border: 1px solid #e8e9eb !important;
+  background: #fff !important;
+  color: #8c8c8c !important;
+}
+
+/* 6) Grid — Planable capture parity */
+.oma-plan-grid,
+[data-testid='demo-content-grid'] {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+  padding: 16px 20px 32px !important;
+  background: #f5f6f7 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+.oma-plan-grid__tile {
+  position: relative !important;
+}
+.oma-plan-grid__card {
+  display: block !important;
+  width: 100% !important;
+  aspect-ratio: 1 / 1.15 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  overflow: hidden !important;
+  background: linear-gradient(180deg, #9ca3af 0%, #e5e7eb 55%, #f3f4f6 100%) !important;
+  cursor: pointer !important;
+}
+.oma-plan-grid__media {
+  position: relative !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 180px !important;
+}
+.oma-plan-grid__media img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+.oma-plan-grid__ph {
+  position: absolute !important;
+  inset: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 28px !important;
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+.oma-plan-grid__shade {
+  position: absolute !important;
+  inset: 0 !important;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.35) 0%,
+    transparent 35%,
+    transparent 65%,
+    rgba(0, 0, 0, 0.45) 100%
+  ) !important;
+  pointer-events: none !important;
+}
+.oma-plan-grid__overlay {
+  position: absolute !important;
+  inset: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+  padding: 10px 12px !important;
+  color: #fff !important;
+  text-align: start !important;
+  pointer-events: none !important;
+}
+.oma-plan-grid__title {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  line-height: 18px !important;
+  color: #fff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35) !important;
+}
+.oma-plan-grid__when,
+.oma-plan-grid__channel {
+  font-size: 11px !important;
+  opacity: 0.92 !important;
+}
+
+@media (max-width: 900px) {
+  .oma-plan-grid,
+  [data-testid='demo-content-grid'] {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+  .oma-feed-card {
+    grid-template-columns: 36px minmax(0, 1fr) !important;
+  }
+  .oma-feed-card__comment {
+    grid-column: 2 / -1 !important;
+  }
+}
+
+.oma-content-feed[data-testid='demo-content-feed'],
+.oma-content-feed {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 16px !important;
+  padding: 16px 20px 32px !important;
+  background: #f5f6f7 !important;
+  max-width: 920px !important;
+  margin: 0 auto !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
