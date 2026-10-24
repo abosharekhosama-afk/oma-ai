@@ -109,6 +109,18 @@ function ShellBreadcrumb({ onOpenSettings }: { onOpenSettings: () => void }) {
               />
             </li>
           ) : null}
+          {isCampaigns ? (
+            <li className="oma-breadcrumb-campaign-tabs-wrap">
+              <span className="oma-breadcrumb-sep" aria-hidden>
+                /
+              </span>
+              <span
+                className="oma-campaign-tabs-slot"
+                id="oma-campaign-tabs-slot"
+                data-testid="shell-campaign-tabs-slot"
+              />
+            </li>
+          ) : null}
         </ol>
       </nav>
     );
@@ -229,19 +241,34 @@ export function ShellChrome({ children }: { children: ReactNode }) {
         >
           <div className="oma-rail-header">
             <div className="oma-rail-brand">
-              <Link href="/app" className="oma-rail-logo-link" aria-label={t('app.name')}>
-                <PlxLogo sub={collapsed ? null : 'AI'} compact={collapsed} />
-              </Link>
+              {collapsed ? (
+                <button
+                  type="button"
+                  className="oma-rail-logo-link oma-rail-logo-link--expand"
+                  aria-label={t('shell.expandNav')}
+                  onClick={toggleCollapsed}
+                  data-testid="oma-rail-logo-expand"
+                >
+                  <PlxLogo sub={null} compact />
+                </button>
+              ) : (
+                <Link href="/app" className="oma-rail-logo-link" aria-label={t('app.name')}>
+                  <PlxLogo sub="AI" compact={false} />
+                </Link>
+              )}
             </div>
-            <Button
-              type="text"
-              aria-label={collapsed ? t('shell.expandNav') : t('shell.collapseNav')}
-              aria-pressed={collapsed}
-              onClick={toggleCollapsed}
-              className="oma-rail-collapse"
-            >
-              <ShellIcon name="collapse" />
-            </Button>
+            {!collapsed ? (
+              <Button
+                type="text"
+                aria-label={t('shell.collapseNav')}
+                aria-pressed={false}
+                onClick={toggleCollapsed}
+                className="oma-rail-collapse"
+                data-testid="oma-rail-collapse"
+              >
+                <ShellIcon name="collapse" />
+              </Button>
+            ) : null}
           </div>
           <p className="oma-rail-endorsement">{t('app.endorsement')}</p>
           <div className="oma-rail-workspace">
