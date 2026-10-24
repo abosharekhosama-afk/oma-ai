@@ -149,21 +149,22 @@ export default function CampaignsPage() {
   }, [isAr]);
 
   useEffect(() => {
-    setActionsHost(document.getElementById('oma-workspace-top-actions'));
-    const resolveTabs = () => {
-      const el = document.getElementById('oma-campaign-tabs-slot');
-      if (el) setTabsHost(el);
-      return Boolean(el);
+    const resolveHosts = () => {
+      const actions = document.getElementById('oma-workspace-top-actions');
+      const tabs = document.getElementById('oma-campaign-tabs-slot');
+      if (actions) setActionsHost(actions);
+      if (tabs) setTabsHost(tabs);
+      return Boolean(actions) && Boolean(tabs);
     };
-    if (resolveTabs()) return;
+    if (resolveHosts()) return;
     const obs = new MutationObserver(() => {
-      if (resolveTabs()) obs.disconnect();
+      if (resolveHosts()) obs.disconnect();
     });
     obs.observe(document.body, { childList: true, subtree: true });
     const t = window.setTimeout(() => {
-      resolveTabs();
+      resolveHosts();
       obs.disconnect();
-    }, 3000);
+    }, 5000);
     return () => {
       obs.disconnect();
       window.clearTimeout(t);
@@ -676,23 +677,25 @@ export default function CampaignsPage() {
             >
               {(
                 [
-                  ['all', isAr ? 'الكل' : 'All'],
-                  ['active', isAr ? 'نشطة' : 'Active'],
-                  ['planning', isAr ? 'قيد التخطيط' : 'Planning'],
-                  ['completed', isAr ? 'مكتملة' : 'Completed'],
+                  ['all', isAr ? 'الكل' : 'All', null],
+                  ['active', isAr ? 'نشطة' : 'Active', '↻'],
+                  ['planning', isAr ? 'قيد التخطيط' : 'Planning', '◷'],
+                  ['completed', isAr ? 'مكتملة' : 'Completed', '✓'],
                 ] as const
-              ).map(([key, label]) => (
-                <Button
+              ).map(([key, label, icon]) => (
+                <button
                   key={key}
-                  type="text"
+                  type="button"
                   role="tab"
+                  className="oma-campaign-tab-btn"
                   aria-selected={campaignTab === key}
                   data-active={campaignTab === key ? 'true' : 'false'}
                   data-testid={`demo-campaign-tab-${key}`}
                   onClick={() => setCampaignTab(key)}
                 >
-                  {label}
-                </Button>
+                  {icon ? <span className="oma-campaign-tab-btn__ico" aria-hidden>{icon}</span> : null}
+                  <span>{label}</span>
+                </button>
               ))}
             </div>,
             tabsHost,
@@ -855,7 +858,7 @@ export default function CampaignsPage() {
             }}
           >
             <span aria-hidden>+</span>
-            {isAr ? '+ حملة جديدة' : '+ New campaign'}
+            {isAr ? 'إنشاء حملة' : 'Create campaign'}
           </button>
 </div>
       ) : null}
