@@ -7125,3 +7125,53 @@ label.oma-compose-media {
   margin-top: 0 !important;
   padding-top: 0 !important;
 }
+
+/* OMA-UI-PATCH v2026-10-24c — calendar weekdays + remove header gap */
+.oma-content-plan {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+.oma-content-chrome {
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 2px 12px !important;
+  margin: 0 !important;
+  border-bottom: 1px solid #eef0f2 !important;
+}
+.oma-cal-toolbar,
+.oma-content-plan .oma-cal-toolbar {
+  min-height: 36px !important;
+  padding: 4px 12px !important;
+  margin: 0 !important;
+  gap: 8px !important;
+}
+.oma-content-plan .oma-cal-with-saved {
+  margin-top: 0 !important;
+}
+.oma-cal-main {
+  padding-top: 4px !important;
+}
+/* Weekday row — always visible Planable style */
+.oma-cal-dow-row {
+  display: contents !important;
+}
+.oma-cal-grid > .oma-cal-dow,
+.oma-cal-dow-row > .oma-cal-dow,
+.oma-cal-dow {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  min-height: 32px !important;
+  padding: 8px 6px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: uppercase !important;
+  color: #6b7280 !important;
+  background: #fafbfc !important;
+  border-bottom: 1px solid #e8e9eb !important;
+  text-align: center !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 5 !important;
+}

@@ -2263,3 +2263,7 @@ button.oma-breadcrumb-workspace:hover {
   font-weight: 500 !important;
   color: #111 !important;
 }
+/* OMA-UI-PATCH v2026-10-24c-ws */
+button.oma-breadcrumb-workspace {
+  cursor: pointer !important;
+}

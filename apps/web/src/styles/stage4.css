@@ -2798,39 +2798,62 @@ main.oma-container:has(.oma-req-page) {
   background: #eff6ff;
 }
 
-/* Requests tabs — match Team & clients (oma-ws-tabs) */
+/* Requests / Deliverables tabs — exact Team underline style */
 .oma-req-page .oma-ws-tabs,
-.oma-req-page .oma-req-tabs.oma-ws-tabs {
+.oma-req-page .oma-req-tabs.oma-ws-tabs,
+.oma-req-header .oma-ws-tabs,
+.oma-deliv-topbar .oma-ws-tabs,
+.oma-deliv-topbar .oma-req-tabs {
   display: flex !important;
+  align-items: stretch !important;
   gap: 4px !important;
-  flex-wrap: wrap !important;
-  margin: 8px 0 0 !important;
+  flex-wrap: nowrap !important;
+  margin: 0 0 16px !important;
   padding: 0 !important;
   border: 0 !important;
+  border-bottom: 1px solid #e5e7eb !important;
   background: transparent !important;
 }
-.oma-req-page .oma-ws-tab {
+.oma-req-page .oma-ws-tab,
+.oma-req-page .oma-req-tab,
+.oma-req-header .oma-ws-tab,
+.oma-req-header .oma-req-tab,
+.oma-deliv-topbar .oma-ws-tab,
+.oma-deliv-topbar .oma-req-tab {
   appearance: none !important;
   border: 0 !important;
+  border-radius: 0 !important;
   background: transparent !important;
   color: #6b7280 !important;
-  font-size: 13px !important;
-  font-weight: 500 !important;
-  padding: 8px 12px !important;
-  border-radius: 8px !important;
+  font-size: 13.5px !important;
+  font-weight: 400 !important;
+  padding: 10px 14px !important;
   cursor: pointer !important;
-  line-height: 1.2 !important;
+  line-height: 1.4 !important;
+  border-bottom: 2px solid transparent !important;
+  margin-bottom: -1px !important;
+  box-shadow: none !important;
 }
-.oma-req-page .oma-ws-tab:hover {
-  background: #f3f4f6 !important;
+.oma-req-page .oma-ws-tab:hover,
+.oma-req-page .oma-req-tab:hover,
+.oma-deliv-topbar .oma-ws-tab:hover {
+  background: transparent !important;
   color: #111827 !important;
 }
 .oma-req-page .oma-ws-tab.is-active,
 .oma-req-page .oma-ws-tab[data-active='true'],
-.oma-req-page .oma-ws-tab[aria-selected='true'] {
-  background: #e8f1ff !important;
-  color: #1677ff !important;
-  font-weight: 600 !important;
+.oma-req-page .oma-ws-tab[aria-selected='true'],
+.oma-req-page .oma-req-tab.is-active,
+.oma-req-page .oma-req-tab[data-active='true'],
+.oma-req-page .oma-req-tab[aria-selected='true'],
+.oma-deliv-topbar .oma-ws-tab.is-active,
+.oma-deliv-topbar .oma-ws-tab[data-active='true'],
+.oma-deliv-topbar .oma-req-tab.is-active,
+.oma-deliv-topbar .oma-req-tab[data-active='true'] {
+  background: transparent !important;
+  color: #111827 !important;
+  font-weight: 500 !important;
+  border-bottom-color: #2563eb !important;
 }
 .oma-req-title-cell .oma-muted {
   word-break: normal !important;
@@ -5938,12 +5961,14 @@ main.oma-container:has(.oma-req-page) {
   border: 0 !important;
   background: transparent !important;
   color: #6b7280 !important;
-  font-size: 13px !important;
-  font-weight: 500 !important;
-  padding: 8px 12px !important;
-  border-radius: 8px !important;
+  font-size: 13.5px !important;
+  font-weight: 400 !important;
+  padding: 10px 14px !important;
+  border-radius: 0 !important;
+  border-bottom: 2px solid transparent !important;
+  margin-bottom: -1px !important;
   cursor: pointer !important;
-  line-height: 1.2 !important;
+  line-height: 1.4 !important;
 }
 .oma-req-page .oma-ws-tab:hover {
   background: #f3f4f6 !important;
@@ -5952,9 +5977,11 @@ main.oma-container:has(.oma-req-page) {
 .oma-req-page .oma-ws-tab.is-active,
 .oma-req-page .oma-ws-tab[data-active='true'],
 .oma-req-page .oma-ws-tab[aria-selected='true'] {
-  background: #e8f1ff !important;
-  color: #1677ff !important;
-  font-weight: 600 !important;
+  background: transparent !important;
+  color: #111827 !important;
+  font-weight: 500 !important;
+  border-bottom: 2px solid #2563eb !important;
+  border-radius: 0 !important;
 }
 .oma-req-title-cell .oma-muted {
   word-break: normal !important;
@@ -6145,4 +6172,19 @@ button.oma-breadcrumb-workspace:hover {
   color: #8c8c8c !important;
   font-size: 10px !important;
   margin-inline-start: 3px !important;
+}
+
+/* OMA-UI-PATCH v2026-10-24c — force Team tabs on req/deliv (no pill) */
+.oma-req-page .oma-ws-tab.is-active,
+.oma-req-page .oma-req-tab.is-active,
+.oma-req-page .oma-ws-tab[aria-selected='true'],
+.oma-req-page .oma-req-tab[aria-selected='true'],
+.oma-deliv-topbar .oma-ws-tab.is-active,
+.oma-deliv-topbar .oma-req-tab.is-active {
+  background: transparent !important;
+  color: #111827 !important;
+  font-weight: 500 !important;
+  border-radius: 0 !important;
+  border-bottom: 2px solid #2563eb !important;
+  box-shadow: none !important;
 }
