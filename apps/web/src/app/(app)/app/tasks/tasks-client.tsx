@@ -131,20 +131,19 @@ export default function TasksPage() {
 
   useEffect(() => {
     let cancelled = false;
-    void (async () => {
-      try {
-        /* view pref: local only */
-        if (prefs.defaultTaskView !== 'board' && prefs.defaultTaskView !== 'list') return;
+    try {
+      const raw = window.localStorage.getItem('oma.tasks.defaultView');
+      if (raw === 'board' || raw === 'list') {
         const urlView = new URLSearchParams(window.location.search).get('view');
         if (urlView !== 'board' && urlView !== 'list') {
-          setView(prefs.defaultTaskView);
+          setView(raw);
         }
-      } catch {
-        /* keep board default */
-      } finally {
-        if (!cancelled) setPrefsLoaded(true);
       }
-    })();
+    } catch {
+      /* keep board default */
+    } finally {
+      if (!cancelled) setPrefsLoaded(true);
+    }
     return () => {
       cancelled = true;
     };

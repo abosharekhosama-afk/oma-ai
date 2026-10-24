@@ -131,6 +131,18 @@ export function WorkspacePathMenu({ onOpenSettings }: { onOpenSettings: () => vo
             className="oma-ws-menu-item"
             onClick={() => {
               setOpen(false);
+              window.location.assign('/app/team');
+            }}
+          >
+            <ShellIcon name="team" size={14} />
+            <span>{t('nav.team') || 'Team & members'}</span>
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            className="oma-ws-menu-item"
+            onClick={() => {
+              setOpen(false);
               window.location.assign('/app/select-company');
             }}
           >

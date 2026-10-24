@@ -191,7 +191,7 @@ export default function CompanyMembersPage() {
       ) : null}
 
       {!loading && !error ? (
-        <div className="oma-planable-card">
+        <div className="oma-planable-card oma-member-surface">
           <table className="oma-ws-table">
             <thead>
               <tr>

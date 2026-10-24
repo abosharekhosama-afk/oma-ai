@@ -124,6 +124,9 @@ export function WorkspaceRow({ collapsed = false, onOpenSettings }: WorkspaceRow
       {expanded ? (
         <div className="oma-ws-body">
           <div className="oma-ws-name-row">
+            <span className="oma-ws-avatar oma-ws-avatar--sm" aria-hidden>
+              {(name[0] || 'W').toUpperCase()}
+            </span>
             <button
               type="button"
               className="oma-ws-name"
@@ -179,7 +182,7 @@ export function WorkspaceRow({ collapsed = false, onOpenSettings }: WorkspaceRow
                         window.location.assign(`/app/brands/${b.id}`);
                       }}
                     >
-                      <ShellIcon name="grid" size={14} />
+                      <ShellIcon name="brand" size={14} />
                       <span>{b.name}</span>
                     </button>
                   ))}
@@ -205,7 +208,7 @@ export function WorkspaceRow({ collapsed = false, onOpenSettings }: WorkspaceRow
                       window.location.assign('/app/select-company');
                     }}
                   >
-                    <ShellIcon name="grid" size={14} />
+                    <ShellIcon name="company" size={14} />
                     <span>{t('shell.allWorkspaces') || 'All workspaces'}</span>
                   </button>
                 </div>

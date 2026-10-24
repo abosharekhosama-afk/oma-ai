@@ -6357,3 +6357,39 @@ button.oma-breadcrumb-workspace:hover {
 .oma-kb-priority--high { background: #fff7ed !important; color: #c2410c !important; }
 .oma-kb-priority--medium { background: #eff6ff !important; color: #1d4ed8 !important; }
 .oma-kb-priority--low { background: #f3f4f6 !important; color: #6b7280 !important; }
+
+/* OMA-PATCH-2026-10-24-tabs-team — beat legacy pill tabs on requests/deliverables */
+.oma-req-page .oma-ws-tabs .oma-ws-tab,
+.oma-req-page .oma-ws-tabs .oma-req-tab,
+.oma-req-page .oma-req-tabs .oma-ws-tab,
+.oma-req-page .oma-req-tabs .oma-req-tab {
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: #6b7280 !important;
+  font-weight: 400 !important;
+  border-bottom: 2px solid transparent !important;
+  margin-bottom: -1px !important;
+  padding: 10px 14px !important;
+}
+.oma-req-page .oma-ws-tabs .oma-ws-tab:hover,
+.oma-req-page .oma-req-tabs .oma-req-tab:hover {
+  background: transparent !important;
+  color: #111827 !important;
+}
+.oma-req-page .oma-ws-tabs .oma-ws-tab.is-active,
+.oma-req-page .oma-ws-tabs .oma-ws-tab[data-active='true'],
+.oma-req-page .oma-ws-tabs .oma-ws-tab[aria-selected='true'],
+.oma-req-page .oma-req-tabs .oma-req-tab.is-active,
+.oma-req-page .oma-req-tabs .oma-req-tab[data-active='true'],
+.oma-req-page .oma-req-tabs .oma-req-tab[aria-selected='true'] {
+  background: transparent !important;
+  color: #111827 !important;
+  font-weight: 500 !important;
+  border-bottom-color: #2563eb !important;
+  box-shadow: none !important;
+}
+.oma-campaign-status-tabs .oma-ws-tab.is-active,
+.oma-workspace-tabs .oma-ws-tab.is-active {
+  background: transparent !important;
+  border-radius: 0 !important;
+}

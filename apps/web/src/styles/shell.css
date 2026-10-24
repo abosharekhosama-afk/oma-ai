@@ -2305,3 +2305,69 @@ button.oma-breadcrumb-workspace:hover {
 .oma-top-context [data-testid="brand-context"] {
   display: none !important;
 }
+
+/* OMA-PATCH-2026-10-24-rail-ws-popovers */
+.oma-rail-footer {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 8px !important;
+}
+.oma-rail-footer .oma-notifications,
+.oma-rail-footer .oma-user-menu {
+  flex: 0 0 auto;
+}
+.oma-notifications-panel--planable,
+.oma-user-menu-panel,
+.oma-path-ws-menu,
+.oma-breadcrumb-ws-menu,
+.oma-ws-row .oma-ws-menu {
+  z-index: 1300 !important;
+  max-height: min(72vh, 480px) !important;
+  overflow: auto !important;
+  overscroll-behavior: contain;
+}
+.oma-path-ws {
+  position: relative;
+  display: inline-flex;
+  min-width: 0;
+}
+.oma-path-ws-menu,
+.oma-breadcrumb-ws-menu {
+  position: absolute !important;
+  top: calc(100% + 6px) !important;
+  inset-inline-start: 0 !important;
+  inset-inline-end: auto !important;
+  min-width: 220px;
+  padding: 6px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14);
+  max-width: min(280px, calc(100vw - 24px)) !important;
+}
+.oma-ws-row .oma-ws-menu {
+  max-width: min(240px, calc(100vw - 24px)) !important;
+}
+.oma-rail .oma-user-menu-panel {
+  inset-inline-start: 0 !important;
+  inset-inline-end: auto !important;
+  inset-block-end: calc(100% + 8px) !important;
+  inset-block-start: auto !important;
+  max-width: min(280px, calc(100vw - 16px)) !important;
+}
+.oma-ws-name-row .oma-ws-avatar--sm {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  font-size: 11px;
+}
+.oma-ws-name {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: start;
+  padding: 0;
+}

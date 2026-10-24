@@ -1184,3 +1184,52 @@
   /* ensure Members tab visible */
   display: inline-flex !important;
 }
+
+/* OMA-PATCH-activity-members */
+.oma-activity-actor {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+.oma-member-surface .oma-ws-table {
+  border-collapse: separate;
+  border-spacing: 0 8px;
+}
+.oma-member-surface .oma-ws-table tbody tr {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 11px;
+  box-shadow: 0 1px 2px rgba(17, 24, 39, 0.04);
+}
+.oma-member-surface .oma-ws-table tbody td {
+  border-bottom: 0;
+  padding: 12px 14px;
+  vertical-align: middle;
+}
+.oma-member-surface .oma-ws-table tbody td:first-child {
+  border-start-start-radius: 11px;
+  border-end-start-radius: 11px;
+}
+.oma-member-surface .oma-ws-table tbody td:last-child {
+  border-start-end-radius: 11px;
+  border-end-end-radius: 11px;
+}
+.oma-member-surface .oma-ws-badge {
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+.oma-member-surface .oma-ws-badge--client {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+.oma-member-surface .oma-ws-avatar--sm {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+}

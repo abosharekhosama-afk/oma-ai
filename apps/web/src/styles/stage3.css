@@ -7175,3 +7175,29 @@ label.oma-compose-media {
   top: 0 !important;
   z-index: 5 !important;
 }
+
+/* OMA-PATCH-2026-10-24-content-cal-toolbar */
+.oma-content-chrome,
+.oma-cal-toolbar {
+  min-height: 0 !important;
+  padding: 4px 8px !important;
+  margin: 0 0 4px !important;
+  gap: 8px !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+}
+.oma-content-plan .oma-cal-with-saved,
+.oma-content-plan .oma-cal-main {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+}
+.oma-cal-toolbar__group,
+.oma-cal-toolbar__nav,
+.oma-cal-toolbar__views {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+.oma-cal-dow-row {
+  display: contents !important;
+}

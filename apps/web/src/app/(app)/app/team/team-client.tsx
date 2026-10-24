@@ -288,7 +288,7 @@ export default function TeamPage() {
           <div className="oma-planable-toolbar">
             <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search members…" />
           </div>
-          <div className="oma-planable-card">
+          <div className="oma-planable-card oma-member-surface">
             <table className="oma-ws-table">
               <thead>
                 <tr>
