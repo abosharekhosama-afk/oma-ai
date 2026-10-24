@@ -24,6 +24,14 @@ export type ApiWorkRequest = {
   assignee_user_id: string | null;
   channels: string[];
   formats: string[];
+  brief?: {
+    objective: ApiLocale;
+    audience: ApiLocale;
+    key_message: ApiLocale;
+    ready: boolean;
+    ready_at: string | null;
+    missing: string[];
+  };
   created_at: string;
   updated_at: string;
   /** Human-readable labels from API enrichment */
@@ -86,6 +94,7 @@ export type ApiDeliverableVersion = {
   asset_url: string | null;
   notes?: ApiLocale;
   status: string;
+  immutable?: boolean;
   created_by: string;
   created_by_name?: string;
   created_at: string;
@@ -238,7 +247,7 @@ export function toDeliverableRowFromDetail(payload: {
   if (payload.versions?.length) {
     base.versions = payload.versions.map((v) => {
       const url = v.asset_url || '';
-      const approved = v.status === 'APPROVED';
+      const approved = v.status === 'APPROVED' || v.immutable === true;
       return {
         id: v.id,
         label: v.label || 'v1',
@@ -289,12 +298,11 @@ export function toDeliverableRowFromDetail(payload: {
 }
 
 function inferDeliverableType(assetUrl: string | null | undefined): DeliverableRow['type'] {
-  if (!assetUrl) return 'FILE';
+  if (!assetUrl) return 'STATIC';
   const lower = assetUrl.toLowerCase();
-  if (/\.(png|jpe?g|gif|webp|svg)(\?|$)/.test(lower)) return 'IMAGE';
-  if (/\.(mp4|webm|mov)(\?|$)/.test(lower)) return 'VIDEO';
-  if (/\.(pdf)(\?|$)/.test(lower)) return 'PDF';
-  return 'FILE';
+  if (/\.(png|jpe?g|gif|webp|svg)(\?|$)/.test(lower)) return 'PHOTOGRAPHY';
+  if (/\.(mp4|webm|mov)(\?|$)/.test(lower)) return 'LONG_VIDEO';
+  return 'STATIC';
 }
 
 export function toDeliverableRow(d: ApiWorkDeliverable): DeliverableRowExtra {
@@ -318,7 +326,7 @@ export function toDeliverableRow(d: ApiWorkDeliverable): DeliverableRowExtra {
     reviewer: creator,
     archived,
     currentVersionId: versionId,
-    approvedVersionId: d.approved_version_id || (review === 'APPROVED' ? versionId : null),
+    approvedVersionId: d.approved_version_id ?? null,
     versions: [
       {
         id: versionId,
@@ -327,7 +335,10 @@ export function toDeliverableRow(d: ApiWorkDeliverable): DeliverableRowExtra {
         notes: { en: '', ar: '' },
         createdAt: d.created_at || new Date().toISOString(),
         createdBy: creator,
-        immutable: review === 'APPROVED',
+        immutable:
+          review === 'APPROVED' &&
+          Boolean(d.approved_version_id) &&
+          d.approved_version_id === versionId,
         reviewDecision: review === 'APPROVED' || review === 'REJECTED' ? review : null,
         status: (d.status as never) || 'DRAFT',
         previewUrl: asset,
@@ -379,9 +390,7 @@ export async function listRequests(
 }
 
 export async function listAllRequests(brandIds: string[]): Promise<ApiWorkRequest[]> {
-  const batches = await Promise.all(
-    brandIds.map((id) => listRequests(id).catch(() => [] as ApiWorkRequest[])),
-  );
+  const batches = await Promise.all(brandIds.map((id) => listRequests(id)));
   return batches.flat();
 }
 
@@ -666,7 +675,7 @@ export async function loadTasksWorkspace(): Promise<{
   const [campaigns, taskBatches] = await Promise.all([
     brandIds.length ? listAllCampaigns(brandIds) : Promise.resolve([]),
     brandIds.length
-      ? Promise.all(brandIds.map((id) => listTasks(id).catch(() => [] as ApiWorkTask[])))
+      ? Promise.all(brandIds.map((id) => listTasks(id)))
       : Promise.resolve([] as ApiWorkTask[][]),
   ]);
   const tasks = (taskBatches as ApiWorkTask[][]).flat().map((x) => toTaskRow(x));
@@ -702,7 +711,7 @@ export async function loadDeliverablesWorkspace(): Promise<{
   const [campaigns, delBatches] = await Promise.all([
     brandIds.length ? listAllCampaigns(brandIds) : Promise.resolve([]),
     brandIds.length
-      ? Promise.all(brandIds.map((id) => listDeliverables(id).catch(() => [] as ApiWorkDeliverable[])))
+      ? Promise.all(brandIds.map((id) => listDeliverables(id)))
       : Promise.resolve([] as ApiWorkDeliverable[][]),
   ]);
   const deliverables = (delBatches as ApiWorkDeliverable[][])
@@ -724,7 +733,6 @@ export async function loadDeliverablesWorkspace(): Promise<{
   };
 }
 
-
 /** Persist structured brief fields inside description until a Brief domain exists. */
 export const BRIEF_MARKER = '__OMA_BRIEF_V1__';
 
@@ -744,7 +752,10 @@ export type RequestBriefPayload = {
   readiness?: string;
 };
 
-export function encodeRequestBrief(payload: RequestBriefPayload, plainFallback: string): { en: string; ar: string } {
+export function encodeRequestBrief(
+  payload: RequestBriefPayload,
+  plainFallback: string,
+): { en: string; ar: string } {
   const json = JSON.stringify(payload);
   const body = `${BRIEF_MARKER}${json}`;
   // Keep a human-readable prefix for list views
@@ -759,7 +770,10 @@ export function decodeRequestBrief(description: unknown): RequestBriefPayload | 
   const text =
     typeof description === 'string'
       ? description
-      : description && typeof description === 'object' && description !== null && 'en' in (description as object)
+      : description &&
+          typeof description === 'object' &&
+          description !== null &&
+          'en' in (description as object)
         ? String((description as { en?: string }).en ?? '')
         : '';
   const idx = text.indexOf(BRIEF_MARKER);

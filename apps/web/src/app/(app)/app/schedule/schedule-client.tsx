@@ -133,7 +133,9 @@ export default function SchedulePage() {
       const updated = await scheduleContent(selected.contentId, { scheduledAt });
       const next = contentToScheduleRow(toContentRow(updated), policy);
       if (channels.length) next.channels = channels;
-      setContents((list) => list.map((item) => (item.id === updated.id ? toContentRow(updated) : item)));
+      setContents((list) =>
+        list.map((item) => (item.id === updated.id ? toContentRow(updated) : item)),
+      );
       setRows((list) => list.map((r) => (r.id === next.id ? next : r)));
       setRescheduleOpen(false);
       toast.push(t('demo.schedule.saved'), 'success');
@@ -155,7 +157,9 @@ export default function SchedulePage() {
               scheduledAt: selected.plannedAt || new Date().toISOString(),
             });
       const next = contentToScheduleRow(toContentRow(updated), policy);
-      setContents((list) => list.map((item) => (item.id === updated.id ? toContentRow(updated) : item)));
+      setContents((list) =>
+        list.map((item) => (item.id === updated.id ? toContentRow(updated) : item)),
+      );
       setRows((list) => list.map((r) => (r.id === next.id ? next : r)));
       toast.push(t('demo.schedule.saved'), 'success');
     } catch (err) {

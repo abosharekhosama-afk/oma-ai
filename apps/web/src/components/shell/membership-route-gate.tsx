@@ -52,10 +52,7 @@ export function MembershipRouteGate({ children }: { children: React.ReactNode })
           return;
         }
 
-        if (
-          (route === 'PROCEED' || route === 'AUTO_ACTIVATE' || me.active_tenant_id) &&
-          onSelect
-        ) {
+        if ((route === 'PROCEED' || route === 'AUTO_ACTIVATE' || me.active_tenant_id) && onSelect) {
           finish();
           router.replace('/app');
           return;

@@ -76,16 +76,13 @@ function ShellBreadcrumb({ onOpenSettings }: { onOpenSettings: () => void }) {
           : isRequests
             ? t('nav.requests') || t('demo.requests.title') || 'Requests'
             : t('nav.campaigns') || t('demo.campaigns.title') || 'Campaigns';
-    const defaultView = isContent
-      ? 'Calendar'
-      : isDeliverables
-        ? 'Grid'
-        : isTasks
-          ? 'Board'
-          : '';
+    const defaultView = isContent ? 'Calendar' : isDeliverables ? 'Grid' : isTasks ? 'Board' : '';
     const showViewSlot = isContent || isDeliverables || isTasks;
     return (
-      <nav aria-label={t('shell.breadcrumb')} className="oma-context-trail oma-context-trail--content">
+      <nav
+        aria-label={t('shell.breadcrumb')}
+        className="oma-context-trail oma-context-trail--content"
+      >
         <ol className="oma-breadcrumb oma-breadcrumb--planable">
           <li className="oma-breadcrumb-ws-wrap">
             <WorkspacePathMenu onOpenSettings={onOpenSettings} />
@@ -182,14 +179,6 @@ export function ShellChrome({ children }: { children: ReactNode }) {
     // app / brands / :brandId / ...
     return parts.length >= 3 ? parts[2] : null;
   })();
-  const hideBrandTrail =
-    isContentWorkspace ||
-    isRequestsWorkspace ||
-    isDeliverablesWorkspace ||
-    isTasksWorkspace ||
-    isBrandsList ||
-    isBrandDetail ||
-    isCampaignsWorkspace;
   const hideShellCreate =
     isContentWorkspace ||
     isRequestsWorkspace ||
@@ -197,8 +186,6 @@ export function ShellChrome({ children }: { children: ReactNode }) {
     isTasksWorkspace ||
     isCampaignsWorkspace ||
     isBrandsList;
-  const hideMobileNav =
-    isRequestsWorkspace || isDeliverablesWorkspace || isTasksWorkspace;
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
@@ -309,15 +296,26 @@ export function ShellChrome({ children }: { children: ReactNode }) {
               </div>
             )}
             {isContentWorkspace ? (
-              <div className="oma-top-actions oma-top-actions--content" id="oma-content-top-actions" />
-            ) : isRequestsWorkspace || isDeliverablesWorkspace || isTasksWorkspace || isCampaignsWorkspace || isBrandsList ? (
+              <div
+                className="oma-top-actions oma-top-actions--content"
+                id="oma-content-top-actions"
+              />
+            ) : isRequestsWorkspace ||
+              isDeliverablesWorkspace ||
+              isTasksWorkspace ||
+              isCampaignsWorkspace ||
+              isBrandsList ? (
               <div
                 className="oma-top-actions oma-top-actions--workspace"
                 id="oma-workspace-top-actions"
               />
             ) : hideShellCreate ? null : isBrandsList ? (
               <div className="oma-top-actions">
-                <OmaLinkButton href="/app/brands/new" type="primary" data-testid="shell-create-brand">
+                <OmaLinkButton
+                  href="/app/brands/new"
+                  type="primary"
+                  data-testid="shell-create-brand"
+                >
                   <ShellIcon name="plus" size={16} />
                   <span>{t('brand.list.create')}</span>
                 </OmaLinkButton>

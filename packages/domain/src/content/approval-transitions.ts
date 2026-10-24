@@ -1,11 +1,7 @@
 import type { ApprovalState, ContentStatus } from './states';
 
 export type ContentApprovalCommand =
-  | 'request_approval'
-  | 'approve'
-  | 'request_changes'
-  | 'reject'
-  | 'reset';
+  'request_approval' | 'approve' | 'request_changes' | 'reject' | 'reset';
 
 type Next = { approvalState: ApprovalState; status: ContentStatus; deltaApproved?: number };
 
@@ -60,7 +56,11 @@ export function applyContentApprovalTransition(input: {
       if (approvalState !== 'PENDING' && approvalState !== 'PARTIALLY_APPROVED') {
         throw new Error(`Cannot request changes from ${approvalState}`);
       }
-      return { approvalState: 'CHANGES_REQUESTED', status: 'DRAFT', deltaApproved: -approverApproved };
+      return {
+        approvalState: 'CHANGES_REQUESTED',
+        status: 'DRAFT',
+        deltaApproved: -approverApproved,
+      };
     }
     case 'reject': {
       if (approvalState !== 'PENDING' && approvalState !== 'PARTIALLY_APPROVED') {

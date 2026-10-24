@@ -1,4 +1,15 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import type { Request } from 'express';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { CsrfGuard } from '../common/guards/csrf.guard';
@@ -43,7 +54,11 @@ export class ContentController {
 
   @Post('api/v1/brands/:brandId/content')
   @UseGuards(CsrfGuard)
-  async create(@Req() req: Request, @Param('brandId') brandId: string, @Body() body: Record<string, unknown>) {
+  async create(
+    @Req() req: Request,
+    @Param('brandId') brandId: string,
+    @Body() body: Record<string, unknown>,
+  ) {
     this.requireTenant(req);
     return contentService.create(
       req.oma!.tenantId!,
@@ -127,7 +142,6 @@ export class ContentController {
       req.oma!.correlationId,
     );
   }
-
 
   @Post('api/v1/content/:contentId/reject')
   @UseGuards(CsrfGuard)

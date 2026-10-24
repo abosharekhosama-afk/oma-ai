@@ -63,7 +63,12 @@ export function WorkspaceCard({ brand }: { brand: BrandListItem; compact?: boole
         </div>
       </Link>
       <div className="oma-workspace-card-actions">
-        <OmaLinkButton href={primaryHref} type="primary" size="small" data-testid={`workspace-card-primary-${brand.id}`}>
+        <OmaLinkButton
+          href={primaryHref}
+          type="primary"
+          size="small"
+          data-testid={`workspace-card-primary-${brand.id}`}
+        >
           {brandActionLabel(t, brand)}
         </OmaLinkButton>
         <OmaLinkButton href={`/app/content?brand=${brand.id}`} type="default" size="small">

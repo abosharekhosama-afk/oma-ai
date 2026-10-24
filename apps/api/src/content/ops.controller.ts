@@ -140,7 +140,6 @@ export class OpsController {
     return opsService.listDeliverables(req.oma!.tenantId!, brandId);
   }
 
-  
   @Get('api/v1/deliverables/:deliverableId')
   async getDeliverable(@Req() req: Request, @Param('deliverableId') deliverableId: string) {
     this.requireTenant(req);
@@ -178,9 +177,9 @@ export class OpsController {
       deliverableId,
       String(body?.action || ''),
       req.oma!.correlationId,
+      req.oma!.capabilities ?? [],
     );
   }
-
 
   @Post('api/v1/deliverables/:deliverableId/versions')
   @UseGuards(CsrfGuard)
@@ -278,12 +277,7 @@ export class OpsController {
     @Body() body: Record<string, unknown>,
   ) {
     this.requireTenant(req);
-    return opsService.updateTaskChecklistItem(
-      req.oma!.tenantId!,
-      taskId,
-      itemId,
-      body as never,
-    );
+    return opsService.updateTaskChecklistItem(req.oma!.tenantId!, taskId, itemId, body as never);
   }
 
   @Post('api/v1/tasks/:taskId/comments')
@@ -294,11 +288,6 @@ export class OpsController {
     @Body() body: Record<string, unknown>,
   ) {
     this.requireTenant(req);
-    return opsService.addTaskComment(
-      req.oma!.tenantId!,
-      req.oma!.userId!,
-      taskId,
-      body as never,
-    );
+    return opsService.addTaskComment(req.oma!.tenantId!, req.oma!.userId!, taskId, body as never);
   }
 }

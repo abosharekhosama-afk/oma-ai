@@ -41,7 +41,7 @@ const nextConfig = (phase: string): NextConfig => {
       optimizePackageImports: ['@ant-design/icons', '@oma/ui', 'dayjs', 'antd'],
     },
     ...(distDir ? { distDir } : {}),
-    
+
     // 👇 إضافات لتجاوز فحص ESLint و TypeScript أثناء البناء على Vercel
     eslint: {
       ignoreDuringBuilds: true,

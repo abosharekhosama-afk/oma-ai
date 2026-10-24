@@ -12,7 +12,10 @@ const OPS_ROUTES: { path: string; testId: string }[] = [
 ];
 
 test.describe('Production ops surfaces', () => {
-  test('core workspaces load without demo disclosure banner', async ({ page, request }, testInfo) => {
+  test('core workspaces load without demo disclosure banner', async ({
+    page,
+    request,
+  }, testInfo) => {
     test.skip(testInfo.project.name !== 'en-desktop', 'desktop smoke');
     await installOwnerSession(page, request);
     for (const route of OPS_ROUTES) {

@@ -53,10 +53,18 @@ export function applyCampaignTransition(
 export function deriveCampaignReviewHint(
   contentApprovalStates: string[],
 ): 'IN_REVIEW' | 'DRAFT' | 'APPROVED' | 'SCHEDULED' | 'CLEAR' {
-  if (contentApprovalStates.some((s) => s === 'PENDING' || s === 'PARTIALLY_APPROVED' || s === 'IN_REVIEW')) {
+  if (
+    contentApprovalStates.some(
+      (s) => s === 'PENDING' || s === 'PARTIALLY_APPROVED' || s === 'IN_REVIEW',
+    )
+  ) {
     return 'IN_REVIEW';
   }
-  if (contentApprovalStates.some((s) => s === 'DRAFT' || s === 'NOT_REQUESTED' || s === 'CHANGES_REQUESTED')) {
+  if (
+    contentApprovalStates.some(
+      (s) => s === 'DRAFT' || s === 'NOT_REQUESTED' || s === 'CHANGES_REQUESTED',
+    )
+  ) {
     return 'DRAFT';
   }
   if (contentApprovalStates.some((s) => s === 'APPROVED')) return 'APPROVED';

@@ -1,7 +1,6 @@
 'use client';
-import { Button, CheckboxField, Input, SelectField } from '@oma/ui/controls';
+import { Button, Input, SelectField } from '@oma/ui/controls';
 
-import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { OmaTopLoader } from '../../../../components/ui/oma-top-loader';
 import type { DemoGraph, DemoPreferences } from '@oma/demo';
@@ -233,7 +232,11 @@ export default function SettingsPage() {
                 </div>
                 <p className="oma-muted">{t('demo.settings.reducedMotionNote')}</p>
                 <div className="oma-ws-action-row">
-                  <Button type="default" disabled={!dirty || saving} onClick={() => setDraft(prefs)}>
+                  <Button
+                    type="default"
+                    disabled={!dirty || saving}
+                    onClick={() => setDraft(prefs)}
+                  >
                     {t('demo.create.cancel')}
                   </Button>
                   <Button
@@ -267,7 +270,10 @@ export default function SettingsPage() {
             {section === 'integrations' && (
               <section data-testid="demo-settings-integrations">
                 <h2 className="oma-ws-section-title">{t('demo.settings.section.integrations')}</h2>
-                <div className="oma-planable-toolbar" style={{ display: 'flex', gap: 8, maxWidth: '100%' }}>
+                <div
+                  className="oma-planable-toolbar"
+                  style={{ display: 'flex', gap: 8, maxWidth: '100%' }}
+                >
                   <Input
                     value={intQ}
                     placeholder="Search integrations…"

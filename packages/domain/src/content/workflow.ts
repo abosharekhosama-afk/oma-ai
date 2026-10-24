@@ -112,10 +112,7 @@ export function resolveContentWorkflow(
   };
 }
 
-export function assertCanSchedule(
-  item: WorkflowSource,
-  policy: ApprovalPolicy = 'OPTIONAL',
-): void {
+export function assertCanSchedule(item: WorkflowSource, policy: ApprovalPolicy = 'OPTIONAL'): void {
   const wf = resolveContentWorkflow(item, policy);
   if (wf.scheduleBlocked) {
     throw new DomainError(

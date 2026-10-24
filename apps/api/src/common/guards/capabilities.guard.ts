@@ -155,8 +155,18 @@ const routeRequirements: Record<string, string[]> = {
   'POST /api/v1/brands/:brandId/tasks': ['content.create'],
   'PATCH /api/v1/tasks/:taskId': ['content.update'],
   'POST /api/v1/tasks/:taskId/convert-to-deliverable': ['content.update'],
-  'GET /api/v1/brands/:brandId/deliverables': ['content.read'],
-  'PATCH /api/v1/deliverables/:deliverableId': ['content.update'],
+  'GET /api/v1/brands/:brandId/deliverables': ['deliverable.read'],
+  'GET /api/v1/deliverables/:deliverableId': ['deliverable.read'],
+  'PATCH /api/v1/deliverables/:deliverableId': ['deliverable.write'],
+  'POST /api/v1/deliverables/:deliverableId/review': ['deliverable.read'],
+  'POST /api/v1/deliverables/:deliverableId/versions': ['deliverable.version.create'],
+  'POST /api/v1/deliverables/:deliverableId/annotations': ['deliverable.annotate'],
+  'PATCH /api/v1/deliverable-annotations/:annotationId': ['deliverable.annotate'],
+  'POST /api/v1/deliverables/:deliverableId/comments': ['deliverable.annotate'],
+  'GET /api/v1/tasks/:taskId': ['task.read'],
+  'POST /api/v1/tasks/:taskId/checklist': ['task.write'],
+  'PATCH /api/v1/tasks/:taskId/checklist/:itemId': ['task.write'],
+  'POST /api/v1/tasks/:taskId/comments': ['task.write'],
 
   'POST /api/v1/content/:contentId/request-changes': ['content.approve'],
   'POST /api/v1/content/:contentId/schedule': ['content.schedule'],
@@ -177,7 +187,6 @@ const routeRequirements: Record<string, string[]> = {
   'POST /api/v1/brands/:brandId/content-templates': ['content.create'],
   'DELETE /api/v1/brands/:brandId/content-templates/:templateId': ['content.update'],
   'POST /api/v1/brands/:brandId/content-templates/:templateId/use': ['content.create'],
-
 };
 
 function matchRequirements(method: string, path: string): string[] | null {
@@ -364,10 +373,7 @@ function matchRequirements(method: string, path: string): string[] | null {
       /\/api\/v1\/brands\/[^/]+\/content-labels\/[^/]+/,
       '/api/v1/brands/:brandId/content-labels/:labelId',
     )
-    .replace(
-      /\/api\/v1\/brands\/[^/]+\/content-labels/,
-      '/api/v1/brands/:brandId/content-labels',
-    )
+    .replace(/\/api\/v1\/brands\/[^/]+\/content-labels/, '/api/v1/brands/:brandId/content-labels')
     .replace(
       /\/api\/v1\/brands\/[^/]+\/content-templates\/[^/]+\/use/,
       '/api/v1/brands/:brandId/content-templates/:templateId/use',
@@ -380,14 +386,8 @@ function matchRequirements(method: string, path: string): string[] | null {
       /\/api\/v1\/brands\/[^/]+\/content-templates/,
       '/api/v1/brands/:brandId/content-templates',
     )
-    .replace(
-      /\/api\/v1\/content\/[^/]+\/labels/,
-      '/api/v1/content/:contentId/labels',
-    )
-    .replace(
-      /\/api\/v1\/content\/[^/]+\/visibility/,
-      '/api/v1/content/:contentId/visibility',
-    )
+    .replace(/\/api\/v1\/content\/[^/]+\/labels/, '/api/v1/content/:contentId/labels')
+    .replace(/\/api\/v1\/content\/[^/]+\/visibility/, '/api/v1/content/:contentId/visibility')
 
     .replace(
       /\/api\/v1\/brands\/[^/]+\/current-strategy/,
@@ -415,7 +415,9 @@ function matchRequirements(method: string, path: string): string[] | null {
       .replace(':campaignId', '[^/]+')
       .replace(':contentId', '[^/]+')
       .replace(':deliverableId', '[^/]+')
+      .replace(':annotationId', '[^/]+')
       .replace(':taskId', '[^/]+')
+      .replace(':itemId', '[^/]+')
       .replace(':requestId', '[^/]+')
       .replace(':commentId', '[^/]+')
       .replace(':dayKey', '[^/]+')

@@ -27,35 +27,38 @@ function localePair(input: LocaleInput | undefined, fallback = ''): { en: string
   return { en, ar };
 }
 
-function mapContent(row: {
-  id: string;
-  tenantId: string;
-  brandId: string;
-  campaignId: string | null;
-  titleEn: string;
-  titleAr: string;
-  captionEn: string | null;
-  captionAr: string | null;
-  contentType: string;
-  channel: string;
-  track: string;
-  status: string;
-  approvalState: string;
-  scheduleState: string;
-  plannedAt: Date | null;
-  scheduledAt: Date | null;
-  timezone: string;
-  approverRequired: number;
-  approverApproved: number;
-  previewAssetUrl: string | null;
-  labels: string[];
-  assigneeUserId: string | null;
-  clientVisible: boolean;
-  archivedAt: Date | null;
-  createdBy: string;
-  createdAt: Date;
-  updatedAt: Date;
-}, policy: ApprovalPolicy = 'OPTIONAL') {
+function mapContent(
+  row: {
+    id: string;
+    tenantId: string;
+    brandId: string;
+    campaignId: string | null;
+    titleEn: string;
+    titleAr: string;
+    captionEn: string | null;
+    captionAr: string | null;
+    contentType: string;
+    channel: string;
+    track: string;
+    status: string;
+    approvalState: string;
+    scheduleState: string;
+    plannedAt: Date | null;
+    scheduledAt: Date | null;
+    timezone: string;
+    approverRequired: number;
+    approverApproved: number;
+    previewAssetUrl: string | null;
+    labels: string[];
+    assigneeUserId: string | null;
+    clientVisible: boolean;
+    archivedAt: Date | null;
+    createdBy: string;
+    createdAt: Date;
+    updatedAt: Date;
+  },
+  policy: ApprovalPolicy = 'OPTIONAL',
+) {
   const workflow = resolveContentWorkflow(
     {
       status: row.status,
@@ -75,9 +78,7 @@ function mapContent(row: {
     campaign_id: row.campaignId,
     title: { en: row.titleEn, ar: row.titleAr },
     caption:
-      row.captionEn || row.captionAr
-        ? { en: row.captionEn ?? '', ar: row.captionAr ?? '' }
-        : null,
+      row.captionEn || row.captionAr ? { en: row.captionEn ?? '', ar: row.captionAr ?? '' } : null,
     content_type: row.contentType,
     channel: row.channel,
     track: row.track,
@@ -120,7 +121,7 @@ export class ContentService {
     if (!brand) {
       throw new DomainError('NOT_FOUND', 'Brand not found', 404, 'errors.not_found');
     }
-    assertBrandNotArchived(brand.status === 'ARCHIVED' ? brand.archivedAt ?? new Date() : null);
+    assertBrandNotArchived(brand.status === 'ARCHIVED' ? (brand.archivedAt ?? new Date()) : null);
     return brand;
   }
 
@@ -560,7 +561,12 @@ export class ContentService {
         approverRequired: current.approverRequired,
       });
     } catch {
-      throw new DomainError('CONFLICT_STATE', 'Cannot reject in current state', 409, 'error.conflict_state');
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'Cannot reject in current state',
+        409,
+        'error.conflict_state',
+      );
     }
     const row = await getPrisma().contentItem.update({
       where: { id: contentId },
@@ -568,8 +574,12 @@ export class ContentService {
     });
     await this.writeEvent(tenantId, contentId, actorUserId, 'REJECT', note);
     await this.audit.write({
-      actorUserId, tenantId, action: 'content.rejected',
-      targetType: 'ContentItem', targetId: contentId, correlationId,
+      actorUserId,
+      tenantId,
+      action: 'content.rejected',
+      targetType: 'ContentItem',
+      targetId: contentId,
+      correlationId,
     });
     const pol = await this.policyForBrand(tenantId, row.brandId);
     return { data: mapContent(row, pol) };
@@ -597,8 +607,12 @@ export class ContentService {
       ar: 'تم التعليم كمنشور (تجريبي)',
     });
     await this.audit.write({
-      actorUserId, tenantId, action: 'content.published_sample',
-      targetType: 'ContentItem', targetId: contentId, correlationId,
+      actorUserId,
+      tenantId,
+      action: 'content.published_sample',
+      targetType: 'ContentItem',
+      targetId: contentId,
+      correlationId,
     });
     const pol = await this.policyForBrand(tenantId, row.brandId);
     return { data: mapContent(row, pol) };
@@ -632,7 +646,12 @@ export class ContentService {
     );
     const when = new Date(input.scheduledAt);
     if (Number.isNaN(when.getTime())) {
-      throw new DomainError('VALIDATION_FAILED', 'Invalid scheduledAt', 400, 'errors.validation_failed');
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'Invalid scheduledAt',
+        400,
+        'errors.validation_failed',
+      );
     }
     const row = await getPrisma().contentItem.update({
       where: { id: contentId },
@@ -687,12 +706,7 @@ export class ContentService {
     return { data: mapContent(row, policy) };
   }
 
-  async archive(
-    tenantId: string,
-    actorUserId: string,
-    contentId: string,
-    correlationId?: string,
-  ) {
+  async archive(tenantId: string, actorUserId: string, contentId: string, correlationId?: string) {
     const current = await getPrisma().contentItem.findFirst({
       where: tenantWhere(tenantId, { id: contentId }),
     });
@@ -793,7 +807,12 @@ export class ContentService {
     if (!row) throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
     const pair = localePair(body);
     if (!pair.en.trim()) {
-      throw new DomainError('VALIDATION_FAILED', 'Comment body required', 400, 'errors.validation_failed');
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'Comment body required',
+        400,
+        'errors.validation_failed',
+      );
     }
     const comment = await getPrisma().contentComment.create({
       data: {
@@ -845,5 +864,4 @@ export class ContentService {
     });
     return { data: { id: commentId, deleted: true } };
   }
-
 }

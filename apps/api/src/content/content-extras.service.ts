@@ -150,13 +150,23 @@ export class ContentExtrasService {
     const nameAr =
       typeof input.name === 'string' ? input.name.trim() : (input.name.ar ?? input.name.en).trim();
     if (!nameEn) {
-      throw new DomainError('VALIDATION_FAILED', 'Label name required', 400, 'errors.validation_failed');
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'Label name required',
+        400,
+        'errors.validation_failed',
+      );
     }
     const row = await getPrisma().contentLabel.create({
       data: { id: newId(), tenantId, brandId, nameEn, nameAr, color: input.color ?? '#6366f1' },
     });
     return {
-      data: { id: row.id, brand_id: row.brandId, name: { en: row.nameEn, ar: row.nameAr }, color: row.color },
+      data: {
+        id: row.id,
+        brand_id: row.brandId,
+        name: { en: row.nameEn, ar: row.nameAr },
+        color: row.color,
+      },
     };
   }
 
@@ -169,7 +179,12 @@ export class ContentExtrasService {
     return { data: { ok: true } };
   }
 
-  async setContentLabels(tenantId: string, actorUserId: string, contentId: string, labels: string[]) {
+  async setContentLabels(
+    tenantId: string,
+    actorUserId: string,
+    contentId: string,
+    labels: string[],
+  ) {
     return this.content.update(tenantId, actorUserId, contentId, {
       labels: labels.map((l) => l.trim()).filter(Boolean),
     });
@@ -195,7 +210,8 @@ export class ContentExtrasService {
         brand_id: r.brandId,
         name: { en: r.nameEn, ar: r.nameAr },
         title: r.titleEn || r.titleAr ? { en: r.titleEn ?? '', ar: r.titleAr ?? '' } : null,
-        caption: r.captionEn || r.captionAr ? { en: r.captionEn ?? '', ar: r.captionAr ?? '' } : null,
+        caption:
+          r.captionEn || r.captionAr ? { en: r.captionEn ?? '', ar: r.captionAr ?? '' } : null,
         content_type: r.contentType,
         channel: r.channel,
         track: r.track,
@@ -250,7 +266,12 @@ export class ContentExtrasService {
     const nameAr =
       typeof input.name === 'string' ? input.name.trim() : (input.name.ar ?? input.name.en).trim();
     if (!nameEn) {
-      throw new DomainError('VALIDATION_FAILED', 'Template name required', 400, 'errors.validation_failed');
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'Template name required',
+        400,
+        'errors.validation_failed',
+      );
     }
     const row = await getPrisma().contentTemplate.create({
       data: {
@@ -278,7 +299,9 @@ export class ContentExtrasService {
         name: { en: row.nameEn, ar: row.nameAr },
         title: row.titleEn || row.titleAr ? { en: row.titleEn ?? '', ar: row.titleAr ?? '' } : null,
         caption:
-          row.captionEn || row.captionAr ? { en: row.captionEn ?? '', ar: row.captionAr ?? '' } : null,
+          row.captionEn || row.captionAr
+            ? { en: row.captionEn ?? '', ar: row.captionAr ?? '' }
+            : null,
         content_type: row.contentType,
         channel: row.channel,
         track: row.track,

@@ -57,8 +57,7 @@ export class DemoController {
           OMA_DEMO_ALLOW_PRODUCTION: env.OMA_DEMO_ALLOW_PRODUCTION ? '1' : '0',
         }),
         label: demoDataProvider.getGraph().meta.label,
-        production_blocked:
-          env.NODE_ENV === 'production' && !env.OMA_DEMO_ALLOW_PRODUCTION,
+        production_blocked: env.NODE_ENV === 'production' && !env.OMA_DEMO_ALLOW_PRODUCTION,
       },
     };
   }
@@ -857,9 +856,7 @@ export class DemoController {
         OMA_DEMO_ALLOW_PRODUCTION: env.OMA_DEMO_ALLOW_PRODUCTION ? '1' : '0',
       });
     } catch (err) {
-      throw new ForbiddenException(
-        err instanceof Error ? err.message : 'Demo mode is not enabled',
-      );
+      throw new ForbiddenException(err instanceof Error ? err.message : 'Demo mode is not enabled');
     }
   }
 }

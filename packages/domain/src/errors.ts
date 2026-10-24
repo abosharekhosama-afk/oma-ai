@@ -27,7 +27,7 @@ export type ErrorCode =
   | 'WEBSITE_NOT_CONNECTED'
   | 'BRAND_ARCHIVED'
   | 'SCHEDULE_BLOCKED'
-  | 'CAMPAIGN_ARCHIVED'
+  | 'CAMPAIGN_ARCHIVED';
 
 export class DomainError extends Error {
   constructor(

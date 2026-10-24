@@ -15,11 +15,7 @@ import {
   type WorkspaceMember,
 } from '../../../../lib/team-api';
 import { useToast } from '../../../../components/ui/toast';
-import {
-  demoApi,
-  demoErrorMessage,
-  isDemoForbidden,
-} from '../../../../lib/demo/use-demo-api';
+import { demoApi, demoErrorMessage, isDemoForbidden } from '../../../../lib/demo/use-demo-api';
 import { ShellIcon } from '../../../../components/shell/shell-icons';
 
 type Tab = 'members' | 'permissions' | 'notifications';
@@ -34,14 +30,7 @@ const PERM_COLS: PlanablePerm[] = [
   'admin',
 ];
 
-const ROLE_OPTIONS = [
-  'Owner',
-  'Administrator',
-  'Contributor',
-  'Writer',
-  'Approver',
-  'Guest',
-];
+const ROLE_OPTIONS = ['Owner', 'Administrator', 'Contributor', 'Writer', 'Approver', 'Guest'];
 
 export default function TeamPage() {
   const toast = useToast();
@@ -69,7 +58,7 @@ export default function TeamPage() {
       if (!mountedRef.current) return;
       setRows(data);
       setSource('api');
-    } catch (err) {
+    } catch {
       try {
         const demo = await demoApi<
           Array<{
@@ -122,7 +111,6 @@ export default function TeamPage() {
       mountedRef.current = false;
     };
     // Mount-once — avoid re-fetch loops from unstable callbacks/locale.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const filtered = useMemo(() => {
@@ -249,8 +237,6 @@ export default function TeamPage() {
           <span>Invite members</span>
         </Button>
       </div>
-
-      
 
       <div className="oma-ws-tabs">
         {(
@@ -455,7 +441,10 @@ export default function TeamPage() {
                     </td>
                     {['posts', 'approvals', 'yours', 'others', 'inbox'].map((k) => (
                       <td key={k} className="oma-ws-check-cell">
-                        <input type="checkbox" defaultChecked={k === 'approvals' || k === 'yours'} />
+                        <input
+                          type="checkbox"
+                          defaultChecked={k === 'approvals' || k === 'yours'}
+                        />
                       </td>
                     ))}
                   </tr>

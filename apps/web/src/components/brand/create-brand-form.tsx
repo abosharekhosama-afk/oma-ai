@@ -37,7 +37,9 @@ export function CreateBrandForm({
       });
       const brandId = res.data.id;
       if (website.trim()) {
-        const url = website.trim().startsWith('http') ? website.trim() : `https://${website.trim()}`;
+        const url = website.trim().startsWith('http')
+          ? website.trim()
+          : `https://${website.trim()}`;
         try {
           await api(`/api/v1/brands/${brandId}/website`, {
             method: 'POST',
@@ -58,7 +60,11 @@ export function CreateBrandForm({
 
   return (
     <form className="oma-create-brand-form" onSubmit={onSubmit} data-testid="create-workspace-form">
-      <Field label={t('brand.create.nameLabel') || 'Workspace name'} htmlFor="brand-name" error={error ?? undefined}>
+      <Field
+        label={t('brand.create.nameLabel') || 'Workspace name'}
+        htmlFor="brand-name"
+        error={error ?? undefined}
+      >
         <Input
           id="brand-name"
           value={name}
@@ -84,7 +90,13 @@ export function CreateBrandForm({
         <Button type="default" htmlType="button" onClick={onCancel} disabled={busy}>
           {t('common.cancel')}
         </Button>
-        <Button type="primary" htmlType="submit" loading={busy} disabled={!name.trim()} data-testid="create-workspace-submit">
+        <Button
+          type="primary"
+          htmlType="submit"
+          loading={busy}
+          disabled={!name.trim()}
+          data-testid="create-workspace-submit"
+        >
           {t('brand.create.submit') || 'Create workspace'}
         </Button>
       </div>

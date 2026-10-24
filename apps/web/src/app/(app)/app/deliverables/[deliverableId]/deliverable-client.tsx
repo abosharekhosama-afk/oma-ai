@@ -12,24 +12,22 @@ import {
   type MouseEvent as ReactMouseEvent,
 } from 'react';
 import { Dialog } from '../../../../../components/ui/dialog';
-import { PageHeader, Panel } from '../../../../../components/ui/page-header';
 import { StatusChip } from '../../../../../components/ui/status-chip';
 import { useToast } from '../../../../../components/ui/toast';
 import { pickCopy } from '../../../../../lib/demo/use-demo-api';
 import {
   getDeliverableDetail,
-  updateDeliverable,
   reviewDeliverable,
   toDeliverableRow,
   toDeliverableRowFromDetail,
   addDeliverableVersion,
   addDeliverableAnnotation,
   resolveDeliverableAnnotation,
-  addDeliverableComment,
   opsError,
 } from '../../../../../lib/ops-api';
 import {
   approvedVersion,
+  canAddProductionVersion,
   canTransitionReview,
   currentVersion,
   mapClientToNormalized,
@@ -37,6 +35,7 @@ import {
   unresolvedCount,
   type DeliverableRow,
 } from '../../../../../lib/demo/stage5-deliverables';
+import { useCapabilities } from '../../../../../lib/use-capabilities';
 import { useLocale, useT } from '../../../../../lib/use-locale';
 import {
   ArrowLeftOutlined,
@@ -56,6 +55,24 @@ export default function DeliverableDetailClient() {
   const t = useT();
   const locale = useLocale();
   const toast = useToast();
+  const caps = useCapabilities();
+  const canDecide =
+    !caps.loading && caps.can(['deliverable.review.decide', 'deliverable.review'], 'any');
+  const canVersion =
+    !caps.loading &&
+    caps.can(['deliverable.version.create', 'deliverable.write', 'deliverable.update'], 'any');
+  const canAnnotate =
+    !caps.loading &&
+    caps.can(
+      [
+        'deliverable.annotate',
+        'deliverable.write',
+        'deliverable.update',
+        'deliverable.review',
+        'deliverable.review.decide',
+      ],
+      'any',
+    );
   const router = useRouter();
   const params = useParams<{ deliverableId: string }>();
   const search = useSearchParams();
@@ -76,7 +93,6 @@ export default function DeliverableDetailClient() {
   const [selectedPinId, setSelectedPinId] = useState<string | null>(null);
   const [draftPin, setDraftPin] = useState<{ x: number; y: number } | null>(null);
   const [draftBody, setDraftBody] = useState('');
-  const [generalBody, setGeneralBody] = useState('');
   const [decisionOpen, setDecisionOpen] = useState<Decision | null>(null);
   const [decisionReason, setDecisionReason] = useState('');
   const [saving, setSaving] = useState(false);
@@ -120,8 +136,7 @@ export default function DeliverableDetailClient() {
       setError(null);
       setUnavailable(false);
     } catch (err) {
-      if (false) setUnavailable(true);
-      else setError(opsError(err, t('demo.unavailable')));
+      setError(opsError(err, t('demo.unavailable')));
     } finally {
       setLoading(false);
     }
@@ -166,6 +181,25 @@ export default function DeliverableDetailClient() {
     router.replace(`/app/deliverables/${deliverableId}${qs ? `?${qs}` : ''}`, { scroll: false });
   }
 
+  function onCanvasClick(event: ReactMouseEvent<HTMLDivElement>) {
+    if (
+      !canAnnotate ||
+      !row ||
+      !selectedVersion ||
+      selectedVersion.immutable ||
+      selectedVersion.status === 'APPROVED' ||
+      row.reviewStatus === 'APPROVED'
+    ) {
+      toast.push(t('demo.review.immutableHint'), 'danger');
+      return;
+    }
+    const rect = stageRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    setDraftPin(mapClientToNormalized(event.clientX, event.clientY, rect));
+    setDraftBody('');
+    setSelectedPinId(null);
+  }
+
   async function selectVersion(versionId: string) {
     setSelectedVersionId(versionId);
     setDraftPin(null);
@@ -188,25 +222,6 @@ export default function DeliverableDetailClient() {
       setDraftPin(null);
       setDraftBody('');
       toast.push(t('demo.review.annotationSaved'), 'success');
-    } catch (err) {
-      toast.push(opsError(err, t('demo.unavailable')), 'danger');
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function addGeneral() {
-    if (!row || !selectedVersion || !generalBody.trim()) return;
-    setSaving(true);
-    try {
-      await addDeliverableComment(row.id, {
-        body: generalBody.trim(),
-        versionId: selectedVersion.id,
-      });
-      const payload = await getDeliverableDetail(row.id);
-      setRow(toDeliverableRowFromDetail(payload));
-      setGeneralBody('');
-      toast.push(t('demo.review.commentSaved'), 'success');
     } catch (err) {
       toast.push(opsError(err, t('demo.unavailable')), 'danger');
     } finally {
@@ -246,21 +261,6 @@ export default function DeliverableDetailClient() {
     }
   }
 
-  async function submitForReview() {
-    if (!row || !selectedVersion) return;
-    setSaving(true);
-    try {
-      await reviewDeliverable(row.id, 'submit');
-      const payload = await getDeliverableDetail(row.id);
-      setRow(toDeliverableRowFromDetail(payload));
-      toast.push(t('demo.review.submitted'), 'success');
-    } catch (err) {
-      toast.push(opsError(err, t('demo.unavailable')), 'danger');
-    } finally {
-      setSaving(false);
-    }
-  }
-
   async function confirmDecision() {
     if (!row || !selectedVersion || !decisionOpen) return;
     if (
@@ -284,7 +284,10 @@ export default function DeliverableDetailClient() {
             : decisionOpen === 'CHANGES_REQUESTED'
               ? 'request_changes'
               : 'submit';
-      const api = await reviewDeliverable(row.id, action as 'submit' | 'approve' | 'request_changes' | 'reject');
+      const api = await reviewDeliverable(
+        row.id,
+        action as 'submit' | 'approve' | 'request_changes' | 'reject',
+      );
       const updated = {
         ...toDeliverableRow(api),
         decisions: [
@@ -325,7 +328,11 @@ export default function DeliverableDetailClient() {
   const openUnresolved = row ? unresolvedCount(row) : 0;
 
   return (
-    <div className="oma-deliv-detail" data-testid="demo-deliverable-detail" data-review={reviewMode ? 'true' : 'false'}>
+    <div
+      className="oma-deliv-detail"
+      data-testid="demo-deliverable-detail"
+      data-review={reviewMode ? 'true' : 'false'}
+    >
       <header className="oma-deliv-detail__top">
         <div className="oma-deliv-detail__top-start">
           <Link href="/app/deliverables" className="oma-deliv-detail__back">
@@ -338,6 +345,14 @@ export default function DeliverableDetailClient() {
               <div className="oma-deliv-detail__chips">
                 <span className="oma-deliv-detail__type">{row.type}</span>
                 <StatusChip status={row.reviewStatus} />
+                {row.reviewStatus === 'APPROVED' || selectedVersion?.immutable ? (
+                  <span
+                    className="oma-deliv-detail__badge"
+                    data-testid="deliverable-immutable-badge"
+                  >
+                    {t('demo.review.immutable')}
+                  </span>
+                ) : null}
                 <span className="oma-muted" data-testid="demo-active-version-label">
                   {selectedVersion?.label ?? '—'}
                 </span>
@@ -364,26 +379,33 @@ export default function DeliverableDetailClient() {
             >
               {reviewMode ? <CloseOutlined /> : <EyeOutlined />}{' '}
               {reviewMode
-                ? t('demo.reviews.closeReview') || (locale.toLowerCase().startsWith('ar') ? 'إغلاق المراجعة' : 'Close review')
+                ? t('demo.reviews.closeReview') ||
+                  (locale.toLowerCase().startsWith('ar') ? 'إغلاق المراجعة' : 'Close review')
                 : t('demo.reviews.openReview')}
             </Button>
-            <Button
-              type="default"
-              data-testid="demo-add-revision"
-              disabled={saving}
-              onClick={() => void addRevision()}
-            >
-              <PlusOutlined /> {t('demo.review.addRevision')}
-            </Button>
+            {canVersion && canAddProductionVersion(row.reviewStatus) ? (
+              <Button
+                type="default"
+                data-testid="demo-add-revision"
+                disabled={saving}
+                onClick={() => void addRevision()}
+              >
+                <PlusOutlined /> {t('demo.review.addRevision')}
+              </Button>
+            ) : null}
           </div>
         ) : null}
       </header>
 
       <p className="oma-muted oma-honesty-inline">{t('demo.reviewHonesty')}</p>
-      <p className="oma-honesty-inline oma-deliv-detail__honesty">{t('demo.deliverable.storageHonesty')}</p>
+      <p className="oma-honesty-inline oma-deliv-detail__honesty">
+        {t('demo.deliverable.storageHonesty')}
+      </p>
 
       {loading ? <p className="oma-muted oma-deliv-detail__pad">{t('demo.loading')}</p> : null}
-      {unavailable ? <p className="oma-muted oma-deliv-detail__pad">{t('demo.unavailable')}</p> : null}
+      {unavailable ? (
+        <p className="oma-muted oma-deliv-detail__pad">{t('demo.unavailable')}</p>
+      ) : null}
       {error ? (
         <div className="oma-card oma-deliv-detail__pad" role="alert">
           <p style={{ color: 'var(--status-danger)', margin: 0 }}>{error}</p>
@@ -453,7 +475,11 @@ export default function DeliverableDetailClient() {
                     key={v.id}
                     type="button"
                     className="oma-review-version-item"
-                    aria-current={selectedVersionId === v.id || selectedVersion?.id === v.id ? 'true' : undefined}
+                    aria-current={
+                      selectedVersionId === v.id || selectedVersion?.id === v.id
+                        ? 'true'
+                        : undefined
+                    }
                     data-testid={`demo-version-${v.id}`}
                     onClick={() => void selectVersion(v.id)}
                   >
@@ -502,7 +528,7 @@ export default function DeliverableDetailClient() {
                       const v = row.versions.find((x) => x.id === id);
                       return (
                         <figure key={`${id}-${idx}`}>
-                          <img src={(v?.assets && (v.assets && v.assets[0])) ?? ''} alt="" />
+                          <img src={(v?.assets && v.assets && v.assets[0]) ?? ''} alt="" />
                           <figcaption>
                             {v?.label} · {v?.status} · {v?.createdBy}
                           </figcaption>
@@ -513,7 +539,7 @@ export default function DeliverableDetailClient() {
                       {t('demo.review.noPixelDiff')}
                     </p>
                   </div>
-                ) : (selectedVersion?.assets && selectedVersion.assets[0]) ? (
+                ) : selectedVersion?.assets && selectedVersion.assets[0] ? (
                   <div
                     ref={stageRef}
                     className="oma-review-canvas-stage"
@@ -524,9 +550,11 @@ export default function DeliverableDetailClient() {
                       if (e.key !== 'Enter' && e.key !== ' ') return;
                       e.preventDefault();
                       if (
+                        !canAnnotate ||
                         !selectedVersion ||
                         selectedVersion.immutable ||
-                        selectedVersion.status === 'APPROVED'
+                        selectedVersion.status === 'APPROVED' ||
+                        row.reviewStatus === 'APPROVED'
                       ) {
                         toast.push(t('demo.review.immutableHint'), 'danger');
                         return;
@@ -542,7 +570,11 @@ export default function DeliverableDetailClient() {
                       {selectedVersion.label}
                       {selectedVersion.immutable ? ` · ${t('demo.review.immutable')}` : ''}
                     </span>
-                    <img src={(selectedVersion.assets && selectedVersion.assets[0])} alt="" draggable={false} />
+                    <img
+                      src={selectedVersion.assets && selectedVersion.assets[0]}
+                      alt=""
+                      draggable={false}
+                    />
                     {versionAnnotations.map((a) => {
                       const pos = mapNormalizedToPercent(a.x, a.y);
                       return (
@@ -619,9 +651,17 @@ export default function DeliverableDetailClient() {
                       data-testid={`demo-comment-filter-${f}`}
                       onClick={() => setCommentFilter(f)}
                     >
-                      {f === 'all' ? (locale.toLowerCase().startsWith('ar') ? 'الكل' : 'All')
-                        : f === 'unresolved' ? (locale.toLowerCase().startsWith('ar') ? 'مفتوح' : 'Open')
-                        : (locale.toLowerCase().startsWith('ar') ? 'محلول' : 'Resolved')}
+                      {f === 'all'
+                        ? locale.toLowerCase().startsWith('ar')
+                          ? 'الكل'
+                          : 'All'
+                        : f === 'unresolved'
+                          ? locale.toLowerCase().startsWith('ar')
+                            ? 'مفتوح'
+                            : 'Open'
+                          : locale.toLowerCase().startsWith('ar')
+                            ? 'محلول'
+                            : 'Resolved'}
                     </button>
                   ))}
                 </div>
@@ -648,7 +688,9 @@ export default function DeliverableDetailClient() {
                           void toggleResolve(a.id, !a.resolved);
                         }}
                       >
-                        {a.resolved ? t('demo.review.unresolve') || 'Unresolve' : t('demo.review.resolve') || 'Resolve'}
+                        {a.resolved
+                          ? t('demo.review.unresolve') || 'Unresolve'
+                          : t('demo.review.resolve') || 'Resolve'}
                       </Button>
                     </li>
                   ))}
@@ -657,7 +699,11 @@ export default function DeliverableDetailClient() {
                   <div className="oma-review-general">
                     <h4>{t('demo.review.general') || 'General'}</h4>
                     {generalComments.map((c) => (
-                      <div key={c.id} className="oma-review-thread" data-testid={`demo-comment-${c.id}`}>
+                      <div
+                        key={c.id}
+                        className="oma-review-thread"
+                        data-testid={`demo-comment-${c.id}`}
+                      >
                         <div className="oma-review-thread__head">
                           <strong>{c.author}</strong>
                           <time dateTime={c.at}>{c.at}</time>
@@ -668,22 +714,26 @@ export default function DeliverableDetailClient() {
                   </div>
                 ) : null}
 
-                <div className="oma-review-decision" data-testid="demo-review-decision">
-                  <h4>{t('demo.review.decision') || 'Decision'}</h4>
-                  <div className="oma-chip-row">
-                    {(['APPROVED', 'CHANGES_REQUESTED', 'REJECTED'] as Decision[]).map((d) => (
-                      <Button
-                        key={d}
-                        type="default"
-                        data-testid={`demo-decision-${d}`}
-                        disabled={saving || !selectedVersion || !canTransitionReview(row.reviewStatus, d)}
-                        onClick={() => setDecisionOpen(d)}
-                      >
-                        {d === 'APPROVED' ? <CheckOutlined /> : null} {d}
-                      </Button>
-                    ))}
+                {canDecide ? (
+                  <div className="oma-review-decision" data-testid="demo-review-decision">
+                    <h4>{t('demo.review.decision') || 'Decision'}</h4>
+                    <div className="oma-chip-row">
+                      {(['APPROVED', 'CHANGES_REQUESTED', 'REJECTED'] as Decision[]).map((d) => (
+                        <Button
+                          key={d}
+                          type="default"
+                          data-testid={`demo-decision-${d}`}
+                          disabled={
+                            saving || !selectedVersion || !canTransitionReview(row.reviewStatus, d)
+                          }
+                          onClick={() => setDecisionOpen(d)}
+                        >
+                          {d === 'APPROVED' ? <CheckOutlined /> : null} {d}
+                        </Button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                ) : null}
               </aside>
             </div>
           </div>
@@ -691,9 +741,9 @@ export default function DeliverableDetailClient() {
           <div className="oma-deliv-detail__workspace">
             <div className="oma-deliv-detail__main">
               <section className="oma-deliv-detail__card oma-deliv-detail__preview">
-                {(selectedVersion?.assets && selectedVersion.assets[0]) ? (
+                {selectedVersion?.assets && selectedVersion.assets[0] ? (
                   <img
-                    src={(selectedVersion.assets && selectedVersion.assets[0])}
+                    src={selectedVersion.assets && selectedVersion.assets[0]}
                     alt=""
                     className="oma-deliv-detail__hero"
                     data-testid="demo-deliv-preview"
@@ -746,7 +796,11 @@ export default function DeliverableDetailClient() {
                       data-testid={`demo-version-${v.id}`}
                       onClick={() => void selectVersion(v.id)}
                     >
-                      {(v.assets && v.assets[0]) ? <img src={(v.assets && v.assets[0])} alt="" /> : <div className="oma-deliv-detail__version-ph" />}
+                      {v.assets && v.assets[0] ? (
+                        <img src={v.assets && v.assets[0]} alt="" />
+                      ) : (
+                        <div className="oma-deliv-detail__version-ph" />
+                      )}
                       <span>
                         <strong>{v.label}</strong>
                         <span className="oma-muted">{v.status}</span>
@@ -761,15 +815,21 @@ export default function DeliverableDetailClient() {
               <div className="oma-deliv-detail__side-card">
                 <h3>{t('demo.deliverable.meta') || 'Details'}</h3>
                 <div className="oma-deliv-detail__side-row">
-                  <span className="oma-deliv-detail__side-label">{t('demo.deliverables.filter.owner') || 'Owner'}</span>
+                  <span className="oma-deliv-detail__side-label">
+                    {t('demo.deliverables.filter.owner') || 'Owner'}
+                  </span>
                   <strong>{row.owner}</strong>
                 </div>
                 <div className="oma-deliv-detail__side-row">
-                  <span className="oma-deliv-detail__side-label">{t('demo.deliverables.filter.reviewer')}</span>
+                  <span className="oma-deliv-detail__side-label">
+                    {t('demo.deliverables.filter.reviewer')}
+                  </span>
                   <strong>{row.reviewer}</strong>
                 </div>
                 <div className="oma-deliv-detail__side-row">
-                  <span className="oma-deliv-detail__side-label">{t('demo.deliverables.col.due') || 'Due'}</span>
+                  <span className="oma-deliv-detail__side-label">
+                    {t('demo.deliverables.col.due') || 'Due'}
+                  </span>
                   <strong className="oma-ltr">{row.dueAt}</strong>
                 </div>
                 <div className="oma-deliv-detail__side-row">
@@ -778,7 +838,8 @@ export default function DeliverableDetailClient() {
                 </div>
                 {approved ? (
                   <p className="oma-muted" data-testid="demo-approved-version">
-                    {t('demo.review.approvedVersion')}: {approved.label} ({t('demo.review.immutable')})
+                    {t('demo.review.approvedVersion')}: {approved.label} (
+                    {t('demo.review.immutable')})
                   </p>
                 ) : null}
               </div>
@@ -788,16 +849,25 @@ export default function DeliverableDetailClient() {
                   <LinkOutlined /> {locale.toLowerCase().startsWith('ar') ? 'روابط' : 'Links'}
                 </h3>
                 <nav className="oma-deliv-detail__links" aria-label="Breadcrumb">
-                  <Link href={`/app/campaigns/${row.campaignId}`} className="oma-deliv-detail__link">
+                  <Link
+                    href={`/app/campaigns/${row.campaignId}`}
+                    className="oma-deliv-detail__link"
+                  >
                     {row.campaignId}
                   </Link>
                   {row.contentId ? (
-                    <Link href={`/app/content?item=${row.contentId}`} className="oma-deliv-detail__link">
+                    <Link
+                      href={`/app/content?item=${row.contentId}`}
+                      className="oma-deliv-detail__link"
+                    >
                       {row.contentId}
                     </Link>
                   ) : null}
                   {row.requestId ? (
-                    <Link href={`/app/requests/${row.requestId}`} className="oma-deliv-detail__link">
+                    <Link
+                      href={`/app/requests/${row.requestId}`}
+                      className="oma-deliv-detail__link"
+                    >
                       {row.requestId}
                     </Link>
                   ) : null}

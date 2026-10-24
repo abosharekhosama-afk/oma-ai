@@ -32,7 +32,12 @@ export function SessionInvalidOverlay() {
   if (!open) return null;
 
   return (
-    <div className="oma-session-invalid" role="alertdialog" aria-modal="true" data-testid="session-invalid">
+    <div
+      className="oma-session-invalid"
+      role="alertdialog"
+      aria-modal="true"
+      data-testid="session-invalid"
+    >
       <div className="oma-session-invalid__card">
         <div className="oma-session-invalid__icon" aria-hidden>
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none">

@@ -405,10 +405,7 @@ export function isDemoModeEnabled(env: {
   const demoOn = env.OMA_DEMO_MODE === '1' || env.OMA_DEMO_MODE === 'true';
   if (!demoOn) return false;
   if (env.NODE_ENV !== 'production') return true;
-  return (
-    env.OMA_DEMO_ALLOW_PRODUCTION === '1' ||
-    env.OMA_DEMO_ALLOW_PRODUCTION === 'true'
-  );
+  return env.OMA_DEMO_ALLOW_PRODUCTION === '1' || env.OMA_DEMO_ALLOW_PRODUCTION === 'true';
 }
 
 export function assertDemoModeAllowed(env: {

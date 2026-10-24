@@ -88,9 +88,7 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     parsed.OMA_DEMO_MODE &&
     !parsed.OMA_DEMO_ALLOW_PRODUCTION
   ) {
-    throw new Error(
-      'OMA_DEMO_MODE requires OMA_DEMO_ALLOW_PRODUCTION=1 in production',
-    );
+    throw new Error('OMA_DEMO_MODE requires OMA_DEMO_ALLOW_PRODUCTION=1 in production');
   }
   return parsed;
 }

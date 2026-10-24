@@ -15,12 +15,42 @@ import { isPermissionDenied } from '../../../../../lib/brand-api';
 import { PermissionDenied } from '../../../../../components/shell/permission-denied';
 
 const COMPANY_ROLES = [
-  { value: 'Owner', profile: 'COMPANY_OWNER', kind: 'team' as const, desc: 'Full company ownership' },
-  { value: 'Administrator', profile: 'ADMIN', kind: 'team' as const, desc: 'Manage workspaces, people, and settings' },
-  { value: 'Writer', profile: 'WRITER', kind: 'team' as const, desc: 'Create and edit posts and campaigns' },
-  { value: 'Approver', profile: 'APPROVER', kind: 'team' as const, desc: 'Review and approve content' },
-  { value: 'Contributor', profile: 'MEMBER', kind: 'team' as const, desc: 'Standard collaborator access' },
-  { value: 'Client', profile: 'CLIENT', kind: 'client' as const, desc: 'External client — view and approve' },
+  {
+    value: 'Owner',
+    profile: 'COMPANY_OWNER',
+    kind: 'team' as const,
+    desc: 'Full company ownership',
+  },
+  {
+    value: 'Administrator',
+    profile: 'ADMIN',
+    kind: 'team' as const,
+    desc: 'Manage workspaces, people, and settings',
+  },
+  {
+    value: 'Writer',
+    profile: 'WRITER',
+    kind: 'team' as const,
+    desc: 'Create and edit posts and campaigns',
+  },
+  {
+    value: 'Approver',
+    profile: 'APPROVER',
+    kind: 'team' as const,
+    desc: 'Review and approve content',
+  },
+  {
+    value: 'Contributor',
+    profile: 'MEMBER',
+    kind: 'team' as const,
+    desc: 'Standard collaborator access',
+  },
+  {
+    value: 'Client',
+    profile: 'CLIENT',
+    kind: 'client' as const,
+    desc: 'External client — view and approve',
+  },
   { value: 'Guest', profile: 'GUEST', kind: 'client' as const, desc: 'Limited view access' },
 ];
 
@@ -65,14 +95,19 @@ export default function CompanyMembersPage() {
     return () => {
       mountedRef.current = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
     if (!needle) return members;
     return members.filter((m) => {
-      const hay = [m.user?.email, m.user?.name, m.invited_email, m.role, ...(m.source_profiles || [])]
+      const hay = [
+        m.user?.email,
+        m.user?.name,
+        m.invited_email,
+        m.role,
+        ...(m.source_profiles || []),
+      ]
         .filter(Boolean)
         .join(' ')
         .toLowerCase();
@@ -150,8 +185,6 @@ export default function CompanyMembersPage() {
         </Button>
       </div>
 
-      
-
       {inviteLink ? (
         <div className="oma-planable-card" style={{ marginBottom: 12 }}>
           <strong>Invite link</strong>
@@ -175,7 +208,11 @@ export default function CompanyMembersPage() {
       ) : null}
 
       <div className="oma-planable-toolbar">
-        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search collaborators…" />
+        <Input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="Search collaborators…"
+        />
       </div>
 
       {loading ? <div className="oma-skeleton" role="status" /> : null}

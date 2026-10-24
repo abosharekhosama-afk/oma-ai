@@ -15,7 +15,7 @@ import { PermissionDenied } from '../../../../../../components/shell/permission-
 import { SelectCompany } from '../../../../../../components/shell/select-company';
 import { useT } from '../../../../../../lib/use-locale';
 import { StatusChip } from '../../../../../../components/ui/status-chip';
-import { EmptyState, ErrorState, Skeleton } from '../../../../../../components/ui/empty-state';
+import { EmptyState, ErrorState } from '../../../../../../components/ui/empty-state';
 import { Panel } from '../../../../../../components/ui/page-header';
 
 export default function StrategiesListPage() {

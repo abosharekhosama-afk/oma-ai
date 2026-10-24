@@ -223,3 +223,18 @@ export function canTransitionReview(from: DemoReviewStatus, to: DemoReviewStatus
   if (from === to) return true;
   return REVIEW_TRANSITIONS[from]?.includes(to) ?? false;
 }
+
+/**
+ * Production version-create policy. Must match
+ * `versionCreateAllowed` in packages/domain (simpler default):
+ * draft / not-started / changes-requested only. Approved, rejected,
+ * and in-review deliverables cannot gain a version.
+ * NOT_STARTED is shown as DRAFT by the ops-api mapper.
+ */
+export function canAddProductionVersion(reviewStatus: string): boolean {
+  return (
+    reviewStatus === 'DRAFT' ||
+    reviewStatus === 'NOT_STARTED' ||
+    reviewStatus === 'CHANGES_REQUESTED'
+  );
+}

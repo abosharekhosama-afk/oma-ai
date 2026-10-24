@@ -165,5 +165,7 @@ export function apiErrorMessage(err: unknown, fallback: string): string {
 }
 
 export function isForbidden(err: unknown): boolean {
-  return Boolean(err && typeof err === 'object' && 'status' in err && (err as { status: number }).status === 403);
+  return Boolean(
+    err && typeof err === 'object' && 'status' in err && (err as { status: number }).status === 403,
+  );
 }

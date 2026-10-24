@@ -34,7 +34,9 @@ const SLOT_KEY = 'oma.workspace.timetable.v1';
 const APPROVAL_KEY = 'oma.workspace.approvals.v1';
 
 export async function listBrands(): Promise<BrandRef[]> {
-  const res = await api<{ items?: BrandRef[]; data?: BrandRef[] } | BrandRef[]>('/api/v1/brands?limit=50');
+  const res = await api<{ items?: BrandRef[]; data?: BrandRef[] } | BrandRef[]>(
+    '/api/v1/brands?limit=50',
+  );
   if (Array.isArray(res)) return res.map((b) => ({ id: b.id, name: b.name }));
   const rows = res.items || res.data || [];
   return rows.map((b) => ({ id: b.id, name: b.name }));
@@ -70,9 +72,9 @@ export async function deleteLabel(brandId: string, labelId: string): Promise<voi
 }
 
 export async function listTemplates(brandId: string): Promise<ContentTemplate[]> {
-  const res = await api<{ items?: ContentTemplate[]; data?: ContentTemplate[] } | ContentTemplate[]>(
-    `/api/v1/brands/${brandId}/content-templates`,
-  );
+  const res = await api<
+    { items?: ContentTemplate[]; data?: ContentTemplate[] } | ContentTemplate[]
+  >(`/api/v1/brands/${brandId}/content-templates`);
   if (Array.isArray(res)) return res;
   return res.items || res.data || [];
 }

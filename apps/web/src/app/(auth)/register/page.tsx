@@ -1,18 +1,21 @@
 'use client';
 import { FormEvent, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useT } from '../../../lib/use-locale';
 import { OmaDotsLoader } from '../../../components/ui/oma-dots-loader';
 import {
-  PlxLogo, GoogleIcon, FacebookIcon, LockIcon, EyeIcon, EyeOffIcon,
+  PlxLogo,
+  GoogleIcon,
+  FacebookIcon,
+  LockIcon,
+  EyeIcon,
+  EyeOffIcon,
 } from '../../../components/ui/plx-icons';
 import '../auth-planable.css';
 
 export default function RegisterPage() {
   const t = useT();
-  const router = useRouter();
   const [step, setStep] = useState<1 | 2>(1);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -144,7 +147,11 @@ export default function RegisterPage() {
                   {error}
                 </p>
               ) : null}
-              <button type="submit" className="plx-btn plx-btn--dark plx-btn--block" disabled={busy}>
+              <button
+                type="submit"
+                className="plx-btn plx-btn--dark plx-btn--block"
+                disabled={busy}
+              >
                 {busy ? <OmaDotsLoader label="Creating account" /> : 'Create account'}
               </button>
             </form>

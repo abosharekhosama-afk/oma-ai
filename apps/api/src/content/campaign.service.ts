@@ -23,24 +23,27 @@ function localePair(input: LocaleInput | undefined, fallback = ''): { en: string
   return { en, ar };
 }
 
-function mapCampaign(row: {
-  id: string;
-  tenantId: string;
-  brandId: string;
-  nameEn: string;
-  nameAr: string;
-  descriptionEn: string | null;
-  descriptionAr: string | null;
-  track: string;
-  status: string;
-  timelineStart: Date;
-  timelineEnd: Date;
-  ownerUserId: string | null;
-  links: string[];
-  archivedAt: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-}, extras?: { content_count?: number; review_hint?: string }) {
+function mapCampaign(
+  row: {
+    id: string;
+    tenantId: string;
+    brandId: string;
+    nameEn: string;
+    nameAr: string;
+    descriptionEn: string | null;
+    descriptionAr: string | null;
+    track: string;
+    status: string;
+    timelineStart: Date;
+    timelineEnd: Date;
+    ownerUserId: string | null;
+    links: string[];
+    archivedAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+  },
+  extras?: { content_count?: number; review_hint?: string },
+) {
   const r = row as typeof row & {
     objectiveEn?: string | null;
     objectiveAr?: string | null;
@@ -67,9 +70,7 @@ function mapCampaign(row: {
           ? { en: r.descriptionEn ?? '', ar: r.descriptionAr ?? '' }
           : null,
     audience:
-      r.audienceEn || r.audienceAr
-        ? { en: r.audienceEn ?? '', ar: r.audienceAr ?? '' }
-        : null,
+      r.audienceEn || r.audienceAr ? { en: r.audienceEn ?? '', ar: r.audienceAr ?? '' } : null,
     channels: r.channels ?? [],
     strategy_id: r.strategyId ?? null,
     budget:
@@ -103,7 +104,7 @@ export class CampaignService {
     if (!brand) {
       throw new DomainError('NOT_FOUND', 'Brand not found', 404, 'errors.not_found');
     }
-    assertBrandNotArchived(brand.status === 'ARCHIVED' ? brand.archivedAt ?? new Date() : null);
+    assertBrandNotArchived(brand.status === 'ARCHIVED' ? (brand.archivedAt ?? new Date()) : null);
     return brand;
   }
 
@@ -210,9 +211,7 @@ export class CampaignService {
       where: { tenantId, campaignId, archivedAt: null },
       select: { approvalState: true, status: true },
     });
-    const hint = deriveCampaignReviewHint(
-      approvalRows.flatMap((a) => [a.approvalState, a.status]),
-    );
+    const hint = deriveCampaignReviewHint(approvalRows.flatMap((a) => [a.approvalState, a.status]));
     return {
       data: mapCampaign(row, { content_count: contentCount, review_hint: hint }),
     };
@@ -319,7 +318,12 @@ export class CampaignService {
       throw new DomainError('NOT_FOUND', 'Campaign not found', 404, 'errors.not_found');
     }
     if (current.archivedAt) {
-      throw new DomainError('CAMPAIGN_ARCHIVED', 'Campaign is archived', 409, 'error.campaign_archived');
+      throw new DomainError(
+        'CAMPAIGN_ARCHIVED',
+        'Campaign is archived',
+        409,
+        'error.campaign_archived',
+      );
     }
     await this.requireActiveBrand(tenantId, current.brandId);
 
@@ -375,12 +379,8 @@ export class CampaignService {
               descriptionAr: desc.ar,
             }
           : {}),
-        ...(objective
-          ? { objectiveEn: objective.en, objectiveAr: objective.ar }
-          : {}),
-        ...(audience
-          ? { audienceEn: audience.en, audienceAr: audience.ar }
-          : {}),
+        ...(objective ? { objectiveEn: objective.en, objectiveAr: objective.ar } : {}),
+        ...(audience ? { audienceEn: audience.en, audienceAr: audience.ar } : {}),
         ...(patch.channels ? { channels: patch.channels } : {}),
         ...(patch.strategyId !== undefined ? { strategyId: patch.strategyId } : {}),
         ...(patch.budgetAmount !== undefined ? { budgetAmount: patch.budgetAmount } : {}),
@@ -406,18 +406,7 @@ export class CampaignService {
     return this.get(tenantId, campaignId);
   }
 
-  async archive(
-    tenantId: string,
-    actorUserId: string,
-    campaignId: string,
-    correlationId?: string,
-  ) {
-    return this.update(
-      tenantId,
-      actorUserId,
-      campaignId,
-      { transition: 'archive' },
-      correlationId,
-    );
+  async archive(tenantId: string, actorUserId: string, campaignId: string, correlationId?: string) {
+    return this.update(tenantId, actorUserId, campaignId, { transition: 'archive' }, correlationId);
   }
 }

@@ -1,7 +1,12 @@
 'use client';
 
-import { SearchIcon } from '../../../../components/ui/plx-icons';
-import { FilterOutlined, SearchOutlined, DownOutlined, UpOutlined, UnorderedListOutlined } from '@ant-design/icons';
+import {
+  FilterOutlined,
+  SearchOutlined,
+  DownOutlined,
+  UpOutlined,
+  UnorderedListOutlined,
+} from '@ant-design/icons';
 import { OmaLinkButton } from '../../../../components/ui/oma-link-button';
 import { Button, Input } from '@oma/ui/controls';
 import { useEffect, useMemo, useState } from 'react';
@@ -14,7 +19,7 @@ import { SelectCompany } from '../../../../components/shell/select-company';
 import { useT } from '../../../../lib/use-locale';
 import { WorkspaceCard } from '../../../../components/brand/workspace-card';
 import { brandAttention } from '../../../../lib/brand-attention';
-import { EmptyState, ErrorState } from '../../../../components/ui/empty-state';
+import { ErrorState } from '../../../../components/ui/empty-state';
 
 type SortKey = 'name' | 'updated' | 'status';
 
@@ -66,8 +71,8 @@ export default function BrandsListPage() {
     rows.sort((a, b) => {
       if (sortKey === 'name') return a.name.localeCompare(b.name);
       if (sortKey === 'status') return (a.status || '').localeCompare(b.status || '');
-      const au = a.updated_at || a.created_at || '';
-      const bu = b.updated_at || b.created_at || '';
+      const au = a.updated_at || '';
+      const bu = b.updated_at || '';
       return bu.localeCompare(au);
     });
     return rows;

@@ -66,14 +66,25 @@ export const OPS_CAPABILITIES = [
   'request.read',
   'request.create',
   'request.update',
+  'request.write',
   'request.convert',
   'task.read',
   'task.create',
   'task.update',
+  'task.write',
+  'task.assign',
   'task.convert',
   'deliverable.read',
   'deliverable.update',
+  'deliverable.write',
+  'deliverable.version.create',
+  'deliverable.annotate',
   'deliverable.review',
+  /**
+   * Decide approve / request_changes / reject.
+   * `deliverable.review` remains an equivalent grant for existing profiles.
+   */
+  'deliverable.review.decide',
 ] as const;
 
 export type CapabilityCode =
@@ -119,20 +130,6 @@ const CONTENT_APPROVER = [
   'content.request_approval',
   'campaign.read',
   'notification.read',
-] as const;
-
-const OPS_MEMBER = [
-  'request.read',
-  'request.create',
-  'request.update',
-  'request.convert',
-  'task.read',
-  'task.create',
-  'task.update',
-  'task.convert',
-  'deliverable.read',
-  'deliverable.update',
-  'deliverable.review',
 ] as const;
 
 /**
@@ -200,9 +197,23 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     ...OPS_CAPABILITIES.filter((c) => c.startsWith('request.') || c.startsWith('task.')),
     'deliverable.read',
     'deliverable.update',
+    'deliverable.write',
+    'deliverable.version.create',
+    'deliverable.annotate',
   ],
-  /** Planable Approver — approve content only */
-  APPROVER: [...CONTENT_APPROVER, 'brand.read', 'strategy.read', 'strategy.approve', 'deliverable.review', 'deliverable.read'],
+  /** Planable Approver — approve content and deliverable review decisions */
+  APPROVER: [
+    ...CONTENT_APPROVER,
+    'brand.read',
+    'strategy.read',
+    'strategy.approve',
+    'request.read',
+    'task.read',
+    'deliverable.review',
+    'deliverable.review.decide',
+    'deliverable.read',
+    'deliverable.annotate',
+  ],
   /** Standard collaborator */
   MEMBER: [
     'notification.read',
@@ -217,8 +228,10 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     'content.request_approval',
     'request.read',
     'request.create',
+    'request.write',
     'task.read',
     'task.update',
+    'task.write',
     'deliverable.read',
   ],
   /** External client / guest — view & approve limited */
@@ -230,6 +243,8 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     'content.approve',
     'deliverable.read',
     'deliverable.review',
+    'deliverable.review.decide',
+    'deliverable.annotate',
   ],
   GUEST: ['notification.read', 'content.read', 'campaign.read', 'brand.read'],
   VIEWER: ['notification.read', 'content.read', 'campaign.read', 'brand.read', 'strategy.read'],

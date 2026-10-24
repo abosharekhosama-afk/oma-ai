@@ -8,6 +8,8 @@ export * from './tenant/membership-routing';
 export * from './brand';
 export * from './strategy';
 export * from './content';
+export * from './work/deliverable-review-policy';
+export * from './work/brief-readiness';
 export * from './jobs/outbox';
 export * from './ports/mail-provider.port';
 export * from './ports/ai-provider.port';

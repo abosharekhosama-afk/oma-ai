@@ -7,7 +7,11 @@ import { hasCapability as domainHas } from './capability-codes';
 
 export { PLANABLE_ROLES, CAPABILITY_LABELS } from './capability-codes';
 
-export function can(grants: readonly string[] | undefined | null, required: string | string[], mode: 'any' | 'all' = 'all'): boolean {
+export function can(
+  grants: readonly string[] | undefined | null,
+  required: string | string[],
+  mode: 'any' | 'all' = 'all',
+): boolean {
   if (!grants || grants.length === 0) return false;
   return domainHas(grants, required, mode);
 }
