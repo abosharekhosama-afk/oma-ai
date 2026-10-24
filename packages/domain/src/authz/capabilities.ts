@@ -218,9 +218,8 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
   MEMBER: [
     'notification.read',
     'job.read',
-    'brand.read',
-    'strategy.read',
-    'strategy.comment',
+    // Least privilege: brand.* and strategy.* are NOT default for MEMBER;
+    // grant them explicitly per membership (see brand/strategy security tests).
     'campaign.read',
     'content.read',
     'content.create',
