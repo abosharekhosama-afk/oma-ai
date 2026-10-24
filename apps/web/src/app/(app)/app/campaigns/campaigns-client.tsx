@@ -9,7 +9,6 @@ import { FilterOutlined, AppstoreOutlined, UnorderedListOutlined, SearchOutlined
 import type { DemoGraph } from '@oma/demo';
 import { TrackPill } from '../../../../components/demo/track-pill';
 import { EmptyState, ErrorState, DeniedState } from '../../../../components/ui/empty-state';
-import { PageHeader } from '../../../../components/ui/page-header';
 import { StatusChip } from '../../../../components/ui/status-chip';
 import { useToast } from '../../../../components/ui/toast';
 import { Dialog } from '../../../../components/ui/dialog';
@@ -81,6 +80,7 @@ export default function CampaignsPage() {
   const [filterSheet, setFilterSheet] = useState(false);
   const [filterSection, setFilterSection] = useState<string | null>('search');
   const [actionsHost, setActionsHost] = useState<HTMLElement | null>(null);
+  const [tabsHost, setTabsHost] = useState<HTMLElement | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
@@ -150,6 +150,7 @@ export default function CampaignsPage() {
 
   useEffect(() => {
     setActionsHost(document.getElementById('oma-workspace-top-actions'));
+    setTabsHost(document.getElementById('oma-campaign-tabs-slot'));
   }, []);
 
   useEffect(() => {
@@ -649,39 +650,37 @@ export default function CampaignsPage() {
           )
         : null}
 
-      <PageHeader
-        title={t('demo.campaigns.title')}
-        description={t('demo.campaigns.subtitle')}
-        actions={null}
-        meta={
-          <div
-            className="oma-campaign-status-tabs"
-            role="tablist"
-            aria-label={t('demo.campaigns.title')}
-          >
-            {(
-              [
-                ['all', isAr ? 'الكل' : 'All'],
-                ['active', isAr ? 'نشطة' : 'Active'],
-                ['planning', isAr ? 'قيد التخطيط' : 'Planning'],
-                ['completed', isAr ? 'مكتملة' : 'Completed'],
-              ] as const
-            ).map(([key, label]) => (
-              <Button
-                key={key}
-                type="text"
-                role="tab"
-                aria-selected={campaignTab === key}
-                data-active={campaignTab === key ? 'true' : 'false'}
-                data-testid={`demo-campaign-tab-${key}`}
-                onClick={() => setCampaignTab(key)}
-              >
-                {label}
-              </Button>
-            ))}
-          </div>
-        }
-      />
+      {tabsHost
+        ? createPortal(
+            <div
+              className="oma-campaign-status-tabs oma-campaign-status-tabs--header"
+              role="tablist"
+              aria-label={t('demo.campaigns.title')}
+            >
+              {(
+                [
+                  ['all', isAr ? 'الكل' : 'All'],
+                  ['active', isAr ? 'نشطة' : 'Active'],
+                  ['planning', isAr ? 'قيد التخطيط' : 'Planning'],
+                  ['completed', isAr ? 'مكتملة' : 'Completed'],
+                ] as const
+              ).map(([key, label]) => (
+                <Button
+                  key={key}
+                  type="text"
+                  role="tab"
+                  aria-selected={campaignTab === key}
+                  data-active={campaignTab === key ? 'true' : 'false'}
+                  data-testid={`demo-campaign-tab-${key}`}
+                  onClick={() => setCampaignTab(key)}
+                >
+                  {label}
+                </Button>
+              ))}
+            </div>,
+            tabsHost,
+          )
+        : null}
       {filterCount > 0 ? (
         <div className="oma-filter-chips" data-testid="demo-campaign-filter-chips">
           {chips.map((chip) => (
