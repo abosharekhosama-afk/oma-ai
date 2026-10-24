@@ -2263,7 +2263,45 @@ button.oma-breadcrumb-workspace:hover {
   font-weight: 500 !important;
   color: #111 !important;
 }
-/* OMA-UI-PATCH v2026-10-24c-ws */
-button.oma-breadcrumb-workspace {
+
+/* Header workspace actions menu */
+.oma-breadcrumb-ws-wrap {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+.oma-breadcrumb-ws-menu {
+  position: absolute !important;
+  top: calc(100% + 6px) !important;
+  inset-inline-start: 0 !important;
+  z-index: 1200 !important;
+  min-width: 200px !important;
+  padding: 6px !important;
+  background: #fff !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.14) !important;
+}
+.oma-breadcrumb-ws-menu__item {
+  display: flex !important;
+  width: 100% !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 10px 12px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: #111827 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  text-align: start !important;
   cursor: pointer !important;
+}
+.oma-breadcrumb-ws-menu__item:hover {
+  background: #f3f4f6 !important;
+}
+/* Ensure brand context never shows in trail */
+.oma-top-context .oma-brand-context,
+.oma-top-context [data-testid="brand-context"] {
+  display: none !important;
 }
