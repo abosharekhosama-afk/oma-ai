@@ -150,7 +150,24 @@ export default function CampaignsPage() {
 
   useEffect(() => {
     setActionsHost(document.getElementById('oma-workspace-top-actions'));
-    setTabsHost(document.getElementById('oma-campaign-tabs-slot'));
+    const resolveTabs = () => {
+      const el = document.getElementById('oma-campaign-tabs-slot');
+      if (el) setTabsHost(el);
+      return Boolean(el);
+    };
+    if (resolveTabs()) return;
+    const obs = new MutationObserver(() => {
+      if (resolveTabs()) obs.disconnect();
+    });
+    obs.observe(document.body, { childList: true, subtree: true });
+    const t = window.setTimeout(() => {
+      resolveTabs();
+      obs.disconnect();
+    }, 3000);
+    return () => {
+      obs.disconnect();
+      window.clearTimeout(t);
+    };
   }, []);
 
   useEffect(() => {
