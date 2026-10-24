@@ -2505,3 +2505,35 @@ button.oma-breadcrumb-workspace:hover {
 .oma-path-ws-menu .oma-ws-menu-item:hover {
   background: #f5f6f7 !important;
 }
+
+/* OMA-UI-PATCH v2026-10-24-rail — collapse only when expanded; logo opens rail */
+.oma-shell[data-rail='collapsed'] .oma-rail-collapse {
+  display: none !important;
+}
+.oma-rail-logo-link--expand {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: transparent !important;
+  border: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  cursor: pointer !important;
+  color: inherit !important;
+}
+.oma-shell[data-rail='collapsed'] .oma-rail-header {
+  justify-content: center !important;
+}
+.oma-shell[data-content-workspace='true'] .oma-top,
+.oma-top[data-content-workspace='true'] {
+  margin-bottom: 0 !important;
+  border-bottom: 1px solid var(--oma-border, #e6e7e9) !important;
+}
+/* Campaign tabs slot in top trail */
+.oma-campaign-tabs-slot:empty {
+  display: none !important;
+}
+.oma-breadcrumb-campaign-tabs-wrap {
+  display: inline-flex !important;
+  align-items: center !important;
+}
