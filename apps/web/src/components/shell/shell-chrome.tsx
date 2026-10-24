@@ -46,7 +46,7 @@ function RailNav({ collapsed }: { collapsed: boolean }) {
   );
 }
 
-function ShellBreadcrumb() {
+function ShellBreadcrumb({ onWorkspaceClick }: { onWorkspaceClick?: () => void }) {
   const t = useT();
   const pathname = usePathname() || '/app';
   const isContent = pathname === '/app/content' || pathname.startsWith('/app/content/');
@@ -88,7 +88,13 @@ function ShellBreadcrumb() {
       <nav aria-label={t('shell.breadcrumb')} className="oma-context-trail oma-context-trail--content">
         <ol className="oma-breadcrumb oma-breadcrumb--planable">
           <li>
-            <button type="button" className="oma-breadcrumb-workspace" data-testid="shell-workspace-switch">
+            <button
+              type="button"
+              className="oma-breadcrumb-workspace"
+              data-testid="shell-workspace-switch"
+              aria-haspopup="dialog"
+              onClick={() => onWorkspaceClick?.()}
+            >
               <span className="oma-breadcrumb-workspace-mark" aria-hidden />
               <span className="oma-breadcrumb-workspace-label">Osama</span>
               <span className="oma-breadcrumb-caret" aria-hidden>
@@ -278,7 +284,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
               {/* Mobile nav trigger removed from all headers per product request */}
               <div className="oma-top-context">
                 {hideBrandTrail ? null : <BrandContext />}
-                <ShellBreadcrumb />
+                <ShellBreadcrumb onWorkspaceClick={() => setWsSettingsOpen(true)} />
               </div>
             </div>
             {/* Planable Content: no center search — actions live on the right */}
