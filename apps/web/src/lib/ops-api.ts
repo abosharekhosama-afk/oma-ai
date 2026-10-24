@@ -6,7 +6,7 @@ import type { ApiLocale } from './campaign-api';
 import { listBrandsProduction, listAllCampaigns, toCampaignRow } from './campaign-api';
 import type { RequestRow } from './demo/stage4-requests';
 import type { TaskRow } from './demo/stage4-tasks';
-import type { DeliverableRow } from './demo/stage4-deliverables';
+import type { DeliverableRow } from './demo/stage5-deliverables';
 
 export type ApiWorkRequest = {
   id: string;
@@ -43,6 +43,8 @@ export type ApiWorkTask = {
   title: ApiLocale;
   description?: ApiLocale;
   status: string;
+  priority?: string;
+  department?: string;
   assignee_user_id: string | null;
   due_at: string | null;
   created_by?: string;
@@ -206,9 +208,8 @@ export function toTaskRow(task: ApiWorkTask): TaskRow {
     type: 'COPY',
     status,
     assignee: task.assignee_name || (task.assignee_user_id ? 'Team member' : 'Unassigned'),
-    department: '—',
-    priority: (task.priority as TaskRow['priority']) || 'MEDIUM',
     department: task.department || '—',
+    priority: (task.priority as TaskRow['priority']) || 'MEDIUM',
     dueAt: task.due_at ? task.due_at.slice(0, 10) : '',
     updatedAt: task.updated_at ?? new Date().toISOString(),
     blockedReason: null,
@@ -287,10 +288,21 @@ export function toDeliverableRowFromDetail(payload: {
   return base;
 }
 
+function inferDeliverableType(assetUrl: string | null | undefined): DeliverableRow['type'] {
+  if (!assetUrl) return 'FILE';
+  const lower = assetUrl.toLowerCase();
+  if (/\.(png|jpe?g|gif|webp|svg)(\?|$)/.test(lower)) return 'IMAGE';
+  if (/\.(mp4|webm|mov)(\?|$)/.test(lower)) return 'VIDEO';
+  if (/\.(pdf)(\?|$)/.test(lower)) return 'PDF';
+  return 'FILE';
+}
+
 export function toDeliverableRow(d: ApiWorkDeliverable): DeliverableRowExtra {
   const review = mapReviewStatus(d.review_status || d.status);
   const creator = d.created_by_name || 'Team member';
-  const versionId = d.id;
+  const versionId = d.current_version_id || d.id;
+  const asset = d.asset_url || '';
+  const archived = (d.status || '').toUpperCase() === 'ARCHIVED';
   return {
     id: d.id,
     brandId: d.brand_id,
@@ -299,25 +311,26 @@ export function toDeliverableRow(d: ApiWorkDeliverable): DeliverableRowExtra {
     taskId: d.task_id,
     contentId: d.content_id,
     title: d.title,
-    channel: '—',
-    format: 'FILE',
+    type: inferDeliverableType(asset),
     reviewStatus: review,
-    dueAt: '',
+    owner: creator,
+    dueAt: d.updated_at?.slice(0, 10) || '',
     reviewer: creator,
+    archived,
     currentVersionId: versionId,
-    approvedVersionId: review === 'APPROVED' ? versionId : null,
+    approvedVersionId: d.approved_version_id || (review === 'APPROVED' ? versionId : null),
     versions: [
       {
         id: versionId,
         label: 'v1',
-        assets: d.asset_url ? [d.asset_url] : [],
+        assets: asset ? [asset] : [],
         notes: { en: '', ar: '' },
         createdAt: d.created_at || new Date().toISOString(),
         createdBy: creator,
         immutable: review === 'APPROVED',
         reviewDecision: review === 'APPROVED' || review === 'REJECTED' ? review : null,
         status: (d.status as never) || 'DRAFT',
-        previewUrl: d.asset_url || '',
+        previewUrl: asset,
         isApproved: review === 'APPROVED',
       } as DeliverableRow['versions'][number],
     ],

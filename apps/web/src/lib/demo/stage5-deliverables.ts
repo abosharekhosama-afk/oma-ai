@@ -1,4 +1,5 @@
 import type { DemoGraph, DemoReviewStatus } from '@oma/demo';
+import { todayKey } from '../calendar-today';
 
 export type DeliverableRow = DemoGraph['deliverables'][number];
 
@@ -32,9 +33,7 @@ export const EMPTY_DELIVERABLE_FILTERS: DeliverableFilters = {
   view: 'grid',
 };
 
-const TODAY = '2026-09-11';
-
-export function deliverableIsOverdue(row: DeliverableRow, today = TODAY): boolean {
+export function deliverableIsOverdue(row: DeliverableRow, today = todayKey()): boolean {
   if (row.archived || row.reviewStatus === 'APPROVED' || row.reviewStatus === 'REJECTED') {
     return false;
   }
@@ -103,7 +102,7 @@ export function filterDeliverables(
   rows: DeliverableRow[],
   filters: DeliverableFilters,
   locale: 'en' | 'ar',
-  today = TODAY,
+  today = todayKey(),
 ): DeliverableRow[] {
   const q = filters.q.trim().toLowerCase();
   return rows.filter((row) => {
@@ -116,8 +115,13 @@ export function filterDeliverables(
     if (filters.owner !== 'all' && row.owner !== filters.owner) return false;
     if (filters.reviewer !== 'all' && row.reviewer !== filters.reviewer) return false;
     if (filters.due === 'overdue' && !deliverableIsOverdue(row, today)) return false;
-    if (filters.due === 'soon' && (deliverableIsOverdue(row, today) || row.dueAt > '2026-09-18')) {
-      return false;
+    if (filters.due === 'soon') {
+      const horizon = new Date(`${today}T12:00:00Z`);
+      horizon.setUTCDate(horizon.getUTCDate() + 7);
+      const horizonKey = horizon.toISOString().slice(0, 10);
+      if (deliverableIsOverdue(row, today) || !row.dueAt || row.dueAt > horizonKey) {
+        return false;
+      }
     }
     if (!q) return true;
     const ver = currentVersion(row);
@@ -156,7 +160,7 @@ export type ReviewQueueTab = 'assigned' | 'waiting' | 'changes' | 'approved' | '
 export function filterReviewQueue(
   rows: DeliverableRow[],
   tab: ReviewQueueTab,
-  reviewerName = 'Layla Haddad',
+  reviewerName?: string,
 ): DeliverableRow[] {
   const sorted = [...rows].sort((a, b) => {
     const rank = (s: DemoReviewStatus) =>
@@ -165,9 +169,10 @@ export function filterReviewQueue(
   });
   switch (tab) {
     case 'assigned':
+      if (!reviewerName) return [];
       return sorted.filter(
         (r) =>
-          r.reviewer === reviewerName &&
+          (r.reviewer === reviewerName || r.owner === reviewerName) &&
           (r.reviewStatus === 'AWAITING_REVIEW' || r.reviewStatus === 'IN_REVIEW'),
       );
     case 'waiting':

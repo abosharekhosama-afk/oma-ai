@@ -198,6 +198,8 @@ export class OpsService {
       status: string;
       reviewStatus: string;
       assetUrl: string | null;
+      currentVersionId?: string | null;
+      approvedVersionId?: string | null;
       createdBy: string;
       createdAt: Date;
       updatedAt: Date;
@@ -260,14 +262,30 @@ export class OpsService {
       requests.map((r) => [r.id, r.titleEn || r.titleAr || 'Request']),
     );
     const taskMap = new Map(tasks.map((t) => [t.id, t.titleEn || t.titleAr || 'Task']));
-    return rows.map((row) => ({
-      ...mapDeliverable(row),
-      created_by_name: userMap.get(row.createdBy) || 'Team member',
-      brand_name: brandMap.get(row.brandId) || 'Brand',
-      campaign_name: row.campaignId ? campaignMap.get(row.campaignId) || null : null,
-      request_title: row.requestId ? requestMap.get(row.requestId) || null : null,
-      task_title: row.taskId ? taskMap.get(row.taskId) || null : null,
-    }));
+    const versionIds = rows
+      .map((r) => r.currentVersionId)
+      .filter((id): id is string => Boolean(id));
+    const versions = versionIds.length
+      ? await prisma.workDeliverableVersion.findMany({
+          where: { id: { in: versionIds } },
+          select: { id: true, assetUrl: true, label: true },
+        })
+      : [];
+    const versionAssetMap = new Map(versions.map((v) => [v.id, v.assetUrl]));
+    return rows.map((row) => {
+      const versionAsset = row.currentVersionId
+        ? versionAssetMap.get(row.currentVersionId) ?? null
+        : null;
+      const assetUrl = row.assetUrl || versionAsset || null;
+      return {
+        ...mapDeliverable({ ...row, assetUrl }),
+        created_by_name: userMap.get(row.createdBy) || 'Team member',
+        brand_name: brandMap.get(row.brandId) || 'Brand',
+        campaign_name: row.campaignId ? campaignMap.get(row.campaignId) || null : null,
+        request_title: row.requestId ? requestMap.get(row.requestId) || null : null,
+        task_title: row.taskId ? taskMap.get(row.taskId) || null : null,
+      };
+    });
   }
 
   async createRequest(
@@ -744,7 +762,7 @@ export class OpsService {
     const from = (current.reviewStatus || 'NOT_STARTED').toUpperCase();
     const normalized = action.toLowerCase().replace(/-/g, '_');
     const transitions: Record<string, { next: string; status?: string }> = {
-      submit: { next: 'IN_REVIEW', status: 'IN_REVIEW' },
+      submit: { next: 'AWAITING_REVIEW', status: 'IN_REVIEW' },
       approve: { next: 'APPROVED', status: 'APPROVED' },
       request_changes: { next: 'CHANGES_REQUESTED', status: 'CHANGES_REQUESTED' },
       reject: { next: 'REJECTED', status: 'REJECTED' },

@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { ApprovalPolicy, DemoGraph } from '@oma/demo';
 import { resolveContentWorkflow } from '@oma/demo';
-import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
 import { Dialog } from '../../../../components/ui/dialog';
 import { Drawer } from '../../../../components/ui/drawer';
 import { EmptyState } from '../../../../components/ui/empty-state';
@@ -17,7 +16,7 @@ import { pickCopy } from '../../../../lib/demo/use-demo-api';
 import {
   archiveContent,
   contentApiError,
-  loadContentWorkspace,
+  loadScheduleWorkspace,
   scheduleContent,
   toContentRow,
   unscheduleContent,
@@ -77,7 +76,7 @@ export default function SchedulePage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const workspace = await loadContentWorkspace();
+      const workspace = await loadScheduleWorkspace();
       setPolicy(workspace.policy);
       setCampaigns(workspace.campaigns as DemoGraph['campaigns']);
       setContents(workspace.content as DemoGraph['contentItems']);
@@ -202,8 +201,7 @@ export default function SchedulePage() {
           </span>
         }
       />
-      <DemoDisclosure message={t('demo.schedule.honesty')} />
-      <p className="oma-honesty-inline">{t('demo.schedule.planningPreview')}</p>
+      <p className="oma-honesty-inline oma-muted">{t('demo.schedule.planningPreview')}</p>
 
       {loading ? <p className="oma-muted">{t('demo.loading')}</p> : null}
       {unavailable ? <p className="oma-muted">{t('demo.unavailable')}</p> : null}

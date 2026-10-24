@@ -5,16 +5,12 @@ import { Button, Input } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
 import { EmptyState } from '../../../../components/ui/empty-state';
+import { OmaTopLoader } from '../../../../components/ui/oma-top-loader';
 import { PageHeader } from '../../../../components/ui/page-header';
 import { StatusChip } from '../../../../components/ui/status-chip';
-import {
-  demoApi,
-  demoErrorMessage,
-  isDemoForbidden,
-  pickCopy,
-} from '../../../../lib/demo/use-demo-api';
+import { api } from '../../../../lib/api';
+import { pickCopy } from '../../../../lib/demo/use-demo-api';
 import {
   currentVersion,
   deliverableIsOverdue,
@@ -23,9 +19,14 @@ import {
   type DeliverableRow,
   type ReviewQueueTab,
 } from '../../../../lib/demo/stage5-deliverables';
+import { loadDeliverablesWorkspace, opsError } from '../../../../lib/ops-api';
 import { useLocale, useT } from '../../../../lib/use-locale';
 
 const TABS: ReviewQueueTab[] = ['assigned', 'waiting', 'changes', 'approved', 'all'];
+
+type MeProfile = {
+  user?: { name?: string | null; email?: string | null };
+};
 
 export default function ReviewsPage() {
   const t = useT();
@@ -36,18 +37,25 @@ export default function ReviewsPage() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [unavailable, setUnavailable] = useState(false);
+  const [reviewerName, setReviewerName] = useState<string>('');
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await demoApi<DeliverableRow[]>('/deliverables');
-      setRows(data);
+      const [ws, me] = await Promise.all([
+        loadDeliverablesWorkspace(),
+        api<MeProfile>('/api/v1/auth/me').catch(() => ({ user: { name: null, email: '' } })),
+      ]);
+      setRows(ws.deliverables);
+      const label =
+        (me.user?.name && me.user.name.trim()) ||
+        (me.user?.email ? me.user.email.split('@')[0] : '') ||
+        'Team member';
+      setReviewerName(label);
       setError(null);
-      setUnavailable(false);
     } catch (err) {
-      if (isDemoForbidden(err)) setUnavailable(true);
-      else setError(demoErrorMessage(err, 'Demo unavailable'));
+      setError(opsError(err, 'Failed to load review queue'));
+      setRows([]);
     } finally {
       setLoading(false);
     }
@@ -58,7 +66,7 @@ export default function ReviewsPage() {
   }, [load]);
 
   const queue = useMemo(() => {
-    let list = filterReviewQueue(rows, tab);
+    let list = filterReviewQueue(rows, tab, reviewerName);
     const query = q.trim().toLowerCase();
     if (query) {
       list = list.filter((r) =>
@@ -69,20 +77,21 @@ export default function ReviewsPage() {
       );
     }
     return list;
-  }, [rows, tab, q]);
+  }, [rows, tab, q, reviewerName]);
 
   const workload = useMemo(
     () =>
       rows.filter(
         (r) =>
-          r.reviewer === 'Layla Haddad' &&
+          reviewerName &&
+          (r.reviewer === reviewerName || r.owner === reviewerName) &&
           (r.reviewStatus === 'AWAITING_REVIEW' || r.reviewStatus === 'IN_REVIEW'),
       ).length,
-    [rows],
+    [rows, reviewerName],
   );
 
   return (
-    <div className="oma-stack" data-testid="demo-reviews">
+    <div className="oma-stack oma-reviews-page" data-testid="reviews-production">
       <PageHeader
         title={t('demo.reviews.title')}
         description={t('demo.reviews.subtitle')}
@@ -92,28 +101,30 @@ export default function ReviewsPage() {
           </span>
         }
       />
-      <DemoDisclosure />
-      <p className="oma-muted">{t('demo.realReviewsNote')}</p>
 
-      {loading ? <p className="oma-muted">{t('demo.loading')}</p> : null}
-      {unavailable ? <p className="oma-muted">{t('demo.unavailable')}</p> : null}
+      {loading ? <OmaTopLoader /> : null}
       {error ? (
         <div className="oma-card" role="alert">
           <p style={{ color: 'var(--status-danger)', margin: 0 }}>{error}</p>
+          <div style={{ marginTop: 12 }}>
+            <Button type="default" onClick={() => void load()}>
+              Retry
+            </Button>
+          </div>
         </div>
       ) : null}
 
-      {!loading && !unavailable && !error ? (
+      {!loading && !error ? (
         <>
           <div className="oma-reviews-toolbar" data-testid="demo-review-tabs">
-            <div className="oma-reviews-tabs" role="tablist">
+            <div className="oma-ws-tabs oma-reviews-tabs" role="tablist">
               {TABS.map((item) => (
                 <button
                   key={item}
                   type="button"
                   role="tab"
                   aria-selected={tab === item}
-                  className="oma-reviews-tabs__btn"
+                  className={`oma-ws-tab${tab === item ? ' is-active' : ''}`}
                   data-active={tab === item ? 'true' : 'false'}
                   data-testid={`demo-review-tab-${item}`}
                   onClick={() => setTab(item)}
@@ -170,7 +181,7 @@ export default function ReviewsPage() {
                     <div>
                       <strong>{pickCopy(d.title, locale)}</strong>
                       <div className="oma-muted">
-                        {ver?.label ?? '—'} · {d.owner} · {d.dueAt}
+                        {ver?.label ?? '—'} · {d.owner} · {d.dueAt || '—'}
                       </div>
                       <div className="oma-chip-row">
                         <StatusChip status={d.reviewStatus} />

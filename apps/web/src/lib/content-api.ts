@@ -243,6 +243,22 @@ export async function loadContentWorkspace(opts?: {
 }
 
 /** Background hydrate remaining brands after first paint. */
+/** All brands — for Schedule / cross-workspace planning surfaces. */
+export async function loadScheduleWorkspace(): Promise<{
+  brands: Awaited<ReturnType<typeof loadContentWorkspace>>['brands'];
+  campaigns: CampaignRow[];
+  content: ContentRow[];
+  policy: 'NONE' | 'OPTIONAL' | 'REQUIRED';
+}> {
+  const ws = await loadContentWorkspace({ full: true });
+  return {
+    brands: ws.brands,
+    campaigns: ws.campaigns,
+    content: ws.content,
+    policy: ws.policy,
+  };
+}
+
 export async function loadContentWorkspaceRest(brandIds: string[]): Promise<{
   campaigns: CampaignRow[];
   content: ContentRow[];
