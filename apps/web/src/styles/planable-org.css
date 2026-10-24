@@ -1233,3 +1233,175 @@
   font-size: 13px;
   font-weight: 600;
 }
+
+/* OMA-NUCLEAR-cal-planable-2026-10-24
+   Loaded last (planable-org.css). Beats stage3/4 min-height:120px and display:contents issues. */
+
+/* Weekdays: full-width row spanning 7 columns — NOT display:contents */
+.oma-cal-grid > .oma-cal-dow-row,
+.oma-cal-grid .oma-cal-dow-row,
+[data-testid="demo-content-cal-grid"] > .oma-cal-dow-row {
+  display: grid !important;
+  grid-column: 1 / -1 !important;
+  grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+  width: 100% !important;
+  min-height: 32px !important;
+  height: auto !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  background: #fff !important;
+  border-bottom: 1px solid #eef0f2 !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 8 !important;
+}
+.oma-cal-grid .oma-cal-dow,
+.oma-cal-dow-row .oma-cal-dow,
+[data-testid="demo-content-weekdays"] .oma-cal-dow {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  min-height: 28px !important;
+  height: auto !important;
+  padding: 6px 2px !important;
+  margin: 0 !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  line-height: 1.2 !important;
+  color: #8b8f97 !important;
+  background: #fff !important;
+  border: 0 !important;
+  text-transform: capitalize !important;
+  letter-spacing: 0 !important;
+  position: static !important;
+}
+
+/* Force calendar grid layout */
+[data-testid="demo-content-cal-grid"].oma-cal-grid,
+.oma-cal-grid {
+  display: grid !important;
+  grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+  background: #fff !important;
+}
+
+/* Compact Planable content cards — kill min-height 120px */
+.oma-cal-cell .oma-post-card--calendar,
+.oma-cal-cell .oma-post-card.oma-post-card--calendar,
+.oma-cal-cell .oma-plx-cal-card,
+.oma-plx-cal-card.oma-post-card--calendar,
+.oma-post-card--calendar.oma-post-card--planable {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 6px 8px !important;
+  margin: 0 !important;
+  border: 1px dashed #d5d7db !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+}
+.oma-cal-cell .oma-post-card--calendar[data-draft="true"],
+.oma-plx-cal-card[data-draft="true"] {
+  border: 1px dashed #d5d7db !important;
+  border-top-color: #e8b84a !important;
+  border-top-width: 2px !important;
+}
+.oma-cal-cell .oma-post-card--calendar img,
+.oma-cal-cell .oma-post-card--calendar .oma-post-card__media,
+.oma-plx-cal-card .oma-post-card__media,
+.oma-plx-cal-card img {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+.oma-plx-cal-card__row,
+.oma-cal-cell .oma-post-card__row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 4px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+.oma-plx-cal-card__channel,
+.oma-cal-cell .oma-post-card__channel {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  color: #5e6166 !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+}
+.oma-plx-cal-card__ico {
+  display: inline-flex !important;
+  color: #8b8f97 !important;
+  flex-shrink: 0 !important;
+  background: transparent !important;
+  width: auto !important;
+  height: auto !important;
+}
+.oma-plx-cal-card__name,
+.oma-cal-cell .oma-post-card__channel-name {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  max-width: 70px !important;
+  font-size: 11px !important;
+  color: #5e6166 !important;
+}
+.oma-plx-cal-card__when,
+.oma-cal-cell .oma-post-card__when {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+  flex-shrink: 0 !important;
+  font-size: 11px !important;
+  color: #8b8f97 !important;
+}
+.oma-plx-cal-card__draft,
+.oma-cal-cell .oma-post-card__draft {
+  display: inline-flex !important;
+  height: 16px !important;
+  padding: 0 5px !important;
+  border-radius: 3px !important;
+  background: #f0f1f3 !important;
+  color: #5e6166 !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  line-height: 16px !important;
+}
+.oma-plx-cal-card__title,
+.oma-cal-cell .oma-post-card--calendar .oma-post-card__title {
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  line-height: 1.3 !important;
+  color: #232426 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+/* neutralize wrapper that forced tall cards */
+.oma-cal-item:has(.oma-plx-cal-card),
+.oma-cal-item:has(.oma-post-card--planable),
+.oma-cal-item-wrap .oma-cal-item {
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
