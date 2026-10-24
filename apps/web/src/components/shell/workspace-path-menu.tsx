@@ -15,6 +15,13 @@ type BrandItem = {
   name: string;
 };
 
+/**
+ * Planable path workspace menu (matches live Planable header dropdown):
+ * - Header with mark + name
+ * - Settings | Members chip row
+ * - Active workspace row with check
+ * - New workspace / Switch company
+ */
 export function WorkspacePathMenu({ onOpenSettings }: { onOpenSettings: () => void }) {
   const t = useT();
   const [me, setMe] = useState<Me | null>(null);
@@ -86,33 +93,64 @@ export function WorkspacePathMenu({ onOpenSettings }: { onOpenSettings: () => vo
       </button>
       {open ? (
         <div className="oma-path-ws-menu" role="menu" data-testid="shell-workspace-path-menu">
-          <button
-            type="button"
-            role="menuitem"
-            className="oma-ws-menu-item"
-            onClick={() => {
-              setOpen(false);
-              onOpenSettings();
-            }}
-          >
-            <ShellIcon name="settings" size={14} />
-            <span>{t('shell.workspaceSettings') || 'Workspace settings'}</span>
-          </button>
-          {brands.slice(0, 6).map((brand) => (
+          <div className="oma-path-ws-menu__head">
+            <span className="oma-breadcrumb-workspace-mark" aria-hidden />
+            <strong className="oma-path-ws-menu__title">{name}</strong>
+          </div>
+
+          <div className="oma-path-ws-menu__chips">
             <button
-              key={brand.id}
               type="button"
               role="menuitem"
-              className="oma-ws-menu-item"
+              className="oma-path-ws-menu__chip"
               onClick={() => {
                 setOpen(false);
-                window.location.assign(`/app/brands/${brand.id}`);
+                onOpenSettings();
               }}
             >
-              <ShellIcon name="brand" size={14} />
-              <span>{brand.name}</span>
+              <ShellIcon name="settings" size={14} />
+              <span>{t('shell.settings') || 'Settings'}</span>
             </button>
-          ))}
+            <button
+              type="button"
+              role="menuitem"
+              className="oma-path-ws-menu__chip"
+              onClick={() => {
+                setOpen(false);
+                window.location.assign('/app/team');
+              }}
+            >
+              <ShellIcon name="team" size={14} />
+              <span>{t('nav.team') || 'Members'}</span>
+            </button>
+          </div>
+
+          <div className="oma-path-ws-menu__list">
+            {(brands.length ? brands.slice(0, 6) : [{ id: 'active', name }]).map((brand, idx) => (
+              <button
+                key={brand.id}
+                type="button"
+                role="menuitem"
+                className="oma-ws-menu-item oma-path-ws-menu__ws"
+                data-active={idx === 0 ? 'true' : 'false'}
+                onClick={() => {
+                  setOpen(false);
+                  if (brand.id !== 'active') window.location.assign(`/app/brands/${brand.id}`);
+                }}
+              >
+                <span className="oma-path-ws-menu__ws-icon" aria-hidden>
+                  ⊞
+                </span>
+                <span className="oma-path-ws-menu__ws-name">{brand.name}</span>
+                {idx === 0 ? (
+                  <span className="oma-path-ws-menu__check" aria-hidden>
+                    ✓
+                  </span>
+                ) : null}
+              </button>
+            ))}
+          </div>
+
           <button
             type="button"
             role="menuitem"
@@ -131,23 +169,11 @@ export function WorkspacePathMenu({ onOpenSettings }: { onOpenSettings: () => vo
             className="oma-ws-menu-item"
             onClick={() => {
               setOpen(false);
-              window.location.assign('/app/team');
-            }}
-          >
-            <ShellIcon name="team" size={14} />
-            <span>{t('nav.team') || 'Team & members'}</span>
-          </button>
-          <button
-            type="button"
-            role="menuitem"
-            className="oma-ws-menu-item"
-            onClick={() => {
-              setOpen(false);
               window.location.assign('/app/select-company');
             }}
           >
             <ShellIcon name="company" size={14} />
-            <span>{t('shell.allWorkspaces') || 'All workspaces'}</span>
+            <span>{t('shell.switchCompany') || 'Switch company'}</span>
           </button>
         </div>
       ) : null}
