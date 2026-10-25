@@ -1624,3 +1624,57 @@ main.oma-container:has(.oma-content-plan) {
 .oma-campaign-tabs-slot:empty {
   display: none !important;
 }
+
+/* ============================================================
+   OMA-OWNER-LOCK 2026-10-25 — calendar toolbar + weekday row
+   Must stay last. Winning-rule fixes found via computed styles:
+   - stage3.css `.oma-cal-toolbar { position: sticky; top: 48px }`
+     offset the toolbar 48px below the shell header inside the
+     scroller (and over the weekday row).
+   - `.oma-honesty-inline` subtitle added a 16px band above it.
+   - grid rows stretched the weekday track to ~27px.
+   ============================================================ */
+.oma-content-plan > .oma-honesty-inline[data-testid='content-calendar-role'] {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+.oma-cal-toolbar,
+.oma-content-plan .oma-cal-toolbar,
+.oma-cal-main > .oma-cal-toolbar,
+[data-testid='demo-content-calendar'] .oma-cal-toolbar {
+  top: 0 !important;
+  margin-top: 0 !important;
+}
+[data-testid='demo-content-cal-grid'].oma-cal-grid,
+.oma-cal-grid {
+  grid-template-rows: auto !important;
+  grid-auto-rows: minmax(0, 1fr) !important;
+  align-content: stretch !important;
+}
+.oma-cal-grid > .oma-cal-dow-row,
+.oma-cal-grid .oma-cal-dow-row,
+[data-testid='demo-content-cal-grid'] > .oma-cal-dow-row,
+.oma-cal-dow-row {
+  min-height: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+  padding: 0 !important;
+  align-self: start !important;
+}
+.oma-cal-grid .oma-cal-dow,
+.oma-cal-dow-row .oma-cal-dow,
+[data-testid='demo-content-weekdays'] .oma-cal-dow,
+.oma-cal-dow {
+  min-height: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+  padding: 2px !important;
+  line-height: 1.2 !important;
+}
