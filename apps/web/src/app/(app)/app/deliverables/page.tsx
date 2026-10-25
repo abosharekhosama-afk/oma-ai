@@ -391,7 +391,12 @@ export default function DeliverablesPage() {
                                   {pickCopy(d.title, locale)}
                                 </Link>
                                 <div className="oma-muted" style={{ fontSize: 12 }}>
-                                  {d.taskId ?? '—'} · {d.campaignId}
+                                  {[
+                                    (d as { brandName?: string }).brandName,
+                                    (d as { campaignName?: string | null }).campaignName,
+                                  ]
+                                    .filter(Boolean)
+                                    .join(' · ')}
                                 </div>
                               </td>
                               <td>{d.type}</td>

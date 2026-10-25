@@ -6,6 +6,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import type { DemoGraph, DemoLocaleCopy } from '@oma/demo';
 import { Dialog } from '../../../../../components/ui/dialog';
+import { EntityLink } from '../../../../../components/ui/entity-link';
 import { StatusChip } from '../../../../../components/ui/status-chip';
 import { useToast } from '../../../../../components/ui/toast';
 import { pickCopy } from '../../../../../lib/demo/use-demo-api';
@@ -52,7 +53,6 @@ import {
   UserOutlined,
   CalendarOutlined,
   FlagOutlined,
-  LinkOutlined,
   FileTextOutlined,
 } from '@ant-design/icons';
 
@@ -488,7 +488,7 @@ export default function RequestDetailPage() {
                         .filter((m) => m.user?.id)
                         .map((m) => (
                           <option key={m.id} value={m.user!.id}>
-                            {m.user?.name || m.user?.email || m.user!.id}
+                            {m.user?.name || m.user?.email || t('entity.type.member')}
                           </option>
                         ))}
                     </SelectField>
@@ -512,24 +512,24 @@ export default function RequestDetailPage() {
               </div>
               <div className="oma-req-detail__links">
                 {row.campaignId ? (
-                  <Link
+                  <EntityLink
+                    type="campaign"
+                    id={row.campaignId}
                     href={`/app/campaigns/${row.campaignId}`}
                     className="oma-req-detail__link"
-                    data-testid="demo-request-campaign-link"
-                  >
-                    <LinkOutlined /> {t('demo.create.campaign')}: {row.campaignId}
-                  </Link>
+                    testId="demo-request-campaign-link"
+                  />
                 ) : (
                   <span className="oma-muted">{t('demo.requests.noCampaign')}</span>
                 )}
                 {row.contentId ? (
-                  <Link
+                  <EntityLink
+                    type="content"
+                    id={row.contentId}
                     href={`/app/content?item=${row.contentId}`}
                     className="oma-req-detail__link"
-                    data-testid="demo-request-content-link"
-                  >
-                    <LinkOutlined /> {t('nav.content')}: {row.contentId}
-                  </Link>
+                    testId="demo-request-content-link"
+                  />
                 ) : null}
               </div>
             </section>

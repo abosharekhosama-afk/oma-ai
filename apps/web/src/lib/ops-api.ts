@@ -62,6 +62,7 @@ export type ApiWorkTask = {
   created_by_name?: string | null;
   /** List endpoint only: lightweight counts for board cards. */
   comment_count?: number;
+  deliverable_id?: string | null;
   checklist_total?: number;
   checklist_done?: number;
 };
@@ -215,7 +216,7 @@ export function toTaskRow(task: ApiWorkTask): TaskRow {
     contentId: task.content_id,
     requestId: task.request_id,
     briefId: null,
-    deliverableId: null,
+    deliverableId: task.deliverable_id ?? null,
     title: task.title,
     description: task.description ?? { en: '', ar: '' },
     type: 'COPY',

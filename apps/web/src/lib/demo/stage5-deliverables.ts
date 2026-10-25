@@ -231,6 +231,15 @@ export function canTransitionReview(from: DemoReviewStatus, to: DemoReviewStatus
  * and in-review deliverables cannot gain a version.
  * NOT_STARTED is shown as DRAFT by the ops-api mapper.
  */
+/** Production submit policy (packages/domain ALLOWED_FROM.submit). */
+export function canSubmitForReview(reviewStatus: string): boolean {
+  return (
+    reviewStatus === 'DRAFT' ||
+    reviewStatus === 'NOT_STARTED' ||
+    reviewStatus === 'CHANGES_REQUESTED'
+  );
+}
+
 export function canAddProductionVersion(reviewStatus: string): boolean {
   return (
     reviewStatus === 'DRAFT' ||

@@ -6336,90 +6336,211 @@ button.oma-breadcrumb-workspace:hover {
   }
 }
 
-/* ==== Tasks filter bar — anchored directly under the workspace top header ==== */
-/* While the bar is open the shell container drops its top padding so the bar
-   sits flush under .oma-top; inline padding is pinned so the bar can bleed edge to edge. */
-.oma-container:has(> .oma-tasks-page > .oma-tasks-filter-bar) {
-  padding-top: 0 !important;
-  padding-inline: var(--space-6) !important;
-}
+/* ==== Tasks filter drawer — antd Drawer, full height from top: 0, above the app header ==== */
 .oma-tasks-workspace[data-filter-open='true'] {
   grid-template-columns: minmax(0, 1fr) !important;
 }
-.oma-tasks-page > .oma-tasks-filter-bar {
-  position: sticky !important;
-  top: 0 !important;
-  z-index: var(--shell-z-top) !important;
-  display: flex !important;
-  flex-direction: row !important;
-  align-items: flex-start !important;
-  gap: var(--space-2) !important;
-  min-height: 0 !important;
-  max-height: none !important;
-  overflow: visible !important;
-  width: auto !important;
+.oma-tasks-filter-drawer .ant-drawer-content-wrapper {
+  box-shadow: var(--elev-dialog);
+}
+.oma-tasks-filter-drawer .ant-drawer-body {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.oma-tasks-filter-drawer .oma-tasks-filter-drawer__panel {
+  width: 100% !important;
   max-width: none !important;
   min-width: 0 !important;
-  align-self: stretch !important;
-  margin: 0 calc(var(--space-6) * -1) var(--space-4) !important;
-  padding: var(--space-2) var(--space-6) !important;
-  background: var(--oma-surface) !important;
-  border: 0 !important;
-  border-bottom: 1px solid var(--oma-border) !important;
-  box-shadow: var(--elev-1) !important;
-}
-.oma-tasks-filter-bar .oma-req-filter-panel__head {
-  position: static !important;
-  order: 99 !important;
-  min-height: var(--oma-control-height) !important;
-  padding: 0 !important;
-  border: 0 !important;
-  background: transparent !important;
-  gap: var(--space-2) !important;
-}
-.oma-tasks-filter-bar .oma-req-filter-panel__head strong {
-  display: none !important;
-}
-.oma-tasks-filter-bar .oma-filter-accordion-list {
   flex: 1 !important;
-  display: flex !important;
-  flex-wrap: wrap !important;
-  gap: var(--space-2) !important;
-}
-.oma-tasks-filter-bar .oma-filter-accordion {
-  position: relative !important;
+  min-height: 100% !important;
+  max-height: none !important;
   border: 0 !important;
-}
-.oma-tasks-filter-bar .oma-filter-accordion__row {
-  min-height: var(--oma-control-height) !important;
-  height: var(--oma-control-height) !important;
-  padding: 0 var(--space-3) !important;
-  gap: var(--space-2) !important;
-  border: 1px solid var(--oma-border-strong) !important;
-  border-radius: var(--oma-radius-control) !important;
-  background: var(--oma-surface) !important;
-  width: auto !important;
-}
-.oma-tasks-filter-bar .oma-filter-accordion__row[data-open='true'] {
-  border-color: var(--oma-primary) !important;
-  color: var(--oma-primary) !important;
-}
-.oma-tasks-filter-bar .oma-filter-accordion__body {
-  position: absolute !important;
-  top: calc(100% + var(--space-1)) !important;
-  inset-inline-start: 0 !important;
-  z-index: var(--shell-z-overlay) !important;
-  min-width: 240px !important;
-  padding: var(--space-2) var(--space-3) !important;
-  background: var(--oma-surface) !important;
-  border: 1px solid var(--oma-border) !important;
-  border-radius: var(--radius-xl) !important;
-  box-shadow: var(--elev-menu) !important;
-}
-.oma-tasks-filter-bar .oma-req-filter-panel__foot {
-  border: 0 !important;
-  padding: 0 !important;
-  margin: 0 !important;
   position: static !important;
-  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* ==== Readable related-record links (EntityLink) ==== */
+.oma-entity-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  max-width: 100%;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--oma-border);
+  border-radius: var(--radius-md);
+  background: var(--oma-surface);
+  color: var(--oma-ink-strong);
+  font-size: var(--text-control);
+  line-height: var(--leading-control);
+  text-decoration: none;
+  transition: border-color var(--oma-motion-control) var(--oma-motion-control-ease);
+}
+.oma-entity-link:hover {
+  border-color: var(--oma-primary);
+  color: var(--oma-primary);
+}
+.oma-entity-link:focus-visible {
+  outline: none;
+  box-shadow: var(--elev-focus);
+}
+.oma-entity-link__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--oma-muted);
+}
+.oma-entity-link__type {
+  flex-shrink: 0;
+  font-size: var(--text-meta);
+  color: var(--oma-muted);
+}
+.oma-entity-link__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: var(--weight-medium);
+}
+
+/* ==== Assignee picker (Planable-style popover card) ==== */
+.oma-task-detail__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+.oma-assignee-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  height: var(--oma-control-height);
+  padding: 0 var(--oma-input-pad-x);
+  border: 1px solid var(--oma-border-strong);
+  border-radius: var(--oma-radius-control);
+  background: var(--oma-surface);
+  color: var(--oma-ink-strong);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.oma-assignee-trigger:hover {
+  border-color: var(--oma-primary);
+}
+.oma-assignee-trigger:focus-visible {
+  outline: none;
+  box-shadow: var(--elev-focus);
+}
+.oma-assignee-trigger:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.oma-assignee-trigger__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.oma-assignee-card {
+  width: 280px;
+  font-family: var(--oma-font-sans);
+}
+:lang(ar) .oma-assignee-card {
+  font-family: var(--oma-font-arabic);
+}
+.oma-assignee-card__search {
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--oma-border);
+}
+.oma-assignee-card__list {
+  list-style: none;
+  margin: 0;
+  padding: var(--space-1);
+  max-height: 280px;
+  overflow: auto;
+}
+.oma-assignee-card__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 6px var(--space-2);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--oma-ink);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.oma-assignee-card__row:hover,
+.oma-assignee-card__row:focus-visible {
+  outline: none;
+  background: var(--oma-canvas);
+}
+.oma-assignee-card__row.is-active {
+  background: var(--oma-primary-soft);
+  color: var(--oma-primary);
+}
+.oma-assignee-card__row--unassign {
+  color: var(--oma-muted);
+  border-bottom: 1px solid var(--oma-border);
+  border-radius: 0;
+  margin-bottom: var(--space-1);
+}
+.oma-assignee-card__avatar {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--oma-primary-soft);
+  color: var(--oma-primary);
+  font-size: 10px;
+  font-weight: var(--weight-semibold);
+}
+.oma-assignee-card__avatar--empty {
+  background: transparent;
+  border: 1px dashed var(--oma-border-strong);
+  color: var(--oma-muted);
+  font-weight: var(--weight-regular);
+}
+.oma-assignee-card__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.oma-assignee-card__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-body);
+  line-height: 20px;
+}
+.oma-assignee-card__role {
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+  color: var(--oma-muted);
+}
+.oma-assignee-card__check {
+  margin-inline-start: auto;
+  color: var(--oma-primary);
+}
+.oma-assignee-card__empty {
+  padding: var(--space-3) var(--space-2);
+  color: var(--oma-muted);
+  font-size: var(--text-meta);
+  text-align: center;
+}
+
+/* ==== Review general comment composer ==== */
+.oma-review-general__composer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
 }

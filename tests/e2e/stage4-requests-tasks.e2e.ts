@@ -126,8 +126,10 @@ test.describe('Stage 4 Requests + Tasks visual rebuild', () => {
 
     await page.getByTestId('demo-task-card-demo-task-design').click();
     await expect(page.getByTestId('demo-task-drawer')).toBeVisible();
-    await page.getByTestId('demo-task-assignee').fill('Rami Khalil');
-    await page.getByTestId('demo-task-assignee').blur();
+    await page.getByTestId('demo-task-assignee').click();
+    await expect(page.getByTestId('demo-task-assignee-card')).toBeVisible();
+    await page.getByTestId('demo-task-assignee-search').fill('Owner');
+    await page.locator('[data-testid^="demo-task-assignee-option-"]').first().click();
     await chooseOmaSelect(page, 'demo-task-priority', 'URGENT');
     await page.getByTestId('demo-checklist-new').fill('Stage4 checklist item');
     await page.getByTestId('demo-checklist-new').press('Enter');

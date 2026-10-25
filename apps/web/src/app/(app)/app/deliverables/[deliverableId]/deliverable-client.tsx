@@ -18,7 +18,7 @@ import { pickCopy } from '../../../../../lib/demo/use-demo-api';
 import {
   getDeliverableDetail,
   reviewDeliverable,
-  toDeliverableRow,
+  addDeliverableComment,
   toDeliverableRowFromDetail,
   addDeliverableVersion,
   addDeliverableAnnotation,
@@ -28,6 +28,7 @@ import {
 import {
   approvedVersion,
   canAddProductionVersion,
+  canSubmitForReview,
   canTransitionReview,
   currentVersion,
   mapClientToNormalized,
@@ -36,7 +37,9 @@ import {
   type DeliverableRow,
 } from '../../../../../lib/demo/stage5-deliverables';
 import { useCapabilities } from '../../../../../lib/use-capabilities';
+import { EntityLink } from '../../../../../components/ui/entity-link';
 import { useLocale, useT } from '../../../../../lib/use-locale';
+import { formatCommentTime } from '../../../../../lib/calendar-today';
 import {
   ArrowLeftOutlined,
   CheckOutlined,
@@ -96,6 +99,9 @@ export default function DeliverableDetailClient() {
   const [decisionOpen, setDecisionOpen] = useState<Decision | null>(null);
   const [decisionReason, setDecisionReason] = useState('');
   const [saving, setSaving] = useState(false);
+  const [generalDraft, setGeneralDraft] = useState('');
+  const tRef = useRef(t);
+  tRef.current = t;
   const stageRef = useRef<HTMLDivElement | null>(null);
 
   const load = useCallback(async () => {
@@ -136,11 +142,13 @@ export default function DeliverableDetailClient() {
       setError(null);
       setUnavailable(false);
     } catch (err) {
-      setError(opsError(err, t('demo.unavailable')));
+      setError(opsError(err, tRef.current('demo.unavailable')));
     } finally {
       setLoading(false);
     }
-  }, [deliverableId, versionParam, t, locale]);
+    // `t` is a fresh closure every render; reading it through a ref keeps `load`
+    // stable so the effect below does not refetch in a loop.
+  }, [deliverableId, versionParam]);
 
   useEffect(() => {
     void load();
@@ -261,6 +269,40 @@ export default function DeliverableDetailClient() {
     }
   }
 
+  async function addGeneralComment() {
+    const body = generalDraft.trim();
+    if (!row || !body) return;
+    setSaving(true);
+    try {
+      await addDeliverableComment(row.id, {
+        body: { en: body, ar: body },
+        versionId: selectedVersion?.id ?? null,
+      });
+      const payload = await getDeliverableDetail(row.id);
+      setRow(toDeliverableRowFromDetail(payload));
+      setGeneralDraft('');
+    } catch (err) {
+      toast.push(opsError(err, t('demo.unavailable')), 'danger');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function submitForReview() {
+    if (!row) return;
+    setSaving(true);
+    try {
+      await reviewDeliverable(row.id, 'submit');
+      const payload = await getDeliverableDetail(row.id);
+      setRow(toDeliverableRowFromDetail(payload));
+      toast.push(t('demo.review.submitted'), 'success');
+    } catch (err) {
+      toast.push(opsError(err, t('demo.unavailable')), 'danger');
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function confirmDecision() {
     if (!row || !selectedVersion || !decisionOpen) return;
     if (
@@ -284,27 +326,25 @@ export default function DeliverableDetailClient() {
             : decisionOpen === 'CHANGES_REQUESTED'
               ? 'request_changes'
               : 'submit';
-      const api = await reviewDeliverable(
+      await reviewDeliverable(
         row.id,
         action as 'submit' | 'approve' | 'request_changes' | 'reject',
       );
-      const updated = {
-        ...toDeliverableRow(api),
-        decisions: [
-          ...(row.decisions || []),
-          {
-            id: `dec-${Date.now()}`,
-            decision: decisionOpen,
-            actor: 'You',
-            at: new Date().toISOString(),
-            reason: decisionReason.trim()
-              ? { en: decisionReason.trim(), ar: decisionReason.trim() }
-              : undefined,
-            versionId: selectedVersion?.id,
-          },
-        ],
-      } as DeliverableRow;
-      setRow(updated);
+      // Persist the reviewer's reason on the record (the review endpoint takes no body text).
+      const reason = decisionReason.trim();
+      if (reason) {
+        try {
+          await addDeliverableComment(row.id, {
+            body: { en: reason, ar: reason },
+            versionId: selectedVersion?.id ?? null,
+          });
+        } catch {
+          // Decision already saved; a failed reason comment must not roll it back.
+        }
+      }
+      // Reload the full detail so versions, approved pin, comments stay in sync.
+      const payload = await getDeliverableDetail(row.id);
+      setRow(toDeliverableRowFromDetail(payload));
       setDecisionOpen(null);
       setDecisionReason('');
       toast.push(t('demo.review.decisionSaved'), 'success');
@@ -383,6 +423,16 @@ export default function DeliverableDetailClient() {
                   (locale.toLowerCase().startsWith('ar') ? 'إغلاق المراجعة' : 'Close review')
                 : t('demo.reviews.openReview')}
             </Button>
+            {canVersion && canSubmitForReview(row.reviewStatus) ? (
+              <Button
+                type="primary"
+                data-testid="demo-submit-review"
+                disabled={saving}
+                onClick={() => void submitForReview()}
+              >
+                {t('demo.review.submit')}
+              </Button>
+            ) : null}
             {canVersion && canAddProductionVersion(row.reviewStatus) ? (
               <Button
                 type="default"
@@ -390,19 +440,18 @@ export default function DeliverableDetailClient() {
                 disabled={saving}
                 onClick={() => void addRevision()}
               >
-                <PlusOutlined /> {t('demo.review.addRevision')}
+                <PlusOutlined /> {t('review.addRevision')}
               </Button>
             ) : null}
           </div>
         ) : null}
       </header>
 
-      <p className="oma-muted oma-honesty-inline">{t('demo.reviewHonesty')}</p>
       <p className="oma-honesty-inline oma-deliv-detail__honesty">
         {t('demo.deliverable.storageHonesty')}
       </p>
 
-      {loading ? <p className="oma-muted oma-deliv-detail__pad">{t('demo.loading')}</p> : null}
+      {loading ? <p className="oma-muted oma-deliv-detail__pad">{t('review.loading')}</p> : null}
       {unavailable ? (
         <p className="oma-muted oma-deliv-detail__pad">{t('demo.unavailable')}</p>
       ) : null}
@@ -606,7 +655,7 @@ export default function DeliverableDetailClient() {
                     ) : null}
                   </div>
                 ) : (
-                  <p className="oma-muted oma-deliv-detail__pad">{t('demo.empty')}</p>
+                  <p className="oma-muted oma-deliv-detail__pad">{t('review.noAssets')}</p>
                 )}
 
                 {draftPin ? (
@@ -695,24 +744,46 @@ export default function DeliverableDetailClient() {
                     </li>
                   ))}
                 </ul>
-                {generalComments.length ? (
-                  <div className="oma-review-general">
-                    <h4>{t('demo.review.general') || 'General'}</h4>
-                    {generalComments.map((c) => (
-                      <div
-                        key={c.id}
-                        className="oma-review-thread"
-                        data-testid={`demo-comment-${c.id}`}
-                      >
-                        <div className="oma-review-thread__head">
-                          <strong>{c.author}</strong>
-                          <time dateTime={c.at}>{c.at}</time>
-                        </div>
-                        <p>{pickCopy(c.body, locale)}</p>
+                <div className="oma-review-general" data-testid="demo-review-general">
+                  <h4>{t('demo.review.general')}</h4>
+                  {generalComments.length === 0 ? (
+                    <p className="oma-muted">{t('demo.review.noComments')}</p>
+                  ) : null}
+                  {generalComments.map((c) => (
+                    <div
+                      key={c.id}
+                      className="oma-review-thread"
+                      data-testid={`demo-comment-${c.id}`}
+                    >
+                      <div className="oma-review-thread__head">
+                        <strong>{c.author}</strong>
+                        <time dateTime={c.at}>{formatCommentTime(c.at, locale)}</time>
                       </div>
-                    ))}
-                  </div>
-                ) : null}
+                      <p>{pickCopy(c.body, locale)}</p>
+                    </div>
+                  ))}
+                  {canAnnotate ? (
+                    <div className="oma-review-general__composer">
+                      <TextArea
+                        rows={2}
+                        value={generalDraft}
+                        data-testid="demo-review-general-body"
+                        aria-label={t('demo.review.commentPlaceholder')}
+                        placeholder={t('demo.review.commentPlaceholder')}
+                        onChange={(e) => setGeneralDraft(e.target.value)}
+                      />
+                      <Button
+                        type="primary"
+                        size="small"
+                        data-testid="demo-review-general-save"
+                        disabled={saving || !generalDraft.trim()}
+                        onClick={() => void addGeneralComment()}
+                      >
+                        {t('demo.review.addComment')}
+                      </Button>
+                    </div>
+                  ) : null}
+                </div>
 
                 {canDecide ? (
                   <div className="oma-review-decision" data-testid="demo-review-decision">
@@ -724,11 +795,19 @@ export default function DeliverableDetailClient() {
                           type="default"
                           data-testid={`demo-decision-${d}`}
                           disabled={
-                            saving || !selectedVersion || !canTransitionReview(row.reviewStatus, d)
+                            saving ||
+                            !selectedVersion ||
+                            row.reviewStatus === d ||
+                            !canTransitionReview(row.reviewStatus, d)
                           }
                           onClick={() => setDecisionOpen(d)}
                         >
-                          {d === 'APPROVED' ? <CheckOutlined /> : null} {d}
+                          {d === 'APPROVED' ? <CheckOutlined /> : null}{' '}
+                          {d === 'APPROVED'
+                            ? t('demo.deliverable.approve')
+                            : d === 'CHANGES_REQUESTED'
+                              ? t('demo.deliverable.requestChanges')
+                              : t('demo.deliverable.reject')}
                         </Button>
                       ))}
                     </div>
@@ -749,7 +828,7 @@ export default function DeliverableDetailClient() {
                     data-testid="demo-deliv-preview"
                   />
                 ) : (
-                  <div className="oma-deliv-detail__hero-empty">{t('demo.empty')}</div>
+                  <div className="oma-deliv-detail__hero-empty">{t('review.noAssets')}</div>
                 )}
                 <div className="oma-deliv-detail__preview-meta">
                   <strong data-testid="demo-active-version-label-main">
@@ -833,7 +912,9 @@ export default function DeliverableDetailClient() {
                   <strong className="oma-ltr">{row.dueAt}</strong>
                 </div>
                 <div className="oma-deliv-detail__side-row">
-                  <span className="oma-deliv-detail__side-label">Status</span>
+                  <span className="oma-deliv-detail__side-label">
+                    {t('demo.tasks.filter.status')}
+                  </span>
                   <StatusChip status={row.reviewStatus} />
                 </div>
                 {approved ? (
@@ -846,35 +927,44 @@ export default function DeliverableDetailClient() {
 
               <div className="oma-deliv-detail__side-card">
                 <h3>
-                  <LinkOutlined /> {locale.toLowerCase().startsWith('ar') ? 'روابط' : 'Links'}
+                  <LinkOutlined /> {t('entity.related')}
                 </h3>
-                <nav className="oma-deliv-detail__links" aria-label="Breadcrumb">
-                  <Link
-                    href={`/app/campaigns/${row.campaignId}`}
-                    className="oma-deliv-detail__link"
-                  >
-                    {row.campaignId}
-                  </Link>
+                <nav className="oma-deliv-detail__links" aria-label={t('entity.related')}>
+                  {row.campaignId ? (
+                    <EntityLink
+                      type="campaign"
+                      id={row.campaignId}
+                      href={`/app/campaigns/${row.campaignId}`}
+                      className="oma-deliv-detail__link"
+                      testId="demo-deliv-campaign-link"
+                    />
+                  ) : null}
                   {row.contentId ? (
-                    <Link
+                    <EntityLink
+                      type="content"
+                      id={row.contentId}
                       href={`/app/content?item=${row.contentId}`}
                       className="oma-deliv-detail__link"
-                    >
-                      {row.contentId}
-                    </Link>
+                      testId="demo-deliv-content-link"
+                    />
                   ) : null}
                   {row.requestId ? (
-                    <Link
+                    <EntityLink
+                      type="request"
+                      id={row.requestId}
                       href={`/app/requests/${row.requestId}`}
                       className="oma-deliv-detail__link"
-                    >
-                      {row.requestId}
-                    </Link>
+                      testId="demo-deliv-request-link"
+                    />
                   ) : null}
                   {row.taskId ? (
-                    <Link href={`/app/tasks?task=${row.taskId}`} className="oma-deliv-detail__link">
-                      {row.taskId}
-                    </Link>
+                    <EntityLink
+                      type="task"
+                      id={row.taskId}
+                      href={`/app/tasks?task=${row.taskId}`}
+                      className="oma-deliv-detail__link"
+                      testId="demo-deliv-task-link"
+                    />
                   ) : null}
                 </nav>
               </div>
