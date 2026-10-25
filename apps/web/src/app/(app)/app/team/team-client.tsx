@@ -9,13 +9,16 @@ import {
   listWorkspaceMembers,
   permissionsToCapabilityCodes,
   removeMember,
+  isOwnerMember,
+  readablePermissions,
   updateMemberCapabilities,
   type MembershipType,
   type PlanablePerm,
   type WorkspaceMember,
 } from '../../../../lib/team-api';
 import { useToast } from '../../../../components/ui/toast';
-import { demoApi, demoErrorMessage, isDemoForbidden } from '../../../../lib/demo/use-demo-api';
+import { api } from '../../../../lib/api';
+import { useLocale } from '../../../../lib/use-locale';
 import { ShellIcon } from '../../../../components/shell/shell-icons';
 
 type Tab = 'members' | 'permissions' | 'notifications';
@@ -38,7 +41,14 @@ export default function TeamPage() {
   const [rows, setRows] = useState<WorkspaceMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [source, setSource] = useState<'api' | 'demo'>('api');
+  const source = 'api' as const;
+  const isAr = useLocale().toLowerCase().startsWith('ar');
+  const [meId, setMeId] = useState<string | null>(null);
+  useEffect(() => {
+    api<{ user: { id: string } }>('/api/v1/auth/me')
+      .then((me) => setMeId(me.user.id))
+      .catch(() => setMeId(null));
+  }, []);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteRole, setInviteRole] = useState('Contributor');
@@ -57,47 +67,9 @@ export default function TeamPage() {
       const data = await listWorkspaceMembers({ force });
       if (!mountedRef.current) return;
       setRows(data);
-      setSource('api');
-    } catch {
-      try {
-        const demo = await demoApi<
-          Array<{
-            id: string;
-            name?: string;
-            email?: string;
-            role?: string;
-            status?: string;
-          }>
-        >('/team');
-        if (!mountedRef.current) return;
-        setRows(
-          demo.map((m) => ({
-            id: m.id,
-            status: m.status || 'ACTIVE',
-            invited_email: m.email,
-            user: { id: m.id, email: m.email || '', name: m.name || null },
-            capabilities: [],
-            source_profiles: m.role ? [m.role] : [],
-            role: m.role || 'Member',
-            membership: 'team' as const,
-            permissions: {
-              view: true,
-              approve: false,
-              edit: true,
-              publish: false,
-              analyze: false,
-              engage: false,
-              admin: false,
-            },
-            last_online: '—',
-          })),
-        );
-        setSource('demo');
-      } catch (demoErr) {
-        if (!mountedRef.current) return;
-        if (isDemoForbidden(demoErr)) setError('Unavailable');
-        else setError(demoErrorMessage(demoErr, 'Failed to load team'));
-      }
+    } catch (err) {
+      if (!mountedRef.current) return;
+      setError(err instanceof Error ? err.message : 'Failed to load team');
     } finally {
       loadingRef.current = false;
       if (mountedRef.current) setLoading(false);
@@ -217,8 +189,11 @@ export default function TeamPage() {
     try {
       await attachMemberProfile(member.id, code);
       toast.push('Role updated', 'success');
-    } catch {
-      toast.push('Role profile not available; UI updated only', 'success');
+      void load(true);
+    } catch (err) {
+      // Revert: never show a role the server didn't accept.
+      setRows((prev) => prev.map((r) => (r.id === member.id ? member : r)));
+      toast.push(err instanceof Error ? err.message : 'Role change failed', 'danger');
     }
   }
 
@@ -229,7 +204,6 @@ export default function TeamPage() {
           <h1 className="oma-planable-page__title">Team & clients</h1>
           <p className="oma-planable-page__sub">
             Invite collaborators, set Team/Client membership, and adjust permissions.
-            {source === 'demo' ? ' (demo data)' : null}
           </p>
         </div>
         <Button type="primary" onClick={() => setInviteOpen(true)} disabled={busy}>
@@ -283,13 +257,14 @@ export default function TeamPage() {
                   <th>Role</th>
                   <th>Status</th>
                   <th>Last online</th>
+                  <th>{isAr ? 'الصلاحيات' : 'Permissions'}</th>
                   <th />
                 </tr>
               </thead>
               <tbody>
                 {filtered.length === 0 ? (
                   <tr>
-                    <td colSpan={6}>
+                    <td colSpan={7}>
                       <div className="oma-ws-empty-block">
                         <h3>No members yet</h3>
                         <p>Invite teammates or clients to collaborate in this workspace.</p>
@@ -311,7 +286,14 @@ export default function TeamPage() {
                               {(label[0] || 'U').toUpperCase()}
                             </span>
                             <div>
-                              <div className="oma-ws-user-name">{label}</div>
+                              <div className="oma-ws-user-name">
+                                {label}
+                                {m.user?.id && m.user.id === meId ? (
+                                  <span className="oma-ws-badge oma-ws-badge--ghost" style={{ marginInlineStart: 6 }}>
+                                    {isAr ? 'أنت' : 'You'}
+                                  </span>
+                                ) : null}
+                              </div>
                               {email ? <div className="oma-ws-user-email">{email}</div> : null}
                             </div>
                           </div>
@@ -341,15 +323,28 @@ export default function TeamPage() {
                           <span className="oma-ws-badge oma-ws-badge--ghost">{m.status}</span>
                         </td>
                         <td>{m.last_online || '—'}</td>
+                        <td className="oma-ws-perm-summary" data-testid="team-permissions">
+                          {readablePermissions(m, isAr).join(isAr ? '، ' : ', ') || '—'}
+                        </td>
                         <td>
-                          <button
-                            type="button"
-                            className="oma-ws-danger-btn"
-                            onClick={() => void onRemove(m)}
-                            disabled={busy}
-                          >
-                            Remove
-                          </button>
+                          {isOwnerMember(m) || (m.user?.id && m.user.id === meId) ? (
+                            <span className="oma-muted" data-testid="team-no-remove">
+                              {isOwnerMember(m)
+                                ? isAr
+                                  ? 'المالك'
+                                  : 'Owner'
+                                : '—'}
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              className="oma-ws-danger-btn"
+                              onClick={() => void onRemove(m)}
+                              disabled={busy}
+                            >
+                              {isAr ? 'إزالة' : 'Remove'}
+                            </button>
+                          )}
                         </td>
                       </tr>
                     );

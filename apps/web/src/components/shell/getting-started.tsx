@@ -24,11 +24,14 @@ export function GettingStartedChecklist({
   brandCount,
   approvedProfileCount,
   hasCampaign,
+  steps: serverSteps,
 }: {
   hasTenant: boolean;
   brandCount: number;
   approvedProfileCount: number;
   hasCampaign: boolean;
+  /** Server-computed checklist (GET /api/v1/home); overrides the local heuristics. */
+  steps?: Array<{ id: string; done: boolean; href: string }>;
 }) {
   const t = useT();
   const [dismissed, setDismissed] = useState(true);
@@ -41,7 +44,7 @@ export function GettingStartedChecklist({
     }
   }, []);
 
-  const steps: Step[] = useMemo(
+  const localSteps: Step[] = useMemo(
     () => [
       {
         id: 'company',
@@ -94,6 +97,13 @@ export function GettingStartedChecklist({
     ],
     [hasTenant, brandCount, approvedProfileCount, hasCampaign],
   );
+  const steps: Step[] = useMemo(() => {
+    if (!serverSteps?.length) return localSteps;
+    return localSteps.map((s) => {
+      const server = serverSteps.find((x) => x.id === s.id);
+      return server ? { ...s, done: server.done, href: server.href || s.href } : s;
+    });
+  }, [serverSteps, localSteps]);
 
   const allDone = steps.every((s) => s.done);
   if (dismissed || allDone) return null;

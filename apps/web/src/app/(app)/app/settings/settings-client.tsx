@@ -4,7 +4,6 @@ import { Button, Input, SelectField } from '@oma/ui/controls';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageSkeleton } from '../../../../components/ui/page-skeleton';
 import { ErrorState, errorKindOf, type ErrorKind } from '../../../../components/ui/error-state';
-import type { DemoGraph } from '@oma/demo';
 import {
   getPreferences,
   updatePreferences,
@@ -12,59 +11,92 @@ import {
   NOTIFICATION_PREF_TYPES,
   type UserPreferences,
 } from '../../../../lib/account-api';
-import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
 import { useToast } from '../../../../components/ui/toast';
-import { demoApi, isDemoForbidden, pickCopy } from '../../../../lib/demo/use-demo-api';
+import {
+  getWorkspaceSettings,
+  patchWorkspaceSettings,
+  type WorkspaceSettings,
+} from '../../../../lib/workspace-extras-api';
 import { useLocale, useT } from '../../../../lib/use-locale';
 import { AiStatusNote } from '../../../../components/ai/ai-status-note';
 import { ShellIcon } from '../../../../components/shell/shell-icons';
 import type { NavIconId } from '../../../../components/shell/nav-config';
 
 type DemoPreferences = UserPreferences;
-type Integration = DemoGraph['integrations'][number];
-type Section = 'general' | 'workflow' | 'notifications' | 'integrations' | 'localization' | 'demo';
+type Copy = { en: string; ar: string };
+type Integration = { id: string; name: Copy; category: string; purpose: Copy };
+type Section =
+  | 'workspace'
+  | 'general'
+  | 'workflow'
+  | 'notifications'
+  | 'integrations'
+  | 'localization';
+
+const pickCopy = (c: Copy, locale: string) =>
+  locale.toLowerCase().startsWith('ar') ? c.ar || c.en : c.en;
+
+/** Honest catalog: nothing is connected yet — no demo endpoint, no fake statuses. */
+const INTEGRATIONS: Integration[] = [
+  { id: 'instagram', category: 'social', name: { en: 'Instagram', ar: 'إنستغرام' }, purpose: { en: 'Publish posts and reels', ar: 'نشر المنشورات والريلز' } },
+  { id: 'facebook', category: 'social', name: { en: 'Facebook', ar: 'فيسبوك' }, purpose: { en: 'Publish page posts', ar: 'نشر منشورات الصفحة' } },
+  { id: 'tiktok', category: 'social', name: { en: 'TikTok', ar: 'تيك توك' }, purpose: { en: 'Publish short videos', ar: 'نشر الفيديوهات القصيرة' } },
+  { id: 'linkedin', category: 'social', name: { en: 'LinkedIn', ar: 'لينكدإن' }, purpose: { en: 'Publish company updates', ar: 'نشر تحديثات الشركة' } },
+  { id: 'x', category: 'social', name: { en: 'X', ar: 'إكس' }, purpose: { en: 'Publish posts', ar: 'نشر التغريدات' } },
+  { id: 'storage', category: 'storage', name: { en: 'File storage', ar: 'تخزين الملفات' }, purpose: { en: 'Sync approved assets', ar: 'مزامنة الملفات المعتمدة' } },
+  { id: 'slack', category: 'messaging', name: { en: 'Slack', ar: 'سلاك' }, purpose: { en: 'Approval notifications', ar: 'إشعارات الموافقات' } },
+];
 
 const NAV: Array<{ id: Section; label: string; icon: NavIconId }> = [
+  { id: 'workspace', label: 'Workspace', icon: 'company' },
   { id: 'general', label: 'General', icon: 'settings' },
   { id: 'workflow', label: 'Workflow', icon: 'tasks' },
   { id: 'notifications', label: 'Notifications', icon: 'bell' },
   { id: 'integrations', label: 'Integrations', icon: 'company' },
   { id: 'localization', label: 'Localization', icon: 'activity' },
-  { id: 'demo', label: 'Demo', icon: 'home' },
 ];
 
 export default function SettingsPage() {
   const t = useT();
   const locale = useLocale();
   const toast = useToast();
-  const [section, setSection] = useState<Section>('general');
+  const [section, setSection] = useState<Section>('workspace');
+  const [ws, setWs] = useState<WorkspaceSettings | null>(null);
+  const [wsDraft, setWsDraft] = useState<{ timezone: string; website_url: string }>({
+    timezone: 'Asia/Jerusalem',
+    website_url: '',
+  });
+  const [wsSaving, setWsSaving] = useState(false);
+  const [wsError, setWsError] = useState<string | null>(null);
   const [prefs, setPrefs] = useState<DemoPreferences | null>(null);
   const [draft, setDraft] = useState<DemoPreferences | null>(null);
-  const [rows, setRows] = useState<Integration[]>([]);
+  const rows = INTEGRATIONS;
   const [intQ, setIntQ] = useState('');
   const [intCategory, setIntCategory] = useState('all');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<ErrorKind | null>(null);
-  const [unavailable, setUnavailable] = useState(false);
-  const [infoId, setInfoId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      // Per-user preferences are real account data; integrations catalog is optional (demo-only).
-      const [preferences, integrations] = await Promise.all([
+      // Per-user preferences + server workspace settings (timezone, website, approvals).
+      const [preferences, workspace] = await Promise.all([
         getPreferences(),
-        demoApi<Integration[]>('/integrations').catch(() => [] as Integration[]),
+        getWorkspaceSettings().catch((err: unknown) => {
+          setWsError(err instanceof Error ? err.message : String(err));
+          return null;
+        }),
       ]);
       setPrefs(preferences);
       setDraft(preferences);
-      setRows(integrations);
+      setWs(workspace);
+      if (workspace) {
+        setWsDraft({ timezone: workspace.timezone, website_url: workspace.website_url ?? '' });
+      }
       setError(null);
-      setUnavailable(false);
     } catch (err) {
-      if (isDemoForbidden(err)) setUnavailable(true);
-      else setError(errorKindOf(err));
+      setError(errorKindOf(err));
     } finally {
       setLoading(false);
     }
@@ -73,6 +105,32 @@ export default function SettingsPage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  async function saveWorkspace() {
+    setWsSaving(true);
+    setWsError(null);
+    try {
+      const next = await patchWorkspaceSettings({
+        timezone: wsDraft.timezone.trim(),
+        website_url: wsDraft.website_url.trim() || null,
+      });
+      setWs(next);
+      setWsDraft({ timezone: next.timezone, website_url: next.website_url ?? '' });
+      toast.push(t('settings.workspace.saved'), 'success');
+    } catch (err) {
+      const status = (err as { status?: number })?.status;
+      const msg =
+        status === 403
+          ? t('settings.workspace.readOnly')
+          : err instanceof Error
+            ? err.message
+            : String(err);
+      setWsError(msg);
+      toast.push(msg, 'danger');
+    } finally {
+      setWsSaving(false);
+    }
+  }
 
   async function savePrefs() {
     if (!draft) return;
@@ -106,7 +164,6 @@ export default function SettingsPage() {
       return name.includes(q) || purpose.includes(q) || i.category.toLowerCase().includes(q);
     });
   }, [rows, intQ, intCategory, locale]);
-  const info = rows.find((r) => r.id === infoId) ?? null;
 
   return (
     <div className="oma-planable-page" data-testid="demo-settings" data-surface="settings">
@@ -124,13 +181,11 @@ export default function SettingsPage() {
       </div>
 
       <AiStatusNote />
-      <DemoDisclosure />
 
       {loading ? <PageSkeleton rows={6} /> : null}
-      {unavailable ? <p className="oma-muted">{t('demo.unavailable')}</p> : null}
       {error ? <ErrorState compact kind={error} onRetry={() => void load()} /> : null}
 
-      {!loading && !unavailable && draft ? (
+      {!loading && draft ? (
         <div className="oma-settings-shell">
           <aside className="oma-ws-panel-nav oma-settings-shell__nav">
             {NAV.map((item) => (
@@ -148,6 +203,51 @@ export default function SettingsPage() {
           </aside>
 
           <div className="oma-planable-card oma-settings-shell__main">
+            {section === 'workspace' && (
+              <section data-testid="settings-workspace">
+                <h2 className="oma-ws-section-title">{t('settings.workspace.title')}</h2>
+                <p className="oma-ws-empty-desc">{t('settings.workspace.body')}</p>
+                {wsError ? (
+                  <p className="oma-ws-save-msg" role="alert" data-testid="settings-workspace-error">
+                    {wsError}
+                  </p>
+                ) : null}
+                <div className="oma-ws-field">
+                  <label className="oma-ws-label">{t('settings.workspace.timezone')}</label>
+                  <Input
+                    value={wsDraft.timezone}
+                    data-testid="settings-workspace-timezone"
+                    onChange={(e) => setWsDraft({ ...wsDraft, timezone: e.target.value })}
+                  />
+                </div>
+                <div className="oma-ws-field">
+                  <label className="oma-ws-label">{t('settings.workspace.website')}</label>
+                  <Input
+                    value={wsDraft.website_url}
+                    placeholder="https://"
+                    data-testid="settings-workspace-website"
+                    onChange={(e) => setWsDraft({ ...wsDraft, website_url: e.target.value })}
+                  />
+                </div>
+                <div className="oma-ws-action-row">
+                  <Button
+                    type="primary"
+                    data-testid="settings-workspace-save"
+                    loading={wsSaving}
+                    disabled={
+                      wsSaving ||
+                      (ws !== null &&
+                        ws.timezone === wsDraft.timezone &&
+                        (ws.website_url ?? '') === wsDraft.website_url)
+                    }
+                    onClick={() => void saveWorkspace()}
+                  >
+                    {t('demo.settings.save')}
+                  </Button>
+                </div>
+              </section>
+            )}
+
             {(section === 'general' || section === 'localization' || section === 'workflow') && (
               <section data-testid="demo-settings-general">
                 <h2 className="oma-ws-section-title">
@@ -324,6 +424,9 @@ export default function SettingsPage() {
             {section === 'integrations' && (
               <section data-testid="demo-settings-integrations">
                 <h2 className="oma-ws-section-title">{t('demo.settings.section.integrations')}</h2>
+                <p className="oma-ws-empty-desc" data-testid="settings-integrations-honest">
+                  {t('settings.integrations.body')}
+                </p>
                 <div
                   className="oma-planable-toolbar"
                   style={{ display: 'flex', gap: 8, maxWidth: '100%' }}
@@ -348,40 +451,18 @@ export default function SettingsPage() {
                       key={i.id}
                       type="button"
                       className="oma-integration-card"
-                      onClick={() => setInfoId(i.id)}
                     >
                       <strong>{pickCopy(i.name, locale)}</strong>
-                      <span className="oma-ws-badge oma-ws-badge--ghost">{i.category}</span>
+                      <span className="oma-ws-badge oma-ws-badge--ghost">
+                        {t('settings.integrations.notConnected')}
+                      </span>
                       <p>{pickCopy(i.purpose, locale)}</p>
                     </button>
                   ))}
                 </div>
-                {info ? (
-                  <div className="oma-ws-slack-card" style={{ marginTop: 16 }}>
-                    <div>
-                      <strong>{pickCopy(info.name, locale)}</strong>
-                      <p>{pickCopy(info.laterUnlocks, locale)}</p>
-                      <p className="oma-muted">{pickCopy(info.gate, locale)}</p>
-                    </div>
-                    <Button type="default" onClick={() => setInfoId(null)}>
-                      Close
-                    </Button>
-                  </div>
-                ) : null}
               </section>
             )}
 
-            {section === 'demo' && (
-              <section>
-                <h2 className="oma-ws-section-title">{t('demo.settings.section.demo')}</h2>
-                <p className="oma-ws-empty-desc">
-                  Demo graph and disclosure settings remain available for certification scenarios.
-                </p>
-                <Button type="default" onClick={() => void load()}>
-                  Reload demo data
-                </Button>
-              </section>
-            )}
           </div>
         </div>
       ) : null}
