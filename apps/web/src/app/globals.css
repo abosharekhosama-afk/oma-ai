@@ -11,6 +11,7 @@
 @import '../styles/planable-org.css';
 @import '../styles/activity.css';
 @import '../styles/states.css';
+@import '../styles/work-analytics.css';
 
 * {
   box-sizing: border-box;

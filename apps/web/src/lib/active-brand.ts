@@ -84,6 +84,7 @@ const BRAND_SCOPED_PREFIXES = [
   '/app/campaigns',
   '/app/reviews',
   '/app/schedule',
+  '/app/analytics',
 ];
 
 export function isBrandScopedPath(pathname: string): boolean {
