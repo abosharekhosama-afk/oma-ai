@@ -48,7 +48,8 @@ test.describe('P6 Planable analytics organization settings journey', () => {
     await expect(page.getByTestId('analytics-social-note')).toBeVisible();
     await expect(page.getByTestId('analytics-social-note')).toBeVisible();
     await expect(page.getByTestId('analytics-kpis')).toBeVisible();
-    await page.getByTestId('analytics-period').selectOption('7');
+    await page.getByTestId('analytics-period').click();
+    await page.getByTestId('analytics-period-menu').getByRole('option').first().click();
     await expect(page.getByTestId('analytics-series')).toBeVisible();
     guards.assertClean();
 

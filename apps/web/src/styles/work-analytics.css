@@ -85,6 +85,8 @@
   border: 1px solid var(--oma-border);
   border-radius: 8px;
   min-width: 0;
+  align-content: start;
+  overflow-x: auto;
 }
 .oma-wa-card__head {
   display: flex;
@@ -285,6 +287,10 @@
   font-weight: 400;
   color: var(--oma-muted);
 }
+.oma-wa-skel-line,
+.oma-wa-skel-value {
+  min-height: 0 !important;
+}
 .oma-wa-skel-line {
   display: block;
   height: 12px;
@@ -311,6 +317,15 @@
   border-radius: 6px;
 }
 @media (max-width: 640px) {
+  .oma-wa-chart__tick {
+    font-size: 9px;
+  }
+  .oma-wa-chart__col:nth-child(even) .oma-wa-chart__tick {
+    visibility: hidden;
+  }
+  .oma-wa-dl {
+    grid-template-columns: minmax(0, 1fr);
+  }
   .oma-wa-grid {
     grid-template-columns: minmax(0, 1fr);
   }

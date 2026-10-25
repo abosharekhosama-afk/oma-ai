@@ -182,8 +182,7 @@ export default function AnalyticsPage() {
         <div className={`oma-wa-body${loading ? ' is-refreshing' : ''}`} aria-busy={loading}>
           {data.content.total === 0 &&
           data.team.length === 0 &&
-          data.approvals.deliverables.submitted === 0 &&
-          data.on_time.overdue_tasks === 0 ? (
+          data.approvals.deliverables.submitted === 0 ? (
             <div className="oma-wa-empty" data-testid="analytics-empty">
               <h2>{t('analytics.empty.title')}</h2>
               <p>{t('analytics.empty.body')}</p>

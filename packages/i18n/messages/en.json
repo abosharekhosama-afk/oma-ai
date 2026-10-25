@@ -1226,7 +1226,7 @@
   "analytics.empty.body": "Create posts, tasks or deliverables, or widen the period, to see analytics here.",
   "analytics.kpis": "Key numbers",
   "analytics.kpi.posts": "Posts in period",
-  "analytics.kpi.scheduled": "Scheduled",
+  "analytics.kpi.scheduled": "Scheduled in period",
   "analytics.kpi.published": "Published",
   "analytics.kpi.avgApproval": "Avg. time to approval",
   "analytics.kpi.onTime": "Tasks on time",

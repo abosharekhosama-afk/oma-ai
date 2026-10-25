@@ -78,7 +78,8 @@ test.describe('Stage 6 Schedule Analytics Organization visual rebuild', () => {
     await expect(page.getByTestId('work-analytics')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId('analytics-social-note')).toBeVisible();
     await expect(page.getByTestId('analytics-social-note')).toBeVisible();
-    await page.getByTestId('analytics-period').selectOption('7');
+    await page.getByTestId('analytics-period').click();
+    await page.getByTestId('analytics-period-menu').getByRole('option').first().click();
     await expect(page.getByTestId('analytics-series')).toBeAttached();
     await expect(page.getByTestId('analytics-status')).toBeVisible();
 

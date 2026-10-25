@@ -1226,7 +1226,7 @@
   "analytics.empty.body": "أنشئ منشورات أو مهام أو تسليمات، أو وسّع الفترة، لعرض التحليلات هنا.",
   "analytics.kpis": "الأرقام الرئيسية",
   "analytics.kpi.posts": "منشورات الفترة",
-  "analytics.kpi.scheduled": "مجدولة",
+  "analytics.kpi.scheduled": "مجدولة في الفترة",
   "analytics.kpi.published": "منشورة",
   "analytics.kpi.avgApproval": "متوسط وقت الاعتماد",
   "analytics.kpi.onTime": "المهام في الموعد",

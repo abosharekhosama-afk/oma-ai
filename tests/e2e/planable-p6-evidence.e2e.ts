@@ -110,7 +110,8 @@ test.describe('P6 Planable analytics/organization/settings evidence pack', () =>
       viewType: 'analytics-overview',
     });
 
-    await page.getByTestId('analytics-period').selectOption('7');
+    await page.getByTestId('analytics-period').click();
+    await page.getByTestId('analytics-period-menu').getByRole('option').first().click();
     await expect(page.getByTestId('analytics-kpis')).toBeVisible();
     await shot('02-analytics-filtered', '/app/analytics', '1440x900', {
       viewType: 'analytics-filtered',
