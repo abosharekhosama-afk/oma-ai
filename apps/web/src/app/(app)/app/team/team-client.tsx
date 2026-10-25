@@ -18,6 +18,7 @@ import {
 } from '../../../../lib/team-api';
 import { useToast } from '../../../../components/ui/toast';
 import { api } from '../../../../lib/api';
+import { statusLabel } from '../../../../components/ui/status-chip';
 import { useLocale, useT } from '../../../../lib/use-locale';
 import { ShellIcon } from '../../../../components/shell/shell-icons';
 
@@ -321,9 +322,15 @@ export default function TeamPage() {
                           </SelectField>
                         </td>
                         <td>
-                          <span className="oma-ws-badge oma-ws-badge--ghost">{m.status}</span>
+                          <span className="oma-ws-badge oma-ws-badge--ghost">{statusLabel(t, m.status)}</span>
                         </td>
-                        <td>{m.last_online === 'Invited' ? t('team.invited') : m.last_online || '—'}</td>
+                        <td>
+                          {m.last_online === 'Invited'
+                            ? t('team.invited')
+                            : m.last_online === 'Active'
+                              ? t('status.enum.ACTIVE')
+                              : m.last_online || '—'}
+                        </td>
                         <td className="oma-ws-perm-summary" data-testid="team-permissions">
                           {readablePermissions(m, isAr).join(t('team.text')) || '—'}
                         </td>

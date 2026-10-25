@@ -13,7 +13,7 @@ import { BrandWorkspaceShell } from '../../../../../components/brand/brand-works
 import { ConnectorModeChip } from '../../../../../components/brand/connector-mode-banner';
 import { CoverageDisclosure } from '../../../../../components/brand/coverage-disclosure';
 import { PermissionDenied } from '../../../../../components/shell/permission-denied';
-import { StatusChip } from '../../../../../components/ui/status-chip';
+import { StatusChip, statusLabel } from '../../../../../components/ui/status-chip';
 import { Panel } from '../../../../../components/ui/page-header';
 import { ErrorState } from '../../../../../components/ui/empty-state';
 import { useT } from '../../../../../lib/use-locale';
@@ -210,7 +210,7 @@ export default function BrandDetailPage() {
                     <Link href={`/app/brands/${brandId}/scans/${item.id}`} className="oma-work-row">
                       <div>
                         <strong>
-                          {item.progress_percent}% · {item.status}
+                          {item.progress_percent}% · {statusLabel(t, item.status)}
                         </strong>
                         <div className="oma-work-row-meta">
                           <StatusChip status={item.status} />

@@ -2645,3 +2645,36 @@ button.oma-breadcrumb-workspace:hover {
 [dir='rtl'] .oma-dir-icon {
   transform: scaleX(-1);
 }
+.oma-shell-popover .oma-notifications-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding-block-end: var(--space-2);
+}
+.oma-shell-popover .oma-notifications-panel__mark-all {
+  border: 0;
+  background: none;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--oma-primary, #2563eb);
+  cursor: pointer;
+}
+.oma-shell-popover .oma-notification-title,
+.oma-shell-popover .oma-notification-body {
+  display: block;
+  text-align: start;
+}
+.oma-shell-popover .oma-notification-title { font-weight: 600; color: var(--oma-text, #111827); }
+.oma-shell-popover .oma-notification-unread .oma-notification-title::before {
+  content: '';
+  display: inline-block;
+  inline-size: 6px;
+  block-size: 6px;
+  border-radius: 50%;
+  margin-inline-end: 6px;
+  vertical-align: middle;
+  background: var(--oma-primary, #2563eb);
+}
+.oma-shell-popover .oma-notification-body { font-size: 12px; color: var(--oma-text-muted, #6b7280); }

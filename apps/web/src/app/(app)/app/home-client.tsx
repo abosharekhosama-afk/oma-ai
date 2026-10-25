@@ -64,9 +64,11 @@ function attentionLabel(t: (key: string) => string, brand: BrandListItem): strin
 }
 
 function notificationLabel(t: (key: string) => string, type: string): string {
-  const key = `shell.notification.type.${type}`;
-  const translated = t(key);
-  return translated === key ? type : translated;
+  for (const key of [`shell.notification.${type}`, `shell.notification.type.${type}`]) {
+    const translated = t(key);
+    if (translated && translated !== key) return translated;
+  }
+  return t('shell.notification.generic');
 }
 
 export default function AppHomePage() {
@@ -404,7 +406,7 @@ export default function AppHomePage() {
                               <div className="oma-work-row-meta">
                                 <span>{me.user.name}</span>
                                 <time dateTime={n.createdAt} suppressHydrationWarning>
-                                  {new Date(n.createdAt).toLocaleString()}
+                                  {new Date(n.createdAt).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })}
                                 </time>
                               </div>
                             </div>
@@ -417,7 +419,7 @@ export default function AppHomePage() {
                               <div className="oma-work-row-meta">
                                 <span>{me.user.name}</span>
                                 <time dateTime={n.createdAt} suppressHydrationWarning>
-                                  {new Date(n.createdAt).toLocaleString()}
+                                  {new Date(n.createdAt).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })}
                                 </time>
                               </div>
                             </div>

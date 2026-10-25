@@ -13,6 +13,7 @@ import {
 import { useToast } from '../../../../../components/ui/toast';
 import { isPermissionDenied } from '../../../../../lib/brand-api';
 import { PermissionDenied } from '../../../../../components/shell/permission-denied';
+import { statusLabel } from '../../../../../components/ui/status-chip';
 import { useT } from '../../../../../lib/use-locale';
 
 const COMPANY_ROLES = [
@@ -286,7 +287,7 @@ export default function CompanyMembersPage() {
                         </SelectField>
                       </td>
                       <td>
-                        <span className="oma-ws-badge oma-ws-badge--ghost">{m.status}</span>
+                        <span className="oma-ws-badge oma-ws-badge--ghost">{statusLabel(t, m.status)}</span>
                       </td>
                       <td>
                         <span className="oma-muted" style={{ fontSize: 12 }}>
