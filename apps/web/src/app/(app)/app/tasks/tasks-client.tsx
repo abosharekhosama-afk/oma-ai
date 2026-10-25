@@ -1,14 +1,15 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { OmaTopLoader } from '../../../../components/ui/oma-top-loader';
 import { createPortal } from 'react-dom';
 import type { DemoGraph, DemoTaskStatus } from '@oma/demo';
-import { Button, Checkbox, Input, SelectField } from '@oma/ui/controls';
+import { Button, Checkbox, Drawer as AntDrawer, Input, SelectField } from '@oma/ui/controls';
 import { Dialog } from '../../../../components/ui/dialog';
 import { Drawer } from '../../../../components/ui/drawer';
+import { AssigneePicker } from '../../../../components/ui/assignee-picker';
+import { EntityLink } from '../../../../components/ui/entity-link';
 import { PageHeader } from '../../../../components/ui/page-header';
 import { StatusChip } from '../../../../components/ui/status-chip';
 import { useToast } from '../../../../components/ui/toast';
@@ -401,12 +402,23 @@ export default function TasksPage() {
       data-view={view}
       data-prefs={prefsLoaded ? '1' : '0'}
     >
-      {/* Filter bar is anchored directly under the workspace top header (no gap). */}
-      {filterSheet ? (
+      {/* Filter & sort: side drawer, full viewport height from top: 0 (above the app header).
+          Opens from the inline-end edge: right in LTR, left in RTL. */}
+      <AntDrawer
+        open={filterSheet}
+        onClose={() => setFilterSheet(false)}
+        placement={locale.toLowerCase().startsWith('ar') ? 'left' : 'right'}
+        size={320}
+        mask={false}
+        closable={false}
+        title={null}
+        rootClassName="oma-tasks-filter-drawer"
+        styles={{ body: { padding: 0 } }}
+      >
         <aside
-          className="oma-req-filter-panel oma-tasks-filter-bar"
+          className="oma-req-filter-panel oma-tasks-filter-drawer__panel"
           data-testid="demo-task-filters"
-          data-anchor="page-header"
+          data-anchor="viewport-top"
         >
           <header className="oma-req-filter-panel__head">
             <strong>
@@ -588,7 +600,7 @@ export default function TasksPage() {
             </div>
           ) : null}
         </aside>
-      ) : null}
+      </AntDrawer>
 
       <PageHeader title={t('demo.tasks.title')} description={t('demo.tasks.subtitle')} />
 
@@ -801,7 +813,9 @@ export default function TasksPage() {
           <div className="oma-task-detail" data-testid="demo-task-drawer">
             <header className="oma-task-detail__head">
               <div className="oma-task-detail__head-main">
-                <p className="oma-task-detail__id">{selected.id}</p>
+                <p className="oma-task-detail__id" title={selected.id}>
+                  {[t('entity.type.task'), selected.brandName].filter(Boolean).join(' · ')}
+                </p>
                 <Input
                   className="oma-task-detail__title-input"
                   defaultValue={pickCopy(selected.title, locale)}
@@ -859,27 +873,27 @@ export default function TasksPage() {
                       ))}
                     </SelectField>
                   </label>
-                  <label>
-                    {t('demo.tasks.filter.assignee')}
-                    <select
-                      className="oma-input"
-                      defaultValue={(selected as { assigneeId?: string | null }).assigneeId ?? ''}
-                      data-testid="demo-task-assignee"
-                      onChange={(e) =>
+                  <div className="oma-task-detail__field">
+                    <span>{t('demo.tasks.filter.assignee')}</span>
+                    <AssigneePicker
+                      testId="demo-task-assignee"
+                      members={members}
+                      value={selected.assigneeUserId ?? null}
+                      valueName={
+                        selected.assignee && selected.assignee !== 'Unassigned'
+                          ? String(selected.assignee)
+                          : null
+                      }
+                      disabled={saving}
+                      onChange={(choice) =>
                         void patchTask(selected.id, {
-                          assignee: e.target.value || 'Unassigned',
-                          assigneeId: e.target.value || null,
+                          assignee: choice.userId ? choice.name : 'Unassigned',
+                          assigneeId: choice.userId,
+                          assigneeUserId: choice.userId,
                         } as never)
                       }
-                    >
-                      <option value="">{t('demo.requests.unassigned')}</option>
-                      {members.map((m) => (
-                        <option key={m.id} value={m.user?.id || m.id}>
-                          {m.user?.name || m.user?.email || m.invited_email || 'Member'}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                    />
+                  </div>
                   <label>
                     {t('demo.requests.col.due')}
                     <Input
@@ -898,43 +912,44 @@ export default function TasksPage() {
               </section>
 
               <section className="oma-task-detail__card">
-                <h3>{locale.toLowerCase().startsWith('ar') ? 'روابط' : 'Links'}</h3>
+                <h3>{t('entity.related')}</h3>
                 <div className="oma-task-detail__links">
                   {selected.campaignId ? (
-                    <Link
+                    <EntityLink
+                      type="campaign"
+                      id={selected.campaignId}
+                      name={selected.campaignName}
                       href={`/app/campaigns/${selected.campaignId}`}
                       className="oma-task-detail__link"
-                      data-testid="demo-task-campaign-link"
-                    >
-                      {selected.campaignId}
-                    </Link>
+                      testId="demo-task-campaign-link"
+                    />
                   ) : null}
                   {selected.contentId ? (
-                    <Link
+                    <EntityLink
+                      type="content"
+                      id={selected.contentId}
                       href={`/app/content?item=${selected.contentId}`}
                       className="oma-task-detail__link"
-                      data-testid="demo-task-content-link"
-                    >
-                      {selected.contentId}
-                    </Link>
+                      testId="demo-task-content-link"
+                    />
                   ) : null}
                   {selected.requestId ? (
-                    <Link
+                    <EntityLink
+                      type="request"
+                      id={selected.requestId}
                       href={`/app/requests/${selected.requestId}`}
                       className="oma-task-detail__link"
-                      data-testid="demo-task-request-link"
-                    >
-                      {selected.requestId}
-                    </Link>
+                      testId="demo-task-request-link"
+                    />
                   ) : null}
                   {selected.deliverableId ? (
-                    <Link
+                    <EntityLink
+                      type="deliverable"
+                      id={selected.deliverableId}
                       href={`/app/deliverables/${selected.deliverableId}`}
                       className="oma-task-detail__link"
-                      data-testid="demo-task-deliverable-link"
-                    >
-                      {t('demo.tasks.deliverableHandoff')}: {selected.deliverableId}
-                    </Link>
+                      testId="demo-task-deliverable-link"
+                    />
                   ) : (
                     <div className="oma-task-detail__handoff">
                       <span className="oma-muted">{t('demo.tasks.noDeliverable')}</span>

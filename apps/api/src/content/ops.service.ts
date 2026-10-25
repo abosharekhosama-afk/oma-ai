@@ -186,10 +186,24 @@ export class OpsService {
     const userMap = new Map(
       users.map((u) => [u.id, (u.name && u.name.trim()) || u.email || 'Team member']),
     );
+    // Latest deliverable handed off from each task (for readable task → deliverable links).
+    const deliverables = await getPrisma().workDeliverable.findMany({
+      where: {
+        tenantId: { in: [...new Set(rows.map((r) => r.tenantId))] },
+        taskId: { in: rows.map((r) => r.id) },
+      },
+      select: { id: true, taskId: true },
+      orderBy: { createdAt: 'desc' },
+    });
+    const deliverableByTask = new Map<string, string>();
+    for (const d of deliverables) {
+      if (d.taskId && !deliverableByTask.has(d.taskId)) deliverableByTask.set(d.taskId, d.id);
+    }
     return rows.map((row) => ({
       ...mapTask(row),
       assignee_name: row.assigneeUserId ? userMap.get(row.assigneeUserId) || 'Team member' : null,
       created_by_name: userMap.get(row.createdBy) || 'Team member',
+      deliverable_id: deliverableByTask.get(row.id) ?? null,
     }));
   }
 
@@ -867,6 +881,14 @@ export class OpsService {
           ...(approvedVersionId ? { approvedVersionId, currentVersionId: approvedVersionId } : {}),
         },
       });
+      // Propagate the review outcome to the originating task (same transaction).
+      const taskStatus = REVIEW_ACTION_TASK_STATUS[normalized];
+      if (current.taskId && taskStatus) {
+        await tx.workTask.updateMany({
+          where: { id: current.taskId, tenantId },
+          data: { status: taskStatus as never },
+        });
+      }
       return { row, approvedVersionId };
     });
     await this.audit.write({
@@ -1401,6 +1423,13 @@ function mapRequest(row: {
     updated_at: row.updatedAt.toISOString(),
   };
 }
+
+/** Task status implied by a deliverable review action. `reject` leaves the task unchanged. */
+const REVIEW_ACTION_TASK_STATUS: Record<string, string> = {
+  submit: 'IN_REVIEW',
+  request_changes: 'IN_PROGRESS',
+  approve: 'DONE',
+};
 
 function mapTask(row: {
   id: string;
