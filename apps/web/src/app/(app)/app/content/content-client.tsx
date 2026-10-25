@@ -1,5 +1,6 @@
 'use client';
 
+import { useReloadOnBrandChange } from '../../../../lib/active-brand';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { OmaTopLoader } from '../../../../components/ui/oma-top-loader';
@@ -1033,6 +1034,9 @@ export default function ContentPage() {
     el.setAttribute('data-view', view);
     el.classList.add('oma-breadcrumb-view--interactive');
   }, [view, t]);
+
+  // Refresh when the active brand changes in the header switcher.
+  useReloadOnBrandChange(load);
 
   useEffect(() => {
     void load();

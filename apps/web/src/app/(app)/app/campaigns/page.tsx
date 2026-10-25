@@ -1,4 +1,5 @@
 'use client';
+import { useReloadOnBrandChange } from '../../../../lib/active-brand';
 import { createPortal } from 'react-dom';
 import { Button, DateField, Input, SelectField, TextArea } from '@oma/ui/controls';
 
@@ -22,7 +23,7 @@ import { useToast } from '../../../../components/ui/toast';
 import { Dialog } from '../../../../components/ui/dialog';
 import { pickCopy } from '../../../../lib/demo/use-demo-api';
 import {
-  listBrandsProduction,
+  listScopedBrands,
   listAllCampaigns,
   createCampaignProduction,
   updateCampaignProduction,
@@ -112,7 +113,7 @@ export default function CampaignsPage() {
     setError(null);
     setUnavailable(false);
     try {
-      const brandRows = await listBrandsProduction();
+      const brandRows = await listScopedBrands();
       const brandIds = brandRows.map((b) => b.id);
       const [campaigns, contentItems] = await Promise.all([
         brandIds.length ? listAllCampaigns(brandIds) : Promise.resolve([]),
@@ -156,6 +157,9 @@ export default function CampaignsPage() {
   useEffect(() => {
     setActionsHost(document.getElementById('oma-workspace-top-actions'));
   }, []);
+
+  // Refresh when the active brand changes in the header switcher.
+  useReloadOnBrandChange(load);
 
   useEffect(() => {
     void load();

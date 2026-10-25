@@ -246,4 +246,33 @@ describe('deliverable review production lock', () => {
     ).find((row) => row.action === 'deliverable.review.approve' && row.targetId === approvedId);
     expect(approve?.afterRef).toBeTruthy();
   });
+
+  it('rejects an in-review deliverable (persists REJECTED, blocks the task, locks versions)', async () => {
+    const id = await newDeliverable();
+    const submitted = await api(`/api/v1/deliverables/${id}/review`, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'submit' }),
+    });
+    expect(submitted.res.status).toBe(201);
+    const rejected = await api(`/api/v1/deliverables/${id}/review`, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'reject' }),
+    });
+    expect(rejected.res.status).toBe(201);
+    expect(rejected.body.data.status).toBe('REJECTED');
+    expect(rejected.body.data.review_status).toBe('REJECTED');
+    const taskId = rejected.body.data.task_id as string;
+    const task = await api(`/api/v1/tasks/${taskId}`);
+    expect(task.body.data.status).toBe('BLOCKED');
+    const again = await api(`/api/v1/deliverables/${id}/review`, {
+      method: 'POST',
+      body: JSON.stringify({ action: 'approve' }),
+    });
+    expect(again.res.status).toBe(409);
+    const version = await api(`/api/v1/deliverables/${id}/versions`, {
+      method: 'POST',
+      body: JSON.stringify({ label: 'v2' }),
+    });
+    expect(version.res.status).toBe(409);
+  });
 });

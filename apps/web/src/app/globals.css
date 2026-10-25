@@ -9,6 +9,7 @@
 @import '../styles/stage6.css';
 @import '../styles/stage-depth.css';
 @import '../styles/planable-org.css';
+@import '../styles/activity.css';
 
 * {
   box-sizing: border-box;

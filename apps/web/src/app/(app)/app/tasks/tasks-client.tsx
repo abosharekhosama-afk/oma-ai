@@ -1,5 +1,6 @@
 'use client';
 
+import { useReloadOnBrandChange } from '../../../../lib/active-brand';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { OmaTopLoader } from '../../../../components/ui/oma-top-loader';
@@ -114,6 +115,9 @@ export default function TasksPage() {
       setLoading(false);
     }
   }, []);
+
+  // Refresh when the active brand changes in the header switcher.
+  useReloadOnBrandChange(load);
 
   useEffect(() => {
     void load();

@@ -2,6 +2,7 @@
  * Production Campaign API client + adapters to the stage3 CampaignRow shape.
  */
 import { api } from './api';
+import { scopeBrands } from './active-brand';
 import type { CampaignRow } from './demo/stage3-campaigns';
 
 export type ApiLocale = { en: string; ar: string };
@@ -62,6 +63,11 @@ export function toCampaignRow(c: ApiCampaign, ownerLabel?: string): CampaignRow 
 export async function listBrandsProduction(): Promise<ApiBrandListItem[]> {
   const res = await api<{ data: ApiBrandListItem[] }>('/api/v1/brands?limit=100');
   return res.data ?? [];
+}
+
+/** Brands visible on work surfaces: only the active brand when one is selected. */
+export async function listScopedBrands(): Promise<ApiBrandListItem[]> {
+  return scopeBrands(await listBrandsProduction());
 }
 
 export async function listCampaignsForBrand(

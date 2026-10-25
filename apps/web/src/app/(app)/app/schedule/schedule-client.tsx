@@ -1,4 +1,5 @@
 'use client';
+import { useReloadOnBrandChange } from '../../../../lib/active-brand';
 import { CloseOutlined, FilterOutlined } from '@ant-design/icons';
 import { Button, DateField, Input, SelectField, SurfaceButton } from '@oma/ui/controls';
 
@@ -89,6 +90,9 @@ export default function SchedulePage() {
       setLoading(false);
     }
   }, []);
+
+  // Refresh when the active brand changes in the header switcher.
+  useReloadOnBrandChange(load);
 
   useEffect(() => {
     void load();

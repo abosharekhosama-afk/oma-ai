@@ -1,4 +1,5 @@
 'use client';
+import { useReloadOnBrandChange } from '../../../../lib/active-brand';
 import { Button, Input } from '@oma/ui/controls';
 
 import Link from 'next/link';
@@ -78,6 +79,9 @@ export default function DeliverablesPage() {
       setLoading(false);
     }
   }, []);
+
+  // Refresh when the active brand changes in the header switcher.
+  useReloadOnBrandChange(load);
 
   useEffect(() => {
     void load();

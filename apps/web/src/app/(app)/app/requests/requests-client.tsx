@@ -1,5 +1,6 @@
 'use client';
 
+import { useReloadOnBrandChange } from '../../../../lib/active-brand';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -172,6 +173,9 @@ export default function RequestsPage() {
   useEffect(() => {
     setHeaderSlot(document.getElementById('oma-workspace-top-actions'));
   }, []);
+
+  // Refresh when the active brand changes in the header switcher.
+  useReloadOnBrandChange(load);
 
   useEffect(() => {
     void load();
