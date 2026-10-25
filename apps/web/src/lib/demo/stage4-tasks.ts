@@ -1,7 +1,15 @@
 import type { DemoGraph, DemoTaskStatus } from '@oma/demo';
 import { addDays, todayKey } from '../calendar-today';
 
-export type TaskRow = DemoGraph['tasks'][number];
+export type TaskRow = DemoGraph['tasks'][number] & {
+  /** Production (ops API) extras — absent on pure demo-graph rows. */
+  assigneeUserId?: string | null;
+  brandName?: string;
+  campaignName?: { en: string; ar: string } | string | null;
+  commentCount?: number;
+  checklistTotal?: number;
+  checklistDone?: number;
+};
 
 export type TaskFilters = {
   q: string;
@@ -41,7 +49,13 @@ export const BOARD_COLUMNS: Array<{ id: DemoTaskStatus; statuses: DemoTaskStatus
 
 export function taskIsOverdue(task: TaskRow, today = todayKey()): boolean {
   if (task.status === 'DONE') return false;
-  return task.status === 'OVERDUE' || task.dueAt < today;
+  return task.status === 'OVERDUE' || (Boolean(task.dueAt) && task.dueAt < today);
+}
+
+/** Due within the next `days` (inclusive), not overdue and not done. */
+export function taskIsDueSoon(task: TaskRow, today = todayKey(), days = 3): boolean {
+  if (!task.dueAt || task.status === 'DONE' || taskIsOverdue(task, today)) return false;
+  return task.dueAt >= today && task.dueAt.slice(0, 10) <= addDays(today, days);
 }
 
 export function checklistProgress(task: TaskRow): { done: number; total: number; pct: number } {

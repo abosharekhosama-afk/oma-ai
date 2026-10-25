@@ -124,7 +124,7 @@ test.describe('Stage 4 Requests + Tasks visual rebuild', () => {
     await expect(page.getByTestId('demo-tasks-list')).toBeVisible();
     await page.getByTestId('demo-tasks-view-board').click();
 
-    await page.getByTestId('demo-task-open-demo-task-design').click();
+    await page.getByTestId('demo-task-card-demo-task-design').click();
     await expect(page.getByTestId('demo-task-drawer')).toBeVisible();
     await page.getByTestId('demo-task-assignee').fill('Rami Khalil');
     await page.getByTestId('demo-task-assignee').blur();

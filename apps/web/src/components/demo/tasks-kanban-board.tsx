@@ -27,6 +27,7 @@ import type { DemoTaskStatus } from '@oma/demo';
 import {
   BOARD_COLUMNS,
   canTransitionTaskStatus,
+  taskIsDueSoon,
   taskIsOverdue,
   type TaskRow,
 } from '../../lib/demo/stage4-tasks';
@@ -77,76 +78,153 @@ const COLUMN_ACCENT: Record<string, string> = {
   OVERDUE: 'overdue',
 };
 
-function PriorityBadge({ priority }: { priority: string }) {
-  const p = (priority || 'MEDIUM').toUpperCase();
+function isAr(locale: string) {
+  return locale.toLowerCase().startsWith('ar');
+}
+
+/** High / Urgent only — Medium/Low are the quiet default and render nothing. */
+function PriorityFlag({ priority }: { priority: string }) {
+  const t = useT();
+  const p = (priority || '').toUpperCase();
+  if (p !== 'HIGH' && p !== 'URGENT') return null;
   return (
-    <span className={`oma-kb-priority oma-kb-priority--${p.toLowerCase()}`}>
-      {p.charAt(0) + p.slice(1).toLowerCase()}
+    <span
+      className={`oma-kb-card__flag oma-kb-card__flag--${p.toLowerCase()}`}
+      data-testid="demo-task-card-priority"
+    >
+      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden>
+        <path
+          d="M3.5 14V2.5h8.2l-1.6 3 1.6 3H3.5"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinejoin="round"
+        />
+      </svg>
+      {t(`demo.tasks.card.priority.${p.toLowerCase()}`)}
     </span>
   );
 }
 
-function formatDue(dueAt: string, overdue: boolean, isAr: boolean): string {
-  if (!dueAt) return isAr ? 'بدون موعد' : 'No due date';
+function formatDueLabel(dueAt: string, locale: string): string {
   try {
     const d = new Date(dueAt.length <= 10 ? `${dueAt}T12:00:00` : dueAt);
-    const label = d.toLocaleDateString(isAr ? 'ar' : undefined, {
-      month: 'short',
-      day: 'numeric',
-    });
-    if (overdue) return isAr ? `متأخر · ${label}` : `Overdue · ${label}`;
-    return label;
+    return d.toLocaleDateString(isAr(locale) ? 'ar' : 'en', { month: 'short', day: 'numeric' });
   } catch {
     return dueAt.slice(0, 10);
   }
 }
 
-function KanbanCardBody({ task }: { task: TaskRow }) {
+function DueDate({ task }: { task: TaskRow }) {
+  const t = useT();
   const locale = useLocale();
-  const isAr = locale.toLowerCase().startsWith('ar');
+  if (!task.dueAt) return null;
+  const label = formatDueLabel(task.dueAt, locale);
+  const done = task.status === 'DONE';
   const overdue = taskIsOverdue(task);
+  const soon = !overdue && !done && taskIsDueSoon(task);
+  const tone = done ? 'done' : overdue ? 'overdue' : soon ? 'soon' : 'plain';
+  return (
+    <span className={`oma-kb-card__due oma-kb-card__due--${tone}`} data-tone={tone}>
+      {tone === 'overdue' ? null : (
+        <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden>
+          <rect x="2" y="3" width="12" height="11" rx="2" stroke="currentColor" strokeWidth="1.4" />
+          <path d="M2 6.5h12M5 1.8v2.4M11 1.8v2.4" stroke="currentColor" strokeWidth="1.4" />
+        </svg>
+      )}
+      {tone === 'overdue' ? `${t('demo.tasks.card.overdue')} · ${label}` : label}
+    </span>
+  );
+}
+
+function campaignLabel(task: TaskRow, locale: string): string {
+  const c = task.campaignName;
+  if (!c) return '';
+  return typeof c === 'string' ? c : pickCopy(c, locale);
+}
+
+function KanbanCardBody({ task }: { task: TaskRow }) {
+  const t = useT();
+  const locale = useLocale();
   const assignee = !task.assignee || task.assignee === 'Unassigned' ? null : String(task.assignee);
-  const extra = task as TaskRow & {
-    brandName?: string;
-    campaignName?: string | null;
-    requestTitle?: string | null;
-  };
-  const subtitle =
-    extra.brandName || extra.campaignName || extra.requestTitle || task.department || '';
+  const campaign = campaignLabel(task, locale);
+  const description = task.description ? pickCopy(task.description, locale).trim() : '';
+  const context = [task.department, task.brandName]
+    .map((v) => (typeof v === 'string' ? v.trim() : ''))
+    .filter((v) => v && v !== '—')
+    .join(' · ');
+  const comments = task.commentCount ?? 0;
+  const checkTotal = task.checklistTotal ?? 0;
+  const checkDone = task.checklistDone ?? 0;
 
   return (
     <>
-      <div className="oma-kb-card__head">
-        <PriorityBadge priority={String(task.priority || 'MEDIUM')} />
-        <span className="oma-kb-card__grip" aria-hidden>
-          ⠿
-        </span>
-      </div>
+      {campaign ? (
+        <div className="oma-kb-card__labels">
+          <span className="oma-kb-card__tag" data-testid="demo-task-card-campaign">
+            {campaign}
+          </span>
+        </div>
+      ) : null}
       <h4 className="oma-kb-card__title">{pickCopy(task.title, locale)}</h4>
-      {subtitle ? <p className="oma-kb-card__sub">{subtitle}</p> : null}
-      <div className="oma-kb-card__foot">
-        <span className={`oma-kb-card__due${overdue ? ' is-overdue' : ''}`}>
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden>
-            <circle cx="8" cy="8" r="6.25" stroke="currentColor" strokeWidth="1.4" />
-            <path
-              d="M8 4.75V8l2 1.5"
-              stroke="currentColor"
-              strokeWidth="1.4"
-              strokeLinecap="round"
-            />
-          </svg>
-          {formatDue(task.dueAt, overdue, isAr)}
-        </span>
+      {description ? <p className="oma-kb-card__desc">{description}</p> : null}
+      {context ? <p className="oma-kb-card__ctx">{context}</p> : null}
+      <div className="oma-kb-card__meta">
+        <PriorityFlag priority={String(task.priority || '')} />
+        <DueDate task={task} />
+        {comments > 0 ? (
+          <span
+            className="oma-kb-card__count"
+            title={t('demo.tasks.card.comments')}
+            aria-label={`${comments} ${t('demo.tasks.card.comments')}`}
+          >
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden>
+              <path
+                d="M2.5 3.5h11v7h-6l-3 2.5v-2.5h-2z"
+                stroke="currentColor"
+                strokeWidth="1.4"
+                strokeLinejoin="round"
+              />
+            </svg>
+            {comments}
+          </span>
+        ) : null}
+        {checkTotal > 0 ? (
+          <span
+            className={`oma-kb-card__count${checkDone === checkTotal ? ' is-complete' : ''}`}
+            title={t('demo.tasks.card.checklist')}
+            aria-label={`${t('demo.tasks.card.checklist')} ${checkDone}/${checkTotal}`}
+          >
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" aria-hidden>
+              <rect
+                x="2.5"
+                y="2.5"
+                width="11"
+                height="11"
+                rx="2"
+                stroke="currentColor"
+                strokeWidth="1.4"
+              />
+              <path
+                d="M5.5 8l2 2 3.5-4"
+                stroke="currentColor"
+                strokeWidth="1.4"
+                strokeLinecap="round"
+              />
+            </svg>
+            <span className="oma-ltr">{`${checkDone}/${checkTotal}`}</span>
+          </span>
+        ) : null}
         {assignee ? (
-          <span className="oma-kb-card__avatar" title={assignee}>
+          <span className="oma-kb-card__avatar oma-task-avatar" title={assignee}>
             {initials(assignee)}
           </span>
         ) : (
           <span
-            className="oma-kb-card__avatar oma-kb-card__avatar--empty"
-            title={isAr ? 'غير مسند' : 'Unassigned'}
+            className="oma-kb-card__avatar oma-kb-card__avatar--empty oma-task-avatar"
+            title={t('demo.tasks.card.unassigned')}
+            aria-label={t('demo.tasks.card.unassigned')}
           >
-            —
+            +
           </span>
         )}
       </div>
@@ -179,13 +257,16 @@ function SortableTaskCard({
     <article
       ref={setNodeRef}
       style={style}
-      className={`oma-kb-card${isDragging ? ' is-dragging' : ''}`}
+      className={`oma-kb-card oma-kb-card--${String(task.status).toLowerCase()}${
+        isDragging ? ' is-dragging' : ''
+      }`}
       data-overdue={taskIsOverdue(task) ? 'true' : 'false'}
       data-testid={`demo-task-card-${task.id}`}
       data-status={task.status}
       {...attributes}
       {...listeners}
-      onDoubleClick={(e) => {
+      onClick={(e) => {
+        // PointerSensor needs 6px of movement to start a drag, so a plain click opens.
         e.stopPropagation();
         onOpen();
       }}
@@ -202,7 +283,8 @@ function SortableTaskCard({
       <KanbanCardBody task={task} />
       <button
         type="button"
-        className="sr-only"
+        className="oma-sr-only"
+        tabIndex={-1}
         data-testid={`demo-task-open-${task.id}`}
         onClick={(e) => {
           e.stopPropagation();
@@ -424,7 +506,10 @@ export function TasksKanbanBoard({
       </div>
       <DragOverlay dropAnimation={null}>
         {activeTask ? (
-          <div className="oma-kb-card oma-kb-card--overlay" data-testid="demo-kanban-drag-overlay">
+          <div
+            className={`oma-kb-card oma-kb-card--overlay oma-kb-card--${String(activeTask.status).toLowerCase()}`}
+            data-testid="demo-kanban-drag-overlay"
+          >
             <KanbanCardBody task={activeTask} />
           </div>
         ) : null}

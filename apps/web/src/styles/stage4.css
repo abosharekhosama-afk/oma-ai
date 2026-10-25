@@ -3030,183 +3030,7 @@ main.oma-container:has(.oma-req-page) {
   color: #6366f1;
 }
 
-/* ---- Card ---- */
-.oma-kb-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  padding: 11px 12px;
-  background: #ffffff;
-  border: 1px solid #e8eaed;
-  border-radius: 10px;
-  box-shadow: 0 1px 2px rgba(17, 24, 39, 0.04);
-  cursor: grab;
-  touch-action: none;
-  transition:
-    box-shadow 0.15s ease,
-    border-color 0.15s ease;
-  outline: none;
-  flex-shrink: 0;
-}
-.oma-kb-card:hover {
-  border-color: #d1d5db;
-  box-shadow: 0 4px 12px rgba(17, 24, 39, 0.06);
-}
-.oma-kb-card:focus-visible {
-  box-shadow: 0 0 0 3px rgba(129, 128, 253, 0.28);
-  border-color: #8180fd;
-}
-.oma-kb-card.is-dragging {
-  opacity: 0.4;
-  cursor: grabbing;
-  box-shadow: none;
-  border-color: #c4b5fd;
-}
-.oma-kb-card[data-overdue='true'] {
-  border-color: #fecaca;
-}
-
-.oma-kb-card--overlay {
-  background: #ffffff;
-  border: 1px solid #e8eaed;
-  border-radius: 10px;
-  padding: 11px 12px;
-  box-shadow: 0 12px 28px rgba(17, 24, 39, 0.12);
-  width: 260px;
-  transform: rotate(1.5deg);
-  cursor: grabbing;
-  pointer-events: none;
-}
-
-.oma-kb-card__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.oma-kb-card__grip {
-  color: #d1d5db;
-  font-size: 11px;
-  line-height: 1;
-  letter-spacing: -1px;
-  user-select: none;
-  opacity: 0;
-  transition: opacity 0.12s ease;
-}
-.oma-kb-card:hover .oma-kb-card__grip,
-.oma-kb-card:focus-visible .oma-kb-card__grip {
-  opacity: 1;
-  color: #9ca3af;
-}
-
-.oma-kb-card__title {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: #111827;
-  line-height: 1.4;
-  letter-spacing: -0.01em;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.oma-kb-card__sub {
-  margin: 0;
-  font-size: 12px;
-  color: #6b7280;
-  line-height: 1.35;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.oma-kb-card__foot {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-top: 2px;
-  padding-top: 8px;
-  border-top: 1px solid #f3f4f6;
-}
-
-.oma-kb-card__due {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 11.5px;
-  font-weight: 500;
-  color: #6b7280;
-}
-.oma-kb-card__due svg {
-  flex-shrink: 0;
-  color: #9ca3af;
-}
-.oma-kb-card__due.is-overdue {
-  color: #dc2626;
-  font-weight: 600;
-}
-.oma-kb-card__due.is-overdue svg {
-  color: #ef4444;
-}
-
-.oma-kb-card__avatar {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: #8180fd;
-  color: #fff;
-  font-size: 10px;
-  font-weight: 700;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-.oma-kb-card__avatar--empty {
-  background: #f3f4f6;
-  color: #9ca3af;
-  border: 1px solid #e5e7eb;
-  font-weight: 600;
-}
-
-/* Priority badges */
-.oma-kb-priority {
-  display: inline-flex;
-  align-items: center;
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  padding: 2px 8px;
-  border-radius: 999px;
-  border: 1px solid transparent;
-  text-transform: capitalize;
-  line-height: 1.4;
-}
-.oma-kb-priority--low {
-  background: #f3f4f6;
-  color: #6b7280;
-  border-color: #e5e7eb;
-}
-.oma-kb-priority--medium {
-  background: #fff7ed;
-  color: #c2410c;
-  border-color: #fed7aa;
-}
-.oma-kb-priority--high {
-  background: #fff1f2;
-  color: #be123c;
-  border-color: #fecdd3;
-}
-.oma-kb-priority--urgent {
-  background: #fef2f2;
-  color: #b91c1c;
-  border-color: #fecaca;
-}
+/* ---- Card: see 'Task card (Planable)' block at end of file ---- */
 
 /* Responsive: 2 cols on tablet, 1 on mobile */
 @media (max-width: 1100px) {
@@ -3229,8 +3053,7 @@ main.oma-container:has(.oma-req-page) {
 }
 
 /* RTL */
-[dir='rtl'] .oma-kb-card__head,
-[dir='rtl'] .oma-kb-card__foot,
+[dir='rtl'] .oma-kb-card__meta,
 [dir='rtl'] .oma-kb-col__head {
   flex-direction: row;
 }
@@ -6304,112 +6127,6 @@ button.oma-breadcrumb-workspace:hover {
   gap: 8px !important;
   min-height: 80px !important;
 }
-.oma-kb-card {
-  background: #fff !important;
-  border: 1px solid #e5e7eb !important;
-  border-radius: 10px !important;
-  padding: 12px !important;
-  box-shadow: 0 1px 2px rgba(17, 24, 39, 0.04) !important;
-  cursor: grab !important;
-  transition:
-    box-shadow 0.15s ease,
-    border-color 0.15s ease,
-    transform 0.12s ease !important;
-}
-.oma-kb-card:hover {
-  border-color: #d1d5db !important;
-  box-shadow: 0 4px 12px rgba(17, 24, 39, 0.08) !important;
-}
-.oma-kb-card.is-dragging {
-  opacity: 0.92 !important;
-  box-shadow: 0 10px 24px rgba(17, 24, 39, 0.14) !important;
-  transform: scale(1.02) !important;
-}
-.oma-kb-card__head {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  gap: 8px !important;
-  margin-bottom: 6px !important;
-}
-.oma-kb-card__grip {
-  color: #d1d5db !important;
-  font-size: 12px !important;
-  letter-spacing: 1px !important;
-}
-.oma-kb-card__title {
-  margin: 0 0 6px !important;
-  font-size: 13.5px !important;
-  font-weight: 600 !important;
-  color: #111827 !important;
-  line-height: 1.35 !important;
-}
-.oma-kb-card__sub {
-  margin: 0 0 10px !important;
-  font-size: 12px !important;
-  color: #6b7280 !important;
-  line-height: 1.35 !important;
-}
-.oma-kb-card__foot {
-  display: flex !important;
-  align-items: center !important;
-  gap: 8px !important;
-  flex-wrap: wrap !important;
-}
-.oma-kb-card__due {
-  font-size: 11px !important;
-  color: #6b7280 !important;
-  background: #f3f4f6 !important;
-  border-radius: 6px !important;
-  padding: 2px 8px !important;
-}
-.oma-kb-card__due.is-overdue {
-  color: #b91c1c !important;
-  background: #fef2f2 !important;
-}
-.oma-kb-card__avatar {
-  width: 24px !important;
-  height: 24px !important;
-  border-radius: 999px !important;
-  background: #e0e7ff !important;
-  color: #3730a3 !important;
-  font-size: 10px !important;
-  font-weight: 700 !important;
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  margin-inline-start: auto !important;
-}
-.oma-kb-card__avatar--empty {
-  background: #f3f4f6 !important;
-  color: #9ca3af !important;
-  border: 1px dashed #d1d5db !important;
-}
-.oma-kb-priority {
-  font-size: 10px !important;
-  font-weight: 700 !important;
-  letter-spacing: 0.03em !important;
-  text-transform: uppercase !important;
-  padding: 2px 7px !important;
-  border-radius: 999px !important;
-}
-.oma-kb-priority--urgent {
-  background: #fef2f2 !important;
-  color: #b91c1c !important;
-}
-.oma-kb-priority--high {
-  background: #fff7ed !important;
-  color: #c2410c !important;
-}
-.oma-kb-priority--medium {
-  background: #eff6ff !important;
-  color: #1d4ed8 !important;
-}
-.oma-kb-priority--low {
-  background: #f3f4f6 !important;
-  color: #6b7280 !important;
-}
-
 /* OMA-PATCH-2026-10-24-tabs-team — beat legacy pill tabs on requests/deliverables */
 .oma-req-page .oma-ws-tabs .oma-ws-tab,
 .oma-req-page .oma-ws-tabs .oma-req-tab,
@@ -6444,4 +6161,265 @@ button.oma-breadcrumb-workspace:hover {
 .oma-workspace-tabs .oma-ws-tab.is-active {
   background: transparent !important;
   border-radius: 0 !important;
+}
+
+/* ==== Task card (Planable) — tasks-card-redesign. Tokens only. ==== */
+.oma-kb-board .oma-kb-card,
+.oma-kb-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: 10px var(--space-3);
+  background: var(--oma-surface);
+  border: 1px solid var(--oma-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--elev-0);
+  color: var(--oma-ink);
+  font-family: var(--oma-font-sans);
+  text-align: start;
+  cursor: pointer;
+  transition:
+    border-color var(--oma-motion-control) var(--oma-motion-control-ease),
+    box-shadow var(--oma-motion-control) var(--oma-motion-control-ease);
+}
+[dir='rtl'] .oma-kb-card,
+:lang(ar) .oma-kb-card {
+  font-family: var(--oma-font-arabic);
+}
+.oma-kb-card:hover {
+  border-color: var(--oma-border-strong);
+  box-shadow: var(--elev-2);
+}
+.oma-kb-card:focus-visible {
+  outline: none;
+  border-color: var(--oma-primary);
+  box-shadow: var(--elev-focus);
+}
+.oma-kb-card:active {
+  cursor: grabbing;
+}
+/* Source card while its overlay is being dragged: dashed placeholder. */
+.oma-kb-card.is-dragging {
+  opacity: 0.45;
+  border-style: dashed;
+  border-color: var(--oma-primary);
+  box-shadow: none;
+}
+.oma-kb-card--overlay {
+  border-color: var(--oma-primary);
+  box-shadow: var(--elev-dialog);
+  transform: rotate(2deg);
+  cursor: grabbing;
+}
+.oma-kb-card--blocked {
+  box-shadow: var(--elev-inset-danger);
+}
+.oma-kb-card--blocked:hover {
+  box-shadow: var(--elev-inset-danger), var(--elev-2);
+}
+.oma-kb-card--done .oma-kb-card__title {
+  color: var(--oma-muted);
+  text-decoration: line-through;
+  font-weight: var(--weight-regular);
+}
+.oma-kb-card__labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+.oma-kb-card__tag {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 6px;
+  border-radius: 4px;
+  background: var(--oma-badge-info-bg);
+  color: var(--status-info);
+  font-size: 11px;
+  line-height: 18px;
+  font-weight: var(--weight-medium);
+}
+.oma-kb-card__title {
+  margin: 0;
+  font-size: var(--text-body);
+  line-height: 20px;
+  font-weight: var(--weight-medium);
+  color: var(--oma-ink-strong);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+}
+.oma-kb-card__desc,
+.oma-kb-card__ctx {
+  margin: calc(var(--space-1) * -1) 0 0;
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+  color: var(--oma-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.oma-kb-card__desc {
+  color: var(--oma-ink-subtle);
+}
+.oma-kb-card__meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 24px;
+  font-size: var(--text-meta);
+  line-height: var(--leading-meta);
+  color: var(--oma-muted);
+  white-space: nowrap;
+}
+.oma-kb-card__flag,
+.oma-kb-card__due,
+.oma-kb-card__count {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+.oma-kb-card__flag {
+  font-weight: var(--weight-medium);
+}
+.oma-kb-card__flag--high {
+  color: var(--status-warning);
+}
+.oma-kb-card__flag--urgent {
+  color: var(--status-danger);
+}
+.oma-kb-card__due--soon {
+  color: var(--status-warning);
+}
+.oma-kb-card__due--overdue {
+  padding: 0 6px;
+  border-radius: 4px;
+  background: var(--oma-badge-danger-bg);
+  color: var(--status-danger);
+  font-weight: var(--weight-medium);
+}
+.oma-kb-card__count.is-complete {
+  color: var(--status-success);
+}
+.oma-kb-card__avatar {
+  flex-shrink: 0;
+  margin-inline-start: auto;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--oma-primary-soft);
+  color: var(--oma-primary);
+  font-size: 10px;
+  font-weight: var(--weight-semibold);
+  line-height: 1;
+}
+.oma-kb-card__avatar--empty {
+  background: transparent;
+  border: 1px dashed var(--oma-border-strong);
+  color: var(--oma-muted);
+  font-size: 13px;
+  font-weight: var(--weight-regular);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .oma-kb-card,
+  .oma-kb-card--overlay {
+    transition: none;
+    transform: none;
+  }
+}
+
+/* ==== Tasks filter bar — anchored directly under the workspace top header ==== */
+/* While the bar is open the shell container drops its top padding so the bar
+   sits flush under .oma-top; inline padding is pinned so the bar can bleed edge to edge. */
+.oma-container:has(> .oma-tasks-page > .oma-tasks-filter-bar) {
+  padding-top: 0 !important;
+  padding-inline: var(--space-6) !important;
+}
+.oma-tasks-workspace[data-filter-open='true'] {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+.oma-tasks-page > .oma-tasks-filter-bar {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: var(--shell-z-top) !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: flex-start !important;
+  gap: var(--space-2) !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  overflow: visible !important;
+  width: auto !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  align-self: stretch !important;
+  margin: 0 calc(var(--space-6) * -1) var(--space-4) !important;
+  padding: var(--space-2) var(--space-6) !important;
+  background: var(--oma-surface) !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--oma-border) !important;
+  box-shadow: var(--elev-1) !important;
+}
+.oma-tasks-filter-bar .oma-req-filter-panel__head {
+  position: static !important;
+  order: 99 !important;
+  min-height: var(--oma-control-height) !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  gap: var(--space-2) !important;
+}
+.oma-tasks-filter-bar .oma-req-filter-panel__head strong {
+  display: none !important;
+}
+.oma-tasks-filter-bar .oma-filter-accordion-list {
+  flex: 1 !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: var(--space-2) !important;
+}
+.oma-tasks-filter-bar .oma-filter-accordion {
+  position: relative !important;
+  border: 0 !important;
+}
+.oma-tasks-filter-bar .oma-filter-accordion__row {
+  min-height: var(--oma-control-height) !important;
+  height: var(--oma-control-height) !important;
+  padding: 0 var(--space-3) !important;
+  gap: var(--space-2) !important;
+  border: 1px solid var(--oma-border-strong) !important;
+  border-radius: var(--oma-radius-control) !important;
+  background: var(--oma-surface) !important;
+  width: auto !important;
+}
+.oma-tasks-filter-bar .oma-filter-accordion__row[data-open='true'] {
+  border-color: var(--oma-primary) !important;
+  color: var(--oma-primary) !important;
+}
+.oma-tasks-filter-bar .oma-filter-accordion__body {
+  position: absolute !important;
+  top: calc(100% + var(--space-1)) !important;
+  inset-inline-start: 0 !important;
+  z-index: var(--shell-z-overlay) !important;
+  min-width: 240px !important;
+  padding: var(--space-2) var(--space-3) !important;
+  background: var(--oma-surface) !important;
+  border: 1px solid var(--oma-border) !important;
+  border-radius: var(--radius-xl) !important;
+  box-shadow: var(--elev-menu) !important;
+}
+.oma-tasks-filter-bar .oma-req-filter-panel__foot {
+  border: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  position: static !important;
+  background: transparent !important;
 }
