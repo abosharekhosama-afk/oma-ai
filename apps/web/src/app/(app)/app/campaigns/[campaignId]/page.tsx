@@ -66,7 +66,7 @@ export default function CampaignDetailPage() {
   const [tab, setTab] = useState<Tab>('overview');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [unavailable, setUnavailable] = useState(false);
+  const unavailable = false;
   const [editOpen, setEditOpen] = useState(false);
   const [confirmClose, setConfirmClose] = useState(false);
   const toast = useToast();
@@ -148,7 +148,14 @@ export default function CampaignDetailPage() {
         });
       } catch (err) {
         if (cancelled) return;
-        setError(apiErrorMessage(err, locale.toLowerCase().startsWith('ar') ? 'تعذّر تحميل الحملة' : 'Failed to load campaign'));
+        setError(
+          apiErrorMessage(
+            err,
+            locale.toLowerCase().startsWith('ar')
+              ? 'تعذّر تحميل الحملة'
+              : 'Failed to load campaign',
+          ),
+        );
         setCampaign(null);
       } finally {
         if (!cancelled) setLoading(false);
@@ -247,7 +254,6 @@ export default function CampaignDetailPage() {
         />
       </div>
 
-
       {loading ? <p className="oma-muted">{t('demo.loading')}</p> : null}
       {unavailable ? <DeniedState title={t('demo.unavailable')} /> : null}
       {error ? <ErrorState title={error} /> : null}
@@ -264,7 +270,11 @@ export default function CampaignDetailPage() {
             {campaign.strategyId}
           </p>
 
-          <div className="oma-ws-tabs oma-workspace-tabs" role="tablist" aria-label="Campaign workspace">
+          <div
+            className="oma-ws-tabs oma-workspace-tabs"
+            role="tablist"
+            aria-label="Campaign workspace"
+          >
             {(
               [
                 ['overview', t('demo.campaign.overview')],

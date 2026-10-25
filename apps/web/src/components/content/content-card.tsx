@@ -136,20 +136,47 @@ export function ContentFace({
           <span className="oma-post-card__channel oma-plx-cal-card__channel" title={channel}>
             <span className="oma-post-card__channel-icon oma-plx-cal-card__ico" aria-hidden>
               <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                <rect x="2.5" y="3.5" width="11" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.3"/>
-                <circle cx="6" cy="7" r="1" fill="currentColor"/>
-                <path d="M4 11.2 6.1 9.2a.8.8 0 0 1 1.1 0L12 12.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+                <rect
+                  x="2.5"
+                  y="3.5"
+                  width="11"
+                  height="9"
+                  rx="1.5"
+                  stroke="currentColor"
+                  strokeWidth="1.3"
+                />
+                <circle cx="6" cy="7" r="1" fill="currentColor" />
+                <path
+                  d="M4 11.2 6.1 9.2a.8.8 0 0 1 1.1 0L12 12.5"
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                  strokeLinecap="round"
+                />
               </svg>
             </span>
-            <span className="oma-post-card__channel-name oma-plx-cal-card__name">{channelShort}</span>
+            <span className="oma-post-card__channel-name oma-plx-cal-card__name">
+              {channelShort}
+            </span>
           </span>
           <span className="oma-post-card__when oma-plx-cal-card__when">
             {isDraft ? (
               <>
                 <span className="oma-plx-cal-card__sync" aria-hidden>
                   <svg width="11" height="11" viewBox="0 0 16 16" fill="none">
-                    <path d="M3.2 8A4.8 4.8 0 0 1 11 4.6M12.5 3.2V6H9.7" stroke="#21cc99" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M12.8 8A4.8 4.8 0 0 1 5 11.4M3.5 12.8V10H6.3" stroke="#21cc99" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path
+                      d="M3.2 8A4.8 4.8 0 0 1 11 4.6M12.5 3.2V6H9.7"
+                      stroke="#21cc99"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M12.8 8A4.8 4.8 0 0 1 5 11.4M3.5 12.8V10H6.3"
+                      stroke="#21cc99"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
                   </svg>
                 </span>
                 <span className="oma-post-card__draft oma-plx-cal-card__draft">Draft</span>

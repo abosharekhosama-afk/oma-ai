@@ -826,7 +826,9 @@ body.oma-scroll-lock {
   text-align: start;
   height: auto;
   white-space: normal;
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
 }
 .oma-onboarding-card:hover {
   border-color: var(--oma-primary);

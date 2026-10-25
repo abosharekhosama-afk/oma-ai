@@ -9,7 +9,8 @@
   color: #111827;
   margin: -20px -24px -40px;
   padding: 0 0 48px;
-  font-family: -apple-system, system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-family:
+    -apple-system, system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif;
 }
 
 .plx-page__bar {
@@ -84,25 +85,36 @@
   font-family: inherit;
   padding: 0 16px;
   text-decoration: none;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 .plx-btn--dark {
   background: #2e3a4e;
   color: #fff;
   border-color: #2e3a4e;
 }
-.plx-btn--dark:hover { background: #253041; border-color: #253041; color: #fff; }
+.plx-btn--dark:hover {
+  background: #253041;
+  border-color: #253041;
+  color: #fff;
+}
 .plx-btn--ghost {
   border-color: #e5e7eb;
   background: #fff;
 }
-.plx-btn--ghost:hover { background: #f9fafb; border-color: #d1d5db; }
+.plx-btn--ghost:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
 .plx-btn--soft {
   background: #f3f4f6;
   border-color: transparent;
   color: #374151;
 }
-.plx-btn--soft:hover { background: #e5e7eb; }
+.plx-btn--soft:hover {
+  background: #e5e7eb;
+}
 
 /* Toolbar */
 .plx-toolbar {
@@ -171,7 +183,10 @@
   box-shadow: 0 1px 2px rgba(17, 24, 39, 0.04);
   text-decoration: none;
   color: inherit;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
 }
 .plx-card:hover {
   border-color: #d5d9e0;
@@ -228,9 +243,18 @@
   background: #f3f4f6;
   color: #4b5563;
 }
-.plx-pill--ok { background: #ecfdf5; color: #047857; }
-.plx-pill--warn { background: #fff7ed; color: #c2410c; }
-.plx-pill--info { background: #eff6ff; color: #1d4ed8; }
+.plx-pill--ok {
+  background: #ecfdf5;
+  color: #047857;
+}
+.plx-pill--warn {
+  background: #fff7ed;
+  color: #c2410c;
+}
+.plx-pill--info {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
 
 /* Member / people list — Planable company members */
 .plx-list {
@@ -242,7 +266,9 @@
 }
 .plx-list__head {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(100px, 0.7fr) minmax(100px, 0.7fr) minmax(80px, 0.5fr) auto;
+  grid-template-columns:
+    minmax(0, 1.4fr) minmax(100px, 0.7fr) minmax(100px, 0.7fr) minmax(80px, 0.5fr)
+    auto;
   gap: 12px;
   padding: 12px 20px;
   background: #fafbfc;
@@ -253,7 +279,9 @@
 }
 .plx-list__row {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(100px, 0.7fr) minmax(100px, 0.7fr) minmax(80px, 0.5fr) auto;
+  grid-template-columns:
+    minmax(0, 1.4fr) minmax(100px, 0.7fr) minmax(100px, 0.7fr) minmax(80px, 0.5fr)
+    auto;
   gap: 12px;
   align-items: center;
   padding: 14px 20px;
@@ -268,8 +296,12 @@
   color: inherit;
   cursor: pointer;
 }
-.plx-list__row:last-child { border-bottom: 0; }
-.plx-list__row:hover { background: #f9fafb; }
+.plx-list__row:last-child {
+  border-bottom: 0;
+}
+.plx-list__row:hover {
+  background: #f9fafb;
+}
 .plx-person {
   display: flex;
   align-items: center;
@@ -304,7 +336,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.plx-list__cell { font-size: 13px; color: #4b5563; }
+.plx-list__cell {
+  font-size: 13px;
+  color: #4b5563;
+}
 .plx-list__actions {
   display: inline-flex;
   gap: 4px;
@@ -312,7 +347,9 @@
 }
 
 @media (max-width: 800px) {
-  .plx-list__head { display: none; }
+  .plx-list__head {
+    display: none;
+  }
   .plx-list__row {
     grid-template-columns: 1fr auto;
     gap: 8px;
@@ -354,7 +391,10 @@
   cursor: pointer;
   font-family: inherit;
 }
-.plx-settings__nav-btn:hover { background: #eceef1; color: #111827; }
+.plx-settings__nav-btn:hover {
+  background: #eceef1;
+  color: #111827;
+}
 .plx-settings__nav-btn[data-active='true'] {
   background: #fff;
   color: #111827;
@@ -418,7 +458,9 @@
 }
 
 @media (max-width: 860px) {
-  .plx-settings { grid-template-columns: 1fr; }
+  .plx-settings {
+    grid-template-columns: 1fr;
+  }
   .plx-settings__nav {
     flex-direction: row;
     flex-wrap: wrap;
@@ -452,7 +494,9 @@
   border-radius: 14px;
   margin-bottom: 8px;
   cursor: pointer;
-  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+  transition:
+    border-color 0.12s ease,
+    box-shadow 0.12s ease;
   width: 100%;
   text-align: start;
   font: inherit;
@@ -518,10 +562,17 @@
 }
 
 @media (max-width: 640px) {
-  .plx-page { margin: -16px -14px -32px; }
+  .plx-page {
+    margin: -16px -14px -32px;
+  }
   .plx-page__bar,
-  .plx-page__body { padding-left: 16px; padding-right: 16px; }
-  .plx-page__title { font-size: 20px; }
+  .plx-page__body {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .plx-page__title {
+    font-size: 20px;
+  }
 }
 
 /* Brand workspace cards inside Planable pages */
@@ -536,7 +587,10 @@
   border: 1px solid #eceef1;
   border-radius: 16px;
   box-shadow: 0 1px 2px rgba(17, 24, 39, 0.04);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
 }
 .plx-page .oma-workspace-card:hover,
 .plx-card-grid .oma-workspace-card:hover {
@@ -668,7 +722,9 @@
   line-height: 1 !important;
   padding: 4px !important;
 }
-.plx-toolbar--brands .plx-toolbar__clear:hover { color: #374151 !important; }
+.plx-toolbar--brands .plx-toolbar__clear:hover {
+  color: #374151 !important;
+}
 .plx-toolbar--brands select {
   height: 38px !important;
   min-width: 140px !important;
@@ -882,7 +938,6 @@
   padding: 0 0 12px !important;
 }
 
-
 /* Content calendar loading skeleton — mimics calendar chrome */
 .oma-content-cal-skeleton {
   background: #fff;
@@ -909,7 +964,9 @@
   height: 20px;
   border-radius: 6px;
 }
-.oma-content-cal-skeleton__spacer { flex: 1; }
+.oma-content-cal-skeleton__spacer {
+  flex: 1;
+}
 .oma-content-cal-skeleton__btn {
   width: 36px;
   height: 28px;
@@ -965,8 +1022,12 @@
   border: 0 !important;
 }
 @keyframes oma-skel-shimmer {
-  0% { background-position: 100% 0; }
-  100% { background-position: -100% 0; }
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
 }
 
 /* Layout switch active state */
@@ -1082,10 +1143,10 @@
   border-bottom: 2px solid transparent !important;
   margin-bottom: -1px !important;
 }
-.oma-campaign-status-tabs .ant-btn[data-active="true"],
-.oma-campaign-status-tabs button[data-active="true"],
-.oma-campaign-status-tabs .ant-btn[aria-selected="true"],
-.oma-campaign-status-tabs button[aria-selected="true"] {
+.oma-campaign-status-tabs .ant-btn[data-active='true'],
+.oma-campaign-status-tabs button[data-active='true'],
+.oma-campaign-status-tabs .ant-btn[aria-selected='true'],
+.oma-campaign-status-tabs button[aria-selected='true'] {
   color: #111827 !important;
   font-weight: 500 !important;
   border-bottom-color: #2563eb !important;
@@ -1240,7 +1301,7 @@
 /* Weekdays: full-width row spanning 7 columns — NOT display:contents */
 .oma-cal-grid > .oma-cal-dow-row,
 .oma-cal-grid .oma-cal-dow-row,
-[data-testid="demo-content-cal-grid"] > .oma-cal-dow-row {
+[data-testid='demo-content-cal-grid'] > .oma-cal-dow-row {
   display: grid !important;
   grid-column: 1 / -1 !important;
   grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
@@ -1257,7 +1318,7 @@
 }
 .oma-cal-grid .oma-cal-dow,
 .oma-cal-dow-row .oma-cal-dow,
-[data-testid="demo-content-weekdays"] .oma-cal-dow {
+[data-testid='demo-content-weekdays'] .oma-cal-dow {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -1279,7 +1340,7 @@
 }
 
 /* Force calendar grid layout */
-[data-testid="demo-content-cal-grid"].oma-cal-grid,
+[data-testid='demo-content-cal-grid'].oma-cal-grid,
 .oma-cal-grid {
   display: grid !important;
   grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
@@ -1309,8 +1370,8 @@
   overflow: hidden !important;
   box-sizing: border-box !important;
 }
-.oma-cal-cell .oma-post-card--calendar[data-draft="true"],
-.oma-plx-cal-card[data-draft="true"] {
+.oma-cal-cell .oma-post-card--calendar[data-draft='true'],
+.oma-plx-cal-card[data-draft='true'] {
   border: 1px dashed #d5d7db !important;
   border-top-color: #e8b84a !important;
   border-top-width: 2px !important;
@@ -1562,4 +1623,58 @@ main.oma-container:has(.oma-content-plan) {
 }
 .oma-campaign-tabs-slot:empty {
   display: none !important;
+}
+
+/* ============================================================
+   OMA-OWNER-LOCK 2026-10-25 — calendar toolbar + weekday row
+   Must stay last. Winning-rule fixes found via computed styles:
+   - stage3.css `.oma-cal-toolbar { position: sticky; top: 48px }`
+     offset the toolbar 48px below the shell header inside the
+     scroller (and over the weekday row).
+   - `.oma-honesty-inline` subtitle added a 16px band above it.
+   - grid rows stretched the weekday track to ~27px.
+   ============================================================ */
+.oma-content-plan > .oma-honesty-inline[data-testid='content-calendar-role'] {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+.oma-cal-toolbar,
+.oma-content-plan .oma-cal-toolbar,
+.oma-cal-main > .oma-cal-toolbar,
+[data-testid='demo-content-calendar'] .oma-cal-toolbar {
+  top: 0 !important;
+  margin-top: 0 !important;
+}
+[data-testid='demo-content-cal-grid'].oma-cal-grid,
+.oma-cal-grid {
+  grid-template-rows: auto !important;
+  grid-auto-rows: minmax(0, 1fr) !important;
+  align-content: stretch !important;
+}
+.oma-cal-grid > .oma-cal-dow-row,
+.oma-cal-grid .oma-cal-dow-row,
+[data-testid='demo-content-cal-grid'] > .oma-cal-dow-row,
+.oma-cal-dow-row {
+  min-height: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+  padding: 0 !important;
+  align-self: start !important;
+}
+.oma-cal-grid .oma-cal-dow,
+.oma-cal-dow-row .oma-cal-dow,
+[data-testid='demo-content-weekdays'] .oma-cal-dow,
+.oma-cal-dow {
+  min-height: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+  padding: 2px !important;
+  line-height: 1.2 !important;
 }

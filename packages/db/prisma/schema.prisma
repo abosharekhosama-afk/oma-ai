@@ -1302,6 +1302,14 @@ model WorkRequest {
   assigneeUserId String?
   channels       String[]           @default([])
   formats        String[]           @default([])
+  /// Production brief gate (objective / audience / key message). READY when all three are non-empty.
+  briefObjectiveEn   String          @default("")
+  briefObjectiveAr   String          @default("")
+  briefAudienceEn    String          @default("")
+  briefAudienceAr    String          @default("")
+  briefKeyMessageEn  String          @default("")
+  briefKeyMessageAr  String          @default("")
+  briefReadyAt       DateTime?
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @updatedAt
   tasks          WorkTask[]

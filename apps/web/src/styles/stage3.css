@@ -285,7 +285,6 @@
   outline-offset: 2px;
 }
 
-
 .oma-content-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -2502,7 +2501,9 @@
   border-radius: 12px;
   background: #fff;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
-  transition: box-shadow 150ms ease, border-color 150ms ease;
+  transition:
+    box-shadow 150ms ease,
+    border-color 150ms ease;
   cursor: pointer;
   text-align: start;
   width: 100%;
@@ -2694,7 +2695,9 @@
   border: 1px solid #e2e3e5;
   border-radius: 10px;
   background: #fff;
-  box-shadow: 0 0 1px rgba(50, 79, 58, 0.12), 0 8px 24px rgba(0, 0, 0, 0.12);
+  box-shadow:
+    0 0 1px rgba(50, 79, 58, 0.12),
+    0 8px 24px rgba(0, 0, 0, 0.12);
 }
 .oma-post-menu__item,
 .oma-cal-context-menu button {
@@ -3375,10 +3378,22 @@ button.oma-cal-item {
   cursor: pointer !important;
   position: relative !important;
 }
-.oma-cal-note[data-color='mint'] { background: #e8fff6 !important; border-color: #b7ead4 !important; }
-.oma-cal-note[data-color='pink'] { background: #ffe8f0 !important; border-color: #f0c0d0 !important; }
-.oma-cal-note[data-color='lavender'] { background: #f0e8ff !important; border-color: #d8c8f0 !important; }
-.oma-cal-note[data-color='blue'] { background: #e8f2ff !important; border-color: #c0d8f0 !important; }
+.oma-cal-note[data-color='mint'] {
+  background: #e8fff6 !important;
+  border-color: #b7ead4 !important;
+}
+.oma-cal-note[data-color='pink'] {
+  background: #ffe8f0 !important;
+  border-color: #f0c0d0 !important;
+}
+.oma-cal-note[data-color='lavender'] {
+  background: #f0e8ff !important;
+  border-color: #d8c8f0 !important;
+}
+.oma-cal-note[data-color='blue'] {
+  background: #e8f2ff !important;
+  border-color: #c0d8f0 !important;
+}
 .oma-cal-note__lock {
   margin-top: auto !important;
   font-size: 12px !important;
@@ -3437,13 +3452,25 @@ button.oma-cal-item {
   cursor: pointer !important;
   padding: 0 !important;
 }
-.oma-cal-note-swatch[data-color='yellow'] { background: #f5d76e !important; }
-.oma-cal-note-swatch[data-color='mint'] { background: #7dcea0 !important; }
-.oma-cal-note-swatch[data-color='pink'] { background: #f5b7b1 !important; }
-.oma-cal-note-swatch[data-color='lavender'] { background: #d2b4de !important; }
-.oma-cal-note-swatch[data-color='blue'] { background: #85c1e9 !important; }
+.oma-cal-note-swatch[data-color='yellow'] {
+  background: #f5d76e !important;
+}
+.oma-cal-note-swatch[data-color='mint'] {
+  background: #7dcea0 !important;
+}
+.oma-cal-note-swatch[data-color='pink'] {
+  background: #f5b7b1 !important;
+}
+.oma-cal-note-swatch[data-color='lavender'] {
+  background: #d2b4de !important;
+}
+.oma-cal-note-swatch[data-color='blue'] {
+  background: #85c1e9 !important;
+}
 .oma-cal-note-swatch[data-active='true'] {
-  box-shadow: 0 0 0 2px #fff, 0 0 0 3px #333 !important;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 3px #333 !important;
 }
 
 /* Top action buttons with icons + tooltips */
@@ -3832,7 +3859,7 @@ button.oma-cal-item {
   color: #666a70;
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: .08em;
+  letter-spacing: 0.08em;
 }
 
 .oma-content-filter-divider {
@@ -4726,11 +4753,21 @@ button.oma-cal-item {
   border-radius: 14px !important;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2) !important;
 }
-.oma-cal-note-modal__card[data-color='yellow'] { background: #fde68a !important; }
-.oma-cal-note-modal__card[data-color='mint'] { background: #a7f3d0 !important; }
-.oma-cal-note-modal__card[data-color='pink'] { background: #fbcfe8 !important; }
-.oma-cal-note-modal__card[data-color='lavender'] { background: #ddd6fe !important; }
-.oma-cal-note-modal__card[data-color='blue'] { background: #bfdbfe !important; }
+.oma-cal-note-modal__card[data-color='yellow'] {
+  background: #fde68a !important;
+}
+.oma-cal-note-modal__card[data-color='mint'] {
+  background: #a7f3d0 !important;
+}
+.oma-cal-note-modal__card[data-color='pink'] {
+  background: #fbcfe8 !important;
+}
+.oma-cal-note-modal__card[data-color='lavender'] {
+  background: #ddd6fe !important;
+}
+.oma-cal-note-modal__card[data-color='blue'] {
+  background: #bfdbfe !important;
+}
 .oma-cal-note-modal__done {
   margin-inline-start: auto !important;
   border: 0 !important;
@@ -4923,7 +4960,9 @@ button.oma-cal-item {
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 .oma-compose-pill:hover {
   background: #eef0f3;
@@ -5142,7 +5181,6 @@ button.oma-cal-item {
   display: flex;
   align-items: center;
 }
-
 
 /* ==== Planable post detail modal ==== */
 .oma-plan-post-modal .oma-dialog,
@@ -5929,7 +5967,9 @@ button.oma-cal-item {
   height: 100% !important;
   object-fit: cover !important;
   display: block !important;
-  transition: transform 0.25s ease, filter 0.25s ease !important;
+  transition:
+    transform 0.25s ease,
+    filter 0.25s ease !important;
 }
 .oma-plan-grid__shade {
   position: absolute !important;
@@ -6092,7 +6132,9 @@ button.oma-cal-item {
   border: 1px solid #e8e9eb !important;
   border-radius: 8px !important;
   background: #fff !important;
-  transition: box-shadow 0.12s ease, border-color 0.12s ease !important;
+  transition:
+    box-shadow 0.12s ease,
+    border-color 0.12s ease !important;
 }
 .oma-cal-item-wrap:hover .oma-cal-item {
   border-color: #c9cdd3 !important;
@@ -6147,11 +6189,21 @@ button.oma-cal-item {
   min-height: 72px !important;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
 }
-.oma-cal-note--inline[data-color='yellow'] { background: #fef9c3 !important; }
-.oma-cal-note--inline[data-color='mint'] { background: #d1fae5 !important; }
-.oma-cal-note--inline[data-color='pink'] { background: #fce7f3 !important; }
-.oma-cal-note--inline[data-color='lavender'] { background: #ede9fe !important; }
-.oma-cal-note--inline[data-color='blue'] { background: #e0f2fe !important; }
+.oma-cal-note--inline[data-color='yellow'] {
+  background: #fef9c3 !important;
+}
+.oma-cal-note--inline[data-color='mint'] {
+  background: #d1fae5 !important;
+}
+.oma-cal-note--inline[data-color='pink'] {
+  background: #fce7f3 !important;
+}
+.oma-cal-note--inline[data-color='lavender'] {
+  background: #ede9fe !important;
+}
+.oma-cal-note--inline[data-color='blue'] {
+  background: #e0f2fe !important;
+}
 .oma-cal-note__input {
   border: 0 !important;
   background: transparent !important;
@@ -6205,11 +6257,21 @@ button.oma-cal-item {
   cursor: pointer !important;
   padding: 0 !important;
 }
-.oma-cal-note-swatch[data-color='yellow'] { background: #fde047 !important; }
-.oma-cal-note-swatch[data-color='mint'] { background: #6ee7b7 !important; }
-.oma-cal-note-swatch[data-color='pink'] { background: #f9a8d4 !important; }
-.oma-cal-note-swatch[data-color='lavender'] { background: #c4b5fd !important; }
-.oma-cal-note-swatch[data-color='blue'] { background: #7dd3fc !important; }
+.oma-cal-note-swatch[data-color='yellow'] {
+  background: #fde047 !important;
+}
+.oma-cal-note-swatch[data-color='mint'] {
+  background: #6ee7b7 !important;
+}
+.oma-cal-note-swatch[data-color='pink'] {
+  background: #f9a8d4 !important;
+}
+.oma-cal-note-swatch[data-color='lavender'] {
+  background: #c4b5fd !important;
+}
+.oma-cal-note-swatch[data-color='blue'] {
+  background: #7dd3fc !important;
+}
 .oma-cal-note-swatch[data-active='true'] {
   border-color: #111 !important;
 }
@@ -6464,17 +6526,29 @@ button.oma-cal-item {
   z-index: 1 !important;
 }
 .oma-cal-note[data-color='yellow'],
-.oma-cal-note--inline[data-color='yellow'] { background: #fef6c7 !important; }
+.oma-cal-note--inline[data-color='yellow'] {
+  background: #fef6c7 !important;
+}
 .oma-cal-note[data-color='mint'],
-.oma-cal-note--inline[data-color='mint'] { background: #d1fae5 !important; }
+.oma-cal-note--inline[data-color='mint'] {
+  background: #d1fae5 !important;
+}
 .oma-cal-note[data-color='pink'],
-.oma-cal-note--inline[data-color='pink'] { background: #fce7f3 !important; }
+.oma-cal-note--inline[data-color='pink'] {
+  background: #fce7f3 !important;
+}
 .oma-cal-note[data-color='blue'],
-.oma-cal-note--inline[data-color='blue'] { background: #dbeafe !important; }
+.oma-cal-note--inline[data-color='blue'] {
+  background: #dbeafe !important;
+}
 .oma-cal-note[data-color='purple'],
-.oma-cal-note--inline[data-color='purple'] { background: #ede9fe !important; }
+.oma-cal-note--inline[data-color='purple'] {
+  background: #ede9fe !important;
+}
 .oma-cal-note[data-color='orange'],
-.oma-cal-note--inline[data-color='orange'] { background: #ffedd5 !important; }
+.oma-cal-note--inline[data-color='orange'] {
+  background: #ffedd5 !important;
+}
 
 .oma-cal-note__input {
   background: transparent !important;
@@ -6513,12 +6587,24 @@ button.oma-cal-item {
   cursor: pointer !important;
   padding: 0 !important;
 }
-.oma-cal-note-swatch[data-color='yellow'] { background: #fde68a !important; }
-.oma-cal-note-swatch[data-color='mint'] { background: #6ee7b7 !important; }
-.oma-cal-note-swatch[data-color='pink'] { background: #f9a8d4 !important; }
-.oma-cal-note-swatch[data-color='blue'] { background: #93c5fd !important; }
-.oma-cal-note-swatch[data-color='purple'] { background: #c4b5fd !important; }
-.oma-cal-note-swatch[data-color='orange'] { background: #fdba74 !important; }
+.oma-cal-note-swatch[data-color='yellow'] {
+  background: #fde68a !important;
+}
+.oma-cal-note-swatch[data-color='mint'] {
+  background: #6ee7b7 !important;
+}
+.oma-cal-note-swatch[data-color='pink'] {
+  background: #f9a8d4 !important;
+}
+.oma-cal-note-swatch[data-color='blue'] {
+  background: #93c5fd !important;
+}
+.oma-cal-note-swatch[data-color='purple'] {
+  background: #c4b5fd !important;
+}
+.oma-cal-note-swatch[data-color='orange'] {
+  background: #fdba74 !important;
+}
 
 .oma-cal-note__actions {
   position: absolute !important;
@@ -6843,7 +6929,6 @@ button.oma-cal-item {
   margin-top: 4px;
 }
 
-
 /* ========== Content UI fixes (compose pickers, calendar, path view) ========== */
 
 /* Label/template dialogs above compose overlay (z-index 1050) */
@@ -7016,7 +7101,9 @@ label.oma-compose-media {
   border: 1px solid #e8e9eb !important;
   background: #fff !important;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease !important;
 }
 .oma-post-card--grid:hover,
 .oma-post-card--feed:hover {

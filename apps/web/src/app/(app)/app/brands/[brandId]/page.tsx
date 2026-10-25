@@ -15,7 +15,7 @@ import { CoverageDisclosure } from '../../../../../components/brand/coverage-dis
 import { PermissionDenied } from '../../../../../components/shell/permission-denied';
 import { StatusChip } from '../../../../../components/ui/status-chip';
 import { Panel } from '../../../../../components/ui/page-header';
-import { ErrorState, Skeleton } from '../../../../../components/ui/empty-state';
+import { ErrorState } from '../../../../../components/ui/empty-state';
 import { useT } from '../../../../../lib/use-locale';
 
 export default function BrandDetailPage() {

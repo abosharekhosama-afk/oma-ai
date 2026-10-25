@@ -318,7 +318,11 @@ export function SelectField({
         </span>
       </button>
       {open ? (
-        <ul className="oma-choice-select__menu" role="listbox" data-testid={testId ? `${testId}-menu` : undefined}>
+        <ul
+          className="oma-choice-select__menu"
+          role="listbox"
+          data-testid={testId ? `${testId}-menu` : undefined}
+        >
           {options.map((opt) => (
             <li key={opt.value || '__empty'} role="none">
               <button

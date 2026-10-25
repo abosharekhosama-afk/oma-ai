@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { DemoGraph } from '@oma/demo';
-import { Button, DatePicker, Input, OmaSelect, SelectField, TextArea } from '@oma/ui/controls';
+import { Button, DatePicker, Input, OmaSelect, TextArea } from '@oma/ui/controls';
 import dayjs from 'dayjs';
 import { Dialog } from '../../../../components/ui/dialog';
 import { EmptyState } from '../../../../components/ui/empty-state';
@@ -44,7 +44,6 @@ import {
   CalendarOutlined,
   UserOutlined,
   TeamOutlined,
-  ClockCircleOutlined,
   DownOutlined,
   UpOutlined,
 } from '@ant-design/icons';
@@ -144,7 +143,12 @@ export default function RequestsPage() {
         requester: f.requester || 'Owner',
       }));
     } catch (err) {
-      setError(opsError(err, locale.toLowerCase().startsWith('ar') ? 'تعذّر تحميل الطلبات' : 'Failed to load requests'));
+      setError(
+        opsError(
+          err,
+          locale.toLowerCase().startsWith('ar') ? 'تعذّر تحميل الطلبات' : 'Failed to load requests',
+        ),
+      );
       setRows([]);
       setBrands([]);
       setCampaigns([]);
@@ -201,26 +205,26 @@ export default function RequestsPage() {
     setCreating(true);
     try {
       const createdApi = await createRequest(form.brandId, {
-          title: { en: form.title.trim(), ar: form.title.trim() },
-          description: {
-            en: form.description.trim(),
-            ar: form.description.trim(),
-          },
-          type: form.type,
-          campaignId: form.campaignId || null,
-          contentId: form.contentId || null,
-          priority: form.priority,
-          dueAt: form.dueAt ? `${form.dueAt}T12:00:00.000Z` : null,
-          channels: form.channels
-            .split(',')
-            .map((c) => c.trim())
-            .filter(Boolean),
-          formats: form.formats
-            .split(',')
-            .map((c) => c.trim())
-            .filter(Boolean),
-        });
-        const created = toRequestRow(createdApi);
+        title: { en: form.title.trim(), ar: form.title.trim() },
+        description: {
+          en: form.description.trim(),
+          ar: form.description.trim(),
+        },
+        type: form.type,
+        campaignId: form.campaignId || null,
+        contentId: form.contentId || null,
+        priority: form.priority,
+        dueAt: form.dueAt ? `${form.dueAt}T12:00:00.000Z` : null,
+        channels: form.channels
+          .split(',')
+          .map((c) => c.trim())
+          .filter(Boolean),
+        formats: form.formats
+          .split(',')
+          .map((c) => c.trim())
+          .filter(Boolean),
+      });
+      const created = toRequestRow(createdApi);
       toast.push(t('demo.create.successRequest'), 'success');
       setCreateOpen(false);
       setCreateDirty(false);
@@ -246,7 +250,11 @@ export default function RequestsPage() {
             </span>
           </div>
           <p className="oma-req-header__subtitle">{t('demo.requests.subtitle')}</p>
-          <div className="oma-ws-tabs oma-req-tabs" role="tablist" data-testid="demo-request-groups">
+          <div
+            className="oma-ws-tabs oma-req-tabs"
+            role="tablist"
+            data-testid="demo-request-groups"
+          >
             {GROUPS.map((g) => (
               <button
                 key={g}
@@ -294,7 +302,11 @@ export default function RequestsPage() {
         : null}
 
       {loading ? (
-        <p className="oma-muted oma-req-main" style={{ padding: '16px 20px' }} data-testid="demo-requests-loading">
+        <p
+          className="oma-muted oma-req-main"
+          style={{ padding: '16px 20px' }}
+          data-testid="demo-requests-loading"
+        >
           {t('demo.loading')}
         </p>
       ) : null}
@@ -320,7 +332,10 @@ export default function RequestsPage() {
               <EmptyState title={t('demo.empty')} body={t('demo.requests.emptyHint')} />
             ) : (
               <>
-                <div className="oma-req-table-wrap oma-req-desktop" data-testid="demo-request-table">
+                <div
+                  className="oma-req-table-wrap oma-req-desktop"
+                  data-testid="demo-request-table"
+                >
                   <table className="oma-req-table">
                     <thead>
                       <tr>
@@ -441,7 +456,9 @@ export default function RequestsPage() {
           {filterSheet ? (
             <aside className="oma-req-filter-panel" data-testid="demo-request-filters">
               <header className="oma-req-filter-panel__head">
-                <strong>{locale.toLowerCase().startsWith('ar') ? 'تصفية وترتيب' : 'Filter & sort'}</strong>
+                <strong>
+                  {locale.toLowerCase().startsWith('ar') ? 'تصفية وترتيب' : 'Filter & sort'}
+                </strong>
                 <button
                   type="button"
                   className="oma-req-filter-panel__close"
@@ -460,7 +477,9 @@ export default function RequestsPage() {
                     data-open={filterSection === 'search' ? 'true' : 'false'}
                     onClick={() => setFilterSection((s) => (s === 'search' ? null : 'search'))}
                   >
-                    <span className="oma-filter-accordion__ico"><SearchOutlined /></span>
+                    <span className="oma-filter-accordion__ico">
+                      <SearchOutlined />
+                    </span>
                     <span>{t('demo.requests.search')}</span>
                     <span className="oma-filter-accordion__caret">
                       {filterSection === 'search' ? <UpOutlined /> : <DownOutlined />}
@@ -485,7 +504,9 @@ export default function RequestsPage() {
                     data-open={filterSection === 'status' ? 'true' : 'false'}
                     onClick={() => setFilterSection((s) => (s === 'status' ? null : 'status'))}
                   >
-                    <span className="oma-filter-accordion__ico"><CheckCircleOutlined /></span>
+                    <span className="oma-filter-accordion__ico">
+                      <CheckCircleOutlined />
+                    </span>
                     <span>{t('demo.requests.filter.status')}</span>
                     <span className="oma-filter-accordion__caret">
                       {filterSection === 'status' ? <UpOutlined /> : <DownOutlined />}
@@ -525,7 +546,9 @@ export default function RequestsPage() {
                     data-open={filterSection === 'priority' ? 'true' : 'false'}
                     onClick={() => setFilterSection((s) => (s === 'priority' ? null : 'priority'))}
                   >
-                    <span className="oma-filter-accordion__ico"><FlagOutlined /></span>
+                    <span className="oma-filter-accordion__ico">
+                      <FlagOutlined />
+                    </span>
                     <span>{t('demo.requests.filter.priority')}</span>
                     <span className="oma-filter-accordion__caret">
                       {filterSection === 'priority' ? <UpOutlined /> : <DownOutlined />}
@@ -555,7 +578,9 @@ export default function RequestsPage() {
                     data-open={filterSection === 'type' ? 'true' : 'false'}
                     onClick={() => setFilterSection((s) => (s === 'type' ? null : 'type'))}
                   >
-                    <span className="oma-filter-accordion__ico"><AppstoreOutlined /></span>
+                    <span className="oma-filter-accordion__ico">
+                      <AppstoreOutlined />
+                    </span>
                     <span>{t('demo.requests.filter.type')}</span>
                     <span className="oma-filter-accordion__caret">
                       {filterSection === 'type' ? <UpOutlined /> : <DownOutlined />}
@@ -563,19 +588,25 @@ export default function RequestsPage() {
                   </button>
                   {filterSection === 'type' ? (
                     <div className="oma-filter-accordion__body">
-                      {['all', 'CONTENT', 'DESIGN', 'VIDEO', 'CAMPAIGN_SUPPORT', 'REVISION', 'OTHER'].map(
-                        (s) => (
-                          <label key={s} className="oma-filter-check">
-                            <input
-                              type="checkbox"
-                              data-testid={s === 'all' ? 'demo-request-filter-type' : undefined}
-                              checked={(filters.type || 'all') === s}
-                              onChange={() => setFilters((f) => ({ ...f, type: s }))}
-                            />
-                            <span>{s === 'all' ? t('demo.filter.all') : s}</span>
-                          </label>
-                        ),
-                      )}
+                      {[
+                        'all',
+                        'CONTENT',
+                        'DESIGN',
+                        'VIDEO',
+                        'CAMPAIGN_SUPPORT',
+                        'REVISION',
+                        'OTHER',
+                      ].map((s) => (
+                        <label key={s} className="oma-filter-check">
+                          <input
+                            type="checkbox"
+                            data-testid={s === 'all' ? 'demo-request-filter-type' : undefined}
+                            checked={(filters.type || 'all') === s}
+                            onChange={() => setFilters((f) => ({ ...f, type: s }))}
+                          />
+                          <span>{s === 'all' ? t('demo.filter.all') : s}</span>
+                        </label>
+                      ))}
                     </div>
                   ) : null}
                 </div>
@@ -587,7 +618,9 @@ export default function RequestsPage() {
                     data-open={filterSection === 'brand' ? 'true' : 'false'}
                     onClick={() => setFilterSection((s) => (s === 'brand' ? null : 'brand'))}
                   >
-                    <span className="oma-filter-accordion__ico"><TagOutlined /></span>
+                    <span className="oma-filter-accordion__ico">
+                      <TagOutlined />
+                    </span>
                     <span>{t('demo.requests.filter.brand')}</span>
                     <span className="oma-filter-accordion__caret">
                       {filterSection === 'brand' ? <UpOutlined /> : <DownOutlined />}
@@ -625,7 +658,9 @@ export default function RequestsPage() {
                     data-open={filterSection === 'campaign' ? 'true' : 'false'}
                     onClick={() => setFilterSection((s) => (s === 'campaign' ? null : 'campaign'))}
                   >
-                    <span className="oma-filter-accordion__ico"><FlagOutlined /></span>
+                    <span className="oma-filter-accordion__ico">
+                      <FlagOutlined />
+                    </span>
                     <span>{t('demo.requests.filter.campaign')}</span>
                     <span className="oma-filter-accordion__caret">
                       {filterSection === 'campaign' ? <UpOutlined /> : <DownOutlined />}
@@ -661,9 +696,13 @@ export default function RequestsPage() {
                     type="button"
                     className="oma-filter-accordion__row"
                     data-open={filterSection === 'requester' ? 'true' : 'false'}
-                    onClick={() => setFilterSection((s) => (s === 'requester' ? null : 'requester'))}
+                    onClick={() =>
+                      setFilterSection((s) => (s === 'requester' ? null : 'requester'))
+                    }
                   >
-                    <span className="oma-filter-accordion__ico"><UserOutlined /></span>
+                    <span className="oma-filter-accordion__ico">
+                      <UserOutlined />
+                    </span>
                     <span>{t('demo.requests.filter.requester')}</span>
                     <span className="oma-filter-accordion__caret">
                       {filterSection === 'requester' ? <UpOutlined /> : <DownOutlined />}
@@ -701,7 +740,9 @@ export default function RequestsPage() {
                     data-open={filterSection === 'assignee' ? 'true' : 'false'}
                     onClick={() => setFilterSection((s) => (s === 'assignee' ? null : 'assignee'))}
                   >
-                    <span className="oma-filter-accordion__ico"><TeamOutlined /></span>
+                    <span className="oma-filter-accordion__ico">
+                      <TeamOutlined />
+                    </span>
                     <span>{t('demo.requests.filter.assignee')}</span>
                     <span className="oma-filter-accordion__caret">
                       {filterSection === 'assignee' ? <UpOutlined /> : <DownOutlined />}
@@ -739,7 +780,9 @@ export default function RequestsPage() {
                     data-open={filterSection === 'due' ? 'true' : 'false'}
                     onClick={() => setFilterSection((s) => (s === 'due' ? null : 'due'))}
                   >
-                    <span className="oma-filter-accordion__ico"><CalendarOutlined /></span>
+                    <span className="oma-filter-accordion__ico">
+                      <CalendarOutlined />
+                    </span>
                     <span>{t('demo.requests.filter.due')}</span>
                     <span className="oma-filter-accordion__caret">
                       {filterSection === 'due' ? <UpOutlined /> : <DownOutlined />}
@@ -758,7 +801,9 @@ export default function RequestsPage() {
                         <label key={opt.value} className="oma-filter-check">
                           <input
                             type="checkbox"
-                            data-testid={opt.value === 'all' ? 'demo-request-filter-due' : undefined}
+                            data-testid={
+                              opt.value === 'all' ? 'demo-request-filter-due' : undefined
+                            }
                             checked={(filters.due || 'all') === opt.value}
                             onChange={() =>
                               setFilters((f) => ({

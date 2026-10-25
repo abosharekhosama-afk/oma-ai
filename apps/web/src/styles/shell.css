@@ -1142,7 +1142,8 @@
 
 .oma-shell {
   background: #f5f6f8 !important;
-  font-family: -apple-system, system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+  font-family:
+    -apple-system, system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
 }
 
 .oma-rail {
@@ -1249,7 +1250,9 @@
   text-decoration: none !important;
   font-size: 13.5px !important;
   font-weight: 500 !important;
-  transition: background 0.12s ease, color 0.12s ease !important;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease !important;
 }
 
 .oma-nav-link:hover {
@@ -1383,7 +1386,9 @@
   transition: grid-template-columns 0.22s ease !important;
 }
 .oma-rail {
-  transition: width 0.22s ease, padding 0.22s ease !important;
+  transition:
+    width 0.22s ease,
+    padding 0.22s ease !important;
   overflow-x: hidden !important;
 }
 .oma-nav-link-label {
@@ -2156,7 +2161,6 @@
   }
 }
 
-
 .oma-ws-action-row {
   display: flex;
   flex-wrap: wrap;
@@ -2302,7 +2306,7 @@ button.oma-breadcrumb-workspace:hover {
 }
 /* Ensure brand context never shows in trail */
 .oma-top-context .oma-brand-context,
-.oma-top-context [data-testid="brand-context"] {
+.oma-top-context [data-testid='brand-context'] {
   display: none !important;
 }
 
@@ -2405,9 +2409,12 @@ button.oma-breadcrumb-workspace:hover {
   font-size: 13px !important;
   cursor: pointer !important;
 }
-.oma-breadcrumb-ws-menu__item:hover { background: #f5f6f7 !important; }
-.oma-top-context .oma-brand-context { display: none !important; }
-
+.oma-breadcrumb-ws-menu__item:hover {
+  background: #f5f6f7 !important;
+}
+.oma-top-context .oma-brand-context {
+  display: none !important;
+}
 
 /* OMA-PATCH-path-ws-menu-planable — header workspace dropdown */
 .oma-path-ws {

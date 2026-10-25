@@ -6,10 +6,29 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../../../../lib/api';
 import { OmaDotsLoader, OmaDotsLoaderOverlay } from '../../../../components/ui/oma-dots-loader';
 import {
-  BellIcon, BriefcaseIcon, CardIcon, ChartIcon, CheckIcon, CheckSquareIcon, ChevronDownIcon,
-  ClockIcon, CloseIcon, CrownIcon, EnvelopeIcon, HelpIcon, ImageIcon, LinkIcon, MoreIcon,
-  PencilIcon, PlusIcon, SearchIcon, SettingsIcon, SparkleIcon, StarIcon, TagIcon, TrashIcon,
-  UserPlusIcon, UsersIcon, PlxLogo,
+  BellIcon,
+  BriefcaseIcon,
+  CardIcon,
+  ChartIcon,
+  CheckIcon,
+  CheckSquareIcon,
+  ChevronDownIcon,
+  CloseIcon,
+  CrownIcon,
+  EnvelopeIcon,
+  HelpIcon,
+  ImageIcon,
+  LinkIcon,
+  MoreIcon,
+  PencilIcon,
+  PlusIcon,
+  SearchIcon,
+  SettingsIcon,
+  SparkleIcon,
+  StarIcon,
+  UserPlusIcon,
+  UsersIcon,
+  PlxLogo,
 } from '../../../../components/ui/plx-icons';
 import './planable-dashboard.css';
 
@@ -117,7 +136,9 @@ export function PlanableDashboard() {
   const [wsUrl, setWsUrl] = useState('');
   const [wsTz, setWsTz] = useState(TIMEZONES[0]);
   const [pageName, setPageName] = useState('');
-  const [contentStyle, setContentStyle] = useState<'default' | 'classic' | 'modern' | 'compact'>('default');
+  const [contentStyle, setContentStyle] = useState<'default' | 'classic' | 'modern' | 'compact'>(
+    'default',
+  );
   const [createBusy, setCreateBusy] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
 
@@ -205,7 +226,9 @@ export function PlanableDashboard() {
       const next = prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id];
       try {
         localStorage.setItem(FAV_KEY, JSON.stringify(next));
-      } catch { /* noop */ }
+      } catch {
+        /* noop */
+      }
       return next;
     });
   }
@@ -260,7 +283,9 @@ export function PlanableDashboard() {
               method: 'POST',
               body: JSON.stringify({ tenant_id: tenantId }),
             });
-          } catch { /* session may already be active */ }
+          } catch {
+            /* session may already be active */
+          }
         }
       }
 
@@ -277,7 +302,9 @@ export function PlanableDashboard() {
         try {
           await api(`/api/v1/brands/${brandId}/website`, {
             method: 'POST',
-            body: JSON.stringify({ url: wsUrl.trim().startsWith('http') ? wsUrl.trim() : `https://${wsUrl.trim()}` }),
+            body: JSON.stringify({
+              url: wsUrl.trim().startsWith('http') ? wsUrl.trim() : `https://${wsUrl.trim()}`,
+            }),
           });
         } catch {
           /* website connect optional — user can retry in brand UI */
@@ -348,22 +375,52 @@ export function PlanableDashboard() {
               </button>
               {companyMenuOpen ? (
                 <div className="plx-menu" role="menu">
-                  <button type="button" className="plx-menu-item" onClick={() => setCompanyMenuOpen(false)}>
+                  <button
+                    type="button"
+                    className="plx-menu-item"
+                    onClick={() => setCompanyMenuOpen(false)}
+                  >
                     <CrownIcon /> Upgrade plan
                   </button>
-                  <button type="button" className="plx-menu-item" onClick={() => setCompanyMenuOpen(false)}>
+                  <button
+                    type="button"
+                    className="plx-menu-item"
+                    onClick={() => setCompanyMenuOpen(false)}
+                  >
                     <ChartIcon /> Usage
                   </button>
-                  <button type="button" className="plx-menu-item" onClick={() => setCompanyMenuOpen(false)}>
+                  <button
+                    type="button"
+                    className="plx-menu-item"
+                    onClick={() => setCompanyMenuOpen(false)}
+                  >
                     <CardIcon /> Billing
                   </button>
-                  <button type="button" className="plx-menu-item" onClick={() => { setCompanyMenuOpen(false); router.push('/app/settings'); }}>
+                  <button
+                    type="button"
+                    className="plx-menu-item"
+                    onClick={() => {
+                      setCompanyMenuOpen(false);
+                      router.push('/app/settings');
+                    }}
+                  >
                     <SettingsIcon /> Settings
                   </button>
-                  <button type="button" className="plx-menu-item" onClick={() => setCompanyMenuOpen(false)}>
+                  <button
+                    type="button"
+                    className="plx-menu-item"
+                    onClick={() => setCompanyMenuOpen(false)}
+                  >
                     <PencilIcon /> Rename company
                   </button>
-                  <button type="button" className="plx-menu-item" onClick={() => { setCompanyMenuOpen(false); router.push('/app/company/members'); }}>
+                  <button
+                    type="button"
+                    className="plx-menu-item"
+                    onClick={() => {
+                      setCompanyMenuOpen(false);
+                      router.push('/app/company/members');
+                    }}
+                  >
                     <UsersIcon /> Members
                   </button>
                   <div className="plx-menu-sep" />
@@ -396,9 +453,7 @@ export function PlanableDashboard() {
           </div>
 
           <div className="plx-ws-grid" data-testid="plx-workspaces-grid">
-            {brandsLoading ? (
-              <p className="plx-muted">Loading workspaces…</p>
-            ) : null}
+            {brandsLoading ? <p className="plx-muted">Loading workspaces…</p> : null}
             {brands.map((b) => (
               <WorkspaceCard
                 key={b.id}
@@ -412,9 +467,7 @@ export function PlanableDashboard() {
                   window.location.assign(`/app/brands/${b.id}`);
                 }}
                 onToggleFav={() => toggleFav(b.id)}
-                onToggleMenu={() =>
-                  setWsMenuFor((cur) => (cur === b.id ? null : b.id))
-                }
+                onToggleMenu={() => setWsMenuFor((cur) => (cur === b.id ? null : b.id))}
                 onCloseMenu={() => setWsMenuFor(null)}
                 onInvite={() => {
                   setWsMenuFor(null);
@@ -461,7 +514,9 @@ export function PlanableDashboard() {
                     onActivate={() => activate(m.tenant_id)}
                     onToggleFav={() => toggleFav(m.id || m.tenant_id)}
                     onToggleMenu={() =>
-                      setWsMenuFor((cur) => (cur === (m.id || m.tenant_id) ? null : m.id || m.tenant_id))
+                      setWsMenuFor((cur) =>
+                        cur === (m.id || m.tenant_id) ? null : m.id || m.tenant_id,
+                      )
                     }
                     onCloseMenu={() => setWsMenuFor(null)}
                     onInvite={() => {
@@ -480,22 +535,45 @@ export function PlanableDashboard() {
         </div>
       )}
 
-      {inviteOpen ? <InviteModal company={companyName} onClose={() => setInviteOpen(false)} /> : null}
+      {inviteOpen ? (
+        <InviteModal company={companyName} onClose={() => setInviteOpen(false)} />
+      ) : null}
 
       {createOpen ? (
-        <div className="plx-modal-backdrop" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && setCreateOpen(false)}>
+        <div
+          className="plx-modal-backdrop"
+          role="presentation"
+          onMouseDown={(e) => e.target === e.currentTarget && setCreateOpen(false)}
+        >
           {createStep === 1 ? (
-            <div className="plx-modal" role="dialog" aria-modal="true" aria-label="Create a workspace">
-              <button type="button" className="plx-modal-x" aria-label="Close" onClick={() => setCreateOpen(false)}>
+            <div
+              className="plx-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Create a workspace"
+            >
+              <button
+                type="button"
+                className="plx-modal-x"
+                aria-label="Close"
+                onClick={() => setCreateOpen(false)}
+              >
                 <CloseIcon />
               </button>
               <h2 className="plx-modal-title-center">Create a workspace</h2>
               <p className="plx-modal-sub-center">
-                A workspace is a group of channels and collaborators, a place where you can organize your
-                campaigns, workflows and assets.
+                A workspace is a group of channels and collaborators, a place where you can organize
+                your campaigns, workflows and assets.
               </p>
-              <form onSubmit={(e) => { e.preventDefault(); setCreateStep(2); }}>
-                <label className="plx-label" htmlFor="plx-ws-name">Workspace name</label>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  setCreateStep(2);
+                }}
+              >
+                <label className="plx-label" htmlFor="plx-ws-name">
+                  Workspace name
+                </label>
                 <input
                   id="plx-ws-name"
                   className="plx-input-sm"
@@ -504,7 +582,9 @@ export function PlanableDashboard() {
                   onChange={(e) => setWsName(e.target.value)}
                   autoFocus
                 />
-                <label className="plx-label" htmlFor="plx-ws-url">Website URL</label>
+                <label className="plx-label" htmlFor="plx-ws-url">
+                  Website URL
+                </label>
                 <input
                   id="plx-ws-url"
                   className="plx-input-sm"
@@ -512,7 +592,9 @@ export function PlanableDashboard() {
                   value={wsUrl}
                   onChange={(e) => setWsUrl(e.target.value)}
                 />
-                <label className="plx-label" htmlFor="plx-ws-tz">Workspace timezone</label>
+                <label className="plx-label" htmlFor="plx-ws-tz">
+                  Workspace timezone
+                </label>
                 <select
                   id="plx-ws-tz"
                   className="plx-input-sm plx-select"
@@ -520,23 +602,43 @@ export function PlanableDashboard() {
                   onChange={(e) => setWsTz(e.target.value)}
                 >
                   {TIMEZONES.map((tz) => (
-                    <option key={tz} value={tz}>{tz}</option>
+                    <option key={tz} value={tz}>
+                      {tz}
+                    </option>
                   ))}
                 </select>
                 <div className="plx-progress" aria-hidden="true">
-                  <span className="is-active" /><span /><span />
+                  <span className="is-active" />
+                  <span />
+                  <span />
                 </div>
-                <button type="submit" className="plx-btn plx-btn--dark plx-btn--block" disabled={!wsName.trim()}>
+                <button
+                  type="submit"
+                  className="plx-btn plx-btn--dark plx-btn--block"
+                  disabled={!wsName.trim()}
+                >
                   Next
                 </button>
               </form>
             </div>
           ) : createStep === 2 ? (
-            <div className="plx-modal plx-modal--wide" role="dialog" aria-modal="true" aria-label="Connect pages">
-              <button type="button" className="plx-modal-x" aria-label="Close" onClick={() => setCreateOpen(false)}>
+            <div
+              className="plx-modal plx-modal--wide"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Connect pages"
+            >
+              <button
+                type="button"
+                className="plx-modal-x"
+                aria-label="Close"
+                onClick={() => setCreateOpen(false)}
+              >
                 <CloseIcon />
               </button>
-              <h2 className="plx-modal-title-center">Connect {wsName || 'your workspace'}&apos;s pages</h2>
+              <h2 className="plx-modal-title-center">
+                Connect {wsName || 'your workspace'}&apos;s pages
+              </h2>
               <p className="plx-modal-sub-center">
                 Add all your brands&apos; content channels. You can always add more later.
               </p>
@@ -554,17 +656,28 @@ export function PlanableDashboard() {
                 <button type="button" className="plx-link-btn" onClick={() => setCreateStep(1)}>
                   Go back
                 </button>
-                <button type="button" className="plx-btn plx-btn--ghost" onClick={() => setCreateStep(3)}>
+                <button
+                  type="button"
+                  className="plx-btn plx-btn--ghost"
+                  onClick={() => setCreateStep(3)}
+                >
                   Connect later
                 </button>
               </div>
               <div className="plx-progress" aria-hidden="true">
-                <span className="is-done" /><span className="is-active" /><span />
+                <span className="is-done" />
+                <span className="is-active" />
+                <span />
               </div>
             </div>
           ) : (
             <div className="plx-modal" role="dialog" aria-modal="true" aria-label="Create a page">
-              <button type="button" className="plx-modal-x" aria-label="Close" onClick={() => setCreateOpen(false)}>
+              <button
+                type="button"
+                className="plx-modal-x"
+                aria-label="Close"
+                onClick={() => setCreateOpen(false)}
+              >
                 <CloseIcon />
               </button>
               <h2 className="plx-modal-title-center">Create a page for any type of content</h2>
@@ -575,7 +688,9 @@ export function PlanableDashboard() {
                     <span>Add profile picture</span>
                   </button>
                   <div className="plx-page-fields">
-                    <label className="plx-label" htmlFor="plx-page-name">Page name</label>
+                    <label className="plx-label" htmlFor="plx-page-name">
+                      Page name
+                    </label>
                     <input
                       id="plx-page-name"
                       className="plx-input-sm"
@@ -609,20 +724,36 @@ export function PlanableDashboard() {
                       className={contentStyle === s ? 'plx-style is-selected' : 'plx-style'}
                       onClick={() => setContentStyle(s)}
                     >
-                      <span className={s === 'default' ? 'plx-style-preview plx-style-preview--default' : 'plx-style-preview'}>
+                      <span
+                        className={
+                          s === 'default'
+                            ? 'plx-style-preview plx-style-preview--default'
+                            : 'plx-style-preview'
+                        }
+                      >
                         Ab
                       </span>
                       <span className="plx-style-name">{s}</span>
                     </button>
                   ))}
                 </div>
-                {createError ? <p role="alert" className="plx-error">{createError}</p> : null}
-                <button type="submit" className="plx-btn plx-btn--soft plx-btn--block" disabled={!pageName.trim() || createBusy}>
+                {createError ? (
+                  <p role="alert" className="plx-error">
+                    {createError}
+                  </p>
+                ) : null}
+                <button
+                  type="submit"
+                  className="plx-btn plx-btn--soft plx-btn--block"
+                  disabled={!pageName.trim() || createBusy}
+                >
                   {createBusy ? <OmaDotsLoader label="Creating page" /> : 'Create page'}
                 </button>
               </form>
               <div className="plx-progress" aria-hidden="true">
-                <span className="is-done" /><span className="is-done" /><span className="is-active" />
+                <span className="is-done" />
+                <span className="is-done" />
+                <span className="is-active" />
               </div>
             </div>
           )}
@@ -777,7 +908,9 @@ function InviteModal({ company, onClose }: { company: string; onClose: () => voi
 
   async function copyLink() {
     try {
-      await navigator.clipboard.writeText(`${window.location.origin}/invite?role=${encodeURIComponent(role)}`);
+      await navigator.clipboard.writeText(
+        `${window.location.origin}/invite?role=${encodeURIComponent(role)}`,
+      );
       setSent(true);
       setTimeout(onClose, 900);
     } catch {
@@ -786,8 +919,17 @@ function InviteModal({ company, onClose }: { company: string; onClose: () => voi
   }
 
   return (
-    <div className="plx-modal-backdrop" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="plx-modal" role="dialog" aria-modal="true" aria-label={`Invite members to ${company}`}>
+    <div
+      className="plx-modal-backdrop"
+      role="presentation"
+      onMouseDown={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div
+        className="plx-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Invite members to ${company}`}
+      >
         <button type="button" className="plx-modal-x" aria-label="Close" onClick={onClose}>
           <CloseIcon />
         </button>
@@ -835,7 +977,11 @@ function InviteModal({ company, onClose }: { company: string; onClose: () => voi
                     <ul>
                       {roleDef.perms.map((perm) => (
                         <li key={perm.label} className={perm.ok ? '' : 'is-denied'}>
-                          {perm.ok ? <CheckIcon width={15} height={15} /> : <CloseIcon width={15} height={15} />}
+                          {perm.ok ? (
+                            <CheckIcon width={15} height={15} />
+                          ) : (
+                            <CloseIcon width={15} height={15} />
+                          )}
                           {perm.label}
                         </li>
                       ))}
@@ -862,14 +1008,20 @@ function InviteModal({ company, onClose }: { company: string; onClose: () => voi
                 </>
               ) : null}
             </div>
-            {error ? <p role="alert" className="plx-error">{error}</p> : null}
+            {error ? (
+              <p role="alert" className="plx-error">
+                {error}
+              </p>
+            ) : null}
             <div className="plx-modal-actions">
               <button type="button" className="plx-btn plx-btn--outline" onClick={copyLink}>
                 <LinkIcon width={16} height={16} />
                 Create invite link
               </button>
               <button type="submit" className="plx-btn plx-btn--primary" disabled={busy}>
-                {busy ? <OmaDotsLoader label="Sending invite" /> : (
+                {busy ? (
+                  <OmaDotsLoader label="Sending invite" />
+                ) : (
                   <>
                     <EnvelopeIcon width={16} height={16} />
                     Send email invite

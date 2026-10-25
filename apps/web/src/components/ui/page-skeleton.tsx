@@ -1,12 +1,6 @@
 'use client';
 
-export function PageSkeleton({
-  rows = 6,
-  label = 'Loading',
-}: {
-  rows?: number;
-  label?: string;
-}) {
+export function PageSkeleton({ rows = 6, label = 'Loading' }: { rows?: number; label?: string }) {
   return (
     <div className="oma-page-skeleton" role="status" aria-label={label}>
       <div className="oma-page-skeleton__header">

@@ -40,7 +40,7 @@ async function bootstrap() {
   const host = isProd ? '0.0.0.0' : '127.0.0.1';
 
   await app.listen(port, host);
-  console.log(`API listening on http://\( {host}: \){port}`);
+  console.log(`API listening on http://${host}:${port}`);
 }
 
 bootstrap();

@@ -5,16 +5,21 @@ import { Button, DateField, Input, SelectField, TextArea } from '@oma/ui/control
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { FilterOutlined, AppstoreOutlined, UnorderedListOutlined, SearchOutlined, DownOutlined, UpOutlined } from '@ant-design/icons';
+import {
+  FilterOutlined,
+  AppstoreOutlined,
+  UnorderedListOutlined,
+  SearchOutlined,
+  DownOutlined,
+  UpOutlined,
+} from '@ant-design/icons';
 import type { DemoGraph } from '@oma/demo';
 import { TrackPill } from '../../../../components/demo/track-pill';
 import { EmptyState, ErrorState, DeniedState } from '../../../../components/ui/empty-state';
 import { StatusChip } from '../../../../components/ui/status-chip';
 import { useToast } from '../../../../components/ui/toast';
 import { Dialog } from '../../../../components/ui/dialog';
-import {
-  pickCopy,
-} from '../../../../lib/demo/use-demo-api';
+import { pickCopy } from '../../../../lib/demo/use-demo-api';
 import {
   listBrandsProduction,
   listAllCampaigns,
@@ -209,7 +214,6 @@ export default function CampaignsPage() {
     return matchesFilters;
   }, [rows, filters, locale, campaignTab]);
   const groups = useMemo(() => groupCampaignsByStatus(filtered), [filtered]);
-  const owners = useMemo(() => [...new Set(rows.map((r) => r.owner))], [rows]);
   const filterCount = activeFilterCount(filters);
   const chips = useMemo(
     () =>
@@ -281,7 +285,7 @@ export default function CampaignsPage() {
           description: payload.goal,
           objective: payload.goal,
           channels: payload.channels,
-          track: payload.track,
+          track: payload.track === 'PAID' ? 'PAID' : 'ORGANIC',
           timelineStart: payload.timeline.start,
           timelineEnd: payload.timeline.end,
           links: payload.links,
@@ -610,13 +614,16 @@ export default function CampaignsPage() {
     </div>
   );
 
-
   return (
     <div className="oma-stack oma-campaigns-page" data-testid="demo-campaigns">
       {actionsHost
         ? createPortal(
             <div className="oma-workspace-top-actions-inner">
-              <div className="oma-campaign-layout-switch" role="group" aria-label={t('demo.campaigns.layouts')}>
+              <div
+                className="oma-campaign-layout-switch"
+                role="group"
+                aria-label={t('demo.campaigns.layouts')}
+              >
                 <button
                   type="button"
                   className="oma-header-icon-btn"
@@ -693,7 +700,11 @@ export default function CampaignsPage() {
                   data-testid={`demo-campaign-tab-${key}`}
                   onClick={() => setCampaignTab(key)}
                 >
-                  {icon ? <span className="oma-campaign-tab-btn__ico" aria-hidden>{icon}</span> : null}
+                  {icon ? (
+                    <span className="oma-campaign-tab-btn__ico" aria-hidden>
+                      {icon}
+                    </span>
+                  ) : null}
                   <span>{label}</span>
                 </button>
               ))}
@@ -845,8 +856,7 @@ export default function CampaignsPage() {
               </article>
             );
           })}
-          
-        
+
           <button
             type="button"
             className="oma-campaign-create-card"
@@ -860,7 +870,7 @@ export default function CampaignsPage() {
             <span aria-hidden>+</span>
             {isAr ? 'إنشاء حملة' : 'Create campaign'}
           </button>
-</div>
+        </div>
       ) : null}
 
       {!loading && !unavailable && !error && layout === 'list'

@@ -3,7 +3,7 @@ import { Button, DateField, Input, SelectField, TextArea } from '@oma/ui/control
 
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { DemoGraph, DemoLocaleCopy } from '@oma/demo';
 import { Dialog } from '../../../../../components/ui/dialog';
 import { StatusChip } from '../../../../../components/ui/status-chip';
@@ -40,7 +40,6 @@ import { OmaTopLoader } from '../../../../../components/ui/oma-top-loader';
 import { listWorkspaceMembers, type WorkspaceMember } from '../../../../../lib/team-api';
 import {
   briefCompleteness,
-  briefIsReady,
   requestCompleteness,
   requestMissingFields,
   type RequestRow,
@@ -58,7 +57,6 @@ import {
 } from '@ant-design/icons';
 
 type Brief = DemoGraph['briefs'][number];
-type Task = DemoGraph['tasks'][number];
 type LinkedTask = {
   id: string;
   status: string;
@@ -149,13 +147,18 @@ export default function RequestDetailPage() {
 
       const decoded = decodeRequestBrief(detail.data.description);
       const empty = emptyCopy();
+      const apiBrief = detail.data.brief;
+      const copyOr = (
+        api: { en?: string; ar?: string } | undefined,
+        legacy: { en: string; ar: string } | undefined,
+      ) => (api?.en?.trim() ? { en: api.en, ar: api.ar || api.en } : (legacy ?? empty));
       setBriefDraft({
-        id: decoded ? 'server' : '',
+        id: decoded || apiBrief ? 'server' : '',
         requestId,
         overview: decoded?.overview ?? empty,
-        objective: decoded?.objective ?? empty,
-        audience: decoded?.audience ?? empty,
-        keyMessage: decoded?.keyMessage ?? empty,
+        objective: copyOr(apiBrief?.objective, decoded?.objective),
+        audience: copyOr(apiBrief?.audience, decoded?.audience),
+        keyMessage: copyOr(apiBrief?.key_message, decoded?.keyMessage),
         deliverableType: decoded?.deliverableType ?? empty,
         channels: decoded?.channels ?? data.channels ?? [],
         formats: decoded?.formats ?? data.formats ?? [],
@@ -186,7 +189,12 @@ export default function RequestDetailPage() {
         setComments([]);
       }
     } catch (err) {
-      setError(opsError(err, locale.toLowerCase().startsWith('ar') ? 'تعذّر تحميل الطلب' : 'Failed to load request'));
+      setError(
+        opsError(
+          err,
+          locale.toLowerCase().startsWith('ar') ? 'تعذّر تحميل الطلب' : 'Failed to load request',
+        ),
+      );
       setRow(null);
     } finally {
       setLoading(false);
@@ -221,12 +229,14 @@ export default function RequestDetailPage() {
     return () => window.removeEventListener('beforeunload', onBeforeUnload);
   }, [dirty]);
 
-  const missing = useMemo(() => (row ? requestMissingFields(row) : []), [row]);
-  const completeness = useMemo(
-    () => (row ? requestCompleteness(row, briefDraft) : 0),
-    [row, briefDraft],
+  // Production gate matches the API: objective, audience, and key message.
+  // briefIsReady stays the fuller demo checklist and is not the convert lock.
+  const ready = Boolean(
+    briefDraft &&
+    briefDraft.objective.en.trim() &&
+    briefDraft.audience.en.trim() &&
+    briefDraft.keyMessage.en.trim(),
   );
-  const ready = briefDraft ? briefIsReady(briefDraft) : false;
 
   function patchBriefCopy(key: keyof Brief, value: string) {
     setBriefDraft((b) => {
@@ -257,7 +267,7 @@ export default function RequestDetailPage() {
         timelineNote: briefDraft.timelineNote,
         channels: briefDraft.channels,
         formats: briefDraft.formats,
-        readiness: briefCompleteness(briefDraft) >= 80 ? 'READY' : 'DRAFT',
+        readiness: ready ? 'READY' : 'DRAFT',
       };
       const plain =
         (typeof briefDraft.overview === 'object' && briefDraft.overview?.en) ||
@@ -268,9 +278,16 @@ export default function RequestDetailPage() {
         description,
         channels: briefDraft.channels ?? [],
         formats: briefDraft.formats ?? [],
+        brief: {
+          objective: briefDraft.objective,
+          audience: briefDraft.audience,
+          keyMessage: briefDraft.keyMessage,
+        },
       });
       setRow((prev) => ({ ...(prev || ({} as RequestDetail)), ...toRequestRow(updated) }));
-      setBriefDraft((b) => (b ? { ...b, readiness: payload.readiness as Brief['readiness'], id: 'server' } : b));
+      setBriefDraft((b) =>
+        b ? { ...b, readiness: payload.readiness as Brief['readiness'], id: 'server' } : b,
+      );
       setDirty(false);
       toast.push(
         locale.toLowerCase().startsWith('ar') ? 'تم حفظ الموجز' : 'Brief saved',
@@ -337,7 +354,11 @@ export default function RequestDetailPage() {
       {/* Planable-style top bar: back + title chips + actions */}
       <header className="oma-req-detail__top">
         <div className="oma-req-detail__top-left">
-          <Link href="/app/requests" className="oma-req-detail__back" data-testid="demo-request-back">
+          <Link
+            href="/app/requests"
+            className="oma-req-detail__back"
+            data-testid="demo-request-back"
+          >
             <ArrowLeftOutlined />
             <span>{t('demo.requests.back')}</span>
           </Link>
@@ -370,7 +391,6 @@ export default function RequestDetailPage() {
           </div>
         ) : null}
       </header>
-
 
       {loading ? <OmaTopLoader /> : null}
       {unavailable ? (
@@ -523,7 +543,8 @@ export default function RequestDetailPage() {
                       <FileTextOutlined /> {t('demo.request.brief')}
                     </strong>
                     <span className="oma-req-detail__meta">
-                      {t('demo.brief.readiness')}: {briefDraft.readiness} · {briefCompleteness(briefDraft)}%
+                      {t('demo.brief.readiness')}: {briefDraft.readiness} ·{' '}
+                      {briefCompleteness(briefDraft)}%
                     </span>
                   </div>
                   <Button
@@ -659,7 +680,10 @@ export default function RequestDetailPage() {
               </section>
             ) : null}
 
-            <section className="oma-req-detail__card oma-req-detail__comments" data-testid="demo-request-comments">
+            <section
+              className="oma-req-detail__card oma-req-detail__comments"
+              data-testid="demo-request-comments"
+            >
               <header className="oma-req-detail__card-head">
                 <strong>{isAr ? 'التعليقات' : 'Comments'}</strong>
                 <span className="oma-req-detail__meta">{comments.length}</span>
@@ -681,8 +705,12 @@ export default function RequestDetailPage() {
                           </span>
                           <div className="oma-comment__body">
                             <div className="oma-comment-meta">
-                              <strong>{comment.author_user_id?.slice(0, 8) || (isAr ? 'أنت' : 'You')}</strong>
-                              <span className="oma-ltr">{formatCommentTime(comment.at, locale)}</span>
+                              <strong>
+                                {comment.author_user_id?.slice(0, 8) || (isAr ? 'أنت' : 'You')}
+                              </strong>
+                              <span className="oma-ltr">
+                                {formatCommentTime(comment.at, locale)}
+                              </span>
                             </div>
                             <p className="oma-comment-body">
                               {isAr
@@ -696,10 +724,15 @@ export default function RequestDetailPage() {
                                 if (!row.contentId) return;
                                 void deleteContentComment(row.contentId, comment.id)
                                   .then(() =>
-                                    setComments((prev) => prev.filter((item) => item.id !== comment.id)),
+                                    setComments((prev) =>
+                                      prev.filter((item) => item.id !== comment.id),
+                                    ),
                                   )
                                   .catch((err) =>
-                                    toast.push(contentApiError(err, 'Comment delete failed'), 'danger'),
+                                    toast.push(
+                                      contentApiError(err, 'Comment delete failed'),
+                                      'danger',
+                                    ),
                                   );
                               }}
                             >

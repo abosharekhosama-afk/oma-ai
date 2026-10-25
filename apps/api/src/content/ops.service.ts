@@ -1,6 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { getPrisma, tenantWhere } from '@oma/db';
-import { DomainError, newId } from '@oma/domain';
+import {
+  DomainError,
+  briefFieldsFromDescription,
+  briefReadiness,
+  hasCapability,
+  newId,
+  reviewStatusAfterVersionCreate,
+  reviewStep,
+  versionCreateAllowed,
+} from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
 
 type LocaleInput = { en: string; ar?: string } | string;
@@ -83,6 +92,13 @@ export class OpsService {
       assigneeUserId: string | null;
       channels: string[];
       formats: string[];
+      briefObjectiveEn?: string;
+      briefObjectiveAr?: string;
+      briefAudienceEn?: string;
+      briefAudienceAr?: string;
+      briefKeyMessageEn?: string;
+      briefKeyMessageAr?: string;
+      briefReadyAt?: Date | null;
       createdAt: Date;
       updatedAt: Date;
     }>,
@@ -122,17 +138,13 @@ export class OpsService {
       users.map((u) => [u.id, (u.name && u.name.trim()) || u.email || 'Team member']),
     );
     const brandMap = new Map(brands.map((b) => [b.id, b.name || 'Brand']));
-    const campaignMap = new Map(
-      campaigns.map((c) => [c.id, c.nameEn || c.nameAr || 'Campaign']),
-    );
+    const campaignMap = new Map(campaigns.map((c) => [c.id, c.nameEn || c.nameAr || 'Campaign']));
     return rows.map((row) => {
       const base = mapRequest(row);
       return {
         ...base,
         requester_name: userMap.get(row.requesterUserId) || 'Team member',
-        assignee_name: row.assigneeUserId
-          ? userMap.get(row.assigneeUserId) || 'Team member'
-          : null,
+        assignee_name: row.assigneeUserId ? userMap.get(row.assigneeUserId) || 'Team member' : null,
         brand_name: brandMap.get(row.brandId) || 'Brand',
         campaign_name: row.campaignId ? campaignMap.get(row.campaignId) || null : null,
       };
@@ -176,13 +188,10 @@ export class OpsService {
     );
     return rows.map((row) => ({
       ...mapTask(row),
-      assignee_name: row.assigneeUserId
-        ? userMap.get(row.assigneeUserId) || 'Team member'
-        : null,
+      assignee_name: row.assigneeUserId ? userMap.get(row.assigneeUserId) || 'Team member' : null,
       created_by_name: userMap.get(row.createdBy) || 'Team member',
     }));
   }
-
 
   private async enrichDeliverables(
     rows: Array<{
@@ -255,12 +264,8 @@ export class OpsService {
       users.map((u) => [u.id, (u.name && u.name.trim()) || u.email || 'Team member']),
     );
     const brandMap = new Map(brands.map((b) => [b.id, b.name || 'Brand']));
-    const campaignMap = new Map(
-      campaigns.map((c) => [c.id, c.nameEn || c.nameAr || 'Campaign']),
-    );
-    const requestMap = new Map(
-      requests.map((r) => [r.id, r.titleEn || r.titleAr || 'Request']),
-    );
+    const campaignMap = new Map(campaigns.map((c) => [c.id, c.nameEn || c.nameAr || 'Campaign']));
+    const requestMap = new Map(requests.map((r) => [r.id, r.titleEn || r.titleAr || 'Request']));
     const taskMap = new Map(tasks.map((t) => [t.id, t.titleEn || t.titleAr || 'Task']));
     const versionIds = rows
       .map((r) => r.currentVersionId)
@@ -274,7 +279,7 @@ export class OpsService {
     const versionAssetMap = new Map(versions.map((v) => [v.id, v.assetUrl]));
     return rows.map((row) => {
       const versionAsset = row.currentVersionId
-        ? versionAssetMap.get(row.currentVersionId) ?? null
+        ? (versionAssetMap.get(row.currentVersionId) ?? null)
         : null;
       const assetUrl = row.assetUrl || versionAsset || null;
       return {
@@ -303,6 +308,11 @@ export class OpsService {
       assigneeUserId?: string | null;
       channels?: string[];
       formats?: string[];
+      brief?: {
+        objective?: LocaleInput;
+        audience?: LocaleInput;
+        keyMessage?: LocaleInput;
+      };
     },
     correlationId?: string,
   ) {
@@ -329,6 +339,7 @@ export class OpsService {
         assigneeUserId: input.assigneeUserId ?? null,
         channels: input.channels ?? [],
         formats: input.formats ?? [],
+        ...briefColumnsFromInput(input),
       },
     });
     await this.audit.write({
@@ -369,10 +380,13 @@ export class OpsService {
           ? { dueAt: patch.dueAt ? new Date(String(patch.dueAt)) : null }
           : {}),
         ...(patch.contentId !== undefined ? { contentId: patch.contentId as string | null } : {}),
-        ...(patch.campaignId !== undefined ? { campaignId: patch.campaignId as string | null } : {}),
+        ...(patch.campaignId !== undefined
+          ? { campaignId: patch.campaignId as string | null }
+          : {}),
         ...(patch.channels !== undefined ? { channels: patch.channels as string[] } : {}),
         ...(patch.formats !== undefined ? { formats: patch.formats as string[] } : {}),
         ...(patch.type !== undefined ? { type: patch.type as never } : {}),
+        ...nextBriefColumns(current, patch, desc),
       },
     });
     await this.audit.write({
@@ -397,6 +411,16 @@ export class OpsService {
       where: tenantWhere(tenantId, { id: requestId }),
     });
     if (!req) throw new DomainError('NOT_FOUND', 'Request not found', 404, 'errors.not_found');
+    const readiness = await this.ensureBriefReady(req);
+    if (!readiness.ready) {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        `Brief is not ready (BRIEF_NOT_READY). Missing: ${readiness.missing.join(', ')}`,
+        409,
+        'errors.brief_not_ready',
+        readiness.missing.map((field) => ({ field })),
+      );
+    }
     const task = await getPrisma().workTask.create({
       data: {
         id: newId(),
@@ -602,31 +626,31 @@ export class OpsService {
   }
 
   async getDeliverable(tenantId: string, deliverableId: string) {
-    let row: any;
-    try {
-      row = await getPrisma().workDeliverable.findFirst({
-        where: tenantWhere(tenantId, { id: deliverableId }),
+    const prisma = getPrisma();
+    const where = tenantWhere(tenantId, { id: deliverableId });
+    const row = await prisma.workDeliverable
+      .findFirst({
+        where,
         include: {
-          versions: { orderBy: { versionNumber: 'asc' } },
-          annotations: { orderBy: { createdAt: 'asc' } },
-          comments: { orderBy: { createdAt: 'asc' } },
+          versions: { orderBy: { versionNumber: 'asc' as const } },
+          annotations: { orderBy: { createdAt: 'asc' as const } },
+          comments: { orderBy: { createdAt: 'asc' as const } },
         },
+      })
+      .catch(async () => {
+        // Relation client missing — return the base row with empty child lists.
+        const base = await prisma.workDeliverable.findFirst({ where });
+        if (!base) return null;
+        return {
+          ...base,
+          versions: [] as Awaited<ReturnType<typeof prisma.workDeliverableVersion.findMany>>,
+          annotations: [] as Awaited<ReturnType<typeof prisma.workDeliverableAnnotation.findMany>>,
+          comments: [] as Awaited<ReturnType<typeof prisma.workDeliverableComment.findMany>>,
+        };
       });
-    } catch {
-      // Schema/client without relation tables yet — fall back to base row
-      row = await getPrisma().workDeliverable.findFirst({
-        where: tenantWhere(tenantId, { id: deliverableId }),
-      });
-      if (row) {
-        row = { ...row, versions: [], annotations: [], comments: [] };
-      }
-    }
     if (!row) {
       throw new DomainError('NOT_FOUND', 'Deliverable not found', 404, 'errors.not_found');
     }
-    if (!row.versions) row.versions = [];
-    if (!row.annotations) row.annotations = [];
-    if (!row.comments) row.comments = [];
     const [data] = await this.enrichDeliverables([row]);
     const userIds = new Set<string>();
     for (const v of row.versions) userIds.add(v.createdBy);
@@ -643,38 +667,43 @@ export class OpsService {
     );
     return {
       data,
-      versions: (row.versions as Array<{
-        id: string;
-        label: string;
-        versionNumber: number;
-        assetUrl: string | null;
-        notesEn: string;
-        notesAr: string;
-        status: string;
-        createdBy: string;
-        createdAt: Date;
-      }>).map((v) => ({
+      versions: (
+        row.versions as Array<{
+          id: string;
+          label: string;
+          versionNumber: number;
+          assetUrl: string | null;
+          notesEn: string;
+          notesAr: string;
+          status: string;
+          createdBy: string;
+          createdAt: Date;
+        }>
+      ).map((v) => ({
         id: v.id,
         label: v.label,
         version_number: v.versionNumber,
         asset_url: v.assetUrl,
         notes: { en: v.notesEn, ar: v.notesAr },
         status: v.status,
+        immutable: v.status === 'APPROVED',
         created_by: v.createdBy,
         created_by_name: userMap.get(v.createdBy) || 'Team member',
         created_at: v.createdAt.toISOString(),
       })),
-      annotations: (row.annotations as Array<{
-        id: string;
-        versionId: string | null;
-        authorUserId: string;
-        bodyEn: string;
-        bodyAr: string;
-        x: number;
-        y: number;
-        resolved: boolean;
-        createdAt: Date;
-      }>).map((a) => ({
+      annotations: (
+        row.annotations as Array<{
+          id: string;
+          versionId: string | null;
+          authorUserId: string;
+          bodyEn: string;
+          bodyAr: string;
+          x: number;
+          y: number;
+          resolved: boolean;
+          createdAt: Date;
+        }>
+      ).map((a) => ({
         id: a.id,
         version_id: a.versionId,
         author_user_id: a.authorUserId,
@@ -685,15 +714,17 @@ export class OpsService {
         resolved: a.resolved,
         created_at: a.createdAt.toISOString(),
       })),
-      comments: (row.comments as Array<{
-        id: string;
-        versionId: string | null;
-        authorUserId: string;
-        bodyEn: string;
-        bodyAr: string;
-        resolved: boolean;
-        createdAt: Date;
-      }>).map((c) => ({
+      comments: (
+        row.comments as Array<{
+          id: string;
+          versionId: string | null;
+          authorUserId: string;
+          bodyEn: string;
+          bodyAr: string;
+          resolved: boolean;
+          createdAt: Date;
+        }>
+      ).map((c) => ({
         id: c.id,
         version_id: c.versionId,
         author_user_id: c.authorUserId,
@@ -718,14 +749,36 @@ export class OpsService {
     if (!current) {
       throw new DomainError('NOT_FOUND', 'Deliverable not found', 404, 'errors.not_found');
     }
-    const title =
-      patch.title != null ? localePair(patch.title as LocaleInput) : null;
+    if (
+      patch.reviewStatus !== undefined ||
+      patch.status !== undefined ||
+      patch.approvedVersionId !== undefined ||
+      patch.approved_version_id !== undefined ||
+      patch.currentVersionId !== undefined
+    ) {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'Review status and approval identity change only through the review action',
+        409,
+        'errors.invalid_transition',
+      );
+    }
+    if (
+      patch.assetUrl !== undefined &&
+      (current.reviewStatus === 'APPROVED' || current.reviewStatus === 'REJECTED')
+    ) {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'Approved deliverable assets are immutable',
+        409,
+        'errors.invalid_transition',
+      );
+    }
+    const title = patch.title != null ? localePair(patch.title as LocaleInput) : null;
     const row = await getPrisma().workDeliverable.update({
       where: { id: deliverableId },
       data: {
         ...(title ? { titleEn: title.en, titleAr: title.ar } : {}),
-        ...(patch.status ? { status: patch.status as never } : {}),
-        ...(patch.reviewStatus ? { reviewStatus: String(patch.reviewStatus) as never } : {}),
         ...(patch.assetUrl !== undefined ? { assetUrl: patch.assetUrl as string | null } : {}),
         ...(patch.contentId !== undefined ? { contentId: patch.contentId as string | null } : {}),
       },
@@ -752,6 +805,7 @@ export class OpsService {
     deliverableId: string,
     action: string,
     correlationId?: string,
+    capabilities: readonly string[] = [],
   ) {
     const current = await getPrisma().workDeliverable.findFirst({
       where: tenantWhere(tenantId, { id: deliverableId }),
@@ -759,16 +813,11 @@ export class OpsService {
     if (!current) {
       throw new DomainError('NOT_FOUND', 'Deliverable not found', 404, 'errors.not_found');
     }
-    const from = (current.reviewStatus || 'NOT_STARTED').toUpperCase();
     const normalized = action.toLowerCase().replace(/-/g, '_');
-    const transitions: Record<string, { next: string; status?: string }> = {
-      submit: { next: 'AWAITING_REVIEW', status: 'IN_REVIEW' },
-      approve: { next: 'APPROVED', status: 'APPROVED' },
-      request_changes: { next: 'CHANGES_REQUESTED', status: 'CHANGES_REQUESTED' },
-      reject: { next: 'REJECTED', status: 'REJECTED' },
-    };
-    const step = transitions[normalized];
-    if (!step) {
+    this.assertReviewCapability(capabilities, normalized);
+    const from = (current.reviewStatus || 'NOT_STARTED').toUpperCase();
+    const step = reviewStep(from, normalized);
+    if (step === 'UNKNOWN_ACTION') {
       throw new DomainError(
         'VALIDATION_FAILED',
         'Unknown review action',
@@ -776,17 +825,7 @@ export class OpsService {
         'errors.invalid_input',
       );
     }
-    const allowed: Record<string, string[]> = {
-      NOT_STARTED: ['submit'],
-      DRAFT: ['submit'],
-      AWAITING_REVIEW: ['approve', 'request_changes', 'reject'],
-      IN_REVIEW: ['approve', 'request_changes', 'reject'],
-      CHANGES_REQUESTED: ['submit'],
-      APPROVED: [],
-      REJECTED: [],
-    };
-    const fromKey = from in allowed ? from : 'NOT_STARTED';
-    if (!(allowed[fromKey] || []).includes(normalized)) {
+    if (step === 'ILLEGAL') {
       throw new DomainError(
         'CONFLICT_STATE',
         `Cannot ${normalized} from ${from}`,
@@ -794,12 +833,25 @@ export class OpsService {
         'errors.invalid_transition',
       );
     }
-    const row = await getPrisma().workDeliverable.update({
-      where: { id: deliverableId },
-      data: {
-        reviewStatus: step.next as never,
-        ...(step.status ? { status: step.status as never } : {}),
-      },
+    const prisma = getPrisma();
+    const pinned = await prisma.$transaction(async (tx) => {
+      let approvedVersionId: string | null = null;
+      if (normalized === 'approve') {
+        approvedVersionId = await this.pinApprovedVersion(
+          tx as ReturnType<typeof getPrisma>,
+          current,
+          actorUserId,
+        );
+      }
+      const row = await tx.workDeliverable.update({
+        where: { id: deliverableId },
+        data: {
+          reviewStatus: step.next as never,
+          status: step.status as never,
+          ...(approvedVersionId ? { approvedVersionId, currentVersionId: approvedVersionId } : {}),
+        },
+      });
+      return { row, approvedVersionId };
     });
     await this.audit.write({
       actorUserId,
@@ -807,10 +859,11 @@ export class OpsService {
       action: `deliverable.review.${normalized}`,
       targetType: 'WorkDeliverable',
       targetId: deliverableId,
-      afterRef: step.next,
+      beforeRef: from,
+      afterRef: pinned.approvedVersionId ?? step.next,
       correlationId,
     });
-    const [data] = await this.enrichDeliverables([row]);
+    const [data] = await this.enrichDeliverables([pinned.row]);
     return { data };
   }
 
@@ -825,30 +878,57 @@ export class OpsService {
       where: tenantWhere(tenantId, { id: deliverableId }),
     });
     if (!del) throw new DomainError('NOT_FOUND', 'Deliverable not found', 404, 'errors.not_found');
-    const last = await getPrisma().workDeliverableVersion.findFirst({
-      where: { deliverableId },
-      orderBy: { versionNumber: 'desc' },
-    });
-    const n = (last?.versionNumber ?? 0) + 1;
+    // Simpler default: APPROVED/REJECTED/in-review cannot gain a version.
+    // CHANGES_REQUESTED keeps that review status until submit and never clears approvedVersionId.
+    if (!versionCreateAllowed(del.reviewStatus)) {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        `Cannot add a version while review status is ${del.reviewStatus}`,
+        409,
+        'errors.invalid_transition',
+      );
+    }
     const notes = localePair(input.notes);
-    const ver = await getPrisma().workDeliverableVersion.create({
-      data: {
-        id: newId(),
-        tenantId,
-        deliverableId,
-        label: input.label?.trim() || `v${n}`,
-        versionNumber: n,
-        assetUrl: input.assetUrl ?? del.assetUrl,
-        notesEn: notes.en,
-        notesAr: notes.ar,
-        status: 'DRAFT',
-        createdBy: actorUserId,
-        updatedAt: new Date(),
-      },
-    });
-    await getPrisma().workDeliverable.update({
-      where: { id: deliverableId },
-      data: { currentVersionId: ver.id, assetUrl: ver.assetUrl, reviewStatus: 'NOT_STARTED' as never, status: 'DRAFT' as never },
+    const keptReviewStatus = reviewStatusAfterVersionCreate(del.reviewStatus);
+    const ver = await getPrisma().$transaction(async (tx) => {
+      const last = await tx.workDeliverableVersion.findFirst({
+        where: { deliverableId, tenantId },
+        orderBy: { versionNumber: 'desc' },
+      });
+      const n = (last?.versionNumber ?? 0) + 1;
+      const created = await tx.workDeliverableVersion.create({
+        data: {
+          id: newId(),
+          tenantId,
+          deliverableId,
+          label: input.label?.trim() || `v${n}`,
+          versionNumber: n,
+          assetUrl: input.assetUrl ?? del.assetUrl,
+          notesEn: notes.en,
+          notesAr: notes.ar,
+          status: 'DRAFT',
+          createdBy: actorUserId,
+          updatedAt: new Date(),
+        },
+      });
+      await tx.workDeliverableVersion.updateMany({
+        where: {
+          deliverableId,
+          tenantId,
+          id: { not: created.id },
+          status: { notIn: ['APPROVED', 'SUPERSEDED'] },
+        },
+        data: { status: 'SUPERSEDED' },
+      });
+      await tx.workDeliverable.update({
+        where: { id: deliverableId },
+        data: {
+          currentVersionId: created.id,
+          assetUrl: created.assetUrl,
+          reviewStatus: keptReviewStatus as never,
+        },
+      });
+      return created;
     });
     await this.audit.write({
       actorUserId,
@@ -856,6 +936,8 @@ export class OpsService {
       action: 'deliverable.version.added',
       targetType: 'WorkDeliverableVersion',
       targetId: ver.id,
+      beforeRef: deliverableId,
+      afterRef: ver.id,
       correlationId,
     });
     return this.getDeliverable(tenantId, deliverableId);
@@ -867,7 +949,28 @@ export class OpsService {
     deliverableId: string,
     input: { body: LocaleInput; x?: number; y?: number; versionId?: string | null },
   ) {
-    await this.requireDeliverable(tenantId, deliverableId);
+    const del = await this.requireDeliverable(tenantId, deliverableId);
+    if (del.reviewStatus === 'APPROVED') {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'Cannot annotate an approved deliverable',
+        409,
+        'errors.invalid_transition',
+      );
+    }
+    if (input.versionId) {
+      const version = await getPrisma().workDeliverableVersion.findFirst({
+        where: { id: input.versionId, deliverableId, tenantId },
+      });
+      if (version?.status === 'APPROVED') {
+        throw new DomainError(
+          'CONFLICT_STATE',
+          'Cannot annotate an approved version',
+          409,
+          'errors.invalid_transition',
+        );
+      }
+    }
     const body = localePair(input.body);
     const row = await getPrisma().workDeliverableAnnotation.create({
       data: {
@@ -906,7 +1009,8 @@ export class OpsService {
     const current = await getPrisma().workDeliverableAnnotation.findFirst({
       where: { id: annotationId, tenantId },
     });
-    if (!current) throw new DomainError('NOT_FOUND', 'Annotation not found', 404, 'errors.not_found');
+    if (!current)
+      throw new DomainError('NOT_FOUND', 'Annotation not found', 404, 'errors.not_found');
     const row = await getPrisma().workDeliverableAnnotation.update({
       where: { id: annotationId },
       data: { resolved },
@@ -990,7 +1094,9 @@ export class OpsService {
     taskId: string,
     input: { title: LocaleInput },
   ) {
-    const task = await getPrisma().workTask.findFirst({ where: tenantWhere(tenantId, { id: taskId }) });
+    const task = await getPrisma().workTask.findFirst({
+      where: tenantWhere(tenantId, { id: taskId }),
+    });
     if (!task) throw new DomainError('NOT_FOUND', 'Task not found', 404, 'errors.not_found');
     const title = localePair(input.title);
     const count = await getPrisma().workTaskChecklistItem.count({ where: { taskId } });
@@ -1005,7 +1111,14 @@ export class OpsService {
         updatedAt: new Date(),
       },
     });
-    return { data: { id: row.id, title: { en: row.titleEn, ar: row.titleAr }, done: row.done, sort_order: row.sortOrder } };
+    return {
+      data: {
+        id: row.id,
+        title: { en: row.titleEn, ar: row.titleAr },
+        done: row.done,
+        sort_order: row.sortOrder,
+      },
+    };
   }
 
   async updateTaskChecklistItem(
@@ -1017,7 +1130,8 @@ export class OpsService {
     const current = await getPrisma().workTaskChecklistItem.findFirst({
       where: { id: itemId, taskId, tenantId },
     });
-    if (!current) throw new DomainError('NOT_FOUND', 'Checklist item not found', 404, 'errors.not_found');
+    if (!current)
+      throw new DomainError('NOT_FOUND', 'Checklist item not found', 404, 'errors.not_found');
     const title = patch.title != null ? localePair(patch.title) : null;
     const row = await getPrisma().workTaskChecklistItem.update({
       where: { id: itemId },
@@ -1026,7 +1140,14 @@ export class OpsService {
         ...(title ? { titleEn: title.en, titleAr: title.ar } : {}),
       },
     });
-    return { data: { id: row.id, title: { en: row.titleEn, ar: row.titleAr }, done: row.done, sort_order: row.sortOrder } };
+    return {
+      data: {
+        id: row.id,
+        title: { en: row.titleEn, ar: row.titleAr },
+        done: row.done,
+        sort_order: row.sortOrder,
+      },
+    };
   }
 
   async addTaskComment(
@@ -1035,7 +1156,9 @@ export class OpsService {
     taskId: string,
     input: { body: LocaleInput },
   ) {
-    const task = await getPrisma().workTask.findFirst({ where: tenantWhere(tenantId, { id: taskId }) });
+    const task = await getPrisma().workTask.findFirst({
+      where: tenantWhere(tenantId, { id: taskId }),
+    });
     if (!task) throw new DomainError('NOT_FOUND', 'Task not found', 404, 'errors.not_found');
     const body = localePair(input.body);
     const row = await getPrisma().workTaskComment.create({
@@ -1059,6 +1182,150 @@ export class OpsService {
     };
   }
 
+  private assertReviewCapability(capabilities: readonly string[], action: string) {
+    if (action === 'submit') {
+      if (
+        !hasCapability(
+          capabilities,
+          ['deliverable.write', 'deliverable.update', 'deliverable.version.create'],
+          'any',
+        )
+      ) {
+        throw new DomainError(
+          'PERMISSION_DENIED',
+          'Missing capability',
+          403,
+          'errors.permission_denied',
+        );
+      }
+      return;
+    }
+    if (action === 'approve' || action === 'request_changes' || action === 'reject') {
+      if (
+        !hasCapability(capabilities, ['deliverable.review.decide', 'deliverable.review'], 'any')
+      ) {
+        throw new DomainError(
+          'PERMISSION_DENIED',
+          'Missing capability deliverable.review.decide',
+          403,
+          'errors.permission_denied',
+        );
+      }
+    }
+  }
+
+  /**
+   * Pin approval to a concrete version. Fail when there is no version and no asset.
+   * Other non-approved versions become SUPERSEDED.
+   */
+  private async pinApprovedVersion(
+    tx: ReturnType<typeof getPrisma>,
+    current: {
+      id: string;
+      tenantId: string;
+      assetUrl: string | null;
+      currentVersionId: string | null;
+    },
+    actorUserId: string,
+  ) {
+    let versionId = current.currentVersionId;
+    if (versionId) {
+      const exists = await tx.workDeliverableVersion.findFirst({
+        where: { id: versionId, deliverableId: current.id, tenantId: current.tenantId },
+      });
+      if (!exists) versionId = null;
+    }
+    if (!versionId) {
+      const latest = await tx.workDeliverableVersion.findFirst({
+        where: { deliverableId: current.id, tenantId: current.tenantId },
+        orderBy: { versionNumber: 'desc' },
+      });
+      versionId = latest?.id ?? null;
+    }
+    if (!versionId) {
+      if (!current.assetUrl) {
+        throw new DomainError(
+          'VALIDATION_FAILED',
+          'Cannot approve a deliverable with no version or asset',
+          400,
+          'errors.validation',
+        );
+      }
+      versionId = newId();
+      await tx.workDeliverableVersion.create({
+        data: {
+          id: versionId,
+          tenantId: current.tenantId,
+          deliverableId: current.id,
+          label: 'v1',
+          versionNumber: 1,
+          assetUrl: current.assetUrl,
+          status: 'APPROVED',
+          createdBy: actorUserId,
+          updatedAt: new Date(),
+        },
+      });
+    } else {
+      await tx.workDeliverableVersion.update({
+        where: { id: versionId },
+        data: { status: 'APPROVED' },
+      });
+    }
+    await tx.workDeliverableVersion.updateMany({
+      where: {
+        deliverableId: current.id,
+        tenantId: current.tenantId,
+        id: { not: versionId },
+        status: { not: 'APPROVED' },
+      },
+      data: { status: 'SUPERSEDED' },
+    });
+    return versionId;
+  }
+
+  private async ensureBriefReady(req: {
+    id: string;
+    descriptionEn: string;
+    briefObjectiveEn: string;
+    briefAudienceEn: string;
+    briefKeyMessageEn: string;
+    briefObjectiveAr: string;
+    briefAudienceAr: string;
+    briefKeyMessageAr: string;
+    briefReadyAt: Date | null;
+  }) {
+    let fields = {
+      objective: req.briefObjectiveEn,
+      audience: req.briefAudienceEn,
+      keyMessage: req.briefKeyMessageEn,
+    };
+    let gate = briefReadiness(fields);
+    if (!gate.ready) {
+      const fromMarker = briefFieldsFromDescription(req.descriptionEn);
+      if (fromMarker && briefReadiness(fromMarker).ready) {
+        fields = {
+          objective: fromMarker.objective ?? '',
+          audience: fromMarker.audience ?? '',
+          keyMessage: fromMarker.keyMessage ?? '',
+        };
+        gate = briefReadiness(fields);
+        await getPrisma().workRequest.update({
+          where: { id: req.id },
+          data: {
+            briefObjectiveEn: fields.objective,
+            briefObjectiveAr: req.briefObjectiveAr || fields.objective,
+            briefAudienceEn: fields.audience,
+            briefAudienceAr: req.briefAudienceAr || fields.audience,
+            briefKeyMessageEn: fields.keyMessage,
+            briefKeyMessageAr: req.briefKeyMessageAr || fields.keyMessage,
+            briefReadyAt: req.briefReadyAt ?? new Date(),
+          },
+        });
+      }
+    }
+    return gate;
+  }
+
   private async requireDeliverable(tenantId: string, deliverableId: string) {
     const row = await getPrisma().workDeliverable.findFirst({
       where: tenantWhere(tenantId, { id: deliverableId }),
@@ -1067,7 +1334,6 @@ export class OpsService {
     return row;
   }
 }
-
 
 function mapRequest(row: {
   id: string;
@@ -1087,9 +1353,17 @@ function mapRequest(row: {
   assigneeUserId: string | null;
   channels: string[];
   formats: string[];
+  briefObjectiveEn?: string;
+  briefObjectiveAr?: string;
+  briefAudienceEn?: string;
+  briefAudienceAr?: string;
+  briefKeyMessageEn?: string;
+  briefKeyMessageAr?: string;
+  briefReadyAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }) {
+  const brief = briefPayload(row);
   return {
     id: row.id,
     tenant_id: row.tenantId,
@@ -1106,6 +1380,7 @@ function mapRequest(row: {
     assignee_user_id: row.assigneeUserId,
     channels: row.channels,
     formats: row.formats,
+    brief,
     created_at: row.createdAt.toISOString(),
     updated_at: row.updatedAt.toISOString(),
   };
@@ -1187,5 +1462,106 @@ function mapDeliverable(row: {
     created_by: row.createdBy,
     created_at: row.createdAt.toISOString(),
     updated_at: row.updatedAt.toISOString(),
+  };
+}
+
+function localeFromUnknown(value: unknown): { en: string; ar: string } | null {
+  if (typeof value === 'string') return localePair(value);
+  if (value && typeof value === 'object') return localePair(value as LocaleInput);
+  return null;
+}
+
+function briefColumnsFromInput(input: {
+  description?: LocaleInput;
+  brief?: { objective?: LocaleInput; audience?: LocaleInput; keyMessage?: LocaleInput };
+}) {
+  const explicit = {
+    objective: input.brief?.objective ? localePair(input.brief.objective) : null,
+    audience: input.brief?.audience ? localePair(input.brief.audience) : null,
+    keyMessage: input.brief?.keyMessage ? localePair(input.brief.keyMessage) : null,
+  };
+  const marker = briefFieldsFromDescription(
+    input.description ? localePair(input.description).en : '',
+  );
+  const objective = explicit.objective?.en || marker?.objective || '';
+  const audience = explicit.audience?.en || marker?.audience || '';
+  const keyMessage = explicit.keyMessage?.en || marker?.keyMessage || '';
+  const ready = briefReadiness({ objective, audience, keyMessage }).ready;
+  if (!objective && !audience && !keyMessage) return {};
+  return {
+    briefObjectiveEn: objective,
+    briefObjectiveAr: explicit.objective?.ar || objective,
+    briefAudienceEn: audience,
+    briefAudienceAr: explicit.audience?.ar || audience,
+    briefKeyMessageEn: keyMessage,
+    briefKeyMessageAr: explicit.keyMessage?.ar || keyMessage,
+    briefReadyAt: ready ? new Date() : null,
+  };
+}
+
+function nextBriefColumns(
+  current: {
+    briefObjectiveEn: string;
+    briefObjectiveAr: string;
+    briefAudienceEn: string;
+    briefAudienceAr: string;
+    briefKeyMessageEn: string;
+    briefKeyMessageAr: string;
+    briefReadyAt: Date | null;
+    descriptionEn: string;
+  },
+  patch: Record<string, unknown>,
+  desc: { en: string; ar: string } | null,
+) {
+  const brief = patch.brief;
+  const hasBrief = Boolean(brief && typeof brief === 'object');
+  const explicit = hasBrief
+    ? {
+        objective: localeFromUnknown((brief as { objective?: unknown }).objective),
+        audience: localeFromUnknown((brief as { audience?: unknown }).audience),
+        keyMessage: localeFromUnknown(
+          (brief as { keyMessage?: unknown }).keyMessage ??
+            (brief as { key_message?: unknown }).key_message,
+        ),
+      }
+    : { objective: null, audience: null, keyMessage: null };
+  const descriptionEn = desc?.en ?? current.descriptionEn;
+  const marker = !hasBrief ? briefFieldsFromDescription(descriptionEn) : null;
+  if (!hasBrief && !marker) return {};
+  const objective = explicit.objective?.en ?? marker?.objective ?? current.briefObjectiveEn;
+  const audience = explicit.audience?.en ?? marker?.audience ?? current.briefAudienceEn;
+  const keyMessage = explicit.keyMessage?.en ?? marker?.keyMessage ?? current.briefKeyMessageEn;
+  const ready = briefReadiness({ objective, audience, keyMessage }).ready;
+  return {
+    briefObjectiveEn: objective,
+    briefObjectiveAr: explicit.objective?.ar || current.briefObjectiveAr || objective,
+    briefAudienceEn: audience,
+    briefAudienceAr: explicit.audience?.ar || current.briefAudienceAr || audience,
+    briefKeyMessageEn: keyMessage,
+    briefKeyMessageAr: explicit.keyMessage?.ar || current.briefKeyMessageAr || keyMessage,
+    briefReadyAt: ready ? (current.briefReadyAt ?? new Date()) : null,
+  };
+}
+
+function briefPayload(row: {
+  briefObjectiveEn?: string;
+  briefObjectiveAr?: string;
+  briefAudienceEn?: string;
+  briefAudienceAr?: string;
+  briefKeyMessageEn?: string;
+  briefKeyMessageAr?: string;
+  briefReadyAt?: Date | null;
+}) {
+  const objective = row.briefObjectiveEn ?? '';
+  const audience = row.briefAudienceEn ?? '';
+  const keyMessage = row.briefKeyMessageEn ?? '';
+  const gate = briefReadiness({ objective, audience, keyMessage });
+  return {
+    objective: { en: objective, ar: row.briefObjectiveAr || objective },
+    audience: { en: audience, ar: row.briefAudienceAr || audience },
+    key_message: { en: keyMessage, ar: row.briefKeyMessageAr || keyMessage },
+    ready: gate.ready,
+    ready_at: row.briefReadyAt ? row.briefReadyAt.toISOString() : null,
+    missing: gate.missing,
   };
 }

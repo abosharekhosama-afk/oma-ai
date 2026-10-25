@@ -4,7 +4,12 @@
 import { api } from './api';
 import type { ContentRow } from './demo/stage3-campaigns';
 import type { ApiLocale } from './campaign-api';
-import { listBrandsProduction, listAllCampaigns, listCampaignsForBrand, toCampaignRow } from './campaign-api';
+import {
+  listBrandsProduction,
+  listAllCampaigns,
+  listCampaignsForBrand,
+  toCampaignRow,
+} from './campaign-api';
 import type { CampaignRow } from './demo/stage3-campaigns';
 
 export type ApiContentWorkflow = {
@@ -194,10 +199,14 @@ export async function getContentPreferences(brandId: string) {
  *  Fast path: primary brand first so the calendar can paint quickly.
  *  Pass `{ full: true }` or call `loadContentWorkspaceRest` for remaining brands.
  */
-export async function loadContentWorkspace(opts?: {
-  full?: boolean;
-}): Promise<{
-  brands: { id: string; name: { en: string; ar: string }; state: string; profileStatus: string; strategyId: null }[];
+export async function loadContentWorkspace(opts?: { full?: boolean }): Promise<{
+  brands: {
+    id: string;
+    name: { en: string; ar: string };
+    state: string;
+    profileStatus: string;
+    strategyId: null;
+  }[];
   campaigns: CampaignRow[];
   content: ContentRow[];
   policy: 'NONE' | 'OPTIONAL' | 'REQUIRED';
@@ -213,7 +222,9 @@ export async function loadContentWorkspace(opts?: {
     primary
       ? opts?.full
         ? listAllCampaigns(brandIds).catch(() => [] as Awaited<ReturnType<typeof listAllCampaigns>>)
-        : listCampaignsForBrand(primary).catch(() => [] as Awaited<ReturnType<typeof listCampaignsForBrand>>)
+        : listCampaignsForBrand(primary).catch(
+            () => [] as Awaited<ReturnType<typeof listCampaignsForBrand>>,
+          )
       : Promise.resolve([]),
     primary
       ? opts?.full
@@ -298,7 +309,6 @@ export function contentApiError(err: unknown, fallback: string): string {
   return fallback;
 }
 
-
 export type ApiDayNote = {
   id: string;
   brand_id: string;
@@ -310,53 +320,90 @@ export type ApiDayNote = {
 
 export async function listDayNotes(brandId: string, from?: string, to?: string) {
   const params = new URLSearchParams();
-  if (from) params.set("from", from);
-  if (to) params.set("to", to);
+  if (from) params.set('from', from);
+  if (to) params.set('to', to);
   const qs = params.toString();
-  const res = await api<{ data: ApiDayNote[] }>(`/api/v1/brands/${brandId}/day-notes${qs ? `?${qs}` : ""}`);
+  const res = await api<{ data: ApiDayNote[] }>(
+    `/api/v1/brands/${brandId}/day-notes${qs ? `?${qs}` : ''}`,
+  );
   return res.data ?? [];
 }
 
-export async function upsertDayNote(brandId: string, input: { dayKey: string; text?: string; color?: string; locked?: boolean }) {
-  const res = await api<{ data: ApiDayNote }>(`/api/v1/brands/${brandId}/day-notes`, { method: "POST", body: JSON.stringify(input) });
+export async function upsertDayNote(
+  brandId: string,
+  input: { dayKey: string; text?: string; color?: string; locked?: boolean },
+) {
+  const res = await api<{ data: ApiDayNote }>(`/api/v1/brands/${brandId}/day-notes`, {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
   return res.data;
 }
 
 export async function deleteDayNote(brandId: string, dayKey: string) {
-  return api(`/api/v1/brands/${brandId}/day-notes/${dayKey}`, { method: "DELETE", body: JSON.stringify({}) });
+  return api(`/api/v1/brands/${brandId}/day-notes/${dayKey}`, {
+    method: 'DELETE',
+    body: JSON.stringify({}),
+  });
 }
 
 export async function setClientVisible(contentId: string, clientVisible: boolean) {
-  const res = await api<{ data: ApiContent }>(`/api/v1/content/${contentId}/visibility`, { method: "POST", body: JSON.stringify({ clientVisible }) });
+  const res = await api<{ data: ApiContent }>(`/api/v1/content/${contentId}/visibility`, {
+    method: 'POST',
+    body: JSON.stringify({ clientVisible }),
+  });
   return res.data;
 }
 
 export async function setContentLabels(contentId: string, labels: string[]) {
-  const res = await api<{ data: ApiContent }>(`/api/v1/content/${contentId}/labels`, { method: "POST", body: JSON.stringify({ labels }) });
+  const res = await api<{ data: ApiContent }>(`/api/v1/content/${contentId}/labels`, {
+    method: 'POST',
+    body: JSON.stringify({ labels }),
+  });
   return res.data;
 }
 
 export async function listContentLabels(brandId: string) {
-  const res = await api<{ data: Array<{ id: string; name: { en: string; ar: string }; color: string }> }>(`/api/v1/brands/${brandId}/content-labels`);
+  const res = await api<{
+    data: Array<{ id: string; name: { en: string; ar: string }; color: string }>;
+  }>(`/api/v1/brands/${brandId}/content-labels`);
   return res.data ?? [];
 }
 
 export async function createContentLabel(brandId: string, name: string, color?: string) {
-  const res = await api<{ data: { id: string; name: { en: string; ar: string }; color: string } }>(`/api/v1/brands/${brandId}/content-labels`, { method: "POST", body: JSON.stringify({ name, color }) });
+  const res = await api<{ data: { id: string; name: { en: string; ar: string }; color: string } }>(
+    `/api/v1/brands/${brandId}/content-labels`,
+    { method: 'POST', body: JSON.stringify({ name, color }) },
+  );
   return res.data;
 }
 
-export async function saveContentAsTemplate(brandId: string, input: { name: string; fromContentId: string }) {
-  return api(`/api/v1/brands/${brandId}/content-templates`, { method: "POST", body: JSON.stringify(input) });
+export async function saveContentAsTemplate(
+  brandId: string,
+  input: { name: string; fromContentId: string },
+) {
+  return api(`/api/v1/brands/${brandId}/content-templates`, {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
 }
 
 export async function listContentTemplates(brandId: string) {
-  const res = await api<{ data: Array<{ id: string; name: { en: string; ar: string } }> }>(`/api/v1/brands/${brandId}/content-templates`);
+  const res = await api<{ data: Array<{ id: string; name: { en: string; ar: string } }> }>(
+    `/api/v1/brands/${brandId}/content-templates`,
+  );
   return res.data ?? [];
 }
 
-export async function useContentTemplate(brandId: string, templateId: string, overrides?: { campaignId?: string | null; plannedAt?: string | null }) {
-  const res = await api<{ data: ApiContent }>(`/api/v1/brands/${brandId}/content-templates/${templateId}/use`, { method: "POST", body: JSON.stringify(overrides ?? {}) });
+export async function useContentTemplate(
+  brandId: string,
+  templateId: string,
+  overrides?: { campaignId?: string | null; plannedAt?: string | null },
+) {
+  const res = await api<{ data: ApiContent }>(
+    `/api/v1/brands/${brandId}/content-templates/${templateId}/use`,
+    { method: 'POST', body: JSON.stringify(overrides ?? {}) },
+  );
   return res.data;
 }
 
@@ -439,14 +486,14 @@ export async function listBrandTemplates(brandId: string) {
   return res.data ?? [];
 }
 
-
 export function workflowLabel(
   item: { status: string; approvalState?: string; scheduleState?: string },
   isAr: boolean,
 ): string {
   if (item.status === 'PUBLISHED_SAMPLE') return isAr ? 'منشور (تجريبي)' : 'Published (sample)';
   if (item.approvalState === 'PENDING') return isAr ? 'بانتظار الموافقة' : 'Pending approval';
-  if (item.approvalState === 'CHANGES_REQUESTED') return isAr ? 'تعديلات مطلوبة' : 'Changes requested';
+  if (item.approvalState === 'CHANGES_REQUESTED')
+    return isAr ? 'تعديلات مطلوبة' : 'Changes requested';
   if (item.approvalState === 'REJECTED') return isAr ? 'مرفوض' : 'Rejected';
   if (item.approvalState === 'APPROVED' && item.scheduleState === 'SCHEDULED') {
     return isAr ? 'مجدول' : 'Scheduled';

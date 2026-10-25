@@ -555,6 +555,97 @@ async function seedBrand(tenantId: string, actorUserId: string, spec: BrandSpec)
   return { brand, created: true };
 }
 
+/**
+ * Four review states plus one incomplete and one ready brief, so local demo
+ * can show the production lock without manual SQL.
+ * Idempotent on the draft deliverable title.
+ */
+async function seedWorkOpsLockStates(tenantId: string, userId: string) {
+  const brand = await prisma.brandWorkspace.findFirst({
+    where: { tenantId },
+    orderBy: { createdAt: 'asc' },
+  });
+  if (!brand) return;
+  const existing = await prisma.workDeliverable.findFirst({
+    where: { tenantId, titleEn: 'Lock seed — draft' },
+  });
+  if (existing) return;
+
+  const assetUrl = 'https://example.invalid/oma-lock-seed.svg';
+  async function makeDeliverable(
+    title: string,
+    reviewStatus: 'DRAFT' | 'AWAITING_REVIEW' | 'CHANGES_REQUESTED' | 'APPROVED',
+    status: 'DRAFT' | 'IN_REVIEW' | 'CHANGES_REQUESTED' | 'APPROVED',
+    versionStatus: string,
+  ) {
+    const delId = newId();
+    const verId = newId();
+    await prisma.workDeliverable.create({
+      data: {
+        id: delId,
+        tenantId,
+        brandId: brand!.id,
+        titleEn: title,
+        titleAr: title,
+        status,
+        reviewStatus,
+        currentVersionId: verId,
+        approvedVersionId: reviewStatus === 'APPROVED' ? verId : null,
+        assetUrl,
+        createdBy: userId,
+      },
+    });
+    await prisma.workDeliverableVersion.create({
+      data: {
+        id: verId,
+        tenantId,
+        deliverableId: delId,
+        label: 'v1',
+        versionNumber: 1,
+        assetUrl,
+        status: versionStatus,
+        createdBy: userId,
+        updatedAt: new Date(),
+      },
+    });
+  }
+
+  await makeDeliverable('Lock seed — draft', 'DRAFT', 'DRAFT', 'DRAFT');
+  await makeDeliverable('Lock seed — in review', 'AWAITING_REVIEW', 'IN_REVIEW', 'IN_REVIEW');
+  await makeDeliverable(
+    'Lock seed — changes requested',
+    'CHANGES_REQUESTED',
+    'CHANGES_REQUESTED',
+    'DRAFT',
+  );
+  await makeDeliverable('Lock seed — approved', 'APPROVED', 'APPROVED', 'APPROVED');
+
+  await prisma.workRequest.create({
+    data: {
+      id: newId(),
+      tenantId,
+      brandId: brand.id,
+      titleEn: 'Lock seed — brief incomplete',
+      titleAr: 'Lock seed — brief incomplete',
+      requesterUserId: userId,
+    },
+  });
+  await prisma.workRequest.create({
+    data: {
+      id: newId(),
+      tenantId,
+      brandId: brand.id,
+      titleEn: 'Lock seed — brief ready',
+      titleAr: 'Lock seed — brief ready',
+      requesterUserId: userId,
+      briefObjectiveEn: 'Launch the spring offer',
+      briefAudienceEn: 'Existing customers',
+      briefKeyMessageEn: 'Book a demo this week',
+      briefReadyAt: new Date(),
+    },
+  });
+}
+
 async function main() {
   assertNotProduction();
   const tenant = await ensureDemoTenant();
@@ -565,6 +656,8 @@ async function main() {
     const { brand, created } = await seedBrand(tenant.id, user.id, spec);
     results.push(`${created ? 'created' : 'exists '}  ${brand.name}`);
   }
+
+  await seedWorkOpsLockStates(tenant.id, user.id);
 
   console.log(`Demo tenant: ${tenant.name} (${tenant.slug})`);
   console.log(`Owner:       ${user.email}`);

@@ -70,7 +70,9 @@ export function NotificationsBell() {
     try {
       await markNotificationRead(id);
       setItems((prev) =>
-        prev ? prev.map((n) => (n.id === id ? { ...n, readAt: new Date().toISOString() } : n)) : prev,
+        prev
+          ? prev.map((n) => (n.id === id ? { ...n, readAt: new Date().toISOString() } : n))
+          : prev,
       );
     } catch (err) {
       setError(getApiError(err).message);

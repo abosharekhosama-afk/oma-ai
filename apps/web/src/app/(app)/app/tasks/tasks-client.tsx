@@ -6,19 +6,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { OmaTopLoader } from '../../../../components/ui/oma-top-loader';
 import { createPortal } from 'react-dom';
 import type { DemoGraph, DemoTaskStatus } from '@oma/demo';
-import {
-  Button,
-  Checkbox,
-  DatePicker,
-  Input,
-  OmaSelect,
-  SelectField,
-  SurfaceButton,
-} from '@oma/ui/controls';
-import dayjs from 'dayjs';
+import { Button, Checkbox, Input, SelectField } from '@oma/ui/controls';
 import { Dialog } from '../../../../components/ui/dialog';
 import { Drawer } from '../../../../components/ui/drawer';
-import { EmptyState } from '../../../../components/ui/empty-state';
 import { PageHeader } from '../../../../components/ui/page-header';
 import { StatusChip } from '../../../../components/ui/status-chip';
 import { useToast } from '../../../../components/ui/toast';
@@ -39,11 +29,9 @@ import {
   EMPTY_TASK_FILTERS,
   activeTaskFilterCount,
   canTransitionTaskStatus,
-  checklistProgress,
   filterTasks,
   groupTasksByBoard,
   productionSummary,
-  taskIsOverdue,
   type TaskFilters,
   type TaskRow,
 } from '../../../../lib/demo/stage4-tasks';
@@ -63,7 +51,6 @@ import {
 
 type ViewMode = 'board' | 'list';
 type Brand = DemoGraph['brands'][number];
-type Campaign = DemoGraph['campaigns'][number];
 
 export default function TasksPage() {
   const t = useT();
@@ -73,7 +60,6 @@ export default function TasksPage() {
   const toast = useToast();
   const [rows, setRows] = useState<TaskRow[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [view, setView] = useState<ViewMode>('board');
   const [prefsLoaded, setPrefsLoaded] = useState(false);
   const [filters, setFilters] = useState<TaskFilters>(EMPTY_TASK_FILTERS);
@@ -98,7 +84,7 @@ export default function TasksPage() {
     type: 'DESIGN',
   });
 
-    const load = useCallback(async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const ws = await loadTasksWorkspace();
@@ -110,7 +96,6 @@ export default function TasksPage() {
         setMembers([]);
       }
       setBrands(ws.brands as Brand[]);
-      setCampaigns(ws.campaigns as Campaign[]);
       setCreateForm((f) => ({
         ...f,
         brandId: f.brandId || ws.brands[0]?.id || '',
@@ -166,7 +151,6 @@ export default function TasksPage() {
       setView(urlView);
     }
   }, [searchParams]);
-
 
   useEffect(() => {
     let cancelled = false;
@@ -289,7 +273,9 @@ export default function TasksPage() {
         dueAt: patch.dueAt,
       });
       const updated = toTaskRow(updatedApi);
-      setRows((list) => list.map((r) => (r.id === id ? { ...r, ...updated, ...patch } as TaskRow : r)));
+      setRows((list) =>
+        list.map((r) => (r.id === id ? ({ ...r, ...updated, ...patch } as TaskRow) : r)),
+      );
       toast.push(t('demo.tasks.saved'), 'success');
     } catch (err) {
       setRows(prev);
@@ -370,12 +356,12 @@ export default function TasksPage() {
     setCreating(true);
     try {
       const createdApi = await createTask(createForm.brandId, {
-          title: { en: createForm.title.trim(), ar: createForm.title.trim() },
-          status: 'BACKLOG',
-          assigneeUserId: createForm.assignee?.trim() ? createForm.assignee.trim() : null,
-          dueAt: createForm.dueAt ? `${createForm.dueAt}T12:00:00.000Z` : null,
-        });
-        const created = toTaskRow(createdApi);
+        title: { en: createForm.title.trim(), ar: createForm.title.trim() },
+        status: 'BACKLOG',
+        assigneeUserId: createForm.assignee?.trim() ? createForm.assignee.trim() : null,
+        dueAt: createForm.dueAt ? `${createForm.dueAt}T12:00:00.000Z` : null,
+      });
+      const created = toTaskRow(createdApi);
       setCreateOpen(false);
       setCreateForm((f) => ({ ...f, title: '' }));
       await load();
@@ -503,7 +489,6 @@ export default function TasksPage() {
           )
         : null}
 
-
       <div className="oma-prod-strip" data-testid="demo-production-summary">
         <div className="oma-prod-stat" data-tone="wip">
           <span className="oma-prod-stat__label">{t('demo.tasks.wip')}</span>
@@ -537,7 +522,10 @@ export default function TasksPage() {
 
       {!loading && !unavailable && !error ? (
         <>
-          <div className="oma-req-workspace oma-tasks-workspace" data-filter-open={filterSheet ? 'true' : 'false'}>
+          <div
+            className="oma-req-workspace oma-tasks-workspace"
+            data-filter-open={filterSheet ? 'true' : 'false'}
+          >
             <div className="oma-req-main">
               {view === 'board' ? (
                 <TasksKanbanBoard
@@ -545,7 +533,7 @@ export default function TasksPage() {
                   onOpenTask={openTask}
                   onMoveTask={(id, status) => void patchTask(id, { status })}
                   disabled={saving}
-                
+
                   onAddInColumn={() => setCreateOpen(true)}
                 />
               ) : (
@@ -579,10 +567,16 @@ export default function TasksPage() {
                                 openTask(task.id);
                               }}
                             >
-                              <span className="oma-task-title-text">{pickCopy(task.title, locale)}</span>
+                              <span className="oma-task-title-text">
+                                {pickCopy(task.title, locale)}
+                              </span>
                               <span className="oma-task-title-meta">
                                 {task.type}
-                                {(task as { campaignName?: string | null }).campaignName ? ` · ${(task as { campaignName?: string | null }).campaignName}` : (task as { requestTitle?: string | null }).requestTitle ? ` · ${(task as { requestTitle?: string | null }).requestTitle}` : ''}
+                                {(task as { campaignName?: string | null }).campaignName
+                                  ? ` · ${(task as { campaignName?: string | null }).campaignName}`
+                                  : (task as { requestTitle?: string | null }).requestTitle
+                                    ? ` · ${(task as { requestTitle?: string | null }).requestTitle}`
+                                    : ''}
                               </span>
                             </button>
                           </td>
@@ -593,8 +587,15 @@ export default function TasksPage() {
                           <td>
                             <StatusChip status={task.priority} />
                           </td>
-                          <td>{(task as { campaignName?: string | null; brandName?: string }).campaignName || (task as { brandName?: string }).brandName || '—'}</td>
-                          <td className="oma-ltr oma-task-due-cell"><span className="oma-task-due-text">{task.dueAt}</span></td>
+                          <td>
+                            {(task as { campaignName?: string | null; brandName?: string })
+                              .campaignName ||
+                              (task as { brandName?: string }).brandName ||
+                              '—'}
+                          </td>
+                          <td className="oma-ltr oma-task-due-cell">
+                            <span className="oma-task-due-text">{task.dueAt}</span>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -606,7 +607,9 @@ export default function TasksPage() {
             {filterSheet ? (
               <aside className="oma-req-filter-panel" data-testid="demo-task-filters">
                 <header className="oma-req-filter-panel__head">
-                  <strong>{locale.toLowerCase().startsWith('ar') ? 'تصفية وترتيب' : 'Filter & sort'}</strong>
+                  <strong>
+                    {locale.toLowerCase().startsWith('ar') ? 'تصفية وترتيب' : 'Filter & sort'}
+                  </strong>
                   <button
                     type="button"
                     className="oma-req-filter-panel__close"
@@ -691,7 +694,9 @@ export default function TasksPage() {
                       type="button"
                       className="oma-filter-accordion__row"
                       data-open={filterSection === 'assignee' ? 'true' : 'false'}
-                      onClick={() => setFilterSection((s) => (s === 'assignee' ? null : 'assignee'))}
+                      onClick={() =>
+                        setFilterSection((s) => (s === 'assignee' ? null : 'assignee'))
+                      }
                     >
                       <span className="oma-filter-accordion__ico">
                         <UserOutlined />
@@ -742,7 +747,9 @@ export default function TasksPage() {
                       type="button"
                       className="oma-filter-accordion__row"
                       data-open={filterSection === 'priority' ? 'true' : 'false'}
-                      onClick={() => setFilterSection((s) => (s === 'priority' ? null : 'priority'))}
+                      onClick={() =>
+                        setFilterSection((s) => (s === 'priority' ? null : 'priority'))
+                      }
                     >
                       <span className="oma-filter-accordion__ico">
                         <FlagOutlined />
@@ -956,7 +963,9 @@ export default function TasksPage() {
                             data-testid={`demo-checklist-${c.id}`}
                             onChange={() => void toggleChecklist(c.id)}
                           />
-                          <span data-done={c.done ? 'true' : 'false'}>{pickCopy(c.label, locale)}</span>
+                          <span data-done={c.done ? 'true' : 'false'}>
+                            {pickCopy(c.label, locale)}
+                          </span>
                         </label>
                       </li>
                     ))

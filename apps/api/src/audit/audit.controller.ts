@@ -68,9 +68,15 @@ function humanizeCaps(raw?: string | null): string | null {
 
 function categoryFor(action: string): string {
   const a = action.toLowerCase();
-  if (a.includes('membership') || a.includes('invite') || a.includes('capability')) return 'members';
+  if (a.includes('membership') || a.includes('invite') || a.includes('capability'))
+    return 'members';
   if (a.includes('approv') || a.includes('review')) return 'approvals';
-  if (a.includes('content') || a.includes('post') || a.includes('campaign') || a.includes('publish'))
+  if (
+    a.includes('content') ||
+    a.includes('post') ||
+    a.includes('campaign') ||
+    a.includes('publish')
+  )
     return 'content';
   if (a.includes('setting') || a.includes('preference') || a.includes('tenant')) return 'settings';
   return 'other';
@@ -170,11 +176,7 @@ export class AuditController {
       let subject: string | null = null;
       if (r.targetType === 'Membership' && r.targetId) {
         const m = memMap.get(r.targetId);
-        subject =
-          m?.user?.name?.trim() ||
-          m?.user?.email ||
-          m?.invitedEmail ||
-          'a team member';
+        subject = m?.user?.name?.trim() || m?.user?.email || m?.invitedEmail || 'a team member';
       } else if (r.targetType) {
         subject = r.targetType.replace(/([A-Z])/g, ' $1').trim();
       }

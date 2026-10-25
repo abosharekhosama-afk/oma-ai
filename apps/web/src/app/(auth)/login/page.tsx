@@ -1,18 +1,21 @@
 'use client';
 import { FormEvent, useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useT } from '../../../lib/use-locale';
 import { OmaDotsLoader } from '../../../components/ui/oma-dots-loader';
 import {
-  PlxLogo, GoogleIcon, FacebookIcon, LockIcon, EyeIcon, EyeOffIcon,
+  PlxLogo,
+  GoogleIcon,
+  FacebookIcon,
+  LockIcon,
+  EyeIcon,
+  EyeOffIcon,
 } from '../../../components/ui/plx-icons';
 import '../auth-planable.css';
 
 export default function LoginPage() {
   const t = useT();
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -103,7 +106,11 @@ export default function LoginPage() {
               {error}
             </p>
           ) : null}
-          <button type="submit" className="plx-btn plx-btn--dark plx-btn--block" disabled={busy || !ready}>
+          <button
+            type="submit"
+            className="plx-btn plx-btn--dark plx-btn--block"
+            disabled={busy || !ready}
+          >
             {busy ? <OmaDotsLoader label="Logging in" /> : 'Log in'}
           </button>
         </form>

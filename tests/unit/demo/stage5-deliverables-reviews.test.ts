@@ -3,6 +3,7 @@ import { DEMO_GRAPH, DemoDataProvider } from '@oma/demo';
 import {
   EMPTY_DELIVERABLE_FILTERS,
   approvedVersion,
+  canAddProductionVersion,
   canTransitionReview,
   clamp01,
   currentVersion,
@@ -51,6 +52,9 @@ describe('stage5 deliverable helpers', () => {
     expect(canTransitionReview('AWAITING_REVIEW', 'APPROVED')).toBe(true);
     expect(canTransitionReview('APPROVED', 'CHANGES_REQUESTED')).toBe(false);
     expect(canTransitionReview('CHANGES_REQUESTED', 'DRAFT')).toBe(true);
+    expect(canAddProductionVersion('CHANGES_REQUESTED')).toBe(true);
+    expect(canAddProductionVersion('APPROVED')).toBe(false);
+    expect(canAddProductionVersion('AWAITING_REVIEW')).toBe(false);
   });
 });
 

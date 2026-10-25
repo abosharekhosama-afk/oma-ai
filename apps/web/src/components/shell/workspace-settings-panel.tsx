@@ -33,13 +33,7 @@ type Me = {
 };
 
 type SettingsSection =
-  | 'general'
-  | 'brand'
-  | 'team'
-  | 'approvals'
-  | 'templates'
-  | 'labels'
-  | 'timetable';
+  'general' | 'brand' | 'team' | 'approvals' | 'templates' | 'labels' | 'timetable';
 
 type PrefsDraft = {
   timezone?: string;
@@ -54,7 +48,12 @@ type PrefsDraft = {
 
 type Props = { open: boolean; onClose: () => void };
 
-const NAV: Array<{ id: SettingsSection; label: string; group: 'workspace' | 'content'; icon: NavIconId }> = [
+const NAV: Array<{
+  id: SettingsSection;
+  label: string;
+  group: 'workspace' | 'content';
+  icon: NavIconId;
+}> = [
   { id: 'general', label: 'General settings', group: 'workspace', icon: 'settings' },
   { id: 'brand', label: 'Brand context', group: 'workspace', icon: 'brand' },
   { id: 'team', label: 'Team & clients', group: 'workspace', icon: 'team' },
@@ -67,7 +66,6 @@ const NAV: Array<{ id: SettingsSection; label: string; group: 'workspace' | 'con
 export function WorkspaceSettingsPanel({ open, onClose }: Props) {
   const t = useT();
   const [section, setSection] = useState<SettingsSection>('general');
-  const [me, setMe] = useState<Me | null>(null);
   const [draft, setDraft] = useState<PrefsDraft>({
     timezone: 'Asia/Jerusalem',
     weekStart: 'monday',
@@ -89,20 +87,19 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
   const [tplName, setTplName] = useState('');
   const [slotTime, setSlotTime] = useState('13:20');
   const [slotDay, setSlotDay] = useState('Thursday');
-  const [slotColor, setSlotColor] = useState('#fde68a');
+  const slotColor = '#fde68a';
 
   useEffect(() => {
     if (!open) return;
     api<Me>('/api/v1/auth/me')
       .then((data) => {
-        setMe(data);
         const active = data.memberships.find((m) => m.tenant_id === data.active_tenant_id);
         setDraft((d) => ({
           ...d,
           workspaceName: active?.tenant_name || data.memberships[0]?.tenant_name || 'Workspace',
         }));
       })
-      .catch(() => setMe(null));
+      .catch(() => undefined);
     demoApi<Record<string, unknown>>('/preferences')
       .then((prefs) => {
         setDraft((d) => ({
@@ -125,8 +122,12 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
 
   useEffect(() => {
     if (!open || !brandId) return;
-    void listLabels(brandId).then(setLabels).catch(() => setLabels([]));
-    void listTemplates(brandId).then(setTemplates).catch(() => setTemplates([]));
+    void listLabels(brandId)
+      .then(setLabels)
+      .catch(() => setLabels([]));
+    void listTemplates(brandId)
+      .then(setTemplates)
+      .catch(() => setTemplates([]));
   }, [open, brandId]);
 
   useEffect(() => {
@@ -281,7 +282,10 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
                   <ShellIcon name="team" size={16} />
                   <span>Open Team</span>
                 </Button>
-                <Button type="default" onClick={() => (window.location.href = '/app/company/members')}>
+                <Button
+                  type="default"
+                  onClick={() => (window.location.href = '/app/company/members')}
+                >
                   Company collaborators
                 </Button>
               </div>
@@ -513,17 +517,23 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
               <div className="oma-ws-field">
                 <label className="oma-ws-label">Color</label>
                 <div className="oma-ws-color-row">
-                  {['#c7d2fe', '#fbcfe8', '#fed7aa', '#fde68a', '#a7f3d0', '#a5f3fc', '#e5e7eb'].map(
-                    (c) => (
-                      <button
-                        key={c}
-                        type="button"
-                        className={`oma-ws-swatch${labelColor === c ? ' is-selected' : ''}`}
-                        style={{ background: c }}
-                        onClick={() => setLabelColor(c)}
-                      />
-                    ),
-                  )}
+                  {[
+                    '#c7d2fe',
+                    '#fbcfe8',
+                    '#fed7aa',
+                    '#fde68a',
+                    '#a7f3d0',
+                    '#a5f3fc',
+                    '#e5e7eb',
+                  ].map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      className={`oma-ws-swatch${labelColor === c ? ' is-selected' : ''}`}
+                      style={{ background: c }}
+                      onClick={() => setLabelColor(c)}
+                    />
+                  ))}
                 </div>
               </div>
               <div className="oma-ws-modal-actions">
@@ -587,13 +597,19 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
                 <div className="oma-ws-field">
                   <label className="oma-ws-label">Day</label>
                   <SelectField value={slotDay} onChange={(e) => setSlotDay(e.target.value)}>
-                    {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(
-                      (d) => (
-                        <option key={d} value={d}>
-                          {d}
-                        </option>
-                      ),
-                    )}
+                    {[
+                      'Monday',
+                      'Tuesday',
+                      'Wednesday',
+                      'Thursday',
+                      'Friday',
+                      'Saturday',
+                      'Sunday',
+                    ].map((d) => (
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
+                    ))}
                   </SelectField>
                 </div>
               </div>

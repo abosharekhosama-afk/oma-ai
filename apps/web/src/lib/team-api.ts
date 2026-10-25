@@ -1,13 +1,6 @@
 import { api } from './api';
 
-export type PlanablePerm =
-  | 'view'
-  | 'approve'
-  | 'edit'
-  | 'publish'
-  | 'analyze'
-  | 'engage'
-  | 'admin';
+export type PlanablePerm = 'view' | 'approve' | 'edit' | 'publish' | 'analyze' | 'engage' | 'admin';
 
 export type MembershipType = 'team' | 'client';
 

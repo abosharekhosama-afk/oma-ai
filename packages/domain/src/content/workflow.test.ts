@@ -27,10 +27,18 @@ describe('resolveContentWorkflow', () => {
       'REQUIRED',
     );
     expect(wf.scheduleBlocked).toBe(false);
-    expect(canSchedule(
-      { status: 'APPROVED', scheduledAt: null, approvalState: 'APPROVED', approverApproved: 1, approverRequired: 1 },
-      'REQUIRED',
-    )).toBe(true);
+    expect(
+      canSchedule(
+        {
+          status: 'APPROVED',
+          scheduledAt: null,
+          approvalState: 'APPROVED',
+          approverApproved: 1,
+          approverRequired: 1,
+        },
+        'REQUIRED',
+      ),
+    ).toBe(true);
   });
 
   it('assertCanSchedule throws DomainError SCHEDULE_BLOCKED', () => {

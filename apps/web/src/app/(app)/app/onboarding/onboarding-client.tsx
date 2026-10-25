@@ -108,8 +108,15 @@ export default function OnboardingClient() {
       ) : null}
 
       {mode === 'create' ? (
-        <form className="oma-card oma-stack" style={{ maxWidth: 420 }} onSubmit={createCompany} aria-busy={busy}>
-          <h2 style={{ margin: 0, fontSize: 'var(--text-title-sm)' }}>{t('onboarding.createTitle')}</h2>
+        <form
+          className="oma-card oma-stack"
+          style={{ maxWidth: 420 }}
+          onSubmit={createCompany}
+          aria-busy={busy}
+        >
+          <h2 style={{ margin: 0, fontSize: 'var(--text-title-sm)' }}>
+            {t('onboarding.createTitle')}
+          </h2>
           <label className="oma-field">
             <span>{t('onboarding.companyName')}</span>
             <Input
@@ -133,9 +140,18 @@ export default function OnboardingClient() {
       ) : null}
 
       {mode === 'join' ? (
-        <form className="oma-card oma-stack" style={{ maxWidth: 420 }} onSubmit={joinCompany} aria-busy={busy}>
-          <h2 style={{ margin: 0, fontSize: 'var(--text-title-sm)' }}>{t('onboarding.joinTitle')}</h2>
-          <p className="oma-muted" style={{ margin: 0 }}>{t('onboarding.joinHint')}</p>
+        <form
+          className="oma-card oma-stack"
+          style={{ maxWidth: 420 }}
+          onSubmit={joinCompany}
+          aria-busy={busy}
+        >
+          <h2 style={{ margin: 0, fontSize: 'var(--text-title-sm)' }}>
+            {t('onboarding.joinTitle')}
+          </h2>
+          <p className="oma-muted" style={{ margin: 0 }}>
+            {t('onboarding.joinHint')}
+          </p>
           <label className="oma-field">
             <span>{t('onboarding.inviteToken')}</span>
             <Input

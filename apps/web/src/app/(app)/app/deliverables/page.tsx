@@ -1,5 +1,5 @@
 'use client';
-import { Button, Input, SelectField } from '@oma/ui/controls';
+import { Button, Input } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -10,10 +10,7 @@ import { EmptyState } from '../../../../components/ui/empty-state';
 import { PageHeader } from '../../../../components/ui/page-header';
 import { StatusChip } from '../../../../components/ui/status-chip';
 import { pickCopy } from '../../../../lib/demo/use-demo-api';
-import {
-  loadDeliverablesWorkspace,
-  opsError,
-} from '../../../../lib/ops-api';
+import { loadDeliverablesWorkspace, opsError } from '../../../../lib/ops-api';
 import {
   EMPTY_DELIVERABLE_FILTERS,
   activeDeliverableFilterCount,
@@ -34,7 +31,6 @@ import {
   SearchOutlined,
   DownOutlined,
   UpOutlined,
-  UnorderedListOutlined,
 } from '@ant-design/icons';
 
 type Campaign = DemoGraph['campaigns'][number];
@@ -66,7 +62,7 @@ export default function DeliverablesPage() {
   const [filterSection, setFilterSection] = useState<string | null>('search');
   const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
 
-    const load = useCallback(async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const ws = await loadDeliverablesWorkspace();
@@ -110,7 +106,6 @@ export default function DeliverablesPage() {
   function changeView(view: DeliverableFilters['view']) {
     setFilters((f) => ({ ...f, view }));
   }
-
 
   useEffect(() => {
     let cancelled = false;
@@ -172,8 +167,15 @@ export default function DeliverablesPage() {
   const reviewers = useMemo(() => [...new Set(rows.map((r) => r.reviewer))], [rows]);
 
   return (
-    <div className="oma-deliv-page" data-testid="demo-deliverables" data-prefs={prefsLoaded ? '1' : '0'}>
-      <PageHeader title={t('demo.deliverables.title')} description={t('demo.deliverables.subtitle')} />
+    <div
+      className="oma-deliv-page"
+      data-testid="demo-deliverables"
+      data-prefs={prefsLoaded ? '1' : '0'}
+    >
+      <PageHeader
+        title={t('demo.deliverables.title')}
+        description={t('demo.deliverables.subtitle')}
+      />
 
       {headerSlot && headerSlot.isConnected
         ? createPortal(
@@ -273,7 +275,11 @@ export default function DeliverablesPage() {
       {!loading && !unavailable && !error ? (
         <>
           <div className="oma-req-topbar oma-deliv-topbar">
-            <div className="oma-ws-tabs oma-req-tabs" data-testid="demo-deliv-groups" role="tablist">
+            <div
+              className="oma-ws-tabs oma-req-tabs"
+              data-testid="demo-deliv-groups"
+              role="tablist"
+            >
               {GROUPS.map((g) => (
                 <button
                   key={g}
@@ -291,7 +297,10 @@ export default function DeliverablesPage() {
             </div>
           </div>
 
-          <div className="oma-req-workspace oma-deliv-workspace" data-filter-open={filterSheet ? 'true' : 'false'}>
+          <div
+            className="oma-req-workspace oma-deliv-workspace"
+            data-filter-open={filterSheet ? 'true' : 'false'}
+          >
             <div className="oma-req-main">
               <p className="oma-muted" data-testid="demo-deliv-result-count">
                 {filtered.length} / {rows.length}
@@ -303,7 +312,7 @@ export default function DeliverablesPage() {
                 <div className="oma-deliv-grid" data-testid="demo-deliv-grid">
                   {filtered.map((d) => {
                     const ver = currentVersion(d);
-                    const thumb = ver?.previewUrl;
+                    const thumb = ver?.assets?.[0];
                     return (
                       <Link
                         key={d.id}
@@ -330,7 +339,10 @@ export default function DeliverablesPage() {
                 </div>
               ) : (
                 <>
-                  <div className="oma-deliv-table-wrap oma-deliv-desktop" data-testid="demo-deliv-table">
+                  <div
+                    className="oma-deliv-table-wrap oma-deliv-desktop"
+                    data-testid="demo-deliv-table"
+                  >
                     <table className="oma-deliv-table">
                       <thead>
                         <tr>
@@ -349,24 +361,24 @@ export default function DeliverablesPage() {
                       <tbody>
                         {filtered.map((d) => {
                           const ver = currentVersion(d);
-                          const thumb = ver?.previewUrl;
+                          const thumb = ver?.assets?.[0];
                           const next = deliverableNextAction(d);
                           return (
                             <tr
                               key={d.id}
                               data-overdue={deliverableIsOverdue(d) ? 'true' : 'false'}
                               data-testid={`demo-deliv-row-${d.id}`}
-                          className="oma-deliv-row"
-                          role="link"
-                          tabIndex={0}
-                          onClick={() => router.push(`/app/deliverables/${d.id}`)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                              e.preventDefault();
-                              router.push(`/app/deliverables/${d.id}`);
-                            }
-                          }}
-                        >
+                              className="oma-deliv-row"
+                              role="link"
+                              tabIndex={0}
+                              onClick={() => router.push(`/app/deliverables/${d.id}`)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  router.push(`/app/deliverables/${d.id}`);
+                                }
+                              }}
+                            >
                               <td>
                                 {thumb ? (
                                   <img className="oma-deliv-thumb" src={thumb} alt="" />
@@ -422,7 +434,9 @@ export default function DeliverablesPage() {
             {filterSheet ? (
               <aside className="oma-req-filter-panel" data-testid="demo-deliv-filters">
                 <header className="oma-req-filter-panel__head">
-                  <strong>{locale.toLowerCase().startsWith('ar') ? 'تصفية وترتيب' : 'Filter & sort'}</strong>
+                  <strong>
+                    {locale.toLowerCase().startsWith('ar') ? 'تصفية وترتيب' : 'Filter & sort'}
+                  </strong>
                   <button
                     type="button"
                     className="oma-req-filter-panel__close"
@@ -520,20 +534,28 @@ export default function DeliverablesPage() {
                     </button>
                     {filterSection === 'type' ? (
                       <div className="oma-filter-accordion__body">
-                        {(['all', 'STATIC', 'CAROUSEL', 'REEL', 'LONG_VIDEO', 'COPY', 'PHOTOGRAPHY'] as const).map(
-                          (s) => (
-                            <label key={s} className="oma-filter-check">
-                              <input
-                                type="radio"
-                                name="deliv-type"
-                                data-testid={s === 'all' ? 'demo-deliv-filter-type' : undefined}
-                                checked={filters.assetType === s}
-                                onChange={() => setFilters((f) => ({ ...f, assetType: s }))}
-                              />
-                              <span>{s === 'all' ? t('demo.filter.all') : s}</span>
-                            </label>
-                          ),
-                        )}
+                        {(
+                          [
+                            'all',
+                            'STATIC',
+                            'CAROUSEL',
+                            'REEL',
+                            'LONG_VIDEO',
+                            'COPY',
+                            'PHOTOGRAPHY',
+                          ] as const
+                        ).map((s) => (
+                          <label key={s} className="oma-filter-check">
+                            <input
+                              type="radio"
+                              name="deliv-type"
+                              data-testid={s === 'all' ? 'demo-deliv-filter-type' : undefined}
+                              checked={filters.assetType === s}
+                              onChange={() => setFilters((f) => ({ ...f, assetType: s }))}
+                            />
+                            <span>{s === 'all' ? t('demo.filter.all') : s}</span>
+                          </label>
+                        ))}
                       </div>
                     ) : null}
                   </div>
@@ -543,7 +565,9 @@ export default function DeliverablesPage() {
                       type="button"
                       className="oma-filter-accordion__row"
                       data-open={filterSection === 'campaign' ? 'true' : 'false'}
-                      onClick={() => setFilterSection((s) => (s === 'campaign' ? null : 'campaign'))}
+                      onClick={() =>
+                        setFilterSection((s) => (s === 'campaign' ? null : 'campaign'))
+                      }
                     >
                       <span className="oma-filter-accordion__ico">
                         <FilterOutlined />
@@ -627,7 +651,9 @@ export default function DeliverablesPage() {
                       type="button"
                       className="oma-filter-accordion__row"
                       data-open={filterSection === 'reviewer' ? 'true' : 'false'}
-                      onClick={() => setFilterSection((s) => (s === 'reviewer' ? null : 'reviewer'))}
+                      onClick={() =>
+                        setFilterSection((s) => (s === 'reviewer' ? null : 'reviewer'))
+                      }
                     >
                       <span className="oma-filter-accordion__ico">
                         <FilterOutlined />
@@ -670,7 +696,13 @@ export default function DeliverablesPage() {
                     <Button
                       type="default"
                       data-testid="demo-deliv-clear-filters"
-                      onClick={() => setFilters((f) => ({ ...EMPTY_DELIVERABLE_FILTERS, view: f.view, group: f.group }))}
+                      onClick={() =>
+                        setFilters((f) => ({
+                          ...EMPTY_DELIVERABLE_FILTERS,
+                          view: f.view,
+                          group: f.group,
+                        }))
+                      }
                     >
                       {t('demo.requests.clearFilters') || 'Clear filters'}
                     </Button>

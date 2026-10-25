@@ -10,7 +10,12 @@ import { getPrisma } from '@oma/db';
 export class WorkspaceSettingsController {
   private tenantId(req: Request) {
     if (!req.oma?.tenantId) {
-      throw new DomainError('TENANT_REQUIRED', 'Active tenant required', 409, 'errors.tenant_required');
+      throw new DomainError(
+        'TENANT_REQUIRED',
+        'Active tenant required',
+        409,
+        'errors.tenant_required',
+      );
     }
     return req.oma.tenantId;
   }
@@ -19,7 +24,7 @@ export class WorkspaceSettingsController {
   async getSettings(@Req() req: Request) {
     const tenantId = this.tenantId(req);
     const prisma = getPrisma();
-    let row = await prisma.workspaceSetting.findUnique({ where: { tenantId } }).catch(() => null);
+    const row = await prisma.workspaceSetting.findUnique({ where: { tenantId } }).catch(() => null);
     if (!row) {
       // Return defaults without requiring write capability
       return {
@@ -122,7 +127,12 @@ export class WorkspaceSettingsController {
   ) {
     const tenantId = this.tenantId(req);
     if (body.day_of_week == null || !body.time_local) {
-      throw new DomainError('VALIDATION_FAILED', 'day_of_week and time_local required', 400, 'errors.validation');
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'day_of_week and time_local required',
+        400,
+        'errors.validation',
+      );
     }
     const row = await getPrisma().workspaceTimeSlot.create({
       data: {

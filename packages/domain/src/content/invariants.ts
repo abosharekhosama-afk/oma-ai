@@ -31,12 +31,7 @@ export function assertContentBelongsToCampaignBrand(input: {
 
 export function assertBrandNotArchived(archivedAt: Date | string | null | undefined): void {
   if (archivedAt) {
-    throw new DomainError(
-      'BRAND_ARCHIVED',
-      'Brand is archived',
-      409,
-      'error.brand_archived',
-    );
+    throw new DomainError('BRAND_ARCHIVED', 'Brand is archived', 409, 'error.brand_archived');
   }
 }
 

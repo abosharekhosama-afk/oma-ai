@@ -2154,6 +2154,9 @@ export default function ContentPage() {
 
   return (
     <div className="oma-stack oma-content-plan oma-content-plan--tight" data-testid="demo-content">
+      <p className="oma-honesty-inline" data-testid="content-calendar-role">
+        {t('demo.content.subtitle')}
+      </p>
       {/* Portal: Filter / Media / Share / Compose into shell header */}
       {headerSlot &&
         createPortal(
@@ -2577,7 +2580,9 @@ export default function ContentPage() {
                                       e.stopPropagation();
                                       setNoteDay(cell.key);
                                       const ta = (
-                                        e.currentTarget.closest('.oma-cal-note') as HTMLElement | null
+                                        e.currentTarget.closest(
+                                          '.oma-cal-note',
+                                        ) as HTMLElement | null
                                       )?.querySelector('textarea');
                                       ta?.focus();
                                     }}
@@ -2718,7 +2723,9 @@ export default function ContentPage() {
                                   variant="calendar"
                                   title={pickCopy(item.title, locale)}
                                   caption={item.caption ? pickCopy(item.caption, locale) : ''}
-                                  channel={item.channel || (isAr ? 'صفحة الحساب' : 'Workspace page')}
+                                  channel={
+                                    item.channel || (isAr ? 'صفحة الحساب' : 'Workspace page')
+                                  }
                                   when={
                                     item.scheduledAt
                                       ? item.scheduledAt.slice(11, 16)

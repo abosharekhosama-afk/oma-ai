@@ -12,8 +12,13 @@ export type AppNotification = {
   readAt: string | null;
 };
 
-export async function listNotifications(): Promise<{ items: AppNotification[]; unread_count: number }> {
-  const res = await api<{ items: AppNotification[]; unread_count?: number }>('/api/v1/notifications');
+export async function listNotifications(): Promise<{
+  items: AppNotification[];
+  unread_count: number;
+}> {
+  const res = await api<{ items: AppNotification[]; unread_count?: number }>(
+    '/api/v1/notifications',
+  );
   return {
     items: res.items ?? [],
     unread_count: res.unread_count ?? (res.items ?? []).filter((n) => !n.readAt).length,

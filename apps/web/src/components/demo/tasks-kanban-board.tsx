@@ -105,8 +105,7 @@ function KanbanCardBody({ task }: { task: TaskRow }) {
   const locale = useLocale();
   const isAr = locale.toLowerCase().startsWith('ar');
   const overdue = taskIsOverdue(task);
-  const assignee =
-    !task.assignee || task.assignee === 'Unassigned' ? null : String(task.assignee);
+  const assignee = !task.assignee || task.assignee === 'Unassigned' ? null : String(task.assignee);
   const extra = task as TaskRow & {
     brandName?: string;
     campaignName?: string | null;

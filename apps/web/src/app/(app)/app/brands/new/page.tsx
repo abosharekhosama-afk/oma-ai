@@ -15,7 +15,11 @@ export default function NewBrandPage() {
   if (denied) return <PermissionDenied message={t('errors.permission')} />;
 
   return (
-    <Dialog open title={t('brand.create.title') || 'Create workspace'} onClose={() => router.push('/app/brands')}>
+    <Dialog
+      open
+      title={t('brand.create.title') || 'Create workspace'}
+      onClose={() => router.push('/app/brands')}
+    >
       <CreateBrandForm
         onCancel={() => router.push('/app/brands')}
         onDenied={() => setDenied(true)}

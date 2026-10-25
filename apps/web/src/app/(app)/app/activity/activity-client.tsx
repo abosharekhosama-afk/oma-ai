@@ -55,7 +55,6 @@ export default function ActivityPage() {
     return () => {
       mountedRef.current = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const filtered = useMemo(() => {
@@ -154,8 +153,7 @@ export default function ActivityPage() {
                     </div>
                     <p className="oma-activity-summary">{item.summary}</p>
                     <p className="oma-activity-actor">
-                      <span className="oma-activity-actor-label">By</span>{' '}
-                      {item.actor_name}
+                      <span className="oma-activity-actor-label">By</span> {item.actor_name}
                       {item.actor_email && item.actor_name !== item.actor_email ? (
                         <span className="oma-muted"> · {item.actor_email}</span>
                       ) : null}
