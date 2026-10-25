@@ -1,3 +1,13 @@
+import { resolveLocale, t as translate } from '@oma/i18n';
+
+function getClientLocale() {
+  if (typeof document === 'undefined') return resolveLocale(null);
+  const raw = document.cookie
+    .split('; ')
+    .find((c) => c.startsWith('oma_locale='))
+    ?.split('=')[1];
+  return resolveLocale(raw ? decodeURIComponent(raw) : document.documentElement.lang || null);
+}
 let sessionInvalidNotified = false;
 
 export function resetSessionInvalidFlag() {
@@ -22,6 +32,53 @@ export function invalidateApiCache(pathPrefix?: string) {
   for (const key of [...inflight.keys()]) {
     if (key.startsWith(pathPrefix) || key.includes(pathPrefix)) inflight.delete(key);
   }
+}
+
+const CODE_KEYS: Record<string, string> = {
+  NETWORK: 'errors.network',
+  PERMISSION_DENIED: 'errors.permission_denied',
+  UNAUTHENTICATED: 'errors.unauthenticated',
+  TENANT_REQUIRED: 'errors.tenant_required',
+  NOT_FOUND: 'errors.not_found',
+  CONFLICT_STATE: 'errors.conflict_state',
+  CONFLICT_VERSION: 'errors.conflict_version',
+  VALIDATION_FAILED: 'errors.validation_failed',
+  RATE_LIMITED: 'errors.rate_limited',
+  SCHEDULE_BLOCKED: 'error.schedule_blocked',
+  CONTENT_REJECTED: 'error.content_rejected',
+  BRAND_ARCHIVED: 'errors.brand_archived',
+  CAMPAIGN_ARCHIVED: 'error.campaign_archived',
+};
+
+/** Localized, user-facing message for an API error (prefers the server's message_key). */
+export function friendlyApiMessage(
+  error: { code?: string; message_key?: string } | undefined | null,
+  status: number,
+): string {
+  const locale = getClientLocale();
+  const lookup = (key?: string) => {
+    if (!key) return null;
+    const v = translate(locale, key);
+    return v && v !== key ? v : null;
+  };
+  return (
+    lookup(error?.message_key) ??
+    lookup(error?.code ? CODE_KEYS[error.code] : undefined) ??
+    lookup(
+      status === 403
+        ? 'errors.permission_denied'
+        : status === 404
+          ? 'errors.not_found'
+          : status === 429
+            ? 'errors.rate_limited'
+            : status === 401
+              ? 'errors.unauthenticated'
+              : status >= 500
+                ? 'errors.internal'
+                : 'errors.http',
+    ) ??
+    'Error'
+  );
 }
 
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -54,7 +111,11 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
       res = await fetch(path, { ...init, headers, credentials: 'include' });
     } catch (cause) {
       // Network/offline: surface a typed error (status 0) so UIs can show an offline state + retry.
-      throw Object.assign(new Error('Network error'), { status: 0, code: 'NETWORK', cause });
+      throw Object.assign(new Error(friendlyApiMessage({ code: 'NETWORK' }, 0)), {
+        status: 0,
+        code: 'NETWORK',
+        cause,
+      });
     }
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
@@ -73,9 +134,11 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
           );
         }
       }
-      throw Object.assign(new Error(data?.error?.message ?? res.statusText), {
+      // Never surface raw server text/codes to users: map to a localized, plain-language message.
+      throw Object.assign(new Error(friendlyApiMessage(data?.error, res.status)), {
         data,
         status: res.status,
+        code: data?.error?.code,
       });
     }
     if (isGet) {

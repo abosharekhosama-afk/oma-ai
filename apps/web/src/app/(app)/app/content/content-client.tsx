@@ -321,6 +321,7 @@ function PlanableComposeCard({
   onOpenLabels?: () => void;
   onOpenTemplates?: () => void;
 }) {
+  const t = useT();
   const [campaignMenu, setCampaignMenu] = useState(false);
   if (!open) return null;
   const selectedCampaign = campaigns.find((c) => c.id === form.campaignId);
@@ -336,7 +337,7 @@ function PlanableComposeCard({
         <button
           type="button"
           className="oma-compose-close"
-          aria-label="Dismiss"
+          aria-label={t('content.dismiss')}
           disabled={creating}
           onClick={onClose}
         >
@@ -353,7 +354,7 @@ function PlanableComposeCard({
               onClick={() => setCampaignMenu((v) => !v)}
             >
               <NotificationOutlined />
-              {selectedCampaign ? pickCopy(selectedCampaign.name, locale) : 'Campaign'}
+              {selectedCampaign ? pickCopy(selectedCampaign.name, locale) : t('demo.campaigns.col.campaign')}
               <DownOutlined style={{ fontSize: 10 }} />
             </button>
             {campaignMenu ? (
@@ -366,7 +367,7 @@ function PlanableComposeCard({
                     setCampaignMenu(false);
                   }}
                 >
-                  No campaign
+                  {t('content.no_campaign')}
                 </button>
                 {campaigns.map((c) => (
                   <button
@@ -391,7 +392,7 @@ function PlanableComposeCard({
             data-testid="demo-compose-labels"
           >
             <TagOutlined />
-            Labels
+            {t('wsPanel.labels')}
           </button>
           <button
             type="button"
@@ -400,7 +401,7 @@ function PlanableComposeCard({
             data-testid="demo-compose-templates"
           >
             <FileTextOutlined />
-            Templates
+            {t('wsPanel.templates')}
           </button>
         </div>
 
@@ -412,7 +413,7 @@ function PlanableComposeCard({
                 <EditOutlined />
               </span>
             </div>
-            <label className="oma-compose-media" aria-label="Media">
+            <label className="oma-compose-media" aria-label={t('demo.content.media')}>
               <PictureOutlined />
               <input
                 type="file"
@@ -437,7 +438,7 @@ function PlanableComposeCard({
           <div className="oma-compose-main">
             <Input
               className="oma-compose-title"
-              placeholder="Title"
+              placeholder={t('demo.create.title')}
               value={form.title}
               data-testid="demo-create-content-title"
               onChange={(e) => onChange({ title: e.target.value })}
@@ -454,7 +455,7 @@ function PlanableComposeCard({
 
         <div className="oma-compose-extras">
           <label>
-            Type
+            {t('demo.content.filter.type')}
             <OmaSelect
               value={form.contentType}
               onChange={(contentType) => onChange({ contentType })}
@@ -465,26 +466,26 @@ function PlanableComposeCard({
             />
           </label>
           <label>
-            Channel
+            {t('demo.filter.channel')}
             <Input value={form.channel} onChange={(e) => onChange({ channel: e.target.value })} />
           </label>
           <label>
-            Owner
+            {t('demo.campaigns.col.owner')}
             <Input value={form.owner} onChange={(e) => onChange({ owner: e.target.value })} />
           </label>
           <label>
-            Track
+            {t('demo.filter.track')}
             <OmaSelect
               value={form.track}
               onChange={(track) => onChange({ track })}
               options={[
-                { value: 'ORGANIC', label: 'Organic' },
-                { value: 'PAID', label: 'Paid' },
+                { value: 'ORGANIC', label: t('strategy.nav.organic') },
+                { value: 'PAID', label: t('strategy.nav.paid') },
               ]}
             />
           </label>
           <label>
-            Media
+            {t('demo.content.media')}
             <OmaSelect
               value={form.previewAsset}
               onChange={(previewAsset) => onChange({ previewAsset })}
@@ -495,7 +496,7 @@ function PlanableComposeCard({
             />
           </label>
           <label>
-            Brief
+            {t('demo.campaign.goal')}
             <TextArea
               rows={1}
               value={form.brief}
@@ -514,7 +515,7 @@ function PlanableComposeCard({
           <div className="oma-compose-meta">
             <ClockCircleOutlined />
             <DatePicker
-              showTime={{ format: 'HH:mm' }}
+              showTime={{ format: t('content.hhmm') }}
               format="MMM DD, HH:mm"
               value={form.plannedDate ? dayjs(form.plannedDate) : null}
               onChange={(value) =>
@@ -529,7 +530,7 @@ function PlanableComposeCard({
             <span className="oma-compose-tz">({WORKSPACE_TZ.replace('/', ': ')})</span>
           </div>
           <div className="oma-compose-actions">
-            <button type="button" className="oma-compose-view" aria-label="Preview">
+            <button type="button" className="oma-compose-view" aria-label={t('demo.deliverable.preview')}>
               <EyeOutlined />
             </button>
             <button
@@ -539,7 +540,7 @@ function PlanableComposeCard({
               data-testid="demo-create-content-submit"
               onClick={onSubmit}
             >
-              <span>{creating ? 'Saving…' : 'Save draft'}</span>
+              <span>{creating ? t('demo.content.saving') : t('content.save_draft')}</span>
               <span className="oma-compose-save__caret">
                 <DownOutlined style={{ fontSize: 10 }} />
               </span>
@@ -593,6 +594,7 @@ function CardFloatingMenu({
   onAction: (action: CardMenuAction, id: string) => void;
   onClose: () => void;
 }) {
+  const t = useT();
   const isAr = locale.toLowerCase().startsWith('ar');
   const ref = useRef<HTMLDivElement | null>(null);
   const [realPos, setRealPos] = useState(pos);
@@ -639,44 +641,44 @@ function CardFloatingMenu({
   }> = [
     {
       action: 'request',
-      label: isAr ? 'طلب موافقة' : 'Request approval',
+      label: t('demo.content.requestApproval'),
       icon: <SyncOutlined />,
       disabled: !canRequestApproval(src),
     },
     {
       action: 'approve',
-      label: isAr ? 'الموافقة على المنشور' : 'Approve post',
+      label: t('content.approve_post'),
       icon: <CheckOutlined />,
       disabled: !canApprove(src),
     },
     {
       action: 'changes',
-      label: isAr ? 'طلب تعديلات' : 'Request changes',
+      label: t('strategy.review.requestChanges'),
       icon: <FormOutlined />,
       disabled: !canRequestChanges(src),
     },
     {
       action: 'reject',
-      label: isAr ? 'رفض' : 'Reject',
+      label: t('strategy.review.reject'),
       icon: <CloseOutlined />,
       disabled: !canReject(src),
       danger: true,
     },
     {
       action: 'published',
-      label: isAr ? 'تم كمنشور' : 'Mark as published',
+      label: t('content.mark_as_published'),
       icon: <FlagOutlined />,
       disabled: !canMarkPublished(src, policy),
     },
     {
       action: 'schedule',
-      label: isAr ? 'جدولة' : 'Schedule',
+      label: t('nav.schedule'),
       icon: <ClockCircleOutlined />,
       disabled: !canScheduleItem(src, policy),
     },
     {
       action: 'unschedule',
-      label: isAr ? 'إلغاء الجدولة' : 'Unschedule',
+      label: t('demo.content.unschedule'),
       icon: <CalendarOutlined />,
       disabled: src.scheduleState !== 'SCHEDULED',
     },
@@ -684,32 +686,28 @@ function CardFloatingMenu({
       action: 'hide',
       label:
         src.clientVisible === false
-          ? isAr
-            ? 'إظهار للعملاء'
-            : 'Show to clients'
-          : isAr
-            ? 'إخفاء عن العملاء'
-            : 'Hide from clients',
+          ? t('content.show_to_clients')
+          : t('content.hide_from_clients'),
       icon: <EyeInvisibleOutlined />,
     },
     {
       action: 'labels',
-      label: isAr ? 'التصنيفات' : 'Labels',
+      label: t('wsPanel.labels'),
       icon: <TagOutlined />,
     },
     {
       action: 'template',
-      label: isAr ? 'حفظ كقالب' : 'Save as template',
+      label: t('content.save_as_template'),
       icon: <CopyOutlined />,
     },
     {
       action: 'ops',
-      label: isAr ? 'تحويل إلى طلب' : 'Convert to request',
+      label: t('content.convert_to_request'),
       icon: <UnorderedListOutlined />,
     },
     {
       action: 'archive',
-      label: isAr ? 'أرشفة المنشور' : 'Archive post',
+      label: t('content.archive_post'),
       icon: <InboxOutlined />,
       disabled: !canArchive(src),
     },
@@ -982,7 +980,7 @@ export default function ContentPage() {
       }
     } catch (err) {
       setErrorKind(errorKindOf(err));
-      setError(contentApiError(err, isAr ? 'تعذّر تحميل المحتوى' : 'Failed to load content'));
+      setError(contentApiError(err, t('content.failed_to_load_content')));
       setRows([]);
       setLoading(false);
     }
@@ -1110,7 +1108,7 @@ export default function ContentPage() {
       }));
     } catch (err) {
       toast.push(
-        contentApiError(err, isAr ? 'تعذّر حفظ الملاحظة' : 'Failed to save note'),
+        contentApiError(err, t('content.failed_to_save_note')),
         'danger',
       );
     }
@@ -1123,36 +1121,30 @@ export default function ContentPage() {
       const updated = await setClientVisible(contentId, !currentlyVisible);
       setRows((prev) => prev.map((r) => (r.id === contentId ? toContentRow(updated) : r)));
       toast.push(
-        isAr
-          ? !currentlyVisible
-            ? 'ظاهر للعملاء'
-            : 'مخفي عن العملاء'
-          : !currentlyVisible
-            ? 'Visible to clients'
-            : 'Hidden from clients',
+        !currentlyVisible ? t('content.visible_to_clients') : t('content.hidden_from_clients'),
         'success',
       );
     } catch (err) {
-      toast.push(contentApiError(err, 'Visibility update failed'), 'danger');
+      toast.push(contentApiError(err, t('content.visibility_failed')), 'danger');
     }
   }
 
   async function saveAsTemplate(contentId: string) {
     if (!activeBrandId) return;
     const row = rows.find((r) => r.id === contentId);
-    const name = row ? (isAr ? row.title.ar : row.title.en) : 'Template';
+    const name = row ? (isAr ? row.title.ar : row.title.en) : t('content.template');
     try {
       const saved = await saveContentAsTemplate(activeBrandId, {
-        name: `${name} template`,
+        name: t('content.template_name').replace('{name}', name),
         fromContentId: contentId,
       });
       const tpl = (saved as { data?: BrandTemplateCard }).data ?? (saved as BrandTemplateCard);
       if (tpl?.id) {
         setBrandTemplates((prev) => [tpl, ...prev.filter((row) => row.id !== tpl.id)]);
       }
-      toast.push(isAr ? 'تم حفظ القالب' : 'Saved as template', 'success');
+      toast.push(t('content.saved_as_template'), 'success');
     } catch (err) {
-      toast.push(contentApiError(err, 'Template save failed'), 'danger');
+      toast.push(contentApiError(err, t('errors.http')), 'danger');
     }
   }
 
@@ -1441,7 +1433,7 @@ export default function ContentPage() {
     if (isScheduled && !canScheduleItem(row, policy)) {
       toast.push(
         scheduleBlockedHint(scheduleBlockReason(row, policy), isAr) ??
-          (isAr ? 'الجدولة غير متاحة' : 'Scheduling unavailable'),
+          (t('content.scheduling_unavailable')),
         'danger',
       );
       return;
@@ -1455,12 +1447,8 @@ export default function ContentPage() {
       setRows((prev) => prev.map((r) => (r.id === contentId ? next : r)));
       toast.push(
         isScheduled
-          ? isAr
-            ? 'تم نقل موعد الجدولة'
-            : 'Scheduled time moved'
-          : isAr
-            ? 'تم تحديث التاريخ المخطط (غير مجدول)'
-            : 'Planned date updated (not scheduled)',
+          ? t('content.scheduled_time_moved')
+          : t('content.planned_date_updated_not_scheduled'),
         'success',
       );
     } catch (err) {
@@ -1487,12 +1475,12 @@ export default function ContentPage() {
       const task = await convertRequestToTask(req.id);
       const deliv = await convertTaskToDeliverable(task.id);
       toast.push(
-        isAr ? 'تم إنشاء طلب → مهمة → تسليم' : 'Created Request → Task → Deliverable',
+        t('content.created_request_task_deliverable'),
         'success',
       );
       return { requestId: req.id, taskId: task.id, deliverableId: deliv.id };
     } catch (err) {
-      toast.push(opsError(err, isAr ? 'فشل التحويل' : 'Ops conversion failed'), 'danger');
+      toast.push(opsError(err, t('content.ops_conversion_failed')), 'danger');
       return null;
     }
   }
@@ -1513,7 +1501,7 @@ export default function ContentPage() {
       const campaign = campaigns.find((c) => c.id === createForm.campaignId);
       const brandId = createForm.brandId || campaign?.brandId || brands[0]?.id || '';
       if (!brandId) {
-        throw new Error(isAr ? 'اختر البراند' : 'Select a brand');
+        throw new Error(t('content.select_a_brand'));
       }
       const apiCreated = await createContentProduction({
         brandId,
@@ -1590,7 +1578,7 @@ export default function ContentPage() {
     }
     setSelectedIds([]);
     setApprovalMode(false);
-    toast.push(isAr ? 'تم إرسال طلب الموافقة' : 'Approval request sent', 'success');
+    toast.push(t('content.approval_request_sent'), 'success');
     void load();
   }
 
@@ -1607,10 +1595,10 @@ export default function ContentPage() {
     try {
       if (navigator.clipboard?.writeText) await navigator.clipboard.writeText(url);
       else throw new Error('Clipboard unavailable');
-      toast.push(isAr ? 'تم نسخ رابط مساحة المحتوى' : 'Content link copied', 'success');
+      toast.push(t('content.content_link_copied'), 'success');
     } catch {
       toast.push(
-        isAr ? 'تعذّر نسخ الرابط من هذا المتصفح' : 'This browser could not copy the link',
+        t('content.this_browser_could_not_copy'),
         'danger',
       );
     }
@@ -1700,7 +1688,7 @@ export default function ContentPage() {
     }
     if (!selectedId) {
       toast.push(
-        isAr ? 'افتح منشورًا لتطبيق التصنيف' : 'Open a post to apply this label',
+        t('content.open_a_post_to_apply'),
         'danger',
       );
       return;
@@ -1708,9 +1696,9 @@ export default function ContentPage() {
     void setContentLabels(selectedId, next)
       .then((updated) => {
         setRows((prev) => prev.map((r) => (r.id === selectedId ? toContentRow(updated) : r)));
-        toast.push(isAr ? 'تم تحديث التصنيفات' : 'Labels updated', 'success');
+        toast.push(t('content.labels_updated'), 'success');
       })
-      .catch((err) => toast.push(contentApiError(err, 'Labels failed'), 'danger'));
+      .catch((err) => toast.push(contentApiError(err, t('errors.http')), 'danger'));
   }
 
   async function applyTemplate(tpl: BrandTemplateCard) {
@@ -1736,10 +1724,10 @@ export default function ContentPage() {
       }
       setTemplatePickerOpen(false);
       setCreateOpen(false);
-      toast.push(isAr ? 'تم إنشاء منشور من القالب' : 'Created from template', 'success');
+      toast.push(t('content.created_from_template'), 'success');
       openItem(row, 'edit');
     } catch (err) {
-      toast.push(contentApiError(err, 'Template failed'), 'danger');
+      toast.push(contentApiError(err, t('errors.http')), 'danger');
     }
   }
 
@@ -1776,7 +1764,7 @@ export default function ContentPage() {
           <span className="oma-filter-accordion__ico" aria-hidden>
             <CheckCircleOutlined />
           </span>
-          <span>{isAr ? 'حالة الموافقة' : 'Approval Status'}</span>
+          <span>{t('content.approval_status')}</span>
           <span className="oma-filter-accordion__caret">
             {filterSection === 'approval' ? <UpOutlined /> : <DownOutlined />}
           </span>
@@ -1815,7 +1803,7 @@ export default function ContentPage() {
           <span className="oma-filter-accordion__ico" aria-hidden>
             <ClockCircleOutlined />
           </span>
-          <span>{isAr ? 'حالة المنشور' : 'Post Status'}</span>
+          <span>{t('content.post_status')}</span>
           <span className="oma-filter-accordion__caret">
             {filterSection === 'status' ? <UpOutlined /> : <DownOutlined />}
           </span>
@@ -1858,7 +1846,7 @@ export default function ContentPage() {
           <span className="oma-filter-accordion__ico" aria-hidden>
             <FlagOutlined />
           </span>
-          <span>{isAr ? 'الحملة' : 'Campaign'}</span>
+          <span>{t('demo.campaigns.col.campaign')}</span>
           <span className="oma-filter-accordion__caret">
             {filterSection === 'campaign' ? <UpOutlined /> : <DownOutlined />}
           </span>
@@ -1876,7 +1864,7 @@ export default function ContentPage() {
                   });
                 }}
               />
-              <span>{isAr ? 'بدون حملة / الكل' : 'No Campaign / All'}</span>
+              <span>{t('content.no_campaign_all')}</span>
               <span className="oma-filter-check__count">
                 {rows.filter((r) => !r.campaignId).length}
               </span>
@@ -1915,7 +1903,7 @@ export default function ContentPage() {
           <span className="oma-filter-accordion__ico" aria-hidden>
             <AppstoreOutlined />
           </span>
-          <span>{isAr ? 'نوع المنشور' : 'Post Type'}</span>
+          <span>{t('content.post_type')}</span>
           <span className="oma-filter-accordion__caret">
             {filterSection === 'postType' ? <UpOutlined /> : <DownOutlined />}
           </span>
@@ -1944,11 +1932,11 @@ export default function ContentPage() {
                 />
                 <span>
                   {ty === 'POST'
-                    ? 'Posts'
+                    ? t('analytics.content')
                     : ty === 'STORY'
-                      ? 'Stories'
+                      ? t('content.stories')
                       : ty === 'REEL'
-                        ? 'Reels'
+                        ? t('content.reels')
                         : ty}
                 </span>
                 <span className="oma-filter-check__count">
@@ -1970,14 +1958,14 @@ export default function ContentPage() {
           <span className="oma-filter-accordion__ico" aria-hidden>
             <GlobalOutlined />
           </span>
-          <span>{isAr ? 'القناة والعلامة' : 'Channel & Brand'}</span>
+          <span>{t('content.channel_brand')}</span>
           <span className="oma-filter-accordion__caret">
             {filterSection === 'channel' ? <UpOutlined /> : <DownOutlined />}
           </span>
         </button>
         {filterSection === 'channel' ? (
           <div className="oma-filter-accordion__body">
-            <p className="oma-content-filter-eyebrow">{isAr ? 'القناة' : 'Channel'}</p>
+            <p className="oma-content-filter-eyebrow">{t('demo.filter.channel')}</p>
             <label className="oma-filter-check">
               <input
                 type="checkbox"
@@ -1998,7 +1986,7 @@ export default function ContentPage() {
                 <span>{ch}</span>
               </label>
             ))}
-            <p className="oma-content-filter-eyebrow">{isAr ? 'العلامة' : 'Brand'}</p>
+            <p className="oma-content-filter-eyebrow">{t('shell.brand')}</p>
             <label className="oma-filter-check">
               <input
                 type="checkbox"
@@ -2036,7 +2024,7 @@ export default function ContentPage() {
           <span className="oma-filter-accordion__ico" aria-hidden>
             <MessageOutlined />
           </span>
-          <span>{isAr ? 'المراجعة' : 'Feedback & Activity'}</span>
+          <span>{t('content.feedback_activity')}</span>
           <span className="oma-filter-accordion__caret">
             {filterSection === 'review' ? <UpOutlined /> : <DownOutlined />}
           </span>
@@ -2076,7 +2064,7 @@ export default function ContentPage() {
           <span className="oma-filter-accordion__ico" aria-hidden>
             <UserOutlined />
           </span>
-          <span>{isAr ? 'المؤلف' : 'Author'}</span>
+          <span>{t('content.author')}</span>
           <span className="oma-filter-accordion__caret">
             {filterSection === 'author' ? <UpOutlined /> : <DownOutlined />}
           </span>
@@ -2117,7 +2105,7 @@ export default function ContentPage() {
           <span className="oma-filter-accordion__ico" aria-hidden>
             <CalendarOutlined />
           </span>
-          <span>{isAr ? 'الفترة' : 'Period'}</span>
+          <span>{t('analytics.period')}</span>
           <span className="oma-filter-accordion__caret">
             {filterSection === 'period' ? <UpOutlined /> : <DownOutlined />}
           </span>
@@ -2125,7 +2113,7 @@ export default function ContentPage() {
         {filterSection === 'period' ? (
           <div className="oma-filter-accordion__body">
             <label className="oma-filter-sidepanel__row">
-              <span>{isAr ? 'من' : 'Start date'}</span>
+              <span>{t('content.start_date')}</span>
               <DatePicker
                 value={filters.dateFrom ? dayjs(filters.dateFrom) : null}
                 onChange={(_, dateString) =>
@@ -2138,7 +2126,7 @@ export default function ContentPage() {
               />
             </label>
             <label className="oma-filter-sidepanel__row">
-              <span>{isAr ? 'إلى' : 'End date'}</span>
+              <span>{t('content.end_date')}</span>
               <DatePicker
                 value={filters.dateTo ? dayjs(filters.dateTo) : null}
                 onChange={(_, dateString) =>
@@ -2164,7 +2152,7 @@ export default function ContentPage() {
           <span className="oma-filter-accordion__ico" aria-hidden>
             <FilterOutlined />
           </span>
-          <span>{isAr ? 'بحث في المنشورات' : 'Search in posts'}</span>
+          <span>{t('content.search_in_posts')}</span>
           <span className="oma-filter-accordion__caret">
             {filterSection === 'search' ? <UpOutlined /> : <DownOutlined />}
           </span>
@@ -2188,43 +2176,43 @@ export default function ContentPage() {
             <button
               type="button"
               className="oma-top-action"
-              data-tooltip={isAr ? 'تصفية وترتيب' : 'Filter & sort'}
+              data-tooltip={t('content.filter_sort')}
               onClick={() => setFilterSheet(true)}
               data-testid="demo-content-open-filters"
             >
               <FilterOutlined className="oma-top-action__icon" />
-              {isAr ? 'تصفية' : 'Filter'}
+              {t('content.filter')}
               {filterCount > 0 ? ` (${filterCount})` : ''}
             </button>
             <button
               type="button"
               className="oma-top-action"
-              data-tooltip={isAr ? 'مكتبة الوسائط' : 'Media library'}
+              data-tooltip={t('content.media_library')}
               onClick={() => setMediaLibraryOpen(true)}
               data-testid="demo-content-open-media"
             >
               <PictureOutlined className="oma-top-action__icon" />
-              {isAr ? 'الوسائط' : 'Media'}
+              {t('demo.content.media')}
             </button>
             <button
               type="button"
               className="oma-top-action oma-top-action--ghost"
-              data-tooltip={isAr ? 'مشاركة العرض' : 'Share view'}
+              data-tooltip={t('content.share_view')}
               onClick={() => void shareContentWorkspace()}
               data-testid="demo-content-share"
             >
               <ShareAltOutlined className="oma-top-action__icon" />
-              {isAr ? 'مشاركة' : 'Share'}
+              {t('content.share')}
             </button>
             <button
               type="button"
               className="oma-top-action oma-top-action--primary"
-              data-tooltip={isAr ? 'إنشاء محتوى' : 'Compose'}
+              data-tooltip={t('content.compose')}
               data-testid="demo-create-content"
               onClick={() => setCreateOpen(true)}
             >
               <EditOutlined className="oma-top-action__icon" />
-              {isAr ? 'إنشاء' : 'Compose'}
+              {t('content.compose')}
             </button>
           </>,
           headerSlot,
@@ -2415,25 +2403,21 @@ export default function ContentPage() {
                   className="oma-cal-request-approvals"
                   data-testid="demo-content-request-approvals"
                   data-active={approvalMode ? 'true' : 'false'}
-                  data-tooltip={isAr ? 'طلب موافقات' : 'Request approvals'}
+                  data-tooltip={t('content.request_approvals')}
                   onClick={showApprovalQueue}
                 >
                   <CheckCircleOutlined />
                   <span>
                     {approvalMode
-                      ? isAr
-                        ? 'إغلاق طلب الموافقات'
-                        : 'Close requesting approvals'
-                      : isAr
-                        ? 'طلب الموافقات'
-                        : 'Request approvals'}
+                      ? t('content.close_requesting_approvals')
+                      : t('content.request_approvals')}
                   </span>
                 </button>
                 <span className="oma-cal-ext-wrap">
                   <button
                     type="button"
                     className="oma-cal-ext-indicator"
-                    data-tooltip={isAr ? 'تقويمات خارجية' : 'External calendars'}
+                    data-tooltip={t('content.external_calendars')}
                     onClick={(e) => {
                       e.stopPropagation();
                       setExtCalOpen((v) => !v);
@@ -2450,9 +2434,9 @@ export default function ContentPage() {
                       onClick={(e) => e.stopPropagation()}
                     >
                       <div className="oma-ext-cal-pop__head">
-                        <strong>{isAr ? 'تقويمات العطل' : 'Holiday calendars'}</strong>
+                        <strong>{t('content.holiday_calendars')}</strong>
                         <span className="oma-ext-cal-pop__sync">
-                          {isAr ? 'علامات داخل مساحة العمل' : 'Workspace markers'}
+                          {t('content.workspace_markers')}
                         </span>
                       </div>
                       {DEMO_EXTERNAL_CALENDARS.map((cal) => (
@@ -2466,9 +2450,7 @@ export default function ContentPage() {
                         </label>
                       ))}
                       <p className="oma-ext-cal-pop__add">
-                        {isAr
-                          ? 'تظهر العطل كشرائح داخل أيام التقويم عند الانتقال للشهر المناسب.'
-                          : 'Holidays appear as chips on calendar days when that month is open.'}
+                        {t('content.holidays_appear_as_chips_on')}
                       </p>
                     </div>
                   ) : null}
@@ -2480,7 +2462,7 @@ export default function ContentPage() {
                     data-testid="demo-content-saved-toggle"
                     onClick={() => setSavedOpen(true)}
                   >
-                    Saved
+                    {t('strategy.saved')}
                   </button>
                 ) : null}
               </div>
@@ -2551,7 +2533,7 @@ export default function ContentPage() {
                               }}
                             >
                               <EditOutlined />
-                              <span>{isAr ? 'منشور' : 'Post'}</span>
+                              <span>{t('content.post')}</span>
                             </button>
                             <button
                               type="button"
@@ -2569,7 +2551,7 @@ export default function ContentPage() {
                               }}
                             >
                               <FileTextOutlined />
-                              <span>{isAr ? 'ملاحظة' : 'Note'}</span>
+                              <span>{t('content.note')}</span>
                             </button>
                           </div>
 
@@ -2586,8 +2568,8 @@ export default function ContentPage() {
                                   <button
                                     type="button"
                                     className="oma-cal-note__action"
-                                    data-tooltip={isAr ? 'لون الملاحظة' : 'Note color'}
-                                    aria-label="Color"
+                                    data-tooltip={t('content.note_color')}
+                                    aria-label={t('wsPanel.color')}
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       setNoteDay(cell.key);
@@ -2603,8 +2585,8 @@ export default function ContentPage() {
                                   <button
                                     type="button"
                                     className="oma-cal-note__action"
-                                    data-tooltip={isAr ? 'تعديل' : 'Edit'}
-                                    aria-label="Edit"
+                                    data-tooltip={t('demo.content.edit')}
+                                    aria-label={t('demo.content.edit')}
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       setNoteDay(cell.key);
@@ -2621,8 +2603,8 @@ export default function ContentPage() {
                                   <button
                                     type="button"
                                     className="oma-cal-note__action"
-                                    data-tooltip={isAr ? 'مرئي لك فقط' : 'Only visible to you'}
-                                    aria-label="Private"
+                                    data-tooltip={t('content.only_visible_to_you')}
+                                    aria-label={t('content.private')}
                                     onClick={(e) => e.stopPropagation()}
                                   >
                                     <LockOutlined className="oma-cal-note__action-ico" />
@@ -2630,8 +2612,8 @@ export default function ContentPage() {
                                   <button
                                     type="button"
                                     className="oma-cal-note__action"
-                                    data-tooltip={isAr ? 'حذف' : 'Delete'}
-                                    aria-label="Delete"
+                                    data-tooltip={t('wsPanel.delete')}
+                                    aria-label={t('wsPanel.delete')}
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       void persistNote(cell.key, { remove: true });
@@ -2667,13 +2649,11 @@ export default function ContentPage() {
                                 ) : null}
                               </div>
                               <p className="oma-cal-note__hint">
-                                {isAr
-                                  ? 'ملاحظة خاصة تظهر لك فقط داخل هذا اليوم.'
-                                  : 'Private note — only you can see this on this day.'}
+                                {t('content.private_note_only_you_can')}
                               </p>
                               <textarea
                                 className="oma-cal-note__input"
-                                placeholder={isAr ? 'اكتب ملاحظة خاصة…' : 'Type a private note…'}
+                                placeholder={t('content.type_a_private_note')}
                                 value={dayNotes[cell.key]?.text ?? ''}
                                 rows={3}
                                 autoFocus={noteDay === cell.key && !isMobile}
@@ -2753,7 +2733,7 @@ export default function ContentPage() {
                                   title={pickCopy(item.title, locale)}
                                   caption={item.caption ? pickCopy(item.caption, locale) : ''}
                                   channel={
-                                    item.channel || (isAr ? 'صفحة الحساب' : 'Workspace page')
+                                    item.channel || (t('content.workspace_page'))
                                   }
                                   when={
                                     item.scheduledAt
@@ -2780,7 +2760,7 @@ export default function ContentPage() {
                               <CardActionsButton
                                 itemId={item.id}
                                 open={cardMenuId === item.id}
-                                label={isAr ? 'إجراءات المنشور' : 'Post actions'}
+                                label={t('content.post_actions')}
                                 className="oma-card-actions-btn--cal"
                                 onOpen={placeCardMenu}
                                 onClose={closeCardMenu}
@@ -2840,7 +2820,7 @@ export default function ContentPage() {
                           <CardActionsButton
                             itemId={item.id}
                             open={cardMenuId === item.id}
-                            label={isAr ? 'إجراءات المنشور' : 'Post actions'}
+                            label={t('content.post_actions')}
                             onOpen={placeCardMenu}
                             onClose={closeCardMenu}
                           />
@@ -2868,8 +2848,8 @@ export default function ContentPage() {
                   <button
                     type="button"
                     className="oma-cal-saved-close"
-                    aria-label={isAr ? 'إغلاق' : 'Close'}
-                    data-tooltip={isAr ? 'إغلاق' : 'Close'}
+                    aria-label={t('brand.evidence.close')}
+                    data-tooltip={t('brand.evidence.close')}
                     onClick={() => setSavedOpen(false)}
                   >
                     <CloseOutlined />
@@ -2910,7 +2890,7 @@ export default function ContentPage() {
                       <CardActionsButton
                         itemId={item.id}
                         open={cardMenuId === item.id}
-                        label={isAr ? 'إجراءات المنشور' : 'Post actions'}
+                        label={t('content.post_actions')}
                         className="oma-card-actions-btn--saved"
                         onOpen={placeCardMenu}
                         onClose={closeCardMenu}
@@ -2957,7 +2937,7 @@ export default function ContentPage() {
                     <CardActionsButton
                       itemId={item.id}
                       open={cardMenuId === item.id}
-                      label={isAr ? 'إجراءات المنشور' : 'Post actions'}
+                      label={t('content.post_actions')}
                       onOpen={placeCardMenu}
                       onClose={closeCardMenu}
                     />
@@ -2984,7 +2964,7 @@ export default function ContentPage() {
                   <span className="oma-feed-card__comment-dot">
                     {commentsForContent(tasks, deliverables, item.id).length}
                   </span>
-                  <span>Say something…</span>
+                  <span>{t('content.say_something')}</span>
                 </div>
               </div>
             );
@@ -3006,7 +2986,7 @@ export default function ContentPage() {
                 }}
               />
               <span>
-                {isAr ? `تحديد الكل (${sorted.length})` : `Select all (${sorted.length})`}
+                {t('content.select_all').replace('{n}', String(sorted.length))}
               </span>
             </label>
             <button
@@ -3014,7 +2994,7 @@ export default function ContentPage() {
               className="oma-plan-list__sort"
               onClick={() => toggleSort('date')}
             >
-              {isAr ? 'آخر إنشاء' : 'Last created'} {sortDir === 'asc' ? '↑' : '↓'}
+              {t('content.last_created')} {sortDir === 'asc' ? '↑' : '↓'}
             </button>
           </div>
           <div className="oma-plan-list__body">
@@ -3070,7 +3050,7 @@ export default function ContentPage() {
                   <div className="oma-plan-list__mid" aria-hidden>
                     <span
                       className="oma-plan-list__ico"
-                      data-tooltip={isAr ? 'منشور متكرر' : 'Post is recurring'}
+                      data-tooltip={t('content.post_is_recurring')}
                     >
                       <SyncOutlined />
                     </span>
@@ -3079,7 +3059,7 @@ export default function ContentPage() {
                     <button
                       type="button"
                       className="oma-plan-list__ico-btn"
-                      data-tooltip={isAr ? 'موافقة' : 'Approve'}
+                      data-tooltip={t('demo.deliverable.approve')}
                       onClick={(e) => {
                         e.stopPropagation();
                         void runLifecycle('approve', item.id);
@@ -3090,7 +3070,7 @@ export default function ContentPage() {
                     <button
                       type="button"
                       className="oma-plan-list__ico-btn"
-                      data-tooltip={isAr ? 'إخفاء عن العملاء' : 'Hide from clients'}
+                      data-tooltip={t('content.hide_from_clients')}
                       onClick={(e) => {
                         e.stopPropagation();
                         void toggleHideFromClients(item.id);
@@ -3101,11 +3081,11 @@ export default function ContentPage() {
                     <button
                       type="button"
                       className="oma-plan-list__ico-btn"
-                      data-tooltip={isAr ? 'نسخ الرابط' : 'Copy link'}
+                      data-tooltip={t('demo.tasks.copyLink')}
                       onClick={(e) => {
                         e.stopPropagation();
                         void navigator.clipboard?.writeText(window.location.href);
-                        toast.push(isAr ? 'تم نسخ الرابط' : 'Link copied', 'success');
+                        toast.push(t('content.link_copied'), 'success');
                       }}
                     >
                       <LinkOutlined />
@@ -3114,7 +3094,7 @@ export default function ContentPage() {
                   <CardActionsButton
                     itemId={item.id}
                     open={cardMenuId === item.id}
-                    label={isAr ? 'إجراءات المنشور' : 'Post actions'}
+                    label={t('content.post_actions')}
                     className="oma-card-actions-btn--list"
                     onOpen={placeCardMenu}
                     onClose={closeCardMenu}
@@ -3167,7 +3147,7 @@ export default function ContentPage() {
                             {weekdayForKey(when.slice(0, 10), locale)} · {when}
                           </span>
                         ) : (
-                          <span className="oma-plan-grid__when">{isAr ? 'محفوظ' : 'Saved'}</span>
+                          <span className="oma-plan-grid__when">{t('strategy.saved')}</span>
                         )}
                       </span>
                       <span className="oma-plan-grid__copy">
@@ -3188,7 +3168,7 @@ export default function ContentPage() {
                 <CardActionsButton
                   itemId={item.id}
                   open={cardMenuId === item.id}
-                  label={isAr ? 'إجراءات المنشور' : 'Post actions'}
+                  label={t('content.post_actions')}
                   className="oma-card-actions-btn--grid"
                   onOpen={placeCardMenu}
                   onClose={closeCardMenu}
@@ -3229,7 +3209,7 @@ export default function ContentPage() {
                     className="oma-plan-post__chip"
                     title={selected.campaignId || undefined}
                   >
-                    <FlagOutlined /> {isAr ? 'حملة' : 'Campaign'}
+                    <FlagOutlined /> {t('demo.campaigns.col.campaign')}
                   </button>
                   <button
                     type="button"
@@ -3246,13 +3226,13 @@ export default function ContentPage() {
                       setLabelPickerOpen(true);
                     }}
                   >
-                    <TagOutlined /> {isAr ? 'تصنيفات' : 'Labels'}
+                    <TagOutlined /> {t('wsPanel.labels')}
                   </button>
                 </div>
                 <div className="oma-plan-post__top-end">
                   <span
                     className="oma-plan-post__approve-count"
-                    data-tooltip={isAr ? 'لم تتم الموافقة بعد' : 'Not approved yet'}
+                    data-tooltip={t('content.not_approved_yet')}
                   >
                     <CheckOutlined />
                     <span>0</span>
@@ -3262,7 +3242,7 @@ export default function ContentPage() {
                     className="oma-plan-post__tool-btn"
                     onClick={() => void shareContentWorkspace()}
                   >
-                    {isAr ? 'مشاركة' : 'Share'}
+                    {t('content.share')}
                   </button>
                   <span className="oma-plan-post__chip" data-testid="demo-content-workflow">
                     {workflowLabel(
@@ -3277,7 +3257,7 @@ export default function ContentPage() {
                   <button
                     type="button"
                     className="oma-plan-post__icon-btn"
-                    data-tooltip={isAr ? 'التعليقات' : 'Feedback'}
+                    data-tooltip={t('content.feedback')}
                     data-active={detailSidePanel === 'feedback' ? 'true' : 'false'}
                     onClick={() =>
                       setDetailSidePanel((p) => (p === 'feedback' ? 'none' : 'feedback'))
@@ -3288,7 +3268,7 @@ export default function ContentPage() {
                   <button
                     type="button"
                     className="oma-plan-post__icon-btn"
-                    data-tooltip={isAr ? 'النشاط' : 'Activity'}
+                    data-tooltip={t('nav.activity')}
                     data-active={detailSidePanel === 'activity' ? 'true' : 'false'}
                     onClick={() =>
                       setDetailSidePanel((p) => (p === 'activity' ? 'none' : 'activity'))
@@ -3299,7 +3279,7 @@ export default function ContentPage() {
                   <button
                     type="button"
                     className="oma-plan-post__icon-btn"
-                    data-tooltip={isAr ? 'إظهار للعملاء' : 'Make visible to clients'}
+                    data-tooltip={t('content.make_visible_to_clients')}
                     onClick={() => {
                       if (selectedId) void toggleHideFromClients(selectedId);
                     }}
@@ -3309,7 +3289,7 @@ export default function ContentPage() {
                   <button
                     type="button"
                     className="oma-plan-post__icon-btn"
-                    data-tooltip={isAr ? 'حذف' : 'Delete'}
+                    data-tooltip={t('wsPanel.delete')}
                     onClick={() => {
                       if (selectedId) void runLifecycle('archive', selectedId);
                     }}
@@ -3336,7 +3316,7 @@ export default function ContentPage() {
                             role="menuitem"
                             onClick={() => void runLifecycle('request-approval', selectedId)}
                           >
-                            <FlagOutlined /> {isAr ? 'طلب موافقة' : 'Request approval'}
+                            <FlagOutlined /> {t('demo.content.requestApproval')}
                           </button>
                         </li>
                         <li>
@@ -3345,7 +3325,7 @@ export default function ContentPage() {
                             role="menuitem"
                             onClick={() => void runLifecycle('request-changes', selectedId)}
                           >
-                            <EditOutlined /> {isAr ? 'طلب تعديلات' : 'Request changes'}
+                            <EditOutlined /> {t('strategy.review.requestChanges')}
                           </button>
                         </li>
                         <li>
@@ -3354,7 +3334,7 @@ export default function ContentPage() {
                             role="menuitem"
                             onClick={() => void runLifecycle('reject', selectedId)}
                           >
-                            <CloseOutlined /> {isAr ? 'رفض' : 'Reject'}
+                            <CloseOutlined /> {t('strategy.review.reject')}
                           </button>
                         </li>
                         <li>
@@ -3363,7 +3343,7 @@ export default function ContentPage() {
                             role="menuitem"
                             onClick={() => void runLifecycle('mark-published', selectedId)}
                           >
-                            <CheckOutlined /> {isAr ? 'تم كمنشور' : 'Mark published'}
+                            <CheckOutlined /> {t('content.mark_published')}
                           </button>
                         </li>
                         <li>
@@ -3375,7 +3355,7 @@ export default function ContentPage() {
                               setDetailMoreOpen(false);
                             }}
                           >
-                            <FileTextOutlined /> {isAr ? 'حفظ كقالب' : 'Save as template'}
+                            <FileTextOutlined /> {t('content.save_as_template')}
                           </button>
                         </li>
                         <li>
@@ -3387,7 +3367,7 @@ export default function ContentPage() {
                               setDetailMoreOpen(false);
                             }}
                           >
-                            <DeleteOutlined /> {isAr ? 'أرشفة' : 'Archive post'}
+                            <DeleteOutlined /> {t('content.archive_post')}
                           </button>
                         </li>
                         <li>
@@ -3406,9 +3386,7 @@ export default function ContentPage() {
                             }}
                           >
                             <FlagOutlined />{' '}
-                            {isAr
-                              ? 'تحويل لطلب/مهمة/تسليم'
-                              : 'Convert to Request → Task → Deliverable'}
+                            {t('content.convert_to_request_task_deliverable')}
                           </button>
                         </li>
                       </ul>
@@ -3418,7 +3396,7 @@ export default function ContentPage() {
                     type="button"
                     className="oma-plan-post__icon-btn oma-plan-post__close"
                     onClick={requestCloseDrawer}
-                    aria-label="Close"
+                    aria-label={t('brand.evidence.close')}
                   >
                     <CloseOutlined />
                   </button>
@@ -3432,7 +3410,7 @@ export default function ContentPage() {
                       type="button"
                       data-active={detailPreviewMode === 'desktop' ? 'true' : 'false'}
                       onClick={() => setDetailPreviewMode('desktop')}
-                      aria-label="Desktop"
+                      aria-label={t('content.desktop')}
                     >
                       <DesktopOutlined />
                     </button>
@@ -3440,7 +3418,7 @@ export default function ContentPage() {
                       type="button"
                       data-active={detailPreviewMode === 'mobile' ? 'true' : 'false'}
                       onClick={() => setDetailPreviewMode('mobile')}
-                      aria-label="Mobile"
+                      aria-label={t('content.mobile')}
                     >
                       <MobileOutlined />
                     </button>
@@ -3470,33 +3448,29 @@ export default function ContentPage() {
                           <button
                             type="button"
                             className="oma-plan-post__status-btn"
-                            data-tooltip={isAr ? 'لم تتم الموافقة بعد' : 'Not approved yet'}
+                            data-tooltip={t('content.not_approved_yet')}
                             onClick={() => setApprovalTipOpen((v) => !v)}
                           >
                             <CheckOutlined />
                           </button>
                           <span className="oma-plan-post__status-label">
-                            {isAr ? 'لم تتم الموافقة بعد' : 'Not approved yet'}
+                            {t('content.not_approved_yet')}
                           </span>
                           {approvalTipOpen ? (
                             <div className="oma-plan-post__tip-card">
                               <strong>
-                                {isAr
-                                  ? 'لم يوافق أحد على هذا المنشور بعد'
-                                  : 'No one approved this post yet'}
+                                {t('content.no_one_approved_this_post')}
                               </strong>
                               <p>
-                                {isAr
-                                  ? 'بانتظار الموافقة من أي من هؤلاء:'
-                                  : 'Pending approval from any of these users:'}
+                                {t('content.pending_approval_from_any_of')}
                               </p>
                               <p className="oma-plan-post__tip-section">
-                                {isAr ? 'الفريق' : 'Team'}
+                                {t('nav.team')}
                               </p>
                               <div className="oma-plan-post__tip-user">
                                 <span className="oma-plan-post__avatar">O</span>
                                 <span>
-                                  {selected.assignee || 'Osama'} ({isAr ? 'أنت' : 'You'})
+                                  {selected.assignee || 'Osama'} ({t('content.you')})
                                 </span>
                               </div>
                             </div>
@@ -3507,7 +3481,7 @@ export default function ContentPage() {
                             type="button"
                             className="oma-plan-post__status-btn"
                             data-tooltip={
-                              isAr ? 'المنشور غير منشور بعد' : 'Post is not published yet'
+                              t('content.post_is_not_published_yet')
                             }
                             onClick={() => setPublishTipOpen((v) => !v)}
                           >
@@ -3515,7 +3489,7 @@ export default function ContentPage() {
                           </button>
                           {publishTipOpen ? (
                             <div className="oma-plan-post__tip-card oma-plan-post__tip-card--sm">
-                              {isAr ? 'المنشور غير منشور بعد' : 'Post is not published yet'}
+                              {t('content.post_is_not_published_yet')}
                             </div>
                           ) : null}
                         </div>
@@ -3542,7 +3516,7 @@ export default function ContentPage() {
                           className="oma-plan-post__title-input"
                           value={editTitle}
                           onChange={(e) => setEditTitle(e.target.value)}
-                          placeholder={isAr ? 'العنوان' : 'Title'}
+                          placeholder={t('demo.create.title')}
                           data-testid="demo-content-detail-title"
                         />
                         <textarea
@@ -3550,17 +3524,15 @@ export default function ContentPage() {
                           value={draft.caption}
                           onChange={(e) => setDraft((d) => ({ ...d, caption: e.target.value }))}
                           placeholder={
-                            isAr
-                              ? "اكتب '/' لإضافة عناوين ووسائط والمزيد…"
-                              : "Type '/' to add headlines, media and more…"
+                            t('content.type_to_add_headlines_media')
                           }
                           rows={8}
                           data-testid="demo-content-caption"
                         />
                         <div className="oma-plan-post__count">
-                          {draft.caption.length} {isAr ? 'حرف' : 'characters'} ·{' '}
+                          {draft.caption.length} {t('content.characters')} ·{' '}
                           {draft.caption.trim() ? draft.caption.trim().split(/\s+/).length : 0}{' '}
-                          {isAr ? 'كلمة' : 'word'}
+                          {t('content.word')}
                           {draft.caption.trim().split(/\s+/).filter(Boolean).length === 1
                             ? ''
                             : draft.caption.trim()
@@ -3576,9 +3548,7 @@ export default function ContentPage() {
                                 : saveState === 'error'
                                   ? saveError
                                   : dirty
-                                    ? isAr
-                                      ? 'تغييرات غير محفوظة'
-                                      : 'Unsaved changes'
+                                    ? t('content.unsaved_changes')
                                     : null}
                           </span>
                           {dirty ? (
@@ -3588,7 +3558,7 @@ export default function ContentPage() {
                               onClick={() => void saveItem()}
                               data-testid="demo-content-save"
                             >
-                              {isAr ? 'حفظ المسودة' : 'Save draft'}
+                              {t('content.save_draft')}
                             </Button>
                           ) : null}
                           <span className="oma-plan-post__approval-meta" data-testid="content-approval-meta">
@@ -3603,21 +3573,19 @@ export default function ContentPage() {
                               </span>
                             ) : null}
                             <span data-testid="content-publishing-not-connected">
-                              {isAr
-                                ? 'الجدولة داخل OMA فقط — النشر الخارجي غير متصل'
-                                : 'Scheduled inside OMA only — external publishing not connected'}
+                              {t('content.scheduled_inside_oma_only_external')}
                             </span>
                           </span>
                           <DatePicker
-                            placeholder={isAr ? 'التاريخ المخطط' : 'Planned date'}
-                            showTime={{ format: 'HH:mm' }}
+                            placeholder={t('demo.content.publish.PLANNED_DATE')}
+                            showTime={{ format: t('content.hhmm') }}
                             format="MMM DD, HH:mm"
                             value={draft.scheduledAt ? dayjs(draft.scheduledAt) : null}
                             onChange={(value) => {
                               const next = value ? value.format('YYYY-MM-DDTHH:mm') : '';
                               setDraft((current) => ({ ...current, scheduledAt: next }));
                             }}
-                            aria-label={isAr ? 'التاريخ المخطط' : 'Planned date'}
+                            aria-label={t('demo.content.publish.PLANNED_DATE')}
                           />
                           <Button
                             type="default"
@@ -3638,7 +3606,7 @@ export default function ContentPage() {
                               onClick={() => void runLifecycle('unschedule', selectedId)}
                               data-testid="demo-content-unschedule"
                             >
-                              {isAr ? 'إلغاء الجدولة' : 'Unschedule'}
+                              {t('demo.content.unschedule')}
                             </Button>
                           ) : null}
                         </div>
@@ -3652,18 +3620,14 @@ export default function ContentPage() {
                     <header className="oma-plan-post__side-head">
                       <strong>
                         {detailSidePanel === 'activity'
-                          ? isAr
-                            ? 'النشاط'
-                            : 'Activity'
-                          : isAr
-                            ? 'الملاحظات'
-                            : 'Feedback'}
+                          ? t('nav.activity')
+                          : t('content.feedback')}
                       </strong>
                       <button
                         type="button"
                         className="oma-plan-post__icon-btn"
                         onClick={() => setDetailSidePanel('none')}
-                        aria-label="Close"
+                        aria-label={t('brand.evidence.close')}
                       >
                         <CloseOutlined />
                       </button>
@@ -3672,7 +3636,7 @@ export default function ContentPage() {
                     {detailSidePanel === 'activity' ? (
                       <div className="oma-plan-post__activity">
                         <div className="oma-plan-post__workflow-chip" style={{ marginBottom: 12 }}>
-                          <strong>{isAr ? 'حالة المسار' : 'Workflow'}</strong>
+                          <strong>{t('demo.settings.section.workflow')}</strong>
                           <span>
                             {workflowLabel(
                               {
@@ -3685,12 +3649,12 @@ export default function ContentPage() {
                           </span>
                           <span className="oma-muted">
                             {selected.approverApproved}/{selected.approverRequired}{' '}
-                            {isAr ? 'موافقات' : 'approvals'}
+                            {t('content.approvals')}
                           </span>
                         </div>
                         {approvalEvents.length === 0 ? (
                           <p className="oma-muted">
-                            {isAr ? 'لا أحداث موافقة بعد.' : 'No approval events yet.'}
+                            {t('content.no_approval_events_yet')}
                           </p>
                         ) : (
                           approvalEvents.map((ev) => (
@@ -3721,25 +3685,23 @@ export default function ContentPage() {
                             data-active={feedbackTab === 'comments' ? 'true' : 'false'}
                             onClick={() => setFeedbackTab('comments')}
                           >
-                            {isAr ? 'تعليقات' : 'Comments'}
+                            {t('demo.content.comments')}
                           </button>
                           <button
                             type="button"
                             data-active={feedbackTab === 'suggestions' ? 'true' : 'false'}
                             onClick={() => setFeedbackTab('suggestions')}
                           >
-                            {isAr ? 'اقتراحات' : 'Suggestions'}
+                            {t('content.suggestions')}
                           </button>
                         </div>
                         {feedbackTab === 'comments' ? (
                           <div className="oma-plan-post__comments">
                             {prodComments.length === 0 ? (
                               <div className="oma-plan-post__empty">
-                                <strong>{isAr ? 'لا تعليقات بعد' : 'No comments yet'}</strong>
+                                <strong>{t('content.no_comments_yet')}</strong>
                                 <p>
-                                  {isAr
-                                    ? 'ابدأ المحادثة بترك أول تعليق على هذا المنشور.'
-                                    : 'Start the conversation by leaving the first comment on this post.'}
+                                  {t('content.start_the_conversation_by_leaving')}
                                 </p>
                               </div>
                             ) : (
@@ -3754,9 +3716,7 @@ export default function ContentPage() {
                                         <strong>
                                           {c.author_user_id
                                             ? c.author_user_id.slice(0, 8)
-                                            : isAr
-                                              ? 'أنت'
-                                              : 'You'}
+                                            : t('content.you')}
                                         </strong>
                                         <span className="oma-ltr">
                                           {formatCommentTime(c.at, locale)}
@@ -3778,13 +3738,13 @@ export default function ContentPage() {
                                             })
                                             .catch((err) => {
                                               toast.push(
-                                                contentApiError(err, 'Comment delete failed'),
+                                                contentApiError(err, t('errors.http')),
                                                 'danger',
                                               );
                                             });
                                         }}
                                       >
-                                        {isAr ? 'حذف' : 'Delete'}
+                                        {t('wsPanel.delete')}
                                       </button>
                                     </div>
                                   </article>
@@ -3798,7 +3758,7 @@ export default function ContentPage() {
                                   className="oma-plan-post__comment-input"
                                   rows={2}
                                   value={commentDraft}
-                                  placeholder={isAr ? 'اكتب تعليقاً…' : 'Leave a comment…'}
+                                  placeholder={t('content.leave_a_comment')}
                                   onChange={(e) => setCommentDraft(e.target.value)}
                                 />
                               </div>
@@ -3817,26 +3777,24 @@ export default function ContentPage() {
                                       setProdComments((prev) => [...prev, c]);
                                       setCommentDraft('');
                                       toast.push(
-                                        isAr ? 'تم إضافة التعليق' : 'Comment added',
+                                        t('demo.tasks.commentAdded'),
                                         'success',
                                       );
                                     } catch (err) {
-                                      toast.push(contentApiError(err, 'Comment failed'), 'danger');
+                                      toast.push(contentApiError(err, t('errors.http')), 'danger');
                                     }
                                   })();
                                 }}
                               >
-                                {isAr ? 'إرسال' : 'Send'}
+                                {t('content.send')}
                               </button>
                             </div>
                           </div>
                         ) : (
                           <div className="oma-plan-post__empty">
-                            <strong>{isAr ? 'لا اقتراحات بعد' : 'No suggestions yet'}</strong>
+                            <strong>{t('content.no_suggestions_yet')}</strong>
                             <p>
-                              {isAr
-                                ? 'حدد نصاً لاقتراح تعديلات.'
-                                : 'Select some text to suggest edits.'}
+                              {t('content.select_some_text_to_suggest')}
                             </p>
                           </div>
                         )}
@@ -3881,57 +3839,57 @@ export default function ContentPage() {
           <button
             type="button"
             className="oma-filter-backdrop"
-            aria-label="Close filters"
+            aria-label={t('content.close_filters')}
             onClick={() => setFilterSheet(false)}
           />
           <aside
             className="oma-filter-sidepanel"
             data-testid="demo-content-filter-sheet"
             role="dialog"
-            aria-label="Filter & sort"
+            aria-label={t('content.filter_sort')}
           >
             <header className="oma-filter-sidepanel__head">
-              <strong>{isAr ? 'تصفية وترتيب' : 'Filter & sort'}</strong>
+              <strong>{t('content.filter_sort')}</strong>
               <button
                 type="button"
                 className="oma-filter-sidepanel__close"
                 onClick={() => setFilterSheet(false)}
-                aria-label="Close"
+                aria-label={t('brand.evidence.close')}
               >
                 ×
               </button>
             </header>
             <div className="oma-filter-sidepanel__body">
-              <p className="oma-content-filter-eyebrow">{isAr ? 'ترتيب حسب' : 'SORT BY'}</p>
+              <p className="oma-content-filter-eyebrow">{t('content.sort_by')}</p>
               <label className="oma-filter-sidepanel__row">
-                <span>{isAr ? 'حقل الترتيب' : 'Sort field'}</span>
+                <span>{t('content.sort_field')}</span>
                 <OmaSelect
                   value={sortKey}
                   onChange={(value) => setSortKey(value as ContentSortKey)}
                   options={[
-                    { value: 'date', label: isAr ? 'التاريخ' : 'Date' },
-                    { value: 'updated', label: isAr ? 'آخر تحديث' : 'Last updated' },
-                    { value: 'title', label: isAr ? 'العنوان' : 'Title' },
-                    { value: 'channel', label: isAr ? 'القناة' : 'Channel' },
-                    { value: 'campaign', label: isAr ? 'الحملة' : 'Campaign' },
-                    { value: 'owner', label: isAr ? 'المسؤول' : 'Author' },
-                    { value: 'status', label: isAr ? 'الحالة' : 'Status' },
+                    { value: 'date', label: t('demo.content.filter.date') },
+                    { value: 'updated', label: t('content.last_updated') },
+                    { value: 'title', label: t('demo.create.title') },
+                    { value: 'channel', label: t('demo.filter.channel') },
+                    { value: 'campaign', label: t('demo.campaigns.col.campaign') },
+                    { value: 'owner', label: t('content.author') },
+                    { value: 'status', label: t('strategy.list.col.status') },
                   ]}
                 />
               </label>
               <label className="oma-filter-sidepanel__row">
-                <span>{isAr ? 'الاتجاه' : 'Direction'}</span>
+                <span>{t('content.direction')}</span>
                 <OmaSelect
                   value={sortDir}
                   onChange={(value) => setSortDir(value as 'asc' | 'desc')}
                   options={[
-                    { value: 'desc', label: isAr ? 'الأحدث أولاً' : 'Newest first' },
-                    { value: 'asc', label: isAr ? 'الأقدم أولاً' : 'Oldest first' },
+                    { value: 'desc', label: t('content.newest_first') },
+                    { value: 'asc', label: t('content.oldest_first') },
                   ]}
                 />
               </label>
               <div className="oma-content-filter-divider" />
-              <p className="oma-content-filter-eyebrow">{isAr ? 'تصفية حسب' : 'FILTER BY'}</p>
+              <p className="oma-content-filter-eyebrow">{t('content.filter_by')}</p>
               {advancedFilterFields}
             </div>
             <footer className="oma-filter-sidepanel__foot">
@@ -3957,7 +3915,7 @@ export default function ContentPage() {
       {/* Media library */}
       <Dialog
         open={mediaLibraryOpen}
-        title={isAr ? 'مكتبة الوسائط' : 'Media library'}
+        title={t('content.media_library')}
         onClose={() => setMediaLibraryOpen(false)}
         size="lg"
         className="oma-content-media-modal"
@@ -3989,26 +3947,22 @@ export default function ContentPage() {
               type="button"
               className="oma-plan-selbar__close"
               onClick={clearSelection}
-              aria-label="Close"
+              aria-label={t('brand.evidence.close')}
             >
               <CloseOutlined />
             </button>
             <span className="oma-plan-selbar__badge">{selectedIds.length}</span>
             <span className="oma-plan-selbar__label">
               {selectedIds.length === 1
-                ? isAr
-                  ? 'منشور محدد'
-                  : 'Post selected'
-                : isAr
-                  ? 'منشورات محددة'
-                  : 'Posts selected'}
+                ? t('content.post_selected')
+                : t('content.posts_selected')}
             </span>
             <button
               type="button"
               className="oma-plan-selbar__link"
               onClick={() => setSelectedIds(sorted.map((r) => r.id))}
             >
-              {isAr ? 'تحديد الكل' : 'Select all'}
+              {t('content.select_all')}
             </button>
           </div>
           <div className="oma-plan-selbar__actions">
@@ -4018,7 +3972,7 @@ export default function ContentPage() {
               disabled={saving}
               onClick={() => void runLifecycle('request-approval', selectedId)}
             >
-              <CheckOutlined /> {isAr ? 'موافقة' : 'Approve'}
+              <CheckOutlined /> {t('demo.deliverable.approve')}
             </button>
             <button
               type="button"
@@ -4026,10 +3980,10 @@ export default function ContentPage() {
               disabled={saving || selectedIds.length === 0}
               onClick={() => void sendForApproval()}
             >
-              <FlagOutlined /> {isAr ? 'طلب موافقة' : 'Request approval'}
+              <FlagOutlined /> {t('demo.content.requestApproval')}
             </button>
             <button type="button" className="oma-plan-selbar__btn" onClick={() => undefined}>
-              <CopyOutlined /> {isAr ? 'نسخ إلى…' : 'Copy to…'}
+              <CopyOutlined /> {t('content.copy_to')}
             </button>
             <button type="button" className="oma-plan-selbar__icon" onClick={() => undefined}>
               <InboxOutlined />
@@ -4048,7 +4002,7 @@ export default function ContentPage() {
               <button
                 type="button"
                 className="oma-cal-note-modal__backdrop"
-                aria-label="Close"
+                aria-label={t('brand.evidence.close')}
                 onClick={() => {
                   setNoteDay(null);
                   setNoteColorOpen(false);
@@ -4060,7 +4014,7 @@ export default function ContentPage() {
               >
                 <textarea
                   className="oma-cal-note__input"
-                  placeholder={isAr ? 'اكتب ملاحظة خاصة…' : 'Type a private note…'}
+                  placeholder={t('content.type_a_private_note')}
                   value={dayNotes[noteDay]?.text ?? ''}
                   rows={5}
                   autoFocus
@@ -4077,7 +4031,7 @@ export default function ContentPage() {
                   <button
                     type="button"
                     className="oma-cal-note__action"
-                    data-tooltip={isAr ? 'لون الملاحظة' : 'Note color'}
+                    data-tooltip={t('content.note_color')}
                     onClick={() => setNoteColorOpen((v) => !v)}
                   >
                     <span
@@ -4089,14 +4043,14 @@ export default function ContentPage() {
                   <button
                     type="button"
                     className="oma-cal-note__action"
-                    data-tooltip={isAr ? 'مرئي لك فقط' : 'Only visible to you'}
+                    data-tooltip={t('content.only_visible_to_you')}
                   >
                     <LockOutlined />
                   </button>
                   <button
                     type="button"
                     className="oma-cal-note__action"
-                    data-tooltip={isAr ? 'حذف' : 'Delete'}
+                    data-tooltip={t('wsPanel.delete')}
                     onClick={() => {
                       void persistNote(noteDay, { remove: true });
                       setNoteDay(null);
@@ -4112,7 +4066,7 @@ export default function ContentPage() {
                       setNoteColorOpen(false);
                     }}
                   >
-                    {isAr ? 'تم' : 'Done'}
+                    {t('demo.tasks.column.DONE')}
                   </button>
                 </div>
                 {noteColorOpen ? (
@@ -4207,7 +4161,7 @@ export default function ContentPage() {
 
       <Dialog
         open={labelPickerOpen}
-        title={isAr ? 'التصنيفات' : 'Labels'}
+        title={t('wsPanel.labels')}
         size="lg"
         className="oma-label-dialog"
         zIndex={1200}
@@ -4216,17 +4170,13 @@ export default function ContentPage() {
         <div className="oma-label-panel" data-testid="demo-content-labels">
           <p className="oma-label-panel__lead">
             {labelTarget === 'compose'
-              ? isAr
-                ? 'اختر تصنيفات المسودة. تُحفظ مع المنشور عند الإنشاء.'
-                : 'Choose labels for this draft. They are saved when the post is created.'
-              : isAr
-                ? 'التصنيفات تُحفظ على المنشور ويمكن استخدامها للتصفية لاحقًا.'
-                : 'Labels are saved on the post and stay attached after refresh.'}
+              ? t('content.choose_labels_for_this_draft')
+              : t('content.labels_are_saved_on_the')}
           </p>
           <Input
             value={labelQuery}
             data-testid="demo-content-label-search"
-            placeholder={isAr ? 'ابحث في التصنيفات' : 'Search labels'}
+            placeholder={t('content.search_labels')}
             onChange={(e) => setLabelQuery(e.target.value)}
           />
           <div className="oma-label-panel__list">
@@ -4237,9 +4187,9 @@ export default function ContentPage() {
             }).length === 0 ? (
               <div className="oma-label-panel__empty">
                 <TagOutlined />
-                <strong>{isAr ? 'لا تصنيفات بعد' : 'No labels yet'}</strong>
+                <strong>{t('content.no_labels_yet')}</strong>
                 <span>
-                  {isAr ? 'أضف تصنيفًا بالاسم واللون.' : 'Add one with a name and a color.'}
+                  {t('content.add_one_with_a_name')}
                 </span>
               </div>
             ) : (
@@ -4275,12 +4225,12 @@ export default function ContentPage() {
             )}
           </div>
           <div className="oma-label-panel__create">
-            <strong>{isAr ? 'تصنيف جديد' : 'New label'}</strong>
+            <strong>{t('wsPanel.new_label')}</strong>
             <div className="oma-label-panel__create-row">
               <Input
                 value={labelDraft}
                 data-testid="demo-content-label-name"
-                placeholder={isAr ? 'اسم التصنيف' : 'Label name'}
+                placeholder={t('content.label_name')}
                 onChange={(e) => setLabelDraft(e.target.value)}
               />
               <Button
@@ -4302,17 +4252,17 @@ export default function ContentPage() {
                       toggleWorkspaceLabel(lab.name?.en || labelDraft.trim());
                     })
                     .catch((err) =>
-                      toast.push(contentApiError(err, 'Create label failed'), 'danger'),
+                      toast.push(contentApiError(err, t('errors.http')), 'danger'),
                     );
                 }}
               >
-                {isAr ? 'إضافة' : 'Add'}
+                {t('content.add')}
               </Button>
             </div>
             <div
               className="oma-label-panel__colors"
               role="listbox"
-              aria-label={isAr ? 'لون التصنيف' : 'Label color'}
+              aria-label={t('content.label_color')}
             >
               {LABEL_COLORS.map((color) => (
                 <button
@@ -4333,25 +4283,21 @@ export default function ContentPage() {
       <Dialog
         zIndex={1200}
         open={templatePickerOpen}
-        title={isAr ? 'القوالب' : 'Templates'}
+        title={t('wsPanel.templates')}
         size="lg"
         className="oma-template-dialog"
         onClose={() => setTemplatePickerOpen(false)}
       >
         <div className="oma-template-panel" data-testid="demo-content-templates">
           <p className="oma-template-panel__lead">
-            {isAr
-              ? 'استخدم قالبًا لإنشاء منشور على تاريخ المسودة، أو احفظ منشورًا من قائمة الإجراءات.'
-              : 'Use a template to create a post on the draft date, or save a post from the actions menu.'}
+            {t('content.use_a_template_to_create')}
           </p>
           {brandTemplates.length === 0 ? (
             <div className="oma-template-panel__empty">
               <FileTextOutlined />
-              <strong>{isAr ? 'لا قوالب في مساحة العمل' : 'No workspace templates yet'}</strong>
+              <strong>{t('content.no_workspace_templates_yet')}</strong>
               <span>
-                {isAr
-                  ? 'افتح أي منشور ثم اختر «حفظ كقالب» من قائمة الإجراءات.'
-                  : 'Open any post and choose Save as template from the actions menu.'}
+                {t('content.open_any_post_and_choose')}
               </span>
             </div>
           ) : (
@@ -4377,7 +4323,7 @@ export default function ContentPage() {
                     <div className="oma-template-card__body">
                       <strong>{title}</strong>
                       <span className="oma-template-card__meta">
-                        {tpl.channel || (isAr ? 'بدون قناة' : 'No channel')}
+                        {tpl.channel || (t('content.no_channel'))}
                         {tpl.content_type ? ` · ${tpl.content_type}` : ''}
                       </span>
                       {caption ? <p>{caption}</p> : null}
@@ -4389,7 +4335,7 @@ export default function ContentPage() {
                         </div>
                       ) : null}
                       <Button type="primary" onClick={() => void applyTemplate(tpl)}>
-                        {isAr ? 'استخدام القالب' : 'Use template'}
+                        {t('content.use_template')}
                       </Button>
                     </div>
                   </article>

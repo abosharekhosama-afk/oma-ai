@@ -1,3 +1,6 @@
+import { t as tr } from '@oma/i18n';
+
+const L = (isAr: boolean, key: string) => tr(isAr ? 'ar' : 'en', key);
 /**
  * Client-side mirrors of domain content workflow rules (Planable-style lifecycle).
  * Used to enable/disable menu actions before hitting the API.
@@ -63,20 +66,18 @@ export function approvalProgressLabel(
   if (a !== 'PENDING' && a !== 'PARTIALLY_APPROVED' && a !== 'APPROVED') return null;
   const req = Math.max(1, item.approverRequired ?? 1);
   const got = a === 'APPROVED' ? req : Math.min(req, item.approverApproved ?? 0);
-  return isAr ? `${got} من ${req} معتمد` : `${got} of ${req} approved`;
+  return L(isAr, 'workflow.progress').replace('{a}', String(got)).replace('{r}', String(req));
 }
 
 export function scheduleBlockedHint(
   reason: ReturnType<typeof scheduleBlockReason>,
   isAr: boolean,
 ): string | null {
-  if (reason === 'ARCHIVED') return isAr ? 'المنشورات المؤرشفة لا تُجدول' : 'Archived posts cannot be scheduled';
+  if (reason === 'ARCHIVED') return L(isAr, 'workflow.blocked.archived');
   if (reason === 'REJECTED')
-    return isAr ? 'لا يمكن جدولة أو نشر منشور مرفوض' : 'Rejected posts cannot be scheduled or published';
+    return L(isAr, 'workflow.blocked.rejected');
   if (reason === 'APPROVAL_REQUIRED')
-    return isAr
-      ? 'الاعتماد إلزامي: الجدولة متاحة بعد اكتمال الموافقات'
-      : 'Approval required: Schedule unlocks when all approvals are in';
+    return L(isAr, 'workflow.blocked.approval');
   return null;
 }
 
@@ -91,16 +92,14 @@ export function lifecycleHint(
   policy: Policy = 'OPTIONAL',
 ): string | null {
   if (action === 'approve' && !canApprove(item)) {
-    return isAr ? 'يجب أن يكون المنشور قيد المراجعة أولاً' : 'Post must be in review first';
+    return L(isAr, 'workflow.hint.mustBeInReview');
   }
   if (action === 'schedule' || action === 'published') {
     const hint = scheduleBlockedHint(scheduleBlockReason(item, policy), isAr);
     if (hint) return hint;
   }
   if (action === 'request' && !canRequestApproval(item)) {
-    return isAr
-      ? 'لا يمكن طلب الموافقة في الحالة الحالية'
-      : 'Cannot request approval in current state';
+    return L(isAr, 'workflow.hint.cannotRequest');
   }
   return null;
 }

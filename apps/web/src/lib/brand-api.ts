@@ -1,4 +1,4 @@
-import { api } from './api';
+import { api, friendlyApiMessage } from './api';
 
 export function newIdempotencyKey(prefix: string): string {
   return `${prefix}:${crypto.randomUUID()}`;
@@ -25,12 +25,12 @@ export function getApiError(err: unknown): {
       data?: { error?: { code?: string; message?: string } };
     };
     return {
-      message: e.data?.error?.message ?? e.message,
+      message: e.message,
       status: e.status,
       code: e.data?.error?.code,
     };
   }
-  return { message: 'Unknown error' };
+  return { message: friendlyApiMessage(null, 500) };
 }
 
 export function isPermissionDenied(err: unknown): boolean {

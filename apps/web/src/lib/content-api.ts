@@ -286,26 +286,11 @@ export async function loadContentWorkspaceRest(brandIds: string[]): Promise<{
   };
 }
 
+/** User-facing message for a failed content request (already localized by `api`). */
 export function contentApiError(err: unknown, fallback: string): string {
   if (err && typeof err === 'object') {
-    const e = err as {
-      message?: string;
-      status?: number;
-      data?: { error?: { message?: string; code?: string } };
-    };
-    if (e.data?.error?.message) {
-      const code = e.data.error.code;
-      if (code === 'PERMISSION_DENIED') {
-        return `${e.data.error.message} (content capability — re-run seed)`;
-      }
-      if (code === 'SCHEDULE_BLOCKED') {
-        return e.data.error.message;
-      }
-      return e.data.error.message;
-    }
-    if (e.message) return e.message;
-    if (e.status === 403) return 'Permission denied (content capability required)';
-    if (e.status === 404) return 'Not found';
+    const e = err as { message?: string; status?: number };
+    if (typeof e.status === 'number' && e.message) return e.message;
   }
   return fallback;
 }
