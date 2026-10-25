@@ -7,6 +7,7 @@ import {
   assertContentBelongsToCampaignBrand,
   resolveContentWorkflow,
   assertCanSchedule,
+  assertCanPublish,
   applyContentApprovalTransition,
   nextApproverCount,
   type ApprovalPolicy,
@@ -68,6 +69,7 @@ function mapContent(
       approvalState: row.approvalState as ApprovalState,
       approverApproved: row.approverApproved,
       approverRequired: row.approverRequired,
+      archivedAt: row.archivedAt?.toISOString() ?? null,
     },
     policy,
   );
@@ -84,7 +86,7 @@ function mapContent(
     track: row.track,
     status: row.status,
     approval_state: row.approvalState,
-    schedule_state: row.scheduleState,
+    schedule_state: row.archivedAt ? 'UNSCHEDULED' : row.scheduleState,
     planned_at: row.plannedAt?.toISOString() ?? null,
     scheduled_at: row.scheduledAt?.toISOString() ?? null,
     timezone: row.timezone,
@@ -112,16 +114,63 @@ export function parseOptionalDate(value: unknown, field: string): Date | null {
   return date;
 }
 
+/** Map the workspace setting value (none | optional | required | legacy multi_level) to a policy. */
+export function workspaceModeToPolicy(mode: string | null | undefined): ApprovalPolicy {
+  const m = (mode ?? '').toLowerCase();
+  if (m === 'none') return 'NONE';
+  if (m === 'required' || m === 'multi_level') return 'REQUIRED';
+  return 'OPTIONAL';
+}
+
+function workflowSource(current: {
+  status: string;
+  scheduledAt: Date | null;
+  plannedAt: Date | null;
+  scheduleState: string;
+  approvalState: string;
+  approverApproved: number;
+  approverRequired: number;
+  archivedAt: Date | null;
+}) {
+  return {
+    status: current.status,
+    scheduledAt: current.scheduledAt?.toISOString() ?? null,
+    plannedAt: current.plannedAt?.toISOString() ?? null,
+    scheduleState: current.scheduleState as 'UNSCHEDULED' | 'SCHEDULED',
+    approvalState: current.approvalState as ApprovalState,
+    approverApproved: current.approverApproved,
+    approverRequired: current.approverRequired,
+    archivedAt: current.archivedAt?.toISOString() ?? null,
+  };
+}
+
 @Injectable()
 export class ContentService {
   constructor(private readonly audit: AuditService) {}
 
+  /**
+   * Effective approval policy for a brand: an explicit per-brand preference wins, otherwise the
+   * workspace-level policy (Settings → Approvals), otherwise OPTIONAL.
+   */
   private async policyForBrand(tenantId: string, brandId: string): Promise<ApprovalPolicy> {
-    const prefs = await getPrisma().contentPreferences.findUnique({ where: { brandId } });
-    if (prefs && prefs.tenantId === tenantId) {
-      return prefs.approvalPolicy as ApprovalPolicy;
-    }
-    return 'OPTIONAL';
+    return (await this.approvalConfig(tenantId, brandId)).policy;
+  }
+
+  async approvalConfig(
+    tenantId: string,
+    brandId: string,
+  ): Promise<{ policy: ApprovalPolicy; requiredApprovers: number }> {
+    const prisma = getPrisma();
+    const [prefs, ws] = await Promise.all([
+      prisma.contentPreferences.findUnique({ where: { brandId } }),
+      prisma.workspaceSetting.findUnique({ where: { tenantId } }).catch(() => null),
+    ]);
+    const wsPolicy = workspaceModeToPolicy(ws?.approvalMode);
+    const policy =
+      prefs && prefs.tenantId === tenantId ? (prefs.approvalPolicy as ApprovalPolicy) : wsPolicy;
+    const requiredApprovers =
+      policy === 'REQUIRED' ? Math.min(5, Math.max(1, ws?.requiredApprovers ?? 1)) : 1;
+    return { policy, requiredApprovers };
   }
 
   private async requireActiveBrand(tenantId: string, brandId: string) {
@@ -411,6 +460,21 @@ export class ContentService {
     if (!current) {
       throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
     }
+    if (current.archivedAt) {
+      throw new DomainError('CONFLICT_STATE', 'Content is archived', 409, 'error.content_archived');
+    }
+    const { policy: reqPolicy, requiredApprovers } = await this.approvalConfig(
+      tenantId,
+      current.brandId,
+    );
+    if (reqPolicy === 'NONE') {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'Approvals are turned off for this workspace',
+        409,
+        'error.approvals_disabled',
+      );
+    }
     const next = applyContentApprovalTransition({
       command: 'request_approval',
       approvalState: current.approvalState as ApprovalState,
@@ -423,11 +487,12 @@ export class ContentService {
       data: {
         approvalState: next.approvalState,
         status: next.status,
-        approverApproved: nextApproverCount(
-          current.approverApproved,
-          next.deltaApproved,
-          current.approverRequired,
-        ),
+        approverRequired: requiredApprovers,
+        approverApproved: 0,
+        // Re-review clears any local schedule; it must be re-scheduled after approval.
+        ...(current.scheduleState === 'SCHEDULED'
+          ? { scheduleState: 'UNSCHEDULED', scheduledAt: null }
+          : {}),
       },
     });
     await this.writeEvent(tenantId, contentId, actorUserId, 'REQUEST', note);
@@ -455,6 +520,30 @@ export class ContentService {
     });
     if (!current) {
       throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
+    }
+    if (current.approverRequired > 1) {
+      const lastRequest = await getPrisma().contentApprovalEvent.findFirst({
+        where: { tenantId, contentId, action: 'REQUEST' },
+        orderBy: { at: 'desc' },
+      });
+      const already = await getPrisma().contentApprovalEvent.findFirst({
+        where: {
+          tenantId,
+          contentId,
+          action: 'APPROVE',
+          actorUserId,
+          ...(lastRequest ? { at: { gte: lastRequest.at } } : {}),
+        },
+      });
+      if (already) {
+        throw new DomainError(
+          'CONFLICT_STATE',
+          'You already approved this post; another approver is needed',
+          409,
+          'error.already_approved',
+          [{ approved: current.approverApproved, required: current.approverRequired }],
+        );
+      }
     }
     let next;
     try {
@@ -608,9 +697,10 @@ export class ContentService {
     if (current.archivedAt) {
       throw new DomainError('CONFLICT_STATE', 'Content is archived', 409, 'error.conflict_state');
     }
+    assertCanPublish(workflowSource(current), await this.policyForBrand(tenantId, current.brandId));
     const row = await getPrisma().contentItem.update({
       where: { id: contentId },
-      data: { status: 'PUBLISHED_SAMPLE' },
+      data: { status: 'PUBLISHED_SAMPLE', scheduleState: 'UNSCHEDULED' },
     });
     await this.writeEvent(tenantId, contentId, actorUserId, 'PUBLISH_SAMPLE', {
       en: 'Marked as published (sample)',
@@ -642,18 +732,7 @@ export class ContentService {
       throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
     }
     const policy = await this.policyForBrand(tenantId, current.brandId);
-    assertCanSchedule(
-      {
-        status: current.status,
-        scheduledAt: current.scheduledAt?.toISOString() ?? null,
-        plannedAt: current.plannedAt?.toISOString() ?? null,
-        scheduleState: current.scheduleState as 'UNSCHEDULED' | 'SCHEDULED',
-        approvalState: current.approvalState as ApprovalState,
-        approverApproved: current.approverApproved,
-        approverRequired: current.approverRequired,
-      },
-      policy,
-    );
+    assertCanSchedule(workflowSource(current), policy);
     const when = new Date(input.scheduledAt);
     if (Number.isNaN(when.getTime())) {
       throw new DomainError(
@@ -666,8 +745,8 @@ export class ContentService {
     const row = await getPrisma().contentItem.update({
       where: { id: contentId },
       data: {
+        // Planned date stays a separate planning field; scheduling never rewrites it.
         scheduledAt: when,
-        plannedAt: current.plannedAt ?? when,
         scheduleState: 'SCHEDULED',
         status: 'SCHEDULED',
         ...(input.timezone ? { timezone: input.timezone } : {}),
@@ -725,7 +804,14 @@ export class ContentService {
     }
     const row = await getPrisma().contentItem.update({
       where: { id: contentId },
-      data: { archivedAt: new Date() },
+      data: {
+        archivedAt: new Date(),
+        scheduleState: 'UNSCHEDULED',
+        scheduledAt: null,
+        ...(current.status === 'SCHEDULED'
+          ? { status: current.approvalState === 'APPROVED' ? 'APPROVED' : 'DRAFT' }
+          : {}),
+      },
     });
     await this.audit.write({
       actorUserId,
@@ -747,10 +833,14 @@ export class ContentService {
       throw new DomainError('NOT_FOUND', 'Brand not found', 404, 'errors.not_found');
     }
     const prefs = await getPrisma().contentPreferences.findUnique({ where: { brandId } });
+    const effective = await this.approvalConfig(tenantId, brandId);
     return {
       data: {
         brand_id: brandId,
-        approval_policy: (prefs?.approvalPolicy as ApprovalPolicy) ?? 'OPTIONAL',
+        // Effective policy: brand override when set, otherwise the workspace policy.
+        approval_policy: effective.policy,
+        approval_policy_source: prefs ? 'brand' : 'workspace',
+        required_approvers: effective.requiredApprovers,
         default_timezone: prefs?.defaultTimezone ?? 'Asia/Dubai',
       },
     };

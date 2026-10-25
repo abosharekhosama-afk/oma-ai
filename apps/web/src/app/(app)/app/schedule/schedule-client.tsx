@@ -85,7 +85,7 @@ export default function SchedulePage() {
       setError(null);
       setUnavailable(false);
     } catch (err) {
-      setError(contentApiError(err, 'Failed to load schedule'));
+      setError(contentApiError(err, t('errors.http')));
     } finally {
       setLoading(false);
     }

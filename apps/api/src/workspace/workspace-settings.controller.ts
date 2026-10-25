@@ -2,8 +2,89 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Req, UseGuards } fro
 import type { Request } from 'express';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { CsrfGuard } from '../common/guards/csrf.guard';
+import { CapabilitiesGuard } from '../common/guards/capabilities.guard';
+import { RequireCapabilities } from '../common/decorators/require-capabilities.decorator';
 import { DomainError, newId } from '@oma/domain';
 import { getPrisma } from '@oma/db';
+
+const bad = (field: string) =>
+  new DomainError('VALIDATION_FAILED', `Invalid ${field}`, 400, 'errors.validation_failed', [
+    { field },
+  ]);
+
+export const APPROVAL_MODES = ['none', 'optional', 'required'] as const;
+
+type SettingsRow = {
+  id: string;
+  websiteUrl: string | null;
+  timezone: string;
+  createPostsAsInternal: boolean;
+  hideEmailsFromClients: boolean;
+  autoCropImages: boolean;
+  approvalMode: string;
+  requiredApprovers?: number | null;
+  scheduleOnApproval: boolean;
+  lockAfterApproval: boolean;
+};
+
+export function serializeSettings(tenantId: string, row: SettingsRow | null) {
+  const mode = row?.approvalMode === 'multi_level' ? 'required' : (row?.approvalMode ?? 'optional');
+  return {
+    id: row?.id ?? null,
+    tenant_id: tenantId,
+    website_url: row?.websiteUrl ?? null,
+    timezone: row?.timezone ?? 'Asia/Jerusalem',
+    create_posts_as_internal: row?.createPostsAsInternal ?? false,
+    hide_emails_from_clients: row?.hideEmailsFromClients ?? false,
+    auto_crop_images: row?.autoCropImages ?? true,
+    approval_mode: mode,
+    required_approvers: mode === 'required' ? Math.max(1, row?.requiredApprovers ?? 1) : 1,
+    schedule_on_approval: row?.scheduleOnApproval ?? false,
+    lock_after_approval: row?.lockAfterApproval ?? false,
+  };
+}
+
+export function validateSettingsPatch(body: Record<string, unknown>) {
+  const out: Record<string, unknown> = {};
+  if (body.website_url !== undefined) {
+    if (body.website_url !== null && typeof body.website_url !== 'string') throw bad('website_url');
+    const v = (body.website_url as string | null)?.trim() || null;
+    if (v && !/^https?:\/\/[^\s]+$/i.test(v)) throw bad('website_url');
+    out.websiteUrl = v;
+  }
+  if (body.timezone !== undefined) {
+    if (typeof body.timezone !== 'string' || !body.timezone.trim()) throw bad('timezone');
+    try {
+      new Intl.DateTimeFormat('en', { timeZone: body.timezone.trim() });
+    } catch {
+      throw bad('timezone');
+    }
+    out.timezone = body.timezone.trim();
+  }
+  if (body.approval_mode !== undefined) {
+    const m = String(body.approval_mode).toLowerCase();
+    if (!(APPROVAL_MODES as readonly string[]).includes(m)) throw bad('approval_mode');
+    out.approvalMode = m;
+  }
+  if (body.required_approvers !== undefined) {
+    const n = Number(body.required_approvers);
+    if (!Number.isInteger(n) || n < 1 || n > 5) throw bad('required_approvers');
+    out.requiredApprovers = n;
+  }
+  for (const [k, col] of [
+    ['create_posts_as_internal', 'createPostsAsInternal'],
+    ['hide_emails_from_clients', 'hideEmailsFromClients'],
+    ['auto_crop_images', 'autoCropImages'],
+    ['schedule_on_approval', 'scheduleOnApproval'],
+    ['lock_after_approval', 'lockAfterApproval'],
+  ] as const) {
+    if (body[k] !== undefined) {
+      if (typeof body[k] !== 'boolean') throw bad(k);
+      out[col] = body[k];
+    }
+  }
+  return out;
+}
 
 @Controller('api/v1/workspace')
 @UseGuards(AuthGuard)
@@ -23,38 +104,16 @@ export class WorkspaceSettingsController {
   @Get('settings')
   async getSettings(@Req() req: Request) {
     const tenantId = this.tenantId(req);
-    const prisma = getPrisma();
-    const row = await prisma.workspaceSetting.findUnique({ where: { tenantId } }).catch(() => null);
-    if (!row) {
-      // Return defaults without requiring write capability
-      return {
-        tenant_id: tenantId,
-        website_url: null,
-        timezone: 'Asia/Jerusalem',
-        create_posts_as_internal: false,
-        hide_emails_from_clients: false,
-        auto_crop_images: true,
-        approval_mode: 'optional',
-        schedule_on_approval: false,
-        lock_after_approval: false,
-      };
-    }
-    return {
-      id: row.id,
-      tenant_id: row.tenantId,
-      website_url: row.websiteUrl,
-      timezone: row.timezone,
-      create_posts_as_internal: row.createPostsAsInternal,
-      hide_emails_from_clients: row.hideEmailsFromClients,
-      auto_crop_images: row.autoCropImages,
-      approval_mode: row.approvalMode,
-      schedule_on_approval: row.scheduleOnApproval,
-      lock_after_approval: row.lockAfterApproval,
-    };
+    const row = await getPrisma()
+      .workspaceSetting.findUnique({ where: { tenantId } })
+      .catch(() => null);
+    return serializeSettings(tenantId, row);
   }
 
+  /** Workspace settings incl. timezone and the Planable approval policy (tenant.manage). */
   @Patch('settings')
-  @UseGuards(CsrfGuard)
+  @UseGuards(CsrfGuard, CapabilitiesGuard)
+  @RequireCapabilities('tenant.manage')
   async patchSettings(
     @Req() req: Request,
     @Body()
@@ -65,40 +124,19 @@ export class WorkspaceSettingsController {
       hide_emails_from_clients?: boolean;
       auto_crop_images?: boolean;
       approval_mode?: string;
+      required_approvers?: number;
       schedule_on_approval?: boolean;
       lock_after_approval?: boolean;
     },
   ) {
     const tenantId = this.tenantId(req);
-    const prisma = getPrisma();
-    const data = {
-      websiteUrl: body.website_url ?? undefined,
-      timezone: body.timezone ?? undefined,
-      createPostsAsInternal: body.create_posts_as_internal ?? undefined,
-      hideEmailsFromClients: body.hide_emails_from_clients ?? undefined,
-      autoCropImages: body.auto_crop_images ?? undefined,
-      approvalMode: body.approval_mode ?? undefined,
-      scheduleOnApproval: body.schedule_on_approval ?? undefined,
-      lockAfterApproval: body.lock_after_approval ?? undefined,
-      updatedAt: new Date(),
-    };
-    const row = await prisma.workspaceSetting.upsert({
+    const patch = validateSettingsPatch(body ?? {});
+    const row = await getPrisma().workspaceSetting.upsert({
       where: { tenantId },
-      create: {
-        id: newId(),
-        tenantId,
-        websiteUrl: body.website_url ?? null,
-        timezone: body.timezone ?? 'Asia/Jerusalem',
-        createPostsAsInternal: body.create_posts_as_internal ?? false,
-        hideEmailsFromClients: body.hide_emails_from_clients ?? false,
-        autoCropImages: body.auto_crop_images ?? true,
-        approvalMode: body.approval_mode ?? 'optional',
-        scheduleOnApproval: body.schedule_on_approval ?? false,
-        lockAfterApproval: body.lock_after_approval ?? false,
-      },
-      update: data,
+      create: { id: newId(), tenantId, ...patch },
+      update: { ...patch, updatedAt: new Date() },
     });
-    return { ok: true, id: row.id };
+    return serializeSettings(tenantId, row);
   }
 
   @Get('time-slots')

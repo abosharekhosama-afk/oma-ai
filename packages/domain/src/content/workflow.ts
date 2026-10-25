@@ -10,7 +10,11 @@ export type WorkflowSource = {
   approverApproved?: number;
   approverRequired?: number;
   publishSample?: 'PUBLISHED_SAMPLE' | 'FAILED_SAMPLE';
+  /** Archived content is never shown or treated as scheduled. */
+  archivedAt?: string | null;
 };
+
+export type ScheduleBlockedReason = 'APPROVAL_REQUIRED' | 'REJECTED' | 'ARCHIVED';
 
 export type ContentWorkflow = {
   authoring: 'DRAFT';
@@ -21,6 +25,8 @@ export type ContentWorkflow = {
   approverApproved: number;
   approverRequired: number;
   scheduleBlocked: boolean;
+  /** Why Schedule is disabled; null when allowed. */
+  scheduleBlockedReason: ScheduleBlockedReason | null;
   publishDisplay: PublishDisplay;
   /** Always false until channel integrations exist */
   publishingConnected: false;
@@ -44,8 +50,9 @@ export function resolveContentWorkflow(
   policy: ApprovalPolicy = 'OPTIONAL',
 ): ContentWorkflow {
   const plannedAt = item.plannedAt !== undefined ? item.plannedAt : item.scheduledAt;
-  const scheduleState: ScheduleState =
-    item.scheduleState ?? (item.status === 'SCHEDULED' ? 'SCHEDULED' : 'UNSCHEDULED');
+  const scheduleState: ScheduleState = item.archivedAt
+    ? 'UNSCHEDULED'
+    : (item.scheduleState ?? (item.status === 'SCHEDULED' ? 'SCHEDULED' : 'UNSCHEDULED'));
 
   let approvalState: ApprovalState = asApprovalState(item.approvalState);
   if (!item.approvalState) {
@@ -54,6 +61,7 @@ export function resolveContentWorkflow(
     else approvalState = 'NOT_REQUESTED';
   }
 
+  const wasRejected = approvalState === 'REJECTED';
   if (policy === 'NONE') {
     approvalState = 'NOT_REQUESTED';
   } else if (item.approverRequired != null && item.approverRequired > 0) {
@@ -86,7 +94,14 @@ export function resolveContentWorkflow(
         ? Math.max(1, Math.min(approverRequired - 1, 1))
         : 0);
 
-  const scheduleBlocked = policy === 'REQUIRED' && approvalState !== 'APPROVED';
+  const scheduleBlockedReason: ScheduleBlockedReason | null = item.archivedAt
+    ? 'ARCHIVED'
+    : wasRejected
+      ? 'REJECTED'
+      : policy === 'REQUIRED' && approvalState !== 'APPROVED'
+        ? 'APPROVAL_REQUIRED'
+        : null;
+  const scheduleBlocked = scheduleBlockedReason !== null;
 
   let publishDisplay: PublishDisplay = 'DRAFT';
   if (item.publishSample === 'PUBLISHED_SAMPLE') publishDisplay = 'PUBLISHED_SAMPLE';
@@ -107,6 +122,7 @@ export function resolveContentWorkflow(
     approverApproved,
     approverRequired,
     scheduleBlocked,
+    scheduleBlockedReason,
     publishDisplay,
     publishingConnected: false,
   };
@@ -114,15 +130,26 @@ export function resolveContentWorkflow(
 
 export function assertCanSchedule(item: WorkflowSource, policy: ApprovalPolicy = 'OPTIONAL'): void {
   const wf = resolveContentWorkflow(item, policy);
+  if (wf.scheduleBlockedReason === 'ARCHIVED') {
+    throw new DomainError('CONFLICT_STATE', 'Archived content cannot be scheduled', 409, 'error.content_archived');
+  }
+  if (wf.scheduleBlockedReason === 'REJECTED') {
+    throw new DomainError('CONTENT_REJECTED', 'Rejected content cannot be scheduled', 409, 'error.content_rejected');
+  }
   if (wf.scheduleBlocked) {
     throw new DomainError(
       'SCHEDULE_BLOCKED',
       'Scheduling is blocked until content is fully approved',
       409,
       'error.schedule_blocked',
-      [{ policy, approvalState: wf.approvalState }],
+      [{ policy, approvalState: wf.approvalState, approved: wf.approverApproved, required: wf.approverRequired }],
     );
   }
+}
+
+/** Marking as published follows the same gate as scheduling (rejected/archived/unapproved under REQUIRED). */
+export function assertCanPublish(item: WorkflowSource, policy: ApprovalPolicy = 'OPTIONAL'): void {
+  assertCanSchedule(item, policy);
 }
 
 export function canSchedule(item: WorkflowSource, policy: ApprovalPolicy = 'OPTIONAL'): boolean {
