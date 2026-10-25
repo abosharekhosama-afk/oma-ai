@@ -177,7 +177,7 @@
 .plx-menu {
   position: absolute;
   top: calc(100% + 6px);
-  left: 0;
+  inset-inline-start: 0;
   min-width: 250px;
   background: #fff;
   border-radius: 12px;
@@ -191,8 +191,8 @@
 .plx-menu--up {
   bottom: calc(100% + 8px);
   top: auto;
-  left: auto;
-  right: 0;
+  inset-inline-start: auto;
+  inset-inline-end: 0;
 }
 .plx-menu-item {
   display: flex;
@@ -206,7 +206,7 @@
   font-size: 14px;
   color: #374151;
   cursor: pointer;
-  text-align: left;
+  text-align: start;
   font-family: inherit;
 }
 .plx-menu-item:hover {
@@ -242,7 +242,7 @@
   cursor: pointer;
   display: flex;
   flex-direction: column;
-  text-align: left;
+  text-align: start;
   transition:
     box-shadow 0.16s ease,
     transform 0.16s ease,
@@ -278,7 +278,7 @@
 .plx-ws-star {
   position: absolute;
   top: 14px;
-  right: 14px;
+  inset-inline-end: 14px;
   border: none;
   background: none;
   cursor: pointer;
@@ -299,7 +299,7 @@
 .plx-ws-menu-wrap {
   position: absolute;
   bottom: 14px;
-  right: 14px;
+  inset-inline-end: 14px;
 }
 .plx-ws-more {
   border: 1px solid #e5e7eb;
@@ -402,7 +402,7 @@
 .plx-modal-x {
   position: absolute;
   top: 14px;
-  right: 14px;
+  inset-inline-end: 14px;
   border: none;
   background: none;
   color: #6b7280;
@@ -694,15 +694,15 @@
 }
 .plx-role-menu {
   top: calc(100% + 6px);
-  left: 0;
-  right: 0;
+  inset-inline-start: 0;
+  inset-inline-end: 0;
   min-width: 0;
 }
 .plx-role-option {
   width: 100%;
   border: none;
   background: none;
-  text-align: left;
+  text-align: start;
   padding: 10px 12px;
   border-radius: 8px;
   cursor: pointer;
@@ -727,7 +727,7 @@
 .plx-perms {
   position: absolute;
   bottom: calc(100% + 10px);
-  left: 0;
+  inset-inline-start: 0;
   min-width: 290px;
   background: #fff;
   border-radius: 12px;
@@ -740,7 +740,7 @@
   content: '';
   position: absolute;
   top: 100%;
-  left: 28px;
+  inset-inline-start: 28px;
   border: 6px solid transparent;
   border-top-color: #fff;
 }

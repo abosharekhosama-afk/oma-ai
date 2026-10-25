@@ -569,7 +569,7 @@
   .oma-dialog {
     inset: 0;
     top: 0;
-    left: 0;
+    inset-inline-start: 0;
     transform: none;
     width: 100%;
     max-width: 100%;

@@ -18,7 +18,7 @@ import {
 } from '../../../../lib/team-api';
 import { useToast } from '../../../../components/ui/toast';
 import { api } from '../../../../lib/api';
-import { useLocale } from '../../../../lib/use-locale';
+import { useLocale, useT } from '../../../../lib/use-locale';
 import { ShellIcon } from '../../../../components/shell/shell-icons';
 
 type Tab = 'members' | 'permissions' | 'notifications';
@@ -36,6 +36,7 @@ const PERM_COLS: PlanablePerm[] = [
 const ROLE_OPTIONS = ['Owner', 'Administrator', 'Contributor', 'Writer', 'Approver', 'Guest'];
 
 export default function TeamPage() {
+  const t = useT();
   const toast = useToast();
   const [tab, setTab] = useState<Tab>('members');
   const [rows, setRows] = useState<WorkspaceMember[]>([]);
@@ -69,7 +70,7 @@ export default function TeamPage() {
       setRows(data);
     } catch (err) {
       if (!mountedRef.current) return;
-      setError(err instanceof Error ? err.message : 'Failed to load team');
+      setError(err instanceof Error ? err.message : t('team.failed_to_load_team'));
     } finally {
       loadingRef.current = false;
       if (mountedRef.current) setLoading(false);
@@ -137,9 +138,9 @@ export default function TeamPage() {
       }
       setInviteOpen(false);
       setInviteEmail('');
-      toast.push('Invitation sent', 'success');
+      toast.push(t('team.invitation_sent'), 'success');
     } catch (err) {
-      toast.push(err instanceof Error ? err.message : 'Invite failed', 'danger');
+      toast.push(err instanceof Error ? err.message : t('errors.invite_failed'), 'danger');
     } finally {
       setBusy(false);
     }
@@ -152,9 +153,9 @@ export default function TeamPage() {
     if (source !== 'api') return;
     try {
       await updateMemberCapabilities(member.id, permissionsToCapabilityCodes(next));
-      toast.push('Permissions updated', 'success');
+      toast.push(t('team.permissions_updated'), 'success');
     } catch (err) {
-      toast.push(err instanceof Error ? err.message : 'Update failed', 'danger');
+      toast.push(err instanceof Error ? err.message : t('errors.update_failed'), 'danger');
       await load(true);
     }
   }
@@ -165,9 +166,9 @@ export default function TeamPage() {
     try {
       if (source === 'api') await removeMember(member.id);
       setRows((prev) => prev.filter((r) => r.id !== member.id));
-      toast.push('Member removed', 'success');
+      toast.push(t('team.member_removed'), 'success');
     } catch (err) {
-      toast.push(err instanceof Error ? err.message : 'Remove failed', 'danger');
+      toast.push(err instanceof Error ? err.message : t('errors.remove_failed'), 'danger');
     } finally {
       setBusy(false);
     }
@@ -188,12 +189,12 @@ export default function TeamPage() {
     if (!code) return;
     try {
       await attachMemberProfile(member.id, code);
-      toast.push('Role updated', 'success');
+      toast.push(t('team.role_updated'), 'success');
       void load(true);
     } catch (err) {
       // Revert: never show a role the server didn't accept.
       setRows((prev) => prev.map((r) => (r.id === member.id ? member : r)));
-      toast.push(err instanceof Error ? err.message : 'Role change failed', 'danger');
+      toast.push(err instanceof Error ? err.message : t('errors.update_failed'), 'danger');
     }
   }
 
@@ -201,23 +202,23 @@ export default function TeamPage() {
     <div className="oma-planable-page" data-testid="team-page-planable">
       <div className="oma-planable-page__header">
         <div>
-          <h1 className="oma-planable-page__title">Team & clients</h1>
+          <h1 className="oma-planable-page__title">{t('wsPanel.team_clients')}</h1>
           <p className="oma-planable-page__sub">
-            Invite collaborators, set Team/Client membership, and adjust permissions.
+            {t('team.invite_collaborators_set_teamclient_membership')}
           </p>
         </div>
         <Button type="primary" onClick={() => setInviteOpen(true)} disabled={busy}>
           <ShellIcon name="plus" size={14} />
-          <span>Invite members</span>
+          <span>{t('team.invite_members')}</span>
         </Button>
       </div>
 
       <div className="oma-ws-tabs">
         {(
           [
-            ['members', 'Members'],
-            ['permissions', 'Permissions'],
-            ['notifications', 'Notifications'],
+            ['members', 'team.tab.members'],
+            ['permissions', 'team.tab.permissions'],
+            ['notifications', 'team.tab.notifications'],
           ] as const
         ).map(([id, label]) => (
           <button
@@ -226,7 +227,7 @@ export default function TeamPage() {
             className={`oma-ws-tab${tab === id ? ' is-active' : ''}`}
             onClick={() => setTab(id)}
           >
-            {label}
+            {t(label)}
           </button>
         ))}
       </div>
@@ -237,7 +238,7 @@ export default function TeamPage() {
           <strong>{error}</strong>
           <div style={{ marginTop: 12 }}>
             <Button type="default" onClick={() => void load(true)}>
-              Retry
+              {t('activity.retry')}
             </Button>
           </div>
         </div>
@@ -246,18 +247,18 @@ export default function TeamPage() {
       {!loading && !error && tab === 'members' ? (
         <>
           <div className="oma-planable-toolbar">
-            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search members…" />
+            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('team.search_members')} />
           </div>
           <div className="oma-planable-card oma-member-surface">
             <table className="oma-ws-table">
               <thead>
                 <tr>
-                  <th>User</th>
-                  <th>Membership</th>
-                  <th>Role</th>
-                  <th>Status</th>
-                  <th>Last online</th>
-                  <th>{isAr ? 'الصلاحيات' : 'Permissions'}</th>
+                  <th>{t('team.user')}</th>
+                  <th>{t('team.membership')}</th>
+                  <th>{t('demo.team.filter.role')}</th>
+                  <th>{t('strategy.list.col.status')}</th>
+                  <th>{t('team.last_online')}</th>
+                  <th>{t('team.permissions')}</th>
                   <th />
                 </tr>
               </thead>
@@ -266,17 +267,17 @@ export default function TeamPage() {
                   <tr>
                     <td colSpan={7}>
                       <div className="oma-ws-empty-block">
-                        <h3>No members yet</h3>
-                        <p>Invite teammates or clients to collaborate in this workspace.</p>
+                        <h3>{t('company.membersEmpty')}</h3>
+                        <p>{t('team.invite_teammates_or_clients_to')}</p>
                         <Button type="primary" onClick={() => setInviteOpen(true)}>
-                          Invite members
+                          {t('team.invite_members')}
                         </Button>
                       </div>
                     </td>
                   </tr>
                 ) : (
                   filtered.map((m) => {
-                    const label = m.user?.name || m.user?.email || m.invited_email || 'User';
+                    const label = m.user?.name || m.user?.email || m.invited_email || t('team.user');
                     const email = m.user?.email || m.invited_email || '';
                     return (
                       <tr key={m.id}>
@@ -290,7 +291,7 @@ export default function TeamPage() {
                                 {label}
                                 {m.user?.id && m.user.id === meId ? (
                                   <span className="oma-ws-badge oma-ws-badge--ghost" style={{ marginInlineStart: 6 }}>
-                                    {isAr ? 'أنت' : 'You'}
+                                    {t('content.you')}
                                   </span>
                                 ) : null}
                               </div>
@@ -304,7 +305,7 @@ export default function TeamPage() {
                               m.membership === 'client' ? ' oma-ws-badge--client' : ''
                             }`}
                           >
-                            {m.membership === 'client' ? 'Client' : 'Team'}
+                            {m.membership === 'client' ? t('team.client') : t('team.team')}
                           </span>
                         </td>
                         <td>
@@ -314,7 +315,7 @@ export default function TeamPage() {
                           >
                             {ROLE_OPTIONS.map((r) => (
                               <option key={r} value={r}>
-                                {r}
+                                {t(`members.role.${r.toLowerCase()}`)}
                               </option>
                             ))}
                           </SelectField>
@@ -322,17 +323,15 @@ export default function TeamPage() {
                         <td>
                           <span className="oma-ws-badge oma-ws-badge--ghost">{m.status}</span>
                         </td>
-                        <td>{m.last_online || '—'}</td>
+                        <td>{m.last_online === 'Invited' ? t('team.invited') : m.last_online || '—'}</td>
                         <td className="oma-ws-perm-summary" data-testid="team-permissions">
-                          {readablePermissions(m, isAr).join(isAr ? '، ' : ', ') || '—'}
+                          {readablePermissions(m, isAr).join(t('team.text')) || '—'}
                         </td>
                         <td>
                           {isOwnerMember(m) || (m.user?.id && m.user.id === meId) ? (
                             <span className="oma-muted" data-testid="team-no-remove">
                               {isOwnerMember(m)
-                                ? isAr
-                                  ? 'المالك'
-                                  : 'Owner'
+                                ? t('demo.campaigns.col.owner')
                                 : '—'}
                             </span>
                           ) : (
@@ -342,7 +341,7 @@ export default function TeamPage() {
                               onClick={() => void onRemove(m)}
                               disabled={busy}
                             >
-                              {isAr ? 'إزالة' : 'Remove'}
+                              {t('team.remove')}
                             </button>
                           )}
                         </td>
@@ -358,14 +357,14 @@ export default function TeamPage() {
 
       {!loading && !error && tab === 'permissions' ? (
         <div className="oma-planable-card">
-          <h3 className="oma-ws-subhead">Adjust permissions</h3>
+          <h3 className="oma-ws-subhead">{t('team.adjust_permissions')}</h3>
           <p className="oma-ws-empty-desc">
-            Set who can view, approve, edit, publish, analyze, engage, and administer the workspace.
+            {t('team.set_who_can_view_approve')}
           </p>
           <table className="oma-ws-table oma-ws-table--perms">
             <thead>
               <tr>
-                <th>User</th>
+                <th>{t('team.user')}</th>
                 {PERM_COLS.map((p) => (
                   <th key={p}>{p[0].toUpperCase() + p.slice(1)}</th>
                 ))}
@@ -373,7 +372,7 @@ export default function TeamPage() {
             </thead>
             <tbody>
               {rows.map((m) => {
-                const label = m.user?.name || m.user?.email || m.invited_email || 'User';
+                const label = m.user?.name || m.user?.email || m.invited_email || t('team.user');
                 return (
                   <tr key={m.id}>
                     <td>
@@ -406,24 +405,24 @@ export default function TeamPage() {
 
       {!loading && !error && tab === 'notifications' ? (
         <div className="oma-planable-card">
-          <h3 className="oma-ws-subhead">Manage notifications</h3>
+          <h3 className="oma-ws-subhead">{t('team.manage_notifications')}</h3>
           <p className="oma-ws-empty-desc">
             Choose which events each member receives. Connect Slack from Settings → Integrations.
           </p>
           <table className="oma-ws-table">
             <thead>
               <tr>
-                <th>User</th>
-                <th>Posts updates</th>
-                <th>Approvals</th>
-                <th>Your posts</th>
-                <th>Other posts</th>
-                <th>Social inbox</th>
+                <th>{t('team.user')}</th>
+                <th>{t('team.posts_updates')}</th>
+                <th>{t('activity.filter.approvals')}</th>
+                <th>{t('team.your_posts')}</th>
+                <th>{t('team.other_posts')}</th>
+                <th>{t('team.social_inbox')}</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((m) => {
-                const label = m.user?.name || m.user?.email || m.invited_email || 'User';
+                const label = m.user?.name || m.user?.email || m.invited_email || t('team.user');
                 return (
                   <tr key={m.id}>
                     <td>
@@ -455,18 +454,18 @@ export default function TeamPage() {
           <div
             className="oma-ws-modal-card"
             role="dialog"
-            aria-label="Invite members"
+            aria-label={t('team.invite_members')}
             onClick={(e) => e.stopPropagation()}
             style={{ margin: 'auto' }}
           >
             <div className="oma-ws-modal-head">
-              <h3>Invite members</h3>
-              <button type="button" onClick={() => setInviteOpen(false)} aria-label="Close">
+              <h3>{t('team.invite_members')}</h3>
+              <button type="button" onClick={() => setInviteOpen(false)} aria-label={t('brand.evidence.close')}>
                 ×
               </button>
             </div>
             <div className="oma-ws-field">
-              <label className="oma-ws-label">Email</label>
+              <label className="oma-ws-label">{t('auth.email')}</label>
               <Input
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
@@ -474,31 +473,31 @@ export default function TeamPage() {
               />
             </div>
             <div className="oma-ws-field">
-              <label className="oma-ws-label">Role</label>
+              <label className="oma-ws-label">{t('demo.team.filter.role')}</label>
               <SelectField value={inviteRole} onChange={(e) => setInviteRole(e.target.value)}>
                 {ROLE_OPTIONS.map((r) => (
                   <option key={r} value={r}>
-                    {r}
+                    {t(`members.role.${r.toLowerCase()}`)}
                   </option>
                 ))}
               </SelectField>
             </div>
             <div className="oma-ws-field">
-              <label className="oma-ws-label">Membership</label>
+              <label className="oma-ws-label">{t('team.membership')}</label>
               <SelectField
                 value={inviteMembership}
                 onChange={(e) => setInviteMembership(e.target.value as MembershipType)}
               >
-                <option value="team">Team</option>
-                <option value="client">Client</option>
+                <option value="team">{t('nav.team')}</option>
+                <option value="client">{t('team.client')}</option>
               </SelectField>
             </div>
             <div className="oma-ws-modal-actions">
               <Button type="default" onClick={() => setInviteOpen(false)}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button type="primary" onClick={() => void onInvite()} disabled={busy}>
-                {busy ? 'Sending…' : 'Send invite'}
+                {busy ? t('auth.forgot.sending') : t('team.send_invite')}
               </Button>
             </div>
           </div>

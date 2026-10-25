@@ -40,7 +40,7 @@
   color: #6b7280;
   align-self: flex-end;
   margin-bottom: 4px;
-  margin-left: -4px;
+  margin-inline-start: -4px;
 }
 .plx-logo--compact .plx-logo-sub {
   display: none;
@@ -169,11 +169,11 @@
   position: relative;
 }
 .plx-input-wrap .plx-input {
-  padding-right: 46px;
+  padding-inline-end: 46px;
 }
 .plx-eye {
   position: absolute;
-  right: 12px;
+  inset-inline-end: 12px;
   top: 50%;
   transform: translateY(-50%);
   background: none;
@@ -191,7 +191,7 @@
   color: #e5484d;
   font-size: 13px;
   margin: 2px 0 0;
-  text-align: left;
+  text-align: start;
 }
 
 .plx-auth-form .plx-btn--dark {

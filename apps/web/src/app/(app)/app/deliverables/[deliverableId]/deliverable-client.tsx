@@ -376,7 +376,7 @@ export default function DeliverableDetailClient() {
       <header className="oma-deliv-detail__top">
         <div className="oma-deliv-detail__top-start">
           <Link href="/app/deliverables" className="oma-deliv-detail__back">
-            <ArrowLeftOutlined />
+            <ArrowLeftOutlined className="oma-dir-icon" />
             <span>{t('demo.deliverables.back')}</span>
           </Link>
           {row ? (

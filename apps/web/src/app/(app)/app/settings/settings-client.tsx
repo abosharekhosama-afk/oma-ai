@@ -433,7 +433,7 @@ export default function SettingsPage() {
                 >
                   <Input
                     value={intQ}
-                    placeholder="Search integrations…"
+                    placeholder={t('settingsPage.search_integrations')}
                     onChange={(e) => setIntQ(e.target.value)}
                   />
                   <SelectField value={intCategory} onChange={(e) => setIntCategory(e.target.value)}>

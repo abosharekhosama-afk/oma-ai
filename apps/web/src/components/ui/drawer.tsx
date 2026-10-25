@@ -25,7 +25,8 @@ export function Drawer({
   const close = useCallback(() => onClose(), [onClose]);
   const rtl = useLocale().toLowerCase().startsWith('ar');
   // Nav drawer opens from the inline-start edge (left in LTR, right in RTL).
-  const placement = nav ? (rtl ? 'right' : 'left') : 'right';
+  // Detail drawers open from the inline-end edge (right in LTR, left in RTL).
+  const placement = nav ? (rtl ? 'right' : 'left') : rtl ? 'left' : 'right';
   return (
     <AntDrawer
       open={open}

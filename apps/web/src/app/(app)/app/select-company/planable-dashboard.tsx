@@ -31,6 +31,7 @@ import {
   PlxLogo,
 } from '../../../../components/ui/plx-icons';
 import './planable-dashboard.css';
+import { useT } from '../../../../lib/use-locale';
 
 type Me = {
   user?: { name?: string; email?: string };
@@ -112,11 +113,44 @@ const TIMEZONES = [
   'New York, America (UTC -5)',
 ];
 
+const LABEL_KEYS: Record<string, string> = {
+  "Administrator": 'companies.role.admin',
+  "Writer": 'companies.role.writer',
+  "Billing Manager": 'companies.role.billing',
+  "Can manage workspaces, people and billing plan": 'companies.role.admin_desc',
+  "Has editing access to all workspaces, but cannot create workspaces or invite people": 'companies.role.writer_desc',
+  "Can manage billing plan, change payment details & see invoices": 'companies.role.billing_desc',
+  "Comment on posts": 'companies.perm.comment',
+  "Manage workspaces and collaborators": 'companies.perm.manage',
+  "Create and edit posts": 'companies.perm.edit',
+  "View invoices and manage billing": 'companies.perm.billing',
+  "Company ownership": 'companies.perm.ownership',
+  "X (Twitter)": 'companies.platform.x',
+  "Google Business Profile": 'companies.platform.gbp',
+  "Universal Content": 'companies.platform.universal',
+  "Newsletters": 'companies.platform.newsletters',
+  "Hebron, Asia (UTC +3)": 'companies.tz.hebron',
+  "Dubai, Asia (UTC +4)": 'companies.tz.dubai',
+  "Riyadh, Asia (UTC +3)": 'companies.tz.riyadh',
+  "Cairo, Africa (UTC +2)": 'companies.tz.cairo',
+  "London, Europe (UTC +0)": 'companies.tz.london',
+  "New York, America (UTC -5)": 'companies.tz.newyork',
+  "Workspace name is required": 'companies.name_required',
+  "Facebook": 'companies.platform.facebook',
+  "Instagram": 'companies.platform.instagram',
+  "LinkedIn": 'companies.platform.linkedin',
+  "YouTube": 'companies.platform.youtube',
+  "TikTok": 'companies.platform.tiktok',
+  "Pinterest": 'companies.platform.pinterest',
+  "Threads": 'companies.platform.threads',
+};
+
 function initials(name: string) {
   return (name || '?').trim().charAt(0).toUpperCase();
 }
 
 export function PlanableDashboard() {
+  const t = useT();
   const router = useRouter();
   const [me, setMe] = useState<Me | null>(null);
   const [brands, setBrands] = useState<BrandWorkspace[]>([]);
@@ -263,7 +297,7 @@ export function PlanableDashboard() {
     e.preventDefault();
     setCreateError(null);
     if (!wsName.trim()) {
-      setCreateError('Workspace name is required');
+      setCreateError(t('companies.name_required'));
       return;
     }
     setCreateBusy(true);
@@ -317,7 +351,7 @@ export function PlanableDashboard() {
         window.location.assign('/app/brands');
       }
     } catch (err) {
-      setCreateError(err instanceof Error ? err.message : 'Could not create workspace');
+      setCreateError(err instanceof Error ? err.message : t('companies.could_not_create_workspace'));
     } finally {
       setCreateBusy(false);
     }
@@ -326,18 +360,18 @@ export function PlanableDashboard() {
   return (
     <div className="plx-dash" id="main" dir="ltr" ref={rootRef}>
       <header className="plx-topbar">
-        <Link href="/app" className="plx-topbar-logo" aria-label="OMA home">
+        <Link href="/app" className="plx-topbar-logo" aria-label={t('companies.oma_home')}>
           <PlxLogo sub={null} compact />
         </Link>
         <div className="plx-topbar-search">
           <SearchIcon width={16} height={16} />
-          <span>Search</span>
+          <span>{t('shell.search')}</span>
         </div>
         <span className="plx-topbar-spacer" />
-        <button type="button" className="plx-icon-btn" aria-label="Help">
+        <button type="button" className="plx-icon-btn" aria-label={t('companies.help')}>
           <HelpIcon />
         </button>
-        <button type="button" className="plx-icon-btn" aria-label="Notifications">
+        <button type="button" className="plx-icon-btn" aria-label={t('shell.notifications')}>
           <BellIcon />
         </button>
         <span className="plx-avatar" title={me?.user?.email ?? me?.email ?? ''}>
@@ -347,13 +381,13 @@ export function PlanableDashboard() {
 
       {loading ? (
         <div className="plx-dash-loading">
-          <OmaDotsLoader label="Loading workspaces" />
+          <OmaDotsLoader label={t('companies.loading_workspaces')} />
         </div>
       ) : error ? (
         <div className="plx-dash-body">
           <div className="plx-empty" role="alert">
             <p>{error}</p>
-            <Link href="/app">Sign in</Link>
+            <Link href="/app">{t('auth.login')}</Link>
           </div>
         </div>
       ) : (
@@ -439,21 +473,21 @@ export function PlanableDashboard() {
             </div>
             <button type="button" className="plx-upgrade-pill">
               <SparkleIcon width={15} height={15} />
-              Upgrade
+              {t('companies.upgrade')}
             </button>
             <button type="button" className="plx-ghost-pill" onClick={() => setInviteOpen(true)}>
               <UserPlusIcon width={16} height={16} />
-              Invite users
+              {t('companies.invite_users')}
             </button>
             <span className="plx-topbar-spacer" />
             <button type="button" className="plx-new-ws" onClick={openCreate}>
               <PlusIcon width={16} height={16} />
-              New workspace
+              {t('shell.newWorkspace')}
             </button>
           </div>
 
           <div className="plx-ws-grid" data-testid="plx-workspaces-grid">
-            {brandsLoading ? <p className="plx-muted">Loading workspaces…</p> : null}
+            {brandsLoading ? <p className="plx-muted">{t('companies.loading_workspaces2')}</p> : null}
             {brands.map((b) => (
               <WorkspaceCard
                 key={b.id}
@@ -491,14 +525,14 @@ export function PlanableDashboard() {
               <span className="plx-ws-create-plus">
                 <PlusIcon />
               </span>
-              <span className="plx-ws-create-label">Create a workspace</span>
+              <span className="plx-ws-create-label">{t('companies.create_a_workspace')}</span>
             </button>
           </div>
 
           {others.length > 0 ? (
             <>
               <div className="plx-other-head">
-                <h2>Other workspaces</h2>
+                <h2>{t('companies.other_workspaces')}</h2>
                 <hr />
               </div>
               <div className="plx-ws-grid plx-ws-grid--others">
@@ -550,17 +584,17 @@ export function PlanableDashboard() {
               className="plx-modal"
               role="dialog"
               aria-modal="true"
-              aria-label="Create a workspace"
+              aria-label={t('companies.create_a_workspace')}
             >
               <button
                 type="button"
                 className="plx-modal-x"
-                aria-label="Close"
+                aria-label={t('brand.evidence.close')}
                 onClick={() => setCreateOpen(false)}
               >
                 <CloseIcon />
               </button>
-              <h2 className="plx-modal-title-center">Create a workspace</h2>
+              <h2 className="plx-modal-title-center">{t('companies.create_a_workspace')}</h2>
               <p className="plx-modal-sub-center">
                 A workspace is a group of channels and collaborators, a place where you can organize
                 your campaigns, workflows and assets.
@@ -572,7 +606,7 @@ export function PlanableDashboard() {
                 }}
               >
                 <label className="plx-label" htmlFor="plx-ws-name">
-                  Workspace name
+                  {t('wsPanel.workspace_name')}
                 </label>
                 <input
                   id="plx-ws-name"
@@ -583,7 +617,7 @@ export function PlanableDashboard() {
                   autoFocus
                 />
                 <label className="plx-label" htmlFor="plx-ws-url">
-                  Website URL
+                  {t('brand.connect.urlLabel')}
                 </label>
                 <input
                   id="plx-ws-url"
@@ -593,7 +627,7 @@ export function PlanableDashboard() {
                   onChange={(e) => setWsUrl(e.target.value)}
                 />
                 <label className="plx-label" htmlFor="plx-ws-tz">
-                  Workspace timezone
+                  {t('wsPanel.workspace_timezone')}
                 </label>
                 <select
                   id="plx-ws-tz"
@@ -603,7 +637,7 @@ export function PlanableDashboard() {
                 >
                   {TIMEZONES.map((tz) => (
                     <option key={tz} value={tz}>
-                      {tz}
+                      {t(LABEL_KEYS[tz] ?? tz)}
                     </option>
                   ))}
                 </select>
@@ -617,7 +651,7 @@ export function PlanableDashboard() {
                   className="plx-btn plx-btn--dark plx-btn--block"
                   disabled={!wsName.trim()}
                 >
-                  Next
+                  {t('demo.content.next')}
                 </button>
               </form>
             </div>
@@ -626,12 +660,12 @@ export function PlanableDashboard() {
               className="plx-modal plx-modal--wide"
               role="dialog"
               aria-modal="true"
-              aria-label="Connect pages"
+              aria-label={t('companies.connect_pages')}
             >
               <button
                 type="button"
                 className="plx-modal-x"
-                aria-label="Close"
+                aria-label={t('brand.evidence.close')}
                 onClick={() => setCreateOpen(false)}
               >
                 <CloseIcon />
@@ -648,20 +682,20 @@ export function PlanableDashboard() {
                     <span className="plx-platform-glyph" style={{ background: p.color }}>
                       {initials(p.name)}
                     </span>
-                    <span className="plx-platform-name">{p.name}</span>
+                    <span className="plx-platform-name">{t(LABEL_KEYS[p.name] ?? p.name)}</span>
                   </button>
                 ))}
               </div>
               <div className="plx-connect-footer">
                 <button type="button" className="plx-link-btn" onClick={() => setCreateStep(1)}>
-                  Go back
+                  {t('companies.go_back')}
                 </button>
                 <button
                   type="button"
                   className="plx-btn plx-btn--ghost"
                   onClick={() => setCreateStep(3)}
                 >
-                  Connect later
+                  {t('companies.connect_later')}
                 </button>
               </div>
               <div className="plx-progress" aria-hidden="true">
@@ -671,25 +705,25 @@ export function PlanableDashboard() {
               </div>
             </div>
           ) : (
-            <div className="plx-modal" role="dialog" aria-modal="true" aria-label="Create a page">
+            <div className="plx-modal" role="dialog" aria-modal="true" aria-label={t('companies.create_a_page')}>
               <button
                 type="button"
                 className="plx-modal-x"
-                aria-label="Close"
+                aria-label={t('brand.evidence.close')}
                 onClick={() => setCreateOpen(false)}
               >
                 <CloseIcon />
               </button>
-              <h2 className="plx-modal-title-center">Create a page for any type of content</h2>
+              <h2 className="plx-modal-title-center">{t('companies.create_a_page_for_any')}</h2>
               <form onSubmit={finishCreate}>
                 <div className="plx-page-form">
-                  <button type="button" className="plx-pic-upload" aria-label="Add profile picture">
+                  <button type="button" className="plx-pic-upload" aria-label={t('companies.add_profile_picture')}>
                     <ImageIcon />
-                    <span>Add profile picture</span>
+                    <span>{t('companies.add_profile_picture')}</span>
                   </button>
                   <div className="plx-page-fields">
                     <label className="plx-label" htmlFor="plx-page-name">
-                      Page name
+                      {t('companies.page_name')}
                     </label>
                     <input
                       id="plx-page-name"
@@ -701,11 +735,11 @@ export function PlanableDashboard() {
                     />
                     <div className="plx-page-meta-row">
                       <div>
-                        <span className="plx-mini-label">Platform color</span>
+                        <span className="plx-mini-label">{t('companies.platform_color')}</span>
                         <span className="plx-color-swatch" />
                       </div>
                       <div>
-                        <span className="plx-mini-label">Platform icon</span>
+                        <span className="plx-mini-label">{t('companies.platform_icon')}</span>
                         <span className="plx-icon-swatch">
                           <PencilIcon width={14} height={14} />
                         </span>
@@ -713,8 +747,8 @@ export function PlanableDashboard() {
                     </div>
                   </div>
                 </div>
-                <span className="plx-label">Content style</span>
-                <div className="plx-style-row" role="radiogroup" aria-label="Content style">
+                <span className="plx-label">{t('companies.content_style')}</span>
+                <div className="plx-style-row" role="radiogroup" aria-label={t('companies.content_style')}>
                   {(['default', 'classic', 'modern', 'compact'] as const).map((s) => (
                     <button
                       key={s}
@@ -731,7 +765,7 @@ export function PlanableDashboard() {
                             : 'plx-style-preview'
                         }
                       >
-                        Ab
+                        {t('companies.ab')}
                       </span>
                       <span className="plx-style-name">{s}</span>
                     </button>
@@ -747,7 +781,7 @@ export function PlanableDashboard() {
                   className="plx-btn plx-btn--soft plx-btn--block"
                   disabled={!pageName.trim() || createBusy}
                 >
-                  {createBusy ? <OmaDotsLoader label="Creating page" /> : 'Create page'}
+                  {createBusy ? <OmaDotsLoader label={t('companies.creating_page')} /> : t('companies.create_page')}
                 </button>
               </form>
               <div className="plx-progress" aria-hidden="true">
@@ -780,6 +814,7 @@ function WorkspaceCard(props: {
   onConnect?: () => void;
   onOpenContent?: () => void;
 }) {
+  const t = useT();
   const truncate = (n: string) => (n.length > 14 ? `${n.slice(0, 14)}…` : n);
   return (
     <div
@@ -794,12 +829,12 @@ function WorkspaceCard(props: {
           props.onActivate();
         }
       }}
-      aria-label={`Open workspace ${props.name}`}
+      aria-label={t('companies.open_workspace').replace('{name}', props.name)}
     >
       <button
         type="button"
         className={props.fav ? 'plx-ws-star is-fav' : 'plx-ws-star'}
-        aria-label={props.fav ? 'Remove from favorites' : 'Add to favorites'}
+        aria-label={props.fav ? t('companies.remove_from_favorites') : t('companies.add_to_favorites')}
         onClick={(e) => {
           e.stopPropagation();
           props.onToggleFav();
@@ -816,7 +851,7 @@ function WorkspaceCard(props: {
         <button
           type="button"
           className="plx-ws-more"
-          aria-label={`Workspace options for ${props.name}`}
+          aria-label={t('companies.workspace_options').replace('{name}', props.name)}
           aria-expanded={props.menuOpen}
           onClick={(e) => {
             e.stopPropagation();
@@ -869,12 +904,13 @@ function WorkspaceCard(props: {
           </div>
         ) : null}
       </div>
-      {props.busy ? <OmaDotsLoaderOverlay label="Opening workspace" /> : null}
+      {props.busy ? <OmaDotsLoaderOverlay label={t('companies.opening_workspace')} /> : null}
     </div>
   );
 }
 
 function InviteModal({ company, onClose }: { company: string; onClose: () => void }) {
+  const t = useT();
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [role, setRole] = useState<RoleId>('Administrator');
@@ -887,7 +923,7 @@ function InviteModal({ company, onClose }: { company: string; onClose: () => voi
   async function send(e: FormEvent) {
     e.preventDefault();
     if (!email.trim()) {
-      setError('Type or search email');
+      setError(t('companies.type_or_search_email'));
       return;
     }
     setError(null);
@@ -914,7 +950,7 @@ function InviteModal({ company, onClose }: { company: string; onClose: () => voi
       setSent(true);
       setTimeout(onClose, 900);
     } catch {
-      setError('Could not copy the invite link');
+      setError(t('companies.could_not_copy_the_invite'));
     }
   }
 
@@ -928,26 +964,26 @@ function InviteModal({ company, onClose }: { company: string; onClose: () => voi
         className="plx-modal"
         role="dialog"
         aria-modal="true"
-        aria-label={`Invite members to ${company}`}
+        aria-label={t('companies.invite_members_to').replace('{name}', company)}
       >
-        <button type="button" className="plx-modal-x" aria-label="Close" onClick={onClose}>
+        <button type="button" className="plx-modal-x" aria-label={t('brand.evidence.close')} onClick={onClose}>
           <CloseIcon />
         </button>
         <h2 className="plx-modal-title">Invite members to {company}</h2>
         <p className="plx-modal-sub">
-          Inviting a new company collaborator will give them access to all workspaces.
+          {t('companies.inviting_a_new_company_collaborator')}
         </p>
         {sent ? (
           <div className="plx-invite-sent">
             <CheckIcon width={22} height={22} />
-            <span>Invitation sent</span>
+            <span>{t('team.invitation_sent')}</span>
           </div>
         ) : (
           <form onSubmit={send}>
             <div className="plx-invite-row">
               <input
                 className="plx-input-sm"
-                placeholder="Type or search email"
+                placeholder={t('companies.type_or_search_email')}
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -955,7 +991,7 @@ function InviteModal({ company, onClose }: { company: string; onClose: () => voi
               />
               <input
                 className="plx-input-sm"
-                placeholder="Name (optional)"
+                placeholder={t('companies.name_optional')}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
@@ -973,7 +1009,7 @@ function InviteModal({ company, onClose }: { company: string; onClose: () => voi
               {roleMenuOpen ? (
                 <>
                   <div className="plx-perms" role="tooltip">
-                    <span className="plx-perms-title">Granted permissions</span>
+                    <span className="plx-perms-title">{t('companies.granted_permissions')}</span>
                     <ul>
                       {roleDef.perms.map((perm) => (
                         <li key={perm.label} className={perm.ok ? '' : 'is-denied'}>
@@ -982,7 +1018,7 @@ function InviteModal({ company, onClose }: { company: string; onClose: () => voi
                           ) : (
                             <CloseIcon width={15} height={15} />
                           )}
-                          {perm.label}
+                          {t(LABEL_KEYS[perm.label] ?? perm.label)}
                         </li>
                       ))}
                     </ul>
@@ -1000,8 +1036,8 @@ function InviteModal({ company, onClose }: { company: string; onClose: () => voi
                           setRoleMenuOpen(false);
                         }}
                       >
-                        <strong>{r.id}</strong>
-                        <span>{r.desc}</span>
+                        <strong>{t(LABEL_KEYS[r.id] ?? r.id)}</strong>
+                        <span>{t(LABEL_KEYS[r.desc] ?? r.desc)}</span>
                       </button>
                     ))}
                   </div>
@@ -1016,15 +1052,15 @@ function InviteModal({ company, onClose }: { company: string; onClose: () => voi
             <div className="plx-modal-actions">
               <button type="button" className="plx-btn plx-btn--outline" onClick={copyLink}>
                 <LinkIcon width={16} height={16} />
-                Create invite link
+                {t('companies.create_invite_link')}
               </button>
               <button type="submit" className="plx-btn plx-btn--primary" disabled={busy}>
                 {busy ? (
-                  <OmaDotsLoader label="Sending invite" />
+                  <OmaDotsLoader label={t('companies.sending_invite')} />
                 ) : (
                   <>
                     <EnvelopeIcon width={16} height={16} />
-                    Send email invite
+                    {t('companies.send_email_invite')}
                   </>
                 )}
               </button>
