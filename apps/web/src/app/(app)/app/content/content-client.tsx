@@ -12,6 +12,8 @@ import { ContentCalSkeleton, ContentListSkeleton } from '../../../../components/
 import { createPortal } from 'react-dom';
 import { resolveContentWorkflow, type ApprovalPolicy, type DemoGraph } from '@oma/demo';
 import { ContentFace, faceDisplay } from '../../../../components/content/content-card';
+import { PostPreview } from '../../../../components/content/post-preview';
+import { NetworkIcon } from '../../../../components/content/network-icon';
 import { Button, DatePicker, Input, OmaSelect, SurfaceButton, TextArea } from '@oma/ui/controls';
 import dayjs from 'dayjs';
 import {
@@ -66,7 +68,6 @@ import {
   EMPTY_CONTENT_FILTERS,
   activeContentFilterCount,
   buildMonthCells,
-  channelMarker,
   clearContentChip,
   commentsForContent,
   contentFilterChips,
@@ -124,6 +125,7 @@ import {
   opsError,
 } from '../../../../lib/ops-api';
 import { useLocale, useT } from '../../../../lib/use-locale';
+import { useCapabilities } from '../../../../lib/use-capabilities';
 import {
   canRequestApproval,
   canApprove,
@@ -354,7 +356,9 @@ function PlanableComposeCard({
               onClick={() => setCampaignMenu((v) => !v)}
             >
               <NotificationOutlined />
-              {selectedCampaign ? pickCopy(selectedCampaign.name, locale) : t('demo.campaigns.col.campaign')}
+              {selectedCampaign
+                ? pickCopy(selectedCampaign.name, locale)
+                : t('demo.campaigns.col.campaign')}
               <DownOutlined style={{ fontSize: 10 }} />
             </button>
             {campaignMenu ? (
@@ -530,7 +534,11 @@ function PlanableComposeCard({
             <span className="oma-compose-tz">({WORKSPACE_TZ.replace('/', ': ')})</span>
           </div>
           <div className="oma-compose-actions">
-            <button type="button" className="oma-compose-view" aria-label={t('demo.deliverable.preview')}>
+            <button
+              type="button"
+              className="oma-compose-view"
+              aria-label={t('demo.deliverable.preview')}
+            >
               <EyeOutlined />
             </button>
             <button
@@ -576,7 +584,7 @@ function CardFloatingMenu({
   itemId,
   item,
   policy = 'OPTIONAL',
-  locale,
+  locale: _locale,
   onAction,
   onClose,
 }: {
@@ -595,7 +603,6 @@ function CardFloatingMenu({
   onClose: () => void;
 }) {
   const t = useT();
-  const isAr = locale.toLowerCase().startsWith('ar');
   const ref = useRef<HTMLDivElement | null>(null);
   const [realPos, setRealPos] = useState(pos);
 
@@ -685,9 +692,7 @@ function CardFloatingMenu({
     {
       action: 'hide',
       label:
-        src.clientVisible === false
-          ? t('content.show_to_clients')
-          : t('content.hide_from_clients'),
+        src.clientVisible === false ? t('content.show_to_clients') : t('content.hide_from_clients'),
       icon: <EyeInvisibleOutlined />,
     },
     {
@@ -790,6 +795,10 @@ export default function ContentPage() {
   const router = useRouter();
   const search = useSearchParams();
   const toast = useToast();
+  const caps = useCapabilities();
+  const capsReady = !caps.loading;
+  const mayApprove = capsReady && caps.can(['content.approve'], 'any');
+  const mayRequestApproval = capsReady && caps.can(['content.request_approval'], 'any');
 
   const [rows, setRows] = useState<ContentRow[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -1107,10 +1116,7 @@ export default function ContentPage() {
         [dayKey]: { text, color, locked },
       }));
     } catch (err) {
-      toast.push(
-        contentApiError(err, t('content.failed_to_save_note')),
-        'danger',
-      );
+      toast.push(contentApiError(err, t('content.failed_to_save_note')), 'danger');
     }
   }
 
@@ -1255,6 +1261,48 @@ export default function ContentPage() {
     replaceParams((params) => {
       params.set('item', item.id);
     });
+  }
+
+  function renderPostPreview(item: ContentRow, size: 'feed' | 'detail') {
+    const caption = item.caption ? pickCopy(item.caption, locale) : '';
+    const when = item.scheduledAt || item.plannedAt || null;
+    const approval = item.approvalState || 'NOT_REQUESTED';
+    return (
+      <PostPreview
+        channel={item.channel}
+        contentType={item.contentType}
+        brandName={brandName(item.brandId)}
+        caption={caption}
+        title={pickCopy(item.title, locale)}
+        media={item.previewAsset}
+        when={when}
+        whenKind={item.scheduledAt ? 'scheduled' : item.plannedAt ? 'planned' : null}
+        locale={locale}
+        size={size}
+        onOpen={size === 'feed' ? () => openItem(item) : undefined}
+        review={
+          policy === 'NONE'
+            ? undefined
+            : {
+                state: approval,
+                approved: item.approverApproved,
+                required: item.approverRequired,
+                canApprove: mayApprove && canApprove(item),
+                canRequestChanges: mayApprove && canRequestChanges(item),
+                canRequestApproval: mayRequestApproval && canRequestApproval(item),
+                commentCount: commentsForContent(tasks, deliverables, item.id).length,
+                busy: saving,
+                onApprove: () => void runLifecycle('approve', item.id),
+                onRequestChanges: () => void runLifecycle('request-changes', item.id),
+                onRequestApproval: () => void runLifecycle('request-approval', item.id),
+                onComment: () => {
+                  if (size === 'feed') openItem(item, 'comments');
+                  setDetailSidePanel('feedback');
+                },
+              }
+        }
+      />
+    );
   }
 
   function requestCloseDrawer() {
@@ -1433,7 +1481,7 @@ export default function ContentPage() {
     if (isScheduled && !canScheduleItem(row, policy)) {
       toast.push(
         scheduleBlockedHint(scheduleBlockReason(row, policy), isAr) ??
-          (t('content.scheduling_unavailable')),
+          t('content.scheduling_unavailable'),
         'danger',
       );
       return;
@@ -1474,10 +1522,7 @@ export default function ContentPage() {
       });
       const task = await convertRequestToTask(req.id);
       const deliv = await convertTaskToDeliverable(task.id);
-      toast.push(
-        t('content.created_request_task_deliverable'),
-        'success',
-      );
+      toast.push(t('content.created_request_task_deliverable'), 'success');
       return { requestId: req.id, taskId: task.id, deliverableId: deliv.id };
     } catch (err) {
       toast.push(opsError(err, t('content.ops_conversion_failed')), 'danger');
@@ -1597,10 +1642,7 @@ export default function ContentPage() {
       else throw new Error('Clipboard unavailable');
       toast.push(t('content.content_link_copied'), 'success');
     } catch {
-      toast.push(
-        t('content.this_browser_could_not_copy'),
-        'danger',
-      );
+      toast.push(t('content.this_browser_could_not_copy'), 'danger');
     }
   }
 
@@ -1687,10 +1729,7 @@ export default function ContentPage() {
       return;
     }
     if (!selectedId) {
-      toast.push(
-        t('content.open_a_post_to_apply'),
-        'danger',
-      );
+      toast.push(t('content.open_a_post_to_apply'), 'danger');
       return;
     }
     void setContentLabels(selectedId, next)
@@ -2732,9 +2771,7 @@ export default function ContentPage() {
                                   variant="calendar"
                                   title={pickCopy(item.title, locale)}
                                   caption={item.caption ? pickCopy(item.caption, locale) : ''}
-                                  channel={
-                                    item.channel || (t('content.workspace_page'))
-                                  }
+                                  channel={item.channel || t('content.workspace_page')}
                                   when={
                                     item.scheduledAt
                                       ? item.scheduledAt.slice(11, 16)
@@ -2906,69 +2943,17 @@ export default function ContentPage() {
 
       {/* ── FEED VIEW ── */}
       {!loading && !unavailable && !error && filtered.length > 0 && view === 'feed' ? (
-        <div className="oma-content-feed" data-testid="demo-content-feed">
-          {filtered.map((item) => {
-            const when = item.scheduledAt
-              ? item.scheduledAt.slice(0, 16).replace('T', ', ')
-              : item.plannedAt
-                ? String(item.plannedAt).slice(0, 16).replace('T', ', ')
-                : '—';
-            const title = pickCopy(item.title, locale);
-            const caption = item.caption ? pickCopy(item.caption, locale) : '';
-            return (
-              <div
-                key={item.id}
-                className="oma-feed-card"
-                data-testid={`demo-content-card-${item.id}`}
-                data-selected={selectedId === item.id ? 'true' : 'false'}
-              >
-                <div className="oma-feed-card__rail" aria-hidden>
-                  <button type="button" className="oma-feed-card__status" tabIndex={-1}>
-                    ✓
-                  </button>
-                  <span className="oma-feed-card__channel">{channelMarker(item.channel)}</span>
-                </div>
-                <div className="oma-feed-card__column">
-                  <div className="oma-feed-card__head">
-                    <span className="oma-feed-card__date">
-                      <span>{weekdayForKey(when.slice(0, 10), locale)}</span>
-                      <span className="oma-ltr">{when}</span>
-                    </span>
-                    <CardActionsButton
-                      itemId={item.id}
-                      open={cardMenuId === item.id}
-                      label={t('content.post_actions')}
-                      onOpen={placeCardMenu}
-                      onClose={closeCardMenu}
-                    />
-                  </div>
-                  <SurfaceButton
-                    onClick={() => openItem(item)}
-                    className="oma-feed-card__body"
-                    style={{ display: 'flex', flexDirection: 'column', width: '100%' }}
-                  >
-                    <span className="oma-feed-card__title">{title}</span>
-                    {rowLabels(item).length > 0 ? (
-                      <span className="oma-inline-labels">
-                        {rowLabels(item)
-                          .slice(0, 3)
-                          .map((lab) => (
-                            <span key={lab}>{lab}</span>
-                          ))}
-                      </span>
-                    ) : null}
-                    {caption ? <span className="oma-feed-card__caption">{caption}</span> : null}
-                  </SurfaceButton>
-                </div>
-                <div className="oma-feed-card__comment" onClick={() => openItem(item)}>
-                  <span className="oma-feed-card__comment-dot">
-                    {commentsForContent(tasks, deliverables, item.id).length}
-                  </span>
-                  <span>{t('content.say_something')}</span>
-                </div>
-              </div>
-            );
-          })}
+        <div className="oma-content-feed oma-content-feed--preview" data-testid="demo-content-feed">
+          {filtered.map((item) => (
+            <div
+              key={item.id}
+              className="oma-pp-feed-item"
+              data-testid={`demo-content-card-${item.id}`}
+              data-selected={selectedId === item.id ? 'true' : 'false'}
+            >
+              {renderPostPreview(item, 'feed')}
+            </div>
+          ))}
         </div>
       ) : null}
 
@@ -2985,9 +2970,7 @@ export default function ContentPage() {
                   else setSelectedIds([]);
                 }}
               />
-              <span>
-                {t('content.select_all').replace('{n}', String(sorted.length))}
-              </span>
+              <span>{t('content.select_all').replace('{n}', String(sorted.length))}</span>
             </label>
             <button
               type="button"
@@ -3030,7 +3013,7 @@ export default function ContentPage() {
                   <div className="oma-plan-list__main">
                     <div className="oma-plan-list__page">
                       <span className="oma-plan-list__page-ico" aria-hidden>
-                        ▣
+                        <NetworkIcon channel={item.channel} size={14} />
                       </span>
                       <span className="oma-plan-list__page-name">
                         {item.channel || 'Osama page'}
@@ -3385,8 +3368,7 @@ export default function ContentPage() {
                               setDetailMoreOpen(false);
                             }}
                           >
-                            <FlagOutlined />{' '}
-                            {t('content.convert_to_request_task_deliverable')}
+                            <FlagOutlined /> {t('content.convert_to_request_task_deliverable')}
                           </button>
                         </li>
                       </ul>
@@ -3425,21 +3407,18 @@ export default function ContentPage() {
                   </div>
 
                   {detailPreviewMode === 'mobile' ? (
-                    <div className="oma-plan-post__phone">
-                      <div className="oma-plan-post__phone-screen">
-                        <div className="oma-plan-post__phone-meta">
-                          {selected.channel || 'Osama page'} ·{' '}
-                          <span className="oma-ltr">
-                            {selected.scheduledAt
-                              ? selected.scheduledAt.slice(0, 16).replace('T', ', ')
-                              : '—'}
-                          </span>
-                        </div>
-                        <strong className="oma-plan-post__phone-title">
-                          {editTitle || pickCopy(selected.title, locale)}
-                        </strong>
-                        <p className="oma-plan-post__phone-body">{draft.caption}</p>
-                      </div>
+                    <div
+                      className="oma-plan-post__preview-pane"
+                      data-testid="content-detail-preview"
+                    >
+                      {renderPostPreview(
+                        {
+                          ...selected,
+                          caption: { en: draft.caption, ar: draft.caption },
+                          title: editTitle ? { en: editTitle, ar: editTitle } : selected.title,
+                        },
+                        'detail',
+                      )}
                     </div>
                   ) : (
                     <div className="oma-plan-post__editor">
@@ -3458,15 +3437,9 @@ export default function ContentPage() {
                           </span>
                           {approvalTipOpen ? (
                             <div className="oma-plan-post__tip-card">
-                              <strong>
-                                {t('content.no_one_approved_this_post')}
-                              </strong>
-                              <p>
-                                {t('content.pending_approval_from_any_of')}
-                              </p>
-                              <p className="oma-plan-post__tip-section">
-                                {t('nav.team')}
-                              </p>
+                              <strong>{t('content.no_one_approved_this_post')}</strong>
+                              <p>{t('content.pending_approval_from_any_of')}</p>
+                              <p className="oma-plan-post__tip-section">{t('nav.team')}</p>
                               <div className="oma-plan-post__tip-user">
                                 <span className="oma-plan-post__avatar">O</span>
                                 <span>
@@ -3480,9 +3453,7 @@ export default function ContentPage() {
                           <button
                             type="button"
                             className="oma-plan-post__status-btn"
-                            data-tooltip={
-                              t('content.post_is_not_published_yet')
-                            }
+                            data-tooltip={t('content.post_is_not_published_yet')}
                             onClick={() => setPublishTipOpen((v) => !v)}
                           >
                             <EditOutlined />
@@ -3523,9 +3494,7 @@ export default function ContentPage() {
                           className="oma-plan-post__body-input"
                           value={draft.caption}
                           onChange={(e) => setDraft((d) => ({ ...d, caption: e.target.value }))}
-                          placeholder={
-                            t('content.type_to_add_headlines_media')
-                          }
+                          placeholder={t('content.type_to_add_headlines_media')}
                           rows={8}
                           data-testid="demo-content-caption"
                         />
@@ -3561,7 +3530,10 @@ export default function ContentPage() {
                               {t('content.save_draft')}
                             </Button>
                           ) : null}
-                          <span className="oma-plan-post__approval-meta" data-testid="content-approval-meta">
+                          <span
+                            className="oma-plan-post__approval-meta"
+                            data-testid="content-approval-meta"
+                          >
                             {approvalProgressLabel(selected, policy, isAr) ? (
                               <span data-testid="content-approval-progress">
                                 {approvalProgressLabel(selected, policy, isAr)}
@@ -3619,9 +3591,7 @@ export default function ContentPage() {
                   <aside className="oma-plan-post__side" data-testid="demo-content-side-panel">
                     <header className="oma-plan-post__side-head">
                       <strong>
-                        {detailSidePanel === 'activity'
-                          ? t('nav.activity')
-                          : t('content.feedback')}
+                        {detailSidePanel === 'activity' ? t('nav.activity') : t('content.feedback')}
                       </strong>
                       <button
                         type="button"
@@ -3653,9 +3623,7 @@ export default function ContentPage() {
                           </span>
                         </div>
                         {approvalEvents.length === 0 ? (
-                          <p className="oma-muted">
-                            {t('content.no_approval_events_yet')}
-                          </p>
+                          <p className="oma-muted">{t('content.no_approval_events_yet')}</p>
                         ) : (
                           approvalEvents.map((ev) => (
                             <div key={ev.id} className="oma-plan-post__activity-row">
@@ -3700,9 +3668,7 @@ export default function ContentPage() {
                             {prodComments.length === 0 ? (
                               <div className="oma-plan-post__empty">
                                 <strong>{t('content.no_comments_yet')}</strong>
-                                <p>
-                                  {t('content.start_the_conversation_by_leaving')}
-                                </p>
+                                <p>{t('content.start_the_conversation_by_leaving')}</p>
                               </div>
                             ) : (
                               <div className="oma-comment-thread">
@@ -3776,10 +3742,7 @@ export default function ContentPage() {
                                       });
                                       setProdComments((prev) => [...prev, c]);
                                       setCommentDraft('');
-                                      toast.push(
-                                        t('demo.tasks.commentAdded'),
-                                        'success',
-                                      );
+                                      toast.push(t('demo.tasks.commentAdded'), 'success');
                                     } catch (err) {
                                       toast.push(contentApiError(err, t('errors.http')), 'danger');
                                     }
@@ -3793,9 +3756,7 @@ export default function ContentPage() {
                         ) : (
                           <div className="oma-plan-post__empty">
                             <strong>{t('content.no_suggestions_yet')}</strong>
-                            <p>
-                              {t('content.select_some_text_to_suggest')}
-                            </p>
+                            <p>{t('content.select_some_text_to_suggest')}</p>
                           </div>
                         )}
                       </div>
@@ -3953,9 +3914,7 @@ export default function ContentPage() {
             </button>
             <span className="oma-plan-selbar__badge">{selectedIds.length}</span>
             <span className="oma-plan-selbar__label">
-              {selectedIds.length === 1
-                ? t('content.post_selected')
-                : t('content.posts_selected')}
+              {selectedIds.length === 1 ? t('content.post_selected') : t('content.posts_selected')}
             </span>
             <button
               type="button"
@@ -4188,9 +4147,7 @@ export default function ContentPage() {
               <div className="oma-label-panel__empty">
                 <TagOutlined />
                 <strong>{t('content.no_labels_yet')}</strong>
-                <span>
-                  {t('content.add_one_with_a_name')}
-                </span>
+                <span>{t('content.add_one_with_a_name')}</span>
               </div>
             ) : (
               brandLabels
@@ -4251,9 +4208,7 @@ export default function ContentPage() {
                       setLabelDraft('');
                       toggleWorkspaceLabel(lab.name?.en || labelDraft.trim());
                     })
-                    .catch((err) =>
-                      toast.push(contentApiError(err, t('errors.http')), 'danger'),
-                    );
+                    .catch((err) => toast.push(contentApiError(err, t('errors.http')), 'danger'));
                 }}
               >
                 {t('content.add')}
@@ -4289,16 +4244,12 @@ export default function ContentPage() {
         onClose={() => setTemplatePickerOpen(false)}
       >
         <div className="oma-template-panel" data-testid="demo-content-templates">
-          <p className="oma-template-panel__lead">
-            {t('content.use_a_template_to_create')}
-          </p>
+          <p className="oma-template-panel__lead">{t('content.use_a_template_to_create')}</p>
           {brandTemplates.length === 0 ? (
             <div className="oma-template-panel__empty">
               <FileTextOutlined />
               <strong>{t('content.no_workspace_templates_yet')}</strong>
-              <span>
-                {t('content.open_any_post_and_choose')}
-              </span>
+              <span>{t('content.open_any_post_and_choose')}</span>
             </div>
           ) : (
             <div className="oma-template-panel__grid">
@@ -4323,7 +4274,7 @@ export default function ContentPage() {
                     <div className="oma-template-card__body">
                       <strong>{title}</strong>
                       <span className="oma-template-card__meta">
-                        {tpl.channel || (t('content.no_channel'))}
+                        {tpl.channel || t('content.no_channel')}
                         {tpl.content_type ? ` · ${tpl.content_type}` : ''}
                       </span>
                       {caption ? <p>{caption}</p> : null}
