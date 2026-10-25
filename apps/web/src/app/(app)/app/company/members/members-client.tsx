@@ -149,8 +149,10 @@ export default function CompanyMembersPage() {
     try {
       await attachMemberProfile(member.id, profile);
       toast.push(t('team.role_updated'), 'success');
-    } catch {
-      toast.push('Role profile not available on server; UI updated', 'success');
+    } catch (err) {
+      // Roll back the optimistic change — never report success when the server refused.
+      setMembers((prev) => prev.map((m) => (m.id === member.id ? { ...m, role: member.role } : m)));
+      toast.push(err instanceof Error ? err.message : t('errors.update_failed'), 'danger');
     }
   }
 

@@ -611,7 +611,7 @@ export function PlanableDashboard() {
                 <input
                   id="plx-ws-name"
                   className="plx-input-sm"
-                  placeholder="e.g. Planable"
+                  placeholder={t('companies.ph.workspace_name')}
                   value={wsName}
                   onChange={(e) => setWsName(e.target.value)}
                   autoFocus
@@ -622,7 +622,7 @@ export function PlanableDashboard() {
                 <input
                   id="plx-ws-url"
                   className="plx-input-sm"
-                  placeholder="e.g. planable.io"
+                  placeholder={t('companies.ph.website')}
                   value={wsUrl}
                   onChange={(e) => setWsUrl(e.target.value)}
                 />
@@ -728,7 +728,7 @@ export function PlanableDashboard() {
                     <input
                       id="plx-page-name"
                       className="plx-input-sm"
-                      placeholder="e.g. Blog"
+                      placeholder={t('companies.ph.page_name')}
                       value={pageName}
                       onChange={(e) => setPageName(e.target.value)}
                       autoFocus
