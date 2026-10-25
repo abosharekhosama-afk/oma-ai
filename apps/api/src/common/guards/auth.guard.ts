@@ -29,7 +29,11 @@ export class AuthGuard implements CanActivate {
     ) {
       throw new DomainError('UNAUTHENTICATED', 'Session invalid', 401, 'errors.unauthenticated');
     }
-    await prisma.session.update({ where: { id: session.id }, data: { lastSeenAt: new Date() } });
+    // Throttle the lastSeenAt write: at most once per minute per session (was every request).
+    if (Date.now() - session.lastSeenAt.getTime() > 60_000) {
+      await prisma.session.update({ where: { id: session.id }, data: { lastSeenAt: new Date() } });
+    }
+    (req as Request & { sessionExpiresAt?: Date }).sessionExpiresAt = session.expiresAt;
     req.oma = {
       ...(req.oma ?? { correlationId: '', requestId: '', capabilities: [] }),
       userId: session.userId,

@@ -5,6 +5,7 @@ import { AuthGuard } from '../common/guards/auth.guard';
 import { CsrfGuard } from '../common/guards/csrf.guard';
 import { clearSessionCookie, setCsrfCookie, setSessionCookie } from './session-cookie';
 import { DomainError } from '@oma/domain';
+import { getPrisma } from '@oma/db';
 
 @Controller('api/v1/auth')
 export class AuthController {
@@ -81,6 +82,29 @@ export class AuthController {
       active_tenant_id: activeTenantId ?? me.active_tenant_id,
       membership_route: membershipRoute ?? undefined,
     };
+  }
+
+  /**
+   * Sliding session refresh: extends expiry by SESSION_TTL_SECONDS and re-issues the cookie.
+   * The web client calls this shortly before expiry while the user is active.
+   */
+  @Post('session/refresh')
+  @HttpCode(200)
+  @UseGuards(AuthGuard, CsrfGuard)
+  async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const sessionId = (req as Request & { sessionId?: string }).sessionId;
+    const name = process.env.SESSION_COOKIE_NAME ?? 'oma_session';
+    const token = req.cookies?.[name] as string | undefined;
+    if (!sessionId || !token)
+      throw new DomainError('UNAUTHENTICATED', 'Session invalid', 401, 'errors.unauthenticated');
+    const ttl = Number(process.env.SESSION_TTL_SECONDS ?? 604800);
+    const expiresAt = new Date(Date.now() + ttl * 1000);
+    await getPrisma().session.update({
+      where: { id: sessionId },
+      data: { expiresAt, lastSeenAt: new Date() },
+    });
+    setSessionCookie(res, token);
+    return { data: { expires_at: expiresAt.toISOString() } };
   }
 
   @Post('password/change')

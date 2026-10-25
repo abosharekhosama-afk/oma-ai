@@ -49,14 +49,21 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
     const headers = new Headers(init.headers);
     headers.set('content-type', 'application/json');
     if (csrf && method !== 'GET') headers.set('x-csrf-token', decodeURIComponent(csrf));
-    const res = await fetch(path, { ...init, headers, credentials: 'include' });
+    let res: Response;
+    try {
+      res = await fetch(path, { ...init, headers, credentials: 'include' });
+    } catch (cause) {
+      // Network/offline: surface a typed error (status 0) so UIs can show an offline state + retry.
+      throw Object.assign(new Error('Network error'), { status: 0, code: 'NETWORK', cause });
+    }
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       if (res.status === 401 && typeof window !== 'undefined') {
         const isAuthPath =
           path.includes('/api/v1/auth/login') ||
           path.includes('/api/v1/auth/register') ||
-          path.includes('/api/v1/auth/logout');
+          path.includes('/api/v1/auth/logout') ||
+          path.includes('/api/v1/auth/recovery');
         if (!isAuthPath && !sessionInvalidNotified) {
           sessionInvalidNotified = true;
           window.dispatchEvent(

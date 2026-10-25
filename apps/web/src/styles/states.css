@@ -1,0 +1,282 @@
+/* Loading, error and account states — Planable calm. Tokens only. */
+
+/* ---- Skeleton: calm opacity pulse (flat fill, no sweep), matches real layout ---- */
+.oma-skeleton,
+.oma-content-cal-skeleton .oma-skeleton {
+  background: var(--oma-canvas) !important;
+  background-image: none !important;
+  border: 0 !important;
+  animation: oma-skel-pulse 1.6s ease-in-out infinite !important;
+}
+@keyframes oma-skel-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .oma-skeleton,
+  .oma-content-cal-skeleton .oma-skeleton {
+    animation: none !important;
+  }
+}
+.oma-list-skeleton {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4);
+}
+.oma-list-skeleton__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--oma-surface);
+  border: 1px solid var(--oma-border);
+  border-radius: var(--oma-radius-control);
+}
+.oma-list-skeleton__thumb {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  min-height: 0 !important;
+  border-radius: 4px !important;
+}
+.oma-list-skeleton__lines {
+  flex: 1;
+  display: grid;
+  gap: 6px;
+}
+.oma-list-skeleton__line {
+  display: block;
+  height: 12px;
+  min-height: 0 !important;
+  border-radius: 4px !important;
+}
+.oma-list-skeleton__line--short {
+  width: 40%;
+}
+.oma-route-skeleton {
+  padding: var(--space-6);
+}
+
+/* ---- Error states (404 / 500 / offline / API) ---- */
+.oma-error-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: var(--oma-canvas);
+  padding: var(--space-6);
+}
+.oma-error-state {
+  max-width: 440px;
+  margin: var(--space-10) auto;
+  padding: var(--space-6);
+  background: var(--oma-surface);
+  border: 1px solid var(--oma-border);
+  border-radius: 8px;
+  color: var(--oma-ink);
+  font-size: 14px;
+  line-height: 20px;
+  text-align: start;
+}
+.oma-error-state--compact {
+  margin: var(--space-4) 0;
+  max-width: none;
+  padding: var(--space-4);
+}
+.oma-error-state__code {
+  margin: 0;
+  color: var(--oma-muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.oma-error-state__title {
+  margin: var(--space-1) 0 var(--space-2);
+  font-size: 18px;
+  line-height: 24px;
+  font-weight: 600;
+  color: var(--oma-ink);
+}
+.oma-error-state__body,
+.oma-error-state__detail {
+  margin: 0 0 var(--space-4);
+  color: var(--oma-muted);
+}
+.oma-error-state__detail {
+  font-size: 12px;
+}
+.oma-error-state__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.oma-error-state__btn {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--oma-border-strong);
+  border-radius: var(--oma-radius-control);
+  background: var(--oma-surface);
+  color: var(--oma-ink);
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+.oma-error-state__btn:hover {
+  background: var(--oma-canvas);
+}
+.oma-error-state__btn--primary {
+  background: var(--oma-primary);
+  border-color: var(--oma-primary);
+  color: var(--oma-primary-ink);
+}
+.oma-error-state__btn--primary:hover {
+  background: var(--oma-primary);
+  opacity: 0.92;
+}
+.oma-offline-banner {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding: var(--space-1) var(--space-4);
+  background: var(--oma-badge-warning-bg);
+  border-bottom: 1px solid var(--oma-border);
+  color: var(--oma-ink);
+  font-size: 13px;
+  text-align: center;
+}
+
+/* ---- Account / static pages ---- */
+.oma-account {
+  max-width: 640px;
+  display: grid;
+  gap: var(--space-4);
+}
+.oma-account__card {
+  background: var(--oma-surface);
+  border: 1px solid var(--oma-border);
+  border-radius: 8px;
+  padding: var(--space-5);
+  display: grid;
+  gap: var(--space-3);
+}
+.oma-account__card h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--oma-ink);
+}
+.oma-account__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.oma-account__avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--oma-canvas);
+  border: 1px solid var(--oma-border);
+  color: var(--oma-muted);
+  font-weight: 600;
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+.oma-account__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.oma-account__field {
+  display: grid;
+  gap: var(--space-1);
+  font-size: 13px;
+  color: var(--oma-muted);
+}
+.oma-account__hint {
+  margin: 0;
+  font-size: 12px;
+  color: var(--oma-muted);
+}
+.oma-pref-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--oma-border);
+  font-size: 14px;
+  color: var(--oma-ink);
+}
+.oma-pref-toggle:last-child {
+  border-bottom: 0;
+}
+.oma-legal {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--space-10) var(--space-6);
+  color: var(--oma-ink);
+  font-size: 14px;
+  line-height: 22px;
+}
+.oma-legal h1 {
+  font-size: 22px;
+  margin: 0 0 var(--space-2);
+}
+.oma-legal h2 {
+  font-size: 15px;
+  margin: var(--space-6) 0 var(--space-2);
+}
+.oma-legal p,
+.oma-legal li {
+  color: var(--oma-ink);
+}
+.oma-legal__meta {
+  color: var(--oma-muted);
+  font-size: 13px;
+}
+.oma-notification-actions {
+  display: inline-flex;
+  gap: var(--space-2);
+  margin-inline-start: auto;
+}
+.oma-notification-mark {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--oma-muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.oma-notification-mark:hover {
+  color: var(--oma-primary);
+  text-decoration: underline;
+}
+.plx-auth-notice {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--oma-border);
+  border-radius: var(--oma-radius-control);
+  background: var(--oma-canvas);
+  color: var(--oma-ink);
+  font-size: 13px;
+  line-height: 18px;
+}
+.plx-auth-hint {
+  margin: 0;
+  color: var(--oma-muted);
+  font-size: 13px;
+}
+.oma-notification-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}

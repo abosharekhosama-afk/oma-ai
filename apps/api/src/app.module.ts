@@ -13,6 +13,7 @@ import { MembershipController } from './tenant/membership.controller';
 import { CapabilityController } from './tenant/capability.controller';
 import { JobsController } from './jobs/jobs.controller';
 import { NotificationsController } from './notifications/notifications.controller';
+import { AccountController } from './account/account.controller';
 import { BrandController } from './brand/brand.controller';
 import { WebsiteController } from './brand/website.controller';
 import { ScanController } from './brand/scan.controller';
@@ -37,6 +38,7 @@ import { AiController } from './ai/ai.controller';
     CapabilityController,
     JobsController,
     NotificationsController,
+    AccountController,
     BrandController,
     WebsiteController,
     ScanController,

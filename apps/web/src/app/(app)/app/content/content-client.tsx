@@ -3,7 +3,12 @@
 import { useReloadOnBrandChange } from '../../../../lib/active-brand';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { OmaTopLoader } from '../../../../components/ui/oma-top-loader';
+import {
+  ErrorState as ApiErrorState,
+  errorKindOf,
+  type ErrorKind,
+} from '../../../../components/ui/error-state';
+import { ContentCalSkeleton, ContentListSkeleton } from '../../../../components/ui/page-skeleton';
 import { createPortal } from 'react-dom';
 import { resolveContentWorkflow, type ApprovalPolicy, type DemoGraph } from '@oma/demo';
 import { ContentFace, faceDisplay } from '../../../../components/content/content-card';
@@ -48,7 +53,7 @@ import {
 } from '@ant-design/icons';
 
 import { Dialog } from '../../../../components/ui/dialog';
-import { EmptyState, ErrorState, DeniedState } from '../../../../components/ui/empty-state';
+import { EmptyState, DeniedState } from '../../../../components/ui/empty-state';
 import { useToast } from '../../../../components/ui/toast';
 import { mediaAlt, P3_MEDIA } from '../../../../lib/demo/demo-media';
 import {
@@ -800,6 +805,7 @@ export default function ContentPage() {
   const [calSpan, setCalSpan] = useState<'month' | 'week'>('month');
   const [selectedDay, setSelectedDay] = useState<string | null>(TODAY_KEY);
   const [loading, setLoading] = useState(true);
+  const [errorKind, setErrorKind] = useState<ErrorKind>('generic');
   const [error, setError] = useState<string | null>(null);
   const [unavailable, setUnavailable] = useState(false);
   const [filterSheet, setFilterSheet] = useState(false);
@@ -972,6 +978,7 @@ export default function ContentPage() {
           .catch(() => undefined);
       }
     } catch (err) {
+      setErrorKind(errorKindOf(err));
       setError(contentApiError(err, isAr ? 'تعذّر تحميل المحتوى' : 'Failed to load content'));
       setRows([]);
       setLoading(false);
@@ -2300,18 +2307,23 @@ export default function ContentPage() {
         </div>
       ) : null}
 
-      {loading ? <OmaTopLoader label={t('common.loading')} /> : null}
+      {/* Layout-matched skeletons instead of the dots loader. */}
+      {loading ? (
+        view === 'calendar' ? (
+          <ContentCalSkeleton />
+        ) : (
+          <ContentListSkeleton label={t('common.loading')} />
+        )
+      ) : null}
       {unavailable ? (
         <DeniedState title={t('demo.unavailable')} body={t('demo.disclosure')} />
       ) : null}
       {error ? (
-        <ErrorState
-          title={error}
-          action={
-            <Button type="default" onClick={() => void load()}>
-              {t('common.retry')}
-            </Button>
-          }
+        <ApiErrorState
+          compact
+          kind={errorKind}
+          detail={errorKind === 'generic' ? error : null}
+          onRetry={() => void load()}
         />
       ) : null}
 

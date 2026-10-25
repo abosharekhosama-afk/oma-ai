@@ -27,12 +27,20 @@ function formatWhen(iso: string): string {
   }
 }
 
-function notificationLabel(t: (k: string) => string, n: AppNotification): string {
-  if (n.title) return n.title;
+/** Localized title (en/ar) by type; falls back to the API's English copy. */
+export function notificationLabel(t: (k: string) => string, n: AppNotification): string {
   const key = `shell.notification.${n.type}`;
   const translated = t(key);
   if (translated && translated !== key) return translated;
+  if (n.title) return n.title;
   return n.type.replace(/\./g, ' ');
+}
+
+export function notificationBodyText(t: (k: string) => string, n: AppNotification): string | null {
+  const key = `shell.notificationBody.${n.type}`;
+  const translated = t(key);
+  if (translated && translated !== key) return translated;
+  return n.body || null;
 }
 
 export function NotificationsBell() {
@@ -146,7 +154,9 @@ export function NotificationsBell() {
                   }}
                 >
                   <span className="oma-notification-title">{notificationLabel(t, n)}</span>
-                  {n.body ? <span className="oma-notification-body">{n.body}</span> : null}
+                  {notificationBodyText(t, n) ? (
+                    <span className="oma-notification-body">{notificationBodyText(t, n)}</span>
+                  ) : null}
                 </Link>
               ) : (
                 <Button
@@ -162,6 +172,18 @@ export function NotificationsBell() {
               )}
               <span className="oma-notification-meta">
                 {t('shell.notificationsInApp')} · {formatWhen(n.createdAt)}
+                {!n.readAt && n.deepLinkPath ? (
+                  <span className="oma-notification-actions">
+                    <button
+                      type="button"
+                      className="oma-notification-mark"
+                      data-testid={`notification-read-${n.id}`}
+                      onClick={() => void markRead(n.id)}
+                    >
+                      {t('shell.markRead')}
+                    </button>
+                  </span>
+                ) : null}
               </span>
             </li>
           ))}

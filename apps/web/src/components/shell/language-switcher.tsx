@@ -3,6 +3,7 @@ import { SelectField } from '@oma/ui/controls';
 
 import { useRouter } from 'next/navigation';
 import { useLocale, useT } from '../../lib/use-locale';
+import { setLocaleCookie, updateProfile } from '../../lib/account-api';
 
 const LOCALES = [
   { code: 'en', label: 'English' },
@@ -22,7 +23,10 @@ export function LanguageSwitcher() {
         value={current}
         onChange={(e) => {
           // Locale drives both lang and dir in the root layout, so re-render on the server.
-          document.cookie = `oma_locale=${e.target.value}; path=/; max-age=31536000; samesite=lax`;
+          const next = e.target.value === 'ar' ? 'ar' : 'en';
+          setLocaleCookie(next);
+          // Persist on the account (server-side) so it follows the user across devices.
+          void updateProfile({ preferredLocale: next }).catch(() => undefined);
           router.refresh();
         }}
       >

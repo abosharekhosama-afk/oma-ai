@@ -2,21 +2,25 @@
 import { Button, Input, SelectField } from '@oma/ui/controls';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { OmaTopLoader } from '../../../../components/ui/oma-top-loader';
-import type { DemoGraph, DemoPreferences } from '@oma/demo';
+import { PageSkeleton } from '../../../../components/ui/page-skeleton';
+import { ErrorState, errorKindOf, type ErrorKind } from '../../../../components/ui/error-state';
+import type { DemoGraph } from '@oma/demo';
+import {
+  getPreferences,
+  updatePreferences,
+  setLocaleCookie,
+  NOTIFICATION_PREF_TYPES,
+  type UserPreferences,
+} from '../../../../lib/account-api';
 import { DemoDisclosure } from '../../../../components/demo/demo-disclosure';
 import { useToast } from '../../../../components/ui/toast';
-import {
-  demoApi,
-  demoErrorMessage,
-  isDemoForbidden,
-  pickCopy,
-} from '../../../../lib/demo/use-demo-api';
+import { demoApi, isDemoForbidden, pickCopy } from '../../../../lib/demo/use-demo-api';
 import { useLocale, useT } from '../../../../lib/use-locale';
 import { AiStatusNote } from '../../../../components/ai/ai-status-note';
 import { ShellIcon } from '../../../../components/shell/shell-icons';
 import type { NavIconId } from '../../../../components/shell/nav-config';
 
+type DemoPreferences = UserPreferences;
 type Integration = DemoGraph['integrations'][number];
 type Section = 'general' | 'workflow' | 'notifications' | 'integrations' | 'localization' | 'demo';
 
@@ -41,16 +45,17 @@ export default function SettingsPage() {
   const [intCategory, setIntCategory] = useState('all');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ErrorKind | null>(null);
   const [unavailable, setUnavailable] = useState(false);
   const [infoId, setInfoId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
+      // Per-user preferences are real account data; integrations catalog is optional (demo-only).
       const [preferences, integrations] = await Promise.all([
-        demoApi<DemoPreferences>('/preferences'),
-        demoApi<Integration[]>('/integrations'),
+        getPreferences(),
+        demoApi<Integration[]>('/integrations').catch(() => [] as Integration[]),
       ]);
       setPrefs(preferences);
       setDraft(preferences);
@@ -59,7 +64,7 @@ export default function SettingsPage() {
       setUnavailable(false);
     } catch (err) {
       if (isDemoForbidden(err)) setUnavailable(true);
-      else setError(demoErrorMessage(err, 'Demo unavailable'));
+      else setError(errorKindOf(err));
     } finally {
       setLoading(false);
     }
@@ -73,15 +78,17 @@ export default function SettingsPage() {
     if (!draft) return;
     setSaving(true);
     try {
-      const next = await demoApi<DemoPreferences>('/preferences', {
-        method: 'PATCH',
-        body: JSON.stringify(draft),
-      });
+      const next = await updatePreferences(draft);
       setPrefs(next);
       setDraft(next);
+      if (next.localePreference !== 'system' && next.localePreference !== locale) {
+        setLocaleCookie(next.localePreference);
+        window.location.reload();
+        return;
+      }
       toast.push(t('demo.settings.saved'), 'success');
     } catch (err) {
-      toast.push(demoErrorMessage(err, 'Demo unavailable'), 'danger');
+      toast.push(err instanceof Error ? err.message : t('errors.page.generic.title'), 'danger');
     } finally {
       setSaving(false);
     }
@@ -119,13 +126,9 @@ export default function SettingsPage() {
       <AiStatusNote />
       <DemoDisclosure />
 
-      {loading ? <OmaTopLoader /> : null}
+      {loading ? <PageSkeleton rows={6} /> : null}
       {unavailable ? <p className="oma-muted">{t('demo.unavailable')}</p> : null}
-      {error ? (
-        <div className="plx-empty" role="alert">
-          <strong>{error}</strong>
-        </div>
-      ) : null}
+      {error ? <ErrorState compact kind={error} onRetry={() => void load()} /> : null}
 
       {!loading && !unavailable && draft ? (
         <div className="oma-settings-shell">
@@ -150,7 +153,7 @@ export default function SettingsPage() {
                 <h2 className="oma-ws-section-title">
                   {t(`demo.settings.section.${section}`) || section}
                 </h2>
-                <p className="oma-ws-empty-desc">{t('demo.settings.demoPrefNote')}</p>
+                <p className="oma-ws-empty-desc">{t('settings.prefsNote')}</p>
                 {dirty ? (
                   <p className="oma-settings-dirty" data-testid="demo-settings-dirty" role="status">
                     {t('demo.settings.dirty')}
@@ -212,6 +215,8 @@ export default function SettingsPage() {
                   >
                     <option value="list">list</option>
                     <option value="calendar">calendar</option>
+                    <option value="feed">feed</option>
+                    <option value="grid">grid</option>
                   </SelectField>
                 </div>
                 <div className="oma-ws-field">
@@ -252,16 +257,65 @@ export default function SettingsPage() {
             )}
 
             {section === 'notifications' && (
-              <section>
+              <section data-testid="settings-notifications">
                 <h2 className="oma-ws-section-title">{t('demo.settings.section.notifications')}</h2>
-                <p className="oma-ws-empty-desc">
-                  Notification channels and digests. Workspace-level member notification matrix is
-                  on the Team page.
-                </p>
+                <p className="oma-ws-empty-desc">{t('settings.notifications.body')}</p>
+                <label className="oma-pref-toggle">
+                  <span>{t('settings.notifications.all')}</span>
+                  <input
+                    type="checkbox"
+                    data-testid="notif-pref-all"
+                    checked={draft.notifications.all !== false}
+                    onChange={(e) =>
+                      setDraft({
+                        ...draft,
+                        notifications: { ...draft.notifications, all: e.target.checked },
+                      })
+                    }
+                  />
+                </label>
+                <label className="oma-pref-toggle">
+                  <span>{t('settings.notifications.reviewReminders')}</span>
+                  <input
+                    type="checkbox"
+                    checked={draft.reviewReminders}
+                    onChange={(e) => setDraft({ ...draft, reviewReminders: e.target.checked })}
+                  />
+                </label>
+                {NOTIFICATION_PREF_TYPES.map((type) => (
+                  <label key={type} className="oma-pref-toggle">
+                    <span>{t(`shell.notificationPref.${type}`)}</span>
+                    <input
+                      type="checkbox"
+                      data-testid={`notif-pref-${type}`}
+                      disabled={draft.notifications.all === false}
+                      checked={
+                        draft.notifications.all !== false && draft.notifications[type] !== false
+                      }
+                      onChange={(e) =>
+                        setDraft({
+                          ...draft,
+                          notifications: { ...draft.notifications, [type]: e.target.checked },
+                        })
+                      }
+                    />
+                  </label>
+                ))}
                 <div className="oma-ws-action-row">
-                  <Button type="default" onClick={() => (window.location.href = '/app/team')}>
-                    <ShellIcon name="team" size={14} />
-                    <span>Team notifications</span>
+                  <Button
+                    type="default"
+                    disabled={!dirty || saving}
+                    onClick={() => setDraft(prefs)}
+                  >
+                    {t('demo.create.cancel')}
+                  </Button>
+                  <Button
+                    type="primary"
+                    data-testid="settings-notifications-save"
+                    disabled={!dirty || saving}
+                    onClick={() => void savePrefs()}
+                  >
+                    {t('demo.settings.save')}
                   </Button>
                 </div>
               </section>

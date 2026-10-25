@@ -10,6 +10,7 @@
 @import '../styles/stage-depth.css';
 @import '../styles/planable-org.css';
 @import '../styles/activity.css';
+@import '../styles/states.css';
 
 * {
   box-sizing: border-box;
@@ -615,9 +616,8 @@ body {
 .oma-skeleton {
   min-height: 4.5rem;
   border-radius: var(--radius-xl);
-  background: linear-gradient(90deg, var(--oma-canvas), var(--oma-surface), var(--oma-canvas));
-  background-size: 200% 100%;
-  animation: oma-shimmer 1.2s ease-in-out infinite;
+  background: var(--oma-canvas);
+  animation: oma-skel-pulse 1.6s ease-in-out infinite; /* calm pulse, see styles/states.css */
 }
 @keyframes oma-shimmer {
   0% {

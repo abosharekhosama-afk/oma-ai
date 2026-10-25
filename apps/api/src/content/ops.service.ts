@@ -1,4 +1,5 @@
 import { parseOptionalDate } from './content.service';
+import { notifyTask, safeNotifyDeliverable } from '../notifications/notify';
 import { Injectable } from '@nestjs/common';
 import { getPrisma, tenantWhere } from '@oma/db';
 import {
@@ -391,9 +392,7 @@ export class OpsService {
         ...(patch.assigneeUserId !== undefined
           ? { assigneeUserId: patch.assigneeUserId as string | null }
           : {}),
-        ...(patch.dueAt !== undefined
-          ? { dueAt: parseOptionalDate(patch.dueAt, 'dueAt') }
-          : {}),
+        ...(patch.dueAt !== undefined ? { dueAt: parseOptionalDate(patch.dueAt, 'dueAt') } : {}),
         ...(patch.contentId !== undefined ? { contentId: patch.contentId as string | null } : {}),
         ...(patch.campaignId !== undefined
           ? { campaignId: patch.campaignId as string | null }
@@ -547,6 +546,7 @@ export class OpsService {
       targetId: row.id,
       correlationId,
     });
+    if (row.assigneeUserId) await notifyTask(tenantId, actorUserId, row.id, 'task.assigned');
     return { data: mapTask(row) };
   }
 
@@ -570,9 +570,7 @@ export class OpsService {
         ...(patch.assigneeUserId !== undefined
           ? { assigneeUserId: patch.assigneeUserId as string | null }
           : {}),
-        ...(patch.dueAt !== undefined
-          ? { dueAt: parseOptionalDate(patch.dueAt, 'dueAt') }
-          : {}),
+        ...(patch.dueAt !== undefined ? { dueAt: parseOptionalDate(patch.dueAt, 'dueAt') } : {}),
       },
     });
     await this.audit.write({
@@ -583,6 +581,9 @@ export class OpsService {
       targetId: taskId,
       correlationId,
     });
+    if (row.assigneeUserId && row.assigneeUserId !== current.assigneeUserId) {
+      await notifyTask(tenantId, actorUserId, taskId, 'task.assigned');
+    }
     return { data: mapTask(row) };
   }
 
@@ -1077,6 +1078,7 @@ export class OpsService {
         updatedAt: new Date(),
       },
     });
+    await safeNotifyDeliverable(tenantId, actorUserId, deliverableId, 'deliverable.comment');
     return {
       data: {
         id: row.id,
@@ -1211,6 +1213,7 @@ export class OpsService {
         updatedAt: new Date(),
       },
     });
+    await notifyTask(tenantId, actorUserId, taskId, 'task.comment');
     return {
       data: {
         id: row.id,

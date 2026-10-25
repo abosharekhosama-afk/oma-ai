@@ -8,7 +8,15 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { Drawer } from '../ui/drawer';
 import { ToastProvider } from '../ui/toast';
 import { useT } from '../../lib/use-locale';
-import { CommandSearch } from './command-search';
+import dynamic from 'next/dynamic';
+import { SessionInvalidOverlay } from './session-invalid';
+import { SessionKeeper } from './session-keeper';
+import { OfflineBanner } from '../ui/offline-banner';
+
+// Heavy, on-demand UI is code-split out of the shell bundle.
+const CommandSearch = dynamic(() => import('./command-search').then((m) => m.CommandSearch), {
+  ssr: false,
+});
 import { NavLink } from './nav-link';
 import { NotificationsBell } from './notifications-bell';
 import { SHELL_NAV_SECTIONS, SHELL_RAIL_PREF_KEY } from './nav-config';
@@ -16,7 +24,10 @@ import { ShellIcon } from './shell-icons';
 import { UserMenu } from './user-menu';
 import { WorkspaceRow } from './workspace-row';
 import { WorkspacePathMenu } from './workspace-path-menu';
-import { WorkspaceSettingsPanel } from './workspace-settings-panel';
+const WorkspaceSettingsPanel = dynamic(
+  () => import('./workspace-settings-panel').then((m) => m.WorkspaceSettingsPanel),
+  { ssr: false },
+);
 import { PlxLogo } from '../ui/plx-icons';
 
 function RailNav({ collapsed }: { collapsed: boolean }) {
@@ -356,6 +367,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
             )}
           </header>
           <main id="main" className="oma-container">
+            <OfflineBanner />
             {children}
           </main>
         </div>
@@ -396,7 +408,11 @@ export function ShellChrome({ children }: { children: ReactNode }) {
           </div>
         </Drawer>
 
-        <WorkspaceSettingsPanel open={wsSettingsOpen} onClose={() => setWsSettingsOpen(false)} />
+        {wsSettingsOpen ? (
+          <WorkspaceSettingsPanel open={wsSettingsOpen} onClose={() => setWsSettingsOpen(false)} />
+        ) : null}
+        <SessionKeeper />
+        <SessionInvalidOverlay />
       </div>
     </ToastProvider>
   );

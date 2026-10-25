@@ -3,7 +3,8 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
-import { OmaDotsLoader } from '../ui/oma-dots-loader';
+import { PageSkeleton } from '../ui/page-skeleton';
+import { loginUrlFor, SESSION_OK_KEY } from '../../lib/session';
 
 type Me = {
   active_tenant_id: string | null;
@@ -18,7 +19,14 @@ type Me = {
 export function MembershipRouteGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const [ready, setReady] = useState(false);
+  // Skip the blocking check when this tab already confirmed a session (no skeleton flash on nav).
+  const [ready, setReady] = useState(() => {
+    try {
+      return typeof window !== 'undefined' && window.sessionStorage.getItem(SESSION_OK_KEY) === '1';
+    } catch {
+      return false;
+    }
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -29,11 +37,17 @@ export function MembershipRouteGate({ children }: { children: React.ReactNode })
       if (!cancelled) setReady(true);
     };
 
-    const timeoutId = window.setTimeout(finish, 800);
+    // Never reveal protected UI before the session is confirmed, except as a slow-network fallback.
+    const timeoutId = window.setTimeout(finish, 6000);
 
     api<Me>('/api/v1/auth/me')
       .then((me) => {
         if (cancelled) return;
+        try {
+          window.sessionStorage.setItem(SESSION_OK_KEY, '1');
+        } catch {
+          /* ignore */
+        }
         const route = me.membership_route;
 
         if (onOnboarding) {
@@ -63,7 +77,12 @@ export function MembershipRouteGate({ children }: { children: React.ReactNode })
         if (cancelled) return;
         const status = (err as { status?: number })?.status;
         if (status === 401) {
-          window.location.replace('/login?reason=session');
+          try {
+            window.sessionStorage.removeItem(SESSION_OK_KEY);
+          } catch {
+            /* ignore */
+          }
+          window.location.replace(loginUrlFor(window.location));
           return;
         }
         if (onOnboarding) {
@@ -85,8 +104,8 @@ export function MembershipRouteGate({ children }: { children: React.ReactNode })
 
   if (!ready) {
     return (
-      <div className="oma-route-loading" role="status" aria-label="Loading">
-        <OmaDotsLoader />
+      <div className="oma-route-skeleton" data-testid="route-skeleton">
+        <PageSkeleton rows={6} />
       </div>
     );
   }
