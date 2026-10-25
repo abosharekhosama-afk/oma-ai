@@ -9,6 +9,14 @@ export type ActivityItem = {
   summary: string;
   actor_name: string;
   actor_email?: string | null;
+  target?: {
+    type: 'content' | 'campaign' | 'request' | 'task' | 'deliverable' | 'brand';
+    name: { en: string; ar: string };
+    href: string;
+    thumbnail_url?: string | null;
+    snippet?: { en: string; ar: string } | null;
+    snippet_kind?: 'caption' | 'comment' | null;
+  } | null;
 };
 
 let cache: { at: number; data: { items: ActivityItem[]; next_cursor: string | null } } | null =

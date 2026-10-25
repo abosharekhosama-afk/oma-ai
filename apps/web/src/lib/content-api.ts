@@ -6,6 +6,7 @@ import type { ContentRow } from './demo/stage3-campaigns';
 import type { ApiLocale } from './campaign-api';
 import {
   listBrandsProduction,
+  listScopedBrands,
   listAllCampaigns,
   listCampaignsForBrand,
   toCampaignRow,
@@ -212,7 +213,7 @@ export async function loadContentWorkspace(opts?: { full?: boolean }): Promise<{
   policy: 'NONE' | 'OPTIONAL' | 'REQUIRED';
   remainingBrandIds: string[];
 }> {
-  const brandRows = await listBrandsProduction();
+  const brandRows = await listScopedBrands();
   const brandIds = brandRows.map((b) => b.id);
   const primary = brandIds[0];
   const rest = brandIds.slice(1);

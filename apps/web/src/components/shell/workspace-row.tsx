@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useT } from '../../lib/use-locale';
 import { api } from '../../lib/api';
 import { ShellIcon } from './shell-icons';
+import { resolveActiveBrand, selectBrand, useActiveBrandId } from '../../lib/active-brand';
 
 type Me = {
   active_tenant_id: string | null;
@@ -81,8 +82,9 @@ export function WorkspaceRow({ collapsed = false, onOpenSettings }: WorkspaceRow
     t('shell.workspace') ||
     'Workspace';
 
-  // Prefer first brand as active workspace label (Planable: workspace = brand)
-  const activeBrand = brands[0];
+  // Active brand scopes work surfaces (content, tasks, …); none selected = all brands.
+  const activeBrandId = useActiveBrandId();
+  const activeBrand = resolveActiveBrand(brands, activeBrandId);
   const name = activeBrand?.name || company;
 
   if (collapsed) {
@@ -171,15 +173,33 @@ export function WorkspaceRow({ collapsed = false, onOpenSettings }: WorkspaceRow
                     <ShellIcon name="settings" size={14} />
                     <span>{t('shell.workspaceSettings') || 'Workspace settings'}</span>
                   </button>
+                  {brands.length > 1 ? (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="oma-ws-menu-item"
+                      data-active={!activeBrand ? 'true' : 'false'}
+                      data-testid="workspace-row-brand-all"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        selectBrand(null);
+                      }}
+                    >
+                      <ShellIcon name="brand" size={14} />
+                      <span>{t('shell.brandAll') || 'All brands'}</span>
+                    </button>
+                  ) : null}
                   {brands.slice(0, 6).map((b) => (
                     <button
                       key={b.id}
                       type="button"
                       role="menuitem"
                       className="oma-ws-menu-item"
+                      data-active={activeBrand?.id === b.id ? 'true' : 'false'}
+                      data-testid={`workspace-row-brand-${b.id}`}
                       onClick={() => {
                         setMenuOpen(false);
-                        window.location.assign(`/app/brands/${b.id}`);
+                        selectBrand(b.id);
                       }}
                     >
                       <ShellIcon name="brand" size={14} />

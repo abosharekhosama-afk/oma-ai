@@ -165,6 +165,7 @@ export class AuditController {
 
     const userMap = new Map(users.map((u) => [u.id, u]));
     const memMap = new Map(memberships.map((m) => [m.id, m]));
+    const targets = await resolveActivityTargets(req.oma.tenantId, rows);
 
     const items = rows.map((r) => {
       const actor = r.actorUserId ? userMap.get(r.actorUserId) : null;
@@ -209,10 +210,164 @@ export class AuditController {
         summary,
         actor_name: actorName,
         actor_email: actor?.email ?? null,
-        // intentionally omit raw targetId / afterRef IDs
+        // Readable target (name + in-app link + optional preview); never a raw ID label.
+        target:
+          r.targetType && r.targetId
+            ? (targets.get(`${r.targetType}:${r.targetId}`) ?? null)
+            : null,
       };
     });
 
     return { items, next_cursor: rows.at(-1)?.id ?? null };
   }
+}
+
+type ActivityTarget = {
+  type: 'content' | 'campaign' | 'request' | 'task' | 'deliverable' | 'brand';
+  name: { en: string; ar: string };
+  href: string;
+  thumbnail_url?: string | null;
+  snippet?: { en: string; ar: string } | null;
+  snippet_kind?: 'caption' | 'comment' | null;
+};
+
+const clip = (v: string | null | undefined, n = 140) => {
+  const t = (v ?? '')
+    .replace(/__OMA_BRIEF_V1__[\s\S]*$/, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return t.length > n ? `${t.slice(0, n - 1)}…` : t;
+};
+
+/** Batch-resolve audit targets to readable names/links (tenant-scoped). */
+async function resolveActivityTargets(
+  tenantId: string,
+  rows: Array<{ targetType: string | null; targetId: string | null }>,
+): Promise<Map<string, ActivityTarget>> {
+  const ids = (type: string) => [
+    ...new Set(
+      rows.filter((r) => r.targetType === type && r.targetId).map((r) => r.targetId as string),
+    ),
+  ];
+  const prisma = getPrisma();
+  const commentIds = ids('ContentComment');
+  const comments = commentIds.length
+    ? await prisma.contentComment.findMany({
+        where: { tenantId, id: { in: commentIds } },
+        select: { id: true, contentId: true, bodyEn: true, bodyAr: true },
+      })
+    : [];
+  const versionIds = ids('WorkDeliverableVersion');
+  const versions = versionIds.length
+    ? await prisma.workDeliverableVersion.findMany({
+        where: { tenantId, id: { in: versionIds } },
+        select: { id: true, deliverableId: true, assetUrl: true },
+      })
+    : [];
+  const deliverableIds = [
+    ...new Set([...ids('WorkDeliverable'), ...versions.map((v) => v.deliverableId)]),
+  ];
+  const contentIds = [...new Set([...ids('ContentItem'), ...comments.map((c) => c.contentId)])];
+  const none = Promise.resolve([] as never[]);
+  const [content, campaigns, requests, tasks, deliverables, brands] = await Promise.all([
+    contentIds.length
+      ? prisma.contentItem.findMany({
+          where: { tenantId, id: { in: contentIds } },
+          select: { id: true, titleEn: true, titleAr: true, captionEn: true, captionAr: true },
+        })
+      : none,
+    ids('Campaign').length
+      ? prisma.campaign.findMany({
+          where: { tenantId, id: { in: ids('Campaign') } },
+          select: { id: true, nameEn: true, nameAr: true },
+        })
+      : none,
+    ids('WorkRequest').length
+      ? prisma.workRequest.findMany({
+          where: { tenantId, id: { in: ids('WorkRequest') } },
+          select: { id: true, titleEn: true, titleAr: true },
+        })
+      : none,
+    ids('WorkTask').length
+      ? prisma.workTask.findMany({
+          where: { tenantId, id: { in: ids('WorkTask') } },
+          select: { id: true, titleEn: true, titleAr: true },
+        })
+      : none,
+    deliverableIds.length
+      ? prisma.workDeliverable.findMany({
+          where: { tenantId, id: { in: deliverableIds } },
+          select: { id: true, titleEn: true, titleAr: true, assetUrl: true },
+        })
+      : none,
+    ids('BrandWorkspace').length
+      ? prisma.brandWorkspace.findMany({
+          where: { tenantId, id: { in: ids('BrandWorkspace') } },
+          select: { id: true, name: true },
+        })
+      : none,
+  ]);
+  const out = new Map<string, ActivityTarget>();
+  const contentMap = new Map(content.map((c) => [c.id, c]));
+  for (const c of content) {
+    const snippet = clip(c.captionEn) || clip(c.captionAr);
+    out.set(`ContentItem:${c.id}`, {
+      type: 'content',
+      name: { en: c.titleEn, ar: c.titleAr || c.titleEn },
+      href: `/app/content?item=${encodeURIComponent(c.id)}`,
+      snippet: snippet
+        ? { en: clip(c.captionEn) || snippet, ar: clip(c.captionAr) || snippet }
+        : null,
+      snippet_kind: snippet ? 'caption' : null,
+    });
+  }
+  for (const cm of comments) {
+    const item = contentMap.get(cm.contentId);
+    if (!item) continue;
+    out.set(`ContentComment:${cm.id}`, {
+      type: 'content',
+      name: { en: item.titleEn, ar: item.titleAr || item.titleEn },
+      href: `/app/content?item=${encodeURIComponent(item.id)}`,
+      snippet: { en: clip(cm.bodyEn), ar: clip(cm.bodyAr) || clip(cm.bodyEn) },
+      snippet_kind: 'comment',
+    });
+  }
+  for (const c of campaigns)
+    out.set(`Campaign:${c.id}`, {
+      type: 'campaign',
+      name: { en: c.nameEn, ar: c.nameAr || c.nameEn },
+      href: `/app/campaigns/${encodeURIComponent(c.id)}`,
+    });
+  for (const r of requests)
+    out.set(`WorkRequest:${r.id}`, {
+      type: 'request',
+      name: { en: r.titleEn, ar: r.titleAr || r.titleEn },
+      href: `/app/requests/${encodeURIComponent(r.id)}`,
+    });
+  for (const tk of tasks)
+    out.set(`WorkTask:${tk.id}`, {
+      type: 'task',
+      name: { en: tk.titleEn, ar: tk.titleAr || tk.titleEn },
+      href: `/app/tasks?task=${encodeURIComponent(tk.id)}`,
+    });
+  for (const d of deliverables)
+    out.set(`WorkDeliverable:${d.id}`, {
+      type: 'deliverable',
+      name: { en: d.titleEn, ar: d.titleAr || d.titleEn },
+      href: `/app/deliverables/${encodeURIComponent(d.id)}`,
+      thumbnail_url: d.assetUrl && /^(https?:|\/)/.test(d.assetUrl) ? d.assetUrl : null,
+    });
+  for (const v of versions) {
+    const d = out.get(`WorkDeliverable:${v.deliverableId}`);
+    if (!d) continue;
+    const thumb = v.assetUrl && /^(https?:|\/)/.test(v.assetUrl) ? v.assetUrl : d.thumbnail_url;
+    out.set(`WorkDeliverableVersion:${v.id}`, { ...d, thumbnail_url: thumb ?? null });
+  }
+  for (const b of brands)
+    out.set(`BrandWorkspace:${b.id}`, {
+      type: 'brand',
+      name: { en: b.name, ar: b.name },
+      href: `/app/brands/${encodeURIComponent(b.id)}`,
+    });
+  return out;
 }

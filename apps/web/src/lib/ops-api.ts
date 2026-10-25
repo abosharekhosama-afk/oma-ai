@@ -3,7 +3,7 @@
  */
 import { api } from './api';
 import type { ApiLocale } from './campaign-api';
-import { listBrandsProduction, listAllCampaigns, toCampaignRow } from './campaign-api';
+import { listScopedBrands, listAllCampaigns, toCampaignRow } from './campaign-api';
 import type { RequestRow } from './demo/stage4-requests';
 import type { TaskRow } from './demo/stage4-tasks';
 import type { DeliverableRow } from './demo/stage5-deliverables';
@@ -646,7 +646,7 @@ export async function loadRequestsWorkspace(): Promise<{
   campaigns: { id: string; brandId: string; name: { en: string; ar: string } }[];
   requests: RequestRow[];
 }> {
-  const brandRows = await listBrandsProduction();
+  const brandRows = await listScopedBrands();
   const brandIds = brandRows.map((b) => b.id);
   const [campaigns, requests] = await Promise.all([
     brandIds.length ? listAllCampaigns(brandIds) : Promise.resolve([]),
@@ -679,7 +679,7 @@ export async function loadTasksWorkspace(): Promise<{
   campaigns: { id: string; brandId: string; name: { en: string; ar: string } }[];
   tasks: TaskRow[];
 }> {
-  const brandRows = await listBrandsProduction();
+  const brandRows = await listScopedBrands();
   const brandIds = brandRows.map((b) => b.id);
   const [campaigns, taskBatches] = await Promise.all([
     brandIds.length ? listAllCampaigns(brandIds) : Promise.resolve([]),
@@ -729,7 +729,7 @@ export async function loadDeliverablesWorkspace(): Promise<{
   campaigns: { id: string; brandId: string; name: { en: string; ar: string } }[];
   deliverables: DeliverableRow[];
 }> {
-  const brandRows = await listBrandsProduction();
+  const brandRows = await listScopedBrands();
   const brandIds = brandRows.map((b) => b.id);
   const [campaigns, delBatches] = await Promise.all([
     brandIds.length ? listAllCampaigns(brandIds) : Promise.resolve([]),

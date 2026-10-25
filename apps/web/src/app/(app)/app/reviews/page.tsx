@@ -1,4 +1,5 @@
 'use client';
+import { useReloadOnBrandChange } from '../../../../lib/active-brand';
 import { SearchOutlined } from '@ant-design/icons';
 
 import { Button, Input } from '@oma/ui/controls';
@@ -60,6 +61,9 @@ export default function ReviewsPage() {
       setLoading(false);
     }
   }, []);
+
+  // Refresh when the active brand changes in the header switcher.
+  useReloadOnBrandChange(load);
 
   useEffect(() => {
     void load();

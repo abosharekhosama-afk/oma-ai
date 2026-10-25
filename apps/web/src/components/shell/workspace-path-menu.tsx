@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { api } from '../../lib/api';
 import { useT } from '../../lib/use-locale';
 import { ShellIcon } from './shell-icons';
+import { resolveActiveBrand, selectBrand, useActiveBrandId } from '../../lib/active-brand';
 
 type Me = {
   active_tenant_id: string | null;
@@ -72,7 +73,8 @@ export function WorkspacePathMenu({ onOpenSettings }: { onOpenSettings: () => vo
     me?.memberships[0]?.tenant_name ||
     t('shell.workspace') ||
     'Workspace';
-  const activeBrand = brands[0];
+  const activeBrandId = useActiveBrandId();
+  const activeBrand = resolveActiveBrand(brands, activeBrandId);
   const name = activeBrand?.name || company;
 
   return (
@@ -126,29 +128,35 @@ export function WorkspacePathMenu({ onOpenSettings }: { onOpenSettings: () => vo
           </div>
 
           <div className="oma-path-ws-menu__list">
-            {(brands.length ? brands.slice(0, 6) : [{ id: 'active', name }]).map((brand, idx) => (
-              <button
-                key={brand.id}
-                type="button"
-                role="menuitem"
-                className="oma-ws-menu-item oma-path-ws-menu__ws"
-                data-active={idx === 0 ? 'true' : 'false'}
-                onClick={() => {
-                  setOpen(false);
-                  if (brand.id !== 'active') window.location.assign(`/app/brands/${brand.id}`);
-                }}
-              >
-                <span className="oma-path-ws-menu__ws-icon" aria-hidden>
-                  ⊞
-                </span>
-                <span className="oma-path-ws-menu__ws-name">{brand.name}</span>
-                {idx === 0 ? (
-                  <span className="oma-path-ws-menu__check" aria-hidden>
-                    ✓
-                  </span>
-                ) : null}
-              </button>
-            ))}
+            {(brands.length > 1 ? [{ id: '', name: t('shell.brandAll') || 'All brands' }] : [])
+              .concat(brands.length ? brands.slice(0, 6) : [{ id: 'active', name }])
+              .map((brand) => {
+                const isActive = brand.id ? activeBrand?.id === brand.id : !activeBrand;
+                return (
+                  <button
+                    key={brand.id || 'all'}
+                    type="button"
+                    role="menuitem"
+                    className="oma-ws-menu-item oma-path-ws-menu__ws"
+                    data-active={isActive ? 'true' : 'false'}
+                    data-testid={`shell-brand-option-${brand.id || 'all'}`}
+                    onClick={() => {
+                      setOpen(false);
+                      if (brand.id !== 'active') selectBrand(brand.id || null);
+                    }}
+                  >
+                    <span className="oma-path-ws-menu__ws-icon" aria-hidden>
+                      ⊞
+                    </span>
+                    <span className="oma-path-ws-menu__ws-name">{brand.name}</span>
+                    {isActive ? (
+                      <span className="oma-path-ws-menu__check" aria-hidden>
+                        ✓
+                      </span>
+                    ) : null}
+                  </button>
+                );
+              })}
           </div>
 
           <button

@@ -1430,6 +1430,10 @@ const REVIEW_ACTION_TASK_STATUS: Record<string, string> = {
   submit: 'IN_REVIEW',
   request_changes: 'IN_PROGRESS',
   approve: 'DONE',
+  // A rejected deliverable is a dead end for that work item: the task is BLOCKED (not DONE)
+  // so the team must decide to rework or cancel. Content/request status is left untouched;
+  // content keeps its own approval flow and the request stays open.
+  reject: 'BLOCKED',
 };
 
 function mapTask(row: {
