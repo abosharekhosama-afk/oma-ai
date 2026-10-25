@@ -131,6 +131,9 @@ import {
   canReject,
   canScheduleItem,
   canMarkPublished,
+  approvalProgressLabel,
+  scheduleBlockReason,
+  scheduleBlockedHint,
   canArchive,
   lifecycleHint,
 } from '../../../../lib/content-workflow-ui';
@@ -663,7 +666,7 @@ function CardFloatingMenu({
       action: 'published',
       label: isAr ? 'تم كمنشور' : 'Mark as published',
       icon: <FlagOutlined />,
-      disabled: !canMarkPublished(src),
+      disabled: !canMarkPublished(src, policy),
     },
     {
       action: 'schedule',
@@ -1371,23 +1374,17 @@ export default function ContentPage() {
               : command,
         target,
         isAr,
+        policy,
       );
       if (
         hint &&
-        (command === 'approve' || command === 'schedule' || command === 'request-approval')
+        (command === 'approve' ||
+          command === 'schedule' ||
+          command === 'mark-published' ||
+          command === 'request-approval')
       ) {
-        if (
-          command === 'schedule' &&
-          !canScheduleItem(target, 'OPTIONAL') &&
-          target.approvalState !== 'APPROVED'
-        ) {
-          toast.push(hint, 'danger');
-          return;
-        }
-        if (command === 'approve' && !canApprove(target)) {
-          toast.push(hint, 'danger');
-          return;
-        }
+        toast.push(hint, 'danger');
+        return;
       }
     }
     setSaving(true);
@@ -1432,23 +1429,40 @@ export default function ContentPage() {
     }
   }
 
+  /**
+   * Dropping a post on a day changes its planned date only. A post that is already scheduled
+   * inside OMA keeps its schedule and moves to the new day (subject to the approval policy).
+   */
   async function rescheduleContentToDay(contentId: string, dayKey: string) {
     const row = rows.find((r) => r.id === contentId);
     if (!row) return;
-    if (!canScheduleItem(row, 'OPTIONAL') && row.approvalState !== 'APPROVED') {
+    const when = wallTimeToIso(dayKey) ?? `${dayKey}T10:00:00.000Z`;
+    const isScheduled = row.scheduleState === 'SCHEDULED';
+    if (isScheduled && !canScheduleItem(row, policy)) {
       toast.push(
-        isAr ? 'الجدولة محظورة حتى اعتماد المنشور' : 'Scheduling blocked until content is approved',
+        scheduleBlockedHint(scheduleBlockReason(row, policy), isAr) ??
+          (isAr ? 'الجدولة غير متاحة' : 'Scheduling unavailable'),
         'danger',
       );
       return;
     }
-    const scheduledAt = wallTimeToIso(dayKey) ?? `${dayKey}T10:00:00.000Z`;
     setSaving(true);
     try {
-      const updated = await scheduleContent(contentId, { scheduledAt });
+      const updated = isScheduled
+        ? await scheduleContent(contentId, { scheduledAt: when })
+        : await updateContentProduction(contentId, { plannedAt: when });
       const next = toContentRow(updated);
       setRows((prev) => prev.map((r) => (r.id === contentId ? next : r)));
-      toast.push(isAr ? 'تم تحديث موعد المنشور' : 'Post rescheduled', 'success');
+      toast.push(
+        isScheduled
+          ? isAr
+            ? 'تم نقل موعد الجدولة'
+            : 'Scheduled time moved'
+          : isAr
+            ? 'تم تحديث التاريخ المخطط (غير مجدول)'
+            : 'Planned date updated (not scheduled)',
+        'success',
+      );
     } catch (err) {
       toast.push(contentApiError(err, t('demo.unavailable')), 'danger');
     } finally {
@@ -3577,7 +3591,25 @@ export default function ContentPage() {
                               {isAr ? 'حفظ المسودة' : 'Save draft'}
                             </Button>
                           ) : null}
+                          <span className="oma-plan-post__approval-meta" data-testid="content-approval-meta">
+                            {approvalProgressLabel(selected, policy, isAr) ? (
+                              <span data-testid="content-approval-progress">
+                                {approvalProgressLabel(selected, policy, isAr)}
+                              </span>
+                            ) : null}
+                            {scheduleBlockedHint(scheduleBlockReason(selected, policy), isAr) ? (
+                              <span data-testid="content-schedule-blocked">
+                                {scheduleBlockedHint(scheduleBlockReason(selected, policy), isAr)}
+                              </span>
+                            ) : null}
+                            <span data-testid="content-publishing-not-connected">
+                              {isAr
+                                ? 'الجدولة داخل OMA فقط — النشر الخارجي غير متصل'
+                                : 'Scheduled inside OMA only — external publishing not connected'}
+                            </span>
+                          </span>
                           <DatePicker
+                            placeholder={isAr ? 'التاريخ المخطط' : 'Planned date'}
                             showTime={{ format: 'HH:mm' }}
                             format="MMM DD, HH:mm"
                             value={draft.scheduledAt ? dayjs(draft.scheduledAt) : null}
@@ -3585,11 +3617,15 @@ export default function ContentPage() {
                               const next = value ? value.format('YYYY-MM-DDTHH:mm') : '';
                               setDraft((current) => ({ ...current, scheduledAt: next }));
                             }}
-                            aria-label={t('demo.content.schedule')}
+                            aria-label={isAr ? 'التاريخ المخطط' : 'Planned date'}
                           />
                           <Button
                             type="default"
                             disabled={saving || !canScheduleItem(selected, policy)}
+                            title={
+                              scheduleBlockedHint(scheduleBlockReason(selected, policy), isAr) ??
+                              undefined
+                            }
                             onClick={() => void runLifecycle('schedule', selectedId)}
                             data-testid="demo-content-schedule"
                           >

@@ -24,14 +24,66 @@ export type TimeSlot = {
   color: string;
 };
 
+export type ApprovalMode = 'none' | 'optional' | 'required';
+
 export type ApprovalSettings = {
-  mode: 'none' | 'optional' | 'required' | 'multi_level';
+  mode: ApprovalMode;
+  requiredApprovers: number;
   scheduleOnApproval: boolean;
   lockAfterApproval: boolean;
 };
 
+/** Server-persisted workspace settings (GET/PATCH /api/v1/workspace/settings). */
+export type WorkspaceSettings = {
+  tenant_id: string;
+  website_url: string | null;
+  timezone: string;
+  approval_mode: ApprovalMode;
+  required_approvers: number;
+  schedule_on_approval: boolean;
+  lock_after_approval: boolean;
+};
+
+export const DEFAULT_APPROVALS: ApprovalSettings = {
+  mode: 'optional',
+  requiredApprovers: 1,
+  scheduleOnApproval: false,
+  lockAfterApproval: false,
+};
+
+export function approvalsFromSettings(s: WorkspaceSettings): ApprovalSettings {
+  return {
+    mode: s.approval_mode,
+    requiredApprovers: s.required_approvers ?? 1,
+    scheduleOnApproval: s.schedule_on_approval,
+    lockAfterApproval: s.lock_after_approval,
+  };
+}
+
+export async function getWorkspaceSettings(): Promise<WorkspaceSettings> {
+  return api<WorkspaceSettings>('/api/v1/workspace/settings');
+}
+
+export async function patchWorkspaceSettings(
+  patch: Partial<Omit<WorkspaceSettings, 'tenant_id'>>,
+): Promise<WorkspaceSettings> {
+  return api<WorkspaceSettings>('/api/v1/workspace/settings', {
+    method: 'PATCH',
+    body: JSON.stringify(patch),
+  });
+}
+
+export async function saveApprovalSettings(a: ApprovalSettings): Promise<ApprovalSettings> {
+  const s = await patchWorkspaceSettings({
+    approval_mode: a.mode,
+    required_approvers: a.mode === 'required' ? a.requiredApprovers : 1,
+    schedule_on_approval: a.scheduleOnApproval,
+    lock_after_approval: a.lockAfterApproval,
+  });
+  return approvalsFromSettings(s);
+}
+
 const SLOT_KEY = 'oma.workspace.timetable.v1';
-const APPROVAL_KEY = 'oma.workspace.approvals.v1';
 
 export async function listBrands(): Promise<BrandRef[]> {
   const res = await api<{ items?: BrandRef[]; data?: BrandRef[] } | BrandRef[]>(
@@ -114,22 +166,4 @@ export function loadTimeSlots(): TimeSlot[] {
 export function saveTimeSlots(slots: TimeSlot[]) {
   if (typeof window === 'undefined') return;
   window.localStorage.setItem(SLOT_KEY, JSON.stringify(slots));
-}
-
-export function loadApprovalSettings(): ApprovalSettings {
-  if (typeof window === 'undefined') {
-    return { mode: 'optional', scheduleOnApproval: false, lockAfterApproval: false };
-  }
-  try {
-    const raw = window.localStorage.getItem(APPROVAL_KEY);
-    if (raw) return JSON.parse(raw) as ApprovalSettings;
-  } catch {
-    /* ignore */
-  }
-  return { mode: 'optional', scheduleOnApproval: false, lockAfterApproval: false };
-}
-
-export function saveApprovalSettings(settings: ApprovalSettings) {
-  if (typeof window === 'undefined') return;
-  window.localStorage.setItem(APPROVAL_KEY, JSON.stringify(settings));
 }

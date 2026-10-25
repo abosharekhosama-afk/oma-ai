@@ -7686,3 +7686,24 @@ label.oma-compose-media {
   background: #fafbfc !important;
   border: 0 !important;
 }
+
+/* Approval progress + schedule gate (approval-scheduling-logic) */
+.oma-plan-post__approval-meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--oma-ink-subtle);
+  margin-inline-end: auto;
+}
+.oma-plan-post__approval-meta [data-testid='content-approval-progress'] {
+  color: var(--oma-ink-strong);
+  font-weight: 600;
+}
+.oma-plan-post__approval-meta [data-testid='content-schedule-blocked'] {
+  color: var(--oma-ink);
+  background: var(--oma-badge-warning-bg);
+  border-radius: 4px;
+  padding: 0 6px;
+}

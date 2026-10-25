@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { Button, Input, SelectField } from '@oma/ui/controls';
-import { useT } from '../../lib/use-locale';
+import { useLocale, useT } from '../../lib/use-locale';
 import { api } from '../../lib/api';
 import { getPreferences, updatePreferences, type UserPreferences } from '../../lib/account-api';
 import { ShellIcon } from './shell-icons';
@@ -15,7 +15,9 @@ import {
   listBrands,
   listLabels,
   listTemplates,
-  loadApprovalSettings,
+  DEFAULT_APPROVALS,
+  approvalsFromSettings,
+  getWorkspaceSettings,
   loadTimeSlots,
   saveApprovalSettings,
   saveTimeSlots,
@@ -78,7 +80,12 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
   const [labels, setLabels] = useState<ContentLabel[]>([]);
   const [templates, setTemplates] = useState<ContentTemplate[]>([]);
   const [slots, setSlots] = useState<TimeSlot[]>([]);
-  const [approvals, setApprovals] = useState<ApprovalSettings>(loadApprovalSettings());
+  const [approvals, setApprovals] = useState<ApprovalSettings>(DEFAULT_APPROVALS);
+  const [approvalsState, setApprovalsState] = useState<'loading' | 'ready' | 'error' | 'saving'>(
+    'loading',
+  );
+  const [approvalsError, setApprovalsError] = useState<string | null>(null);
+  const isAr = useLocale().toLowerCase().startsWith('ar');
   const [labelModal, setLabelModal] = useState(false);
   const [templateModal, setTemplateModal] = useState(false);
   const [slotModal, setSlotModal] = useState(false);
@@ -111,7 +118,16 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
       })
       .catch(() => undefined);
     setSlots(loadTimeSlots());
-    setApprovals(loadApprovalSettings());
+    setApprovalsState('loading');
+    getWorkspaceSettings()
+      .then((ws) => {
+        setApprovals(approvalsFromSettings(ws));
+        setApprovalsState('ready');
+      })
+      .catch((err: unknown) => {
+        setApprovalsError(err instanceof Error ? err.message : String(err));
+        setApprovalsState('error');
+      });
     listBrands()
       .then((b) => {
         setBrands(b);
@@ -290,54 +306,99 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
           )}
 
           {section === 'approvals' && (
-            <div className="oma-ws-section">
-              <h2 className="oma-ws-section-title">Approvals</h2>
+            <div className="oma-ws-section" data-testid="ws-approvals">
+              <h2 className="oma-ws-section-title">{isAr ? 'الموافقات' : 'Approvals'}</h2>
               <p className="oma-ws-empty-desc">
-                Choose how posts must be approved before publishing (Planable modes).
+                {isAr
+                  ? 'اختر كيف تُعتمد المنشورات قبل الجدولة. يُحفظ الإعداد على الخادم لكل مساحة العمل.'
+                  : 'Choose how posts are approved before they can be scheduled. Saved for the whole workspace.'}
               </p>
-              <div className="oma-ws-field">
-                <label className="oma-ws-label">Approval workflow</label>
-                <SelectField
-                  value={approvals.mode}
-                  onChange={(e) =>
-                    setApprovals({
-                      ...approvals,
-                      mode: e.target.value as ApprovalSettings['mode'],
-                    })
-                  }
-                >
-                  <option value="none">None — publish without approval</option>
-                  <option value="optional">Optional — approval available</option>
-                  <option value="required">Required — at least one approver</option>
-                  <option value="multi_level">Multi-level — sequential stages</option>
-                </SelectField>
-              </div>
-              <div className="oma-ws-toggles">
-                <Toggle
-                  label="Schedule posts automatically on approval"
-                  checked={approvals.scheduleOnApproval}
-                  onChange={(v) => setApprovals({ ...approvals, scheduleOnApproval: v })}
-                />
-                <Toggle
-                  label="Lock content after approval"
-                  checked={approvals.lockAfterApproval}
-                  onChange={(v) => setApprovals({ ...approvals, lockAfterApproval: v })}
-                />
-              </div>
-              <div className="oma-ws-action-row">
-                <Button
-                  type="primary"
-                  onClick={() => {
-                    saveApprovalSettings(approvals);
-                    setMsg('Approval settings saved');
-                  }}
-                >
-                  Save approval settings
-                </Button>
-                <Button type="default" onClick={() => (window.location.href = '/app/reviews')}>
-                  Open reviews
-                </Button>
-              </div>
+              {approvalsState === 'loading' ? (
+                <div className="oma-skeleton" style={{ height: 120 }} aria-busy="true" />
+              ) : approvalsState === 'error' ? (
+                <p className="oma-ws-save-msg" role="alert" data-testid="ws-approvals-error">
+                  {isAr ? 'تعذّر تحميل إعدادات الموافقة.' : 'Could not load approval settings.'}{' '}
+                  {approvalsError}
+                </p>
+              ) : (
+                <>
+                  <div className="oma-ws-field">
+                    <label className="oma-ws-label">{isAr ? 'سياسة الاعتماد' : 'Approval policy'}</label>
+                    <SelectField
+                      data-testid="ws-approval-mode"
+                      value={approvals.mode}
+                      onChange={(e) =>
+                        setApprovals({ ...approvals, mode: e.target.value as ApprovalSettings['mode'] })
+                      }
+                    >
+                      <option value="none">
+                        {isAr ? 'بدون — لا حاجة للاعتماد' : 'None — no approval step'}
+                      </option>
+                      <option value="optional">
+                        {isAr ? 'اختياري — يمكن طلب الاعتماد' : 'Optional — approval available'}
+                      </option>
+                      <option value="required">
+                        {isAr
+                          ? 'إلزامي — لا جدولة قبل اكتمال الاعتماد'
+                          : 'Required — no scheduling until approved'}
+                      </option>
+                    </SelectField>
+                  </div>
+                  {approvals.mode === 'required' ? (
+                    <div className="oma-ws-field">
+                      <label className="oma-ws-label">
+                        {isAr ? 'عدد المعتمِدين المطلوب' : 'Approvers required'}
+                      </label>
+                      <SelectField
+                        data-testid="ws-required-approvers"
+                        value={String(approvals.requiredApprovers)}
+                        onChange={(e) =>
+                          setApprovals({ ...approvals, requiredApprovers: Number(e.target.value) })
+                        }
+                      >
+                        {[1, 2, 3, 4, 5].map((n) => (
+                          <option key={n} value={String(n)}>
+                            {n}
+                          </option>
+                        ))}
+                      </SelectField>
+                      <p className="oma-ws-empty-desc">
+                        {isAr
+                          ? 'يجب أن يعتمد المنشور أشخاص مختلفون، مثل «١ من ٢ معتمد».'
+                          : 'Each approval must come from a different person, e.g. “1 of 2 approved”.'}
+                      </p>
+                    </div>
+                  ) : null}
+                  <div className="oma-ws-action-row">
+                    <Button
+                      type="primary"
+                      loading={approvalsState === 'saving'}
+                      data-testid="ws-approvals-save"
+                      onClick={() => {
+                        setApprovalsState('saving');
+                        saveApprovalSettings(approvals)
+                          .then((next) => {
+                            setApprovals(next);
+                            setApprovalsState('ready');
+                            setMsg(isAr ? 'تم حفظ إعدادات الموافقة' : 'Approval settings saved');
+                          })
+                          .catch((err: unknown) => {
+                            setApprovalsState('ready');
+                            setMsg(
+                              (isAr ? 'تعذّر الحفظ: ' : 'Could not save: ') +
+                                (err instanceof Error ? err.message : String(err)),
+                            );
+                          });
+                      }}
+                    >
+                      {isAr ? 'حفظ' : 'Save approval settings'}
+                    </Button>
+                    <Button type="default" onClick={() => (window.location.href = '/app/reviews')}>
+                      {isAr ? 'فتح المراجعات' : 'Open reviews'}
+                    </Button>
+                  </div>
+                </>
+              )}
               {msg ? <p className="oma-ws-save-msg">{msg}</p> : null}
             </div>
           )}

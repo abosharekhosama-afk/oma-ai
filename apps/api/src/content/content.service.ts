@@ -833,10 +833,14 @@ export class ContentService {
       throw new DomainError('NOT_FOUND', 'Brand not found', 404, 'errors.not_found');
     }
     const prefs = await getPrisma().contentPreferences.findUnique({ where: { brandId } });
+    const effective = await this.approvalConfig(tenantId, brandId);
     return {
       data: {
         brand_id: brandId,
-        approval_policy: (prefs?.approvalPolicy as ApprovalPolicy) ?? 'OPTIONAL',
+        // Effective policy: brand override when set, otherwise the workspace policy.
+        approval_policy: effective.policy,
+        approval_policy_source: prefs ? 'brand' : 'workspace',
+        required_approvers: effective.requiredApprovers,
         default_timezone: prefs?.defaultTimezone ?? 'Asia/Dubai',
       },
     };
