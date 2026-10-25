@@ -13,6 +13,12 @@ import {
 } from 'react';
 import { Dialog } from '../../../../../components/ui/dialog';
 import { StatusChip } from '../../../../../components/ui/status-chip';
+import {
+  PostPreview,
+  type PreviewApprovalState,
+} from '../../../../../components/content/post-preview';
+import { getContentDetail, type ApiContent } from '../../../../../lib/content-api';
+import { listBrands } from '../../../../../lib/workspace-extras-api';
 import { useToast } from '../../../../../components/ui/toast';
 import { pickCopy } from '../../../../../lib/demo/use-demo-api';
 import {
@@ -52,6 +58,14 @@ import {
 } from '@ant-design/icons';
 
 type Decision = 'APPROVED' | 'CHANGES_REQUESTED' | 'REJECTED';
+
+function reviewToPreviewState(status: string): PreviewApprovalState {
+  if (status === 'APPROVED') return 'APPROVED';
+  if (status === 'CHANGES_REQUESTED') return 'CHANGES_REQUESTED';
+  if (status === 'REJECTED') return 'REJECTED';
+  if (status === 'AWAITING_REVIEW' || status === 'IN_REVIEW') return 'PENDING';
+  return 'NOT_REQUESTED';
+}
 type CommentFilter = 'all' | 'unresolved' | 'resolved';
 
 export default function DeliverableDetailClient() {
@@ -97,6 +111,7 @@ export default function DeliverableDetailClient() {
   const [draftPin, setDraftPin] = useState<{ x: number; y: number } | null>(null);
   const [draftBody, setDraftBody] = useState('');
   const [decisionOpen, setDecisionOpen] = useState<Decision | null>(null);
+  const [linked, setLinked] = useState<{ content: ApiContent; brand: string } | null>(null);
   const [decisionReason, setDecisionReason] = useState('');
   const [saving, setSaving] = useState(false);
   const [generalDraft, setGeneralDraft] = useState('');
@@ -158,6 +173,25 @@ export default function DeliverableDetailClient() {
     if (!row || !selectedVersionId) return null;
     return row.versions.find((v) => v.id === selectedVersionId) ?? currentVersion(row);
   }, [row, selectedVersionId]);
+
+  const linkedContentId = row?.contentId ?? null;
+  useEffect(() => {
+    if (!linkedContentId) {
+      setLinked(null);
+      return;
+    }
+    let live = true;
+    void Promise.all([getContentDetail(linkedContentId), listBrands().catch(() => [])])
+      .then(([detail, brands]) => {
+        if (!live) return;
+        const b = brands.find((x) => x.id === detail.data.brand_id);
+        setLinked({ content: detail.data, brand: b?.name ?? '' });
+      })
+      .catch(() => live && setLinked(null));
+    return () => {
+      live = false;
+    };
+  }, [linkedContentId]);
 
   const approved = useMemo(() => (row ? approvedVersion(row) : null), [row]);
 
@@ -839,6 +873,50 @@ export default function DeliverableDetailClient() {
                   </span>
                 </div>
               </section>
+
+              {linked ? (
+                <section
+                  className="oma-deliv-detail__card oma-plan-post__preview-pane"
+                  data-testid="deliverable-post-preview"
+                >
+                  <PostPreview
+                    channel={linked.content.channel}
+                    contentType={linked.content.content_type}
+                    brandName={linked.brand || pickCopy(row.title, locale)}
+                    caption={linked.content.caption ? pickCopy(linked.content.caption, locale) : ''}
+                    title={pickCopy(linked.content.title, locale)}
+                    media={selectedVersion?.assets?.[0] || linked.content.preview_asset_url}
+                    when={linked.content.scheduled_at || linked.content.planned_at}
+                    whenKind={
+                      linked.content.scheduled_at
+                        ? 'scheduled'
+                        : linked.content.planned_at
+                          ? 'planned'
+                          : null
+                    }
+                    locale={locale}
+                    size="detail"
+                    review={{
+                      state: reviewToPreviewState(row.reviewStatus),
+                      canApprove: canDecide && canTransitionReview(row.reviewStatus, 'APPROVED'),
+                      canRequestChanges:
+                        canDecide && canTransitionReview(row.reviewStatus, 'CHANGES_REQUESTED'),
+                      canRequestApproval: false,
+                      commentCount: (row.comments ?? []).length,
+                      busy: saving,
+                      onApprove: () => setDecisionOpen('APPROVED'),
+                      onRequestChanges: () => setDecisionOpen('CHANGES_REQUESTED'),
+                      onRequestApproval: () => undefined,
+                      onComment: () =>
+                        document
+                          .querySelector(
+                            '[data-testid="demo-review-comments"], .oma-deliv-detail__comments',
+                          )
+                          ?.scrollIntoView({ behavior: 'smooth', block: 'start' }),
+                    }}
+                  />
+                </section>
+              ) : null}
 
               {row.changeRequests?.length ? (
                 <section className="oma-deliv-detail__card">

@@ -1,5 +1,7 @@
 'use client';
 
+import { NetworkIcon } from './network-icon';
+
 import { resolveContentWorkflow, type ApprovalPolicy, type PublishDisplay } from '@oma/demo';
 
 const labels: Record<PublishDisplay, { en: string; ar: string }> = {
@@ -135,24 +137,7 @@ export function ContentFace({
         <span className="oma-post-card__row oma-plx-cal-card__row">
           <span className="oma-post-card__channel oma-plx-cal-card__channel" title={channel}>
             <span className="oma-post-card__channel-icon oma-plx-cal-card__ico" aria-hidden>
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
-                <rect
-                  x="2.5"
-                  y="3.5"
-                  width="11"
-                  height="9"
-                  rx="1.5"
-                  stroke="currentColor"
-                  strokeWidth="1.3"
-                />
-                <circle cx="6" cy="7" r="1" fill="currentColor" />
-                <path
-                  d="M4 11.2 6.1 9.2a.8.8 0 0 1 1.1 0L12 12.5"
-                  stroke="currentColor"
-                  strokeWidth="1.2"
-                  strokeLinecap="round"
-                />
-              </svg>
+              <NetworkIcon channel={channel} size={12} />
             </span>
             <span className="oma-post-card__channel-name oma-plx-cal-card__name">
               {channelShort}
