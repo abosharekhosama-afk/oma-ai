@@ -2,19 +2,27 @@
 
 import { useEffect, useState } from 'react';
 import { resetSessionInvalidFlag } from '../../lib/api';
+import { useT } from '../../lib/use-locale';
+import { loginUrlFor, SESSION_OK_KEY } from '../../lib/session';
 
 /**
  * Listens for oma:session-invalid (from api 401) and shows a professional
  * overlay with re-login CTA + automatic redirect to /login.
  */
 export function SessionInvalidOverlay() {
+  const t = useT();
   const [open, setOpen] = useState(false);
-  const [msg, setMsg] = useState('Session invalid');
+  const [loginHref, setLoginHref] = useState('/login?reason=session');
 
   useEffect(() => {
     function onInvalid(e: Event) {
-      const detail = (e as CustomEvent).detail as { message?: string } | undefined;
-      if (detail?.message) setMsg(detail.message);
+      void e;
+      try {
+        window.sessionStorage.removeItem(SESSION_OK_KEY);
+      } catch {
+        /* ignore */
+      }
+      setLoginHref(loginUrlFor(window.location));
       setOpen(true);
     }
     window.addEventListener('oma:session-invalid', onInvalid);
@@ -24,10 +32,10 @@ export function SessionInvalidOverlay() {
   useEffect(() => {
     if (!open) return;
     const id = window.setTimeout(() => {
-      window.location.replace('/login?reason=session');
-    }, 2800);
+      window.location.replace(loginHref);
+    }, 1500);
     return () => window.clearTimeout(id);
-  }, [open]);
+  }, [open, loginHref]);
 
   if (!open) return null;
 
@@ -46,20 +54,16 @@ export function SessionInvalidOverlay() {
             <circle cx="12" cy="16.5" r="1" fill="currentColor" />
           </svg>
         </div>
-        <h2 className="oma-session-invalid__title">Session expired</h2>
-        <p className="oma-session-invalid__body">
-          {msg === 'Session invalid'
-            ? 'Your session is no longer valid. Sign in again to continue.'
-            : msg}
-        </p>
+        <h2 className="oma-session-invalid__title">{t('session.expiredTitle')}</h2>
+        <p className="oma-session-invalid__body">{t('session.expiredBody')}</p>
         <a
           className="oma-session-invalid__btn"
-          href="/login?reason=session"
+          href={loginHref}
           onClick={() => resetSessionInvalidFlag()}
         >
-          Sign in again
+          {t('session.signInAgain')}
         </a>
-        <p className="oma-session-invalid__hint">Redirecting automatically…</p>
+        <p className="oma-session-invalid__hint">{t('session.redirecting')}</p>
       </div>
     </div>
   );

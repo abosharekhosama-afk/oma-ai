@@ -1014,13 +1014,7 @@
   width: 70%;
 }
 
-/* Soft white skeleton pulse */
-.oma-content-cal-skeleton .oma-skeleton {
-  background: linear-gradient(90deg, #f3f4f6 0%, #eef0f3 40%, #f3f4f6 80%) !important;
-  background-size: 200% 100% !important;
-  animation: oma-skel-shimmer 1.2s ease-in-out infinite !important;
-  border: 0 !important;
-}
+/* Skeleton pulse lives in styles/states.css (calm opacity pulse, reduced-motion aware). */
 @keyframes oma-skel-shimmer {
   0% {
     background-position: 100% 0;

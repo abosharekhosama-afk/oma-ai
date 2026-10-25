@@ -49,6 +49,14 @@ export function UserMenu() {
             <LanguageSwitcher />
           </div>
           <Link
+            href="/app/account"
+            className="oma-menu-item"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+          >
+            {t('account.title')}
+          </Link>
+          <Link
             href="/app/settings"
             className="oma-menu-item"
             role="menuitem"

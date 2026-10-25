@@ -49,6 +49,9 @@ model User {
   name             String
   preferredLocale  String       @default("en")
   preferredDir     String       @default("ltr")
+  avatarUrl        String?
+  /// JSON: { notifications: { [type]: boolean }, timezone, weekStart, ... }
+  preferencesJson  String       @default("{}")
   status           UserStatus   @default(ACTIVE)
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt

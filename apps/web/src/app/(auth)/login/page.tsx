@@ -3,7 +3,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useT } from '../../../lib/use-locale';
-import { OmaDotsLoader } from '../../../components/ui/oma-dots-loader';
+import { getProfile, safeReturnPath, setLocaleCookie } from '../../../lib/account-api';
 import {
   PlxLogo,
   GoogleIcon,
@@ -22,8 +22,15 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [ready, setReady] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [next, setNext] = useState('/app');
 
   useEffect(() => {
+    const qs = new URLSearchParams(window.location.search);
+    setNext(safeReturnPath(qs.get('next')));
+    const reason = qs.get('reason');
+    if (reason === 'session') setNotice(t('auth.sessionExpiredNotice'));
+    else if (reason === 'reset') setNotice(t('auth.reset.done'));
     setReady(true);
   }, []);
 
@@ -36,8 +43,17 @@ export default function LoginPage() {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       });
+      // Apply the account's saved language before entering the app.
+      try {
+        const profile = await getProfile();
+        if (profile.preferred_locale === 'ar' || profile.preferred_locale === 'en') {
+          setLocaleCookie(profile.preferred_locale);
+        }
+      } catch {
+        /* non-blocking */
+      }
       // Hard navigation so the session cookie from Set-Cookie is present for middleware
-      window.location.assign('/app');
+      window.location.assign(next);
     } catch (err) {
       setError(err instanceof Error ? err.message : t('auth.loginFailed'));
     } finally {
@@ -67,6 +83,11 @@ export default function LoginPage() {
           <span>or</span>
         </div>
 
+        {notice ? (
+          <p role="status" className="plx-auth-notice" data-testid="login-notice">
+            {notice}
+          </p>
+        ) : null}
         <form className="plx-auth-form" onSubmit={onSubmit}>
           <input
             id="email"
@@ -111,20 +132,20 @@ export default function LoginPage() {
             className="plx-btn plx-btn--dark plx-btn--block"
             disabled={busy || !ready}
           >
-            {busy ? <OmaDotsLoader label="Logging in" /> : 'Log in'}
+            {busy ? 'Logging in…' : 'Log in'}
           </button>
         </form>
 
         <p className="plx-auth-link-row">
-          <Link href="#">Forgot your password?</Link>
+          <Link href="/forgot-password">Forgot your password?</Link>
         </p>
         <p className="plx-auth-switch">
           Don&apos;t have an account yet? <Link href="/register">Get started</Link>
         </p>
       </div>
       <p className="plx-auth-terms">
-        By continuing, you agree to our <a href="#">Terms of Service</a> and{' '}
-        <a href="#">Privacy Policy</a>.
+        By continuing, you agree to our <Link href="/terms">Terms of Service</Link> and{' '}
+        <Link href="/privacy">Privacy Policy</Link>.
       </p>
     </main>
   );

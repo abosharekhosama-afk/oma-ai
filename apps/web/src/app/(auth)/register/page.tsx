@@ -3,7 +3,6 @@ import { FormEvent, useState } from 'react';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { useT } from '../../../lib/use-locale';
-import { OmaDotsLoader } from '../../../components/ui/oma-dots-loader';
 import {
   PlxLogo,
   GoogleIcon,
@@ -152,7 +151,7 @@ export default function RegisterPage() {
                 className="plx-btn plx-btn--dark plx-btn--block"
                 disabled={busy}
               >
-                {busy ? <OmaDotsLoader label="Creating account" /> : 'Create account'}
+                {busy ? 'Creating account…' : 'Create account'}
               </button>
             </form>
             <button type="button" className="plx-auth-back" onClick={() => setStep(1)}>
@@ -162,8 +161,8 @@ export default function RegisterPage() {
         )}
       </div>
       <p className="plx-auth-terms">
-        By continuing, you agree to our <a href="#">Terms of Service</a> and{' '}
-        <a href="#">Privacy Policy</a>.
+        By continuing, you agree to our <Link href="/terms">Terms of Service</Link> and{' '}
+        <Link href="/privacy">Privacy Policy</Link>.
       </p>
     </main>
   );

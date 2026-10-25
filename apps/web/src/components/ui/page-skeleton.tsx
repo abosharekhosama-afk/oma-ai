@@ -23,7 +23,12 @@ export function PageSkeleton({ rows = 6, label = 'Loading' }: { rows?: number; l
 
 export function ContentCalSkeleton() {
   return (
-    <div className="oma-content-cal-skeleton" role="status" aria-label="Loading content">
+    <div
+      className="oma-content-cal-skeleton"
+      role="status"
+      aria-label="Loading content"
+      data-testid="content-cal-skeleton"
+    >
       <div className="oma-content-cal-skeleton__toolbar">
         <span className="oma-content-cal-skeleton__chip oma-skeleton" />
         <span className="oma-content-cal-skeleton__chip oma-skeleton" />
@@ -44,6 +49,34 @@ export function ContentCalSkeleton() {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+/** List/feed/grid skeleton: rows shaped like content cards (thumb + two lines + meta). */
+export function ContentListSkeleton({
+  rows = 6,
+  label = 'Loading content',
+}: {
+  rows?: number;
+  label?: string;
+}) {
+  return (
+    <div
+      className="oma-list-skeleton"
+      role="status"
+      aria-label={label}
+      data-testid="content-list-skeleton"
+    >
+      {Array.from({ length: rows }).map((_, i) => (
+        <div key={i} className="oma-list-skeleton__row">
+          <span className="oma-skeleton oma-list-skeleton__thumb" />
+          <span className="oma-list-skeleton__lines">
+            <span className="oma-skeleton oma-list-skeleton__line" />
+            <span className="oma-skeleton oma-list-skeleton__line oma-list-skeleton__line--short" />
+          </span>
+        </div>
+      ))}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { getPrisma } from '@oma/db';
 import { newId } from '@oma/domain';
+import { notifyFromAudit } from '../notifications/notify';
 
 @Injectable()
 export class AuditService {
@@ -17,7 +18,7 @@ export class AuditService {
     requestId?: string;
     ip?: string;
   }) {
-    return getPrisma().auditEvent.create({
+    const row = await getPrisma().auditEvent.create({
       data: {
         id: newId(),
         actorUserId: input.actorUserId ?? null,
@@ -33,5 +34,8 @@ export class AuditService {
         ip: input.ip,
       },
     });
+    // Fan out in-app notifications for review/approval/comment actions (best-effort).
+    await notifyFromAudit(input);
+    return row;
   }
 }

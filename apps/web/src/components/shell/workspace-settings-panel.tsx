@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Button, Input, SelectField } from '@oma/ui/controls';
 import { useT } from '../../lib/use-locale';
 import { api } from '../../lib/api';
-import { demoApi, demoErrorMessage, isDemoForbidden } from '../../lib/demo/use-demo-api';
+import { getPreferences, updatePreferences, type UserPreferences } from '../../lib/account-api';
 import { ShellIcon } from './shell-icons';
 import type { NavIconId } from './nav-config';
 import {
@@ -100,7 +100,7 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
         }));
       })
       .catch(() => undefined);
-    demoApi<Record<string, unknown>>('/preferences')
+    getPreferences()
       .then((prefs) => {
         setDraft((d) => ({
           ...d,
@@ -143,17 +143,14 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
     setSaving(true);
     setMsg(null);
     try {
-      await demoApi('/preferences', {
-        method: 'PATCH',
-        body: JSON.stringify({
-          timezone: draft.timezone,
-          weekStart: draft.weekStart,
-          localePreference: draft.localePreference,
-        }),
+      await updatePreferences({
+        timezone: draft.timezone,
+        weekStart: draft.weekStart as UserPreferences['weekStart'],
+        localePreference: draft.localePreference as UserPreferences['localePreference'],
       });
       setMsg(t('demo.settings.saved') || 'Saved');
     } catch (err) {
-      setMsg(isDemoForbidden(err) ? 'Demo unavailable' : demoErrorMessage(err, 'Could not save'));
+      setMsg(err instanceof Error ? err.message : t('errors.page.generic.title'));
     } finally {
       setSaving(false);
     }
