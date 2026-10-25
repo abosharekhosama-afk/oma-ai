@@ -11,6 +11,7 @@ const routeRequirements: Record<string, string[]> = {
   'POST /api/v1/memberships/:id/profiles': ['capability.assign'],
   'GET /api/v1/audit-events': ['audit.read'],
   'GET /api/v1/analytics': ['analytics.read'],
+  'PATCH /api/v1/workspace/settings': ['tenant.manage'],
   'GET /api/v1/notifications': ['notification.read'],
   'GET /api/v1/notifications/unread-count': ['notification.read'],
   'POST /api/v1/notifications/read-all': ['notification.read'],

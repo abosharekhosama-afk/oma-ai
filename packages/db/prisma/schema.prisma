@@ -1220,6 +1220,8 @@ model WorkspaceSetting {
   autoCropImages        Boolean  @default(true)
   /// none | optional | required | multi_level
   approvalMode          String   @default("optional")
+  /// Number of distinct approvers needed when approvalMode = required (1–5).
+  requiredApprovers     Int      @default(1)
   scheduleOnApproval    Boolean  @default(false)
   lockAfterApproval     Boolean  @default(false)
   createdAt             DateTime @default(now())
