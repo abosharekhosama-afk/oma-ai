@@ -65,7 +65,7 @@ export default function LoginPage() {
     <main id="main" className="plx-auth-page" dir="ltr" data-auth-ready={ready ? '1' : '0'}>
       <div className="plx-auth-card">
         <PlxLogo sub="by IMKAN" />
-        <h1 className="plx-auth-title">Log in to your account</h1>
+        <h1 className="plx-auth-title">{t('auth.login.log_in_to_your_account')}</h1>
 
         <button type="button" className="plx-btn plx-btn--google plx-btn--block">
           <GoogleIcon /> Continue with Google
@@ -97,7 +97,7 @@ export default function LoginPage() {
             autoComplete="email"
             required
             className="plx-input"
-            placeholder="Enter your work email address"
+            placeholder={t('auth.forgot.emailPlaceholder')}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
@@ -109,14 +109,14 @@ export default function LoginPage() {
               autoComplete="current-password"
               required
               className="plx-input"
-              placeholder="Enter your password"
+              placeholder={t('auth.login.enter_your_password')}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
             <button
               type="button"
               className="plx-eye"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              aria-label={showPassword ? t('auth.login.hide_password') : t('auth.login.show_password')}
               onClick={() => setShowPassword((v) => !v)}
             >
               {showPassword ? <EyeOffIcon /> : <EyeIcon />}
@@ -132,20 +132,20 @@ export default function LoginPage() {
             className="plx-btn plx-btn--dark plx-btn--block"
             disabled={busy || !ready}
           >
-            {busy ? 'Logging in…' : 'Log in'}
+            {busy ? t('auth.login.logging_in') : t('auth.login.log_in')}
           </button>
         </form>
 
         <p className="plx-auth-link-row">
-          <Link href="/forgot-password">Forgot your password?</Link>
+          <Link href="/forgot-password">{t('auth.login.forgot_your_password')}</Link>
         </p>
         <p className="plx-auth-switch">
-          Don&apos;t have an account yet? <Link href="/register">Get started</Link>
+          Don&apos;t have an account yet? <Link href="/register">{t('auth.login.get_started')}</Link>
         </p>
       </div>
       <p className="plx-auth-terms">
-        By continuing, you agree to our <Link href="/terms">Terms of Service</Link> and{' '}
-        <Link href="/privacy">Privacy Policy</Link>.
+        By continuing, you agree to our <Link href="/terms">{t('legal.terms.title')}</Link> and{' '}
+        <Link href="/privacy">{t('legal.privacy.title')}</Link>.
       </p>
     </main>
   );

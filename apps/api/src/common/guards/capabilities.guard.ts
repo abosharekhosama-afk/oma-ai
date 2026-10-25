@@ -12,6 +12,8 @@ const routeRequirements: Record<string, string[]> = {
   'GET /api/v1/audit-events': ['audit.read'],
   'GET /api/v1/analytics': ['analytics.read'],
   'PATCH /api/v1/workspace/settings': ['tenant.manage'],
+  'GET /api/v1/home': ['brand.read'],
+  'GET /api/v1/activity': ['brand.read'],
   'GET /api/v1/notifications': ['notification.read'],
   'GET /api/v1/notifications/unread-count': ['notification.read'],
   'POST /api/v1/notifications/read-all': ['notification.read'],

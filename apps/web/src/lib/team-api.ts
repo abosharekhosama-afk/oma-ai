@@ -21,21 +21,21 @@ export type WorkspaceMember = {
 };
 
 const CAP_MAP: Record<PlanablePerm, string[]> = {
-  view: ['content.read', 'content.view', 'workspace.view'],
-  approve: ['review.approve', 'approval.approve', 'content.approve'],
-  edit: ['content.write', 'content.edit', 'content.create'],
-  publish: ['content.publish', 'schedule.publish'],
-  analyze: ['analytics.read', 'analytics.view'],
-  engage: ['activity.engage', 'inbox.engage', 'social.engage'],
-  admin: ['membership.manage', 'membership.invite', 'capability.assign', 'tenant.admin'],
+  view: ['content.read', 'brand.read', 'campaign.read', 'task.read', 'request.read'],
+  approve: ['content.approve', 'deliverable.review.decide', 'strategy.approve'],
+  edit: ['content.create', 'content.update', 'task.write', 'request.write', 'deliverable.write'],
+  publish: ['content.schedule'],
+  analyze: ['analytics.read'],
+  engage: ['strategy.comment', 'deliverable.annotate'],
+  admin: ['membership.manage', 'membership.invite', 'capability.assign', 'tenant.manage'],
 };
 
+/** Exact capability-code match (no substring guessing). */
 export function capabilitiesToPermissions(caps: string[]): Record<PlanablePerm, boolean> {
-  const set = new Set(caps.map((c) => c.toLowerCase()));
-  const has = (keys: string[]) =>
-    keys.some((k) => set.has(k) || [...set].some((c) => c.includes(k.split('.').pop()!)));
+  const set = new Set(caps);
+  const has = (keys: string[]) => keys.some((k) => set.has(k));
   return {
-    view: has(CAP_MAP.view) || caps.length > 0,
+    view: has(CAP_MAP.view),
     approve: has(CAP_MAP.approve),
     edit: has(CAP_MAP.edit),
     publish: has(CAP_MAP.publish),
@@ -43,6 +43,28 @@ export function capabilitiesToPermissions(caps: string[]): Record<PlanablePerm, 
     engage: has(CAP_MAP.engage),
     admin: has(CAP_MAP.admin),
   };
+}
+
+export const PERMISSION_LABELS: Record<PlanablePerm, { en: string; ar: string }> = {
+  view: { en: 'View workspace', ar: 'عرض مساحة العمل' },
+  approve: { en: 'Approve content', ar: 'اعتماد المحتوى' },
+  edit: { en: 'Create & edit', ar: 'إنشاء وتعديل' },
+  publish: { en: 'Schedule posts', ar: 'جدولة المنشورات' },
+  analyze: { en: 'View analytics', ar: 'عرض التحليلات' },
+  engage: { en: 'Comment & annotate', ar: 'التعليق والملاحظات' },
+  admin: { en: 'Manage members & settings', ar: 'إدارة الأعضاء والإعدادات' },
+};
+
+/** Readable permission names for a member (e.g. "Approve content, Schedule posts"). */
+export function readablePermissions(m: WorkspaceMember, isAr: boolean): string[] {
+  const perms = m.permissions ?? capabilitiesToPermissions(m.capabilities || []);
+  return (Object.keys(PERMISSION_LABELS) as PlanablePerm[])
+    .filter((p) => perms[p])
+    .map((p) => (isAr ? PERMISSION_LABELS[p].ar : PERMISSION_LABELS[p].en));
+}
+
+export function isOwnerMember(m: WorkspaceMember): boolean {
+  return (m.source_profiles || []).some((p) => /OWNER/i.test(p));
 }
 
 export function permissionsToCapabilityCodes(perms: Record<PlanablePerm, boolean>): string[] {

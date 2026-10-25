@@ -289,8 +289,8 @@
   background: #fff;
   width: 100%;
   text-align: start;
-  border-left: 0;
-  border-right: 0;
+  border-inline-start: 0;
+  border-inline-end: 0;
   border-top: 0;
   font: inherit;
   color: inherit;
@@ -567,8 +567,8 @@
   }
   .plx-page__bar,
   .plx-page__body {
-    padding-left: 16px;
-    padding-right: 16px;
+    padding-inline-start: 16px;
+    padding-inline-end: 16px;
   }
   .plx-page__title {
     font-size: 20px;

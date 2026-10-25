@@ -41,7 +41,7 @@ export async function listActivity(params?: {
     // Prefer human-readable endpoint
     try {
       const res = await api<{ items: ActivityItem[]; next_cursor: string | null }>(
-        `/api/v1/audit-events/activity${q}`,
+        `/api/v1/activity${q}`,
       );
       const mapped = {
         items: res.items || [],

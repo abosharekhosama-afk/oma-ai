@@ -455,6 +455,19 @@ export class TenantService {
       where: tenantWhere(tenantId, { id: membershipId }),
     });
     if (!m) throw new DomainError('NOT_FOUND', 'Membership not found', 404, 'errors.not_found');
+    if (m.userId && m.userId === actorUserId) {
+      throw new DomainError('CONFLICT_STATE', 'You cannot remove yourself', 409, 'errors.cannot_remove_self');
+    }
+    const ownerGrant = await prisma.capabilityGrant.findFirst({
+      where: {
+        membershipId,
+        revokedAt: null,
+        sourceProfileCode: { in: ['COMPANY_OWNER', 'PLATFORM_OWNER'] },
+      },
+    });
+    if (ownerGrant) {
+      throw new DomainError('CONFLICT_STATE', 'The workspace owner cannot be removed', 409, 'errors.cannot_remove_owner');
+    }
     await prisma.membership.update({
       where: { id: membershipId },
       data: { status: 'REMOVED', removedAt: new Date(), version: { increment: 1 } },

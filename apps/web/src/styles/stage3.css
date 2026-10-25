@@ -1421,9 +1421,9 @@
 
 .oma-campaign-status-tabs .ant-btn[data-active='true']::after {
   position: absolute;
-  right: 10px;
+  inset-inline-end: 10px;
   bottom: -1px;
-  left: 10px;
+  inset-inline-start: 10px;
   height: 2px;
   background: #1677ff;
   content: '';
@@ -1598,7 +1598,7 @@
   position: absolute;
   z-index: 45;
   top: calc(100% + 4px);
-  right: 0;
+  inset-inline-end: 0;
   display: grid;
   min-width: 156px;
   padding: 4px;
@@ -1808,7 +1808,7 @@
 
 .oma-content-detail-modal .ant-modal-close {
   top: 8px;
-  right: 8px;
+  inset-inline-end: 8px;
   width: 28px;
   height: 28px;
 }
@@ -5846,7 +5846,7 @@ button.oma-cal-item {
 }
 .oma-plan-grid__corner {
   position: absolute !important;
-  right: 10px !important;
+  inset-inline-end: 10px !important;
   bottom: 10px !important;
   color: rgba(255, 255, 255, 0.85) !important;
   font-size: 14px !important;
@@ -6023,7 +6023,7 @@ button.oma-cal-item {
 }
 .oma-plan-grid__corner {
   position: absolute !important;
-  right: 10px !important;
+  inset-inline-end: 10px !important;
   bottom: 10px !important;
   color: rgba(255, 255, 255, 0.9) !important;
   font-size: 13px !important;
@@ -7046,7 +7046,7 @@ label.oma-compose-media {
 }
 .oma-cal-cell,
 .oma-cal-day {
-  border-right: 1px solid #eef0f2 !important;
+  border-inline-end: 1px solid #eef0f2 !important;
   border-bottom: 1px solid #eef0f2 !important;
   min-height: 110px !important;
   padding: 6px !important;
@@ -7605,9 +7605,9 @@ label.oma-compose-media {
 .oma-campaign-status-tabs--header .ant-btn[data-active='true']::after,
 .oma-campaign-tabs-slot .oma-campaign-status-tabs .ant-btn[data-active='true']::after {
   position: absolute !important;
-  right: 8px !important;
+  inset-inline-end: 8px !important;
   bottom: 0 !important;
-  left: 8px !important;
+  inset-inline-start: 8px !important;
   height: 2px !important;
   background: #1677ff !important;
   content: '' !important;
@@ -7706,4 +7706,28 @@ label.oma-compose-media {
   background: var(--oma-badge-warning-bg);
   border-radius: 4px;
   padding: 0 6px;
+}
+
+/* Settings → Integrations: honest, calm cards (nothing connected yet) */
+.oma-integrations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+.oma-integration-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 1px solid var(--oma-border);
+  border-radius: 10px;
+  background: var(--oma-surface);
+  text-align: start;
+}
+.oma-integration-card p {
+  margin: 0;
+  color: var(--oma-ink-subtle);
+  font-size: 13px;
 }

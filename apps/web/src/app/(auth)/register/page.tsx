@@ -27,7 +27,7 @@ export default function RegisterPage() {
     e.preventDefault();
     setError(null);
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      setError('Please enter a valid work email address');
+      setError(t('auth.register.please_enter_a_valid_work'));
       return;
     }
     setStep(2);
@@ -60,8 +60,8 @@ export default function RegisterPage() {
         <PlxLogo sub="by IMKAN" />
         {step === 1 ? (
           <>
-            <h1 className="plx-auth-title">Start with 50 free posts</h1>
-            <p className="plx-auth-sub">No credit card required.</p>
+            <h1 className="plx-auth-title">{t('auth.register.start_with_50_free_posts')}</h1>
+            <p className="plx-auth-sub">{t('auth.register.no_credit_card_required')}</p>
 
             <button type="button" className="plx-btn plx-btn--google plx-btn--block">
               <GoogleIcon /> Continue with Google
@@ -88,7 +88,7 @@ export default function RegisterPage() {
                 autoComplete="email"
                 required
                 className="plx-input"
-                placeholder="Enter your work email address"
+                placeholder={t('auth.forgot.emailPlaceholder')}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -98,17 +98,17 @@ export default function RegisterPage() {
                 </p>
               ) : null}
               <button type="submit" className="plx-btn plx-btn--dark plx-btn--block">
-                Continue
+                {t('auth.register.continue')}
               </button>
             </form>
 
             <p className="plx-auth-switch">
-              Already have an account? <Link href="/login">Log in</Link>
+              Already have an account? <Link href="/login">{t('auth.login.log_in')}</Link>
             </p>
           </>
         ) : (
           <>
-            <h1 className="plx-auth-title">Create your account</h1>
+            <h1 className="plx-auth-title">{t('auth.register.create_your_account')}</h1>
             <form className="plx-auth-form" onSubmit={onSubmit}>
               <input
                 id="name"
@@ -116,7 +116,7 @@ export default function RegisterPage() {
                 autoComplete="name"
                 required
                 className="plx-input"
-                placeholder="Your name"
+                placeholder={t('auth.register.your_name')}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
@@ -128,14 +128,14 @@ export default function RegisterPage() {
                   autoComplete="new-password"
                   required
                   className="plx-input"
-                  placeholder="Create a password"
+                  placeholder={t('auth.register.create_a_password')}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
                 <button
                   type="button"
                   className="plx-eye"
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  aria-label={showPassword ? t('auth.login.hide_password') : t('auth.login.show_password')}
                   onClick={() => setShowPassword((v) => !v)}
                 >
                   {showPassword ? <EyeOffIcon /> : <EyeIcon />}
@@ -151,18 +151,18 @@ export default function RegisterPage() {
                 className="plx-btn plx-btn--dark plx-btn--block"
                 disabled={busy}
               >
-                {busy ? 'Creating account…' : 'Create account'}
+                {busy ? t('auth.register.creating_account') : t('auth.register')}
               </button>
             </form>
             <button type="button" className="plx-auth-back" onClick={() => setStep(1)}>
-              Back
+              {t('auth.register.back')}
             </button>
           </>
         )}
       </div>
       <p className="plx-auth-terms">
-        By continuing, you agree to our <Link href="/terms">Terms of Service</Link> and{' '}
-        <Link href="/privacy">Privacy Policy</Link>.
+        By continuing, you agree to our <Link href="/terms">{t('legal.terms.title')}</Link> and{' '}
+        <Link href="/privacy">{t('legal.privacy.title')}</Link>.
       </p>
     </main>
   );

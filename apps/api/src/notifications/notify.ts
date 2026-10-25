@@ -67,6 +67,36 @@ async function membersWithCaps(tenantId: string, caps: string[]): Promise<string
   return rows.map((r) => r.userId).filter((x): x is string => Boolean(x));
 }
 
+/**
+ * Decision outcomes worth keeping in the inbox even when you made them yourself — only used for
+ * single-member workspaces so a solo owner still gets a trail of approvals/rejections, without
+ * pinging themselves for requests, comments or assignments they just performed.
+ */
+export const SOLO_SELF_TYPES: ReadonlySet<NotificationType> = new Set<NotificationType>([
+  'content.approved',
+  'content.changes_requested',
+  'content.rejected',
+  'deliverable.approved',
+  'deliverable.changes_requested',
+  'deliverable.rejected',
+]);
+
+/** Pure recipient resolution (unit-tested). */
+export function resolveRecipients(input: {
+  recipients: Array<string | null | undefined>;
+  actorUserId?: string | null;
+  type: NotificationType;
+  activeMemberCount: number;
+}): string[] {
+  const unique = [...new Set(input.recipients.filter((x): x is string => Boolean(x)))];
+  const others = unique.filter((id) => id !== input.actorUserId);
+  if (others.length) return others;
+  if (input.actorUserId && input.activeMemberCount === 1 && SOLO_SELF_TYPES.has(input.type)) {
+    return [input.actorUserId];
+  }
+  return [];
+}
+
 /** Insert notifications for recipients (minus actor, minus opted-out, active members only). */
 export async function deliverNotifications(input: {
   tenantId: string;
@@ -78,9 +108,23 @@ export async function deliverNotifications(input: {
   deepLinkPath: string;
 }): Promise<number> {
   const prisma = getPrisma();
-  const ids = [...new Set(input.recipients.filter((x): x is string => Boolean(x)))].filter(
-    (id) => id !== input.actorUserId,
-  );
+  const othersExist = input.recipients.some((r) => r && r !== input.actorUserId);
+  const activeMemberCount = othersExist
+    ? 2
+    : (
+        await prisma.membership.findMany({
+          where: tenantWhere(input.tenantId, { status: 'ACTIVE', userId: { not: null } }),
+          select: { userId: true },
+          distinct: ['userId'],
+          take: 2,
+        })
+      ).length;
+  const ids = resolveRecipients({
+    recipients: input.actorUserId ? [...input.recipients, input.actorUserId] : input.recipients,
+    actorUserId: input.actorUserId,
+    type: input.type,
+    activeMemberCount,
+  });
   if (!ids.length) return 0;
   const active = await prisma.membership.findMany({
     where: tenantWhere(input.tenantId, { status: 'ACTIVE', userId: { in: ids } }),

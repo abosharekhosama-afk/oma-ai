@@ -15,15 +15,13 @@ import {
 import { StatusChip } from '../../../components/ui/status-chip';
 import { PageHeader, Panel } from '../../../components/ui/page-header';
 import { EmptyState, ErrorState, DeniedState, Skeleton } from '../../../components/ui/empty-state';
-import { DemoDisclosure } from '../../../components/demo/demo-disclosure';
 import { WorkspaceCard } from '../../../components/brand/workspace-card';
 import {
   ConnectionHonestyPanel,
   GettingStartedChecklist,
   JourneyStrip,
 } from '../../../components/shell/getting-started';
-import { demoApi, isDemoForbidden, pickCopy } from '../../../lib/demo/use-demo-api';
-import type { DemoGraph } from '@oma/demo';
+import { getHome, type HomeData } from '../../../lib/home-api';
 
 type Me = { user: { name: string }; active_tenant_id: string | null };
 
@@ -35,11 +33,18 @@ type NotificationItem = {
   readAt: string | null;
 };
 
-type DemoCommandCenter = DemoGraph['commandCenter'] & {
-  brands: DemoGraph['brands'];
-  campaigns: DemoGraph['campaigns'];
-  meta: DemoGraph['meta'];
-};
+const pick = (c: { en: string; ar: string }, locale: string) =>
+  locale.toLowerCase().startsWith('ar') ? c.ar || c.en : c.en;
+
+function fmtDate(iso: string | null, locale: string) {
+  if (!iso) return '—';
+  return new Intl.DateTimeFormat(locale.toLowerCase().startsWith('ar') ? 'ar' : 'en', {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(iso));
+}
 
 function attentionLabel(t: (key: string) => string, brand: BrandListItem): string {
   switch (brandAttention(brand)) {
@@ -59,9 +64,11 @@ function attentionLabel(t: (key: string) => string, brand: BrandListItem): strin
 }
 
 function notificationLabel(t: (key: string) => string, type: string): string {
-  const key = `shell.notification.type.${type}`;
-  const translated = t(key);
-  return translated === key ? type : translated;
+  for (const key of [`shell.notification.${type}`, `shell.notification.type.${type}`]) {
+    const translated = t(key);
+    if (translated && translated !== key) return translated;
+  }
+  return t('shell.notification.generic');
 }
 
 export default function AppHomePage() {
@@ -70,7 +77,8 @@ export default function AppHomePage() {
   const [me, setMe] = useState<Me | null>(null);
   const [brands, setBrands] = useState<BrandListItem[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const [demoCc, setDemoCc] = useState<DemoCommandCenter | null>(null);
+  const [home, setHome] = useState<HomeData | null>(null);
+  const [homeError, setHomeError] = useState(false);
   const [denied, setDenied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -86,20 +94,18 @@ export default function AppHomePage() {
           setLoading(false);
           return;
         }
-        const [brandRes, notifRes, demoRes] = await Promise.all([
+        const [brandRes, notifRes, homeRes] = await Promise.all([
           api<Paginated<BrandListItem>>('/api/v1/brands'),
           api<{ items: NotificationItem[] }>('/api/v1/notifications').catch(() => ({
             items: [] as NotificationItem[],
           })),
-          demoApi<DemoCommandCenter>('/command-center').catch((err) => {
-            if (isDemoForbidden(err)) return null;
-            return null;
-          }),
+          getHome().catch(() => null),
         ]);
         if (cancelled) return;
         setBrands(brandRes.data);
         setNotifications(notifRes.items.slice(0, 8));
-        setDemoCc(demoRes);
+        setHome(homeRes);
+        setHomeError(!homeRes);
       } catch (err) {
         if (cancelled) return;
         if (isPermissionDenied(err)) setDenied(true);
@@ -165,8 +171,10 @@ export default function AppHomePage() {
             hasTenant={Boolean(me.active_tenant_id)}
             brandCount={brands.length}
             approvedProfileCount={approvedCount}
-            hasCampaign={Boolean(demoCc?.campaigns?.length)}
+            hasCampaign={Boolean(home && home.counts.active_campaigns > 0)}
+            steps={home?.checklist}
           />
+          {homeError ? <ErrorState title={t('common.error')} body={t('home.loadFailed')} /> : null}
           <ConnectionHonestyPanel />
           <div className="oma-workboard-split">
             <div className="oma-workboard-primary">
@@ -241,24 +249,71 @@ export default function AppHomePage() {
                 )}
               </Panel>
 
-              {demoCc ? (
-                <Panel
-                  title={t('home.demoNextActions')}
-                  description={t('demo.disclosure')}
-                  labelledBy="demo-next-heading"
-                  action={<span className="oma-badge oma-badge--warning">Demo</span>}
-                >
-                  <div data-testid="demo-command-center">
-                    <ul className="oma-dense-list">
-                      {demoCc.nextActions.map((a) => (
-                        <li key={a.href}>
-                          <Link href={a.href} className="oma-work-row">
-                            <strong>{pickCopy(a.label, locale)}</strong>
-                            <span className="oma-work-row-cta">{t('home.action.open')}</span>
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
+              {home ? (
+                <Panel title={t('home.myTasks')} labelledBy="home-my-tasks-heading">
+                  <div data-testid="home-my-tasks">
+                    {home.my_tasks.length === 0 ? (
+                      <p className="oma-muted" role="status">
+                        {t('home.myTasksEmpty')}
+                      </p>
+                    ) : (
+                      <ul className="oma-dense-list">
+                        {home.my_tasks.map((task) => (
+                          <li key={task.id}>
+                            <Link href={task.href} className="oma-work-row">
+                              <div>
+                                <strong>{pick(task.title, locale)}</strong>
+                                <div className="oma-work-row-meta">
+                                  <StatusChip status={task.status} />
+                                  {task.brand ? <span>{task.brand}</span> : null}
+                                  <span data-overdue={task.overdue ? 'true' : 'false'}>
+                                    {task.overdue ? t('home.overdue') : t('home.due')} ·{' '}
+                                    {fmtDate(task.due_at, locale)}
+                                  </span>
+                                </div>
+                              </div>
+                              <span className="oma-work-row-cta">{t('home.action.open')}</span>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </Panel>
+              ) : null}
+
+              {home ? (
+                <Panel title={t('home.pendingReviews')} labelledBy="home-reviews-heading">
+                  <div data-testid="home-pending-reviews">
+                    {home.pending_reviews.length === 0 ? (
+                      <p className="oma-muted" role="status">
+                        {t('home.pendingReviewsEmpty')}
+                      </p>
+                    ) : (
+                      <ul className="oma-dense-list">
+                        {home.pending_reviews.map((r) => (
+                          <li key={r.kind + r.id}>
+                            <Link href={r.href} className="oma-work-row">
+                              <div>
+                                <strong>{pick(r.title, locale)}</strong>
+                                <div className="oma-work-row-meta">
+                                  <span>{t(`home.kind.${r.kind}`)}</span>
+                                  {r.brand ? <span>{r.brand}</span> : null}
+                                  {r.progress ? (
+                                    <span>
+                                      {t('home.approvedOf')
+                                        .replace('{a}', String(r.progress.approved))
+                                        .replace('{r}', String(r.progress.required))}
+                                    </span>
+                                  ) : null}
+                                </div>
+                              </div>
+                              <span className="oma-work-row-cta">{t('home.action.open')}</span>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
                   </div>
                 </Panel>
               ) : null}
@@ -278,63 +333,57 @@ export default function AppHomePage() {
                 <span className="oma-metric-pill">
                   <strong>{scanningCount}</strong> {t('home.stat.inProgress')}
                 </span>
-                {demoCc ? (
+                {home ? (
                   <>
-                    <span className="oma-metric-pill">
-                      <strong>{demoCc.reviewQueueCount}</strong> {t('home.demoReviewQueue')}
-                    </span>
-                    <Link
-                      href="/app/tasks"
-                      className="oma-metric-pill"
-                      data-testid="home-overdue-tasks-board"
-                    >
-                      <strong>{demoCc.overdueTasks}</strong> {t('home.demoOverdue')}
+                    <Link href="/app/reviews" className="oma-metric-pill" data-testid="home-pending-reviews-count">
+                      <strong>{home.counts.pending_reviews}</strong> {t('home.stat.reviews')}
                     </Link>
-                    {typeof demoCc.scheduleThisWeek === 'number' ? (
-                      <Link
-                        href="/app/schedule"
-                        className="oma-metric-pill"
-                        data-testid="home-schedule-week"
-                      >
-                        <strong>{demoCc.scheduleThisWeek}</strong> {t('home.demoScheduleWeek')}
-                      </Link>
-                    ) : null}
-                    {typeof demoCc.workloadAtRisk === 'number' ? (
-                      <Link
-                        href="/app/team"
-                        className="oma-metric-pill"
-                        data-testid="home-workload-risk"
-                      >
-                        <strong>{demoCc.workloadAtRisk}</strong> {t('home.demoWorkloadRisk')}
-                      </Link>
-                    ) : null}
+                    <Link href="/app/tasks" className="oma-metric-pill" data-testid="home-overdue-tasks-board">
+                      <strong>{home.counts.overdue_tasks}</strong> {t('home.stat.overdue')}
+                    </Link>
+                    <Link href="/app/schedule" className="oma-metric-pill" data-testid="home-schedule-week">
+                      <strong>{home.counts.scheduled_this_week}</strong> {t('home.stat.scheduledWeek')}
+                    </Link>
+                    <Link href="/app/campaigns" className="oma-metric-pill">
+                      <strong>{home.counts.active_campaigns}</strong> {t('home.stat.activeCampaigns')}
+                    </Link>
+                    <Link href="/app/requests" className="oma-metric-pill">
+                      <strong>{home.counts.open_requests}</strong> {t('home.stat.openRequests')}
+                    </Link>
                   </>
                 ) : null}
               </div>
 
-              {demoCc ? (
-                <>
-                  <div className="oma-banner-demo">
-                    <DemoDisclosure />
-                  </div>
-                  <Panel title={t('home.demoDeadlines')} labelledBy="demo-deadlines-heading">
-                    <ul className="oma-dense-list">
-                      {demoCc.upcomingDeadlines.map((d) => (
-                        <li key={d.href + d.at}>
-                          <Link href={d.href} className="oma-work-row">
-                            <div>
-                              <strong>{pickCopy(d.label, locale)}</strong>
-                              <div className="oma-work-row-meta">
-                                <span>{d.at}</span>
+              {home ? (
+                <Panel title={t('home.upcomingSchedule')} labelledBy="home-upcoming-heading">
+                  <div data-testid="home-upcoming-schedule">
+                    {home.upcoming_schedule.length === 0 ? (
+                      <p className="oma-muted" role="status">
+                        {t('home.upcomingScheduleEmpty')}
+                      </p>
+                    ) : (
+                      <ul className="oma-dense-list">
+                        {home.upcoming_schedule.map((c) => (
+                          <li key={c.id}>
+                            <Link href={c.href} className="oma-work-row">
+                              <div>
+                                <strong>{pick(c.title, locale)}</strong>
+                                <div className="oma-work-row-meta">
+                                  <span>{c.channel}</span>
+                                  {c.brand ? <span>{c.brand}</span> : null}
+                                  <time dateTime={c.scheduled_at ?? undefined} suppressHydrationWarning>
+                                    {fmtDate(c.scheduled_at, locale)}
+                                  </time>
+                                </div>
                               </div>
-                            </div>
-                            <span className="oma-work-row-cta">{t('home.action.open')}</span>
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </Panel>
-                </>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    <p className="oma-muted">{t('home.publishingNotConnected')}</p>
+                  </div>
+                </Panel>
               ) : null}
 
               <Panel
@@ -357,7 +406,7 @@ export default function AppHomePage() {
                               <div className="oma-work-row-meta">
                                 <span>{me.user.name}</span>
                                 <time dateTime={n.createdAt} suppressHydrationWarning>
-                                  {new Date(n.createdAt).toLocaleString()}
+                                  {new Date(n.createdAt).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })}
                                 </time>
                               </div>
                             </div>
@@ -370,7 +419,7 @@ export default function AppHomePage() {
                               <div className="oma-work-row-meta">
                                 <span>{me.user.name}</span>
                                 <time dateTime={n.createdAt} suppressHydrationWarning>
-                                  {new Date(n.createdAt).toLocaleString()}
+                                  {new Date(n.createdAt).toLocaleString(locale, { dateStyle: 'medium', timeStyle: 'short' })}
                                 </time>
                               </div>
                             </div>

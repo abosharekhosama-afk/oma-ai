@@ -360,7 +360,7 @@ export default function RequestDetailPage() {
             className="oma-req-detail__back"
             data-testid="demo-request-back"
           >
-            <ArrowLeftOutlined />
+            <ArrowLeftOutlined className="oma-dir-icon" />
             <span>{t('demo.requests.back')}</span>
           </Link>
           {row ? (

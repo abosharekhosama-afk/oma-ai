@@ -44,6 +44,7 @@ export function ShellIcon({
   return (
     <svg
       className={className}
+      data-icon={name}
       width={size}
       height={size}
       viewBox="0 0 24 24"

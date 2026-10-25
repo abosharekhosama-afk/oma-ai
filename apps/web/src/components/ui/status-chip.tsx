@@ -1,4 +1,5 @@
 'use client';
+import { useT } from '../../lib/use-locale';
 
 import { Tag } from '@oma/ui/controls';
 
@@ -45,6 +46,16 @@ export function statusTone(status: string | null | undefined): Tone {
   return TONE_BY_STATUS[status] ?? 'neutral';
 }
 
+/** Localized label for a raw status enum (never shows ACTIVE / NEEDS_REVIEW to users). */
+export function statusLabel(t: (k: string) => string, status?: string | null): string {
+  if (!status) return '—';
+  const key = `status.enum.${String(status).toUpperCase()}`;
+  const v = t(key);
+  if (v && v !== key) return v;
+  const words = String(status).replace(/[_.-]+/g, ' ').toLowerCase().trim();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
 export function StatusChip({
   status,
   label,
@@ -54,8 +65,9 @@ export function StatusChip({
   label?: string;
   tone?: Tone;
 }) {
+  const t = useT();
   const resolved = tone ?? statusTone(status);
-  const text = label ?? status ?? '—';
+  const text = label ?? statusLabel(t, status);
   const color =
     resolved === 'success'
       ? 'success'

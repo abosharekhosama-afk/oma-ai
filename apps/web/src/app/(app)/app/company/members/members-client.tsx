@@ -13,48 +13,51 @@ import {
 import { useToast } from '../../../../../components/ui/toast';
 import { isPermissionDenied } from '../../../../../lib/brand-api';
 import { PermissionDenied } from '../../../../../components/shell/permission-denied';
+import { statusLabel } from '../../../../../components/ui/status-chip';
+import { useT } from '../../../../../lib/use-locale';
 
 const COMPANY_ROLES = [
   {
     value: 'Owner',
     profile: 'COMPANY_OWNER',
     kind: 'team' as const,
-    desc: 'Full company ownership',
+    desc: 'members.role.owner_desc',
   },
   {
     value: 'Administrator',
     profile: 'ADMIN',
     kind: 'team' as const,
-    desc: 'Manage workspaces, people, and settings',
+    desc: 'members.role.admin_desc',
   },
   {
     value: 'Writer',
     profile: 'WRITER',
     kind: 'team' as const,
-    desc: 'Create and edit posts and campaigns',
+    desc: 'members.role.writer_desc',
   },
   {
     value: 'Approver',
     profile: 'APPROVER',
     kind: 'team' as const,
-    desc: 'Review and approve content',
+    desc: 'members.role.approver_desc',
   },
   {
     value: 'Contributor',
     profile: 'MEMBER',
     kind: 'team' as const,
-    desc: 'Standard collaborator access',
+    desc: 'members.role.contributor_desc',
   },
   {
     value: 'Client',
     profile: 'CLIENT',
     kind: 'client' as const,
-    desc: 'External client — view and approve',
+    desc: 'members.role.client_desc',
   },
-  { value: 'Guest', profile: 'GUEST', kind: 'client' as const, desc: 'Limited view access' },
+  { value: 'Guest', profile: 'GUEST', kind: 'client' as const, desc: 'members.limited_view_access' },
 ];
 
 export default function CompanyMembersPage() {
+  const t = useT();
   const toast = useToast();
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [q, setQ] = useState('');
@@ -82,7 +85,7 @@ export default function CompanyMembersPage() {
     } catch (err) {
       if (!mountedRef.current) return;
       if (isPermissionDenied(err)) setDenied(true);
-      else setError(err instanceof Error ? err.message : 'Failed to load members');
+      else setError(err instanceof Error ? err.message : t('members.failed_to_load_members'));
     } finally {
       loadingRef.current = false;
       if (mountedRef.current) setLoading(false);
@@ -129,12 +132,12 @@ export default function CompanyMembersPage() {
       if (res?.invite_token) {
         setInviteLink(`${window.location.origin}/invite?token=${res.invite_token}`);
       }
-      toast.push('Invitation sent', 'success');
+      toast.push(t('team.invitation_sent'), 'success');
       setEmail('');
       setInviteOpen(false);
       await load(true);
     } catch (err) {
-      toast.push(err instanceof Error ? err.message : 'Invite failed', 'danger');
+      toast.push(err instanceof Error ? err.message : t('errors.invite_failed'), 'danger');
     } finally {
       setBusy(false);
     }
@@ -146,22 +149,24 @@ export default function CompanyMembersPage() {
     if (!profile) return;
     try {
       await attachMemberProfile(member.id, profile);
-      toast.push('Role updated', 'success');
-    } catch {
-      toast.push('Role profile not available on server; UI updated', 'success');
+      toast.push(t('team.role_updated'), 'success');
+    } catch (err) {
+      // Roll back the optimistic change — never report success when the server refused.
+      setMembers((prev) => prev.map((m) => (m.id === member.id ? { ...m, role: member.role } : m)));
+      toast.push(err instanceof Error ? err.message : t('errors.update_failed'), 'danger');
     }
   }
 
   async function onRemove(member: WorkspaceMember) {
     const label = member.user?.email || member.invited_email || member.id;
-    if (!window.confirm(`Remove ${label} from the company?`)) return;
+    if (!window.confirm(t('members.confirm_remove').replace('{name}', label))) return;
     setBusy(true);
     try {
       await removeMember(member.id);
       setMembers((prev) => prev.filter((m) => m.id !== member.id));
-      toast.push('Member removed', 'success');
+      toast.push(t('team.member_removed'), 'success');
     } catch (err) {
-      toast.push(err instanceof Error ? err.message : 'Remove failed', 'danger');
+      toast.push(err instanceof Error ? err.message : t('errors.remove_failed'), 'danger');
     } finally {
       setBusy(false);
     }
@@ -173,7 +178,7 @@ export default function CompanyMembersPage() {
     <div className="oma-planable-page" data-testid="company-members-planable">
       <div className="oma-planable-page__header">
         <div>
-          <h1 className="oma-planable-page__title">Company collaborators</h1>
+          <h1 className="oma-planable-page__title">{t('wsPanel.company_collaborators')}</h1>
           <p className="oma-planable-page__sub">
             Invite teammates at company level. They can be shared across workspaces under this
             account.
@@ -181,13 +186,13 @@ export default function CompanyMembersPage() {
         </div>
         <Button type="primary" onClick={() => setInviteOpen(true)} disabled={busy}>
           <ShellIcon name="plus" size={14} />
-          <span>Invite collaborators</span>
+          <span>{t('members.invite_collaborators')}</span>
         </Button>
       </div>
 
       {inviteLink ? (
         <div className="oma-planable-card" style={{ marginBottom: 12 }}>
-          <strong>Invite link</strong>
+          <strong>{t('members.invite_link')}</strong>
           <p className="oma-ws-empty-desc" style={{ marginTop: 6 }}>
             {inviteLink}
           </p>
@@ -196,13 +201,13 @@ export default function CompanyMembersPage() {
             onClick={async () => {
               try {
                 await navigator.clipboard.writeText(inviteLink);
-                toast.push('Link copied', 'success');
+                toast.push(t('content.link_copied'), 'success');
               } catch {
-                toast.push('Could not copy', 'danger');
+                toast.push(t('members.could_not_copy'), 'danger');
               }
             }}
           >
-            Copy link
+            {t('demo.tasks.copyLink')}
           </Button>
         </div>
       ) : null}
@@ -211,7 +216,7 @@ export default function CompanyMembersPage() {
         <Input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Search collaborators…"
+          placeholder={t('members.search_collaborators')}
         />
       </div>
 
@@ -221,7 +226,7 @@ export default function CompanyMembersPage() {
           <strong>{error}</strong>
           <div style={{ marginTop: 12 }}>
             <Button type="default" onClick={() => void load(true)}>
-              Retry
+              {t('activity.retry')}
             </Button>
           </div>
         </div>
@@ -232,10 +237,10 @@ export default function CompanyMembersPage() {
           <table className="oma-ws-table">
             <thead>
               <tr>
-                <th>User</th>
-                <th>Company role</th>
-                <th>Status</th>
-                <th>Capabilities</th>
+                <th>{t('team.user')}</th>
+                <th>{t('members.company_role')}</th>
+                <th>{t('strategy.list.col.status')}</th>
+                <th>{t('company.colCapabilities')}</th>
                 <th />
               </tr>
             </thead>
@@ -244,17 +249,17 @@ export default function CompanyMembersPage() {
                 <tr>
                   <td colSpan={5}>
                     <div className="oma-ws-empty-block">
-                      <h3>No collaborators yet</h3>
-                      <p>Invite administrators or writers to manage workspaces together.</p>
+                      <h3>{t('members.no_collaborators_yet')}</h3>
+                      <p>{t('members.invite_administrators_or_writers_to')}</p>
                       <Button type="primary" onClick={() => setInviteOpen(true)}>
-                        Invite collaborators
+                        {t('members.invite_collaborators')}
                       </Button>
                     </div>
                   </td>
                 </tr>
               ) : (
                 filtered.map((m) => {
-                  const label = m.user?.name || m.user?.email || m.invited_email || 'User';
+                  const label = m.user?.name || m.user?.email || m.invited_email || t('team.user');
                   const email = m.user?.email || m.invited_email || '';
                   return (
                     <tr key={m.id}>
@@ -276,13 +281,13 @@ export default function CompanyMembersPage() {
                         >
                           {COMPANY_ROLES.map((r) => (
                             <option key={r.value} value={r.value}>
-                              {r.value}
+                              {t(`members.role.${r.value.toLowerCase()}`)}
                             </option>
                           ))}
                         </SelectField>
                       </td>
                       <td>
-                        <span className="oma-ws-badge oma-ws-badge--ghost">{m.status}</span>
+                        <span className="oma-ws-badge oma-ws-badge--ghost">{statusLabel(t, m.status)}</span>
                       </td>
                       <td>
                         <span className="oma-muted" style={{ fontSize: 12 }}>
@@ -297,7 +302,7 @@ export default function CompanyMembersPage() {
                           disabled={busy}
                           onClick={() => void onRemove(m)}
                         >
-                          Remove
+                          {t('team.remove')}
                         </button>
                       </td>
                     </tr>
@@ -311,12 +316,12 @@ export default function CompanyMembersPage() {
 
       <div className="oma-ws-slack-card" style={{ marginTop: 16 }}>
         <div>
-          <strong>Workspace team</strong>
-          <p>For per-workspace Team/Client membership and permission grids, use the Team page.</p>
+          <strong>{t('members.workspace_team')}</strong>
+          <p>{t('members.for_perworkspace_teamclient_membership_and')}</p>
         </div>
         <Button type="default" onClick={() => (window.location.href = '/app/team')}>
           <ShellIcon name="team" size={14} />
-          <span>Open Team</span>
+          <span>{t('wsPanel.open_team')}</span>
         </Button>
       </div>
 
@@ -325,18 +330,18 @@ export default function CompanyMembersPage() {
           <div
             className="oma-ws-modal-card"
             role="dialog"
-            aria-label="Invite collaborators"
+            aria-label={t('members.invite_collaborators')}
             onClick={(e) => e.stopPropagation()}
             style={{ margin: 'auto' }}
           >
             <div className="oma-ws-modal-head">
-              <h3>Invite collaborators</h3>
-              <button type="button" onClick={() => setInviteOpen(false)} aria-label="Close">
+              <h3>{t('members.invite_collaborators')}</h3>
+              <button type="button" onClick={() => setInviteOpen(false)} aria-label={t('brand.evidence.close')}>
                 ×
               </button>
             </div>
             <div className="oma-ws-field">
-              <label className="oma-ws-label">Email</label>
+              <label className="oma-ws-label">{t('auth.email')}</label>
               <Input
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -344,21 +349,21 @@ export default function CompanyMembersPage() {
               />
             </div>
             <div className="oma-ws-field">
-              <label className="oma-ws-label">Company role</label>
+              <label className="oma-ws-label">{t('members.company_role')}</label>
               <SelectField value={role} onChange={(e) => setRole(e.target.value)}>
                 {COMPANY_ROLES.map((r) => (
                   <option key={r.value} value={r.value}>
-                    {r.value}
+                    {t(`members.role.${r.value.toLowerCase()}`)}
                   </option>
                 ))}
               </SelectField>
             </div>
             <div className="oma-ws-modal-actions">
               <Button type="default" onClick={() => setInviteOpen(false)}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button type="primary" onClick={() => void onInvite()} disabled={busy}>
-                {busy ? 'Sending…' : 'Send invite'}
+                {busy ? t('auth.forgot.sending') : t('team.send_invite')}
               </Button>
             </div>
           </div>

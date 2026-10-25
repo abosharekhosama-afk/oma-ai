@@ -2,10 +2,10 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useState } from 'react';
-import { Popover } from 'antd';
+import { ShellPopover } from './shell-popover';
 import { Button } from '@oma/ui/controls';
 import { ShellIcon } from './shell-icons';
-import { useT } from '../../lib/use-locale';
+import { useLocale, useT } from '../../lib/use-locale';
 import {
   listNotifications,
   markAllNotificationsRead,
@@ -14,14 +14,16 @@ import {
 } from '../../lib/notifications-api';
 import { getApiError } from '../../lib/brand-api';
 
-function formatWhen(iso: string): string {
+/** Relative time in the active locale (Arabic digits/words in ar, LTR/RTL safe). */
+export function formatWhen(iso: string, locale: string): string {
   try {
     const d = new Date(iso);
     const diff = Date.now() - d.getTime();
-    if (diff < 60_000) return 'Just now';
-    if (diff < 3600_000) return `${Math.floor(diff / 60_000)}m`;
-    if (diff < 86400_000) return `${Math.floor(diff / 3600_000)}h`;
-    return d.toLocaleDateString();
+    const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+    if (diff < 60_000) return rtf.format(0, 'second');
+    if (diff < 3600_000) return rtf.format(-Math.floor(diff / 60_000), 'minute');
+    if (diff < 86400_000) return rtf.format(-Math.floor(diff / 3600_000), 'hour');
+    return d.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
   } catch {
     return '';
   }
@@ -32,19 +34,19 @@ export function notificationLabel(t: (k: string) => string, n: AppNotification):
   const key = `shell.notification.${n.type}`;
   const translated = t(key);
   if (translated && translated !== key) return translated;
-  if (n.title) return n.title;
-  return n.type.replace(/\./g, ' ');
+  return t('shell.notification.generic');
 }
 
 export function notificationBodyText(t: (k: string) => string, n: AppNotification): string | null {
   const key = `shell.notificationBody.${n.type}`;
   const translated = t(key);
   if (translated && translated !== key) return translated;
-  return n.body || null;
+  return null;
 }
 
 export function NotificationsBell() {
   const t = useT();
+  const locale = useLocale();
   const [open, setOpen] = useState(false);
   const [items, setItems] = useState<AppNotification[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -120,7 +122,7 @@ export function NotificationsBell() {
             onClick={() => void markAll()}
             data-testid="shell-notifications-mark-all"
           >
-            {t('shell.markAllRead') || 'Mark all as read'}
+            {t('shell.markAllRead')}
           </button>
         ) : null}
       </header>
@@ -171,7 +173,7 @@ export function NotificationsBell() {
                 </Button>
               )}
               <span className="oma-notification-meta">
-                {t('shell.notificationsInApp')} · {formatWhen(n.createdAt)}
+                {t('shell.notificationsInApp')} · {formatWhen(n.createdAt, locale)}
                 {!n.readAt && n.deepLinkPath ? (
                   <span className="oma-notification-actions">
                     <button
@@ -189,18 +191,22 @@ export function NotificationsBell() {
           ))}
         </ul>
       )}
+      <footer className="oma-notifications-panel__foot">
+        <Link
+          href="/app/notifications"
+          className="oma-notifications-panel__view-all"
+          data-testid="shell-notifications-view-all"
+          onClick={() => setOpen(false)}
+        >
+          {t('shell.notificationsViewAll')}
+        </Link>
+      </footer>
     </div>
   );
 
   return (
-    <Popover
-      open={open}
-      onOpenChange={setOpen}
-      trigger="click"
-      placement="bottomRight"
-      content={panel}
-      classNames={{ root: 'oma-notifications' }}
-    >
+    <ShellPopover open={open} onOpenChange={setOpen} content={panel} className="oma-notifications-pop">
+      <span className="oma-notifications">
       <button
         type="button"
         className="oma-icon-btn"
@@ -216,6 +222,7 @@ export function NotificationsBell() {
           </span>
         ) : null}
       </button>
-    </Popover>
+      </span>
+    </ShellPopover>
   );
 }
