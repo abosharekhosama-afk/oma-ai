@@ -44,15 +44,12 @@ test.describe('P6 Planable analytics organization settings journey', () => {
     await page.goto('/app');
     await expect(page.getByTestId('demo-command-center')).toBeVisible({ timeout: 20_000 });
     await nav.getByRole('link', { name: /^analytics$/i }).click();
-    await expect(page.getByTestId('demo-analytics')).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByTestId('demo-analytics-sample-badge')).toBeVisible();
-    await expect(page.getByTestId('demo-analytics-honesty')).toBeVisible();
-    await expect(page.getByTestId('demo-analytics-comparison')).toBeVisible();
-    const before = await page.getByTestId('demo-analytics-trend-table').locator('tbody tr').count();
-    await page.getByTestId('demo-analytics-filter-track').selectOption('PAID');
-    const after = await page.getByTestId('demo-analytics-trend-table').locator('tbody tr').count();
-    expect(after).toBeLessThanOrEqual(before);
-    await expect(page.getByTestId('demo-analytics-trend-svg')).toBeVisible();
+    await expect(page.getByTestId('work-analytics')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('analytics-social-note')).toBeVisible();
+    await expect(page.getByTestId('analytics-social-note')).toBeVisible();
+    await expect(page.getByTestId('analytics-kpis')).toBeVisible();
+    await page.getByTestId('analytics-period').selectOption('7');
+    await expect(page.getByTestId('analytics-series')).toBeVisible();
     guards.assertClean();
 
     await nav.getByRole('link', { name: /^team$/i }).click();

@@ -234,9 +234,9 @@ test.describe('Full visual certification evidence', () => {
         acceptance: ['V-ANL-01', 'V-ANL-02'],
         source: 'Demo-backed',
         setup: async () => {
-          await expect(page.getByTestId('demo-analytics')).toBeVisible({ timeout: 20_000 });
-          await expect(page.getByTestId('demo-analytics-sample-badge')).toBeVisible();
-          await expect(page.getByTestId('demo-analytics-kpis')).toBeVisible();
+          await expect(page.getByTestId('work-analytics')).toBeVisible({ timeout: 20_000 });
+          await expect(page.getByTestId('analytics-social-note')).toBeVisible();
+          await expect(page.getByTestId('analytics-kpis')).toBeVisible();
         },
       },
       {

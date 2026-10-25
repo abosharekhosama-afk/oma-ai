@@ -133,7 +133,7 @@ test.describe('Owner surface-depth evidence', () => {
         ref: 'Smartly DOC',
         evidence: 'DOC',
         setup: async () => {
-          await expect(page.getByTestId('demo-analytics')).toBeVisible({ timeout: 20_000 });
+          await expect(page.getByTestId('work-analytics')).toBeVisible({ timeout: 20_000 });
         },
       },
       {

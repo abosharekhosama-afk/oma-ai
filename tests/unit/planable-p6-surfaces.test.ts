@@ -130,11 +130,9 @@ describe('P6 Planable analytics/organization/settings surfaces', () => {
   });
 
   it('keeps analytics/settings honesty markers in surface source', () => {
-    const analytics = read('apps/web/src/app/(app)/app/analytics/page.tsx');
-    expect(analytics).toContain('demo-analytics-honesty');
-    expect(analytics).toContain('demo-analytics-sample-badge');
-    expect(analytics).toContain('stroke="var(--oma-primary)"');
-    expect(analytics).toContain('strokeDasharray');
+    // Analytics is now real work analytics (see work-analytics.test.ts); honesty = social not connected.
+    const analytics = read('apps/web/src/app/(app)/app/analytics/analytics-client.tsx');
+    expect(analytics).toContain('analytics-social-note');
     expect(analytics).not.toContain('--oma-violet');
     const settings = read('apps/web/src/app/(app)/app/settings/page.tsx');
     expect(settings).toContain('demo.settings.noConnect');

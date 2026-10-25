@@ -3,7 +3,11 @@ import { Input, SelectField } from '@oma/ui/controls';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ErrorState, errorKindOf, type ErrorKind } from '../../../../components/ui/error-state';
 import { PageHeader } from '../../../../components/ui/page-header';
-import { getActiveBrandId, setActiveBrandId, useReloadOnBrandChange } from '../../../../lib/active-brand';
+import {
+  getActiveBrandId,
+  setActiveBrandId,
+  useReloadOnBrandChange,
+} from '../../../../lib/active-brand';
 import {
   formatHours,
   formatRate,
@@ -16,7 +20,13 @@ import {
 } from '../../../../lib/analytics-api';
 import { useLocale, useT } from '../../../../lib/use-locale';
 
-const STATUSES: Array<keyof StatusCounts> = ['DRAFT', 'IN_REVIEW', 'APPROVED', 'SCHEDULED', 'PUBLISHED_SAMPLE'];
+const STATUSES: Array<keyof StatusCounts> = [
+  'DRAFT',
+  'IN_REVIEW',
+  'APPROVED',
+  'SCHEDULED',
+  'PUBLISHED_SAMPLE',
+];
 
 function isoDay(d: Date) {
   return d.toISOString().slice(0, 10);
@@ -103,11 +113,23 @@ export default function AnalyticsPage() {
           <>
             <label className="oma-wa-filter">
               <span>{t('analytics.from')}</span>
-              <Input type="date" value={from} max={to} data-testid="analytics-from" onChange={(e) => setFrom(e.target.value)} />
+              <Input
+                type="date"
+                value={from}
+                max={to}
+                data-testid="analytics-from"
+                onChange={(e) => setFrom(e.target.value)}
+              />
             </label>
             <label className="oma-wa-filter">
               <span>{t('analytics.to')}</span>
-              <Input type="date" value={to} min={from} data-testid="analytics-to" onChange={(e) => setTo(e.target.value)} />
+              <Input
+                type="date"
+                value={to}
+                min={from}
+                data-testid="analytics-to"
+                onChange={(e) => setTo(e.target.value)}
+              />
             </label>
           </>
         ) : null}
@@ -168,16 +190,34 @@ export default function AnalyticsPage() {
             </div>
           ) : null}
 
-          <section className="oma-wa-kpis" data-testid="analytics-kpis" aria-label={t('analytics.kpis')}>
+          <section
+            className="oma-wa-kpis"
+            data-testid="analytics-kpis"
+            aria-label={t('analytics.kpis')}
+          >
             <Kpi label={t('analytics.kpi.posts')} value={n(data.content.total)} />
-            <Kpi label={t('analytics.kpi.scheduled')} value={n(data.content.series.reduce((a, s) => a + s.scheduled, 0))} />
-            <Kpi label={t('analytics.kpi.published')} value={n(data.content.series.reduce((a, s) => a + s.published, 0))} />
-            <Kpi label={t('analytics.kpi.avgApproval')} value={formatHours(data.approvals.content.avg_hours_to_approval, locale)} />
-            <Kpi label={t('analytics.kpi.onTime')} value={formatRate(data.on_time.task_on_time_rate, locale)} />
+            <Kpi
+              label={t('analytics.kpi.scheduled')}
+              value={n(data.content.series.reduce((a, s) => a + s.scheduled, 0))}
+            />
+            <Kpi
+              label={t('analytics.kpi.published')}
+              value={n(data.content.series.reduce((a, s) => a + s.published, 0))}
+            />
+            <Kpi
+              label={t('analytics.kpi.avgApproval')}
+              value={formatHours(data.approvals.content.avg_hours_to_approval, locale)}
+            />
+            <Kpi
+              label={t('analytics.kpi.onTime')}
+              value={formatRate(data.on_time.task_on_time_rate, locale)}
+            />
             <Kpi
               label={t('analytics.kpi.overdue')}
               value={n(data.on_time.overdue_posts + data.on_time.overdue_tasks)}
-              tone={data.on_time.overdue_posts + data.on_time.overdue_tasks > 0 ? 'warn' : undefined}
+              tone={
+                data.on_time.overdue_posts + data.on_time.overdue_tasks > 0 ? 'warn' : undefined
+              }
             />
           </section>
 
@@ -209,7 +249,12 @@ export default function AnalyticsPage() {
               </ul>
               <BreakdownTable
                 title={t('analytics.perBrand')}
-                rows={data.content.per_brand.map((r) => ({ id: r.id, name: r.name, total: r.total, by: r.by_status }))}
+                rows={data.content.per_brand.map((r) => ({
+                  id: r.id,
+                  name: r.name,
+                  total: r.total,
+                  by: r.by_status,
+                }))}
                 n={n}
                 statusLabel={statusLabel}
                 testId="analytics-per-brand"
@@ -241,12 +286,44 @@ export default function AnalyticsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  <ApprovalRow label={t('analytics.submitted')} c={data.approvals.content} d={data.approvals.deliverables} pick={(s) => n(s.submitted)} />
-                  <ApprovalRow label={t('analytics.approved')} c={data.approvals.content} d={data.approvals.deliverables} pick={(s) => n(s.approved)} />
-                  <ApprovalRow label={t('analytics.avgTimeToApproval')} c={data.approvals.content} d={data.approvals.deliverables} pick={(s) => formatHours(s.avg_hours_to_approval, locale)} />
-                  <ApprovalRow label={t('analytics.changesRequested')} c={data.approvals.content} d={data.approvals.deliverables} pick={(s) => n(s.changes_requested)} />
-                  <ApprovalRow label={t('analytics.avgRevisionRounds')} c={data.approvals.content} d={data.approvals.deliverables} pick={(s) => (s.avg_revision_rounds === null ? '—' : String(s.avg_revision_rounds))} />
-                  <ApprovalRow label={t('analytics.rejectionRate')} c={data.approvals.content} d={data.approvals.deliverables} pick={(s) => formatRate(s.rejection_rate, locale)} />
+                  <ApprovalRow
+                    label={t('analytics.submitted')}
+                    c={data.approvals.content}
+                    d={data.approvals.deliverables}
+                    pick={(s) => n(s.submitted)}
+                  />
+                  <ApprovalRow
+                    label={t('analytics.approved')}
+                    c={data.approvals.content}
+                    d={data.approvals.deliverables}
+                    pick={(s) => n(s.approved)}
+                  />
+                  <ApprovalRow
+                    label={t('analytics.avgTimeToApproval')}
+                    c={data.approvals.content}
+                    d={data.approvals.deliverables}
+                    pick={(s) => formatHours(s.avg_hours_to_approval, locale)}
+                  />
+                  <ApprovalRow
+                    label={t('analytics.changesRequested')}
+                    c={data.approvals.content}
+                    d={data.approvals.deliverables}
+                    pick={(s) => n(s.changes_requested)}
+                  />
+                  <ApprovalRow
+                    label={t('analytics.avgRevisionRounds')}
+                    c={data.approvals.content}
+                    d={data.approvals.deliverables}
+                    pick={(s) =>
+                      s.avg_revision_rounds === null ? '—' : String(s.avg_revision_rounds)
+                    }
+                  />
+                  <ApprovalRow
+                    label={t('analytics.rejectionRate')}
+                    c={data.approvals.content}
+                    d={data.approvals.deliverables}
+                    pick={(s) => formatRate(s.rejection_rate, locale)}
+                  />
                 </tbody>
               </table>
 
@@ -266,14 +343,20 @@ export default function AnalyticsPage() {
                   <dt>{t('analytics.taskOnTimeRate')}</dt>
                   <dd>
                     {formatRate(data.on_time.task_on_time_rate, locale)}
-                    <small> ({n(data.on_time.tasks_on_time)}/{n(data.on_time.tasks_completed_with_due)})</small>
+                    <small>
+                      {' '}
+                      ({n(data.on_time.tasks_on_time)}/{n(data.on_time.tasks_completed_with_due)})
+                    </small>
                   </dd>
                 </div>
                 <div>
                   <dt>{t('analytics.postOnTimeRate')}</dt>
                   <dd>
                     {formatRate(data.on_time.post_on_time_rate, locale)}
-                    <small> ({n(data.on_time.posts_approved_on_time)}/{n(data.on_time.posts_due)})</small>
+                    <small>
+                      {' '}
+                      ({n(data.on_time.posts_approved_on_time)}/{n(data.on_time.posts_due)})
+                    </small>
                   </dd>
                 </div>
               </dl>
@@ -346,10 +429,22 @@ function ApprovalRow({
   );
 }
 
-function ColumnChart({ data, locale, label }: { data: WorkAnalytics; locale: string; label: string }) {
+function ColumnChart({
+  data,
+  locale,
+  label,
+}: {
+  data: WorkAnalytics;
+  locale: string;
+  label: string;
+}) {
   const s = data.content.series;
   const max = niceMax(s.flatMap((p) => [p.scheduled, p.published]));
-  const fmt = new Intl.DateTimeFormat(locale === 'ar' ? 'ar' : 'en', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+  const fmt = new Intl.DateTimeFormat(locale === 'ar' ? 'ar' : 'en', {
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  });
   const every = Math.max(1, Math.ceil(s.length / 8));
   return (
     <div className="oma-wa-chart" role="img" aria-label={label}>
@@ -360,12 +455,24 @@ function ColumnChart({ data, locale, label }: { data: WorkAnalytics; locale: str
       </div>
       <div className="oma-wa-chart__plot">
         {s.map((p, i) => (
-          <div key={p.bucket} className="oma-wa-chart__col" title={`${fmt.format(new Date(p.bucket))}: ${p.scheduled} / ${p.published}`}>
+          <div
+            key={p.bucket}
+            className="oma-wa-chart__col"
+            title={`${fmt.format(new Date(p.bucket))}: ${p.scheduled} / ${p.published}`}
+          >
             <div className="oma-wa-chart__bars">
-              <span className="oma-wa-bar oma-wa-bar--scheduled" style={{ height: `${(p.scheduled / max) * 100}%` }} />
-              <span className="oma-wa-bar oma-wa-bar--published" style={{ height: `${(p.published / max) * 100}%` }} />
+              <span
+                className="oma-wa-bar oma-wa-bar--scheduled"
+                style={{ height: `${(p.scheduled / max) * 100}%` }}
+              />
+              <span
+                className="oma-wa-bar oma-wa-bar--published"
+                style={{ height: `${(p.published / max) * 100}%` }}
+              />
             </div>
-            <span className="oma-wa-chart__tick">{i % every === 0 ? fmt.format(new Date(p.bucket)) : ''}</span>
+            <span className="oma-wa-chart__tick">
+              {i % every === 0 ? fmt.format(new Date(p.bucket)) : ''}
+            </span>
           </div>
         ))}
       </div>
@@ -373,13 +480,29 @@ function ColumnChart({ data, locale, label }: { data: WorkAnalytics; locale: str
   );
 }
 
-function StatusBar({ counts, label, n }: { counts: StatusCounts; label: (s: string) => string; n: (v: number) => string }) {
+function StatusBar({
+  counts,
+  label,
+  n,
+}: {
+  counts: StatusCounts;
+  label: (s: string) => string;
+  n: (v: number) => string;
+}) {
   const total = STATUSES.reduce((a, s) => a + (counts[s] ?? 0), 0);
   if (!total) return <div className="oma-wa-stack oma-wa-stack--empty" aria-hidden="true" />;
   return (
-    <div className="oma-wa-stack" role="img" aria-label={STATUSES.map((s) => `${label(s)} ${n(counts[s] ?? 0)}`).join(', ')}>
+    <div
+      className="oma-wa-stack"
+      role="img"
+      aria-label={STATUSES.map((s) => `${label(s)} ${n(counts[s] ?? 0)}`).join(', ')}
+    >
       {STATUSES.filter((s) => counts[s]).map((s) => (
-        <span key={s} className={`oma-wa-stack__seg oma-wa-dot--${s.toLowerCase()}`} style={{ flexGrow: counts[s] }} />
+        <span
+          key={s}
+          className={`oma-wa-stack__seg oma-wa-dot--${s.toLowerCase()}`}
+          style={{ flexGrow: counts[s] }}
+        />
       ))}
     </div>
   );
@@ -434,7 +557,12 @@ function BreakdownTable({
 
 function AnalyticsSkeleton() {
   return (
-    <div className="oma-wa-body" data-testid="analytics-skeleton" role="status" aria-label="Loading analytics">
+    <div
+      className="oma-wa-body"
+      data-testid="analytics-skeleton"
+      role="status"
+      aria-label="Loading analytics"
+    >
       <div className="oma-wa-kpis">
         {Array.from({ length: 6 }).map((_, i) => (
           <div key={i} className="oma-wa-kpi">

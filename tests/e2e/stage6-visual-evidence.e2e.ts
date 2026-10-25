@@ -99,7 +99,7 @@ test.describe('Stage 6 visual evidence', () => {
         acceptance: ['V-ANL-01'],
         source: 'Demo',
         setup: async () => {
-          await page.getByTestId('demo-analytics-campaigns').scrollIntoViewIfNeeded();
+          await page.getByTestId('analytics-status').scrollIntoViewIfNeeded();
         },
       },
       {
@@ -217,7 +217,7 @@ test.describe('Stage 6 visual evidence', () => {
       if (shot.route.includes('/schedule')) {
         await expect(page.getByTestId('demo-schedule')).toBeVisible({ timeout: 20_000 });
       } else if (shot.route.includes('/analytics')) {
-        await expect(page.getByTestId('demo-analytics')).toBeVisible({ timeout: 20_000 });
+        await expect(page.getByTestId('work-analytics')).toBeVisible({ timeout: 20_000 });
       } else if (shot.route.includes('/team')) {
         await expect(page.getByTestId('demo-team')).toBeVisible({ timeout: 20_000 });
       } else if (shot.route.includes('/activity')) {

@@ -1,6 +1,9 @@
 import { api } from './api';
 
-export type StatusCounts = Record<'DRAFT' | 'IN_REVIEW' | 'APPROVED' | 'SCHEDULED' | 'PUBLISHED_SAMPLE', number>;
+export type StatusCounts = Record<
+  'DRAFT' | 'IN_REVIEW' | 'APPROVED' | 'SCHEDULED' | 'PUBLISHED_SAMPLE',
+  number
+>;
 export type ApprovalStats = {
   submitted: number;
   approved: number;
@@ -22,7 +25,12 @@ export type WorkAnalytics = {
     total: number;
     by_status: StatusCounts;
     per_brand: Array<{ id: string; name: string; total: number; by_status: StatusCounts }>;
-    per_campaign: Array<{ id: string; name: { en: string; ar: string }; total: number; by_status: StatusCounts }>;
+    per_campaign: Array<{
+      id: string;
+      name: { en: string; ar: string };
+      total: number;
+      by_status: StatusCounts;
+    }>;
     series: Array<{ bucket: string; scheduled: number; published: number; created: number }>;
   };
   approvals: { content: ApprovalStats; deliverables: ApprovalStats };
@@ -78,7 +86,9 @@ export async function getWorkAnalytics(p: AnalyticsParams): Promise<WorkAnalytic
 export function formatHours(h: number | null, locale: string): string {
   if (h === null) return '—';
   const nf = new Intl.NumberFormat(locale === 'ar' ? 'ar' : 'en', { maximumFractionDigits: 1 });
-  return h < 48 ? `${nf.format(h)}${locale === 'ar' ? ' س' : 'h'}` : `${nf.format(h / 24)}${locale === 'ar' ? ' ي' : 'd'}`;
+  return h < 48
+    ? `${nf.format(h)}${locale === 'ar' ? ' س' : 'h'}`
+    : `${nf.format(h / 24)}${locale === 'ar' ? ' ي' : 'd'}`;
 }
 
 export function formatRate(r: number | null, locale: string): string {

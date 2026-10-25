@@ -75,17 +75,12 @@ test.describe('Stage 6 Schedule Analytics Organization visual rebuild', () => {
     await expect(page.getByTestId('demo-schedule-drawer')).toHaveCount(0, { timeout: 10_000 });
 
     await nav.getByRole('link', { name: /^analytics$/i }).click();
-    await expect(page.getByTestId('demo-analytics')).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByTestId('demo-analytics-sample-badge')).toBeVisible();
-    await expect(page.getByTestId('demo-analytics-honesty')).toBeVisible();
-    await page.getByTestId('demo-analytics-filter-track').selectOption('ORGANIC');
-    await expect(page.getByTestId('demo-analytics-trend-table')).toBeAttached();
-    await expect(page.getByTestId('demo-analytics-campaigns')).toBeVisible();
-    await page
-      .getByTestId('demo-analytics-campaign-demo-campaign-organic')
-      .getByRole('link')
-      .click();
-    await expect(page.getByTestId('demo-campaign-detail')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('work-analytics')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('analytics-social-note')).toBeVisible();
+    await expect(page.getByTestId('analytics-social-note')).toBeVisible();
+    await page.getByTestId('analytics-period').selectOption('7');
+    await expect(page.getByTestId('analytics-series')).toBeAttached();
+    await expect(page.getByTestId('analytics-status')).toBeVisible();
 
     await page
       .getByRole('navigation')
@@ -176,7 +171,7 @@ test.describe('Stage 6 Schedule Analytics Organization visual rebuild', () => {
       await page.setViewportSize({ width: 1440, height: 900 });
       await page.goto('/app/analytics');
       await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
-      await expect(page.getByTestId('demo-analytics')).toBeVisible({ timeout: 20_000 });
+      await expect(page.getByTestId('work-analytics')).toBeVisible({ timeout: 20_000 });
       await page.goto('/app/schedule');
       await expect(page.getByTestId('demo-schedule')).toBeVisible();
     } else if (project === 'en-tablet') {
