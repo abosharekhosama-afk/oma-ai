@@ -13,7 +13,7 @@ import { EntityLink } from '../../../../components/ui/entity-link';
 import { PageHeader } from '../../../../components/ui/page-header';
 import { StatusChip } from '../../../../components/ui/status-chip';
 import { useToast } from '../../../../components/ui/toast';
-import { daysFromToday } from '../../../../lib/calendar-today';
+import { daysFromToday, formatCommentTime } from '../../../../lib/calendar-today';
 import { pickCopy } from '../../../../lib/demo/use-demo-api';
 import {
   loadTasksWorkspace,
@@ -22,6 +22,10 @@ import {
   convertTaskToDeliverable,
   toTaskRow,
   opsError,
+  addTaskChecklistItem,
+  addTaskComment,
+  getTaskDetail,
+  updateTaskChecklistItem,
 } from '../../../../lib/ops-api';
 import { listWorkspaceMembers, type WorkspaceMember } from '../../../../lib/team-api';
 import { TasksKanbanBoard } from '../../../../components/demo/tasks-kanban-board';
@@ -286,25 +290,51 @@ export default function TasksPage() {
     }
   }
 
+  /** Pull persisted checklist + comments for a task from the API and merge into its row. */
+  const loadTaskDetail = useCallback(async (taskId: string) => {
+    try {
+      const detail = await getTaskDetail(taskId);
+      setRows((list) =>
+        list.map((r) =>
+          r.id === taskId
+            ? ({
+                ...r,
+                checklist: (detail.checklist ?? []).map((c) => ({
+                  id: c.id,
+                  label: c.title,
+                  done: c.done,
+                })),
+                comments: (detail.comments ?? []).map((c) => ({
+                  id: c.id,
+                  author: c.author_name || 'Team member',
+                  body: c.body,
+                  at: c.created_at,
+                })),
+                checklistTotal: (detail.checklist ?? []).length,
+                checklistDone: (detail.checklist ?? []).filter((c) => c.done).length,
+                commentCount: (detail.comments ?? []).length,
+              } as TaskRow)
+            : r,
+        ),
+      );
+    } catch {
+      /* keep list row; detail is best-effort */
+    }
+  }, []);
+
+  const rowsLoaded = rows.length > 0;
+  useEffect(() => {
+    if (selectedId && rowsLoaded) void loadTaskDetail(selectedId);
+  }, [selectedId, rowsLoaded, loadTaskDetail]);
+
   async function addCommentFromForm(form: HTMLFormElement) {
     if (!selected) return;
     const raw = String(new FormData(form).get('comment') ?? '').trim();
     if (!raw) return;
     try {
-      const updated = {
-        ...selected,
-        comments: [
-          ...(selected.comments || []),
-          {
-            id: `local-${Date.now()}`,
-            author: 'You',
-            body: { en: raw, ar: raw },
-            at: new Date().toISOString(),
-          },
-        ],
-      } as TaskRow;
-      setRows((list) => list.map((r) => (r.id === selected.id ? updated : r)));
+      await addTaskComment(selected.id, { en: raw, ar: raw });
       form.reset();
+      await loadTaskDetail(selected.id);
       toast.push(t('demo.tasks.commentAdded'), 'success');
     } catch (err) {
       toast.push(opsError(err, t('demo.unavailable')), 'danger');
@@ -315,21 +345,36 @@ export default function TasksPage() {
     if (!selected) return;
     const raw = String(new FormData(form).get('item') ?? '').trim();
     if (!raw) return;
-    const item = {
-      id: `c-${Date.now().toString(36)}`,
-      label: { en: raw, ar: raw },
-      done: false,
-    };
-    await patchTask(selected.id, { checklist: [...selected.checklist, item] });
-    form.reset();
+    try {
+      await addTaskChecklistItem(selected.id, { en: raw, ar: raw });
+      form.reset();
+      await loadTaskDetail(selected.id);
+    } catch (err) {
+      toast.push(opsError(err, t('demo.unavailable')), 'danger');
+    }
   }
 
   async function toggleChecklist(itemId: string) {
     if (!selected) return;
-    const checklist = selected.checklist.map((c) =>
-      c.id === itemId ? { ...c, done: !c.done } : c,
+    const taskId = selected.id;
+    const item = selected.checklist.find((c) => c.id === itemId);
+    if (!item) return;
+    setRows((list) =>
+      list.map((r) =>
+        r.id === taskId
+          ? ({
+              ...r,
+              checklist: r.checklist.map((c) => (c.id === itemId ? { ...c, done: !c.done } : c)),
+            } as TaskRow)
+          : r,
+      ),
     );
-    await patchTask(selected.id, { checklist });
+    try {
+      await updateTaskChecklistItem(taskId, itemId, { done: !item.done });
+    } catch (err) {
+      toast.push(opsError(err, t('demo.unavailable')), 'danger');
+    }
+    await loadTaskDetail(taskId);
   }
 
   async function createDeliverableFromTask() {
@@ -1012,7 +1057,7 @@ export default function TasksPage() {
                     <li key={c.id}>
                       <div className="oma-task-detail__feed-head">
                         <strong>{c.author}</strong>
-                        <time dateTime={c.at}>{c.at}</time>
+                        <time dateTime={c.at}>{formatCommentTime(c.at, locale)}</time>
                       </div>
                       <p>{pickCopy(c.body, locale)}</p>
                     </li>

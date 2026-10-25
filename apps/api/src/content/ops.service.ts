@@ -1,3 +1,4 @@
+import { parseOptionalDate } from './content.service';
 import { Injectable } from '@nestjs/common';
 import { getPrisma, tenantWhere } from '@oma/db';
 import {
@@ -348,7 +349,7 @@ export class OpsService {
         type: (input.type as never) ?? 'CONTENT',
         priority: (input.priority as never) ?? 'MEDIUM',
         status: status as never,
-        dueAt: input.dueAt ? new Date(input.dueAt) : null,
+        dueAt: parseOptionalDate(input.dueAt, 'dueAt'),
         requesterUserId: actorUserId,
         assigneeUserId: input.assigneeUserId ?? null,
         channels: input.channels ?? [],
@@ -391,7 +392,7 @@ export class OpsService {
           ? { assigneeUserId: patch.assigneeUserId as string | null }
           : {}),
         ...(patch.dueAt !== undefined
-          ? { dueAt: patch.dueAt ? new Date(String(patch.dueAt)) : null }
+          ? { dueAt: parseOptionalDate(patch.dueAt, 'dueAt') }
           : {}),
         ...(patch.contentId !== undefined ? { contentId: patch.contentId as string | null } : {}),
         ...(patch.campaignId !== undefined
@@ -534,7 +535,7 @@ export class OpsService {
         priority: (input.priority as never) ?? 'MEDIUM',
         department: typeof input.department === 'string' ? input.department : '',
         assigneeUserId: input.assigneeUserId ?? null,
-        dueAt: input.dueAt ? new Date(input.dueAt) : null,
+        dueAt: parseOptionalDate(input.dueAt, 'dueAt'),
         createdBy: actorUserId,
       },
     });
@@ -570,7 +571,7 @@ export class OpsService {
           ? { assigneeUserId: patch.assigneeUserId as string | null }
           : {}),
         ...(patch.dueAt !== undefined
-          ? { dueAt: patch.dueAt ? new Date(String(patch.dueAt)) : null }
+          ? { dueAt: parseOptionalDate(patch.dueAt, 'dueAt') }
           : {}),
       },
     });

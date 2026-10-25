@@ -23,6 +23,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { useEffect, useMemo, useState } from 'react';
+import { briefDisplayText } from '../../lib/ops-api';
 import type { DemoTaskStatus } from '@oma/demo';
 import {
   BOARD_COLUMNS,
@@ -147,7 +148,7 @@ function KanbanCardBody({ task }: { task: TaskRow }) {
   const locale = useLocale();
   const assignee = !task.assignee || task.assignee === 'Unassigned' ? null : String(task.assignee);
   const campaign = campaignLabel(task, locale);
-  const description = task.description ? pickCopy(task.description, locale).trim() : '';
+  const description = task.description ? briefDisplayText(task.description, locale) : '';
   const context = [task.department, task.brandName]
     .map((v) => (typeof v === 'string' ? v.trim() : ''))
     .filter((v) => v && v !== '—')

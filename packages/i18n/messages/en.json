@@ -1029,5 +1029,11 @@
   "demo.reviews.closeReview": "Close review",
   "review.loading": "Loading deliverable…",
   "review.noAssets": "No assets on this version yet",
-  "review.addRevision": "Add revision"
+  "review.addRevision": "Add revision",
+  "demo.brief.objective": "Objective",
+  "demo.brief.audience": "Audience",
+  "demo.brief.message": "Key message",
+  "demo.brief.channels": "Channels",
+  "demo.brief.formats": "Formats",
+  "demo.requests.filters": "Filters"
 }

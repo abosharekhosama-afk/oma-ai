@@ -2544,3 +2544,42 @@ button.oma-breadcrumb-workspace:hover {
   display: inline-flex !important;
   align-items: center !important;
 }
+
+/* ==== Mobile shell (live-qa-fixes): rail is off-canvas, content starts under the header ====
+   Earlier .oma-rail / .oma-shell rules (sticky rail, 240px grid column) win over the
+   original mobile rule, so this block is last and fully specified. Desktop unchanged. */
+.oma-mobile-nav-toggle {
+  display: none !important;
+}
+@media (max-width: 767px) {
+  .oma-shell,
+  .oma-shell[data-rail='collapsed'],
+  .oma-shell[data-rail='expanded'] {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: none !important;
+  }
+  .oma-shell > .oma-rail,
+  .oma-shell[data-rail] > .oma-rail {
+    display: none !important;
+    position: static !important;
+  }
+  .oma-shell > .oma-shell-column {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  .oma-mobile-nav-fab {
+    display: none !important;
+  }
+  .oma-mobile-nav-toggle {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0 !important;
+    width: 36px !important;
+    height: 36px !important;
+    margin-inline-end: var(--space-1) !important;
+    padding: 0 !important;
+  }
+}
