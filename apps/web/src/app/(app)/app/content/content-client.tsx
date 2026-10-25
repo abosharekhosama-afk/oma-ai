@@ -128,7 +128,13 @@ import {
   canArchive,
   lifecycleHint,
 } from '../../../../lib/content-workflow-ui';
-import { formatCommentTime, monthCursorFromKey, todayKey } from '../../../../lib/calendar-today';
+import {
+  WORKSPACE_TZ,
+  formatCommentTime,
+  monthCursorFromKey,
+  todayKey,
+  wallTimeToIso,
+} from '../../../../lib/calendar-today';
 
 type Campaign = DemoGraph['campaigns'][number];
 type Brand = DemoGraph['brands'][number];
@@ -502,14 +508,16 @@ function PlanableComposeCard({
               showTime={{ format: 'HH:mm' }}
               format="MMM DD, HH:mm"
               value={form.plannedDate ? dayjs(form.plannedDate) : null}
-              onChange={(_, dateString) =>
+              onChange={(value) =>
                 onChange({
-                  plannedDate: Array.isArray(dateString) ? (dateString[0] ?? '') : dateString,
+                  // Store the wall-clock value; it is converted to an ISO instant in the
+                  // workspace timezone on submit (never send the display format to the API).
+                  plannedDate: value ? value.format('YYYY-MM-DDTHH:mm') : '',
                 })
               }
               suffixIcon={<DownOutlined style={{ fontSize: 10 }} />}
             />
-            <span className="oma-compose-tz">(Asia: Jerusalem)</span>
+            <span className="oma-compose-tz">({WORKSPACE_TZ.replace('/', ': ')})</span>
           </div>
           <div className="oma-compose-actions">
             <button type="button" className="oma-compose-view" aria-label="Preview">
@@ -859,7 +867,8 @@ export default function ContentPage() {
     channel: 'Instagram',
     contentType: 'POST',
     owner: '',
-    plannedDate: todayKey(),
+    // No implicit date: "Save draft" must never schedule.
+    plannedDate: '',
     brief: '',
     caption: '',
     track: 'ORGANIC',
@@ -1422,7 +1431,7 @@ export default function ContentPage() {
       );
       return;
     }
-    const scheduledAt = `${dayKey}T10:00:00.000Z`;
+    const scheduledAt = wallTimeToIso(dayKey) ?? `${dayKey}T10:00:00.000Z`;
     setSaving(true);
     try {
       const updated = await scheduleContent(contentId, { scheduledAt });
@@ -1491,20 +1500,12 @@ export default function ContentPage() {
         contentType: createForm.contentType as ContentRow['contentType'],
         channel: createForm.channel.trim(),
         track: (createForm.track || campaign?.track || 'ORGANIC') as ContentRow['track'],
-        plannedAt: createForm.plannedDate ? `${createForm.plannedDate}T10:00:00.000Z` : null,
+        // Planned date is a planning hint only; the item stays an unscheduled DRAFT.
+        // Scheduling happens solely through the explicit Schedule action.
+        plannedAt: wallTimeToIso(createForm.plannedDate),
         labels: createForm.labels,
       });
-      let createdRow = toContentRow(apiCreated);
-      if (createForm.plannedDate) {
-        try {
-          const scheduled = await scheduleContent(createdRow.id, {
-            scheduledAt: `${createForm.plannedDate}T10:00:00.000Z`,
-          });
-          createdRow = toContentRow(scheduled);
-        } catch {
-          /* stay unscheduled if policy blocks */
-        }
-      }
+      const createdRow = toContentRow(apiCreated);
       toast.push(t('demo.create.successContent'), 'success');
       setCreateOpen(false);
       if (createForm.plannedDate) {
@@ -1696,9 +1697,7 @@ export default function ContentPage() {
       const created = await useContentTemplate(brandId, tpl.id, {
         campaignId: fromCompose ? createForm.campaignId || null : selected?.campaignId || null,
         plannedAt:
-          fromCompose && createForm.plannedDate
-            ? `${createForm.plannedDate.slice(0, 10)}T10:00:00.000Z`
-            : null,
+          fromCompose && createForm.plannedDate ? wallTimeToIso(createForm.plannedDate) : null,
       });
       const row = toContentRow(created);
       setRows((prev) => [row, ...prev.filter((item) => item.id !== row.id)]);

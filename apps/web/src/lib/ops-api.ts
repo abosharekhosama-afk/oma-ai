@@ -218,7 +218,7 @@ export function toTaskRow(task: ApiWorkTask): TaskRow {
     briefId: null,
     deliverableId: task.deliverable_id ?? null,
     title: task.title,
-    description: task.description ?? { en: '', ar: '' },
+    description: stripBriefCopy(task.description),
     type: 'COPY',
     status,
     assignee: task.assignee_name || (task.assignee_user_id ? 'Team member' : 'Unassigned'),
@@ -806,4 +806,32 @@ export function decodeRequestBrief(description: unknown): RequestBriefPayload | 
   } catch {
     return null;
   }
+}
+
+/** Human-readable text for a description that may carry an encoded brief payload. */
+export function briefDisplayText(description: unknown, locale: string): string {
+  const isAr = locale.toLowerCase().startsWith('ar');
+  const raw =
+    typeof description === 'string'
+      ? description
+      : description && typeof description === 'object'
+        ? String(
+            (isAr
+              ? ((description as { ar?: string }).ar ?? (description as { en?: string }).en)
+              : ((description as { en?: string }).en ?? (description as { ar?: string }).ar)) ??
+              '',
+          )
+        : '';
+  const idx = raw.indexOf(BRIEF_MARKER);
+  if (idx < 0) return raw.trim();
+  const plain = raw.slice(0, idx).trim();
+  if (plain) return plain;
+  const brief = decodeRequestBrief(raw);
+  const pick = (c?: { en: string; ar: string }) => (c ? (isAr ? c.ar || c.en : c.en || c.ar) : '');
+  return (pick(brief?.objective) || pick(brief?.overview) || '').trim();
+}
+
+/** Strip an encoded brief payload from a bilingual description for display. */
+export function stripBriefCopy(description: unknown): { en: string; ar: string } {
+  return { en: briefDisplayText(description, 'en'), ar: briefDisplayText(description, 'ar') };
 }

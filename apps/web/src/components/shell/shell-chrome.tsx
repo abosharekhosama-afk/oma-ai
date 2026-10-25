@@ -191,6 +191,11 @@ export function ShellChrome({ children }: { children: ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
   const [wsSettingsOpen, setWsSettingsOpen] = useState(false);
 
+  // Close the mobile nav drawer whenever the route changes.
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
   useEffect(() => {
     setHydrated(true);
     try {
@@ -283,7 +288,18 @@ export function ShellChrome({ children }: { children: ReactNode }) {
             data-content-workspace={isContentWorkspace ? 'true' : 'false'}
           >
             <div className="oma-top-start">
-              {/* Mobile nav trigger removed from all headers per product request */}
+              {/* Mobile (<768px): hamburger opens the off-canvas nav drawer. Hidden on desktop. */}
+              <Button
+                type="text"
+                aria-label={t('shell.openNav')}
+                aria-expanded={mobileOpen}
+                aria-controls="oma-mobile-nav"
+                onClick={() => setMobileOpen(true)}
+                className="oma-mobile-nav-toggle"
+                data-testid="mobile-nav-toggle"
+              >
+                <ShellIcon name="menu" />
+              </Button>
               <div className="oma-top-context">
                 {/* Brand switcher removed from header trail */}
                 <ShellBreadcrumb onOpenSettings={() => setWsSettingsOpen(true)} />
@@ -344,7 +360,13 @@ export function ShellChrome({ children }: { children: ReactNode }) {
           </main>
         </div>
 
-        <Drawer open={mobileOpen} onClose={() => setMobileOpen(false)} label={t('nav.primary')} nav>
+        <Drawer
+          open={mobileOpen}
+          onClose={() => setMobileOpen(false)}
+          label={t('nav.primary')}
+          nav
+          id="oma-mobile-nav"
+        >
           <div className="oma-mobile-drawer-header">
             <PlxLogo sub="AI" />
             <Button

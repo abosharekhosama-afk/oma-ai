@@ -102,6 +102,16 @@ function mapContent(
   };
 }
 
+/** Parse an optional ISO date from a request body; invalid values are a 400, never a 500. */
+export function parseOptionalDate(value: unknown, field: string): Date | null {
+  if (value === null || value === undefined || value === '') return null;
+  const date = typeof value === 'string' || value instanceof Date ? new Date(value) : new Date(NaN);
+  if (Number.isNaN(date.getTime())) {
+    throw new DomainError('VALIDATION_FAILED', `Invalid ${field}`, 400, 'errors.validation_failed');
+  }
+  return date;
+}
+
 @Injectable()
 export class ContentService {
   constructor(private readonly audit: AuditService) {}
@@ -270,7 +280,7 @@ export class ContentService {
         status: 'DRAFT',
         approvalState: 'NOT_REQUESTED',
         scheduleState: 'UNSCHEDULED',
-        plannedAt: input.plannedAt ? new Date(input.plannedAt) : null,
+        plannedAt: parseOptionalDate(input.plannedAt, 'plannedAt'),
         timezone: 'Asia/Dubai',
         approverRequired: 1,
         approverApproved: 0,
@@ -348,7 +358,7 @@ export class ContentService {
         ...(patch.channel ? { channel: patch.channel } : {}),
         ...(patch.track ? { track: patch.track } : {}),
         ...(patch.plannedAt !== undefined
-          ? { plannedAt: patch.plannedAt ? new Date(patch.plannedAt) : null }
+          ? { plannedAt: parseOptionalDate(patch.plannedAt, 'plannedAt') }
           : {}),
         ...(patch.labels ? { labels: patch.labels } : {}),
         ...(patch.clientVisible !== undefined ? { clientVisible: patch.clientVisible } : {}),

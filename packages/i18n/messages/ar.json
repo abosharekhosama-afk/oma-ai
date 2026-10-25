@@ -1029,5 +1029,11 @@
   "demo.reviews.closeReview": "إغلاق المراجعة",
   "review.loading": "جارٍ تحميل المُخرَج…",
   "review.noAssets": "لا توجد ملفات في هذه النسخة بعد",
-  "review.addRevision": "إضافة نسخة"
+  "review.addRevision": "إضافة نسخة",
+  "demo.brief.objective": "الهدف",
+  "demo.brief.audience": "الجمهور",
+  "demo.brief.message": "الرسالة الأساسية",
+  "demo.brief.channels": "القنوات",
+  "demo.brief.formats": "الصيغ",
+  "demo.requests.filters": "الفلاتر"
 }

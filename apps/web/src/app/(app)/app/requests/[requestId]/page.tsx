@@ -18,6 +18,7 @@ import {
   opsError,
   encodeRequestBrief,
   decodeRequestBrief,
+  briefDisplayText,
   type RequestBriefPayload,
 } from '../../../../../lib/ops-api';
 import {
@@ -422,7 +423,7 @@ export default function RequestDetailPage() {
                   }}
                 />
               </h1>
-              <p className="oma-req-detail__desc">{safeCopy(row.description, locale)}</p>
+              <p className="oma-req-detail__desc">{briefDisplayText(row.description, locale)}</p>
             </div>
 
             {/* Triage card */}
