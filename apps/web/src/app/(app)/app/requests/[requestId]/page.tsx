@@ -731,7 +731,7 @@ export default function RequestDetailPage() {
                                   )
                                   .catch((err) =>
                                     toast.push(
-                                      contentApiError(err, 'Comment delete failed'),
+                                      contentApiError(err, t('errors.http')),
                                       'danger',
                                     ),
                                   );
@@ -768,7 +768,7 @@ export default function RequestDetailPage() {
                             setCommentDraft('');
                           })
                           .catch((err) =>
-                            toast.push(contentApiError(err, 'Comment failed'), 'danger'),
+                            toast.push(contentApiError(err, t('errors.http')), 'danger'),
                           )
                           .finally(() => setCommentSaving(false));
                       }}

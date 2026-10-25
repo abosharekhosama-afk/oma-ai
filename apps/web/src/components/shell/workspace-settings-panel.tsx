@@ -18,6 +18,7 @@ import {
   DEFAULT_APPROVALS,
   approvalsFromSettings,
   getWorkspaceSettings,
+  patchWorkspaceSettings,
   loadTimeSlots,
   saveApprovalSettings,
   saveTimeSlots,
@@ -56,13 +57,13 @@ const NAV: Array<{
   group: 'workspace' | 'content';
   icon: NavIconId;
 }> = [
-  { id: 'general', label: 'General settings', group: 'workspace', icon: 'settings' },
-  { id: 'brand', label: 'Brand context', group: 'workspace', icon: 'brand' },
-  { id: 'team', label: 'Team & clients', group: 'workspace', icon: 'team' },
-  { id: 'approvals', label: 'Approvals', group: 'workspace', icon: 'reviews' },
-  { id: 'templates', label: 'Templates', group: 'content', icon: 'content' },
-  { id: 'labels', label: 'Labels', group: 'content', icon: 'campaigns' },
-  { id: 'timetable', label: 'Timetable', group: 'content', icon: 'schedule' },
+  { id: 'general', label: 'wsPanel.nav.general', group: 'workspace', icon: 'settings' },
+  { id: 'brand', label: 'wsPanel.nav.brand', group: 'workspace', icon: 'brand' },
+  { id: 'team', label: 'wsPanel.nav.team', group: 'workspace', icon: 'team' },
+  { id: 'approvals', label: 'wsPanel.nav.approvals', group: 'workspace', icon: 'reviews' },
+  { id: 'templates', label: 'wsPanel.nav.templates', group: 'content', icon: 'content' },
+  { id: 'labels', label: 'wsPanel.nav.labels', group: 'content', icon: 'campaigns' },
+  { id: 'timetable', label: 'wsPanel.nav.timetable', group: 'content', icon: 'schedule' },
 ];
 
 export function WorkspaceSettingsPanel({ open, onClose }: Props) {
@@ -103,7 +104,7 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
         const active = data.memberships.find((m) => m.tenant_id === data.active_tenant_id);
         setDraft((d) => ({
           ...d,
-          workspaceName: active?.tenant_name || data.memberships[0]?.tenant_name || 'Workspace',
+          workspaceName: active?.tenant_name || data.memberships[0]?.tenant_name || '',
         }));
       })
       .catch(() => undefined);
@@ -111,7 +112,6 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
       .then((prefs) => {
         setDraft((d) => ({
           ...d,
-          timezone: String(prefs.timezone ?? d.timezone),
           weekStart: String(prefs.weekStart ?? d.weekStart),
           localePreference: String(prefs.localePreference ?? 'system'),
         }));
@@ -122,6 +122,7 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
     getWorkspaceSettings()
       .then((ws) => {
         setApprovals(approvalsFromSettings(ws));
+        setDraft((d) => ({ ...d, timezone: ws.timezone, websiteUrl: ws.website_url ?? '' }));
         setApprovalsState('ready');
       })
       .catch((err: unknown) => {
@@ -159,8 +160,12 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
     setSaving(true);
     setMsg(null);
     try {
-      await updatePreferences({
+      const url = (draft.websiteUrl || '').trim();
+      await patchWorkspaceSettings({
         timezone: draft.timezone,
+        website_url: url ? (/^https?:\/\//i.test(url) ? url : `https://${url}`) : null,
+      });
+      await updatePreferences({
         weekStart: draft.weekStart as UserPreferences['weekStart'],
         localePreference: draft.localePreference as UserPreferences['localePreference'],
       });
@@ -180,12 +185,12 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
         className="oma-ws-panel"
         role="dialog"
         aria-modal="true"
-        aria-label="Workspace settings"
+        aria-label={t('shell.workspaceSettings')}
         onClick={(e) => e.stopPropagation()}
         data-testid="workspace-settings-panel"
       >
         <aside className="oma-ws-panel-nav">
-          <p className="oma-ws-panel-nav-group">Workspace</p>
+          <p className="oma-ws-panel-nav-group">{t('nav.section.workspace')}</p>
           {NAV.filter((n) => n.group === 'workspace').map((item) => (
             <button
               key={item.id}
@@ -194,10 +199,10 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
               onClick={() => setSection(item.id)}
             >
               <ShellIcon name={item.icon} size={16} />
-              <span>{item.label}</span>
+              <span>{t(item.label)}</span>
             </button>
           ))}
-          <p className="oma-ws-panel-nav-group">Content</p>
+          <p className="oma-ws-panel-nav-group">{t('demo.campaigns.col.content')}</p>
           {NAV.filter((n) => n.group === 'content').map((item) => (
             <button
               key={item.id}
@@ -206,67 +211,51 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
               onClick={() => setSection(item.id)}
             >
               <ShellIcon name={item.icon} size={16} />
-              <span>{item.label}</span>
+              <span>{t(item.label)}</span>
             </button>
           ))}
         </aside>
 
         <div className="oma-ws-panel-main">
-          <button type="button" className="oma-ws-panel-close" aria-label="Close" onClick={onClose}>
+          <button type="button" className="oma-ws-panel-close" aria-label={t('brand.evidence.close')} onClick={onClose}>
             ×
           </button>
 
           {section === 'general' && (
             <div className="oma-ws-section">
-              <h2 className="oma-ws-section-title">General settings</h2>
+              <h2 className="oma-ws-section-title">{t('wsPanel.general_settings')}</h2>
               <div className="oma-ws-field">
-                <label className="oma-ws-label">Workspace name</label>
+                <label className="oma-ws-label">{t('wsPanel.workspace_name')}</label>
                 <Input
                   value={draft.workspaceName || ''}
-                  onChange={(e) => setDraft({ ...draft, workspaceName: e.target.value })}
+                  readOnly
+                  disabled
                 />
               </div>
               <div className="oma-ws-field">
-                <label className="oma-ws-label">Website URL</label>
+                <label className="oma-ws-label">{t('brand.connect.urlLabel')}</label>
                 <Input
                   value={draft.websiteUrl || ''}
                   onChange={(e) => setDraft({ ...draft, websiteUrl: e.target.value })}
-                  placeholder="e.g. planable.io"
+                  placeholder={t('wsPanel.website_placeholder')}
                 />
               </div>
               <div className="oma-ws-field">
-                <label className="oma-ws-label">Workspace timezone</label>
+                <label className="oma-ws-label">{t('wsPanel.workspace_timezone')}</label>
                 <SelectField
                   value={draft.timezone || 'Asia/Jerusalem'}
                   onChange={(e) => setDraft({ ...draft, timezone: e.target.value })}
                 >
-                  <option value="Asia/Jerusalem">Jerusalem, Asia (UTC +3)</option>
+                  <option value="Asia/Jerusalem">{t('wsPanel.jerusalem_asia_utc_3')}</option>
                   <option value="UTC">UTC</option>
-                  <option value="America/New_York">New York</option>
-                  <option value="Europe/London">London</option>
-                  <option value="Asia/Riyadh">Riyadh</option>
+                  <option value="America/New_York">{t('wsPanel.new_york')}</option>
+                  <option value="Europe/London">{t('wsPanel.london')}</option>
+                  <option value="Asia/Riyadh">{t('wsPanel.riyadh')}</option>
                 </SelectField>
-              </div>
-              <div className="oma-ws-toggles">
-                <Toggle
-                  label="Create new posts as internal"
-                  checked={Boolean(draft.createInternal)}
-                  onChange={(v) => setDraft({ ...draft, createInternal: v })}
-                />
-                <Toggle
-                  label="Hide emails from clients"
-                  checked={Boolean(draft.hideEmails)}
-                  onChange={(v) => setDraft({ ...draft, hideEmails: v })}
-                />
-                <Toggle
-                  label="Auto-crop images"
-                  checked={draft.autoCrop !== false}
-                  onChange={(v) => setDraft({ ...draft, autoCrop: v })}
-                />
               </div>
               <div className="oma-ws-section-actions">
                 <Button type="primary" onClick={() => void saveGeneral()} disabled={saving}>
-                  {saving ? 'Saving…' : 'Save changes'}
+                  {saving ? t('demo.content.saving') : t('account.save')}
                 </Button>
                 {msg ? <span className="oma-ws-save-msg">{msg}</span> : null}
               </div>
@@ -275,31 +264,31 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
 
           {section === 'brand' && (
             <div className="oma-ws-section">
-              <h2 className="oma-ws-section-title">Brand context</h2>
-              <p className="oma-ws-empty-desc">Open brand intelligence for voice and guidelines.</p>
+              <h2 className="oma-ws-section-title">{t('wsPanel.brand_context')}</h2>
+              <p className="oma-ws-empty-desc">{t('wsPanel.open_brand_intelligence_for_voice')}</p>
               <Button type="primary" onClick={() => (window.location.href = '/app/brands')}>
                 <ShellIcon name="brand" size={16} />
-                <span>Open brands</span>
+                <span>{t('wsPanel.open_brands')}</span>
               </Button>
             </div>
           )}
 
           {section === 'team' && (
             <div className="oma-ws-section">
-              <h2 className="oma-ws-section-title">Team & clients</h2>
+              <h2 className="oma-ws-section-title">{t('wsPanel.team_clients')}</h2>
               <p className="oma-ws-empty-desc">
-                Manage members, Team/Client membership, and the permissions grid.
+                {t('wsPanel.manage_members_teamclient_membership_and')}
               </p>
               <div className="oma-ws-action-row">
                 <Button type="primary" onClick={() => (window.location.href = '/app/team')}>
                   <ShellIcon name="team" size={16} />
-                  <span>Open Team</span>
+                  <span>{t('wsPanel.open_team')}</span>
                 </Button>
                 <Button
                   type="default"
                   onClick={() => (window.location.href = '/app/company/members')}
                 >
-                  Company collaborators
+                  {t('wsPanel.company_collaborators')}
                 </Button>
               </div>
             </div>
@@ -307,23 +296,21 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
 
           {section === 'approvals' && (
             <div className="oma-ws-section" data-testid="ws-approvals">
-              <h2 className="oma-ws-section-title">{isAr ? 'الموافقات' : 'Approvals'}</h2>
+              <h2 className="oma-ws-section-title">{t('activity.filter.approvals')}</h2>
               <p className="oma-ws-empty-desc">
-                {isAr
-                  ? 'اختر كيف تُعتمد المنشورات قبل الجدولة. يُحفظ الإعداد على الخادم لكل مساحة العمل.'
-                  : 'Choose how posts are approved before they can be scheduled. Saved for the whole workspace.'}
+                {t('wsPanel.choose_how_posts_are_approved')}
               </p>
               {approvalsState === 'loading' ? (
                 <div className="oma-skeleton" style={{ height: 120 }} aria-busy="true" />
               ) : approvalsState === 'error' ? (
                 <p className="oma-ws-save-msg" role="alert" data-testid="ws-approvals-error">
-                  {isAr ? 'تعذّر تحميل إعدادات الموافقة.' : 'Could not load approval settings.'}{' '}
+                  {t('wsPanel.could_not_load_approval_settings')}{' '}
                   {approvalsError}
                 </p>
               ) : (
                 <>
                   <div className="oma-ws-field">
-                    <label className="oma-ws-label">{isAr ? 'سياسة الاعتماد' : 'Approval policy'}</label>
+                    <label className="oma-ws-label">{t('demo.content.policy')}</label>
                     <SelectField
                       data-testid="ws-approval-mode"
                       value={approvals.mode}
@@ -332,22 +319,20 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
                       }
                     >
                       <option value="none">
-                        {isAr ? 'بدون — لا حاجة للاعتماد' : 'None — no approval step'}
+                        {t('wsPanel.none_no_approval_step')}
                       </option>
                       <option value="optional">
-                        {isAr ? 'اختياري — يمكن طلب الاعتماد' : 'Optional — approval available'}
+                        {t('wsPanel.optional_approval_available')}
                       </option>
                       <option value="required">
-                        {isAr
-                          ? 'إلزامي — لا جدولة قبل اكتمال الاعتماد'
-                          : 'Required — no scheduling until approved'}
+                        {t('wsPanel.required_no_scheduling_until_approved')}
                       </option>
                     </SelectField>
                   </div>
                   {approvals.mode === 'required' ? (
                     <div className="oma-ws-field">
                       <label className="oma-ws-label">
-                        {isAr ? 'عدد المعتمِدين المطلوب' : 'Approvers required'}
+                        {t('wsPanel.approvers_required')}
                       </label>
                       <SelectField
                         data-testid="ws-required-approvers"
@@ -363,9 +348,7 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
                         ))}
                       </SelectField>
                       <p className="oma-ws-empty-desc">
-                        {isAr
-                          ? 'يجب أن يعتمد المنشور أشخاص مختلفون، مثل «١ من ٢ معتمد».'
-                          : 'Each approval must come from a different person, e.g. “1 of 2 approved”.'}
+                        {t('wsPanel.each_approval_must_come_from')}
                       </p>
                     </div>
                   ) : null}
@@ -380,21 +363,21 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
                           .then((next) => {
                             setApprovals(next);
                             setApprovalsState('ready');
-                            setMsg(isAr ? 'تم حفظ إعدادات الموافقة' : 'Approval settings saved');
+                            setMsg(t('wsPanel.approval_settings_saved'));
                           })
                           .catch((err: unknown) => {
                             setApprovalsState('ready');
                             setMsg(
-                              (isAr ? 'تعذّر الحفظ: ' : 'Could not save: ') +
+                              (t('wsPanel.could_not_save')) +
                                 (err instanceof Error ? err.message : String(err)),
                             );
                           });
                       }}
                     >
-                      {isAr ? 'حفظ' : 'Save approval settings'}
+                      {t('wsPanel.save_approval_settings')}
                     </Button>
                     <Button type="default" onClick={() => (window.location.href = '/app/reviews')}>
-                      {isAr ? 'فتح المراجعات' : 'Open reviews'}
+                      {t('wsPanel.open_reviews')}
                     </Button>
                   </div>
                 </>
@@ -405,10 +388,10 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
 
           {section === 'labels' && (
             <div className="oma-ws-section">
-              <h2 className="oma-ws-section-title">Labels</h2>
+              <h2 className="oma-ws-section-title">{t('wsPanel.labels')}</h2>
               {brands.length > 0 ? (
                 <div className="oma-ws-field">
-                  <label className="oma-ws-label">Brand</label>
+                  <label className="oma-ws-label">{t('shell.brand')}</label>
                   <SelectField value={brandId || ''} onChange={(e) => setBrandId(e.target.value)}>
                     {brands.map((b) => (
                       <option key={b.id} value={b.id}>
@@ -419,15 +402,15 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
                 </div>
               ) : (
                 <p className="oma-ws-empty-desc">
-                  No brands yet. Create a brand to store labels in the API.
+                  {t('wsPanel.no_brands_yet_create_a')}
                 </p>
               )}
               {labels.length === 0 ? (
                 <div className="oma-ws-empty-block">
-                  <h3>Create labels</h3>
-                  <p>Labels organize posts around campaigns and topics.</p>
+                  <h3>{t('wsPanel.create_labels')}</h3>
+                  <p>{t('wsPanel.labels_organize_posts_around_campaigns')}</p>
                   <Button type="primary" onClick={() => setLabelModal(true)} disabled={!brandId}>
-                    Create label
+                    {t('wsPanel.create_label')}
                   </Button>
                 </div>
               ) : (
@@ -447,13 +430,13 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
                             );
                           }}
                         >
-                          Delete
+                          {t('wsPanel.delete')}
                         </button>
                       </li>
                     ))}
                   </ul>
                   <Button type="primary" onClick={() => setLabelModal(true)}>
-                    Create label
+                    {t('wsPanel.create_label')}
                   </Button>
                 </>
               )}
@@ -462,10 +445,10 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
 
           {section === 'templates' && (
             <div className="oma-ws-section">
-              <h2 className="oma-ws-section-title">Templates</h2>
+              <h2 className="oma-ws-section-title">{t('wsPanel.templates')}</h2>
               {brands.length > 0 ? (
                 <div className="oma-ws-field">
-                  <label className="oma-ws-label">Brand</label>
+                  <label className="oma-ws-label">{t('shell.brand')}</label>
                   <SelectField value={brandId || ''} onChange={(e) => setBrandId(e.target.value)}>
                     {brands.map((b) => (
                       <option key={b.id} value={b.id}>
@@ -477,10 +460,10 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
               ) : null}
               {templates.length === 0 ? (
                 <div className="oma-ws-empty-block">
-                  <h3>Manage workspace templates</h3>
-                  <p>Reusable captions and snippets for faster content creation.</p>
+                  <h3>{t('wsPanel.manage_workspace_templates')}</h3>
+                  <p>{t('wsPanel.reusable_captions_and_snippets_for')}</p>
                   <Button type="primary" onClick={() => setTemplateModal(true)} disabled={!brandId}>
-                    Create new template
+                    {t('wsPanel.create_new_template')}
                   </Button>
                 </div>
               ) : (
@@ -506,13 +489,13 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
                             );
                           }}
                         >
-                          Delete
+                          {t('wsPanel.delete')}
                         </button>
                       </li>
                     ))}
                   </ul>
                   <Button type="primary" onClick={() => setTemplateModal(true)}>
-                    Create new template
+                    {t('wsPanel.create_new_template')}
                   </Button>
                 </>
               )}
@@ -521,13 +504,13 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
 
           {section === 'timetable' && (
             <div className="oma-ws-section">
-              <h2 className="oma-ws-section-title">Timetable</h2>
+              <h2 className="oma-ws-section-title">{t('wsPanel.timetable')}</h2>
               {slots.length === 0 ? (
                 <div className="oma-ws-empty-block">
-                  <h3>Add preferred time slots</h3>
-                  <p>Quick-select times when scheduling posts.</p>
+                  <h3>{t('wsPanel.add_preferred_time_slots')}</h3>
+                  <p>{t('wsPanel.quickselect_times_when_scheduling_posts')}</p>
                   <Button type="primary" onClick={() => setSlotModal(true)}>
-                    Create a slot
+                    {t('wsPanel.create_a_slot')}
                   </Button>
                 </div>
               ) : (
@@ -548,17 +531,17 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
                             saveTimeSlots(next);
                           }}
                         >
-                          Delete
+                          {t('wsPanel.delete')}
                         </button>
                       </li>
                     ))}
                   </ul>
                   <div className="oma-ws-action-row">
                     <Button type="primary" onClick={() => setSlotModal(true)}>
-                      Create a slot
+                      {t('wsPanel.create_a_slot')}
                     </Button>
                     <Button type="default" onClick={() => (window.location.href = '/app/schedule')}>
-                      Open schedule
+                      {t('wsPanel.open_schedule')}
                     </Button>
                   </div>
                 </>
@@ -567,13 +550,13 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
           )}
 
           {labelModal ? (
-            <Modal title="New label" onClose={() => setLabelModal(false)}>
+            <Modal title={t('wsPanel.new_label')} onClose={() => setLabelModal(false)}>
               <div className="oma-ws-field">
-                <label className="oma-ws-label">Name</label>
+                <label className="oma-ws-label">{t('auth.name')}</label>
                 <Input value={labelName} onChange={(e) => setLabelName(e.target.value)} />
               </div>
               <div className="oma-ws-field">
-                <label className="oma-ws-label">Color</label>
+                <label className="oma-ws-label">{t('wsPanel.color')}</label>
                 <div className="oma-ws-color-row">
                   {[
                     '#c7d2fe',
@@ -596,7 +579,7 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
               </div>
               <div className="oma-ws-modal-actions">
                 <Button type="default" onClick={() => setLabelModal(false)}>
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
                 <Button
                   type="primary"
@@ -612,21 +595,21 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
                     });
                   }}
                 >
-                  Add label
+                  {t('wsPanel.add_label')}
                 </Button>
               </div>
             </Modal>
           ) : null}
 
           {templateModal ? (
-            <Modal title="New template" onClose={() => setTemplateModal(false)}>
+            <Modal title={t('wsPanel.new_template')} onClose={() => setTemplateModal(false)}>
               <div className="oma-ws-field">
-                <label className="oma-ws-label">Name</label>
+                <label className="oma-ws-label">{t('auth.name')}</label>
                 <Input value={tplName} onChange={(e) => setTplName(e.target.value)} />
               </div>
               <div className="oma-ws-modal-actions">
                 <Button type="default" onClick={() => setTemplateModal(false)}>
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
                 <Button
                   type="primary"
@@ -639,21 +622,21 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
                     });
                   }}
                 >
-                  Save template
+                  {t('wsPanel.save_template')}
                 </Button>
               </div>
             </Modal>
           ) : null}
 
           {slotModal ? (
-            <Modal title="Create time slot" onClose={() => setSlotModal(false)}>
+            <Modal title={t('wsPanel.create_time_slot')} onClose={() => setSlotModal(false)}>
               <div className="oma-ws-slot-row">
                 <div className="oma-ws-field">
-                  <label className="oma-ws-label">Time</label>
+                  <label className="oma-ws-label">{t('wsPanel.time')}</label>
                   <Input value={slotTime} onChange={(e) => setSlotTime(e.target.value)} />
                 </div>
                 <div className="oma-ws-field">
-                  <label className="oma-ws-label">Day</label>
+                  <label className="oma-ws-label">{t('wsPanel.day')}</label>
                   <SelectField value={slotDay} onChange={(e) => setSlotDay(e.target.value)}>
                     {[
                       'Monday',
@@ -673,7 +656,7 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
               </div>
               <div className="oma-ws-modal-actions">
                 <Button type="default" onClick={() => setSlotModal(false)}>
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
                 <Button
                   type="primary"
@@ -692,7 +675,7 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
                     setSlotModal(false);
                   }}
                 >
-                  Create
+                  {t('shell.create')}
                 </Button>
               </div>
             </Modal>
@@ -737,12 +720,13 @@ function Modal({
   onClose: () => void;
   children: React.ReactNode;
 }) {
+  const t = useT();
   return (
     <div className="oma-ws-modal" role="dialog">
       <div className="oma-ws-modal-card">
         <div className="oma-ws-modal-head">
           <h3>{title}</h3>
-          <button type="button" onClick={onClose} aria-label="Close">
+          <button type="button" onClick={onClose} aria-label={t('brand.evidence.close')}>
             ×
           </button>
         </div>
