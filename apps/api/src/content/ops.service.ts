@@ -463,8 +463,24 @@ export class OpsService {
       where,
       orderBy: { updatedAt: 'desc' },
       take: 200,
+      include: {
+        checklistItems: { select: { done: true } },
+        _count: { select: { comments: true } },
+      },
     });
-    return { data: rows.map(mapTask) };
+    // Board cards need assignee name + lightweight comment/checklist counts.
+    const enriched = await this.enrichTasks(rows);
+    return {
+      data: enriched.map((task, i) => {
+        const row = rows[i]!;
+        return {
+          ...task,
+          comment_count: row._count.comments,
+          checklist_total: row.checklistItems.length,
+          checklist_done: row.checklistItems.filter((c) => c.done).length,
+        };
+      }),
+    };
   }
 
   async createTask(

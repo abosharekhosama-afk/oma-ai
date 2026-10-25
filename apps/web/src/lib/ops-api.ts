@@ -60,6 +60,10 @@ export type ApiWorkTask = {
   updated_at?: string;
   assignee_name?: string | null;
   created_by_name?: string | null;
+  /** List endpoint only: lightweight counts for board cards. */
+  comment_count?: number;
+  checklist_total?: number;
+  checklist_done?: number;
 };
 
 export type ApiWorkDeliverable = {
@@ -217,7 +221,7 @@ export function toTaskRow(task: ApiWorkTask): TaskRow {
     type: 'COPY',
     status,
     assignee: task.assignee_name || (task.assignee_user_id ? 'Team member' : 'Unassigned'),
-    department: task.department || '—',
+    department: task.department || '',
     priority: (task.priority as TaskRow['priority']) || 'MEDIUM',
     dueAt: task.due_at ? task.due_at.slice(0, 10) : '',
     updatedAt: task.updated_at ?? new Date().toISOString(),
@@ -226,6 +230,10 @@ export function toTaskRow(task: ApiWorkTask): TaskRow {
     checklist: [],
     comments: [],
     activity: [],
+    assigneeUserId: task.assignee_user_id ?? null,
+    commentCount: typeof task.comment_count === 'number' ? task.comment_count : undefined,
+    checklistTotal: typeof task.checklist_total === 'number' ? task.checklist_total : undefined,
+    checklistDone: typeof task.checklist_done === 'number' ? task.checklist_done : undefined,
   };
 }
 
@@ -678,7 +686,21 @@ export async function loadTasksWorkspace(): Promise<{
       ? Promise.all(brandIds.map((id) => listTasks(id)))
       : Promise.resolve([] as ApiWorkTask[][]),
   ]);
-  const tasks = (taskBatches as ApiWorkTask[][]).flat().map((x) => toTaskRow(x));
+  const campaignNames = new Map(
+    campaigns.map((c) => {
+      const row = toCampaignRow(c);
+      return [row.id, row.name] as const;
+    }),
+  );
+  const brandNames = new Map(brandRows.map((b) => [b.id, b.name] as const));
+  const tasks = (taskBatches as ApiWorkTask[][]).flat().map((x) => {
+    const row = toTaskRow(x);
+    return {
+      ...row,
+      brandName: brandNames.get(row.brandId),
+      campaignName: row.campaignId ? (campaignNames.get(row.campaignId) ?? null) : null,
+    };
+  });
   return {
     brands: brandRows.map((b) => ({
       id: b.id,

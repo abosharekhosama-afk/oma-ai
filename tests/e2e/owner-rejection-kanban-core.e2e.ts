@@ -95,7 +95,7 @@ test.describe('Owner rejection — Kanban + typography core', () => {
       page.getByTestId('demo-kanban-DONE').getByTestId('demo-task-card-demo-task-done-archive'),
     ).toBeVisible();
 
-    await page.getByTestId('demo-task-open-demo-task-design').click();
+    await page.getByTestId('demo-task-card-demo-task-design').click();
     await expect(page.getByTestId('demo-task-drawer')).toBeVisible();
     if (await page.getByTestId('demo-task-campaign-link').count()) {
       await page.getByTestId('demo-task-campaign-link').click();

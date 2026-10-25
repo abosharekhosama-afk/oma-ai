@@ -240,7 +240,7 @@ test.describe('Owner remediation certification', () => {
     await dragCardToColumn(page, 'demo-task-done-archive', 'IN_PROGRESS');
     await expect(page.getByText(/invalid task status move/i)).toBeVisible({ timeout: 10_000 });
 
-    await page.getByTestId('demo-task-open-demo-task-design').click();
+    await page.getByTestId('demo-task-card-demo-task-design').click();
     await expect(page.getByTestId('demo-task-drawer')).toBeVisible();
     await page.screenshot({ path: path.join(SHOTS, '10-task-drawer.png'), fullPage: false });
     await page.keyboard.press('Escape');
