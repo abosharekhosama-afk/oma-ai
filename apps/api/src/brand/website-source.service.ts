@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  WebsiteConnectorNotConfiguredError,
   DomainError,
   assertNormalizedUrl,
   assertSsrfAllowed,
@@ -52,7 +53,16 @@ export class WebsiteSourceService {
     const { normalizedUrl, host } = assertNormalizedUrl(input.url);
     assertSsrfAllowed(host);
 
-    const validation = await this.connector.validateSource({ url: normalizedUrl });
+    // Saving the website is profile info and must work without the scanning connector
+    // (prod runs NOT_CONFIGURED). URL shape + SSRF rules were already checked locally above;
+    // scanning stays unavailable until a connector is configured.
+    let validation: { ok: boolean; reason?: string };
+    try {
+      validation = await this.connector.validateSource({ url: normalizedUrl });
+    } catch (err) {
+      if (err instanceof WebsiteConnectorNotConfiguredError) validation = { ok: true };
+      else throw err;
+    }
     if (!validation.ok) {
       throw new DomainError(
         'VALIDATION_FAILED',

@@ -1,3 +1,4 @@
+import { ActivityController, HomeController } from './home/home.controller';
 import { WorkspaceSettingsController } from './workspace/workspace-settings.controller';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
@@ -55,6 +56,8 @@ import { AiController } from './ai/ai.controller';
     OpsController,
     AiController,
     WorkspaceSettingsController,
+    HomeController,
+    ActivityController,
   ],
   providers: [
     { provide: APP_FILTER, useClass: DomainExceptionFilter },

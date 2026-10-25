@@ -135,6 +135,8 @@ export class ContentExtrasService {
         id: r.id,
         brand_id: r.brandId,
         name: { en: r.nameEn, ar: r.nameAr },
+        nameEn: r.nameEn,
+        nameAr: r.nameAr,
         color: r.color,
       })),
     };
@@ -143,12 +145,23 @@ export class ContentExtrasService {
   async createLabel(
     tenantId: string,
     brandId: string,
-    input: { name: { en: string; ar?: string } | string; color?: string },
+    input: {
+      name?: { en?: string; ar?: string } | string | null;
+      nameEn?: string;
+      nameAr?: string;
+      color?: string;
+    },
   ) {
     await this.requireBrand(tenantId, brandId);
-    const nameEn = typeof input.name === 'string' ? input.name.trim() : input.name.en.trim();
+    // Accept `name` (string | {en, ar}) or flat `nameEn`/`nameAr`; malformed input is a 400, never a 500.
+    const raw = input ?? {};
+    const pick = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
+    const nameEn =
+      typeof raw.name === 'string'
+        ? pick(raw.name)
+        : pick(raw.name?.en) || pick(raw.nameEn);
     const nameAr =
-      typeof input.name === 'string' ? input.name.trim() : (input.name.ar ?? input.name.en).trim();
+      (typeof raw.name === 'string' ? '' : pick(raw.name?.ar)) || pick(raw.nameAr) || nameEn;
     if (!nameEn) {
       throw new DomainError(
         'VALIDATION_FAILED',
@@ -158,13 +171,25 @@ export class ContentExtrasService {
       );
     }
     const row = await getPrisma().contentLabel.create({
-      data: { id: newId(), tenantId, brandId, nameEn, nameAr, color: input.color ?? '#6366f1' },
+      data: {
+        id: newId(),
+        tenantId,
+        brandId,
+        nameEn,
+        nameAr,
+        color:
+          typeof raw.color === 'string' && /^#[0-9a-f]{3,8}$/i.test(raw.color)
+            ? raw.color
+            : '#6366f1',
+      },
     });
     return {
       data: {
         id: row.id,
         brand_id: row.brandId,
         name: { en: row.nameEn, ar: row.nameAr },
+        nameEn: row.nameEn,
+        nameAr: row.nameAr,
         color: row.color,
       },
     };
