@@ -171,9 +171,9 @@ test.describe('Full visual product certification', () => {
     await expect(page.getByTestId('demo-schedule')).toBeVisible({ timeout: 15_000 });
 
     await nav(page, /^Analytics$|^التحليلات$/i, /\/app\/analytics/);
-    await expect(page.getByTestId('demo-analytics')).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByTestId('demo-analytics-sample-badge')).toBeVisible();
-    await expect(page.getByTestId('demo-analytics-trend-table')).toBeAttached();
+    await expect(page.getByTestId('work-analytics')).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId('analytics-social-note')).toBeVisible();
+    await expect(page.getByTestId('analytics-series')).toBeAttached();
 
     await nav(page, /^Team$|^الفريق$/i, /\/app\/team/);
     await expect(page.getByTestId('demo-team')).toBeVisible({ timeout: 20_000 });
@@ -221,7 +221,7 @@ test.describe('Full visual product certification', () => {
       await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
       await expect(page.getByTestId('demo-command-center')).toBeVisible({ timeout: 20_000 });
       await nav(page, /Analytics|التحليلات/i, /\/app\/analytics/);
-      await expect(page.getByTestId('demo-analytics')).toBeVisible({ timeout: 20_000 });
+      await expect(page.getByTestId('work-analytics')).toBeVisible({ timeout: 20_000 });
       await nav(page, /Schedule|الجدول/i, /\/app\/schedule/);
       await expect(page.getByTestId('demo-schedule')).toBeVisible({ timeout: 20_000 });
     } else if (project === 'en-tablet') {

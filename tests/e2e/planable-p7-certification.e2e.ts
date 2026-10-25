@@ -93,8 +93,8 @@ test.describe('P7 Planable full product certification', () => {
     await page.keyboard.press('Escape');
 
     await nav(page, /^Analytics$|التحليلات/i, /\/app\/analytics/);
-    await expect(page.getByTestId('demo-analytics')).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByTestId('demo-analytics-honesty')).toBeVisible();
+    await expect(page.getByTestId('work-analytics')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('analytics-social-note')).toBeVisible();
 
     await nav(page, /^Team$|الفريق/i, /\/app\/team/);
     await expect(page.getByTestId('demo-team')).toBeVisible({ timeout: 15_000 });

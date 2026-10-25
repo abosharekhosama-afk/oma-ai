@@ -169,7 +169,7 @@ test.describe('P7 Planable full certification evidence', () => {
     await shot('17-schedule', '/app/schedule', '1440x900', { backing: 'Demo-backed' });
 
     await page.goto('/app/analytics');
-    await expect(page.getByTestId('demo-analytics')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('work-analytics')).toBeVisible({ timeout: 15_000 });
     await shot('18-analytics', '/app/analytics', '1440x900', { backing: 'Demo-backed' });
 
     await page.goto('/app/team');
@@ -211,7 +211,7 @@ test.describe('P7 Planable full certification evidence', () => {
 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/app/analytics');
-    await expect(page.getByTestId('demo-analytics')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('work-analytics')).toBeVisible({ timeout: 15_000 });
     await shot('27-ar-mobile', '/app/analytics', '390x844', {
       locale: 'ar',
       backing: 'Demo-backed',

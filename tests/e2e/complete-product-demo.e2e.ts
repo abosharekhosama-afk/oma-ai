@@ -142,7 +142,7 @@ test.describe('Complete product demo certification', () => {
     await expect(page.getByTestId('demo-schedule')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByText(/not connected|publishing/i).first()).toBeVisible();
     await nav.getByRole('link', { name: /^analytics$/i }).click();
-    await expect(page.getByTestId('demo-analytics')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('work-analytics')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByText(/demo|not connected/i).first()).toBeVisible();
 
     // Team restricted badge + Activity + Settings

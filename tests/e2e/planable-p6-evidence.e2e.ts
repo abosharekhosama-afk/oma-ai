@@ -103,25 +103,23 @@ test.describe('P6 Planable analytics/organization/settings evidence pack', () =>
 
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/app/analytics');
-    await expect(page.getByTestId('demo-analytics')).toBeVisible({ timeout: 20_000 });
-    await expect(page.getByTestId('demo-analytics-sample-badge')).toBeVisible();
-    await expect(page.getByTestId('demo-analytics-honesty')).toBeVisible();
+    await expect(page.getByTestId('work-analytics')).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId('analytics-social-note')).toBeVisible();
+    await expect(page.getByTestId('analytics-social-note')).toBeVisible();
     await shot('01-analytics-overview', '/app/analytics', '1440x900', {
       viewType: 'analytics-overview',
     });
 
-    await page.getByTestId('demo-analytics-filter-track').selectOption('ORGANIC');
-    await expect(page.getByTestId('demo-analytics-comparison')).toBeVisible();
+    await page.getByTestId('analytics-period').click();
+    await page.getByTestId('analytics-period-menu').getByRole('option').first().click();
+    await expect(page.getByTestId('analytics-kpis')).toBeVisible();
     await shot('02-analytics-filtered', '/app/analytics', '1440x900', {
       viewType: 'analytics-filtered',
     });
 
-    const tableRows = await page
-      .getByTestId('demo-analytics-trend-table')
-      .locator('tbody tr')
-      .count();
+    const tableRows = await page.getByTestId('analytics-series').locator('tbody tr').count();
     expect(tableRows).toBeGreaterThan(0);
-    await expect(page.getByTestId('demo-analytics-trend-svg')).toBeVisible();
+    await expect(page.getByTestId('analytics-series')).toBeVisible();
     await shot('03-analytics-chart-sr', '/app/analytics', '1440x900', {
       viewType: 'analytics-chart-sr',
     });
@@ -190,7 +188,7 @@ test.describe('P6 Planable analytics/organization/settings evidence pack', () =>
       },
     ]);
     await page.goto('/app/analytics');
-    await expect(page.getByTestId('demo-analytics')).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId('work-analytics')).toBeVisible({ timeout: 20_000 });
     await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
     await shot('13-ar-analytics-settings', '/app/analytics', '1440x900', {
       locale: 'ar',
@@ -206,12 +204,12 @@ test.describe('P6 Planable analytics/organization/settings evidence pack', () =>
 
     await page.goto('/app/analytics');
     await page.setViewportSize({ width: 1024, height: 768 });
-    await expect(page.getByTestId('demo-analytics')).toBeVisible();
+    await expect(page.getByTestId('work-analytics')).toBeVisible();
     await shot('14-tablet', '/app/analytics', '1024x768', { viewType: 'tablet' });
 
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/app/analytics');
-    await expect(page.getByTestId('demo-analytics')).toBeVisible();
+    await expect(page.getByTestId('work-analytics')).toBeVisible();
     await shot('15-mobile-analytics', '/app/analytics', '390x844', {
       viewType: 'mobile-analytics',
     });

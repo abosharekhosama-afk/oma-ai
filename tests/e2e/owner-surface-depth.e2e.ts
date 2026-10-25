@@ -68,7 +68,7 @@ test.describe('Owner surface-depth journey', () => {
       .getByRole('navigation')
       .getByRole('link', { name: /analytics/i })
       .click();
-    await expect(page.getByTestId('demo-analytics-trend')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('analytics-series')).toBeVisible({ timeout: 15_000 });
 
     await page
       .getByRole('navigation')

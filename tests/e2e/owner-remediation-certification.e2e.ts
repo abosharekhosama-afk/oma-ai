@@ -383,7 +383,7 @@ test.describe('Owner remediation certification', () => {
       },
       {
         href: '/app/analytics',
-        testid: 'demo-analytics-trend',
+        testid: 'analytics-series',
         marker: 'oma-analytics-primary',
         shot: '14-analytics.png',
       },
