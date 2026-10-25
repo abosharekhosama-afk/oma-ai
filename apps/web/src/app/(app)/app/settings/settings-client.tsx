@@ -447,17 +447,13 @@ export default function SettingsPage() {
                 </div>
                 <div className="oma-integrations-grid">
                   {filteredIntegrations.map((i) => (
-                    <button
-                      key={i.id}
-                      type="button"
-                      className="oma-integration-card"
-                    >
+                    <div key={i.id} className="oma-integration-card" data-testid="integration-card">
                       <strong>{pickCopy(i.name, locale)}</strong>
                       <span className="oma-ws-badge oma-ws-badge--ghost">
                         {t('settings.integrations.notConnected')}
                       </span>
                       <p>{pickCopy(i.purpose, locale)}</p>
-                    </button>
+                    </div>
                   ))}
                 </div>
               </section>
