@@ -8,6 +8,8 @@ export const FOUNDATION_CAPABILITIES = [
   'notification.read',
   'platform.tenant.create',
   'platform.support.access',
+  /** Internal work analytics (content pipeline, approvals, on-time, team throughput). */
+  'analytics.read',
 ] as const;
 
 export const BRAND_CAPABILITIES = [
@@ -147,6 +149,7 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     'audit.read',
     'job.read',
     'notification.read',
+    'analytics.read',
     ...BRAND_CAPABILITIES,
     ...STRATEGY_CAPABILITIES,
     ...AI_CAPABILITIES,
@@ -162,6 +165,7 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     'audit.read',
     'job.read',
     'notification.read',
+    'analytics.read',
     ...BRAND_CAPABILITIES,
     ...STRATEGY_CAPABILITIES,
     ...AI_CAPABILITIES,
@@ -178,6 +182,7 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     'audit.read',
     'job.read',
     'notification.read',
+    'analytics.read',
     ...BRAND_CAPABILITIES,
     ...STRATEGY_CAPABILITIES,
     ...CAMPAIGN_CAPABILITIES,
@@ -189,6 +194,7 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
   /** Planable Writer — create/edit content & campaigns */
   WRITER: [
     'notification.read',
+    'analytics.read',
     'job.read',
     'brand.read',
     'strategy.read',
@@ -204,6 +210,7 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
   /** Planable Approver — approve content and deliverable review decisions */
   APPROVER: [
     ...CONTENT_APPROVER,
+    'analytics.read',
     'brand.read',
     'strategy.read',
     'strategy.approve',
@@ -217,6 +224,7 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
   /** Standard collaborator */
   MEMBER: [
     'notification.read',
+    'analytics.read',
     'job.read',
     // Least privilege: brand.* and strategy.* are NOT default for MEMBER;
     // grant them explicitly per membership (see brand/strategy security tests).
@@ -246,7 +254,7 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     'deliverable.annotate',
   ],
   GUEST: ['notification.read', 'content.read', 'campaign.read', 'brand.read'],
-  VIEWER: ['notification.read', 'content.read', 'campaign.read', 'brand.read', 'strategy.read'],
+  VIEWER: ['notification.read', 'analytics.read', 'content.read', 'campaign.read', 'brand.read', 'strategy.read'],
 };
 
 export const PLANABLE_ROLE_OPTIONS = [
