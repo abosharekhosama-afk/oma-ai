@@ -168,6 +168,33 @@ describe('GET /api/v1/analytics (real work analytics)', () => {
     expect((await call(other, `/api/v1/analytics?brandId=${brandId}`)).res.status).toBe(404);
   });
 
+  it('serves the Planable-style content overview with previous-period deltas', async () => {
+    const { res, body } = await owner('/api/v1/analytics/content?period=30');
+    expect(res.status).toBe(200);
+    const d = body.data;
+    expect(d.kpis.posts.value).toBe(3);
+    expect(d.kpis.posts.previous).toBe(0);
+    expect(d.kpis.approvals.value).toBe(1);
+    expect(d.series).toHaveLength(30);
+    expect(d.channels.map((c: { channel: string }) => c.channel)).toEqual(['instagram']);
+    expect(d.content.rows).toHaveLength(3);
+    expect(d.social.connected).toBe(false);
+    expect(d.filters.available_channels).toEqual([{ channel: 'instagram', posts: 3 }]);
+    const weekly = await owner('/api/v1/analytics/content?period=30&granularity=week');
+    expect(weekly.body.data.granularity).toBe('week');
+    const scoped = await owner(`/api/v1/analytics/content?period=30&brandId=${brand2}`);
+    expect(scoped.body.data.kpis.posts.value).toBe(1);
+    const none = await owner('/api/v1/analytics/content?period=30&channels=linkedin');
+    expect(none.body.data.kpis.posts.value).toBe(0);
+    expect((await owner('/api/v1/analytics/content?granularity=hour')).res.status).toBe(400);
+    expect((await owner('/api/v1/analytics/content?brandId=nope')).res.status).toBe(404);
+    const iso = await call(other, '/api/v1/analytics/content?period=90');
+    expect(iso.body.data.content.rows).toHaveLength(0);
+    expect((await call(other, `/api/v1/analytics/content?brandId=${brandId}`)).res.status).toBe(
+      404,
+    );
+  });
+
   it('lets a regular member read analytics, and 403s without analytics.read', async () => {
     const headers = {
       'content-type': 'application/json',
@@ -182,6 +209,8 @@ describe('GET /api/v1/analytics (real work analytics)', () => {
     });
     const denied = await fetch(`${seed.baseUrl}/api/v1/analytics`, { headers });
     expect(denied.status).toBe(403);
+    const deniedContent = await fetch(`${seed.baseUrl}/api/v1/analytics/content`, { headers });
+    expect(deniedContent.status).toBe(403);
     const anon = await fetch(`${seed.baseUrl}/api/v1/analytics`);
     expect(anon.status).toBe(401);
   });

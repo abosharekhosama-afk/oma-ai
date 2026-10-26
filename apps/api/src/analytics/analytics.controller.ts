@@ -30,4 +30,34 @@ export class AnalyticsController {
     }
     return analyticsService.overview(req.oma.tenantId, { period, from, to, brandId, campaignId });
   }
+
+  /** GET /api/v1/analytics/content?period|from&to &brandId &channels=a,b &granularity=day|week */
+  @Get('content')
+  @RequireCapabilities('analytics.read')
+  async content(
+    @Req() req: Request,
+    @Query('period') period?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('brandId') brandId?: string,
+    @Query('channels') channels?: string,
+    @Query('granularity') granularity?: string,
+  ) {
+    if (!req.oma?.tenantId) {
+      throw new DomainError(
+        'TENANT_REQUIRED',
+        'Active tenant required',
+        409,
+        'errors.tenant_required',
+      );
+    }
+    return analyticsService.contentOverview(req.oma.tenantId, {
+      period,
+      from,
+      to,
+      brandId,
+      channels,
+      granularity,
+    });
+  }
 }

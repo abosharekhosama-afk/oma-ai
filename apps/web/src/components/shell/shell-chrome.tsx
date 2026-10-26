@@ -42,7 +42,9 @@ function RailNav({ collapsed }: { collapsed: boolean }) {
   const [moreOpen, setMoreOpen] = useState(false);
   useEffect(() => {
     const stored = window.localStorage.getItem(SHELL_NAV_MORE_PREF_KEY) === '1';
-    const inMore = SHELL_NAV_SECTIONS.some((s) => s.collapsible && sectionContainsPath(s, pathname));
+    const inMore = SHELL_NAV_SECTIONS.some(
+      (s) => s.collapsible && sectionContainsPath(s, pathname),
+    );
     setMoreOpen(stored || inMore);
   }, [pathname]);
   const toggleMore = () =>
@@ -60,7 +62,28 @@ function RailNav({ collapsed }: { collapsed: boolean }) {
     >
       {section.items.map((item) => (
         <li key={item.href}>
-          <NavLink href={item.href} label={t(item.labelKey)} icon={item.icon} collapsed={collapsed} />
+          <NavLink
+            href={item.href}
+            label={t(item.labelKey)}
+            icon={item.icon}
+            collapsed={collapsed}
+          />
+          {item.children && !collapsed && pathname.startsWith(item.href) ? (
+            <ul className="oma-nav-sublist">
+              {item.children.map((c) => (
+                <li key={c.href}>
+                  <Link
+                    href={c.href}
+                    className="oma-nav-sublink"
+                    data-active={pathname === c.href ? 'true' : undefined}
+                    aria-current={pathname === c.href ? 'page' : undefined}
+                  >
+                    {t(c.labelKey)}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </li>
       ))}
     </ul>
@@ -89,8 +112,20 @@ function RailNav({ collapsed }: { collapsed: boolean }) {
             onClick={toggleMore}
           >
             <span className="oma-nav-heading">{t(section.labelKey)}</span>
-            <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true" className="oma-nav-more__chev">
-              <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+              className="oma-nav-more__chev"
+            >
+              <path
+                d="M6 9l6 6 6-6"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
             </svg>
           </button>
           {moreOpen || collapsed ? list(section) : null}
