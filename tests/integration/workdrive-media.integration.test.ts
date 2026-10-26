@@ -86,6 +86,40 @@ describe('WorkDrive storage (API + worker, local Postgres)', () => {
     expect((await wrong.json()).error.message_key).toBe('errors.workdrive_key_rejected');
   });
 
+  it('connect errors are about the address or key, never "file removed"', async () => {
+    const { createServer } = await import('node:http');
+    const site = createServer((req, res) => {
+      if (req.url?.startsWith('/nest')) {
+        res.writeHead(404, { 'content-type': 'application/json' });
+        return res.end(
+          JSON.stringify({ message: `Cannot GET ${req.url}`, error: 'Not Found', statusCode: 404 }),
+        );
+      }
+      if (req.url?.startsWith('/locked')) {
+        res.writeHead(403, { 'content-type': 'application/json' });
+        return res.end(JSON.stringify({ message: 'Forbidden', statusCode: 403 }));
+      }
+      res.writeHead(404, { 'content-type': 'text/html' });
+      res.end('<!DOCTYPE html><html></html>');
+    });
+    await new Promise<void>((r) => site.listen(0, '127.0.0.1', r));
+    const port = (site.address() as { port: number }).port;
+    const expectKey = async (url: string, key: string, status: number) => {
+      const r = await put(seed, { base_url: url, api_key: KEY });
+      const e = (await r.json()).error;
+      expect([r.status, e.message_key]).toEqual([status, key]);
+      expect(e.code).not.toBe('MEDIA_MISSING');
+    };
+    try {
+      await expectKey(`http://127.0.0.1:${port}`, 'errors.workdrive_not_workdrive', 422);
+      await expectKey(`http://127.0.0.1:${port}/nest`, 'errors.workdrive_outdated', 422);
+      await expectKey(`http://127.0.0.1:${port}/locked`, 'errors.workdrive_key_forbidden', 422);
+    } finally {
+      await new Promise((r) => site.close(r));
+    }
+    await expectKey(`http://127.0.0.1:${port}`, 'errors.workdrive_unreachable', 502);
+  });
+
   it('only workspace admins can connect', async () => {
     const member = await seedMemberWithoutBrandCaps(seed);
     const r = await fetch(`${seed.baseUrl}/api/v1/workspace/workdrive`, {
@@ -101,7 +135,7 @@ describe('WorkDrive storage (API + worker, local Postgres)', () => {
   });
 
   it('connects, stores the key encrypted and never returns it', async () => {
-    const r = await put(seed, { base_url: `${wd.baseUrl}/`, api_key: KEY });
+    const r = await put(seed, { base_url: `${wd.baseUrl}/api/`, api_key: KEY });
     expect(r.status).toBe(200);
     const body = await r.text();
     expect(body).not.toContain(KEY);

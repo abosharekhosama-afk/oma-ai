@@ -13,7 +13,11 @@ export type WorkDriveErrorCode =
   | 'too_large'
   | 'conflict'
   | 'unavailable'
-  | 'bad_response';
+  | 'bad_response'
+  /** The address answers, but it isn't a WorkDrive API. */
+  | 'not_workdrive'
+  /** A WorkDrive API without the integration-keys routes. */
+  | 'outdated';
 
 export class WorkDriveError extends Error {
   constructor(
@@ -382,4 +386,97 @@ export class WorkDriveClient {
       throw e;
     }
   }
+}
+
+/** Candidate API roots for an address typed by a person (with/without `/api`, `/api/v1`). */
+export function workDriveUrlCandidates(raw: unknown): string[] {
+  const given = normalizeWorkDriveUrl(raw);
+  const u = new URL(given);
+  const stripped = `${u.origin}${u.pathname.replace(/\/+$/, '').replace(/\/api(\/v\d+)?$/i, '')}`;
+  return [...new Set([given, stripped, `${stripped}/api`, `${stripped}/api/v1`])];
+}
+
+type Probe =
+  | { kind: 'ok'; baseUrl: string; self: WorkDriveSelf }
+  | {
+      kind: 'unauthorized' | 'forbidden' | 'outdated' | 'not_workdrive' | 'unavailable';
+      status?: number;
+    };
+
+async function probe(
+  baseUrl: string,
+  apiKey: string,
+  fetchImpl: FetchLike,
+  timeoutMs: number,
+): Promise<Probe> {
+  let res: Response;
+  try {
+    res = await fetchImpl(`${baseUrl}/integration/self`, {
+      headers: { authorization: `Bearer ${apiKey}`, accept: 'application/json' },
+      redirect: 'manual',
+      signal: AbortSignal.timeout(timeoutMs),
+    });
+  } catch {
+    return { kind: 'unavailable' };
+  }
+  const isJson = /json/i.test(res.headers.get('content-type') ?? '');
+  let body: any = null;
+  if (isJson) body = await res.json().catch(() => null);
+  else await res.body?.cancel().catch(() => undefined);
+  // A JSON API error (NestJS shape: { message, statusCode }) means a WorkDrive-like API answered.
+  const nestish = !!body && typeof body === 'object' && ('statusCode' in body || 'message' in body);
+  if (res.ok && body?.organization?.id) {
+    return {
+      kind: 'ok',
+      baseUrl,
+      self: {
+        keyId: str(body.keyId),
+        prefix: str(body.prefix),
+        organization: { id: str(body.organization.id), name: str(body.organization.name) },
+        scopes: Array.isArray(body.scopes) ? body.scopes.map(str) : [],
+        rootFolder: body.rootFolder?.id
+          ? { id: str(body.rootFolder.id), name: str(body.rootFolder.name) }
+          : null,
+      },
+    };
+  }
+  if (res.status === 401 && nestish) return { kind: 'unauthorized', status: 401 };
+  if (res.status === 403 && nestish) return { kind: 'forbidden', status: 403 };
+  if (res.status === 404 && nestish) return { kind: 'outdated', status: 404 };
+  if (res.status >= 500 && res.status !== 501) return { kind: 'unavailable', status: res.status };
+  return { kind: 'not_workdrive', status: res.status };
+}
+
+/**
+ * Finds the WorkDrive API behind an address and checks the key in one go.
+ * Tries the address as typed, then without/with `/api` and `/api/v1`.
+ * Throws a WorkDriveError whose code says what went wrong:
+ * unauthorized (key invalid/revoked), forbidden (key lacks permission), outdated
+ * (WorkDrive without integration keys), not_workdrive (wrong address), unavailable.
+ */
+export async function discoverWorkDrive(
+  rawUrl: unknown,
+  apiKey: string,
+  fetchImpl: FetchLike = (u, i) => fetch(u, i),
+  timeoutMs = 20_000,
+): Promise<{ baseUrl: string; self: WorkDriveSelf }> {
+  const candidates = workDriveUrlCandidates(rawUrl);
+  if (!isWorkDriveKey(apiKey)) throw new WorkDriveError('invalid_key', 'Invalid WorkDrive key');
+  const seen: Probe['kind'][] = [];
+  for (const base of candidates) {
+    const r = await probe(base, apiKey, fetchImpl, timeoutMs);
+    if (r.kind === 'ok') return { baseUrl: r.baseUrl, self: r.self };
+    if (r.kind === 'unauthorized')
+      throw new WorkDriveError('unauthorized', 'WorkDrive rejected the key', 401);
+    if (r.kind === 'forbidden')
+      throw new WorkDriveError('forbidden', 'WorkDrive key lacks permission', 403);
+    seen.push(r.kind);
+    // Nothing answers at all: the other paths on the same host won't either.
+    if (r.kind === 'unavailable' && seen.length === 1 && r.status === undefined) break;
+  }
+  if (seen.includes('outdated'))
+    throw new WorkDriveError('outdated', 'WorkDrive has no integration-keys API');
+  if (seen.includes('not_workdrive'))
+    throw new WorkDriveError('not_workdrive', 'Address is not a WorkDrive API');
+  throw new WorkDriveError('unavailable', 'WorkDrive unreachable');
 }
