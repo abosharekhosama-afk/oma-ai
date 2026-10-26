@@ -2,15 +2,25 @@ import { describe, expect, it } from 'vitest';
 import {
   SHELL_NAV_SECTIONS,
   SHELL_RAIL_PREF_KEY,
+  sectionContainsPath,
 } from '../../apps/web/src/components/shell/nav-config';
 
 describe('Stage 1 shell nav config', () => {
-  it('groups navigation into at least four labeled sections', () => {
-    expect(SHELL_NAV_SECTIONS.length).toBeGreaterThanOrEqual(4);
+  it('uses Planable IA: main nav first, secondary routes under a collapsible More group', () => {
     for (const section of SHELL_NAV_SECTIONS) {
       expect(section.labelKey).toMatch(/^nav\.section\./);
       expect(section.items.length).toBeGreaterThan(0);
     }
+    expect(SHELL_NAV_SECTIONS[0]!.items.map((i) => i.href)).toEqual([
+      '/app',
+      '/app/content',
+      '/app/campaigns',
+      '/app/analytics',
+    ]);
+    const more = SHELL_NAV_SECTIONS.find((s) => s.collapsible);
+    expect(more?.labelKey).toBe('nav.section.more');
+    expect(sectionContainsPath(more!, '/app/tasks/123')).toBe(true);
+    expect(sectionContainsPath(SHELL_NAV_SECTIONS[0]!, '/app/tasks')).toBe(false);
   });
 
   it('preserves every major product route', () => {

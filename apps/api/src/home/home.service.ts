@@ -32,8 +32,62 @@ export function computeChecklist(c: {
   ];
 }
 
+const PENDING_APPROVAL = ['PENDING', 'PARTIALLY_APPROVED'] as const;
+
+export type ApprovalEventLite = { contentId: string; actorUserId: string; action: string; at: Date };
+
+/**
+ * Items the user can still act on: pending/partially approved and not already approved by this
+ * user since the latest approval request (mirrors ContentService.approve's duplicate guard).
+ * Pure; unit-tested.
+ */
+export function selectAwaitingForUser<T extends { id: string }>(
+  items: T[],
+  events: ApprovalEventLite[],
+  userId: string,
+): Array<T & { requested_by: string | null; requested_at: Date | null }> {
+  const out: Array<T & { requested_by: string | null; requested_at: Date | null }> = [];
+  for (const item of items) {
+    const own = events.filter((e) => e.contentId === item.id).sort((a, b) => b.at.getTime() - a.at.getTime());
+    const lastRequest = own.find((e) => e.action === 'REQUEST') ?? null;
+    const approvedByMe = own.some(
+      (e) => e.action === 'APPROVE' && e.actorUserId === userId && (!lastRequest || e.at >= lastRequest.at),
+    );
+    if (approvedByMe) continue;
+    out.push({ ...item, requested_by: lastRequest?.actorUserId ?? null, requested_at: lastRequest?.at ?? null });
+  }
+  return out;
+}
+
+/** Per-brand counts for Home brand cards (pure; unit-tested). */
+export function summarizeBrands(
+  brands: Array<{ id: string; name: string }>,
+  items: Array<{ brandId: string; channel: string; approvalState: string; scheduleState: string; scheduledAt: Date | null }>,
+  weekStart: Date,
+  weekEnd: Date,
+) {
+  return brands.map((b) => {
+    const own = items.filter((i) => i.brandId === b.id);
+    return {
+      id: b.id,
+      name: b.name,
+      logo_url: null as string | null,
+      channels: [...new Set(own.map((i) => i.channel.toLowerCase()))].sort(),
+      awaiting_approval: own.filter((i) => (PENDING_APPROVAL as readonly string[]).includes(i.approvalState)).length,
+      scheduled_this_week: own.filter(
+        (i) => i.scheduleState === 'SCHEDULED' && i.scheduledAt && i.scheduledAt >= weekStart && i.scheduledAt < weekEnd,
+      ).length,
+    };
+  });
+}
+
 /** Real, tenant-scoped command-center payload for Home. */
-export async function buildHome(tenantId: string, userId: string, now = new Date()) {
+export async function buildHome(
+  tenantId: string,
+  userId: string,
+  now = new Date(),
+  opts: { canApprove?: boolean } = {},
+) {
   const prisma = getPrisma();
   const weekEnd = new Date(now.getTime() + 7 * DAY);
   const horizon = new Date(now.getTime() + 14 * DAY);
@@ -124,6 +178,51 @@ export async function buildHome(tenantId: string, userId: string, now = new Date
   ]);
   const brandName = new Map(brandRows.map((b) => [b.id, b.name]));
 
+  // Planable-style Home additions (additive; existing fields unchanged).
+  const dayStart = new Date(now);
+  dayStart.setUTCHours(0, 0, 0, 0);
+  const stripEnd = new Date(dayStart.getTime() + 7 * DAY);
+  const liveBrands = await prisma.brandWorkspace.findMany({
+    where: tenantWhere(tenantId, live),
+    orderBy: { createdAt: 'asc' },
+    select: { id: true, name: true },
+  });
+  const [brandItems, pendingItems, weekItems] = await Promise.all([
+    prisma.contentItem.findMany({
+      where: tenantWhere(tenantId, live),
+      select: { brandId: true, channel: true, approvalState: true, scheduleState: true, scheduledAt: true },
+    }),
+    opts.canApprove === false
+      ? Promise.resolve([])
+      : prisma.contentItem.findMany({
+          where: tenantWhere(tenantId, { ...live, approvalState: { in: [...PENDING_APPROVAL] } }),
+          orderBy: { updatedAt: 'desc' },
+          take: 20,
+          select: {
+            id: true, titleEn: true, titleAr: true, captionEn: true, captionAr: true, brandId: true,
+            channel: true, previewAssetUrl: true, approverApproved: true, approverRequired: true, updatedAt: true,
+          },
+        }),
+    prisma.contentItem.findMany({
+      where: tenantWhere(tenantId, { ...live, scheduleState: 'SCHEDULED', scheduledAt: { gte: dayStart, lt: stripEnd } }),
+      orderBy: { scheduledAt: 'asc' },
+      take: 60,
+      select: { id: true, titleEn: true, titleAr: true, brandId: true, channel: true, scheduledAt: true, previewAssetUrl: true },
+    }),
+  ]);
+  const events = pendingItems.length
+    ? await prisma.contentApprovalEvent.findMany({
+        where: { tenantId, contentId: { in: pendingItems.map((p) => p.id) }, action: { in: ['REQUEST', 'APPROVE'] } },
+        select: { contentId: true, actorUserId: true, action: true, at: true },
+      })
+    : [];
+  const awaiting = selectAwaitingForUser(pendingItems, events, userId).slice(0, 8);
+  const requesterIds = [...new Set(awaiting.map((a) => a.requested_by).filter((x): x is string => Boolean(x)))];
+  const requesters = requesterIds.length
+    ? await prisma.user.findMany({ where: { id: { in: requesterIds } }, select: { id: true, name: true } })
+    : [];
+  const userName = new Map(requesters.map((u) => [u.id, u.name]));
+
   const pendingReviews = [
     ...reviewContent.map((c) => ({
       kind: 'content' as const,
@@ -181,6 +280,33 @@ export async function buildHome(tenantId: string, userId: string, now = new Date
         brand: brandName.get(c.brandId) ?? null,
         href: `/app/content?item=${encodeURIComponent(c.id)}`,
       })),
+      brand_summaries: summarizeBrands(liveBrands, brandItems, now, weekEnd),
+      awaiting_me: awaiting.map((c) => ({
+        id: c.id,
+        title: copy(c.titleEn, c.titleAr),
+        caption: c.captionEn || c.captionAr ? copy(c.captionEn ?? '', c.captionAr) : null,
+        channel: c.channel,
+        brand_id: c.brandId,
+        brand: brandName.get(c.brandId) ?? null,
+        thumbnail_url: c.previewAssetUrl,
+        requested_by: c.requested_by ? (userName.get(c.requested_by) ?? null) : null,
+        requested_at: (c.requested_at ?? c.updatedAt).toISOString(),
+        progress: { approved: c.approverApproved, required: Math.max(1, c.approverRequired) },
+        href: `/app/content?item=${encodeURIComponent(c.id)}`,
+      })),
+      week: {
+        start: dayStart.toISOString(),
+        items: weekItems.map((c) => ({
+          id: c.id,
+          title: copy(c.titleEn, c.titleAr),
+          channel: c.channel,
+          brand: brandName.get(c.brandId) ?? null,
+          scheduled_at: c.scheduledAt!.toISOString(),
+          thumbnail_url: c.previewAssetUrl,
+          href: `/app/content?item=${encodeURIComponent(c.id)}`,
+        })),
+      },
+      can_approve: opts.canApprove !== false,
       checklist: computeChecklist({
         brands,
         brandsWithWebsiteOrProfile,

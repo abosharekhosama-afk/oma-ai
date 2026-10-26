@@ -4,7 +4,7 @@ import { Button } from '@oma/ui/controls';
 import Link from 'next/link';
 import { OmaLinkButton } from '../ui/oma-link-button';
 import { usePathname } from 'next/navigation';
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { Suspense, useCallback, useEffect, useState, type ReactNode } from 'react';
 import { Drawer } from '../ui/drawer';
 import { ToastProvider } from '../ui/toast';
 import { useT } from '../../lib/use-locale';
@@ -19,7 +19,13 @@ const CommandSearch = dynamic(() => import('./command-search').then((m) => m.Com
 });
 import { NavLink } from './nav-link';
 import { NotificationsBell } from './notifications-bell';
-import { SHELL_NAV_SECTIONS, SHELL_RAIL_PREF_KEY } from './nav-config';
+import {
+  SHELL_NAV_MORE_PREF_KEY,
+  SHELL_NAV_SECTIONS,
+  SHELL_RAIL_PREF_KEY,
+  sectionContainsPath,
+} from './nav-config';
+import { BrandPagesNav } from './brand-pages-nav';
 import { ShellIcon } from './shell-icons';
 import { UserMenu } from './user-menu';
 import { WorkspaceRow } from './workspace-row';
@@ -32,25 +38,62 @@ import { PlxLogo } from '../ui/plx-icons';
 
 function RailNav({ collapsed }: { collapsed: boolean }) {
   const t = useT();
+  const pathname = usePathname() || '/app';
+  const [moreOpen, setMoreOpen] = useState(false);
+  useEffect(() => {
+    const stored = window.localStorage.getItem(SHELL_NAV_MORE_PREF_KEY) === '1';
+    const inMore = SHELL_NAV_SECTIONS.some((s) => s.collapsible && sectionContainsPath(s, pathname));
+    setMoreOpen(stored || inMore);
+  }, [pathname]);
+  const toggleMore = () =>
+    setMoreOpen((open) => {
+      window.localStorage.setItem(SHELL_NAV_MORE_PREF_KEY, open ? '0' : '1');
+      return !open;
+    });
+
+  const list = (section: (typeof SHELL_NAV_SECTIONS)[number]) => (
+    <ul
+      className="oma-nav-list"
+      id={`nav-list-${section.id}`}
+      aria-label={section.hideLabel ? t(section.labelKey) : undefined}
+      aria-labelledby={section.hideLabel ? undefined : `nav-${section.id}`}
+    >
+      {section.items.map((item) => (
+        <li key={item.href}>
+          <NavLink href={item.href} label={t(item.labelKey)} icon={item.icon} collapsed={collapsed} />
+        </li>
+      ))}
+    </ul>
+  );
+
+  const main = SHELL_NAV_SECTIONS.filter((s) => !s.collapsible);
+  const more = SHELL_NAV_SECTIONS.filter((s) => s.collapsible);
   return (
     <nav className="oma-nav" aria-label={t('nav.primary')}>
-      {SHELL_NAV_SECTIONS.map((section) => (
+      {main.map((section) => (
         <div key={section.id} className="oma-nav-group">
-          <p className="oma-nav-section" id={`nav-${section.id}`}>
-            {t(section.labelKey)}
-          </p>
-          <ul className="oma-nav-list" aria-labelledby={`nav-${section.id}`}>
-            {section.items.map((item) => (
-              <li key={item.href}>
-                <NavLink
-                  href={item.href}
-                  label={t(item.labelKey)}
-                  icon={item.icon}
-                  collapsed={collapsed}
-                />
-              </li>
-            ))}
-          </ul>
+          {list(section)}
+        </div>
+      ))}
+      <Suspense fallback={null}>
+        <BrandPagesNav collapsed={collapsed} />
+      </Suspense>
+      {more.map((section) => (
+        <div key={section.id} className="oma-nav-group oma-nav-more">
+          <button
+            type="button"
+            className="oma-nav-more__toggle"
+            id={`nav-${section.id}`}
+            aria-expanded={moreOpen || collapsed}
+            aria-controls={`nav-list-${section.id}`}
+            onClick={toggleMore}
+          >
+            <span className="oma-nav-heading">{t(section.labelKey)}</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" aria-hidden="true" className="oma-nav-more__chev">
+              <path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </button>
+          {moreOpen || collapsed ? list(section) : null}
         </div>
       ))}
     </nav>
@@ -190,7 +233,9 @@ export function ShellChrome({ children }: { children: ReactNode }) {
     // app / brands / :brandId / ...
     return parts.length >= 3 ? parts[2] : null;
   })();
+  // Home owns its single primary "Create post" action.
   const hideShellCreate =
+    pathname === '/app' ||
     isContentWorkspace ||
     isRequestsWorkspace ||
     isDeliverablesWorkspace ||

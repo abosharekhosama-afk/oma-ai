@@ -13,6 +13,7 @@
 @import '../styles/activity.css';
 @import '../styles/states.css';
 @import '../styles/work-analytics.css';
+@import '../styles/home.css';
 
 * {
   box-sizing: border-box;

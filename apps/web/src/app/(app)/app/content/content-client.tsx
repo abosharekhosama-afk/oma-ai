@@ -1168,6 +1168,25 @@ export default function ContentPage() {
     }
   }, [search]);
 
+  // Home deep links: ?brand=<id> filters the plan, ?date=YYYY-MM-DD opens that calendar day,
+  // ?create=1 opens the composer once workspace data is loaded.
+  useEffect(() => {
+    const brand = search.get('brand');
+    if (brand) setFilters((f) => (f.brandId === brand ? f : { ...f, brandId: brand }));
+    const date = search.get('date');
+    if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      calendarSnapped.current = true;
+      setSelectedDay(date);
+      setCursor(monthCursorFromKey(date));
+    }
+  }, [search]);
+  const createFromUrl = useRef(false);
+  useEffect(() => {
+    if (loading || createFromUrl.current || search.get('create') !== '1') return;
+    createFromUrl.current = true;
+    setCreateOpen(true);
+  }, [search, loading]);
+
   useEffect(() => {
     const campaign = search.get('campaign');
     if (campaign) {
