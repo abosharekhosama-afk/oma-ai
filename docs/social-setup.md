@@ -11,7 +11,7 @@ services. No network is ever faked.
 | --- | --- | --- |
 | `SOCIAL_TOKEN_ENCRYPTION_KEY` | API + worker (same value) | 32 random bytes, base64 or hex. Generate: `openssl rand -base64 32`. Tokens are stored AES-256-GCM encrypted with it. Rotating it disconnects every account (they must reconnect). |
 | `SOCIAL_OAUTH_REDIRECT_BASE` | API | Public origin used to build the callback URL. Set to `https://oma-ai-ecru.vercel.app`. Falls back to `WEB_BASE_URL`, then `API_PUBLIC_URL`. |
-| `SOCIAL_PUBLISH_INTERVAL_MS` | worker (optional) | How often due posts are published. Default `60000`. |
+| `SOCIAL_PUBLISH_INTERVAL_MS` | worker (optional) | How often due posts are published. Default `30000`. |
 | `SOCIAL_REFRESH_INTERVAL_MS` | worker (optional) | How often tokens are refreshed/validated. Default `900000`. |
 
 ## Redirect (callback) URLs

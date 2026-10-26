@@ -16,6 +16,19 @@ const routeRequirements: Record<string, string[]> = {
   'GET /api/v1/analytics': ['analytics.read'],
   'GET /api/v1/analytics/content': ['analytics.read'],
   'PATCH /api/v1/workspace/settings': ['tenant.manage'],
+  'GET /api/v1/workspace/workdrive': ['tenant.manage'],
+  'PUT /api/v1/workspace/workdrive': ['tenant.manage'],
+  'POST /api/v1/workspace/workdrive/test': ['tenant.manage'],
+  'DELETE /api/v1/workspace/workdrive': ['tenant.manage'],
+  'GET /api/v1/brands/:brandId/media': ['brand.read'],
+  // Kind-specific capability (content.create / brand.create / deliverable.write) is checked in MediaService.
+  'POST /api/v1/brands/:brandId/media': ['brand.read'],
+  'POST /api/v1/brands/:brandId/media/import': ['brand.read'],
+  'GET /api/v1/brands/:brandId/media/browse': ['brand.read'],
+  'GET /api/v1/media/:assetId': ['brand.read'],
+  'GET /api/v1/media/:assetId/url': ['brand.read'],
+  'GET /api/v1/media/:assetId/view': ['brand.read'],
+  'GET /api/v1/media/:assetId/stream': ['brand.read'],
   'GET /api/v1/home': ['brand.read'],
   'GET /api/v1/activity': ['brand.read'],
   'GET /api/v1/notifications': ['notification.read'],
@@ -447,7 +460,8 @@ export function matchRequirements(method: string, path: string): string[] | null
       .replace(':evidenceId', '[^/]+')
       .replace(':userId', '[^/]+')
       .replace(':network', '[^/]+')
-      .replace(':pageId', '[^/]+');
+      .replace(':pageId', '[^/]+')
+      .replace(':assetId', '[^/]+');
     if (
       new RegExp('^' + pattern.replace(/\//g, '\\/') + '$').test(`${method.toUpperCase()} ${path}`)
     )
@@ -574,6 +588,16 @@ const ENTITY_ROUTES: Array<[RegExp, (id: string, tenantId: string) => Promise<st
     async (id, tenantId) =>
       (
         await getPrisma().workDeliverable.findFirst({
+          where: { id, tenantId },
+          select: { brandId: true },
+        })
+      )?.brandId ?? null,
+  ],
+  [
+    /^\/api\/v1\/media\/([^/]+)/,
+    async (id, tenantId) =>
+      (
+        await getPrisma().mediaAsset.findFirst({
           where: { id, tenantId },
           select: { brandId: true },
         })

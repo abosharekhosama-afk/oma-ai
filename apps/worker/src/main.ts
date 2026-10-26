@@ -8,6 +8,7 @@ import { startAiProcessor } from './processors/ai.processor';
 import IORedis from 'ioredis';
 import { WorkerModule } from './worker.module';
 import { startSocialJobs } from './social/social-jobs';
+import { startMediaJobs } from './media/media-jobs';
 
 const log = createLogger('worker');
 
@@ -24,6 +25,7 @@ async function main() {
   }, 1500);
   // Real social publishing + token refresh (no-op until SOCIAL_TOKEN_ENCRYPTION_KEY is set).
   startSocialJobs(log);
+  startMediaJobs(log);
 
   const healthPort = Number(process.env.WORKER_HEALTH_PORT ?? 3002);
   const health = createServer((_req, res) => {

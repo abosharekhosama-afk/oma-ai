@@ -21,6 +21,9 @@ import { useLocale, useT } from '../../../../lib/use-locale';
 import { AiStatusNote } from '../../../../components/ai/ai-status-note';
 import { ShellIcon } from '../../../../components/shell/shell-icons';
 import type { NavIconId } from '../../../../components/shell/nav-config';
+import { WorkDriveSettings } from '../../../../components/settings/workdrive-settings';
+import { useCapabilities } from '../../../../lib/use-capabilities';
+import { useSearchParams } from 'next/navigation';
 
 type DemoPreferences = UserPreferences;
 type Copy = { en: string; ar: string };
@@ -31,6 +34,7 @@ type Section =
   | 'workflow'
   | 'notifications'
   | 'integrations'
+  | 'storage'
   | 'localization';
 
 const pickCopy = (c: Copy, locale: string) =>
@@ -43,7 +47,6 @@ const INTEGRATIONS: Integration[] = [
   { id: 'tiktok', category: 'social', name: { en: 'TikTok', ar: 'تيك توك' }, purpose: { en: 'Publish short videos', ar: 'نشر الفيديوهات القصيرة' } },
   { id: 'linkedin', category: 'social', name: { en: 'LinkedIn', ar: 'لينكدإن' }, purpose: { en: 'Publish company updates', ar: 'نشر تحديثات الشركة' } },
   { id: 'x', category: 'social', name: { en: 'X', ar: 'إكس' }, purpose: { en: 'Publish posts', ar: 'نشر التغريدات' } },
-  { id: 'storage', category: 'storage', name: { en: 'File storage', ar: 'تخزين الملفات' }, purpose: { en: 'Sync approved assets', ar: 'مزامنة الملفات المعتمدة' } },
   { id: 'slack', category: 'messaging', name: { en: 'Slack', ar: 'سلاك' }, purpose: { en: 'Approval notifications', ar: 'إشعارات الموافقات' } },
 ];
 
@@ -53,6 +56,7 @@ const NAV: Array<{ id: Section; label: string; icon: NavIconId }> = [
   { id: 'workflow', label: 'Workflow', icon: 'tasks' },
   { id: 'notifications', label: 'Notifications', icon: 'bell' },
   { id: 'integrations', label: 'Integrations', icon: 'company' },
+  { id: 'storage', label: 'WorkDrive', icon: 'deliverables' },
   { id: 'localization', label: 'Localization', icon: 'activity' },
 ];
 
@@ -60,7 +64,12 @@ export default function SettingsPage() {
   const t = useT();
   const locale = useLocale();
   const toast = useToast();
-  const [section, setSection] = useState<Section>('workspace');
+  const search = useSearchParams();
+  const initialSection = search?.get('section');
+  const [section, setSection] = useState<Section>(
+    NAV.some((n) => n.id === initialSection) ? (initialSection as Section) : 'workspace',
+  );
+  const capabilities = useCapabilities();
   const [ws, setWs] = useState<WorkspaceSettings | null>(null);
   const [wsDraft, setWsDraft] = useState<{ timezone: string; website_url: string }>({
     timezone: 'Asia/Jerusalem',
@@ -419,6 +428,14 @@ export default function SettingsPage() {
                   </Button>
                 </div>
               </section>
+            )}
+
+            {section === 'storage' && !capabilities.loading && (
+              <WorkDriveSettings
+                t={t}
+                locale={locale}
+                canManage={capabilities.capabilities.includes('tenant.manage')}
+              />
             )}
 
             {section === 'integrations' && (

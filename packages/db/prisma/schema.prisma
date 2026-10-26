@@ -503,6 +503,8 @@ model BrandWorkspace {
   deletedAt                       DateTime?
   /// https URL or uploaded image (data URL, max ~200 KB). Shown wherever initials are used.
   logoUrl                         String?
+  /// MediaAsset id when the logo is stored in WorkDrive (logoUrl = /api/v1/media/:id/view).
+  logoAssetId                     String?
   tenant                          Tenant                     @relation(fields: [tenantId], references: [id])
   websiteSources                  WebsiteSource[]
   scanAttempts                    ScanAttempt[]
@@ -1118,6 +1120,8 @@ model ContentItem {
   approverRequired Int                  @default(1)
   approverApproved Int                  @default(0)
   previewAssetUrl  String?
+  /// MediaAsset id when the preview is stored in WorkDrive (previewAssetUrl = /api/v1/media/:id/view).
+  previewAssetId   String?
   labels           String[]             @default([])
   assigneeUserId   String?
   clientVisible    Boolean              @default(true)
@@ -1426,6 +1430,8 @@ model WorkDeliverable {
   status          WorkDeliverableStatus        @default(DRAFT)
   reviewStatus    WorkDeliverableReviewStatus  @default(NOT_STARTED)
   assetUrl        String?
+  /// MediaAsset id when the file is stored in WorkDrive (assetUrl then points at /api/v1/media/:id/view).
+  assetId         String?
   currentVersionId String?
   approvedVersionId String?
   createdBy       String
@@ -1451,6 +1457,8 @@ model WorkDeliverableVersion {
   label           String         @default("v1")
   versionNumber   Int            @default(1)
   assetUrl        String?
+  /// MediaAsset id when the file is stored in WorkDrive (assetUrl then points at /api/v1/media/:id/view).
+  assetId         String?
   notesEn         String         @default("")
   notesAr         String         @default("")
   /// DRAFT | IN_REVIEW | APPROVED | REJECTED | SUPERSEDED
@@ -1620,4 +1628,62 @@ model SocialOAuthState {
   createdAt       DateTime      @default(now())
 
   @@index([expiresAt])
+}
+
+enum WorkDriveConnectionStatus {
+  CONNECTED
+  ERROR
+}
+
+/// One WorkDrive organization per OMA workspace (tenant). The integration key is AES-256-GCM encrypted.
+model WorkDriveConnection {
+  id             String                    @id
+  tenantId       String                    @unique
+  baseUrl        String
+  apiKeyEnc      String
+  keyPrefix      String
+  orgId          String
+  orgName        String
+  rootFolderId   String?
+  rootFolderName String?
+  scopes         String[]                  @default([])
+  status         WorkDriveConnectionStatus @default(CONNECTED)
+  lastCheckedAt  DateTime?
+  lastError      String?
+  connectedBy    String
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+}
+
+enum MediaAssetStatus {
+  READY
+  /// Removed or trashed in WorkDrive; OMA keeps the reference and shows a warning.
+  MISSING
+}
+
+/// A file OMA uses (post media, brand logo, deliverable) stored in the tenant's WorkDrive.
+model MediaAsset {
+  id              String           @id
+  tenantId        String
+  brandId         String
+  /// posts | logos | deliverables
+  kind            String
+  workdriveFileId String
+  folderId        String?
+  name            String
+  mime            String
+  size            BigInt
+  sha256          String?
+  status          MediaAssetStatus @default(READY)
+  /// upload | workdrive (picked from existing files) | migrated
+  source          String           @default("upload")
+  lastCheckedAt   DateTime?
+  missingSince    DateTime?
+  createdBy       String
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@unique([tenantId, brandId, workdriveFileId])
+  @@index([tenantId, brandId, kind, createdAt])
+  @@index([status, lastCheckedAt])
 }

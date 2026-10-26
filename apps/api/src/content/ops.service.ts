@@ -24,6 +24,21 @@ function localePair(input: LocaleInput | undefined, fallback = ''): { en: string
   return { en, ar };
 }
 
+/** `asset_id`: a deliverables/posts MediaAsset of the same brand → stable view URL. */
+async function resolveDeliverableAsset(tenantId: string, brandId: string, value: unknown) {
+  if (value === undefined) return undefined;
+  if (value === null || value === '') return { assetId: null as string | null, assetUrl: null as string | null };
+  const a =
+    typeof value === 'string'
+      ? await getPrisma().mediaAsset.findFirst({
+          where: tenantWhere(tenantId, { id: value, brandId, kind: { in: ['deliverables', 'posts'] } }),
+          select: { id: true },
+        })
+      : null;
+  if (!a) throw new DomainError('NOT_FOUND', 'Media not found', 404, 'errors.not_found');
+  return { assetId: a.id as string | null, assetUrl: `/api/v1/media/${a.id}/view` as string | null };
+}
+
 @Injectable()
 export class OpsService {
   constructor(private readonly audit: AuditService) {}
@@ -795,8 +810,9 @@ export class OpsService {
         'errors.invalid_transition',
       );
     }
+    const asset = await resolveDeliverableAsset(tenantId, current.brandId, patch.asset_id);
     if (
-      patch.assetUrl !== undefined &&
+      (patch.assetUrl !== undefined || asset !== undefined) &&
       (current.reviewStatus === 'APPROVED' || current.reviewStatus === 'REJECTED')
     ) {
       throw new DomainError(
@@ -811,7 +827,10 @@ export class OpsService {
       where: { id: deliverableId },
       data: {
         ...(title ? { titleEn: title.en, titleAr: title.ar } : {}),
-        ...(patch.assetUrl !== undefined ? { assetUrl: patch.assetUrl as string | null } : {}),
+        ...(patch.assetUrl !== undefined
+          ? { assetUrl: patch.assetUrl as string | null, assetId: null }
+          : {}),
+        ...(asset ?? {}),
         ...(patch.contentId !== undefined ? { contentId: patch.contentId as string | null } : {}),
       },
     });
@@ -911,13 +930,14 @@ export class OpsService {
     tenantId: string,
     actorUserId: string,
     deliverableId: string,
-    input: { assetUrl?: string | null; label?: string; notes?: LocaleInput },
+    input: { assetUrl?: string | null; asset_id?: string | null; label?: string; notes?: LocaleInput },
     correlationId?: string,
   ) {
     const del = await getPrisma().workDeliverable.findFirst({
       where: tenantWhere(tenantId, { id: deliverableId }),
     });
     if (!del) throw new DomainError('NOT_FOUND', 'Deliverable not found', 404, 'errors.not_found');
+    const asset = await resolveDeliverableAsset(tenantId, del.brandId, input.asset_id);
     // Simpler default: APPROVED/REJECTED/in-review cannot gain a version.
     // CHANGES_REQUESTED keeps that review status until submit and never clears approvedVersionId.
     if (!versionCreateAllowed(del.reviewStatus)) {
@@ -943,7 +963,8 @@ export class OpsService {
           deliverableId,
           label: input.label?.trim() || `v${n}`,
           versionNumber: n,
-          assetUrl: input.assetUrl ?? del.assetUrl,
+          assetUrl: asset?.assetUrl ?? input.assetUrl ?? del.assetUrl,
+          assetId: asset?.assetId ?? (input.assetUrl ? null : del.assetId),
           notesEn: notes.en,
           notesAr: notes.ar,
           status: 'DRAFT',

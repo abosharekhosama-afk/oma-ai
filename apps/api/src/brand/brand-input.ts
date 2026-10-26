@@ -5,11 +5,13 @@ import { isValidTimezone } from '../common/zoned-time';
 export type BrandSettingsInput = {
   name?: string;
   logoUrl?: string | null;
+  /** WorkDrive logo (MediaAsset id, kind logos). Wins over logoUrl. */
+  logoAssetId?: string | null;
   timezone?: string;
   version: number;
 };
 
-const ALLOWED = new Set(['name', 'logoUrl', 'logo_url', 'timezone', 'version']);
+const ALLOWED = new Set(['name', 'logoUrl', 'logo_url', 'logo_asset_id', 'logoAssetId', 'timezone', 'version']);
 const MAX_LOGO_DATA_URL = 280_000; // ≈ 200 KB image
 // eslint-disable-next-line no-control-regex
 const CONTROL = /[\u0000-\u001f\u007f]/;
@@ -69,6 +71,12 @@ export function parseBrandSettings(body: unknown, ifMatch?: string): BrandSettin
   if (b.name !== undefined) out.name = parseBrandName(b.name);
   const logo = b.logoUrl !== undefined ? b.logoUrl : b.logo_url;
   if (logo !== undefined) out.logoUrl = parseLogoUrl(logo);
+  const asset = b.logoAssetId !== undefined ? b.logoAssetId : b.logo_asset_id;
+  if (asset !== undefined) {
+    if (asset !== null && (typeof asset !== 'string' || !/^[0-9A-Za-z_-]{10,64}$/.test(asset)))
+      bad('logo_asset_id', 'logo_asset_id must be a media id');
+    out.logoAssetId = asset as string | null;
+  }
   if (b.timezone !== undefined) out.timezone = parseTimezone(b.timezone);
   return out;
 }

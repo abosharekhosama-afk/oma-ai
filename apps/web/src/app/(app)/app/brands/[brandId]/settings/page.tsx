@@ -22,6 +22,7 @@ import {
 import type { BrandDetail } from '../../../../../../lib/brand-types';
 import { getApiError, isPermissionDenied } from '../../../../../../lib/brand-api';
 import { useT } from '../../../../../../lib/use-locale';
+import { mediaApi } from '../../../../../../lib/workdrive-api';
 
 const TABS: BrandSettingsTab[] = ['general', 'members', 'accounts'];
 const CONNECT_RESULT = ['ok', 'cancelled', 'invalid', 'none', 'provider_error', 'error'];
@@ -48,6 +49,11 @@ export default function BrandSettingsPage() {
   const [providers, setProviders] = useState<SocialProvider[]>([]);
   const [connecting, setConnecting] = useState<SocialNetwork | null>(null);
   const timezones = useMemo(() => timezoneOptions(), []);
+  const [logoStorage, setLogoStorage] = useState<{
+    connected: boolean;
+    orgName: string | null;
+    canConnect: boolean;
+  } | null>(null);
 
   const fail = useCallback(
     (e: unknown) => setNotice({ kind: 'error', text: getApiError(e).message }),
@@ -102,6 +108,27 @@ export default function BrandSettingsPage() {
   }, [search, t]);
 
   const caps = new Set(brand?.access?.capabilities ?? []);
+  const canManageWorkspace = caps.has('tenant.manage');
+  useEffect(() => {
+    let live = true;
+    mediaApi
+      .list(brandId, 'logos')
+      .then((r) => {
+        if (live)
+          setLogoStorage({
+            connected: r.data.workdrive.connected,
+            orgName: r.data.workdrive.org_name,
+            canConnect: canManageWorkspace,
+          });
+      })
+      .catch(() => {
+        if (live) setLogoStorage({ connected: false, orgName: null, canConnect: false });
+      });
+    return () => {
+      live = false;
+    };
+  }, [brandId, canManageWorkspace]);
+
   const onTab = (next: BrandSettingsTab) => {
     setTab(next);
     setNotice(null);
@@ -121,6 +148,7 @@ export default function BrandSettingsPage() {
         id: brand.id,
         name: brand.name,
         logo_url: brand.logo_url ?? null,
+        logo_asset_id: brand.logo_asset_id ?? null,
         timezone: brand.timezone ?? 'Asia/Dubai',
         archived: brand.status === 'ARCHIVED',
       }}
@@ -133,7 +161,18 @@ export default function BrandSettingsPage() {
       onSave={async (patch) => {
         setSaving(true);
         try {
-          await brandSettingsApi.update(brandId, { ...patch, version: brand.version });
+          const { logoAssetId, logoUrl, ...rest } = patch;
+          await brandSettingsApi.update(brandId, {
+            ...rest,
+            ...(logoAssetId
+              ? logoAssetId !== brand.logo_asset_id
+                ? { logo_asset_id: logoAssetId }
+                : {}
+              : logoUrl !== brand.logo_url
+                ? { logoUrl }
+                : {}),
+            version: brand.version,
+          });
           setNotice({ kind: 'success', text: t('brandSettings.saved') });
           loadBrand();
         } catch (e) {
@@ -142,10 +181,19 @@ export default function BrandSettingsPage() {
           setSaving(false);
         }
       }}
+      logoStorage={logoStorage}
       onLogoFile={async (file) => {
         try {
-          return await readLogoFile(file);
+          if (logoStorage?.connected) {
+            const a = await mediaApi.upload(brandId, 'logos', file);
+            return { url: a.view_url, assetId: a.id };
+          }
+          return { url: await readLogoFile(file), assetId: null };
         } catch (e) {
+          if ((e as { status?: number }).status !== undefined) {
+            fail(e);
+            return null;
+          }
           setNotice({
             kind: 'error',
             text: t(

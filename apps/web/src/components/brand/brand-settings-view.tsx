@@ -26,6 +26,7 @@ export type BrandSettingsViewProps = {
     id: string;
     name: string;
     logo_url: string | null;
+    logo_asset_id?: string | null;
     timezone: string;
     archived: boolean;
   };
@@ -35,8 +36,16 @@ export type BrandSettingsViewProps = {
   canConnect: boolean;
   saving: boolean;
   notice: { kind: 'success' | 'error' | 'info'; text: string } | null;
-  onSave: (patch: { name: string; logoUrl: string | null; timezone: string }) => void;
-  onLogoFile: (file: File) => Promise<string | null>;
+  onSave: (patch: {
+    name: string;
+    logoUrl: string | null;
+    logoAssetId: string | null;
+    timezone: string;
+  }) => void;
+  /** Uploads to WorkDrive when connected, otherwise returns a small data URL. */
+  onLogoFile: (file: File) => Promise<{ url: string; assetId: string | null } | null>;
+  /** Where logos are stored; null while loading. */
+  logoStorage: { connected: boolean; orgName: string | null; canConnect: boolean } | null;
   onArchive: () => void;
   onUnarchive: () => void;
   onDelete: () => void;
@@ -132,6 +141,8 @@ function GeneralTab(p: BrandSettingsViewProps) {
   const { t } = p;
   const [name, setName] = useState(p.brand.name);
   const [logo, setLogo] = useState<string | null>(p.brand.logo_url);
+  const [logoAssetId, setLogoAssetId] = useState<string | null>(p.brand.logo_asset_id ?? null);
+  const [logoBusy, setLogoBusy] = useState(false);
   const [logoLink, setLogoLink] = useState(
     p.brand.logo_url?.startsWith('https://') ? p.brand.logo_url : '',
   );
@@ -171,14 +182,25 @@ function GeneralTab(p: BrandSettingsViewProps) {
                   const f = e.target.files?.[0];
                   e.target.value = '';
                   if (!f) return;
-                  const url = await p.onLogoFile(f);
-                  if (url) {
-                    setLogo(url);
-                    setLogoLink('');
+                  setLogoBusy(true);
+                  try {
+                    const r = await p.onLogoFile(f);
+                    if (r) {
+                      setLogo(r.url);
+                      setLogoAssetId(r.assetId);
+                      setLogoLink('');
+                    }
+                  } finally {
+                    setLogoBusy(false);
                   }
                 }}
               />
-              <Button disabled={disabled} onClick={() => file.current?.click()}>
+              <Button
+                disabled={disabled || logoBusy}
+                loading={logoBusy}
+                data-testid="brand-logo-upload"
+                onClick={() => file.current?.click()}
+              >
                 {t('brandSettings.general.upload')}
               </Button>
               {logo ? (
@@ -187,13 +209,29 @@ function GeneralTab(p: BrandSettingsViewProps) {
                   disabled={disabled}
                   onClick={() => {
                     setLogo(null);
+                    setLogoAssetId(null);
                     setLogoLink('');
                   }}
                 >
                   {t('brandSettings.general.removeLogo')}
                 </Button>
               ) : null}
-              <p className="oma-bs-hint">{t('brandSettings.general.logoHint')}</p>
+              <p className="oma-bs-hint" data-testid="brand-logo-storage">
+                {p.logoStorage?.connected
+                  ? t('brandSettings.general.logoHintWorkDrive').replace(
+                      '{org}',
+                      p.logoStorage.orgName ?? 'WorkDrive',
+                    )
+                  : t('brandSettings.general.logoHint')}
+                {p.logoStorage && !p.logoStorage.connected && p.logoStorage.canConnect ? (
+                  <>
+                    {' '}
+                    <a href="/app/settings?section=storage" className="oma-bs-link">
+                      {t('brandSettings.general.logoConnectWorkDrive')}
+                    </a>
+                  </>
+                ) : null}
+              </p>
             </div>
           </div>
           <label className="oma-bs-label oma-bs-label--sub" htmlFor="bs-logo-link">
@@ -209,6 +247,7 @@ function GeneralTab(p: BrandSettingsViewProps) {
               setLogoLink(e.target.value);
               const v = e.target.value.trim();
               setLogo(v ? v : null);
+              setLogoAssetId(null);
             }}
           />
         </div>
@@ -251,7 +290,9 @@ function GeneralTab(p: BrandSettingsViewProps) {
             loading={p.saving}
             disabled={disabled || !dirty || Boolean(nameError)}
             data-testid="brand-settings-save"
-            onClick={() => p.onSave({ name: name.trim(), logoUrl: logo, timezone: tz })}
+            onClick={() =>
+              p.onSave({ name: name.trim(), logoUrl: logo, logoAssetId, timezone: tz })
+            }
           >
             {t('brandSettings.save')}
           </Button>

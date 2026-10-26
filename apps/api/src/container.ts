@@ -16,6 +16,8 @@ import { CampaignService } from './content/campaign.service';
 import { ContentService } from './content/content.service';
 import { ContentExtrasService } from './content/content-extras.service';
 import { OpsService } from './content/ops.service';
+import { WorkDriveService } from './media/workdrive.service';
+import { MediaService } from './media/media.service';
 
 export const auditService = new AuditService();
 export const identityService = new IdentityService(auditService);
@@ -35,3 +37,5 @@ export const campaignService = new CampaignService(auditService);
 export const contentService = new ContentService(auditService);
 export const contentExtrasService = new ContentExtrasService(auditService, contentService);
 export const opsService = new OpsService(auditService);
+export const workDriveService = new WorkDriveService(auditService);
+export const mediaService = new MediaService(auditService, workDriveService);
