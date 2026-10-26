@@ -1,11 +1,12 @@
 import { getPrisma, tenantWhere } from '@oma/db';
 import { DomainError } from '@oma/domain';
+import { resolveScheduleTimezone } from '../common/schedule-timezone';
 import {
   approvalStats,
   bucketKeys,
   rate,
   resolveRange,
-  startOfBucket,
+  bucketKey,
   type AnalyticsRange,
 } from './analytics-range';
 import {
@@ -23,6 +24,7 @@ const CONTENT_STATUSES = [
   'PUBLISHED_SAMPLE',
 ] as const;
 const OPEN_CONTENT = ['DRAFT', 'IN_REVIEW', 'APPROVED'];
+type ContentStatusValue = (typeof CONTENT_STATUSES)[number];
 const CLOSED_TASK = ['DONE', 'CANCELLED'];
 /** Look back before `from` so approvals decided in range can be matched to their earlier request. */
 const LOOKBACK_MS = 120 * 86400_000;
@@ -52,7 +54,9 @@ export class AnalyticsService {
   /** Planable-style overview: KPIs vs previous period, series by day/week, per-channel split, content table. */
   async contentOverview(tenantId: string, q: AnalyticsQuery, now = new Date()) {
     const prisma = getPrisma();
-    const range = resolveRange(q, now);
+    const brandParam = q.brandId?.trim() || undefined;
+    const tz = await resolveScheduleTimezone(tenantId, brandParam);
+    const range = resolveRange(q, now, tz);
     const granularity = parseGranularity(q.granularity, range);
     const channels = parseChannels(q.channels);
     const brandId = q.brandId?.trim() || undefined;
@@ -66,45 +70,62 @@ export class AnalyticsService {
     }
     const prev = previousRange(range);
     const scope = tenantWhere(tenantId, { archivedAt: null, ...(brandId ? { brandId } : {}) });
-    const allContent = await prisma.contentItem.findMany({
-      where: scope,
-      select: {
-        id: true,
-        brandId: true,
-        channel: true,
-        contentType: true,
-        status: true,
-        titleEn: true,
-        titleAr: true,
-        captionEn: true,
-        captionAr: true,
-        previewAssetUrl: true,
-        plannedAt: true,
-        scheduledAt: true,
-        createdAt: true,
-      },
-    });
-    const available = countChannels(allContent);
-    const content = channels
-      ? allContent.filter((c) => channels.includes(c.channel.toLowerCase()))
-      : allContent;
-    const ids = content.map((c) => c.id);
-    const [events, comments] = ids.length
-      ? await Promise.all([
-          prisma.contentApprovalEvent.findMany({
-            where: { tenantId, contentId: { in: ids }, at: { gte: prev.from, lte: range.to } },
-            select: { contentId: true, action: true, at: true },
-          }),
-          prisma.contentComment.findMany({
-            where: {
-              tenantId,
-              contentId: { in: ids },
-              createdAt: { gte: prev.from, lte: range.to },
-            },
-            select: { contentId: true, createdAt: true },
-          }),
-        ])
-      : [[], []];
+    const window = { gte: prev.from, lte: range.to };
+    const channelWhere = channels
+      ? { OR: channels.map((c) => ({ channel: { equals: c, mode: 'insensitive' as const } })) }
+      : {};
+    // Only posts whose display date (scheduledAt ?? plannedAt ?? createdAt) falls in the window.
+    const dated = {
+      OR: [
+        { scheduledAt: window },
+        { scheduledAt: null, plannedAt: window },
+        { scheduledAt: null, plannedAt: null, createdAt: window },
+      ],
+    };
+    // Events/comments are filtered through the relation (never a giant `IN (ids)` list:
+    // Postgres caps bind parameters at 32767, which large tenants exceed).
+    const contentRel = {
+      archivedAt: null,
+      ...(brandId ? { brandId } : {}),
+      ...channelWhere,
+    };
+    const [content, channelCounts, events, comments] = await Promise.all([
+      prisma.contentItem.findMany({
+        where: { AND: [scope, channelWhere, dated] },
+        select: {
+          id: true,
+          brandId: true,
+          channel: true,
+          contentType: true,
+          status: true,
+          titleEn: true,
+          titleAr: true,
+          captionEn: true,
+          captionAr: true,
+          previewAssetUrl: true,
+          plannedAt: true,
+          scheduledAt: true,
+          createdAt: true,
+        },
+      }),
+      prisma.contentItem.groupBy({ by: ['channel'], where: scope, _count: { _all: true } }),
+      prisma.contentApprovalEvent.findMany({
+        where: {
+          tenantId,
+          action: { in: ['APPROVE', 'PUBLISH_SAMPLE', 'REQUEST_CHANGES'] },
+          at: window,
+          content: contentRel,
+        },
+        select: { contentId: true, action: true, at: true, content: { select: { channel: true } } },
+      }),
+      prisma.contentComment.findMany({
+        where: { tenantId, createdAt: window, content: contentRel },
+        select: { contentId: true, createdAt: true, content: { select: { channel: true } } },
+      }),
+    ]);
+    const available = channelCounts
+      .map((c) => ({ channel: c.channel, posts: c._count._all }))
+      .sort((a, b) => b.posts - a.posts || a.channel.localeCompare(b.channel));
     const names = new Map(brands.map((b) => [b.id, b.name]));
     return {
       data: {
@@ -112,8 +133,8 @@ export class AnalyticsService {
           range,
           granularity,
           content,
-          events,
-          comments,
+          events: events.map((e) => ({ ...e, channel: e.content.channel })),
+          comments: comments.map((c) => ({ ...c, channel: c.content.channel })),
           brandName: (id) => names.get(id) ?? '—',
         }),
         filters: {
@@ -129,8 +150,9 @@ export class AnalyticsService {
 
   async overview(tenantId: string, q: AnalyticsQuery, now = new Date()) {
     const prisma = getPrisma();
-    const range = resolveRange(q, now);
     const brandId = q.brandId?.trim() || undefined;
+    const tz = await resolveScheduleTimezone(tenantId, brandId);
+    const range = resolveRange(q, now, tz);
     const campaignId = q.campaignId?.trim() || undefined;
 
     const [brands, campaigns] = await Promise.all([
@@ -161,7 +183,20 @@ export class AnalyticsService {
     const [content, contentEvents, tasks, deliverables, deliverableAudit, members] =
       await Promise.all([
         prisma.contentItem.findMany({
-          where: { ...scope, archivedAt: null },
+          // Only rows any metric below can use: dated in range, created in range, or open & due.
+          where: {
+            ...scope,
+            archivedAt: null,
+            OR: [
+              { scheduledAt: { gte: range.from, lte: range.to } },
+              { plannedAt: { gte: range.from, lte: range.to } },
+              { createdAt: { gte: range.from, lte: range.to } },
+              {
+                status: { in: OPEN_CONTENT as ContentStatusValue[] },
+                OR: [{ scheduledAt: { lt: now } }, { plannedAt: { lt: now } }],
+              },
+            ],
+          },
           select: {
             id: true,
             brandId: true,
@@ -240,7 +275,7 @@ export class AnalyticsService {
 
     const keys = bucketKeys(range);
     const series = new Map(keys.map((k) => [k, { scheduled: 0, published: 0, created: 0 }]));
-    const bucketOf = (d: Date) => startOfBucket(d, range.bucket).toISOString().slice(0, 10);
+    const bucketOf = (d: Date) => bucketKey(d, range.bucket, range.tz);
     for (const c of content) {
       if (
         c.scheduledAt &&
@@ -375,6 +410,7 @@ export class AnalyticsService {
           to: range.to.toISOString(),
           days: range.days,
           bucket: range.bucket,
+          timezone: tz,
         },
         filters: {
           brand_id: brandId ?? null,
@@ -410,14 +446,6 @@ export class AnalyticsService {
       },
     };
   }
-}
-
-function countChannels(rows: Array<{ channel: string }>) {
-  const m = new Map<string, number>();
-  for (const r of rows) m.set(r.channel, (m.get(r.channel) ?? 0) + 1);
-  return [...m.entries()]
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-    .map(([channel, posts]) => ({ channel, posts }));
 }
 
 function countBy<T>(rows: T[], key: (r: T) => string, keys: readonly string[]) {

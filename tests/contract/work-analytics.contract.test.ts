@@ -195,6 +195,37 @@ describe('GET /api/v1/analytics (real work analytics)', () => {
     );
   });
 
+  it('caches per tenant and invalidates on content/comment writes', async () => {
+    const path = `/api/v1/analytics/content?period=30&brandId=${brand2}`;
+    const first = await owner(path);
+    expect(first.body.data.kpis.posts.value).toBe(1);
+    // A direct DB write bypasses the API, so the cached response is still served (60s TTL).
+    const direct = await getPrisma().contentItem.findFirst({
+      where: { tenantId: seed.tenantId, brandId: brand2 },
+    });
+    await getPrisma().contentItem.update({
+      where: { id: direct!.id },
+      data: { archivedAt: new Date() },
+    });
+    expect((await owner(path)).body.data.kpis.posts.value).toBe(1);
+    // Another tenant writing does not invalidate this tenant, and never sees its data.
+    expect((await call(other, path)).res.status).toBe(404);
+    // Any API write in this tenant (here a new post) invalidates its analytics.
+    const created = await post(`/api/v1/brands/${brand2}/content`, {
+      title: { en: 'Fresh', ar: 'جديد' },
+      contentType: 'POST',
+      channel: 'instagram',
+    });
+    expect(created.res.status).toBe(201);
+    expect((await owner(path)).body.data.kpis.posts.value).toBe(1); // archived one gone, new one in
+    const c = await post(`/api/v1/content/${created.body.data.id}/comments`, {
+      body: { en: 'hi', ar: 'مرحبا' },
+    });
+    expect(c.res.status).toBeLessThan(300);
+    expect((await owner(path)).body.data.kpis.comments.value).toBe(1);
+    expect(first.body.data.range.timezone).toBe('Asia/Dubai');
+  });
+
   it('lets a regular member read analytics, and 403s without analytics.read', async () => {
     const headers = {
       'content-type': 'application/json',

@@ -1,5 +1,5 @@
 import { DomainError } from '@oma/domain';
-import { bucketKeys, rate, startOfBucket, type AnalyticsRange } from './analytics-range';
+import { bucketKey, bucketKeys, rate, type AnalyticsRange } from './analytics-range';
 
 /**
  * Planable-style "Overview" analytics computed only from OMA's own data
@@ -30,14 +30,21 @@ export type OverviewContentRow = {
   scheduledAt: Date | null;
   createdAt: Date;
 };
-export type OverviewEvent = { contentId: string; action: string; at: Date };
-export type OverviewComment = { contentId: string; createdAt: Date };
+/** `channel` lets events/comments count even when their post is dated outside the range. */
+export type OverviewEvent = { contentId: string; action: string; at: Date; channel?: string };
+export type OverviewComment = { contentId: string; createdAt: Date; channel?: string };
 
 /** The period of equal length immediately before `range`. */
 export function previousRange(range: AnalyticsRange): AnalyticsRange {
   const len = range.to.getTime() - range.from.getTime();
   const to = new Date(range.from.getTime() - 1);
-  return { from: new Date(to.getTime() - len), to, days: range.days, bucket: range.bucket };
+  return {
+    from: new Date(to.getTime() - len),
+    to,
+    days: range.days,
+    bucket: range.bucket,
+    tz: range.tz,
+  };
 }
 
 export function parseGranularity(v: string | undefined, range: AnalyticsRange): 'day' | 'week' {
@@ -94,16 +101,16 @@ function hits(
     }
   }
   for (const e of events) {
-    const c = byId.get(e.contentId);
-    if (!c) continue;
+    const channel = byId.get(e.contentId)?.channel ?? e.channel;
+    if (!channel) continue;
     if (e.action === 'PUBLISH_SAMPLE')
-      out.push({ metric: 'published', contentId: c.id, channel: c.channel, at: e.at });
+      out.push({ metric: 'published', contentId: e.contentId, channel, at: e.at });
     else if (e.action === 'APPROVE')
-      out.push({ metric: 'approvals', contentId: c.id, channel: c.channel, at: e.at });
+      out.push({ metric: 'approvals', contentId: e.contentId, channel, at: e.at });
   }
   for (const m of comments) {
-    const c = byId.get(m.contentId);
-    if (c) out.push({ metric: 'comments', contentId: c.id, channel: c.channel, at: m.createdAt });
+    const channel = byId.get(m.contentId)?.channel ?? m.channel;
+    if (channel) out.push({ metric: 'comments', contentId: m.contentId, channel, at: m.createdAt });
   }
   return out;
 }
@@ -144,7 +151,7 @@ export function buildContentOverview(input: {
     keys.map((k) => [k, { total: zero(), by_channel: {} as Record<string, MetricCounts> }]),
   );
   for (const h of cur) {
-    const key = startOfBucket(h.at, granularity).toISOString().slice(0, 10);
+    const key = bucketKey(h.at, granularity, range.tz);
     const b = series.get(key);
     if (!b) continue;
     b.total[h.metric]++;
@@ -152,7 +159,10 @@ export function buildContentOverview(input: {
   }
 
   // Per-channel table (current vs previous).
-  const channelSet = new Set(input.content.map((c) => c.channel));
+  const channelSet = new Set([
+    ...input.content.map((c) => c.channel),
+    ...all.map((h) => h.channel),
+  ]);
   const channels = [...channelSet]
     .map((ch) => {
       const c = totals(cur.filter((h) => h.channel === ch));
@@ -210,7 +220,12 @@ export function buildContentOverview(input: {
       .slice(0, 3);
 
   return {
-    range: { from: range.from.toISOString(), to: range.to.toISOString(), days: range.days },
+    range: {
+      from: range.from.toISOString(),
+      to: range.to.toISOString(),
+      days: range.days,
+      timezone: range.tz ?? 'UTC',
+    },
     previous: { from: prev.from.toISOString(), to: prev.to.toISOString() },
     granularity,
     kpis,

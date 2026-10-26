@@ -5,6 +5,7 @@ import { AuthGuard } from '../common/guards/auth.guard';
 import { CapabilitiesGuard } from '../common/guards/capabilities.guard';
 import { RequireCapabilities } from '../common/decorators/require-capabilities.decorator';
 import { analyticsService } from './analytics.service';
+import { analyticsCache, normaliseParams } from './analytics-cache';
 
 @Controller('api/v1/analytics')
 @UseGuards(AuthGuard, CapabilitiesGuard)
@@ -28,7 +29,12 @@ export class AnalyticsController {
         'errors.tenant_required',
       );
     }
-    return analyticsService.overview(req.oma.tenantId, { period, from, to, brandId, campaignId });
+    const tenantId = req.oma.tenantId;
+    const q = { period, from, to, brandId, campaignId };
+    return analyticsCache.wrap(
+      { tenantId, userId: req.oma.userId ?? '', name: 'work', params: normaliseParams(q) },
+      () => analyticsService.overview(tenantId, q),
+    );
   }
 
   /** GET /api/v1/analytics/content?period|from&to &brandId &channels=a,b &granularity=day|week */
@@ -51,13 +57,11 @@ export class AnalyticsController {
         'errors.tenant_required',
       );
     }
-    return analyticsService.contentOverview(req.oma.tenantId, {
-      period,
-      from,
-      to,
-      brandId,
-      channels,
-      granularity,
-    });
+    const tenantId = req.oma.tenantId;
+    const q = { period, from, to, brandId, channels, granularity };
+    return analyticsCache.wrap(
+      { tenantId, userId: req.oma.userId ?? '', name: 'content', params: normaliseParams(q) },
+      () => analyticsService.contentOverview(tenantId, q),
+    );
   }
 }

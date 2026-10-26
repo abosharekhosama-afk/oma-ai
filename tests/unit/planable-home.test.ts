@@ -7,7 +7,7 @@ vi.mock('@oma/db', () => {
   const model = () => ({ count: vi.fn(async () => 0), findMany: (args: unknown) => findMany(args) });
   const prisma = {
     brandWorkspace: model(), campaign: model(), contentItem: model(), workTask: model(),
-    workRequest: model(), workDeliverable: model(), contentApprovalEvent: model(), user: model(),
+    workRequest: model(), workDeliverable: model(), contentApprovalEvent: model(), user: model(), contentPreferences: model(),
   };
   return { getPrisma: () => prisma, tenantWhere: (tenantId: string, w: object) => ({ tenantId, ...w }) };
 });

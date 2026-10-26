@@ -1,4 +1,6 @@
 import { getPrisma, tenantWhere } from '@oma/db';
+import { resolveScheduleTimezone } from '../common/schedule-timezone';
+import { addDays, dayKey, zonedMidnight } from '../common/zoned-time';
 
 const DAY = 86_400_000;
 const OPEN_TASK = ['BACKLOG', 'TODO', 'READY', 'IN_PROGRESS', 'BLOCKED', 'IN_REVIEW', 'OVERDUE'] as const;
@@ -179,9 +181,13 @@ export async function buildHome(
   const brandName = new Map(brandRows.map((b) => [b.id, b.name]));
 
   // Planable-style Home additions (additive; existing fields unchanged).
-  const dayStart = new Date(now);
-  dayStart.setUTCHours(0, 0, 0, 0);
-  const stripEnd = new Date(dayStart.getTime() + 7 * DAY);
+  // "This week" strip = 7 local calendar days starting today in the scheduling timezone
+  // (ContentPreferences.defaultTimezone), not UTC midnight. DST-safe (23/25h days).
+  const weekTz = await resolveScheduleTimezone(tenantId);
+  const todayKey = dayKey(now, weekTz);
+  const weekDays = Array.from({ length: 7 }, (_, i) => addDays(todayKey, i));
+  const dayStart = zonedMidnight(todayKey, weekTz);
+  const stripEnd = zonedMidnight(addDays(todayKey, 7), weekTz);
   const liveBrands = await prisma.brandWorkspace.findMany({
     where: tenantWhere(tenantId, live),
     orderBy: { createdAt: 'asc' },
@@ -296,12 +302,15 @@ export async function buildHome(
       })),
       week: {
         start: dayStart.toISOString(),
+        timezone: weekTz,
+        days: weekDays,
         items: weekItems.map((c) => ({
           id: c.id,
           title: copy(c.titleEn, c.titleAr),
           channel: c.channel,
           brand: brandName.get(c.brandId) ?? null,
           scheduled_at: c.scheduledAt!.toISOString(),
+          day: dayKey(c.scheduledAt!, weekTz),
           thumbnail_url: c.previewAssetUrl,
           href: `/app/content?item=${encodeURIComponent(c.id)}`,
         })),

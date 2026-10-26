@@ -1129,6 +1129,10 @@ model ContentItem {
   @@index([brandId, campaignId])
   @@index([brandId, status])
   @@index([scheduledAt])
+  @@index([tenantId, scheduledAt])
+  @@index([tenantId, plannedAt])
+  @@index([tenantId, createdAt])
+  @@index([tenantId, channel])
 }
 
 model ContentApprovalEvent {
@@ -1144,6 +1148,7 @@ model ContentApprovalEvent {
 
   @@index([contentId, at])
   @@index([tenantId, contentId])
+  @@index([tenantId, at])
 }
 
 model ContentPreferences {
@@ -1264,6 +1269,7 @@ model ContentComment {
 
   @@index([contentId, createdAt])
   @@index([tenantId, contentId])
+  @@index([tenantId, createdAt])
 }
 
 enum WorkRequestStatus {

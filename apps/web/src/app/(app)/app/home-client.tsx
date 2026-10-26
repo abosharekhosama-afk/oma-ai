@@ -174,6 +174,8 @@ export default function AppHomePage() {
       onApprove={onApprove}
       comments={comments}
       week={home?.week?.items ?? []}
+      weekTimezone={home?.week?.timezone}
+      weekDays={home?.week?.days}
       setup={{
         steps: home?.checklist ?? [],
         visible: !loading && shouldShowSetup(home?.checklist, dismissed),
