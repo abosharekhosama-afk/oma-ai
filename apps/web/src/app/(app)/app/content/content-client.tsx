@@ -16,6 +16,29 @@ import { PostPreview } from '../../../../components/content/post-preview';
 import { FeedPost, type FeedComment } from '../../../../components/content/feed-post';
 import { listWorkspaceMembers, type WorkspaceMember } from '../../../../lib/team-api';
 import { NetworkIcon } from '../../../../components/content/network-icon';
+import {
+  CalendarDisplaySettings,
+  CalendarPostCard,
+  GridTile,
+  ModalNav,
+  StatusIcons,
+  StoriesRow,
+  type PostStatus,
+} from '../../../../components/content/planable-views';
+import {
+  CAL_DISPLAY_KEY,
+  decideDrop,
+  isoWeekNumber,
+  isWeekendKey,
+  neighbourId,
+  parseContentUrl,
+  previewStep,
+  sanitizeCalendarDisplay,
+  shiftDayKey,
+  stepCalendar,
+  writeContentUrl,
+  type CalendarDisplay,
+} from '../../../../lib/content-views';
 import { Button, DatePicker, Input, OmaSelect, SurfaceButton, TextArea } from '@oma/ui/controls';
 import dayjs from 'dayjs';
 import {
@@ -59,7 +82,7 @@ import {
 import { Dialog } from '../../../../components/ui/dialog';
 import { EmptyState, DeniedState } from '../../../../components/ui/empty-state';
 import { useToast } from '../../../../components/ui/toast';
-import { mediaAlt, P3_MEDIA } from '../../../../lib/demo/demo-media';
+import { P3_MEDIA } from '../../../../lib/demo/demo-media';
 import {
   hasContentViewPref,
   isContentViewMode,
@@ -802,6 +825,7 @@ export default function ContentPage() {
   const mayApprove = capsReady && caps.can(['content.approve'], 'any');
   const mayRequestApproval = capsReady && caps.can(['content.request_approval'], 'any');
   const mayComment = capsReady && caps.can(['content.update'], 'any');
+  const mayCreate = capsReady && caps.can(['content.create'], 'any');
   const [feedDetails, setFeedDetails] = useState<
     Record<string, { comments: ContentCommentDto[]; events: ApprovalEvent[] }>
   >({});
@@ -872,7 +896,9 @@ export default function ContentPage() {
   const [labelQuery, setLabelQuery] = useState('');
   const [labelTarget, setLabelTarget] = useState<'item' | 'compose'>('item');
   const calendarSnapped = useRef(false);
-  const [detailPreviewMode, setDetailPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
+  const [detailPreviewMode, setDetailPreviewMode] = useState<'desktop' | 'mobile' | 'edit'>(
+    'desktop',
+  );
   const [detailMoreOpen, setDetailMoreOpen] = useState(false);
   const [approvalTipOpen, setApprovalTipOpen] = useState(false);
   const [publishTipOpen, setPublishTipOpen] = useState(false);
@@ -902,7 +928,25 @@ export default function ContentPage() {
 
   const isAr = locale.toLowerCase().startsWith('ar');
   // EN Monday matches Planable LIVE_VERIFIED calendar; AR Saturday.
-  const weekStartsOn: 0 | 1 | 6 = isAr ? 6 : 1;
+  const [calDisplay, setCalDisplayState] = useState<CalendarDisplay>(() => {
+    try {
+      return sanitizeCalendarDisplay(
+        JSON.parse(window.localStorage.getItem(CAL_DISPLAY_KEY) || 'null'),
+        locale,
+      );
+    } catch {
+      return sanitizeCalendarDisplay(null, locale);
+    }
+  });
+  const setCalDisplay = useCallback((next: CalendarDisplay) => {
+    setCalDisplayState(next);
+    try {
+      window.localStorage.setItem(CAL_DISPLAY_KEY, JSON.stringify(next));
+    } catch {
+      /* storage unavailable: keep in memory */
+    }
+  }, []);
+  const weekStartsOn: 0 | 1 | 6 = calDisplay.weekStartsOn;
   const dirty = useMemo(
     () => JSON.stringify(draft) !== JSON.stringify(baseline),
     [draft, baseline],
@@ -1166,6 +1210,10 @@ export default function ContentPage() {
     if (isContentViewMode(urlView)) {
       setView((current) => (current === urlView ? current : urlView));
     }
+    const parsed = parseContentUrl(search.toString());
+    setCalSpan(parsed.span);
+    if (parsed.approvals)
+      setFilters((f) => (f.approval === 'PENDING' ? f : { ...f, approval: 'PENDING' }));
   }, [search]);
 
   // Home deep links: ?brand=<id> filters the plan, ?date=YYYY-MM-DD opens that calendar day,
@@ -1211,10 +1259,7 @@ export default function ContentPage() {
 
   const filtered = useMemo(() => filterContent(rows, filters, locale), [rows, filters, locale]);
 
-  const feedIds = useMemo(
-    () => (view === 'feed' ? filtered.slice(0, 40).map((r) => r.id) : []),
-    [view, filtered],
-  );
+  const feedIds = useMemo(() => filtered.slice(0, 60).map((r) => r.id), [filtered]);
   useEffect(() => {
     if (feedIds.length === 0) return;
     let live = true;
@@ -1244,6 +1289,7 @@ export default function ContentPage() {
     () => filtered.filter((item) => !resolveContentWorkflow(item, policy).plannedAt),
     [filtered, policy],
   );
+  const feedPosts = useMemo(() => filtered.filter((i) => i.contentType !== 'STORY'), [filtered]);
   const sorted = useMemo(
     () => sortContent(filtered, sortKey, sortDir, locale, campaignName),
     [filtered, sortKey, sortDir, locale, campaignName],
@@ -1299,7 +1345,7 @@ export default function ContentPage() {
   }
 
   function openItem(item: ContentRow, tab: 'preview' | 'edit' | 'comments' = 'preview') {
-    setDetailSidePanel('none');
+    setDetailSidePanel('feedback');
     setDetailPreviewMode('desktop');
     setDetailMoreOpen(false);
     setApprovalTipOpen(false);
@@ -1319,7 +1365,7 @@ export default function ContentPage() {
     });
   }
 
-  function renderPostPreview(item: ContentRow, size: 'feed' | 'detail') {
+  function renderPostPreview(item: ContentRow, size: 'feed' | 'detail', withReview = true) {
     const caption = item.caption ? pickCopy(item.caption, locale) : '';
     const when = item.scheduledAt || item.plannedAt || null;
     const approval = item.approvalState || 'NOT_REQUESTED';
@@ -1337,7 +1383,7 @@ export default function ContentPage() {
         size={size}
         onOpen={size === 'feed' ? () => openItem(item) : undefined}
         review={
-          policy === 'NONE'
+          policy === 'NONE' || !withReview
             ? undefined
             : {
                 state: approval,
@@ -1361,6 +1407,22 @@ export default function ContentPage() {
     );
   }
 
+  useEffect(() => {
+    if (!selectedId) return;
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))) return;
+      const dir = document.documentElement.dir === 'rtl' ? 'rtl' : 'ltr';
+      const step = previewStep(e.key, dir);
+      if (step !== 0) {
+        e.preventDefault();
+        stepModal(step);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  });
+
   function memberName(userId: string | null | undefined): string {
     if (!userId) return t('content.you');
     const m = members.find((x) => x.user?.id === userId);
@@ -1371,6 +1433,72 @@ export default function ContentPage() {
     const m = members.find((x) => x.user?.id === userId);
     const kind = String(m?.membership_kind || m?.membership || '').toLowerCase();
     return !/client|external|guest/.test(kind);
+  }
+
+  function commentCount(item: ContentRow): number {
+    const d = feedDetails[item.id];
+    return d ? d.comments.length : commentsForContent(tasks, deliverables, item.id).length;
+  }
+
+  function postStatus(item: ContentRow): PostStatus {
+    const when = item.scheduledAt || item.plannedAt || null;
+    const published =
+      String(item.status).startsWith('PUBLISHED') || item.publishSample === 'PUBLISHED_SAMPLE';
+    const scheduled = item.scheduleState === 'SCHEDULED';
+    return {
+      approval: item.approvalState || 'NOT_REQUESTED',
+      scheduled,
+      published,
+      overdue: !published && !!when && String(when).slice(0, 10) < TODAY_KEY,
+      hidden: (item as ContentRow & { clientVisible?: boolean }).clientVisible === false,
+      comments: commentCount(item),
+    };
+  }
+
+  function postTime(item: ContentRow): string {
+    const when = item.scheduledAt || item.plannedAt;
+    if (!when) return '';
+    const d = new Date(String(when));
+    if (Number.isNaN(d.getTime())) return '';
+    return new Intl.DateTimeFormat(isAr ? 'ar' : 'en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      numberingSystem: 'latn',
+    }).format(d);
+  }
+
+  function postDateText(item: ContentRow): string {
+    const when = item.scheduledAt || item.plannedAt;
+    if (!when) return t('preview.no_date');
+    const d = new Date(String(when));
+    return new Intl.DateTimeFormat(isAr ? 'ar' : 'en', {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(d);
+  }
+
+  function renderCalendarCard(item: ContentRow) {
+    const st = postStatus(item);
+    return (
+      <CalendarPostCard
+        channel={item.channel}
+        time={postTime(item)}
+        timeTone={
+          st.published ? 'published' : st.overdue ? 'overdue' : st.scheduled ? 'scheduled' : 'draft'
+        }
+        caption={item.caption ? pickCopy(item.caption, locale) : pickCopy(item.title, locale)}
+        media={item.previewAsset || null}
+        labels={rowLabels(item)}
+        campaign={item.campaignId ? campaignName(item.campaignId) : undefined}
+        status={st}
+        display={calDisplay}
+        draft={!st.scheduled && !st.published}
+      />
+    );
   }
 
   function renderFeedPost(item: ContentRow) {
@@ -1463,6 +1591,19 @@ export default function ContentPage() {
         }}
       />
     );
+  }
+
+  function modalApproverNames(): string[] {
+    return approvalEvents
+      .filter((e) => /^APPROVE/i.test(e.action))
+      .map((e) => memberName(e.actor_user_id));
+  }
+
+  function stepModal(step: number) {
+    const ids = (view === 'list' ? sorted : filtered).map((r) => r.id);
+    const next = neighbourId(ids, selectedId, step);
+    const row = next ? rows.find((r) => r.id === next) : null;
+    if (row) openItem(row);
   }
 
   function requestCloseDrawer() {
@@ -1633,9 +1774,24 @@ export default function ContentPage() {
    * Dropping a post on a day changes its planned date only. A post that is already scheduled
    * inside OMA keeps its schedule and moves to the new day (subject to the approval policy).
    */
-  async function rescheduleContentToDay(contentId: string, dayKey: string) {
+  async function rescheduleContentToDay(
+    contentId: string,
+    dayKey: string,
+    fromDay?: string | null,
+  ) {
     const row = rows.find((r) => r.id === contentId);
     if (!row) return;
+    const decision = decideDrop(row, fromDay ?? null, dayKey, policy);
+    if (!decision.ok) {
+      if (decision.reason === 'SAME_DAY') return;
+      toast.push(
+        decision.reason === 'PUBLISHED'
+          ? t('views.drop.published')
+          : (scheduleBlockedHint('APPROVAL_REQUIRED', isAr) ?? t('content.scheduling_unavailable')),
+        'danger',
+      );
+      return;
+    }
     const when = wallTimeToIso(dayKey) ?? `${dayKey}T10:00:00.000Z`;
     const isScheduled = row.scheduleState === 'SCHEDULED';
     if (isScheduled && !canScheduleItem(row, policy)) {
@@ -1747,11 +1903,30 @@ export default function ContentPage() {
     }
   }
 
-  function shiftMonth(delta: number) {
-    setCursor((c) => {
-      const d = new Date(Date.UTC(c.year, c.monthIndex + delta, 1));
-      return { year: d.getUTCFullYear(), monthIndex: d.getUTCMonth() };
-    });
+  function startStory() {
+    setCreateForm((f) => ({ ...f, contentType: 'STORY' }));
+    setCreateOpen(true);
+  }
+
+  function goToDay(key: string) {
+    setSelectedDay(key);
+    const [y, m] = key.split('-').map(Number);
+    if (y && m) setCursor({ year: y, monthIndex: m - 1 });
+    replaceParams((params) => writeContentUrl(params, { date: key }));
+  }
+
+  function stepCal(delta: number) {
+    const anchor =
+      calSpan === 'week'
+        ? (selectedDay ?? TODAY_KEY)
+        : `${cursor.year}-${String(cursor.monthIndex + 1).padStart(2, '0')}-01`;
+    const next = stepCalendar(anchor, calSpan, delta);
+    if (calSpan === 'week') goToDay(next);
+    else {
+      const [y, m] = next.split('-').map(Number);
+      setCursor({ year: y!, monthIndex: m! - 1 });
+      replaceParams((params) => writeContentUrl(params, { date: next }));
+    }
   }
 
   function showApprovalQueue() {
@@ -2469,6 +2644,32 @@ export default function ContentPage() {
                   </button>
                 </li>
               ))}
+              <li role="separator" className="oma-view-menu__sep" />
+              <li role="none">
+                <button
+                  type="button"
+                  role="menuitemcheckbox"
+                  aria-checked={filters.approval === 'PENDING'}
+                  data-selected={filters.approval === 'PENDING' ? 'true' : 'false'}
+                  data-testid="demo-content-view-approvals"
+                  className="oma-view-menu__item"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const on = filters.approval !== 'PENDING';
+                    setFilters((f) => ({ ...f, approval: on ? 'PENDING' : 'all' }));
+                    replaceParams((params) => writeContentUrl(params, { approvals: on }));
+                    setViewMenuOpen(false);
+                  }}
+                >
+                  <span className="oma-view-menu__item-icon" aria-hidden>
+                    <CheckCircleOutlined />
+                  </span>
+                  <span>{t('views.my_approvals')}</span>
+                  <span className="oma-view-menu__check" aria-hidden>
+                    {filters.approval === 'PENDING' ? '✓' : ''}
+                  </span>
+                </button>
+              </li>
             </ul>,
             document.body,
           )
@@ -2557,7 +2758,10 @@ export default function ContentPage() {
                     data-active={calSpan === 'month' ? 'true' : 'false'}
                     aria-pressed={calSpan === 'month'}
                     data-testid="demo-content-cal-month"
-                    onClick={() => setCalSpan('month')}
+                    onClick={() => {
+                      setCalSpan('month');
+                      replaceParams((params) => writeContentUrl(params, { span: 'month' }));
+                    }}
                   >
                     {t('demo.content.calMonth')}
                   </Button>
@@ -2567,7 +2771,10 @@ export default function ContentPage() {
                     data-active={calSpan === 'week' ? 'true' : 'false'}
                     aria-pressed={calSpan === 'week'}
                     data-testid="demo-content-cal-week"
-                    onClick={() => setCalSpan('week')}
+                    onClick={() => {
+                      setCalSpan('week');
+                      replaceParams((params) => writeContentUrl(params, { span: 'week' }));
+                    }}
                   >
                     {t('demo.content.calWeek')}
                   </Button>
@@ -2578,7 +2785,7 @@ export default function ContentPage() {
                     className="oma-cal-nav__btn"
                     aria-label={t('demo.content.prev')}
                     data-testid="demo-content-cal-prev"
-                    onClick={() => shiftMonth(-1)}
+                    onClick={() => stepCal(-1)}
                   >
                     ‹
                   </Button>
@@ -2587,13 +2794,29 @@ export default function ContentPage() {
                     className="oma-cal-nav__btn"
                     aria-label={t('demo.content.next')}
                     data-testid="demo-content-cal-next"
-                    onClick={() => shiftMonth(1)}
+                    onClick={() => stepCal(1)}
                   >
                     ›
                   </Button>
                   <strong className="oma-cal-month-label">
                     {monthLabel(cursor.year, cursor.monthIndex, locale)}
                   </strong>
+                  {calSpan === 'week' ? (
+                    <span className="oma-pv-week-chip oma-ltr" data-testid="content-week-chip">
+                      {t('views.week_short').replace(
+                        '{n}',
+                        String(isoWeekNumber(selectedDay ?? TODAY_KEY)),
+                      )}
+                    </span>
+                  ) : null}
+                  <button
+                    type="button"
+                    className="oma-pv-today"
+                    data-testid="content-cal-today"
+                    onClick={() => goToDay(TODAY_KEY)}
+                  >
+                    {t('views.today')}
+                  </button>
                 </div>
               </div>
               <div className="oma-cal-toolbar__end">
@@ -2612,6 +2835,7 @@ export default function ContentPage() {
                       : t('content.request_approvals')}
                   </span>
                 </button>
+                <CalendarDisplaySettings value={calDisplay} onChange={setCalDisplay} />
                 <span className="oma-cal-ext-wrap">
                   <button
                     type="button"
@@ -2672,11 +2896,22 @@ export default function ContentPage() {
               role="grid"
               aria-label={t('demo.view.calendar')}
               data-testid="demo-content-cal-grid"
-              data-columns="7"
+              data-columns={calDisplay.showWeekends ? '7' : '5'}
+              data-hide-weekends={calDisplay.showWeekends ? 'false' : 'true'}
+              data-post-size={calDisplay.postSize}
             >
               <div className="oma-cal-dow-row" data-testid="demo-content-weekdays">
-                {dows.map((dow) => (
-                  <div key={dow} className="oma-cal-dow" role="columnheader">
+                {dows.map((dow, di) => (
+                  <div
+                    key={dow}
+                    className="oma-cal-dow"
+                    role="columnheader"
+                    data-weekend={
+                      isWeekendKey(shiftDayKey(visibleCells[0]?.key ?? TODAY_KEY, di))
+                        ? 'true'
+                        : 'false'
+                    }
+                  >
                     {dow}
                   </div>
                 ))}
@@ -2704,6 +2939,7 @@ export default function ContentPage() {
                           aria-selected={cell.key === selectedDay}
                           data-out={cell.inMonth ? 'false' : 'true'}
                           data-today={cell.key === TODAY_KEY ? 'true' : 'false'}
+                          data-weekend={isWeekendKey(cell.key) ? 'true' : 'false'}
                           data-selected={cell.key === selectedDay ? 'true' : 'false'}
                           onClick={() => setSelectedDay(cell.key)}
                           onDragOver={(e) => {
@@ -2713,7 +2949,8 @@ export default function ContentPage() {
                           onDrop={(e) => {
                             e.preventDefault();
                             const id = e.dataTransfer.getData('text/oma-content-id');
-                            if (id) void rescheduleContentToDay(id, cell.key);
+                            const from = e.dataTransfer.getData('text/oma-from-day') || null;
+                            if (id) void rescheduleContentToDay(id, cell.key, from);
                           }}
                         >
                           <span className="oma-cal-daynum oma-ltr">{cell.date.getUTCDate()}</span>
@@ -2755,7 +2992,7 @@ export default function ContentPage() {
                           </div>
 
                           {/* Private sticky note — appears ABOVE cards */}
-                          {note || noteDay === cell.key ? (
+                          {calDisplay.showNotes && (note || noteDay === cell.key) ? (
                             <div
                               className="oma-cal-note oma-cal-note--inline"
                               data-color={(note?.color ?? dayNotes[cell.key]?.color) || 'yellow'}
@@ -2891,6 +3128,7 @@ export default function ContentPage() {
                               draggable
                               onDragStart={(e) => {
                                 e.dataTransfer.setData('text/oma-content-id', item.id);
+                                e.dataTransfer.setData('text/oma-from-day', cell.key);
                                 e.dataTransfer.effectAllowed = 'move';
                               }}
                               onMouseEnter={(e) => scheduleCardMenu(item.id, e.currentTarget)}
@@ -2927,32 +3165,7 @@ export default function ContentPage() {
                                 }}
                                 className="oma-cal-item"
                               >
-                                <ContentFace
-                                  variant="calendar"
-                                  title={pickCopy(item.title, locale)}
-                                  caption={item.caption ? pickCopy(item.caption, locale) : ''}
-                                  channel={item.channel || t('content.workspace_page')}
-                                  when={
-                                    item.scheduledAt
-                                      ? item.scheduledAt.slice(11, 16)
-                                      : item.plannedAt
-                                        ? String(item.plannedAt).slice(11, 16) || '10:00'
-                                        : ''
-                                  }
-                                  asset={item.previewAsset}
-                                  display={faceDisplay(item, policy)}
-                                  locale={locale}
-                                  selected={selectedId === item.id}
-                                />
-                                {rowLabels(item).length > 0 ? (
-                                  <div className="oma-inline-labels">
-                                    {rowLabels(item)
-                                      .slice(0, 2)
-                                      .map((lab) => (
-                                        <span key={lab}>{lab}</span>
-                                      ))}
-                                  </div>
-                                ) : null}
+                                {renderCalendarCard(item)}
                               </SurfaceButton>
                               <CardActionsButton
                                 itemId={item.id}
@@ -3065,7 +3278,15 @@ export default function ContentPage() {
               ) : (
                 <div className="oma-cal-saved-list">
                   {savedItems.map((item) => (
-                    <div key={item.id} className="oma-cal-saved-card">
+                    <div
+                      key={item.id}
+                      className="oma-cal-saved-card"
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData('text/oma-content-id', item.id);
+                        e.dataTransfer.effectAllowed = 'move';
+                      }}
+                    >
                       <SurfaceButton
                         data-testid={`demo-saved-item-${item.id}`}
                         data-selected={selectedId === item.id ? 'true' : 'false'}
@@ -3104,7 +3325,24 @@ export default function ContentPage() {
       {/* ── FEED VIEW ── */}
       {!loading && !unavailable && !error && filtered.length > 0 && view === 'feed' ? (
         <div className="oma-content-feed oma-content-feed--preview" data-testid="demo-content-feed">
-          {filtered.map((item) => renderFeedPost(item))}
+          <div className="oma-pv-feed-stories">
+            <StoriesRow
+              stories={filtered
+                .filter((i) => i.contentType === 'STORY')
+                .map((i) => ({
+                  id: i.id,
+                  media: i.previewAsset || null,
+                  title: pickCopy(i.title, locale),
+                }))}
+              canCreate={mayCreate}
+              onNew={startStory}
+              onOpen={(id) => {
+                const row = rows.find((r) => r.id === id);
+                if (row) openItem(row);
+              }}
+            />
+          </div>
+          {feedPosts.map((item) => renderFeedPost(item))}
         </div>
       ) : null}
 
@@ -3133,11 +3371,6 @@ export default function ContentPage() {
           </div>
           <div className="oma-plan-list__body">
             {sorted.map((item) => {
-              const when = item.scheduledAt
-                ? item.scheduledAt.slice(0, 16).replace('T', ', ')
-                : item.plannedAt
-                  ? String(item.plannedAt).slice(0, 16).replace('T', ', ')
-                  : '—';
               const selected = selectedIds.includes(item.id);
               return (
                 <div
@@ -3166,28 +3399,27 @@ export default function ContentPage() {
                       <span className="oma-plan-list__page-ico" aria-hidden>
                         <NetworkIcon channel={item.channel} size={14} />
                       </span>
-                      <span className="oma-plan-list__page-name">
-                        {item.channel || 'Osama page'}
-                      </span>
+                      <span className="oma-plan-list__page-name">{brandName(item.brandId)}</span>
                     </div>
-                    <div className="oma-plan-list__title">{pickCopy(item.title, locale)}</div>
-                    {rowLabels(item).length > 0 ? (
-                      <div className="oma-inline-labels">
-                        {rowLabels(item)
-                          .slice(0, 3)
-                          .map((lab) => (
-                            <span key={lab}>{lab}</span>
-                          ))}
-                      </div>
-                    ) : null}
+                    <div className="oma-plan-list__title" dir="auto">
+                      {item.caption ? pickCopy(item.caption, locale) : pickCopy(item.title, locale)}
+                    </div>
                   </div>
-                  <div className="oma-plan-list__mid" aria-hidden>
-                    <span
-                      className="oma-plan-list__ico"
-                      data-tooltip={t('content.post_is_recurring')}
-                    >
-                      <SyncOutlined />
-                    </span>
+                  <div className="oma-plan-list__labels">
+                    {rowLabels(item).length > 2 ? (
+                      <span className="oma-pv-chip">
+                        {t('views.labels_count').replace('{n}', String(rowLabels(item).length))}
+                      </span>
+                    ) : (
+                      rowLabels(item).map((lab) => (
+                        <span key={lab} className="oma-pv-chip">
+                          {lab}
+                        </span>
+                      ))
+                    )}
+                  </div>
+                  <div className="oma-plan-list__mid">
+                    <StatusIcons s={postStatus(item)} t={t} />
                   </div>
                   <div className="oma-plan-list__hover">
                     <button
@@ -3233,7 +3465,12 @@ export default function ContentPage() {
                     onOpen={placeCardMenu}
                     onClose={closeCardMenu}
                   />
-                  <div className="oma-plan-list__when oma-ltr">{when}</div>
+                  <div
+                    className="oma-plan-list__when"
+                    data-overdue={postStatus(item).overdue ? 'true' : 'false'}
+                  >
+                    {item.scheduledAt || item.plannedAt ? postDateText(item) : t('preview.no_date')}
+                  </div>
                 </div>
               );
             })}
@@ -3241,75 +3478,42 @@ export default function ContentPage() {
         </div>
       ) : null}
 
-      {/* ── GRID VIEW ── */}
+      {/* ── GRID VIEW (Planable: stories row + 3-column gapless tiles) ── */}
       {!loading && !unavailable && !error && filtered.length > 0 && view === 'grid' ? (
-        <div className="oma-plan-grid" data-testid="demo-content-grid">
-          {filtered.map((item) => {
-            const title = pickCopy(item.title, locale);
-            const when = item.scheduledAt
-              ? item.scheduledAt.slice(0, 16).replace('T', ' at ')
-              : item.plannedAt
-                ? String(item.plannedAt).slice(0, 16).replace('T', ' at ')
-                : '';
-            return (
-              <div key={item.id} className="oma-plan-grid__tile">
-                <button
-                  type="button"
-                  className="oma-plan-grid__card"
-                  data-testid={`demo-content-card-${item.id}`}
-                  data-selected={selectedId === item.id ? 'true' : 'false'}
-                  data-status={item.status}
-                  onClick={() => openItem(item)}
-                >
-                  <div className="oma-plan-grid__media">
-                    {item.previewAsset ? (
-                      <img
-                        src={item.previewAsset}
-                        alt={mediaAlt(title, item.channel, item.contentType)}
-                      />
-                    ) : (
-                      <span className="oma-plan-grid__ph" aria-hidden>
-                        {item.channel ? item.channel.slice(0, 1).toUpperCase() : '▣'}
-                      </span>
-                    )}
-                    <div className="oma-plan-grid__shade" />
-                    <div className="oma-plan-grid__overlay">
-                      <span className="oma-plan-grid__top">
-                        <span className="oma-plan-grid__channel">{item.channel || 'Page'}</span>
-                        {when ? (
-                          <span className="oma-plan-grid__when oma-ltr">
-                            {weekdayForKey(when.slice(0, 10), locale)} · {when}
-                          </span>
-                        ) : (
-                          <span className="oma-plan-grid__when">{t('strategy.saved')}</span>
-                        )}
-                      </span>
-                      <span className="oma-plan-grid__copy">
-                        <span className="oma-plan-grid__title">{title}</span>
-                        {rowLabels(item).length > 0 ? (
-                          <span className="oma-inline-labels oma-inline-labels--on-media">
-                            {rowLabels(item)
-                              .slice(0, 2)
-                              .map((lab) => (
-                                <span key={lab}>{lab}</span>
-                              ))}
-                          </span>
-                        ) : null}
-                      </span>
-                    </div>
-                  </div>
-                </button>
-                <CardActionsButton
-                  itemId={item.id}
-                  open={cardMenuId === item.id}
-                  label={t('content.post_actions')}
-                  className="oma-card-actions-btn--grid"
-                  onOpen={placeCardMenu}
-                  onClose={closeCardMenu}
+        <div className="oma-pv-grid-wrap" data-testid="demo-content-grid">
+          <StoriesRow
+            stories={filtered
+              .filter((i) => i.contentType === 'STORY')
+              .map((i) => ({
+                id: i.id,
+                media: i.previewAsset || null,
+                title: pickCopy(i.title, locale),
+              }))}
+            canCreate={mayCreate}
+            onNew={startStory}
+            onOpen={(id) => {
+              const row = rows.find((r) => r.id === id);
+              if (row) openItem(row);
+            }}
+          />
+          <div className="oma-pv-grid">
+            {filtered
+              .filter((i) => i.contentType !== 'STORY')
+              .map((item) => (
+                <GridTile
+                  key={item.id}
+                  testId={`demo-content-card-${item.id}`}
+                  caption={
+                    item.caption ? pickCopy(item.caption, locale) : pickCopy(item.title, locale)
+                  }
+                  media={item.previewAsset || null}
+                  contentType={item.contentType}
+                  dateText={postDateText(item)}
+                  status={postStatus(item)}
+                  onOpen={() => openItem(item)}
                 />
-              </div>
-            );
-          })}
+              ))}
+          </div>
         </div>
       ) : null}
 
@@ -3329,6 +3533,26 @@ export default function ContentPage() {
             data-detail-tab={detailTab}
             data-review={review?.state ?? ''}
           >
+            <ModalNav
+              onPrev={
+                neighbourId(
+                  (view === 'list' ? sorted : filtered).map((r) => r.id),
+                  selectedId,
+                  -1,
+                )
+                  ? () => stepModal(-1)
+                  : null
+              }
+              onNext={
+                neighbourId(
+                  (view === 'list' ? sorted : filtered).map((r) => r.id),
+                  selectedId,
+                  1,
+                )
+                  ? () => stepModal(1)
+                  : null
+              }
+            />
             <aside className="oma-plan-post__rail" aria-hidden>
               <span className="oma-plan-post__rail-ico">
                 <EditOutlined />
@@ -3555,21 +3779,72 @@ export default function ContentPage() {
                     >
                       <MobileOutlined />
                     </button>
+                    <button
+                      type="button"
+                      data-active={detailPreviewMode === 'edit' ? 'true' : 'false'}
+                      onClick={() => setDetailPreviewMode('edit')}
+                      aria-label={t('views.edit_post')}
+                      data-tooltip={t('views.edit_post')}
+                      data-testid="content-modal-edit"
+                    >
+                      <EditOutlined />
+                    </button>
                   </div>
 
-                  {detailPreviewMode === 'mobile' ? (
+                  {detailPreviewMode !== 'edit' ? (
                     <div
-                      className="oma-plan-post__preview-pane"
+                      className="oma-pv-modal-stage"
+                      data-mode={detailPreviewMode}
                       data-testid="content-detail-preview"
                     >
-                      {renderPostPreview(
-                        {
-                          ...selected,
-                          caption: { en: draft.caption, ar: draft.caption },
-                          title: editTitle ? { en: editTitle, ar: editTitle } : selected.title,
-                        },
-                        'detail',
-                      )}
+                      <div className="oma-pv-modal-approval">
+                        <span className="oma-pv-modal-approval__label">
+                          {modalApproverNames().length > 0
+                            ? t('views.approved_by').replace(
+                                '{name}',
+                                modalApproverNames().join(', '),
+                              )
+                            : t('content.not_approved_yet')}
+                        </span>
+                        <button
+                          type="button"
+                          className="oma-fp__approve-btn"
+                          data-state={selected.approvalState || 'NOT_REQUESTED'}
+                          disabled={!(mayApprove && canApprove(selected)) || saving}
+                          aria-label={t('preview.approve')}
+                          data-tooltip={
+                            mayApprove && canApprove(selected)
+                              ? t('preview.approve')
+                              : t(
+                                  `preview.approval.${
+                                    {
+                                      APPROVED: 'approved',
+                                      PENDING: 'pending',
+                                      PARTIALLY_APPROVED: 'partial',
+                                      NOT_REQUESTED: 'not_requested',
+                                    }[selected.approvalState || 'NOT_REQUESTED'] ?? 'not_requested'
+                                  }`,
+                                )
+                          }
+                          onClick={() => void runLifecycle('approve', selected.id)}
+                        >
+                          <CheckOutlined />
+                        </button>
+                        <span className="oma-fp__net">
+                          <NetworkIcon channel={selected.channel} size={14} />
+                        </span>
+                      </div>
+                      <div className="oma-pv-modal-post">
+                        {renderPostPreview(
+                          {
+                            ...selected,
+                            caption: { en: draft.caption, ar: draft.caption },
+                            title: editTitle ? { en: editTitle, ar: editTitle } : selected.title,
+                          },
+                          'detail',
+                          false,
+                        )}
+                      </div>
                     </div>
                   ) : (
                     <div className="oma-plan-post__editor">

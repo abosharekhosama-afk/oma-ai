@@ -83,7 +83,7 @@ describe('PostPreview dispatcher wiring', () => {
   });
   it('is the Feed rendering and the detail preview pane', () => {
     const client = read('apps/web/src/app/(app)/app/content/content-client.tsx');
-    expect(client).toContain('filtered.map((item) => renderFeedPost(item))');
+    expect(client).toContain('feedPosts.map((item) => renderFeedPost(item))');
     expect(client).toContain('<FeedPost');
     expect(client).toContain('content-detail-preview');
     expect(
