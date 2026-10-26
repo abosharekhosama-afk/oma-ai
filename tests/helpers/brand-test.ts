@@ -97,7 +97,15 @@ export async function seedBrandTenant(input?: {
   };
 }
 
-export async function seedMemberWithoutBrandCaps(ownerSeed: BrandSeed) {
+/**
+ * Creates an ACTIVE MEMBER-profile user in the owner's tenant. Per-brand access: by default the
+ * member is added (as MANAGER, so brand roles do not narrow workspace capabilities) to every
+ * brand that already exists; pass `{ brands: [] }` to test a member with no brand access.
+ */
+export async function seedMemberWithoutBrandCaps(
+  ownerSeed: BrandSeed,
+  opts: { brands?: string[]; role?: 'MANAGER' | 'EDITOR' | 'APPROVER' | 'VIEWER' } = {},
+) {
   const email = `member-${newId().slice(-8)}@example.com`;
   const password = 'ChangeMe_Member_1!';
   const register = await fetch(`${ownerSeed.baseUrl}/api/v1/auth/register`, {
@@ -131,6 +139,17 @@ export async function seedMemberWithoutBrandCaps(ownerSeed: BrandSeed) {
       status: 'ACTIVE',
     },
   });
+  const brandIds =
+    opts.brands ??
+    (
+      await prisma.brandWorkspace.findMany({
+        where: { tenantId: ownerSeed.tenantId },
+        select: { id: true },
+      })
+    ).map((b) => b.id);
+  for (const brandId of brandIds) {
+    await addBrandMember(ownerSeed.tenantId, brandId, memberUser.id, opts.role ?? 'MANAGER');
+  }
   for (const code of SYSTEM_PROFILES.MEMBER ?? []) {
     await prisma.capabilityGrant.create({
       data: {
@@ -165,6 +184,19 @@ export async function seedMemberWithoutBrandCaps(ownerSeed: BrandSeed) {
     userId: memberUser.id,
     membershipId: membership.id,
   };
+}
+
+export async function addBrandMember(
+  tenantId: string,
+  brandId: string,
+  userId: string,
+  role: 'MANAGER' | 'EDITOR' | 'APPROVER' | 'VIEWER' = 'MANAGER',
+) {
+  await getPrisma().brandMember.upsert({
+    where: { brandId_userId: { brandId, userId } },
+    create: { id: newId(), tenantId, brandId, userId, role },
+    update: { role },
+  });
 }
 
 export async function grantCapability(

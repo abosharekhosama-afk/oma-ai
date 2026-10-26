@@ -24,11 +24,11 @@ export function brandActionLabel(t: (key: string) => string, brand: BrandListIte
   }
 }
 
-export function BrandMark({ name }: { name: string }) {
+export function BrandMark({ name, logoUrl }: { name: string; logoUrl?: string | null }) {
   const initial = name.trim().slice(0, 1).toUpperCase() || 'B';
   return (
     <span className="oma-brand-mark" aria-hidden="true">
-      {initial}
+      {logoUrl ? <img className="oma-brand-logo__img" src={logoUrl} alt="" /> : initial}
     </span>
   );
 }
@@ -44,7 +44,7 @@ export function WorkspaceCard({ brand }: { brand: BrandListItem; compact?: boole
   return (
     <article className="oma-workspace-card" data-testid={`workspace-card-${brand.id}`}>
       <Link href={workspaceHref} className="oma-workspace-card-main">
-        <BrandMark name={brand.name} />
+        <BrandMark name={brand.name} logoUrl={brand.logo_url} />
         <div className="oma-workspace-card-copy">
           <h3>{brand.name}</h3>
           <p className="oma-workspace-card-meta oma-ltr">

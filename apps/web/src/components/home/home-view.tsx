@@ -9,6 +9,7 @@ import type { ActivityItem } from '../../lib/activity-api';
 import { activityVerb } from '../activity/activity-feed-item';
 import type { HomeAwaitingItem, HomeBrandSummary, HomeChecklistStep, HomeWeekItem } from '../../lib/home-api';
 import {
+  brandNetworks,
   bucketWeek,
   firstName,
   greetingFor,
@@ -167,8 +168,8 @@ export function HomeView(p: HomeViewProps) {
                 <div className="oma-home-brand__id">
                   <strong className="oma-home-ellipsis">{b.name}</strong>
                   <span className="oma-home-nets">
-                    {b.channels.length ? (
-                      b.channels.map((c) => <NetworkIcon key={c} channel={c} size={16} title={c} />)
+                    {brandNetworks(b).length ? (
+                      brandNetworks(b).map((c) => <NetworkIcon key={c} channel={c} size={16} title={c} />)
                     ) : (
                       <span className="oma-home-muted">{t('home.v2.noChannels')}</span>
                     )}

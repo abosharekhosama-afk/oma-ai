@@ -7,7 +7,7 @@ import { getHome, type HomeBrandSummary } from '../../lib/home-api';
 import { useT } from '../../lib/use-locale';
 import { NetworkIcon } from '../content/network-icon';
 import { initials } from '../content/post-preview-model';
-import { homeLinks } from '../../lib/home-view-model';
+import { brandNetworks, homeLinks } from '../../lib/home-view-model';
 import { Tooltip } from '../ui/tooltip';
 
 /** Planable-style "Pages": workspace brands with their connected network icons. */
@@ -35,7 +35,11 @@ export function BrandPagesNav({ collapsed }: { collapsed: boolean }) {
         <span className="oma-nav-heading" id="nav-pages">
           {t('nav.pages')}
         </span>
-        <Link href="/app/brands/new" className="oma-nav-pages__add" aria-label={t('brand.list.create')}>
+        <Link
+          href="/app/brands/new"
+          className="oma-nav-pages__add"
+          aria-label={t('brand.list.create')}
+        >
           +
         </Link>
       </div>
@@ -55,13 +59,19 @@ export function BrandPagesNav({ collapsed }: { collapsed: boolean }) {
                 aria-current={active ? 'page' : undefined}
               >
                 <span className="oma-nav-page__avatar" aria-hidden="true">
-                  {initials(b.name)}
+                  {b.logo_url ? (
+                    <img className="oma-brand-logo__img" src={b.logo_url} alt="" />
+                  ) : (
+                    initials(b.name)
+                  )}
                 </span>
                 <span className="oma-nav-link-label">{b.name}</span>
                 <span className="oma-nav-page__nets">
-                  {b.channels.slice(0, 4).map((c) => (
-                    <NetworkIcon key={c} channel={c} size={14} />
-                  ))}
+                  {brandNetworks(b)
+                    .slice(0, 4)
+                    .map((c) => (
+                      <NetworkIcon key={c} channel={c} size={14} />
+                    ))}
                 </span>
               </Link>
             );

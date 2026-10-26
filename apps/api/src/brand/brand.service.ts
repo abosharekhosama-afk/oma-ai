@@ -3,6 +3,47 @@ import { getPrisma, tenantWhere } from '@oma/db';
 import { DomainError, isTerminalScanStatus, newId } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
 import { brandConnectorMode } from './connector-mode';
+import { parseBrandName, type BrandSettingsInput } from './brand-input';
+import { DEFAULT_SCHEDULE_TZ } from '../common/schedule-timezone';
+import { isValidTimezone } from '../common/zoned-time';
+
+type Tx = Parameters<Parameters<ReturnType<typeof getPrisma>['$transaction']>[0]>[0];
+
+export async function brandTimezone(tenantId: string, brandId: string): Promise<string> {
+  const p = await getPrisma().contentPreferences.findFirst({
+    where: { tenantId, brandId },
+    select: { defaultTimezone: true },
+  });
+  return isValidTimezone(p?.defaultTimezone) ? p!.defaultTimezone : DEFAULT_SCHEDULE_TZ;
+}
+
+/**
+ * Pending = scheduled but not yet published. Returned to Approved (if approved) or Draft so
+ * nothing publishes from an archived brand.
+ */
+export async function unschedulePendingPosts(tx: Tx, tenantId: string, brandId: string) {
+  const base = {
+    tenantId,
+    brandId,
+    scheduleState: 'SCHEDULED' as const,
+    publishState: { not: 'PUBLISHED' as const },
+  };
+  const reset = {
+    scheduleState: 'UNSCHEDULED' as const,
+    scheduledAt: null,
+    publishState: 'NONE' as const,
+    nextPublishAt: null,
+  };
+  const a = await tx.contentItem.updateMany({
+    where: { ...base, approvalState: 'APPROVED' },
+    data: { ...reset, status: 'APPROVED' },
+  });
+  const b = await tx.contentItem.updateMany({
+    where: { ...base, approvalState: { not: 'APPROVED' } },
+    data: { ...reset, status: 'DRAFT' },
+  });
+  return a.count + b.count;
+}
 
 @Injectable()
 export class BrandService {
@@ -14,6 +55,7 @@ export class BrandService {
   ) {
     const limit = Math.min(query.limit ?? 25, 100);
     const where = tenantWhere(tenantId, {
+      deletedAt: null,
       ...(query.status ? { status: query.status as never } : {}),
       ...(query.q ? { name: { contains: query.q, mode: 'insensitive' as const } } : {}),
       ...(query.cursor ? { id: { lt: query.cursor } } : {}),
@@ -30,6 +72,13 @@ export class BrandService {
       where: { brandId: { in: brandIds }, replacedAt: null },
     });
     const sourceByBrand = new Map(sources.map((s) => [s.brandId, s]));
+    const prefs = brandIds.length
+      ? await getPrisma().contentPreferences.findMany({
+          where: { tenantId, brandId: { in: brandIds } },
+          select: { brandId: true, defaultTimezone: true },
+        })
+      : [];
+    const tzByBrand = new Map(prefs.map((p) => [p.brandId, p.defaultTimezone]));
     const latestScans = brandIds.length
       ? await getPrisma().scanAttempt.findMany({
           where: { tenantId, brandId: { in: brandIds } },
@@ -58,6 +107,9 @@ export class BrandService {
           id: b.id,
           name: b.name,
           status: b.status,
+          logo_url: b.logoUrl,
+          timezone: tzByBrand.get(b.id) ?? DEFAULT_SCHEDULE_TZ,
+          archived_at: b.archivedAt?.toISOString() ?? null,
           primary_website_url: sourceByBrand.get(b.id)?.normalizedUrl ?? null,
           current_approved_profile_version_id: b.currentApprovedProfileVersionId,
           latest_scan_status: scan?.status ?? null,
@@ -77,12 +129,33 @@ export class BrandService {
     input: { name: string },
     correlationId?: string,
   ) {
-    const name = input.name.trim();
-    if (!name || name.length > 120) {
-      throw new DomainError('VALIDATION_FAILED', 'Invalid name', 400, 'errors.validation_failed');
-    }
-    const brand = await getPrisma().brandWorkspace.create({
-      data: { id: newId(), tenantId, name, status: 'DRAFT' },
+    const name = parseBrandName((input as { name?: unknown } | null)?.name);
+    const prisma = getPrisma();
+    const ws = await prisma.workspaceSetting.findFirst({
+      where: { tenantId },
+      select: { timezone: true },
+    });
+    const timezone = isValidTimezone(ws?.timezone) ? ws!.timezone : DEFAULT_SCHEDULE_TZ;
+    const brand = await prisma.$transaction(async (tx) => {
+      const created = await tx.brandWorkspace.create({
+        data: { id: newId(), tenantId, name, status: 'DRAFT' },
+      });
+      // Brand timezone lives only in ContentPreferences.defaultTimezone.
+      await tx.contentPreferences.create({
+        data: { brandId: created.id, tenantId, defaultTimezone: timezone },
+      });
+      // The creator manages the brand they created.
+      await tx.brandMember.create({
+        data: {
+          id: newId(),
+          tenantId,
+          brandId: created.id,
+          userId: actorUserId,
+          role: 'MANAGER',
+          addedBy: actorUserId,
+        },
+      });
+      return created;
     });
     await this.audit.write({
       actorUserId,
@@ -105,7 +178,7 @@ export class BrandService {
 
   async get(tenantId: string, brandId: string) {
     const brand = await getPrisma().brandWorkspace.findFirst({
-      where: tenantWhere(tenantId, { id: brandId }),
+      where: tenantWhere(tenantId, { id: brandId, deletedAt: null }),
     });
     if (!brand) throw new DomainError('NOT_FOUND', 'Not found', 404, 'errors.not_found');
     const source = brand.primaryWebsiteSourceId
@@ -144,6 +217,8 @@ export class BrandService {
         // scans report the mode stored on their own attempt.
         next_scan_connector_mode: brandConnectorMode(),
         archived_at: brand.archivedAt?.toISOString() ?? null,
+        logo_url: brand.logoUrl,
+        timezone: await brandTimezone(tenantId, brand.id),
         updated_at: brand.updatedAt.toISOString(),
       },
     };
@@ -153,11 +228,12 @@ export class BrandService {
     tenantId: string,
     actorUserId: string,
     brandId: string,
-    input: { name?: string; version: number },
+    input: BrandSettingsInput,
     correlationId?: string,
   ) {
-    const brand = await getPrisma().brandWorkspace.findFirst({
-      where: tenantWhere(tenantId, { id: brandId }),
+    const prisma = getPrisma();
+    const brand = await prisma.brandWorkspace.findFirst({
+      where: tenantWhere(tenantId, { id: brandId, deletedAt: null }),
     });
     if (!brand) throw new DomainError('NOT_FOUND', 'Not found', 404, 'errors.not_found');
     if (brand.status === 'ARCHIVED') {
@@ -166,12 +242,23 @@ export class BrandService {
     if (brand.version !== input.version) {
       throw new DomainError('CONFLICT_VERSION', 'Stale version', 409, 'errors.conflict_version');
     }
-    const updated = await getPrisma().brandWorkspace.update({
-      where: { id: brandId },
-      data: {
-        name: input.name?.trim() ?? brand.name,
-        version: { increment: 1 },
-      },
+    const updated = await prisma.$transaction(async (tx) => {
+      const row = await tx.brandWorkspace.update({
+        where: { id: brandId },
+        data: {
+          ...(input.name !== undefined ? { name: input.name } : {}),
+          ...(input.logoUrl !== undefined ? { logoUrl: input.logoUrl } : {}),
+          version: { increment: 1 },
+        },
+      });
+      if (input.timezone) {
+        await tx.contentPreferences.upsert({
+          where: { brandId },
+          create: { brandId, tenantId, defaultTimezone: input.timezone },
+          update: { defaultTimezone: input.timezone },
+        });
+      }
+      return row;
     });
     await this.audit.write({
       actorUserId,
@@ -187,6 +274,8 @@ export class BrandService {
         name: updated.name,
         status: updated.status,
         version: updated.version,
+        logo_url: updated.logoUrl,
+        timezone: await brandTimezone(tenantId, brandId),
       },
     };
   }
@@ -212,6 +301,7 @@ export class BrandService {
       throw new DomainError('CONFLICT_VERSION', 'Stale version', 409, 'errors.conflict_version');
     }
 
+    let unscheduled = 0;
     await prisma.$transaction(async (tx) => {
       const activeScans = await tx.scanAttempt.findMany({
         where: tenantWhere(tenantId, {
@@ -229,6 +319,7 @@ export class BrandService {
           data: { status: 'CANCELLED', finishedAt: new Date() },
         });
       }
+      unscheduled = await unschedulePendingPosts(tx, tenantId, brandId);
       await tx.brandWorkspace.update({
         where: { id: brandId },
         data: { status: 'ARCHIVED', archivedAt: new Date(), version: { increment: 1 } },
@@ -250,6 +341,7 @@ export class BrandService {
         id: archived.id,
         status: archived.status,
         archived_at: archived.archivedAt?.toISOString(),
+        unscheduled_posts: unscheduled,
       },
     };
   }

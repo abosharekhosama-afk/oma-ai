@@ -6,6 +6,7 @@ import {
   grantCapability,
   seedBrandTenant,
   seedMemberWithoutBrandCaps,
+  addBrandMember,
 } from '../helpers/brand-test';
 
 describe('insight vs version capability security', () => {
@@ -35,6 +36,7 @@ describe('insight vs version capability security', () => {
   it('insight.decide cannot whole-version reject', async () => {
     const journey = await fullScanJourney(owner, connection);
     const versionId = journey.profileVersionId!;
+    await addBrandMember(owner.tenantId, journey.brandId, member.userId);
     const profile = await fetch(
       `${owner.baseUrl}/api/v1/brands/${journey.brandId}/profiles/${versionId}`,
       { headers: { cookie: `oma_session=${owner.cookies.oma_session}` } },

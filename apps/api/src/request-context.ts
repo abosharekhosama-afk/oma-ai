@@ -13,6 +13,8 @@ declare global {
   namespace Express {
     interface Request {
       oma?: RequestContext;
+      /** Per-brand access resolved by AuthGuard (see brand/brand-access.ts). */
+      brandAccess?: import('./brand/brand-access').BrandAccess;
     }
   }
 }

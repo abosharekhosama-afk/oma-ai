@@ -16,6 +16,7 @@
 @import '../styles/home.css';
 @import '../styles/content-views.css';
 @import '../styles/analytics-planable.css';
+@import '../styles/brand-settings.css';
 
 * {
   box-sizing: border-box;

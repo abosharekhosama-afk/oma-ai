@@ -2,6 +2,7 @@ import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { DomainError, hashSessionToken } from '@oma/domain';
 import { getPrisma } from '@oma/db';
 import type { Request } from 'express';
+import { applyBrandScope, resolveBrandAccess } from '../../brand/brand-access';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -41,6 +42,12 @@ export class AuthGuard implements CanActivate {
       capabilities: [],
     };
     (req as Request & { sessionId?: string }).sessionId = session.id;
+    if (session.activeTenantId) {
+      // Per-brand access: non-admins only ever see the brands they are members of.
+      const access = await resolveBrandAccess(session.activeTenantId, session.userId);
+      req.brandAccess = access;
+      applyBrandScope(access);
+    }
     return true;
   }
 }

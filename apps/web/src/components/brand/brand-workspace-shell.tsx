@@ -10,6 +10,7 @@ import { BrandMark } from './workspace-card';
 type BrandWorkspaceShellProps = {
   brandId: string;
   brandName: string;
+  brandLogoUrl?: string | null;
   brandStatus?: string | null;
   websiteUrl?: string | null;
   scanStatus?: string | null;
@@ -25,6 +26,7 @@ type BrandWorkspaceShellProps = {
 export function BrandWorkspaceShell({
   brandId,
   brandName,
+  brandLogoUrl,
   brandStatus,
   websiteUrl,
   scanStatus,
@@ -67,13 +69,18 @@ export function BrandWorkspaceShell({
       label: t('brand.nav.strategies'),
       match: (p: string) => p.includes('/strategies'),
     },
+    {
+      href: `${base}/settings`,
+      label: t('brand.nav.settings'),
+      match: (p: string) => p.includes('/settings'),
+    },
   ];
 
   return (
     <div className="oma-brand-shell" data-testid="brand-workspace">
       <header className="oma-brand-header">
         <div className="oma-brand-header-identity">
-          <BrandMark name={brandName} />
+          <BrandMark name={brandName} logoUrl={brandLogoUrl} />
           <div>
             <h1>{brandName}</h1>
             {websiteUrl ? <p className="oma-muted oma-ltr">{websiteUrl}</p> : null}

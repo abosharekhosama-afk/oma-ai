@@ -1,4 +1,4 @@
-import type { HomeChecklistStep, HomeWeekItem } from './home-api';
+import type { HomeBrandSummary, HomeChecklistStep, HomeWeekItem } from './home-api';
 import type { ActivityItem } from './activity-api';
 import type { AppNotification } from './notifications-api';
 
@@ -27,7 +27,12 @@ export type WeekDay = { key: string; date: Date; isToday: boolean; items: HomeWe
 /** YYYY-MM-DD of an instant in an IANA timezone. */
 export function zonedDayKey(d: Date, timeZone: string): string {
   const p = Object.fromEntries(
-    new Intl.DateTimeFormat('en-US', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' })
+    new Intl.DateTimeFormat('en-US', {
+      timeZone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    })
       .formatToParts(d)
       .map((x) => [x.type, x.value]),
   );
@@ -73,7 +78,10 @@ export function setupProgress(steps: HomeChecklistStep[] | undefined): SetupProg
 }
 
 /** Setup card shows only while incomplete and not dismissed by this user. */
-export function shouldShowSetup(steps: HomeChecklistStep[] | undefined, dismissed: boolean): boolean {
+export function shouldShowSetup(
+  steps: HomeChecklistStep[] | undefined,
+  dismissed: boolean,
+): boolean {
   const p = setupProgress(steps);
   return !dismissed && p.total > 0 && !p.complete;
 }
@@ -89,7 +97,8 @@ export type HomeComment = {
   body: { en: string; ar: string } | null;
 };
 
-const isCommentType = (type: string) => /(^|\.)(comment|mention(ed)?)$/.test(type) || type.includes('mention');
+const isCommentType = (type: string) =>
+  /(^|\.)(comment|mention(ed)?)$/.test(type) || type.includes('mention');
 
 /**
  * Comments/mentions for Home: comment/mention notifications, enriched with the
@@ -125,3 +134,14 @@ export const homeLinks = {
   brand: (id: string) => `/app/content?view=feed&brand=${encodeURIComponent(id)}`,
   day: (key: string) => `/app/content?view=calendar&date=${key}`,
 };
+
+/**
+ * Network icons for a brand: its real connected accounts when it has any, otherwise the
+ * channels its content is planned for (no account connected yet).
+ */
+export function brandNetworks(b: Pick<HomeBrandSummary, 'channels' | 'social_pages'>): string[] {
+  const connected = (b.social_pages ?? [])
+    .filter((p) => p.status !== 'DISCONNECTED')
+    .map((p) => p.network);
+  return connected.length ? [...new Set(connected)].sort() : b.channels;
+}

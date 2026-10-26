@@ -1,3 +1,5 @@
+import { SocialController } from './social/social.controller';
+import { BrandScopeMiddleware } from './common/middleware/brand-scope.middleware';
 import { ActivityController, HomeController } from './home/home.controller';
 import { WorkspaceSettingsController } from './workspace/workspace-settings.controller';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
@@ -59,6 +61,7 @@ import { AiController } from './ai/ai.controller';
     WorkspaceSettingsController,
     HomeController,
     ActivityController,
+    SocialController,
   ],
   providers: [
     { provide: APP_FILTER, useClass: DomainExceptionFilter },
@@ -69,6 +72,6 @@ import { AiController } from './ai/ai.controller';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(CorrelationMiddleware).forRoutes('*');
+    consumer.apply(CorrelationMiddleware, BrandScopeMiddleware).forRoutes('*');
   }
 }
