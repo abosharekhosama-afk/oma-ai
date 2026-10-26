@@ -24,16 +24,42 @@ export function localDayKey(d: Date): string {
 
 export type WeekDay = { key: string; date: Date; isToday: boolean; items: HomeWeekItem[] };
 
-/** Seven consecutive local days starting today, each with its scheduled posts (time-sorted). */
-export function bucketWeek(items: HomeWeekItem[], now: Date): WeekDay[] {
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const days: WeekDay[] = Array.from({ length: 7 }, (_, i) => {
-    const date = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
-    return { key: localDayKey(date), date, isToday: i === 0, items: [] };
+/** YYYY-MM-DD of an instant in an IANA timezone. */
+export function zonedDayKey(d: Date, timeZone: string): string {
+  const p = Object.fromEntries(
+    new Intl.DateTimeFormat('en-US', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' })
+      .formatToParts(d)
+      .map((x) => [x.type, x.value]),
+  );
+  return `${p.year}-${p.month}-${p.day}`;
+}
+
+/**
+ * Seven consecutive days starting today, each with its scheduled posts (time-sorted).
+ * When the API sends `days`/`timezone` (scheduling timezone), those calendar days are used so
+ * the strip matches the calendar; otherwise the viewer's local days.
+ */
+export function bucketWeek(
+  items: HomeWeekItem[],
+  now: Date,
+  opts: { days?: string[]; timezone?: string } = {},
+): WeekDay[] {
+  const keyOf = (d: Date) => (opts.timezone ? zonedDayKey(d, opts.timezone) : localDayKey(d));
+  const keys =
+    opts.days && opts.days.length === 7
+      ? opts.days
+      : Array.from({ length: 7 }, (_, i) => {
+          const base = opts.timezone ? new Date(`${keyOf(now)}T12:00:00Z`) : null;
+          if (base) return new Date(base.getTime() + i * 86400_000).toISOString().slice(0, 10);
+          return localDayKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() + i));
+        });
+  const days: WeekDay[] = keys.map((key, i) => {
+    const [y, m, d] = key.split('-').map(Number);
+    return { key, date: new Date(y!, m! - 1, d!), isToday: i === 0, items: [] };
   });
   const byKey = new Map(days.map((d) => [d.key, d]));
   for (const item of [...items].sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at))) {
-    byKey.get(localDayKey(new Date(item.scheduled_at)))?.items.push(item);
+    byKey.get(item.day ?? keyOf(new Date(item.scheduled_at)))?.items.push(item);
   }
   return days;
 }

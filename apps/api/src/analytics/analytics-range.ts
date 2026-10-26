@@ -1,63 +1,86 @@
 import { DomainError } from '@oma/domain';
+import { addDays, dayKey, diffDays, weekdayMon0, zonedMidnight } from '../common/zoned-time';
 
 export const MAX_RANGE_DAYS = 366;
-const DAY = 86400_000;
-
-export type AnalyticsRange = { from: Date; to: Date; days: number; bucket: 'day' | 'week' };
 
 /**
- * Resolve the period filter. `period` = 7|30|90 (days ending now) or explicit from/to (ISO dates).
- * `to` is inclusive to the end of that day. Buckets are daily up to 31 days, weekly beyond.
+ * `tz` is the IANA zone the range and its buckets are computed in: the brand's scheduling
+ * timezone (ContentPreferences.defaultTimezone), see resolveAnalyticsTimezone().
+ */
+export type AnalyticsRange = {
+  from: Date;
+  to: Date;
+  days: number;
+  bucket: 'day' | 'week';
+  tz?: string;
+};
+
+/**
+ * Resolve the period filter. `period` = 7|30|90 (calendar days ending today) or explicit
+ * from/to (YYYY-MM-DD). Day boundaries are local midnights in `tz`; `to` is inclusive to the
+ * end of that local day. Buckets are daily up to 31 days, weekly beyond.
  */
 export function resolveRange(
   q: { period?: string; from?: string; to?: string },
   now = new Date(),
+  tz = 'UTC',
 ): AnalyticsRange {
   let from: Date;
   let to: Date;
+  let days: number;
   if (q.from || q.to) {
     if (!q.from || !q.to) throw bad('from and to are both required for a custom range');
-    from = parseDay(q.from, 'from');
-    to = new Date(parseDay(q.to, 'to').getTime() + DAY - 1);
+    checkDay(q.from, 'from');
+    checkDay(q.to, 'to');
+    days = diffDays(q.from, q.to) + 1;
+    if (days < 1) throw bad('from must be before to');
+    from = zonedMidnight(q.from, tz);
+    to = new Date(zonedMidnight(addDays(q.to, 1), tz).getTime() - 1);
   } else {
-    const days = q.period ? Number(q.period) : 30;
+    days = q.period ? Number(q.period) : 30;
     if (![7, 30, 90].includes(days)) throw bad('period must be 7, 30 or 90');
     to = now;
-    from = new Date(Math.floor((now.getTime() - (days - 1) * DAY) / DAY) * DAY);
+    from = zonedMidnight(addDays(dayKey(now, tz), -(days - 1)), tz);
   }
   if (from > to) throw bad('from must be before to');
-  const days = Math.ceil((to.getTime() - from.getTime() + 1) / DAY);
   if (days > MAX_RANGE_DAYS) throw bad(`range must be at most ${MAX_RANGE_DAYS} days`);
-  return { from, to, days, bucket: days <= 31 ? 'day' : 'week' };
+  return { from, to, days, bucket: days <= 31 ? 'day' : 'week', tz };
 }
 
-function parseDay(v: string, field: string): Date {
+function checkDay(v: string, field: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) throw bad(`${field} must be YYYY-MM-DD`);
   const d = new Date(`${v}T00:00:00.000Z`);
-  if (Number.isNaN(d.getTime())) throw bad(`${field} is not a valid date`);
-  return d;
+  if (Number.isNaN(d.getTime()) || d.toISOString().slice(0, 10) !== v) {
+    throw bad(`${field} is not a valid date`);
+  }
 }
 
 function bad(message: string) {
   return new DomainError('VALIDATION_FAILED', message, 400, 'errors.validation');
 }
 
-/** Bucket keys (YYYY-MM-DD, UTC; weeks start Monday) covering the range, for zero-filled series. */
+/** Bucket key (local YYYY-MM-DD of the day / Monday of the week in `tz`) for an instant. */
+export function bucketKey(d: Date, bucket: 'day' | 'week', tz = 'UTC'): string {
+  const key = dayKey(d, tz);
+  return bucket === 'day' ? key : addDays(key, -weekdayMon0(key));
+}
+
+/** Bucket keys covering the range (local days, weeks start Monday), for zero-filled series. */
 export function bucketKeys(range: AnalyticsRange): string[] {
+  const tz = range.tz ?? 'UTC';
   const keys: string[] = [];
-  let d = startOfBucket(range.from, range.bucket);
-  while (d <= range.to) {
-    keys.push(d.toISOString().slice(0, 10));
-    d = new Date(d.getTime() + (range.bucket === 'day' ? DAY : 7 * DAY));
+  let k = bucketKey(range.from, range.bucket, tz);
+  const step = range.bucket === 'day' ? 1 : 7;
+  while (zonedMidnight(k, tz) <= range.to) {
+    keys.push(k);
+    k = addDays(k, step);
   }
   return keys;
 }
 
-export function startOfBucket(d: Date, bucket: 'day' | 'week'): Date {
-  const day = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
-  if (bucket === 'day') return day;
-  const dow = (day.getUTCDay() + 6) % 7; // Monday = 0
-  return new Date(day.getTime() - dow * DAY);
+/** Start instant of the bucket containing `d` (local midnight in `tz`). */
+export function startOfBucket(d: Date, bucket: 'day' | 'week', tz = 'UTC'): Date {
+  return zonedMidnight(bucketKey(d, bucket, tz), tz);
 }
 
 export function rate(num: number, den: number): number | null {

@@ -34,6 +34,9 @@ export type HomeViewProps = {
   onApprove: (item: HomeAwaitingItem) => void;
   comments: HomeComment[];
   week: HomeWeekItem[];
+  /** Scheduling timezone + its 7 calendar days for the week strip (from the API). */
+  weekTimezone?: string;
+  weekDays?: string[];
   setup: { steps: HomeChecklistStep[]; visible: boolean; onDismiss: () => void };
   activity: ActivityItem[];
   activityError?: boolean;
@@ -101,10 +104,14 @@ function Shimmer({ rows, height = '56px' }: { rows: number; height?: string }) {
 export function HomeView(p: HomeViewProps) {
   const { t, locale, now } = p;
   const greeting = fill(t(`home.v2.greeting.${greetingFor(now.getHours())}`), { name: firstName(p.userName) });
-  const days = bucketWeek(p.week, now);
+  const days = bucketWeek(p.week, now, { days: p.weekDays, timezone: p.weekTimezone });
   const progress = setupProgress(p.setup.steps);
   const dayFmt = new Intl.DateTimeFormat(locale, { weekday: 'short', day: 'numeric' });
-  const timeFmt = new Intl.DateTimeFormat(locale, { hour: 'numeric', minute: '2-digit' });
+  const timeFmt = new Intl.DateTimeFormat(locale, {
+    hour: 'numeric',
+    minute: '2-digit',
+    ...(p.weekTimezone ? { timeZone: p.weekTimezone } : {}),
+  });
   const dateFmt = new Intl.DateTimeFormat(locale, { weekday: 'long', month: 'long', day: 'numeric' });
   const totalAwaiting = p.awaiting.length;
 

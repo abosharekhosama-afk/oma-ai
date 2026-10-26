@@ -33,6 +33,8 @@ export type HomeWeekItem = {
   channel: string;
   brand: string | null;
   scheduled_at: string;
+  /** Local day (YYYY-MM-DD) in the week's scheduling timezone. */
+  day?: string;
   thumbnail_url: string | null;
   href: string;
 };
@@ -82,7 +84,7 @@ export type HomeData = {
   /** Planable Home additions (optional for older API payloads). */
   brand_summaries?: HomeBrandSummary[];
   awaiting_me?: HomeAwaitingItem[];
-  week?: { start: string; items: HomeWeekItem[] };
+  week?: { start: string; timezone?: string; days?: string[]; items: HomeWeekItem[] };
   can_approve?: boolean;
   publishing_connected: false;
 };

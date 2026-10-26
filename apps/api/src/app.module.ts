@@ -6,6 +6,7 @@ import { DomainExceptionFilter } from './common/filters/domain-exception.filter'
 import { CorrelationMiddleware } from './common/middleware/correlation.middleware';
 import { RateLimitGuard } from './common/guards/rate-limit.guard';
 import { IdempotencyInterceptor } from './common/interceptors/idempotency.interceptor';
+import { AnalyticsInvalidationInterceptor } from './common/interceptors/analytics-invalidation.interceptor';
 import { HealthController } from './health/health.controller';
 import { AuthController } from './identity/auth.controller';
 import { RecoveryController } from './identity/recovery.controller';
@@ -63,6 +64,7 @@ import { AiController } from './ai/ai.controller';
     { provide: APP_FILTER, useClass: DomainExceptionFilter },
     { provide: APP_GUARD, useClass: RateLimitGuard },
     { provide: APP_INTERCEPTOR, useClass: IdempotencyInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: AnalyticsInvalidationInterceptor },
   ],
 })
 export class AppModule implements NestModule {
