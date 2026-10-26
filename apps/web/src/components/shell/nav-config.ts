@@ -24,6 +24,8 @@ export type NavItem = {
   href: string;
   labelKey: string;
   icon: NavIconId;
+  /** Sub-pages shown under the item while its section is open (Planable: Analytics › Overview / Competitors). */
+  children?: Array<{ href: string; labelKey: string }>;
 };
 
 export type NavSection = {
@@ -49,7 +51,15 @@ export const SHELL_NAV_SECTIONS: NavSection[] = [
       { href: '/app', labelKey: 'nav.home', icon: 'home' },
       { href: '/app/content', labelKey: 'nav.content', icon: 'content' },
       { href: '/app/campaigns', labelKey: 'nav.campaigns', icon: 'campaigns' },
-      { href: '/app/analytics', labelKey: 'nav.analytics', icon: 'analytics' },
+      {
+        href: '/app/analytics',
+        labelKey: 'nav.analytics',
+        icon: 'analytics',
+        children: [
+          { href: '/app/analytics', labelKey: 'analytics.nav.overview' },
+          { href: '/app/analytics/competitors', labelKey: 'analytics.nav.competitors' },
+        ],
+      },
     ],
   },
   {
@@ -75,7 +85,9 @@ export const SHELL_NAV_MORE_PREF_KEY = 'oma.shell.moreOpen';
 
 /** True when the path belongs to an item in the given section (auto-opens "More"). */
 export function sectionContainsPath(section: NavSection, pathname: string): boolean {
-  return section.items.some((i) => (i.href === '/app' ? pathname === '/app' : pathname.startsWith(i.href)));
+  return section.items.some((i) =>
+    i.href === '/app' ? pathname === '/app' : pathname.startsWith(i.href),
+  );
 }
 
 export const SHELL_RAIL_PREF_KEY = 'oma.shell.railCollapsed';

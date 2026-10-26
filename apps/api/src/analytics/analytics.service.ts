@@ -8,6 +8,12 @@ import {
   startOfBucket,
   type AnalyticsRange,
 } from './analytics-range';
+import {
+  buildContentOverview,
+  parseChannels,
+  parseGranularity,
+  previousRange,
+} from './analytics-content';
 
 const CONTENT_STATUSES = [
   'DRAFT',
@@ -28,6 +34,8 @@ const DELIVERABLE_ACTION: Record<string, string> = {
 };
 
 export type AnalyticsQuery = {
+  granularity?: string;
+  channels?: string;
   period?: string;
   from?: string;
   to?: string;
@@ -41,6 +49,84 @@ export type AnalyticsQuery = {
  * connectors exist yet.
  */
 export class AnalyticsService {
+  /** Planable-style overview: KPIs vs previous period, series by day/week, per-channel split, content table. */
+  async contentOverview(tenantId: string, q: AnalyticsQuery, now = new Date()) {
+    const prisma = getPrisma();
+    const range = resolveRange(q, now);
+    const granularity = parseGranularity(q.granularity, range);
+    const channels = parseChannels(q.channels);
+    const brandId = q.brandId?.trim() || undefined;
+    const brands = await prisma.brandWorkspace.findMany({
+      where: tenantWhere(tenantId, { archivedAt: null }),
+      select: { id: true, name: true },
+      orderBy: { name: 'asc' },
+    });
+    if (brandId && !brands.some((b) => b.id === brandId)) {
+      throw new DomainError('NOT_FOUND', 'Brand not found', 404, 'errors.not_found');
+    }
+    const prev = previousRange(range);
+    const scope = tenantWhere(tenantId, { archivedAt: null, ...(brandId ? { brandId } : {}) });
+    const allContent = await prisma.contentItem.findMany({
+      where: scope,
+      select: {
+        id: true,
+        brandId: true,
+        channel: true,
+        contentType: true,
+        status: true,
+        titleEn: true,
+        titleAr: true,
+        captionEn: true,
+        captionAr: true,
+        previewAssetUrl: true,
+        plannedAt: true,
+        scheduledAt: true,
+        createdAt: true,
+      },
+    });
+    const available = countChannels(allContent);
+    const content = channels
+      ? allContent.filter((c) => channels.includes(c.channel.toLowerCase()))
+      : allContent;
+    const ids = content.map((c) => c.id);
+    const [events, comments] = ids.length
+      ? await Promise.all([
+          prisma.contentApprovalEvent.findMany({
+            where: { tenantId, contentId: { in: ids }, at: { gte: prev.from, lte: range.to } },
+            select: { contentId: true, action: true, at: true },
+          }),
+          prisma.contentComment.findMany({
+            where: {
+              tenantId,
+              contentId: { in: ids },
+              createdAt: { gte: prev.from, lte: range.to },
+            },
+            select: { contentId: true, createdAt: true },
+          }),
+        ])
+      : [[], []];
+    const names = new Map(brands.map((b) => [b.id, b.name]));
+    return {
+      data: {
+        ...buildContentOverview({
+          range,
+          granularity,
+          content,
+          events,
+          comments,
+          brandName: (id) => names.get(id) ?? '—',
+        }),
+        filters: {
+          brand_id: brandId ?? null,
+          channels: channels ?? [],
+          brands: brands.map((b) => ({ id: b.id, name: b.name })),
+          available_channels: available,
+        },
+        generated_at: now.toISOString(),
+      },
+    };
+  }
+
   async overview(tenantId: string, q: AnalyticsQuery, now = new Date()) {
     const prisma = getPrisma();
     const range = resolveRange(q, now);
@@ -324,6 +410,14 @@ export class AnalyticsService {
       },
     };
   }
+}
+
+function countChannels(rows: Array<{ channel: string }>) {
+  const m = new Map<string, number>();
+  for (const r of rows) m.set(r.channel, (m.get(r.channel) ?? 0) + 1);
+  return [...m.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([channel, posts]) => ({ channel, posts }));
 }
 
 function countBy<T>(rows: T[], key: (r: T) => string, keys: readonly string[]) {

@@ -15,6 +15,7 @@
 @import '../styles/work-analytics.css';
 @import '../styles/home.css';
 @import '../styles/content-views.css';
+@import '../styles/analytics-planable.css';
 
 * {
   box-sizing: border-box;
