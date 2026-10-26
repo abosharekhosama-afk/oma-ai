@@ -61,7 +61,13 @@ export const brandSettingsApi = {
   get: (brandId: string) => api<{ data: BrandDetail }>(`/api/v1/brands/${brandId}`),
   update: async (
     brandId: string,
-    patch: { name?: string; logoUrl?: string | null; timezone?: string; version: number },
+    patch: {
+      name?: string;
+      logoUrl?: string | null;
+      logo_asset_id?: string | null;
+      timezone?: string;
+      version: number;
+    },
   ) => {
     const r = await api<{
       data: { version: number; name: string; logo_url: string | null; timezone: string };

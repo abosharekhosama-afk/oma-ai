@@ -127,6 +127,8 @@ export async function createContentProduction(input: {
   track?: ContentRow['track'];
   plannedAt?: string | null;
   labels?: string[];
+  /** WorkDrive MediaAsset (kind posts) shown as the post media. */
+  preview_asset_id?: string | null;
 }): Promise<ApiContent> {
   const { brandId, ...body } = input;
   const res = await api<{ data: ApiContent }>(`/api/v1/brands/${brandId}/content`, {

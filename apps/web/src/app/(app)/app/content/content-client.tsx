@@ -82,7 +82,8 @@ import {
 import { Dialog } from '../../../../components/ui/dialog';
 import { EmptyState, DeniedState } from '../../../../components/ui/empty-state';
 import { useToast } from '../../../../components/ui/toast';
-import { P3_MEDIA } from '../../../../lib/demo/demo-media';
+import { MediaPickerDialog, MediaThumb } from '../../../../components/content/media-picker';
+import type { MediaAsset } from '../../../../lib/workdrive-api';
 import {
   hasContentViewPref,
   isContentViewMode,
@@ -314,7 +315,8 @@ type ComposeForm = {
   campaignId: string;
   contentType: string;
   channel: string;
-  previewAsset: string;
+  /** WorkDrive media picked in compose (stored as preview_asset_id). */
+  media: MediaAsset | null;
   owner: string;
   plannedDate: string;
   track: string;
@@ -335,7 +337,11 @@ function PlanableComposeCard({
   onSubmit,
   onOpenLabels,
   onOpenTemplates,
+  brandId,
+  canConnectStorage,
 }: {
+  brandId: string | null;
+  canConnectStorage: boolean;
   open: boolean;
   creating: boolean;
   error: string | null;
@@ -350,6 +356,7 @@ function PlanableComposeCard({
 }) {
   const t = useT();
   const [campaignMenu, setCampaignMenu] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
   if (!open) return null;
   const selectedCampaign = campaigns.find((c) => c.id === form.campaignId);
   return createPortal(
@@ -442,27 +449,35 @@ function PlanableComposeCard({
                 <EditOutlined />
               </span>
             </div>
-            <label className="oma-compose-media" aria-label={t('demo.content.media')}>
-              <PictureOutlined />
-              <input
-                type="file"
-                accept="image/*,video/*"
-                multiple
-                hidden
-                data-testid="demo-compose-media-input"
-                onChange={(e) => {
-                  const files = Array.from(e.target.files ?? []);
-                  if (!files.length) return;
-                  const names = files.map((f) => f.name).join(', ');
-                  const note =
-                    form.caption && form.caption.trim()
-                      ? `${form.caption}\n\n[Media: ${names}]`
-                      : `[Media: ${names}]`;
-                  onChange({ caption: note });
-                  e.target.value = '';
-                }}
-              />
-            </label>
+            {form.media ? (
+              <div className="oma-compose-media-chip" data-testid="compose-media-selected">
+                <MediaThumb asset={form.media} t={t} />
+                <button type="button" onClick={() => onChange({ media: null })}>
+                  {t('media.remove')}
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="oma-compose-media"
+                aria-label={t('media.add')}
+                title={t('media.add')}
+                data-testid="compose-media-open"
+                onClick={() => setPickerOpen(true)}
+              >
+                <PictureOutlined />
+              </button>
+            )}
+            <MediaPickerDialog
+              open={pickerOpen}
+              brandId={brandId}
+              kind="posts"
+              t={t}
+              locale={locale}
+              canConnect={canConnectStorage}
+              onClose={() => setPickerOpen(false)}
+              onPick={(asset) => onChange({ media: asset })}
+            />
           </div>
           <div className="oma-compose-main">
             <Input
@@ -511,17 +526,6 @@ function PlanableComposeCard({
                 { value: 'ORGANIC', label: t('strategy.nav.organic') },
                 { value: 'PAID', label: t('strategy.nav.paid') },
               ]}
-            />
-          </label>
-          <label>
-            {t('demo.content.media')}
-            <OmaSelect
-              value={form.previewAsset}
-              onChange={(previewAsset) => onChange({ previewAsset })}
-              options={Object.entries(P3_MEDIA).map(([id, src]) => ({
-                value: src,
-                label: id,
-              }))}
             />
           </label>
           <label>
@@ -895,6 +899,7 @@ export default function ContentPage() {
   const search = useSearchParams();
   const toast = useToast();
   const caps = useCapabilities();
+  const canManageWorkspace = caps.capabilities.includes('tenant.manage');
   const capsReady = !caps.loading;
   const mayApprove = capsReady && caps.can(['content.approve'], 'any');
   const mayRequestApproval = capsReady && caps.can(['content.request_approval'], 'any');
@@ -997,7 +1002,7 @@ export default function ContentPage() {
     brief: '',
     caption: '',
     track: 'ORGANIC',
-    previewAsset: P3_MEDIA.product as string,
+    media: null as MediaAsset | null,
     labels: [] as string[],
   });
 
@@ -1966,6 +1971,7 @@ export default function ContentPage() {
         // Scheduling happens solely through the explicit Schedule action.
         plannedAt: wallTimeToIso(createForm.plannedDate),
         labels: createForm.labels,
+        preview_asset_id: createForm.media?.id ?? null,
       });
       const createdRow = toContentRow(apiCreated);
       toast.push(t('demo.create.successContent'), 'success');
@@ -1978,7 +1984,7 @@ export default function ContentPage() {
           setSelectedDay(day);
         }
       }
-      setCreateForm((f) => ({ ...f, title: '', brief: '', caption: '', labels: [] }));
+      setCreateForm((f) => ({ ...f, title: '', brief: '', caption: '', labels: [], media: null }));
       openItem(createdRow, 'edit');
       setRows((prev) => (prev.some((r) => r.id === createdRow.id) ? prev : [createdRow, ...prev]));
       void load();
@@ -4413,32 +4419,20 @@ export default function ContentPage() {
         </>
       ) : null}
 
-      {/* Media library */}
-      <Dialog
+      {/* Media library (WorkDrive) */}
+      <MediaPickerDialog
         open={mediaLibraryOpen}
-        title={t('content.media_library')}
+        brandId={createForm.brandId || brands[0]?.id || null}
+        kind="posts"
+        t={t}
+        locale={locale}
+        canConnect={canManageWorkspace}
         onClose={() => setMediaLibraryOpen(false)}
-        size="lg"
-        className="oma-content-media-modal"
-      >
-        <div className="oma-media-library-grid" data-testid="demo-content-media-library">
-          {Object.entries(P3_MEDIA).map(([name, src]) => (
-            <button
-              key={name}
-              type="button"
-              className="oma-media-library-item"
-              onClick={() => {
-                setCreateForm((f) => ({ ...f, previewAsset: src }));
-                setMediaLibraryOpen(false);
-                setCreateOpen(true);
-              }}
-            >
-              <img src={src} alt={name} />
-              <span>{name.replaceAll('_', ' ')}</span>
-            </button>
-          ))}
-        </div>
-      </Dialog>
+        onPick={(asset) => {
+          setCreateForm((f) => ({ ...f, media: asset }));
+          setCreateOpen(true);
+        }}
+      />
 
       {/* Approval selection bar */}
       {selectedIds.length > 0 ? (
@@ -4645,6 +4639,13 @@ export default function ContentPage() {
         form={createForm}
         campaigns={campaigns}
         locale={locale}
+        brandId={
+          createForm.brandId ||
+          campaigns.find((c) => c.id === createForm.campaignId)?.brandId ||
+          brands[0]?.id ||
+          null
+        }
+        canConnectStorage={canManageWorkspace}
         onChange={(patch) => setCreateForm((f) => ({ ...f, ...patch }))}
         onClose={() => setCreateOpen(false)}
         onSubmit={() => void submitCreate()}

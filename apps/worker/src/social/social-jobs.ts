@@ -9,7 +9,9 @@ import {
   tokenKeyFromEnv,
   type SocialProviderAdapter,
   type SocialNetworkCode,
+  type FetchLike,
 } from '@oma/domain';
+import { publicMediaUrl } from '../media/media-jobs';
 
 export const MAX_PUBLISH_ATTEMPTS = 5;
 /** Backoff after attempt n (1-based): 1m, 5m, 15m, 60m. */
@@ -19,7 +21,12 @@ export const REFRESH_WINDOW_MS = 3 * 24 * 3600_000;
 
 export type AdapterFactory = (network: SocialNetworkCode) => SocialProviderAdapter;
 
-type Deps = { now?: () => Date; adapterFor?: AdapterFactory; key?: Buffer | null };
+type Deps = {
+  now?: () => Date;
+  adapterFor?: AdapterFactory;
+  key?: Buffer | null;
+  mediaFetch?: FetchLike;
+};
 
 function pageForAdapter(
   p: {
@@ -165,7 +172,8 @@ export async function runPublishTick(deps: Deps = {}) {
         [item.captionEn || item.titleEn].filter(Boolean).join('\n').trim() || item.titleEn;
       const res = await adapter.publish(pageForAdapter(page, key), {
         text,
-        mediaUrl: item.previewAssetUrl,
+        // WorkDrive media → a fresh signed URL the network can fetch (Instagram / TikTok).
+        mediaUrl: await publicMediaUrl(item, { fetchImpl: deps.mediaFetch }),
       });
       await prisma.contentItem.update({
         where: { id: item.id },

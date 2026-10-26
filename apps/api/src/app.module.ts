@@ -1,4 +1,5 @@
 import { SocialController } from './social/social.controller';
+import { MediaController, WorkDriveController } from './media/media.controller';
 import { BrandScopeMiddleware } from './common/middleware/brand-scope.middleware';
 import { ActivityController, HomeController } from './home/home.controller';
 import { WorkspaceSettingsController } from './workspace/workspace-settings.controller';
@@ -62,6 +63,8 @@ import { AiController } from './ai/ai.controller';
     HomeController,
     ActivityController,
     SocialController,
+    WorkDriveController,
+    MediaController,
   ],
   providers: [
     { provide: APP_FILTER, useClass: DomainExceptionFilter },

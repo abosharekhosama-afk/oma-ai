@@ -19,6 +19,22 @@ import {
   type Track,
 } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
+import { mediaViewUrl } from '../media/media.service';
+
+/** `preview_asset_id`: a posts MediaAsset of the same brand (or null to clear). */
+async function resolvePreviewAsset(tenantId: string, brandId: string, value: unknown) {
+  if (value === undefined) return undefined;
+  if (value === null || value === '') return { previewAssetId: null, previewAssetUrl: null };
+  const a =
+    typeof value === 'string'
+      ? await getPrisma().mediaAsset.findFirst({
+          where: tenantWhere(tenantId, { id: value, brandId, kind: 'posts' }),
+          select: { id: true },
+        })
+      : null;
+  if (!a) throw new DomainError('NOT_FOUND', 'Media not found', 404, 'errors.not_found');
+  return { previewAssetId: a.id, previewAssetUrl: mediaViewUrl(a.id) };
+}
 
 type LocaleInput = { en: string; ar?: string } | string;
 
@@ -52,6 +68,7 @@ function mapContent(
     approverRequired: number;
     approverApproved: number;
     previewAssetUrl: string | null;
+    previewAssetId?: string | null;
     labels: string[];
     assigneeUserId: string | null;
     clientVisible: boolean;
@@ -101,6 +118,7 @@ function mapContent(
     approver_required: row.approverRequired,
     approver_approved: row.approverApproved,
     preview_asset_url: row.previewAssetUrl,
+    preview_asset_id: row.previewAssetId ?? null,
     labels: row.labels ?? [],
     assignee_user_id: row.assigneeUserId,
     client_visible: row.clientVisible,
@@ -304,10 +322,12 @@ export class ContentService {
       track?: Track;
       plannedAt?: string | null;
       labels?: string[];
+      preview_asset_id?: string | null;
     },
     correlationId?: string,
   ) {
     await this.requireActiveBrand(tenantId, brandId);
+    const media = await resolvePreviewAsset(tenantId, brandId, input.preview_asset_id);
     const title = localePair(input.title);
     if (!title.en) {
       throw new DomainError('VALIDATION_FAILED', 'Title required', 400, 'errors.validation_failed');
@@ -350,6 +370,7 @@ export class ContentService {
         approverRequired: 1,
         approverApproved: 0,
         labels: input.labels ?? [],
+        ...(media ?? {}),
         createdBy: actorUserId,
       },
     });
@@ -379,6 +400,7 @@ export class ContentService {
       plannedAt?: string | null;
       labels?: string[];
       clientVisible?: boolean;
+      preview_asset_id?: string | null;
     },
     correlationId?: string,
   ) {
@@ -406,6 +428,7 @@ export class ContentService {
       });
     }
 
+    const media = await resolvePreviewAsset(tenantId, current.brandId, patch.preview_asset_id);
     const title = patch.title ? localePair(patch.title) : null;
     const caption =
       patch.caption === null
@@ -427,6 +450,7 @@ export class ContentService {
           : {}),
         ...(patch.labels ? { labels: patch.labels } : {}),
         ...(patch.clientVisible !== undefined ? { clientVisible: patch.clientVisible } : {}),
+        ...(media ?? {}),
       },
     });
 

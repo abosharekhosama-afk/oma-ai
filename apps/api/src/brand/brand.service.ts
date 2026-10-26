@@ -218,6 +218,7 @@ export class BrandService {
         next_scan_connector_mode: brandConnectorMode(),
         archived_at: brand.archivedAt?.toISOString() ?? null,
         logo_url: brand.logoUrl,
+        logo_asset_id: brand.logoAssetId,
         timezone: await brandTimezone(tenantId, brand.id),
         updated_at: brand.updatedAt.toISOString(),
       },
@@ -242,12 +243,23 @@ export class BrandService {
     if (brand.version !== input.version) {
       throw new DomainError('CONFLICT_VERSION', 'Stale version', 409, 'errors.conflict_version');
     }
+    let logo: { logoUrl: string | null; logoAssetId: string | null } | undefined;
+    if (input.logoAssetId) {
+      const asset = await prisma.mediaAsset.findFirst({
+        where: tenantWhere(tenantId, { id: input.logoAssetId, brandId, kind: 'logos' }),
+        select: { id: true },
+      });
+      if (!asset) throw new DomainError('NOT_FOUND', 'Logo not found', 404, 'errors.not_found');
+      logo = { logoAssetId: asset.id, logoUrl: `/api/v1/media/${asset.id}/view` };
+    } else if (input.logoAssetId === null || input.logoUrl !== undefined) {
+      logo = { logoAssetId: null, logoUrl: input.logoUrl ?? null };
+    }
     const updated = await prisma.$transaction(async (tx) => {
       const row = await tx.brandWorkspace.update({
         where: { id: brandId },
         data: {
           ...(input.name !== undefined ? { name: input.name } : {}),
-          ...(input.logoUrl !== undefined ? { logoUrl: input.logoUrl } : {}),
+          ...(logo ?? {}),
           version: { increment: 1 },
         },
       });
@@ -275,6 +287,7 @@ export class BrandService {
         status: updated.status,
         version: updated.version,
         logo_url: updated.logoUrl,
+        logo_asset_id: updated.logoAssetId,
         timezone: await brandTimezone(tenantId, brandId),
       },
     };

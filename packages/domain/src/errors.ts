@@ -28,7 +28,11 @@ export type ErrorCode =
   | 'BRAND_ARCHIVED'
   | 'SCHEDULE_BLOCKED'
   | 'CONTENT_REJECTED'
-  | 'CAMPAIGN_ARCHIVED';
+  | 'CAMPAIGN_ARCHIVED'
+  | 'WORKDRIVE_NOT_CONNECTED'
+  | 'WORKDRIVE_ERROR'
+  | 'MEDIA_MISSING'
+  | 'PAYLOAD_TOO_LARGE';
 
 export class DomainError extends Error {
   constructor(

@@ -84,6 +84,8 @@ Writer can create versions and cannot decide. Approver can decide and annotate a
 
 Object storage is a refusing port (`DEC-003` still open). A local upload store would be a new persistence backend. This change does not add one.
 
+> Update (2026-10-26): `DEC-003` is resolved. Media now lives in each tenant's Imkan WorkDrive through the WorkDrive adapter (`packages/domain/src/workdrive`). See `docs/decisions/DEC-003-workdrive-file-ownership.md` and `docs/workdrive-setup.md`.
+
 What a later phase needs:
 
 - An approved object-storage adapter (tenant-scoped keys, checksums).
