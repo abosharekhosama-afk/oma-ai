@@ -1,6 +1,9 @@
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { DomainError, hasCapability } from '@oma/domain';
-import { getPrisma, tenantWhere } from '@oma/db';
+import { CanActivate, ExecutionContext, Injectable, Optional } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import { capabilitiesForBrandRole, DomainError, hasCapability } from '@oma/domain';
+import { getPrisma, tenantWhere, withoutBrandScope } from '@oma/db';
+import { REQUIRE_CAPABILITIES_KEY } from '../decorators/require-capabilities.decorator';
+import { resolveBrandAccess, type BrandAccess } from '../../brand/brand-access';
 import type { Request } from 'express';
 
 const routeRequirements: Record<string, string[]> = {
@@ -32,6 +35,19 @@ const routeRequirements: Record<string, string[]> = {
   'GET /api/v1/brands/:brandId': ['brand.read'],
   'PATCH /api/v1/brands/:brandId': ['brand.create'],
   'POST /api/v1/brands/:brandId/archive': ['brand.archive'],
+  'POST /api/v1/brands/:brandId/unarchive': ['brand.archive'],
+  'DELETE /api/v1/brands/:brandId': ['brand.archive'],
+  'POST /api/v1/brands/:brandId/restore': ['brand.archive', 'tenant.manage'],
+  'POST /api/v1/brands/:brandId/purge': ['brand.archive', 'tenant.manage'],
+  'GET /api/v1/brands/-/deleted': ['brand.archive', 'tenant.manage'],
+  'GET /api/v1/brands/:brandId/members': ['brand.read'],
+  'POST /api/v1/brands/:brandId/members': ['membership.manage'],
+  'PATCH /api/v1/brands/:brandId/members/:userId': ['membership.manage'],
+  'DELETE /api/v1/brands/:brandId/members/:userId': ['membership.manage'],
+  'GET /api/v1/brands/:brandId/social-pages': ['brand.read'],
+  'POST /api/v1/brands/:brandId/social-pages/oauth/:network/start': ['brand.website.connect'],
+  'DELETE /api/v1/social-pages/:pageId': ['brand.website.connect'],
+  'POST /api/v1/content/:contentId/publish-target': ['content.schedule'],
   'POST /api/v1/brands/:brandId/website': ['brand.website.connect'],
   'GET /api/v1/brands/:brandId/website': ['brand.read'],
   'POST /api/v1/brands/:brandId/scans': ['brand.scan.control'],
@@ -194,7 +210,7 @@ const routeRequirements: Record<string, string[]> = {
   'POST /api/v1/brands/:brandId/content-templates/:templateId/use': ['content.create'],
 };
 
-function matchRequirements(method: string, path: string): string[] | null {
+export function matchRequirements(method: string, path: string): string[] | null {
   const normalized = path
     .replace(/\/api\/v1\/memberships\/[^/]+\//, '/api/v1/memberships/:id/')
     .replace(/\/api\/v1\/notifications\/[^/]+\/read/, '/api/v1/notifications/:id/read')
@@ -428,7 +444,10 @@ function matchRequirements(method: string, path: string): string[] | null {
       .replace(':dayKey', '[^/]+')
       .replace(':labelId', '[^/]+')
       .replace(':templateId', '[^/]+')
-      .replace(':evidenceId', '[^/]+');
+      .replace(':evidenceId', '[^/]+')
+      .replace(':userId', '[^/]+')
+      .replace(':network', '[^/]+')
+      .replace(':pageId', '[^/]+');
     if (
       new RegExp('^' + pattern.replace(/\//g, '\\/') + '$').test(`${method.toUpperCase()} ${path}`)
     )
@@ -440,10 +459,25 @@ function matchRequirements(method: string, path: string): string[] | null {
 
 @Injectable()
 export class CapabilitiesGuard implements CanActivate {
+  constructor(@Optional() private readonly reflector?: Reflector) {}
+
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest<Request>();
-    const required = matchRequirements(req.method, req.path);
-    if (!required || required.length === 0) return true;
+    const declared = this.reflector?.getAllAndOverride<string[] | undefined>(
+      REQUIRE_CAPABILITIES_KEY,
+      [context.getHandler(), context.getClass()],
+    );
+    const required = declared ?? matchRequirements(req.method, req.path);
+    // Deny by default: a route behind this guard with no mapping is a configuration bug,
+    // never an open door. Use @RequireCapabilities() (empty) for "any active member".
+    if (!required) {
+      throw new DomainError(
+        'PERMISSION_DENIED',
+        'Route has no capability mapping',
+        403,
+        'errors.permission_denied',
+      );
+    }
     if (!req.oma?.userId)
       throw new DomainError(
         'UNAUTHENTICATED',
@@ -475,10 +509,22 @@ export class CapabilitiesGuard implements CanActivate {
         403,
         'errors.permission_denied',
       );
-    const caps = [...new Set(memberships.flatMap((m) => m.grants.map((g) => g.capabilityCode)))];
+    let caps = [...new Set(memberships.flatMap((m) => m.grants.map((g) => g.capabilityCode)))];
+    // Per-brand access: when the request targets one brand, non-admins must be a member of it
+    // and their brand role narrows their workspace capabilities.
+    const access = req.brandAccess ?? (await resolveBrandAccess(req.oma.tenantId, req.oma.userId));
+    if (!access.all) {
+      const brandId = await targetBrandId(req, req.oma.tenantId);
+      if (brandId) {
+        const role = access.roles.get(brandId);
+        // 404, not 403: do not reveal that a brand the user cannot see exists.
+        if (!role) throw new DomainError('NOT_FOUND', 'Not found', 404, 'errors.not_found');
+        caps = capabilitiesForBrandRole(caps, role);
+      }
+    }
     req.oma.capabilities = caps;
     req.oma.membershipId = primary.id;
-    if (!hasCapability(caps, required)) {
+    if (required.length > 0 && !hasCapability(caps, required)) {
       throw new DomainError(
         'PERMISSION_DENIED',
         'Missing capability',
@@ -489,3 +535,77 @@ export class CapabilitiesGuard implements CanActivate {
     return true;
   }
 }
+
+const ENTITY_ROUTES: Array<[RegExp, (id: string, tenantId: string) => Promise<string | null>]> = [
+  [
+    /^\/api\/v1\/content\/([^/]+)/,
+    async (id, tenantId) =>
+      (
+        await getPrisma().contentItem.findFirst({
+          where: { id, tenantId },
+          select: { brandId: true },
+        })
+      )?.brandId ?? null,
+  ],
+  [
+    /^\/api\/v1\/campaigns\/([^/]+)/,
+    async (id, tenantId) =>
+      (await getPrisma().campaign.findFirst({ where: { id, tenantId }, select: { brandId: true } }))
+        ?.brandId ?? null,
+  ],
+  [
+    /^\/api\/v1\/tasks\/([^/]+)/,
+    async (id, tenantId) =>
+      (await getPrisma().workTask.findFirst({ where: { id, tenantId }, select: { brandId: true } }))
+        ?.brandId ?? null,
+  ],
+  [
+    /^\/api\/v1\/requests\/([^/]+)/,
+    async (id, tenantId) =>
+      (
+        await getPrisma().workRequest.findFirst({
+          where: { id, tenantId },
+          select: { brandId: true },
+        })
+      )?.brandId ?? null,
+  ],
+  [
+    /^\/api\/v1\/deliverables\/([^/]+)/,
+    async (id, tenantId) =>
+      (
+        await getPrisma().workDeliverable.findFirst({
+          where: { id, tenantId },
+          select: { brandId: true },
+        })
+      )?.brandId ?? null,
+  ],
+  [
+    /^\/api\/v1\/social-pages\/([^/]+)/,
+    async (id, tenantId) =>
+      (
+        await getPrisma().socialPage.findFirst({
+          where: { id, tenantId },
+          select: { brandId: true },
+        })
+      )?.brandId ?? null,
+  ],
+];
+
+/** The single brand a request targets (path, entity, query or body), if any. */
+export async function targetBrandId(req: Request, tenantId: string): Promise<string | null> {
+  const m = /^\/api\/v1\/brands\/([^/]+)/.exec(req.path);
+  if (m) return decodeURIComponent(m[1]!);
+  for (const [re, lookup] of ENTITY_ROUTES) {
+    const e = re.exec(req.path);
+    // Unscoped lookup so a brand the user cannot see resolves (and then 404s) instead of
+    // falling through to "no brand".
+    if (e) return withoutBrandScope(() => lookup(decodeURIComponent(e[1]!), tenantId));
+  }
+  const q = req.query?.brandId ?? req.query?.brand_id;
+  if (typeof q === 'string' && q.trim()) return q.trim();
+  const body = (req.body ?? {}) as Record<string, unknown>;
+  const b = body.brandId ?? body.brand_id;
+  return typeof b === 'string' && b.trim() ? b.trim() : null;
+}
+
+export type { BrandAccess };

@@ -62,18 +62,24 @@ export function selectAwaitingForUser<T extends { id: string }>(
 }
 
 /** Per-brand counts for Home brand cards (pure; unit-tested). */
+export type BrandSocialPage = { brandId: string; network: string; name: string; avatarUrl: string | null; status: string };
+
 export function summarizeBrands(
-  brands: Array<{ id: string; name: string }>,
+  brands: Array<{ id: string; name: string; logoUrl?: string | null }>,
   items: Array<{ brandId: string; channel: string; approvalState: string; scheduleState: string; scheduledAt: Date | null }>,
   weekStart: Date,
   weekEnd: Date,
+  pages: BrandSocialPage[] = [],
 ) {
   return brands.map((b) => {
     const own = items.filter((i) => i.brandId === b.id);
+    const social = pages.filter((p) => p.brandId === b.id);
     return {
       id: b.id,
       name: b.name,
-      logo_url: null as string | null,
+      logo_url: b.logoUrl ?? null,
+      // Real connected accounts; `channels` (inferred from content) is kept for older clients.
+      social_pages: social.map((p) => ({ network: p.network.toLowerCase(), name: p.name, avatar_url: p.avatarUrl, status: p.status })),
       channels: [...new Set(own.map((i) => i.channel.toLowerCase()))].sort(),
       awaiting_approval: own.filter((i) => (PENDING_APPROVAL as readonly string[]).includes(i.approvalState)).length,
       scheduled_this_week: own.filter(
@@ -189,10 +195,17 @@ export async function buildHome(
   const dayStart = zonedMidnight(todayKey, weekTz);
   const stripEnd = zonedMidnight(addDays(todayKey, 7), weekTz);
   const liveBrands = await prisma.brandWorkspace.findMany({
-    where: tenantWhere(tenantId, live),
+    where: tenantWhere(tenantId, { ...live, deletedAt: null }),
     orderBy: { createdAt: 'asc' },
-    select: { id: true, name: true },
+    select: { id: true, name: true, logoUrl: true },
   });
+  const socialPages = liveBrands.length
+    ? await prisma.socialPage.findMany({
+        where: { tenantId, brandId: { in: liveBrands.map((b) => b.id) }, status: { not: 'DISCONNECTED' } },
+        select: { brandId: true, network: true, name: true, avatarUrl: true, status: true },
+        orderBy: [{ network: 'asc' }],
+      })
+    : [];
   const [brandItems, pendingItems, weekItems] = await Promise.all([
     prisma.contentItem.findMany({
       where: tenantWhere(tenantId, live),
@@ -286,7 +299,7 @@ export async function buildHome(
         brand: brandName.get(c.brandId) ?? null,
         href: `/app/content?item=${encodeURIComponent(c.id)}`,
       })),
-      brand_summaries: summarizeBrands(liveBrands, brandItems, now, weekEnd),
+      brand_summaries: summarizeBrands(liveBrands, brandItems, now, weekEnd, socialPages),
       awaiting_me: awaiting.map((c) => ({
         id: c.id,
         title: copy(c.titleEn, c.titleAr),

@@ -6,6 +6,7 @@ import {
   createBrand,
   seedBrandTenant,
   seedMemberWithoutBrandCaps,
+  addBrandMember,
 } from '../helpers/brand-test';
 
 describe('account, preferences and real notifications', () => {
@@ -19,6 +20,8 @@ describe('account, preferences and real notifications', () => {
     const brand = await createBrand(seed, 'Notif Brand');
     expect(brand.res.status).toBe(201);
     brandId = brand.body.data.id as string;
+    // Per-brand access: the member works on this brand.
+    await addBrandMember(seed.tenantId, brandId, member.userId, 'EDITOR');
   });
 
   afterAll(async () => {

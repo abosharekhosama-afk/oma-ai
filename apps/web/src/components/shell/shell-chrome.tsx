@@ -222,6 +222,8 @@ function ShellBreadcrumb({ onOpenSettings }: { onOpenSettings: () => void }) {
     else if (translated !== key) label = translated;
     else if (seg === 'members') label = t('nav.company');
     else if (seg === 'brands') label = t('nav.intelligence');
+    // Never show a raw record id in the trail.
+    else if (segments[idx - 1] === 'brands') label = t('shell.breadcrumbBrand');
     return { href, label, current: idx === segments.length - 1 };
   });
 
@@ -427,7 +429,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
                   <span>{t('brand.list.create')}</span>
                 </OmaLinkButton>
               </div>
-            ) : isBrandDetail && brandIdFromPath ? (
+            ) : isBrandDetail && brandIdFromPath && !pathname.endsWith('/settings') ? (
               <div className="oma-top-actions">
                 <OmaLinkButton
                   href={`/app/brands/${brandIdFromPath}/connect`}

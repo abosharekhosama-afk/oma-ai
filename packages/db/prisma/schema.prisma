@@ -499,6 +499,10 @@ model BrandWorkspace {
   createdAt                       DateTime                   @default(now())
   updatedAt                       DateTime                   @updatedAt
   archivedAt                      DateTime?
+  /// Soft delete: hidden everywhere; purge permanently removes the brand's data.
+  deletedAt                       DateTime?
+  /// https URL or uploaded image (data URL, max ~200 KB). Shown wherever initials are used.
+  logoUrl                         String?
   tenant                          Tenant                     @relation(fields: [tenantId], references: [id])
   websiteSources                  WebsiteSource[]
   scanAttempts                    ScanAttempt[]
@@ -1117,6 +1121,15 @@ model ContentItem {
   labels           String[]             @default([])
   assigneeUserId   String?
   clientVisible    Boolean              @default(true)
+  /// Real publishing (social accounts). Null socialPageId = not published by OMA.
+  socialPageId     String?
+  publishState     ContentPublishState  @default(NONE)
+  publishAttempts  Int                  @default(0)
+  nextPublishAt    DateTime?
+  lastPublishError String?
+  externalPostId   String?
+  externalPostUrl  String?
+  publishedAt      DateTime?
   archivedAt       DateTime?
   createdBy        String
   createdAt        DateTime             @default(now())
@@ -1133,6 +1146,7 @@ model ContentItem {
   @@index([tenantId, plannedAt])
   @@index([tenantId, createdAt])
   @@index([tenantId, channel])
+  @@index([publishState, nextPublishAt])
 }
 
 model ContentApprovalEvent {
@@ -1516,4 +1530,94 @@ model WorkTaskComment {
 
   @@index([taskId, createdAt])
   @@index([tenantId, taskId])
+}
+
+enum BrandMemberRole {
+  MANAGER
+  EDITOR
+  APPROVER
+  VIEWER
+}
+
+/// Per-brand access. Tenant owners/admins (tenant.manage) see every brand; everyone else
+/// only the brands they are a member of, with the role limiting what they can do there.
+model BrandMember {
+  id        String          @id
+  tenantId  String
+  brandId   String
+  userId    String
+  role      BrandMemberRole @default(EDITOR)
+  addedBy   String?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@unique([brandId, userId])
+  @@index([tenantId, userId])
+}
+
+enum SocialNetwork {
+  FACEBOOK
+  INSTAGRAM
+  LINKEDIN
+  TIKTOK
+  X
+}
+
+enum SocialPageStatus {
+  CONNECTED
+  NEEDS_REAUTH
+  ERROR
+  DISCONNECTED
+}
+
+enum ContentPublishState {
+  NONE
+  QUEUED
+  PUBLISHING
+  PUBLISHED
+  FAILED
+}
+
+/// A connected social profile/page for a brand. Tokens are AES-256-GCM encrypted at rest
+/// (SOCIAL_TOKEN_ENCRYPTION_KEY); never returned by the API.
+model SocialPage {
+  id                String           @id
+  tenantId          String
+  brandId           String
+  network           SocialNetwork
+  externalId        String
+  name              String
+  avatarUrl         String?
+  status            SocialPageStatus @default(CONNECTED)
+  accessTokenEnc    String
+  refreshTokenEnc   String?
+  tokenExpiresAt    DateTime?
+  refreshExpiresAt  DateTime?
+  scopes            String[]         @default([])
+  /// Network-specific ids (e.g. Instagram business account's parent Facebook page).
+  metaJson          String           @default("{}")
+  lastError         String?
+  lastRefreshedAt   DateTime?
+  connectedBy       String
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@unique([brandId, network, externalId])
+  @@index([tenantId, brandId])
+  @@index([status, tokenExpiresAt])
+}
+
+/// OAuth state for an in-flight connect (CSRF + PKCE verifier), single use, 15 min.
+model SocialOAuthState {
+  id              String        @id
+  tenantId        String
+  brandId         String
+  userId          String
+  network         SocialNetwork
+  codeVerifierEnc String?
+  expiresAt       DateTime
+  usedAt          DateTime?
+  createdAt       DateTime      @default(now())
+
+  @@index([expiresAt])
 }

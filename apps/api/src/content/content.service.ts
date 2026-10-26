@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { getPrisma, tenantWhere } from '@oma/db';
+import { brandTimezone } from '../brand/brand.service';
+import { parseTimezone } from '../brand/brand-input';
 import {
   DomainError,
   newId,
@@ -57,6 +59,12 @@ function mapContent(
     createdBy: string;
     createdAt: Date;
     updatedAt: Date;
+    socialPageId?: string | null;
+    publishState?: string;
+    publishAttempts?: number;
+    lastPublishError?: string | null;
+    externalPostUrl?: string | null;
+    publishedAt?: Date | null;
   },
   policy: ApprovalPolicy = 'OPTIONAL',
 ) {
@@ -101,6 +109,14 @@ function mapContent(
     created_at: row.createdAt.toISOString(),
     updated_at: row.updatedAt.toISOString(),
     workflow,
+    publishing: {
+      social_page_id: row.socialPageId ?? null,
+      state: row.publishState ?? 'NONE',
+      attempts: row.publishAttempts ?? 0,
+      last_error: row.lastPublishError ?? null,
+      external_post_url: row.externalPostUrl ?? null,
+      published_at: row.publishedAt?.toISOString() ?? null,
+    },
   };
 }
 
@@ -330,7 +346,7 @@ export class ContentService {
         approvalState: 'NOT_REQUESTED',
         scheduleState: 'UNSCHEDULED',
         plannedAt: parseOptionalDate(input.plannedAt, 'plannedAt'),
-        timezone: 'Asia/Dubai',
+        timezone: await brandTimezone(tenantId, brandId),
         approverRequired: 1,
         approverApproved: 0,
         labels: input.labels ?? [],
@@ -749,6 +765,15 @@ export class ContentService {
         scheduledAt: when,
         scheduleState: 'SCHEDULED',
         status: 'SCHEDULED',
+        // A post with a connected account queues for real publishing at scheduledAt.
+        ...(current.socialPageId
+          ? {
+              publishState: 'QUEUED',
+              publishAttempts: 0,
+              nextPublishAt: null,
+              lastPublishError: null,
+            }
+          : {}),
         ...(input.timezone ? { timezone: input.timezone } : {}),
       },
     });
@@ -781,6 +806,9 @@ export class ContentService {
         scheduleState: 'UNSCHEDULED',
         scheduledAt: null,
         status: current.approvalState === 'APPROVED' ? 'APPROVED' : 'DRAFT',
+        ...(current.publishState === 'PUBLISHED'
+          ? {}
+          : { publishState: 'NONE', nextPublishAt: null }),
       },
     });
     await this.audit.write({
@@ -852,6 +880,8 @@ export class ContentService {
     patch: { approvalPolicy?: ApprovalPolicy; defaultTimezone?: string },
   ) {
     await this.requireActiveBrand(tenantId, brandId);
+    if (patch.defaultTimezone !== undefined)
+      patch.defaultTimezone = parseTimezone(patch.defaultTimezone);
     const row = await getPrisma().contentPreferences.upsert({
       where: { brandId },
       create: {

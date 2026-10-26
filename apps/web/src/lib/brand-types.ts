@@ -8,6 +8,9 @@ export type BrandListItem = {
   latest_scan_id: string | null;
   latest_profile_status: string | null;
   latest_profile_version_id: string | null;
+  logo_url?: string | null;
+  timezone?: string;
+  archived_at?: string | null;
   updated_at: string;
 };
 
@@ -31,6 +34,9 @@ export type BrandDetail = {
   } | null;
   next_scan_connector_mode: 'FIXTURE' | 'NOT_CONFIGURED';
   archived_at: string | null;
+  logo_url?: string | null;
+  timezone?: string;
+  access?: { role: string | null; capabilities: string[] };
   updated_at: string;
 };
 
