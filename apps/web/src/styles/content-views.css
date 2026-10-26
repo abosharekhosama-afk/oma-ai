@@ -1,0 +1,523 @@
+/* Planable-style content views: calendar cards, grid, stories, display settings, modal. */
+:root {
+  --pv-primary: var(--oma-primary);
+  --pv-border: var(--oma-home-border);
+  --pv-muted: var(--oma-home-muted);
+  --pv-ok: var(--status-success);
+  --pv-late: var(--status-danger);
+  --pv-pending: var(--oma-home-subtle);
+}
+
+/* status icons */
+.oma-pv-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--pv-muted);
+  font-size: 12px;
+}
+.oma-pv-status__i {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+.oma-pv-dot {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 16px;
+  block-size: 16px;
+  border-radius: 50%;
+  font-size: 10px;
+  color: var(--oma-surface);
+}
+.oma-pv-dot--ok {
+  background: var(--pv-ok);
+}
+.oma-pv-dot--pub {
+  background: var(--pv-ok);
+}
+.oma-pv-dot--sched {
+  background: var(--pv-primary);
+}
+.oma-pv-dot--late {
+  background: var(--pv-late);
+}
+.oma-pv-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  background: var(--oma-home-divider);
+  color: var(--pv-muted);
+}
+.oma-pv-pill[data-state='APPROVED'] {
+  background: var(--oma-badge-success-bg);
+  color: var(--pv-ok);
+}
+
+/* calendar card */
+.oma-pv-cal-card {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  inline-size: 100%;
+  padding: 6px 8px;
+  background: var(--oma-surface);
+  border: 1px solid var(--pv-border);
+  border-radius: 6px;
+  font-size: 13px;
+  text-align: start;
+  transition:
+    box-shadow 150ms ease,
+    opacity 150ms ease;
+  cursor: pointer;
+}
+.oma-pv-cal-card:hover {
+  box-shadow: 0 2px 8px rgb(16 24 40 / 10%);
+}
+.oma-pv-cal-card[data-faded='true'] {
+  opacity: 0.55;
+}
+.oma-pv-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.oma-pv-chip {
+  padding: 0 6px;
+  border-radius: 4px;
+  background: var(--oma-home-divider);
+  color: var(--oma-home-ink-2);
+  font-size: 11px;
+  line-height: 18px;
+  max-inline-size: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.oma-pv-chip--campaign {
+  background: var(--oma-home-primary-soft);
+  color: var(--pv-primary);
+}
+.oma-pv-cal-card__row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.oma-pv-cal-card__spacer {
+  flex: 1;
+}
+.oma-pv-cal-card__draft {
+  font-size: 11px;
+  color: var(--pv-muted);
+}
+.oma-pv-cal-card__time {
+  font-size: 12px;
+  color: var(--pv-muted);
+}
+.oma-pv-cal-card__time[data-tone='scheduled'] {
+  color: var(--pv-primary);
+}
+.oma-pv-cal-card__time[data-tone='overdue'] {
+  color: var(--pv-late);
+}
+.oma-pv-cal-card__time[data-tone='published'] {
+  color: var(--pv-ok);
+}
+.oma-pv-cal-card__media img {
+  display: block;
+  inline-size: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 4px;
+}
+.oma-pv-cal-card__text {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--oma-home-ink);
+}
+.oma-pv-cal-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.oma-pv-cal-card[data-size='compact'] .oma-pv-cal-card__media,
+.oma-pv-cal-card[data-size='compact'] .oma-pv-cal-card__text {
+  display: none;
+}
+
+/* weekend hiding + columns */
+.oma-cal-grid[data-hide-weekends='true'],
+.oma-cal-dow-row[data-hide-weekends='true'] {
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+}
+[data-hide-weekends='true'] [data-weekend='true'] {
+  display: none !important;
+}
+
+/* toolbar bits */
+.oma-pv-week-chip {
+  padding: 1px 8px;
+  border-radius: 10px;
+  background: var(--oma-home-divider);
+  font-size: 12px;
+  color: var(--oma-home-ink-2);
+}
+.oma-pv-today {
+  padding: 3px 10px;
+  border: 1px solid var(--pv-border);
+  border-radius: 6px;
+  background: var(--oma-surface);
+  font-size: 13px;
+  cursor: pointer;
+}
+.oma-pv-today:hover,
+.oma-pv-icon-btn:hover {
+  border-color: var(--pv-primary);
+  color: var(--pv-primary);
+}
+.oma-pv-icon-btn {
+  display: inline-grid;
+  place-items: center;
+  inline-size: 30px;
+  block-size: 30px;
+  border: 1px solid var(--pv-border);
+  border-radius: 6px;
+  background: var(--oma-surface);
+  cursor: pointer;
+  transition:
+    color 150ms,
+    border-color 150ms;
+}
+
+/* display settings */
+.oma-pv-ds {
+  position: relative;
+  display: inline-flex;
+}
+.oma-pv-ds__pop {
+  position: absolute;
+  inset-block-start: calc(100% + 6px);
+  inset-inline-end: 0;
+  z-index: 40;
+  inline-size: 280px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--oma-surface);
+  border: 1px solid var(--pv-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgb(16 24 40 / 14%);
+  font-size: 13px;
+}
+.oma-pv-ds__title {
+  font-size: 14px;
+}
+.oma-pv-ds__label {
+  color: var(--pv-muted);
+  font-size: 12px;
+}
+.oma-pv-ds__sizes,
+.oma-pv-ds__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.oma-pv-ds__size,
+.oma-pv-ds__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--pv-border);
+  border-radius: 6px;
+  background: var(--oma-surface);
+  cursor: pointer;
+  font-size: 12px;
+}
+.oma-pv-ds__size[data-active='true'],
+.oma-pv-ds__chip[data-active='true'] {
+  border-color: var(--pv-primary);
+  color: var(--pv-primary);
+  background: var(--oma-home-today-bg);
+}
+.oma-pv-ds__size-art {
+  inline-size: 14px;
+  block-size: 18px;
+  border: 1.5px solid currentColor;
+  border-radius: 2px;
+}
+.oma-pv-ds__size-art[data-size='compact'] {
+  block-size: 9px;
+}
+.oma-pv-ds__checks {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.oma-pv-ds__check,
+.oma-pv-ds__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+/* grid */
+.oma-pv-grid-wrap {
+  inline-size: min(435px, 100%);
+  margin-inline: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.oma-pv-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 145px);
+  gap: 0;
+}
+.oma-pv-tile {
+  position: relative;
+  inline-size: 145px;
+  block-size: 190px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  background: var(--oma-home-track);
+  cursor: pointer;
+}
+.oma-pv-tile img,
+.oma-pv-tile__ph {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+.oma-pv-tile[data-faded='true'] img {
+  filter: saturate(0.85);
+}
+.oma-pv-tile__top {
+  position: absolute;
+  inset-block-start: 6px;
+  inset-inline-start: 6px;
+  font-size: 11px;
+  color: var(--oma-surface);
+  text-shadow: 0 1px 2px rgb(0 0 0 / 50%);
+}
+.oma-pv-tile__type {
+  position: absolute;
+  inset-block-start: 6px;
+  inset-inline-end: 6px;
+  color: var(--oma-surface);
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 50%));
+}
+.oma-pv-tile__icons {
+  position: absolute;
+  inset-block-end: 6px;
+  inset-inline-end: 6px;
+}
+.oma-pv-tile__icons .oma-pv-status {
+  color: var(--oma-surface);
+}
+.oma-pv-tile__hover {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 10px;
+  background: rgb(0 0 0 / 55%);
+  color: var(--oma-surface);
+  opacity: 0;
+  transition: opacity 150ms ease;
+  text-align: start;
+  font-size: 12px;
+}
+.oma-pv-tile:hover .oma-pv-tile__hover,
+.oma-pv-tile:focus-visible .oma-pv-tile__hover {
+  opacity: 1;
+}
+.oma-pv-tile__date {
+  font-weight: 600;
+}
+.oma-pv-tile__cap {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* stories */
+.oma-pv-stories {
+  background: var(--oma-surface);
+  border: 1px solid var(--pv-border);
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+.oma-pv-stories__head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  inline-size: 100%;
+  border: 0;
+  background: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+.oma-pv-stories__row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-block-start: 8px;
+}
+.oma-pv-story {
+  flex: 0 0 auto;
+  inline-size: 72px;
+  block-size: 120px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--pv-border);
+  background: var(--oma-canvas);
+  padding: 0;
+  cursor: pointer;
+}
+.oma-pv-story img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+.oma-pv-story--new {
+  display: grid;
+  place-items: center;
+  color: var(--pv-primary);
+  font-size: 12px;
+  border-style: dashed;
+}
+.oma-pv-feed-stories {
+  inline-size: min(840px, 100%);
+  margin-inline: auto;
+  margin-block-end: 12px;
+}
+
+/* list width */
+.oma-plan-list {
+  max-inline-size: 800px;
+  margin-inline: auto;
+  padding: 0 !important;
+  gap: 12px !important;
+}
+
+/* modal */
+.oma-pv-modal-arrow {
+  position: fixed;
+  inset-block-start: 50%;
+  z-index: 1100;
+  inline-size: 40px;
+  block-size: 40px;
+  margin-block-start: -20px;
+  border-radius: 50%;
+  border: 0;
+  background: rgb(255 255 255 / 92%);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 20%);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background 150ms;
+}
+.oma-pv-modal-arrow:hover {
+  background: var(--oma-surface);
+  color: var(--pv-primary);
+}
+.oma-pv-modal-arrow[data-side='start'] {
+  inset-inline-start: 16px;
+}
+.oma-pv-modal-arrow[data-side='end'] {
+  inset-inline-end: 16px;
+}
+[dir='rtl'] .oma-pv-modal-arrow svg {
+  transform: scaleX(-1);
+}
+.oma-pv-modal-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  overflow: auto;
+  flex: 1;
+  background: var(--oma-canvas);
+}
+.oma-pv-modal-approval {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  inline-size: min(500px, 100%);
+  font-size: 13px;
+  color: var(--pv-muted);
+}
+.oma-pv-modal-approval__label {
+  flex: 1;
+  text-align: start;
+}
+.oma-pv-modal-post {
+  inline-size: min(500px, 100%);
+  transition: inline-size 300ms ease;
+}
+.oma-pv-modal-stage[data-mode='mobile'] .oma-pv-modal-post,
+.oma-pv-modal-stage[data-mode='mobile'] .oma-pv-modal-approval {
+  inline-size: min(322px, 100%);
+}
+
+/* the legacy [data-testid='demo-content-grid'] rule makes the wrapper a 3-col grid */
+.oma-content-plan .oma-pv-grid-wrap {
+  display: flex !important;
+  flex-direction: column;
+  grid-template-columns: none !important;
+  inline-size: min(435px, 100%) !important;
+  margin-inline: auto;
+  padding: 0 !important;
+  gap: 12px !important;
+}
+
+/* Month view: equal-height week rows (Planable); overflow scrolls inside the day cell. */
+.oma-cal-grid[data-span='month'] {
+  grid-auto-rows: 232px !important;
+  align-content: start !important;
+}
+.oma-cal-grid[data-span='month'][data-post-size='compact'] {
+  grid-auto-rows: 148px !important;
+}
+.oma-cal-grid[data-span='month'] > .oma-cal-cell {
+  min-block-size: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+/* Feed post header: Planable shows expand + ⋯ only on hover */
+.oma-fp .oma-fp__icon-btn,
+.oma-pv-feed-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+[data-testid^='demo-content-card-']:hover .oma-pv-feed-actions,
+.oma-fp:hover .oma-fp__icon-btn,
+.oma-fp:focus-within .oma-fp__icon-btn,
+[data-testid^='demo-content-card-']:focus-within .oma-pv-feed-actions,
+.oma-pv-feed-actions[data-open='true'] {
+  opacity: 1;
+}
+[dir='rtl'] .oma-pv-flip {
+  display: inline-block;
+  transform: scaleX(-1);
+}

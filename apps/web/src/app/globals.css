@@ -14,6 +14,7 @@
 @import '../styles/states.css';
 @import '../styles/work-analytics.css';
 @import '../styles/home.css';
+@import '../styles/content-views.css';
 
 * {
   box-sizing: border-box;
