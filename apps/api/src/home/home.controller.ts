@@ -19,7 +19,10 @@ export class HomeController {
   @Get()
   async get(@Req() req: Request) {
     const { tenantId, userId } = requireTenant(req);
-    return buildHome(tenantId, userId);
+    const caps = (req.oma as { capabilities?: string[] } | undefined)?.capabilities;
+    return buildHome(tenantId, userId, new Date(), {
+      canApprove: Array.isArray(caps) ? caps.includes('content.approve') : undefined,
+    });
   }
 }
 

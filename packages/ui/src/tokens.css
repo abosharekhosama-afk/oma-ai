@@ -142,3 +142,31 @@
   --focus-ring: 2px solid var(--oma-primary);
   --focus-offset: 2px;
 }
+
+/* Home (Planable calm palette) */
+:root {
+  --oma-home-primary: #1677ff;
+  --oma-home-primary-hover: #0958d9;
+  --oma-home-border: #e6e8eb;
+  --oma-home-muted: #667085;
+  --oma-home-ink: #1f2328;
+  --oma-home-control-border: #d0d5dd;
+  --oma-home-surface: #fff;
+  --oma-home-hover: #f5f6f7;
+  --oma-home-ink-2: #344054;
+  --oma-home-danger-border: #f5c2c7;
+  --oma-home-danger-bg: #fff5f5;
+  --oma-home-danger: #b42318;
+  --oma-home-border-hover: #b8c4d6;
+  --oma-home-primary-soft: #eaf2ff;
+  --oma-home-ink-3: #475467;
+  --oma-home-warning: #f79009;
+  --oma-home-divider: #f0f1f3;
+  --oma-home-thumb-bg: #f2f4f7;
+  --oma-home-subtle: #98a2b3;
+  --oma-home-success: #12b76a;
+  --oma-home-track: #eef0f2;
+  --oma-home-day-bg: #f9fafb;
+  --oma-home-today-bg: #f3f8ff;
+  --oma-home-undo-link: #69b1ff;
+}

@@ -14,6 +14,8 @@ export const DEFAULT_PREFERENCES = {
   defaultTaskView: 'board' as 'board' | 'list',
   reviewReminders: true,
   localePreference: 'system' as 'en' | 'ar' | 'system',
+  /** Home "Finish setup" side card dismissed by this user. */
+  homeSetupDismissed: false,
   notifications: Object.fromEntries(NOTIFICATION_TYPES.map((t) => [t, true])) as Record<
     string,
     boolean
@@ -60,6 +62,10 @@ export function validatePreferencesPatch(body: Record<string, unknown>): Partial
     out.defaultTaskView = body.defaultTaskView;
   }
   if (body.reviewReminders !== undefined) out.reviewReminders = Boolean(body.reviewReminders);
+  if (body.homeSetupDismissed !== undefined) {
+    if (typeof body.homeSetupDismissed !== 'boolean') throw bad('homeSetupDismissed');
+    out.homeSetupDismissed = body.homeSetupDismissed;
+  }
   if (body.localePreference !== undefined) {
     if (!['en', 'ar', 'system'].includes(String(body.localePreference)))
       throw bad('localePreference');

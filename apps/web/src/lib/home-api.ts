@@ -4,6 +4,39 @@ type Copy = { en: string; ar: string };
 
 export type HomeChecklistStep = { id: string; done: boolean; href: string; count: number };
 
+export type HomeBrandSummary = {
+  id: string;
+  name: string;
+  logo_url: string | null;
+  channels: string[];
+  awaiting_approval: number;
+  scheduled_this_week: number;
+};
+
+export type HomeAwaitingItem = {
+  id: string;
+  title: Copy;
+  caption: Copy | null;
+  channel: string;
+  brand_id: string;
+  brand: string | null;
+  thumbnail_url: string | null;
+  requested_by: string | null;
+  requested_at: string;
+  progress: { approved: number; required: number };
+  href: string;
+};
+
+export type HomeWeekItem = {
+  id: string;
+  title: Copy;
+  channel: string;
+  brand: string | null;
+  scheduled_at: string;
+  thumbnail_url: string | null;
+  href: string;
+};
+
 export type HomeData = {
   generated_at: string;
   counts: {
@@ -46,6 +79,11 @@ export type HomeData = {
     href: string;
   }>;
   checklist: HomeChecklistStep[];
+  /** Planable Home additions (optional for older API payloads). */
+  brand_summaries?: HomeBrandSummary[];
+  awaiting_me?: HomeAwaitingItem[];
+  week?: { start: string; items: HomeWeekItem[] };
+  can_approve?: boolean;
   publishing_connected: false;
 };
 

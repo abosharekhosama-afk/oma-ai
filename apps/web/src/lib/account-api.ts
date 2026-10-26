@@ -17,6 +17,7 @@ export type UserPreferences = {
   reviewReminders: boolean;
   localePreference: 'en' | 'ar' | 'system';
   notifications: Record<string, boolean>;
+  homeSetupDismissed?: boolean;
 };
 
 export const NOTIFICATION_PREF_TYPES = [

@@ -30,50 +30,39 @@ export type NavSection = {
   id: string;
   labelKey: string;
   items: NavItem[];
+  /** Planable-style: the main group renders without a visible heading. */
+  hideLabel?: boolean;
+  /** Secondary routes live in a collapsible "More" group. */
+  collapsible?: boolean;
 };
 
-/** Canonical Stage 1 IA — every major area remains discoverable. */
+/**
+ * Planable-style IA: main nav (Home, Content, Campaigns, Analytics), then brand
+ * "Pages" (rendered by BrandPagesNav), then every other route under "More".
+ */
 export const SHELL_NAV_SECTIONS: NavSection[] = [
   {
-    id: 'workspace',
+    id: 'main',
     labelKey: 'nav.section.workspace',
-    items: [{ href: '/app', labelKey: 'nav.home', icon: 'home' }],
-  },
-  {
-    id: 'intelligence',
-    labelKey: 'nav.section.intelligence',
-    items: [{ href: '/app/brands', labelKey: 'nav.intelligence', icon: 'brand' }],
-  },
-  {
-    id: 'plan',
-    labelKey: 'nav.section.plan',
+    hideLabel: true,
     items: [
-      { href: '/app/campaigns', labelKey: 'nav.campaigns', icon: 'campaigns' },
+      { href: '/app', labelKey: 'nav.home', icon: 'home' },
       { href: '/app/content', labelKey: 'nav.content', icon: 'content' },
-    ],
-  },
-  {
-    id: 'produce',
-    labelKey: 'nav.section.produce',
-    items: [
-      { href: '/app/requests', labelKey: 'nav.requests', icon: 'requests' },
-      { href: '/app/tasks', labelKey: 'nav.tasks', icon: 'tasks' },
-      { href: '/app/deliverables', labelKey: 'nav.deliverables', icon: 'deliverables' },
-    ],
-  },
-  {
-    id: 'govern',
-    labelKey: 'nav.section.govern',
-    items: [
-      { href: '/app/reviews', labelKey: 'nav.reviews', icon: 'reviews' },
-      { href: '/app/schedule', labelKey: 'nav.schedule', icon: 'schedule' },
+      { href: '/app/campaigns', labelKey: 'nav.campaigns', icon: 'campaigns' },
       { href: '/app/analytics', labelKey: 'nav.analytics', icon: 'analytics' },
     ],
   },
   {
-    id: 'org',
-    labelKey: 'nav.section.org',
+    id: 'more',
+    labelKey: 'nav.section.more',
+    collapsible: true,
     items: [
+      { href: '/app/brands', labelKey: 'nav.intelligence', icon: 'brand' },
+      { href: '/app/requests', labelKey: 'nav.requests', icon: 'requests' },
+      { href: '/app/tasks', labelKey: 'nav.tasks', icon: 'tasks' },
+      { href: '/app/deliverables', labelKey: 'nav.deliverables', icon: 'deliverables' },
+      { href: '/app/reviews', labelKey: 'nav.reviews', icon: 'reviews' },
+      { href: '/app/schedule', labelKey: 'nav.schedule', icon: 'schedule' },
       { href: '/app/team', labelKey: 'nav.team', icon: 'team' },
       { href: '/app/activity', labelKey: 'nav.activity', icon: 'activity' },
       { href: '/app/company/members', labelKey: 'nav.company', icon: 'company' },
@@ -81,5 +70,12 @@ export const SHELL_NAV_SECTIONS: NavSection[] = [
     ],
   },
 ];
+
+export const SHELL_NAV_MORE_PREF_KEY = 'oma.shell.moreOpen';
+
+/** True when the path belongs to an item in the given section (auto-opens "More"). */
+export function sectionContainsPath(section: NavSection, pathname: string): boolean {
+  return section.items.some((i) => (i.href === '/app' ? pathname === '/app' : pathname.startsWith(i.href)));
+}
 
 export const SHELL_RAIL_PREF_KEY = 'oma.shell.railCollapsed';
