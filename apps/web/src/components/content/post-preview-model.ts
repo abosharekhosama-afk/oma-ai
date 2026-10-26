@@ -87,3 +87,8 @@ export function initials(name: string): string {
       .toUpperCase() || '·'
   );
 }
+
+/** Bundled sample poster art is not real post media: render the neutral placeholder instead. */
+export function isPlaceholderAsset(url: string | null | undefined): boolean {
+  return !url || /\/demo\/(poster-|video-poster|stage5-)/.test(url);
+}

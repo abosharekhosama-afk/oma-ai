@@ -7,6 +7,7 @@ import {
   aspectRatioFor,
   CAPTION_LIMIT,
   initials,
+  isPlaceholderAsset,
   resolveLayout,
   resolveNetwork,
   splitCaption,
@@ -52,6 +53,8 @@ export type PostPreviewProps = {
   size?: 'feed' | 'detail';
   review?: PostPreviewReview;
   onOpen?: () => void;
+  headerActions?: ReactNode;
+  hideNetworkLabel?: boolean;
 };
 
 type Ctx = PostPreviewProps & {
@@ -85,7 +88,7 @@ function Avatar({ name, url, size = 32 }: { name: string; url?: string | null; s
 function Media({ ctx, ratio }: { ctx: Ctx; ratio?: string }) {
   const [failed, setFailed] = useState(false);
   const r = ratio ?? aspectRatioFor(ctx.network, ctx.contentType);
-  const show = ctx.media && !failed;
+  const show = ctx.media && !failed && !isPlaceholderAsset(ctx.media);
   return (
     <div className="oma-pp__media" style={{ aspectRatio: r }} data-ratio={r}>
       {show ? (
@@ -110,7 +113,6 @@ function Media({ ctx, ratio }: { ctx: Ctx; ratio?: string }) {
               strokeLinejoin="round"
             />
           </svg>
-          <span>{ctx.t('preview.media_placeholder')}</span>
         </div>
       )}
       {(ctx.contentType === 'REEL' || ctx.contentType === 'STORY') && show ? (
@@ -185,13 +187,19 @@ function Header({ ctx, avatar = 32, extra }: { ctx: Ctx; avatar?: number; extra?
         <When ctx={ctx} />
       </div>
       {extra}
-      <span className="oma-pp__kebab" aria-hidden>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-          <circle cx="5" cy="12" r="1.6" />
-          <circle cx="12" cy="12" r="1.6" />
-          <circle cx="19" cy="12" r="1.6" />
-        </svg>
-      </span>
+      {ctx.headerActions ? (
+        <span className="oma-pp__head-actions" onClick={(e) => e.stopPropagation()}>
+          {ctx.headerActions}
+        </span>
+      ) : (
+        <span className="oma-pp__kebab" aria-hidden>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+            <circle cx="5" cy="12" r="1.6" />
+            <circle cx="12" cy="12" r="1.6" />
+            <circle cx="19" cy="12" r="1.6" />
+          </svg>
+        </span>
+      )}
     </div>
   );
 }
@@ -278,33 +286,21 @@ export function InstagramPreview({ ctx }: { ctx: Ctx }) {
 
 export function VerticalPreview({ ctx }: { ctx: Ctx }) {
   return (
-    <div className="oma-pp__vertical">
+    <>
+      <Header ctx={ctx} avatar={32} />
       <Media ctx={ctx} ratio="9 / 16" />
-      <div className="oma-pp__v-top">
-        <span className="oma-pp__v-progress" aria-hidden>
-          <i />
-        </span>
-        <div className="oma-pp__v-head">
-          <Avatar name={ctx.brandName} url={ctx.avatarUrl} size={28} />
-          <bdi className="oma-pp__name">{ctx.brandName}</bdi>
-          <When ctx={ctx} />
-        </div>
-      </div>
-      <div className="oma-pp__v-bottom">
+      <ActionBar
+        ctx={ctx}
+        items={[
+          ['like', 'preview.like'],
+          ['comment', 'preview.comment'],
+          ['share', 'preview.share'],
+        ]}
+      />
+      <div className="oma-pp__pad">
         <Caption ctx={ctx} moreKey="preview.more" />
-        {ctx.network === 'tiktok' ? null : (
-          <span className="oma-pp__v-reply">{ctx.t('preview.send_message')}</span>
-        )}
       </div>
-      {ctx.network === 'tiktok' ? (
-        <div className="oma-pp__v-rail" aria-hidden>
-          <ActIcon name="like" />
-          <ActIcon name="comment" />
-          <ActIcon name="save" />
-          <ActIcon name="share" />
-        </div>
-      ) : null}
-    </div>
+    </>
   );
 }
 
@@ -514,10 +510,12 @@ export function PostPreview(props: PostPreviewProps) {
       data-size={props.size ?? 'feed'}
       aria-label={t('preview.label')}
     >
-      <div className="oma-pp__net">
-        <NetworkIcon network={network} size={14} />
-        <span>{t(`preview.network.${network}`)}</span>
-      </div>
+      {props.hideNetworkLabel ? null : (
+        <div className="oma-pp__net">
+          <NetworkIcon network={network} size={14} />
+          <span>{t(`preview.network.${network}`)}</span>
+        </div>
+      )}
       <div
         className="oma-pp__post"
         onClick={props.onOpen}
