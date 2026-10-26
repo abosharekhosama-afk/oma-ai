@@ -1925,5 +1925,12 @@
   "views.type.story": "Story",
   "views.type.carousel": "Carousel",
   "views.type.static": "Image",
-  "views.type.post": "Post"
+  "views.type.post": "Post",
+  "views.menu.manage_labels": "Manage labels",
+  "views.menu.add_to_campaign": "Add to campaign",
+  "views.menu.copy_link": "Copy link",
+  "views.menu.expand": "Expand",
+  "views.menu.no_campaigns": "No campaigns for this brand",
+  "views.menu.campaign_updated": "Campaign updated",
+  "views.menu.campaign_failed": "Couldn’t update the campaign. Try again."
 }

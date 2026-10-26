@@ -1925,5 +1925,12 @@
   "views.type.story": "قصة",
   "views.type.carousel": "منشور متعدد الصور",
   "views.type.static": "صورة",
-  "views.type.post": "منشور"
+  "views.type.post": "منشور",
+  "views.menu.manage_labels": "إدارة التصنيفات",
+  "views.menu.add_to_campaign": "إضافة إلى حملة",
+  "views.menu.copy_link": "نسخ الرابط",
+  "views.menu.expand": "توسيع",
+  "views.menu.no_campaigns": "لا توجد حملات لهذه العلامة",
+  "views.menu.campaign_updated": "تم تحديث الحملة",
+  "views.menu.campaign_failed": "تعذر تحديث الحملة. حاول مرة أخرى."
 }

@@ -601,7 +601,9 @@ type CardMenuAction =
   | 'repost'
   | 'labels'
   | 'schedule'
-  | 'unschedule';
+  | 'unschedule'
+  | 'campaign'
+  | 'copylink';
 
 function CardFloatingMenu({
   open,
@@ -610,6 +612,9 @@ function CardFloatingMenu({
   item,
   policy = 'OPTIONAL',
   locale: _locale,
+  variant = 'full',
+  campaigns = [],
+  canEdit = true,
   onAction,
   onClose,
 }: {
@@ -621,15 +626,23 @@ function CardFloatingMenu({
     scheduleState?: string;
     scheduleBlocked?: boolean;
     clientVisible?: boolean;
+    campaignId?: string | null;
   } | null;
   policy?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
   locale: string;
-  onAction: (action: CardMenuAction, id: string) => void;
+  variant?: 'full' | 'feed';
+  canEdit?: boolean;
+  campaigns?: Array<{ id: string; name: string }>;
+  onAction: (action: CardMenuAction, id: string, arg?: string) => void;
   onClose: () => void;
 }) {
   const t = useT();
   const ref = useRef<HTMLDivElement | null>(null);
   const [realPos, setRealPos] = useState(pos);
+  const [campaignStep, setCampaignStep] = useState(false);
+  useEffect(() => {
+    setCampaignStep(false);
+  }, [itemId, open]);
 
   useEffect(() => {
     setRealPos(pos);
@@ -743,6 +756,31 @@ function CardFloatingMenu({
     },
   ];
 
+  const feedItems: typeof items = [
+    {
+      action: 'labels',
+      label: t('views.menu.manage_labels'),
+      icon: <TagOutlined />,
+      disabled: !canEdit,
+    },
+    {
+      action: 'campaign',
+      label: t('views.menu.add_to_campaign'),
+      icon: <FlagOutlined />,
+      disabled: !canEdit,
+    },
+    { action: 'copylink', label: t('views.menu.copy_link'), icon: <LinkOutlined /> },
+    {
+      action: 'archive',
+      label: t('content.archive_post'),
+      icon: <InboxOutlined />,
+      disabled: !canArchive(src),
+      danger: true,
+    },
+  ];
+  const shown = variant === 'feed' ? feedItems : items;
+  const current = (src as { campaignId?: string | null }).campaignId || '';
+
   return createPortal(
     <div
       ref={ref}
@@ -753,7 +791,39 @@ function CardFloatingMenu({
       onMouseDown={(e) => e.stopPropagation()}
       onClick={(e) => e.stopPropagation()}
     >
-      {items.map((it) => (
+      {campaignStep ? (
+        <>
+          <button
+            type="button"
+            role="menuitem"
+            className="oma-card-menu__item"
+            onClick={() => setCampaignStep(false)}
+          >
+            <span className="oma-card-menu__item-ico oma-pv-flip">‹</span>
+            <span>{t('views.menu.add_to_campaign')}</span>
+          </button>
+          {campaigns.length === 0 ? (
+            <span className="oma-card-menu__item" data-disabled="true">
+              {t('views.menu.no_campaigns')}
+            </span>
+          ) : (
+            campaigns.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                role="menuitemradio"
+                aria-checked={current === c.id}
+                className="oma-card-menu__item"
+                onClick={() => onAction('campaign', itemId, c.id)}
+              >
+                <span className="oma-card-menu__item-ico">{current === c.id ? '✓' : ''}</span>
+                <span>{c.name}</span>
+              </button>
+            ))
+          )}
+        </>
+      ) : null}
+      {(campaignStep ? [] : shown).map((it) => (
         <button
           key={it.action}
           type="button"
@@ -765,6 +835,10 @@ function CardFloatingMenu({
           data-disabled={it.disabled ? 'true' : undefined}
           onClick={() => {
             if (it.disabled) return;
+            if (it.action === 'campaign') {
+              setCampaignStep(true);
+              return;
+            }
             onAction(it.action, itemId);
           }}
         >
@@ -833,6 +907,7 @@ export default function ContentPage() {
 
   const [rows, setRows] = useState<ContentRow[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [menuVariant, setMenuVariant] = useState<'full' | 'feed'>('full');
   const [brands, setBrands] = useState<Brand[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [deliverables, setDeliverables] = useState<Deliverable[]>([]);
@@ -1429,6 +1504,14 @@ export default function ContentPage() {
     return m?.user?.name || m?.user?.email || t('preview.team_member');
   }
 
+  function memberInitials(userId: string | null | undefined): string {
+    const name = memberName(userId).trim();
+    const parts = name.split(/\s+/).filter(Boolean);
+    return (
+      (parts.length > 1 ? `${parts[0]![0]}${parts[1]![0]}` : name.slice(0, 2)) || '?'
+    ).toUpperCase();
+  }
+
   function memberIsInternal(userId: string): boolean {
     const m = members.find((x) => x.user?.id === userId);
     const kind = String(m?.membership_kind || m?.membership || '').toLowerCase();
@@ -1542,13 +1625,18 @@ export default function ContentPage() {
           locale,
           size: 'feed',
           headerActions: (
-            <CardActionsButton
-              itemId={item.id}
-              open={cardMenuId === item.id}
-              label={t('content.post_actions')}
-              onOpen={placeCardMenu}
-              onClose={closeCardMenu}
-            />
+            <span
+              className="oma-pv-feed-actions"
+              data-open={cardMenuId === item.id ? 'true' : 'false'}
+            >
+              <CardActionsButton
+                itemId={item.id}
+                open={cardMenuId === item.id}
+                label={t('content.post_actions')}
+                onOpen={placeFeedMenu}
+                onClose={closeCardMenu}
+              />
+            </span>
           ),
         }}
         approval={
@@ -1982,9 +2070,32 @@ export default function ContentPage() {
   }
 
   /* ── Card menu action handler (used by hover floating menu) ── */
-  function handleCardMenuAction(action: CardMenuAction, id: string) {
+  function handleCardMenuAction(action: CardMenuAction, id: string, arg?: string) {
     setCardMenuId(null);
     setMenuPos(null);
+    if (action === 'copylink') {
+      const url = new URL(window.location.href);
+      url.searchParams.set('item', id);
+      void (
+        navigator.clipboard?.writeText
+          ? navigator.clipboard.writeText(url.toString())
+          : Promise.reject(new Error('clipboard'))
+      ).then(
+        () => toast.push(t('content.content_link_copied'), 'success'),
+        () => toast.push(t('content.this_browser_could_not_copy'), 'danger'),
+      );
+      return;
+    }
+    if (action === 'campaign' && arg) {
+      void updateContentProduction(id, { campaignId: arg })
+        .then((api) => {
+          const row = toContentRow(api);
+          setRows((prev) => prev.map((r) => (r.id === row.id ? row : r)));
+          toast.push(t('views.menu.campaign_updated'), 'success');
+        })
+        .catch(() => toast.push(t('views.menu.campaign_failed'), 'danger'));
+      return;
+    }
     if (action === 'request') void runLifecycle('request-approval', id);
     else if (action === 'approve') void runLifecycle('approve', id);
     else if (action === 'published') void runLifecycle('mark-published', id);
@@ -2021,7 +2132,13 @@ export default function ContentPage() {
     setMenuPos(null);
   }
 
-  function placeCardMenu(itemId: string, target: HTMLElement) {
+  function placeFeedMenu(itemId: string, target: HTMLElement) {
+    setMenuVariant('feed');
+    placeCardMenu(itemId, target, true);
+  }
+
+  function placeCardMenu(itemId: string, target: HTMLElement, keepVariant = false) {
+    if (!keepVariant) setMenuVariant('full');
     const rect = target.getBoundingClientRect();
     const menuW = 248;
     const menuH = 440;
@@ -2899,6 +3016,7 @@ export default function ContentPage() {
               data-columns={calDisplay.showWeekends ? '7' : '5'}
               data-hide-weekends={calDisplay.showWeekends ? 'false' : 'true'}
               data-post-size={calDisplay.postSize}
+              data-span={calSpan}
             >
               <div className="oma-cal-dow-row" data-testid="demo-content-weekdays">
                 {dows.map((dow, di) => (
@@ -4101,15 +4219,11 @@ export default function ContentPage() {
                                 {prodComments.map((c) => (
                                   <article key={c.id} className="oma-comment">
                                     <span className="oma-plan-post__avatar">
-                                      {(c.author_user_id || 'U').slice(0, 1).toUpperCase()}
+                                      {memberInitials(c.author_user_id)}
                                     </span>
                                     <div className="oma-comment__body">
                                       <div className="oma-comment-meta">
-                                        <strong>
-                                          {c.author_user_id
-                                            ? c.author_user_id.slice(0, 8)
-                                            : t('content.you')}
-                                        </strong>
+                                        <strong>{memberName(c.author_user_id)}</strong>
                                         <span className="oma-ltr">
                                           {formatCommentTime(c.at, locale)}
                                         </span>
@@ -4487,6 +4601,14 @@ export default function ContentPage() {
         itemId={cardMenuId}
         policy={policy}
         locale={locale}
+        variant={menuVariant}
+        canEdit={mayComment}
+        campaigns={(() => {
+          const row = rows.find((r) => r.id === cardMenuId);
+          return campaigns
+            .filter((c) => !row || !c.brandId || c.brandId === row.brandId)
+            .map((c) => ({ id: c.id, name: pickCopy(c.name, locale) }));
+        })()}
         onAction={handleCardMenuAction}
         onClose={() => {
           setCardMenuId(null);

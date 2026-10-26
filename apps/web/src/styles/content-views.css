@@ -486,3 +486,38 @@
   padding: 0 !important;
   gap: 12px !important;
 }
+
+/* Month view: equal-height week rows (Planable); overflow scrolls inside the day cell. */
+.oma-cal-grid[data-span='month'] {
+  grid-auto-rows: 232px !important;
+  align-content: start !important;
+}
+.oma-cal-grid[data-span='month'][data-post-size='compact'] {
+  grid-auto-rows: 148px !important;
+}
+.oma-cal-grid[data-span='month'] > .oma-cal-cell {
+  min-block-size: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+/* Feed post header: Planable shows expand + ⋯ only on hover */
+.oma-fp .oma-fp__icon-btn,
+.oma-pv-feed-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+[data-testid^='demo-content-card-']:hover .oma-pv-feed-actions,
+.oma-fp:hover .oma-fp__icon-btn,
+.oma-fp:focus-within .oma-fp__icon-btn,
+[data-testid^='demo-content-card-']:focus-within .oma-pv-feed-actions,
+.oma-pv-feed-actions[data-open='true'] {
+  opacity: 1;
+}
+[dir='rtl'] .oma-pv-flip {
+  display: inline-block;
+  transform: scaleX(-1);
+}
