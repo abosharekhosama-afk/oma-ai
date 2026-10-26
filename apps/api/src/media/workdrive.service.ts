@@ -1,12 +1,13 @@
 import { getPrisma } from '@oma/db';
 import {
   checkSsrfHost,
+  discoverWorkDrive,
+  workDriveUrlCandidates,
   clientFromConnection,
   DomainError,
   encryptToken,
   isWorkDriveKey,
   newId,
-  normalizeWorkDriveUrl,
   REQUIRED_SCOPES,
   workDriveDefaultUrl,
   WorkDriveClient,
@@ -18,7 +19,9 @@ import {
 } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
 
-type Conn = NonNullable<Awaited<ReturnType<ReturnType<typeof getPrisma>['workDriveConnection']['findUnique']>>>;
+type Conn = NonNullable<
+  Awaited<ReturnType<ReturnType<typeof getPrisma>['workDriveConnection']['findUnique']>>
+>;
 
 const bad = (msg: string, key: string) => new DomainError('VALIDATION_FAILED', msg, 400, key);
 
@@ -26,7 +29,12 @@ const bad = (msg: string, key: string) => new DomainError('VALIDATION_FAILED', m
 export function workDriveDomainError(e: unknown): DomainError {
   if (e instanceof DomainError) return e;
   if (!(e instanceof WorkDriveError)) {
-    return new DomainError('WORKDRIVE_ERROR', 'WorkDrive request failed', 502, 'errors.workdrive_unavailable');
+    return new DomainError(
+      'WORKDRIVE_ERROR',
+      'WorkDrive request failed',
+      502,
+      'errors.workdrive_unavailable',
+    );
   }
   switch (e.code) {
     case 'invalid_url':
@@ -45,6 +53,34 @@ export function workDriveDomainError(e: unknown): DomainError {
       return new DomainError('RATE_LIMITED', e.message, 429, 'errors.workdrive_busy');
     default:
       return new DomainError('WORKDRIVE_ERROR', e.message, 502, 'errors.workdrive_unavailable');
+  }
+}
+
+/** Errors while connecting/testing: never "file removed"; always about the address or the key. */
+export function workDriveConnectError(e: unknown): DomainError {
+  if (e instanceof DomainError) return e;
+  const code = e instanceof WorkDriveError ? e.code : 'unavailable';
+  const err = (key: string, status = 422) =>
+    new DomainError('WORKDRIVE_ERROR', (e as Error)?.message ?? key, status, key);
+  switch (code) {
+    case 'invalid_url':
+      return bad('Invalid WorkDrive address', 'errors.workdrive_invalid_url');
+    case 'invalid_key':
+      return bad('Invalid WorkDrive key', 'errors.workdrive_invalid_key');
+    case 'unauthorized':
+      return err('errors.workdrive_key_rejected');
+    case 'forbidden':
+      return err('errors.workdrive_key_forbidden');
+    case 'outdated':
+      return err('errors.workdrive_outdated');
+    case 'not_workdrive':
+    case 'not_found':
+    case 'bad_response':
+      return err('errors.workdrive_not_workdrive');
+    case 'rate_limited':
+      return new DomainError('RATE_LIMITED', (e as Error).message, 429, 'errors.workdrive_busy');
+    default:
+      return err('errors.workdrive_unreachable', 502);
   }
 }
 
@@ -120,30 +156,39 @@ export class WorkDriveService {
   }
 
   private assertUrlAllowed(url: string) {
-    if (process.env.NODE_ENV !== 'production' || process.env.WORKDRIVE_ALLOW_PRIVATE_URLS === '1') return;
+    if (process.env.NODE_ENV !== 'production' || process.env.WORKDRIVE_ALLOW_PRIVATE_URLS === '1')
+      return;
     const host = new URL(url).hostname.replace(/^\[|\]$/g, '');
     const r = checkSsrfHost(host);
-    if (!r.ok) throw new DomainError('URL_SSRF_DENIED', r.reason, 400, 'errors.workdrive_invalid_url');
-    if (!url.startsWith('https://')) throw bad('URL must use https', 'errors.workdrive_invalid_url');
+    if (!r.ok)
+      throw new DomainError('URL_SSRF_DENIED', r.reason, 400, 'errors.workdrive_invalid_url');
+    if (!url.startsWith('https://'))
+      throw bad('URL must use https', 'errors.workdrive_invalid_url');
   }
 
   async connect(tenantId: string, userId: string, body: unknown, correlationId?: string) {
     const key = this.secret();
     const b = (body ?? {}) as Record<string, unknown>;
-    let baseUrl: string;
+    let candidates: string[];
     try {
-      baseUrl = normalizeWorkDriveUrl(b.base_url ?? b.baseUrl);
+      candidates = workDriveUrlCandidates(b.base_url ?? b.baseUrl);
     } catch (e) {
-      throw workDriveDomainError(e);
+      throw workDriveConnectError(e);
     }
-    this.assertUrlAllowed(baseUrl);
-    const apiKey = typeof (b.api_key ?? b.apiKey) === 'string' ? String(b.api_key ?? b.apiKey).trim() : '';
+    this.assertUrlAllowed(candidates[0]!);
+    const apiKey =
+      typeof (b.api_key ?? b.apiKey) === 'string' ? String(b.api_key ?? b.apiKey).trim() : '';
     if (!isWorkDriveKey(apiKey)) throw bad('Invalid WorkDrive key', 'errors.workdrive_invalid_key');
     let self;
+    let baseUrl: string;
     try {
-      self = await new WorkDriveClient(baseUrl, apiKey, WorkDriveService.fetchImpl).self();
+      ({ baseUrl, self } = await discoverWorkDrive(
+        candidates[0],
+        apiKey,
+        WorkDriveService.fetchImpl,
+      ));
     } catch (e) {
-      throw workDriveDomainError(e);
+      throw workDriveConnectError(e);
     }
     const missing = REQUIRED_SCOPES.filter((s) => !self.scopes.includes(s));
     if (missing.length)
@@ -200,7 +245,7 @@ export class WorkDriveService {
         scopes: self.scopes,
       };
     } catch (e) {
-      const d = workDriveDomainError(e);
+      const d = workDriveConnectError(e);
       patch = { status: 'ERROR' as const, lastError: d.messageKey };
     }
     const row = await getPrisma().workDriveConnection.update({

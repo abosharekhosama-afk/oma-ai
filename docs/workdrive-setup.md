@@ -25,6 +25,18 @@ In WorkDrive (admin) → Integrations → API keys, create a key for OMA with th
 Settings → Storage (`/app/settings?section=storage`). Workspace admins only (`tenant.manage`).
 Enter the WorkDrive address and the key, then choose **Connect**. OMA calls `GET /integration/self` and shows the organisation name, root folder and key prefix. **Test connection** re-checks it. **Disconnect** removes the key, but already-linked media keep their references.
 
+### Connection errors
+
+OMA finds the WorkDrive API on its own. The address can be typed with or without a trailing `/`, `/api` or `/api/v1`. Use the **backend** address (e.g. `https://imkan-workdrive-v1.onrender.com`), not the WorkDrive web app address.
+
+| What happened                                     | Message                                               |
+| ------------------------------------------------- | ----------------------------------------------------- |
+| The address is a website, not the WorkDrive API   | "This address doesn't lead to WorkDrive…"             |
+| The key is invalid, revoked or expired            | "WorkDrive didn't accept this key…"                   |
+| The key lacks permission                          | "This key doesn't have permission to connect…"        |
+| WorkDrive answers but has no integration keys yet | "This WorkDrive doesn't support app connections yet…" |
+| Nothing answers                                   | "We couldn't reach WorkDrive at this address…"        |
+
 ## 4. How media flows
 
 - **Upload:** browser → `POST /api/v1/brands/:brandId/media?kind=posts|logos|deliverables&name=…` (raw body). The API streams the body to a temp file while hashing it (never buffering it in memory) and enforces the size limit. It then uploads to WorkDrive: one signed PUT up to 32 MiB, or resumable 16 MiB parts above that.
