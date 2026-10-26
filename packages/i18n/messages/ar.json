@@ -1840,5 +1840,14 @@
   "preview.network.generic": "قناة",
   "preview.show_preview": "معاينة",
   "preview.approval.changes_requested": "طُلبت تعديلات",
-  "preview.approval.rejected": "مرفوض"
+  "preview.approval.rejected": "مرفوض",
+  "preview.open_post": "فتح المنشور",
+  "preview.approval.title": "خطوات الاعتماد",
+  "preview.approval.step": "الخطوة {n}",
+  "preview.approval.waiting": "بالانتظار",
+  "preview.comments.title": "التعليقات",
+  "preview.comments.empty": "لا توجد تعليقات بعد",
+  "preview.comments.send": "إرسال",
+  "preview.comments.internal": "داخلي",
+  "preview.team_member": "عضو الفريق"
 }

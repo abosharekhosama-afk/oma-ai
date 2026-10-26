@@ -13,6 +13,8 @@ import { createPortal } from 'react-dom';
 import { resolveContentWorkflow, type ApprovalPolicy, type DemoGraph } from '@oma/demo';
 import { ContentFace, faceDisplay } from '../../../../components/content/content-card';
 import { PostPreview } from '../../../../components/content/post-preview';
+import { FeedPost, type FeedComment } from '../../../../components/content/feed-post';
+import { listWorkspaceMembers, type WorkspaceMember } from '../../../../lib/team-api';
 import { NetworkIcon } from '../../../../components/content/network-icon';
 import { Button, DatePicker, Input, OmaSelect, SurfaceButton, TextArea } from '@oma/ui/controls';
 import dayjs from 'dayjs';
@@ -799,6 +801,11 @@ export default function ContentPage() {
   const capsReady = !caps.loading;
   const mayApprove = capsReady && caps.can(['content.approve'], 'any');
   const mayRequestApproval = capsReady && caps.can(['content.request_approval'], 'any');
+  const mayComment = capsReady && caps.can(['content.update'], 'any');
+  const [feedDetails, setFeedDetails] = useState<
+    Record<string, { comments: ContentCommentDto[]; events: ApprovalEvent[] }>
+  >({});
+  const [members, setMembers] = useState<WorkspaceMember[]>([]);
 
   const [rows, setRows] = useState<ContentRow[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -1184,6 +1191,36 @@ export default function ContentPage() {
   );
 
   const filtered = useMemo(() => filterContent(rows, filters, locale), [rows, filters, locale]);
+
+  const feedIds = useMemo(
+    () => (view === 'feed' ? filtered.slice(0, 40).map((r) => r.id) : []),
+    [view, filtered],
+  );
+  useEffect(() => {
+    if (feedIds.length === 0) return;
+    let live = true;
+    if (members.length === 0) {
+      void listWorkspaceMembers()
+        .then((m) => live && setMembers(m))
+        .catch(() => undefined);
+    }
+    const missing = feedIds.filter((id) => !feedDetails[id]);
+    if (missing.length === 0) return;
+    void Promise.all(
+      missing.map((id) =>
+        getContentDetail(id)
+          .then(
+            (d) => [id, { comments: d.comments ?? [], events: d.approval_events ?? [] }] as const,
+          )
+          .catch(() => [id, { comments: [], events: [] }] as const),
+      ),
+    ).then((pairs) => {
+      if (live) setFeedDetails((prev) => ({ ...prev, ...Object.fromEntries(pairs) }));
+    });
+    return () => {
+      live = false;
+    };
+  }, [feedIds]);
   const savedItems = useMemo(
     () => filtered.filter((item) => !resolveContentWorkflow(item, policy).plannedAt),
     [filtered, policy],
@@ -1301,6 +1338,110 @@ export default function ContentPage() {
                 },
               }
         }
+      />
+    );
+  }
+
+  function memberName(userId: string | null | undefined): string {
+    if (!userId) return t('content.you');
+    const m = members.find((x) => x.user?.id === userId);
+    return m?.user?.name || m?.user?.email || t('preview.team_member');
+  }
+
+  function memberIsInternal(userId: string): boolean {
+    const m = members.find((x) => x.user?.id === userId);
+    const kind = String(m?.membership_kind || m?.membership || '').toLowerCase();
+    return !/client|external|guest/.test(kind);
+  }
+
+  function renderFeedPost(item: ContentRow) {
+    const detail = feedDetails[item.id];
+    const approval = item.approvalState || 'NOT_REQUESTED';
+    const required = Math.max(1, item.approverRequired ?? 1);
+    const approvers = (detail?.events ?? [])
+      .filter((e) => /^APPROVE/i.test(e.action))
+      .map((e) => memberName(e.actor_user_id));
+    const approvedCount = Math.max(item.approverApproved ?? 0, approvers.length);
+    const comments: FeedComment[] = detail
+      ? detail.comments.map((c) => ({
+          id: c.id,
+          author: memberName(c.author_user_id),
+          body: pickCopy(c.body, locale),
+          at: c.at,
+          internal: memberIsInternal(c.author_user_id),
+        }))
+      : commentsForContent(tasks, deliverables, item.id).map((c) => ({
+          id: c.id,
+          author: c.author,
+          body: pickCopy(c.body, locale),
+          at: c.at,
+          internal: true,
+        }));
+    return (
+      <FeedPost
+        key={item.id}
+        testId={`demo-content-card-${item.id}`}
+        selected={selectedId === item.id}
+        onOpen={() => openItem(item)}
+        preview={{
+          channel: item.channel,
+          contentType: item.contentType,
+          brandName: brandName(item.brandId),
+          caption: item.caption ? pickCopy(item.caption, locale) : '',
+          title: pickCopy(item.title, locale),
+          media: item.previewAsset,
+          when: item.scheduledAt || item.plannedAt || null,
+          whenKind: item.scheduledAt ? 'scheduled' : item.plannedAt ? 'planned' : null,
+          locale,
+          size: 'feed',
+          headerActions: (
+            <CardActionsButton
+              itemId={item.id}
+              open={cardMenuId === item.id}
+              label={t('content.post_actions')}
+              onOpen={placeCardMenu}
+              onClose={closeCardMenu}
+            />
+          ),
+        }}
+        approval={
+          policy === 'NONE'
+            ? undefined
+            : {
+                state: approval,
+                approved: approvedCount,
+                required,
+                steps: Array.from({ length: required }, (_, i) => ({
+                  name: approvers[i] ?? null,
+                  done: i < approvedCount || approval === 'APPROVED',
+                })),
+                canApprove: mayApprove && canApprove(item),
+                canRequestChanges: mayApprove && canRequestChanges(item),
+                canRequestApproval: mayRequestApproval && canRequestApproval(item),
+                busy: saving,
+                onApprove: () => void runLifecycle('approve', item.id),
+                onRequestChanges: () => void runLifecycle('request-changes', item.id),
+                onRequestApproval: () => void runLifecycle('request-approval', item.id),
+              }
+        }
+        comments={comments}
+        canComment={mayComment}
+        onAddComment={async (body) => {
+          try {
+            const c = await addContentComment(item.id, { en: body, ar: body });
+            setFeedDetails((prev) => ({
+              ...prev,
+              [item.id]: {
+                comments: [...(prev[item.id]?.comments ?? []), c],
+                events: prev[item.id]?.events ?? [],
+              },
+            }));
+            if (selectedId === item.id) setProdComments((prev) => [...prev, c]);
+          } catch (err) {
+            toast.push(contentApiError(err, t('errors.http')), 'danger');
+            throw err;
+          }
+        }}
       />
     );
   }
@@ -2944,16 +3085,7 @@ export default function ContentPage() {
       {/* ── FEED VIEW ── */}
       {!loading && !unavailable && !error && filtered.length > 0 && view === 'feed' ? (
         <div className="oma-content-feed oma-content-feed--preview" data-testid="demo-content-feed">
-          {filtered.map((item) => (
-            <div
-              key={item.id}
-              className="oma-pp-feed-item"
-              data-testid={`demo-content-card-${item.id}`}
-              data-selected={selectedId === item.id ? 'true' : 'false'}
-            >
-              {renderPostPreview(item, 'feed')}
-            </div>
-          ))}
+          {filtered.map((item) => renderFeedPost(item))}
         </div>
       ) : null}
 

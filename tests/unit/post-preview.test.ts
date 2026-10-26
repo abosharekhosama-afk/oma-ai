@@ -5,6 +5,7 @@ import {
   aspectRatioFor,
   CAPTION_LIMIT,
   initials,
+  isPlaceholderAsset,
   resolveLayout,
   resolveNetwork,
   splitCaption,
@@ -82,7 +83,8 @@ describe('PostPreview dispatcher wiring', () => {
   });
   it('is the Feed rendering and the detail preview pane', () => {
     const client = read('apps/web/src/app/(app)/app/content/content-client.tsx');
-    expect(client).toContain("renderPostPreview(item, 'feed')");
+    expect(client).toContain('filtered.map((item) => renderFeedPost(item))');
+    expect(client).toContain('<FeedPost');
     expect(client).toContain('content-detail-preview');
     expect(
       read('apps/web/src/app/(app)/app/deliverables/[deliverableId]/deliverable-client.tsx'),
@@ -92,5 +94,33 @@ describe('PostPreview dispatcher wiring', () => {
     const css = read('apps/web/src/styles/post-preview.css');
     expect(css).not.toMatch(/gradient|glow|purple|#8b5cf6|#7c3aed/i);
     expect(css).not.toMatch(/\b(margin|padding)-(left|right)\b|\b(left|right):/);
+  });
+});
+
+import { approvalCounter, relativeTime } from '../../apps/web/src/components/content/feed-post';
+
+describe('Planable feed row', () => {
+  it('shows an n/m counter only for multi-approver flows', () => {
+    expect(approvalCounter({ approved: 2, required: 4, state: 'PARTIALLY_APPROVED' })).toBe('2/4');
+    expect(approvalCounter({ approved: 0, required: 1, state: 'PENDING' })).toBe('');
+    expect(approvalCounter({ approved: 0, required: 3, state: 'NOT_REQUESTED' })).toBe('');
+  });
+  it('formats comment times relatively in both locales', () => {
+    const now = Date.parse('2026-10-26T12:00:00Z');
+    expect(relativeTime('2026-10-26T10:00:00Z', 'en', now)).toMatch(/2/);
+    expect(relativeTime('2026-10-26T10:00:00Z', 'ar', now)).toMatch(/[\u0600-\u06FF]/);
+  });
+  it('treats bundled poster art as missing media', () => {
+    expect(isPlaceholderAsset('/demo/poster-static.svg')).toBe(true);
+    expect(isPlaceholderAsset('/demo/video-poster.svg')).toBe(true);
+    expect(isPlaceholderAsset('https://cdn.example.com/a.jpg')).toBe(false);
+    expect(isPlaceholderAsset(null)).toBe(true);
+  });
+  it('uses a single centered column with a side comments panel and no overlays', () => {
+    const css = read('apps/web/src/styles/post-preview.css');
+    expect(css).toMatch(/\.oma-content-feed--preview \{[^}]*flex-direction: column/);
+    expect(css).toMatch(/grid-template-columns: 32px minmax\(0, 500px\) 340px/);
+    expect(css).not.toMatch(/oma-pp__v-(top|bottom)|rgb\(0 0 0 \/ (25|35)%\)/);
+    expect(read('apps/web/src/components/content/post-preview.tsx')).not.toContain('oma-pp__v-');
   });
 });

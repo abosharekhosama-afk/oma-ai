@@ -1840,5 +1840,14 @@
   "preview.network.generic": "Channel",
   "preview.show_preview": "Preview",
   "preview.approval.changes_requested": "Changes requested",
-  "preview.approval.rejected": "Rejected"
+  "preview.approval.rejected": "Rejected",
+  "preview.open_post": "Open post",
+  "preview.approval.title": "Approval steps",
+  "preview.approval.step": "Step {n}",
+  "preview.approval.waiting": "Waiting",
+  "preview.comments.title": "Comments",
+  "preview.comments.empty": "No comments yet",
+  "preview.comments.send": "Send",
+  "preview.comments.internal": "Internal",
+  "preview.team_member": "Team member"
 }

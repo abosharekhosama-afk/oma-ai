@@ -147,6 +147,7 @@
 .oma-pp__media-ph {
   position: absolute;
   inset: 0;
+  background: #f5f6f7;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -241,79 +242,6 @@
   justify-content: space-between;
   padding-inline: 0;
 }
-/* vertical (story / reel / TikTok) */
-.oma-pp__vertical {
-  position: relative;
-  background: #111;
-  color: #fff;
-}
-.oma-pp__vertical .oma-pp__media {
-  background: #2b2d31;
-}
-.oma-pp__vertical .oma-pp__media-ph {
-  color: #b0b3b8;
-}
-.oma-pp__v-top {
-  position: absolute;
-  inset-block-start: 0;
-  inset-inline: 0;
-  padding: 8px 10px;
-  background: rgb(0 0 0 / 25%);
-}
-.oma-pp__v-progress {
-  display: block;
-  height: 2px;
-  background: rgb(255 255 255 / 35%);
-  border-radius: 1px;
-  margin-block-end: 8px;
-}
-.oma-pp__v-progress i {
-  display: block;
-  height: 100%;
-  width: 40%;
-  background: #fff;
-}
-.oma-pp__v-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.oma-pp__vertical .oma-pp__name,
-.oma-pp__vertical .oma-pp__when {
-  color: #fff;
-}
-.oma-pp__v-bottom {
-  position: absolute;
-  inset-block-end: 0;
-  inset-inline: 0;
-  padding: 12px;
-  background: rgb(0 0 0 / 35%);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.oma-pp[data-kind='tiktok'] .oma-pp__v-bottom {
-  padding-inline-end: 52px;
-}
-.oma-pp__vertical .oma-pp__more,
-.oma-pp__vertical .oma-pp__tag {
-  color: #fff;
-  font-weight: 600;
-}
-.oma-pp__v-reply {
-  border: 1px solid rgb(255 255 255 / 60%);
-  border-radius: 999px;
-  padding: 6px 12px;
-  font-size: 12px;
-}
-.oma-pp__v-rail {
-  position: absolute;
-  inset-inline-end: 8px;
-  inset-block-end: 90px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
 /* review strip */
 .oma-pp__review {
   display: flex;
@@ -399,20 +327,321 @@
   width: 16px;
   height: 16px;
 }
-/* feed layout */
+/* Planable Feed: one centered column; approval rail · post · comments */
 .oma-content-feed--preview {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
-  align-items: start;
-  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  padding: 24px 16px 48px;
   background: #f5f6f7;
 }
-.oma-content-feed--preview .oma-pp {
-  margin-inline: auto;
+.oma-fp {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 500px) 340px;
+  gap: 12px 16px;
+  align-items: start;
+  width: 100%;
+  max-width: 920px;
+  justify-content: center;
 }
-.oma-pp-feed-item[data-selected='true'] .oma-pp__post {
-  border-color: var(--pp-primary, #1677ff);
+.oma-fp .oma-pp {
+  max-width: none;
+}
+.oma-fp[data-selected='true'] .oma-pp__post {
+  border-color: #1677ff;
+}
+.oma-fp__rail {
+  position: sticky;
+  inset-block-start: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-block-start: 12px;
+}
+.oma-fp__approval {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.oma-fp__approve-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid #e4e6eb;
+  background: #fff;
+  color: #8c9196;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease,
+    border-color 150ms ease;
+}
+.oma-fp__approve-btn:hover {
+  border-color: #21cc99;
+  color: #21cc99;
+}
+.oma-fp__approve-btn:focus-visible {
+  outline: 2px solid #1677ff;
+  outline-offset: 2px;
+}
+.oma-fp__approve-btn[data-state='APPROVED'] {
+  background: #21cc99;
+  border-color: #21cc99;
+  color: #fff;
+}
+.oma-fp__approve-btn[data-state='PARTIALLY_APPROVED'] {
+  border-color: #21cc99;
+  color: #21cc99;
+}
+.oma-fp__approve-btn[data-state='PENDING'] {
+  border-color: #faad14;
+  color: #faad14;
+}
+.oma-fp__approve-btn[data-state='CHANGES_REQUESTED'] {
+  border-color: #fa8c16;
+  color: #fa8c16;
+}
+.oma-fp__approve-btn[data-state='REJECTED'] {
+  border-color: #ff4d4f;
+  color: #ff4d4f;
+}
+.oma-fp__counter {
+  font-size: 11px;
+  color: #65676b;
+  line-height: 1;
+}
+.oma-fp__net {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid #e4e6eb;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.oma-fp__pop {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 36px;
+  z-index: 20;
+  width: 280px;
+  background: #fff;
+  border: 1px solid #e4e6eb;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 12%);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: oma-fp-pop 150ms ease;
+}
+@keyframes oma-fp-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.oma-fp__pop-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.oma-fp__pop-state {
+  font-size: 12px;
+  color: #65676b;
+}
+.oma-fp__steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.oma-fp__step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.oma-fp__step-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid #bfc3c8;
+  font-size: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+}
+.oma-fp__step[data-done='true'] .oma-fp__step-dot {
+  background: #21cc99;
+  border-color: #21cc99;
+}
+.oma-fp__step-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #e8eaed;
+  color: #3c4043;
+  font-size: 10px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.oma-fp__step-text {
+  display: flex;
+  flex-direction: column;
+  font-size: 12px;
+  color: #65676b;
+  line-height: 1.3;
+}
+.oma-fp__step-name {
+  color: #1c1e21;
+  font-size: 13px;
+}
+.oma-fp__pop-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+.oma-pp__head-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-inline-start: auto;
+}
+.oma-fp__icon-btn {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+  border-radius: 6px;
+  color: #65676b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 150ms ease,
+    background-color 150ms ease;
+}
+.oma-fp:hover .oma-fp__icon-btn,
+.oma-fp__icon-btn:focus-visible {
+  opacity: 1;
+}
+.oma-fp__icon-btn:hover {
+  background: #f5f6f7;
+}
+.oma-fp__comments {
+  background: #fff;
+  border: 1px solid #e4e6eb;
+  border-radius: 6px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 640px;
+  overflow: auto;
+}
+.oma-fp__composer {
+  display: flex;
+  gap: 6px;
+}
+.oma-fp__input {
+  flex: 1;
+  min-width: 0;
+  height: 34px;
+  border: 1px solid #e4e6eb;
+  border-radius: 6px;
+  background: #f5f6f7;
+  padding-inline: 10px;
+  font: inherit;
+  font-size: 14px;
+  color: #1c1e21;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease;
+}
+.oma-fp__input:focus {
+  outline: none;
+  border-color: #1677ff;
+  background: #fff;
+}
+.oma-fp__empty {
+  margin: 4px 2px;
+  color: #8c9196;
+  font-size: 13px;
+}
+.oma-fp__thread {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.oma-fp__comment {
+  border: 1px solid #eef0f2;
+  border-radius: 6px;
+  padding: 8px 10px;
+  background: #fff;
+}
+.oma-fp__comment[data-internal='true'] {
+  background: #fff7e8;
+  border-color: #fbe6c2;
+}
+.oma-fp__c-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #65676b;
+}
+.oma-fp__c-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #e8eaed;
+  color: #3c4043;
+  font-size: 9px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.oma-fp__c-name {
+  color: #1c1e21;
+  font-weight: 600;
+  font-size: 13px;
+}
+.oma-fp__c-tag {
+  margin-inline-start: auto;
+  font-size: 11px;
+  color: #ad6800;
+}
+.oma-fp__c-body {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: #1c1e21;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 .oma-plan-post__preview-pane {
   display: flex;
@@ -425,15 +654,66 @@
   flex: none;
   vertical-align: middle;
 }
+.oma-fp {
+  --pp-primary: #1677ff;
+  --pp-text: #1c1e21;
+  --pp-muted: #65676b;
+  --pp-line: #e4e6eb;
+  --pp-radius: 6px;
+  font-size: 14px;
+  color: var(--pp-text);
+}
+.oma-fp__rail {
+  z-index: 5;
+}
+.oma-fp .oma-pp[data-kind$='vertical'],
+.oma-fp .oma-pp[data-kind='tiktok'] {
+  max-width: 360px;
+}
 @media (prefers-reduced-motion: reduce) {
   .oma-pp__post,
-  .oma-pp__btn {
+  .oma-pp__btn,
+  .oma-fp__approve-btn,
+  .oma-fp__icon-btn {
     transition: none;
   }
+  .oma-fp__pop {
+    animation: none;
+  }
 }
-@media (max-width: 640px) {
+@media (max-width: 960px) {
+  .oma-fp {
+    grid-template-columns: 32px minmax(0, 1fr);
+  }
+  .oma-fp__comments {
+    grid-column: 2;
+    max-height: none;
+  }
+}
+@media (max-width: 520px) {
   .oma-content-feed--preview {
-    grid-template-columns: 1fr;
-    padding: 8px;
+    padding: 12px 8px 32px;
+  }
+  .oma-fp {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .oma-fp__rail {
+    position: static;
+    flex-direction: row;
+    padding: 0;
+  }
+  .oma-fp__comments {
+    grid-column: 1;
+  }
+  .oma-fp__pop {
+    inset-block-start: 34px;
+    inset-inline-start: 0;
+  }
+  .oma-fp__icon-btn {
+    opacity: 1;
+  }
+  .oma-fp .oma-pp[data-kind$='vertical'],
+  .oma-fp .oma-pp[data-kind='tiktok'] {
+    max-width: none;
   }
 }
