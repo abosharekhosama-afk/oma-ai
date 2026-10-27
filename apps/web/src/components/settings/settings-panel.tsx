@@ -218,7 +218,7 @@ export function SettingsPanel({
   return (
     <div className="oma-ws-overlay" role="presentation" onClick={onClose}>
       <div
-        className="oma-ws-panel oma-settings-panel"
+        className="oma-ws-panel"
         role="dialog"
         aria-modal="true"
         aria-label={t('nav.settings')}
@@ -269,9 +269,9 @@ export function SettingsPanel({
           {loading ? <PageSkeleton rows={6} /> : null}
           {error ? <ErrorState compact kind={error} onRetry={() => void load()} /> : null}
           {!loading && draft ? (
-            <div className="oma-settings-panel__body">
+            <>
               {section === 'workspace' && (
-                <section data-testid="settings-workspace">
+                <div className="oma-ws-section" data-testid="settings-workspace">
                   <h2 className="oma-ws-section-title">{t('settings.workspace.title')}</h2>
                   <p className="oma-ws-empty-desc">{t('settings.workspace.body')}</p>
                   {wsError ? (
@@ -316,11 +316,11 @@ export function SettingsPanel({
                       {t('demo.settings.save')}
                     </Button>
                   </div>
-                </section>
+                </div>
               )}
 
               {(section === 'general' || section === 'localization' || section === 'workflow') && (
-                <section data-testid="demo-settings-general">
+                <div className="oma-ws-section" data-testid="demo-settings-general">
                   <h2 className="oma-ws-section-title">
                     {t(`demo.settings.section.${section}`) || section}
                   </h2>
@@ -441,11 +441,11 @@ export function SettingsPanel({
                       {t('demo.settings.save')}
                     </Button>
                   </div>
-                </section>
+                </div>
               )}
 
               {section === 'notifications' && (
-                <section data-testid="settings-notifications">
+                <div className="oma-ws-section" data-testid="settings-notifications">
                   <h2 className="oma-ws-section-title">
                     {t('demo.settings.section.notifications')}
                   </h2>
@@ -500,7 +500,7 @@ export function SettingsPanel({
                       {t('demo.settings.save')}
                     </Button>
                   </div>
-                </section>
+                </div>
               )}
 
               {section === 'storage' && !capabilities.loading && (
@@ -512,7 +512,7 @@ export function SettingsPanel({
               )}
 
               {section === 'integrations' && (
-                <section data-testid="demo-settings-integrations">
+                <div className="oma-ws-section" data-testid="demo-settings-integrations">
                   <h2 className="oma-ws-section-title">
                     {t('demo.settings.section.integrations')}
                   </h2>
@@ -555,9 +555,9 @@ export function SettingsPanel({
                       </div>
                     ))}
                   </div>
-                </section>
+                </div>
               )}
-            </div>
+            </>
           ) : null}
         </div>
       </div>

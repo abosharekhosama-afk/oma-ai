@@ -2138,26 +2138,87 @@
   color: #6b7280;
 }
 
+/* Tablet: slightly narrower nav, keep two-column layout */
+@media (max-width: 1024px) and (min-width: 721px) {
+  .oma-ws-overlay {
+    padding: 16px;
+  }
+  .oma-ws-panel {
+    width: min(860px, 100%);
+    grid-template-columns: 200px minmax(0, 1fr);
+    max-height: calc(100vh - 32px);
+  }
+  .oma-ws-panel-main {
+    padding: 24px 24px 28px;
+  }
+}
+
+/* Mobile / small screens: full-bleed single column + horizontal scrollable nav */
 @media (max-width: 720px) {
   .oma-ws-overlay {
     padding: 0;
+    align-items: stretch;
   }
   .oma-ws-panel {
     width: 100%;
+    max-width: 100%;
+    height: 100%;
     max-height: 100%;
     border-radius: 0;
     grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    box-shadow: none;
   }
   .oma-ws-panel-nav {
     display: flex;
-    gap: 4px;
+    flex-wrap: nowrap;
+    gap: 6px;
     overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
     border-inline-end: 0;
     border-bottom: 1px solid #e5e7eb;
-    padding: 12px;
+    padding: 10px 12px;
+    background: #f9fafb;
+  }
+  .oma-ws-panel-nav::-webkit-scrollbar {
+    display: none;
   }
   .oma-ws-panel-nav-group {
     display: none;
+  }
+  .oma-ws-panel-nav-item {
+    flex: 0 0 auto;
+    width: auto;
+    min-height: 40px;
+    padding: 0 14px;
+    white-space: nowrap;
+    font-size: 13px;
+  }
+  .oma-ws-panel-main {
+    padding: 20px 16px 28px;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .oma-ws-panel-close {
+    top: 10px;
+    inset-inline-end: 10px;
+    width: 36px;
+    height: 36px;
+  }
+  .oma-ws-section-title {
+    font-size: 18px;
+    margin-bottom: 16px;
+    padding-inline-end: 40px;
+  }
+  .oma-ws-field,
+  .oma-ws-empty-desc,
+  .oma-ws-toggles,
+  .oma-ws-label-list,
+  .oma-ws-danger {
+    max-width: none;
   }
 }
 
