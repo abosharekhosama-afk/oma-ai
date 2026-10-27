@@ -1,0 +1,10 @@
+Content screen open (/app/content?view=calendar), production builds, cold browser context, 80 ms latency / ~36 Mbps link,
+local API + Postgres, 3 brands x 40 posts. before = backup-004-2026-10-27 (6105026), after = feat/oma-ux-batch-oct27.
+
+Playwright wall clock (3 runs each, twice):
+before: calendar visible 1391-1399 ms | network idle 2571-2577 ms | 74 API requests
+after : calendar visible 1396-1401 ms | network idle 1567-1569 ms | 13 API requests
+
+In-page (performance.now, MutationObserver, first calendar card text in DOM):
+before: 1207-1209 ms (primary content response at ~1125 ms)
+after : 1045-1054 ms (primary content response at ~979 ms)

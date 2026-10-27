@@ -834,6 +834,19 @@ export class OpsService {
         ...(patch.contentId !== undefined ? { contentId: patch.contentId as string | null } : {}),
       },
     });
+    // Attaching a file to a deliverable fills its current draft version when that version has no
+    // file yet, so the uploaded file shows in the versions list instead of only on the parent row.
+    if (asset?.assetId && current.currentVersionId) {
+      await getPrisma().workDeliverableVersion.updateMany({
+        where: {
+          id: current.currentVersionId,
+          tenantId,
+          status: { notIn: ['APPROVED', 'SUPERSEDED'] },
+          assetId: null,
+        },
+        data: { assetId: asset.assetId, assetUrl: asset.assetUrl, updatedAt: new Date() },
+      });
+    }
     await this.audit.write({
       actorUserId,
       tenantId,

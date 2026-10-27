@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
 import { createReadStream, createWriteStream } from 'node:fs';
 import { mkdtemp, open, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -17,6 +17,7 @@ import {
   safeFileName,
   WorkDriveClient,
   WorkDriveError,
+  workDriveSecretKey,
   type MediaKind,
 } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
@@ -77,6 +78,50 @@ function meter(max: number) {
     },
   });
   return { t, result: () => ({ size, sha256: hash.digest('hex') }) };
+}
+
+type Grant = {
+  t: string;
+  u: string;
+  b: string;
+  k: MediaKind;
+  n: string;
+  m: string;
+  s: number;
+  h: string;
+  up: string;
+  f: string;
+  d: string;
+  exp: number;
+};
+
+function grantKey() {
+  const k = workDriveSecretKey();
+  if (!k)
+    throw new DomainError('PROVIDER_NOT_CONFIGURED', 'WorkDrive storage is not enabled on this server', 409, 'errors.workdrive_not_enabled');
+  return createHmac('sha256', k).update('oma-media-upload-grant/v1').digest();
+}
+
+export function signGrant(g: Grant) {
+  const body = Buffer.from(JSON.stringify(g)).toString('base64url');
+  const sig = createHmac('sha256', grantKey()).update(body).digest('base64url');
+  return `${body}.${sig}`;
+}
+
+export function verifyGrant(token: unknown): Grant | null {
+  if (typeof token !== 'string' || token.length > 4096) return null;
+  const [body, sig] = token.split('.');
+  if (!body || !sig) return null;
+  const want = createHmac('sha256', grantKey()).update(body).digest();
+  const got = Buffer.from(sig, 'base64url');
+  if (got.length !== want.length || !timingSafeEqual(got, want)) return null;
+  try {
+    const g = JSON.parse(Buffer.from(body, 'base64url').toString()) as Grant;
+    if (typeof g.exp !== 'number' || g.exp < Date.now() || !isMediaKind(g.k)) return null;
+    return g;
+  } catch {
+    return null;
+  }
 }
 
 export class MediaService {
@@ -255,6 +300,117 @@ export class MediaService {
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
+  }
+
+  /**
+   * Direct upload, step 1. Validates the file, reserves it in the brand's WorkDrive folder and
+   * returns the short-lived signed PUT URL WorkDrive issued plus an OMA grant (HMAC-signed, 30 min)
+   * that binds the reservation to this tenant, user, brand and file. The wdk_ key stays here.
+   */
+  async createUploadGrant(
+    ctx: { tenantId: string; userId: string; capabilities?: string[]; correlationId?: string },
+    brandId: string,
+    body: unknown,
+  ) {
+    const b = (body ?? {}) as Record<string, unknown>;
+    const kind = parseKind(b.kind);
+    this.assertCapability(ctx.capabilities, kind);
+    const brand = await this.brand(ctx.tenantId, brandId);
+    if (brand.status === 'ARCHIVED')
+      throw new DomainError('BRAND_ARCHIVED', 'Brand archived', 409, 'errors.brand_archived');
+    const mime = typeof b.mime === 'string' ? b.mime.split(';')[0]!.trim().toLowerCase() : '';
+    if (!allowedMimeFor(kind).includes(mime))
+      throw bad('This file type is not supported', 'errors.media_type');
+    const size = typeof b.size === 'number' && Number.isInteger(b.size) ? b.size : 0;
+    if (size <= 0) throw bad('Empty file', 'errors.media_empty');
+    if (size > maxBytesForMime(mime))
+      throw new DomainError('PAYLOAD_TOO_LARGE', 'File too large', 413, 'errors.media_too_large');
+    const sha256 = typeof b.sha256 === 'string' ? b.sha256.toLowerCase() : '';
+    if (!/^[a-f0-9]{64}$/.test(sha256)) throw bad('sha256 required');
+    const name = safeFileName(typeof b.name === 'string' && b.name.trim() ? b.name : 'file');
+    const c = await this.workdrive.requireClient(ctx.tenantId);
+    let r: Awaited<ReturnType<WorkDriveClient['requestUpload']>>;
+    let folderId: string;
+    try {
+      folderId = await this.folderFor(c, brand, kind);
+      r = await c.client.requestUpload({ folderId, name, mimeType: mime, size, sha256 });
+    } catch (e) {
+      this.folderCache.clear();
+      throw workDriveDomainError(e);
+    }
+    const exp = Date.now() + 30 * 60_000;
+    const grant = signGrant({
+      t: ctx.tenantId,
+      u: ctx.userId,
+      b: brandId,
+      k: kind,
+      n: r.name,
+      m: mime,
+      s: size,
+      h: sha256,
+      up: r.uploadId,
+      f: r.fileId,
+      d: folderId,
+      exp,
+    });
+    return {
+      data: {
+        upload_url: r.uploadUrl,
+        method: 'PUT',
+        headers: { 'content-type': mime },
+        grant,
+        expires_at: new Date(exp).toISOString(),
+      },
+    };
+  }
+
+  /** Direct upload, step 2: after the browser PUT the bytes, confirm with WorkDrive and record the asset. */
+  async completeUploadGrant(
+    ctx: { tenantId: string; userId: string; capabilities?: string[]; correlationId?: string },
+    body: unknown,
+  ) {
+    const g = verifyGrant((body as Record<string, unknown> | null)?.grant);
+    if (!g || g.t !== ctx.tenantId || g.u !== ctx.userId)
+      throw new DomainError('PERMISSION_DENIED', 'Invalid upload grant', 403, 'errors.media_grant');
+    this.assertCapability(ctx.capabilities, g.k);
+    const existing = await getPrisma().mediaAsset.findFirst({
+      where: tenantWhere(ctx.tenantId, { brandId: g.b, workdriveFileId: g.f }),
+    });
+    if (existing) return { data: mapAsset(existing) };
+    const c = await this.workdrive.requireClient(ctx.tenantId);
+    let fileId: string;
+    try {
+      ({ fileId } = await c.client.completeUpload(g.up));
+    } catch (e) {
+      throw workDriveDomainError(e);
+    }
+    const row = await getPrisma().mediaAsset.create({
+      data: {
+        id: newId(),
+        tenantId: ctx.tenantId,
+        brandId: g.b,
+        kind: g.k,
+        workdriveFileId: fileId || g.f,
+        folderId: g.d,
+        name: g.n,
+        mime: g.m,
+        size: BigInt(g.s),
+        sha256: g.h,
+        source: 'upload',
+        lastCheckedAt: new Date(),
+        createdBy: ctx.userId,
+      },
+    });
+    await this.audit.write({
+      actorUserId: ctx.userId,
+      tenantId: ctx.tenantId,
+      action: 'media.uploaded',
+      targetType: 'MediaAsset',
+      targetId: row.id,
+      afterRef: `${g.k}:${row.workdriveFileId}`,
+      correlationId: ctx.correlationId,
+    });
+    return { data: mapAsset(row) };
   }
 
   /** Use a file that is already in WorkDrive (picked in the browser). */

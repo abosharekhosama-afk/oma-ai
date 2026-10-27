@@ -1,6 +1,6 @@
 'use client';
+import { DetailShimmer } from '../../../../../../components/ui/shimmer';
 
-import { OmaTopLoader } from '../../../../../../components/ui/oma-top-loader';
 import { Button, CheckboxField, Input } from '@oma/ui/controls';
 
 import { FormEvent, useEffect, useState } from 'react';
@@ -70,7 +70,7 @@ export default function ConnectWebsitePage() {
   }
 
   if (denied) return <PermissionDenied message={t('errors.permission')} />;
-  if (loading) return <OmaTopLoader label={t('common.loading')} />;
+  if (loading) return <DetailShimmer />;
   if (!brand) {
     return (
       <div className="oma-card" role="alert">

@@ -24,6 +24,8 @@ const routeRequirements: Record<string, string[]> = {
   // Kind-specific capability (content.create / brand.create / deliverable.write) is checked in MediaService.
   'POST /api/v1/brands/:brandId/media': ['brand.read'],
   'POST /api/v1/brands/:brandId/media/import': ['brand.read'],
+  'POST /api/v1/brands/:brandId/media/upload-grant': ['brand.read'],
+  'POST /api/v1/media/upload-complete': ['brand.read'],
   'GET /api/v1/brands/:brandId/media/browse': ['brand.read'],
   'GET /api/v1/media/:assetId': ['brand.read'],
   'GET /api/v1/media/:assetId/url': ['brand.read'],

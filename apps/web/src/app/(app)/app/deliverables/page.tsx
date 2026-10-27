@@ -1,4 +1,5 @@
 'use client';
+import { TableShimmer } from '../../../../components/ui/shimmer';
 import { useReloadOnBrandChange } from '../../../../lib/active-brand';
 import { Button, Input } from '@oma/ui/controls';
 
@@ -260,11 +261,7 @@ export default function DeliverablesPage() {
           )
         : null}
 
-      <p className="oma-honesty-inline" data-testid="demo-storage-honesty">
-        {t('demo.deliverable.storageHonesty')}
-      </p>
-
-      {loading ? <p className="oma-muted">{t('demo.loading')}</p> : null}
+      {loading ? <TableShimmer rows={6} avatar={false} /> : null}
       {unavailable ? (
         <p className="oma-muted" data-testid="demo-deliverables-denied">
           {t('demo.unavailable')}

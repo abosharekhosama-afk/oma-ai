@@ -1,8 +1,8 @@
 'use client';
+import { TableShimmer } from '../../../../components/ui/shimmer';
 
 import { Button, Input, SelectField } from '@oma/ui/controls';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { OmaTopLoader } from '../../../../components/ui/oma-top-loader';
 import {
   attachMemberProfile,
   inviteMember,
@@ -15,12 +15,16 @@ import {
   type MembershipType,
   type PlanablePerm,
   type WorkspaceMember,
+  PERMISSION_LABELS,
+  capabilitiesToPermissions,
 } from '../../../../lib/team-api';
+import { Popover } from 'antd';
+import { openSettings } from '../../../../lib/settings-dialog';
+import { TEAM_INVITE_EVENT } from '../../../../lib/team-invite';
 import { useToast } from '../../../../components/ui/toast';
 import { api } from '../../../../lib/api';
 import { statusLabel } from '../../../../components/ui/status-chip';
 import { useLocale, useT } from '../../../../lib/use-locale';
-import { ShellIcon } from '../../../../components/shell/shell-icons';
 
 type Tab = 'members' | 'permissions' | 'notifications';
 
@@ -35,6 +39,62 @@ const PERM_COLS: PlanablePerm[] = [
 ];
 
 const ROLE_OPTIONS = ['Owner', 'Administrator', 'Contributor', 'Writer', 'Approver', 'Guest'];
+
+/** What each role can do by default (same mapping used when an invite is sent). */
+function rolePermissions(role: string): Record<PlanablePerm, boolean> {
+  return {
+    view: true,
+    approve: role === 'Approver' || role === 'Administrator' || role === 'Owner',
+    edit: !['Guest', 'Approver'].includes(role),
+    publish: ['Contributor', 'Administrator', 'Owner'].includes(role),
+    analyze: ['Administrator', 'Owner'].includes(role),
+    engage: true,
+    admin: ['Administrator', 'Owner'].includes(role),
+  };
+}
+
+/** Popover card explaining what a member can do (opened from the permissions link). */
+function PermissionsCard({
+  member,
+  isSelf,
+  isAr,
+  t,
+}: {
+  member: WorkspaceMember;
+  isSelf: boolean;
+  isAr: boolean;
+  t: (k: string) => string;
+}) {
+  const perms = member.permissions ?? capabilitiesToPermissions(member.capabilities || []);
+  const role = member.role || 'Contributor';
+  return (
+    <div className="oma-perm-card" dir={isAr ? 'rtl' : 'ltr'} data-testid="team-permissions-card">
+      <div className="oma-perm-card__head">
+        <span className="oma-perm-card__role">{t(`members.role.${role.toLowerCase()}`)}</span>
+        <span className="oma-perm-card__kind">
+          {member.membership === 'client' ? t('team.client') : t('team.team')}
+        </span>
+      </div>
+      <p className="oma-perm-card__desc">{t(`team.roleDesc.${role.toLowerCase()}`)}</p>
+      <ul className="oma-perm-card__list">
+        {PERM_COLS.map((p) => (
+          <li key={p} className={perms[p] ? 'is-on' : 'is-off'}>
+            <span className="oma-perm-card__mark" aria-hidden="true">
+              {perms[p] ? '✓' : '–'}
+            </span>
+            <span>{isAr ? PERMISSION_LABELS[p].ar : PERMISSION_LABELS[p].en}</span>
+            <span className="oma-sr-only">
+              {perms[p] ? t('team.perm.allowed') : t('team.perm.notAllowed')}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <p className="oma-perm-card__foot">
+        {isSelf ? t('team.perm.footSelf') : t('team.perm.footOther')}
+      </p>
+    </div>
+  );
+}
 
 export default function TeamPage() {
   const t = useT();
@@ -56,6 +116,12 @@ export default function TeamPage() {
   const [inviteRole, setInviteRole] = useState('Contributor');
   const [inviteMembership, setInviteMembership] = useState<MembershipType>('team');
   const [busy, setBusy] = useState(false);
+  // The "Invite members" button lives in the shell header (replaces the generic Create button).
+  useEffect(() => {
+    const open = () => setInviteOpen(true);
+    window.addEventListener(TEAM_INVITE_EVENT, open);
+    return () => window.removeEventListener(TEAM_INVITE_EVENT, open);
+  }, []);
   const [q, setQ] = useState('');
   const loadingRef = useRef(false);
   const mountedRef = useRef(true);
@@ -124,15 +190,7 @@ export default function TeamPage() {
             source_profiles: [inviteRole],
             role: inviteRole,
             membership: inviteMembership,
-            permissions: {
-              view: true,
-              approve: inviteRole === 'Approver' || inviteRole === 'Administrator',
-              edit: !['Guest', 'Approver'].includes(inviteRole),
-              publish: ['Contributor', 'Administrator', 'Owner'].includes(inviteRole),
-              analyze: ['Administrator', 'Owner'].includes(inviteRole),
-              engage: false,
-              admin: ['Administrator', 'Owner'].includes(inviteRole),
-            },
+            permissions: rolePermissions(inviteRole),
             last_online: 'Invited',
           },
         ]);
@@ -162,7 +220,12 @@ export default function TeamPage() {
   }
 
   async function onRemove(member: WorkspaceMember) {
-    if (!window.confirm(`Remove ${member.user?.email || member.invited_email}?`)) return;
+    if (
+      !window.confirm(
+        t('team.removeConfirm').replace('{name}', member.user?.email || member.invited_email || ''),
+      )
+    )
+      return;
     setBusy(true);
     try {
       if (source === 'api') await removeMember(member.id);
@@ -208,10 +271,6 @@ export default function TeamPage() {
             {t('team.invite_collaborators_set_teamclient_membership')}
           </p>
         </div>
-        <Button type="primary" onClick={() => setInviteOpen(true)} disabled={busy}>
-          <ShellIcon name="plus" size={14} />
-          <span>{t('team.invite_members')}</span>
-        </Button>
       </div>
 
       <div className="oma-ws-tabs">
@@ -233,7 +292,7 @@ export default function TeamPage() {
         ))}
       </div>
 
-      {loading ? <OmaTopLoader /> : null}
+      {loading ? <TableShimmer rows={5} /> : null}
       {error ? (
         <div className="plx-empty" role="alert">
           <strong>{error}</strong>
@@ -270,9 +329,6 @@ export default function TeamPage() {
                       <div className="oma-ws-empty-block">
                         <h3>{t('company.membersEmpty')}</h3>
                         <p>{t('team.invite_teammates_or_clients_to')}</p>
-                        <Button type="primary" onClick={() => setInviteOpen(true)}>
-                          {t('team.invite_members')}
-                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -332,7 +388,31 @@ export default function TeamPage() {
                               : m.last_online || '—'}
                         </td>
                         <td className="oma-ws-perm-summary" data-testid="team-permissions">
-                          {readablePermissions(m, isAr).join(t('team.text')) || '—'}
+                          <Popover
+                            trigger="click"
+                            arrow={false}
+                            placement={isAr ? 'bottomRight' : 'bottomLeft'}
+                            getPopupContainer={() => document.body}
+                            classNames={{ root: 'oma-perm-popover' }}
+                            content={
+                              <PermissionsCard
+                                member={m}
+                                isSelf={Boolean(m.user?.id && m.user.id === meId)}
+                                isAr={isAr}
+                                t={t}
+                              />
+                            }
+                          >
+                            <button
+                              type="button"
+                              className="oma-perm-link"
+                              aria-label={readablePermissions(m, isAr).join(t('team.text'))}
+                            >
+                              {m.user?.id && m.user.id === meId
+                                ? t('team.perm.yours')
+                                : t('team.perm.view')}
+                            </button>
+                          </Popover>
                         </td>
                         <td>
                           {isOwnerMember(m) || (m.user?.id && m.user.id === meId) ? (
@@ -373,7 +453,7 @@ export default function TeamPage() {
               <tr>
                 <th>{t('team.user')}</th>
                 {PERM_COLS.map((p) => (
-                  <th key={p}>{p[0].toUpperCase() + p.slice(1)}</th>
+                  <th key={p}>{isAr ? PERMISSION_LABELS[p].ar : PERMISSION_LABELS[p].en}</th>
                 ))}
               </tr>
             </thead>
@@ -411,56 +491,21 @@ export default function TeamPage() {
       ) : null}
 
       {!loading && !error && tab === 'notifications' ? (
-        <div className="oma-planable-card">
+        <div className="oma-planable-card" data-testid="team-notifications">
           <h3 className="oma-ws-subhead">{t('team.manage_notifications')}</h3>
-          <p className="oma-ws-empty-desc">
-            Choose which events each member receives. Connect Slack from Settings → Integrations.
-          </p>
-          <table className="oma-ws-table">
-            <thead>
-              <tr>
-                <th>{t('team.user')}</th>
-                <th>{t('team.posts_updates')}</th>
-                <th>{t('activity.filter.approvals')}</th>
-                <th>{t('team.your_posts')}</th>
-                <th>{t('team.other_posts')}</th>
-                <th>{t('team.social_inbox')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((m) => {
-                const label = m.user?.name || m.user?.email || m.invited_email || t('team.user');
-                return (
-                  <tr key={m.id}>
-                    <td>
-                      <div className="oma-ws-user-cell">
-                        <span className="oma-ws-avatar oma-ws-avatar--sm">
-                          {(label[0] || 'U').toUpperCase()}
-                        </span>
-                        <div className="oma-ws-user-name">{label}</div>
-                      </div>
-                    </td>
-                    {['posts', 'approvals', 'yours', 'others', 'inbox'].map((k) => (
-                      <td key={k} className="oma-ws-check-cell">
-                        <input
-                          type="checkbox"
-                          defaultChecked={k === 'approvals' || k === 'yours'}
-                        />
-                      </td>
-                    ))}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <p className="oma-ws-empty-desc">{t('team.notifications.personal')}</p>
+          <Button type="primary" onClick={() => openSettings('notifications')}>
+            {t('team.notifications.open')}
+          </Button>
         </div>
       ) : null}
 
       {inviteOpen ? (
         <div className="oma-ws-overlay" role="presentation" onClick={() => setInviteOpen(false)}>
           <div
-            className="oma-ws-modal-card"
+            className="oma-ws-modal-card oma-ws-modal-card--wide oma-invite-card"
             role="dialog"
+            aria-modal="true"
             aria-label={t('team.invite_members')}
             onClick={(e) => e.stopPropagation()}
             style={{ margin: 'auto' }}
@@ -481,13 +526,36 @@ export default function TeamPage() {
             </div>
             <div className="oma-ws-field">
               <label className="oma-ws-label">{t('demo.team.filter.role')}</label>
-              <SelectField value={inviteRole} onChange={(e) => setInviteRole(e.target.value)}>
-                {ROLE_OPTIONS.map((r) => (
-                  <option key={r} value={r}>
-                    {t(`members.role.${r.toLowerCase()}`)}
-                  </option>
-                ))}
-              </SelectField>
+              <div className="oma-role-cards" role="radiogroup" aria-label={t('demo.team.filter.role')}>
+                {ROLE_OPTIONS.filter((r) => r !== 'Owner').map((r) => {
+                  const perms = rolePermissions(r);
+                  const on = PERM_COLS.filter((p) => perms[p]);
+                  return (
+                    <button
+                      key={r}
+                      type="button"
+                      role="radio"
+                      aria-checked={inviteRole === r}
+                      className={`oma-role-card${inviteRole === r ? ' is-selected' : ''}`}
+                      data-testid={`team-role-card-${r.toLowerCase()}`}
+                      onClick={() => setInviteRole(r)}
+                    >
+                      <span className="oma-role-card__top">
+                        <span className="oma-role-card__radio" aria-hidden="true" />
+                        <strong>{t(`members.role.${r.toLowerCase()}`)}</strong>
+                      </span>
+                      <span className="oma-role-card__desc">
+                        {t(`team.roleDesc.${r.toLowerCase()}`)}
+                      </span>
+                      <span className="oma-role-card__perms">
+                        {on
+                          .map((p) => (isAr ? PERMISSION_LABELS[p].ar : PERMISSION_LABELS[p].en))
+                          .join(t('team.text'))}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             <div className="oma-ws-field">
               <label className="oma-ws-label">{t('team.membership')}</label>

@@ -7,6 +7,7 @@ import {
   isRequiredForApproval,
   newId,
 } from '@oma/domain';
+import { notificationAllowed } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
 
 @Injectable()
@@ -209,7 +210,14 @@ export class ProfileService {
           });
         }
       }
-      if (version.status === 'DRAFT') {
+      const actorPrefs = await tx.user.findUnique({
+        where: { id: actorUserId },
+        select: { preferencesJson: true },
+      });
+      if (
+        version.status === 'DRAFT' &&
+        notificationAllowed(actorPrefs?.preferencesJson, 'brand.profile.needs_review')
+      ) {
         const deepLinkPath = `/app/brands/${brandId}/profiles/${versionId}`;
         await tx.notification.upsert({
           where: {

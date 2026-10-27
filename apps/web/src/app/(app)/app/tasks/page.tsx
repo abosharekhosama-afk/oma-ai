@@ -1,11 +1,11 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { PageSkeleton } from '../../../../components/ui/page-skeleton';
+import { BoardShimmer } from '../../../../components/ui/shimmer';
 
 const TasksPage = dynamic(() => import('./tasks-client'), {
   ssr: false,
-  loading: () => <PageSkeleton rows={8} />,
+  loading: () => <BoardShimmer />,
 });
 
 export default function TasksRoutePage() {

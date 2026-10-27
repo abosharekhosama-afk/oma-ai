@@ -1,4 +1,5 @@
 import { getPrisma } from '@oma/db';
+import { notificationAllowed } from '@oma/domain';
 import {
   createSocialAdapter,
   decryptToken,
@@ -73,7 +74,16 @@ export async function alertDisconnected(
     ...admins.map((a) => a.membership.userId).filter((u): u is string => Boolean(u)),
   ]);
   const day = now.toISOString().slice(0, 10);
+  // Respect "mute all notifications" in each recipient's preferences.
+  const prefs = await prisma.user.findMany({
+    where: { id: { in: [...recipients] } },
+    select: { id: true, preferencesJson: true },
+  });
+  const muted = new Set(
+    prefs.filter((u) => !notificationAllowed(u.preferencesJson, 'social.disconnected')).map((u) => u.id),
+  );
   for (const userId of recipients) {
+    if (muted.has(userId)) continue;
     await prisma.notification.upsert({
       where: {
         tenantId_dedupeKey: {

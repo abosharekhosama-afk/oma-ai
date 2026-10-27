@@ -1,8 +1,8 @@
 'use client';
+import { TableShimmer } from '../../../../components/ui/shimmer';
 
 import { Button } from '@oma/ui/controls';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { OmaTopLoader } from '../../../../components/ui/oma-top-loader';
 import { listActivity, type ActivityItem } from '../../../../lib/activity-api';
 import { useToast } from '../../../../components/ui/toast';
 import { ActivityFeedItem } from '../../../../components/activity/activity-feed-item';
@@ -99,7 +99,7 @@ export default function ActivityPage() {
         ))}
       </div>
 
-      {loading ? <OmaTopLoader /> : null}
+      {loading ? <TableShimmer rows={8} /> : null}
       {error ? (
         <div className="plx-empty" role="alert">
           <strong>{error}</strong>

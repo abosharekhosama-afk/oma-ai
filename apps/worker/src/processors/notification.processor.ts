@@ -1,5 +1,5 @@
 import { getPrisma } from '@oma/db';
-import { newId } from '@oma/domain';
+import { newId, notificationAllowed } from '@oma/domain';
 
 export async function materializeNotification(input: {
   tenantId: string;
@@ -9,6 +9,11 @@ export async function materializeNotification(input: {
   dedupeKey: string;
   sourceOutboxEventId?: string;
 }) {
+  const user = await getPrisma().user.findUnique({
+    where: { id: input.recipientUserId },
+    select: { preferencesJson: true },
+  });
+  if (!notificationAllowed(user?.preferencesJson, input.type)) return null;
   return getPrisma().notification.upsert({
     where: { tenantId_dedupeKey: { tenantId: input.tenantId, dedupeKey: input.dedupeKey } },
     create: {

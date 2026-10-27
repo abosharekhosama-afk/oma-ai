@@ -7,6 +7,7 @@ import { useT } from '../../lib/use-locale';
 import { LanguageSwitcher } from './language-switcher';
 import { LogoutButton } from './logout-button';
 import { ShellIcon } from './shell-icons';
+import { openSettings } from '../../lib/settings-dialog';
 import { ShellPopover } from './shell-popover';
 
 export function UserMenu() {
@@ -22,17 +23,18 @@ export function UserMenu() {
       <Link href="/app/account" className="oma-menu-item" role="menuitem" onClick={() => setOpen(false)}>
         {t('account.title')}
       </Link>
-      <Link href="/app/settings" className="oma-menu-item" role="menuitem" onClick={() => setOpen(false)}>
-        {t('nav.settings')}
-      </Link>
-      <Link
-        href="/app/company/members"
+      <button
+        type="button"
         className="oma-menu-item"
         role="menuitem"
-        onClick={() => setOpen(false)}
+        data-testid="shell-user-menu-settings"
+        onClick={() => {
+          setOpen(false);
+          openSettings();
+        }}
       >
-        {t('nav.company')}
-      </Link>
+        {t('nav.settings')}
+      </button>
       <div className="oma-user-menu-row">
         <LogoutButton />
       </div>

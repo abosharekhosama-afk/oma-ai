@@ -1,6 +1,6 @@
 'use client';
+import { DetailShimmer } from '../../../../../components/ui/shimmer';
 
-import { OmaTopLoader } from '../../../../../components/ui/oma-top-loader';
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -99,7 +99,7 @@ export default function BrandDetailPage() {
   if (denied) return <PermissionDenied message={t('errors.permission')} />;
   if (tenantRequired) return <SelectCompany />;
   if (loading) {
-    return <OmaTopLoader label={t('common.loading')} />;
+    return <DetailShimmer />;
   }
   if (error || !brand) {
     return (

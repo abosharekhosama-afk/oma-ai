@@ -72,7 +72,7 @@ describe('demo dependencies removed from real surfaces', () => {
   for (const f of [
     'apps/web/src/app/(app)/app/home-client.tsx',
     'apps/web/src/app/(app)/app/team/team-client.tsx',
-    'apps/web/src/app/(app)/app/settings/settings-client.tsx',
+    'apps/web/src/components/settings/settings-panel.tsx',
     'apps/web/src/lib/activity-api.ts',
   ]) {
     it(`${f} does not call /api/v1/demo`, () => {

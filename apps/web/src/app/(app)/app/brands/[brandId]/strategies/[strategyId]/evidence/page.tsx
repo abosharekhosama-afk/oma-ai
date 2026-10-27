@@ -1,6 +1,6 @@
 'use client';
+import { DetailShimmer } from '../../../../../../../../components/ui/shimmer';
 
-import { OmaTopLoader } from '../../../../../../../../components/ui/oma-top-loader';
 
 import { useParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
@@ -52,7 +52,7 @@ export default function StrategyEvidencePage() {
 
   if (denied) return <PermissionDenied message={t('errors.permission')} />;
   if (tenantRequired) return <SelectCompany />;
-  if (!brand || !version) return <OmaTopLoader label={t('common.loading')} />;
+  if (!brand || !version) return <DetailShimmer />;
 
   return (
     <BrandWorkspaceShell brandId={brandId} brandName={brand.name}>

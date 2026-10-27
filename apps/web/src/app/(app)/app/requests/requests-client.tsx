@@ -1,10 +1,10 @@
 'use client';
+import { TableShimmer } from '../../../../components/ui/shimmer';
 
 import { useReloadOnBrandChange } from '../../../../lib/active-brand';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { OmaTopLoader } from '../../../../components/ui/oma-top-loader';
 import { createPortal } from 'react-dom';
 import type { DemoGraph } from '@oma/demo';
 import { Button, DatePicker, Input, OmaSelect, TextArea } from '@oma/ui/controls';
@@ -337,7 +337,7 @@ export default function RequestsPage() {
           )
         : null}
 
-      {loading ? <OmaTopLoader label={t('demo.loading')} /> : null}
+      {loading ? <TableShimmer rows={6} avatar={false} /> : null}
       {unavailable ? (
         <p className="oma-muted" data-testid="demo-requests-denied">
           {t('demo.unavailable')}

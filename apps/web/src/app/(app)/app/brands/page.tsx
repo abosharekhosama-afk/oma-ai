@@ -1,11 +1,11 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { PageSkeleton } from '../../../../components/ui/page-skeleton';
+import { CardGridShimmer } from '../../../../components/ui/shimmer';
 
 const Client = dynamic(() => import('./brands-client'), {
   ssr: false,
-  loading: () => <PageSkeleton rows={8} />,
+  loading: () => <CardGridShimmer />,
 });
 
 export default function Page() {

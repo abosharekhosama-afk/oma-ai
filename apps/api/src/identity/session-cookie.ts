@@ -27,6 +27,16 @@ export function setCsrfCookie(res: Response): string {
     secure,
     sameSite: 'lax',
     path: '/',
+    // Same lifetime as the session cookie: a browser-session-only CSRF cookie disappeared on
+    // browser restart while the 7-day session survived, so every write failed with errors.csrf.
+    maxAge: Number(process.env.SESSION_TTL_SECONDS ?? 604800) * 1000,
   });
   return token;
+}
+
+/** Re-issue the CSRF cookie only when the browser no longer has it; returns the active token. */
+export function ensureCsrfCookie(req: { cookies?: Record<string, string> }, res: Response): string {
+  const name = process.env.CSRF_COOKIE_NAME ?? 'oma_csrf';
+  const existing = req.cookies?.[name];
+  return existing || setCsrfCookie(res);
 }

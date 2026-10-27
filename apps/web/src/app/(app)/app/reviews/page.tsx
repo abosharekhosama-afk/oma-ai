@@ -1,4 +1,5 @@
 'use client';
+import { TableShimmer } from '../../../../components/ui/shimmer';
 import { useReloadOnBrandChange } from '../../../../lib/active-brand';
 import { SearchOutlined } from '@ant-design/icons';
 
@@ -7,7 +8,6 @@ import { Button, Input } from '@oma/ui/controls';
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { EmptyState } from '../../../../components/ui/empty-state';
-import { OmaTopLoader } from '../../../../components/ui/oma-top-loader';
 import { PageHeader } from '../../../../components/ui/page-header';
 import { StatusChip } from '../../../../components/ui/status-chip';
 import { api } from '../../../../lib/api';
@@ -106,7 +106,7 @@ export default function ReviewsPage() {
         }
       />
 
-      {loading ? <OmaTopLoader /> : null}
+      {loading ? <TableShimmer rows={6} avatar={false} /> : null}
       {error ? (
         <div className="oma-card" role="alert">
           <p style={{ color: 'var(--status-danger)', margin: 0 }}>{error}</p>

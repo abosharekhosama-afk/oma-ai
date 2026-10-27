@@ -3,7 +3,12 @@ import type { Request, Response } from 'express';
 import { identityService, tenantService } from '../container';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { CsrfGuard } from '../common/guards/csrf.guard';
-import { clearSessionCookie, setCsrfCookie, setSessionCookie } from './session-cookie';
+import {
+  clearSessionCookie,
+  ensureCsrfCookie,
+  setCsrfCookie,
+  setSessionCookie,
+} from './session-cookie';
 import { DomainError } from '@oma/domain';
 import { getPrisma } from '@oma/db';
 
@@ -55,6 +60,14 @@ export class AuthController {
     await identityService.logout(sessionId, req.oma.userId);
     clearSessionCookie(res);
     return { ok: true };
+  }
+
+  /** Returns a valid CSRF token for the current session (re-issuing the cookie if it was lost). */
+  @Get('csrf')
+  @UseGuards(AuthGuard)
+  csrf(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    res.setHeader('cache-control', 'no-store');
+    return { csrf_token: ensureCsrfCookie(req, res) };
   }
 
   @Get('me')

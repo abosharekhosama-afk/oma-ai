@@ -142,9 +142,11 @@ describe('calm loading UI', () => {
       /OmaDotsLoader/,
     );
   });
-  it('skeleton shimmer has no gradient and respects reduced motion', () => {
+  it('skeleton shimmer matches the Home shimmer, has no hard hex and respects reduced motion', () => {
     const css = read('apps/web/src/styles/states.css');
-    expect(css).not.toMatch(/gradient|#[0-9a-f]{3,8}\b/i);
+    // Same neutral sweep as antd's active Skeleton used on Home (rgba greys only, no colour).
+    expect(css).toMatch(/oma-shimmer-sweep/);
+    expect(css).not.toMatch(/gradient\([^)]*#[0-9a-f]{3,8}/i);
     expect(css).toMatch(/prefers-reduced-motion: reduce/);
     expect(read('apps/web/src/app/globals.css')).not.toMatch(
       /linear-gradient\(90deg, var\(--oma-canvas\)/,

@@ -1,6 +1,6 @@
 'use client';
+import { DetailShimmer } from '../../../../../../../components/ui/shimmer';
 
-import { OmaTopLoader } from '../../../../../../../components/ui/oma-top-loader';
 import { Button } from '@oma/ui/controls';
 
 import Link from 'next/link';
@@ -178,7 +178,7 @@ export default function ProfileEditorPage() {
   }
 
   if (denied) return <PermissionDenied message={t('errors.permission')} />;
-  if (loading) return <OmaTopLoader label={t('common.loading')} />;
+  if (loading) return <DetailShimmer />;
   if (error || !brand || !profile) {
     return (
       <div className="oma-card" role="alert">

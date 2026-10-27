@@ -284,12 +284,6 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
                   <ShellIcon name="team" size={16} />
                   <span>{t('wsPanel.open_team')}</span>
                 </Button>
-                <Button
-                  type="default"
-                  onClick={() => (window.location.href = '/app/company/members')}
-                >
-                  {t('wsPanel.company_collaborators')}
-                </Button>
               </div>
             </div>
           )}

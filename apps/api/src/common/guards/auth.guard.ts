@@ -1,7 +1,8 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { DomainError, hashSessionToken } from '@oma/domain';
 import { getPrisma } from '@oma/db';
-import type { Request } from 'express';
+import type { Request, Response } from 'express';
+import { ensureCsrfCookie, setSessionCookie } from '../../identity/session-cookie';
 import { applyBrandScope, resolveBrandAccess } from '../../brand/brand-access';
 
 @Injectable()
@@ -34,7 +35,19 @@ export class AuthGuard implements CanActivate {
     if (Date.now() - session.lastSeenAt.getTime() > 60_000) {
       await prisma.session.update({ where: { id: session.id }, data: { lastSeenAt: new Date() } });
     }
-    (req as Request & { sessionExpiresAt?: Date }).sessionExpiresAt = session.expiresAt;
+    const res = context.switchToHttp().getResponse<Response>();
+    // Sliding session: once less than half the TTL is left, extend it and refresh the cookie so
+    // active users are never logged out mid-work.
+    const ttlMs = Number(process.env.SESSION_TTL_SECONDS ?? 604800) * 1000;
+    let expiresAt = session.expiresAt;
+    if (res && typeof res.cookie === 'function' && expiresAt.getTime() - Date.now() < ttlMs / 2) {
+      expiresAt = new Date(Date.now() + ttlMs);
+      await prisma.session.update({ where: { id: session.id }, data: { expiresAt } });
+      setSessionCookie(res, token);
+    }
+    // Repair a missing CSRF cookie (older browsers kept the session cookie but dropped this one).
+    if (res && typeof res.cookie === 'function') ensureCsrfCookie(req, res);
+    (req as Request & { sessionExpiresAt?: Date }).sessionExpiresAt = expiresAt;
     req.oma = {
       ...(req.oma ?? { correlationId: '', requestId: '', capabilities: [] }),
       userId: session.userId,

@@ -1,4 +1,5 @@
 'use client';
+import { DetailShimmer } from '../../../../../components/ui/shimmer';
 import { Button, DateField, Input, SelectField, TextArea } from '@oma/ui/controls';
 
 import Link from 'next/link';
@@ -38,7 +39,6 @@ import {
   priorityLabel,
   canCloseRequest,
 } from '../../../../../lib/request-workflow-ui';
-import { OmaTopLoader } from '../../../../../components/ui/oma-top-loader';
 import { listWorkspaceMembers, type WorkspaceMember } from '../../../../../lib/team-api';
 import {
   briefCompleteness,
@@ -393,7 +393,7 @@ export default function RequestDetailPage() {
         ) : null}
       </header>
 
-      {loading ? <OmaTopLoader /> : null}
+      {loading ? <DetailShimmer /> : null}
       {unavailable ? (
         <p className="oma-muted oma-req-detail__pad" data-testid="demo-request-denied">
           {t('demo.unavailable')}

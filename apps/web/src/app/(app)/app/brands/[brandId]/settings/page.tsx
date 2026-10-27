@@ -1,8 +1,8 @@
 'use client';
+import { DetailShimmer } from '../../../../../../components/ui/shimmer';
 
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { OmaTopLoader } from '../../../../../../components/ui/oma-top-loader';
 import { PermissionDenied } from '../../../../../../components/shell/permission-denied';
 import { ErrorState } from '../../../../../../components/ui/empty-state';
 import {
@@ -137,7 +137,7 @@ export default function BrandSettingsPage() {
 
   if (denied) return <PermissionDenied message={t('errors.permission')} />;
   if (error) return <ErrorState title={t('common.error')} body={error} />;
-  if (!brand) return <OmaTopLoader label={t('common.loading')} />;
+  if (!brand) return <DetailShimmer />;
 
   return (
     <BrandSettingsView

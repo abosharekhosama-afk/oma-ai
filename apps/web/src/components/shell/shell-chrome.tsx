@@ -12,6 +12,9 @@ import dynamic from 'next/dynamic';
 import { SessionInvalidOverlay } from './session-invalid';
 import { SessionKeeper } from './session-keeper';
 import { OfflineBanner } from '../ui/offline-banner';
+import { OPEN_SETTINGS_EVENT } from '../../lib/settings-dialog';
+import { openTeamInvite } from '../../lib/team-invite';
+import { isSettingsSection } from '../settings/settings-sections';
 
 // Heavy, on-demand UI is code-split out of the shell bundle.
 const CommandSearch = dynamic(() => import('./command-search').then((m) => m.CommandSearch), {
@@ -30,6 +33,10 @@ import { ShellIcon } from './shell-icons';
 import { UserMenu } from './user-menu';
 import { WorkspaceRow } from './workspace-row';
 import { WorkspacePathMenu } from './workspace-path-menu';
+const SettingsPanel = dynamic(
+  () => import('../settings/settings-panel').then((m) => m.SettingsPanel),
+  { ssr: false },
+);
 const WorkspaceSettingsPanel = dynamic(
   () => import('./workspace-settings-panel').then((m) => m.WorkspaceSettingsPanel),
   { ssr: false },
@@ -283,6 +290,24 @@ export function ShellChrome({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [wsSettingsOpen, setWsSettingsOpen] = useState(false);
+  // Settings card (opened from the account menu, or `?settings=<section>` / the old /app/settings URL).
+  const [settingsSection, setSettingsSection] = useState<string | null>(null);
+  useEffect(() => {
+    const onOpen = (e: Event) => {
+      const section = (e as CustomEvent<{ section?: string }>).detail?.section;
+      setMobileOpen(false);
+      setSettingsSection(section || 'general');
+    };
+    window.addEventListener(OPEN_SETTINGS_EVENT, onOpen);
+    const url = new URL(window.location.href);
+    const fromUrl = url.searchParams.get('settings');
+    if (fromUrl) {
+      setSettingsSection(fromUrl);
+      url.searchParams.delete('settings');
+      window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+    }
+    return () => window.removeEventListener(OPEN_SETTINGS_EVENT, onOpen);
+  }, []);
 
   // Close the mobile nav drawer whenever the route changes.
   useEffect(() => {
@@ -429,6 +454,13 @@ export function ShellChrome({ children }: { children: ReactNode }) {
                   <span>{t('brand.list.create')}</span>
                 </OmaLinkButton>
               </div>
+            ) : pathname === '/app/team' ? (
+              <div className="oma-top-actions">
+                <Button type="primary" data-testid="shell-invite-members" onClick={openTeamInvite}>
+                  <ShellIcon name="plus" size={16} />
+                  <span>{t('team.invite_members')}</span>
+                </Button>
+              </div>
             ) : isBrandDetail && brandIdFromPath && !pathname.endsWith('/settings') ? (
               <div className="oma-top-actions">
                 <OmaLinkButton
@@ -490,6 +522,12 @@ export function ShellChrome({ children }: { children: ReactNode }) {
           </div>
         </Drawer>
 
+        {settingsSection ? (
+          <SettingsPanel
+            initialSection={isSettingsSection(settingsSection) ? settingsSection : 'general'}
+            onClose={() => setSettingsSection(null)}
+          />
+        ) : null}
         {wsSettingsOpen ? (
           <WorkspaceSettingsPanel open={wsSettingsOpen} onClose={() => setWsSettingsOpen(false)} />
         ) : null}

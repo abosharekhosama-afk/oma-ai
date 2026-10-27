@@ -1,4 +1,5 @@
 'use client';
+import { DetailShimmer } from '../../../../../components/ui/shimmer';
 import { OmaLinkButton } from '../../../../../components/ui/oma-link-button';
 import { Button } from '@oma/ui/controls';
 
@@ -254,7 +255,7 @@ export default function CampaignDetailPage() {
         />
       </div>
 
-      {loading ? <p className="oma-muted">{t('demo.loading')}</p> : null}
+      {loading ? <DetailShimmer /> : null}
       {unavailable ? <DeniedState title={t('demo.unavailable')} /> : null}
       {error ? <ErrorState title={error} /> : null}
 
