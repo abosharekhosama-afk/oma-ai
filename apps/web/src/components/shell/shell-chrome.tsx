@@ -287,6 +287,8 @@ export function ShellChrome({ children }: { children: ReactNode }) {
     isCampaignsWorkspace ||
     isBrandsList;
   const [collapsed, setCollapsed] = useState(false);
+  // Only animate the rail after a user toggle (never on first paint / hydration).
+  const [railAnimated, setRailAnimated] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const [wsSettingsOpen, setWsSettingsOpen] = useState(false);
@@ -325,6 +327,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
   }, []);
 
   const toggleCollapsed = useCallback(() => {
+    setRailAnimated(true);
     setCollapsed((prev) => {
       const next = !prev;
       try {
@@ -342,6 +345,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
         className="oma-shell"
         data-rail={collapsed ? 'collapsed' : 'expanded'}
         data-shell-hydrated={hydrated ? 'true' : 'false'}
+        data-rail-anim={railAnimated ? 'true' : 'false'}
       >
         <aside
           className="oma-rail"

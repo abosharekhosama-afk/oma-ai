@@ -307,7 +307,11 @@ export default function TeamPage() {
       {!loading && !error && tab === 'members' ? (
         <>
           <div className="oma-planable-toolbar">
-            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('team.search_members')} />
+            <Input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder={t('team.search_members')}
+            />
           </div>
           <div className="oma-planable-card oma-member-surface">
             <table className="oma-ws-table">
@@ -334,7 +338,8 @@ export default function TeamPage() {
                   </tr>
                 ) : (
                   filtered.map((m) => {
-                    const label = m.user?.name || m.user?.email || m.invited_email || t('team.user');
+                    const label =
+                      m.user?.name || m.user?.email || m.invited_email || t('team.user');
                     const email = m.user?.email || m.invited_email || '';
                     return (
                       <tr key={m.id}>
@@ -347,7 +352,10 @@ export default function TeamPage() {
                               <div className="oma-ws-user-name">
                                 {label}
                                 {m.user?.id && m.user.id === meId ? (
-                                  <span className="oma-ws-badge oma-ws-badge--ghost" style={{ marginInlineStart: 6 }}>
+                                  <span
+                                    className="oma-ws-badge oma-ws-badge--ghost"
+                                    style={{ marginInlineStart: 6 }}
+                                  >
                                     {t('content.you')}
                                   </span>
                                 ) : null}
@@ -378,7 +386,9 @@ export default function TeamPage() {
                           </SelectField>
                         </td>
                         <td>
-                          <span className="oma-ws-badge oma-ws-badge--ghost">{statusLabel(t, m.status)}</span>
+                          <span className="oma-ws-badge oma-ws-badge--ghost">
+                            {statusLabel(t, m.status)}
+                          </span>
                         </td>
                         <td>
                           {m.last_online === 'Invited'
@@ -417,9 +427,7 @@ export default function TeamPage() {
                         <td>
                           {isOwnerMember(m) || (m.user?.id && m.user.id === meId) ? (
                             <span className="oma-muted" data-testid="team-no-remove">
-                              {isOwnerMember(m)
-                                ? t('demo.campaigns.col.owner')
-                                : '—'}
+                              {isOwnerMember(m) ? t('demo.campaigns.col.owner') : '—'}
                             </span>
                           ) : (
                             <button
@@ -445,48 +453,54 @@ export default function TeamPage() {
       {!loading && !error && tab === 'permissions' ? (
         <div className="oma-planable-card">
           <h3 className="oma-ws-subhead">{t('team.adjust_permissions')}</h3>
-          <p className="oma-ws-empty-desc">
-            {t('team.set_who_can_view_approve')}
-          </p>
-          <table className="oma-ws-table oma-ws-table--perms">
-            <thead>
-              <tr>
-                <th>{t('team.user')}</th>
-                {PERM_COLS.map((p) => (
-                  <th key={p}>{isAr ? PERMISSION_LABELS[p].ar : PERMISSION_LABELS[p].en}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((m) => {
-                const label = m.user?.name || m.user?.email || m.invited_email || t('team.user');
-                return (
-                  <tr key={m.id}>
-                    <td>
-                      <div className="oma-ws-user-cell">
-                        <span className="oma-ws-avatar oma-ws-avatar--sm">
-                          {(label[0] || 'U').toUpperCase()}
-                        </span>
-                        <div>
-                          <div className="oma-ws-user-name">{label}</div>
-                          <div className="oma-muted">{m.role}</div>
+          <p className="oma-ws-empty-desc">{t('team.set_who_can_view_approve')}</p>
+          <div
+            className="oma-ws-table-scroll"
+            role="region"
+            aria-label={t('team.adjust_permissions')}
+            tabIndex={0}
+            data-testid="team-permissions-scroll"
+          >
+            <table className="oma-ws-table oma-ws-table--perms">
+              <thead>
+                <tr>
+                  <th>{t('team.user')}</th>
+                  {PERM_COLS.map((p) => (
+                    <th key={p}>{isAr ? PERMISSION_LABELS[p].ar : PERMISSION_LABELS[p].en}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((m) => {
+                  const label = m.user?.name || m.user?.email || m.invited_email || t('team.user');
+                  return (
+                    <tr key={m.id}>
+                      <td>
+                        <div className="oma-ws-user-cell">
+                          <span className="oma-ws-avatar oma-ws-avatar--sm">
+                            {(label[0] || 'U').toUpperCase()}
+                          </span>
+                          <div>
+                            <div className="oma-ws-user-name">{label}</div>
+                            <div className="oma-muted">{m.role}</div>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    {PERM_COLS.map((p) => (
-                      <td key={p} className="oma-ws-check-cell">
-                        <input
-                          type="checkbox"
-                          checked={Boolean(m.permissions?.[p])}
-                          onChange={() => void onTogglePerm(m, p)}
-                        />
                       </td>
-                    ))}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      {PERM_COLS.map((p) => (
+                        <td key={p} className="oma-ws-check-cell">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(m.permissions?.[p])}
+                            onChange={() => void onTogglePerm(m, p)}
+                          />
+                        </td>
+                      ))}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       ) : null}
 
@@ -512,7 +526,11 @@ export default function TeamPage() {
           >
             <div className="oma-ws-modal-head">
               <h3>{t('team.invite_members')}</h3>
-              <button type="button" onClick={() => setInviteOpen(false)} aria-label={t('brand.evidence.close')}>
+              <button
+                type="button"
+                onClick={() => setInviteOpen(false)}
+                aria-label={t('brand.evidence.close')}
+              >
                 ×
               </button>
             </div>
@@ -526,7 +544,11 @@ export default function TeamPage() {
             </div>
             <div className="oma-ws-field">
               <label className="oma-ws-label">{t('demo.team.filter.role')}</label>
-              <div className="oma-role-cards" role="radiogroup" aria-label={t('demo.team.filter.role')}>
+              <div
+                className="oma-role-cards"
+                role="radiogroup"
+                aria-label={t('demo.team.filter.role')}
+              >
                 {ROLE_OPTIONS.filter((r) => r !== 'Owner').map((r) => {
                   const perms = rolePermissions(r);
                   const on = PERM_COLS.filter((p) => perms[p]);

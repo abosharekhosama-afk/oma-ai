@@ -2190,5 +2190,8 @@
   "team.notifications.personal": "Each member chooses which notifications they get from their own settings. These choices are applied to every notification OMA sends them.",
   "team.notifications.open": "Open my notification settings",
   "team.removeConfirm": "Remove {name} from the workspace?",
-  "deliverables.upload.openFile": "Open file"
+  "deliverables.upload.openFile": "Open file",
+  "content.switch_view": "Switch view",
+  "content.calendar_word": "calendar",
+  "content.more_actions": "More actions"
 }

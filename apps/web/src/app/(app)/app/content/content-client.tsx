@@ -895,7 +895,11 @@ function CardActionsButton({
 const FEED_DETAIL_BATCH = 20;
 
 /** Run `fn` over `items` with at most `limit` requests in flight. */
-async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+async function mapLimit<T, R>(
+  items: T[],
+  limit: number,
+  fn: (item: T) => Promise<R>,
+): Promise<R[]> {
   const out: R[] = new Array(items.length);
   let next = 0;
   const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
@@ -2687,46 +2691,81 @@ export default function ContentPage() {
       {headerSlot &&
         createPortal(
           <>
+            {/* Mobile-only view switcher (the breadcrumb view slot is hidden < 768px). */}
+            <button
+              type="button"
+              className="oma-top-action oma-top-action--view"
+              data-tooltip={`${t('content.switch_view')}: ${t(`demo.view.${view}`)}`}
+              aria-label={`${t('content.switch_view')}: ${t(`demo.view.${view}`)}`}
+              aria-haspopup="menu"
+              aria-expanded={viewMenuOpen}
+              onClick={(e) => {
+                e.stopPropagation();
+                setViewMenuOpen((v) => !v);
+              }}
+              data-testid="demo-content-view-toggle"
+            >
+              <span className="oma-top-action__icon" aria-hidden>
+                {view === 'feed' ? (
+                  <BarsOutlined />
+                ) : view === 'list' ? (
+                  <UnorderedListOutlined />
+                ) : view === 'grid' ? (
+                  <AppstoreOutlined />
+                ) : (
+                  <CalendarOutlined />
+                )}
+              </span>
+              <span className="oma-top-action__label">{t(`demo.view.${view}`)}</span>
+            </button>
             <button
               type="button"
               className="oma-top-action"
               data-tooltip={t('content.filter_sort')}
+              aria-label={
+                filterCount > 0 ? `${t('content.filter')} (${filterCount})` : t('content.filter')
+              }
               onClick={() => setFilterSheet(true)}
               data-testid="demo-content-open-filters"
             >
               <FilterOutlined className="oma-top-action__icon" />
-              {t('content.filter')}
-              {filterCount > 0 ? ` (${filterCount})` : ''}
+              <span className="oma-top-action__label">{t('content.filter')}</span>
+              {filterCount > 0 ? (
+                <span className="oma-top-action__count oma-ltr">{filterCount}</span>
+              ) : null}
             </button>
             <button
               type="button"
               className="oma-top-action"
               data-tooltip={t('content.media_library')}
+              aria-label={t('demo.content.media')}
               onClick={() => setMediaLibraryOpen(true)}
               data-testid="demo-content-open-media"
             >
               <PictureOutlined className="oma-top-action__icon" />
-              {t('demo.content.media')}
+              <span className="oma-top-action__label">{t('demo.content.media')}</span>
             </button>
             <button
               type="button"
               className="oma-top-action oma-top-action--ghost"
               data-tooltip={t('content.share_view')}
+              aria-label={t('content.share')}
               onClick={() => void shareContentWorkspace()}
               data-testid="demo-content-share"
             >
               <ShareAltOutlined className="oma-top-action__icon" />
-              {t('content.share')}
+              <span className="oma-top-action__label">{t('content.share')}</span>
             </button>
             <button
               type="button"
               className="oma-top-action oma-top-action--primary"
               data-tooltip={t('content.compose')}
+              aria-label={t('content.compose')}
               data-testid="demo-create-content"
               onClick={() => setCreateOpen(true)}
             >
               <EditOutlined className="oma-top-action__icon" />
-              {t('content.compose')}
+              <span className="oma-top-action__label">{t('content.compose')}</span>
             </button>
           </>,
           headerSlot,
@@ -2966,10 +3005,15 @@ export default function ContentPage() {
                   data-testid="demo-content-request-approvals"
                   data-active={approvalMode ? 'true' : 'false'}
                   data-tooltip={t('content.request_approvals')}
+                  aria-label={
+                    approvalMode
+                      ? t('content.close_requesting_approvals')
+                      : t('content.request_approvals')
+                  }
                   onClick={showApprovalQueue}
                 >
                   <CheckCircleOutlined />
-                  <span>
+                  <span className="oma-cal-request-approvals__label">
                     {approvalMode
                       ? t('content.close_requesting_approvals')
                       : t('content.request_approvals')}
@@ -2986,9 +3030,13 @@ export default function ContentPage() {
                       setExtCalOpen((v) => !v);
                     }}
                     data-testid="demo-content-ext-cal"
+                    aria-label={t('content.external_calendars')}
                   >
                     <span className="oma-cal-ext-dot" aria-hidden />
-                    {DEMO_EXTERNAL_CALENDARS.filter((c) => c.enabled).length} calendar
+                    <span className="oma-cal-ext-count oma-ltr">
+                      {DEMO_EXTERNAL_CALENDARS.filter((c) => c.enabled).length}
+                    </span>
+                    <span className="oma-cal-ext-label">{t('content.calendar_word')}</span>
                   </button>
                   {extCalOpen ? (
                     <div
@@ -3707,8 +3755,13 @@ export default function ContentPage() {
                     type="button"
                     className="oma-plan-post__chip"
                     title={selected.campaignId || undefined}
+                    aria-label={t('demo.campaigns.col.campaign')}
+                    data-tooltip={t('demo.campaigns.col.campaign')}
                   >
-                    <FlagOutlined /> {t('demo.campaigns.col.campaign')}
+                    <FlagOutlined />{' '}
+                    <span className="oma-plan-post__chip-label">
+                      {t('demo.campaigns.col.campaign')}
+                    </span>
                   </button>
                   <button
                     type="button"
@@ -3724,8 +3777,11 @@ export default function ContentPage() {
                       }
                       setLabelPickerOpen(true);
                     }}
+                    aria-label={t('wsPanel.labels')}
+                    data-tooltip={t('wsPanel.labels')}
                   >
-                    <TagOutlined /> {t('wsPanel.labels')}
+                    <TagOutlined />{' '}
+                    <span className="oma-plan-post__chip-label">{t('wsPanel.labels')}</span>
                   </button>
                 </div>
                 <div className="oma-plan-post__top-end">
@@ -3738,7 +3794,7 @@ export default function ContentPage() {
                   </span>
                   <button
                     type="button"
-                    className="oma-plan-post__tool-btn"
+                    className="oma-plan-post__tool-btn oma-plan-post__secondary"
                     onClick={() => void shareContentWorkspace()}
                   >
                     {t('content.share')}
@@ -3757,6 +3813,7 @@ export default function ContentPage() {
                     type="button"
                     className="oma-plan-post__icon-btn"
                     data-tooltip={t('content.feedback')}
+                    aria-label={t('content.feedback')}
                     data-active={detailSidePanel === 'feedback' ? 'true' : 'false'}
                     onClick={() =>
                       setDetailSidePanel((p) => (p === 'feedback' ? 'none' : 'feedback'))
@@ -3766,8 +3823,9 @@ export default function ContentPage() {
                   </button>
                   <button
                     type="button"
-                    className="oma-plan-post__icon-btn"
+                    className="oma-plan-post__icon-btn oma-plan-post__secondary"
                     data-tooltip={t('nav.activity')}
+                    aria-label={t('nav.activity')}
                     data-active={detailSidePanel === 'activity' ? 'true' : 'false'}
                     onClick={() =>
                       setDetailSidePanel((p) => (p === 'activity' ? 'none' : 'activity'))
@@ -3777,8 +3835,9 @@ export default function ContentPage() {
                   </button>
                   <button
                     type="button"
-                    className="oma-plan-post__icon-btn"
+                    className="oma-plan-post__icon-btn oma-plan-post__secondary"
                     data-tooltip={t('content.make_visible_to_clients')}
+                    aria-label={t('content.make_visible_to_clients')}
                     onClick={() => {
                       if (selectedId) void toggleHideFromClients(selectedId);
                     }}
@@ -3787,8 +3846,9 @@ export default function ContentPage() {
                   </button>
                   <button
                     type="button"
-                    className="oma-plan-post__icon-btn"
+                    className="oma-plan-post__icon-btn oma-plan-post__secondary"
                     data-tooltip={t('wsPanel.delete')}
+                    aria-label={t('wsPanel.delete')}
                     onClick={() => {
                       if (selectedId) void runLifecycle('archive', selectedId);
                     }}
@@ -3799,6 +3859,11 @@ export default function ContentPage() {
                     <button
                       type="button"
                       className="oma-plan-post__icon-btn"
+                      aria-label={t('content.more_actions')}
+                      data-tooltip={t('content.more_actions')}
+                      aria-haspopup="menu"
+                      aria-expanded={detailMoreOpen}
+                      data-testid="content-modal-more"
                       onClick={() => setDetailMoreOpen((v) => !v)}
                     >
                       <MoreOutlined />
@@ -3809,6 +3874,38 @@ export default function ContentPage() {
                         role="menu"
                         onClick={() => setDetailMoreOpen(false)}
                       >
+                        {/* Mobile: the secondary top-bar actions collapse into this menu. */}
+                        <li className="oma-plan-post__more-mobile">
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => void shareContentWorkspace()}
+                          >
+                            <ShareAltOutlined /> {t('content.share')}
+                          </button>
+                        </li>
+                        <li className="oma-plan-post__more-mobile">
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() =>
+                              setDetailSidePanel((p) => (p === 'activity' ? 'none' : 'activity'))
+                            }
+                          >
+                            <HistoryOutlined /> {t('nav.activity')}
+                          </button>
+                        </li>
+                        <li className="oma-plan-post__more-mobile">
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              if (selectedId) void toggleHideFromClients(selectedId);
+                            }}
+                          >
+                            <EyeInvisibleOutlined /> {t('content.make_visible_to_clients')}
+                          </button>
+                        </li>
                         <li>
                           <button
                             type="button"

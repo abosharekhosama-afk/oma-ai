@@ -1,0 +1,678 @@
+/* ==========================================================================
+   Mobile layout pass (Oct 27). Loaded last. Everything below is scoped to
+   < 768px unless a block says otherwise. Calm Planable surfaces only.
+   ========================================================================== */
+
+/* ---- Shared: label spans render inline on desktop ---- */
+.oma-top-action__count {
+  font-size: 12px;
+  font-weight: 600;
+}
+@media (min-width: 768px) {
+  html body .oma-top-actions--content .oma-top-action--view {
+    display: none !important; /* desktop uses the breadcrumb view switcher */
+  }
+}
+
+@media (max-width: 767px) {
+  /* ---------- 1 + 3. Content header: icon-only actions, view switcher ---------- */
+  html body .oma-top[data-content-workspace='true'] {
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+  }
+  html body .oma-top[data-content-workspace='true'] .oma-top-start {
+    flex: 0 0 auto !important;
+    min-width: 0 !important;
+  }
+  html body .oma-top .oma-top-actions--content {
+    display: flex !important;
+    flex: 1 1 auto !important;
+    flex-wrap: nowrap !important;
+    justify-content: flex-end !important;
+    gap: 6px !important;
+    width: auto !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    order: 0 !important;
+  }
+  html body .oma-top-actions--content .oma-top-action,
+  html body .oma-top-actions--content .oma-top-action--view {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 2px !important;
+    width: auto !important;
+    min-width: 36px !important;
+    height: 36px !important;
+    padding: 0 8px !important;
+    border-radius: 8px !important;
+    flex: 0 0 auto !important;
+  }
+  html body .oma-top-actions--content .oma-top-action__label {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    white-space: nowrap !important;
+  }
+  html body .oma-top-actions--content .oma-top-action__icon {
+    margin: 0 !important;
+    font-size: 16px !important;
+  }
+  /* Touch devices have no hover: never leave a tooltip bubble stuck after a tap. */
+  html body .oma-top-actions--content .oma-top-action[data-tooltip]::after {
+    display: none !important;
+  }
+  /* View menu: anchor under the header on the inline-end side. */
+  html body .oma-view-menu__list--path {
+    top: 56px !important;
+    inset-inline-start: auto !important;
+    inset-inline-end: 12px !important;
+    max-width: calc(100vw - 24px) !important;
+  }
+
+  /* ---------- 2. Calendar toolbar: one row ---------- */
+  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+    padding: 6px 8px !important;
+    min-height: 44px !important;
+    overflow-x: auto !important;
+    scrollbar-width: none !important;
+  }
+  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar::-webkit-scrollbar {
+    display: none;
+  }
+  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__start,
+  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__end {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 4px !important;
+    width: auto !important;
+    min-width: 0 !important;
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  html body [data-testid='demo-content-calendar'] .oma-cal-span {
+    flex: 0 0 auto !important;
+    padding: 2px !important;
+  }
+  html body [data-testid='demo-content-calendar'] .oma-cal-span__btn {
+    height: 28px !important;
+    min-width: 0 !important;
+    padding: 0 7px !important;
+    font-size: 12px !important;
+  }
+  html body [data-testid='demo-content-calendar'] .oma-cal-nav {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 2px !important;
+    margin: 0 !important;
+  }
+  html body [data-testid='demo-content-calendar'] .oma-cal-nav__btn {
+    width: 22px !important;
+    min-width: 22px !important;
+    height: 28px !important;
+    padding: 0 !important;
+  }
+  html body [data-testid='demo-content-calendar'] .oma-cal-month-label {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    flex: 0 0 auto !important;
+    font-size: 13px !important;
+    white-space: nowrap !important;
+    margin: 0 2px !important;
+  }
+  html body [data-testid='demo-content-calendar'] .oma-pv-today {
+    height: 28px !important;
+    padding: 0 8px !important;
+    font-size: 12px !important;
+    white-space: nowrap !important;
+    margin: 0 !important;
+  }
+  html body [data-testid='demo-content-calendar'] .oma-pv-week-chip {
+    display: none !important;
+  }
+  html body .oma-cal-request-approvals {
+    width: 28px !important;
+    min-width: 28px !important;
+    height: 28px !important;
+    padding: 0 !important;
+    justify-content: center !important;
+  }
+  html body .oma-cal-request-approvals__label,
+  html body .oma-cal-ext-label {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    white-space: nowrap !important;
+  }
+  html body .oma-cal-request-approvals[data-tooltip]::after,
+  html body .oma-cal-ext-indicator[data-tooltip]::after {
+    display: none !important;
+  }
+  html body [data-testid='demo-content-calendar'] .oma-pv-ds > button,
+  html body [data-testid='demo-content-calendar'] .oma-pv-ds {
+    width: 28px !important;
+    min-width: 28px !important;
+    height: 28px !important;
+  }
+  html body .oma-cal-ext-indicator {
+    height: 28px !important;
+    padding: 0 6px !important;
+    gap: 4px !important;
+  }
+  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__end > * {
+    flex: 0 0 auto !important;
+  }
+}
+
+/* ---------- 8. Sidebar open/close ---------- */
+/* Mobile nav drawer: the old rules styled the drawer ROOT (which also holds the
+   mask) as a padded white column, so a white strip showed up before the panel
+   and the mask never dimmed the page. Restore the root and style the body. */
+html body .oma-drawer.oma-drawer--nav {
+  inset: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+  display: block !important;
+  overflow: visible !important;
+}
+html body .oma-drawer.oma-drawer--nav .ant-drawer-header {
+  display: none !important; /* our own header (logo + close) is inside the body */
+}
+html body .oma-drawer.oma-drawer--nav .ant-drawer-content {
+  background: var(--oma-surface) !important;
+}
+html body .oma-drawer.oma-drawer--nav .ant-drawer-body {
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  padding: 12px !important;
+  overflow: hidden !important;
+  background: var(--oma-surface) !important;
+}
+html body .oma-drawer.oma-drawer--nav .ant-drawer-mask {
+  background: rgba(15, 23, 42, 0.32) !important;
+}
+
+/* Desktop rail collapse: animate the grid column and fade the rail contents in
+   once the new state renders, instead of showing the collapsed icons in a wide
+   white column (or clipped labels in a narrow one) while the width animates. */
+@media (min-width: 768px) {
+  html body .oma-shell {
+    transition: grid-template-columns 0.2s ease !important;
+  }
+  html body .oma-rail {
+    transition: none !important;
+  }
+  html body .oma-shell[data-rail-anim='true'][data-rail='collapsed'] .oma-rail > * {
+    animation: oma-rail-in-collapsed 0.24s ease both;
+  }
+  html body .oma-shell[data-rail-anim='true'][data-rail='expanded'] .oma-rail > * {
+    animation: oma-rail-in-expanded 0.24s ease both;
+  }
+}
+@keyframes oma-rail-in-collapsed {
+  0%,
+  45% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes oma-rail-in-expanded {
+  0%,
+  60% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html body .oma-shell,
+  html body .oma-rail > * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* ---------- 4. Analytics actions bar ---------- */
+@media (min-width: 768px) {
+  .oma-pa-btn__icon {
+    display: none;
+  }
+}
+@media (max-width: 767px) {
+  html body .oma-pa-top {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 8px 12px !important;
+  }
+  html body .oma-pa-top__start {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    gap: 6px !important;
+  }
+  html body .oma-pa-title {
+    font-size: 16px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    min-width: 0 !important;
+  }
+  html body .oma-pa-top__end {
+    flex: 0 0 auto !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+  }
+  html body .oma-pa-range {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+  }
+  html body .oma-pa-top .oma-pa-btn {
+    width: 34px !important;
+    min-width: 34px !important;
+    height: 34px !important;
+    padding: 0 !important;
+    justify-content: center !important;
+    gap: 0 !important;
+  }
+  html body .oma-pa-top .oma-pa-btn__label {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    white-space: nowrap !important;
+  }
+  html body .oma-pa-top .oma-pa-btn[data-tooltip]::after {
+    display: none !important;
+  }
+  html body .oma-pa-top .oma-pa-select {
+    height: 34px !important;
+    max-width: 128px !important;
+    font-size: 13px !important;
+  }
+  html body .oma-pa-range__pop {
+    inset-inline-end: 0 !important;
+    inset-inline-start: auto !important;
+    max-width: calc(100vw - 24px) !important;
+  }
+}
+@media (max-width: 767px) {
+  html body .oma-pa-card__head {
+    flex-wrap: wrap !important;
+    row-gap: 8px !important;
+    column-gap: 8px !important;
+  }
+  html body .oma-pa-card__head > *,
+  html body .oma-pa-card__tools {
+    min-width: 0 !important;
+    max-width: 100% !important;
+  }
+  html body .oma-pa-card__tools {
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+  html body .oma-pa-seg button {
+    white-space: nowrap !important;
+  }
+}
+
+/* ---------- 5. Deliverable details ---------- */
+@media (max-width: 767px) {
+  /* Info header scrolls with the page (it was sticky and covered the content). */
+  html body .oma-deliv-detail__top {
+    position: static !important;
+    top: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    padding: 12px !important;
+    grid-template-columns: none !important;
+  }
+  html body .oma-deliv-detail__top-start {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  html body .oma-deliv-detail__back {
+    min-height: 32px !important;
+  }
+  html body .oma-deliv-detail__title-wrap {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  html body .oma-deliv-detail__title {
+    font-size: 18px !important;
+    line-height: 1.3 !important;
+    overflow-wrap: anywhere !important;
+  }
+  html body .oma-deliv-detail__chips {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+  html body .oma-deliv-detail__top-actions {
+    position: static !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+  html body .oma-deliv-detail__top-actions .oma-deliv-detail__act--icon {
+    width: 36px !important;
+    min-width: 36px !important;
+    height: 36px !important;
+    padding: 0 !important;
+    flex: 0 0 auto !important;
+  }
+  html body .oma-deliv-detail__top-actions .oma-deliv-detail__act-label {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    white-space: nowrap !important;
+  }
+  html body .oma-deliv-detail__top-actions .oma-deliv-detail__act--primary {
+    flex: 1 1 auto !important;
+    height: 36px !important;
+    min-width: 0 !important;
+  }
+  html body .oma-deliv-detail__top-actions [data-tooltip]::after {
+    display: none !important;
+  }
+}
+
+/* ---------- 6. Team › Permissions table scrolls (all widths; no-op when it fits) ---------- */
+html body .oma-ws-table-scroll {
+  width: 100%;
+  max-width: 100%;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+html body .oma-ws-table-scroll:focus-visible {
+  outline: 2px solid var(--oma-primary);
+  outline-offset: 2px;
+}
+@media (max-width: 767px) {
+  html body .oma-ws-table-scroll {
+    max-height: calc(100dvh - 240px);
+    border: 1px solid var(--oma-border);
+    border-radius: 8px;
+  }
+  html body .oma-ws-table-scroll .oma-ws-table--perms {
+    width: max-content !important;
+    min-width: 100% !important;
+    table-layout: auto !important;
+  }
+  html body .oma-ws-table-scroll .oma-ws-table--perms th,
+  html body .oma-ws-table-scroll .oma-ws-table--perms td {
+    white-space: nowrap !important;
+  }
+  html body .oma-ws-table-scroll .oma-ws-table--perms thead th {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 2 !important;
+    background: var(--oma-surface) !important;
+  }
+  /* Keep the user column visible while scrolling sideways. */
+  html body .oma-ws-table-scroll .oma-ws-table--perms th:first-child,
+  html body .oma-ws-table-scroll .oma-ws-table--perms td:first-child {
+    position: sticky !important;
+    inset-inline-start: 0 !important;
+    z-index: 1 !important;
+    background: var(--oma-surface) !important;
+    max-width: 150px !important;
+    white-space: normal !important;
+  }
+  html body .oma-ws-table-scroll .oma-ws-table--perms thead th:first-child {
+    z-index: 3 !important;
+  }
+}
+
+/* ---------- 7. Activity: the feed card fills the screen down to the bottom (all widths) ---------- */
+html body main#main:has(> [data-testid='activity-page-planable']) {
+  display: flex !important;
+  flex-direction: column !important;
+  padding-bottom: 16px !important;
+}
+html body main#main > [data-testid='activity-page-planable'] {
+  flex: 1 0 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+}
+html body [data-testid='activity-page-planable'] > .oma-act-feed,
+html body [data-testid='activity-page-planable'] > .oma-shimmer,
+html body [data-testid='activity-page-planable'] > .plx-empty {
+  flex: 1 0 auto !important;
+}
+html body [data-testid='activity-page-planable'] > .oma-act-feed {
+  display: flex !important;
+  flex-direction: column !important;
+}
+html body [data-testid='activity-page-planable'] > .oma-act-feed > .oma-ws-empty-block {
+  flex: 1 0 auto;
+}
+
+/* ---------- 9. Post preview card (content detail modal) ---------- */
+.oma-plan-post__more-mobile {
+  display: none !important;
+}
+@media (max-width: 767px) {
+  html body .oma-plan-post__rail {
+    display: none !important;
+  }
+  html body .oma-plan-post__main {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+  html body .oma-plan-post__top {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 6px !important;
+    padding: 8px 10px !important;
+    min-width: 0 !important;
+  }
+  html body .oma-plan-post__top-start,
+  html body .oma-plan-post__top-end {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 4px !important;
+    min-width: 0 !important;
+  }
+  html body .oma-plan-post__top-start {
+    flex: 0 0 auto !important;
+  }
+  html body .oma-plan-post__top-end {
+    flex: 1 1 auto !important;
+    justify-content: flex-end !important;
+  }
+  html body .oma-plan-post__top .oma-plan-post__chip,
+  html body .oma-plan-post__top .oma-plan-post__icon-btn {
+    flex: 0 0 auto !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    padding: 0 8px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  html body .oma-plan-post__top .oma-plan-post__icon-btn {
+    width: 32px !important;
+    padding: 0 !important;
+  }
+  html body .oma-plan-post__top-start .oma-plan-post__chip {
+    width: 32px !important;
+    padding: 0 !important;
+  }
+  html body .oma-plan-post__chip-label {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    white-space: nowrap !important;
+  }
+  /* Workflow state chip stays as text, but may shrink. */
+  html body .oma-plan-post__top-end > .oma-plan-post__chip {
+    min-width: 0 !important;
+    max-width: 110px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    display: inline-block !important;
+    line-height: 32px !important;
+  }
+  /* Secondary actions move into the … menu. */
+  html body .oma-plan-post__top .oma-plan-post__secondary,
+  html body .oma-plan-post__top .oma-plan-post__approve-count {
+    display: none !important;
+  }
+  html body .oma-plan-post__more-mobile {
+    display: list-item !important;
+    list-style: none !important;
+  }
+  html body .oma-plan-post__more-menu {
+    max-width: calc(100vw - 32px) !important;
+    max-height: 60vh !important;
+    overflow-y: auto !important;
+    z-index: 30 !important;
+  }
+  html body .oma-plan-post__top [data-tooltip]::after {
+    display: none !important;
+  }
+  /* Canvas: desktop/mobile/edit toggle in flow above the post (it overlapped the approval row). */
+  html body .oma-plan-post__canvas {
+    padding: 8px !important;
+    min-width: 0 !important;
+  }
+  html body .oma-plan-post__preview-toggle {
+    position: static !important;
+    transform: none !important;
+    inset: auto !important;
+    margin: 0 auto 8px !important;
+    width: max-content !important;
+  }
+  html body .oma-pv-modal-stage {
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  html body .oma-pv-modal-approval {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+  }
+  html body .oma-pv-modal-approval__label {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+  /* Prev/next arrows sit at the bottom corners instead of over the post. */
+  html body .oma-pv-modal-arrow {
+    position: fixed !important;
+    top: auto !important;
+    bottom: 16px !important;
+    transform: none !important;
+    width: 40px !important;
+    height: 40px !important;
+    z-index: 1100 !important;
+  }
+  html body .oma-pv-modal-arrow[data-side='start'] {
+    inset-inline-start: 16px !important;
+    inset-inline-end: auto !important;
+  }
+  html body .oma-pv-modal-arrow[data-side='end'] {
+    inset-inline-end: 16px !important;
+    inset-inline-start: auto !important;
+  }
+}
+
+/* Review strip on post previews: icons on mobile, text on desktop (unchanged). */
+.oma-pp__btn-icon {
+  display: none;
+}
+@media (max-width: 767px) {
+  html body .oma-pp__review {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 8px !important;
+  }
+  html body .oma-pp__state {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+  }
+  html body .oma-pp__review-btns {
+    display: flex !important;
+    flex: 0 0 auto !important;
+    flex-wrap: nowrap !important;
+    gap: 4px !important;
+  }
+  html body .oma-pp__review-btns .oma-pp__btn {
+    min-width: 32px !important;
+    height: 32px !important;
+    padding: 0 6px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 2px !important;
+  }
+  html body .oma-pp__btn-icon {
+    display: inline-flex !important;
+  }
+  html body .oma-pp__btn-icon svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+  html body .oma-pp__btn-label {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    white-space: nowrap !important;
+  }
+  html body .oma-pp__review-btns [data-tooltip]::after {
+    display: none !important;
+  }
+}

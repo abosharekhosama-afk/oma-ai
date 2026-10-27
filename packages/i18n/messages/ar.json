@@ -2190,5 +2190,8 @@
   "team.notifications.personal": "يختار كل عضو الإشعارات التي يتلقاها من إعداداته الخاصة، وتُطبَّق هذه الاختيارات على كل إشعار يرسله OMA.",
   "team.notifications.open": "فتح إعدادات إشعاراتي",
   "team.removeConfirm": "إزالة {name} من مساحة العمل؟",
-  "deliverables.upload.openFile": "فتح الملف"
+  "deliverables.upload.openFile": "فتح الملف",
+  "content.switch_view": "تبديل العرض",
+  "content.calendar_word": "تقويم",
+  "content.more_actions": "إجراءات أخرى"
 }

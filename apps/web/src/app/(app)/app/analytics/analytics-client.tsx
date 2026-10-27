@@ -211,10 +211,14 @@ export default function AnalyticsPage() {
               aria-haspopup="dialog"
               aria-expanded={rangeOpen}
               data-testid="analytics-range"
+              aria-label={`${t('analytics.period')}: ${rangeLabel || t(`analytics.period.${period}`)}`}
+              data-tooltip={rangeLabel || t(`analytics.period.${period}`)}
               onClick={() => setRangeOpen((o) => !o)}
             >
               <CalendarIcon />
-              <span>{rangeLabel || t(`analytics.period.${period}`)}</span>
+              <span className="oma-pa-btn__label">
+                {rangeLabel || t(`analytics.period.${period}`)}
+              </span>
             </button>
             <select
               className="oma-pa-select"
@@ -283,10 +287,12 @@ export default function AnalyticsPage() {
             className="oma-pa-btn oma-pa-btn--primary"
             disabled
             aria-disabled="true"
+            aria-label={`${t('analytics.report.create')} — ${t('analytics.report.soon')}`}
             title={t('analytics.report.soon')}
             data-tooltip={t('analytics.report.soon')}
           >
-            {t('analytics.report.create')}
+            <ReportIcon />
+            <span className="oma-pa-btn__label">{t('analytics.report.create')}</span>
           </button>
         </div>
       </header>
@@ -995,6 +1001,21 @@ function CalendarIcon() {
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
       <rect x="3.5" y="5" width="17" height="15" rx="2" stroke="currentColor" strokeWidth="1.6" />
       <path d="M3.5 10h17M8 3v4M16 3v4" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  );
+}
+function ReportIcon() {
+  return (
+    <svg
+      className="oma-pa-btn__icon"
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      aria-hidden
+    >
+      <path d="M6 3.5h8l4 4V20.5H6z" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M12 10v6M9 13h6" stroke="currentColor" strokeWidth="1.6" />
     </svg>
   );
 }
