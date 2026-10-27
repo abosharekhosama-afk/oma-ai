@@ -458,6 +458,10 @@ export default function DeliverableDetailClient() {
   }, [draftPin]);
 
   const openUnresolved = row ? unresolvedCount(row) : 0;
+  const reviewLabel = reviewMode
+    ? t('demo.reviews.closeReview') ||
+      (locale.toLowerCase().startsWith('ar') ? 'إغلاق المراجعة' : 'Close review')
+    : t('demo.reviews.openReview');
 
   return (
     <div
@@ -502,6 +506,9 @@ export default function DeliverableDetailClient() {
             <Button
               type={reviewMode ? 'primary' : 'default'}
               data-testid="demo-open-review"
+              className="oma-deliv-detail__act oma-deliv-detail__act--icon"
+              aria-label={reviewLabel}
+              data-tooltip={reviewLabel}
               onClick={() =>
                 setReviewUrl({
                   review: !reviewMode,
@@ -510,15 +517,13 @@ export default function DeliverableDetailClient() {
               }
             >
               {reviewMode ? <CloseOutlined /> : <EyeOutlined />}{' '}
-              {reviewMode
-                ? t('demo.reviews.closeReview') ||
-                  (locale.toLowerCase().startsWith('ar') ? 'إغلاق المراجعة' : 'Close review')
-                : t('demo.reviews.openReview')}
+              <span className="oma-deliv-detail__act-label">{reviewLabel}</span>
             </Button>
             {canVersion && canSubmitForReview(row.reviewStatus) ? (
               <Button
                 type="primary"
                 data-testid="demo-submit-review"
+                className="oma-deliv-detail__act oma-deliv-detail__act--primary"
                 disabled={saving}
                 onClick={() => void submitForReview()}
               >
@@ -529,10 +534,16 @@ export default function DeliverableDetailClient() {
               <Button
                 type="default"
                 data-testid="demo-add-revision"
+                className="oma-deliv-detail__act oma-deliv-detail__act--icon"
+                aria-label={t('deliverables.upload.newVersion')}
+                data-tooltip={t('deliverables.upload.newVersion')}
                 disabled={saving}
                 onClick={() => setPicker('new-version')}
               >
-                <UploadOutlined /> {t('deliverables.upload.newVersion')}
+                <UploadOutlined />{' '}
+                <span className="oma-deliv-detail__act-label">
+                  {t('deliverables.upload.newVersion')}
+                </span>
               </Button>
             ) : null}
           </div>

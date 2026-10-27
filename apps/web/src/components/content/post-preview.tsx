@@ -213,6 +213,9 @@ const ICON: Record<string, string> = {
     'M7 10v10H4V10h3Zm2 10h8.2a2 2 0 0 0 2-1.6l1.3-6A2 2 0 0 0 18.5 10H14l.8-4a1.8 1.8 0 0 0-3.4-1L9 10v10Z',
   repost: 'M7 7h10l-3-3m3 3-3 3M17 17H7l3 3m-3-3 3-3',
   views: 'M4 20V10m5 10V4m5 16v-7m5 7V8',
+  check: 'M5 12.5 9.5 17 19 7',
+  flag: 'M5 21V4h11l-1.5 4 1.5 4H5',
+  edit: 'M4 20h4L19 9l-4-4L4 16v4Z',
 };
 
 function ActIcon({ name }: { name: string }) {
@@ -432,9 +435,14 @@ export function ReviewStrip({
             type="button"
             className="oma-pp__btn"
             disabled={!review.canRequestApproval || review.busy}
+            aria-label={t('preview.request_approval')}
+            data-tooltip={t('preview.request_approval')}
             onClick={stop(review.onRequestApproval)}
           >
-            {t('preview.request_approval')}
+            <span className="oma-pp__btn-icon" aria-hidden>
+              <ActIcon name="flag" />
+            </span>
+            <span className="oma-pp__btn-label">{t('preview.request_approval')}</span>
           </button>
         ) : null}
         {review.state === 'PENDING' || review.state === 'PARTIALLY_APPROVED' ? (
@@ -443,17 +451,27 @@ export function ReviewStrip({
               type="button"
               className="oma-pp__btn"
               disabled={!review.canRequestChanges || review.busy}
+              aria-label={t('preview.request_changes')}
+              data-tooltip={t('preview.request_changes')}
               onClick={stop(review.onRequestChanges)}
             >
-              {t('preview.request_changes')}
+              <span className="oma-pp__btn-icon" aria-hidden>
+                <ActIcon name="edit" />
+              </span>
+              <span className="oma-pp__btn-label">{t('preview.request_changes')}</span>
             </button>
             <button
               type="button"
               className="oma-pp__btn oma-pp__btn--primary"
               disabled={!review.canApprove || review.busy}
+              aria-label={t('preview.approve')}
+              data-tooltip={t('preview.approve')}
               onClick={stop(review.onApprove)}
             >
-              {t('preview.approve')}
+              <span className="oma-pp__btn-icon" aria-hidden>
+                <ActIcon name="check" />
+              </span>
+              <span className="oma-pp__btn-label">{t('preview.approve')}</span>
             </button>
           </>
         ) : null}
@@ -462,6 +480,7 @@ export function ReviewStrip({
           className="oma-pp__btn oma-pp__btn--ghost"
           onClick={stop(review.onComment)}
           aria-label={t('preview.comment')}
+          data-tooltip={t('preview.comment')}
         >
           <ActIcon name="comment" />
           <span className="oma-ltr">{review.commentCount}</span>
