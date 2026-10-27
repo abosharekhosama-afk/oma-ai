@@ -8,7 +8,11 @@ import {
   issueSessionToken,
   newId,
 } from '@oma/domain';
-import { createMailProvider, passwordResetLink } from '../mail/mail-provider';
+import {
+  createMailProvider,
+  isMailDeliveryConfigured,
+  passwordResetLink,
+} from '../mail/mail-provider';
 
 const mail = createMailProvider();
 const webOrigin = () => process.env.WEB_ORIGIN || 'http://127.0.0.1:3000';
@@ -54,7 +58,9 @@ export class RecoveryService {
         },
       });
     });
-    // Immediate console delivery for UX; worker path remains authoritative for JobRun.
+    // The worker sends the real (bilingual) email from the outbox. Without a provider,
+    // log the link locally so development still works. Never double-send.
+    if (isMailDeliveryConfigured()) return { ok: true };
     await mail
       .send({
         to: user.email,

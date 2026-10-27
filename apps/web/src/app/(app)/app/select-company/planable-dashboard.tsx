@@ -918,6 +918,8 @@ function InviteModal({ company, onClose }: { company: string; onClose: () => voi
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
+  const [emailNotConfigured, setEmailNotConfigured] = useState(false);
+  const [inviteLink, setInviteLink] = useState<string | null>(null);
   const roleDef = ROLES.find((r) => r.id === role) ?? ROLES[0];
 
   async function send(e: FormEvent) {
@@ -929,11 +931,21 @@ function InviteModal({ company, onClose }: { company: string; onClose: () => voi
     setError(null);
     setBusy(true);
     try {
-      await api('/api/v1/company/invites', {
+      const res = (await api('/api/v1/tenants/current/invitations', {
         method: 'POST',
-        body: JSON.stringify({ email, name, role }),
-      });
+        body: JSON.stringify({ email: email.trim(), role }),
+      })) as { email_delivery?: string; invite_token?: string } | undefined;
       setSent(true);
+      if (res?.email_delivery === 'not_configured') {
+        // No email provider: keep the dialog open and offer the secure link instead.
+        setEmailNotConfigured(true);
+        if (res.invite_token) {
+          setInviteLink(
+            `${window.location.origin}/app/onboarding?invite=${encodeURIComponent(res.invite_token)}`,
+          );
+        }
+        return;
+      }
       setTimeout(onClose, 900);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -966,19 +978,44 @@ function InviteModal({ company, onClose }: { company: string; onClose: () => voi
         aria-modal="true"
         aria-label={t('companies.invite_members_to').replace('{name}', company)}
       >
-        <button type="button" className="plx-modal-x" aria-label={t('brand.evidence.close')} onClick={onClose}>
+        <button
+          type="button"
+          className="plx-modal-x"
+          aria-label={t('brand.evidence.close')}
+          onClick={onClose}
+        >
           <CloseIcon />
         </button>
-        <h2 className="plx-modal-title">Invite members to {company}</h2>
-        <p className="plx-modal-sub">
-          {t('companies.inviting_a_new_company_collaborator')}
-        </p>
+        <h2 className="plx-modal-title">
+          {t('companies.invite_members_to').replace('{name}', company)}
+        </h2>
+        <p className="plx-modal-sub">{t('companies.inviting_a_new_company_collaborator')}</p>
         {sent ? (
           <div className="plx-invite-sent">
             <CheckIcon width={22} height={22} />
-            <span>{t('team.invitation_sent')}</span>
+            <span>
+              {emailNotConfigured ? t('companies.invite_created') : t('team.invitation_sent')}
+            </span>
           </div>
-        ) : (
+        ) : null}
+        {sent && emailNotConfigured ? (
+          <div className="plx-invite-email-off" role="status">
+            <p className="plx-modal-sub">{t('companies.email_not_configured')}</p>
+            {inviteLink ? (
+              <div className="plx-invite-row">
+                <input className="plx-input-sm" readOnly value={inviteLink} dir="ltr" />
+                <button
+                  type="button"
+                  className="plx-btn"
+                  onClick={() => void navigator.clipboard.writeText(inviteLink)}
+                >
+                  {t('companies.copy_invite_link')}
+                </button>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+        {!sent ? (
           <form onSubmit={send}>
             <div className="plx-invite-row">
               <input
@@ -1066,7 +1103,7 @@ function InviteModal({ company, onClose }: { company: string; onClose: () => voi
               </button>
             </div>
           </form>
-        )}
+        ) : null}
       </div>
     </div>
   );

@@ -17,7 +17,8 @@ export function middleware(req: NextRequest) {
       url.search = '';
       // Preserve deep link for post-login return
       if (pathname !== '/app' && pathname !== '/app/') {
-        url.searchParams.set('next', pathname);
+        // Keep the query so invitation links (?invite=…) survive the login round-trip.
+        url.searchParams.set('next', pathname + req.nextUrl.search);
       }
       return NextResponse.redirect(url);
     }

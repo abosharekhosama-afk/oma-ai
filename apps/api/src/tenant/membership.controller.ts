@@ -6,6 +6,7 @@ import { CapabilitiesGuard } from '../common/guards/capabilities.guard';
 import { RequireCapabilities } from '../common/decorators/require-capabilities.decorator';
 import { tenantService } from '../container';
 import { DomainError } from '@oma/domain';
+import { isMailDeliveryConfigured } from '../mail/mail-provider';
 
 @Controller('api/v1')
 export class MembershipController {
@@ -76,6 +77,8 @@ export class MembershipController {
       ...result,
       role: body.role ?? null,
       membership: body.membership ?? 'team',
+      /** 'queued' = invite email will be sent by the worker; 'not_configured' = no email provider. */
+      email_delivery: isMailDeliveryConfigured() ? 'queued' : 'not_configured',
     };
   }
 

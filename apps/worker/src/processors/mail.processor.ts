@@ -1,5 +1,11 @@
 import { getPrisma } from '@oma/db';
-import type { MailProviderPort } from '@oma/domain';
+import type { MailMessage, MailProviderPort } from '@oma/domain';
+import {
+  inviteAcceptLink,
+  pickMailLocale,
+  renderInviteEmail,
+  renderPasswordResetEmail,
+} from '@oma/domain';
 import { createLogger } from '@oma/observability';
 import { Worker, type Job } from 'bullmq';
 import type IORedis from 'ioredis';
@@ -18,6 +24,50 @@ async function reauthz(
     where: { tenantId, userId: actorUserId, status: 'ACTIVE' },
   });
   return Boolean(membership);
+}
+
+const webOrigin = () => process.env.WEB_ORIGIN || 'http://127.0.0.1:3000';
+
+/** Build the real email for known job types; fall back to the payload text otherwise. */
+export async function composeMail(
+  jobName: string,
+  payload: MailJobPayload['payload'],
+  ctx: { tenantId: string | null; actorUserId: string | null },
+): Promise<MailMessage> {
+  const to = payload.to as string;
+  const prisma = getPrisma();
+  if (jobName === 'mail.invite' && payload.token) {
+    const [recipient, inviter, tenant] = await Promise.all([
+      prisma.user.findUnique({ where: { email: to } }),
+      ctx.actorUserId ? prisma.user.findUnique({ where: { id: ctx.actorUserId } }) : null,
+      ctx.tenantId ? prisma.tenant.findUnique({ where: { id: ctx.tenantId } }) : null,
+    ]);
+    const rendered = renderInviteEmail({
+      locale: pickMailLocale(
+        recipient?.preferredLocale,
+        inviter?.preferredLocale,
+        tenant?.defaultLocale,
+      ),
+      acceptUrl: inviteAcceptLink(webOrigin(), payload.token),
+      companyName: tenant?.name,
+      inviterName: inviter?.name,
+    });
+    return { to, ...rendered };
+  }
+  if (jobName === 'mail.recovery' && payload.token) {
+    const user = await prisma.user.findUnique({ where: { email: to } });
+    const rendered = renderPasswordResetEmail({
+      locale: pickMailLocale(user?.preferredLocale),
+      resetUrl: `${webOrigin().replace(/\/$/, '')}/reset-password?token=${encodeURIComponent(payload.token)}`,
+      name: user?.name,
+    });
+    return { to, ...rendered };
+  }
+  return {
+    to,
+    subject: payload.subject ?? `OMA: ${jobName}`,
+    text: payload.text ?? `OMA job ${jobName}`,
+  };
 }
 
 export type MailProcessorOptions = {
@@ -104,11 +154,24 @@ export function startMailProcessor(connection: IORedis, options: MailProcessorOp
         throw new Error('missing mail recipient');
       }
 
-      await mail.send({
-        to,
-        subject: payload.subject ?? `OMA: ${job.name}`,
-        text: payload.text ?? `OMA job ${job.name}`,
+      const message = await composeMail(job.name, payload, {
+        tenantId: jobRun.tenantId,
+        actorUserId: jobRun.actorUserId,
       });
+      try {
+        await mail.send(message);
+      } catch (err) {
+        // Provider errors are already redacted; record and let BullMQ retry.
+        await prisma.jobRun.update({
+          where: { id: jobRun.id },
+          data: {
+            errorCode: 'MAIL_SEND_FAILED',
+            errorDetail: (err instanceof Error ? err.message : String(err)).slice(0, 500),
+          },
+        });
+        log.error({ jobRunId: jobRun.id, jobName: job.name }, 'mail send failed');
+        throw err;
+      }
 
       await prisma.jobRun.update({
         where: { id: jobRun.id },
