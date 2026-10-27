@@ -7,7 +7,8 @@ export type TaskRow = DemoGraph['tasks'][number];
 export type ContentFilters = {
   query: string;
   campaignId: string;
-  brandId: string;
+  /** Empty = all brands. Multi-select brand ids. */
+  brandIds: string[];
   channel: string;
   contentType: string;
   status: string;
@@ -21,7 +22,7 @@ export type ContentFilters = {
 export const EMPTY_CONTENT_FILTERS: ContentFilters = {
   query: '',
   campaignId: 'all',
-  brandId: 'all',
+  brandIds: [],
   channel: 'all',
   contentType: 'all',
   status: 'all',
@@ -34,7 +35,8 @@ export const EMPTY_CONTENT_FILTERS: ContentFilters = {
 
 export type ContentViewMode = 'calendar' | 'feed' | 'list' | 'grid';
 
-export const MAX_CELL_ITEMS = 2;
+/** One preview card in the cell; remaining posts open via "+N more". */
+export const MAX_CELL_ITEMS = 1;
 
 export function filterContent(
   items: ContentRow[],
@@ -44,7 +46,7 @@ export function filterContent(
   const q = filters.query.trim().toLowerCase();
   return items.filter((item) => {
     if (filters.campaignId !== 'all' && item.campaignId !== filters.campaignId) return false;
-    if (filters.brandId !== 'all' && item.brandId !== filters.brandId) return false;
+    if (filters.brandIds.length && !filters.brandIds.includes(item.brandId)) return false;
     if (filters.channel !== 'all' && item.channel !== filters.channel) return false;
     if (filters.contentType !== 'all' && item.contentType !== filters.contentType) return false;
     if (filters.status !== 'all' && item.status !== filters.status) return false;
@@ -74,7 +76,7 @@ export function activeContentFilterCount(filters: ContentFilters): number {
   let n = 0;
   if (filters.query.trim()) n += 1;
   if (filters.campaignId !== 'all') n += 1;
-  if (filters.brandId !== 'all') n += 1;
+  if (filters.brandIds.length) n += 1;
   if (filters.channel !== 'all') n += 1;
   if (filters.contentType !== 'all') n += 1;
   if (filters.status !== 'all') n += 1;
@@ -95,6 +97,8 @@ export function contentFilterChips(
     brand: (id: string) => string;
     status: (id: string) => string;
     review: (id: string) => string;
+    contentType?: (id: string) => string;
+    approval?: (id: string) => string;
   },
 ): NamedFilterChip[] {
   const chips: NamedFilterChip[] = [];
@@ -102,13 +106,24 @@ export function contentFilterChips(
   if (filters.campaignId !== 'all') {
     chips.push({ id: 'campaignId', label: labels.campaign(filters.campaignId) });
   }
-  if (filters.brandId !== 'all')
-    chips.push({ id: 'brandId', label: labels.brand(filters.brandId) });
+  for (const id of filters.brandIds) {
+    chips.push({ id: `brand:${id}`, label: labels.brand(id) });
+  }
   if (filters.channel !== 'all') chips.push({ id: 'channel', label: filters.channel });
-  if (filters.contentType !== 'all') chips.push({ id: 'contentType', label: filters.contentType });
+  if (filters.contentType !== 'all') {
+    chips.push({
+      id: 'contentType',
+      label: labels.contentType?.(filters.contentType) ?? filters.contentType,
+    });
+  }
   if (filters.status !== 'all') chips.push({ id: 'status', label: labels.status(filters.status) });
   if (filters.review !== 'all') chips.push({ id: 'review', label: labels.review(filters.review) });
-  if (filters.approval !== 'all') chips.push({ id: 'approval', label: filters.approval });
+  if (filters.approval !== 'all') {
+    chips.push({
+      id: 'approval',
+      label: labels.approval?.(filters.approval) ?? filters.approval,
+    });
+  }
   if (filters.assignee !== 'all') chips.push({ id: 'assignee', label: filters.assignee });
   if (filters.dateFrom) chips.push({ id: 'dateFrom', label: filters.dateFrom });
   if (filters.dateTo) chips.push({ id: 'dateTo', label: filters.dateTo });
@@ -118,7 +133,11 @@ export function contentFilterChips(
 export function clearContentChip(filters: ContentFilters, id: string): ContentFilters {
   if (id === 'query') return { ...filters, query: '' };
   if (id === 'campaignId') return { ...filters, campaignId: 'all' };
-  if (id === 'brandId') return { ...filters, brandId: 'all' };
+  if (id.startsWith('brand:')) {
+    const brandId = id.slice('brand:'.length);
+    return { ...filters, brandIds: filters.brandIds.filter((b) => b !== brandId) };
+  }
+  if (id === 'brandId' || id === 'brandIds') return { ...filters, brandIds: [] };
   if (id === 'channel') return { ...filters, channel: 'all' };
   if (id === 'contentType') return { ...filters, contentType: 'all' };
   if (id === 'status') return { ...filters, status: 'all' };
@@ -348,4 +367,24 @@ export function linkedIdsForContent(
     deliverableId: deliverable?.id ?? null,
     requestId: request?.id ?? null,
   };
+}
+
+
+/** Human label for system enums (content type, request type, etc.). Never returns a ULID. */
+export function contentTypeLabel(value: string, locale: string): string {
+  return statusLabel(value, locale);
+}
+
+const ULID_RE = /^[0-9A-HJKMNP-TV-Z]{26}$/i;
+
+export function isRawId(value: string | null | undefined): boolean {
+  if (!value) return false;
+  return ULID_RE.test(value.trim()) || /^[0-9a-f]{8}-[0-9a-f]{4}-/i.test(value.trim());
+}
+
+/** Prefer a display name; never surface a raw database id to the user. */
+export function humanRef(value: string | null | undefined, fallback = '—'): string {
+  if (!value || !value.trim()) return fallback;
+  if (isRawId(value)) return fallback;
+  return value;
 }

@@ -40,12 +40,13 @@ export function createMailProvider(name = process.env.MAIL_PROVIDER): MailProvid
 
 /**
  * True when a real email provider is configured for delivery. Emails are sent by the
- * worker (outbox -> BullMQ `mail` queue), so the same MAIL_PROVIDER / RESEND_API_KEY /
+ * worker (outbox -> BullMQ `mail` queue), so the same MAIL_PROVIDER / provider API key /
  * MAIL_FROM must be set on the API (for this status) and on the worker (to send).
  */
 export function isMailDeliveryConfigured(env: NodeJS.ProcessEnv = process.env): boolean {
   const key = (env.MAIL_PROVIDER ?? '').trim().toLowerCase();
   if (key === 'resend') return Boolean(env.RESEND_API_KEY?.trim() && env.MAIL_FROM?.trim());
+  if (key === 'brevo') return Boolean(env.BREVO_API_KEY?.trim() && env.MAIL_FROM?.trim());
   return false;
 }
 

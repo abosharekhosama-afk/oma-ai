@@ -521,3 +521,134 @@
   color: var(--oma-home-muted);
   cursor: pointer;
 }
+
+/* Media library: organized folders + files */
+.oma-mp-loading {
+  display: grid;
+  gap: 10px;
+  padding: 8px 0;
+}
+.oma-mp-shimmer {
+  height: 56px;
+  border-radius: 10px;
+  background: #eceff3;
+  animation: oma-skel-pulse 1.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .oma-mp-shimmer {
+    animation: none;
+  }
+}
+.oma-mp-trail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  padding: 4px 0 12px;
+  font-size: 13px;
+  color: #667085;
+}
+.oma-mp-trail button {
+  border: 0;
+  background: transparent;
+  color: #2563eb;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+}
+.oma-mp-trail button:hover {
+  text-decoration: underline;
+}
+.oma-mp-section-title {
+  margin: 8px 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #667085;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.oma-mp-folders {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.oma-mp-folder {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid #e8eaed;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  text-align: start;
+  font: inherit;
+  color: inherit;
+}
+.oma-mp-folder:hover {
+  background: #f7f8fa;
+  border-color: #d0d5dd;
+}
+.oma-mp-folder__ico {
+  color: #f5a524;
+  font-size: 18px;
+}
+.oma-mp-folder__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+  font-size: 13px;
+}
+.oma-mp-files {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+}
+.oma-mp-file {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid #e8eaed;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  text-align: start;
+  font: inherit;
+  color: inherit;
+  min-width: 0;
+}
+.oma-mp-file:hover {
+  background: #f7f8fa;
+  border-color: #d0d5dd;
+}
+.oma-mp-file__thumb {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  background: #f2f4f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: #98a2b3;
+  font-size: 22px;
+}
+.oma-mp-file__thumb img,
+.oma-mp-file__thumb video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.oma-mp-file__name {
+  font-size: 12px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.oma-mp-file__meta {
+  font-size: 11px;
+  color: #98a2b3;
+}

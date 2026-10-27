@@ -267,10 +267,33 @@ export class ContentService {
     const data = hasMore ? rows.slice(0, limit) : rows;
     const policy = await this.policyForBrand(tenantId, brandId);
 
+    const mapped = data.map((row) => mapContent(row, policy));
+    const enriched = await this.enrichContentNames(mapped);
     return {
-      data: data.map((row) => mapContent(row, policy)),
+      data: enriched,
       page: { next_cursor: hasMore ? (data[data.length - 1]?.id ?? null) : null, limit },
     };
+  }
+
+  /** Resolve assignee display names so the UI never shows raw user ULIDs. */
+  private async enrichContentNames<T extends { assignee_user_id: string | null }>(
+    rows: T[],
+  ): Promise<Array<T & { assignee_name: string | null }>> {
+    if (!rows.length) return [];
+    const ids = [...new Set(rows.map((r) => r.assignee_user_id).filter(Boolean) as string[])];
+    const users = ids.length
+      ? await getPrisma().user.findMany({
+          where: { id: { in: ids } },
+          select: { id: true, name: true, email: true },
+        })
+      : [];
+    const map = new Map(
+      users.map((u) => [u.id, (u.name && u.name.trim()) || u.email || 'Team member']),
+    );
+    return rows.map((row) => ({
+      ...row,
+      assignee_name: row.assignee_user_id ? map.get(row.assignee_user_id) || 'Team member' : null,
+    }));
   }
 
   async get(tenantId: string, contentId: string) {

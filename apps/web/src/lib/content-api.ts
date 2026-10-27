@@ -5,7 +5,6 @@ import { api } from './api';
 import type { ContentRow } from './demo/stage3-campaigns';
 import type { ApiLocale } from './campaign-api';
 import {
-  listBrandsProduction,
   listScopedBrands,
   listAllCampaigns,
   listCampaignsForBrand,
@@ -46,6 +45,7 @@ export type ApiContent = {
   preview_asset_url: string | null;
   labels: string[];
   assignee_user_id: string | null;
+  assignee_name?: string | null;
   client_visible: boolean;
   archived_at: string | null;
   created_by: string;
@@ -77,7 +77,7 @@ export function toContentRow(c: ApiContent): ContentRowExtra {
     approvalState: c.approval_state as ContentRow['approvalState'],
     approverApproved: c.approver_approved,
     approverRequired: c.approver_required,
-    assignee: c.assignee_user_id ?? '—',
+    assignee: (c.assignee_name && c.assignee_name.trim()) || '—',
     previewAsset: c.preview_asset_url ?? '',
     deliverableId: null,
     caption: c.caption ?? undefined,

@@ -12,7 +12,7 @@ import dayjs from 'dayjs';
 import { Dialog } from '../../../../components/ui/dialog';
 import { EmptyState } from '../../../../components/ui/empty-state';
 import { Panel } from '../../../../components/ui/page-header';
-import { StatusChip } from '../../../../components/ui/status-chip';
+import { StatusChip, statusLabel as enumStatusLabel } from '../../../../components/ui/status-chip';
 import { useToast } from '../../../../components/ui/toast';
 import { pickCopy } from '../../../../lib/demo/use-demo-api';
 import { daysFromToday } from '../../../../lib/calendar-today';
@@ -189,8 +189,9 @@ export default function RequestsPage() {
 
   const brandName = useCallback(
     (id: string) => {
+      if (!id) return '—';
       const b = brands.find((x) => x.id === id);
-      return b ? pickCopy(b.name, locale) : id;
+      return b ? pickCopy(b.name, locale) : '—';
     },
     [brands, locale],
   );
@@ -199,7 +200,7 @@ export default function RequestsPage() {
     (id: string | null) => {
       if (!id) return '—';
       const c = campaigns.find((x) => x.id === id);
-      return c ? pickCopy(c.name, locale) : id;
+      return c ? pickCopy(c.name, locale) : '—';
     },
     [campaigns, locale],
   );
@@ -414,7 +415,7 @@ export default function RequestsPage() {
                             </td>
                             <td>
                               <span className="oma-sr-only">{t('demo.requests.col.type')}: </span>
-                              {r.type}
+                              {enumStatusLabel(t, r.type)}
                             </td>
                             <td>{r.requester}</td>
                             <td>
@@ -625,7 +626,7 @@ export default function RequestsPage() {
                             checked={(filters.priority || 'all') === s}
                             onChange={() => setFilters((f) => ({ ...f, priority: s }))}
                           />
-                          <span>{s === 'all' ? t('demo.filter.all') : s}</span>
+                          <span>{s === 'all' ? t('demo.filter.all') : enumStatusLabel(t, s)}</span>
                         </label>
                       ))}
                     </div>
@@ -665,7 +666,7 @@ export default function RequestsPage() {
                             checked={(filters.type || 'all') === s}
                             onChange={() => setFilters((f) => ({ ...f, type: s }))}
                           />
-                          <span>{s === 'all' ? t('demo.filter.all') : s}</span>
+                          <span>{s === 'all' ? t('demo.filter.all') : enumStatusLabel(t, s)}</span>
                         </label>
                       ))}
                     </div>
