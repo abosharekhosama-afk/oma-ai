@@ -2193,5 +2193,6 @@
   "deliverables.upload.openFile": "Open file",
   "content.switch_view": "Switch view",
   "content.calendar_word": "calendar",
-  "content.more_actions": "More actions"
+  "content.more_actions": "More actions",
+  "media.files": "Files"
 }

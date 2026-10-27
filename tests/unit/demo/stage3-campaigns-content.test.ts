@@ -119,11 +119,12 @@ describe('stage3 content calendar mapping', () => {
       {
         query: '',
         campaignId: 'demo-campaign-organic',
-        brandId: 'all',
+        brandIds: [],
         channel: 'all',
         contentType: 'all',
         status: 'all',
         review: 'all',
+        approval: 'all',
         assignee: 'all',
         dateFrom: '',
         dateTo: '',

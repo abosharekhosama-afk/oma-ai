@@ -94,9 +94,7 @@ import {
   EMPTY_CONTENT_FILTERS,
   activeContentFilterCount,
   buildMonthCells,
-  clearContentChip,
   commentsForContent,
-  contentFilterChips,
   dayKey,
   filterContent,
   groupContentByDay,
@@ -110,6 +108,9 @@ import {
   type ContentRow,
   type ContentSortKey,
   type ContentViewMode,
+  humanRef,
+  isRawId,
+  contentTypeLabel,
 } from '../../../../lib/demo/stage3-content';
 import { pickCopy } from '../../../../lib/demo/use-demo-api';
 import {
@@ -269,6 +270,41 @@ function weekdayForKey(key: string, locale: string): string {
   }).format(d);
 }
 
+
+function IconFilter({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M4 6h16M7 12h10M10 18h4"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function IconMedia({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="3" y="5" width="18" height="14" rx="2.5" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="9" cy="11" r="1.6" fill="currentColor" />
+      <path d="M3 16.5 8.5 12l3.2 3.2L15 12.5l6 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconShare({ size = 18 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden>
+      <circle cx="18" cy="5" r="2.4" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="6" cy="12" r="2.4" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="18" cy="19" r="2.4" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M8.2 10.8 15.8 6.2M8.2 13.2l7.6 4.6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 const LABEL_COLORS = [
   '#1677ff',
   '#52c41a',
@@ -294,12 +330,13 @@ type BrandTemplateCard = {
 
 function templateTitle(tpl: BrandTemplateCard, isAr: boolean): string {
   const localized = isAr ? tpl.name?.ar || tpl.name?.en : tpl.name?.en || tpl.name?.ar;
-  return localized || tpl.name_en || tpl.id;
+  const title = localized || tpl.name_en || (isAr ? tpl.title?.ar || tpl.title?.en : tpl.title?.en || tpl.title?.ar);
+  return title && title.trim() ? title : '—';
 }
 
 function rowLabels(item: { labels?: string[] } | ContentRow): string[] {
   const labels = (item as { labels?: string[] }).labels;
-  return Array.isArray(labels) ? labels.filter(Boolean) : [];
+  return Array.isArray(labels) ? labels.filter((l) => Boolean(l) && !isRawId(l)) : [];
 }
 
 function reviewFilterLabel(value: string, locale: string, allLabel: string): string {
@@ -1320,7 +1357,10 @@ export default function ContentPage() {
   // ?create=1 opens the composer once workspace data is loaded.
   useEffect(() => {
     const brand = search.get('brand');
-    if (brand) setFilters((f) => (f.brandId === brand ? f : { ...f, brandId: brand }));
+    if (brand)
+      setFilters((f) =>
+        f.brandIds.length === 1 && f.brandIds[0] === brand ? f : { ...f, brandIds: [brand] },
+      );
     const date = search.get('date');
     if (date && /^\d{4}-\d{2}-\d{2}$/.test(date)) {
       calendarSnapped.current = true;
@@ -1344,15 +1384,19 @@ export default function ContentPage() {
 
   const campaignName = useCallback(
     (id: string) => {
+      if (!id) return '—';
       const c = campaigns.find((x) => x.id === id);
-      return c ? pickCopy(c.name, locale) : id;
+      if (c) return pickCopy(c.name, locale);
+      return '—';
     },
     [campaigns, locale],
   );
   const brandName = useCallback(
     (id: string) => {
+      if (!id) return '—';
       const b = brands.find((x) => x.id === id);
-      return b ? pickCopy(b.name, locale) : id;
+      if (b) return pickCopy(b.name, locale);
+      return '—';
     },
     [brands, locale],
   );
@@ -1397,16 +1441,6 @@ export default function ContentPage() {
   );
   const byDay = useMemo(() => groupContentByDay(filtered), [filtered]);
   const filterCount = activeContentFilterCount(filters);
-  const chips = useMemo(
-    () =>
-      contentFilterChips(filters, {
-        campaign: campaignName,
-        brand: brandName,
-        status: (id) => statusLabel(id, locale),
-        review: (id) => reviewFilterLabel(id, locale, t('demo.filter.all')),
-      }),
-    [filters, campaignName, brandName, locale, t],
-  );
   const channels = useMemo(() => [...new Set(rows.map((r) => r.channel))].sort(), [rows]);
   const types = useMemo(() => [...new Set(rows.map((r) => r.contentType))].sort(), [rows]);
   const statuses = useMemo(() => [...new Set(rows.map((r) => r.status))].sort(), [rows]);
@@ -2455,7 +2489,7 @@ export default function ContentPage() {
                       ? t('content.stories')
                       : ty === 'REEL'
                         ? t('content.reels')
-                        : ty}
+                        : contentTypeLabel(ty, locale)}
                 </span>
                 <span className="oma-filter-check__count">
                   {rows.filter((r) => r.contentType === ty).length}
@@ -2504,30 +2538,64 @@ export default function ContentPage() {
                 <span>{ch}</span>
               </label>
             ))}
-            <p className="oma-content-filter-eyebrow">{t('shell.brand')}</p>
+          </div>
+        ) : null}
+      </div>
+
+      <div className="oma-filter-accordion">
+        <button
+          type="button"
+          className="oma-filter-accordion__row"
+          data-open={filterSection === 'brand' ? 'true' : 'false'}
+          onClick={() => toggleFilterSection('brand')}
+          data-testid="demo-content-filter-brand"
+        >
+          <span className="oma-filter-accordion__ico" aria-hidden>
+            <AppstoreOutlined />
+          </span>
+          <span>{t('shell.brand')}</span>
+          {filters.brandIds.length ? (
+            <span className="oma-filter-accordion__count oma-ltr">{filters.brandIds.length}</span>
+          ) : null}
+          <span className="oma-filter-accordion__caret">
+            {filterSection === 'brand' ? <UpOutlined /> : <DownOutlined />}
+          </span>
+        </button>
+        {filterSection === 'brand' ? (
+          <div className="oma-filter-accordion__body">
             <label className="oma-filter-check">
               <input
                 type="checkbox"
-                checked={!filters.brandId || filters.brandId === 'all'}
-                onChange={() => setFilters((f) => ({ ...f, brandId: 'all' }))}
+                checked={filters.brandIds.length === 0}
+                onChange={() => setFilters((f) => ({ ...f, brandIds: [] }))}
               />
               <span>{t('demo.filter.all')}</span>
             </label>
-            {brands.map((b) => (
-              <label key={b.id} className="oma-filter-check">
-                <input
-                  type="checkbox"
-                  checked={filters.brandId === b.id}
-                  onChange={() =>
-                    setFilters((f) => ({
-                      ...f,
-                      brandId: f.brandId === b.id ? 'all' : b.id,
-                    }))
-                  }
-                />
-                <span>{pickCopy(b.name, locale)}</span>
-              </label>
-            ))}
+            {brands.map((b) => {
+              const name = pickCopy(b.name, locale);
+              const on = filters.brandIds.includes(b.id);
+              const initial = (name.trim()[0] || '?').toUpperCase();
+              return (
+                <label key={b.id} className="oma-filter-check oma-filter-check--brand">
+                  <input
+                    type="checkbox"
+                    checked={on}
+                    onChange={() =>
+                      setFilters((f) => ({
+                        ...f,
+                        brandIds: on
+                          ? f.brandIds.filter((id) => id !== b.id)
+                          : [...f.brandIds, b.id],
+                      }))
+                    }
+                  />
+                  <span className="oma-filter-brand-avatar" aria-hidden>
+                    {initial}
+                  </span>
+                  <span>{name}</span>
+                </label>
+              );
+            })}
           </div>
         ) : null}
       </div>
@@ -2597,7 +2665,9 @@ export default function ContentPage() {
               />
               <span>{t('demo.filter.all')}</span>
             </label>
-            {assignees.map((a) => (
+            {assignees
+              .filter((a) => a && a !== '—' && !isRawId(a))
+              .map((a) => (
               <label key={a} className="oma-filter-check">
                 <input
                   type="checkbox"
@@ -2606,7 +2676,7 @@ export default function ContentPage() {
                     setFilters((f) => ({ ...f, assignee: f.assignee === a ? 'all' : a }))
                   }
                 />
-                <span>{a}</span>
+                <span>{humanRef(a)}</span>
               </label>
             ))}
           </div>
@@ -2720,7 +2790,7 @@ export default function ContentPage() {
             </button>
             <button
               type="button"
-              className="oma-top-action"
+              className="oma-top-action oma-top-action--icon"
               data-tooltip={t('content.filter_sort')}
               aria-label={
                 filterCount > 0 ? `${t('content.filter')} (${filterCount})` : t('content.filter')
@@ -2728,33 +2798,36 @@ export default function ContentPage() {
               onClick={() => setFilterSheet(true)}
               data-testid="demo-content-open-filters"
             >
-              <FilterOutlined className="oma-top-action__icon" />
-              <span className="oma-top-action__label">{t('content.filter')}</span>
+              <span className="oma-top-action__icon" aria-hidden>
+                <IconFilter />
+              </span>
               {filterCount > 0 ? (
                 <span className="oma-top-action__count oma-ltr">{filterCount}</span>
               ) : null}
             </button>
             <button
               type="button"
-              className="oma-top-action"
+              className="oma-top-action oma-top-action--icon"
               data-tooltip={t('content.media_library')}
               aria-label={t('demo.content.media')}
               onClick={() => setMediaLibraryOpen(true)}
               data-testid="demo-content-open-media"
             >
-              <PictureOutlined className="oma-top-action__icon" />
-              <span className="oma-top-action__label">{t('demo.content.media')}</span>
+              <span className="oma-top-action__icon" aria-hidden>
+                <IconMedia />
+              </span>
             </button>
             <button
               type="button"
-              className="oma-top-action oma-top-action--ghost"
+              className="oma-top-action oma-top-action--icon"
               data-tooltip={t('content.share_view')}
               aria-label={t('content.share')}
               onClick={() => void shareContentWorkspace()}
               data-testid="demo-content-share"
             >
-              <ShareAltOutlined className="oma-top-action__icon" />
-              <span className="oma-top-action__label">{t('content.share')}</span>
+              <span className="oma-top-action__icon" aria-hidden>
+                <IconShare />
+              </span>
             </button>
             <button
               type="button"
@@ -2854,39 +2927,7 @@ export default function ContentPage() {
           )
         : null}
 
-      {filterCount > 0 ? (
-        <div className="oma-filter-chips" data-testid="demo-content-filter-chips">
-          {chips.map((chip) => (
-            <span key={chip.id} className="oma-filter-chip">
-              {chip.label}
-              <Button
-                type="default"
-                aria-label={`${t('demo.content.clearFilters')}: ${chip.label}`}
-                onClick={() => {
-                  const next = clearContentChip(filters, chip.id);
-                  setFilters(next);
-                  if (chip.id === 'campaignId') {
-                    replaceParams((params) => params.delete('campaign'));
-                  }
-                }}
-              >
-                ×
-              </Button>
-            </span>
-          ))}
-          <Button
-            type="default"
-            onClick={() => {
-              setFilters(EMPTY_CONTENT_FILTERS);
-              replaceParams((params) => {
-                params.delete('campaign');
-              });
-            }}
-          >
-            {t('demo.content.clearFilters')}
-          </Button>
-        </div>
-      ) : null}
+      {/* Filter chips removed — brand/other filters live in the side panel only. */}
 
       {/* Layout-matched skeletons instead of the dots loader. */}
       {loading ? (
@@ -3376,8 +3417,9 @@ export default function ContentPage() {
                                 setOverflowDay(cell.key);
                               }}
                               className="oma-cal-more"
+                              aria-label={t('demo.content.openDay')}
                             >
-                              +{extra}
+                              +{extra} {isAr ? 'المزيد' : 'more'}
                             </Button>
                           ) : null}
                         </div>
@@ -4107,7 +4149,7 @@ export default function ContentPage() {
                               <div className="oma-plan-post__tip-user">
                                 <span className="oma-plan-post__avatar">O</span>
                                 <span>
-                                  {selected.assignee || 'Osama'} ({t('content.you')})
+                                  {humanRef(selected.assignee, isAr ? 'عضو الفريق' : 'Team member')} ({t('content.you')})
                                 </span>
                               </div>
                             </div>
@@ -4429,26 +4471,31 @@ export default function ContentPage() {
         ) : null}
       </Dialog>
 
-      {/* Overflow day dialog */}
+      {/* Overflow day popover — grid of calendar post cards */}
       <Dialog
         open={Boolean(overflowDay)}
-        title={t('demo.content.openDay')}
+        title={
+          overflowDay
+            ? `${t('demo.content.openDay')} · ${overflowDay}`
+            : t('demo.content.openDay')
+        }
         onClose={() => setOverflowDay(null)}
+        size="lg"
+        className="oma-cal-overflow-dialog"
       >
-        <div className="oma-stack">
-          <p className="oma-ltr oma-muted">{overflowDay}</p>
+        <div className="oma-cal-overflow-grid" data-testid="demo-day-overflow-grid">
           {overflowItems.map((item) => (
             <SurfaceButton
               key={item.id}
               data-status={item.status}
               data-testid={`demo-cal-item-${item.id}`}
-              onClick={() => openItem(item)}
-              className="oma-cal-item"
+              onClick={() => {
+                openItem(item);
+                setOverflowDay(null);
+              }}
+              className="oma-cal-item oma-cal-overflow-card"
             >
-              <img className="oma-cal-thumb" src={item.previewAsset} alt="" />
-              <span>
-                {pickCopy(item.title, locale)} · {statusLabel(item.status, locale)}
-              </span>
+              {renderCalendarCard(item)}
             </SurfaceButton>
           ))}
         </div>
@@ -4938,7 +4985,9 @@ export default function ContentPage() {
                       <strong>{title}</strong>
                       <span className="oma-template-card__meta">
                         {tpl.channel || t('content.no_channel')}
-                        {tpl.content_type ? ` · ${tpl.content_type}` : ''}
+                        {tpl.content_type
+                          ? ` · ${contentTypeLabel(tpl.content_type, locale)}`
+                          : ''}
                       </span>
                       {caption ? <p>{caption}</p> : null}
                       {tpl.labels && tpl.labels.length > 0 ? (

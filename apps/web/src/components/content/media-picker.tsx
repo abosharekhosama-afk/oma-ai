@@ -1,7 +1,13 @@
 'use client';
 import { openSettings } from '../../lib/settings-dialog';
 
-import { FileImageOutlined, FolderOutlined, PlayCircleOutlined } from '@ant-design/icons';
+import {
+  FileImageOutlined,
+  FileOutlined,
+  FilePdfOutlined,
+  FolderOutlined,
+  PlayCircleOutlined,
+} from '@ant-design/icons';
 import { Button, Modal, Progress, Tabs } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getApiError } from '../../lib/brand-api';
@@ -22,6 +28,34 @@ const ACCEPT: Record<MediaKind, string> = {
   deliverables:
     'image/png,image/jpeg,image/webp,image/gif,video/mp4,video/quicktime,video/webm,application/pdf',
 };
+
+function fileIcon(mime: string) {
+  if (mime.startsWith('video/')) return <PlayCircleOutlined />;
+  if (mime.startsWith('image/')) return <FileImageOutlined />;
+  if (mime.includes('pdf')) return <FilePdfOutlined />;
+  return <FileOutlined />;
+}
+
+function formatDate(iso: string | null | undefined, locale: string) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return new Intl.DateTimeFormat(locale.toLowerCase().startsWith('ar') ? 'ar' : 'en', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  }).format(d);
+}
+
+function MediaShimmer({ rows = 4 }: { rows?: number }) {
+  return (
+    <div className="oma-mp-loading" aria-busy="true" data-testid="media-shimmer">
+      {Array.from({ length: rows }, (_, i) => (
+        <div key={i} className="oma-mp-shimmer" />
+      ))}
+    </div>
+  );
+}
 
 export function MediaThumb({ asset, t }: { asset: MediaAsset; t: Tr }) {
   if (asset.missing)
@@ -167,7 +201,7 @@ export function MediaPickerDialog({
         {error}
       </p>
     ) : (
-      <div className="oma-mp-loading" aria-busy="true" />
+      <MediaShimmer />
     )
   ) : !connected ? (
     <div className="oma-mp-connect" data-testid="media-connect-workdrive">
@@ -303,57 +337,71 @@ export function MediaPickerDialog({
                     </span>
                   ))}
                 </nav>
+                {browsing && !browse ? <MediaShimmer rows={5} /> : null}
                 {browse ? (
                   browse.folders.length || browse.files.length ? (
-                    <ul className="oma-mp-list">
-                      {browse.folders.map((f) => (
-                        <li key={f.id}>
-                          <button
-                            type="button"
-                            className="oma-mp-row"
-                            onClick={() => void openFolder(f.id, f.name)}
-                          >
-                            <span className="oma-mp-row__icon" aria-hidden="true">
-                              <FolderOutlined />
-                            </span>
-                            <span className="oma-mp-row__name">{f.name}</span>
-                            <span className="oma-mp-row__meta">{t('media.folder')}</span>
-                          </button>
-                        </li>
-                      ))}
-                      {browse.files.map((f) => (
-                        <li key={f.id}>
-                          <button
-                            type="button"
-                            className="oma-mp-row"
-                            data-testid="media-browser-file"
-                            onClick={async () => {
-                              try {
-                                const r = await mediaApi.importFile(brandId, kind, f.id);
-                                onPick(r.data);
-                                onClose();
-                              } catch (e) {
-                                setError(getApiError(e).message);
-                              }
-                            }}
-                          >
-                            <span className="oma-mp-row__icon" aria-hidden="true">
-                              {f.mime.startsWith('video/') ? (
-                                <PlayCircleOutlined />
-                              ) : (
-                                <FileImageOutlined />
-                              )}
-                            </span>
-                            <span className="oma-mp-row__name">{f.name}</span>
-                            <span className="oma-mp-row__meta">{formatBytes(f.size, locale)}</span>
-                          </button>
-                        </li>
-                      ))}
-                    </ul>
+                    <>
+                      {browse.folders.length ? (
+                        <>
+                          <p className="oma-mp-section-title">{t('media.folders')}</p>
+                          <div className="oma-mp-folders" data-testid="media-folders">
+                            {browse.folders.map((f) => (
+                              <button
+                                key={f.id}
+                                type="button"
+                                className="oma-mp-folder"
+                                onClick={() => void openFolder(f.id, f.name)}
+                              >
+                                <span className="oma-mp-folder__ico" aria-hidden>
+                                  <FolderOutlined />
+                                </span>
+                                <span className="oma-mp-folder__name">{f.name}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </>
+                      ) : null}
+                      {browse.files.length ? (
+                        <>
+                          <p className="oma-mp-section-title">{t('media.files') || t('media.recent')}</p>
+                          <div className="oma-mp-files" data-testid="media-files">
+                            {browse.files.map((f) => (
+                              <button
+                                key={f.id}
+                                type="button"
+                                className="oma-mp-file"
+                                data-testid="media-browser-file"
+                                onClick={async () => {
+                                  try {
+                                    const r = await mediaApi.importFile(brandId, kind, f.id);
+                                    onPick(r.data);
+                                    onClose();
+                                  } catch (e) {
+                                    setError(getApiError(e).message);
+                                  }
+                                }}
+                              >
+                                <span className="oma-mp-file__thumb" aria-hidden>
+                                  {fileIcon(f.mime)}
+                                </span>
+                                <span className="oma-mp-file__name">{f.name}</span>
+                                <span className="oma-mp-file__meta">
+                                  {[formatBytes(f.size, locale), formatDate(f.updated_at, locale)]
+                                    .filter(Boolean)
+                                    .join(' · ')}
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        </>
+                      ) : null}
+                    </>
                   ) : (
                     <p className="oma-mp-empty">{t('media.emptyFolder')}</p>
                   )
-                ) : null}
+                ) : browsing ? null : (
+                  <MediaShimmer rows={3} />
+                )}
               </div>
             ),
           },
@@ -367,7 +415,7 @@ export function MediaPickerDialog({
       open={open}
       title={t('media.title')}
       footer={null}
-      width={720}
+      width={760}
       zIndex={1200}
       onCancel={() => {
         abort.current?.abort();

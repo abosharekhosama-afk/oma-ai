@@ -1,6 +1,7 @@
 import type { MailMessage, MailProviderPort } from '@oma/domain';
 import { createLogger } from '@oma/observability';
 import type IORedis from 'ioredis';
+import { brevoFromEnv } from './brevo.adapter';
 import { resendFromEnv } from './resend.adapter';
 
 const log = createLogger('mail');
@@ -46,6 +47,12 @@ export function createMailAdapter(connection: IORedis): MailProviderPort {
     const resend = resendFromEnv();
     if (resend) return resend;
     log.warn('falling back to console mail: Resend is not fully configured');
+    return new ConsoleMailAdapter();
+  }
+  if (mode === 'brevo') {
+    const brevo = brevoFromEnv();
+    if (brevo) return brevo;
+    log.warn('falling back to console mail: Brevo is not fully configured');
     return new ConsoleMailAdapter();
   }
   if (mode !== 'console') {
