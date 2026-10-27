@@ -1,4 +1,6 @@
 'use client';
+import { CardGridShimmer } from '../../../../components/ui/shimmer';
+import { openSettings } from '../../../../lib/settings-dialog';
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -381,7 +383,7 @@ export function PlanableDashboard() {
 
       {loading ? (
         <div className="plx-dash-loading">
-          <OmaDotsLoader label={t('companies.loading_workspaces')} />
+          <CardGridShimmer cards={6} />
         </div>
       ) : error ? (
         <div className="plx-dash-body">
@@ -435,7 +437,7 @@ export function PlanableDashboard() {
                     className="plx-menu-item"
                     onClick={() => {
                       setCompanyMenuOpen(false);
-                      router.push('/app/settings');
+                      openSettings();
                     }}
                   >
                     <SettingsIcon /> Settings
@@ -452,7 +454,7 @@ export function PlanableDashboard() {
                     className="plx-menu-item"
                     onClick={() => {
                       setCompanyMenuOpen(false);
-                      router.push('/app/company/members');
+                      router.push('/app/team');
                     }}
                   >
                     <UsersIcon /> Members
@@ -505,7 +507,7 @@ export function PlanableDashboard() {
                 onCloseMenu={() => setWsMenuFor(null)}
                 onInvite={() => {
                   setWsMenuFor(null);
-                  window.location.assign('/app/company/members');
+                  window.location.assign('/app/team');
                 }}
                 onSettings={() => {
                   setWsMenuFor(null);
@@ -559,7 +561,7 @@ export function PlanableDashboard() {
                     }}
                     onSettings={() => {
                       setWsMenuFor(null);
-                      router.push('/app/settings');
+                      openSettings();
                     }}
                   />
                 ))}

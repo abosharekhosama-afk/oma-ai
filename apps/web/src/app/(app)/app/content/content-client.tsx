@@ -892,6 +892,22 @@ function CardActionsButton({
   );
 }
 
+const FEED_DETAIL_BATCH = 20;
+
+/** Run `fn` over `items` with at most `limit` requests in flight. */
+async function mapLimit<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+  const out: R[] = new Array(items.length);
+  let next = 0;
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (next < items.length) {
+      const i = next++;
+      out[i] = await fn(items[i]!);
+    }
+  });
+  await Promise.all(workers);
+  return out;
+}
+
 export default function ContentPage() {
   const t = useT();
   const locale = useLocale();
@@ -1339,7 +1355,12 @@ export default function ContentPage() {
 
   const filtered = useMemo(() => filterContent(rows, filters, locale), [rows, filters, locale]);
 
-  const feedIds = useMemo(() => filtered.slice(0, 60).map((r) => r.id), [filtered]);
+  // Feed comments/approval trail are only shown in Feed view: fetch them lazily there (was 60
+  // detail requests on every open of the calendar, which delayed first paint and saturated the proxy).
+  const feedIds = useMemo(
+    () => (view === 'feed' ? filtered.slice(0, FEED_DETAIL_BATCH).map((r) => r.id) : []),
+    [filtered, view],
+  );
   useEffect(() => {
     if (feedIds.length === 0) return;
     let live = true;
@@ -1350,14 +1371,10 @@ export default function ContentPage() {
     }
     const missing = feedIds.filter((id) => !feedDetails[id]);
     if (missing.length === 0) return;
-    void Promise.all(
-      missing.map((id) =>
-        getContentDetail(id)
-          .then(
-            (d) => [id, { comments: d.comments ?? [], events: d.approval_events ?? [] }] as const,
-          )
-          .catch(() => [id, { comments: [], events: [] }] as const),
-      ),
+    void mapLimit(missing, 4, (id) =>
+      getContentDetail(id)
+        .then((d) => [id, { comments: d.comments ?? [], events: d.approval_events ?? [] }] as const)
+        .catch(() => [id, { comments: [], events: [] }] as const),
     ).then((pairs) => {
       if (live) setFeedDetails((prev) => ({ ...prev, ...Object.fromEntries(pairs) }));
     });

@@ -226,7 +226,7 @@ function GeneralTab(p: BrandSettingsViewProps) {
                 {p.logoStorage && !p.logoStorage.connected && p.logoStorage.canConnect ? (
                   <>
                     {' '}
-                    <a href="/app/settings?section=storage" className="oma-bs-link">
+                    <a href="/app?settings=storage" className="oma-bs-link">
                       {t('brandSettings.general.logoConnectWorkDrive')}
                     </a>
                   </>

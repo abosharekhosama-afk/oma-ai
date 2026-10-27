@@ -12,6 +12,7 @@ import {
   newId,
   shouldClearCurrentOnArchive,
 } from '@oma/domain';
+import { notificationAllowed } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
 
 type Tx = Parameters<Parameters<ReturnType<typeof getPrisma>['$transaction']>[0]>[0];
@@ -1194,6 +1195,11 @@ export class StrategyService {
         strategyId,
         versionId,
       });
+      const actorPrefs = await tx.user.findUnique({
+        where: { id: actorUserId },
+        select: { preferencesJson: true },
+      });
+      if (notificationAllowed(actorPrefs?.preferencesJson, 'strategy.submitted'))
       await tx.notification.create({
         data: {
           id: newId(),

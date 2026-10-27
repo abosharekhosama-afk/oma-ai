@@ -280,3 +280,106 @@
   align-items: center;
   gap: var(--space-2);
 }
+
+/* ---- Shimmer: same light sweep as the Home screen (antd active skeleton), every screen ---- */
+.oma-skeleton,
+.oma-content-cal-skeleton .oma-skeleton {
+  /* Same neutral sweep as antd's active Skeleton on the Home screen. */
+  background: linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.06) 25%,
+      rgba(0, 0, 0, 0.15) 37%,
+      rgba(0, 0, 0, 0.06) 63%
+    )
+    0 0 / 400% 100% !important;
+  animation: oma-shimmer-sweep 1.4s ease infinite !important;
+  opacity: 1;
+}
+[dir='rtl'] .oma-skeleton,
+[dir='rtl'] .oma-content-cal-skeleton .oma-skeleton {
+  animation-direction: reverse !important;
+}
+@keyframes oma-shimmer-sweep {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .oma-skeleton,
+  .oma-content-cal-skeleton .oma-skeleton {
+    animation: none !important;
+  }
+}
+.oma-shimmer-bar {
+  display: block;
+  flex: none;
+}
+.oma-shimmer {
+  display: grid;
+  gap: 12px;
+  padding: 16px 0;
+}
+.oma-shimmer-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--oma-border);
+}
+.oma-shimmer-row--head {
+  border-bottom-width: 1px;
+}
+.oma-shimmer-row--flat {
+  padding: 0;
+  border: 0;
+}
+.oma-shimmer-stack {
+  display: grid;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+.oma-shimmer--table {
+  gap: 0;
+  padding: 0;
+  border: 1px solid var(--oma-border);
+  border-radius: 10px;
+  background: var(--oma-surface);
+}
+.oma-shimmer--board {
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+.oma-shimmer-col {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--oma-canvas);
+}
+.oma-shimmer-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 24px;
+  margin-top: 8px;
+}
+.oma-shimmer--cards {
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+.oma-shimmer-card {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--oma-border);
+  border-radius: 8px;
+  background: var(--oma-surface);
+}
+@media (max-width: 720px) {
+  .oma-shimmer-detail {
+    grid-template-columns: 1fr;
+  }
+}

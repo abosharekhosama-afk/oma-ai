@@ -70,6 +70,19 @@ export class MediaController {
     });
   }
 
+  /** Direct upload: returns a signed WorkDrive PUT URL + OMA grant (bytes skip the Vercel proxy). */
+  @Post('api/v1/brands/:brandId/media/upload-grant')
+  @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
+  uploadGrant(@Req() req: Request, @Param('brandId') brandId: string, @Body() body: unknown) {
+    return mediaService.createUploadGrant(ctx(req), brandId, body);
+  }
+
+  @Post('api/v1/media/upload-complete')
+  @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
+  uploadComplete(@Req() req: Request, @Body() body: unknown) {
+    return mediaService.completeUploadGrant(ctx(req), body);
+  }
+
   @Post('api/v1/brands/:brandId/media/import')
   @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
   importFile(@Req() req: Request, @Param('brandId') brandId: string, @Body() body: unknown) {

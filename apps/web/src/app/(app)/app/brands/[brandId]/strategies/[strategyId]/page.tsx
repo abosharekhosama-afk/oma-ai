@@ -1,6 +1,6 @@
 'use client';
+import { DetailShimmer } from '../../../../../../../components/ui/shimmer';
 
-import { OmaTopLoader } from '../../../../../../../components/ui/oma-top-loader';
 import { OmaLinkButton } from '../../../../../../../components/ui/oma-link-button';
 import { Button } from '@oma/ui/controls';
 
@@ -107,7 +107,7 @@ function FeatureStrategyOverview({ brandId, strategyId }: { brandId: string; str
         {error}
       </div>
     ) : (
-      <OmaTopLoader label={t('common.loading')} />
+      <DetailShimmer />
     );
   }
 

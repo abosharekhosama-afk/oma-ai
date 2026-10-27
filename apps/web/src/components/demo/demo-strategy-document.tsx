@@ -1,4 +1,5 @@
 'use client';
+import { DetailShimmer } from '../ui/shimmer';
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -89,7 +90,7 @@ export function DemoStrategyDocument({
 
       <DemoDisclosure />
 
-      {loading ? <p className="oma-muted">{t('demo.loading')}</p> : null}
+      {loading ? <DetailShimmer /> : null}
       {unavailable ? <EmptyState title={t('demo.unavailable')} /> : null}
       {error ? (
         <div className="oma-card" role="alert">

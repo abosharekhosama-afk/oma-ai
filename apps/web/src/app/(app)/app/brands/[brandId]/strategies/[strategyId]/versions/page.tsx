@@ -1,6 +1,6 @@
 'use client';
+import { DetailShimmer } from '../../../../../../../../components/ui/shimmer';
 
-import { OmaTopLoader } from '../../../../../../../../components/ui/oma-top-loader';
 import { OmaLinkButton } from '../../../../../../../../components/ui/oma-link-button';
 import { Button } from '@oma/ui/controls';
 
@@ -70,7 +70,7 @@ export default function StrategyVersionsPage() {
 
   if (denied) return <PermissionDenied message={t('errors.permission')} />;
   if (tenantRequired) return <SelectCompany />;
-  if (!brand) return <OmaTopLoader label={t('common.loading')} />;
+  if (!brand) return <DetailShimmer />;
 
   const left = versions[1]?.id;
   const right = versions[0]?.id;

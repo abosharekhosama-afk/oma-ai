@@ -81,6 +81,34 @@ export function friendlyApiMessage(
   );
 }
 
+function readCsrfCookie() {
+  if (typeof document === 'undefined') return undefined;
+  const raw = document.cookie
+    .split('; ')
+    .find((c) => c.startsWith('oma_csrf='))
+    ?.split('=')[1];
+  return raw ? decodeURIComponent(raw) : undefined;
+}
+
+let csrfRefresh: Promise<string | undefined> | null = null;
+
+/** Ask the API for a fresh CSRF token (it re-issues the cookie for a valid session). */
+export function refreshCsrfToken(): Promise<string | undefined> {
+  csrfRefresh ??= fetch('/api/v1/auth/csrf', { credentials: 'include', cache: 'no-store' })
+    .then(async (r) => (r.ok ? ((await r.json()) as { csrf_token?: string }).csrf_token : undefined))
+    .catch(() => undefined)
+    .then((token) => readCsrfCookie() ?? token)
+    .finally(() => {
+      csrfRefresh = null;
+    });
+  return csrfRefresh;
+}
+
+/** Current CSRF token, fetching one first when the cookie is missing. */
+export async function ensureCsrfToken(): Promise<string | undefined> {
+  return readCsrfCookie() ?? (await refreshCsrfToken());
+}
+
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const method = (init.method || 'GET').toUpperCase();
   const isGet = method === 'GET';
@@ -96,26 +124,30 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   }
 
   const run = (async () => {
-    const csrf =
-      typeof document !== 'undefined'
-        ? document.cookie
-            .split('; ')
-            .find((c) => c.startsWith('oma_csrf='))
-            ?.split('=')[1]
-        : undefined;
     const headers = new Headers(init.headers);
     headers.set('content-type', 'application/json');
-    if (csrf && method !== 'GET') headers.set('x-csrf-token', decodeURIComponent(csrf));
-    let res: Response;
-    try {
-      res = await fetch(path, { ...init, headers, credentials: 'include' });
-    } catch (cause) {
-      // Network/offline: surface a typed error (status 0) so UIs can show an offline state + retry.
-      throw Object.assign(new Error(friendlyApiMessage({ code: 'NETWORK' }, 0)), {
-        status: 0,
-        code: 'NETWORK',
-        cause,
-      });
+    const send = async (token: string | undefined) => {
+      if (token && method !== 'GET') headers.set('x-csrf-token', token);
+      try {
+        return await fetch(path, { ...init, headers, credentials: 'include' });
+      } catch (cause) {
+        // Network/offline: surface a typed error (status 0) so UIs can show an offline state + retry.
+        throw Object.assign(new Error(friendlyApiMessage({ code: 'NETWORK' }, 0)), {
+          status: 0,
+          code: 'NETWORK',
+          cause,
+        });
+      }
+    };
+    const isAuthEntry = path.includes('/api/v1/auth/login') || path.includes('/api/v1/auth/register');
+    let res = await send(method !== 'GET' && !isAuthEntry ? await ensureCsrfToken() : readCsrfCookie());
+    if (res.status === 403 && method !== 'GET') {
+      // A stale/missing CSRF cookie is repaired transparently: fetch a fresh token and retry once.
+      const peek = (await res.clone().json().catch(() => ({}))) as { error?: { message_key?: string } };
+      if (peek?.error?.message_key === 'errors.csrf') {
+        const fresh = await refreshCsrfToken();
+        if (fresh) res = await send(fresh);
+      }
     }
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {

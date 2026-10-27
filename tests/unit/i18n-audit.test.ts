@@ -78,8 +78,7 @@ describe('i18n audit (EN/AR)', () => {
 
   const AUDITED = [
     'app/(app)/app/team/team-client.tsx',
-    'app/(app)/app/settings/settings-client.tsx',
-    'app/(app)/app/company/members/members-client.tsx',
+    'components/settings/settings-panel.tsx',
     'app/(app)/app/select-company/planable-dashboard.tsx',
     'app/(app)/app/notifications/notifications-client.tsx',
     'app/(app)/app/home-client.tsx',

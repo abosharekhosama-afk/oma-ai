@@ -1,4 +1,5 @@
 'use client';
+import { openSettings } from '../../lib/settings-dialog';
 
 import { FileImageOutlined, FolderOutlined, PlayCircleOutlined } from '@ant-design/icons';
 import { Button, Modal, Progress, Tabs } from 'antd';
@@ -174,7 +175,7 @@ export function MediaPickerDialog({
       <p>{lib.workdrive.available ? t('media.connectBody') : t('workdrive.notEnabled')}</p>
       {lib.workdrive.available ? (
         canConnect ? (
-          <Button type="primary" href="/app/settings?section=storage">
+          <Button type="primary" onClick={() => openSettings('storage')}>
             {t('media.connectCta')}
           </Button>
         ) : (

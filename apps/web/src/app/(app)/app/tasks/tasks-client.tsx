@@ -1,9 +1,9 @@
 'use client';
+import { BoardShimmer } from '../../../../components/ui/shimmer';
 
 import { useReloadOnBrandChange } from '../../../../lib/active-brand';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { OmaTopLoader } from '../../../../components/ui/oma-top-loader';
 import { createPortal } from 'react-dom';
 import type { DemoGraph, DemoTaskStatus } from '@oma/demo';
 import { Button, Checkbox, Drawer as AntDrawer, Input, SelectField } from '@oma/ui/controls';
@@ -758,7 +758,7 @@ export default function TasksPage() {
         </div>
       </div>
 
-      {loading ? <OmaTopLoader label={t('demo.loading')} /> : null}
+      {loading ? <BoardShimmer /> : null}
       {unavailable ? (
         <p className="oma-muted" data-testid="demo-tasks-denied">
           {t('demo.unavailable')}

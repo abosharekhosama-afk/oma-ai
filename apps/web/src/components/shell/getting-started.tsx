@@ -49,7 +49,7 @@ export function GettingStartedChecklist({
       {
         id: 'company',
         labelKey: 'home.gettingStarted.company',
-        href: hasTenant ? '/app/company/members' : '/app/select-company',
+        href: hasTenant ? '/app/team' : '/app/select-company',
         done: hasTenant,
       },
       {

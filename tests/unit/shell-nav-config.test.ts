@@ -39,10 +39,11 @@ describe('Stage 1 shell nav config', () => {
         '/app/analytics',
         '/app/team',
         '/app/activity',
-        '/app/settings',
-        '/app/company/members',
       ]),
     );
+    // Settings open as a card from the account menu; Company was merged into Team.
+    expect(hrefs).not.toContain('/app/settings');
+    expect(hrefs).not.toContain('/app/company/members');
     expect(new Set(hrefs).size).toBe(hrefs.length);
   });
 

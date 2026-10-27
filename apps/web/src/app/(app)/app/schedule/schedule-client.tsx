@@ -1,4 +1,5 @@
 'use client';
+import { TableShimmer } from '../../../../components/ui/shimmer';
 import { useReloadOnBrandChange } from '../../../../lib/active-brand';
 import { CloseOutlined, FilterOutlined } from '@ant-design/icons';
 import { Button, DateField, Input, SelectField, SurfaceButton } from '@oma/ui/controls';
@@ -211,7 +212,7 @@ export default function SchedulePage() {
       />
       <p className="oma-honesty-inline oma-muted">{t('demo.schedule.planningPreview')}</p>
 
-      {loading ? <p className="oma-muted">{t('demo.loading')}</p> : null}
+      {loading ? <TableShimmer rows={8} avatar={false} /> : null}
       {unavailable ? <p className="oma-muted">{t('demo.unavailable')}</p> : null}
       {error ? (
         <div className="oma-card" role="alert">

@@ -1,5 +1,5 @@
 import { getPrisma, tenantWhere } from '@oma/db';
-import { newId } from '@oma/domain';
+import { newId, notificationAllowed } from '@oma/domain';
 import { createLogger } from '@oma/observability';
 
 const log = createLogger('notify');
@@ -49,11 +49,7 @@ export function parsePreferences(raw: string | null | undefined): Record<string,
 
 /** A user opted out when preferences.notifications[type] === false (or all muted). */
 export function wantsNotification(prefsJson: string | null | undefined, type: string): boolean {
-  const prefs = parsePreferences(prefsJson);
-  const n = prefs.notifications as Record<string, unknown> | undefined;
-  if (!n || typeof n !== 'object') return true;
-  if (n.all === false) return false;
-  return n[type] !== false;
+  return notificationAllowed(prefsJson, type);
 }
 
 async function membersWithCaps(tenantId: string, caps: string[]): Promise<string[]> {

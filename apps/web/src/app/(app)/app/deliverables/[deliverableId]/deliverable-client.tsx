@@ -1,4 +1,5 @@
 'use client';
+import { DetailShimmer } from '../../../../../components/ui/shimmer';
 import { Button, SelectField, TextArea } from '@oma/ui/controls';
 
 import Link from 'next/link';
@@ -12,7 +13,7 @@ import {
   type MouseEvent as ReactMouseEvent,
 } from 'react';
 import { Dialog } from '../../../../../components/ui/dialog';
-import { StatusChip } from '../../../../../components/ui/status-chip';
+import { StatusChip, statusLabel } from '../../../../../components/ui/status-chip';
 import {
   PostPreview,
   type PreviewApprovalState,
@@ -29,8 +30,16 @@ import {
   addDeliverableVersion,
   addDeliverableAnnotation,
   resolveDeliverableAnnotation,
+  updateDeliverable,
   opsError,
 } from '../../../../../lib/ops-api';
+import dynamic from 'next/dynamic';
+
+const MediaPickerDialog = dynamic(
+  () => import('../../../../../components/content/media-picker').then((m) => m.MediaPickerDialog),
+  { ssr: false },
+);
+import type { MediaAsset } from '../../../../../lib/workdrive-api';
 import {
   approvedVersion,
   canAddProductionVersion,
@@ -54,10 +63,47 @@ import {
   EyeOutlined,
   HistoryOutlined,
   LinkOutlined,
-  PlusOutlined,
+  UploadOutlined,
 } from '@ant-design/icons';
 
 type Decision = 'APPROVED' | 'CHANGES_REQUESTED' | 'REJECTED';
+
+/**
+ * Version preview. Files uploaded to WorkDrive are served through `/api/v1/media/:id/view`;
+ * images render inline, videos fall back to the streamed player, other files (PDF, documents)
+ * show an "Open file" link.
+ */
+function DeliverableHero({ src, openLabel }: { src: string; openLabel: string }) {
+  const [mode, setMode] = useState<'image' | 'video' | 'file'>('image');
+  const media = /^\/api\/v1\/media\/([^/]+)\/view$/.exec(src);
+  if (mode === 'image')
+    return (
+      <img
+        src={src}
+        alt=""
+        className="oma-deliv-detail__hero"
+        data-testid="demo-deliv-preview"
+        onError={() => setMode(media ? 'video' : 'file')}
+      />
+    );
+  if (mode === 'video' && media)
+    return (
+      <video
+        className="oma-deliv-detail__hero"
+        src={`/api/v1/media/${media[1]}/stream`}
+        controls
+        preload="metadata"
+        onError={() => setMode('file')}
+      />
+    );
+  return (
+    <div className="oma-deliv-detail__hero-empty">
+      <a className="oma-text-link" href={src} target="_blank" rel="noreferrer">
+        {openLabel}
+      </a>
+    </div>
+  );
+}
 
 function reviewToPreviewState(status: string): PreviewApprovalState {
   if (status === 'APPROVED') return 'APPROVED';
@@ -103,6 +149,7 @@ export default function DeliverableDetailClient() {
   const [error, setError] = useState<string | null>(null);
   const [unavailable, setUnavailable] = useState(false);
   const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null);
+  const [picker, setPicker] = useState<null | 'new-version' | 'attach'>(null);
   const [compareA, setCompareA] = useState('');
   const [compareB, setCompareB] = useState('');
   const [zoom, setZoom] = useState<'fit' | 'in'>('fit');
@@ -285,17 +332,28 @@ export default function DeliverableDetailClient() {
     }
   }
 
-  async function addRevision() {
+  /**
+   * Upload flow: the picker uploads the file to the brand's WorkDrive "deliverables" folder
+   * (directly from the browser), then the file is attached here:
+   * - "attach": the current draft version has no file yet, so it gets this file;
+   * - "new-version": a new version (v2, v3…) is created with this file and becomes current.
+   */
+  async function attachUploaded(asset: MediaAsset, mode: 'new-version' | 'attach') {
     if (!row) return;
     setSaving(true);
     try {
-      await addDeliverableVersion(row.id, { label: undefined });
+      if (mode === 'attach') await updateDeliverable(row.id, { asset_id: asset.id });
+      else await addDeliverableVersion(row.id, { asset_id: asset.id });
       const payload = await getDeliverableDetail(row.id);
       const data = toDeliverableRowFromDetail(payload);
       setRow(data);
       const latest = data.versions[data.versions.length - 1];
-      if (latest) setSelectedVersionId(latest.id);
-      toast.push(t('demo.review.revisionAdded') || 'Revision added', 'success');
+      if (latest)
+        setSelectedVersionId(mode === 'attach' ? data.currentVersionId || latest.id : latest.id);
+      toast.push(
+        mode === 'attach' ? t('deliverables.upload.attached') : t('demo.review.revisionAdded'),
+        'success',
+      );
     } catch (err) {
       toast.push(opsError(err, t('demo.unavailable')), 'danger');
     } finally {
@@ -417,7 +475,7 @@ export default function DeliverableDetailClient() {
             <div className="oma-deliv-detail__title-wrap">
               <h1 className="oma-deliv-detail__title">{pickCopy(row.title, locale)}</h1>
               <div className="oma-deliv-detail__chips">
-                <span className="oma-deliv-detail__type">{row.type}</span>
+                <span className="oma-deliv-detail__type">{statusLabel(t, row.type)}</span>
                 <StatusChip status={row.reviewStatus} />
                 {row.reviewStatus === 'APPROVED' || selectedVersion?.immutable ? (
                   <span
@@ -472,20 +530,33 @@ export default function DeliverableDetailClient() {
                 type="default"
                 data-testid="demo-add-revision"
                 disabled={saving}
-                onClick={() => void addRevision()}
+                onClick={() => setPicker('new-version')}
               >
-                <PlusOutlined /> {t('review.addRevision')}
+                <UploadOutlined /> {t('deliverables.upload.newVersion')}
               </Button>
             ) : null}
           </div>
         ) : null}
       </header>
 
-      <p className="oma-honesty-inline oma-deliv-detail__honesty">
-        {t('demo.deliverable.storageHonesty')}
-      </p>
+      {picker !== null ? (
+        <MediaPickerDialog
+          open
+          brandId={row?.brandId ?? null}
+          kind="deliverables"
+          t={t}
+          locale={locale}
+          canConnect={!caps.loading && caps.can(['tenant.manage'], 'any')}
+          onClose={() => setPicker(null)}
+          onPick={(asset) => {
+            const mode = picker ?? 'new-version';
+            setPicker(null);
+            void attachUploaded(asset, mode);
+          }}
+        />
+      ) : null}
 
-      {loading ? <p className="oma-muted oma-deliv-detail__pad">{t('review.loading')}</p> : null}
+      {loading ? <DetailShimmer /> : null}
       {unavailable ? (
         <p className="oma-muted oma-deliv-detail__pad">{t('demo.unavailable')}</p>
       ) : null}
@@ -505,7 +576,7 @@ export default function DeliverableDetailClient() {
             <div className="oma-review-toolbar">
               <div className="oma-chip-row">
                 <strong data-testid="demo-review-version-chrome">{selectedVersion?.label}</strong>
-                <span className="oma-muted">{row.type}</span>
+                <span className="oma-muted">{statusLabel(t, row.type)}</span>
                 {selectedVersion?.immutable ? (
                   <span className="oma-deliv-detail__badge">{t('demo.review.immutable')}</span>
                 ) : null}
@@ -568,7 +639,7 @@ export default function DeliverableDetailClient() {
                   >
                     <strong>{v.label}</strong>
                     <span className="oma-muted">
-                      {v.status} · {v.createdBy}
+                      {statusLabel(t, v.status)} · {v.createdBy}
                     </span>
                   </button>
                 ))}
@@ -613,7 +684,7 @@ export default function DeliverableDetailClient() {
                         <figure key={`${id}-${idx}`}>
                           <img src={(v?.assets && v.assets && v.assets[0]) ?? ''} alt="" />
                           <figcaption>
-                            {v?.label} · {v?.status} · {v?.createdBy}
+                            {v?.label} · {statusLabel(t, v?.status)} · {v?.createdBy}
                           </figcaption>
                         </figure>
                       );
@@ -689,7 +760,21 @@ export default function DeliverableDetailClient() {
                     ) : null}
                   </div>
                 ) : (
-                  <p className="oma-muted oma-deliv-detail__pad">{t('review.noAssets')}</p>
+                  <div className="oma-deliv-empty-file" data-testid="deliverable-no-file-review">
+                    <p className="oma-muted">{t('review.noAssets')}</p>
+                    {canVersion &&
+                    row.reviewStatus !== 'APPROVED' &&
+                    !selectedVersion?.immutable ? (
+                      <Button
+                        type="primary"
+                        data-testid="deliverable-upload-file-review"
+                        disabled={saving}
+                        onClick={() => setPicker('attach')}
+                      >
+                        <UploadOutlined /> {t('deliverables.upload.file')}
+                      </Button>
+                    ) : null}
+                  </div>
                 )}
 
                 {draftPin ? (
@@ -855,21 +940,34 @@ export default function DeliverableDetailClient() {
             <div className="oma-deliv-detail__main">
               <section className="oma-deliv-detail__card oma-deliv-detail__preview">
                 {selectedVersion?.assets && selectedVersion.assets[0] ? (
-                  <img
-                    src={selectedVersion.assets && selectedVersion.assets[0]}
-                    alt=""
-                    className="oma-deliv-detail__hero"
-                    data-testid="demo-deliv-preview"
+                  <DeliverableHero
+                    key={selectedVersion.assets[0]}
+                    src={selectedVersion.assets[0]}
+                    openLabel={t('deliverables.upload.openFile')}
                   />
                 ) : (
-                  <div className="oma-deliv-detail__hero-empty">{t('review.noAssets')}</div>
+                  <div className="oma-deliv-detail__hero-empty" data-testid="deliverable-no-file">
+                    <span>{t('review.noAssets')}</span>
+                    {canVersion &&
+                    row.reviewStatus !== 'APPROVED' &&
+                    !selectedVersion?.immutable ? (
+                      <Button
+                        type="primary"
+                        data-testid="deliverable-upload-file"
+                        disabled={saving}
+                        onClick={() => setPicker('attach')}
+                      >
+                        <UploadOutlined /> {t('deliverables.upload.file')}
+                      </Button>
+                    ) : null}
+                  </div>
                 )}
                 <div className="oma-deliv-detail__preview-meta">
                   <strong data-testid="demo-active-version-label-main">
                     {selectedVersion?.label ?? '—'}
                   </strong>
                   <span className="oma-muted">
-                    {selectedVersion?.status} · {selectedVersion?.createdBy}
+                    {statusLabel(t, selectedVersion?.status)} · {selectedVersion?.createdBy}
                   </span>
                 </div>
               </section>
@@ -960,7 +1058,7 @@ export default function DeliverableDetailClient() {
                       )}
                       <span>
                         <strong>{v.label}</strong>
-                        <span className="oma-muted">{v.status}</span>
+                        <span className="oma-muted">{statusLabel(t, v.status)}</span>
                       </span>
                     </button>
                   ))}

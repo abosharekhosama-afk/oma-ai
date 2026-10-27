@@ -292,6 +292,47 @@ export class WorkDriveClient {
     await this.call(`/files/${encodeURIComponent(id)}`, { method: 'DELETE' });
   }
 
+  /**
+   * Direct-upload step 1: reserve a file in `folderId` and get a short-lived signed PUT URL the
+   * browser can send bytes to. The integration key never leaves the server. Duplicate names are
+   * retried as "name (2).ext" like `upload`.
+   */
+  async requestUpload(input: {
+    folderId: string;
+    name: string;
+    mimeType: string;
+    size: number;
+    sha256: string;
+  }): Promise<{ uploadUrl: string; uploadId: string; fileId: string; name: string }> {
+    const dot = input.name.lastIndexOf('.');
+    const base = dot > 0 ? input.name.slice(0, dot) : input.name;
+    const ext = dot > 0 ? input.name.slice(dot) : '';
+    for (let n = 1; ; n++) {
+      const name = n === 1 ? input.name : `${base} (${n})${ext}`;
+      try {
+        const req = await this.post('/files/upload-request', {
+          name,
+          folder_id: input.folderId,
+          size: input.size,
+          mime_type: input.mimeType,
+          sha256: input.sha256,
+        });
+        const uploadUrl = str(req.upload_url);
+        if (!/^https?:\/\//.test(uploadUrl) || !req.upload_id)
+          throw new WorkDriveError('bad_response', 'WorkDrive did not return an upload URL');
+        return { uploadUrl, uploadId: str(req.upload_id), fileId: str(req.file_id), name };
+      } catch (e) {
+        if (!(e instanceof WorkDriveError) || e.code !== 'conflict' || n >= 50) throw e;
+      }
+    }
+  }
+
+  /** Direct-upload step 2: WorkDrive verifies the stored bytes and activates the file. */
+  async completeUpload(uploadId: string): Promise<{ fileId: string }> {
+    const done = await this.post('/files/upload-complete', { upload_id: uploadId });
+    return { fileId: str(done.file_id ?? done.id) };
+  }
+
   /** Upload into `folderId`. Small files: one signed PUT; big files: resumable parts. */
   async upload(input: {
     folderId: string;

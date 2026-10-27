@@ -1,6 +1,6 @@
 'use client';
+import { DetailShimmer } from '../../../../../../components/ui/shimmer';
 
-import { OmaTopLoader } from '../../../../../../components/ui/oma-top-loader';
 import { OmaLinkButton } from '../../../../../../components/ui/oma-link-button';
 
 import Link from 'next/link';
@@ -52,7 +52,7 @@ export default function StrategiesListPage() {
   if (denied) return <PermissionDenied message={t('errors.permission')} />;
   if (tenantRequired) return <SelectCompany />;
   if (loading) {
-    return <OmaTopLoader label={t('common.loading')} />;
+    return <DetailShimmer />;
   }
   if (!brand) {
     return <ErrorState title={t('common.error')} body={error ?? t('common.notFound')} />;

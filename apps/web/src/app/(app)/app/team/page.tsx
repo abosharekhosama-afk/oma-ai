@@ -1,11 +1,11 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { PageSkeleton } from '../../../../components/ui/page-skeleton';
+import { TableShimmer } from '../../../../components/ui/shimmer';
 
 const Client = dynamic(() => import('./team-client'), {
   ssr: false,
-  loading: () => <PageSkeleton rows={6} />,
+  loading: () => <TableShimmer rows={5} />,
 });
 
 export default function Page() {

@@ -539,7 +539,12 @@ export async function getDeliverableDetail(deliverableId: string): Promise<{
 
 export async function addDeliverableVersion(
   deliverableId: string,
-  input: { assetUrl?: string | null; label?: string; notes?: ApiLocale | string },
+  input: {
+    assetUrl?: string | null;
+    asset_id?: string | null;
+    label?: string;
+    notes?: ApiLocale | string;
+  },
 ) {
   return api(`/api/v1/deliverables/${deliverableId}/versions`, {
     method: 'POST',

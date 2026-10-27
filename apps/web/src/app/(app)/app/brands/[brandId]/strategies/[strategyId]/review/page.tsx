@@ -1,6 +1,6 @@
 'use client';
+import { DetailShimmer } from '../../../../../../../../components/ui/shimmer';
 
-import { OmaTopLoader } from '../../../../../../../../components/ui/oma-top-loader';
 import { Button, CheckboxField, TextArea } from '@oma/ui/controls';
 
 import { useParams } from 'next/navigation';
@@ -86,7 +86,7 @@ export default function StrategyReviewPage() {
 
   if (denied) return <PermissionDenied message={t('errors.permission')} />;
   if (tenantRequired) return <SelectCompany />;
-  if (!brand || !version) return <OmaTopLoader label={t('common.loading')} />;
+  if (!brand || !version) return <DetailShimmer />;
 
   const base = `/api/v1/brands/${brandId}/strategies/${strategyId}/versions/${version.id}`;
 
