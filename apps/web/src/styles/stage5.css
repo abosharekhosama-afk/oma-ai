@@ -1472,3 +1472,70 @@
     border-top: 1px solid #eef0f2 !important;
   }
 }
+
+
+/* ==== MOBILE REVIEW QUEUE CARDS ==== */
+@media (max-width: 640px) {
+  .oma-reviews-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .oma-reviews-tabs,
+  .oma-ws-tabs.oma-reviews-tabs {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .oma-reviews-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .oma-reviews-search {
+    width: 100%;
+  }
+
+  .oma-review-queue-card {
+    grid-template-columns: 64px minmax(0, 1fr) !important;
+    grid-template-rows: auto auto;
+    gap: 10px 12px !important;
+    align-items: start !important;
+    padding: 12px !important;
+  }
+  .oma-review-queue-card img,
+  .oma-review-queue-card .oma-deliv-thumb-fallback {
+    width: 64px !important;
+    height: 48px !important;
+    grid-row: 1 / 2;
+  }
+  .oma-review-queue-card > div {
+    grid-column: 2;
+    min-width: 0;
+  }
+  .oma-review-queue-card strong {
+    font-size: 14px !important;
+    line-height: 1.35 !important;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  .oma-review-queue-card .oma-muted {
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+    overflow-wrap: anywhere;
+  }
+  .oma-review-queue-card .oma-chip-row {
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  /* Open review button full width under content */
+  .oma-review-queue-card > .ant-btn,
+  .oma-review-queue-card > a.oma-btn,
+  .oma-review-queue-card > button {
+    grid-column: 1 / -1 !important;
+    width: 100% !important;
+    justify-content: center !important;
+    margin-top: 4px;
+  }
+}

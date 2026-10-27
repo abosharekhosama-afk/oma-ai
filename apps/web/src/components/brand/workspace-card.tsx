@@ -63,6 +63,7 @@ export function WorkspaceCard({ brand }: { brand: BrandListItem; compact?: boole
         </div>
       </Link>
       <div className="oma-workspace-card-actions">
+        {/* Single CTA: label + destination follow brand lifecycle state (connect / scan / review / open). */}
         <OmaLinkButton
           href={primaryHref}
           type="primary"
@@ -70,12 +71,6 @@ export function WorkspaceCard({ brand }: { brand: BrandListItem; compact?: boole
           data-testid={`workspace-card-primary-${brand.id}`}
         >
           {brandActionLabel(t, brand)}
-        </OmaLinkButton>
-        <OmaLinkButton href={`/app/content?brand=${brand.id}`} type="default" size="small">
-          {t('nav.content') || 'Content'}
-        </OmaLinkButton>
-        <OmaLinkButton href={`/app/brands/${brand.id}/connect`} type="default" size="small">
-          {t('home.action.connect') || 'Website'}
         </OmaLinkButton>
       </div>
     </article>

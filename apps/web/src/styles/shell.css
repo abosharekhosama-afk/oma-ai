@@ -2823,3 +2823,88 @@ button.oma-breadcrumb-workspace:hover {
   font-size: 12px;
   color: var(--oma-text-muted, #6b7280);
 }
+
+
+/* ==== MOBILE SHELL CLEANUP (search + breadcrumb + rail) ==== */
+@media (max-width: 767px) {
+  /* Remove header search button/field on mobile across all surfaces */
+  .oma-top-center,
+  .oma-top-center .oma-command-trigger,
+  .oma-top .oma-command-trigger,
+  .oma-shell .oma-top-center {
+    display: none !important;
+  }
+
+  /* Remove path / breadcrumb trail on mobile */
+  .oma-context-trail,
+  .oma-breadcrumb,
+  .oma-top-context .oma-context-trail,
+  .oma-shell .oma-context-trail {
+    display: none !important;
+  }
+
+  /* Ensure desktop rail never leaves an empty column behind the drawer */
+  .oma-shell,
+  .oma-shell[data-rail='collapsed'],
+  .oma-shell[data-rail='expanded'] {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: none !important;
+  }
+  .oma-shell > .oma-rail,
+  .oma-shell[data-rail] > .oma-rail,
+  .oma-rail {
+    display: none !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: 0 !important;
+    overflow: hidden !important;
+    position: absolute !important;
+    pointer-events: none !important;
+    visibility: hidden !important;
+  }
+  .oma-shell > .oma-shell-column,
+  .oma-shell-column {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Mobile nav drawer: solid surface, no transparent “empty rail” look */
+  .oma-drawer.oma-drawer--nav,
+  .oma-drawer.oma-drawer--nav .ant-drawer-content,
+  .oma-drawer.oma-drawer--nav .ant-drawer-body {
+    background: #fff !important;
+  }
+  .oma-drawer.oma-drawer--nav .ant-drawer-content-wrapper {
+    box-shadow: 8px 0 32px rgba(15, 23, 42, 0.18) !important;
+  }
+  .oma-drawer.oma-drawer--nav .oma-mobile-drawer-header {
+    margin-bottom: 12px !important;
+    padding-bottom: 8px !important;
+    border-bottom: 1px solid #eef0f2 !important;
+  }
+  .oma-drawer.oma-drawer--nav .oma-rail-workspace {
+    margin-bottom: 8px !important;
+  }
+  .oma-drawer.oma-drawer--nav .oma-mobile-drawer-nav {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+  }
+  .oma-drawer.oma-drawer--nav .oma-rail-footer {
+    margin-top: auto !important;
+    padding-top: 12px !important;
+    border-top: 1px solid #eef0f2 !important;
+  }
+
+  /* Tighten top bar when path is hidden */
+  .oma-shell .oma-top {
+    min-height: 48px !important;
+    padding: 8px 12px !important;
+  }
+}
