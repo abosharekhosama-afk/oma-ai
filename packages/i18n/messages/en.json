@@ -2154,5 +2154,8 @@
   "workdrive.title": "Imkan WorkDrive",
   "workdrive.url": "WorkDrive address",
   "workdrive.urlHint": "The address of your WorkDrive server, for example https://imkan-workdrive-v1.onrender.com.",
-  "workdrive.wholeDrive": "Whole organization"
+  "workdrive.wholeDrive": "Whole organization",
+  "companies.invite_created": "Invitation created",
+  "companies.email_not_configured": "Email sending isn't set up for this workspace yet, so no email was sent. Copy the secure invitation link below and share it with your teammate.",
+  "companies.copy_invite_link": "Copy link"
 }

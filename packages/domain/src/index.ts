@@ -13,6 +13,7 @@ export * from './work/deliverable-review-policy';
 export * from './work/brief-readiness';
 export * from './jobs/outbox';
 export * from './ports/mail-provider.port';
+export * from './mail/templates';
 export * from './ports/ai-provider.port';
 export * from './ports/object-storage.port';
 export * from './ports/workdrive.port';

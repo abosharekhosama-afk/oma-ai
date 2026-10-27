@@ -2,6 +2,7 @@
 import { FormEvent, useState } from 'react';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
+import { safeReturnPath } from '../../../lib/account-api';
 import { useT } from '../../../lib/use-locale';
 import {
   PlxLogo,
@@ -46,7 +47,10 @@ export default function RegisterPage() {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       });
-      window.location.assign('/app');
+      // Return to the invitation (or other deep link) the user came from.
+      window.location.assign(
+        safeReturnPath(new URLSearchParams(window.location.search).get('next')),
+      );
     } catch (err) {
       setError(err instanceof Error ? err.message : t('auth.registerFailed'));
     } finally {
@@ -135,7 +139,9 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   className="plx-eye"
-                  aria-label={showPassword ? t('auth.login.hide_password') : t('auth.login.show_password')}
+                  aria-label={
+                    showPassword ? t('auth.login.hide_password') : t('auth.login.show_password')
+                  }
                   onClick={() => setShowPassword((v) => !v)}
                 >
                   {showPassword ? <EyeOffIcon /> : <EyeIcon />}

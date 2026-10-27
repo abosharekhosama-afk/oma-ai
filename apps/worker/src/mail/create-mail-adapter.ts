@@ -1,6 +1,7 @@
 import type { MailMessage, MailProviderPort } from '@oma/domain';
 import { createLogger } from '@oma/observability';
 import type IORedis from 'ioredis';
+import { resendFromEnv } from './resend.adapter';
 
 const log = createLogger('mail');
 
@@ -40,6 +41,15 @@ export function createMailAdapter(connection: IORedis): MailProviderPort {
   const mode = (process.env.MAIL_PROVIDER ?? 'console').toLowerCase();
   if (mode === 'recording') {
     return new RedisRecordingMailAdapter(connection);
+  }
+  if (mode === 'resend') {
+    const resend = resendFromEnv();
+    if (resend) return resend;
+    log.warn('falling back to console mail: Resend is not fully configured');
+    return new ConsoleMailAdapter();
+  }
+  if (mode !== 'console') {
+    log.warn({ provider: mode }, 'unknown MAIL_PROVIDER; using console mail');
   }
   return new ConsoleMailAdapter();
 }

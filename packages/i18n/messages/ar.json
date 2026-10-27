@@ -2154,5 +2154,8 @@
   "workdrive.title": "إمكان WorkDrive",
   "workdrive.url": "عنوان WorkDrive",
   "workdrive.urlHint": "عنوان خادم WorkDrive، مثل https://imkan-workdrive-v1.onrender.com.",
-  "workdrive.wholeDrive": "المؤسسة كاملة"
+  "workdrive.wholeDrive": "المؤسسة كاملة",
+  "companies.invite_created": "تم إنشاء الدعوة",
+  "companies.email_not_configured": "لم يتم إعداد إرسال البريد الإلكتروني لهذه المساحة بعد، لذلك لم تُرسل أي رسالة. انسخ رابط الدعوة الآمن أدناه وشاركه مع زميلك.",
+  "companies.copy_invite_link": "نسخ الرابط"
 }

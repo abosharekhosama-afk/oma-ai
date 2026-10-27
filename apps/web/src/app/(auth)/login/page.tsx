@@ -116,7 +116,9 @@ export default function LoginPage() {
             <button
               type="button"
               className="plx-eye"
-              aria-label={showPassword ? t('auth.login.hide_password') : t('auth.login.show_password')}
+              aria-label={
+                showPassword ? t('auth.login.hide_password') : t('auth.login.show_password')
+              }
               onClick={() => setShowPassword((v) => !v)}
             >
               {showPassword ? <EyeOffIcon /> : <EyeIcon />}
@@ -140,7 +142,10 @@ export default function LoginPage() {
           <Link href="/forgot-password">{t('auth.login.forgot_your_password')}</Link>
         </p>
         <p className="plx-auth-switch">
-          Don&apos;t have an account yet? <Link href="/register">{t('auth.login.get_started')}</Link>
+          Don&apos;t have an account yet?{' '}
+          <Link href={next !== '/app' ? `/register?next=${encodeURIComponent(next)}` : '/register'}>
+            {t('auth.login.get_started')}
+          </Link>
         </p>
       </div>
       <p className="plx-auth-terms">
