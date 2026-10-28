@@ -89,6 +89,7 @@ function Avatar({ name, url, size = 32 }: { name: string; url?: string | null; s
 function Media({ ctx, ratio }: { ctx: Ctx; ratio?: string }) {
   const r = ratio ?? aspectRatioFor(ctx.network, ctx.contentType);
   const show = ctx.media && !isPlaceholderAsset(ctx.media);
+  const detail = ctx.size === 'detail';
   return (
     <div className="oma-pp__media" style={{ aspectRatio: r }} data-ratio={r}>
       {show ? (
@@ -97,8 +98,12 @@ function Media({ ctx, ratio }: { ctx: Ctx; ratio?: string }) {
           contentType={ctx.contentType}
           alt={ctx.title || ''}
           className="oma-pp__media-content"
-          autoPlay={ctx.size !== 'detail'}
-          loop={ctx.size !== 'detail'}
+          // Feed/grid previews autoplay silently; the preview card is a real player with
+          // controls (it starts muted so browsers allow autoplay, the user can unmute).
+          autoPlay
+          loop={!detail}
+          controls={detail}
+          preload={detail ? 'auto' : undefined}
         />
       ) : (
         <div className="oma-pp__media-ph">
@@ -122,7 +127,7 @@ function Media({ ctx, ratio }: { ctx: Ctx; ratio?: string }) {
           </svg>
         </div>
       )}
-      {(ctx.contentType === 'REEL' || ctx.contentType === 'STORY') && show ? (
+      {(ctx.contentType === 'REEL' || ctx.contentType === 'STORY') && show && !detail ? (
         <span className="oma-pp__play" aria-hidden>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
             <path d="M8 5v14l11-7z" />

@@ -13,7 +13,12 @@ import { createPortal } from 'react-dom';
 import { resolveContentWorkflow, type ApprovalPolicy, type DemoGraph } from '@oma/demo';
 import { ContentFace, faceDisplay } from '../../../../components/content/content-card';
 import { PostPreview } from '../../../../components/content/post-preview';
-import { FeedPost, type FeedComment } from '../../../../components/content/feed-post';
+import {
+  ApprovalButton,
+  FeedPost,
+  type FeedApproval,
+  type FeedComment,
+} from '../../../../components/content/feed-post';
 import { MediaSurface } from '../../../../components/content/media-surface';
 import { listWorkspaceMembers, type WorkspaceMember } from '../../../../lib/team-api';
 import { NetworkIcon } from '../../../../components/content/network-icon';
@@ -1051,7 +1056,10 @@ export default function ContentPage() {
     'desktop',
   );
   const [detailMoreOpen, setDetailMoreOpen] = useState(false);
-  const [approvalTipOpen, setApprovalTipOpen] = useState(false);
+  const [detailCampaignMenu, setDetailCampaignMenu] = useState(false);
+  const detailCampaignRef = useRef<HTMLDivElement | null>(null);
+  /** Bumped after lifecycle actions so approval events of the open post are reloaded. */
+  const [detailRev, setDetailRev] = useState(0);
   const [publishTipOpen, setPublishTipOpen] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [feedbackTab, setFeedbackTab] = useState<'comments' | 'suggestions'>('comments');
@@ -1289,7 +1297,31 @@ export default function ContentPage() {
     return () => {
       cancelled = true;
     };
+  }, [selectedId, detailRev]);
+
+  useEffect(() => {
+    setDetailCampaignMenu(false);
   }, [selectedId]);
+
+  useEffect(() => {
+    if (!detailCampaignMenu) return;
+    const close = (e: MouseEvent) => {
+      if (detailCampaignRef.current && !detailCampaignRef.current.contains(e.target as Node))
+        setDetailCampaignMenu(false);
+    };
+    const esc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        setDetailCampaignMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', close);
+    document.addEventListener('keydown', esc, true);
+    return () => {
+      document.removeEventListener('mousedown', close);
+      document.removeEventListener('keydown', esc, true);
+    };
+  }, [detailCampaignMenu]);
 
   const activeBrandId = brands[0]?.id || campaigns[0]?.brandId || '';
 
@@ -1497,7 +1529,7 @@ export default function ContentPage() {
     setDetailSidePanel('feedback');
     setDetailPreviewMode('desktop');
     setDetailMoreOpen(false);
-    setApprovalTipOpen(false);
+    setDetailCampaignMenu(false);
     setPublishTipOpen(false);
     setEditTitle(pickCopy(item.title, locale));
     setCommentDraft('');
@@ -1660,12 +1692,9 @@ export default function ContentPage() {
 
   function renderFeedPost(item: ContentRow) {
     const detail = feedDetails[item.id];
-    const approval = item.approvalState || 'NOT_REQUESTED';
-    const required = Math.max(1, item.approverRequired ?? 1);
     const approvers = (detail?.events ?? [])
       .filter((e) => /^APPROVE/i.test(e.action))
       .map((e) => memberName(e.actor_user_id));
-    const approvedCount = Math.max(item.approverApproved ?? 0, approvers.length);
     const comments: FeedComment[] = detail
       ? detail.comments.map((c) => ({
           id: c.id,
@@ -1713,26 +1742,7 @@ export default function ContentPage() {
             </span>
           ),
         }}
-        approval={
-          policy === 'NONE'
-            ? undefined
-            : {
-                state: approval,
-                approved: approvedCount,
-                required,
-                steps: Array.from({ length: required }, (_, i) => ({
-                  name: approvers[i] ?? null,
-                  done: i < approvedCount || approval === 'APPROVED',
-                })),
-                canApprove: mayApprove && canApprove(item),
-                canRequestChanges: mayApprove && canRequestChanges(item),
-                canRequestApproval: mayRequestApproval && canRequestApproval(item),
-                busy: saving,
-                onApprove: () => void runLifecycle('approve', item.id),
-                onRequestChanges: () => void runLifecycle('request-changes', item.id),
-                onRequestApproval: () => void runLifecycle('request-approval', item.id),
-              }
-        }
+        approval={approvalFor(item, approvers)}
         comments={comments}
         canComment={mayComment}
         onAddComment={async (body) => {
@@ -1753,6 +1763,46 @@ export default function ContentPage() {
         }}
       />
     );
+  }
+
+  /** Real approval data + lifecycle actions for a post (feed rail and preview card). */
+  function approvalFor(item: ContentRow, approvers: string[]): FeedApproval | undefined {
+    if (policy === 'NONE') return undefined;
+    const state = item.approvalState || 'NOT_REQUESTED';
+    const required = Math.max(1, item.approverRequired ?? 1);
+    const approvedCount =
+      state === 'NOT_REQUESTED' ? 0 : Math.max(item.approverApproved ?? 0, approvers.length);
+    return {
+      state,
+      approved: state === 'APPROVED' ? Math.max(approvedCount, required) : approvedCount,
+      required,
+      steps: Array.from({ length: required }, (_, i) => ({
+        name: approvers[i] ?? null,
+        done: i < approvedCount || state === 'APPROVED',
+      })),
+      canApprove: mayApprove && canApprove(item),
+      canRequestChanges: mayApprove && canRequestChanges(item),
+      canRequestApproval: mayRequestApproval && canRequestApproval(item),
+      busy: saving,
+      onApprove: () => void runLifecycle('approve', item.id),
+      onRequestChanges: () => void runLifecycle('request-changes', item.id),
+      onRequestApproval: () => void runLifecycle('request-approval', item.id),
+    };
+  }
+
+  /** Assign (or clear) the campaign of the open post from the preview card header. */
+  async function assignCampaign(contentId: string, campaignId: string | null) {
+    setDetailCampaignMenu(false);
+    const row = rows.find((r) => r.id === contentId);
+    if ((row?.campaignId || null) === campaignId) return;
+    try {
+      const api = await updateContentProduction(contentId, { campaignId });
+      const next = toContentRow(api);
+      setRows((prev) => prev.map((r) => (r.id === next.id ? next : r)));
+      toast.push(t('views.menu.campaign_updated'), 'success');
+    } catch {
+      toast.push(t('views.menu.campaign_failed'), 'danger');
+    }
   }
 
   function modalApproverNames(): string[] {
@@ -1922,6 +1972,7 @@ export default function ContentPage() {
         setBaseline(next);
       }
       toast.push(t('demo.content.saved'), 'success');
+      setDetailRev((n) => n + 1);
       void load();
     } catch (err) {
       const msg = contentApiError(err, t('demo.unavailable'));
@@ -2766,6 +2817,15 @@ export default function ContentPage() {
     </div>
   );
 
+  const modalApproval = selected ? approvalFor(selected, modalApproverNames()) : undefined;
+  const selectedCampaign = selected?.campaignId
+    ? campaigns.find((c) => c.id === selected.campaignId)
+    : undefined;
+  const brandCampaigns = selected?.brandId
+    ? campaigns.filter((c) => c.brandId === selected.brandId)
+    : [];
+  /** Campaigns of the post's brand (falls back to every campaign when none match). */
+  const modalCampaigns = brandCampaigns.length > 0 ? brandCampaigns : campaigns;
   return (
     <div className="oma-stack oma-content-plan oma-content-plan--tight" data-testid="demo-content">
       <p className="oma-honesty-inline" data-testid="content-calendar-role">
@@ -3811,18 +3871,60 @@ export default function ContentPage() {
             <div className="oma-plan-post__main">
               <header className="oma-plan-post__top">
                 <div className="oma-plan-post__top-start">
-                  <button
-                    type="button"
-                    className="oma-plan-post__chip"
-                    title={selected.campaignId || undefined}
-                    aria-label={t('demo.campaigns.col.campaign')}
-                    data-tooltip={t('demo.campaigns.col.campaign')}
-                  >
-                    <FlagOutlined />{' '}
-                    <span className="oma-plan-post__chip-label">
-                      {t('demo.campaigns.col.campaign')}
-                    </span>
-                  </button>
+                  <div className="oma-compose-pill-wrap" ref={detailCampaignRef}>
+                    <button
+                      type="button"
+                      className="oma-plan-post__chip"
+                      aria-haspopup="menu"
+                      aria-expanded={detailCampaignMenu}
+                      aria-label={t('demo.campaigns.col.campaign')}
+                      data-tooltip={
+                        detailCampaignMenu ? undefined : t('demo.campaigns.col.campaign')
+                      }
+                      data-active={selectedCampaign ? 'true' : 'false'}
+                      data-testid="content-modal-campaign"
+                      onClick={() => setDetailCampaignMenu((v) => !v)}
+                    >
+                      <FlagOutlined />{' '}
+                      <span className="oma-plan-post__chip-label">
+                        {selectedCampaign
+                          ? pickCopy(selectedCampaign.name, locale)
+                          : t('demo.campaigns.col.campaign')}
+                      </span>
+                      <DownOutlined style={{ fontSize: 10 }} />
+                    </button>
+                    {detailCampaignMenu ? (
+                      <div
+                        className="oma-compose-menu oma-plan-post__campaign-menu"
+                        role="menu"
+                        data-testid="content-modal-campaign-menu"
+                      >
+                        <button
+                          type="button"
+                          role="menuitemradio"
+                          aria-checked={!selected.campaignId}
+                          className="oma-compose-menu__item"
+                          data-active={!selected.campaignId ? 'true' : 'false'}
+                          onClick={() => void assignCampaign(selected.id, null)}
+                        >
+                          {t('content.no_campaign')}
+                        </button>
+                        {modalCampaigns.map((c) => (
+                          <button
+                            key={c.id}
+                            type="button"
+                            role="menuitemradio"
+                            aria-checked={selected.campaignId === c.id}
+                            className="oma-compose-menu__item"
+                            data-active={selected.campaignId === c.id ? 'true' : 'false'}
+                            onClick={() => void assignCampaign(selected.id, c.id)}
+                          >
+                            {pickCopy(c.name, locale)}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
                   <button
                     type="button"
                     className="oma-plan-post__chip"
@@ -3845,13 +3947,13 @@ export default function ContentPage() {
                   </button>
                 </div>
                 <div className="oma-plan-post__top-end">
-                  <span
-                    className="oma-plan-post__approve-count"
-                    data-tooltip={t('content.not_approved_yet')}
-                  >
-                    <CheckOutlined />
-                    <span>0</span>
-                  </span>
+                  {modalApproval ? (
+                    <ApprovalButton
+                      a={modalApproval}
+                      variant="chip"
+                      testId="content-modal-approvals"
+                    />
+                  ) : null}
                   <button
                     type="button"
                     className="oma-plan-post__tool-btn oma-plan-post__secondary"
@@ -4104,30 +4206,7 @@ export default function ContentPage() {
                               )
                             : t('content.not_approved_yet')}
                         </span>
-                        <button
-                          type="button"
-                          className="oma-fp__approve-btn"
-                          data-state={selected.approvalState || 'NOT_REQUESTED'}
-                          disabled={!(mayApprove && canApprove(selected)) || saving}
-                          aria-label={t('preview.approve')}
-                          data-tooltip={
-                            mayApprove && canApprove(selected)
-                              ? t('preview.approve')
-                              : t(
-                                  `preview.approval.${
-                                    {
-                                      APPROVED: 'approved',
-                                      PENDING: 'pending',
-                                      PARTIALLY_APPROVED: 'partial',
-                                      NOT_REQUESTED: 'not_requested',
-                                    }[selected.approvalState || 'NOT_REQUESTED'] ?? 'not_requested'
-                                  }`,
-                                )
-                          }
-                          onClick={() => void runLifecycle('approve', selected.id)}
-                        >
-                          <CheckOutlined />
-                        </button>
+                        {modalApproval ? <ApprovalButton a={modalApproval} /> : null}
                         <span className="oma-fp__net">
                           <NetworkIcon channel={selected.channel} size={14} />
                         </span>
@@ -4148,31 +4227,15 @@ export default function ContentPage() {
                     <div className="oma-plan-post__editor">
                       <div className="oma-plan-post__status-col">
                         <div className="oma-plan-post__status-item">
-                          <button
-                            type="button"
-                            className="oma-plan-post__status-btn"
-                            data-tooltip={t('content.not_approved_yet')}
-                            onClick={() => setApprovalTipOpen((v) => !v)}
-                          >
-                            <CheckOutlined />
-                          </button>
+                          {modalApproval ? <ApprovalButton a={modalApproval} /> : null}
                           <span className="oma-plan-post__status-label">
-                            {t('content.not_approved_yet')}
+                            {modalApproverNames().length > 0
+                              ? t('views.approved_by').replace(
+                                  '{name}',
+                                  modalApproverNames().join(', '),
+                                )
+                              : t('content.not_approved_yet')}
                           </span>
-                          {approvalTipOpen ? (
-                            <div className="oma-plan-post__tip-card">
-                              <strong>{t('content.no_one_approved_this_post')}</strong>
-                              <p>{t('content.pending_approval_from_any_of')}</p>
-                              <p className="oma-plan-post__tip-section">{t('nav.team')}</p>
-                              <div className="oma-plan-post__tip-user">
-                                <span className="oma-plan-post__avatar">O</span>
-                                <span>
-                                  {humanRef(selected.assignee, isAr ? 'عضو الفريق' : 'Team member')}{' '}
-                                  ({t('content.you')})
-                                </span>
-                              </div>
-                            </div>
-                          ) : null}
                         </div>
                         <div className="oma-plan-post__status-item">
                           <button
