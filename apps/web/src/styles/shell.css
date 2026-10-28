@@ -2908,3 +2908,38 @@ button.oma-breadcrumb-workspace:hover {
     padding: 8px 12px !important;
   }
 }
+
+/* Compact segmented locale card used by the workspace account menu. */
+.oma-language-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--oma-border);
+  border-radius: 12px;
+  background: var(--oma-surface, #fff);
+}
+.oma-language-card button {
+  min-width: 38px;
+  min-height: 30px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--oma-ink);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.oma-language-card button:hover {
+  background: color-mix(in srgb, var(--oma-ink) 6%, transparent);
+}
+.oma-language-card button.is-active {
+  background: color-mix(in srgb, var(--oma-primary) 13%, white);
+  color: var(--oma-primary);
+}
+.oma-language-card button:focus-visible {
+  outline: 2px solid var(--oma-primary);
+  outline-offset: 1px;
+}

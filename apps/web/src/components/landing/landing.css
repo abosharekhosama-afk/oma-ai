@@ -200,23 +200,41 @@
   gap: 8px;
 }
 
-.oma-lp-lang {
-  appearance: none;
-  border: 1px solid transparent;
+.oma-lp-lang-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--lp-border);
+  border-radius: 12px;
+  background: var(--lp-surface);
+  box-shadow: 0 2px 8px rgba(18, 19, 26, 0.04);
+}
+.oma-lp-lang-card button {
+  min-width: 38px;
+  min-height: 30px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 9px;
   background: transparent;
   color: var(--lp-ink-soft);
   font: inherit;
-  font-size: 14px;
-  font-weight: 500;
-  padding: 8px 10px;
-  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
   cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
 }
-
-.oma-lp-lang:hover {
+.oma-lp-lang-card button:hover {
   background: rgba(18, 19, 26, 0.05);
 }
-
+.oma-lp-lang-card button.is-active {
+  background: var(--lp-mint);
+  color: var(--lp-dark);
+}
+.oma-lp-lang-card button:focus-visible {
+  outline: 2px solid var(--lp-accent);
+  outline-offset: 1px;
+}
 .oma-lp-link-quiet {
   display: none;
   font-size: 15px;
@@ -251,6 +269,11 @@
   transform: translateY(1px);
 }
 
+.oma-lp a.oma-lp-btn--accent,
+.oma-lp a.oma-lp-btn--dark {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff;
+}
 .oma-lp-btn--accent {
   background: var(--lp-accent);
   color: #fff;

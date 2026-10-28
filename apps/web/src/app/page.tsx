@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { cookies, headers } from 'next/headers';
-import { redirect } from 'next/navigation';
 import { resolveLocale, t } from '@oma/i18n';
 import { LandingPage } from '../components/landing/landing-page';
 
@@ -37,15 +36,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-/**
- * Public marketing landing for logged-out visitors.
- * Logged-in users keep going straight into the product (same as previous `/` → `/app`).
- */
-export default async function HomePage() {
-  const jar = await cookies();
-  const session = jar.get(process.env.SESSION_COOKIE_NAME ?? 'oma_session');
-  if (session?.value) {
-    redirect('/app');
-  }
+/** Public marketing landing is the stable entry point, regardless of stale session cookies. */
+export default function HomePage() {
   return <LandingPage />;
 }

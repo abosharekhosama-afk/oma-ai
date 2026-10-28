@@ -242,19 +242,14 @@ export function LandingPage() {
           </nav>
 
           <div className="oma-lp-header-actions">
-            <label className="oma-sr-only" htmlFor="oma-lp-lang">
-              {t('landing.nav.language')}
-            </label>
-            <select
-              id="oma-lp-lang"
-              className="oma-lp-lang"
-              value={locale}
-              aria-label={t('landing.nav.language')}
-              onChange={(e) => switchLocale(e.target.value === 'ar' ? 'ar' : 'en')}
-            >
-              <option value="en">EN</option>
-              <option value="ar">AR</option>
-            </select>
+            <div className="oma-lp-lang-card" role="group" aria-label={t('landing.nav.language')}>
+              <button type="button" aria-pressed={locale === 'en'} className={locale === 'en' ? 'is-active' : ''} onClick={() => switchLocale('en')}>
+                EN
+              </button>
+              <button type="button" aria-pressed={locale === 'ar'} className={locale === 'ar' ? 'is-active' : ''} onClick={() => switchLocale('ar')}>
+                عربي
+              </button>
+            </div>
             <Link href="/login" className="oma-lp-link-quiet">
               {t('landing.nav.login')}
             </Link>
