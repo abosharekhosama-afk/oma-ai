@@ -15,8 +15,9 @@ settings to tell the UI whether email delivery is configured.
 
 ### Choose a provider
 
-Set `MAIL_PROVIDER` to `resend` or `brevo` on **both** the API and the worker Render services.
-You only need one provider; leave the other provider's API key unset.
+Set the provider key and `MAIL_FROM` on **both** the API and the worker Render services.
+`MAIL_PROVIDER=resend` or `MAIL_PROVIDER=brevo` is recommended, but OMA also detects the
+provider automatically when it is omitted. You only need one provider; leave the other key unset.
 
 ### A. Resend
 
@@ -37,7 +38,7 @@ Resend → **API Keys** → **Create API Key**, permission **Sending access** (o
 #### 4. Configure Render (Resend)
 | Variable | Example | Required |
 |---|---|---|
-| `MAIL_PROVIDER` | `resend` | yes |
+| `MAIL_PROVIDER` | `resend` | recommended |
 | `RESEND_API_KEY` | `re_…` (secret) | yes |
 | `MAIL_FROM` | `OMA <no-reply@mail.yourdomain.com>` | yes |
 | `MAIL_REPLY_TO` | `support@yourdomain.com` | no |
@@ -74,7 +75,7 @@ Redeploy both services after saving.
 
 ### Troubleshooting
 - Worker logs `resend rejected the email` / `brevo rejected the email` with a status and hint: 401/403 → wrong key or unverified sender/domain; 400/422 → invalid `MAIL_FROM` or recipient.
-- If `MAIL_PROVIDER` is set but the key or sender is missing, the worker logs it at startup and falls back to logging emails instead of sending.
+- If a provider is selected but the key or sender is missing, the worker logs a configuration error; in production the job remains failed/retriable instead of being falsely marked as sent.
 - Failed sends are retried by the queue (5 attempts) and recorded on the job as `MAIL_SEND_FAILED`. The API request that created the invite never fails because of email.
 - When email is not configured, the invite dialog says so and shows a secure link to share manually.
 
@@ -84,7 +85,8 @@ Redeploy both services after saving.
 
 ### اختيار المزوّد
 
-اضبط `MAIL_PROVIDER` على `resend` أو `brevo` على خدمتي **الـ API** و**الـ worker** في Render معًا.
+أضف مفتاح المزوّد و`MAIL_FROM` إلى خدمتي **الـ API** و**الـ worker** في Render معًا.
+يُفضّل ضبط `MAIL_PROVIDER` على `resend` أو `brevo`، لكن OMA يكتشف المزوّد تلقائيًا عند تركه فارغًا.
 يكفي مزوّد واحد؛ اترك مفتاح المزوّد الآخر فارغًا.
 
 ### أ. Resend
@@ -103,7 +105,7 @@ Redeploy both services after saving.
 #### ٤. الإعداد على Render (Resend)
 | المتغير | مثال | إلزامي |
 |---|---|---|
-| `MAIL_PROVIDER` | `resend` | نعم |
+| `MAIL_PROVIDER` | `resend` | مستحسن |
 | `RESEND_API_KEY` | `re_…` (سري) | نعم |
 | `MAIL_FROM` | `OMA <no-reply@mail.yourdomain.com>` | نعم |
 | `MAIL_REPLY_TO` | `support@yourdomain.com` | لا |
@@ -137,7 +139,7 @@ Redeploy both services after saving.
 
 ### حل المشكلات
 - يسجّل الـ worker رسالة رفض مع رمز الحالة: 401/403 مفتاح خاطئ أو مُرسِل/نطاق غير مُتحقق منه؛ 400/422 عنوان مُرسِل أو مستلم غير صالح.
-- إن كان `MAIL_PROVIDER` مضبوطًا دون مفتاح أو مُرسِل، يسجّل الـ worker ذلك ويكتفي بتسجيل الرسائل بدل إرسالها.
+- إن كان المزوّد مضبوطًا دون مفتاح أو مُرسِل، يسجّل الـ worker خطأ الإعداد وتبقى المهمة قابلة لإعادة المحاولة بدل اعتبارها مرسلة.
 - تُعاد محاولة الإرسال الفاشل تلقائيًا (5 محاولات)، ولا يفشل طلب إنشاء الدعوة بسبب البريد.
 - عند عدم إعداد البريد، تُظهر نافذة الدعوة ذلك بوضوح مع رابط دعوة آمن للمشاركة يدويًا.
 

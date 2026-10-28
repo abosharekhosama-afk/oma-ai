@@ -519,6 +519,11 @@ export function SettingsPanel({
                   <p className="oma-ws-empty-desc" data-testid="settings-integrations-honest">
                     {t('settings.integrations.body')}
                   </p>
+                  <div className="oma-ws-action-row">
+                    <Button type="primary" onClick={() => (window.location.href = '/app/brands')}>
+                      {t('settings.integrations.manageSocial')}
+                    </Button>
+                  </div>
                   <div
                     className="oma-planable-toolbar"
                     style={{ display: 'flex', gap: 8, maxWidth: '100%' }}

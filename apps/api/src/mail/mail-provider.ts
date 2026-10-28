@@ -4,7 +4,7 @@ import { createLogger } from '@oma/observability';
 const log = createLogger('mail');
 
 /**
- * Fallback used when no email provider is configured (MAIL_PROVIDER unset).
+ * Fallback used when no email provider is configured.
  * Never sends. In development it logs the message so the reset link can be copied;
  * in production it logs only that a message was dropped (no tokens in logs).
  */
@@ -30,7 +30,7 @@ export function registerMailProvider(name: string, factory: () => MailProviderPo
 }
 
 export function createMailProvider(name = process.env.MAIL_PROVIDER): MailProviderPort {
-  const key = (name ?? '').trim().toLowerCase();
+  const key = resolveMailProvider(name, process.env);
   if (key && registry[key]) return registry[key]();
   if (key && key !== 'console' && key !== 'none') {
     log.warn({ provider: key }, 'unknown MAIL_PROVIDER; falling back to no-op');
@@ -44,10 +44,22 @@ export function createMailProvider(name = process.env.MAIL_PROVIDER): MailProvid
  * MAIL_FROM must be set on the API (for this status) and on the worker (to send).
  */
 export function isMailDeliveryConfigured(env: NodeJS.ProcessEnv = process.env): boolean {
-  const key = (env.MAIL_PROVIDER ?? '').trim().toLowerCase();
+  const key = resolveMailProvider(env.MAIL_PROVIDER, env);
   if (key === 'resend') return Boolean(env.RESEND_API_KEY?.trim() && env.MAIL_FROM?.trim());
   if (key === 'brevo') return Boolean(env.BREVO_API_KEY?.trim() && env.MAIL_FROM?.trim());
   return false;
+}
+
+/** Resolve explicit configuration first, then infer the provider from available credentials. */
+export function resolveMailProvider(
+  requested: string | undefined,
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  const explicit = requested?.trim().toLowerCase();
+  if (explicit) return explicit;
+  if (env.RESEND_API_KEY?.trim()) return 'resend';
+  if (env.BREVO_API_KEY?.trim()) return 'brevo';
+  return '';
 }
 
 export function passwordResetLink(webOrigin: string, token: string): string {

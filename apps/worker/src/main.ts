@@ -13,6 +13,22 @@ import { startMediaJobs } from './media/media-jobs';
 const log = createLogger('worker');
 
 async function main() {
+  const mailProvider =
+    process.env.MAIL_PROVIDER?.trim().toLowerCase() ||
+    (process.env.RESEND_API_KEY?.trim() ? 'resend' : '') ||
+    (process.env.BREVO_API_KEY?.trim() ? 'brevo' : '') ||
+    'console';
+  log.info(
+    {
+      mailProvider,
+      mailFromConfigured: Boolean(process.env.MAIL_FROM?.trim()),
+      resendKeyConfigured: Boolean(process.env.RESEND_API_KEY?.trim()),
+      brevoKeyConfigured: Boolean(process.env.BREVO_API_KEY?.trim()),
+      socialEncryptionConfigured: Boolean(process.env.SOCIAL_TOKEN_ENCRYPTION_KEY?.trim()),
+      socialOAuthBaseConfigured: Boolean(process.env.SOCIAL_OAUTH_REDIRECT_BASE?.trim()),
+    },
+    'worker integration configuration',
+  );
   const connection = new IORedis(process.env.REDIS_URL ?? 'redis://127.0.0.1:6379', {
     maxRetriesPerRequest: null,
   });
