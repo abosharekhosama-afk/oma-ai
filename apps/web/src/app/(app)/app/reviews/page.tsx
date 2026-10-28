@@ -128,14 +128,18 @@ export default function ReviewsPage() {
       {!loading && !error ? (
         <>
           <section className="oma-reviews-toolbar" aria-label={t('demo.reviews.title')}>
-            <div className="oma-reviews-tabs" role="tablist" data-testid="demo-review-tabs">
+            <div
+              className="oma-ws-tabs oma-req-tabs oma-reviews-tabs"
+              role="tablist"
+              data-testid="demo-review-tabs"
+            >
               {TABS.map((item) => (
                 <button
                   key={item}
                   type="button"
                   role="tab"
                   aria-selected={tab === item}
-                  className="oma-reviews-tabs__btn"
+                  className={`oma-ws-tab oma-req-tab${tab === item ? ' is-active' : ''}`}
                   data-active={tab === item ? 'true' : 'false'}
                   data-testid={`demo-review-tab-${item}`}
                   onClick={() => setTab(item)}
@@ -146,44 +150,56 @@ export default function ReviewsPage() {
                   </span>
                 </button>
               ))}
-            </div>
-            <div
-              className="oma-reviews-search"
-              data-expanded={searchOpen || q ? 'true' : 'false'}
-              data-testid="demo-review-search-bar"
-            >
               <button
                 type="button"
-                className="oma-reviews-search__toggle"
-                aria-label={t('demo.reviews.search')}
-                aria-expanded={searchOpen || Boolean(q)}
+                role="tab"
+                aria-selected={searchOpen || Boolean(q)}
+                className={`oma-ws-tab oma-req-tab oma-reviews-search-tab${searchOpen || q ? ' is-active' : ''}`}
+                data-active={searchOpen || q ? 'true' : 'false'}
                 data-testid="demo-review-search-toggle"
                 onClick={() => setSearchOpen((open) => !open)}
               >
                 <SearchOutlined aria-hidden />
+                <span>{t('demo.reviews.search')}</span>
               </button>
-              <Input
-                autoFocus={searchOpen}
-                value={q}
-                data-testid="demo-review-search"
-                placeholder={t('demo.reviews.search')}
-                aria-label={t('demo.reviews.search')}
-                onChange={(e) => setQ(e.target.value)}
-                onBlur={() => {
-                  if (!q.trim()) setSearchOpen(false);
-                }}
-              />
-              {q ? (
+            </div>
+            {searchOpen || q ? (
+              <div className="oma-reviews-search-row" data-testid="demo-review-search-bar">
+                <SearchOutlined aria-hidden />
+                <Input
+                  autoFocus={searchOpen}
+                  value={q}
+                  data-testid="demo-review-search"
+                  placeholder={t('demo.reviews.search')}
+                  aria-label={t('demo.reviews.search')}
+                  onChange={(e) => setQ(e.target.value)}
+                  onBlur={() => {
+                    if (!q.trim()) setSearchOpen(false);
+                  }}
+                />
+                {q ? (
+                  <button
+                    type="button"
+                    className="oma-reviews-search__clear"
+                    aria-label={locale === 'ar' ? 'مسح البحث' : 'Clear search'}
+                    onClick={() => setQ('')}
+                  >
+                    ×
+                  </button>
+                ) : null}
                 <button
                   type="button"
-                  className="oma-reviews-search__clear"
-                  aria-label={locale === 'ar' ? 'مسح البحث' : 'Clear search'}
-                  onClick={() => setQ('')}
+                  className="oma-reviews-search__close"
+                  aria-label={locale === 'ar' ? 'إغلاق البحث' : 'Close search'}
+                  onClick={() => {
+                    setQ('');
+                    setSearchOpen(false);
+                  }}
                 >
                   ×
                 </button>
-              ) : null}
-            </div>
+              </div>
+            ) : null}
           </section>
           {queue.length === 0 ? (
             <EmptyState title={t('demo.empty')} body={t('demo.reviews.emptyHint')} />
