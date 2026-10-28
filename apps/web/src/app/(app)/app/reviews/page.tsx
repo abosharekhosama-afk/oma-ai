@@ -23,6 +23,7 @@ import {
 } from '../../../../lib/demo/stage5-deliverables';
 import { loadDeliverablesWorkspace, opsError } from '../../../../lib/ops-api';
 import { useLocale, useT } from '../../../../lib/use-locale';
+import { MediaSurface } from '../../../../components/content/media-surface';
 
 const TABS: ReviewQueueTab[] = ['all', 'assigned', 'waiting', 'changes', 'approved'];
 
@@ -215,7 +216,12 @@ export default function ReviewsPage() {
                     data-testid={`demo-review-row-${d.id}`}
                   >
                     {thumb ? (
-                      <img src={thumb} alt="" />
+                      <MediaSurface
+                        src={thumb}
+                        contentType={d.type === 'LONG_VIDEO' || d.type === 'REEL' ? 'REEL' : undefined}
+                        alt=""
+                        preload="none"
+                      />
                     ) : (
                       <div className="oma-deliv-thumb-fallback" aria-hidden />
                     )}

@@ -11,6 +11,7 @@ export type TaskRow = DemoGraph['tasks'][number] & {
   checklistDone?: number;
   /** Preview image/video from the task's linked deliverable, when available. */
   previewAsset?: string | null;
+  previewAssetMime?: string | null;
 };
 
 export type TaskFilters = {

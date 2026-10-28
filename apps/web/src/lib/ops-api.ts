@@ -80,6 +80,7 @@ export type ApiWorkDeliverable = {
   status: string;
   review_status: string;
   asset_url?: string | null;
+  asset_mime?: string | null;
   created_by?: string;
   created_at?: string;
   updated_at?: string;
@@ -97,6 +98,7 @@ export type ApiDeliverableVersion = {
   label: string;
   version_number: number;
   asset_url: string | null;
+  asset_mime?: string | null;
   notes?: ApiLocale;
   status: string;
   immutable?: boolean;
@@ -272,6 +274,7 @@ export function toDeliverableRowFromDetail(payload: {
         status: (v.status as never) || 'DRAFT',
         // keep optional UI helpers without breaking demo shape
         previewUrl: url,
+        mediaMime: v.asset_mime ?? null,
         isApproved: approved,
       };
     }) as DeliverableRow['versions'];
@@ -351,6 +354,7 @@ export function toDeliverableRow(d: ApiWorkDeliverable): DeliverableRowExtra {
         reviewDecision: review === 'APPROVED' || review === 'REJECTED' ? review : null,
         status: (d.status as never) || 'DRAFT',
         previewUrl: asset,
+        mediaMime: d.asset_mime ?? null,
         isApproved: review === 'APPROVED',
       } as DeliverableRow['versions'][number],
     ],
@@ -705,13 +709,17 @@ export async function loadTasksWorkspace(): Promise<{
   const deliverables = (deliverableBatches as ApiWorkDeliverable[][]).flat();
   const previewsByTask = new Map<string, string>();
   const previewsByContent = new Map<string, string>();
+  const previewMimesByTask = new Map<string, string>();
+  const previewMimesByContent = new Map<string, string>();
   for (const deliverable of deliverables) {
     if (!deliverable.asset_url) continue;
     if (deliverable.task_id && !previewsByTask.has(deliverable.task_id)) {
       previewsByTask.set(deliverable.task_id, deliverable.asset_url);
+      if (deliverable.asset_mime) previewMimesByTask.set(deliverable.task_id, deliverable.asset_mime);
     }
     if (deliverable.content_id && !previewsByContent.has(deliverable.content_id)) {
       previewsByContent.set(deliverable.content_id, deliverable.asset_url);
+      if (deliverable.asset_mime) previewMimesByContent.set(deliverable.content_id, deliverable.asset_mime);
     }
   }
   const tasks = (taskBatches as ApiWorkTask[][]).flat().map((x) => {
@@ -723,6 +731,10 @@ export async function loadTasksWorkspace(): Promise<{
       previewAsset:
         (row.deliverableId ? previewsByTask.get(row.id) : undefined) ??
         (row.contentId ? previewsByContent.get(row.contentId) : undefined) ??
+        null,
+      previewAssetMime:
+        (row.deliverableId ? previewMimesByTask.get(row.id) : undefined) ??
+        (row.contentId ? previewMimesByContent.get(row.contentId) : undefined) ??
         null,
     };
   });

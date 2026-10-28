@@ -34,6 +34,7 @@ import {
 } from '../../lib/demo/stage4-tasks';
 import { pickCopy } from '../../lib/demo/use-demo-api';
 import { useLocale, useT } from '../../lib/use-locale';
+import { MediaSurface } from '../content/media-surface';
 
 type Props = {
   byBoard: Record<string, TaskRow[]>;
@@ -158,7 +159,9 @@ function KanbanCardBody({ task }: { task: TaskRow }) {
   const checkDone = task.checklistDone ?? 0;
   const title = pickCopy(task.title, locale);
   const mediaUrl = task.previewAsset || '';
-  const isVideo = /\.(mp4|webm|mov)(?:[?#]|$)/i.test(mediaUrl);
+  const isVideo =
+    task.previewAssetMime?.startsWith('video/') === true ||
+    /\.(mp4|webm|mov|m4v)(?:[?#]|$)/i.test(mediaUrl);
 
   return (
     <>
@@ -167,18 +170,13 @@ function KanbanCardBody({ task }: { task: TaskRow }) {
         data-kind={isVideo ? 'video' : mediaUrl ? 'image' : 'empty'}
       >
         {mediaUrl ? (
-          isVideo ? (
-            <video
-              src={mediaUrl}
-              poster="/demo/video-poster.svg"
-              muted
-              playsInline
-              preload="metadata"
-              aria-label={title}
-            />
-          ) : (
-            <img src={mediaUrl} alt={title} loading="lazy" />
-          )
+          <MediaSurface
+            src={mediaUrl}
+            contentType={isVideo ? 'REEL' : undefined}
+            poster="/demo/video-poster.svg"
+            alt={title}
+            preload="none"
+          />
         ) : (
           <span className="oma-kb-card__media-placeholder" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none">

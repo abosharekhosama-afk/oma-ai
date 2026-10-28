@@ -18,6 +18,7 @@ import {
   PostPreview,
   type PreviewApprovalState,
 } from '../../../../../components/content/post-preview';
+import { MediaSurface } from '../../../../../components/content/media-surface';
 import { getContentDetail, type ApiContent } from '../../../../../lib/content-api';
 import { listBrands } from '../../../../../lib/workspace-extras-api';
 import { useToast } from '../../../../../components/ui/toast';
@@ -73,27 +74,26 @@ type Decision = 'APPROVED' | 'CHANGES_REQUESTED' | 'REJECTED';
  * images render inline, videos fall back to the streamed player, other files (PDF, documents)
  * show an "Open file" link.
  */
-function DeliverableHero({ src, openLabel }: { src: string; openLabel: string }) {
-  const [mode, setMode] = useState<'image' | 'video' | 'file'>('image');
-  const media = /^\/api\/v1\/media\/([^/]+)\/view$/.exec(src);
-  if (mode === 'image')
+function DeliverableHero({
+  src,
+  openLabel,
+  contentType,
+}: {
+  src: string;
+  openLabel: string;
+  contentType?: string;
+}) {
+  const isKnownMedia =
+    Boolean(contentType) || /\.(?:png|jpe?g|webp|gif|mp4|webm|mov|m4v)(?:[?#]|$)/i.test(src);
+  if (isKnownMedia)
     return (
-      <img
+      <MediaSurface
         src={src}
-        alt=""
+        contentType={contentType}
         className="oma-deliv-detail__hero"
-        data-testid="demo-deliv-preview"
-        onError={() => setMode(media ? 'video' : 'file')}
-      />
-    );
-  if (mode === 'video' && media)
-    return (
-      <video
-        className="oma-deliv-detail__hero"
-        src={`/api/v1/media/${media[1]}/stream`}
         controls
         preload="metadata"
-        onError={() => setMode('file')}
+        alt=""
       />
     );
   return (
@@ -693,7 +693,15 @@ export default function DeliverableDetailClient() {
                       const v = row.versions.find((x) => x.id === id);
                       return (
                         <figure key={`${id}-${idx}`}>
-                          <img src={(v?.assets && v.assets && v.assets[0]) ?? ''} alt="" />
+                          {v?.assets?.[0] ? (
+                            <MediaSurface
+                              src={v.assets[0]}
+                              contentType={linked?.content.content_type}
+                              alt=""
+                              preload="none"
+                              controls
+                            />
+                          ) : null}
                           <figcaption>
                             {v?.label} · {statusLabel(t, v?.status)} · {v?.createdBy}
                           </figcaption>
@@ -735,10 +743,13 @@ export default function DeliverableDetailClient() {
                       {selectedVersion.label}
                       {selectedVersion.immutable ? ` · ${t('demo.review.immutable')}` : ''}
                     </span>
-                    <img
-                      src={selectedVersion.assets && selectedVersion.assets[0]}
+                    <MediaSurface
+                      src={selectedVersion.assets[0]}
+                      contentType={linked?.content.content_type}
+                      className="oma-review-media"
+                      controls
+                      preload="metadata"
                       alt=""
-                      draggable={false}
                     />
                     {versionAnnotations.map((a) => {
                       const pos = mapNormalizedToPercent(a.x, a.y);
@@ -955,6 +966,7 @@ export default function DeliverableDetailClient() {
                     key={selectedVersion.assets[0]}
                     src={selectedVersion.assets[0]}
                     openLabel={t('deliverables.upload.openFile')}
+                    contentType={linked?.content.content_type}
                   />
                 ) : (
                   <div className="oma-deliv-detail__hero-empty" data-testid="deliverable-no-file">
@@ -1063,7 +1075,12 @@ export default function DeliverableDetailClient() {
                       onClick={() => void selectVersion(v.id)}
                     >
                       {v.assets && v.assets[0] ? (
-                        <img src={v.assets && v.assets[0]} alt="" />
+                        <MediaSurface
+                          src={v.assets[0]}
+                          contentType={linked?.content.content_type}
+                          alt=""
+                          preload="none"
+                        />
                       ) : (
                         <div className="oma-deliv-detail__version-ph" />
                       )}

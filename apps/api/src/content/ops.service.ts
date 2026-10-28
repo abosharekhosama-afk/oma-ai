@@ -304,17 +304,39 @@ export class OpsService {
     const versions = versionIds.length
       ? await prisma.workDeliverableVersion.findMany({
           where: { id: { in: versionIds } },
-          select: { id: true, assetUrl: true, label: true },
+          select: { id: true, assetUrl: true, assetId: true, label: true },
         })
       : [];
-    const versionAssetMap = new Map(versions.map((v) => [v.id, v.assetUrl]));
+    const versionAssetMap = new Map<string, string | null>(
+      versions.map((v) => [v.id, (v.assetUrl as string | null) ?? null]),
+    );
+    const assetIds = versions.map((v) => v.assetId).filter((id): id is string => Boolean(id));
+    const mediaAssets = assetIds.length
+      ? await prisma.mediaAsset.findMany({
+          where: { id: { in: assetIds } },
+          select: { id: true, mime: true },
+        })
+      : [];
+    const mimeMap = new Map<string, string>(
+      mediaAssets.map((asset) => [asset.id, String(asset.mime)]),
+    );
+    const versionMimeMap = new Map<string, string | null>(
+      versions.map((version) => [
+        version.id,
+        version.assetId ? mimeMap.get(version.assetId) ?? null : null,
+      ]),
+    );
     return rows.map((row) => {
       const versionAsset = row.currentVersionId
         ? (versionAssetMap.get(row.currentVersionId) ?? null)
         : null;
       const assetUrl = row.assetUrl || versionAsset || null;
       return {
-        ...mapDeliverable({ ...row, assetUrl }),
+        ...mapDeliverable({
+          ...row,
+          assetUrl,
+          assetMime: row.currentVersionId ? versionMimeMap.get(row.currentVersionId) ?? null : null,
+        }),
         created_by_name: userMap.get(row.createdBy) || 'Team member',
         brand_name: brandMap.get(row.brandId) || 'Brand',
         campaign_name: row.campaignId ? campaignMap.get(row.campaignId) || null : null,
@@ -1531,6 +1553,7 @@ function mapDeliverable(row: {
   createdBy: string;
   createdAt: Date;
   updatedAt: Date;
+  assetMime?: string | null;
 }) {
   return {
     id: row.id,
@@ -1544,6 +1567,7 @@ function mapDeliverable(row: {
     status: row.status,
     review_status: row.reviewStatus,
     asset_url: row.assetUrl,
+    asset_mime: row.assetMime ?? null,
     current_version_id: row.currentVersionId ?? null,
     approved_version_id: row.approvedVersionId ?? null,
     created_by: row.createdBy,

@@ -211,6 +211,8 @@ export type DemoGraph = {
     checklist: Array<{ id: string; label: DemoLocaleCopy; done: boolean }>;
     comments: Array<{ id: string; author: string; body: DemoLocaleCopy; at: string }>;
     activity: Array<{ id: string; at: string; actor: string; summary: DemoLocaleCopy }>;
+    previewAsset?: string | null;
+    previewAssetMime?: string | null;
   }>;
   deliverables: Array<{
     id: string;
@@ -1363,6 +1365,8 @@ export const DEMO_GRAPH: DemoGraph = {
       priority: 'MEDIUM',
       dueAt: '2026-09-10',
       updatedAt: '2026-09-10T11:00:00+03:00',
+      previewAsset: '/demo/real-assets/product-motion.mp4',
+      previewAssetMime: 'video/mp4',
       blockedReason: null,
       dependencies: [],
       checklist: [
@@ -2128,7 +2132,7 @@ export const DEMO_GRAPH: DemoGraph = {
         {
           id: 'demo-dv-video-v3',
           label: 'v3',
-          assets: ['/demo/stage5-video-v2.svg', '/demo/video-poster.svg'],
+          assets: ['/demo/real-assets/product-motion.mp4', '/demo/real-assets/product-detail.jpg'],
           notes: { en: 'New end-frame awaiting review', ar: 'إطار ختامي جديد بانتظار المراجعة' },
           createdAt: '2026-09-10T15:00:00+03:00',
           immutable: false,
@@ -2395,7 +2399,7 @@ export const DEMO_GRAPH: DemoGraph = {
         {
           id: 'demo-dv-inrev-v1',
           label: 'v1',
-          assets: ['/demo/stage5-video-v1.svg', '/demo/video-poster.svg'],
+          assets: ['/demo/real-assets/product-motion.mp4', '/demo/real-assets/campaign-look.jpg'],
           notes: { en: 'Rough cut under active review', ar: 'مونتاج أولي قيد المراجعة النشطة' },
           createdAt: '2026-09-10T12:30:00+03:00',
           immutable: false,

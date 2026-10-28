@@ -25,6 +25,7 @@ import {
   type DeliverableRow,
 } from '../../../../lib/demo/stage5-deliverables';
 import { useLocale, useT } from '../../../../lib/use-locale';
+import { MediaSurface } from '../../../../components/content/media-surface';
 import {
   AppstoreOutlined,
   BarsOutlined,
@@ -323,7 +324,12 @@ export default function DeliverablesPage() {
                         data-testid={`demo-deliv-card-${d.id}`}
                       >
                         {thumb ? (
-                          <img src={thumb} alt="" />
+                          <MediaSurface
+                            src={thumb}
+                            contentType={d.type === 'LONG_VIDEO' ? 'REEL' : undefined}
+                            alt=""
+                            preload="none"
+                          />
                         ) : (
                           <div className="oma-deliv-thumb-fallback" />
                         )}
@@ -382,7 +388,13 @@ export default function DeliverablesPage() {
                             >
                               <td>
                                 {thumb ? (
-                                  <img className="oma-deliv-thumb" src={thumb} alt="" />
+                                  <MediaSurface
+                                    src={thumb}
+                                    contentType={d.type === 'LONG_VIDEO' ? 'REEL' : undefined}
+                                    className="oma-deliv-thumb"
+                                    alt=""
+                                    preload="none"
+                                  />
                                 ) : (
                                   <div className="oma-deliv-thumb" />
                                 )}
