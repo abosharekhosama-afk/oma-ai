@@ -35,7 +35,6 @@ export default function ReviewsPage() {
   const [rows, setRows] = useState<DeliverableRow[]>([]);
   const [tab, setTab] = useState<ReviewQueueTab>('waiting');
   const [q, setQ] = useState('');
-  const [searchOpen, setSearchOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reviewerName, setReviewerName] = useState<string>('');
@@ -83,6 +82,13 @@ export default function ReviewsPage() {
     return list;
   }, [rows, tab, q, reviewerName]);
 
+  const tabCounts = useMemo(
+    () =>
+      Object.fromEntries(
+        TABS.map((item) => [item, filterReviewQueue(rows, item, reviewerName).length]),
+      ) as Record<ReviewQueueTab, number>,
+    [rows, reviewerName],
+  );
   const workload = useMemo(
     () =>
       rows.filter(
@@ -120,48 +126,47 @@ export default function ReviewsPage() {
 
       {!loading && !error ? (
         <>
-          <div className="oma-reviews-toolbar" data-testid="demo-review-tabs">
-            <div className="oma-ws-tabs oma-reviews-tabs" role="tablist">
+          <section className="oma-reviews-controls" aria-label={t('demo.reviews.title')}>
+            <div className="oma-reviews-tabs" role="tablist" data-testid="demo-review-tabs">
               {TABS.map((item) => (
                 <button
                   key={item}
                   type="button"
                   role="tab"
                   aria-selected={tab === item}
-                  className={`oma-ws-tab${tab === item ? ' is-active' : ''}`}
+                  className="oma-reviews-tabs__btn"
                   data-active={tab === item ? 'true' : 'false'}
                   data-testid={`demo-review-tab-${item}`}
                   onClick={() => setTab(item)}
                 >
-                  {t(`demo.reviews.tab.${item}`)}
+                  <span>{t(`demo.reviews.tab.${item}`)}</span>
+                  <span className="oma-reviews-tabs__count" aria-label={`${tabCounts[item]}`}>
+                    {tabCounts[item]}
+                  </span>
                 </button>
               ))}
             </div>
-            <div className="oma-reviews-search" data-expanded={searchOpen || q ? 'true' : 'false'}>
-              <button
-                type="button"
-                className="oma-reviews-search__icon"
+            <div className="oma-reviews-search" data-testid="demo-review-search-bar">
+              <SearchOutlined aria-hidden />
+              <Input
+                value={q}
+                data-testid="demo-review-search"
+                placeholder={t('demo.reviews.search')}
                 aria-label={t('demo.reviews.search')}
-                data-testid="demo-review-search-toggle"
-                onClick={() => setSearchOpen((v) => !v)}
-              >
-                <SearchOutlined />
-              </button>
-              {searchOpen || q ? (
-                <Input
-                  autoFocus
-                  value={q}
-                  data-testid="demo-review-search"
-                  placeholder={t('demo.reviews.search')}
-                  onChange={(e) => setQ(e.target.value)}
-                  onBlur={() => {
-                    if (!q.trim()) setSearchOpen(false);
-                  }}
-                />
+                onChange={(e) => setQ(e.target.value)}
+              />
+              {q ? (
+                <button
+                  type="button"
+                  className="oma-reviews-search__clear"
+                  aria-label={locale === 'ar' ? 'مسح البحث' : 'Clear search'}
+                  onClick={() => setQ('')}
+                >
+                  ×
+                </button>
               ) : null}
             </div>
-          </div>
-
+          </section>
           {queue.length === 0 ? (
             <EmptyState title={t('demo.empty')} body={t('demo.reviews.emptyHint')} />
           ) : (
@@ -182,21 +187,29 @@ export default function ReviewsPage() {
                     ) : (
                       <div className="oma-deliv-thumb-fallback" aria-hidden />
                     )}
-                    <div>
-                      <strong>{pickCopy(d.title, locale)}</strong>
-                      <div className="oma-muted">
-                        {ver?.label ?? '—'} · {d.owner} · {d.dueAt || '—'}
-                      </div>
-                      <div className="oma-chip-row">
+                    <div className="oma-review-queue-card__content">
+                      <div className="oma-review-queue-card__heading">
+                        <strong>{pickCopy(d.title, locale)}</strong>
                         <StatusChip status={d.reviewStatus} />
+                      </div>
+                      <div className="oma-review-queue-card__meta">
+                        <span>{d.owner}</span>
+                        <span>{ver?.label ?? '—'}</span>
+                        <span className="oma-ltr">{d.dueAt || '—'}</span>
+                      </div>
+                      <div className="oma-review-queue-card__foot">
                         <span className="oma-muted">
                           {unresolvedCount(d)} {t('demo.deliverables.col.comments').toLowerCase()}
                         </span>
                       </div>
                     </div>
-                    <Button type="default" data-testid={`demo-review-open-${d.id}`}>
+                    <span
+                      className="oma-review-queue-card__action"
+                      data-testid={`demo-review-open-${d.id}`}
+                    >
                       {t('demo.reviews.openReview')}
-                    </Button>
+                      <span aria-hidden="true">{locale === 'ar' ? '←' : '→'}</span>
+                    </span>
                   </Link>
                 );
               })}
