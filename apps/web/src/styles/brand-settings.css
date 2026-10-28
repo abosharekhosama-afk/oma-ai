@@ -529,15 +529,9 @@
   padding: 8px 0;
 }
 .oma-mp-shimmer {
+  /* Fill + sweep come from the shared `.oma-shim` bone (states.css). */
   height: 56px;
   border-radius: 10px;
-  background: #eceff3;
-  animation: oma-skel-pulse 1.4s ease-in-out infinite;
-}
-@media (prefers-reduced-motion: reduce) {
-  .oma-mp-shimmer {
-    animation: none;
-  }
 }
 .oma-mp-trail {
   display: flex;

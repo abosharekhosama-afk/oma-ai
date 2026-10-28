@@ -20,6 +20,7 @@ import { useT } from '../../../../lib/use-locale';
 import { WorkspaceCard } from '../../../../components/brand/workspace-card';
 import { brandAttention } from '../../../../lib/brand-attention';
 import { ErrorState } from '../../../../components/ui/empty-state';
+import { BrandsShimmer } from '../../../../components/ui/screen-shimmer';
 
 type SortKey = 'name' | 'updated' | 'status';
 
@@ -120,7 +121,7 @@ export default function BrandsListPage() {
         {error ? <ErrorState title={t('common.error')} body={error} /> : null}
 
         {loading ? (
-          <div className="oma-skeleton" role="status" aria-label={t('common.loading')} />
+          <BrandsShimmer part="body" />
         ) : visible.length === 0 && query ? (
           <div className="plx-empty">
             <strong>{t('brand.list.noResults')}</strong>

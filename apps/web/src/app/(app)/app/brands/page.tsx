@@ -1,11 +1,11 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { CardGridShimmer } from '../../../../components/ui/shimmer';
+import { BrandsShimmer } from '../../../../components/ui/screen-shimmer';
 
 const Client = dynamic(() => import('./brands-client'), {
   ssr: false,
-  loading: () => <CardGridShimmer />,
+  loading: () => <BrandsShimmer />,
 });
 
 export default function Page() {

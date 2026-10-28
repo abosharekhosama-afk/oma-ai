@@ -51,7 +51,7 @@ function MediaShimmer({ rows = 4 }: { rows?: number }) {
   return (
     <div className="oma-mp-loading" aria-busy="true" data-testid="media-shimmer">
       {Array.from({ length: rows }, (_, i) => (
-        <div key={i} className="oma-mp-shimmer" />
+        <div key={i} className="oma-shim oma-mp-shimmer" />
       ))}
     </div>
   );

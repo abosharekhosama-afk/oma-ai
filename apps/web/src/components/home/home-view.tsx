@@ -17,6 +17,7 @@ import {
   setupProgress,
   type HomeComment,
 } from '../../lib/home-view-model';
+import { MediaSurface } from '../content/media-surface';
 
 type Copy = { en: string; ar: string };
 type Tr = (key: string) => string;
@@ -74,7 +75,7 @@ function Thumb({ url, channel, size }: { url: string | null; channel: string; si
       <NetworkIcon channel={channel} size={size === 'md' ? 20 : 14} mono />
     </span>
   ) : (
-    <img className={`oma-home-thumb oma-home-thumb--${size}`} src={url!} alt="" loading="lazy" />
+    <MediaSurface className={`oma-home-thumb oma-home-thumb--${size}`} src={url!} alt="" />
   );
 }
 

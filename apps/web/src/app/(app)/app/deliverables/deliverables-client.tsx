@@ -1,5 +1,5 @@
 'use client';
-import { TableShimmer } from '../../../../components/ui/shimmer';
+import { DeliverablesShimmer } from '../../../../components/ui/screen-shimmer';
 import { useReloadOnBrandChange } from '../../../../lib/active-brand';
 import { Button, Input } from '@oma/ui/controls';
 
@@ -261,7 +261,7 @@ export default function DeliverablesPage() {
           )
         : null}
 
-      {loading ? <TableShimmer rows={6} avatar={false} /> : null}
+      {loading ? <DeliverablesShimmer part="body" /> : null}
       {unavailable ? (
         <p className="oma-muted" data-testid="demo-deliverables-denied">
           {t('demo.unavailable')}

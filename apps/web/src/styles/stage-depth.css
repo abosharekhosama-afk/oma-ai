@@ -181,6 +181,8 @@
 }
 
 .oma-deliv-grid-card img,
+.oma-deliv-grid-card video,
+.oma-deliv-grid-card span.oma-media-surface,
 .oma-deliv-grid-card .oma-deliv-thumb-fallback {
   width: 100%;
   aspect-ratio: 4 / 3;
@@ -234,7 +236,9 @@
   border-color: var(--oma-primary);
 }
 
-.oma-review-queue-card img {
+.oma-review-queue-card img,
+.oma-review-queue-card video,
+.oma-review-queue-card span.oma-media-surface {
   width: 96px;
   height: 72px;
   object-fit: cover;

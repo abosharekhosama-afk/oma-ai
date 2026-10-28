@@ -137,7 +137,7 @@ describe('calm loading UI', () => {
   it('content page uses skeletons, not the dots/top loader', () => {
     const src = read('apps/web/src/app/(app)/app/content/content-client.tsx');
     expect(src).not.toMatch(/OmaTopLoader|OmaDotsLoader/);
-    expect(src).toMatch(/ContentListSkeleton/);
+    expect(src).toMatch(/ContentShimmer/);
     expect(read('apps/web/src/components/shell/membership-route-gate.tsx')).not.toMatch(
       /OmaDotsLoader/,
     );

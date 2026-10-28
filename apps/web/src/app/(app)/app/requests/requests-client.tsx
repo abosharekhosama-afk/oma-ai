@@ -1,5 +1,5 @@
 'use client';
-import { TableShimmer } from '../../../../components/ui/shimmer';
+import { RequestsShimmer } from '../../../../components/ui/screen-shimmer';
 
 import { useReloadOnBrandChange } from '../../../../lib/active-brand';
 import Link from 'next/link';
@@ -338,7 +338,7 @@ export default function RequestsPage() {
           )
         : null}
 
-      {loading ? <TableShimmer rows={6} avatar={false} /> : null}
+      {loading ? <RequestsShimmer part="body" /> : null}
       {unavailable ? (
         <p className="oma-muted" data-testid="demo-requests-denied">
           {t('demo.unavailable')}

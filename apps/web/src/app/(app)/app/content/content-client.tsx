@@ -8,7 +8,7 @@ import {
   errorKindOf,
   type ErrorKind,
 } from '../../../../components/ui/error-state';
-import { ContentCalSkeleton, ContentListSkeleton } from '../../../../components/ui/page-skeleton';
+import { ContentShimmer } from '../../../../components/ui/screen-shimmer';
 import { createPortal } from 'react-dom';
 import { resolveContentWorkflow, type ApprovalPolicy, type DemoGraph } from '@oma/demo';
 import { ContentFace, faceDisplay } from '../../../../components/content/content-card';
@@ -2930,14 +2930,8 @@ export default function ContentPage() {
 
       {/* Filter chips removed — brand/other filters live in the side panel only. */}
 
-      {/* Layout-matched skeletons instead of the dots loader. */}
-      {loading ? (
-        view === 'calendar' ? (
-          <ContentCalSkeleton />
-        ) : (
-          <ContentListSkeleton label={t('common.loading')} />
-        )
-      ) : null}
+      {/* The same screen shimmer as the route gate / chunk fallback — one continuous loader. */}
+      {loading ? <ContentShimmer embedded /> : null}
       {unavailable ? (
         <DeniedState title={t('demo.unavailable')} body={t('demo.disclosure')} />
       ) : null}
@@ -3453,7 +3447,7 @@ export default function ContentPage() {
                             onClick={() => openItem(item)}
                             className="oma-cal-item"
                           >
-                            <img className="oma-cal-thumb" src={item.previewAsset} alt="" />
+                            <MediaSurface className="oma-cal-thumb" src={item.previewAsset} alt="" />
                             <span>
                               {pickCopy(item.title, locale)} · {item.channel} ·{' '}
                               {statusLabel(item.status, locale)}
@@ -4983,7 +4977,7 @@ export default function ContentPage() {
                   >
                     <div className="oma-template-card__media" aria-hidden>
                       {tpl.preview_asset_url ? (
-                        <img src={tpl.preview_asset_url} alt="" />
+                        <MediaSurface src={tpl.preview_asset_url} alt="" />
                       ) : (
                         <FileTextOutlined />
                       )}

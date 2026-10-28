@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { NetworkIcon } from '../../../../components/content/network-icon';
 import { resolveNetwork } from '../../../../components/content/post-preview-model';
+import { MediaSurface } from '../../../../components/content/media-surface';
 import { ErrorState, errorKindOf, type ErrorKind } from '../../../../components/ui/error-state';
 import {
   getActiveBrandId,
@@ -772,7 +773,7 @@ function TopCard({
       </header>
       <div className="oma-pa-topcard__media">
         {row.preview_asset_url ? (
-          <img src={row.preview_asset_url} alt="" loading="lazy" />
+          <MediaSurface src={row.preview_asset_url} alt="" />
         ) : (
           <span className="oma-pa-topcard__ph" aria-hidden />
         )}
@@ -863,7 +864,7 @@ function ContentTable({
                   <a className="oma-pa-post" href={`/app/content?item=${encodeURIComponent(r.id)}`}>
                     <span className="oma-pa-post__thumb">
                       {r.preview_asset_url ? (
-                        <img src={r.preview_asset_url} alt="" loading="lazy" />
+                        <MediaSurface src={r.preview_asset_url} alt="" />
                       ) : null}
                     </span>
                     <span className="oma-pa-post__body">

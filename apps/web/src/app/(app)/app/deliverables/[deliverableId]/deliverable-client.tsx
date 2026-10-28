@@ -18,7 +18,13 @@ import {
   PostPreview,
   type PreviewApprovalState,
 } from '../../../../../components/content/post-preview';
-import { MediaSurface } from '../../../../../components/content/media-surface';
+import {
+  MediaSurface,
+  kindFromMime,
+  kindFromUrl,
+  mediaIdFromUrl,
+  versionMime,
+} from '../../../../../components/content/media-surface';
 import { getContentDetail, type ApiContent } from '../../../../../lib/content-api';
 import { listBrands } from '../../../../../lib/workspace-extras-api';
 import { useToast } from '../../../../../components/ui/toast';
@@ -78,17 +84,24 @@ function DeliverableHero({
   src,
   openLabel,
   contentType,
+  mime,
 }: {
   src: string;
   openLabel: string;
   contentType?: string;
+  mime?: string | null;
 }) {
-  const isKnownMedia =
-    Boolean(contentType) || /\.(?:png|jpe?g|webp|gif|mp4|webm|mov|m4v)(?:[?#]|$)/i.test(src);
+  // Stored WorkDrive URLs (`/api/v1/media/:id/view|stream`) have no extension: trust the MIME,
+  // then the URL. Non-media files (PDF, documents) keep the "Open file" link.
+  const knownKind = kindFromMime(mime) ?? kindFromUrl(src);
+  const isKnownMedia = mime
+    ? knownKind !== null
+    : knownKind !== null || Boolean(contentType) || mediaIdFromUrl(src) !== null;
   if (isKnownMedia)
     return (
       <MediaSurface
         src={src}
+        mime={mime}
         contentType={contentType}
         className="oma-deliv-detail__hero"
         controls
@@ -696,9 +709,10 @@ export default function DeliverableDetailClient() {
                           {v?.assets?.[0] ? (
                             <MediaSurface
                               src={v.assets[0]}
+                              mime={versionMime(v)}
                               contentType={linked?.content.content_type}
                               alt=""
-                              preload="none"
+                              preload="metadata"
                               controls
                             />
                           ) : null}
@@ -745,6 +759,7 @@ export default function DeliverableDetailClient() {
                     </span>
                     <MediaSurface
                       src={selectedVersion.assets[0]}
+                      mime={versionMime(selectedVersion)}
                       contentType={linked?.content.content_type}
                       className="oma-review-media"
                       controls
@@ -965,6 +980,7 @@ export default function DeliverableDetailClient() {
                   <DeliverableHero
                     key={selectedVersion.assets[0]}
                     src={selectedVersion.assets[0]}
+                    mime={versionMime(selectedVersion)}
                     openLabel={t('deliverables.upload.openFile')}
                     contentType={linked?.content.content_type}
                   />
@@ -1077,9 +1093,9 @@ export default function DeliverableDetailClient() {
                       {v.assets && v.assets[0] ? (
                         <MediaSurface
                           src={v.assets[0]}
+                          mime={versionMime(v)}
                           contentType={linked?.content.content_type}
                           alt=""
-                          preload="none"
                         />
                       ) : (
                         <div className="oma-deliv-detail__version-ph" />

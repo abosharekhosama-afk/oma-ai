@@ -13,6 +13,7 @@ import {
   versionCreateAllowed,
 } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
+import { mediaPlaybackUrl } from '../media/media.service';
 
 type LocaleInput = { en: string; ar?: string } | string;
 
@@ -32,11 +33,11 @@ async function resolveDeliverableAsset(tenantId: string, brandId: string, value:
     typeof value === 'string'
       ? await getPrisma().mediaAsset.findFirst({
           where: tenantWhere(tenantId, { id: value, brandId, kind: { in: ['deliverables', 'posts'] } }),
-          select: { id: true },
+          select: { id: true, mime: true },
         })
       : null;
   if (!a) throw new DomainError('NOT_FOUND', 'Media not found', 404, 'errors.not_found');
-  return { assetId: a.id as string | null, assetUrl: `/api/v1/media/${a.id}/view` as string | null };
+  return { assetId: a.id as string | null, assetUrl: mediaPlaybackUrl(a.id, a.mime) as string | null };
 }
 
 @Injectable()

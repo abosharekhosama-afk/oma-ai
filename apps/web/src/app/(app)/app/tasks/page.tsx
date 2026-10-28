@@ -1,11 +1,11 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { BoardShimmer } from '../../../../components/ui/shimmer';
+import { TasksShimmer } from '../../../../components/ui/screen-shimmer';
 
 const TasksPage = dynamic(() => import('./tasks-client'), {
   ssr: false,
-  loading: () => <BoardShimmer />,
+  loading: () => <TasksShimmer />,
 });
 
 export default function TasksRoutePage() {

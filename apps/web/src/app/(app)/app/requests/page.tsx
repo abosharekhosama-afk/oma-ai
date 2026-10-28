@@ -34,6 +34,7 @@ import {
   type RequestRow,
 } from '../../../../lib/demo/stage4-requests';
 import { useLocale, useT } from '../../../../lib/use-locale';
+import { RequestsShimmer } from '../../../../components/ui/screen-shimmer';
 import {
   FilterOutlined,
   CloseOutlined,
@@ -306,13 +307,9 @@ export default function RequestsPage() {
         : null}
 
       {loading ? (
-        <p
-          className="oma-muted oma-req-main"
-          style={{ padding: '16px 20px' }}
-          data-testid="demo-requests-loading"
-        >
-          {t('demo.loading')}
-        </p>
+        <div className="oma-req-main" data-testid="demo-requests-loading">
+          <RequestsShimmer part="body" />
+        </div>
       ) : null}
       {unavailable ? (
         <p className="oma-muted" data-testid="demo-requests-denied">

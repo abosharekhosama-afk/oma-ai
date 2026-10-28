@@ -109,7 +109,8 @@
 }
 
 .oma-deliv-grid-card img,
-.oma-deliv-grid-card video {
+.oma-deliv-grid-card video,
+.oma-deliv-grid-card span.oma-media-surface {
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
@@ -191,6 +192,7 @@
 
 .oma-review-queue-card img,
 .oma-review-queue-card video,
+.oma-review-queue-card span.oma-media-surface,
 .oma-review-queue-card .oma-deliv-thumb-fallback {
   width: 88px;
   height: 66px;
@@ -316,7 +318,8 @@
 }
 
 .oma-review-canvas-stage img,
-.oma-review-canvas-stage video {
+.oma-review-canvas-stage video,
+.oma-review-canvas-stage span.oma-media-surface {
   display: block;
   max-width: 100%;
   max-height: min(60vh, 640px);
@@ -327,7 +330,8 @@
 }
 
 .oma-review-canvas-stage[data-zoom='in'] img,
-.oma-review-canvas-stage[data-zoom='in'] video {
+.oma-review-canvas-stage[data-zoom='in'] video,
+.oma-review-canvas-stage[data-zoom='in'] span.oma-media-surface {
   max-width: none;
   max-height: none;
   width: 140%;
@@ -394,7 +398,8 @@
 }
 
 .oma-review-compare img,
-.oma-review-compare video {
+.oma-review-compare video,
+.oma-review-compare span.oma-media-surface {
   max-width: 100%;
   max-height: min(50vh, 480px);
   object-fit: contain;
@@ -742,6 +747,8 @@
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08) !important;
 }
 .oma-deliv-grid-card img,
+.oma-deliv-grid-card video,
+.oma-deliv-grid-card span.oma-media-surface,
 .oma-deliv-grid-card .oma-deliv-thumb-fallback {
   width: 100% !important;
   aspect-ratio: 1 / 1 !important;
@@ -967,6 +974,7 @@
 }
 .oma-deliv-detail__version img,
 .oma-deliv-detail__version video,
+.oma-deliv-detail__version span.oma-media-surface,
 .oma-deliv-detail__version-ph {
   width: 100%;
   aspect-ratio: 1;
@@ -1509,6 +1517,8 @@
     padding: 12px !important;
   }
   .oma-review-queue-card img,
+  .oma-review-queue-card video,
+  .oma-review-queue-card span.oma-media-surface,
   .oma-review-queue-card .oma-deliv-thumb-fallback {
     width: 64px !important;
     height: 48px !important;
@@ -1696,6 +1706,8 @@
   outline: none;
 }
 .oma-reviews-page .oma-review-queue-card > img,
+.oma-reviews-page .oma-review-queue-card > video,
+.oma-reviews-page .oma-review-queue-card > span.oma-media-surface,
 .oma-reviews-page .oma-review-queue-card > .oma-deliv-thumb-fallback {
   display: block;
   width: 124px;
@@ -1784,6 +1796,8 @@
     padding: 10px;
   }
   .oma-reviews-page .oma-review-queue-card > img,
+  .oma-reviews-page .oma-review-queue-card > video,
+  .oma-reviews-page .oma-review-queue-card > span.oma-media-surface,
   .oma-reviews-page .oma-review-queue-card > .oma-deliv-thumb-fallback {
     width: 96px;
     height: 76px;
@@ -1816,6 +1830,8 @@
     gap: 10px;
   }
   .oma-reviews-page .oma-review-queue-card > img,
+  .oma-reviews-page .oma-review-queue-card > video,
+  .oma-reviews-page .oma-review-queue-card > span.oma-media-surface,
   .oma-reviews-page .oma-review-queue-card > .oma-deliv-thumb-fallback {
     width: 76px;
     height: 68px;
@@ -2158,6 +2174,8 @@
     padding: 10px !important;
   }
   .oma-reviews-page .oma-review-queue-card > img,
+  .oma-reviews-page .oma-review-queue-card > video,
+  .oma-reviews-page .oma-review-queue-card > span.oma-media-surface,
   .oma-reviews-page .oma-review-queue-card > .oma-deliv-thumb-fallback {
     grid-column: 1 !important;
     grid-row: 1 / span 2 !important;

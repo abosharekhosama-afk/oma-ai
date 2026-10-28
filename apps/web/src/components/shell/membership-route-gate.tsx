@@ -4,6 +4,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { PageSkeleton } from '../ui/page-skeleton';
+import { screenShimmerFor } from '../ui/screen-shimmer';
 import { loginUrlFor, SESSION_OK_KEY } from '../../lib/session';
 
 type Me = {
@@ -103,9 +104,15 @@ export function MembershipRouteGate({ children }: { children: React.ReactNode })
   }, [pathname, router]);
 
   if (!ready) {
+    // Screens with their own shimmer render it in the real page geometry (no extra inset), so
+    // it continues seamlessly into the page's chunk/data shimmer — never two different skeletons.
+    const screen = screenShimmerFor(pathname);
     return (
-      <div className="oma-route-skeleton" data-testid="route-skeleton">
-        <PageSkeleton rows={6} />
+      <div
+        className={screen ? 'oma-route-skeleton oma-route-skeleton--screen' : 'oma-route-skeleton'}
+        data-testid="route-skeleton"
+      >
+        {screen ?? <PageSkeleton rows={6} />}
       </div>
     );
   }

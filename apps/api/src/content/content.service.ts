@@ -19,7 +19,7 @@ import {
   type Track,
 } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
-import { mediaViewUrl } from '../media/media.service';
+import { mediaPlaybackUrl } from '../media/media.service';
 
 /** `preview_asset_id`: a posts MediaAsset of the same brand (or null to clear). */
 async function resolvePreviewAsset(tenantId: string, brandId: string, value: unknown) {
@@ -29,11 +29,11 @@ async function resolvePreviewAsset(tenantId: string, brandId: string, value: unk
     typeof value === 'string'
       ? await getPrisma().mediaAsset.findFirst({
           where: tenantWhere(tenantId, { id: value, brandId, kind: 'posts' }),
-          select: { id: true },
+          select: { id: true, mime: true },
         })
       : null;
   if (!a) throw new DomainError('NOT_FOUND', 'Media not found', 404, 'errors.not_found');
-  return { previewAssetId: a.id, previewAssetUrl: mediaViewUrl(a.id) };
+  return { previewAssetId: a.id, previewAssetUrl: mediaPlaybackUrl(a.id, a.mime) };
 }
 
 type LocaleInput = { en: string; ar?: string } | string;
