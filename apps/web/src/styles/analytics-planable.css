@@ -246,10 +246,12 @@
 }
 
 .oma-pa-main {
+  min-width: 0;
   padding: 16px 20px 40px;
 }
 .oma-pa-stackv {
-  max-inline-size: 640px;
+  inline-size: 100%;
+  max-inline-size: 1440px;
   margin-inline: auto;
   display: flex;
   flex-direction: column;

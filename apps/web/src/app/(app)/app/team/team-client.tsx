@@ -314,7 +314,14 @@ export default function TeamPage() {
             />
           </div>
           <div className="oma-planable-card oma-member-surface">
-            <table className="oma-ws-table">
+            <div
+              className="oma-member-table-scroll"
+              role="region"
+              aria-label={t('team.user')}
+              tabIndex={0}
+              data-testid="team-members-scroll"
+            >
+              <table className="oma-ws-table">
               <thead>
                 <tr>
                   <th>{t('team.user')}</th>
@@ -445,7 +452,8 @@ export default function TeamPage() {
                   })
                 )}
               </tbody>
-            </table>
+              </table>
+            </div>
           </div>
         </>
       ) : null}

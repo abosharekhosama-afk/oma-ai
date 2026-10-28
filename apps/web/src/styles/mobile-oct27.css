@@ -676,3 +676,39 @@ html body [data-testid='activity-page-planable'] > .oma-act-feed > .oma-ws-empty
     display: none !important;
   }
 }
+
+
+/* Deliverables/task filters are anchored to the viewport, not the table surface. */
+.oma-deliv-workspace[data-filter-open='true'] .oma-req-filter-panel {
+  position: fixed !important;
+  inset-block: 0 !important;
+  inset-inline-end: 0 !important;
+  z-index: 1200 !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+  max-height: 100vh !important;
+  max-height: 100dvh !important;
+  align-self: stretch !important;
+  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.16) !important;
+}
+.oma-tasks-filter-drawer .ant-drawer-content-wrapper {
+  inset-block-start: 0 !important;
+  inset-block-end: 0 !important;
+  height: 100vh !important;
+  height: 100dvh !important;
+}
+
+/* Keep the member roster intact and allow horizontal scrolling within its own surface. */
+.oma-member-surface {
+  min-width: 0;
+}
+.oma-member-table-scroll {
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.oma-member-table-scroll .oma-ws-table {
+  min-width: 900px;
+}
