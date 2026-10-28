@@ -363,7 +363,9 @@ export function MediaPickerDialog({
                       ) : null}
                       {browse.files.length ? (
                         <>
-                          <p className="oma-mp-section-title">{t('media.files') || t('media.recent')}</p>
+                          <p className="oma-mp-section-title">
+                            {t('media.files') || t('media.recent')}
+                          </p>
                           <div className="oma-mp-files" data-testid="media-files">
                             {browse.files.map((f) => (
                               <button

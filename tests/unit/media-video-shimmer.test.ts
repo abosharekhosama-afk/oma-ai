@@ -46,7 +46,9 @@ describe('video media in cards', () => {
 
 describe('one shimmer per screen', () => {
   it('route gate and screens share the screen shimmers', () => {
-    expect(read('apps/web/src/components/shell/membership-route-gate.tsx')).toMatch(/screenShimmerFor/);
+    expect(read('apps/web/src/components/shell/membership-route-gate.tsx')).toMatch(
+      /screenShimmerFor/,
+    );
     const screens: Array<[string, string]> = [
       ['apps/web/src/app/(app)/app/content/content-client.tsx', 'ContentShimmer'],
       ['apps/web/src/app/(app)/app/tasks/tasks-client.tsx', 'TasksShimmer'],

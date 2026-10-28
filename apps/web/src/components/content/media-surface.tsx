@@ -245,7 +245,11 @@ function MediaVideo({
   const ref = useRef<HTMLVideoElement | null>(null);
   // Thumbnails without a poster need a decoded frame, so never use preload="none" for them.
   const effectivePreload =
-    preload === 'auto' ? 'auto' : !poster || controls || autoPlay ? 'metadata' : (preload ?? 'metadata');
+    preload === 'auto'
+      ? 'auto'
+      : !poster || controls || autoPlay
+        ? 'metadata'
+        : (preload ?? 'metadata');
   // `#t=0.1` makes browsers (Safari included) paint the first frame instead of a black box.
   const frameSrc = !autoPlay && !poster && !src.includes('#') ? `${src}#t=0.1` : src;
 

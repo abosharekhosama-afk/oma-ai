@@ -105,7 +105,12 @@ type Grant = {
 function grantKey() {
   const k = workDriveSecretKey();
   if (!k)
-    throw new DomainError('PROVIDER_NOT_CONFIGURED', 'WorkDrive storage is not enabled on this server', 409, 'errors.workdrive_not_enabled');
+    throw new DomainError(
+      'PROVIDER_NOT_CONFIGURED',
+      'WorkDrive storage is not enabled on this server',
+      409,
+      'errors.workdrive_not_enabled',
+    );
   return createHmac('sha256', k).update('oma-media-upload-grant/v1').digest();
 }
 

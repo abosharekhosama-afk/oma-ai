@@ -80,7 +80,15 @@ function ShimmerRoot({
 }
 
 /** Page title + subtitle placeholder in the shared `PageHeader` geometry. */
-function HeaderBones({ title = 180, sub = 340, kicker = false }: { title?: number; sub?: number; kicker?: boolean }) {
+function HeaderBones({
+  title = 180,
+  sub = 340,
+  kicker = false,
+}: {
+  title?: number;
+  sub?: number;
+  kicker?: boolean;
+}) {
   return (
     <header className="oma-page-header oma-page-header-stack oma-shim-header" aria-hidden="true">
       <div className="oma-shim-header__copy">
@@ -142,14 +150,22 @@ const CAL_POSTS = new Set([2, 4, 8, 12, 15, 17, 22, 26, 29, 31]);
  * `embedded`: rendered inside the content page's own `.oma-content-plan` wrapper (data loading);
  * otherwise the shimmer carries that wrapper itself so the shell drops its padding the same way.
  */
-export function ContentShimmer({ view, embedded = false }: { view?: ContentShimmerView; embedded?: boolean }) {
+export function ContentShimmer({
+  view,
+  embedded = false,
+}: {
+  view?: ContentShimmerView;
+  embedded?: boolean;
+}) {
   const pref = useClientPref(initialContentShimmerView, 'calendar');
   const v = view ?? pref;
   return (
     <ShimmerRoot
       screen="content"
       className={
-        embedded ? 'oma-shim-content' : 'oma-stack oma-content-plan oma-content-plan--tight oma-shim-content'
+        embedded
+          ? 'oma-shim-content'
+          : 'oma-stack oma-content-plan oma-content-plan--tight oma-shim-content'
       }
     >
       {v === 'calendar' ? <ContentCalendarBones /> : null}
@@ -316,19 +332,31 @@ const KB_COLUMNS = [2, 1, 3, 2, 1];
 function readTasksView(): 'board' | 'list' {
   try {
     const url = new URLSearchParams(window.location.search).get('view');
-    const raw = url === 'board' || url === 'list' ? url : window.localStorage.getItem('oma.tasks.defaultView');
+    const raw =
+      url === 'board' || url === 'list'
+        ? url
+        : window.localStorage.getItem('oma.tasks.defaultView');
     return raw === 'list' ? 'list' : 'board';
   } catch {
     return 'board';
   }
 }
 
-export function TasksShimmer({ view, part = 'page' }: { view?: 'board' | 'list'; part?: ShimmerPart }) {
+export function TasksShimmer({
+  view,
+  part = 'page',
+}: {
+  view?: 'board' | 'list';
+  part?: ShimmerPart;
+}) {
   const pref = useClientPref(readTasksView, 'board');
   const v = view ?? pref;
   const page = part === 'page';
   return (
-    <ShimmerRoot screen="tasks" className={page ? 'oma-tasks-page oma-shim-tasks' : 'oma-shim-tasks oma-shim-part'}>
+    <ShimmerRoot
+      screen="tasks"
+      className={page ? 'oma-tasks-page oma-shim-tasks' : 'oma-shim-tasks oma-shim-part'}
+    >
       {page ? <HeaderBones title={150} sub={360} /> : null}
       {page ? (
         <div className="oma-prod-strip oma-shim-strip" aria-hidden="true">
@@ -376,27 +404,33 @@ export function TasksShimmer({ view, part = 'page' }: { view?: 'board' | 'list';
 /* Brands portfolio                                                                             */
 /* -------------------------------------------------------------------------------------------- */
 
-export function BrandsShimmer({ cards = 6, part = 'page' }: { cards?: number; part?: ShimmerPart }) {
+export function BrandsShimmer({
+  cards = 6,
+  part = 'page',
+}: {
+  cards?: number;
+  part?: ShimmerPart;
+}) {
   const grid = (
-        <div className="plx-card-grid" aria-hidden="true">
-          {range(cards).map((i) => (
-            <article key={i} className="oma-workspace-card oma-shim-brand-card">
-              <div className="oma-shim-row oma-shim-row--top">
-                <Bone w={40} h={40} r={10} />
-                <div className="oma-shim-stack">
-                  <Bone w={i % 2 ? '58%' : '72%'} h={14} />
-                  <Bone w="64%" h={11} />
-                  <div className="oma-shim-row">
-                    <Bone w={46} h={20} r={999} />
-                    <Bone w={52} h={20} r={999} />
-                    <Bone w={40} h={20} r={999} />
-                  </div>
-                </div>
+    <div className="plx-card-grid" aria-hidden="true">
+      {range(cards).map((i) => (
+        <article key={i} className="oma-workspace-card oma-shim-brand-card">
+          <div className="oma-shim-row oma-shim-row--top">
+            <Bone w={40} h={40} r={10} />
+            <div className="oma-shim-stack">
+              <Bone w={i % 2 ? '58%' : '72%'} h={14} />
+              <Bone w="64%" h={11} />
+              <div className="oma-shim-row">
+                <Bone w={46} h={20} r={999} />
+                <Bone w={52} h={20} r={999} />
+                <Bone w={40} h={20} r={999} />
               </div>
-              <Bone w={118} h={34} r={8} className="oma-shim--strong" />
-            </article>
-          ))}
-        </div>
+            </div>
+          </div>
+          <Bone w={118} h={34} r={8} className="oma-shim--strong" />
+        </article>
+      ))}
+    </div>
   );
   if (part === 'body') {
     return (
@@ -423,7 +457,17 @@ export function BrandsShimmer({ cards = 6, part = 'page' }: { cards?: number; pa
 /* Requests / Reviews / Deliverables                                                            */
 /* -------------------------------------------------------------------------------------------- */
 
-function TableBones({ cols, rows, thumb = false, avatar = false }: { cols: number[]; rows: number; thumb?: boolean; avatar?: boolean }) {
+function TableBones({
+  cols,
+  rows,
+  thumb = false,
+  avatar = false,
+}: {
+  cols: number[];
+  rows: number;
+  thumb?: boolean;
+  avatar?: boolean;
+}) {
   return (
     <div className="oma-shim-table" aria-hidden="true">
       <div className="oma-shim-table__row oma-shim-table__row--head">
@@ -442,7 +486,12 @@ function TableBones({ cols, rows, thumb = false, avatar = false }: { cols: numbe
             </div>
           </div>
           {cols.slice(1).map((w, i) => (
-            <Bone key={i} w={Math.round(w * (0.5 + ((r + i) % 3) * 0.15))} h={i === 1 ? 20 : 11} r={i === 1 ? 999 : undefined} />
+            <Bone
+              key={i}
+              w={Math.round(w * (0.5 + ((r + i) % 3) * 0.15))}
+              h={i === 1 ? 20 : 11}
+              r={i === 1 ? 999 : undefined}
+            />
           ))}
         </div>
       ))}
@@ -484,10 +533,17 @@ export function ReviewsShimmer({ part = 'page' }: { part?: ShimmerPart }) {
   return (
     <ShimmerRoot
       screen="reviews"
-      className={page ? 'oma-stack oma-reviews-page oma-shim-reviews' : 'oma-stack oma-shim-reviews oma-shim-part'}
+      className={
+        page
+          ? 'oma-stack oma-reviews-page oma-shim-reviews'
+          : 'oma-stack oma-shim-reviews oma-shim-part'
+      }
     >
       {page ? (
-        <header className="oma-page-header oma-page-header-stack oma-shim-header" aria-hidden="true">
+        <header
+          className="oma-page-header oma-page-header-stack oma-shim-header"
+          aria-hidden="true"
+        >
           <div className="oma-shim-header__copy">
             <Bone w={120} h={24} r={6} />
             <Bone w={330} h={14} />
@@ -531,14 +587,22 @@ function readDeliverablesView(): 'grid' | 'list' {
   }
 }
 
-export function DeliverablesShimmer({ view, part = 'page' }: { view?: 'grid' | 'list'; part?: ShimmerPart }) {
+export function DeliverablesShimmer({
+  view,
+  part = 'page',
+}: {
+  view?: 'grid' | 'list';
+  part?: ShimmerPart;
+}) {
   const pref = useClientPref(readDeliverablesView, 'grid');
   const v = view ?? pref;
   const page = part === 'page';
   return (
     <ShimmerRoot
       screen="deliverables"
-      className={page ? 'oma-deliv-page oma-shim-deliverables' : 'oma-shim-deliverables oma-shim-part'}
+      className={
+        page ? 'oma-deliv-page oma-shim-deliverables' : 'oma-shim-deliverables oma-shim-part'
+      }
     >
       {page ? <HeaderBones title={150} sub={380} /> : null}
       <div className="oma-shim-toolbar" aria-hidden="true">

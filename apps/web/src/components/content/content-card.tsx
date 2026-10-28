@@ -206,7 +206,11 @@ export function ContentFace({
         data-selected={selected ? 'true' : 'false'}
         data-publish={display}
       >
-        <MediaSurface className="oma-post-card__media oma-post-card__media--row" src={asset} alt="" />
+        <MediaSurface
+          className="oma-post-card__media oma-post-card__media--row"
+          src={asset}
+          alt=""
+        />
         <span className="oma-post-card__list-text">
           <span className="oma-post-card__channel-name">{channel}</span>
           <span className="oma-post-card__title">{title}</span>

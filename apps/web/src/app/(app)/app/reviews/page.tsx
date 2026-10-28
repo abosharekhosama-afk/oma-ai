@@ -219,7 +219,9 @@ export default function ReviewsPage() {
                       <MediaSurface
                         src={thumb}
                         mime={versionMime(ver)}
-                        contentType={d.type === 'LONG_VIDEO' || d.type === 'REEL' ? 'REEL' : undefined}
+                        contentType={
+                          d.type === 'LONG_VIDEO' || d.type === 'REEL' ? 'REEL' : undefined
+                        }
                         alt=""
                       />
                     ) : (
