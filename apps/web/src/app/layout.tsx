@@ -6,7 +6,7 @@ import { OmaAntdProvider } from '../components/ui/oma-antd-provider';
 import { LocaleProvider } from '../lib/locale-context';
 import './globals.css';
 
-/** DEC-017: English face is the Planable system-UI stack. Latin webfonts are not the product face. */
+/** OMA typography: native system UI for Latin text and Noto Sans Arabic for Arabic. */
 const jetbrainsMono = JetBrains_Mono({
   subsets: ['latin'],
   weight: ['400', '500'],
@@ -37,9 +37,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       lang={locale}
       dir={dir}
       className={`${jetbrainsMono.variable} ${notoArabic.variable}`}
-      data-oma-typeface="planable-system"
+      data-oma-typeface="oma-system-ui"
     >
-      <body data-oma-font="planable-system">
+      <body data-oma-font="oma-system-ui">
         <a href="#main" className="oma-skip-link">
           {t(locale, 'shell.skip')}
         </a>

@@ -6,18 +6,20 @@
 
 ## Global (`PV-G-*`)
 
-| ID      | Criterion                                                                                        |
-| ------- | ------------------------------------------------------------------------------------------------ |
-| PV-G-01 | Single token set from `docs/PLANABLE_DESIGN_TOKENS_SPEC.md`                                      |
-| PV-G-02 | English computed `font-family` is the system-UI stack (not Inter/IBM Plex as the Planable match) |
-| PV-G-03 | Canvas `#F5F6F7`, surface `#FFFFFF`, ink `#333333`, primary `#1677FF` within 2/255 RGB           |
-| PV-G-04 | Control radius 6px ±1; primary height 32px ±2                                                    |
-| PV-G-05 | No Planable logo, name, screenshots, or copy inside OMA                                          |
-| PV-G-06 | No Linear/Frame/Workfront/ClickUp visual chrome                                                  |
-| PV-G-07 | No marketing-site hero type or gradients                                                         |
-| PV-G-08 | Color not the only status signal                                                                 |
-| PV-G-09 | EN+AR, LTR/RTL, no overflow at 1440/1024/390                                                     |
-| PV-G-10 | Demo/external honesty unchanged                                                                  |
+| ID      | Criterion                                                                                                         |
+| ------- | ----------------------------------------------------------------------------------------------------------------- |
+| PV-G-01 | Single token set from `docs/PLANABLE_DESIGN_TOKENS_SPEC.md`                                                       |
+| PV-G-02 | English computed `font-family` is the system-UI stack (not Inter/IBM Plex as the Planable match)                  |
+| PV-G-11 | Arabic text uses OMA's Noto Sans Arabic face, with a system fallback; EN/AR typography remains legible in LTR/RTL |
+| PV-G-12 | Shell/navigation icons use a consistent, accessible 24-unit outline SVG style with current-color strokes          |
+| PV-G-03 | Canvas `#F5F6F7`, surface `#FFFFFF`, ink `#333333`, primary `#1677FF` within 2/255 RGB                            |
+| PV-G-04 | Control radius 6px ±1; primary height 32px ±2                                                                     |
+| PV-G-05 | No Planable logo, name, screenshots, or copy inside OMA                                                           |
+| PV-G-06 | No Linear/Frame/Workfront/ClickUp visual chrome                                                                   |
+| PV-G-07 | No marketing-site hero type or gradients                                                                          |
+| PV-G-08 | Color not the only status signal                                                                                  |
+| PV-G-09 | EN+AR, LTR/RTL, no overflow at 1440/1024/390                                                                      |
+| PV-G-10 | Demo/external honesty unchanged                                                                                   |
 
 ## Shell (`PV-SHELL-*`)
 
