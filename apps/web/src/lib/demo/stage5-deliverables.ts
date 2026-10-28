@@ -50,6 +50,28 @@ export function currentVersion(row: DeliverableRow) {
   return row.versions.find((v) => v.id === row.currentVersionId) ?? row.versions.at(-1) ?? null;
 }
 
+export function matchesReviewSearch(row: DeliverableRow, query: string): boolean {
+  const needle = query.trim().normalize('NFKC').toLocaleLowerCase();
+  if (!needle) return true;
+  const version = currentVersion(row);
+  return [
+    row.id,
+    row.title.en,
+    row.title.ar,
+    row.owner,
+    row.reviewer,
+    row.type,
+    row.reviewStatus,
+    row.dueAt,
+    version?.label,
+  ].some((value) =>
+    String(value ?? '')
+      .normalize('NFKC')
+      .toLocaleLowerCase()
+      .includes(needle),
+  );
+}
+
 export function approvedVersion(row: DeliverableRow) {
   if (!row.approvedVersionId) return null;
   return row.versions.find((v) => v.id === row.approvedVersionId) ?? null;

@@ -16,6 +16,7 @@ import {
   currentVersion,
   deliverableIsOverdue,
   filterReviewQueue,
+  matchesReviewSearch,
   unresolvedCount,
   type DeliverableRow,
   type ReviewQueueTab,
@@ -70,17 +71,8 @@ export default function ReviewsPage() {
   }, [load]);
 
   const queue = useMemo(() => {
-    let list = filterReviewQueue(rows, tab, reviewerName);
-    const query = q.trim().toLowerCase();
-    if (query) {
-      list = list.filter((r) =>
-        [r.title.en, r.title.ar, r.owner, r.reviewer, r.type]
-          .join(' ')
-          .toLowerCase()
-          .includes(query),
-      );
-    }
-    return list;
+    const list = filterReviewQueue(rows, tab, reviewerName);
+    return list.filter((row) => matchesReviewSearch(row, q));
   }, [rows, tab, q, reviewerName]);
 
   const tabCounts = useMemo(
@@ -157,7 +149,14 @@ export default function ReviewsPage() {
                 className={`oma-ws-tab oma-req-tab oma-reviews-search-tab${searchOpen || q ? ' is-active' : ''}`}
                 data-active={searchOpen || q ? 'true' : 'false'}
                 data-testid="demo-review-search-toggle"
-                onClick={() => setSearchOpen((open) => !open)}
+                onClick={() => {
+                  if (searchOpen || q) {
+                    setSearchOpen(false);
+                    setQ('');
+                  } else {
+                    setSearchOpen(true);
+                  }
+                }}
               >
                 <SearchOutlined aria-hidden />
                 <span>{t('demo.reviews.search')}</span>
@@ -169,13 +168,12 @@ export default function ReviewsPage() {
                 <Input
                   autoFocus={searchOpen}
                   value={q}
+                  type="search"
+                  maxLength={120}
                   data-testid="demo-review-search"
                   placeholder={t('demo.reviews.search')}
                   aria-label={t('demo.reviews.search')}
                   onChange={(e) => setQ(e.target.value)}
-                  onBlur={() => {
-                    if (!q.trim()) setSearchOpen(false);
-                  }}
                 />
                 {q ? (
                   <button

@@ -31,6 +31,20 @@ export class AuthGuard implements CanActivate {
     ) {
       throw new DomainError('UNAUTHENTICATED', 'Session invalid', 401, 'errors.unauthenticated');
     }
+    let activeTenantId = session.activeTenantId;
+    if (activeTenantId) {
+      const membership = await prisma.membership.findFirst({
+        where: { tenantId: activeTenantId, userId: session.userId, status: 'ACTIVE' },
+        select: { id: true },
+      });
+      if (!membership) {
+        await prisma.session.updateMany({
+          where: { userId: session.userId, activeTenantId, revokedAt: null },
+          data: { activeTenantId: null },
+        });
+        activeTenantId = null;
+      }
+    }
     // Throttle the lastSeenAt write: at most once per minute per session (was every request).
     if (Date.now() - session.lastSeenAt.getTime() > 60_000) {
       await prisma.session.update({ where: { id: session.id }, data: { lastSeenAt: new Date() } });
@@ -51,13 +65,13 @@ export class AuthGuard implements CanActivate {
     req.oma = {
       ...(req.oma ?? { correlationId: '', requestId: '', capabilities: [] }),
       userId: session.userId,
-      tenantId: session.activeTenantId ?? undefined,
+      tenantId: activeTenantId ?? undefined,
       capabilities: [],
     };
     (req as Request & { sessionId?: string }).sessionId = session.id;
-    if (session.activeTenantId) {
+    if (activeTenantId) {
       // Per-brand access: non-admins only ever see the brands they are members of.
-      const access = await resolveBrandAccess(session.activeTenantId, session.userId);
+      const access = await resolveBrandAccess(activeTenantId, session.userId);
       req.brandAccess = access;
       applyBrandScope(access);
     }

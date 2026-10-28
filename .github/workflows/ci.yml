@@ -60,7 +60,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
         with:
-          version: 9.15.9
+          version: 10.34.2
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -78,6 +78,8 @@ jobs:
       - run: pnpm --filter @oma/worker build
       - run: NODE_ENV=production pnpm --filter @oma/web build
       - run: pnpm audit:deps
+      - run: pnpm audit:deps:all
+      - run: pnpm security:sql
       - name: Secret scan (no .env committed)
         run: |
           if git ls-files | grep -E '(^|/)\.env$|(^|/)\.env\.local$'; then
@@ -101,7 +103,7 @@ jobs:
           echo $! > /tmp/oma-api.pid
           MAIL_PROVIDER=recording pnpm --filter @oma/worker exec tsx src/main.ts > /tmp/oma-worker.log 2>&1 &
           echo $! > /tmp/oma-worker.pid
-          pnpm --filter @oma/web exec next dev -p 3000 -H 127.0.0.1 > /tmp/oma-web.log 2>&1 &
+          pnpm --filter @oma/web exec next start -p 3000 -H 127.0.0.1 > /tmp/oma-web.log 2>&1 &
           echo $! > /tmp/oma-web.pid
           for i in $(seq 1 60); do
             if curl -sf http://127.0.0.1:3001/api/v1/health/ready >/dev/null \
@@ -137,5 +139,5 @@ jobs:
           done
           sleep 1
           pkill -f 'tsx src/main.ts' 2>/dev/null || true
-          pkill -f 'next dev -p 3000' 2>/dev/null || true
+          pkill -f 'next start -p 3000' 2>/dev/null || true
           true

@@ -7,6 +7,7 @@ import { setupOpenApi } from './openapi';
 import { loadEnv } from '@oma/config';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { securityHeaders } from './common/middleware/security-headers.middleware';
 
 async function bootstrap() {
   const env = loadEnv();
@@ -21,6 +22,7 @@ async function bootstrap() {
       : false,
   });
 
+  app.use(securityHeaders);
   app.use(cookieParser());
   app.setGlobalPrefix('');
 
