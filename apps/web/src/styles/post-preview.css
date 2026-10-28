@@ -724,3 +724,55 @@
     max-width: none;
   }
 }
+
+/* Compact approval pill used in the preview card header. */
+.oma-fp__approval {
+  --pp-primary: #1677ff;
+  --pp-text: #1c1e21;
+  --pp-muted: #65676b;
+  --pp-line: #e4e6eb;
+  --pp-radius: 6px;
+}
+.oma-fp__approval[data-variant='chip'] {
+  flex-direction: row;
+}
+.oma-fp__approve-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid #e4e6eb;
+  border-radius: 999px;
+  background: #fff;
+  color: #65676b;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.oma-fp__approve-chip:hover {
+  background: #f5f6f7;
+}
+.oma-fp__approve-chip[data-state='APPROVED'] {
+  color: #1f8a4c;
+  border-color: #b7e4c7;
+  background: #eefaf2;
+}
+.oma-fp__approve-chip[data-state='PENDING'],
+.oma-fp__approve-chip[data-state='PARTIALLY_APPROVED'] {
+  color: #b26a00;
+  border-color: #f3d9a4;
+  background: #fff8ea;
+}
+.oma-fp__approve-chip[data-state='CHANGES_REQUESTED'],
+.oma-fp__approve-chip[data-state='REJECTED'] {
+  color: #c62828;
+  border-color: #f5c2c2;
+  background: #fff1f1;
+}
+.oma-fp__approval[data-variant='chip'] .oma-fp__pop {
+  inset-block-start: calc(100% + 6px);
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+  z-index: 1100;
+}

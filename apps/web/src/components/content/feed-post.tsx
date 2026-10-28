@@ -76,7 +76,20 @@ const STATE_KEY: Record<PreviewApprovalState, string> = {
   REJECTED: 'preview.approval.rejected',
 };
 
-function ApprovalButton({ a }: { a: FeedApproval }) {
+/**
+ * Approval control with a real step list and lifecycle actions. `float` is the round button
+ * used beside feed posts; `chip` is the compact "✓ approved/required" pill used in the
+ * preview card header.
+ */
+export function ApprovalButton({
+  a,
+  variant = 'float',
+  testId,
+}: {
+  a: FeedApproval;
+  variant?: 'float' | 'chip';
+  testId?: string;
+}) {
   const t = useT();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement | null>(null);
@@ -95,11 +108,13 @@ function ApprovalButton({ a }: { a: FeedApproval }) {
   }, [open]);
   const counter = approvalCounter(a);
   const actionable = a.state === 'PENDING' || a.state === 'PARTIALLY_APPROVED';
+  const chip = variant === 'chip';
+  const chipCount = `${Math.min(a.approved, a.required)}/${a.required}`;
   return (
-    <div className="oma-fp__approval" ref={ref}>
+    <div className="oma-fp__approval" ref={ref} data-variant={variant} data-testid={testId}>
       <button
         type="button"
-        className="oma-fp__approve-btn"
+        className={chip ? 'oma-fp__approve-chip' : 'oma-fp__approve-btn'}
         data-state={a.state}
         aria-haspopup="dialog"
         aria-expanded={open}
@@ -116,8 +131,9 @@ function ApprovalButton({ a }: { a: FeedApproval }) {
             strokeLinejoin="round"
           />
         </svg>
+        {chip ? <span className="oma-ltr">{chipCount}</span> : null}
       </button>
-      {counter ? <span className="oma-fp__counter oma-ltr">{counter}</span> : null}
+      {!chip && counter ? <span className="oma-fp__counter oma-ltr">{counter}</span> : null}
       {open ? (
         <div className="oma-fp__pop" role="dialog" aria-label={t('preview.approval.title')}>
           <div className="oma-fp__pop-head">
