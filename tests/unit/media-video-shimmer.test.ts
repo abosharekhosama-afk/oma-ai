@@ -8,6 +8,7 @@ import {
   videoUrlFor,
 } from '../../apps/web/src/components/content/media-surface';
 import { mediaPlaybackUrl } from '../../apps/api/src/media/media.service';
+import { WorkDriveClient, WorkDriveError, type FetchLike } from '@oma/domain';
 
 const read = (p: string) => readFileSync(p, 'utf8');
 const ID = '01M61PH333ZABJP6TGGXVD9SJF';
@@ -66,5 +67,42 @@ describe('one shimmer per screen', () => {
     const states = read('apps/web/src/styles/states.css');
     expect(states.match(/@keyframes oma-shimmer-sweep/g)?.length).toBe(1);
     expect(read('packages/ui/src/primitives.css')).not.toMatch(/^\.oma-skeleton\s*\{/m);
+  });
+});
+
+describe('production video playback (WorkDrive)', () => {
+  const KEY = `wdk_0123456789ab_${'K'.repeat(43)}`;
+
+  it('returns the WorkDrive /stream 302 instead of failing on it', async () => {
+    const seen: Array<{ url: string; redirect?: RequestRedirect; range?: string | null }> = [];
+    const fetchImpl: FetchLike = async (url, init) => {
+      seen.push({
+        url: String(url),
+        redirect: init?.redirect,
+        range: new Headers(init?.headers).get('range'),
+      });
+      return new Response(null, {
+        status: 302,
+        headers: { location: 'https://storage.example.com/obj?sig=1' },
+      });
+    };
+    const c = new WorkDriveClient('https://wd.example.com', KEY, fetchImpl);
+    const res = await c.stream('f1', 'bytes=0-');
+    expect(res.status).toBe(302);
+    expect(res.headers.get('location')).toBe('https://storage.example.com/obj?sig=1');
+    expect(seen[0]).toMatchObject({ redirect: 'manual', range: 'bytes=0-' });
+  });
+
+  it('still maps real WorkDrive errors', async () => {
+    const fetchImpl: FetchLike = async () =>
+      new Response(JSON.stringify({ message: 'File not found' }), { status: 404 });
+    const c = new WorkDriveClient('https://wd.example.com', KEY, fetchImpl);
+    await expect(c.stream('f1')).rejects.toBeInstanceOf(WorkDriveError);
+  });
+
+  it('media routes redirect videos straight to the signed URL (no proxy hop)', () => {
+    const src = read('apps/api/src/media/media.controller.ts');
+    expect(src).toMatch(/redirectToSigned\(res, r\.url, r\.expires_at\)/);
+    expect(src).not.toMatch(/res\.redirect\(307, `\/api\/v1\/media/);
   });
 });

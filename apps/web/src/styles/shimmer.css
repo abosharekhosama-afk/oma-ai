@@ -369,6 +369,39 @@ span.oma-media-surface {
 .oma-media-surface__fallback {
   background: var(--oma-canvas);
 }
+/* Image/video still downloading: the same synced sweep as the screen shimmers, so a card's
+   media box never flashes empty or black while the first frame arrives. */
+img.oma-media-surface[data-loaded='false'],
+video.oma-media-surface[data-loaded='false'] {
+  background-color: rgba(15, 23, 42, 0.06);
+  background-image: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0) 35%,
+    rgba(15, 23, 42, 0.1) 50%,
+    rgba(255, 255, 255, 0) 65%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-repeat: no-repeat;
+  background-size: 60vw 100%;
+  background-attachment: fixed;
+  animation: oma-shimmer-sweep 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+img.oma-media-surface[data-loaded='false'] {
+  /* hide the alt text / broken-image glyph while bytes are in flight */
+  color: transparent;
+}
+[dir='rtl'] img.oma-media-surface[data-loaded='false'],
+[dir='rtl'] video.oma-media-surface[data-loaded='false'] {
+  animation-direction: reverse;
+}
+@media (prefers-reduced-motion: reduce) {
+  img.oma-media-surface[data-loaded='false'],
+  video.oma-media-surface[data-loaded='false'] {
+    animation: none;
+    background-image: none;
+  }
+}
 
 @media (max-width: 900px) {
   .oma-shim-cal {
