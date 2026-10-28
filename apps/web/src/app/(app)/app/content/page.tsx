@@ -2,12 +2,12 @@
 
 import dynamic from 'next/dynamic';
 import { Suspense, useEffect } from 'react';
-import { ContentCalSkeleton } from '../../../../components/ui/page-skeleton';
+import { ContentShimmer } from '../../../../components/ui/screen-shimmer';
 
 const loadClient = () => import('./content-client');
 const ContentPage = dynamic(loadClient, {
   ssr: false,
-  loading: () => <ContentCalSkeleton />,
+  loading: () => <ContentShimmer />,
 });
 
 export default function ContentRoutePage() {
@@ -19,7 +19,7 @@ export default function ContentRoutePage() {
       .catch(() => undefined);
   }, []);
   return (
-    <Suspense fallback={<ContentCalSkeleton />}>
+    <Suspense fallback={<ContentShimmer />}>
       <ContentPage />
     </Suspense>
   );

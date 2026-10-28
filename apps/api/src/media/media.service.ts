@@ -32,6 +32,13 @@ const bad = (msg: string, key = 'errors.validation_failed') =>
   new DomainError('VALIDATION_FAILED', msg, 400, key);
 
 export const mediaViewUrl = (id: string) => `/api/v1/media/${id}/view`;
+/**
+ * Stable URL stored on content/ops records. Videos point at the Range-capable `/stream` route so
+ * every client can tell a video from an image by the URL alone (`/view` redirects to a signed
+ * preview URL, which is right for `<img>` but not for `<video>`).
+ */
+export const mediaPlaybackUrl = (id: string, mime?: string | null) =>
+  mime && mime.toLowerCase().startsWith('video/') ? `/api/v1/media/${id}/stream` : mediaViewUrl(id);
 
 /** Capability needed to add media of each kind (checked in addition to brand.read at the guard). */
 export const KIND_CAPABILITY: Record<MediaKind, string> = {
@@ -98,7 +105,12 @@ type Grant = {
 function grantKey() {
   const k = workDriveSecretKey();
   if (!k)
-    throw new DomainError('PROVIDER_NOT_CONFIGURED', 'WorkDrive storage is not enabled on this server', 409, 'errors.workdrive_not_enabled');
+    throw new DomainError(
+      'PROVIDER_NOT_CONFIGURED',
+      'WorkDrive storage is not enabled on this server',
+      409,
+      'errors.workdrive_not_enabled',
+    );
   return createHmac('sha256', k).update('oma-media-upload-grant/v1').digest();
 }
 
@@ -580,7 +592,8 @@ export class MediaService {
     const a = await this.getAsset(tenantId, assetId);
     const { client } = await this.workdrive.requireClient(tenantId);
     try {
-      return await client.stream(a.workdriveFileId, range);
+      const up = await client.stream(a.workdriveFileId, range);
+      return Object.assign(up, { assetMime: a.mime });
     } catch (e) {
       if (e instanceof WorkDriveError && e.code === 'not_found') {
         await this.markMissing(a, true);

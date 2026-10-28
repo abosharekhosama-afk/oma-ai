@@ -7,7 +7,12 @@ import { initials, isPlaceholderAsset } from '../content/post-preview-model';
 import { Skeleton } from '../ui/empty-state';
 import type { ActivityItem } from '../../lib/activity-api';
 import { activityVerb } from '../activity/activity-feed-item';
-import type { HomeAwaitingItem, HomeBrandSummary, HomeChecklistStep, HomeWeekItem } from '../../lib/home-api';
+import type {
+  HomeAwaitingItem,
+  HomeBrandSummary,
+  HomeChecklistStep,
+  HomeWeekItem,
+} from '../../lib/home-api';
 import {
   brandNetworks,
   bucketWeek,
@@ -17,6 +22,7 @@ import {
   setupProgress,
   type HomeComment,
 } from '../../lib/home-view-model';
+import { MediaSurface } from '../content/media-surface';
 
 type Copy = { en: string; ar: string };
 type Tr = (key: string) => string;
@@ -45,7 +51,8 @@ export type HomeViewProps = {
   feedback?: ReactNode;
 };
 
-const pick = (c: Copy | null | undefined, locale: 'en' | 'ar') => (c ? (locale === 'ar' ? c.ar || c.en : c.en) : '');
+const pick = (c: Copy | null | undefined, locale: 'en' | 'ar') =>
+  c ? (locale === 'ar' ? c.ar || c.en : c.en) : '';
 const fill = (s: string, vars: Record<string, string | number>) =>
   Object.entries(vars).reduce((acc, [k, v]) => acc.replace(`{${k}}`, String(v)), s);
 
@@ -58,7 +65,15 @@ function relTime(iso: string, now: Date, locale: 'en' | 'ar') {
   return rtf.format(Math.round(diff / 86400), 'day');
 }
 
-function BrandAvatar({ name, logo, size = 40 }: { name: string; logo: string | null; size?: number }) {
+function BrandAvatar({
+  name,
+  logo,
+  size = 40,
+}: {
+  name: string;
+  logo: string | null;
+  size?: number;
+}) {
   return logo ? (
     <img className="oma-home-avatar" src={logo} alt="" width={size} height={size} />
   ) : (
@@ -70,15 +85,28 @@ function BrandAvatar({ name, logo, size = 40 }: { name: string; logo: string | n
 
 function Thumb({ url, channel, size }: { url: string | null; channel: string; size: 'md' | 'sm' }) {
   return isPlaceholderAsset(url) ? (
-    <span className={`oma-home-thumb oma-home-thumb--${size} oma-home-thumb--empty`} aria-hidden="true">
+    <span
+      className={`oma-home-thumb oma-home-thumb--${size} oma-home-thumb--empty`}
+      aria-hidden="true"
+    >
       <NetworkIcon channel={channel} size={size === 'md' ? 20 : 14} mono />
     </span>
   ) : (
-    <img className={`oma-home-thumb oma-home-thumb--${size}`} src={url!} alt="" loading="lazy" />
+    <MediaSurface className={`oma-home-thumb oma-home-thumb--${size}`} src={url!} alt="" />
   );
 }
 
-function Card({ title, action, children, id }: { title: ReactNode; action?: ReactNode; children: ReactNode; id: string }) {
+function Card({
+  title,
+  action,
+  children,
+  id,
+}: {
+  title: ReactNode;
+  action?: ReactNode;
+  children: ReactNode;
+  id: string;
+}) {
   return (
     <section className="oma-home-card" aria-labelledby={id}>
       <header className="oma-home-card__head">
@@ -104,7 +132,9 @@ function Shimmer({ rows, height = '56px' }: { rows: number; height?: string }) {
 
 export function HomeView(p: HomeViewProps) {
   const { t, locale, now } = p;
-  const greeting = fill(t(`home.v2.greeting.${greetingFor(now.getHours())}`), { name: firstName(p.userName) });
+  const greeting = fill(t(`home.v2.greeting.${greetingFor(now.getHours())}`), {
+    name: firstName(p.userName),
+  });
   const days = bucketWeek(p.week, now, { days: p.weekDays, timezone: p.weekTimezone });
   const progress = setupProgress(p.setup.steps);
   const dayFmt = new Intl.DateTimeFormat(locale, { weekday: 'short', day: 'numeric' });
@@ -113,7 +143,11 @@ export function HomeView(p: HomeViewProps) {
     minute: '2-digit',
     ...(p.weekTimezone ? { timeZone: p.weekTimezone } : {}),
   });
-  const dateFmt = new Intl.DateTimeFormat(locale, { weekday: 'long', month: 'long', day: 'numeric' });
+  const dateFmt = new Intl.DateTimeFormat(locale, {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  });
   const totalAwaiting = p.awaiting.length;
 
   return (
@@ -127,10 +161,16 @@ export function HomeView(p: HomeViewProps) {
           )}
           <p className="oma-home-sub">
             {dateFmt.format(now)}
-            {!p.loading && totalAwaiting > 0 ? ` · ${fill(t('home.v2.needsYou'), { n: totalAwaiting })}` : ''}
+            {!p.loading && totalAwaiting > 0
+              ? ` · ${fill(t('home.v2.needsYou'), { n: totalAwaiting })}`
+              : ''}
           </p>
         </div>
-        <Link href={homeLinks.create} className="oma-home-btn oma-home-btn--primary" data-testid="home-create-post">
+        <Link
+          href={homeLinks.create}
+          className="oma-home-btn oma-home-btn--primary"
+          data-testid="home-create-post"
+        >
           <span aria-hidden="true">+</span> {t('home.v2.createPost')}
         </Link>
       </header>
@@ -162,14 +202,21 @@ export function HomeView(p: HomeViewProps) {
           </div>
         ) : (
           p.brands.map((b) => (
-            <Link key={b.id} href={homeLinks.brand(b.id)} className="oma-home-card oma-home-brand" data-testid="home-brand-card">
+            <Link
+              key={b.id}
+              href={homeLinks.brand(b.id)}
+              className="oma-home-card oma-home-brand"
+              data-testid="home-brand-card"
+            >
               <div className="oma-home-brand__head">
                 <BrandAvatar name={b.name} logo={b.logo_url} />
                 <div className="oma-home-brand__id">
                   <strong className="oma-home-ellipsis">{b.name}</strong>
                   <span className="oma-home-nets">
                     {brandNetworks(b).length ? (
-                      brandNetworks(b).map((c) => <NetworkIcon key={c} channel={c} size={16} title={c} />)
+                      brandNetworks(b).map((c) => (
+                        <NetworkIcon key={c} channel={c} size={16} title={c} />
+                      ))
                     ) : (
                       <span className="oma-home-muted">{t('home.v2.noChannels')}</span>
                     )}
@@ -227,7 +274,8 @@ export function HomeView(p: HomeViewProps) {
                               <NetworkIcon channel={item.channel} size={16} />
                               <strong className="oma-home-ellipsis">{item.brand ?? ''}</strong>
                               <span className="oma-home-muted oma-home-ellipsis">
-                                {item.requested_by ? `· ${item.requested_by} ` : ''}· {relTime(item.requested_at, now, locale)}
+                                {item.requested_by ? `· ${item.requested_by} ` : ''}·{' '}
+                                {relTime(item.requested_at, now, locale)}
                                 {item.progress.required > 1
                                   ? ` · ${item.progress.approved}/${item.progress.required}`
                                   : ''}
@@ -240,13 +288,22 @@ export function HomeView(p: HomeViewProps) {
                           <button
                             type="button"
                             className="oma-home-approve"
-                            aria-label={fill(t('home.v2.approveAria'), { name: caption.slice(0, 60) })}
+                            aria-label={fill(t('home.v2.approveAria'), {
+                              name: caption.slice(0, 60),
+                            })}
                             title={t('home.v2.approve')}
                             onClick={() => p.onApprove(item)}
                             data-testid="home-quick-approve"
                           >
                             <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-                              <path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                              <path
+                                d="M5 12.5l4.5 4.5L19 7.5"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2.2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
                             </svg>
                           </button>
                         ) : null}
@@ -277,13 +334,20 @@ export function HomeView(p: HomeViewProps) {
                         <div className="oma-home-ellipsis">
                           {c.actor ? <strong>{c.actor} </strong> : null}
                           <span className="oma-home-muted">
-                            {label !== `shell.notification.${c.type}` ? label : t('shell.notification.generic')}
-                            {c.context ? ` · ${pick(c.context, locale)}` : ''} · {relTime(c.at, now, locale)}
+                            {label !== `shell.notification.${c.type}`
+                              ? label
+                              : t('shell.notification.generic')}
+                            {c.context ? ` · ${pick(c.context, locale)}` : ''} ·{' '}
+                            {relTime(c.at, now, locale)}
                           </span>
                         </div>
-                        {c.body ? <p className="oma-home-row__text">{pick(c.body, locale)}</p> : null}
+                        {c.body ? (
+                          <p className="oma-home-row__text">{pick(c.body, locale)}</p>
+                        ) : null}
                       </div>
-                      {c.unread ? <span className="oma-home-unread" aria-label={t('home.v2.unread')} /> : null}
+                      {c.unread ? (
+                        <span className="oma-home-unread" aria-label={t('home.v2.unread')} />
+                      ) : null}
                     </>
                   );
                   return (
@@ -323,13 +387,17 @@ export function HomeView(p: HomeViewProps) {
                   {p.loading ? (
                     <Skeleton height="44px" />
                   ) : d.items.length === 0 ? (
-                    <span className="oma-home-muted oma-home-day__none">{t('home.v2.noPosts')}</span>
+                    <span className="oma-home-muted oma-home-day__none">
+                      {t('home.v2.noPosts')}
+                    </span>
                   ) : (
                     <>
                       {d.items.slice(0, 3).map((it) => (
                         <span key={it.id} className="oma-home-day__post">
                           <Thumb url={it.thumbnail_url} channel={it.channel} size="sm" />
-                          <span className="oma-home-day__time">{timeFmt.format(new Date(it.scheduled_at))}</span>
+                          <span className="oma-home-day__time">
+                            {timeFmt.format(new Date(it.scheduled_at))}
+                          </span>
                         </span>
                       ))}
                       {d.items.length > 3 ? (
@@ -347,10 +415,24 @@ export function HomeView(p: HomeViewProps) {
 
         <aside className="oma-home-side">
           {p.setup.visible ? (
-            <section className="oma-home-card oma-home-setup" aria-labelledby="home-setup-heading" data-testid="home-setup">
-              <button type="button" className="oma-home-x" aria-label={t('home.v2.dismissSetup')} onClick={p.setup.onDismiss}>
+            <section
+              className="oma-home-card oma-home-setup"
+              aria-labelledby="home-setup-heading"
+              data-testid="home-setup"
+            >
+              <button
+                type="button"
+                className="oma-home-x"
+                aria-label={t('home.v2.dismissSetup')}
+                onClick={p.setup.onDismiss}
+              >
                 <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  <path
+                    d="M6 6l12 12M18 6L6 18"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
                 </svg>
               </button>
               <h2 id="home-setup-heading" className="oma-home-card__title">
@@ -363,7 +445,9 @@ export function HomeView(p: HomeViewProps) {
                 aria-valuemax={progress.total}
                 aria-valuenow={progress.done}
               >
-                <i style={{ inlineSize: `${(progress.done / Math.max(1, progress.total)) * 100}%` }} />
+                <i
+                  style={{ inlineSize: `${(progress.done / Math.max(1, progress.total)) * 100}%` }}
+                />
               </div>
               <ul className="oma-home-steps">
                 {p.setup.steps.map((s) => (
@@ -414,7 +498,9 @@ export function HomeView(p: HomeViewProps) {
                     <div className="oma-home-row__body">
                       <div>
                         <strong>{a.actor_name}</strong> <span>{activityVerb(t, a)}</span>
-                        {a.target ? <span className="oma-home-muted"> {pick(a.target.name, locale)}</span> : null}
+                        {a.target ? (
+                          <span className="oma-home-muted"> {pick(a.target.name, locale)}</span>
+                        ) : null}
                       </div>
                       <span className="oma-home-muted">{relTime(a.at, now, locale)}</span>
                     </div>

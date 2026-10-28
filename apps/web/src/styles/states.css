@@ -1,28 +1,5 @@
 /* Loading, error and account states — Planable calm. Tokens only. */
 
-/* ---- Skeleton: calm opacity pulse (flat fill, no sweep), matches real layout ---- */
-.oma-skeleton,
-.oma-content-cal-skeleton .oma-skeleton {
-  background: var(--oma-canvas) !important;
-  background-image: none !important;
-  border: 0 !important;
-  animation: oma-skel-pulse 1.6s ease-in-out infinite !important;
-}
-@keyframes oma-skel-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.55;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .oma-skeleton,
-  .oma-content-cal-skeleton .oma-skeleton {
-    animation: none !important;
-  }
-}
 .oma-list-skeleton {
   display: grid;
   gap: var(--space-2);
@@ -60,6 +37,9 @@
 }
 .oma-route-skeleton {
   padding: var(--space-6);
+}
+.oma-route-skeleton--screen {
+  display: contents;
 }
 
 /* ---- Error states (404 / 500 / offline / API) ---- */
@@ -281,36 +261,58 @@
   gap: var(--space-2);
 }
 
-/* ---- Shimmer: same light sweep as the Home screen (antd active skeleton), every screen ---- */
+/* ---- Shimmer: ONE definition for every loading bone in the app ----
+   `.oma-skeleton` (legacy bones on other screens) and `.oma-shim` (screen shimmers) share the
+   same neutral fill and a single light band that sweeps across the whole viewport at once
+   (`background-attachment: fixed`), so every bone on a screen moves in sync. Greys only, no
+   colour; RTL sweeps the other way; static under reduced motion. */
 .oma-skeleton,
-.oma-content-cal-skeleton .oma-skeleton {
-  /* Same neutral sweep as antd's active Skeleton on the Home screen. */
-  background: linear-gradient(
-      90deg,
-      rgba(0, 0, 0, 0.06) 25%,
-      rgba(0, 0, 0, 0.15) 37%,
-      rgba(0, 0, 0, 0.06) 63%
-    )
-    0 0 / 400% 100% !important;
-  animation: oma-shimmer-sweep 1.4s ease infinite !important;
+.oma-shim {
+  --oma-shim-base: rgba(15, 23, 42, 0.06);
+  --oma-shim-glow: rgba(15, 23, 42, 0.1);
+  display: block;
+  flex: none;
+  max-inline-size: 100%;
+  border: 0;
+  border-radius: 6px;
+  background-color: var(--oma-shim-base);
+  background-image: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0) 35%,
+    var(--oma-shim-glow) 50%,
+    rgba(255, 255, 255, 0) 65%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-repeat: no-repeat;
+  background-size: 60vw 100%;
+  background-attachment: fixed;
+  animation: oma-shimmer-sweep 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   opacity: 1;
 }
+.oma-skeleton {
+  min-height: 1em;
+}
+.oma-shim--strong {
+  --oma-shim-base: rgba(15, 23, 42, 0.09);
+}
 [dir='rtl'] .oma-skeleton,
-[dir='rtl'] .oma-content-cal-skeleton .oma-skeleton {
-  animation-direction: reverse !important;
+[dir='rtl'] .oma-shim {
+  animation-direction: reverse;
 }
 @keyframes oma-shimmer-sweep {
   0% {
-    background-position: 100% 50%;
+    background-position: -60vw 0;
   }
   100% {
-    background-position: 0 50%;
+    background-position: 100vw 0;
   }
 }
 @media (prefers-reduced-motion: reduce) {
   .oma-skeleton,
-  .oma-content-cal-skeleton .oma-skeleton {
-    animation: none !important;
+  .oma-shim {
+    animation: none;
+    background-image: none;
   }
 }
 .oma-shimmer-bar {

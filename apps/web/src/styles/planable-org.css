@@ -1373,7 +1373,9 @@
 .oma-cal-cell .oma-post-card--calendar img,
 .oma-cal-cell .oma-post-card--calendar .oma-post-card__media,
 .oma-plx-cal-card .oma-post-card__media,
-.oma-plx-cal-card img {
+.oma-plx-cal-card img,
+.oma-plx-cal-card video,
+.oma-plx-cal-card span.oma-media-surface {
   display: none !important;
   width: 0 !important;
   height: 0 !important;

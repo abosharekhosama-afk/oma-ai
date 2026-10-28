@@ -8,7 +8,7 @@ import {
   errorKindOf,
   type ErrorKind,
 } from '../../../../components/ui/error-state';
-import { ContentCalSkeleton, ContentListSkeleton } from '../../../../components/ui/page-skeleton';
+import { ContentShimmer } from '../../../../components/ui/screen-shimmer';
 import { createPortal } from 'react-dom';
 import { resolveContentWorkflow, type ApprovalPolicy, type DemoGraph } from '@oma/demo';
 import { ContentFace, faceDisplay } from '../../../../components/content/content-card';
@@ -271,7 +271,6 @@ function weekdayForKey(key: string, locale: string): string {
   }).format(d);
 }
 
-
 function IconFilter({ size = 18 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -290,7 +289,13 @@ function IconMedia({ size = 18 }: { size?: number }) {
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden>
       <rect x="3" y="5" width="18" height="14" rx="2.5" stroke="currentColor" strokeWidth="1.8" />
       <circle cx="9" cy="11" r="1.6" fill="currentColor" />
-      <path d="M3 16.5 8.5 12l3.2 3.2L15 12.5l6 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path
+        d="M3 16.5 8.5 12l3.2 3.2L15 12.5l6 4"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </svg>
   );
 }
@@ -301,7 +306,12 @@ function IconShare({ size = 18 }: { size?: number }) {
       <circle cx="18" cy="5" r="2.4" stroke="currentColor" strokeWidth="1.8" />
       <circle cx="6" cy="12" r="2.4" stroke="currentColor" strokeWidth="1.8" />
       <circle cx="18" cy="19" r="2.4" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M8.2 10.8 15.8 6.2M8.2 13.2l7.6 4.6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path
+        d="M8.2 10.8 15.8 6.2M8.2 13.2l7.6 4.6"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -331,7 +341,10 @@ type BrandTemplateCard = {
 
 function templateTitle(tpl: BrandTemplateCard, isAr: boolean): string {
   const localized = isAr ? tpl.name?.ar || tpl.name?.en : tpl.name?.en || tpl.name?.ar;
-  const title = localized || tpl.name_en || (isAr ? tpl.title?.ar || tpl.title?.en : tpl.title?.en || tpl.title?.ar);
+  const title =
+    localized ||
+    tpl.name_en ||
+    (isAr ? tpl.title?.ar || tpl.title?.en : tpl.title?.en || tpl.title?.ar);
   return title && title.trim() ? title : '—';
 }
 
@@ -2669,17 +2682,17 @@ export default function ContentPage() {
             {assignees
               .filter((a) => a && a !== '—' && !isRawId(a))
               .map((a) => (
-              <label key={a} className="oma-filter-check">
-                <input
-                  type="checkbox"
-                  checked={filters.assignee === a}
-                  onChange={() =>
-                    setFilters((f) => ({ ...f, assignee: f.assignee === a ? 'all' : a }))
-                  }
-                />
-                <span>{humanRef(a)}</span>
-              </label>
-            ))}
+                <label key={a} className="oma-filter-check">
+                  <input
+                    type="checkbox"
+                    checked={filters.assignee === a}
+                    onChange={() =>
+                      setFilters((f) => ({ ...f, assignee: f.assignee === a ? 'all' : a }))
+                    }
+                  />
+                  <span>{humanRef(a)}</span>
+                </label>
+              ))}
           </div>
         ) : null}
       </div>
@@ -2930,14 +2943,8 @@ export default function ContentPage() {
 
       {/* Filter chips removed — brand/other filters live in the side panel only. */}
 
-      {/* Layout-matched skeletons instead of the dots loader. */}
-      {loading ? (
-        view === 'calendar' ? (
-          <ContentCalSkeleton />
-        ) : (
-          <ContentListSkeleton label={t('common.loading')} />
-        )
-      ) : null}
+      {/* The same screen shimmer as the route gate / chunk fallback — one continuous loader. */}
+      {loading ? <ContentShimmer embedded /> : null}
       {unavailable ? (
         <DeniedState title={t('demo.unavailable')} body={t('demo.disclosure')} />
       ) : null}
@@ -3453,7 +3460,11 @@ export default function ContentPage() {
                             onClick={() => openItem(item)}
                             className="oma-cal-item"
                           >
-                            <img className="oma-cal-thumb" src={item.previewAsset} alt="" />
+                            <MediaSurface
+                              className="oma-cal-thumb"
+                              src={item.previewAsset}
+                              alt=""
+                            />
                             <span>
                               {pickCopy(item.title, locale)} · {item.channel} ·{' '}
                               {statusLabel(item.status, locale)}
@@ -4156,7 +4167,8 @@ export default function ContentPage() {
                               <div className="oma-plan-post__tip-user">
                                 <span className="oma-plan-post__avatar">O</span>
                                 <span>
-                                  {humanRef(selected.assignee, isAr ? 'عضو الفريق' : 'Team member')} ({t('content.you')})
+                                  {humanRef(selected.assignee, isAr ? 'عضو الفريق' : 'Team member')}{' '}
+                                  ({t('content.you')})
                                 </span>
                               </div>
                             </div>
@@ -4482,9 +4494,7 @@ export default function ContentPage() {
       <Dialog
         open={Boolean(overflowDay)}
         title={
-          overflowDay
-            ? `${t('demo.content.openDay')} · ${overflowDay}`
-            : t('demo.content.openDay')
+          overflowDay ? `${t('demo.content.openDay')} · ${overflowDay}` : t('demo.content.openDay')
         }
         onClose={() => setOverflowDay(null)}
         size="lg"
@@ -4983,7 +4993,7 @@ export default function ContentPage() {
                   >
                     <div className="oma-template-card__media" aria-hidden>
                       {tpl.preview_asset_url ? (
-                        <img src={tpl.preview_asset_url} alt="" />
+                        <MediaSurface src={tpl.preview_asset_url} alt="" />
                       ) : (
                         <FileTextOutlined />
                       )}
@@ -4992,9 +5002,7 @@ export default function ContentPage() {
                       <strong>{title}</strong>
                       <span className="oma-template-card__meta">
                         {tpl.channel || t('content.no_channel')}
-                        {tpl.content_type
-                          ? ` · ${contentTypeLabel(tpl.content_type, locale)}`
-                          : ''}
+                        {tpl.content_type ? ` · ${contentTypeLabel(tpl.content_type, locale)}` : ''}
                       </span>
                       {caption ? <p>{caption}</p> : null}
                       {tpl.labels && tpl.labels.length > 0 ? (

@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import type { ActivityItem } from '../../lib/activity-api';
+import { MediaSurface } from '../content/media-surface';
 
 type T = (key: string) => string;
 
@@ -85,8 +86,7 @@ export function ActivityFeedItem({
         {snippet ? <blockquote className="oma-act-item__quote">{snippet}</blockquote> : null}
       </div>
       {target?.thumbnail_url ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img className="oma-act-item__thumb" src={target.thumbnail_url} alt="" loading="lazy" />
+        <MediaSurface className="oma-act-item__thumb" src={target.thumbnail_url} alt="" />
       ) : null}
       <time className="oma-act-item__time" dateTime={item.at} title={fullTime}>
         {relativeTime(item.at, locale)}

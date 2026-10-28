@@ -13,6 +13,7 @@ import {
   versionCreateAllowed,
 } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
+import { mediaPlaybackUrl } from '../media/media.service';
 
 type LocaleInput = { en: string; ar?: string } | string;
 
@@ -27,16 +28,24 @@ function localePair(input: LocaleInput | undefined, fallback = ''): { en: string
 /** `asset_id`: a deliverables/posts MediaAsset of the same brand → stable view URL. */
 async function resolveDeliverableAsset(tenantId: string, brandId: string, value: unknown) {
   if (value === undefined) return undefined;
-  if (value === null || value === '') return { assetId: null as string | null, assetUrl: null as string | null };
+  if (value === null || value === '')
+    return { assetId: null as string | null, assetUrl: null as string | null };
   const a =
     typeof value === 'string'
       ? await getPrisma().mediaAsset.findFirst({
-          where: tenantWhere(tenantId, { id: value, brandId, kind: { in: ['deliverables', 'posts'] } }),
-          select: { id: true },
+          where: tenantWhere(tenantId, {
+            id: value,
+            brandId,
+            kind: { in: ['deliverables', 'posts'] },
+          }),
+          select: { id: true, mime: true },
         })
       : null;
   if (!a) throw new DomainError('NOT_FOUND', 'Media not found', 404, 'errors.not_found');
-  return { assetId: a.id as string | null, assetUrl: `/api/v1/media/${a.id}/view` as string | null };
+  return {
+    assetId: a.id as string | null,
+    assetUrl: mediaPlaybackUrl(a.id, a.mime) as string | null,
+  };
 }
 
 @Injectable()
@@ -323,7 +332,7 @@ export class OpsService {
     const versionMimeMap = new Map<string, string | null>(
       versions.map((version) => [
         version.id,
-        version.assetId ? mimeMap.get(version.assetId) ?? null : null,
+        version.assetId ? (mimeMap.get(version.assetId) ?? null) : null,
       ]),
     );
     return rows.map((row) => {
@@ -335,7 +344,9 @@ export class OpsService {
         ...mapDeliverable({
           ...row,
           assetUrl,
-          assetMime: row.currentVersionId ? versionMimeMap.get(row.currentVersionId) ?? null : null,
+          assetMime: row.currentVersionId
+            ? (versionMimeMap.get(row.currentVersionId) ?? null)
+            : null,
         }),
         created_by_name: userMap.get(row.createdBy) || 'Team member',
         brand_name: brandMap.get(row.brandId) || 'Brand',
@@ -965,7 +976,12 @@ export class OpsService {
     tenantId: string,
     actorUserId: string,
     deliverableId: string,
-    input: { assetUrl?: string | null; asset_id?: string | null; label?: string; notes?: LocaleInput },
+    input: {
+      assetUrl?: string | null;
+      asset_id?: string | null;
+      label?: string;
+      notes?: LocaleInput;
+    },
     correlationId?: string,
   ) {
     const del = await getPrisma().workDeliverable.findFirst({

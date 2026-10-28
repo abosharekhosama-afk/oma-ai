@@ -1,0 +1,396 @@
+/* Screen shimmers (components/ui/screen-shimmer.tsx).
+   Geometry mirrors each real screen so the shimmer is replaced in place without a jump.
+   Bone fill + synchronized sweep live in states.css (`.oma-shim`). Tokens only. */
+
+.oma-shim-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-inline-size: 0;
+  pointer-events: none;
+  user-select: none;
+}
+.oma-shim-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-inline-size: 0;
+}
+.oma-shim-row--between {
+  justify-content: space-between;
+}
+.oma-shim-row--top {
+  align-items: flex-start;
+  gap: 12px;
+}
+.oma-shim-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1 1 auto;
+  min-inline-size: 0;
+}
+.oma-shim-spacer {
+  flex: 1 1 auto;
+}
+.oma-shim-header {
+  margin: 0;
+}
+.oma-shim-header__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-block: 2px;
+}
+.oma-shim-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.oma-shim-toolbar {
+  padding-block: 4px;
+}
+.oma-shim-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 10px 20px 20px;
+}
+
+/* ---------- Content: calendar ---------- */
+.oma-shim-content.oma-shim-screen {
+  gap: 0;
+}
+.oma-shim-cal {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  min-block-size: calc(100vh - 53px);
+  background: var(--oma-surface);
+}
+.oma-shim-cal__main {
+  display: flex;
+  flex-direction: column;
+  min-inline-size: 0;
+  border-inline-start: 1px solid var(--oma-border);
+}
+.oma-shim-cal__toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  block-size: 41px;
+  padding: 0 12px;
+  box-sizing: border-box;
+}
+.oma-shim-cal__dow {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  justify-items: center;
+  padding-block: 4px;
+  border-block: 1px solid var(--oma-border);
+}
+.oma-shim-cal__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-auto-rows: 219px;
+}
+.oma-shim-cal__cell {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 10px;
+  border-inline-end: 1px solid var(--oma-border);
+  border-block-end: 1px solid var(--oma-border);
+  min-inline-size: 0;
+}
+.oma-shim-cal__cell:nth-child(7n) {
+  border-inline-end: 0;
+}
+.oma-shim-cal__post {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--oma-border);
+  border-radius: 8px;
+  background: var(--oma-surface);
+}
+.oma-shim-cal__media {
+  inline-size: 100%;
+  aspect-ratio: 4 / 3;
+  block-size: auto;
+}
+.oma-shim-cal__saved {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 16px;
+  border-inline-start: 1px solid var(--oma-border);
+}
+.oma-shim-cal__saved-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding-block-start: 48px;
+}
+
+/* ---------- Content: stories / feed / grid / list ---------- */
+.oma-shim-stories {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px 11px;
+}
+.oma-shim-stories__row {
+  display: flex;
+  gap: 8px;
+  overflow: hidden;
+}
+.oma-shim-stories__item {
+  inline-size: 72px;
+  block-size: 120px;
+}
+.oma-shim-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  inline-size: min(920px, 100%);
+  margin: 0 auto;
+  padding: 16px 24px 32px;
+  box-sizing: border-box;
+}
+.oma-shim-feed__item {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 476px) minmax(0, 340px);
+  gap: 16px;
+  align-items: start;
+}
+.oma-shim-feed__rail {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-block-start: 12px;
+}
+.oma-shim-feed__post {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--oma-border);
+  border-radius: 12px;
+  background: var(--oma-surface);
+}
+.oma-shim-feed__media {
+  inline-size: 100%;
+  aspect-ratio: 1 / 1;
+  block-size: auto;
+}
+.oma-shim-feed__comments {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 11px;
+  border: 1px solid var(--oma-border);
+  border-radius: 12px;
+  background: var(--oma-surface);
+}
+.oma-shim-pvgrid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  inline-size: min(435px, 100%);
+  margin: 0 auto;
+}
+.oma-shim-pvgrid__tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2px;
+}
+.oma-shim-pvgrid__tile {
+  inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: 145 / 190;
+}
+.oma-shim-plist {
+  display: flex;
+  flex-direction: column;
+  inline-size: min(800px, 100%);
+  margin: 0 auto;
+  padding-block-start: 0;
+}
+.oma-shim-plist__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  block-size: 44px;
+  padding-inline: 15px;
+  border-block-end: 1px solid var(--oma-border);
+}
+.oma-shim-plist__row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  block-size: 69px;
+  padding-inline: 15px;
+  border-block-end: 1px solid var(--oma-border);
+}
+
+/* ---------- Tasks board ---------- */
+.oma-shim-strip__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.oma-shim-kb {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 280px;
+  gap: 12px;
+  padding: 12px 16px;
+  overflow: hidden;
+}
+.oma-shim-kb__col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 12px;
+  background: var(--oma-canvas);
+  min-block-size: 560px;
+}
+.oma-shim-kb__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  block-size: 34px;
+  padding-inline: 4px;
+}
+.oma-shim-kb__card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--oma-border);
+  border-radius: 10px;
+  background: var(--oma-surface);
+}
+.oma-shim-kb__media {
+  inline-size: 100%;
+  block-size: 112px;
+}
+
+/* ---------- Brands ---------- */
+.oma-shim-brands.oma-shim-screen {
+  gap: 0;
+}
+.oma-shim-brand-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-block-size: 169px;
+  box-sizing: border-box;
+}
+
+/* ---------- Tables (requests, list views) ---------- */
+.oma-shim-table {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--oma-border);
+  border-radius: 10px;
+  background: var(--oma-surface);
+  overflow: hidden;
+}
+.oma-shim-table__row {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  min-block-size: 64px;
+  padding: 12px 16px;
+  border-block-end: 1px solid var(--oma-border);
+}
+.oma-shim-table__row:last-child {
+  border-block-end: 0;
+}
+.oma-shim-table__row--head {
+  min-block-size: 40px;
+  background: var(--oma-canvas);
+}
+.oma-shim-table__lead {
+  flex: 0 0 auto;
+  gap: 12px;
+}
+
+/* ---------- Reviews queue ---------- */
+.oma-shim-queue {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.oma-shim-queue__card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 13px 16px;
+  border: 1px solid var(--oma-border);
+  border-radius: 12px;
+  background: var(--oma-surface);
+}
+
+/* ---------- Deliverables grid ---------- */
+.oma-shim-dgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+.oma-shim-dgrid__card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--oma-border);
+  border-radius: 12px;
+  background: var(--oma-surface);
+  overflow: hidden;
+}
+.oma-shim-dgrid__media {
+  inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: 1 / 1;
+  border-radius: 0;
+}
+.oma-shim-dgrid__copy {
+  padding: 10px 12px 14px;
+}
+
+/* ---------- Media surface loading / fallback ---------- */
+span.oma-media-surface {
+  display: block;
+}
+.oma-media-surface__fallback {
+  background: var(--oma-canvas);
+}
+
+@media (max-width: 900px) {
+  .oma-shim-cal {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .oma-shim-cal__saved {
+    display: none;
+  }
+  .oma-shim-cal__grid {
+    grid-auto-rows: 120px;
+  }
+  .oma-shim-feed__item {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .oma-shim-feed__rail,
+  .oma-shim-feed__comments {
+    display: none;
+  }
+  .oma-shim-table__row > :nth-child(n + 4) {
+    display: none;
+  }
+  .oma-shim-queue__card > :last-child {
+    display: none;
+  }
+}

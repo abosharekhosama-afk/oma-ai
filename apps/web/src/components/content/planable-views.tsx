@@ -162,7 +162,7 @@ export function CalendarPostCard({
       </span>
       {showMedia ? (
         <span className="oma-pv-cal-card__media">
-          <img src={media!} alt="" loading="lazy" />
+          <MediaSurface src={media!} alt="" />
         </span>
       ) : null}
       {caption ? (

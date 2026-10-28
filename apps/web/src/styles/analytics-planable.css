@@ -587,7 +587,9 @@
   overflow: hidden;
   background: var(--oma-home-thumb-bg);
 }
-.oma-pa-post__thumb img {
+.oma-pa-post__thumb img,
+.oma-pa-post__thumb video,
+.oma-pa-post__thumb span.oma-media-surface {
   inline-size: 100%;
   block-size: 100%;
   object-fit: cover;
@@ -669,6 +671,8 @@
   background: var(--oma-home-thumb-bg);
 }
 .oma-pa-topcard__media img,
+.oma-pa-topcard__media video,
+.oma-pa-topcard__media span.oma-media-surface,
 .oma-pa-topcard__ph {
   display: block;
   inline-size: 100%;

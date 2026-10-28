@@ -1,5 +1,5 @@
 'use client';
-import { BoardShimmer } from '../../../../components/ui/shimmer';
+import { TasksShimmer } from '../../../../components/ui/screen-shimmer';
 
 import { useReloadOnBrandChange } from '../../../../lib/active-brand';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -758,7 +758,7 @@ export default function TasksPage() {
         </div>
       </div>
 
-      {loading ? <BoardShimmer /> : null}
+      {loading ? <TasksShimmer part="body" /> : null}
       {unavailable ? (
         <p className="oma-muted" data-testid="demo-tasks-denied">
           {t('demo.unavailable')}

@@ -1,5 +1,5 @@
 'use client';
-import { TableShimmer } from '../../../../components/ui/shimmer';
+import { DeliverablesShimmer } from '../../../../components/ui/screen-shimmer';
 import { useReloadOnBrandChange } from '../../../../lib/active-brand';
 import { Button, Input } from '@oma/ui/controls';
 
@@ -25,7 +25,7 @@ import {
   type DeliverableRow,
 } from '../../../../lib/demo/stage5-deliverables';
 import { useLocale, useT } from '../../../../lib/use-locale';
-import { MediaSurface } from '../../../../components/content/media-surface';
+import { MediaSurface, versionMime } from '../../../../components/content/media-surface';
 import {
   AppstoreOutlined,
   BarsOutlined,
@@ -262,7 +262,7 @@ export default function DeliverablesPage() {
           )
         : null}
 
-      {loading ? <TableShimmer rows={6} avatar={false} /> : null}
+      {loading ? <DeliverablesShimmer part="body" /> : null}
       {unavailable ? (
         <p className="oma-muted" data-testid="demo-deliverables-denied">
           {t('demo.unavailable')}
@@ -326,9 +326,9 @@ export default function DeliverablesPage() {
                         {thumb ? (
                           <MediaSurface
                             src={thumb}
+                            mime={versionMime(ver)}
                             contentType={d.type === 'LONG_VIDEO' ? 'REEL' : undefined}
                             alt=""
-                            preload="none"
                           />
                         ) : (
                           <div className="oma-deliv-thumb-fallback" />
@@ -390,10 +390,10 @@ export default function DeliverablesPage() {
                                 {thumb ? (
                                   <MediaSurface
                                     src={thumb}
+                                    mime={versionMime(ver)}
                                     contentType={d.type === 'LONG_VIDEO' ? 'REEL' : undefined}
                                     className="oma-deliv-thumb"
                                     alt=""
-                                    preload="none"
                                   />
                                 ) : (
                                   <div className="oma-deliv-thumb" />

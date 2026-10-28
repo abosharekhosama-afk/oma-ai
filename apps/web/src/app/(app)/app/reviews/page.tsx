@@ -1,5 +1,5 @@
 'use client';
-import { TableShimmer } from '../../../../components/ui/shimmer';
+import { ReviewsShimmer } from '../../../../components/ui/screen-shimmer';
 import { useReloadOnBrandChange } from '../../../../lib/active-brand';
 import { SearchOutlined } from '@ant-design/icons';
 
@@ -23,7 +23,7 @@ import {
 } from '../../../../lib/demo/stage5-deliverables';
 import { loadDeliverablesWorkspace, opsError } from '../../../../lib/ops-api';
 import { useLocale, useT } from '../../../../lib/use-locale';
-import { MediaSurface } from '../../../../components/content/media-surface';
+import { MediaSurface, versionMime } from '../../../../components/content/media-surface';
 
 const TABS: ReviewQueueTab[] = ['all', 'assigned', 'waiting', 'changes', 'approved'];
 
@@ -106,7 +106,7 @@ export default function ReviewsPage() {
         }
       />
 
-      {loading ? <TableShimmer rows={6} avatar={false} /> : null}
+      {loading ? <ReviewsShimmer part="body" /> : null}
       {error ? (
         <div className="oma-card" role="alert">
           <p style={{ color: 'var(--status-danger)', margin: 0 }}>{error}</p>
@@ -218,9 +218,11 @@ export default function ReviewsPage() {
                     {thumb ? (
                       <MediaSurface
                         src={thumb}
-                        contentType={d.type === 'LONG_VIDEO' || d.type === 'REEL' ? 'REEL' : undefined}
+                        mime={versionMime(ver)}
+                        contentType={
+                          d.type === 'LONG_VIDEO' || d.type === 'REEL' ? 'REEL' : undefined
+                        }
                         alt=""
-                        preload="none"
                       />
                     ) : (
                       <div className="oma-deliv-thumb-fallback" aria-hidden />

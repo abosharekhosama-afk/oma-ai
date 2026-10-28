@@ -315,28 +315,7 @@
   border-bottom: 0;
 }
 
-.oma-skeleton {
-  display: block;
-  border-radius: var(--radius-sm);
-  background: linear-gradient(90deg, var(--oma-canvas), var(--oma-skeleton-mid), var(--oma-canvas));
-  background-size: 200% 100%;
-  animation: oma-skeleton-shimmer 1.2s ease-in-out infinite;
-  min-height: 1em;
-}
-@keyframes oma-skeleton-shimmer {
-  0% {
-    background-position: 100% 0;
-  }
-  100% {
-    background-position: -100% 0;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .oma-skeleton {
-    animation: none;
-    background: var(--oma-canvas);
-  }
-}
+/* Loading bones (.oma-skeleton) are defined once in apps/web/src/styles/states.css. */
 
 .oma-empty,
 .oma-error,

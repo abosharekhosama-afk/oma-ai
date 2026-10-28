@@ -125,7 +125,9 @@
 .oma-pv-cal-card__time[data-tone='published'] {
   color: var(--pv-ok);
 }
-.oma-pv-cal-card__media img {
+.oma-pv-cal-card__media img,
+.oma-pv-cal-card__media video,
+.oma-pv-cal-card__media span.oma-media-surface {
   display: block;
   inline-size: 100%;
   aspect-ratio: 4 / 3;
@@ -293,6 +295,7 @@
 }
 .oma-pv-tile img,
 .oma-pv-tile video,
+.oma-pv-tile span.oma-media-surface,
 .oma-pv-tile .oma-media-surface__fallback,
 .oma-pv-tile__ph {
   display: block;
@@ -301,7 +304,8 @@
   object-fit: cover;
 }
 .oma-pv-tile[data-faded='true'] img,
-.oma-pv-tile[data-faded='true'] video {
+.oma-pv-tile[data-faded='true'] video,
+.oma-pv-tile[data-faded='true'] span.oma-media-surface {
   filter: saturate(0.85);
 }
 .oma-pv-tile__top {
@@ -394,6 +398,7 @@
 }
 .oma-pv-story img,
 .oma-pv-story video,
+.oma-pv-story span.oma-media-surface,
 .oma-pv-story .oma-media-surface__fallback {
   display: block;
   inline-size: 100%;

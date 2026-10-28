@@ -1,6 +1,7 @@
 'use client';
 import { DetailShimmer } from '../../../../../components/ui/shimmer';
 import { OmaLinkButton } from '../../../../../components/ui/oma-link-button';
+import { MediaSurface } from '../../../../../components/content/media-surface';
 import { Button } from '@oma/ui/controls';
 
 import Link from 'next/link';
@@ -418,15 +419,13 @@ export default function CampaignDetailPage() {
                           data-testid={`demo-campaign-content-${item.id}`}
                         >
                           <span className="oma-chip-row">
-                            <img
+                            <MediaSurface
                               src={item.previewAsset}
                               alt={mediaAlt(
                                 pickCopy(item.title, locale),
                                 item.channel,
                                 item.contentType,
                               )}
-                              width={32}
-                              height={32}
                               className="oma-content-list-thumb"
                             />
                             <strong>{pickCopy(item.title, locale)}</strong>
@@ -482,15 +481,13 @@ export default function CampaignDetailPage() {
                         data-testid={`demo-campaign-content-${item.id}`}
                       >
                         <span className="oma-chip-row">
-                          <img
+                          <MediaSurface
                             src={item.previewAsset}
                             alt={mediaAlt(
                               pickCopy(item.title, locale),
                               item.channel,
                               item.contentType,
                             )}
-                            width={32}
-                            height={32}
                             className="oma-content-list-thumb"
                           />
                           <strong>{pickCopy(item.title, locale)}</strong>

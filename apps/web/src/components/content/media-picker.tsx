@@ -51,7 +51,7 @@ function MediaShimmer({ rows = 4 }: { rows?: number }) {
   return (
     <div className="oma-mp-loading" aria-busy="true" data-testid="media-shimmer">
       {Array.from({ length: rows }, (_, i) => (
-        <div key={i} className="oma-mp-shimmer" />
+        <div key={i} className="oma-shim oma-mp-shimmer" />
       ))}
     </div>
   );
@@ -363,7 +363,9 @@ export function MediaPickerDialog({
                       ) : null}
                       {browse.files.length ? (
                         <>
-                          <p className="oma-mp-section-title">{t('media.files') || t('media.recent')}</p>
+                          <p className="oma-mp-section-title">
+                            {t('media.files') || t('media.recent')}
+                          </p>
                           <div className="oma-mp-files" data-testid="media-files">
                             {browse.files.map((f) => (
                               <button

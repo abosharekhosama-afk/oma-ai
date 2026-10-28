@@ -3,6 +3,7 @@
 import { NetworkIcon } from './network-icon';
 
 import { resolveContentWorkflow, type ApprovalPolicy, type PublishDisplay } from '@oma/demo';
+import { MediaSurface } from './media-surface';
 
 const labels: Record<PublishDisplay, { en: string; ar: string }> = {
   DRAFT: { en: 'Draft', ar: 'مسودة' },
@@ -205,7 +206,11 @@ export function ContentFace({
         data-selected={selected ? 'true' : 'false'}
         data-publish={display}
       >
-        <img className="oma-post-card__media oma-post-card__media--row" src={asset} alt="" />
+        <MediaSurface
+          className="oma-post-card__media oma-post-card__media--row"
+          src={asset}
+          alt=""
+        />
         <span className="oma-post-card__list-text">
           <span className="oma-post-card__channel-name">{channel}</span>
           <span className="oma-post-card__title">{title}</span>
@@ -221,7 +226,7 @@ export function ContentFace({
       data-selected={selected ? 'true' : 'false'}
       data-publish={display}
     >
-      <img className="oma-post-card__media" src={asset} alt="" />
+      <MediaSurface className="oma-post-card__media" src={asset} alt="" autoPlay />
       <span className="oma-post-card__title">{title}</span>
       {caption ? <span className="oma-post-card__caption">{caption}</span> : null}
     </span>
