@@ -23,7 +23,7 @@ import {
 import { loadDeliverablesWorkspace, opsError } from '../../../../lib/ops-api';
 import { useLocale, useT } from '../../../../lib/use-locale';
 
-const TABS: ReviewQueueTab[] = ['assigned', 'waiting', 'changes', 'approved', 'all'];
+const TABS: ReviewQueueTab[] = ['all', 'assigned', 'waiting', 'changes', 'approved'];
 
 type MeProfile = {
   user?: { name?: string | null; email?: string | null };
@@ -35,6 +35,7 @@ export default function ReviewsPage() {
   const [rows, setRows] = useState<DeliverableRow[]>([]);
   const [tab, setTab] = useState<ReviewQueueTab>('waiting');
   const [q, setQ] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reviewerName, setReviewerName] = useState<string>('');
@@ -126,7 +127,7 @@ export default function ReviewsPage() {
 
       {!loading && !error ? (
         <>
-          <section className="oma-reviews-controls" aria-label={t('demo.reviews.title')}>
+          <section className="oma-reviews-toolbar" aria-label={t('demo.reviews.title')}>
             <div className="oma-reviews-tabs" role="tablist" data-testid="demo-review-tabs">
               {TABS.map((item) => (
                 <button
@@ -146,14 +147,31 @@ export default function ReviewsPage() {
                 </button>
               ))}
             </div>
-            <div className="oma-reviews-search" data-testid="demo-review-search-bar">
-              <SearchOutlined aria-hidden />
+            <div
+              className="oma-reviews-search"
+              data-expanded={searchOpen || q ? 'true' : 'false'}
+              data-testid="demo-review-search-bar"
+            >
+              <button
+                type="button"
+                className="oma-reviews-search__toggle"
+                aria-label={t('demo.reviews.search')}
+                aria-expanded={searchOpen || Boolean(q)}
+                data-testid="demo-review-search-toggle"
+                onClick={() => setSearchOpen((open) => !open)}
+              >
+                <SearchOutlined aria-hidden />
+              </button>
               <Input
+                autoFocus={searchOpen}
                 value={q}
                 data-testid="demo-review-search"
                 placeholder={t('demo.reviews.search')}
                 aria-label={t('demo.reviews.search')}
                 onChange={(e) => setQ(e.target.value)}
+                onBlur={() => {
+                  if (!q.trim()) setSearchOpen(false);
+                }}
               />
               {q ? (
                 <button

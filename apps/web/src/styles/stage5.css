@@ -1822,3 +1822,174 @@
     margin-inline-end: 8px;
   }
 }
+
+/* Reviews toolbar refinement: restore the compact segmented tabs and keep search inline. */
+.oma-reviews-page .oma-reviews-toolbar {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  min-width: 0;
+  margin: 0 !important;
+  padding: 0 0 12px !important;
+  border-bottom: 1px solid #eef0f2 !important;
+}
+.oma-reviews-page .oma-reviews-tabs {
+  display: inline-flex !important;
+  align-items: center;
+  flex: 0 1 auto;
+  gap: 2px !important;
+  width: max-content;
+  max-width: 100%;
+  padding: 3px !important;
+  overflow-x: auto;
+  border: 0 !important;
+  border-radius: 9px;
+  background: #f1f2f4;
+  scrollbar-width: none;
+}
+.oma-reviews-page .oma-reviews-tabs::-webkit-scrollbar {
+  display: none;
+}
+.oma-reviews-page .oma-reviews-tabs__btn {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 32px;
+  padding: 0 11px 0 !important;
+  border: 0 !important;
+  border-radius: 7px !important;
+  background: transparent !important;
+  color: #626a75 !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    color 140ms ease;
+}
+.oma-reviews-page .oma-reviews-tabs__btn:hover {
+  color: #252a32 !important;
+}
+.oma-reviews-page .oma-reviews-tabs__btn[data-active='true'] {
+  background: #fff !important;
+  color: #242932 !important;
+  font-weight: 600 !important;
+  box-shadow: 0 1px 2px rgba(22, 32, 48, 0.08);
+}
+.oma-reviews-page .oma-reviews-tabs__count,
+.oma-reviews-page .oma-reviews-tabs__btn[data-active='true'] .oma-reviews-tabs__count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #eceef1;
+  color: #6c7480;
+  font-size: 10px;
+  font-weight: 600;
+}
+.oma-reviews-page .oma-reviews-tabs__btn[data-active='true'] .oma-reviews-tabs__count {
+  background: #f0f1f3;
+  color: #505864;
+}
+.oma-reviews-page .oma-reviews-search {
+  display: flex !important;
+  align-items: center;
+  flex: 0 1 250px;
+  width: min(250px, 28vw) !important;
+  min-width: 180px;
+  min-height: 36px !important;
+  gap: 7px !important;
+  padding: 0 8px !important;
+  border: 1px solid #e6e9ed !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+.oma-reviews-page .oma-reviews-search:focus-within {
+  border-color: #cbd2dc !important;
+  box-shadow: 0 0 0 2px rgba(84, 102, 130, 0.08) !important;
+}
+.oma-reviews-page .oma-reviews-search__toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 26px;
+  width: 26px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #7b838e;
+  cursor: pointer;
+}
+.oma-reviews-page .oma-reviews-search__toggle:hover {
+  background: #f2f3f5;
+  color: #353c46;
+}
+.oma-reviews-page .oma-reviews-search input {
+  flex: 1 1 auto;
+  width: 100%;
+  height: 34px;
+  min-width: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 12px !important;
+}
+@media (max-width: 760px) {
+  .oma-reviews-page .oma-reviews-toolbar {
+    gap: 8px !important;
+  }
+  .oma-reviews-page .oma-reviews-tabs {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+  }
+  .oma-reviews-page .oma-reviews-tabs__btn {
+    flex: 0 0 auto;
+    padding-inline: 9px !important;
+  }
+  .oma-reviews-page .oma-reviews-search {
+    flex: 0 0 38px;
+    width: 38px !important;
+    min-width: 38px;
+    padding: 0 5px !important;
+    overflow: hidden;
+    transition:
+      width 160ms ease,
+      flex-basis 160ms ease;
+  }
+  .oma-reviews-page .oma-reviews-search[data-expanded='true'] {
+    flex-basis: min(190px, 42vw);
+    width: min(190px, 42vw) !important;
+    min-width: 120px;
+  }
+  .oma-reviews-page .oma-reviews-search input {
+    display: none;
+  }
+  .oma-reviews-page .oma-reviews-search[data-expanded='true'] input {
+    display: block;
+  }
+}
+@media (max-width: 480px) {
+  .oma-reviews-page .oma-reviews-toolbar {
+    align-items: flex-start;
+  }
+  .oma-reviews-page .oma-reviews-tabs__btn {
+    gap: 5px;
+    min-height: 31px;
+    padding-inline: 7px !important;
+    font-size: 11px !important;
+  }
+  .oma-reviews-page .oma-reviews-tabs__count {
+    min-width: 16px;
+    height: 16px;
+    padding-inline: 4px;
+  }
+}
