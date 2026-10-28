@@ -156,9 +156,46 @@ function KanbanCardBody({ task }: { task: TaskRow }) {
   const comments = task.commentCount ?? 0;
   const checkTotal = task.checklistTotal ?? 0;
   const checkDone = task.checklistDone ?? 0;
+  const title = pickCopy(task.title, locale);
+  const mediaUrl = task.previewAsset || '';
+  const isVideo = /\.(mp4|webm|mov)(?:[?#]|$)/i.test(mediaUrl);
 
   return (
     <>
+      <div
+        className="oma-kb-card__media"
+        data-kind={isVideo ? 'video' : mediaUrl ? 'image' : 'empty'}
+      >
+        {mediaUrl ? (
+          isVideo ? (
+            <video
+              src={mediaUrl}
+              poster="/demo/video-poster.svg"
+              muted
+              playsInline
+              preload="metadata"
+              aria-label={title}
+            />
+          ) : (
+            <img src={mediaUrl} alt={title} loading="lazy" />
+          )
+        ) : (
+          <span className="oma-kb-card__media-placeholder" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <rect x="3" y="4" width="18" height="16" rx="3" />
+              <circle cx="8.5" cy="9" r="1.5" />
+              <path d="m5 17 5-5 3 3 2-2 4 4" />
+            </svg>
+          </span>
+        )}
+        {isVideo ? (
+          <span className="oma-kb-card__media-play" aria-hidden="true">
+            <svg viewBox="0 0 20 20" fill="none">
+              <path d="M7.5 5.5v9l7-4.5-7-4.5Z" fill="currentColor" />
+            </svg>
+          </span>
+        ) : null}
+      </div>
       {campaign ? (
         <div className="oma-kb-card__labels">
           <span className="oma-kb-card__tag" data-testid="demo-task-card-campaign">
@@ -166,7 +203,7 @@ function KanbanCardBody({ task }: { task: TaskRow }) {
           </span>
         </div>
       ) : null}
-      <h4 className="oma-kb-card__title">{pickCopy(task.title, locale)}</h4>
+      <h4 className="oma-kb-card__title">{title}</h4>
       {description ? <p className="oma-kb-card__desc">{description}</p> : null}
       {context ? <p className="oma-kb-card__ctx">{context}</p> : null}
       <div className="oma-kb-card__meta">

@@ -677,7 +677,6 @@ html body [data-testid='activity-page-planable'] > .oma-act-feed > .oma-ws-empty
   }
 }
 
-
 /* Deliverables/task filters are anchored to the viewport, not the table surface. */
 .oma-deliv-workspace[data-filter-open='true'] .oma-req-filter-panel {
   position: fixed !important;
@@ -711,4 +710,173 @@ html body [data-testid='activity-page-planable'] > .oma-act-feed > .oma-ws-empty
 }
 .oma-member-table-scroll .oma-ws-table {
   min-width: 900px;
+}
+
+/* Task board: one horizontal status lane; each column owns its vertical card scroll. */
+.oma-tasks-page .oma-kb-board {
+  width: 100% !important;
+  height: min(680px, max(280px, calc(100dvh - 300px))) !important;
+  min-height: 0 !important;
+  max-height: calc(100dvh - 260px) !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  padding: 8px 0 12px !important;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd0d8 transparent;
+}
+.oma-tasks-page .oma-kb-board__grid {
+  display: grid !important;
+  grid-auto-flow: column !important;
+  grid-auto-columns: minmax(250px, 280px) !important;
+  grid-template-columns: none !important;
+  grid-template-rows: minmax(0, 1fr) !important;
+  align-items: stretch !important;
+  gap: 12px !important;
+  width: max-content !important;
+  min-width: 100% !important;
+  height: 100% !important;
+}
+.oma-tasks-page .oma-kb-col {
+  width: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: none !important;
+  max-height: none !important;
+  height: 100% !important;
+  overflow: hidden !important;
+}
+.oma-tasks-page .oma-kb-col__head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  flex: 0 0 auto;
+  background: #f3f4f6;
+}
+.oma-tasks-page .oma-kb-col__cards {
+  flex: 1 1 0% !important;
+  min-height: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd0d8 transparent;
+  padding: 0 2px 4px 0;
+}
+
+/* Planable-inspired task cards: quiet metadata, clear title, visible linked media. */
+.oma-tasks-page .oma-kb-board .oma-kb-card {
+  gap: 9px !important;
+  padding: 9px !important;
+  border-radius: 11px !important;
+  text-align: start !important;
+}
+.oma-kb-card__media {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 112px;
+  flex: 0 0 112px;
+  overflow: hidden;
+  border-radius: 7px;
+  background: #f3f4f6;
+}
+.oma-kb-card__media img,
+.oma-kb-card__media video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: #f3f4f6;
+}
+.oma-kb-card__media[data-kind='empty'] {
+  background: linear-gradient(135deg, #f4f5f7, #e9edf3);
+}
+.oma-kb-card__media-placeholder {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  color: #9ca3af;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.72);
+}
+.oma-kb-card__media-placeholder svg {
+  width: 22px;
+  height: 22px;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.oma-kb-card__media-play {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.oma-kb-card__media-play svg {
+  width: 34px;
+  height: 34px;
+  padding: 8px;
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(17, 24, 39, 0.72);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+.oma-tasks-page .oma-kb-card__labels {
+  margin-block-start: -2px;
+}
+.oma-tasks-page .oma-kb-card__title {
+  display: -webkit-box !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+  color: #1f2937 !important;
+  white-space: normal !important;
+  overflow-wrap: anywhere;
+}
+.oma-tasks-page .oma-kb-card__desc,
+.oma-tasks-page .oma-kb-card__ctx {
+  max-width: 100%;
+  margin: 0 !important;
+  overflow: hidden;
+  color: #6b7280;
+  font-size: 11px;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.oma-tasks-page .oma-kb-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  min-height: 22px;
+  margin-block-start: 1px;
+  white-space: normal;
+}
+[dir='rtl'] .oma-tasks-page .oma-kb-board__grid {
+  direction: rtl;
+}
+@media (max-height: 700px) {
+  .oma-tasks-page .oma-kb-board {
+    height: max(240px, calc(100dvh - 260px)) !important;
+    max-height: calc(100dvh - 220px) !important;
+  }
+}
+@media (max-width: 700px) {
+  .oma-tasks-page .oma-kb-board {
+    height: max(260px, calc(100dvh - 320px)) !important;
+    max-height: calc(100dvh - 280px) !important;
+  }
+  .oma-tasks-page .oma-kb-board__grid {
+    grid-auto-columns: minmax(250px, 82vw) !important;
+  }
 }

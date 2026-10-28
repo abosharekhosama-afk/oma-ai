@@ -686,11 +686,14 @@ export async function loadTasksWorkspace(): Promise<{
 }> {
   const brandRows = await listScopedBrands();
   const brandIds = brandRows.map((b) => b.id);
-  const [campaigns, taskBatches] = await Promise.all([
+  const [campaigns, taskBatches, deliverableBatches] = await Promise.all([
     brandIds.length ? listAllCampaigns(brandIds) : Promise.resolve([]),
     brandIds.length
       ? Promise.all(brandIds.map((id) => listTasks(id)))
       : Promise.resolve([] as ApiWorkTask[][]),
+    brandIds.length
+      ? Promise.all(brandIds.map((id) => listDeliverables(id).catch(() => [])))
+      : Promise.resolve([] as ApiWorkDeliverable[][]),
   ]);
   const campaignNames = new Map(
     campaigns.map((c) => {
@@ -699,12 +702,28 @@ export async function loadTasksWorkspace(): Promise<{
     }),
   );
   const brandNames = new Map(brandRows.map((b) => [b.id, b.name] as const));
+  const deliverables = (deliverableBatches as ApiWorkDeliverable[][]).flat();
+  const previewsByTask = new Map<string, string>();
+  const previewsByContent = new Map<string, string>();
+  for (const deliverable of deliverables) {
+    if (!deliverable.asset_url) continue;
+    if (deliverable.task_id && !previewsByTask.has(deliverable.task_id)) {
+      previewsByTask.set(deliverable.task_id, deliverable.asset_url);
+    }
+    if (deliverable.content_id && !previewsByContent.has(deliverable.content_id)) {
+      previewsByContent.set(deliverable.content_id, deliverable.asset_url);
+    }
+  }
   const tasks = (taskBatches as ApiWorkTask[][]).flat().map((x) => {
     const row = toTaskRow(x);
     return {
       ...row,
       brandName: brandNames.get(row.brandId),
       campaignName: row.campaignId ? (campaignNames.get(row.campaignId) ?? null) : null,
+      previewAsset:
+        (row.deliverableId ? previewsByTask.get(row.id) : undefined) ??
+        (row.contentId ? previewsByContent.get(row.contentId) : undefined) ??
+        null,
     };
   });
   return {
