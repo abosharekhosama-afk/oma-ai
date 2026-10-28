@@ -5,6 +5,7 @@ import { useT } from '../../lib/use-locale';
 import type { CalendarDisplay, CalendarElement } from '../../lib/content-views';
 import { NetworkIcon } from './network-icon';
 import { isPlaceholderAsset } from './post-preview-model';
+import { MediaSurface } from './media-surface';
 
 /* ── shared status glyphs (approved green · pending grey · scheduled blue clock · overdue red) ── */
 
@@ -342,7 +343,7 @@ export function GridTile({
       data-faded={status.published ? 'true' : 'false'}
     >
       {real ? (
-        <img src={media!} alt="" loading="lazy" />
+        <MediaSurface src={media!} contentType={contentType} alt={caption} autoPlay loop />
       ) : (
         <span className="oma-pv-tile__ph" aria-hidden />
       )}
@@ -418,7 +419,7 @@ export function StoriesRow({
               title={s.title}
             >
               {s.media && !isPlaceholderAsset(s.media) ? (
-                <img src={s.media} alt="" />
+                <MediaSurface src={s.media} contentType="STORY" alt={s.title} autoPlay loop />
               ) : (
                 <span className="oma-pv-tile__ph" aria-hidden />
               )}

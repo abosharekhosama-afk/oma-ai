@@ -138,11 +138,18 @@
   background: #f0f2f5;
   overflow: hidden;
 }
-.oma-pp__media img {
+.oma-pp__media img,
+.oma-pp__media video {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+}
+.oma-pp__media .oma-media-surface__fallback {
+  position: absolute;
+  inset: 0;
+  display: block;
+  background: #f5f6f7;
 }
 .oma-pp__media-ph {
   position: absolute;

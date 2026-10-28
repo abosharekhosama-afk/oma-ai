@@ -292,13 +292,16 @@
   cursor: pointer;
 }
 .oma-pv-tile img,
+.oma-pv-tile video,
+.oma-pv-tile .oma-media-surface__fallback,
 .oma-pv-tile__ph {
   display: block;
   inline-size: 100%;
   block-size: 100%;
   object-fit: cover;
 }
-.oma-pv-tile[data-faded='true'] img {
+.oma-pv-tile[data-faded='true'] img,
+.oma-pv-tile[data-faded='true'] video {
   filter: saturate(0.85);
 }
 .oma-pv-tile__top {
@@ -389,7 +392,10 @@
   padding: 0;
   cursor: pointer;
 }
-.oma-pv-story img {
+.oma-pv-story img,
+.oma-pv-story video,
+.oma-pv-story .oma-media-surface__fallback {
+  display: block;
   inline-size: 100%;
   block-size: 100%;
   object-fit: cover;

@@ -15,6 +15,7 @@ import {
   type PreviewContentType,
   type PreviewNetwork,
 } from './post-preview-model';
+import { MediaSurface } from './media-surface';
 
 export type PreviewApprovalState =
   | 'NOT_REQUESTED'
@@ -86,13 +87,19 @@ function Avatar({ name, url, size = 32 }: { name: string; url?: string | null; s
 }
 
 function Media({ ctx, ratio }: { ctx: Ctx; ratio?: string }) {
-  const [failed, setFailed] = useState(false);
   const r = ratio ?? aspectRatioFor(ctx.network, ctx.contentType);
-  const show = ctx.media && !failed && !isPlaceholderAsset(ctx.media);
+  const show = ctx.media && !isPlaceholderAsset(ctx.media);
   return (
     <div className="oma-pp__media" style={{ aspectRatio: r }} data-ratio={r}>
       {show ? (
-        <img src={ctx.media!} alt={ctx.title || ''} onError={() => setFailed(true)} />
+        <MediaSurface
+          src={ctx.media!}
+          contentType={ctx.contentType}
+          alt={ctx.title || ''}
+          className="oma-pp__media-content"
+          autoPlay={ctx.size !== 'detail'}
+          loop={ctx.size !== 'detail'}
+        />
       ) : (
         <div className="oma-pp__media-ph">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden>

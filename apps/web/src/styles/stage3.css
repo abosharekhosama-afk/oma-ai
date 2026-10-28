@@ -4581,7 +4581,8 @@ button.oma-cal-item {
   align-items: center !important;
   justify-content: center !important;
 }
-.oma-plan-list__thumb img {
+.oma-plan-list__thumb img,
+.oma-plan-list__thumb video {
   width: 100% !important;
   height: 100% !important;
   object-fit: cover !important;

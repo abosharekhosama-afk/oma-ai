@@ -14,6 +14,7 @@ import { resolveContentWorkflow, type ApprovalPolicy, type DemoGraph } from '@om
 import { ContentFace, faceDisplay } from '../../../../components/content/content-card';
 import { PostPreview } from '../../../../components/content/post-preview';
 import { FeedPost, type FeedComment } from '../../../../components/content/feed-post';
+import { MediaSurface } from '../../../../components/content/media-surface';
 import { listWorkspaceMembers, type WorkspaceMember } from '../../../../lib/team-api';
 import { NetworkIcon } from '../../../../components/content/network-icon';
 import {
@@ -3620,7 +3621,13 @@ export default function ContentPage() {
                   </label>
                   <div className="oma-plan-list__thumb" aria-hidden>
                     {item.previewAsset ? (
-                      <img src={item.previewAsset} alt="" />
+                      <MediaSurface
+                        src={item.previewAsset}
+                        contentType={item.contentType}
+                        alt={pickCopy(item.title, locale)}
+                        autoPlay
+                        loop
+                      />
                     ) : (
                       <span className="oma-plan-list__thumb-ph">▣</span>
                     )}
