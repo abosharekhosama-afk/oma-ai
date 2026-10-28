@@ -33,15 +33,17 @@ type OutboxIngestionPayload = {
 /** Publish PENDING outbox rows into BullMQ queues (real worker path). */
 export async function publishPendingOutbox(connection: IORedis, limit = 50): Promise<number> {
   const prisma = getPrisma();
-  const mailQueue = new Queue('mail', { connection, prefix: process.env.BULLMQ_PREFIX || 'oma' });
-  const ingestionQueue = new Queue('ingestion', {
-    connection,
-    prefix: process.env.BULLMQ_PREFIX || 'oma',
-  });
   const pending = await prisma.outboxEvent.findMany({
     where: { status: 'PENDING' },
     orderBy: { createdAt: 'asc' },
     take: limit,
+  });
+  // Create queue clients only after the database query succeeds. This avoids
+  // leaking BullMQ connections while the managed database is unavailable.
+  const mailQueue = new Queue('mail', { connection, prefix: process.env.BULLMQ_PREFIX || 'oma' });
+  const ingestionQueue = new Queue('ingestion', {
+    connection,
+    prefix: process.env.BULLMQ_PREFIX || 'oma',
   });
   let published = 0;
   for (const event of pending) {
