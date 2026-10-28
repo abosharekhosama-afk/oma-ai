@@ -9,6 +9,7 @@ import {
   PlayCircleOutlined,
 } from '@ant-design/icons';
 import { Button, Modal, Progress, Tabs } from 'antd';
+import { MediaSurface } from './media-surface';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { getApiError } from '../../lib/brand-api';
 import {
@@ -68,18 +69,15 @@ export function MediaThumb({ asset, t }: { asset: MediaAsset; t: Tr }) {
         {t('media.missingShort')}
       </span>
     );
-  if (asset.mime.startsWith('video/'))
+  if (asset.mime.startsWith('video/') || asset.mime.startsWith('image/'))
     return (
-      <video
+      <MediaSurface
         className="oma-mp-thumb"
-        src={asset.stream_url ?? undefined}
-        preload="metadata"
-        muted
-        aria-label={asset.name}
+        src={(asset.mime.startsWith('video/') ? asset.stream_url : null) ?? asset.view_url}
+        mime={asset.mime}
+        alt={asset.name}
       />
     );
-  if (asset.mime.startsWith('image/'))
-    return <img className="oma-mp-thumb" src={asset.view_url} alt={asset.name} loading="lazy" />;
   return <span className="oma-mp-thumb oma-mp-thumb--file">{asset.name.split('.').pop()}</span>;
 }
 

@@ -280,13 +280,31 @@ export class WorkDriveClient {
       'download_url',
     );
   }
-  /** Raw byte stream (supports HTTP Range) for video playback through the OMA API. */
-  stream(id: string, range?: string | null) {
-    return this.call(
-      `/files/${encodeURIComponent(id)}/stream`,
-      { headers: range ? { range } : {} },
-      120_000,
-    );
+  /**
+   * Raw byte stream (supports HTTP Range). With remote object storage WorkDrive answers with a
+   * 302 to a signed storage URL instead of bytes; that redirect is returned as-is (status 3xx +
+   * `location`) so the caller can send the browser there, never treated as an error.
+   */
+  async stream(id: string, range?: string | null): Promise<Response> {
+    const headers = new Headers(range ? { range } : {});
+    headers.set('authorization', `Bearer ${this.apiKey}`);
+    let res: Response;
+    try {
+      res = await this.fetchImpl(`${this.baseUrl}/files/${encodeURIComponent(id)}/stream`, {
+        headers,
+        redirect: 'manual',
+        signal: AbortSignal.timeout(120_000),
+      });
+    } catch (e) {
+      throw new WorkDriveError('unavailable', `WorkDrive unreachable: ${(e as Error).message}`);
+    }
+    if (res.status >= 300 && res.status < 400) {
+      const location = res.headers.get('location') ?? '';
+      if (/^https?:\/\//.test(location)) return res;
+      throw new WorkDriveError('bad_response', 'WorkDrive stream redirect without a location');
+    }
+    if (!res.ok) await this.fail(res);
+    return res;
   }
   async trash(id: string) {
     await this.call(`/files/${encodeURIComponent(id)}`, { method: 'DELETE' });

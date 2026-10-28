@@ -137,28 +137,39 @@ export class MediaController {
     return { data: { url: r.url, expires_at: r.expires_at } };
   }
 
-  /** Stable URL stored in logoUrl / previewAssetUrl / assetUrl: redirects to a fresh signed URL. */
+  /**
+   * Stable URL stored in logoUrl / previewAssetUrl / assetUrl. Images *and* videos redirect to the
+   * signed inline WorkDrive URL: real bytes with the stored MIME and HTTP Range, served straight
+   * from storage (no proxy hop through Vercel/API). The redirect itself is cacheable for as long
+   * as the signed URL stays valid, so revisiting a screen costs no API round trip at all.
+   */
   @Get('api/v1/media/:assetId/view')
   @UseGuards(AuthGuard, CapabilitiesGuard)
   async view(@Req() req: Request, @Res() res: Response, @Param('assetId') assetId: string) {
-    const tenantId = ctx(req).tenantId;
-    const asset = await mediaService.getAsset(tenantId, assetId);
-    if (asset.mime?.toLowerCase().startsWith('video/')) {
-      // A signed *preview* URL is an image/HTML preview, not playable bytes: videos always go
-      // through the Range-capable stream so `<video src=".../view">` keeps working too.
-      res.setHeader('cache-control', 'private, max-age=300');
-      return res.redirect(307, `/api/v1/media/${encodeURIComponent(assetId)}/stream`);
-    }
-    const r = await mediaService.signedUrl(tenantId, assetId, 'preview');
-    res.setHeader('cache-control', 'private, max-age=300');
-    res.redirect(302, r.url);
+    const r = await mediaService.signedUrl(ctx(req).tenantId, assetId, 'preview');
+    redirectToSigned(res, r.url, r.expires_at);
   }
 
-  /** Byte stream with Range support (video playback). */
+  /**
+   * Video URL (`/stream` marks the asset as a video for clients). Plays from the same signed
+   * inline URL as `/view`; only when WorkDrive cannot sign one does it fall back to proxying the
+   * byte stream (and if WorkDrive itself redirects, the browser is sent to that location).
+   */
   @Get('api/v1/media/:assetId/stream')
   @UseGuards(AuthGuard, CapabilitiesGuard)
   async stream(@Req() req: Request, @Res() res: Response, @Param('assetId') assetId: string) {
-    const up = await mediaService.stream(ctx(req).tenantId, assetId, req.headers.range);
+    const tenantId = ctx(req).tenantId;
+    try {
+      const r = await mediaService.signedUrl(tenantId, assetId, 'preview');
+      return redirectToSigned(res, r.url, r.expires_at);
+    } catch (e) {
+      if (e instanceof DomainError && (e.status === 404 || e.status === 410)) throw e;
+    }
+    const up = await mediaService.stream(tenantId, assetId, req.headers.range);
+    if (up.status >= 300 && up.status < 400) {
+      res.setHeader('cache-control', 'private, no-store');
+      return res.redirect(302, up.headers.get('location') as string);
+    }
     res.status(up.status);
     for (const h of [
       'content-type',
@@ -182,4 +193,12 @@ export class MediaController {
     req.on('close', () => node.destroy());
     node.pipe(res);
   }
+}
+
+/** Redirect cache lifetime: the signed URL's remaining validity minus a safety margin (≤ 10 min). */
+function redirectToSigned(res: Response, url: string, expiresAt: string) {
+  const left = Math.floor((Date.parse(expiresAt) - Date.now()) / 1000) - 90;
+  const maxAge = Math.max(0, Math.min(600, left));
+  res.setHeader('cache-control', maxAge > 0 ? `private, max-age=${maxAge}` : 'private, no-store');
+  res.redirect(302, url);
 }

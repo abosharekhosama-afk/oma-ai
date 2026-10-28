@@ -66,13 +66,16 @@ export function kindFromUrl(src: string): MediaKind | null {
   return null;
 }
 
-/** Video playback goes through the Range-capable OMA stream route, never the image redirect. */
+/**
+ * Videos use the `/stream` route. The API redirects it to the signed inline WorkDrive URL (real
+ * bytes + HTTP Range), so playback comes straight from storage.
+ */
 export function videoUrlFor(src: string): string {
   const id = mediaIdFromUrl(src);
   return id ? `/api/v1/media/${id}/stream` : src;
 }
 
-/** Image rendering uses the stable view route (redirects to a fresh signed preview URL). */
+/** Images use the stable view route (redirects to the signed inline WorkDrive URL). */
 function imageUrlFor(src: string): string {
   const id = mediaIdFromUrl(src);
   return id ? `/api/v1/media/${id}/view` : src;
@@ -132,10 +135,15 @@ export function MediaSurface({
   const [resolving, setResolving] = useState(() => kind === null && !!mediaIdFromUrl(src));
   // Each kind is tried at most once; after both fail we show the neutral fallback.
   const [failed, setFailed] = useState<Record<MediaKind, boolean>>({ image: false, video: false });
+  // Until the first image/video frame is decoded, the box shows the shared shimmer instead of
+  // an empty (or black) rectangle.
+  const [loaded, setLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement | null>(null);
 
   useEffect(() => {
     const known = initialKind(src, mime);
     setFailed({ image: false, video: false });
+    setLoaded(false);
     if (known) {
       setKind(known);
       setResolving(false);
@@ -167,8 +175,15 @@ export function MediaSurface({
     const next = { ...failed, [which]: true };
     const other: MediaKind = which === 'image' ? 'video' : 'image';
     setFailed(next);
+    setLoaded(false);
     if (!next[other]) setKind(other);
   };
+
+  // Images served from the HTTP cache can finish before React attaches `onLoad`.
+  useEffect(() => {
+    const img = imgRef.current;
+    if (kind === 'image' && img?.complete && img.naturalWidth > 0) setLoaded(true);
+  }, [kind, src]);
 
   if (resolving || kind === null) {
     return (
@@ -193,6 +208,8 @@ export function MediaSurface({
         loop={loop || autoPlay}
         controls={controls}
         preload={preload}
+        loaded={loaded}
+        onReady={() => setLoaded(true)}
         onError={() => fail('video')}
       />
     );
@@ -201,12 +218,16 @@ export function MediaSurface({
   if (kind === 'image' && !failed.image) {
     return (
       <img
+        ref={imgRef}
         className={classes}
         src={imageUrlFor(src)}
         alt={alt}
         loading={preload === 'auto' ? 'eager' : 'lazy'}
+        fetchPriority={preload === 'auto' ? 'high' : undefined}
         decoding="async"
         data-media-kind="image"
+        data-loaded={loaded ? 'true' : 'false'}
+        onLoad={() => setLoaded(true)}
         onError={() => fail('image')}
       />
     );
@@ -230,6 +251,8 @@ function MediaVideo({
   loop,
   controls,
   preload,
+  loaded,
+  onReady,
   onError,
 }: {
   className: string;
@@ -240,6 +263,8 @@ function MediaVideo({
   loop: boolean;
   controls: boolean;
   preload?: 'none' | 'metadata' | 'auto';
+  loaded: boolean;
+  onReady: () => void;
   onError: () => void;
 }) {
   const ref = useRef<HTMLVideoElement | null>(null);
@@ -294,6 +319,8 @@ function MediaVideo({
       preload={effectivePreload}
       aria-label={alt || undefined}
       data-media-kind="video"
+      data-loaded={loaded || poster ? 'true' : 'false'}
+      onLoadedData={onReady}
       onError={onError}
     />
   );

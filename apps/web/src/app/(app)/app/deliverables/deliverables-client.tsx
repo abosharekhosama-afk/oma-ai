@@ -4,6 +4,7 @@ import { useReloadOnBrandChange } from '../../../../lib/active-brand';
 import { Button, Input } from '@oma/ui/controls';
 
 import Link from 'next/link';
+import { MediaSurface, versionMime } from '../../../../components/content/media-surface';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -323,7 +324,7 @@ export default function DeliverablesPage() {
                         data-testid={`demo-deliv-card-${d.id}`}
                       >
                         {thumb ? (
-                          <img src={thumb} alt="" />
+                          <MediaSurface src={thumb} mime={versionMime(ver)} alt="" />
                         ) : (
                           <div className="oma-deliv-thumb-fallback" />
                         )}
@@ -382,7 +383,12 @@ export default function DeliverablesPage() {
                             >
                               <td>
                                 {thumb ? (
-                                  <img className="oma-deliv-thumb" src={thumb} alt="" />
+                                  <MediaSurface
+                                    className="oma-deliv-thumb"
+                                    src={thumb}
+                                    mime={versionMime(ver)}
+                                    alt=""
+                                  />
                                 ) : (
                                   <div className="oma-deliv-thumb" />
                                 )}

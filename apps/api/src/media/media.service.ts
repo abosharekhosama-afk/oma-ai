@@ -33,9 +33,9 @@ const bad = (msg: string, key = 'errors.validation_failed') =>
 
 export const mediaViewUrl = (id: string) => `/api/v1/media/${id}/view`;
 /**
- * Stable URL stored on content/ops records. Videos point at the Range-capable `/stream` route so
- * every client can tell a video from an image by the URL alone (`/view` redirects to a signed
- * preview URL, which is right for `<img>` but not for `<video>`).
+ * Stable URL stored on content/ops records. Videos point at `/stream` so every client can tell a
+ * video from an image by the URL alone. Both routes redirect to the same signed inline WorkDrive
+ * URL (real bytes, stored MIME, HTTP Range), so the browser plays/loads straight from storage.
  */
 export const mediaPlaybackUrl = (id: string, mime?: string | null) =>
   mime && mime.toLowerCase().startsWith('video/') ? `/api/v1/media/${id}/stream` : mediaViewUrl(id);
@@ -563,7 +563,11 @@ export class MediaService {
     };
   }
 
-  /** Fresh signed URL (preview = inline, download = attachment). */
+  /**
+   * Fresh signed URL (preview = inline bytes with the stored MIME and HTTP Range, download =
+   * attachment). Always checked against WorkDrive so removed files / disconnects show at once;
+   * repeat loads are absorbed by the browser caching the `/view` / `/stream` redirect.
+   */
   async signedUrl(tenantId: string, assetId: string, mode: 'preview' | 'download') {
     const a = await this.getAsset(tenantId, assetId);
     const { client } = await this.workdrive.requireClient(tenantId);
@@ -573,7 +577,7 @@ export class MediaService {
           ? await client.downloadUrl(a.workdriveFileId)
           : await client.previewUrl(a.workdriveFileId);
       if (a.status === 'MISSING') await this.markMissing(a, false);
-      return { url: s.url, expires_at: s.expiresAt.toISOString(), asset: a };
+      return { url: s.url, expires_at: s.expiresAt.toISOString(), mime: a.mime };
     } catch (e) {
       if (e instanceof WorkDriveError && e.code === 'not_found') {
         await this.markMissing(a, true);

@@ -19,6 +19,8 @@ export async function startFakeWorkDrive(opts: {
   scopes?: string[];
   rootName?: string | null;
   orgName?: string;
+  /** Behave like WorkDrive on remote object storage: `/files/:id/stream` → 302 signed URL. */
+  streamRedirect?: boolean;
 }) {
   const rootId = randomUUID();
   const folders = new Map<string, { id: string; name: string; parentId: string | null }>();
@@ -91,9 +93,8 @@ export async function startFakeWorkDrive(opts: {
       }
       const f = files.get(tok);
       if (!f || f.trashed) return send(404, { message: 'not found' });
-      res.writeHead(200, { 'content-type': f.mimeType, 'content-length': String(f.size) });
-      res.end(f.bytes ?? Buffer.alloc(f.size));
-      return;
+      // Like real WorkDrive signed URLs: stored MIME + HTTP Range (video seeking / Safari).
+      return sendBytes(res, f.mimeType, f.bytes ?? Buffer.alloc(f.size), req.headers.range);
     }
     if (req.headers.authorization !== `Bearer ${opts.key}`)
       return send(401, { message: 'Invalid integration key' });
@@ -268,23 +269,13 @@ export async function startFakeWorkDrive(opts: {
           expires_in_seconds: 900,
           file_id: f.id,
         });
-      const bytes = f.bytes ?? Buffer.alloc(f.size);
-      const r = /bytes=(\d+)-(\d*)/.exec(String(req.headers.range ?? ''));
-      if (r) {
-        const start = Number(r[1]);
-        const end = r[2] ? Number(r[2]) : bytes.length - 1;
-        res.writeHead(206, {
-          'content-type': f.mimeType,
-          'content-range': `bytes ${start}-${end}/${bytes.length}`,
-          'content-length': String(end - start + 1),
-          'accept-ranges': 'bytes',
-        });
-        res.end(bytes.subarray(start, end + 1));
-      } else {
-        res.writeHead(200, { 'content-type': f.mimeType, 'content-length': String(bytes.length) });
-        res.end(bytes);
+      // WorkDrive with remote object storage answers `/stream` with a 302 to a signed URL.
+      if (opts.streamRedirect) {
+        res.writeHead(302, { location: `${base}/storage/objects?token=${f.id}` });
+        res.end();
+        return;
       }
-      return;
+      return sendBytes(res, f.mimeType, f.bytes ?? Buffer.alloc(f.size), req.headers.range);
     }
     if ((m = /^\/files\/([^/]+)$/.exec(path)) && method === 'DELETE') {
       const f = files.get(m[1]!);
@@ -318,4 +309,31 @@ export async function startFakeWorkDrive(opts: {
 
 export function fakeKey(seed = 'a') {
   return `wdk_${'0123456789ab'}_${seed.repeat(43).slice(0, 43)}`;
+}
+
+function sendBytes(
+  res: import('node:http').ServerResponse,
+  mimeType: string,
+  bytes: Buffer,
+  range: string | undefined,
+) {
+  const r = /bytes=(\d+)-(\d*)/.exec(String(range ?? ''));
+  if (r) {
+    const start = Number(r[1]);
+    const end = r[2] ? Math.min(Number(r[2]), bytes.length - 1) : bytes.length - 1;
+    res.writeHead(206, {
+      'content-type': mimeType,
+      'content-range': `bytes ${start}-${end}/${bytes.length}`,
+      'content-length': String(end - start + 1),
+      'accept-ranges': 'bytes',
+    });
+    res.end(bytes.subarray(start, end + 1));
+    return;
+  }
+  res.writeHead(200, {
+    'content-type': mimeType,
+    'content-length': String(bytes.length),
+    'accept-ranges': 'bytes',
+  });
+  res.end(bytes);
 }
