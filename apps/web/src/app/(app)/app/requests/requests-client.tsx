@@ -10,6 +10,7 @@ import type { DemoGraph } from '@oma/demo';
 import { Button, DatePicker, Input, OmaSelect, TextArea } from '@oma/ui/controls';
 import dayjs from 'dayjs';
 import { Dialog } from '../../../../components/ui/dialog';
+import { ChannelChoiceCards } from '../../../../components/content/channel-choice-cards';
 import { EmptyState } from '../../../../components/ui/empty-state';
 import { Panel } from '../../../../components/ui/page-header';
 import { StatusChip, statusLabel as enumStatusLabel } from '../../../../components/ui/status-chip';
@@ -72,13 +73,136 @@ function initials(value: string): string {
   return `${parts[0]![0] ?? ''}${parts[1]![0] ?? ''}`.toUpperCase();
 }
 
-function formatWhen(iso?: string) {
+function formatWhen(iso: string | undefined, locale: string) {
   if (!iso) return '—';
   try {
-    return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    return new Date(iso).toLocaleString(locale.toLowerCase().startsWith('ar') ? 'ar' : 'en', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
   } catch {
     return String(iso).slice(0, 10);
   }
+}
+
+function hasRequestBrief(
+  brief:
+    | {
+        objective?: { en?: string; ar?: string };
+        audience?: { en?: string; ar?: string };
+        key_message?: { en?: string; ar?: string };
+      }
+    | undefined,
+) {
+  return Boolean(
+    brief &&
+    [
+      brief.objective?.en,
+      brief.objective?.ar,
+      brief.audience?.en,
+      brief.audience?.ar,
+      brief.key_message?.en,
+      brief.key_message?.ar,
+    ].some((v) => v?.trim()),
+  );
+}
+
+function requestProgress(row: RequestRow, brief: Brief | null) {
+  const apiBrief = (
+    row as RequestRow & {
+      apiBrief?: {
+        objective?: { en?: string; ar?: string };
+        audience?: { en?: string; ar?: string };
+        key_message?: { en?: string; ar?: string };
+      };
+    }
+  ).apiBrief;
+  if (!apiBrief) return requestCompleteness(row, brief);
+  const checks = [
+    Boolean(row.title.en.trim()),
+    Boolean(row.description.en.trim()),
+    Boolean(row.assignee),
+    Boolean(row.campaignId),
+    Boolean(row.channels?.length),
+    Boolean(row.formats?.length),
+    hasRequestBrief(apiBrief),
+    Boolean(apiBrief.objective?.en?.trim() || apiBrief.objective?.ar?.trim()),
+    Boolean(apiBrief.audience?.en?.trim() || apiBrief.audience?.ar?.trim()),
+    Boolean(apiBrief.key_message?.en?.trim() || apiBrief.key_message?.ar?.trim()),
+  ];
+  return Math.round((checks.filter(Boolean).length / checks.length) * 100);
+}
+
+function requestTitleForDisplay(
+  row: RequestRow,
+  brief: Brief | null,
+  locale: string,
+  brand: string,
+) {
+  const title = pickCopy(row.title, locale).trim();
+  if (!/^[0-9A-HJKMNP-TV-Z]{20,30}$/i.test(title)) return title;
+  const apiBrief = (row as RequestRow & { apiBrief?: { objective?: { en?: string; ar?: string } } })
+    .apiBrief;
+  const candidates = [
+    apiBrief?.objective ? pickCopy(apiBrief.objective as { en: string; ar: string }, locale) : '',
+    brief ? pickCopy(brief.overview, locale) : '',
+    brief ? pickCopy(brief.objective, locale) : '',
+    pickCopy(row.description, locale),
+  ];
+  const summary = candidates.find(
+    (candidate) => candidate && !/^[0-9A-HJKMNP-TV-Z]{20,30}$/i.test(candidate.trim()),
+  );
+  if (summary) return summary;
+  return locale.toLowerCase().startsWith('ar')
+    ? `طلب محتوى · ${brand}`
+    : `Content request · ${brand}`;
+}
+
+function missingRequestLabels(row: RequestRow, locale: string) {
+  const ar = locale.toLowerCase().startsWith('ar');
+  const apiBrief = (
+    row as RequestRow & {
+      apiBrief?: {
+        objective?: { en?: string };
+        audience?: { en?: string };
+        key_message?: { en?: string };
+        missing?: string[];
+      };
+    }
+  ).apiBrief;
+  const base = requestMissingFields(row).filter((key) => key !== 'brief');
+  const labels: Record<string, string> = ar
+    ? {
+        assignee: 'المسؤول',
+        campaign: 'الحملة',
+        channels: 'القنوات',
+        formats: 'الصيغ',
+        brief: 'الموجز',
+        objective: 'الهدف',
+        audience: 'الجمهور',
+        key_message: 'الرسالة الرئيسية',
+      }
+    : {
+        assignee: 'Assignee',
+        campaign: 'Campaign',
+        channels: 'Channels',
+        formats: 'Formats',
+        brief: 'Brief',
+        objective: 'Objective',
+        audience: 'Audience',
+        key_message: 'Key message',
+      };
+  const apiMissing = apiBrief
+    ? hasRequestBrief(apiBrief)
+      ? (apiBrief.missing ?? [])
+      : ['brief']
+    : [];
+  return [...new Set([...base, ...apiMissing])].map(
+    (key) => labels[key] ?? key.replaceAll('_', ' '),
+  );
 }
 
 export default function RequestsPage() {
@@ -383,7 +507,7 @@ export default function RequestsPage() {
                     <tbody>
                       {filtered.map((r) => {
                         const brief = briefByRequest.get(r.id) ?? null;
-                        const missing = requestMissingFields(r);
+                        const missing = missingRequestLabels(r, locale);
                         const overdue = requestIsOverdue(r);
                         const next = requestNextAction(r, brief);
                         return (
@@ -400,15 +524,26 @@ export default function RequestsPage() {
                                 </span>
                                 <div>
                                   <Link href={`/app/requests/${r.id}`} className="oma-text-link">
-                                    {pickCopy(r.title, locale)}
+                                    {requestTitleForDisplay(
+                                      r,
+                                      brief,
+                                      locale,
+                                      (r as { brandName?: string }).brandName ||
+                                        brandName(r.brandId),
+                                    )}
                                   </Link>
                                   <div className="oma-muted" style={{ fontSize: 12 }}>
                                     {(r as { brandName?: string }).brandName ||
                                       brandName(r.brandId)}
                                     {' · '}
-                                    {requestCompleteness(r, brief)}% complete
-                                    {missing.length ? ` · missing: ${missing.join(', ')}` : ''}
-                                    {` · updated ${formatWhen(r.updatedAt ?? r.submittedAt)}`}
+                                    {locale.toLowerCase().startsWith('ar')
+                                      ? 'اكتمال الطلب'
+                                      : 'Request completeness'}{' '}
+                                    {requestProgress(r, brief)}%
+                                    {missing.length
+                                      ? ` · ${locale.toLowerCase().startsWith('ar') ? 'ينقصه' : 'Needs'}: ${missing.join('، ')}`
+                                      : ''}
+                                    {` · ${locale.toLowerCase().startsWith('ar') ? 'آخر تحديث' : 'Updated'} ${formatWhen(r.updatedAt ?? r.submittedAt, locale)}`}
                                   </div>
                                 </div>
                               </div>
@@ -487,7 +622,14 @@ export default function RequestsPage() {
                           className="oma-req-mobile-card"
                           data-testid={`demo-request-mobile-${r.id}`}
                         >
-                          <strong>{pickCopy(r.title, locale)}</strong>
+                          <strong>
+                            {requestTitleForDisplay(
+                              r,
+                              brief,
+                              locale,
+                              (r as { brandName?: string }).brandName || brandName(r.brandId),
+                            )}
+                          </strong>
                           <div className="oma-chip-row">
                             <StatusChip status={r.status} />
                             <StatusChip status={r.priority} />
@@ -903,6 +1045,8 @@ export default function RequestsPage() {
         onClose={requestCloseCreate}
         title={t('demo.create.requestTitle')}
         labelledBy="demo-create-request-title"
+        size="xl"
+        className="oma-req-create-dialog"
       >
         <div data-testid="demo-create-request-dialog" className="oma-stack oma-req-create">
           <h2 id="demo-create-request-title" className="oma-dialog-title">
@@ -924,7 +1068,7 @@ export default function RequestsPage() {
               )}
             />
           </label>
-          <label>
+          <label className="oma-req-create__wide">
             {t('demo.create.title')}
             <Input
               value={form.title}
@@ -932,7 +1076,7 @@ export default function RequestsPage() {
               onChange={(e) => patchForm({ title: e.target.value })}
             />
           </label>
-          <label>
+          <label className="oma-req-create__wide">
             {t('demo.requests.description')}
             <TextArea
               rows={3}
@@ -970,14 +1114,17 @@ export default function RequestsPage() {
               onChange={(e) => patchForm({ outcome: e.target.value })}
             />
           </label>
-          <label>
-            {t('demo.create.channels')}
-            <Input
+          <div className="oma-req-create__channels oma-req-create__wide">
+            <span className="oma-req-create__label">{t('demo.create.channels')}</span>
+            <ChannelChoiceCards
+              brandId={form.brandId || null}
               value={form.channels}
-              data-testid="demo-create-request-channels"
-              onChange={(e) => patchForm({ channels: e.target.value })}
+              onChange={(channels) => patchForm({ channels })}
+              locale={locale}
+              multiple
+              testId="demo-create-request-channels"
             />
-          </label>
+          </div>
           <label>
             {t('demo.requests.formats')}
             <Input

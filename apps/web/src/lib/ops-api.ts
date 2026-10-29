@@ -149,6 +149,7 @@ export function toRequestRow(r: ApiWorkRequest): RequestRow & {
   campaignName?: string | null;
   requesterId?: string;
   assigneeId?: string | null;
+  apiBrief?: ApiWorkRequest['brief'];
 } {
   const due = r.due_at ? r.due_at.slice(0, 10) : '';
   return {
@@ -171,6 +172,7 @@ export function toRequestRow(r: ApiWorkRequest): RequestRow & {
     brandName: r.brand_name || undefined,
     campaignName: r.campaign_name ?? null,
     briefId: null,
+    apiBrief: r.brief,
     outcome: undefined,
     formats: r.formats ?? [],
     channels: r.channels ?? [],

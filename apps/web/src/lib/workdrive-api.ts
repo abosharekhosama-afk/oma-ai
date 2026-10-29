@@ -72,9 +72,14 @@ export const mediaApi = {
       `/api/v1/brands/${brandId}/media${kind ? `?kind=${kind}` : ''}`,
     );
   },
-  browse: (brandId: string, kind: MediaKind, folderId?: string) =>
+  browse: (
+    brandId: string,
+    kind: MediaKind,
+    folderId?: string,
+    scope: 'brand' | 'organization' = 'brand',
+  ) =>
     api<{ data: WorkDriveBrowse }>(
-      `/api/v1/brands/${brandId}/media/browse?kind=${kind}${folderId ? `&folder_id=${encodeURIComponent(folderId)}` : ''}`,
+      `/api/v1/brands/${brandId}/media/browse?kind=${kind}&scope=${scope}${folderId ? `&folder_id=${encodeURIComponent(folderId)}` : ''}`,
     ),
   importFile: (brandId: string, kind: MediaKind, fileId: string) =>
     api<{ data: MediaAsset }>(
