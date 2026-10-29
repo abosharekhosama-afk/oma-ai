@@ -489,16 +489,50 @@ export class MediaService {
     return { data: mapAsset(row) };
   }
 
-  /** Browse WorkDrive folders for the picker. Starts at the brand folder; never above the key root. */
-  async browse(tenantId: string, brandId: string, q: { folder_id?: string; kind?: string }) {
+  /** Browse brand or organization WorkDrive folders; every path stays inside the configured root. */
+  async browse(
+    tenantId: string,
+    brandId: string,
+    q: { folder_id?: string; kind?: string; scope?: string },
+  ) {
     const brand = await this.brand(tenantId, brandId);
     const kind = q.kind ? parseKind(q.kind) : 'posts';
     const c = await this.workdrive.requireClient(tenantId);
     try {
-      const brandFolderId = q.folder_id || (await this.folderFor(c, brand, kind));
-      const f = await c.client.getFolder(brandFolderId);
+      const organizationScope = q.scope === 'organization';
+      const rootFolderId = c.conn.rootFolderId;
+      if (organizationScope && !rootFolderId) {
+        throw new DomainError(
+          'CONFLICT_STATE',
+          'Organization root folder is not configured for WorkDrive',
+          409,
+          'errors.workdrive_not_configured',
+        );
+      }
+      const startFolderId = organizationScope
+        ? rootFolderId!
+        : await this.folderFor(c, brand, kind);
+      const scopeRootId = startFolderId;
+      const folderId = q.folder_id || startFolderId;
+      const f = await c.client.getFolder(folderId);
+      if (f.id !== scopeRootId) {
+        let cursor = f;
+        let insideRoot = false;
+        for (let depth = 0; depth < 32 && cursor.parentId; depth += 1) {
+          if (cursor.parentId === scopeRootId) {
+            insideRoot = true;
+            break;
+          }
+          cursor = await c.client.getFolder(cursor.parentId);
+          if (cursor.id === scopeRootId) {
+            insideRoot = true;
+            break;
+          }
+        }
+        if (!insideRoot) throw notFound();
+      }
       const allowed = allowedMimeFor(kind);
-      const atRoot = !!c.conn.rootFolderId && f.id === c.conn.rootFolderId;
+      const atRoot = f.id === scopeRootId;
       return {
         data: {
           folder: { id: f.id, name: f.name, parent_id: atRoot ? null : f.parentId },

@@ -60,7 +60,10 @@ const json = (method: string, body?: unknown): RequestInit => ({
 export const workDriveApi = {
   status: () => api<{ data: WorkDriveStatus }>('/api/v1/workspace/workdrive'),
   connect: (base_url: string, api_key: string) =>
-    api<{ data: WorkDriveStatus }>('/api/v1/workspace/workdrive', json('PUT', { base_url, api_key })),
+    api<{ data: WorkDriveStatus }>(
+      '/api/v1/workspace/workdrive',
+      json('PUT', { base_url, api_key }),
+    ),
   test: () => api<{ data: WorkDriveStatus }>('/api/v1/workspace/workdrive/test', json('POST', {})),
   disconnect: () => api<{ data: WorkDriveStatus }>('/api/v1/workspace/workdrive', json('DELETE')),
 };
@@ -72,9 +75,14 @@ export const mediaApi = {
       `/api/v1/brands/${brandId}/media${kind ? `?kind=${kind}` : ''}`,
     );
   },
-  browse: (brandId: string, kind: MediaKind, folderId?: string) =>
+  browse: (
+    brandId: string,
+    kind: MediaKind,
+    folderId?: string,
+    scope: 'brand' | 'organization' = 'brand',
+  ) =>
     api<{ data: WorkDriveBrowse }>(
-      `/api/v1/brands/${brandId}/media/browse?kind=${kind}${folderId ? `&folder_id=${encodeURIComponent(folderId)}` : ''}`,
+      `/api/v1/brands/${brandId}/media/browse?kind=${kind}&scope=${scope}${folderId ? `&folder_id=${encodeURIComponent(folderId)}` : ''}`,
     ),
   importFile: (brandId: string, kind: MediaKind, fileId: string) =>
     api<{ data: MediaAsset }>(

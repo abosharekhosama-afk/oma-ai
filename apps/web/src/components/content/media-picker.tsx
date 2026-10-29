@@ -104,10 +104,12 @@ export function MediaPickerDialog({
   const [lib, setLib] = useState<MediaLibrary | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<'upload' | 'workdrive'>('upload');
+  const [browseScope, setBrowseScope] = useState<'brand' | 'organization'>('brand');
   const [progress, setProgress] = useState<{ name: string; value: number } | null>(null);
   const [browse, setBrowse] = useState<WorkDriveBrowse | null>(null);
   const [trail, setTrail] = useState<Array<{ id: string; name: string }>>([]);
   const [browsing, setBrowsing] = useState(false);
+  const isAr = locale.toLowerCase().startsWith('ar');
   const fileInput = useRef<HTMLInputElement>(null);
   const abort = useRef<AbortController | null>(null);
 
@@ -130,15 +132,21 @@ export function MediaPickerDialog({
   }, [open, load]);
 
   const openFolder = useCallback(
-    async (folderId?: string, name?: string, back = false) => {
+    async (
+      folderId?: string,
+      name?: string,
+      back = false,
+      scope: 'brand' | 'organization' = 'brand',
+    ) => {
       if (!brandId) return;
       setBrowsing(true);
       setError(null);
       try {
-        const r = await mediaApi.browse(brandId, kind, folderId);
+        const r = await mediaApi.browse(brandId, kind, folderId, scope);
         setBrowse(r.data);
         setTrail((prev) => {
-          if (!folderId) return [{ id: r.data.folder.id, name: r.data.folder.name }];
+          if (!folderId)
+            return [{ id: r.data.folder.id, name: r.data.folder.name || r.data.root_name || '' }];
           if (back) {
             const i = prev.findIndex((p) => p.id === folderId);
             return i >= 0
@@ -157,8 +165,9 @@ export function MediaPickerDialog({
   );
 
   useEffect(() => {
-    if (open && tab === 'workdrive' && !browse && lib?.workdrive.connected) void openFolder();
-  }, [open, tab, browse, lib, openFolder]);
+    if (open && tab === 'workdrive' && !browse && lib?.workdrive.connected)
+      void openFolder(undefined, undefined, false, browseScope);
+  }, [open, tab, browse, lib, openFolder, browseScope]);
 
   const upload = async (file: File) => {
     if (!brandId || !lib) return;
@@ -313,11 +322,43 @@ export function MediaPickerDialog({
             label: t('media.tabWorkDrive'),
             children: (
               <div className="oma-mp-pane" data-testid="media-browser" aria-busy={browsing}>
+                <div
+                  className="oma-mp-scope"
+                  role="group"
+                  aria-label={isAr ? 'نطاق الملفات' : 'File scope'}
+                >
+                  <button
+                    type="button"
+                    data-active={browseScope === 'brand' ? 'true' : 'false'}
+                    onClick={() => {
+                      setBrowseScope('brand');
+                      setBrowse(null);
+                      setTrail([]);
+                      void openFolder(undefined, undefined, false, 'brand');
+                    }}
+                  >
+                    {isAr ? 'ملفات العلامة' : 'Brand files'}
+                  </button>
+                  <button
+                    type="button"
+                    data-active={browseScope === 'organization' ? 'true' : 'false'}
+                    onClick={() => {
+                      setBrowseScope('organization');
+                      setBrowse(null);
+                      setTrail([]);
+                      void openFolder(undefined, undefined, false, 'organization');
+                    }}
+                  >
+                    {isAr ? 'ملفات المؤسسة' : 'Organization files'}
+                  </button>
+                </div>
                 <nav className="oma-mp-trail" aria-label={t('media.folders')}>
                   {browse?.folder.parent_id && trail.length <= 1 ? (
                     <button
                       type="button"
-                      onClick={() => void openFolder(browse.folder.parent_id!, undefined)}
+                      onClick={() =>
+                        void openFolder(browse.folder.parent_id!, undefined, false, browseScope)
+                      }
                     >
                       {t('media.up')}
                     </button>
@@ -328,7 +369,10 @@ export function MediaPickerDialog({
                       {i === trail.length - 1 ? (
                         <strong>{p.name}</strong>
                       ) : (
-                        <button type="button" onClick={() => void openFolder(p.id, p.name, true)}>
+                        <button
+                          type="button"
+                          onClick={() => void openFolder(p.id, p.name, true, browseScope)}
+                        >
                           {p.name}
                         </button>
                       )}
@@ -348,7 +392,7 @@ export function MediaPickerDialog({
                                 key={f.id}
                                 type="button"
                                 className="oma-mp-folder"
-                                onClick={() => void openFolder(f.id, f.name)}
+                                onClick={() => void openFolder(f.id, f.name, false, browseScope)}
                               >
                                 <span className="oma-mp-folder__ico" aria-hidden>
                                   <FolderOutlined />
@@ -371,6 +415,9 @@ export function MediaPickerDialog({
                                 type="button"
                                 className="oma-mp-file"
                                 data-testid="media-browser-file"
+                                title={[...trail.map((p) => p.name), f.name]
+                                  .filter(Boolean)
+                                  .join(' / ')}
                                 onClick={async () => {
                                   try {
                                     const r = await mediaApi.importFile(brandId, kind, f.id);
@@ -385,6 +432,11 @@ export function MediaPickerDialog({
                                   {fileIcon(f.mime)}
                                 </span>
                                 <span className="oma-mp-file__name">{f.name}</span>
+                                <span className="oma-mp-file__path">
+                                  {[...trail.map((p) => p.name), f.name]
+                                    .filter(Boolean)
+                                    .join(' / ')}
+                                </span>
                                 <span className="oma-mp-file__meta">
                                   {[formatBytes(f.size, locale), formatDate(f.updated_at, locale)]
                                     .filter(Boolean)

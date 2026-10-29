@@ -20,6 +20,7 @@ import {
   type FeedComment,
 } from '../../../../components/content/feed-post';
 import { MediaSurface } from '../../../../components/content/media-surface';
+import { ChannelChoiceCards } from '../../../../components/content/channel-choice-cards';
 import { listWorkspaceMembers, type WorkspaceMember } from '../../../../lib/team-api';
 import { NetworkIcon } from '../../../../components/content/network-icon';
 import {
@@ -123,6 +124,7 @@ import {
   loadContentWorkspace,
   loadContentWorkspaceRest,
   createContentProduction,
+  setContentPublishTarget,
   updateContentProduction,
   requestContentApproval,
   approveContent,
@@ -371,6 +373,7 @@ type ComposeForm = {
   campaignId: string;
   contentType: string;
   channel: string;
+  socialPageId: string | null;
   /** WorkDrive media picked in compose (stored as preview_asset_id). */
   media: MediaAsset | null;
   owner: string;
@@ -565,10 +568,17 @@ function PlanableComposeCard({
               }))}
             />
           </label>
-          <label>
-            {t('demo.filter.channel')}
-            <Input value={form.channel} onChange={(e) => onChange({ channel: e.target.value })} />
-          </label>
+          <div className="oma-compose-channel-field">
+            <span className="oma-compose-field-label">{t('demo.filter.channel')}</span>
+            <ChannelChoiceCards
+              brandId={brandId}
+              value={form.channel}
+              onChange={(channel) => onChange({ channel })}
+              onSelectPage={(socialPageId) => onChange({ socialPageId })}
+              locale={locale}
+              testId="demo-create-content-channels"
+            />
+          </div>
           <label>
             {t('demo.campaigns.col.owner')}
             <Input value={form.owner} onChange={(e) => onChange({ owner: e.target.value })} />
@@ -1074,6 +1084,7 @@ export default function ContentPage() {
     campaignId: '',
     brandId: '',
     channel: 'Instagram',
+    socialPageId: null as string | null,
     contentType: 'POST',
     owner: '',
     // No implicit date: "Save draft" must never schedule.
@@ -2093,6 +2104,18 @@ export default function ContentPage() {
         labels: createForm.labels,
         preview_asset_id: createForm.media?.id ?? null,
       });
+      if (createForm.socialPageId) {
+        try {
+          await setContentPublishTarget(apiCreated.id, createForm.socialPageId);
+        } catch {
+          toast.push(
+            isAr
+              ? 'تم حفظ المسودة، لكن تعذر ربط حساب النشر. يمكنك إعادة ربطه من تفاصيل المنشور.'
+              : 'Draft saved, but the publishing account could not be linked. You can retry from the post details.',
+            'danger',
+          );
+        }
+      }
       const createdRow = toContentRow(apiCreated);
       toast.push(t('demo.create.successContent'), 'success');
       setCreateOpen(false);
@@ -2104,7 +2127,15 @@ export default function ContentPage() {
           setSelectedDay(day);
         }
       }
-      setCreateForm((f) => ({ ...f, title: '', brief: '', caption: '', labels: [], media: null }));
+      setCreateForm((f) => ({
+        ...f,
+        title: '',
+        brief: '',
+        caption: '',
+        labels: [],
+        media: null,
+        socialPageId: null,
+      }));
       openItem(createdRow, 'edit');
       setRows((prev) => (prev.some((r) => r.id === createdRow.id) ? prev : [createdRow, ...prev]));
       void load();
