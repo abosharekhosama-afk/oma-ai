@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { oauthRedirectUri } from '../../apps/api/src/social/social.service';
+import { oauthRedirectUri, safeSocialErrorMessage } from '../../apps/api/src/social/social.service';
 
 describe('social OAuth redirect URIs', () => {
   it('uses the explicit TikTok callback when configured', () => {
@@ -24,5 +24,19 @@ describe('social OAuth redirect URIs', () => {
     expect(
       oauthRedirectUri('tiktok', { SOCIAL_OAUTH_REDIRECT_BASE: 'https://oma-ai-ecru.vercel.app/' }),
     ).toBe('https://oma-ai-ecru.vercel.app/api/v1/social/oauth/tiktok/callback');
+  });
+
+  it('keeps provider diagnostics but redacts OAuth secrets', () => {
+    const message = safeSocialErrorMessage(
+      new Error(
+        'tiktok: invalid_grant?code=oauth-code&access_token=access-secret authorization: Bearer token-secret',
+      ),
+    );
+    expect(message).toContain('invalid_grant');
+    expect(message).toContain('code=[redacted]');
+    expect(message).toContain('access_token=[redacted]');
+    expect(message).not.toContain('oauth-code');
+    expect(message).not.toContain('access-secret');
+    expect(message).not.toContain('token-secret');
   });
 });

@@ -101,9 +101,11 @@ export default function BrandSettingsPage() {
   useEffect(() => {
     const r = search.get('connect');
     if (!r || !CONNECT_RESULT.includes(r)) return;
+    const detail = search.get('connect_error')?.trim();
+    const translated = t(`brandSettings.accounts.result.${r}`);
     setNotice({
       kind: r === 'ok' ? 'success' : r === 'cancelled' ? 'info' : 'error',
-      text: t(`brandSettings.accounts.result.${r}`),
+      text: detail && r !== 'ok' ? `${translated} (${detail})` : translated,
     });
   }, [search, t]);
 

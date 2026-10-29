@@ -20,6 +20,20 @@ import { AuditService } from '../audit/audit.service';
 const STATE_TTL_MS = 15 * 60_000;
 const notFound = () => new DomainError('NOT_FOUND', 'Not found', 404, 'errors.not_found');
 
+/** Keep provider diagnostics useful without reflecting tokens, codes, or long payloads. */
+export function safeSocialErrorMessage(error: unknown): string {
+  const raw = error instanceof Error ? error.message : String(error);
+  return (
+    raw
+      .replace(/([?&](?:code|access_token|refresh_token|client_secret)=)[^&\s]+/gi, '$1[redacted]')
+      .replace(/\b(access_token|refresh_token|client_secret)\s*[:=]\s*[^\s,;]+/gi, '$1=[redacted]')
+      .replace(/\bauthorization\s*[:=]\s*(?:Bearer\s+)?[^\s,;]+/gi, 'authorization=[redacted]')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 240) || 'The provider returned an unknown error'
+  );
+}
+
 /** Public base the OAuth callback is served from (the web origin proxies /api to the API). */
 export function oauthRedirectUri(network: SocialNetworkCode, env = process.env): string {
   const explicit =
@@ -222,7 +236,9 @@ export class SocialService {
       return back(row.brandId, 'ok');
     } catch (e) {
       const reason = e instanceof SocialProviderError ? 'provider_error' : 'error';
-      return back(row.brandId, reason);
+      const detail = safeSocialErrorMessage(e);
+      console.error(`[social-oauth:${network}] ${detail}`);
+      return `${back(row.brandId, reason)}&connect_error=${encodeURIComponent(detail)}`;
     }
   }
 
