@@ -11,6 +11,9 @@ services. No network is ever faked.
 | --- | --- | --- |
 | `SOCIAL_TOKEN_ENCRYPTION_KEY` | API + worker (same value) | 32 random bytes, base64 or hex. Generate: `openssl rand -base64 32`. Tokens are stored AES-256-GCM encrypted with it. Rotating it disconnects every account (they must reconnect). |
 | `SOCIAL_OAUTH_REDIRECT_BASE` | API | Public origin used to build the callback URL. Set to `https://oma-ai-ecru.vercel.app`. Falls back to `WEB_BASE_URL`, then `API_PUBLIC_URL`. |
+| `TIKTOK_REDIRECT_URI` | API | Optional explicit TikTok callback URL. Overrides the base and must exactly match the TikTok dashboard. |
+| `META_FACEBOOK_REDIRECT_URI` | API | Optional explicit Meta/Facebook callback URL. Overrides the base and must exactly match Meta. |
+| `META_INSTAGRAM_REDIRECT_URI` | API | Optional explicit Meta/Instagram callback URL. Overrides the base and must exactly match Meta. |
 | `SOCIAL_PUBLISH_INTERVAL_MS` | worker (optional) | How often due posts are published. Default `30000`. |
 | `SOCIAL_REFRESH_INTERVAL_MS` | worker (optional) | How often tokens are refreshed/validated. Default `900000`. |
 
@@ -30,6 +33,11 @@ If you instead point `SOCIAL_OAUTH_REDIRECT_BASE` at the Render API directly, th
 URLs become `<API_PUBLIC_URL>/api/v1/social/oauth/<network>/callback`; that only
 works when the session cookie is valid on that host, so the Vercel origin is preferred.
 For local development use `http://localhost:3000/api/v1/social/oauth/<network>/callback`.
+
+The callback path is `/api/v1/social/oauth/<network>/callback`. Do not append it to a
+brand page path such as `/api/v1/brands/<brandId>/social-pages`, and do not use
+`/api/auth/tiktok/callback`. If an explicit provider variable is used, set it to the
+complete URL above; otherwise set `SOCIAL_OAUTH_REDIRECT_BASE` to the origin only.
 
 ## Meta (Facebook Pages + Instagram)
 

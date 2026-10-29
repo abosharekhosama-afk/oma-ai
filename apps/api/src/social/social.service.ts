@@ -22,6 +22,16 @@ const notFound = () => new DomainError('NOT_FOUND', 'Not found', 404, 'errors.no
 
 /** Public base the OAuth callback is served from (the web origin proxies /api to the API). */
 export function oauthRedirectUri(network: SocialNetworkCode, env = process.env): string {
+  const explicit =
+    network === 'tiktok'
+      ? env.TIKTOK_REDIRECT_URI
+      : network === 'facebook'
+        ? env.META_FACEBOOK_REDIRECT_URI
+        : network === 'instagram'
+          ? env.META_INSTAGRAM_REDIRECT_URI
+          : undefined;
+  if (explicit?.trim()) return explicit.trim();
+
   const base = (
     env.SOCIAL_OAUTH_REDIRECT_BASE ||
     env.WEB_BASE_URL ||
