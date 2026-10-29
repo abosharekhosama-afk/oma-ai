@@ -943,7 +943,7 @@ function InviteModal({ company, onClose }: { company: string; onClose: () => voi
         setEmailNotConfigured(true);
         if (res.invite_token) {
           setInviteLink(
-            `${window.location.origin}/app/onboarding?invite=${encodeURIComponent(res.invite_token)}`,
+            `${window.location.origin}/invite?token=${encodeURIComponent(res.invite_token)}`,
           );
         }
         return;
