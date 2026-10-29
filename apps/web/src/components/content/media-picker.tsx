@@ -322,7 +322,11 @@ export function MediaPickerDialog({
             label: t('media.tabWorkDrive'),
             children: (
               <div className="oma-mp-pane" data-testid="media-browser" aria-busy={browsing}>
-                <div className="oma-mp-scope" role="group" aria-label={isAr ? 'نطاق الملفات' : 'File scope'}>
+                <div
+                  className="oma-mp-scope"
+                  role="group"
+                  aria-label={isAr ? 'نطاق الملفات' : 'File scope'}
+                >
                   <button
                     type="button"
                     data-active={browseScope === 'brand' ? 'true' : 'false'}
@@ -352,7 +356,9 @@ export function MediaPickerDialog({
                   {browse?.folder.parent_id && trail.length <= 1 ? (
                     <button
                       type="button"
-                      onClick={() => void openFolder(browse.folder.parent_id!, undefined, false, browseScope)}
+                      onClick={() =>
+                        void openFolder(browse.folder.parent_id!, undefined, false, browseScope)
+                      }
                     >
                       {t('media.up')}
                     </button>
@@ -363,7 +369,10 @@ export function MediaPickerDialog({
                       {i === trail.length - 1 ? (
                         <strong>{p.name}</strong>
                       ) : (
-                        <button type="button" onClick={() => void openFolder(p.id, p.name, true, browseScope)}>
+                        <button
+                          type="button"
+                          onClick={() => void openFolder(p.id, p.name, true, browseScope)}
+                        >
                           {p.name}
                         </button>
                       )}
@@ -406,7 +415,9 @@ export function MediaPickerDialog({
                                 type="button"
                                 className="oma-mp-file"
                                 data-testid="media-browser-file"
-                                title={[...trail.map((p) => p.name), f.name].filter(Boolean).join(' / ')}
+                                title={[...trail.map((p) => p.name), f.name]
+                                  .filter(Boolean)
+                                  .join(' / ')}
                                 onClick={async () => {
                                   try {
                                     const r = await mediaApi.importFile(brandId, kind, f.id);
@@ -422,7 +433,9 @@ export function MediaPickerDialog({
                                 </span>
                                 <span className="oma-mp-file__name">{f.name}</span>
                                 <span className="oma-mp-file__path">
-                                  {[...trail.map((p) => p.name), f.name].filter(Boolean).join(' / ')}
+                                  {[...trail.map((p) => p.name), f.name]
+                                    .filter(Boolean)
+                                    .join(' / ')}
                                 </span>
                                 <span className="oma-mp-file__meta">
                                   {[formatBytes(f.size, locale), formatDate(f.updated_at, locale)]

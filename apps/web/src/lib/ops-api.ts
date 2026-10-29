@@ -717,11 +717,13 @@ export async function loadTasksWorkspace(): Promise<{
     if (!deliverable.asset_url) continue;
     if (deliverable.task_id && !previewsByTask.has(deliverable.task_id)) {
       previewsByTask.set(deliverable.task_id, deliverable.asset_url);
-      if (deliverable.asset_mime) previewMimesByTask.set(deliverable.task_id, deliverable.asset_mime);
+      if (deliverable.asset_mime)
+        previewMimesByTask.set(deliverable.task_id, deliverable.asset_mime);
     }
     if (deliverable.content_id && !previewsByContent.has(deliverable.content_id)) {
       previewsByContent.set(deliverable.content_id, deliverable.asset_url);
-      if (deliverable.asset_mime) previewMimesByContent.set(deliverable.content_id, deliverable.asset_mime);
+      if (deliverable.asset_mime)
+        previewMimesByContent.set(deliverable.content_id, deliverable.asset_mime);
     }
   }
   const tasks = (taskBatches as ApiWorkTask[][]).flat().map((x) => {
@@ -856,8 +858,7 @@ export function briefDisplayText(description: unknown, locale: string): string {
         ? String(
             (isAr
               ? ((description as { ar?: string }).ar ?? (description as { en?: string }).en)
-              : ((description as { en?: string }).en ?? (description as { ar?: string }).ar)) ??
-              '',
+              : ((description as { en?: string }).en ?? (description as { ar?: string }).ar)) ?? '',
           )
         : '';
   const idx = raw.indexOf(BRIEF_MARKER);

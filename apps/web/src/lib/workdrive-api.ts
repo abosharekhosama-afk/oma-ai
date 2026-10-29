@@ -60,7 +60,10 @@ const json = (method: string, body?: unknown): RequestInit => ({
 export const workDriveApi = {
   status: () => api<{ data: WorkDriveStatus }>('/api/v1/workspace/workdrive'),
   connect: (base_url: string, api_key: string) =>
-    api<{ data: WorkDriveStatus }>('/api/v1/workspace/workdrive', json('PUT', { base_url, api_key })),
+    api<{ data: WorkDriveStatus }>(
+      '/api/v1/workspace/workdrive',
+      json('PUT', { base_url, api_key }),
+    ),
   test: () => api<{ data: WorkDriveStatus }>('/api/v1/workspace/workdrive/test', json('POST', {})),
   disconnect: () => api<{ data: WorkDriveStatus }>('/api/v1/workspace/workdrive', json('DELETE')),
 };
