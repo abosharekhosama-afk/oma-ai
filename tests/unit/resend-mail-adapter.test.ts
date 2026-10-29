@@ -123,6 +123,13 @@ describe('resendFromEnv / createMailAdapter', () => {
     vi.stubEnv('RESEND_API_KEY', '');
     expect(createMailAdapter({} as never)).not.toBeInstanceOf(ResendMailAdapter);
   });
+
+  it('auto-detects Resend when MAIL_PROVIDER is omitted', () => {
+    vi.stubEnv('MAIL_PROVIDER', '');
+    vi.stubEnv('RESEND_API_KEY', KEY);
+    vi.stubEnv('MAIL_FROM', 'OMA <no-reply@example.com>');
+    expect(createMailAdapter({} as never)).toBeInstanceOf(ResendMailAdapter);
+  });
 });
 
 describe('mail templates', () => {

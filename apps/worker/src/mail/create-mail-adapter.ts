@@ -14,6 +14,17 @@ export class ConsoleMailAdapter implements MailProviderPort {
   }
 }
 
+/** Fails loudly instead of marking a mail job successful when production is misconfigured. */
+class UnconfiguredMailAdapter implements MailProviderPort {
+  constructor(private readonly provider: string) {}
+
+  async send(): Promise<void> {
+    throw new Error(
+      `${this.provider} mail provider is not configured on the worker; set its API key and MAIL_FROM`,
+    );
+  }
+}
+
 /** Test-only adapter at the external mail provider boundary (no vendor, no vi.mock). */
 export class RedisRecordingMailAdapter implements MailProviderPort {
   constructor(
@@ -39,7 +50,12 @@ export async function drainRecordedMail(
 }
 
 export function createMailAdapter(connection: IORedis): MailProviderPort {
-  const mode = (process.env.MAIL_PROVIDER ?? 'console').toLowerCase();
+  const requested = process.env.MAIL_PROVIDER?.trim().toLowerCase();
+  const mode =
+    requested ||
+    (process.env.RESEND_API_KEY?.trim() ? 'resend' : '') ||
+    (process.env.BREVO_API_KEY?.trim() ? 'brevo' : '') ||
+    'console';
   if (mode === 'recording') {
     return new RedisRecordingMailAdapter(connection);
   }
@@ -47,12 +63,14 @@ export function createMailAdapter(connection: IORedis): MailProviderPort {
     const resend = resendFromEnv();
     if (resend) return resend;
     log.warn('falling back to console mail: Resend is not fully configured');
+    if (process.env.NODE_ENV === 'production') return new UnconfiguredMailAdapter('Resend');
     return new ConsoleMailAdapter();
   }
   if (mode === 'brevo') {
     const brevo = brevoFromEnv();
     if (brevo) return brevo;
     log.warn('falling back to console mail: Brevo is not fully configured');
+    if (process.env.NODE_ENV === 'production') return new UnconfiguredMailAdapter('Brevo');
     return new ConsoleMailAdapter();
   }
   if (mode !== 'console') {
