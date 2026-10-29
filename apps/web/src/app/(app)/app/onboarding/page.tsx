@@ -1,21 +1,12 @@
-import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
-import OnboardingClient from './onboarding-client';
-
-/**
- * Legacy OMA onboarding is replaced by the Planable select-company create flow.
- * It stays reachable for invitation links (`/app/onboarding?invite=<token>`) sent by email.
- */
+/** Keep existing invitation URLs working while the acceptance flow lives outside the app shell. */
 export default async function OnboardingPage({
   searchParams,
 }: {
   searchParams: Promise<{ invite?: string | string[] }>;
 }) {
   const { invite } = await searchParams;
-  if (!invite) redirect('/app/select-company');
-  return (
-    <Suspense fallback={null}>
-      <OnboardingClient />
-    </Suspense>
-  );
+  const token = Array.isArray(invite) ? invite[0] : invite;
+  if (token) redirect(`/invite?token=${encodeURIComponent(token)}`);
+  redirect('/app/select-company');
 }

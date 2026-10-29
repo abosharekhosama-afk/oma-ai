@@ -141,7 +141,7 @@ describe('mail templates', () => {
 
   it('renders an RTL Arabic invite and an English invite with escaped values', () => {
     const url = inviteAcceptLink('https://app.example.com/', 'tok 1');
-    expect(url).toBe('https://app.example.com/app/onboarding?invite=tok%201');
+    expect(url).toBe('https://app.example.com/invite?token=tok%201');
     const ar = renderInviteEmail({
       locale: 'ar',
       acceptUrl: url,

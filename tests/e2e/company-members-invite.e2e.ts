@@ -24,7 +24,7 @@ test.describe('Company members invitation UI', () => {
     const inviteEmail = `ui-invite-${newId().slice(-8).toLowerCase()}@example.com`;
     await page.getByLabel(/email/i).fill(inviteEmail);
     await page.getByRole('button', { name: /create invitation/i }).click();
-    await expect(page.locator('code.oma-code-block')).toContainText('/app/onboarding?invite=', {
+    await expect(page.locator('code.oma-code-block')).toContainText('/invite?token=', {
       timeout: 15_000,
     });
     await page.getByRole('button', { name: /copy invitation link/i }).click();

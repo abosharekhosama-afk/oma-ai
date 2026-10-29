@@ -249,5 +249,5 @@ export function renderPasswordResetEmail(input: PasswordResetMailInput): Rendere
 }
 
 export function inviteAcceptLink(webOrigin: string, token: string): string {
-  return `${webOrigin.replace(/\/$/, '')}/app/onboarding?invite=${encodeURIComponent(token)}`;
+  return `${webOrigin.replace(/\/$/, '')}/invite?token=${encodeURIComponent(token)}`;
 }
