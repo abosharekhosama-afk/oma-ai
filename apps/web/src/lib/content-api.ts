@@ -51,6 +51,7 @@ export type ApiContent = {
   created_by: string;
   created_at: string;
   updated_at: string;
+  media_asset_ids?: string[];
   workflow: ApiContentWorkflow;
 };
 
@@ -129,6 +130,8 @@ export async function createContentProduction(input: {
   labels?: string[];
   /** WorkDrive MediaAsset (kind posts) shown as the post media. */
   preview_asset_id?: string | null;
+  /** Ordered WorkDrive MediaAsset ids attached to the post. */
+  media_asset_ids?: string[] | null;
 }): Promise<ApiContent> {
   const { brandId, ...body } = input;
   const res = await api<{ data: ApiContent }>(`/api/v1/brands/${brandId}/content`, {

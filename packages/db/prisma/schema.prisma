@@ -1122,6 +1122,8 @@ model ContentItem {
   previewAssetUrl  String?
   /// MediaAsset id when the preview is stored in WorkDrive (previewAssetUrl = /api/v1/media/:id/view).
   previewAssetId   String?
+  /// Ordered WorkDrive MediaAsset ids attached to this post; previewAssetId remains the first item for compatibility.
+  mediaAssetIds    String[]             @default([])
   labels           String[]             @default([])
   assigneeUserId   String?
   clientVisible    Boolean              @default(true)
