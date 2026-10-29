@@ -492,10 +492,29 @@
   display: flex !important;
   flex-direction: column;
   grid-template-columns: none !important;
-  inline-size: min(435px, 100%) !important;
+  inline-size: 100% !important;
+  max-inline-size: none !important;
   margin-inline: auto;
   padding: 0 !important;
   gap: 12px !important;
+}
+.oma-content-plan .oma-pv-grid {
+  inline-size: 100%;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+}
+.oma-content-plan .oma-pv-tile {
+  inline-size: 100%;
+  block-size: auto;
+  aspect-ratio: 3 / 4;
+}
+
+/* Keep the list readable on narrow screens without squeezing its columns. */
+.oma-content-plan .oma-plan-list {
+  inline-size: 100%;
+  max-inline-size: none;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
 }
 
 /* Month view: equal-height week rows (Planable); overflow scrolls inside the day cell. */
@@ -642,4 +661,20 @@
 }
 .oma-cal-more:hover {
   background: #e8eaed !important;
+}
+
+/* Long compose forms scroll inside the card instead of escaping the viewport. */
+.oma-compose-overlay {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.oma-compose-card {
+  max-block-size: calc(100dvh - 48px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.oma-compose-close {
+  inset-block-start: 10px;
+  inset-inline-end: 10px;
 }
