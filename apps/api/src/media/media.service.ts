@@ -171,6 +171,25 @@ export class MediaService {
     return folderId;
   }
 
+  /** The brand browsing scope starts at the brand folder, not at one media-kind child. */
+  private async brandFolderFor(
+    c: { client: WorkDriveClient; conn: { id: string; rootFolderName: string | null } },
+    brand: { id: string; name: string },
+  ) {
+    const kindPath = mediaFolderSegments({
+      brandSlug: brandFolderSlug(brand.name, brand.id.slice(-8).toLowerCase()),
+      kind: 'posts',
+      rootFolderName: c.conn.rootFolderName,
+    });
+    const segments = kindPath.slice(0, -1);
+    const k = `${c.conn.id}:${segments.join('/')}`;
+    const hit = this.folderCache.get(k);
+    if (hit) return hit;
+    const { folderId } = await c.client.ensurePath(segments);
+    this.folderCache.set(k, folderId);
+    return folderId;
+  }
+
   private assertCapability(caps: string[] | undefined, kind: MediaKind) {
     if (!caps?.includes(KIND_CAPABILITY[kind]))
       throw new DomainError(
@@ -509,9 +528,7 @@ export class MediaService {
           'errors.workdrive_not_configured',
         );
       }
-      const startFolderId = organizationScope
-        ? rootFolderId!
-        : await this.folderFor(c, brand, kind);
+      const startFolderId = organizationScope ? rootFolderId! : await this.brandFolderFor(c, brand);
       const scopeRootId = startFolderId;
       const folderId = q.folder_id || startFolderId;
       const f = await c.client.getFolder(folderId);
