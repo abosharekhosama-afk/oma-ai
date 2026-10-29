@@ -37,7 +37,11 @@ async function main() {
   startAnalysisProcessor(connection);
   startAiProcessor(connection);
   setInterval(() => {
-    void publishPendingOutbox(connection);
+    void publishPendingOutbox(connection).catch((err) => {
+      // Database outages are transient in managed environments. Do not let an
+      // unhandled rejection terminate the worker; the next tick retries.
+      log.error({ err: String(err) }, 'outbox tick failed; will retry');
+    });
   }, 1500);
   // Real social publishing + token refresh (no-op until SOCIAL_TOKEN_ENCRYPTION_KEY is set).
   startSocialJobs(log);
