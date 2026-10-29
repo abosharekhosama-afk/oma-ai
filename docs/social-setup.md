@@ -7,27 +7,27 @@ services. No network is ever faked.
 
 ## Shared (required for any network)
 
-| Variable | Where | Value |
-| --- | --- | --- |
+| Variable                      | Where                     | Value                                                                                                                                                                              |
+| ----------------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `SOCIAL_TOKEN_ENCRYPTION_KEY` | API + worker (same value) | 32 random bytes, base64 or hex. Generate: `openssl rand -base64 32`. Tokens are stored AES-256-GCM encrypted with it. Rotating it disconnects every account (they must reconnect). |
-| `SOCIAL_OAUTH_REDIRECT_BASE` | API | Public origin used to build the callback URL. Set to `https://oma-ai-ecru.vercel.app`. Falls back to `WEB_BASE_URL`, then `API_PUBLIC_URL`. |
-| `TIKTOK_REDIRECT_URI` | API | Optional explicit TikTok callback URL. Overrides the base and must exactly match the TikTok dashboard. |
-| `META_FACEBOOK_REDIRECT_URI` | API | Optional explicit Meta/Facebook callback URL. Overrides the base and must exactly match Meta. |
-| `META_INSTAGRAM_REDIRECT_URI` | API | Optional explicit Meta/Instagram callback URL. Overrides the base and must exactly match Meta. |
-| `SOCIAL_PUBLISH_INTERVAL_MS` | worker (optional) | How often due posts are published. Default `30000`. |
-| `SOCIAL_REFRESH_INTERVAL_MS` | worker (optional) | How often tokens are refreshed/validated. Default `900000`. |
+| `SOCIAL_OAUTH_REDIRECT_BASE`  | API                       | Public origin used to build the callback URL. Set to `https://oma-ai-ecru.vercel.app`. Falls back to `WEB_BASE_URL`, then `API_PUBLIC_URL`.                                        |
+| `TIKTOK_REDIRECT_URI`         | API                       | Optional explicit TikTok callback URL. Overrides the base and must exactly match the TikTok dashboard.                                                                             |
+| `META_FACEBOOK_REDIRECT_URI`  | API                       | Optional explicit Meta/Facebook callback URL. Overrides the base and must exactly match Meta.                                                                                      |
+| `META_INSTAGRAM_REDIRECT_URI` | API                       | Optional explicit Meta/Instagram callback URL. Overrides the base and must exactly match Meta.                                                                                     |
+| `SOCIAL_PUBLISH_INTERVAL_MS`  | worker (optional)         | How often due posts are published. Default `30000`.                                                                                                                                |
+| `SOCIAL_REFRESH_INTERVAL_MS`  | worker (optional)         | How often tokens are refreshed/validated. Default `900000`.                                                                                                                        |
 
 ## Redirect (callback) URLs
 
 The web app proxies `/api/*` to the Render API, so the callback goes through the
 Vercel origin and keeps the signed-in session cookie first-party. Register exactly:
 
-| Network | Redirect URL |
-| --- | --- |
+| Network                             | Redirect URL                                                                                                                                       |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Facebook + Instagram (one Meta app) | `https://oma-ai-ecru.vercel.app/api/v1/social/oauth/facebook/callback` and `https://oma-ai-ecru.vercel.app/api/v1/social/oauth/instagram/callback` |
-| LinkedIn | `https://oma-ai-ecru.vercel.app/api/v1/social/oauth/linkedin/callback` |
-| TikTok | `https://oma-ai-ecru.vercel.app/api/v1/social/oauth/tiktok/callback` |
-| X | `https://oma-ai-ecru.vercel.app/api/v1/social/oauth/x/callback` |
+| LinkedIn                            | `https://oma-ai-ecru.vercel.app/api/v1/social/oauth/linkedin/callback`                                                                             |
+| TikTok                              | `https://oma-ai-ecru.vercel.app/api/v1/social/oauth/tiktok/callback`                                                                               |
+| X                                   | `https://oma-ai-ecru.vercel.app/api/v1/social/oauth/x/callback`                                                                                    |
 
 If you instead point `SOCIAL_OAUTH_REDIRECT_BASE` at the Render API directly, the
 URLs become `<API_PUBLIC_URL>/api/v1/social/oauth/<network>/callback`; that only
@@ -41,11 +41,11 @@ complete URL above; otherwise set `SOCIAL_OAUTH_REDIRECT_BASE` to the origin onl
 
 ## Meta (Facebook Pages + Instagram)
 
-| Variable | Value |
-| --- | --- |
-| `META_APP_ID` | App ID from developers.facebook.com → your app → Settings → Basic |
-| `META_APP_SECRET` | App secret from the same page |
-| `META_GRAPH_VERSION` | Optional, default `v21.0` |
+| Variable             | Value                                                             |
+| -------------------- | ----------------------------------------------------------------- |
+| `META_APP_ID`        | App ID from developers.facebook.com → your app → Settings → Basic |
+| `META_APP_SECRET`    | App secret from the same page                                     |
+| `META_GRAPH_VERSION` | Optional, default `v21.0`                                         |
 
 App setup: add **Facebook Login for Business**; add both redirect URLs above to
 "Valid OAuth Redirect URIs". Permissions requested — Facebook: `pages_show_list`, `pages_read_engagement`,
@@ -56,11 +56,11 @@ and Instagram posts need an image (the post preview image URL must be public).
 
 ## LinkedIn
 
-| Variable | Value |
-| --- | --- |
-| `LINKEDIN_CLIENT_ID` | From linkedin.com/developers → app → Auth |
-| `LINKEDIN_CLIENT_SECRET` | Same page |
-| `LINKEDIN_API_VERSION` | Optional, `YYYYMM`, default `202410` |
+| Variable                 | Value                                                                                    |
+| ------------------------ | ---------------------------------------------------------------------------------------- |
+| `LINKEDIN_CLIENT_ID`     | From linkedin.com/developers → app → Auth                                                |
+| `LINKEDIN_CLIENT_SECRET` | Same page                                                                                |
+| `LINKEDIN_API_VERSION`   | Optional, `YYYYMM`, default `202410`                                                     |
 | `LINKEDIN_ORGANIZATIONS` | Optional, `1` to also connect company pages (needs the Community Management API product) |
 
 Products: **Sign In with LinkedIn using OpenID Connect** and **Share on LinkedIn**.
@@ -69,22 +69,25 @@ LinkedIn issues no refresh token on standard apps; tokens last 60 days, then the
 
 ## TikTok
 
-| Variable | Value |
-| --- | --- |
-| `TIKTOK_CLIENT_KEY` | From developers.tiktok.com → app |
-| `TIKTOK_CLIENT_SECRET` | Same page |
-| `TIKTOK_PRIVACY_LEVEL` | Optional, default `SELF_ONLY`. Unaudited apps can only post privately; after TikTok's audit set `PUBLIC_TO_EVERYONE`. |
+| Variable                    | Value                                                                                                                     |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `TIKTOK_CLIENT_KEY`         | From developers.tiktok.com → app                                                                                          |
+| `TIKTOK_CLIENT_SECRET`      | Same page                                                                                                                 |
+| `TIKTOK_PRIVACY_LEVEL`      | Optional, default `SELF_ONLY`. Unaudited apps can only post privately; after TikTok's audit set `PUBLIC_TO_EVERYONE`.     |
+| `TIKTOK_ENABLE_DIRECT_POST` | Optional, default `0`. Set to `1` only after TikTok approves the app's `video.publish` scope, then reconnect the account. |
 
 Products: **Login Kit** and **Content Posting API** (Direct Post). Scopes:
-`user.info.basic,video.publish`. Photo posts use `PULL_FROM_URL`, so the image's domain
-must be verified in the TikTok app. Posts need an image.
+`user.info.basic` is used for account connection. The `video.publish` scope is requested
+only when `TIKTOK_ENABLE_DIRECT_POST=1`; TikTok must approve that scope before users can
+authorize it. Photo posts use `PULL_FROM_URL`, so the image's domain must be verified in
+the TikTok app. Posts need an image.
 
 ## X
 
-| Variable | Value |
-| --- | --- |
-| `X_CLIENT_ID` | OAuth 2.0 Client ID (developer.x.com → app → Keys and tokens) |
-| `X_CLIENT_SECRET` | OAuth 2.0 Client Secret |
+| Variable          | Value                                                         |
+| ----------------- | ------------------------------------------------------------- |
+| `X_CLIENT_ID`     | OAuth 2.0 Client ID (developer.x.com → app → Keys and tokens) |
+| `X_CLIENT_SECRET` | OAuth 2.0 Client Secret                                       |
 
 App type: **Web App, confidential client**, with OAuth 2.0 enabled and read+write permissions.
 Scopes: `tweet.read tweet.write users.read offline.access` (PKCE S256). Posting requires an

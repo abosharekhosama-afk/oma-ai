@@ -15,6 +15,7 @@ type Env = {
   TIKTOK_CLIENT_KEY?: string;
   TIKTOK_CLIENT_SECRET?: string;
   TIKTOK_PRIVACY_LEVEL?: string;
+  TIKTOK_ENABLE_DIRECT_POST?: string;
 };
 const API = 'https://open.tiktokapis.com';
 
@@ -37,10 +38,12 @@ export class TikTokAdapter implements SocialProviderAdapter {
   }
 
   authorizeUrl({ state, redirectUri }: { state: string; redirectUri: string }) {
+    const scopes = ['user.info.basic'];
+    if (this.env.TIKTOK_ENABLE_DIRECT_POST === '1') scopes.push('video.publish');
     const q = new URLSearchParams({
       client_key: this.env.TIKTOK_CLIENT_KEY!,
       response_type: 'code',
-      scope: 'user.info.basic,video.publish',
+      scope: scopes.join(','),
       redirect_uri: redirectUri,
       state,
     });
@@ -95,7 +98,7 @@ export class TikTokAdapter implements SocialProviderAdapter {
         name: String(u.display_name ?? u.username ?? 'TikTok'),
         avatarUrl: (u.avatar_url as string) ?? null,
         token: t,
-        meta: { username: u.username ?? null },
+        meta: { username: u.username ?? null, scopes: token.scopes ?? [] },
       },
     ];
   }
@@ -110,6 +113,13 @@ export class TikTokAdapter implements SocialProviderAdapter {
   }
 
   async publish(page: PublishablePage, post: PublishInput): Promise<PublishResult> {
+    const scopes = Array.isArray(page.meta.scopes) ? page.meta.scopes : [];
+    if (!scopes.includes('video.publish')) {
+      throw new SocialProviderError(
+        'tiktok: video.publish is not authorized for this app. Enable Direct Post after TikTok approval, then reconnect the account.',
+        { retryable: false },
+      );
+    }
     if (!post.mediaUrl) {
       throw new SocialProviderError('tiktok: an image is required to publish', {
         retryable: false,

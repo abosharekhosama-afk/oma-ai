@@ -238,6 +238,17 @@ describe('LinkedIn adapter', () => {
 
 describe('TikTok adapter', () => {
   const env = { TIKTOK_CLIENT_KEY: 'ck', TIKTOK_CLIENT_SECRET: 'cs' };
+  const publishEnv = { ...env, TIKTOK_ENABLE_DIRECT_POST: '1' };
+  it('requests only basic profile access until Direct Post is enabled', () => {
+    const basic = new URL(
+      new TikTokAdapter(env).authorizeUrl({ state: 's', redirectUri: 'https://w/cb' }),
+    );
+    expect(basic.searchParams.get('scope')).toBe('user.info.basic');
+    const direct = new URL(
+      new TikTokAdapter(publishEnv).authorizeUrl({ state: 's', redirectUri: 'https://w/cb' }),
+    );
+    expect(direct.searchParams.get('scope')).toBe('user.info.basic,video.publish');
+  });
   it('exchanges, refreshes, and posts a photo via PULL_FROM_URL', async () => {
     const m = mockFetch([
       [
@@ -264,7 +275,7 @@ describe('TikTok adapter', () => {
         () => json({ data: { publish_id: 'pub_1' }, error: { code: 'ok' } }),
       ],
     ]);
-    const a = new TikTokAdapter(env, m.fn);
+    const a = new TikTokAdapter(publishEnv, m.fn);
     const [acct] = await a.exchangeCode({ code: 'c', redirectUri: 'https://w/cb' });
     expect(acct).toMatchObject({ externalId: 'o1', name: 'Brand TT' });
     const page = {
@@ -272,7 +283,7 @@ describe('TikTok adapter', () => {
       name: '',
       accessToken: 'tat',
       refreshToken: 'trt',
-      meta: { username: 'brandtt' },
+      meta: { username: 'brandtt', scopes: ['user.info.basic', 'video.publish'] },
     };
     expect((await a.refresh(page))!.accessToken).toBe('tat2');
     const r = await a.publish(page, { text: 'Look', mediaUrl: 'https://cdn/x.jpg' });
