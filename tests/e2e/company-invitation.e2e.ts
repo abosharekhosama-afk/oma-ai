@@ -3,6 +3,18 @@ import { newId } from '@oma/domain';
 import { apiPost, cookieHeader, parseCookies, registerBrandOwner } from './helpers/brand-api';
 
 test.describe('Invitation UI', () => {
+  test('legacy invitation links redirect to the standalone page before login', async ({
+    page,
+  }, testInfo) => {
+    test.skip(testInfo.project.name !== 'en-desktop', 'run once on en-desktop');
+
+    await page.goto('/app/onboarding?invite=legacy-token');
+
+    await expect(page).toHaveURL(/\/invite\?token=legacy-token$/);
+    await expect(page.getByTestId('invite-acceptance')).toBeVisible();
+    await expect(page.getByTestId('shell-invite-members')).toHaveCount(0);
+  });
+
   test('new member creates an account and accepts on a standalone page', async ({
     page,
     request,

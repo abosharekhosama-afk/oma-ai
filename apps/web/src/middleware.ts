@@ -9,6 +9,17 @@ import type { NextRequest } from 'next/server';
  */
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  const routePath = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
+  // Old invitation links must leave /app before the authenticated shell gate.
+  if (routePath === '/app/onboarding' && req.nextUrl.searchParams.has('invite')) {
+    const url = req.nextUrl.clone();
+    const token = req.nextUrl.searchParams.get('invite');
+    url.pathname = '/invite';
+    url.search = '';
+    if (token) url.searchParams.set('token', token);
+    return NextResponse.redirect(url);
+  }
+
   if (pathname.startsWith('/app')) {
     const session = req.cookies.get(process.env.SESSION_COOKIE_NAME ?? 'oma_session');
     if (!session?.value) {
@@ -17,7 +28,6 @@ export function middleware(req: NextRequest) {
       url.search = '';
       // Preserve deep link for post-login return
       if (pathname !== '/app' && pathname !== '/app/') {
-        // Keep the query so invitation links (?invite=…) survive the login round-trip.
         url.searchParams.set('next', pathname + req.nextUrl.search);
       }
       return NextResponse.redirect(url);
