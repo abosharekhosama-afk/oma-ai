@@ -139,6 +139,12 @@ describe('mail templates', () => {
     expect(pickMailLocale('en', 'ar')).toBe('en');
   });
 
+  it('normalizes an application path suffix from the web origin in invitation links', () => {
+    expect(inviteAcceptLink('https://app.example.com/app/', 'token-1')).toBe(
+      'https://app.example.com/invite?token=token-1',
+    );
+  });
+
   it('renders an RTL Arabic invite and an English invite with escaped values', () => {
     const url = inviteAcceptLink('https://app.example.com/', 'tok 1');
     expect(url).toBe('https://app.example.com/invite?token=tok%201');

@@ -32,6 +32,22 @@ describe('invitation middleware', () => {
     expect(new URL(response.headers.get('location') ?? '').pathname).toBe('/invite');
   });
 
+  it('redirects /app/invite?token= to the standalone route before login', () => {
+    const response = middleware(makeRequest('https://oma.example/app/invite?token='));
+
+    expect(response.status).toBe(307);
+    expect(new URL(response.headers.get('location') ?? '').pathname).toBe('/invite');
+    expect(response.headers.get('location')).not.toContain('/login');
+  });
+
+  it('preserves the token when redirecting /app/invite', () => {
+    const response = middleware(makeRequest('https://oma.example/app/invite?token=abc123'));
+
+    expect(new URL(response.headers.get('location') ?? '').searchParams.get('token')).toBe(
+      'abc123',
+    );
+  });
+
   it('continues protecting onboarding URLs that do not contain an invitation', () => {
     const response = middleware(makeRequest('https://oma.example/app/onboarding'));
 
