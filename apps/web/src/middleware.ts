@@ -10,10 +10,14 @@ import type { NextRequest } from 'next/server';
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   const routePath = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
-  // Old invitation links must leave /app before the authenticated shell gate.
-  if (routePath === '/app/onboarding' && req.nextUrl.searchParams.has('invite')) {
+  const hasInvitationParam =
+    req.nextUrl.searchParams.has('token') || req.nextUrl.searchParams.has('invite');
+  const invitationAlias =
+    routePath === '/app/invite' || (routePath === '/app/onboarding' && hasInvitationParam);
+  // Invitation aliases must leave /app before the authenticated shell gate.
+  if (invitationAlias && hasInvitationParam) {
     const url = req.nextUrl.clone();
-    const token = req.nextUrl.searchParams.get('invite');
+    const token = req.nextUrl.searchParams.get('token') ?? req.nextUrl.searchParams.get('invite');
     url.pathname = '/invite';
     url.search = '';
     if (token) url.searchParams.set('token', token);
