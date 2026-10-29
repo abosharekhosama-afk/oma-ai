@@ -21,19 +21,39 @@ import {
 import { AuditService } from '../audit/audit.service';
 import { mediaPlaybackUrl } from '../media/media.service';
 
-/** `preview_asset_id`: a posts MediaAsset of the same brand (or null to clear). */
-async function resolvePreviewAsset(tenantId: string, brandId: string, value: unknown) {
+/** Resolve ordered post media; the first item remains the compatibility preview. */
+async function resolvePreviewAssets(tenantId: string, brandId: string, value: unknown) {
   if (value === undefined) return undefined;
-  if (value === null || value === '') return { previewAssetId: null, previewAssetUrl: null };
-  const a =
-    typeof value === 'string'
-      ? await getPrisma().mediaAsset.findFirst({
-          where: tenantWhere(tenantId, { id: value, brandId, kind: 'posts' }),
-          select: { id: true, mime: true },
-        })
-      : null;
-  if (!a) throw new DomainError('NOT_FOUND', 'Media not found', 404, 'errors.not_found');
-  return { previewAssetId: a.id, previewAssetUrl: mediaPlaybackUrl(a.id, a.mime) };
+  const ids =
+    value === null || value === ''
+      ? []
+      : typeof value === 'string'
+        ? [value.trim()]
+        : Array.isArray(value)
+          ? value.map((id) => (typeof id === 'string' ? id.trim() : '')).filter(Boolean)
+          : null;
+  if (!ids)
+    throw new DomainError(
+      'VALIDATION_FAILED',
+      'Media ids must be strings',
+      400,
+      'errors.validation_failed',
+    );
+  const orderedIds = [...new Set(ids)];
+  if (!orderedIds.length) return { previewAssetId: null, previewAssetUrl: null, mediaAssetIds: [] };
+  const assets = await getPrisma().mediaAsset.findMany({
+    where: tenantWhere(tenantId, { id: { in: orderedIds }, brandId, kind: 'posts' }),
+    select: { id: true, mime: true },
+  });
+  if (assets.length !== orderedIds.length)
+    throw new DomainError('NOT_FOUND', 'Media not found', 404, 'errors.not_found');
+  const byId = new Map(assets.map((asset) => [asset.id, asset]));
+  const first = byId.get(orderedIds[0]!);
+  return {
+    previewAssetId: first!.id,
+    previewAssetUrl: mediaPlaybackUrl(first!.id, first!.mime),
+    mediaAssetIds: orderedIds,
+  };
 }
 
 type LocaleInput = { en: string; ar?: string } | string;
@@ -69,6 +89,7 @@ function mapContent(
     approverApproved: number;
     previewAssetUrl: string | null;
     previewAssetId?: string | null;
+    mediaAssetIds?: string[];
     labels: string[];
     assigneeUserId: string | null;
     clientVisible: boolean;
@@ -119,6 +140,7 @@ function mapContent(
     approver_approved: row.approverApproved,
     preview_asset_url: row.previewAssetUrl,
     preview_asset_id: row.previewAssetId ?? null,
+    media_asset_ids: row.mediaAssetIds ?? (row.previewAssetId ? [row.previewAssetId] : []),
     labels: row.labels ?? [],
     assignee_user_id: row.assigneeUserId,
     client_visible: row.clientVisible,
@@ -346,11 +368,16 @@ export class ContentService {
       plannedAt?: string | null;
       labels?: string[];
       preview_asset_id?: string | null;
+      media_asset_ids?: string[] | null;
     },
     correlationId?: string,
   ) {
     await this.requireActiveBrand(tenantId, brandId);
-    const media = await resolvePreviewAsset(tenantId, brandId, input.preview_asset_id);
+    const media = await resolvePreviewAssets(
+      tenantId,
+      brandId,
+      input.media_asset_ids ?? input.preview_asset_id,
+    );
     const title = localePair(input.title);
     if (!title.en) {
       throw new DomainError('VALIDATION_FAILED', 'Title required', 400, 'errors.validation_failed');
@@ -424,6 +451,7 @@ export class ContentService {
       labels?: string[];
       clientVisible?: boolean;
       preview_asset_id?: string | null;
+      media_asset_ids?: string[] | null;
     },
     correlationId?: string,
   ) {
@@ -451,7 +479,11 @@ export class ContentService {
       });
     }
 
-    const media = await resolvePreviewAsset(tenantId, current.brandId, patch.preview_asset_id);
+    const media = await resolvePreviewAssets(
+      tenantId,
+      current.brandId,
+      patch.media_asset_ids ?? patch.preview_asset_id,
+    );
     const title = patch.title ? localePair(patch.title) : null;
     const caption =
       patch.caption === null

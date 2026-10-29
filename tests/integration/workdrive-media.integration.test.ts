@@ -383,6 +383,25 @@ describe('WorkDrive storage (API + worker, local Postgres)', () => {
     });
   });
 
+  it('attaches multiple post media assets in order while keeping the first as preview', async () => {
+    const second = await (await upload(seed, brandId, PNG, 'kind=posts&name=second.png')).json();
+    const created = await fetch(`${seed.baseUrl}/api/v1/brands/${brandId}/content`, {
+      method: 'POST',
+      headers: authHeaders(seed),
+      body: JSON.stringify({
+        title: 'Carousel post',
+        contentType: 'POST',
+        channel: 'instagram',
+        media_asset_ids: [assetId, second.data.id],
+      }),
+    });
+    expect(created.status).toBe(201);
+    expect((await created.json()).data).toMatchObject({
+      preview_asset_id: assetId,
+      media_asset_ids: [assetId, second.data.id],
+    });
+  });
+
   it('browses the authorized organization tree independently of the active brand folder', async () => {
     const root = await (
       await fetch(

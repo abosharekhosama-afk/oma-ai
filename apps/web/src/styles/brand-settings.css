@@ -521,6 +521,16 @@
   color: var(--oma-home-muted);
   cursor: pointer;
 }
+.oma-compose-media-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-inline-size: 160px;
+  justify-content: center;
+}
+.oma-compose-media--add {
+  flex: 0 0 44px;
+}
 
 /* Media library: organized folders + files */
 .oma-mp-loading {

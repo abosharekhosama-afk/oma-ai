@@ -374,8 +374,8 @@ type ComposeForm = {
   contentType: string;
   channel: string;
   socialPageId: string | null;
-  /** WorkDrive media picked in compose (stored as preview_asset_id). */
-  media: MediaAsset | null;
+  /** Ordered WorkDrive media picked in compose; the first item is the preview. */
+  media: MediaAsset[];
   owner: string;
   plannedDate: string;
   track: string;
@@ -508,11 +508,33 @@ function PlanableComposeCard({
                 <EditOutlined />
               </span>
             </div>
-            {form.media ? (
-              <div className="oma-compose-media-chip" data-testid="compose-media-selected">
-                <MediaThumb asset={form.media} t={t} />
-                <button type="button" onClick={() => onChange({ media: null })}>
-                  {t('media.remove')}
+            {form.media.length ? (
+              <div className="oma-compose-media-list" data-testid="compose-media-selected">
+                {form.media.map((asset, index) => (
+                  <div className="oma-compose-media-chip" key={asset.id}>
+                    <MediaThumb asset={asset} t={t} />
+                    <button
+                      type="button"
+                      aria-label={`${t('media.remove')} ${index + 1}`}
+                      onClick={() =>
+                        onChange({
+                          media: form.media.filter((selected) => selected.id !== asset.id),
+                        })
+                      }
+                    >
+                      {t('media.remove')}
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  className="oma-compose-media oma-compose-media--add"
+                  aria-label={t('media.add')}
+                  title={t('media.add')}
+                  data-testid="compose-media-open"
+                  onClick={() => setPickerOpen(true)}
+                >
+                  <PictureOutlined />
                 </button>
               </div>
             ) : (
@@ -535,7 +557,13 @@ function PlanableComposeCard({
               locale={locale}
               canConnect={canConnectStorage}
               onClose={() => setPickerOpen(false)}
-              onPick={(asset) => onChange({ media: asset })}
+              onPick={(asset) =>
+                onChange({
+                  media: form.media.some((selected) => selected.id === asset.id)
+                    ? form.media
+                    : [...form.media, asset],
+                })
+              }
             />
           </div>
           <div className="oma-compose-main">
@@ -1092,7 +1120,7 @@ export default function ContentPage() {
     brief: '',
     caption: '',
     track: 'ORGANIC',
-    media: null as MediaAsset | null,
+    media: [] as MediaAsset[],
     labels: [] as string[],
   });
 
@@ -2102,7 +2130,7 @@ export default function ContentPage() {
         // Scheduling happens solely through the explicit Schedule action.
         plannedAt: wallTimeToIso(createForm.plannedDate),
         labels: createForm.labels,
-        preview_asset_id: createForm.media?.id ?? null,
+        media_asset_ids: createForm.media.map((asset) => asset.id),
       });
       if (createForm.socialPageId) {
         try {
@@ -2133,7 +2161,7 @@ export default function ContentPage() {
         brief: '',
         caption: '',
         labels: [],
-        media: null,
+        media: [],
         socialPageId: null,
       }));
       openItem(createdRow, 'edit');
@@ -4701,7 +4729,12 @@ export default function ContentPage() {
         canConnect={canManageWorkspace}
         onClose={() => setMediaLibraryOpen(false)}
         onPick={(asset) => {
-          setCreateForm((f) => ({ ...f, media: asset }));
+          setCreateForm((f) => ({
+            ...f,
+            media: f.media.some((selected) => selected.id === asset.id)
+              ? f.media
+              : [...f.media, asset],
+          }));
           setCreateOpen(true);
         }}
       />
