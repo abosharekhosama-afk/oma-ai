@@ -349,13 +349,22 @@ describe('WorkDrive storage (API + worker, local Postgres)', () => {
         headers: authHeaders(seed),
       })
     ).json();
-    expect(br.data.folder.name).toBe('posts');
-    expect(br.data.files.map((f: { name: string }) => f.name)).toContain('launch post.png');
+    expect(br.data.folder.name).toBe('lumen-coffee');
+    const postsFolder = br.data.folders.find((f: { name: string }) => f.name === 'posts');
+    expect(postsFolder).toBeDefined();
+    if (!postsFolder) throw new Error('Expected the posts folder under the brand root');
+    const posts = await (
+      await fetch(
+        `${seed.baseUrl}/api/v1/brands/${brandId}/media/browse?kind=posts&folder_id=${encodeURIComponent(postsFolder.id)}`,
+        { headers: authHeaders(seed) },
+      )
+    ).json();
+    expect(posts.data.files.map((f: { name: string }) => f.name)).toContain('launch post.png');
     // A file someone added in WorkDrive directly.
     const id = randomUUID();
     wd.files.set(id, {
       id,
-      folderId: br.data.folder.id,
+      folderId: postsFolder.id,
       name: 'shoot.mp4',
       mimeType: 'video/mp4',
       size: 2048,

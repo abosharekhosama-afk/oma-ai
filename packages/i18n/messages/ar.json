@@ -2121,6 +2121,8 @@
   "media.recent": "أُضيفت مؤخرًا",
   "media.remove": "إزالة",
   "media.savedTo": "تُحفظ في {org} على WorkDrive.",
+  "media.scopeOrganization": "كل ملفات المؤسسة المصرح بها",
+  "media.scopeBrand": "ملفات العلامة الحالية",
   "media.tabUpload": "رفع",
   "media.tabWorkDrive": "من WorkDrive",
   "media.title": "الوسائط",

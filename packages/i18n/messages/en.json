@@ -2121,6 +2121,8 @@
   "media.recent": "Recently added",
   "media.remove": "Remove",
   "media.savedTo": "Saved to {org} in WorkDrive.",
+  "media.scopeOrganization": "All authorized organization files",
+  "media.scopeBrand": "Current brand files",
   "media.tabUpload": "Upload",
   "media.tabWorkDrive": "From WorkDrive",
   "media.title": "Media",

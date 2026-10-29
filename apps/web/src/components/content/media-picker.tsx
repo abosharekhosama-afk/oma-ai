@@ -332,18 +332,6 @@ export function MediaPickerDialog({
                 >
                   <button
                     type="button"
-                    data-active={browseScope === 'brand' ? 'true' : 'false'}
-                    onClick={() => {
-                      setBrowseScope('brand');
-                      setBrowse(null);
-                      setTrail([]);
-                      void openFolder(undefined, undefined, false, 'brand');
-                    }}
-                  >
-                    {isAr ? 'مجلدات المؤسسة المصرح بها' : 'Authorized folders'}
-                  </button>
-                  <button
-                    type="button"
                     data-active={browseScope === 'organization' ? 'true' : 'false'}
                     onClick={() => {
                       setBrowseScope('organization');
@@ -352,11 +340,23 @@ export function MediaPickerDialog({
                       void openFolder(undefined, undefined, false, 'organization');
                     }}
                   >
-                    {isAr ? 'ملفات العلامة الحالية' : 'Current brand files'}
+                    {t('media.scopeOrganization')}
+                  </button>
+                  <button
+                    type="button"
+                    data-active={browseScope === 'brand' ? 'true' : 'false'}
+                    onClick={() => {
+                      setBrowseScope('brand');
+                      setBrowse(null);
+                      setTrail([]);
+                      void openFolder(undefined, undefined, false, 'brand');
+                    }}
+                  >
+                    {t('media.scopeBrand')}
                   </button>
                 </div>
                 <nav className="oma-mp-trail" aria-label={t('media.folders')}>
-                  {browse?.folder.parent_id && trail.length <= 1 ? (
+                  {browse?.folder.parent_id && trail.length === 0 ? (
                     <button
                       type="button"
                       onClick={() =>
