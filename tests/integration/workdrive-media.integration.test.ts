@@ -374,6 +374,31 @@ describe('WorkDrive storage (API + worker, local Postgres)', () => {
     });
   });
 
+  it('browses the authorized organization tree independently of the active brand folder', async () => {
+    const root = await (
+      await fetch(
+        `${seed.baseUrl}/api/v1/brands/${brandId}/media/browse?kind=posts&scope=organization`,
+        { headers: authHeaders(seed) },
+      )
+    ).json();
+    expect(root.data.folder.name).toBe('OMA');
+    expect(root.data.folders.map((f: { name: string }) => f.name)).toEqual(
+      expect.arrayContaining(['lumen-coffee']),
+    );
+
+    const brandFolder = root.data.folders.find((f: { name: string }) => f.name === 'lumen-coffee');
+    expect(brandFolder).toBeDefined();
+    if (!brandFolder) throw new Error('Expected the active brand folder under the authorized root');
+    const nested = await (
+      await fetch(
+        `${seed.baseUrl}/api/v1/brands/${brandId}/media/browse?kind=posts&scope=organization&folder_id=${encodeURIComponent(brandFolder.id)}`,
+        { headers: authHeaders(seed) },
+      )
+    ).json();
+    expect(nested.data.folder.id).toBe(brandFolder.id);
+    expect(nested.data.files.map((f: { name: string }) => f.name)).toContain('launch post.png');
+  });
+
   it('a file deleted in WorkDrive stays referenced with a missing warning (no destructive sync)', async () => {
     const row = await getPrisma().mediaAsset.findUniqueOrThrow({ where: { id: assetId } });
     wd.files.get(row.workdriveFileId)!.trashed = true;

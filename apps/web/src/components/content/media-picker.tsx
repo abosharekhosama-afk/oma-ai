@@ -104,7 +104,9 @@ export function MediaPickerDialog({
   const [lib, setLib] = useState<MediaLibrary | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<'upload' | 'workdrive'>('upload');
-  const [browseScope, setBrowseScope] = useState<'brand' | 'organization'>('brand');
+  // The connected WorkDrive root is the authorization boundary. Start there so the picker
+  // shows every folder this key can access, not only the generated folder for the active brand.
+  const [browseScope, setBrowseScope] = useState<'brand' | 'organization'>('organization');
   const [progress, setProgress] = useState<{ name: string; value: number } | null>(null);
   const [browse, setBrowse] = useState<WorkDriveBrowse | null>(null);
   const [trail, setTrail] = useState<Array<{ id: string; name: string }>>([]);
@@ -128,6 +130,7 @@ export function MediaPickerDialog({
       setBrowse(null);
       setTrail([]);
       setProgress(null);
+      setBrowseScope('organization');
     }
   }, [open, load]);
 
@@ -337,7 +340,7 @@ export function MediaPickerDialog({
                       void openFolder(undefined, undefined, false, 'brand');
                     }}
                   >
-                    {isAr ? 'ملفات العلامة' : 'Brand files'}
+                    {isAr ? 'مجلدات المؤسسة المصرح بها' : 'Authorized folders'}
                   </button>
                   <button
                     type="button"
@@ -349,7 +352,7 @@ export function MediaPickerDialog({
                       void openFolder(undefined, undefined, false, 'organization');
                     }}
                   >
-                    {isAr ? 'ملفات المؤسسة' : 'Organization files'}
+                    {isAr ? 'ملفات العلامة الحالية' : 'Current brand files'}
                   </button>
                 </div>
                 <nav className="oma-mp-trail" aria-label={t('media.folders')}>
