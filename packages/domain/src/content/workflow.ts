@@ -94,11 +94,12 @@ export function resolveContentWorkflow(
         ? Math.max(1, Math.min(approverRequired - 1, 1))
         : 0);
 
+  // OPTIONAL and REQUIRED both require full approval before schedule; only NONE skips approval.
   const scheduleBlockedReason: ScheduleBlockedReason | null = item.archivedAt
     ? 'ARCHIVED'
     : wasRejected
       ? 'REJECTED'
-      : policy === 'REQUIRED' && approvalState !== 'APPROVED'
+      : policy !== 'NONE' && approvalState !== 'APPROVED'
         ? 'APPROVAL_REQUIRED'
         : null;
   const scheduleBlocked = scheduleBlockedReason !== null;

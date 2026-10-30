@@ -126,10 +126,12 @@ describe('Planable approval policies (PR A)', () => {
     expect(() => assertCanSchedule(full, 'REQUIRED')).not.toThrow();
   });
 
-  it('OPTIONAL and NONE allow scheduling an unapproved draft', () => {
+  it('OPTIONAL blocks scheduling until approved; NONE still allows unapproved drafts', () => {
     const draft = { ...base, approvalState: 'NOT_REQUESTED', approverApproved: 0, approverRequired: 1 };
-    expect(canSchedule(draft, 'OPTIONAL')).toBe(true);
+    expect(canSchedule(draft, 'OPTIONAL')).toBe(false);
     expect(canSchedule(draft, 'NONE')).toBe(true);
+    const approved = { ...draft, approvalState: 'APPROVED', approverApproved: 1 };
+    expect(canSchedule(approved, 'OPTIONAL')).toBe(true);
   });
 
   it('rejected posts cannot be scheduled or published under any policy', () => {

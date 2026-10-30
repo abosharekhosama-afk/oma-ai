@@ -1,11 +1,15 @@
-import { getPrisma } from '@oma/db';
-import { notificationAllowed } from '@oma/domain';
+import { getPrisma, writeOutbox } from '@oma/db';
 import {
   createSocialAdapter,
   decryptToken,
   encryptToken,
   fromSocialEnum,
+  humanizePublishError,
   newId,
+  notificationAllowed,
+  pickMailLocale,
+  renderPublishResultEmail,
+  skipReasonMessage,
   SocialProviderError,
   tokenKeyFromEnv,
   type SocialProviderAdapter,
@@ -119,23 +123,194 @@ async function markNeedsReauth(
   await alertDisconnected(page, now);
 }
 
+
+/** Notify creator/assignee/managers that a publish finished (success or terminal failure). */
+async function notifyPublishOutcome(
+  item: {
+    id: string;
+    tenantId: string;
+    brandId: string;
+    createdBy: string;
+    assigneeUserId: string | null;
+    titleEn: string;
+    titleAr: string;
+  },
+  outcome: 'succeeded' | 'failed',
+  detail: { url?: string | null; error?: string | null },
+) {
+  const prisma = getPrisma();
+  const type = outcome === 'succeeded' ? 'content.publish.succeeded' : 'content.publish.failed';
+  const [managers, admins] = await Promise.all([
+    prisma.brandMember.findMany({
+      where: { tenantId: item.tenantId, brandId: item.brandId, role: 'MANAGER' },
+      select: { userId: true },
+    }),
+    prisma.capabilityGrant.findMany({
+      where: {
+        tenantId: item.tenantId,
+        capabilityCode: 'tenant.manage',
+        revokedAt: null,
+        membership: { status: 'ACTIVE' },
+      },
+      select: { membership: { select: { userId: true } } },
+    }),
+  ]);
+  const recipients = new Set<string>([
+    item.createdBy,
+    ...(item.assigneeUserId ? [item.assigneeUserId] : []),
+    ...managers.map((m) => m.userId),
+    ...admins.map((a) => a.membership.userId).filter((u): u is string => Boolean(u)),
+  ]);
+  const prefs = await prisma.user.findMany({
+    where: { id: { in: [...recipients] } },
+    select: { id: true, email: true, name: true, preferredLocale: true, preferencesJson: true },
+  });
+  const deepLink = `/app/schedule?item=${encodeURIComponent(item.id)}`;
+  const day = new Date().toISOString().slice(0, 10);
+  for (const user of prefs) {
+    if (!notificationAllowed(user.preferencesJson, type)) continue;
+    await prisma.notification.upsert({
+      where: {
+        tenantId_dedupeKey: {
+          tenantId: item.tenantId,
+          dedupeKey: `${type}:${item.id}:${user.id}:${day}`,
+        },
+      },
+      create: {
+        id: newId(),
+        tenantId: item.tenantId,
+        recipientUserId: user.id,
+        type,
+        objectType: 'ContentItem',
+        objectId: item.id,
+        deepLinkPath: deepLink,
+        dedupeKey: `${type}:${item.id}:${user.id}:${day}`,
+      },
+      update: {},
+    });
+    // Optional email via existing mail outbox path (respects mute-all above).
+    if (!user.email) continue;
+    const locale = pickMailLocale(user.preferredLocale);
+    const rendered = renderPublishResultEmail({
+      locale,
+      outcome,
+      postTitle: locale === 'ar' ? item.titleAr || item.titleEn : item.titleEn || item.titleAr,
+      postUrl: detail.url ?? null,
+      errorMessage: detail.error
+        ? humanizePublishError(detail.error, locale === 'ar' ? 'ar' : 'en')
+        : null,
+      deepLinkUrl: `${(process.env.WEB_ORIGIN || process.env.WEB_BASE_URL || 'https://oma-ai-ecru.vercel.app').replace(/\/+$/, '')}${deepLink}`,
+      name: user.name,
+    });
+    const jobRunId = newId();
+    const idempotencyKey = `mail.publish_result:${item.id}:${user.id}:${outcome}:${day}`;
+    try {
+      await prisma.$transaction(async (tx) => {
+        await tx.jobRun.create({
+          data: {
+            id: jobRunId,
+            tenantId: item.tenantId,
+            queue: 'mail',
+            jobType: 'mail.publish_result',
+            status: 'QUEUED',
+            payloadJson: JSON.stringify({
+              to: user.email,
+              subject: rendered.subject,
+              text: rendered.text,
+              html: rendered.html,
+              contentId: item.id,
+              outcome,
+            }),
+            idempotencyKey,
+          },
+        });
+        await writeOutbox(tx, {
+          tenantId: item.tenantId,
+          eventType: 'mail.publish_result',
+          payload: {
+            to: user.email,
+            subject: rendered.subject,
+            text: rendered.text,
+            html: rendered.html,
+            tenantId: item.tenantId,
+            jobRunId,
+            idempotencyKey,
+          },
+        });
+      });
+    } catch {
+      // Duplicate idempotency or mail infra gaps must not fail the publish tick.
+    }
+  }
+}
+
 /**
  * Publish approved, scheduled posts whose time has come. Each item is claimed atomically
  * (QUEUED/NONE → PUBLISHING) so concurrent workers never double-post.
+ * Due posts that are not eligible (e.g. not approved) get a recorded skip reason.
  */
 export async function runPublishTick(deps: Deps = {}) {
   const now = deps.now?.() ?? new Date();
   const key = deps.key === undefined ? tokenKeyFromEnv() : deps.key;
   const adapterFor = deps.adapterFor ?? ((n) => createSocialAdapter(n));
-  if (!key) return { attempted: 0, published: 0, failed: 0, retrying: 0 };
   const prisma = getPrisma();
-  // Approved posts, or any scheduled post in brands whose approval policy is "none".
+  const out = { attempted: 0, published: 0, failed: 0, retrying: 0, skipped: 0 };
+
+  // Brands whose approval policy is NONE may publish without APPROVED.
   const noApproval = (
     await prisma.contentPreferences.findMany({
       where: { approvalPolicy: 'NONE' },
       select: { brandId: true },
     })
   ).map((p) => p.brandId);
+
+  // Record why due posts are not picked up (approval / missing encryption key).
+  const dueAny = await prisma.contentItem.findMany({
+    where: {
+      socialPageId: { not: null },
+      archivedAt: null,
+      scheduleState: 'SCHEDULED',
+      scheduledAt: { lte: now },
+      publishState: { in: ['NONE', 'QUEUED'] },
+      OR: [{ nextPublishAt: null }, { nextPublishAt: { lte: now } }],
+    },
+    orderBy: { scheduledAt: 'asc' },
+    take: 50,
+    select: {
+      id: true,
+      brandId: true,
+      approvalState: true,
+      lastPublishSkipReason: true,
+    },
+  });
+  for (const row of dueAny) {
+    const eligible =
+      row.approvalState === 'APPROVED' || noApproval.includes(row.brandId);
+    if (!eligible) {
+      const reason = skipReasonMessage('NOT_APPROVED');
+      if (row.lastPublishSkipReason !== reason) {
+        await prisma.contentItem.update({
+          where: { id: row.id },
+          data: { lastPublishSkipReason: reason },
+        });
+      }
+      out.skipped++;
+      continue;
+    }
+    if (!key) {
+      const reason = skipReasonMessage('ENCRYPTION_KEY');
+      if (row.lastPublishSkipReason !== reason) {
+        await prisma.contentItem.update({
+          where: { id: row.id },
+          data: { lastPublishSkipReason: reason },
+        });
+      }
+      out.skipped++;
+    }
+  }
+
+  if (!key) return out;
+
   const due = await prisma.contentItem.findMany({
     where: {
       AND: [{ OR: [{ approvalState: 'APPROVED' }, { brandId: { in: noApproval } }] }],
@@ -149,11 +324,15 @@ export async function runPublishTick(deps: Deps = {}) {
     orderBy: { scheduledAt: 'asc' },
     take: 25,
   });
-  const out = { attempted: 0, published: 0, failed: 0, retrying: 0 };
+
   for (const item of due) {
     const claim = await prisma.contentItem.updateMany({
       where: { id: item.id, publishState: { in: ['NONE', 'QUEUED'] } },
-      data: { publishState: 'PUBLISHING' },
+      data: {
+        publishState: 'PUBLISHING',
+        workerPickedAt: now,
+        lastPublishSkipReason: null,
+      },
     });
     if (claim.count !== 1) continue;
     out.attempted++;
@@ -195,9 +374,11 @@ export async function runPublishTick(deps: Deps = {}) {
           publishedAt: now,
           lastPublishError: null,
           nextPublishAt: null,
+          lastPublishSkipReason: null,
         },
       });
       out.published++;
+      await notifyPublishOutcome(item, 'succeeded', { url: res.url });
     } catch (e) {
       const err =
         e instanceof SocialProviderError
@@ -221,13 +402,15 @@ export async function runPublishTick(deps: Deps = {}) {
         },
       });
       if (retry) out.retrying++;
-      else out.failed++;
+      else {
+        out.failed++;
+        await notifyPublishOutcome(item, 'failed', { error: err.message });
+      }
     }
   }
   return out;
 }
 
-/** Refresh tokens nearing expiry; failures mark the page NEEDS_REAUTH and alert managers. */
 export async function runTokenRefreshTick(deps: Deps = {}) {
   const now = deps.now?.() ?? new Date();
   const key = deps.key === undefined ? tokenKeyFromEnv() : deps.key;

@@ -26,6 +26,8 @@ export const NOTIFICATION_PREF_TYPES = [
   'content.changes_requested',
   'content.rejected',
   'content.comment',
+  'content.publish.succeeded',
+  'content.publish.failed',
   'deliverable.review',
   'deliverable.approved',
   'deliverable.changes_requested',

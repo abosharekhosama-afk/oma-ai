@@ -319,16 +319,17 @@ describe('publish + refresh jobs', () => {
     });
   });
 
-  it('does not publish unapproved posts', async () => {
+  it('does not publish unapproved posts and records a skip reason', async () => {
     const page = await seedPage(seed, brand);
     const post = await seedPost(seed, brand, { socialPageId: page, approvalState: 'PENDING' });
-    await runPublishTick({
+    const out = await runPublishTick({
       key: KEY,
       adapterFor: adapter(async () => ({ externalId: 'n', url: null })),
     });
-    expect(
-      (await getPrisma().contentItem.findUniqueOrThrow({ where: { id: post } })).publishState,
-    ).toBe('NONE');
+    expect(out.skipped).toBeGreaterThanOrEqual(1);
+    const row = await getPrisma().contentItem.findUniqueOrThrow({ where: { id: post } });
+    expect(row.publishState).toBe('NONE');
+    expect(row.lastPublishSkipReason || '').toMatch(/not fully approved/i);
   });
 
   it('retries transient errors with backoff, then fails after the max attempts', async () => {

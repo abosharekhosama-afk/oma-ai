@@ -96,8 +96,11 @@ X API plan that allows `POST /2/tweets`. Text only.
 ## How publishing works
 
 1. Pick the account on a post (`POST /api/v1/content/:id/publish-target`) and schedule it.
-2. The worker checks every minute for **approved** posts (or any post when the brand's
-   approval policy is "none") whose scheduled time has passed.
+2. Scheduling requires approval whenever the brand policy is not `NONE` (so `OPTIONAL`
+   and `REQUIRED` both wait for `approvalState = APPROVED`). The worker then checks
+   for **approved** posts (or any post when the brand's approval policy is `NONE`)
+   whose scheduled time has passed. Due posts skipped for approval get
+   `lastPublishSkipReason` recorded.
 3. Success stores the post's link; temporary errors retry after 1, 5, 15 and 60 minutes
    (5 attempts max); the last error is shown on the post.
 4. An expired or revoked grant marks the account **Reconnect needed** and notifies the brand's managers.

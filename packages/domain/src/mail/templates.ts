@@ -252,3 +252,116 @@ export function inviteAcceptLink(webOrigin: string, token: string): string {
   const origin = webOrigin.replace(/\/+$/, '').replace(/\/app$/i, '');
   return `${origin}/invite?token=${encodeURIComponent(token)}`;
 }
+
+export type PublishResultMailInput = {
+  locale: MailLocale;
+  outcome: 'succeeded' | 'failed';
+  postTitle: string;
+  postUrl?: string | null;
+  errorMessage?: string | null;
+  deepLinkUrl: string;
+  name?: string | null;
+};
+
+export function renderPublishResultEmail(input: PublishResultMailInput): RenderedMail {
+  const name = input.name?.trim() || null;
+  const title = input.postTitle.trim() || (input.locale === 'ar' ? 'منشور' : 'Post');
+  if (input.locale === 'ar') {
+    if (input.outcome === 'succeeded') {
+      const subject = `تم نشر «${title}»`;
+      const heading = 'تم النشر بنجاح';
+      const paragraphs = [
+        name ? `مرحبًا ${name}،` : 'مرحبًا،',
+        `نُشر المنشور «${title}» على الشبكة المتصلة.`,
+        ...(input.postUrl ? [`رابط المنشور: ${input.postUrl}`] : []),
+      ];
+      const footer = ['OMA — منصة إدارة المحتوى والتسويق'];
+      const cta = 'عرض في الجدولة';
+      return {
+        subject,
+        html: layout({
+          locale: 'ar',
+          preheader: subject,
+          heading,
+          paragraphs,
+          ctaLabel: cta,
+          ctaUrl: input.deepLinkUrl,
+          fallbackLabel: 'إذا لم يعمل الزر، انسخ هذا الرابط:',
+          footer,
+        }),
+        text: textBody(heading, paragraphs, cta, input.deepLinkUrl, footer),
+      };
+    }
+    const subject = `فشل نشر «${title}»`;
+    const heading = 'فشل النشر';
+    const paragraphs = [
+      name ? `مرحبًا ${name}،` : 'مرحبًا،',
+      `تعذّر نشر المنشور «${title}».`,
+      input.errorMessage || 'تحقق من الحساب المتصل وحاول مجددًا.',
+    ];
+    const footer = ['OMA — منصة إدارة المحتوى والتسويق'];
+    const cta = 'فتح الجدولة';
+    return {
+      subject,
+      html: layout({
+        locale: 'ar',
+        preheader: subject,
+        heading,
+        paragraphs,
+        ctaLabel: cta,
+        ctaUrl: input.deepLinkUrl,
+        fallbackLabel: 'إذا لم يعمل الزر، انسخ هذا الرابط:',
+        footer,
+      }),
+      text: textBody(heading, paragraphs, cta, input.deepLinkUrl, footer),
+    };
+  }
+  if (input.outcome === 'succeeded') {
+    const subject = `Published “${title}”`;
+    const heading = 'Published successfully';
+    const paragraphs = [
+      name ? `Hi ${name},` : 'Hi,',
+      `“${title}” was published to the connected account.`,
+      ...(input.postUrl ? [`Post link: ${input.postUrl}`] : []),
+    ];
+    const footer = ['OMA — content and marketing workspace'];
+    const cta = 'View in schedule';
+    return {
+      subject,
+      html: layout({
+        locale: 'en',
+        preheader: subject,
+        heading,
+        paragraphs,
+        ctaLabel: cta,
+        ctaUrl: input.deepLinkUrl,
+        fallbackLabel: "If the button doesn't work, copy and paste this link:",
+        footer,
+      }),
+      text: textBody(heading, paragraphs, cta, input.deepLinkUrl, footer),
+    };
+  }
+  const subject = `Publishing failed for “${title}”`;
+  const heading = 'Publishing failed';
+  const paragraphs = [
+    name ? `Hi ${name},` : 'Hi,',
+    `We could not publish “${title}”.`,
+    input.errorMessage || 'Check the connected account and try again.',
+  ];
+  const footer = ['OMA — content and marketing workspace'];
+  const cta = 'Open schedule';
+  return {
+    subject,
+    html: layout({
+      locale: 'en',
+      preheader: subject,
+      heading,
+      paragraphs,
+      ctaLabel: cta,
+      ctaUrl: input.deepLinkUrl,
+      fallbackLabel: "If the button doesn't work, copy and paste this link:",
+      footer,
+    }),
+    text: textBody(heading, paragraphs, cta, input.deepLinkUrl, footer),
+  };
+}

@@ -101,6 +101,9 @@ function mapContent(
     publishState?: string;
     publishAttempts?: number;
     lastPublishError?: string | null;
+    workerPickedAt?: Date | null;
+    lastPublishSkipReason?: string | null;
+    nextPublishAt?: Date | null;
     externalPostUrl?: string | null;
     publishedAt?: Date | null;
   },
@@ -154,6 +157,9 @@ function mapContent(
       state: row.publishState ?? 'NONE',
       attempts: row.publishAttempts ?? 0,
       last_error: row.lastPublishError ?? null,
+      worker_picked_at: row.workerPickedAt?.toISOString() ?? null,
+      skip_reason: row.lastPublishSkipReason ?? null,
+      next_publish_at: row.nextPublishAt?.toISOString() ?? null,
       external_post_url: row.externalPostUrl ?? null,
       published_at: row.publishedAt?.toISOString() ?? null,
     },

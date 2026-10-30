@@ -29,6 +29,9 @@ export type ApiContentPublishing = {
   state: string;
   attempts: number;
   last_error: string | null;
+  worker_picked_at: string | null;
+  skip_reason: string | null;
+  next_publish_at: string | null;
   external_post_url: string | null;
   published_at: string | null;
 };
@@ -73,7 +76,12 @@ export type ContentRowExtra = ContentRow & {
   socialPageId?: string | null;
   publishState?: string;
   publishError?: string | null;
+  workerPickedAt?: string | null;
+  publishSkipReason?: string | null;
+  nextPublishAt?: string | null;
+  publishedAt?: string | null;
   externalPostUrl?: string | null;
+  timezone?: string;
 };
 
 export function toContentRow(c: ApiContent): ContentRowExtra {
@@ -92,7 +100,7 @@ export function toContentRow(c: ApiContent): ContentRowExtra {
     approvalState: c.approval_state as ContentRow['approvalState'],
     approverApproved: c.approver_approved,
     approverRequired: c.approver_required,
-    assignee: (c.assignee_name && c.assignee_name.trim()) || '—',
+    assignee: (c.assignee_name && c.assignee_name.trim()) || '',
     previewAsset: c.preview_asset_url ?? '',
     deliverableId: null,
     caption: c.caption ?? undefined,
@@ -101,7 +109,12 @@ export function toContentRow(c: ApiContent): ContentRowExtra {
     socialPageId: c.publishing?.social_page_id ?? null,
     publishState: c.publishing?.state ?? 'NONE',
     publishError: c.publishing?.last_error ?? null,
+    workerPickedAt: c.publishing?.worker_picked_at ?? null,
+    publishSkipReason: c.publishing?.skip_reason ?? null,
+    nextPublishAt: c.publishing?.next_publish_at ?? null,
+    publishedAt: c.publishing?.published_at ?? null,
     externalPostUrl: c.publishing?.external_post_url ?? null,
+    timezone: c.timezone,
   };
 }
 

@@ -67,6 +67,7 @@ export async function composeMail(
     to,
     subject: payload.subject ?? `OMA: ${jobName}`,
     text: payload.text ?? `OMA job ${jobName}`,
+    ...(payload.html ? { html: payload.html } : {}),
   };
 }
 
