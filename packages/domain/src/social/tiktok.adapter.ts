@@ -113,13 +113,14 @@ export class TikTokAdapter implements SocialProviderAdapter {
     const scopes = Array.isArray(page.meta.scopes) ? page.meta.scopes : [];
     if (!scopes.includes('video.publish')) {
       throw new SocialProviderError(
-        'tiktok: video.publish is not authorized for this app. Enable Direct Post after TikTok approval, then reconnect the account.',
-        { retryable: false },
+        'tiktok [scope_missing]: video.publish is not authorized for this app. Enable Direct Post after TikTok approval, then reconnect the account.',
+        { retryable: false, providerCode: 'scope_missing' },
       );
     }
     if (!post.mediaUrl) {
-      throw new SocialProviderError('tiktok: an image is required to publish', {
+      throw new SocialProviderError('tiktok [media_missing]: an image is required to publish', {
         retryable: false,
+        providerCode: 'media_missing',
       });
     }
     const res = await this.fetchFn(`${API}/v2/post/publish/content/init/`, {

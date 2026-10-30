@@ -19,7 +19,10 @@ export type PublishErrorCode =
 const RULES: Array<{ code: PublishErrorCode; test: (s: string) => boolean }> = [
   {
     code: 'SCOPE_MISSING',
-    test: (s) => /video\.publish|not authorized for this app|Enable Direct Post/i.test(s),
+    test: (s) =>
+      /scope_missing|scope_not_authorized|video\.publish|not authorized for this app|Enable Direct Post/i.test(
+        s,
+      ),
   },
   {
     code: 'TOKEN_EXPIRED',
@@ -47,7 +50,8 @@ const RULES: Array<{ code: PublishErrorCode; test: (s: string) => boolean }> = [
   },
   {
     code: 'NOT_APPROVED',
-    test: (s) => /not (fully )?approved|approval required|APPROVAL_REQUIRED|Skipped:.*approv/i.test(s),
+    test: (s) =>
+      /not (fully )?approved|approval required|APPROVAL_REQUIRED|Skipped:.*approv/i.test(s),
   },
   {
     code: 'WORKDRIVE',
@@ -55,9 +59,20 @@ const RULES: Array<{ code: PublishErrorCode; test: (s: string) => boolean }> = [
   },
   {
     code: 'PROVIDER_REJECTED',
-    test: (s) => /tiktok:|facebook:|instagram:|linkedin:|x:|provider|rejected|http \d{3}/i.test(s),
+    test: (s) =>
+      /tiktok\s*(?::|\[)|facebook\s*(?::|\[)|instagram\s*(?::|\[)|linkedin\s*(?::|\[)|x\s*(?::|\[)|provider|rejected|http_status=\d{3}/i.test(
+        s,
+      ),
   },
 ];
+
+function providerDetail(raw: string | null | undefined): string | null {
+  const value = (raw ?? '').trim();
+  if (!value) return null;
+  // Provider responses are already redacted by the adapters; expose their code, message,
+  // log id and HTTP status, but never expose request headers or access tokens.
+  return value.slice(0, 700);
+}
 
 export function classifyPublishError(raw: string | null | undefined): PublishErrorCode {
   const s = (raw ?? '').trim();
@@ -84,8 +99,7 @@ const EN: Record<PublishErrorCode, string> = {
 };
 
 const AR: Record<PublishErrorCode, string> = {
-  SCOPE_MISSING:
-    'صلاحية النشر غير متوفرة. فعّل Direct Post لهذه الشبكة ثم أعد ربط الحساب.',
+  SCOPE_MISSING: 'صلاحية النشر غير متوفرة. فعّل Direct Post لهذه الشبكة ثم أعد ربط الحساب.',
   TOKEN_EXPIRED: 'انتهت صلاحية الحساب المتصل. أعد ربطه من العلامة → الإعدادات → الحسابات.',
   NO_MEDIA: 'يحتاج هذا المنشور إلى صورة عامة قبل النشر.',
   NETWORK_NOT_CONFIGURED: 'هذه الشبكة غير مُعدّة على الخادم بعد.',
@@ -103,7 +117,12 @@ export function humanizePublishError(
   locale: 'en' | 'ar' = 'en',
 ): string {
   const code = classifyPublishError(raw);
-  return locale === 'ar' ? AR[code] : EN[code];
+  const base = locale === 'ar' ? AR[code] : EN[code];
+  const detail = providerDetail(raw);
+  if (!detail || code === 'NOT_APPROVED') return base;
+  return locale === 'ar'
+    ? `${base}\nتفاصيل المزود: ${detail}`
+    : `${base}\nProvider details: ${detail}`;
 }
 
 export type PublishSkipCode = 'NOT_APPROVED' | 'NO_ACCOUNT' | 'ENCRYPTION_KEY' | 'OTHER';

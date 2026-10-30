@@ -298,6 +298,50 @@ describe('TikTok adapter', () => {
     });
     expect(body.post_info.privacy_level).toBe('SELF_ONLY');
   });
+
+  it('preserves TikTok provider code, message, log id and HTTP status', async () => {
+    const m = mockFetch([
+      [
+        /post\/publish\/content\/init/,
+        () =>
+          json(
+            {
+              error: {
+                code: 'url_ownership_unverified',
+                message: 'The URL prefix is not verified',
+                log_id: '20261030-abc123',
+              },
+            },
+            403,
+          ),
+      ],
+    ]);
+    const a = new TikTokAdapter(publishEnv, m.fn);
+    const error = await a
+      .publish(
+        {
+          externalId: 'o1',
+          name: '',
+          accessToken: 'tat',
+          meta: { scopes: ['video.publish'] },
+        },
+        { text: 'Look', mediaUrl: 'https://cdn/x.jpg' },
+      )
+      .catch((e) => e as SocialProviderError);
+
+    expect(error).toBeInstanceOf(SocialProviderError);
+    expect(error.message).toContain('tiktok [url_ownership_unverified]');
+    expect(error.message).toContain('The URL prefix is not verified');
+    expect(error.message).toContain('log_id=20261030-abc123');
+    expect(error.message).toContain('http_status=403');
+    expect(error.opts).toMatchObject({
+      providerCode: 'url_ownership_unverified',
+      providerMessage: 'The URL prefix is not verified',
+      providerLogId: '20261030-abc123',
+      status: 403,
+      retryable: false,
+    });
+  });
 });
 
 describe('X adapter', () => {
