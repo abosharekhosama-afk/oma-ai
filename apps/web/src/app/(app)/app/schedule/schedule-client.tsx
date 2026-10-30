@@ -24,7 +24,14 @@ import {
   unscheduleContent,
 } from '../../../../lib/content-api';
 import { todayKey } from '../../../../lib/calendar-today';
-import { contentToScheduleRow } from '../../../../lib/schedule-production';
+import {
+  contentToScheduleRow,
+  type ScheduleRowExtras,
+} from '../../../../lib/schedule-production';
+import {
+  buildPublishStatusView,
+  formatScheduleWhen,
+} from '../../../../lib/publish-status';
 import {
   EMPTY_SCHEDULE_FILTERS,
   activeScheduleFilterCount,
@@ -44,6 +51,9 @@ import {
   type ScheduleView,
 } from '../../../../lib/demo/stage6-schedule';
 import { useLocale, useT } from '../../../../lib/use-locale';
+import { scheduleBlockedHint, scheduleBlockReason } from '../../../../lib/content-workflow-ui';
+
+type ScheduleRowView = ScheduleRow & ScheduleRowExtras;
 
 function weekdayForScheduleDay(iso: string, locale: string): string {
   const d = new Date(`${iso}T12:00:00+03:00`);
@@ -58,7 +68,7 @@ export default function SchedulePage() {
   const t = useT();
   const locale = useLocale();
   const toast = useToast();
-  const [rows, setRows] = useState<ScheduleRow[]>([]);
+  const [rows, setRows] = useState<ScheduleRowView[]>([]);
   const [campaigns, setCampaigns] = useState<DemoGraph['campaigns']>([]);
   const [contents, setContents] = useState<DemoGraph['contentItems']>([]);
   const [policy, setPolicy] = useState<ApprovalPolicy>('OPTIONAL');
@@ -82,7 +92,21 @@ export default function SchedulePage() {
       setPolicy(workspace.policy);
       setCampaigns(workspace.campaigns as DemoGraph['campaigns']);
       setContents(workspace.content as DemoGraph['contentItems']);
-      setRows(workspace.content.map((item) => contentToScheduleRow(item, workspace.policy)));
+      const campaignById = new Map(
+        workspace.campaigns.map((c) => {
+          const named = c as { id: string; title?: { en: string; ar: string }; name?: { en: string; ar: string } };
+          return [named.id, named.title ?? named.name ?? { en: '', ar: '' }] as const;
+        }),
+      );
+      setRows(
+        workspace.content.map((item) => {
+          const row = item as typeof item & { timezone?: string; campaignId?: string };
+          return contentToScheduleRow(row, workspace.policy, {
+            timezone: row.timezone,
+            campaignTitle: row.campaignId ? campaignById.get(row.campaignId) ?? null : null,
+          });
+        }),
+      );
       setError(null);
       setUnavailable(false);
     } catch (err) {
@@ -206,7 +230,8 @@ export default function SchedulePage() {
         description={t('demo.schedule.subtitle')}
         meta={
           <span className="oma-muted" data-testid="demo-schedule-tz">
-            {t('demo.schedule.timezone')}: Asia/Dubai
+            {t('demo.schedule.timezone')}:{' '}
+            {rows[0]?.timezone || 'Asia/Dubai'}
           </span>
         }
       />
@@ -374,7 +399,8 @@ export default function SchedulePage() {
                             <strong>{pickCopy(post.title, locale)}</strong>
                             <p className="oma-muted">
                               {weekdayForScheduleDay(scheduleDayKey(post.plannedAt), locale)} ·{' '}
-                              {post.plannedAt} · {post.timezone} · {post.channels.join(', ') || '—'}
+                              {formatScheduleWhen(post.plannedAt, post.timezone, locale)} ·{' '}
+                              {post.timezone} · {post.channels.join(', ') || t('demo.schedule.ownerEmpty')}
                             </p>
                           </div>
                           <StatusMark
@@ -590,45 +616,28 @@ export default function SchedulePage() {
               locale={locale}
             />
             <p data-testid="demo-schedule-truth">
-              {selected.state === 'SCHEDULED_PREVIEW'
-                ? t('demo.schedule.truth.scheduled')
-                : selected.state === 'BLOCKED'
-                  ? t('demo.schedule.truth.blocked')
+              {selected.state === 'BLOCKED' || scheduleBlocked
+                ? scheduleBlockedHint(scheduleBlockReason(selectedContent ?? {}, policy), locale.startsWith('ar')) ||
+                  t('demo.schedule.truth.waitingApproval')
+                : selected.state === 'SCHEDULED_PREVIEW'
+                  ? selected.externalPublishingConnected
+                    ? t('demo.schedule.truth.scheduledConnected')
+                    : t('demo.schedule.truth.scheduledDisconnected')
                   : t('demo.schedule.truth.planned')}
             </p>
-            {scheduleBlocked ? (
-              <p data-testid="demo-schedule-block-reason">
-                {selectedWorkflow?.scheduleBlocked
-                  ? t('demo.content.scheduleBlocked')
-                  : selected.blockingReason
-                    ? pickCopy(selected.blockingReason, locale)
-                    : t('demo.schedule.truth.blocked')}
-              </p>
-            ) : null}
             <p data-testid="demo-schedule-policy">
-              {t('demo.content.policy')}: {policy}
+              {t('demo.content.policy')}:{' '}
+              {policy === 'NONE'
+                ? t('demo.content.policy.none')
+                : policy === 'REQUIRED'
+                  ? t('demo.content.policy.required')
+                  : t('demo.content.policy.optional')}
             </p>
-            {contents.find((item) => item.id === selected.contentId) ? (
+            {selectedWorkflow && policy !== 'NONE' ? (
               <p data-testid="demo-schedule-approver-progress">
                 {t('demo.content.approverProgress')
-                  .replace(
-                    '{approved}',
-                    String(
-                      resolveContentWorkflow(
-                        contents.find((item) => item.id === selected.contentId)!,
-                        policy,
-                      ).approverApproved,
-                    ),
-                  )
-                  .replace(
-                    '{required}',
-                    String(
-                      resolveContentWorkflow(
-                        contents.find((item) => item.id === selected.contentId)!,
-                        policy,
-                      ).approverRequired,
-                    ),
-                  )}
+                  .replace('{approved}', String(selectedWorkflow.approverApproved))
+                  .replace('{required}', String(selectedWorkflow.approverRequired))}
               </p>
             ) : null}
             <div className="oma-chip-row">
@@ -636,7 +645,14 @@ export default function SchedulePage() {
                 type="primary"
                 data-testid="demo-schedule-command"
                 disabled={saving || scheduleBlocked}
-                title={scheduleBlocked ? t('demo.content.scheduleBlocked') : undefined}
+                title={
+                  scheduleBlocked
+                    ? scheduleBlockedHint(
+                        scheduleBlockReason(selectedContent ?? {}, policy),
+                        locale.startsWith('ar'),
+                      ) || t('demo.content.scheduleBlocked')
+                    : undefined
+                }
                 onClick={() => void setScheduleState('SCHEDULED_PREVIEW')}
               >
                 {t('demo.content.schedule')}
@@ -650,22 +666,103 @@ export default function SchedulePage() {
                 {t('demo.content.unschedule')}
               </Button>
             </div>
-            <p className="oma-muted">
-              {selected.plannedAt} · {selected.timezone}
+            <p className="oma-muted" data-testid="demo-schedule-when">
+              {formatScheduleWhen(selected.plannedAt, selected.timezone, locale)}
+              {selected.timezone ? ` · ${selected.timezone}` : ''}
             </p>
             <p>{pickCopy(selected.caption, locale)}</p>
-            <p>
-              {t('demo.schedule.filter.owner')}: {selected.owner}
+            <p data-testid="demo-schedule-owner">
+              {t('demo.schedule.filter.owner')}:{' '}
+              {selected.owner?.trim() ? selected.owner : t('demo.schedule.ownerEmpty')}
             </p>
             <h3>{t('demo.schedule.readiness')}</h3>
             <ul className="oma-readiness-list" data-testid="demo-schedule-readiness">
               {selected.readiness.map((r, i) => (
                 <li key={i} data-ok={r.ok ? 'true' : 'false'}>
                   {r.ok ? '✓' : '✗'} {pickCopy(r.check, locale)}
-                  <span className="oma-muted"> ({r.kind})</span>
+                  <span className="oma-muted">
+                    {' '}
+                    · {t(`demo.schedule.readiness.kind.${r.kind}`)}
+                  </span>
                 </li>
               ))}
             </ul>
+            {(() => {
+              const content = selectedContent as
+                | (typeof selectedContent & {
+                    scheduleState?: string;
+                    scheduledAt?: string | null;
+                    socialPageId?: string | null;
+                    publishState?: string;
+                    publishError?: string | null;
+                    workerPickedAt?: string | null;
+                    publishSkipReason?: string | null;
+                    nextPublishAt?: string | null;
+                    publishedAt?: string | null;
+                    externalPostUrl?: string | null;
+                  })
+                | null;
+              const status = buildPublishStatusView(
+                {
+                  scheduleState: content?.scheduleState ?? (selected.state === 'SCHEDULED_PREVIEW' ? 'SCHEDULED' : 'UNSCHEDULED'),
+                  scheduledAt: content?.scheduledAt ?? selected.plannedAt,
+                  plannedAt: selected.plannedAt,
+                  publishState: selected.publishState ?? content?.publishState,
+                  publishError: selected.publishError ?? content?.publishError,
+                  workerPickedAt: selected.workerPickedAt ?? content?.workerPickedAt,
+                  publishSkipReason: selected.publishSkipReason ?? content?.publishSkipReason,
+                  nextPublishAt: selected.nextPublishAt ?? content?.nextPublishAt,
+                  publishedAt: selected.publishedAt ?? content?.publishedAt,
+                  externalPostUrl: selected.externalPostUrl ?? content?.externalPostUrl,
+                  socialPageId: content?.socialPageId ?? (selected.externalPublishingConnected ? '1' : null),
+                },
+                locale.startsWith('ar') ? 'ar' : 'en',
+              );
+              if (!status) return null;
+              return (
+                <div className="oma-stack" data-testid="demo-schedule-publish-status">
+                  <h3>{t('demo.schedule.publishStatus')}</h3>
+                  <p data-testid="demo-schedule-publish-state">{t(status.stateLabelKey)}</p>
+                  <ol className="oma-readiness-list" data-testid="demo-schedule-publish-timeline">
+                    {status.steps.map((step) => (
+                      <li
+                        key={step.key}
+                        data-ok={step.done ? 'true' : 'false'}
+                        data-current={step.current ? 'true' : 'false'}
+                      >
+                        {step.done ? '✓' : step.current ? '●' : '○'}{' '}
+                        {t(`demo.schedule.timeline.${step.key}`)}
+                        {step.at
+                          ? ` · ${formatScheduleWhen(step.at, selected.timezone, locale)}`
+                          : ''}
+                        {step.detail && step.key !== 'published' ? (
+                          <span className="oma-muted"> — {step.detail}</span>
+                        ) : null}
+                        {step.key === 'published' && status.externalUrl ? (
+                          <>
+                            {' · '}
+                            <a
+                              href={status.externalUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="oma-text-link"
+                            >
+                              {t('demo.schedule.viewPostLink')}
+                            </a>
+                          </>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ol>
+                  {status.errorHuman &&
+                  (selected.publishState === 'FAILED' || selected.publishSkipReason) ? (
+                    <p role="status" data-testid="demo-schedule-publish-error">
+                      {status.errorHuman}
+                    </p>
+                  ) : null}
+                </div>
+              );
+            })()}
             {selected.blockingReason ? (
               <p role="status">{pickCopy(selected.blockingReason, locale)}</p>
             ) : null}
@@ -696,7 +793,7 @@ export default function SchedulePage() {
                   className="oma-text-link"
                   data-testid="demo-schedule-content-link"
                 >
-                  {selected.contentId}
+                  {t('demo.schedule.openPost')}: {pickCopy(selected.title, locale)}
                 </Link>
               ) : null}
               {selected.campaignId ? (
@@ -705,16 +802,10 @@ export default function SchedulePage() {
                   className="oma-text-link"
                   data-testid="demo-schedule-campaign-link"
                 >
-                  {selected.campaignId}
-                </Link>
-              ) : null}
-              {selected.deliverableId ? (
-                <Link
-                  href={`/app/deliverables/${selected.deliverableId}`}
-                  className="oma-text-link"
-                  data-testid="demo-schedule-deliverable-link"
-                >
-                  {selected.deliverableId}
+                  {t('demo.schedule.openCampaign')}
+                  {selected.campaignTitle
+                    ? `: ${pickCopy(selected.campaignTitle, locale)}`
+                    : ''}
                 </Link>
               ) : null}
             </div>

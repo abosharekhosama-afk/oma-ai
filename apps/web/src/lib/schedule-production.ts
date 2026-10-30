@@ -1,22 +1,39 @@
 import { resolveContentWorkflow, type ApprovalPolicy } from '@oma/demo';
 import type { ContentRow } from './demo/stage3-campaigns';
 import type { ScheduleRow } from './demo/stage6-schedule';
+import type { ContentRowExtra } from './content-api';
 
-export function contentToScheduleRow(item: ContentRow, policy: ApprovalPolicy): ScheduleRow {
-  const publishing = item as ContentRow & {
-    socialPageId?: string | null;
-    publishState?: string;
-    publishError?: string | null;
-    externalPostUrl?: string | null;
-  };
+export type ScheduleRowExtras = {
+  publishState?: string;
+  publishError?: string | null;
+  workerPickedAt?: string | null;
+  publishSkipReason?: string | null;
+  nextPublishAt?: string | null;
+  publishedAt?: string | null;
+  externalPostUrl?: string | null;
+  campaignTitle?: { en: string; ar: string } | null;
+};
+
+export function contentToScheduleRow(
+  item: ContentRow,
+  policy: ApprovalPolicy,
+  opts?: { timezone?: string; campaignTitle?: { en: string; ar: string } | null },
+): ScheduleRow & ScheduleRowExtras {
+  const publishing = item as ContentRowExtra;
   const workflow = resolveContentWorkflow(item, policy);
   const plannedAt = workflow.plannedAt || item.scheduledAt || '';
   const externalPublishingConnected = Boolean(publishing.socialPageId);
   let state: ScheduleRow['state'] = 'PLANNED';
-  if (item.status === 'PUBLISHED_DEMO') state = 'PUBLISHED_SAMPLE';
+  if (item.status === 'PUBLISHED_DEMO' || publishing.publishState === 'PUBLISHED')
+    state = 'PUBLISHED_SAMPLE';
   else if (workflow.scheduleState === 'SCHEDULED') state = 'SCHEDULED_PREVIEW';
   else if (workflow.scheduleBlocked) state = 'BLOCKED';
   else if (workflow.approvalState === 'APPROVED') state = 'READY';
+
+  const tz =
+    (publishing.timezone && publishing.timezone.trim()) ||
+    (opts?.timezone && opts.timezone.trim()) ||
+    'Asia/Dubai';
 
   return {
     id: item.id,
@@ -27,9 +44,9 @@ export function contentToScheduleRow(item: ContentRow, policy: ApprovalPolicy): 
     title: item.title,
     channels: item.channel ? [item.channel] : [],
     plannedAt,
-    timezone: 'Asia/Dubai',
+    timezone: tz,
     caption: item.caption ?? { en: '', ar: '' },
-    owner: item.assignee,
+    owner: item.assignee || '',
     track: item.track,
     readiness: [
       {
@@ -61,5 +78,13 @@ export function contentToScheduleRow(item: ContentRow, policy: ApprovalPolicy): 
         }
       : null,
     externalPublishingConnected,
+    publishState: publishing.publishState ?? 'NONE',
+    publishError: publishing.publishError ?? null,
+    workerPickedAt: publishing.workerPickedAt ?? null,
+    publishSkipReason: publishing.publishSkipReason ?? null,
+    nextPublishAt: publishing.nextPublishAt ?? null,
+    publishedAt: publishing.publishedAt ?? null,
+    externalPostUrl: publishing.externalPostUrl ?? null,
+    campaignTitle: opts?.campaignTitle ?? null,
   };
 }

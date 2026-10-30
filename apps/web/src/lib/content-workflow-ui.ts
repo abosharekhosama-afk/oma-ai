@@ -42,7 +42,7 @@ export function scheduleBlockReason(
 ): 'ARCHIVED' | 'REJECTED' | 'APPROVAL_REQUIRED' | null {
   if (item.archivedAt) return 'ARCHIVED';
   if (item.approvalState === 'REJECTED') return 'REJECTED';
-  if (policy === 'REQUIRED' && item.approvalState !== 'APPROVED') return 'APPROVAL_REQUIRED';
+  if (policy !== 'NONE' && item.approvalState !== 'APPROVED') return 'APPROVAL_REQUIRED';
   return null;
 }
 

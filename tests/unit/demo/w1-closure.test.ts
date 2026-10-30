@@ -58,7 +58,7 @@ describe('W1 closure contracts', () => {
     ).toBe('planned');
   });
 
-  it('blocks a partial approval under REQUIRED and allows OPTIONAL', () => {
+  it('blocks a partial approval under REQUIRED and OPTIONAL; NONE allows schedule', () => {
     const item = {
       status: 'IN_REVIEW',
       scheduledAt: '2026-10-01T09:00:00.000Z',
@@ -70,6 +70,8 @@ describe('W1 closure contracts', () => {
     expect(required.approvalState).toBe('PARTIALLY_APPROVED');
     expect(assertCanSchedule(required)).toBe('APPROVAL_REQUIRED');
     const optional = resolveContentWorkflow(item, 'OPTIONAL');
-    expect(assertCanSchedule(optional)).toBe('OK');
+    expect(assertCanSchedule(optional)).toBe('APPROVAL_REQUIRED');
+    const none = resolveContentWorkflow(item, 'NONE');
+    expect(assertCanSchedule(none)).toBe('OK');
   });
 });

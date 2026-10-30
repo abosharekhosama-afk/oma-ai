@@ -13,6 +13,7 @@ export type MailJobPayload = {
     membershipId?: string;
     subject?: string;
     text?: string;
+    html?: string;
   };
 };
 

@@ -126,7 +126,7 @@ export function decideDrop(
   if (row.status === 'PUBLISHED_SAMPLE' || row.status === 'PUBLISHED')
     return { ok: false, reason: 'PUBLISHED' };
   if (row.scheduleState === 'SCHEDULED') {
-    if (policy === 'REQUIRED' && row.approvalState !== 'APPROVED')
+    if (policy !== 'NONE' && row.approvalState !== 'APPROVED')
       return { ok: false, reason: 'APPROVAL_REQUIRED' };
     return { ok: true, mode: 'reschedule' };
   }

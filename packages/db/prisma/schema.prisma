@@ -1133,6 +1133,10 @@ model ContentItem {
   publishAttempts  Int                  @default(0)
   nextPublishAt    DateTime?
   lastPublishError String?
+  /// When the worker claimed this post for a publish attempt (QUEUED/NONE → PUBLISHING).
+  workerPickedAt   DateTime?
+  /// Why a due scheduled post was not published (e.g. not approved under OPTIONAL/REQUIRED).
+  lastPublishSkipReason String?
   externalPostId   String?
   externalPostUrl  String?
   publishedAt      DateTime?
