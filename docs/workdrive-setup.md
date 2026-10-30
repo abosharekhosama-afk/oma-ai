@@ -42,7 +42,9 @@ OMA finds the WorkDrive API on its own. The address can be typed with or without
 - **Upload:** browser → `POST /api/v1/brands/:brandId/media?kind=posts|logos|deliverables&name=…` (raw body). The API streams the body to a temp file while hashing it (never buffering it in memory) and enforces the size limit. It then uploads to WorkDrive: one signed PUT up to 32 MiB, or resumable 16 MiB parts above that.
 - **Choose existing:** `GET …/media/browse` and `POST …/media/import` attach a file that already exists in WorkDrive.
 - **View:** `GET /api/v1/media/:id/view` returns 302 to a fresh signed preview URL (valid 15 min). `/url` returns it as JSON, and `/stream` proxies with Range support.
-- **Publishing:** Instagram/TikTok receive a fresh signed URL at publish time.
+- **Publishing:** Instagram receives a fresh signed URL at publish time. TikTok receives an OMA
+  Media Proxy URL (`/api/media-proxy?url=...`) so the URL prefix is the verified OMA web origin;
+  set `MEDIA_PROXY_ORIGIN` on the worker to the deployed web origin.
 - **Missing files:** if WorkDrive returns 404, the asset becomes `MISSING` (410 on view) and the UI warns. The daily check flips it back if the file is restored.
 - **Logo migration:** the worker moves existing `data:` logos into `OMA/{brand}/logos/logo-{sha12}.ext`. It is idempotent: it reuses an existing asset or file with the same hash and only switches the brand if its logo did not change meanwhile.
 
@@ -51,4 +53,5 @@ OMA finds the WorkDrive API on its own. The address can be typed with or without
 - Uploads through the web app's `/api` proxy are subject to the hosting platform's request-body limit (e.g. Vercel). For large videos, point `NEXT_PUBLIC_API_URL`/the proxy at the API directly.
 - Renaming a brand changes the folder slug for **new** uploads; existing files stay where they are.
 - The private-address check runs at connect time only (no DNS-rebinding protection).
-- TikTok `PULL_FROM_URL` requires the WorkDrive media domain to be verified in the TikTok developer portal.
+- TikTok `PULL_FROM_URL` is proxied through the OMA web origin. The deployed web service must expose
+  `/api/media-proxy`, and `MEDIA_PROXY_ORIGIN` must match that public origin exactly.
