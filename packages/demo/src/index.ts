@@ -267,7 +267,7 @@ export type DemoGraph = {
     }>;
     state: 'PLANNED' | 'READY' | 'SCHEDULED_PREVIEW' | 'BLOCKED' | 'PUBLISHED_SAMPLE';
     blockingReason: DemoLocaleCopy | null;
-    externalPublishingConnected: false;
+    externalPublishingConnected: boolean;
   }>;
   analytics: {
     disclosure: DemoLocaleCopy;

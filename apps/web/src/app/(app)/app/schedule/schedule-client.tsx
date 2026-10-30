@@ -210,7 +210,9 @@ export default function SchedulePage() {
           </span>
         }
       />
-      <p className="oma-honesty-inline oma-muted">{t('demo.schedule.planningPreview')}</p>
+      {rows.every((row) => !row.externalPublishingConnected) ? (
+        <p className="oma-honesty-inline oma-muted">{t('demo.schedule.planningPreview')}</p>
+      ) : null}
 
       {loading ? <TableShimmer rows={8} avatar={false} /> : null}
       {unavailable ? <p className="oma-muted">{t('demo.unavailable')}</p> : null}
@@ -667,9 +669,11 @@ export default function SchedulePage() {
             {selected.blockingReason ? (
               <p role="status">{pickCopy(selected.blockingReason, locale)}</p>
             ) : null}
-            <p className="oma-honesty-inline" data-testid="demo-publish-blocked">
-              {t('demo.schedule.publishBlocked')}
-            </p>
+            {!selected.externalPublishingConnected ? (
+              <p className="oma-honesty-inline" data-testid="demo-publish-blocked">
+                {t('demo.schedule.publishBlocked')}
+              </p>
+            ) : null}
             <div className="oma-chip-row">
               <Button
                 type="primary"
@@ -742,7 +746,9 @@ export default function SchedulePage() {
               placeholder="Instagram, LinkedIn"
             />
           </label>
-          <p className="oma-muted">{t('demo.schedule.publishBlocked')}</p>
+          {!selected?.externalPublishingConnected ? (
+            <p className="oma-muted">{t('demo.schedule.publishBlocked')}</p>
+          ) : null}
           <div className="oma-chip-row">
             <Button type="default" onClick={() => setRescheduleOpen(false)}>
               {t('demo.create.cancel')}

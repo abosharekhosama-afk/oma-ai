@@ -21,7 +21,16 @@ export type ApiContentWorkflow = {
   approverRequired: number;
   scheduleBlocked: boolean;
   publishDisplay: string;
-  publishingConnected: false;
+  publishingConnected: boolean;
+};
+
+export type ApiContentPublishing = {
+  social_page_id: string | null;
+  state: string;
+  attempts: number;
+  last_error: string | null;
+  external_post_url: string | null;
+  published_at: string | null;
 };
 
 export type ApiContent = {
@@ -53,6 +62,7 @@ export type ApiContent = {
   updated_at: string;
   media_asset_ids?: string[];
   workflow: ApiContentWorkflow;
+  publishing?: ApiContentPublishing;
 };
 
 export type ContentRowExtra = ContentRow & {
@@ -60,6 +70,10 @@ export type ContentRowExtra = ContentRow & {
   clientVisible?: boolean;
   requestId?: string | null;
   taskId?: string | null;
+  socialPageId?: string | null;
+  publishState?: string;
+  publishError?: string | null;
+  externalPostUrl?: string | null;
 };
 
 export function toContentRow(c: ApiContent): ContentRowExtra {
@@ -84,6 +98,10 @@ export function toContentRow(c: ApiContent): ContentRowExtra {
     caption: c.caption ?? undefined,
     labels: c.labels ?? [],
     clientVisible: c.client_visible !== false,
+    socialPageId: c.publishing?.social_page_id ?? null,
+    publishState: c.publishing?.state ?? 'NONE',
+    publishError: c.publishing?.last_error ?? null,
+    externalPostUrl: c.publishing?.external_post_url ?? null,
   };
 }
 

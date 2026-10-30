@@ -3,8 +3,15 @@ import type { ContentRow } from './demo/stage3-campaigns';
 import type { ScheduleRow } from './demo/stage6-schedule';
 
 export function contentToScheduleRow(item: ContentRow, policy: ApprovalPolicy): ScheduleRow {
+  const publishing = item as ContentRow & {
+    socialPageId?: string | null;
+    publishState?: string;
+    publishError?: string | null;
+    externalPostUrl?: string | null;
+  };
   const workflow = resolveContentWorkflow(item, policy);
   const plannedAt = workflow.plannedAt || item.scheduledAt || '';
+  const externalPublishingConnected = Boolean(publishing.socialPageId);
   let state: ScheduleRow['state'] = 'PLANNED';
   if (item.status === 'PUBLISHED_DEMO') state = 'PUBLISHED_SAMPLE';
   else if (workflow.scheduleState === 'SCHEDULED') state = 'SCHEDULED_PREVIEW';
@@ -41,8 +48,8 @@ export function contentToScheduleRow(item: ContentRow, policy: ApprovalPolicy): 
         kind: 'channel',
       },
       {
-        check: { en: 'Publishing not connected', ar: 'النشر غير متصل' },
-        ok: false,
+        check: { en: 'Publishing account connected', ar: 'حساب النشر متصل' },
+        ok: externalPublishingConnected,
         kind: 'integration',
       },
     ],
@@ -53,6 +60,6 @@ export function contentToScheduleRow(item: ContentRow, policy: ApprovalPolicy): 
           ar: 'الجدولة محظورة حتى اعتماد المنشور بالكامل',
         }
       : null,
-    externalPublishingConnected: false,
+    externalPublishingConnected,
   };
 }
