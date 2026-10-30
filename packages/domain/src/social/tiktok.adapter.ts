@@ -78,12 +78,9 @@ export class TikTokAdapter implements SocialProviderAdapter {
       code,
       redirect_uri: redirectUri,
     });
-    const res = await this.fetchFn(
-      `${API}/v2/user/info/?fields=open_id,display_name,avatar_url,username`,
-      {
-        headers: { authorization: `Bearer ${token.accessToken}` },
-      },
-    );
+    const res = await this.fetchFn(`${API}/v2/user/info/?fields=open_id,display_name,avatar_url`, {
+      headers: { authorization: `Bearer ${token.accessToken}` },
+    });
     const b = await readJson(res);
     const err = b.error as { code?: string } | undefined;
     if (!res.ok || (err?.code && err.code !== 'ok')) throw httpError('tiktok', res, b);
@@ -95,10 +92,10 @@ export class TikTokAdapter implements SocialProviderAdapter {
     return [
       {
         externalId: String(u.open_id ?? openId),
-        name: String(u.display_name ?? u.username ?? 'TikTok'),
+        name: String(u.display_name ?? 'TikTok'),
         avatarUrl: (u.avatar_url as string) ?? null,
         token: t,
-        meta: { username: u.username ?? null, scopes: token.scopes ?? [] },
+        meta: { scopes: token.scopes ?? [] },
       },
     ];
   }

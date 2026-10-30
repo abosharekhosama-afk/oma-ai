@@ -278,6 +278,8 @@ describe('TikTok adapter', () => {
     const a = new TikTokAdapter(publishEnv, m.fn);
     const [acct] = await a.exchangeCode({ code: 'c', redirectUri: 'https://w/cb' });
     expect(acct).toMatchObject({ externalId: 'o1', name: 'Brand TT' });
+    expect(m.calls[1]!.url).toContain('fields=open_id,display_name,avatar_url');
+    expect(m.calls[1]!.url).not.toContain('username');
     const page = {
       externalId: 'o1',
       name: '',
