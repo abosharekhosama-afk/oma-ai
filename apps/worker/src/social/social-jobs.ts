@@ -31,6 +31,7 @@ type Deps = {
   adapterFor?: AdapterFactory;
   key?: Buffer | null;
   mediaFetch?: FetchLike;
+  log?: { error: (object: unknown, message: string) => void };
 };
 
 function pageForAdapter(
@@ -84,7 +85,9 @@ export async function alertDisconnected(
     select: { id: true, preferencesJson: true },
   });
   const muted = new Set(
-    prefs.filter((u) => !notificationAllowed(u.preferencesJson, 'social.disconnected')).map((u) => u.id),
+    prefs
+      .filter((u) => !notificationAllowed(u.preferencesJson, 'social.disconnected'))
+      .map((u) => u.id),
   );
   for (const userId of recipients) {
     if (muted.has(userId)) continue;
@@ -122,7 +125,6 @@ async function markNeedsReauth(
   });
   await alertDisconnected(page, now);
 }
-
 
 /** Notify creator/assignee/managers that a publish finished (success or terminal failure). */
 async function notifyPublishOutcome(
@@ -284,8 +286,7 @@ export async function runPublishTick(deps: Deps = {}) {
     },
   });
   for (const row of dueAny) {
-    const eligible =
-      row.approvalState === 'APPROVED' || noApproval.includes(row.brandId);
+    const eligible = row.approvalState === 'APPROVED' || noApproval.includes(row.brandId);
     if (!eligible) {
       const reason = skipReasonMessage('NOT_APPROVED');
       if (row.lastPublishSkipReason !== reason) {
@@ -384,6 +385,21 @@ export async function runPublishTick(deps: Deps = {}) {
         e instanceof SocialProviderError
           ? e
           : new SocialProviderError(String((e as Error)?.message ?? e), { retryable: true });
+      deps.log?.error(
+        {
+          contentId: item.id,
+          network: page?.network ?? null,
+          attempt,
+          retryable: err.opts.retryable,
+          reauth: err.opts.reauth ?? false,
+          status: err.opts.status ?? null,
+          providerCode: err.opts.providerCode ?? null,
+          providerMessage: err.opts.providerMessage ?? null,
+          providerLogId: err.opts.providerLogId ?? null,
+          error: err.message,
+        },
+        'social publish rejected',
+      );
       if (err.opts.reauth && page && page.status !== 'NEEDS_REAUTH')
         await markNeedsReauth(page, err.message, now);
       const retry = err.opts.retryable && attempt < MAX_PUBLISH_ATTEMPTS;
@@ -478,7 +494,9 @@ export async function runTokenRefreshTick(deps: Deps = {}) {
 export function startSocialJobs(log: { error: (o: unknown, m: string) => void }) {
   const publish = setInterval(
     () => {
-      runPublishTick().catch((e) => log.error({ err: String(e) }, 'social publish tick failed'));
+      runPublishTick({ log }).catch((e) =>
+        log.error({ err: String(e) }, 'social publish tick failed'),
+      );
     },
     Number(process.env.SOCIAL_PUBLISH_INTERVAL_MS ?? 30_000),
   );

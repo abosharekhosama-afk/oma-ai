@@ -16,6 +16,14 @@ describe('publish-errors', () => {
     expect(humanizePublishError(raw, 'ar')).toMatch(/صورة/);
   });
 
+  it('keeps provider code, message, log id and status visible', () => {
+    const raw =
+      'tiktok [url_ownership_unverified]: The URL prefix is not verified | log_id=abc123 | http_status=403';
+    expect(humanizePublishError(raw, 'en')).toContain('url_ownership_unverified');
+    expect(humanizePublishError(raw, 'en')).toContain('log_id=abc123');
+    expect(humanizePublishError(raw, 'en')).toContain('http_status=403');
+  });
+
   it('describes skip reasons', () => {
     expect(skipReasonMessage('NOT_APPROVED')).toMatch(/not fully approved/i);
   });

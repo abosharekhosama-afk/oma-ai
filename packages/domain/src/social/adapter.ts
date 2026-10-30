@@ -43,7 +43,14 @@ export type PublishResult = { externalId: string; url: string | null };
 export class SocialProviderError extends Error {
   constructor(
     message: string,
-    public readonly opts: { retryable: boolean; reauth?: boolean; status?: number } = {
+    public readonly opts: {
+      retryable: boolean;
+      reauth?: boolean;
+      status?: number;
+      providerCode?: string;
+      providerMessage?: string;
+      providerLogId?: string;
+    } = {
       retryable: false,
     },
   ) {
@@ -80,16 +87,43 @@ export async function readJson(res: Response): Promise<Record<string, unknown>> 
 
 /** Map an HTTP failure to a SocialProviderError (401/403 → reauth, 429/5xx → retryable). */
 export function httpError(network: string, res: Response, body: Record<string, unknown>) {
-  const msg =
+  const providerError =
+    body.error && typeof body.error === 'object'
+      ? (body.error as { code?: unknown; message?: unknown; log_id?: unknown })
+      : undefined;
+  const providerCode =
+    typeof providerError?.code === 'string' || typeof providerError?.code === 'number'
+      ? String(providerError.code)
+      : undefined;
+  const providerMessage =
+    (typeof providerError?.message === 'string' && providerError.message) ||
     (body.error_description as string) ||
-    ((body.error as { message?: string } | undefined)?.message as string) ||
     (body.message as string) ||
     (body.detail as string) ||
     (typeof body.error === 'string' ? body.error : '') ||
     `HTTP ${res.status}`;
-  const reauth = res.status === 401 || (body.error as { code?: number } | undefined)?.code === 190;
+  const providerLogId =
+    (typeof providerError?.log_id === 'string' && providerError.log_id) ||
+    (typeof body.log_id === 'string' && body.log_id) ||
+    undefined;
+  const reauth =
+    res.status === 401 || providerCode === '190' || providerCode === 'access_token_invalid';
   const retryable = res.status === 429 || res.status >= 500;
-  return new SocialProviderError(`${network}: ${msg}`, { retryable, reauth, status: res.status });
+  const detail = [
+    `${network}${providerCode ? ` [${providerCode}]` : ''}: ${providerMessage}`,
+    providerLogId ? `log_id=${providerLogId}` : null,
+    `http_status=${res.status}`,
+  ]
+    .filter(Boolean)
+    .join(' | ');
+  return new SocialProviderError(detail, {
+    retryable,
+    reauth,
+    status: res.status,
+    providerCode,
+    providerMessage,
+    providerLogId,
+  });
 }
 
 export function expiresIn(seconds: unknown, now = Date.now()): Date | null {
