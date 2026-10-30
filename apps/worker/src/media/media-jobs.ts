@@ -48,11 +48,19 @@ export async function runLogoMigrationTick(deps: Deps = {}) {
   if (!key) return out;
   const prisma = getPrisma();
   const tenants = (
-    await prisma.workDriveConnection.findMany({ where: { status: 'CONNECTED' }, select: { tenantId: true } })
+    await prisma.workDriveConnection.findMany({
+      where: { status: 'CONNECTED' },
+      select: { tenantId: true },
+    })
   ).map((t) => t.tenantId);
   if (!tenants.length) return out;
   const brands = await prisma.brandWorkspace.findMany({
-    where: { tenantId: { in: tenants }, logoAssetId: null, logoUrl: { startsWith: 'data:' }, deletedAt: null },
+    where: {
+      tenantId: { in: tenants },
+      logoAssetId: null,
+      logoUrl: { startsWith: 'data:' },
+      deletedAt: null,
+    },
     select: { id: true, tenantId: true, name: true, logoUrl: true },
     take: deps.limit ?? 25,
     orderBy: { id: 'asc' },
@@ -104,7 +112,13 @@ export async function runLogoMigrationTick(deps: Deps = {}) {
             })
           ).fileId;
         asset = await prisma.mediaAsset.upsert({
-          where: { tenantId_brandId_workdriveFileId: { tenantId: b.tenantId, brandId: b.id, workdriveFileId: fileId } },
+          where: {
+            tenantId_brandId_workdriveFileId: {
+              tenantId: b.tenantId,
+              brandId: b.id,
+              workdriveFileId: fileId,
+            },
+          },
           create: {
             id: newId(),
             tenantId: b.tenantId,
@@ -167,7 +181,8 @@ export async function runMediaReconcileTick(deps: Deps = {}) {
   });
   const clients = new Map<string, Awaited<ReturnType<typeof clientForTenant>>>();
   for (const a of rows) {
-    if (!clients.has(a.tenantId)) clients.set(a.tenantId, await clientForTenant(a.tenantId, key, deps.fetchImpl));
+    if (!clients.has(a.tenantId))
+      clients.set(a.tenantId, await clientForTenant(a.tenantId, key, deps.fetchImpl));
     const c = clients.get(a.tenantId);
     if (!c) continue;
     out.checked++;
@@ -213,9 +228,15 @@ export async function publicMediaUrl(
       if (e instanceof WorkDriveError && e.code === 'not_found') {
         await getPrisma().mediaAsset.update({
           where: { id: asset.id },
-          data: { status: 'MISSING', missingSince: asset.missingSince ?? new Date(), lastCheckedAt: new Date() },
+          data: {
+            status: 'MISSING',
+            missingSince: asset.missingSince ?? new Date(),
+            lastCheckedAt: new Date(),
+          },
         });
-        throw new SocialProviderError('The post media was removed from WorkDrive', { retryable: false });
+        throw new SocialProviderError('The post media was removed from WorkDrive', {
+          retryable: false,
+        });
       }
       throw new SocialProviderError(`WorkDrive: ${(e as Error).message}`, { retryable: true });
     }
@@ -224,11 +245,33 @@ export async function publicMediaUrl(
   return u && /^https:\/\//.test(u) ? u : null;
 }
 
+/**
+ * TikTok validates the URL prefix before it downloads PULL_FROM_URL media. Route WorkDrive's
+ * signed URL through the public OMA web origin so the verified Vercel hostname is the prefix.
+ */
+export function mediaProxyUrl(
+  sourceUrl: string,
+  origin = process.env.MEDIA_PROXY_ORIGIN ||
+    process.env.WEB_ORIGIN ||
+    process.env.WEB_BASE_URL ||
+    'https://oma-ai-ecru.vercel.app',
+): string {
+  const source = new URL(sourceUrl);
+  if (source.protocol !== 'https:') throw new Error('Media proxy source must use HTTPS');
+  const proxy = new URL('/api/media-proxy', origin.replace(/\/+$/, ''));
+  proxy.searchParams.set('url', source.toString());
+  return proxy.toString();
+}
+
 export function startMediaJobs(log: { error: (o: unknown, m: string) => void }) {
   const every = Number(process.env.WORKDRIVE_MIGRATION_INTERVAL_MS ?? 10 * 60_000);
   const run = () => {
-    runLogoMigrationTick().catch((e) => log.error({ err: String(e) }, 'logo migration tick failed'));
-    runMediaReconcileTick().catch((e) => log.error({ err: String(e) }, 'media reconcile tick failed'));
+    runLogoMigrationTick().catch((e) =>
+      log.error({ err: String(e) }, 'logo migration tick failed'),
+    );
+    runMediaReconcileTick().catch((e) =>
+      log.error({ err: String(e) }, 'media reconcile tick failed'),
+    );
   };
   const t = setInterval(run, every);
   const first = setTimeout(run, 15_000);
