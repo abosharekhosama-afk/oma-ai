@@ -1,0 +1,21 @@
+#!/usr/bin/env node
+/**
+ * Render deploy helper: optionally mark a failed migration rolled-back once, then deploy.
+ * Set OMA_RESOLVE_CONTENT_PUBLISH_TARGETS=1 on the service for a single redeploy after P3009.
+ */
+import { spawnSync } from 'node:child_process';
+
+function run(cmd, args, { allowFailure = false } = {}) {
+  const r = spawnSync(cmd, args, { stdio: 'inherit', shell: process.platform === 'win32' });
+  if (r.status !== 0 && !allowFailure) {
+    process.exit(r.status ?? 1);
+  }
+}
+
+if (process.env.OMA_RESOLVE_CONTENT_PUBLISH_TARGETS === '1') {
+  run('pnpm', ['--filter', '@oma/db', 'migrate:resolve:content-publish-targets'], {
+    allowFailure: true,
+  });
+}
+
+run('pnpm', ['db:migrate:deploy']);

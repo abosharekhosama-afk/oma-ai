@@ -1370,16 +1370,17 @@ export default function ContentPage() {
     };
   }, [detailCampaignMenu]);
 
-  const activeBrandId = brands[0]?.id || campaigns[0]?.brandId || '';
+  const workspaceBrandId = brands[0]?.id || campaigns[0]?.brandId || '';
+  const brandIdForWorkspaceOps = activeBrandId ?? workspaceBrandId;
 
   async function persistNote(
     dayKey: string,
     patch: { text?: string; color?: string; locked?: boolean; remove?: boolean },
   ) {
-    if (!activeBrandId || !dayKey) return;
+    if (!brandIdForWorkspaceOps || !dayKey) return;
     try {
       if (patch.remove) {
-        await deleteDayNote(activeBrandId, dayKey);
+        await deleteDayNote(brandIdForWorkspaceOps, dayKey);
         setDayNotes((prev) => {
           const next = { ...prev };
           delete next[dayKey];
@@ -1391,7 +1392,7 @@ export default function ContentPage() {
       const text = patch.text !== undefined ? patch.text : (current?.text ?? '');
       const color = patch.color ?? current?.color ?? 'yellow';
       const locked = patch.locked ?? false;
-      await upsertDayNote(activeBrandId, { dayKey, text, color, locked });
+      await upsertDayNote(brandIdForWorkspaceOps, { dayKey, text, color, locked });
       setDayNotes((prev) => ({
         ...prev,
         [dayKey]: { text, color, locked },
@@ -1417,11 +1418,11 @@ export default function ContentPage() {
   }
 
   async function saveAsTemplate(contentId: string) {
-    if (!activeBrandId) return;
+    if (!brandIdForWorkspaceOps) return;
     const row = rows.find((r) => r.id === contentId);
     const name = row ? (isAr ? row.title.ar : row.title.en) : t('content.template');
     try {
-      const saved = await saveContentAsTemplate(activeBrandId, {
+      const saved = await saveContentAsTemplate(brandIdForWorkspaceOps, {
         name: t('content.template_name').replace('{name}', name),
         fromContentId: contentId,
       });

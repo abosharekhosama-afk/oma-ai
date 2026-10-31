@@ -11,6 +11,7 @@
     "generate": "prisma generate",
     "migrate:dev": "prisma migrate dev",
     "migrate:deploy": "prisma migrate deploy",
+    "migrate:resolve:content-publish-targets": "prisma migrate resolve --rolled-back 20261031120000_content_publish_targets",
     "seed": "tsx prisma/seed.ts",
     "seed:demo": "tsx prisma/seed-demo.ts",
     "seed:review:002": "tsx prisma/seed-review-002.ts",
