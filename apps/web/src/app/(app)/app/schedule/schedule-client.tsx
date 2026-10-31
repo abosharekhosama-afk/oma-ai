@@ -23,7 +23,9 @@ import {
   toContentRow,
   unscheduleContent,
 } from '../../../../lib/content-api';
-import { todayKey } from '../../../../lib/calendar-today';
+import { todayKey, wallTimeToIso } from '../../../../lib/calendar-today';
+import { brandScheduleTimezone } from '../../../../lib/brand-schedule-timezone';
+import { useActiveBrandId } from '../../../../lib/active-brand';
 import {
   contentToScheduleRow,
   type ScheduleRowExtras,
@@ -55,12 +57,12 @@ import { scheduleBlockedHint, scheduleBlockReason } from '../../../../lib/conten
 
 type ScheduleRowView = ScheduleRow & ScheduleRowExtras;
 
-function weekdayForScheduleDay(iso: string, locale: string): string {
-  const d = new Date(`${iso}T12:00:00+03:00`);
+function weekdayForScheduleDay(iso: string, locale: string, timeZone: string): string {
+  const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return '';
   return new Intl.DateTimeFormat(locale.toLowerCase().startsWith('ar') ? 'ar' : 'en', {
     weekday: 'short',
-    timeZone: 'Asia/Dubai',
+    timeZone,
   }).format(d);
 }
 
@@ -68,13 +70,15 @@ export default function SchedulePage() {
   const t = useT();
   const locale = useLocale();
   const toast = useToast();
+  const activeBrandId = useActiveBrandId();
   const [rows, setRows] = useState<ScheduleRowView[]>([]);
+  const [brands, setBrands] = useState<{ id: string; timezone?: string }[]>([]);
   const [campaigns, setCampaigns] = useState<DemoGraph['campaigns']>([]);
   const [contents, setContents] = useState<DemoGraph['contentItems']>([]);
   const [policy, setPolicy] = useState<ApprovalPolicy>('OPTIONAL');
   const [filters, setFilters] = useState<ScheduleFilters>(EMPTY_SCHEDULE_FILTERS);
   const [view, setView] = useState<ScheduleView>('calendar');
-  const [anchor, setAnchor] = useState(todayKey());
+  const [anchor, setAnchor] = useState(() => todayKey());
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
   const [plannedAtDraft, setPlannedAtDraft] = useState('');
@@ -90,6 +94,7 @@ export default function SchedulePage() {
     try {
       const workspace = await loadScheduleWorkspace();
       setPolicy(workspace.policy);
+      setBrands(workspace.brands.map((b) => ({ id: b.id, timezone: b.timezone })));
       setCampaigns(workspace.campaigns as DemoGraph['campaigns']);
       setContents(workspace.content as DemoGraph['contentItems']);
       const campaignById = new Map(
@@ -128,6 +133,16 @@ export default function SchedulePage() {
   const datedRows = useMemo(() => filtered.filter((row) => Boolean(row.plannedAt)), [filtered]);
   const byDay = useMemo(() => groupScheduleByDay(datedRows), [datedRows]);
   const selected = rows.find((r) => r.id === selectedId) ?? null;
+  const scheduleTz = useMemo(
+    () =>
+      brandScheduleTimezone(
+        activeBrandId ?? selected?.brandId ?? brands[0]?.id,
+        brands,
+        selected?.timezone,
+      ),
+    [activeBrandId, brands, selected?.brandId, selected?.timezone],
+  );
+  const todayInBrand = useMemo(() => todayKey(scheduleTz), [scheduleTz]);
   const selectedContent = contents.find((item) => item.id === selected?.contentId) ?? null;
   const selectedWorkflow = selectedContent ? resolveContentWorkflow(selectedContent, policy) : null;
   const scheduleBlocked =
@@ -153,13 +168,12 @@ export default function SchedulePage() {
       .filter(Boolean);
     setSaving(true);
     try {
-      const scheduledAt =
-        plannedAtDraft.length === 16
-          ? `${plannedAtDraft}:00+03:00`
-          : plannedAtDraft.includes('+')
-            ? plannedAtDraft
-            : `${plannedAtDraft}+03:00`;
-      const updated = await scheduleContent(selected.contentId, { scheduledAt });
+      const scheduledAt = wallTimeToIso(plannedAtDraft, scheduleTz);
+      if (!scheduledAt) {
+        toast.push(t('demo.schedule.invalidDate'), 'danger');
+        return;
+      }
+      const updated = await scheduleContent(selected.contentId, { scheduledAt, timezone: scheduleTz });
       const next = contentToScheduleRow(toContentRow(updated), policy);
       if (channels.length) next.channels = channels;
       setContents((list) =>
@@ -183,7 +197,11 @@ export default function SchedulePage() {
         state === 'PLANNED'
           ? await unscheduleContent(selected.contentId)
           : await scheduleContent(selected.contentId, {
-              scheduledAt: selected.plannedAt || new Date().toISOString(),
+              scheduledAt:
+                wallTimeToIso(selected.plannedAt, scheduleTz) ||
+                selected.plannedAt ||
+                new Date().toISOString(),
+              timezone: scheduleTz,
             });
       const next = contentToScheduleRow(toContentRow(updated), policy);
       setContents((list) =>
@@ -231,7 +249,7 @@ export default function SchedulePage() {
         meta={
           <span className="oma-muted" data-testid="demo-schedule-tz">
             {t('demo.schedule.timezone')}:{' '}
-            {rows[0]?.timezone || 'Asia/Dubai'}
+            {scheduleTz}
           </span>
         }
       />
@@ -278,7 +296,7 @@ export default function SchedulePage() {
                 <Button
                   type="default"
                   data-testid="demo-schedule-today"
-                  onClick={() => setAnchor(todayKey())}
+                  onClick={() => setAnchor(todayInBrand)}
                 >
                   {t('demo.schedule.today')}
                 </Button>
@@ -335,7 +353,7 @@ export default function SchedulePage() {
                   <div className="oma-sched-dow-row" data-testid="demo-schedule-weekdays">
                     {days.map((day) => (
                       <div key={`dow-${day}`} className="oma-sched-dow" role="columnheader">
-                        {weekdayForScheduleDay(day, locale)}
+                        {weekdayForScheduleDay(day, locale, scheduleTz)}
                       </div>
                     ))}
                   </div>
@@ -344,12 +362,12 @@ export default function SchedulePage() {
                       <div
                         key={day}
                         className="oma-sched-day"
-                        data-today={day === todayKey() ? 'true' : 'false'}
+                        data-today={day === todayInBrand ? 'true' : 'false'}
                         data-testid={`demo-sched-day-${day}`}
                       >
                         <div className="oma-sched-day-label">
                           <span className="oma-sched-day-label__dow">
-                            {weekdayForScheduleDay(day, locale)}
+                            {weekdayForScheduleDay(day, locale, scheduleTz)}
                           </span>
                           <span className="oma-sched-day-label__num">
                             {Number(day.slice(8, 10))}
@@ -398,7 +416,7 @@ export default function SchedulePage() {
                           <div>
                             <strong>{pickCopy(post.title, locale)}</strong>
                             <p className="oma-muted">
-                              {weekdayForScheduleDay(scheduleDayKey(post.plannedAt), locale)} ·{' '}
+                              {weekdayForScheduleDay(scheduleDayKey(post.plannedAt), locale, scheduleTz)} ·{' '}
                               {formatScheduleWhen(post.plannedAt, post.timezone, locale)} ·{' '}
                               {post.timezone} · {post.channels.join(', ') || t('demo.schedule.ownerEmpty')}
                             </p>
@@ -482,7 +500,7 @@ export default function SchedulePage() {
                     >
                       <strong>{pickCopy(post.title, locale)}</strong>
                       <span className="oma-muted">
-                        {weekdayForScheduleDay(scheduleDayKey(post.plannedAt), locale)} ·{' '}
+                        {weekdayForScheduleDay(scheduleDayKey(post.plannedAt), locale, scheduleTz)} ·{' '}
                         {post.plannedAt}
                       </span>
                       <StatusMark

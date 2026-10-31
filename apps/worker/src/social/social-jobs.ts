@@ -16,7 +16,7 @@ import {
   type SocialNetworkCode,
   type FetchLike,
 } from '@oma/domain';
-import { mediaProxyUrl, publicMediaUrl } from '../media/media-jobs';
+import { mediaProxyUrl, publicMediaUrls } from '../media/media-jobs';
 
 export const MAX_PUBLISH_ATTEMPTS = 5;
 /** Backoff after attempt n (1-based): 1m, 5m, 15m, 60m. */
@@ -361,14 +361,15 @@ export async function runPublishTick(deps: Deps = {}) {
         throw new SocialProviderError('Network is not configured', { retryable: false });
       const text =
         [item.captionEn || item.titleEn].filter(Boolean).join('\n').trim() || item.titleEn;
-      const rawMediaUrl = await publicMediaUrl(item, { fetchImpl: deps.mediaFetch });
-      const mediaUrl =
-        rawMediaUrl && network === 'tiktok' ? mediaProxyUrl(rawMediaUrl) : rawMediaUrl;
+      const rawMediaUrls = await publicMediaUrls(item, { fetchImpl: deps.mediaFetch });
+      const mediaUrls =
+        network === 'tiktok'
+          ? rawMediaUrls.map((u) => mediaProxyUrl(u))
+          : rawMediaUrls;
       const res = await adapter.publish(pageForAdapter(page, key), {
         text,
-        // TikTok needs the URL prefix to belong to a verified domain. OMA proxies the signed
-        // WorkDrive URL through the public web origin; other providers keep the direct URL.
-        mediaUrl,
+        // TikTok needs the URL prefix on a verified domain — proxy every carousel URL.
+        mediaUrls,
       });
       await prisma.contentItem.update({
         where: { id: item.id },

@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { wallTimeToIso } from '../../apps/web/src/lib/calendar-today';
+import { wallTimeToIso } from '@oma/domain';
 import { BRIEF_MARKER, briefDisplayText, stripBriefCopy } from '../../apps/web/src/lib/ops-api';
 
 const root = process.cwd();
@@ -32,7 +32,9 @@ describe('live QA fixes', () => {
     const src = read('apps/web/src/app/(app)/app/content/content-client.tsx');
     const fn = src.slice(src.indexOf('async function submitCreate'), src.indexOf('async function', src.indexOf('async function submitCreate') + 10));
     expect(fn).not.toContain('scheduleContent(');
-    expect(fn).toContain('wallTimeToIso(createForm.plannedDate)');
+    expect(fn).toContain('wallTimeToIso(');
+    expect(fn).toContain('createForm.plannedDate');
+    expect(fn).toContain('brandScheduleTimezone');
     expect(src).not.toMatch(/plannedDate: todayKey\(\)/);
   });
 
@@ -58,7 +60,7 @@ describe('live QA fixes', () => {
     expect(tail).toContain('display: none !important');
     const chrome = read('apps/web/src/components/shell/shell-chrome.tsx');
     expect(chrome).toContain('data-testid="mobile-nav-toggle"');
-    expect(chrome).toMatch(/setMobileOpen\(false\);\n  \}, \[pathname\]\)/);
+    expect(chrome).toMatch(/setMobileOpen\(false\);\s*\}, \[pathname\]\)/);
     const drawer = read('apps/web/src/components/ui/drawer.tsx');
     expect(drawer).toContain("nav ? (rtl ? 'right' : 'left')");
   });

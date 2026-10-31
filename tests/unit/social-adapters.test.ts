@@ -158,6 +158,33 @@ describe('Meta adapter', () => {
       opts: { retryable: false },
     });
   });
+  it('publishes an Instagram carousel when multiple media URLs are provided', async () => {
+    let mediaStep = 0;
+    const m = mockFetch([
+      [
+        /\/ig1\/media$/,
+        () => {
+          mediaStep += 1;
+          if (mediaStep <= 2) return json({ id: `child${mediaStep}` });
+          return json({ id: 'carousel-root' });
+        },
+      ],
+      [/\/ig1\/media_publish$/, () => json({ id: 'm88' })],
+      [/\/m88\?/, () => json({ permalink: 'https://www.instagram.com/p/car/' })],
+    ]);
+    const ig = await new MetaAdapter('instagram', env, m.fn).publish(
+      { externalId: 'ig1', name: 'P', accessToken: 'pt1', meta: {} },
+      {
+        text: 'Carousel',
+        mediaUrls: ['https://cdn/1.jpg', 'https://cdn/2.jpg'],
+      },
+    );
+    expect(ig).toEqual({ externalId: 'm88', url: 'https://www.instagram.com/p/car/' });
+    expect(form(m.calls[0]!).get('is_carousel_item')).toBe('true');
+    expect(form(m.calls[1]!).get('is_carousel_item')).toBe('true');
+    expect(form(m.calls[2]!).get('media_type')).toBe('CAROUSEL');
+    expect(form(m.calls[2]!).get('children')).toBe('child1,child2');
+  });
   it('maps an expired token (code 190) to reauth and 5xx to retryable', async () => {
     const m = mockFetch([
       [/\/p1\/feed$/, () => json({ error: { message: 'Session expired', code: 190 } }, 400)],

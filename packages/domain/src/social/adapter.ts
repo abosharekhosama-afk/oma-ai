@@ -33,7 +33,12 @@ export type PublishablePage = {
   meta: Record<string, unknown>;
 };
 
-export type PublishInput = { text: string; mediaUrl?: string | null };
+export type PublishInput = {
+  text: string;
+  /** @deprecated Prefer mediaUrls; kept for adapter tests and legacy callers. */
+  mediaUrl?: string | null;
+  mediaUrls?: string[] | null;
+};
 export type PublishResult = { externalId: string; url: string | null };
 
 /**

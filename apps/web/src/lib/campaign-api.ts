@@ -34,6 +34,8 @@ export type ApiBrandListItem = {
   id: string;
   name: string;
   status: string;
+  /** Brand workspace IANA timezone (ContentPreferences.defaultTimezone). */
+  timezone?: string;
 };
 
 /** Map production campaign → UI CampaignRow (demo-compatible). */

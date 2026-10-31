@@ -206,43 +206,82 @@ export async function runMediaReconcileTick(deps: Deps = {}) {
   return out;
 }
 
+async function signedUrlForAsset(
+  assetId: string,
+  tenantId: string,
+  deps: { key?: Buffer | null; fetchImpl?: FetchLike },
+): Promise<string> {
+  const key = deps.key === undefined ? workDriveSecretKey() : deps.key;
+  const asset = await getPrisma().mediaAsset.findFirst({
+    where: { id: assetId, tenantId },
+  });
+  if (!asset) throw new SocialProviderError('The post media was removed', { retryable: false });
+  const c = key ? await clientForTenant(tenantId, key, deps.fetchImpl) : null;
+  if (!c) throw new SocialProviderError('WorkDrive is not connected', { retryable: true });
+  try {
+    return (await c.client.previewUrl(asset.workdriveFileId)).url;
+  } catch (e) {
+    if (e instanceof WorkDriveError && e.code === 'not_found') {
+      await getPrisma().mediaAsset.update({
+        where: { id: asset.id },
+        data: {
+          status: 'MISSING',
+          missingSince: asset.missingSince ?? new Date(),
+          lastCheckedAt: new Date(),
+        },
+      });
+      throw new SocialProviderError('The post media was removed from WorkDrive', {
+        retryable: false,
+      });
+    }
+    throw new SocialProviderError(`WorkDrive: ${(e as Error).message}`, { retryable: true });
+  }
+}
+
 /**
- * Public URL a social network can fetch for a post's media: a fresh WorkDrive signed URL for
- * WorkDrive assets, the stored URL for legacy absolute https links, otherwise null.
+ * Public URLs a social network can fetch for a post's media (carousel order preserved).
+ * WorkDrive assets get fresh signed URLs; legacy https preview URLs are included when no assets.
+ */
+export async function publicMediaUrls(
+  item: {
+    tenantId: string;
+    previewAssetId: string | null;
+    previewAssetUrl: string | null;
+    mediaAssetIds?: string[];
+  },
+  deps: { key?: Buffer | null; fetchImpl?: FetchLike } = {},
+): Promise<string[]> {
+  const ids =
+    (item.mediaAssetIds?.length ?? 0) > 0
+      ? item.mediaAssetIds!.filter(Boolean)
+      : item.previewAssetId
+        ? [item.previewAssetId]
+        : [];
+  const out: string[] = [];
+  for (const id of ids) {
+    out.push(await signedUrlForAsset(id, item.tenantId, deps));
+  }
+  if (!out.length) {
+    const u = item.previewAssetUrl;
+    if (u && /^https:\/\//.test(u)) out.push(u);
+  }
+  return out;
+}
+
+/**
+ * First public media URL (compatibility helper).
  */
 export async function publicMediaUrl(
-  item: { tenantId: string; previewAssetId: string | null; previewAssetUrl: string | null },
+  item: {
+    tenantId: string;
+    previewAssetId: string | null;
+    previewAssetUrl: string | null;
+    mediaAssetIds?: string[];
+  },
   deps: { key?: Buffer | null; fetchImpl?: FetchLike } = {},
 ): Promise<string | null> {
-  if (item.previewAssetId) {
-    const key = deps.key === undefined ? workDriveSecretKey() : deps.key;
-    const asset = await getPrisma().mediaAsset.findFirst({
-      where: { id: item.previewAssetId, tenantId: item.tenantId },
-    });
-    if (!asset) throw new SocialProviderError('The post media was removed', { retryable: false });
-    const c = key ? await clientForTenant(item.tenantId, key, deps.fetchImpl) : null;
-    if (!c) throw new SocialProviderError('WorkDrive is not connected', { retryable: true });
-    try {
-      return (await c.client.previewUrl(asset.workdriveFileId)).url;
-    } catch (e) {
-      if (e instanceof WorkDriveError && e.code === 'not_found') {
-        await getPrisma().mediaAsset.update({
-          where: { id: asset.id },
-          data: {
-            status: 'MISSING',
-            missingSince: asset.missingSince ?? new Date(),
-            lastCheckedAt: new Date(),
-          },
-        });
-        throw new SocialProviderError('The post media was removed from WorkDrive', {
-          retryable: false,
-        });
-      }
-      throw new SocialProviderError(`WorkDrive: ${(e as Error).message}`, { retryable: true });
-    }
-  }
-  const u = item.previewAssetUrl;
-  return u && /^https:\/\//.test(u) ? u : null;
+  const urls = await publicMediaUrls(item, deps);
+  return urls[0] ?? null;
 }
 
 /**

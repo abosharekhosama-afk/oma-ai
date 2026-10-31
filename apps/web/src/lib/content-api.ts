@@ -244,12 +244,13 @@ export async function getContentPreferences(brandId: string) {
  *  Pass `{ full: true }` or call `loadContentWorkspaceRest` for remaining brands.
  */
 export async function loadContentWorkspace(opts?: { full?: boolean }): Promise<{
-  brands: {
+    brands: {
     id: string;
     name: { en: string; ar: string };
     state: string;
     profileStatus: string;
     strategyId: null;
+    timezone?: string;
   }[];
   campaigns: CampaignRow[];
   content: ContentRow[];
@@ -289,6 +290,7 @@ export async function loadContentWorkspace(opts?: { full?: boolean }): Promise<{
       state: b.status === 'ARCHIVED' ? 'draft' : 'healthy',
       profileStatus: b.status,
       strategyId: null,
+      timezone: b.timezone,
     })),
     campaigns: (Array.isArray(campaigns) ? campaigns : []).map((c) => toCampaignRow(c)),
     content: contentItems.map((c) => toContentRow(c)),

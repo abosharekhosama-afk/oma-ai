@@ -5,6 +5,8 @@ import { parseTimezone } from '../brand/brand-input';
 import {
   DomainError,
   newId,
+  isValidIanaTimezone,
+  parseScheduleInstant,
   assertBrandNotArchived,
   assertContentBelongsToCampaignBrand,
   resolveContentWorkflow,
@@ -834,8 +836,11 @@ export class ContentService {
     }
     const policy = await this.policyForBrand(tenantId, current.brandId);
     assertCanSchedule(workflowSource(current), policy);
-    const when = new Date(input.scheduledAt);
-    if (Number.isNaN(when.getTime())) {
+    const tz = isValidIanaTimezone(input.timezone)
+      ? input.timezone.trim()
+      : await brandTimezone(tenantId, current.brandId);
+    const when = parseScheduleInstant(input.scheduledAt, tz);
+    if (!when) {
       throw new DomainError(
         'VALIDATION_FAILED',
         'Invalid scheduledAt',
@@ -850,6 +855,7 @@ export class ContentService {
         scheduledAt: when,
         scheduleState: 'SCHEDULED',
         status: 'SCHEDULED',
+        timezone: tz,
         // A post with a connected account queues for real publishing at scheduledAt.
         ...(current.socialPageId
           ? {
@@ -859,7 +865,6 @@ export class ContentService {
               lastPublishError: null,
             }
           : {}),
-        ...(input.timezone ? { timezone: input.timezone } : {}),
       },
     });
     await this.audit.write({

@@ -1,3 +1,4 @@
+import { publishMediaUrls } from '../time/publish-media';
 import {
   expiresIn,
   httpError,
@@ -117,7 +118,8 @@ export class TikTokAdapter implements SocialProviderAdapter {
         { retryable: false, providerCode: 'scope_missing' },
       );
     }
-    if (!post.mediaUrl) {
+    const images = publishMediaUrls(post);
+    if (!images.length) {
       throw new SocialProviderError('tiktok [media_missing]: an image is required to publish', {
         retryable: false,
         providerCode: 'media_missing',
@@ -140,7 +142,7 @@ export class TikTokAdapter implements SocialProviderAdapter {
         source_info: {
           source: 'PULL_FROM_URL',
           photo_cover_index: 0,
-          photo_images: [post.mediaUrl],
+          photo_images: images,
         },
         post_mode: 'DIRECT_POST',
         media_type: 'PHOTO',
@@ -150,6 +152,12 @@ export class TikTokAdapter implements SocialProviderAdapter {
     const err = b.error as { code?: string } | undefined;
     if (!res.ok || (err?.code && err.code !== 'ok')) throw httpError('tiktok', res, b);
     const publishId = String((b.data as { publish_id?: string })?.publish_id ?? '');
+    if (!publishId) {
+      throw new SocialProviderError('tiktok: publish init returned no publish_id', {
+        retryable: true,
+        status: res.status,
+      });
+    }
     const username = page.meta.username as string | undefined;
     // TikTok processes asynchronously; the public post id arrives later via status fetch.
     return { externalId: publishId, url: username ? `https://www.tiktok.com/@${username}` : null };

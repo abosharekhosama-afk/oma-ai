@@ -1,19 +1,12 @@
 import { getPrisma } from '@oma/db';
+import { FALLBACK_SCHEDULE_TZ } from '@oma/domain';
 import { isValidTimezone } from './zoned-time';
 
 /**
  * Timezone used to interpret calendar days for a brand.
- *
- * Choice: ContentPreferences.defaultTimezone (per brand). That is what scheduling actually
- * uses: new ContentItem rows default to it ('Asia/Dubai'), the composer/calendar convert wall
- * clock input with it (web WORKSPACE_TZ), and GET /content/preferences exposes it.
- * WorkspaceSetting.timezone is only a settings-page field and is not read by scheduling, so it
- * is deliberately not used here (unifying the two is out of scope; see the brand PR).
- *
- * Without a brand: the shared value when every live brand in the tenant uses the same zone,
- * otherwise the scheduling default.
+ * Source of truth: ContentPreferences.defaultTimezone (brand workspace timezone).
  */
-export const DEFAULT_SCHEDULE_TZ = 'Asia/Dubai';
+export const DEFAULT_SCHEDULE_TZ = FALLBACK_SCHEDULE_TZ;
 
 export async function resolveScheduleTimezone(tenantId: string, brandId?: string): Promise<string> {
   const prisma = getPrisma();

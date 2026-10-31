@@ -30,5 +30,7 @@ export * from './ai/status';
 export * from './ai/test-adapter';
 export * from './ai/ledger';
 export * from './social';
+export * from './time/schedule-time';
+export * from './time/publish-media';
 export * from './workdrive';
 export * from './notification-prefs';

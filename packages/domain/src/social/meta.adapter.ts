@@ -1,3 +1,4 @@
+import { publishMediaUrls } from '../time/publish-media';
 import {
   httpError,
   readJson,
@@ -137,10 +138,12 @@ export class MetaAdapter implements SocialProviderAdapter {
   }
 
   async publish(page: PublishablePage, post: PublishInput): Promise<PublishResult> {
+    const media = publishMediaUrls(post);
     if (this.network === 'facebook') {
-      const r = post.mediaUrl
+      const primary = media[0];
+      const r = primary
         ? await this.post(`${page.externalId}/photos`, {
-            url: post.mediaUrl,
+            url: primary,
             caption: post.text,
             access_token: page.accessToken,
           })
@@ -151,21 +154,45 @@ export class MetaAdapter implements SocialProviderAdapter {
       const id = String(r.post_id ?? r.id);
       return { externalId: id, url: `https://www.facebook.com/${id}` };
     }
-    if (!post.mediaUrl) {
+    if (!media.length) {
       throw new SocialProviderError('instagram: an image is required to publish', {
         retryable: false,
       });
     }
-    const container = await this.post(`${page.externalId}/media`, {
-      image_url: post.mediaUrl,
-      caption: post.text,
-      access_token: page.accessToken,
-    });
+    let creationId: string;
+    if (media.length === 1) {
+      const container = await this.post(`${page.externalId}/media`, {
+        image_url: media[0]!,
+        caption: post.text,
+        access_token: page.accessToken,
+      });
+      creationId = String(container.id);
+    } else {
+      const childIds: string[] = [];
+      for (const url of media) {
+        const child = await this.post(`${page.externalId}/media`, {
+          image_url: url,
+          is_carousel_item: 'true',
+          access_token: page.accessToken,
+        });
+        childIds.push(String(child.id));
+      }
+      const carousel = await this.post(`${page.externalId}/media`, {
+        media_type: 'CAROUSEL',
+        children: childIds.join(','),
+        caption: post.text,
+        access_token: page.accessToken,
+      });
+      creationId = String(carousel.id);
+    }
     const published = await this.post(`${page.externalId}/media_publish`, {
-      creation_id: String(container.id),
+      creation_id: creationId,
       access_token: page.accessToken,
     });
     const id = String(published.id);
+    if (!id) {
+      throw new SocialProviderError('instagram: publish returned no media id', { retryable: true });
+    }
     let url: string | null = null;
     try {
       const info = await this.get(id, { fields: 'permalink', access_token: page.accessToken });

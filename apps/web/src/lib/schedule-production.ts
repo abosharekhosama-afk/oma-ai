@@ -1,3 +1,4 @@
+import { FALLBACK_SCHEDULE_TZ } from '@oma/domain';
 import { resolveContentWorkflow, type ApprovalPolicy } from '@oma/demo';
 import type { ContentRow } from './demo/stage3-campaigns';
 import type { ScheduleRow } from './demo/stage6-schedule';
@@ -33,7 +34,7 @@ export function contentToScheduleRow(
   const tz =
     (publishing.timezone && publishing.timezone.trim()) ||
     (opts?.timezone && opts.timezone.trim()) ||
-    'Asia/Dubai';
+    FALLBACK_SCHEDULE_TZ;
 
   return {
     id: item.id,

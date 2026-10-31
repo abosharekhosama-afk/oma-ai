@@ -555,7 +555,7 @@ describe('WorkDrive storage (API + worker, local Postgres)', () => {
           exchangeCode: async () => [],
           refresh: async () => null,
           publish: async (_p, input) => {
-            seen.push(input.mediaUrl);
+            seen.push(...(input.mediaUrls ?? (input.mediaUrl ? [input.mediaUrl] : [])));
             return { externalId: '1', url: 'https://instagram.com/p/1' };
           },
         }) as SocialProviderAdapter,

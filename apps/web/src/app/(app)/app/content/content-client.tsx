@@ -174,8 +174,10 @@ import {
   canArchive,
   lifecycleHint,
 } from '../../../../lib/content-workflow-ui';
+import { useActiveBrandId } from '../../../../lib/active-brand';
+import { brandScheduleTimezone } from '../../../../lib/brand-schedule-timezone';
 import {
-  WORKSPACE_TZ,
+  FALLBACK_SCHEDULE_TZ,
   formatCommentTime,
   monthCursorFromKey,
   todayKey,
@@ -187,11 +189,6 @@ type Brand = DemoGraph['brands'][number];
 type Task = DemoGraph['tasks'][number];
 type Deliverable = DemoGraph['deliverables'][number];
 type RequestRow = DemoGraph['requests'][number];
-
-const TODAY_KEY = todayKey();
-const TODAY_CURSOR = monthCursorFromKey(TODAY_KEY);
-const DEFAULT_YEAR = TODAY_CURSOR.year;
-const DEFAULT_MONTH = TODAY_CURSOR.monthIndex;
 
 /* ── Static demo external calendars (mirrors Planable capture) ── */
 const DEMO_EXTERNAL_CALENDARS = [{ id: 'israel-holidays', name: 'Israel Holidays', enabled: true }];
@@ -397,9 +394,11 @@ function PlanableComposeCard({
   onOpenLabels,
   onOpenTemplates,
   brandId,
+  scheduleTimezone,
   canConnectStorage,
 }: {
   brandId: string | null;
+  scheduleTimezone: string;
   canConnectStorage: boolean;
   open: boolean;
   creating: boolean;
@@ -654,7 +653,7 @@ function PlanableComposeCard({
               }
               suffixIcon={<DownOutlined style={{ fontSize: 10 }} />}
             />
-            <span className="oma-compose-tz">({WORKSPACE_TZ.replace('/', ': ')})</span>
+            <span className="oma-compose-tz">({scheduleTimezone.replace('/', ': ')})</span>
           </div>
           <div className="oma-compose-actions">
             <button
@@ -1012,6 +1011,7 @@ export default function ContentPage() {
   const router = useRouter();
   const search = useSearchParams();
   const toast = useToast();
+  const activeBrandId = useActiveBrandId();
   const caps = useCapabilities();
   const canManageWorkspace = caps.capabilities.includes('tenant.manage');
   const capsReady = !caps.loading;
@@ -1036,9 +1036,9 @@ export default function ContentPage() {
   const [viewMenuOpen, setViewMenuOpen] = useState(false);
   const [sortKey, setSortKey] = useState<ContentSortKey>('date');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
-  const [cursor, setCursor] = useState({ year: DEFAULT_YEAR, monthIndex: DEFAULT_MONTH });
+  const [cursor, setCursor] = useState(() => monthCursorFromKey(todayKey(FALLBACK_SCHEDULE_TZ)));
   const [calSpan, setCalSpan] = useState<'month' | 'week'>('month');
-  const [selectedDay, setSelectedDay] = useState<string | null>(TODAY_KEY);
+  const [selectedDay, setSelectedDay] = useState<string | null>(() => todayKey(FALLBACK_SCHEDULE_TZ));
   const [loading, setLoading] = useState(true);
   const [errorKind, setErrorKind] = useState<ErrorKind>('generic');
   const [error, setError] = useState<string | null>(null);
@@ -1169,18 +1169,18 @@ export default function ContentPage() {
         const dated = ws.content
           .map((row) => dayKey(resolveContentWorkflow(row).plannedAt))
           .filter((key): key is string => Boolean(key));
-        const monthPrefix = `${TODAY_CURSOR.year}-${String(TODAY_CURSOR.monthIndex + 1).padStart(2, '0')}`;
+        const monthPrefix = `${todayCursor.year}-${String(todayCursor.monthIndex + 1).padStart(2, '0')}`;
         if (dated.length > 0 && !dated.some((key) => key.startsWith(monthPrefix))) {
           const sorted = [...dated].sort();
           const pick =
-            dated.find((key) => key === TODAY_KEY) ??
-            sorted.find((key) => key >= TODAY_KEY) ??
+            dated.find((key) => key === todayKeyVal) ??
+            sorted.find((key) => key >= todayKeyVal) ??
             sorted[sorted.length - 1]!;
           setCursor(monthCursorFromKey(pick));
           setSelectedDay(pick);
         } else {
-          setCursor(TODAY_CURSOR);
-          setSelectedDay(TODAY_KEY);
+          setCursor(todayCursor);
+          setSelectedDay(todayKeyVal);
         }
       }
       setCreateForm((f) => ({
@@ -1536,7 +1536,7 @@ export default function ContentPage() {
   );
   const visibleCells = useMemo(() => {
     if (calSpan === 'month') return monthCells;
-    const anchor = selectedDay ?? TODAY_KEY;
+    const anchor = selectedDay ?? todayKeyVal;
     const idx = monthCells.findIndex((c) => c.key === anchor);
     const start = idx >= 0 ? idx - (idx % 7) : 0;
     return monthCells.slice(start, start + 7);
@@ -1546,6 +1546,32 @@ export default function ContentPage() {
     () => (selectedId ? (rows.find((r) => r.id === selectedId) ?? null) : null),
     [rows, selectedId],
   );
+  const brandRowsForTz = useMemo(
+    () =>
+      brands.map((b) => ({
+        id: b.id,
+        timezone: (b as Brand & { timezone?: string }).timezone,
+      })),
+    [brands],
+  );
+  const calendarTz = useMemo(
+    () =>
+      brandScheduleTimezone(
+        activeBrandId ?? selected?.brandId ?? createForm.brandId ?? brands[0]?.id,
+        brandRowsForTz,
+        (selected as ContentRow & { timezone?: string })?.timezone,
+      ),
+    [
+      activeBrandId,
+      brandRowsForTz,
+      selected?.brandId,
+      selected,
+      createForm.brandId,
+      brands,
+    ],
+  );
+  const todayKeyVal = useMemo(() => todayKey(calendarTz), [calendarTz]);
+  const todayCursor = useMemo(() => monthCursorFromKey(todayKeyVal), [todayKeyVal]);
   const overflowItems = overflowDay ? (byDay.get(overflowDay) ?? []) : [];
   const linked = selected
     ? linkedIdsForContent(tasks, deliverables, requests, selected.id)
@@ -1677,7 +1703,7 @@ export default function ContentPage() {
       approval: item.approvalState || 'NOT_REQUESTED',
       scheduled,
       published,
-      overdue: !published && !!when && String(when).slice(0, 10) < TODAY_KEY,
+      overdue: !published && !!when && String(when).slice(0, 10) < todayKeyVal,
       hidden: (item as ContentRow & { clientVisible?: boolean }).clientVisible === false,
       comments: commentCount(item),
     };
@@ -1997,9 +2023,18 @@ export default function ContentPage() {
         apiRow = await archiveContent(id);
       } else if (command === 'schedule') {
         const row = rows.find((r) => r.id === id) || selected;
-        const when =
+        const tz = brandScheduleTimezone(
+          row?.brandId,
+          brandRowsForTz,
+          (row as ContentRow & { timezone?: string })?.timezone,
+        );
+        const raw =
           draft.scheduledAt || row?.scheduledAt || row?.plannedAt || new Date().toISOString();
-        apiRow = await scheduleContent(id, { scheduledAt: when });
+        const scheduledAt =
+          wallTimeToIso(raw.length > 16 ? raw.slice(0, 16) : raw, tz) ||
+          wallTimeToIso(raw, tz) ||
+          raw;
+        apiRow = await scheduleContent(id, { scheduledAt, timezone: tz });
       } else {
         apiRow = await unscheduleContent(id);
       }
@@ -2044,7 +2079,16 @@ export default function ContentPage() {
       );
       return;
     }
-    const when = wallTimeToIso(dayKey) ?? `${dayKey}T10:00:00.000Z`;
+    const tz = brandScheduleTimezone(
+      row.brandId,
+      brandRowsForTz,
+      (row as ContentRow & { timezone?: string }).timezone,
+    );
+    const when = wallTimeToIso(dayKey, tz);
+    if (!when) {
+      toast.push(t('content.scheduling_unavailable'), 'danger');
+      return;
+    }
     const isScheduled = row.scheduleState === 'SCHEDULED';
     if (isScheduled && !canScheduleItem(row, policy)) {
       toast.push(
@@ -2057,7 +2101,7 @@ export default function ContentPage() {
     setSaving(true);
     try {
       const updated = isScheduled
-        ? await scheduleContent(contentId, { scheduledAt: when })
+        ? await scheduleContent(contentId, { scheduledAt: when, timezone: tz })
         : await updateContentProduction(contentId, { plannedAt: when });
       const next = toContentRow(updated);
       setRows((prev) => prev.map((r) => (r.id === contentId ? next : r)));
@@ -2128,7 +2172,12 @@ export default function ContentPage() {
         track: (createForm.track || campaign?.track || 'ORGANIC') as ContentRow['track'],
         // Planned date is a planning hint only; the item stays an unscheduled DRAFT.
         // Scheduling happens solely through the explicit Schedule action.
-        plannedAt: wallTimeToIso(createForm.plannedDate),
+        plannedAt: createForm.plannedDate
+          ? wallTimeToIso(
+              createForm.plannedDate,
+              brandScheduleTimezone(brandId, brandRowsForTz),
+            )
+          : null,
         labels: createForm.labels,
         media_asset_ids: createForm.media.map((asset) => asset.id),
       });
@@ -2191,7 +2240,7 @@ export default function ContentPage() {
   function stepCal(delta: number) {
     const anchor =
       calSpan === 'week'
-        ? (selectedDay ?? TODAY_KEY)
+        ? (selectedDay ?? todayKeyVal)
         : `${cursor.year}-${String(cursor.monthIndex + 1).padStart(2, '0')}-01`;
     const next = stepCalendar(anchor, calSpan, delta);
     if (calSpan === 'week') goToDay(next);
@@ -2386,7 +2435,12 @@ export default function ContentPage() {
       const created = await useContentTemplate(brandId, tpl.id, {
         campaignId: fromCompose ? createForm.campaignId || null : selected?.campaignId || null,
         plannedAt:
-          fromCompose && createForm.plannedDate ? wallTimeToIso(createForm.plannedDate) : null,
+          fromCompose && createForm.plannedDate
+            ? wallTimeToIso(
+                createForm.plannedDate,
+                brandScheduleTimezone(brandId, brandRowsForTz),
+              )
+            : null,
       });
       const row = toContentRow(created);
       setRows((prev) => [row, ...prev.filter((item) => item.id !== row.id)]);
@@ -2411,7 +2465,7 @@ export default function ContentPage() {
     const keys = monthCells.filter((c) => c.inMonth).map((c) => c.key);
     return keys
       .map((key) => ({ key, items: byDay.get(key) ?? [] }))
-      .filter((d) => d.items.length > 0 || d.key === TODAY_KEY || d.key === selectedDay);
+      .filter((d) => d.items.length > 0 || d.key === todayKeyVal || d.key === selectedDay);
   }, [monthCells, byDay, selectedDay]);
 
   const searchField = (
@@ -3152,7 +3206,7 @@ export default function ContentPage() {
                     <span className="oma-pv-week-chip oma-ltr" data-testid="content-week-chip">
                       {t('views.week_short').replace(
                         '{n}',
-                        String(isoWeekNumber(selectedDay ?? TODAY_KEY)),
+                        String(isoWeekNumber(selectedDay ?? todayKeyVal)),
                       )}
                     </span>
                   ) : null}
@@ -3160,7 +3214,7 @@ export default function ContentPage() {
                     type="button"
                     className="oma-pv-today"
                     data-testid="content-cal-today"
-                    onClick={() => goToDay(TODAY_KEY)}
+                    onClick={() => goToDay(todayKeyVal)}
                   >
                     {t('views.today')}
                   </button>
@@ -3264,7 +3318,7 @@ export default function ContentPage() {
                     className="oma-cal-dow"
                     role="columnheader"
                     data-weekend={
-                      isWeekendKey(shiftDayKey(visibleCells[0]?.key ?? TODAY_KEY, di))
+                      isWeekendKey(shiftDayKey(visibleCells[0]?.key ?? todayKeyVal, di))
                         ? 'true'
                         : 'false'
                     }
@@ -3295,7 +3349,7 @@ export default function ContentPage() {
                           role="gridcell"
                           aria-selected={cell.key === selectedDay}
                           data-out={cell.inMonth ? 'false' : 'true'}
-                          data-today={cell.key === TODAY_KEY ? 'true' : 'false'}
+                          data-today={cell.key === todayKeyVal ? 'true' : 'false'}
                           data-weekend={isWeekendKey(cell.key) ? 'true' : 'false'}
                           data-selected={cell.key === selectedDay ? 'true' : 'false'}
                           onClick={() => setSelectedDay(cell.key)}
@@ -4528,7 +4582,7 @@ export default function ContentPage() {
                                       <div className="oma-comment-meta">
                                         <strong>{memberName(c.author_user_id)}</strong>
                                         <span className="oma-ltr">
-                                          {formatCommentTime(c.at, locale)}
+                                          {formatCommentTime(c.at, locale, calendarTz)}
                                         </span>
                                       </div>
                                       <p className="oma-comment-body">
@@ -4951,6 +5005,12 @@ export default function ContentPage() {
           null
         }
         canConnectStorage={canManageWorkspace}
+        scheduleTimezone={brandScheduleTimezone(
+          createForm.brandId ||
+            campaigns.find((c) => c.id === createForm.campaignId)?.brandId ||
+            brands[0]?.id,
+          brandRowsForTz,
+        )}
         onChange={(patch) => setCreateForm((f) => ({ ...f, ...patch }))}
         onClose={() => setCreateOpen(false)}
         onSubmit={() => void submitCreate()}
