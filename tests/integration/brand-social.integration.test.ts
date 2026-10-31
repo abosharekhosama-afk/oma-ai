@@ -20,6 +20,7 @@ import {
   MAX_PUBLISH_ATTEMPTS,
   PUBLISH_BACKOFF_MS,
   runPublishTick,
+  runPublishStatusTick,
   runTokenRefreshTick,
 } from '../../apps/worker/src/social/social-jobs';
 
@@ -348,6 +349,54 @@ describe('publish + refresh jobs', () => {
       externalPostUrl: 'https://x.com/brand/status/1001',
       publishAttempts: 1,
     });
+  });
+
+  it('keeps TikTok pending until status/fetch returns a terminal failure and stores fail_reason', async () => {
+    const page = await seedPage(seed, brand, {
+      network: 'TIKTOK',
+      scopes: ['video.publish'],
+      metaJson: JSON.stringify({ username: 'brand' }),
+    });
+    const post = await seedPost(seed, brand, { socialPageId: page, publishState: 'QUEUED' });
+    const now = new Date();
+    const tiktok = {
+      network: 'tiktok',
+      usesPkce: false,
+      isConfigured: () => true,
+      authorizeUrl: () => '',
+      exchangeCode: async () => [],
+      refresh: async () => null,
+      publish: async () => ({ externalId: 'publish-op-1', url: null, pending: true }),
+      fetchPublishStatus: async () => ({
+        status: 'FAILED' as const,
+        retryable: false,
+        errorMessage:
+          'tiktok [file_format_check_failed]: Unsupported media format or video codec. Use JPEG/WebP photos or MP4/WebM/MOV video with a supported codec.',
+      }),
+    } as SocialProviderAdapter;
+    const publish = await runPublishTick({ key: KEY, now: () => now, adapterFor: () => tiktok });
+    expect(publish.pending).toBe(1);
+    const target = await getPrisma().contentPublishTarget.findFirstOrThrow({
+      where: { contentItemId: post, socialPageId: page },
+    });
+    expect(target).toMatchObject({ publishState: 'PUBLISHING', externalPostId: 'publish-op-1' });
+    expect(target.nextPublishAt!.getTime()).toBe(now.getTime() + 60_000);
+
+    const polled = await runPublishStatusTick({
+      key: KEY,
+      now: () => new Date(now.getTime() + 60_001),
+      adapterFor: () => tiktok,
+    });
+    expect(polled.failed).toBe(1);
+    const finalTarget = await getPrisma().contentPublishTarget.findFirstOrThrow({
+      where: { contentItemId: post, socialPageId: page },
+    });
+    expect(finalTarget.publishState).toBe('FAILED');
+    expect(finalTarget.lastPublishError).toContain('file_format_check_failed');
+    expect(finalTarget.lastPublishError).toContain('supported codec');
+    const item = await getPrisma().contentItem.findUniqueOrThrow({ where: { id: post } });
+    expect(item.publishState).toBe('FAILED');
+    expect(item.lastPublishError).toContain('file_format_check_failed');
   });
 
   it('does not publish unapproved posts and records a skip reason', async () => {

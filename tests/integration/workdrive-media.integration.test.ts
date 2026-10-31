@@ -499,7 +499,7 @@ describe('WorkDrive storage (API + worker, local Postgres)', () => {
     ).toMatch(/^\/api\/v1\/media\//);
   });
 
-  it('social publishing sends a fresh signed URL for WorkDrive media', async () => {
+  it('social publishing sends the original WorkDrive download URL (not the preview URL)', async () => {
     const key = parseEncryptionKey('e'.repeat(64))!;
     const img = (await (await upload(seed, brandId, PNG, 'kind=posts&name=ig.png')).json()).data;
     const pageId = newId();
@@ -551,7 +551,7 @@ describe('WorkDrive storage (API + worker, local Postgres)', () => {
         { tenantId: seed.tenantId, previewAssetId: img.id, previewAssetUrl: img.view_url },
         { key },
       ),
-    ).toMatch(/\/storage\/objects\?token=/);
+    ).toMatch(/\/storage\/objects\?token=.*&original=1/);
     const seen: Array<string | null | undefined> = [];
     await runPublishTick({
       key,
@@ -571,7 +571,10 @@ describe('WorkDrive storage (API + worker, local Postgres)', () => {
     });
     expect(
       seen.some(
-        (u) => typeof u === 'string' && u.startsWith(`${wd.baseUrl}/storage/objects?token=`),
+        (u) =>
+          typeof u === 'string' &&
+          u.startsWith(`${wd.baseUrl}/storage/objects?token=`) &&
+          u.includes('&original=1'),
       ),
     ).toBe(true);
     expect(

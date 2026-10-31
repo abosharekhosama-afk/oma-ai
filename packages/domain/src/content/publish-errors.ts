@@ -112,12 +112,81 @@ const AR: Record<PublishErrorCode, string> = {
   UNKNOWN: 'فشل النشر. تحقق من الحساب المتصل ثم حاول مجددًا.',
 };
 
+const TIKTOK_FAILURE_COPY: Record<string, { en: string; ar: string }> = {
+  url_ownership_unverified: {
+    en: 'TikTok has not verified the OMA media URL domain/prefix. Verify the exact public media proxy domain in the TikTok developer app.',
+    ar: 'لم يوثّق TikTok نطاق أو مسار روابط وسائط OMA. وثّق نطاق وسيط الوسائط العام نفسه في إعدادات تطبيق TikTok للمطورين.',
+  },
+  scope_not_authorized: {
+    en: 'The TikTok app/user grant lacks video.publish. Get the scope approved in TikTok Developer settings, then reconnect the account.',
+    ar: 'تطبيق TikTok أو تفويض المستخدم لا يتضمن video.publish. اطلب اعتماد الصلاحية من إعدادات المطورين ثم أعد ربط الحساب.',
+  },
+  scope_missing: {
+    en: 'The TikTok app/user grant lacks video.publish. Get the scope approved in TikTok Developer settings, then reconnect the account.',
+    ar: 'تطبيق TikTok أو تفويض المستخدم لا يتضمن video.publish. اطلب اعتماد الصلاحية من إعدادات المطورين ثم أعد ربط الحساب.',
+  },
+  access_token_invalid: {
+    en: 'The TikTok access token is invalid or expired. Reconnect the TikTok account.',
+    ar: 'رمز وصول TikTok غير صالح أو منتهي الصلاحية. أعد ربط حساب TikTok.',
+  },
+  privacy_level_option_mismatch: {
+    en: 'The configured privacy level is not available for this creator account. Choose a privacy level returned by TikTok Creator Info.',
+    ar: 'مستوى الخصوصية المضبوط غير متاح لحساب المنشئ. استخدم أحد المستويات التي يعيدها TikTok Creator Info.',
+  },
+  video_size_check_failed: {
+    en: 'TikTok video files must not exceed 4 GB.',
+    ar: 'يجب ألا يتجاوز حجم ملف فيديو TikTok مقدار 4 غيغابايت.',
+  },
+  photo_count_exceeded: {
+    en: 'TikTok photo posts accept up to 35 photos.',
+    ar: 'تقبل منشورات صور TikTok ما يصل إلى 35 صورة.',
+  },
+  video_count_exceeded: {
+    en: 'TikTok accepts one video per post. Create a separate post for each additional video.',
+    ar: 'يقبل TikTok فيديو واحدًا في المنشور. أنشئ منشورًا منفصلًا لكل فيديو إضافي.',
+  },
+  invalid_media_combination: {
+    en: 'TikTok does not allow photos and videos in the same post. Create a photo post or a video post.',
+    ar: 'لا يسمح TikTok بخلط الصور والفيديوهات في المنشور نفسه. أنشئ منشور صور أو منشور فيديو.',
+  },
+  file_format_check_failed: {
+    en: 'TikTok rejected the file format or video codec. Photos must be JPEG/WebP; videos must be MP4, WebM, or MOV using a supported codec.',
+    ar: 'رفض TikTok صيغة الملف أو ترميز الفيديو. الصور يجب أن تكون JPEG أو WebP، والفيديو MP4 أو WebM أو MOV بترميز مدعوم.',
+  },
+  duration_check_failed: {
+    en: 'The video does not meet the duration requirements for this TikTok creator account.',
+    ar: 'مدة الفيديو لا تستوفي متطلبات حساب TikTok هذا.',
+  },
+  frame_rate_check_failed: {
+    en: 'TikTok accepts video frame rates from 23 to 60 FPS.',
+    ar: 'يقبل TikTok معدل إطارات للفيديو من 23 إلى 60 إطارًا في الثانية.',
+  },
+  picture_size_check_failed: {
+    en: 'TikTok rejected the photo size or dimensions. Use JPEG/WebP, at most 20 MB per photo and no larger than 1080p.',
+    ar: 'رفض TikTok حجم الصورة أو أبعادها. استخدم JPEG أو WebP بحجم لا يتجاوز 20 ميغابايت للصورة ودقة لا تتجاوز 1080p.',
+  },
+  video_pull_failed: {
+    en: 'TikTok could not download the video from the public media URL. Check that the URL is reachable and the verified domain/prefix is configured.',
+    ar: 'تعذر على TikTok تنزيل الفيديو من رابط الوسائط العام. تحقق من إمكانية الوصول إلى الرابط ومن توثيق النطاق أو المسار في إعدادات TikTok.',
+  },
+  photo_pull_failed: {
+    en: 'TikTok could not download the photo from the public media URL. Check that the URL is reachable and the verified domain/prefix is configured.',
+    ar: 'تعذر على TikTok تنزيل الصورة من رابط الوسائط العام. تحقق من إمكانية الوصول إلى الرابط ومن توثيق النطاق أو المسار في إعدادات TikTok.',
+  },
+  internal: {
+    en: 'TikTok reported a temporary processing error. The publish status will be checked again.',
+    ar: 'أبلغ TikTok عن خطأ معالجة مؤقت. ستتم إعادة التحقق من حالة النشر.',
+  },
+};
+
 export function humanizePublishError(
   raw: string | null | undefined,
   locale: 'en' | 'ar' = 'en',
 ): string {
   const code = classifyPublishError(raw);
-  const base = locale === 'ar' ? AR[code] : EN[code];
+  const tikTokReason = /tiktok\s*\[([a-z0-9_]+)\]/i.exec(raw ?? '')?.[1]?.toLowerCase();
+  const specific = tikTokReason ? TIKTOK_FAILURE_COPY[tikTokReason] : undefined;
+  const base = specific ? specific[locale] : locale === 'ar' ? AR[code] : EN[code];
   const detail = providerDetail(raw);
   if (!detail || code === 'NOT_APPROVED') return base;
   return locale === 'ar'

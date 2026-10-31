@@ -265,7 +265,7 @@ export async function startFakeWorkDrive(opts: {
         });
       if (m[2] === 'download')
         return send(200, {
-          download_url: `${base}/storage/objects?token=${f.id}`,
+          download_url: `${base}/storage/objects?token=${f.id}&original=1`,
           expires_in_seconds: 900,
           file_id: f.id,
         });

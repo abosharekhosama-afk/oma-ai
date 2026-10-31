@@ -219,7 +219,7 @@ async function signedUrlForAsset(
   const c = key ? await clientForTenant(tenantId, key, deps.fetchImpl) : null;
   if (!c) throw new SocialProviderError('WorkDrive is not connected', { retryable: true });
   try {
-    return (await c.client.previewUrl(asset.workdriveFileId)).url;
+    return (await c.client.downloadUrl(asset.workdriveFileId)).url;
   } catch (e) {
     if (e instanceof WorkDriveError && e.code === 'not_found') {
       await getPrisma().mediaAsset.update({
@@ -240,7 +240,8 @@ async function signedUrlForAsset(
 
 /**
  * Public URLs a social network can fetch for a post's media (carousel order preserved).
- * WorkDrive assets get fresh signed URLs; legacy https preview URLs are included when no assets.
+ * WorkDrive assets get signed URLs for original bytes; never use preview/transcode URLs here.
+ * Legacy https media URLs are included when no WorkDrive asset is attached.
  */
 export async function publicMediaUrls(
   item: {

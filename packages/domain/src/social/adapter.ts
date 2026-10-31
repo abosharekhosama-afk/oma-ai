@@ -38,8 +38,14 @@ export type PublishInput = {
   /** @deprecated Prefer mediaUrls; kept for adapter tests and legacy callers. */
   mediaUrl?: string | null;
   mediaUrls?: string[] | null;
+  /** Optional media metadata required by providers that validate format and file size. */
+  media?: Array<{ url: string; mime: string; sizeBytes?: number }>;
 };
-export type PublishResult = { externalId: string; url: string | null };
+export type PublishResult = { externalId: string; url: string | null; pending?: boolean };
+export type PublishStatusResult =
+  | { status: 'PENDING' }
+  | { status: 'PUBLISHED'; externalId?: string; url?: string | null }
+  | { status: 'FAILED'; errorMessage: string; retryable: boolean; reauth?: boolean };
 
 /**
  * Errors from a network. `retryable` drives worker backoff; `reauth` means the token is no
@@ -79,6 +85,8 @@ export interface SocialProviderAdapter {
   /** Returns a new token set, or null when the token is long-lived and needs no refresh. */
   refresh(page: PublishablePage): Promise<TokenSet | null>;
   publish(page: PublishablePage, post: PublishInput): Promise<PublishResult>;
+  /** Optional reconciliation for providers whose publish endpoint returns an operation ID. */
+  fetchPublishStatus?(page: PublishablePage, externalId: string): Promise<PublishStatusResult>;
 }
 
 export async function readJson(res: Response): Promise<Record<string, unknown>> {

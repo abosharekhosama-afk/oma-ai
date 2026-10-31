@@ -1,10 +1,7 @@
 'use client';
 
 import { humanizePublishError } from '../../lib/publish-errors';
-import {
-  publishTargetStateLabelKey,
-  type PublishTargetStatusRow,
-} from '../../lib/publish-status';
+import { publishTargetStateLabelKey, type PublishTargetStatusRow } from '../../lib/publish-status';
 import { useT } from '../../lib/use-locale';
 
 export function PublishTargetsPanel({
@@ -49,7 +46,14 @@ export function PublishTargetsPanel({
               </>
             ) : null}
             {err && target.state.toUpperCase() === 'FAILED' ? (
-              <span className="oma-muted"> — {err}</span>
+              <span
+                className="oma-muted"
+                role="alert"
+                data-testid={`publish-target-error-${target.socialPageId}`}
+                style={{ display: 'block', whiteSpace: 'pre-line' }}
+              >
+                {err}
+              </span>
             ) : null}
           </li>
         );
