@@ -9,14 +9,11 @@ import {
   notificationAllowed,
   pickMailLocale,
   renderPublishResultEmail,
-  skipReasonMessage,
-  SocialProviderError,
   tokenKeyFromEnv,
   type SocialProviderAdapter,
   type SocialNetworkCode,
   type FetchLike,
 } from '@oma/domain';
-import { mediaProxyUrl, publicMediaUrls } from '../media/media-jobs';
 
 export const MAX_PUBLISH_ATTEMPTS = 5;
 /** Backoff after attempt n (1-based): 1m, 5m, 15m, 60m. */
@@ -34,7 +31,7 @@ type Deps = {
   log?: { error: (object: unknown, message: string) => void };
 };
 
-function pageForAdapter(
+export function pageForAdapter(
   p: {
     externalId: string;
     name: string;
@@ -114,7 +111,7 @@ export async function alertDisconnected(
   return recipients.size;
 }
 
-async function markNeedsReauth(
+export async function markNeedsReauth(
   page: { id: string; tenantId: string; brandId: string; network: string },
   message: string,
   now: Date,
@@ -127,7 +124,7 @@ async function markNeedsReauth(
 }
 
 /** Notify creator/assignee/managers that a publish finished (success or terminal failure). */
-async function notifyPublishOutcome(
+export async function notifyPublishOutcome(
   item: {
     id: string;
     tenantId: string;
@@ -247,188 +244,23 @@ async function notifyPublishOutcome(
 }
 
 /**
- * Publish approved, scheduled posts whose time has come. Each item is claimed atomically
- * (QUEUED/NONE → PUBLISHING) so concurrent workers never double-post.
- * Due posts that are not eligible (e.g. not approved) get a recorded skip reason.
+ * Synchronous publish path (integration tests). Production uses BullMQ via enqueueDueSocialPublishJobs.
  */
 export async function runPublishTick(deps: Deps = {}) {
   const now = deps.now?.() ?? new Date();
   const key = deps.key === undefined ? tokenKeyFromEnv() : deps.key;
-  const adapterFor = deps.adapterFor ?? ((n) => createSocialAdapter(n));
-  const prisma = getPrisma();
+  const { findDuePublishTargetIds } = await import('./due-publish-targets');
+  const { publishOneTarget } = await import('./publish-one-target');
   const out = { attempted: 0, published: 0, failed: 0, retrying: 0, skipped: 0 };
-
-  // Brands whose approval policy is NONE may publish without APPROVED.
-  const noApproval = (
-    await prisma.contentPreferences.findMany({
-      where: { approvalPolicy: 'NONE' },
-      select: { brandId: true },
-    })
-  ).map((p) => p.brandId);
-
-  // Record why due posts are not picked up (approval / missing encryption key).
-  const dueAny = await prisma.contentItem.findMany({
-    where: {
-      socialPageId: { not: null },
-      archivedAt: null,
-      scheduleState: 'SCHEDULED',
-      scheduledAt: { lte: now },
-      publishState: { in: ['NONE', 'QUEUED'] },
-      OR: [{ nextPublishAt: null }, { nextPublishAt: { lte: now } }],
-    },
-    orderBy: { scheduledAt: 'asc' },
-    take: 50,
-    select: {
-      id: true,
-      brandId: true,
-      approvalState: true,
-      lastPublishSkipReason: true,
-    },
-  });
-  for (const row of dueAny) {
-    const eligible = row.approvalState === 'APPROVED' || noApproval.includes(row.brandId);
-    if (!eligible) {
-      const reason = skipReasonMessage('NOT_APPROVED');
-      if (row.lastPublishSkipReason !== reason) {
-        await prisma.contentItem.update({
-          where: { id: row.id },
-          data: { lastPublishSkipReason: reason },
-        });
-      }
-      out.skipped++;
-      continue;
-    }
-    if (!key) {
-      const reason = skipReasonMessage('ENCRYPTION_KEY');
-      if (row.lastPublishSkipReason !== reason) {
-        await prisma.contentItem.update({
-          where: { id: row.id },
-          data: { lastPublishSkipReason: reason },
-        });
-      }
-      out.skipped++;
-    }
-  }
-
+  const ids = await findDuePublishTargetIds(now, key);
   if (!key) return out;
-
-  const due = await prisma.contentItem.findMany({
-    where: {
-      AND: [{ OR: [{ approvalState: 'APPROVED' }, { brandId: { in: noApproval } }] }],
-      socialPageId: { not: null },
-      archivedAt: null,
-      scheduleState: 'SCHEDULED',
-      scheduledAt: { lte: now },
-      publishState: { in: ['NONE', 'QUEUED'] },
-      OR: [{ nextPublishAt: null }, { nextPublishAt: { lte: now } }],
-    },
-    orderBy: { scheduledAt: 'asc' },
-    take: 25,
-  });
-
-  for (const item of due) {
-    const claim = await prisma.contentItem.updateMany({
-      where: { id: item.id, publishState: { in: ['NONE', 'QUEUED'] } },
-      data: {
-        publishState: 'PUBLISHING',
-        workerPickedAt: now,
-        lastPublishSkipReason: null,
-      },
-    });
-    if (claim.count !== 1) continue;
+  for (const id of ids) {
     out.attempted++;
-    const attempt = item.publishAttempts + 1;
-    const page = await prisma.socialPage.findFirst({
-      where: { id: item.socialPageId!, tenantId: item.tenantId, brandId: item.brandId },
-    });
-    const brand = await prisma.brandWorkspace.findFirst({
-      where: { id: item.brandId },
-      select: { status: true, deletedAt: true },
-    });
-    try {
-      if (!page || page.status === 'DISCONNECTED')
-        throw new SocialProviderError('The connected account was removed', { retryable: false });
-      if (page.status === 'NEEDS_REAUTH')
-        throw new SocialProviderError('The connected account needs to be reconnected', {
-          retryable: false,
-          reauth: true,
-        });
-      if (!brand || brand.status === 'ARCHIVED' || brand.deletedAt)
-        throw new SocialProviderError('Brand is archived', { retryable: false });
-      const network = fromSocialEnum(page.network);
-      const adapter = adapterFor(network);
-      if (!adapter.isConfigured())
-        throw new SocialProviderError('Network is not configured', { retryable: false });
-      const text =
-        [item.captionEn || item.titleEn].filter(Boolean).join('\n').trim() || item.titleEn;
-      const rawMediaUrls = await publicMediaUrls(item, { fetchImpl: deps.mediaFetch });
-      const mediaUrls =
-        network === 'tiktok'
-          ? rawMediaUrls.map((u) => mediaProxyUrl(u))
-          : rawMediaUrls;
-      const res = await adapter.publish(pageForAdapter(page, key), {
-        text,
-        // TikTok needs the URL prefix on a verified domain — proxy every carousel URL.
-        mediaUrls,
-      });
-      await prisma.contentItem.update({
-        where: { id: item.id },
-        data: {
-          publishState: 'PUBLISHED',
-          publishAttempts: attempt,
-          externalPostId: res.externalId,
-          externalPostUrl: res.url,
-          publishedAt: now,
-          lastPublishError: null,
-          nextPublishAt: null,
-          lastPublishSkipReason: null,
-        },
-      });
-      out.published++;
-      await notifyPublishOutcome(item, 'succeeded', { url: res.url });
-    } catch (e) {
-      const err =
-        e instanceof SocialProviderError
-          ? e
-          : new SocialProviderError(String((e as Error)?.message ?? e), { retryable: true });
-      deps.log?.error(
-        {
-          contentId: item.id,
-          network: page?.network ?? null,
-          attempt,
-          retryable: err.opts.retryable,
-          reauth: err.opts.reauth ?? false,
-          status: err.opts.status ?? null,
-          providerCode: err.opts.providerCode ?? null,
-          providerMessage: err.opts.providerMessage ?? null,
-          providerLogId: err.opts.providerLogId ?? null,
-          error: err.message,
-        },
-        'social publish rejected',
-      );
-      if (err.opts.reauth && page && page.status !== 'NEEDS_REAUTH')
-        await markNeedsReauth(page, err.message, now);
-      const retry = err.opts.retryable && attempt < MAX_PUBLISH_ATTEMPTS;
-      await prisma.contentItem.update({
-        where: { id: item.id },
-        data: {
-          publishState: retry ? 'QUEUED' : 'FAILED',
-          publishAttempts: attempt,
-          lastPublishError: err.message.slice(0, 1000),
-          nextPublishAt: retry
-            ? new Date(
-                now.getTime() +
-                  PUBLISH_BACKOFF_MS[Math.min(attempt - 1, PUBLISH_BACKOFF_MS.length - 1)]!,
-              )
-            : null,
-        },
-      });
-      if (retry) out.retrying++;
-      else {
-        out.failed++;
-        await notifyPublishOutcome(item, 'failed', { error: err.message });
-      }
-    }
+    const result = await publishOneTarget(id, deps);
+    if (result.outcome === 'published') out.published++;
+    else if (result.outcome === 'failed') out.failed++;
+    else if (result.outcome === 'retrying') out.retrying++;
+    else if (result.outcome === 'skipped') out.skipped++;
   }
   return out;
 }
@@ -497,12 +329,21 @@ export async function runTokenRefreshTick(deps: Deps = {}) {
   return out;
 }
 
-export function startSocialJobs(log: { error: (o: unknown, m: string) => void }) {
+export function startSocialJobs(
+  log: { error: (o: unknown, m: string) => void },
+  connection?: import('ioredis').default,
+) {
   const publish = setInterval(
     () => {
-      runPublishTick({ log }).catch((e) =>
-        log.error({ err: String(e) }, 'social publish tick failed'),
-      );
+      const run = async () => {
+        if (connection && process.env.SOCIAL_PUBLISH_SYNC !== '1') {
+          const { enqueueDueSocialPublishJobs } = await import('./enqueue-social-publish');
+          await enqueueDueSocialPublishJobs(connection);
+        } else {
+          await runPublishTick({ log });
+        }
+      };
+      run().catch((e) => log.error({ err: String(e) }, 'social publish tick failed'));
     },
     Number(process.env.SOCIAL_PUBLISH_INTERVAL_MS ?? 30_000),
   );

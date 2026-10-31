@@ -34,10 +34,21 @@ export function buildPublishStatusView(
   locale: 'en' | 'ar',
 ): PublishStatusView | null {
   const scheduled = item.scheduleState === 'SCHEDULED';
-  if (!scheduled && item.publishState !== 'PUBLISHED' && item.publishState !== 'FAILED') {
+  const rawState = (item.publishState || 'NONE').toUpperCase();
+  const state =
+    rawState === 'ALL_SUCCEEDED'
+      ? 'PUBLISHED'
+      : rawState === 'IN_PROGRESS'
+        ? 'QUEUED'
+        : rawState;
+  if (
+    !scheduled &&
+    state !== 'PUBLISHED' &&
+    state !== 'FAILED' &&
+    rawState !== 'PARTIAL'
+  ) {
     return null;
   }
-  const state = (item.publishState || 'NONE').toUpperCase();
   const when = item.scheduledAt || item.plannedAt || null;
   const humanErr = item.publishError
     ? humanizePublishError(item.publishError, locale)
@@ -103,6 +114,7 @@ export function buildPublishStatusView(
 
   let stateLabelKey = 'demo.schedule.publishState.scheduled';
   if (state === 'PUBLISHED') stateLabelKey = 'demo.schedule.publishState.published';
+  else if (rawState === 'PARTIAL') stateLabelKey = 'demo.schedule.publishState.failed';
   else if (state === 'FAILED') stateLabelKey = 'demo.schedule.publishState.failed';
   else if (state === 'PUBLISHING') stateLabelKey = 'demo.schedule.publishState.publishing';
   else if (state === 'QUEUED' && item.nextPublishAt)

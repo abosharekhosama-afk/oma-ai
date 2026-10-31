@@ -25,7 +25,11 @@ export function contentToScheduleRow(
   const plannedAt = workflow.plannedAt || item.scheduledAt || '';
   const externalPublishingConnected = Boolean(publishing.socialPageId);
   let state: ScheduleRow['state'] = 'PLANNED';
-  if (item.status === 'PUBLISHED_DEMO' || publishing.publishState === 'PUBLISHED')
+  if (
+    item.status === 'PUBLISHED_DEMO' ||
+    publishing.publishState === 'PUBLISHED' ||
+    publishing.publishState === 'ALL_SUCCEEDED'
+  )
     state = 'PUBLISHED_SAMPLE';
   else if (workflow.scheduleState === 'SCHEDULED') state = 'SCHEDULED_PREVIEW';
   else if (workflow.scheduleBlocked) state = 'BLOCKED';

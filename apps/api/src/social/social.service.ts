@@ -16,6 +16,7 @@ import {
   type SocialNetworkCode,
 } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
+import { syncContentPublishRollup } from './publish-target-sync';
 
 const STATE_TTL_MS = 15 * 60_000;
 const notFound = () => new DomainError('NOT_FOUND', 'Not found', 404, 'errors.not_found');
@@ -246,18 +247,17 @@ export class SocialService {
     const prisma = getPrisma();
     const page = await prisma.socialPage.findFirst({ where: { id: pageId, tenantId } });
     if (!page) throw notFound();
+    const affected = await prisma.contentPublishTarget.findMany({
+      where: { tenantId, socialPageId: pageId },
+      select: { contentItemId: true },
+    });
     await prisma.$transaction([
-      // Queued posts targeting this page go back to "not published by OMA".
-      prisma.contentItem.updateMany({
-        where: {
-          tenantId,
-          socialPageId: pageId,
-          publishState: { in: ['NONE', 'QUEUED', 'FAILED'] },
-        },
-        data: { socialPageId: null, publishState: 'NONE', nextPublishAt: null },
-      }),
+      prisma.contentPublishTarget.deleteMany({ where: { tenantId, socialPageId: pageId } }),
       prisma.socialPage.delete({ where: { id: pageId } }),
     ]);
+    for (const row of affected) {
+      await syncContentPublishRollup(row.contentItemId);
+    }
     await this.audit.write({
       actorUserId,
       tenantId,
@@ -271,15 +271,30 @@ export class SocialService {
 
   async setPublishTarget(tenantId: string, contentId: string, body: unknown) {
     const prisma = getPrisma();
-    const raw = (body as { socialPageId?: unknown; social_page_id?: unknown } | null) ?? {};
-    const pageId = raw.socialPageId ?? raw.social_page_id ?? null;
-    const item = await prisma.contentItem.findFirst({ where: { id: contentId, tenantId } });
-    if (!item) throw notFound();
-    if (item.publishState === 'PUBLISHED' || item.publishState === 'PUBLISHING') {
-      throw new DomainError('CONFLICT_STATE', 'Already published', 409, 'errors.conflict_state');
-    }
-    if (pageId !== null) {
-      if (typeof pageId !== 'string') {
+    const raw =
+      (body as {
+        socialPageId?: unknown;
+        social_page_id?: unknown;
+        socialPageIds?: unknown;
+        social_page_ids?: unknown;
+      } | null) ?? {};
+    let pageIds: string[] | null = null;
+    if (raw.socialPageIds !== undefined || raw.social_page_ids !== undefined) {
+      const list = raw.socialPageIds ?? raw.social_page_ids;
+      if (!Array.isArray(list)) {
+        throw new DomainError(
+          'VALIDATION_FAILED',
+          'socialPageIds must be an array',
+          400,
+          'errors.validation_failed',
+        );
+      }
+      pageIds = [...new Set(list.map((id) => String(id).trim()).filter(Boolean))];
+    } else {
+      const single = raw.socialPageId ?? raw.social_page_id ?? null;
+      if (single === null) pageIds = [];
+      else if (typeof single === 'string') pageIds = single.trim() ? [single.trim()] : [];
+      else {
         throw new DomainError(
           'VALIDATION_FAILED',
           'socialPageId must be a string or null',
@@ -287,23 +302,89 @@ export class SocialService {
           'errors.validation_failed',
         );
       }
-      const page = await prisma.socialPage.findFirst({
-        where: { id: pageId, tenantId, brandId: item.brandId, status: { not: 'DISCONNECTED' } },
-      });
-      if (!page) throw notFound();
     }
-    const row = await prisma.contentItem.update({
-      where: { id: contentId },
-      data: {
-        socialPageId: pageId,
-        publishState: pageId && item.scheduleState === 'SCHEDULED' ? 'QUEUED' : 'NONE',
-        publishAttempts: 0,
-        nextPublishAt: null,
-        lastPublishError: null,
+    const item = await prisma.contentItem.findFirst({ where: { id: contentId, tenantId } });
+    if (!item) throw notFound();
+    if (item.publishState === 'ALL_SUCCEEDED' || item.publishState === 'IN_PROGRESS') {
+      const inFlight = await prisma.contentPublishTarget.count({
+        where: { contentItemId: contentId, publishState: 'PUBLISHING' },
+      });
+      if (inFlight > 0) {
+        throw new DomainError('CONFLICT_STATE', 'Already publishing', 409, 'errors.conflict_state');
+      }
+    }
+    if (pageIds && pageIds.length) {
+      const pages = await prisma.socialPage.findMany({
+        where: {
+          id: { in: pageIds },
+          tenantId,
+          brandId: item.brandId,
+          status: { not: 'DISCONNECTED' },
+        },
+      });
+      if (pages.length !== pageIds.length) throw notFound();
+    }
+    const queueOnSchedule = item.scheduleState === 'SCHEDULED';
+    await prisma.$transaction(async (tx) => {
+      const existing = await tx.contentPublishTarget.findMany({
+        where: { contentItemId: contentId },
+      });
+      const keep = new Set(pageIds ?? []);
+      for (const row of existing) {
+        if (!keep.has(row.socialPageId)) {
+          await tx.contentPublishTarget.delete({ where: { id: row.id } });
+        }
+      }
+      for (const socialPageId of keep) {
+        await tx.contentPublishTarget.upsert({
+          where: {
+            contentItemId_socialPageId: { contentItemId, socialPageId },
+          },
+          create: {
+            id: newId(),
+            tenantId,
+            contentItemId,
+            socialPageId,
+            publishState: queueOnSchedule ? 'QUEUED' : 'NONE',
+            publishAttempts: 0,
+            nextPublishAt: null,
+            lastPublishError: null,
+          },
+          update: {
+            publishState: queueOnSchedule ? 'QUEUED' : 'NONE',
+            publishAttempts: 0,
+            nextPublishAt: null,
+            lastPublishError: null,
+          },
+        });
+      }
+    });
+    await syncContentPublishRollup(contentId);
+    const row = await prisma.contentItem.findUniqueOrThrow({ where: { id: contentId } });
+    const targets = await prisma.contentPublishTarget.findMany({
+      where: { contentItemId: contentId },
+      select: {
+        id: true,
+        socialPageId: true,
+        publishState: true,
+        externalPostUrl: true,
+        lastPublishError: true,
       },
     });
     return {
-      data: { id: row.id, social_page_id: row.socialPageId, publish_state: row.publishState },
+      data: {
+        id: row.id,
+        social_page_id: row.socialPageId,
+        social_page_ids: targets.map((t) => t.socialPageId),
+        publish_state: row.publishState,
+        publish_targets: targets.map((t) => ({
+          id: t.id,
+          social_page_id: t.socialPageId,
+          state: t.publishState,
+          external_post_url: t.externalPostUrl,
+          last_error: t.lastPublishError,
+        })),
+      },
     };
   }
 }

@@ -301,6 +301,14 @@ describe('TikTok adapter', () => {
         /post\/publish\/content\/init/,
         () => json({ data: { publish_id: 'pub_1' }, error: { code: 'ok' } }),
       ],
+      [
+        /post\/publish\/status\/fetch/,
+        () =>
+          json({
+            data: { status: 'PUBLISH_COMPLETE', publicly_available_post_id: '7123456789' },
+            error: { code: 'ok' },
+          }),
+      ],
     ]);
     const a = new TikTokAdapter(publishEnv, m.fn);
     const [acct] = await a.exchangeCode({ code: 'c', redirectUri: 'https://w/cb' });
@@ -316,8 +324,9 @@ describe('TikTok adapter', () => {
     };
     expect((await a.refresh(page))!.accessToken).toBe('tat2');
     const r = await a.publish(page, { text: 'Look', mediaUrl: 'https://cdn/x.jpg' });
-    expect(r.externalId).toBe('pub_1');
-    const body = JSON.parse(String(m.calls.at(-1)!.init!.body));
+    expect(r.externalId).toBe('7123456789');
+    const initCall = m.calls.find((c) => /post\/publish\/content\/init/.test(c.url))!;
+    const body = JSON.parse(String(initCall.init!.body));
     expect(body).toMatchObject({
       media_type: 'PHOTO',
       post_mode: 'DIRECT_POST',

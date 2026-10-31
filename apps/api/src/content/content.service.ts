@@ -22,6 +22,8 @@ import {
 } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
 import { mediaPlaybackUrl } from '../media/media.service';
+import { syncContentPublishRollup } from '../social/publish-target-sync';
+import { rollupToLegacyPublishState } from '@oma/domain';
 
 /** Resolve ordered post media; the first item remains the compatibility preview. */
 async function resolvePreviewAssets(tenantId: string, brandId: string, value: unknown) {
@@ -156,7 +158,28 @@ function mapContent(
     workflow,
     publishing: {
       social_page_id: row.socialPageId ?? null,
-      state: row.publishState ?? 'NONE',
+      social_page_ids:
+        (row as { publishTargets?: { socialPageId: string }[] }).publishTargets?.map(
+          (t) => t.socialPageId,
+        ) ?? (row.socialPageId ? [row.socialPageId] : []),
+      rollup_state: row.publishState ?? 'NONE',
+      state: rollupToLegacyPublishState(
+        (row.publishState ?? 'NONE') as import('@oma/domain').ContentPublishRollupState,
+      ),
+      publish_targets:
+        (row as { publishTargets?: Array<{
+          id: string;
+          socialPageId: string;
+          publishState: string;
+          externalPostUrl: string | null;
+          lastPublishError: string | null;
+        }> }).publishTargets?.map((t) => ({
+          id: t.id,
+          social_page_id: t.socialPageId,
+          state: t.publishState,
+          external_post_url: t.externalPostUrl,
+          last_error: t.lastPublishError,
+        })) ?? [],
       attempts: row.publishAttempts ?? 0,
       last_error: row.lastPublishError ?? null,
       worker_picked_at: row.workerPickedAt?.toISOString() ?? null,
@@ -292,6 +315,7 @@ export class ContentService {
       where,
       orderBy: { updatedAt: 'desc' },
       take: limit + 1,
+      include: { publishTargets: true },
     });
     const hasMore = rows.length > limit;
     const data = hasMore ? rows.slice(0, limit) : rows;
@@ -329,6 +353,7 @@ export class ContentService {
   async get(tenantId: string, contentId: string) {
     const row = await getPrisma().contentItem.findFirst({
       where: tenantWhere(tenantId, { id: contentId }),
+      include: { publishTargets: true },
     });
     if (!row) {
       throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
@@ -851,21 +876,30 @@ export class ContentService {
     const row = await getPrisma().contentItem.update({
       where: { id: contentId },
       data: {
-        // Planned date stays a separate planning field; scheduling never rewrites it.
         scheduledAt: when,
         scheduleState: 'SCHEDULED',
         status: 'SCHEDULED',
         timezone: tz,
-        // A post with a connected account queues for real publishing at scheduledAt.
-        ...(current.socialPageId
-          ? {
-              publishState: 'QUEUED',
-              publishAttempts: 0,
-              nextPublishAt: null,
-              lastPublishError: null,
-            }
-          : {}),
       },
+    });
+    const targetCount = await getPrisma().contentPublishTarget.count({
+      where: { contentItemId: contentId },
+    });
+    if (targetCount > 0) {
+      await getPrisma().contentPublishTarget.updateMany({
+        where: { contentItemId: contentId, publishState: { not: 'PUBLISHED' } },
+        data: {
+          publishState: 'QUEUED',
+          publishAttempts: 0,
+          nextPublishAt: null,
+          lastPublishError: null,
+        },
+      });
+      await syncContentPublishRollup(contentId);
+    }
+    const refreshed = await getPrisma().contentItem.findUniqueOrThrow({
+      where: { id: contentId },
+      include: { publishTargets: true },
     });
     await this.audit.write({
       actorUserId,
@@ -875,7 +909,7 @@ export class ContentService {
       targetId: contentId,
       correlationId,
     });
-    return { data: mapContent(row, policy) };
+    return { data: mapContent(refreshed, policy) };
   }
 
   async unschedule(
@@ -896,11 +930,18 @@ export class ContentService {
         scheduleState: 'UNSCHEDULED',
         scheduledAt: null,
         status: current.approvalState === 'APPROVED' ? 'APPROVED' : 'DRAFT',
-        ...(current.publishState === 'PUBLISHED'
+        ...(current.publishState === 'ALL_SUCCEEDED'
           ? {}
           : { publishState: 'NONE', nextPublishAt: null }),
       },
     });
+    if (current.publishState !== 'ALL_SUCCEEDED') {
+      await getPrisma().contentPublishTarget.updateMany({
+        where: { contentItemId, publishState: { not: 'PUBLISHED' } },
+        data: { publishState: 'NONE', nextPublishAt: null },
+      });
+      await syncContentPublishRollup(contentId);
+    }
     await this.audit.write({
       actorUserId,
       tenantId,

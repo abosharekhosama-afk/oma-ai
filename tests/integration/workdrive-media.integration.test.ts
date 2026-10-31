@@ -531,10 +531,19 @@ describe('WorkDrive storage (API + worker, local Postgres)', () => {
         scheduleState: 'SCHEDULED',
         scheduledAt: new Date(Date.now() - 1000),
         socialPageId: pageId,
-        publishState: 'QUEUED',
+        publishState: 'IN_PROGRESS',
         previewAssetId: img.id,
         previewAssetUrl: img.view_url,
         createdBy: seed.userId,
+      },
+    });
+    await getPrisma().contentPublishTarget.create({
+      data: {
+        id: newId(),
+        tenantId: seed.tenantId,
+        contentItemId: post,
+        socialPageId: pageId,
+        publishState: 'QUEUED',
       },
     });
     expect(
@@ -567,7 +576,7 @@ describe('WorkDrive storage (API + worker, local Postgres)', () => {
     ).toBe(true);
     expect(
       (await getPrisma().contentItem.findUniqueOrThrow({ where: { id: post } })).publishState,
-    ).toBe('PUBLISHED');
+    ).toBe('ALL_SUCCEEDED');
   });
 
   it('disconnect keeps assets referenced', async () => {

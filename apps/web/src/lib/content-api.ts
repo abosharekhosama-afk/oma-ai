@@ -172,11 +172,23 @@ export async function createContentProduction(input: {
   return res.data;
 }
 
-export async function setContentPublishTarget(contentId: string, socialPageId: string | null) {
-  return api<{ data: { id: string; social_page_id: string | null; publish_state: string } }>(
-    `/api/v1/content/${contentId}/publish-target`,
-    { method: 'POST', body: JSON.stringify({ socialPageId }) },
-  );
+export async function setContentPublishTarget(
+  contentId: string,
+  socialPageId: string | null,
+  socialPageIds?: string[],
+) {
+  return api<{
+    data: {
+      id: string;
+      social_page_id: string | null;
+      social_page_ids?: string[];
+      publish_state: string;
+      publish_targets?: Array<{ id: string; social_page_id: string; state: string }>;
+    };
+  }>(`/api/v1/content/${contentId}/publish-target`, {
+    method: 'POST',
+    body: JSON.stringify(socialPageIds?.length ? { socialPageIds } : { socialPageId }),
+  });
 }
 
 export async function updateContentProduction(

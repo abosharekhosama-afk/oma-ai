@@ -46,6 +46,17 @@ const rows = (body: { data: unknown }) =>
 
 async function seedPost(seed: Seed, brandId: string, over: Record<string, unknown> = {}) {
   const id = newId();
+  const socialPageId = typeof over.socialPageId === 'string' ? over.socialPageId : undefined;
+  const legacyPublish = over.publishState as string | undefined;
+  const { socialPageId: _p, publishState: _s, ...rest } = over;
+  const itemRollup =
+    legacyPublish === 'QUEUED'
+      ? 'IN_PROGRESS'
+      : legacyPublish === 'PUBLISHED'
+        ? 'ALL_SUCCEEDED'
+        : legacyPublish === 'FAILED'
+          ? 'FAILED'
+          : 'NONE';
   await getPrisma().contentItem.create({
     data: {
       id,
@@ -62,9 +73,29 @@ async function seedPost(seed: Seed, brandId: string, over: Record<string, unknow
       scheduleState: 'SCHEDULED',
       scheduledAt: new Date(Date.now() - 60_000),
       createdBy: seed.userId,
-      ...over,
+      socialPageId: socialPageId ?? null,
+      publishState: itemRollup,
+      ...rest,
     },
   });
+  if (socialPageId) {
+    await getPrisma().contentPublishTarget.create({
+      data: {
+        id: newId(),
+        tenantId: seed.tenantId,
+        contentItemId: id,
+        socialPageId,
+        publishState:
+          legacyPublish === 'QUEUED'
+            ? 'QUEUED'
+            : legacyPublish === 'PUBLISHED'
+              ? 'PUBLISHED'
+              : legacyPublish === 'FAILED'
+                ? 'FAILED'
+                : 'NONE',
+      },
+    });
+  }
   return id;
 }
 
@@ -206,7 +237,7 @@ describe('brand membership isolation + lifecycle', () => {
     expect(p.scheduledAt).toBeNull();
     expect(
       (await getPrisma().contentItem.findUniqueOrThrow({ where: { id: done } })).publishState,
-    ).toBe('PUBLISHED');
+    ).toBe('ALL_SUCCEEDED');
 
     const un = await fetch(`${seed.baseUrl}/api/v1/brands/${brandB}/unarchive`, {
       method: 'POST',
@@ -313,7 +344,7 @@ describe('publish + refresh jobs', () => {
     expect(seen).toContain('access-1|We are live');
     const row = await getPrisma().contentItem.findUniqueOrThrow({ where: { id: post } });
     expect(row).toMatchObject({
-      publishState: 'PUBLISHED',
+      publishState: 'ALL_SUCCEEDED',
       externalPostUrl: 'https://x.com/brand/status/1001',
       publishAttempts: 1,
     });
@@ -345,7 +376,7 @@ describe('publish + refresh jobs', () => {
       expect(row.publishAttempts).toBe(i);
       expect(row.lastPublishError).toContain('Service Unavailable');
       if (i < MAX_PUBLISH_ATTEMPTS) {
-        expect(row.publishState).toBe('QUEUED');
+        expect(row.publishState).toBe('IN_PROGRESS');
         expect(row.nextPublishAt!.getTime() - now.getTime()).toBe(
           PUBLISH_BACKOFF_MS[Math.min(i - 1, 3)],
         );

@@ -7,6 +7,7 @@ import { startAnalysisProcessor } from './processors/analysis.processor';
 import { startAiProcessor } from './processors/ai.processor';
 import IORedis from 'ioredis';
 import { WorkerModule } from './worker.module';
+import { startSocialProcessor } from './processors/social.processor';
 import { startSocialJobs } from './social/social-jobs';
 import { startMediaJobs } from './media/media-jobs';
 
@@ -33,6 +34,7 @@ async function main() {
     maxRetriesPerRequest: null,
   });
   startMailProcessor(connection);
+  startSocialProcessor(connection);
   startIngestionProcessor(connection);
   startAnalysisProcessor(connection);
   startAiProcessor(connection);
@@ -44,7 +46,7 @@ async function main() {
     });
   }, 1500);
   // Real social publishing + token refresh (no-op until SOCIAL_TOKEN_ENCRYPTION_KEY is set).
-  startSocialJobs(log);
+  startSocialJobs(log, connection);
   startMediaJobs(log);
 
   const healthPort = Number(process.env.WORKER_HEALTH_PORT ?? 3002);

@@ -158,8 +158,51 @@ export class TikTokAdapter implements SocialProviderAdapter {
         status: res.status,
       });
     }
+    const confirmed = await this.waitForPublishComplete(page.accessToken, publishId);
     const username = page.meta.username as string | undefined;
-    // TikTok processes asynchronously; the public post id arrives later via status fetch.
-    return { externalId: publishId, url: username ? `https://www.tiktok.com/@${username}` : null };
+    return {
+      externalId: confirmed.externalId,
+      url: username ? `https://www.tiktok.com/@${username}` : null,
+    };
+  }
+
+  private async waitForPublishComplete(accessToken: string, publishId: string) {
+    for (let attempt = 0; attempt < 8; attempt++) {
+      if (attempt > 0) {
+        await new Promise((r) => setTimeout(r, 1500));
+      }
+      const res = await this.fetchFn(`${API}/v2/post/publish/status/fetch/`, {
+        method: 'POST',
+        headers: {
+          authorization: `Bearer ${accessToken}`,
+          'content-type': 'application/json; charset=UTF-8',
+        },
+        body: JSON.stringify({ publish_id: publishId }),
+      });
+      const b = await readJson(res);
+      const err = b.error as { code?: string } | undefined;
+      if (!res.ok || (err?.code && err.code !== 'ok')) throw httpError('tiktok', res, b);
+      const data = b.data as {
+        status?: string;
+        publicly_available_post_id?: string | number;
+        publicaly_available_post_id?: string | number;
+      };
+      const status = data?.status ?? '';
+      if (status === 'PUBLISH_COMPLETE') {
+        const postId = String(
+          data.publicly_available_post_id ?? data.publicaly_available_post_id ?? publishId,
+        );
+        if (!postId.trim()) {
+          throw new SocialProviderError('tiktok: publish complete without post id', {
+            retryable: true,
+          });
+        }
+        return { externalId: postId };
+      }
+      if (status === 'FAILED') {
+        throw new SocialProviderError('tiktok: publish failed on platform', { retryable: false });
+      }
+    }
+    throw new SocialProviderError('tiktok: publish status timed out', { retryable: true });
   }
 }

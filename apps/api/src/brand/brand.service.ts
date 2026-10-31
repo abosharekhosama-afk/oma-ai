@@ -26,7 +26,7 @@ export async function unschedulePendingPosts(tx: Tx, tenantId: string, brandId: 
     tenantId,
     brandId,
     scheduleState: 'SCHEDULED' as const,
-    publishState: { not: 'PUBLISHED' as const },
+    publishState: { not: 'ALL_SUCCEEDED' as const },
   };
   const reset = {
     scheduleState: 'UNSCHEDULED' as const,

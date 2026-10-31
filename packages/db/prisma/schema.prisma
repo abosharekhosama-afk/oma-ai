@@ -1127,15 +1127,14 @@ model ContentItem {
   labels           String[]             @default([])
   assigneeUserId   String?
   clientVisible    Boolean              @default(true)
-  /// Real publishing (social accounts). Null socialPageId = not published by OMA.
+  /// Primary connected account (legacy UI); first publish target when multiple are set.
   socialPageId     String?
-  publishState     ContentPublishState  @default(NONE)
+  /// Rollup across ContentPublishTarget rows.
+  publishState     ContentPublishRollupState @default(NONE)
   publishAttempts  Int                  @default(0)
   nextPublishAt    DateTime?
   lastPublishError String?
-  /// When the worker claimed this post for a publish attempt (QUEUED/NONE → PUBLISHING).
   workerPickedAt   DateTime?
-  /// Why a due scheduled post was not published (e.g. not approved under OPTIONAL/REQUIRED).
   lastPublishSkipReason String?
   externalPostId   String?
   externalPostUrl  String?
@@ -1147,6 +1146,7 @@ model ContentItem {
   campaign         Campaign?            @relation(fields: [campaignId], references: [id])
   approvalEvents   ContentApprovalEvent[]
   comments         ContentComment[]
+  publishTargets   ContentPublishTarget[]
 
   @@index([tenantId, brandId])
   @@index([brandId, campaignId])
@@ -1584,12 +1584,44 @@ enum SocialPageStatus {
   DISCONNECTED
 }
 
+enum ContentPublishRollupState {
+  NONE
+  IN_PROGRESS
+  ALL_SUCCEEDED
+  PARTIAL
+  FAILED
+}
+
 enum ContentPublishState {
   NONE
   QUEUED
   PUBLISHING
   PUBLISHED
   FAILED
+}
+
+model ContentPublishTarget {
+  id               String               @id
+  tenantId         String
+  contentItemId    String
+  socialPageId     String
+  publishState     ContentPublishState  @default(NONE)
+  publishAttempts  Int                  @default(0)
+  nextPublishAt    DateTime?
+  lastPublishError String?
+  workerPickedAt   DateTime?
+  externalPostId   String?
+  externalPostUrl  String?
+  publishedAt      DateTime?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  contentItem      ContentItem          @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+  socialPage       SocialPage           @relation(fields: [socialPageId], references: [id], onDelete: Cascade)
+
+  @@unique([contentItemId, socialPageId])
+  @@index([tenantId, contentItemId])
+  @@index([publishState, nextPublishAt])
+  @@index([socialPageId])
 }
 
 /// A connected social profile/page for a brand. Tokens are AES-256-GCM encrypted at rest
@@ -1615,6 +1647,7 @@ model SocialPage {
   connectedBy       String
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
+  publishTargets    ContentPublishTarget[]
 
   @@unique([brandId, network, externalId])
   @@index([tenantId, brandId])
