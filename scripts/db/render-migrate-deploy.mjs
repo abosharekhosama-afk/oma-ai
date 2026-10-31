@@ -5,17 +5,15 @@
  */
 import { spawnSync } from 'node:child_process';
 
-function run(cmd, args, { allowFailure = false } = {}) {
+function run(cmd, args) {
   const r = spawnSync(cmd, args, { stdio: 'inherit', shell: process.platform === 'win32' });
-  if (r.status !== 0 && !allowFailure) {
+  if (r.status !== 0) {
     process.exit(r.status ?? 1);
   }
 }
 
 if (process.env.OMA_RESOLVE_CONTENT_PUBLISH_TARGETS === '1') {
-  run('pnpm', ['--filter', '@oma/db', 'migrate:resolve:content-publish-targets'], {
-    allowFailure: true,
-  });
+  run('pnpm', ['--filter', '@oma/db', 'migrate:resolve:content-publish-targets']);
 }
 
 run('pnpm', ['db:migrate:deploy']);

@@ -1,4 +1,4 @@
-import { FALLBACK_SCHEDULE_TZ, isValidIanaTimezone } from '@oma/domain';
+import { FALLBACK_SCHEDULE_TZ, isValidIanaTimezone } from '@oma/domain/browser';
 
 export type BrandTimezoneRow = { id: string; timezone?: string | null };
 

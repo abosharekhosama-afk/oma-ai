@@ -1,4 +1,4 @@
-import { FALLBACK_SCHEDULE_TZ, wallTimeToIso } from '@oma/domain';
+import { FALLBACK_SCHEDULE_TZ, wallTimeToIso } from '@oma/domain/browser';
 
 export { wallTimeToIso, FALLBACK_SCHEDULE_TZ };
 
