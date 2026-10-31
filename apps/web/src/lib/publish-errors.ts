@@ -47,7 +47,8 @@ const RULES: Array<{ code: PublishErrorCode; test: (s: string) => boolean }> = [
   },
   {
     code: 'NOT_APPROVED',
-    test: (s) => /not (fully )?approved|approval required|APPROVAL_REQUIRED|Skipped:.*approv/i.test(s),
+    test: (s) =>
+      /not (fully )?approved|approval required|APPROVAL_REQUIRED|Skipped:.*approv/i.test(s),
   },
   {
     code: 'WORKDRIVE',
@@ -84,8 +85,7 @@ const EN: Record<PublishErrorCode, string> = {
 };
 
 const AR: Record<PublishErrorCode, string> = {
-  SCOPE_MISSING:
-    'صلاحية النشر غير متوفرة. فعّل Direct Post لهذه الشبكة ثم أعد ربط الحساب.',
+  SCOPE_MISSING: 'صلاحية النشر غير متوفرة. فعّل Direct Post لهذه الشبكة ثم أعد ربط الحساب.',
   TOKEN_EXPIRED: 'انتهت صلاحية الحساب المتصل. أعد ربطه من العلامة → الإعدادات → الحسابات.',
   NO_MEDIA: 'يحتاج هذا المنشور إلى صورة عامة قبل النشر.',
   NETWORK_NOT_CONFIGURED: 'هذه الشبكة غير مُعدّة على الخادم بعد.',
@@ -98,12 +98,24 @@ const AR: Record<PublishErrorCode, string> = {
   UNKNOWN: 'فشل النشر. تحقق من الحساب المتصل ثم حاول مجددًا.',
 };
 
+function providerDetail(raw: string | null | undefined): string | null {
+  const value = (raw ?? '').trim();
+  if (!value) return null;
+  // Adapter messages are redacted before persistence; keep provider diagnostics visible.
+  return value.slice(0, 700);
+}
+
 export function humanizePublishError(
   raw: string | null | undefined,
   locale: 'en' | 'ar' = 'en',
 ): string {
   const code = classifyPublishError(raw);
-  return locale === 'ar' ? AR[code] : EN[code];
+  const base = locale === 'ar' ? AR[code] : EN[code];
+  const detail = providerDetail(raw);
+  if (!detail || code === 'NOT_APPROVED') return base;
+  return locale === 'ar'
+    ? `${base}\nتفاصيل الخادم: ${detail}`
+    : `${base}\nServer details: ${detail}`;
 }
 
 export type PublishSkipCode = 'NOT_APPROVED' | 'NO_ACCOUNT' | 'ENCRYPTION_KEY' | 'OTHER';

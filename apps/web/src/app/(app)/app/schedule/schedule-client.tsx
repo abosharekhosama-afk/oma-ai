@@ -30,14 +30,8 @@ import { PublishTargetsPanel } from '../../../../components/content/publish-targ
 import { todayKey, wallTimeToIso } from '../../../../lib/calendar-today';
 import { brandScheduleTimezone } from '../../../../lib/brand-schedule-timezone';
 import { useActiveBrandId } from '../../../../lib/active-brand';
-import {
-  contentToScheduleRow,
-  type ScheduleRowExtras,
-} from '../../../../lib/schedule-production';
-import {
-  buildPublishStatusView,
-  formatScheduleWhen,
-} from '../../../../lib/publish-status';
+import { contentToScheduleRow, type ScheduleRowExtras } from '../../../../lib/schedule-production';
+import { buildPublishStatusView, formatScheduleWhen } from '../../../../lib/publish-status';
 import {
   EMPTY_SCHEDULE_FILTERS,
   activeScheduleFilterCount,
@@ -104,7 +98,11 @@ export default function SchedulePage() {
       setContents(workspace.content as DemoGraph['contentItems']);
       const campaignById = new Map(
         workspace.campaigns.map((c) => {
-          const named = c as { id: string; title?: { en: string; ar: string }; name?: { en: string; ar: string } };
+          const named = c as {
+            id: string;
+            title?: { en: string; ar: string };
+            name?: { en: string; ar: string };
+          };
           return [named.id, named.title ?? named.name ?? { en: '', ar: '' }] as const;
         }),
       );
@@ -113,7 +111,7 @@ export default function SchedulePage() {
           const row = item as typeof item & { timezone?: string; campaignId?: string };
           return contentToScheduleRow(row, workspace.policy, {
             timezone: row.timezone,
-            campaignTitle: row.campaignId ? campaignById.get(row.campaignId) ?? null : null,
+            campaignTitle: row.campaignId ? (campaignById.get(row.campaignId) ?? null) : null,
           });
         }),
       );
@@ -175,7 +173,10 @@ export default function SchedulePage() {
         return;
       }
       await setContentPublishTarget(selected.contentId, null, socialPageIdsDraft);
-      const updated = await scheduleContent(selected.contentId, { scheduledAt, timezone: scheduleTz });
+      const updated = await scheduleContent(selected.contentId, {
+        scheduledAt,
+        timezone: scheduleTz,
+      });
       const next = contentToScheduleRow(toContentRow(updated), policy, {
         timezone: updated.timezone,
       });
@@ -250,10 +251,11 @@ export default function SchedulePage() {
       setPlannedAtDraft(row.plannedAt.slice(0, 16));
       setChannelDraft(row.channels.join(', '));
       const content = contents.find((item) => item.id === row.contentId) as
-        | ContentRowExtra
-        | undefined;
+        ContentRowExtra | undefined;
       setSocialPageIdsDraft(
-        content?.socialPageIds ?? row.socialPageIds ?? (content?.socialPageId ? [content.socialPageId] : []),
+        content?.socialPageIds ??
+          row.socialPageIds ??
+          (content?.socialPageId ? [content.socialPageId] : []),
       );
     }
   }
@@ -265,8 +267,7 @@ export default function SchedulePage() {
         description={t('demo.schedule.subtitle')}
         meta={
           <span className="oma-muted" data-testid="demo-schedule-tz">
-            {t('demo.schedule.timezone')}:{' '}
-            {scheduleTz}
+            {t('demo.schedule.timezone')}: {scheduleTz}
           </span>
         }
       />
@@ -433,9 +434,14 @@ export default function SchedulePage() {
                           <div>
                             <strong>{pickCopy(post.title, locale)}</strong>
                             <p className="oma-muted">
-                              {weekdayForScheduleDay(scheduleDayKey(post.plannedAt), locale, scheduleTz)} ·{' '}
-                              {formatScheduleWhen(post.plannedAt, post.timezone, locale)} ·{' '}
-                              {post.timezone} · {post.channels.join(', ') || t('demo.schedule.ownerEmpty')}
+                              {weekdayForScheduleDay(
+                                scheduleDayKey(post.plannedAt),
+                                locale,
+                                scheduleTz,
+                              )}{' '}
+                              · {formatScheduleWhen(post.plannedAt, post.timezone, locale)} ·{' '}
+                              {post.timezone} ·{' '}
+                              {post.channels.join(', ') || t('demo.schedule.ownerEmpty')}
                             </p>
                           </div>
                           <StatusMark
@@ -517,8 +523,8 @@ export default function SchedulePage() {
                     >
                       <strong>{pickCopy(post.title, locale)}</strong>
                       <span className="oma-muted">
-                        {weekdayForScheduleDay(scheduleDayKey(post.plannedAt), locale, scheduleTz)} ·{' '}
-                        {post.plannedAt}
+                        {weekdayForScheduleDay(scheduleDayKey(post.plannedAt), locale, scheduleTz)}{' '}
+                        · {post.plannedAt}
                       </span>
                       <StatusMark
                         display={displayForScheduleBucket(bucketForScheduleRow(post))}
@@ -652,8 +658,10 @@ export default function SchedulePage() {
             />
             <p data-testid="demo-schedule-truth">
               {selected.state === 'BLOCKED' || scheduleBlocked
-                ? scheduleBlockedHint(scheduleBlockReason(selectedContent ?? {}, policy), locale.startsWith('ar')) ||
-                  t('demo.schedule.truth.waitingApproval')
+                ? scheduleBlockedHint(
+                    scheduleBlockReason(selectedContent ?? {}, policy),
+                    locale.startsWith('ar'),
+                  ) || t('demo.schedule.truth.waitingApproval')
                 : selected.state === 'SCHEDULED_PREVIEW'
                   ? selected.externalPublishingConnected
                     ? t('demo.schedule.truth.scheduledConnected')
@@ -724,11 +732,12 @@ export default function SchedulePage() {
             </ul>
             {(() => {
               const content = selectedContent as ContentRowExtra | null;
-              const publishTargets =
-                content?.publishTargets ?? selected.publishTargets ?? [];
+              const publishTargets = content?.publishTargets ?? selected.publishTargets ?? [];
               const status = buildPublishStatusView(
                 {
-                  scheduleState: content?.scheduleState ?? (selected.state === 'SCHEDULED_PREVIEW' ? 'SCHEDULED' : 'UNSCHEDULED'),
+                  scheduleState:
+                    content?.scheduleState ??
+                    (selected.state === 'SCHEDULED_PREVIEW' ? 'SCHEDULED' : 'UNSCHEDULED'),
                   scheduledAt: content?.scheduledAt ?? selected.plannedAt,
                   plannedAt: selected.plannedAt,
                   publishState: selected.publishState ?? content?.publishState,
@@ -758,37 +767,40 @@ export default function SchedulePage() {
                     <PublishTargetsPanel targets={publishTargets} locale={locale} />
                   ) : null}
                   {status ? (
-                  <ol className="oma-readiness-list" data-testid="demo-schedule-publish-timeline">
-                    {status.steps.map((step) => (
-                      <li
-                        key={step.key}
-                        data-ok={step.done ? 'true' : 'false'}
-                        data-current={step.current ? 'true' : 'false'}
-                      >
-                        {step.done ? '✓' : step.current ? '●' : '○'}{' '}
-                        {t(`demo.schedule.timeline.${step.key}`)}
-                        {step.at
-                          ? ` · ${formatScheduleWhen(step.at, selected.timezone, locale)}`
-                          : ''}
-                        {step.detail && step.key !== 'published' ? (
-                          <span className="oma-muted"> — {step.detail}</span>
-                        ) : null}
-                        {step.key === 'published' && status.externalUrl ? (
-                          <>
-                            {' · '}
-                            <a
-                              href={status.externalUrl}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="oma-text-link"
-                            >
-                              {t('demo.schedule.viewPostLink')}
-                            </a>
-                          </>
-                        ) : null}
-                      </li>
-                    ))}
-                  </ol>
+                    <ol className="oma-readiness-list" data-testid="demo-schedule-publish-timeline">
+                      {status.steps.map((step) => (
+                        <li
+                          key={step.key}
+                          data-ok={step.done ? 'true' : 'false'}
+                          data-current={step.current ? 'true' : 'false'}
+                        >
+                          {step.done ? '✓' : step.current ? '●' : '○'}{' '}
+                          {t(`demo.schedule.timeline.${step.key}`)}
+                          {step.at
+                            ? ` · ${formatScheduleWhen(step.at, selected.timezone, locale)}`
+                            : ''}
+                          {step.detail && step.key !== 'published' ? (
+                            <span className="oma-muted" style={{ whiteSpace: 'pre-line' }}>
+                              {' — '}
+                              {step.detail}
+                            </span>
+                          ) : null}
+                          {step.key === 'published' && status.externalUrl ? (
+                            <>
+                              {' · '}
+                              <a
+                                href={status.externalUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="oma-text-link"
+                              >
+                                {t('demo.schedule.viewPostLink')}
+                              </a>
+                            </>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ol>
                   ) : null}
                   {status?.errorHuman &&
                   (selected.publishState === 'FAILED' || selected.publishSkipReason) ? (
@@ -839,9 +851,7 @@ export default function SchedulePage() {
                   data-testid="demo-schedule-campaign-link"
                 >
                   {t('demo.schedule.openCampaign')}
-                  {selected.campaignTitle
-                    ? `: ${pickCopy(selected.campaignTitle, locale)}`
-                    : ''}
+                  {selected.campaignTitle ? `: ${pickCopy(selected.campaignTitle, locale)}` : ''}
                 </Link>
               ) : null}
             </div>
