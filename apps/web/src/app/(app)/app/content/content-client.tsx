@@ -80,11 +80,12 @@ import {
   NotificationOutlined,
   PictureOutlined,
   ShareAltOutlined,
-  SyncOutlined,
+  SendOutlined,
   TagOutlined,
   UnorderedListOutlined,
   UserOutlined,
   TeamOutlined,
+  RetweetOutlined,
 } from '@ant-design/icons';
 
 import { Dialog } from '../../../../components/ui/dialog';
@@ -125,6 +126,7 @@ import {
   loadContentWorkspace,
   loadContentWorkspaceRest,
   createContentProduction,
+  duplicateContent,
   setContentPublishTarget,
   updateContentProduction,
   requestContentApproval,
@@ -168,7 +170,6 @@ import {
   canRequestApproval,
   canApprove,
   canRequestChanges,
-  canReject,
   canScheduleItem,
   canMarkPublished,
   approvalProgressLabel,
@@ -783,8 +784,9 @@ function CardFloatingMenu({
   if (!open || !realPos || !itemId) return null;
 
   const src = item || {};
+  /* Planable calendar hover menu order (month + week). Extra actions live in the preview modal. */
   const items: Array<{
-    action: CardMenuAction;
+    action: CardMenuAction | '__sep__';
     label: string;
     icon: ReactNode;
     danger?: boolean;
@@ -793,7 +795,7 @@ function CardFloatingMenu({
     {
       action: 'request',
       label: t('demo.content.requestApproval'),
-      icon: <SyncOutlined />,
+      icon: <CheckCircleOutlined />,
       disabled: !canRequestApproval(src),
     },
     {
@@ -802,36 +804,18 @@ function CardFloatingMenu({
       icon: <CheckOutlined />,
       disabled: !canApprove(src),
     },
+    { action: '__sep__', label: '', icon: null },
     {
-      action: 'changes',
-      label: t('strategy.review.requestChanges'),
-      icon: <FormOutlined />,
-      disabled: !canRequestChanges(src),
-    },
-    {
-      action: 'reject',
-      label: t('strategy.review.reject'),
-      icon: <CloseOutlined />,
-      disabled: !canReject(src),
-      danger: true,
+      action: 'unschedule',
+      label: t('content.unschedule_post'),
+      icon: <ClockCircleOutlined />,
+      disabled: src.scheduleState !== 'SCHEDULED',
     },
     {
       action: 'published',
-      label: t('content.mark_as_published'),
-      icon: <FlagOutlined />,
+      label: t('content.publish_post_now'),
+      icon: <SendOutlined />,
       disabled: !canMarkPublished(src, policy),
-    },
-    {
-      action: 'schedule',
-      label: t('nav.schedule'),
-      icon: <ClockCircleOutlined />,
-      disabled: !canScheduleItem(src, policy),
-    },
-    {
-      action: 'unschedule',
-      label: t('demo.content.unschedule'),
-      icon: <CalendarOutlined />,
-      disabled: src.scheduleState !== 'SCHEDULED',
     },
     {
       action: 'hide',
@@ -840,25 +824,15 @@ function CardFloatingMenu({
       icon: <EyeInvisibleOutlined />,
     },
     {
-      action: 'labels',
-      label: t('wsPanel.labels'),
-      icon: <TagOutlined />,
-    },
-    {
-      action: 'template',
-      label: t('content.save_as_template'),
-      icon: <CopyOutlined />,
-    },
-    {
-      action: 'ops',
-      label: t('content.convert_to_request'),
-      icon: <UnorderedListOutlined />,
-    },
-    {
       action: 'archive',
       label: t('content.archive_post'),
       icon: <InboxOutlined />,
       disabled: !canArchive(src),
+    },
+    {
+      action: 'repost',
+      label: t('preview.repost'),
+      icon: <RetweetOutlined />,
     },
   ];
 
@@ -929,29 +903,33 @@ function CardFloatingMenu({
           )}
         </>
       ) : null}
-      {(campaignStep ? [] : shown).map((it) => (
-        <button
-          key={it.action}
-          type="button"
-          role="menuitem"
-          className={
-            it.danger ? 'oma-card-menu__item oma-card-menu__item--danger' : 'oma-card-menu__item'
-          }
-          disabled={it.disabled}
-          data-disabled={it.disabled ? 'true' : undefined}
-          onClick={() => {
-            if (it.disabled) return;
-            if (it.action === 'campaign') {
-              setCampaignStep(true);
-              return;
+      {(campaignStep ? [] : shown).map((it, idx) =>
+        it.action === '__sep__' ? (
+          <div key={`sep-${idx}`} className="oma-card-menu__sep" role="separator" />
+        ) : (
+          <button
+            key={it.action}
+            type="button"
+            role="menuitem"
+            className={
+              it.danger ? 'oma-card-menu__item oma-card-menu__item--danger' : 'oma-card-menu__item'
             }
-            onAction(it.action, itemId);
-          }}
-        >
-          <span className="oma-card-menu__item-ico">{it.icon}</span>
-          <span>{it.label}</span>
-        </button>
-      ))}
+            disabled={it.disabled}
+            data-disabled={it.disabled ? 'true' : undefined}
+            onClick={() => {
+              if (it.disabled) return;
+              if (it.action === 'campaign') {
+                setCampaignStep(true);
+                return;
+              }
+              onAction(it.action as CardMenuAction, itemId);
+            }}
+          >
+            <span className="oma-card-menu__item-ico">{it.icon}</span>
+            <span>{it.label}</span>
+          </button>
+        ),
+      )}
     </div>,
     document.body,
   );
@@ -1596,6 +1574,8 @@ export default function ContentPage() {
   }
 
   function openItem(item: ContentRow, tab: 'preview' | 'edit' | 'comments' = 'preview') {
+    setCardMenuId(null);
+    setMenuPos(null);
     setDetailSidePanel('feedback');
     setDetailPreviewMode('desktop');
     setDetailMoreOpen(false);
@@ -1745,12 +1725,14 @@ export default function ContentPage() {
     return (
       <CalendarPostCard
         channel={item.channel}
+        accountName={brandName(item.brandId)}
         time={postTime(item)}
         timeTone={
           st.published ? 'published' : st.overdue ? 'overdue' : st.scheduled ? 'scheduled' : 'draft'
         }
         caption={item.caption ? pickCopy(item.caption, locale) : pickCopy(item.title, locale)}
         media={item.previewAsset || null}
+        contentType={item.contentType}
         labels={rowLabels(item)}
         campaign={item.campaignId ? campaignName(item.campaignId) : undefined}
         status={st}
@@ -2419,9 +2401,17 @@ export default function ContentPage() {
         if (ids?.requestId) window.location.href = `/app/requests/${ids.requestId}`;
       });
     } else if (action === 'repost') {
-      void convertContentToOps(id).then((ids) => {
-        if (ids?.deliverableId) window.location.href = `/app/deliverables/${ids.deliverableId}`;
-      });
+      void (async () => {
+        try {
+          const api = await duplicateContent(id);
+          const row = toContentRow(api);
+          setRows((prev) => [row, ...prev]);
+          toast.push(t('content.post_duplicated'), 'success');
+          openItem(row, 'edit');
+        } catch (err) {
+          toast.push(contentApiError(err, t('errors.http')), 'danger');
+        }
+      })();
     } else if (action === 'labels') {
       setLabelTarget('item');
       setSelectedId(id);
@@ -2448,13 +2438,15 @@ export default function ContentPage() {
   function placeCardMenu(itemId: string, target: HTMLElement, keepVariant = false) {
     if (!keepVariant) setMenuVariant('full');
     const rect = target.getBoundingClientRect();
-    const menuW = 248;
-    const menuH = 440;
-    let left = rect.left;
-    let top = rect.bottom + 6;
-    if (left + menuW + 8 > window.innerWidth) left = Math.max(8, window.innerWidth - menuW - 8);
+    const menuW = 220;
+    const menuH = 280;
+    const rtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl';
+    let left = rtl ? rect.left - menuW - 8 : rect.right + 8;
+    let top = rect.top;
+    if (left + menuW + 8 > window.innerWidth) left = Math.max(8, rect.left - menuW - 8);
+    if (left < 8) left = Math.min(window.innerWidth - menuW - 8, rect.right + 8);
     if (left < 8) left = 8;
-    if (top + menuH + 8 > window.innerHeight) top = Math.max(8, rect.top - menuH - 6);
+    if (top + menuH + 8 > window.innerHeight) top = Math.max(8, window.innerHeight - menuH - 8);
     setCardMenuId(itemId);
     setMenuPos({ top, left });
   }
@@ -4708,6 +4700,53 @@ export default function ContentPage() {
                         </div>
                         {feedbackTab === 'comments' ? (
                           <div className="oma-plan-post__comments">
+                            <div className="oma-plan-post__comment-box">
+                              <div className="oma-plan-post__comment-input-row">
+                                <span className="oma-plan-post__avatar">U</span>
+                                <textarea
+                                  className="oma-plan-post__comment-input"
+                                  rows={2}
+                                  value={commentDraft}
+                                  placeholder={t('content.say_something')}
+                                  onChange={(e) => setCommentDraft(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                                      e.preventDefault();
+                                      (
+                                        e.currentTarget
+                                          .closest('.oma-plan-post__comment-box')
+                                          ?.querySelector(
+                                            '.oma-plan-post__comment-send',
+                                          ) as HTMLButtonElement | null
+                                      )?.click();
+                                    }
+                                  }}
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                className="oma-plan-post__comment-send"
+                                disabled={!commentDraft.trim() || !selectedId}
+                                onClick={() => {
+                                  void (async () => {
+                                    if (!selectedId || !commentDraft.trim()) return;
+                                    try {
+                                      const c = await addContentComment(selectedId, {
+                                        en: commentDraft.trim(),
+                                        ar: commentDraft.trim(),
+                                      });
+                                      setProdComments((prev) => [...prev, c]);
+                                      setCommentDraft('');
+                                      toast.push(t('demo.tasks.commentAdded'), 'success');
+                                    } catch (err) {
+                                      toast.push(contentApiError(err, t('errors.http')), 'danger');
+                                    }
+                                  })();
+                                }}
+                              >
+                                {t('content.send')}
+                              </button>
+                            </div>
                             {prodComments.length === 0 ? (
                               <div className="oma-plan-post__empty">
                                 <strong>{t('content.no_comments_yet')}</strong>
@@ -4756,41 +4795,6 @@ export default function ContentPage() {
                                 ))}
                               </div>
                             )}
-                            <div className="oma-plan-post__comment-box">
-                              <div className="oma-plan-post__comment-input-row">
-                                <span className="oma-plan-post__avatar">U</span>
-                                <textarea
-                                  className="oma-plan-post__comment-input"
-                                  rows={2}
-                                  value={commentDraft}
-                                  placeholder={t('content.leave_a_comment')}
-                                  onChange={(e) => setCommentDraft(e.target.value)}
-                                />
-                              </div>
-                              <button
-                                type="button"
-                                className="oma-plan-post__comment-send"
-                                disabled={!commentDraft.trim() || !selectedId}
-                                onClick={() => {
-                                  void (async () => {
-                                    if (!selectedId || !commentDraft.trim()) return;
-                                    try {
-                                      const c = await addContentComment(selectedId, {
-                                        en: commentDraft.trim(),
-                                        ar: commentDraft.trim(),
-                                      });
-                                      setProdComments((prev) => [...prev, c]);
-                                      setCommentDraft('');
-                                      toast.push(t('demo.tasks.commentAdded'), 'success');
-                                    } catch (err) {
-                                      toast.push(contentApiError(err, t('errors.http')), 'danger');
-                                    }
-                                  })();
-                                }}
-                              >
-                                {t('content.send')}
-                              </button>
-                            </div>
                           </div>
                         ) : (
                           <div className="oma-plan-post__empty">

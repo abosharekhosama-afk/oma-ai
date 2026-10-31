@@ -984,6 +984,73 @@ export class ContentService {
     return { data: mapContent(row, policy) };
   }
 
+  /** Create a new draft copy of a post (Planable "Repost"). */
+  async duplicate(
+    tenantId: string,
+    actorUserId: string,
+    contentId: string,
+    correlationId?: string,
+  ) {
+    const current = await getPrisma().contentItem.findFirst({
+      where: tenantWhere(tenantId, { id: contentId }),
+    });
+    if (!current) {
+      throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
+    }
+    await this.requireActiveBrand(tenantId, current.brandId);
+    const mediaIds =
+      (current as { mediaAssetIds?: string[] }).mediaAssetIds ??
+      (current.previewAssetId ? [current.previewAssetId] : []);
+    const resolved = mediaIds.length
+      ? await resolvePreviewAssets(tenantId, current.brandId, mediaIds)
+      : null;
+    const media = resolved ?? {
+      previewAssetId: null as string | null,
+      previewAssetUrl: null as string | null,
+      mediaAssetIds: [] as string[],
+    };
+    const row = await getPrisma().contentItem.create({
+      data: {
+        id: newId(),
+        tenantId,
+        brandId: current.brandId,
+        campaignId: current.campaignId,
+        titleEn: current.titleEn,
+        titleAr: current.titleAr,
+        captionEn: current.captionEn,
+        captionAr: current.captionAr,
+        contentType: current.contentType,
+        channel: current.channel,
+        track: current.track,
+        status: 'DRAFT',
+        approvalState: 'NOT_REQUESTED',
+        scheduleState: 'UNSCHEDULED',
+        plannedAt: null,
+        scheduledAt: null,
+        timezone: current.timezone,
+        approverRequired: 1,
+        approverApproved: 0,
+        labels: current.labels ?? [],
+        clientVisible: current.clientVisible !== false,
+        previewAssetId: media.previewAssetId,
+        previewAssetUrl: media.previewAssetUrl,
+        mediaAssetIds: media.mediaAssetIds,
+        createdBy: actorUserId,
+      },
+    });
+    await this.audit.write({
+      actorUserId,
+      tenantId,
+      action: 'content.duplicated',
+      targetType: 'ContentItem',
+      targetId: row.id,
+      afterRef: contentId,
+      correlationId,
+    });
+    const policy = await this.policyForBrand(tenantId, row.brandId);
+    return { data: mapContent(row, policy) };
+  }
+
   async getPreferences(tenantId: string, brandId: string) {
     const brand = await getPrisma().brandWorkspace.findFirst({
       where: tenantWhere(tenantId, { id: brandId }),

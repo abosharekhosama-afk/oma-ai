@@ -253,6 +253,18 @@ export class ContentController {
     );
   }
 
+  @Post('api/v1/content/:contentId/duplicate')
+  @UseGuards(CsrfGuard)
+  async duplicate(@Req() req: Request, @Param('contentId') contentId: string) {
+    this.requireTenant(req);
+    return contentService.duplicate(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      contentId,
+      req.oma!.correlationId,
+    );
+  }
+
   @Get('api/v1/brands/:brandId/content-preferences')
   async getPrefs(@Req() req: Request, @Param('brandId') brandId: string) {
     this.requireTenant(req);

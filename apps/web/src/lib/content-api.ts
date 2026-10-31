@@ -287,6 +287,14 @@ export async function archiveContent(contentId: string) {
   return res.data;
 }
 
+export async function duplicateContent(contentId: string) {
+  const res = await api<{ data: ApiContent }>(`/api/v1/content/${contentId}/duplicate`, {
+    method: 'POST',
+    body: JSON.stringify({}),
+  });
+  return res.data;
+}
+
 export async function getContentPreferences(brandId: string) {
   return api<{
     data: { brand_id: string; approval_policy: string; default_timezone: string };

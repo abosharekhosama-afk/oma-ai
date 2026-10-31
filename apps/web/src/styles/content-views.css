@@ -45,6 +45,7 @@
 .oma-pv-pill {
   display: inline-flex;
   align-items: center;
+  gap: 3px;
   padding: 1px 8px;
   border-radius: 10px;
   font-size: 11px;
@@ -55,25 +56,33 @@
   background: var(--oma-badge-success-bg);
   color: var(--pv-ok);
 }
+.oma-pv-pill[data-state='PENDING'],
+.oma-pv-pill[data-state='PARTIALLY_APPROVED'] {
+  background: #eef0f2;
+  color: #667085;
+}
 
 /* calendar card */
 .oma-pv-cal-card {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
   inline-size: 100%;
-  padding: 6px 8px;
+  padding: 6px 7px;
   background: var(--oma-surface);
-  border: 1px solid var(--pv-border);
+  border: 1px solid #e6e8eb;
   border-radius: 6px;
-  font-size: 13px;
+  font-size: 12px;
   text-align: start;
+  box-shadow: 0 1px 2px rgb(16 24 40 / 4%);
   transition:
     box-shadow 150ms ease,
-    opacity 150ms ease;
+    opacity 150ms ease,
+    border-color 150ms ease;
   cursor: pointer;
 }
 .oma-pv-cal-card:hover {
+  border-color: #d0d5dd;
   box-shadow: 0 2px 8px rgb(16 24 40 / 10%);
 }
 .oma-pv-cal-card[data-faded='true'] {
@@ -104,6 +113,23 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  min-inline-size: 0;
+}
+.oma-pv-cal-card__account {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-inline-size: 0;
+  max-inline-size: 70%;
+}
+.oma-pv-cal-card__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--oma-home-ink);
+  line-height: 1.2;
 }
 .oma-pv-cal-card__spacer {
   flex: 1;
@@ -111,10 +137,15 @@
 .oma-pv-cal-card__draft {
   font-size: 11px;
   color: var(--pv-muted);
+  flex-shrink: 0;
 }
 .oma-pv-cal-card__time {
-  font-size: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
   color: var(--pv-muted);
+  flex-shrink: 0;
 }
 .oma-pv-cal-card__time[data-tone='scheduled'] {
   color: var(--pv-primary);
@@ -125,6 +156,12 @@
 .oma-pv-cal-card__time[data-tone='published'] {
   color: var(--pv-ok);
 }
+.oma-pv-cal-card__media {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: 4px;
+}
 .oma-pv-cal-card__media img,
 .oma-pv-cal-card__media video,
 .oma-pv-cal-card__media span.oma-media-surface {
@@ -134,18 +171,45 @@
   object-fit: cover;
   border-radius: 4px;
 }
+.oma-pv-cal-card__play {
+  position: absolute;
+  inset-inline-start: 50%;
+  inset-block-start: 50%;
+  translate: -50% -50%;
+  display: inline-grid;
+  place-items: center;
+  inline-size: 22px;
+  block-size: 22px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 92%);
+  color: #1f2328;
+  box-shadow: 0 1px 4px rgb(0 0 0 / 18%);
+  pointer-events: none;
+}
+[dir='rtl'] .oma-pv-cal-card__play {
+  translate: 50% -50%;
+}
 .oma-pv-cal-card__text {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   color: var(--oma-home-ink);
+  font-size: 12px;
+  line-height: 1.35;
 }
 .oma-pv-cal-card__foot {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 6px;
+}
+.oma-pv-cal-card__foot-end {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-inline-start: auto;
+  color: var(--pv-muted);
 }
 .oma-pv-cal-card[data-size='compact'] .oma-pv-cal-card__media,
 .oma-pv-cal-card[data-size='compact'] .oma-pv-cal-card__text {

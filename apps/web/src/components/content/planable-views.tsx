@@ -100,10 +100,12 @@ export function ApprovalPill({ approval, t }: { approval: string; t: (k: string)
 
 export function CalendarPostCard({
   channel,
+  accountName,
   time,
   timeTone,
   caption,
   media,
+  contentType,
   labels,
   campaign,
   status,
@@ -111,10 +113,13 @@ export function CalendarPostCard({
   draft,
 }: {
   channel: string;
+  /** Page / brand name shown beside the network icon (Planable calendar card). */
+  accountName?: string;
   time: string;
   timeTone: 'scheduled' | 'overdue' | 'draft' | 'published';
   caption: string;
   media: string | null;
+  contentType?: string;
   labels: string[];
   campaign?: string;
   status: PostStatus;
@@ -124,6 +129,7 @@ export function CalendarPostCard({
   const t = useT();
   const has = (e: CalendarElement) => display.elements.includes(e);
   const showMedia = display.postSize === 'default' && media && !isPlaceholderAsset(media);
+  const isVideo = contentType === 'REEL' || contentType === 'STORY' || contentType === 'VIDEO';
   return (
     <span
       className="oma-pv-cal-card"
@@ -148,21 +154,31 @@ export function CalendarPostCard({
         </span>
       ) : null}
       <span className="oma-pv-cal-card__row">
-        <NetworkIcon channel={channel} size={12} />
+        <span className="oma-pv-cal-card__account">
+          <NetworkIcon channel={channel} size={14} />
+          {accountName ? <span className="oma-pv-cal-card__name">{accountName}</span> : null}
+        </span>
         <span className="oma-pv-cal-card__spacer" />
         {draft ? <span className="oma-pv-cal-card__draft">{t('views.status.draft')}</span> : null}
-        <span className="oma-pv-cal-card__time oma-ltr" data-tone={timeTone}>
-          {timeTone === 'scheduled' || timeTone === 'overdue'
-            ? svg(ICON.clock, 10)
-            : timeTone === 'published'
-              ? svg(ICON.send, 10)
-              : null}
-          {time}
-        </span>
+        {time ? (
+          <span className="oma-pv-cal-card__time oma-ltr" data-tone={timeTone}>
+            {timeTone === 'scheduled' || timeTone === 'overdue'
+              ? svg(ICON.clock, 10)
+              : timeTone === 'published'
+                ? svg(ICON.send, 10)
+                : null}
+            {time}
+          </span>
+        ) : null}
       </span>
       {showMedia ? (
-        <span className="oma-pv-cal-card__media">
-          <MediaSurface src={media!} alt="" />
+        <span className="oma-pv-cal-card__media" data-video={isVideo ? 'true' : 'false'}>
+          <MediaSurface src={media!} contentType={contentType} alt="" />
+          {isVideo ? (
+            <span className="oma-pv-cal-card__play" aria-hidden>
+              {svg(ICON.video, 12)}
+            </span>
+          ) : null}
         </span>
       ) : null}
       {caption ? (
@@ -174,15 +190,23 @@ export function CalendarPostCard({
         (status.approval === 'APPROVED' ||
           status.approval === 'PENDING' ||
           status.approval === 'PARTIALLY_APPROVED')) ||
-      (has('comments') && status.comments > 0) ? (
+      (has('comments') && status.comments > 0) ||
+      status.hidden ? (
         <span className="oma-pv-cal-card__foot">
           {has('approvals') ? <ApprovalPill approval={status.approval} t={t} /> : null}
-          {has('comments') && status.comments > 0 ? (
-            <span className="oma-pv-status__i">
-              {svg(ICON.comment)}
-              <span className="oma-ltr">{status.comments}</span>
-            </span>
-          ) : null}
+          <span className="oma-pv-cal-card__foot-end">
+            {status.hidden ? (
+              <span className="oma-pv-status__i" title={t('views.status.team_only')}>
+                {svg(ICON.hidden)}
+              </span>
+            ) : null}
+            {has('comments') && status.comments > 0 ? (
+              <span className="oma-pv-status__i">
+                {svg(ICON.comment)}
+                <span className="oma-ltr">{status.comments}</span>
+              </span>
+            ) : null}
+          </span>
         </span>
       ) : null}
     </span>
