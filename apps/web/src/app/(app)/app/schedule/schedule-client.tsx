@@ -20,9 +20,13 @@ import {
   contentApiError,
   loadScheduleWorkspace,
   scheduleContent,
+  setContentPublishTarget,
   toContentRow,
+  type ContentRowExtra,
   unscheduleContent,
 } from '../../../../lib/content-api';
+import { ChannelChoiceCards } from '../../../../components/content/channel-choice-cards';
+import { PublishTargetsPanel } from '../../../../components/content/publish-targets-panel';
 import { todayKey, wallTimeToIso } from '../../../../lib/calendar-today';
 import { brandScheduleTimezone } from '../../../../lib/brand-schedule-timezone';
 import { useActiveBrandId } from '../../../../lib/active-brand';
@@ -83,6 +87,7 @@ export default function SchedulePage() {
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
   const [plannedAtDraft, setPlannedAtDraft] = useState('');
   const [channelDraft, setChannelDraft] = useState('');
+  const [socialPageIdsDraft, setSocialPageIdsDraft] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [filterSheet, setFilterSheet] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -162,10 +167,6 @@ export default function SchedulePage() {
       toast.push(t('demo.schedule.invalidDate'), 'danger');
       return;
     }
-    const channels = channelDraft
-      .split(',')
-      .map((c) => c.trim())
-      .filter(Boolean);
     setSaving(true);
     try {
       const scheduledAt = wallTimeToIso(plannedAtDraft, scheduleTz);
@@ -173,8 +174,15 @@ export default function SchedulePage() {
         toast.push(t('demo.schedule.invalidDate'), 'danger');
         return;
       }
+      await setContentPublishTarget(selected.contentId, null, socialPageIdsDraft);
       const updated = await scheduleContent(selected.contentId, { scheduledAt, timezone: scheduleTz });
-      const next = contentToScheduleRow(toContentRow(updated), policy);
+      const next = contentToScheduleRow(toContentRow(updated), policy, {
+        timezone: updated.timezone,
+      });
+      const channels = channelDraft
+        .split(',')
+        .map((c) => c.trim())
+        .filter(Boolean);
       if (channels.length) next.channels = channels;
       setContents((list) =>
         list.map((item) => (item.id === updated.id ? toContentRow(updated) : item)),
@@ -193,6 +201,9 @@ export default function SchedulePage() {
     if (!selected) return;
     setSaving(true);
     try {
+      if (state !== 'PLANNED' && selected.socialPageIds?.length) {
+        await setContentPublishTarget(selected.contentId, null, selected.socialPageIds);
+      }
       const updated =
         state === 'PLANNED'
           ? await unscheduleContent(selected.contentId)
@@ -238,6 +249,12 @@ export default function SchedulePage() {
     if (row) {
       setPlannedAtDraft(row.plannedAt.slice(0, 16));
       setChannelDraft(row.channels.join(', '));
+      const content = contents.find((item) => item.id === row.contentId) as
+        | ContentRowExtra
+        | undefined;
+      setSocialPageIdsDraft(
+        content?.socialPageIds ?? row.socialPageIds ?? (content?.socialPageId ? [content.socialPageId] : []),
+      );
     }
   }
 
@@ -706,41 +723,41 @@ export default function SchedulePage() {
               ))}
             </ul>
             {(() => {
-              const content = selectedContent as
-                | (typeof selectedContent & {
-                    scheduleState?: string;
-                    scheduledAt?: string | null;
-                    socialPageId?: string | null;
-                    publishState?: string;
-                    publishError?: string | null;
-                    workerPickedAt?: string | null;
-                    publishSkipReason?: string | null;
-                    nextPublishAt?: string | null;
-                    publishedAt?: string | null;
-                    externalPostUrl?: string | null;
-                  })
-                | null;
+              const content = selectedContent as ContentRowExtra | null;
+              const publishTargets =
+                content?.publishTargets ?? selected.publishTargets ?? [];
               const status = buildPublishStatusView(
                 {
                   scheduleState: content?.scheduleState ?? (selected.state === 'SCHEDULED_PREVIEW' ? 'SCHEDULED' : 'UNSCHEDULED'),
                   scheduledAt: content?.scheduledAt ?? selected.plannedAt,
                   plannedAt: selected.plannedAt,
                   publishState: selected.publishState ?? content?.publishState,
+                  publishRollupState: selected.publishRollupState ?? content?.publishRollupState,
                   publishError: selected.publishError ?? content?.publishError,
                   workerPickedAt: selected.workerPickedAt ?? content?.workerPickedAt,
                   publishSkipReason: selected.publishSkipReason ?? content?.publishSkipReason,
                   nextPublishAt: selected.nextPublishAt ?? content?.nextPublishAt,
                   publishedAt: selected.publishedAt ?? content?.publishedAt,
                   externalPostUrl: selected.externalPostUrl ?? content?.externalPostUrl,
-                  socialPageId: content?.socialPageId ?? (selected.externalPublishingConnected ? '1' : null),
+                  socialPageId: content?.socialPageId ?? null,
+                  socialPageIds:
+                    content?.socialPageIds ??
+                    selected.socialPageIds ??
+                    (content?.socialPageId ? [content.socialPageId] : []),
                 },
                 locale.startsWith('ar') ? 'ar' : 'en',
               );
-              if (!status) return null;
+              if (!status && !publishTargets.length) return null;
               return (
                 <div className="oma-stack" data-testid="demo-schedule-publish-status">
                   <h3>{t('demo.schedule.publishStatus')}</h3>
-                  <p data-testid="demo-schedule-publish-state">{t(status.stateLabelKey)}</p>
+                  {status ? (
+                    <p data-testid="demo-schedule-publish-state">{t(status.stateLabelKey)}</p>
+                  ) : null}
+                  {publishTargets.length ? (
+                    <PublishTargetsPanel targets={publishTargets} locale={locale} />
+                  ) : null}
+                  {status ? (
                   <ol className="oma-readiness-list" data-testid="demo-schedule-publish-timeline">
                     {status.steps.map((step) => (
                       <li
@@ -772,7 +789,8 @@ export default function SchedulePage() {
                       </li>
                     ))}
                   </ol>
-                  {status.errorHuman &&
+                  ) : null}
+                  {status?.errorHuman &&
                   (selected.publishState === 'FAILED' || selected.publishSkipReason) ? (
                     <p role="status" data-testid="demo-schedule-publish-error">
                       {status.errorHuman}
@@ -846,15 +864,18 @@ export default function SchedulePage() {
               showTime
             />
           </label>
-          <label>
-            {t('demo.schedule.filter.channel')}
-            <Input
+          <div className="oma-compose-channel-field">
+            <span className="oma-compose-field-label">{t('demo.schedule.filter.channel')}</span>
+            <ChannelChoiceCards
+              brandId={selected?.brandId}
               value={channelDraft}
-              data-testid="demo-schedule-channels"
-              onChange={(e) => setChannelDraft(e.target.value)}
-              placeholder="Instagram, LinkedIn"
+              multiple
+              onChange={setChannelDraft}
+              onSelectPages={setSocialPageIdsDraft}
+              locale={locale}
+              testId="demo-schedule-channels"
             />
-          </label>
+          </div>
           {!selected?.externalPublishingConnected ? (
             <p className="oma-muted">{t('demo.schedule.publishBlocked')}</p>
           ) : null}

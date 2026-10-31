@@ -2346,6 +2346,7 @@
   "demo.schedule.publishState.publishing": "Publishing now",
   "demo.schedule.publishState.published": "Published",
   "demo.schedule.publishState.failed": "Publishing failed",
+  "demo.schedule.publishState.partial": "Published to some channels; others failed or are still pending",
   "demo.schedule.publishState.retrying": "Retrying after a temporary error",
   "demo.schedule.publishState.waitingApproval": "Waiting for approval before publishing",
   "demo.schedule.publishState.noAccount": "No publishing account connected",

@@ -24,8 +24,19 @@ export type ApiContentWorkflow = {
   publishingConnected: boolean;
 };
 
+export type ApiPublishTarget = {
+  id: string;
+  social_page_id: string;
+  state: string;
+  external_post_url?: string | null;
+  last_error?: string | null;
+};
+
 export type ApiContentPublishing = {
   social_page_id: string | null;
+  social_page_ids?: string[];
+  rollup_state?: string;
+  publish_targets?: ApiPublishTarget[];
   state: string;
   attempts: number;
   last_error: string | null;
@@ -68,12 +79,23 @@ export type ApiContent = {
   publishing?: ApiContentPublishing;
 };
 
+export type ContentPublishTargetRow = {
+  id: string;
+  socialPageId: string;
+  state: string;
+  externalPostUrl?: string | null;
+  lastError?: string | null;
+};
+
 export type ContentRowExtra = ContentRow & {
   labels?: string[];
   clientVisible?: boolean;
   requestId?: string | null;
   taskId?: string | null;
   socialPageId?: string | null;
+  socialPageIds?: string[];
+  publishTargets?: ContentPublishTargetRow[];
+  publishRollupState?: string;
   publishState?: string;
   publishError?: string | null;
   workerPickedAt?: string | null;
@@ -107,6 +129,18 @@ export function toContentRow(c: ApiContent): ContentRowExtra {
     labels: c.labels ?? [],
     clientVisible: c.client_visible !== false,
     socialPageId: c.publishing?.social_page_id ?? null,
+    socialPageIds:
+      c.publishing?.social_page_ids ??
+      (c.publishing?.social_page_id ? [c.publishing.social_page_id] : []),
+    publishTargets:
+      c.publishing?.publish_targets?.map((t) => ({
+        id: t.id,
+        socialPageId: t.social_page_id,
+        state: t.state,
+        externalPostUrl: t.external_post_url ?? null,
+        lastError: t.last_error ?? null,
+      })) ?? [],
+    publishRollupState: c.publishing?.rollup_state ?? 'NONE',
     publishState: c.publishing?.state ?? 'NONE',
     publishError: c.publishing?.last_error ?? null,
     workerPickedAt: c.publishing?.worker_picked_at ?? null,
@@ -177,17 +211,25 @@ export async function setContentPublishTarget(
   socialPageId: string | null,
   socialPageIds?: string[],
 ) {
+  const body =
+    socialPageIds !== undefined ? { socialPageIds } : { socialPageId };
   return api<{
     data: {
       id: string;
       social_page_id: string | null;
       social_page_ids?: string[];
       publish_state: string;
-      publish_targets?: Array<{ id: string; social_page_id: string; state: string }>;
+      publish_targets?: Array<{
+        id: string;
+        social_page_id: string;
+        state: string;
+        external_post_url?: string | null;
+        last_error?: string | null;
+      }>;
     };
   }>(`/api/v1/content/${contentId}/publish-target`, {
     method: 'POST',
-    body: JSON.stringify(socialPageIds?.length ? { socialPageIds } : { socialPageId }),
+    body: JSON.stringify(body),
   });
 }
 

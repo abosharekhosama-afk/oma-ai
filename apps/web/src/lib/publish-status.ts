@@ -15,11 +15,31 @@ export type PublishStatusView = {
   externalUrl?: string | null;
 };
 
+export type PublishTargetStatusRow = {
+  id: string;
+  socialPageId: string;
+  state: string;
+  externalPostUrl?: string | null;
+  lastError?: string | null;
+  /** Display name when social pages are loaded in the UI. */
+  accountLabel?: string | null;
+};
+
+export function publishTargetStateLabelKey(state: string): string {
+  const s = (state || 'NONE').toUpperCase();
+  if (s === 'PUBLISHED') return 'demo.schedule.publishState.published';
+  if (s === 'FAILED') return 'demo.schedule.publishState.failed';
+  if (s === 'PUBLISHING') return 'demo.schedule.publishState.publishing';
+  if (s === 'QUEUED') return 'demo.schedule.publishState.queued';
+  return 'demo.schedule.publishState.scheduled';
+}
+
 type Source = {
   scheduleState?: string;
   scheduledAt?: string | null;
   plannedAt?: string | null;
   publishState?: string | null;
+  publishRollupState?: string | null;
   publishError?: string | null;
   workerPickedAt?: string | null;
   publishSkipReason?: string | null;
@@ -27,6 +47,7 @@ type Source = {
   publishedAt?: string | null;
   externalPostUrl?: string | null;
   socialPageId?: string | null;
+  socialPageIds?: string[];
 };
 
 export function buildPublishStatusView(
@@ -34,7 +55,11 @@ export function buildPublishStatusView(
   locale: 'en' | 'ar',
 ): PublishStatusView | null {
   const scheduled = item.scheduleState === 'SCHEDULED';
-  const rawState = (item.publishState || 'NONE').toUpperCase();
+  const rawState = (
+    item.publishRollupState ||
+    item.publishState ||
+    'NONE'
+  ).toUpperCase();
   const state =
     rawState === 'ALL_SUCCEEDED'
       ? 'PUBLISHED'
@@ -114,14 +139,15 @@ export function buildPublishStatusView(
 
   let stateLabelKey = 'demo.schedule.publishState.scheduled';
   if (state === 'PUBLISHED') stateLabelKey = 'demo.schedule.publishState.published';
-  else if (rawState === 'PARTIAL') stateLabelKey = 'demo.schedule.publishState.failed';
+  else if (rawState === 'PARTIAL') stateLabelKey = 'demo.schedule.publishState.partial';
   else if (state === 'FAILED') stateLabelKey = 'demo.schedule.publishState.failed';
   else if (state === 'PUBLISHING') stateLabelKey = 'demo.schedule.publishState.publishing';
   else if (state === 'QUEUED' && item.nextPublishAt)
     stateLabelKey = 'demo.schedule.publishState.retrying';
   else if (state === 'QUEUED') stateLabelKey = 'demo.schedule.publishState.queued';
   else if (item.publishSkipReason) stateLabelKey = 'demo.schedule.publishState.waitingApproval';
-  else if (!item.socialPageId) stateLabelKey = 'demo.schedule.publishState.noAccount';
+  else if (!(item.socialPageIds?.length || item.socialPageId))
+    stateLabelKey = 'demo.schedule.publishState.noAccount';
 
   return {
     stateLabelKey,

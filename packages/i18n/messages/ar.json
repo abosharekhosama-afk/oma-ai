@@ -2346,6 +2346,7 @@
   "demo.schedule.publishState.publishing": "جارٍ النشر الآن",
   "demo.schedule.publishState.published": "تم النشر",
   "demo.schedule.publishState.failed": "فشل النشر",
+  "demo.schedule.publishState.partial": "نُشر على بعض القنوات؛ قنوات أخرى فشلت أو ما زالت قيد الانتظار",
   "demo.schedule.publishState.retrying": "إعادة المحاولة بعد خطأ مؤقت",
   "demo.schedule.publishState.waitingApproval": "بانتظار الاعتماد قبل النشر",
   "demo.schedule.publishState.noAccount": "لا يوجد حساب نشر متصل",

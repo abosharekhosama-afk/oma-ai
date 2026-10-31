@@ -21,6 +21,7 @@ import {
 } from '../../../../components/content/feed-post';
 import { MediaSurface } from '../../../../components/content/media-surface';
 import { ChannelChoiceCards } from '../../../../components/content/channel-choice-cards';
+import { PublishTargetsPanel } from '../../../../components/content/publish-targets-panel';
 import { listWorkspaceMembers, type WorkspaceMember } from '../../../../lib/team-api';
 import { NetworkIcon } from '../../../../components/content/network-icon';
 import {
@@ -132,6 +133,7 @@ import {
   unscheduleContent,
   archiveContent,
   toContentRow,
+  type ContentRowExtra,
   contentApiError,
   listDayNotes,
   upsertDayNote,
@@ -176,6 +178,7 @@ import {
 } from '../../../../lib/content-workflow-ui';
 import { useActiveBrandId } from '../../../../lib/active-brand';
 import { brandScheduleTimezone } from '../../../../lib/brand-schedule-timezone';
+import { buildPublishStatusView } from '../../../../lib/publish-status';
 import {
   FALLBACK_SCHEDULE_TZ,
   formatCommentTime,
@@ -213,6 +216,7 @@ type DraftFields = {
   assignee: string;
   scheduledAt: string;
   channel: string;
+  socialPageIds: string[];
 };
 
 function emptyDraft(): DraftFields {
@@ -224,10 +228,12 @@ function emptyDraft(): DraftFields {
     assignee: '',
     scheduledAt: '',
     channel: '',
+    socialPageIds: [],
   };
 }
 
 function draftFromItem(item: ContentRow, locale: string): DraftFields {
+  const extra = item as ContentRowExtra;
   return {
     caption: item.caption ? pickCopy(item.caption, locale) : '',
     objective: item.objective ? pickCopy(item.objective, locale) : '',
@@ -236,6 +242,7 @@ function draftFromItem(item: ContentRow, locale: string): DraftFields {
     assignee: item.assignee,
     scheduledAt: item.scheduledAt ? item.scheduledAt.slice(0, 16) : '',
     channel: item.channel,
+    socialPageIds: extra.socialPageIds ?? (extra.socialPageId ? [extra.socialPageId] : []),
   };
 }
 
@@ -370,7 +377,7 @@ type ComposeForm = {
   campaignId: string;
   contentType: string;
   channel: string;
-  socialPageId: string | null;
+  socialPageIds: string[];
   /** Ordered WorkDrive media picked in compose; the first item is the preview. */
   media: MediaAsset[];
   owner: string;
@@ -600,8 +607,9 @@ function PlanableComposeCard({
             <ChannelChoiceCards
               brandId={brandId}
               value={form.channel}
+              multiple
               onChange={(channel) => onChange({ channel })}
-              onSelectPage={(socialPageId) => onChange({ socialPageId })}
+              onSelectPages={(socialPageIds) => onChange({ socialPageIds })}
               locale={locale}
               testId="demo-create-content-channels"
             />
@@ -1112,7 +1120,7 @@ export default function ContentPage() {
     campaignId: '',
     brandId: '',
     channel: 'Instagram',
-    socialPageId: null as string | null,
+    socialPageIds: [] as string[],
     contentType: 'POST',
     owner: '',
     // No implicit date: "Save draft" must never schedule.
@@ -1949,7 +1957,17 @@ export default function ContentPage() {
         channel: draft.channel,
         plannedAt: draft.scheduledAt ? new Date(draft.scheduledAt).toISOString() : null,
       });
-      const updated = toContentRow(apiRow);
+      let updated = toContentRow(apiRow);
+      const baselineIds = baseline.socialPageIds ?? [];
+      const draftIds = draft.socialPageIds ?? [];
+      const targetsChanged =
+        baselineIds.length !== draftIds.length ||
+        [...baselineIds].sort().join() !== [...draftIds].sort().join();
+      if (targetsChanged) {
+        await setContentPublishTarget(selectedId, null, draftIds);
+        const detail = await getContentDetail(selectedId);
+        updated = toContentRow(detail.data);
+      }
       setRows((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
       const next = draftFromItem(updated, locale);
       setDraft(next);
@@ -2028,6 +2046,10 @@ export default function ContentPage() {
           brandRowsForTz,
           (row as ContentRow & { timezone?: string })?.timezone,
         );
+        const draftIds = draft.socialPageIds ?? [];
+        if (draftIds.length) {
+          await setContentPublishTarget(id, null, draftIds);
+        }
         const raw =
           draft.scheduledAt || row?.scheduledAt || row?.plannedAt || new Date().toISOString();
         const scheduledAt =
@@ -2181,9 +2203,9 @@ export default function ContentPage() {
         labels: createForm.labels,
         media_asset_ids: createForm.media.map((asset) => asset.id),
       });
-      if (createForm.socialPageId) {
+      if (createForm.socialPageIds.length) {
         try {
-          await setContentPublishTarget(apiCreated.id, createForm.socialPageId);
+          await setContentPublishTarget(apiCreated.id, null, createForm.socialPageIds);
         } catch {
           toast.push(
             isAr
@@ -2211,7 +2233,7 @@ export default function ContentPage() {
         caption: '',
         labels: [],
         media: [],
-        socialPageId: null,
+        socialPageIds: [],
       }));
       openItem(createdRow, 'edit');
       setRows((prev) => (prev.some((r) => r.id === createdRow.id) ? prev : [createdRow, ...prev]));
@@ -4409,6 +4431,75 @@ export default function ContentPage() {
                               ? 's'
                               : ''}
                         </div>
+                        <div className="oma-compose-channel-field">
+                          <span className="oma-compose-field-label">{t('demo.filter.channel')}</span>
+                          <ChannelChoiceCards
+                            brandId={selected.brandId}
+                            value={draft.channel}
+                            multiple
+                            onChange={(channel) => setDraft((d) => ({ ...d, channel }))}
+                            onSelectPages={(socialPageIds) =>
+                              setDraft((d) => ({ ...d, socialPageIds }))
+                            }
+                            locale={locale}
+                            testId="demo-content-detail-channels"
+                          />
+                        </div>
+                        {(() => {
+                          const extra = selected as ContentRowExtra;
+                          const targets = extra.publishTargets ?? [];
+                          const status = buildPublishStatusView(
+                            {
+                              scheduleState: selected.scheduleState,
+                              scheduledAt: selected.scheduledAt,
+                              plannedAt: selected.plannedAt,
+                              publishState: extra.publishState,
+                              publishRollupState: extra.publishRollupState,
+                              publishError: extra.publishError,
+                              workerPickedAt: extra.workerPickedAt,
+                              publishSkipReason: extra.publishSkipReason,
+                              nextPublishAt: extra.nextPublishAt,
+                              publishedAt: extra.publishedAt,
+                              externalPostUrl: extra.externalPostUrl,
+                              socialPageId: extra.socialPageId,
+                              socialPageIds: extra.socialPageIds,
+                            },
+                            isAr ? 'ar' : 'en',
+                          );
+                          if (!status && !targets.length) return null;
+                          return (
+                            <div className="oma-stack" data-testid="demo-content-publish-status">
+                              {status ? (
+                                <>
+                                  <p data-testid="demo-content-publish-state">
+                                    {t(status.stateLabelKey)}
+                                  </p>
+                                  <ol
+                                    className="oma-readiness-list"
+                                    data-testid="demo-content-publish-timeline"
+                                  >
+                                    {status.steps.map((step) => (
+                                      <li
+                                        key={step.key}
+                                        data-ok={step.done ? 'true' : 'false'}
+                                        data-current={step.current ? 'true' : 'false'}
+                                      >
+                                        {step.done ? '✓' : step.current ? '●' : '○'}{' '}
+                                        {t(`demo.schedule.timeline.${step.key}`)}
+                                      </li>
+                                    ))}
+                                  </ol>
+                                </>
+                              ) : null}
+                              {targets.length ? (
+                                <>
+                                  <p className="oma-muted">{t('demo.schedule.publishStatus')}</p>
+                                  <PublishTargetsPanel targets={targets} locale={locale} />
+                                </>
+                              ) : null}
+                            </div>
+                          );
+                        })()}
                         <div className="oma-plan-post__save-row">
                           <span className="oma-plan-post__save-state" data-state={saveState}>
                             {saveState === 'saved'

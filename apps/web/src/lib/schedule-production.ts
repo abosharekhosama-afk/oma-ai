@@ -6,6 +6,9 @@ import type { ContentRowExtra } from './content-api';
 
 export type ScheduleRowExtras = {
   publishState?: string;
+  publishRollupState?: string;
+  socialPageIds?: string[];
+  publishTargets?: ContentRowExtra['publishTargets'];
   publishError?: string | null;
   workerPickedAt?: string | null;
   publishSkipReason?: string | null;
@@ -23,11 +26,15 @@ export function contentToScheduleRow(
   const publishing = item as ContentRowExtra;
   const workflow = resolveContentWorkflow(item, policy);
   const plannedAt = workflow.plannedAt || item.scheduledAt || '';
-  const externalPublishingConnected = Boolean(publishing.socialPageId);
+  const pageIds =
+    publishing.socialPageIds ??
+    (publishing.socialPageId ? [publishing.socialPageId] : []);
+  const externalPublishingConnected = pageIds.length > 0;
   let state: ScheduleRow['state'] = 'PLANNED';
   if (
     item.status === 'PUBLISHED_DEMO' ||
     publishing.publishState === 'PUBLISHED' ||
+    publishing.publishRollupState === 'ALL_SUCCEEDED' ||
     publishing.publishState === 'ALL_SUCCEEDED'
   )
     state = 'PUBLISHED_SAMPLE';
@@ -84,6 +91,9 @@ export function contentToScheduleRow(
       : null,
     externalPublishingConnected,
     publishState: publishing.publishState ?? 'NONE',
+    publishRollupState: publishing.publishRollupState ?? publishing.publishState ?? 'NONE',
+    socialPageIds: pageIds,
+    publishTargets: publishing.publishTargets ?? [],
     publishError: publishing.publishError ?? null,
     workerPickedAt: publishing.workerPickedAt ?? null,
     publishSkipReason: publishing.publishSkipReason ?? null,

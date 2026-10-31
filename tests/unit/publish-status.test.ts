@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { buildPublishStatusView, formatScheduleWhen } from '../../apps/web/src/lib/publish-status';
+import {
+  buildPublishStatusView,
+  formatScheduleWhen,
+  publishTargetStateLabelKey,
+} from '../../apps/web/src/lib/publish-status';
 
 describe('buildPublishStatusView', () => {
   it('shows published timeline with link', () => {
@@ -33,6 +37,24 @@ describe('buildPublishStatusView', () => {
     );
     expect(v?.stateLabelKey).toContain('failed');
     expect(v?.errorHuman || '').toMatch(/صلاحية|Direct Post/);
+  });
+
+  it('labels partial rollup', () => {
+    const v = buildPublishStatusView(
+      {
+        scheduleState: 'SCHEDULED',
+        publishRollupState: 'PARTIAL',
+        socialPageIds: ['p1', 'p2'],
+      },
+      'en',
+    );
+    expect(v?.stateLabelKey).toContain('partial');
+  });
+
+  it('maps per-target states', () => {
+    expect(publishTargetStateLabelKey('PUBLISHED')).toContain('published');
+    expect(publishTargetStateLabelKey('FAILED')).toContain('failed');
+    expect(publishTargetStateLabelKey('QUEUED')).toContain('queued');
   });
 
   it('formats timezone', () => {

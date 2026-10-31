@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { NetworkIcon } from './network-icon';
 import {
@@ -35,11 +35,27 @@ function selectedSet(value: string) {
   );
 }
 
+/** One connected page per selected network (multi-channel publish targets). */
+export function socialPageIdsForChannelSelection(
+  pages: SocialPageRow[],
+  channelValue: string,
+): string[] {
+  const selected = selectedSet(channelValue);
+  const ids: string[] = [];
+  for (const network of SOCIAL_NETWORKS) {
+    if (!selected.has(network)) continue;
+    const connected = pages.find((p) => p.network === network && p.status === 'CONNECTED');
+    if (connected) ids.push(connected.id);
+  }
+  return ids;
+}
+
 export function ChannelChoiceCards({
   brandId,
   value,
   onChange,
   onSelectPage,
+  onSelectPages,
   locale,
   multiple = false,
   testId = 'channel-choice-cards',
@@ -48,6 +64,8 @@ export function ChannelChoiceCards({
   value: string;
   onChange: (value: string) => void;
   onSelectPage?: (pageId: string | null) => void;
+  /** When `multiple`, the connected page id per selected network. */
+  onSelectPages?: (pageIds: string[]) => void;
   locale: string;
   multiple?: boolean;
   testId?: string;
@@ -87,6 +105,16 @@ export function ChannelChoiceCards({
     };
   }, [brandId]);
 
+  const lastPageIdsKey = useRef('');
+  useEffect(() => {
+    if (!multiple || !onSelectPages || loading || !pages.length) return;
+    const ids = socialPageIdsForChannelSelection(pages, value);
+    const key = ids.join(',');
+    if (lastPageIdsKey.current === key) return;
+    lastPageIdsKey.current = key;
+    onSelectPages(ids);
+  }, [multiple, onSelectPages, loading, pages, value]);
+
   const selected = selectedSet(value);
   const toggle = (network: SocialNetwork) => {
     const next = new Set(selected);
@@ -97,8 +125,13 @@ export function ChannelChoiceCards({
       next.clear();
       next.add(network);
     }
-    onChange([...next].map((key) => CHANNEL_VALUES[key as SocialNetwork] ?? key).join(', '));
-    if (!multiple) {
+    const channelStr = [...next]
+      .map((key) => CHANNEL_VALUES[key as SocialNetwork] ?? key)
+      .join(', ');
+    onChange(channelStr);
+    if (multiple) {
+      onSelectPages?.(socialPageIdsForChannelSelection(pages, channelStr));
+    } else {
       onSelectPage?.(
         wasSelected
           ? null
