@@ -937,7 +937,7 @@ export class ContentService {
     });
     if (current.publishState !== 'ALL_SUCCEEDED') {
       await getPrisma().contentPublishTarget.updateMany({
-        where: { contentItemId, publishState: { not: 'PUBLISHED' } },
+        where: { contentItemId: contentId, publishState: { not: 'PUBLISHED' } },
         data: { publishState: 'NONE', nextPublishAt: null },
       });
       await syncContentPublishRollup(contentId);

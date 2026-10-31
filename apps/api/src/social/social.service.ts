@@ -338,12 +338,12 @@ export class SocialService {
       for (const socialPageId of keep) {
         await tx.contentPublishTarget.upsert({
           where: {
-            contentItemId_socialPageId: { contentItemId, socialPageId },
+            contentItemId_socialPageId: { contentItemId: contentId, socialPageId },
           },
           create: {
             id: newId(),
             tenantId,
-            contentItemId,
+            contentItemId: contentId,
             socialPageId,
             publishState: queueOnSchedule ? 'QUEUED' : 'NONE',
             publishAttempts: 0,
