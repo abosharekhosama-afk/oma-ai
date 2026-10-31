@@ -9,6 +9,7 @@ import {
   notificationAllowed,
   pickMailLocale,
   renderPublishResultEmail,
+  SocialProviderError,
   tokenKeyFromEnv,
   type SocialProviderAdapter,
   type SocialNetworkCode,
@@ -313,10 +314,11 @@ export async function runTokenRefreshTick(deps: Deps = {}) {
       } else {
         await prisma.socialPage.update({ where: { id: page.id }, data: { lastRefreshedAt: now } });
       }
-    } catch (e) {
+    } catch (e: unknown) {
       const err = e instanceof SocialProviderError ? e : null;
       if (!err || err.opts.reauth || !err.opts.retryable) {
-        await markNeedsReauth(page, (e as Error).message ?? 'Refresh failed', now);
+        const message = e instanceof Error ? e.message : 'Refresh failed';
+        await markNeedsReauth(page, message, now);
         out.reauth++;
       } else {
         await prisma.socialPage.update({

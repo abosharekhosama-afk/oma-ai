@@ -55,28 +55,29 @@ INSERT INTO "ContentPublishTarget" (
   "updatedAt"
 )
 SELECT
-  "id" || '-tgt-' || substr(md5("socialPageId"), 1, 12),
-  "tenantId",
-  "id",
-  "socialPageId",
-  CASE "publishState"::text
+  ci."id" || '-tgt-' || substr(md5(ci."socialPageId"), 1, 12),
+  ci."tenantId",
+  ci."id",
+  ci."socialPageId",
+  CASE ci."publishState"::text
     WHEN 'ALL_SUCCEEDED' THEN 'PUBLISHED'::"ContentPublishState"
     WHEN 'IN_PROGRESS' THEN 'QUEUED'::"ContentPublishState"
     WHEN 'PARTIAL' THEN 'QUEUED'::"ContentPublishState"
     WHEN 'FAILED' THEN 'FAILED'::"ContentPublishState"
     ELSE 'NONE'::"ContentPublishState"
   END,
-  "publishAttempts",
-  "nextPublishAt",
-  "lastPublishError",
-  "workerPickedAt",
-  "externalPostId",
-  "externalPostUrl",
-  "publishedAt",
-  "createdAt",
-  "updatedAt"
-FROM "ContentItem"
-WHERE "socialPageId" IS NOT NULL;
+  ci."publishAttempts",
+  ci."nextPublishAt",
+  ci."lastPublishError",
+  ci."workerPickedAt",
+  ci."externalPostId",
+  ci."externalPostUrl",
+  ci."publishedAt",
+  ci."createdAt",
+  ci."updatedAt"
+FROM "ContentItem" ci
+INNER JOIN "SocialPage" sp ON sp."id" = ci."socialPageId"
+WHERE ci."socialPageId" IS NOT NULL;
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ContentPublishTarget_contentItemId_socialPageId_key" ON "ContentPublishTarget"("contentItemId", "socialPageId");
