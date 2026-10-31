@@ -152,6 +152,7 @@ import {
   listBrandTemplates,
   useContentTemplate,
   workflowLabel,
+  type ApiContent,
   type ApprovalEvent,
   type ContentCommentDto,
 } from '../../../../lib/content-api';
@@ -1046,7 +1047,9 @@ export default function ContentPage() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [cursor, setCursor] = useState(() => monthCursorFromKey(todayKey(FALLBACK_SCHEDULE_TZ)));
   const [calSpan, setCalSpan] = useState<'month' | 'week'>('month');
-  const [selectedDay, setSelectedDay] = useState<string | null>(() => todayKey(FALLBACK_SCHEDULE_TZ));
+  const [selectedDay, setSelectedDay] = useState<string | null>(() =>
+    todayKey(FALLBACK_SCHEDULE_TZ),
+  );
   const [loading, setLoading] = useState(true);
   const [errorKind, setErrorKind] = useState<ErrorKind>('generic');
   const [error, setError] = useState<string | null>(null);
@@ -1570,14 +1573,7 @@ export default function ContentPage() {
         brandRowsForTz,
         (selected as ContentRow & { timezone?: string })?.timezone,
       ),
-    [
-      activeBrandId,
-      brandRowsForTz,
-      selected?.brandId,
-      selected,
-      createForm.brandId,
-      brands,
-    ],
+    [activeBrandId, brandRowsForTz, selected?.brandId, selected, createForm.brandId, brands],
   );
   const todayKeyVal = useMemo(() => todayKey(calendarTz), [calendarTz]);
   const todayCursor = useMemo(() => monthCursorFromKey(todayKeyVal), [todayKeyVal]);
@@ -2176,6 +2172,29 @@ export default function ContentPage() {
       setCreateError(t('demo.create.validation'));
       return;
     }
+    const isTikTokSelected = createForm.channel
+      .split(',')
+      .some((channel) => channel.trim().toLowerCase() === 'tiktok');
+    const videoAssets = createForm.media.filter((asset) =>
+      asset.mime.toLowerCase().startsWith('video/'),
+    );
+    const photoAssets = createForm.media.filter((asset) =>
+      asset.mime.toLowerCase().startsWith('image/'),
+    );
+    if (isTikTokSelected && videoAssets.length > 0 && photoAssets.length > 0) {
+      setCreateError(
+        isAr
+          ? 'لا يمكن جمع الصور والفيديو في منشور TikTok واحد. أنشئ منشورًا للصور أو للفيديو.'
+          : 'TikTok cannot mix photos and video in one post. Create a photo post or a video post.',
+      );
+      return;
+    }
+    const splitTikTokVideos =
+      isTikTokSelected && videoAssets.length > 1 && photoAssets.length === 0;
+    const mediaBatches = splitTikTokVideos
+      ? videoAssets.map((asset) => [asset])
+      : [createForm.media];
+    let createdCount = 0;
     setCreating(true);
     try {
       const campaign = campaigns.find((c) => c.id === createForm.campaignId);
@@ -2183,41 +2202,54 @@ export default function ContentPage() {
       if (!brandId) {
         throw new Error(t('content.select_a_brand'));
       }
-      const apiCreated = await createContentProduction({
-        brandId,
-        title: { en: createForm.title.trim(), ar: createForm.title.trim() },
-        caption: createForm.caption.trim()
-          ? { en: createForm.caption.trim(), ar: createForm.caption.trim() }
-          : undefined,
-        campaignId: createForm.campaignId || null,
-        contentType: createForm.contentType as ContentRow['contentType'],
-        channel: createForm.channel.trim(),
-        track: (createForm.track || campaign?.track || 'ORGANIC') as ContentRow['track'],
-        // Planned date is a planning hint only; the item stays an unscheduled DRAFT.
-        // Scheduling happens solely through the explicit Schedule action.
-        plannedAt: createForm.plannedDate
-          ? wallTimeToIso(
-              createForm.plannedDate,
-              brandScheduleTimezone(brandId, brandRowsForTz),
-            )
-          : null,
-        labels: createForm.labels,
-        media_asset_ids: createForm.media.map((asset) => asset.id),
-      });
-      if (createForm.socialPageIds.length) {
-        try {
-          await setContentPublishTarget(apiCreated.id, null, createForm.socialPageIds);
-        } catch {
-          toast.push(
-            isAr
-              ? 'تم حفظ المسودة، لكن تعذر ربط حساب النشر. يمكنك إعادة ربطه من تفاصيل المنشور.'
-              : 'Draft saved, but the publishing account could not be linked. You can retry from the post details.',
-            'danger',
-          );
+      const createdItems: ApiContent[] = [];
+      for (const [index, batch] of mediaBatches.entries()) {
+        const suffix = splitTikTokVideos ? ` (${index + 1}/${mediaBatches.length})` : '';
+        const apiCreated = await createContentProduction({
+          brandId,
+          title: {
+            en: `${createForm.title.trim()}${suffix}`,
+            ar: `${createForm.title.trim()}${suffix}`,
+          },
+          caption: createForm.caption.trim()
+            ? { en: createForm.caption.trim(), ar: createForm.caption.trim() }
+            : undefined,
+          campaignId: createForm.campaignId || null,
+          contentType: createForm.contentType as ContentRow['contentType'],
+          channel: createForm.channel.trim(),
+          track: (createForm.track || campaign?.track || 'ORGANIC') as ContentRow['track'],
+          // Planned date is a planning hint only; the item stays an unscheduled DRAFT.
+          // Scheduling happens solely through the explicit Schedule action.
+          plannedAt: createForm.plannedDate
+            ? wallTimeToIso(createForm.plannedDate, brandScheduleTimezone(brandId, brandRowsForTz))
+            : null,
+          labels: createForm.labels,
+          media_asset_ids: batch.map((asset) => asset.id),
+        });
+        createdItems.push(apiCreated);
+        createdCount++;
+        if (createForm.socialPageIds.length) {
+          try {
+            await setContentPublishTarget(apiCreated.id, null, createForm.socialPageIds);
+          } catch {
+            toast.push(
+              isAr
+                ? 'تم حفظ المسودة، لكن تعذر ربط حساب النشر. يمكنك إعادة ربطه من تفاصيل المنشور.'
+                : 'Draft saved, but the publishing account could not be linked. You can retry from the post details.',
+              'danger',
+            );
+          }
         }
       }
-      const createdRow = toContentRow(apiCreated);
-      toast.push(t('demo.create.successContent'), 'success');
+      const createdRows = createdItems.map((item) => toContentRow(item));
+      toast.push(
+        splitTikTokVideos
+          ? isAr
+            ? `تم إنشاء ${createdRows.length} مسودات TikTok منفصلة للفيديوهات.`
+            : `Created ${createdRows.length} separate TikTok video drafts.`
+          : t('demo.create.successContent'),
+        'success',
+      );
       setCreateOpen(false);
       if (createForm.plannedDate) {
         const day = createForm.plannedDate.slice(0, 10);
@@ -2236,10 +2268,29 @@ export default function ContentPage() {
         media: [],
         socialPageIds: [],
       }));
-      openItem(createdRow, 'edit');
-      setRows((prev) => (prev.some((r) => r.id === createdRow.id) ? prev : [createdRow, ...prev]));
+      openItem(createdRows[0]!, 'edit');
+      setRows((prev) => [
+        ...createdRows.filter((row) => !prev.some((existing) => existing.id === row.id)),
+        ...prev,
+      ]);
       void load();
     } catch (err) {
+      if (splitTikTokVideos && createdCount > 0) {
+        setCreateForm((form) => ({
+          ...form,
+          title: '',
+          caption: '',
+          media: [],
+          socialPageIds: [],
+        }));
+        void load();
+        const partialMessage = isAr
+          ? `تم إنشاء ${createdCount} من ${mediaBatches.length} مسودات TikTok. أزلنا الوسائط من النموذج لتجنب تكرارها؛ راجع المسودات قبل المتابعة.`
+          : `Created ${createdCount} of ${mediaBatches.length} TikTok drafts. The media was cleared to prevent duplicates; review the drafts before continuing.`;
+        setCreateError(partialMessage);
+        toast.push(partialMessage, 'danger');
+        return;
+      }
       const msg = contentApiError(err, t('demo.create.validation'));
       setCreateError(msg);
       toast.push(msg, 'danger');
@@ -2459,10 +2510,7 @@ export default function ContentPage() {
         campaignId: fromCompose ? createForm.campaignId || null : selected?.campaignId || null,
         plannedAt:
           fromCompose && createForm.plannedDate
-            ? wallTimeToIso(
-                createForm.plannedDate,
-                brandScheduleTimezone(brandId, brandRowsForTz),
-              )
+            ? wallTimeToIso(createForm.plannedDate, brandScheduleTimezone(brandId, brandRowsForTz))
             : null,
       });
       const row = toContentRow(created);
@@ -4433,7 +4481,9 @@ export default function ContentPage() {
                               : ''}
                         </div>
                         <div className="oma-compose-channel-field">
-                          <span className="oma-compose-field-label">{t('demo.filter.channel')}</span>
+                          <span className="oma-compose-field-label">
+                            {t('demo.filter.channel')}
+                          </span>
                           <ChannelChoiceCards
                             brandId={selected.brandId}
                             value={draft.channel}

@@ -1,4 +1,5 @@
 import { getPrisma, writeOutbox } from '@oma/db';
+import { syncContentPublishRollup } from './rollup-sync';
 import {
   createSocialAdapter,
   decryptToken,
@@ -19,6 +20,8 @@ import {
 export const MAX_PUBLISH_ATTEMPTS = 5;
 /** Backoff after attempt n (1-based): 1m, 5m, 15m, 60m. */
 export const PUBLISH_BACKOFF_MS = [60_000, 5 * 60_000, 15 * 60_000, 60 * 60_000];
+/** TikTok status polling cadence; its publish endpoint is asynchronous. */
+export const TIKTOK_STATUS_POLL_MS = 60_000;
 /** Refresh tokens that expire within this window. */
 export const REFRESH_WINDOW_MS = 3 * 24 * 3600_000;
 
@@ -39,6 +42,7 @@ export function pageForAdapter(
     accessTokenEnc: string;
     refreshTokenEnc: string | null;
     metaJson: string;
+    scopes: string[];
   },
   key: Buffer,
 ) {
@@ -47,7 +51,7 @@ export function pageForAdapter(
     name: p.name,
     accessToken: decryptToken(p.accessTokenEnc, key),
     refreshToken: p.refreshTokenEnc ? decryptToken(p.refreshTokenEnc, key) : null,
-    meta: JSON.parse(p.metaJson || '{}') as Record<string, unknown>,
+    meta: { ...(JSON.parse(p.metaJson || '{}') as Record<string, unknown>), scopes: p.scopes },
   };
 }
 
@@ -252,7 +256,7 @@ export async function runPublishTick(deps: Deps = {}) {
   const key = deps.key === undefined ? tokenKeyFromEnv() : deps.key;
   const { findDuePublishTargetIds } = await import('./due-publish-targets');
   const { publishOneTarget } = await import('./publish-one-target');
-  const out = { attempted: 0, published: 0, failed: 0, retrying: 0, skipped: 0 };
+  const out = { attempted: 0, published: 0, failed: 0, retrying: 0, pending: 0, skipped: 0 };
   const ids = await findDuePublishTargetIds(now, key);
   if (!key) return out;
   for (const id of ids) {
@@ -261,7 +265,150 @@ export async function runPublishTick(deps: Deps = {}) {
     if (result.outcome === 'published') out.published++;
     else if (result.outcome === 'failed') out.failed++;
     else if (result.outcome === 'retrying') out.retrying++;
+    else if (result.outcome === 'pending') out.pending++;
     else if (result.outcome === 'skipped') out.skipped++;
+  }
+  return out;
+}
+
+/** Poll asynchronous TikTok publish IDs; only TikTok's final state marks content complete. */
+export async function runPublishStatusTick(deps: Deps = {}) {
+  const now = deps.now?.() ?? new Date();
+  const key = deps.key === undefined ? tokenKeyFromEnv() : deps.key;
+  const adapterFor = deps.adapterFor ?? ((n: SocialNetworkCode) => createSocialAdapter(n));
+  const out = { checked: 0, published: 0, failed: 0, pending: 0, retrying: 0 };
+  if (!key) return out;
+  const prisma = getPrisma();
+  const due = await prisma.contentPublishTarget.findMany({
+    where: {
+      publishState: 'PUBLISHING',
+      externalPostId: { not: null },
+      nextPublishAt: { lte: now },
+      socialPage: { network: 'TIKTOK' },
+    },
+    include: { contentItem: true, socialPage: true },
+    orderBy: { nextPublishAt: 'asc' },
+    take: 10,
+  });
+
+  for (const target of due) {
+    const operationId = target.externalPostId;
+    if (!operationId) continue;
+    const nextPollAt = new Date(now.getTime() + TIKTOK_STATUS_POLL_MS);
+    const claim = await prisma.contentPublishTarget.updateMany({
+      where: {
+        id: target.id,
+        publishState: 'PUBLISHING',
+        externalPostId: operationId,
+        nextPublishAt: { lte: now },
+      },
+      data: { nextPublishAt: nextPollAt },
+    });
+    if (claim.count !== 1) continue;
+    out.checked++;
+    try {
+      const page = target.socialPage;
+      if (!page || page.status === 'DISCONNECTED') {
+        throw new SocialProviderError('The connected account was removed', { retryable: false });
+      }
+      if (page.status === 'NEEDS_REAUTH') {
+        throw new SocialProviderError('The connected account needs to be reconnected', {
+          retryable: false,
+          reauth: true,
+        });
+      }
+      const adapter = adapterFor(fromSocialEnum(page.network));
+      if (!adapter.fetchPublishStatus) {
+        throw new SocialProviderError('TikTok status polling is not configured on this worker.', {
+          retryable: false,
+        });
+      }
+      const status = await adapter.fetchPublishStatus(pageForAdapter(page, key), operationId);
+      if (status.status === 'PENDING') {
+        await prisma.contentPublishTarget.update({
+          where: { id: target.id },
+          data: { nextPublishAt: nextPollAt, lastPublishError: null },
+        });
+        out.pending++;
+        continue;
+      }
+      if (status.status === 'PUBLISHED') {
+        await prisma.contentPublishTarget.update({
+          where: { id: target.id },
+          data: {
+            publishState: 'PUBLISHED',
+            externalPostId: status.externalId ?? operationId,
+            externalPostUrl: status.url ?? target.externalPostUrl,
+            publishedAt: now,
+            nextPublishAt: null,
+            lastPublishError: null,
+          },
+        });
+        await syncContentPublishRollup(target.contentItemId);
+        await notifyPublishOutcome(target.contentItem, 'succeeded', {
+          url: status.url ?? target.externalPostUrl,
+        });
+        out.published++;
+        continue;
+      }
+
+      const attempt = target.publishAttempts;
+      if (status.reauth && target.socialPage.status !== 'NEEDS_REAUTH') {
+        await markNeedsReauth(target.socialPage, status.errorMessage, now);
+      }
+      const shouldRetry = status.retryable && attempt < MAX_PUBLISH_ATTEMPTS;
+      await prisma.contentPublishTarget.update({
+        where: { id: target.id },
+        data: {
+          publishState: shouldRetry ? 'QUEUED' : 'FAILED',
+          lastPublishError: status.errorMessage.slice(0, 1000),
+          nextPublishAt: shouldRetry
+            ? new Date(
+                now.getTime() +
+                  PUBLISH_BACKOFF_MS[
+                    Math.min(Math.max(attempt - 1, 0), PUBLISH_BACKOFF_MS.length - 1)
+                  ]!,
+              )
+            : null,
+          externalPostId: null,
+        },
+      });
+      await syncContentPublishRollup(target.contentItemId);
+      if (shouldRetry) out.retrying++;
+      else {
+        await notifyPublishOutcome(target.contentItem, 'failed', { error: status.errorMessage });
+        out.failed++;
+      }
+    } catch (error) {
+      const err =
+        error instanceof SocialProviderError
+          ? error
+          : new SocialProviderError(String((error as Error)?.message ?? error), {
+              retryable: true,
+            });
+      if (err.opts.reauth && target.socialPage.status !== 'NEEDS_REAUTH') {
+        await markNeedsReauth(target.socialPage, err.message, now);
+      }
+      if (err.opts.retryable) {
+        await prisma.contentPublishTarget.update({
+          where: { id: target.id },
+          data: { nextPublishAt: nextPollAt, lastPublishError: err.message.slice(0, 1000) },
+        });
+        out.retrying++;
+      } else {
+        await prisma.contentPublishTarget.update({
+          where: { id: target.id },
+          data: {
+            publishState: 'FAILED',
+            lastPublishError: err.message.slice(0, 1000),
+            nextPublishAt: null,
+          },
+        });
+        await syncContentPublishRollup(target.contentItemId);
+        await notifyPublishOutcome(target.contentItem, 'failed', { error: err.message });
+        out.failed++;
+      }
+    }
   }
   return out;
 }
@@ -344,6 +491,7 @@ export function startSocialJobs(
         } else {
           await runPublishTick({ log });
         }
+        await runPublishStatusTick({ log });
       };
       run().catch((e) => log.error({ err: String(e) }, 'social publish tick failed'));
     },

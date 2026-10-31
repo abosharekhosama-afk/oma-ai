@@ -266,6 +266,17 @@ describe('LinkedIn adapter', () => {
 describe('TikTok adapter', () => {
   const env = { TIKTOK_CLIENT_KEY: 'ck', TIKTOK_CLIENT_SECRET: 'cs' };
   const publishEnv = { ...env, TIKTOK_ENABLE_DIRECT_POST: '1' };
+  const creatorInfo = () =>
+    json({
+      data: {
+        privacy_level_options: ['SELF_ONLY', 'PUBLIC_TO_EVERYONE'],
+        comment_disabled: false,
+        duet_disabled: false,
+        stitch_disabled: false,
+        max_video_post_duration_sec: 180,
+      },
+      error: { code: 'ok' },
+    });
   it('requests only basic profile access until Direct Post is enabled', () => {
     const basic = new URL(
       new TikTokAdapter(env).authorizeUrl({ state: 's', redirectUri: 'https://w/cb' }),
@@ -297,17 +308,10 @@ describe('TikTok adapter', () => {
             error: { code: 'ok' },
           }),
       ],
+      [/creator_info\/query/, creatorInfo],
       [
         /post\/publish\/content\/init/,
         () => json({ data: { publish_id: 'pub_1' }, error: { code: 'ok' } }),
-      ],
-      [
-        /post\/publish\/status\/fetch/,
-        () =>
-          json({
-            data: { status: 'PUBLISH_COMPLETE', publicly_available_post_id: '7123456789' },
-            error: { code: 'ok' },
-          }),
       ],
     ]);
     const a = new TikTokAdapter(publishEnv, m.fn);
@@ -324,7 +328,7 @@ describe('TikTok adapter', () => {
     };
     expect((await a.refresh(page))!.accessToken).toBe('tat2');
     const r = await a.publish(page, { text: 'Look', mediaUrl: 'https://cdn/x.jpg' });
-    expect(r.externalId).toBe('7123456789');
+    expect(r).toMatchObject({ externalId: 'pub_1', pending: true });
     const initCall = m.calls.find((c) => /post\/publish\/content\/init/.test(c.url))!;
     const body = JSON.parse(String(initCall.init!.body));
     expect(body).toMatchObject({
@@ -335,8 +339,118 @@ describe('TikTok adapter', () => {
     expect(body.post_info.privacy_level).toBe('SELF_ONLY');
   });
 
+  it('publishes MP4/WebM/MOV videos via video/init and returns pending publish_id', async () => {
+    const m = mockFetch([
+      [/creator_info\/query/, creatorInfo],
+      [
+        /post\/publish\/video\/init/,
+        () => json({ data: { publish_id: 'video-op' }, error: { code: 'ok' } }),
+      ],
+    ]);
+    const result = await new TikTokAdapter(publishEnv, m.fn).publish(
+      {
+        externalId: 'open-id',
+        name: 'test',
+        accessToken: 'token',
+        meta: { scopes: ['video.publish'] },
+      },
+      {
+        text: 'A video',
+        media: [{ url: 'https://public.test/video.mov', mime: 'video/quicktime' }],
+      },
+    );
+    expect(result).toMatchObject({ externalId: 'video-op', pending: true });
+    expect(m.calls[1]!.url).toContain('/v2/post/publish/video/init/');
+    expect(JSON.parse(String(m.calls[1]!.init!.body))).toMatchObject({
+      source_info: { source: 'PULL_FROM_URL', video_url: 'https://public.test/video.mov' },
+      post_info: { privacy_level: 'SELF_ONLY', disable_comment: false },
+    });
+  });
+
+  it('preserves TikTok asynchronous fail_reason and retryability', async () => {
+    const m = mockFetch([
+      [
+        /post\/publish\/status\/fetch/,
+        () =>
+          json({
+            data: { status: 'FAILED', fail_reason: 'file_format_check_failed' },
+            error: { code: 'ok' },
+          }),
+      ],
+    ]);
+    await expect(
+      new TikTokAdapter(publishEnv, m.fn).fetchPublishStatus(
+        { externalId: 'open-id', name: 'test', accessToken: 'token', meta: {} },
+        'operation-id',
+      ),
+    ).resolves.toEqual({
+      status: 'FAILED',
+      retryable: false,
+      errorMessage:
+        'tiktok [file_format_check_failed]: Unsupported media format or video codec. Use JPEG/WebP photos or MP4/WebM/MOV video with a supported codec.',
+    });
+  });
+
+  it('marks PUBLISH_COMPLETE only after status/fetch and returns TikTok public post link', async () => {
+    const m = mockFetch([
+      [
+        /post\/publish\/status\/fetch/,
+        () =>
+          json({
+            data: { status: 'PUBLISH_COMPLETE', publicaly_available_post_id: ['7123456789'] },
+            error: { code: 'ok' },
+          }),
+      ],
+    ]);
+    await expect(
+      new TikTokAdapter(publishEnv, m.fn).fetchPublishStatus(
+        {
+          externalId: 'open-id',
+          name: 'test',
+          accessToken: 'token',
+          meta: { username: 'brand' },
+        },
+        'operation-id',
+      ),
+    ).resolves.toEqual({
+      status: 'PUBLISHED',
+      externalId: '7123456789',
+      url: 'https://www.tiktok.com/@brand/video/7123456789',
+    });
+  });
+
+  it('rejects unsupported PNG and photos over TikTok size limit before sending', async () => {
+    const adapter = new TikTokAdapter(
+      publishEnv,
+      mockFetch([[/creator_info\/query/, creatorInfo]]).fn,
+    );
+    const page = {
+      externalId: 'o1',
+      name: '',
+      accessToken: 'token',
+      meta: { scopes: ['video.publish'] },
+    };
+    await expect(
+      adapter.publish(page, {
+        text: 'PNG',
+        media: [{ url: 'https://cdn/a.png', mime: 'image/png' }],
+      }),
+    ).rejects.toMatchObject({
+      opts: { providerCode: 'file_format_check_failed', retryable: false },
+    });
+    await expect(
+      adapter.publish(page, {
+        text: 'Large',
+        media: [{ url: 'https://cdn/a.jpg', mime: 'image/jpeg', sizeBytes: 20 * 1024 * 1024 + 1 }],
+      }),
+    ).rejects.toMatchObject({
+      opts: { providerCode: 'picture_size_check_failed', retryable: false },
+    });
+  });
+
   it('preserves TikTok provider code, message, log id and HTTP status', async () => {
     const m = mockFetch([
+      [/creator_info\/query/, creatorInfo],
       [
         /post\/publish\/content\/init/,
         () =>

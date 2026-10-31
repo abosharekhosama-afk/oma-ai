@@ -69,18 +69,30 @@ LinkedIn issues no refresh token on standard apps; tokens last 60 days, then the
 
 ## TikTok
 
-| Variable                    | Value                                                                                                                     |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `TIKTOK_CLIENT_KEY`         | From developers.tiktok.com → app                                                                                          |
-| `TIKTOK_CLIENT_SECRET`      | Same page                                                                                                                 |
-| `TIKTOK_PRIVACY_LEVEL`      | Optional, default `SELF_ONLY`. Unaudited apps can only post privately; after TikTok's audit set `PUBLIC_TO_EVERYONE`.     |
-| `TIKTOK_ENABLE_DIRECT_POST` | Optional, default `0`. Set to `1` only after TikTok approves the app's `video.publish` scope, then reconnect the account. |
+| Variable                      | Value                                                                                                                     |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `TIKTOK_CLIENT_KEY`           | From developers.tiktok.com → app                                                                                          |
+| `TIKTOK_CLIENT_SECRET`        | Same page                                                                                                                 |
+| `TIKTOK_PRIVACY_LEVEL`        | Optional, default `SELF_ONLY`. Unaudited apps can only post privately; after TikTok's audit set `PUBLIC_TO_EVERYONE`.     |
+| `TIKTOK_ENABLE_DIRECT_POST`   | Optional, default `0`. Set to `1` only after TikTok approves the app's `video.publish` scope, then reconnect the account. |
+| `TIKTOK_BRAND_CONTENT_TOGGLE` | Optional, default `0`; set to `1` when the post promotes a third-party branded product/service.                           |
+| `TIKTOK_BRAND_ORGANIC_TOGGLE` | Optional, default `0`; set to `1` for the relevant own-brand/organic disclosure.                                          |
 
 Products: **Login Kit** and **Content Posting API** (Direct Post). Scopes:
 `user.info.basic` is used for account connection. The `video.publish` scope is requested
 only when `TIKTOK_ENABLE_DIRECT_POST=1`; TikTok must approve that scope before users can
-authorize it. Photo posts use `PULL_FROM_URL`, so the image's domain must be verified in
-the TikTok app. Posts need an image.
+authorize it. Direct Post uses a verified public URL through `PULL_FROM_URL`; verify the
+OMA media-proxy domain/prefix in TikTok Developer settings. TikTok photo posts accept
+JPEG or WebP only (maximum 35 photos, 20 MB each, maximum 1080p). PNG and GIF are not
+accepted by TikTok's photo endpoint even though OMA's shared media library can store them.
+TikTok video posts accept MP4, WebM, and MOV containers, with supported codecs H.264,
+H.265, VP8, or VP9; each dimension must be 360–4096 pixels, the limit is 4 GB, and
+frame rate must be 23–60 FPS. Video duration depends on the
+creator account (3 minutes by default; eligible accounts may have 5 or 10 minutes).
+One TikTok video is sent per post; use a separate post for each additional video.
+TikTok validates the actual image dimensions/video codec and duration asynchronously;
+the worker polls the publish status and the schedule detail displays TikTok's exact
+`fail_reason` and diagnostic, rather than treating an accepted `publish_id` as success.
 
 ## X
 

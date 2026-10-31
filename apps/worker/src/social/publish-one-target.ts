@@ -5,13 +5,13 @@ import {
   SocialProviderError,
   tokenKeyFromEnv,
   type SocialNetworkCode,
-  type SocialProviderAdapter,
   type FetchLike,
 } from '@oma/domain';
 import { mediaProxyUrl, publicMediaUrls } from '../media/media-jobs';
 import {
   MAX_PUBLISH_ATTEMPTS,
   PUBLISH_BACKOFF_MS,
+  TIKTOK_STATUS_POLL_MS,
   markNeedsReauth,
   notifyPublishOutcome,
   pageForAdapter,
@@ -28,7 +28,7 @@ export type PublishTargetDeps = {
 };
 
 export type PublishTargetResult = {
-  outcome: 'published' | 'failed' | 'retrying' | 'skipped' | 'not_claimed';
+  outcome: 'published' | 'failed' | 'retrying' | 'pending' | 'skipped' | 'not_claimed';
 };
 
 /** Publish one ContentPublishTarget (atomic QUEUED/NONE → PUBLISHING). */
@@ -51,7 +51,15 @@ export async function publishOneTarget(
 
   const claim = await prisma.contentPublishTarget.updateMany({
     where: { id: publishTargetId, publishState: { in: ['NONE', 'QUEUED'] } },
-    data: { publishState: 'PUBLISHING', workerPickedAt: now, lastPublishError: null },
+    data: {
+      publishState: 'PUBLISHING',
+      workerPickedAt: now,
+      lastPublishError: null,
+      externalPostId: null,
+      externalPostUrl: null,
+      publishedAt: null,
+      nextPublishAt: null,
+    },
   });
   if (claim.count !== 1) return { outcome: 'not_claimed' };
   await syncContentPublishRollup(item.id);
@@ -86,28 +94,59 @@ export async function publishOneTarget(
     if (!adapter.isConfigured()) {
       throw new SocialProviderError('Network is not configured', { retryable: false });
     }
-    const text =
-      [item.captionEn || item.titleEn].filter(Boolean).join('\n').trim() || item.titleEn;
+    const text = [item.captionEn || item.titleEn].filter(Boolean).join('\n').trim() || item.titleEn;
     const rawMediaUrls = await publicMediaUrls(item, { fetchImpl: deps.mediaFetch });
     const mediaUrls =
       network === 'tiktok' ? rawMediaUrls.map((u) => mediaProxyUrl(u)) : rawMediaUrls;
-    const res = await adapter.publish(pageForAdapter(page, key), { text, mediaUrls });
+    const media =
+      network === 'tiktok' && item.mediaAssetIds.length
+        ? await (async () => {
+            const assets = await prisma.mediaAsset.findMany({
+              where: {
+                id: { in: item.mediaAssetIds },
+                tenantId: item.tenantId,
+                brandId: item.brandId,
+                kind: 'posts',
+                status: 'READY',
+              },
+              select: { id: true, mime: true, size: true },
+            });
+            const byId = new Map(assets.map((asset) => [asset.id, asset]));
+            return item.mediaAssetIds.map((id, index) => {
+              const asset = byId.get(id);
+              if (!asset) {
+                throw new SocialProviderError('Post media is missing or unavailable.', {
+                  retryable: false,
+                });
+              }
+              const url = mediaUrls[index];
+              if (!url) {
+                throw new SocialProviderError('Post media URL could not be resolved.', {
+                  retryable: true,
+                });
+              }
+              return { url, mime: asset.mime, sizeBytes: Number(asset.size) };
+            });
+          })()
+        : undefined;
+    const res = await adapter.publish(pageForAdapter(page, key), { text, mediaUrls, media });
     if (!res.externalId?.trim()) {
       throw new SocialProviderError('Provider returned no post id', { retryable: true });
     }
     await prisma.contentPublishTarget.update({
       where: { id: publishTargetId },
       data: {
-        publishState: 'PUBLISHED',
+        publishState: res.pending ? 'PUBLISHING' : 'PUBLISHED',
         publishAttempts: attempt,
         externalPostId: res.externalId,
         externalPostUrl: res.url,
-        publishedAt: now,
+        publishedAt: res.pending ? null : now,
         lastPublishError: null,
-        nextPublishAt: null,
+        nextPublishAt: res.pending ? new Date(now.getTime() + TIKTOK_STATUS_POLL_MS) : null,
       },
     });
     await syncContentPublishRollup(item.id);
+    if (res.pending) return { outcome: 'pending' };
     await notifyPublishOutcome(item, 'succeeded', { url: res.url });
     return { outcome: 'published' };
   } catch (e) {
