@@ -1,5 +1,4 @@
 import { readFileSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
 import type {
   FetchPublicInput,
   FetchPublicResult,
@@ -8,15 +7,23 @@ import type {
 } from './website-connector.port';
 import { validateRedirectTarget } from '../brand/redirect-safety';
 
+/** Fixture paths are only used by the server-side test connector; avoid bundling Node path APIs. */
+function joinPath(...parts: string[]): string {
+  return parts
+    .join('/')
+    .replace(/\/+/g, '/')
+    .replace(/([^:]\/)\/+/g, '$1');
+}
+
 function resolveFixtureRoot(): string {
   const candidates = [
-    join(process.cwd(), 'tests/fixtures/websites'),
-    join(process.cwd(), '../../tests/fixtures/websites'),
+    joinPath(process.cwd(), 'tests/fixtures/websites'),
+    joinPath(process.cwd(), '../../tests/fixtures/websites'),
   ];
   for (const dir of candidates) {
     if (existsSync(dir)) return dir;
   }
-  return candidates[0] ?? join(process.cwd(), 'tests/fixtures/websites');
+  return candidates[0] ?? joinPath(process.cwd(), 'tests/fixtures/websites');
 }
 
 const FIXTURE_ROOT = resolveFixtureRoot();
@@ -36,7 +43,7 @@ function mapUrlToFile(url: string): string | null {
     if (rel === '' || rel.endsWith('/')) rel = `${rel}index.html`;
     else rel = `${rel}.html`;
   }
-  const file = join(FIXTURE_ROOT, site, rel);
+  const file = joinPath(FIXTURE_ROOT, site, rel);
   return existsSync(file) ? file : null;
 }
 

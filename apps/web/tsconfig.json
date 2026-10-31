@@ -22,7 +22,9 @@
         "name": "next"
       }
     ],
-    "paths": {},
+    "paths": {
+      "@oma/domain/browser": ["../../packages/domain/src/browser.ts"]
+    },
     "baseUrl": ".",
     "declaration": false,
     "declarationMap": false,

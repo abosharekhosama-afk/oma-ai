@@ -1,4 +1,4 @@
-import { FALLBACK_SCHEDULE_TZ } from '@oma/domain';
+import { FALLBACK_SCHEDULE_TZ } from '@oma/domain/browser';
 import { resolveContentWorkflow, type ApprovalPolicy } from '@oma/demo';
 import type { ContentRow } from './demo/stage3-campaigns';
 import type { ScheduleRow } from './demo/stage6-schedule';
@@ -27,8 +27,7 @@ export function contentToScheduleRow(
   const workflow = resolveContentWorkflow(item, policy);
   const plannedAt = workflow.plannedAt || item.scheduledAt || '';
   const pageIds =
-    publishing.socialPageIds ??
-    (publishing.socialPageId ? [publishing.socialPageId] : []);
+    publishing.socialPageIds ?? (publishing.socialPageId ? [publishing.socialPageId] : []);
   const externalPublishingConnected = pageIds.length > 0;
   let state: ScheduleRow['state'] = 'PLANNED';
   if (
