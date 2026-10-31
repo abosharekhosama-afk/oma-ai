@@ -10,7 +10,7 @@
   "scripts": {
     "generate": "prisma generate",
     "migrate:dev": "prisma migrate dev",
-    "migrate:deploy": "prisma migrate deploy",
+    "migrate:deploy": "node ../../scripts/db/render-migrate-deploy.mjs",
     "migrate:resolve:content-publish-targets": "prisma migrate resolve --rolled-back 20261031120000_content_publish_targets --schema=prisma/schema.prisma",
     "seed": "tsx prisma/seed.ts",
     "seed:demo": "tsx prisma/seed-demo.ts",
