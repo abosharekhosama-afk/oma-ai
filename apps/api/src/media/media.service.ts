@@ -550,10 +550,25 @@ export class MediaService {
       }
       const allowed = allowedMimeFor(kind);
       const atRoot = f.id === scopeRootId;
+      const path: Array<{ id: string; name: string }> = [{ id: f.id, name: f.name }];
+      if (!atRoot) {
+        let cursor = f;
+        for (let depth = 0; depth < 32 && cursor.parentId; depth += 1) {
+          if (cursor.parentId === scopeRootId) {
+            const root = await c.client.getFolder(scopeRootId);
+            path.unshift({ id: root.id, name: root.name || c.conn.rootFolderName || root.id });
+            break;
+          }
+          cursor = await c.client.getFolder(cursor.parentId);
+          path.unshift({ id: cursor.id, name: cursor.name });
+          if (cursor.id === scopeRootId) break;
+        }
+      }
       return {
         data: {
           folder: { id: f.id, name: f.name, parent_id: atRoot ? null : f.parentId },
           root_name: c.conn.rootFolderName,
+          path,
           folders: f.folders,
           files: f.files
             .filter((x) => allowed.includes(x.mimeType))

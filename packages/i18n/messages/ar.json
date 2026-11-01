@@ -2365,5 +2365,8 @@
   "shell.notificationPref.content.publish.succeeded": "نجاح نشر المنشور",
   "shell.notification.content.publish.failed": "فشل النشر",
   "shell.notificationBody.content.publish.failed": "تعذّر نشر منشور مجدول.",
-  "shell.notificationPref.content.publish.failed": "فشل نشر المنشور"
+  "shell.notificationPref.content.publish.failed": "فشل نشر المنشور",
+  "content.unschedule_post": "إلغاء جدولة المنشور",
+  "content.publish_post_now": "نشر المنشور الآن",
+  "content.post_duplicated": "تم نسخ المنشور كمسودة جديدة"
 }

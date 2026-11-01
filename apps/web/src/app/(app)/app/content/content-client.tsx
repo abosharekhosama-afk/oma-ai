@@ -23,6 +23,10 @@ import { MediaSurface } from '../../../../components/content/media-surface';
 import { ChannelChoiceCards } from '../../../../components/content/channel-choice-cards';
 import { PublishTargetsPanel } from '../../../../components/content/publish-targets-panel';
 import { listWorkspaceMembers, type WorkspaceMember } from '../../../../lib/team-api';
+import {
+  brandSettingsApi,
+  type SocialPageRow,
+} from '../../../../lib/brand-settings-api';
 import { NetworkIcon } from '../../../../components/content/network-icon';
 import {
   CalendarDisplaySettings,
@@ -80,11 +84,12 @@ import {
   NotificationOutlined,
   PictureOutlined,
   ShareAltOutlined,
-  SyncOutlined,
+  SendOutlined,
   TagOutlined,
   UnorderedListOutlined,
   UserOutlined,
   TeamOutlined,
+  RetweetOutlined,
 } from '@ant-design/icons';
 
 import { Dialog } from '../../../../components/ui/dialog';
@@ -125,6 +130,7 @@ import {
   loadContentWorkspace,
   loadContentWorkspaceRest,
   createContentProduction,
+  duplicateContent,
   setContentPublishTarget,
   updateContentProduction,
   requestContentApproval,
@@ -155,6 +161,14 @@ import {
   type ApiContent,
   type ApprovalEvent,
   type ContentCommentDto,
+  publishContentNow,
+  ungroupContent,
+  detachContentChannel,
+  copyContentTo,
+  setPreferredAudience,
+  updateContentComment,
+  resolveContentComment,
+  reactContentComment,
 } from '../../../../lib/content-api';
 import {
   createRequest,
@@ -168,7 +182,6 @@ import {
   canRequestApproval,
   canApprove,
   canRequestChanges,
-  canReject,
   canScheduleItem,
   canMarkPublished,
   approvalProgressLabel,
@@ -421,6 +434,7 @@ function PlanableComposeCard({
   onOpenTemplates?: () => void;
 }) {
   const t = useT();
+  const isAr = locale.toLowerCase().startsWith('ar');
   const [campaignMenu, setCampaignMenu] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   if (!open) return null;
@@ -507,6 +521,61 @@ function PlanableComposeCard({
           </button>
         </div>
 
+        <div className="oma-compose-channel-field" style={{ paddingInline: 20, paddingBlockStart: 4 }}>
+          <ChannelChoiceCards
+            brandId={brandId}
+            value={form.channel}
+            multiple
+            variant="strip"
+            onChange={(channel) => onChange({ channel })}
+            onSelectPages={(socialPageIds) => onChange({ socialPageIds })}
+            locale={locale}
+            testId="demo-create-content-channels"
+          />
+          <div className="oma-compose-type-tabs" role="tablist" aria-label={t('demo.content.filter.type')}>
+            {(
+              [
+                ['POST', 'Post'],
+                ['STORY', 'Story'],
+                ['REEL', 'Reels'],
+              ] as const
+            ).map(([ty, enLabel]) => {
+              const label =
+                ty === 'POST'
+                  ? isAr
+                    ? 'منشور'
+                    : enLabel
+                  : ty === 'STORY'
+                    ? isAr
+                      ? 'قصة'
+                      : enLabel
+                    : isAr
+                      ? 'ريلز'
+                      : enLabel;
+              const active =
+                form.contentType === ty ||
+                (ty === 'POST' && !['STORY', 'REEL'].includes(form.contentType));
+              return (
+                <button
+                  key={ty}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  data-active={active ? 'true' : 'false'}
+                  onClick={() => onChange({ contentType: ty })}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+          {form.contentType === 'STORY' ? (
+            <div className="oma-compose-story-hint">
+              {isAr ? 'النشر مباشرة (بدون ملصقات)' : 'Publish directly (no stickers)'}
+            </div>
+          ) : null}
+        </div>
+
         <div className="oma-compose-body">
           <div className="oma-compose-side">
             <div className="oma-compose-avatar">
@@ -584,7 +653,7 @@ function PlanableComposeCard({
             <TextArea
               className="oma-compose-text"
               rows={4}
-              placeholder={"Type '/' to add headlines, media and more..."}
+              placeholder={t('content.type_to_add_headlines_media')}
               value={form.caption}
               onChange={(e) => onChange({ caption: e.target.value })}
             />
@@ -592,29 +661,6 @@ function PlanableComposeCard({
         </div>
 
         <div className="oma-compose-extras">
-          <label>
-            {t('demo.content.filter.type')}
-            <OmaSelect
-              value={form.contentType}
-              onChange={(contentType) => onChange({ contentType })}
-              options={['POST', 'REEL', 'CAROUSEL', 'STATIC', 'STORY'].map((ty) => ({
-                value: ty,
-                label: ty,
-              }))}
-            />
-          </label>
-          <div className="oma-compose-channel-field">
-            <span className="oma-compose-field-label">{t('demo.filter.channel')}</span>
-            <ChannelChoiceCards
-              brandId={brandId}
-              value={form.channel}
-              multiple
-              onChange={(channel) => onChange({ channel })}
-              onSelectPages={(socialPageIds) => onChange({ socialPageIds })}
-              locale={locale}
-              testId="demo-create-content-channels"
-            />
-          </div>
           <label>
             {t('demo.campaigns.col.owner')}
             <Input value={form.owner} onChange={(e) => onChange({ owner: e.target.value })} />
@@ -783,8 +829,9 @@ function CardFloatingMenu({
   if (!open || !realPos || !itemId) return null;
 
   const src = item || {};
+  /* Planable calendar hover menu order (month + week). Extra actions live in the preview modal. */
   const items: Array<{
-    action: CardMenuAction;
+    action: CardMenuAction | '__sep__';
     label: string;
     icon: ReactNode;
     danger?: boolean;
@@ -793,7 +840,7 @@ function CardFloatingMenu({
     {
       action: 'request',
       label: t('demo.content.requestApproval'),
-      icon: <SyncOutlined />,
+      icon: <CheckCircleOutlined />,
       disabled: !canRequestApproval(src),
     },
     {
@@ -802,36 +849,18 @@ function CardFloatingMenu({
       icon: <CheckOutlined />,
       disabled: !canApprove(src),
     },
+    { action: '__sep__', label: '', icon: null },
     {
-      action: 'changes',
-      label: t('strategy.review.requestChanges'),
-      icon: <FormOutlined />,
-      disabled: !canRequestChanges(src),
-    },
-    {
-      action: 'reject',
-      label: t('strategy.review.reject'),
-      icon: <CloseOutlined />,
-      disabled: !canReject(src),
-      danger: true,
+      action: 'unschedule',
+      label: t('content.unschedule_post'),
+      icon: <ClockCircleOutlined />,
+      disabled: src.scheduleState !== 'SCHEDULED',
     },
     {
       action: 'published',
-      label: t('content.mark_as_published'),
-      icon: <FlagOutlined />,
+      label: t('content.publish_post_now'),
+      icon: <SendOutlined />,
       disabled: !canMarkPublished(src, policy),
-    },
-    {
-      action: 'schedule',
-      label: t('nav.schedule'),
-      icon: <ClockCircleOutlined />,
-      disabled: !canScheduleItem(src, policy),
-    },
-    {
-      action: 'unschedule',
-      label: t('demo.content.unschedule'),
-      icon: <CalendarOutlined />,
-      disabled: src.scheduleState !== 'SCHEDULED',
     },
     {
       action: 'hide',
@@ -840,25 +869,15 @@ function CardFloatingMenu({
       icon: <EyeInvisibleOutlined />,
     },
     {
-      action: 'labels',
-      label: t('wsPanel.labels'),
-      icon: <TagOutlined />,
-    },
-    {
-      action: 'template',
-      label: t('content.save_as_template'),
-      icon: <CopyOutlined />,
-    },
-    {
-      action: 'ops',
-      label: t('content.convert_to_request'),
-      icon: <UnorderedListOutlined />,
-    },
-    {
       action: 'archive',
       label: t('content.archive_post'),
       icon: <InboxOutlined />,
       disabled: !canArchive(src),
+    },
+    {
+      action: 'repost',
+      label: t('preview.repost'),
+      icon: <RetweetOutlined />,
     },
   ];
 
@@ -929,29 +948,33 @@ function CardFloatingMenu({
           )}
         </>
       ) : null}
-      {(campaignStep ? [] : shown).map((it) => (
-        <button
-          key={it.action}
-          type="button"
-          role="menuitem"
-          className={
-            it.danger ? 'oma-card-menu__item oma-card-menu__item--danger' : 'oma-card-menu__item'
-          }
-          disabled={it.disabled}
-          data-disabled={it.disabled ? 'true' : undefined}
-          onClick={() => {
-            if (it.disabled) return;
-            if (it.action === 'campaign') {
-              setCampaignStep(true);
-              return;
+      {(campaignStep ? [] : shown).map((it, idx) =>
+        it.action === '__sep__' ? (
+          <div key={`sep-${idx}`} className="oma-card-menu__sep" role="separator" />
+        ) : (
+          <button
+            key={it.action}
+            type="button"
+            role="menuitem"
+            className={
+              it.danger ? 'oma-card-menu__item oma-card-menu__item--danger' : 'oma-card-menu__item'
             }
-            onAction(it.action, itemId);
-          }}
-        >
-          <span className="oma-card-menu__item-ico">{it.icon}</span>
-          <span>{it.label}</span>
-        </button>
-      ))}
+            disabled={it.disabled}
+            data-disabled={it.disabled ? 'true' : undefined}
+            onClick={() => {
+              if (it.disabled) return;
+              if (it.action === 'campaign') {
+                setCampaignStep(true);
+                return;
+              }
+              onAction(it.action as CardMenuAction, itemId);
+            }}
+          >
+            <span className="oma-card-menu__item-ico">{it.icon}</span>
+            <span>{it.label}</span>
+          </button>
+        ),
+      )}
     </div>,
     document.body,
   );
@@ -1112,6 +1135,23 @@ export default function ContentPage() {
   const [publishTipOpen, setPublishTipOpen] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [feedbackTab, setFeedbackTab] = useState<'comments' | 'suggestions'>('comments');
+  const [previewSyncOn, setPreviewSyncOn] = useState(true);
+  const [previewChannel, setPreviewChannel] = useState('');
+  const [addChannelOpen, setAddChannelOpen] = useState(false);
+  const [addChannelQuery, setAddChannelQuery] = useState('');
+  const [feedbackInternal, setFeedbackInternal] = useState(false);
+  const [feedbackReplyTo, setFeedbackReplyTo] = useState<string | null>(null);
+  const [feedbackAttachOpen, setFeedbackAttachOpen] = useState(false);
+  const [feedbackAttachmentIds, setFeedbackAttachmentIds] = useState<string[]>([]);
+  const [mentionOpen, setMentionOpen] = useState(false);
+  const [mentionQuery, setMentionQuery] = useState('');
+  const [copyToOpen, setCopyToOpen] = useState(false);
+  const [copyToBrandId, setCopyToBrandId] = useState<string | null>(null);
+  const [copyToPages, setCopyToPages] = useState<SocialPageRow[]>([]);
+  const [copyToLoading, setCopyToLoading] = useState(false);
+  const [audienceOpen, setAudienceOpen] = useState(false);
+  const [audienceDraft, setAudienceDraft] = useState('');
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
 
   const [overflowDay, setOverflowDay] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
@@ -1596,6 +1636,8 @@ export default function ContentPage() {
   }
 
   function openItem(item: ContentRow, tab: 'preview' | 'edit' | 'comments' = 'preview') {
+    setCardMenuId(null);
+    setMenuPos(null);
     setDetailSidePanel('feedback');
     setDetailPreviewMode('desktop');
     setDetailMoreOpen(false);
@@ -1742,20 +1784,30 @@ export default function ContentPage() {
 
   function renderCalendarCard(item: ContentRow) {
     const st = postStatus(item);
+    const channels = String(item.channel || '')
+      .split(',')
+      .map((c) => c.trim())
+      .filter(Boolean);
+    const extra = item as ContentRowExtra;
+    const attention = !extra.clientVisible || st.approval === 'PENDING';
     return (
       <CalendarPostCard
-        channel={item.channel}
+        channel={channels[0] || item.channel}
+        channels={channels}
+        accountName={brandName(item.brandId)}
         time={postTime(item)}
         timeTone={
           st.published ? 'published' : st.overdue ? 'overdue' : st.scheduled ? 'scheduled' : 'draft'
         }
         caption={item.caption ? pickCopy(item.caption, locale) : pickCopy(item.title, locale)}
         media={item.previewAsset || null}
+        contentType={item.contentType}
         labels={rowLabels(item)}
         campaign={item.campaignId ? campaignName(item.campaignId) : undefined}
         status={st}
         display={calDisplay}
         draft={!st.scheduled && !st.published}
+        attention={attention}
       />
     );
   }
@@ -1878,8 +1930,19 @@ export default function ContentPage() {
   function modalApproverNames(): string[] {
     return approvalEvents
       .filter((e) => /^APPROVE/i.test(e.action))
-      .map((e) => memberName(e.actor_user_id));
+      .map((e) => memberName(e.actor_user_id))
+      .filter(Boolean);
   }
+
+  useEffect(() => {
+    if (!selected) return;
+    const first = String(draft.channel || selected.channel || '')
+      .split(',')
+      .map((c) => c.trim())
+      .filter(Boolean)[0] || '';
+    setPreviewChannel((prev) => prev || first);
+    setAddChannelOpen(false);
+  }, [selected?.id]);
 
   function stepModal(step: number) {
     const ids = (view === 'list' ? sorted : filtered).map((r) => r.id);
@@ -2033,7 +2096,9 @@ export default function ContentPage() {
       } else if (command === 'reject') {
         apiRow = await rejectContent(id);
       } else if (command === 'mark-published') {
-        apiRow = await markContentPublished(id);
+        // Legacy sample mark-published is hidden when Publish now exists — enqueue real publish.
+        const queued = await publishContentNow(id);
+        apiRow = queued.data;
       } else if (command === 'archive') {
         apiRow = await archiveContent(id);
       } else if (command === 'schedule') {
@@ -2406,7 +2471,17 @@ export default function ContentPage() {
     }
     if (action === 'request') void runLifecycle('request-approval', id);
     else if (action === 'approve') void runLifecycle('approve', id);
-    else if (action === 'published') void runLifecycle('mark-published', id);
+    else if (action === 'published') {
+      void publishContentNow(id)
+        .then((res) => {
+          setRows((prev) => prev.map((r) => (r.id === id ? toContentRow(res.data) : r)));
+          toast.push(
+            isAr ? 'تمت إضافة المنشور إلى قائمة النشر' : 'Post queued for publishing',
+            'success',
+          );
+        })
+        .catch((e) => toast.push(contentApiError(e, t('errors.http')), 'danger'));
+    }
     else if (action === 'changes') void runLifecycle('request-changes', id);
     else if (action === 'reject') void runLifecycle('reject', id);
     else if (action === 'hide') void toggleHideFromClients(id);
@@ -2419,9 +2494,17 @@ export default function ContentPage() {
         if (ids?.requestId) window.location.href = `/app/requests/${ids.requestId}`;
       });
     } else if (action === 'repost') {
-      void convertContentToOps(id).then((ids) => {
-        if (ids?.deliverableId) window.location.href = `/app/deliverables/${ids.deliverableId}`;
-      });
+      void (async () => {
+        try {
+          const api = await duplicateContent(id);
+          const row = toContentRow(api);
+          setRows((prev) => [row, ...prev]);
+          toast.push(t('content.post_duplicated'), 'success');
+          openItem(row, 'edit');
+        } catch (err) {
+          toast.push(contentApiError(err, t('errors.http')), 'danger');
+        }
+      })();
     } else if (action === 'labels') {
       setLabelTarget('item');
       setSelectedId(id);
@@ -2448,13 +2531,15 @@ export default function ContentPage() {
   function placeCardMenu(itemId: string, target: HTMLElement, keepVariant = false) {
     if (!keepVariant) setMenuVariant('full');
     const rect = target.getBoundingClientRect();
-    const menuW = 248;
-    const menuH = 440;
-    let left = rect.left;
-    let top = rect.bottom + 6;
-    if (left + menuW + 8 > window.innerWidth) left = Math.max(8, window.innerWidth - menuW - 8);
+    const menuW = 220;
+    const menuH = 280;
+    const rtl = typeof document !== 'undefined' && document.documentElement.dir === 'rtl';
+    let left = rtl ? rect.left - menuW - 8 : rect.right + 8;
+    let top = rect.top;
+    if (left + menuW + 8 > window.innerWidth) left = Math.max(8, rect.left - menuW - 8);
+    if (left < 8) left = Math.min(window.innerWidth - menuW - 8, rect.right + 8);
     if (left < 8) left = 8;
-    if (top + menuH + 8 > window.innerHeight) top = Math.max(8, rect.top - menuH - 6);
+    if (top + menuH + 8 > window.innerHeight) top = Math.max(8, window.innerHeight - menuH - 8);
     setCardMenuId(itemId);
     setMenuPos({ top, left });
   }
@@ -4046,10 +4131,128 @@ export default function ContentPage() {
                   : null
               }
             />
-            <aside className="oma-plan-post__rail" aria-hidden>
-              <span className="oma-plan-post__rail-ico">
-                <EditOutlined />
-              </span>
+            <aside className="oma-plan-post__rail" aria-label={t('demo.filter.channel')}>
+              <div className="oma-plan-post__rail-sync">
+                <button
+                  type="button"
+                  data-on={previewSyncOn ? 'true' : 'false'}
+                  aria-pressed={previewSyncOn}
+                  aria-label="Sync"
+                  onClick={() => setPreviewSyncOn((v) => !v)}
+                />
+                <span>Sync</span>
+              </div>
+              {(draft.channel || selected.channel)
+                .split(',')
+                .map((c) => c.trim())
+                .filter(Boolean)
+                .map((ch) => (
+                  <div key={ch} className="oma-plan-post__rail-ch" data-active={previewChannel === ch ? 'true' : 'false'}>
+                    <button
+                      type="button"
+                      className="oma-plan-post__rail-av"
+                      aria-label={ch}
+                      onClick={() => setPreviewChannel(ch)}
+                    >
+                      <NetworkIcon channel={ch} size={16} />
+                      <span className="oma-plan-post__rail-badge">
+                        <NetworkIcon channel={ch} size={8} />
+                      </span>
+                    </button>
+                    <div className="oma-plan-post__rail-actions" role="menu">
+                      <button
+                        type="button"
+                        title={
+                          selected.scheduledAt
+                            ? (isAr
+                                ? `المجموعة مجدولة`
+                                : `Group is scheduled`)
+                            : t('content.select_date_time') || (isAr ? 'اختيار التاريخ والوقت' : 'Select date & time')
+                        }
+                        onClick={() => {
+                          if (selectedId) setDetailPreviewMode('edit');
+                        }}
+                      >
+                        <ClockCircleOutlined />
+                      </button>
+                      <button
+                        type="button"
+                        title={t('content.make_visible_to_clients')}
+                        onClick={() => selectedId && void toggleHideFromClients(selectedId)}
+                      >
+                        <EyeInvisibleOutlined />
+                      </button>
+                      <button
+                        type="button"
+                        title={t('content.publish_post_now') || (isAr ? 'نشر الآن' : 'Publish now')}
+                        onClick={() => {
+                          if (!selectedId) return;
+                          void publishContentNow(selectedId)
+                            .then((res) => {
+                              setRows((prev) =>
+                                prev.map((r) => (r.id === selectedId ? toContentRow(res.data) : r)),
+                              );
+                              toast.push(
+                                isAr ? 'تمت إضافة المنشور إلى قائمة النشر' : 'Post queued for publishing',
+                                'success',
+                              );
+                            })
+                            .catch((e) => toast.push(contentApiError(e, t('errors.http')), 'danger'));
+                        }}
+                      >
+                        <CheckOutlined />
+                      </button>
+                      <button
+                        type="button"
+                        title={t('demo.content.requestApproval')}
+                        onClick={() => selectedId && void runLifecycle('request-approval', selectedId)}
+                      >
+                        <FlagOutlined />
+                      </button>
+                      <button
+                        type="button"
+                        title={t('wsPanel.delete')}
+                        onClick={() => selectedId && void runLifecycle('archive', selectedId)}
+                      >
+                        <DeleteOutlined />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              <div style={{ position: 'relative' }}>
+                <button
+                  type="button"
+                  className="oma-plan-post__rail-add"
+                  aria-label={isAr ? 'إضافة قناة' : 'Add channel'}
+                  onClick={() => setAddChannelOpen((v) => !v)}
+                >
+                  +
+                </button>
+                {addChannelOpen ? (
+                  <div className="oma-plan-post__add-pop" role="dialog">
+                    <input
+                      value={addChannelQuery}
+                      onChange={(e) => setAddChannelQuery(e.target.value)}
+                      placeholder={isAr ? 'بحث عن حساب…' : 'Search accounts…'}
+                      aria-label={isAr ? 'بحث' : 'Search'}
+                    />
+                    <ChannelChoiceCards
+                      brandId={selected.brandId}
+                      value={draft.channel}
+                      multiple
+                      variant="accounts"
+                      filterQuery={addChannelQuery}
+                      onChange={(channel) => {
+                        setDraft((d) => ({ ...d, channel }));
+                        setPreviewChannel(channel.split(',')[0]?.trim() || channel);
+                      }}
+                      onSelectPages={(socialPageIds) => setDraft((d) => ({ ...d, socialPageIds }))}
+                      locale={locale}
+                      testId="preview-add-channel"
+                    />
+                  </div>
+                ) : null}
+              </div>
             </aside>
 
             <div className="oma-plan-post__main">
@@ -4252,6 +4455,27 @@ export default function ContentPage() {
                             <EyeInvisibleOutlined /> {t('content.make_visible_to_clients')}
                           </button>
                         </li>
+                        <li className="oma-plan-post__more-section" aria-hidden>
+                          {isAr ? 'إجراءات المنشور' : 'Post actions'}
+                        </li>
+                        <li>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              if (selectedId) {
+                                void duplicateContent(selectedId).then((apiRow) => {
+                                  const row = toContentRow(apiRow);
+                                  setRows((prev) => [row, ...prev]);
+                                  toast.push(t('content.post_duplicated'), 'success');
+                                  openItem(row);
+                                });
+                              }
+                            }}
+                          >
+                            <FileTextOutlined /> {isAr ? 'إعادة نشر' : 'Repost'}
+                          </button>
+                        </li>
                         <li>
                           <button
                             type="button"
@@ -4283,9 +4507,131 @@ export default function ContentPage() {
                           <button
                             type="button"
                             role="menuitem"
-                            onClick={() => void runLifecycle('mark-published', selectedId)}
+                            onClick={() => {
+                              if (!selectedId) return;
+                              void publishContentNow(selectedId)
+                                .then((res) => {
+                                  setRows((prev) =>
+                                    prev.map((r) =>
+                                      r.id === selectedId ? toContentRow(res.data) : r,
+                                    ),
+                                  );
+                                  toast.push(
+                                    isAr
+                                      ? 'تمت إضافة المنشور إلى قائمة النشر'
+                                      : 'Post queued for publishing',
+                                    'success',
+                                  );
+                                })
+                                .catch((e) => toast.push(contentApiError(e, t('errors.http')), 'danger'));
+                            }}
                           >
-                            <CheckOutlined /> {t('content.mark_published')}
+                            <CheckOutlined />{' '}
+                            {t('content.publish_post_now') || (isAr ? 'نشر الآن' : 'Publish now')}
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              if (!selectedId) return;
+                              const extra = selected as ContentRowExtra;
+                              const pageId = extra.socialPageIds?.[0] || extra.socialPageId;
+                              if (!pageId) {
+                                toast.push(
+                                  isAr ? 'لا توجد قناة لفصلها' : 'No channel to detach',
+                                  'danger',
+                                );
+                                return;
+                              }
+                              void detachContentChannel(selectedId, pageId)
+                                .then((res) => {
+                                  const row = toContentRow(res.data);
+                                  setRows((prev) => [row, ...prev]);
+                                  toast.push(isAr ? 'تم فصل القناة' : 'Channel detached', 'success');
+                                  openItem(row);
+                                })
+                                .catch((e) => toast.push(contentApiError(e, t('errors.http')), 'danger'));
+                            }}
+                          >
+                            <EditOutlined /> {isAr ? 'فصل عن المجموعة' : 'Detach from group'}
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              if (!selectedId) return;
+                              const first = brands.find((b) => b.id !== selected.brandId) || brands[0] || null;
+                              setCopyToBrandId(first?.id || null);
+                              setCopyToOpen(true);
+                              setDetailMoreOpen(false);
+                              if (first?.id) {
+                                setCopyToLoading(true);
+                                void brandSettingsApi
+                                  .social(first.id)
+                                  .then((r) => setCopyToPages(r.data.pages.filter((pg) => pg.status !== 'DISCONNECTED')))
+                                  .catch(() => setCopyToPages([]))
+                                  .finally(() => setCopyToLoading(false));
+                              } else {
+                                setCopyToPages([]);
+                              }
+                            }}
+                          >
+                            <CopyOutlined /> {t('content.copy_to') || (isAr ? 'نسخ إلى…' : 'Copy to…')}
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              if (!selectedId) return;
+                              setAudienceDraft((selected as ContentRowExtra).preferredAudience || '');
+                              setAudienceOpen(true);
+                              setDetailMoreOpen(false);
+                            }}
+                          >
+                            <UserOutlined />{' '}
+                            {isAr ? 'الجمهور المفضل' : 'Preferred audience'}
+                          </button>
+                        </li>
+                        <li className="oma-plan-post__more-section" aria-hidden>
+                          {isAr ? 'إجراءات المجموعة' : 'Group actions'}
+                        </li>
+                        <li>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              if (!selectedId) return;
+                              void ungroupContent(selectedId)
+                                .then((rows) => {
+                                  const mapped = rows.map((r) => toContentRow(r));
+                                  setRows((prev) => {
+                                    const ids = new Set(mapped.map((r) => r.id));
+                                    return [...mapped, ...prev.filter((r) => !ids.has(r.id))];
+                                  });
+                                  toast.push(isAr ? 'تم فك تجميع المنشورات' : 'Posts ungrouped', 'success');
+                                })
+                                .catch((e) => toast.push(contentApiError(e, t('errors.http')), 'danger'));
+                            }}
+                          >
+                            <FlagOutlined /> {isAr ? 'فك تجميع المنشورات' : 'Ungroup posts'}
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              if (selectedId) void toggleHideFromClients(selectedId);
+                            }}
+                          >
+                            <EyeInvisibleOutlined />{' '}
+                            {isAr ? 'إخفاء عن العملاء' : 'Hide from clients'}
                           </button>
                         </li>
                         <li>
@@ -4392,9 +4738,45 @@ export default function ContentPage() {
                         </span>
                         {modalApproval ? <ApprovalButton a={modalApproval} /> : null}
                         <span className="oma-fp__net">
-                          <NetworkIcon channel={selected.channel} size={14} />
+                          <NetworkIcon channel={previewChannel || selected.channel} size={14} />
                         </span>
                       </div>
+                      {modalApproverNames().length === 0 ||
+                      !(selected as ContentRowExtra).previewAsset ? (
+                        <div className="oma-pv-req" role="status">
+                          <strong>
+                            {isAr
+                              ? 'أكمل الإجراءات التالية للنشر أو جدولة هذه المجموعة'
+                              : 'Complete the following actions to publish or schedule this group'}
+                          </strong>
+                          <ul>
+                            {modalApproverNames().length === 0 ? (
+                              <li>
+                                {isAr
+                                  ? 'الموافقة مطلوبة قبل النشر'
+                                  : 'Approval is required before publishing'}
+                              </li>
+                            ) : null}
+                            {!(selected as ContentRowExtra).previewAsset &&
+                            ['REEL', 'STORY', 'VIDEO', 'CAROUSEL'].includes(selected.contentType) ? (
+                              <li>
+                                {isAr
+                                  ? 'يجب أن يحتوي المنشور على ملف وسائط واحد على الأقل'
+                                  : 'Post should have at least 1 media file'}
+                              </li>
+                            ) : null}
+                            {String(previewChannel || selected.channel)
+                              .toLowerCase()
+                              .includes('tiktok') ? (
+                              <li>
+                                {isAr
+                                  ? 'تيك توك: قد يتطلب التطبيق على الجوال'
+                                  : 'TikTok: Mobile app required'}
+                              </li>
+                            ) : null}
+                          </ul>
+                        </div>
+                      ) : null}
                       <div className="oma-pv-modal-post">
                         {renderPostPreview(
                           {
@@ -4488,6 +4870,7 @@ export default function ContentPage() {
                             brandId={selected.brandId}
                             value={draft.channel}
                             multiple
+                            variant="strip"
                             onChange={(channel) => setDraft((d) => ({ ...d, channel }))}
                             onSelectPages={(socialPageIds) =>
                               setDraft((d) => ({ ...d, socialPageIds }))
@@ -4708,6 +5091,199 @@ export default function ContentPage() {
                         </div>
                         {feedbackTab === 'comments' ? (
                           <div className="oma-plan-post__comments">
+                            <div className="oma-plan-post__comment-box oma-fb-composer">
+                              <div className="oma-plan-post__comment-input-row">
+                                <span className="oma-plan-post__avatar">U</span>
+                                <textarea
+                                  className="oma-plan-post__comment-input"
+                                  rows={feedbackInternal || feedbackReplyTo ? 3 : 2}
+                                  value={commentDraft}
+                                  placeholder={
+                                    feedbackReplyTo
+                                      ? isAr
+                                        ? 'رد داخلي…'
+                                        : 'Internal reply…'
+                                      : t('content.say_something')
+                                  }
+                                  onChange={(e) => {
+                                    const v = e.target.value;
+                                    setCommentDraft(v);
+                                    const at = v.lastIndexOf('@');
+                                    if (at >= 0 && (at === 0 || /\s/.test(v[at - 1] || ' '))) {
+                                      const q = v.slice(at + 1);
+                                      if (!q.includes(' ') && !q.includes('\n')) {
+                                        setMentionQuery(q);
+                                        setMentionOpen(true);
+                                        return;
+                                      }
+                                    }
+                                    setMentionOpen(false);
+                                    setMentionQuery('');
+                                  }}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Escape' && mentionOpen) {
+                                      e.preventDefault();
+                                      setMentionOpen(false);
+                                      return;
+                                    }
+                                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                                      e.preventDefault();
+                                      (
+                                        e.currentTarget
+                                          .closest('.oma-plan-post__comment-box')
+                                          ?.querySelector(
+                                            '.oma-plan-post__comment-send',
+                                          ) as HTMLButtonElement | null
+                                      )?.click();
+                                    }
+                                  }}
+                                />
+                                {mentionOpen ? (
+                                  <div className="oma-fb-mentions" role="listbox" data-testid="feedback-mentions">
+                                    {members
+                                      .filter((m) => m.user?.id)
+                                      .filter((m) => {
+                                        const q = mentionQuery.trim().toLowerCase();
+                                        if (!q) return true;
+                                        const hay = `${m.user?.name || ''} ${m.user?.email || ''}`.toLowerCase();
+                                        return hay.includes(q);
+                                      })
+                                      .slice(0, 8)
+                                      .map((m) => {
+                                        const label = m.user?.name || m.user?.email || '';
+                                        const handle = (m.user?.name || m.user?.email || 'user')
+                                          .trim()
+                                          .split(/\s+/)[0]
+                                          ?.replace(/[^\w\u0600-\u06FF.-]/g, '') || 'user';
+                                        return (
+                                          <button
+                                            key={m.id}
+                                            type="button"
+                                            role="option"
+                                            className="oma-fb-mentions__item"
+                                            onClick={() => {
+                                              const at = commentDraft.lastIndexOf('@');
+                                              const next =
+                                                at >= 0
+                                                  ? `${commentDraft.slice(0, at)}@${handle} `
+                                                  : `${commentDraft}@${handle} `;
+                                              setCommentDraft(next);
+                                              setMentionOpen(false);
+                                              setMentionQuery('');
+                                            }}
+                                          >
+                                            <span className="oma-plan-post__avatar" aria-hidden>
+                                              {memberInitials(m.user?.id)}
+                                            </span>
+                                            <span>
+                                              <strong>{label}</strong>
+                                              <span className="oma-muted oma-ltr"> @{handle}</span>
+                                            </span>
+                                          </button>
+                                        );
+                                      })}
+                                    {!members.some((m) => m.user?.id) ? (
+                                      <p className="oma-muted" style={{ margin: 8 }}>
+                                        {isAr ? 'لا أعضاء في مساحة العمل' : 'No workspace members'}
+                                      </p>
+                                    ) : null}
+                                  </div>
+                                ) : null}
+                              </div>
+                              <div className="oma-fb-composer__tools">
+                                <label>
+                                  <input
+                                    type="checkbox"
+                                    checked={feedbackInternal}
+                                    onChange={(e) => setFeedbackInternal(e.target.checked)}
+                                  />
+                                  {isAr ? 'داخلي' : 'Internal'}
+                                </label>
+                                <button
+                                  type="button"
+                                  title="@"
+                                  onClick={() => {
+                                    setCommentDraft((d) => {
+                                      const base = d.endsWith('@') || d.endsWith('@ ') ? d : `${d}${d && !/\s$/.test(d) ? ' ' : ''}@`;
+                                      return base;
+                                    });
+                                    setMentionQuery('');
+                                    setMentionOpen(true);
+                                  }}
+                                >
+                                  @
+                                </button>
+                                <button
+                                  type="button"
+                                  title={t('media.add')}
+                                  onClick={() => setFeedbackAttachOpen(true)}
+                                >
+                                  📎
+                                  {feedbackAttachmentIds.length
+                                    ? ` (${feedbackAttachmentIds.length})`
+                                    : ''}
+                                </button>
+                                {feedbackReplyTo ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => setFeedbackReplyTo(null)}
+                                  >
+                                    {t('common.cancel')}
+                                  </button>
+                                ) : null}
+                                <button
+                                  type="button"
+                                  className="oma-plan-post__comment-send"
+                                  disabled={!commentDraft.trim() || !selectedId}
+                                  onClick={() => {
+                                    void (async () => {
+                                      if (!selectedId || !commentDraft.trim()) return;
+                                      try {
+                                        if (editingCommentId) {
+                                          const c = await updateContentComment(
+                                            selectedId,
+                                            editingCommentId,
+                                            {
+                                              en: commentDraft.trim(),
+                                              ar: commentDraft.trim(),
+                                            },
+                                          );
+                                          setProdComments((prev) =>
+                                            prev.map((row) => (row.id === c.id ? c : row)),
+                                          );
+                                          setEditingCommentId(null);
+                                        } else {
+                                          const c = await addContentComment(
+                                            selectedId,
+                                            {
+                                              en: commentDraft.trim(),
+                                              ar: commentDraft.trim(),
+                                            },
+                                            {
+                                              internal: feedbackInternal,
+                                              parentId: feedbackReplyTo,
+                                              attachmentMediaIds: feedbackAttachmentIds,
+                                            },
+                                          );
+                                          setProdComments((prev) => [...prev, c]);
+                                          setFeedbackAttachmentIds([]);
+                                        }
+                                        setCommentDraft('');
+                                        setFeedbackReplyTo(null);
+                                        toast.push(t('demo.tasks.commentAdded'), 'success');
+                                      } catch (err) {
+                                        toast.push(
+                                          contentApiError(err, t('errors.http')),
+                                          'danger',
+                                        );
+                                      }
+                                    })();
+                                  }}
+                                >
+                                  {t('content.send') || (isAr ? 'نشر' : 'Post')}
+                                </button>
+                              </div>
+                            </div>
                             {prodComments.length === 0 ? (
                               <div className="oma-plan-post__empty">
                                 <strong>{t('content.no_comments_yet')}</strong>
@@ -4716,7 +5292,17 @@ export default function ContentPage() {
                             ) : (
                               <div className="oma-comment-thread">
                                 {prodComments.map((c) => (
-                                  <article key={c.id} className="oma-comment">
+                                  <article
+                                    key={c.id}
+                                    className="oma-comment oma-fb-comment"
+                                    data-internal={c.internal ? 'true' : 'false'}
+                                    data-resolved={c.resolved_at ? 'true' : 'false'}
+                                    style={
+                                      c.parent_id
+                                        ? { marginInlineStart: 18 }
+                                        : undefined
+                                    }
+                                  >
                                     <span className="oma-plan-post__avatar">
                                       {memberInitials(c.author_user_id)}
                                     </span>
@@ -4726,71 +5312,144 @@ export default function ContentPage() {
                                         <span className="oma-ltr">
                                           {formatCommentTime(c.at, locale, calendarTz)}
                                         </span>
+                                        {c.internal ? (
+                                          <span className="oma-muted">
+                                            {isAr ? 'داخلي' : 'Internal'}
+                                          </span>
+                                        ) : null}
                                       </div>
                                       <p className="oma-comment-body">
                                         {isAr ? c.body.ar || c.body.en : c.body.en || c.body.ar}
                                       </p>
-                                      <button
-                                        type="button"
-                                        className="oma-comment-delete"
-                                        onClick={() => {
-                                          if (!selectedId) return;
-                                          void deleteContentComment(selectedId, c.id)
-                                            .then(() => {
-                                              setProdComments((prev) =>
-                                                prev.filter((row) => row.id !== c.id),
+                                      {c.attachment_media_ids && c.attachment_media_ids.length ? (
+                                        <div className="oma-fb-attach" data-testid="feedback-attachments">
+                                          {c.attachment_media_ids.map((id) => (
+                                            <a
+                                              key={id}
+                                              className="oma-fb-attach__thumb"
+                                              href={`/api/v1/media/${id}/view`}
+                                              target="_blank"
+                                              rel="noreferrer"
+                                              title={isAr ? 'مرفق' : 'Attachment'}
+                                            >
+                                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                                              <img src={`/api/v1/media/${id}/view`} alt="" />
+                                            </a>
+                                          ))}
+                                        </div>
+                                      ) : null}
+                                      {c.reactions && Object.keys(c.reactions).length ? (
+                                        <div className="oma-fb-reactions">
+                                          {Object.entries(c.reactions).map(([emoji, users]) => (
+                                            <span key={emoji} className="oma-ltr">
+                                              {emoji} {users.length}
+                                            </span>
+                                          ))}
+                                        </div>
+                                      ) : null}
+                                      <div className="oma-fb-comment__actions">
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            if (!selectedId) return;
+                                            void reactContentComment(selectedId, c.id, '👍')
+                                              .then((updated) =>
+                                                setProdComments((prev) =>
+                                                  prev.map((row) =>
+                                                    row.id === updated.id ? updated : row,
+                                                  ),
+                                                ),
+                                              )
+                                              .catch((err) =>
+                                                toast.push(
+                                                  contentApiError(err, t('errors.http')),
+                                                  'danger',
+                                                ),
                                               );
-                                            })
-                                            .catch((err) => {
-                                              toast.push(
-                                                contentApiError(err, t('errors.http')),
-                                                'danger',
+                                          }}
+                                        >
+                                          👍
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            if (!selectedId) return;
+                                            void resolveContentComment(
+                                              selectedId,
+                                              c.id,
+                                              !c.resolved_at,
+                                            )
+                                              .then((updated) =>
+                                                setProdComments((prev) =>
+                                                  prev.map((row) =>
+                                                    row.id === updated.id ? updated : row,
+                                                  ),
+                                                ),
+                                              )
+                                              .catch((err) =>
+                                                toast.push(
+                                                  contentApiError(err, t('errors.http')),
+                                                  'danger',
+                                                ),
                                               );
-                                            });
-                                        }}
-                                      >
-                                        {t('wsPanel.delete')}
-                                      </button>
+                                          }}
+                                        >
+                                          {c.resolved_at
+                                            ? isAr
+                                              ? 'إعادة فتح'
+                                              : 'Reopen'
+                                            : isAr
+                                              ? 'حل'
+                                              : 'Resolve'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setFeedbackReplyTo(c.id);
+                                            setFeedbackInternal(true);
+                                          }}
+                                        >
+                                          {isAr ? 'رد' : 'Reply'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setEditingCommentId(c.id);
+                                            setCommentDraft(
+                                              isAr
+                                                ? c.body.ar || c.body.en
+                                                : c.body.en || c.body.ar,
+                                            );
+                                          }}
+                                        >
+                                          {isAr ? 'تعديل' : 'Edit'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            if (!selectedId) return;
+                                            void deleteContentComment(selectedId, c.id)
+                                              .then(() => {
+                                                setProdComments((prev) =>
+                                                  prev.filter((row) => row.id !== c.id),
+                                                );
+                                              })
+                                              .catch((err) => {
+                                                toast.push(
+                                                  contentApiError(err, t('errors.http')),
+                                                  'danger',
+                                                );
+                                              });
+                                          }}
+                                        >
+                                          {t('wsPanel.delete')}
+                                        </button>
+                                      </div>
                                     </div>
                                   </article>
                                 ))}
                               </div>
                             )}
-                            <div className="oma-plan-post__comment-box">
-                              <div className="oma-plan-post__comment-input-row">
-                                <span className="oma-plan-post__avatar">U</span>
-                                <textarea
-                                  className="oma-plan-post__comment-input"
-                                  rows={2}
-                                  value={commentDraft}
-                                  placeholder={t('content.leave_a_comment')}
-                                  onChange={(e) => setCommentDraft(e.target.value)}
-                                />
-                              </div>
-                              <button
-                                type="button"
-                                className="oma-plan-post__comment-send"
-                                disabled={!commentDraft.trim() || !selectedId}
-                                onClick={() => {
-                                  void (async () => {
-                                    if (!selectedId || !commentDraft.trim()) return;
-                                    try {
-                                      const c = await addContentComment(selectedId, {
-                                        en: commentDraft.trim(),
-                                        ar: commentDraft.trim(),
-                                      });
-                                      setProdComments((prev) => [...prev, c]);
-                                      setCommentDraft('');
-                                      toast.push(t('demo.tasks.commentAdded'), 'success');
-                                    } catch (err) {
-                                      toast.push(contentApiError(err, t('errors.http')), 'danger');
-                                    }
-                                  })();
-                                }}
-                              >
-                                {t('content.send')}
-                              </button>
-                            </div>
                           </div>
                         ) : (
                           <div className="oma-plan-post__empty">
@@ -4914,6 +5573,248 @@ export default function ContentPage() {
           </aside>
         </>
       ) : null}
+
+      {copyToOpen ? (
+        <div className="oma-plx-overlay" role="presentation" onClick={() => setCopyToOpen(false)}>
+          <div
+            className="oma-plx-popover"
+            role="dialog"
+            aria-label={isAr ? 'نسخ إلى' : 'Copy to'}
+            data-testid="copy-to-popover"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <header className="oma-plx-popover__head">
+              <strong>{isAr ? 'نسخ إلى…' : 'Copy to…'}</strong>
+              <button type="button" aria-label={t('common.close') || 'Close'} onClick={() => setCopyToOpen(false)}>
+                ×
+              </button>
+            </header>
+            <label className="oma-plx-popover__field">
+              <span>{isAr ? 'العلامة التجارية' : 'Brand'}</span>
+              <select
+                value={copyToBrandId || ''}
+                onChange={(e) => {
+                  const id = e.target.value || null;
+                  setCopyToBrandId(id);
+                  setCopyToPages([]);
+                  if (!id) return;
+                  setCopyToLoading(true);
+                  void brandSettingsApi
+                    .social(id)
+                    .then((r) =>
+                      setCopyToPages(r.data.pages.filter((pg) => pg.status !== 'DISCONNECTED')),
+                    )
+                    .catch(() => setCopyToPages([]))
+                    .finally(() => setCopyToLoading(false));
+                }}
+              >
+                {brands.map((b) => {
+                  const raw = (b as { name?: { en: string; ar: string } | string }).name;
+                  const label =
+                    typeof raw === 'string'
+                      ? raw
+                      : pickCopy(raw ?? { en: b.id, ar: b.id }, locale);
+                  return (
+                    <option key={b.id} value={b.id}>
+                      {label}
+                    </option>
+                  );
+                })}
+              </select>
+            </label>
+            <div className="oma-plx-popover__list">
+              <p className="oma-muted">
+                {isAr ? 'اختر قناة (اختياري)' : 'Choose a channel (optional)'}
+              </p>
+              {copyToLoading ? <p className="oma-muted">{isAr ? 'جارٍ التحميل…' : 'Loading…'}</p> : null}
+              <button
+                type="button"
+                className="oma-plx-popover__row"
+                onClick={() => {
+                  if (!selectedId || !copyToBrandId) return;
+                  void copyContentTo(selectedId, { brandId: copyToBrandId })
+                    .then((apiRow) => {
+                      const row = toContentRow(apiRow);
+                      setRows((prev) => [row, ...prev]);
+                      setCopyToOpen(false);
+                      toast.push(isAr ? 'تم النسخ' : 'Copied', 'success');
+                      openItem(row);
+                    })
+                    .catch((e) => toast.push(contentApiError(e, t('errors.http')), 'danger'));
+                }}
+              >
+                <strong>{isAr ? 'بدون قناة' : 'Brand only'}</strong>
+              </button>
+              {copyToPages.map((pg) => (
+                <button
+                  key={pg.id}
+                  type="button"
+                  className="oma-plx-popover__row"
+                  onClick={() => {
+                    if (!selectedId || !copyToBrandId) return;
+                    void copyContentTo(selectedId, {
+                      brandId: copyToBrandId,
+                      socialPageId: pg.id,
+                    })
+                      .then((apiRow) => {
+                        const row = toContentRow(apiRow);
+                        setRows((prev) => [row, ...prev]);
+                        setCopyToOpen(false);
+                        toast.push(isAr ? 'تم النسخ' : 'Copied', 'success');
+                        openItem(row);
+                      })
+                      .catch((e) => toast.push(contentApiError(e, t('errors.http')), 'danger'));
+                  }}
+                >
+                  <span className="oma-channel-accounts__av" aria-hidden>
+                    {pg.avatar_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={pg.avatar_url} alt="" />
+                    ) : (
+                      <span>{(pg.name || '?').slice(0, 1).toUpperCase()}</span>
+                    )}
+                  </span>
+                  <span>
+                    <strong>{pg.name}</strong>
+                    <span className="oma-muted oma-ltr">
+                      {' '}
+                      {pg.external_id ? `@${pg.external_id}` : pg.network}
+                    </span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {audienceOpen ? (
+        <div className="oma-plx-overlay" role="presentation" onClick={() => setAudienceOpen(false)}>
+          <div
+            className="oma-plx-popover"
+            role="dialog"
+            aria-label={isAr ? 'الجمهور المفضل' : 'Preferred audience'}
+            data-testid="preferred-audience-popover"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <header className="oma-plx-popover__head">
+              <strong>{isAr ? 'الجمهور المفضل' : 'Preferred audience'}</strong>
+              <button type="button" aria-label={t('common.close') || 'Close'} onClick={() => setAudienceOpen(false)}>
+                ×
+              </button>
+            </header>
+            <div className="oma-plx-popover__list">
+              {(isAr
+                ? [
+                    ['', 'افتراضي / عام'],
+                    ['followers', 'المتابعون'],
+                    ['public', 'عام'],
+                    ['custom', 'مخصص…'],
+                  ]
+                : [
+                    ['', 'Default / Public'],
+                    ['followers', 'Followers'],
+                    ['public', 'Public'],
+                    ['custom', 'Custom…'],
+                  ]
+              ).map(([value, label]) => (
+                <button
+                  key={label}
+                  type="button"
+                  className="oma-plx-popover__row"
+                  data-active={
+                    (value === 'custom'
+                      ? audienceDraft && !['followers', 'public', ''].includes(audienceDraft)
+                      : audienceDraft === value) || (!audienceDraft && value === '')
+                      ? 'true'
+                      : 'false'
+                  }
+                  onClick={() => {
+                    if (value === 'custom') {
+                      setAudienceDraft((d) => (d && !['followers', 'public'].includes(d) ? d : ''));
+                      return;
+                    }
+                    if (!selectedId) return;
+                    void setPreferredAudience(selectedId, value || null)
+                      .then((apiRow) => {
+                        setRows((prev) =>
+                          prev.map((r) => (r.id === selectedId ? toContentRow(apiRow) : r)),
+                        );
+                        setAudienceOpen(false);
+                        toast.push(
+                          isAr ? 'تم حفظ الجمهور المفضل' : 'Preferred audience saved',
+                          'success',
+                        );
+                      })
+                      .catch((e) => toast.push(contentApiError(e, t('errors.http')), 'danger'));
+                  }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <label className="oma-plx-popover__field">
+              <span>{isAr ? 'قيمة مخصصة' : 'Custom value'}</span>
+              <input
+                value={
+                  audienceDraft && !['followers', 'public'].includes(audienceDraft)
+                    ? audienceDraft
+                    : ''
+                }
+                placeholder={isAr ? 'مثلاً: منطقة الخليج' : 'e.g. GCC region'}
+                onChange={(e) => setAudienceDraft(e.target.value)}
+              />
+            </label>
+            <div className="oma-plx-popover__foot">
+              <button type="button" onClick={() => setAudienceOpen(false)}>
+                {t('common.cancel')}
+              </button>
+              <button
+                type="button"
+                className="oma-plx-popover__primary"
+                onClick={() => {
+                  if (!selectedId) return;
+                  const custom =
+                    audienceDraft && !['followers', 'public'].includes(audienceDraft)
+                      ? audienceDraft.trim()
+                      : audienceDraft.trim();
+                  void setPreferredAudience(selectedId, custom || null)
+                    .then((apiRow) => {
+                      setRows((prev) =>
+                        prev.map((r) => (r.id === selectedId ? toContentRow(apiRow) : r)),
+                      );
+                      setAudienceOpen(false);
+                      toast.push(
+                        isAr ? 'تم حفظ الجمهور المفضل' : 'Preferred audience saved',
+                        'success',
+                      );
+                    })
+                    .catch((e) => toast.push(contentApiError(e, t('errors.http')), 'danger'));
+                }}
+              >
+                {isAr ? 'حفظ' : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      <MediaPickerDialog
+        open={feedbackAttachOpen}
+        brandId={selected?.brandId || brands[0]?.id || null}
+        kind="posts"
+        t={t}
+        locale={locale}
+        canConnect={canManageWorkspace}
+        onClose={() => setFeedbackAttachOpen(false)}
+        onPick={(asset) => {
+          setFeedbackAttachmentIds((ids) =>
+            ids.includes(asset.id) ? ids : [...ids, asset.id],
+          );
+          setFeedbackAttachOpen(false);
+          toast.push(isAr ? 'تم إرفاق الوسائط بالتعليق' : 'Attachment added to comment', 'success');
+        }}
+      />
 
       {/* Media library (WorkDrive) */}
       <MediaPickerDialog

@@ -104,6 +104,8 @@ export type ContentRowExtra = ContentRow & {
   publishedAt?: string | null;
   externalPostUrl?: string | null;
   timezone?: string;
+  syncGroupId?: string | null;
+  preferredAudience?: string | null;
 };
 
 export function toContentRow(c: ApiContent): ContentRowExtra {
@@ -149,6 +151,8 @@ export function toContentRow(c: ApiContent): ContentRowExtra {
     publishedAt: c.publishing?.published_at ?? null,
     externalPostUrl: c.publishing?.external_post_url ?? null,
     timezone: c.timezone,
+    syncGroupId: (c as { sync_group_id?: string | null }).sync_group_id ?? null,
+    preferredAudience: (c as { preferred_audience?: string | null }).preferred_audience ?? null,
   };
 }
 
@@ -281,6 +285,14 @@ export async function unscheduleContent(contentId: string) {
 
 export async function archiveContent(contentId: string) {
   const res = await api<{ data: ApiContent }>(`/api/v1/content/${contentId}/archive`, {
+    method: 'POST',
+    body: JSON.stringify({}),
+  });
+  return res.data;
+}
+
+export async function duplicateContent(contentId: string) {
+  const res = await api<{ data: ApiContent }>(`/api/v1/content/${contentId}/duplicate`, {
     method: 'POST',
     body: JSON.stringify({}),
   });
@@ -505,6 +517,11 @@ export type ContentCommentDto = {
   author_user_id: string;
   body: { en: string; ar: string };
   at: string;
+  internal?: boolean;
+  parent_id?: string | null;
+  resolved_at?: string | null;
+  reactions?: Record<string, string[]>;
+  attachment_media_ids?: string[];
 };
 
 export async function getContentDetail(contentId: string): Promise<{
@@ -515,16 +532,100 @@ export async function getContentDetail(contentId: string): Promise<{
   return api(`/api/v1/content/${contentId}`);
 }
 
-export async function addContentComment(contentId: string, body: ApiLocale | string) {
+export async function addContentComment(
+  contentId: string,
+  body: ApiLocale | string,
+  extra?: { internal?: boolean; parentId?: string | null; attachmentMediaIds?: string[] },
+) {
   const res = await api<{ data: ContentCommentDto }>(`/api/v1/content/${contentId}/comments`, {
     method: 'POST',
-    body: JSON.stringify({ body }),
+    body: JSON.stringify({
+      body,
+      internal: extra?.internal,
+      parent_id: extra?.parentId,
+      attachment_media_ids: extra?.attachmentMediaIds,
+    }),
   });
   return res.data;
 }
 
 export async function deleteContentComment(contentId: string, commentId: string) {
   return api(`/api/v1/content/${contentId}/comments/${commentId}`, { method: 'DELETE' });
+}
+
+export async function updateContentComment(
+  contentId: string,
+  commentId: string,
+  body: ApiLocale | string,
+) {
+  const res = await api<{ data: ContentCommentDto }>(
+    `/api/v1/content/${contentId}/comments/${commentId}`,
+    { method: 'PATCH', body: JSON.stringify({ body }) },
+  );
+  return res.data;
+}
+
+export async function resolveContentComment(
+  contentId: string,
+  commentId: string,
+  resolved = true,
+) {
+  const res = await api<{ data: ContentCommentDto }>(
+    `/api/v1/content/${contentId}/comments/${commentId}/resolve`,
+    { method: 'POST', body: JSON.stringify({ resolved }) },
+  );
+  return res.data;
+}
+
+export async function reactContentComment(contentId: string, commentId: string, emoji: string) {
+  const res = await api<{ data: ContentCommentDto }>(
+    `/api/v1/content/${contentId}/comments/${commentId}/react`,
+    { method: 'POST', body: JSON.stringify({ emoji }) },
+  );
+  return res.data;
+}
+
+export async function publishContentNow(contentId: string) {
+  const res = await api<{ data: ApiContent; enqueued?: number }>(
+    `/api/v1/content/${contentId}/publish-now`,
+    { method: 'POST', body: JSON.stringify({}) },
+  );
+  return res;
+}
+
+export async function ungroupContent(contentId: string) {
+  const res = await api<{ data: ApiContent[] }>(`/api/v1/content/${contentId}/ungroup`, {
+    method: 'POST',
+    body: JSON.stringify({}),
+  });
+  return res.data;
+}
+
+export async function detachContentChannel(contentId: string, socialPageId: string) {
+  const res = await api<{ data: ApiContent; source_id: string }>(
+    `/api/v1/content/${contentId}/detach`,
+    { method: 'POST', body: JSON.stringify({ socialPageId }) },
+  );
+  return res;
+}
+
+export async function copyContentTo(
+  contentId: string,
+  input: { brandId: string; socialPageId?: string | null },
+) {
+  const res = await api<{ data: ApiContent }>(`/api/v1/content/${contentId}/copy-to`, {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+  return res.data;
+}
+
+export async function setPreferredAudience(contentId: string, audience: string | null) {
+  const res = await api<{ data: ApiContent }>(
+    `/api/v1/content/${contentId}/preferred-audience`,
+    { method: 'POST', body: JSON.stringify({ audience }) },
+  );
+  return res.data;
 }
 
 export async function requestContentChanges(contentId: string, note?: ApiLocale | string) {

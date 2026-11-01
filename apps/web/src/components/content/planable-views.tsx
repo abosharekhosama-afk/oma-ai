@@ -100,35 +100,56 @@ export function ApprovalPill({ approval, t }: { approval: string; t: (k: string)
 
 export function CalendarPostCard({
   channel,
+  channels,
+  accountName,
   time,
   timeTone,
   caption,
   media,
+  contentType,
   labels,
   campaign,
   status,
   display,
   draft,
+  attention,
 }: {
   channel: string;
+  /** Extra network keys when the post targets multiple pages (Planable multi-icon row). */
+  channels?: string[];
+  /** Page / brand name shown beside the network icon when there is a single channel. */
+  accountName?: string;
   time: string;
   timeTone: 'scheduled' | 'overdue' | 'draft' | 'published';
   caption: string;
   media: string | null;
+  contentType?: string;
   labels: string[];
   campaign?: string;
   status: PostStatus;
   display: CalendarDisplay;
   draft: boolean;
+  /** Yellow striped top edge (Planable attention/flag strip). */
+  attention?: boolean;
 }) {
   const t = useT();
   const has = (e: CalendarElement) => display.elements.includes(e);
   const showMedia = display.postSize === 'default' && media && !isPlaceholderAsset(media);
+  const isVideo = contentType === 'REEL' || contentType === 'STORY' || contentType === 'VIDEO';
+  const nets = (channels?.length ? channels : [channel]).filter(Boolean);
+  const overflow = Math.max(0, nets.length - 2);
+  const shownNets = nets.slice(0, 2);
+  const single = nets.length === 1;
+  const pending =
+    status.approval === 'PENDING' || status.approval === 'PARTIALLY_APPROVED';
+  const approved = status.approval === 'APPROVED';
   return (
     <span
       className="oma-pv-cal-card"
       data-size={display.postSize}
       data-faded={display.fadePublished && status.published ? 'true' : 'false'}
+      data-draft={draft ? 'true' : 'false'}
+      data-attention={attention || pending ? 'true' : 'false'}
     >
       {(has('labels') && labels.length) || (has('campaigns') && campaign) ? (
         <span className="oma-pv-chips">
@@ -136,53 +157,79 @@ export function CalendarPostCard({
             <span className="oma-pv-chip oma-pv-chip--campaign">{campaign}</span>
           ) : null}
           {has('labels')
-            ? labels.slice(0, 2).map((l) => (
+            ? labels.slice(0, campaign && has('campaigns') ? 1 : 2).map((l) => (
                 <span key={l} className="oma-pv-chip">
                   {l}
                 </span>
               ))
             : null}
-          {has('labels') && labels.length > 2 ? (
-            <span className="oma-pv-chip oma-ltr">+{labels.length - 2}</span>
+          {has('labels') &&
+          labels.length > (campaign && has('campaigns') ? 1 : 2) ? (
+            <span className="oma-pv-chip oma-pv-chip--more oma-ltr">
+              +{labels.length - (campaign && has('campaigns') ? 1 : 2)}
+            </span>
           ) : null}
         </span>
       ) : null}
       <span className="oma-pv-cal-card__row">
-        <NetworkIcon channel={channel} size={12} />
-        <span className="oma-pv-cal-card__spacer" />
-        {draft ? <span className="oma-pv-cal-card__draft">{t('views.status.draft')}</span> : null}
-        <span className="oma-pv-cal-card__time oma-ltr" data-tone={timeTone}>
-          {timeTone === 'scheduled' || timeTone === 'overdue'
-            ? svg(ICON.clock, 10)
-            : timeTone === 'published'
-              ? svg(ICON.send, 10)
-              : null}
-          {time}
+        <span className="oma-pv-cal-card__account">
+          <span className="oma-pv-cal-card__nets" aria-hidden>
+            {shownNets.map((n) => (
+              <span key={n} className="oma-pv-cal-card__net">
+                <NetworkIcon channel={n} size={12} />
+              </span>
+            ))}
+            {overflow > 0 ? <span className="oma-pv-cal-card__net-more oma-ltr">+{overflow}</span> : null}
+          </span>
+          {single && accountName ? <span className="oma-pv-cal-card__name">{accountName}</span> : null}
         </span>
+        <span className="oma-pv-cal-card__spacer" />
+        {time || draft ? (
+          <span className="oma-pv-cal-card__time oma-ltr" data-tone={timeTone}>
+            {time || (draft ? t('views.status.draft') : '')}
+            <i
+              className="oma-pv-cal-card__dot"
+              data-state={approved ? 'ok' : pending ? 'pending' : draft ? 'draft' : 'none'}
+              aria-hidden
+            />
+          </span>
+        ) : null}
       </span>
       {showMedia ? (
-        <span className="oma-pv-cal-card__media">
-          <MediaSurface src={media!} alt="" />
+        <span className="oma-pv-cal-card__media" data-video={isVideo ? 'true' : 'false'}>
+          <MediaSurface src={media!} contentType={contentType} alt="" />
+          {isVideo ? (
+            <span className="oma-pv-cal-card__play" aria-hidden>
+              {svg(ICON.video, 12)}
+            </span>
+          ) : null}
         </span>
+      ) : display.postSize === 'default' ? (
+        <span className="oma-pv-cal-card__media oma-pv-cal-card__media--empty" aria-hidden />
       ) : null}
       {caption ? (
         <span className="oma-pv-cal-card__text" dir="auto">
           {caption}
         </span>
       ) : null}
-      {(has('approvals') &&
-        (status.approval === 'APPROVED' ||
-          status.approval === 'PENDING' ||
-          status.approval === 'PARTIALLY_APPROVED')) ||
-      (has('comments') && status.comments > 0) ? (
+      {(has('approvals') && (approved || pending)) ||
+      (has('comments') && status.comments > 0) ||
+      status.hidden ? (
         <span className="oma-pv-cal-card__foot">
           {has('approvals') ? <ApprovalPill approval={status.approval} t={t} /> : null}
-          {has('comments') && status.comments > 0 ? (
-            <span className="oma-pv-status__i">
-              {svg(ICON.comment)}
-              <span className="oma-ltr">{status.comments}</span>
-            </span>
-          ) : null}
+          <span className="oma-pv-cal-card__foot-end">
+            {status.hidden ? (
+              <span className="oma-pv-status__i" title={t('views.status.team_only')}>
+                {svg(ICON.hidden)}
+              </span>
+            ) : null}
+            {has('comments') && status.comments > 0 ? (
+              <span className="oma-pv-status__i">
+                {svg(ICON.comment)}
+                <span className="oma-ltr">{status.comments}</span>
+              </span>
+            ) : null}
+          </span>
         </span>
       ) : null}
     </span>

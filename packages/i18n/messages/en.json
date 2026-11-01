@@ -2365,5 +2365,8 @@
   "shell.notificationPref.content.publish.succeeded": "Post published successfully",
   "shell.notification.content.publish.failed": "Publishing failed",
   "shell.notificationBody.content.publish.failed": "A scheduled post could not be published.",
-  "shell.notificationPref.content.publish.failed": "Publishing failed"
+  "shell.notificationPref.content.publish.failed": "Publishing failed",
+  "content.unschedule_post": "Unschedule post",
+  "content.publish_post_now": "Publish post now",
+  "content.post_duplicated": "Post duplicated as a new draft"
 }

@@ -1140,6 +1140,10 @@ model ContentItem {
   externalPostUrl  String?
   publishedAt      DateTime?
   archivedAt       DateTime?
+  /// Shared id across posts that were composed with Sync ON (Planable group).
+  syncGroupId      String?
+  /// Preferred audience label (Planable post setting), free text.
+  preferredAudience String?
   createdBy        String
   createdAt        DateTime             @default(now())
   updatedAt        DateTime             @updatedAt
@@ -1157,6 +1161,7 @@ model ContentItem {
   @@index([tenantId, createdAt])
   @@index([tenantId, channel])
   @@index([publishState, nextPublishAt])
+  @@index([tenantId, syncGroupId])
 }
 
 model ContentApprovalEvent {
@@ -1287,6 +1292,12 @@ model ContentComment {
   authorUserId String
   bodyEn      String
   bodyAr      String
+  isInternal  Boolean     @default(false)
+  parentId    String?
+  resolvedAt  DateTime?
+  /// JSON map of emoji -> userId[]
+  reactionsJson String    @default("{}")
+  attachmentMediaIds String[] @default([])
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   content     ContentItem @relation(fields: [contentId], references: [id], onDelete: Cascade)
@@ -1294,6 +1305,7 @@ model ContentComment {
   @@index([contentId, createdAt])
   @@index([tenantId, contentId])
   @@index([tenantId, createdAt])
+  @@index([parentId])
 }
 
 enum WorkRequestStatus {

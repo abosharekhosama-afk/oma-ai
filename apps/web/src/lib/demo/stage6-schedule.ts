@@ -1,5 +1,5 @@
 import type { DemoGraph, PublishDisplay } from '@oma/demo';
-import { todayKey } from '../calendar-today';
+import { FALLBACK_SCHEDULE_TZ, todayKey, wallTimeToIso } from '../calendar-today';
 
 export type ScheduleRow = DemoGraph['scheduledPosts'][number];
 
@@ -120,25 +120,51 @@ export function groupScheduleByDay(rows: ScheduleRow[]): Map<string, ScheduleRow
   return map;
 }
 
-/** Build 7-day window starting Monday of the week containing `anchor`. */
-export function weekDays(anchor = todayKey()): string[] {
-  const d = new Date(`${anchor}T12:00:00+03:00`);
-  const day = d.getUTCDay(); // 0 Sun
+/** Calendar date key for an Instant in an IANA timezone. */
+function dateKeyInZone(instant: Date, timeZone: string): string {
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(instant);
+  const y = parts.find((p) => p.type === 'year')?.value ?? '1970';
+  const m = parts.find((p) => p.type === 'month')?.value ?? '01';
+  const d = parts.find((p) => p.type === 'day')?.value ?? '01';
+  return `${y}-${m}-${d}`;
+}
+
+function weekdaySun0InZone(instant: Date, timeZone: string): number {
+  const name = new Intl.DateTimeFormat('en-US', { timeZone, weekday: 'short' }).format(instant);
+  const map: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+  return map[name] ?? instant.getUTCDay();
+}
+
+/** Build 7-day window starting Monday of the week containing `anchor` in `timeZone`. */
+export function weekDays(
+  anchor = todayKey(),
+  timeZone: string = FALLBACK_SCHEDULE_TZ,
+): string[] {
+  const noonIso = wallTimeToIso(`${anchor}T12:00`, timeZone) || `${anchor}T12:00:00.000Z`;
+  const d = new Date(noonIso);
+  const day = weekdaySun0InZone(d, timeZone);
   const mondayOffset = day === 0 ? -6 : 1 - day;
-  d.setUTCDate(d.getUTCDate() + mondayOffset);
   const out: string[] = [];
   for (let i = 0; i < 7; i += 1) {
-    const x = new Date(d);
-    x.setUTCDate(d.getUTCDate() + i);
-    out.push(x.toISOString().slice(0, 10));
+    const x = new Date(d.getTime() + (mondayOffset + i) * 86_400_000);
+    out.push(dateKeyInZone(x, timeZone));
   }
   return out;
 }
 
-export function shiftWeek(anchor: string, deltaWeeks: number): string {
-  const d = new Date(`${anchor}T12:00:00+03:00`);
-  d.setUTCDate(d.getUTCDate() + deltaWeeks * 7);
-  return d.toISOString().slice(0, 10);
+export function shiftWeek(
+  anchor: string,
+  deltaWeeks: number,
+  timeZone: string = FALLBACK_SCHEDULE_TZ,
+): string {
+  const noonIso = wallTimeToIso(`${anchor}T12:00`, timeZone) || `${anchor}T12:00:00.000Z`;
+  const d = new Date(new Date(noonIso).getTime() + deltaWeeks * 7 * 86_400_000);
+  return dateKeyInZone(d, timeZone);
 }
 
 export function isValidPlannedAt(value: string): boolean {

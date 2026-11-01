@@ -4346,7 +4346,9 @@ button.oma-cal-item {
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18) !important;
 }
 .oma-card-menu--float .oma-card-menu__item {
-  display: block !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
   width: 100% !important;
   min-height: 34px !important;
   padding: 0 12px !important;
@@ -4358,8 +4360,26 @@ button.oma-cal-item {
   text-align: start !important;
   cursor: pointer !important;
 }
-.oma-card-menu--float .oma-card-menu__item:hover {
+.oma-card-menu--float .oma-card-menu__item[data-disabled='true'],
+.oma-card-menu--float .oma-card-menu__item:disabled {
+  opacity: 0.45 !important;
+  cursor: default !important;
+}
+.oma-card-menu--float .oma-card-menu__item:hover:not(:disabled):not([data-disabled='true']) {
   background: #f5f6f7 !important;
+}
+.oma-card-menu--float .oma-card-menu__item-ico {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 16px !important;
+  color: #667085 !important;
+  font-size: 13px !important;
+}
+.oma-card-menu--float .oma-card-menu__sep {
+  height: 1px !important;
+  margin: 4px 8px !important;
+  background: #eef0f2 !important;
 }
 /* ==== end OMA PLANABLE FIX v3 ==== */
 
@@ -7734,4 +7754,38 @@ label.oma-compose-media {
   margin: 0;
   color: var(--oma-ink-subtle);
   font-size: 13px;
+}
+
+
+/* ==== Planable calendar card + preview polish (nov01) ==== */
+.oma-plan-post__comments {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  min-height: 0 !important;
+}
+.oma-plan-post__comments .oma-plan-post__comment-box,
+.oma-plan-post__comment-box {
+  order: -1 !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1 !important;
+  background: #fff !important;
+  padding-bottom: 8px !important;
+  border-bottom: 1px solid #eef0f2 !important;
+}
+.oma-plan-post__comment-input {
+  border: 1px solid #e6e8eb !important;
+  border-radius: 8px !important;
+  resize: none !important;
+}
+.oma-pv-modal-stage {
+  position: relative;
+}
+.oma-plan-post-modal .ant-modal-content,
+.oma-plan-post-modal .oma-dialog__panel {
+  border-radius: 12px !important;
+  box-shadow: 0 16px 48px rgb(16 24 40 / 18%) !important;
 }

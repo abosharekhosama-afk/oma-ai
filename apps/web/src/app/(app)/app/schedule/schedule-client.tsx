@@ -26,6 +26,7 @@ import {
   unscheduleContent,
 } from '../../../../lib/content-api';
 import { ChannelChoiceCards } from '../../../../components/content/channel-choice-cards';
+import { NetworkIcon } from '../../../../components/content/network-icon';
 import { PublishTargetsPanel } from '../../../../components/content/publish-targets-panel';
 import { todayKey, wallTimeToIso } from '../../../../lib/calendar-today';
 import { brandScheduleTimezone } from '../../../../lib/brand-schedule-timezone';
@@ -132,9 +133,6 @@ export default function SchedulePage() {
   }, [load]);
 
   const filtered = useMemo(() => filterSchedule(rows, filters, locale), [rows, filters, locale]);
-  const days = useMemo(() => weekDays(anchor), [anchor]);
-  const datedRows = useMemo(() => filtered.filter((row) => Boolean(row.plannedAt)), [filtered]);
-  const byDay = useMemo(() => groupScheduleByDay(datedRows), [datedRows]);
   const selected = rows.find((r) => r.id === selectedId) ?? null;
   const scheduleTz = useMemo(
     () =>
@@ -145,6 +143,9 @@ export default function SchedulePage() {
       ),
     [activeBrandId, brands, selected?.brandId, selected?.timezone],
   );
+  const days = useMemo(() => weekDays(anchor, scheduleTz), [anchor, scheduleTz]);
+  const datedRows = useMemo(() => filtered.filter((row) => Boolean(row.plannedAt)), [filtered]);
+  const byDay = useMemo(() => groupScheduleByDay(datedRows), [datedRows]);
   const todayInBrand = useMemo(() => todayKey(scheduleTz), [scheduleTz]);
   const selectedContent = contents.find((item) => item.id === selected?.contentId) ?? null;
   const selectedWorkflow = selectedContent ? resolveContentWorkflow(selectedContent, policy) : null;
@@ -266,8 +267,9 @@ export default function SchedulePage() {
         title={t('demo.schedule.title')}
         description={t('demo.schedule.subtitle')}
         meta={
-          <span className="oma-muted" data-testid="demo-schedule-tz">
-            {t('demo.schedule.timezone')}: {scheduleTz}
+          <span className="oma-plx-tz" data-testid="demo-schedule-tz">
+            <span className="oma-plx-tz__label">{t('demo.schedule.timezone')}</span>
+            <strong className="oma-ltr">{scheduleTz}</strong>
           </span>
         }
       />
@@ -307,7 +309,7 @@ export default function SchedulePage() {
                 <Button
                   type="default"
                   data-testid="demo-schedule-prev"
-                  onClick={() => setAnchor((a) => shiftWeek(a, -1))}
+                  onClick={() => setAnchor((a) => shiftWeek(a, -1, scheduleTz))}
                 >
                   {t('demo.schedule.prev')}
                 </Button>
@@ -321,7 +323,7 @@ export default function SchedulePage() {
                 <Button
                   type="default"
                   data-testid="demo-schedule-next"
-                  onClick={() => setAnchor((a) => shiftWeek(a, 1))}
+                  onClick={() => setAnchor((a) => shiftWeek(a, 1, scheduleTz))}
                 >
                   {t('demo.schedule.next')}
                 </Button>
@@ -392,25 +394,46 @@ export default function SchedulePage() {
                           </span>
                           <span className="oma-sched-day-label__key oma-ltr">{day}</span>
                         </div>
-                        {(byDay.get(day) ?? []).map((post) => (
-                          <SurfaceButton
-                            key={post.id}
-                            data-state={post.state}
-                            data-testid={`demo-sched-item-${post.id}`}
-                            onClick={() => openItem(post.id)}
-                            className="oma-sched-pill"
-                          >
-                            <strong>{pickCopy(post.title, locale)}</strong>
-                            <span>{post.channels.join(', ') || '—'}</span>
-                            <StatusMark
-                              display={displayForScheduleBucket(bucketForScheduleRow(post))}
-                              locale={locale}
-                            />
-                            <span data-testid={`demo-sched-bucket-${post.id}`}>
-                              {t(`demo.schedule.bucket.${bucketForScheduleRow(post)}`)}
-                            </span>
-                          </SurfaceButton>
-                        ))}
+                        {(byDay.get(day) ?? []).map((post) => {
+                          const bucket = bucketForScheduleRow(post);
+                          const ch = post.channels[0] || '';
+                          return (
+                            <SurfaceButton
+                              key={post.id}
+                              data-state={post.state}
+                              data-testid={`demo-sched-item-${post.id}`}
+                              onClick={() => openItem(post.id)}
+                              className="oma-sched-pill oma-plx-sched-card"
+                            >
+                              <span className="oma-plx-sched-card__top">
+                                <span className="oma-plx-sched-card__nets" aria-hidden>
+                                  {post.channels.slice(0, 3).map((c) => (
+                                    <NetworkIcon key={c} channel={c} size={12} />
+                                  ))}
+                                  {!post.channels.length ? <span>—</span> : null}
+                                </span>
+                                <span className="oma-plx-sched-card__when oma-ltr">
+                                  {formatScheduleWhen(post.plannedAt, post.timezone || scheduleTz, locale)}
+                                </span>
+                              </span>
+                              <strong className="oma-plx-sched-card__title">
+                                {pickCopy(post.title, locale)}
+                              </strong>
+                              <span className="oma-plx-sched-card__meta">
+                                <StatusMark
+                                  display={displayForScheduleBucket(bucket)}
+                                  locale={locale}
+                                />
+                                <span data-testid={`demo-sched-bucket-${post.id}`}>
+                                  {t(`demo.schedule.bucket.${bucket}`)}
+                                </span>
+                              </span>
+                              {ch ? (
+                                <span className="oma-plx-sched-card__channel oma-muted">{ch}</span>
+                              ) : null}
+                            </SurfaceButton>
+                          );
+                        })}
                       </div>
                     ))}
                   </div>
@@ -430,8 +453,13 @@ export default function SchedulePage() {
                         className="oma-sched-card"
                         data-testid={`demo-sched-card-${post.id}`}
                       >
-                        <div className="oma-sched-card-head">
-                          <div>
+                        <div className="oma-sched-card-head oma-plx-agenda-head">
+                          <div className="oma-plx-agenda-head__main">
+                            <span className="oma-plx-sched-card__nets" aria-hidden>
+                              {post.channels.slice(0, 4).map((c) => (
+                                <NetworkIcon key={c} channel={c} size={14} />
+                              ))}
+                            </span>
                             <strong>{pickCopy(post.title, locale)}</strong>
                             <p className="oma-muted">
                               {weekdayForScheduleDay(
@@ -439,18 +467,22 @@ export default function SchedulePage() {
                                 locale,
                                 scheduleTz,
                               )}{' '}
-                              · {formatScheduleWhen(post.plannedAt, post.timezone, locale)} ·{' '}
-                              {post.timezone} ·{' '}
+                              · {formatScheduleWhen(post.plannedAt, post.timezone || scheduleTz, locale)}
+                              <span className="oma-plx-tz-inline oma-ltr"> · {post.timezone || scheduleTz}</span>
+                            </p>
+                            <p className="oma-plx-agenda-channels">
                               {post.channels.join(', ') || t('demo.schedule.ownerEmpty')}
                             </p>
                           </div>
-                          <StatusMark
-                            display={displayForScheduleBucket(bucketForScheduleRow(post))}
-                            locale={locale}
-                          />
-                          <span data-testid={`demo-sched-bucket-${post.id}`}>
-                            {t(`demo.schedule.bucket.${bucketForScheduleRow(post)}`)}
-                          </span>
+                          <div className="oma-plx-agenda-head__status">
+                            <StatusMark
+                              display={displayForScheduleBucket(bucketForScheduleRow(post))}
+                              locale={locale}
+                            />
+                            <span data-testid={`demo-sched-bucket-${post.id}`}>
+                              {t(`demo.schedule.bucket.${bucketForScheduleRow(post)}`)}
+                            </span>
+                          </div>
                         </div>
                         <p>
                           {t('demo.schedule.readiness')}: {score.ok}/{score.total} ({score.pct}%)
@@ -495,7 +527,7 @@ export default function SchedulePage() {
                               href={`/app/content?item=${post.contentId}`}
                               className="oma-text-link"
                             >
-                              {post.contentId}
+                              {t('demo.schedule.openPost')}
                             </Link>
                           ) : null}
                         </div>
@@ -651,11 +683,31 @@ export default function SchedulePage() {
         label={selected ? pickCopy(selected.title, locale) : t('demo.schedule.title')}
       >
         {selected ? (
-          <div className="oma-stack" data-testid="demo-schedule-drawer">
-            <StatusMark
-              display={displayForScheduleBucket(bucketForScheduleRow(selected))}
-              locale={locale}
-            />
+          <div className="oma-stack oma-plx-sched-drawer" data-testid="demo-schedule-drawer">
+            <div className="oma-plx-sched-drawer__head">
+              <StatusMark
+                display={displayForScheduleBucket(bucketForScheduleRow(selected))}
+                locale={locale}
+              />
+              <button
+                type="button"
+                className="oma-plx-datetime-trigger"
+                data-testid="demo-schedule-open-datetime"
+                onClick={() => setRescheduleOpen(true)}
+              >
+                <span aria-hidden>🕒</span>
+                <span>
+                  {selected.plannedAt
+                    ? formatScheduleWhen(selected.plannedAt, selected.timezone || scheduleTz, locale)
+                    : locale.startsWith('ar')
+                      ? 'اختيار التاريخ والوقت'
+                      : 'Select date & time'}
+                </span>
+              </button>
+              <span className="oma-plx-tz oma-plx-tz--sm">
+                <strong className="oma-ltr">{selected.timezone || scheduleTz}</strong>
+              </span>
+            </div>
             <p data-testid="demo-schedule-truth">
               {selected.state === 'BLOCKED' || scheduleBlocked
                 ? scheduleBlockedHint(
@@ -668,6 +720,36 @@ export default function SchedulePage() {
                     : t('demo.schedule.truth.scheduledDisconnected')
                   : t('demo.schedule.truth.planned')}
             </p>
+            <div className="oma-plx-channel-status" data-testid="demo-schedule-channel-status">
+              <h3>{locale.startsWith('ar') ? 'القنوات' : 'Channels'}</h3>
+              <ul>
+                {selected.channels.length ? (
+                  selected.channels.map((c) => (
+                    <li key={c}>
+                      <NetworkIcon channel={c} size={14} />
+                      <span>{c}</span>
+                      <span className="oma-muted">
+                        {selected.state === 'SCHEDULED_PREVIEW'
+                          ? locale.startsWith('ar')
+                            ? 'مجدول'
+                            : 'Scheduled'
+                          : scheduleBlocked
+                            ? locale.startsWith('ar')
+                              ? 'بانتظار الاعتماد'
+                              : 'Awaiting approval'
+                            : locale.startsWith('ar')
+                              ? 'مسودة'
+                              : 'Draft'}
+                      </span>
+                    </li>
+                  ))
+                ) : (
+                  <li className="oma-muted">
+                    {locale.startsWith('ar') ? 'لا توجد قنوات' : 'No channels yet'}
+                  </li>
+                )}
+              </ul>
+            </div>
             <p data-testid="demo-schedule-policy">
               {t('demo.content.policy')}:{' '}
               {policy === 'NONE'
@@ -862,11 +944,13 @@ export default function SchedulePage() {
       <Dialog
         open={rescheduleOpen}
         onClose={() => !saving && setRescheduleOpen(false)}
-        title={t('demo.schedule.reschedule')}
+        title={locale.startsWith('ar') ? 'اختيار التاريخ والوقت' : 'Select date & time'}
       >
-        <div className="oma-stack" data-testid="demo-schedule-reschedule-dialog">
-          <label>
-            {t('demo.schedule.plannedAt')}
+        <div className="oma-stack oma-plx-datetime" data-testid="demo-schedule-reschedule-dialog">
+          <label className="oma-plx-datetime__field">
+            <span className="oma-plx-datetime__label">
+              {locale.startsWith('ar') ? 'التاريخ والوقت' : 'Date & time'}
+            </span>
             <DateField
               value={plannedAtDraft.includes('T') ? plannedAtDraft.slice(0, 16) : plannedAtDraft}
               data-testid="demo-schedule-planned-at"
@@ -874,33 +958,70 @@ export default function SchedulePage() {
               showTime
             />
           </label>
+          <p className="oma-plx-tz" data-testid="demo-schedule-dialog-tz">
+            <span className="oma-plx-tz__label">{t('demo.schedule.timezone')}</span>
+            <strong className="oma-ltr">{scheduleTz}</strong>
+          </p>
           <div className="oma-compose-channel-field">
-            <span className="oma-compose-field-label">{t('demo.schedule.filter.channel')}</span>
+            <span className="oma-compose-field-label">
+              {locale.startsWith('ar') ? 'القنوات' : 'Channels'}
+            </span>
             <ChannelChoiceCards
               brandId={selected?.brandId}
               value={channelDraft}
               multiple
+              variant="accounts"
               onChange={setChannelDraft}
               onSelectPages={setSocialPageIdsDraft}
               locale={locale}
               testId="demo-schedule-channels"
             />
           </div>
+          {selected ? (
+            <div className="oma-plx-req" data-testid="demo-schedule-dialog-requirements">
+              <h3>{t('demo.schedule.readiness')}</h3>
+              <ul className="oma-readiness-list">
+                {selected.readiness.map((r, i) => (
+                  <li key={i} data-ok={r.ok ? 'true' : 'false'}>
+                    {r.ok ? '✓' : '○'} {pickCopy(r.check, locale)}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
           {!selected?.externalPublishingConnected ? (
             <p className="oma-muted">{t('demo.schedule.publishBlocked')}</p>
           ) : null}
-          <div className="oma-chip-row">
+          <div className="oma-plx-splitbar">
             <Button type="default" onClick={() => setRescheduleOpen(false)}>
               {t('demo.create.cancel')}
             </Button>
-            <Button
-              type="primary"
-              data-testid="demo-schedule-save"
-              disabled={saving}
-              onClick={() => void saveReschedule()}
-            >
-              {t('demo.schedule.save')}
-            </Button>
+            <div className="oma-plx-split">
+              <Button
+                type="default"
+                data-testid="demo-schedule-save-draft"
+                disabled={saving}
+                onClick={() => {
+                  // Keep date on the draft without forcing SCHEDULED — save wall time then leave as planned.
+                  void saveReschedule();
+                }}
+              >
+                {locale.startsWith('ar') ? 'حفظ مسودة' : 'Save draft'}
+              </Button>
+              <Button
+                type="primary"
+                data-testid="demo-schedule-save"
+                disabled={saving || scheduleBlocked}
+                onClick={() => {
+                  void (async () => {
+                    await saveReschedule();
+                    if (!scheduleBlocked) await setScheduleState('SCHEDULED_PREVIEW');
+                  })();
+                }}
+              >
+                {t('demo.content.schedule')}
+              </Button>
+            </div>
           </div>
         </div>
       </Dialog>
