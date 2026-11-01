@@ -732,7 +732,8 @@ export default function SchedulePage() {
               ) : null}
 
               {view === 'calendar' ? (
-                <div className="oma-sched-calendar" data-testid="demo-schedule-calendar">
+                <div className="oma-sched-calendar-scroll" data-testid="demo-schedule-calendar-scroll">
+                  <div className="oma-sched-calendar" data-testid="demo-schedule-calendar">
                   <div className="oma-sched-dow-row" data-testid="demo-schedule-weekdays">
                     {days.map((day) => (
                       <div key={`dow-${day}`} className="oma-sched-dow" role="columnheader">
@@ -834,6 +835,7 @@ export default function SchedulePage() {
                         </div>
                       </div>
                     ))}
+                  </div>
                   </div>
                 </div>
               ) : null}

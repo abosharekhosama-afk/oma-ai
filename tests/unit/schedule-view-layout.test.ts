@@ -73,6 +73,14 @@ describe('schedule agenda and queue layouts', () => {
     expect(layout).toContain('initialScale: 1');
   });
 
+  it('uses a dedicated horizontal scroll surface for the calendar', () => {
+    const source = read('apps/web/src/app/(app)/app/schedule/schedule-client.tsx');
+    const css = read('apps/web/src/styles/stage5.css');
+    expect(source).toContain('demo-schedule-calendar-scroll');
+    expect(css).toContain('.oma-sched-calendar-scroll');
+    expect(css).toContain('touch-action: pan-x pan-y');
+  });
+
   it('uses the shared side-drawer treatment for schedule details', () => {
     const source = read('apps/web/src/app/(app)/app/schedule/schedule-client.tsx');
     const css = read('apps/web/src/styles/side-drawers.css');

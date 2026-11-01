@@ -543,6 +543,13 @@ main.oma-container:has(.oma-sched-page) {
   overflow: hidden;
   background: var(--oma-surface);
 }
+.oma-sched-calendar-scroll {
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
 .oma-sched-dow-row {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -2865,9 +2872,20 @@ main.oma-container:has(.oma-sched-page) {
   }
   .oma-sched-main[data-view='calendar'] {
     --oma-sched-mobile-calendar-column: calc((100vw - 32px) / 3);
-    overflow-x: auto !important;
+    overflow: hidden !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch;
+  }
+  .oma-sched-main[data-view='calendar'] .oma-sched-calendar-scroll {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    touch-action: pan-x pan-y;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-gutter: stable;
   }
   .oma-sched-main[data-view='calendar'] .oma-sched-calendar {
     display: flex !important;
@@ -3032,8 +3050,19 @@ main.oma-container:has(.oma-sched-page) {
   /* Keep the seven-day calendar instead of rendering a second agenda card list. */
   .oma-sched-main[data-view='calendar'] {
     --oma-sched-mobile-calendar-column: calc((100vw - 32px) / 3);
-    overflow-x: auto !important;
+    overflow: hidden !important;
     overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-gutter: stable;
+  }
+  .oma-sched-main[data-view='calendar'] .oma-sched-calendar-scroll {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    touch-action: pan-x pan-y;
+    overscroll-behavior-inline: contain;
     -webkit-overflow-scrolling: touch;
     scrollbar-gutter: stable;
   }
