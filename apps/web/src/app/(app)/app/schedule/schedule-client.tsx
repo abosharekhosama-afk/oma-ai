@@ -18,7 +18,6 @@ import { resolveContentWorkflow } from '@oma/demo';
 import { Dialog } from '../../../../components/ui/dialog';
 import { Drawer } from '../../../../components/ui/drawer';
 import { EmptyState } from '../../../../components/ui/empty-state';
-import { PageHeader } from '../../../../components/ui/page-header';
 import { StatusMark } from '../../../../components/content/content-card';
 import { CalendarPostCard } from '../../../../components/content/planable-views';
 import type { CalendarDisplay } from '../../../../lib/content-views';
@@ -449,24 +448,12 @@ export default function SchedulePage() {
     </div>
   );
 
-  return (
-    <div className="oma-sched-page" data-testid="demo-schedule">
-      <div className="oma-sched-top">
-        <PageHeader
-          title={t('demo.schedule.title')}
-          description={t('demo.schedule.subtitle')}
-          meta={
-            <span className="oma-plx-tz" data-testid="demo-schedule-tz">
-              <span className="oma-plx-tz__label">{t('demo.schedule.timezone')}</span>
-              <strong className="oma-ltr">{scheduleTz}</strong>
-            </span>
-          }
-          actions={
-            <div className="oma-sched-header-icons">
+  const headerIcons = (
+    <div className="oma-sched-header-icons" data-testid="demo-schedule-header-actions">
             <div className="oma-sched-view-wrap">
               <button
                 type="button"
-                className="oma-pv-icon-btn"
+                className="oma-sched-icon-btn"
                 data-testid="demo-schedule-view-toggle"
                 aria-label={t(`demo.schedule.view.${view}`)}
                 aria-expanded={viewMenuOpen}
@@ -512,7 +499,7 @@ export default function SchedulePage() {
             </div>
             <button
               type="button"
-              className="oma-pv-icon-btn"
+              className="oma-sched-icon-btn"
               data-testid="demo-schedule-filter-toggle"
               aria-label={t('demo.requests.filters') || 'Filter'}
               data-tooltip={t('demo.requests.filters') || 'Filter'}
@@ -525,10 +512,21 @@ export default function SchedulePage() {
               ) : null}
             </button>
           </div>
-        }
-        />
+  );
+
+  return (
+    <div className="oma-sched-page" data-testid="demo-schedule">
+      <div className="oma-sched-top">
+        <header className="oma-sched-page-head" data-testid="demo-schedule-header">
+          <div className="oma-sched-page-head__copy">
+            <h1>{t('demo.schedule.title')}</h1>
+            <p className="oma-muted oma-lead">{t('demo.schedule.subtitle')}</p>
+          </div>
+          {headerIcons}
+        </header>
         {filterSheet ? filterPanel : null}
       </div>
+      <div className="oma-sched-body">
       {rows.every((row) => !row.externalPublishingConnected) ? (
         <p className="oma-honesty-inline oma-muted">{t('demo.schedule.planningPreview')}</p>
       ) : null}
@@ -592,7 +590,8 @@ export default function SchedulePage() {
                           </span>
                           <span className="oma-sched-day-label__key oma-ltr">{day}</span>
                         </div>
-                        <div className="oma-sched-day__scroll">
+                        <div className="oma-sched-day__scroll-wrap">
+                          <div className="oma-sched-day__scroll">
                         {(byDay.get(day) ?? []).map((raw) => {
                           const post = raw as ScheduleRowView;
                           const bucket = bucketForScheduleRow(post);
@@ -660,6 +659,7 @@ export default function SchedulePage() {
                             </SurfaceButton>
                           );
                         })}
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -710,7 +710,6 @@ export default function SchedulePage() {
                                 scheduleTz,
                               )}{' '}
                               · {formatScheduleWhen(post.plannedAt, post.timezone || scheduleTz, locale)}
-                              <span className="oma-plx-tz-inline oma-ltr"> · {post.timezone || scheduleTz}</span>
                             </p>
                             <p className="oma-plx-agenda-channels">
                               {post.channels.join(', ') || t('demo.schedule.ownerEmpty')}
@@ -819,6 +818,7 @@ export default function SchedulePage() {
           </div>
         </>
       ) : null}
+      </div>
 
       <Drawer
         open={Boolean(selected)}
@@ -856,9 +856,6 @@ export default function SchedulePage() {
                       : 'Select date & time'}
                 </span>
               </button>
-              <span className="oma-plx-tz oma-plx-tz--sm">
-                <strong className="oma-ltr">{selected.timezone || scheduleTz}</strong>
-              </span>
             </div>
             <p data-testid="demo-schedule-truth">
               {selected.state === 'BLOCKED' || scheduleBlocked
@@ -944,8 +941,7 @@ export default function SchedulePage() {
               </Button>
             </div>
             <p className="oma-muted" data-testid="demo-schedule-when">
-              {formatScheduleWhen(selected.plannedAt, selected.timezone, locale)}
-              {selected.timezone ? ` · ${selected.timezone}` : ''}
+              {formatScheduleWhen(selected.plannedAt, selected.timezone || scheduleTz, locale)}
             </p>
             <p data-testid="demo-schedule-preview-body">
               {contentBodyText(
@@ -1134,10 +1130,6 @@ export default function SchedulePage() {
               showTime
             />
           </label>
-          <p className="oma-plx-tz" data-testid="demo-schedule-dialog-tz">
-            <span className="oma-plx-tz__label">{t('demo.schedule.timezone')}</span>
-            <strong className="oma-ltr">{scheduleTz}</strong>
-          </p>
           <div className="oma-compose-channel-field">
             <span className="oma-compose-field-label">
               {locale.startsWith('ar') ? 'القنوات' : 'Channels'}

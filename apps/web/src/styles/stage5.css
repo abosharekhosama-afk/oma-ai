@@ -457,9 +457,35 @@
   position: relative;
   z-index: 30;
 }
-.oma-sched-top .oma-page-header {
-  flex-shrink: 0;
-  margin-bottom: 0;
+.oma-sched-page-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  padding: 4px 0 10px;
+  border-bottom: 1px solid #eef0f2;
+}
+.oma-sched-page-head__copy {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.oma-sched-page-head__copy h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+.oma-sched-page-head__copy .oma-lead {
+  margin: 4px 0 0;
+  font-size: 13px;
+}
+.oma-sched-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 .oma-sched-filter-drop {
   width: 100%;
@@ -555,9 +581,12 @@
   gap: 4px;
   overflow: hidden;
 }
-.oma-sched-day__scroll {
-  flex: 1 1 auto;
+.oma-sched-day__scroll-wrap {
+  flex: 1 1 0;
   min-height: 0;
+  overflow: hidden;
+}
+.oma-sched-day__scroll {
   max-height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
@@ -2576,35 +2605,48 @@
 .oma-sched-header-icons {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
+  flex-shrink: 0;
   padding: 0;
   border: 0;
   background: transparent;
 }
-.oma-sched-header-icons .oma-pv-icon-btn {
-  border: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
+.oma-sched-icon-btn {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  inline-size: 36px;
+  block-size: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
   color: #5e6166;
-  min-width: 36px;
-  min-height: 36px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: color 120ms ease;
 }
-.oma-sched-header-icons .oma-pv-icon-btn:hover,
-.oma-sched-header-icons .oma-pv-icon-btn[data-active='true'] {
+.oma-sched-icon-btn:hover,
+.oma-sched-icon-btn[data-active='true'] {
   color: var(--oma-primary, #1677ff);
-  background: transparent !important;
+  background: transparent;
 }
 .oma-sched-header-icons .oma-sched-filter-btn__count {
   position: absolute;
-  inset-block-start: 2px;
-  inset-inline-end: 2px;
+  inset-block-start: 4px;
+  inset-inline-end: 4px;
   min-width: 14px;
   height: 14px;
   padding: 0 3px;
   font-size: 9px;
+  line-height: 14px;
+  border-radius: 999px;
+  background: #1677ff;
+  color: #fff;
+  font-weight: 700;
 }
-.oma-sched-header-icons > button {
-  position: relative;
+.oma-sched-view-popover {
+  inset-block-start: calc(100% + 4px);
 }
 .oma-sched-view-wrap { position: relative; }
 .oma-sched-view-popover {
@@ -2743,8 +2785,4 @@
   flex-shrink: 0;
   max-height: 120px;
   overflow-y: auto;
-}
-.oma-pv-icon-btn[data-active='true'] {
-  color: var(--oma-primary);
-  background: color-mix(in srgb, var(--oma-primary) 10%, transparent);
 }
