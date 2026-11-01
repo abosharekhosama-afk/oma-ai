@@ -39,7 +39,6 @@ const SERIES_COLORS = [
   'var(--oma-home-subtle)',
   'var(--oma-home-ink-3)',
 ];
-const SOCIAL_METRICS = ['followers', 'impressions', 'engagements', 'engagement_rate'] as const;
 const DAY = 86400_000;
 
 function isoDay(d: Date) {
@@ -322,6 +321,7 @@ export default function AnalyticsPage() {
                 <label className="oma-pa-ch" data-on={selected(a.channel) ? 'true' : 'false'}>
                   <NetworkIcon channel={a.channel} size={14} />
                   <span className="oma-pa-ch__name">{networkLabel(a.channel)}</span>
+                  <span className="oma-pa-ch__n">{nf.format(a.posts)}</span>
                   <input
                     type={cross ? 'checkbox' : 'radio'}
                     name="oma-pa-channel"
@@ -469,19 +469,34 @@ export default function AnalyticsPage() {
               >
                 <header className="oma-pa-card__head">
                   <h2 className="oma-pa-card__title" id="oma-pa-social-title">
-                    {t('analytics.social.title')}
+                    {t('analytics.channels.title')}
                   </h2>
-                  <span className="oma-pa-chip">{t('analytics.social.notConnected')}</span>
+                  {!data.social.connected ? (
+                    <span className="oma-pa-chip">{t('analytics.social.notConnected')}</span>
+                  ) : null}
                 </header>
-                <p className="oma-pa-muted">{t('analytics.socialNotConnected')}</p>
-                <div className="oma-pa-tiles">
-                  {SOCIAL_METRICS.map((m) => (
-                    <div key={m} className="oma-pa-tile" data-empty="true">
-                      <span className="oma-pa-kpi__label">{t(`analytics.social.${m}`)}</span>
-                      <strong className="oma-pa-tile__value">—</strong>
-                    </div>
-                  ))}
-                </div>
+                {data.channels.length === 0 ? (
+                  <p className="oma-pa-empty">{t('analytics.channels.none')}</p>
+                ) : (
+                  <div className="oma-pa-tiles" data-testid="analytics-channel-metrics">
+                    {data.channels.map((c) => (
+                      <div key={c.channel} className="oma-pa-tile">
+                        <span className="oma-pa-kpi__label">
+                          <NetworkIcon channel={c.channel} size={14} /> {networkLabel(c.channel)}
+                        </span>
+                        <strong className="oma-pa-tile__value">{nf.format(c.current.posts)}</strong>
+                        <span className="oma-pa-muted">
+                          {OVERVIEW_METRICS.filter((m) => m !== 'posts')
+                            .map((m) => `${t(`analytics.metric.${m}`)} ${nf.format(c.current[m])}`)
+                            .join(' · ')}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {!data.social.connected ? (
+                  <p className="oma-pa-muted">{t('analytics.socialNotConnected')}</p>
+                ) : null}
               </section>
 
               <section className="oma-pa-card" data-testid="analytics-top">

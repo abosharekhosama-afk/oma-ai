@@ -26,6 +26,7 @@ import {
 import {
   archiveContent,
   contentApiError,
+  contentMediaUrls,
   getContentDetail,
   loadScheduleWorkspace,
   scheduleContent,
@@ -796,7 +797,11 @@ export default function SchedulePage() {
                                         : 'draft'
                                 }
                                 caption={caption}
-                                media={content?.previewAsset || null}
+                                media={
+                                  content
+                                    ? (contentMediaUrls(content)[0] ?? null)
+                                    : null
+                                }
                                 contentType={content?.contentType}
                                 labels={cardLabels}
                                 campaign={

@@ -7272,6 +7272,34 @@ button.oma-breadcrumb-workspace:hover {
   font-size: 12px;
   color: #475467;
 }
+.oma-fb-tool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  box-shadow: none;
+  color: #667085;
+  cursor: pointer;
+}
+.oma-fb-tool:hover:not(:disabled),
+.oma-fb-tool:focus-visible {
+  background: #f2f4f7;
+  color: #344054;
+}
+.oma-fb-tool:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.oma-fb-tool__count {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
 .oma-fb-comment {
   position: relative;
   padding: 10px 8px;

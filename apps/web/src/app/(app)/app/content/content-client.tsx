@@ -5140,6 +5140,10 @@ export default function ContentPage() {
                                   onChange={(e) => {
                                     const v = e.target.value;
                                     setCommentDraft(v);
+                                    if (!mayComment) {
+                                      setMentionOpen(false);
+                                      return;
+                                    }
                                     const at = v.lastIndexOf('@');
                                     if (at >= 0 && (at === 0 || /\s/.test(v[at - 1] || ' '))) {
                                       const q = v.slice(at + 1);
@@ -5233,8 +5237,19 @@ export default function ContentPage() {
                                 </label>
                                 <button
                                   type="button"
-                                  title="@"
+                                  className="oma-fb-tool"
+                                  data-testid="content-preview-mention"
+                                  title={
+                                    mayComment
+                                      ? isAr
+                                        ? 'منشن'
+                                        : 'Mention'
+                                      : t('errors.permission')
+                                  }
+                                  aria-label={isAr ? 'منشن' : 'Mention'}
+                                  disabled={!mayComment}
                                   onClick={() => {
+                                    if (!mayComment) return;
                                     setCommentDraft((d) => {
                                       const base = d.endsWith('@') || d.endsWith('@ ') ? d : `${d}${d && !/\s$/.test(d) ? ' ' : ''}@`;
                                       return base;
@@ -5243,17 +5258,35 @@ export default function ContentPage() {
                                     setMentionOpen(true);
                                   }}
                                 >
-                                  @
+                                  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                                    <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" strokeWidth="1.8" />
+                                    <path d="M16 12v1.5a2.5 2.5 0 0 0 5 0V12a9 9 0 1 0-3.5 7.1" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                                  </svg>
                                 </button>
                                 <button
                                   type="button"
-                                  title={t('media.add')}
-                                  onClick={() => setFeedbackAttachOpen(true)}
+                                  className="oma-fb-tool"
+                                  data-testid="content-preview-media"
+                                  title={
+                                    mayComment && mayCreate
+                                      ? t('media.add')
+                                      : t('errors.permission')
+                                  }
+                                  aria-label={t('media.add')}
+                                  disabled={!mayComment || !mayCreate}
+                                  onClick={() => {
+                                    if (!mayComment || !mayCreate) return;
+                                    setFeedbackAttachOpen(true);
+                                  }}
                                 >
-                                  📎
-                                  {feedbackAttachmentIds.length
-                                    ? ` (${feedbackAttachmentIds.length})`
-                                    : ''}
+                                  <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                                    <rect x="3.5" y="5" width="17" height="14" rx="2" fill="none" stroke="currentColor" strokeWidth="1.8" />
+                                    <circle cx="9" cy="10" r="1.4" fill="currentColor" />
+                                    <path d="m4 16 4.2-3.4a1 1 0 0 1 1.3 0L14 16l1.6-1.3a1 1 0 0 1 1.3 0L20 16.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+                                  </svg>
+                                  {feedbackAttachmentIds.length ? (
+                                    <span className="oma-fb-tool__count">{feedbackAttachmentIds.length}</span>
+                                  ) : null}
                                 </button>
                                 {feedbackReplyTo ? (
                                   <button
@@ -5266,7 +5299,7 @@ export default function ContentPage() {
                                 <button
                                   type="button"
                                   className="oma-plan-post__comment-send"
-                                  disabled={!commentDraft.trim() || !selectedId}
+                                  disabled={!mayComment || !commentDraft.trim() || !selectedId}
                                   onClick={() => {
                                     void (async () => {
                                       if (!selectedId || !commentDraft.trim()) return;
