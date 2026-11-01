@@ -608,7 +608,7 @@ export default function SchedulePage() {
             setFilterSheet(false);
           }}
         >
-          {view === 'agenda' ? (
+          {view === 'agenda' || view === 'table' ? (
             <ShellIcon name="list-view" size={18} />
           ) : view === 'queue' ? (
             <ShellIcon name="grid-view" size={18} />
@@ -623,6 +623,7 @@ export default function SchedulePage() {
                 ['calendar', <ShellIcon key="c" name="calendar-view" size={16} />],
                 ['agenda', <ShellIcon key="a" name="list-view" size={16} />],
                 ['queue', <ShellIcon key="q" name="grid-view" size={16} />],
+                ['table', <ShellIcon key="t" name="list-view" size={16} />],
               ] as const
             ).map(([id, icon]) => (
               <button
@@ -949,42 +950,42 @@ export default function SchedulePage() {
                 </div>
               )}
 
-              <div
-                className="oma-sched-mobile-only oma-sched-agenda"
-                data-testid="demo-schedule-mobile"
-              >
-                {filtered
-                  .filter(
-                    (p) =>
-                      scheduleDayKey(p.plannedAt) >= days[0]! &&
-                      scheduleDayKey(p.plannedAt) <= days[6]!,
-                  )
-                  .map((post) => (
-                    <SurfaceButton
-                      key={post.id}
-                      onClick={() => openItem(post.id)}
-                      className="oma-sched-card"
-                    >
-                      <strong>
-                        {contentTitleText(
-                          contentById.get(post.contentId)?.title ?? post.title,
-                          contentById.get(post.contentId)?.caption ?? post.caption,
-                          locale,
-                          untitled,
-                        )}
-                      </strong>
-                      <span className="oma-muted">
-                        {weekdayForScheduleDay(scheduleDayKey(post.plannedAt), locale, scheduleTz)}{' '}
-                        · {post.plannedAt}
-                      </span>
-                      <StatusMark
-                        display={displayForScheduleBucket(bucketForScheduleRow(post))}
-                        locale={locale}
-                      />
-                      <span>{t(`demo.schedule.bucket.${bucketForScheduleRow(post)}`)}</span>
-                    </SurfaceButton>
-                  ))}
-              </div>
+              {view === 'table' ? (
+                <div className="oma-sched-table-wrap" data-testid="demo-schedule-table">
+                  <table className="oma-sched-table">
+                    <thead>
+                      <tr>
+                        <th scope="col">{locale.startsWith('ar') ? 'المنشور' : 'Post'}</th>
+                        <th scope="col">{locale.startsWith('ar') ? 'التاريخ والوقت' : 'Date & time'}</th>
+                        <th scope="col">{locale.startsWith('ar') ? 'القنوات' : 'Channels'}</th>
+                        <th scope="col">{locale.startsWith('ar') ? 'الجاهزية' : 'Readiness'}</th>
+                        <th scope="col">{locale.startsWith('ar') ? 'الحالة' : 'Status'}</th>
+                        <th scope="col"><span className="oma-sr-only">{locale.startsWith('ar') ? 'إجراء' : 'Action'}</span></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {orderedRows.map((post) => {
+                        const score = readinessScore(post);
+                        return (
+                          <tr key={post.id} data-testid={`demo-schedule-table-row-${post.id}`}>
+                            <th scope="row">
+                              <button type="button" className="oma-sched-table__title" onClick={() => openItem(post.id)}>
+                                {contentTitleText(contentById.get(post.contentId)?.title ?? post.title, contentById.get(post.contentId)?.caption ?? post.caption, locale, untitled)}
+                              </button>
+                            </th>
+                            <td><span className="oma-sched-table__date">{weekdayForScheduleDay(scheduleDayKey(post.plannedAt), locale, scheduleTz)} · {formatScheduleWhen(post.plannedAt, post.timezone || scheduleTz, locale)}</span></td>
+                            <td>{post.channels.join(', ') || t('demo.schedule.ownerEmpty')}</td>
+                            <td>{score.ok}/{score.total} ({score.pct}%)</td>
+                            <td><span className="oma-sched-table__status"><StatusMark display={displayForScheduleBucket(bucketForScheduleRow(post))} locale={locale} />{t(`demo.schedule.bucket.${bucketForScheduleRow(post)}`)}</span></td>
+                            <td><Button type="default" onClick={() => openItem(post.id)}>{t('demo.schedule.open')}</Button></td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : null}
+
             </div>
           </div>
         </>

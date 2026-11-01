@@ -858,6 +858,7 @@
   "demo.schedule.view.calendar": "Calendar",
   "demo.schedule.view.agenda": "Agenda",
   "demo.schedule.view.queue": "Queue",
+  "demo.schedule.view.table": "Table",
   "demo.schedule.filter.channel": "Channel",
   "demo.schedule.filter.readiness": "Readiness",
   "demo.schedule.filter.campaign": "Campaign",

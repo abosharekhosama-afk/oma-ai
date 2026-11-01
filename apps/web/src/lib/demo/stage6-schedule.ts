@@ -3,7 +3,7 @@ import { FALLBACK_SCHEDULE_TZ, todayKey, wallTimeToIso } from '../calendar-today
 
 export type ScheduleRow = DemoGraph['scheduledPosts'][number];
 
-export type ScheduleView = 'calendar' | 'agenda' | 'queue';
+export type ScheduleView = 'calendar' | 'agenda' | 'queue' | 'table';
 
 export type ScheduleFilters = {
   q: string;
