@@ -995,6 +995,7 @@ export default function SchedulePage() {
       <Drawer
         open={Boolean(selected)}
         onClose={() => setSelectedId(null)}
+        className="oma-schedule-detail-drawer"
         label={
           selected
             ? contentTitleText(
