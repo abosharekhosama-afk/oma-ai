@@ -46,6 +46,8 @@ describe('workspace sidebar layout', () => {
     expect(drawers).toContain('.oma-tasks-filter-drawer .ant-drawer-content-wrapper');
     expect(drawers).toContain('.oma-filter-sidepanel');
     expect(drawers).toContain('.oma-shell > .oma-rail > .oma-rail-footer');
+    expect(drawers).toContain('position: absolute !important');
+    expect(drawers).toContain('padding-block-end: 72px !important');
     expect(drawers).toContain('@media (prefers-reduced-motion: reduce)');
   });
 });

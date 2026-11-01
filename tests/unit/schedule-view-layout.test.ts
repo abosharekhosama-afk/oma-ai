@@ -46,7 +46,10 @@ describe('schedule agenda and queue layouts', () => {
   it('uses the shared side-drawer treatment for schedule details', () => {
     const source = read('apps/web/src/app/(app)/app/schedule/schedule-client.tsx');
     const css = read('apps/web/src/styles/side-drawers.css');
-    expect(source).toContain('className="oma-schedule-detail-drawer"');
+    expect(source).toContain(
+      "placement={locale.toLowerCase().startsWith('ar') ? 'left' : 'right'}",
+    );
+    expect(source).toContain('rootClassName="oma-schedule-detail-drawer"');
     expect(css).toContain('.oma-schedule-detail-drawer .ant-drawer-content-wrapper');
     expect(css).toContain('.oma-schedule-detail-drawer .oma-plx-sched-drawer');
     expect(css).toContain('backdrop-filter: blur(8px)');

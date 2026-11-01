@@ -11,7 +11,6 @@ import { createPortal } from 'react-dom';
 import type { ApprovalPolicy, DemoGraph } from '@oma/demo';
 import { resolveContentWorkflow } from '@oma/demo';
 import { Dialog } from '../../../../components/ui/dialog';
-import { Drawer } from '../../../../components/ui/drawer';
 import { EmptyState } from '../../../../components/ui/empty-state';
 import { StatusMark } from '../../../../components/content/content-card';
 import { CalendarPostCard } from '../../../../components/content/planable-views';
@@ -992,11 +991,15 @@ export default function SchedulePage() {
       ) : null}
       </div>
 
-      <Drawer
+      <AntDrawer
         open={Boolean(selected)}
         onClose={() => setSelectedId(null)}
-        className="oma-schedule-detail-drawer"
-        label={
+        placement={locale.toLowerCase().startsWith('ar') ? 'left' : 'right'}
+        size={520}
+        mask={false}
+        rootClassName="oma-schedule-detail-drawer"
+        styles={{ body: { padding: 0 } }}
+        title={
           selected
             ? contentTitleText(
                 (selectedContent as ContentRowExtra | undefined)?.title ?? selected.title,
@@ -1284,7 +1287,7 @@ export default function SchedulePage() {
             </div>
           </div>
         ) : null}
-      </Drawer>
+      </AntDrawer>
 
       <Dialog
         open={rescheduleOpen}
