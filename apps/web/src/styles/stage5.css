@@ -446,12 +446,57 @@
 .oma-sched-page {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  min-height: calc(100dvh - 168px);
+  gap: var(--space-2);
+  height: calc(100dvh - 168px);
   max-height: calc(100dvh - 168px);
+  min-height: 0;
+  overflow: hidden;
 }
-.oma-sched-page .oma-page-header {
+.oma-sched-top {
   flex-shrink: 0;
+  position: relative;
+  z-index: 30;
+}
+.oma-sched-top .oma-page-header {
+  flex-shrink: 0;
+  margin-bottom: 0;
+}
+.oma-sched-filter-drop {
+  width: 100%;
+  max-height: min(420px, calc(100dvh - 220px));
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border-block-end: 1px solid #eef0f2;
+  background: #fff;
+  box-shadow: 0 10px 28px rgb(15 23 42 / 8%);
+  animation: oma-sched-filter-drop-in 160ms ease-out;
+}
+@keyframes oma-sched-filter-drop-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.oma-sched-filter-drop__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid #eef0f2;
+  flex-shrink: 0;
+}
+.oma-sched-filter-drop__close {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: #5e6166;
+  padding: 4px;
+  line-height: 1;
 }
 .oma-sched-calendar {
   display: flex;
@@ -513,6 +558,7 @@
 .oma-sched-day__scroll {
   flex: 1 1 auto;
   min-height: 0;
+  max-height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
   display: flex;
@@ -520,6 +566,27 @@
   gap: 4px;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+.oma-sched-day:hover .oma-sched-day__scroll,
+.oma-sched-day__scroll:focus-within {
+  scrollbar-color: rgb(15 23 42 / 22%) transparent;
+}
+.oma-sched-day__scroll::-webkit-scrollbar {
+  width: 5px;
+}
+.oma-sched-day__scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.oma-sched-day__scroll::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 999px;
+}
+.oma-sched-day:hover .oma-sched-day__scroll::-webkit-scrollbar-thumb,
+.oma-sched-day__scroll:focus-within::-webkit-scrollbar-thumb,
+.oma-sched-day__scroll:active::-webkit-scrollbar-thumb {
+  background: rgb(15 23 42 / 22%);
 }
 .oma-sched-day:last-child {
   border-inline-end: 0;
@@ -2461,22 +2528,7 @@
   align-items: stretch !important;
   flex: 1 1 auto !important;
   min-height: 0 !important;
-}
-.oma-sched-filter-panel--rail {
-  align-self: stretch !important;
-  flex-shrink: 0 !important;
-  height: auto !important;
-  max-height: none !important;
-  min-height: 100% !important;
-  display: flex !important;
-  flex-direction: column !important;
-  order: -1 !important;
-  border-inline-start: 0 !important;
-  border-inline-end: 1px solid #eef0f2 !important;
   overflow: hidden !important;
-}
-.oma-sched-filter-panel__head {
-  flex-shrink: 0;
 }
 .oma-sched-filter-nav {
   flex-shrink: 0;
@@ -2488,6 +2540,10 @@
   flex: 1 1 auto !important;
   min-height: 0 !important;
   overflow-y: auto !important;
+  padding: 14px 16px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
 }
 .oma-sched-main {
   display: flex !important;
@@ -2498,15 +2554,13 @@
 .oma-sched-main[data-view='calendar'] {
   overflow: hidden !important;
 }
-.oma-sched-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  padding: 0 0 10px;
-  flex-shrink: 0;
-  border-bottom: 1px solid #eef0f2;
-  margin-bottom: 10px;
+.oma-sched-card__body {
+  margin: 0;
+  font-size: 12px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .oma-sched-week-nav--cluster {
   display: flex;
@@ -2522,14 +2576,35 @@
 .oma-sched-header-icons {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px;
-  border-radius: 10px;
-  border: 1px solid #e8eaed;
-  background: #fff;
+  gap: 2px;
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
-.oma-sched-toolbar__actions {
-  margin: 0 !important;
+.oma-sched-header-icons .oma-pv-icon-btn {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #5e6166;
+  min-width: 36px;
+  min-height: 36px;
+}
+.oma-sched-header-icons .oma-pv-icon-btn:hover,
+.oma-sched-header-icons .oma-pv-icon-btn[data-active='true'] {
+  color: var(--oma-primary, #1677ff);
+  background: transparent !important;
+}
+.oma-sched-header-icons .oma-sched-filter-btn__count {
+  position: absolute;
+  inset-block-start: 2px;
+  inset-inline-end: 2px;
+  min-width: 14px;
+  height: 14px;
+  padding: 0 3px;
+  font-size: 9px;
+}
+.oma-sched-header-icons > button {
+  position: relative;
 }
 .oma-sched-view-wrap { position: relative; }
 .oma-sched-view-popover {

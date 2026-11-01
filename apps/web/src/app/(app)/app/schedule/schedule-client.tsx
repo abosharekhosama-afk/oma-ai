@@ -25,8 +25,14 @@ import type { CalendarDisplay } from '../../../../lib/content-views';
 import { useToast } from '../../../../components/ui/toast';
 import { pickCopy } from '../../../../lib/demo/use-demo-api';
 import {
+  contentBodyText,
+  contentTitleText,
+  displayContentLabels,
+} from '../../../../lib/content-display-text';
+import {
   archiveContent,
   contentApiError,
+  getContentDetail,
   loadScheduleWorkspace,
   scheduleContent,
   setContentPublishTarget,
@@ -152,6 +158,36 @@ export default function SchedulePage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const contentById = useMemo(() => new Map(contents.map((item) => [item.id, item])), [contents]);
+
+  useEffect(() => {
+    if (!selectedId) return;
+    let live = true;
+    void getContentDetail(selectedId)
+      .then((detail) => {
+        if (!live) return;
+        const fresh = toContentRow(detail.data);
+        setContents((list) =>
+          list.some((c) => c.id === fresh.id)
+            ? list.map((c) => (c.id === fresh.id ? fresh : c))
+            : [...list, fresh],
+        );
+        setRows((list) =>
+          list.map((r) => {
+            if (r.contentId !== fresh.id && r.id !== fresh.id) return r;
+            return contentToScheduleRow(fresh, policy, {
+              timezone: fresh.timezone,
+              campaignTitle: r.campaignTitle ?? null,
+            });
+          }),
+        );
+      })
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, [selectedId, policy]);
 
   const filtered = useMemo(() => filterSchedule(rows, filters, locale), [rows, filters, locale]);
   const selected = rows.find((r) => r.id === selectedId) ?? null;
@@ -311,19 +347,122 @@ export default function SchedulePage() {
     </div>
   );
 
+  const untitled = t('demo.create.title') || 'Untitled post';
+  const emptyBody = t('content.type_to_add_headlines_media') || '—';
+
+  const filterPanel = (
+    <div className="oma-sched-filter-drop" data-testid="demo-schedule-filters">
+      <header className="oma-sched-filter-drop__head">
+        <strong>{t('demo.requests.filters') || 'Filters'}</strong>
+        <button
+          type="button"
+          className="oma-sched-filter-drop__close"
+          aria-label={t('common.close') || 'Close'}
+          onClick={() => setFilterSheet(false)}
+        >
+          <CloseOutlined />
+        </button>
+      </header>
+      <div className="oma-sched-filter-nav" data-testid="demo-schedule-filter-nav">
+        {weekNav}
+      </div>
+      <div className="oma-sched-filter-body">
+        <label className="oma-brief-field">
+          <span className="oma-brief-field__label">{t('demo.schedule.search')}</span>
+          <Input
+            value={filters.q}
+            data-testid="demo-schedule-search"
+            onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
+          />
+        </label>
+        <label className="oma-brief-field">
+          <span className="oma-brief-field__label">{t('demo.schedule.filter.channel')}</span>
+          <SelectField
+            value={filters.channel}
+            data-testid="demo-schedule-filter-channel"
+            onChange={(e) => setFilters((f) => ({ ...f, channel: e.target.value }))}
+          >
+            <option value="all">{t('demo.filter.all')}</option>
+            {channels.map((c) => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </SelectField>
+        </label>
+        <label className="oma-brief-field">
+          <span className="oma-brief-field__label">{t('demo.schedule.filter.readiness')}</span>
+          <SelectField
+            value={filters.readiness}
+            data-testid="demo-schedule-filter-readiness"
+            onChange={(e) =>
+              setFilters((f) => ({
+                ...f,
+                readiness: e.target.value as ScheduleFilters['readiness'],
+              }))
+            }
+          >
+            <option value="all">{t('demo.filter.all')}</option>
+            <option value="ready">{t('demo.schedule.ready')}</option>
+            <option value="blocked">{t('demo.schedule.blocked')}</option>
+            <option value="integration">{t('demo.schedule.integrationBlock')}</option>
+          </SelectField>
+        </label>
+        <label className="oma-brief-field">
+          <span className="oma-brief-field__label">{t('demo.schedule.filter.campaign')}</span>
+          <SelectField
+            value={filters.campaignId}
+            onChange={(e) => setFilters((f) => ({ ...f, campaignId: e.target.value }))}
+          >
+            <option value="all">{t('demo.filter.all')}</option>
+            {campaigns.map((c) => (
+              <option key={c.id} value={c.id}>
+                {pickCopy(c.name, locale)}
+              </option>
+            ))}
+          </SelectField>
+        </label>
+        <label className="oma-brief-field">
+          <span className="oma-brief-field__label">{t('demo.schedule.filter.owner')}</span>
+          <SelectField
+            value={filters.owner}
+            onChange={(e) => setFilters((f) => ({ ...f, owner: e.target.value }))}
+          >
+            <option value="all">{t('demo.filter.all')}</option>
+            {owners.map((o) => (
+              <option key={o} value={o}>
+                {o}
+              </option>
+            ))}
+          </SelectField>
+        </label>
+        {filterCount > 0 ? (
+          <Button
+            type="default"
+            data-testid="demo-schedule-clear"
+            onClick={() => setFilters(EMPTY_SCHEDULE_FILTERS)}
+          >
+            {t('demo.requests.clearFilters')} ({filterCount})
+          </Button>
+        ) : null}
+      </div>
+    </div>
+  );
+
   return (
     <div className="oma-sched-page" data-testid="demo-schedule">
-      <PageHeader
-        title={t('demo.schedule.title')}
-        description={t('demo.schedule.subtitle')}
-        meta={
-          <span className="oma-plx-tz" data-testid="demo-schedule-tz">
-            <span className="oma-plx-tz__label">{t('demo.schedule.timezone')}</span>
-            <strong className="oma-ltr">{scheduleTz}</strong>
-          </span>
-        }
-        actions={
-          <div className="oma-sched-header-icons oma-sched-toolbar__actions">
+      <div className="oma-sched-top">
+        <PageHeader
+          title={t('demo.schedule.title')}
+          description={t('demo.schedule.subtitle')}
+          meta={
+            <span className="oma-plx-tz" data-testid="demo-schedule-tz">
+              <span className="oma-plx-tz__label">{t('demo.schedule.timezone')}</span>
+              <strong className="oma-ltr">{scheduleTz}</strong>
+            </span>
+          }
+          actions={
+            <div className="oma-sched-header-icons">
             <div className="oma-sched-view-wrap">
               <button
                 type="button"
@@ -387,7 +526,9 @@ export default function SchedulePage() {
             </button>
           </div>
         }
-      />
+        />
+        {filterSheet ? filterPanel : null}
+      </div>
       {rows.every((row) => !row.externalPublishingConnected) ? (
         <p className="oma-honesty-inline oma-muted">{t('demo.schedule.planningPreview')}</p>
       ) : null}
@@ -403,121 +544,7 @@ export default function SchedulePage() {
       {!loading && !unavailable && !error ? (
         <>
           <div className="oma-sched-layout oma-sched-layout--full" data-filter-open={filterSheet ? 'true' : 'false'}>
-            {filterSheet ? (
-              <aside
-                className="oma-req-filter-panel oma-sched-filter-panel oma-sched-filter-panel--rail"
-                data-testid="demo-schedule-filters"
-              >
-                <header className="oma-req-filter-panel__head oma-sched-filter-panel__head">
-                  <strong>{t('demo.requests.filters') || 'Filters'}</strong>
-                  <button
-                    type="button"
-                    className="oma-req-filter-panel__close"
-                    aria-label={t('common.close') || 'Close'}
-                    onClick={() => setFilterSheet(false)}
-                  >
-                    <CloseOutlined />
-                  </button>
-                </header>
-                <div className="oma-sched-filter-nav" data-testid="demo-schedule-filter-nav">
-                  {weekNav}
-                </div>
-                <div className="oma-sched-filter-body">
-                  <label className="oma-brief-field">
-                    <span className="oma-brief-field__label">{t('demo.schedule.search')}</span>
-                    <Input
-                      value={filters.q}
-                      data-testid="demo-schedule-search"
-                      onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
-                    />
-                  </label>
-                  <label className="oma-brief-field">
-                    <span className="oma-brief-field__label">
-                      {t('demo.schedule.filter.channel')}
-                    </span>
-                    <SelectField
-                      value={filters.channel}
-                      data-testid="demo-schedule-filter-channel"
-                      onChange={(e) => setFilters((f) => ({ ...f, channel: e.target.value }))}
-                    >
-                      <option value="all">{t('demo.filter.all')}</option>
-                      {channels.map((c) => (
-                        <option key={c} value={c}>
-                          {c}
-                        </option>
-                      ))}
-                    </SelectField>
-                  </label>
-                  <label className="oma-brief-field">
-                    <span className="oma-brief-field__label">
-                      {t('demo.schedule.filter.readiness')}
-                    </span>
-                    <SelectField
-                      value={filters.readiness}
-                      data-testid="demo-schedule-filter-readiness"
-                      onChange={(e) =>
-                        setFilters((f) => ({
-                          ...f,
-                          readiness: e.target.value as ScheduleFilters['readiness'],
-                        }))
-                      }
-                    >
-                      <option value="all">{t('demo.filter.all')}</option>
-                      <option value="ready">{t('demo.schedule.ready')}</option>
-                      <option value="blocked">{t('demo.schedule.blocked')}</option>
-                      <option value="integration">{t('demo.schedule.integrationBlock')}</option>
-                    </SelectField>
-                  </label>
-                  <label className="oma-brief-field">
-                    <span className="oma-brief-field__label">
-                      {t('demo.schedule.filter.campaign')}
-                    </span>
-                    <SelectField
-                      value={filters.campaignId}
-                      onChange={(e) => setFilters((f) => ({ ...f, campaignId: e.target.value }))}
-                    >
-                      <option value="all">{t('demo.filter.all')}</option>
-                      {campaigns.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {pickCopy(c.name, locale)}
-                        </option>
-                      ))}
-                    </SelectField>
-                  </label>
-                  <label className="oma-brief-field">
-                    <span className="oma-brief-field__label">
-                      {t('demo.schedule.filter.owner')}
-                    </span>
-                    <SelectField
-                      value={filters.owner}
-                      onChange={(e) => setFilters((f) => ({ ...f, owner: e.target.value }))}
-                    >
-                      <option value="all">{t('demo.filter.all')}</option>
-                      {owners.map((o) => (
-                        <option key={o} value={o}>
-                          {o}
-                        </option>
-                      ))}
-                    </SelectField>
-                  </label>
-                  {filterCount > 0 ? (
-                    <Button
-                      type="default"
-                      data-testid="demo-schedule-clear"
-                      onClick={() => setFilters(EMPTY_SCHEDULE_FILTERS)}
-                    >
-                      {t('demo.requests.clearFilters')} ({filterCount})
-                    </Button>
-                  ) : null}
-                </div>
-              </aside>
-            ) : null}
             <div className="oma-sched-main" data-view={view}>
-              {!filterSheet ? (
-                <div className="oma-sched-toolbar" data-testid="demo-schedule-toolbar">
-                  {weekNav}
-                </div>
-              ) : null}
               {filtered.length === 0 ? (
                 <EmptyState title={t('demo.empty')} body={t('demo.schedule.emptyHint')} />
               ) : null}
@@ -533,7 +560,7 @@ export default function SchedulePage() {
                         href={`/app/content?item=${item.id}`}
                         className="oma-text-link"
                       >
-                        {pickCopy(item.title, locale)}
+                        {contentTitleText(item.title, item.caption, locale, untitled)}
                       </Link>
                     ))}
                 </section>
@@ -569,10 +596,11 @@ export default function SchedulePage() {
                         {(byDay.get(day) ?? []).map((raw) => {
                           const post = raw as ScheduleRowView;
                           const bucket = bucketForScheduleRow(post);
-                          const content = contents.find((c) => c.id === post.contentId) as
-                            | ContentRowExtra
-                            | undefined;
-                          const caption = pickCopy(post.caption, locale) || pickCopy(post.title, locale);
+                          const content = contentById.get(post.contentId) as ContentRowExtra | undefined;
+                          const titleCopy = content?.title ?? post.title;
+                          const captionCopy = content?.caption ?? post.caption;
+                          const caption = contentBodyText(titleCopy, captionCopy, locale, emptyBody);
+                          const cardLabels = displayContentLabels(content?.labels);
                           const time = formatScheduleWhen(
                             post.plannedAt,
                             post.timezone || scheduleTz,
@@ -609,7 +637,7 @@ export default function SchedulePage() {
                                 caption={caption}
                                 media={content?.previewAsset || null}
                                 contentType={content?.contentType}
-                                labels={content?.labels ?? []}
+                                labels={cardLabels}
                                 campaign={
                                   post.campaignTitle
                                     ? pickCopy(post.campaignTitle, locale)
@@ -659,7 +687,22 @@ export default function SchedulePage() {
                                 <NetworkIcon key={c} channel={c} size={14} />
                               ))}
                             </span>
-                            <strong>{pickCopy(post.title, locale)}</strong>
+                            <strong>
+                              {contentTitleText(
+                                contentById.get(post.contentId)?.title ?? post.title,
+                                contentById.get(post.contentId)?.caption ?? post.caption,
+                                locale,
+                                untitled,
+                              )}
+                            </strong>
+                            <p className="oma-muted oma-sched-card__body">
+                              {contentBodyText(
+                                contentById.get(post.contentId)?.title ?? post.title,
+                                contentById.get(post.contentId)?.caption ?? post.caption,
+                                locale,
+                                emptyBody,
+                              )}
+                            </p>
                             <p className="oma-muted">
                               {weekdayForScheduleDay(
                                 scheduleDayKey(post.plannedAt),
@@ -752,7 +795,14 @@ export default function SchedulePage() {
                       onClick={() => openItem(post.id)}
                       className="oma-sched-card"
                     >
-                      <strong>{pickCopy(post.title, locale)}</strong>
+                      <strong>
+                        {contentTitleText(
+                          contentById.get(post.contentId)?.title ?? post.title,
+                          contentById.get(post.contentId)?.caption ?? post.caption,
+                          locale,
+                          untitled,
+                        )}
+                      </strong>
                       <span className="oma-muted">
                         {weekdayForScheduleDay(scheduleDayKey(post.plannedAt), locale, scheduleTz)}{' '}
                         · {post.plannedAt}
@@ -773,7 +823,16 @@ export default function SchedulePage() {
       <Drawer
         open={Boolean(selected)}
         onClose={() => setSelectedId(null)}
-        label={selected ? pickCopy(selected.title, locale) : t('demo.schedule.title')}
+        label={
+          selected
+            ? contentTitleText(
+                (selectedContent as ContentRowExtra | undefined)?.title ?? selected.title,
+                (selectedContent as ContentRowExtra | undefined)?.caption ?? selected.caption,
+                locale,
+                untitled,
+              )
+            : t('demo.schedule.title')
+        }
       >
         {selected ? (
           <div className="oma-stack oma-plx-sched-drawer" data-testid="demo-schedule-drawer">
@@ -888,7 +947,25 @@ export default function SchedulePage() {
               {formatScheduleWhen(selected.plannedAt, selected.timezone, locale)}
               {selected.timezone ? ` · ${selected.timezone}` : ''}
             </p>
-            <p>{pickCopy(selected.caption, locale)}</p>
+            <p data-testid="demo-schedule-preview-body">
+              {contentBodyText(
+                (selectedContent as ContentRowExtra | undefined)?.title ?? selected.title,
+                (selectedContent as ContentRowExtra | undefined)?.caption ?? selected.caption,
+                locale,
+                emptyBody,
+              )}
+            </p>
+            {displayContentLabels((selectedContent as ContentRowExtra | undefined)?.labels).length ? (
+              <div className="oma-pv-chips" data-testid="demo-schedule-preview-labels">
+                {displayContentLabels((selectedContent as ContentRowExtra | undefined)?.labels).map(
+                  (label) => (
+                    <span key={label} className="oma-pv-chip">
+                      {label}
+                    </span>
+                  ),
+                )}
+              </div>
+            ) : null}
             <p data-testid="demo-schedule-owner">
               {t('demo.schedule.filter.owner')}:{' '}
               {selected.owner?.trim() ? selected.owner : t('demo.schedule.ownerEmpty')}
@@ -1016,7 +1093,13 @@ export default function SchedulePage() {
                   className="oma-text-link"
                   data-testid="demo-schedule-content-link"
                 >
-                  {t('demo.schedule.openPost')}: {pickCopy(selected.title, locale)}
+                  {t('demo.schedule.openPost')}:{' '}
+                  {contentTitleText(
+                    (selectedContent as ContentRowExtra | undefined)?.title ?? selected.title,
+                    (selectedContent as ContentRowExtra | undefined)?.caption ?? selected.caption,
+                    locale,
+                    untitled,
+                  )}
                 </Link>
               ) : null}
               {selected.campaignId ? (
