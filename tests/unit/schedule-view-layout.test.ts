@@ -66,6 +66,13 @@ describe('schedule agenda and queue layouts', () => {
     expect(css).toContain('display: flex !important');
   });
 
+  it('keeps the mobile app viewport at device width', () => {
+    const layout = read('apps/web/src/app/layout.tsx');
+    expect(layout).toContain("import type { Metadata, Viewport } from 'next'");
+    expect(layout).toContain("width: 'device-width'");
+    expect(layout).toContain('initialScale: 1');
+  });
+
   it('uses the shared side-drawer treatment for schedule details', () => {
     const source = read('apps/web/src/app/(app)/app/schedule/schedule-client.tsx');
     const css = read('apps/web/src/styles/side-drawers.css');

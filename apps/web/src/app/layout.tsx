@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { JetBrains_Mono, Noto_Sans_Arabic } from 'next/font/google';
 import { cookies, headers } from 'next/headers';
 import { resolveDir, resolveLocale, t, type Locale } from '@oma/i18n';
@@ -24,6 +24,11 @@ const notoArabic = Noto_Sans_Arabic({
 export const metadata: Metadata = {
   title: 'OMA AI',
   description: 'OMA AI by IMKAN',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

@@ -2856,6 +2856,13 @@ main.oma-container:has(.oma-sched-page) {
     grid-template-columns: minmax(0, 1fr);
   }
   /* Keep the calendar available on touch screens; show three columns and scroll the rest. */
+  .oma-sched-body,
+  .oma-sched-layout--full,
+  .oma-sched-main {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
   .oma-sched-main[data-view='calendar'] {
     --oma-sched-mobile-calendar-column: calc((100vw - 32px) / 3);
     overflow-x: auto !important;
