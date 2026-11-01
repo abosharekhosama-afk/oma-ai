@@ -794,15 +794,6 @@ main.oma-container:has(.oma-sched-page) {
     justify-self: start;
   }
 
-  .oma-sched-calendar,
-  .oma-sched-week,
-  .oma-sched-dow-row {
-    display: none;
-  }
-
-  .oma-sched-mobile-only {
-    display: grid;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

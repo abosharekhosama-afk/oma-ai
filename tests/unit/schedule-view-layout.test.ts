@@ -56,6 +56,15 @@ describe('schedule agenda and queue layouts', () => {
     expect(css).toContain('min-width: 980px');
   });
 
+  it('does not hide the calendar with the legacy mobile display rule', () => {
+    const css = read('apps/web/src/styles/stage5.css');
+    expect(css).not.toMatch(
+      /\.oma-sched-calendar,\s*\.oma-sched-week,\s*\.oma-sched-dow-row\s*\{\s*display:\s*none\s*;\s*\}/,
+    );
+    expect(css).toContain(".oma-sched-main[data-view='calendar'] .oma-sched-calendar");
+    expect(css).toContain('display: flex !important');
+  });
+
   it('uses the shared side-drawer treatment for schedule details', () => {
     const source = read('apps/web/src/app/(app)/app/schedule/schedule-client.tsx');
     const css = read('apps/web/src/styles/side-drawers.css');
