@@ -520,15 +520,10 @@ export class MediaService {
     try {
       const organizationScope = q.scope === 'organization';
       const rootFolderId = c.conn.rootFolderId;
-      if (organizationScope && !rootFolderId) {
-        throw new DomainError(
-          'CONFLICT_STATE',
-          'Organization root folder is not configured for WorkDrive',
-          409,
-          'errors.workdrive_not_configured',
-        );
-      }
-      const startFolderId = organizationScope ? rootFolderId! : await this.brandFolderFor(c, brand);
+      // Organization browse needs a configured root. Fall back to the brand folder so the
+      // media card never surfaces a generic CONFLICT_STATE when the root is unset.
+      const useOrgRoot = organizationScope && Boolean(rootFolderId);
+      const startFolderId = useOrgRoot ? rootFolderId! : await this.brandFolderFor(c, brand);
       const scopeRootId = startFolderId;
       const folderId = q.folder_id || startFolderId;
       const f = await c.client.getFolder(folderId);

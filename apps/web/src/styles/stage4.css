@@ -7446,3 +7446,71 @@ button.oma-breadcrumb-workspace:hover {
   color: #fff !important;
   border-color: #111827 !important;
 }
+
+
+/* Planable feedback panel polish */
+.oma-fb-comment {
+  display: grid !important;
+  grid-template-columns: 36px minmax(0, 1fr) !important;
+  gap: 10px !important;
+  padding: 10px 12px !important;
+  border-radius: 12px !important;
+  border: 1px solid transparent;
+  margin-block: 6px !important;
+}
+.oma-fb-comment[data-internal='true'] {
+  background: #fffaeb !important;
+  border-color: #f3e2a7 !important;
+}
+.oma-fb-comment .oma-plan-post__avatar {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  background: #e8eaed !important;
+  color: #344054 !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+.oma-fb-comment .oma-comment-meta {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: baseline !important;
+  gap: 6px 10px !important;
+  margin-bottom: 4px !important;
+}
+.oma-fb-comment .oma-comment-meta strong {
+  font-size: 13px !important;
+  color: #101828 !important;
+}
+.oma-fb-comment .oma-comment-meta > span {
+  font-size: 12px !important;
+  color: #667085 !important;
+}
+.oma-fb-comment .oma-comment-body {
+  margin: 0 !important;
+  font-size: 13px !important;
+  line-height: 1.45 !important;
+  color: #1f2328 !important;
+  white-space: pre-wrap !important;
+}
+.oma-fb-comment[data-parent='true'],
+.oma-comment-thread .oma-fb-comment[style*='margin'] {
+  border-inline-start: 2px solid #f0e2a8;
+}
+.oma-fb-composer textarea,
+.oma-plan-post__comment-box textarea {
+  border-radius: 12px !important;
+  border: 1px solid #e4e7ec !important;
+  background: #fff !important;
+  min-height: 72px !important;
+}
+.oma-fb-composer__tools {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-top: 8px !important;
+}

@@ -40,6 +40,7 @@ export class ContentController {
     @Query('limit') limit?: string,
   ) {
     this.requireTenant(req);
+    const membershipKind = req.oma!.membershipKind ?? 'team';
     return contentService.list(req.oma!.tenantId!, brandId, {
       campaignId,
       status,
@@ -49,6 +50,7 @@ export class ContentController {
       includeArchived: includeArchived === 'true' || includeArchived === '1',
       cursor,
       limit: limit ? Number(limit) : undefined,
+      clientAudience: membershipKind === 'client',
     });
   }
 
@@ -72,7 +74,9 @@ export class ContentController {
   @Get('api/v1/content/:contentId')
   async get(@Req() req: Request, @Param('contentId') contentId: string) {
     this.requireTenant(req);
-    return contentService.get(req.oma!.tenantId!, contentId);
+    return contentService.get(req.oma!.tenantId!, contentId, {
+      clientAudience: (req.oma!.membershipKind ?? 'team') === 'client',
+    });
   }
 
   @Patch('api/v1/content/:contentId')

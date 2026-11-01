@@ -2099,6 +2099,7 @@
   "errors.workdrive_key_rejected": "WorkDrive didn’t accept this key. It may have been revoked or expired.",
   "errors.workdrive_missing_scopes": "This key needs read and write access to files and folders.",
   "errors.workdrive_not_connected": "Connect WorkDrive in Settings to add media.",
+  "errors.workdrive_not_configured": "WorkDrive organization folder is not ready. Showing brand media instead.",
   "errors.workdrive_not_enabled": "WorkDrive storage isn’t available yet.",
   "errors.workdrive_not_workdrive": "This address doesn’t lead to WorkDrive. Check the address your WorkDrive admin shared with you.",
   "errors.workdrive_key_forbidden": "This key doesn’t have permission to connect. Ask your WorkDrive admin for a key with access to files and folders.",

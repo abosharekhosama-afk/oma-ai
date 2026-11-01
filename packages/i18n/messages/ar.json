@@ -2099,6 +2099,7 @@
   "errors.workdrive_key_rejected": "لم يقبل WorkDrive هذا المفتاح. ربما أُلغي أو انتهت صلاحيته.",
   "errors.workdrive_missing_scopes": "يحتاج هذا المفتاح إلى صلاحية قراءة وكتابة الملفات والمجلدات.",
   "errors.workdrive_not_connected": "اربط WorkDrive من الإعدادات لإضافة الوسائط.",
+  "errors.workdrive_not_configured": "مجلد مؤسسة WorkDrive غير جاهز. يتم عرض وسائط العلامة بدلًا من ذلك.",
   "errors.workdrive_not_enabled": "تخزين WorkDrive غير متاح بعد.",
   "errors.workdrive_not_workdrive": "هذا العنوان لا يقود إلى WorkDrive. تحقّق من العنوان الذي شاركه معك مسؤول WorkDrive.",
   "errors.workdrive_key_forbidden": "هذا المفتاح لا يملك صلاحية الربط. اطلب من مسؤول WorkDrive مفتاحًا بصلاحية على الملفات والمجلدات.",

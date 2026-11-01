@@ -260,6 +260,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
   const t = useT();
   const pathname = usePathname() || '/app';
   const isContentWorkspace = pathname === '/app/content' || pathname.startsWith('/app/content/');
+  const isScheduleWorkspace = pathname === '/app/schedule' || pathname.startsWith('/app/schedule/');
   const isRequestsWorkspace = pathname === '/app/requests' || pathname.startsWith('/app/requests/');
   const isDeliverablesWorkspace =
     pathname === '/app/deliverables' || pathname.startsWith('/app/deliverables/');
@@ -285,6 +286,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
     isDeliverablesWorkspace ||
     isTasksWorkspace ||
     isCampaignsWorkspace ||
+    isScheduleWorkspace ||
     isBrandsList;
   const [collapsed, setCollapsed] = useState(false);
   // Only animate the rail after a user toggle (never on first paint / hydration).

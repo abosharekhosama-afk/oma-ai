@@ -106,6 +106,7 @@ export type ContentRowExtra = ContentRow & {
   timezone?: string;
   syncGroupId?: string | null;
   preferredAudience?: string | null;
+  mediaAssetIds?: string[];
 };
 
 export function toContentRow(c: ApiContent): ContentRowExtra {
@@ -153,7 +154,19 @@ export function toContentRow(c: ApiContent): ContentRowExtra {
     timezone: c.timezone,
     syncGroupId: (c as { sync_group_id?: string | null }).sync_group_id ?? null,
     preferredAudience: (c as { preferred_audience?: string | null }).preferred_audience ?? null,
+    mediaAssetIds: c.media_asset_ids ?? [],
   };
+}
+
+
+/** Stable view URLs for each attached media asset (carousel). */
+export function contentMediaUrls(row: {
+  previewAsset?: string | null;
+  mediaAssetIds?: string[] | null;
+}): string[] {
+  const ids = row.mediaAssetIds?.filter(Boolean) ?? [];
+  if (ids.length) return ids.map((id) => `/api/v1/media/${id}/view`);
+  return row.previewAsset ? [row.previewAsset] : [];
 }
 
 export async function listContentForBrand(

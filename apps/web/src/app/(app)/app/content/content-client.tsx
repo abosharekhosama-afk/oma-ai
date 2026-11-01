@@ -169,6 +169,7 @@ import {
   updateContentComment,
   resolveContentComment,
   reactContentComment,
+  contentMediaUrls,
 } from '../../../../lib/content-api';
 import {
   createRequest,
@@ -533,41 +534,50 @@ function PlanableComposeCard({
             testId="demo-create-content-channels"
           />
           <div className="oma-compose-type-tabs" role="tablist" aria-label={t('demo.content.filter.type')}>
-            {(
-              [
-                ['POST', 'Post'],
-                ['STORY', 'Story'],
-                ['REEL', 'Reels'],
-              ] as const
-            ).map(([ty, enLabel]) => {
-              const label =
-                ty === 'POST'
-                  ? isAr
-                    ? 'منشور'
-                    : enLabel
-                  : ty === 'STORY'
-                    ? isAr
-                      ? 'قصة'
-                      : enLabel
-                    : isAr
-                      ? 'ريلز'
-                      : enLabel;
-              const active =
-                form.contentType === ty ||
-                (ty === 'POST' && !['STORY', 'REEL'].includes(form.contentType));
-              return (
-                <button
-                  key={ty}
-                  type="button"
-                  role="tab"
-                  aria-selected={active}
-                  data-active={active ? 'true' : 'false'}
-                  onClick={() => onChange({ contentType: ty })}
-                >
-                  {label}
-                </button>
-              );
-            })}
+            {(() => {
+              const ch = String(form.channel || '').toLowerCase();
+              const tabs: Array<[string, string, string]> =
+                ch.includes('tiktok')
+                  ? [
+                      ['POST', isAr ? 'صورة' : 'Photo', 'POST'],
+                      ['REEL', isAr ? 'فيديو' : 'Video', 'REEL'],
+                    ]
+                  : ch.includes('youtube')
+                    ? [
+                        ['POST', isAr ? 'فيديو' : 'Video', 'POST'],
+                        ['REEL', isAr ? 'قصير' : 'Short', 'REEL'],
+                      ]
+                    : ch.includes('linkedin') || ch.includes('twitter') || ch === 'x'
+                      ? [['POST', isAr ? 'منشور' : 'Post', 'POST']]
+                      : [
+                          ['POST', isAr ? 'منشور' : 'Post', 'POST'],
+                          ['STORY', isAr ? 'قصة' : 'Story', 'STORY'],
+                          ['REEL', isAr ? 'ريلز' : 'Reels', 'REEL'],
+                        ];
+              return tabs.map(([ty, label]) => {
+                const active =
+                  form.contentType === ty ||
+                  (ty === 'POST' && !tabs.some(([id]) => id === form.contentType));
+                return (
+                  <button
+                    key={ty}
+                    type="button"
+                    role="tab"
+                    aria-selected={active}
+                    data-active={active ? 'true' : 'false'}
+                    data-testid={`compose-type-${ty}`}
+                    onClick={() =>
+                      onChange({
+                        contentType:
+                          ty === 'POST' && form.media.length > 1 ? 'CAROUSEL' : ty,
+                      })
+                    }
+                  >
+                    {label}
+                  </button>
+                );
+              });
+            })()}
           </div>
           {form.contentType === 'STORY' ? (
             <div className="oma-compose-story-hint">
@@ -755,7 +765,8 @@ type CardMenuAction =
   | 'schedule'
   | 'unschedule'
   | 'campaign'
-  | 'copylink';
+  | 'copylink'
+  | 'mark-as-published';
 
 function CardFloatingMenu({
   open,
@@ -779,6 +790,8 @@ function CardFloatingMenu({
     scheduleBlocked?: boolean;
     clientVisible?: boolean;
     campaignId?: string | null;
+    status?: string;
+    publishedAt?: string | null;
   } | null;
   policy?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
   locale: string;
@@ -789,6 +802,7 @@ function CardFloatingMenu({
   onClose: () => void;
 }) {
   const t = useT();
+  const isAr = String(_locale || '').toLowerCase().startsWith('ar');
   const ref = useRef<HTMLDivElement | null>(null);
   const [realPos, setRealPos] = useState(pos);
   const [campaignStep, setCampaignStep] = useState(false);
@@ -861,6 +875,13 @@ function CardFloatingMenu({
       label: t('content.publish_post_now'),
       icon: <SendOutlined />,
       disabled: !canMarkPublished(src, policy),
+    },
+    {
+      action: 'mark-as-published',
+      label: isAr ? 'تعليمليم كمنشور' : 'Mark as published',
+      icon: <CheckCircleOutlined />,
+      disabled:
+        String(src.status || '').startsWith('PUBLISHED') || Boolean(src.publishedAt),
     },
     {
       action: 'hide',
@@ -1670,6 +1691,7 @@ export default function ContentPage() {
         caption={caption}
         title={pickCopy(item.title, locale)}
         media={item.previewAsset}
+        mediaItems={contentMediaUrls(item as ContentRowExtra)}
         when={when}
         whenKind={item.scheduledAt ? 'scheduled' : item.plannedAt ? 'planned' : null}
         locale={locale}
@@ -1743,8 +1765,13 @@ export default function ContentPage() {
 
   function postStatus(item: ContentRow): PostStatus {
     const when = item.scheduledAt || item.plannedAt || null;
+    const extra = item as ContentRowExtra;
     const published =
-      String(item.status).startsWith('PUBLISHED') || item.publishSample === 'PUBLISHED_SAMPLE';
+      String(item.status).startsWith('PUBLISHED') ||
+      item.publishSample === 'PUBLISHED_SAMPLE' ||
+      Boolean(extra.publishedAt) ||
+      extra.publishRollupState === 'ALL_SUCCEEDED' ||
+      extra.publishState === 'PUBLISHED';
     const scheduled = item.scheduleState === 'SCHEDULED';
     return {
       approval: item.approvalState || 'NOT_REQUESTED',
@@ -2096,9 +2123,7 @@ export default function ContentPage() {
       } else if (command === 'reject') {
         apiRow = await rejectContent(id);
       } else if (command === 'mark-published') {
-        // Legacy sample mark-published is hidden when Publish now exists — enqueue real publish.
-        const queued = await publishContentNow(id);
-        apiRow = queued.data;
+        apiRow = await markContentPublished(id);
       } else if (command === 'archive') {
         apiRow = await archiveContent(id);
       } else if (command === 'schedule') {
@@ -2479,6 +2504,13 @@ export default function ContentPage() {
             isAr ? 'تمت إضافة المنشور إلى قائمة النشر' : 'Post queued for publishing',
             'success',
           );
+        })
+        .catch((e) => toast.push(contentApiError(e, t('errors.http')), 'danger'));
+    } else if (action === 'mark-as-published') {
+      void markContentPublished(id)
+        .then((api) => {
+          setRows((prev) => prev.map((r) => (r.id === id ? toContentRow(api) : r)));
+          toast.push(isAr ? 'تم تعليم المنشور كمنشور' : 'Post marked as published', 'success');
         })
         .catch((e) => toast.push(contentApiError(e, t('errors.http')), 'danger'));
     }

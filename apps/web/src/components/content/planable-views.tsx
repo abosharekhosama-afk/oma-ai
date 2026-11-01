@@ -203,6 +203,19 @@ export function CalendarPostCard({
               {svg(ICON.video, 12)}
             </span>
           ) : null}
+          {contentType && contentType !== 'POST' && contentType !== 'STATIC' ? (
+            <span className="oma-pv-cal-card__type" data-type={contentType}>
+              {contentType === 'STORY'
+                ? 'Story'
+                : contentType === 'REEL'
+                  ? 'Reels'
+                  : contentType === 'CAROUSEL'
+                    ? 'Carousel'
+                    : contentType === 'VIDEO'
+                      ? 'Video'
+                      : contentType}
+            </span>
+          ) : null}
         </span>
       ) : display.postSize === 'default' ? (
         <span className="oma-pv-cal-card__media oma-pv-cal-card__media--empty" aria-hidden />

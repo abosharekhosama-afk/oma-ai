@@ -540,6 +540,8 @@ export class CapabilitiesGuard implements CanActivate {
     }
     req.oma.capabilities = caps;
     req.oma.membershipId = primary.id;
+    req.oma.membershipKind =
+      (primary as { membershipKind?: string }).membershipKind ?? 'team';
     if (required.length > 0 && !hasCapability(caps, required)) {
       throw new DomainError(
         'PERMISSION_DENIED',
