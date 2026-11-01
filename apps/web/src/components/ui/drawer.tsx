@@ -13,6 +13,7 @@ export function Drawer({
   nav = false,
   wide = false,
   id,
+  className,
 }: {
   open: boolean;
   onClose: () => void;
@@ -21,6 +22,7 @@ export function Drawer({
   nav?: boolean;
   wide?: boolean;
   id?: string;
+  className?: string;
 }) {
   const close = useCallback(() => onClose(), [onClose]);
   const rtl = useLocale().toLowerCase().startsWith('ar');
@@ -34,7 +36,7 @@ export function Drawer({
       title={label}
       placement={placement}
       id={id}
-      rootClassName={nav ? 'oma-drawer oma-drawer--nav' : undefined}
+      rootClassName={[nav ? 'oma-drawer oma-drawer--nav' : 'oma-drawer', className].filter(Boolean).join(' ')}
       size={wide ? 'large' : nav ? 256 : 'default'}
       destroyOnHidden
       closable={{ 'aria-label': 'Dismiss' }}

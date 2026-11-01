@@ -3033,3 +3033,20 @@ button.oma-breadcrumb-workspace:hover {
 .oma-notification-card__main { min-width: 0; flex: 1; }.oma-notification-card__main > a, .oma-notification-card__main > button { display: flex; flex-direction: column; gap: 3px; width: 100%; padding: 0; border: 0; background: transparent; color: inherit; text-align: start; text-decoration: none; cursor: pointer; }
 .oma-notification-card__title { color: #303944; font-size: 14px; font-weight: 700; }.oma-notification-card__body { color: #6f7883; font-size: 13px; line-height: 1.35; }.oma-notification-card__time { display: flex; align-items: center; gap: 7px; margin-top: 5px; color: #87909b; font-size: 11px; }.oma-notification-card__time i { width: 7px; height: 7px; border-radius: 50%; background: #2785e8; }.oma-notification-card__preview { display: flex; align-items: center; gap: 7px; max-width: 100%; margin-top: 6px; overflow: hidden; padding: 6px 8px; border: 1px solid #dfe4e8; border-radius: 8px; color: #596575; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }.oma-notification-card__preview-thumb { display: grid; flex: 0 0 24px; place-items: center; width: 24px; height: 24px; border-radius: 5px; background: #edf1f5; color: #536273; }
 .oma-notifications-page--planable { max-width: 820px; gap: 0; padding: 28px; }.oma-notifications-page--planable .oma-notifications-page__tabs { margin-top: 22px; }.oma-notifications-page--planable .oma-notifications-page__list { max-height: none; padding: 8px 0; border: 1px solid #e1e6eb; border-radius: 12px; background: #fff; }.oma-notifications-page--planable .oma-notification-card { padding: 15px 18px; border-bottom: 1px solid #edf0f2; }.oma-notifications-page--planable .oma-notification-card:last-child { border-bottom: 0; }.oma-notifications-page__toolbar input { accent-color: #2563eb; }.oma-notifications-page--planable .oma-notifications-page__state { margin-top: 18px; border: 1px dashed #cfd7df; border-radius: 12px; background: #fff; }
+
+/* Notifications side panel */
+.oma-notifications-drawer .ant-drawer-content-wrapper { width: min(480px, 100vw) !important; box-shadow: -12px 0 40px rgba(15, 23, 42, .16) !important; }
+.oma-notifications-drawer .ant-drawer-content { background: #f8fafc !important; }
+.oma-notifications-drawer .ant-drawer-header { min-height: 58px; padding: 16px 20px !important; border-bottom: 1px solid #e5e9ee !important; background: #fff; }
+.oma-notifications-drawer .ant-drawer-title { color: #202936; font-size: 19px; font-weight: 750; }
+.oma-notifications-drawer .ant-drawer-body { padding: 0 !important; overflow: hidden !important; }
+.oma-notifications-panel--drawer { display: flex; flex-direction: column; height: 100%; max-height: none; width: auto !important; padding: 18px 20px 16px; overflow: hidden !important; border: 0; border-radius: 0; box-shadow: none; background: transparent; }
+.oma-notifications-panel--drawer .oma-notifications-panel__head { padding-top: 0; }
+.oma-notifications-panel--drawer .oma-notifications-panel__list { flex: 1 1 auto; max-height: none; min-height: 0; }
+.oma-notifications-panel--drawer .oma-notifications-panel__foot { flex: 0 0 auto; margin-top: 12px; padding-top: 14px; }
+.oma-notifications-drawer .ant-drawer-mask { background: rgba(15, 23, 42, .28) !important; }
+[dir='rtl'] .oma-notifications-drawer .ant-drawer-content-wrapper { box-shadow: 12px 0 40px rgba(15, 23, 42, .16) !important; }
+@media (max-width: 640px) {
+  .oma-notifications-drawer .ant-drawer-content-wrapper { width: 100vw !important; }
+  .oma-notifications-panel--drawer { padding-inline: 14px; }
+}
