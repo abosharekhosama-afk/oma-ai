@@ -90,8 +90,9 @@ describe('schedule agenda and queue layouts', () => {
 
   it('keeps the filter drawer and page within the mobile viewport', () => {
     const css = read('apps/web/src/styles/stage5.css');
-    expect(css).toContain('html,\n  body');
-    expect(css).toContain('overflow-x: hidden !important');
+    expect(css).toContain('.oma-sched-page');
+    expect(css).toContain('overflow-x: hidden');
+    expect(css).not.toContain('html,\n  body {\n    max-width: 100%');
     expect(css).toContain('.oma-tasks-filter-drawer .ant-drawer-content-wrapper');
     expect(css).toContain('max-width: 100vw !important');
   });

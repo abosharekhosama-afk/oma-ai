@@ -3059,10 +3059,11 @@ main.oma-container:has(.oma-sched-page) {
 
 /* Mobile schedule surfaces: keep page width fixed and scroll only the calendar surface. */
 @media (max-width: 900px) {
-  html,
-  body {
+  /* Do not constrain the global app viewport; isolate the wide calendar locally. */
+  .oma-sched-page {
+    width: 100%;
     max-width: 100%;
-    overflow-x: hidden !important;
+    overflow-x: hidden;
   }
   .oma-sched-page,
   .oma-sched-body,
@@ -3085,6 +3086,7 @@ main.oma-container:has(.oma-sched-page) {
     overscroll-behavior-inline: contain;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
+    contain: inline-size;
   }
   .oma-sched-main[data-view='calendar'] .oma-sched-calendar,
   .oma-sched-main[data-view='calendar'] .oma-sched-dow-row,
