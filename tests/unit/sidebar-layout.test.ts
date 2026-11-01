@@ -48,6 +48,10 @@ describe('workspace sidebar layout', () => {
     expect(drawers).toContain('.oma-shell > .oma-rail > .oma-rail-footer');
     expect(drawers).toContain('position: absolute !important');
     expect(drawers).toContain('padding-block-end: 72px !important');
+    expect(drawers).toContain('.oma-notifications-drawer .oma-notifications-panel--drawer');
+    expect(drawers).toContain('position: static !important');
+    expect(drawers).toContain('.oma-drawer.oma-drawer--nav .ant-drawer-content-wrapper');
+    expect(drawers).toContain('.oma-drawer.oma-drawer--nav .oma-mobile-drawer-nav');
     expect(drawers).toContain('@media (prefers-reduced-motion: reduce)');
   });
 });
