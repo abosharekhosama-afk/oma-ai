@@ -648,7 +648,10 @@ export default function RequestsPage() {
           </div>
 
           {filterSheet ? (
-            <aside className="oma-req-filter-panel" data-testid="demo-request-filters">
+            <aside
+              className="oma-req-filter-panel oma-ws-filter-popover"
+              data-testid="demo-request-filters"
+            >
               <header className="oma-req-filter-panel__head">
                 <strong>
                   {locale.toLowerCase().startsWith('ar') ? 'تصفية وترتيب' : 'Filter & sort'}

@@ -6,13 +6,18 @@ import {
   BarsOutlined,
   CalendarOutlined,
   CloseOutlined,
+  DownOutlined,
   FilterOutlined,
+  SearchOutlined,
   UnorderedListOutlined,
+  UpOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
 import { Button, DateField, Input, SelectField, SurfaceButton } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { ApprovalPolicy, DemoGraph } from '@oma/demo';
 import { resolveContentWorkflow } from '@oma/demo';
 import { Dialog } from '../../../../components/ui/dialog';
@@ -110,6 +115,8 @@ export default function SchedulePage() {
   const [socialPageIdsDraft, setSocialPageIdsDraft] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [filterSheet, setFilterSheet] = useState(false);
+  const [filterSection, setFilterSection] = useState<string | null>(null);
+  const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
   const [viewMenuOpen, setViewMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -157,6 +164,23 @@ export default function SchedulePage() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    let cancelled = false;
+    let tries = 0;
+    const sync = () => {
+      if (cancelled) return;
+      const header = document.getElementById('oma-workspace-top-actions');
+      setHeaderSlot(header);
+      tries += 1;
+      if (!header && tries < 30) window.setTimeout(sync, 50);
+    };
+    sync();
+    return () => {
+      cancelled = true;
+      setHeaderSlot(null);
+    };
+  }, []);
 
   const contentById = useMemo(() => new Map(contents.map((item) => [item.id, item])), [contents]);
 
@@ -350,12 +374,15 @@ export default function SchedulePage() {
   const emptyBody = t('content.type_to_add_headlines_media') || '—';
 
   const filterPanel = (
-    <div className="oma-sched-filter-drop" data-testid="demo-schedule-filters">
-      <header className="oma-sched-filter-drop__head">
-        <strong>{t('demo.requests.filters') || 'Filters'}</strong>
+    <aside
+      className="oma-req-filter-panel oma-ws-filter-popover"
+      data-testid="demo-schedule-filters"
+    >
+      <header className="oma-req-filter-panel__head">
+        <strong>{locale.toLowerCase().startsWith('ar') ? 'تصفية وترتيب' : 'Filter & sort'}</strong>
         <button
           type="button"
-          className="oma-sched-filter-drop__close"
+          className="oma-req-filter-panel__close"
           aria-label={t('common.close') || 'Close'}
           onClick={() => setFilterSheet(false)}
         >
@@ -365,77 +392,164 @@ export default function SchedulePage() {
       <div className="oma-sched-filter-nav" data-testid="demo-schedule-filter-nav">
         {weekNav}
       </div>
-      <div className="oma-sched-filter-body">
-        <label className="oma-brief-field">
-          <span className="oma-brief-field__label">{t('demo.schedule.search')}</span>
-          <Input
-            value={filters.q}
-            data-testid="demo-schedule-search"
-            onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
-          />
-        </label>
-        <label className="oma-brief-field">
-          <span className="oma-brief-field__label">{t('demo.schedule.filter.channel')}</span>
-          <SelectField
-            value={filters.channel}
-            data-testid="demo-schedule-filter-channel"
-            onChange={(e) => setFilters((f) => ({ ...f, channel: e.target.value }))}
+      <div className="oma-filter-accordion-list">
+        <div className="oma-filter-accordion">
+          <button
+            type="button"
+            className="oma-filter-accordion__row"
+            data-open={filterSection === 'search' ? 'true' : 'false'}
+            onClick={() => setFilterSection((s) => (s === 'search' ? null : 'search'))}
           >
-            <option value="all">{t('demo.filter.all')}</option>
-            {channels.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </SelectField>
-        </label>
-        <label className="oma-brief-field">
-          <span className="oma-brief-field__label">{t('demo.schedule.filter.readiness')}</span>
-          <SelectField
-            value={filters.readiness}
-            data-testid="demo-schedule-filter-readiness"
-            onChange={(e) =>
-              setFilters((f) => ({
-                ...f,
-                readiness: e.target.value as ScheduleFilters['readiness'],
-              }))
-            }
+            <span className="oma-filter-accordion__ico">
+              <SearchOutlined />
+            </span>
+            <span>{t('demo.schedule.search')}</span>
+            <span className="oma-filter-accordion__caret">
+              {filterSection === 'search' ? <UpOutlined /> : <DownOutlined />}
+            </span>
+          </button>
+          {filterSection === 'search' ? (
+            <div className="oma-filter-accordion__body">
+              <Input
+                value={filters.q}
+                data-testid="demo-schedule-search"
+                onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
+              />
+            </div>
+          ) : null}
+        </div>
+        <div className="oma-filter-accordion">
+          <button
+            type="button"
+            className="oma-filter-accordion__row"
+            data-open={filterSection === 'channel' ? 'true' : 'false'}
+            onClick={() => setFilterSection((s) => (s === 'channel' ? null : 'channel'))}
           >
-            <option value="all">{t('demo.filter.all')}</option>
-            <option value="ready">{t('demo.schedule.ready')}</option>
-            <option value="blocked">{t('demo.schedule.blocked')}</option>
-            <option value="integration">{t('demo.schedule.integrationBlock')}</option>
-          </SelectField>
-        </label>
-        <label className="oma-brief-field">
-          <span className="oma-brief-field__label">{t('demo.schedule.filter.campaign')}</span>
-          <SelectField
-            value={filters.campaignId}
-            onChange={(e) => setFilters((f) => ({ ...f, campaignId: e.target.value }))}
+            <span className="oma-filter-accordion__ico">
+              <AppstoreOutlined />
+            </span>
+            <span>{t('demo.schedule.filter.channel')}</span>
+            <span className="oma-filter-accordion__caret">
+              {filterSection === 'channel' ? <UpOutlined /> : <DownOutlined />}
+            </span>
+          </button>
+          {filterSection === 'channel' ? (
+            <div className="oma-filter-accordion__body">
+              <SelectField
+                value={filters.channel}
+                data-testid="demo-schedule-filter-channel"
+                onChange={(e) => setFilters((f) => ({ ...f, channel: e.target.value }))}
+              >
+                <option value="all">{t('demo.filter.all')}</option>
+                {channels.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </SelectField>
+            </div>
+          ) : null}
+        </div>
+        <div className="oma-filter-accordion">
+          <button
+            type="button"
+            className="oma-filter-accordion__row"
+            data-open={filterSection === 'readiness' ? 'true' : 'false'}
+            onClick={() => setFilterSection((s) => (s === 'readiness' ? null : 'readiness'))}
           >
-            <option value="all">{t('demo.filter.all')}</option>
-            {campaigns.map((c) => (
-              <option key={c.id} value={c.id}>
-                {pickCopy(c.name, locale)}
-              </option>
-            ))}
-          </SelectField>
-        </label>
-        <label className="oma-brief-field">
-          <span className="oma-brief-field__label">{t('demo.schedule.filter.owner')}</span>
-          <SelectField
-            value={filters.owner}
-            onChange={(e) => setFilters((f) => ({ ...f, owner: e.target.value }))}
+            <span className="oma-filter-accordion__ico">
+              <CalendarOutlined />
+            </span>
+            <span>{t('demo.schedule.filter.readiness')}</span>
+            <span className="oma-filter-accordion__caret">
+              {filterSection === 'readiness' ? <UpOutlined /> : <DownOutlined />}
+            </span>
+          </button>
+          {filterSection === 'readiness' ? (
+            <div className="oma-filter-accordion__body">
+              <SelectField
+                value={filters.readiness}
+                data-testid="demo-schedule-filter-readiness"
+                onChange={(e) =>
+                  setFilters((f) => ({
+                    ...f,
+                    readiness: e.target.value as ScheduleFilters['readiness'],
+                  }))
+                }
+              >
+                <option value="all">{t('demo.filter.all')}</option>
+                <option value="ready">{t('demo.schedule.ready')}</option>
+                <option value="blocked">{t('demo.schedule.blocked')}</option>
+                <option value="integration">{t('demo.schedule.integrationBlock')}</option>
+              </SelectField>
+            </div>
+          ) : null}
+        </div>
+        <div className="oma-filter-accordion">
+          <button
+            type="button"
+            className="oma-filter-accordion__row"
+            data-open={filterSection === 'campaign' ? 'true' : 'false'}
+            onClick={() => setFilterSection((s) => (s === 'campaign' ? null : 'campaign'))}
           >
-            <option value="all">{t('demo.filter.all')}</option>
-            {owners.map((o) => (
-              <option key={o} value={o}>
-                {o}
-              </option>
-            ))}
-          </SelectField>
-        </label>
-        {filterCount > 0 ? (
+            <span className="oma-filter-accordion__ico">
+              <BarsOutlined />
+            </span>
+            <span>{t('demo.schedule.filter.campaign')}</span>
+            <span className="oma-filter-accordion__caret">
+              {filterSection === 'campaign' ? <UpOutlined /> : <DownOutlined />}
+            </span>
+          </button>
+          {filterSection === 'campaign' ? (
+            <div className="oma-filter-accordion__body">
+              <SelectField
+                value={filters.campaignId}
+                onChange={(e) => setFilters((f) => ({ ...f, campaignId: e.target.value }))}
+              >
+                <option value="all">{t('demo.filter.all')}</option>
+                {campaigns.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {pickCopy(c.name, locale)}
+                  </option>
+                ))}
+              </SelectField>
+            </div>
+          ) : null}
+        </div>
+        <div className="oma-filter-accordion">
+          <button
+            type="button"
+            className="oma-filter-accordion__row"
+            data-open={filterSection === 'owner' ? 'true' : 'false'}
+            onClick={() => setFilterSection((s) => (s === 'owner' ? null : 'owner'))}
+          >
+            <span className="oma-filter-accordion__ico">
+              <UserOutlined />
+            </span>
+            <span>{t('demo.schedule.filter.owner')}</span>
+            <span className="oma-filter-accordion__caret">
+              {filterSection === 'owner' ? <UpOutlined /> : <DownOutlined />}
+            </span>
+          </button>
+          {filterSection === 'owner' ? (
+            <div className="oma-filter-accordion__body">
+              <SelectField
+                value={filters.owner}
+                onChange={(e) => setFilters((f) => ({ ...f, owner: e.target.value }))}
+              >
+                <option value="all">{t('demo.filter.all')}</option>
+                {owners.map((o) => (
+                  <option key={o} value={o}>
+                    {o}
+                  </option>
+                ))}
+              </SelectField>
+            </div>
+          ) : null}
+        </div>
+      </div>
+      {filterCount > 0 ? (
+        <div className="oma-req-filter-panel__foot">
           <Button
             type="default"
             data-testid="demo-schedule-clear"
@@ -443,88 +557,97 @@ export default function SchedulePage() {
           >
             {t('demo.requests.clearFilters')} ({filterCount})
           </Button>
-        ) : null}
-      </div>
-    </div>
+        </div>
+      ) : null}
+    </aside>
   );
 
   const headerIcons = (
     <div className="oma-sched-header-icons" data-testid="demo-schedule-header-actions">
-            <div className="oma-sched-view-wrap">
+      <div className="oma-sched-view-wrap">
+        <button
+          type="button"
+          className="oma-req-filter-icon oma-sched-icon-btn"
+          data-testid="demo-schedule-view-toggle"
+          aria-label={t(`demo.schedule.view.${view}`)}
+          aria-expanded={viewMenuOpen}
+          data-tooltip={t(`demo.schedule.view.${view}`)}
+          onClick={() => {
+            setViewMenuOpen((v) => !v);
+            setFilterSheet(false);
+          }}
+        >
+          {view === 'agenda' ? (
+            <BarsOutlined />
+          ) : view === 'queue' ? (
+            <UnorderedListOutlined />
+          ) : (
+            <CalendarOutlined />
+          )}
+        </button>
+        {viewMenuOpen ? (
+          <div className="oma-sched-view-popover" role="menu" data-testid="demo-schedule-view-menu">
+            {(
+              [
+                ['calendar', <CalendarOutlined key="c" />],
+                ['agenda', <BarsOutlined key="a" />],
+                ['queue', <AppstoreOutlined key="q" />],
+              ] as const
+            ).map(([id, icon]) => (
               <button
+                key={id}
                 type="button"
-                className="oma-sched-icon-btn"
-                data-testid="demo-schedule-view-toggle"
-                aria-label={t(`demo.schedule.view.${view}`)}
-                aria-expanded={viewMenuOpen}
-                data-tooltip={t(`demo.schedule.view.${view}`)}
-                onClick={() => setViewMenuOpen((v) => !v)}
+                role="menuitemradio"
+                aria-checked={view === id}
+                data-selected={view === id ? 'true' : 'false'}
+                data-testid={`demo-schedule-view-${id}`}
+                className="oma-sched-view-popover__item"
+                onClick={() => {
+                  setView(id);
+                  setViewMenuOpen(false);
+                }}
               >
-                {view === 'agenda' ? (
-                  <BarsOutlined />
-                ) : view === 'queue' ? (
-                  <UnorderedListOutlined />
-                ) : (
-                  <CalendarOutlined />
-                )}
+                <span aria-hidden>{icon}</span>
+                <span>{t(`demo.schedule.view.${id}`)}</span>
               </button>
-              {viewMenuOpen ? (
-                <div className="oma-sched-view-popover" role="menu" data-testid="demo-schedule-view-menu">
-                  {(
-                    [
-                      ['calendar', <CalendarOutlined key="c" />],
-                      ['agenda', <BarsOutlined key="a" />],
-                      ['queue', <AppstoreOutlined key="q" />],
-                    ] as const
-                  ).map(([id, icon]) => (
-                    <button
-                      key={id}
-                      type="button"
-                      role="menuitemradio"
-                      aria-checked={view === id}
-                      data-selected={view === id ? 'true' : 'false'}
-                      data-testid={`demo-schedule-view-${id}`}
-                      className="oma-sched-view-popover__item"
-                      onClick={() => {
-                        setView(id);
-                        setViewMenuOpen(false);
-                      }}
-                    >
-                      <span aria-hidden>{icon}</span>
-                      <span>{t(`demo.schedule.view.${id}`)}</span>
-                    </button>
-                  ))}
-                </div>
-              ) : null}
-            </div>
-            <button
-              type="button"
-              className="oma-sched-icon-btn"
-              data-testid="demo-schedule-filter-toggle"
-              aria-label={t('demo.requests.filters') || 'Filter'}
-              data-tooltip={t('demo.requests.filters') || 'Filter'}
-              data-active={filterSheet ? 'true' : 'false'}
-              onClick={() => setFilterSheet((v) => !v)}
-            >
-              <FilterOutlined />
-              {filterCount > 0 ? (
-                <span className="oma-sched-filter-btn__count">{filterCount}</span>
-              ) : null}
-            </button>
+            ))}
           </div>
+        ) : null}
+      </div>
+      <button
+        type="button"
+        className="oma-req-filter-icon oma-sched-icon-btn"
+        data-testid="demo-schedule-filter-toggle"
+        aria-label={t('demo.requests.filters') || 'Filter'}
+        data-tooltip={t('demo.requests.filters') || 'Filter'}
+        data-active={filterSheet ? 'true' : 'false'}
+        onClick={() => {
+          setFilterSheet((v) => !v);
+          setViewMenuOpen(false);
+        }}
+      >
+        <FilterOutlined />
+        {filterCount > 0 ? (
+          <span className="oma-req-filter-icon__count">{filterCount}</span>
+        ) : null}
+      </button>
+    </div>
   );
 
   return (
     <div className="oma-sched-page" data-testid="demo-schedule">
+      {headerSlot && headerSlot.isConnected
+        ? createPortal(headerIcons, headerSlot)
+        : null}
+      {filterSheet ? filterPanel : null}
       <div className="oma-sched-top">
         <header className="oma-sched-page-head" data-testid="demo-schedule-header">
           <div className="oma-sched-page-head__copy">
             <h1>{t('demo.schedule.title')}</h1>
             <p className="oma-muted oma-lead">{t('demo.schedule.subtitle')}</p>
           </div>
-          {headerIcons}
+          {!(headerSlot && headerSlot.isConnected) ? headerIcons : null}
         </header>
-        {filterSheet ? filterPanel : null}
       </div>
       <div className="oma-sched-body">
       {rows.every((row) => !row.externalPublishingConnected) ? (

@@ -444,6 +444,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
               isDeliverablesWorkspace ||
               isTasksWorkspace ||
               isCampaignsWorkspace ||
+              isScheduleWorkspace ||
               isBrandsList ? (
               <div
                 className="oma-top-actions oma-top-actions--workspace"
