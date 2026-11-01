@@ -53,7 +53,8 @@ describe('schedule agenda and queue layouts', () => {
     expect(css).toContain('display: none !important');
     expect(css).toContain(".oma-sched-main[data-view='calendar']");
     expect(css).toContain('overflow-x: auto !important');
-    expect(css).toContain('min-width: 980px');
+    expect(css).toContain('--oma-sched-mobile-calendar-column');
+    expect(css).toContain('calc(var(--oma-sched-mobile-calendar-column) * 7)');
   });
 
   it('does not hide the calendar with the legacy mobile display rule', () => {
