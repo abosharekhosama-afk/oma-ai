@@ -52,7 +52,7 @@ describe('schedule agenda and queue layouts', () => {
     expect(css).toContain(".oma-sched-main[data-view='queue'] > .oma-sched-mobile-only");
     expect(css).toContain('display: none !important');
     expect(css).toContain(".oma-sched-main[data-view='calendar']");
-    expect(css).toContain('overflow-x: scroll !important');
+    expect(css).toContain('overflow-x: auto !important');
     expect(css).toContain('--oma-sched-mobile-calendar-column');
     expect(css).toContain('233.333333vw');
   });
@@ -79,6 +79,13 @@ describe('schedule agenda and queue layouts', () => {
     expect(source).toContain('demo-schedule-calendar-scroll');
     expect(css).toContain('.oma-sched-calendar-scroll');
     expect(css).toContain('touch-action: pan-x pan-y');
+    expect(css).toContain('flex: 0 0 auto !important');
+  });
+
+  it('removes legacy schedule filter rail motion', () => {
+    const css = read('apps/web/src/styles/side-drawers.css');
+    expect(css).toContain('.oma-tasks-filter-drawer .ant-drawer-content-wrapper');
+    expect(css).toContain('transition: none !important');
   });
 
   it('keeps the filter drawer and page within the mobile viewport', () => {
