@@ -2854,7 +2854,6 @@ button.oma-breadcrumb-workspace:hover {
   color: var(--oma-text-muted, #6b7280);
 }
 
-
 /* ==== MOBILE SHELL CLEANUP (search + breadcrumb + rail) ==== */
 @media (max-width: 767px) {
   /* Remove header search button/field on mobile across all surfaces */
@@ -2972,4 +2971,48 @@ button.oma-breadcrumb-workspace:hover {
 .oma-language-card button:focus-visible {
   outline: 2px solid var(--oma-primary);
   outline-offset: 1px;
+}
+
+/* Sidebar groups stay content-height and stack directly (no stretched grid tracks). */
+.oma-shell > .oma-rail .oma-nav {
+  display: flex !important;
+  flex: 1 1 auto !important;
+  flex-direction: column !important;
+  align-content: flex-start !important;
+  align-items: stretch !important;
+  justify-content: flex-start !important;
+  gap: 2px !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+}
+.oma-shell > .oma-rail .oma-nav-group {
+  display: flex !important;
+  flex: 0 0 auto !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  gap: 0 !important;
+  margin: 0 !important;
+}
+.oma-shell > .oma-rail .oma-nav-pages__head {
+  margin-block-start: 0 !important;
+}
+.oma-shell > .oma-rail .oma-nav-more__toggle {
+  margin-block-start: 0 !important;
+}
+
+/* Account + notifications remain global workspace utilities in the rail footer. */
+.oma-shell > .oma-rail .oma-rail-footer {
+  display: flex !important;
+  flex: 0 0 auto !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 8px !important;
+  margin-block-start: auto !important;
+}
+.oma-shell > .oma-rail[data-collapsed='true'] .oma-rail-footer {
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
 }
