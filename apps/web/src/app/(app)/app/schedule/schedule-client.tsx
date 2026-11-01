@@ -1,19 +1,9 @@
 'use client';
 import { TableShimmer } from '../../../../components/ui/shimmer';
 import { useReloadOnBrandChange } from '../../../../lib/active-brand';
-import {
-  AppstoreOutlined,
-  BarsOutlined,
-  CalendarOutlined,
-  CloseOutlined,
-  DownOutlined,
-  FilterOutlined,
-  SearchOutlined,
-  UnorderedListOutlined,
-  UpOutlined,
-  UserOutlined,
-} from '@ant-design/icons';
-import { Button, DateField, Input, SelectField, SurfaceButton } from '@oma/ui/controls';
+import { CloseOutlined, DownOutlined, SearchOutlined, UpOutlined, UserOutlined } from '@ant-design/icons';
+import { Button, DateField, Drawer as AntDrawer, Input, SurfaceButton } from '@oma/ui/controls';
+import { ShellIcon } from '../../../../components/shell/shell-icons';
 
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -375,8 +365,9 @@ export default function SchedulePage() {
 
   const filterPanel = (
     <aside
-      className="oma-req-filter-panel oma-ws-filter-popover"
+      className="oma-req-filter-panel oma-tasks-filter-drawer__panel"
       data-testid="demo-schedule-filters"
+      data-anchor="viewport-top"
     >
       <header className="oma-req-filter-panel__head">
         <strong>{locale.toLowerCase().startsWith('ar') ? 'تصفية وترتيب' : 'Filter & sort'}</strong>
@@ -426,7 +417,7 @@ export default function SchedulePage() {
             onClick={() => setFilterSection((s) => (s === 'channel' ? null : 'channel'))}
           >
             <span className="oma-filter-accordion__ico">
-              <AppstoreOutlined />
+              <ShellIcon name="grid-view" size={16} />
             </span>
             <span>{t('demo.schedule.filter.channel')}</span>
             <span className="oma-filter-accordion__caret">
@@ -435,18 +426,27 @@ export default function SchedulePage() {
           </button>
           {filterSection === 'channel' ? (
             <div className="oma-filter-accordion__body">
-              <SelectField
-                value={filters.channel}
-                data-testid="demo-schedule-filter-channel"
-                onChange={(e) => setFilters((f) => ({ ...f, channel: e.target.value }))}
-              >
-                <option value="all">{t('demo.filter.all')}</option>
-                {channels.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
-                  </option>
-                ))}
-              </SelectField>
+              <label className="oma-filter-check">
+                <input
+                  type="radio"
+                  name="sched-channel"
+                  data-testid="demo-schedule-filter-channel"
+                  checked={filters.channel === 'all'}
+                  onChange={() => setFilters((f) => ({ ...f, channel: 'all' }))}
+                />
+                <span>{t('demo.filter.all')}</span>
+              </label>
+              {channels.map((c) => (
+                <label key={c} className="oma-filter-check">
+                  <input
+                    type="radio"
+                    name="sched-channel"
+                    checked={filters.channel === c}
+                    onChange={() => setFilters((f) => ({ ...f, channel: c }))}
+                  />
+                  <span>{c}</span>
+                </label>
+              ))}
             </div>
           ) : null}
         </div>
@@ -455,10 +455,11 @@ export default function SchedulePage() {
             type="button"
             className="oma-filter-accordion__row"
             data-open={filterSection === 'readiness' ? 'true' : 'false'}
+            data-testid="demo-schedule-filter-readiness-section"
             onClick={() => setFilterSection((s) => (s === 'readiness' ? null : 'readiness'))}
           >
             <span className="oma-filter-accordion__ico">
-              <CalendarOutlined />
+              <ShellIcon name="calendar-view" size={16} />
             </span>
             <span>{t('demo.schedule.filter.readiness')}</span>
             <span className="oma-filter-accordion__caret">
@@ -467,21 +468,29 @@ export default function SchedulePage() {
           </button>
           {filterSection === 'readiness' ? (
             <div className="oma-filter-accordion__body">
-              <SelectField
-                value={filters.readiness}
-                data-testid="demo-schedule-filter-readiness"
-                onChange={(e) =>
-                  setFilters((f) => ({
-                    ...f,
-                    readiness: e.target.value as ScheduleFilters['readiness'],
-                  }))
-                }
-              >
-                <option value="all">{t('demo.filter.all')}</option>
-                <option value="ready">{t('demo.schedule.ready')}</option>
-                <option value="blocked">{t('demo.schedule.blocked')}</option>
-                <option value="integration">{t('demo.schedule.integrationBlock')}</option>
-              </SelectField>
+              {(
+                [
+                  ['all', t('demo.filter.all')],
+                  ['ready', t('demo.schedule.ready')],
+                  ['blocked', t('demo.schedule.blocked')],
+                  ['integration', t('demo.schedule.integrationBlock')],
+                ] as const
+              ).map(([value, label]) => (
+                <label key={value} className="oma-filter-check">
+                  <input
+                    type="radio"
+                    name="sched-readiness"
+                    data-testid={
+                      value === 'all'
+                        ? 'demo-schedule-filter-readiness'
+                        : `demo-schedule-filter-readiness-${value}`
+                    }
+                    checked={filters.readiness === value}
+                    onChange={() => setFilters((f) => ({ ...f, readiness: value }))}
+                  />
+                  <span>{label}</span>
+                </label>
+              ))}
             </div>
           ) : null}
         </div>
@@ -493,7 +502,7 @@ export default function SchedulePage() {
             onClick={() => setFilterSection((s) => (s === 'campaign' ? null : 'campaign'))}
           >
             <span className="oma-filter-accordion__ico">
-              <BarsOutlined />
+              <ShellIcon name="list-view" size={16} />
             </span>
             <span>{t('demo.schedule.filter.campaign')}</span>
             <span className="oma-filter-accordion__caret">
@@ -502,17 +511,26 @@ export default function SchedulePage() {
           </button>
           {filterSection === 'campaign' ? (
             <div className="oma-filter-accordion__body">
-              <SelectField
-                value={filters.campaignId}
-                onChange={(e) => setFilters((f) => ({ ...f, campaignId: e.target.value }))}
-              >
-                <option value="all">{t('demo.filter.all')}</option>
-                {campaigns.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {pickCopy(c.name, locale)}
-                  </option>
-                ))}
-              </SelectField>
+              <label className="oma-filter-check">
+                <input
+                  type="radio"
+                  name="sched-campaign"
+                  checked={filters.campaignId === 'all'}
+                  onChange={() => setFilters((f) => ({ ...f, campaignId: 'all' }))}
+                />
+                <span>{t('demo.filter.all')}</span>
+              </label>
+              {campaigns.map((c) => (
+                <label key={c.id} className="oma-filter-check">
+                  <input
+                    type="radio"
+                    name="sched-campaign"
+                    checked={filters.campaignId === c.id}
+                    onChange={() => setFilters((f) => ({ ...f, campaignId: c.id }))}
+                  />
+                  <span>{pickCopy(c.name, locale)}</span>
+                </label>
+              ))}
             </div>
           ) : null}
         </div>
@@ -533,17 +551,26 @@ export default function SchedulePage() {
           </button>
           {filterSection === 'owner' ? (
             <div className="oma-filter-accordion__body">
-              <SelectField
-                value={filters.owner}
-                onChange={(e) => setFilters((f) => ({ ...f, owner: e.target.value }))}
-              >
-                <option value="all">{t('demo.filter.all')}</option>
-                {owners.map((o) => (
-                  <option key={o} value={o}>
-                    {o}
-                  </option>
-                ))}
-              </SelectField>
+              <label className="oma-filter-check">
+                <input
+                  type="radio"
+                  name="sched-owner"
+                  checked={filters.owner === 'all'}
+                  onChange={() => setFilters((f) => ({ ...f, owner: 'all' }))}
+                />
+                <span>{t('demo.filter.all')}</span>
+              </label>
+              {owners.map((o) => (
+                <label key={o} className="oma-filter-check">
+                  <input
+                    type="radio"
+                    name="sched-owner"
+                    checked={filters.owner === o}
+                    onChange={() => setFilters((f) => ({ ...f, owner: o }))}
+                  />
+                  <span>{o}</span>
+                </label>
+              ))}
             </div>
           ) : null}
         </div>
@@ -578,20 +605,20 @@ export default function SchedulePage() {
           }}
         >
           {view === 'agenda' ? (
-            <BarsOutlined />
+            <ShellIcon name="list-view" size={18} />
           ) : view === 'queue' ? (
-            <UnorderedListOutlined />
+            <ShellIcon name="grid-view" size={18} />
           ) : (
-            <CalendarOutlined />
+            <ShellIcon name="calendar-view" size={18} />
           )}
         </button>
         {viewMenuOpen ? (
           <div className="oma-sched-view-popover" role="menu" data-testid="demo-schedule-view-menu">
             {(
               [
-                ['calendar', <CalendarOutlined key="c" />],
-                ['agenda', <BarsOutlined key="a" />],
-                ['queue', <AppstoreOutlined key="q" />],
+                ['calendar', <ShellIcon key="c" name="calendar-view" size={16} />],
+                ['agenda', <ShellIcon key="a" name="list-view" size={16} />],
+                ['queue', <ShellIcon key="q" name="grid-view" size={16} />],
               ] as const
             ).map(([id, icon]) => (
               <button
@@ -626,7 +653,7 @@ export default function SchedulePage() {
           setViewMenuOpen(false);
         }}
       >
-        <FilterOutlined />
+        <ShellIcon name="filter" size={18} />
         {filterCount > 0 ? (
           <span className="oma-req-filter-icon__count">{filterCount}</span>
         ) : null}
@@ -639,7 +666,19 @@ export default function SchedulePage() {
       {headerSlot && headerSlot.isConnected
         ? createPortal(headerIcons, headerSlot)
         : null}
-      {filterSheet ? filterPanel : null}
+      <AntDrawer
+        open={filterSheet}
+        onClose={() => setFilterSheet(false)}
+        placement={locale.toLowerCase().startsWith('ar') ? 'left' : 'right'}
+        size={320}
+        mask={false}
+        closable={false}
+        title={null}
+        rootClassName="oma-tasks-filter-drawer"
+        styles={{ body: { padding: 0 } }}
+      >
+        {filterPanel}
+      </AntDrawer>
       <div className="oma-sched-top">
         <header className="oma-sched-page-head" data-testid="demo-schedule-header">
           <div className="oma-sched-page-head__copy">

@@ -7,7 +7,8 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { DemoGraph } from '@oma/demo';
-import { Button, DatePicker, Input, OmaSelect, TextArea } from '@oma/ui/controls';
+import { Button, DatePicker, Drawer as AntDrawer, Input, OmaSelect, TextArea } from '@oma/ui/controls';
+import { ShellIcon } from '../../../../components/shell/shell-icons';
 import dayjs from 'dayjs';
 import { Dialog } from '../../../../components/ui/dialog';
 import { ChannelChoiceCards } from '../../../../components/content/channel-choice-cards';
@@ -39,7 +40,6 @@ import {
 import { useLocale, useT } from '../../../../lib/use-locale';
 import { canConvertRequest, statusLabel } from '../../../../lib/request-workflow-ui';
 import {
-  FilterOutlined,
   CloseOutlined,
   SearchOutlined,
   CheckCircleOutlined,
@@ -445,7 +445,7 @@ export default function RequestsPage() {
                 aria-label={locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter'}
                 onClick={() => setFilterSheet((v) => !v)}
               >
-                <FilterOutlined />
+                <ShellIcon name="filter" size={18} />
                 {filterCount > 0 ? (
                   <span className="oma-req-filter-icon__count">{filterCount}</span>
                 ) : null}
@@ -647,10 +647,21 @@ export default function RequestsPage() {
             )}
           </div>
 
-          {filterSheet ? (
+          <AntDrawer
+            open={filterSheet}
+            onClose={() => setFilterSheet(false)}
+            placement={locale.toLowerCase().startsWith('ar') ? 'left' : 'right'}
+            size={320}
+            mask={false}
+            closable={false}
+            title={null}
+            rootClassName="oma-tasks-filter-drawer"
+            styles={{ body: { padding: 0 } }}
+          >
             <aside
-              className="oma-req-filter-panel oma-ws-filter-popover"
+              className="oma-req-filter-panel oma-tasks-filter-drawer__panel"
               data-testid="demo-request-filters"
+              data-anchor="viewport-top"
             >
               <header className="oma-req-filter-panel__head">
                 <strong>
@@ -1039,7 +1050,7 @@ export default function RequestsPage() {
                 </div>
               ) : null}
             </aside>
-          ) : null}
+          </AntDrawer>
         </div>
       ) : null}
 

@@ -18,7 +18,11 @@ export type NavIconId =
   | 'search'
   | 'bell'
   | 'plus'
-  | 'user';
+  | 'user'
+  | 'filter'
+  | 'calendar-view'
+  | 'list-view'
+  | 'grid-view';
 
 export type NavItem = {
   href: string;

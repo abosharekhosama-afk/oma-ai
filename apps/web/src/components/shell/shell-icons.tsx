@@ -81,6 +81,16 @@ const drawings: Record<NavIconId, IconDrawing> = {
       'M12 11a3.75 3.75 0 1 0 0-7.5A3.75 3.75 0 0 0 12 11Z',
     ],
   },
+  filter: { paths: ['M4 6h16', 'M7 12h10', 'M10 18h4'] },
+  'calendar-view': {
+    paths: ['M5 5.5h14v14H5z', 'M8 3.5v4', 'M16 3.5v4', 'M5 9.5h14'],
+  },
+  'list-view': {
+    paths: ['M8 7h12', 'M8 12h12', 'M8 17h12', 'M4 7h.01', 'M4 12h.01', 'M4 17h.01'],
+  },
+  'grid-view': {
+    paths: ['M4.5 4.5h6.5v6.5H4.5z', 'M13 4.5h6.5v6.5H13z', 'M4.5 13h6.5v6.5H4.5z', 'M13 13h6.5v6.5H13z'],
+  },
 };
 
 export function ShellIcon({

@@ -50,7 +50,9 @@ test.describe('Stage 6 Schedule Analytics Organization visual rebuild', () => {
     await expect(page.getByTestId('demo-schedule-agenda')).toBeVisible();
     await page.getByTestId('demo-schedule-view-queue').click();
     await expect(page.getByTestId('demo-schedule-queue')).toBeVisible();
-    await page.getByTestId('demo-schedule-filter-readiness').selectOption('ready');
+    await page.getByTestId('demo-schedule-filter-toggle').click();
+    await page.getByTestId('demo-schedule-filter-readiness-section').click();
+    await page.getByTestId('demo-schedule-filter-readiness-ready').check();
     await page.getByTestId('demo-schedule-clear').click();
 
     await page.getByTestId('demo-sched-card-demo-sched-1').getByRole('button').click();

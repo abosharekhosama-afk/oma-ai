@@ -1168,3 +1168,62 @@ main.oma-container:has(.oma-content-plan),
   align-items: center !important;
   gap: 4px !important;
 }
+
+/* Lock outer document + pin the rail. Only intended panes may scroll. */
+html:has(.oma-shell),
+body:has(.oma-shell) {
+  height: 100% !important;
+  max-height: 100% !important;
+  overflow: hidden !important;
+}
+.oma-shell {
+  height: 100vh !important;
+  max-height: 100vh !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  align-items: start !important;
+}
+.oma-rail {
+  position: sticky !important;
+  top: 0 !important;
+  align-self: start !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+  overflow: hidden !important;
+}
+.oma-rail .oma-nav,
+.oma-shell .oma-nav {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+.oma-shell-column:has(.oma-sched-page) > .oma-container,
+.oma-shell-column:has(.oma-sched-page) > main.oma-container {
+  overflow: hidden !important;
+}
+.oma-container:has(.oma-home),
+main.oma-container:has(.oma-home) {
+  height: calc(100dvh - 72px) !important;
+  max-height: calc(100dvh - 72px) !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+.oma-req-workspace[data-filter-open='true'],
+.oma-sched-layout[data-filter-open='true'] {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+.oma-top-actions--workspace .oma-req-filter-icon,
+.oma-top-actions--workspace .oma-sched-icon-btn,
+.oma-req-filter-icon,
+.oma-sched-icon-btn {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.oma-top-actions--workspace .oma-req-filter-icon svg,
+.oma-top-actions--workspace .oma-sched-icon-btn svg,
+.oma-req-filter-icon svg,
+.oma-sched-icon-btn svg {
+  display: block;
+}
