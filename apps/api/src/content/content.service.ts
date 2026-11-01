@@ -25,6 +25,38 @@ import { mediaPlaybackUrl } from '../media/media.service';
 import { syncContentPublishRollup } from '../social/publish-target-sync';
 import { rollupToLegacyPublishState } from '@oma/domain';
 
+
+function mapComment(c: {
+  id: string;
+  authorUserId: string;
+  bodyEn: string;
+  bodyAr: string;
+  createdAt: Date;
+  isInternal?: boolean;
+  parentId?: string | null;
+  resolvedAt?: Date | null;
+  reactionsJson?: string | null;
+  attachmentMediaIds?: string[];
+}) {
+  let reactions: Record<string, string[]> = {};
+  try {
+    reactions = c.reactionsJson ? (JSON.parse(c.reactionsJson) as Record<string, string[]>) : {};
+  } catch {
+    reactions = {};
+  }
+  return {
+    id: c.id,
+    author_user_id: c.authorUserId,
+    body: { en: c.bodyEn, ar: c.bodyAr },
+    at: c.createdAt.toISOString(),
+    internal: Boolean(c.isInternal),
+    parent_id: c.parentId ?? null,
+    resolved_at: c.resolvedAt?.toISOString() ?? null,
+    reactions,
+    attachment_media_ids: c.attachmentMediaIds ?? [],
+  };
+}
+
 /** Resolve ordered post media; the first item remains the compatibility preview. */
 async function resolvePreviewAssets(tenantId: string, brandId: string, value: unknown) {
   if (value === undefined) return undefined;
@@ -110,6 +142,8 @@ function mapContent(
     nextPublishAt?: Date | null;
     externalPostUrl?: string | null;
     publishedAt?: Date | null;
+    syncGroupId?: string | null;
+    preferredAudience?: string | null;
   },
   policy: ApprovalPolicy = 'OPTIONAL',
 ) {
@@ -151,6 +185,8 @@ function mapContent(
     labels: row.labels ?? [],
     assignee_user_id: row.assigneeUserId,
     client_visible: row.clientVisible,
+    sync_group_id: row.syncGroupId ?? null,
+    preferred_audience: row.preferredAudience ?? null,
     archived_at: row.archivedAt?.toISOString() ?? null,
     created_by: row.createdBy,
     created_at: row.createdAt.toISOString(),
@@ -378,12 +414,7 @@ export class ContentService {
         note: e.noteEn || e.noteAr ? { en: e.noteEn ?? '', ar: e.noteAr ?? '' } : null,
         at: e.at.toISOString(),
       })),
-      comments: comments.map((c) => ({
-        id: c.id,
-        author_user_id: c.authorUserId,
-        body: { en: c.bodyEn, ar: c.bodyAr },
-        at: c.createdAt.toISOString(),
-      })),
+      comments: comments.map((c) => mapComment(c)),
     };
   }
 
@@ -1112,14 +1143,7 @@ export class ContentService {
       orderBy: { createdAt: 'asc' },
       take: 100,
     });
-    return {
-      data: comments.map((c) => ({
-        id: c.id,
-        author_user_id: c.authorUserId,
-        body: { en: c.bodyEn, ar: c.bodyAr },
-        at: c.createdAt.toISOString(),
-      })),
-    };
+    return { data: comments.map((c) => mapComment(c)) };
   }
 
   async addComment(
@@ -1128,6 +1152,11 @@ export class ContentService {
     contentId: string,
     body: LocaleInput,
     correlationId?: string,
+    extra?: {
+      internal?: boolean;
+      parentId?: string | null;
+      attachmentMediaIds?: string[];
+    },
   ) {
     const row = await getPrisma().contentItem.findFirst({
       where: tenantWhere(tenantId, { id: contentId }),
@@ -1142,6 +1171,12 @@ export class ContentService {
         'errors.validation_failed',
       );
     }
+    if (extra?.parentId) {
+      const parent = await getPrisma().contentComment.findFirst({
+        where: { id: extra.parentId, tenantId, contentId },
+      });
+      if (!parent) throw new DomainError('NOT_FOUND', 'Parent comment not found', 404, 'errors.not_found');
+    }
     const comment = await getPrisma().contentComment.create({
       data: {
         id: newId(),
@@ -1150,6 +1185,9 @@ export class ContentService {
         authorUserId: actorUserId,
         bodyEn: pair.en,
         bodyAr: pair.ar,
+        isInternal: Boolean(extra?.internal),
+        parentId: extra?.parentId ?? null,
+        attachmentMediaIds: extra?.attachmentMediaIds ?? [],
       },
     });
     await this.audit.write({
@@ -1160,14 +1198,7 @@ export class ContentService {
       targetId: contentId,
       correlationId,
     });
-    return {
-      data: {
-        id: comment.id,
-        author_user_id: comment.authorUserId,
-        body: { en: comment.bodyEn, ar: comment.bodyAr },
-        at: comment.createdAt.toISOString(),
-      },
-    };
+    return { data: mapComment(comment) };
   }
 
   async deleteComment(
@@ -1191,5 +1222,426 @@ export class ContentService {
       correlationId,
     });
     return { data: { id: commentId, deleted: true } };
+  }
+
+  async updateComment(
+    tenantId: string,
+    actorUserId: string,
+    contentId: string,
+    commentId: string,
+    body: LocaleInput,
+    correlationId?: string,
+  ) {
+    const comment = await getPrisma().contentComment.findFirst({
+      where: { id: commentId, tenantId, contentId },
+    });
+    if (!comment) throw new DomainError('NOT_FOUND', 'Comment not found', 404, 'errors.not_found');
+    if (comment.authorUserId !== actorUserId) {
+      throw new DomainError('PERMISSION_DENIED', 'Only the author can edit this comment', 403, 'errors.permission_denied');
+    }
+    const pair = localePair(body);
+    if (!pair.en.trim()) {
+      throw new DomainError('VALIDATION_FAILED', 'Comment body required', 400, 'errors.validation_failed');
+    }
+    const updated = await getPrisma().contentComment.update({
+      where: { id: commentId },
+      data: { bodyEn: pair.en, bodyAr: pair.ar },
+    });
+    await this.audit.write({
+      actorUserId,
+      tenantId,
+      action: 'content.comment_updated',
+      targetType: 'ContentComment',
+      targetId: commentId,
+      correlationId,
+    });
+    return { data: mapComment(updated) };
+  }
+
+  async resolveComment(
+    tenantId: string,
+    actorUserId: string,
+    contentId: string,
+    commentId: string,
+    resolved = true,
+    correlationId?: string,
+  ) {
+    const comment = await getPrisma().contentComment.findFirst({
+      where: { id: commentId, tenantId, contentId },
+    });
+    if (!comment) throw new DomainError('NOT_FOUND', 'Comment not found', 404, 'errors.not_found');
+    const updated = await getPrisma().contentComment.update({
+      where: { id: commentId },
+      data: { resolvedAt: resolved ? new Date() : null },
+    });
+    await this.audit.write({
+      actorUserId,
+      tenantId,
+      action: resolved ? 'content.comment_resolved' : 'content.comment_unresolved',
+      targetType: 'ContentComment',
+      targetId: commentId,
+      correlationId,
+    });
+    return { data: mapComment(updated) };
+  }
+
+  async reactToComment(
+    tenantId: string,
+    actorUserId: string,
+    contentId: string,
+    commentId: string,
+    emoji: string,
+    correlationId?: string,
+  ) {
+    const comment = await getPrisma().contentComment.findFirst({
+      where: { id: commentId, tenantId, contentId },
+    });
+    if (!comment) throw new DomainError('NOT_FOUND', 'Comment not found', 404, 'errors.not_found');
+    const key = (emoji || '').trim().slice(0, 16);
+    if (!key) {
+      throw new DomainError('VALIDATION_FAILED', 'Emoji required', 400, 'errors.validation_failed');
+    }
+    let reactions: Record<string, string[]> = {};
+    try {
+      reactions = comment.reactionsJson
+        ? (JSON.parse(comment.reactionsJson) as Record<string, string[]>)
+        : {};
+    } catch {
+      reactions = {};
+    }
+    const list = new Set(reactions[key] ?? []);
+    if (list.has(actorUserId)) list.delete(actorUserId);
+    else list.add(actorUserId);
+    if (list.size) reactions[key] = [...list];
+    else delete reactions[key];
+    const updated = await getPrisma().contentComment.update({
+      where: { id: commentId },
+      data: { reactionsJson: JSON.stringify(reactions) },
+    });
+    await this.audit.write({
+      actorUserId,
+      tenantId,
+      action: 'content.comment_reacted',
+      targetType: 'ContentComment',
+      targetId: commentId,
+      correlationId,
+    });
+    return { data: mapComment(updated) };
+  }
+
+  /** Publish now: schedule for now (approval-gated) and enqueue worker jobs like due scheduled posts. */
+  async publishNow(
+    tenantId: string,
+    actorUserId: string,
+    contentId: string,
+    correlationId?: string,
+  ) {
+    const { enqueuePublishTargetsNow } = await import('../social/enqueue-publish-now');
+    const current = await getPrisma().contentItem.findFirst({
+      where: tenantWhere(tenantId, { id: contentId }),
+      include: { publishTargets: true },
+    });
+    if (!current) throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
+    if (current.archivedAt) {
+      throw new DomainError('CONFLICT_STATE', 'Content is archived', 409, 'error.conflict_state');
+    }
+    const policy = await this.policyForBrand(tenantId, current.brandId);
+    assertCanPublish(workflowSource(current), policy);
+    if (!current.publishTargets.length && !current.socialPageId) {
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'Select at least one channel before publishing',
+        400,
+        'errors.validation_failed',
+      );
+    }
+    const now = new Date();
+    const tz = current.timezone || (await brandTimezone(tenantId, current.brandId));
+    await getPrisma().contentItem.update({
+      where: { id: contentId },
+      data: {
+        scheduledAt: now,
+        scheduleState: 'SCHEDULED',
+        status: 'SCHEDULED',
+        timezone: tz,
+        lastPublishSkipReason: null,
+      },
+    });
+    if (current.socialPageId && !current.publishTargets.length) {
+      await getPrisma().contentPublishTarget.create({
+        data: {
+          id: newId(),
+          tenantId,
+          contentItemId: contentId,
+          socialPageId: current.socialPageId,
+          publishState: 'QUEUED',
+          publishAttempts: 0,
+          nextPublishAt: null,
+          lastPublishError: null,
+        },
+      });
+    } else {
+      await getPrisma().contentPublishTarget.updateMany({
+        where: { contentItemId: contentId, publishState: { not: 'PUBLISHED' } },
+        data: {
+          publishState: 'QUEUED',
+          publishAttempts: 0,
+          nextPublishAt: null,
+          lastPublishError: null,
+        },
+      });
+    }
+    await syncContentPublishRollup(contentId);
+    const enqueued = await enqueuePublishTargetsNow(contentId);
+    await this.writeEvent(tenantId, contentId, actorUserId, 'PUBLISH_NOW', {
+      en: 'Queued for publishing now',
+      ar: 'تمت الإضافة إلى قائمة النشر الآن',
+    });
+    await this.audit.write({
+      actorUserId,
+      tenantId,
+      action: 'content.publish_now',
+      targetType: 'ContentItem',
+      targetId: contentId,
+      correlationId,
+      afterRef: String(enqueued),
+    });
+    const refreshed = await getPrisma().contentItem.findUniqueOrThrow({
+      where: { id: contentId },
+      include: { publishTargets: true },
+    });
+    return { data: mapContent(refreshed, policy), enqueued };
+  }
+
+  async setPreferredAudience(
+    tenantId: string,
+    actorUserId: string,
+    contentId: string,
+    audience: string | null,
+    correlationId?: string,
+  ) {
+    const current = await getPrisma().contentItem.findFirst({
+      where: tenantWhere(tenantId, { id: contentId }),
+    });
+    if (!current) throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
+    const row = await getPrisma().contentItem.update({
+      where: { id: contentId },
+      data: { preferredAudience: audience?.trim() || null },
+    });
+    await this.audit.write({
+      actorUserId,
+      tenantId,
+      action: 'content.preferred_audience_set',
+      targetType: 'ContentItem',
+      targetId: contentId,
+      correlationId,
+    });
+    const policy = await this.policyForBrand(tenantId, row.brandId);
+    return { data: mapContent(row, policy) };
+  }
+
+  /** Detach one social page into its own post (Planable detach from group). */
+  async detachPublishTarget(
+    tenantId: string,
+    actorUserId: string,
+    contentId: string,
+    socialPageId: string,
+    correlationId?: string,
+  ) {
+    const current = await getPrisma().contentItem.findFirst({
+      where: tenantWhere(tenantId, { id: contentId }),
+      include: { publishTargets: true },
+    });
+    if (!current) throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
+    const target = current.publishTargets.find((t) => t.socialPageId === socialPageId);
+    if (!target) throw new DomainError('NOT_FOUND', 'Publish target not found', 404, 'errors.not_found');
+    if (current.publishTargets.length <= 1) {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'Cannot detach the only channel from this post',
+        409,
+        'error.conflict_state',
+      );
+    }
+    const page = await getPrisma().socialPage.findFirst({
+      where: { id: socialPageId, tenantId },
+    });
+    const dup = await this.duplicate(tenantId, actorUserId, contentId, correlationId);
+    const newId_ = (dup.data as { id: string }).id;
+    const groupId = current.syncGroupId || current.id;
+    await getPrisma().contentItem.update({
+      where: { id: current.id },
+      data: { syncGroupId: groupId },
+    });
+    await getPrisma().contentPublishTarget.delete({ where: { id: target.id } });
+    if (current.socialPageId === socialPageId) {
+      const remaining = current.publishTargets.filter((t) => t.socialPageId !== socialPageId);
+      await getPrisma().contentItem.update({
+        where: { id: current.id },
+        data: { socialPageId: remaining[0]?.socialPageId ?? null },
+      });
+    }
+    await getPrisma().contentPublishTarget.deleteMany({ where: { contentItemId: newId_ } });
+    await getPrisma().contentPublishTarget.create({
+      data: {
+        id: newId(),
+        tenantId,
+        contentItemId: newId_,
+        socialPageId,
+        publishState: 'NONE',
+        publishAttempts: 0,
+      },
+    });
+    await getPrisma().contentItem.update({
+      where: { id: newId_ },
+      data: {
+        socialPageId,
+        syncGroupId: null,
+        channel: page?.network
+          ? page.network.charAt(0).toUpperCase() + page.network.slice(1).toLowerCase()
+          : current.channel,
+      },
+    });
+    await syncContentPublishRollup(contentId);
+    await syncContentPublishRollup(newId_);
+    await this.audit.write({
+      actorUserId,
+      tenantId,
+      action: 'content.detached',
+      targetType: 'ContentItem',
+      targetId: newId_,
+      afterRef: contentId,
+      correlationId,
+    });
+    const policy = await this.policyForBrand(tenantId, current.brandId);
+    const row = await getPrisma().contentItem.findUniqueOrThrow({
+      where: { id: newId_ },
+      include: { publishTargets: true },
+    });
+    return { data: mapContent(row, policy), source_id: contentId };
+  }
+
+  /** Ungroup: one independent draft per publish target. */
+  async ungroup(
+    tenantId: string,
+    actorUserId: string,
+    contentId: string,
+    correlationId?: string,
+  ) {
+    const current = await getPrisma().contentItem.findFirst({
+      where: tenantWhere(tenantId, { id: contentId }),
+      include: { publishTargets: true },
+    });
+    if (!current) throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
+    const targets = current.publishTargets;
+    if (targets.length <= 1) {
+      await getPrisma().contentItem.update({
+        where: { id: contentId },
+        data: { syncGroupId: null },
+      });
+      const policy = await this.policyForBrand(tenantId, current.brandId);
+      return { data: [mapContent(current, policy)] };
+    }
+    const created: string[] = [];
+    const keep = targets[0]!;
+    for (const t of targets.slice(1)) {
+      const res = await this.detachPublishTarget(
+        tenantId,
+        actorUserId,
+        contentId,
+        t.socialPageId,
+        correlationId,
+      );
+      created.push((res.data as { id: string }).id);
+    }
+    await getPrisma().contentItem.update({
+      where: { id: contentId },
+      data: { syncGroupId: null, socialPageId: keep.socialPageId },
+    });
+    await syncContentPublishRollup(contentId);
+    const policy = await this.policyForBrand(tenantId, current.brandId);
+    const rows = await getPrisma().contentItem.findMany({
+      where: { id: { in: [contentId, ...created] } },
+      include: { publishTargets: true },
+    });
+    await this.audit.write({
+      actorUserId,
+      tenantId,
+      action: 'content.ungrouped',
+      targetType: 'ContentItem',
+      targetId: contentId,
+      correlationId,
+    });
+    return { data: rows.map((r) => mapContent(r, policy)) };
+  }
+
+  /** Copy post to another brand (and optional social page). */
+  async copyTo(
+    tenantId: string,
+    actorUserId: string,
+    contentId: string,
+    input: { brandId: string; socialPageId?: string | null },
+    correlationId?: string,
+  ) {
+    const current = await getPrisma().contentItem.findFirst({
+      where: tenantWhere(tenantId, { id: contentId }),
+    });
+    if (!current) throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
+    await this.requireActiveBrand(tenantId, input.brandId);
+    if (input.socialPageId) {
+      const page = await getPrisma().socialPage.findFirst({
+        where: {
+          id: input.socialPageId,
+          tenantId,
+          brandId: input.brandId,
+          status: { not: 'DISCONNECTED' },
+        },
+      });
+      if (!page) throw new DomainError('NOT_FOUND', 'Social page not found', 404, 'errors.not_found');
+    }
+    const dup = await this.duplicate(tenantId, actorUserId, contentId, correlationId);
+    const newId_ = (dup.data as { id: string }).id;
+    const page = input.socialPageId
+      ? await getPrisma().socialPage.findFirst({ where: { id: input.socialPageId } })
+      : null;
+    await getPrisma().contentItem.update({
+      where: { id: newId_ },
+      data: {
+        brandId: input.brandId,
+        campaignId: null,
+        socialPageId: input.socialPageId ?? null,
+        channel: page
+          ? page.network.charAt(0).toUpperCase() + page.network.slice(1).toLowerCase()
+          : current.channel,
+      },
+    });
+    await getPrisma().contentPublishTarget.deleteMany({ where: { contentItemId: newId_ } });
+    if (input.socialPageId) {
+      await getPrisma().contentPublishTarget.create({
+        data: {
+          id: newId(),
+          tenantId,
+          contentItemId: newId_,
+          socialPageId: input.socialPageId,
+          publishState: 'NONE',
+          publishAttempts: 0,
+        },
+      });
+    }
+    await this.audit.write({
+      actorUserId,
+      tenantId,
+      action: 'content.copied_to',
+      targetType: 'ContentItem',
+      targetId: newId_,
+      afterRef: contentId,
+      correlationId,
+    });
+    const policy = await this.policyForBrand(tenantId, input.brandId);
+    const row = await getPrisma().contentItem.findUniqueOrThrow({
+      where: { id: newId_ },
+      include: { publishTargets: true },
+    });
+    return { data: mapContent(row, policy) };
   }
 }

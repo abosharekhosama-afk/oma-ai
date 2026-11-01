@@ -172,6 +172,146 @@ export class ContentController {
     );
   }
 
+  @Post('api/v1/content/:contentId/publish-now')
+  @UseGuards(CsrfGuard)
+  async publishNow(@Req() req: Request, @Param('contentId') contentId: string) {
+    this.requireTenant(req);
+    return contentService.publishNow(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      contentId,
+      req.oma!.correlationId,
+    );
+  }
+
+  @Post('api/v1/content/:contentId/ungroup')
+  @UseGuards(CsrfGuard)
+  async ungroup(@Req() req: Request, @Param('contentId') contentId: string) {
+    this.requireTenant(req);
+    return contentService.ungroup(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      contentId,
+      req.oma!.correlationId,
+    );
+  }
+
+  @Post('api/v1/content/:contentId/detach')
+  @UseGuards(CsrfGuard)
+  async detach(
+    @Req() req: Request,
+    @Param('contentId') contentId: string,
+    @Body() body: { socialPageId?: string; social_page_id?: string },
+  ) {
+    this.requireTenant(req);
+    const socialPageId = body.socialPageId ?? body.social_page_id;
+    if (!socialPageId) {
+      throw new DomainError('VALIDATION_FAILED', 'socialPageId required', 400, 'errors.validation_failed');
+    }
+    return contentService.detachPublishTarget(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      contentId,
+      socialPageId,
+      req.oma!.correlationId,
+    );
+  }
+
+  @Post('api/v1/content/:contentId/copy-to')
+  @UseGuards(CsrfGuard)
+  async copyTo(
+    @Req() req: Request,
+    @Param('contentId') contentId: string,
+    @Body() body: { brandId?: string; brand_id?: string; socialPageId?: string; social_page_id?: string },
+  ) {
+    this.requireTenant(req);
+    const brandId = body.brandId ?? body.brand_id;
+    if (!brandId) {
+      throw new DomainError('VALIDATION_FAILED', 'brandId required', 400, 'errors.validation_failed');
+    }
+    return contentService.copyTo(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      contentId,
+      { brandId, socialPageId: body.socialPageId ?? body.social_page_id ?? null },
+      req.oma!.correlationId,
+    );
+  }
+
+  @Post('api/v1/content/:contentId/preferred-audience')
+  @UseGuards(CsrfGuard)
+  async preferredAudience(
+    @Req() req: Request,
+    @Param('contentId') contentId: string,
+    @Body() body: { audience?: string | null },
+  ) {
+    this.requireTenant(req);
+    return contentService.setPreferredAudience(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      contentId,
+      body.audience ?? null,
+      req.oma!.correlationId,
+    );
+  }
+
+  @Patch('api/v1/content/:contentId/comments/:commentId')
+  @UseGuards(CsrfGuard)
+  async updateComment(
+    @Req() req: Request,
+    @Param('contentId') contentId: string,
+    @Param('commentId') commentId: string,
+    @Body() body: { body: { en: string; ar?: string } | string },
+  ) {
+    this.requireTenant(req);
+    return contentService.updateComment(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      contentId,
+      commentId,
+      body.body,
+      req.oma!.correlationId,
+    );
+  }
+
+  @Post('api/v1/content/:contentId/comments/:commentId/resolve')
+  @UseGuards(CsrfGuard)
+  async resolveComment(
+    @Req() req: Request,
+    @Param('contentId') contentId: string,
+    @Param('commentId') commentId: string,
+    @Body() body: { resolved?: boolean },
+  ) {
+    this.requireTenant(req);
+    return contentService.resolveComment(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      contentId,
+      commentId,
+      body?.resolved !== false,
+      req.oma!.correlationId,
+    );
+  }
+
+  @Post('api/v1/content/:contentId/comments/:commentId/react')
+  @UseGuards(CsrfGuard)
+  async reactComment(
+    @Req() req: Request,
+    @Param('contentId') contentId: string,
+    @Param('commentId') commentId: string,
+    @Body() body: { emoji: string },
+  ) {
+    this.requireTenant(req);
+    return contentService.reactToComment(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      contentId,
+      commentId,
+      body.emoji,
+      req.oma!.correlationId,
+    );
+  }
+
   @Get('api/v1/content/:contentId/comments')
   async listComments(@Req() req: Request, @Param('contentId') contentId: string) {
     this.requireTenant(req);
@@ -183,7 +323,13 @@ export class ContentController {
   async addComment(
     @Req() req: Request,
     @Param('contentId') contentId: string,
-    @Body() body: { body: { en: string; ar?: string } | string },
+    @Body()
+    body: {
+      body: { en: string; ar?: string } | string;
+      internal?: boolean;
+      parent_id?: string | null;
+      attachment_media_ids?: string[];
+    },
   ) {
     this.requireTenant(req);
     return contentService.addComment(
@@ -192,6 +338,11 @@ export class ContentController {
       contentId,
       body.body,
       req.oma!.correlationId,
+      {
+        internal: body.internal,
+        parentId: body.parent_id,
+        attachmentMediaIds: body.attachment_media_ids,
+      },
     );
   }
 

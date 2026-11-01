@@ -148,10 +148,17 @@ export function MediaPickerDialog({
         const r = await mediaApi.browse(brandId, kind, folderId, scope);
         setBrowse(r.data);
         setTrail((prev) => {
+          const apiPath = r.data.path?.length
+            ? r.data.path.map((crumb) => ({
+                id: crumb.id,
+                name: crumb.name || r.data.root_name || '',
+              }))
+            : null;
+          if (apiPath) return apiPath;
           if (!folderId)
             return [{ id: r.data.folder.id, name: r.data.folder.name || r.data.root_name || '' }];
           if (back) {
-            const i = prev.findIndex((p) => p.id === folderId);
+            const i = prev.findIndex((crumb) => crumb.id === folderId);
             return i >= 0
               ? prev.slice(0, i + 1)
               : [{ id: r.data.folder.id, name: r.data.folder.name }];

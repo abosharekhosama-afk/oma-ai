@@ -59,6 +59,7 @@ export function ChannelChoiceCards({
   locale,
   multiple = false,
   variant = 'cards',
+  filterQuery = '',
   testId = 'channel-choice-cards',
 }: {
   brandId: string | null | undefined;
@@ -70,7 +71,9 @@ export function ChannelChoiceCards({
   locale: string;
   multiple?: boolean;
   /** Planable compose uses a compact avatar strip; cards remain the default. */
-  variant?: 'cards' | 'strip';
+  variant?: 'cards' | 'strip' | 'accounts';
+  /** Case-insensitive filter for account name / handle / network (accounts variant). */
+  filterQuery?: string;
   testId?: string;
 }) {
   const isAr = locale.toLowerCase().startsWith('ar');
@@ -200,6 +203,68 @@ export function ChannelChoiceCards({
       </div>
     );
   }
+
+  if (variant === 'accounts') {
+    const q = filterQuery.trim().toLowerCase();
+    const rows = pages
+      .filter((page) => page.status !== 'DISCONNECTED')
+      .filter((page) => {
+        if (!q) return true;
+        const handle = page.external_id ? `@${page.external_id}` : '';
+        const hay = `${page.name} ${handle} ${page.network}`.toLowerCase();
+        return hay.includes(q);
+      });
+    return (
+      <div className="oma-channel-accounts" data-testid={testId} role="group">
+        {loading ? (
+          <p className="oma-channel-accounts__empty">{isAr ? 'جارٍ التحميل…' : 'Loading…'}</p>
+        ) : null}
+        {!loading && !rows.length ? (
+          <p className="oma-channel-accounts__empty">
+            {isAr ? 'لا توجد حسابات متصلة' : 'No connected accounts'}
+          </p>
+        ) : null}
+        {rows.map((page) => {
+          const netSelected = selected.has(page.network);
+          const handle = page.external_id ? `@${page.external_id}` : '';
+          return (
+            <button
+              key={page.id}
+              type="button"
+              className="oma-channel-accounts__row"
+              role="checkbox"
+              aria-checked={netSelected}
+              data-on={netSelected ? 'true' : 'false'}
+              onClick={() => toggle(page.network)}
+            >
+              <span className="oma-channel-accounts__av" aria-hidden>
+                {page.avatar_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={page.avatar_url} alt="" />
+                ) : (
+                  <span>{(page.name || '?').slice(0, 1).toUpperCase()}</span>
+                )}
+                <span className="oma-channel-accounts__badge">
+                  <NetworkIcon channel={page.network} size={10} />
+                </span>
+              </span>
+              <span className="oma-channel-accounts__meta">
+                <strong>{page.name}</strong>
+                {handle ? <span className="oma-ltr">{handle}</span> : null}
+              </span>
+              <span className="oma-channel-accounts__check" aria-hidden>
+                {netSelected ? '✓' : ''}
+              </span>
+            </button>
+          );
+        })}
+        <Link href={settingsHref} className="oma-channel-accounts__manage">
+          {isAr ? 'إدارة القنوات' : 'Manage channels'}
+        </Link>
+      </div>
+    );
+  }
+
 
   return (
     <div className="oma-channel-choice" data-testid={testId}>

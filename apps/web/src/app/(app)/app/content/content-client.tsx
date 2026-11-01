@@ -157,6 +157,14 @@ import {
   type ApiContent,
   type ApprovalEvent,
   type ContentCommentDto,
+  publishContentNow,
+  ungroupContent,
+  detachContentChannel,
+  copyContentTo,
+  setPreferredAudience,
+  updateContentComment,
+  resolveContentComment,
+  reactContentComment,
 } from '../../../../lib/content-api';
 import {
   createRequest,
@@ -1127,6 +1135,11 @@ export default function ContentPage() {
   const [previewChannel, setPreviewChannel] = useState('');
   const [addChannelOpen, setAddChannelOpen] = useState(false);
   const [addChannelQuery, setAddChannelQuery] = useState('');
+  const [feedbackInternal, setFeedbackInternal] = useState(false);
+  const [feedbackReplyTo, setFeedbackReplyTo] = useState<string | null>(null);
+  const [feedbackAttachOpen, setFeedbackAttachOpen] = useState(false);
+  const [feedbackAttachmentIds, setFeedbackAttachmentIds] = useState<string[]>([]);
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
 
   const [overflowDay, setOverflowDay] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
@@ -2444,7 +2457,17 @@ export default function ContentPage() {
     }
     if (action === 'request') void runLifecycle('request-approval', id);
     else if (action === 'approve') void runLifecycle('approve', id);
-    else if (action === 'published') void runLifecycle('mark-published', id);
+    else if (action === 'published') {
+      void publishContentNow(id)
+        .then((res) => {
+          setRows((prev) => prev.map((r) => (r.id === id ? toContentRow(res.data) : r)));
+          toast.push(
+            isAr ? 'تمت إضافة المنشور إلى قائمة النشر' : 'Post queued for publishing',
+            'success',
+          );
+        })
+        .catch((e) => toast.push(contentApiError(e, t('errors.http')), 'danger'));
+    }
     else if (action === 'changes') void runLifecycle('request-changes', id);
     else if (action === 'reject') void runLifecycle('reject', id);
     else if (action === 'hide') void toggleHideFromClients(id);
@@ -4148,7 +4171,20 @@ export default function ContentPage() {
                       <button
                         type="button"
                         title={t('content.publish_post_now') || (isAr ? 'نشر الآن' : 'Publish now')}
-                        onClick={() => selectedId && void runLifecycle('mark-published', selectedId)}
+                        onClick={() => {
+                          if (!selectedId) return;
+                          void publishContentNow(selectedId)
+                            .then((res) => {
+                              setRows((prev) =>
+                                prev.map((r) => (r.id === selectedId ? toContentRow(res.data) : r)),
+                              );
+                              toast.push(
+                                isAr ? 'تمت إضافة المنشور إلى قائمة النشر' : 'Post queued for publishing',
+                                'success',
+                              );
+                            })
+                            .catch((e) => toast.push(contentApiError(e, t('errors.http')), 'danger'));
+                        }}
                       >
                         <CheckOutlined />
                       </button>
@@ -4190,7 +4226,8 @@ export default function ContentPage() {
                       brandId={selected.brandId}
                       value={draft.channel}
                       multiple
-                      variant="cards"
+                      variant="accounts"
+                      filterQuery={addChannelQuery}
                       onChange={(channel) => {
                         setDraft((d) => ({ ...d, channel }));
                         setPreviewChannel(channel.split(',')[0]?.trim() || channel);
@@ -4456,13 +4493,131 @@ export default function ContentPage() {
                           <button
                             type="button"
                             role="menuitem"
-                            onClick={() => void runLifecycle('mark-published', selectedId)}
+                            onClick={() => {
+                              if (!selectedId) return;
+                              void publishContentNow(selectedId)
+                                .then((res) => {
+                                  setRows((prev) =>
+                                    prev.map((r) =>
+                                      r.id === selectedId ? toContentRow(res.data) : r,
+                                    ),
+                                  );
+                                  toast.push(
+                                    isAr
+                                      ? 'تمت إضافة المنشور إلى قائمة النشر'
+                                      : 'Post queued for publishing',
+                                    'success',
+                                  );
+                                })
+                                .catch((e) => toast.push(contentApiError(e, t('errors.http')), 'danger'));
+                            }}
                           >
-                            <CheckOutlined /> {t('content.mark_published')}
+                            <CheckOutlined />{' '}
+                            {t('content.publish_post_now') || (isAr ? 'نشر الآن' : 'Publish now')}
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              if (!selectedId) return;
+                              const extra = selected as ContentRowExtra;
+                              const pageId = extra.socialPageIds?.[0] || extra.socialPageId;
+                              if (!pageId) {
+                                toast.push(
+                                  isAr ? 'لا توجد قناة لفصلها' : 'No channel to detach',
+                                  'danger',
+                                );
+                                return;
+                              }
+                              void detachContentChannel(selectedId, pageId)
+                                .then((res) => {
+                                  const row = toContentRow(res.data);
+                                  setRows((prev) => [row, ...prev]);
+                                  toast.push(isAr ? 'تم فصل القناة' : 'Channel detached', 'success');
+                                  openItem(row);
+                                })
+                                .catch((e) => toast.push(contentApiError(e, t('errors.http')), 'danger'));
+                            }}
+                          >
+                            <EditOutlined /> {isAr ? 'فصل عن المجموعة' : 'Detach from group'}
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              if (!selectedId) return;
+                              const brand = brands.find((b) => b.id !== selected.brandId) || brands[0];
+                              if (!brand) return;
+                              void copyContentTo(selectedId, { brandId: brand.id })
+                                .then((apiRow) => {
+                                  const row = toContentRow(apiRow);
+                                  setRows((prev) => [row, ...prev]);
+                                  toast.push(isAr ? 'تم النسخ' : 'Copied', 'success');
+                                  openItem(row);
+                                })
+                                .catch((e) => toast.push(contentApiError(e, t('errors.http')), 'danger'));
+                            }}
+                          >
+                            <CopyOutlined /> {t('content.copy_to') || (isAr ? 'نسخ إلى…' : 'Copy to…')}
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              if (!selectedId) return;
+                              const next = window.prompt(
+                                isAr ? 'الجمهور المفضل' : 'Preferred audience',
+                                (selected as ContentRowExtra).preferredAudience || '',
+                              );
+                              if (next === null) return;
+                              void setPreferredAudience(selectedId, next.trim() || null)
+                                .then((apiRow) => {
+                                  setRows((prev) =>
+                                    prev.map((r) =>
+                                      r.id === selectedId ? toContentRow(apiRow) : r,
+                                    ),
+                                  );
+                                  toast.push(
+                                    isAr ? 'تم حفظ الجمهور المفضل' : 'Preferred audience saved',
+                                    'success',
+                                  );
+                                })
+                                .catch((e) => toast.push(contentApiError(e, t('errors.http')), 'danger'));
+                            }}
+                          >
+                            <UserOutlined />{' '}
+                            {isAr ? 'الجمهور المفضل' : 'Preferred audience'}
                           </button>
                         </li>
                         <li className="oma-plan-post__more-section" aria-hidden>
                           {isAr ? 'إجراءات المجموعة' : 'Group actions'}
+                        </li>
+                        <li>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              if (!selectedId) return;
+                              void ungroupContent(selectedId)
+                                .then((rows) => {
+                                  const mapped = rows.map((r) => toContentRow(r));
+                                  setRows((prev) => {
+                                    const ids = new Set(mapped.map((r) => r.id));
+                                    return [...mapped, ...prev.filter((r) => !ids.has(r.id))];
+                                  });
+                                  toast.push(isAr ? 'تم فك تجميع المنشورات' : 'Posts ungrouped', 'success');
+                                })
+                                .catch((e) => toast.push(contentApiError(e, t('errors.http')), 'danger'));
+                            }}
+                          >
+                            <FlagOutlined /> {isAr ? 'فك تجميع المنشورات' : 'Ungroup posts'}
+                          </button>
                         </li>
                         <li>
                           <button
@@ -4933,14 +5088,20 @@ export default function ContentPage() {
                         </div>
                         {feedbackTab === 'comments' ? (
                           <div className="oma-plan-post__comments">
-                            <div className="oma-plan-post__comment-box">
+                            <div className="oma-plan-post__comment-box oma-fb-composer">
                               <div className="oma-plan-post__comment-input-row">
                                 <span className="oma-plan-post__avatar">U</span>
                                 <textarea
                                   className="oma-plan-post__comment-input"
-                                  rows={2}
+                                  rows={feedbackInternal || feedbackReplyTo ? 3 : 2}
                                   value={commentDraft}
-                                  placeholder={t('content.say_something')}
+                                  placeholder={
+                                    feedbackReplyTo
+                                      ? isAr
+                                        ? 'رد داخلي…'
+                                        : 'Internal reply…'
+                                      : t('content.say_something')
+                                  }
                                   onChange={(e) => setCommentDraft(e.target.value)}
                                   onKeyDown={(e) => {
                                     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
@@ -4956,29 +5117,94 @@ export default function ContentPage() {
                                   }}
                                 />
                               </div>
-                              <button
-                                type="button"
-                                className="oma-plan-post__comment-send"
-                                disabled={!commentDraft.trim() || !selectedId}
-                                onClick={() => {
-                                  void (async () => {
-                                    if (!selectedId || !commentDraft.trim()) return;
-                                    try {
-                                      const c = await addContentComment(selectedId, {
-                                        en: commentDraft.trim(),
-                                        ar: commentDraft.trim(),
-                                      });
-                                      setProdComments((prev) => [...prev, c]);
-                                      setCommentDraft('');
-                                      toast.push(t('demo.tasks.commentAdded'), 'success');
-                                    } catch (err) {
-                                      toast.push(contentApiError(err, t('errors.http')), 'danger');
-                                    }
-                                  })();
-                                }}
-                              >
-                                {t('content.send')}
-                              </button>
+                              <div className="oma-fb-composer__tools">
+                                <label>
+                                  <input
+                                    type="checkbox"
+                                    checked={feedbackInternal}
+                                    onChange={(e) => setFeedbackInternal(e.target.checked)}
+                                  />
+                                  {isAr ? 'داخلي' : 'Internal'}
+                                </label>
+                                <button
+                                  type="button"
+                                  title="@"
+                                  onClick={() =>
+                                    setCommentDraft((d) => (d.includes('@') ? d : `${d}@`.trimStart()))
+                                  }
+                                >
+                                  @
+                                </button>
+                                <button
+                                  type="button"
+                                  title={t('media.add')}
+                                  onClick={() => setFeedbackAttachOpen(true)}
+                                >
+                                  📎
+                                  {feedbackAttachmentIds.length
+                                    ? ` (${feedbackAttachmentIds.length})`
+                                    : ''}
+                                </button>
+                                {feedbackReplyTo ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => setFeedbackReplyTo(null)}
+                                  >
+                                    {t('common.cancel')}
+                                  </button>
+                                ) : null}
+                                <button
+                                  type="button"
+                                  className="oma-plan-post__comment-send"
+                                  disabled={!commentDraft.trim() || !selectedId}
+                                  onClick={() => {
+                                    void (async () => {
+                                      if (!selectedId || !commentDraft.trim()) return;
+                                      try {
+                                        if (editingCommentId) {
+                                          const c = await updateContentComment(
+                                            selectedId,
+                                            editingCommentId,
+                                            {
+                                              en: commentDraft.trim(),
+                                              ar: commentDraft.trim(),
+                                            },
+                                          );
+                                          setProdComments((prev) =>
+                                            prev.map((row) => (row.id === c.id ? c : row)),
+                                          );
+                                          setEditingCommentId(null);
+                                        } else {
+                                          const c = await addContentComment(
+                                            selectedId,
+                                            {
+                                              en: commentDraft.trim(),
+                                              ar: commentDraft.trim(),
+                                            },
+                                            {
+                                              internal: feedbackInternal,
+                                              parentId: feedbackReplyTo,
+                                              attachmentMediaIds: feedbackAttachmentIds,
+                                            },
+                                          );
+                                          setProdComments((prev) => [...prev, c]);
+                                          setFeedbackAttachmentIds([]);
+                                        }
+                                        setCommentDraft('');
+                                        setFeedbackReplyTo(null);
+                                        toast.push(t('demo.tasks.commentAdded'), 'success');
+                                      } catch (err) {
+                                        toast.push(
+                                          contentApiError(err, t('errors.http')),
+                                          'danger',
+                                        );
+                                      }
+                                    })();
+                                  }}
+                                >
+                                  {t('content.send') || (isAr ? 'نشر' : 'Post')}
+                                </button>
+                              </div>
                             </div>
                             {prodComments.length === 0 ? (
                               <div className="oma-plan-post__empty">
@@ -4988,7 +5214,17 @@ export default function ContentPage() {
                             ) : (
                               <div className="oma-comment-thread">
                                 {prodComments.map((c) => (
-                                  <article key={c.id} className="oma-comment">
+                                  <article
+                                    key={c.id}
+                                    className="oma-comment oma-fb-comment"
+                                    data-internal={c.internal ? 'true' : 'false'}
+                                    data-resolved={c.resolved_at ? 'true' : 'false'}
+                                    style={
+                                      c.parent_id
+                                        ? { marginInlineStart: 18 }
+                                        : undefined
+                                    }
+                                  >
                                     <span className="oma-plan-post__avatar">
                                       {memberInitials(c.author_user_id)}
                                     </span>
@@ -4998,31 +5234,122 @@ export default function ContentPage() {
                                         <span className="oma-ltr">
                                           {formatCommentTime(c.at, locale, calendarTz)}
                                         </span>
+                                        {c.internal ? (
+                                          <span className="oma-muted">
+                                            {isAr ? 'داخلي' : 'Internal'}
+                                          </span>
+                                        ) : null}
                                       </div>
                                       <p className="oma-comment-body">
                                         {isAr ? c.body.ar || c.body.en : c.body.en || c.body.ar}
                                       </p>
-                                      <button
-                                        type="button"
-                                        className="oma-comment-delete"
-                                        onClick={() => {
-                                          if (!selectedId) return;
-                                          void deleteContentComment(selectedId, c.id)
-                                            .then(() => {
-                                              setProdComments((prev) =>
-                                                prev.filter((row) => row.id !== c.id),
+                                      {c.reactions && Object.keys(c.reactions).length ? (
+                                        <div className="oma-fb-reactions">
+                                          {Object.entries(c.reactions).map(([emoji, users]) => (
+                                            <span key={emoji} className="oma-ltr">
+                                              {emoji} {users.length}
+                                            </span>
+                                          ))}
+                                        </div>
+                                      ) : null}
+                                      <div className="oma-fb-comment__actions">
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            if (!selectedId) return;
+                                            void reactContentComment(selectedId, c.id, '👍')
+                                              .then((updated) =>
+                                                setProdComments((prev) =>
+                                                  prev.map((row) =>
+                                                    row.id === updated.id ? updated : row,
+                                                  ),
+                                                ),
+                                              )
+                                              .catch((err) =>
+                                                toast.push(
+                                                  contentApiError(err, t('errors.http')),
+                                                  'danger',
+                                                ),
                                               );
-                                            })
-                                            .catch((err) => {
-                                              toast.push(
-                                                contentApiError(err, t('errors.http')),
-                                                'danger',
+                                          }}
+                                        >
+                                          👍
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            if (!selectedId) return;
+                                            void resolveContentComment(
+                                              selectedId,
+                                              c.id,
+                                              !c.resolved_at,
+                                            )
+                                              .then((updated) =>
+                                                setProdComments((prev) =>
+                                                  prev.map((row) =>
+                                                    row.id === updated.id ? updated : row,
+                                                  ),
+                                                ),
+                                              )
+                                              .catch((err) =>
+                                                toast.push(
+                                                  contentApiError(err, t('errors.http')),
+                                                  'danger',
+                                                ),
                                               );
-                                            });
-                                        }}
-                                      >
-                                        {t('wsPanel.delete')}
-                                      </button>
+                                          }}
+                                        >
+                                          {c.resolved_at
+                                            ? isAr
+                                              ? 'إعادة فتح'
+                                              : 'Reopen'
+                                            : isAr
+                                              ? 'حل'
+                                              : 'Resolve'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setFeedbackReplyTo(c.id);
+                                            setFeedbackInternal(true);
+                                          }}
+                                        >
+                                          {isAr ? 'رد' : 'Reply'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setEditingCommentId(c.id);
+                                            setCommentDraft(
+                                              isAr
+                                                ? c.body.ar || c.body.en
+                                                : c.body.en || c.body.ar,
+                                            );
+                                          }}
+                                        >
+                                          {isAr ? 'تعديل' : 'Edit'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            if (!selectedId) return;
+                                            void deleteContentComment(selectedId, c.id)
+                                              .then(() => {
+                                                setProdComments((prev) =>
+                                                  prev.filter((row) => row.id !== c.id),
+                                                );
+                                              })
+                                              .catch((err) => {
+                                                toast.push(
+                                                  contentApiError(err, t('errors.http')),
+                                                  'danger',
+                                                );
+                                              });
+                                          }}
+                                        >
+                                          {t('wsPanel.delete')}
+                                        </button>
+                                      </div>
                                     </div>
                                   </article>
                                 ))}
@@ -5151,6 +5478,23 @@ export default function ContentPage() {
           </aside>
         </>
       ) : null}
+
+      <MediaPickerDialog
+        open={feedbackAttachOpen}
+        brandId={selected?.brandId || brands[0]?.id || null}
+        kind="posts"
+        t={t}
+        locale={locale}
+        canConnect={canManageWorkspace}
+        onClose={() => setFeedbackAttachOpen(false)}
+        onPick={(asset) => {
+          setFeedbackAttachmentIds((ids) =>
+            ids.includes(asset.id) ? ids : [...ids, asset.id],
+          );
+          setFeedbackAttachOpen(false);
+          toast.push(isAr ? 'تم إرفاق الوسائط بالتعليق' : 'Attachment added to comment', 'success');
+        }}
+      />
 
       {/* Media library (WorkDrive) */}
       <MediaPickerDialog

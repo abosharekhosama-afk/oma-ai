@@ -48,6 +48,7 @@ export type MediaLibrary = {
 export type WorkDriveBrowse = {
   folder: { id: string; name: string; parent_id: string | null };
   root_name: string | null;
+  path?: Array<{ id: string; name: string }>;
   folders: Array<{ id: string; name: string }>;
   files: Array<{ id: string; name: string; mime: string; size: number; updated_at: string | null }>;
 };
