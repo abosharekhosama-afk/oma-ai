@@ -443,19 +443,39 @@
 }
 
 /* Schedule — Planable calendar language (owned by P5) */
+.oma-sched-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-height: calc(100dvh - 168px);
+  max-height: calc(100dvh - 168px);
+}
+.oma-sched-page .oma-page-header {
+  flex-shrink: 0;
+}
 .oma-sched-calendar {
-  display: grid;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
   gap: 0;
-  margin-bottom: var(--space-4);
+  margin-bottom: 0;
   border: 1px solid var(--oma-border);
   border-radius: 12px;
-  overflow: visible;
+  overflow: hidden;
   background: var(--oma-surface);
 }
-.oma-sched-dow-row,
+.oma-sched-dow-row {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  flex-shrink: 0;
+}
 .oma-sched-week {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
+  flex: 1 1 auto;
+  min-height: 0;
+  align-items: stretch;
 }
 .oma-sched-dow {
   padding: 10px 8px;
@@ -482,12 +502,24 @@
   border-inline-end: 1px solid var(--oma-border);
   border-radius: 0;
   background: var(--oma-surface);
-  min-height: 220px;
-  padding: var(--space-2);
-  display: grid;
-  gap: var(--space-2);
-  align-content: start;
-  overflow: visible;
+  min-height: 0;
+  height: 100%;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+}
+.oma-sched-day__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 .oma-sched-day:last-child {
   border-inline-end: 0;
@@ -497,6 +529,7 @@
   justify-items: center;
   gap: 2px;
   text-align: center;
+  flex-shrink: 0;
 }
 .oma-sched-day-label__dow {
   font-size: 11px;
@@ -2426,22 +2459,77 @@
 /* Schedule layout: full-height filter rail + header icon controls */
 .oma-sched-layout--full {
   align-items: stretch !important;
-  min-height: calc(100vh - 140px) !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
 }
 .oma-sched-filter-panel--rail {
   align-self: stretch !important;
-  min-height: 100% !important;
+  flex-shrink: 0 !important;
   height: auto !important;
+  max-height: none !important;
+  min-height: 100% !important;
   display: flex !important;
   flex-direction: column !important;
-  order: -1 !important; /* lead from start of screen (LTR left / RTL right via logical) */
+  order: -1 !important;
   border-inline-start: 0 !important;
   border-inline-end: 1px solid #eef0f2 !important;
+  overflow: hidden !important;
+}
+.oma-sched-filter-panel__head {
+  flex-shrink: 0;
+}
+.oma-sched-filter-nav {
+  flex-shrink: 0;
+  padding: 10px 14px 12px;
+  border-bottom: 1px solid #eef0f2;
+  background: #fafbfc;
+}
+.oma-sched-filter-body {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+}
+.oma-sched-main {
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  flex: 1 1 auto !important;
+}
+.oma-sched-main[data-view='calendar'] {
+  overflow: hidden !important;
+}
+.oma-sched-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 0 0 10px;
+  flex-shrink: 0;
+  border-bottom: 1px solid #eef0f2;
+  margin-bottom: 10px;
+}
+.oma-sched-week-nav--cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.oma-sched-week-nav__range {
+  font-size: 12px;
+  color: #6b7280;
+  margin-inline-start: 4px;
 }
 .oma-sched-header-icons {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid #e8eaed;
+  background: #fff;
+}
+.oma-sched-toolbar__actions {
+  margin: 0 !important;
 }
 .oma-sched-view-wrap { position: relative; }
 .oma-sched-view-popover {
@@ -2496,6 +2584,40 @@
 }
 .oma-sched-cal-card-btn .oma-pv-cal-card {
   pointer-events: none;
+  padding: 4px 5px 5px;
+  gap: 3px;
+  border-radius: 6px;
+  box-shadow: none;
+}
+.oma-sched-cal-card-btn .oma-pv-cal-card__row {
+  gap: 4px;
+}
+.oma-sched-cal-card-btn .oma-pv-cal-card__time {
+  font-size: 10px;
+}
+.oma-sched-cal-card-btn .oma-pv-cal-card__name {
+  font-size: 11px;
+  max-width: 5.5rem;
+}
+.oma-sched-cal-card-btn .oma-pv-cal-card__foot,
+.oma-sched-cal-card-btn .oma-pv-chips {
+  display: none;
+}
+.oma-sched-cal-card-btn .oma-pv-cal-card__text {
+  display: none;
+}
+.oma-sched-cal-card-btn .oma-pv-cal-card__media,
+.oma-sched-cal-card-btn .oma-pv-cal-card__media--empty {
+  display: none !important;
+}
+.oma-sched-cal-card-btn {
+  flex-shrink: 0;
+  max-width: 100%;
+}
+.oma-sched-saved {
+  flex-shrink: 0;
+  max-height: 120px;
+  overflow-y: auto;
 }
 .oma-pv-icon-btn[data-active='true'] {
   color: var(--oma-primary);

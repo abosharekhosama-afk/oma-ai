@@ -74,6 +74,16 @@ function weekdayForScheduleDay(iso: string, locale: string, timeZone: string): s
   }).format(d);
 }
 
+const SCHEDULE_CALENDAR_DISPLAY: CalendarDisplay = {
+  postSize: 'compact',
+  elements: ['approvals'],
+  showNotes: false,
+  showCampaigns: false,
+  showWeekends: true,
+  fadePublished: true,
+  weekStartsOn: 1,
+};
+
 export default function SchedulePage() {
   const t = useT();
   const locale = useLocale();
@@ -271,8 +281,37 @@ export default function SchedulePage() {
     }
   }
 
+  const weekNav = (
+    <div className="oma-sched-week-nav oma-sched-week-nav--cluster">
+      <Button
+        type="default"
+        data-testid="demo-schedule-prev"
+        onClick={() => setAnchor((a) => shiftWeek(a, -1, scheduleTz))}
+      >
+        {t('demo.schedule.prev')}
+      </Button>
+      <Button
+        type="default"
+        data-testid="demo-schedule-today"
+        onClick={() => setAnchor(todayInBrand)}
+      >
+        {t('demo.schedule.today')}
+      </Button>
+      <Button
+        type="default"
+        data-testid="demo-schedule-next"
+        onClick={() => setAnchor((a) => shiftWeek(a, 1, scheduleTz))}
+      >
+        {t('demo.schedule.next')}
+      </Button>
+      <span className="oma-sched-week-nav__range oma-ltr" data-testid="demo-schedule-range">
+        {days[0]} → {days[6]}
+      </span>
+    </div>
+  );
+
   return (
-    <div className="oma-stack" data-testid="demo-schedule">
+    <div className="oma-sched-page" data-testid="demo-schedule">
       <PageHeader
         title={t('demo.schedule.title')}
         description={t('demo.schedule.subtitle')}
@@ -283,7 +322,7 @@ export default function SchedulePage() {
           </span>
         }
         actions={
-          <div className="oma-sched-header-icons">
+          <div className="oma-sched-header-icons oma-sched-toolbar__actions">
             <div className="oma-sched-view-wrap">
               <button
                 type="button"
@@ -368,7 +407,7 @@ export default function SchedulePage() {
                 className="oma-req-filter-panel oma-sched-filter-panel oma-sched-filter-panel--rail"
                 data-testid="demo-schedule-filters"
               >
-                <header className="oma-req-filter-panel__head">
+                <header className="oma-req-filter-panel__head oma-sched-filter-panel__head">
                   <strong>{t('demo.requests.filters') || 'Filters'}</strong>
                   <button
                     type="button"
@@ -379,6 +418,9 @@ export default function SchedulePage() {
                     <CloseOutlined />
                   </button>
                 </header>
+                <div className="oma-sched-filter-nav" data-testid="demo-schedule-filter-nav">
+                  {weekNav}
+                </div>
                 <div className="oma-sched-filter-body">
                   <label className="oma-brief-field">
                     <span className="oma-brief-field__label">{t('demo.schedule.search')}</span>
@@ -469,51 +511,32 @@ export default function SchedulePage() {
                 </div>
               </aside>
             ) : null}
-            <div className="oma-sched-main">
-              <div className="oma-sched-week-nav oma-sched-week-nav--bar">
-                <Button
-                  type="default"
-                  data-testid="demo-schedule-prev"
-                  onClick={() => setAnchor((a) => shiftWeek(a, -1, scheduleTz))}
-                >
-                  {t('demo.schedule.prev')}
-                </Button>
-                <Button
-                  type="default"
-                  data-testid="demo-schedule-today"
-                  onClick={() => setAnchor(todayInBrand)}
-                >
-                  {t('demo.schedule.today')}
-                </Button>
-                <Button
-                  type="default"
-                  data-testid="demo-schedule-next"
-                  onClick={() => setAnchor((a) => shiftWeek(a, 1, scheduleTz))}
-                >
-                  {t('demo.schedule.next')}
-                </Button>
-                <span className="oma-muted" data-testid="demo-schedule-range">
-                  {days[0]} → {days[6]}
-                </span>
-              </div>
+            <div className="oma-sched-main" data-view={view}>
+              {!filterSheet ? (
+                <div className="oma-sched-toolbar" data-testid="demo-schedule-toolbar">
+                  {weekNav}
+                </div>
+              ) : null}
               {filtered.length === 0 ? (
                 <EmptyState title={t('demo.empty')} body={t('demo.schedule.emptyHint')} />
               ) : null}
 
-              <section data-testid="demo-schedule-saved" className="oma-stack">
-                <h2>{t('demo.content.savedColumn')}</h2>
-                {contents
-                  .filter((item) => resolveContentWorkflow(item, policy).plannedAt == null)
-                  .map((item) => (
-                    <Link
-                      key={item.id}
-                      href={`/app/content?item=${item.id}`}
-                      className="oma-text-link"
-                    >
-                      {pickCopy(item.title, locale)}
-                    </Link>
-                  ))}
-              </section>
+              {view !== 'calendar' ? (
+                <section data-testid="demo-schedule-saved" className="oma-stack oma-sched-saved">
+                  <h2>{t('demo.content.savedColumn')}</h2>
+                  {contents
+                    .filter((item) => resolveContentWorkflow(item, policy).plannedAt == null)
+                    .map((item) => (
+                      <Link
+                        key={item.id}
+                        href={`/app/content?item=${item.id}`}
+                        className="oma-text-link"
+                      >
+                        {pickCopy(item.title, locale)}
+                      </Link>
+                    ))}
+                </section>
+              ) : null}
 
               {view === 'calendar' ? (
                 <div className="oma-sched-calendar" data-testid="demo-schedule-calendar">
@@ -541,6 +564,7 @@ export default function SchedulePage() {
                           </span>
                           <span className="oma-sched-day-label__key oma-ltr">{day}</span>
                         </div>
+                        <div className="oma-sched-day__scroll">
                         {(byDay.get(day) ?? []).map((raw) => {
                           const post = raw as ScheduleRowView;
                           const bucket = bucketForScheduleRow(post);
@@ -556,12 +580,7 @@ export default function SchedulePage() {
                           const published =
                             post.state === 'PUBLISHED_SAMPLE' || Boolean(post.publishedAt);
                           const calDisplay: CalendarDisplay = {
-                            postSize: 'default',
-                            elements: ['labels', 'campaigns', 'approvals', 'comments'],
-                            showNotes: false,
-                            showCampaigns: true,
-                            showWeekends: true,
-                            fadePublished: true,
+                            ...SCHEDULE_CALENDAR_DISPLAY,
                             weekStartsOn: locale.toLowerCase().startsWith('ar') ? 6 : 1,
                           };
                           return (
@@ -612,6 +631,7 @@ export default function SchedulePage() {
                             </SurfaceButton>
                           );
                         })}
+                        </div>
                       </div>
                     ))}
                   </div>
