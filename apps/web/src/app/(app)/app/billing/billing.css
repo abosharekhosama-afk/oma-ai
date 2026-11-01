@@ -1,0 +1,19 @@
+.oma-billing { max-width: 1240px; margin: 0 auto; padding: 32px 28px 64px; }
+.oma-billing__header { align-items: center; }
+.oma-billing__back { color: var(--oma-ink, #24303d); font-weight: 700; text-decoration: none; }
+.oma-billing__notice { margin: 10px 0 26px; padding: 14px 16px; border: 1px solid #dce6ef; border-radius: 12px; background: #f7fafc; color: #526273; }
+.oma-billing__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; align-items: stretch; }
+.oma-billing__card { position: relative; display: flex; flex-direction: column; min-height: 430px; padding: 28px 24px 24px; border: 1px solid #dfe7ee; border-radius: 16px; background: #fff; box-shadow: 0 8px 24px rgba(30, 49, 70, .06); }
+.oma-billing__card.is-selected { border-color: #3b82f6; box-shadow: 0 12px 30px rgba(59, 130, 246, .14); }
+.oma-billing__badge { position: absolute; inset-block-start: -12px; inset-inline-end: 20px; padding: 5px 10px; border-radius: 999px; background: #2563eb; color: #fff; font-size: 12px; font-weight: 800; }
+.oma-billing__card h2 { margin: 0 0 8px; font-size: 24px; }
+.oma-billing__desc { min-height: 42px; margin: 0; color: #687789; }
+.oma-billing__price { margin: 22px 0 16px; }
+.oma-billing__price strong { font-size: 42px; letter-spacing: -1px; }
+.oma-billing__price span { color: #718096; font-size: 13px; }
+.oma-billing__included { margin: 0 0 8px; font-weight: 800; }
+.oma-billing__card ul { flex: 1; margin: 0 0 24px; padding: 0; list-style: none; color: #526273; }
+.oma-billing__card li { display: flex; gap: 9px; margin: 10px 0; line-height: 1.35; }
+.oma-billing__card li span { color: #16a34a; font-weight: 900; }
+.oma-billing__footer { display: flex; justify-content: center; align-items: center; gap: 16px; margin-top: 28px; color: #526273; }
+@media (max-width: 850px) { .oma-billing__grid { grid-template-columns: 1fr; } .oma-billing__card { min-height: 0; } .oma-billing__header, .oma-billing__footer { align-items: flex-start; flex-direction: column; } }

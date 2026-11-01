@@ -208,6 +208,13 @@ const routeRequirements: Record<string, string[]> = {
   'POST /api/v1/content/:contentId/schedule': ['content.schedule'],
   'POST /api/v1/content/:contentId/unschedule': ['content.schedule'],
   'POST /api/v1/content/:contentId/archive': ['content.archive'],
+  // Post-card actions. These routes are protected by the global guard, so an
+  // omitted mapping is a hard 403 even for COMPANY_OWNER/ADMIN memberships.
+  'POST /api/v1/content/:contentId/ungroup': ['content.update'],
+  'POST /api/v1/content/:contentId/detach': ['content.update'],
+  'POST /api/v1/content/:contentId/copy-to': ['content.create'],
+  'POST /api/v1/content/:contentId/duplicate': ['content.create'],
+  'POST /api/v1/content/:contentId/publish-now': ['content.schedule'],
   'GET /api/v1/brands/:brandId/content-preferences': ['content.read'],
   'PATCH /api/v1/brands/:brandId/content-preferences': ['content.update'],
 
