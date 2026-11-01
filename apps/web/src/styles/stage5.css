@@ -2864,6 +2864,35 @@ main.oma-container:has(.oma-sched-page) {
   .oma-sched-main[data-view='queue'] > .oma-sched-queue {
     grid-template-columns: minmax(0, 1fr);
   }
+  /* Keep the calendar available on touch screens; the seven columns scroll horizontally. */
+  .oma-sched-main[data-view='calendar'] {
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .oma-sched-main[data-view='calendar'] .oma-sched-calendar {
+    display: flex !important;
+    flex: 0 0 auto;
+    width: max-content;
+    min-width: 840px;
+    min-height: 500px;
+    overflow: visible;
+  }
+  .oma-sched-main[data-view='calendar'] .oma-sched-dow-row,
+  .oma-sched-main[data-view='calendar'] .oma-sched-week {
+    min-width: 840px;
+  }
+  .oma-sched-main[data-view='calendar'] .oma-sched-week {
+    min-height: 430px;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+  .oma-sched-main[data-view='calendar'] .oma-sched-day {
+    min-width: 120px;
+    min-height: 430px;
+    height: auto;
+  }
 }
 
 @media (max-width: 640px) {
@@ -2903,6 +2932,10 @@ main.oma-container:has(.oma-sched-page) {
   margin: 0 !important;
   font-size: 11px;
   line-height: 1.35;
+}
+.oma-sched-main[data-view='agenda'] .oma-sched-card__body,
+.oma-sched-main[data-view='agenda'] .oma-sched-card > p.oma-muted {
+  display: none;
 }
 .oma-sched-main[data-view='agenda'] .oma-chip-row {
   gap: 6px;
@@ -2960,6 +2993,26 @@ main.oma-container:has(.oma-sched-page) {
   text-overflow: ellipsis;
   white-space: nowrap;
   cursor: pointer;
+}
+.oma-sched-table__post {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+  max-width: 330px;
+}
+.oma-sched-table__thumb {
+  display: block;
+  flex: 0 0 auto;
+  width: 42px;
+  height: 42px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--oma-canvas);
+  border: 1px solid var(--oma-border);
+}
+.oma-sched-table__thumb--empty {
+  background: linear-gradient(135deg, var(--oma-canvas), var(--oma-border));
 }
 .oma-sched-table__title:hover,
 .oma-sched-table__title:focus-visible {

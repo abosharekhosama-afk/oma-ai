@@ -966,12 +966,27 @@ export default function SchedulePage() {
                     <tbody>
                       {orderedRows.map((post) => {
                         const score = readinessScore(post);
+                        const content = contentById.get(post.contentId) as ContentRowExtra | undefined;
+                        const title = contentTitleText(
+                          content?.title ?? post.title,
+                          content?.caption ?? post.caption,
+                          locale,
+                          untitled,
+                        );
+                        const previewUrl = content ? contentMediaUrls(content)[0] ?? null : null;
                         return (
                           <tr key={post.id} data-testid={`demo-schedule-table-row-${post.id}`}>
                             <th scope="row">
-                              <button type="button" className="oma-sched-table__title" onClick={() => openItem(post.id)}>
-                                {contentTitleText(contentById.get(post.contentId)?.title ?? post.title, contentById.get(post.contentId)?.caption ?? post.caption, locale, untitled)}
-                              </button>
+                              <div className="oma-sched-table__post">
+                                {previewUrl ? (
+                                  <img className="oma-sched-table__thumb" src={previewUrl} alt="" loading="lazy" />
+                                ) : (
+                                  <span className="oma-sched-table__thumb oma-sched-table__thumb--empty" aria-hidden />
+                                )}
+                                <button type="button" className="oma-sched-table__title" onClick={() => openItem(post.id)}>
+                                  {title}
+                                </button>
+                              </div>
                             </th>
                             <td><span className="oma-sched-table__date">{weekdayForScheduleDay(scheduleDayKey(post.plannedAt), locale, scheduleTz)} · {formatScheduleWhen(post.plannedAt, post.timezone || scheduleTz, locale)}</span></td>
                             <td>{post.channels.join(', ') || t('demo.schedule.ownerEmpty')}</td>
