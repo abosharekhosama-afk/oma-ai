@@ -679,6 +679,7 @@ export default function SchedulePage() {
         mask={false}
         closable={false}
         title={null}
+        destroyOnHidden
         rootClassName="oma-tasks-filter-drawer"
         styles={{ body: { padding: 0 } }}
       >
@@ -708,7 +709,7 @@ export default function SchedulePage() {
 
       {!loading && !unavailable && !error ? (
         <>
-          <div className="oma-sched-layout oma-sched-layout--full" data-filter-open={filterSheet ? 'true' : 'false'}>
+          <div className="oma-sched-layout oma-sched-layout--full">
             <div className="oma-sched-main" data-view={view}>
               {filtered.length === 0 ? (
                 <EmptyState title={t('demo.empty')} body={t('demo.schedule.emptyHint')} />

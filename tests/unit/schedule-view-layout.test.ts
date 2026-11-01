@@ -89,6 +89,12 @@ describe('schedule agenda and queue layouts', () => {
     expect(css).toContain('max-width: 100vw !important');
   });
 
+  it('removes the legacy inline filter rail and destroys the drawer after closing', () => {
+    const source = read('apps/web/src/app/(app)/app/schedule/schedule-client.tsx');
+    expect(source).toContain('destroyOnHidden');
+    expect(source).not.toContain("data-filter-open={filterSheet ? 'true' : 'false'}");
+  });
+
   it('uses the shared side-drawer treatment for schedule details', () => {
     const source = read('apps/web/src/app/(app)/app/schedule/schedule-client.tsx');
     const css = read('apps/web/src/styles/side-drawers.css');
