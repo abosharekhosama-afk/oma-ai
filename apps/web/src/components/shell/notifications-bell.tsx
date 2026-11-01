@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Button } from '@oma/ui/controls';
 import { ShellIcon } from './shell-icons';
 import { CheckSquareIcon, ClockIcon, EnvelopeIcon, ImageIcon, UsersIcon } from '../ui/plx-icons';
 import { Drawer } from '../ui/drawer';
@@ -88,5 +87,5 @@ export function NotificationsBell() {
     {error ? <p role="alert" className="oma-notifications-panel__error">{error}</p> : items === null ? <p role="status" className="oma-muted">{t('common.loading')}</p> : shown.length === 0 ? <div className="oma-notifications-panel__empty"><ShellIcon name="bell" size={24} /><p>{t('shell.notificationsEmpty')}</p></div> : <ul className="oma-notifications-panel__list">{shown.map((n) => <NotificationRow key={n.id} n={n} t={t} locale={locale} markRead={(id) => void markRead(id)} />)}</ul>}
     <footer className="oma-notifications-panel__foot"><Link href="/app/notifications" onClick={() => setOpen(false)}>{t('shell.notificationsViewAll')}</Link></footer>
   </div>;
-  return <><span className="oma-notifications"><button type="button" className="oma-icon-btn" aria-label={t('shell.notifications')} aria-expanded={open} aria-controls="notifications-panel" data-testid="shell-notifications-trigger" onClick={() => setOpen(true)}><ShellIcon name="bell" />{unread > 0 ? <span className="oma-badge oma-badge--primary" data-testid="shell-notifications-unread">{unread > 99 ? '99+' : unread}</span> : null}</button></span><Drawer open={open} onClose={() => setOpen(false)} label={t('shell.notifications')} wide className="oma-notifications-drawer" id="notifications-drawer">{panel}</Drawer></>;
+  return <><span className="oma-notifications"><button type="button" className="oma-icon-btn oma-rail-utility-trigger" aria-label={t('shell.notifications')} aria-expanded={open} aria-controls="notifications-panel" data-testid="shell-notifications-trigger" onClick={() => setOpen(true)}><ShellIcon name="bell" />{unread > 0 ? <span className="oma-badge oma-badge--primary" data-testid="shell-notifications-unread">{unread > 99 ? '99+' : unread}</span> : null}</button></span><Drawer open={open} onClose={() => setOpen(false)} label={t('shell.notifications')} wide className="oma-notifications-drawer" id="notifications-drawer">{panel}</Drawer></>;
 }

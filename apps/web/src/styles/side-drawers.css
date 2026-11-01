@@ -1,7 +1,9 @@
 /* Shared side panels: Planable-style drawers with predictable inline motion. */
-.oma-tasks-filter-drawer,
-.oma-notifications-drawer {
+.oma-tasks-filter-drawer {
   z-index: 1200 !important;
+}
+.oma-notifications-drawer {
+  z-index: 1300 !important;
 }
 
 .oma-tasks-filter-drawer .ant-drawer-content-wrapper,
@@ -312,59 +314,6 @@
   }
 }
 
-/* Keep the desktop rail footer visible even when the navigation list is long. */
-.oma-shell > .oma-rail {
-  min-height: 100vh !important;
-  position: sticky !important;
-  overflow: hidden !important;
-}
-
-.oma-shell > .oma-rail > .oma-rail-footer {
-  position: absolute !important;
-  inset-inline: var(--shell-chrome-inset, 12px) !important;
-  inset-block-end: var(--shell-chrome-inset, 12px) !important;
-  z-index: 2;
-  flex: 0 0 auto !important;
-  min-height: 40px;
-  margin-block-start: 0 !important;
-  padding-block: 10px 2px !important;
-  background: var(--oma-surface, #fff);
-  box-shadow: 0 -1px 0 var(--oma-border, #e6e7e9);
-}
-
-.oma-shell > .oma-rail > .oma-rail-footer[data-testid='shell-rail-utilities'] {
-  display: flex !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-}
-
-.oma-shell > .oma-rail > .oma-nav {
-  flex: 1 1 auto !important;
-  min-height: 0 !important;
-  overflow-y: auto !important;
-  padding-block-end: 72px !important;
-}
-
-.oma-shell > .oma-rail .oma-rail-footer .oma-icon-btn,
-.oma-shell > .oma-rail .oma-rail-footer .oma-user-menu > button {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 36px !important;
-  height: 36px !important;
-  min-width: 36px !important;
-  min-height: 36px !important;
-  visibility: visible !important;
-  opacity: 1 !important;
-  color: var(--oma-ink, #20252c) !important;
-}
-
-.oma-shell > .oma-rail[data-collapsed='true'] > .oma-rail-footer {
-  flex-direction: column !important;
-  align-items: center !important;
-  min-height: 88px;
-}
-
 @media (max-width: 767px) {
   .oma-tasks-filter-drawer .ant-drawer-content-wrapper,
   .oma-notifications-drawer .ant-drawer-content-wrapper,
@@ -423,4 +372,58 @@
     animation: none !important;
     transition: none !important;
   }
+}
+
+/* Final shell utility layout. Keep the footer in normal flex flow: the older
+   absolute rule could place it behind the clipped rail and cause a jump when
+   the mobile navigation drawer was opened again. */
+.oma-shell > .oma-rail > .oma-rail-footer,
+.oma-drawer.oma-drawer--nav .oma-rail-footer {
+  position: relative !important;
+  inset: auto !important;
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  min-height: 40px !important;
+  margin-block-start: auto !important;
+  padding: 10px 0 2px !important;
+  border-top: 1px solid var(--oma-border, #e6e7e9) !important;
+  background: var(--oma-surface, #fff) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+.oma-rail-utility-trigger {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 36px !important;
+  min-width: 36px !important;
+  height: 36px !important;
+  min-height: 36px !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+.oma-shell > .oma-rail[data-collapsed='true'] > .oma-rail-footer {
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  min-height: 88px !important;
+  gap: 8px !important;
+}
+
+.oma-drawer.oma-drawer--nav .oma-rail-footer {
+  flex-direction: row !important;
+  gap: 8px !important;
+  padding-block-end: max(10px, env(safe-area-inset-bottom)) !important;
+}
+
+.oma-drawer.oma-drawer--nav .oma-mobile-drawer-nav {
+  transform: none !important;
+  animation: none !important;
 }

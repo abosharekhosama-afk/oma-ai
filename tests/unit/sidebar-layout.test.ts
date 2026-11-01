@@ -39,6 +39,18 @@ describe('workspace sidebar layout', () => {
     expect(notifications).toContain('href="/app/notifications"');
   });
 
+  it('keeps utility triggers visible and prevents drawer transform leftovers', () => {
+    const account = read('apps/web/src/components/shell/user-menu.tsx');
+    const notifications = read('apps/web/src/components/shell/notifications-bell.tsx');
+    const drawers = read('apps/web/src/styles/side-drawers.css');
+    expect(account).toContain('oma-rail-utility-trigger');
+    expect(notifications).toContain('oma-rail-utility-trigger');
+    expect(drawers).toContain('position: relative !important');
+    expect(drawers).toContain('.oma-notifications-drawer {');
+    expect(drawers).toContain('z-index: 1300 !important');
+    expect(drawers).toContain('transform: none !important');
+  });
+
   it('loads the shared side-drawer layer for filters and notification panels', () => {
     const globals = read('apps/web/src/app/globals.css');
     const drawers = read('apps/web/src/styles/side-drawers.css');
@@ -46,8 +58,8 @@ describe('workspace sidebar layout', () => {
     expect(drawers).toContain('.oma-tasks-filter-drawer .ant-drawer-content-wrapper');
     expect(drawers).toContain('.oma-filter-sidepanel');
     expect(drawers).toContain('.oma-shell > .oma-rail > .oma-rail-footer');
-    expect(drawers).toContain('position: absolute !important');
-    expect(drawers).toContain('padding-block-end: 72px !important');
+    expect(drawers).toContain('position: relative !important');
+    expect(drawers).toContain('oma-rail-utility-trigger');
     expect(drawers).toContain('.oma-notifications-drawer .oma-notifications-panel--drawer');
     expect(drawers).toContain('position: static !important');
     expect(drawers).toContain('.oma-drawer.oma-drawer--nav .ant-drawer-content-wrapper');

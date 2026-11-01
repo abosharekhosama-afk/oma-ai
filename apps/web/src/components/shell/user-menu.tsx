@@ -46,6 +46,7 @@ export function UserMenu() {
       <ShellPopover open={open} onOpenChange={setOpen} content={panel} className="oma-user-menu-pop">
         <Button
           type="text"
+          className="oma-rail-utility-trigger"
           aria-label={t('shell.account')}
           aria-expanded={open}
           aria-haspopup="menu"
