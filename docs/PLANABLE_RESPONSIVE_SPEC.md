@@ -21,6 +21,7 @@ Calendar/grid/composer/drawer at tablet/mobile: **not recaptured this run** (cal
 4. Primary actions remain 32px-class hit targets (LIVE 32px buttons). Touch targets must stay ≥32px; prefer 40px on 390 if Planable’s live calendar later shows larger — until then keep 32px and verify.
 5. Drawers/modals must remain inside the viewport; Escape closes; no settings save.
 6. RTL: Planable English LTR only this session. OMA mirrors rail to inline-start and keeps status logic (not a mirrored workflow). Glyphs: Noto Sans Arabic as coverage, same 14px body metrics.
+7. Schedule agenda and queue keep their controls outside a dedicated vertical scroll region; queue cards collapse to one column on narrow screens. The compact mobile-week list is shown only for calendar mode to avoid duplicate agenda/queue items.
 
 ## Filters and composer
 

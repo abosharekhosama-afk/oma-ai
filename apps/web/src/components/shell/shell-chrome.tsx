@@ -142,6 +142,16 @@ function RailNav({ collapsed }: { collapsed: boolean }) {
   );
 }
 
+/** Shared account and notification actions shown for every workspace surface. */
+function RailUtilities() {
+  return (
+    <div className="oma-rail-footer" data-testid="shell-rail-utilities">
+      <UserMenu />
+      <NotificationsBell />
+    </div>
+  );
+}
+
 function ShellBreadcrumb({ onOpenSettings }: { onOpenSettings: () => void }) {
   const t = useT();
   const pathname = usePathname() || '/app';
@@ -391,10 +401,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
             <WorkspaceRow collapsed={collapsed} onOpenSettings={() => setWsSettingsOpen(true)} />
           </div>
           <RailNav collapsed={collapsed} />
-          <div className="oma-rail-footer">
-            <NotificationsBell />
-            <UserMenu />
-          </div>
+          <RailUtilities />
         </aside>
 
         <div className="oma-shell-column">
@@ -523,10 +530,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
           <div className="oma-mobile-drawer-nav" onClick={() => setMobileOpen(false)}>
             <RailNav collapsed={false} />
           </div>
-          <div className="oma-rail-footer">
-            <NotificationsBell />
-            <UserMenu />
-          </div>
+          <RailUtilities />
         </Drawer>
 
         {settingsSection ? (

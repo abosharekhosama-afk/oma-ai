@@ -204,6 +204,10 @@ export default function SchedulePage() {
   }, [selectedId, policy]);
 
   const filtered = useMemo(() => filterSchedule(rows, filters, locale), [rows, filters, locale]);
+  const orderedRows = useMemo(
+    () => [...filtered].sort((a, b) => a.plannedAt.localeCompare(b.plannedAt)),
+    [filtered],
+  );
   const selected = rows.find((r) => r.id === selectedId) ?? null;
   const scheduleTz = useMemo(
     () =>
@@ -838,8 +842,9 @@ export default function SchedulePage() {
                 <div
                   className={view === 'agenda' ? 'oma-sched-agenda' : 'oma-sched-queue'}
                   data-testid={`demo-schedule-${view}`}
+                  data-view={view}
                 >
-                  {filtered.map((post) => {
+                  {orderedRows.map((post) => {
                     const score = readinessScore(post);
                     return (
                       <article
