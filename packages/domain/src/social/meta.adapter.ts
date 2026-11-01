@@ -161,8 +161,16 @@ export class MetaAdapter implements SocialProviderAdapter {
     }
     let creationId: string;
     if (media.length === 1) {
+      const type = String(post.contentType || '').toUpperCase();
+      const isReel = type === 'REEL' || type === 'VIDEO';
+      const isStory = type === 'STORY';
       const container = await this.post(`${page.externalId}/media`, {
-        image_url: media[0]!,
+        ...(isReel || isStory
+          ? {
+              media_type: isStory ? 'STORIES' : 'REELS',
+              video_url: media[0]!,
+            }
+          : { image_url: media[0]! }),
         caption: post.text,
         access_token: page.accessToken,
       });

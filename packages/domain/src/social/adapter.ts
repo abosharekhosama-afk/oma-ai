@@ -40,6 +40,8 @@ export type PublishInput = {
   mediaUrls?: string[] | null;
   /** Optional media metadata required by providers that validate format and file size. */
   media?: Array<{ url: string; mime: string; sizeBytes?: number }>;
+  /** Content type so adapters can pick Story / Reels / Carousel endpoints. */
+  contentType?: 'POST' | 'REEL' | 'CAROUSEL' | 'STATIC' | 'STORY' | 'VIDEO' | string | null;
 };
 export type PublishResult = { externalId: string; url: string | null; pending?: boolean };
 export type PublishStatusResult =

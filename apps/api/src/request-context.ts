@@ -5,6 +5,8 @@ export type RequestContext = {
   tenantId?: string;
   capabilities: string[];
   membershipId?: string;
+  /** Planable team | client — client/guest must not see hidden posts. */
+  membershipKind?: string;
 };
 
 // Express request augmentation for server-authoritative OMA context.

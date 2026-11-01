@@ -319,6 +319,8 @@ export class ContentService {
       includeArchived?: boolean;
       cursor?: string;
       limit?: number;
+      /** When true (client/guest membership), omit posts marked hide-from-clients. */
+      clientAudience?: boolean;
     },
   ) {
     const brand = await getPrisma().brandWorkspace.findFirst({
@@ -335,6 +337,7 @@ export class ContentService {
       ...(query.status ? { status: query.status as ContentStatus } : {}),
       ...(query.track ? { track: query.track as Track } : {}),
       ...(query.channel ? { channel: query.channel } : {}),
+      ...(query.clientAudience ? { clientVisible: true } : {}),
       ...(query.includeArchived ? {} : { archivedAt: null }),
       ...(query.q
         ? {
@@ -386,12 +389,15 @@ export class ContentService {
     }));
   }
 
-  async get(tenantId: string, contentId: string) {
+  async get(tenantId: string, contentId: string, opts?: { clientAudience?: boolean }) {
     const row = await getPrisma().contentItem.findFirst({
       where: tenantWhere(tenantId, { id: contentId }),
       include: { publishTargets: true },
     });
     if (!row) {
+      throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
+    }
+    if (opts?.clientAudience && row.clientVisible === false) {
       throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
     }
     const policy = await this.policyForBrand(tenantId, row.brandId);

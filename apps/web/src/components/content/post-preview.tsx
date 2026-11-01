@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useT } from '../../lib/use-locale';
 import { NetworkIcon } from './network-icon';
 import {
@@ -48,6 +48,8 @@ export type PostPreviewProps = {
   caption: string;
   title?: string;
   media?: string | null;
+  /** Ordered media URLs for carousel (preview + card). Falls back to `media`. */
+  mediaItems?: string[] | null;
   when?: string | null;
   whenKind?: 'scheduled' | 'planned' | null;
   locale: string;
@@ -88,18 +90,53 @@ function Avatar({ name, url, size = 32 }: { name: string; url?: string | null; s
 
 function Media({ ctx, ratio }: { ctx: Ctx; ratio?: string }) {
   const r = ratio ?? aspectRatioFor(ctx.network, ctx.contentType);
-  const show = ctx.media && !isPlaceholderAsset(ctx.media);
+  const items = (ctx.mediaItems?.length
+    ? ctx.mediaItems
+    : ctx.media
+      ? [ctx.media]
+      : []
+  ).filter((src) => src && !isPlaceholderAsset(src));
+  const [index, setIndex] = useState(0);
+  const touchX = useRef<number | null>(null);
   const detail = ctx.size === 'detail';
+  const count = items.length;
+  const active = count ? items[Math.min(index, count - 1)]! : null;
+  const show = Boolean(active);
+  const multi = count > 1;
+
+  useEffect(() => {
+    setIndex(0);
+  }, [items.join('|')]);
+
+  const go = (dir: -1 | 1) => {
+    if (!multi) return;
+    setIndex((i) => (i + dir + count) % count);
+  };
+
   return (
-    <div className="oma-pp__media" style={{ aspectRatio: r }} data-ratio={r}>
+    <div
+      className="oma-pp__media"
+      style={{ aspectRatio: r }}
+      data-ratio={r}
+      data-carousel={multi ? 'true' : 'false'}
+      onTouchStart={(e) => {
+        touchX.current = e.changedTouches[0]?.clientX ?? null;
+      }}
+      onTouchEnd={(e) => {
+        if (touchX.current == null) return;
+        const dx = (e.changedTouches[0]?.clientX ?? touchX.current) - touchX.current;
+        touchX.current = null;
+        if (Math.abs(dx) < 40) return;
+        go(dx < 0 ? 1 : -1);
+      }}
+    >
       {show ? (
         <MediaSurface
-          src={ctx.media!}
+          key={active!}
+          src={active!}
           contentType={ctx.contentType}
           alt={ctx.title || ''}
           className="oma-pp__media-content"
-          // Feed/grid previews autoplay silently; the preview card is a real player with
-          // controls (it starts muted so browsers allow autoplay, the user can unmute).
           autoPlay
           loop={!detail}
           controls={detail}
@@ -134,7 +171,44 @@ function Media({ ctx, ratio }: { ctx: Ctx; ratio?: string }) {
           </svg>
         </span>
       ) : null}
-      {ctx.contentType === 'CAROUSEL' ? (
+      {multi ? (
+        <>
+          <button
+            type="button"
+            className="oma-pp__nav oma-pp__nav--prev"
+            aria-label="Previous"
+            onClick={(e) => {
+              e.stopPropagation();
+              go(-1);
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path d="M15 6 9 12l6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className="oma-pp__nav oma-pp__nav--next"
+            aria-label="Next"
+            onClick={(e) => {
+              e.stopPropagation();
+              go(1);
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
+              <path d="m9 6 6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+            </svg>
+          </button>
+          <span className="oma-pp__counter oma-ltr" aria-hidden>
+            {index + 1}/{count}
+          </span>
+          <span className="oma-pp__dots" aria-hidden>
+            {items.map((_, i) => (
+              <i key={i} data-on={i === index ? 'true' : 'false'} />
+            ))}
+          </span>
+        </>
+      ) : ctx.contentType === 'CAROUSEL' ? (
         <span className="oma-pp__dots" aria-hidden>
           <i data-on="true" />
           <i />

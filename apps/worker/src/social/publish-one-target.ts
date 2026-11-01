@@ -129,7 +129,12 @@ export async function publishOneTarget(
             });
           })()
         : undefined;
-    const res = await adapter.publish(pageForAdapter(page, key), { text, mediaUrls, media });
+    const res = await adapter.publish(pageForAdapter(page, key), {
+      text,
+      mediaUrls,
+      media,
+      contentType: item.contentType,
+    });
     if (!res.externalId?.trim()) {
       throw new SocialProviderError('Provider returned no post id', { retryable: true });
     }

@@ -16,6 +16,7 @@ import { CsrfGuard } from '../common/guards/csrf.guard';
 import { CapabilitiesGuard } from '../common/guards/capabilities.guard';
 import { DomainError } from '@oma/domain';
 import { contentService } from '../container';
+import { resolveBrandAccess } from '../brand/brand-access';
 
 @Controller()
 @UseGuards(AuthGuard, CapabilitiesGuard)
@@ -24,6 +25,21 @@ export class ContentController {
     if (!req.oma?.tenantId) {
       throw new DomainError('TENANT_REQUIRED', 'Tenant required', 403, 'errors.tenant_required');
     }
+  }
+
+
+  /** Clients (membershipKind) and brand VIEWER guests must not see hide-from-clients posts. */
+  private async isClientAudience(req: Request, brandId?: string): Promise<boolean> {
+    if ((req.oma!.membershipKind ?? 'team') === 'client') return true;
+    const caps = req.oma!.capabilities ?? [];
+    // Guest/client capability profiles have content.read but not content.update.
+    if (caps.includes('content.read') && !caps.includes('content.update') && !caps.includes('tenant.manage')) {
+      return true;
+    }
+    if (!brandId) return false;
+    const access = req.brandAccess ?? (await resolveBrandAccess(req.oma!.tenantId!, req.oma!.userId!));
+    if (access.all) return false;
+    return access.roles.get(brandId) === 'VIEWER';
   }
 
   @Get('api/v1/brands/:brandId/content')
@@ -49,6 +65,7 @@ export class ContentController {
       includeArchived: includeArchived === 'true' || includeArchived === '1',
       cursor,
       limit: limit ? Number(limit) : undefined,
+      clientAudience: await this.isClientAudience(req, brandId),
     });
   }
 
@@ -72,7 +89,18 @@ export class ContentController {
   @Get('api/v1/content/:contentId')
   async get(@Req() req: Request, @Param('contentId') contentId: string) {
     this.requireTenant(req);
-    return contentService.get(req.oma!.tenantId!, contentId);
+    const full = await contentService.get(req.oma!.tenantId!, contentId);
+    const data = (full as { data?: { brand_id?: string; client_visible?: boolean } }).data;
+    if (
+      data &&
+      data.client_visible === false &&
+      (await this.isClientAudience(req, data.brand_id))
+    ) {
+      // Same 404 as a missing post — do not reveal hidden items to clients/VIEWER guests.
+      // DomainError already imported
+      throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
+    }
+    return full;
   }
 
   @Patch('api/v1/content/:contentId')

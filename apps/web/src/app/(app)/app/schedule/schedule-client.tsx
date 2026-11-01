@@ -1,7 +1,14 @@
 'use client';
 import { TableShimmer } from '../../../../components/ui/shimmer';
 import { useReloadOnBrandChange } from '../../../../lib/active-brand';
-import { CloseOutlined, FilterOutlined } from '@ant-design/icons';
+import {
+  AppstoreOutlined,
+  BarsOutlined,
+  CalendarOutlined,
+  CloseOutlined,
+  FilterOutlined,
+  UnorderedListOutlined,
+} from '@ant-design/icons';
 import { Button, DateField, Input, SelectField, SurfaceButton } from '@oma/ui/controls';
 
 import Link from 'next/link';
@@ -13,6 +20,8 @@ import { Drawer } from '../../../../components/ui/drawer';
 import { EmptyState } from '../../../../components/ui/empty-state';
 import { PageHeader } from '../../../../components/ui/page-header';
 import { StatusMark } from '../../../../components/content/content-card';
+import { CalendarPostCard } from '../../../../components/content/planable-views';
+import type { CalendarDisplay } from '../../../../lib/content-views';
 import { useToast } from '../../../../components/ui/toast';
 import { pickCopy } from '../../../../lib/demo/use-demo-api';
 import {
@@ -85,6 +94,7 @@ export default function SchedulePage() {
   const [socialPageIdsDraft, setSocialPageIdsDraft] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [filterSheet, setFilterSheet] = useState(false);
+  const [viewMenuOpen, setViewMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [unavailable, setUnavailable] = useState(false);
@@ -272,6 +282,71 @@ export default function SchedulePage() {
             <strong className="oma-ltr">{scheduleTz}</strong>
           </span>
         }
+        actions={
+          <div className="oma-sched-header-icons">
+            <div className="oma-sched-view-wrap">
+              <button
+                type="button"
+                className="oma-pv-icon-btn"
+                data-testid="demo-schedule-view-toggle"
+                aria-label={t(`demo.schedule.view.${view}`)}
+                aria-expanded={viewMenuOpen}
+                data-tooltip={t(`demo.schedule.view.${view}`)}
+                onClick={() => setViewMenuOpen((v) => !v)}
+              >
+                {view === 'agenda' ? (
+                  <BarsOutlined />
+                ) : view === 'queue' ? (
+                  <UnorderedListOutlined />
+                ) : (
+                  <CalendarOutlined />
+                )}
+              </button>
+              {viewMenuOpen ? (
+                <div className="oma-sched-view-popover" role="menu" data-testid="demo-schedule-view-menu">
+                  {(
+                    [
+                      ['calendar', <CalendarOutlined key="c" />],
+                      ['agenda', <BarsOutlined key="a" />],
+                      ['queue', <AppstoreOutlined key="q" />],
+                    ] as const
+                  ).map(([id, icon]) => (
+                    <button
+                      key={id}
+                      type="button"
+                      role="menuitemradio"
+                      aria-checked={view === id}
+                      data-selected={view === id ? 'true' : 'false'}
+                      data-testid={`demo-schedule-view-${id}`}
+                      className="oma-sched-view-popover__item"
+                      onClick={() => {
+                        setView(id);
+                        setViewMenuOpen(false);
+                      }}
+                    >
+                      <span aria-hidden>{icon}</span>
+                      <span>{t(`demo.schedule.view.${id}`)}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            <button
+              type="button"
+              className="oma-pv-icon-btn"
+              data-testid="demo-schedule-filter-toggle"
+              aria-label={t('demo.requests.filters') || 'Filter'}
+              data-tooltip={t('demo.requests.filters') || 'Filter'}
+              data-active={filterSheet ? 'true' : 'false'}
+              onClick={() => setFilterSheet((v) => !v)}
+            >
+              <FilterOutlined />
+              {filterCount > 0 ? (
+                <span className="oma-sched-filter-btn__count">{filterCount}</span>
+              ) : null}
+            </button>
+          </div>
+        }
       />
       {rows.every((row) => !row.externalPublishingConnected) ? (
         <p className="oma-honesty-inline oma-muted">{t('demo.schedule.planningPreview')}</p>
@@ -287,25 +362,115 @@ export default function SchedulePage() {
 
       {!loading && !unavailable && !error ? (
         <>
-          <div className="oma-sched-chrome">
-            <div className="oma-sched-tabs" role="tablist" data-testid="demo-schedule-views">
-              {(['calendar', 'agenda', 'queue'] as ScheduleView[]).map((v) => (
-                <button
-                  key={v}
-                  type="button"
-                  role="tab"
-                  aria-selected={view === v}
-                  className="oma-sched-tabs__btn"
-                  data-active={view === v ? 'true' : 'false'}
-                  data-testid={`demo-schedule-view-${v}`}
-                  onClick={() => setView(v)}
-                >
-                  {t(`demo.schedule.view.${v}`)}
-                </button>
-              ))}
-            </div>
-            <div className="oma-sched-chrome__actions">
-              <div className="oma-sched-week-nav">
+          <div className="oma-sched-layout oma-sched-layout--full" data-filter-open={filterSheet ? 'true' : 'false'}>
+            {filterSheet ? (
+              <aside
+                className="oma-req-filter-panel oma-sched-filter-panel oma-sched-filter-panel--rail"
+                data-testid="demo-schedule-filters"
+              >
+                <header className="oma-req-filter-panel__head">
+                  <strong>{t('demo.requests.filters') || 'Filters'}</strong>
+                  <button
+                    type="button"
+                    className="oma-req-filter-panel__close"
+                    aria-label={t('common.close') || 'Close'}
+                    onClick={() => setFilterSheet(false)}
+                  >
+                    <CloseOutlined />
+                  </button>
+                </header>
+                <div className="oma-sched-filter-body">
+                  <label className="oma-brief-field">
+                    <span className="oma-brief-field__label">{t('demo.schedule.search')}</span>
+                    <Input
+                      value={filters.q}
+                      data-testid="demo-schedule-search"
+                      onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
+                    />
+                  </label>
+                  <label className="oma-brief-field">
+                    <span className="oma-brief-field__label">
+                      {t('demo.schedule.filter.channel')}
+                    </span>
+                    <SelectField
+                      value={filters.channel}
+                      data-testid="demo-schedule-filter-channel"
+                      onChange={(e) => setFilters((f) => ({ ...f, channel: e.target.value }))}
+                    >
+                      <option value="all">{t('demo.filter.all')}</option>
+                      {channels.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </SelectField>
+                  </label>
+                  <label className="oma-brief-field">
+                    <span className="oma-brief-field__label">
+                      {t('demo.schedule.filter.readiness')}
+                    </span>
+                    <SelectField
+                      value={filters.readiness}
+                      data-testid="demo-schedule-filter-readiness"
+                      onChange={(e) =>
+                        setFilters((f) => ({
+                          ...f,
+                          readiness: e.target.value as ScheduleFilters['readiness'],
+                        }))
+                      }
+                    >
+                      <option value="all">{t('demo.filter.all')}</option>
+                      <option value="ready">{t('demo.schedule.ready')}</option>
+                      <option value="blocked">{t('demo.schedule.blocked')}</option>
+                      <option value="integration">{t('demo.schedule.integrationBlock')}</option>
+                    </SelectField>
+                  </label>
+                  <label className="oma-brief-field">
+                    <span className="oma-brief-field__label">
+                      {t('demo.schedule.filter.campaign')}
+                    </span>
+                    <SelectField
+                      value={filters.campaignId}
+                      onChange={(e) => setFilters((f) => ({ ...f, campaignId: e.target.value }))}
+                    >
+                      <option value="all">{t('demo.filter.all')}</option>
+                      {campaigns.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {pickCopy(c.name, locale)}
+                        </option>
+                      ))}
+                    </SelectField>
+                  </label>
+                  <label className="oma-brief-field">
+                    <span className="oma-brief-field__label">
+                      {t('demo.schedule.filter.owner')}
+                    </span>
+                    <SelectField
+                      value={filters.owner}
+                      onChange={(e) => setFilters((f) => ({ ...f, owner: e.target.value }))}
+                    >
+                      <option value="all">{t('demo.filter.all')}</option>
+                      {owners.map((o) => (
+                        <option key={o} value={o}>
+                          {o}
+                        </option>
+                      ))}
+                    </SelectField>
+                  </label>
+                  {filterCount > 0 ? (
+                    <Button
+                      type="default"
+                      data-testid="demo-schedule-clear"
+                      onClick={() => setFilters(EMPTY_SCHEDULE_FILTERS)}
+                    >
+                      {t('demo.requests.clearFilters')} ({filterCount})
+                    </Button>
+                  ) : null}
+                </div>
+              </aside>
+            ) : null}
+            <div className="oma-sched-main">
+              <div className="oma-sched-week-nav oma-sched-week-nav--bar">
                 <Button
                   type="default"
                   data-testid="demo-schedule-prev"
@@ -331,24 +496,6 @@ export default function SchedulePage() {
                   {days[0]} → {days[6]}
                 </span>
               </div>
-              <button
-                type="button"
-                className="oma-sched-filter-btn"
-                data-testid="demo-schedule-filter-toggle"
-                data-active={filterSheet ? 'true' : 'false'}
-                onClick={() => setFilterSheet((v) => !v)}
-              >
-                <FilterOutlined />
-                <span>{t('demo.requests.filters') || 'Filter'}</span>
-                {filterCount > 0 ? (
-                  <span className="oma-sched-filter-btn__count">{filterCount}</span>
-                ) : null}
-              </button>
-            </div>
-          </div>
-
-          <div className="oma-sched-layout" data-filter-open={filterSheet ? 'true' : 'false'}>
-            <div className="oma-sched-main">
               {filtered.length === 0 ? (
                 <EmptyState title={t('demo.empty')} body={t('demo.schedule.emptyHint')} />
               ) : null}
@@ -394,43 +541,74 @@ export default function SchedulePage() {
                           </span>
                           <span className="oma-sched-day-label__key oma-ltr">{day}</span>
                         </div>
-                        {(byDay.get(day) ?? []).map((post) => {
+                        {(byDay.get(day) ?? []).map((raw) => {
+                          const post = raw as ScheduleRowView;
                           const bucket = bucketForScheduleRow(post);
-                          const ch = post.channels[0] || '';
+                          const content = contents.find((c) => c.id === post.contentId) as
+                            | ContentRowExtra
+                            | undefined;
+                          const caption = pickCopy(post.caption, locale) || pickCopy(post.title, locale);
+                          const time = formatScheduleWhen(
+                            post.plannedAt,
+                            post.timezone || scheduleTz,
+                            locale,
+                          );
+                          const published =
+                            post.state === 'PUBLISHED_SAMPLE' || Boolean(post.publishedAt);
+                          const calDisplay: CalendarDisplay = {
+                            postSize: 'default',
+                            elements: ['labels', 'campaigns', 'approvals', 'comments'],
+                            showNotes: false,
+                            showCampaigns: true,
+                            showWeekends: true,
+                            fadePublished: true,
+                            weekStartsOn: locale.toLowerCase().startsWith('ar') ? 6 : 1,
+                          };
                           return (
                             <SurfaceButton
                               key={post.id}
                               data-state={post.state}
                               data-testid={`demo-sched-item-${post.id}`}
                               onClick={() => openItem(post.id)}
-                              className="oma-sched-pill oma-plx-sched-card"
+                              className="oma-sched-pill oma-sched-cal-card-btn"
                             >
-                              <span className="oma-plx-sched-card__top">
-                                <span className="oma-plx-sched-card__nets" aria-hidden>
-                                  {post.channels.slice(0, 3).map((c) => (
-                                    <NetworkIcon key={c} channel={c} size={12} />
-                                  ))}
-                                  {!post.channels.length ? <span>—</span> : null}
-                                </span>
-                                <span className="oma-plx-sched-card__when oma-ltr">
-                                  {formatScheduleWhen(post.plannedAt, post.timezone || scheduleTz, locale)}
-                                </span>
+                              <CalendarPostCard
+                                channel={post.channels[0] || content?.channel || ''}
+                                channels={post.channels}
+                                accountName={undefined}
+                                time={time}
+                                timeTone={
+                                  published
+                                    ? 'published'
+                                    : post.state === 'BLOCKED'
+                                      ? 'overdue'
+                                      : post.state === 'SCHEDULED_PREVIEW' || post.state === 'READY'
+                                        ? 'scheduled'
+                                        : 'draft'
+                                }
+                                caption={caption}
+                                media={content?.previewAsset || null}
+                                contentType={content?.contentType}
+                                labels={content?.labels ?? []}
+                                campaign={
+                                  post.campaignTitle
+                                    ? pickCopy(post.campaignTitle, locale)
+                                    : undefined
+                                }
+                                status={{
+                                  approval: (content?.approvalState as never) || 'NOT_REQUESTED',
+                                  scheduled: post.state === 'SCHEDULED_PREVIEW',
+                                  published,
+                                  overdue: false,
+                                  hidden: content?.clientVisible === false,
+                                  comments: 0,
+                                }}
+                                display={calDisplay}
+                                draft={!published && post.state !== 'SCHEDULED_PREVIEW'}
+                              />
+                              <span className="oma-sr-only" data-testid={`demo-sched-bucket-${post.id}`}>
+                                {t(`demo.schedule.bucket.${bucket}`)}
                               </span>
-                              <strong className="oma-plx-sched-card__title">
-                                {pickCopy(post.title, locale)}
-                              </strong>
-                              <span className="oma-plx-sched-card__meta">
-                                <StatusMark
-                                  display={displayForScheduleBucket(bucket)}
-                                  locale={locale}
-                                />
-                                <span data-testid={`demo-sched-bucket-${post.id}`}>
-                                  {t(`demo.schedule.bucket.${bucket}`)}
-                                </span>
-                              </span>
-                              {ch ? (
-                                <span className="oma-plx-sched-card__channel oma-muted">{ch}</span>
-                              ) : null}
                             </SurfaceButton>
                           );
                         })}
@@ -567,112 +745,6 @@ export default function SchedulePage() {
                   ))}
               </div>
             </div>
-            {filterSheet ? (
-              <aside
-                className="oma-req-filter-panel oma-sched-filter-panel"
-                data-testid="demo-schedule-filters"
-              >
-                <header className="oma-req-filter-panel__head">
-                  <strong>{t('demo.requests.filters') || 'Filters'}</strong>
-                  <button
-                    type="button"
-                    className="oma-req-filter-panel__close"
-                    aria-label="Close"
-                    onClick={() => setFilterSheet(false)}
-                  >
-                    <CloseOutlined />
-                  </button>
-                </header>
-                <div className="oma-sched-filter-body">
-                  <label className="oma-brief-field">
-                    <span className="oma-brief-field__label">{t('demo.schedule.search')}</span>
-                    <Input
-                      value={filters.q}
-                      data-testid="demo-schedule-search"
-                      onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
-                    />
-                  </label>
-                  <label className="oma-brief-field">
-                    <span className="oma-brief-field__label">
-                      {t('demo.schedule.filter.channel')}
-                    </span>
-                    <SelectField
-                      value={filters.channel}
-                      data-testid="demo-schedule-filter-channel"
-                      onChange={(e) => setFilters((f) => ({ ...f, channel: e.target.value }))}
-                    >
-                      <option value="all">{t('demo.filter.all')}</option>
-                      {channels.map((c) => (
-                        <option key={c} value={c}>
-                          {c}
-                        </option>
-                      ))}
-                    </SelectField>
-                  </label>
-                  <label className="oma-brief-field">
-                    <span className="oma-brief-field__label">
-                      {t('demo.schedule.filter.readiness')}
-                    </span>
-                    <SelectField
-                      value={filters.readiness}
-                      data-testid="demo-schedule-filter-readiness"
-                      onChange={(e) =>
-                        setFilters((f) => ({
-                          ...f,
-                          readiness: e.target.value as ScheduleFilters['readiness'],
-                        }))
-                      }
-                    >
-                      <option value="all">{t('demo.filter.all')}</option>
-                      <option value="ready">{t('demo.schedule.ready')}</option>
-                      <option value="blocked">{t('demo.schedule.blocked')}</option>
-                      <option value="integration">{t('demo.schedule.integrationBlock')}</option>
-                    </SelectField>
-                  </label>
-                  <label className="oma-brief-field">
-                    <span className="oma-brief-field__label">
-                      {t('demo.schedule.filter.campaign')}
-                    </span>
-                    <SelectField
-                      value={filters.campaignId}
-                      onChange={(e) => setFilters((f) => ({ ...f, campaignId: e.target.value }))}
-                    >
-                      <option value="all">{t('demo.filter.all')}</option>
-                      {campaigns.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {pickCopy(c.name, locale)}
-                        </option>
-                      ))}
-                    </SelectField>
-                  </label>
-                  <label className="oma-brief-field">
-                    <span className="oma-brief-field__label">
-                      {t('demo.schedule.filter.owner')}
-                    </span>
-                    <SelectField
-                      value={filters.owner}
-                      onChange={(e) => setFilters((f) => ({ ...f, owner: e.target.value }))}
-                    >
-                      <option value="all">{t('demo.filter.all')}</option>
-                      {owners.map((o) => (
-                        <option key={o} value={o}>
-                          {o}
-                        </option>
-                      ))}
-                    </SelectField>
-                  </label>
-                  {filterCount > 0 ? (
-                    <Button
-                      type="default"
-                      data-testid="demo-schedule-clear"
-                      onClick={() => setFilters(EMPTY_SCHEDULE_FILTERS)}
-                    >
-                      {t('demo.requests.clearFilters')} ({filterCount})
-                    </Button>
-                  ) : null}
-                </div>
-              </aside>
-            ) : null}
           </div>
         </>
       ) : null}

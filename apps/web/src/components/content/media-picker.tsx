@@ -166,6 +166,27 @@ export function MediaPickerDialog({
           return [...prev, { id: r.data.folder.id, name: name ?? r.data.folder.name }];
         });
       } catch (e) {
+        if (scope === 'organization') {
+          // Root may be unset — retry against the brand folder instead of a CONFLICT_STATE toast.
+          try {
+            const r = await mediaApi.browse(brandId, kind, folderId, 'brand');
+            setBrowse(r.data);
+            setBrowseScope('brand');
+            setTrail(
+              r.data.path?.length
+                ? r.data.path.map((crumb) => ({
+                    id: crumb.id,
+                    name: crumb.name || r.data.root_name || '',
+                  }))
+                : [{ id: r.data.folder.id, name: r.data.folder.name || r.data.root_name || '' }],
+            );
+            setError(null);
+            return;
+          } catch (inner) {
+            setError(getApiError(inner).message);
+            return;
+          }
+        }
         setError(getApiError(e).message);
       } finally {
         setBrowsing(false);
