@@ -52,9 +52,9 @@ describe('schedule agenda and queue layouts', () => {
     expect(css).toContain(".oma-sched-main[data-view='queue'] > .oma-sched-mobile-only");
     expect(css).toContain('display: none !important');
     expect(css).toContain(".oma-sched-main[data-view='calendar']");
-    expect(css).toContain('overflow-x: auto !important');
+    expect(css).toContain('overflow-x: scroll !important');
     expect(css).toContain('--oma-sched-mobile-calendar-column');
-    expect(css).toContain('calc(var(--oma-sched-mobile-calendar-column) * 7)');
+    expect(css).toContain('233.333333vw');
   });
 
   it('does not hide the calendar with the legacy mobile display rule', () => {
@@ -79,6 +79,14 @@ describe('schedule agenda and queue layouts', () => {
     expect(source).toContain('demo-schedule-calendar-scroll');
     expect(css).toContain('.oma-sched-calendar-scroll');
     expect(css).toContain('touch-action: pan-x pan-y');
+  });
+
+  it('keeps the filter drawer and page within the mobile viewport', () => {
+    const css = read('apps/web/src/styles/stage5.css');
+    expect(css).toContain('html,\n  body');
+    expect(css).toContain('overflow-x: hidden !important');
+    expect(css).toContain('.oma-tasks-filter-drawer .ant-drawer-content-wrapper');
+    expect(css).toContain('max-width: 100vw !important');
   });
 
   it('uses the shared side-drawer treatment for schedule details', () => {

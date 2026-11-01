@@ -544,6 +544,7 @@ main.oma-container:has(.oma-sched-page) {
   background: var(--oma-surface);
 }
 .oma-sched-calendar-scroll {
+  display: block;
   width: 100%;
   min-width: 0;
   min-height: 0;
@@ -2871,7 +2872,7 @@ main.oma-container:has(.oma-sched-page) {
     min-width: 0;
   }
   .oma-sched-main[data-view='calendar'] {
-    --oma-sched-mobile-calendar-column: calc((100vw - 32px) / 3);
+    --oma-sched-mobile-calendar-column: 33.333333vw;
     overflow: hidden !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch;
@@ -2880,7 +2881,7 @@ main.oma-container:has(.oma-sched-page) {
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    overflow-x: auto;
+    overflow-x: scroll;
     overflow-y: hidden;
     touch-action: pan-x pan-y;
     overscroll-behavior-inline: contain;
@@ -2890,14 +2891,14 @@ main.oma-container:has(.oma-sched-page) {
   .oma-sched-main[data-view='calendar'] .oma-sched-calendar {
     display: flex !important;
     flex: 0 0 auto;
-    width: calc(var(--oma-sched-mobile-calendar-column) * 7);
-    min-width: calc(var(--oma-sched-mobile-calendar-column) * 7);
+    width: 233.333333vw;
+    min-width: 233.333333vw;
     min-height: 500px;
     overflow: visible;
   }
   .oma-sched-main[data-view='calendar'] .oma-sched-dow-row,
   .oma-sched-main[data-view='calendar'] .oma-sched-week {
-    min-width: calc(var(--oma-sched-mobile-calendar-column) * 7);
+    min-width: 233.333333vw;
   }
   .oma-sched-main[data-view='calendar'] .oma-sched-week {
     min-height: 430px;
@@ -3049,7 +3050,7 @@ main.oma-container:has(.oma-sched-page) {
 @media (max-width: 640px) {
   /* Keep the seven-day calendar instead of rendering a second agenda card list. */
   .oma-sched-main[data-view='calendar'] {
-    --oma-sched-mobile-calendar-column: calc((100vw - 32px) / 3);
+    --oma-sched-mobile-calendar-column: 33.333333vw;
     overflow: hidden !important;
     overflow-y: hidden !important;
     -webkit-overflow-scrolling: touch;
@@ -3059,7 +3060,7 @@ main.oma-container:has(.oma-sched-page) {
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    overflow-x: auto;
+    overflow-x: scroll;
     overflow-y: hidden;
     touch-action: pan-x pan-y;
     overscroll-behavior-inline: contain;
@@ -3068,15 +3069,15 @@ main.oma-container:has(.oma-sched-page) {
   }
   .oma-sched-main[data-view='calendar'] .oma-sched-calendar {
     display: flex !important;
-    min-width: calc(var(--oma-sched-mobile-calendar-column) * 7);
-    width: calc(var(--oma-sched-mobile-calendar-column) * 7);
+    min-width: 233.333333vw;
+    width: 233.333333vw;
     min-height: 520px;
     overflow: visible;
     border-radius: 10px;
   }
   .oma-sched-main[data-view='calendar'] .oma-sched-dow-row,
   .oma-sched-main[data-view='calendar'] .oma-sched-week {
-    min-width: calc(var(--oma-sched-mobile-calendar-column) * 7);
+    min-width: 233.333333vw;
   }
   .oma-sched-main[data-view='calendar'] .oma-sched-day {
     min-width: var(--oma-sched-mobile-calendar-column);
@@ -3089,5 +3090,44 @@ main.oma-container:has(.oma-sched-page) {
   }
   .oma-sched-table-wrap {
     margin-inline: -2px;
+  }
+}
+
+/* Mobile schedule surfaces: keep page width fixed and scroll only the calendar surface. */
+@media (max-width: 900px) {
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: hidden !important;
+  }
+  .oma-sched-page,
+  .oma-sched-body,
+  .oma-sched-layout--full,
+  .oma-sched-main {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: hidden !important;
+  }
+  .oma-sched-main[data-view='calendar'] .oma-sched-calendar-scroll {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: scroll !important;
+    overflow-y: hidden !important;
+    touch-action: pan-x !important;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+  .oma-tasks-filter-drawer .ant-drawer-content-wrapper {
+    width: min(100vw, 380px) !important;
+    max-width: 100vw !important;
+  }
+  .oma-tasks-filter-drawer .ant-drawer-content,
+  .oma-tasks-filter-drawer .ant-drawer-body {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
   }
 }
