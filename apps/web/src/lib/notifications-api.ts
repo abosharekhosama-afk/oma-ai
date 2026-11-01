@@ -10,6 +10,14 @@ export type AppNotification = {
   objectId?: string | null;
   createdAt: string;
   readAt: string | null;
+  contentPreview?: {
+    imageUrl: string | null;
+    titleEn: string;
+    titleAr: string;
+    captionEn: string | null;
+    captionAr: string | null;
+    channel: string;
+  } | null;
 };
 
 export async function listNotifications(): Promise<{

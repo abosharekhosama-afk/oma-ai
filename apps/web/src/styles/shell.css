@@ -3050,3 +3050,218 @@ button.oma-breadcrumb-workspace:hover {
   .oma-notifications-drawer .ant-drawer-content-wrapper { width: 100vw !important; }
   .oma-notifications-panel--drawer { padding-inline: 14px; }
 }
+
+
+/* Planable-style notification experience: structured header, tabs and media previews. */
+.oma-notifications-panel--categorized {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  max-height: none;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: #fff;
+  box-shadow: none;
+}
+.oma-notifications-panel--categorized .oma-notifications-panel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 0 0 auto;
+  min-height: 68px;
+  padding: 0 20px;
+  border-bottom: 1px solid #e7eaee;
+  background: #fff;
+  color: #202936;
+  font-size: 20px;
+  font-weight: 750;
+}
+.oma-notifications-panel__mark-all {
+  padding: 6px 9px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+}
+.oma-notifications-panel__mark-all:hover { background: #eff6ff; }
+.oma-notifications-panel__tabs {
+  flex: 0 0 auto;
+  padding: 12px 14px 0;
+  background: #fff;
+}
+.oma-notifications-panel__tabs button {
+  min-height: 38px;
+  padding: 7px 9px 10px;
+  font-size: 13px;
+}
+.oma-notifications-panel__unread-row {
+  flex: 0 0 auto;
+  padding: 14px 20px 10px;
+  border-bottom: 1px solid #eef0f2;
+  background: #fff;
+}
+.oma-notifications-panel__unread-row::after {
+  content: '•••';
+  margin-inline-start: auto;
+  color: #737b85;
+  letter-spacing: 2px;
+}
+.oma-notifications-panel__unread-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: #eef5ff;
+  color: #2563eb;
+}
+.oma-notifications-panel--categorized .oma-notifications-panel__list {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  padding: 8px 12px 18px;
+  overflow-y: auto;
+  background: #fff;
+}
+.oma-notification-card {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 10px;
+  padding: 13px 8px;
+  border-bottom: 1px solid #f0f2f4;
+  border-radius: 0;
+  background: #fff;
+}
+.oma-notification-card:hover,
+.oma-notification-card.is-unread { background: #fbfcfd; }
+.oma-notification-card__icon {
+  width: 38px;
+  height: 38px;
+  margin-top: 2px;
+  border: 3px solid #fff;
+  box-shadow: 0 1px 3px rgb(15 23 42 / 14%);
+}
+.oma-notification-card__main { min-width: 0; }
+.oma-notification-card__main > a,
+.oma-notification-card__main > button {
+  gap: 4px;
+  align-items: stretch;
+}
+.oma-notification-card__title {
+  color: #707983;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.4;
+}
+.oma-notification-card.is-unread .oma-notification-card__title { color: #4b5563; font-weight: 750; }
+.oma-notification-card__body {
+  color: #747e88;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.oma-notification-card__time {
+  justify-content: flex-end;
+  margin-top: -20px;
+  color: #4b5563;
+  font-size: 11px;
+}
+.oma-notification-card__time i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #1d78e8;
+  box-shadow: 0 0 0 2px #e5f0ff;
+}
+.oma-notification-card__preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  margin-top: 8px;
+  padding: 7px 8px;
+  border: 1px solid #dfe4e8;
+  border-radius: 9px;
+  background: #fff;
+  color: #303944;
+  text-align: start;
+  white-space: normal;
+}
+.oma-notification-card__preview-image,
+.oma-notification-card__preview-thumb {
+  display: grid;
+  flex: 0 0 42px;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 6px;
+  background: #edf1f5;
+  color: #536273;
+}
+.oma-notification-card__preview-image { object-fit: cover; }
+.oma-notification-card__preview-copy {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 auto;
+  gap: 2px;
+}
+.oma-notification-card__preview-copy strong,
+.oma-notification-card__preview-copy span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.oma-notification-card__preview-copy strong { font-size: 12px; font-weight: 700; }
+.oma-notification-card__preview-copy span { color: #4b5563; font-size: 12px; }
+.oma-notification-card__channel {
+  flex: 0 0 auto;
+  max-width: 70px;
+  overflow: hidden;
+  color: #66717c;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.oma-notifications-panel--drawer { padding: 0; }
+.oma-notifications-panel--drawer .oma-notifications-panel__foot {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 13px 20px;
+  border-top: 1px solid #e7eaee;
+  background: #fff;
+}
+.oma-notifications-panel--drawer .oma-notifications-panel__foot a {
+  display: block;
+  color: #2563eb;
+  font-size: 13px;
+  font-weight: 650;
+  text-align: center;
+}
+.oma-notifications-page--planable {
+  max-width: 900px;
+  padding: 32px;
+}
+.oma-notifications-page--planable .oma-notifications-page__list {
+  padding: 8px 12px;
+}
+@media (max-width: 640px) {
+  .oma-notifications-panel--categorized .oma-notifications-panel__head { min-height: 60px; padding-inline: 14px; font-size: 18px; }
+  .oma-notifications-panel__tabs { padding-inline: 8px; }
+  .oma-notifications-panel__tabs button { padding-inline: 8px; }
+  .oma-notifications-panel__unread-row { padding-inline: 14px; }
+  .oma-notifications-panel--categorized .oma-notifications-panel__list { padding-inline: 6px; }
+  .oma-notification-card { grid-template-columns: 36px minmax(0, 1fr); gap: 8px; padding-inline: 5px; }
+  .oma-notification-card__icon { width: 34px; height: 34px; }
+  .oma-notification-card__time { margin-top: 4px; justify-content: flex-start; }
+  .oma-notification-card__preview-image,
+  .oma-notification-card__preview-thumb { flex-basis: 38px; width: 38px; height: 38px; }
+  .oma-notification-card__channel { display: none; }
+  .oma-notifications-page--planable { padding: 16px 10px; }
+}

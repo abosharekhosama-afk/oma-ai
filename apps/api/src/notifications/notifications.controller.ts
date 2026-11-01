@@ -7,7 +7,7 @@ import { getPrisma, tenantWhere } from '@oma/db';
 import { DomainError } from '@oma/domain';
 import type { Request } from 'express';
 
-function mapNotification(n: {
+type NotificationRow = {
   id: string;
   type: string;
   deepLinkPath: string;
@@ -15,7 +15,30 @@ function mapNotification(n: {
   objectId: string | null;
   createdAt: Date;
   readAt: Date | null;
-}) {
+};
+
+type ContentPreviewRow = {
+  id: string;
+  previewAssetUrl: string | null;
+  previewAssetId: string | null;
+  titleEn: string;
+  titleAr: string;
+  captionEn: string | null;
+  captionAr: string | null;
+  channel: string;
+};
+
+function mapNotification(
+  n: NotificationRow,
+  preview?: {
+    imageUrl: string | null;
+    titleEn: string;
+    titleAr: string;
+    captionEn: string | null;
+    captionAr: string | null;
+    channel: string;
+  },
+) {
   return {
     id: n.id,
     type: n.type,
@@ -24,6 +47,7 @@ function mapNotification(n: {
     deepLinkPath: n.deepLinkPath,
     objectType: n.objectType,
     objectId: n.objectId,
+    contentPreview: preview ?? null,
     createdAt: n.createdAt.toISOString(),
     readAt: n.readAt?.toISOString() ?? null,
   };
@@ -97,14 +121,53 @@ export class NotificationsController {
         'errors.tenant_required',
       );
     }
-    const items = await getPrisma().notification.findMany({
+    const items = (await getPrisma().notification.findMany({
       where: tenantWhere(req.oma.tenantId, { recipientUserId: req.oma.userId }),
       orderBy: { createdAt: 'desc' },
       take: 50,
-    });
+    })) as NotificationRow[];
+    const contentIds = items
+      .filter((n) => n.objectType === 'ContentItem' && n.objectId)
+      .map((n) => n.objectId as string);
+    const contentItems = contentIds.length
+      ? ((await getPrisma().contentItem.findMany({
+          where: tenantWhere(req.oma.tenantId, { id: { in: contentIds } }),
+          select: {
+            id: true,
+            previewAssetUrl: true,
+            previewAssetId: true,
+            titleEn: true,
+            titleAr: true,
+            captionEn: true,
+            captionAr: true,
+            channel: true,
+          },
+        })) as ContentPreviewRow[])
+      : [];
+    const contentById = new Map(contentItems.map((item) => [item.id, item]));
     const unread = items.filter((n) => !n.readAt).length;
     return {
-      items: items.map(mapNotification),
+      items: items.map((item) => {
+        const content =
+          item.objectType === 'ContentItem' && item.objectId
+            ? contentById.get(item.objectId)
+            : undefined;
+        return mapNotification(
+          item,
+          content
+            ? {
+                imageUrl:
+                  content.previewAssetUrl ??
+                  (content.previewAssetId ? `/api/v1/media/${content.previewAssetId}/view` : null),
+                titleEn: content.titleEn,
+                titleAr: content.titleAr,
+                captionEn: content.captionEn,
+                captionAr: content.captionAr,
+                channel: content.channel,
+              }
+            : undefined,
+        );
+      }),
       unread_count: unread,
     };
   }
