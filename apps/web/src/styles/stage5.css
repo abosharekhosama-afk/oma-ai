@@ -2804,3 +2804,69 @@ main.oma-container:has(.oma-sched-page) {
   max-height: 120px;
   overflow-y: auto;
 }
+
+/* Agenda and queue are distinct, scrollable schedule surfaces. */
+.oma-sched-main[data-view='agenda'],
+.oma-sched-main[data-view='queue'] {
+  min-height: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+  padding: 2px 6px 24px;
+}
+.oma-sched-main[data-view='agenda'] > .oma-sched-agenda {
+  display: grid;
+  flex: 0 0 auto;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 10px;
+  min-width: 0;
+}
+.oma-sched-main[data-view='agenda'] .oma-sched-card {
+  min-width: 0;
+  border-inline-start: 3px solid color-mix(in srgb, var(--oma-primary) 64%, white);
+  padding-inline-start: 14px;
+}
+.oma-sched-main[data-view='queue'] > .oma-sched-queue {
+  display: grid;
+  flex: 0 0 auto;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 350px), 1fr));
+  align-content: start;
+  gap: 12px;
+  min-width: 0;
+}
+.oma-sched-main[data-view='queue'] .oma-sched-card {
+  min-width: 0;
+  align-content: start;
+  box-shadow: 0 1px 2px rgb(16 24 40 / 4%);
+}
+.oma-sched-main[data-view='agenda'] .oma-sched-card,
+.oma-sched-main[data-view='queue'] .oma-sched-card {
+  scroll-margin-block: 12px;
+}
+.oma-sched-main[data-view='agenda'] > .oma-sched-mobile-only,
+.oma-sched-main[data-view='queue'] > .oma-sched-mobile-only {
+  display: none !important;
+}
+
+@media (max-width: 900px) {
+  .oma-sched-main[data-view='queue'] > .oma-sched-queue {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .oma-sched-main[data-view='agenda'],
+  .oma-sched-main[data-view='queue'] {
+    padding: 0 2px 20px;
+  }
+  .oma-sched-main[data-view='agenda'] .oma-sched-card,
+  .oma-sched-main[data-view='queue'] .oma-sched-card {
+    padding: 12px;
+  }
+  .oma-sched-main[data-view='agenda'] .oma-sched-card {
+    padding-inline-start: 12px;
+  }
+}

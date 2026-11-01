@@ -29,6 +29,8 @@
 | `ViewSwitcher`      | Calendar / Feed / Grid / List / Approvals                                    | ARCHIVED LIVE menu; this run PARTIAL (selector missing on approvals)  |
 | `FilterBar`         | Approval, post status, campaign, labels, period, type, author                | ARCHIVED LIVE                                                         |
 | `ContentCalendar`   | Month/week cells, media thumbs, time, approval, comments                     | ARCHIVED LIVE; this-run calendar splash only                          |
+| `ScheduleAgenda`    | Chronological, readable list with date/time and status                       | OMA adaptation                                                        | Single-column timeline; scrolls independently below the schedule controls. |
+| `ScheduleQueue`     | Scan-friendly queue of planned work                                          | OMA adaptation                                                        | Responsive card grid; collapses to one column on narrow screens.           |
 | `ContentFeed`       | Native-like stacked previews                                                 | ARCHIVED + DOC; direct `/feed` 404                                    |
 | `ContentGrid`       | Instagram-style grid                                                         | PLAN_GATED this account; DOC + marketing inventory                    |
 | `ContentList`       | Dense rows, bulk actions                                                     | PLAN_GATED; DOC bulk approve/schedule                                 |
