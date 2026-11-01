@@ -74,11 +74,12 @@ function weekdayForScheduleDay(iso: string, locale: string, timeZone: string): s
   }).format(d);
 }
 
+/** Full Planable calendar card; size is scaled via `.oma-sched-cal-card-btn` CSS only. */
 const SCHEDULE_CALENDAR_DISPLAY: CalendarDisplay = {
-  postSize: 'compact',
-  elements: ['approvals'],
+  postSize: 'default',
+  elements: ['labels', 'campaigns', 'approvals', 'comments'],
   showNotes: false,
-  showCampaigns: false,
+  showCampaigns: true,
   showWeekends: true,
   fadePublished: true,
   weekStartsOn: 1,

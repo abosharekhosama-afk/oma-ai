@@ -2574,45 +2574,95 @@
 .oma-sched-cal-card-btn {
   display: block !important;
   width: 100% !important;
+  max-width: 100%;
+  flex-shrink: 0;
   padding: 0 !important;
   border: 0 !important;
   background: transparent !important;
   height: auto !important;
   min-height: 0 !important;
   text-align: start !important;
-  overflow: visible !important;
+  overflow: hidden !important;
+  box-sizing: border-box !important;
 }
 .oma-sched-cal-card-btn .oma-pv-cal-card {
   pointer-events: none;
-  padding: 4px 5px 5px;
+  inline-size: 100%;
+  max-inline-size: 100%;
+  padding: 5px 6px 6px;
+  gap: 4px;
+  font-size: 11px;
+  border-radius: 7px;
+  box-shadow: 0 1px 2px rgb(16 24 40 / 4%);
+}
+.oma-sched-cal-card-btn .oma-pv-chips {
   gap: 3px;
-  border-radius: 6px;
-  box-shadow: none;
+}
+.oma-sched-cal-card-btn .oma-pv-chip {
+  padding: 0 5px;
+  font-size: 9px;
+  line-height: 15px;
+  border-radius: 3px;
 }
 .oma-sched-cal-card-btn .oma-pv-cal-card__row {
   gap: 4px;
 }
-.oma-sched-cal-card-btn .oma-pv-cal-card__time {
-  font-size: 10px;
+.oma-sched-cal-card-btn .oma-pv-cal-card__net {
+  inline-size: 14px;
+  block-size: 14px;
+}
+.oma-sched-cal-card-btn .oma-pv-cal-card__net-more {
+  font-size: 9px;
 }
 .oma-sched-cal-card-btn .oma-pv-cal-card__name {
-  font-size: 11px;
-  max-width: 5.5rem;
+  font-size: 10px;
+  max-width: 58%;
 }
-.oma-sched-cal-card-btn .oma-pv-cal-card__foot,
-.oma-sched-cal-card-btn .oma-pv-chips {
-  display: none;
+.oma-sched-cal-card-btn .oma-pv-cal-card__time {
+  font-size: 10px;
+  gap: 3px;
+}
+.oma-sched-cal-card-btn .oma-pv-cal-card__dot {
+  inline-size: 5px;
+  block-size: 5px;
+}
+.oma-sched-cal-card-btn .oma-pv-cal-card__media {
+  border-radius: 5px;
+}
+.oma-sched-cal-card-btn .oma-pv-cal-card__media--empty {
+  min-block-size: 40px;
+  aspect-ratio: 16 / 10;
+}
+.oma-sched-cal-card-btn .oma-pv-cal-card__media img,
+.oma-sched-cal-card-btn .oma-pv-cal-card__media video,
+.oma-sched-cal-card-btn .oma-pv-cal-card__media span.oma-media-surface {
+  aspect-ratio: 16 / 10;
+  max-block-size: 56px;
+  min-block-size: 40px;
+  border-radius: 5px;
+}
+.oma-sched-cal-card-btn .oma-pv-cal-card__type {
+  inset-block-start: 4px;
+  inset-inline-start: 4px;
+  padding: 1px 5px;
+  font-size: 9px;
+}
+.oma-sched-cal-card-btn .oma-pv-cal-card__play {
+  inline-size: 18px;
+  block-size: 18px;
 }
 .oma-sched-cal-card-btn .oma-pv-cal-card__text {
-  display: none;
+  font-size: 10px;
+  line-height: 1.32;
+  -webkit-line-clamp: 2;
 }
-.oma-sched-cal-card-btn .oma-pv-cal-card__media,
-.oma-sched-cal-card-btn .oma-pv-cal-card__media--empty {
-  display: none !important;
+.oma-sched-cal-card-btn .oma-pv-cal-card__foot {
+  gap: 4px;
+  font-size: 10px;
 }
-.oma-sched-cal-card-btn {
-  flex-shrink: 0;
-  max-width: 100%;
+.oma-sched-cal-card-btn .oma-pv-pill {
+  font-size: 9px;
+  padding: 1px 5px;
 }
 .oma-sched-saved {
   flex-shrink: 0;
