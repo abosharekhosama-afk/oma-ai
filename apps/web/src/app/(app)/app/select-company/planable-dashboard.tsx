@@ -411,13 +411,13 @@ export function PlanableDashboard() {
               </button>
               {companyMenuOpen ? (
                 <div className="plx-menu" role="menu">
-                  <button
-                    type="button"
+                  <Link
                     className="plx-menu-item"
+                    href="/app/billing"
                     onClick={() => setCompanyMenuOpen(false)}
                   >
                     <CrownIcon /> Upgrade plan
-                  </button>
+                  </Link>
                   <button
                     type="button"
                     className="plx-menu-item"

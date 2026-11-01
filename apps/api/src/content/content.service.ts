@@ -640,13 +640,23 @@ export class ContentService {
         'error.approvals_disabled',
       );
     }
-    const next = applyContentApprovalTransition({
-      command: 'request_approval',
-      approvalState: current.approvalState as ApprovalState,
-      status: current.status as ContentStatus,
-      approverApproved: current.approverApproved,
-      approverRequired: current.approverRequired,
-    });
+    let next;
+    try {
+      next = applyContentApprovalTransition({
+        command: 'request_approval',
+        approvalState: current.approvalState as ApprovalState,
+        status: current.status as ContentStatus,
+        approverApproved: current.approverApproved,
+        approverRequired: current.approverRequired,
+      });
+    } catch {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'Approval cannot be requested in the current state; edit the approved post first',
+        409,
+        'error.conflict_state',
+      );
+    }
     const row = await getPrisma().contentItem.update({
       where: { id: contentId },
       data: {

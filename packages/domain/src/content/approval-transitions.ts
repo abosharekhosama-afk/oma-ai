@@ -23,10 +23,9 @@ export function applyContentApprovalTransition(input: {
       if (
         approvalState !== 'NOT_REQUESTED' &&
         approvalState !== 'CHANGES_REQUESTED' &&
-        approvalState !== 'REJECTED' &&
-        approvalState !== 'APPROVED'
+        approvalState !== 'REJECTED'
       ) {
-        // allow re-request from approved (re-review)
+        throw new Error(`Cannot request approval from ${approvalState}`);
       }
       return {
         approvalState: 'PENDING',
