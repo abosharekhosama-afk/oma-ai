@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Button } from '@oma/ui/controls';
 import { useLocale } from '../../../../lib/use-locale';
 import { useToast } from '../../../../components/ui/toast';
+import { BriefcaseIcon, CheckIcon, CrownIcon, SparkleIcon } from '../../../../components/ui/plx-icons';
 import './billing.css';
 
 const plans = [
@@ -17,6 +18,7 @@ export default function BillingClient() {
   const isAr = useLocale() === 'ar';
   const toast = useToast();
   const [selected, setSelected] = useState('pro');
+  const [annual, setAnnual] = useState(false);
   const copy = isAr
     ? { title: 'الخطط والأسعار', sub: 'اختر الخطة المناسبة لفريقك. يمكنك تغييرها لاحقاً.', current: 'الخطة الحالية', choose: 'اختيار الخطة', included: 'تتضمن', monthly: 'شهرياً', contact: 'تواصل مع المبيعات', back: 'العودة إلى مساحة العمل', note: 'الفوترة والدفع الإلكتروني غير مفعّلين بعد في هذه النسخة التجريبية.' }
     : { title: 'Plans & pricing', sub: 'Choose the plan that fits your team. You can change it later.', current: 'Current plan', choose: 'Choose plan', included: 'Includes', monthly: 'per month', contact: 'Contact sales', back: 'Back to workspace', note: 'Billing and online payments are not enabled in this preview yet.' };
@@ -36,18 +38,23 @@ export default function BillingClient() {
         <Link className="oma-billing__back" href="/app">{copy.back}</Link>
       </header>
       <div className="oma-billing__notice">{copy.note}</div>
+      <div className="oma-billing__switch" role="group" aria-label={isAr ? 'دورة الفوترة' : 'Billing cycle'}>
+        <button type="button" className={!annual ? 'is-active' : ''} onClick={() => setAnnual(false)}>{isAr ? 'شهري' : 'Monthly'}</button>
+        <button type="button" className={annual ? 'is-active' : ''} onClick={() => setAnnual(true)}>{isAr ? 'سنوي' : 'Yearly'} <span>{isAr ? 'وفر 20٪' : 'Save 20%'}</span></button>
+      </div>
       <section className="oma-billing__grid" aria-label={copy.title}>
         {plans.map((plan) => {
           const active = selected === plan.id;
           return (
             <article key={plan.id} className={`oma-billing__card${active ? ' is-selected' : ''}`}>
               {plan.id === 'pro' ? <span className="oma-billing__badge">{isAr ? 'الأكثر اختياراً' : 'Most popular'}</span> : null}
+              <div className={`oma-billing__plan-icon is-${plan.id}`}>{plan.id === 'free' ? <SparkleIcon /> : plan.id === 'pro' ? <CrownIcon /> : <BriefcaseIcon />}</div>
               <h2>{isAr ? plan.ar : plan.en}</h2>
               <p className="oma-billing__desc">{isAr ? plan.arDesc : plan.enDesc}</p>
-              <div className="oma-billing__price"><strong>${plan.price}</strong> <span>/ {copy.monthly}</span></div>
+              <div className="oma-billing__price"><strong>${annual && plan.price !== '0' ? Math.round(Number(plan.price) * .8) : plan.price}</strong> <span>/ {copy.monthly}</span></div>
               <p className="oma-billing__included">{copy.included}</p>
-              <ul>{plan.features.map((feature) => <li key={feature}><span aria-hidden="true">✓</span>{feature}</li>)}</ul>
-              <Button type={active ? 'primary' : 'secondary'} onClick={() => choosePlan(plan.id)}>
+              <ul>{plan.features.map((feature) => <li key={feature}><CheckIcon aria-hidden="true" />{feature}</li>)}</ul>
+              <Button type={active ? 'primary' : 'default'} onClick={() => choosePlan(plan.id)}>
                 {active ? copy.current : copy.choose}
               </Button>
             </article>
@@ -56,7 +63,7 @@ export default function BillingClient() {
       </section>
       <footer className="oma-billing__footer">
         <span>{isAr ? 'تحتاج خطة مخصصة؟' : 'Need a custom plan?'}</span>
-        <Button type="secondary" onClick={() => toast.push(copy.note, 'info')}>{copy.contact}</Button>
+        <Button type="default" onClick={() => toast.push(copy.note, 'success')}>{copy.contact}</Button>
       </footer>
     </main>
   );
