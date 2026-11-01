@@ -38,4 +38,14 @@ describe('workspace sidebar layout', () => {
     expect(notifications).toContain('data-testid="shell-notifications-trigger"');
     expect(notifications).toContain('href="/app/notifications"');
   });
+
+  it('loads the shared side-drawer layer for filters and notification panels', () => {
+    const globals = read('apps/web/src/app/globals.css');
+    const drawers = read('apps/web/src/styles/side-drawers.css');
+    expect(globals).toContain("@import '../styles/side-drawers.css';");
+    expect(drawers).toContain('.oma-tasks-filter-drawer .ant-drawer-content-wrapper');
+    expect(drawers).toContain('.oma-filter-sidepanel');
+    expect(drawers).toContain('.oma-shell > .oma-rail > .oma-rail-footer');
+    expect(drawers).toContain('@media (prefers-reduced-motion: reduce)');
+  });
 });

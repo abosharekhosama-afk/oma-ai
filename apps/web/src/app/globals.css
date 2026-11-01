@@ -19,6 +19,7 @@
 @import '../styles/brand-settings.css';
 @import '../styles/mobile-oct27.css';
 @import '../styles/shimmer.css';
+@import '../styles/side-drawers.css';
 
 * {
   box-sizing: border-box;
