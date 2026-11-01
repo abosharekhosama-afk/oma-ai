@@ -2,10 +2,10 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ShellPopover } from './shell-popover';
 import { Button } from '@oma/ui/controls';
 import { ShellIcon } from './shell-icons';
 import { CheckSquareIcon, ClockIcon, EnvelopeIcon, ImageIcon, UsersIcon } from '../ui/plx-icons';
+import { Drawer } from '../ui/drawer';
 import { useLocale, useT } from '../../lib/use-locale';
 import { listNotifications, markAllNotificationsRead, markNotificationRead, type AppNotification } from '../../lib/notifications-api';
 import { getApiError } from '../../lib/brand-api';
@@ -81,12 +81,12 @@ export function NotificationsBell() {
   const unread = (items ?? []).filter((n) => !n.readAt).length;
   const counts = useMemo(() => Object.fromEntries(notificationCategories.map((c) => [c, (items ?? []).filter((n) => notificationCategory(n.type) === c && !n.readAt).length])) as Record<NotificationCategory, number>, [items]);
   const shown = (items ?? []).filter((n) => notificationCategory(n.type) === category);
-  const panel = <div id="notifications-panel" className="oma-notifications-panel oma-notifications-panel--planable oma-notifications-panel--categorized" role="region" data-testid="shell-notifications-panel">
-    <header className="oma-notifications-panel__head"><strong>{t('shell.notifications')}</strong>{unread > 0 ? <button type="button" className="oma-notifications-panel__mark-all" disabled={markingAll} onClick={() => void markAll()}>{t('shell.markAllRead')}</button> : null}</header>
+  const panel = <div id="notifications-panel" className="oma-notifications-panel oma-notifications-panel--planable oma-notifications-panel--categorized oma-notifications-panel--drawer" role="region" data-testid="shell-notifications-panel">
+    <header className="oma-notifications-panel__head"><strong>{isAr ? 'آخر النشاطات' : 'Recent activity'}</strong>{unread > 0 ? <button type="button" className="oma-notifications-panel__mark-all" disabled={markingAll} onClick={() => void markAll()}>{t('shell.markAllRead')}</button> : null}</header>
     <div className="oma-notifications-panel__tabs" role="tablist">{notificationCategories.map((c) => <button key={c} type="button" role="tab" aria-selected={category === c} className={category === c ? 'is-active' : ''} onClick={() => setCategory(c)}><NotificationTypeIcon category={c} size={16} /><span>{notificationCategoryLabel(c, isAr)}</span>{counts[c] > 0 ? <b>{counts[c]}</b> : null}</button>)}</div>
     <div className="oma-notifications-panel__unread-row"><span>{isAr ? 'غير المقروءة' : 'Unread'}</span><span className="oma-notifications-panel__unread-count">{counts[category] ?? 0}</span></div>
     {error ? <p role="alert" className="oma-notifications-panel__error">{error}</p> : items === null ? <p role="status" className="oma-muted">{t('common.loading')}</p> : shown.length === 0 ? <div className="oma-notifications-panel__empty"><ShellIcon name="bell" size={24} /><p>{t('shell.notificationsEmpty')}</p></div> : <ul className="oma-notifications-panel__list">{shown.map((n) => <NotificationRow key={n.id} n={n} t={t} locale={locale} markRead={(id) => void markRead(id)} />)}</ul>}
     <footer className="oma-notifications-panel__foot"><Link href="/app/notifications" onClick={() => setOpen(false)}>{t('shell.notificationsViewAll')}</Link></footer>
   </div>;
-  return <ShellPopover open={open} onOpenChange={setOpen} content={panel} className="oma-notifications-pop"><span className="oma-notifications"><button type="button" className="oma-icon-btn" aria-label={t('shell.notifications')} aria-expanded={open} aria-controls="notifications-panel" data-testid="shell-notifications-trigger"><ShellIcon name="bell" />{unread > 0 ? <span className="oma-badge oma-badge--primary" data-testid="shell-notifications-unread">{unread > 99 ? '99+' : unread}</span> : null}</button></span></ShellPopover>;
+  return <><span className="oma-notifications"><button type="button" className="oma-icon-btn" aria-label={t('shell.notifications')} aria-expanded={open} aria-controls="notifications-panel" data-testid="shell-notifications-trigger" onClick={() => setOpen(true)}><ShellIcon name="bell" />{unread > 0 ? <span className="oma-badge oma-badge--primary" data-testid="shell-notifications-unread">{unread > 99 ? '99+' : unread}</span> : null}</button></span><Drawer open={open} onClose={() => setOpen(false)} label={t('shell.notifications')} wide className="oma-notifications-drawer" id="notifications-drawer">{panel}</Drawer></>;
 }
