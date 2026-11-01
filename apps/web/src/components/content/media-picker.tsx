@@ -366,17 +366,20 @@ export function MediaPickerDialog({
                       {t('media.up')}
                     </button>
                   ) : null}
-                  {trail.map((p, i) => (
-                    <span key={p.id}>
+                  {trail.length === 0 && browse ? (
+                    <strong>{browse.folder.name || browse.root_name || t('media.folders')}</strong>
+                  ) : null}
+                  {trail.map((crumb, i) => (
+                    <span key={crumb.id}>
                       {i > 0 ? <span aria-hidden="true"> / </span> : null}
                       {i === trail.length - 1 ? (
-                        <strong>{p.name}</strong>
+                        <strong>{crumb.name}</strong>
                       ) : (
                         <button
                           type="button"
-                          onClick={() => void openFolder(p.id, p.name, true, browseScope)}
+                          onClick={() => void openFolder(crumb.id, crumb.name, true, browseScope)}
                         >
-                          {p.name}
+                          {crumb.name}
                         </button>
                       )}
                     </span>
@@ -388,19 +391,43 @@ export function MediaPickerDialog({
                     <>
                       {browse.folders.length ? (
                         <>
-                          <p className="oma-mp-section-title">{t('media.folders')}</p>
-                          <div className="oma-mp-folders" data-testid="media-folders">
+                          <div className="oma-mp-tree" data-testid="media-folder-tree">
+                            {trail.map((crumb, i) => (
+                              <button
+                                key={`tree-${crumb.id}`}
+                                type="button"
+                                className="oma-mp-tree__row"
+                                data-active={i === trail.length - 1 ? 'true' : 'false'}
+                                style={{ paddingInlineStart: 8 + i * 12 }}
+                                onClick={() => void openFolder(crumb.id, crumb.name, true, browseScope)}
+                              >
+                                <FolderOutlined /> {crumb.name}
+                              </button>
+                            ))}
                             {browse.folders.map((f) => (
                               <button
                                 key={f.id}
                                 type="button"
-                                className="oma-mp-folder"
+                                className="oma-mp-tree__row"
+                                style={{ paddingInlineStart: 8 + Math.max(trail.length, 1) * 12 }}
                                 onClick={() => void openFolder(f.id, f.name, false, browseScope)}
                               >
-                                <span className="oma-mp-folder__ico" aria-hidden>
+                                <FolderOutlined /> {f.name}
+                              </button>
+                            ))}
+                          </div>
+                          <div className="oma-mp-folder-chips" data-testid="media-folders">
+                            {browse.folders.map((f) => (
+                              <button
+                                key={`chip-${f.id}`}
+                                type="button"
+                                className="oma-mp-folder-chip"
+                                onClick={() => void openFolder(f.id, f.name, false, browseScope)}
+                              >
+                                <span className="oma-mp-folder-chip__ico" aria-hidden>
                                   <FolderOutlined />
                                 </span>
-                                <span className="oma-mp-folder__name">{f.name}</span>
+                                <span>{f.name}</span>
                               </button>
                             ))}
                           </div>
@@ -418,7 +445,7 @@ export function MediaPickerDialog({
                                 type="button"
                                 className="oma-mp-file"
                                 data-testid="media-browser-file"
-                                title={[...trail.map((p) => p.name), f.name]
+                                title={[...trail.map((crumb) => crumb.name), f.name]
                                   .filter(Boolean)
                                   .join(' / ')}
                                 onClick={async () => {
@@ -432,19 +459,14 @@ export function MediaPickerDialog({
                                 }}
                               >
                                 <span className="oma-mp-file__thumb" aria-hidden>
+                                  {String(f.mime || '').startsWith('video/') ? (
+                                    <span className="oma-mp-file__badge" aria-hidden>
+                                      ▶
+                                    </span>
+                                  ) : null}
                                   {fileIcon(f.mime)}
                                 </span>
                                 <span className="oma-mp-file__name">{f.name}</span>
-                                <span className="oma-mp-file__path">
-                                  {[...trail.map((p) => p.name), f.name]
-                                    .filter(Boolean)
-                                    .join(' / ')}
-                                </span>
-                                <span className="oma-mp-file__meta">
-                                  {[formatBytes(f.size, locale), formatDate(f.updated_at, locale)]
-                                    .filter(Boolean)
-                                    .join(' · ')}
-                                </span>
                               </button>
                             ))}
                           </div>

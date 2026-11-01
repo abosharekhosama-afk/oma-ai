@@ -58,6 +58,7 @@ export function ChannelChoiceCards({
   onSelectPages,
   locale,
   multiple = false,
+  variant = 'cards',
   testId = 'channel-choice-cards',
 }: {
   brandId: string | null | undefined;
@@ -68,6 +69,8 @@ export function ChannelChoiceCards({
   onSelectPages?: (pageIds: string[]) => void;
   locale: string;
   multiple?: boolean;
+  /** Planable compose uses a compact avatar strip; cards remain the default. */
+  variant?: 'cards' | 'strip';
   testId?: string;
 }) {
   const isAr = locale.toLowerCase().startsWith('ar');
@@ -141,6 +144,62 @@ export function ChannelChoiceCards({
     }
   };
   const settingsHref = brandId ? `/app/brands/${brandId}/settings?tab=accounts` : '/app/brands';
+
+  if (variant === 'strip') {
+    const stripNets = SOCIAL_NETWORKS.filter((network) => {
+      const accounts = pages.filter((page) => page.network === network);
+      return accounts.length > 0 || selected.has(network);
+    });
+    const show = stripNets.length ? stripNets : SOCIAL_NETWORKS;
+    return (
+      <div className="oma-channel-strip" data-testid={testId} role={multiple ? 'group' : 'radiogroup'}>
+        {show.map((network) => {
+          const accounts = pages.filter((page) => page.network === network);
+          const connected = accounts.some((page) => page.status === 'CONNECTED');
+          const page = accounts.find((p) => p.status === 'CONNECTED') ?? accounts[0];
+          const isSelected = selected.has(network);
+          const name = page?.name || LABELS[network][isAr ? 'ar' : 'en'];
+          return (
+            <button
+              key={network}
+              type="button"
+              className="oma-channel-strip__item"
+              role={multiple ? 'checkbox' : 'radio'}
+              aria-checked={isSelected}
+              aria-label={name}
+              title={name}
+              data-selected={isSelected ? 'true' : 'false'}
+              data-connected={connected ? 'true' : 'false'}
+              disabled={loading}
+              onClick={() => toggle(network)}
+            >
+              <span className="oma-channel-strip__avatar" aria-hidden>
+                {page?.avatar_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={page.avatar_url} alt="" />
+                ) : (
+                  <span className="oma-channel-strip__initial">
+                    {(page?.name || LABELS[network].en).slice(0, 1).toUpperCase()}
+                  </span>
+                )}
+                <span className="oma-channel-strip__badge">
+                  <NetworkIcon channel={network} size={10} />
+                </span>
+              </span>
+            </button>
+          );
+        })}
+        <Link
+          href={settingsHref}
+          className="oma-channel-strip__add"
+          aria-label={isAr ? 'إدارة القنوات' : 'Manage channels'}
+          title={isAr ? 'إدارة القنوات' : 'Manage channels'}
+        >
+          +
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="oma-channel-choice" data-testid={testId}>

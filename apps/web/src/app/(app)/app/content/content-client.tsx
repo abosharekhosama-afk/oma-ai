@@ -422,6 +422,7 @@ function PlanableComposeCard({
   onOpenTemplates?: () => void;
 }) {
   const t = useT();
+  const isAr = locale.toLowerCase().startsWith('ar');
   const [campaignMenu, setCampaignMenu] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   if (!open) return null;
@@ -508,6 +509,61 @@ function PlanableComposeCard({
           </button>
         </div>
 
+        <div className="oma-compose-channel-field" style={{ paddingInline: 20, paddingBlockStart: 4 }}>
+          <ChannelChoiceCards
+            brandId={brandId}
+            value={form.channel}
+            multiple
+            variant="strip"
+            onChange={(channel) => onChange({ channel })}
+            onSelectPages={(socialPageIds) => onChange({ socialPageIds })}
+            locale={locale}
+            testId="demo-create-content-channels"
+          />
+          <div className="oma-compose-type-tabs" role="tablist" aria-label={t('demo.content.filter.type')}>
+            {(
+              [
+                ['POST', 'Post'],
+                ['STORY', 'Story'],
+                ['REEL', 'Reels'],
+              ] as const
+            ).map(([ty, enLabel]) => {
+              const label =
+                ty === 'POST'
+                  ? isAr
+                    ? 'منشور'
+                    : enLabel
+                  : ty === 'STORY'
+                    ? isAr
+                      ? 'قصة'
+                      : enLabel
+                    : isAr
+                      ? 'ريلز'
+                      : enLabel;
+              const active =
+                form.contentType === ty ||
+                (ty === 'POST' && !['STORY', 'REEL'].includes(form.contentType));
+              return (
+                <button
+                  key={ty}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  data-active={active ? 'true' : 'false'}
+                  onClick={() => onChange({ contentType: ty })}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+          {form.contentType === 'STORY' ? (
+            <div className="oma-compose-story-hint">
+              {isAr ? 'النشر مباشرة (بدون ملصقات)' : 'Publish directly (no stickers)'}
+            </div>
+          ) : null}
+        </div>
+
         <div className="oma-compose-body">
           <div className="oma-compose-side">
             <div className="oma-compose-avatar">
@@ -585,7 +641,7 @@ function PlanableComposeCard({
             <TextArea
               className="oma-compose-text"
               rows={4}
-              placeholder={"Type '/' to add headlines, media and more..."}
+              placeholder={t('content.type_to_add_headlines_media')}
               value={form.caption}
               onChange={(e) => onChange({ caption: e.target.value })}
             />
@@ -593,29 +649,6 @@ function PlanableComposeCard({
         </div>
 
         <div className="oma-compose-extras">
-          <label>
-            {t('demo.content.filter.type')}
-            <OmaSelect
-              value={form.contentType}
-              onChange={(contentType) => onChange({ contentType })}
-              options={['POST', 'REEL', 'CAROUSEL', 'STATIC', 'STORY'].map((ty) => ({
-                value: ty,
-                label: ty,
-              }))}
-            />
-          </label>
-          <div className="oma-compose-channel-field">
-            <span className="oma-compose-field-label">{t('demo.filter.channel')}</span>
-            <ChannelChoiceCards
-              brandId={brandId}
-              value={form.channel}
-              multiple
-              onChange={(channel) => onChange({ channel })}
-              onSelectPages={(socialPageIds) => onChange({ socialPageIds })}
-              locale={locale}
-              testId="demo-create-content-channels"
-            />
-          </div>
           <label>
             {t('demo.campaigns.col.owner')}
             <Input value={form.owner} onChange={(e) => onChange({ owner: e.target.value })} />
@@ -1090,6 +1123,10 @@ export default function ContentPage() {
   const [publishTipOpen, setPublishTipOpen] = useState(false);
   const [editTitle, setEditTitle] = useState('');
   const [feedbackTab, setFeedbackTab] = useState<'comments' | 'suggestions'>('comments');
+  const [previewSyncOn, setPreviewSyncOn] = useState(true);
+  const [previewChannel, setPreviewChannel] = useState('');
+  const [addChannelOpen, setAddChannelOpen] = useState(false);
+  const [addChannelQuery, setAddChannelQuery] = useState('');
 
   const [overflowDay, setOverflowDay] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
@@ -1722,9 +1759,16 @@ export default function ContentPage() {
 
   function renderCalendarCard(item: ContentRow) {
     const st = postStatus(item);
+    const channels = String(item.channel || '')
+      .split(',')
+      .map((c) => c.trim())
+      .filter(Boolean);
+    const extra = item as ContentRowExtra;
+    const attention = !extra.clientVisible || st.approval === 'PENDING';
     return (
       <CalendarPostCard
-        channel={item.channel}
+        channel={channels[0] || item.channel}
+        channels={channels}
         accountName={brandName(item.brandId)}
         time={postTime(item)}
         timeTone={
@@ -1738,6 +1782,7 @@ export default function ContentPage() {
         status={st}
         display={calDisplay}
         draft={!st.scheduled && !st.published}
+        attention={attention}
       />
     );
   }
@@ -1860,8 +1905,19 @@ export default function ContentPage() {
   function modalApproverNames(): string[] {
     return approvalEvents
       .filter((e) => /^APPROVE/i.test(e.action))
-      .map((e) => memberName(e.actor_user_id));
+      .map((e) => memberName(e.actor_user_id))
+      .filter(Boolean);
   }
+
+  useEffect(() => {
+    if (!selected) return;
+    const first = String(draft.channel || selected.channel || '')
+      .split(',')
+      .map((c) => c.trim())
+      .filter(Boolean)[0] || '';
+    setPreviewChannel((prev) => prev || first);
+    setAddChannelOpen(false);
+  }, [selected?.id]);
 
   function stepModal(step: number) {
     const ids = (view === 'list' ? sorted : filtered).map((r) => r.id);
@@ -4038,10 +4094,114 @@ export default function ContentPage() {
                   : null
               }
             />
-            <aside className="oma-plan-post__rail" aria-hidden>
-              <span className="oma-plan-post__rail-ico">
-                <EditOutlined />
-              </span>
+            <aside className="oma-plan-post__rail" aria-label={t('demo.filter.channel')}>
+              <div className="oma-plan-post__rail-sync">
+                <button
+                  type="button"
+                  data-on={previewSyncOn ? 'true' : 'false'}
+                  aria-pressed={previewSyncOn}
+                  aria-label="Sync"
+                  onClick={() => setPreviewSyncOn((v) => !v)}
+                />
+                <span>Sync</span>
+              </div>
+              {(draft.channel || selected.channel)
+                .split(',')
+                .map((c) => c.trim())
+                .filter(Boolean)
+                .map((ch) => (
+                  <div key={ch} className="oma-plan-post__rail-ch" data-active={previewChannel === ch ? 'true' : 'false'}>
+                    <button
+                      type="button"
+                      className="oma-plan-post__rail-av"
+                      aria-label={ch}
+                      onClick={() => setPreviewChannel(ch)}
+                    >
+                      <NetworkIcon channel={ch} size={16} />
+                      <span className="oma-plan-post__rail-badge">
+                        <NetworkIcon channel={ch} size={8} />
+                      </span>
+                    </button>
+                    <div className="oma-plan-post__rail-actions" role="menu">
+                      <button
+                        type="button"
+                        title={
+                          selected.scheduledAt
+                            ? (isAr
+                                ? `المجموعة مجدولة`
+                                : `Group is scheduled`)
+                            : t('content.select_date_time') || (isAr ? 'اختيار التاريخ والوقت' : 'Select date & time')
+                        }
+                        onClick={() => {
+                          if (selectedId) setDetailPreviewMode('edit');
+                        }}
+                      >
+                        <ClockCircleOutlined />
+                      </button>
+                      <button
+                        type="button"
+                        title={t('content.make_visible_to_clients')}
+                        onClick={() => selectedId && void toggleHideFromClients(selectedId)}
+                      >
+                        <EyeInvisibleOutlined />
+                      </button>
+                      <button
+                        type="button"
+                        title={t('content.publish_post_now') || (isAr ? 'نشر الآن' : 'Publish now')}
+                        onClick={() => selectedId && void runLifecycle('mark-published', selectedId)}
+                      >
+                        <CheckOutlined />
+                      </button>
+                      <button
+                        type="button"
+                        title={t('demo.content.requestApproval')}
+                        onClick={() => selectedId && void runLifecycle('request-approval', selectedId)}
+                      >
+                        <FlagOutlined />
+                      </button>
+                      <button
+                        type="button"
+                        title={t('wsPanel.delete')}
+                        onClick={() => selectedId && void runLifecycle('archive', selectedId)}
+                      >
+                        <DeleteOutlined />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              <div style={{ position: 'relative' }}>
+                <button
+                  type="button"
+                  className="oma-plan-post__rail-add"
+                  aria-label={isAr ? 'إضافة قناة' : 'Add channel'}
+                  onClick={() => setAddChannelOpen((v) => !v)}
+                >
+                  +
+                </button>
+                {addChannelOpen ? (
+                  <div className="oma-plan-post__add-pop" role="dialog">
+                    <input
+                      value={addChannelQuery}
+                      onChange={(e) => setAddChannelQuery(e.target.value)}
+                      placeholder={isAr ? 'بحث عن حساب…' : 'Search accounts…'}
+                      aria-label={isAr ? 'بحث' : 'Search'}
+                    />
+                    <ChannelChoiceCards
+                      brandId={selected.brandId}
+                      value={draft.channel}
+                      multiple
+                      variant="cards"
+                      onChange={(channel) => {
+                        setDraft((d) => ({ ...d, channel }));
+                        setPreviewChannel(channel.split(',')[0]?.trim() || channel);
+                      }}
+                      onSelectPages={(socialPageIds) => setDraft((d) => ({ ...d, socialPageIds }))}
+                      locale={locale}
+                      testId="preview-add-channel"
+                    />
+                  </div>
+                ) : null}
+              </div>
             </aside>
 
             <div className="oma-plan-post__main">
@@ -4244,6 +4404,27 @@ export default function ContentPage() {
                             <EyeInvisibleOutlined /> {t('content.make_visible_to_clients')}
                           </button>
                         </li>
+                        <li className="oma-plan-post__more-section" aria-hidden>
+                          {isAr ? 'إجراءات المنشور' : 'Post actions'}
+                        </li>
+                        <li>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              if (selectedId) {
+                                void duplicateContent(selectedId).then((apiRow) => {
+                                  const row = toContentRow(apiRow);
+                                  setRows((prev) => [row, ...prev]);
+                                  toast.push(t('content.post_duplicated'), 'success');
+                                  openItem(row);
+                                });
+                              }
+                            }}
+                          >
+                            <FileTextOutlined /> {isAr ? 'إعادة نشر' : 'Repost'}
+                          </button>
+                        </li>
                         <li>
                           <button
                             type="button"
@@ -4278,6 +4459,21 @@ export default function ContentPage() {
                             onClick={() => void runLifecycle('mark-published', selectedId)}
                           >
                             <CheckOutlined /> {t('content.mark_published')}
+                          </button>
+                        </li>
+                        <li className="oma-plan-post__more-section" aria-hidden>
+                          {isAr ? 'إجراءات المجموعة' : 'Group actions'}
+                        </li>
+                        <li>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => {
+                              if (selectedId) void toggleHideFromClients(selectedId);
+                            }}
+                          >
+                            <EyeInvisibleOutlined />{' '}
+                            {isAr ? 'إخفاء عن العملاء' : 'Hide from clients'}
                           </button>
                         </li>
                         <li>
@@ -4384,9 +4580,45 @@ export default function ContentPage() {
                         </span>
                         {modalApproval ? <ApprovalButton a={modalApproval} /> : null}
                         <span className="oma-fp__net">
-                          <NetworkIcon channel={selected.channel} size={14} />
+                          <NetworkIcon channel={previewChannel || selected.channel} size={14} />
                         </span>
                       </div>
+                      {modalApproverNames().length === 0 ||
+                      !(selected as ContentRowExtra).previewAsset ? (
+                        <div className="oma-pv-req" role="status">
+                          <strong>
+                            {isAr
+                              ? 'أكمل الإجراءات التالية للنشر أو جدولة هذه المجموعة'
+                              : 'Complete the following actions to publish or schedule this group'}
+                          </strong>
+                          <ul>
+                            {modalApproverNames().length === 0 ? (
+                              <li>
+                                {isAr
+                                  ? 'الموافقة مطلوبة قبل النشر'
+                                  : 'Approval is required before publishing'}
+                              </li>
+                            ) : null}
+                            {!(selected as ContentRowExtra).previewAsset &&
+                            ['REEL', 'STORY', 'VIDEO', 'CAROUSEL'].includes(selected.contentType) ? (
+                              <li>
+                                {isAr
+                                  ? 'يجب أن يحتوي المنشور على ملف وسائط واحد على الأقل'
+                                  : 'Post should have at least 1 media file'}
+                              </li>
+                            ) : null}
+                            {String(previewChannel || selected.channel)
+                              .toLowerCase()
+                              .includes('tiktok') ? (
+                              <li>
+                                {isAr
+                                  ? 'تيك توك: قد يتطلب التطبيق على الجوال'
+                                  : 'TikTok: Mobile app required'}
+                              </li>
+                            ) : null}
+                          </ul>
+                        </div>
+                      ) : null}
                       <div className="oma-pv-modal-post">
                         {renderPostPreview(
                           {
@@ -4480,6 +4712,7 @@ export default function ContentPage() {
                             brandId={selected.brandId}
                             value={draft.channel}
                             multiple
+                            variant="strip"
                             onChange={(channel) => setDraft((d) => ({ ...d, channel }))}
                             onSelectPages={(socialPageIds) =>
                               setDraft((d) => ({ ...d, socialPageIds }))
