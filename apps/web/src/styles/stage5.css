@@ -2387,7 +2387,6 @@ main.oma-container:has(.oma-sched-page) {
   }
 }
 
-
 /* —— Planable schedule page polish (Nov 01) —— */
 .oma-plx-tz {
   display: inline-flex;
@@ -2400,10 +2399,19 @@ main.oma-container:has(.oma-sched-page) {
   font-size: 12px;
   color: #5e6166;
 }
-.oma-plx-tz__label { opacity: 0.8; }
-.oma-plx-tz strong { color: #1f2328; font-weight: 600; }
-.oma-plx-tz--sm { padding: 2px 8px; }
-.oma-plx-tz-inline { white-space: nowrap; }
+.oma-plx-tz__label {
+  opacity: 0.8;
+}
+.oma-plx-tz strong {
+  color: #1f2328;
+  font-weight: 600;
+}
+.oma-plx-tz--sm {
+  padding: 2px 8px;
+}
+.oma-plx-tz-inline {
+  white-space: nowrap;
+}
 
 .oma-plx-sched-card {
   display: flex !important;
@@ -2564,7 +2572,6 @@ main.oma-container:has(.oma-sched-page) {
   border-inline-start: 1px solid #d0d5dd !important;
 }
 
-
 /* Schedule layout: full-height filter rail + header icon controls */
 .oma-sched-layout--full {
   align-items: stretch !important;
@@ -2661,7 +2668,9 @@ main.oma-container:has(.oma-sched-page) {
 .oma-sched-view-popover {
   inset-block-start: calc(100% + 4px);
 }
-.oma-sched-view-wrap { position: relative; }
+.oma-sched-view-wrap {
+  position: relative;
+}
 .oma-sched-view-popover {
   position: absolute;
   inset-block-start: calc(100% + 6px);
@@ -2868,5 +2877,135 @@ main.oma-container:has(.oma-sched-page) {
   }
   .oma-sched-main[data-view='agenda'] .oma-sched-card {
     padding-inline-start: 12px;
+  }
+}
+
+/* Schedule refinement: compact agenda, dense table, and a real mobile calendar. */
+.oma-sched-main[data-view='agenda'] .oma-sched-agenda {
+  gap: 6px !important;
+}
+.oma-sched-main[data-view='agenda'] .oma-sched-card {
+  gap: 5px !important;
+  padding: 9px 12px !important;
+  border-radius: 9px !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 4%);
+}
+.oma-sched-main[data-view='agenda'] .oma-plx-agenda-head__main {
+  gap: 2px !important;
+}
+.oma-sched-main[data-view='agenda'] .oma-sched-card-head strong {
+  font-size: 13px;
+  line-height: 1.35;
+}
+.oma-sched-main[data-view='agenda'] .oma-sched-card__body,
+.oma-sched-main[data-view='agenda'] .oma-plx-agenda-channels,
+.oma-sched-main[data-view='agenda'] .oma-sched-card > p {
+  margin: 0 !important;
+  font-size: 11px;
+  line-height: 1.35;
+}
+.oma-sched-main[data-view='agenda'] .oma-chip-row {
+  gap: 6px;
+  margin-top: 1px;
+}
+
+.oma-sched-table-wrap {
+  min-width: 0;
+  overflow: auto;
+  border: 1px solid var(--oma-border);
+  border-radius: 10px;
+  background: var(--oma-surface);
+  scrollbar-gutter: stable;
+}
+.oma-sched-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.oma-sched-table th,
+.oma-sched-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--oma-border);
+  text-align: start;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.oma-sched-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  color: var(--oma-muted);
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--oma-canvas);
+}
+.oma-sched-table tbody tr:last-child th,
+.oma-sched-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.oma-sched-table tbody tr:hover {
+  background: color-mix(in srgb, var(--oma-primary) 4%, var(--oma-surface));
+}
+.oma-sched-table__title {
+  max-width: 260px;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--oma-ink);
+  font: inherit;
+  font-weight: 650;
+  text-align: start;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.oma-sched-table__title:hover,
+.oma-sched-table__title:focus-visible {
+  color: var(--oma-primary);
+  text-decoration: underline;
+}
+.oma-sched-table__date {
+  color: var(--oma-muted);
+  font-variant-numeric: tabular-nums;
+}
+.oma-sched-table__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+@media (max-width: 640px) {
+  /* Keep the seven-day calendar instead of rendering a second agenda card list. */
+  .oma-sched-main[data-view='calendar'] {
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-gutter: stable;
+  }
+  .oma-sched-main[data-view='calendar'] .oma-sched-calendar {
+    display: flex !important;
+    min-width: 980px;
+    width: max-content;
+    min-height: 520px;
+    overflow: visible;
+    border-radius: 10px;
+  }
+  .oma-sched-main[data-view='calendar'] .oma-sched-dow-row,
+  .oma-sched-main[data-view='calendar'] .oma-sched-week {
+    min-width: 980px;
+  }
+  .oma-sched-main[data-view='calendar'] .oma-sched-day {
+    min-width: 140px;
+  }
+  .oma-sched-main[data-view='calendar'] .oma-sched-mobile-only {
+    display: none !important;
+  }
+  .oma-sched-main[data-view='agenda'] .oma-sched-card {
+    padding: 8px 10px !important;
+  }
+  .oma-sched-table-wrap {
+    margin-inline: -2px;
   }
 }

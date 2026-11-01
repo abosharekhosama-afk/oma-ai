@@ -14,6 +14,16 @@ describe('schedule agenda and queue layouts', () => {
     expect(source).toContain('orderedRows.map((post) => {');
   });
 
+  it('adds a table view with the key scheduling columns', () => {
+    const source = read('apps/web/src/app/(app)/app/schedule/schedule-client.tsx');
+    const schedule = read('apps/web/src/lib/demo/stage6-schedule.ts');
+    expect(schedule).toContain("'table'");
+    expect(source).toContain("['table'");
+    expect(source).toContain('data-testid="demo-schedule-table"');
+    expect(source).toContain('data-testid={`demo-schedule-table-row-${post.id}`}');
+    expect(source).toContain("locale.startsWith('ar') ? 'التاريخ والوقت' : 'Date & time'");
+  });
+
   it('provides independent vertical scrolling for both non-calendar views', () => {
     const css = read('apps/web/src/styles/stage5.css');
     const fix = css.slice(css.lastIndexOf('Agenda and queue are distinct'));
@@ -34,13 +44,16 @@ describe('schedule agenda and queue layouts', () => {
     expect(fix).toContain('grid-template-columns: minmax(0, 1fr)');
   });
 
-  it('hides the compact mobile week list when agenda or queue already renders its own rows', () => {
+  it('removes the duplicate mobile card list and keeps the calendar horizontally scrollable', () => {
     const source = read('apps/web/src/app/(app)/app/schedule/schedule-client.tsx');
     const css = read('apps/web/src/styles/stage5.css');
-    expect(source).toContain('data-testid="demo-schedule-mobile"');
+    expect(source).not.toContain('data-testid="demo-schedule-mobile"');
     expect(css).toContain(".oma-sched-main[data-view='agenda'] > .oma-sched-mobile-only");
     expect(css).toContain(".oma-sched-main[data-view='queue'] > .oma-sched-mobile-only");
     expect(css).toContain('display: none !important');
+    expect(css).toContain(".oma-sched-main[data-view='calendar']");
+    expect(css).toContain('overflow-x: auto !important');
+    expect(css).toContain('min-width: 980px');
   });
 
   it('uses the shared side-drawer treatment for schedule details', () => {
