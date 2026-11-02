@@ -11,14 +11,16 @@ export function NavLink({
   label,
   icon,
   collapsed = false,
+  exact = false,
 }: {
   href: string;
   label: string;
   icon: NavIconId;
   collapsed?: boolean;
+  exact?: boolean;
 }) {
   const pathname = usePathname();
-  const active = href === '/app' ? pathname === '/app' : pathname.startsWith(href);
+  const active = href === '/app' || exact ? pathname === href : pathname.startsWith(href);
 
   const link = (
     <Link
