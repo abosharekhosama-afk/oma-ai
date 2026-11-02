@@ -15,7 +15,8 @@
 .oma-shell {
   display: grid;
   grid-template-columns: var(--shell-rail-expanded) minmax(0, 1fr);
-  min-height: 100vh;
+  min-height: 100dvh;
+  height: 100dvh;
   font-size: var(--text-body);
   line-height: var(--leading-body);
   background: var(--oma-canvas);
@@ -29,12 +30,12 @@
   border-inline-end: 1px solid var(--oma-border);
   background: var(--oma-surface);
   padding: var(--shell-chrome-inset);
-  height: 100vh;
-  max-height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
   overflow: hidden;
   position: sticky;
   top: 0;
-  align-self: start;
+  align-self: stretch;
   z-index: var(--shell-z-rail);
   width: var(--shell-rail-expanded);
   box-sizing: border-box;
@@ -368,12 +369,45 @@
   margin-bottom: var(--space-4);
 }
 .oma-drawer.oma-drawer--nav {
-  inset-inline-end: auto;
-  inset-inline-start: 0;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  padding: var(--shell-chrome-inset);
+  /* Root must remain a full-viewport overlay. Never shrink it to drawer width —
+     that left a transparent mask strip after close on mobile. */
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+  height: 100% !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  pointer-events: none;
+}
+.oma-drawer.oma-drawer--nav.ant-drawer-open {
+  pointer-events: auto;
+}
+.oma-drawer.oma-drawer--nav .ant-drawer-mask {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: rgba(15, 23, 42, 0.28) !important;
+}
+.oma-drawer.oma-drawer--nav:not(.ant-drawer-open),
+.oma-drawer.oma-drawer--nav:not(.ant-drawer-open) .ant-drawer-mask,
+.oma-drawer.oma-drawer--nav:not(.ant-drawer-open) .ant-drawer-content-wrapper {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  width: 0 !important;
+  max-width: 0 !important;
+  opacity: 0 !important;
+}
+.oma-drawer.oma-drawer--nav .ant-drawer-content-wrapper {
+  pointer-events: auto;
+}
+.oma-drawer.oma-drawer--nav .ant-drawer-body {
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  padding: var(--shell-chrome-inset) !important;
 }
 .oma-drawer.oma-drawer--nav .oma-mobile-drawer-nav {
   min-height: 0;
@@ -977,7 +1011,7 @@
 /* ── Sidebar responsive + density fixes ── */
 .oma-rail {
   overflow-x: hidden;
-  overflow-y: auto;
+  overflow-y: hidden;
   overscroll-behavior: contain;
   min-width: 0;
 }
@@ -1566,23 +1600,50 @@
   display: none !important;
 }
 
-/* Independent scroll: rail fixed, main content scrolls alone */
+/* Independent scroll: rail full-height (dvh), nav scrolls, footer pinned */
 .oma-shell {
-  height: 100vh !important;
-  max-height: 100vh !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  min-height: 100dvh !important;
   overflow: hidden !important;
 }
 .oma-rail {
-  height: 100vh !important;
-  max-height: 100vh !important;
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
   position: sticky !important;
   top: 0 !important;
+  align-self: stretch !important;
+}
+.oma-rail > .oma-rail-header,
+.oma-rail > .oma-rail-workspace,
+.oma-rail > .oma-rail-endorsement,
+.oma-rail > .oma-ws-row {
+  flex: 0 0 auto !important;
+}
+.oma-rail > .oma-nav,
+.oma-shell > .oma-rail > .oma-nav {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.oma-rail > .oma-rail-footer,
+.oma-shell > .oma-rail > .oma-rail-footer {
+  flex: 0 0 auto !important;
+  margin-block-start: auto !important;
+  position: relative !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 .oma-shell-column {
-  height: 100vh !important;
-  max-height: 100vh !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
   min-height: 0 !important;
   overflow: hidden !important;
   display: flex !important;
@@ -1598,13 +1659,6 @@
   overflow-y: auto !important;
   overflow-x: hidden !important;
   -webkit-overflow-scrolling: touch;
-}
-@media (max-width: 767px) {
-  .oma-shell,
-  .oma-shell-column {
-    height: 100dvh !important;
-    max-height: 100dvh !important;
-  }
 }
 
 /* ===== Planable Workspace row + Settings panel ===== */

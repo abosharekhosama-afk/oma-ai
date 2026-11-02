@@ -191,6 +191,21 @@
 /* Mobile navigation follows the same full-height side-sheet behavior as filters. */
 .oma-drawer.oma-drawer--nav {
   z-index: 1200 !important;
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.oma-drawer.oma-drawer--nav .ant-drawer-mask {
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.oma-drawer.oma-drawer--nav:not(.ant-drawer-open) {
+  display: none !important;
+  pointer-events: none !important;
 }
 
 .oma-drawer.oma-drawer--nav .ant-drawer-content-wrapper {
