@@ -17,6 +17,7 @@ import {
 } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
 import { syncContentPublishRollup } from './publish-target-sync';
+import { billingService } from '../billing/billing.service';
 
 const STATE_TTL_MS = 15 * 60_000;
 const notFound = () => new DomainError('NOT_FOUND', 'Not found', 404, 'errors.not_found');
@@ -192,6 +193,20 @@ export class SocialService {
         codeVerifier: row.codeVerifierEnc ? decryptToken(row.codeVerifierEnc, key) : undefined,
       });
       if (!accounts.length) return back(row.brandId, 'none');
+      // Count how many of these accounts are new (not already connected).
+      const existing = await prisma.socialPage.findMany({
+        where: {
+          brandId: row.brandId,
+          network: row.network,
+          externalId: { in: accounts.map((a) => a.externalId) },
+        },
+        select: { externalId: true },
+      });
+      const existingIds = new Set(existing.map((e) => e.externalId));
+      const newCount = accounts.filter((a) => !existingIds.has(a.externalId)).length;
+      if (newCount > 0) {
+        await billingService.assertWithinLimit(row.tenantId, 'social_channels', { adding: newCount });
+      }
       for (const a of accounts) {
         const data = {
           name: a.name.slice(0, 200),

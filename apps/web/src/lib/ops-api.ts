@@ -479,6 +479,7 @@ export async function createTask(
     contentId?: string | null;
     campaignId?: string | null;
     status?: string;
+    priority?: string;
     assigneeUserId?: string | null;
     dueAt?: string | null;
   },

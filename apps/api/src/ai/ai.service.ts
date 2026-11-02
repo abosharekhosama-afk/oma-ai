@@ -17,6 +17,7 @@ import {
   type LedgerEntry,
 } from '@oma/domain';
 import { OpenAiProviderAdapter } from '@oma/ai';
+import { billingService } from '../billing/billing.service';
 
 function liveEnabled(): boolean {
   return process.env.AI_LIVE_ENABLED === 'true';
@@ -96,6 +97,8 @@ export async function createAiRun(input: {
     );
   }
   const useCase = input.useCase as AiUseCase;
+  await billingService.assertFeature(input.tenantId, 'ai_assist');
+  await billingService.assertWithinLimit(input.tenantId, 'ai_runs_per_month');
   const routed = routeModel(useCase, modelConfig());
   if (liveEnabled()) {
     throw new DomainError(

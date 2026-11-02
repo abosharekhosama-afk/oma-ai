@@ -12,6 +12,7 @@ import {
   uniquifySlug,
 } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
+import { billingService } from '../billing/billing.service';
 
 @Injectable()
 export class TenantService {
@@ -111,6 +112,8 @@ export class TenantService {
       });
       return t;
     });
+
+    await billingService.ensureSubscription(tenant.id);
 
     if (sessionToken) {
       const session = await prisma.session.findUnique({
@@ -265,6 +268,8 @@ export class TenantService {
     if (!normalizedEmail || !normalizedEmail.includes('@')) {
       throw new DomainError('VALIDATION_FAILED', 'Invalid email', 400, 'errors.validation');
     }
+    const kind = opts?.membershipKind === 'client' ? 'client' : 'team';
+    await billingService.assertWithinLimit(tenantId, kind === 'client' ? 'guests' : 'seats');
     const membership = await prisma.membership.create({
       data: {
         id: newId(),

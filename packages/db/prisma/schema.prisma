@@ -98,6 +98,8 @@ model Tenant {
   aiRuns          AiRun[]
   workspaceSetting WorkspaceSetting?
   timeSlots       WorkspaceTimeSlot[]
+  subscription   WorkspaceSubscription?
+  upgradeRequests PlanUpgradeRequest[]
 }
 
 enum AiRunStatus {
@@ -1741,4 +1743,90 @@ model MediaAsset {
   @@unique([tenantId, brandId, workdriveFileId])
   @@index([tenantId, brandId, kind, createdAt])
   @@index([status, lastCheckedAt])
+}
+
+
+/// Catalog plan (seeded from packages/domain billing plans).
+model Plan {
+  id                     String   @id
+  code                   String   @unique
+  nameEn                 String
+  nameAr                 String
+  descriptionEn          String
+  descriptionAr          String
+  priceMonthlyUsdCents   Int?
+  priceYearlyPerMonthCents Int?
+  sortOrder              Int      @default(0)
+  popular                Boolean  @default(false)
+  active                 Boolean  @default(true)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  limits                 PlanLimit[]
+  features               PlanFeature[]
+  subscriptions          WorkspaceSubscription[]
+}
+
+model PlanLimit {
+  id        String @id
+  planId    String
+  key       String
+  /// JSON number or null for unlimited
+  valueJson String
+  plan      Plan   @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, key])
+  @@index([key])
+}
+
+model PlanFeature {
+  id      String  @id
+  planId  String
+  key     String
+  enabled Boolean @default(false)
+  plan    Plan    @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, key])
+  @@index([key])
+}
+
+/// One active subscription per workspace (tenant). Payment deferred — status stays active; plan changes are manual.
+model WorkspaceSubscription {
+  id               String   @id
+  tenantId         String   @unique
+  planCode         String
+  billingCycle     String   @default("monthly")
+  status           String   @default("active")
+  /// Existing tenants assigned Pro at rollout (not a paid conversion).
+  grandfathered    Boolean  @default(false)
+  /// Payment not wired yet; kept for future Stripe/etc.
+  paymentDeferred  Boolean  @default(true)
+  assignedByUserId String?
+  notes            String?
+  startedAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  plan             Plan     @relation(fields: [planCode], references: [code])
+
+  @@index([planCode])
+  @@index([status])
+}
+
+model PlanUpgradeRequest {
+  id           String   @id
+  tenantId     String
+  requestedBy  String
+  fromPlanCode String
+  toPlanCode   String
+  billingCycle String   @default("monthly")
+  note         String?
+  /// pending | contacted | fulfilled | cancelled
+  status       String   @default("pending")
+  handledBy    String?
+  handledAt    DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, status])
+  @@index([status, createdAt])
 }

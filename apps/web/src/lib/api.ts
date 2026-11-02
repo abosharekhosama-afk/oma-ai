@@ -48,6 +48,8 @@ const CODE_KEYS: Record<string, string> = {
   CONTENT_REJECTED: 'error.content_rejected',
   BRAND_ARCHIVED: 'errors.brand_archived',
   CAMPAIGN_ARCHIVED: 'error.campaign_archived',
+  PLAN_LIMIT_REACHED: 'errors.plan_limit_reached',
+  PLAN_FEATURE_REQUIRED: 'errors.plan_feature_required',
 };
 
 /** Localized, user-facing message for an API error (prefers the server's message_key). */

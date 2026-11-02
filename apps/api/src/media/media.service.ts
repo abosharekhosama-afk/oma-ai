@@ -22,6 +22,7 @@ import {
 } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
 import { workDriveDomainError, WorkDriveService } from './workdrive.service';
+import { billingService } from '../billing/billing.service';
 
 type Asset = NonNullable<
   Awaited<ReturnType<ReturnType<typeof getPrisma>['mediaAsset']['findFirst']>>
@@ -240,6 +241,8 @@ export class MediaService {
   ) {
     const kind = parseKind(input.kind);
     this.assertCapability(ctx.capabilities, kind);
+    await billingService.assertWithinLimit(ctx.tenantId, 'storage_bytes', { adding: 0 });
+    // Soft check: reject when already at/over storage (upload size checked after meter when known).
     const brand = await this.brand(ctx.tenantId, brandId);
     if (brand.status === 'ARCHIVED')
       throw new DomainError('BRAND_ARCHIVED', 'Brand archived', 409, 'errors.brand_archived');
@@ -267,6 +270,7 @@ export class MediaService {
       const m = meter(max);
       await pipeline(input.body, m.t, createWriteStream(path));
       const { size, sha256 } = m.result();
+      await billingService.assertWithinLimit(ctx.tenantId, 'storage_bytes', { adding: size });
       if (!size) throw bad('Empty file', 'errors.media_empty');
       if (input.length != null && size !== input.length)
         throw bad('Upload was interrupted', 'errors.media_interrupted');

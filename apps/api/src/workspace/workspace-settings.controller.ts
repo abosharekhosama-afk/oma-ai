@@ -6,6 +6,7 @@ import { CapabilitiesGuard } from '../common/guards/capabilities.guard';
 import { RequireCapabilities } from '../common/decorators/require-capabilities.decorator';
 import { DomainError, newId } from '@oma/domain';
 import { getPrisma } from '@oma/db';
+import { billingService } from '../billing/billing.service';
 
 const bad = (field: string) =>
   new DomainError('VALIDATION_FAILED', `Invalid ${field}`, 400, 'errors.validation_failed', [
@@ -163,6 +164,9 @@ export class WorkspaceSettingsController {
   ) {
     const tenantId = this.tenantId(req);
     const patch = validateSettingsPatch(body ?? {});
+    if (patch.approvalMode) {
+      await billingService.assertApprovalMode(tenantId, String(patch.approvalMode));
+    }
     const prisma = getPrisma();
     const row = await prisma.workspaceSetting.upsert({
       where: { tenantId },

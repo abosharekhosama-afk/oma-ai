@@ -5,6 +5,7 @@ import { CsrfGuard } from '../common/guards/csrf.guard';
 import { CapabilitiesGuard } from '../common/guards/capabilities.guard';
 import { DomainError } from '@oma/domain';
 import { contentExtrasService } from '../container';
+import { billingService } from '../billing/billing.service';
 
 @Controller()
 @UseGuards(AuthGuard, CapabilitiesGuard)
@@ -106,6 +107,9 @@ export class ContentExtrasController {
     @Body() body: { clientVisible: boolean },
   ) {
     this.requireTenant(req);
+    if (body.clientVisible === false) {
+      await billingService.assertFeature(req.oma!.tenantId!, 'client_visibility');
+    }
     return contentExtrasService.setClientVisible(
       req.oma!.tenantId!,
       req.oma!.userId!,
