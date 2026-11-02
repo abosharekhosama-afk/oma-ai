@@ -11,8 +11,9 @@
   position: sticky;
   top: 0;
   z-index: 6;
-  background: var(--oma-canvas, #f5f6f8);
-  padding-bottom: 8px;
+  margin-inline: -24px;
+  padding: 20px 24px 12px;
+  background: #f5f6f8;
 }
 .oma-activity-refresh {
   display: inline-flex;

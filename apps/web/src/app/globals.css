@@ -1425,6 +1425,7 @@ html body .oma-shell-column:has(.oma-activity-page) > main.oma-container {
   min-height: 0 !important;
   height: auto !important;
   max-height: none !important;
+  padding-top: 0 !important;
   overflow-x: hidden !important;
   overflow-y: auto !important;
 }
