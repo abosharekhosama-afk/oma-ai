@@ -23,6 +23,7 @@ import {
   MoreIcon,
   PencilIcon,
   PlusIcon,
+  SearchIcon,
   SettingsIcon,
   SparkleIcon,
   StarIcon,
@@ -32,7 +33,6 @@ import {
 } from '../../../../components/ui/plx-icons';
 import './planable-dashboard.css';
 import { useT } from '../../../../lib/use-locale';
-import { CommandSearch } from '../../../../components/shell/command-search';
 import { NotificationsBell } from '../../../../components/shell/notifications-bell';
 import { UserMenu } from '../../../../components/shell/user-menu';
 
@@ -166,6 +166,7 @@ export function PlanableDashboard() {
   const [wsMenuFor, setWsMenuFor] = useState<string | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [workspaceQuery, setWorkspaceQuery] = useState('');
 
   const [createOpen, setCreateOpen] = useState(false);
   const [createStep, setCreateStep] = useState<1 | 2 | 3>(1);
@@ -255,6 +256,21 @@ export function PlanableDashboard() {
     () => memberships.filter((m) => !primary.some((p) => p.tenant_id === m.tenant_id)),
     [memberships, primary],
   );
+  const normalizedWorkspaceQuery = workspaceQuery.trim().toLowerCase();
+  const visibleBrands = useMemo(() => {
+    if (!normalizedWorkspaceQuery) return brands;
+    return brands.filter((brand) =>
+      [brand.name, brand.primary_website_url, brand.status]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(normalizedWorkspaceQuery)),
+    );
+  }, [brands, normalizedWorkspaceQuery]);
+  const visibleOthers = useMemo(() => {
+    if (!normalizedWorkspaceQuery) return others;
+    return others.filter((membership) =>
+      membership.tenant_name.toLowerCase().includes(normalizedWorkspaceQuery),
+    );
+  }, [others, normalizedWorkspaceQuery]);
 
   const companyName = me?.user?.name ?? me?.name ?? primary[0]?.tenant_name ?? 'Workspace';
 
@@ -367,7 +383,15 @@ export function PlanableDashboard() {
           <PlxLogo sub={null} compact />
         </Link>
         <div className="plx-topbar-search" data-testid="workspace-management-search">
-          <CommandSearch compact hotkey />
+          <SearchIcon width={16} height={16} />
+          <input
+            type="search"
+            value={workspaceQuery}
+            onChange={(event) => setWorkspaceQuery(event.target.value)}
+            placeholder={t('companies.search_workspaces')}
+            aria-label={t('companies.search_workspaces')}
+            data-testid="workspace-search-input"
+          />
         </div>
         <span className="plx-topbar-spacer" />
         <button type="button" className="plx-icon-btn" aria-label={t('companies.help')}>
@@ -486,7 +510,12 @@ export function PlanableDashboard() {
 
           <div className="plx-ws-grid" data-testid="plx-workspaces-grid">
             {brandsLoading ? <p className="plx-muted">{t('companies.loading_workspaces2')}</p> : null}
-            {brands.map((b) => (
+            {!brandsLoading && normalizedWorkspaceQuery && visibleBrands.length === 0 && visibleOthers.length === 0 ? (
+              <p className="plx-workspaces-empty" role="status">
+                {t('companies.no_workspace_matches')}
+              </p>
+            ) : null}
+            {visibleBrands.map((b) => (
               <WorkspaceCard
                 key={b.id}
                 id={b.id}
@@ -519,22 +548,24 @@ export function PlanableDashboard() {
                 }}
               />
             ))}
-            <button type="button" className="plx-ws-create" onClick={openCreate}>
-              <span className="plx-ws-create-plus">
-                <PlusIcon />
-              </span>
-              <span className="plx-ws-create-label">{t('companies.create_a_workspace')}</span>
-            </button>
+            {!normalizedWorkspaceQuery ? (
+              <button type="button" className="plx-ws-create" onClick={openCreate}>
+                <span className="plx-ws-create-plus">
+                  <PlusIcon />
+                </span>
+                <span className="plx-ws-create-label">{t('companies.create_a_workspace')}</span>
+              </button>
+            ) : null}
           </div>
 
-          {others.length > 0 ? (
+          {visibleOthers.length > 0 ? (
             <>
               <div className="plx-other-head">
                 <h2>{t('companies.other_workspaces')}</h2>
                 <hr />
               </div>
               <div className="plx-ws-grid plx-ws-grid--others">
-                {others.map((m) => (
+                {visibleOthers.map((m) => (
                   <WorkspaceCard
                     key={m.tenant_id}
                     id={m.id || m.tenant_id}

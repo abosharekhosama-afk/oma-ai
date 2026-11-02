@@ -1577,6 +1577,8 @@
   "companies.upgrade": "ترقية",
   "companies.invite_users": "دعوة مستخدمين",
   "companies.loading_workspaces2": "جارٍ تحميل مساحات العمل…",
+  "companies.search_workspaces": "ابحث في مساحات العمل…",
+  "companies.no_workspace_matches": "لا توجد مساحات عمل مطابقة لبحثك.",
   "companies.create_a_workspace": "إنشاء مساحة عمل",
   "companies.other_workspaces": "مساحات عمل أخرى",
   "companies.connect_pages": "ربط الصفحات",

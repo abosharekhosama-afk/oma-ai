@@ -1577,6 +1577,8 @@
   "companies.upgrade": "Upgrade",
   "companies.invite_users": "Invite users",
   "companies.loading_workspaces2": "Loading workspaces…",
+  "companies.search_workspaces": "Search workspaces…",
+  "companies.no_workspace_matches": "No workspaces match your search.",
   "companies.create_a_workspace": "Create a workspace",
   "companies.other_workspaces": "Other workspaces",
   "companies.connect_pages": "Connect pages",

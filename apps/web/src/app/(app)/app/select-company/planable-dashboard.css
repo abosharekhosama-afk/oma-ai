@@ -33,6 +33,30 @@
   color: #9ca3af;
   font-size: 14px;
 }
+.plx-topbar-search input {
+  width: 100%;
+  height: 36px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #374151;
+  font: inherit;
+}
+.plx-topbar-search:focus-within {
+  background: #eceef1;
+  box-shadow: 0 0 0 2px rgba(47, 111, 237, 0.14);
+}
+.plx-topbar-search input::placeholder { color: #9ca3af; }
+.plx-workspaces-empty {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 42px 24px;
+  border: 1px dashed #d7dce4;
+  border-radius: 14px;
+  background: #fff;
+  color: #6b7280;
+  text-align: center;
+}
 .plx-topbar-search .oma-rail-search {
   width: 100%;
   height: 36px;
