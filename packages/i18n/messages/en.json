@@ -2403,5 +2403,7 @@
   "billing.payment_coming_soon": "Payment coming soon",
   "billing.upgrade_prompt": "Upgrade plan",
   "settings.notifications.channel_inapp": "In-app",
-  "team.owner_admin_locked": "Owner admin access can’t be removed."
+  "team.owner_admin_locked": "Owner admin access can’t be removed.",
+  "demo.schedule.publishState.queuedStale": "Still queued — the publisher worker may be offline. Wake or redeploy the worker, then retry.",
+  "demo.schedule.queuedStaleHint": "This post has been waiting in the queue for several minutes without the worker picking it up."
 }

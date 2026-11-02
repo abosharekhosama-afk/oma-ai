@@ -40,7 +40,7 @@ import {
   PlxLogo,
 } from '../../../../components/ui/plx-icons';
 import './planable-dashboard.css';
-import { useT } from '../../../../lib/use-locale';
+import { useLocale, useT } from '../../../../lib/use-locale';
 import { NotificationsBell } from '../../../../components/shell/notifications-bell';
 import { UserMenu } from '../../../../components/shell/user-menu';
 
@@ -119,6 +119,7 @@ function initials(name: string) {
 
 export function PlanableDashboard() {
   const t = useT();
+  const locale = useLocale();
   const router = useRouter();
   const [me, setMe] = useState<Me | null>(null);
   const [brands, setBrands] = useState<BrandWorkspace[]>([]);
@@ -388,7 +389,7 @@ export function PlanableDashboard() {
   }
 
   return (
-    <div className="plx-dash" id="main" dir="ltr" ref={rootRef}>
+    <div className="plx-dash" id="main" dir={locale === 'ar' ? 'rtl' : 'ltr'} ref={rootRef}>
       <header className="plx-topbar">
         <Link href="/app" className="plx-topbar-logo" aria-label={t('companies.oma_home')}>
           <PlxLogo sub={null} compact />

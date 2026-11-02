@@ -226,8 +226,9 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     'notification.read',
     'analytics.read',
     'job.read',
-    // Least privilege: brand.* and strategy.* are NOT default for MEMBER;
-    // grant them explicitly per membership (see brand/strategy security tests).
+    // Contributors need brand.read to open workspace brands (Planable-style).
+    // Write/admin brand.* remain non-default.
+    'brand.read',
     'campaign.read',
     'content.read',
     'content.create',

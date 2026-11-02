@@ -17,6 +17,16 @@ import {
   type FetchLike,
 } from '@oma/domain';
 
+/** WEB_ORIGIN may already include `/app` (Vercel basePath). Avoid `/app/app/...`. */
+function publicWebOrigin(): string {
+  const raw = (process.env.WEB_ORIGIN || process.env.WEB_BASE_URL || 'https://oma-ai-ecru.vercel.app').replace(
+    /\/+$/,
+    '',
+  );
+  return raw.replace(/\/app$/i, '');
+}
+
+
 export const MAX_PUBLISH_ATTEMPTS = 5;
 /** Backoff after attempt n (1-based): 1m, 5m, 15m, 60m. */
 export const PUBLISH_BACKOFF_MS = [60_000, 5 * 60_000, 15 * 60_000, 60 * 60_000];
@@ -203,7 +213,7 @@ export async function notifyPublishOutcome(
       errorMessage: detail.error
         ? humanizePublishError(detail.error, locale === 'ar' ? 'ar' : 'en')
         : null,
-      deepLinkUrl: `${(process.env.WEB_ORIGIN || process.env.WEB_BASE_URL || 'https://oma-ai-ecru.vercel.app').replace(/\/+$/, '')}${deepLink}`,
+      deepLinkUrl: `${publicWebOrigin()}${deepLink}`,
       name: user.name,
     });
     const jobRunId = newId();

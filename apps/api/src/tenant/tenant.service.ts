@@ -387,16 +387,40 @@ export class TenantService {
         where: { id: inv.membershipId },
         data: { userId, status: 'ACTIVE', acceptedAt: new Date() },
       });
-      for (const code of SYSTEM_PROFILES.MEMBER ?? []) {
-        await tx.capabilityGrant.create({
-          data: {
-            id: newId(),
-            membershipId: inv.membershipId,
-            tenantId: inv.membership.tenantId,
-            capabilityCode: code,
-            sourceProfileCode: 'MEMBER',
-          },
-        });
+      // Prefer grants already attached at invite time (Planable role → profile).
+      // Only seed a profile when none exist yet — never wipe OWNER/ADMIN grants.
+      const existing = await tx.capabilityGrant.count({
+        where: { membershipId: inv.membershipId, revokedAt: null },
+      });
+      if (existing === 0) {
+        const role = (inv.membership.displayRole ?? '').trim().toLowerCase();
+        const profileCode =
+          (
+            {
+              owner: 'COMPANY_OWNER',
+              administrator: 'ADMIN',
+              admin: 'ADMIN',
+              contributor: 'MEMBER',
+              member: 'MEMBER',
+              writer: 'WRITER',
+              approver: 'APPROVER',
+              client: 'CLIENT',
+              guest: 'GUEST',
+              viewer: 'VIEWER',
+            } as Record<string, string>
+          )[role] ?? 'MEMBER';
+        const codes = SYSTEM_PROFILES[profileCode] ?? SYSTEM_PROFILES.MEMBER ?? [];
+        for (const code of codes) {
+          await tx.capabilityGrant.create({
+            data: {
+              id: newId(),
+              membershipId: inv.membershipId,
+              tenantId: inv.membership.tenantId,
+              capabilityCode: code,
+              sourceProfileCode: profileCode,
+            },
+          });
+        }
       }
     });
 
@@ -582,7 +606,13 @@ export class TenantService {
     const profile =
       (await prisma.capabilityProfile.findFirst({ where: { code: profileCode, tenantId } })) ??
       (await prisma.capabilityProfile.findFirst({ where: { code: profileCode, tenantId: null } }));
-    if (!profile) throw new DomainError('NOT_FOUND', 'Profile not found', 404, 'errors.not_found');
-    return this.assignCapabilities(actorUserId, tenantId, membershipId, profile.capabilityCodes);
+    const codes =
+      profile?.capabilityCodes ??
+      SYSTEM_PROFILES[profileCode] ??
+      null;
+    if (!codes?.length) {
+      throw new DomainError('NOT_FOUND', 'Profile not found', 404, 'errors.not_found');
+    }
+    return this.assignCapabilities(actorUserId, tenantId, membershipId, codes);
   }
 }

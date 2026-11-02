@@ -8,6 +8,7 @@ import {
   type FetchLike,
 } from '@oma/domain';
 import { mediaProxyUrl, publicMediaUrls } from '../media/media-jobs';
+import { prepareAssetForNetwork } from '../media/prepare-publish-media';
 import {
   MAX_PUBLISH_ATTEMPTS,
   PUBLISH_BACKOFF_MS,
@@ -84,7 +85,7 @@ export async function publishOneTarget(
     }
     const brand = await prisma.brandWorkspace.findFirst({
       where: { id: item.brandId },
-      select: { status: true, deletedAt: true },
+      select: { status: true, deletedAt: true, name: true },
     });
     if (!brand || brand.status === 'ARCHIVED' || brand.deletedAt) {
       throw new SocialProviderError('Brand is archived', { retryable: false });
@@ -96,38 +97,60 @@ export async function publishOneTarget(
     }
     const text = [item.captionEn || item.titleEn].filter(Boolean).join('\n').trim() || item.titleEn;
     const rawMediaUrls = await publicMediaUrls(item, { fetchImpl: deps.mediaFetch });
+    const assetIds =
+      (item.mediaAssetIds?.length ?? 0) > 0
+        ? item.mediaAssetIds
+        : item.previewAssetId
+          ? [item.previewAssetId]
+          : [];
+    const assets = assetIds.length
+      ? await prisma.mediaAsset.findMany({
+          where: {
+            id: { in: assetIds },
+            tenantId: item.tenantId,
+            brandId: item.brandId,
+            status: 'READY',
+          },
+          select: { id: true, mime: true, size: true },
+        })
+      : [];
+    const byId = new Map(assets.map((asset) => [asset.id, asset]));
+    const prepared: Array<{ url: string; mime: string; sizeBytes: number }> = [];
+    for (let index = 0; index < assetIds.length; index++) {
+      const id = assetIds[index]!;
+      const asset = byId.get(id);
+      const rawUrl = rawMediaUrls[index];
+      if (!asset || !rawUrl) {
+        throw new SocialProviderError('Post media is missing or unavailable.', { retryable: false });
+      }
+      const variant = await prepareAssetForNetwork({
+        tenantId: item.tenantId,
+        brandId: item.brandId,
+        brandName: brand.name,
+        assetId: asset.id,
+        network,
+        sourceUrl: rawUrl,
+        mime: asset.mime,
+        sizeBytes: Number(asset.size),
+        fetchImpl: deps.mediaFetch,
+      });
+      prepared.push(variant);
+    }
+    // Legacy https preview without MediaAsset rows
+    if (!prepared.length && rawMediaUrls.length) {
+      for (const u of rawMediaUrls) {
+        prepared.push({ url: u, mime: 'application/octet-stream', sizeBytes: 0 });
+      }
+    }
     const mediaUrls =
-      network === 'tiktok' ? rawMediaUrls.map((u) => mediaProxyUrl(u)) : rawMediaUrls;
+      network === 'tiktok' ? prepared.map((p) => mediaProxyUrl(p.url)) : prepared.map((p) => p.url);
     const media =
-      network === 'tiktok' && item.mediaAssetIds.length
-        ? await (async () => {
-            const assets = await prisma.mediaAsset.findMany({
-              where: {
-                id: { in: item.mediaAssetIds },
-                tenantId: item.tenantId,
-                brandId: item.brandId,
-                kind: 'posts',
-                status: 'READY',
-              },
-              select: { id: true, mime: true, size: true },
-            });
-            const byId = new Map(assets.map((asset) => [asset.id, asset]));
-            return item.mediaAssetIds.map((id, index) => {
-              const asset = byId.get(id);
-              if (!asset) {
-                throw new SocialProviderError('Post media is missing or unavailable.', {
-                  retryable: false,
-                });
-              }
-              const url = mediaUrls[index];
-              if (!url) {
-                throw new SocialProviderError('Post media URL could not be resolved.', {
-                  retryable: true,
-                });
-              }
-              return { url, mime: asset.mime, sizeBytes: Number(asset.size) };
-            });
-          })()
+      network === 'tiktok' && prepared.length
+        ? prepared.map((p, i) => ({
+            url: mediaUrls[i]!,
+            mime: p.mime,
+            sizeBytes: p.sizeBytes || undefined,
+          }))
         : undefined;
     const res = await adapter.publish(pageForAdapter(page, key), {
       text,

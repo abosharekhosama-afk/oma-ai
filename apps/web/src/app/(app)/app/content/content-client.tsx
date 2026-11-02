@@ -22,6 +22,7 @@ import {
 import { MediaSurface } from '../../../../components/content/media-surface';
 import { ChannelChoiceCards } from '../../../../components/content/channel-choice-cards';
 import { PublishTargetsPanel } from '../../../../components/content/publish-targets-panel';
+import { NetworkMediaWarnings } from '../../../../components/content/network-media-warnings';
 import { listWorkspaceMembers, type WorkspaceMember } from '../../../../lib/team-api';
 import {
   brandSettingsApi,
@@ -701,6 +702,12 @@ function PlanableComposeCard({
             {error}
           </p>
         ) : null}
+
+        <NetworkMediaWarnings
+          locale={locale}
+          channel={form.channel}
+          media={form.media.map((m) => ({ mime: m.mime, size: m.size }))}
+        />
 
         <div className="oma-compose-footer">
           <div className="oma-compose-meta">
@@ -4972,6 +4979,11 @@ export default function ContentPage() {
                                   <p data-testid="demo-content-publish-state">
                                     {t(status.stateLabelKey)}
                                   </p>
+                                  {status?.staleQueued ? (
+                                    <p role="status" data-testid="demo-content-queued-stale" className="oma-muted">
+                                      {t('demo.schedule.queuedStaleHint')}
+                                    </p>
+                                  ) : null}
                                   <ol
                                     className="oma-readiness-list"
                                     data-testid="demo-content-publish-timeline"

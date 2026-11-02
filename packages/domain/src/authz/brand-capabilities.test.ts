@@ -23,9 +23,10 @@ describe('brand capabilities', () => {
     }
   });
 
-  it('denies brand capabilities to MEMBER by default', () => {
+  it('grants brand.read to MEMBER but not write/admin brand caps', () => {
     const caps = SYSTEM_PROFILES.MEMBER ?? [];
-    for (const code of BRAND_CAPABILITIES) {
+    expect(hasCapability(caps, 'brand.read')).toBe(true);
+    for (const code of BRAND_CAPABILITIES.filter((c) => c !== 'brand.read')) {
       expect(hasCapability(caps, code)).toBe(false);
     }
   });

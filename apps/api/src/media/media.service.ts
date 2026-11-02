@@ -137,6 +137,24 @@ export function verifyGrant(token: unknown): Grant | null {
   }
 }
 
+
+async function retryWorkDrive<T>(fn: () => Promise<T>, attempts = 3): Promise<T> {
+  let last: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      last = e;
+      const retryable =
+        (e instanceof WorkDriveError && e.retryable) ||
+        /timeout|aborted|unreachable|ECONNRESET|ETIMEDOUT|429|5\d\d/i.test(String((e as Error)?.message ?? e));
+      if (!retryable || i === attempts - 1) throw e;
+      await new Promise((r) => setTimeout(r, 500 * 2 ** i));
+    }
+  }
+  throw last;
+}
+
 export class MediaService {
   private folderCache = new Map<string, string>();
 
@@ -282,21 +300,23 @@ export class MediaService {
         folderId = await this.folderFor(c, brand, kind);
         const fh = await open(path, 'r');
         try {
-          ({ fileId, name: storedName } = await c.client.upload({
-            folderId,
-            name,
-            mimeType: mime,
-            sha256,
-            source: {
-              size,
-              full: () => Readable.toWeb(createReadStream(path)) as ReadableStream<Uint8Array>,
-              part: async (start, end) => {
-                const buf = Buffer.alloc(end - start);
-                await fh.read(buf, 0, end - start, start);
-                return buf;
+          ({ fileId, name: storedName } = await retryWorkDrive(() =>
+            c.client.upload({
+              folderId,
+              name,
+              mimeType: mime,
+              sha256,
+              source: {
+                size,
+                full: () => Readable.toWeb(createReadStream(path)) as ReadableStream<Uint8Array>,
+                part: async (start, end) => {
+                  const buf = Buffer.alloc(end - start);
+                  await fh.read(buf, 0, end - start, start);
+                  return buf;
+                },
               },
-            },
-          }));
+            }),
+          ));
         } finally {
           await fh.close();
         }
