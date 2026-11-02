@@ -8,7 +8,6 @@ import {
   getPreferences,
   updatePreferences,
   setLocaleCookie,
-  NOTIFICATION_PREF_TYPES,
   type UserPreferences,
 } from '../../lib/account-api';
 import { useToast } from '../ui/toast';
@@ -22,6 +21,7 @@ import { ShellIcon } from '../shell/shell-icons';
 import type { NavIconId } from '../shell/nav-config';
 import { WorkDriveSettings } from './workdrive-settings';
 import { useCapabilities } from '../../lib/use-capabilities';
+import { timezoneOptions } from '../../lib/brand-settings-api';
 
 type DemoPreferences = UserPreferences;
 type Copy = { en: string; ar: string };
@@ -74,10 +74,8 @@ const INTEGRATIONS: Integration[] = [
 export type SettingsSection = Section;
 
 const NAV: Array<{ id: Section; icon: NavIconId; group: 'account' | 'workspace' }> = [
-  { id: 'general', icon: 'settings', group: 'account' },
   { id: 'localization', icon: 'activity', group: 'account' },
   { id: 'workflow', icon: 'tasks', group: 'account' },
-  { id: 'notifications', icon: 'bell', group: 'account' },
   { id: 'workspace', icon: 'company', group: 'workspace' },
   { id: 'storage', icon: 'deliverables', group: 'workspace' },
   { id: 'integrations', icon: 'campaigns', group: 'workspace' },
@@ -99,7 +97,7 @@ export function SettingsPanel({
   const t = useT();
   const locale = useLocale();
   const toast = useToast();
-  const [section, setSection] = useState<Section>(initialSection ?? 'general');
+  const [section, setSection] = useState<Section>(initialSection ?? 'localization');
   useEffect(() => {
     if (initialSection) setSection(initialSection);
   }, [initialSection]);
@@ -285,11 +283,19 @@ export function SettingsPanel({
                   ) : null}
                   <div className="oma-ws-field">
                     <label className="oma-ws-label">{t('settings.workspace.timezone')}</label>
-                    <Input
+                    <select
+                      className="oma-ws-select"
                       value={wsDraft.timezone}
                       data-testid="settings-workspace-timezone"
                       onChange={(e) => setWsDraft({ ...wsDraft, timezone: e.target.value })}
-                    />
+                    >
+                      {timezoneOptions().map((tz) => (
+                        <option key={tz} value={tz}>
+                          {tz.replaceAll('_', ' ')}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="oma-ws-empty-desc">{t('settings.workspace.timezoneHint')}</p>
                   </div>
                   <div className="oma-ws-field">
                     <label className="oma-ws-label">{t('settings.workspace.website')}</label>
@@ -319,7 +325,7 @@ export function SettingsPanel({
                 </div>
               )}
 
-              {(section === 'general' || section === 'localization' || section === 'workflow') && (
+              {(section === 'localization' || section === 'workflow') && (
                 <div className="oma-ws-section" data-testid="demo-settings-general">
                   <h2 className="oma-ws-section-title">
                     {t(`demo.settings.section.${section}`) || section}
@@ -335,17 +341,7 @@ export function SettingsPanel({
                     </p>
                   ) : null}
 
-                  {section === 'general' ? (
-                    <div className="oma-ws-field">
-                      <label className="oma-ws-label">{t('demo.settings.timezone')}</label>
-                      <Input
-                        value={draft.timezone}
-                        data-testid="demo-settings-timezone"
-                        onChange={(e) => setDraft({ ...draft, timezone: e.target.value })}
-                      />
-                    </div>
-                  ) : null}
-                  {section === 'general' ? (
+                  {section === 'localization' ? (
                     <div className="oma-ws-field">
                       <label className="oma-ws-label">{t('demo.settings.weekStart')}</label>
                       <SelectField
@@ -435,65 +431,6 @@ export function SettingsPanel({
                     <Button
                       type="primary"
                       data-testid="demo-settings-save"
-                      disabled={!dirty || saving}
-                      onClick={() => void savePrefs()}
-                    >
-                      {t('demo.settings.save')}
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {section === 'notifications' && (
-                <div className="oma-ws-section" data-testid="settings-notifications">
-                  <h2 className="oma-ws-section-title">
-                    {t('demo.settings.section.notifications')}
-                  </h2>
-                  <p className="oma-ws-empty-desc">{t('settings.notifications.body')}</p>
-                  <label className="oma-pref-toggle">
-                    <span>{t('settings.notifications.all')}</span>
-                    <input
-                      type="checkbox"
-                      data-testid="notif-pref-all"
-                      checked={draft.notifications.all !== false}
-                      onChange={(e) =>
-                        setDraft({
-                          ...draft,
-                          notifications: { ...draft.notifications, all: e.target.checked },
-                        })
-                      }
-                    />
-                  </label>
-                  {NOTIFICATION_PREF_TYPES.map((type) => (
-                    <label key={type} className="oma-pref-toggle">
-                      <span>{t(`shell.notificationPref.${type}`)}</span>
-                      <input
-                        type="checkbox"
-                        data-testid={`notif-pref-${type}`}
-                        disabled={draft.notifications.all === false}
-                        checked={
-                          draft.notifications.all !== false && draft.notifications[type] !== false
-                        }
-                        onChange={(e) =>
-                          setDraft({
-                            ...draft,
-                            notifications: { ...draft.notifications, [type]: e.target.checked },
-                          })
-                        }
-                      />
-                    </label>
-                  ))}
-                  <div className="oma-ws-action-row">
-                    <Button
-                      type="default"
-                      disabled={!dirty || saving}
-                      onClick={() => setDraft(prefs)}
-                    >
-                      {t('demo.create.cancel')}
-                    </Button>
-                    <Button
-                      type="primary"
-                      data-testid="settings-notifications-save"
                       disabled={!dirty || saving}
                       onClick={() => void savePrefs()}
                     >

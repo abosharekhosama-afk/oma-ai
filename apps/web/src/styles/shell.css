@@ -1927,6 +1927,16 @@
   margin-bottom: 16px;
   max-width: 420px;
 }
+.oma-ws-select {
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 1px solid #d9dce1;
+  border-radius: 8px;
+  background: #fff;
+  color: #111;
+  font-size: 13px;
+}
 .oma-ws-label {
   font-size: 13px;
   font-weight: 500;

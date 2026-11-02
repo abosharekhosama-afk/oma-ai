@@ -308,13 +308,19 @@ export function ShellChrome({ children }: { children: ReactNode }) {
     const onOpen = (e: Event) => {
       const section = (e as CustomEvent<{ section?: string }>).detail?.section;
       setMobileOpen(false);
-      setSettingsSection(section || 'general');
+      if (section === 'notifications') {
+        window.location.assign('/app/team?tab=notifications');
+        return;
+      }
+      setSettingsSection(section === 'general' ? 'workspace' : section || 'localization');
     };
     window.addEventListener(OPEN_SETTINGS_EVENT, onOpen);
     const url = new URL(window.location.href);
     const fromUrl = url.searchParams.get('settings');
-    if (fromUrl) {
-      setSettingsSection(fromUrl);
+    if (fromUrl === 'notifications') {
+      window.location.assign('/app/team?tab=notifications');
+    } else if (fromUrl) {
+      setSettingsSection(fromUrl === 'general' ? 'workspace' : fromUrl);
       url.searchParams.delete('settings');
       window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
     }
@@ -424,7 +430,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
             ) : null}
           </div>
           <p className="oma-rail-endorsement">{t('app.endorsement')}</p>
-          <WorkspaceRow collapsed={collapsed} onOpenSettings={() => setSettingsSection('general')} />
+          <WorkspaceRow collapsed={collapsed} onOpenSettings={() => setSettingsSection('workspace')} />
           <RailNav collapsed={collapsed} />
           <RailUtilities />
         </aside>
@@ -458,7 +464,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
               </Button>
               <div className="oma-top-context">
                 {/* Brand switcher removed from header trail */}
-                <ShellBreadcrumb onOpenSettings={() => setSettingsSection('general')} />
+                <ShellBreadcrumb onOpenSettings={() => setSettingsSection('workspace')} />
               </div>
             </div>
             {/* Planable Content: no center search — actions live on the right */}
@@ -556,7 +562,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
             </Button>
           </div>
           <div className="oma-mobile-drawer-nav" onClick={() => setMobileOpen(false)}>
-            <WorkspaceRow onOpenSettings={() => setSettingsSection('general')} />
+            <WorkspaceRow onOpenSettings={() => setSettingsSection('workspace')} />
             <RailNav collapsed={false} />
           </div>
           <RailUtilities />
@@ -564,7 +570,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
 
         {settingsSection ? (
           <SettingsPanel
-            initialSection={isSettingsSection(settingsSection) ? settingsSection : 'general'}
+            initialSection={isSettingsSection(settingsSection) ? settingsSection : 'localization'}
             onClose={() => setSettingsSection(null)}
           />
         ) : null}

@@ -2,6 +2,7 @@
 import { TableShimmer } from '../../../../components/ui/shimmer';
 
 import { Button, Input, SelectField } from '@oma/ui/controls';
+import { useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   attachMemberProfile,
@@ -17,7 +18,12 @@ import {
   capabilitiesToPermissions,
 } from '../../../../lib/team-api';
 import { Popover } from 'antd';
-import { openSettings } from '../../../../lib/settings-dialog';
+import {
+  getPreferences,
+  NOTIFICATION_PREF_TYPES,
+  updatePreferences,
+  type UserPreferences,
+} from '../../../../lib/account-api';
 import { TEAM_INVITE_EVENT } from '../../../../lib/team-invite';
 import { TeamInviteDialog } from '../../../../components/team/team-invite-dialog';
 import { useToast } from '../../../../components/ui/toast';
@@ -85,7 +91,11 @@ function PermissionsCard({
 export default function TeamPage() {
   const t = useT();
   const toast = useToast();
+  const searchParams = useSearchParams();
   const [tab, setTab] = useState<Tab>('members');
+  const [notif, setNotif] = useState<UserPreferences | null>(null);
+  const [notifSaved, setNotifSaved] = useState<UserPreferences | null>(null);
+  const [notifSaving, setNotifSaving] = useState(false);
   const [rows, setRows] = useState<WorkspaceMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -105,6 +115,26 @@ export default function TeamPage() {
     window.addEventListener(TEAM_INVITE_EVENT, open);
     return () => window.removeEventListener(TEAM_INVITE_EVENT, open);
   }, []);
+  useEffect(() => {
+    const next = searchParams.get('tab');
+    if (next === 'members' || next === 'permissions' || next === 'notifications') setTab(next);
+  }, [searchParams]);
+  useEffect(() => {
+    if (tab !== 'notifications') return;
+    let cancelled = false;
+    getPreferences()
+      .then((prefs) => {
+        if (cancelled) return;
+        setNotif(prefs);
+        setNotifSaved(prefs);
+      })
+      .catch(() => {
+        if (!cancelled) setNotif(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [tab]);
   const [q, setQ] = useState('');
   const loadingRef = useRef(false);
   const mountedRef = useRef(true);
@@ -460,10 +490,76 @@ export default function TeamPage() {
       {!loading && !error && tab === 'notifications' ? (
         <div className="oma-planable-card" data-testid="team-notifications">
           <h3 className="oma-ws-subhead">{t('team.manage_notifications')}</h3>
-          <p className="oma-ws-empty-desc">{t('team.notifications.personal')}</p>
-          <Button type="primary" onClick={() => openSettings('notifications')}>
-            {t('team.notifications.open')}
-          </Button>
+          <p className="oma-ws-empty-desc">{t('settings.notifications.body')}</p>
+          {notif ? (
+            <>
+              <label className="oma-pref-toggle">
+                <span>{t('settings.notifications.all')}</span>
+                <input
+                  type="checkbox"
+                  data-testid="notif-pref-all"
+                  checked={notif.notifications.all !== false}
+                  onChange={(e) =>
+                    setNotif({
+                      ...notif,
+                      notifications: { ...notif.notifications, all: e.target.checked },
+                    })
+                  }
+                />
+              </label>
+              {NOTIFICATION_PREF_TYPES.map((type) => (
+                <label key={type} className="oma-pref-toggle">
+                  <span>{t(`shell.notificationPref.${type}`)}</span>
+                  <input
+                    type="checkbox"
+                    data-testid={`notif-pref-${type}`}
+                    disabled={notif.notifications.all === false}
+                    checked={
+                      notif.notifications.all !== false && notif.notifications[type] !== false
+                    }
+                    onChange={(e) =>
+                      setNotif({
+                        ...notif,
+                        notifications: { ...notif.notifications, [type]: e.target.checked },
+                      })
+                    }
+                  />
+                </label>
+              ))}
+              <div className="oma-ws-action-row">
+                <Button
+                  type="primary"
+                  data-testid="settings-notifications-save"
+                  loading={notifSaving}
+                  disabled={
+                    notifSaving ||
+                    !notifSaved ||
+                    JSON.stringify(notif.notifications) === JSON.stringify(notifSaved.notifications)
+                  }
+                  onClick={() => {
+                    setNotifSaving(true);
+                    void updatePreferences({ notifications: notif.notifications })
+                      .then((next) => {
+                        setNotif(next);
+                        setNotifSaved(next);
+                        toast.push(t('demo.settings.saved'), 'success');
+                      })
+                      .catch((err: unknown) => {
+                        toast.push(
+                          err instanceof Error ? err.message : t('errors.page.generic.title'),
+                          'danger',
+                        );
+                      })
+                      .finally(() => setNotifSaving(false));
+                  }}
+                >
+                  {t('demo.settings.save')}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="oma-skeleton" style={{ height: 160 }} aria-busy="true" />
+          )}
         </div>
       ) : null}
 

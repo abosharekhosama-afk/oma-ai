@@ -74,7 +74,7 @@ test.describe('Owner surface-depth journey', () => {
       .getByRole('navigation')
       .getByRole('link', { name: /settings/i })
       .click();
-    await expect(page.getByTestId('demo-settings-nav-general')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('demo-settings-nav-workspace')).toBeVisible({ timeout: 15_000 });
 
     expect(blocked).toEqual([]);
     expect(

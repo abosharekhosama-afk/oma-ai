@@ -73,7 +73,7 @@ test.describe('P6 Planable analytics organization settings journey', () => {
 
     await nav.getByRole('link', { name: /^settings$/i }).click();
     await expect(page.getByTestId('demo-settings')).toBeVisible({ timeout: 15_000 });
-    await page.getByTestId('demo-settings-nav-general').click();
+    await page.getByTestId('demo-settings-nav-localization').click();
     const week = page.getByTestId('demo-settings-week-start');
     const current = await week.inputValue();
     const next = current === 'monday' ? 'sunday' : 'monday';

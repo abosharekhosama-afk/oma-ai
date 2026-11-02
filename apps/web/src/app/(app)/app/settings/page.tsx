@@ -8,5 +8,12 @@ export default async function Page({
   searchParams: Promise<{ section?: string }>;
 }) {
   const { section } = await searchParams;
-  redirect(`/app?settings=${isSettingsSection(section) ? section : 'general'}`);
+  if (section === 'notifications') redirect('/app/team?tab=notifications');
+  const target =
+    !section || section === 'general' || section === 'workspace'
+      ? 'workspace'
+      : isSettingsSection(section)
+        ? section
+        : 'workspace';
+  redirect(`/app?settings=${target}`);
 }

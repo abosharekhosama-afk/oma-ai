@@ -1525,6 +1525,7 @@
   "settings.workspace.title": "Workspace",
   "settings.workspace.body": "Applies to everyone in this workspace.",
   "settings.workspace.timezone": "Workspace timezone",
+  "settings.workspace.timezoneHint": "Scheduling and new posts in this workspace use this timezone.",
   "settings.workspace.website": "Company website",
   "settings.workspace.saved": "Workspace settings saved",
   "settings.workspace.readOnly": "Only workspace owners and admins can change these settings.",

@@ -1,8 +1,6 @@
 export const SETTINGS_SECTIONS = [
-  'general',
   'localization',
   'workflow',
-  'notifications',
   'workspace',
   'storage',
   'integrations',

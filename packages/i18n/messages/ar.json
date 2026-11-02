@@ -1525,6 +1525,7 @@
   "settings.workspace.title": "مساحة العمل",
   "settings.workspace.body": "ينطبق على جميع أعضاء مساحة العمل.",
   "settings.workspace.timezone": "المنطقة الزمنية لمساحة العمل",
+  "settings.workspace.timezoneHint": "الجدولة والمنشورات الجديدة في مساحة العمل تستخدم هذه المنطقة الزمنية.",
   "settings.workspace.website": "موقع الشركة",
   "settings.workspace.saved": "تم حفظ إعدادات مساحة العمل",
   "settings.workspace.readOnly": "يمكن لمالكي ومسؤولي مساحة العمل فقط تغيير هذه الإعدادات.",

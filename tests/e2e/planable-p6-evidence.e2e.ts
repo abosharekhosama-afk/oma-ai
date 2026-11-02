@@ -162,14 +162,14 @@ test.describe('P6 Planable analytics/organization/settings evidence pack', () =>
 
     await page.goto('/app/settings');
     await expect(page.getByTestId('demo-settings')).toBeVisible({ timeout: 15_000 });
-    await page.getByTestId('demo-settings-nav-general').click();
+    await page.getByTestId('demo-settings-nav-workspace').click();
     await shot('10-settings-general', '/app/settings', '1440x900', {
       viewType: 'settings-general',
     });
-    await page.getByTestId('demo-settings-nav-workflow').click();
-    const tz = page.getByTestId('demo-settings-timezone');
-    await tz.fill('Pacific/Kiritimati');
-    await expect(page.getByTestId('demo-settings-dirty')).toBeVisible();
+    await page.getByTestId('demo-settings-nav-workspace').click();
+    const tz = page.getByTestId('settings-workspace-timezone');
+    await tz.selectOption('Pacific/Kiritimati');
+    await expect(page.getByTestId('settings-workspace-save')).toBeEnabled();
     await shot('11-settings-preferences', '/app/settings', '1440x900', {
       viewType: 'settings-preferences',
     });

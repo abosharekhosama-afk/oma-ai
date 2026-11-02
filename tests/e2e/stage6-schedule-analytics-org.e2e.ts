@@ -118,21 +118,24 @@ test.describe('Stage 6 Schedule Analytics Organization visual rebuild', () => {
       .getByRole('link', { name: /^settings$/i })
       .click();
     await expect(page.getByTestId('demo-settings')).toBeVisible({ timeout: 15_000 });
-    await page.getByTestId('demo-settings-timezone').fill('Asia/Riyadh');
-    await page.getByTestId('demo-settings-week-start').selectOption('sunday');
+    await page.getByTestId('demo-settings-nav-workspace').click();
+    await page.getByTestId('settings-workspace-timezone').selectOption('Asia/Riyadh');
     await Promise.all([
       page.waitForResponse(
         (res) =>
-          res.url().includes('/api/v1/demo/preferences') &&
+          res.url().includes('/api/v1/workspace/settings') &&
           res.request().method() === 'PATCH' &&
           res.ok(),
         { timeout: 15_000 },
       ),
-      page.getByTestId('demo-settings-save').click(),
+      page.getByTestId('settings-workspace-save').click(),
     ]);
-    await page.reload();
+    await page.getByTestId('demo-settings-nav-localization').click();
+    await page.getByTestId('demo-settings-week-start').selectOption('sunday');
+    await page.getByTestId('demo-settings-save').click();
+    await page.goto('/app/settings');
     await expect(page.getByTestId('demo-settings')).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByTestId('demo-settings-timezone')).toHaveValue('Asia/Riyadh', {
+    await expect(page.getByTestId('settings-workspace-timezone')).toHaveValue('Asia/Riyadh', {
       timeout: 15_000,
     });
     await page.getByTestId('demo-settings-nav-integrations').click();

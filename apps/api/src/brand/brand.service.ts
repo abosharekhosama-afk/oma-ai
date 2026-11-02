@@ -10,11 +10,20 @@ import { isValidTimezone } from '../common/zoned-time';
 type Tx = Parameters<Parameters<ReturnType<typeof getPrisma>['$transaction']>[0]>[0];
 
 export async function brandTimezone(tenantId: string, brandId: string): Promise<string> {
-  const p = await getPrisma().contentPreferences.findFirst({
-    where: { tenantId, brandId },
-    select: { defaultTimezone: true },
-  });
-  return isValidTimezone(p?.defaultTimezone) ? p!.defaultTimezone : DEFAULT_SCHEDULE_TZ;
+  const prisma = getPrisma();
+  const [prefs, workspace] = await Promise.all([
+    prisma.contentPreferences.findFirst({
+      where: { tenantId, brandId },
+      select: { defaultTimezone: true },
+    }),
+    prisma.workspaceSetting.findFirst({
+      where: { tenantId },
+      select: { timezone: true },
+    }),
+  ]);
+  if (isValidTimezone(prefs?.defaultTimezone)) return prefs.defaultTimezone;
+  if (isValidTimezone(workspace?.timezone)) return workspace.timezone;
+  return DEFAULT_SCHEDULE_TZ;
 }
 
 /**

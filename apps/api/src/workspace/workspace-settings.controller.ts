@@ -44,6 +44,38 @@ export function serializeSettings(tenantId: string, row: SettingsRow | null) {
   };
 }
 
+/** Workspace timezone is the schedule clock for every brand in the tenant. */
+export async function applyWorkspaceTimezone(
+  prisma: ReturnType<typeof getPrisma>,
+  tenantId: string,
+  timezone: string,
+) {
+  await prisma.contentPreferences.updateMany({
+    where: { tenantId },
+    data: { defaultTimezone: timezone },
+  });
+  const [brands, existing] = await Promise.all([
+    prisma.brandWorkspace.findMany({
+      where: { tenantId, deletedAt: null },
+      select: { id: true },
+    }),
+    prisma.contentPreferences.findMany({
+      where: { tenantId },
+      select: { brandId: true },
+    }),
+  ]);
+  const have = new Set(existing.map((row) => row.brandId));
+  const missing = brands.filter((brand) => !have.has(brand.id));
+  if (missing.length === 0) return;
+  await prisma.contentPreferences.createMany({
+    data: missing.map((brand) => ({
+      brandId: brand.id,
+      tenantId,
+      defaultTimezone: timezone,
+    })),
+  });
+}
+
 export function validateSettingsPatch(body: Record<string, unknown>) {
   const out: Record<string, unknown> = {};
   if (body.website_url !== undefined) {
@@ -131,11 +163,15 @@ export class WorkspaceSettingsController {
   ) {
     const tenantId = this.tenantId(req);
     const patch = validateSettingsPatch(body ?? {});
-    const row = await getPrisma().workspaceSetting.upsert({
+    const prisma = getPrisma();
+    const row = await prisma.workspaceSetting.upsert({
       where: { tenantId },
       create: { id: newId(), tenantId, ...patch },
       update: { ...patch, updatedAt: new Date() },
     });
+    if (typeof patch.timezone === 'string') {
+      await applyWorkspaceTimezone(prisma, tenantId, patch.timezone);
+    }
     return serializeSettings(tenantId, row);
   }
 
