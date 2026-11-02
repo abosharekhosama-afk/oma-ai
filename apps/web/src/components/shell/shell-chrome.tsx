@@ -324,6 +324,35 @@ export function ShellChrome({ children }: { children: ReactNode }) {
   }, [pathname]);
 
   useEffect(() => {
+    const timers = new Map<Element, number>();
+    const onScroll = (event: Event) => {
+      const node = event.target;
+      const el =
+        node instanceof Element
+          ? node
+          : node === document
+            ? document.documentElement
+            : null;
+      if (!el) return;
+      el.setAttribute('data-scrolling', 'true');
+      const previous = timers.get(el);
+      if (previous) window.clearTimeout(previous);
+      timers.set(
+        el,
+        window.setTimeout(() => {
+          el.removeAttribute('data-scrolling');
+          timers.delete(el);
+        }, 700),
+      );
+    };
+    document.addEventListener('scroll', onScroll, true);
+    return () => {
+      document.removeEventListener('scroll', onScroll, true);
+      for (const timer of timers.values()) window.clearTimeout(timer);
+    };
+  }, []);
+
+  useEffect(() => {
     setHydrated(true);
     try {
       const raw = window.localStorage.getItem(SHELL_RAIL_PREF_KEY);

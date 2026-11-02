@@ -1287,3 +1287,61 @@ main.oma-container:has(.oma-home) {
 .oma-cal-grid[data-span='week'] .oma-cal-cell__scroll {
   max-height: min(460px, calc(100dvh - 180px));
 }
+
+/* Home, analytics, team, activity, and tasks fill the shell column when the rail collapses. */
+main.oma-container:has(.oma-home),
+main.oma-container:has(.oma-pa),
+main.oma-container:has([data-testid='team-page-planable']),
+main.oma-container:has(.oma-activity-page),
+main.oma-container:has(.oma-tasks-page) {
+  max-width: none !important;
+  width: 100% !important;
+  margin-inline: 0 !important;
+}
+.oma-home,
+.oma-activity-page,
+.oma-pa,
+[data-testid='team-page-planable'] {
+  max-width: none !important;
+  max-inline-size: none !important;
+  width: 100% !important;
+  margin-inline: 0 !important;
+}
+.oma-tasks-page,
+.oma-tasks-page .oma-tasks-workspace,
+.oma-tasks-page .oma-req-main,
+.oma-tasks-page .oma-kb-board {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+}
+.oma-tasks-page .oma-kb-board__grid {
+  width: 100% !important;
+  min-width: 100% !important;
+  grid-auto-columns: minmax(220px, 1fr) !important;
+}
+
+/* Scrollbars stay hidden until the surface is actually scrolling. */
+.oma-shell,
+.oma-shell * {
+  scrollbar-width: thin !important;
+  scrollbar-color: transparent transparent !important;
+  scrollbar-gutter: auto !important;
+}
+.oma-shell *::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.oma-shell *::-webkit-scrollbar-track {
+  background: transparent;
+}
+.oma-shell *::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 999px;
+}
+.oma-shell [data-scrolling='true'] {
+  scrollbar-color: rgb(15 23 42 / 32%) transparent !important;
+}
+.oma-shell [data-scrolling='true']::-webkit-scrollbar-thumb {
+  background: rgb(15 23 42 / 32%);
+}
