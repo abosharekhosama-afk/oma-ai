@@ -25,44 +25,9 @@
   font-size: 12px;
   white-space: nowrap;
 }
-.oma-activity-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-height: 48px;
-  margin-bottom: 12px;
-  padding: 6px 10px;
-  background: var(--oma-surface);
-  border: 1px solid var(--oma-border);
-  border-radius: 12px;
-}
-.oma-activity-toolbar__label {
-  color: var(--oma-muted);
-  font-size: 12px;
-  font-weight: 600;
-}
-.oma-activity-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-.oma-activity-tabs .oma-ws-tab {
-  min-height: 32px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: 7px;
-  color: var(--oma-muted);
-  font-size: 12px;
-}
-.oma-activity-tabs .oma-ws-tab.is-active {
-  background: var(--oma-canvas);
-  color: var(--oma-ink);
-  outline: 1px solid var(--oma-border);
-}
 .oma-act-feed {
+  width: 100%;
+  min-width: 0;
   overflow: hidden;
   background: var(--oma-surface);
   border: 1px solid var(--oma-border);
@@ -87,10 +52,20 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+.oma-act-feed__scroll {
+  width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-gutter: stable;
+}
 .oma-act-list {
+  min-width: 720px;
   list-style: none;
   margin: 0;
   padding: 0;
+}
+.oma-act-feed__scroll > .oma-ws-empty-block {
+  min-width: 720px;
 }
 .oma-act-item {
   display: flex;
@@ -193,20 +168,6 @@
   .oma-activity-page__actions {
     align-self: stretch;
     justify-content: space-between;
-  }
-  .oma-activity-toolbar {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 5px;
-    padding: 9px;
-  }
-  .oma-activity-tabs {
-    width: 100%;
-    overflow-x: auto;
-    flex-wrap: nowrap;
-  }
-  .oma-activity-tabs .oma-ws-tab {
-    flex: 0 0 auto;
   }
   .oma-act-feed__head {
     display: block;

@@ -10,7 +10,10 @@ import {
   scopeBrands,
   setActiveBrandId,
 } from '../../apps/web/src/lib/active-brand';
-import { activityVerb, relativeTime } from '../../apps/web/src/components/activity/activity-feed-item';
+import {
+  activityVerb,
+  relativeTime,
+} from '../../apps/web/src/components/activity/activity-feed-item';
 
 const read = (p: string) => readFileSync(join(process.cwd(), p), 'utf8');
 
@@ -47,11 +50,16 @@ describe('deliverable rejection', () => {
     const schema = read('packages/db/prisma/schema.prisma');
     const block = schema.slice(schema.indexOf('enum WorkDeliverableStatus'));
     expect(block.slice(0, block.indexOf('}'))).toContain('REJECTED');
-    const sql = read('packages/db/prisma/migrations/20261025150000_work_deliverable_rejected/migration.sql');
+    const sql = read(
+      'packages/db/prisma/migrations/20261025150000_work_deliverable_rejected/migration.sql',
+    );
     expect(sql).toContain(`ALTER TYPE "WorkDeliverableStatus" ADD VALUE IF NOT EXISTS 'REJECTED'`);
   });
   it('domain policy maps reject → REJECTED and the task is BLOCKED', () => {
-    expect(reviewStep('AWAITING_REVIEW', 'reject')).toEqual({ next: 'REJECTED', status: 'REJECTED' });
+    expect(reviewStep('AWAITING_REVIEW', 'reject')).toEqual({
+      next: 'REJECTED',
+      status: 'REJECTED',
+    });
     expect(read('apps/api/src/content/ops.service.ts')).toMatch(/reject: 'BLOCKED'/);
   });
 });
@@ -80,7 +88,13 @@ describe('active brand scope', () => {
     expect(resolveActiveBrand([{ id: 'a' }, { id: 'b' }], 'b')).toEqual({ id: 'b' });
     expect(resolveActiveBrand([{ id: 'a' }, { id: 'b' }], null)).toBeNull();
     expect(resolveActiveBrand([{ id: 'a' }], null)).toEqual({ id: 'a' });
-    for (const p of ['/app/content', '/app/deliverables/x', '/app/tasks', '/app/requests/1', '/app/campaigns'])
+    for (const p of [
+      '/app/content',
+      '/app/deliverables/x',
+      '/app/tasks',
+      '/app/requests/1',
+      '/app/campaigns',
+    ])
       expect(isBrandScopedPath(p)).toBe(true);
     expect(isBrandScopedPath('/app/brands/x')).toBe(false);
   });
@@ -102,13 +116,24 @@ describe('activity feed item', () => {
   it('uses i18n verbs with a readable fallback', () => {
     const t = (k: string) => (k === 'activity.verb.task_created' ? 'created task' : k);
     expect(activityVerb(t, { action: 'task.created', title: 'Task Created' })).toBe('created task');
-    expect(activityVerb(t, { action: 'x.y', title: 'Something Happened' })).toBe('something happened');
+    expect(activityVerb(t, { action: 'x.y', title: 'Something Happened' })).toBe(
+      'something happened',
+    );
   });
   it('formats relative time in en and ar', () => {
     const now = Date.parse('2026-10-25T12:00:00Z');
     expect(relativeTime('2026-10-25T11:55:00Z', 'en', now)).toMatch(/5 min/);
     expect(relativeTime('2026-10-25T11:55:00Z', 'ar', now)).toMatch(/٥|5/);
     expect(relativeTime('bad', 'en', now)).toBe('');
+  });
+  it('keeps the legacy tab bar and gives every activity filter the same scrollable table width', () => {
+    const source = read('apps/web/src/app/(app)/app/activity/activity-client.tsx');
+    const css = read('apps/web/src/styles/activity.css');
+    expect(source).toContain('className="oma-ws-tabs"');
+    expect(source).toContain('className="oma-act-feed__scroll"');
+    expect(css).toContain('.oma-act-feed__scroll');
+    expect(css).toContain('overflow-x: auto');
+    expect(css).toContain('min-width: 720px');
   });
   it('has en+ar keys for every verb and uses tokens only (no gradients/hex)', () => {
     const en = JSON.parse(read('packages/i18n/messages/en.json'));

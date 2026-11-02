@@ -84,34 +84,27 @@ export default function ActivityPage() {
         </div>
       </div>
 
-      <div className="oma-activity-toolbar">
-        <span className="oma-activity-toolbar__label">{t('activity.filter.all')}</span>
-        <div
-          className="oma-ws-tabs oma-activity-tabs"
-          role="tablist"
-          aria-label={t('activity.title')}
-        >
-          {(
-            [
-              ['all', t('activity.filter.all')],
-              ['members', t('activity.filter.members')],
-              ['approvals', t('activity.filter.approvals')],
-              ['content', t('activity.filter.content')],
-              ['settings', t('activity.filter.settings')],
-            ] as const
-          ).map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              className={`oma-ws-tab${filter === id ? ' is-active' : ''}`}
-              role="tab"
-              aria-selected={filter === id}
-              onClick={() => setFilter(id)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+      <div className="oma-ws-tabs" role="tablist" aria-label={t('activity.title')}>
+        {(
+          [
+            ['all', t('activity.filter.all')],
+            ['members', t('activity.filter.members')],
+            ['approvals', t('activity.filter.approvals')],
+            ['content', t('activity.filter.content')],
+            ['settings', t('activity.filter.settings')],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            className={`oma-ws-tab${filter === id ? ' is-active' : ''}`}
+            role="tab"
+            aria-selected={filter === id}
+            onClick={() => setFilter(id)}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {loading ? <TableShimmer rows={8} /> : null}
@@ -132,18 +125,20 @@ export default function ActivityPage() {
             <strong>{t('activity.title')}</strong>
             <span>{t('activity.subtitle')}</span>
           </div>
-          {filtered.length === 0 ? (
-            <div className="oma-ws-empty-block">
-              <h3>{t('activity.empty')}</h3>
-              <p>{t('activity.emptyBody')}</p>
-            </div>
-          ) : (
-            <ul className="oma-act-list">
-              {filtered.map((item) => (
-                <ActivityFeedItem key={item.id} item={item} locale={locale} t={t} />
-              ))}
-            </ul>
-          )}
+          <div className="oma-act-feed__scroll">
+            {filtered.length === 0 ? (
+              <div className="oma-ws-empty-block">
+                <h3>{t('activity.empty')}</h3>
+                <p>{t('activity.emptyBody')}</p>
+              </div>
+            ) : (
+              <ul className="oma-act-list">
+                {filtered.map((item) => (
+                  <ActivityFeedItem key={item.id} item={item} locale={locale} t={t} />
+                ))}
+              </ul>
+            )}
+          </div>
 
           {cursor ? (
             <div style={{ marginTop: 16, textAlign: 'center' }}>
