@@ -13,7 +13,7 @@ import {
   SearchOutlined,
   DownOutlined,
   UpOutlined,
-} from '@ant-design/icons';
+} from '../../../../components/ui/lucide-icons';
 import type { DemoGraph } from '@oma/demo';
 import { TrackPill } from '../../../../components/demo/track-pill';
 import { EmptyState, ErrorState, DeniedState } from '../../../../components/ui/empty-state';

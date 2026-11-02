@@ -55,7 +55,7 @@ import {
   CalendarOutlined,
   FlagOutlined,
   FileTextOutlined,
-} from '@ant-design/icons';
+} from '../../../../../components/ui/lucide-icons';
 
 type Brief = DemoGraph['briefs'][number];
 type LinkedTask = {

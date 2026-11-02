@@ -6,7 +6,7 @@ import {
   DownOutlined,
   UpOutlined,
   UnorderedListOutlined,
-} from '@ant-design/icons';
+} from '../../../../components/ui/lucide-icons';
 import { OmaLinkButton } from '../../../../components/ui/oma-link-button';
 import { Button, Input } from '@oma/ui/controls';
 import { useEffect, useMemo, useState } from 'react';

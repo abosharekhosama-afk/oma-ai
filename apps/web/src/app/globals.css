@@ -24,6 +24,11 @@
 * {
   box-sizing: border-box;
 }
+svg.oma-lucide {
+  display: inline-block;
+  vertical-align: -0.15em;
+  flex: 0 0 auto;
+}
 html,
 body {
   margin: 0;

@@ -1,7 +1,7 @@
 'use client';
 import { ReviewsShimmer } from '../../../../components/ui/screen-shimmer';
 import { useReloadOnBrandChange } from '../../../../lib/active-brand';
-import { SearchOutlined } from '@ant-design/icons';
+import { SearchOutlined } from '../../../../components/ui/lucide-icons';
 
 import { Button, Input } from '@oma/ui/controls';
 

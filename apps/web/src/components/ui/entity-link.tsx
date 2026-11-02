@@ -7,7 +7,7 @@ import {
   FlagOutlined,
   PictureOutlined,
   ShopOutlined,
-} from '@ant-design/icons';
+} from './lucide-icons';
 import Link from 'next/link';
 import { useEffect, useState, type ReactNode } from 'react';
 import { getCampaignProduction } from '../../lib/campaign-api';

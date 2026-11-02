@@ -26,12 +26,15 @@ type ContentPreviewRow = {
   captionEn: string | null;
   captionAr: string | null;
   channel: string;
+  contentType: string;
 };
 
 function mapNotification(
   n: NotificationRow,
   preview?: {
     imageUrl: string | null;
+    mime: string | null;
+    contentType: string | null;
     titleEn: string;
     titleAr: string;
     captionEn: string | null;
@@ -141,10 +144,21 @@ export class NotificationsController {
             captionEn: true,
             captionAr: true,
             channel: true,
+            contentType: true,
           },
         })) as ContentPreviewRow[])
       : [];
     const contentById = new Map(contentItems.map((item) => [item.id, item]));
+    const assetIds = contentItems
+      .map((item) => item.previewAssetId)
+      .filter((id): id is string => Boolean(id));
+    const assets = assetIds.length
+      ? await getPrisma().mediaAsset.findMany({
+          where: tenantWhere(req.oma.tenantId, { id: { in: assetIds } }),
+          select: { id: true, mime: true },
+        })
+      : [];
+    const mimeById = new Map(assets.map((asset) => [asset.id, asset.mime]));
     const unread = items.filter((n) => !n.readAt).length;
     return {
       items: items.map((item) => {
@@ -159,6 +173,8 @@ export class NotificationsController {
                 imageUrl:
                   content.previewAssetUrl ??
                   (content.previewAssetId ? `/api/v1/media/${content.previewAssetId}/view` : null),
+                mime: content.previewAssetId ? (mimeById.get(content.previewAssetId) ?? null) : null,
+                contentType: content.contentType,
                 titleEn: content.titleEn,
                 titleAr: content.titleAr,
                 captionEn: content.captionEn,

@@ -157,10 +157,110 @@
   overscroll-behavior: contain;
 }
 
+.oma-notifications-drawer .ant-drawer-header {
+  display: none !important;
+}
 .oma-notifications-drawer .ant-drawer-body {
-  padding: 16px !important;
-  overflow: hidden auto;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  padding: 0 !important;
+  overflow: hidden !important;
   overscroll-behavior: contain;
+}
+.oma-notifications-drawer .ant-drawer-content-wrapper {
+  width: min(380px, 100vw) !important;
+  max-width: 100vw !important;
+  box-shadow: var(--elev-dialog, 0 12px 32px rgb(15 23 42 / 16%)) !important;
+}
+.oma-notifications-panel__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-inline-start: auto;
+}
+.oma-notifications-panel__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #69727d;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+.oma-notifications-panel__close:hover,
+.oma-notifications-panel__close:focus-visible {
+  background: #f1f3f5;
+  color: #20252c;
+  outline: none;
+}
+.oma-notification-card__preview-image,
+.oma-notification-card__preview-image img,
+.oma-notification-card__preview-image video {
+  display: block;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  max-width: 42px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: #edf1f5;
+}
+.oma-container:has(.oma-notifications-page),
+main.oma-container:has(.oma-notifications-page) {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.oma-notifications-page--planable {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  width: min(960px, 100%);
+  max-width: 100%;
+  min-height: 0;
+  margin-inline: auto;
+  overflow: hidden;
+  padding: clamp(12px, 2vw, 32px);
+}
+.oma-notifications-page--planable .oma-notifications-page__head,
+.oma-notifications-page--planable .oma-notifications-page__tabs,
+.oma-notifications-page--planable .oma-notifications-page__toolbar {
+  flex: 0 0 auto;
+}
+.oma-notifications-page--planable .oma-notifications-page__tabs {
+  overflow-x: auto;
+}
+.oma-notifications-page--planable .oma-notifications-page__list,
+.oma-notifications-page--planable .oma-notifications-page__state {
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none !important;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+@media (max-width: 720px) {
+  .oma-notifications-drawer .ant-drawer-content-wrapper {
+    width: min(100vw, 380px) !important;
+  }
+  .oma-notifications-page--planable {
+    width: 100%;
+    padding: 12px;
+  }
+  .oma-notification-card__preview-image,
+  .oma-notification-card__preview-image img,
+  .oma-notification-card__preview-image video {
+    flex-basis: 36px;
+    width: 36px;
+    height: 36px;
+    max-width: 36px;
+  }
 }
 
 /* Reset the old popover positioning when the notification panel is inside a Drawer. */

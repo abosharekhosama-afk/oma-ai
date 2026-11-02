@@ -11,6 +11,10 @@ describe('notifications Planable-style UI', () => {
     const api = read('apps/web/src/lib/notifications-api.ts');
     const controller = read('apps/api/src/notifications/notifications.controller.ts');
     expect(source).toContain('oma-notification-card__preview-image');
+    expect(source).toContain('<MediaSurface');
+    expect(source).toContain('mime={preview.mime}');
+    expect(api).toContain('mime?:');
+    expect(controller).toContain('contentType: true');
     expect(source).toContain('contentPreview');
     expect(api).toContain('contentPreview?:');
     expect(controller).toContain('previewAssetId');

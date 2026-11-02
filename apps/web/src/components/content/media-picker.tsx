@@ -7,7 +7,7 @@ import {
   FilePdfOutlined,
   FolderOutlined,
   PlayCircleOutlined,
-} from '@ant-design/icons';
+} from '../ui/lucide-icons';
 import { Button, Modal, Progress, Tabs } from 'antd';
 import { MediaSurface } from './media-surface';
 import { useCallback, useEffect, useRef, useState } from 'react';

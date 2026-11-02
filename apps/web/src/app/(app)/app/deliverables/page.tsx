@@ -34,7 +34,7 @@ import {
   SearchOutlined,
   DownOutlined,
   UpOutlined,
-} from '@ant-design/icons';
+} from '../../../../components/ui/lucide-icons';
 
 type Campaign = DemoGraph['campaigns'][number];
 

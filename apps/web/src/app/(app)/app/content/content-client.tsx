@@ -90,7 +90,7 @@ import {
   UserOutlined,
   TeamOutlined,
   RetweetOutlined,
-} from '@ant-design/icons';
+} from '../../../../components/ui/lucide-icons';
 
 import { Dialog } from '../../../../components/ui/dialog';
 import { EmptyState, DeniedState } from '../../../../components/ui/empty-state';

@@ -71,7 +71,7 @@ import {
   HistoryOutlined,
   LinkOutlined,
   UploadOutlined,
-} from '@ant-design/icons';
+} from '../../../../../components/ui/lucide-icons';
 
 type Decision = 'APPROVED' | 'CHANGES_REQUESTED' | 'REJECTED';
 

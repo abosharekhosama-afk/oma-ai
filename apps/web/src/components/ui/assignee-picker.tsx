@@ -1,6 +1,6 @@
 'use client';
 
-import { CheckOutlined, SearchOutlined, UserDeleteOutlined } from '@ant-design/icons';
+import { CheckOutlined, SearchOutlined, UserDeleteOutlined } from './lucide-icons';
 import { Input, Popover } from '@oma/ui/controls';
 import { useMemo, useState } from 'react';
 import type { WorkspaceMember } from '../../lib/team-api';

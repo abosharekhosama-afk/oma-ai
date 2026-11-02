@@ -3,8 +3,10 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ShellIcon } from './shell-icons';
+import { CloseOutlined } from '../ui/lucide-icons';
 import { CheckSquareIcon, ClockIcon, EnvelopeIcon, ImageIcon, UsersIcon } from '../ui/plx-icons';
-import { Drawer } from '../ui/drawer';
+import { Drawer as AntDrawer } from '@oma/ui/controls';
+import { MediaSurface } from '../content/media-surface';
 import { useLocale, useT } from '../../lib/use-locale';
 import {
   listNotifications,
@@ -134,11 +136,13 @@ export function NotificationRow({
       {body ? <span className="oma-notification-card__body">{body}</span> : null}
       <span className="oma-notification-card__preview">
         {preview?.imageUrl ? (
-          <img
+          <MediaSurface
             className="oma-notification-card__preview-image"
             src={preview.imageUrl}
+            mime={preview.mime}
+            contentType={preview.contentType ?? undefined}
             alt=""
-            loading="lazy"
+            preload="metadata"
           />
         ) : (
           <span className="oma-notification-card__preview-thumb">
@@ -257,16 +261,26 @@ export function NotificationsBell() {
     >
       <header className="oma-notifications-panel__head">
         <strong>{isAr ? 'آخر النشاطات' : 'Recent activity'}</strong>
-        {unread > 0 ? (
+        <span className="oma-notifications-panel__actions">
+          {unread > 0 ? (
+            <button
+              type="button"
+              className="oma-notifications-panel__mark-all"
+              disabled={markingAll}
+              onClick={() => void markAll()}
+            >
+              {t('shell.markAllRead')}
+            </button>
+          ) : null}
           <button
             type="button"
-            className="oma-notifications-panel__mark-all"
-            disabled={markingAll}
-            onClick={() => void markAll()}
+            className="oma-notifications-panel__close"
+            aria-label={t('common.close')}
+            onClick={() => setOpen(false)}
           >
-            {t('shell.markAllRead')}
+            <CloseOutlined />
           </button>
-        ) : null}
+        </span>
       </header>
       <div className="oma-notifications-panel__tabs" role="tablist">
         {notificationCategories.map((c) => (
@@ -341,16 +355,20 @@ export function NotificationsBell() {
           ) : null}
         </button>
       </span>
-      <Drawer
+      <AntDrawer
         open={open}
         onClose={() => setOpen(false)}
-        label={t('shell.notifications')}
-        wide
-        className="oma-notifications-drawer"
-        id="notifications-drawer"
+        placement={isAr ? 'left' : 'right'}
+        size={380}
+        mask={false}
+        closable={false}
+        title={null}
+        rootClassName="oma-notifications-drawer"
+        styles={{ body: { padding: 0 } }}
+        aria-label={t('shell.notifications')}
       >
         {panel}
-      </Drawer>
+      </AntDrawer>
     </>
   );
 }

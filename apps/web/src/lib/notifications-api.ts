@@ -12,6 +12,8 @@ export type AppNotification = {
   readAt: string | null;
   contentPreview?: {
     imageUrl: string | null;
+    mime?: string | null;
+    contentType?: string | null;
     titleEn: string;
     titleAr: string;
     captionEn: string | null;

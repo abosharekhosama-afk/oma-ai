@@ -1,7 +1,7 @@
 'use client';
 import { TableShimmer } from '../../../../components/ui/shimmer';
 import { useReloadOnBrandChange } from '../../../../lib/active-brand';
-import { CloseOutlined, DownOutlined, SearchOutlined, UpOutlined, UserOutlined } from '@ant-design/icons';
+import { CloseOutlined, DownOutlined, SearchOutlined, UpOutlined, UserOutlined } from '../../../../components/ui/lucide-icons';
 import { Button, DateField, Drawer as AntDrawer, Input, SurfaceButton } from '@oma/ui/controls';
 import { ShellIcon } from '../../../../components/shell/shell-icons';
 

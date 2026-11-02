@@ -53,7 +53,7 @@ import {
   UserOutlined,
   FlagOutlined,
   UnorderedListOutlined,
-} from '@ant-design/icons';
+} from '../../../../components/ui/lucide-icons';
 
 type ViewMode = 'board' | 'list';
 type Brand = DemoGraph['brands'][number];
