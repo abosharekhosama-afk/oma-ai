@@ -3319,27 +3319,3 @@ button.oma-breadcrumb-workspace:hover {
   .oma-notification-card__channel { display: none; }
   .oma-notifications-page--planable { padding: 16px 10px; }
 }
-
-/* Workspace-wide top actions: search, upgrade, account and notifications */
-.oma-shell .oma-top-center { display: flex !important; flex: 0 1 280px; min-width: 150px; margin-inline-start: auto; }
-.oma-shell .oma-top-center .oma-rail-search { width: 100%; min-height: 34px; height: 34px; border: 1px solid #e4e8ed; border-radius: 8px; background: #fafbfc; }
-.oma-shell .oma-top-center .oma-rail-search:hover, .oma-shell .oma-top-center .oma-rail-search:focus-visible { border-color: #9bbcf0; background: #fff; }
-.oma-top-utilities { display: flex; align-items: center; gap: 7px; flex: 0 0 auto; margin-inline-start: 8px; }
-.oma-top-utilities .oma-user-menu { display: flex; align-items: center; }
-.oma-top-utilities .oma-rail-utility-trigger { min-width: 34px; width: 34px; height: 34px; padding: 0; }
-.oma-top-utilities .oma-notifications .oma-icon-btn { width: 34px; height: 34px; }
-.oma-top-upgrade { display: inline-flex !important; align-items: center; gap: 6px; min-height: 34px; padding: 0 11px !important; border: 1px solid #d7e5fb !important; border-radius: 8px !important; background: #eff6ff !important; color: #2563eb !important; font-size: 12px !important; font-weight: 750 !important; text-decoration: none !important; }
-.oma-top-upgrade:hover { border-color: #9bbcf0 !important; background: #e3efff !important; }
-.oma-top-upgrade svg { color: #f1a91b; }
-.oma-shell > .oma-rail > .oma-rail-footer { display: none !important; }
-.oma-drawer .oma-rail-footer { display: flex !important; }
-@media (max-width: 900px) {
-  .oma-shell .oma-top-center { flex: 1 1 180px; min-width: 120px; }
-  .oma-top-upgrade span { display: none; }
-  .oma-top-upgrade { width: 34px; padding: 0 !important; justify-content: center; }
-}
-@media (max-width: 767px) {
-  .oma-shell .oma-top-center { order: 3; flex: 1 1 100%; min-width: 100%; margin: 2px 0 0; }
-  .oma-top-utilities { gap: 3px; margin-inline-start: 0; }
-}
-.oma-shell .oma-top[data-content-workspace='true'] .oma-top-center { display: flex !important; }

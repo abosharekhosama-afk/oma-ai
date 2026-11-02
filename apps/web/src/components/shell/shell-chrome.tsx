@@ -36,7 +36,7 @@ const SettingsPanel = dynamic(
   () => import('../settings/settings-panel').then((m) => m.SettingsPanel),
   { ssr: false },
 );
-import { CrownIcon, PlxLogo } from '../ui/plx-icons';
+import { PlxLogo } from '../ui/plx-icons';
 
 function RailNav({ collapsed }: { collapsed: boolean }) {
   const t = useT();
@@ -457,9 +457,12 @@ export function ShellChrome({ children }: { children: ReactNode }) {
                 <ShellBreadcrumb onOpenSettings={() => setSettingsSection('general')} />
               </div>
             </div>
-            <div className="oma-top-center" data-testid="workspace-search">
-              <CommandSearch compact hotkey />
-            </div>
+            {/* Planable Content: no center search — actions live on the right */}
+            {isContentWorkspace || isDeliverablesWorkspace || isTasksWorkspace ? null : (
+              <div className="oma-top-center">
+                <CommandSearch compact />
+              </div>
+            )}
             {isContentWorkspace ? (
               <div
                 className="oma-top-actions oma-top-actions--content"
@@ -511,14 +514,6 @@ export function ShellChrome({ children }: { children: ReactNode }) {
                 </OmaLinkButton>
               </div>
             )}
-            <div className="oma-top-utilities" data-testid="workspace-utilities">
-              <OmaLinkButton href="/app/billing" type="text" className="oma-top-upgrade" data-testid="shell-upgrade">
-                <CrownIcon width={16} height={16} />
-                <span>{t('companies.upgrade')}</span>
-              </OmaLinkButton>
-              <UserMenu />
-              <NotificationsBell />
-            </div>
           </header>
           <main id="main" className="oma-container">
             <OfflineBanner />
