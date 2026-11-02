@@ -152,7 +152,7 @@ export class TikTokAdapter implements SocialProviderAdapter {
       redirect_uri: redirectUri,
     });
     const res = await this.fetchFn(
-      `${API}/v2/user/info/?fields=open_id,display_name,avatar_url,username`,
+      `${API}/v2/user/info/?fields=open_id,display_name,avatar_url`,
       {
         headers: { authorization: `Bearer ${token.accessToken}` },
       },
