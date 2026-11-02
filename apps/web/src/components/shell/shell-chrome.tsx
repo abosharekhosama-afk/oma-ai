@@ -31,14 +31,9 @@ import {
 import { BrandPagesNav } from './brand-pages-nav';
 import { ShellIcon } from './shell-icons';
 import { UserMenu } from './user-menu';
-import { WorkspaceRow } from './workspace-row';
 import { WorkspacePathMenu } from './workspace-path-menu';
 const SettingsPanel = dynamic(
   () => import('../settings/settings-panel').then((m) => m.SettingsPanel),
-  { ssr: false },
-);
-const WorkspaceSettingsPanel = dynamic(
-  () => import('./workspace-settings-panel').then((m) => m.WorkspaceSettingsPanel),
   { ssr: false },
 );
 import { PlxLogo } from '../ui/plx-icons';
@@ -74,6 +69,7 @@ function RailNav({ collapsed }: { collapsed: boolean }) {
             label={t(item.labelKey)}
             icon={item.icon}
             collapsed={collapsed}
+            exact={Boolean(item.children)}
           />
           {item.children && !collapsed && pathname.startsWith(item.href) ? (
             <ul className="oma-nav-sublist">
@@ -303,7 +299,6 @@ export function ShellChrome({ children }: { children: ReactNode }) {
   const [railAnimated, setRailAnimated] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hydrated, setHydrated] = useState(false);
-  const [wsSettingsOpen, setWsSettingsOpen] = useState(false);
   // Settings card (opened from the account menu, or `?settings=<section>` / the old /app/settings URL).
   const [settingsSection, setSettingsSection] = useState<string | null>(null);
   useEffect(() => {
@@ -397,9 +392,6 @@ export function ShellChrome({ children }: { children: ReactNode }) {
             ) : null}
           </div>
           <p className="oma-rail-endorsement">{t('app.endorsement')}</p>
-          <div className="oma-rail-workspace">
-            <WorkspaceRow collapsed={collapsed} onOpenSettings={() => setWsSettingsOpen(true)} />
-          </div>
           <RailNav collapsed={collapsed} />
           <RailUtilities />
         </aside>
@@ -433,7 +425,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
               </Button>
               <div className="oma-top-context">
                 {/* Brand switcher removed from header trail */}
-                <ShellBreadcrumb onOpenSettings={() => setWsSettingsOpen(true)} />
+                <ShellBreadcrumb onOpenSettings={() => setSettingsSection('general')} />
               </div>
             </div>
             {/* Planable Content: no center search — actions live on the right */}
@@ -518,15 +510,6 @@ export function ShellChrome({ children }: { children: ReactNode }) {
               ×
             </Button>
           </div>
-          <div className="oma-rail-workspace">
-            <WorkspaceRow
-              collapsed={false}
-              onOpenSettings={() => {
-                setMobileOpen(false);
-                setWsSettingsOpen(true);
-              }}
-            />
-          </div>
           <div className="oma-mobile-drawer-nav" onClick={() => setMobileOpen(false)}>
             <RailNav collapsed={false} />
           </div>
@@ -538,9 +521,6 @@ export function ShellChrome({ children }: { children: ReactNode }) {
             initialSection={isSettingsSection(settingsSection) ? settingsSection : 'general'}
             onClose={() => setSettingsSection(null)}
           />
-        ) : null}
-        {wsSettingsOpen ? (
-          <WorkspaceSettingsPanel open={wsSettingsOpen} onClose={() => setWsSettingsOpen(false)} />
         ) : null}
         <SessionKeeper />
         <SessionInvalidOverlay />

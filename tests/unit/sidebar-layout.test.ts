@@ -39,6 +39,24 @@ describe('workspace sidebar layout', () => {
     expect(notifications).toContain('href="/app/notifications"');
   });
 
+  it('uses the account settings card as the single workspace settings entry point', () => {
+    const chrome = read('apps/web/src/components/shell/shell-chrome.tsx');
+    const account = read('apps/web/src/components/shell/user-menu.tsx');
+    expect(chrome).not.toContain("import { WorkspaceRow } from './workspace-row';");
+    expect(chrome).not.toContain('WorkspaceSettingsPanel');
+    expect(chrome).toContain('<SettingsPanel');
+    expect(account).toContain('data-testid="shell-user-menu-settings"');
+    expect(account).toContain('openSettings();');
+  });
+
+  it('selects a child navigation page without also selecting its parent page', () => {
+    const chrome = read('apps/web/src/components/shell/shell-chrome.tsx');
+    const navLink = read('apps/web/src/components/shell/nav-link.tsx');
+    expect(chrome).toContain('exact={Boolean(item.children)}');
+    expect(navLink).toContain('exact?: boolean');
+    expect(navLink).toContain('href === \'/app\' || exact ? pathname === href');
+  });
+
   it('keeps utility triggers visible and prevents drawer transform leftovers', () => {
     const account = read('apps/web/src/components/shell/user-menu.tsx');
     const notifications = read('apps/web/src/components/shell/notifications-bell.tsx');
