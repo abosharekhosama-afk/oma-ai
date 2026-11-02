@@ -41,29 +41,40 @@ export function WorkspaceCard({ brand }: { brand: BrandListItem; compact?: boole
   const t = useT();
   const workspaceHref = `/app/brands/${brand.id}`;
   const primaryHref = brandPrimaryHref(brand);
+  const website = brand.primary_website_url?.replace(/^https?:\/\//, '') || null;
   return (
     <article className="oma-workspace-card" data-testid={`workspace-card-${brand.id}`}>
       <Link href={workspaceHref} className="oma-workspace-card-main">
         <BrandMark name={brand.name} logoUrl={brand.logo_url} />
         <div className="oma-workspace-card-copy">
-          <h3>{brand.name}</h3>
-          <p className="oma-workspace-card-meta oma-ltr">
-            {brand.primary_website_url ?? t('brand.list.noWebsite') ?? 'No website connected'}
-          </p>
-          <div className="oma-chip-row">
+          <div className="oma-workspace-card__title-row">
+            <h3>{brand.name}</h3>
             <StatusChip status={brand.status} />
-            {brand.latest_scan_status ? <StatusChip status={brand.latest_scan_status} /> : null}
-            {brand.latest_profile_status ? (
-              <StatusChip status={brand.latest_profile_status} />
-            ) : null}
-            {brand.current_approved_profile_version_id ? (
-              <StatusChip tone="success" label={t('brand.versions.current') || 'Approved'} />
-            ) : null}
           </div>
+          <p className="oma-workspace-card-meta oma-ltr">
+            {website ?? t('brand.list.noWebsite') ?? 'No website connected'}
+          </p>
         </div>
       </Link>
+      <dl className="oma-workspace-card__facts">
+        <div>
+          <dt>{t('brand.scan.historyTitle')}</dt>
+          <dd>{brand.latest_scan_status ? <StatusChip status={brand.latest_scan_status} /> : '—'}</dd>
+        </div>
+        <div>
+          <dt>{t('brand.detail.intelligenceCta')}</dt>
+          <dd>
+            {brand.current_approved_profile_version_id ? (
+              <StatusChip tone="success" label={t('brand.versions.current') || 'Approved'} />
+            ) : brand.latest_profile_status ? (
+              <StatusChip status={brand.latest_profile_status} />
+            ) : (
+              '—'
+            )}
+          </dd>
+        </div>
+      </dl>
       <div className="oma-workspace-card-actions">
-        {/* Single CTA: label + destination follow brand lifecycle state (connect / scan / review / open). */}
         <OmaLinkButton
           href={primaryHref}
           type="primary"

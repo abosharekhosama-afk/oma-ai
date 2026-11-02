@@ -581,7 +581,7 @@
   display: flex;
   flex-direction: column;
   gap: 14px;
-  min-height: 160px;
+  min-height: 188px;
   padding: 18px;
   background: #fff;
   border: 1px solid #eceef1;
@@ -592,6 +592,46 @@
     box-shadow 0.15s ease,
     transform 0.15s ease;
 }
+.plx-page .oma-workspace-card__title-row,
+.plx-card-grid .oma-workspace-card__title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+.plx-page .oma-workspace-card__facts,
+.plx-card-grid .oma-workspace-card__facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 0;
+}
+.plx-page .oma-workspace-card__facts div,
+.plx-card-grid .oma-workspace-card__facts div {
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #f7f8fa;
+}
+.plx-page .oma-workspace-card__facts dt,
+.plx-card-grid .oma-workspace-card__facts dt {
+  margin: 0 0 4px;
+  color: #6b7280;
+  font-size: 11px;
+  font-weight: 600;
+}
+.plx-page .oma-workspace-card__facts dd,
+.plx-card-grid .oma-workspace-card__facts dd {
+  margin: 0;
+  color: #111827;
+  font-size: 13px;
+}
+.plx-page .oma-workspace-card-actions,
+.plx-card-grid .oma-workspace-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: auto;
+}
 .plx-page .oma-workspace-card:hover,
 .plx-card-grid .oma-workspace-card:hover {
   border-color: #d5d9e0;
@@ -600,16 +640,17 @@
 }
 .plx-page .oma-workspace-card-main {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr);
+  grid-template-columns: 48px minmax(0, 1fr);
   gap: 12px;
+  align-items: center;
   text-decoration: none;
   color: inherit;
-  flex: 1;
 }
 .plx-page .oma-brand-mark {
-  width: 40px;
-  height: 40px;
-  border-radius: 11px;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  border-radius: 12px;
   background: linear-gradient(135deg, #4c8dff, #2f6fed);
   color: #fff;
   font-weight: 800;
@@ -617,6 +658,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+.plx-page .oma-brand-mark img,
+.plx-card-grid .oma-brand-mark img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .plx-page .oma-workspace-card-copy h3 {
   margin: 0;

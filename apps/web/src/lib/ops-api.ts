@@ -430,6 +430,11 @@ export async function createRequest(
     assigneeUserId?: string | null;
     channels?: string[];
     formats?: string[];
+    brief?: {
+      objective?: ApiLocale | string;
+      audience?: ApiLocale | string;
+      keyMessage?: ApiLocale | string;
+    };
   },
 ): Promise<ApiWorkRequest> {
   const res = await api<{ data: ApiWorkRequest }>(`/api/v1/brands/${brandId}/requests`, {

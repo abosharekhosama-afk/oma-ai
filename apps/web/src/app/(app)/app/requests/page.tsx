@@ -7,6 +7,9 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { DemoGraph } from '@oma/demo';
 import { Button, DatePicker, Drawer as AntDrawer, Input, OmaSelect, TextArea } from '@oma/ui/controls';
+import { ChannelChoiceCards } from '../../../../components/content/channel-choice-cards';
+import { listWorkspaceMembers, type WorkspaceMember } from '../../../../lib/team-api';
+import { api } from '../../../../lib/api';
 import { ShellIcon } from '../../../../components/shell/shell-icons';
 import dayjs from 'dayjs';
 import { Dialog } from '../../../../components/ui/dialog';
@@ -78,6 +81,7 @@ export default function RequestsPage() {
   const [briefs, setBriefs] = useState<Brief[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [filters, setFilters] = useState<RequestFilters>(EMPTY_REQUEST_FILTERS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -99,15 +103,24 @@ export default function RequestsPage() {
     contentId: '',
     priority: 'MEDIUM',
     dueAt: daysFromToday(14),
-    requester: 'Client — Horizon Marketing',
+    requester: '',
     assignee: '',
-    channels: 'Instagram',
+    channels: '',
     formats: 'Static',
     outcome: '',
   });
 
   function patchForm(patch: Partial<typeof form>) {
-    setForm((f) => ({ ...f, ...patch }));
+    setForm((f) => {
+      const next = { ...f, ...patch };
+      if (patch.brandId && patch.brandId !== f.brandId) {
+        const belongs = campaigns.some(
+          (c) => c.id === next.campaignId && c.brandId === patch.brandId,
+        );
+        if (!belongs) next.campaignId = '';
+      }
+      return next;
+    });
     setCreateDirty(true);
   }
 
@@ -136,12 +149,15 @@ export default function RequestsPage() {
       setBriefs([]);
       setBrands(ws.brands as Brand[]);
       setCampaigns(ws.campaigns as Campaign[]);
+      void listWorkspaceMembers()
+        .then(setMembers)
+        .catch(() => setMembers([]));
       setError(null);
       setUnavailable(false);
       setForm((f) => ({
         ...f,
         brandId: f.brandId || ws.brands[0]?.id || '',
-        requester: f.requester || 'Owner',
+        requester: f.requester,
       }));
     } catch (err) {
       setError(
@@ -169,6 +185,15 @@ export default function RequestsPage() {
     void load();
   }, [load]);
 
+  useEffect(() => {
+    api<{ user?: { name?: string | null; email?: string | null } }>('/api/v1/auth/me')
+      .then((me) => {
+        const name = me.user?.name || me.user?.email || '';
+        if (name) setForm((f) => ({ ...f, requester: f.requester || name }));
+      })
+      .catch(() => undefined);
+  }, []);
+
   const briefByRequest = useMemo(() => {
     const map = new Map<string, Brief>();
     for (const b of briefs) map.set(b.requestId, b);
@@ -192,6 +217,10 @@ export default function RequestsPage() {
     [campaigns, locale],
   );
 
+  const brandCampaigns = useMemo(
+    () => campaigns.filter((c) => !form.brandId || c.brandId === form.brandId),
+    [campaigns, form.brandId],
+  );
   const filtered = useMemo(() => filterRequests(rows, filters, locale), [rows, filters, locale]);
   const filterCount = activeRequestFilterCount(filters);
   const requesters = useMemo(() => [...new Set(rows.map((r) => r.requester))], [rows]);
@@ -202,10 +231,14 @@ export default function RequestsPage() {
 
   async function submitCreate() {
     setCreateError(null);
-    if (!form.title.trim() || !form.brandId || !form.dueAt || !form.requester.trim()) {
+    if (!form.title.trim() || !form.brandId || !form.dueAt) {
       setCreateError(t('demo.create.validation'));
       return;
     }
+    const campaignOk = campaigns.some(
+      (c) => c.id === form.campaignId && c.brandId === form.brandId,
+    );
+    const objective = form.outcome.trim();
     setCreating(true);
     try {
       const createdApi = await createRequest(form.brandId, {
@@ -215,10 +248,11 @@ export default function RequestsPage() {
           ar: form.description.trim(),
         },
         type: form.type,
-        campaignId: form.campaignId || null,
+        campaignId: campaignOk ? form.campaignId : null,
         contentId: form.contentId || null,
         priority: form.priority,
         dueAt: form.dueAt ? `${form.dueAt}T12:00:00.000Z` : null,
+        assigneeUserId: form.assignee || null,
         channels: form.channels
           .split(',')
           .map((c) => c.trim())
@@ -227,6 +261,9 @@ export default function RequestsPage() {
           .split(',')
           .map((c) => c.trim())
           .filter(Boolean),
+        brief: objective
+          ? { objective: { en: objective, ar: objective } }
+          : undefined,
       });
       const created = toRequestRow(createdApi);
       toast.push(t('demo.create.successRequest'), 'success');
@@ -855,131 +892,158 @@ export default function RequestsPage() {
         onClose={requestCloseCreate}
         title={t('demo.create.requestTitle')}
         labelledBy="demo-create-request-title"
+        size="lg"
+        className="oma-compose-dialog"
       >
-        <div data-testid="demo-create-request-dialog" className="oma-stack oma-req-create">
-          <h2 id="demo-create-request-title" className="oma-dialog-title">
-            {t('demo.create.requestTitle')}
-          </h2>
+        <div data-testid="demo-create-request-dialog" className="oma-compose">
           {createError ? (
-            <p role="alert" style={{ color: 'var(--status-danger)' }}>
+            <p className="oma-compose__alert" role="alert">
               {createError}
             </p>
           ) : null}
-          <label>
-            {t('demo.requests.filter.type')}
-            <OmaSelect
-              value={form.type}
-              testId="demo-create-request-type"
-              onChange={(type) => patchForm({ type })}
-              options={['CONTENT', 'DESIGN', 'VIDEO', 'CAMPAIGN_SUPPORT', 'REVISION', 'OTHER'].map(
-                (s) => ({ value: s, label: s }),
-              )}
-            />
-          </label>
-          <label>
-            {t('demo.create.title')}
-            <Input
-              value={form.title}
-              data-testid="demo-create-request-title-input"
-              onChange={(e) => patchForm({ title: e.target.value })}
-            />
-          </label>
-          <label>
-            {t('demo.requests.description')}
-            <TextArea
-              rows={3}
-              value={form.description}
-              data-testid="demo-create-request-description"
-              onChange={(e) => patchForm({ description: e.target.value })}
-            />
-          </label>
-          <label>
-            {t('demo.requests.filter.brand')}
-            <OmaSelect
-              value={form.brandId}
-              testId="demo-create-request-brand"
-              onChange={(brandId) => patchForm({ brandId })}
-              options={brands.map((b) => ({ value: b.id, label: pickCopy(b.name, locale) }))}
-            />
-          </label>
-          <label>
-            {t('demo.create.campaign')}
-            <OmaSelect
-              value={form.campaignId}
-              testId="demo-create-request-campaign"
-              onChange={(campaignId) => patchForm({ campaignId })}
-              options={[
-                { value: '', label: t('demo.optional') },
-                ...campaigns.map((c) => ({ value: c.id, label: pickCopy(c.name, locale) })),
-              ]}
-            />
-          </label>
-          <label>
-            {t('demo.requests.outcome')}
-            <Input
-              value={form.outcome}
-              data-testid="demo-create-request-objective"
-              onChange={(e) => patchForm({ outcome: e.target.value })}
-            />
-          </label>
-          <label>
-            {t('demo.create.channels')}
-            <Input
-              value={form.channels}
-              data-testid="demo-create-request-channels"
-              onChange={(e) => patchForm({ channels: e.target.value })}
-            />
-          </label>
-          <label>
-            {t('demo.requests.formats')}
-            <Input
-              value={form.formats}
-              data-testid="demo-create-request-formats"
-              onChange={(e) => patchForm({ formats: e.target.value })}
-            />
-          </label>
-          <label>
-            {t('demo.requests.filter.priority')}
-            <OmaSelect
-              value={form.priority}
-              testId="demo-create-request-priority"
-              onChange={(priority) => patchForm({ priority })}
-              options={['URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((s) => ({ value: s, label: s }))}
-            />
-          </label>
-          <label>
-            {t('demo.requests.col.due')}
-            <DatePicker
-              data-testid="demo-create-request-due"
-              value={form.dueAt ? dayjs(form.dueAt) : null}
-              onChange={(_, dateString) =>
-                patchForm({
-                  dueAt: Array.isArray(dateString) ? (dateString[0] ?? '') : dateString,
-                })
-              }
-            />
-          </label>
-          <label>
-            {t('demo.requests.filter.requester')}
-            <Input
-              value={form.requester}
-              data-testid="demo-create-request-requester"
-              onChange={(e) => patchForm({ requester: e.target.value })}
-            />
-          </label>
-          <label>
-            {t('demo.requests.filter.assignee')}
-            <Input
-              value={form.assignee}
-              data-testid="demo-create-request-assignee"
-              onChange={(e) => patchForm({ assignee: e.target.value })}
-              placeholder={t('demo.optional')}
-            />
-          </label>
-          <p className="oma-muted" data-testid="demo-create-request-refs">
-            {t('demo.optional')}: content / reference placeholders (Demo)
-          </p>
-          <div className="oma-req-create__footer">
+          <div className="oma-compose__grid">
+            <label className="oma-compose__wide">
+              {t('demo.create.title')}
+              <Input
+                value={form.title}
+                data-testid="demo-create-request-title-input"
+                onChange={(e) => patchForm({ title: e.target.value })}
+              />
+            </label>
+            <label>
+              {t('demo.requests.filter.type')}
+              <OmaSelect
+                value={form.type}
+                testId="demo-create-request-type"
+                onChange={(type) => patchForm({ type })}
+                options={['CONTENT', 'DESIGN', 'VIDEO', 'CAMPAIGN_SUPPORT', 'REVISION', 'OTHER'].map(
+                  (s) => ({ value: s, label: s.replaceAll('_', ' ') }),
+                )}
+              />
+            </label>
+            <label>
+              {t('demo.requests.filter.priority')}
+              <OmaSelect
+                value={form.priority}
+                testId="demo-create-request-priority"
+                onChange={(priority) => patchForm({ priority })}
+                options={['URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((s) => ({ value: s, label: s }))}
+              />
+            </label>
+            <label>
+              {t('demo.requests.filter.brand')}
+              <OmaSelect
+                value={form.brandId}
+                testId="demo-create-request-brand"
+                onChange={(brandId) => patchForm({ brandId })}
+                options={brands.map((b) => ({ value: b.id, label: pickCopy(b.name, locale) }))}
+              />
+            </label>
+            <label>
+              {t('demo.create.campaign')}
+              <OmaSelect
+                value={form.campaignId}
+                testId="demo-create-request-campaign"
+                onChange={(campaignId) => patchForm({ campaignId })}
+                options={[
+                  { value: '', label: t('demo.optional') },
+                  ...brandCampaigns.map((c) => ({ value: c.id, label: pickCopy(c.name, locale) })),
+                ]}
+              />
+            </label>
+            <label className="oma-compose__wide">
+              {t('demo.requests.description')}
+              <TextArea
+                rows={3}
+                value={form.description}
+                data-testid="demo-create-request-description"
+                onChange={(e) => patchForm({ description: e.target.value })}
+              />
+            </label>
+            <label className="oma-compose__wide">
+              {t('demo.requests.outcome')}
+              <Input
+                value={form.outcome}
+                data-testid="demo-create-request-objective"
+                onChange={(e) => patchForm({ outcome: e.target.value })}
+              />
+            </label>
+            <div className="oma-compose__wide">
+              <span className="oma-compose__label">{t('demo.create.channels')}</span>
+              <ChannelChoiceCards
+                brandId={form.brandId}
+                value={form.channels}
+                locale={locale}
+                multiple
+                testId="demo-create-request-channels"
+                onChange={(channels) => patchForm({ channels })}
+              />
+            </div>
+            <div className="oma-compose__wide" data-testid="demo-create-request-formats">
+              <span className="oma-compose__label">{t('demo.requests.formats')}</span>
+              <div className="oma-compose__chips">
+                {['Static', 'Carousel', 'Reel', 'Story', 'Video'].map((format) => {
+                  const selected = form.formats
+                    .split(',')
+                    .map((part) => part.trim())
+                    .includes(format);
+                  return (
+                    <button
+                      key={format}
+                      type="button"
+                      className="oma-compose__chip"
+                      data-selected={selected ? 'true' : 'false'}
+                      onClick={() => {
+                        const current = form.formats
+                          .split(',')
+                          .map((part) => part.trim())
+                          .filter(Boolean);
+                        const next = selected
+                          ? current.filter((part) => part !== format)
+                          : [...current, format];
+                        patchForm({ formats: next.join(', ') });
+                      }}
+                    >
+                      {format}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+            <label>
+              {t('demo.requests.col.due')}
+              <DatePicker
+                data-testid="demo-create-request-due"
+                value={form.dueAt ? dayjs(form.dueAt) : null}
+                onChange={(_, dateString) =>
+                  patchForm({
+                    dueAt: Array.isArray(dateString) ? (dateString[0] ?? '') : dateString,
+                  })
+                }
+              />
+            </label>
+            <label>
+              {t('demo.requests.filter.assignee')}
+              <OmaSelect
+                value={form.assignee}
+                testId="demo-create-request-assignee"
+                onChange={(assignee) => patchForm({ assignee })}
+                options={[
+                  { value: '', label: t('demo.requests.unassigned') },
+                  ...members
+                    .filter((m) => m.user?.id)
+                    .map((m) => ({
+                      value: m.user!.id,
+                      label: m.user?.name || m.user?.email || m.invited_email || 'Member',
+                    })),
+                ]}
+              />
+            </label>
+            <p className="oma-compose__note" data-testid="demo-create-request-requester">
+              {t('demo.requests.filter.requester')}: {form.requester || '—'}
+            </p>
+          </div>
+          <div className="oma-compose__footer">
             <Button disabled={creating} onClick={requestCloseCreate}>
               {t('demo.create.cancel')}
             </Button>
