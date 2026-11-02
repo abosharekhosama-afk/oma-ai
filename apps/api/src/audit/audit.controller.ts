@@ -148,7 +148,7 @@ export class AuditController {
       actorIds.length
         ? prisma.user.findMany({
             where: { id: { in: actorIds } },
-            select: { id: true, name: true, email: true },
+            select: { id: true, name: true, email: true, avatarUrl: true },
           })
         : Promise.resolve([]),
       targetMembershipIds.length
@@ -210,6 +210,7 @@ export class AuditController {
         summary,
         actor_name: actorName,
         actor_email: actor?.email ?? null,
+        actor_avatar_url: actor?.avatarUrl ?? null,
         // Readable target (name + in-app link + optional preview); never a raw ID label.
         target:
           r.targetType && r.targetId
@@ -273,7 +274,15 @@ async function resolveActivityTargets(
     contentIds.length
       ? prisma.contentItem.findMany({
           where: { tenantId, id: { in: contentIds } },
-          select: { id: true, titleEn: true, titleAr: true, captionEn: true, captionAr: true },
+          select: {
+            id: true,
+            titleEn: true,
+            titleAr: true,
+            captionEn: true,
+            captionAr: true,
+            previewAssetUrl: true,
+            previewAssetId: true,
+          },
         })
       : none,
     ids('Campaign').length
@@ -315,6 +324,8 @@ async function resolveActivityTargets(
       type: 'content',
       name: { en: c.titleEn, ar: c.titleAr || c.titleEn },
       href: `/app/content?item=${encodeURIComponent(c.id)}`,
+      thumbnail_url:
+        c.previewAssetUrl ?? (c.previewAssetId ? `/api/v1/media/${c.previewAssetId}/view` : null),
       snippet: snippet
         ? { en: clip(c.captionEn) || snippet, ar: clip(c.captionAr) || snippet }
         : null,

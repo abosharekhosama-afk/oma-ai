@@ -9,6 +9,7 @@ export type ActivityItem = {
   summary: string;
   actor_name: string;
   actor_email?: string | null;
+  actor_avatar_url?: string | null;
   target?: {
     type: 'content' | 'campaign' | 'request' | 'task' | 'deliverable' | 'brand';
     name: { en: string; ar: string };
