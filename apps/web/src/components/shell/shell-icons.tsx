@@ -34,15 +34,10 @@ const drawings: Record<NavIconId, IconDrawing> = {
   },
   schedule: {
     paths: [
-      'M5 5.5h14v15H5z',
-      'M8 3.5v4',
-      'M16 3.5v4',
-      'M5 9.5h14',
-      'M8.5 13h.01',
-      'M12 13h.01',
-      'M15.5 13h.01',
-      'M8.5 16.5h.01',
-      'M12 16.5h.01',
+      'M8 2v4',
+      'M16 2v4',
+      'M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z',
+      'M3 10h18',
     ],
   },
   analytics: { paths: ['M4 20V11', 'M10 20V5', 'M16 20v-8', 'M22 20H2'] },
@@ -83,8 +78,15 @@ const drawings: Record<NavIconId, IconDrawing> = {
   },
   filter: { paths: ['M4 6h16', 'M7 12h10', 'M10 18h4'] },
   'calendar-view': {
-    paths: ['M5 5.5h14v14H5z', 'M8 3.5v4', 'M16 3.5v4', 'M5 9.5h14'],
+    paths: [
+      'M8 2v4',
+      'M16 2v4',
+      'M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z',
+      'M3 10h18',
+    ],
   },
+  'chevron-down': { paths: ['m6 9 6 6 6-6'] },
+  check: { paths: ['M20 6 9 17l-5-5'] },
   'list-view': {
     paths: ['M8 7h12', 'M8 12h12', 'M8 17h12', 'M4 7h.01', 'M4 12h.01', 'M4 17h.01'],
   },

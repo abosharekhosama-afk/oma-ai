@@ -22,7 +22,9 @@ export type NavIconId =
   | 'filter'
   | 'calendar-view'
   | 'list-view'
-  | 'grid-view';
+  | 'grid-view'
+  | 'chevron-down'
+  | 'check';
 
 export type NavItem = {
   href: string;

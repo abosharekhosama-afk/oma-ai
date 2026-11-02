@@ -1361,14 +1361,16 @@ export default function ContentPage() {
     const el = document.getElementById('oma-content-view-slot');
     if (!el) return;
     const label = t(`demo.view.${view}`);
+    const stroke =
+      'viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
     const icons: Record<string, string> = {
-      calendar:
-        '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M7 3h2v2h6V3h2v2h2a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h2V3Zm12 7H5v9h14v-9Z"/></svg>',
-      feed: '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M4 6h16v2H4V6Zm0 5h16v2H4v-2Zm0 5h16v2H4v-2Z"/></svg>',
-      list: '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M8 6h12v2H8V6Zm0 5h12v2H8v-2Zm0 5h12v2H8v-2ZM4 6h2v2H4V6Zm0 5h2v2H4v-2Zm0 5h2v2H4v-2Z"/></svg>',
-      grid: '<svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor" aria-hidden="true"><path d="M4 4h7v7H4V4Zm9 0h7v7h-7V4ZM4 13h7v7H4v-7Zm9 0h7v7h-7v-7Z"/></svg>',
+      calendar: `<svg ${stroke}><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>`,
+      feed: `<svg ${stroke}><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg>`,
+      list: `<svg ${stroke}><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></svg>`,
+      grid: `<svg ${stroke}><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>`,
     };
-    el.innerHTML = `<span class="oma-breadcrumb-view-inner">${icons[view] || icons.calendar}<span class="oma-breadcrumb-view-label">${label}</span><span class="oma-breadcrumb-view-caret" aria-hidden>▾</span></span>`;
+    const caret = `<svg ${stroke} width="12" height="12"><path d="m6 9 6 6 6-6"/></svg>`;
+    el.innerHTML = `<span class="oma-breadcrumb-view-inner">${icons[view] || icons.calendar}<span class="oma-breadcrumb-view-label">${label}</span><span class="oma-breadcrumb-view-caret" aria-hidden="true">${caret}</span></span>`;
     el.setAttribute('data-view', view);
     el.classList.add('oma-breadcrumb-view--interactive');
   }, [view, t]);
@@ -3266,7 +3268,7 @@ export default function ContentPage() {
                     </span>
                     <span>{label}</span>
                     <span className="oma-view-menu__check" aria-hidden>
-                      {view === id ? '✓' : ''}
+                      {view === id ? <CheckOutlined /> : null}
                     </span>
                   </button>
                 </li>
@@ -3293,7 +3295,7 @@ export default function ContentPage() {
                   </span>
                   <span>{t('views.my_approvals')}</span>
                   <span className="oma-view-menu__check" aria-hidden>
-                    {filters.approval === 'PENDING' ? '✓' : ''}
+                    {filters.approval === 'PENDING' ? <CheckOutlined /> : null}
                   </span>
                 </button>
               </li>
@@ -3527,7 +3529,7 @@ export default function ContentPage() {
                   >
                     {week.map((cell) => {
                       const items = byDay.get(cell.key) ?? [];
-                      const { visible, extra } = splitCellItems(items);
+                      const { extra } = splitCellItems(items);
                       const note = dayNotes[cell.key];
                       const holiday = DEMO_HOLIDAYS[cell.key];
                       return (
@@ -3590,6 +3592,7 @@ export default function ContentPage() {
                             </button>
                           </div>
 
+                          <div className="oma-cal-cell__scroll">
                           {/* Private sticky note — appears ABOVE cards */}
                           {calDisplay.showNotes && (note || noteDay === cell.key) ? (
                             <div
@@ -3719,7 +3722,7 @@ export default function ContentPage() {
                           ) : null}
 
                           {/* Post cards */}
-                          {visible.map((item) => (
+                          {items.map((item) => (
                             <div
                               key={item.id}
                               className="oma-cal-item-wrap"
@@ -3791,6 +3794,7 @@ export default function ContentPage() {
                               +{extra} {isAr ? 'المزيد' : 'more'}
                             </Button>
                           ) : null}
+                          </div>
                         </div>
                       );
                     })}

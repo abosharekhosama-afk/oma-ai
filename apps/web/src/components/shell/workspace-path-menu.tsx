@@ -87,16 +87,20 @@ export function WorkspacePathMenu({ onOpenSettings }: { onOpenSettings: () => vo
         aria-haspopup="menu"
         onClick={() => setOpen((value) => !value)}
       >
-        <span className="oma-breadcrumb-workspace-mark" aria-hidden />
+        <span className="oma-breadcrumb-workspace-mark" aria-hidden>
+          <ShellIcon name="grid-view" size={12} />
+        </span>
         <span className="oma-breadcrumb-workspace-label">{name}</span>
         <span className="oma-breadcrumb-caret" aria-hidden>
-          ▾
+          <ShellIcon name="chevron-down" size={14} />
         </span>
       </button>
       {open ? (
         <div className="oma-path-ws-menu" role="menu" data-testid="shell-workspace-path-menu">
           <div className="oma-path-ws-menu__head">
-            <span className="oma-breadcrumb-workspace-mark" aria-hidden />
+            <span className="oma-breadcrumb-workspace-mark" aria-hidden>
+          <ShellIcon name="grid-view" size={12} />
+        </span>
             <strong className="oma-path-ws-menu__title">{name}</strong>
           </div>
 
@@ -146,12 +150,12 @@ export function WorkspacePathMenu({ onOpenSettings }: { onOpenSettings: () => vo
                     }}
                   >
                     <span className="oma-path-ws-menu__ws-icon" aria-hidden>
-                      ⊞
+                      <ShellIcon name="grid-view" size={14} />
                     </span>
                     <span className="oma-path-ws-menu__ws-name">{brand.name}</span>
                     {isActive ? (
                       <span className="oma-path-ws-menu__check" aria-hidden>
-                        ✓
+                        <ShellIcon name="check" size={14} />
                       </span>
                     ) : null}
                   </button>
