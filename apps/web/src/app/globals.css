@@ -1694,3 +1694,124 @@ html body .oma-deliv-detail__side-card {
     grid-template-columns: 1fr;
   }
 }
+
+.oma-notif-board {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.oma-notif-master,
+.oma-notif-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  cursor: pointer;
+}
+.oma-notif-master {
+  padding: 14px 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  background: #f8fafc;
+}
+.oma-notif-master .oma-notif-donut__svg {
+  width: 52px;
+  height: 52px;
+}
+.oma-notif-master__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.oma-notif-master__copy strong {
+  color: #111827;
+  font-size: 15px;
+}
+.oma-notif-master__copy span,
+.oma-notif-group__head span {
+  color: #6b7280;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.oma-notif-groups {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.oma-notif-group {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #eceef1;
+  border-radius: 16px;
+  background: #fff;
+}
+.oma-notif-group__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.oma-notif-group__head h4 {
+  flex: 1;
+  margin: 0;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 700;
+}
+.oma-notif-group__head .oma-notif-donut__svg {
+  width: 28px;
+  height: 28px;
+}
+.oma-notif-group__list {
+  display: flex;
+  flex-direction: column;
+}
+.oma-notif-row {
+  min-height: 40px;
+  padding: 6px 4px;
+  border-radius: 10px;
+}
+.oma-notif-row:hover {
+  background: #f7f8fa;
+}
+.oma-notif-row span {
+  color: #1f2937;
+  font-size: 13px;
+  font-weight: 550;
+}
+.oma-notif-row.is-muted {
+  cursor: default;
+  opacity: 0.45;
+}
+.oma-notif-row .oma-notif-donut__svg {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+}
+.oma-notif-donut__track,
+.oma-notif-donut__arc {
+  fill: none;
+  stroke-width: 4;
+}
+.oma-notif-donut__track {
+  stroke: #e5e7eb;
+}
+.oma-notif-donut__arc {
+  stroke: #2563eb;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: 18px 18px;
+  transition: stroke-dasharray 0.2s ease;
+}
+.oma-notif-master:focus-within,
+.oma-notif-row:focus-within {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+@media (max-width: 800px) {
+  .oma-notif-groups {
+    grid-template-columns: 1fr;
+  }
+}

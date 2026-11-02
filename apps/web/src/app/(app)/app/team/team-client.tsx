@@ -33,6 +33,48 @@ import { useLocale, useT } from '../../../../lib/use-locale';
 
 type Tab = 'members' | 'permissions' | 'notifications';
 
+const NOTIF_GROUPS = [
+  {
+    id: 'content',
+    labelKey: 'settings.notifications.group.content',
+    types: NOTIFICATION_PREF_TYPES.filter(
+      (type) => type.startsWith('content.') && !type.startsWith('content.publish'),
+    ),
+  },
+  {
+    id: 'publishing',
+    labelKey: 'settings.notifications.group.publishing',
+    types: NOTIFICATION_PREF_TYPES.filter((type) => type.startsWith('content.publish')),
+  },
+  {
+    id: 'deliverables',
+    labelKey: 'settings.notifications.group.deliverables',
+    types: NOTIFICATION_PREF_TYPES.filter((type) => type.startsWith('deliverable.')),
+  },
+  {
+    id: 'tasks',
+    labelKey: 'settings.notifications.group.tasks',
+    types: NOTIFICATION_PREF_TYPES.filter((type) => type.startsWith('task.')),
+  },
+] as const;
+
+function NotifDonut({ ratio }: { ratio: number }) {
+  const ring = 88;
+  const filled = Math.max(0, Math.min(1, ratio)) * ring;
+  return (
+    <svg className="oma-notif-donut__svg" viewBox="0 0 36 36" aria-hidden="true">
+      <circle className="oma-notif-donut__track" cx="18" cy="18" r="14" />
+      <circle
+        className="oma-notif-donut__arc"
+        cx="18"
+        cy="18"
+        r="14"
+        strokeDasharray={`${filled} ${ring}`}
+      />
+    </svg>
+  );
+}
+
 const PERM_COLS: PlanablePerm[] = [
   'view',
   'approve',
@@ -488,44 +530,89 @@ export default function TeamPage() {
       ) : null}
 
       {!loading && !error && tab === 'notifications' ? (
-        <div className="oma-planable-card" data-testid="team-notifications">
+        <div className="oma-planable-card oma-notif-board" data-testid="team-notifications">
           <h3 className="oma-ws-subhead">{t('team.manage_notifications')}</h3>
           <p className="oma-ws-empty-desc">{t('settings.notifications.body')}</p>
           {notif ? (
             <>
-              <label className="oma-pref-toggle">
-                <span>{t('settings.notifications.all')}</span>
-                <input
-                  type="checkbox"
-                  data-testid="notif-pref-all"
-                  checked={notif.notifications.all !== false}
-                  onChange={(e) =>
-                    setNotif({
-                      ...notif,
-                      notifications: { ...notif.notifications, all: e.target.checked },
-                    })
-                  }
-                />
-              </label>
-              {NOTIFICATION_PREF_TYPES.map((type) => (
-                <label key={type} className="oma-pref-toggle">
-                  <span>{t(`shell.notificationPref.${type}`)}</span>
-                  <input
-                    type="checkbox"
-                    data-testid={`notif-pref-${type}`}
-                    disabled={notif.notifications.all === false}
-                    checked={
-                      notif.notifications.all !== false && notif.notifications[type] !== false
-                    }
-                    onChange={(e) =>
-                      setNotif({
-                        ...notif,
-                        notifications: { ...notif.notifications, [type]: e.target.checked },
-                      })
-                    }
-                  />
-                </label>
-              ))}
+              {(() => {
+                const allOn = notif.notifications.all !== false;
+                const enabledCount = NOTIFICATION_PREF_TYPES.filter(
+                  (type) => allOn && notif.notifications[type] !== false,
+                ).length;
+                return (
+                  <label className="oma-notif-master">
+                    <NotifDonut ratio={enabledCount / NOTIFICATION_PREF_TYPES.length} />
+                    <span className="oma-notif-master__copy">
+                      <strong>{t('settings.notifications.all')}</strong>
+                      <span>
+                        {enabledCount}/{NOTIFICATION_PREF_TYPES.length}
+                      </span>
+                    </span>
+                    <input
+                      type="checkbox"
+                      className="oma-sr-only"
+                      data-testid="notif-pref-all"
+                      checked={allOn}
+                      onChange={(e) =>
+                        setNotif({
+                          ...notif,
+                          notifications: { ...notif.notifications, all: e.target.checked },
+                        })
+                      }
+                    />
+                  </label>
+                );
+              })()}
+              <div className="oma-notif-groups">
+                {NOTIF_GROUPS.map((group) => {
+                  const allOn = notif.notifications.all !== false;
+                  const onCount = group.types.filter(
+                    (type) => allOn && notif.notifications[type] !== false,
+                  ).length;
+                  return (
+                    <section key={group.id} className="oma-notif-group">
+                      <header className="oma-notif-group__head">
+                        <NotifDonut ratio={group.types.length ? onCount / group.types.length : 0} />
+                        <h4>{t(group.labelKey)}</h4>
+                        <span>
+                          {onCount}/{group.types.length}
+                        </span>
+                      </header>
+                      <div className="oma-notif-group__list">
+                        {group.types.map((type) => {
+                          const checked = allOn && notif.notifications[type] !== false;
+                          return (
+                            <label
+                              key={type}
+                              className={`oma-notif-row${allOn ? '' : ' is-muted'}`}
+                            >
+                              <NotifDonut ratio={checked ? 1 : 0} />
+                              <span>{t(`shell.notificationPref.${type}`)}</span>
+                              <input
+                                type="checkbox"
+                                className="oma-sr-only"
+                                data-testid={`notif-pref-${type}`}
+                                disabled={!allOn}
+                                checked={checked}
+                                onChange={(e) =>
+                                  setNotif({
+                                    ...notif,
+                                    notifications: {
+                                      ...notif.notifications,
+                                      [type]: e.target.checked,
+                                    },
+                                  })
+                                }
+                              />
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  );
+                })}
+              </div>
               <div className="oma-ws-action-row">
                 <Button
                   type="primary"
