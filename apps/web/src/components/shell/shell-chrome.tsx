@@ -32,6 +32,7 @@ import { BrandPagesNav } from './brand-pages-nav';
 import { ShellIcon } from './shell-icons';
 import { UserMenu } from './user-menu';
 import { WorkspacePathMenu } from './workspace-path-menu';
+import { WorkspaceRow } from './workspace-row';
 const SettingsPanel = dynamic(
   () => import('../settings/settings-panel').then((m) => m.SettingsPanel),
   { ssr: false },
@@ -421,6 +422,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
             ) : null}
           </div>
           <p className="oma-rail-endorsement">{t('app.endorsement')}</p>
+          <WorkspaceRow collapsed={collapsed} onOpenSettings={() => setSettingsSection('general')} />
           <RailNav collapsed={collapsed} />
           <RailUtilities />
         </aside>
@@ -540,6 +542,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
             </Button>
           </div>
           <div className="oma-mobile-drawer-nav" onClick={() => setMobileOpen(false)}>
+            <WorkspaceRow onOpenSettings={() => setSettingsSection('general')} />
             <RailNav collapsed={false} />
           </div>
           <RailUtilities />
