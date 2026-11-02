@@ -314,8 +314,24 @@ export async function duplicateContent(contentId: string) {
 
 export async function getContentPreferences(brandId: string) {
   return api<{
-    data: { brand_id: string; approval_policy: string; default_timezone: string };
+    data: {
+      brand_id: string;
+      approval_policy: string;
+      default_timezone: string;
+      preview_style?: string;
+      accent_color?: string | null;
+    };
   }>(`/api/v1/brands/${brandId}/content-preferences`);
+}
+
+export async function updateContentPreferences(
+  brandId: string,
+  patch: { defaultTimezone?: string; previewStyle?: string; accentColor?: string | null },
+) {
+  return api(`/api/v1/brands/${brandId}/content-preferences`, {
+    method: 'PATCH',
+    body: JSON.stringify(patch),
+  });
 }
 
 /** Load brands + campaigns + content for Content Plan screen (production).
@@ -331,6 +347,8 @@ export async function loadContentWorkspace(opts?: { full?: boolean }): Promise<{
     strategyId: null;
     timezone?: string;
     logoUrl?: string | null;
+    previewStyle?: string;
+    accentColor?: string | null;
   }[];
   campaigns: CampaignRow[];
   content: ContentRow[];
@@ -343,7 +361,7 @@ export async function loadContentWorkspace(opts?: { full?: boolean }): Promise<{
   const rest = brandIds.slice(1);
 
   // Parallel: primary campaigns + content + prefs (non-blocking default)
-  const [campaigns, contentItems, policy] = await Promise.all([
+  const [campaigns, contentItems, prefs] = await Promise.all([
     primary
       ? opts?.full
         ? listAllCampaigns(brandIds).catch(() => [] as Awaited<ReturnType<typeof listAllCampaigns>>)
@@ -358,10 +376,12 @@ export async function loadContentWorkspace(opts?: { full?: boolean }): Promise<{
       : Promise.resolve([] as ApiContent[]),
     primary
       ? getContentPreferences(primary)
-          .then((p) => (p.data.approval_policy as 'NONE' | 'OPTIONAL' | 'REQUIRED') || 'OPTIONAL')
-          .catch(() => 'OPTIONAL' as const)
-      : Promise.resolve('OPTIONAL' as const),
+          .then((p) => p.data)
+          .catch(() => null)
+      : Promise.resolve(null),
   ]);
+  const policy =
+    (prefs?.approval_policy as 'NONE' | 'OPTIONAL' | 'REQUIRED' | undefined) || 'OPTIONAL';
 
   return {
     brands: brandRows.map((b) => ({
@@ -372,6 +392,8 @@ export async function loadContentWorkspace(opts?: { full?: boolean }): Promise<{
       strategyId: null,
       timezone: b.timezone,
       logoUrl: b.logo_url ?? null,
+      previewStyle: b.id === primary ? prefs?.preview_style || 'default' : 'default',
+      accentColor: b.id === primary ? prefs?.accent_color ?? null : null,
     })),
     campaigns: (Array.isArray(campaigns) ? campaigns : []).map((c) => toCampaignRow(c)),
     content: contentItems.map((c) => toContentRow(c)),

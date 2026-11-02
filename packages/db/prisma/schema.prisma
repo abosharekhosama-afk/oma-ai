@@ -1185,6 +1185,10 @@ model ContentPreferences {
   tenantId        String
   approvalPolicy  ContentApprovalPolicy @default(OPTIONAL)
   defaultTimezone String                @default("Asia/Dubai")
+  /// Universal page presentation: default | classic | modern | compact
+  previewStyle    String                @default("default")
+  /// Optional #RRGGBB accent chosen when the page is created.
+  accentColor     String?
   updatedAt       DateTime              @updatedAt
 }
 

@@ -25,7 +25,7 @@ import {
   mediaIdFromUrl,
   versionMime,
 } from '../../../../../components/content/media-surface';
-import { getContentDetail, type ApiContent } from '../../../../../lib/content-api';
+import { getContentDetail, getContentPreferences, type ApiContent } from '../../../../../lib/content-api';
 import { listBrands } from '../../../../../lib/workspace-extras-api';
 import { useToast } from '../../../../../components/ui/toast';
 import { pickCopy } from '../../../../../lib/demo/use-demo-api';
@@ -175,6 +175,8 @@ export default function DeliverableDetailClient() {
     content: ApiContent;
     brand: string;
     brandLogo: string | null;
+    previewStyle: string;
+    accentColor: string | null;
   } | null>(null);
   const [decisionReason, setDecisionReason] = useState('');
   const [saving, setSaving] = useState(false);
@@ -246,13 +248,16 @@ export default function DeliverableDetailClient() {
     }
     let live = true;
     void Promise.all([getContentDetail(linkedContentId), listBrands().catch(() => [])])
-      .then(([detail, brands]) => {
+      .then(async ([detail, brands]) => {
         if (!live) return;
         const b = brands.find((x) => x.id === detail.data.brand_id);
+        const prefs = await getContentPreferences(detail.data.brand_id).catch(() => null);
         setLinked({
           content: detail.data,
           brand: b?.name ?? '',
           brandLogo: b?.logo_url ?? null,
+          previewStyle: prefs?.data.preview_style || 'default',
+          accentColor: prefs?.data.accent_color ?? null,
         });
       })
       .catch(() => live && setLinked(null));
@@ -1029,6 +1034,8 @@ export default function DeliverableDetailClient() {
                     contentType={linked.content.content_type}
                     brandName={linked.brand || pickCopy(row.title, locale)}
                     avatarUrl={linked.brandLogo}
+                    previewStyle={linked.previewStyle}
+                    accentColor={linked.accentColor}
                     caption={linked.content.caption ? pickCopy(linked.content.caption, locale) : ''}
                     title={pickCopy(linked.content.title, locale)}
                     media={selectedVersion?.assets?.[0] || linked.content.preview_asset_url}

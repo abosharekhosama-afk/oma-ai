@@ -1,7 +1,8 @@
 /* Planable-style live network previews. Calm, flat surfaces with solid fills only.
    Tokens: primary #1677FF, canvas #F5F6F7, 14px, 6px radius, 150/300ms motion. */
 .oma-pp {
-  --pp-primary: #1677ff;
+  --pp-accent: #1677ff;
+  --pp-primary: var(--pp-accent);
   --pp-text: #1c1e21;
   --pp-muted: #65676b;
   --pp-line: #e4e6eb;
@@ -16,6 +17,24 @@
 }
 .oma-pp[data-size='detail'] {
   margin-inline: auto;
+}
+.oma-pp[data-style='classic'] .oma-pp__post {
+  border-radius: 0;
+  border-width: 2px;
+  border-color: var(--pp-accent);
+}
+.oma-pp[data-style='modern'] .oma-pp__post {
+  border-radius: 18px;
+  border-color: color-mix(in srgb, var(--pp-accent) 45%, #e4e6eb);
+  box-shadow: 0 10px 24px rgb(15 23 42 / 8%);
+}
+.oma-pp[data-style='compact'] {
+  max-width: 400px;
+  font-size: 13px;
+}
+.oma-pp[data-style='compact'] .oma-pp__head,
+.oma-pp[data-style='compact'] .oma-pp__post {
+  padding: 8px;
 }
 .oma-pp[data-kind$='vertical'],
 .oma-pp[data-kind='tiktok'] {

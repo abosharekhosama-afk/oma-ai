@@ -1563,9 +1563,25 @@ export default function ContentPage() {
   const brandLogo = useCallback(
     (id: string) => {
       const b = brands.find((x) => x.id === id) as
-        | ((typeof brands)[number] & { logoUrl?: string | null })
+        | ((typeof brands)[number] & {
+            logoUrl?: string | null;
+            previewStyle?: string | null;
+            accentColor?: string | null;
+          })
         | undefined;
       return b?.logoUrl || null;
+    },
+    [brands],
+  );
+  const brandChrome = useCallback(
+    (id: string) => {
+      const b = brands.find((x) => x.id === id) as
+        | ((typeof brands)[number] & {
+            previewStyle?: string | null;
+            accentColor?: string | null;
+          })
+        | undefined;
+      return { previewStyle: b?.previewStyle || 'default', accentColor: b?.accentColor ?? null };
     },
     [brands],
   );
@@ -1700,6 +1716,8 @@ export default function ContentPage() {
         contentType={item.contentType}
         brandName={brandName(item.brandId)}
         avatarUrl={brandLogo(item.brandId)}
+        previewStyle={brandChrome(item.brandId).previewStyle}
+        accentColor={brandChrome(item.brandId).accentColor}
         caption={caption}
         title={pickCopy(item.title, locale)}
         media={item.previewAsset}

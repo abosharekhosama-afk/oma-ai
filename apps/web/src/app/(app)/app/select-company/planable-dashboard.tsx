@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import { CardGridShimmer } from '../../../../components/ui/shimmer';
 import { openSettings } from '../../../../lib/settings-dialog';
 
@@ -6,6 +6,15 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../../../../lib/api';
+import { announceBrandLogo } from '../../../../lib/active-brand';
+import {
+  brandSettingsApi,
+  readLogoFile,
+  timezoneOptions,
+  type SocialNetwork,
+} from '../../../../lib/brand-settings-api';
+import { updateContentPreferences } from '../../../../lib/content-api';
+import { TeamInviteDialog } from '../../../../components/team/team-invite-dialog';
 import { OmaDotsLoader, OmaDotsLoaderOverlay } from '../../../../components/ui/oma-dots-loader';
 import {
   BriefcaseIcon,
@@ -16,7 +25,6 @@ import {
   ChevronDownIcon,
   CloseIcon,
   CrownIcon,
-  EnvelopeIcon,
   HelpIcon,
   ImageIcon,
   LinkIcon,
@@ -50,48 +58,11 @@ type BrandWorkspace = {
   name: string;
   status?: string;
   primary_website_url?: string | null;
+  logo_url?: string | null;
   updated_at?: string;
 };
 
 const FAV_KEY = 'plx-favorite-workspaces';
-
-const ROLES = [
-  {
-    id: 'Administrator',
-    desc: 'Can manage workspaces, people and billing plan',
-    perms: [
-      { label: 'Comment on posts', ok: true },
-      { label: 'Manage workspaces and collaborators', ok: true },
-      { label: 'Create and edit posts', ok: true },
-      { label: 'View invoices and manage billing', ok: true },
-      { label: 'Company ownership', ok: false },
-    ],
-  },
-  {
-    id: 'Writer',
-    desc: 'Has editing access to all workspaces, but cannot create workspaces or invite people',
-    perms: [
-      { label: 'Comment on posts', ok: true },
-      { label: 'Manage workspaces and collaborators', ok: false },
-      { label: 'Create and edit posts', ok: true },
-      { label: 'View invoices and manage billing', ok: false },
-      { label: 'Company ownership', ok: false },
-    ],
-  },
-  {
-    id: 'Billing Manager',
-    desc: 'Can manage billing plan, change payment details & see invoices',
-    perms: [
-      { label: 'Comment on posts', ok: false },
-      { label: 'Manage workspaces and collaborators', ok: false },
-      { label: 'Create and edit posts', ok: false },
-      { label: 'View invoices and manage billing', ok: true },
-      { label: 'Company ownership', ok: false },
-    ],
-  },
-] as const;
-
-type RoleId = (typeof ROLES)[number]['id'];
 
 const PLATFORMS: Array<{ name: string; color: string }> = [
   { name: 'Facebook', color: '#1877F2' },
@@ -107,14 +78,14 @@ const PLATFORMS: Array<{ name: string; color: string }> = [
   { name: 'Newsletters', color: '#F59E0B' },
 ];
 
-const TIMEZONES = [
-  'Hebron, Asia (UTC +3)',
-  'Dubai, Asia (UTC +4)',
-  'Riyadh, Asia (UTC +3)',
-  'Cairo, Africa (UTC +2)',
-  'London, Europe (UTC +0)',
-  'New York, America (UTC -5)',
-];
+const PLATFORM_NETWORK: Record<string, SocialNetwork | 'universal'> = {
+  Facebook: 'facebook',
+  'X (Twitter)': 'x',
+  Instagram: 'instagram',
+  LinkedIn: 'linkedin',
+  TikTok: 'tiktok',
+  'Universal Content': 'universal',
+};
 
 const LABEL_KEYS: Record<string, string> = {
   "Administrator": 'companies.role.admin',
@@ -132,12 +103,6 @@ const LABEL_KEYS: Record<string, string> = {
   "Google Business Profile": 'companies.platform.gbp',
   "Universal Content": 'companies.platform.universal',
   "Newsletters": 'companies.platform.newsletters',
-  "Hebron, Asia (UTC +3)": 'companies.tz.hebron',
-  "Dubai, Asia (UTC +4)": 'companies.tz.dubai',
-  "Riyadh, Asia (UTC +3)": 'companies.tz.riyadh',
-  "Cairo, Africa (UTC +2)": 'companies.tz.cairo',
-  "London, Europe (UTC +0)": 'companies.tz.london',
-  "New York, America (UTC -5)": 'companies.tz.newyork',
   "Workspace name is required": 'companies.name_required',
   "Facebook": 'companies.platform.facebook',
   "Instagram": 'companies.platform.instagram',
@@ -170,13 +135,23 @@ export function PlanableDashboard() {
 
   const [createOpen, setCreateOpen] = useState(false);
   const [createStep, setCreateStep] = useState<1 | 2 | 3>(1);
+  const [timezones] = useState(() => timezoneOptions());
   const [wsName, setWsName] = useState('');
   const [wsUrl, setWsUrl] = useState('');
-  const [wsTz, setWsTz] = useState(TIMEZONES[0]);
+  const [wsTz, setWsTz] = useState(() => {
+    const list = timezoneOptions();
+    const guess = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (list.includes(guess)) return guess;
+    if (list.includes('Asia/Dubai')) return 'Asia/Dubai';
+    return list[0] ?? 'UTC';
+  });
   const [pageName, setPageName] = useState('');
+  const [pageLogo, setPageLogo] = useState<string | null>(null);
+  const [pageColor, setPageColor] = useState('#1677ff');
   const [contentStyle, setContentStyle] = useState<'default' | 'classic' | 'modern' | 'compact'>(
     'default',
   );
+  const createdBrandId = useRef<string | null>(null);
   const [createBusy, setCreateBusy] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
 
@@ -305,11 +280,80 @@ export function PlanableDashboard() {
     setCreateStep(1);
     setWsName('');
     setWsUrl('');
-    setWsTz(TIMEZONES[0]);
     setPageName('');
+    setPageLogo(null);
+    setPageColor('#1677ff');
     setContentStyle('default');
+    createdBrandId.current = null;
     setCreateError(null);
     setCreateOpen(true);
+  }
+
+  async function ensureBrand(): Promise<string> {
+    if (createdBrandId.current) return createdBrandId.current;
+    if (!wsName.trim()) throw new Error(t('companies.name_required'));
+    let tenantId = me?.active_tenant_id;
+    if (!tenantId) {
+      const created = await api<{ data?: { id: string }; id?: string }>('/api/v1/tenants', {
+        method: 'POST',
+        body: JSON.stringify({ name: wsName.trim() }),
+      });
+      tenantId = created.data?.id ?? created.id ?? null;
+      if (tenantId) {
+        try {
+          await api('/api/v1/tenants/active', {
+            method: 'POST',
+            body: JSON.stringify({ tenant_id: tenantId }),
+          });
+        } catch {
+          /* session may already be active */
+        }
+      }
+    }
+    const brandRes = await api<{ data: { id: string } }>('/api/v1/brands', {
+      method: 'POST',
+      body: JSON.stringify({ name: wsName.trim() }),
+    });
+    const brandId = brandRes.data?.id;
+    if (!brandId) throw new Error(t('companies.could_not_create_workspace'));
+    createdBrandId.current = brandId;
+    await updateContentPreferences(brandId, { defaultTimezone: wsTz });
+    if (wsUrl.trim()) {
+      try {
+        await api(`/api/v1/brands/${brandId}/website`, {
+          method: 'POST',
+          body: JSON.stringify({
+            url: wsUrl.trim().startsWith('http') ? wsUrl.trim() : `https://${wsUrl.trim()}`,
+          }),
+        });
+      } catch {
+        /* website connect stays optional */
+      }
+    }
+    return brandId;
+  }
+
+  async function connectPlatform(name: string) {
+    const network = PLATFORM_NETWORK[name];
+    if (!network) {
+      setCreateError(t('errors.social_unavailable'));
+      return;
+    }
+    if (network === 'universal') {
+      setCreateError(null);
+      setCreateStep(3);
+      return;
+    }
+    setCreateBusy(true);
+    setCreateError(null);
+    try {
+      const brandId = await ensureBrand();
+      const started = await brandSettingsApi.connect(brandId, network);
+      window.location.assign(started.data.authorize_url);
+    } catch (err) {
+      setCreateError(err instanceof Error ? err.message : t('errors.social_unavailable'));
+      setCreateBusy(false);
+    }
   }
 
   async function finishCreate(e: FormEvent) {
@@ -321,54 +365,21 @@ export function PlanableDashboard() {
     }
     setCreateBusy(true);
     try {
-      // Ensure an active company (tenant) exists — self-serve allows one company;
-      // additional Planable "workspaces" are brand workspaces under that company.
-      let tenantId = me?.active_tenant_id;
-      if (!tenantId) {
-        const created = await api<{ data?: { id: string }; id?: string }>('/api/v1/tenants', {
-          method: 'POST',
-          body: JSON.stringify({ name: wsName.trim() }),
-        });
-        tenantId = created.data?.id ?? created.id ?? null;
-        if (tenantId) {
-          try {
-            await api('/api/v1/tenants/active', {
-              method: 'POST',
-              body: JSON.stringify({ tenant_id: tenantId }),
-            });
-          } catch {
-            /* session may already be active */
-          }
-        }
-      }
-
-      // Create brand workspace (unlimited under the company)
-      const brandRes = await api<{ data: { id: string } }>('/api/v1/brands', {
-        method: 'POST',
-        body: JSON.stringify({ name: wsName.trim() }),
+      const brandId = await ensureBrand();
+      const detail = await brandSettingsApi.get(brandId);
+      const pageLabel = pageName.trim() || wsName.trim();
+      const saved = await brandSettingsApi.update(brandId, {
+        version: detail.data.version,
+        ...(pageLabel !== detail.data.name ? { name: pageLabel } : {}),
+        ...(pageLogo ? { logoUrl: pageLogo } : {}),
       });
-      const brandId = brandRes.data?.id;
-      setCreateOpen(false);
-
-      // Optional website connect step
-      if (brandId && wsUrl.trim()) {
-        try {
-          await api(`/api/v1/brands/${brandId}/website`, {
-            method: 'POST',
-            body: JSON.stringify({
-              url: wsUrl.trim().startsWith('http') ? wsUrl.trim() : `https://${wsUrl.trim()}`,
-            }),
-          });
-        } catch {
-          /* website connect optional — user can retry in brand UI */
-        }
-      }
-
-      if (brandId) {
-        window.location.assign(`/app/brands/${brandId}`);
-      } else {
-        window.location.assign('/app/brands');
-      }
+      announceBrandLogo(brandId, saved.data.logo_url ?? pageLogo);
+      await updateContentPreferences(brandId, {
+        defaultTimezone: wsTz,
+        previewStyle: contentStyle,
+        accentColor: pageColor,
+      });
+      window.location.assign(`/app/brands/${brandId}`);
     } catch (err) {
       setCreateError(err instanceof Error ? err.message : t('companies.could_not_create_workspace'));
     } finally {
@@ -520,6 +531,7 @@ export function PlanableDashboard() {
                 key={b.id}
                 id={b.id}
                 name={b.name}
+                logoUrl={b.logo_url}
                 meta={b.primary_website_url || b.status || 'Workspace'}
                 fav={favorites.includes(b.id)}
                 busy={activating === b.id}
@@ -532,7 +544,7 @@ export function PlanableDashboard() {
                 onCloseMenu={() => setWsMenuFor(null)}
                 onInvite={() => {
                   setWsMenuFor(null);
-                  window.location.assign('/app/team');
+                  setInviteOpen(true);
                 }}
                 onSettings={() => {
                   setWsMenuFor(null);
@@ -598,9 +610,10 @@ export function PlanableDashboard() {
         </div>
       )}
 
-      {inviteOpen ? (
-        <InviteModal company={companyName} onClose={() => setInviteOpen(false)} />
-      ) : null}
+      <TeamInviteDialog
+        open={inviteOpen}
+        onClose={() => setInviteOpen(false)}
+      />
 
       {createOpen ? (
         <div
@@ -664,9 +677,9 @@ export function PlanableDashboard() {
                   value={wsTz}
                   onChange={(e) => setWsTz(e.target.value)}
                 >
-                  {TIMEZONES.map((tz) => (
+                  {timezones.map((tz) => (
                     <option key={tz} value={tz}>
-                      {t(LABEL_KEYS[tz] ?? tz)}
+                      {tz.replace(/_/g, ' ')}
                     </option>
                   ))}
                 </select>
@@ -706,15 +719,30 @@ export function PlanableDashboard() {
                 Add all your brands&apos; content channels. You can always add more later.
               </p>
               <div className="plx-platform-grid">
-                {PLATFORMS.map((p) => (
-                  <button key={p.name} type="button" className="plx-platform-tile">
-                    <span className="plx-platform-glyph" style={{ background: p.color }}>
-                      {initials(p.name)}
-                    </span>
-                    <span className="plx-platform-name">{t(LABEL_KEYS[p.name] ?? p.name)}</span>
-                  </button>
-                ))}
+                {PLATFORMS.map((p) => {
+                  const network = PLATFORM_NETWORK[p.name];
+                  return (
+                    <button
+                      key={p.name}
+                      type="button"
+                      className="plx-platform-tile"
+                      disabled={createBusy}
+                      data-available={network ? 'true' : 'false'}
+                      onClick={() => void connectPlatform(p.name)}
+                    >
+                      <span className="plx-platform-glyph" style={{ background: p.color }}>
+                        {initials(p.name)}
+                      </span>
+                      <span className="plx-platform-name">{t(LABEL_KEYS[p.name] ?? p.name)}</span>
+                    </button>
+                  );
+                })}
               </div>
+              {createError ? (
+                <p role="alert" className="plx-error">
+                  {createError}
+                </p>
+              ) : null}
               <div className="plx-connect-footer">
                 <button type="button" className="plx-link-btn" onClick={() => setCreateStep(1)}>
                   {t('companies.go_back')}
@@ -746,9 +774,43 @@ export function PlanableDashboard() {
               <h2 className="plx-modal-title-center">{t('companies.create_a_page_for_any')}</h2>
               <form onSubmit={finishCreate}>
                 <div className="plx-page-form">
-                  <button type="button" className="plx-pic-upload" aria-label={t('companies.add_profile_picture')}>
-                    <ImageIcon />
+                  <button
+                    type="button"
+                    className="plx-pic-upload"
+                    aria-label={t('companies.add_profile_picture')}
+                    onClick={() =>
+                      (document.getElementById('plx-page-logo') as HTMLInputElement | null)?.click()
+                    }
+                  >
+                    {pageLogo ? (
+                      <img src={pageLogo} alt="" width={48} height={48} />
+                    ) : (
+                      <ImageIcon />
+                    )}
                     <span>{t('companies.add_profile_picture')}</span>
+                    <input
+                      id="plx-page-logo"
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,image/gif"
+                      hidden
+                      onChange={async (event) => {
+                        const file = event.target.files?.[0];
+                        event.target.value = '';
+                        if (!file) return;
+                        try {
+                          setPageLogo(await readLogoFile(file));
+                          setCreateError(null);
+                        } catch (err) {
+                          setCreateError(
+                            t(
+                              (err as Error).message === 'size'
+                                ? 'brandSettings.general.logoTooBig'
+                                : 'brandSettings.general.logoType',
+                            ),
+                          );
+                        }
+                      }}
+                    />
                   </button>
                   <div className="plx-page-fields">
                     <label className="plx-label" htmlFor="plx-page-name">
@@ -765,12 +827,22 @@ export function PlanableDashboard() {
                     <div className="plx-page-meta-row">
                       <div>
                         <span className="plx-mini-label">{t('companies.platform_color')}</span>
-                        <span className="plx-color-swatch" />
+                        <input
+                          className="plx-color-swatch"
+                          type="color"
+                          aria-label={t('companies.platform_color')}
+                          value={pageColor}
+                          onChange={(event) => setPageColor(event.target.value)}
+                        />
                       </div>
                       <div>
                         <span className="plx-mini-label">{t('companies.platform_icon')}</span>
-                        <span className="plx-icon-swatch">
-                          <PencilIcon width={14} height={14} />
+                        <span className="plx-icon-swatch" style={{ background: pageColor, color: '#fff' }}>
+                          {pageLogo ? (
+                            <img src={pageLogo} alt="" width={18} height={18} />
+                          ) : (
+                            initials(pageName || wsName || 'P')
+                          )}
                         </span>
                       </div>
                     </div>
@@ -842,9 +914,10 @@ function WorkspaceCard(props: {
   onSettings: () => void;
   onConnect?: () => void;
   onOpenContent?: () => void;
+  logoUrl?: string | null;
 }) {
   const t = useT();
-  const truncate = (n: string) => (n.length > 14 ? `${n.slice(0, 14)}…` : n);
+  const truncate = (n: string) => (n.length > 14 ? `${n.slice(0, 14)}â€¦` : n);
   return (
     <div
       role="button"
@@ -872,7 +945,11 @@ function WorkspaceCard(props: {
         <StarIcon filled={props.fav} />
       </button>
       <span className="plx-ws-avatar">
-        <ImageIcon width={22} height={22} />
+        {props.logoUrl ? (
+          <img src={props.logoUrl} alt="" width={28} height={28} />
+        ) : (
+          <ImageIcon width={22} height={22} />
+        )}
       </span>
       <span className="plx-ws-name">{truncate(props.name)}</span>
       <span className="plx-ws-meta">{props.meta || 'Workspace'}</span>
@@ -934,206 +1011,6 @@ function WorkspaceCard(props: {
         ) : null}
       </div>
       {props.busy ? <OmaDotsLoaderOverlay label={t('companies.opening_workspace')} /> : null}
-    </div>
-  );
-}
-
-function InviteModal({ company, onClose }: { company: string; onClose: () => void }) {
-  const t = useT();
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
-  const [role, setRole] = useState<RoleId>('Administrator');
-  const [roleMenuOpen, setRoleMenuOpen] = useState(false);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [sent, setSent] = useState(false);
-  const [emailNotConfigured, setEmailNotConfigured] = useState(false);
-  const [inviteLink, setInviteLink] = useState<string | null>(null);
-  const roleDef = ROLES.find((r) => r.id === role) ?? ROLES[0];
-
-  async function send(e: FormEvent) {
-    e.preventDefault();
-    if (!email.trim()) {
-      setError(t('companies.type_or_search_email'));
-      return;
-    }
-    setError(null);
-    setBusy(true);
-    try {
-      const res = (await api('/api/v1/tenants/current/invitations', {
-        method: 'POST',
-        body: JSON.stringify({ email: email.trim(), role }),
-      })) as { email_delivery?: string; invite_token?: string } | undefined;
-      setSent(true);
-      if (res?.email_delivery === 'not_configured') {
-        // No email provider: keep the dialog open and offer the secure link instead.
-        setEmailNotConfigured(true);
-        if (res.invite_token) {
-          setInviteLink(
-            `${window.location.origin}/invite?token=${encodeURIComponent(res.invite_token)}`,
-          );
-        }
-        return;
-      }
-      setTimeout(onClose, 900);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function copyLink() {
-    try {
-      await navigator.clipboard.writeText(
-        `${window.location.origin}/invite?role=${encodeURIComponent(role)}`,
-      );
-      setSent(true);
-      setTimeout(onClose, 900);
-    } catch {
-      setError(t('companies.could_not_copy_the_invite'));
-    }
-  }
-
-  return (
-    <div
-      className="plx-modal-backdrop"
-      role="presentation"
-      onMouseDown={(e) => e.target === e.currentTarget && onClose()}
-    >
-      <div
-        className="plx-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-label={t('companies.invite_members_to').replace('{name}', company)}
-      >
-        <button
-          type="button"
-          className="plx-modal-x"
-          aria-label={t('brand.evidence.close')}
-          onClick={onClose}
-        >
-          <CloseIcon />
-        </button>
-        <h2 className="plx-modal-title">
-          {t('companies.invite_members_to').replace('{name}', company)}
-        </h2>
-        <p className="plx-modal-sub">{t('companies.inviting_a_new_company_collaborator')}</p>
-        {sent ? (
-          <div className="plx-invite-sent">
-            <CheckIcon width={22} height={22} />
-            <span>
-              {emailNotConfigured ? t('companies.invite_created') : t('team.invitation_sent')}
-            </span>
-          </div>
-        ) : null}
-        {sent && emailNotConfigured ? (
-          <div className="plx-invite-email-off" role="status">
-            <p className="plx-modal-sub">{t('companies.email_not_configured')}</p>
-            {inviteLink ? (
-              <div className="plx-invite-row">
-                <input className="plx-input-sm" readOnly value={inviteLink} dir="ltr" />
-                <button
-                  type="button"
-                  className="plx-btn"
-                  onClick={() => void navigator.clipboard.writeText(inviteLink)}
-                >
-                  {t('companies.copy_invite_link')}
-                </button>
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-        {!sent ? (
-          <form onSubmit={send}>
-            <div className="plx-invite-row">
-              <input
-                className="plx-input-sm"
-                placeholder={t('companies.type_or_search_email')}
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoFocus
-              />
-              <input
-                className="plx-input-sm"
-                placeholder={t('companies.name_optional')}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-            <div className="plx-role-wrap">
-              <button
-                type="button"
-                className="plx-input-sm plx-role-select"
-                aria-expanded={roleMenuOpen}
-                onClick={() => setRoleMenuOpen((v) => !v)}
-              >
-                {role}
-                <ChevronDownIcon />
-              </button>
-              {roleMenuOpen ? (
-                <>
-                  <div className="plx-perms" role="tooltip">
-                    <span className="plx-perms-title">{t('companies.granted_permissions')}</span>
-                    <ul>
-                      {roleDef.perms.map((perm) => (
-                        <li key={perm.label} className={perm.ok ? '' : 'is-denied'}>
-                          {perm.ok ? (
-                            <CheckIcon width={15} height={15} />
-                          ) : (
-                            <CloseIcon width={15} height={15} />
-                          )}
-                          {t(LABEL_KEYS[perm.label] ?? perm.label)}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  <div className="plx-menu plx-role-menu" role="listbox">
-                    {ROLES.map((r) => (
-                      <button
-                        key={r.id}
-                        type="button"
-                        role="option"
-                        aria-selected={r.id === role}
-                        className={r.id === role ? 'plx-role-option is-active' : 'plx-role-option'}
-                        onClick={() => {
-                          setRole(r.id);
-                          setRoleMenuOpen(false);
-                        }}
-                      >
-                        <strong>{t(LABEL_KEYS[r.id] ?? r.id)}</strong>
-                        <span>{t(LABEL_KEYS[r.desc] ?? r.desc)}</span>
-                      </button>
-                    ))}
-                  </div>
-                </>
-              ) : null}
-            </div>
-            {error ? (
-              <p role="alert" className="plx-error">
-                {error}
-              </p>
-            ) : null}
-            <div className="plx-modal-actions">
-              <button type="button" className="plx-btn plx-btn--outline" onClick={copyLink}>
-                <LinkIcon width={16} height={16} />
-                {t('companies.create_invite_link')}
-              </button>
-              <button type="submit" className="plx-btn plx-btn--primary" disabled={busy}>
-                {busy ? (
-                  <OmaDotsLoader label={t('companies.sending_invite')} />
-                ) : (
-                  <>
-                    <EnvelopeIcon width={16} height={16} />
-                    {t('companies.send_email_invite')}
-                  </>
-                )}
-              </button>
-            </div>
-          </form>
-        ) : null}
-      </div>
     </div>
   );
 }

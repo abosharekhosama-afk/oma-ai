@@ -665,10 +665,28 @@
 }
 .plx-color-swatch {
   display: inline-block;
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid #d5d8de;
   border-radius: 6px;
-  background: #2e3a4e;
+  background: transparent;
+  cursor: pointer;
+}
+.plx-pic-upload img {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+.plx-platform-tile[data-available='false'] {
+  opacity: 0.55;
+}
+.plx-ws-avatar img {
+  width: 28px;
+  height: 28px;
+  object-fit: cover;
+  border-radius: 8px;
 }
 .plx-icon-swatch {
   display: inline-flex;

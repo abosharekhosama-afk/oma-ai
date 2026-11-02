@@ -268,6 +268,27 @@ function workflowSource(current: {
 }
 
 @Injectable()
+const PREVIEW_STYLES = new Set(['default', 'classic', 'modern', 'compact']);
+
+function parsePreviewStyle(value: string | undefined): string | undefined {
+  if (value === undefined) return undefined;
+  const style = value.trim().toLowerCase();
+  if (!PREVIEW_STYLES.has(style)) {
+    throw new DomainError('VALIDATION', 'Unknown content style', 400, 'errors.validation');
+  }
+  return style;
+}
+
+function parseAccentColor(value: string | null | undefined): string | null | undefined {
+  if (value === undefined) return undefined;
+  if (value === null || value.trim() === '') return null;
+  const color = value.trim();
+  if (!/^#[0-9a-fA-F]{6}$/.test(color)) {
+    throw new DomainError('VALIDATION', 'Accent color must be #RRGGBB', 400, 'errors.validation');
+  }
+  return color.toLowerCase();
+}
+
 export class ContentService {
   constructor(private readonly audit: AuditService) {}
 
@@ -1115,6 +1136,8 @@ export class ContentService {
         approval_policy_source: prefs ? 'brand' : 'workspace',
         required_approvers: effective.requiredApprovers,
         default_timezone: prefs?.defaultTimezone ?? 'Asia/Dubai',
+        preview_style: prefs?.previewStyle ?? 'default',
+        accent_color: prefs?.accentColor ?? null,
       },
     };
   }
@@ -1122,11 +1145,18 @@ export class ContentService {
   async updatePreferences(
     tenantId: string,
     brandId: string,
-    patch: { approvalPolicy?: ApprovalPolicy; defaultTimezone?: string },
+    patch: {
+      approvalPolicy?: ApprovalPolicy;
+      defaultTimezone?: string;
+      previewStyle?: string;
+      accentColor?: string | null;
+    },
   ) {
     await this.requireActiveBrand(tenantId, brandId);
     if (patch.defaultTimezone !== undefined)
       patch.defaultTimezone = parseTimezone(patch.defaultTimezone);
+    const previewStyle = parsePreviewStyle(patch.previewStyle);
+    const accentColor = parseAccentColor(patch.accentColor);
     const row = await getPrisma().contentPreferences.upsert({
       where: { brandId },
       create: {
@@ -1134,10 +1164,14 @@ export class ContentService {
         tenantId,
         approvalPolicy: patch.approvalPolicy ?? 'OPTIONAL',
         defaultTimezone: patch.defaultTimezone ?? 'Asia/Dubai',
+        previewStyle: previewStyle ?? 'default',
+        accentColor: accentColor === undefined ? null : accentColor,
       },
       update: {
         ...(patch.approvalPolicy ? { approvalPolicy: patch.approvalPolicy } : {}),
         ...(patch.defaultTimezone ? { defaultTimezone: patch.defaultTimezone } : {}),
+        ...(previewStyle ? { previewStyle } : {}),
+        ...(accentColor !== undefined ? { accentColor } : {}),
       },
     });
     return {
@@ -1145,6 +1179,8 @@ export class ContentService {
         brand_id: brandId,
         approval_policy: row.approvalPolicy,
         default_timezone: row.defaultTimezone,
+        preview_style: row.previewStyle,
+        accent_color: row.accentColor,
       },
     };
   }

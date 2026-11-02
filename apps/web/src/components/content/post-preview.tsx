@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { useT } from '../../lib/use-locale';
 import { NetworkIcon } from './network-icon';
 import {
@@ -53,6 +53,8 @@ export type PostPreviewProps = {
   when?: string | null;
   whenKind?: 'scheduled' | 'planned' | null;
   locale: string;
+  previewStyle?: string | null;
+  accentColor?: string | null;
   size?: 'feed' | 'detail';
   review?: PostPreviewReview;
   onOpen?: () => void;
@@ -613,6 +615,8 @@ export function PostPreview(props: PostPreviewProps) {
       data-network={network}
       data-kind={kind}
       data-size={props.size ?? 'feed'}
+      data-style={props.previewStyle || 'default'}
+      style={props.accentColor ? ({ ['--pp-accent']: props.accentColor } as CSSProperties) : undefined}
       aria-label={t('preview.label')}
     >
       {props.hideNetworkLabel ? null : (

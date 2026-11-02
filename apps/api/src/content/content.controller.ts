@@ -455,7 +455,13 @@ export class ContentController {
   async patchPrefs(
     @Req() req: Request,
     @Param('brandId') brandId: string,
-    @Body() body: { approvalPolicy?: 'NONE' | 'OPTIONAL' | 'REQUIRED'; defaultTimezone?: string },
+    @Body()
+    body: {
+      approvalPolicy?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
+      defaultTimezone?: string;
+      previewStyle?: string;
+      accentColor?: string | null;
+    },
   ) {
     this.requireTenant(req);
     return contentService.updatePreferences(req.oma!.tenantId!, brandId, body);
