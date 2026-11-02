@@ -4,7 +4,7 @@ import { Button } from '@oma/ui/controls';
 import Link from 'next/link';
 import { OmaLinkButton } from '../ui/oma-link-button';
 import { usePathname } from 'next/navigation';
-import { Suspense, useCallback, useEffect, useState, type ReactNode } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Drawer } from '../ui/drawer';
 import { ToastProvider } from '../ui/toast';
 import { useT } from '../../lib/use-locale';
@@ -301,6 +301,8 @@ export function ShellChrome({ children }: { children: ReactNode }) {
   // Only animate the rail after a user toggle (never on first paint / hydration).
   const [railAnimated, setRailAnimated] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [overflowOpen, setOverflowOpen] = useState(false);
+  const overflowRef = useRef<HTMLDivElement | null>(null);
   const [hydrated, setHydrated] = useState(false);
   // Settings card (opened from the account menu, or `?settings=<section>` / the old /app/settings URL).
   const [settingsSection, setSettingsSection] = useState<string | null>(null);
@@ -327,10 +329,20 @@ export function ShellChrome({ children }: { children: ReactNode }) {
     return () => window.removeEventListener(OPEN_SETTINGS_EVENT, onOpen);
   }, []);
 
-  // Close the mobile nav drawer whenever the route changes.
+  // Close the mobile nav drawer / overflow whenever the route changes.
   useEffect(() => {
     setMobileOpen(false);
+    setOverflowOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    if (!overflowOpen) return;
+    function onDoc(e: MouseEvent) {
+      if (!overflowRef.current?.contains(e.target as Node)) setOverflowOpen(false);
+    }
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [overflowOpen]);
 
   useEffect(() => {
     const timers = new Map<Element, number>();
@@ -536,6 +548,26 @@ export function ShellChrome({ children }: { children: ReactNode }) {
                 </OmaLinkButton>
               </div>
             )}
+            <div className="oma-top-overflow" ref={overflowRef} data-testid="shell-top-overflow">
+              <Button
+                type="text"
+                className="oma-top-overflow-trigger"
+                aria-label={t('shell.moreActions') || 'More'}
+                aria-expanded={overflowOpen}
+                aria-haspopup="menu"
+                data-testid="shell-top-overflow-trigger"
+                onClick={() => setOverflowOpen((v) => !v)}
+              >
+                <ShellIcon name="more-h" size={18} />
+              </Button>
+              {overflowOpen ? (
+                <div className="oma-top-overflow-menu" role="menu" data-testid="shell-top-overflow-menu">
+                  <div role="menuitem" className="oma-top-overflow-search">
+                    <CommandSearch compact />
+                  </div>
+                </div>
+              ) : null}
+            </div>
           </header>
           <main id="main" className="oma-container">
             <OfflineBanner />

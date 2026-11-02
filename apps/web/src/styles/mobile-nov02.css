@@ -1,29 +1,50 @@
 /* ==========================================================================
-   Mobile redesign pass (Nov 02). Loaded after mobile-oct27.
-   Scoped to <768px (plus light tablet checks). Desktop unchanged.
-   Planable calm: no gradients/glows. Icon-only header actions. Safe-area.
+   Mobile COMPACT same-design pass (Nov 03). Replaces the Nov 02 restyle.
+   Goal: keep laptop look (tables, cards, filters, chrome) — only rearrange
+   and tighten for phone. Desktop (>=768) must stay pixel-identical.
    ========================================================================== */
 
 :root {
-  --oma-tap: 44px;
-  --oma-space-1: 4px;
-  --oma-space-2: 8px;
-  --oma-space-3: 12px;
-  --oma-space-4: 16px;
+  --oma-m-tap: 40px;
+  --oma-m-header: 52px;
+  --oma-m-space-1: 4px;
+  --oma-m-space-2: 8px;
+  --oma-m-space-3: 12px;
+  --oma-m-fs-body: 14px;
+  --oma-m-fs-title: 17px;
+  --oma-m-drawer: min(280px, 82vw);
 }
 
 @media (max-width: 767px) {
-  /* ---- Safe area + base typography / inputs (avoid iOS zoom) ---- */
+  /* ---- Base: no page horizontal scroll, safe-area, typography, inputs ---- */
+  html body,
+  html body #__next,
+  html body .oma-shell {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+  }
   html body .oma-shell {
     padding-bottom: env(safe-area-inset-bottom, 0);
   }
-  html body .oma-shell-main,
+  html body .oma-shell .oma-container {
+    padding: 6px 8px 16px !important;
+    padding-inline: max(8px, env(safe-area-inset-left, 0px))
+      max(8px, env(safe-area-inset-right, 0px)) !important;
+  }
   html body .oma-page,
-  html body .oma-workspace {
-    padding-inline: max(12px, env(safe-area-inset-left, 0px))
-      max(12px, env(safe-area-inset-right, 0px)) !important;
-    max-width: 100vw !important;
+  html body .oma-workspace,
+  html body .oma-shell-main {
+    max-width: 100% !important;
     overflow-x: hidden !important;
+  }
+  html body {
+    font-size: var(--oma-m-fs-body) !important;
+  }
+  html body .oma-page h1,
+  html body .oma-page-header h1,
+  html body .oma-page-header__title {
+    font-size: var(--oma-m-fs-title) !important;
+    line-height: 1.3 !important;
   }
   html body input,
   html body textarea,
@@ -31,266 +52,473 @@
   html body .ant-input,
   html body .ant-select-selector,
   html body .ant-picker-input > input {
-    font-size: 16px !important; /* prevent iOS focus zoom */
+    font-size: 16px !important; /* iOS: avoid focus zoom */
+  }
+  /* Arabic: wrap titles instead of clipping mid-word */
+  html[dir='rtl'] body .oma-page h1,
+  html[dir='rtl'] body .oma-page h2,
+  html[dir='rtl'] body .oma-card__title,
+  html[lang='ar'] body .oma-page h1,
+  html[lang='ar'] body .oma-page h2 {
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
   }
 
-  /* ---- Header: compact, icon-only, no overflow ---- */
-  html body .oma-top {
-    min-height: var(--oma-tap) !important;
-    height: auto !important;
-    padding: 6px 8px !important;
-    padding-top: max(6px, env(safe-area-inset-top, 0px)) !important;
+  /* ---- Header: single compact row (~52px), no wrap ---- */
+  html body .oma-top,
+  html body .oma-shell .oma-top {
+    height: var(--oma-m-header) !important;
+    min-height: var(--oma-m-header) !important;
+    max-height: var(--oma-m-header) !important;
+    padding: 0 8px !important;
+    padding-top: env(safe-area-inset-top, 0px) !important;
     gap: 6px !important;
     flex-wrap: nowrap !important;
-    overflow: visible !important;
+    align-items: center !important;
+    overflow: hidden !important;
   }
-  html body .oma-top .oma-top-actions .oma-top-action,
-  html body .oma-top .oma-top-actions button,
-  html body .oma-top .oma-mobile-nav-toggle {
-    min-width: var(--oma-tap) !important;
-    min-height: var(--oma-tap) !important;
-    width: var(--oma-tap) !important;
-    height: var(--oma-tap) !important;
+  html body .oma-top-start {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    gap: 4px !important;
+    align-items: center !important;
+  }
+  html body .oma-top-context,
+  html body .oma-breadcrumb,
+  html body .oma-context-trail {
+    min-width: 0 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    flex-wrap: nowrap !important;
+    font-size: 13px !important;
+    line-height: 20px !important;
+  }
+  /* Do NOT let search take a second row */
+  html body .oma-top-center {
+    display: none !important;
+  }
+  html body .oma-mobile-nav-toggle,
+  html body .oma-top-overflow-trigger,
+  html body .oma-top-actions .oma-top-action,
+  html body .oma-top-actions > button,
+  html body .oma-top-actions > a.ant-btn {
+    width: var(--oma-m-tap) !important;
+    min-width: var(--oma-m-tap) !important;
+    height: var(--oma-m-tap) !important;
+    min-height: var(--oma-m-tap) !important;
     padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex: 0 0 auto !important;
     border: none !important;
-    background: transparent !important;
     box-shadow: none !important;
   }
-  html body .oma-top .oma-top-action__label,
-  html body .oma-top .oma-top-actions .ant-btn > span:not(.anticon) {
+  /* Icon-only primary CTAs in the header (hide text labels) */
+  html body .oma-top-actions > a.ant-btn > span:not(:has(svg)):not(.anticon),
+  html body .oma-top-actions > button.ant-btn > span:not(:has(svg)):not(.anticon),
+  html body .oma-top-actions .oma-top-action__label {
     position: absolute !important;
     width: 1px !important;
     height: 1px !important;
     overflow: hidden !important;
     clip: rect(0 0 0 0) !important;
   }
-  html body .oma-top-center {
-    display: none !important; /* search moves to overflow / command on mobile */
+  html body .oma-top-actions {
+    flex: 0 0 auto !important;
+    gap: 2px !important;
+    flex-wrap: nowrap !important;
   }
-  html body .oma-top-context,
-  html body .oma-breadcrumb {
-    min-width: 0 !important;
-    overflow: hidden !important;
+  html body .oma-top-overflow {
+    position: relative !important;
+    flex: 0 0 auto !important;
   }
-  html body .oma-breadcrumb,
-  html body .oma-top-context {
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
+  html body .oma-top-overflow-menu {
+    position: absolute !important;
+    top: calc(100% + 4px) !important;
+    inset-inline-end: 0 !important;
+    min-width: 180px !important;
+    padding: 4px !important;
+    border: 1px solid var(--oma-border, #e6e8ec) !important;
+    border-radius: 8px !important;
+    background: #fff !important;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12) !important;
+    z-index: 60 !important;
   }
-  /* Arabic: allow wrap rather than mid-word clip */
-  html[lang='ar'] body .oma-page h1,
-  html[lang='ar'] body .oma-page h2,
-  html[dir='rtl'] body .oma-page h1,
-  html[dir='rtl'] body .oma-page h2,
-  html[dir='rtl'] body .oma-card__title {
-    overflow-wrap: anywhere !important;
-    word-break: break-word !important;
-    white-space: normal !important;
+  html body .oma-top-overflow-menu button,
+  html body .oma-top-overflow-menu a {
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    width: 100% !important;
+    min-height: var(--oma-m-tap) !important;
+    padding: 0 10px !important;
+    border: 0 !important;
+    background: transparent !important;
+    text-align: start !important;
+    font-size: 14px !important;
+    color: inherit !important;
+    border-radius: 6px !important;
+  }
+  html body .oma-top-overflow-menu button:hover,
+  html body .oma-top-overflow-menu a:hover {
+    background: #f5f6f8 !important;
   }
 
-  /* ---- Sidebar nav drawer: overlay, scroll body, pinned footer, safe-area ---- */
+  /* ---- Sidebar drawer: same rail look, compact width ---- */
   html body .oma-drawer.oma-drawer--nav .ant-drawer-content-wrapper {
-    width: min(88vw, 300px) !important;
-    max-width: 300px !important;
+    width: var(--oma-m-drawer) !important;
+    max-width: var(--oma-m-drawer) !important;
   }
   html body .oma-drawer.oma-drawer--nav .ant-drawer-mask {
-    background: rgba(15, 23, 42, 0.35) !important;
+    background: rgba(15, 23, 42, 0.32) !important;
+  }
+  html body .oma-drawer.oma-drawer--nav .ant-drawer-header {
+    display: none !important;
   }
   html body .oma-drawer.oma-drawer--nav .ant-drawer-body {
     display: flex !important;
     flex-direction: column !important;
     height: 100% !important;
-    padding-bottom: env(safe-area-inset-bottom, 0) !important;
+    padding: 8px 10px !important;
+    padding-bottom: max(8px, env(safe-area-inset-bottom, 0px)) !important;
     overflow: hidden !important;
+    background: #fff !important;
+  }
+  html body .oma-drawer.oma-drawer--nav .oma-mobile-drawer-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    min-height: 40px !important;
+    margin-bottom: 4px !important;
+    flex-shrink: 0 !important;
   }
   html body .oma-drawer.oma-drawer--nav .oma-mobile-drawer-nav {
     flex: 1 1 auto !important;
+    min-height: 0 !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
-    min-height: 0 !important;
+  }
+  html body .oma-drawer.oma-drawer--nav .oma-nav-link {
+    min-height: 36px !important;
+    padding: 6px 8px !important;
+    font-size: 13px !important;
+    border-radius: 6px !important;
   }
   html body .oma-drawer.oma-drawer--nav .oma-rail-footer,
   html body .oma-drawer.oma-drawer--nav .oma-rail-utilities {
     flex-shrink: 0 !important;
     position: sticky !important;
     bottom: 0 !important;
-    background: var(--oma-surface, #fff) !important;
-    padding-bottom: max(8px, env(safe-area-inset-bottom, 0px)) !important;
-    border-top: 1px solid var(--oma-border, #e6e8ec) !important;
-  }
-  html body .oma-drawer.oma-drawer--nav .oma-nav-link {
-    min-height: var(--oma-tap) !important;
+    background: #fff !important;
+    border-top: 1px solid #e6e7e9 !important;
+    padding-top: 6px !important;
+    margin-top: 6px !important;
   }
 
-  /* ---- Filter sections → sticky chips / sheet trigger ---- */
+  /* ---- Filters / status tabs: same controls, one compact horizontal row ---- */
   html body .oma-filter-bar,
   html body .oma-req-filters,
   html body .oma-tasks-filters,
   html body .oma-deliv-filters,
   html body .oma-campaign-filters,
-  html body [data-testid='content-filters'] {
-    position: sticky !important;
-    top: 0 !important;
-    z-index: 5 !important;
+  html body .oma-stage3-toolbar,
+  html body [data-testid='content-filters'],
+  html body .oma-req-filter-tabs,
+  html body .oma-chip-row,
+  html body .oma-ws-tabs,
+  html body .oma-req-tabs,
+  html body .oma-deliv-groups,
+  html body [data-testid='demo-deliv-groups'],
+  html body .oma-campaign-status-tabs {
     display: flex !important;
     flex-wrap: nowrap !important;
-    gap: 8px !important;
+    align-items: center !important;
+    gap: 6px !important;
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
-    padding: 8px 0 !important;
     scrollbar-width: none !important;
-    background: var(--oma-surface, #fff) !important;
+    padding: 4px 0 !important;
+    max-width: 100% !important;
   }
   html body .oma-filter-bar::-webkit-scrollbar,
-  html body .oma-req-filters::-webkit-scrollbar {
+  html body .oma-req-filters::-webkit-scrollbar,
+  html body .oma-chip-row::-webkit-scrollbar,
+  html body .oma-ws-tabs::-webkit-scrollbar,
+  html body .oma-req-tabs::-webkit-scrollbar,
+  html body .oma-deliv-groups::-webkit-scrollbar {
     display: none !important;
   }
   html body .oma-filter-bar .ant-btn,
   html body .oma-filter-chip,
-  html body .oma-chip {
-    min-height: var(--oma-tap) !important;
+  html body .oma-chip,
+  html body .oma-req-filters .ant-select,
+  html body .oma-req-filters .ant-btn,
+  html body .oma-ws-tab,
+  html body .oma-req-tab {
     flex: 0 0 auto !important;
+    white-space: nowrap !important;
+    min-height: 32px !important;
+    height: auto !important;
+    font-size: 13px !important;
   }
 
-  /* ---- Tables → stacked cards or horizontal scroll ---- */
-  html body table.oma-table,
-  html body .ant-table-wrapper,
-  html body .oma-data-table {
+  /* Keep breadcrumb view switcher reachable on phone (list vs grid) */
+  html body .oma-top .oma-breadcrumb-view,
+  html body .oma-top-context .oma-breadcrumb-view,
+  html body .oma-top [data-testid='demo-deliv-view-toggle'],
+  html body .oma-top [data-testid='demo-deliv-view-menu'],
+  html body #oma-content-view-slot {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    align-items: center !important;
+    min-height: 32px !important;
+    max-width: 72px !important;
+    font-size: 12px !important;
+  }
+
+  /* ---- TABLES stay tables (undo stacked-card mobile lists) ---- */
+  html body .oma-deliv-desktop,
+  html body .oma-req-desktop,
+  html body .oma-task-desktop,
+  html body .oma-campaign-table,
+  html body .oma-deliv-table-wrap,
+  html body .oma-req-table-wrap {
     display: block !important;
     width: 100% !important;
+    max-width: 100% !important;
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
   }
-  html body .oma-table-card,
-  html body .oma-deliv-mobile-card,
-  html body .oma-campaign-mobile-card,
-  html body .oma-req-mobile-card,
-  html body .oma-task-mobile-card {
-    display: block !important;
-    padding: 12px !important;
-    margin-bottom: 8px !important;
-    border: 1px solid var(--oma-border, #e6e8ec) !important;
-    border-radius: 10px !important;
-    background: var(--oma-surface, #fff) !important;
+  html body .oma-deliv-mobile,
+  html body .oma-req-mobile,
+  html body .oma-task-mobile,
+  html body .oma-campaign-mobile-list {
+    display: none !important;
+  }
+  html body .oma-deliv-table,
+  html body .oma-req-table,
+  html body .oma-task-table,
+  html body table.oma-table,
+  html body .ant-table {
+    font-size: 13px !important;
+  }
+  html body .oma-deliv-table th,
+  html body .oma-deliv-table td,
+  html body .oma-req-table th,
+  html body .oma-req-table td,
+  html body .oma-task-table th,
+  html body .oma-task-table td,
+  html body .oma-campaign-table-head,
+  html body .oma-campaign-table-row {
+    padding: 6px 8px !important;
+    white-space: nowrap !important;
+  }
+  /* Sticky first column when scrolling tables */
+  html body .oma-deliv-table th:first-child,
+  html body .oma-deliv-table td:first-child,
+  html body .oma-req-table th:first-child,
+  html body .oma-req-table td:first-child {
+    position: sticky !important;
+    inset-inline-start: 0 !important;
+    background: #fff !important;
+    z-index: 1 !important;
   }
 
-  /* ---- Modals → full-screen sheets ---- */
+  /* ---- Cards: same design, fewer columns, tighter padding ---- */
+  html body .oma-deliv-grid,
+  html body .oma-campaign-grid,
+  html body .oma-brand-grid,
+  html body .oma-home-grid,
+  html body .oma-card-grid {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+  @media (min-width: 480px) {
+    html body .oma-deliv-grid,
+    html body .oma-campaign-grid,
+    html body .oma-brand-grid {
+      grid-template-columns: 1fr 1fr !important;
+    }
+  }
+  html body .oma-deliv-grid-card,
+  html body .oma-campaign-card,
+  html body .oma-brand-card,
+  html body .oma-card,
+  html body .oma-feed-card,
+  html body .oma-content-card,
+  html body .oma-post-preview {
+    padding: 10px !important;
+    max-width: 100% !important;
+  }
+
+  /* ---- Modals: same design, near-full width with safe margins (NOT 100vh sheets) ---- */
   html body .ant-modal {
-    max-width: 100vw !important;
-    margin: 0 !important;
-    top: 0 !important;
+    max-width: calc(100vw - 24px) !important;
+    margin: 12px auto !important;
+    top: 24px !important;
     padding-bottom: 0 !important;
   }
   html body .ant-modal-content {
-    min-height: 100dvh !important;
-    border-radius: 0 !important;
-    display: flex !important;
-    flex-direction: column !important;
+    min-height: 0 !important;
+    border-radius: 10px !important;
   }
   html body .ant-modal-body {
-    flex: 1 1 auto !important;
+    max-height: calc(100dvh - 120px) !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
   }
-  html body .ant-drawer-content-wrapper {
-    width: 100vw !important;
-    max-width: 100vw !important;
+  /* Detail drawers: keep side drawer look but cap width */
+  html body .oma-drawer:not(.oma-drawer--nav) .ant-drawer-content-wrapper {
+    width: min(100vw - 16px, 420px) !important;
+    max-width: calc(100vw - 16px) !important;
   }
 
-  /* ---- Composer usable on mobile ---- */
+  /* ---- Composer / calendar: compact, same components ---- */
   html body .oma-compose,
   html body .oma-compose-panel,
   html body [data-testid='compose-panel'] {
     width: 100% !important;
-    max-width: 100vw !important;
-    padding: 12px !important;
+    max-width: 100% !important;
+    padding: 8px !important;
   }
   html body .oma-compose-footer {
-    position: sticky !important;
-    bottom: 0 !important;
-    bottom: env(safe-area-inset-bottom, 0) !important;
-    background: var(--oma-surface, #fff) !important;
-    padding: 8px 0 !important;
-    gap: 8px !important;
+    gap: 6px !important;
     flex-wrap: wrap !important;
+    padding: 6px 0 !important;
   }
   html body .oma-compose-footer .ant-btn {
-    min-height: var(--oma-tap) !important;
-  }
-
-  /* ---- Calendar: day / agenda friendly ---- */
-  html body [data-testid='demo-content-calendar'] .oma-cal-grid,
-  html body .oma-cal-month {
-    min-width: 0 !important;
+    min-height: 36px !important;
   }
   html body .oma-cal-day-cell {
-    min-height: 64px !important;
+    min-height: 56px !important;
   }
   html body .oma-cal-event {
     font-size: 11px !important;
-    line-height: 1.3 !important;
-    white-space: normal !important;
+    line-height: 1.25 !important;
   }
 
-  /* ---- Page headers ---- */
-  html body .oma-page-header,
+  /* ---- Page headers compact ---- */
+  html body .oma-page-header {
+    gap: 6px !important;
+    margin-bottom: 8px !important;
+  }
   html body .oma-page-header__row {
-    flex-wrap: wrap !important;
-    gap: 8px !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+    align-items: center !important;
   }
   html body .oma-page-header__actions {
-    width: 100% !important;
-    justify-content: flex-end !important;
-    gap: 6px !important;
+    flex: 0 0 auto !important;
+    gap: 4px !important;
   }
   html body .oma-page-header__actions .ant-btn {
-    min-height: var(--oma-tap) !important;
-    min-width: var(--oma-tap) !important;
+    min-height: 36px !important;
   }
 
-  /* ---- Tap targets ---- */
-  html body .oma-rail a,
-  html body .oma-rail button,
-  html body .oma-nav-link,
-  html body .oma-icon-btn {
-    min-height: var(--oma-tap) !important;
-  }
-
-  /* ---- No horizontal page scroll ---- */
-  html body,
-  html body #__next,
-  html body .oma-shell {
-    overflow-x: hidden !important;
-    max-width: 100vw !important;
-  }
-}
-
-/* Tablet: keep filters usable without full phone sheet */
-@media (max-width: 1024px) and (min-width: 768px) {
-  html body .oma-filter-bar,
-  html body .oma-req-filters {
-    flex-wrap: wrap !important;
-    gap: 8px !important;
-  }
-}
-
-
-@media (max-width: 767px) {
-  html body .oma-top-actions .ant-btn-primary {
-    min-height: var(--oma-tap) !important;
-    min-width: var(--oma-tap) !important;
-  }
-  /* Content card preview: full width, no side overflow */
-  html body .oma-post-preview,
-  html body .oma-content-card,
-  html body .oma-feed-card {
-    max-width: 100% !important;
-  }
-  /* Auth / select-company */
+  /* ---- Auth / select-company ---- */
   html body .oma-select-company,
   html body .oma-auth-card,
   html body .oma-planable-dashboard {
-    padding: 16px 12px !important;
+    padding: 12px 10px !important;
     max-width: 100% !important;
+  }
+}
+
+/* Tablet: keep tables, slightly tighter filters */
+@media (max-width: 1024px) and (min-width: 768px) {
+  html body .oma-deliv-desktop,
+  html body .oma-req-desktop,
+  html body .oma-task-desktop,
+  html body .oma-campaign-table {
+    display: block !important;
+    overflow-x: auto !important;
+  }
+  html body .oma-deliv-mobile,
+  html body .oma-req-mobile,
+  html body .oma-task-mobile,
+  html body .oma-campaign-mobile-list {
+    display: none !important;
+  }
+}
+
+/* Extra overrides for stage3/4/5 breakpoints that restyle into mobile-only layouts */
+@media (max-width: 900px) {
+  html body .oma-deliv-desktop,
+  html body .oma-req-desktop,
+  html body .oma-task-desktop {
+    display: block !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  html body .oma-deliv-mobile,
+  html body .oma-req-mobile,
+  html body .oma-task-mobile {
+    display: none !important;
+  }
+}
+
+@media (max-width: 720px) {
+  html body .oma-campaign-table {
+    display: block !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  html body .oma-campaign-mobile-list {
+    display: none !important;
+  }
+  html body .oma-campaign-table-head {
+    display: grid !important;
+  }
+  html body .oma-cal-grid {
+    display: grid !important;
+    overflow-x: auto !important;
+    min-width: 0 !important;
+  }
+  html body .oma-stage3-toolbar .oma-filter-desktop {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    gap: 6px !important;
+  }
+  html body .oma-page-header {
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+  }
+}
+
+@media (max-width: 767px) {
+  html body .oma-top-overflow-search .oma-rail-search,
+  html body .oma-top-overflow-search .oma-command-trigger {
+    width: 100% !important;
+    min-height: 40px !important;
+    height: auto !important;
+    justify-content: flex-start !important;
+    padding: 0 10px !important;
+    gap: 8px !important;
+  }
+  html body .oma-top-overflow-search .oma-command-trigger-label,
+  html body .oma-top-overflow-search .oma-rail-search .oma-command-trigger-label {
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    clip: auto !important;
+    overflow: visible !important;
+    font-size: 14px !important;
+  }
+}
+
+/* Overflow menu trigger is phone-only */
+@media (min-width: 768px) {
+  html body .oma-top-overflow {
+    display: none !important;
+  }
+}
+@media (max-width: 767px) {
+  html body .oma-top-overflow {
+    display: block !important;
   }
 }

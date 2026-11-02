@@ -87,6 +87,7 @@ const drawings: Record<NavIconId, IconDrawing> = {
   },
   'chevron-down': { paths: ['m6 9 6 6 6-6'] },
   check: { paths: ['M20 6 9 17l-5-5'] },
+  'more-h': { paths: [], circles: [[6, 12, 1.25], [12, 12, 1.25], [18, 12, 1.25]] },
   'list-view': {
     paths: ['M8 7h12', 'M8 12h12', 'M8 17h12', 'M4 7h.01', 'M4 12h.01', 'M4 17h.01'],
   },
