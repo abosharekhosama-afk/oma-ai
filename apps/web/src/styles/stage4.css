@@ -7542,3 +7542,20 @@ button.oma-breadcrumb-workspace:hover {
   gap: 8px !important;
   margin-top: 8px !important;
 }
+
+
+/* MOBILE_TABS_NOV03: single-row scroll on phone */
+@media (max-width: 767px) {
+  .oma-ws-tabs,
+  .oma-req-tabs,
+  .oma-req-header .oma-req-tabs {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+  }
+  .oma-ws-tab,
+  .oma-req-tab {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+  }
+}

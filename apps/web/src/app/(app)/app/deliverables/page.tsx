@@ -1,4 +1,5 @@
 'use client';
+import { useIsMobile } from '../../../../lib/use-is-mobile';
 import { DeliverablesShimmer } from '../../../../components/ui/screen-shimmer';
 import { useReloadOnBrandChange } from '../../../../lib/active-brand';
 import { Button, Input } from '@oma/ui/controls';
@@ -61,6 +62,10 @@ export default function DeliverablesPage() {
   const [error, setError] = useState<string | null>(null);
   const [unavailable, setUnavailable] = useState(false);
   const [filterSheet, setFilterSheet] = useState(false);
+  const isMobile = useIsMobile();
+  useEffect(() => {
+    if (isMobile) setFilters((f) => (f.view === 'list' ? f : { ...f, view: 'list' }));
+  }, [isMobile]);
   const [viewMenuOpen, setViewMenuOpen] = useState(false);
   const [filterSection, setFilterSection] = useState<string | null>('search');
   const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
@@ -174,7 +179,7 @@ export default function DeliverablesPage() {
 
   return (
     <div
-      className="oma-deliv-page"
+      className="oma-deliv-page oma-m-compact-page"
       data-testid="demo-deliverables"
       data-prefs={prefsLoaded ? '1' : '0'}
     >
@@ -188,15 +193,15 @@ export default function DeliverablesPage() {
             <div className="oma-workspace-header-actions">
               <button
                 type="button"
-                className="oma-req-filter-btn"
+                className="oma-header-icon-btn"
                 data-testid="demo-deliv-open-filters"
                 data-active={filterSheet ? 'true' : 'false'}
+                aria-label={locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter'}
                 onClick={() => setFilterSheet((v) => !v)}
               >
                 <FilterOutlined />
-                <span>{locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter'}</span>
                 {filterCount > 0 ? (
-                  <span className="oma-req-filter-btn__count">{filterCount}</span>
+                  <span className="oma-header-icon-btn__badge">{filterCount}</span>
                 ) : null}
               </button>
             </div>,
@@ -304,13 +309,13 @@ export default function DeliverablesPage() {
             data-filter-open={filterSheet ? 'true' : 'false'}
           >
             <div className="oma-req-main">
-              <p className="oma-muted" data-testid="demo-deliv-result-count">
+              <p className="oma-muted oma-m-hide-on-phone" data-testid="demo-deliv-result-count">
                 {filtered.length} / {rows.length}
               </p>
 
               {filtered.length === 0 ? (
                 <EmptyState title={t('demo.empty')} body={t('demo.deliverables.emptyHint')} />
-              ) : filters.view === 'grid' ? (
+              ) : (filters.view === 'grid' && !isMobile) ? (
                 <div className="oma-deliv-grid" data-testid="demo-deliv-grid">
                   {filtered.map((d) => {
                     const ver = currentVersion(d);
@@ -429,21 +434,34 @@ export default function DeliverablesPage() {
                     </table>
                   </div>
                   <ul className="oma-deliv-mobile" aria-label={t('demo.deliverables.title')}>
-                    {filtered.map((d) => (
+                    {filtered.map((d) => {
+                      const ver = currentVersion(d);
+                      const thumb = ver?.assets?.[0];
+                      return (
                       <li key={d.id}>
                         <Link
                           href={`/app/deliverables/${d.id}`}
-                          className="oma-deliv-mobile-card"
+                          className="oma-deliv-mobile-card oma-m-row"
                           data-overdue={deliverableIsOverdue(d) ? 'true' : 'false'}
                         >
-                          <strong>{pickCopy(d.title, locale)}</strong>
-                          <StatusChip status={d.reviewStatus} />
-                          <span className="oma-muted">
+                          {thumb ? (
+                            <MediaSurface className="oma-m-row__avatar oma-deliv-thumb" src={thumb} mime={versionMime(ver)} alt="" />
+                          ) : (
+                            <span className="oma-m-row__avatar" aria-hidden="true">
+                              {(pickCopy(d.title, locale) || 'D').slice(0, 1).toUpperCase()}
+                            </span>
+                          )}
+                          <strong className="oma-m-row__title">{pickCopy(d.title, locale)}</strong>
+                          <div className="oma-m-row__status">
+                            <StatusChip status={d.reviewStatus} />
+                          </div>
+                          <span className="oma-muted oma-m-row__meta">
                             {d.owner} · {d.dueAt}
                           </span>
                         </Link>
                       </li>
-                    ))}
+                      );
+                    })}
                   </ul>
                 </>
               )}

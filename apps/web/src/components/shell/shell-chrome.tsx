@@ -40,6 +40,42 @@ const SettingsPanel = dynamic(
 );
 import { PlxLogo } from '../ui/plx-icons';
 
+
+const MOBILE_TABS: Array<{ href: string; labelKey: string; icon: import('./nav-config').NavIconId; match?: (path: string) => boolean }> = [
+  { href: '/app', labelKey: 'nav.home', icon: 'home', match: (p) => p === '/app' || p === '/app/' },
+  { href: '/app/content', labelKey: 'nav.contentShort', icon: 'content' },
+  { href: '/app/campaigns', labelKey: 'nav.campaigns', icon: 'campaigns' },
+  { href: '/app/analytics', labelKey: 'nav.analytics', icon: 'analytics' },
+];
+
+function MobileTabBar({ onMore }: { onMore: () => void }) {
+  const t = useT();
+  const pathname = usePathname() || '/app';
+  return (
+    <nav className="oma-m-tabbar" aria-label={t('nav.primary')} data-testid="mobile-tabbar">
+      {MOBILE_TABS.map((tab) => {
+        const active = tab.match ? tab.match(pathname) : pathname === tab.href || pathname.startsWith(tab.href + '/');
+        return (
+          <Link
+            key={tab.href}
+            href={tab.href}
+            className="oma-m-tabbar__item"
+            data-active={active ? 'true' : 'false'}
+            aria-current={active ? 'page' : undefined}
+          >
+            <ShellIcon name={tab.icon} size={22} />
+            <span>{t(tab.labelKey)}</span>
+          </Link>
+        );
+      })}
+      <button type="button" className="oma-m-tabbar__item" data-testid="mobile-tabbar-more" onClick={onMore}>
+        <ShellIcon name="menu" size={22} />
+        <span>{t('nav.section.more')}</span>
+      </button>
+    </nav>
+  );
+}
+
 function RailNav({ collapsed }: { collapsed: boolean }) {
   const t = useT();
   const pathname = usePathname() || '/app';
@@ -517,17 +553,17 @@ export function ShellChrome({ children }: { children: ReactNode }) {
                 <OmaLinkButton
                   href="/app/brands/new"
                   type="primary"
+                  className="oma-header-icon-btn oma-header-icon-btn--primary"
                   data-testid="shell-create-brand"
+                  aria-label={t('brand.list.create')}
                 >
-                  <ShellIcon name="plus" size={16} />
-                  <span>{t('brand.list.create')}</span>
+                  <ShellIcon name="plus" size={18} />
                 </OmaLinkButton>
               </div>
             ) : pathname === '/app/team' ? (
               <div className="oma-top-actions">
-                <Button type="primary" data-testid="shell-invite-members" onClick={openTeamInvite}>
-                  <ShellIcon name="plus" size={16} />
-                  <span>{t('team.invite_members')}</span>
+                <Button type="primary" className="oma-header-icon-btn oma-header-icon-btn--primary" data-testid="shell-invite-members" aria-label={t('team.invite_members')} onClick={openTeamInvite}>
+                  <ShellIcon name="plus" size={18} />
                 </Button>
               </div>
             ) : isBrandDetail && brandIdFromPath && !pathname.endsWith('/settings') ? (
@@ -535,16 +571,17 @@ export function ShellChrome({ children }: { children: ReactNode }) {
                 <OmaLinkButton
                   href={`/app/brands/${brandIdFromPath}/connect`}
                   type="primary"
+                  className="oma-header-icon-btn oma-header-icon-btn--primary"
                   data-testid="shell-connect-website"
+                  aria-label={t('brand.detail.connectCta')}
                 >
-                  <span>{t('brand.detail.connectCta')}</span>
+                  <ShellIcon name="link" size={18} />
                 </OmaLinkButton>
               </div>
             ) : (
               <div className="oma-top-actions">
-                <OmaLinkButton href="/app/requests" type="primary" data-testid="shell-create">
-                  <ShellIcon name="plus" size={16} />
-                  <span>{t('shell.create')}</span>
+                <OmaLinkButton href="/app/requests" type="primary" className="oma-header-icon-btn oma-header-icon-btn--primary" data-testid="shell-create" aria-label={t('shell.create')}>
+                  <ShellIcon name="plus" size={18} />
                 </OmaLinkButton>
               </div>
             )}
@@ -606,6 +643,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
             onClose={() => setSettingsSection(null)}
           />
         ) : null}
+        <MobileTabBar onMore={() => setMobileOpen(true)} />
         <SessionKeeper />
         <SessionInvalidOverlay />
       </div>

@@ -1844,3 +1844,117 @@ html[dir='rtl'] .oma-switch input:checked + .oma-switch__track::after,
     align-items: flex-start;
   }
 }
+
+
+/* MOBILE_TABS_CASCADE_LOCK_NOV03
+   Beat stage4 `.oma-req-page .oma-req-tabs.oma-ws-tabs { flex-wrap:wrap }` (0,3,0) */
+@media (max-width: 767px) {
+  html body .oma-req-page .oma-req-tabs.oma-ws-tabs,
+  html body .oma-req-page .oma-ws-tabs.oma-req-tabs,
+  html body .oma-req-header .oma-req-tabs.oma-ws-tabs,
+  html body .oma-req-header .oma-ws-tabs.oma-req-tabs,
+  html body .oma-deliv-page .oma-req-tabs.oma-ws-tabs,
+  html body .oma-deliv-topbar .oma-req-tabs.oma-ws-tabs,
+  html body .oma-m-compact-page .oma-req-tabs.oma-ws-tabs,
+  html body .oma-campaigns-page .oma-ws-tabs,
+  html body .oma-campaigns-page .oma-campaign-status-tabs {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    flex-flow: row nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    white-space: nowrap !important;
+  }
+  html body .oma-req-page .oma-req-tabs.oma-ws-tabs > *,
+  html body .oma-req-page .oma-ws-tabs.oma-req-tabs > *,
+  html body .oma-req-page .oma-req-tab,
+  html body .oma-req-page .oma-ws-tab {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+  }
+}
+
+
+/* MOBILE_REQ_HEADER_COMPACT_NOV03 */
+@media (max-width: 767px) {
+  html body .oma-req-header__subtitle,
+  html body .oma-req-page .oma-page-header__subtitle,
+  html body .oma-req-header .oma-muted.description,
+  html body .oma-req-result-count,
+  html body .oma-req-header [data-testid='demo-request-count'],
+  html body .oma-req-page .oma-result-count {
+    display: none !important;
+  }
+  html body .oma-req-header__title {
+    display: flex !important;
+    align-items: baseline !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+  }
+  html body .oma-req-header__title h1 {
+    margin: 0 !important;
+  }
+  html body .oma-req-header__count {
+    display: inline !important;
+  }
+  /* Hide Next.js / Turbopack badges always on phone shots */
+  html body [data-next-mark-loading],
+  html body nextjs-portal,
+  html body #__next-build-watcher,
+  html body [data-nextjs-toast],
+  html body [data-nextjs-dialog],
+  html body .nextjs-toast-errors-parent,
+  html body #__nextjs-dev-indicator,
+  html body [aria-label*='Next.js'] {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    opacity: 0 !important;
+  }
+}
+
+
+/* MOBILE_WIDTH_CONTAIN_NOV03: keep nowrap tabs from blowing past viewport */
+@media (max-width: 767px) {
+  html body .oma-req-page,
+  html body .oma-req-workspace,
+  html body .oma-req-main,
+  html body .oma-req-mobile,
+  html body .oma-deliv-page,
+  html body .oma-deliv-workspace,
+  html body .oma-m-compact-page,
+  html body .oma-stack {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+  html body .oma-req-page .oma-req-tabs.oma-ws-tabs,
+  html body .oma-req-page .oma-ws-tabs.oma-req-tabs,
+  html body .oma-req-header .oma-req-tabs,
+  html body .oma-req-header,
+  html body .oma-req-header__left {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+  html body .oma-req-mobile-card,
+  html body .oma-m-row,
+  html body .oma-deliv-mobile-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin-inline: 0 !important;
+    left: auto !important;
+  }
+  html body .oma-req-page .oma-req-tab,
+  html body .oma-req-page .oma-ws-tab {
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+  }
+}
