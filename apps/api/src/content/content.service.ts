@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { getPrisma, tenantWhere } from '@oma/db';
+import { billingService } from '../billing/billing.service';
 import { brandTimezone } from '../brand/brand.service';
 import { parseTimezone } from '../brand/brand-input';
 import {
@@ -474,6 +475,12 @@ export class ContentService {
     correlationId?: string,
   ) {
     await this.requireActiveBrand(tenantId, brandId);
+    const planCode = await billingService.getPlanCode(tenantId);
+    if (planCode === 'free') {
+      await billingService.assertWithinLimit(tenantId, 'posts_total');
+    } else {
+      await billingService.assertWithinLimit(tenantId, 'posts_per_month');
+    }
     const media = await resolvePreviewAssets(
       tenantId,
       brandId,

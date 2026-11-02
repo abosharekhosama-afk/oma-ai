@@ -194,7 +194,7 @@ const routeRequirements: Record<string, string[]> = {
   'GET /api/v1/brands/:brandId/deliverables': ['deliverable.read'],
   'GET /api/v1/deliverables/:deliverableId': ['deliverable.read'],
   'PATCH /api/v1/deliverables/:deliverableId': ['deliverable.write'],
-  'POST /api/v1/deliverables/:deliverableId/review': ['deliverable.read'],
+  'POST /api/v1/deliverables/:deliverableId/review': ['deliverable.review.decide'],
   'POST /api/v1/deliverables/:deliverableId/versions': ['deliverable.version.create'],
   'POST /api/v1/deliverables/:deliverableId/annotations': ['deliverable.annotate'],
   'PATCH /api/v1/deliverable-annotations/:annotationId': ['deliverable.annotate'],
@@ -230,6 +230,11 @@ const routeRequirements: Record<string, string[]> = {
   'POST /api/v1/brands/:brandId/content-templates': ['content.create'],
   'DELETE /api/v1/brands/:brandId/content-templates/:templateId': ['content.update'],
   'POST /api/v1/brands/:brandId/content-templates/:templateId/use': ['content.create'],
+  'GET /api/v1/billing/plans': ['brand.read'],
+  'GET /api/v1/billing/subscription': ['brand.read'],
+  'PATCH /api/v1/billing/subscription': ['tenant.manage'],
+  'POST /api/v1/billing/upgrade-requests': ['brand.read'],
+  'GET /api/v1/billing/upgrade-requests': ['tenant.manage'],
 };
 
 export function matchRequirements(method: string, path: string): string[] | null {

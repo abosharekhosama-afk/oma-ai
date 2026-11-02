@@ -6,6 +6,7 @@ import { brandConnectorMode } from './connector-mode';
 import { parseBrandName, type BrandSettingsInput } from './brand-input';
 import { DEFAULT_SCHEDULE_TZ } from '../common/schedule-timezone';
 import { isValidTimezone } from '../common/zoned-time';
+import { billingService } from '../billing/billing.service';
 
 type Tx = Parameters<Parameters<ReturnType<typeof getPrisma>['$transaction']>[0]>[0];
 
@@ -138,6 +139,7 @@ export class BrandService {
     input: { name: string },
     correlationId?: string,
   ) {
+    await billingService.assertWithinLimit(tenantId, 'brands');
     const name = parseBrandName((input as { name?: unknown } | null)?.name);
     const prisma = getPrisma();
     const ws = await prisma.workspaceSetting.findFirst({

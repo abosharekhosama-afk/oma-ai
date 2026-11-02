@@ -33,6 +33,7 @@ import { ContentController } from './content/content.controller';
 import { OpsController } from './content/ops.controller';
 import { ContentExtrasController } from './content/content-extras.controller';
 import { AiController } from './ai/ai.controller';
+import { BillingController } from './billing/billing.controller';
 
 @Module({
   controllers: [
@@ -65,6 +66,7 @@ import { AiController } from './ai/ai.controller';
     SocialController,
     WorkDriveController,
     MediaController,
+    BillingController,
   ],
   providers: [
     { provide: APP_FILTER, useClass: DomainExceptionFilter },

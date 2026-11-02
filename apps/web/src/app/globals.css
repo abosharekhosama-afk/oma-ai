@@ -1385,47 +1385,66 @@ html body .oma-shell:has(.oma-activity-page) > .oma-rail {
   max-height: 100dvh !important;
   overflow: hidden !important;
 }
-html body .oma-shell:has(.oma-activity-page) > .oma-rail > .oma-rail-header,
-html body .oma-shell:has(.oma-activity-page) > .oma-rail > .oma-rail-endorsement,
-html body .oma-shell:has(.oma-activity-page) > .oma-rail > .oma-ws-row,
-html body .oma-shell:has(.oma-activity-page) > .oma-rail > .oma-rail-footer {
-  flex: 0 0 auto !important;
+/* Global rail pin (was activity-only): account + notifications stay visible on every page/viewport. */
+html body .oma-shell {
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  align-items: stretch !important;
+}
+html body .oma-shell > .oma-rail {
+  display: flex !important;
+  flex-direction: column !important;
   position: sticky !important;
+  top: 0 !important;
+  align-self: stretch !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+html body .oma-shell > .oma-rail > .oma-rail-header,
+html body .oma-shell > .oma-rail > .oma-rail-endorsement,
+html body .oma-shell > .oma-rail > .oma-ws-row,
+html body .oma-shell > .oma-rail > .oma-rail-footer {
+  flex: 0 0 auto !important;
+  position: relative !important;
   z-index: 3 !important;
   background: #fff !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
-html body .oma-shell:has(.oma-activity-page) > .oma-rail > .oma-rail-header,
-html body .oma-shell:has(.oma-activity-page) > .oma-rail > .oma-rail-endorsement,
-html body .oma-shell:has(.oma-activity-page) > .oma-rail > .oma-ws-row {
-  top: 0 !important;
+html body .oma-shell > .oma-rail > .oma-rail-footer {
+  margin-block-start: auto !important;
+  display: flex !important;
 }
-html body .oma-shell:has(.oma-activity-page) > .oma-rail > .oma-rail-footer {
-  bottom: 0 !important;
-}
-html body .oma-shell:has(.oma-activity-page) > .oma-rail > .oma-nav {
+html body .oma-shell > .oma-rail > .oma-nav {
   flex: 1 1 auto !important;
   min-height: 0 !important;
   overflow-x: hidden !important;
   overflow-y: auto !important;
   overscroll-behavior: contain !important;
 }
-html body .oma-shell-column:has(.oma-activity-page) {
+html body .oma-shell-column {
   height: 100dvh !important;
   max-height: 100dvh !important;
   overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
 }
-html body .oma-shell-column:has(.oma-activity-page) > .oma-top {
+html body .oma-shell-column > .oma-top {
   position: sticky !important;
   top: 0 !important;
   z-index: 8 !important;
   flex: 0 0 auto !important;
 }
-html body .oma-shell-column:has(.oma-activity-page) > main.oma-container {
+html body .oma-shell-column > main.oma-container {
   flex: 1 1 auto !important;
   min-height: 0 !important;
   height: auto !important;
   max-height: none !important;
-  padding-top: 0 !important;
   overflow-x: hidden !important;
   overflow-y: auto !important;
 }
@@ -1695,123 +1714,132 @@ html body .oma-deliv-detail__side-card {
   }
 }
 
-.oma-notif-board {
+.oma-notif-settings {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
+  max-width: 720px;
 }
-.oma-notif-master,
-.oma-notif-row {
-  position: relative;
+.oma-notif-settings__intro .oma-ws-subhead {
+  margin-bottom: 6px;
+}
+.oma-notif-settings__list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.oma-notif-settings__section {
+  border: 1px solid #e6e9ee;
+  border-radius: 14px;
+  background: #fff;
+  overflow: hidden;
+}
+.oma-notif-settings__heading {
+  margin: 0;
+  padding: 12px 16px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #6b7280;
+  background: #f8fafc;
+  border-bottom: 1px solid #eef1f4;
+}
+.oma-notif-settings__rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.oma-notif-settings__row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  margin: 0;
-  cursor: pointer;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 56px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #eef1f4;
 }
-.oma-notif-master {
-  padding: 14px 16px;
-  border: 1px solid #e5e7eb;
-  border-radius: 16px;
-  background: #f8fafc;
+.oma-notif-settings__row:last-child {
+  border-bottom: 0;
 }
-.oma-notif-master .oma-notif-donut__svg {
-  width: 52px;
-  height: 52px;
+.oma-notif-settings__row--master {
+  background: #fbfcfd;
 }
-.oma-notif-master__copy {
+.oma-notif-settings__row.is-muted {
+  opacity: 0.5;
+}
+.oma-notif-settings__copy {
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
 }
-.oma-notif-master__copy strong {
-  color: #111827;
-  font-size: 15px;
-}
-.oma-notif-master__copy span,
-.oma-notif-group__head span {
-  color: #6b7280;
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
-}
-.oma-notif-groups {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-.oma-notif-group {
-  min-width: 0;
-  padding: 12px;
-  border: 1px solid #eceef1;
-  border-radius: 16px;
-  background: #fff;
-}
-.oma-notif-group__head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
-}
-.oma-notif-group__head h4 {
-  flex: 1;
-  margin: 0;
+.oma-notif-settings__copy strong {
   color: #111827;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 600;
 }
-.oma-notif-group__head .oma-notif-donut__svg {
-  width: 28px;
-  height: 28px;
+.oma-notif-settings__copy span {
+  color: #6b7280;
+  font-size: 12px;
 }
-.oma-notif-group__list {
-  display: flex;
-  flex-direction: column;
-}
-.oma-notif-row {
-  min-height: 40px;
-  padding: 6px 4px;
-  border-radius: 10px;
-}
-.oma-notif-row:hover {
-  background: #f7f8fa;
-}
-.oma-notif-row span {
-  color: #1f2937;
-  font-size: 13px;
-  font-weight: 550;
-}
-.oma-notif-row.is-muted {
-  cursor: default;
-  opacity: 0.45;
-}
-.oma-notif-row .oma-notif-donut__svg {
-  width: 22px;
-  height: 22px;
+.oma-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
   flex: 0 0 auto;
+  cursor: pointer;
 }
-.oma-notif-donut__track,
-.oma-notif-donut__arc {
-  fill: none;
-  stroke-width: 4;
+.oma-switch input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
 }
-.oma-notif-donut__track {
-  stroke: #e5e7eb;
+.oma-switch__track {
+  width: 44px;
+  height: 26px;
+  border-radius: 999px;
+  background: #d1d5db;
+  transition: background 0.15s ease;
+  position: relative;
+  display: block;
 }
-.oma-notif-donut__arc {
-  stroke: #2563eb;
-  stroke-linecap: round;
-  transform: rotate(-90deg);
-  transform-origin: 18px 18px;
-  transition: stroke-dasharray 0.2s ease;
+.oma-switch__track::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  inset-inline-start: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.2);
+  transition: transform 0.15s ease;
 }
-.oma-notif-master:focus-within,
-.oma-notif-row:focus-within {
+.oma-switch input:checked + .oma-switch__track {
+  background: #2563eb;
+}
+.oma-switch input:checked + .oma-switch__track::after {
+  transform: translateX(18px);
+}
+html[dir='rtl'] .oma-switch input:checked + .oma-switch__track::after,
+[dir='rtl'] .oma-switch input:checked + .oma-switch__track::after {
+  transform: translateX(-18px);
+}
+.oma-switch input:disabled + .oma-switch__track {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.oma-switch input:focus-visible + .oma-switch__track {
   outline: 2px solid #2563eb;
   outline-offset: 2px;
 }
-@media (max-width: 800px) {
-  .oma-notif-groups {
-    grid-template-columns: 1fr;
+@media (max-width: 640px) {
+  .oma-notif-settings__row {
+    align-items: flex-start;
   }
 }

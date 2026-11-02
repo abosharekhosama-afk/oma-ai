@@ -32,7 +32,9 @@ export type ErrorCode =
   | 'WORKDRIVE_NOT_CONNECTED'
   | 'WORKDRIVE_ERROR'
   | 'MEDIA_MISSING'
-  | 'PAYLOAD_TOO_LARGE';
+  | 'PAYLOAD_TOO_LARGE'
+  | 'PLAN_LIMIT_REACHED'
+  | 'PLAN_FEATURE_REQUIRED';
 
 export class DomainError extends Error {
   constructor(

@@ -35,3 +35,4 @@ export * from './time/schedule-time';
 export * from './time/publish-media';
 export * from './workdrive';
 export * from './notification-prefs';
+export * from './billing/plans';

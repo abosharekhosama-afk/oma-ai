@@ -6,6 +6,7 @@ import { CapabilitiesGuard } from '../common/guards/capabilities.guard';
 import { RequireCapabilities } from '../common/decorators/require-capabilities.decorator';
 import { analyticsService } from './analytics.service';
 import { analyticsCache, normaliseParams } from './analytics-cache';
+import { billingService } from '../billing/billing.service';
 
 @Controller('api/v1/analytics')
 @UseGuards(AuthGuard, CapabilitiesGuard)
@@ -30,6 +31,7 @@ export class AnalyticsController {
       );
     }
     const tenantId = req.oma.tenantId;
+    await billingService.assertFeature(tenantId, 'analytics');
     const q = { period, from, to, brandId, campaignId };
     return analyticsCache.wrap(
       { tenantId, userId: req.oma.userId ?? '', name: 'work', params: normaliseParams(q) },
@@ -58,6 +60,7 @@ export class AnalyticsController {
       );
     }
     const tenantId = req.oma.tenantId;
+    await billingService.assertFeature(tenantId, 'analytics');
     const q = { period, from, to, brandId, channels, granularity };
     return analyticsCache.wrap(
       { tenantId, userId: req.oma.userId ?? '', name: 'content', params: normaliseParams(q) },
