@@ -28,10 +28,36 @@
   gap: 8px;
   background: #f3f4f6;
   border-radius: 10px;
-  padding: 0 12px;
+  padding: 0;
   height: 36px;
   color: #9ca3af;
   font-size: 14px;
+}
+.plx-topbar-search .oma-rail-search {
+  width: 100%;
+  height: 36px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #6b7280;
+  text-align: start;
+}
+.plx-topbar-search .oma-rail-search:hover,
+.plx-topbar-search .oma-rail-search:focus-visible {
+  background: #eceef1;
+  outline: none;
+}
+.plx-topbar .oma-user-menu,
+.plx-topbar .oma-notifications {
+  display: inline-flex;
+  align-items: center;
+}
+.plx-topbar .oma-rail-utility-trigger,
+.plx-topbar .oma-notifications .oma-icon-btn {
+  width: 36px;
+  height: 36px;
 }
 .plx-topbar-spacer {
   flex: 1;
