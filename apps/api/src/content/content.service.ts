@@ -267,14 +267,18 @@ function workflowSource(current: {
   };
 }
 
-@Injectable()
 const PREVIEW_STYLES = new Set(['default', 'classic', 'modern', 'compact']);
 
 function parsePreviewStyle(value: string | undefined): string | undefined {
   if (value === undefined) return undefined;
   const style = value.trim().toLowerCase();
   if (!PREVIEW_STYLES.has(style)) {
-    throw new DomainError('VALIDATION', 'Unknown content style', 400, 'errors.validation');
+    throw new DomainError(
+      'VALIDATION_FAILED',
+      'Unknown content style',
+      400,
+      'errors.validation_failed',
+    );
   }
   return style;
 }
@@ -284,11 +288,17 @@ function parseAccentColor(value: string | null | undefined): string | null | und
   if (value === null || value.trim() === '') return null;
   const color = value.trim();
   if (!/^#[0-9a-fA-F]{6}$/.test(color)) {
-    throw new DomainError('VALIDATION', 'Accent color must be #RRGGBB', 400, 'errors.validation');
+    throw new DomainError(
+      'VALIDATION_FAILED',
+      'Accent color must be #RRGGBB',
+      400,
+      'errors.validation_failed',
+    );
   }
   return color.toLowerCase();
 }
 
+@Injectable()
 export class ContentService {
   constructor(private readonly audit: AuditService) {}
 
