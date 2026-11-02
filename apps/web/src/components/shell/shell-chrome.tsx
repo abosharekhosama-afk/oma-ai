@@ -553,17 +553,17 @@ export function ShellChrome({ children }: { children: ReactNode }) {
                 <OmaLinkButton
                   href="/app/brands/new"
                   type="primary"
+                  className="oma-header-icon-btn oma-header-icon-btn--primary"
                   data-testid="shell-create-brand"
+                  aria-label={t('brand.list.create')}
                 >
-                  <ShellIcon name="plus" size={16} />
-                  <span>{t('brand.list.create')}</span>
+                  <ShellIcon name="plus" size={18} />
                 </OmaLinkButton>
               </div>
             ) : pathname === '/app/team' ? (
               <div className="oma-top-actions">
-                <Button type="primary" data-testid="shell-invite-members" onClick={openTeamInvite}>
-                  <ShellIcon name="plus" size={16} />
-                  <span>{t('team.invite_members')}</span>
+                <Button type="primary" className="oma-header-icon-btn oma-header-icon-btn--primary" data-testid="shell-invite-members" aria-label={t('team.invite_members')} onClick={openTeamInvite}>
+                  <ShellIcon name="plus" size={18} />
                 </Button>
               </div>
             ) : isBrandDetail && brandIdFromPath && !pathname.endsWith('/settings') ? (
@@ -571,16 +571,17 @@ export function ShellChrome({ children }: { children: ReactNode }) {
                 <OmaLinkButton
                   href={`/app/brands/${brandIdFromPath}/connect`}
                   type="primary"
+                  className="oma-header-icon-btn oma-header-icon-btn--primary"
                   data-testid="shell-connect-website"
+                  aria-label={t('brand.detail.connectCta')}
                 >
-                  <span>{t('brand.detail.connectCta')}</span>
+                  <ShellIcon name="link" size={18} />
                 </OmaLinkButton>
               </div>
             ) : (
               <div className="oma-top-actions">
-                <OmaLinkButton href="/app/requests" type="primary" data-testid="shell-create">
-                  <ShellIcon name="plus" size={16} />
-                  <span>{t('shell.create')}</span>
+                <OmaLinkButton href="/app/requests" type="primary" className="oma-header-icon-btn oma-header-icon-btn--primary" data-testid="shell-create" aria-label={t('shell.create')}>
+                  <ShellIcon name="plus" size={18} />
                 </OmaLinkButton>
               </div>
             )}

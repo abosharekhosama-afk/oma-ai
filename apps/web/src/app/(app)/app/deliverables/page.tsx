@@ -179,7 +179,7 @@ export default function DeliverablesPage() {
 
   return (
     <div
-      className="oma-deliv-page"
+      className="oma-deliv-page oma-m-compact-page"
       data-testid="demo-deliverables"
       data-prefs={prefsLoaded ? '1' : '0'}
     >
@@ -193,15 +193,15 @@ export default function DeliverablesPage() {
             <div className="oma-workspace-header-actions">
               <button
                 type="button"
-                className="oma-req-filter-btn"
+                className="oma-header-icon-btn"
                 data-testid="demo-deliv-open-filters"
                 data-active={filterSheet ? 'true' : 'false'}
+                aria-label={locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter'}
                 onClick={() => setFilterSheet((v) => !v)}
               >
                 <FilterOutlined />
-                <span>{locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter'}</span>
                 {filterCount > 0 ? (
-                  <span className="oma-req-filter-btn__count">{filterCount}</span>
+                  <span className="oma-header-icon-btn__badge">{filterCount}</span>
                 ) : null}
               </button>
             </div>,
@@ -309,7 +309,7 @@ export default function DeliverablesPage() {
             data-filter-open={filterSheet ? 'true' : 'false'}
           >
             <div className="oma-req-main">
-              <p className="oma-muted" data-testid="demo-deliv-result-count">
+              <p className="oma-muted oma-m-hide-on-phone" data-testid="demo-deliv-result-count">
                 {filtered.length} / {rows.length}
               </p>
 

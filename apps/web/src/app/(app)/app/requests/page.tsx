@@ -282,7 +282,7 @@ export default function RequestsPage() {
   }
 
   return (
-    <div className="oma-stack oma-req-page" data-testid="demo-requests">
+    <div className="oma-stack oma-req-page oma-m-compact-page" data-testid="demo-requests">
       {/* Unified Planable-style header: title + tabs + actions */}
       <div className="oma-req-header">
         <div className="oma-req-header__left">
@@ -332,13 +332,15 @@ export default function RequestsPage() {
                   <span className="oma-req-filter-icon__count">{filterCount}</span>
                 ) : null}
               </button>
-              <Button
-                type="primary"
+              <button
+                type="button"
+                className="oma-header-icon-btn oma-header-icon-btn--primary"
                 data-testid="demo-create-request"
+                aria-label={t('demo.requests.new')}
                 onClick={() => setCreateOpen(true)}
               >
-                {t('demo.requests.new')}
-              </Button>
+                <ShellIcon name="plus" size={18} />
+              </button>
             </>,
             headerSlot,
           )
@@ -363,7 +365,7 @@ export default function RequestsPage() {
       {!loading && !unavailable && !error ? (
         <div className="oma-req-workspace" data-filter-open={filterSheet ? 'true' : 'false'}>
           <div className="oma-req-main">
-            <p className="oma-muted" data-testid="demo-request-result-count">
+            <p className="oma-muted oma-m-hide-on-phone" data-testid="demo-request-result-count">
               {filtered.length} / {rows.length}
             </p>
 

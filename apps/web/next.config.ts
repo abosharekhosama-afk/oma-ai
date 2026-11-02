@@ -35,6 +35,8 @@ const nextConfig = (phase: string): NextConfig => {
   }
   const distDir = process.env.NEXT_DIST_DIR;
   return {
+    // Hide Next.js route/dev indicator (overlaps mobile tab bar in screenshots)
+    devIndicators: false,
     outputFileTracingRoot: path.join(__dirname, '../..'),
     transpilePackages: ['@oma/i18n', '@oma/ui'],
     experimental: {

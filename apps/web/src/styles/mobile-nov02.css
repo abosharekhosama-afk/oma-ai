@@ -763,7 +763,455 @@
     white-space: nowrap !important;
   }
 
+  /* ---- Header icon primary (no empty blue square) ---- */
+  html body .oma-header-icon-btn,
+  html body .oma-top-actions .oma-header-icon-btn {
+    width: var(--oma-m-tap) !important;
+    min-width: var(--oma-m-tap) !important;
+    height: var(--oma-m-tap) !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 10px !important;
+    border: 1px solid var(--oma-m-border) !important;
+    background: #fff !important;
+    color: #333 !important;
+    position: relative !important;
+  }
+  html body .oma-header-icon-btn--primary,
+  html body .oma-top-actions .oma-header-icon-btn--primary,
+  html body .oma-top-actions a.ant-btn-primary.oma-header-icon-btn,
+  html body .oma-top-actions button.ant-btn-primary.oma-header-icon-btn {
+    background: #1f6feb !important;
+    border-color: #1f6feb !important;
+    color: #fff !important;
+  }
+  /* Hide text-only primary CTAs that would become empty blue squares */
+  html body .oma-top-actions > a.ant-btn-primary:not(:has(svg)):not(:has(.anticon)),
+  html body .oma-top-actions > button.ant-btn-primary:not(:has(svg)):not(:has(.anticon)) {
+    display: none !important;
+  }
+  html body .oma-top-actions > a.ant-btn-primary,
+  html body .oma-top-actions > button.ant-btn-primary {
+    width: var(--oma-m-tap) !important;
+    min-width: var(--oma-m-tap) !important;
+    height: var(--oma-m-tap) !important;
+    padding: 0 !important;
+    border-radius: 10px !important;
+  }
+
+  /* Hide Next.js dev indicator / portals that overlap tab bar */
+  html body nextjs-portal,
+  html body [data-nextjs-toast],
+  html body [data-next-badge-root],
+  html body #__next-build-watcher,
+  html body [data-nextjs-dev-overlay],
+  html body .nextjs-toast-errors-parent {
+    display: none !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  /* ---- Compact list page headers ---- */
+  html body .oma-m-compact-page .oma-req-header__subtitle,
+  html body .oma-m-compact-page .oma-page-header p,
+  html body .oma-deliv-page .oma-page-header p,
+  html body .oma-m-hide-on-phone {
+    display: none !important;
+  }
+  html body .oma-req-header {
+    margin-bottom: 4px !important;
+    gap: 0 !important;
+  }
+  html body .oma-req-header__title {
+    display: flex !important;
+    align-items: baseline !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+  }
+  html body .oma-req-header__title h1 {
+    font-size: 17px !important;
+    margin: 0 !important;
+  }
+  html body .oma-req-header__count {
+    font-size: 12px !important;
+    color: var(--oma-m-muted) !important;
+    font-weight: 500 !important;
+  }
+  html body .oma-ws-tabs,
+  html body .oma-req-tabs {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    margin-top: 6px !important;
+    padding-bottom: 4px !important;
+  }
+  html body .oma-page-header {
+    margin-bottom: 6px !important;
+  }
+  html body .oma-page-header h1 {
+    font-size: 17px !important;
+  }
+
+  /* ---- Detail pages: full width, no crushed column ---- */
+  html body .oma-deliv-detail__workspace,
+  html body .oma-req-detail__workspace,
+  html body .oma-campaign-detail__workspace,
+  html body .oma-task-detail__layout,
+  html body .oma-brand-detail__layout {
+    display: flex !important;
+    flex-direction: column !important;
+    grid-template-columns: none !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 8px 0 88px !important;
+    gap: 10px !important;
+  }
+  html body .oma-deliv-detail__main,
+  html body .oma-deliv-detail__side,
+  html body .oma-deliv-detail__card,
+  html body .oma-deliv-detail__preview {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  html body .oma-deliv-detail__top {
+    padding: 10px 0 !important;
+    flex-wrap: wrap !important;
+    position: static !important;
+  }
+  html body .oma-deliv-detail__top-actions {
+    width: 100% !important;
+    order: 3 !important;
+  }
+  html body .oma-deliv-detail__hero,
+  html body .oma-deliv-detail__hero-empty {
+    max-height: 180px !important;
+    min-height: 0 !important;
+    height: auto !important;
+    aspect-ratio: 16 / 10 !important;
+  }
+  html body .oma-deliv-detail__hero-empty {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    padding: 12px !important;
+    font-size: 13px !important;
+    color: var(--oma-m-muted) !important;
+    background: #f3f4f6 !important;
+    border-radius: 10px !important;
+  }
+  /* Compact file row instead of giant empty hero when no media */
+  html body .oma-deliv-detail__preview[data-empty='true'] .oma-deliv-detail__hero-empty,
+  html body .oma-m-file-row {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    min-height: 48px !important;
+    max-height: 56px !important;
+    aspect-ratio: auto !important;
+    height: 52px !important;
+    padding: 8px 10px !important;
+    border: 1px solid var(--oma-m-border) !important;
+    border-radius: 10px !important;
+    background: #fff !important;
+  }
+  html body .oma-deliv-detail__version-ph {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 8px !important;
+  }
+  html body .oma-deliv-detail__versions {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+  }
+  html body .oma-deliv-detail__version {
+    display: grid !important;
+    grid-template-columns: 40px 1fr auto !important;
+    align-items: center !important;
+    gap: 8px !important;
+    padding: 8px !important;
+    min-height: 52px !important;
+  }
+
+  /* Sticky bottom action bar for details */
+  html body .oma-m-sticky-actions {
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: calc(var(--oma-m-tabbar) + env(safe-area-inset-bottom, 0px)) !important;
+    z-index: 52 !important;
+    display: flex !important;
+    gap: 8px !important;
+    padding: 10px 12px !important;
+    background: rgba(255,255,255,0.97) !important;
+    border-top: 1px solid var(--oma-m-border) !important;
+  }
+  html body .oma-m-sticky-actions .ant-btn,
+  html body .oma-m-sticky-actions button {
+    flex: 1 1 0 !important;
+    min-height: 40px !important;
+  }
+  /* Move detail top actions into sticky feel on phone */
+  html body .oma-deliv-detail__top-actions {
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: calc(var(--oma-m-tabbar) + env(safe-area-inset-bottom, 0px)) !important;
+    z-index: 52 !important;
+    display: flex !important;
+    gap: 8px !important;
+    padding: 10px 12px !important;
+    background: rgba(255,255,255,0.97) !important;
+    border-top: 1px solid var(--oma-m-border) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  html body .oma-deliv-detail__top-actions .oma-deliv-detail__act {
+    flex: 1 1 0 !important;
+    min-height: 40px !important;
+    justify-content: center !important;
+  }
+  html body .oma-deliv-detail__act-label {
+    display: inline !important;
+    font-size: 13px !important;
+  }
+  html body .oma-deliv-detail {
+    padding-bottom: calc(72px + var(--oma-m-tabbar) + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Composer / media / onboarding / invite densify */
+  html body .oma-composer,
+  html body .oma-composer-shell,
+  html body [data-testid='content-composer'] {
+    padding: 8px 0 !important;
+  }
+  html body .oma-composer__preview,
+  html body .oma-plan-post__preview-pane {
+    max-height: 220px !important;
+  }
+  html body .oma-media-browser,
+  html body [data-testid='media-browser'],
+  html body .oma-workdrive {
+    padding: 0 !important;
+  }
+  html body .oma-media-grid,
+  html body [data-testid='media-grid'] {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+  html body .oma-onboarding,
+  html body .oma-invite,
+  html body [data-testid='onboarding'],
+  html body [data-testid='invite-acceptance'] {
+    padding: 12px !important;
+  }
+  html body .oma-brand-settings,
+  html body [data-testid='brand-settings'] {
+    padding: 0 !important;
+  }
+  html body .oma-brand-settings .oma-card,
+  html body .oma-settings-section {
+    padding: 12px !important;
+    margin-bottom: 8px !important;
+  }
+
+  html body .oma-req-detail__workspace {
+    display: flex !important;
+    flex-direction: column !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 8px 0 88px !important;
+  }
+  html body .oma-req-detail__top {
+    padding: 8px 0 !important;
+    flex-wrap: wrap !important;
+  }
+  html body .oma-req-detail__top-actions {
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: calc(var(--oma-m-tabbar) + env(safe-area-inset-bottom, 0px)) !important;
+    z-index: 52 !important;
+    display: flex !important;
+    gap: 8px !important;
+    padding: 10px 12px !important;
+    background: rgba(255,255,255,0.97) !important;
+    border-top: 1px solid var(--oma-m-border) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  html body .oma-req-detail {
+    padding-bottom: calc(72px + var(--oma-m-tabbar) + env(safe-area-inset-bottom, 0px)) !important;
+  }
+  html body .oma-req-detail__title {
+    font-size: 17px !important;
+  }
+
+  /* Force single-row scroll tabs (override stage4 wrap) */
+  html body .oma-req-page .oma-ws-tabs,
+  html body .oma-req-page .oma-req-tabs,
+  html body .oma-deliv-page .oma-ws-tabs,
+  html body .oma-deliv-page [data-testid='demo-deliv-groups'],
+  html body .oma-m-compact-page .oma-ws-tabs {
+    display: flex !important;
+    flex-flow: row nowrap !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+  html body .oma-req-page .oma-ws-tab,
+  html body .oma-req-page .oma-req-tab,
+  html body .oma-deliv-page .oma-ws-tab {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+  }
+  /* Brands create: keep icon only even if label present */
+  html body .oma-top-actions a[data-testid='shell-create-brand'] span:not(:has(svg)),
+  html body .oma-top-actions button[data-testid='shell-invite-members'] span:not(:has(svg)) {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip: rect(0,0,0,0) !important;
+  }
+  /* Full-bleed list rows */
+  html body .oma-req-mobile,
+  html body .oma-deliv-mobile {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding-inline: 0 !important;
+  }
+  html body .oma-req-mobile-card,
+  html body .oma-deliv-mobile-card {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  html body .oma-deliv-detail__workspace,
+  html body .oma-deliv-detail__main,
+  html body .oma-deliv-detail__card {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin-inline: 0 !important;
+  }
+  html body .oma-shell .oma-container {
+    padding-inline: 12px !important;
+  }
+
+  /* Denser brand cards: single compact row */
+  html body .oma-workspace-card,
+  html body [data-testid^='workspace-card-'] {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 10px 12px !important;
+    min-height: 64px !important;
+    margin: 0 0 8px !important;
+    border-radius: 12px !important;
+  }
+  html body .oma-workspace-card-main {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+  html body .oma-workspace-card__facts {
+    display: none !important;
+  }
+  html body .oma-workspace-card-actions {
+    flex: 0 0 auto !important;
+    margin: 0 !important;
+  }
+  html body .oma-workspace-card-actions .ant-btn,
+  html body .oma-workspace-card-actions a {
+    min-height: 32px !important;
+    padding: 0 10px !important;
+    font-size: 12px !important;
+  }
+  html body .oma-brand-mark {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 10px !important;
+    flex: 0 0 auto !important;
+  }
+  html body .oma-workspace-card__title-row h3 {
+    font-size: 14px !important;
+    margin: 0 !important;
+  }
+  html body .oma-workspace-card-meta {
+    font-size: 11px !important;
+    margin: 2px 0 0 !important;
+  }
+
+  /* Campaign / task / brand / content detail sticky bars */
+  html body .oma-campaign-detail__actions,
+  html body .oma-task-detail__actions,
+  html body .oma-brand-detail__actions,
+  html body .oma-content-detail__actions,
+  html body .oma-member-profile__actions,
+  html body [data-testid='campaign-detail-actions'],
+  html body [data-testid='task-detail-actions'],
+  html body [data-testid='brand-detail-actions'] {
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: calc(var(--oma-m-tabbar) + env(safe-area-inset-bottom, 0px)) !important;
+    z-index: 52 !important;
+    display: flex !important;
+    gap: 8px !important;
+    padding: 10px 12px !important;
+    background: rgba(255,255,255,0.97) !important;
+    border-top: 1px solid var(--oma-m-border) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  html body .oma-campaign-detail,
+  html body .oma-task-detail,
+  html body .oma-brand-detail,
+  html body .oma-content-detail,
+  html body .oma-member-profile {
+    padding-bottom: calc(72px + var(--oma-m-tabbar) + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Media / Work Drive tree compact */
+  html body .oma-media-tree,
+  html body .oma-workdrive-tree,
+  html body [data-testid='media-folder-tree'] {
+    max-height: 160px !important;
+    overflow: auto !important;
+    font-size: 13px !important;
+  }
+  html body .oma-media-item,
+  html body .oma-workdrive-item {
+    min-height: 56px !important;
+    padding: 8px !important;
+  }
+
+  /* Invite / onboarding / member: full-width calm forms */
+  html body .oma-onboarding__card,
+  html body .oma-invite__card,
+  html body .oma-member-profile__card {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 0 12px !important;
+    padding: 14px !important;
+  }
+  html body .oma-composer__toolbar,
+  html body .oma-fb-composer__tools {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    gap: 6px !important;
+  }
+
 }
+
 
 /* Desktop: hide mobile-only chrome */
 @media (min-width: 768px) {
