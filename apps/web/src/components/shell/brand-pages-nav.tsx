@@ -1,20 +1,18 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { getHome, type HomeBrandSummary } from '../../lib/home-api';
 import { useT } from '../../lib/use-locale';
 import { NetworkIcon } from '../content/network-icon';
 import { initials } from '../content/post-preview-model';
 import { brandNetworks, homeLinks } from '../../lib/home-view-model';
+import { setActiveBrandId, useActiveBrandId } from '../../lib/active-brand';
 import { Tooltip } from '../ui/tooltip';
 
 /** Planable-style "Pages": workspace brands with their connected network icons. */
 export function BrandPagesNav({ collapsed }: { collapsed: boolean }) {
   const t = useT();
-  const pathname = usePathname();
-  const search = useSearchParams();
   const [brands, setBrands] = useState<HomeBrandSummary[] | null>(null);
 
   useEffect(() => {
@@ -27,7 +25,7 @@ export function BrandPagesNav({ collapsed }: { collapsed: boolean }) {
     };
   }, []);
 
-  const activeBrand = pathname.startsWith('/app/content') ? search.get('brand') : null;
+  const activeBrand = useActiveBrandId();
 
   return (
     <div className="oma-nav-group oma-nav-pages">
@@ -57,6 +55,7 @@ export function BrandPagesNav({ collapsed }: { collapsed: boolean }) {
                 className="oma-nav-link oma-nav-page"
                 data-active={active ? 'true' : undefined}
                 aria-current={active ? 'page' : undefined}
+                onClick={() => setActiveBrandId(b.id)}
               >
                 <span className="oma-nav-page__avatar" aria-hidden="true">
                   {b.logo_url ? (

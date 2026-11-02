@@ -1239,7 +1239,31 @@ main.oma-container:has(.oma-home) {
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  color: #fff !important;
+  width: 22px !important;
+  height: 22px !important;
+  border-radius: 6px !important;
+  background: transparent !important;
+  color: inherit !important;
+  overflow: hidden !important;
+}
+.oma-breadcrumb-workspace-mark img,
+.oma-path-ws-menu__ws-icon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.oma-path-ws-menu__ws-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  overflow: hidden;
+  flex: 0 0 auto;
+}
+.oma-path-ws-menu__chip svg,
+.oma-path-ws-menu .oma-ws-menu-item svg,
+.oma-breadcrumb-caret svg {
+  display: block;
 }
 .oma-breadcrumb-caret,
 .oma-breadcrumb-view-caret,

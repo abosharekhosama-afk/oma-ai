@@ -3,7 +3,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../../lib/api';
 import { useT } from '../../lib/use-locale';
-import { ShellIcon } from './shell-icons';
+import {
+  CheckOutlined,
+  DownOutlined,
+  PlusOutlined,
+  SettingOutlined,
+  ShopOutlined,
+  TeamOutlined,
+} from '../ui/lucide-icons';
 import { resolveActiveBrand, selectBrand, useActiveBrandId } from '../../lib/active-brand';
 
 type Me = {
@@ -14,7 +21,26 @@ type Me = {
 type BrandItem = {
   id: string;
   name: string;
+  logo_url?: string | null;
 };
+
+function OmaMark({ size = 22 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 30 30" aria-hidden="true" focusable="false">
+      <rect x="3" y="3" width="11" height="11" rx="3.5" fill="#5CC98E" />
+      <rect x="16" y="3" width="11" height="11" rx="3.5" fill="#4C8DFF" />
+      <rect x="3" y="16" width="11" height="11" rx="3.5" fill="#FFB547" />
+      <rect x="16" y="16" width="11" height="11" rx="3.5" fill="#A66CFF" />
+    </svg>
+  );
+}
+
+function WorkspaceMark({ logoUrl, size = 22 }: { logoUrl?: string | null; size?: number }) {
+  if (logoUrl) {
+    return <img src={logoUrl} alt="" width={size} height={size} />;
+  }
+  return <OmaMark size={size} />;
+}
 
 /**
  * Planable path workspace menu (matches live Planable header dropdown):
@@ -88,19 +114,19 @@ export function WorkspacePathMenu({ onOpenSettings }: { onOpenSettings: () => vo
         onClick={() => setOpen((value) => !value)}
       >
         <span className="oma-breadcrumb-workspace-mark" aria-hidden>
-          <ShellIcon name="grid-view" size={12} />
+          <WorkspaceMark logoUrl={activeBrand?.logo_url} />
         </span>
         <span className="oma-breadcrumb-workspace-label">{name}</span>
         <span className="oma-breadcrumb-caret" aria-hidden>
-          <ShellIcon name="chevron-down" size={14} />
+          <DownOutlined width={14} height={14} />
         </span>
       </button>
       {open ? (
         <div className="oma-path-ws-menu" role="menu" data-testid="shell-workspace-path-menu">
           <div className="oma-path-ws-menu__head">
             <span className="oma-breadcrumb-workspace-mark" aria-hidden>
-          <ShellIcon name="grid-view" size={12} />
-        </span>
+              <WorkspaceMark logoUrl={activeBrand?.logo_url} />
+            </span>
             <strong className="oma-path-ws-menu__title">{name}</strong>
           </div>
 
@@ -114,7 +140,7 @@ export function WorkspacePathMenu({ onOpenSettings }: { onOpenSettings: () => vo
                 onOpenSettings();
               }}
             >
-              <ShellIcon name="settings" size={14} />
+              <SettingOutlined width={16} height={16} />
               <span>{t('shell.settings') || 'Settings'}</span>
             </button>
             <button
@@ -126,7 +152,7 @@ export function WorkspacePathMenu({ onOpenSettings }: { onOpenSettings: () => vo
                 window.location.assign('/app/team');
               }}
             >
-              <ShellIcon name="team" size={14} />
+              <TeamOutlined width={16} height={16} />
               <span>{t('nav.team') || 'Members'}</span>
             </button>
           </div>
@@ -150,12 +176,12 @@ export function WorkspacePathMenu({ onOpenSettings }: { onOpenSettings: () => vo
                     }}
                   >
                     <span className="oma-path-ws-menu__ws-icon" aria-hidden>
-                      <ShellIcon name="grid-view" size={14} />
+                      <WorkspaceMark logoUrl={brand.logo_url} size={20} />
                     </span>
                     <span className="oma-path-ws-menu__ws-name">{brand.name}</span>
                     {isActive ? (
                       <span className="oma-path-ws-menu__check" aria-hidden>
-                        <ShellIcon name="check" size={14} />
+                        <CheckOutlined width={16} height={16} />
                       </span>
                     ) : null}
                   </button>
@@ -172,7 +198,7 @@ export function WorkspacePathMenu({ onOpenSettings }: { onOpenSettings: () => vo
               window.location.assign('/app/brands/new');
             }}
           >
-            <ShellIcon name="plus" size={14} />
+            <PlusOutlined width={16} height={16} />
             <span>{t('shell.newWorkspace') || 'New workspace'}</span>
           </button>
           <button
@@ -184,7 +210,7 @@ export function WorkspacePathMenu({ onOpenSettings }: { onOpenSettings: () => vo
               window.location.assign('/app/select-company');
             }}
           >
-            <ShellIcon name="company" size={14} />
+            <ShopOutlined width={16} height={16} />
             <span>{t('shell.switchCompany') || 'Switch company'}</span>
           </button>
         </div>

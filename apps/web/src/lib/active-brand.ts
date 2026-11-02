@@ -37,7 +37,34 @@ export function setActiveBrandId(id: string | null): void {
   } catch {
     /* storage unavailable */
   }
+  announceActiveBrand(id);
+}
+
+let brandWatchInstalled = false;
+let lastAnnouncedBrand: string | null | undefined;
+
+function announceActiveBrand(id: string | null): void {
+  if (typeof window === 'undefined') return;
+  if (lastAnnouncedBrand === id) return;
+  lastAnnouncedBrand = id;
   window.dispatchEvent(new CustomEvent(ACTIVE_BRAND_EVENT, { detail: { id } }));
+}
+
+/** Next.js updates the URL via history without a popstate event. */
+function installActiveBrandWatch(): void {
+  if (brandWatchInstalled || typeof window === 'undefined') return;
+  brandWatchInstalled = true;
+  lastAnnouncedBrand = getActiveBrandId();
+  const wrap =
+    (original: History['pushState']) =>
+    function (this: History, ...args: Parameters<History['pushState']>) {
+      const result = original.apply(this, args);
+      announceActiveBrand(getActiveBrandId());
+      return result;
+    };
+  history.pushState = wrap(history.pushState.bind(history));
+  history.replaceState = wrap(history.replaceState.bind(history));
+  window.addEventListener('popstate', () => announceActiveBrand(getActiveBrandId()));
 }
 
 /** Restrict a brand list to the active brand (falls back to all if the id is unknown). */
@@ -53,6 +80,7 @@ export function scopeBrands<T extends { id: string }>(
 export function useActiveBrandId(): string | null {
   const [id, setId] = useState<string | null>(null);
   useEffect(() => {
+    installActiveBrandWatch();
     setId(getActiveBrandId());
     const on = () => setId(getActiveBrandId());
     window.addEventListener(ACTIVE_BRAND_EVENT, on);
