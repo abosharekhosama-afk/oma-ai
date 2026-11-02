@@ -49,11 +49,10 @@ export function ActivityFeedItem({
   const isAr = locale.toLowerCase().startsWith('ar');
   const target = item.target ?? null;
   const targetName = target ? (isAr ? target.name.ar || target.name.en : target.name.en) : null;
-  // Comment events quote the comment only when the target is the comment itself (server-resolved);
-  // never quote a post caption under "commented on".
+  const isContentActivity = target?.type === 'content';
   const isCommentAction = item.action.includes('comment');
   const snippet =
-    isCommentAction && item.target?.snippet_kind !== 'comment'
+    isCommentAction && target?.snippet_kind !== 'comment'
       ? ''
       : target?.snippet
         ? isAr
@@ -61,11 +60,33 @@ export function ActivityFeedItem({
           : target.snippet.en
         : '';
   const fullTime = new Date(item.at).toLocaleString(isAr ? 'ar' : 'en');
+
   return (
-    <li className="oma-act-item" data-testid="activity-item" data-category={item.category}>
-      <span className="oma-act-item__avatar" aria-hidden>
-        {initials(item.actor_name || '?')}
-      </span>
+    <li
+      className="oma-act-item"
+      data-testid="activity-item"
+      data-category={item.category}
+      data-visual={isContentActivity && target?.thumbnail_url ? 'content' : 'actor'}
+    >
+      {isContentActivity && target?.thumbnail_url ? (
+        <MediaSurface
+          className="oma-act-item__visual oma-act-item__visual--content"
+          src={target.thumbnail_url}
+          alt={targetName || ''}
+        />
+      ) : item.actor_avatar_url ? (
+        <img
+          className="oma-act-item__visual oma-act-item__visual--actor"
+          src={item.actor_avatar_url}
+          alt={item.actor_name}
+          loading="lazy"
+        />
+      ) : (
+        <span className="oma-act-item__visual oma-act-item__visual--actor" aria-hidden>
+          {initials(item.actor_name || '?')}
+        </span>
+      )}
+
       <div className="oma-act-item__body">
         <p className="oma-act-item__line">
           <strong className="oma-act-item__actor">{item.actor_name}</strong>{' '}
@@ -84,10 +105,8 @@ export function ActivityFeedItem({
           ) : null}
         </p>
         {snippet ? <blockquote className="oma-act-item__quote">{snippet}</blockquote> : null}
+        <span className="oma-act-item__meta">{item.category}</span>
       </div>
-      {target?.thumbnail_url ? (
-        <MediaSurface className="oma-act-item__thumb" src={target.thumbnail_url} alt="" />
-      ) : null}
       <time className="oma-act-item__time" dateTime={item.at} title={fullTime}>
         {relativeTime(item.at, locale)}
       </time>

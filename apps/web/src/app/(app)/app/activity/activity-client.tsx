@@ -67,36 +67,51 @@ export default function ActivityPage() {
   }, [items, filter]);
 
   return (
-    <div className="oma-planable-page" data-testid="activity-page-planable">
-      <div className="oma-planable-page__header">
+    <div className="oma-planable-page oma-activity-page" data-testid="activity-page-planable">
+      <div className="oma-planable-page__header oma-activity-page__header">
         <div>
+          <div className="oma-activity-eyebrow">{t('activity.kicker')}</div>
           <h1 className="oma-planable-page__title">{t('activity.title')}</h1>
           <p className="oma-planable-page__sub">{t('activity.subtitle')}</p>
         </div>
-        <Button type="default" onClick={() => void load()} disabled={loading}>
-          {t('activity.refresh')}
-        </Button>
+        <div className="oma-activity-page__actions">
+          <span className="oma-activity-count">
+            {filtered.length} {t('activity.filter.all').toLowerCase()}
+          </span>
+          <Button type="default" onClick={() => void load()} disabled={loading}>
+            {t('activity.refresh')}
+          </Button>
+        </div>
       </div>
 
-      <div className="oma-ws-tabs">
-        {(
-          [
-            ['all', t('activity.filter.all')],
-            ['members', t('activity.filter.members')],
-            ['approvals', t('activity.filter.approvals')],
-            ['content', t('activity.filter.content')],
-            ['settings', t('activity.filter.settings')],
-          ] as const
-        ).map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            className={`oma-ws-tab${filter === id ? ' is-active' : ''}`}
-            onClick={() => setFilter(id)}
-          >
-            {label}
-          </button>
-        ))}
+      <div className="oma-activity-toolbar">
+        <span className="oma-activity-toolbar__label">{t('activity.filter.all')}</span>
+        <div
+          className="oma-ws-tabs oma-activity-tabs"
+          role="tablist"
+          aria-label={t('activity.title')}
+        >
+          {(
+            [
+              ['all', t('activity.filter.all')],
+              ['members', t('activity.filter.members')],
+              ['approvals', t('activity.filter.approvals')],
+              ['content', t('activity.filter.content')],
+              ['settings', t('activity.filter.settings')],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              className={`oma-ws-tab${filter === id ? ' is-active' : ''}`}
+              role="tab"
+              aria-selected={filter === id}
+              onClick={() => setFilter(id)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {loading ? <TableShimmer rows={8} /> : null}
@@ -113,6 +128,10 @@ export default function ActivityPage() {
 
       {!loading && !error ? (
         <div className="oma-act-feed" data-testid="activity-feed">
+          <div className="oma-act-feed__head">
+            <strong>{t('activity.title')}</strong>
+            <span>{t('activity.subtitle')}</span>
+          </div>
           {filtered.length === 0 ? (
             <div className="oma-ws-empty-block">
               <h3>{t('activity.empty')}</h3>

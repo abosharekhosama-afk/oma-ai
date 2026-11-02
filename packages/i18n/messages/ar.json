@@ -1038,6 +1038,7 @@
   "demo.brief.formats": "الصيغ",
   "demo.requests.filters": "الفلاتر",
   "activity.title": "النشاط",
+  "activity.kicker": "الخط الزمني لمساحة العمل",
   "activity.subtitle": "أحدث أحداث مساحة العمل — الدعوات والصلاحيات والموافقات وتغييرات المحتوى.",
   "activity.refresh": "تحديث",
   "activity.retry": "إعادة المحاولة",
