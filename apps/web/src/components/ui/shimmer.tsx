@@ -14,19 +14,14 @@ function Bar({ w = '100%', h = 14, r = 6 }: { w?: string | number; h?: number; r
   );
 }
 
-// Kept free of the i18n bundle so route-level loading states stay tiny; the label follows <html lang>.
-function loadingLabel() {
-  if (typeof document === 'undefined') return 'Loading';
-  return document.documentElement.lang?.startsWith('ar') ? 'جارٍ التحميل' : 'Loading';
-}
-
 function Status({ children, kind }: { children: React.ReactNode; kind: string }) {
+  // Neutral EN label avoids SSR/client locale mismatch on aria-label (React #418).
   return (
     <div
       className={`oma-shimmer oma-shimmer--${kind}`}
       role="status"
       aria-busy="true"
-      aria-label={loadingLabel()}
+      aria-label="Loading"
     >
       {children}
     </div>

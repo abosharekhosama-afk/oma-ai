@@ -20,14 +20,10 @@ type Me = {
 export function MembershipRouteGate({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  // Skip the blocking check when this tab already confirmed a session (no skeleton flash on nav).
-  const [ready, setReady] = useState(() => {
-    try {
-      return typeof window !== 'undefined' && window.sessionStorage.getItem(SESSION_OK_KEY) === '1';
-    } catch {
-      return false;
-    }
-  });
+  // Always start false so SSR HTML matches the first client render (reading
+  // sessionStorage in useState caused React #418 across every /app page).
+  // Soft navigations still skip the long skeleton via the effect short-circuit below.
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -37,6 +33,16 @@ export function MembershipRouteGate({ children }: { children: React.ReactNode })
     const finish = () => {
       if (!cancelled) setReady(true);
     };
+
+    // Client-only: if this tab already confirmed a session, show UI immediately
+    // after mount (post-hydration) while we re-validate in the background.
+    try {
+      if (window.sessionStorage.getItem(SESSION_OK_KEY) === '1') {
+        finish();
+      }
+    } catch {
+      /* ignore */
+    }
 
     // Never reveal protected UI before the session is confirmed, except as a slow-network fallback.
     const timeoutId = window.setTimeout(finish, 6000);

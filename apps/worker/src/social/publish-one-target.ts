@@ -16,6 +16,7 @@ import {
   markNeedsReauth,
   notifyPublishOutcome,
   pageForAdapter,
+  persistAdapterMeta,
   type AdapterFactory,
 } from './social-jobs';
 import { syncContentPublishRollup } from './rollup-sync';
@@ -152,12 +153,14 @@ export async function publishOneTarget(
             sizeBytes: p.sizeBytes || undefined,
           }))
         : undefined;
-    const res = await adapter.publish(pageForAdapter(page, key), {
+    const adapterPage = pageForAdapter(page, key);
+    const res = await adapter.publish(adapterPage, {
       text,
       mediaUrls,
       media,
       contentType: item.contentType,
     });
+    await persistAdapterMeta(page.id, page.metaJson, adapterPage.meta);
     if (!res.externalId?.trim()) {
       throw new SocialProviderError('Provider returned no post id', { retryable: true });
     }

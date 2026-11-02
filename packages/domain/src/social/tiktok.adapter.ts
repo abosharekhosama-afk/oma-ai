@@ -151,9 +151,12 @@ export class TikTokAdapter implements SocialProviderAdapter {
       code,
       redirect_uri: redirectUri,
     });
-    const res = await this.fetchFn(`${API}/v2/user/info/?fields=open_id,display_name,avatar_url`, {
-      headers: { authorization: `Bearer ${token.accessToken}` },
-    });
+    const res = await this.fetchFn(
+      `${API}/v2/user/info/?fields=open_id,display_name,avatar_url,username`,
+      {
+        headers: { authorization: `Bearer ${token.accessToken}` },
+      },
+    );
     const b = await readJson(res);
     const err = b.error as { code?: string } | undefined;
     if (!res.ok || (err?.code && err.code !== 'ok')) throw httpError('tiktok', res, b);
@@ -161,14 +164,21 @@ export class TikTokAdapter implements SocialProviderAdapter {
       string,
       unknown
     >;
-    const { openId, ...t } = token;
+    const { openId, ...tok } = token;
+    const username =
+      typeof u.username === 'string' && u.username.trim()
+        ? u.username.trim().replace(/^@/, '')
+        : undefined;
     return [
       {
         externalId: String(u.open_id ?? openId),
         name: String(u.display_name ?? 'TikTok'),
         avatarUrl: (u.avatar_url as string) ?? null,
-        token: t,
-        meta: { scopes: token.scopes ?? [] },
+        token: tok,
+        meta: {
+          scopes: token.scopes ?? [],
+          ...(username ? { username } : {}),
+        },
       },
     ];
   }
@@ -207,6 +217,10 @@ export class TikTokAdapter implements SocialProviderAdapter {
         },
       );
     }
+    const creatorUsername =
+      typeof data.creator_username === 'string' && data.creator_username.trim()
+        ? data.creator_username.trim().replace(/^@/, '')
+        : undefined;
     return {
       privacyOptions,
       maxVideoDurationSec:
@@ -216,6 +230,7 @@ export class TikTokAdapter implements SocialProviderAdapter {
       commentsDisabled: data.comment_disabled === true,
       duetDisabled: data.duet_disabled === true,
       stitchDisabled: data.stitch_disabled === true,
+      username: creatorUsername,
     };
   }
 
@@ -350,7 +365,13 @@ export class TikTokAdapter implements SocialProviderAdapter {
         },
       );
     }
-    const username = page.meta.username as string | undefined;
+    const username =
+      creator.username ||
+      (typeof page.meta.username === 'string' ? page.meta.username.replace(/^@/, '') : undefined);
+    if (username && page.meta.username !== username) {
+      // Surface username so subsequent status polls / reconnects can build permanent URLs.
+      page.meta = { ...page.meta, username };
+    }
     return {
       externalId: publishId,
       url: username ? `https://www.tiktok.com/@${username}` : null,
@@ -359,6 +380,14 @@ export class TikTokAdapter implements SocialProviderAdapter {
   }
 
   async fetchPublishStatus(page: PublishablePage, publishId: string): Promise<PublishStatusResult> {
+    if (!page.meta.username) {
+      try {
+        const creator = await this.creatorInfo(page);
+        if (creator.username) page.meta = { ...page.meta, username: creator.username };
+      } catch {
+        /* status fetch can still succeed without a profile URL */
+      }
+    }
     const res = await this.fetchFn(`${API}/v2/post/publish/status/fetch/`, {
       method: 'POST',
       headers: {
@@ -383,12 +412,24 @@ export class TikTokAdapter implements SocialProviderAdapter {
               ? [data.publicaly_available_post_id]
               : [];
       const externalId = postIds.length ? String(postIds[0]) : undefined;
-      const username = page.meta.username as string | undefined;
-      const url = username
+      const shareUrl =
+        typeof data.share_url === 'string'
+          ? data.share_url
+          : typeof data.publicaly_available_post_url === 'string'
+            ? data.publicaly_available_post_url
+            : typeof data.publicly_available_post_url === 'string'
+              ? data.publicly_available_post_url
+              : null;
+      const username =
+        typeof page.meta.username === 'string' && page.meta.username.trim()
+          ? page.meta.username.trim().replace(/^@/, '')
+          : undefined;
+      const built = username
         ? externalId
           ? `https://www.tiktok.com/@${username}/video/${externalId}`
           : `https://www.tiktok.com/@${username}`
         : null;
+      const url = shareUrl || built;
       return { status: 'PUBLISHED', ...(externalId ? { externalId } : {}), url };
     }
     if (status === 'FAILED') {

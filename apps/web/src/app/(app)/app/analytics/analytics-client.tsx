@@ -284,15 +284,17 @@ export default function AnalyticsPage() {
           </div>
           <button
             type="button"
-            className="oma-pa-btn oma-pa-btn--primary"
+            className="oma-pa-btn oma-pa-btn--quiet oma-pa-btn--soon"
             disabled
             aria-disabled="true"
             aria-label={`${t('analytics.report.create')} — ${t('analytics.report.soon')}`}
             title={t('analytics.report.soon')}
             data-tooltip={t('analytics.report.soon')}
+            data-testid="analytics-create-report-soon"
           >
             <ReportIcon />
             <span className="oma-pa-btn__label">{t('analytics.report.create')}</span>
+            <span className="oma-pa-btn__soon">{t('analytics.report.soon')}</span>
           </button>
         </div>
       </header>
