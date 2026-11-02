@@ -1,4 +1,5 @@
 'use client';
+import { useIsMobile } from '../../../../lib/use-is-mobile';
 import { TasksShimmer } from '../../../../components/ui/screen-shimmer';
 
 import { useReloadOnBrandChange } from '../../../../lib/active-brand';
@@ -78,6 +79,7 @@ export default function TasksPage() {
   const [saving, setSaving] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [filterSheet, setFilterSheet] = useState(false);
+  const isMobile = useIsMobile();
   const [viewMenuOpen, setViewMenuOpen] = useState(false);
   const [filterSection, setFilterSection] = useState<string | null>('search');
   const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
@@ -468,7 +470,7 @@ export default function TasksPage() {
       <AntDrawer
         open={filterSheet}
         onClose={() => setFilterSheet(false)}
-        placement={locale.toLowerCase().startsWith('ar') ? 'left' : 'right'}
+        placement={isMobile ? 'bottom' : locale.toLowerCase().startsWith('ar') ? 'left' : 'right'}
         size={320}
         mask={false}
         closable={false}
@@ -872,7 +874,7 @@ export default function TasksPage() {
       <AntDrawer
         open={Boolean(selected)}
         onClose={closeTask}
-        placement={locale.toLowerCase().startsWith('ar') ? 'left' : 'right'}
+        placement={isMobile ? 'bottom' : locale.toLowerCase().startsWith('ar') ? 'left' : 'right'}
         mask={false}
         closable={false}
         title={null}

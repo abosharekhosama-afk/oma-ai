@@ -40,6 +40,42 @@ const SettingsPanel = dynamic(
 );
 import { PlxLogo } from '../ui/plx-icons';
 
+
+const MOBILE_TABS: Array<{ href: string; labelKey: string; icon: import('./nav-config').NavIconId; match?: (path: string) => boolean }> = [
+  { href: '/app', labelKey: 'nav.home', icon: 'home', match: (p) => p === '/app' || p === '/app/' },
+  { href: '/app/content', labelKey: 'nav.contentShort', icon: 'content' },
+  { href: '/app/campaigns', labelKey: 'nav.campaigns', icon: 'campaigns' },
+  { href: '/app/analytics', labelKey: 'nav.analytics', icon: 'analytics' },
+];
+
+function MobileTabBar({ onMore }: { onMore: () => void }) {
+  const t = useT();
+  const pathname = usePathname() || '/app';
+  return (
+    <nav className="oma-m-tabbar" aria-label={t('nav.primary')} data-testid="mobile-tabbar">
+      {MOBILE_TABS.map((tab) => {
+        const active = tab.match ? tab.match(pathname) : pathname === tab.href || pathname.startsWith(tab.href + '/');
+        return (
+          <Link
+            key={tab.href}
+            href={tab.href}
+            className="oma-m-tabbar__item"
+            data-active={active ? 'true' : 'false'}
+            aria-current={active ? 'page' : undefined}
+          >
+            <ShellIcon name={tab.icon} size={22} />
+            <span>{t(tab.labelKey)}</span>
+          </Link>
+        );
+      })}
+      <button type="button" className="oma-m-tabbar__item" data-testid="mobile-tabbar-more" onClick={onMore}>
+        <ShellIcon name="menu" size={22} />
+        <span>{t('nav.section.more')}</span>
+      </button>
+    </nav>
+  );
+}
+
 function RailNav({ collapsed }: { collapsed: boolean }) {
   const t = useT();
   const pathname = usePathname() || '/app';
@@ -606,6 +642,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
             onClose={() => setSettingsSection(null)}
           />
         ) : null}
+        <MobileTabBar onMore={() => setMobileOpen(true)} />
         <SessionKeeper />
         <SessionInvalidOverlay />
       </div>

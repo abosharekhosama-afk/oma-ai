@@ -1,4 +1,5 @@
 'use client';
+import { useIsMobile } from '../../../../lib/use-is-mobile';
 
 import { useReloadOnBrandChange } from '../../../../lib/active-brand';
 import Link from 'next/link';
@@ -88,6 +89,7 @@ export default function RequestsPage() {
   const [unavailable, setUnavailable] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [filterSheet, setFilterSheet] = useState(false);
+  const isMobile = useIsMobile();
   const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
   const [filterSection, setFilterSection] = useState<string | null>('status');
   const [createDirty, setCreateDirty] = useState(false);
@@ -463,24 +465,24 @@ export default function RequestsPage() {
 
                 <ul className="oma-req-mobile" aria-label={t('demo.requests.title')}>
                   {filtered.map((r) => {
-                    const brief = briefByRequest.get(r.id) ?? null;
-                    const next = requestNextAction(r, brief);
+                    const label = pickCopy(r.title, locale);
                     return (
                       <li key={r.id}>
                         <Link
                           href={`/app/requests/${r.id}`}
-                          className="oma-req-mobile-card"
+                          className="oma-req-mobile-card oma-m-row"
                           data-testid={`demo-request-mobile-${r.id}`}
                         >
-                          <strong>{pickCopy(r.title, locale)}</strong>
-                          <div className="oma-chip-row">
+                          <span className="oma-m-row__avatar" aria-hidden="true">
+                            {(r.assignee || r.requester || label || 'R').slice(0, 2).toUpperCase()}
+                          </span>
+                          <strong className="oma-m-row__title">{label}</strong>
+                          <div className="oma-chip-row oma-m-row__status">
                             <StatusChip status={r.status} />
-                            <StatusChip status={r.priority} />
                           </div>
-                          <span className="oma-muted">
+                          <span className="oma-muted oma-m-row__meta">
                             {r.assignee ?? t('demo.requests.unassigned')} · {r.dueAt}
                           </span>
-                          <span>{pickCopy(next, locale)}</span>
                         </Link>
                       </li>
                     );
@@ -493,7 +495,7 @@ export default function RequestsPage() {
           <AntDrawer
             open={filterSheet}
             onClose={() => setFilterSheet(false)}
-            placement={locale.toLowerCase().startsWith('ar') ? 'left' : 'right'}
+            placement={isMobile ? 'bottom' : locale.toLowerCase().startsWith('ar') ? 'left' : 'right'}
             size={320}
             mask={false}
             closable={false}
