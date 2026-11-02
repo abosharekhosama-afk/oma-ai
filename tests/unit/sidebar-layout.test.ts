@@ -51,7 +51,26 @@ describe('workspace sidebar layout', () => {
     expect(drawers).toContain('transform: none !important');
   });
 
-  it('loads the shared side-drawer layer for filters and notification panels', () => {
+  it('pins the rail footer inside a full-height dvh flex column with scrollable nav', () => {
+    const css = read('apps/web/src/styles/shell.css');
+    expect(css).toContain('height: 100dvh !important');
+    expect(css).toContain('max-height: 100dvh !important');
+    expect(css).toContain('.oma-rail > .oma-nav');
+    expect(css).toContain('overflow-y: auto !important');
+    expect(css).toContain('.oma-rail > .oma-rail-footer');
+    expect(css).toContain('flex: 0 0 auto !important');
+  });
+
+  it('removes closed mobile nav drawer leftovers so no transparent strip remains', () => {
+    const css = read('apps/web/src/styles/shell.css');
+    const drawers = read('apps/web/src/styles/side-drawers.css');
+    expect(css).toContain('.oma-drawer.oma-drawer--nav:not(.ant-drawer-open)');
+    expect(css).toContain('display: none !important');
+    expect(drawers).toContain('.oma-drawer.oma-drawer--nav:not(.ant-drawer-open)');
+    expect(drawers).toContain('.oma-drawer.oma-drawer--nav .ant-drawer-mask');
+  });
+
+    it('loads the shared side-drawer layer for filters and notification panels', () => {
     const globals = read('apps/web/src/app/globals.css');
     const drawers = read('apps/web/src/styles/side-drawers.css');
     expect(globals).toContain("@import '../styles/side-drawers.css';");

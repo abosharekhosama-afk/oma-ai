@@ -445,12 +445,13 @@
 /* Schedule — Planable calendar language (owned by P5) */
 .oma-container:has(.oma-sched-page),
 main.oma-container:has(.oma-sched-page) {
-  display: flex;
-  flex-direction: column;
-  height: calc(100dvh - 72px);
-  max-height: calc(100dvh - 72px);
-  overflow: hidden;
-  padding-bottom: 0;
+  display: flex !important;
+  flex-direction: column !important;
+  height: calc(100dvh - 72px) !important;
+  max-height: calc(100dvh - 72px) !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+  padding-bottom: 0 !important;
 }
 .oma-sched-page {
   display: flex;
@@ -536,6 +537,9 @@ main.oma-container:has(.oma-sched-page) {
   flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
+  height: 100%;
+  width: 100%;
+  min-width: 100%;
   gap: 0;
   margin-bottom: 0;
   border: 1px solid var(--oma-border);
@@ -544,12 +548,18 @@ main.oma-container:has(.oma-sched-page) {
   background: var(--oma-surface);
 }
 .oma-sched-calendar-scroll {
-  display: block;
+  display: flex;
+  flex-direction: column;
   width: 100%;
   min-width: 0;
   min-height: 0;
   flex: 1 1 auto;
-  overflow: hidden;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-gutter: stable;
 }
 .oma-sched-dow-row {
   display: grid;
@@ -601,11 +611,14 @@ main.oma-container:has(.oma-sched-page) {
   overflow: hidden;
 }
 .oma-sched-day__scroll-wrap {
+  display: flex;
+  flex-direction: column;
   flex: 1 1 0;
   min-height: 0;
   overflow: hidden;
 }
 .oma-sched-day__scroll {
+  flex: 1 1 auto;
   height: 100%;
   max-height: 100%;
   min-height: 0;
@@ -613,6 +626,7 @@ main.oma-container:has(.oma-sched-page) {
   overflow-x: hidden;
   display: block;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
 }
@@ -2536,7 +2550,18 @@ main.oma-container:has(.oma-sched-page) {
 }
 
 /* Schedule layout: full-height filter rail + header icon controls */
+.oma-sched-layout {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  overflow: hidden !important;
+}
 .oma-sched-layout--full {
+  display: flex !important;
+  flex-direction: column !important;
   align-items: stretch !important;
   flex: 1 1 auto !important;
   min-height: 0 !important;
@@ -2565,6 +2590,44 @@ main.oma-container:has(.oma-sched-page) {
 }
 .oma-sched-main[data-view='calendar'] {
   overflow: hidden !important;
+  min-height: 0 !important;
+  flex: 1 1 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+.oma-sched-main[data-view='calendar'] > .oma-sched-calendar-scroll {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+}
+.oma-sched-main[data-view='calendar'] .oma-sched-calendar {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  height: 100% !important;
+}
+.oma-sched-main[data-view='calendar'] .oma-sched-week {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+}
+.oma-sched-main[data-view='calendar'] .oma-sched-day {
+  min-height: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+}
+.oma-sched-main[data-view='calendar'] .oma-sched-day__scroll-wrap {
+  flex: 1 1 0 !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+.oma-sched-main[data-view='calendar'] .oma-sched-day__scroll {
+  height: 100% !important;
+  max-height: 100% !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 .oma-sched-card__body {
   margin: 0;
@@ -2838,15 +2901,18 @@ main.oma-container:has(.oma-sched-page) {
   .oma-sched-main[data-view='calendar'] {
     --oma-sched-mobile-calendar-column: 33.333333vw;
     overflow: hidden !important;
-    overflow-y: auto !important;
     -webkit-overflow-scrolling: touch;
   }
   .oma-sched-main[data-view='calendar'] .oma-sched-calendar-scroll {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    overflow-x: scroll;
-    overflow-y: hidden;
+    min-height: 0 !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
     touch-action: pan-x pan-y;
     overscroll-behavior-inline: contain;
     -webkit-overflow-scrolling: touch;
@@ -2854,26 +2920,37 @@ main.oma-container:has(.oma-sched-page) {
   }
   .oma-sched-main[data-view='calendar'] .oma-sched-calendar {
     display: flex !important;
-    flex: 0 0 auto;
-    width: 233.333333vw;
-    min-width: 233.333333vw;
-    min-height: 500px;
-    overflow: visible;
+    flex: 1 1 auto !important;
+    width: 233.333333vw !important;
+    min-width: 233.333333vw !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
   }
   .oma-sched-main[data-view='calendar'] .oma-sched-dow-row,
   .oma-sched-main[data-view='calendar'] .oma-sched-week {
-    min-width: 233.333333vw;
+    min-width: 233.333333vw !important;
   }
   .oma-sched-main[data-view='calendar'] .oma-sched-week {
-    min-height: 430px;
-    height: auto;
-    max-height: none;
-    overflow: visible;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: hidden !important;
   }
   .oma-sched-main[data-view='calendar'] .oma-sched-day {
     min-width: var(--oma-sched-mobile-calendar-column);
-    min-height: 430px;
-    height: auto;
+    min-height: 0 !important;
+    height: auto !important;
+    overflow: hidden !important;
+  }
+  .oma-sched-main[data-view='calendar'] .oma-sched-day__scroll-wrap {
+    flex: 1 1 0 !important;
+    min-height: 0 !important;
+  }
+  .oma-sched-main[data-view='calendar'] .oma-sched-day__scroll {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
   }
 }
 
@@ -3016,16 +3093,19 @@ main.oma-container:has(.oma-sched-page) {
   .oma-sched-main[data-view='calendar'] {
     --oma-sched-mobile-calendar-column: 33.333333vw;
     overflow: hidden !important;
-    overflow-y: hidden !important;
     -webkit-overflow-scrolling: touch;
     scrollbar-gutter: stable;
   }
   .oma-sched-main[data-view='calendar'] .oma-sched-calendar-scroll {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    overflow-x: scroll;
-    overflow-y: hidden;
+    min-height: 0 !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
     touch-action: pan-x pan-y;
     overscroll-behavior-inline: contain;
     -webkit-overflow-scrolling: touch;
@@ -3033,18 +3113,21 @@ main.oma-container:has(.oma-sched-page) {
   }
   .oma-sched-main[data-view='calendar'] .oma-sched-calendar {
     display: flex !important;
-    min-width: 233.333333vw;
-    width: 233.333333vw;
-    min-height: 520px;
-    overflow: visible;
+    flex: 1 1 auto !important;
+    min-width: 233.333333vw !important;
+    width: 233.333333vw !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    overflow: hidden !important;
     border-radius: 10px;
   }
   .oma-sched-main[data-view='calendar'] .oma-sched-dow-row,
   .oma-sched-main[data-view='calendar'] .oma-sched-week {
-    min-width: 233.333333vw;
+    min-width: 233.333333vw !important;
   }
   .oma-sched-main[data-view='calendar'] .oma-sched-day {
     min-width: var(--oma-sched-mobile-calendar-column);
+    min-height: 0 !important;
   }
   .oma-sched-main[data-view='calendar'] .oma-sched-mobile-only {
     display: none !important;
@@ -3075,23 +3158,30 @@ main.oma-container:has(.oma-sched-page) {
     overflow-x: hidden !important;
   }
   .oma-sched-main[data-view='calendar'] .oma-sched-calendar-scroll {
-    display: block !important;
+    display: flex !important;
+    flex-direction: column !important;
     flex: 1 1 auto !important;
     width: 100% !important;
     max-width: 100% !important;
     min-width: 0 !important;
+    min-height: 0 !important;
     overflow-x: auto !important;
     overflow-y: hidden !important;
-    touch-action: auto !important;
+    touch-action: pan-x pan-y !important;
     overscroll-behavior-inline: contain;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
     contain: inline-size;
   }
-  .oma-sched-main[data-view='calendar'] .oma-sched-calendar,
+  .oma-sched-main[data-view='calendar'] .oma-sched-calendar {
+    flex: 1 1 auto !important;
+    width: 233.333333vw !important;
+    min-width: 233.333333vw !important;
+    height: 100% !important;
+    min-height: 0 !important;
+  }
   .oma-sched-main[data-view='calendar'] .oma-sched-dow-row,
   .oma-sched-main[data-view='calendar'] .oma-sched-week {
-    flex: 0 0 auto !important;
     width: 233.333333vw !important;
     min-width: 233.333333vw !important;
   }

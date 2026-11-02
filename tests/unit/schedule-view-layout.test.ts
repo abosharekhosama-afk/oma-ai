@@ -79,7 +79,26 @@ describe('schedule agenda and queue layouts', () => {
     expect(source).toContain('demo-schedule-calendar-scroll');
     expect(css).toContain('.oma-sched-calendar-scroll');
     expect(css).toContain('touch-action: pan-x pan-y');
-    expect(css).toContain('flex: 0 0 auto !important');
+    expect(css).toContain('overflow-x: auto !important');
+    expect(css).toContain('overflow-y: auto !important');
+    expect(css).toContain('.oma-sched-day__scroll');
+  });
+
+  it('makes the schedule layout a flex column so the calendar fills remaining height', () => {
+    const css = read('apps/web/src/styles/stage5.css');
+    expect(css).toContain('.oma-sched-layout {');
+    expect(css).toContain('.oma-sched-layout--full');
+    expect(css).toContain('display: flex !important');
+    expect(css).toContain('flex-direction: column !important');
+  });
+
+  it('keeps calendar day columns height-constrained so posts scroll inside columns', () => {
+    const css = read('apps/web/src/styles/stage5.css');
+    expect(css).toContain("display: flex");
+    expect(css).toContain('flex-direction: column');
+    expect(css).toContain(".oma-sched-main[data-view='calendar'] .oma-sched-day__scroll");
+    expect(css).toContain('overflow-y: auto !important');
+    expect(css).toContain('min-height: 0 !important');
   });
 
   it('removes legacy schedule filter rail motion', () => {
