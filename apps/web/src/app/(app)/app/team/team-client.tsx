@@ -58,23 +58,6 @@ const NOTIF_GROUPS = [
   },
 ] as const;
 
-function NotifDonut({ ratio }: { ratio: number }) {
-  const ring = 88;
-  const filled = Math.max(0, Math.min(1, ratio)) * ring;
-  return (
-    <svg className="oma-notif-donut__svg" viewBox="0 0 36 36" aria-hidden="true">
-      <circle className="oma-notif-donut__track" cx="18" cy="18" r="14" />
-      <circle
-        className="oma-notif-donut__arc"
-        cx="18"
-        cy="18"
-        r="14"
-        strokeDasharray={`${filled} ${ring}`}
-      />
-    </svg>
-  );
-}
-
 const PERM_COLS: PlanablePerm[] = [
   'view',
   'approve',
@@ -224,12 +207,23 @@ export default function TeamPage() {
 
   async function onTogglePerm(member: WorkspaceMember, perm: PlanablePerm) {
     if (!member.permissions) return;
+    if (isOwnerMember(member) && perm === 'admin' && member.permissions.admin) {
+      toast.push(t('team.owner_admin_locked') || (isAr ? 'لا يمكن إزالة صلاحيات المالك' : 'Owner admin access can’t be removed'), 'danger');
+      return;
+    }
     const next = { ...member.permissions, [perm]: !member.permissions[perm] };
-    setRows((prev) => prev.map((r) => (r.id === member.id ? { ...r, permissions: next } : r)));
+    const nextCodes = permissionsToCapabilityCodes(next);
+    setRows((prev) =>
+      prev.map((r) =>
+        r.id === member.id ? { ...r, permissions: next, capabilities: nextCodes } : r,
+      ),
+    );
     if (source !== 'api') return;
     try {
-      await updateMemberCapabilities(member.id, permissionsToCapabilityCodes(next));
+      await updateMemberCapabilities(member.id, nextCodes);
       toast.push(t('team.permissions_updated'), 'success');
+      // Confirm from server so reload + enforcement match the matrix.
+      await load(true);
     } catch (err) {
       toast.push(err instanceof Error ? err.message : t('errors.update_failed'), 'danger');
       await load(true);
@@ -530,120 +524,110 @@ export default function TeamPage() {
       ) : null}
 
       {!loading && !error && tab === 'notifications' ? (
-        <div className="oma-planable-card oma-notif-board" data-testid="team-notifications">
-          <h3 className="oma-ws-subhead">{t('team.manage_notifications')}</h3>
-          <p className="oma-ws-empty-desc">{t('settings.notifications.body')}</p>
+        <div className="oma-planable-card oma-notif-settings" data-testid="team-notifications">
+          <header className="oma-notif-settings__intro">
+            <h3 className="oma-ws-subhead">{t('team.manage_notifications')}</h3>
+            <p className="oma-ws-empty-desc">{t('settings.notifications.body')}</p>
+          </header>
           {notif ? (
-            <>
-              {(() => {
-                const allOn = notif.notifications.all !== false;
-                const enabledCount = NOTIFICATION_PREF_TYPES.filter(
-                  (type) => allOn && notif.notifications[type] !== false,
-                ).length;
-                return (
-                  <label className="oma-notif-master">
-                    <NotifDonut ratio={enabledCount / NOTIFICATION_PREF_TYPES.length} />
-                    <span className="oma-notif-master__copy">
-                      <strong>{t('settings.notifications.all')}</strong>
-                      <span>
-                        {enabledCount}/{NOTIFICATION_PREF_TYPES.length}
-                      </span>
-                    </span>
+            <div className="oma-notif-settings__list" aria-busy={notifSaving || undefined}>
+              <div className="oma-notif-settings__section">
+                <div className="oma-notif-settings__row oma-notif-settings__row--master">
+                  <div className="oma-notif-settings__copy">
+                    <strong>{t('settings.notifications.all')}</strong>
+                    <span>{t('settings.notifications.channel_inapp')}</span>
+                  </div>
+                  <label className="oma-switch">
                     <input
                       type="checkbox"
-                      className="oma-sr-only"
                       data-testid="notif-pref-all"
-                      checked={allOn}
-                      onChange={(e) =>
-                        setNotif({
+                      checked={notif.notifications.all !== false}
+                      disabled={notifSaving}
+                      onChange={(e) => {
+                        const next = {
                           ...notif,
                           notifications: { ...notif.notifications, all: e.target.checked },
-                        })
-                      }
+                        };
+                        setNotif(next);
+                        setNotifSaving(true);
+                        void updatePreferences({ notifications: next.notifications })
+                          .then((saved) => {
+                            setNotif(saved);
+                            setNotifSaved(saved);
+                            toast.push(t('demo.settings.saved'), 'success');
+                          })
+                          .catch((err: unknown) => {
+                            setNotif(notifSaved);
+                            toast.push(
+                              err instanceof Error ? err.message : t('errors.page.generic.title'),
+                              'danger',
+                            );
+                          })
+                          .finally(() => setNotifSaving(false));
+                      }}
                     />
+                    <span className="oma-switch__track" aria-hidden="true" />
                   </label>
-                );
-              })()}
-              <div className="oma-notif-groups">
-                {NOTIF_GROUPS.map((group) => {
-                  const allOn = notif.notifications.all !== false;
-                  const onCount = group.types.filter(
-                    (type) => allOn && notif.notifications[type] !== false,
-                  ).length;
-                  return (
-                    <section key={group.id} className="oma-notif-group">
-                      <header className="oma-notif-group__head">
-                        <NotifDonut ratio={group.types.length ? onCount / group.types.length : 0} />
-                        <h4>{t(group.labelKey)}</h4>
-                        <span>
-                          {onCount}/{group.types.length}
-                        </span>
-                      </header>
-                      <div className="oma-notif-group__list">
-                        {group.types.map((type) => {
-                          const checked = allOn && notif.notifications[type] !== false;
-                          return (
-                            <label
-                              key={type}
-                              className={`oma-notif-row${allOn ? '' : ' is-muted'}`}
-                            >
-                              <NotifDonut ratio={checked ? 1 : 0} />
-                              <span>{t(`shell.notificationPref.${type}`)}</span>
+                </div>
+              </div>
+              {NOTIF_GROUPS.map((group) => {
+                const masterOn = notif.notifications.all !== false;
+                return (
+                  <section key={group.id} className="oma-notif-settings__section">
+                    <h4 className="oma-notif-settings__heading">{t(group.labelKey)}</h4>
+                    <ul className="oma-notif-settings__rows">
+                      {group.types.map((type) => {
+                        const checked = masterOn && notif.notifications[type] !== false;
+                        return (
+                          <li key={type} className={`oma-notif-settings__row${masterOn ? '' : ' is-muted'}`}>
+                            <div className="oma-notif-settings__copy">
+                              <strong>{t(`shell.notificationPref.${type}`)}</strong>
+                              <span>{t('settings.notifications.channel_inapp')}</span>
+                            </div>
+                            <label className="oma-switch">
                               <input
                                 type="checkbox"
-                                className="oma-sr-only"
                                 data-testid={`notif-pref-${type}`}
-                                disabled={!allOn}
+                                disabled={!masterOn || notifSaving}
                                 checked={checked}
-                                onChange={(e) =>
-                                  setNotif({
+                                onChange={(e) => {
+                                  const next = {
                                     ...notif,
                                     notifications: {
                                       ...notif.notifications,
                                       [type]: e.target.checked,
                                     },
-                                  })
-                                }
+                                  };
+                                  setNotif(next);
+                                  setNotifSaving(true);
+                                  void updatePreferences({ notifications: next.notifications })
+                                    .then((saved) => {
+                                      setNotif(saved);
+                                      setNotifSaved(saved);
+                                      toast.push(t('demo.settings.saved'), 'success');
+                                    })
+                                    .catch((err: unknown) => {
+                                      setNotif(notifSaved);
+                                      toast.push(
+                                        err instanceof Error
+                                          ? err.message
+                                          : t('errors.page.generic.title'),
+                                        'danger',
+                                      );
+                                    })
+                                    .finally(() => setNotifSaving(false));
+                                }}
                               />
+                              <span className="oma-switch__track" aria-hidden="true" />
                             </label>
-                          );
-                        })}
-                      </div>
-                    </section>
-                  );
-                })}
-              </div>
-              <div className="oma-ws-action-row">
-                <Button
-                  type="primary"
-                  data-testid="settings-notifications-save"
-                  loading={notifSaving}
-                  disabled={
-                    notifSaving ||
-                    !notifSaved ||
-                    JSON.stringify(notif.notifications) === JSON.stringify(notifSaved.notifications)
-                  }
-                  onClick={() => {
-                    setNotifSaving(true);
-                    void updatePreferences({ notifications: notif.notifications })
-                      .then((next) => {
-                        setNotif(next);
-                        setNotifSaved(next);
-                        toast.push(t('demo.settings.saved'), 'success');
-                      })
-                      .catch((err: unknown) => {
-                        toast.push(
-                          err instanceof Error ? err.message : t('errors.page.generic.title'),
-                          'danger',
+                          </li>
                         );
-                      })
-                      .finally(() => setNotifSaving(false));
-                  }}
-                >
-                  {t('demo.settings.save')}
-                </Button>
-              </div>
-            </>
+                      })}
+                    </ul>
+                  </section>
+                );
+              })}
+            </div>
           ) : (
             <div className="oma-skeleton" style={{ height: 160 }} aria-busy="true" />
           )}

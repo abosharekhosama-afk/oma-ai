@@ -2401,5 +2401,7 @@
   "billing.nav.pricing": "Plans & pricing",
   "billing.nav.subscription": "Subscription & usage",
   "billing.payment_coming_soon": "Payment coming soon",
-  "billing.upgrade_prompt": "Upgrade plan"
+  "billing.upgrade_prompt": "Upgrade plan",
+  "settings.notifications.channel_inapp": "In-app",
+  "team.owner_admin_locked": "Owner admin access can’t be removed."
 }

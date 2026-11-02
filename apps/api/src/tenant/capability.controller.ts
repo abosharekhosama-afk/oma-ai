@@ -11,9 +11,15 @@ export class CapabilityController {
   @Post('memberships/:id/capabilities')
   @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
   @RequireCapabilities('capability.assign')
-  async caps(@Req() req: Request, @Body() body: { codes: string[] }) {
+  async caps(
+    @Req() req: Request,
+    @Body() body: { codes?: string[]; managed_codes?: string[] },
+  ) {
     const id = (req.params as { id: string }).id;
-    return tenantService.assignCapabilities(req.oma!.userId!, req.oma!.tenantId!, id, body.codes);
+    const codes = Array.isArray(body?.codes) ? body.codes : [];
+    return tenantService.assignCapabilities(req.oma!.userId!, req.oma!.tenantId!, id, codes, {
+      replaceManagedOnly: Array.isArray(body?.managed_codes) ? body.managed_codes : undefined,
+    });
   }
 
   @Post('memberships/:id/profiles')

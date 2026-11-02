@@ -505,18 +505,51 @@ export class TenantService {
     return { ok: true };
   }
 
+  /**
+   * Replace the membership's capability grants with `codes` (idempotent sync).
+   * Existing grants whose codes are omitted are revoked; missing codes are created.
+   * This is what the Team → Permissions UI needs — add-only was a no-op when unchecking.
+   */
   async assignCapabilities(
     actorUserId: string,
     tenantId: string,
     membershipId: string,
     codes: string[],
+    opts?: { replaceManagedOnly?: string[] },
   ) {
     const prisma = getPrisma();
     const m = await prisma.membership.findFirst({
       where: tenantWhere(tenantId, { id: membershipId }),
     });
     if (!m) throw new DomainError('NOT_FOUND', 'Membership not found', 404, 'errors.not_found');
-    for (const code of codes) {
+
+    const desired = [...new Set(codes.filter((c) => typeof c === 'string' && c.trim()))];
+    const desiredSet = new Set(desired);
+    const managed =
+      opts?.replaceManagedOnly && opts.replaceManagedOnly.length
+        ? new Set(opts.replaceManagedOnly)
+        : null;
+
+    const existing = await prisma.capabilityGrant.findMany({
+      where: { membershipId, tenantId, revokedAt: null },
+      select: { id: true, capabilityCode: true },
+    });
+    const existingCodes = new Set(existing.map((g) => g.capabilityCode));
+
+    for (const g of existing) {
+      const shouldRevoke = managed
+        ? managed.has(g.capabilityCode) && !desiredSet.has(g.capabilityCode)
+        : !desiredSet.has(g.capabilityCode);
+      if (shouldRevoke) {
+        await prisma.capabilityGrant.update({
+          where: { id: g.id },
+          data: { revokedAt: new Date() },
+        });
+      }
+    }
+
+    for (const code of desired) {
+      if (existingCodes.has(code)) continue;
       await prisma.capabilityGrant.create({
         data: {
           id: newId(),
@@ -527,15 +560,16 @@ export class TenantService {
         },
       });
     }
+
     await this.audit.write({
       actorUserId,
       tenantId,
       action: 'capability.assigned',
       targetType: 'Membership',
       targetId: membershipId,
-      afterRef: codes.join(','),
+      afterRef: desired.join(','),
     });
-    return { ok: true };
+    return { ok: true, codes: desired };
   }
 
   async attachProfile(

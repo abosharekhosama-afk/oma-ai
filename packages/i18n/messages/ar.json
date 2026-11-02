@@ -2401,5 +2401,7 @@
   "billing.nav.pricing": "الخطط والأسعار",
   "billing.nav.subscription": "الاشتراك والاستخدام",
   "billing.payment_coming_soon": "الدفع قريباً",
-  "billing.upgrade_prompt": "ترقية الخطة"
+  "billing.upgrade_prompt": "ترقية الخطة",
+  "settings.notifications.channel_inapp": "داخل التطبيق",
+  "team.owner_admin_locked": "لا يمكن إزالة صلاحيات مسؤول المالك."
 }

@@ -30,6 +30,11 @@ const CAP_MAP: Record<PlanablePerm, string[]> = {
   admin: ['membership.manage', 'membership.invite', 'capability.assign', 'tenant.manage'],
 };
 
+/** Capability codes owned by the Team → Permissions matrix (safe to revoke when unchecked). */
+export const ALL_MANAGED_CAPABILITY_CODES: string[] = [
+  ...new Set(Object.values(CAP_MAP).flat()),
+];
+
 /** Exact capability-code match (no substring guessing). */
 export function capabilitiesToPermissions(caps: string[]): Record<PlanablePerm, boolean> {
   const set = new Set(caps);
@@ -174,7 +179,7 @@ export async function updateMemberCapabilities(
   invalidateMembersCache();
   return api(`/api/v1/memberships/${membershipId}/capabilities`, {
     method: 'POST',
-    body: JSON.stringify({ codes }),
+    body: JSON.stringify({ codes, managed_codes: ALL_MANAGED_CAPABILITY_CODES }),
   });
 }
 
