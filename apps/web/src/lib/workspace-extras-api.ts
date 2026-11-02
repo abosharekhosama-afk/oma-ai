@@ -1,6 +1,6 @@
 import { api } from './api';
 
-export type BrandRef = { id: string; name: string };
+export type BrandRef = { id: string; name: string; logo_url?: string | null };
 
 export type ContentLabel = {
   id: string;
@@ -89,9 +89,11 @@ export async function listBrands(): Promise<BrandRef[]> {
   const res = await api<{ items?: BrandRef[]; data?: BrandRef[] } | BrandRef[]>(
     '/api/v1/brands?limit=50',
   );
-  if (Array.isArray(res)) return res.map((b) => ({ id: b.id, name: b.name }));
+  if (Array.isArray(res)) {
+    return res.map((b) => ({ id: b.id, name: b.name, logo_url: b.logo_url ?? null }));
+  }
   const rows = res.items || res.data || [];
-  return rows.map((b) => ({ id: b.id, name: b.name }));
+  return rows.map((b) => ({ id: b.id, name: b.name, logo_url: b.logo_url ?? null }));
 }
 
 export async function listLabels(brandId: string): Promise<ContentLabel[]> {

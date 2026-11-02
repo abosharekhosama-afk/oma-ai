@@ -1560,6 +1560,15 @@ export default function ContentPage() {
     },
     [brands, locale],
   );
+  const brandLogo = useCallback(
+    (id: string) => {
+      const b = brands.find((x) => x.id === id) as
+        | ((typeof brands)[number] & { logoUrl?: string | null })
+        | undefined;
+      return b?.logoUrl || null;
+    },
+    [brands],
+  );
 
   const filtered = useMemo(() => filterContent(rows, filters, locale), [rows, filters, locale]);
 
@@ -1690,6 +1699,7 @@ export default function ContentPage() {
         channel={item.channel}
         contentType={item.contentType}
         brandName={brandName(item.brandId)}
+        avatarUrl={brandLogo(item.brandId)}
         caption={caption}
         title={pickCopy(item.title, locale)}
         media={item.previewAsset}

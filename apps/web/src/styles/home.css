@@ -614,10 +614,16 @@
   border-radius: 50%;
   display: inline-grid;
   place-items: center;
+  overflow: hidden;
   background: var(--oma-home-primary-soft);
   color: var(--oma-home-primary);
   font-size: 10px;
   font-weight: 600;
+}
+.oma-nav-page__avatar img {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
 }
 .oma-nav-page__nets {
   display: inline-flex;

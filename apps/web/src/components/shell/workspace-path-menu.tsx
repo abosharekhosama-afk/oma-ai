@@ -11,7 +11,12 @@ import {
   ShopOutlined,
   TeamOutlined,
 } from '../ui/lucide-icons';
-import { resolveActiveBrand, selectBrand, useActiveBrandId } from '../../lib/active-brand';
+import {
+  BRAND_LOGO_EVENT,
+  resolveActiveBrand,
+  selectBrand,
+  useActiveBrandId,
+} from '../../lib/active-brand';
 
 type Me = {
   active_tenant_id: string | null;
@@ -72,8 +77,17 @@ export function WorkspacePathMenu({ onOpenSettings }: { onOpenSettings: () => vo
         }
       }
     })();
+    const onLogo = (event: Event) => {
+      const detail = (event as CustomEvent<{ id?: string; logo_url?: string | null }>).detail;
+      if (!detail?.id) return;
+      setBrands((rows) =>
+        rows.map((b) => (b.id === detail.id ? { ...b, logo_url: detail.logo_url ?? null } : b)),
+      );
+    };
+    window.addEventListener(BRAND_LOGO_EVENT, onLogo);
     return () => {
       cancelled = true;
+      window.removeEventListener(BRAND_LOGO_EVENT, onLogo);
     };
   }, []);
 

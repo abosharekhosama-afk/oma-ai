@@ -3,6 +3,9 @@ import { OmaLinkButton } from '../ui/oma-link-button';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { BRAND_LOGO_EVENT } from '../../lib/active-brand';
+import { api } from '../../lib/api';
 import { useT } from '../../lib/use-locale';
 import { StatusChip } from '../ui/status-chip';
 import { BrandMark } from './workspace-card';
@@ -40,6 +43,29 @@ export function BrandWorkspaceShell({
 }: BrandWorkspaceShellProps) {
   const t = useT();
   const pathname = usePathname();
+  const [logoUrl, setLogoUrl] = useState<string | null>(brandLogoUrl ?? null);
+  useEffect(() => {
+    setLogoUrl(brandLogoUrl ?? null);
+  }, [brandLogoUrl]);
+  useEffect(() => {
+    let live = true;
+    if (!brandLogoUrl) {
+      api<{ data: { logo_url?: string | null } }>(`/api/v1/brands/${brandId}`)
+        .then((res) => {
+          if (live) setLogoUrl(res.data.logo_url ?? null);
+        })
+        .catch(() => undefined);
+    }
+    const onLogo = (event: Event) => {
+      const detail = (event as CustomEvent<{ id?: string; logo_url?: string | null }>).detail;
+      if (detail?.id === brandId) setLogoUrl(detail.logo_url ?? null);
+    };
+    window.addEventListener(BRAND_LOGO_EVENT, onLogo);
+    return () => {
+      live = false;
+      window.removeEventListener(BRAND_LOGO_EVENT, onLogo);
+    };
+  }, [brandId, brandLogoUrl]);
   const base = `/app/brands/${brandId}`;
   const scanHref = latestScanId ? `${base}/scans/${latestScanId}` : `${base}/scans/new`;
   const links = [
@@ -80,7 +106,7 @@ export function BrandWorkspaceShell({
     <div className="oma-brand-shell" data-testid="brand-workspace">
       <header className="oma-brand-header">
         <div className="oma-brand-header-identity">
-          <BrandMark name={brandName} logoUrl={brandLogoUrl} />
+          <BrandMark name={brandName} logoUrl={logoUrl} />
           <div>
             <h1>{brandName}</h1>
             {websiteUrl ? <p className="oma-muted oma-ltr">{websiteUrl}</p> : null}

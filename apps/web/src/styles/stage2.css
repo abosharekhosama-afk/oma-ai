@@ -112,6 +112,7 @@
   justify-content: center;
   width: 32px;
   height: 32px;
+  overflow: hidden;
   border-radius: var(--oma-radius-control);
   background: var(--oma-primary-soft);
   color: var(--oma-primary);

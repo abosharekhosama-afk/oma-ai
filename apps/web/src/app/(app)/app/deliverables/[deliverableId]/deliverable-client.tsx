@@ -171,7 +171,11 @@ export default function DeliverableDetailClient() {
   const [draftPin, setDraftPin] = useState<{ x: number; y: number } | null>(null);
   const [draftBody, setDraftBody] = useState('');
   const [decisionOpen, setDecisionOpen] = useState<Decision | null>(null);
-  const [linked, setLinked] = useState<{ content: ApiContent; brand: string } | null>(null);
+  const [linked, setLinked] = useState<{
+    content: ApiContent;
+    brand: string;
+    brandLogo: string | null;
+  } | null>(null);
   const [decisionReason, setDecisionReason] = useState('');
   const [saving, setSaving] = useState(false);
   const [generalDraft, setGeneralDraft] = useState('');
@@ -245,7 +249,11 @@ export default function DeliverableDetailClient() {
       .then(([detail, brands]) => {
         if (!live) return;
         const b = brands.find((x) => x.id === detail.data.brand_id);
-        setLinked({ content: detail.data, brand: b?.name ?? '' });
+        setLinked({
+          content: detail.data,
+          brand: b?.name ?? '',
+          brandLogo: b?.logo_url ?? null,
+        });
       })
       .catch(() => live && setLinked(null));
     return () => {
@@ -1020,6 +1028,7 @@ export default function DeliverableDetailClient() {
                     channel={linked.content.channel}
                     contentType={linked.content.content_type}
                     brandName={linked.brand || pickCopy(row.title, locale)}
+                    avatarUrl={linked.brandLogo}
                     caption={linked.content.caption ? pickCopy(linked.content.caption, locale) : ''}
                     title={pickCopy(linked.content.title, locale)}
                     media={selectedVersion?.assets?.[0] || linked.content.preview_asset_url}

@@ -21,6 +21,7 @@ import {
 } from '../../../../../../lib/brand-settings-api';
 import type { BrandDetail } from '../../../../../../lib/brand-types';
 import { getApiError, isPermissionDenied } from '../../../../../../lib/brand-api';
+import { announceBrandLogo } from '../../../../../../lib/active-brand';
 import { useT } from '../../../../../../lib/use-locale';
 import { mediaApi } from '../../../../../../lib/workdrive-api';
 
@@ -164,7 +165,7 @@ export default function BrandSettingsPage() {
         setSaving(true);
         try {
           const { logoAssetId, logoUrl, ...rest } = patch;
-          await brandSettingsApi.update(brandId, {
+          const saved = await brandSettingsApi.update(brandId, {
             ...rest,
             ...(logoAssetId
               ? logoAssetId !== brand.logo_asset_id
@@ -175,6 +176,7 @@ export default function BrandSettingsPage() {
                 : {}),
             version: brand.version,
           });
+          announceBrandLogo(brandId, saved.data.logo_url ?? null);
           setNotice({ kind: 'success', text: t('brandSettings.saved') });
           loadBrand();
         } catch (e) {

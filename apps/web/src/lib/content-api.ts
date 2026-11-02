@@ -330,6 +330,7 @@ export async function loadContentWorkspace(opts?: { full?: boolean }): Promise<{
     profileStatus: string;
     strategyId: null;
     timezone?: string;
+    logoUrl?: string | null;
   }[];
   campaigns: CampaignRow[];
   content: ContentRow[];
@@ -370,6 +371,7 @@ export async function loadContentWorkspace(opts?: { full?: boolean }): Promise<{
       profileStatus: b.status,
       strategyId: null,
       timezone: b.timezone,
+      logoUrl: b.logo_url ?? null,
     })),
     campaigns: (Array.isArray(campaigns) ? campaigns : []).map((c) => toCampaignRow(c)),
     content: contentItems.map((c) => toContentRow(c)),

@@ -130,6 +130,7 @@ export default function BrandDetailPage() {
     <BrandWorkspaceShell
       brandId={brandId}
       brandName={brand.name}
+      brandLogoUrl={brand.logo_url}
       brandStatus={brand.status}
       websiteUrl={brand.website?.normalized_url}
       scanStatus={scan?.status}

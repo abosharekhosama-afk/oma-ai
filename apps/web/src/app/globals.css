@@ -1429,3 +1429,42 @@ html body .oma-shell-column:has(.oma-activity-page) > main.oma-container {
   overflow-x: hidden !important;
   overflow-y: auto !important;
 }
+
+/* Deliverable preview scrolls below the title, not underneath it. */
+html body .oma-shell-column:has(.oma-deliv-detail) > main.oma-container {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+html body .oma-deliv-detail {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  overflow: hidden !important;
+}
+html body .oma-deliv-detail__top {
+  position: relative !important;
+  top: auto !important;
+  flex: 0 0 auto !important;
+  z-index: 4 !important;
+  background: #fff !important;
+}
+html body .oma-deliv-detail__workspace {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  max-width: none !important;
+  overflow: auto !important;
+}
+html body .oma-review-workspace {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow: hidden !important;
+}
+html body .oma-deliv-detail__side-card {
+  top: 16px !important;
+}

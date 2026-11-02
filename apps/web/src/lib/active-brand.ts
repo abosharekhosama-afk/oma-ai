@@ -7,6 +7,14 @@ import { useEffect, useRef, useState } from 'react';
  */
 export const ACTIVE_BRAND_STORAGE_KEY = 'oma.activeBrandId';
 export const ACTIVE_BRAND_EVENT = 'oma:active-brand-change';
+export const BRAND_LOGO_EVENT = 'oma:brand-logo-change';
+
+export function announceBrandLogo(id: string, logoUrl: string | null): void {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(
+    new CustomEvent(BRAND_LOGO_EVENT, { detail: { id, logo_url: logoUrl } }),
+  );
+}
 
 export function getActiveBrandId(): string | null {
   if (typeof window === 'undefined') return null;

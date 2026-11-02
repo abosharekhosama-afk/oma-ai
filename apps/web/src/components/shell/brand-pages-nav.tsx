@@ -7,7 +7,7 @@ import { useT } from '../../lib/use-locale';
 import { NetworkIcon } from '../content/network-icon';
 import { initials } from '../content/post-preview-model';
 import { brandNetworks, homeLinks } from '../../lib/home-view-model';
-import { setActiveBrandId, useActiveBrandId } from '../../lib/active-brand';
+import { BRAND_LOGO_EVENT, setActiveBrandId, useActiveBrandId } from '../../lib/active-brand';
 import { Tooltip } from '../ui/tooltip';
 
 /** Planable-style "Pages": workspace brands with their connected network icons. */
@@ -17,11 +17,24 @@ export function BrandPagesNav({ collapsed }: { collapsed: boolean }) {
 
   useEffect(() => {
     let cancelled = false;
-    getHome()
-      .then((h) => !cancelled && setBrands(h.brand_summaries ?? []))
-      .catch(() => !cancelled && setBrands([]));
+    const load = () => {
+      getHome()
+        .then((h) => !cancelled && setBrands(h.brand_summaries ?? []))
+        .catch(() => !cancelled && setBrands([]));
+    };
+    load();
+    const onLogo = (event: Event) => {
+      const detail = (event as CustomEvent<{ id?: string; logo_url?: string | null }>).detail;
+      if (!detail?.id) return;
+      setBrands((rows) =>
+        rows?.map((b) => (b.id === detail.id ? { ...b, logo_url: detail.logo_url ?? null } : b)) ??
+        rows,
+      );
+    };
+    window.addEventListener(BRAND_LOGO_EVENT, onLogo);
     return () => {
       cancelled = true;
+      window.removeEventListener(BRAND_LOGO_EVENT, onLogo);
     };
   }, []);
 
