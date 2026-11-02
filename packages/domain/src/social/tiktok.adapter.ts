@@ -272,6 +272,14 @@ export class TikTokAdapter implements SocialProviderAdapter {
         { retryable: false, providerCode: 'invalid_media_combination' },
       );
     }
+    const contentType = String(post.contentType || '').toUpperCase();
+    // REEL / VIDEO are video-only on TikTok. Fail fast when only images are attached.
+    if ((contentType === 'REEL' || contentType === 'VIDEO') && videos.length === 0) {
+      throw new SocialProviderError(
+        'tiktok [reel_requires_video]: TikTok Reels require a video file. Attach an MP4, WebM, or MOV — images cannot be published as a Reel.',
+        { retryable: false, providerCode: 'reel_requires_video' },
+      );
+    }
     if (videos.length > 1) {
       throw new SocialProviderError(
         'tiktok [video_count_exceeded]: TikTok accepts one video per post; create a separate post for each additional video.',
@@ -368,10 +376,11 @@ export class TikTokAdapter implements SocialProviderAdapter {
     const username =
       creator.username ||
       (typeof page.meta.username === 'string' ? page.meta.username.replace(/^@/, '') : undefined);
-    if (username && page.meta.username !== username) {
-      // Surface username so subsequent status polls / reconnects can build permanent URLs.
-      page.meta = { ...page.meta, username };
-    }
+    page.meta = {
+      ...page.meta,
+      ...(username ? { username } : {}),
+      tiktokMediaKind: isVideo ? 'video' : 'photo',
+    };
     return {
       externalId: publishId,
       url: username ? `https://www.tiktok.com/@${username}` : null,
@@ -424,13 +433,26 @@ export class TikTokAdapter implements SocialProviderAdapter {
         typeof page.meta.username === 'string' && page.meta.username.trim()
           ? page.meta.username.trim().replace(/^@/, '')
           : undefined;
+      const kindFromMeta = page.meta.tiktokMediaKind === 'photo' ? 'photo' : page.meta.tiktokMediaKind === 'video' ? 'video' : null;
+      // TikTok photo publish_ids typically start with p_; video with v_.
+      const kind =
+        kindFromMeta ??
+        (publishId.startsWith('p_') ? 'photo' : publishId.startsWith('v_') ? 'video' : 'video');
       const built = username
         ? externalId
-          ? `https://www.tiktok.com/@${username}/video/${externalId}`
+          ? `https://www.tiktok.com/@${username}/${kind}/${externalId}`
           : `https://www.tiktok.com/@${username}`
         : null;
       const url = shareUrl || built;
-      return { status: 'PUBLISHED', ...(externalId ? { externalId } : {}), url };
+      const profileOnly = Boolean(
+        url && username && !externalId && url === `https://www.tiktok.com/@${username}`,
+      );
+      return {
+        status: 'PUBLISHED',
+        ...(externalId ? { externalId } : {}),
+        url,
+        ...(profileOnly ? { profileOnly: true } : {}),
+      };
     }
     if (status === 'FAILED') {
       const reason = String(data.fail_reason ?? 'unknown');

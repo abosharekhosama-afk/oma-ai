@@ -38,6 +38,12 @@ export function isPermissionDenied(err: unknown): boolean {
   return status === 403 || code === 'PERMISSION_DENIED';
 }
 
+/** Brand routes return 404 (not 403) when the member has no brand membership. */
+export function isNotFound(err: unknown): boolean {
+  const { status, code } = getApiError(err);
+  return status === 404 || code === 'NOT_FOUND';
+}
+
 /** The session carries no active company yet, so the user must pick one. */
 export function isTenantRequired(err: unknown): boolean {
   return getApiError(err).code === 'TENANT_REQUIRED';

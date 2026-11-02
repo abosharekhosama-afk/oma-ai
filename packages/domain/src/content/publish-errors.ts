@@ -30,7 +30,10 @@ const RULES: Array<{ code: PublishErrorCode; test: (s: string) => boolean }> = [
   },
   {
     code: 'NO_MEDIA',
-    test: (s) => /image is required|media was removed|an image is required|no media/i.test(s),
+    test: (s) =>
+      /image is required|media was removed|an image is required|no media|reel_requires_video|media_missing/i.test(
+        s,
+      ),
   },
   {
     code: 'NETWORK_NOT_CONFIGURED',
@@ -148,6 +151,14 @@ const TIKTOK_FAILURE_COPY: Record<string, { en: string; ar: string }> = {
   invalid_media_combination: {
     en: 'TikTok does not allow photos and videos in the same post. Create a photo post or a video post.',
     ar: 'لا يسمح TikTok بخلط الصور والفيديوهات في المنشور نفسه. أنشئ منشور صور أو منشور فيديو.',
+  },
+  reel_requires_video: {
+    en: 'TikTok Reels require a video file. Attach an MP4, WebM, or MOV — an image cannot be published as a Reel.',
+    ar: 'ريلز TikTok يتطلب ملف فيديو. أرفق MP4 أو WebM أو MOV — لا يمكن نشر صورة كريلز.',
+  },
+  publish_status_timeout: {
+    en: 'TikTok did not confirm this publish in time. Open TikTok to check, or retry publishing.',
+    ar: 'لم يؤكد TikTok هذا النشر في الوقت المحدد. تحقق في تطبيق TikTok أو أعد المحاولة.',
   },
   file_format_check_failed: {
     en: 'TikTok rejected the file format or video codec. Photos must be JPEG/WebP; videos must be MP4, WebM, or MOV using a supported codec.',

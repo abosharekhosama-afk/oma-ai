@@ -2405,5 +2405,9 @@
   "settings.notifications.channel_inapp": "داخل التطبيق",
   "team.owner_admin_locked": "لا يمكن إزالة صلاحيات مسؤول المالك.",
   "demo.schedule.publishState.queuedStale": "ما زال في قائمة الانتظار — قد يكون عامل النشر متوقفاً. فعّل أو أعد نشر الـ worker ثم أعد المحاولة.",
-  "demo.schedule.queuedStaleHint": "هذا المنشور ينتظر في الطابور منذ عدة دقائق دون أن يلتقطه العامل."
+  "demo.schedule.queuedStaleHint": "هذا المنشور ينتظر في الطابور منذ عدة دقائق دون أن يلتقطه العامل.",
+  "errors.brandNoAccess": "ليس لديك صلاحية الوصول إلى هذه العلامة. اطلب من مسؤول مساحة العمل إضافتك كعضو.",
+  "demo.schedule.viewProfileLink": "عرض الملف الشخصي",
+  "demo.deliverable.reviewBeforeSubmit": "أرسل هذا التسليم للمراجعة قبل الموافقة أو طلب التعديلات.",
+  "content.compose.reelNeedsVideo": "الريلز يحتاج إلى ملف فيديو. لا يمكن نشر صورة كريلز على TikTok."
 }

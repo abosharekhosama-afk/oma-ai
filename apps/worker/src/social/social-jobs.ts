@@ -30,8 +30,12 @@ function publicWebOrigin(): string {
 export const MAX_PUBLISH_ATTEMPTS = 5;
 /** Backoff after attempt n (1-based): 1m, 5m, 15m, 60m. */
 export const PUBLISH_BACKOFF_MS = [60_000, 5 * 60_000, 15 * 60_000, 60 * 60_000];
-/** TikTok status polling cadence; its publish endpoint is asynchronous. */
-export const TIKTOK_STATUS_POLL_MS = 60_000;
+/** First TikTok status poll delay after publish init (then backs off). */
+export const TIKTOK_STATUS_POLL_MS = 10_000;
+/** Status poll backoff steps: 10s → 20s → 40s → 60s (cap). */
+export const TIKTOK_STATUS_POLL_BACKOFF_MS = [10_000, 20_000, 40_000, 60_000];
+/** Give up polling TikTok after this long in PUBLISHING and mark FAILED. */
+export const TIKTOK_STATUS_MAX_WAIT_MS = 30 * 60_000;
 /** Refresh tokens that expire within this window. */
 export const REFRESH_WINDOW_MS = 3 * 24 * 3600_000;
 
@@ -328,7 +332,32 @@ export async function runPublishStatusTick(deps: Deps = {}) {
   for (const target of due) {
     const operationId = target.externalPostId;
     if (!operationId) continue;
-    const nextPollAt = new Date(now.getTime() + TIKTOK_STATUS_POLL_MS);
+    const startedAt = target.workerPickedAt ?? target.updatedAt ?? now;
+    const waitedMs = now.getTime() - new Date(startedAt).getTime();
+    if (waitedMs >= TIKTOK_STATUS_MAX_WAIT_MS) {
+      const msg =
+        'tiktok [publish_status_timeout]: TikTok did not confirm publish within 30 minutes. Check the TikTok app or retry.';
+      await prisma.contentPublishTarget.update({
+        where: { id: target.id },
+        data: {
+          publishState: 'FAILED',
+          lastPublishError: msg.slice(0, 1000),
+          nextPublishAt: null,
+        },
+      });
+      await syncContentPublishRollup(target.contentItemId);
+      await notifyPublishOutcome(target.contentItem, 'failed', { error: msg });
+      out.failed++;
+      out.checked++;
+      continue;
+    }
+    // Back off polls while still pending: 10s, 20s, 40s, then 60s.
+    const pollStep = Math.min(
+      Math.floor(waitedMs / TIKTOK_STATUS_POLL_MS),
+      TIKTOK_STATUS_POLL_BACKOFF_MS.length - 1,
+    );
+    const pollDelay = TIKTOK_STATUS_POLL_BACKOFF_MS[Math.max(pollStep, 0)]!;
+    const nextPollAt = new Date(now.getTime() + pollDelay);
     const claim = await prisma.contentPublishTarget.updateMany({
       where: {
         id: target.id,

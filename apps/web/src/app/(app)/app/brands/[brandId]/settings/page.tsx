@@ -49,7 +49,7 @@ export default function BrandSettingsPage() {
   const [pages, setPages] = useState<SocialPageRow[] | null>(null);
   const [providers, setProviders] = useState<SocialProvider[]>([]);
   const [connecting, setConnecting] = useState<SocialNetwork | null>(null);
-  const timezones = useMemo(() => timezoneOptions(), []);
+  const timezones = useMemo(() => timezoneOptions(brand?.timezone), [brand?.timezone]);
   const [logoStorage, setLogoStorage] = useState<{
     connected: boolean;
     orgName: string | null;

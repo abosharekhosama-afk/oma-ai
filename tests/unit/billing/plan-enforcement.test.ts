@@ -61,14 +61,17 @@ describe('plan enforcement wiring', () => {
     expect(social).toContain("assertWithinLimit(row.tenantId, 'social_channels'");
   });
 
-  it('closes deliverable review permission gap (decide capability)', () => {
+  it('splits deliverable review caps: submit via write, decide via review.decide', () => {
     const guard = readFileSync(
       resolve('apps/api/src/common/guards/capabilities.guard.ts'),
       'utf8',
     );
-    expect(guard).toContain(
-      "'POST /api/v1/deliverables/:deliverableId/review': ['deliverable.review.decide']",
-    );
+    const ops = readFileSync(resolve('apps/api/src/content/ops.service.ts'), 'utf8');
+    // Guard allows brand members through; OpsService.assertReviewCapability enforces action caps.
+    expect(guard).toContain("'POST /api/v1/deliverables/:deliverableId/review': []");
+    expect(ops).toContain("action === 'submit'");
+    expect(ops).toContain("'deliverable.write'");
+    expect(ops).toContain("'deliverable.review.decide'");
   });
 
   it('matches catalog limits used by UI pricing cards', () => {

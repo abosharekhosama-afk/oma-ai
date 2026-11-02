@@ -118,6 +118,7 @@ function normMime(m: string) {
 export function validateMediaForNetwork(
   network: string,
   assets: MediaAssetInfo[],
+  opts?: { contentType?: string | null },
 ): MediaValidationIssue[] {
   const key = network.toLowerCase() as SocialNetworkKey;
   const c = NETWORK_MEDIA_CONSTRAINTS[key];
@@ -136,6 +137,21 @@ export function validateMediaForNetwork(
   }
   const photos = assets.filter((a) => normMime(a.mime).startsWith('image/'));
   const videos = assets.filter((a) => normMime(a.mime).startsWith('video/'));
+  const contentType = String(opts?.contentType || '').toUpperCase();
+  if (
+    key === 'tiktok' &&
+    (contentType === 'REEL' || contentType === 'VIDEO') &&
+    videos.length === 0
+  ) {
+    issues.push({
+      code: 'reel_requires_video',
+      severity: 'error',
+      message: {
+        en: 'TikTok Reels require a video file. Images cannot be published as a Reel.',
+        ar: 'ريلز TikTok يتطلب ملف فيديو. لا يمكن نشر صورة كريلز.',
+      },
+    });
+  }
   if (!c.allowMixPhotoVideo && photos.length && videos.length) {
     issues.push({
       code: 'mixed_media',

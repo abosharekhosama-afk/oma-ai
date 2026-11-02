@@ -706,6 +706,7 @@ function PlanableComposeCard({
         <NetworkMediaWarnings
           locale={locale}
           channel={form.channel}
+          contentType={form.contentType}
           media={form.media.map((m) => ({ mime: m.mime, size: m.size }))}
         />
 

@@ -33,6 +33,7 @@ export function NetworkMediaWarnings(props: {
   locale: string;
   channel: string;
   pageNetworks?: string[];
+  contentType?: string | null;
   media: Array<{ mime: string; size?: number; width?: number | null; height?: number | null }>;
 }) {
   const isAr = props.locale.toLowerCase().startsWith('ar');
@@ -48,7 +49,7 @@ export function NetworkMediaWarnings(props: {
 
   const blocks: Array<{ network: SocialNetworkKey; notes: string; lines: string[] }> = [];
   for (const network of networks) {
-    const issues = validateMediaForNetwork(network, assets);
+    const issues = validateMediaForNetwork(network, assets, { contentType: props.contentType });
     const c = NETWORK_MEDIA_CONSTRAINTS[network];
     const lines = issues.map((i) => (isAr ? i.message.ar : i.message.en));
     if (lines.length || (c && (network === 'tiktok' || network === 'instagram'))) {

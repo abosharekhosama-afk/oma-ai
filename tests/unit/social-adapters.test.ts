@@ -419,6 +419,58 @@ describe('TikTok adapter', () => {
     });
   });
 
+  it('builds /photo/{id} permalinks for TikTok photo publishes', async () => {
+    const m = mockFetch([
+      [
+        /post\/publish\/status\/fetch/,
+        () =>
+          json({
+            data: { status: 'PUBLISH_COMPLETE', publicaly_available_post_id: ['998877'] },
+            error: { code: 'ok' },
+          }),
+      ],
+    ]);
+    await expect(
+      new TikTokAdapter(publishEnv, m.fn).fetchPublishStatus(
+        {
+          externalId: 'open-id',
+          name: 'test',
+          accessToken: 'token',
+          meta: { username: 'brand', tiktokMediaKind: 'photo' },
+        },
+        'p_operation-id',
+      ),
+    ).resolves.toEqual({
+      status: 'PUBLISHED',
+      externalId: '998877',
+      url: 'https://www.tiktok.com/@brand/photo/998877',
+    });
+  });
+
+  it('rejects image-only media when contentType is REEL', async () => {
+    const adapter = new TikTokAdapter(
+      publishEnv,
+      mockFetch([[/creator_info\/query/, creatorInfo]]).fn,
+    );
+    await expect(
+      adapter.publish(
+        {
+          externalId: 'o1',
+          name: '',
+          accessToken: 'token',
+          meta: { scopes: ['video.publish'] },
+        },
+        {
+          text: 'Reel',
+          contentType: 'REEL',
+          media: [{ url: 'https://cdn/a.jpg', mime: 'image/jpeg', sizeBytes: 1000 }],
+        },
+      ),
+    ).rejects.toMatchObject({
+      opts: { providerCode: 'reel_requires_video', retryable: false },
+    });
+  });
+
   it('rejects unsupported PNG and photos over TikTok size limit before sending', async () => {
     const adapter = new TikTokAdapter(
       publishEnv,

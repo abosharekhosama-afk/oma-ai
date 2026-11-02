@@ -41,7 +41,7 @@ import { todayKey, wallTimeToIso } from '../../../../lib/calendar-today';
 import { brandScheduleTimezone } from '../../../../lib/brand-schedule-timezone';
 import { useActiveBrandId } from '../../../../lib/active-brand';
 import { contentToScheduleRow, type ScheduleRowExtras } from '../../../../lib/schedule-production';
-import { buildPublishStatusView, formatScheduleWhen } from '../../../../lib/publish-status';
+import { buildPublishStatusView, formatScheduleWhen, isProfileOnlyPostUrl } from '../../../../lib/publish-status';
 import {
   EMPTY_SCHEDULE_FILTERS,
   activeScheduleFilterCount,
@@ -1242,7 +1242,9 @@ export default function SchedulePage() {
                                 rel="noreferrer"
                                 className="oma-text-link"
                               >
-                                {t('demo.schedule.viewPostLink')}
+                                {isProfileOnlyPostUrl(status.externalUrl)
+                                  ? t('demo.schedule.viewProfileLink')
+                                  : t('demo.schedule.viewPostLink')}
                               </a>
                             </>
                           ) : null}
