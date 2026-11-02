@@ -8,7 +8,6 @@ import { createPortal } from 'react-dom';
 import type { DemoGraph, DemoTaskStatus } from '@oma/demo';
 import { Button, Checkbox, Drawer as AntDrawer, Input, SelectField } from '@oma/ui/controls';
 import { Dialog } from '../../../../components/ui/dialog';
-import { Drawer } from '../../../../components/ui/drawer';
 import { AssigneePicker } from '../../../../components/ui/assignee-picker';
 import { EntityLink } from '../../../../components/ui/entity-link';
 import { PageHeader } from '../../../../components/ui/page-header';
@@ -857,7 +856,18 @@ export default function TasksPage() {
         </>
       ) : null}
 
-      <Drawer open={Boolean(selected)} onClose={closeTask} label={t('demo.tasks.detail')} wide>
+      <AntDrawer
+        open={Boolean(selected)}
+        onClose={closeTask}
+        placement={locale.toLowerCase().startsWith('ar') ? 'left' : 'right'}
+        mask={false}
+        closable={false}
+        title={null}
+        keyboard
+        destroyOnHidden
+        rootClassName="oma-task-detail-drawer"
+        styles={{ body: { padding: 0 } }}
+      >
         {selected ? (
           <div className="oma-task-detail" data-testid="demo-task-drawer">
             <header className="oma-task-detail__head">
@@ -886,7 +896,14 @@ export default function TasksPage() {
                 <Button data-testid="demo-task-copy-link" onClick={() => void copyLink()}>
                   {t('demo.tasks.copyLink')}
                 </Button>
-                <Button onClick={closeTask}>{t('common.cancel')}</Button>
+                <button
+                  type="button"
+                  className="oma-req-filter-panel__close"
+                  aria-label={t('common.cancel')}
+                  onClick={closeTask}
+                >
+                  <CloseOutlined />
+                </button>
               </div>
             </header>
 
@@ -1098,7 +1115,7 @@ export default function TasksPage() {
             </div>
           </div>
         ) : null}
-      </Drawer>
+      </AntDrawer>
 
       <Dialog
         open={createOpen}

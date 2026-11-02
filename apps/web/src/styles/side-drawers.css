@@ -140,6 +140,81 @@
   background: #fff !important;
 }
 
+/* Task detail uses the same full-height side panel as the tasks filter. */
+.oma-task-detail-drawer {
+  z-index: 1200 !important;
+}
+.oma-task-detail-drawer .ant-drawer-content-wrapper {
+  width: min(520px, 100vw) !important;
+  max-width: 100vw !important;
+  transition: transform 240ms cubic-bezier(0.22, 1, 0.36, 1) !important;
+}
+.oma-task-detail-drawer .ant-drawer-section,
+.oma-task-detail-drawer .ant-drawer-content {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  background: #f7f8f9 !important;
+}
+.oma-task-detail-drawer .ant-drawer-header {
+  display: none !important;
+}
+.oma-task-detail-drawer .ant-drawer-body {
+  display: flex !important;
+  flex: 1 1 auto !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  background: #f7f8f9 !important;
+}
+.oma-task-detail-drawer .oma-task-detail {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  height: 100% !important;
+  overflow: hidden !important;
+}
+.oma-task-detail-drawer .oma-task-detail__head {
+  flex: 0 0 auto !important;
+  align-items: center !important;
+  min-height: 64px !important;
+  padding: 16px 20px !important;
+  background: #fff !important;
+  border-bottom: 1px solid #e8ebef !important;
+}
+.oma-task-detail-drawer .oma-task-detail__head-main {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+.oma-task-detail-drawer .oma-task-detail__title-input,
+.oma-task-detail-drawer .oma-task-detail__title-input.ant-input {
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 32px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #20252c !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  line-height: 1.3 !important;
+}
+.oma-task-detail-drawer .oma-task-detail__grid {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+.oma-task-detail-drawer .oma-task-detail__head-actions .oma-req-filter-panel__close {
+  flex: 0 0 auto;
+}
+
 /* Content uses a lightweight custom panel; give it the same slide-in language. */
 .oma-filter-backdrop {
   animation: oma-filter-backdrop-in 180ms ease-out both;

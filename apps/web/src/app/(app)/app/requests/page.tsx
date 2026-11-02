@@ -11,7 +11,6 @@ import { ShellIcon } from '../../../../components/shell/shell-icons';
 import dayjs from 'dayjs';
 import { Dialog } from '../../../../components/ui/dialog';
 import { EmptyState } from '../../../../components/ui/empty-state';
-import { Panel } from '../../../../components/ui/page-header';
 import { StatusChip } from '../../../../components/ui/status-chip';
 import { useToast } from '../../../../components/ui/toast';
 import { pickCopy } from '../../../../lib/demo/use-demo-api';
@@ -1011,12 +1010,6 @@ export default function RequestsPage() {
           </Button>
         </div>
       </Dialog>
-
-      <Panel title={t('demo.honesty.ai')}>
-        <p className="oma-muted" style={{ margin: 0 }}>
-          {t('demo.honesty.ai')}
-        </p>
-      </Panel>
     </div>
   );
 }
