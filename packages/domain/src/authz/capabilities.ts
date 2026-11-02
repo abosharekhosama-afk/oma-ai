@@ -242,13 +242,16 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     'task.write',
     'deliverable.read',
   ],
-  /** External client / guest — view & approve limited */
+  /** External client / guest — view, request, comment & approve (hide-from-clients respected) */
   CLIENT: [
     'notification.read',
     'brand.read',
     'campaign.read',
     'content.read',
+    'content.update',
     'content.approve',
+    'request.read',
+    'request.create',
     'deliverable.read',
     'deliverable.review',
     'deliverable.review.decide',

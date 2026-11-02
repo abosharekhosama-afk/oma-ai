@@ -193,3 +193,15 @@ export function formatScheduleWhen(
     return iso;
   }
 }
+
+/** True when a TikTok (or similar) URL is the profile page, not a per-post permalink. */
+export function isProfileOnlyPostUrl(url: string | null | undefined): boolean {
+  if (!url) return false;
+  try {
+    const path = new URL(url).pathname.replace(/\/+$/, '');
+    return /^\/@[^/]+$/.test(path);
+  } catch {
+    return false;
+  }
+}
+

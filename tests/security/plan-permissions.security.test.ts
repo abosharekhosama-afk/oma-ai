@@ -14,12 +14,13 @@ describe('permissions audit (plans rollout)', () => {
     expect(hasCapability(caps, 'membership.invite')).toBe(false);
   });
 
-  it('CLIENT can approve but not create/update posts', () => {
+  it('CLIENT can approve, comment, and create requests (not create posts)', () => {
     const caps = SYSTEM_PROFILES.CLIENT ?? [];
     expect(hasCapability(caps, 'content.read')).toBe(true);
     expect(hasCapability(caps, 'content.approve')).toBe(true);
+    expect(hasCapability(caps, 'content.update')).toBe(true);
+    expect(hasCapability(caps, 'request.create')).toBe(true);
     expect(hasCapability(caps, 'content.create')).toBe(false);
-    expect(hasCapability(caps, 'content.update')).toBe(false);
   });
 
   it('GUEST is read-only on content', () => {
@@ -29,11 +30,13 @@ describe('permissions audit (plans rollout)', () => {
     expect(hasCapability(caps, 'content.create')).toBe(false);
   });
 
-  it('brand VIEWER role is read-only', () => {
+  it('brand VIEWER role allows client collaboration caps only', () => {
     expect(brandRoleAllows('VIEWER', 'content.read')).toBe(true);
-    expect(brandRoleAllows('VIEWER', 'content.create')).toBe(false);
-    expect(brandRoleAllows('VIEWER', 'content.update')).toBe(false);
-    expect(brandRoleAllows('VIEWER', 'content.approve')).toBe(false);
+    expect(brandRoleAllows('VIEWER', 'content.update')).toBe(true);
+    expect(brandRoleAllows('VIEWER', 'request.create')).toBe(true);
+    expect(brandRoleAllows('VIEWER', 'content.approve')).toBe(true);
+    expect(brandRoleAllows('VIEWER', 'content.schedule')).toBe(false);
+    expect(brandRoleAllows('VIEWER', 'membership.manage')).toBe(false);
   });
 
   it('MEMBER cannot decide deliverable reviews without review capability', () => {

@@ -6,10 +6,13 @@ import { parseBrandSettings, parseLogoUrl } from '../../apps/api/src/brand/brand
 
 describe('brand roles', () => {
   const writer = SYSTEM_PROFILES.ADMIN!;
-  it('viewer is read-only, approver can approve, editor cannot manage the brand', () => {
+  it('viewer keeps client collaboration caps; approver can comment; editor cannot manage the brand', () => {
     expect(brandRoleAllows('VIEWER', 'content.read')).toBe(true);
-    expect(brandRoleAllows('VIEWER', 'content.update')).toBe(false);
+    expect(brandRoleAllows('VIEWER', 'content.update')).toBe(true);
+    expect(brandRoleAllows('VIEWER', 'request.create')).toBe(true);
+    expect(brandRoleAllows('VIEWER', 'content.schedule')).toBe(false);
     expect(brandRoleAllows('APPROVER', 'content.approve')).toBe(true);
+    expect(brandRoleAllows('APPROVER', 'content.update')).toBe(true);
     expect(brandRoleAllows('APPROVER', 'content.create')).toBe(false);
     expect(brandRoleAllows('EDITOR', 'content.schedule')).toBe(true);
     expect(brandRoleAllows('EDITOR', 'brand.archive')).toBe(false);
@@ -20,11 +23,12 @@ describe('brand roles', () => {
     const member = SYSTEM_PROFILES.MEMBER!;
     expect(capabilitiesForBrandRole(member, 'MANAGER')).toEqual(member);
     expect(capabilitiesForBrandRole(member, 'MANAGER')).not.toContain('brand.archive');
-    expect(
-      capabilitiesForBrandRole(writer, 'VIEWER').every(
-        (c) => c.endsWith('.read') || c === 'strategy.compare',
-      ),
-    ).toBe(true);
+    const viewerCaps = capabilitiesForBrandRole(writer, 'VIEWER');
+    expect(viewerCaps).toContain('content.read');
+    expect(viewerCaps).toContain('content.update');
+    expect(viewerCaps).toContain('request.create');
+    expect(viewerCaps).not.toContain('content.schedule');
+    expect(viewerCaps).not.toContain('brand.archive');
   });
 });
 

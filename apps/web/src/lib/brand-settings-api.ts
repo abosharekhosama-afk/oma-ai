@@ -144,9 +144,21 @@ export function readLogoFile(file: File): Promise<string> {
   });
 }
 
-export function timezoneOptions(): string[] {
+/** Zones that some runtimes omit from Intl.supportedValuesOf('timeZone'). */
+const REQUIRED_TIMEZONES = ['Asia/Gaza', 'Asia/Hebron', 'Asia/Jerusalem', 'Asia/Dubai', 'UTC'] as const;
+
+/**
+ * Full IANA timezone list for settings dropdowns.
+ * Always includes Asia/Gaza and Asia/Hebron (Palestine), and optionally `ensure`
+ * so a stored value stays selectable even if missing from the host list.
+ */
+export function timezoneOptions(ensure?: string | null): string[] {
   const intl = Intl as unknown as { supportedValuesOf?: (k: string) => string[] };
-  return (
-    intl.supportedValuesOf?.('timeZone') ?? ['Asia/Dubai', 'Asia/Jerusalem', 'Europe/London', 'UTC']
-  );
+  const base =
+    intl.supportedValuesOf?.('timeZone') ??
+    ['Asia/Dubai', 'Asia/Jerusalem', 'Asia/Gaza', 'Asia/Hebron', 'Europe/London', 'UTC'];
+  const set = new Set(base);
+  for (const z of REQUIRED_TIMEZONES) set.add(z);
+  if (ensure && ensure.trim()) set.add(ensure.trim());
+  return [...set].sort((a, b) => a.localeCompare(b));
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { humanizePublishError } from '../../lib/publish-errors';
-import { publishTargetStateLabelKey, type PublishTargetStatusRow } from '../../lib/publish-status';
+import { isProfileOnlyPostUrl, publishTargetStateLabelKey, type PublishTargetStatusRow } from '../../lib/publish-status';
 import { useT } from '../../lib/use-locale';
 
 export function PublishTargetsPanel({
@@ -24,6 +24,7 @@ export function PublishTargetsPanel({
         const err = target.lastError
           ? humanizePublishError(target.lastError, isAr ? 'ar' : 'en')
           : null;
+        const profileOnly = isProfileOnlyPostUrl(target.externalPostUrl);
         return (
           <li
             key={target.id}
@@ -40,8 +41,11 @@ export function PublishTargetsPanel({
                   target="_blank"
                   rel="noreferrer"
                   className="oma-text-link"
+                  data-profile-only={profileOnly ? 'true' : 'false'}
                 >
-                  {t('demo.schedule.viewPostLink')}
+                  {profileOnly
+                    ? t('demo.schedule.viewProfileLink')
+                    : t('demo.schedule.viewPostLink')}
                 </a>
               </>
             ) : null}

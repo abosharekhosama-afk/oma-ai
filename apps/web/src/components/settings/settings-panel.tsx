@@ -289,7 +289,7 @@ export function SettingsPanel({
                       data-testid="settings-workspace-timezone"
                       onChange={(e) => setWsDraft({ ...wsDraft, timezone: e.target.value })}
                     >
-                      {timezoneOptions().map((tz) => (
+                      {timezoneOptions(wsDraft.timezone).map((tz) => (
                         <option key={tz} value={tz}>
                           {tz.replaceAll('_', ' ')}
                         </option>

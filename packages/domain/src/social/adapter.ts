@@ -46,7 +46,13 @@ export type PublishInput = {
 export type PublishResult = { externalId: string; url: string | null; pending?: boolean };
 export type PublishStatusResult =
   | { status: 'PENDING' }
-  | { status: 'PUBLISHED'; externalId?: string; url?: string | null }
+  | {
+      status: 'PUBLISHED';
+      externalId?: string;
+      url?: string | null;
+      /** True when URL is the profile page, not a per-post permalink. */
+      profileOnly?: boolean;
+    }
   | { status: 'FAILED'; errorMessage: string; retryable: boolean; reauth?: boolean };
 
 /**

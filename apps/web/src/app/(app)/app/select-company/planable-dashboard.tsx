@@ -136,7 +136,7 @@ export function PlanableDashboard() {
 
   const [createOpen, setCreateOpen] = useState(false);
   const [createStep, setCreateStep] = useState<1 | 2 | 3>(1);
-  const [timezones] = useState(() => timezoneOptions());
+  const [timezones] = useState(() => timezoneOptions(Intl.DateTimeFormat().resolvedOptions().timeZone));
   const [wsName, setWsName] = useState('');
   const [wsUrl, setWsUrl] = useState('');
   const [wsTz, setWsTz] = useState(() => {

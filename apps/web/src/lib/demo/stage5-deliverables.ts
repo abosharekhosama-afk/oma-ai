@@ -241,9 +241,21 @@ export const REVIEW_TRANSITIONS: Record<DemoReviewStatus, DemoReviewStatus[]> = 
   REJECTED: ['DRAFT', 'AWAITING_REVIEW'],
 };
 
-export function canTransitionReview(from: DemoReviewStatus, to: DemoReviewStatus): boolean {
+export function canTransitionReview(from: DemoReviewStatus | string, to: DemoReviewStatus | string): boolean {
   if (from === to) return true;
-  return REVIEW_TRANSITIONS[from]?.includes(to) ?? false;
+  // API may still return NOT_STARTED; treat it like DRAFT (submit only).
+  const normalized = (from === 'NOT_STARTED' ? 'DRAFT' : from) as DemoReviewStatus;
+  const target = to as DemoReviewStatus;
+  return REVIEW_TRANSITIONS[normalized]?.includes(target) ?? false;
+}
+
+/** True when approve / request_changes / reject are legal from the current status. */
+export function canOfferReviewDecision(reviewStatus: string): boolean {
+  return (
+    canTransitionReview(reviewStatus, 'APPROVED') ||
+    canTransitionReview(reviewStatus, 'CHANGES_REQUESTED') ||
+    canTransitionReview(reviewStatus, 'REJECTED')
+  );
 }
 
 /**

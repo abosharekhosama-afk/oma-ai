@@ -2405,5 +2405,9 @@
   "settings.notifications.channel_inapp": "In-app",
   "team.owner_admin_locked": "Owner admin access can’t be removed.",
   "demo.schedule.publishState.queuedStale": "Still queued — the publisher worker may be offline. Wake or redeploy the worker, then retry.",
-  "demo.schedule.queuedStaleHint": "This post has been waiting in the queue for several minutes without the worker picking it up."
+  "demo.schedule.queuedStaleHint": "This post has been waiting in the queue for several minutes without the worker picking it up.",
+  "errors.brandNoAccess": "You do not have access to this brand. Ask a workspace admin to add you as a member.",
+  "demo.schedule.viewProfileLink": "View profile",
+  "demo.deliverable.reviewBeforeSubmit": "Submit this deliverable for review before approving or requesting changes.",
+  "content.compose.reelNeedsVideo": "Reels need a video file. Images cannot be published as a Reel on TikTok."
 }

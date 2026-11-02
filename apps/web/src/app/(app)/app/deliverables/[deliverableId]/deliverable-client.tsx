@@ -957,29 +957,37 @@ export default function DeliverableDetailClient() {
                 {canDecide ? (
                   <div className="oma-review-decision" data-testid="demo-review-decision">
                     <h4>{t('demo.review.decision') || 'Decision'}</h4>
-                    <div className="oma-chip-row">
-                      {(['APPROVED', 'CHANGES_REQUESTED', 'REJECTED'] as Decision[]).map((d) => (
-                        <Button
-                          key={d}
-                          type="default"
-                          data-testid={`demo-decision-${d}`}
-                          disabled={
-                            saving ||
-                            !selectedVersion ||
-                            row.reviewStatus === d ||
-                            !canTransitionReview(row.reviewStatus, d)
-                          }
-                          onClick={() => setDecisionOpen(d)}
-                        >
-                          {d === 'APPROVED' ? <CheckOutlined /> : null}{' '}
-                          {d === 'APPROVED'
-                            ? t('demo.deliverable.approve')
-                            : d === 'CHANGES_REQUESTED'
-                              ? t('demo.deliverable.requestChanges')
-                              : t('demo.deliverable.reject')}
-                        </Button>
-                      ))}
-                    </div>
+                    {canTransitionReview(row.reviewStatus, 'APPROVED') ||
+                    canTransitionReview(row.reviewStatus, 'CHANGES_REQUESTED') ||
+                    canTransitionReview(row.reviewStatus, 'REJECTED') ? (
+                      <div className="oma-chip-row">
+                        {(['APPROVED', 'CHANGES_REQUESTED', 'REJECTED'] as Decision[]).map((d) => (
+                          <Button
+                            key={d}
+                            type="default"
+                            data-testid={`demo-decision-${d}`}
+                            disabled={
+                              saving ||
+                              !selectedVersion ||
+                              row.reviewStatus === d ||
+                              !canTransitionReview(row.reviewStatus, d)
+                            }
+                            onClick={() => setDecisionOpen(d)}
+                          >
+                            {d === 'APPROVED' ? <CheckOutlined /> : null}{' '}
+                            {d === 'APPROVED'
+                              ? t('demo.deliverable.approve')
+                              : d === 'CHANGES_REQUESTED'
+                                ? t('demo.deliverable.requestChanges')
+                                : t('demo.deliverable.reject')}
+                          </Button>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="oma-muted" data-testid="demo-review-before-submit-hint">
+                        {t('demo.deliverable.reviewBeforeSubmit')}
+                      </p>
+                    )}
                   </div>
                 ) : null}
               </aside>
