@@ -223,15 +223,19 @@ export function PlanableDashboard() {
   }, [inviteOpen, createOpen]);
 
   const memberships = useMemo(() => me?.memberships ?? [], [me]);
+  const needsCompanyPick = Boolean(me && !me.active_tenant_id && memberships.length > 0);
   const primary = useMemo(() => {
     if (memberships.length === 0) return [];
-    const active = memberships.find((m) => m.tenant_id === me?.active_tenant_id);
-    return [active ?? memberships[0]];
+    // Multi-company with no active tenant: do not invent a "primary" that cannot
+    // load brands — every company is shown as an activatable card instead.
+    if (!me?.active_tenant_id) return [];
+    const active = memberships.find((m) => m.tenant_id === me.active_tenant_id);
+    return active ? [active] : [];
   }, [memberships, me?.active_tenant_id]);
-  const others = useMemo(
-    () => memberships.filter((m) => !primary.some((p) => p.tenant_id === m.tenant_id)),
-    [memberships, primary],
-  );
+  const others = useMemo(() => {
+    if (!me?.active_tenant_id) return memberships;
+    return memberships.filter((m) => !primary.some((p) => p.tenant_id === m.tenant_id));
+  }, [memberships, primary, me?.active_tenant_id]);
   const normalizedWorkspaceQuery = workspaceQuery.trim().toLowerCase();
   const visibleBrands = useMemo(() => {
     if (!normalizedWorkspaceQuery) return brands;
@@ -248,7 +252,12 @@ export function PlanableDashboard() {
     );
   }, [others, normalizedWorkspaceQuery]);
 
-  const companyName = me?.user?.name ?? me?.name ?? primary[0]?.tenant_name ?? 'Workspace';
+  const companyName =
+    primary[0]?.tenant_name ??
+    (needsCompanyPick ? (t('selectCompany.title')) : null) ??
+    me?.user?.name ??
+    me?.name ??
+    'Workspace';
 
   function toggleFav(id: string) {
     setFavorites((prev) => {
@@ -527,6 +536,11 @@ export function PlanableDashboard() {
                 {t('companies.no_workspace_matches')}
               </p>
             ) : null}
+            {needsCompanyPick && !brandsLoading ? (
+              <p className="plx-workspaces-empty" role="status" data-testid="select-company-hint">
+                {t('selectCompany.body')}
+              </p>
+            ) : null}
             {visibleBrands.map((b) => (
               <WorkspaceCard
                 key={b.id}
@@ -561,7 +575,7 @@ export function PlanableDashboard() {
                 }}
               />
             ))}
-            {!normalizedWorkspaceQuery ? (
+            {!normalizedWorkspaceQuery && !needsCompanyPick ? (
               <button type="button" className="plx-ws-create" onClick={openCreate}>
                 <span className="plx-ws-create-plus">
                   <PlusIcon />
@@ -574,10 +588,17 @@ export function PlanableDashboard() {
           {visibleOthers.length > 0 ? (
             <>
               <div className="plx-other-head">
-                <h2>{t('companies.other_workspaces')}</h2>
+                <h2>
+                  {needsCompanyPick
+                    ? t('selectCompany.title')
+                    : t('companies.other_workspaces')}
+                </h2>
                 <hr />
               </div>
-              <div className="plx-ws-grid plx-ws-grid--others">
+              <div
+                className="plx-ws-grid plx-ws-grid--others"
+                data-testid={needsCompanyPick ? 'select-company-cards' : 'other-company-cards'}
+              >
                 {visibleOthers.map((m) => (
                   <WorkspaceCard
                     key={m.tenant_id}

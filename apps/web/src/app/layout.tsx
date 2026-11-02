@@ -43,6 +43,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       dir={dir}
       className={`${jetbrainsMono.variable} ${notoArabic.variable}`}
       data-oma-typeface="oma-system-ui"
+      suppressHydrationWarning
     >
       <body data-oma-font="oma-system-ui">
         <a href="#main" className="oma-skip-link">

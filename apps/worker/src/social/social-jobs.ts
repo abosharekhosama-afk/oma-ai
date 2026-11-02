@@ -65,6 +65,30 @@ export function pageForAdapter(
   };
 }
 
+/** Write back adapter-discovered meta (e.g. TikTok username) so View post URLs stick. */
+export async function persistAdapterMeta(
+  pageId: string,
+  previousMetaJson: string,
+  adapterMeta: Record<string, unknown>,
+) {
+  const prev = (() => {
+    try {
+      return JSON.parse(previousMetaJson || '{}') as Record<string, unknown>;
+    } catch {
+      return {} as Record<string, unknown>;
+    }
+  })();
+  const nextUsername =
+    typeof adapterMeta.username === 'string' ? adapterMeta.username.replace(/^@/, '') : undefined;
+  if (!nextUsername || prev.username === nextUsername) return;
+  const next = { ...prev, username: nextUsername };
+  await getPrisma().socialPage.update({
+    where: { id: pageId },
+    data: { metaJson: JSON.stringify(next) },
+  });
+}
+
+
 /** Notify brand managers + workspace admins that a connected account needs reconnecting. */
 export async function alertDisconnected(
   page: { id: string; tenantId: string; brandId: string; network: string },
@@ -333,7 +357,9 @@ export async function runPublishStatusTick(deps: Deps = {}) {
           retryable: false,
         });
       }
-      const status = await adapter.fetchPublishStatus(pageForAdapter(page, key), operationId);
+      const adapterPage = pageForAdapter(page, key);
+      const status = await adapter.fetchPublishStatus(adapterPage, operationId);
+      await persistAdapterMeta(page.id, page.metaJson, adapterPage.meta);
       if (status.status === 'PENDING') {
         await prisma.contentPublishTarget.update({
           where: { id: target.id },

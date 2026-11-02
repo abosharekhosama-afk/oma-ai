@@ -104,22 +104,46 @@ export class IdentityService {
     const ttl = Number(process.env.SESSION_TTL_SECONDS ?? 604800);
     // A single-tenant member has nothing to choose, so selecting for them is not
     // a guess. Anyone with several tenants must still choose explicitly.
-    const tenantIds = new Set(
-      (
-        await getPrisma().membership.findMany({
-          where: { userId: user.id, status: 'ACTIVE' },
+    const membershipTenantIds = (
+      await getPrisma().membership.findMany({
+        where: { userId: user.id, status: 'ACTIVE' },
+        select: { tenantId: true },
+        distinct: ['tenantId'],
+      })
+    ).map((m) => m.tenantId);
+    const tenantIds = new Set(membershipTenantIds);
+    const soleTenantId = tenantIds.size === 1 ? [...tenantIds][0]! : null;
+    // Multi-company: restore the most recent still-valid active tenant so users
+    // are not dropped on an empty select-company screen every login.
+    let resumeTenantId: string | null = soleTenantId;
+    if (!resumeTenantId && tenantIds.size > 1) {
+      const prev = await getPrisma().session.findFirst({
+        where: {
+          userId: user.id,
+          activeTenantId: { not: null },
+          revokedAt: null,
+        },
+        orderBy: { lastSeenAt: 'desc' },
+        select: { activeTenantId: true },
+      });
+      if (prev?.activeTenantId && tenantIds.has(prev.activeTenantId)) {
+        resumeTenantId = prev.activeTenantId;
+      } else {
+        // Stable fallback: first membership by creation (primary company).
+        const first = await getPrisma().membership.findFirst({
+          where: { userId: user.id, status: 'ACTIVE', tenantId: { in: [...tenantIds] } },
+          orderBy: { createdAt: 'asc' },
           select: { tenantId: true },
-          distinct: ['tenantId'],
-        })
-      ).map((m) => m.tenantId),
-    );
-    const soleTenantId = tenantIds.size === 1 ? [...tenantIds][0] : null;
+        });
+        resumeTenantId = first?.tenantId ?? null;
+      }
+    }
     const session = await getPrisma().session.create({
       data: {
         id: newId(),
         userId: user.id,
         tokenHash,
-        activeTenantId: soleTenantId,
+        activeTenantId: resumeTenantId,
         expiresAt: new Date(Date.now() + ttl * 1000),
         ip: input.ip,
         userAgent: input.userAgent,
