@@ -155,17 +155,40 @@ export class BrandService {
       await tx.contentPreferences.create({
         data: { brandId: created.id, tenantId, defaultTimezone: timezone },
       });
-      // The creator manages the brand they created.
-      await tx.brandMember.create({
-        data: {
-          id: newId(),
-          tenantId,
-          brandId: created.id,
-          userId: actorUserId,
-          role: 'MANAGER',
-          addedBy: actorUserId,
-        },
+      // Creator is MANAGER; every other ACTIVE team member gets EDITOR so they
+      // keep seeing newly created brands when brand-level ACL is in use.
+      const members = await tx.membership.findMany({
+        where: { tenantId, status: 'ACTIVE', userId: { not: null } },
+        select: { userId: true },
       });
+      const seen = new Set<string>();
+      for (const m of members) {
+        const uid = m.userId!;
+        if (seen.has(uid)) continue;
+        seen.add(uid);
+        await tx.brandMember.create({
+          data: {
+            id: newId(),
+            tenantId,
+            brandId: created.id,
+            userId: uid,
+            role: uid === actorUserId ? 'MANAGER' : 'EDITOR',
+            addedBy: actorUserId,
+          },
+        });
+      }
+      if (!seen.has(actorUserId)) {
+        await tx.brandMember.create({
+          data: {
+            id: newId(),
+            tenantId,
+            brandId: created.id,
+            userId: actorUserId,
+            role: 'MANAGER',
+            addedBy: actorUserId,
+          },
+        });
+      }
       return created;
     });
     await this.audit.write({

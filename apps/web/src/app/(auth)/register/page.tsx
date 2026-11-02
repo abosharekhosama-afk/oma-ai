@@ -3,7 +3,7 @@ import { FormEvent, useState } from 'react';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
 import { safeReturnPath } from '../../../lib/account-api';
-import { useT } from '../../../lib/use-locale';
+import { useLocale, useT } from '../../../lib/use-locale';
 import {
   PlxLogo,
   GoogleIcon,
@@ -16,6 +16,7 @@ import '../auth-planable.css';
 
 export default function RegisterPage() {
   const t = useT();
+  const locale = useLocale();
   const [step, setStep] = useState<1 | 2>(1);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -59,7 +60,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <main id="main" className="plx-auth-page" dir="ltr">
+    <main id="main" className="plx-auth-page" dir={locale === 'ar' ? 'rtl' : 'ltr'}>
       <div className="plx-auth-card">
         <PlxLogo sub="by IMKAN" />
         {step === 1 ? (

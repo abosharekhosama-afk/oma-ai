@@ -13,6 +13,8 @@ export type PublishStatusView = {
   steps: PublishTimelineStep[];
   errorHuman?: string | null;
   externalUrl?: string | null;
+  /** True when QUEUED longer than expected without worker pick-up. */
+  staleQueued?: boolean;
 };
 
 export type PublishTargetStatusRow = {
@@ -149,11 +151,26 @@ export function buildPublishStatusView(
   else if (!(item.socialPageIds?.length || item.socialPageId))
     stateLabelKey = 'demo.schedule.publishState.noAccount';
 
+  // Publish-now leaves items QUEUED until the worker claims them. Surface a calm
+  // hint when nothing has been picked up for several minutes (worker asleep / crash).
+  const queuedAt = when ? Date.parse(when) : NaN;
+  const staleQueued =
+    state === 'QUEUED' &&
+    !item.workerPickedAt &&
+    !item.nextPublishAt &&
+    Number.isFinite(queuedAt) &&
+    Date.now() - queuedAt > 3 * 60_000;
+
+  if (staleQueued) {
+    stateLabelKey = 'demo.schedule.publishState.queuedStale';
+  }
+
   return {
     stateLabelKey,
     steps,
     errorHuman: humanErr,
     externalUrl: item.externalPostUrl ?? null,
+    staleQueued,
   };
 }
 

@@ -9,15 +9,17 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@oma/ai": "workspace:*",
     "@oma/db": "workspace:*",
     "@oma/domain": "workspace:*",
-    "@oma/ai": "workspace:*",
     "@oma/observability": "workspace:*",
     "bullmq": "^5.41.0",
-    "ioredis": "^5.5.0"
+    "ioredis": "^5.5.0",
+    "sharp": "^0.35.5"
   },
   "devDependencies": {
     "@types/node": "^22.13.10",
+    "@types/sharp": "^0.32.0",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2"
   }

@@ -1206,6 +1206,11 @@ export default function SchedulePage() {
                   {status ? (
                     <p data-testid="demo-schedule-publish-state">{t(status.stateLabelKey)}</p>
                   ) : null}
+                  {status?.staleQueued ? (
+                    <p role="status" data-testid="demo-schedule-queued-stale" className="oma-muted">
+                      {t('demo.schedule.queuedStaleHint')}
+                    </p>
+                  ) : null}
                   {publishTargets.length ? (
                     <PublishTargetsPanel targets={publishTargets} locale={locale} />
                   ) : null}

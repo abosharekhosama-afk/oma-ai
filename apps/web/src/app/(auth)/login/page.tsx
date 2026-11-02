@@ -2,7 +2,7 @@
 import { FormEvent, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { api } from '../../../lib/api';
-import { useT } from '../../../lib/use-locale';
+import { useLocale, useT } from '../../../lib/use-locale';
 import { getProfile, safeReturnPath, setLocaleCookie } from '../../../lib/account-api';
 import {
   PlxLogo,
@@ -16,6 +16,7 @@ import '../auth-planable.css';
 
 export default function LoginPage() {
   const t = useT();
+  const locale = useLocale();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -62,7 +63,7 @@ export default function LoginPage() {
   }
 
   return (
-    <main id="main" className="plx-auth-page" dir="ltr" data-auth-ready={ready ? '1' : '0'}>
+    <main id="main" className="plx-auth-page" dir={locale === 'ar' ? 'rtl' : 'ltr'} data-auth-ready={ready ? '1' : '0'}>
       <div className="plx-auth-card">
         <PlxLogo sub="by IMKAN" />
         <h1 className="plx-auth-title">{t('auth.login.log_in_to_your_account')}</h1>

@@ -13,6 +13,7 @@ export type WorkDriveErrorCode =
   | 'too_large'
   | 'conflict'
   | 'unavailable'
+  | 'bad_request'
   | 'bad_response'
   /** The address answers, but it isn't a WorkDrive API. */
   | 'not_workdrive'
@@ -133,24 +134,55 @@ export class WorkDriveClient {
   private async call(
     path: string,
     init: RequestInit = {},
-    timeoutMs = this.opts.timeoutMs ?? 20_000,
+    timeoutMs = this.opts.timeoutMs ?? 45_000,
   ) {
     const headers = new Headers(init.headers);
     headers.set('authorization', `Bearer ${this.apiKey}`);
     headers.set('accept', 'application/json');
-    let res: Response;
-    try {
-      res = await this.fetchImpl(`${this.baseUrl}${path}`, {
-        ...init,
-        headers,
-        redirect: 'manual',
-        signal: init.signal ?? AbortSignal.timeout(timeoutMs),
-      });
-    } catch (e) {
-      throw new WorkDriveError('unavailable', `WorkDrive unreachable: ${(e as Error).message}`);
+    const attempts = 3;
+    let last: unknown;
+    for (let i = 0; i < attempts; i++) {
+      let res: Response;
+      try {
+        res = await this.fetchImpl(`${this.baseUrl}${path}`, {
+          ...init,
+          headers,
+          redirect: 'manual',
+          signal: init.signal ?? AbortSignal.timeout(timeoutMs),
+        });
+      } catch (e) {
+        last = new WorkDriveError('unavailable', `WorkDrive unreachable: ${(e as Error).message}`);
+        if (i < attempts - 1) {
+          await new Promise((r) => setTimeout(r, 400 * 2 ** i));
+          continue;
+        }
+        throw last;
+      }
+      if (res.status === 429 || res.status >= 500) {
+        last = await this.failAsError(res);
+        if (i < attempts - 1) {
+          await new Promise((r) => setTimeout(r, 400 * 2 ** i));
+          continue;
+        }
+        throw last;
+      }
+      if (!res.ok) await this.fail(res);
+      return res;
     }
-    if (!res.ok) await this.fail(res);
-    return res;
+    throw last instanceof Error ? last : new WorkDriveError('unavailable', 'WorkDrive unreachable');
+  }
+
+  private async failAsError(res: Response): Promise<WorkDriveError> {
+    let msg = res.statusText || `HTTP ${res.status}`;
+    try {
+      const b = (await res.json()) as { message?: unknown };
+      if (b?.message) msg = Array.isArray(b.message) ? b.message.join(', ') : str(b.message);
+    } catch {
+      /* not JSON */
+    }
+    const code: WorkDriveErrorCode =
+      res.status === 429 ? 'rate_limited' : res.status >= 500 ? 'unavailable' : 'bad_request';
+    return new WorkDriveError(code, msg, res.status);
   }
 
   private async fail(res: Response): Promise<never> {
@@ -517,7 +549,7 @@ export async function discoverWorkDrive(
   rawUrl: unknown,
   apiKey: string,
   fetchImpl: FetchLike = (u, i) => fetch(u, i),
-  timeoutMs = 20_000,
+  timeoutMs = 45_000,
 ): Promise<{ baseUrl: string; self: WorkDriveSelf }> {
   const candidates = workDriveUrlCandidates(rawUrl);
   if (!isWorkDriveKey(apiKey)) throw new WorkDriveError('invalid_key', 'Invalid WorkDrive key');

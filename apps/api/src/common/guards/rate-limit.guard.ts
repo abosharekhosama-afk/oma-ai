@@ -131,10 +131,12 @@ export class RateLimitGuard implements CanActivate {
     ];
 
     if (method === 'POST' && path.endsWith('/auth/login')) {
-      budgets.push({ key: `auth-login-ip:${ip}`, limit: 10, windowMs: 60_000 });
+      // Per-IP + per-account: enough for multi-account QA / tenant switching without
+      // locking a shared NAT for 15 minutes. Still blocks credential stuffing.
+      budgets.push({ key: `auth-login-ip:${ip}`, limit: 30, windowMs: 60_000 });
       const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
       if (email && email.length <= 320) {
-        budgets.push({ key: `auth-login-email:${digest(email)}`, limit: 5, windowMs: 15 * 60_000 });
+        budgets.push({ key: `auth-login-email:${digest(email)}`, limit: 20, windowMs: 15 * 60_000 });
       }
     } else if (method === 'POST' && path.endsWith('/auth/register')) {
       budgets.push({ key: `auth-register-ip:${ip}`, limit: 5, windowMs: 60_000 });
