@@ -18,10 +18,91 @@ export default function NotificationsPage() {
   const unread = (items ?? []).filter((n) => !n.readAt).length;
   const counts = useMemo(() => Object.fromEntries(notificationCategories.map((c) => [c, (items ?? []).filter((n) => notificationCategory(n.type) === c && !n.readAt).length])) as Record<typeof notificationCategories[number], number>, [items]);
   const shown = (items ?? []).filter((n) => notificationCategory(n.type) === category && (!unreadOnly || !n.readAt));
-  return <main className="oma-page oma-notifications-page oma-notifications-page--planable" data-testid="notifications-page">
-    <header className="oma-notifications-page__head"><div><h1 className="oma-page-title">{t('shell.notifications')}</h1><p className="oma-muted">{isAr ? 'تابع الموافقات والنشر ونشاط فريقك من مكان واحد.' : 'Follow approvals, publishing and team activity in one place.'}</p></div><Button type="default" onClick={() => void markAll()} disabled={busy || unread === 0}>{t('shell.markAllRead')}</Button></header>
-    <div className="oma-notifications-page__tabs" role="tablist">{notificationCategories.map((c) => <button key={c} type="button" role="tab" aria-selected={category === c} className={category === c ? 'is-active' : ''} onClick={() => setCategory(c)}><span>{notificationCategoryLabel(c, isAr)}</span>{counts[c] > 0 ? <b>{counts[c]}</b> : null}</button>)}</div>
-    <div className="oma-notifications-page__toolbar"><label><input type="checkbox" checked={unreadOnly} onChange={(e) => setUnreadOnly(e.target.checked)} /> {isAr ? 'غير المقروءة فقط' : 'Unread only'}</label><span>{isAr ? `${counts[category]} غير مقروءة` : `${counts[category]} unread`}</span></div>
-    {error ? <div role="alert" className="oma-notifications-page__state"><p>{error}</p><Button type="default" onClick={() => void load()}>{isAr ? 'إعادة المحاولة' : 'Retry'}</Button></div> : items === null ? <ul className="oma-notifications-page__list" aria-busy="true">{[0, 1, 2, 3].map((i) => <li key={i} className="oma-notifications-page__skeleton" />)}</ul> : shown.length === 0 ? <div className="oma-notifications-page__state"><ShellIcon name="bell" size={28} /><p>{isAr ? 'لا توجد إشعارات في هذا القسم.' : 'No notifications in this section.'}</p></div> : <ul className="oma-notifications-page__list" data-testid="notifications-page-list">{shown.map((n) => <NotificationRow key={n.id} n={n} t={t} locale={locale} markRead={(id) => void markRead(id)} />)}</ul>}
-  </main>;
+  return (
+    <main className="oma-page oma-notifications-page oma-notifications-page--planable" data-testid="notifications-page">
+      <header className="oma-notifications-page__head">
+        <div>
+          <h1 className="oma-page-title">{t('shell.notifications')}</h1>
+          <p className="oma-muted">
+            {isAr
+              ? 'تابع الموافقات والنشر ونشاط فريقك من مكان واحد.'
+              : 'Follow approvals, publishing and team activity in one place.'}
+          </p>
+        </div>
+        <Button
+          type="default"
+          data-testid="notifications-page-mark-all"
+          onClick={() => void markAll()}
+          disabled={busy || unread === 0}
+        >
+          {t('shell.markAllRead')}
+        </Button>
+      </header>
+      <div className="oma-notifications-page__tabs" role="tablist">
+        {notificationCategories.map((c) => (
+          <button
+            key={c}
+            type="button"
+            role="tab"
+            aria-selected={category === c}
+            className={category === c ? 'is-active' : ''}
+            onClick={() => setCategory(c)}
+          >
+            <span>{notificationCategoryLabel(c, isAr)}</span>
+            {counts[c] > 0 ? <b>{counts[c]}</b> : null}
+          </button>
+        ))}
+      </div>
+      <div className="oma-notifications-page__toolbar">
+        <div className="oma-notifications-page__filter" role="tablist" aria-label={isAr ? 'تصفية القراءة' : 'Read filter'}>
+          <button
+            type="button"
+            role="tab"
+            data-testid="notifications-filter-all"
+            aria-selected={!unreadOnly}
+            className={!unreadOnly ? 'is-active' : ''}
+            onClick={() => setUnreadOnly(false)}
+          >
+            {isAr ? 'الكل' : 'All'}
+          </button>
+          <button
+            type="button"
+            role="tab"
+            data-testid="notifications-filter-unread"
+            aria-selected={unreadOnly}
+            className={unreadOnly ? 'is-active' : ''}
+            onClick={() => setUnreadOnly(true)}
+          >
+            {isAr ? 'غير المقروءة' : 'Unread'}
+          </button>
+        </div>
+        <span>{isAr ? `${counts[category]} غير مقروءة` : `${counts[category]} unread`}</span>
+      </div>
+      {error ? (
+        <div role="alert" className="oma-notifications-page__state">
+          <p>{error}</p>
+          <Button type="default" onClick={() => void load()}>
+            {isAr ? 'إعادة المحاولة' : 'Retry'}
+          </Button>
+        </div>
+      ) : items === null ? (
+        <ul className="oma-notifications-page__list" aria-busy="true">
+          {[0, 1, 2, 3].map((i) => (
+            <li key={i} className="oma-notifications-page__skeleton" />
+          ))}
+        </ul>
+      ) : shown.length === 0 ? (
+        <div className="oma-notifications-page__state" data-testid="notifications-page-empty">
+          <ShellIcon name="bell" size={28} />
+          <p>{isAr ? 'لا توجد إشعارات في هذا القسم.' : 'No notifications in this section.'}</p>
+        </div>
+      ) : (
+        <ul className="oma-notifications-page__list" data-testid="notifications-page-list">
+          {shown.map((n) => (
+            <NotificationRow key={n.id} n={n} t={t} locale={locale} markRead={(id) => void markRead(id)} />
+          ))}
+        </ul>
+      )}
+    </main>
+  );
 }

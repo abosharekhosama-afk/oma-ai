@@ -132,7 +132,13 @@ export function NotificationRow({
     : null;
   const content = (
     <>
-      <span className="oma-notification-card__title">{notificationLabel(t, n)}</span>
+      <span className="oma-notification-card__top">
+        <span className="oma-notification-card__title">{notificationLabel(t, n)}</span>
+        <span className="oma-notification-card__time">
+          {formatWhen(n.createdAt, locale)}
+          {!n.readAt ? <i aria-label="unread" /> : null}
+        </span>
+      </span>
       {body ? <span className="oma-notification-card__body">{body}</span> : null}
       <span className="oma-notification-card__preview">
         {preview?.imageUrl ? (
@@ -177,10 +183,6 @@ export function NotificationRow({
             {content}
           </button>
         )}
-        <span className="oma-notification-card__time">
-          {formatWhen(n.createdAt, locale)}
-          {!n.readAt ? <i aria-label="unread" /> : null}
-        </span>
       </div>
     </li>
   );
@@ -329,7 +331,11 @@ export function NotificationsBell() {
         </ul>
       )}
       <footer className="oma-notifications-panel__foot">
-        <Link href="/app/notifications" onClick={() => setOpen(false)}>
+        <Link
+          href="/app/notifications"
+          data-testid="shell-notifications-view-all"
+          onClick={() => setOpen(false)}
+        >
           {t('shell.notificationsViewAll')}
         </Link>
       </footer>
