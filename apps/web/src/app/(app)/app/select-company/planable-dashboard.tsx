@@ -8,7 +8,6 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../../../../lib/api';
 import { OmaDotsLoader, OmaDotsLoaderOverlay } from '../../../../components/ui/oma-dots-loader';
 import {
-  BellIcon,
   BriefcaseIcon,
   CardIcon,
   ChartIcon,
@@ -24,7 +23,6 @@ import {
   MoreIcon,
   PencilIcon,
   PlusIcon,
-  SearchIcon,
   SettingsIcon,
   SparkleIcon,
   StarIcon,
@@ -34,6 +32,9 @@ import {
 } from '../../../../components/ui/plx-icons';
 import './planable-dashboard.css';
 import { useT } from '../../../../lib/use-locale';
+import { CommandSearch } from '../../../../components/shell/command-search';
+import { NotificationsBell } from '../../../../components/shell/notifications-bell';
+import { UserMenu } from '../../../../components/shell/user-menu';
 
 type Me = {
   user?: { name?: string; email?: string };
@@ -365,20 +366,15 @@ export function PlanableDashboard() {
         <Link href="/app" className="plx-topbar-logo" aria-label={t('companies.oma_home')}>
           <PlxLogo sub={null} compact />
         </Link>
-        <div className="plx-topbar-search">
-          <SearchIcon width={16} height={16} />
-          <span>{t('shell.search')}</span>
+        <div className="plx-topbar-search" data-testid="workspace-management-search">
+          <CommandSearch compact hotkey />
         </div>
         <span className="plx-topbar-spacer" />
         <button type="button" className="plx-icon-btn" aria-label={t('companies.help')}>
           <HelpIcon />
         </button>
-        <button type="button" className="plx-icon-btn" aria-label={t('shell.notifications')}>
-          <BellIcon />
-        </button>
-        <span className="plx-avatar" title={me?.user?.email ?? me?.email ?? ''}>
-          {initials(me?.user?.name ?? me?.name ?? 'O')}
-        </span>
+        <NotificationsBell />
+        <UserMenu />
       </header>
 
       {loading ? (
@@ -473,7 +469,7 @@ export function PlanableDashboard() {
                 </div>
               ) : null}
             </div>
-            <button type="button" className="plx-upgrade-pill">
+            <button type="button" className="plx-upgrade-pill" onClick={() => router.push('/app/billing')} data-testid="workspace-upgrade">
               <SparkleIcon width={15} height={15} />
               {t('companies.upgrade')}
             </button>
