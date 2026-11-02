@@ -158,8 +158,11 @@ export function WorkspacePathMenu({ onOpenSettings }: { onOpenSettings: () => vo
           </div>
 
           <div className="oma-path-ws-menu__list">
-            {(brands.length > 1 ? [{ id: '', name: t('shell.brandAll') || 'All brands' }] : [])
-              .concat(brands.length ? brands.slice(0, 6) : [{ id: 'active', name }])
+            {(brands.length > 1
+              ? [{ id: '', name: t('shell.brandAll') || 'All brands', logo_url: null }]
+              : []
+            )
+              .concat(brands.length ? brands.slice(0, 6) : [{ id: 'active', name, logo_url: null }])
               .map((brand) => {
                 const isActive = brand.id ? activeBrand?.id === brand.id : !activeBrand;
                 return (

@@ -29,6 +29,7 @@ import {
   sectionContainsPath,
 } from './nav-config';
 import { BrandPagesNav } from './brand-pages-nav';
+import { ReloadOutlined } from '../ui/lucide-icons';
 import { ShellIcon } from './shell-icons';
 import { UserMenu } from './user-menu';
 import { WorkspacePathMenu } from './workspace-path-menu';
@@ -279,6 +280,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
     !pathname.startsWith('/app/brands/new/');
   const isCampaignsWorkspace =
     pathname === '/app/campaigns' || pathname.startsWith('/app/campaigns/');
+  const isActivityWorkspace = pathname === '/app/activity' || pathname.startsWith('/app/activity/');
   const brandIdFromPath = (() => {
     if (!isBrandDetail) return null;
     const parts = pathname.split('/').filter(Boolean);
@@ -480,6 +482,18 @@ export function ShellChrome({ children }: { children: ReactNode }) {
                 className="oma-top-actions oma-top-actions--workspace"
                 id="oma-workspace-top-actions"
               />
+            ) : isActivityWorkspace ? (
+              <div className="oma-top-actions">
+                <button
+                  type="button"
+                  className="oma-activity-refresh"
+                  aria-label={t('activity.refresh')}
+                  data-testid="activity-refresh"
+                  onClick={() => window.dispatchEvent(new Event('oma:activity-refresh'))}
+                >
+                  <ReloadOutlined width={18} height={18} />
+                </button>
+              </div>
             ) : hideShellCreate ? null : isBrandsList ? (
               <div className="oma-top-actions">
                 <OmaLinkButton

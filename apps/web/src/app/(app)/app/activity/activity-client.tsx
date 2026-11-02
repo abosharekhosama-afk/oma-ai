@@ -53,11 +53,17 @@ export default function ActivityPage() {
     }
   }
 
+  const loadRef = useRef(load);
+  loadRef.current = load;
+
   useEffect(() => {
     mountedRef.current = true;
-    void load();
+    void loadRef.current();
+    const onRefresh = () => void loadRef.current();
+    window.addEventListener('oma:activity-refresh', onRefresh);
     return () => {
       mountedRef.current = false;
+      window.removeEventListener('oma:activity-refresh', onRefresh);
     };
   }, []);
 
@@ -68,26 +74,18 @@ export default function ActivityPage() {
 
   return (
     <div className="oma-planable-page oma-activity-page" data-testid="activity-page-planable">
-      <div className="oma-planable-page__header oma-activity-page__header">
-        <div>
-          <div className="oma-activity-eyebrow">{t('activity.kicker')}</div>
-          <h1 className="oma-planable-page__title">{t('activity.title')}</h1>
-          <p className="oma-planable-page__sub">{t('activity.subtitle')}</p>
+      <div className="oma-activity-sticky">
+        <div className="oma-planable-page__header oma-activity-page__header">
+          <div>
+            <div className="oma-activity-eyebrow">{t('activity.kicker')}</div>
+            <h1 className="oma-planable-page__title">{t('activity.title')}</h1>
+            <p className="oma-planable-page__sub">{t('activity.subtitle')}</p>
+          </div>
         </div>
-        <div className="oma-activity-page__actions">
-          <span className="oma-activity-count">
-            {filtered.length} {t('activity.filter.all').toLowerCase()}
-          </span>
-          <Button type="default" onClick={() => void load()} disabled={loading}>
-            {t('activity.refresh')}
-          </Button>
-        </div>
-      </div>
 
-      <div className="oma-ws-tabs" role="tablist" aria-label={t('activity.title')}>
+        <div className="oma-ws-tabs" role="tablist" aria-label={t('activity.title')}>
         {(
           [
-            ['all', t('activity.filter.all')],
             ['members', t('activity.filter.members')],
             ['approvals', t('activity.filter.approvals')],
             ['content', t('activity.filter.content')],
@@ -100,11 +98,12 @@ export default function ActivityPage() {
             className={`oma-ws-tab${filter === id ? ' is-active' : ''}`}
             role="tab"
             aria-selected={filter === id}
-            onClick={() => setFilter(id)}
+            onClick={() => setFilter((current) => (current === id ? 'all' : id))}
           >
             {label}
           </button>
         ))}
+        </div>
       </div>
 
       {loading ? <TableShimmer rows={8} /> : null}

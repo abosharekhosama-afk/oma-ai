@@ -5,7 +5,37 @@
 }
 .oma-activity-page__header {
   align-items: flex-end;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
+}
+.oma-activity-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  background: var(--oma-canvas, #f5f6f8);
+  padding-bottom: 8px;
+}
+.oma-activity-refresh {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  appearance: none;
+  background: transparent;
+  box-shadow: none;
+  color: #3d4654;
+  line-height: 0;
+  cursor: pointer;
+}
+.oma-activity-refresh:hover,
+.oma-activity-refresh:focus-visible {
+  background: transparent;
+  box-shadow: none;
+  color: #111827;
 }
 .oma-activity-eyebrow {
   margin-bottom: 6px;

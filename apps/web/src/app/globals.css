@@ -1369,3 +1369,62 @@ main.oma-container:has(.oma-tasks-page) {
 .oma-shell [data-scrolling='true']::-webkit-scrollbar-thumb {
   background: rgb(15 23 42 / 32%);
 }
+
+/* Activity: the rail stays at the top of the viewport while the feed scrolls. */
+html body .oma-shell:has(.oma-activity-page) {
+  align-items: start !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+}
+html body .oma-shell:has(.oma-activity-page) > .oma-rail {
+  position: sticky !important;
+  top: 0 !important;
+  align-self: start !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+}
+html body .oma-shell:has(.oma-activity-page) > .oma-rail > .oma-rail-header,
+html body .oma-shell:has(.oma-activity-page) > .oma-rail > .oma-rail-endorsement,
+html body .oma-shell:has(.oma-activity-page) > .oma-rail > .oma-ws-row,
+html body .oma-shell:has(.oma-activity-page) > .oma-rail > .oma-rail-footer {
+  flex: 0 0 auto !important;
+  position: sticky !important;
+  z-index: 3 !important;
+  background: #fff !important;
+}
+html body .oma-shell:has(.oma-activity-page) > .oma-rail > .oma-rail-header,
+html body .oma-shell:has(.oma-activity-page) > .oma-rail > .oma-rail-endorsement,
+html body .oma-shell:has(.oma-activity-page) > .oma-rail > .oma-ws-row {
+  top: 0 !important;
+}
+html body .oma-shell:has(.oma-activity-page) > .oma-rail > .oma-rail-footer {
+  bottom: 0 !important;
+}
+html body .oma-shell:has(.oma-activity-page) > .oma-rail > .oma-nav {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain !important;
+}
+html body .oma-shell-column:has(.oma-activity-page) {
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+}
+html body .oma-shell-column:has(.oma-activity-page) > .oma-top {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 8 !important;
+  flex: 0 0 auto !important;
+}
+html body .oma-shell-column:has(.oma-activity-page) > main.oma-container {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
