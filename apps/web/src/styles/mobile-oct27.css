@@ -715,9 +715,9 @@ html body [data-testid='activity-page-planable'] > .oma-act-feed > .oma-ws-empty
 /* Task board: one horizontal status lane; each column owns its vertical card scroll. */
 .oma-tasks-page .oma-kb-board {
   width: 100% !important;
-  height: min(680px, max(280px, calc(100dvh - 300px))) !important;
+  height: min(760px, max(320px, calc(100dvh - 210px))) !important;
   min-height: 0 !important;
-  max-height: calc(100dvh - 260px) !important;
+  max-height: calc(100dvh - 180px) !important;
   overflow-x: auto !important;
   overflow-y: hidden !important;
   padding: 8px 0 12px !important;
@@ -728,7 +728,7 @@ html body [data-testid='activity-page-planable'] > .oma-act-feed > .oma-ws-empty
 .oma-tasks-page .oma-kb-board__grid {
   display: grid !important;
   grid-auto-flow: column !important;
-  grid-auto-columns: minmax(250px, 280px) !important;
+  grid-auto-columns: minmax(340px, 380px) !important;
   grid-template-columns: none !important;
   grid-template-rows: minmax(0, 1fr) !important;
   align-items: stretch !important;
@@ -867,16 +867,16 @@ html body [data-testid='activity-page-planable'] > .oma-act-feed > .oma-ws-empty
 }
 @media (max-height: 700px) {
   .oma-tasks-page .oma-kb-board {
-    height: max(240px, calc(100dvh - 260px)) !important;
-    max-height: calc(100dvh - 220px) !important;
+    height: max(240px, calc(100dvh - 190px)) !important;
+    max-height: calc(100dvh - 160px) !important;
   }
 }
 @media (max-width: 700px) {
   .oma-tasks-page .oma-kb-board {
-    height: max(260px, calc(100dvh - 320px)) !important;
-    max-height: calc(100dvh - 280px) !important;
+    height: max(260px, calc(100dvh - 230px)) !important;
+    max-height: calc(100dvh - 200px) !important;
   }
   .oma-tasks-page .oma-kb-board__grid {
-    grid-auto-columns: minmax(250px, 82vw) !important;
+    grid-auto-columns: minmax(300px, 88vw) !important;
   }
 }

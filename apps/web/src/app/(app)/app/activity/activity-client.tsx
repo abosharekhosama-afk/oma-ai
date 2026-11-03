@@ -77,7 +77,6 @@ export default function ActivityPage() {
       <div className="oma-activity-sticky">
         <div className="oma-planable-page__header oma-activity-page__header">
           <div>
-            <div className="oma-activity-eyebrow">{t('activity.kicker')}</div>
             <h1 className="oma-planable-page__title">{t('activity.title')}</h1>
             <p className="oma-planable-page__sub">{t('activity.subtitle')}</p>
           </div>

@@ -470,11 +470,9 @@ export default function TeamPage() {
       ) : null}
 
       {!loading && !error && tab === 'permissions' ? (
-        <div className="oma-planable-card">
-          <h3 className="oma-ws-subhead">{t('team.adjust_permissions')}</h3>
-          <p className="oma-ws-empty-desc">{t('team.set_who_can_view_approve')}</p>
+        <div className="oma-planable-card oma-member-surface">
           <div
-            className="oma-ws-table-scroll"
+            className="oma-member-table-scroll"
             role="region"
             aria-label={t('team.adjust_permissions')}
             tabIndex={0}

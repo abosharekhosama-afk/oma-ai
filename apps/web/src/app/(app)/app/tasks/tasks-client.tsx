@@ -37,7 +37,6 @@ import {
   canTransitionTaskStatus,
   filterTasks,
   groupTasksByBoard,
-  productionSummary,
   type TaskFilters,
   type TaskRow,
 } from '../../../../lib/demo/stage4-tasks';
@@ -229,7 +228,6 @@ export default function TasksPage() {
   const filtered = useMemo(() => filterTasks(rows, filters, locale), [rows, filters, locale]);
   const byBoard = useMemo(() => groupTasksByBoard(filtered), [filtered]);
   const selected = useMemo(() => rows.find((r) => r.id === selectedId) ?? null, [rows, selectedId]);
-  const summary = useMemo(() => productionSummary(rows), [rows]);
   const filterCount = activeTaskFilterCount(filters);
   const assignees = useMemo(() => [...new Set(rows.map((r) => r.assignee))], [rows]);
 
@@ -759,25 +757,6 @@ export default function TasksPage() {
           )
         : null}
 
-      <div className="oma-prod-strip" data-testid="demo-production-summary">
-        <div className="oma-prod-stat" data-tone="wip">
-          <span className="oma-prod-stat__label">{t('demo.tasks.wip')}</span>
-          <strong className="oma-prod-stat__value">{summary.wip}</strong>
-        </div>
-        <div className="oma-prod-stat" data-tone="soon">
-          <span className="oma-prod-stat__label">{t('demo.tasks.dueSoon')}</span>
-          <strong className="oma-prod-stat__value">{summary.dueSoon}</strong>
-        </div>
-        <div className="oma-prod-stat" data-tone="blocked">
-          <span className="oma-prod-stat__label">{t('demo.tasks.blocked')}</span>
-          <strong className="oma-prod-stat__value">{summary.blocked}</strong>
-        </div>
-        <div className="oma-prod-stat" data-tone="review">
-          <span className="oma-prod-stat__label">{t('demo.tasks.awaitingReview')}</span>
-          <strong className="oma-prod-stat__value">{summary.awaitingReview}</strong>
-        </div>
-      </div>
-
       {loading ? <TasksShimmer part="body" /> : null}
       {unavailable ? (
         <p className="oma-muted" data-testid="demo-tasks-denied">
@@ -820,7 +799,16 @@ export default function TasksPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {filtered.map((task) => (
+                      {filtered.map((task) => {
+                        const campaignLabel =
+                          typeof task.campaignName === 'string'
+                            ? task.campaignName
+                            : task.campaignName
+                              ? pickCopy(task.campaignName, locale)
+                              : '';
+                        const brandLabel =
+                          typeof task.brandName === 'string' ? task.brandName : '';
+                        return (
                         <tr
                           key={task.id}
                           data-testid={`demo-task-row-${task.id}`}
@@ -842,11 +830,7 @@ export default function TasksPage() {
                               </span>
                               <span className="oma-task-title-meta">
                                 {task.type}
-                                {(task as { campaignName?: string | null }).campaignName
-                                  ? ` · ${(task as { campaignName?: string | null }).campaignName}`
-                                  : (task as { requestTitle?: string | null }).requestTitle
-                                    ? ` · ${(task as { requestTitle?: string | null }).requestTitle}`
-                                    : ''}
+                                {campaignLabel ? ` · ${campaignLabel}` : ''}
                               </span>
                             </button>
                           </td>
@@ -857,17 +841,13 @@ export default function TasksPage() {
                           <td>
                             <StatusChip status={task.priority} />
                           </td>
-                          <td>
-                            {(task as { campaignName?: string | null; brandName?: string })
-                              .campaignName ||
-                              (task as { brandName?: string }).brandName ||
-                              '—'}
-                          </td>
+                          <td>{campaignLabel || brandLabel || '—'}</td>
                           <td className="oma-ltr oma-task-due-cell">
                             <span className="oma-task-due-text">{task.dueAt}</span>
                           </td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
