@@ -2295,12 +2295,23 @@ html body [data-testid='team-page-planable'] .oma-ws-table {
   }
 }
 
-/* Mobile scale fill — viewport meta handles visual 70%; keep shell filling layout vw/vh. */
+/* Mobile zoom fill — CSS zoom 0.7; compensate shell height with density var. */
 @media (max-width: 767px) {
-  html body .oma-shell,
-  html body .oma-shell-column {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-height: 100dvh !important;
+  @supports (zoom: 1) {
+    html body .oma-shell {
+      height: calc(100dvh / var(--oma-mobile-density)) !important;
+      min-height: calc(100dvh / var(--oma-mobile-density)) !important;
+      max-height: none !important;
+      width: 100% !important;
+      max-width: none !important;
+    }
+
+    html body .oma-shell-column {
+      height: calc(100dvh / var(--oma-mobile-density)) !important;
+      min-height: calc(100dvh / var(--oma-mobile-density)) !important;
+      max-height: none !important;
+      width: 100% !important;
+      max-width: none !important;
+    }
   }
 }

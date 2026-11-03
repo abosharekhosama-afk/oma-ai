@@ -1,41 +1,101 @@
 /*
- * Mobile visual scale is applied via viewport meta (initial-scale: 0.7) in
- * apps/web/src/app/layout.tsx — NOT via CSS zoom/transform (those break fixed
- * chrome, drawers, and touch hit-testing).
+ * Mobile visual scale via CSS zoom (NOT viewport meta).
  *
- * Layout width becomes ~deviceWidth/0.7 (still < 768), so mobile media queries
- * keep applying. These rules only prevent overflow / iOS input zoom / fill gaps.
+ * Real mobile browsers ignore late/dynamic viewport meta rewrites, so we scale
+ * with `zoom: 0.7` on <html> under max-width 767px. Portals into body stay inside
+ * the zoomed tree. Compensate vw/dvh so fixed chrome and full-height shells still
+ * fill the screen after zoom (visual size ≈ device viewport).
  */
 @media (max-width: 767px) {
   :root {
     --oma-mobile-density: 0.7;
+    --oma-mobile-vw: calc(100vw / var(--oma-mobile-density));
+    --oma-mobile-vh: calc(100dvh / var(--oma-mobile-density));
+    --oma-mobile-svh: calc(100svh / var(--oma-mobile-density));
   }
 
-  html,
-  body {
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow-x: hidden !important;
-  }
-
+  /* Fallback when CSS zoom is unavailable: shrink root font only. */
   html {
-    height: 100% !important;
+    font-size: 11.2px !important; /* 16 × 0.7 */
   }
 
-  body {
-    min-height: 100% !important;
-    min-height: 100dvh !important;
+  @supports (zoom: 1) {
+    html {
+      font-size: 16px !important;
+      zoom: var(--oma-mobile-density);
+      width: var(--oma-mobile-vw) !important;
+      max-width: none !important;
+      min-height: var(--oma-mobile-vh) !important;
+      overflow-x: hidden !important;
+    }
+
+    body {
+      width: 100% !important;
+      max-width: none !important;
+      min-height: var(--oma-mobile-vh) !important;
+      overflow-x: hidden !important;
+    }
+
+    /* Undo earlier mobile sheets that locked max-width to raw 100vw (would leave gaps). */
+    html body,
+    html body #__next,
+    html body .oma-shell,
+    html body .oma-shell-column {
+      width: 100% !important;
+      max-width: none !important;
+      overflow-x: hidden !important;
+    }
+
+    html body .oma-shell,
+    html body .oma-shell-column,
+    html body .oma-rail {
+      height: var(--oma-mobile-vh) !important;
+      min-height: var(--oma-mobile-vh) !important;
+      max-height: var(--oma-mobile-vh) !important;
+    }
+
+    /* Fixed / full-bleed chrome, drawers, modals, sheets — use compensated viewport. */
+    html body .oma-top,
+    html body .oma-m-tabbar,
+    html body .oma-mobile-nav-fab {
+      max-width: 100% !important;
+    }
+
+    html body .ant-drawer-content-wrapper,
+    html body .ant-drawer.ant-drawer-open .ant-drawer-content-wrapper {
+      width: min(100%, var(--oma-mobile-vw)) !important;
+      max-width: var(--oma-mobile-vw) !important;
+    }
+
+    html body .ant-modal {
+      max-width: var(--oma-mobile-vw) !important;
+    }
+
+    html body .ant-modal-content {
+      min-height: var(--oma-mobile-vh) !important;
+      max-width: var(--oma-mobile-vw) !important;
+    }
+
+    html body .ant-modal-wrap,
+    html body .ant-drawer-mask,
+    html body .ant-modal-mask {
+      width: var(--oma-mobile-vw) !important;
+      max-width: var(--oma-mobile-vw) !important;
+    }
+
+    html body .oma-compose,
+    html body .oma-compose-panel,
+    html body [data-testid='compose-panel'] {
+      max-width: 100% !important;
+    }
   }
 
-  /* Fill the scaled layout viewport exactly — no zoom compensation needed. */
-  .oma-shell,
-  .oma-shell-column {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-height: 100dvh !important;
-  }
-
-  /* iOS Safari auto-zooms focused controls under 16 CSS px (layout px). */
+  /*
+   * iOS Safari auto-zooms focused controls when computed font-size < 16px.
+   * CSS zoom does not change the computed font-size used by that check, so 16px
+   * CSS still blocks focus-zoom; visually it renders ~11.2px under zoom 0.7.
+   * Bumping to 16/0.7 (~23px) would look oversized relative to scaled UI.
+   */
   input,
   textarea,
   select,
@@ -44,18 +104,5 @@
   .ant-select-selector,
   .ant-picker-input > input {
     font-size: 16px !important;
-  }
-
-  /* Keep fixed chrome and sheets within the layout viewport. */
-  .oma-top,
-  .oma-m-tabbar,
-  .ant-drawer-content-wrapper,
-  .ant-modal-wrap,
-  .ant-modal {
-    max-width: 100% !important;
-  }
-
-  .ant-drawer-content-wrapper {
-    max-width: 100vw !important;
   }
 }
