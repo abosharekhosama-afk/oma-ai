@@ -7896,3 +7896,46 @@ button.oma-breadcrumb-workspace:hover {
     background: var(--oma-surface, #fff) !important;
   }
 }
+
+
+/* Phone headers: filter controls become icon-only on Tasks and Deliverables. */
+@media (max-width: 767px) {
+  html body button[data-testid='demo-deliv-open-filters'],
+  html body button[data-testid='demo-task-open-filters'] {
+    position: relative !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0 !important;
+    width: 34px !important;
+    min-width: 34px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  html body button[data-testid='demo-deliv-open-filters'] > .oma-req-filter-btn__label,
+  html body button[data-testid='demo-task-open-filters'] > .oma-req-filter-btn__label {
+    display: none !important;
+  }
+
+  html body button[data-testid='demo-deliv-open-filters'] > svg,
+  html body button[data-testid='demo-task-open-filters'] > svg {
+    width: 18px !important;
+    height: 18px !important;
+    flex: 0 0 18px !important;
+  }
+
+  html body button[data-testid='demo-deliv-open-filters'] > .oma-req-filter-btn__count,
+  html body button[data-testid='demo-task-open-filters'] > .oma-req-filter-btn__count {
+    position: absolute !important;
+    inset-block-start: -5px !important;
+    inset-inline-end: -5px !important;
+    min-width: 16px !important;
+    height: 16px !important;
+    padding: 0 3px !important;
+    font-size: 9px !important;
+    line-height: 1 !important;
+  }
+}

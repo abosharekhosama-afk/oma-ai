@@ -3197,3 +3197,39 @@ main.oma-container:has(.oma-sched-page) {
     min-width: 0 !important;
   }
 }
+
+
+/* Phone-width deliverables: reclaim side gutters while keeping a small safe margin. */
+@media (max-width: 767px) {
+  html body main.oma-container:has(.oma-deliv-page) {
+    padding-inline: 6px !important;
+  }
+
+  html body .oma-deliv-page .oma-deliv-workspace .oma-req-main {
+    padding: 6px 4px 18px !important;
+  }
+
+  html body .oma-deliv-page .oma-deliv-table-wrap,
+  html body .oma-deliv-page .oma-deliv-mobile {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-inline: 0 !important;
+  }
+
+  html body .oma-deliv-page .oma-deliv-mobile {
+    padding: 0 !important;
+  }
+
+  html body .oma-deliv-page .oma-deliv-mobile > li {
+    width: 100% !important;
+    margin-inline: 0 !important;
+    padding: 0 !important;
+  }
+
+  html body .oma-deliv-page .oma-deliv-mobile-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-inline: 0 !important;
+    box-sizing: border-box !important;
+  }
+}

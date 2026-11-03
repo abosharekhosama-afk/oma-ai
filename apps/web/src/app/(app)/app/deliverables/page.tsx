@@ -203,11 +203,15 @@ export default function DeliverablesPage() {
                 type="button"
                 className="oma-req-filter-btn"
                 data-testid="demo-deliv-open-filters"
+                aria-label={locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter'}
+                title={locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter'}
                 data-active={filterSheet ? 'true' : 'false'}
                 onClick={() => setFilterSheet((v) => !v)}
               >
-                <FilterOutlined />
-                <span>{locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter'}</span>
+                <FilterOutlined aria-hidden="true" />
+                <span className="oma-req-filter-btn__label">
+                  {locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter'}
+                </span>
                 {filterCount > 0 ? (
                   <span className="oma-req-filter-btn__count">{filterCount}</span>
                 ) : null}
