@@ -44,19 +44,11 @@
     font-size: 10.4px !important; /* 16px × 0.65 */
   }
 
-  /* Most OMA components use explicit px values. Scale the complete visual
-     surface so the requested 65% is visible, while expanding its layout box
-     back to the viewport width to avoid a blank strip on the right. */
+  /* Most OMA components use explicit px values. The shell is scaled in the
+     final cascade so the document viewport and portal layers stay normal. */
   @supports (zoom: 1) {
     html {
       font-size: 16px !important;
-    }
-
-    body {
-      width: calc(100% / var(--oma-mobile-density)) !important;
-      max-width: none !important;
-      min-height: calc(100dvh / var(--oma-mobile-density)) !important;
-      zoom: var(--oma-mobile-density);
     }
   }
 
