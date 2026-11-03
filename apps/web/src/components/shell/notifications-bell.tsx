@@ -366,7 +366,7 @@ export function NotificationsBell() {
         onClose={() => setOpen(false)}
         placement={isAr ? 'left' : 'right'}
         size={380}
-        mask={false}
+        mask={true}
         closable={false}
         title={null}
         rootClassName="oma-notifications-drawer"

@@ -322,7 +322,8 @@ main.oma-container:has(.oma-notifications-page) {
 }
 @media (max-width: 720px) {
   .oma-notifications-drawer .ant-drawer-content-wrapper {
-    width: min(100vw, 380px) !important;
+    /* zoom-aware width comes from mobile-density.css */
+    max-width: none !important;
   }
   .oma-notifications-page--planable {
     width: 100%;
@@ -510,11 +511,14 @@ main.oma-container:has(.oma-notifications-page) {
 }
 
 @media (max-width: 767px) {
+  /* Widths are finalized in mobile-density.css (zoom-aware). Keep height full-bleed. */
   .oma-tasks-filter-drawer .ant-drawer-content-wrapper,
   .oma-notifications-drawer .ant-drawer-content-wrapper,
   .oma-filter-sidepanel,
-  .oma-schedule-detail-drawer .ant-drawer-content-wrapper {
-    width: min(100vw, 390px) !important;
+  .oma-schedule-detail-drawer .ant-drawer-content-wrapper,
+  .oma-drawer.oma-drawer--nav .ant-drawer-content-wrapper {
+    height: 100% !important;
+    max-height: 100% !important;
   }
 
   .oma-schedule-detail-drawer .oma-plx-sched-drawer {

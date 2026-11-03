@@ -54,17 +54,58 @@
       max-height: var(--oma-mobile-vh) !important;
     }
 
-    /* Fixed / full-bleed chrome, drawers, modals, sheets — use compensated viewport. */
+    /* Fixed chrome — do not force drawers full-bleed (that covered the whole phone). */
     html body .oma-top,
     html body .oma-m-tabbar,
     html body .oma-mobile-nav-fab {
       max-width: 100% !important;
     }
 
-    html body .ant-drawer-content-wrapper,
-    html body .ant-drawer.ant-drawer-open .ant-drawer-content-wrapper {
-      width: min(100%, var(--oma-mobile-vw)) !important;
-      max-width: var(--oma-mobile-vw) !important;
+    /*
+     * Drawer widths in pre-zoom CSS px so visual size ≈ ratio of the phone screen.
+     * Nav ~75% capped at 280px visual; filters/notifications ~82% capped at 320px visual.
+     */
+    html body {
+      --oma-drawer-nav-width: min(
+        calc(0.75 * var(--oma-mobile-vw)),
+        calc(280px / var(--oma-mobile-density))
+      );
+      --oma-drawer-panel-width: min(
+        calc(0.82 * var(--oma-mobile-vw)),
+        calc(320px / var(--oma-mobile-density))
+      );
+    }
+
+    html body .oma-drawer.oma-drawer--nav .ant-drawer-content-wrapper,
+    html body .oma-drawer.oma-drawer--nav.ant-drawer-open .ant-drawer-content-wrapper {
+      width: var(--oma-drawer-nav-width) !important;
+      max-width: var(--oma-drawer-nav-width) !important;
+      height: var(--oma-mobile-vh) !important;
+      max-height: var(--oma-mobile-vh) !important;
+    }
+
+    html body .oma-tasks-filter-drawer .ant-drawer-content-wrapper,
+    html body .oma-notifications-drawer .ant-drawer-content-wrapper,
+    html body .oma-schedule-detail-drawer .ant-drawer-content-wrapper,
+    html body .oma-task-detail-drawer .ant-drawer-content-wrapper,
+    html body .oma-tasks-filter-drawer.ant-drawer-open .ant-drawer-content-wrapper,
+    html body .oma-notifications-drawer.ant-drawer-open .ant-drawer-content-wrapper {
+      width: var(--oma-drawer-panel-width) !important;
+      max-width: var(--oma-drawer-panel-width) !important;
+      height: var(--oma-mobile-vh) !important;
+      max-height: var(--oma-mobile-vh) !important;
+    }
+
+    /* Custom (non-Ant) filter side panels */
+    html body .oma-filter-sidepanel,
+    html body .oma-deliv-workspace[data-filter-open='true'] .oma-req-filter-panel,
+    html body .oma-req-workspace[data-filter-open='true'] .oma-req-filter-panel:not(.oma-ws-filter-popover) {
+      width: var(--oma-drawer-panel-width) !important;
+      max-width: var(--oma-drawer-panel-width) !important;
+      height: var(--oma-mobile-vh) !important;
+      max-height: var(--oma-mobile-vh) !important;
+      top: 0 !important;
+      bottom: 0 !important;
     }
 
     html body .ant-modal {
@@ -76,11 +117,15 @@
       max-width: var(--oma-mobile-vw) !important;
     }
 
+    /* Masks/backdrops must still cover the full zoomed layout viewport. */
     html body .ant-modal-wrap,
     html body .ant-drawer-mask,
-    html body .ant-modal-mask {
+    html body .ant-modal-mask,
+    html body .oma-filter-backdrop {
       width: var(--oma-mobile-vw) !important;
       max-width: var(--oma-mobile-vw) !important;
+      height: var(--oma-mobile-vh) !important;
+      min-height: var(--oma-mobile-vh) !important;
     }
 
     html body .oma-compose,

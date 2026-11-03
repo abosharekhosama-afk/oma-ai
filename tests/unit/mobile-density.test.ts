@@ -30,4 +30,18 @@ describe('mobile 70% CSS zoom scale', () => {
     expect(css).not.toContain('transform: scale');
     expect(css).toContain('font-size: 16px !important');
   });
+
+  it('caps mobile drawers so they leave a dimmed backdrop (zoom-aware widths)', () => {
+    const css = read('apps/web/src/styles/mobile-density.css');
+    expect(css).toContain('--oma-drawer-nav-width');
+    expect(css).toContain('--oma-drawer-panel-width');
+    expect(css).toContain('calc(280px / var(--oma-mobile-density))');
+    expect(css).toContain('calc(320px / var(--oma-mobile-density))');
+    expect(css).toContain('0.75 * var(--oma-mobile-vw)');
+    expect(css).toContain('0.82 * var(--oma-mobile-vw)');
+    // Must not force every drawer to the full compensated viewport width.
+    expect(css).not.toMatch(
+      /ant-drawer-content-wrapper[^{]*\{\s*width:\s*min\(100%,\s*var\(--oma-mobile-vw\)\)/s,
+    );
+  });
 });
