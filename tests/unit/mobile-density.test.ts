@@ -14,8 +14,9 @@ describe('mobile compact density', () => {
     expect(globals.indexOf("@import '../styles/mobile-density.css';")).toBeGreaterThan(
       globals.indexOf("@import '../styles/mobile-precise-nov03.css';"),
     );
-    expect(globals).not.toContain('Mobile density viewport compensation');
-    expect(globals).not.toContain('zoom: var(--oma-mobile-density)');
+    expect(globals).toContain('Mobile density height compensation');
+    expect(globals).toContain('height: calc(100dvh / var(--oma-mobile-density)) !important');
+    expect(globals).not.toContain('width: calc(100% / var(--oma-mobile-density)) !important');
   });
 
   it('uses compact tokens without changing the viewport coordinate system', () => {
@@ -23,7 +24,8 @@ describe('mobile compact density', () => {
     const globals = read('apps/web/src/app/globals.css');
     expect(css).toContain('--oma-mobile-density: 0.65');
     expect(css).toContain('font-size: 10.4px !important');
-    expect(globals).not.toContain('zoom: var(--oma-mobile-density)');
+    expect(css).toContain('zoom: var(--oma-mobile-density)');
+    expect(css).toContain('overflow-x: hidden !important');
     expect(css).toContain('min-height: 40px !important');
     expect(css).toContain('font-size: 16px !important');
   });
