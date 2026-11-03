@@ -330,6 +330,11 @@
   }
 }
 
+.oma-activity-page.oma-bs {
+  max-inline-size: none;
+  margin-inline: 0;
+}
+
 /* WorkDrive settings + media picker */
 .oma-wd-skeleton {
   min-block-size: 180px;

@@ -274,34 +274,34 @@ export default function TeamPage() {
   }
 
   return (
-    <div className="oma-planable-page" data-testid="team-page-planable">
-      <div className="oma-planable-page__header">
-        <div>
-          <h1 className="oma-planable-page__title">{t('wsPanel.team_clients')}</h1>
-          <p className="oma-planable-page__sub">
-            {t('team.invite_collaborators_set_teamclient_membership')}
-          </p>
+    <div className="oma-bs" data-testid="team-page-planable">
+      <header className="oma-bs-head">
+        <div className="oma-bs-head__text">
+          <h1 className="oma-bs-title">{t('wsPanel.team_clients')}</h1>
+          <p className="oma-bs-sub">{t('team.invite_collaborators_set_teamclient_membership')}</p>
         </div>
-      </div>
-
-      <div className="oma-ws-tabs">
-        {(
-          [
-            ['members', 'team.tab.members'],
-            ['permissions', 'team.tab.permissions'],
-            ['notifications', 'team.tab.notifications'],
-          ] as const
-        ).map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            className={`oma-ws-tab${tab === id ? ' is-active' : ''}`}
-            onClick={() => setTab(id)}
-          >
-            {t(label)}
-          </button>
-        ))}
-      </div>
+      </header>
+      <div className="oma-bs-body">
+        <nav className="oma-bs-nav" aria-label={t('wsPanel.team_clients')}>
+          {(
+            [
+              ['members', 'team.tab.members'],
+              ['permissions', 'team.tab.permissions'],
+              ['notifications', 'team.tab.notifications'],
+            ] as const
+          ).map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              className="oma-bs-nav__item"
+              aria-current={tab === id ? 'page' : undefined}
+              onClick={() => setTab(id)}
+            >
+              {t(label)}
+            </button>
+          ))}
+        </nav>
+        <main className="oma-bs-main">
 
       {loading ? <TableShimmer rows={5} /> : null}
       {error ? (
@@ -631,6 +631,8 @@ export default function TeamPage() {
           )}
         </div>
       ) : null}
+        </main>
+      </div>
 
       <TeamInviteDialog
         open={inviteOpen}

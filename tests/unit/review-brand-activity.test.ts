@@ -126,10 +126,10 @@ describe('activity feed item', () => {
     expect(relativeTime('2026-10-25T11:55:00Z', 'ar', now)).toMatch(/٥|5/);
     expect(relativeTime('bad', 'en', now)).toBe('');
   });
-  it('keeps the legacy tab bar and gives every activity filter the same scrollable table width', () => {
+  it('uses the brand-settings side nav and gives every activity filter the same scrollable table width', () => {
     const source = read('apps/web/src/app/(app)/app/activity/activity-client.tsx');
     const css = read('apps/web/src/styles/activity.css');
-    expect(source).toContain('className="oma-ws-tabs"');
+    expect(source).toContain('className="oma-bs-nav"');
     expect(source).toContain('className="oma-act-feed__scroll"');
     expect(css).toContain('.oma-act-feed__scroll');
     expect(css).toContain('overflow-x: auto');

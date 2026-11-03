@@ -72,38 +72,37 @@ export default function ActivityPage() {
     return items.filter((i) => i.category === filter);
   }, [items, filter]);
 
-  return (
-    <div className="oma-planable-page oma-activity-page" data-testid="activity-page-planable">
-      <div className="oma-activity-sticky">
-        <div className="oma-planable-page__header oma-activity-page__header">
-          <div>
-            <h1 className="oma-planable-page__title">{t('activity.title')}</h1>
-            <p className="oma-planable-page__sub">{t('activity.subtitle')}</p>
-          </div>
-        </div>
+  const filters = [
+    ['all', t('activity.filter.all')],
+    ['members', t('activity.filter.members')],
+    ['approvals', t('activity.filter.approvals')],
+    ['content', t('activity.filter.content')],
+    ['settings', t('activity.filter.settings')],
+  ] as const;
 
-        <div className="oma-ws-tabs" role="tablist" aria-label={t('activity.title')}>
-        {(
-          [
-            ['members', t('activity.filter.members')],
-            ['approvals', t('activity.filter.approvals')],
-            ['content', t('activity.filter.content')],
-            ['settings', t('activity.filter.settings')],
-          ] as const
-        ).map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            className={`oma-ws-tab${filter === id ? ' is-active' : ''}`}
-            role="tab"
-            aria-selected={filter === id}
-            onClick={() => setFilter((current) => (current === id ? 'all' : id))}
-          >
-            {label}
-          </button>
-        ))}
+  return (
+    <div className="oma-bs oma-activity-page" data-testid="activity-page-planable">
+      <header className="oma-bs-head">
+        <div className="oma-bs-head__text">
+          <h1 className="oma-bs-title">{t('activity.title')}</h1>
+          <p className="oma-bs-sub">{t('activity.subtitle')}</p>
         </div>
-      </div>
+      </header>
+      <div className="oma-bs-body">
+        <nav className="oma-bs-nav" aria-label={t('activity.title')}>
+          {filters.map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              className="oma-bs-nav__item"
+              aria-current={filter === id ? 'page' : undefined}
+              onClick={() => setFilter(id)}
+            >
+              {label}
+            </button>
+          ))}
+        </nav>
+        <main className="oma-bs-main">
 
       {loading ? <TableShimmer rows={8} /> : null}
       {error ? (
@@ -147,6 +146,8 @@ export default function ActivityPage() {
           ) : null}
         </div>
       ) : null}
+        </main>
+      </div>
     </div>
   );
 }
