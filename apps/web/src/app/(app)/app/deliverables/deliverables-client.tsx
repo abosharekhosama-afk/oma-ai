@@ -444,6 +444,14 @@ export default function DeliverablesPage() {
             </div>
 
             {filterSheet ? (
+              <button
+                type="button"
+                className="oma-filter-backdrop"
+                aria-label="Close filters"
+                onClick={() => setFilterSheet(false)}
+              />
+            ) : null}
+            {filterSheet ? (
               <aside className="oma-req-filter-panel" data-testid="demo-deliv-filters">
                 <header className="oma-req-filter-panel__head">
                   <strong>

@@ -371,6 +371,19 @@ export default function RequestsPage() {
             <>
               <button
                 type="button"
+                className="oma-req-filter-icon"
+                data-testid="demo-request-open-filters"
+                data-active={filterSheet ? 'true' : 'false'}
+                aria-label={locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter'}
+                onClick={() => setFilterSheet((v) => !v)}
+              >
+                <ShellIcon name="filter" size={18} />
+                {filterCount > 0 ? (
+                  <span className="oma-req-filter-icon__count">{filterCount}</span>
+                ) : null}
+              </button>
+              <button
+                type="button"
                 className="oma-req-create-icon"
                 data-testid="demo-create-request"
                 aria-label={t('demo.requests.new')}
@@ -531,7 +544,7 @@ export default function RequestsPage() {
             onClose={() => setFilterSheet(false)}
             placement={locale.toLowerCase().startsWith('ar') ? 'left' : 'right'}
             size={320}
-            mask={false}
+            mask={true}
             closable={false}
             title={null}
             rootClassName="oma-tasks-filter-drawer"

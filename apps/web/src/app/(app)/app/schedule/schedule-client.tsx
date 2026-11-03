@@ -676,7 +676,7 @@ export default function SchedulePage() {
         onClose={() => setFilterSheet(false)}
         placement={locale.toLowerCase().startsWith('ar') ? 'left' : 'right'}
         size={320}
-        mask={false}
+        mask={true}
         closable={false}
         title={null}
         destroyOnHidden
