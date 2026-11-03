@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../../../../lib/api';
-import { announceBrandLogo } from '../../../../lib/active-brand';
+import { announceBrandLogo, setActiveBrandId } from '../../../../lib/active-brand';
 import {
   brandSettingsApi,
   readLogoFile,
@@ -20,7 +20,6 @@ import {
   BriefcaseIcon,
   CardIcon,
   ChartIcon,
-  CheckIcon,
   CheckSquareIcon,
   ChevronDownIcon,
   CloseIcon,
@@ -233,9 +232,8 @@ export function PlanableDashboard() {
     return active ? [active] : [];
   }, [memberships, me?.active_tenant_id]);
   const others = useMemo(() => {
-    if (!me?.active_tenant_id) return memberships;
-    return memberships.filter((m) => !primary.some((p) => p.tenant_id === m.tenant_id));
-  }, [memberships, primary, me?.active_tenant_id]);
+    return memberships;
+  }, [memberships]);
   const normalizedWorkspaceQuery = workspaceQuery.trim().toLowerCase();
   const visibleBrands = useMemo(() => {
     if (!normalizedWorkspaceQuery) return brands;
@@ -279,6 +277,7 @@ export function PlanableDashboard() {
         method: 'POST',
         body: JSON.stringify({ tenant_id: tenantId }),
       });
+      setActiveBrandId(null);
       window.location.assign('/app');
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -287,16 +286,7 @@ export function PlanableDashboard() {
   }
 
   function openCreate() {
-    setCreateStep(1);
-    setWsName('');
-    setWsUrl('');
-    setPageName('');
-    setPageLogo(null);
-    setPageColor('#1677ff');
-    setContentStyle('default');
-    createdBrandId.current = null;
-    setCreateError(null);
-    setCreateOpen(true);
+    router.push('/app/workspaces/new');
   }
 
   async function ensureBrand(): Promise<string> {
@@ -529,7 +519,13 @@ export function PlanableDashboard() {
             </button>
           </div>
 
-          <div className="plx-ws-grid" data-testid="plx-workspaces-grid">
+          {me?.active_tenant_id ? (
+            <div className="plx-other-head">
+              <h2>{t('companies.brands_in_workspace') || 'Brands in this Workspace'}</h2>
+              <hr />
+            </div>
+          ) : null}
+          <div className="plx-ws-grid" data-testid="plx-brands-grid">
             {brandsLoading ? <p className="plx-muted">{t('companies.loading_workspaces2')}</p> : null}
             {!brandsLoading && normalizedWorkspaceQuery && visibleBrands.length === 0 && visibleOthers.length === 0 ? (
               <p className="plx-workspaces-empty" role="status">
@@ -545,9 +541,10 @@ export function PlanableDashboard() {
               <WorkspaceCard
                 key={b.id}
                 id={b.id}
+                kind="brand"
                 name={b.name}
                 logoUrl={b.logo_url}
-                meta={b.primary_website_url || b.status || 'Workspace'}
+                meta={b.primary_website_url || b.status || t('shell.brand') || 'Brand'}
                 fav={favorites.includes(b.id)}
                 busy={activating === b.id}
                 menuOpen={wsMenuFor === b.id}
@@ -571,16 +568,16 @@ export function PlanableDashboard() {
                 }}
                 onOpenContent={() => {
                   setWsMenuFor(null);
-                  window.location.assign('/app/content');
+                  window.location.assign(`/app/content?brand=${b.id}`);
                 }}
               />
             ))}
-            {!normalizedWorkspaceQuery && !needsCompanyPick ? (
-              <button type="button" className="plx-ws-create" onClick={openCreate}>
+            {!normalizedWorkspaceQuery && Boolean(me?.active_tenant_id) ? (
+              <button type="button" className="plx-ws-create" onClick={() => router.push('/app/brands/new')}>
                 <span className="plx-ws-create-plus">
                   <PlusIcon />
                 </span>
-                <span className="plx-ws-create-label">{t('companies.create_a_workspace')}</span>
+                <span className="plx-ws-create-label">{t('shell.newBrand') || 'New brand'}</span>
               </button>
             ) : null}
           </div>
@@ -589,9 +586,7 @@ export function PlanableDashboard() {
             <>
               <div className="plx-other-head">
                 <h2>
-                  {needsCompanyPick
-                    ? t('selectCompany.title')
-                    : t('companies.other_workspaces')}
+                  {needsCompanyPick ? t('selectCompany.title') : t('companies.workspaces') || 'Workspaces'}
                 </h2>
                 <hr />
               </div>
@@ -605,6 +600,7 @@ export function PlanableDashboard() {
                     id={m.id || m.tenant_id}
                     tenantId={m.tenant_id}
                     name={m.tenant_name}
+                    meta={t('shell.workspace') || 'Workspace'}
                     fav={favorites.includes(m.id || m.tenant_id)}
                     busy={activating === m.tenant_id}
                     menuOpen={wsMenuFor === (m.id || m.tenant_id)}
@@ -923,6 +919,7 @@ export function PlanableDashboard() {
 function WorkspaceCard(props: {
   id: string;
   tenantId?: string;
+  kind?: 'workspace' | 'brand';
   name: string;
   meta?: string;
   fav: boolean;
@@ -939,6 +936,7 @@ function WorkspaceCard(props: {
   logoUrl?: string | null;
 }) {
   const t = useT();
+  const entityLabel = props.kind === 'brand' ? t('entity.type.brand') || 'Brand' : t('shell.workspace') || 'Workspace';
   const truncate = (n: string) => (n.length > 14 ? `${n.slice(0, 14)}â€¦` : n);
   return (
     <div
@@ -953,7 +951,7 @@ function WorkspaceCard(props: {
           props.onActivate();
         }
       }}
-      aria-label={t('companies.open_workspace').replace('{name}', props.name)}
+      aria-label={props.kind === 'brand' ? `${entityLabel}: ${props.name}` : t('companies.open_workspace').replace('{name}', props.name)}
     >
       <button
         type="button"
@@ -998,33 +996,24 @@ function WorkspaceCard(props: {
                 props.onCloseMenu();
               }}
             >
-              <BriefcaseIcon /> Open workspace
+              <BriefcaseIcon /> {props.kind === 'brand' ? (t('companies.open_brand') || 'Open brand') : (t('companies.open_workspace_action') || 'Open workspace')}
             </button>
-            <button
-              type="button"
-              className="plx-menu-item"
-              onClick={() => {
-                props.onConnect?.();
-                props.onCloseMenu();
-              }}
-            >
-              <LinkIcon /> Connect website
-            </button>
-            <button
-              type="button"
-              className="plx-menu-item"
-              onClick={() => {
-                props.onOpenContent?.();
-                props.onCloseMenu();
-              }}
-            >
-              <ImageIcon /> Content calendar
-            </button>
-            <button type="button" className="plx-menu-item" onClick={props.onInvite}>
-              <UsersIcon /> Manage people
-            </button>
+            {props.kind === 'brand' ? (
+              <>
+                <button type="button" className="plx-menu-item" onClick={() => { props.onConnect?.(); props.onCloseMenu(); }}>
+                  <LinkIcon /> Connect website
+                </button>
+                <button type="button" className="plx-menu-item" onClick={() => { props.onOpenContent?.(); props.onCloseMenu(); }}>
+                  <ImageIcon /> Content calendar
+                </button>
+              </>
+            ) : (
+              <button type="button" className="plx-menu-item" onClick={props.onInvite}>
+                <UsersIcon /> Manage people
+              </button>
+            )}
             <button type="button" className="plx-menu-item" onClick={props.onSettings}>
-              <SettingsIcon /> Workspace settings
+              <SettingsIcon /> {props.kind === 'brand' ? (t('companies.brand_settings') || 'Brand settings') : (t('shell.workspaceSettings') || 'Workspace settings')}
             </button>
             <button type="button" className="plx-menu-item" onClick={props.onCloseMenu}>
               <CheckSquareIcon /> Approvals

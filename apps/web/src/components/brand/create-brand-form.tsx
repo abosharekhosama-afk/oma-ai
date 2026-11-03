@@ -59,9 +59,9 @@ export function CreateBrandForm({
   }
 
   return (
-    <form className="oma-create-brand-form" onSubmit={onSubmit} data-testid="create-workspace-form">
+    <form className="oma-create-brand-form" onSubmit={onSubmit} data-testid="create-brand-form">
       <Field
-        label={t('brand.create.nameLabel') || 'Workspace name'}
+        label={t('brand.create.nameLabel') || 'Brand name'}
         htmlFor="brand-name"
         error={error ?? undefined}
       >
@@ -95,9 +95,9 @@ export function CreateBrandForm({
           htmlType="submit"
           loading={busy}
           disabled={!name.trim()}
-          data-testid="create-workspace-submit"
+          data-testid="create-brand-submit"
         >
-          {t('brand.create.submit') || 'Create workspace'}
+          {t('brand.create.submit') || 'Create brand'}
         </Button>
       </div>
     </form>
