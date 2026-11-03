@@ -469,23 +469,26 @@
   .oma-mobile-only {
     display: inline-flex;
   }
-  /* Compact single-row header — search lives in the ⋯ overflow menu. */
   .oma-top {
-    height: 52px;
-    min-height: 52px;
-    max-height: 52px;
-    flex-wrap: nowrap;
-    align-items: center;
-    padding-inline: 8px;
-    gap: 6px;
+    height: auto;
+    min-height: calc(var(--oma-control-height) + (var(--shell-chrome-inset) * 2));
+    flex-wrap: wrap;
   }
   .oma-top-center {
-    display: none;
+    display: flex;
+    order: 3;
+    flex: 1 1 100%;
+  }
+  .oma-command-trigger,
+  .oma-mobile-only.oma-rail-search,
+  .oma-top-center .oma-rail-search {
+    display: inline-flex;
+    width: 100%;
+    height: var(--oma-control-height);
+    min-height: var(--oma-control-height);
   }
   .oma-top-context {
-    flex-wrap: nowrap;
-    min-width: 0;
-    overflow: hidden;
+    flex-wrap: wrap;
   }
 }
 
@@ -552,10 +555,8 @@
 
 @media (max-width: 767px) {
   .oma-shell .oma-top {
-    height: 52px;
-    min-height: 52px;
-    max-height: 52px;
-    padding: 0 8px;
+    min-height: 48px;
+    padding: 6px 8px;
   }
 
   .oma-shell .oma-container {

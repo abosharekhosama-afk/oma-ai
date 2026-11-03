@@ -2409,6 +2409,5 @@
   "errors.brandNoAccess": "ليس لديك صلاحية الوصول إلى هذه العلامة. اطلب من مسؤول مساحة العمل إضافتك كعضو.",
   "demo.schedule.viewProfileLink": "عرض الملف الشخصي",
   "demo.deliverable.reviewBeforeSubmit": "أرسل هذا التسليم للمراجعة قبل الموافقة أو طلب التعديلات.",
-  "content.compose.reelNeedsVideo": "الريلز يحتاج إلى ملف فيديو. لا يمكن نشر صورة كريلز على TikTok.",
-  "shell.moreActions": "المزيد"
+  "content.compose.reelNeedsVideo": "الريلز يحتاج إلى ملف فيديو. لا يمكن نشر صورة كريلز على TikTok."
 }
