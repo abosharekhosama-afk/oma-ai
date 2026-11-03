@@ -2189,3 +2189,69 @@ html body [data-testid='team-page-planable'] .oma-ws-table {
     overflow-x: hidden !important;
   }
 }
+
+/* Brand detail phone layout: prevent intrinsic content from widening cards or columns. */
+@media (max-width: 767px) {
+  .oma-brand-shell:has(.oma-brand-detail-workboard),
+  .oma-brand-shell:has(.oma-brand-detail-workboard) .oma-brand-body,
+  .oma-brand-shell:has(.oma-brand-detail-workboard) .oma-brand-main,
+  .oma-brand-detail-workboard,
+  .oma-brand-detail-workboard > *,
+  .oma-brand-detail-workboard .oma-workboard-primary,
+  .oma-brand-detail-workboard .oma-workboard-side,
+  .oma-brand-detail-workboard .oma-panel,
+  .oma-brand-detail-workboard .oma-panel-head,
+  .oma-brand-detail-workboard .oma-card,
+  .oma-brand-detail-workboard .oma-detail-dl,
+  .oma-brand-detail-workboard .oma-detail-dl > div,
+  .oma-brand-detail-workboard .oma-dense-list,
+  .oma-brand-detail-workboard .oma-dense-list > li,
+  .oma-brand-detail-workboard .oma-work-row,
+  .oma-brand-detail-workboard .oma-work-row > * {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .oma-brand-detail-workboard {
+    width: 100% !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .oma-brand-detail-workboard .oma-detail-dl > div {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .oma-brand-detail-workboard .oma-detail-dl dd,
+  .oma-brand-detail-workboard .oma-work-row strong {
+    overflow-wrap: anywhere !important;
+    word-break: break-word !important;
+  }
+
+  .oma-brand-detail-workboard .oma-work-row-cta {
+    max-width: 100% !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    text-align: end !important;
+  }
+
+  .oma-brand-detail-workboard .oma-panel-head {
+    flex-wrap: wrap !important;
+  }
+
+  .oma-brand-detail-workboard .oma-panel-head h2 {
+    min-width: 0 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .oma-brand-shell:has(.oma-brand-detail-workboard) .oma-brand-header-identity > div,
+  .oma-brand-shell:has(.oma-brand-detail-workboard) .oma-brand-header h1 {
+    min-width: 0 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  .oma-brand-shell:has(.oma-brand-detail-workboard) .oma-brand-header > .oma-link-button {
+    max-width: 100% !important;
+    white-space: normal !important;
+  }
+}
