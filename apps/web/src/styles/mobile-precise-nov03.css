@@ -153,6 +153,35 @@
     -webkit-overflow-scrolling: touch !important;
   }
 
+  /* Content list: keep the desktop column rhythm and scroll the list itself. */
+  html body .oma-content-plan .oma-plan-list {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-inline: contain !important;
+    touch-action: pan-x pan-y !important;
+  }
+  html body .oma-content-plan .oma-plan-list__head,
+  html body .oma-content-plan .oma-plan-list__body {
+    width: 920px !important;
+    min-width: 920px !important;
+    max-width: none !important;
+    margin-inline: 0 !important;
+    box-sizing: border-box !important;
+  }
+  html body .oma-content-plan .oma-plan-list__row {
+    width: 100% !important;
+    min-width: 920px !important;
+    box-sizing: border-box !important;
+  }
+  html body .oma-content-plan .oma-plan-list__main,
+  html body .oma-content-plan .oma-plan-list__title {
+    min-width: 0 !important;
+  }
+
   /* ---- 4. Create / invite icon-only ---- */
   html body .oma-req-create-icon,
   html body .oma-header-create-icon {
