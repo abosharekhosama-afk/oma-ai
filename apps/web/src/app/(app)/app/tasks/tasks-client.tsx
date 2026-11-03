@@ -11,7 +11,7 @@ import { Dialog } from '../../../../components/ui/dialog';
 import { AssigneePicker } from '../../../../components/ui/assignee-picker';
 import { EntityLink } from '../../../../components/ui/entity-link';
 import { PageHeader } from '../../../../components/ui/page-header';
-import { StatusChip } from '../../../../components/ui/status-chip';
+import { StatusChip, statusLabel } from '../../../../components/ui/status-chip';
 import { useToast } from '../../../../components/ui/toast';
 import { daysFromToday, formatCommentTime } from '../../../../lib/calendar-today';
 import dayjs from 'dayjs';
@@ -939,11 +939,16 @@ export default function TasksPage() {
                       data-testid="demo-task-status"
                       onChange={(e) => void patchTask(selected.id, { status: e.target.value })}
                     >
-                      {moveOptions(selected.status).map((s) => (
-                        <option key={s} value={s}>
-                          {s}
-                        </option>
-                      ))}
+                      {[
+                        selected.status === 'OVERDUE' ? 'IN_PROGRESS' : selected.status,
+                        ...moveOptions(selected.status),
+                      ]
+                        .filter((s, index, all) => all.indexOf(s) === index)
+                        .map((s) => (
+                          <option key={s} value={s}>
+                            {statusLabel(t, s)}
+                          </option>
+                        ))}
                     </SelectField>
                   </label>
                   <label>
@@ -955,7 +960,7 @@ export default function TasksPage() {
                     >
                       {['URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((s) => (
                         <option key={s} value={s}>
-                          {s}
+                          {statusLabel(t, s)}
                         </option>
                       ))}
                     </SelectField>

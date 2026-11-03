@@ -28,7 +28,6 @@ import {
   EMPTY_REQUEST_FILTERS,
   activeRequestFilterCount,
   filterRequests,
-  requestCompleteness,
   requestIsOverdue,
   requestMissingFields,
   requestNextAction,
@@ -70,6 +69,63 @@ function initials(value: string): string {
   if (parts.length === 0) return '?';
   if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
   return `${parts[0]![0] ?? ''}${parts[1]![0] ?? ''}`.toUpperCase();
+}
+
+type RequestBrief = {
+  objective?: { en?: string; ar?: string };
+  audience?: { en?: string; ar?: string };
+  key_message?: { en?: string; ar?: string };
+  ready?: boolean;
+};
+
+function hasCopy(value?: { en?: string; ar?: string } | null): boolean {
+  return Boolean(value?.en?.trim() || value?.ar?.trim());
+}
+
+function formatRequestWhen(value: string | undefined, locale: string): string {
+  if (!value) return '';
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return value.slice(0, 10);
+  return new Intl.DateTimeFormat(locale.toLowerCase().startsWith('ar') ? 'ar' : 'en', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  }).format(parsed);
+}
+
+function requestRowMeta(
+  row: RequestRow & { apiBrief?: RequestBrief | null },
+  locale: string,
+  t: (key: string) => string,
+): string {
+  const brief = row.apiBrief ?? null;
+  const checks = [
+    hasCopy(row.title),
+    hasCopy(row.description),
+    Boolean(row.assignee),
+    Boolean(row.campaignId),
+    Boolean(row.channels?.length),
+    Boolean(row.formats?.length),
+    hasCopy(brief?.objective),
+    hasCopy(brief?.audience),
+    hasCopy(brief?.key_message),
+  ];
+  const pct = Math.round((checks.filter(Boolean).length / checks.length) * 100);
+  const missing: string[] = [];
+  if (!row.assignee) missing.push(t('demo.requests.col.assignee'));
+  if (!row.campaignId) missing.push(t('demo.requests.col.brandCampaign'));
+  if (!row.channels?.length) missing.push(t('demo.brief.channels'));
+  if (!row.formats?.length) missing.push(t('demo.brief.formats') || 'Formats');
+  if (!hasCopy(brief?.objective)) missing.push(t('demo.brief.objective'));
+  if (!hasCopy(brief?.audience)) missing.push(t('demo.brief.audience'));
+  if (!hasCopy(brief?.key_message)) missing.push(t('demo.brief.message'));
+  const state = brief?.ready
+    ? t('demo.brief.ready')
+    : missing.length
+      ? `${t('demo.requests.missing')}: ${missing.join(', ')}`
+      : t('demo.brief.notReady');
+  const when = formatRequestWhen(row.updatedAt || row.submittedAt, locale);
+  return [state, `${pct}%`, when].filter(Boolean).join(' · ');
 }
 
 export default function RequestsPage() {
@@ -394,10 +450,7 @@ export default function RequestsPage() {
                                     {pickCopy(r.title, locale)}
                                   </Link>
                                   <div className="oma-muted" style={{ fontSize: 12 }}>
-                                    {r.id.replace('demo-request-', '#')} ·{' '}
-                                    {requestCompleteness(r, brief)}%
-                                    {missing.length ? ` · ${missing.join(', ')}` : ''}
-                                    {` · ${r.updatedAt ?? r.submittedAt}`}
+                                    {requestRowMeta(r, locale, t)}
                                   </div>
                                 </div>
                               </div>
