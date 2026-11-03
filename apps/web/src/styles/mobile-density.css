@@ -39,9 +39,25 @@
     --icon-lg: 21px;
   }
 
-  /* Keep the document coordinate system unchanged on mobile. */
+  /* Fallback for browsers without CSS zoom support. */
   html {
     font-size: 10.4px !important; /* 16px × 0.65 */
+  }
+
+  /* Scale the document once. The shell keeps width: 100% so it fills the
+     compensated body; only its height is compensated in the final cascade. */
+  @supports (zoom: 1) {
+    html {
+      font-size: 16px !important;
+    }
+
+    body {
+      width: calc(100% / var(--oma-mobile-density)) !important;
+      max-width: none !important;
+      min-height: calc(100dvh / var(--oma-mobile-density)) !important;
+      overflow-x: hidden !important;
+      zoom: var(--oma-mobile-density);
+    }
   }
 
   body {
