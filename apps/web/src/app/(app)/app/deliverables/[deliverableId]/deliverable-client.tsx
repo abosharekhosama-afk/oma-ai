@@ -110,7 +110,7 @@ function DeliverableHero({
       />
     );
   return (
-    <div className="oma-deliv-detail__hero-empty oma-m-file-row">
+    <div className="oma-deliv-detail__hero-empty">
       <a className="oma-text-link" href={src} target="_blank" rel="noreferrer">
         {openLabel}
       </a>
@@ -996,7 +996,7 @@ export default function DeliverableDetailClient() {
         ) : (
           <div className="oma-deliv-detail__workspace">
             <div className="oma-deliv-detail__main">
-              <section className="oma-deliv-detail__card oma-deliv-detail__preview" data-mobile-full="true">
+              <section className="oma-deliv-detail__card oma-deliv-detail__preview">
                 {selectedVersion?.assets && selectedVersion.assets[0] ? (
                   <DeliverableHero
                     key={selectedVersion.assets[0]}
@@ -1006,7 +1006,7 @@ export default function DeliverableDetailClient() {
                     contentType={linked?.content.content_type}
                   />
                 ) : (
-                  <div className="oma-deliv-detail__hero-empty oma-m-file-row" data-testid="deliverable-no-file">
+                  <div className="oma-deliv-detail__hero-empty" data-testid="deliverable-no-file">
                     <span>{t('review.noAssets')}</span>
                     {canVersion &&
                     row.reviewStatus !== 'APPROVED' &&
