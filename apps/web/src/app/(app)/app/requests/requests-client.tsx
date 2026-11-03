@@ -227,7 +227,6 @@ export default function RequestsPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [filterSheet, setFilterSheet] = useState(false);
   const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
-  const [headerTitleSlot, setHeaderTitleSlot] = useState<HTMLElement | null>(null);
   const [filterSection, setFilterSection] = useState<string | null>('status');
   const [createDirty, setCreateDirty] = useState(false);
   const [unsavedOpen, setUnsavedOpen] = useState(false);
@@ -303,7 +302,6 @@ export default function RequestsPage() {
 
   useEffect(() => {
     setHeaderSlot(document.getElementById('oma-workspace-top-actions'));
-    setHeaderTitleSlot(document.getElementById('oma-requests-top-title'));
   }, []);
 
   // Refresh when the active brand changes in the header switcher.
@@ -439,16 +437,10 @@ export default function RequestsPage() {
         </div>
       </div>
 
-      {headerTitleSlot
-        ? createPortal(
-            <span className="oma-requests-top-title__label">{t('demo.requests.title')}</span>,
-            headerTitleSlot,
-          )
-        : null}
-
       {headerSlot
         ? createPortal(
             <>
+              <span className="oma-requests-header-title">{t('demo.requests.title')}</span>
               <button
                 type="button"
                 className="oma-req-filter-icon"
