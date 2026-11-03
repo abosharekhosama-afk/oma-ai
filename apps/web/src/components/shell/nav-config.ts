@@ -24,8 +24,7 @@ export type NavIconId =
   | 'list-view'
   | 'grid-view'
   | 'chevron-down'
-  | 'check'
-  | 'more-h';
+  | 'check';
 
 export type NavItem = {
   href: string;

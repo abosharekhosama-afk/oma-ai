@@ -2409,6 +2409,5 @@
   "errors.brandNoAccess": "You do not have access to this brand. Ask a workspace admin to add you as a member.",
   "demo.schedule.viewProfileLink": "View profile",
   "demo.deliverable.reviewBeforeSubmit": "Submit this deliverable for review before approving or requesting changes.",
-  "content.compose.reelNeedsVideo": "Reels need a video file. Images cannot be published as a Reel on TikTok.",
-  "shell.moreActions": "More"
+  "content.compose.reelNeedsVideo": "Reels need a video file. Images cannot be published as a Reel on TikTok."
 }
