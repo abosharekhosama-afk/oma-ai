@@ -8,25 +8,24 @@ function read(path: string) {
   return readFileSync(join(root, path), 'utf8');
 }
 
-describe('mobile compact density', () => {
-  it('loads the compact density layer after the other mobile cascades', () => {
+describe('mobile 70% viewport scale', () => {
+  it('loads the mobile density layer and uses viewport meta scale (not CSS zoom)', () => {
     const globals = read('apps/web/src/app/globals.css');
-    expect(globals.indexOf("@import '../styles/mobile-density.css';")).toBeGreaterThan(
-      globals.indexOf("@import '../styles/mobile-precise-nov03.css';"),
-    );
-    expect(globals).toContain('Mobile density height compensation');
-    expect(globals).toContain('height: calc(100dvh / var(--oma-mobile-density)) !important');
-    expect(globals).not.toContain('width: calc(100% / var(--oma-mobile-density)) !important');
+    expect(globals).toContain("@import '../styles/mobile-density.css';");
+    expect(globals).toContain('Mobile scale fill');
+    expect(globals).not.toContain('height: calc(100dvh / var(--oma-mobile-density)) !important');
   });
 
-  it('uses compact tokens without changing the viewport coordinate system', () => {
+  it('sets phone viewport to 70% via early layout script and avoids zoom/transform scale', () => {
+    const layout = read('apps/web/src/app/layout.tsx');
     const css = read('apps/web/src/styles/mobile-density.css');
-    const globals = read('apps/web/src/app/globals.css');
-    expect(css).toContain('--oma-mobile-density: 0.65');
-    expect(css).toContain('font-size: 10.4px !important');
-    expect(css).toContain('zoom: var(--oma-mobile-density)');
-    expect(css).toContain('overflow-x: hidden !important');
-    expect(css).toContain('min-height: 40px !important');
+    expect(layout).toContain('var SCALE=0.7');
+    expect(layout).toContain('initial-scale=');
+    expect(layout).toContain('MOBILE_VIEWPORT_SCALE_SCRIPT');
+    expect(css).toContain('--oma-mobile-density: 0.7');
+    expect(css).not.toContain('zoom:');
+    expect(css).not.toContain('transform: scale');
     expect(css).toContain('font-size: 16px !important');
+    expect(css).toContain('overflow-x: hidden !important');
   });
 });
