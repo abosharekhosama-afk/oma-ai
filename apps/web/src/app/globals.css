@@ -1844,3 +1844,66 @@ html[dir='rtl'] .oma-switch input:checked + .oma-switch__track::after,
     align-items: flex-start;
   }
 }
+
+
+/* Final requests mobile cascade override — must remain after all imported CSS. */
+@media (max-width: 767px) {
+  html body .oma-top-actions--workspace .oma-requests-header-title {
+    display: inline-flex !important;
+    flex: 0 0 auto !important;
+    align-items: center !important;
+    width: auto !important;
+    max-width: min(42vw, 180px) !important;
+    min-width: 0 !important;
+    height: 32px !important;
+    margin: 0 2px 0 0 !important;
+    overflow: hidden !important;
+    color: #111827 !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    line-height: 32px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    white-space: nowrap !important;
+  }
+
+  html body .oma-top-actions--workspace .oma-req-create-icon {
+    display: inline-flex !important;
+    flex: 0 0 32px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 32px !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    min-height: 32px !important;
+    padding: 0 !important;
+    border: 1px solid #dbe2ea !important;
+    border-radius: 8px !important;
+    background: #ffffff !important;
+    color: #2563eb !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 8%) !important;
+  }
+
+  html body .oma-top-actions--workspace .oma-req-create-icon svg {
+    display: block !important;
+    width: 18px !important;
+    height: 18px !important;
+    color: #2563eb !important;
+    stroke: #2563eb !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  html body .oma-req-page .oma-req-header__subtitle {
+    display: block !important;
+    margin: 4px 4px 14px !important;
+    min-height: 16px !important;
+    color: #64748b !important;
+    font-size: 11px !important;
+    line-height: 1.45 !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+}
