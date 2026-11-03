@@ -40,6 +40,15 @@ describe('P3 Planable campaign/content surfaces', () => {
     expect(client).not.toContain('oma-track-paid');
   });
 
+  it('keeps the content list on its desktop column grid and scrolls it on phones', () => {
+    const css = read('apps/web/src/styles/mobile-precise-nov03.css');
+    expect(css).toContain('.oma-content-plan .oma-plan-list');
+    expect(css).toContain('overflow-x: auto !important');
+    expect(css).toContain('.oma-content-plan .oma-plan-list__head');
+    expect(css).toContain('min-width: 920px !important');
+    expect(css).toContain('.oma-content-plan .oma-plan-list__row');
+  });
+
   it('opens composer/detail with comments and campaign deep links', () => {
     const client = read('apps/web/src/app/(app)/app/content/content-client.tsx');
     expect(client).toContain('demo-content-comments');
