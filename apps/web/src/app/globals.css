@@ -2259,50 +2259,37 @@ html body [data-testid='team-page-planable'] .oma-ws-table {
 /* Brand workspace navigation: keep tabs in one horizontally scrollable row on phones. */
 @media (max-width: 767px) {
   .oma-brand-nav {
+    display: block !important;
     width: 100% !important;
     max-width: 100% !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
   }
 
   .oma-brand-nav ul {
     display: flex !important;
-    flex-flow: row nowrap !important;
-    gap: var(--space-1) !important;
+    flex-wrap: nowrap !important;
     width: 100% !important;
+    min-width: 0 !important;
     max-width: 100% !important;
-    overflow-x: auto !important;
+    overflow-x: scroll !important;
     overflow-y: hidden !important;
+    justify-content: flex-start !important;
     overscroll-behavior-inline: contain !important;
     -webkit-overflow-scrolling: touch;
     touch-action: pan-x !important;
+    scrollbar-width: thin;
     scroll-snap-type: x proximity;
-    padding: 0 var(--space-2) !important;
   }
 
   .oma-brand-nav li {
     flex: 0 0 auto !important;
-    width: auto !important;
-    min-width: 0 !important;
   }
 
   .oma-brand-nav a {
-    display: inline-flex !important;
     flex: 0 0 auto !important;
-    width: auto !important;
-    min-width: max-content !important;
-    min-height: 44px !important;
-    align-items: center !important;
-    justify-content: center !important;
-    padding: 0 var(--space-3) !important;
-    border: 0 !important;
-    border-bottom: 2px solid transparent !important;
-    border-radius: 0 !important;
-    background: transparent !important;
-    text-align: start !important;
+    width: max-content !important;
     white-space: nowrap !important;
     scroll-snap-align: start;
-  }
-
-  .oma-brand-nav a[aria-current='page'] {
-    border-bottom-color: var(--oma-primary) !important;
   }
 }
