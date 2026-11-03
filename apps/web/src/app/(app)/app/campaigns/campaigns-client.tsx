@@ -13,6 +13,7 @@ import {
   SearchOutlined,
   DownOutlined,
   UpOutlined,
+  PlusOutlined,
 } from '../../../../components/ui/lucide-icons';
 import type { DemoGraph } from '@oma/demo';
 import { TrackPill } from '../../../../components/demo/track-pill';
@@ -665,6 +666,7 @@ export default function CampaignsPage() {
               </button>
               <Button
                 type="primary"
+                className="oma-req-create-button"
                 data-testid="demo-create-campaign"
                 onClick={() => {
                   setEditingId(null);
@@ -672,7 +674,10 @@ export default function CampaignsPage() {
                   setCreateOpen(true);
                 }}
               >
-                {isAr ? '+ حملة جديدة' : '+ New campaign'}
+                <span className="oma-req-create-button__icon" aria-hidden>
+                  <PlusOutlined />
+                </span>
+                <span>{isAr ? 'حملة جديدة' : 'New campaign'}</span>
               </Button>
             </div>,
             actionsHost,

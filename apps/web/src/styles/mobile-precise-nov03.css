@@ -224,6 +224,82 @@
     box-shadow: none !important;
     max-width: none !important;
   }
+
+  /* Keep mobile header controls visible as real icon cards, not text-only buttons. */
+  html body .oma-top-actions--content .oma-top-action--primary .oma-top-action__icon,
+  html body .oma-top-actions--content .oma-top-action--primary .oma-top-action__icon svg,
+  html body .oma-top-actions--workspace .oma-req-create-button__icon,
+  html body .oma-top-actions--workspace .oma-req-create-button__icon svg,
+  html body .oma-top-actions--workspace .oma-header-icon-btn svg,
+  html body .oma-top-actions--workspace .oma-sched-icon-btn svg {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
+    min-height: 18px !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  html body .oma-top-actions--workspace .oma-sched-icon-btn,
+  html body .oma-top-actions--workspace .oma-header-icon-btn {
+    border: 1px solid #dbe2ea !important;
+    border-radius: 8px !important;
+    background: #fff !important;
+    color: #374151 !important;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 8%) !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__end
+    .oma-cal-request-approvals,
+  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__end .oma-pv-icon-btn,
+  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__end .oma-cal-ext-indicator {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    padding: 0 8px !important;
+    border: 1px solid #dbe2ea !important;
+    border-radius: 8px !important;
+    background: #fff !important;
+    color: #374151 !important;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 8%) !important;
+  }
+
+  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__end svg {
+    display: block !important;
+    width: 17px !important;
+    height: 17px !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  /* Campaign filters use a fixed sheet; let only the fields scroll. */
+  html body .oma-campaigns-page .oma-req-filter-panel {
+    top: 0 !important;
+    bottom: 0 !important;
+    inset-block: 0 !important;
+    height: var(--oma-mobile-vh, 100dvh) !important;
+    min-height: var(--oma-mobile-vh, 100dvh) !important;
+    max-height: var(--oma-mobile-vh, 100dvh) !important;
+    overflow: hidden !important;
+  }
+
+  html body .oma-campaigns-page .oma-req-filter-panel .oma-filter-accordion-list {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  html body .oma-campaigns-page .oma-req-filter-panel__foot {
+    flex: 0 0 auto !important;
+    padding-bottom: max(12px, env(safe-area-inset-bottom)) !important;
+  }
 }
 
 /* Desktop: never show the mobile page title */
