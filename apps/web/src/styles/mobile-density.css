@@ -39,17 +39,9 @@
     --icon-lg: 21px;
   }
 
-  /* Fallback for browsers without CSS zoom support. */
+  /* Keep the document coordinate system unchanged on mobile. */
   html {
     font-size: 10.4px !important; /* 16px × 0.65 */
-  }
-
-  /* Most OMA components use explicit px values. The shell is scaled in the
-     final cascade so the document viewport and portal layers stay normal. */
-  @supports (zoom: 1) {
-    html {
-      font-size: 16px !important;
-    }
   }
 
   body {
