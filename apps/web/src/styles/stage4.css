@@ -7849,3 +7849,50 @@ button.oma-breadcrumb-workspace:hover {
     background: #f8f9fa !important;
   }
 }
+
+/* Requests mobile visibility correction: keep title/actions in the real shell portal. */
+.oma-requests-header-title {
+  display: none;
+  color: var(--oma-ink, #111827);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  html body .oma-top-actions--workspace:has(.oma-requests-header-title) {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+  }
+
+  html body .oma-top-actions--workspace .oma-requests-header-title {
+    display: inline-flex !important;
+    align-items: center !important;
+    margin-inline-end: 2px !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+  }
+
+  html body .oma-req-page .oma-req-header__title {
+    display: none !important;
+  }
+
+  html body .oma-req-page .oma-req-header__subtitle {
+    display: block !important;
+    margin: 3px 2px 6px !important;
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+    color: var(--oma-muted, #64748b) !important;
+  }
+
+  html body .oma-top-actions--workspace .oma-req-create-icon {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    color: var(--oma-primary, #2563eb) !important;
+    background: var(--oma-surface, #fff) !important;
+  }
+}
