@@ -22,6 +22,7 @@
 @import '../styles/shimmer.css';
 @import '../styles/side-drawers.css';
 @import '../styles/mobile-precise-nov03.css';
+@import '../styles/mobile-density.css';
 
 * {
   box-sizing: border-box;
