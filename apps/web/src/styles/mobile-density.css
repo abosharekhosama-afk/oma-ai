@@ -39,10 +39,25 @@
     --icon-lg: 21px;
   }
 
-  /* The previous pass only changed tokenized spacing. Most of this app also uses
-     rem-based component dimensions, so make the requested 65% scale explicit. */
+  /* Fallback for browsers without CSS zoom support. */
   html {
     font-size: 10.4px !important; /* 16px × 0.65 */
+  }
+
+  /* Most OMA components use explicit px values. Scale the complete visual
+     surface so the requested 65% is visible, while expanding its layout box
+     back to the viewport width to avoid a blank strip on the right. */
+  @supports (zoom: 1) {
+    html {
+      font-size: 16px !important;
+    }
+
+    body {
+      width: calc(100% / var(--oma-mobile-density)) !important;
+      max-width: none !important;
+      min-height: calc(100dvh / var(--oma-mobile-density)) !important;
+      zoom: var(--oma-mobile-density);
+    }
   }
 
   body {
