@@ -4,6 +4,7 @@ import { Input } from '@oma/ui/controls';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../../lib/api';
 import { useT } from '../../lib/use-locale';
+import { setActiveBrandId } from '../../lib/active-brand';
 
 type Me = {
   active_tenant_id: string | null;
@@ -51,6 +52,7 @@ export function TenantSwitcher() {
         method: 'POST',
         body: JSON.stringify({ tenant_id: tenantId }),
       });
+      setActiveBrandId(null);
       window.location.assign('/app');
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));

@@ -909,6 +909,12 @@ This is product dependency order, not an implementation plan. Scope requires app
 - `POST /api/v1/tenants` succeeds when the actor has `platform.tenant.create` **or** the actor is authenticated with **zero ACTIVE memberships** (self-serve first company under this decision).
 - Actors who already hold one or more ACTIVE memberships and lack `platform.tenant.create` MUST NOT create additional tenants via self-serve.
 
+**Workspace/Brand context clarification (2026-11-03):**
+
+- **Workspace** in the product shell means the authenticated OMA `Tenant`/company. Workspace selection lists the caller's authorized memberships and changes `session.activeTenantId` through `POST /api/v1/tenants/active`; the label must never display a Brand name as if it were a Tenant.
+- **Brand** means a tenant-scoped `BrandWorkspace` record. Brand selection is a separate control, is limited to Brands returned for the active Tenant, and changes only the active brand scope (`brandId`/`?brand=`); it does not switch tenants or memberships.
+- Creating a Workspace uses `POST /api/v1/tenants` and remains subject to the authorization rules above. Creating a Brand uses `POST /api/v1/brands` within the active Tenant. The UI must keep the two creation actions and labels distinct; no schema or API ownership changes are part of this clarification.
+
 **Reason:** User binding choice for Feature 002 gap closure (`G-001`/`G-002`/`G-004`/`G-018`) after the reference-to-OMA gap matrix proved register → empty product was caused by missing company acquisition UX over an existing create-tenant API.
 
 **Boundary:** Does not close `DEC-003`–`DEC-012`. Does not select an email/SMS vendor. Does not authorize live crawl/AI. Does not redefine Tenant as anything other than the Foundation company workspace (`DEC-008` remains open for multi-brand/agency topology).
