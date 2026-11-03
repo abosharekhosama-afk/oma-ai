@@ -300,6 +300,51 @@
     flex: 0 0 auto !important;
     padding-bottom: max(12px, env(safe-area-inset-bottom)) !important;
   }
+
+  /* Campaign detail tabs: the shared campaign-list rule hides this table class
+     on phones. Keep detail tables visible and scroll the table surface itself. */
+  html body .oma-campaign-detail .oma-campaign-table {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch !important;
+    overscroll-behavior-inline: contain;
+    scrollbar-width: thin;
+  }
+
+  html body .oma-campaign-detail .oma-campaign-table > table {
+    display: table !important;
+    width: max-content !important;
+    min-width: 100% !important;
+    table-layout: auto !important;
+  }
+
+  html body .oma-campaign-detail .oma-campaign-table thead {
+    display: table-header-group !important;
+  }
+
+  html body .oma-campaign-detail .oma-campaign-table tbody {
+    display: table-row-group !important;
+  }
+
+  html body .oma-campaign-detail .oma-campaign-table tr {
+    display: table-row !important;
+  }
+
+  html body .oma-campaign-detail .oma-campaign-table th,
+  html body .oma-campaign-detail .oma-campaign-table td {
+    display: table-cell !important;
+    min-width: 112px !important;
+    white-space: nowrap !important;
+  }
+
+  html body .oma-campaign-detail .oma-campaign-table .oma-task-title-cell,
+  html body .oma-campaign-detail .oma-campaign-table .oma-task-title-cell a {
+    min-width: 220px !important;
+    white-space: normal !important;
+  }
 }
 
 /* Desktop: never show the mobile page title */
