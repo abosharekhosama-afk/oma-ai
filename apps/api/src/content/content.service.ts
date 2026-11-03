@@ -1306,7 +1306,23 @@ export class ContentService {
     });
     if (!comment) throw new DomainError('NOT_FOUND', 'Comment not found', 404, 'errors.not_found');
     if (comment.authorUserId !== actorUserId) {
-      throw new DomainError('PERMISSION_DENIED', 'Only the author can edit this comment', 403, 'errors.permission_denied');
+      const admin = await getPrisma().capabilityGrant.findFirst({
+        where: {
+          tenantId,
+          capabilityCode: 'tenant.manage',
+          revokedAt: null,
+          membership: { userId: actorUserId, status: 'ACTIVE' },
+        },
+        select: { id: true },
+      });
+      if (!admin) {
+        throw new DomainError(
+          'PERMISSION_DENIED',
+          'Only the author can edit this comment',
+          403,
+          'errors.permission_denied',
+        );
+      }
     }
     const pair = localePair(body);
     if (!pair.en.trim()) {

@@ -5536,6 +5536,7 @@ export default function ContentPage() {
                                         </button>
                                         <button
                                           type="button"
+                                          className="oma-comment-delete"
                                           onClick={() => {
                                             if (!selectedId) return;
                                             void deleteContentComment(selectedId, c.id)

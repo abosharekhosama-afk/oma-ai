@@ -2133,3 +2133,27 @@ html body a.oma-link-button.ant-btn-primary:not(.ant-btn-dangerous):hover {
   background: #eff6ff !important;
   color: #2563eb !important;
 }
+
+html body .oma-comment-delete,
+html body .oma-fb-comment__actions .oma-comment-delete {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-top: 4px !important;
+  padding: 4px 8px !important;
+  border: 1px solid #fecaca !important;
+  border-radius: 6px !important;
+  background: #fff !important;
+  color: #b91c1c !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  line-height: 1.3 !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+}
+html body .oma-comment-delete:hover,
+html body .oma-fb-comment__actions .oma-comment-delete:hover {
+  background: #fef2f2 !important;
+  border-color: #f87171 !important;
+  color: #991b1b !important;
+}
