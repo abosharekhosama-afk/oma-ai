@@ -20,8 +20,9 @@ describe('mobile compact density', () => {
     const css = read('apps/web/src/styles/mobile-density.css');
     expect(css).toContain('--oma-mobile-density: 0.65');
     expect(css).toContain('font-size: 10.4px !important');
+    expect(css).toContain('zoom: var(--oma-mobile-density)');
+    expect(css).toContain('max-width: none !important');
     expect(css).toContain('min-height: 40px !important');
     expect(css).toContain('font-size: 16px !important');
-    expect(css).not.toContain('zoom:');
   });
 });
