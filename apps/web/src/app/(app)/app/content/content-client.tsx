@@ -3250,7 +3250,9 @@ export default function ContentPage() {
               data-testid="demo-create-content"
               onClick={() => setCreateOpen(true)}
             >
-              <EditOutlined className="oma-top-action__icon" />
+              <span className="oma-top-action__icon" aria-hidden>
+                <EditOutlined />
+              </span>
               <span className="oma-top-action__label">{t('content.compose')}</span>
             </button>
           </>,
