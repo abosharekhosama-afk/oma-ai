@@ -1346,7 +1346,7 @@ main.oma-container:has(.oma-tasks-page) {
   min-width: 100% !important;
   grid-auto-flow: column !important;
   grid-template-columns: none !important;
-  grid-auto-columns: minmax(340px, 380px) !important;
+  grid-auto-columns: minmax(280px, 300px) !important;
 }
 .oma-tasks-page .oma-kb-board .oma-kb-card {
   width: 100% !important;
@@ -2065,6 +2065,71 @@ html[dir='rtl'] .oma-switch input:checked + .oma-switch__track::after,
 }
 @media (max-width: 700px) {
   .oma-tasks-page .oma-kb-board__grid {
-    grid-auto-columns: minmax(300px, 88vw) !important;
+    grid-auto-columns: minmax(260px, 84vw) !important;
   }
+}
+
+html body .oma-shell-column:has(.oma-activity-page) > main.oma-container {
+  padding-top: 0 !important;
+}
+html body .oma-activity-page .oma-activity-sticky {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 7 !important;
+  margin-top: 0 !important;
+  background: #f5f6f8 !important;
+  box-shadow: 0 -24px 0 0 #f5f6f8 !important;
+}
+
+@media (max-width: 767px) {
+  html body .oma-tasks-page .oma-req-table-wrap,
+  html body .oma-tasks-page [data-testid='demo-task-table'] {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  html body .oma-tasks-page .oma-req-table,
+  html body .oma-tasks-page .oma-task-table {
+    width: max-content !important;
+    min-width: 760px !important;
+  }
+  html body .oma-tasks-page .oma-req-main .oma-req-table th:first-child,
+  html body .oma-tasks-page .oma-req-main .oma-req-table td:first-child,
+  html body .oma-tasks-page .oma-req-table thead th:first-child,
+  html body .oma-tasks-page .oma-task-table th:first-child,
+  html body .oma-tasks-page .oma-task-table td:first-child {
+    position: static !important;
+    inset-inline-start: auto !important;
+    left: auto !important;
+    right: auto !important;
+    z-index: auto !important;
+    box-shadow: none !important;
+    max-width: none !important;
+  }
+}
+
+html body .ant-btn-primary:not(.ant-btn-dangerous):not(.ant-btn-color-danger),
+html body .ant-btn-color-primary.ant-btn-variant-solid:not(.ant-btn-dangerous):not(.ant-btn-color-danger),
+html body a.oma-link-button.ant-btn-primary:not(.ant-btn-dangerous) {
+  height: 34px !important;
+  min-height: 34px !important;
+  padding-inline: 12px !important;
+  border: 1px solid #e5e7eb !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  color: #2563eb !important;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 8%) !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+html body .ant-btn-primary:not(.ant-btn-dangerous):not(.ant-btn-color-danger):hover,
+html body .ant-btn-primary:not(.ant-btn-dangerous):not(.ant-btn-color-danger):focus-visible,
+html body .ant-btn-color-primary.ant-btn-variant-solid:not(.ant-btn-dangerous):not(.ant-btn-color-danger):hover,
+html body a.oma-link-button.ant-btn-primary:not(.ant-btn-dangerous):hover {
+  border-color: #2563eb !important;
+  background: #eff6ff !important;
+  color: #2563eb !important;
 }

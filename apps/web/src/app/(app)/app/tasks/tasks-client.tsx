@@ -128,10 +128,22 @@ export default function TasksPage() {
   }, [load]);
 
   useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const apply = () => {
+      if (mq.matches) setView('list');
+    };
+    apply();
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
     try {
       const raw = window.localStorage.getItem('oma.tasks.defaultView');
-      if (raw === 'board' || raw === 'list') {
+      if (window.matchMedia('(max-width: 767px)').matches) {
+        setView('list');
+      } else if (raw === 'board' || raw === 'list') {
         const urlView = new URLSearchParams(window.location.search).get('view');
         if (urlView !== 'board' && urlView !== 'list') {
           setView(raw);
@@ -158,6 +170,10 @@ export default function TasksPage() {
       setSelectedId(pendingTask.current);
     } else {
       setSelectedId(null);
+    }
+    if (window.matchMedia('(max-width: 767px)').matches) {
+      setView('list');
+      return;
     }
     const urlView = searchParams.get('view');
     if (urlView === 'board' || urlView === 'list') {
@@ -217,6 +233,10 @@ export default function TasksPage() {
   }, [viewMenuOpen]);
 
   async function changeView(next: ViewMode) {
+    if (window.matchMedia('(max-width: 767px)').matches) {
+      setView('list');
+      return;
+    }
     setView(next);
     try {
       /* view pref local */

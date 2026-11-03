@@ -728,7 +728,7 @@ html body [data-testid='activity-page-planable'] > .oma-act-feed > .oma-ws-empty
 .oma-tasks-page .oma-kb-board__grid {
   display: grid !important;
   grid-auto-flow: column !important;
-  grid-auto-columns: minmax(340px, 380px) !important;
+  grid-auto-columns: minmax(280px, 300px) !important;
   grid-template-columns: none !important;
   grid-template-rows: minmax(0, 1fr) !important;
   align-items: stretch !important;
@@ -877,6 +877,6 @@ html body [data-testid='activity-page-planable'] > .oma-act-feed > .oma-ws-empty
     max-height: calc(100dvh - 200px) !important;
   }
   .oma-tasks-page .oma-kb-board__grid {
-    grid-auto-columns: minmax(300px, 88vw) !important;
+    grid-auto-columns: minmax(260px, 84vw) !important;
   }
 }

@@ -286,11 +286,7 @@ export default function RequestsPage() {
         <div className="oma-req-header__left">
           <div className="oma-req-header__title">
             <h1>{t('demo.requests.title')}</h1>
-            <span className="oma-req-header__count">
-              {filtered.length} / {rows.length}
-            </span>
           </div>
-          <p className="oma-req-header__subtitle">{t('demo.requests.subtitle')}</p>
           <div
             className="oma-ws-tabs oma-req-tabs"
             role="tablist"
@@ -317,19 +313,6 @@ export default function RequestsPage() {
       {headerSlot
         ? createPortal(
             <>
-              <button
-                type="button"
-                className="oma-req-filter-icon"
-                data-testid="demo-request-open-filters"
-                data-active={filterSheet ? 'true' : 'false'}
-                aria-label={locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter'}
-                onClick={() => setFilterSheet((v) => !v)}
-              >
-                <ShellIcon name="filter" size={18} />
-                {filterCount > 0 ? (
-                  <span className="oma-req-filter-icon__count">{filterCount}</span>
-                ) : null}
-              </button>
               <button
                 type="button"
                 className="oma-req-create-icon"
@@ -365,10 +348,6 @@ export default function RequestsPage() {
       {!loading && !unavailable && !error ? (
         <div className="oma-req-workspace" data-filter-open={filterSheet ? 'true' : 'false'}>
           <div className="oma-req-main">
-            <p className="oma-muted" data-testid="demo-request-result-count">
-              {filtered.length} / {rows.length}
-            </p>
-
             {filtered.length === 0 ? (
               <EmptyState title={t('demo.empty')} body={t('demo.requests.emptyHint')} />
             ) : (
