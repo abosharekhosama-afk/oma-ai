@@ -465,6 +465,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
               <div className="oma-top-context">
                 {/* Brand switcher removed from header trail */}
                 <ShellBreadcrumb onOpenSettings={() => setSettingsSection('workspace')} />
+                <span id="oma-requests-top-title" className="oma-requests-top-title" />
               </div>
             </div>
             {/* Planable Content: no center search — actions live on the right */}

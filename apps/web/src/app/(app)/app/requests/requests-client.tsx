@@ -227,6 +227,7 @@ export default function RequestsPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [filterSheet, setFilterSheet] = useState(false);
   const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
+  const [headerTitleSlot, setHeaderTitleSlot] = useState<HTMLElement | null>(null);
   const [filterSection, setFilterSection] = useState<string | null>('status');
   const [createDirty, setCreateDirty] = useState(false);
   const [unsavedOpen, setUnsavedOpen] = useState(false);
@@ -302,6 +303,7 @@ export default function RequestsPage() {
 
   useEffect(() => {
     setHeaderSlot(document.getElementById('oma-workspace-top-actions'));
+    setHeaderTitleSlot(document.getElementById('oma-requests-top-title'));
   }, []);
 
   // Refresh when the active brand changes in the header switcher.
@@ -412,9 +414,6 @@ export default function RequestsPage() {
         <div className="oma-req-header__left">
           <div className="oma-req-header__title">
             <h1>{t('demo.requests.title')}</h1>
-            <span className="oma-req-header__count">
-              {filtered.length} / {rows.length}
-            </span>
           </div>
           <p className="oma-req-header__subtitle">{t('demo.requests.subtitle')}</p>
           <div
@@ -440,6 +439,13 @@ export default function RequestsPage() {
         </div>
       </div>
 
+      {headerTitleSlot
+        ? createPortal(
+            <span className="oma-requests-top-title__label">{t('demo.requests.title')}</span>,
+            headerTitleSlot,
+          )
+        : null}
+
       {headerSlot
         ? createPortal(
             <>
@@ -456,15 +462,16 @@ export default function RequestsPage() {
                   <span className="oma-req-filter-icon__count">{filterCount}</span>
                 ) : null}
               </button>
-              <Button
-                type="primary"
-                className="oma-req-create-button"
+              <button
+                type="button"
+                className="oma-req-create-icon"
                 data-testid="demo-create-request"
+                aria-label={t('demo.requests.new')}
+                title={t('demo.requests.new')}
                 onClick={() => setCreateOpen(true)}
               >
-                <ShellIcon name="plus" size={16} className="oma-req-create-button__icon" />
-                <span>{t('demo.requests.new')}</span>
-              </Button>
+                <ShellIcon name="plus" size={19} />
+              </button>
             </>,
             headerSlot,
           )
