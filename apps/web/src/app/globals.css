@@ -1352,8 +1352,13 @@ main.oma-container:has(.oma-tasks-page) {
   width: 100% !important;
 }
 .oma-tasks-page .oma-kb-col__empty {
+  flex: 0 0 auto !important;
+  align-self: stretch !important;
+  width: auto !important;
+  height: auto !important;
+  max-height: 28px !important;
   margin: 0 !important;
-  padding: 6px 8px !important;
+  padding: 4px 8px !important;
   min-height: 0 !important;
   border-radius: 8px !important;
   font-size: 11px !important;

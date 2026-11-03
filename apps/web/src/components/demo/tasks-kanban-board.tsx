@@ -376,13 +376,14 @@ function DroppableColumn({
         ) : null}
       </header>
 
-      <div className="oma-kb-col__cards">{children}</div>
-
-      {empty ? (
-        <div className={`oma-kb-col__empty${isOver ? ' is-over' : ''}`} aria-hidden>
-          {t('demo.tasks.dropHere') || 'Drop tasks here'}
-        </div>
-      ) : null}
+      <div className="oma-kb-col__cards">
+        {children}
+        {empty ? (
+          <div className={`oma-kb-col__empty${isOver ? ' is-over' : ''}`} aria-hidden>
+            {t('demo.tasks.dropHere') || 'Drop tasks here'}
+          </div>
+        ) : null}
+      </div>
     </section>
   );
 }

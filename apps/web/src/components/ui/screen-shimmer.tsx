@@ -358,16 +358,6 @@ export function TasksShimmer({
       className={page ? 'oma-tasks-page oma-shim-tasks' : 'oma-shim-tasks oma-shim-part'}
     >
       {page ? <HeaderBones title={150} sub={360} /> : null}
-      {page ? (
-        <div className="oma-prod-strip oma-shim-strip" aria-hidden="true">
-          {range(4).map((i) => (
-            <div key={i} className="oma-prod-stat oma-shim-strip__stat">
-              <Bone w={84} h={10} />
-              <Bone w={28} h={18} r={5} />
-            </div>
-          ))}
-        </div>
-      ) : null}
       {v === 'list' ? (
         <TableBones cols={[220, 90, 110, 90, 80]} rows={7} thumb />
       ) : (
