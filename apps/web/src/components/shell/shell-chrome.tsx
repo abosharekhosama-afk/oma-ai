@@ -281,12 +281,31 @@ export function ShellChrome({ children }: { children: ReactNode }) {
   const isCampaignsWorkspace =
     pathname === '/app/campaigns' || pathname.startsWith('/app/campaigns/');
   const isActivityWorkspace = pathname === '/app/activity' || pathname.startsWith('/app/activity/');
+  const isReviewsWorkspace = pathname === '/app/reviews' || pathname.startsWith('/app/reviews/');
+  const isTeamWorkspace = pathname === '/app/team' || pathname.startsWith('/app/team/');
   const brandIdFromPath = (() => {
     if (!isBrandDetail) return null;
     const parts = pathname.split('/').filter(Boolean);
     // app / brands / :brandId / ...
     return parts.length >= 3 ? parts[2] : null;
   })();
+  // Mobile (<768): page title shown next to the nav toggle for key ops screens.
+  const mobilePageTitle = isRequestsWorkspace
+    ? t('demo.requests.title') || t('nav.requests')
+    : isTasksWorkspace
+      ? t('demo.tasks.title') || t('nav.tasks')
+      : isDeliverablesWorkspace
+        ? t('demo.deliverables.title') || t('nav.deliverables')
+        : isReviewsWorkspace
+          ? t('demo.reviews.title') || t('nav.reviews')
+          : isScheduleWorkspace
+            ? t('demo.schedule.title') || t('nav.schedule')
+            : isTeamWorkspace
+              ? t('wsPanel.team_clients') || t('nav.team')
+              : isActivityWorkspace
+                ? t('activity.title') || t('nav.activity')
+                : null;
+
   // Home owns its single primary "Create post" action.
   const hideShellCreate =
     pathname === '/app' ||
@@ -435,7 +454,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
           <RailUtilities />
         </aside>
 
-        <div className="oma-shell-column">
+        <div className="oma-shell-column" data-mobile-page-title={mobilePageTitle ? 'true' : 'false'}>
           <Button
             type="text"
             aria-label={t('shell.openNav')}
@@ -462,7 +481,16 @@ export function ShellChrome({ children }: { children: ReactNode }) {
               >
                 <ShellIcon name="menu" />
               </Button>
-              <div className="oma-top-context">
+              {mobilePageTitle ? (
+                <span
+                  className="oma-mobile-page-title"
+                  data-testid="shell-mobile-page-title"
+                  title={mobilePageTitle}
+                >
+                  {mobilePageTitle}
+                </span>
+              ) : null}
+              <div className="oma-top-context" data-mobile-title={mobilePageTitle ? 'true' : 'false'}>
                 {/* Brand switcher removed from header trail */}
                 <ShellBreadcrumb onOpenSettings={() => setSettingsSection('workspace')} />
               </div>
@@ -483,6 +511,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
               isTasksWorkspace ||
               isCampaignsWorkspace ||
               isScheduleWorkspace ||
+              isReviewsWorkspace ||
               isBrandsList ? (
               <div
                 className="oma-top-actions oma-top-actions--workspace"
@@ -513,9 +542,16 @@ export function ShellChrome({ children }: { children: ReactNode }) {
               </div>
             ) : pathname === '/app/team' ? (
               <div className="oma-top-actions">
-                <Button type="primary" data-testid="shell-invite-members" onClick={openTeamInvite}>
+                <Button
+                  type="primary"
+                  className="oma-header-create-icon"
+                  data-testid="shell-invite-members"
+                  aria-label={t('team.invite_members')}
+                  title={t('team.invite_members')}
+                  onClick={openTeamInvite}
+                >
                   <ShellIcon name="plus" size={16} />
-                  <span>{t('team.invite_members')}</span>
+                  <span className="oma-header-create-icon__label">{t('team.invite_members')}</span>
                 </Button>
               </div>
             ) : isBrandDetail && brandIdFromPath && !pathname.endsWith('/settings') ? (

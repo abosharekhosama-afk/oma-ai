@@ -21,6 +21,7 @@
 @import '../styles/mobile-nov02.css';
 @import '../styles/shimmer.css';
 @import '../styles/side-drawers.css';
+@import '../styles/mobile-precise-nov03.css';
 
 * {
   box-sizing: border-box;
@@ -1905,5 +1906,89 @@ html[dir='rtl'] .oma-switch input:checked + .oma-switch__track::after,
     line-height: 1.45 !important;
     opacity: 1 !important;
     visibility: visible !important;
+  }
+}
+
+
+/* MOBILE_PRECISE_NOV03 cascade reinforce (after all rules) */
+@media (max-width: 767px) {
+  html body .oma-ws-table-scroll .oma-ws-table--perms th:first-child,
+  html body .oma-ws-table-scroll .oma-ws-table--perms td:first-child,
+  html body .oma-ws-table-scroll .oma-ws-table--perms thead th:first-child {
+    position: static !important;
+    inset-inline-start: auto !important;
+    left: auto !important;
+    right: auto !important;
+    z-index: auto !important;
+    box-shadow: none !important;
+  }
+  html body .oma-deliv-desktop {
+    display: block !important;
+  }
+  html body .oma-deliv-mobile {
+    display: none !important;
+  }
+  html body .oma-deliv-groups,
+  html body [data-testid='demo-deliv-groups'] {
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+  }
+  html body .oma-mobile-page-title {
+    display: inline-flex !important;
+  }
+  html body .oma-shell-column[data-mobile-page-title='true'] .oma-top-context {
+    display: none !important;
+  }
+}
+
+
+/* MOBILE_PRECISE_CREATE_LABELS */
+@media (max-width: 767px) {
+  html body .oma-req-create-icon__label,
+  html body .oma-header-create-icon__label {
+    display: none !important;
+  }
+  html body .oma-req-create-icon,
+  html body .oma-header-create-icon {
+    width: 34px !important;
+    min-width: 34px !important;
+    height: 34px !important;
+    padding: 0 !important;
+    gap: 0 !important;
+  }
+}
+@media (min-width: 768px) {
+  html body .oma-req-create-icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    width: auto !important;
+    min-width: 0 !important;
+    height: 34px !important;
+    padding: 0 12px !important;
+    border-radius: 8px !important;
+  }
+  html body .oma-req-create-icon__label,
+  html body .oma-header-create-icon__label {
+    display: inline !important;
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    clip: auto !important;
+    overflow: visible !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+  }
+  html body .oma-header-create-icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    width: auto !important;
+    min-width: 0 !important;
+    height: auto !important;
+    padding: 4px 12px !important;
+  }
+  html body .oma-mobile-page-title {
+    display: none !important;
   }
 }
