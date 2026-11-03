@@ -109,6 +109,19 @@ export default function DeliverablesPage() {
     }
   }, [filters.view, prefsLoaded]);
 
+  // Mobile: always use the desktop list/table (not grid cards).
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mq = window.matchMedia('(max-width: 767px)');
+    const apply = () => {
+      if (!mq.matches) return;
+      setFilters((f) => (f.view === 'list' ? f : { ...f, view: 'list' }));
+    };
+    apply();
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, []);
+
   function changeView(view: DeliverableFilters['view']) {
     setFilters((f) => ({ ...f, view }));
   }

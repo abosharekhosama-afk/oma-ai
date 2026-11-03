@@ -330,13 +330,17 @@ export default function RequestsPage() {
                   <span className="oma-req-filter-icon__count">{filterCount}</span>
                 ) : null}
               </button>
-              <Button
-                type="primary"
+              <button
+                type="button"
+                className="oma-req-create-icon"
                 data-testid="demo-create-request"
+                aria-label={t('demo.requests.new')}
+                title={t('demo.requests.new')}
                 onClick={() => setCreateOpen(true)}
               >
-                {t('demo.requests.new')}
-              </Button>
+                <ShellIcon name="plus" size={19} />
+                <span className="oma-req-create-icon__label">{t('demo.requests.new')}</span>
+              </button>
             </>,
             headerSlot,
           )

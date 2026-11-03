@@ -1,0 +1,205 @@
+/* ==========================================================================
+   Mobile precise fixes (Nov 03) — <768 only. Desktop unchanged.
+   1) Page title in shell next to menu toggle
+   2) Deliverables tabs: single horizontal scroll row
+   3) Prefer desktop tables over mobile cards
+   4) Create / invite: icon-only +
+   5) Team permissions: no sticky first column
+   ========================================================================== */
+
+.oma-mobile-page-title {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  /* ---- 1. Title beside menu toggle ---- */
+  html body .oma-mobile-page-title {
+    display: inline-flex !important;
+    align-items: center !important;
+    min-width: 0 !important;
+    max-width: min(48vw, 200px) !important;
+    margin: 0 4px !important;
+    overflow: hidden !important;
+    color: #111827 !important;
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+  }
+
+  /* Hide breadcrumb trail when the mobile page title is shown */
+  html body .oma-shell-column[data-mobile-page-title='true'] .oma-top-context,
+  html body .oma-top-context[data-mobile-title='true'] {
+    display: none !important;
+  }
+
+  /* Hide duplicated in-page titles on the listed screens */
+  html body .oma-req-page .oma-req-header__title,
+  html body .oma-req-page .oma-req-header__count,
+  html body .oma-deliv-page .oma-page-header h1,
+  html body .oma-deliv-page .oma-page-header-stack > div > h1,
+  html body .oma-reviews-page .oma-page-header h1,
+  html body .oma-reviews-page .oma-page-header-stack > div > h1,
+  html body [data-testid='demo-tasks'] .oma-page-header h1,
+  html body [data-testid='demo-tasks'] .oma-page-header-stack > div > h1,
+  html body .oma-tasks-page .oma-page-header h1,
+  html body .oma-sched-page-head h1,
+  html body .oma-sched-page h1,
+  html body .oma-schedule-page h1,
+  html body [data-testid='demo-schedule'] h1,
+  html body [data-testid='activity-page-planable'] .oma-planable-page__title,
+  html body .oma-planable-page:has([data-testid='team-permissions'], [data-testid='team-notifications']) .oma-planable-page__title,
+  html body [data-testid='team-page'] .oma-planable-page__title,
+  html body .oma-member-surface .oma-planable-page__title {
+    display: none !important;
+  }
+
+  html body [data-testid='activity-page-planable'] .oma-planable-page__title,
+  html body [data-testid='team-page-planable'] .oma-planable-page__title {
+    display: none !important;
+  }
+
+  /* Schedule in-page title */
+  html body .oma-sched-page-head h1,
+  html body .oma-sched-page h1,
+  html body [data-testid='demo-schedule'] .oma-page-header h1,
+  html body [data-testid='demo-schedule'] h1 {
+    display: none !important;
+  }
+
+  /* Requests in-page h1 */
+  html body .oma-req-page .oma-req-header h1,
+  html body .oma-req-page .oma-req-header__title h1 {
+    display: none !important;
+  }
+
+  /* ---- 2. Deliverables tabs: one scrollable row ---- */
+  html body .oma-deliv-page .oma-deliv-groups,
+  html body .oma-deliv-page [data-testid='demo-deliv-groups'],
+  html body [data-testid='demo-deliv-groups'] {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    flex-flow: row nowrap !important;
+    gap: 6px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+  }
+  html body .oma-deliv-page .oma-deliv-groups::-webkit-scrollbar,
+  html body [data-testid='demo-deliv-groups']::-webkit-scrollbar {
+    display: none !important;
+  }
+  html body .oma-deliv-page .oma-deliv-groups > *,
+  html body [data-testid='demo-deliv-groups'] > * {
+    flex: 0 0 auto !important;
+    white-space: nowrap !important;
+  }
+
+  /* ---- 3. Same desktop table on phone (horizontal scroll) ---- */
+  html body .oma-deliv-page .oma-deliv-desktop,
+  html body .oma-deliv-desktop {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  html body .oma-deliv-page .oma-deliv-mobile,
+  html body .oma-deliv-mobile {
+    display: none !important;
+  }
+  html body .oma-deliv-page .oma-deliv-table-wrap,
+  html body .oma-deliv-table-wrap {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  html body .oma-deliv-page .oma-deliv-table,
+  html body .oma-deliv-table {
+    width: max-content !important;
+    min-width: 920px !important;
+  }
+
+  /* Requests: keep table (reinforce existing) */
+  html body .oma-req-page .oma-req-desktop {
+    display: block !important;
+  }
+  html body .oma-req-page .oma-req-mobile {
+    display: none !important;
+  }
+  html body .oma-req-page .oma-req-table-wrap {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* Tasks list table scroll */
+  html body .oma-task-table,
+  html body [data-testid='demo-task-table'] .oma-req-table {
+    min-width: 720px !important;
+  }
+  html body [data-testid='demo-task-table'] {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* Schedule table */
+  html body .oma-sched-table-wrap,
+  html body [data-testid='demo-schedule-table'] {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* ---- 4. Create / invite icon-only ---- */
+  html body .oma-req-create-icon,
+  html body .oma-header-create-icon {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 34px !important;
+    height: 34px !important;
+    min-width: 34px !important;
+    padding: 0 !important;
+    border: 1px solid #dbe2ea !important;
+    border-radius: 8px !important;
+    background: #fff !important;
+    color: #2563eb !important;
+    cursor: pointer !important;
+  }
+  html body .oma-header-create-icon__label,
+  html body .oma-header-create-icon > span:not(:has(svg)) {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+  }
+  /* Hide text labels on primary create buttons that still include text */
+  html body .oma-top-actions .ant-btn-primary > span:not(:has(svg)):not(.anticon),
+  html body .oma-workspace-header-actions .ant-btn-primary > span:not(:has(svg)):not(.anticon) {
+    /* keep structure; prefer dedicated icon buttons above */
+  }
+
+  /* ---- 5. Team permissions: no sticky first column ---- */
+  html body .oma-ws-table-scroll .oma-ws-table--perms th:first-child,
+  html body .oma-ws-table-scroll .oma-ws-table--perms td:first-child,
+  html body .oma-ws-table-scroll .oma-ws-table--perms thead th:first-child {
+    position: static !important;
+    inset-inline-start: auto !important;
+    left: auto !important;
+    right: auto !important;
+    z-index: auto !important;
+    box-shadow: none !important;
+    max-width: none !important;
+  }
+}
+
+/* Desktop: never show the mobile page title */
+@media (min-width: 768px) {
+  html body .oma-mobile-page-title {
+    display: none !important;
+  }
+}

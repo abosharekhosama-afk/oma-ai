@@ -681,13 +681,17 @@ export default function TasksPage() {
                   <span className="oma-req-filter-btn__count">{filterCount}</span>
                 ) : null}
               </button>
-              <Button
-                type="primary"
+              <button
+                type="button"
+                className="oma-req-create-icon"
                 data-testid="demo-create-task"
+                aria-label={t('demo.tasks.create')}
+                title={t('demo.tasks.create')}
                 onClick={() => setCreateOpen(true)}
               >
-                <PlusOutlined /> {t('demo.tasks.create')}
-              </Button>
+                <PlusOutlined />
+                <span className="oma-req-create-icon__label">{t('demo.tasks.create')}</span>
+              </button>
             </div>,
             headerSlot,
           )
