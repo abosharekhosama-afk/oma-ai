@@ -2294,22 +2294,3 @@ html body [data-testid='team-page-planable'] .oma-ws-table {
     scroll-snap-align: start;
   }
 }
-
-/* Mobile density viewport compensation — must remain after all shell height rules. */
-@media (max-width: 767px) {
-  @supports (zoom: 1) {
-    html body .oma-shell {
-      width: calc(100% / var(--oma-mobile-density)) !important;
-      min-width: calc(100% / var(--oma-mobile-density)) !important;
-      height: calc(100dvh / var(--oma-mobile-density)) !important;
-      min-height: calc(100dvh / var(--oma-mobile-density)) !important;
-      max-height: none !important;
-      zoom: var(--oma-mobile-density);
-    }
-
-    html body .oma-shell-column {
-      height: calc(100dvh / var(--oma-mobile-density)) !important;
-      max-height: none !important;
-    }
-  }
-}
