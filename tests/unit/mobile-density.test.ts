@@ -21,10 +21,11 @@ describe('mobile compact density', () => {
 
   it('uses compact tokens without changing the viewport coordinate system', () => {
     const css = read('apps/web/src/styles/mobile-density.css');
+    const globals = read('apps/web/src/app/globals.css');
     expect(css).toContain('--oma-mobile-density: 0.65');
     expect(css).toContain('font-size: 10.4px !important');
-    expect(css).toContain('zoom: var(--oma-mobile-density)');
-    expect(css).toContain('max-width: none !important');
+    expect(globals).toContain('zoom: var(--oma-mobile-density)');
+    expect(globals).toContain('html body .oma-shell');
     expect(css).toContain('min-height: 40px !important');
     expect(css).toContain('font-size: 16px !important');
   });
