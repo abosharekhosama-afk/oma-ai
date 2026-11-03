@@ -7758,3 +7758,94 @@ button.oma-breadcrumb-workspace:hover {
     display: none !important;
   }
 }
+
+/* Requests mobile header cleanup — title in shell, icon-only create action. */
+.oma-requests-top-title {
+  display: none;
+  min-width: 0;
+}
+
+.oma-requests-top-title__label {
+  color: var(--oma-ink, #111827);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.oma-req-create-icon {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 34px !important;
+  height: 34px !important;
+  min-width: 34px !important;
+  padding: 0 !important;
+  border: 1px solid var(--oma-border, #e5e7eb) !important;
+  border-radius: 8px !important;
+  background: var(--oma-surface, #fff) !important;
+  color: var(--oma-primary, #2563eb) !important;
+  cursor: pointer !important;
+  transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease !important;
+}
+
+.oma-req-create-icon:hover,
+.oma-req-create-icon:focus-visible {
+  border-color: var(--oma-primary, #2563eb) !important;
+  background: var(--oma-primary-soft, #eff6ff) !important;
+  color: var(--oma-primary, #2563eb) !important;
+  outline: none !important;
+}
+
+@media (max-width: 767px) {
+  html body .oma-top-context:has(.oma-requests-top-title:not(:empty)) {
+    gap: 6px !important;
+    flex-wrap: nowrap !important;
+  }
+
+  html body .oma-requests-top-title {
+    display: inline-flex !important;
+    align-items: center !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+  }
+
+  html body .oma-requests-top-title__label {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    font-size: 14px !important;
+  }
+
+  html body .oma-req-page .oma-req-header__title,
+  html body .oma-req-page .oma-req-header__subtitle,
+  html body .oma-req-page .oma-req-header__count {
+    display: none !important;
+  }
+
+  html body .oma-req-page .oma-req-header {
+    padding-top: 2px !important;
+  }
+
+  html body .oma-top-actions--workspace .oma-req-create-icon,
+  html body .oma-top-actions--workspace .oma-req-filter-icon {
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    min-height: 32px !important;
+    padding: 0 !important;
+  }
+
+  /* Allow the table to move as one surface; no pinned request column. */
+  html body .oma-req-page .oma-req-table th:first-child,
+  html body .oma-req-page .oma-req-table td:first-child,
+  html body .oma-req-page .oma-req-table thead th:first-child {
+    position: static !important;
+    inset-inline-start: auto !important;
+    z-index: auto !important;
+    box-shadow: none !important;
+    background: inherit !important;
+  }
+
+  html body .oma-req-page .oma-req-table tbody tr:hover td:first-child {
+    background: #f8f9fa !important;
+  }
+}
