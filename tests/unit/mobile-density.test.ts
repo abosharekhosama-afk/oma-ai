@@ -14,6 +14,9 @@ describe('mobile compact density', () => {
     expect(globals.indexOf("@import '../styles/mobile-density.css';")).toBeGreaterThan(
       globals.indexOf("@import '../styles/mobile-precise-nov03.css';"),
     );
+    expect(globals).toContain('Mobile density viewport compensation');
+    expect(globals).toContain('width: calc(100% / var(--oma-mobile-density)) !important');
+    expect(globals).toContain('height: calc(100dvh / var(--oma-mobile-density)) !important');
   });
 
   it('uses compact tokens without changing the viewport coordinate system', () => {
