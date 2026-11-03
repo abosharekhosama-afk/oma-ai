@@ -139,7 +139,7 @@ export default function BrandDetailPage() {
       nextStepLabel={nextStep.label}
       journey={journey}
     >
-      <div className="oma-workboard-split">
+      <div className="oma-workboard-split oma-brand-detail-workboard">
         <div className="oma-workboard-primary">
           <Panel title={t('brand.detail.overview')} labelledBy="brand-overview">
             <dl className="oma-detail-dl">
