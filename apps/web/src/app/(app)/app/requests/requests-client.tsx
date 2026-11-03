@@ -7,7 +7,14 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { DemoGraph } from '@oma/demo';
-import { Button, DatePicker, Drawer as AntDrawer, Input, OmaSelect, TextArea } from '@oma/ui/controls';
+import {
+  Button,
+  DatePicker,
+  Drawer as AntDrawer,
+  Input,
+  OmaSelect,
+  TextArea,
+} from '@oma/ui/controls';
 import { ShellIcon } from '../../../../components/shell/shell-icons';
 import dayjs from 'dayjs';
 import { Dialog } from '../../../../components/ui/dialog';
@@ -451,10 +458,12 @@ export default function RequestsPage() {
               </button>
               <Button
                 type="primary"
+                className="oma-req-create-button"
                 data-testid="demo-create-request"
                 onClick={() => setCreateOpen(true)}
               >
-                {t('demo.requests.new')}
+                <ShellIcon name="plus" size={16} className="oma-req-create-button__icon" />
+                <span>{t('demo.requests.new')}</span>
               </Button>
             </>,
             headerSlot,
