@@ -19,6 +19,7 @@ describe('mobile compact density', () => {
   it('uses compact tokens without changing the viewport coordinate system', () => {
     const css = read('apps/web/src/styles/mobile-density.css');
     expect(css).toContain('--oma-mobile-density: 0.65');
+    expect(css).toContain('font-size: 10.4px !important');
     expect(css).toContain('min-height: 40px !important');
     expect(css).toContain('font-size: 16px !important');
     expect(css).not.toContain('zoom:');

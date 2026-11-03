@@ -39,6 +39,12 @@
     --icon-lg: 21px;
   }
 
+  /* The previous pass only changed tokenized spacing. Most of this app also uses
+     rem-based component dimensions, so make the requested 65% scale explicit. */
+  html {
+    font-size: 10.4px !important; /* 16px × 0.65 */
+  }
+
   body {
     font-size: var(--text-body) !important;
     line-height: var(--leading-body) !important;
