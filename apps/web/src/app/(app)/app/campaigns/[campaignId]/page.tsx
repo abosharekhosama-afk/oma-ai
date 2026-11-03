@@ -196,7 +196,7 @@ export default function CampaignDetailPage() {
   const ready = campaignScheduleReadiness(content);
 
   return (
-    <div className="oma-stack" data-testid="demo-campaign-detail">
+    <div className="oma-stack oma-campaign-detail" data-testid="demo-campaign-detail">
       <div className="oma-breadcrumb" aria-label="Breadcrumb">
         <Link href="/app">{t('nav.home')}</Link>
         <span aria-hidden="true">/</span>
