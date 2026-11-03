@@ -17,7 +17,7 @@ export type NavIconId =
   | 'collapse'
   | 'search'
   | 'bell'
-  | 'plus' | 'link'
+  | 'plus'
   | 'user'
   | 'filter'
   | 'calendar-view'

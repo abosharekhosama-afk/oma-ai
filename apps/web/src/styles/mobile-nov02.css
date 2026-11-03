@@ -1,60 +1,50 @@
 /* ==========================================================================
-   Planable-style MOBILE REDESIGN (Nov 03).
-   Dedicated phone UI (<768). Desktop (>=768) must stay unchanged.
-   Dense, calm, list-row cards — NOT laptop layout squeezed onto a phone.
+   Mobile COMPACT same-design pass (Nov 03). Replaces the Nov 02 restyle.
+   Goal: keep laptop look (tables, cards, filters, chrome) — only rearrange
+   and tighten for phone. Desktop (>=768) must stay pixel-identical.
    ========================================================================== */
 
 :root {
-  --oma-m-header: 50px;
   --oma-m-tap: 40px;
-  --oma-m-pad: 12px;
-  --oma-m-gap: 8px;
-  --oma-m-radius: 10px;
-  --oma-m-border: #e8eaed;
-  --oma-m-muted: #8b8f97;
-  --oma-m-bg: #f5f6f8;
-  --oma-m-surface: #ffffff;
-  --oma-m-fs: 14px;
-  --oma-m-fs-sm: 12px;
+  --oma-m-header: 52px;
+  --oma-m-space-1: 4px;
+  --oma-m-space-2: 8px;
+  --oma-m-space-3: 12px;
+  --oma-m-fs-body: 14px;
   --oma-m-fs-title: 17px;
-  --oma-m-row: 68px;
-  --oma-m-tabbar: 56px;
-  --oma-m-drawer: min(300px, 86vw);
+  --oma-m-drawer: min(280px, 82vw);
 }
 
 @media (max-width: 767px) {
-  /* ---- Base ---- */
+  /* ---- Base: no page horizontal scroll, safe-area, typography, inputs ---- */
   html body,
   html body #__next,
   html body .oma-shell {
     overflow-x: hidden !important;
     max-width: 100vw !important;
-    background: var(--oma-m-bg) !important;
-  }
-  html body {
-    font-size: var(--oma-m-fs) !important;
   }
   html body .oma-shell {
-    padding-bottom: calc(var(--oma-m-tabbar) + env(safe-area-inset-bottom, 0px)) !important;
+    padding-bottom: env(safe-area-inset-bottom, 0);
   }
   html body .oma-shell .oma-container {
-    padding: 8px var(--oma-m-pad) 20px !important;
-    padding-inline: max(var(--oma-m-pad), env(safe-area-inset-left, 0px))
-      max(var(--oma-m-pad), env(safe-area-inset-right, 0px)) !important;
+    padding: 6px 8px 16px !important;
+    padding-inline: max(8px, env(safe-area-inset-left, 0px))
+      max(8px, env(safe-area-inset-right, 0px)) !important;
+  }
+  html body .oma-page,
+  html body .oma-workspace,
+  html body .oma-shell-main {
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+  }
+  html body {
+    font-size: var(--oma-m-fs-body) !important;
   }
   html body .oma-page h1,
   html body .oma-page-header h1,
-  html body .oma-page-header__title,
-  html body .oma-req-header__title {
+  html body .oma-page-header__title {
     font-size: var(--oma-m-fs-title) !important;
-    line-height: 1.25 !important;
-    margin: 0 0 4px !important;
-  }
-  html body .oma-page-header__subtitle,
-  html body .oma-req-header__subtitle,
-  html body .oma-muted {
-    font-size: var(--oma-m-fs-sm) !important;
-    line-height: 1.35 !important;
+    line-height: 1.3 !important;
   }
   html body input,
   html body textarea,
@@ -62,19 +52,19 @@
   html body .ant-input,
   html body .ant-select-selector,
   html body .ant-picker-input > input {
-    font-size: 16px !important;
+    font-size: 16px !important; /* iOS: avoid focus zoom */
   }
+  /* Arabic: wrap titles instead of clipping mid-word */
   html[dir='rtl'] body .oma-page h1,
   html[dir='rtl'] body .oma-page h2,
+  html[dir='rtl'] body .oma-card__title,
   html[lang='ar'] body .oma-page h1,
-  html[lang='ar'] body .oma-page h2,
-  html[dir='rtl'] body .oma-m-row__title,
-  html[lang='ar'] body .oma-m-row__title {
+  html[lang='ar'] body .oma-page h2 {
     overflow-wrap: anywhere !important;
     word-break: break-word !important;
   }
 
-  /* ---- Header: 48–52px, icon-only ---- */
+  /* ---- Header: single compact row (~52px), no wrap ---- */
   html body .oma-top,
   html body .oma-shell .oma-top {
     height: var(--oma-m-header) !important;
@@ -82,20 +72,16 @@
     max-height: var(--oma-m-header) !important;
     padding: 0 8px !important;
     padding-top: env(safe-area-inset-top, 0px) !important;
-    gap: 4px !important;
+    gap: 6px !important;
     flex-wrap: nowrap !important;
     align-items: center !important;
     overflow: hidden !important;
-    background: var(--oma-m-surface) !important;
-    border-bottom: 1px solid var(--oma-m-border) !important;
   }
   html body .oma-top-start {
     flex: 1 1 auto !important;
     min-width: 0 !important;
     gap: 4px !important;
-  }
-  html body .oma-top-center {
-    display: none !important;
+    align-items: center !important;
   }
   html body .oma-top-context,
   html body .oma-breadcrumb,
@@ -104,7 +90,13 @@
     overflow: hidden !important;
     text-overflow: ellipsis !important;
     white-space: nowrap !important;
+    flex-wrap: nowrap !important;
     font-size: 13px !important;
+    line-height: 20px !important;
+  }
+  /* Do NOT let search take a second row */
+  html body .oma-top-center {
+    display: none !important;
   }
   html body .oma-mobile-nav-toggle,
   html body .oma-top-overflow-trigger,
@@ -123,6 +115,7 @@
     border: none !important;
     box-shadow: none !important;
   }
+  /* Icon-only primary CTAs in the header (hide text labels) */
   html body .oma-top-actions > a.ant-btn > span:not(:has(svg)):not(.anticon),
   html body .oma-top-actions > button.ant-btn > span:not(:has(svg)):not(.anticon),
   html body .oma-top-actions .oma-top-action__label {
@@ -145,64 +138,41 @@
     position: absolute !important;
     top: calc(100% + 4px) !important;
     inset-inline-end: 0 !important;
-    min-width: 200px !important;
-    padding: 6px !important;
-    border: 1px solid var(--oma-m-border) !important;
-    border-radius: 12px !important;
+    min-width: 180px !important;
+    padding: 4px !important;
+    border: 1px solid var(--oma-border, #e6e8ec) !important;
+    border-radius: 8px !important;
     background: #fff !important;
-    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.12) !important;
-    z-index: 70 !important;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12) !important;
+    z-index: 60 !important;
   }
-  html body .oma-mobile-nav-fab {
-    display: none !important;
-  }
-
-  /* ---- Bottom tab bar (Planable mobile) ---- */
-  html body .oma-m-tabbar {
+  html body .oma-top-overflow-menu button,
+  html body .oma-top-overflow-menu a {
     display: flex !important;
-    position: fixed !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    z-index: 55 !important;
-    height: calc(var(--oma-m-tabbar) + env(safe-area-inset-bottom, 0px)) !important;
-    padding: 0 4px env(safe-area-inset-bottom, 0px) !important;
-    background: var(--oma-m-surface) !important;
-    border-top: 1px solid var(--oma-m-border) !important;
-    align-items: stretch !important;
-    justify-content: space-around !important;
-  }
-  html body .oma-m-tabbar__item {
-    flex: 1 1 0 !important;
-    display: flex !important;
-    flex-direction: column !important;
     align-items: center !important;
-    justify-content: center !important;
-    gap: 2px !important;
-    min-height: var(--oma-m-tabbar) !important;
-    padding: 6px 2px !important;
+    gap: 8px !important;
+    width: 100% !important;
+    min-height: var(--oma-m-tap) !important;
+    padding: 0 10px !important;
     border: 0 !important;
     background: transparent !important;
-    color: var(--oma-m-muted) !important;
-    font-size: 10px !important;
-    line-height: 1.1 !important;
-    text-decoration: none !important;
+    text-align: start !important;
+    font-size: 14px !important;
+    color: inherit !important;
+    border-radius: 6px !important;
   }
-  html body .oma-m-tabbar__item[data-active='true'] {
-    color: #1f6feb !important;
-  }
-  html body .oma-m-tabbar__item svg {
-    width: 22px !important;
-    height: 22px !important;
+  html body .oma-top-overflow-menu button:hover,
+  html body .oma-top-overflow-menu a:hover {
+    background: #f5f6f8 !important;
   }
 
-  /* ---- Sidebar drawer ---- */
+  /* ---- Sidebar drawer: same rail look, compact width ---- */
   html body .oma-drawer.oma-drawer--nav .ant-drawer-content-wrapper {
     width: var(--oma-m-drawer) !important;
     max-width: var(--oma-m-drawer) !important;
   }
   html body .oma-drawer.oma-drawer--nav .ant-drawer-mask {
-    background: rgba(15, 23, 42, 0.36) !important;
+    background: rgba(15, 23, 42, 0.32) !important;
   }
   html body .oma-drawer.oma-drawer--nav .ant-drawer-header {
     display: none !important;
@@ -211,1013 +181,344 @@
     display: flex !important;
     flex-direction: column !important;
     height: 100% !important;
-    padding: 10px 12px !important;
-    padding-bottom: max(10px, env(safe-area-inset-bottom, 0px)) !important;
+    padding: 8px 10px !important;
+    padding-bottom: max(8px, env(safe-area-inset-bottom, 0px)) !important;
     overflow: hidden !important;
     background: #fff !important;
   }
-  html body .oma-drawer.oma-drawer--nav .oma-nav-link {
+  html body .oma-drawer.oma-drawer--nav .oma-mobile-drawer-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
     min-height: 40px !important;
-    padding: 8px 10px !important;
-    font-size: 14px !important;
-    border-radius: 8px !important;
+    margin-bottom: 4px !important;
+    flex-shrink: 0 !important;
+  }
+  html body .oma-drawer.oma-drawer--nav .oma-mobile-drawer-nav {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  html body .oma-drawer.oma-drawer--nav .oma-nav-link {
+    min-height: 36px !important;
+    padding: 6px 8px !important;
+    font-size: 13px !important;
+    border-radius: 6px !important;
   }
   html body .oma-drawer.oma-drawer--nav .oma-rail-footer,
   html body .oma-drawer.oma-drawer--nav .oma-rail-utilities {
     flex-shrink: 0 !important;
-    border-top: 1px solid var(--oma-m-border) !important;
-    padding-top: 8px !important;
-    margin-top: 8px !important;
+    position: sticky !important;
+    bottom: 0 !important;
+    background: #fff !important;
+    border-top: 1px solid #e6e7e9 !important;
+    padding-top: 6px !important;
+    margin-top: 6px !important;
   }
 
-  /* ---- Filters: compact toolbar + bottom sheet ---- */
-  html body .oma-req-topbar,
-  html body .oma-deliv-topbar,
-  html body .oma-tasks-topbar,
-  html body .oma-m-filterbar {
-    display: flex !important;
-    align-items: center !important;
-    gap: 8px !important;
-    padding: 0 0 8px !important;
-    flex-wrap: nowrap !important;
-  }
+  /* ---- Filters / status tabs: same controls, one compact horizontal row ---- */
+  html body .oma-filter-bar,
+  html body .oma-req-filters,
+  html body .oma-tasks-filters,
+  html body .oma-deliv-filters,
+  html body .oma-campaign-filters,
+  html body .oma-stage3-toolbar,
+  html body [data-testid='content-filters'],
+  html body .oma-req-filter-tabs,
+  html body .oma-chip-row,
   html body .oma-ws-tabs,
   html body .oma-req-tabs,
   html body .oma-deliv-groups,
   html body [data-testid='demo-deliv-groups'],
-  html body .oma-campaign-status-tabs,
-  html body .oma-chip-row,
-  html body .oma-req-filter-tabs {
+  html body .oma-campaign-status-tabs {
     display: flex !important;
     flex-wrap: nowrap !important;
+    align-items: center !important;
     gap: 6px !important;
     overflow-x: auto !important;
     -webkit-overflow-scrolling: touch !important;
     scrollbar-width: none !important;
-    padding: 2px 0 8px !important;
+    padding: 4px 0 !important;
     max-width: 100% !important;
   }
+  html body .oma-filter-bar::-webkit-scrollbar,
+  html body .oma-req-filters::-webkit-scrollbar,
+  html body .oma-chip-row::-webkit-scrollbar,
   html body .oma-ws-tabs::-webkit-scrollbar,
   html body .oma-req-tabs::-webkit-scrollbar,
   html body .oma-deliv-groups::-webkit-scrollbar {
     display: none !important;
   }
+  html body .oma-filter-bar .ant-btn,
+  html body .oma-filter-chip,
+  html body .oma-chip,
+  html body .oma-req-filters .ant-select,
+  html body .oma-req-filters .ant-btn,
   html body .oma-ws-tab,
-  html body .oma-req-tab,
-  html body .oma-deliv-groups button,
-  html body [data-testid='demo-deliv-groups'] button {
+  html body .oma-req-tab {
     flex: 0 0 auto !important;
-    min-height: 28px !important;
-    height: 28px !important;
-    padding: 0 10px !important;
-    font-size: 12px !important;
-    border-radius: 999px !important;
     white-space: nowrap !important;
-  }
-  /* Hide large inline filter panels; sheets open from icon */
-  html body .oma-req-workspace {
-    display: block !important;
-    grid-template-columns: none !important;
-    min-height: 0 !important;
-    background: transparent !important;
-  }
-  html body .oma-req-workspace[data-filter-open='true'] {
-    grid-template-columns: none !important;
-  }
-  html body .oma-req-main {
-    padding: 0 !important;
-    overflow: visible !important;
-  }
-  html body .oma-req-filter-panel {
-    /* Bottom sheet feel when used as drawer body */
-    border: 0 !important;
-    max-height: none !important;
-    box-shadow: none !important;
-    position: static !important;
-    width: 100% !important;
-  }
-  /* Ant drawer used for filters → bottom sheet */
-  html body .oma-tasks-filter-drawer .ant-drawer-content-wrapper,
-  html body .ant-drawer-bottom .ant-drawer-content-wrapper {
-    max-height: min(78vh, 640px) !important;
-  }
-  html body .oma-tasks-filter-drawer .ant-drawer-content,
-  html body .ant-drawer-bottom .ant-drawer-content {
-    border-radius: 16px 16px 0 0 !important;
-  }
-  html body .oma-m-sheet-grabber {
-    width: 36px !important;
-    height: 4px !important;
-    border-radius: 999px !important;
-    background: #d0d3d8 !important;
-    margin: 8px auto 4px !important;
+    min-height: 32px !important;
+    height: auto !important;
+    font-size: 13px !important;
   }
 
-  /* ---- TABLES → dense mobile list rows (hide desktop tables) ---- */
+  /* Keep breadcrumb view switcher reachable on phone (list vs grid) */
+  html body .oma-top .oma-breadcrumb-view,
+  html body .oma-top-context .oma-breadcrumb-view,
+  html body .oma-top [data-testid='demo-deliv-view-toggle'],
+  html body .oma-top [data-testid='demo-deliv-view-menu'],
+  html body #oma-content-view-slot {
+    display: inline-flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    align-items: center !important;
+    min-height: 32px !important;
+    max-width: 72px !important;
+    font-size: 12px !important;
+  }
+
+  /* ---- TABLES stay tables (undo stacked-card mobile lists) ---- */
   html body .oma-deliv-desktop,
   html body .oma-req-desktop,
   html body .oma-task-desktop,
   html body .oma-campaign-table,
-  html body .oma-deliv-table-wrap.oma-deliv-desktop,
-  html body .oma-req-table-wrap.oma-req-desktop {
-    display: none !important;
+  html body .oma-deliv-table-wrap,
+  html body .oma-req-table-wrap {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
   }
   html body .oma-deliv-mobile,
   html body .oma-req-mobile,
   html body .oma-task-mobile,
   html body .oma-campaign-mobile-list {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 8px !important;
-    list-style: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-  }
-
-  /* Shared dense row */
-  html body .oma-req-page .oma-req-mobile-card,
-  html body .oma-req-mobile-card,
-  html body .oma-deliv-page .oma-deliv-mobile-card,
-  html body .oma-deliv-mobile-card,
-  html body .oma-task-mobile-card,
-  html body .oma-campaign-mobile-card,
-  html body .oma-m-row {
-    display: grid !important;
-    grid-template-columns: 36px minmax(0, 1fr) auto !important;
-    grid-template-rows: auto auto !important;
-    column-gap: 10px !important;
-    row-gap: 2px !important;
-    align-items: center !important;
-    min-height: 56px !important;
-    max-height: 72px !important;
-    padding: 8px 10px !important;
-    margin: 0 !important;
-    border: 1px solid var(--oma-m-border) !important;
-    border-radius: var(--oma-m-radius) !important;
-    background: var(--oma-m-surface) !important;
-    box-shadow: none !important;
-    text-decoration: none !important;
-    color: inherit !important;
-    overflow: hidden !important;
-  }
-  /* Always list on phone for deliverables — hide oversized grid */
-  html body .oma-deliv-grid {
     display: none !important;
   }
-  html body .oma-deliv-mobile {
-    display: flex !important;
-  }
-  /* Brands: stack as dense rows, not broken 2-col mega cards */
-  html body .plx-card-grid,
-  html body [data-testid='brand-workspace-grid'] {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 8px !important;
-  }
-  html body .plx-card-grid .plx-card,
-  html body [data-testid='brand-workspace-grid'] > * {
-    width: 100% !important;
-    max-width: 100% !important;
-    padding: 10px 12px !important;
-  }
-  html body .plx-card-grid .plx-card [class*='meta'],
-  html body .plx-card-grid .plx-card [class*='stats'],
-  html body .plx-card-grid .plx-card .plx-card__footer {
-    font-size: 12px !important;
-  }
-
-  html body .oma-req-mobile-card > strong,
-  html body .oma-deliv-mobile-card > strong,
-  html body .oma-m-row__title {
-    grid-column: 2 !important;
-    grid-row: 1 !important;
-    font-size: 14px !important;
-    font-weight: 600 !important;
-    line-height: 1.25 !important;
-    margin: 0 !important;
-    display: -webkit-box !important;
-    -webkit-line-clamp: 1 !important;
-    -webkit-box-orient: vertical !important;
-    overflow: hidden !important;
-  }
-  html body .oma-req-mobile-card > .oma-chip-row,
-  html body .oma-deliv-mobile-card > .oma-chip-row,
-  html body .oma-deliv-mobile-card > .oma-status-chip,
-  html body .oma-req-mobile-card > .oma-status-chip {
-    grid-column: 3 !important;
-    grid-row: 1 / span 2 !important;
-    align-self: center !important;
-    margin: 0 !important;
-    flex-wrap: wrap !important;
-    justify-content: flex-end !important;
-    max-width: 96px !important;
-  }
-  html body .oma-req-mobile-card > .oma-muted,
-  html body .oma-deliv-mobile-card > .oma-muted,
-  html body .oma-m-row__meta {
-    grid-column: 2 !important;
-    grid-row: 2 !important;
-    font-size: 12px !important;
-    color: var(--oma-m-muted) !important;
-    display: -webkit-box !important;
-    -webkit-line-clamp: 1 !important;
-    -webkit-box-orient: vertical !important;
-    overflow: hidden !important;
-  }
-  /* Hide tertiary “next action” line on phone rows to keep height compact */
-  html body .oma-req-mobile-card > span:not(.oma-muted):not(.oma-chip-row):not(.oma-status-chip),
-  html body .oma-deliv-mobile-card > span:not(.oma-muted):not(.oma-chip-row):not(.oma-status-chip) {
-    display: none !important;
-  }
-  /* Avatar/thumb slot before title when present */
-  html body .oma-req-mobile-card::before,
-  html body .oma-deliv-mobile-card::before {
-    content: '' !important;
-    grid-column: 1 !important;
-    grid-row: 1 / span 2 !important;
-    width: 36px !important;
-    height: 36px !important;
-    border-radius: 8px !important;
-    background: #eef1f5 !important;
-  }
-
-  /* Deliverables GRID on phone → compact 2-col small cards (not full-bleed heroes) */
-  html body .oma-deliv-grid {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    gap: 8px !important;
-  }
-  html body .oma-deliv-grid-card {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 6px !important;
-    padding: 8px !important;
-    border: 1px solid var(--oma-m-border) !important;
-    border-radius: var(--oma-m-radius) !important;
-    background: var(--oma-m-surface) !important;
-    min-height: 0 !important;
-    text-decoration: none !important;
-    color: inherit !important;
-  }
-  html body .oma-deliv-grid-card .oma-media-surface,
-  html body .oma-deliv-grid-card img,
-  html body .oma-deliv-grid-card video,
-  html body .oma-deliv-grid-card .oma-deliv-thumb-fallback {
-    width: 100% !important;
-    aspect-ratio: 1 / 1 !important;
-    height: auto !important;
-    max-height: 140px !important;
-    object-fit: cover !important;
-    border-radius: 8px !important;
-    background: #eef1f5 !important;
-  }
-  html body .oma-deliv-grid-card > strong {
+  html body .oma-deliv-table,
+  html body .oma-req-table,
+  html body .oma-task-table,
+  html body table.oma-table,
+  html body .ant-table {
     font-size: 13px !important;
-    line-height: 1.25 !important;
-    display: -webkit-box !important;
-    -webkit-line-clamp: 2 !important;
-    -webkit-box-orient: vertical !important;
-    overflow: hidden !important;
-    margin: 0 !important;
   }
-  html body .oma-deliv-grid-card > .oma-muted {
-    font-size: 11px !important;
+  html body .oma-deliv-table th,
+  html body .oma-deliv-table td,
+  html body .oma-req-table th,
+  html body .oma-req-table td,
+  html body .oma-task-table th,
+  html body .oma-task-table td,
+  html body .oma-campaign-table-head,
+  html body .oma-campaign-table-row {
+    padding: 6px 8px !important;
+    white-space: nowrap !important;
+  }
+  /* Sticky first column when scrolling tables */
+  html body .oma-deliv-table th:first-child,
+  html body .oma-deliv-table td:first-child,
+  html body .oma-req-table th:first-child,
+  html body .oma-req-table td:first-child {
+    position: sticky !important;
+    inset-inline-start: 0 !important;
+    background: #fff !important;
+    z-index: 1 !important;
   }
 
-  /* Brands / home / campaign cards → compact */
-  html body .plx-card-grid,
+  /* ---- Cards: same design, fewer columns, tighter padding ---- */
+  html body .oma-deliv-grid,
+  html body .oma-campaign-grid,
   html body .oma-brand-grid,
   html body .oma-home-grid,
-  html body .oma-campaign-grid,
   html body .oma-card-grid {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
+    grid-template-columns: 1fr !important;
     gap: 8px !important;
   }
-  html body .plx-card-grid > *,
-  html body .oma-brand-grid > *,
-  html body .oma-campaign-grid > a,
-  html body .oma-home-grid > * {
-    min-width: 0 !important;
+  @media (min-width: 480px) {
+    html body .oma-deliv-grid,
+    html body .oma-campaign-grid,
+    html body .oma-brand-grid {
+      grid-template-columns: 1fr 1fr !important;
+    }
   }
-  /* Brand intelligence list cards → dense rows spanning full width */
-  html body .oma-brand-list,
-  html body [data-testid='brand-portfolio'] {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 8px !important;
-  }
-  html body [data-testid='brand-portfolio'] .plx-card,
-  html body .plx-card-grid .plx-card {
+  html body .oma-deliv-grid-card,
+  html body .oma-campaign-card,
+  html body .oma-brand-card,
+  html body .oma-card,
+  html body .oma-feed-card,
+  html body .oma-content-card,
+  html body .oma-post-preview {
     padding: 10px !important;
-    border-radius: var(--oma-m-radius) !important;
-    box-shadow: none !important;
-    border: 1px solid var(--oma-m-border) !important;
-  }
-  /* Shrink oversized brand card media */
-  html body .plx-card img,
-  html body .plx-card .plx-card__media,
-  html body .plx-card [class*='thumb'] {
-    max-height: 96px !important;
-    object-fit: cover !important;
+    max-width: 100% !important;
   }
 
-  /* Page headers: tighter */
-  html body .oma-req-header,
-  html body .oma-page-header,
-  html body .oma-deliv-page > header {
-    margin-bottom: 8px !important;
-    gap: 4px !important;
-  }
-  html body .oma-req-header__count {
-    font-size: 12px !important;
-  }
-
-  /* ---- Detail pages: stacked + sticky bottom actions ---- */
-  html body .oma-deliv-detail,
-  html body .oma-req-detail,
-  html body .oma-campaign-detail,
-  html body .oma-task-detail,
-  html body [data-testid='demo-deliverable-detail'],
-  html body [data-testid='demo-request-detail'] {
-    padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
-  }
-  html body .oma-m-sticky-actions,
-  html body .oma-deliv-detail__actions,
-  html body .oma-req-detail__actions,
-  html body .oma-review-actions {
-    position: fixed !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: calc(var(--oma-m-tabbar) + env(safe-area-inset-bottom, 0px)) !important;
-    z-index: 50 !important;
-    display: flex !important;
-    gap: 8px !important;
-    padding: 10px 12px !important;
-    background: rgba(255, 255, 255, 0.96) !important;
-    border-top: 1px solid var(--oma-m-border) !important;
-    backdrop-filter: blur(8px) !important;
-  }
-  html body .oma-m-sticky-actions .ant-btn,
-  html body .oma-deliv-detail__actions .ant-btn {
-    flex: 1 1 0 !important;
-    min-height: 40px !important;
-  }
-
-  /* Modals → bottom sheet */
+  /* ---- Modals: same design, near-full width with safe margins (NOT 100vh sheets) ---- */
   html body .ant-modal {
-    max-width: calc(100vw - 16px) !important;
-    margin: 0 auto !important;
-    top: auto !important;
+    max-width: calc(100vw - 24px) !important;
+    margin: 12px auto !important;
+    top: 24px !important;
     padding-bottom: 0 !important;
   }
   html body .ant-modal-content {
-    border-radius: 16px 16px 0 0 !important;
-  }
-  html body .ant-modal-wrap {
-    align-items: flex-end !important;
-  }
-
-  /* Calendar: prefer agenda density */
-  html body .oma-calendar-week,
-  html body .oma-schedule-week,
-  html body [data-testid='content-calendar'] {
-    font-size: 12px !important;
-  }
-  html body .oma-calendar-cell,
-  html body .oma-schedule-day-cell {
-    min-height: 64px !important;
-    padding: 4px !important;
-  }
-  html body .oma-calendar-event,
-  html body .oma-schedule-post-chip {
-    font-size: 11px !important;
-    padding: 2px 6px !important;
-    border-radius: 6px !important;
-  }
-
-  /* Notifications / team / settings compact lists */
-  html body .oma-notif-item,
-  html body .oma-team-row,
-  html body .oma-settings-row {
-    min-height: 56px !important;
-    padding: 10px 12px !important;
-    border-bottom: 1px solid var(--oma-m-border) !important;
-  }
-
-  /* Select-company / auth: calm cards */
-  html body .plx-workspace-card,
-  html body [data-testid='select-company-cards'] > * {
-    padding: 12px !important;
-    border-radius: var(--oma-m-radius) !important;
-  }
-
-  /* Empty / error */
-  html body .oma-empty,
-  html body [data-testid*='empty'] {
-    padding: 24px 16px !important;
-  }
-  /* Explicit avatar cell (replaces ::before placeholder when present) */
-  html body .oma-m-row__avatar {
-    grid-column: 1 !important;
-    grid-row: 1 / span 2 !important;
-    width: 36px !important;
-    height: 36px !important;
-    border-radius: 10px !important;
-    background: #e8eef8 !important;
-    color: #1f6feb !important;
-    font-size: 11px !important;
-    font-weight: 700 !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-  }
-  html body .oma-req-mobile-card.oma-m-row::before,
-  html body .oma-deliv-mobile-card.oma-m-row::before {
-    display: none !important;
-  }
-  html body .oma-m-row__status {
-    grid-column: 3 !important;
-    grid-row: 1 / span 2 !important;
-  }
-
-  /* Knowledge/media cards: small thumbs, 2-col */
-  html body .oma-kb-card__media {
-    height: 88px !important;
-    flex-basis: 88px !important;
-  }
-  html body .oma-kb-grid,
-  html body [data-testid='media-grid'] {
-    grid-template-columns: 1fr 1fr !important;
-    gap: 8px !important;
-  }
-
-  /* Campaigns mobile list if present */
-  html body .oma-campaign-card {
-    padding: 10px 12px !important;
-  }
-  html body .oma-campaign-card__cover,
-  html body .oma-campaign-card img {
-    max-height: 100px !important;
-    object-fit: cover !important;
-  }
-
-  /* Content composer / preview panels */
-  html body .oma-composer,
-  html body .oma-preview-pane {
-    border-radius: var(--oma-m-radius) !important;
-  }
-
-  /* Brand / generic filter panels as bottom sheets on phone */
-  html body .oma-req-filter-panel[data-testid='brand-filter-panel'],
-  html body .oma-req-filter-panel[data-testid='demo-deliv-filters'],
-  html body aside.oma-req-filter-panel {
-    position: fixed !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    top: auto !important;
-    width: 100% !important;
-    max-height: min(78vh, 640px) !important;
-    border-radius: 16px 16px 0 0 !important;
-    border: 1px solid var(--oma-m-border) !important;
-    box-shadow: 0 -8px 28px rgba(15, 23, 42, 0.12) !important;
-    z-index: 80 !important;
-    overflow: auto !important;
-    padding-bottom: env(safe-area-inset-bottom, 0px) !important;
-  }
-
-  /* Brand workspace cards → dense list rows (not tall 2-col tiles) */
-  html body [data-testid='brand-workspace-grid'],
-  html body .plx-card-grid {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 8px !important;
-    grid-template-columns: none !important;
-  }
-  html body .oma-workspace-card {
-    display: grid !important;
-    grid-template-columns: 1fr !important;
-    gap: 6px !important;
-    padding: 10px 12px !important;
-    border: 1px solid var(--oma-m-border) !important;
-    border-radius: var(--oma-m-radius) !important;
-    background: #fff !important;
-    box-shadow: none !important;
     min-height: 0 !important;
-  }
-  html body .oma-workspace-card-main {
-    display: grid !important;
-    grid-template-columns: 36px minmax(0, 1fr) auto !important;
-    gap: 10px !important;
-    align-items: center !important;
-    text-decoration: none !important;
-    color: inherit !important;
-  }
-  html body .oma-brand-mark {
-    width: 36px !important;
-    height: 36px !important;
     border-radius: 10px !important;
-    font-size: 13px !important;
   }
-  html body .oma-workspace-card-copy h3 {
-    font-size: 14px !important;
-    margin: 0 !important;
+  html body .ant-modal-body {
+    max-height: calc(100dvh - 120px) !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  /* Detail drawers: keep side drawer look but cap width */
+  html body .oma-drawer:not(.oma-drawer--nav) .ant-drawer-content-wrapper {
+    width: min(100vw - 16px, 420px) !important;
+    max-width: calc(100vw - 16px) !important;
+  }
+
+  /* ---- Composer / calendar: compact, same components ---- */
+  html body .oma-compose,
+  html body .oma-compose-panel,
+  html body [data-testid='compose-panel'] {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 8px !important;
+  }
+  html body .oma-compose-footer {
+    gap: 6px !important;
+    flex-wrap: wrap !important;
+    padding: 6px 0 !important;
+  }
+  html body .oma-compose-footer .ant-btn {
+    min-height: 36px !important;
+  }
+  html body .oma-cal-day-cell {
+    min-height: 56px !important;
+  }
+  html body .oma-cal-event {
+    font-size: 11px !important;
     line-height: 1.25 !important;
   }
-  html body .oma-workspace-card-meta {
-    font-size: 12px !important;
-    margin: 0 !important;
-  }
-  html body .oma-workspace-card__facts {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    gap: 8px !important;
-    margin: 0 !important;
-    font-size: 11px !important;
-    overflow-x: auto !important;
-  }
-  html body .oma-workspace-card__facts dt {
-    display: none !important;
-  }
 
-  html body .oma-workspace-card__facts > div {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-    background: transparent !important;
-    padding: 0 !important;
-  }
-  html body .oma-workspace-card .ant-btn,
-  html body .oma-workspace-card a.ant-btn {
-    min-height: 32px !important;
-    height: 32px !important;
-    font-size: 12px !important;
-    padding: 0 10px !important;
-  }
-  /* Tab labels: shorten overflow */
-  html body .oma-m-tabbar__item span {
-    max-width: 64px !important;
-    overflow: hidden !important;
-    text-overflow: ellipsis !important;
-    white-space: nowrap !important;
-  }
-
-  /* ---- Header icon primary (no empty blue square) ---- */
-  html body .oma-header-icon-btn,
-  html body .oma-top-actions .oma-header-icon-btn {
-    width: var(--oma-m-tap) !important;
-    min-width: var(--oma-m-tap) !important;
-    height: var(--oma-m-tap) !important;
-    padding: 0 !important;
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    border-radius: 10px !important;
-    border: 1px solid var(--oma-m-border) !important;
-    background: #fff !important;
-    color: #333 !important;
-    position: relative !important;
-  }
-  html body .oma-header-icon-btn--primary,
-  html body .oma-top-actions .oma-header-icon-btn--primary,
-  html body .oma-top-actions a.ant-btn-primary.oma-header-icon-btn,
-  html body .oma-top-actions button.ant-btn-primary.oma-header-icon-btn {
-    background: #1f6feb !important;
-    border-color: #1f6feb !important;
-    color: #fff !important;
-  }
-  /* Hide text-only primary CTAs that would become empty blue squares */
-  html body .oma-top-actions > a.ant-btn-primary:not(:has(svg)):not(:has(.anticon)),
-  html body .oma-top-actions > button.ant-btn-primary:not(:has(svg)):not(:has(.anticon)) {
-    display: none !important;
-  }
-  html body .oma-top-actions > a.ant-btn-primary,
-  html body .oma-top-actions > button.ant-btn-primary {
-    width: var(--oma-m-tap) !important;
-    min-width: var(--oma-m-tap) !important;
-    height: var(--oma-m-tap) !important;
-    padding: 0 !important;
-    border-radius: 10px !important;
-  }
-
-  /* Hide Next.js dev indicator / portals that overlap tab bar */
-  html body nextjs-portal,
-  html body [data-nextjs-toast],
-  html body [data-next-badge-root],
-  html body #__next-build-watcher,
-  html body [data-nextjs-dev-overlay],
-  html body .nextjs-toast-errors-parent {
-    display: none !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
-  }
-
-  /* ---- Compact list page headers ---- */
-  html body .oma-m-compact-page .oma-req-header__subtitle,
-  html body .oma-m-compact-page .oma-page-header p,
-  html body .oma-deliv-page .oma-page-header p,
-  html body .oma-m-hide-on-phone {
-    display: none !important;
-  }
-  html body .oma-req-header {
-    margin-bottom: 4px !important;
-    gap: 0 !important;
-  }
-  html body .oma-req-header__title {
-    display: flex !important;
-    align-items: baseline !important;
-    gap: 8px !important;
-    flex-wrap: nowrap !important;
-  }
-  html body .oma-req-header__title h1 {
-    font-size: 17px !important;
-    margin: 0 !important;
-  }
-  html body .oma-req-header__count {
-    font-size: 12px !important;
-    color: var(--oma-m-muted) !important;
-    font-weight: 500 !important;
-  }
-  html body .oma-ws-tabs,
-  html body .oma-req-tabs {
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    white-space: nowrap !important;
-    margin-top: 6px !important;
-    padding-bottom: 4px !important;
-  }
+  /* ---- Page headers compact ---- */
   html body .oma-page-header {
-    margin-bottom: 6px !important;
-  }
-  html body .oma-page-header h1 {
-    font-size: 17px !important;
-  }
-
-  /* ---- Detail pages: full width, no crushed column ---- */
-  html body .oma-deliv-detail__workspace,
-  html body .oma-req-detail__workspace,
-  html body .oma-campaign-detail__workspace,
-  html body .oma-task-detail__layout,
-  html body .oma-brand-detail__layout {
-    display: flex !important;
-    flex-direction: column !important;
-    grid-template-columns: none !important;
-    max-width: 100% !important;
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 8px 0 88px !important;
-    gap: 10px !important;
-  }
-  html body .oma-deliv-detail__main,
-  html body .oma-deliv-detail__side,
-  html body .oma-deliv-detail__card,
-  html body .oma-deliv-detail__preview {
-    width: 100% !important;
-    max-width: 100% !important;
-  }
-  html body .oma-deliv-detail__top {
-    padding: 10px 0 !important;
-    flex-wrap: wrap !important;
-    position: static !important;
-  }
-  html body .oma-deliv-detail__top-actions {
-    width: 100% !important;
-    order: 3 !important;
-  }
-  html body .oma-deliv-detail__hero,
-  html body .oma-deliv-detail__hero-empty {
-    max-height: 180px !important;
-    min-height: 0 !important;
-    height: auto !important;
-    aspect-ratio: 16 / 10 !important;
-  }
-  html body .oma-deliv-detail__hero-empty {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 8px !important;
-    padding: 12px !important;
-    font-size: 13px !important;
-    color: var(--oma-m-muted) !important;
-    background: #f3f4f6 !important;
-    border-radius: 10px !important;
-  }
-  /* Compact file row instead of giant empty hero when no media */
-  html body .oma-deliv-detail__preview[data-empty='true'] .oma-deliv-detail__hero-empty,
-  html body .oma-m-file-row {
-    display: flex !important;
-    align-items: center !important;
-    gap: 10px !important;
-    min-height: 48px !important;
-    max-height: 56px !important;
-    aspect-ratio: auto !important;
-    height: 52px !important;
-    padding: 8px 10px !important;
-    border: 1px solid var(--oma-m-border) !important;
-    border-radius: 10px !important;
-    background: #fff !important;
-  }
-  html body .oma-deliv-detail__version-ph {
-    width: 40px !important;
-    height: 40px !important;
-    border-radius: 8px !important;
-  }
-  html body .oma-deliv-detail__versions {
-    display: flex !important;
-    flex-direction: column !important;
     gap: 6px !important;
-  }
-  html body .oma-deliv-detail__version {
-    display: grid !important;
-    grid-template-columns: 40px 1fr auto !important;
-    align-items: center !important;
-    gap: 8px !important;
-    padding: 8px !important;
-    min-height: 52px !important;
-  }
-
-  /* Sticky bottom action bar for details */
-  html body .oma-m-sticky-actions {
-    position: fixed !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: calc(var(--oma-m-tabbar) + env(safe-area-inset-bottom, 0px)) !important;
-    z-index: 52 !important;
-    display: flex !important;
-    gap: 8px !important;
-    padding: 10px 12px !important;
-    background: rgba(255,255,255,0.97) !important;
-    border-top: 1px solid var(--oma-m-border) !important;
-  }
-  html body .oma-m-sticky-actions .ant-btn,
-  html body .oma-m-sticky-actions button {
-    flex: 1 1 0 !important;
-    min-height: 40px !important;
-  }
-  /* Move detail top actions into sticky feel on phone */
-  html body .oma-deliv-detail__top-actions {
-    position: fixed !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: calc(var(--oma-m-tabbar) + env(safe-area-inset-bottom, 0px)) !important;
-    z-index: 52 !important;
-    display: flex !important;
-    gap: 8px !important;
-    padding: 10px 12px !important;
-    background: rgba(255,255,255,0.97) !important;
-    border-top: 1px solid var(--oma-m-border) !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-  }
-  html body .oma-deliv-detail__top-actions .oma-deliv-detail__act {
-    flex: 1 1 0 !important;
-    min-height: 40px !important;
-    justify-content: center !important;
-  }
-  html body .oma-deliv-detail__act-label {
-    display: inline !important;
-    font-size: 13px !important;
-  }
-  html body .oma-deliv-detail {
-    padding-bottom: calc(72px + var(--oma-m-tabbar) + env(safe-area-inset-bottom, 0px)) !important;
-  }
-
-  /* Composer / media / onboarding / invite densify */
-  html body .oma-composer,
-  html body .oma-composer-shell,
-  html body [data-testid='content-composer'] {
-    padding: 8px 0 !important;
-  }
-  html body .oma-composer__preview,
-  html body .oma-plan-post__preview-pane {
-    max-height: 220px !important;
-  }
-  html body .oma-media-browser,
-  html body [data-testid='media-browser'],
-  html body .oma-workdrive {
-    padding: 0 !important;
-  }
-  html body .oma-media-grid,
-  html body [data-testid='media-grid'] {
-    grid-template-columns: 1fr 1fr !important;
-    gap: 8px !important;
-  }
-  html body .oma-onboarding,
-  html body .oma-invite,
-  html body [data-testid='onboarding'],
-  html body [data-testid='invite-acceptance'] {
-    padding: 12px !important;
-  }
-  html body .oma-brand-settings,
-  html body [data-testid='brand-settings'] {
-    padding: 0 !important;
-  }
-  html body .oma-brand-settings .oma-card,
-  html body .oma-settings-section {
-    padding: 12px !important;
     margin-bottom: 8px !important;
   }
-
-  html body .oma-req-detail__workspace {
-    display: flex !important;
-    flex-direction: column !important;
-    max-width: 100% !important;
-    width: 100% !important;
-    margin: 0 !important;
-    padding: 8px 0 88px !important;
+  html body .oma-page-header__row {
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+    align-items: center !important;
   }
-  html body .oma-req-detail__top {
-    padding: 8px 0 !important;
-    flex-wrap: wrap !important;
-  }
-  html body .oma-req-detail__top-actions {
-    position: fixed !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: calc(var(--oma-m-tabbar) + env(safe-area-inset-bottom, 0px)) !important;
-    z-index: 52 !important;
-    display: flex !important;
-    gap: 8px !important;
-    padding: 10px 12px !important;
-    background: rgba(255,255,255,0.97) !important;
-    border-top: 1px solid var(--oma-m-border) !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-  }
-  html body .oma-req-detail {
-    padding-bottom: calc(72px + var(--oma-m-tabbar) + env(safe-area-inset-bottom, 0px)) !important;
-  }
-  html body .oma-req-detail__title {
-    font-size: 17px !important;
-  }
-
-  /* Force single-row scroll tabs (override stage4 wrap) */
-  html body .oma-req-page .oma-ws-tabs,
-  html body .oma-req-page .oma-req-tabs,
-  html body .oma-deliv-page .oma-ws-tabs,
-  html body .oma-deliv-page [data-testid='demo-deliv-groups'],
-  html body .oma-m-compact-page .oma-ws-tabs {
-    display: flex !important;
-    flex-flow: row nowrap !important;
-    overflow-x: auto !important;
-    overflow-y: hidden !important;
-    max-width: 100% !important;
-    width: 100% !important;
-  }
-  html body .oma-req-page .oma-ws-tab,
-  html body .oma-req-page .oma-req-tab,
-  html body .oma-deliv-page .oma-ws-tab {
+  html body .oma-page-header__actions {
     flex: 0 0 auto !important;
-    white-space: nowrap !important;
+    gap: 4px !important;
   }
-  /* Brands create: keep icon only even if label present */
-  html body .oma-top-actions a[data-testid='shell-create-brand'] span:not(:has(svg)),
-  html body .oma-top-actions button[data-testid='shell-invite-members'] span:not(:has(svg)) {
-    position: absolute !important;
-    width: 1px !important;
-    height: 1px !important;
-    overflow: hidden !important;
-    clip: rect(0,0,0,0) !important;
-  }
-  /* Full-bleed list rows */
-  html body .oma-req-mobile,
-  html body .oma-deliv-mobile {
-    width: 100% !important;
-    max-width: 100% !important;
-    padding-inline: 0 !important;
-  }
-  html body .oma-req-mobile-card,
-  html body .oma-deliv-mobile-card {
-    width: 100% !important;
-    box-sizing: border-box !important;
-  }
-  html body .oma-deliv-detail__workspace,
-  html body .oma-deliv-detail__main,
-  html body .oma-deliv-detail__card {
-    max-width: 100% !important;
-    width: 100% !important;
-    margin-inline: 0 !important;
-  }
-  html body .oma-shell .oma-container {
-    padding-inline: 12px !important;
+  html body .oma-page-header__actions .ant-btn {
+    min-height: 36px !important;
   }
 
-  /* Denser brand cards: single compact row */
-  html body .oma-workspace-card,
-  html body [data-testid^='workspace-card-'] {
-    display: flex !important;
-    flex-direction: row !important;
-    align-items: center !important;
-    gap: 10px !important;
-    padding: 10px 12px !important;
-    min-height: 64px !important;
-    margin: 0 0 8px !important;
-    border-radius: 12px !important;
+  /* ---- Auth / select-company ---- */
+  html body .oma-select-company,
+  html body .oma-auth-card,
+  html body .oma-planable-dashboard {
+    padding: 12px 10px !important;
+    max-width: 100% !important;
   }
-  html body .oma-workspace-card-main {
-    flex: 1 1 auto !important;
-    min-width: 0 !important;
-    display: flex !important;
-    align-items: center !important;
-    gap: 10px !important;
+}
+
+/* Tablet: keep tables, slightly tighter filters */
+@media (max-width: 1024px) and (min-width: 768px) {
+  html body .oma-deliv-desktop,
+  html body .oma-req-desktop,
+  html body .oma-task-desktop,
+  html body .oma-campaign-table {
+    display: block !important;
+    overflow-x: auto !important;
   }
-  html body .oma-workspace-card__facts {
+  html body .oma-deliv-mobile,
+  html body .oma-req-mobile,
+  html body .oma-task-mobile,
+  html body .oma-campaign-mobile-list {
     display: none !important;
   }
-  html body .oma-workspace-card-actions {
-    flex: 0 0 auto !important;
-    margin: 0 !important;
-  }
-  html body .oma-workspace-card-actions .ant-btn,
-  html body .oma-workspace-card-actions a {
-    min-height: 32px !important;
-    padding: 0 10px !important;
-    font-size: 12px !important;
-  }
-  html body .oma-brand-mark {
-    width: 36px !important;
-    height: 36px !important;
-    border-radius: 10px !important;
-    flex: 0 0 auto !important;
-  }
-  html body .oma-workspace-card__title-row h3 {
-    font-size: 14px !important;
-    margin: 0 !important;
-  }
-  html body .oma-workspace-card-meta {
-    font-size: 11px !important;
-    margin: 2px 0 0 !important;
-  }
+}
 
-  /* Campaign / task / brand / content detail sticky bars */
-  html body .oma-campaign-detail__actions,
-  html body .oma-task-detail__actions,
-  html body .oma-brand-detail__actions,
-  html body .oma-content-detail__actions,
-  html body .oma-member-profile__actions,
-  html body [data-testid='campaign-detail-actions'],
-  html body [data-testid='task-detail-actions'],
-  html body [data-testid='brand-detail-actions'] {
-    position: fixed !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: calc(var(--oma-m-tabbar) + env(safe-area-inset-bottom, 0px)) !important;
-    z-index: 52 !important;
+/* Extra overrides for stage3/4/5 breakpoints that restyle into mobile-only layouts */
+@media (max-width: 900px) {
+  html body .oma-deliv-desktop,
+  html body .oma-req-desktop,
+  html body .oma-task-desktop {
+    display: block !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  html body .oma-deliv-mobile,
+  html body .oma-req-mobile,
+  html body .oma-task-mobile {
+    display: none !important;
+  }
+}
+
+@media (max-width: 720px) {
+  html body .oma-campaign-table {
+    display: block !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  html body .oma-campaign-mobile-list {
+    display: none !important;
+  }
+  html body .oma-campaign-table-head {
+    display: grid !important;
+  }
+  html body .oma-cal-grid {
+    display: grid !important;
+    overflow-x: auto !important;
+    min-width: 0 !important;
+  }
+  html body .oma-stage3-toolbar .oma-filter-desktop {
     display: flex !important;
-    gap: 8px !important;
-    padding: 10px 12px !important;
-    background: rgba(255,255,255,0.97) !important;
-    border-top: 1px solid var(--oma-m-border) !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-  }
-  html body .oma-campaign-detail,
-  html body .oma-task-detail,
-  html body .oma-brand-detail,
-  html body .oma-content-detail,
-  html body .oma-member-profile {
-    padding-bottom: calc(72px + var(--oma-m-tabbar) + env(safe-area-inset-bottom, 0px)) !important;
-  }
-
-  /* Media / Work Drive tree compact */
-  html body .oma-media-tree,
-  html body .oma-workdrive-tree,
-  html body [data-testid='media-folder-tree'] {
-    max-height: 160px !important;
-    overflow: auto !important;
-    font-size: 13px !important;
-  }
-  html body .oma-media-item,
-  html body .oma-workdrive-item {
-    min-height: 56px !important;
-    padding: 8px !important;
-  }
-
-  /* Invite / onboarding / member: full-width calm forms */
-  html body .oma-onboarding__card,
-  html body .oma-invite__card,
-  html body .oma-member-profile__card {
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 0 12px !important;
-    padding: 14px !important;
-  }
-  html body .oma-composer__toolbar,
-  html body .oma-fb-composer__tools {
     flex-wrap: nowrap !important;
     overflow-x: auto !important;
     gap: 6px !important;
   }
-
+  html body .oma-page-header {
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+  }
 }
 
+@media (max-width: 767px) {
+  html body .oma-top-overflow-search .oma-rail-search,
+  html body .oma-top-overflow-search .oma-command-trigger {
+    width: 100% !important;
+    min-height: 40px !important;
+    height: auto !important;
+    justify-content: flex-start !important;
+    padding: 0 10px !important;
+    gap: 8px !important;
+  }
+  html body .oma-top-overflow-search .oma-command-trigger-label,
+  html body .oma-top-overflow-search .oma-rail-search .oma-command-trigger-label {
+    position: static !important;
+    width: auto !important;
+    height: auto !important;
+    clip: auto !important;
+    overflow: visible !important;
+    font-size: 14px !important;
+  }
+}
 
-/* Desktop: hide mobile-only chrome */
+/* Overflow menu trigger is phone-only */
 @media (min-width: 768px) {
-  html body .oma-m-tabbar,
-  html body .oma-top-overflow,
-  html body .oma-m-sheet-grabber {
+  html body .oma-top-overflow {
     display: none !important;
+  }
+}
+@media (max-width: 767px) {
+  html body .oma-top-overflow {
+    display: block !important;
   }
 }

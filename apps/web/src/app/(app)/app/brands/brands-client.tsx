@@ -8,7 +8,6 @@ import {
   UnorderedListOutlined,
 } from '../../../../components/ui/lucide-icons';
 import { OmaLinkButton } from '../../../../components/ui/oma-link-button';
-import { ShellIcon } from '../../../../components/shell/shell-icons';
 import { Button, Input } from '@oma/ui/controls';
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -100,8 +99,8 @@ export default function BrandsListPage() {
           <span className="oma-header-icon-btn__badge">{activeFilterCount}</span>
         ) : null}
       </button>
-      <OmaLinkButton href="/app/brands/new" type="primary" className="oma-header-icon-btn oma-header-icon-btn--primary" data-testid="shell-create-brand" aria-label={t('brand.list.create')}>
-        <ShellIcon name="plus" size={18} />
+      <OmaLinkButton href="/app/brands/new" type="primary" data-testid="shell-create-brand">
+        {t('brand.list.create')}
       </OmaLinkButton>
     </div>
   );
