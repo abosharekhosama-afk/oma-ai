@@ -2478,6 +2478,29 @@ button.oma-breadcrumb-workspace:hover {
 .oma-rail-footer .oma-user-menu {
   flex: 0 0 auto;
 }
+.oma-rail-footer .oma-user-menu,
+.oma-rail-footer .oma-user-menu .oma-rail-utility-trigger {
+  flex: 0 0 36px;
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+}
+.oma-rail-footer .oma-user-menu .oma-avatar {
+  flex: 0 0 32px;
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  min-height: 32px;
+  overflow: hidden;
+}
+.oma-rail-footer .oma-user-menu .oma-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 .oma-notifications-panel--planable,
 .oma-user-menu-panel,
 .oma-path-ws-menu,

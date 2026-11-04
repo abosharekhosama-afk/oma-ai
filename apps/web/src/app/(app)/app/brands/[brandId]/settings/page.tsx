@@ -185,26 +185,6 @@ export default function BrandSettingsPage() {
         }
       }}
       logoStorage={logoStorage}
-      onLogoFile={async (file) => {
-        try {
-          const a = await mediaApi.upload(brandId, 'logos', file);
-          return { url: a.view_url, assetId: a.id };
-        } catch (e) {
-          if ((e as { status?: number }).status !== undefined) {
-            fail(e);
-            return null;
-          }
-          setNotice({
-            kind: 'error',
-            text: t(
-              (e as Error).message === 'size'
-                ? 'brandSettings.general.logoTooBig'
-                : 'brandSettings.general.logoType',
-            ),
-          });
-          return null;
-        }
-      }}
       onArchive={async () => {
         try {
           const r = await brandSettingsApi.archive(brandId, brand.version);
