@@ -53,7 +53,7 @@ describe('API rate limiting security', () => {
     process.env.RATE_LIMIT_STORAGE = 'memory';
     process.env.RATE_LIMIT_PER_MINUTE = '300';
     const guard = new RateLimitGuard();
-    for (let attempt = 0; attempt < 20; attempt += 1) {
+    for (let attempt = 0; attempt < 5; attempt += 1) {
       const { value } = context({
         ip: `198.51.100.${attempt + 1}`,
         method: 'POST',

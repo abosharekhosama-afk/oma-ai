@@ -127,6 +127,7 @@ import { pickCopy } from '../../../../lib/demo/use-demo-api';
 import {
   loadContentWorkspace,
   loadContentWorkspaceRest,
+  resetContentWorkspaceLoadCoalescing,
   createContentProduction,
   duplicateContent,
   setContentPublishTarget,
@@ -191,6 +192,7 @@ import {
 } from '../../../../lib/content-workflow-ui';
 import { useActiveBrandId } from '../../../../lib/active-brand';
 import { brandScheduleTimezone } from '../../../../lib/brand-schedule-timezone';
+import { paintBreadcrumbViewSlot } from '../../../../lib/breadcrumb-view-slot';
 import { buildPublishStatusView } from '../../../../lib/publish-status';
 import {
   FALLBACK_SCHEDULE_TZ,
@@ -1234,6 +1236,7 @@ export default function ContentPage() {
   );
 
   const load = useCallback(async () => {
+    resetContentWorkspaceLoadCoalescing();
     setLoading(true);
     try {
       // Fast path: primary brand only — paint calendar ASAP
@@ -1304,20 +1307,28 @@ export default function ContentPage() {
           .catch(() => undefined);
       }
 
-      // Background hydrate other brands
+      // Background hydrate other brands (idle / delayed so primary calendar stays responsive)
       if (ws.remainingBrandIds?.length) {
-        void loadContentWorkspaceRest(ws.remainingBrandIds)
-          .then((rest) => {
-            setCampaigns((prev) => {
-              const ids = new Set(prev.map((c) => c.id));
-              return [...prev, ...rest.campaigns.filter((c) => !ids.has(c.id))];
-            });
-            setRows((prev) => {
-              const ids = new Set(prev.map((r) => r.id));
-              return [...prev, ...rest.content.filter((r) => !ids.has(r.id))];
-            });
-          })
-          .catch(() => undefined);
+        const restIds = ws.remainingBrandIds;
+        const hydrateRest = () => {
+          void loadContentWorkspaceRest(restIds)
+            .then((rest) => {
+              setCampaigns((prev) => {
+                const ids = new Set(prev.map((c) => c.id));
+                return [...prev, ...rest.campaigns.filter((c) => !ids.has(c.id))];
+              });
+              setRows((prev) => {
+                const ids = new Set(prev.map((r) => r.id));
+                return [...prev, ...rest.content.filter((r) => !ids.has(r.id))];
+              });
+            })
+            .catch(() => undefined);
+        };
+        if (typeof requestIdleCallback === 'function') {
+          requestIdleCallback(hydrateRest, { timeout: 2000 });
+        } else {
+          window.setTimeout(hydrateRest, 250);
+        }
       }
     } catch (err) {
       setErrorKind(errorKindOf(err));
@@ -1371,19 +1382,7 @@ export default function ContentPage() {
   useEffect(() => {
     const el = document.getElementById('oma-content-view-slot');
     if (!el) return;
-    const label = t(`demo.view.${view}`);
-    const stroke =
-      'viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
-    const icons: Record<string, string> = {
-      calendar: `<svg ${stroke}><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/></svg>`,
-      feed: `<svg ${stroke}><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg>`,
-      list: `<svg ${stroke}><path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/></svg>`,
-      grid: `<svg ${stroke}><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>`,
-    };
-    const caret = `<svg ${stroke} width="12" height="12"><path d="m6 9 6 6 6-6"/></svg>`;
-    el.innerHTML = `<span class="oma-breadcrumb-view-inner">${icons[view] || icons.calendar}<span class="oma-breadcrumb-view-label">${label}</span><span class="oma-breadcrumb-view-caret" aria-hidden="true">${caret}</span></span>`;
-    el.setAttribute('data-view', view);
-    el.classList.add('oma-breadcrumb-view--interactive');
+    paintBreadcrumbViewSlot(el, view, t(`demo.view.${view}`));
   }, [view, t]);
 
   // Refresh when the active brand changes in the header switcher.
@@ -1615,7 +1614,7 @@ export default function ContentPage() {
     }
     const missing = feedIds.filter((id) => !feedDetails[id]);
     if (missing.length === 0) return;
-    void mapLimit(missing, 4, (id) =>
+    void mapLimit(missing, 2, (id) =>
       getContentDetail(id)
         .then((d) => [id, { comments: d.comments ?? [], events: d.approval_events ?? [] }] as const)
         .catch(() => [id, { comments: [], events: [] }] as const),

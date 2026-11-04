@@ -41,6 +41,8 @@ import {
   unscheduleContent,
 } from '../../../../lib/content-api';
 import { ChannelChoiceCards } from '../../../../components/content/channel-choice-cards';
+import { brandSettingsApi, type SocialPageRow } from '../../../../lib/brand-settings-api';
+import { enrichPublishTargets } from '../../../../lib/publish-status';
 import { NetworkIcon } from '../../../../components/content/network-icon';
 import { PublishTargetsPanel } from '../../../../components/content/publish-targets-panel';
 import { todayKey, wallTimeToIso } from '../../../../lib/calendar-today';
@@ -121,6 +123,7 @@ export default function SchedulePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [unavailable, setUnavailable] = useState(false);
+  const [socialPages, setSocialPages] = useState<SocialPageRow[]>([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -218,6 +221,23 @@ export default function SchedulePage() {
     [filtered],
   );
   const selected = rows.find((r) => r.id === selectedId) ?? null;
+
+  useEffect(() => {
+    const brandId = selected?.brandId;
+    if (!brandId) {
+      setSocialPages([]);
+      return;
+    }
+    let live = true;
+    void brandSettingsApi
+      .social(brandId)
+      .then((r) => live && setSocialPages(r.data.pages ?? []))
+      .catch(() => live && setSocialPages([]));
+    return () => {
+      live = false;
+    };
+  }, [selected?.brandId]);
+
   const scheduleTz = useMemo(
     () =>
       brandScheduleTimezone(
@@ -1288,7 +1308,10 @@ export default function SchedulePage() {
                     </p>
                   ) : null}
                   {publishTargets.length ? (
-                    <PublishTargetsPanel targets={publishTargets} locale={locale} />
+                    <PublishTargetsPanel
+                      targets={enrichPublishTargets(publishTargets, socialPages)}
+                      locale={locale}
+                    />
                   ) : null}
                   {status ? (
                     <ol className="oma-readiness-list" data-testid="demo-schedule-publish-timeline">
@@ -1361,32 +1384,32 @@ export default function SchedulePage() {
               >
                 {t('demo.schedule.remove')}
               </Button>
-              {selected.contentId ? (
-                <Link
-                  href={`/app/content?item=${selected.contentId}`}
-                  className="oma-text-link"
-                  data-testid="demo-schedule-content-link"
-                >
-                  {t('demo.schedule.openPost')}:{' '}
-                  {contentTitleText(
-                    (selectedContent as ContentRowExtra | undefined)?.title ?? selected.title,
-                    (selectedContent as ContentRowExtra | undefined)?.caption ?? selected.caption,
-                    locale,
-                    untitled,
-                  )}
-                </Link>
-              ) : null}
-              {selected.campaignId ? (
-                <Link
-                  href={`/app/campaigns/${selected.campaignId}`}
-                  className="oma-text-link"
-                  data-testid="demo-schedule-campaign-link"
-                >
-                  {t('demo.schedule.openCampaign')}
-                  {selected.campaignTitle ? `: ${pickCopy(selected.campaignTitle, locale)}` : ''}
-                </Link>
-              ) : null}
             </div>
+            {selected.contentId || selected.campaignId ? (
+              <div className="oma-plx-sched-drawer__nav-links">
+                {selected.contentId ? (
+                  <Link
+                    href={`/app/content?item=${selected.contentId}`}
+                    className="oma-text-link"
+                    data-testid="demo-schedule-content-link"
+                  >
+                    {t('demo.schedule.openPost')}
+                  </Link>
+                ) : null}
+                {selected.campaignId ? (
+                  <Link
+                    href={`/app/campaigns/${selected.campaignId}`}
+                    className="oma-text-link"
+                    data-testid="demo-schedule-campaign-link"
+                  >
+                    {t('demo.schedule.openCampaign')}
+                    {selected.campaignTitle
+                      ? ` · ${pickCopy(selected.campaignTitle, locale)}`
+                      : ''}
+                  </Link>
+                ) : null}
+              </div>
+            ) : null}
           </div>
         ) : null}
       </AntDrawer>

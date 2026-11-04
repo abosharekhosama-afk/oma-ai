@@ -24,6 +24,7 @@ import {
   type DeliverableFilters,
   type DeliverableRow,
 } from '../../../../lib/demo/stage5-deliverables';
+import { paintBreadcrumbViewSlot } from '../../../../lib/breadcrumb-view-slot';
 import { useLocale, useT } from '../../../../lib/use-locale';
 import { MediaSurface, versionMime } from '../../../../components/content/media-surface';
 import {
@@ -163,8 +164,9 @@ export default function DeliverablesPage() {
   useEffect(() => {
     const el = document.getElementById('oma-content-view-slot');
     if (!el) return;
-    el.textContent = filters.view === 'grid' ? t('demo.view.grid') : t('demo.view.list');
-    el.setAttribute('data-view', filters.view);
+    const label =
+      filters.view === 'grid' ? t('demo.view.grid') : t('demo.view.list');
+    paintBreadcrumbViewSlot(el, filters.view, label);
   }, [filters.view, t]);
 
   useEffect(() => {

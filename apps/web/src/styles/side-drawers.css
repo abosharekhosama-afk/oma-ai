@@ -490,6 +490,19 @@ main.oma-container:has(.oma-notifications-page) {
   gap: 8px;
 }
 
+.oma-schedule-detail-drawer .oma-plx-sched-drawer__nav-links {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.oma-publish-targets__link {
+  display: block;
+  margin-top: 6px;
+}
+
 @keyframes oma-filter-panel-in {
   from {
     opacity: 0;

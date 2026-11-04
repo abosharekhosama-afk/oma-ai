@@ -27,6 +27,24 @@ export type PublishTargetStatusRow = {
   accountLabel?: string | null;
 };
 
+/** Resolve human-readable publisher names; never surface raw social page ids in UI. */
+export function enrichPublishTargets(
+  targets: PublishTargetStatusRow[],
+  pages: readonly { id: string; name: string; network?: string }[],
+): PublishTargetStatusRow[] {
+  if (!targets.length) return targets;
+  const byId = new Map(pages.map((p) => [p.id, p]));
+  return targets.map((target) => {
+    if (target.accountLabel?.trim()) return target;
+    const page = byId.get(target.socialPageId);
+    const name = page?.name?.trim();
+    const network = page?.network?.trim();
+    const accountLabel =
+      name || (network ? network.replace(/^./, (c) => c.toUpperCase()) : null);
+    return accountLabel ? { ...target, accountLabel } : target;
+  });
+}
+
 export function publishTargetStateLabelKey(state: string): string {
   const s = (state || 'NONE').toUpperCase();
   if (s === 'PUBLISHED') return 'demo.schedule.publishState.published';

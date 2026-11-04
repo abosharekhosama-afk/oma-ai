@@ -138,7 +138,7 @@ export class RateLimitGuard implements CanActivate {
       if (email && email.length <= 320) {
         budgets.push({
           key: `auth-login-email:${digest(email)}`,
-          limit: 20,
+          limit: 5,
           windowMs: 15 * 60_000,
         });
       }

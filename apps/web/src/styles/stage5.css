@@ -453,6 +453,17 @@ main.oma-container:has(.oma-sched-page) {
   overflow: hidden !important;
   padding-bottom: 0 !important;
 }
+@media (max-width: 767px) {
+  .oma-container:has(.oma-sched-page),
+  main.oma-container:has(.oma-sched-page) {
+    /* Shell column already subtracts the top bar — flex fill avoids a short “letterboxed” calendar. */
+    height: auto !important;
+    max-height: none !important;
+    flex: 1 1 auto !important;
+    padding-inline: 0 !important;
+    padding-block: 0 !important;
+  }
+}
 .oma-sched-page {
   display: flex;
   flex-direction: column;
@@ -3200,12 +3211,7 @@ main.oma-container:has(.oma-sched-page) {
   }
 }
 
-/* Mobile Schedule: use the full content width; keep horizontal scrolling inside the calendar. */
-@media (max-width: 767px) {
-  html body main.oma-container:has(.oma-sched-page) {
-    padding-inline: 0 !important;
-  }
-}
+/* Mobile Schedule width: full bleed is owned by globals.css (OMA-FINAL-CASCADE-LOCK). */
 
 /* Phone-width deliverables: reclaim side gutters while keeping a small safe margin. */
 @media (max-width: 767px) {

@@ -31,7 +31,7 @@ export const MAX_PUBLISH_ATTEMPTS = 5;
 /** Backoff after attempt n (1-based): 1m, 5m, 15m, 60m. */
 export const PUBLISH_BACKOFF_MS = [60_000, 5 * 60_000, 15 * 60_000, 60 * 60_000];
 /** First TikTok status poll delay after publish init (then backs off). */
-export const TIKTOK_STATUS_POLL_MS = 10_000;
+export const TIKTOK_STATUS_POLL_MS = 60_000;
 /** Status poll backoff steps: 10s → 20s → 40s → 60s (cap). */
 export const TIKTOK_STATUS_POLL_BACKOFF_MS = [10_000, 20_000, 40_000, 60_000];
 /** Give up polling TikTok after this long in PUBLISHING and mark FAILED. */

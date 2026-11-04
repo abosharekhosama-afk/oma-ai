@@ -48,6 +48,7 @@ import {
   type TaskFilters,
   type TaskRow,
 } from '../../../../lib/demo/stage4-tasks';
+import { paintBreadcrumbViewSlot } from '../../../../lib/breadcrumb-view-slot';
 import { useLocale, useT } from '../../../../lib/use-locale';
 import {
   BarsOutlined,
@@ -226,8 +227,8 @@ export default function TasksPage() {
   useEffect(() => {
     const el = document.getElementById('oma-content-view-slot');
     if (!el) return;
-    el.textContent = view === 'board' ? t('demo.view.kanban') : t('demo.view.list');
-    el.setAttribute('data-view', view);
+    const label = view === 'board' ? t('demo.view.kanban') : t('demo.view.list');
+    paintBreadcrumbViewSlot(el, view, label);
   }, [view, t]);
 
   useEffect(() => {

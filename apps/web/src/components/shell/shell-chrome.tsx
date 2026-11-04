@@ -39,6 +39,7 @@ const SettingsPanel = dynamic(
   { ssr: false },
 );
 import { PlxLogo } from '../ui/plx-icons';
+import { FloatingTooltips } from '../ui/floating-tooltips';
 
 function RailNav({ collapsed }: { collapsed: boolean }) {
   const t = useT();
@@ -617,6 +618,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
         ) : null}
         <SessionKeeper />
         <SessionInvalidOverlay />
+        <FloatingTooltips />
       </div>
     </ToastProvider>
   );

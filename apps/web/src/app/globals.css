@@ -942,6 +942,112 @@ main.oma-container:has(.oma-content-plan),
   border-top: 0 !important;
 }
 
+/* Schedule workspace: full-bleed + flex height chain on phone (calendar stays 233% wide, cards stay compact). */
+@media (max-width: 767px) {
+  .oma-main:has(.oma-sched-page),
+  .oma-container:has(.oma-sched-page),
+  main.oma-container:has(.oma-sched-page),
+  .oma-shell-column > main.oma-container:has(.oma-sched-page) {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: none !important;
+    width: 100% !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+
+  .oma-sched-page {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    max-height: none !important;
+    gap: 0 !important;
+    padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+    box-sizing: border-box !important;
+  }
+
+  .oma-sched-top {
+    flex-shrink: 0 !important;
+    padding: 8px 12px 6px !important;
+  }
+
+  .oma-sched-body {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+  }
+
+  .oma-sched-layout,
+  .oma-sched-layout--full,
+  .oma-sched-main[data-view='calendar'] {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .oma-sched-main[data-view='calendar'] .oma-sched-calendar-scroll {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .oma-sched-main[data-view='calendar'] .oma-sched-calendar {
+    min-height: 100% !important;
+    height: 100% !important;
+  }
+
+  .oma-sched-main[data-view='agenda'],
+  .oma-sched-main[data-view='queue'],
+  .oma-sched-main[data-view='table'] {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+    padding-inline: 12px;
+  }
+}
+
+/* Floating portaled tooltips (`data-tooltip` + FloatingTooltips) */
+#oma-floating-tooltip {
+  position: fixed;
+  z-index: 2147483000;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #1f1f1f;
+  color: #fff;
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+  max-width: min(360px, calc(100vw - 16px));
+  white-space: nowrap;
+  text-align: center;
+  box-sizing: border-box;
+}
+#oma-floating-tooltip[hidden] {
+  display: none !important;
+}
+
+html[data-oma-floating-tooltips='true'] [data-tooltip]:hover::after,
+html[data-oma-floating-tooltips='true'] [data-tooltip]::after,
+html[data-oma-floating-tooltips='true'] [data-tooltip]:hover::before,
+html[data-oma-floating-tooltips='true'] [data-tooltip]::before {
+  content: none !important;
+  display: none !important;
+}
+
 /* Weekday labels: text-only height */
 .oma-cal-dow-row,
 .oma-cal-grid > .oma-cal-dow-row,

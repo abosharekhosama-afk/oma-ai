@@ -29,29 +29,28 @@ export function PublishTargetsPanel({
           ? humanizePublishError(target.lastError, isAr ? 'ar' : 'en')
           : null;
         const profileOnly = isProfileOnlyPostUrl(target.externalPostUrl);
+        const accountName =
+          target.accountLabel?.trim() || t('demo.schedule.publisherAccount');
         return (
           <li
             key={target.id}
             data-testid={`publish-target-${target.socialPageId}`}
             data-state={target.state}
           >
-            <strong>{target.accountLabel || target.socialPageId}</strong>
+            <strong>{accountName}</strong>
             <span className="oma-muted"> · {t(labelKey)}</span>
             {target.externalPostUrl ? (
-              <>
-                {' · '}
-                <a
-                  href={target.externalPostUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="oma-text-link"
-                  data-profile-only={profileOnly ? 'true' : 'false'}
-                >
-                  {profileOnly
-                    ? t('demo.schedule.viewProfileLink')
-                    : t('demo.schedule.viewPostLink')}
-                </a>
-              </>
+              <a
+                href={target.externalPostUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="oma-text-link oma-publish-targets__link"
+                data-profile-only={profileOnly ? 'true' : 'false'}
+              >
+                {profileOnly
+                  ? t('demo.schedule.viewProfileLink')
+                  : t('demo.schedule.viewPostLink')}
+              </a>
             ) : null}
             {err && target.state.toUpperCase() === 'FAILED' ? (
               <span

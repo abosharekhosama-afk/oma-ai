@@ -710,6 +710,14 @@
   font-size: 10px !important;
   margin-inline-start: 3px !important;
 }
+#oma-content-view-slot.oma-breadcrumb-view--interactive {
+  display: inline-flex !important;
+  align-items: center !important;
+}
+#oma-content-view-slot.oma-breadcrumb-view--interactive::after {
+  content: none !important;
+  display: none !important;
+}
 
 /* Page name (Osama page) with pinned icon */
 .oma-breadcrumb-page {

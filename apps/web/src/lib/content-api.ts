@@ -2,6 +2,7 @@
  * Production Content API client + adapter to stage3 ContentRow shape.
  */
 import { api } from './api';
+import { mapLimit } from './map-limit';
 import type { ContentRow } from './demo/stage3-campaigns';
 import type { ApiLocale } from './campaign-api';
 import {
@@ -185,9 +186,11 @@ export async function listContentForBrand(
   return res.data ?? [];
 }
 
+const BRAND_FETCH_CONCURRENCY = 2;
+
 export async function listAllContent(brandIds: string[]): Promise<ApiContent[]> {
-  const batches = await Promise.all(
-    brandIds.map((id) => listContentForBrand(id).catch(() => [] as ApiContent[])),
+  const batches = await mapLimit(brandIds, BRAND_FETCH_CONCURRENCY, (id) =>
+    listContentForBrand(id).catch(() => [] as ApiContent[]),
   );
   return batches.flat();
 }
@@ -332,11 +335,7 @@ export async function updateContentPreferences(
   });
 }
 
-/** Load brands + campaigns + content for Content Plan screen (production).
- *  Fast path: primary brand first so the calendar can paint quickly.
- *  Pass `{ full: true }` or call `loadContentWorkspaceRest` for remaining brands.
- */
-export async function loadContentWorkspace(opts?: { full?: boolean }): Promise<{
+type ContentWorkspacePayload = {
   brands: {
     id: string;
     name: { en: string; ar: string };
@@ -352,52 +351,79 @@ export async function loadContentWorkspace(opts?: { full?: boolean }): Promise<{
   content: ContentRow[];
   policy: 'NONE' | 'OPTIONAL' | 'REQUIRED';
   remainingBrandIds: string[];
-}> {
-  const brandRows = await listScopedBrands();
-  const brandIds = brandRows.map((b) => b.id);
-  const primary = brandIds[0];
-  const rest = brandIds.slice(1);
+};
 
-  // Parallel: primary campaigns + content + prefs (non-blocking default)
-  const [campaigns, contentItems, prefs] = await Promise.all([
-    primary
-      ? opts?.full
-        ? listAllCampaigns(brandIds).catch(() => [] as Awaited<ReturnType<typeof listAllCampaigns>>)
-        : listCampaignsForBrand(primary).catch(
-            () => [] as Awaited<ReturnType<typeof listCampaignsForBrand>>,
-          )
-      : Promise.resolve([]),
-    primary
-      ? opts?.full
-        ? listAllContent(brandIds)
-        : listContentForBrand(primary).catch(() => [] as ApiContent[])
-      : Promise.resolve([] as ApiContent[]),
-    primary
-      ? getContentPreferences(primary)
-          .then((p) => p.data)
-          .catch(() => null)
-      : Promise.resolve(null),
-  ]);
-  const policy =
-    (prefs?.approval_policy as 'NONE' | 'OPTIONAL' | 'REQUIRED' | undefined) || 'OPTIONAL';
+let fastWorkspaceInflight: Promise<ContentWorkspacePayload> | null = null;
 
-  return {
-    brands: brandRows.map((b) => ({
-      id: b.id,
-      name: { en: b.name, ar: b.name },
-      state: b.status === 'ARCHIVED' ? 'draft' : 'healthy',
-      profileStatus: b.status,
-      strategyId: null,
-      timezone: b.timezone,
-      logoUrl: b.logo_url ?? null,
-      previewStyle: b.id === primary ? prefs?.preview_style || 'default' : 'default',
-      accentColor: b.id === primary ? (prefs?.accent_color ?? null) : null,
-    })),
-    campaigns: (Array.isArray(campaigns) ? campaigns : []).map((c) => toCampaignRow(c)),
-    content: contentItems.map((c) => toContentRow(c)),
-    policy,
-    remainingBrandIds: opts?.full ? [] : rest,
-  };
+/** Clear coalesced fast-path loader (e.g. after brand switch). */
+export function resetContentWorkspaceLoadCoalescing() {
+  fastWorkspaceInflight = null;
+}
+
+/** Load brands + campaigns + content for Content Plan screen (production).
+ *  Fast path: primary brand first so the calendar can paint quickly.
+ *  Pass `{ full: true }` or call `loadContentWorkspaceRest` for remaining brands.
+ */
+export async function loadContentWorkspace(opts?: { full?: boolean }): Promise<ContentWorkspacePayload> {
+  const full = opts?.full ?? false;
+  if (!full && fastWorkspaceInflight) return fastWorkspaceInflight;
+
+  const run = (async (): Promise<ContentWorkspacePayload> => {
+    const brandRows = await listScopedBrands();
+    const brandIds = brandRows.map((b) => b.id);
+    const primary = brandIds[0];
+    const rest = brandIds.slice(1);
+
+    // Critical path: content list first, then campaigns; prefs must not block paint.
+    const contentItems = primary
+      ? opts?.full
+        ? await listAllContent(brandIds)
+        : await listContentForBrand(primary).catch(() => [] as ApiContent[])
+      : ([] as ApiContent[]);
+
+    const [campaigns, prefs] = await Promise.all([
+      primary
+        ? opts?.full
+          ? listAllCampaigns(brandIds).catch(() => [] as Awaited<ReturnType<typeof listAllCampaigns>>)
+          : listCampaignsForBrand(primary).catch(
+              () => [] as Awaited<ReturnType<typeof listCampaignsForBrand>>,
+            )
+        : Promise.resolve([]),
+      primary
+        ? getContentPreferences(primary)
+            .then((p) => p.data)
+            .catch(() => null)
+        : Promise.resolve(null),
+    ]);
+    const policy =
+      (prefs?.approval_policy as 'NONE' | 'OPTIONAL' | 'REQUIRED' | undefined) || 'OPTIONAL';
+
+    return {
+      brands: brandRows.map((b) => ({
+        id: b.id,
+        name: { en: b.name, ar: b.name },
+        state: b.status === 'ARCHIVED' ? 'draft' : 'healthy',
+        profileStatus: b.status,
+        strategyId: null,
+        timezone: b.timezone,
+        logoUrl: b.logo_url ?? null,
+        previewStyle: b.id === primary ? prefs?.preview_style || 'default' : 'default',
+        accentColor: b.id === primary ? (prefs?.accent_color ?? null) : null,
+      })),
+      campaigns: (Array.isArray(campaigns) ? campaigns : []).map((c) => toCampaignRow(c)),
+      content: contentItems.map((c) => toContentRow(c)),
+      policy,
+      remainingBrandIds: opts?.full ? [] : rest,
+    };
+  })();
+
+  if (!full) {
+    fastWorkspaceInflight = run;
+    void run.finally(() => {
+      if (fastWorkspaceInflight === run) fastWorkspaceInflight = null;
+    });
+  }
+  return run;
 }
 
 /** Background hydrate remaining brands after first paint. */
@@ -422,10 +448,8 @@ export async function loadContentWorkspaceRest(brandIds: string[]): Promise<{
   content: ContentRow[];
 }> {
   if (!brandIds.length) return { campaigns: [], content: [] };
-  const [campaigns, contentItems] = await Promise.all([
-    listAllCampaigns(brandIds).catch(() => []),
-    listAllContent(brandIds),
-  ]);
+  const contentItems = await listAllContent(brandIds);
+  const campaigns = await listAllCampaigns(brandIds).catch(() => []);
   return {
     campaigns: campaigns.map((c) => toCampaignRow(c)),
     content: contentItems.map((c) => toContentRow(c)),

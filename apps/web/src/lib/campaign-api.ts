@@ -2,6 +2,7 @@
  * Production Campaign API client + adapters to the stage3 CampaignRow shape.
  */
 import { api } from './api';
+import { mapLimit } from './map-limit';
 import { scopeBrands } from './active-brand';
 import type { CampaignRow } from './demo/stage3-campaigns';
 
@@ -94,8 +95,8 @@ export async function listAllCampaigns(
   brandIds: string[],
   query?: { status?: string; track?: string; q?: string },
 ): Promise<ApiCampaign[]> {
-  const batches = await Promise.all(
-    brandIds.map((id) => listCampaignsForBrand(id, query).catch(() => [] as ApiCampaign[])),
+  const batches = await mapLimit(brandIds, 2, (id) =>
+    listCampaignsForBrand(id, query).catch(() => [] as ApiCampaign[]),
   );
   return batches.flat();
 }

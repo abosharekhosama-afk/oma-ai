@@ -2385,6 +2385,7 @@
   "demo.schedule.timeline.skipped": "Skipped",
   "demo.schedule.openPost": "Open post",
   "demo.schedule.openCampaign": "Open campaign",
+  "demo.schedule.publisherAccount": "Publisher account",
   "demo.schedule.viewPostLink": "View on network",
   "shell.notification.content.publish.succeeded": "Post published",
   "shell.notificationBody.content.publish.succeeded": "A scheduled post was published successfully.",
