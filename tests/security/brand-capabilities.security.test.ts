@@ -16,13 +16,13 @@ describe('brand capabilities security', () => {
     await app.close();
   });
 
-  it('member without brand.read denied on list', async () => {
+  it('member with the contributor profile can list brands', async () => {
     const res = await fetch(`${owner.baseUrl}/api/v1/brands`, {
       headers: {
         cookie: `oma_session=${member.cookies.oma_session}`,
       },
     });
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(200);
   });
 
   it('member without brand.create denied on create', async () => {

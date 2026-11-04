@@ -83,6 +83,12 @@ export async function seedBrandTenant(input?: {
   const membership = await prisma.membership.findFirstOrThrow({
     where: { tenantId: tenantBody.tenant.id, userId: user.id },
   });
+  // Contract fixtures create several brands, posts, and seats. The product default
+  // for a new workspace is Free (one brand). Tests are not billing cases.
+  await prisma.workspaceSubscription.update({
+    where: { tenantId: tenantBody.tenant.id },
+    data: { planCode: 'enterprise' },
+  });
 
   return {
     app,
