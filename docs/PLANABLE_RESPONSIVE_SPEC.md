@@ -23,6 +23,14 @@ Calendar/grid/composer/drawer at tablet/mobile: **not recaptured this run** (cal
 6. RTL: Planable English LTR only this session. OMA mirrors rail to inline-start and keeps status logic (not a mirrored workflow). Glyphs: Noto Sans Arabic as coverage, same 14px body metrics.
 7. Schedule agenda and queue keep their controls outside a dedicated vertical scroll region; queue cards collapse to one column on narrow screens. The compact mobile-week list is shown only for calendar mode to avoid duplicate agenda/queue items.
 
+## OMA mobile schedule regression contract
+
+These OMA application behaviors are not claims that the live Planable calendar was re-captured.
+
+- At phone widths (≤767px), `/app/schedule` fills the available content width and the height below the app chrome.
+- Preserve the shared mobile density scale (`0.7`); do not reset global zoom to solve a schedule-only layout issue.
+- Keep the week grid horizontally scrollable inside its own calendar surface, without page-level horizontal overflow.
+
 ## Filters and composer
 
 - Filters: archived as a side panel/tabs on calendar; mobile transformation `SANDBOX_DATA_REQUIRED`.
