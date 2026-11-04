@@ -38,7 +38,7 @@ export class ListeningService {
     },
   ) {
     const name = (body.name ?? '').trim();
-    if (!name) throw new DomainError('VALIDATION', 'name required', 400, 'errors.validation');
+    if (!name) throw new DomainError('VALIDATION_FAILED', 'name required', 400, 'errors.validation');
     const workspaceId = body.workspaceId?.trim() || tenantId;
     const id = newId();
     const row = await getPrisma().listeningRule.create({

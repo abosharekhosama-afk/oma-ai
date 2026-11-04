@@ -132,7 +132,7 @@ export class InboxService {
   async reply(tenantId: string, userId: string, id: string, body: { content?: string }) {
     const content = (body.content ?? '').trim();
     if (!content) {
-      throw new DomainError('VALIDATION', 'Reply content required', 400, 'errors.validation');
+      throw new DomainError('VALIDATION_FAILED', 'Reply content required', 400, 'errors.validation');
     }
     const c = await getPrisma().inboxConversation.findFirst({
       where: tenantWhere(tenantId, { id }),
@@ -197,7 +197,7 @@ export class InboxService {
   async addNote(tenantId: string, userId: string, id: string, body: { content?: string }) {
     const content = (body.content ?? '').trim();
     if (!content) {
-      throw new DomainError('VALIDATION', 'Note content required', 400, 'errors.validation');
+      throw new DomainError('VALIDATION_FAILED', 'Note content required', 400, 'errors.validation');
     }
     const c = await getPrisma().inboxConversation.findFirst({
       where: tenantWhere(tenantId, { id }),

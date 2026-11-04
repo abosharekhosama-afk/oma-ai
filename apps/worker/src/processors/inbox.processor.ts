@@ -146,7 +146,7 @@ async function resolveTenantId(hint?: string, pageExternalId?: string): Promise<
   if (pageExternalId) {
     try {
       const page = await getPrisma().socialPage.findFirst({
-        where: { externalPageId: pageExternalId },
+        where: { externalId: pageExternalId },
         select: { tenantId: true },
       });
       if (page?.tenantId) return page.tenantId;

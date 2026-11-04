@@ -82,7 +82,7 @@ export class InboxController {
     @Body() body: { status?: 'UNREAD' | 'OPEN' | 'PENDING' | 'CLOSED' },
   ) {
     if (!body.status) {
-      throw new DomainError('VALIDATION', 'status required', 400, 'errors.validation');
+      throw new DomainError('VALIDATION_FAILED', 'status required', 400, 'errors.validation');
     }
     return inboxService.updateStatus(ctx(req).tenantId, id, body.status);
   }
