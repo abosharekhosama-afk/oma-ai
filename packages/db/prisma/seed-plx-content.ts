@@ -83,7 +83,7 @@ async function main() {
   const inTwoDays = new Date(now.getTime() + 2 * 24 * 3600 * 1000);
   const tomorrow = new Date(now.getTime() + 24 * 3600 * 1000);
 
-  async function upsertContent(input: {
+  const upsertContent = async (input: {
     key: string;
     titleEn: string;
     titleAr: string;
@@ -94,7 +94,7 @@ async function main() {
     assetIds: string[];
     clientVisible?: boolean;
     scheduledAt?: Date;
-  }) {
+  }) => {
     const existing = await prisma.contentItem.findFirst({
       where: { tenantId, brandId, titleEn: input.titleEn },
     });
@@ -127,7 +127,7 @@ async function main() {
       return prisma.contentItem.update({ where: { id: existing.id }, data });
     }
     return prisma.contentItem.create({ data: { id: newId(), ...data } });
-  }
+  };
 
   const carousel = await upsertContent({
     key: 'plx-carousel',
