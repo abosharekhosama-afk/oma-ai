@@ -3,27 +3,27 @@
 import { useEffect, useRef, useState } from 'react';
 import { useT } from '../../lib/use-locale';
 import { api } from '../../lib/api';
-import { ShellIcon } from './shell-icons';
-import { selectBrand, setActiveBrandId, useActiveBrandId } from '../../lib/active-brand';
+import {
+  AppstoreOutlined,
+  PlusOutlined,
+  SettingOutlined,
+} from '../ui/lucide-icons';
+import { setActiveBrandId } from '../../lib/active-brand';
 
 type Me = {
   active_tenant_id: string | null;
   memberships: Array<{ id: string; tenant_id: string; tenant_name: string }>;
 };
-type BrandItem = { id: string; name: string };
 type WorkspaceRowProps = { collapsed?: boolean; onOpenSettings: () => void };
 
 /** Sidebar selectors for the active tenant (Workspace) and activeBrandId (Brand). */
 export function WorkspaceRow({ collapsed = false, onOpenSettings }: WorkspaceRowProps) {
   const t = useT();
   const [me, setMe] = useState<Me | null>(null);
-  const [brands, setBrands] = useState<BrandItem[]>([]);
   const [menuOpen, setMenuOpen] = useState(false);
   const [expanded, setExpanded] = useState(true);
   const [busyTenant, setBusyTenant] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
-  const activeBrandId = useActiveBrandId();
-
   useEffect(() => {
     let cancelled = false;
     async function load() {
@@ -31,14 +31,9 @@ export function WorkspaceRow({ collapsed = false, onOpenSettings }: WorkspaceRow
         const profile = await api<Me>('/api/v1/auth/me');
         if (cancelled) return;
         setMe(profile);
-        if (profile.active_tenant_id) {
-          const list = await api<{ data?: BrandItem[] }>('/api/v1/brands?limit=100');
-          if (!cancelled) setBrands(Array.isArray(list.data) ? list.data : []);
-        }
       } catch {
         if (!cancelled) {
           setMe(null);
-          setBrands([]);
         }
       }
     }
@@ -66,9 +61,6 @@ export function WorkspaceRow({ collapsed = false, onOpenSettings }: WorkspaceRow
 
   const workspace = me?.memberships.find((item) => item.tenant_id === me.active_tenant_id);
   const workspaceName = workspace?.tenant_name || t('shell.workspace') || 'Workspace';
-  const activeBrand = brands.find((brand) => brand.id === activeBrandId);
-  const brandName = activeBrand?.name || t('shell.brandAll') || 'All brands';
-
   async function activateWorkspace(tenantId: string) {
     if (!tenantId || tenantId === me?.active_tenant_id || busyTenant) return;
     setBusyTenant(true);
@@ -86,11 +78,11 @@ export function WorkspaceRow({ collapsed = false, onOpenSettings }: WorkspaceRow
 
   if (collapsed) {
     return (
-      <div className="oma-ws-row oma-ws-row--collapsed" title={`${workspaceName} · ${brandName}`}>
+      <div className="oma-ws-row oma-ws-row--collapsed" title={workspaceName}>
         <button
           type="button"
           className="oma-ws-collapsed-btn"
-          aria-label={`${t('shell.workspace')}: ${workspaceName}; ${t('shell.brand')}: ${brandName}`}
+          aria-label={`${t('shell.workspace')}: ${workspaceName}`}
           onClick={() => {
             window.location.assign('/app/select-company');
           }}
@@ -165,9 +157,12 @@ export function WorkspaceRow({ collapsed = false, onOpenSettings }: WorkspaceRow
                       onOpenSettings();
                     }}
                   >
-                    <ShellIcon name="settings" size={14} />
+                    <SettingOutlined width={16} height={16} />
                     <span>{t('shell.workspaceSettings') || 'Workspace settings'}</span>
                   </button>
+                  <div className="oma-ws-menu__section" role="presentation">
+                    {t('shell.workspaces') || 'Workspaces'}
+                  </div>
                   {(me?.memberships ?? []).map((membership) => (
                     <button
                       key={membership.tenant_id}
@@ -180,7 +175,7 @@ export function WorkspaceRow({ collapsed = false, onOpenSettings }: WorkspaceRow
                         void activateWorkspace(membership.tenant_id);
                       }}
                     >
-                      <ShellIcon name="company" size={14} />
+                      <AppstoreOutlined width={16} height={16} />
                       <span>{membership.tenant_name}</span>
                     </button>
                   ))}
@@ -194,49 +189,25 @@ export function WorkspaceRow({ collapsed = false, onOpenSettings }: WorkspaceRow
                       window.location.assign('/app/workspaces/new');
                     }}
                   >
-                    <ShellIcon name="plus" size={14} />
+                    <PlusOutlined width={16} height={16} />
                     <span>{t('shell.newWorkspace') || 'New workspace'}</span>
                   </button>
                   <button
                     type="button"
                     role="menuitem"
                     className="oma-ws-menu-item"
+                    data-testid="workspace-row-all-workspaces"
                     onClick={() => {
                       setMenuOpen(false);
-                      window.location.assign('/app/team');
+                      window.location.assign('/app/select-company');
                     }}
                   >
-                    <ShellIcon name="company" size={14} />
-                    <span>{t('nav.team') || 'Members'}</span>
+                    <AppstoreOutlined width={16} height={16} />
+                    <span>{t('shell.manageWorkspaces') || 'All workspaces'}</span>
                   </button>
                 </div>
               ) : null}
             </div>
-          </div>
-
-          <div className="oma-ws-brand-block" data-testid="workspace-row-brand-selector">
-            <span className="oma-ws-label">{t('shell.brand') || 'Brand'}</span>
-            <select
-              className="oma-ws-brand-select"
-              aria-label={t('shell.brandSelector') || 'Brand selector'}
-              value={activeBrandId || ''}
-              onChange={(event) => selectBrand(event.target.value || null)}
-            >
-              <option value="">{t('shell.brandAll') || 'All brands'}</option>
-              {brands.map((brand) => (
-                <option key={brand.id} value={brand.id}>
-                  {brand.name}
-                </option>
-              ))}
-            </select>
-            <button
-              type="button"
-              className="oma-ws-brand-add"
-              aria-label={t('shell.newBrand') || 'New brand'}
-              onClick={() => window.location.assign('/app/brands/new')}
-            >
-              <ShellIcon name="plus" size={14} />
-            </button>
           </div>
         </div>
       ) : null}

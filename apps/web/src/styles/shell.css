@@ -3088,11 +3088,29 @@ button.oma-breadcrumb-workspace:hover {
   gap: 0 !important;
   margin: 0 !important;
 }
+.oma-shell > .oma-rail .oma-nav-pages {
+  margin-block-start: 14px !important;
+  padding-block-start: 14px !important;
+  border-block-start: 1px solid #e8e9eb !important;
+}
 .oma-shell > .oma-rail .oma-nav-pages__head {
   margin-block-start: 0 !important;
 }
+.oma-shell > .oma-rail .oma-nav-more {
+  margin-block-start: 14px !important;
+  padding-block-start: 14px !important;
+  border-block-start: 1px solid #e8e9eb !important;
+}
 .oma-shell > .oma-rail .oma-nav-more__toggle {
   margin-block-start: 0 !important;
+}
+.oma-ws-menu__section {
+  padding: 8px 12px 4px;
+  color: #8b9097;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
 /* Account + notifications remain global workspace utilities in the rail footer. */

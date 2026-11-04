@@ -8,7 +8,7 @@ import {
   PlusOutlined,
   SettingOutlined,
   ShopOutlined,
-  TeamOutlined,
+  AppstoreOutlined,
 } from '../ui/lucide-icons';
 import {
   BRAND_LOGO_EVENT,
@@ -165,18 +165,6 @@ export function WorkspacePathMenu({ onOpenSettings }: { onOpenSettings: () => vo
                 <SettingOutlined width={16} height={16} />
                 <span>{t('shell.workspaceSettings') || 'Workspace settings'}</span>
               </button>
-              <button
-                type="button"
-                role="menuitem"
-                className="oma-path-ws-menu__chip"
-                onClick={() => {
-                  setOpenMenu(null);
-                  window.location.assign('/app/team');
-                }}
-              >
-                <TeamOutlined width={16} height={16} />
-                <span>{t('nav.team') || 'Members'}</span>
-              </button>
             </div>
             <div className="oma-path-ws-menu__section-label">
               {t('shell.workspaces') || 'Workspaces'}
@@ -199,7 +187,7 @@ export function WorkspacePathMenu({ onOpenSettings }: { onOpenSettings: () => vo
                     }}
                   >
                     <span className="oma-path-ws-menu__ws-icon" aria-hidden>
-                      <OmaMark size={20} />
+                      <AppstoreOutlined width={18} height={18} />
                     </span>
                     <span className="oma-path-ws-menu__ws-name">{membership.tenant_name}</span>
                     {active ? (
@@ -233,8 +221,8 @@ export function WorkspacePathMenu({ onOpenSettings }: { onOpenSettings: () => vo
                 window.location.assign('/app/select-company');
               }}
             >
-              <ShopOutlined width={16} height={16} />
-              <span>{t('shell.manageWorkspaces') || 'Manage workspaces'}</span>
+              <AppstoreOutlined width={16} height={16} />
+              <span>{t('shell.manageWorkspaces') || 'All workspaces'}</span>
             </button>
           </div>
         ) : null}
