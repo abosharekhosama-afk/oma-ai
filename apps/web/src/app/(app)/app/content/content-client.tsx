@@ -1656,6 +1656,11 @@ export default function ContentPage() {
     () => (selectedId ? (rows.find((r) => r.id === selectedId) ?? null) : null),
     [rows, selectedId],
   );
+  const selectedClientVisible =
+    selected == null ? true : (selected as ContentRowExtra).clientVisible !== false;
+  const clientVisibilityMenuLabel = selectedClientVisible
+    ? t('content.hide_from_clients')
+    : t('content.show_to_clients');
   const brandRowsForTz = useMemo(
     () =>
       brands.map((b) => ({
@@ -4092,7 +4097,11 @@ export default function ContentPage() {
                     <button
                       type="button"
                       className="oma-plan-list__ico-btn"
-                      data-tooltip={t('content.hide_from_clients')}
+                      data-tooltip={
+                        (item as ContentRowExtra).clientVisible !== false
+                          ? t('content.hide_from_clients')
+                          : t('content.show_to_clients')
+                      }
                       onClick={(e) => {
                         e.stopPropagation();
                         void toggleHideFromClients(item.id);
@@ -4260,7 +4269,8 @@ export default function ContentPage() {
                       </button>
                       <button
                         type="button"
-                        title={t('content.make_visible_to_clients')}
+                        title={clientVisibilityMenuLabel}
+                        aria-label={clientVisibilityMenuLabel}
                         onClick={() => selectedId && void toggleHideFromClients(selectedId)}
                       >
                         <EyeInvisibleOutlined />
@@ -4474,8 +4484,8 @@ export default function ContentPage() {
                   <button
                     type="button"
                     className="oma-plan-post__icon-btn oma-plan-post__secondary"
-                    data-tooltip={t('content.make_visible_to_clients')}
-                    aria-label={t('content.make_visible_to_clients')}
+                    data-tooltip={clientVisibilityMenuLabel}
+                    aria-label={clientVisibilityMenuLabel}
                     onClick={() => {
                       if (selectedId) void toggleHideFromClients(selectedId);
                     }}
@@ -4541,7 +4551,7 @@ export default function ContentPage() {
                               if (selectedId) void toggleHideFromClients(selectedId);
                             }}
                           >
-                            <EyeInvisibleOutlined /> {t('content.make_visible_to_clients')}
+                            <EyeInvisibleOutlined /> {clientVisibilityMenuLabel}
                           </button>
                         </li>
                         <li className="oma-plan-post__more-section" aria-hidden>
@@ -4738,8 +4748,7 @@ export default function ContentPage() {
                               if (selectedId) void toggleHideFromClients(selectedId);
                             }}
                           >
-                            <EyeInvisibleOutlined />{' '}
-                            {isAr ? 'إخفاء عن العملاء' : 'Hide from clients'}
+                            <EyeInvisibleOutlined /> {clientVisibilityMenuLabel}
                           </button>
                         </li>
                         <li>

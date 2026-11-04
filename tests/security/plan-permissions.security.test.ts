@@ -60,4 +60,11 @@ describe('permissions audit (plans rollout)', () => {
     expect(guard).toContain("'GET /api/v1/billing/plans': ['brand.read']");
     expect(guard).toContain("'PATCH /api/v1/billing/subscription': ['tenant.manage']");
   });
+
+  it('maps preferred-audience content route in the capabilities guard', () => {
+    const guard = readFileSync(resolve('apps/api/src/common/guards/capabilities.guard.ts'), 'utf8');
+    expect(guard).toContain(
+      "'POST /api/v1/content/:contentId/preferred-audience': ['content.update']",
+    );
+  });
 });

@@ -1518,6 +1518,7 @@ export class ContentService {
       where: tenantWhere(tenantId, { id: contentId }),
     });
     if (!current) throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
+    await this.requireActiveBrand(tenantId, current.brandId);
     const row = await getPrisma().contentItem.update({
       where: { id: contentId },
       data: { preferredAudience: audience?.trim() || null },

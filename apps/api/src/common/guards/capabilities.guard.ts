@@ -230,6 +230,7 @@ const routeRequirements: Record<string, string[]> = {
   'DELETE /api/v1/brands/:brandId/content-labels/:labelId': ['content.update'],
   'POST /api/v1/content/:contentId/labels': ['content.update'],
   'POST /api/v1/content/:contentId/visibility': ['content.update'],
+  'POST /api/v1/content/:contentId/preferred-audience': ['content.update'],
   'GET /api/v1/brands/:brandId/content-templates': ['content.read'],
   'POST /api/v1/brands/:brandId/content-templates': ['content.create'],
   'DELETE /api/v1/brands/:brandId/content-templates/:templateId': ['content.update'],
@@ -440,6 +441,10 @@ export function matchRequirements(method: string, path: string): string[] | null
     )
     .replace(/\/api\/v1\/content\/[^/]+\/labels/, '/api/v1/content/:contentId/labels')
     .replace(/\/api\/v1\/content\/[^/]+\/visibility/, '/api/v1/content/:contentId/visibility')
+    .replace(
+      /\/api\/v1\/content\/[^/]+\/preferred-audience/,
+      '/api/v1/content/:contentId/preferred-audience',
+    )
 
     .replace(
       /\/api\/v1\/brands\/[^/]+\/current-strategy/,
