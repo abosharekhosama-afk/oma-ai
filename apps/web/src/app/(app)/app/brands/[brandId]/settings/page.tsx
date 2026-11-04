@@ -11,7 +11,6 @@ import {
 } from '../../../../../../components/brand/brand-settings-view';
 import {
   brandSettingsApi,
-  readLogoFile,
   timezoneOptions,
   type BrandMemberCandidate,
   type BrandMemberRow,
@@ -188,11 +187,8 @@ export default function BrandSettingsPage() {
       logoStorage={logoStorage}
       onLogoFile={async (file) => {
         try {
-          if (logoStorage?.connected) {
-            const a = await mediaApi.upload(brandId, 'logos', file);
-            return { url: a.view_url, assetId: a.id };
-          }
-          return { url: await readLogoFile(file), assetId: null };
+          const a = await mediaApi.upload(brandId, 'logos', file);
+          return { url: a.view_url, assetId: a.id };
         } catch (e) {
           if ((e as { status?: number }).status !== undefined) {
             fail(e);

@@ -65,6 +65,9 @@ export function mapAsset(a: Asset) {
   };
 }
 
+const AVATAR_MAX_BYTES = 2 * 1024 * 1024;
+const AVATAR_MIMES = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif']);
+
 function parseKind(v: unknown): MediaKind {
   if (!isMediaKind(v)) throw bad('kind must be posts, logos or deliverables');
   return v;
@@ -171,6 +174,91 @@ export class MediaService {
     });
     if (!b) throw notFound();
     return b;
+  }
+
+  /** Uploads a user's profile image to the active tenant's WorkDrive. */
+  async uploadAvatar(
+    ctx: { tenantId: string; userId: string; correlationId?: string },
+    input: { name: unknown; mime: unknown; length: number | null; body: Readable },
+  ) {
+    const mime =
+      typeof input.mime === 'string' ? input.mime.split(';')[0]!.trim().toLowerCase() : '';
+    if (!AVATAR_MIMES.has(mime)) throw bad('Unsupported avatar image type', 'errors.media_type');
+    if (input.length != null && (input.length <= 0 || input.length > AVATAR_MAX_BYTES))
+      throw new DomainError(
+        'PAYLOAD_TOO_LARGE',
+        'Avatar is too large',
+        413,
+        'errors.media_too_large',
+      );
+    const chunks: Buffer[] = [];
+    let size = 0;
+    for await (const chunk of input.body) {
+      const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+      size += buf.length;
+      if (size > AVATAR_MAX_BYTES)
+        throw new DomainError(
+          'PAYLOAD_TOO_LARGE',
+          'Avatar is too large',
+          413,
+          'errors.media_too_large',
+        );
+      chunks.push(buf);
+    }
+    if (!size) throw bad('Empty avatar', 'errors.media_empty');
+    const bytes = Buffer.concat(chunks);
+    const sha256 = createHash('sha256').update(bytes).digest('hex');
+    const c = await this.workdrive.requireClient(ctx.tenantId);
+    const folder = await c.client.ensurePath(['OMA AI', 'profile-avatars', ctx.userId]);
+    const fileName = safeFileName(typeof input.name === 'string' ? input.name : 'avatar');
+    let uploaded: { fileId: string; name: string };
+    try {
+      uploaded = await c.client.upload({
+        folderId: folder.folderId,
+        name: fileName,
+        mimeType: mime,
+        sha256,
+        source: {
+          size,
+          full: () => bytes,
+          part: async (start, end) => bytes.subarray(start, end),
+        },
+      });
+    } catch (e) {
+      throw workDriveDomainError(e);
+    }
+    const row = await getPrisma().mediaAsset.create({
+      data: {
+        id: newId(),
+        tenantId: ctx.tenantId,
+        brandId: null,
+        kind: 'avatars',
+        workdriveFileId: uploaded.fileId,
+        folderId: folder.folderId,
+        name: uploaded.name,
+        mime,
+        size: BigInt(size),
+        sha256,
+        source: 'upload',
+        lastCheckedAt: new Date(),
+        createdBy: ctx.userId,
+      },
+    });
+    const avatarUrl = mediaViewUrl(row.id);
+    await getPrisma().user.update({
+      where: { id: ctx.userId },
+      data: { avatarUrl, avatarAssetId: row.id },
+    });
+    await this.audit.write({
+      actorUserId: ctx.userId,
+      tenantId: ctx.tenantId,
+      action: 'user.avatar_uploaded',
+      targetType: 'User',
+      targetId: ctx.userId,
+      afterRef: row.id,
+      correlationId: ctx.correlationId,
+    });
+    return { data: { asset_id: row.id, avatar_url: avatarUrl } };
   }
 
   private async folderFor(

@@ -50,6 +50,8 @@ model User {
   preferredLocale  String       @default("en")
   preferredDir     String       @default("ltr")
   avatarUrl        String?
+  /// MediaAsset id when the avatar is stored in the tenant WorkDrive.
+  avatarAssetId    String?
   /// JSON: { notifications: { [type]: boolean }, timezone, weekStart, ... }
   preferencesJson  String       @default("{}")
   status           UserStatus   @default(ACTIVE)
@@ -1722,8 +1724,8 @@ enum MediaAssetStatus {
 model MediaAsset {
   id              String           @id
   tenantId        String
-  brandId         String
-  /// posts | logos | deliverables
+  brandId         String?
+  /// posts | logos | deliverables | avatars
   kind            String
   workdriveFileId String
   folderId        String?
