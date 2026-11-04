@@ -48,7 +48,12 @@ export class BillingController {
       );
     }
     if (!body?.plan_code) {
-      throw new DomainError('VALIDATION_FAILED', 'plan_code required', 400, 'errors.validation_failed');
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'plan_code required',
+        400,
+        'errors.validation_failed',
+      );
     }
     return billingService.changePlan(tenantId, req.oma!.userId!, {
       plan_code: body.plan_code,
@@ -66,7 +71,12 @@ export class BillingController {
   ) {
     const tenantId = this.requireTenant(req);
     if (!body?.plan_code) {
-      throw new DomainError('VALIDATION_FAILED', 'plan_code required', 400, 'errors.validation_failed');
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'plan_code required',
+        400,
+        'errors.validation_failed',
+      );
     }
     return billingService.requestUpgrade(tenantId, req.oma!.userId!, {
       plan_code: body.plan_code,

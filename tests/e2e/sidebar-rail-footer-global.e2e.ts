@@ -38,16 +38,24 @@ test.describe('sidebar rail footer global', () => {
       for (const route of ROUTES) {
         await page.goto(route, { waitUntil: 'domcontentloaded' });
         await expect(page.locator('.oma-shell')).toBeVisible({ timeout: 30_000 });
-        const footer = page.locator('[data-testid="shell-rail-utilities"], .oma-shell > .oma-rail > .oma-rail-footer').first();
+        const footer = page
+          .locator(
+            '[data-testid="shell-rail-utilities"], .oma-shell > .oma-rail > .oma-rail-footer',
+          )
+          .first();
         await expect(footer, `${route} @ ${vp.name}`).toBeVisible();
         const box = await footer.boundingBox();
         expect(box, `${route} @ ${vp.name} has box`).toBeTruthy();
         if (box) {
           expect(box.height, `${route} @ ${vp.name} height`).toBeGreaterThan(20);
           // Footer should sit within the viewport (not clipped below fold).
-          expect(box.y + box.height, `${route} @ ${vp.name} in viewport`).toBeLessThanOrEqual(vp.height + 2);
+          expect(box.y + box.height, `${route} @ ${vp.name} in viewport`).toBeLessThanOrEqual(
+            vp.height + 2,
+          );
         }
-        await expect(footer.locator('[data-testid="notifications-bell"], button').first()).toBeVisible();
+        await expect(
+          footer.locator('[data-testid="notifications-bell"], button').first(),
+        ).toBeVisible();
       }
     }
   });

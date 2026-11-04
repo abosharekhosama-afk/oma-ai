@@ -2,10 +2,7 @@ import { isRawId } from './demo/stage3-content';
 import type { DemoLocaleCopy } from './demo/use-demo-api';
 
 /** Prefer active locale, then the other; never surface raw ids as copy. */
-export function resolveLocaleCopy(
-  copy: DemoLocaleCopy | null | undefined,
-  locale: string,
-): string {
+export function resolveLocaleCopy(copy: DemoLocaleCopy | null | undefined, locale: string): string {
   if (!copy) return '';
   const ar = locale.toLowerCase().startsWith('ar');
   const primary = (ar ? copy.ar : copy.en)?.trim() ?? '';

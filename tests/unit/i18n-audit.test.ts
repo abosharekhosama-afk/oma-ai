@@ -11,8 +11,14 @@ import { describe, expect, it } from 'vitest';
  *  - audited surfaces have no hardcoded English JSX text / aria-label / placeholder / title
  */
 const ROOT = join(__dirname, '..', '..');
-const en = JSON.parse(readFileSync(join(ROOT, 'packages/i18n/messages/en.json'), 'utf8')) as Record<string, string>;
-const ar = JSON.parse(readFileSync(join(ROOT, 'packages/i18n/messages/ar.json'), 'utf8')) as Record<string, string>;
+const en = JSON.parse(readFileSync(join(ROOT, 'packages/i18n/messages/en.json'), 'utf8')) as Record<
+  string,
+  string
+>;
+const ar = JSON.parse(readFileSync(join(ROOT, 'packages/i18n/messages/ar.json'), 'utf8')) as Record<
+  string,
+  string
+>;
 const WEB = join(ROOT, 'apps/web/src');
 
 function walk(dir: string, out: string[] = []): string[] {
@@ -49,7 +55,9 @@ describe('i18n audit (EN/AR)', () => {
   });
 
   it('every t() key used in the web app exists in EN and AR (no raw keys on screen)', () => {
-    const missing = [...usedKeys()].filter(([k]) => !(k in en) || !(k in ar)).map(([k, f]) => `${k} (${f})`);
+    const missing = [...usedKeys()]
+      .filter(([k]) => !(k in en) || !(k in ar))
+      .map(([k, f]) => `${k} (${f})`);
     expect(missing).toEqual([]);
   });
 
@@ -70,7 +78,9 @@ describe('i18n audit (EN/AR)', () => {
       for (const v of [en[k], ar[k]]) if (v && re.test(v)) bad.push(`${k}: ${v}`);
     }
     // error/permission copy is always checked, used or not
-    for (const k of Object.keys(en).filter((k) => /^(errors?|team\.perm|members\.role)\./.test(k))) {
+    for (const k of Object.keys(en).filter((k) =>
+      /^(errors?|team\.perm|members\.role)\./.test(k),
+    )) {
       if (re.test(en[k]!) || re.test(ar[k]!)) bad.push(`${k}: ${en[k]}`);
     }
     expect([...new Set(bad)]).toEqual([]);
@@ -100,9 +110,13 @@ describe('i18n audit (EN/AR)', () => {
         const attr = /\b(aria-label|placeholder|title|alt)="([A-Za-z][^"]*[a-z][^"]*)"/.exec(line);
         // emails/URLs are format hints, not copy
         if (attr && /^[\w.+-]*@[\w.-]+$|^https?:\/\/$/.test(attr[2]!)) attr.length = 0;
-        const toast = /\b(toast\.push|setError|setMsg|setCreateError|confirm)\(\s*'([A-Z][^']*[a-z][^']*)'/.exec(line);
+        const toast =
+          /\b(toast\.push|setError|setMsg|setCreateError|confirm)\(\s*'([A-Z][^']*[a-z][^']*)'/.exec(
+            line,
+          );
         const fallback = /err\.message\s*:\s*'([A-Z][^']+)'/.exec(line);
-        for (const m of [jsxText, attr, toast, fallback]) if (m && m.length) hits.push(`${rel}:${i + 1}: ${line.trim()}`);
+        for (const m of [jsxText, attr, toast, fallback])
+          if (m && m.length) hits.push(`${rel}:${i + 1}: ${line.trim()}`);
       });
     }
     expect(hits).toEqual([]);
@@ -112,7 +126,12 @@ describe('i18n audit (EN/AR)', () => {
     const api = readFileSync(join(WEB, 'lib/api.ts'), 'utf8');
     expect(api).toContain('friendlyApiMessage');
     expect(api).not.toMatch(/new Error\(data\?\.error\?\.message/);
-    for (const k of ['errors.permission_denied', 'errors.tenant_required', 'error.schedule_blocked', 'errors.network']) {
+    for (const k of [
+      'errors.permission_denied',
+      'errors.tenant_required',
+      'error.schedule_blocked',
+      'errors.network',
+    ]) {
       expect(en[k], k).toBeTruthy();
       expect(ar[k], k).toMatch(/[\u0600-\u06FF]/);
     }

@@ -427,7 +427,9 @@ export function MediaPickerDialog({
                                 className="oma-mp-tree__row"
                                 data-active={i === trail.length - 1 ? 'true' : 'false'}
                                 style={{ paddingInlineStart: 8 + i * 12 }}
-                                onClick={() => void openFolder(crumb.id, crumb.name, true, browseScope)}
+                                onClick={() =>
+                                  void openFolder(crumb.id, crumb.name, true, browseScope)
+                                }
                               >
                                 <FolderOutlined /> {crumb.name}
                               </button>

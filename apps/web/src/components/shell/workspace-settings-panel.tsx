@@ -217,7 +217,12 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
         </aside>
 
         <div className="oma-ws-panel-main">
-          <button type="button" className="oma-ws-panel-close" aria-label={t('brand.evidence.close')} onClick={onClose}>
+          <button
+            type="button"
+            className="oma-ws-panel-close"
+            aria-label={t('brand.evidence.close')}
+            onClick={onClose}
+          >
             ×
           </button>
 
@@ -226,11 +231,7 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
               <h2 className="oma-ws-section-title">{t('wsPanel.general_settings')}</h2>
               <div className="oma-ws-field">
                 <label className="oma-ws-label">{t('wsPanel.workspace_name')}</label>
-                <Input
-                  value={draft.workspaceName || ''}
-                  readOnly
-                  disabled
-                />
+                <Input value={draft.workspaceName || ''} readOnly disabled />
               </div>
               <div className="oma-ws-field">
                 <label className="oma-ws-label">{t('brand.connect.urlLabel')}</label>
@@ -291,15 +292,12 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
           {section === 'approvals' && (
             <div className="oma-ws-section" data-testid="ws-approvals">
               <h2 className="oma-ws-section-title">{t('activity.filter.approvals')}</h2>
-              <p className="oma-ws-empty-desc">
-                {t('wsPanel.choose_how_posts_are_approved')}
-              </p>
+              <p className="oma-ws-empty-desc">{t('wsPanel.choose_how_posts_are_approved')}</p>
               {approvalsState === 'loading' ? (
                 <div className="oma-skeleton" style={{ height: 120 }} aria-busy="true" />
               ) : approvalsState === 'error' ? (
                 <p className="oma-ws-save-msg" role="alert" data-testid="ws-approvals-error">
-                  {t('wsPanel.could_not_load_approval_settings')}{' '}
-                  {approvalsError}
+                  {t('wsPanel.could_not_load_approval_settings')} {approvalsError}
                 </p>
               ) : (
                 <>
@@ -309,15 +307,14 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
                       data-testid="ws-approval-mode"
                       value={approvals.mode}
                       onChange={(e) =>
-                        setApprovals({ ...approvals, mode: e.target.value as ApprovalSettings['mode'] })
+                        setApprovals({
+                          ...approvals,
+                          mode: e.target.value as ApprovalSettings['mode'],
+                        })
                       }
                     >
-                      <option value="none">
-                        {t('wsPanel.none_no_approval_step')}
-                      </option>
-                      <option value="optional">
-                        {t('wsPanel.optional_approval_available')}
-                      </option>
+                      <option value="none">{t('wsPanel.none_no_approval_step')}</option>
+                      <option value="optional">{t('wsPanel.optional_approval_available')}</option>
                       <option value="required">
                         {t('wsPanel.required_no_scheduling_until_approved')}
                       </option>
@@ -325,9 +322,7 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
                   </div>
                   {approvals.mode === 'required' ? (
                     <div className="oma-ws-field">
-                      <label className="oma-ws-label">
-                        {t('wsPanel.approvers_required')}
-                      </label>
+                      <label className="oma-ws-label">{t('wsPanel.approvers_required')}</label>
                       <SelectField
                         data-testid="ws-required-approvers"
                         value={String(approvals.requiredApprovers)}
@@ -362,7 +357,7 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
                           .catch((err: unknown) => {
                             setApprovalsState('ready');
                             setMsg(
-                              (t('wsPanel.could_not_save')) +
+                              t('wsPanel.could_not_save') +
                                 (err instanceof Error ? err.message : String(err)),
                             );
                           });
@@ -395,9 +390,7 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
                   </SelectField>
                 </div>
               ) : (
-                <p className="oma-ws-empty-desc">
-                  {t('wsPanel.no_brands_yet_create_a')}
-                </p>
+                <p className="oma-ws-empty-desc">{t('wsPanel.no_brands_yet_create_a')}</p>
               )}
               {labels.length === 0 ? (
                 <div className="oma-ws-empty-block">

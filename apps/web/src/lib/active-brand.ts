@@ -11,9 +11,7 @@ export const BRAND_LOGO_EVENT = 'oma:brand-logo-change';
 
 export function announceBrandLogo(id: string, logoUrl: string | null): void {
   if (typeof window === 'undefined') return;
-  window.dispatchEvent(
-    new CustomEvent(BRAND_LOGO_EVENT, { detail: { id, logo_url: logoUrl } }),
-  );
+  window.dispatchEvent(new CustomEvent(BRAND_LOGO_EVENT, { detail: { id, logo_url: logoUrl } }));
 }
 
 export function getActiveBrandId(): string | null {
@@ -63,8 +61,7 @@ function installActiveBrandWatch(): void {
   if (brandWatchInstalled || typeof window === 'undefined') return;
   brandWatchInstalled = true;
   lastAnnouncedBrand = getActiveBrandId();
-  const wrap =
-    (original: History['pushState']) =>
+  const wrap = (original: History['pushState']) =>
     function (this: History, ...args: Parameters<History['pushState']>) {
       const result = original.apply(this, args);
       announceActiveBrand(getActiveBrandId());

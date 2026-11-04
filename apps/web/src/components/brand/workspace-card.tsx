@@ -59,7 +59,9 @@ export function WorkspaceCard({ brand }: { brand: BrandListItem; compact?: boole
       <dl className="oma-workspace-card__facts">
         <div>
           <dt>{t('brand.scan.historyTitle')}</dt>
-          <dd>{brand.latest_scan_status ? <StatusChip status={brand.latest_scan_status} /> : '—'}</dd>
+          <dd>
+            {brand.latest_scan_status ? <StatusChip status={brand.latest_scan_status} /> : '—'}
+          </dd>
         </div>
         <div>
           <dt>{t('brand.detail.intelligenceCta')}</dt>

@@ -14,10 +14,7 @@ describe('sidebar rail footer is global', () => {
   });
 
   it('shell chrome always renders RailUtilities in the desktop rail', () => {
-    const chrome = readFileSync(
-      resolve('apps/web/src/components/shell/shell-chrome.tsx'),
-      'utf8',
-    );
+    const chrome = readFileSync(resolve('apps/web/src/components/shell/shell-chrome.tsx'), 'utf8');
     expect(chrome).toContain('data-testid="shell-rail-utilities"');
     expect(chrome).toContain('<RailUtilities />');
     expect(chrome).toContain('<UserMenu />');

@@ -137,7 +137,6 @@ export function verifyGrant(token: unknown): Grant | null {
   }
 }
 
-
 async function retryWorkDrive<T>(fn: () => Promise<T>, attempts = 3): Promise<T> {
   let last: unknown;
   for (let i = 0; i < attempts; i++) {
@@ -147,7 +146,9 @@ async function retryWorkDrive<T>(fn: () => Promise<T>, attempts = 3): Promise<T>
       last = e;
       const retryable =
         (e instanceof WorkDriveError && e.retryable) ||
-        /timeout|aborted|unreachable|ECONNRESET|ETIMEDOUT|429|5\d\d/i.test(String((e as Error)?.message ?? e));
+        /timeout|aborted|unreachable|ECONNRESET|ETIMEDOUT|429|5\d\d/i.test(
+          String((e as Error)?.message ?? e),
+        );
       if (!retryable || i === attempts - 1) throw e;
       await new Promise((r) => setTimeout(r, 500 * 2 ** i));
     }

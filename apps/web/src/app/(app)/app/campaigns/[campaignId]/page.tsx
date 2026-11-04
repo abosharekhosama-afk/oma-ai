@@ -452,7 +452,10 @@ export default function CampaignDetailPage() {
                 }
               />
             ) : (
-              <div className="oma-req-table-wrap oma-campaign-table" data-testid="demo-campaign-content-tab">
+              <div
+                className="oma-req-table-wrap oma-campaign-table"
+                data-testid="demo-campaign-content-tab"
+              >
                 <table className="oma-req-table oma-task-table">
                   <thead>
                     <tr>

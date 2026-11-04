@@ -25,7 +25,11 @@ export function workDriveLimits(env: NodeJS.ProcessEnv = process.env) {
 
 export function maxBytesForMime(mime: string, env: NodeJS.ProcessEnv = process.env) {
   const l = workDriveLimits(env);
-  return mime.startsWith('video/') ? l.maxVideoBytes : mime.startsWith('image/') ? l.maxImageBytes : l.maxImageBytes;
+  return mime.startsWith('video/')
+    ? l.maxVideoBytes
+    : mime.startsWith('image/')
+      ? l.maxImageBytes
+      : l.maxImageBytes;
 }
 
 /** Default shown in the connect form; the workspace can change it. */

@@ -13,7 +13,10 @@ async function need(resolve: WorkDriveResolver, tenantId: string) {
 }
 
 /** ObjectStoragePort backed by WorkDrive: `key` is a folder path + file name; externalRef = WorkDrive file id. */
-export function workDriveObjectStorage(resolve: WorkDriveResolver, fetchImpl: typeof fetch = fetch): ObjectStoragePort {
+export function workDriveObjectStorage(
+  resolve: WorkDriveResolver,
+  fetchImpl: typeof fetch = fetch,
+): ObjectStoragePort {
   return {
     async putObject({ tenantId, key, bytes, contentType }) {
       const client = await need(resolve, tenantId);
@@ -38,7 +41,8 @@ export function workDriveObjectStorage(resolve: WorkDriveResolver, fetchImpl: ty
       const client = await need(resolve, tenantId);
       const { url } = await client.downloadUrl(externalRef);
       const res = await fetchImpl(url);
-      if (!res.ok) throw new WorkDriveError('unavailable', `Download failed (${res.status})`, res.status);
+      if (!res.ok)
+        throw new WorkDriveError('unavailable', `Download failed (${res.status})`, res.status);
       return new Uint8Array(await res.arrayBuffer());
     },
     async headObject({ tenantId, externalRef }) {

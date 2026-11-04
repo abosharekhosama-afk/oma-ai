@@ -132,10 +132,20 @@ export function resolveContentWorkflow(
 export function assertCanSchedule(item: WorkflowSource, policy: ApprovalPolicy = 'OPTIONAL'): void {
   const wf = resolveContentWorkflow(item, policy);
   if (wf.scheduleBlockedReason === 'ARCHIVED') {
-    throw new DomainError('CONFLICT_STATE', 'Archived content cannot be scheduled', 409, 'error.content_archived');
+    throw new DomainError(
+      'CONFLICT_STATE',
+      'Archived content cannot be scheduled',
+      409,
+      'error.content_archived',
+    );
   }
   if (wf.scheduleBlockedReason === 'REJECTED') {
-    throw new DomainError('CONTENT_REJECTED', 'Rejected content cannot be scheduled', 409, 'error.content_rejected');
+    throw new DomainError(
+      'CONTENT_REJECTED',
+      'Rejected content cannot be scheduled',
+      409,
+      'error.content_rejected',
+    );
   }
   if (wf.scheduleBlocked) {
     throw new DomainError(
@@ -143,7 +153,14 @@ export function assertCanSchedule(item: WorkflowSource, policy: ApprovalPolicy =
       'Scheduling is blocked until content is fully approved',
       409,
       'error.schedule_blocked',
-      [{ policy, approvalState: wf.approvalState, approved: wf.approverApproved, required: wf.approverRequired }],
+      [
+        {
+          policy,
+          approvalState: wf.approvalState,
+          approved: wf.approverApproved,
+          required: wf.approverRequired,
+        },
+      ],
     );
   }
 }

@@ -1,5 +1,11 @@
 import { expect, test } from '@playwright/test';
-import { apiGet, apiPatch, apiPost, createBrandFlow, registerBrandOwner } from './helpers/brand-api';
+import {
+  apiGet,
+  apiPatch,
+  apiPost,
+  createBrandFlow,
+  registerBrandOwner,
+} from './helpers/brand-api';
 
 /**
  * Planable approval policies: REQUIRED blocks Schedule until every approver approved,
@@ -24,7 +30,9 @@ test('approval policy REQUIRED gates scheduling (en + ar)', async ({ page, reque
   });
   expect(ws.status()).toBe(200);
   expect((await ws.json()).required_approvers).toBe(2);
-  const prefs = await (await apiGet(request, `/api/v1/brands/${brandId}/content-preferences`, owner.cookies)).json();
+  const prefs = await (
+    await apiGet(request, `/api/v1/brands/${brandId}/content-preferences`, owner.cookies)
+  ).json();
   expect(prefs.data.approval_policy).toBe('REQUIRED');
 
   const planned = new Date(Date.now() + 2 * 864e5).toISOString();
@@ -47,7 +55,8 @@ test('approval policy REQUIRED gates scheduling (en + ar)', async ({ page, reque
   const c = await mk('Planned only – Friday reel', 'مخطط فقط – ريل الجمعة');
 
   // Planned date alone is not a schedule.
-  const cRow = (await (await apiGet(request, `/api/v1/content/${c.id}`, owner.cookies)).json()).data;
+  const cRow = (await (await apiGet(request, `/api/v1/content/${c.id}`, owner.cookies)).json())
+    .data;
   expect(cRow.schedule_state).toBe('UNSCHEDULED');
   expect(cRow.planned_at).toBeTruthy();
 
@@ -58,27 +67,43 @@ test('approval policy REQUIRED gates scheduling (en + ar)', async ({ page, reque
   expect(aRow.approver_approved).toBe(1);
   expect(aRow.approver_required).toBe(2);
   // Same person can't approve twice.
-  expect((await apiPost(request, `/api/v1/content/${a.id}/approve`, owner.cookies, {})).status()).toBe(409);
-  const sa = await apiPost(request, `/api/v1/content/${a.id}/schedule`, owner.cookies, { scheduledAt: planned });
+  expect(
+    (await apiPost(request, `/api/v1/content/${a.id}/approve`, owner.cookies, {})).status(),
+  ).toBe(409);
+  const sa = await apiPost(request, `/api/v1/content/${a.id}/schedule`, owner.cookies, {
+    scheduledAt: planned,
+  });
   expect(sa.status()).toBe(409);
   expect((await sa.json()).error.code).toBe('SCHEDULE_BLOCKED');
 
   await apiPost(request, `/api/v1/content/${b.id}/request-approval`, owner.cookies, {});
   await apiPost(request, `/api/v1/content/${b.id}/reject`, owner.cookies, {});
-  const sb = await apiPost(request, `/api/v1/content/${b.id}/schedule`, owner.cookies, { scheduledAt: planned });
+  const sb = await apiPost(request, `/api/v1/content/${b.id}/schedule`, owner.cookies, {
+    scheduledAt: planned,
+  });
   expect((await sb.json()).error.code).toBe('CONTENT_REJECTED');
-  expect((await apiPost(request, `/api/v1/content/${b.id}/mark-published`, owner.cookies, {})).status()).toBe(409);
+  expect(
+    (await apiPost(request, `/api/v1/content/${b.id}/mark-published`, owner.cookies, {})).status(),
+  ).toBe(409);
 
   for (const loc of ['en', 'ar'] as const) {
     await page.context().clearCookies();
     const host = new URL(baseURL!).hostname;
     await page.context().addCookies([
-      ...Object.entries(owner.cookies).map(([name, value]) => ({ name, value: String(value), domain: host, path: '/' })),
+      ...Object.entries(owner.cookies).map(([name, value]) => ({
+        name,
+        value: String(value),
+        domain: host,
+        path: '/',
+      })),
       { name: 'oma_locale', value: loc, domain: host, path: '/' },
     ]);
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(`/app/content?view=list&brand=${brandId}&item=${a.id}`);
-    await expect(page.getByTestId('content-approval-progress')).toContainText(loc === 'ar' ? '1 من 2' : '1 of 2 approved', { timeout: 30_000 });
+    await expect(page.getByTestId('content-approval-progress')).toContainText(
+      loc === 'ar' ? '1 من 2' : '1 of 2 approved',
+      { timeout: 30_000 },
+    );
     await expect(page.getByTestId('content-publishing-not-connected')).toBeVisible();
     await expect(page.getByTestId('demo-content-schedule')).toBeDisabled();
     await page.waitForTimeout(800);
@@ -93,7 +118,10 @@ test('approval policy REQUIRED gates scheduling (en + ar)', async ({ page, reque
     await page.waitForLoadState('networkidle');
     await page.getByTestId('workspace-row-menu').click();
     await page.getByRole('menuitem').first().click();
-    await page.getByTestId('workspace-settings-panel').getByRole('button', { name: /Approvals|الموافقات/ }).click();
+    await page
+      .getByTestId('workspace-settings-panel')
+      .getByRole('button', { name: /Approvals|الموافقات/ })
+      .click();
     await expect(page.getByTestId('ws-approvals')).toBeVisible();
     await expect(page.getByTestId('ws-required-approvers')).toBeVisible({ timeout: 15_000 });
     await page.waitForTimeout(500);

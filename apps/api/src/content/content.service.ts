@@ -26,7 +26,6 @@ import { mediaPlaybackUrl } from '../media/media.service';
 import { syncContentPublishRollup } from '../social/publish-target-sync';
 import { rollupToLegacyPublishState } from '@oma/domain';
 
-
 function mapComment(c: {
   id: string;
   authorUserId: string;
@@ -204,13 +203,17 @@ function mapContent(
         (row.publishState ?? 'NONE') as import('@oma/domain').ContentPublishRollupState,
       ),
       publish_targets:
-        (row as { publishTargets?: Array<{
-          id: string;
-          socialPageId: string;
-          publishState: string;
-          externalPostUrl: string | null;
-          lastPublishError: string | null;
-        }> }).publishTargets?.map((t) => ({
+        (
+          row as {
+            publishTargets?: Array<{
+              id: string;
+              socialPageId: string;
+              publishState: string;
+              externalPostUrl: string | null;
+              lastPublishError: string | null;
+            }>;
+          }
+        ).publishTargets?.map((t) => ({
           id: t.id,
           social_page_id: t.socialPageId,
           state: t.publishState,
@@ -1244,7 +1247,8 @@ export class ContentService {
       const parent = await getPrisma().contentComment.findFirst({
         where: { id: extra.parentId, tenantId, contentId },
       });
-      if (!parent) throw new DomainError('NOT_FOUND', 'Parent comment not found', 404, 'errors.not_found');
+      if (!parent)
+        throw new DomainError('NOT_FOUND', 'Parent comment not found', 404, 'errors.not_found');
     }
     const comment = await getPrisma().contentComment.create({
       data: {
@@ -1326,7 +1330,12 @@ export class ContentService {
     }
     const pair = localePair(body);
     if (!pair.en.trim()) {
-      throw new DomainError('VALIDATION_FAILED', 'Comment body required', 400, 'errors.validation_failed');
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'Comment body required',
+        400,
+        'errors.validation_failed',
+      );
     }
     const updated = await getPrisma().contentComment.update({
       where: { id: commentId },
@@ -1539,7 +1548,8 @@ export class ContentService {
     });
     if (!current) throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
     const target = current.publishTargets.find((t) => t.socialPageId === socialPageId);
-    if (!target) throw new DomainError('NOT_FOUND', 'Publish target not found', 404, 'errors.not_found');
+    if (!target)
+      throw new DomainError('NOT_FOUND', 'Publish target not found', 404, 'errors.not_found');
     if (current.publishTargets.length <= 1) {
       throw new DomainError(
         'CONFLICT_STATE',
@@ -1607,12 +1617,7 @@ export class ContentService {
   }
 
   /** Ungroup: one independent draft per publish target. */
-  async ungroup(
-    tenantId: string,
-    actorUserId: string,
-    contentId: string,
-    correlationId?: string,
-  ) {
+  async ungroup(tenantId: string, actorUserId: string, contentId: string, correlationId?: string) {
     const current = await getPrisma().contentItem.findFirst({
       where: tenantWhere(tenantId, { id: contentId }),
       include: { publishTargets: true },
@@ -1682,7 +1687,8 @@ export class ContentService {
           status: { not: 'DISCONNECTED' },
         },
       });
-      if (!page) throw new DomainError('NOT_FOUND', 'Social page not found', 404, 'errors.not_found');
+      if (!page)
+        throw new DomainError('NOT_FOUND', 'Social page not found', 404, 'errors.not_found');
     }
     const dup = await this.duplicate(tenantId, actorUserId, contentId, correlationId);
     const newId_ = (dup.data as { id: string }).id;

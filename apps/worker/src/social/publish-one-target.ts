@@ -122,7 +122,9 @@ export async function publishOneTarget(
       const asset = byId.get(id);
       const rawUrl = rawMediaUrls[index];
       if (!asset || !rawUrl) {
-        throw new SocialProviderError('Post media is missing or unavailable.', { retryable: false });
+        throw new SocialProviderError('Post media is missing or unavailable.', {
+          retryable: false,
+        });
       }
       const variant = await prepareAssetForNetwork({
         tenantId: item.tenantId,

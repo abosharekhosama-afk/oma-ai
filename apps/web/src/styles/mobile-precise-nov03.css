@@ -49,7 +49,10 @@
   html body .oma-schedule-page h1,
   html body [data-testid='demo-schedule'] h1,
   html body [data-testid='activity-page-planable'] .oma-planable-page__title,
-  html body .oma-planable-page:has([data-testid='team-permissions'], [data-testid='team-notifications']) .oma-planable-page__title,
+  html
+    body
+    .oma-planable-page:has([data-testid='team-permissions'], [data-testid='team-notifications'])
+    .oma-planable-page__title,
   html body [data-testid='team-page'] .oma-planable-page__title,
   html body .oma-member-surface .oma-planable-page__title {
     display: none !important;
@@ -252,8 +255,7 @@
     box-shadow: 0 1px 2px rgb(15 23 42 / 8%) !important;
   }
 
-  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__end
-    .oma-cal-request-approvals,
+  html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__end .oma-cal-request-approvals,
   html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__end .oma-pv-icon-btn,
   html body [data-testid='demo-content-calendar'] .oma-cal-toolbar__end .oma-cal-ext-indicator {
     display: inline-flex !important;

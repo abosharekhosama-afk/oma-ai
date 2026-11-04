@@ -40,22 +40,14 @@ export function getSubscription() {
   return api<{ data: SubscriptionView }>('/api/v1/billing/subscription');
 }
 
-export function requestUpgrade(body: {
-  plan_code: string;
-  billing_cycle?: string;
-  note?: string;
-}) {
+export function requestUpgrade(body: { plan_code: string; billing_cycle?: string; note?: string }) {
   return api<{ data: { id: string; message: { en: string; ar: string } } }>(
     '/api/v1/billing/upgrade-requests',
     { method: 'POST', body: JSON.stringify(body) },
   );
 }
 
-export function changePlan(body: {
-  plan_code: string;
-  billing_cycle?: string;
-  notes?: string;
-}) {
+export function changePlan(body: { plan_code: string; billing_cycle?: string; notes?: string }) {
   return api<{ data: { plan_code: string } }>('/api/v1/billing/subscription', {
     method: 'PATCH',
     body: JSON.stringify(body),

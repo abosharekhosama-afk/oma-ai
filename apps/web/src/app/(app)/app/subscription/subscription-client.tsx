@@ -32,9 +32,7 @@ function formatUsed(key: string, used: number, limit: number | null, isAr: boole
       const gb = n / (1024 * 1024 * 1024);
       return `${gb < 0.1 && n > 0 ? gb.toFixed(2) : gb.toFixed(1)} GB`;
     };
-    return limit == null
-      ? toGb(used)
-      : `${toGb(used)} / ${toGb(limit)}`;
+    return limit == null ? toGb(used) : `${toGb(used)} / ${toGb(limit)}`;
   }
   if (limit == null) return `${used} · ${isAr ? 'غير محدود' : 'Unlimited'}`;
   return `${used} / ${limit}`;
@@ -76,7 +74,10 @@ export default function SubscriptionClient() {
     if (!canAdmin) return;
     setBusy(true);
     try {
-      await changePlan({ plan_code: adminPlan, notes: 'Admin manual plan change (payment deferred)' });
+      await changePlan({
+        plan_code: adminPlan,
+        notes: 'Admin manual plan change (payment deferred)',
+      });
       toast.push(isAr ? 'تم تحديث الخطة' : 'Plan updated', 'success');
       await load();
     } catch {
@@ -131,20 +132,48 @@ export default function SubscriptionClient() {
           <p className="oma-planable-page__sub">{copy.sub}</p>
         </div>
         <div className="oma-billing__header-actions">
-          <Link className="oma-billing__icon-link" href="/app/billing" aria-label={copy.pricing} title={copy.pricing}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+          <Link
+            className="oma-billing__icon-link"
+            href="/app/billing"
+            aria-label={copy.pricing}
+            title={copy.pricing}
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
               <path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
             </svg>
           </Link>
-          <Link className="oma-billing__icon-link" href="/app" aria-label={copy.back} title={copy.back}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+          <Link
+            className="oma-billing__icon-link"
+            href="/app"
+            aria-label={copy.back}
+            title={copy.back}
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
               <path d={isAr ? 'M5 12h14M11 6l-6 6 6 6' : 'M19 12H5M11 6l-6 6 6 6'} />
             </svg>
           </Link>
         </div>
       </header>
 
-      <div className="oma-billing__notice" role="status">{copy.deferred}</div>
+      <div className="oma-billing__notice" role="status">
+        {copy.deferred}
+      </div>
 
       {loading || !sub ? (
         <p>{copy.loading}</p>
@@ -170,8 +199,17 @@ export default function SubscriptionClient() {
                     <span>{label ?? bar.key}</span>
                     <span>{formatUsed(bar.key, bar.used, bar.limit, isAr)}</span>
                   </div>
-                  <div className="oma-sub__track" role="progressbar" aria-valuenow={bar.pct} aria-valuemin={0} aria-valuemax={100}>
-                    <div className="oma-sub__fill" style={{ width: `${bar.unlimited ? Math.min(bar.pct || 4, 100) : bar.pct}%` }} />
+                  <div
+                    className="oma-sub__track"
+                    role="progressbar"
+                    aria-valuenow={bar.pct}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                  >
+                    <div
+                      className="oma-sub__fill"
+                      style={{ width: `${bar.unlimited ? Math.min(bar.pct || 4, 100) : bar.pct}%` }}
+                    />
                   </div>
                 </div>
               );
@@ -182,13 +220,21 @@ export default function SubscriptionClient() {
             <section className="oma-sub__admin" aria-label={copy.admin}>
               <h2>{copy.admin}</h2>
               <div className="oma-sub__admin-row">
-                <select value={adminPlan} onChange={(e) => setAdminPlan(e.target.value)} aria-label={copy.admin}>
+                <select
+                  value={adminPlan}
+                  onChange={(e) => setAdminPlan(e.target.value)}
+                  aria-label={copy.admin}
+                >
                   <option value="free">{isAr ? 'مجانية' : 'Free'}</option>
                   <option value="basic">{isAr ? 'أساسية' : 'Basic'}</option>
                   <option value="pro">{isAr ? 'احترافية' : 'Pro'}</option>
                   <option value="enterprise">{isAr ? 'مؤسسات' : 'Enterprise'}</option>
                 </select>
-                <Button type="primary" disabled={busy || adminPlan === sub.plan_code} onClick={() => void applyPlan()}>
+                <Button
+                  type="primary"
+                  disabled={busy || adminPlan === sub.plan_code}
+                  onClick={() => void applyPlan()}
+                >
                   {copy.apply}
                 </Button>
               </div>

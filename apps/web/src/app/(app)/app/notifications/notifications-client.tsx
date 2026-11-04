@@ -3,23 +3,85 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from '@oma/ui/controls';
 import { useLocale, useT } from '../../../../lib/use-locale';
-import { listNotifications, markAllNotificationsRead, markNotificationRead, type AppNotification } from '../../../../lib/notifications-api';
+import {
+  listNotifications,
+  markAllNotificationsRead,
+  markNotificationRead,
+  type AppNotification,
+} from '../../../../lib/notifications-api';
 import { getApiError } from '../../../../lib/brand-api';
-import { notificationCategories, notificationCategory, notificationCategoryLabel, NotificationRow } from '../../../../components/shell/notifications-bell';
+import {
+  notificationCategories,
+  notificationCategory,
+  notificationCategoryLabel,
+  NotificationRow,
+} from '../../../../components/shell/notifications-bell';
 import { ShellIcon } from '../../../../components/shell/shell-icons';
 
 export default function NotificationsPage() {
-  const t = useT(); const locale = useLocale(); const isAr = locale === 'ar';
-  const [items, setItems] = useState<AppNotification[] | null>(null); const [error, setError] = useState<string | null>(null); const [category, setCategory] = useState((notificationCategories[0])); const [busy, setBusy] = useState(false); const [unreadOnly, setUnreadOnly] = useState(false);
-  const load = useCallback(async () => { setError(null); try { setItems((await listNotifications()).items); } catch (err) { setError(getApiError(err).message); } }, []);
-  useEffect(() => { void load(); }, [load]);
-  async function markRead(id: string) { try { await markNotificationRead(id); setItems((prev) => prev ? prev.map((n) => n.id === id ? { ...n, readAt: new Date().toISOString() } : n) : prev); } catch (err) { setError(getApiError(err).message); } }
-  async function markAll() { setBusy(true); try { await markAllNotificationsRead(); setItems((prev) => prev ? prev.map((n) => ({ ...n, readAt: n.readAt ?? new Date().toISOString() })) : prev); } catch (err) { setError(getApiError(err).message); } finally { setBusy(false); } }
+  const t = useT();
+  const locale = useLocale();
+  const isAr = locale === 'ar';
+  const [items, setItems] = useState<AppNotification[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [category, setCategory] = useState(notificationCategories[0]);
+  const [busy, setBusy] = useState(false);
+  const [unreadOnly, setUnreadOnly] = useState(false);
+  const load = useCallback(async () => {
+    setError(null);
+    try {
+      setItems((await listNotifications()).items);
+    } catch (err) {
+      setError(getApiError(err).message);
+    }
+  }, []);
+  useEffect(() => {
+    void load();
+  }, [load]);
+  async function markRead(id: string) {
+    try {
+      await markNotificationRead(id);
+      setItems((prev) =>
+        prev
+          ? prev.map((n) => (n.id === id ? { ...n, readAt: new Date().toISOString() } : n))
+          : prev,
+      );
+    } catch (err) {
+      setError(getApiError(err).message);
+    }
+  }
+  async function markAll() {
+    setBusy(true);
+    try {
+      await markAllNotificationsRead();
+      setItems((prev) =>
+        prev ? prev.map((n) => ({ ...n, readAt: n.readAt ?? new Date().toISOString() })) : prev,
+      );
+    } catch (err) {
+      setError(getApiError(err).message);
+    } finally {
+      setBusy(false);
+    }
+  }
   const unread = (items ?? []).filter((n) => !n.readAt).length;
-  const counts = useMemo(() => Object.fromEntries(notificationCategories.map((c) => [c, (items ?? []).filter((n) => notificationCategory(n.type) === c && !n.readAt).length])) as Record<typeof notificationCategories[number], number>, [items]);
-  const shown = (items ?? []).filter((n) => notificationCategory(n.type) === category && (!unreadOnly || !n.readAt));
+  const counts = useMemo(
+    () =>
+      Object.fromEntries(
+        notificationCategories.map((c) => [
+          c,
+          (items ?? []).filter((n) => notificationCategory(n.type) === c && !n.readAt).length,
+        ]),
+      ) as Record<(typeof notificationCategories)[number], number>,
+    [items],
+  );
+  const shown = (items ?? []).filter(
+    (n) => notificationCategory(n.type) === category && (!unreadOnly || !n.readAt),
+  );
   return (
-    <main className="oma-page oma-notifications-page oma-notifications-page--planable" data-testid="notifications-page">
+    <main
+      className="oma-page oma-notifications-page oma-notifications-page--planable"
+      data-testid="notifications-page"
+    >
       <header className="oma-notifications-page__head">
         <div>
           <h1 className="oma-page-title">{t('shell.notifications')}</h1>
@@ -54,7 +116,11 @@ export default function NotificationsPage() {
         ))}
       </div>
       <div className="oma-notifications-page__toolbar">
-        <div className="oma-notifications-page__filter" role="tablist" aria-label={isAr ? 'تصفية القراءة' : 'Read filter'}>
+        <div
+          className="oma-notifications-page__filter"
+          role="tablist"
+          aria-label={isAr ? 'تصفية القراءة' : 'Read filter'}
+        >
           <button
             type="button"
             role="tab"
@@ -99,7 +165,13 @@ export default function NotificationsPage() {
       ) : (
         <ul className="oma-notifications-page__list" data-testid="notifications-page-list">
           {shown.map((n) => (
-            <NotificationRow key={n.id} n={n} t={t} locale={locale} markRead={(id) => void markRead(id)} />
+            <NotificationRow
+              key={n.id}
+              n={n}
+              t={t}
+              locale={locale}
+              markRead={(id) => void markRead(id)}
+            />
           ))}
         </ul>
       )}

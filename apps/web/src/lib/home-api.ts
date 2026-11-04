@@ -9,7 +9,12 @@ export type HomeBrandSummary = {
   name: string;
   logo_url: string | null;
   /** Real connected accounts (SocialPage); preferred over `channels`. */
-  social_pages?: Array<{ network: string; name: string; avatar_url: string | null; status: string }>;
+  social_pages?: Array<{
+    network: string;
+    name: string;
+    avatar_url: string | null;
+    status: string;
+  }>;
   channels: string[];
   awaiting_approval: number;
   scheduled_this_week: number;

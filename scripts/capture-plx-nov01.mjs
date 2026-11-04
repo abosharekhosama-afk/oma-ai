@@ -24,7 +24,9 @@ function apiLogin() {
     );
   } catch {}
   const jar = '/tmp/oma-capture-cookies.txt';
-  try { fs.unlinkSync(jar); } catch {}
+  try {
+    fs.unlinkSync(jar);
+  } catch {}
   const login = execSync(
     `curl -s -c ${jar} -b ${jar} -X POST ${BASE}/api/v1/auth/login -H 'content-type: application/json' -d '${JSON.stringify({ email: EMAIL, password: PASS })}'`,
     { encoding: 'utf8' },
@@ -70,7 +72,10 @@ async function openAuthed(browser, locale, cookies) {
 async function captureLocale(browser, locale, cookies) {
   const { context, page, tag } = await openAuthed(browser, locale, cookies);
 
-  await page.goto(`${BASE}/app/content?view=calendar`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.goto(`${BASE}/app/content?view=calendar`, {
+    waitUntil: 'domcontentloaded',
+    timeout: 60000,
+  });
   await page.waitForTimeout(2800);
   await shot(page, `01-content-calendar-${tag}`);
 
@@ -96,7 +101,11 @@ async function captureLocale(browser, locale, cookies) {
 
   await page.goto(`${BASE}/app/content?item=${CAROUSEL_ID}`, { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(1500);
-  await page.locator('text=/Feedback|تعليقات|Comments/i').first().click().catch(() => null);
+  await page
+    .locator('text=/Feedback|تعليقات|Comments/i')
+    .first()
+    .click()
+    .catch(() => null);
   await page.waitForTimeout(800);
   await shot(page, `05-feedback-panel-${tag}`);
 
@@ -104,7 +113,11 @@ async function captureLocale(browser, locale, cookies) {
   await page.waitForTimeout(2000);
   await shot(page, `06-hide-from-clients-${tag}`);
 
-  const more = page.locator('[data-testid="content-modal-more"], button[aria-label*="More"], button[aria-label*="المزيد"]').first();
+  const more = page
+    .locator(
+      '[data-testid="content-modal-more"], button[aria-label*="More"], button[aria-label*="المزيد"]',
+    )
+    .first();
   if (await more.count()) {
     await more.click().catch(() => null);
     await page.waitForTimeout(700);
@@ -118,7 +131,11 @@ async function captureLocale(browser, locale, cookies) {
   if (await mediaBtn.count()) {
     await mediaBtn.click();
     await page.waitForTimeout(1000);
-    await page.locator('button:has-text("WorkDrive"), button:has-text("Work Drive")').first().click().catch(() => null);
+    await page
+      .locator('button:has-text("WorkDrive"), button:has-text("Work Drive")')
+      .first()
+      .click()
+      .catch(() => null);
     await page.waitForTimeout(1500);
   }
   await shot(page, `08-media-library-${tag}`);
@@ -129,7 +146,13 @@ async function captureLocale(browser, locale, cookies) {
     await compose.click();
     await page.waitForTimeout(1400);
     await shot(page, `09-compose-post-types-${tag}`);
-    await page.locator('[data-testid="compose-type-STORY"], button:has-text("Story"), button:has-text("قصة")').first().click().catch(() => null);
+    await page
+      .locator(
+        '[data-testid="compose-type-STORY"], button:has-text("Story"), button:has-text("قصة")',
+      )
+      .first()
+      .click()
+      .catch(() => null);
     await page.waitForTimeout(600);
     await shot(page, `09b-compose-story-tab-${tag}`);
     await page.keyboard.press('Escape').catch(() => null);

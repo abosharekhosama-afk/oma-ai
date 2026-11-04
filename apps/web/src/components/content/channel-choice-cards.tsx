@@ -155,7 +155,11 @@ export function ChannelChoiceCards({
     });
     const show = stripNets.length ? stripNets : SOCIAL_NETWORKS;
     return (
-      <div className="oma-channel-strip" data-testid={testId} role={multiple ? 'group' : 'radiogroup'}>
+      <div
+        className="oma-channel-strip"
+        data-testid={testId}
+        role={multiple ? 'group' : 'radiogroup'}
+      >
         {show.map((network) => {
           const accounts = pages.filter((page) => page.network === network);
           const connected = accounts.some((page) => page.status === 'CONNECTED');
@@ -264,7 +268,6 @@ export function ChannelChoiceCards({
       </div>
     );
   }
-
 
   return (
     <div className="oma-channel-choice" data-testid={testId}>

@@ -36,7 +36,9 @@ export function Drawer({
       title={label}
       placement={placement}
       id={id}
-      rootClassName={[nav ? 'oma-drawer oma-drawer--nav' : 'oma-drawer', className].filter(Boolean).join(' ')}
+      rootClassName={[nav ? 'oma-drawer oma-drawer--nav' : 'oma-drawer', className]
+        .filter(Boolean)
+        .join(' ')}
       size={wide ? 'large' : nav ? 256 : 'default'}
       destroyOnHidden
       closable={{ 'aria-label': 'Dismiss' }}

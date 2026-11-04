@@ -606,10 +606,7 @@ export class TenantService {
     const profile =
       (await prisma.capabilityProfile.findFirst({ where: { code: profileCode, tenantId } })) ??
       (await prisma.capabilityProfile.findFirst({ where: { code: profileCode, tenantId: null } }));
-    const codes =
-      profile?.capabilityCodes ??
-      SYSTEM_PROFILES[profileCode] ??
-      null;
+    const codes = profile?.capabilityCodes ?? SYSTEM_PROFILES[profileCode] ?? null;
     if (!codes?.length) {
       throw new DomainError('NOT_FOUND', 'Profile not found', 404, 'errors.not_found');
     }

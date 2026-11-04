@@ -11,10 +11,7 @@ export class CapabilityController {
   @Post('memberships/:id/capabilities')
   @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
   @RequireCapabilities('capability.assign')
-  async caps(
-    @Req() req: Request,
-    @Body() body: { codes?: string[]; managed_codes?: string[] },
-  ) {
+  async caps(@Req() req: Request, @Body() body: { codes?: string[]; managed_codes?: string[] }) {
     const id = (req.params as { id: string }).id;
     const codes = Array.isArray(body?.codes) ? body.codes : [];
     return tenantService.assignCapabilities(req.oma!.userId!, req.oma!.tenantId!, id, codes, {

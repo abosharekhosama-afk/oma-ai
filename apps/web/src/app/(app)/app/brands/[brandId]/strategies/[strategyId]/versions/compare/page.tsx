@@ -1,7 +1,6 @@
 'use client';
 import { DetailShimmer } from '../../../../../../../../../components/ui/shimmer';
 
-
 import { useParams, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { api } from '../../../../../../../../../lib/api';

@@ -28,12 +28,27 @@
   --lp-dur: 0.55s;
   background: var(--lp-canvas);
   color: var(--lp-ink);
-  font-family: var(--oma-font-sans, -apple-system, system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif);
+  font-family: var(
+    --oma-font-sans,
+    -apple-system,
+    system-ui,
+    'Segoe UI',
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif
+  );
   overflow-x: clip;
 }
 
 [dir='rtl'] .oma-lp {
-  font-family: var(--oma-font-arabic, var(--font-noto-arabic), 'Noto Sans Arabic', Tahoma, sans-serif);
+  font-family: var(
+    --oma-font-arabic,
+    var(--font-noto-arabic),
+    'Noto Sans Arabic',
+    Tahoma,
+    sans-serif
+  );
 }
 
 .oma-lp *,
@@ -119,7 +134,9 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .oma-lp-nav-btn:hover,
@@ -159,7 +176,9 @@
   opacity: 0;
   pointer-events: none;
   transform: translateY(6px);
-  transition: opacity 0.18s ease, transform 0.18s var(--lp-ease);
+  transition:
+    opacity 0.18s ease,
+    transform 0.18s var(--lp-ease);
 }
 
 .oma-lp-nav-item.is-open .oma-lp-mega {
@@ -222,7 +241,9 @@
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 .oma-lp-lang-card button:hover {
   background: rgba(18, 19, 26, 0.05);
@@ -262,7 +283,11 @@
   font-weight: 600;
   border: 1px solid transparent;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    transform 0.15s ease;
 }
 
 .oma-lp-btn:active {
@@ -337,12 +362,21 @@
   height: 2px;
   background: currentColor;
   border-radius: 2px;
-  transition: transform 0.2s ease, opacity 0.2s ease, top 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease,
+    top 0.2s ease;
 }
 
-.oma-lp-burger-lines span:nth-child(1) { top: 0; }
-.oma-lp-burger-lines span:nth-child(2) { top: 5px; }
-.oma-lp-burger-lines span:nth-child(3) { top: 10px; }
+.oma-lp-burger-lines span:nth-child(1) {
+  top: 0;
+}
+.oma-lp-burger-lines span:nth-child(2) {
+  top: 5px;
+}
+.oma-lp-burger-lines span:nth-child(3) {
+  top: 10px;
+}
 
 .oma-lp-burger[aria-expanded='true'] .oma-lp-burger-lines span:nth-child(1) {
   top: 5px;
@@ -493,8 +527,13 @@
 }
 
 @keyframes oma-lp-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
 }
 
 /* Manifesto */
@@ -515,9 +554,18 @@
   transition: color 0.45s var(--lp-ease);
 }
 
-.oma-lp-manifesto.is-inview .oma-lp-manifesto-text span:nth-child(1) { color: var(--lp-ink); transition-delay: 0.05s; }
-.oma-lp-manifesto.is-inview .oma-lp-manifesto-text span:nth-child(2) { color: var(--lp-ink); transition-delay: 0.2s; }
-.oma-lp-manifesto.is-inview .oma-lp-manifesto-text span:nth-child(3) { color: var(--lp-ink-soft); transition-delay: 0.35s; }
+.oma-lp-manifesto.is-inview .oma-lp-manifesto-text span:nth-child(1) {
+  color: var(--lp-ink);
+  transition-delay: 0.05s;
+}
+.oma-lp-manifesto.is-inview .oma-lp-manifesto-text span:nth-child(2) {
+  color: var(--lp-ink);
+  transition-delay: 0.2s;
+}
+.oma-lp-manifesto.is-inview .oma-lp-manifesto-text span:nth-child(3) {
+  color: var(--lp-ink-soft);
+  transition-delay: 0.35s;
+}
 
 /* Platforms */
 .oma-lp-platforms {
@@ -559,7 +607,9 @@
 .oma-lp-reveal {
   opacity: 0;
   transform: translateY(28px);
-  transition: opacity var(--lp-dur) var(--lp-ease), transform var(--lp-dur) var(--lp-ease);
+  transition:
+    opacity var(--lp-dur) var(--lp-ease),
+    transform var(--lp-dur) var(--lp-ease);
 }
 
 .oma-lp-reveal.is-inview {
@@ -574,7 +624,9 @@
 .oma-lp-reveal-x {
   opacity: 0;
   transform: translateX(24px);
-  transition: opacity var(--lp-dur) var(--lp-ease), transform var(--lp-dur) var(--lp-ease);
+  transition:
+    opacity var(--lp-dur) var(--lp-ease),
+    transform var(--lp-dur) var(--lp-ease);
 }
 
 .oma-lp-reveal-x.is-inview {
@@ -623,7 +675,10 @@
   padding: 10px 16px;
   border-radius: 999px;
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .oma-lp-tab[aria-selected='true'] {
@@ -721,8 +776,12 @@
 }
 
 @keyframes oma-lp-progress {
-  from { width: 0; }
-  to { width: 100%; }
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
 }
 
 /* Feature blocks */
@@ -740,10 +799,18 @@
   background: var(--lp-peach);
 }
 
-.oma-lp-feature--mint { background: var(--lp-mint); }
-.oma-lp-feature--lavender { background: var(--lp-lavender); }
-.oma-lp-feature--sky { background: var(--lp-sky); }
-.oma-lp-feature--sand { background: var(--lp-sand); }
+.oma-lp-feature--mint {
+  background: var(--lp-mint);
+}
+.oma-lp-feature--lavender {
+  background: var(--lp-lavender);
+}
+.oma-lp-feature--sky {
+  background: var(--lp-sky);
+}
+.oma-lp-feature--sand {
+  background: var(--lp-sand);
+}
 
 .oma-lp-feature-copy {
   background: #fff;
@@ -806,7 +873,9 @@
   border-radius: 18px;
   padding: 24px 22px;
   box-shadow: 0 1px 0 rgba(18, 19, 26, 0.02);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .oma-lp-how-card:hover {

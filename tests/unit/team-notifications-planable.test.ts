@@ -4,10 +4,7 @@ import { resolve } from 'node:path';
 
 describe('team notifications Planable settings', () => {
   it('uses switch rows with auto-save instead of donut placeholders', () => {
-    const src = readFileSync(
-      resolve('apps/web/src/app/(app)/app/team/team-client.tsx'),
-      'utf8',
-    );
+    const src = readFileSync(resolve('apps/web/src/app/(app)/app/team/team-client.tsx'), 'utf8');
     expect(src).toContain('oma-notif-settings');
     expect(src).toContain('oma-switch');
     expect(src).toContain('settings.notifications.channel_inapp');

@@ -27,17 +27,21 @@ export class ContentController {
     }
   }
 
-
   /** Clients (membershipKind) and brand VIEWER guests must not see hide-from-clients posts. */
   private async isClientAudience(req: Request, brandId?: string): Promise<boolean> {
     if ((req.oma!.membershipKind ?? 'team') === 'client') return true;
     const caps = req.oma!.capabilities ?? [];
     // Guest/client capability profiles have content.read but not content.update.
-    if (caps.includes('content.read') && !caps.includes('content.update') && !caps.includes('tenant.manage')) {
+    if (
+      caps.includes('content.read') &&
+      !caps.includes('content.update') &&
+      !caps.includes('tenant.manage')
+    ) {
       return true;
     }
     if (!brandId) return false;
-    const access = req.brandAccess ?? (await resolveBrandAccess(req.oma!.tenantId!, req.oma!.userId!));
+    const access =
+      req.brandAccess ?? (await resolveBrandAccess(req.oma!.tenantId!, req.oma!.userId!));
     if (access.all) return false;
     return access.roles.get(brandId) === 'VIEWER';
   }
@@ -234,7 +238,12 @@ export class ContentController {
     this.requireTenant(req);
     const socialPageId = body.socialPageId ?? body.social_page_id;
     if (!socialPageId) {
-      throw new DomainError('VALIDATION_FAILED', 'socialPageId required', 400, 'errors.validation_failed');
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'socialPageId required',
+        400,
+        'errors.validation_failed',
+      );
     }
     return contentService.detachPublishTarget(
       req.oma!.tenantId!,
@@ -250,12 +259,18 @@ export class ContentController {
   async copyTo(
     @Req() req: Request,
     @Param('contentId') contentId: string,
-    @Body() body: { brandId?: string; brand_id?: string; socialPageId?: string; social_page_id?: string },
+    @Body()
+    body: { brandId?: string; brand_id?: string; socialPageId?: string; social_page_id?: string },
   ) {
     this.requireTenant(req);
     const brandId = body.brandId ?? body.brand_id;
     if (!brandId) {
-      throw new DomainError('VALIDATION_FAILED', 'brandId required', 400, 'errors.validation_failed');
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'brandId required',
+        400,
+        'errors.validation_failed',
+      );
     }
     return contentService.copyTo(
       req.oma!.tenantId!,

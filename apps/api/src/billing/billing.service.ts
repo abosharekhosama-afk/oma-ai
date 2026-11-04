@@ -39,7 +39,9 @@ export class BillingService {
     const prisma = getPrisma();
     const existing = await prisma.workspaceSubscription.findUnique({ where: { tenantId } });
     if (existing) return existing;
-    const planCode = opts?.grandfather ? GRANDFATHER_PLAN_FOR_EXISTING : DEFAULT_PLAN_FOR_NEW_TENANTS;
+    const planCode = opts?.grandfather
+      ? GRANDFATHER_PLAN_FOR_EXISTING
+      : DEFAULT_PLAN_FOR_NEW_TENANTS;
     return prisma.workspaceSubscription.create({
       data: {
         id: newId(),
@@ -210,7 +212,12 @@ export class BillingService {
         used,
         limit,
         unlimited: limit == null,
-        pct: limit == null || limit === 0 ? (limit === 0 && used > 0 ? 100 : 0) : Math.min(100, Math.round((used / limit) * 100)),
+        pct:
+          limit == null || limit === 0
+            ? limit === 0 && used > 0
+              ? 100
+              : 0
+            : Math.min(100, Math.round((used / limit) * 100)),
       };
     });
     return {
@@ -246,8 +253,7 @@ export class BillingService {
     if (!isPlanCode(input.plan_code)) {
       throw new DomainError('VALIDATION_FAILED', 'Invalid plan', 400, 'errors.validation_failed');
     }
-    const cycle: BillingCycle =
-      input.billing_cycle === 'yearly' ? 'yearly' : 'monthly';
+    const cycle: BillingCycle = input.billing_cycle === 'yearly' ? 'yearly' : 'monthly';
     const prisma = getPrisma();
     await this.ensureSubscription(tenantId, { grandfather: true });
     const updated = await prisma.workspaceSubscription.update({

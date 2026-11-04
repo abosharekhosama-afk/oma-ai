@@ -57,23 +57,10 @@ export function buildPublishStatusView(
   locale: 'en' | 'ar',
 ): PublishStatusView | null {
   const scheduled = item.scheduleState === 'SCHEDULED';
-  const rawState = (
-    item.publishRollupState ||
-    item.publishState ||
-    'NONE'
-  ).toUpperCase();
+  const rawState = (item.publishRollupState || item.publishState || 'NONE').toUpperCase();
   const state =
-    rawState === 'ALL_SUCCEEDED'
-      ? 'PUBLISHED'
-      : rawState === 'IN_PROGRESS'
-        ? 'QUEUED'
-        : rawState;
-  if (
-    !scheduled &&
-    state !== 'PUBLISHED' &&
-    state !== 'FAILED' &&
-    rawState !== 'PARTIAL'
-  ) {
+    rawState === 'ALL_SUCCEEDED' ? 'PUBLISHED' : rawState === 'IN_PROGRESS' ? 'QUEUED' : rawState;
+  if (!scheduled && state !== 'PUBLISHED' && state !== 'FAILED' && rawState !== 'PARTIAL') {
     return null;
   }
   const when = item.scheduledAt || item.plannedAt || null;
@@ -204,4 +191,3 @@ export function isProfileOnlyPostUrl(url: string | null | undefined): boolean {
     return false;
   }
 }
-

@@ -54,7 +54,7 @@ describe('workspace sidebar layout', () => {
     const navLink = read('apps/web/src/components/shell/nav-link.tsx');
     expect(chrome).toContain('exact={Boolean(item.children)}');
     expect(navLink).toContain('exact?: boolean');
-    expect(navLink).toContain('href === \'/app\' || exact ? pathname === href');
+    expect(navLink).toContain("href === '/app' || exact ? pathname === href");
   });
 
   it('keeps utility triggers visible and prevents drawer transform leftovers', () => {
@@ -88,7 +88,7 @@ describe('workspace sidebar layout', () => {
     expect(drawers).toContain('.oma-drawer.oma-drawer--nav .ant-drawer-mask');
   });
 
-    it('loads the shared side-drawer layer for filters and notification panels', () => {
+  it('loads the shared side-drawer layer for filters and notification panels', () => {
     const globals = read('apps/web/src/app/globals.css');
     const drawers = read('apps/web/src/styles/side-drawers.css');
     expect(globals).toContain("@import '../styles/side-drawers.css';");

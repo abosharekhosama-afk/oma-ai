@@ -91,7 +91,12 @@ const drawings: Record<NavIconId, IconDrawing> = {
     paths: ['M8 7h12', 'M8 12h12', 'M8 17h12', 'M4 7h.01', 'M4 12h.01', 'M4 17h.01'],
   },
   'grid-view': {
-    paths: ['M4.5 4.5h6.5v6.5H4.5z', 'M13 4.5h6.5v6.5H13z', 'M4.5 13h6.5v6.5H4.5z', 'M13 13h6.5v6.5H13z'],
+    paths: [
+      'M4.5 4.5h6.5v6.5H4.5z',
+      'M13 4.5h6.5v6.5H13z',
+      'M4.5 13h6.5v6.5H4.5z',
+      'M13 13h6.5v6.5H13z',
+    ],
   },
 };
 

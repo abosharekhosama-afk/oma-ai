@@ -42,16 +42,13 @@ describe('permissions audit (plans rollout)', () => {
   it('MEMBER cannot decide deliverable reviews without review capability', () => {
     const caps = SYSTEM_PROFILES.MEMBER ?? [];
     expect(hasCapability(caps, 'deliverable.read')).toBe(true);
-    expect(
-      hasCapability(caps, ['deliverable.review.decide', 'deliverable.review'], 'any'),
-    ).toBe(false);
+    expect(hasCapability(caps, ['deliverable.review.decide', 'deliverable.review'], 'any')).toBe(
+      false,
+    );
   });
 
   it('isClientAudience hides hide-from-clients posts for clients and viewers', () => {
-    const controller = readFileSync(
-      resolve('apps/api/src/content/content.controller.ts'),
-      'utf8',
-    );
+    const controller = readFileSync(resolve('apps/api/src/content/content.controller.ts'), 'utf8');
     expect(controller).toContain('isClientAudience');
     expect(controller).toContain("membershipKind ?? 'team') === 'client'");
     expect(controller).toContain("access.roles.get(brandId) === 'VIEWER'");
@@ -59,10 +56,7 @@ describe('permissions audit (plans rollout)', () => {
   });
 
   it('maps billing routes in the capabilities guard', () => {
-    const guard = readFileSync(
-      resolve('apps/api/src/common/guards/capabilities.guard.ts'),
-      'utf8',
-    );
+    const guard = readFileSync(resolve('apps/api/src/common/guards/capabilities.guard.ts'), 'utf8');
     expect(guard).toContain("'GET /api/v1/billing/plans': ['brand.read']");
     expect(guard).toContain("'PATCH /api/v1/billing/subscription': ['tenant.manage']");
   });

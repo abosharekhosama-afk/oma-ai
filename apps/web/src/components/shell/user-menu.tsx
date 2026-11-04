@@ -20,7 +20,12 @@ export function UserMenu() {
       <div className="oma-user-menu-row">
         <LanguageSwitcher />
       </div>
-      <Link href="/app/account" className="oma-menu-item" role="menuitem" onClick={() => setOpen(false)}>
+      <Link
+        href="/app/account"
+        className="oma-menu-item"
+        role="menuitem"
+        onClick={() => setOpen(false)}
+      >
         {t('account.title')}
       </Link>
       <button
@@ -43,7 +48,12 @@ export function UserMenu() {
 
   return (
     <div className="oma-user-menu">
-      <ShellPopover open={open} onOpenChange={setOpen} content={panel} className="oma-user-menu-pop">
+      <ShellPopover
+        open={open}
+        onOpenChange={setOpen}
+        content={panel}
+        className="oma-user-menu-pop"
+      >
         <Button
           type="text"
           className="oma-rail-utility-trigger"

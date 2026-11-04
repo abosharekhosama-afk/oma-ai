@@ -25,7 +25,11 @@ import {
   mediaIdFromUrl,
   versionMime,
 } from '../../../../../components/content/media-surface';
-import { getContentDetail, getContentPreferences, type ApiContent } from '../../../../../lib/content-api';
+import {
+  getContentDetail,
+  getContentPreferences,
+  type ApiContent,
+} from '../../../../../lib/content-api';
 import { listBrands } from '../../../../../lib/workspace-extras-api';
 import { useToast } from '../../../../../components/ui/toast';
 import { pickCopy } from '../../../../../lib/demo/use-demo-api';

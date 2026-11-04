@@ -87,29 +87,30 @@ const PLATFORM_NETWORK: Record<string, SocialNetwork | 'universal'> = {
 };
 
 const LABEL_KEYS: Record<string, string> = {
-  "Administrator": 'companies.role.admin',
-  "Writer": 'companies.role.writer',
-  "Billing Manager": 'companies.role.billing',
-  "Can manage workspaces, people and billing plan": 'companies.role.admin_desc',
-  "Has editing access to all workspaces, but cannot create workspaces or invite people": 'companies.role.writer_desc',
-  "Can manage billing plan, change payment details & see invoices": 'companies.role.billing_desc',
-  "Comment on posts": 'companies.perm.comment',
-  "Manage workspaces and collaborators": 'companies.perm.manage',
-  "Create and edit posts": 'companies.perm.edit',
-  "View invoices and manage billing": 'companies.perm.billing',
-  "Company ownership": 'companies.perm.ownership',
-  "X (Twitter)": 'companies.platform.x',
-  "Google Business Profile": 'companies.platform.gbp',
-  "Universal Content": 'companies.platform.universal',
-  "Newsletters": 'companies.platform.newsletters',
-  "Workspace name is required": 'companies.name_required',
-  "Facebook": 'companies.platform.facebook',
-  "Instagram": 'companies.platform.instagram',
-  "LinkedIn": 'companies.platform.linkedin',
-  "YouTube": 'companies.platform.youtube',
-  "TikTok": 'companies.platform.tiktok',
-  "Pinterest": 'companies.platform.pinterest',
-  "Threads": 'companies.platform.threads',
+  Administrator: 'companies.role.admin',
+  Writer: 'companies.role.writer',
+  'Billing Manager': 'companies.role.billing',
+  'Can manage workspaces, people and billing plan': 'companies.role.admin_desc',
+  'Has editing access to all workspaces, but cannot create workspaces or invite people':
+    'companies.role.writer_desc',
+  'Can manage billing plan, change payment details & see invoices': 'companies.role.billing_desc',
+  'Comment on posts': 'companies.perm.comment',
+  'Manage workspaces and collaborators': 'companies.perm.manage',
+  'Create and edit posts': 'companies.perm.edit',
+  'View invoices and manage billing': 'companies.perm.billing',
+  'Company ownership': 'companies.perm.ownership',
+  'X (Twitter)': 'companies.platform.x',
+  'Google Business Profile': 'companies.platform.gbp',
+  'Universal Content': 'companies.platform.universal',
+  Newsletters: 'companies.platform.newsletters',
+  'Workspace name is required': 'companies.name_required',
+  Facebook: 'companies.platform.facebook',
+  Instagram: 'companies.platform.instagram',
+  LinkedIn: 'companies.platform.linkedin',
+  YouTube: 'companies.platform.youtube',
+  TikTok: 'companies.platform.tiktok',
+  Pinterest: 'companies.platform.pinterest',
+  Threads: 'companies.platform.threads',
 };
 
 function initials(name: string) {
@@ -135,7 +136,9 @@ export function PlanableDashboard() {
 
   const [createOpen, setCreateOpen] = useState(false);
   const [createStep, setCreateStep] = useState<1 | 2 | 3>(1);
-  const [timezones] = useState(() => timezoneOptions(Intl.DateTimeFormat().resolvedOptions().timeZone));
+  const [timezones] = useState(() =>
+    timezoneOptions(Intl.DateTimeFormat().resolvedOptions().timeZone),
+  );
   const [wsName, setWsName] = useState('');
   const [wsUrl, setWsUrl] = useState('');
   const [wsTz, setWsTz] = useState(() => {
@@ -252,7 +255,7 @@ export function PlanableDashboard() {
 
   const companyName =
     primary[0]?.tenant_name ??
-    (needsCompanyPick ? (t('selectCompany.title')) : null) ??
+    (needsCompanyPick ? t('selectCompany.title') : null) ??
     me?.user?.name ??
     me?.name ??
     'Workspace';
@@ -381,7 +384,9 @@ export function PlanableDashboard() {
       });
       window.location.assign(`/app/brands/${brandId}`);
     } catch (err) {
-      setCreateError(err instanceof Error ? err.message : t('companies.could_not_create_workspace'));
+      setCreateError(
+        err instanceof Error ? err.message : t('companies.could_not_create_workspace'),
+      );
     } finally {
       setCreateBusy(false);
     }
@@ -504,7 +509,12 @@ export function PlanableDashboard() {
                 </div>
               ) : null}
             </div>
-            <button type="button" className="plx-upgrade-pill" onClick={() => router.push('/app/billing')} data-testid="workspace-upgrade">
+            <button
+              type="button"
+              className="plx-upgrade-pill"
+              onClick={() => router.push('/app/billing')}
+              data-testid="workspace-upgrade"
+            >
               <SparkleIcon width={15} height={15} />
               {t('companies.upgrade')}
             </button>
@@ -526,8 +536,13 @@ export function PlanableDashboard() {
             </div>
           ) : null}
           <div className="plx-ws-grid" data-testid="plx-brands-grid">
-            {brandsLoading ? <p className="plx-muted">{t('companies.loading_workspaces2')}</p> : null}
-            {!brandsLoading && normalizedWorkspaceQuery && visibleBrands.length === 0 && visibleOthers.length === 0 ? (
+            {brandsLoading ? (
+              <p className="plx-muted">{t('companies.loading_workspaces2')}</p>
+            ) : null}
+            {!brandsLoading &&
+            normalizedWorkspaceQuery &&
+            visibleBrands.length === 0 &&
+            visibleOthers.length === 0 ? (
               <p className="plx-workspaces-empty" role="status">
                 {t('companies.no_workspace_matches')}
               </p>
@@ -573,7 +588,11 @@ export function PlanableDashboard() {
               />
             ))}
             {!normalizedWorkspaceQuery && Boolean(me?.active_tenant_id) ? (
-              <button type="button" className="plx-ws-create" onClick={() => router.push('/app/brands/new')}>
+              <button
+                type="button"
+                className="plx-ws-create"
+                onClick={() => router.push('/app/brands/new')}
+              >
                 <span className="plx-ws-create-plus">
                   <PlusIcon />
                 </span>
@@ -586,7 +605,9 @@ export function PlanableDashboard() {
             <>
               <div className="plx-other-head">
                 <h2>
-                  {needsCompanyPick ? t('selectCompany.title') : t('companies.workspaces') || 'Workspaces'}
+                  {needsCompanyPick
+                    ? t('selectCompany.title')
+                    : t('companies.workspaces') || 'Workspaces'}
                 </h2>
                 <hr />
               </div>
@@ -628,10 +649,7 @@ export function PlanableDashboard() {
         </div>
       )}
 
-      <TeamInviteDialog
-        open={inviteOpen}
-        onClose={() => setInviteOpen(false)}
-      />
+      <TeamInviteDialog open={inviteOpen} onClose={() => setInviteOpen(false)} />
 
       {createOpen ? (
         <div
@@ -780,7 +798,12 @@ export function PlanableDashboard() {
               </div>
             </div>
           ) : (
-            <div className="plx-modal" role="dialog" aria-modal="true" aria-label={t('companies.create_a_page')}>
+            <div
+              className="plx-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-label={t('companies.create_a_page')}
+            >
               <button
                 type="button"
                 className="plx-modal-x"
@@ -855,7 +878,10 @@ export function PlanableDashboard() {
                       </div>
                       <div>
                         <span className="plx-mini-label">{t('companies.platform_icon')}</span>
-                        <span className="plx-icon-swatch" style={{ background: pageColor, color: '#fff' }}>
+                        <span
+                          className="plx-icon-swatch"
+                          style={{ background: pageColor, color: '#fff' }}
+                        >
                           {pageLogo ? (
                             <img src={pageLogo} alt="" width={18} height={18} />
                           ) : (
@@ -867,7 +893,11 @@ export function PlanableDashboard() {
                   </div>
                 </div>
                 <span className="plx-label">{t('companies.content_style')}</span>
-                <div className="plx-style-row" role="radiogroup" aria-label={t('companies.content_style')}>
+                <div
+                  className="plx-style-row"
+                  role="radiogroup"
+                  aria-label={t('companies.content_style')}
+                >
                   {(['default', 'classic', 'modern', 'compact'] as const).map((s) => (
                     <button
                       key={s}
@@ -900,7 +930,11 @@ export function PlanableDashboard() {
                   className="plx-btn plx-btn--soft plx-btn--block"
                   disabled={!pageName.trim() || createBusy}
                 >
-                  {createBusy ? <OmaDotsLoader label={t('companies.creating_page')} /> : t('companies.create_page')}
+                  {createBusy ? (
+                    <OmaDotsLoader label={t('companies.creating_page')} />
+                  ) : (
+                    t('companies.create_page')
+                  )}
                 </button>
               </form>
               <div className="plx-progress" aria-hidden="true">
@@ -936,7 +970,10 @@ function WorkspaceCard(props: {
   logoUrl?: string | null;
 }) {
   const t = useT();
-  const entityLabel = props.kind === 'brand' ? t('entity.type.brand') || 'Brand' : t('shell.workspace') || 'Workspace';
+  const entityLabel =
+    props.kind === 'brand'
+      ? t('entity.type.brand') || 'Brand'
+      : t('shell.workspace') || 'Workspace';
   const truncate = (n: string) => (n.length > 14 ? `${n.slice(0, 14)}â€¦` : n);
   return (
     <div
@@ -951,12 +988,18 @@ function WorkspaceCard(props: {
           props.onActivate();
         }
       }}
-      aria-label={props.kind === 'brand' ? `${entityLabel}: ${props.name}` : t('companies.open_workspace').replace('{name}', props.name)}
+      aria-label={
+        props.kind === 'brand'
+          ? `${entityLabel}: ${props.name}`
+          : t('companies.open_workspace').replace('{name}', props.name)
+      }
     >
       <button
         type="button"
         className={props.fav ? 'plx-ws-star is-fav' : 'plx-ws-star'}
-        aria-label={props.fav ? t('companies.remove_from_favorites') : t('companies.add_to_favorites')}
+        aria-label={
+          props.fav ? t('companies.remove_from_favorites') : t('companies.add_to_favorites')
+        }
         onClick={(e) => {
           e.stopPropagation();
           props.onToggleFav();
@@ -996,14 +1039,31 @@ function WorkspaceCard(props: {
                 props.onCloseMenu();
               }}
             >
-              <BriefcaseIcon /> {props.kind === 'brand' ? (t('companies.open_brand') || 'Open brand') : (t('companies.open_workspace_action') || 'Open workspace')}
+              <BriefcaseIcon />{' '}
+              {props.kind === 'brand'
+                ? t('companies.open_brand') || 'Open brand'
+                : t('companies.open_workspace_action') || 'Open workspace'}
             </button>
             {props.kind === 'brand' ? (
               <>
-                <button type="button" className="plx-menu-item" onClick={() => { props.onConnect?.(); props.onCloseMenu(); }}>
+                <button
+                  type="button"
+                  className="plx-menu-item"
+                  onClick={() => {
+                    props.onConnect?.();
+                    props.onCloseMenu();
+                  }}
+                >
                   <LinkIcon /> Connect website
                 </button>
-                <button type="button" className="plx-menu-item" onClick={() => { props.onOpenContent?.(); props.onCloseMenu(); }}>
+                <button
+                  type="button"
+                  className="plx-menu-item"
+                  onClick={() => {
+                    props.onOpenContent?.();
+                    props.onCloseMenu();
+                  }}
+                >
                   <ImageIcon /> Content calendar
                 </button>
               </>
@@ -1013,7 +1073,10 @@ function WorkspaceCard(props: {
               </button>
             )}
             <button type="button" className="plx-menu-item" onClick={props.onSettings}>
-              <SettingsIcon /> {props.kind === 'brand' ? (t('companies.brand_settings') || 'Brand settings') : (t('shell.workspaceSettings') || 'Workspace settings')}
+              <SettingsIcon />{' '}
+              {props.kind === 'brand'
+                ? t('companies.brand_settings') || 'Brand settings'
+                : t('shell.workspaceSettings') || 'Workspace settings'}
             </button>
             <button type="button" className="plx-menu-item" onClick={props.onCloseMenu}>
               <CheckSquareIcon /> Approvals

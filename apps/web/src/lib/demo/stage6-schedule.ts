@@ -141,10 +141,7 @@ function weekdaySun0InZone(instant: Date, timeZone: string): number {
 }
 
 /** Build 7-day window starting Monday of the week containing `anchor` in `timeZone`. */
-export function weekDays(
-  anchor = todayKey(),
-  timeZone: string = FALLBACK_SCHEDULE_TZ,
-): string[] {
+export function weekDays(anchor = todayKey(), timeZone: string = FALLBACK_SCHEDULE_TZ): string[] {
   const noonIso = wallTimeToIso(`${anchor}T12:00`, timeZone) || `${anchor}T12:00:00.000Z`;
   const d = new Date(noonIso);
   const day = weekdaySun0InZone(d, timeZone);

@@ -21,7 +21,9 @@ function apiLogin() {
     );
   } catch {}
   const jar = '/tmp/oma-plans-capture-cookies.txt';
-  try { fs.unlinkSync(jar); } catch {}
+  try {
+    fs.unlinkSync(jar);
+  } catch {}
   const login = execSync(
     `curl -s -c ${jar} -b ${jar} -X POST ${API}/api/v1/auth/login -H 'content-type: application/json' -d '${JSON.stringify({ email: EMAIL, password: PASS })}'`,
     { encoding: 'utf8' },
@@ -42,12 +44,26 @@ function apiLogin() {
 
 function api(jar, csrf, method, pathName, body) {
   const args = [
-    'curl', '-s', '-c', jar, '-b', jar, '-X', method, `${API}${pathName}`,
-    '-H', 'content-type: application/json',
-    '-H', `x-csrf-token: ${csrf}`,
+    'curl',
+    '-s',
+    '-c',
+    jar,
+    '-b',
+    jar,
+    '-X',
+    method,
+    `${API}${pathName}`,
+    '-H',
+    'content-type: application/json',
+    '-H',
+    `x-csrf-token: ${csrf}`,
   ];
   if (body) args.push('-d', JSON.stringify(body));
-  return JSON.parse(execSync(args.map((a) => (a.includes(' ') ? JSON.stringify(a) : a)).join(' '), { encoding: 'utf8' }));
+  return JSON.parse(
+    execSync(args.map((a) => (a.includes(' ') ? JSON.stringify(a) : a)).join(' '), {
+      encoding: 'utf8',
+    }),
+  );
 }
 
 async function shot(page, name) {
@@ -115,7 +131,9 @@ async function captureLimit(browser, cookies) {
     // Try common create affordances
     const candidates = [
       page.getByRole('button', { name: /new brand|add brand|علامة|إضافة|Brand/i }),
-      page.locator('[data-testid="brand-create"], [data-testid="create-brand"], button:has-text("New"), button:has-text("Add")'),
+      page.locator(
+        '[data-testid="brand-create"], [data-testid="create-brand"], button:has-text("New"), button:has-text("Add")',
+      ),
     ];
     let clicked = false;
     for (const loc of candidates) {
@@ -128,7 +146,9 @@ async function captureLimit(browser, cookies) {
       }
     }
     // If modal/form, fill and submit
-    const nameInput = page.locator('input[name="name"], input[placeholder*="name" i], input[placeholder*="اسم"]').first();
+    const nameInput = page
+      .locator('input[name="name"], input[placeholder*="name" i], input[placeholder*="اسم"]')
+      .first();
     if (await nameInput.count()) {
       await nameInput.fill(tag === 'ar' ? 'علامة تجريبية للحد' : 'Limit Test Brand');
       const submit = page.getByRole('button', { name: /create|save|add|إنشاء|حفظ|إضافة/i }).last();
@@ -153,7 +173,9 @@ async function captureLimit(browser, cookies) {
         el.style.cssText =
           'position:fixed;inset-inline:24px;inset-block-start:24px;z-index:9999;padding:16px 18px;border:1px solid #f5c2c2;border-radius:12px;background:#fff8f8;color:#7f1d1d;font:600 14px/1.45 system-ui;box-shadow:0 8px 24px rgba(30,49,70,.08)';
         const ar = err?.details?.[0]?.message_ar;
-        const isAr = document.documentElement.lang?.startsWith('ar') || document.cookie.includes('oma_locale=ar');
+        const isAr =
+          document.documentElement.lang?.startsWith('ar') ||
+          document.cookie.includes('oma_locale=ar');
         el.textContent = (isAr && ar ? ar : err?.message) || 'Plan limit reached';
         const link = document.createElement('a');
         link.href = '/app/billing';

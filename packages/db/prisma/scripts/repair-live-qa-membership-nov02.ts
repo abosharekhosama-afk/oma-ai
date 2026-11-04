@@ -31,15 +31,10 @@ async function main() {
   for (const m of memberships) {
     const codes = new Set(m.grants.map((g) => g.capabilityCode));
     if (codes.has('brand.read')) continue;
-    if (
-      !codes.has('content.read') &&
-      !codes.has('content.create') &&
-      !codes.has('tenant.manage')
-    ) {
+    if (!codes.has('content.read') && !codes.has('content.create') && !codes.has('tenant.manage')) {
       continue;
     }
-    const source =
-      m.grants.find((g) => g.sourceProfileCode)?.sourceProfileCode ?? 'MEMBER';
+    const source = m.grants.find((g) => g.sourceProfileCode)?.sourceProfileCode ?? 'MEMBER';
     await prisma.capabilityGrant.create({
       data: {
         id: idFor('mig_brand_read', [m.id]),

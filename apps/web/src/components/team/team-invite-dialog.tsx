@@ -114,7 +114,9 @@ export function TeamInviteDialog({
                     <span className="oma-role-card__radio" aria-hidden="true" />
                     <strong>{t(`members.role.${r.toLowerCase()}`)}</strong>
                   </span>
-                  <span className="oma-role-card__desc">{t(`team.roleDesc.${r.toLowerCase()}`)}</span>
+                  <span className="oma-role-card__desc">
+                    {t(`team.roleDesc.${r.toLowerCase()}`)}
+                  </span>
                   <span className="oma-role-card__perms">
                     {on
                       .map((p) => (isAr ? PERMISSION_LABELS[p].ar : PERMISSION_LABELS[p].en))

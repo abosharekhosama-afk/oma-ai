@@ -81,8 +81,6 @@ const NAV: Array<{ id: Section; icon: NavIconId; group: 'account' | 'workspace' 
   { id: 'integrations', icon: 'campaigns', group: 'workspace' },
 ];
 
-
-
 /**
  * Personal + workspace settings in one card (same shell as the Workspace Settings card).
  * Opened from the account menu in the sidebar; `/app/settings?section=` redirects here.

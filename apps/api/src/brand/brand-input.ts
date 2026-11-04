@@ -11,7 +11,15 @@ export type BrandSettingsInput = {
   version: number;
 };
 
-const ALLOWED = new Set(['name', 'logoUrl', 'logo_url', 'logo_asset_id', 'logoAssetId', 'timezone', 'version']);
+const ALLOWED = new Set([
+  'name',
+  'logoUrl',
+  'logo_url',
+  'logo_asset_id',
+  'logoAssetId',
+  'timezone',
+  'version',
+]);
 const MAX_LOGO_DATA_URL = 280_000; // ≈ 200 KB image
 // eslint-disable-next-line no-control-regex
 const CONTROL = /[\u0000-\u001f\u007f]/;

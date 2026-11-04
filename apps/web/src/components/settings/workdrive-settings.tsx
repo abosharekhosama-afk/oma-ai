@@ -130,9 +130,7 @@ export function WorkDriveSettings({
         >
           {conn ? t('workdrive.saveKey') : t('workdrive.connect')}
         </Button>
-        {conn ? (
-          <Button onClick={() => setReplacing(false)}>{t('common.cancel')}</Button>
-        ) : null}
+        {conn ? <Button onClick={() => setReplacing(false)}>{t('common.cancel')}</Button> : null}
       </div>
     </div>
   );
@@ -163,7 +161,9 @@ export function WorkDriveSettings({
                 <span
                   className={`oma-bs-status oma-bs-status--${conn.status === 'CONNECTED' ? 'connected' : 'error'}`}
                 >
-                  {conn.status === 'CONNECTED' ? t('workdrive.statusOk') : t('workdrive.statusError')}
+                  {conn.status === 'CONNECTED'
+                    ? t('workdrive.statusOk')
+                    : t('workdrive.statusError')}
                 </span>
               </dd>
             </div>

@@ -6,7 +6,15 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { DemoGraph, DemoTaskStatus } from '@oma/demo';
-import { Button, Checkbox, DatePicker, Drawer as AntDrawer, Input, SelectField, TextArea } from '@oma/ui/controls';
+import {
+  Button,
+  Checkbox,
+  DatePicker,
+  Drawer as AntDrawer,
+  Input,
+  SelectField,
+  TextArea,
+} from '@oma/ui/controls';
 import { Dialog } from '../../../../components/ui/dialog';
 import { AssigneePicker } from '../../../../components/ui/assignee-picker';
 import { EntityLink } from '../../../../components/ui/entity-link';
@@ -826,46 +834,45 @@ export default function TasksPage() {
                             : task.campaignName
                               ? pickCopy(task.campaignName, locale)
                               : '';
-                        const brandLabel =
-                          typeof task.brandName === 'string' ? task.brandName : '';
+                        const brandLabel = typeof task.brandName === 'string' ? task.brandName : '';
                         return (
-                        <tr
-                          key={task.id}
-                          data-testid={`demo-task-row-${task.id}`}
-                          onClick={() => openTask(task.id)}
-                          style={{ cursor: 'pointer' }}
-                        >
-                          <td className="oma-task-title-cell">
-                            <button
-                              type="button"
-                              className="oma-task-title-btn"
-                              data-testid={`demo-task-open-${task.id}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                openTask(task.id);
-                              }}
-                            >
-                              <span className="oma-task-title-text">
-                                {pickCopy(task.title, locale)}
-                              </span>
-                              <span className="oma-task-title-meta">
-                                {task.type}
-                                {campaignLabel ? ` · ${campaignLabel}` : ''}
-                              </span>
-                            </button>
-                          </td>
-                          <td>
-                            <StatusChip status={task.status} />
-                          </td>
-                          <td>{task.assignee || t('demo.requests.unassigned')}</td>
-                          <td>
-                            <StatusChip status={task.priority} />
-                          </td>
-                          <td>{campaignLabel || brandLabel || '—'}</td>
-                          <td className="oma-ltr oma-task-due-cell">
-                            <span className="oma-task-due-text">{task.dueAt}</span>
-                          </td>
-                        </tr>
+                          <tr
+                            key={task.id}
+                            data-testid={`demo-task-row-${task.id}`}
+                            onClick={() => openTask(task.id)}
+                            style={{ cursor: 'pointer' }}
+                          >
+                            <td className="oma-task-title-cell">
+                              <button
+                                type="button"
+                                className="oma-task-title-btn"
+                                data-testid={`demo-task-open-${task.id}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openTask(task.id);
+                                }}
+                              >
+                                <span className="oma-task-title-text">
+                                  {pickCopy(task.title, locale)}
+                                </span>
+                                <span className="oma-task-title-meta">
+                                  {task.type}
+                                  {campaignLabel ? ` · ${campaignLabel}` : ''}
+                                </span>
+                              </button>
+                            </td>
+                            <td>
+                              <StatusChip status={task.status} />
+                            </td>
+                            <td>{task.assignee || t('demo.requests.unassigned')}</td>
+                            <td>
+                              <StatusChip status={task.priority} />
+                            </td>
+                            <td>{campaignLabel || brandLabel || '—'}</td>
+                            <td className="oma-ltr oma-task-due-cell">
+                              <span className="oma-task-due-text">{task.dueAt}</span>
+                            </td>
+                          </tr>
                         );
                       })}
                     </tbody>

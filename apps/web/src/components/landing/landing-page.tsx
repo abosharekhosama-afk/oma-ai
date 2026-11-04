@@ -50,7 +50,14 @@ function Reveal({
 function BulletIcon() {
   return (
     <span className="oma-lp-bullet-icon" aria-hidden="true">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+      >
         <path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     </span>
@@ -84,7 +91,10 @@ export function LandingPage() {
   }, [menuOpen]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
       return;
     }
     const id = window.setInterval(() => {
@@ -122,10 +132,26 @@ export function LandingPage() {
 
   const megaItems = [
     { href: '#features', title: t('landing.mega.plan.title'), desc: t('landing.mega.plan.desc') },
-    { href: '#features', title: t('landing.mega.collaborate.title'), desc: t('landing.mega.collaborate.desc') },
-    { href: '#features', title: t('landing.mega.approve.title'), desc: t('landing.mega.approve.desc') },
-    { href: '#features', title: t('landing.mega.publish.title'), desc: t('landing.mega.publish.desc') },
-    { href: '#features', title: t('landing.mega.storage.title'), desc: t('landing.mega.storage.desc') },
+    {
+      href: '#features',
+      title: t('landing.mega.collaborate.title'),
+      desc: t('landing.mega.collaborate.desc'),
+    },
+    {
+      href: '#features',
+      title: t('landing.mega.approve.title'),
+      desc: t('landing.mega.approve.desc'),
+    },
+    {
+      href: '#features',
+      title: t('landing.mega.publish.title'),
+      desc: t('landing.mega.publish.desc'),
+    },
+    {
+      href: '#features',
+      title: t('landing.mega.storage.title'),
+      desc: t('landing.mega.storage.desc'),
+    },
     { href: '#how', title: t('landing.mega.team.title'), desc: t('landing.mega.team.desc') },
   ];
 
@@ -134,7 +160,11 @@ export function LandingPage() {
       tone: 'mint',
       flip: false,
       title: t('landing.feat.calendar.title'),
-      bullets: [t('landing.feat.calendar.b1'), t('landing.feat.calendar.b2'), t('landing.feat.calendar.b3')],
+      bullets: [
+        t('landing.feat.calendar.b1'),
+        t('landing.feat.calendar.b2'),
+        t('landing.feat.calendar.b3'),
+      ],
       cta: t('landing.feat.calendar.cta'),
       alt: t('landing.feat.calendar.alt'),
       src: '/landing/calendar.png',
@@ -143,7 +173,11 @@ export function LandingPage() {
       tone: 'peach',
       flip: true,
       title: t('landing.feat.collab.title'),
-      bullets: [t('landing.feat.collab.b1'), t('landing.feat.collab.b2'), t('landing.feat.collab.b3')],
+      bullets: [
+        t('landing.feat.collab.b1'),
+        t('landing.feat.collab.b2'),
+        t('landing.feat.collab.b3'),
+      ],
       cta: t('landing.feat.collab.cta'),
       alt: t('landing.feat.collab.alt'),
       src: '/landing/deliverables.png',
@@ -152,7 +186,11 @@ export function LandingPage() {
       tone: 'lavender',
       flip: false,
       title: t('landing.feat.approve.title'),
-      bullets: [t('landing.feat.approve.b1'), t('landing.feat.approve.b2'), t('landing.feat.approve.b3')],
+      bullets: [
+        t('landing.feat.approve.b1'),
+        t('landing.feat.approve.b2'),
+        t('landing.feat.approve.b3'),
+      ],
       cta: t('landing.feat.approve.cta'),
       alt: t('landing.feat.approve.alt'),
       src: '/landing/approvals.png',
@@ -161,7 +199,11 @@ export function LandingPage() {
       tone: 'sand',
       flip: true,
       title: t('landing.feat.organize.title'),
-      bullets: [t('landing.feat.organize.b1'), t('landing.feat.organize.b2'), t('landing.feat.organize.b3')],
+      bullets: [
+        t('landing.feat.organize.b1'),
+        t('landing.feat.organize.b2'),
+        t('landing.feat.organize.b3'),
+      ],
       cta: t('landing.feat.organize.cta'),
       alt: t('landing.feat.organize.alt'),
       src: '/landing/team.png',
@@ -170,7 +212,11 @@ export function LandingPage() {
       tone: 'sky',
       flip: false,
       title: t('landing.feat.analytics.title'),
-      bullets: [t('landing.feat.analytics.b1'), t('landing.feat.analytics.b2'), t('landing.feat.analytics.b3')],
+      bullets: [
+        t('landing.feat.analytics.b1'),
+        t('landing.feat.analytics.b2'),
+        t('landing.feat.analytics.b3'),
+      ],
       cta: t('landing.feat.analytics.cta'),
       alt: t('landing.feat.analytics.alt'),
       src: '/landing/analytics-detail.png',
@@ -223,7 +269,12 @@ export function LandingPage() {
               </button>
               <div id={megaId} className="oma-lp-mega" role="menu">
                 {megaItems.map((item) => (
-                  <a key={item.title} href={item.href} role="menuitem" onClick={() => setMegaOpen(false)}>
+                  <a
+                    key={item.title}
+                    href={item.href}
+                    role="menuitem"
+                    onClick={() => setMegaOpen(false)}
+                  >
                     <span className="oma-lp-mega-title">{item.title}</span>
                     <span className="oma-lp-mega-desc">{item.desc}</span>
                   </a>
@@ -243,10 +294,20 @@ export function LandingPage() {
 
           <div className="oma-lp-header-actions">
             <div className="oma-lp-lang-card" role="group" aria-label={t('landing.nav.language')}>
-              <button type="button" aria-pressed={locale === 'en'} className={locale === 'en' ? 'is-active' : ''} onClick={() => switchLocale('en')}>
+              <button
+                type="button"
+                aria-pressed={locale === 'en'}
+                className={locale === 'en' ? 'is-active' : ''}
+                onClick={() => switchLocale('en')}
+              >
                 EN
               </button>
-              <button type="button" aria-pressed={locale === 'ar'} className={locale === 'ar' ? 'is-active' : ''} onClick={() => switchLocale('ar')}>
+              <button
+                type="button"
+                aria-pressed={locale === 'ar'}
+                className={locale === 'ar' ? 'is-active' : ''}
+                onClick={() => switchLocale('ar')}
+              >
                 عربي
               </button>
             </div>
@@ -284,10 +345,18 @@ export function LandingPage() {
           {t('landing.nav.faq')}
         </a>
         <div className="oma-lp-mobile-actions">
-          <Link href="/login" className="oma-lp-btn oma-lp-btn--ghost" onClick={() => setMenuOpen(false)}>
+          <Link
+            href="/login"
+            className="oma-lp-btn oma-lp-btn--ghost"
+            onClick={() => setMenuOpen(false)}
+          >
             {t('landing.nav.login')}
           </Link>
-          <Link href="/register" className="oma-lp-btn oma-lp-btn--accent" onClick={() => setMenuOpen(false)}>
+          <Link
+            href="/register"
+            className="oma-lp-btn oma-lp-btn--accent"
+            onClick={() => setMenuOpen(false)}
+          >
             {t('landing.nav.startFree')}
           </Link>
         </div>
@@ -439,7 +508,14 @@ export function LandingPage() {
                   </Link>
                 </div>
                 <div className="oma-lp-feature-visual">
-                  <Image src={f.src} alt={f.alt} width={1100} height={700} loading="lazy" sizes="(max-width: 900px) 100vw, 50vw" />
+                  <Image
+                    src={f.src}
+                    alt={f.alt}
+                    width={1100}
+                    height={700}
+                    loading="lazy"
+                    sizes="(max-width: 900px) 100vw, 50vw"
+                  />
                 </div>
               </article>
             </Reveal>

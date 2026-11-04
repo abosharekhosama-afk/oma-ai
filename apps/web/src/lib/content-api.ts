@@ -158,7 +158,6 @@ export function toContentRow(c: ApiContent): ContentRowExtra {
   };
 }
 
-
 /** Stable view URLs for each attached media asset (carousel). */
 export function contentMediaUrls(row: {
   previewAsset?: string | null;
@@ -228,8 +227,7 @@ export async function setContentPublishTarget(
   socialPageId: string | null,
   socialPageIds?: string[],
 ) {
-  const body =
-    socialPageIds !== undefined ? { socialPageIds } : { socialPageId };
+  const body = socialPageIds !== undefined ? { socialPageIds } : { socialPageId };
   return api<{
     data: {
       id: string;
@@ -339,7 +337,7 @@ export async function updateContentPreferences(
  *  Pass `{ full: true }` or call `loadContentWorkspaceRest` for remaining brands.
  */
 export async function loadContentWorkspace(opts?: { full?: boolean }): Promise<{
-    brands: {
+  brands: {
     id: string;
     name: { en: string; ar: string };
     state: string;
@@ -393,7 +391,7 @@ export async function loadContentWorkspace(opts?: { full?: boolean }): Promise<{
       timezone: b.timezone,
       logoUrl: b.logo_url ?? null,
       previewStyle: b.id === primary ? prefs?.preview_style || 'default' : 'default',
-      accentColor: b.id === primary ? prefs?.accent_color ?? null : null,
+      accentColor: b.id === primary ? (prefs?.accent_color ?? null) : null,
     })),
     campaigns: (Array.isArray(campaigns) ? campaigns : []).map((c) => toCampaignRow(c)),
     content: contentItems.map((c) => toContentRow(c)),
@@ -602,11 +600,7 @@ export async function updateContentComment(
   return res.data;
 }
 
-export async function resolveContentComment(
-  contentId: string,
-  commentId: string,
-  resolved = true,
-) {
+export async function resolveContentComment(contentId: string, commentId: string, resolved = true) {
   const res = await api<{ data: ContentCommentDto }>(
     `/api/v1/content/${contentId}/comments/${commentId}/resolve`,
     { method: 'POST', body: JSON.stringify({ resolved }) },
@@ -658,10 +652,10 @@ export async function copyContentTo(
 }
 
 export async function setPreferredAudience(contentId: string, audience: string | null) {
-  const res = await api<{ data: ApiContent }>(
-    `/api/v1/content/${contentId}/preferred-audience`,
-    { method: 'POST', body: JSON.stringify({ audience }) },
-  );
+  const res = await api<{ data: ApiContent }>(`/api/v1/content/${contentId}/preferred-audience`, {
+    method: 'POST',
+    body: JSON.stringify({ audience }),
+  });
   return res.data;
 }
 

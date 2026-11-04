@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { assertCanPublish, assertCanSchedule, canSchedule, resolveContentWorkflow } from './workflow';
+import {
+  assertCanPublish,
+  assertCanSchedule,
+  canSchedule,
+  resolveContentWorkflow,
+} from './workflow';
 import { applyContentApprovalTransition, nextApproverCount } from './approval-transitions';
 import { applyCampaignTransition, canTransitionCampaign } from './campaign-transitions';
 import { DomainError } from '../errors';
@@ -115,7 +120,12 @@ describe('Planable approval policies (PR A)', () => {
   };
 
   it('REQUIRED blocks scheduling until all approvers approved (1 of 2)', () => {
-    const partial = { ...base, approvalState: 'PARTIALLY_APPROVED', approverApproved: 1, approverRequired: 2 };
+    const partial = {
+      ...base,
+      approvalState: 'PARTIALLY_APPROVED',
+      approverApproved: 1,
+      approverRequired: 2,
+    };
     const wf = resolveContentWorkflow(partial, 'REQUIRED');
     expect(wf.scheduleBlocked).toBe(true);
     expect(wf.scheduleBlockedReason).toBe('APPROVAL_REQUIRED');
@@ -127,7 +137,12 @@ describe('Planable approval policies (PR A)', () => {
   });
 
   it('OPTIONAL blocks scheduling until approved; NONE still allows unapproved drafts', () => {
-    const draft = { ...base, approvalState: 'NOT_REQUESTED', approverApproved: 0, approverRequired: 1 };
+    const draft = {
+      ...base,
+      approvalState: 'NOT_REQUESTED',
+      approverApproved: 0,
+      approverRequired: 1,
+    };
     expect(canSchedule(draft, 'OPTIONAL')).toBe(false);
     expect(canSchedule(draft, 'NONE')).toBe(true);
     const approved = { ...draft, approvalState: 'APPROVED', approverApproved: 1 };
@@ -135,7 +150,12 @@ describe('Planable approval policies (PR A)', () => {
   });
 
   it('rejected posts cannot be scheduled or published under any policy', () => {
-    const rejected = { ...base, approvalState: 'REJECTED', approverApproved: 0, approverRequired: 1 };
+    const rejected = {
+      ...base,
+      approvalState: 'REJECTED',
+      approverApproved: 0,
+      approverRequired: 1,
+    };
     for (const p of ['NONE', 'OPTIONAL', 'REQUIRED'] as const) {
       expect(() => assertCanSchedule(rejected, p)).toThrow(/Rejected/);
       expect(() => assertCanPublish(rejected, p)).toThrow(/Rejected/);

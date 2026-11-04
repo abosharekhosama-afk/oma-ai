@@ -1,13 +1,17 @@
 'use client';
 import { DetailShimmer } from '../../../../../components/ui/shimmer';
 
-
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../../../../../lib/api';
 import type { BrandDetail, Paginated, ScanDetail } from '../../../../../lib/brand-types';
-import { getApiError, isNotFound, isPermissionDenied, isTenantRequired } from '../../../../../lib/brand-api';
+import {
+  getApiError,
+  isNotFound,
+  isPermissionDenied,
+  isTenantRequired,
+} from '../../../../../lib/brand-api';
 import { SelectCompany } from '../../../../../components/shell/select-company';
 import { BrandWorkspaceShell } from '../../../../../components/brand/brand-workspace-shell';
 import { ConnectorModeChip } from '../../../../../components/brand/connector-mode-banner';
@@ -96,7 +100,8 @@ export default function BrandDetailPage() {
     ];
   }, [brand, t]);
 
-  if (denied) return <PermissionDenied message={t('errors.brandNoAccess') || t('errors.permission')} />;
+  if (denied)
+    return <PermissionDenied message={t('errors.brandNoAccess') || t('errors.permission')} />;
   if (tenantRequired) return <SelectCompany />;
   if (loading) {
     return <DetailShimmer />;

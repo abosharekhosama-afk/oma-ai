@@ -3,7 +3,15 @@ import { resolveScheduleTimezone } from '../common/schedule-timezone';
 import { addDays, dayKey, zonedMidnight } from '../common/zoned-time';
 
 const DAY = 86_400_000;
-const OPEN_TASK = ['BACKLOG', 'TODO', 'READY', 'IN_PROGRESS', 'BLOCKED', 'IN_REVIEW', 'OVERDUE'] as const;
+const OPEN_TASK = [
+  'BACKLOG',
+  'TODO',
+  'READY',
+  'IN_PROGRESS',
+  'BLOCKED',
+  'IN_REVIEW',
+  'OVERDUE',
+] as const;
 const OPEN_REQUEST = ['OPEN', 'ASSIGNED', 'IN_PROGRESS', 'BLOCKED'] as const;
 const REVIEW_DELIVERABLE = ['AWAITING_REVIEW', 'IN_REVIEW'] as const;
 
@@ -25,7 +33,12 @@ export function computeChecklist(c: {
   return [
     { id: 'company', done: true, href: '/app/company/members', count: 1 },
     { id: 'brand', done: c.brands > 0, href: '/app/brands/new', count: c.brands },
-    { id: 'profile', done: c.brandsWithWebsiteOrProfile > 0, href: '/app/brands', count: c.brandsWithWebsiteOrProfile },
+    {
+      id: 'profile',
+      done: c.brandsWithWebsiteOrProfile > 0,
+      href: '/app/brands',
+      count: c.brandsWithWebsiteOrProfile,
+    },
     { id: 'strategy', done: c.strategies > 0, href: '/app/brands', count: c.strategies },
     { id: 'campaign', done: c.campaigns > 0, href: '/app/campaigns', count: c.campaigns },
     { id: 'content', done: c.content > 0, href: '/app/content', count: c.content },
@@ -36,7 +49,12 @@ export function computeChecklist(c: {
 
 const PENDING_APPROVAL = ['PENDING', 'PARTIALLY_APPROVED'] as const;
 
-export type ApprovalEventLite = { contentId: string; actorUserId: string; action: string; at: Date };
+export type ApprovalEventLite = {
+  contentId: string;
+  actorUserId: string;
+  action: string;
+  at: Date;
+};
 
 /**
  * Items the user can still act on: pending/partially approved and not already approved by this
@@ -50,23 +68,44 @@ export function selectAwaitingForUser<T extends { id: string }>(
 ): Array<T & { requested_by: string | null; requested_at: Date | null }> {
   const out: Array<T & { requested_by: string | null; requested_at: Date | null }> = [];
   for (const item of items) {
-    const own = events.filter((e) => e.contentId === item.id).sort((a, b) => b.at.getTime() - a.at.getTime());
+    const own = events
+      .filter((e) => e.contentId === item.id)
+      .sort((a, b) => b.at.getTime() - a.at.getTime());
     const lastRequest = own.find((e) => e.action === 'REQUEST') ?? null;
     const approvedByMe = own.some(
-      (e) => e.action === 'APPROVE' && e.actorUserId === userId && (!lastRequest || e.at >= lastRequest.at),
+      (e) =>
+        e.action === 'APPROVE' &&
+        e.actorUserId === userId &&
+        (!lastRequest || e.at >= lastRequest.at),
     );
     if (approvedByMe) continue;
-    out.push({ ...item, requested_by: lastRequest?.actorUserId ?? null, requested_at: lastRequest?.at ?? null });
+    out.push({
+      ...item,
+      requested_by: lastRequest?.actorUserId ?? null,
+      requested_at: lastRequest?.at ?? null,
+    });
   }
   return out;
 }
 
 /** Per-brand counts for Home brand cards (pure; unit-tested). */
-export type BrandSocialPage = { brandId: string; network: string; name: string; avatarUrl: string | null; status: string };
+export type BrandSocialPage = {
+  brandId: string;
+  network: string;
+  name: string;
+  avatarUrl: string | null;
+  status: string;
+};
 
 export function summarizeBrands(
   brands: Array<{ id: string; name: string; logoUrl?: string | null }>,
-  items: Array<{ brandId: string; channel: string; approvalState: string; scheduleState: string; scheduledAt: Date | null }>,
+  items: Array<{
+    brandId: string;
+    channel: string;
+    approvalState: string;
+    scheduleState: string;
+    scheduledAt: Date | null;
+  }>,
   weekStart: Date,
   weekEnd: Date,
   pages: BrandSocialPage[] = [],
@@ -79,11 +118,22 @@ export function summarizeBrands(
       name: b.name,
       logo_url: b.logoUrl ?? null,
       // Real connected accounts; `channels` (inferred from content) is kept for older clients.
-      social_pages: social.map((p) => ({ network: p.network.toLowerCase(), name: p.name, avatar_url: p.avatarUrl, status: p.status })),
+      social_pages: social.map((p) => ({
+        network: p.network.toLowerCase(),
+        name: p.name,
+        avatar_url: p.avatarUrl,
+        status: p.status,
+      })),
       channels: [...new Set(own.map((i) => i.channel.toLowerCase()))].sort(),
-      awaiting_approval: own.filter((i) => (PENDING_APPROVAL as readonly string[]).includes(i.approvalState)).length,
+      awaiting_approval: own.filter((i) =>
+        (PENDING_APPROVAL as readonly string[]).includes(i.approvalState),
+      ).length,
       scheduled_this_week: own.filter(
-        (i) => i.scheduleState === 'SCHEDULED' && i.scheduledAt && i.scheduledAt >= weekStart && i.scheduledAt < weekEnd,
+        (i) =>
+          i.scheduleState === 'SCHEDULED' &&
+          i.scheduledAt &&
+          i.scheduledAt >= weekStart &&
+          i.scheduledAt < weekEnd,
       ).length,
     };
   });
@@ -124,31 +174,53 @@ export async function buildHome(
     prisma.brandWorkspace.count({
       where: tenantWhere(tenantId, {
         ...live,
-        OR: [{ primaryWebsiteSourceId: { not: null } }, { currentApprovedProfileVersionId: { not: null } }],
+        OR: [
+          { primaryWebsiteSourceId: { not: null } },
+          { currentApprovedProfileVersionId: { not: null } },
+        ],
       }),
     }),
-    prisma.brandWorkspace.count({ where: tenantWhere(tenantId, { ...live, currentApprovedStrategyId: { not: null } }) }),
+    prisma.brandWorkspace.count({
+      where: tenantWhere(tenantId, { ...live, currentApprovedStrategyId: { not: null } }),
+    }),
     prisma.campaign.count({ where: tenantWhere(tenantId, { status: 'ACTIVE' }) }),
     prisma.campaign.count({ where: tenantWhere(tenantId, { status: { not: 'ARCHIVED' } }) }),
     prisma.contentItem.count({ where: tenantWhere(tenantId, live) }),
     prisma.contentItem.count({
-      where: tenantWhere(tenantId, { ...live, approvalState: { in: ['PENDING', 'PARTIALLY_APPROVED'] } }),
+      where: tenantWhere(tenantId, {
+        ...live,
+        approvalState: { in: ['PENDING', 'PARTIALLY_APPROVED'] },
+      }),
     }),
     prisma.contentItem.count({
-      where: tenantWhere(tenantId, { ...live, scheduleState: 'SCHEDULED', scheduledAt: { gte: now, lt: weekEnd } }),
+      where: tenantWhere(tenantId, {
+        ...live,
+        scheduleState: 'SCHEDULED',
+        scheduledAt: { gte: now, lt: weekEnd },
+      }),
     }),
     prisma.workTask.count({ where: tenantWhere(tenantId, { status: { in: [...OPEN_TASK] } }) }),
-    prisma.workTask.count({ where: tenantWhere(tenantId, { status: { in: [...OPEN_TASK] }, dueAt: { lt: now } }) }),
+    prisma.workTask.count({
+      where: tenantWhere(tenantId, { status: { in: [...OPEN_TASK] }, dueAt: { lt: now } }),
+    }),
     prisma.workTask.count({
       where: tenantWhere(tenantId, { status: { in: [...OPEN_TASK] }, assigneeUserId: userId }),
     }),
-    prisma.workRequest.count({ where: tenantWhere(tenantId, { status: { in: [...OPEN_REQUEST] } }) }),
-    prisma.workDeliverable.count({ where: tenantWhere(tenantId, { reviewStatus: { in: [...REVIEW_DELIVERABLE] } }) }),
-    prisma.contentItem.count({
-      where: tenantWhere(tenantId, { approvalState: { in: ['APPROVED', 'CHANGES_REQUESTED', 'REJECTED'] } }),
+    prisma.workRequest.count({
+      where: tenantWhere(tenantId, { status: { in: [...OPEN_REQUEST] } }),
     }),
     prisma.workDeliverable.count({
-      where: tenantWhere(tenantId, { reviewStatus: { in: ['APPROVED', 'CHANGES_REQUESTED', 'REJECTED'] } }),
+      where: tenantWhere(tenantId, { reviewStatus: { in: [...REVIEW_DELIVERABLE] } }),
+    }),
+    prisma.contentItem.count({
+      where: tenantWhere(tenantId, {
+        approvalState: { in: ['APPROVED', 'CHANGES_REQUESTED', 'REJECTED'] },
+      }),
+    }),
+    prisma.workDeliverable.count({
+      where: tenantWhere(tenantId, {
+        reviewStatus: { in: ['APPROVED', 'CHANGES_REQUESTED', 'REJECTED'] },
+      }),
     }),
     prisma.workRequest.count({ where: tenantWhere(tenantId, {}) }),
     prisma.workTask.count({ where: tenantWhere(tenantId, {}) }),
@@ -159,15 +231,32 @@ export async function buildHome(
       where: tenantWhere(tenantId, { status: { in: [...OPEN_TASK] }, assigneeUserId: userId }),
       orderBy: [{ dueAt: { sort: 'asc', nulls: 'last' } }, { updatedAt: 'desc' }],
       take: 8,
-      select: { id: true, titleEn: true, titleAr: true, status: true, priority: true, dueAt: true, brandId: true },
+      select: {
+        id: true,
+        titleEn: true,
+        titleAr: true,
+        status: true,
+        priority: true,
+        dueAt: true,
+        brandId: true,
+      },
     }),
     prisma.contentItem.findMany({
-      where: tenantWhere(tenantId, { ...live, approvalState: { in: ['PENDING', 'PARTIALLY_APPROVED'] } }),
+      where: tenantWhere(tenantId, {
+        ...live,
+        approvalState: { in: ['PENDING', 'PARTIALLY_APPROVED'] },
+      }),
       orderBy: { updatedAt: 'desc' },
       take: 6,
       select: {
-        id: true, titleEn: true, titleAr: true, brandId: true, approverApproved: true,
-        approverRequired: true, updatedAt: true, channel: true,
+        id: true,
+        titleEn: true,
+        titleAr: true,
+        brandId: true,
+        approverApproved: true,
+        approverRequired: true,
+        updatedAt: true,
+        channel: true,
       },
     }),
     prisma.workDeliverable.findMany({
@@ -177,12 +266,26 @@ export async function buildHome(
       select: { id: true, titleEn: true, titleAr: true, brandId: true, updatedAt: true },
     }),
     prisma.contentItem.findMany({
-      where: tenantWhere(tenantId, { ...live, scheduleState: 'SCHEDULED', scheduledAt: { gte: now, lt: horizon } }),
+      where: tenantWhere(tenantId, {
+        ...live,
+        scheduleState: 'SCHEDULED',
+        scheduledAt: { gte: now, lt: horizon },
+      }),
       orderBy: { scheduledAt: 'asc' },
       take: 8,
-      select: { id: true, titleEn: true, titleAr: true, brandId: true, scheduledAt: true, channel: true },
+      select: {
+        id: true,
+        titleEn: true,
+        titleAr: true,
+        brandId: true,
+        scheduledAt: true,
+        channel: true,
+      },
     }),
-    prisma.brandWorkspace.findMany({ where: tenantWhere(tenantId, {}), select: { id: true, name: true } }),
+    prisma.brandWorkspace.findMany({
+      where: tenantWhere(tenantId, {}),
+      select: { id: true, name: true },
+    }),
   ]);
   const brandName = new Map(brandRows.map((b) => [b.id, b.name]));
 
@@ -201,7 +304,11 @@ export async function buildHome(
   });
   const socialPages = liveBrands.length
     ? await prisma.socialPage.findMany({
-        where: { tenantId, brandId: { in: liveBrands.map((b) => b.id) }, status: { not: 'DISCONNECTED' } },
+        where: {
+          tenantId,
+          brandId: { in: liveBrands.map((b) => b.id) },
+          status: { not: 'DISCONNECTED' },
+        },
         select: { brandId: true, network: true, name: true, avatarUrl: true, status: true },
         orderBy: [{ network: 'asc' }],
       })
@@ -209,7 +316,13 @@ export async function buildHome(
   const [brandItems, pendingItems, weekItems] = await Promise.all([
     prisma.contentItem.findMany({
       where: tenantWhere(tenantId, live),
-      select: { brandId: true, channel: true, approvalState: true, scheduleState: true, scheduledAt: true },
+      select: {
+        brandId: true,
+        channel: true,
+        approvalState: true,
+        scheduleState: true,
+        scheduledAt: true,
+      },
     }),
     opts.canApprove === false
       ? Promise.resolve([])
@@ -218,27 +331,57 @@ export async function buildHome(
           orderBy: { updatedAt: 'desc' },
           take: 20,
           select: {
-            id: true, titleEn: true, titleAr: true, captionEn: true, captionAr: true, brandId: true,
-            channel: true, previewAssetUrl: true, approverApproved: true, approverRequired: true, updatedAt: true,
+            id: true,
+            titleEn: true,
+            titleAr: true,
+            captionEn: true,
+            captionAr: true,
+            brandId: true,
+            channel: true,
+            previewAssetUrl: true,
+            approverApproved: true,
+            approverRequired: true,
+            updatedAt: true,
           },
         }),
     prisma.contentItem.findMany({
-      where: tenantWhere(tenantId, { ...live, scheduleState: 'SCHEDULED', scheduledAt: { gte: dayStart, lt: stripEnd } }),
+      where: tenantWhere(tenantId, {
+        ...live,
+        scheduleState: 'SCHEDULED',
+        scheduledAt: { gte: dayStart, lt: stripEnd },
+      }),
       orderBy: { scheduledAt: 'asc' },
       take: 60,
-      select: { id: true, titleEn: true, titleAr: true, brandId: true, channel: true, scheduledAt: true, previewAssetUrl: true },
+      select: {
+        id: true,
+        titleEn: true,
+        titleAr: true,
+        brandId: true,
+        channel: true,
+        scheduledAt: true,
+        previewAssetUrl: true,
+      },
     }),
   ]);
   const events = pendingItems.length
     ? await prisma.contentApprovalEvent.findMany({
-        where: { tenantId, contentId: { in: pendingItems.map((p) => p.id) }, action: { in: ['REQUEST', 'APPROVE'] } },
+        where: {
+          tenantId,
+          contentId: { in: pendingItems.map((p) => p.id) },
+          action: { in: ['REQUEST', 'APPROVE'] },
+        },
         select: { contentId: true, actorUserId: true, action: true, at: true },
       })
     : [];
   const awaiting = selectAwaitingForUser(pendingItems, events, userId).slice(0, 8);
-  const requesterIds = [...new Set(awaiting.map((a) => a.requested_by).filter((x): x is string => Boolean(x)))];
+  const requesterIds = [
+    ...new Set(awaiting.map((a) => a.requested_by).filter((x): x is string => Boolean(x))),
+  ];
   const requesters = requesterIds.length
-    ? await prisma.user.findMany({ where: { id: { in: requesterIds } }, select: { id: true, name: true } })
+    ? await prisma.user.findMany({
+        where: { id: { in: requesterIds } },
+        select: { id: true, name: true },
+      })
     : [];
   const userName = new Map(requesters.map((u) => [u.id, u.name]));
 

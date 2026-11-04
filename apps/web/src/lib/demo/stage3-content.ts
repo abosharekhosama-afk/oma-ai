@@ -369,7 +369,6 @@ export function linkedIdsForContent(
   };
 }
 
-
 /** Human label for system enums (content type, request type, etc.). Never returns a ULID. */
 export function contentTypeLabel(value: string, locale: string): string {
   return statusLabel(value, locale);

@@ -356,11 +356,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
     const onScroll = (event: Event) => {
       const node = event.target;
       const el =
-        node instanceof Element
-          ? node
-          : node === document
-            ? document.documentElement
-            : null;
+        node instanceof Element ? node : node === document ? document.documentElement : null;
       if (!el) return;
       el.setAttribute('data-scrolling', 'true');
       const previous = timers.get(el);
@@ -449,12 +445,18 @@ export function ShellChrome({ children }: { children: ReactNode }) {
             ) : null}
           </div>
           <p className="oma-rail-endorsement">{t('app.endorsement')}</p>
-          <WorkspaceRow collapsed={collapsed} onOpenSettings={() => setSettingsSection('workspace')} />
+          <WorkspaceRow
+            collapsed={collapsed}
+            onOpenSettings={() => setSettingsSection('workspace')}
+          />
           <RailNav collapsed={collapsed} />
           <RailUtilities />
         </aside>
 
-        <div className="oma-shell-column" data-mobile-page-title={mobilePageTitle ? 'true' : 'false'}>
+        <div
+          className="oma-shell-column"
+          data-mobile-page-title={mobilePageTitle ? 'true' : 'false'}
+        >
           <Button
             type="text"
             aria-label={t('shell.openNav')}
@@ -490,7 +492,10 @@ export function ShellChrome({ children }: { children: ReactNode }) {
                   {mobilePageTitle}
                 </span>
               ) : null}
-              <div className="oma-top-context" data-mobile-title={mobilePageTitle ? 'true' : 'false'}>
+              <div
+                className="oma-top-context"
+                data-mobile-title={mobilePageTitle ? 'true' : 'false'}
+              >
                 {/* Brand switcher removed from header trail */}
                 <ShellBreadcrumb onOpenSettings={() => setSettingsSection('workspace')} />
               </div>

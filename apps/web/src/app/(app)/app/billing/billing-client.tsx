@@ -14,7 +14,12 @@ import {
   type PlanDto,
   type SubscriptionView,
 } from '../../../../lib/billing-api';
-import { BriefcaseIcon, CheckIcon, CrownIcon, SparkleIcon } from '../../../../components/ui/plx-icons';
+import {
+  BriefcaseIcon,
+  CheckIcon,
+  CrownIcon,
+  SparkleIcon,
+} from '../../../../components/ui/plx-icons';
 import './billing.css';
 
 function planIcon(code: string) {
@@ -156,13 +161,39 @@ export default function BillingClient() {
           <p className="oma-planable-page__sub">{copy.sub}</p>
         </div>
         <div className="oma-billing__header-actions">
-          <Link className="oma-billing__icon-link" href="/app/subscription" aria-label={copy.usage} title={copy.usage}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+          <Link
+            className="oma-billing__icon-link"
+            href="/app/subscription"
+            aria-label={copy.usage}
+            title={copy.usage}
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
               <path d="M4 19V5M4 19h16M8 17V9M12 17V7M16 17v-4" />
             </svg>
           </Link>
-          <Link className="oma-billing__icon-link" href="/app" aria-label={copy.back} title={copy.back}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+          <Link
+            className="oma-billing__icon-link"
+            href="/app"
+            aria-label={copy.back}
+            title={copy.back}
+          >
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              aria-hidden="true"
+            >
               <path d={isAr ? 'M5 12h14M11 6l-6 6 6 6' : 'M19 12H5M11 6l-6 6 6 6'} />
             </svg>
           </Link>
@@ -173,8 +204,16 @@ export default function BillingClient() {
         <strong>{copy.coming}</strong> — {copy.note}
       </div>
 
-      <div className="oma-billing__switch" role="group" aria-label={isAr ? 'دورة الفوترة' : 'Billing cycle'}>
-        <button type="button" className={!annual ? 'is-active' : ''} onClick={() => setAnnual(false)}>
+      <div
+        className="oma-billing__switch"
+        role="group"
+        aria-label={isAr ? 'دورة الفوترة' : 'Billing cycle'}
+      >
+        <button
+          type="button"
+          className={!annual ? 'is-active' : ''}
+          onClick={() => setAnnual(false)}
+        >
           {isAr ? 'شهري' : 'Monthly'}
         </button>
         <button type="button" className={annual ? 'is-active' : ''} onClick={() => setAnnual(true)}>
@@ -197,17 +236,37 @@ export default function BillingClient() {
             const featureKeys = Object.entries(plan.features)
               .filter(([, on]) => on)
               .map(([k]) => k);
-            const limitKeys = ['brands', 'social_channels', 'seats', 'guests', 'posts_per_month', 'posts_total', 'storage_bytes'].filter(
-              (k) => plan.limits[k] !== undefined && !(k === 'posts_total' && plan.limits[k] == null) && !(k === 'posts_per_month' && plan.code === 'free'),
+            const limitKeys = [
+              'brands',
+              'social_channels',
+              'seats',
+              'guests',
+              'posts_per_month',
+              'posts_total',
+              'storage_bytes',
+            ].filter(
+              (k) =>
+                plan.limits[k] !== undefined &&
+                !(k === 'posts_total' && plan.limits[k] == null) &&
+                !(k === 'posts_per_month' && plan.code === 'free'),
             );
             return (
-              <article key={plan.code} className={`oma-billing__card${active ? ' is-selected' : ''}${plan.popular ? ' is-popular' : ''}`}>
+              <article
+                key={plan.code}
+                className={`oma-billing__card${active ? ' is-selected' : ''}${plan.popular ? ' is-popular' : ''}`}
+              >
                 {plan.popular ? (
-                  <span className="oma-billing__badge">{isAr ? 'الأكثر اختياراً' : 'Most popular'}</span>
+                  <span className="oma-billing__badge">
+                    {isAr ? 'الأكثر اختياراً' : 'Most popular'}
+                  </span>
                 ) : null}
-                <div className={`oma-billing__plan-icon is-${plan.code}`}>{planIcon(plan.code)}</div>
+                <div className={`oma-billing__plan-icon is-${plan.code}`}>
+                  {planIcon(plan.code)}
+                </div>
                 <h2>{isAr ? plan.name.ar : plan.name.en}</h2>
-                <p className="oma-billing__desc">{isAr ? plan.description.ar : plan.description.en}</p>
+                <p className="oma-billing__desc">
+                  {isAr ? plan.description.ar : plan.description.en}
+                </p>
                 <div className="oma-billing__price">
                   {price == null ? (
                     <strong>{isAr ? 'حسب الطلب' : 'Custom'}</strong>

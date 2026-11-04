@@ -8,9 +8,7 @@ export async function syncContentPublishRollup(contentItemId: string) {
     where: { contentItemId },
     orderBy: { createdAt: 'asc' },
   });
-  const rollup = computePublishRollup(
-    targets.map((t) => t.publishState as TargetPublishState),
-  );
+  const rollup = computePublishRollup(targets.map((t) => t.publishState as TargetPublishState));
   const published = targets.filter((t) => t.publishState === 'PUBLISHED');
   const failed = targets.filter((t) => t.publishState === 'FAILED');
   const retrying = targets.filter((t) => t.publishState === 'QUEUED' && t.nextPublishAt);

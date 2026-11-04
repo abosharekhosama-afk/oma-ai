@@ -1200,18 +1200,18 @@ export class StrategyService {
         select: { preferencesJson: true },
       });
       if (notificationAllowed(actorPrefs?.preferencesJson, 'strategy.submitted'))
-      await tx.notification.create({
-        data: {
-          id: newId(),
-          tenantId,
-          recipientUserId: actorUserId,
-          type: 'strategy.submitted',
-          objectType: 'StrategyVersion',
-          objectId: versionId,
-          deepLinkPath: `/app/brands/${brandId}/strategies/${strategyId}/review`,
-          dedupeKey: `strategy.submitted:${versionId}:${newId().slice(-6)}`,
-        },
-      });
+        await tx.notification.create({
+          data: {
+            id: newId(),
+            tenantId,
+            recipientUserId: actorUserId,
+            type: 'strategy.submitted',
+            objectType: 'StrategyVersion',
+            objectId: versionId,
+            deepLinkPath: `/app/brands/${brandId}/strategies/${strategyId}/review`,
+            dedupeKey: `strategy.submitted:${versionId}:${newId().slice(-6)}`,
+          },
+        });
     });
 
     await this.audit.write({

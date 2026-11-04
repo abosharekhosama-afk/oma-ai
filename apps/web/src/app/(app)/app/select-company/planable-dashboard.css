@@ -46,7 +46,9 @@
   background: #eceef1;
   box-shadow: 0 0 0 2px rgba(47, 111, 237, 0.14);
 }
-.plx-topbar-search input::placeholder { color: #9ca3af; }
+.plx-topbar-search input::placeholder {
+  color: #9ca3af;
+}
 .plx-workspaces-empty {
   grid-column: 1 / -1;
   margin: 0;

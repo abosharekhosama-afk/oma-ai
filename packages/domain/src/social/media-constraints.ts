@@ -257,6 +257,7 @@ export function imageNeedsTranscode(
   const m = normMime(mime);
   if (!m.startsWith('image/')) return false;
   if (!c.photoMimes.includes(m)) return true;
-  if (c.maxPhotoEdgePx && width && height && Math.max(width, height) > c.maxPhotoEdgePx) return true;
+  if (c.maxPhotoEdgePx && width && height && Math.max(width, height) > c.maxPhotoEdgePx)
+    return true;
   return false;
 }

@@ -19,13 +19,13 @@ import {
 
 /** WEB_ORIGIN may already include `/app` (Vercel basePath). Avoid `/app/app/...`. */
 function publicWebOrigin(): string {
-  const raw = (process.env.WEB_ORIGIN || process.env.WEB_BASE_URL || 'https://oma-ai-ecru.vercel.app').replace(
-    /\/+$/,
-    '',
-  );
+  const raw = (
+    process.env.WEB_ORIGIN ||
+    process.env.WEB_BASE_URL ||
+    'https://oma-ai-ecru.vercel.app'
+  ).replace(/\/+$/, '');
   return raw.replace(/\/app$/i, '');
 }
-
 
 export const MAX_PUBLISH_ATTEMPTS = 5;
 /** Backoff after attempt n (1-based): 1m, 5m, 15m, 60m. */
@@ -91,7 +91,6 @@ export async function persistAdapterMeta(
     data: { metaJson: JSON.stringify(next) },
   });
 }
-
 
 /** Notify brand managers + workspace admins that a connected account needs reconnecting. */
 export async function alertDisconnected(

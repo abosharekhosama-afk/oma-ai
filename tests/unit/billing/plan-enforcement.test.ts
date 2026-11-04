@@ -1,22 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import {
-  DomainError,
-  PLAN_CATALOG,
-  approvalModeAllowed,
-  planHasFeature,
-} from '@oma/domain';
+import { DomainError, PLAN_CATALOG, approvalModeAllowed, planHasFeature } from '@oma/domain';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 describe('plan enforcement wiring', () => {
   it('registers PLAN_LIMIT_REACHED and PLAN_FEATURE_REQUIRED error codes', () => {
-    const err = new DomainError(
-      'PLAN_LIMIT_REACHED',
-      'limit',
-      402,
-      'errors.plan_limit.brands',
-      [{ limit_key: 'brands' }],
-    );
+    const err = new DomainError('PLAN_LIMIT_REACHED', 'limit', 402, 'errors.plan_limit.brands', [
+      { limit_key: 'brands' },
+    ]);
     expect(err.code).toBe('PLAN_LIMIT_REACHED');
     expect(err.status).toBe(402);
     const feat = new DomainError(
@@ -29,10 +20,7 @@ describe('plan enforcement wiring', () => {
   });
 
   it('wires billing controller and migration into the repo', () => {
-    const controller = readFileSync(
-      resolve('apps/api/src/billing/billing.controller.ts'),
-      'utf8',
-    );
+    const controller = readFileSync(resolve('apps/api/src/billing/billing.controller.ts'), 'utf8');
     expect(controller).toContain('api/v1/billing/plans');
     expect(controller).toContain('api/v1/billing/subscription');
     expect(controller).toContain('api/v1/billing/upgrade-requests');
@@ -44,7 +32,7 @@ describe('plan enforcement wiring', () => {
       'utf8',
     );
     expect(migration).toContain('WorkspaceSubscription');
-    expect(migration).toContain("Grandfathered to Pro");
+    expect(migration).toContain('Grandfathered to Pro');
     expect(migration).toContain("'free'");
     expect(migration).toContain("'enterprise'");
   });
@@ -62,10 +50,7 @@ describe('plan enforcement wiring', () => {
   });
 
   it('splits deliverable review caps: submit via write, decide via review.decide', () => {
-    const guard = readFileSync(
-      resolve('apps/api/src/common/guards/capabilities.guard.ts'),
-      'utf8',
-    );
+    const guard = readFileSync(resolve('apps/api/src/common/guards/capabilities.guard.ts'), 'utf8');
     const ops = readFileSync(resolve('apps/api/src/content/ops.service.ts'), 'utf8');
     // Guard allows brand members through; OpsService.assertReviewCapability enforces action caps.
     expect(guard).toContain("'POST /api/v1/deliverables/:deliverableId/review': []");

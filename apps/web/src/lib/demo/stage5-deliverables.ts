@@ -241,7 +241,10 @@ export const REVIEW_TRANSITIONS: Record<DemoReviewStatus, DemoReviewStatus[]> = 
   REJECTED: ['DRAFT', 'AWAITING_REVIEW'],
 };
 
-export function canTransitionReview(from: DemoReviewStatus | string, to: DemoReviewStatus | string): boolean {
+export function canTransitionReview(
+  from: DemoReviewStatus | string,
+  to: DemoReviewStatus | string,
+): boolean {
   if (from === to) return true;
   // API may still return NOT_STARTED; treat it like DRAFT (submit only).
   const normalized = (from === 'NOT_STARTED' ? 'DRAFT' : from) as DemoReviewStatus;

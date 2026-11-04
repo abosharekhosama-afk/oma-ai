@@ -208,7 +208,11 @@ export default function TeamPage() {
   async function onTogglePerm(member: WorkspaceMember, perm: PlanablePerm) {
     if (!member.permissions) return;
     if (isOwnerMember(member) && perm === 'admin' && member.permissions.admin) {
-      toast.push(t('team.owner_admin_locked') || (isAr ? 'لا يمكن إزالة صلاحيات المالك' : 'Owner admin access can’t be removed'), 'danger');
+      toast.push(
+        t('team.owner_admin_locked') ||
+          (isAr ? 'لا يمكن إزالة صلاحيات المالك' : 'Owner admin access can’t be removed'),
+        'danger',
+      );
       return;
     }
     const next = { ...member.permissions, [perm]: !member.permissions[perm] };
@@ -302,335 +306,342 @@ export default function TeamPage() {
           ))}
         </nav>
         <main className="oma-bs-main">
-
-      {loading ? <TableShimmer rows={5} /> : null}
-      {error ? (
-        <div className="plx-empty" role="alert">
-          <strong>{error}</strong>
-          <div style={{ marginTop: 12 }}>
-            <Button type="default" onClick={() => void load(true)}>
-              {t('activity.retry')}
-            </Button>
-          </div>
-        </div>
-      ) : null}
-
-      {!loading && !error && tab === 'members' ? (
-        <>
-          <div className="oma-planable-toolbar">
-            <Input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder={t('team.search_members')}
-            />
-          </div>
-          <div className="oma-planable-card oma-member-surface">
-            <div
-              className="oma-member-table-scroll"
-              role="region"
-              aria-label={t('team.user')}
-              tabIndex={0}
-              data-testid="team-members-scroll"
-            >
-              <table className="oma-ws-table">
-              <thead>
-                <tr>
-                  <th>{t('team.user')}</th>
-                  <th>{t('team.membership')}</th>
-                  <th>{t('demo.team.filter.role')}</th>
-                  <th>{t('strategy.list.col.status')}</th>
-                  <th>{t('team.last_online')}</th>
-                  <th>{t('team.permissions')}</th>
-                  <th />
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.length === 0 ? (
-                  <tr>
-                    <td colSpan={7}>
-                      <div className="oma-ws-empty-block">
-                        <h3>{t('company.membersEmpty')}</h3>
-                        <p>{t('team.invite_teammates_or_clients_to')}</p>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  filtered.map((m) => {
-                    const label =
-                      m.user?.name || m.user?.email || m.invited_email || t('team.user');
-                    const email = m.user?.email || m.invited_email || '';
-                    return (
-                      <tr key={m.id}>
-                        <td>
-                          <div className="oma-ws-user-cell">
-                            <span className="oma-ws-avatar oma-ws-avatar--sm">
-                              {(label[0] || 'U').toUpperCase()}
-                            </span>
-                            <div>
-                              <div className="oma-ws-user-name">
-                                {label}
-                                {m.user?.id && m.user.id === meId ? (
-                                  <span
-                                    className="oma-ws-badge oma-ws-badge--ghost"
-                                    style={{ marginInlineStart: 6 }}
-                                  >
-                                    {t('content.you')}
-                                  </span>
-                                ) : null}
-                              </div>
-                              {email ? <div className="oma-ws-user-email">{email}</div> : null}
-                            </div>
-                          </div>
-                        </td>
-                        <td>
-                          <span
-                            className={`oma-ws-badge${
-                              m.membership === 'client' ? ' oma-ws-badge--client' : ''
-                            }`}
-                          >
-                            {m.membership === 'client' ? t('team.client') : t('team.team')}
-                          </span>
-                        </td>
-                        <td>
-                          <SelectField
-                            value={m.role || 'Member'}
-                            onChange={(e) => void onChangeRole(m, e.target.value)}
-                          >
-                            {ROLE_OPTIONS.map((r) => (
-                              <option key={r} value={r}>
-                                {t(`members.role.${r.toLowerCase()}`)}
-                              </option>
-                            ))}
-                          </SelectField>
-                        </td>
-                        <td>
-                          <span className="oma-ws-badge oma-ws-badge--ghost">
-                            {statusLabel(t, m.status)}
-                          </span>
-                        </td>
-                        <td>
-                          {m.last_online === 'Invited'
-                            ? t('team.invited')
-                            : m.last_online === 'Active'
-                              ? t('status.enum.ACTIVE')
-                              : m.last_online || '—'}
-                        </td>
-                        <td className="oma-ws-perm-summary" data-testid="team-permissions">
-                          <Popover
-                            trigger="click"
-                            arrow={false}
-                            placement={isAr ? 'bottomRight' : 'bottomLeft'}
-                            getPopupContainer={() => document.body}
-                            classNames={{ root: 'oma-perm-popover' }}
-                            content={
-                              <PermissionsCard
-                                member={m}
-                                isSelf={Boolean(m.user?.id && m.user.id === meId)}
-                                isAr={isAr}
-                                t={t}
-                              />
-                            }
-                          >
-                            <button
-                              type="button"
-                              className="oma-perm-link"
-                              aria-label={readablePermissions(m, isAr).join(t('team.text'))}
-                            >
-                              {m.user?.id && m.user.id === meId
-                                ? t('team.perm.yours')
-                                : t('team.perm.view')}
-                            </button>
-                          </Popover>
-                        </td>
-                        <td>
-                          {isOwnerMember(m) || (m.user?.id && m.user.id === meId) ? (
-                            <span className="oma-muted" data-testid="team-no-remove">
-                              {isOwnerMember(m) ? t('demo.campaigns.col.owner') : '—'}
-                            </span>
-                          ) : (
-                            <button
-                              type="button"
-                              className="oma-ws-danger-btn"
-                              onClick={() => void onRemove(m)}
-                              disabled={busy}
-                            >
-                              {t('team.remove')}
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-              </table>
+          {loading ? <TableShimmer rows={5} /> : null}
+          {error ? (
+            <div className="plx-empty" role="alert">
+              <strong>{error}</strong>
+              <div style={{ marginTop: 12 }}>
+                <Button type="default" onClick={() => void load(true)}>
+                  {t('activity.retry')}
+                </Button>
+              </div>
             </div>
-          </div>
-        </>
-      ) : null}
+          ) : null}
 
-      {!loading && !error && tab === 'permissions' ? (
-        <div className="oma-planable-card oma-member-surface">
-          <div
-            className="oma-member-table-scroll"
-            role="region"
-            aria-label={t('team.adjust_permissions')}
-            tabIndex={0}
-            data-testid="team-permissions-scroll"
-          >
-            <table className="oma-ws-table oma-ws-table--perms">
-              <thead>
-                <tr>
-                  <th>{t('team.user')}</th>
-                  {PERM_COLS.map((p) => (
-                    <th key={p}>{isAr ? PERMISSION_LABELS[p].ar : PERMISSION_LABELS[p].en}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((m) => {
-                  const label = m.user?.name || m.user?.email || m.invited_email || t('team.user');
-                  return (
-                    <tr key={m.id}>
-                      <td>
-                        <div className="oma-ws-user-cell">
-                          <span className="oma-ws-avatar oma-ws-avatar--sm">
-                            {(label[0] || 'U').toUpperCase()}
-                          </span>
-                          <div>
-                            <div className="oma-ws-user-name">{label}</div>
-                            <div className="oma-muted">{m.role}</div>
-                          </div>
-                        </div>
-                      </td>
-                      {PERM_COLS.map((p) => (
-                        <td key={p} className="oma-ws-check-cell">
-                          <input
-                            type="checkbox"
-                            checked={Boolean(m.permissions?.[p])}
-                            onChange={() => void onTogglePerm(m, p)}
-                          />
-                        </td>
-                      ))}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      ) : null}
-
-      {!loading && !error && tab === 'notifications' ? (
-        <div className="oma-planable-card oma-notif-settings" data-testid="team-notifications">
-          <header className="oma-notif-settings__intro">
-            <h3 className="oma-ws-subhead">{t('team.manage_notifications')}</h3>
-            <p className="oma-ws-empty-desc">{t('settings.notifications.body')}</p>
-          </header>
-          {notif ? (
-            <div className="oma-notif-settings__list" aria-busy={notifSaving || undefined}>
-              <div className="oma-notif-settings__section">
-                <div className="oma-notif-settings__row oma-notif-settings__row--master">
-                  <div className="oma-notif-settings__copy">
-                    <strong>{t('settings.notifications.all')}</strong>
-                    <span>{t('settings.notifications.channel_inapp')}</span>
-                  </div>
-                  <label className="oma-switch">
-                    <input
-                      type="checkbox"
-                      data-testid="notif-pref-all"
-                      checked={notif.notifications.all !== false}
-                      disabled={notifSaving}
-                      onChange={(e) => {
-                        const next = {
-                          ...notif,
-                          notifications: { ...notif.notifications, all: e.target.checked },
-                        };
-                        setNotif(next);
-                        setNotifSaving(true);
-                        void updatePreferences({ notifications: next.notifications })
-                          .then((saved) => {
-                            setNotif(saved);
-                            setNotifSaved(saved);
-                            toast.push(t('demo.settings.saved'), 'success');
-                          })
-                          .catch((err: unknown) => {
-                            setNotif(notifSaved);
-                            toast.push(
-                              err instanceof Error ? err.message : t('errors.page.generic.title'),
-                              'danger',
-                            );
-                          })
-                          .finally(() => setNotifSaving(false));
-                      }}
-                    />
-                    <span className="oma-switch__track" aria-hidden="true" />
-                  </label>
+          {!loading && !error && tab === 'members' ? (
+            <>
+              <div className="oma-planable-toolbar">
+                <Input
+                  value={q}
+                  onChange={(e) => setQ(e.target.value)}
+                  placeholder={t('team.search_members')}
+                />
+              </div>
+              <div className="oma-planable-card oma-member-surface">
+                <div
+                  className="oma-member-table-scroll"
+                  role="region"
+                  aria-label={t('team.user')}
+                  tabIndex={0}
+                  data-testid="team-members-scroll"
+                >
+                  <table className="oma-ws-table">
+                    <thead>
+                      <tr>
+                        <th>{t('team.user')}</th>
+                        <th>{t('team.membership')}</th>
+                        <th>{t('demo.team.filter.role')}</th>
+                        <th>{t('strategy.list.col.status')}</th>
+                        <th>{t('team.last_online')}</th>
+                        <th>{t('team.permissions')}</th>
+                        <th />
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filtered.length === 0 ? (
+                        <tr>
+                          <td colSpan={7}>
+                            <div className="oma-ws-empty-block">
+                              <h3>{t('company.membersEmpty')}</h3>
+                              <p>{t('team.invite_teammates_or_clients_to')}</p>
+                            </div>
+                          </td>
+                        </tr>
+                      ) : (
+                        filtered.map((m) => {
+                          const label =
+                            m.user?.name || m.user?.email || m.invited_email || t('team.user');
+                          const email = m.user?.email || m.invited_email || '';
+                          return (
+                            <tr key={m.id}>
+                              <td>
+                                <div className="oma-ws-user-cell">
+                                  <span className="oma-ws-avatar oma-ws-avatar--sm">
+                                    {(label[0] || 'U').toUpperCase()}
+                                  </span>
+                                  <div>
+                                    <div className="oma-ws-user-name">
+                                      {label}
+                                      {m.user?.id && m.user.id === meId ? (
+                                        <span
+                                          className="oma-ws-badge oma-ws-badge--ghost"
+                                          style={{ marginInlineStart: 6 }}
+                                        >
+                                          {t('content.you')}
+                                        </span>
+                                      ) : null}
+                                    </div>
+                                    {email ? (
+                                      <div className="oma-ws-user-email">{email}</div>
+                                    ) : null}
+                                  </div>
+                                </div>
+                              </td>
+                              <td>
+                                <span
+                                  className={`oma-ws-badge${
+                                    m.membership === 'client' ? ' oma-ws-badge--client' : ''
+                                  }`}
+                                >
+                                  {m.membership === 'client' ? t('team.client') : t('team.team')}
+                                </span>
+                              </td>
+                              <td>
+                                <SelectField
+                                  value={m.role || 'Member'}
+                                  onChange={(e) => void onChangeRole(m, e.target.value)}
+                                >
+                                  {ROLE_OPTIONS.map((r) => (
+                                    <option key={r} value={r}>
+                                      {t(`members.role.${r.toLowerCase()}`)}
+                                    </option>
+                                  ))}
+                                </SelectField>
+                              </td>
+                              <td>
+                                <span className="oma-ws-badge oma-ws-badge--ghost">
+                                  {statusLabel(t, m.status)}
+                                </span>
+                              </td>
+                              <td>
+                                {m.last_online === 'Invited'
+                                  ? t('team.invited')
+                                  : m.last_online === 'Active'
+                                    ? t('status.enum.ACTIVE')
+                                    : m.last_online || '—'}
+                              </td>
+                              <td className="oma-ws-perm-summary" data-testid="team-permissions">
+                                <Popover
+                                  trigger="click"
+                                  arrow={false}
+                                  placement={isAr ? 'bottomRight' : 'bottomLeft'}
+                                  getPopupContainer={() => document.body}
+                                  classNames={{ root: 'oma-perm-popover' }}
+                                  content={
+                                    <PermissionsCard
+                                      member={m}
+                                      isSelf={Boolean(m.user?.id && m.user.id === meId)}
+                                      isAr={isAr}
+                                      t={t}
+                                    />
+                                  }
+                                >
+                                  <button
+                                    type="button"
+                                    className="oma-perm-link"
+                                    aria-label={readablePermissions(m, isAr).join(t('team.text'))}
+                                  >
+                                    {m.user?.id && m.user.id === meId
+                                      ? t('team.perm.yours')
+                                      : t('team.perm.view')}
+                                  </button>
+                                </Popover>
+                              </td>
+                              <td>
+                                {isOwnerMember(m) || (m.user?.id && m.user.id === meId) ? (
+                                  <span className="oma-muted" data-testid="team-no-remove">
+                                    {isOwnerMember(m) ? t('demo.campaigns.col.owner') : '—'}
+                                  </span>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    className="oma-ws-danger-btn"
+                                    onClick={() => void onRemove(m)}
+                                    disabled={busy}
+                                  >
+                                    {t('team.remove')}
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
-              {NOTIF_GROUPS.map((group) => {
-                const masterOn = notif.notifications.all !== false;
-                return (
-                  <section key={group.id} className="oma-notif-settings__section">
-                    <h4 className="oma-notif-settings__heading">{t(group.labelKey)}</h4>
-                    <ul className="oma-notif-settings__rows">
-                      {group.types.map((type) => {
-                        const checked = masterOn && notif.notifications[type] !== false;
-                        return (
-                          <li key={type} className={`oma-notif-settings__row${masterOn ? '' : ' is-muted'}`}>
-                            <div className="oma-notif-settings__copy">
-                              <strong>{t(`shell.notificationPref.${type}`)}</strong>
-                              <span>{t('settings.notifications.channel_inapp')}</span>
+            </>
+          ) : null}
+
+          {!loading && !error && tab === 'permissions' ? (
+            <div className="oma-planable-card oma-member-surface">
+              <div
+                className="oma-member-table-scroll"
+                role="region"
+                aria-label={t('team.adjust_permissions')}
+                tabIndex={0}
+                data-testid="team-permissions-scroll"
+              >
+                <table className="oma-ws-table oma-ws-table--perms">
+                  <thead>
+                    <tr>
+                      <th>{t('team.user')}</th>
+                      {PERM_COLS.map((p) => (
+                        <th key={p}>{isAr ? PERMISSION_LABELS[p].ar : PERMISSION_LABELS[p].en}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((m) => {
+                      const label =
+                        m.user?.name || m.user?.email || m.invited_email || t('team.user');
+                      return (
+                        <tr key={m.id}>
+                          <td>
+                            <div className="oma-ws-user-cell">
+                              <span className="oma-ws-avatar oma-ws-avatar--sm">
+                                {(label[0] || 'U').toUpperCase()}
+                              </span>
+                              <div>
+                                <div className="oma-ws-user-name">{label}</div>
+                                <div className="oma-muted">{m.role}</div>
+                              </div>
                             </div>
-                            <label className="oma-switch">
+                          </td>
+                          {PERM_COLS.map((p) => (
+                            <td key={p} className="oma-ws-check-cell">
                               <input
                                 type="checkbox"
-                                data-testid={`notif-pref-${type}`}
-                                disabled={!masterOn || notifSaving}
-                                checked={checked}
-                                onChange={(e) => {
-                                  const next = {
-                                    ...notif,
-                                    notifications: {
-                                      ...notif.notifications,
-                                      [type]: e.target.checked,
-                                    },
-                                  };
-                                  setNotif(next);
-                                  setNotifSaving(true);
-                                  void updatePreferences({ notifications: next.notifications })
-                                    .then((saved) => {
-                                      setNotif(saved);
-                                      setNotifSaved(saved);
-                                      toast.push(t('demo.settings.saved'), 'success');
-                                    })
-                                    .catch((err: unknown) => {
-                                      setNotif(notifSaved);
-                                      toast.push(
-                                        err instanceof Error
-                                          ? err.message
-                                          : t('errors.page.generic.title'),
-                                        'danger',
-                                      );
-                                    })
-                                    .finally(() => setNotifSaving(false));
-                                }}
+                                checked={Boolean(m.permissions?.[p])}
+                                onChange={() => void onTogglePerm(m, p)}
                               />
-                              <span className="oma-switch__track" aria-hidden="true" />
-                            </label>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </section>
-                );
-              })}
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          ) : (
-            <div className="oma-skeleton" style={{ height: 160 }} aria-busy="true" />
-          )}
-        </div>
-      ) : null}
+          ) : null}
+
+          {!loading && !error && tab === 'notifications' ? (
+            <div className="oma-planable-card oma-notif-settings" data-testid="team-notifications">
+              <header className="oma-notif-settings__intro">
+                <h3 className="oma-ws-subhead">{t('team.manage_notifications')}</h3>
+                <p className="oma-ws-empty-desc">{t('settings.notifications.body')}</p>
+              </header>
+              {notif ? (
+                <div className="oma-notif-settings__list" aria-busy={notifSaving || undefined}>
+                  <div className="oma-notif-settings__section">
+                    <div className="oma-notif-settings__row oma-notif-settings__row--master">
+                      <div className="oma-notif-settings__copy">
+                        <strong>{t('settings.notifications.all')}</strong>
+                        <span>{t('settings.notifications.channel_inapp')}</span>
+                      </div>
+                      <label className="oma-switch">
+                        <input
+                          type="checkbox"
+                          data-testid="notif-pref-all"
+                          checked={notif.notifications.all !== false}
+                          disabled={notifSaving}
+                          onChange={(e) => {
+                            const next = {
+                              ...notif,
+                              notifications: { ...notif.notifications, all: e.target.checked },
+                            };
+                            setNotif(next);
+                            setNotifSaving(true);
+                            void updatePreferences({ notifications: next.notifications })
+                              .then((saved) => {
+                                setNotif(saved);
+                                setNotifSaved(saved);
+                                toast.push(t('demo.settings.saved'), 'success');
+                              })
+                              .catch((err: unknown) => {
+                                setNotif(notifSaved);
+                                toast.push(
+                                  err instanceof Error
+                                    ? err.message
+                                    : t('errors.page.generic.title'),
+                                  'danger',
+                                );
+                              })
+                              .finally(() => setNotifSaving(false));
+                          }}
+                        />
+                        <span className="oma-switch__track" aria-hidden="true" />
+                      </label>
+                    </div>
+                  </div>
+                  {NOTIF_GROUPS.map((group) => {
+                    const masterOn = notif.notifications.all !== false;
+                    return (
+                      <section key={group.id} className="oma-notif-settings__section">
+                        <h4 className="oma-notif-settings__heading">{t(group.labelKey)}</h4>
+                        <ul className="oma-notif-settings__rows">
+                          {group.types.map((type) => {
+                            const checked = masterOn && notif.notifications[type] !== false;
+                            return (
+                              <li
+                                key={type}
+                                className={`oma-notif-settings__row${masterOn ? '' : ' is-muted'}`}
+                              >
+                                <div className="oma-notif-settings__copy">
+                                  <strong>{t(`shell.notificationPref.${type}`)}</strong>
+                                  <span>{t('settings.notifications.channel_inapp')}</span>
+                                </div>
+                                <label className="oma-switch">
+                                  <input
+                                    type="checkbox"
+                                    data-testid={`notif-pref-${type}`}
+                                    disabled={!masterOn || notifSaving}
+                                    checked={checked}
+                                    onChange={(e) => {
+                                      const next = {
+                                        ...notif,
+                                        notifications: {
+                                          ...notif.notifications,
+                                          [type]: e.target.checked,
+                                        },
+                                      };
+                                      setNotif(next);
+                                      setNotifSaving(true);
+                                      void updatePreferences({ notifications: next.notifications })
+                                        .then((saved) => {
+                                          setNotif(saved);
+                                          setNotifSaved(saved);
+                                          toast.push(t('demo.settings.saved'), 'success');
+                                        })
+                                        .catch((err: unknown) => {
+                                          setNotif(notifSaved);
+                                          toast.push(
+                                            err instanceof Error
+                                              ? err.message
+                                              : t('errors.page.generic.title'),
+                                            'danger',
+                                          );
+                                        })
+                                        .finally(() => setNotifSaving(false));
+                                    }}
+                                  />
+                                  <span className="oma-switch__track" aria-hidden="true" />
+                                </label>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </section>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="oma-skeleton" style={{ height: 160 }} aria-busy="true" />
+              )}
+            </div>
+          ) : null}
         </main>
       </div>
 

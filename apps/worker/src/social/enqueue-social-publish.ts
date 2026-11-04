@@ -1,9 +1,6 @@
 import { Queue } from 'bullmq';
 import type IORedis from 'ioredis';
-import {
-  buildSocialPublishJobData,
-  bullSocialJobId,
-} from '../processors/social-job-payload';
+import { buildSocialPublishJobData, bullSocialJobId } from '../processors/social-job-payload';
 import { getPrisma } from '@oma/db';
 import { tokenKeyFromEnv } from '@oma/domain';
 import { findDuePublishTargetIds } from './due-publish-targets';

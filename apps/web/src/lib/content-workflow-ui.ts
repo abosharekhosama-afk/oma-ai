@@ -46,13 +46,21 @@ export function scheduleBlockReason(
   return null;
 }
 
-export function canScheduleItem(item: ContentLifecycleSource, policy: Policy = 'OPTIONAL'): boolean {
+export function canScheduleItem(
+  item: ContentLifecycleSource,
+  policy: Policy = 'OPTIONAL',
+): boolean {
   return scheduleBlockReason(item, policy) === null;
 }
 
-export function canMarkPublished(item: ContentLifecycleSource, policy: Policy = 'OPTIONAL'): boolean {
+export function canMarkPublished(
+  item: ContentLifecycleSource,
+  policy: Policy = 'OPTIONAL',
+): boolean {
   if (scheduleBlockReason(item, policy)) return false;
-  return item.approvalState === 'APPROVED' || item.scheduleState === 'SCHEDULED' || policy !== 'REQUIRED';
+  return (
+    item.approvalState === 'APPROVED' || item.scheduleState === 'SCHEDULED' || policy !== 'REQUIRED'
+  );
 }
 
 /** "1 of 2 approved" style progress label; null when no approval is in flight. */
@@ -74,10 +82,8 @@ export function scheduleBlockedHint(
   isAr: boolean,
 ): string | null {
   if (reason === 'ARCHIVED') return L(isAr, 'workflow.blocked.archived');
-  if (reason === 'REJECTED')
-    return L(isAr, 'workflow.blocked.rejected');
-  if (reason === 'APPROVAL_REQUIRED')
-    return L(isAr, 'workflow.blocked.approval');
+  if (reason === 'REJECTED') return L(isAr, 'workflow.blocked.rejected');
+  if (reason === 'APPROVAL_REQUIRED') return L(isAr, 'workflow.blocked.approval');
   return null;
 }
 

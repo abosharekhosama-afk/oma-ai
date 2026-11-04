@@ -274,7 +274,6 @@
   }
 }
 
-
 @media (max-width: 767px) {
   html body .oma-top-actions .ant-btn-primary {
     min-height: var(--oma-tap) !important;

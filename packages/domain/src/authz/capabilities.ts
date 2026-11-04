@@ -258,7 +258,14 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     'deliverable.annotate',
   ],
   GUEST: ['notification.read', 'content.read', 'campaign.read', 'brand.read'],
-  VIEWER: ['notification.read', 'analytics.read', 'content.read', 'campaign.read', 'brand.read', 'strategy.read'],
+  VIEWER: [
+    'notification.read',
+    'analytics.read',
+    'content.read',
+    'campaign.read',
+    'brand.read',
+    'strategy.read',
+  ],
 };
 
 export const PLANABLE_ROLE_OPTIONS = [

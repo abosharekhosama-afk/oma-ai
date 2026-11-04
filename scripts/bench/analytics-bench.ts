@@ -14,14 +14,22 @@ async function time(label: string, fn: () => Promise<unknown>) {
     ms.push(performance.now() - t);
   }
   ms.sort((a, b) => a - b);
-  console.log(`${label.padEnd(36)} median ${ms[Math.floor(ms.length / 2)]!.toFixed(1)}ms  p90 ${ms[Math.floor(ms.length * 0.9)]!.toFixed(1)}ms`);
+  console.log(
+    `${label.padEnd(36)} median ${ms[Math.floor(ms.length / 2)]!.toFixed(1)}ms  p90 ${ms[Math.floor(ms.length * 0.9)]!.toFixed(1)}ms`,
+  );
 }
 async function main() {
-const tenant = process.env.BENCH_TENANT ?? 't1';
-const brand = process.env.BENCH_BRAND ?? 'b1_1';
-await time('overview 30d (tenant)', () => analyticsService.overview(tenant, { period: '30' }));
-await time('content overview 30d (tenant)', () => analyticsService.contentOverview(tenant, { period: '30' }));
-await time('content overview 90d (tenant)', () => analyticsService.contentOverview(tenant, { period: '90' }));
-await time('content overview 30d (brand)', () => analyticsService.contentOverview(tenant, { period: '30', brandId: brand }));
+  const tenant = process.env.BENCH_TENANT ?? 't1';
+  const brand = process.env.BENCH_BRAND ?? 'b1_1';
+  await time('overview 30d (tenant)', () => analyticsService.overview(tenant, { period: '30' }));
+  await time('content overview 30d (tenant)', () =>
+    analyticsService.contentOverview(tenant, { period: '30' }),
+  );
+  await time('content overview 90d (tenant)', () =>
+    analyticsService.contentOverview(tenant, { period: '90' }),
+  );
+  await time('content overview 30d (brand)', () =>
+    analyticsService.contentOverview(tenant, { period: '30', brandId: brand }),
+  );
 }
 void main().then(() => process.exit(0));

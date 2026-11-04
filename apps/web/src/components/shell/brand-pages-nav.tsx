@@ -26,9 +26,11 @@ export function BrandPagesNav({ collapsed }: { collapsed: boolean }) {
     const onLogo = (event: Event) => {
       const detail = (event as CustomEvent<{ id?: string; logo_url?: string | null }>).detail;
       if (!detail?.id) return;
-      setBrands((rows) =>
-        rows?.map((b) => (b.id === detail.id ? { ...b, logo_url: detail.logo_url ?? null } : b)) ??
-        rows,
+      setBrands(
+        (rows) =>
+          rows?.map((b) =>
+            b.id === detail.id ? { ...b, logo_url: detail.logo_url ?? null } : b,
+          ) ?? rows,
       );
     };
     window.addEventListener(BRAND_LOGO_EVENT, onLogo);

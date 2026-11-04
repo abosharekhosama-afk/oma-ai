@@ -31,9 +31,7 @@ const CAP_MAP: Record<PlanablePerm, string[]> = {
 };
 
 /** Capability codes owned by the Team → Permissions matrix (safe to revoke when unchecked). */
-export const ALL_MANAGED_CAPABILITY_CODES: string[] = [
-  ...new Set(Object.values(CAP_MAP).flat()),
-];
+export const ALL_MANAGED_CAPABILITY_CODES: string[] = [...new Set(Object.values(CAP_MAP).flat())];
 
 /** Exact capability-code match (no substring guessing). */
 export function capabilitiesToPermissions(caps: string[]): Record<PlanablePerm, boolean> {

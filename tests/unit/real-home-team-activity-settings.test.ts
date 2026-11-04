@@ -16,13 +16,23 @@ const read = (p: string) => readFileSync(join(root, p), 'utf8');
 describe('home checklist from real data', () => {
   it('marks steps done only when the data exists', () => {
     const empty = computeChecklist({
-      brands: 0, brandsWithWebsiteOrProfile: 0, strategies: 0, campaigns: 0,
-      content: 0, requestsOrTasks: 0, reviewed: 0,
+      brands: 0,
+      brandsWithWebsiteOrProfile: 0,
+      strategies: 0,
+      campaigns: 0,
+      content: 0,
+      requestsOrTasks: 0,
+      reviewed: 0,
     });
     expect(empty.filter((s) => s.done).map((s) => s.id)).toEqual(['company']);
     const full = computeChecklist({
-      brands: 3, brandsWithWebsiteOrProfile: 1, strategies: 1, campaigns: 5,
-      content: 21, requestsOrTasks: 22, reviewed: 4,
+      brands: 3,
+      brandsWithWebsiteOrProfile: 1,
+      strategies: 1,
+      campaigns: 5,
+      content: 21,
+      requestsOrTasks: 22,
+      reviewed: 4,
     });
     expect(full.every((s) => s.done)).toBe(true);
   });
@@ -31,7 +41,12 @@ describe('home checklist from real data', () => {
 describe('notifications: no self-spam, sensible solo workspace', () => {
   it('never notifies the actor when others exist', () => {
     expect(
-      resolveRecipients({ recipients: ['me', 'you'], actorUserId: 'me', type: 'content.approved', activeMemberCount: 2 }),
+      resolveRecipients({
+        recipients: ['me', 'you'],
+        actorUserId: 'me',
+        type: 'content.approved',
+        activeMemberCount: 2,
+      }),
     ).toEqual(['you']);
   });
   it('solo owner gets decision outcomes only', () => {
@@ -42,14 +57,23 @@ describe('notifications: no self-spam, sensible solo workspace', () => {
     expect(solo('content.approval_requested')).toEqual([]);
     expect(solo('task.comment')).toEqual([]);
     expect(
-      resolveRecipients({ recipients: ['me'], actorUserId: 'me', type: 'content.approved', activeMemberCount: 2 }),
+      resolveRecipients({
+        recipients: ['me'],
+        actorUserId: 'me',
+        type: 'content.approved',
+        activeMemberCount: 2,
+      }),
     ).toEqual([]);
   });
 });
 
 describe('team permissions are readable and exact', () => {
   const m = (caps: string[], profiles: string[] = []): WorkspaceMember => ({
-    id: 'm', status: 'ACTIVE', user: null, capabilities: caps, source_profiles: profiles,
+    id: 'm',
+    status: 'ACTIVE',
+    user: null,
+    capabilities: caps,
+    source_profiles: profiles,
   });
   it('does not guess from substrings', () => {
     const p = capabilitiesToPermissions(['brand.read']);
@@ -59,7 +83,11 @@ describe('team permissions are readable and exact', () => {
   });
   it('lists human names (en/ar)', () => {
     const member = m(['content.read', 'content.approve', 'content.schedule']);
-    expect(readablePermissions(member, false)).toEqual(['View workspace', 'Approve content', 'Schedule posts']);
+    expect(readablePermissions(member, false)).toEqual([
+      'View workspace',
+      'Approve content',
+      'Schedule posts',
+    ]);
     expect(readablePermissions(member, true)[1]).toBe('اعتماد المحتوى');
   });
   it('detects owners', () => {

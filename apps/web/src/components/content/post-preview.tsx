@@ -92,12 +92,9 @@ function Avatar({ name, url, size = 32 }: { name: string; url?: string | null; s
 
 function Media({ ctx, ratio }: { ctx: Ctx; ratio?: string }) {
   const r = ratio ?? aspectRatioFor(ctx.network, ctx.contentType);
-  const items = (ctx.mediaItems?.length
-    ? ctx.mediaItems
-    : ctx.media
-      ? [ctx.media]
-      : []
-  ).filter((src) => src && !isPlaceholderAsset(src));
+  const items = (ctx.mediaItems?.length ? ctx.mediaItems : ctx.media ? [ctx.media] : []).filter(
+    (src) => src && !isPlaceholderAsset(src),
+  );
   const [index, setIndex] = useState(0);
   const touchX = useRef<number | null>(null);
   const detail = ctx.size === 'detail';
@@ -185,7 +182,12 @@ function Media({ ctx, ratio }: { ctx: Ctx; ratio?: string }) {
             }}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <path d="M15 6 9 12l6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              <path
+                d="M15 6 9 12l6 6"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
             </svg>
           </button>
           <button
@@ -616,7 +618,9 @@ export function PostPreview(props: PostPreviewProps) {
       data-kind={kind}
       data-size={props.size ?? 'feed'}
       data-style={props.previewStyle || 'default'}
-      style={props.accentColor ? ({ ['--pp-accent']: props.accentColor } as CSSProperties) : undefined}
+      style={
+        props.accentColor ? ({ ['--pp-accent']: props.accentColor } as CSSProperties) : undefined
+      }
       aria-label={t('preview.label')}
     >
       {props.hideNetworkLabel ? null : (

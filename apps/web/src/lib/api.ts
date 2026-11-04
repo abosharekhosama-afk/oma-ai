@@ -97,7 +97,9 @@ let csrfRefresh: Promise<string | undefined> | null = null;
 /** Ask the API for a fresh CSRF token (it re-issues the cookie for a valid session). */
 export function refreshCsrfToken(): Promise<string | undefined> {
   csrfRefresh ??= fetch('/api/v1/auth/csrf', { credentials: 'include', cache: 'no-store' })
-    .then(async (r) => (r.ok ? ((await r.json()) as { csrf_token?: string }).csrf_token : undefined))
+    .then(async (r) =>
+      r.ok ? ((await r.json()) as { csrf_token?: string }).csrf_token : undefined,
+    )
     .catch(() => undefined)
     .then((token) => readCsrfCookie() ?? token)
     .finally(() => {
@@ -141,11 +143,17 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
         });
       }
     };
-    const isAuthEntry = path.includes('/api/v1/auth/login') || path.includes('/api/v1/auth/register');
-    let res = await send(method !== 'GET' && !isAuthEntry ? await ensureCsrfToken() : readCsrfCookie());
+    const isAuthEntry =
+      path.includes('/api/v1/auth/login') || path.includes('/api/v1/auth/register');
+    let res = await send(
+      method !== 'GET' && !isAuthEntry ? await ensureCsrfToken() : readCsrfCookie(),
+    );
     if (res.status === 403 && method !== 'GET') {
       // A stale/missing CSRF cookie is repaired transparently: fetch a fresh token and retry once.
-      const peek = (await res.clone().json().catch(() => ({}))) as { error?: { message_key?: string } };
+      const peek = (await res
+        .clone()
+        .json()
+        .catch(() => ({}))) as { error?: { message_key?: string } };
       if (peek?.error?.message_key === 'errors.csrf') {
         const fresh = await refreshCsrfToken();
         if (fresh) res = await send(fresh);

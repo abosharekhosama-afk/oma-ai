@@ -173,7 +173,9 @@ export class NotificationsController {
                 imageUrl:
                   content.previewAssetUrl ??
                   (content.previewAssetId ? `/api/v1/media/${content.previewAssetId}/view` : null),
-                mime: content.previewAssetId ? (mimeById.get(content.previewAssetId) ?? null) : null,
+                mime: content.previewAssetId
+                  ? (mimeById.get(content.previewAssetId) ?? null)
+                  : null,
                 contentType: content.contentType,
                 titleEn: content.titleEn,
                 titleAr: content.titleAr,

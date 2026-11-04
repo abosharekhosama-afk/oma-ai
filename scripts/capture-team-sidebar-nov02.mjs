@@ -19,7 +19,9 @@ function apiLogin() {
     );
   } catch {}
   const jar = '/tmp/oma-team-sidebar-cookies.txt';
-  try { fs.unlinkSync(jar); } catch {}
+  try {
+    fs.unlinkSync(jar);
+  } catch {}
   const login = execSync(
     `curl -s -c ${jar} -b ${jar} -X POST ${API}/api/v1/auth/login -H 'content-type: application/json' -d '${JSON.stringify({ email: EMAIL, password: PASS })}'`,
     { encoding: 'utf8' },
@@ -63,17 +65,28 @@ const browser = await chromium.launch({ headless: true });
 
 try {
   for (const locale of ['en', 'ar']) {
-    const { context, page, tag } = await open(browser, locale, cookies, { width: 1440, height: 900 });
-    await page.goto(`${BASE}/app/team?tab=permissions`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    const { context, page, tag } = await open(browser, locale, cookies, {
+      width: 1440,
+      height: 900,
+    });
+    await page.goto(`${BASE}/app/team?tab=permissions`, {
+      waitUntil: 'domcontentloaded',
+      timeout: 60000,
+    });
     await page.waitForTimeout(2500);
-    const permCell = page.locator('[data-testid="team-permissions-scroll"] input[type="checkbox"]').nth(2);
+    const permCell = page
+      .locator('[data-testid="team-permissions-scroll"] input[type="checkbox"]')
+      .nth(2);
     if (await permCell.count()) {
       await permCell.click();
       await page.waitForTimeout(1200);
     }
     await shot(page, `05-team-permissions-${tag}`);
 
-    await page.goto(`${BASE}/app/team?tab=notifications`, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await page.goto(`${BASE}/app/team?tab=notifications`, {
+      waitUntil: 'domcontentloaded',
+      timeout: 60000,
+    });
     await page.waitForTimeout(2200);
     await shot(page, `06-team-notifications-${tag}`);
     await context.close();
@@ -97,13 +110,17 @@ try {
     for (const vp of viewports) {
       for (const [route, label] of routes) {
         const keep =
-          (vp.name === 'laptop1366' && ['activity', 'content', 'team', 'billing'].includes(label)) ||
+          (vp.name === 'laptop1366' &&
+            ['activity', 'content', 'team', 'billing'].includes(label)) ||
           (vp.name === 'laptop1440' && label === 'team') ||
           (vp.name === 'short700' && label === 'content') ||
           (vp.name === 'tablet' && label === 'activity') ||
           (vp.name === 'mobile' && label === 'team');
         if (!keep) continue;
-        const { context, page, tag } = await open(browser, locale, cookies, { width: vp.width, height: vp.height });
+        const { context, page, tag } = await open(browser, locale, cookies, {
+          width: vp.width,
+          height: vp.height,
+        });
         await page.goto(`${BASE}${route}`, { waitUntil: 'domcontentloaded', timeout: 60000 });
         await page.waitForTimeout(1400);
         if (vp.width <= 768) {
@@ -118,7 +135,11 @@ try {
             await page.waitForTimeout(800);
           }
         }
-        const footer = page.locator('[data-testid="shell-rail-utilities"], .oma-drawer--nav .oma-rail-footer, .oma-rail-footer').first();
+        const footer = page
+          .locator(
+            '[data-testid="shell-rail-utilities"], .oma-drawer--nav .oma-rail-footer, .oma-rail-footer',
+          )
+          .first();
         if (await footer.count()) await footer.scrollIntoViewIfNeeded().catch(() => {});
         await shot(page, `07-sidebar-footer-${label}-${vp.name}-${tag}`);
         await context.close();

@@ -10,7 +10,9 @@ const DEMO_TENANT = '01M6BAM32840YSR60NYBVBWSB2';
 
 function apiLogin() {
   const jar = '/tmp/oma-verify-footer-cookies.txt';
-  try { fs.unlinkSync(jar); } catch {}
+  try {
+    fs.unlinkSync(jar);
+  } catch {}
   const login = execSync(
     `curl -s -c ${jar} -b ${jar} -X POST ${API}/api/v1/auth/login -H 'content-type: application/json' -d '${JSON.stringify({ email: EMAIL, password: PASS })}'`,
     { encoding: 'utf8' },
@@ -27,7 +29,14 @@ function apiLogin() {
   return { session, csrf };
 }
 
-const ROUTES = ['/app/activity', '/app/content', '/app/team', '/app/schedule', '/app/billing', '/app/settings'];
+const ROUTES = [
+  '/app/activity',
+  '/app/content',
+  '/app/team',
+  '/app/schedule',
+  '/app/billing',
+  '/app/settings',
+];
 const VIEWPORTS = [
   { w: 1366, h: 768, n: '1366x768' },
   { w: 1440, h: 900, n: '1440x900' },
@@ -52,7 +61,8 @@ try {
       await page.goto(`${BASE}${route}`, { waitUntil: 'domcontentloaded', timeout: 60000 });
       await page.waitForTimeout(1200);
       const info = await page.evaluate(() => {
-        const footer = document.querySelector('[data-testid="shell-rail-utilities"]') ||
+        const footer =
+          document.querySelector('[data-testid="shell-rail-utilities"]') ||
           document.querySelector('.oma-shell > .oma-rail > .oma-rail-footer');
         if (!footer) return { found: false };
         const r = footer.getBoundingClientRect();
@@ -60,7 +70,9 @@ try {
         return {
           found: true,
           visible: cs.visibility !== 'hidden' && cs.display !== 'none' && cs.opacity !== '0',
-          y: r.y, h: r.height, bottom: r.bottom,
+          y: r.y,
+          h: r.height,
+          bottom: r.bottom,
           vh: window.innerHeight,
         };
       });

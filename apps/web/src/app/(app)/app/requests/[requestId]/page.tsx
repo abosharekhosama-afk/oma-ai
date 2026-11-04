@@ -730,10 +730,7 @@ export default function RequestDetailPage() {
                                     ),
                                   )
                                   .catch((err) =>
-                                    toast.push(
-                                      contentApiError(err, t('errors.http')),
-                                      'danger',
-                                    ),
+                                    toast.push(contentApiError(err, t('errors.http')), 'danger'),
                                   );
                               }}
                             >

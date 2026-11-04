@@ -151,12 +151,9 @@ export class TikTokAdapter implements SocialProviderAdapter {
       code,
       redirect_uri: redirectUri,
     });
-    const res = await this.fetchFn(
-      `${API}/v2/user/info/?fields=open_id,display_name,avatar_url`,
-      {
-        headers: { authorization: `Bearer ${token.accessToken}` },
-      },
-    );
+    const res = await this.fetchFn(`${API}/v2/user/info/?fields=open_id,display_name,avatar_url`, {
+      headers: { authorization: `Bearer ${token.accessToken}` },
+    });
     const b = await readJson(res);
     const err = b.error as { code?: string } | undefined;
     if (!res.ok || (err?.code && err.code !== 'ok')) throw httpError('tiktok', res, b);
@@ -433,7 +430,12 @@ export class TikTokAdapter implements SocialProviderAdapter {
         typeof page.meta.username === 'string' && page.meta.username.trim()
           ? page.meta.username.trim().replace(/^@/, '')
           : undefined;
-      const kindFromMeta = page.meta.tiktokMediaKind === 'photo' ? 'photo' : page.meta.tiktokMediaKind === 'video' ? 'video' : null;
+      const kindFromMeta =
+        page.meta.tiktokMediaKind === 'photo'
+          ? 'photo'
+          : page.meta.tiktokMediaKind === 'video'
+            ? 'video'
+            : null;
       // TikTok photo publish_ids typically start with p_; video with v_.
       const kind =
         kindFromMeta ??

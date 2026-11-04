@@ -235,10 +235,20 @@
 .oma-pp__media[data-carousel='true']:focus-within .oma-pp__nav {
   opacity: 1;
 }
-.oma-pp__nav--prev { inset-inline-start: 8px; }
-.oma-pp__nav--next { inset-inline-end: 8px; }
-[dir='rtl'] .oma-pp__nav--prev { inset-inline-start: auto; inset-inline-end: 8px; }
-[dir='rtl'] .oma-pp__nav--next { inset-inline-end: auto; inset-inline-start: 8px; }
+.oma-pp__nav--prev {
+  inset-inline-start: 8px;
+}
+.oma-pp__nav--next {
+  inset-inline-end: 8px;
+}
+[dir='rtl'] .oma-pp__nav--prev {
+  inset-inline-start: auto;
+  inset-inline-end: 8px;
+}
+[dir='rtl'] .oma-pp__nav--next {
+  inset-inline-end: auto;
+  inset-inline-start: 8px;
+}
 .oma-pp__counter {
   position: absolute;
   inset-block-start: 8px;

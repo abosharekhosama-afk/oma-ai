@@ -48,7 +48,10 @@ export default function NewWorkspacePage() {
           {t('workspaceCreate.description') ||
             'A Workspace is your company-level space for members, settings, and brands. Brands live inside a Workspace.'}
         </p>
-        <Field label={t('workspaceCreate.nameLabel') || 'Workspace name'} htmlFor="new-workspace-name">
+        <Field
+          label={t('workspaceCreate.nameLabel') || 'Workspace name'}
+          htmlFor="new-workspace-name"
+        >
           <Input
             id="new-workspace-name"
             required
@@ -65,10 +68,20 @@ export default function NewWorkspacePage() {
           </p>
         ) : null}
         <div className="oma-dialog-actions">
-          <Button type="default" htmlType="button" onClick={() => router.push('/app/select-company')}>
+          <Button
+            type="default"
+            htmlType="button"
+            onClick={() => router.push('/app/select-company')}
+          >
             {t('common.cancel') || 'Cancel'}
           </Button>
-          <Button type="primary" htmlType="submit" loading={busy} disabled={!name.trim()} data-testid="new-workspace-submit">
+          <Button
+            type="primary"
+            htmlType="submit"
+            loading={busy}
+            disabled={!name.trim()}
+            data-testid="new-workspace-submit"
+          >
             {t('workspaceCreate.submit') || 'Create workspace'}
           </Button>
         </div>

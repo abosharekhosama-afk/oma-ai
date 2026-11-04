@@ -5,7 +5,14 @@ type IconProps = SVGProps<SVGSVGElement> & {
   style?: CSSProperties;
 };
 
-function Icon({ className, width, height, style, children, ...rest }: IconProps & { children: ReactNode }) {
+function Icon({
+  className,
+  width,
+  height,
+  style,
+  children,
+  ...rest
+}: IconProps & { children: ReactNode }) {
   return (
     <svg
       className={['oma-lucide', className].filter(Boolean).join(' ')}

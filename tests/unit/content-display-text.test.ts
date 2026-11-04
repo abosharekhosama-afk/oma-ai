@@ -8,12 +8,10 @@ import {
 
 describe('content-display-text', () => {
   it('falls back across locales and hides raw ids', () => {
-    expect(
-      resolveLocaleCopy({ en: '', ar: 'نص عربي' }, 'en'),
-    ).toBe('نص عربي');
-    expect(
-      resolveLocaleCopy({ en: '01M68FN1FZGN0BJBXHJM3RMF64', ar: 'عنوان' }, 'en'),
-    ).toBe('عنوان');
+    expect(resolveLocaleCopy({ en: '', ar: 'نص عربي' }, 'en')).toBe('نص عربي');
+    expect(resolveLocaleCopy({ en: '01M68FN1FZGN0BJBXHJM3RMF64', ar: 'عنوان' }, 'en')).toBe(
+      'عنوان',
+    );
   });
 
   it('prefers caption for body and title for headings', () => {
@@ -26,12 +24,7 @@ describe('content-display-text', () => {
       ),
     ).toBe('Body copy');
     expect(
-      contentTitleText(
-        { en: 'Title', ar: 'Title' },
-        { en: 'Body', ar: 'Body' },
-        'en',
-        'Untitled',
-      ),
+      contentTitleText({ en: 'Title', ar: 'Title' }, { en: 'Body', ar: 'Body' }, 'en', 'Untitled'),
     ).toBe('Title');
   });
 

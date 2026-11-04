@@ -140,8 +140,7 @@ export function CalendarPostCard({
   const overflow = Math.max(0, nets.length - 2);
   const shownNets = nets.slice(0, 2);
   const single = nets.length === 1;
-  const pending =
-    status.approval === 'PENDING' || status.approval === 'PARTIALLY_APPROVED';
+  const pending = status.approval === 'PENDING' || status.approval === 'PARTIALLY_APPROVED';
   const approved = status.approval === 'APPROVED';
   return (
     <span
@@ -163,8 +162,7 @@ export function CalendarPostCard({
                 </span>
               ))
             : null}
-          {has('labels') &&
-          labels.length > (campaign && has('campaigns') ? 1 : 2) ? (
+          {has('labels') && labels.length > (campaign && has('campaigns') ? 1 : 2) ? (
             <span className="oma-pv-chip oma-pv-chip--more oma-ltr">
               +{labels.length - (campaign && has('campaigns') ? 1 : 2)}
             </span>
@@ -179,9 +177,13 @@ export function CalendarPostCard({
                 <NetworkIcon channel={n} size={12} />
               </span>
             ))}
-            {overflow > 0 ? <span className="oma-pv-cal-card__net-more oma-ltr">+{overflow}</span> : null}
+            {overflow > 0 ? (
+              <span className="oma-pv-cal-card__net-more oma-ltr">+{overflow}</span>
+            ) : null}
           </span>
-          {single && accountName ? <span className="oma-pv-cal-card__name">{accountName}</span> : null}
+          {single && accountName ? (
+            <span className="oma-pv-cal-card__name">{accountName}</span>
+          ) : null}
         </span>
         <span className="oma-pv-cal-card__spacer" />
         {time || draft ? (

@@ -8,7 +8,12 @@ import { AuditController } from '../audit/audit.controller';
 
 const requireTenant = (req: Request) => {
   if (!req.oma?.tenantId || !req.oma.userId)
-    throw new DomainError('TENANT_REQUIRED', 'Active tenant required', 409, 'errors.tenant_required');
+    throw new DomainError(
+      'TENANT_REQUIRED',
+      'Active tenant required',
+      409,
+      'errors.tenant_required',
+    );
   return { tenantId: req.oma.tenantId, userId: req.oma.userId };
 };
 

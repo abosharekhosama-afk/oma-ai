@@ -157,9 +157,7 @@ export class ContentExtrasService {
     const raw = input ?? {};
     const pick = (v: unknown) => (typeof v === 'string' ? v.trim() : '');
     const nameEn =
-      typeof raw.name === 'string'
-        ? pick(raw.name)
-        : pick(raw.name?.en) || pick(raw.nameEn);
+      typeof raw.name === 'string' ? pick(raw.name) : pick(raw.name?.en) || pick(raw.nameEn);
     const nameAr =
       (typeof raw.name === 'string' ? '' : pick(raw.name?.ar)) || pick(raw.nameAr) || nameEn;
     if (!nameEn) {

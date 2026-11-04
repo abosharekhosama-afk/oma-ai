@@ -205,7 +205,9 @@ export class SocialService {
       const existingIds = new Set(existing.map((e) => e.externalId));
       const newCount = accounts.filter((a) => !existingIds.has(a.externalId)).length;
       if (newCount > 0) {
-        await billingService.assertWithinLimit(row.tenantId, 'social_channels', { adding: newCount });
+        await billingService.assertWithinLimit(row.tenantId, 'social_channels', {
+          adding: newCount,
+        });
       }
       for (const a of accounts) {
         const data = {

@@ -101,13 +101,7 @@
   inset-block-start: 0;
   inset-inline: 0;
   block-size: 3px;
-  background: repeating-linear-gradient(
-    -45deg,
-    #f5c542,
-    #f5c542 4px,
-    #ffe9a8 4px,
-    #ffe9a8 8px
-  );
+  background: repeating-linear-gradient(-45deg, #f5c542, #f5c542 4px, #ffe9a8 4px, #ffe9a8 8px);
 }
 .oma-pv-chips {
   display: flex;

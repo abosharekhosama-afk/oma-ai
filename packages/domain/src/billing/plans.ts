@@ -236,10 +236,7 @@ export function approvalModeAllowed(code: PlanCode, mode: string): boolean {
   return false;
 }
 
-export const PLAN_LIMIT_MESSAGES: Record<
-  string,
-  { en: string; ar: string; messageKey: string }
-> = {
+export const PLAN_LIMIT_MESSAGES: Record<string, { en: string; ar: string; messageKey: string }> = {
   brands: {
     en: 'You’ve reached the brand limit for your plan. Upgrade to add more brands.',
     ar: 'وصلت إلى حد العلامات في خطتك. رقِّ الخطة لإضافة المزيد.',
@@ -282,53 +279,51 @@ export const PLAN_LIMIT_MESSAGES: Record<
   },
 };
 
-export const PLAN_FEATURE_MESSAGES: Record<
-  string,
-  { en: string; ar: string; messageKey: string }
-> = {
-  analytics: {
-    en: 'Analytics is available on Pro and Enterprise. Request an upgrade to unlock it.',
-    ar: 'التحليلات متاحة في الخطط الاحترافية والمؤسسات. اطلب ترقية لتفعيلها.',
-    messageKey: 'errors.plan_feature.analytics',
-  },
-  client_visibility: {
-    en: 'Hiding posts from clients is available on Pro and Enterprise.',
-    ar: 'إخفاء المنشورات عن العملاء متاح في الخطط الاحترافية والمؤسسات.',
-    messageKey: 'errors.plan_feature.client_visibility',
-  },
-  approvals_required: {
-    en: 'Required approvals are available on Pro and Enterprise.',
-    ar: 'الموافقات الإلزامية متاحة في الخطط الاحترافية والمؤسسات.',
-    messageKey: 'errors.plan_feature.approvals_required',
-  },
-  approvals_multi_level: {
-    en: 'Multi-level approvals are available on Enterprise.',
-    ar: 'الموافقات متعددة المستويات متاحة في خطة المؤسسات.',
-    messageKey: 'errors.plan_feature.approvals_multi_level',
-  },
-  grid_view: {
-    en: 'Grid view is available on Pro and Enterprise.',
-    ar: 'عرض الشبكة متاح في الخطط الاحترافية والمؤسسات.',
-    messageKey: 'errors.plan_feature.grid_view',
-  },
-  list_view: {
-    en: 'List view is available on Enterprise.',
-    ar: 'عرض القائمة متاح في خطة المؤسسات.',
-    messageKey: 'errors.plan_feature.list_view',
-  },
-  custom_roles: {
-    en: 'Custom roles are available on Enterprise.',
-    ar: 'الأدوار المخصصة متاحة في خطة المؤسسات.',
-    messageKey: 'errors.plan_feature.custom_roles',
-  },
-  ai_assist: {
-    en: 'AI assist is not included in your current plan. Upgrade to use it.',
-    ar: 'مساعد الذكاء الاصطناعي غير مشمول في خطتك الحالية. رقِّ الخطة لاستخدامه.',
-    messageKey: 'errors.plan_feature.ai_assist',
-  },
-  publishing: {
-    en: 'Publishing isn’t available on your current plan.',
-    ar: 'النشر غير متاح في خطتك الحالية.',
-    messageKey: 'errors.plan_feature.publishing',
-  },
-};
+export const PLAN_FEATURE_MESSAGES: Record<string, { en: string; ar: string; messageKey: string }> =
+  {
+    analytics: {
+      en: 'Analytics is available on Pro and Enterprise. Request an upgrade to unlock it.',
+      ar: 'التحليلات متاحة في الخطط الاحترافية والمؤسسات. اطلب ترقية لتفعيلها.',
+      messageKey: 'errors.plan_feature.analytics',
+    },
+    client_visibility: {
+      en: 'Hiding posts from clients is available on Pro and Enterprise.',
+      ar: 'إخفاء المنشورات عن العملاء متاح في الخطط الاحترافية والمؤسسات.',
+      messageKey: 'errors.plan_feature.client_visibility',
+    },
+    approvals_required: {
+      en: 'Required approvals are available on Pro and Enterprise.',
+      ar: 'الموافقات الإلزامية متاحة في الخطط الاحترافية والمؤسسات.',
+      messageKey: 'errors.plan_feature.approvals_required',
+    },
+    approvals_multi_level: {
+      en: 'Multi-level approvals are available on Enterprise.',
+      ar: 'الموافقات متعددة المستويات متاحة في خطة المؤسسات.',
+      messageKey: 'errors.plan_feature.approvals_multi_level',
+    },
+    grid_view: {
+      en: 'Grid view is available on Pro and Enterprise.',
+      ar: 'عرض الشبكة متاح في الخطط الاحترافية والمؤسسات.',
+      messageKey: 'errors.plan_feature.grid_view',
+    },
+    list_view: {
+      en: 'List view is available on Enterprise.',
+      ar: 'عرض القائمة متاح في خطة المؤسسات.',
+      messageKey: 'errors.plan_feature.list_view',
+    },
+    custom_roles: {
+      en: 'Custom roles are available on Enterprise.',
+      ar: 'الأدوار المخصصة متاحة في خطة المؤسسات.',
+      messageKey: 'errors.plan_feature.custom_roles',
+    },
+    ai_assist: {
+      en: 'AI assist is not included in your current plan. Upgrade to use it.',
+      ar: 'مساعد الذكاء الاصطناعي غير مشمول في خطتك الحالية. رقِّ الخطة لاستخدامه.',
+      messageKey: 'errors.plan_feature.ai_assist',
+    },
+    publishing: {
+      en: 'Publishing isn’t available on your current plan.',
+      ar: 'النشر غير متاح في خطتك الحالية.',
+      messageKey: 'errors.plan_feature.publishing',
+    },
+  };

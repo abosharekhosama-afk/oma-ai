@@ -63,7 +63,9 @@ export class BrevoMailAdapter implements MailProviderPort {
     const replyTo = message.replyTo ?? this.config.replyTo;
     if (replyTo) {
       const parsed = parseMailFrom(replyTo);
-      body.replyTo = parsed.name ? { name: parsed.name, email: parsed.email } : { email: parsed.email };
+      body.replyTo = parsed.name
+        ? { name: parsed.name, email: parsed.email }
+        : { email: parsed.email };
     }
 
     let res: Response;

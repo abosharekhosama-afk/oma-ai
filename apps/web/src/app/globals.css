@@ -1865,7 +1865,6 @@ html[dir='rtl'] .oma-switch input:checked + .oma-switch__track::after,
   }
 }
 
-
 /* Final requests mobile cascade override — must remain after all imported CSS. */
 @media (max-width: 767px) {
   html body .oma-top-actions--workspace .oma-requests-header-title {
@@ -1928,7 +1927,6 @@ html[dir='rtl'] .oma-switch input:checked + .oma-switch__track::after,
   }
 }
 
-
 /* MOBILE_PRECISE_NOV03 cascade reinforce (after all rules) */
 @media (max-width: 767px) {
   html body .oma-ws-table-scroll .oma-ws-table--perms th:first-child,
@@ -1959,7 +1957,6 @@ html[dir='rtl'] .oma-switch input:checked + .oma-switch__track::after,
     display: none !important;
   }
 }
-
 
 /* MOBILE_PRECISE_CREATE_LABELS */
 @media (max-width: 767px) {
@@ -2113,7 +2110,9 @@ html body .oma-activity-page .oma-activity-sticky {
 }
 
 html body .ant-btn-primary:not(.ant-btn-dangerous):not(.ant-btn-color-danger),
-html body .ant-btn-color-primary.ant-btn-variant-solid:not(.ant-btn-dangerous):not(.ant-btn-color-danger),
+html
+  body
+  .ant-btn-color-primary.ant-btn-variant-solid:not(.ant-btn-dangerous):not(.ant-btn-color-danger),
 html body a.oma-link-button.ant-btn-primary:not(.ant-btn-dangerous) {
   height: 34px !important;
   min-height: 34px !important;
@@ -2128,7 +2127,11 @@ html body a.oma-link-button.ant-btn-primary:not(.ant-btn-dangerous) {
 }
 html body .ant-btn-primary:not(.ant-btn-dangerous):not(.ant-btn-color-danger):hover,
 html body .ant-btn-primary:not(.ant-btn-dangerous):not(.ant-btn-color-danger):focus-visible,
-html body .ant-btn-color-primary.ant-btn-variant-solid:not(.ant-btn-dangerous):not(.ant-btn-color-danger):hover,
+html
+  body
+  .ant-btn-color-primary.ant-btn-variant-solid:not(.ant-btn-dangerous):not(
+    .ant-btn-color-danger
+  ):hover,
 html body a.oma-link-button.ant-btn-primary:not(.ant-btn-dangerous):hover {
   border-color: #2563eb !important;
   background: #eff6ff !important;

@@ -99,7 +99,10 @@
     /* Custom (non-Ant) filter side panels */
     html body .oma-filter-sidepanel,
     html body .oma-deliv-workspace[data-filter-open='true'] .oma-req-filter-panel,
-    html body .oma-req-workspace[data-filter-open='true'] .oma-req-filter-panel:not(.oma-ws-filter-popover) {
+    html
+      body
+      .oma-req-workspace[data-filter-open='true']
+      .oma-req-filter-panel:not(.oma-ws-filter-popover) {
       width: var(--oma-drawer-panel-width) !important;
       max-width: var(--oma-drawer-panel-width) !important;
       height: var(--oma-mobile-vh) !important;

@@ -36,7 +36,10 @@ describe('team permissions sync', () => {
     expect(src).toContain('replaceManagedOnly');
     expect(src).toContain('revokedAt: new Date()');
     expect(src).toContain('Existing grants whose codes are omitted are revoked');
-    const controller = readFileSync(resolve('apps/api/src/tenant/capability.controller.ts'), 'utf8');
+    const controller = readFileSync(
+      resolve('apps/api/src/tenant/capability.controller.ts'),
+      'utf8',
+    );
     expect(controller).toContain('managed_codes');
     const client = readFileSync(resolve('apps/web/src/lib/team-api.ts'), 'utf8');
     expect(client).toContain('managed_codes: ALL_MANAGED_CAPABILITY_CODES');

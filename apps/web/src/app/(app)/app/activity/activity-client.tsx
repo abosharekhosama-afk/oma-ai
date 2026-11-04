@@ -103,49 +103,52 @@ export default function ActivityPage() {
           ))}
         </nav>
         <main className="oma-bs-main">
-
-      {loading ? <TableShimmer rows={8} /> : null}
-      {error ? (
-        <div className="plx-empty" role="alert">
-          <strong>{error}</strong>
-          <div style={{ marginTop: 12 }}>
-            <Button type="default" onClick={() => void load()}>
-              {t('activity.retry')}
-            </Button>
-          </div>
-        </div>
-      ) : null}
-
-      {!loading && !error ? (
-        <div className="oma-act-feed" data-testid="activity-feed">
-          <div className="oma-act-feed__head">
-            <strong>{t('activity.title')}</strong>
-            <span>{t('activity.subtitle')}</span>
-          </div>
-          <div className="oma-act-feed__scroll">
-            {filtered.length === 0 ? (
-              <div className="oma-ws-empty-block">
-                <h3>{t('activity.empty')}</h3>
-                <p>{t('activity.emptyBody')}</p>
+          {loading ? <TableShimmer rows={8} /> : null}
+          {error ? (
+            <div className="plx-empty" role="alert">
+              <strong>{error}</strong>
+              <div style={{ marginTop: 12 }}>
+                <Button type="default" onClick={() => void load()}>
+                  {t('activity.retry')}
+                </Button>
               </div>
-            ) : (
-              <ul className="oma-act-list">
-                {filtered.map((item) => (
-                  <ActivityFeedItem key={item.id} item={item} locale={locale} t={t} />
-                ))}
-              </ul>
-            )}
-          </div>
-
-          {cursor ? (
-            <div style={{ marginTop: 16, textAlign: 'center' }}>
-              <Button type="default" disabled={loadingMore} onClick={() => void load(cursor, true)}>
-                {loadingMore ? t('activity.loading') : t('activity.loadMore')}
-              </Button>
             </div>
           ) : null}
-        </div>
-      ) : null}
+
+          {!loading && !error ? (
+            <div className="oma-act-feed" data-testid="activity-feed">
+              <div className="oma-act-feed__head">
+                <strong>{t('activity.title')}</strong>
+                <span>{t('activity.subtitle')}</span>
+              </div>
+              <div className="oma-act-feed__scroll">
+                {filtered.length === 0 ? (
+                  <div className="oma-ws-empty-block">
+                    <h3>{t('activity.empty')}</h3>
+                    <p>{t('activity.emptyBody')}</p>
+                  </div>
+                ) : (
+                  <ul className="oma-act-list">
+                    {filtered.map((item) => (
+                      <ActivityFeedItem key={item.id} item={item} locale={locale} t={t} />
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              {cursor ? (
+                <div style={{ marginTop: 16, textAlign: 'center' }}>
+                  <Button
+                    type="default"
+                    disabled={loadingMore}
+                    onClick={() => void load(cursor, true)}
+                  >
+                    {loadingMore ? t('activity.loading') : t('activity.loadMore')}
+                  </Button>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
         </main>
       </div>
     </div>

@@ -6,7 +6,14 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { DemoGraph } from '@oma/demo';
-import { Button, DatePicker, Drawer as AntDrawer, Input, OmaSelect, TextArea } from '@oma/ui/controls';
+import {
+  Button,
+  DatePicker,
+  Drawer as AntDrawer,
+  Input,
+  OmaSelect,
+  TextArea,
+} from '@oma/ui/controls';
 import { ChannelChoiceCards } from '../../../../components/content/channel-choice-cards';
 import { listWorkspaceMembers, type WorkspaceMember } from '../../../../lib/team-api';
 import { api } from '../../../../lib/api';
@@ -317,9 +324,7 @@ export default function RequestsPage() {
           .split(',')
           .map((c) => c.trim())
           .filter(Boolean),
-        brief: objective
-          ? { objective: { en: objective, ar: objective } }
-          : undefined,
+        brief: objective ? { objective: { en: objective, ar: objective } } : undefined,
       });
       const created = toRequestRow(createdApi);
       toast.push(t('demo.create.successRequest'), 'success');
@@ -965,9 +970,14 @@ export default function RequestsPage() {
                 value={form.type}
                 testId="demo-create-request-type"
                 onChange={(type) => patchForm({ type })}
-                options={['CONTENT', 'DESIGN', 'VIDEO', 'CAMPAIGN_SUPPORT', 'REVISION', 'OTHER'].map(
-                  (s) => ({ value: s, label: s.replaceAll('_', ' ') }),
-                )}
+                options={[
+                  'CONTENT',
+                  'DESIGN',
+                  'VIDEO',
+                  'CAMPAIGN_SUPPORT',
+                  'REVISION',
+                  'OTHER',
+                ].map((s) => ({ value: s, label: s.replaceAll('_', ' ') }))}
               />
             </label>
             <label>

@@ -30,7 +30,10 @@ describe('live QA fixes', () => {
 
   it('Save draft creates without scheduling', () => {
     const src = read('apps/web/src/app/(app)/app/content/content-client.tsx');
-    const fn = src.slice(src.indexOf('async function submitCreate'), src.indexOf('async function', src.indexOf('async function submitCreate') + 10));
+    const fn = src.slice(
+      src.indexOf('async function submitCreate'),
+      src.indexOf('async function', src.indexOf('async function submitCreate') + 10),
+    );
     expect(fn).not.toContain('scheduleContent(');
     expect(fn).toContain('wallTimeToIso(');
     expect(fn).toContain('createForm.plannedDate');

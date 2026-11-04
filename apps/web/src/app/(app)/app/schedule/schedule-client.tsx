@@ -1,7 +1,13 @@
 'use client';
 import { TableShimmer } from '../../../../components/ui/shimmer';
 import { useReloadOnBrandChange } from '../../../../lib/active-brand';
-import { CloseOutlined, DownOutlined, SearchOutlined, UpOutlined, UserOutlined } from '../../../../components/ui/lucide-icons';
+import {
+  CloseOutlined,
+  DownOutlined,
+  SearchOutlined,
+  UpOutlined,
+  UserOutlined,
+} from '../../../../components/ui/lucide-icons';
 import { Button, DateField, Drawer as AntDrawer, Input, SurfaceButton } from '@oma/ui/controls';
 import { ShellIcon } from '../../../../components/shell/shell-icons';
 
@@ -41,7 +47,11 @@ import { todayKey, wallTimeToIso } from '../../../../lib/calendar-today';
 import { brandScheduleTimezone } from '../../../../lib/brand-schedule-timezone';
 import { useActiveBrandId } from '../../../../lib/active-brand';
 import { contentToScheduleRow, type ScheduleRowExtras } from '../../../../lib/schedule-production';
-import { buildPublishStatusView, formatScheduleWhen, isProfileOnlyPostUrl } from '../../../../lib/publish-status';
+import {
+  buildPublishStatusView,
+  formatScheduleWhen,
+  isProfileOnlyPostUrl,
+} from '../../../../lib/publish-status';
 import {
   EMPTY_SCHEDULE_FILTERS,
   activeScheduleFilterCount,
@@ -659,18 +669,14 @@ export default function SchedulePage() {
         }}
       >
         <ShellIcon name="filter" size={18} />
-        {filterCount > 0 ? (
-          <span className="oma-req-filter-icon__count">{filterCount}</span>
-        ) : null}
+        {filterCount > 0 ? <span className="oma-req-filter-icon__count">{filterCount}</span> : null}
       </button>
     </div>
   );
 
   return (
     <div className="oma-sched-page" data-testid="demo-schedule">
-      {headerSlot && headerSlot.isConnected
-        ? createPortal(headerIcons, headerSlot)
-        : null}
+      {headerSlot && headerSlot.isConnected ? createPortal(headerIcons, headerSlot) : null}
       <AntDrawer
         open={filterSheet}
         onClose={() => setFilterSheet(false)}
@@ -695,319 +701,384 @@ export default function SchedulePage() {
         </header>
       </div>
       <div className="oma-sched-body">
-      {rows.every((row) => !row.externalPublishingConnected) ? (
-        <p className="oma-honesty-inline oma-muted">{t('demo.schedule.planningPreview')}</p>
-      ) : null}
+        {rows.every((row) => !row.externalPublishingConnected) ? (
+          <p className="oma-honesty-inline oma-muted">{t('demo.schedule.planningPreview')}</p>
+        ) : null}
 
-      {loading ? <TableShimmer rows={8} avatar={false} /> : null}
-      {unavailable ? <p className="oma-muted">{t('demo.unavailable')}</p> : null}
-      {error ? (
-        <div className="oma-card" role="alert">
-          <p style={{ color: 'var(--status-danger)', margin: 0 }}>{error}</p>
-        </div>
-      ) : null}
+        {loading ? <TableShimmer rows={8} avatar={false} /> : null}
+        {unavailable ? <p className="oma-muted">{t('demo.unavailable')}</p> : null}
+        {error ? (
+          <div className="oma-card" role="alert">
+            <p style={{ color: 'var(--status-danger)', margin: 0 }}>{error}</p>
+          </div>
+        ) : null}
 
-      {!loading && !unavailable && !error ? (
-        <>
-          <div className="oma-sched-layout oma-sched-layout--full">
-            <div className="oma-sched-main" data-view={view}>
-              {filtered.length === 0 ? (
-                <EmptyState title={t('demo.empty')} body={t('demo.schedule.emptyHint')} />
-              ) : null}
+        {!loading && !unavailable && !error ? (
+          <>
+            <div className="oma-sched-layout oma-sched-layout--full">
+              <div className="oma-sched-main" data-view={view}>
+                {filtered.length === 0 ? (
+                  <EmptyState title={t('demo.empty')} body={t('demo.schedule.emptyHint')} />
+                ) : null}
 
-              {view !== 'calendar' ? (
-                <section data-testid="demo-schedule-saved" className="oma-stack oma-sched-saved">
-                  <h2>{t('demo.content.savedColumn')}</h2>
-                  {contents
-                    .filter((item) => resolveContentWorkflow(item, policy).plannedAt == null)
-                    .map((item) => (
-                      <Link
-                        key={item.id}
-                        href={`/app/content?item=${item.id}`}
-                        className="oma-text-link"
-                      >
-                        {contentTitleText(item.title, item.caption, locale, untitled)}
-                      </Link>
-                    ))}
-                </section>
-              ) : null}
+                {view !== 'calendar' ? (
+                  <section data-testid="demo-schedule-saved" className="oma-stack oma-sched-saved">
+                    <h2>{t('demo.content.savedColumn')}</h2>
+                    {contents
+                      .filter((item) => resolveContentWorkflow(item, policy).plannedAt == null)
+                      .map((item) => (
+                        <Link
+                          key={item.id}
+                          href={`/app/content?item=${item.id}`}
+                          className="oma-text-link"
+                        >
+                          {contentTitleText(item.title, item.caption, locale, untitled)}
+                        </Link>
+                      ))}
+                  </section>
+                ) : null}
 
-              {view === 'calendar' ? (
-                <div className="oma-sched-calendar-scroll" data-testid="demo-schedule-calendar-scroll">
-                  <div className="oma-sched-calendar" data-testid="demo-schedule-calendar">
-                  <div className="oma-sched-dow-row" data-testid="demo-schedule-weekdays">
-                    {days.map((day) => (
-                      <div key={`dow-${day}`} className="oma-sched-dow" role="columnheader">
-                        {weekdayForScheduleDay(day, locale, scheduleTz)}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="oma-sched-week">
-                    {days.map((day) => (
-                      <div
-                        key={day}
-                        className="oma-sched-day"
-                        data-today={day === todayInBrand ? 'true' : 'false'}
-                        data-testid={`demo-sched-day-${day}`}
-                      >
-                        <div className="oma-sched-day-label">
-                          <span className="oma-sched-day-label__dow">
+                {view === 'calendar' ? (
+                  <div
+                    className="oma-sched-calendar-scroll"
+                    data-testid="demo-schedule-calendar-scroll"
+                  >
+                    <div className="oma-sched-calendar" data-testid="demo-schedule-calendar">
+                      <div className="oma-sched-dow-row" data-testid="demo-schedule-weekdays">
+                        {days.map((day) => (
+                          <div key={`dow-${day}`} className="oma-sched-dow" role="columnheader">
                             {weekdayForScheduleDay(day, locale, scheduleTz)}
-                          </span>
-                          <span className="oma-sched-day-label__num">
-                            {Number(day.slice(8, 10))}
-                          </span>
-                          <span className="oma-sched-day-label__key oma-ltr">{day}</span>
-                        </div>
-                        <div className="oma-sched-day__scroll-wrap">
-                          <div className="oma-sched-day__scroll">
-                        {(byDay.get(day) ?? []).map((raw) => {
-                          const post = raw as ScheduleRowView;
-                          const bucket = bucketForScheduleRow(post);
-                          const content = contentById.get(post.contentId) as ContentRowExtra | undefined;
-                          const titleCopy = content?.title ?? post.title;
-                          const captionCopy = content?.caption ?? post.caption;
-                          const caption = contentBodyText(titleCopy, captionCopy, locale, emptyBody);
-                          const cardLabels = displayContentLabels(content?.labels);
-                          const time = formatScheduleWhen(
-                            post.plannedAt,
-                            post.timezone || scheduleTz,
-                            locale,
-                          );
-                          const published =
-                            post.state === 'PUBLISHED_SAMPLE' || Boolean(post.publishedAt);
-                          const calDisplay: CalendarDisplay = {
-                            ...SCHEDULE_CALENDAR_DISPLAY,
-                            weekStartsOn: locale.toLowerCase().startsWith('ar') ? 6 : 1,
-                          };
-                          return (
-                            <SurfaceButton
-                              key={post.id}
-                              data-state={post.state}
-                              data-testid={`demo-sched-item-${post.id}`}
-                              onClick={() => openItem(post.id)}
-                              className="oma-sched-pill oma-sched-cal-card-btn"
-                            >
-                              <CalendarPostCard
-                                channel={post.channels[0] || content?.channel || ''}
-                                channels={post.channels}
-                                accountName={undefined}
-                                time={time}
-                                timeTone={
-                                  published
-                                    ? 'published'
-                                    : post.state === 'BLOCKED'
-                                      ? 'overdue'
-                                      : post.state === 'SCHEDULED_PREVIEW' || post.state === 'READY'
-                                        ? 'scheduled'
-                                        : 'draft'
-                                }
-                                caption={caption}
-                                media={
-                                  content
-                                    ? (contentMediaUrls(content)[0] ?? null)
-                                    : null
-                                }
-                                contentType={content?.contentType}
-                                labels={cardLabels}
-                                campaign={
-                                  post.campaignTitle
-                                    ? pickCopy(post.campaignTitle, locale)
-                                    : undefined
-                                }
-                                status={{
-                                  approval: (content?.approvalState as never) || 'NOT_REQUESTED',
-                                  scheduled: post.state === 'SCHEDULED_PREVIEW',
-                                  published,
-                                  overdue: false,
-                                  hidden: content?.clientVisible === false,
-                                  comments: 0,
-                                }}
-                                display={calDisplay}
-                                draft={!published && post.state !== 'SCHEDULED_PREVIEW'}
-                              />
-                              <span className="oma-sr-only" data-testid={`demo-sched-bucket-${post.id}`}>
-                                {t(`demo.schedule.bucket.${bucket}`)}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="oma-sched-week">
+                        {days.map((day) => (
+                          <div
+                            key={day}
+                            className="oma-sched-day"
+                            data-today={day === todayInBrand ? 'true' : 'false'}
+                            data-testid={`demo-sched-day-${day}`}
+                          >
+                            <div className="oma-sched-day-label">
+                              <span className="oma-sched-day-label__dow">
+                                {weekdayForScheduleDay(day, locale, scheduleTz)}
                               </span>
-                            </SurfaceButton>
+                              <span className="oma-sched-day-label__num">
+                                {Number(day.slice(8, 10))}
+                              </span>
+                              <span className="oma-sched-day-label__key oma-ltr">{day}</span>
+                            </div>
+                            <div className="oma-sched-day__scroll-wrap">
+                              <div className="oma-sched-day__scroll">
+                                {(byDay.get(day) ?? []).map((raw) => {
+                                  const post = raw as ScheduleRowView;
+                                  const bucket = bucketForScheduleRow(post);
+                                  const content = contentById.get(post.contentId) as
+                                    ContentRowExtra | undefined;
+                                  const titleCopy = content?.title ?? post.title;
+                                  const captionCopy = content?.caption ?? post.caption;
+                                  const caption = contentBodyText(
+                                    titleCopy,
+                                    captionCopy,
+                                    locale,
+                                    emptyBody,
+                                  );
+                                  const cardLabels = displayContentLabels(content?.labels);
+                                  const time = formatScheduleWhen(
+                                    post.plannedAt,
+                                    post.timezone || scheduleTz,
+                                    locale,
+                                  );
+                                  const published =
+                                    post.state === 'PUBLISHED_SAMPLE' || Boolean(post.publishedAt);
+                                  const calDisplay: CalendarDisplay = {
+                                    ...SCHEDULE_CALENDAR_DISPLAY,
+                                    weekStartsOn: locale.toLowerCase().startsWith('ar') ? 6 : 1,
+                                  };
+                                  return (
+                                    <SurfaceButton
+                                      key={post.id}
+                                      data-state={post.state}
+                                      data-testid={`demo-sched-item-${post.id}`}
+                                      onClick={() => openItem(post.id)}
+                                      className="oma-sched-pill oma-sched-cal-card-btn"
+                                    >
+                                      <CalendarPostCard
+                                        channel={post.channels[0] || content?.channel || ''}
+                                        channels={post.channels}
+                                        accountName={undefined}
+                                        time={time}
+                                        timeTone={
+                                          published
+                                            ? 'published'
+                                            : post.state === 'BLOCKED'
+                                              ? 'overdue'
+                                              : post.state === 'SCHEDULED_PREVIEW' ||
+                                                  post.state === 'READY'
+                                                ? 'scheduled'
+                                                : 'draft'
+                                        }
+                                        caption={caption}
+                                        media={
+                                          content ? (contentMediaUrls(content)[0] ?? null) : null
+                                        }
+                                        contentType={content?.contentType}
+                                        labels={cardLabels}
+                                        campaign={
+                                          post.campaignTitle
+                                            ? pickCopy(post.campaignTitle, locale)
+                                            : undefined
+                                        }
+                                        status={{
+                                          approval:
+                                            (content?.approvalState as never) || 'NOT_REQUESTED',
+                                          scheduled: post.state === 'SCHEDULED_PREVIEW',
+                                          published,
+                                          overdue: false,
+                                          hidden: content?.clientVisible === false,
+                                          comments: 0,
+                                        }}
+                                        display={calDisplay}
+                                        draft={!published && post.state !== 'SCHEDULED_PREVIEW'}
+                                      />
+                                      <span
+                                        className="oma-sr-only"
+                                        data-testid={`demo-sched-bucket-${post.id}`}
+                                      >
+                                        {t(`demo.schedule.bucket.${bucket}`)}
+                                      </span>
+                                    </SurfaceButton>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
+
+                {(view === 'agenda' || view === 'queue') && (
+                  <div
+                    className={view === 'agenda' ? 'oma-sched-agenda' : 'oma-sched-queue'}
+                    data-testid={`demo-schedule-${view}`}
+                    data-view={view}
+                  >
+                    {orderedRows.map((post) => {
+                      const score = readinessScore(post);
+                      return (
+                        <article
+                          key={post.id}
+                          className="oma-sched-card"
+                          data-testid={`demo-sched-card-${post.id}`}
+                        >
+                          <div className="oma-sched-card-head oma-plx-agenda-head">
+                            <div className="oma-plx-agenda-head__main">
+                              <span className="oma-plx-sched-card__nets" aria-hidden>
+                                {post.channels.slice(0, 4).map((c) => (
+                                  <NetworkIcon key={c} channel={c} size={14} />
+                                ))}
+                              </span>
+                              <strong>
+                                {contentTitleText(
+                                  contentById.get(post.contentId)?.title ?? post.title,
+                                  contentById.get(post.contentId)?.caption ?? post.caption,
+                                  locale,
+                                  untitled,
+                                )}
+                              </strong>
+                              <p className="oma-muted oma-sched-card__body">
+                                {contentBodyText(
+                                  contentById.get(post.contentId)?.title ?? post.title,
+                                  contentById.get(post.contentId)?.caption ?? post.caption,
+                                  locale,
+                                  emptyBody,
+                                )}
+                              </p>
+                              <p className="oma-muted">
+                                {weekdayForScheduleDay(
+                                  scheduleDayKey(post.plannedAt),
+                                  locale,
+                                  scheduleTz,
+                                )}{' '}
+                                ·{' '}
+                                {formatScheduleWhen(
+                                  post.plannedAt,
+                                  post.timezone || scheduleTz,
+                                  locale,
+                                )}
+                              </p>
+                              <p className="oma-plx-agenda-channels">
+                                {post.channels.join(', ') || t('demo.schedule.ownerEmpty')}
+                              </p>
+                            </div>
+                            <div className="oma-plx-agenda-head__status">
+                              <StatusMark
+                                display={displayForScheduleBucket(bucketForScheduleRow(post))}
+                                locale={locale}
+                              />
+                              <span data-testid={`demo-sched-bucket-${post.id}`}>
+                                {t(`demo.schedule.bucket.${bucketForScheduleRow(post)}`)}
+                              </span>
+                            </div>
+                          </div>
+                          <p>
+                            {t('demo.schedule.readiness')}: {score.ok}/{score.total} ({score.pct}%)
+                            {internalReady(post) ? ` · ${t('demo.schedule.ready')}` : ''}
+                            {hasIntegrationBlocker(post)
+                              ? ` · ${t('demo.schedule.integrationBlock')}`
+                              : ''}
+                          </p>
+                          {post.blockingReason ? (
+                            <p className="oma-muted">{pickCopy(post.blockingReason, locale)}</p>
+                          ) : null}
+                          <p className="oma-muted" data-testid={`demo-sched-policy-${post.id}`}>
+                            {policy}
+                            {contents.find((item) => item.id === post.contentId)
+                              ? ` · ${t('demo.content.approverProgress')
+                                  .replace(
+                                    '{approved}',
+                                    String(
+                                      resolveContentWorkflow(
+                                        contents.find((item) => item.id === post.contentId)!,
+                                        policy,
+                                      ).approverApproved,
+                                    ),
+                                  )
+                                  .replace(
+                                    '{required}',
+                                    String(
+                                      resolveContentWorkflow(
+                                        contents.find((item) => item.id === post.contentId)!,
+                                        policy,
+                                      ).approverRequired,
+                                    ),
+                                  )}`
+                              : ''}
+                          </p>
+                          <div className="oma-chip-row">
+                            <Button type="default" onClick={() => openItem(post.id)}>
+                              {t('demo.schedule.open')}
+                            </Button>
+                            {post.contentId ? (
+                              <Link
+                                href={`/app/content?item=${post.contentId}`}
+                                className="oma-text-link"
+                              >
+                                {t('demo.schedule.openPost')}
+                              </Link>
+                            ) : null}
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {view === 'table' ? (
+                  <div className="oma-sched-table-wrap" data-testid="demo-schedule-table">
+                    <table className="oma-sched-table">
+                      <thead>
+                        <tr>
+                          <th scope="col">{locale.startsWith('ar') ? 'المنشور' : 'Post'}</th>
+                          <th scope="col">
+                            {locale.startsWith('ar') ? 'التاريخ والوقت' : 'Date & time'}
+                          </th>
+                          <th scope="col">{locale.startsWith('ar') ? 'القنوات' : 'Channels'}</th>
+                          <th scope="col">{locale.startsWith('ar') ? 'الجاهزية' : 'Readiness'}</th>
+                          <th scope="col">{locale.startsWith('ar') ? 'الحالة' : 'Status'}</th>
+                          <th scope="col">
+                            <span className="oma-sr-only">
+                              {locale.startsWith('ar') ? 'إجراء' : 'Action'}
+                            </span>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {orderedRows.map((post) => {
+                          const score = readinessScore(post);
+                          const content = contentById.get(post.contentId) as
+                            ContentRowExtra | undefined;
+                          const title = contentTitleText(
+                            content?.title ?? post.title,
+                            content?.caption ?? post.caption,
+                            locale,
+                            untitled,
+                          );
+                          const previewUrl = content
+                            ? (contentMediaUrls(content)[0] ?? null)
+                            : null;
+                          return (
+                            <tr key={post.id} data-testid={`demo-schedule-table-row-${post.id}`}>
+                              <th scope="row">
+                                <div className="oma-sched-table__post">
+                                  {previewUrl ? (
+                                    <img
+                                      className="oma-sched-table__thumb"
+                                      src={previewUrl}
+                                      alt=""
+                                      loading="lazy"
+                                    />
+                                  ) : (
+                                    <span
+                                      className="oma-sched-table__thumb oma-sched-table__thumb--empty"
+                                      aria-hidden
+                                    />
+                                  )}
+                                  <button
+                                    type="button"
+                                    className="oma-sched-table__title"
+                                    onClick={() => openItem(post.id)}
+                                  >
+                                    {title}
+                                  </button>
+                                </div>
+                              </th>
+                              <td>
+                                <span className="oma-sched-table__date">
+                                  {weekdayForScheduleDay(
+                                    scheduleDayKey(post.plannedAt),
+                                    locale,
+                                    scheduleTz,
+                                  )}{' '}
+                                  ·{' '}
+                                  {formatScheduleWhen(
+                                    post.plannedAt,
+                                    post.timezone || scheduleTz,
+                                    locale,
+                                  )}
+                                </span>
+                              </td>
+                              <td>{post.channels.join(', ') || t('demo.schedule.ownerEmpty')}</td>
+                              <td>
+                                {score.ok}/{score.total} ({score.pct}%)
+                              </td>
+                              <td>
+                                <span className="oma-sched-table__status">
+                                  <StatusMark
+                                    display={displayForScheduleBucket(bucketForScheduleRow(post))}
+                                    locale={locale}
+                                  />
+                                  {t(`demo.schedule.bucket.${bucketForScheduleRow(post)}`)}
+                                </span>
+                              </td>
+                              <td>
+                                <Button type="default" onClick={() => openItem(post.id)}>
+                                  {t('demo.schedule.open')}
+                                </Button>
+                              </td>
+                            </tr>
                           );
                         })}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                      </tbody>
+                    </table>
                   </div>
-                  </div>
-                </div>
-              ) : null}
-
-              {(view === 'agenda' || view === 'queue') && (
-                <div
-                  className={view === 'agenda' ? 'oma-sched-agenda' : 'oma-sched-queue'}
-                  data-testid={`demo-schedule-${view}`}
-                  data-view={view}
-                >
-                  {orderedRows.map((post) => {
-                    const score = readinessScore(post);
-                    return (
-                      <article
-                        key={post.id}
-                        className="oma-sched-card"
-                        data-testid={`demo-sched-card-${post.id}`}
-                      >
-                        <div className="oma-sched-card-head oma-plx-agenda-head">
-                          <div className="oma-plx-agenda-head__main">
-                            <span className="oma-plx-sched-card__nets" aria-hidden>
-                              {post.channels.slice(0, 4).map((c) => (
-                                <NetworkIcon key={c} channel={c} size={14} />
-                              ))}
-                            </span>
-                            <strong>
-                              {contentTitleText(
-                                contentById.get(post.contentId)?.title ?? post.title,
-                                contentById.get(post.contentId)?.caption ?? post.caption,
-                                locale,
-                                untitled,
-                              )}
-                            </strong>
-                            <p className="oma-muted oma-sched-card__body">
-                              {contentBodyText(
-                                contentById.get(post.contentId)?.title ?? post.title,
-                                contentById.get(post.contentId)?.caption ?? post.caption,
-                                locale,
-                                emptyBody,
-                              )}
-                            </p>
-                            <p className="oma-muted">
-                              {weekdayForScheduleDay(
-                                scheduleDayKey(post.plannedAt),
-                                locale,
-                                scheduleTz,
-                              )}{' '}
-                              · {formatScheduleWhen(post.plannedAt, post.timezone || scheduleTz, locale)}
-                            </p>
-                            <p className="oma-plx-agenda-channels">
-                              {post.channels.join(', ') || t('demo.schedule.ownerEmpty')}
-                            </p>
-                          </div>
-                          <div className="oma-plx-agenda-head__status">
-                            <StatusMark
-                              display={displayForScheduleBucket(bucketForScheduleRow(post))}
-                              locale={locale}
-                            />
-                            <span data-testid={`demo-sched-bucket-${post.id}`}>
-                              {t(`demo.schedule.bucket.${bucketForScheduleRow(post)}`)}
-                            </span>
-                          </div>
-                        </div>
-                        <p>
-                          {t('demo.schedule.readiness')}: {score.ok}/{score.total} ({score.pct}%)
-                          {internalReady(post) ? ` · ${t('demo.schedule.ready')}` : ''}
-                          {hasIntegrationBlocker(post)
-                            ? ` · ${t('demo.schedule.integrationBlock')}`
-                            : ''}
-                        </p>
-                        {post.blockingReason ? (
-                          <p className="oma-muted">{pickCopy(post.blockingReason, locale)}</p>
-                        ) : null}
-                        <p className="oma-muted" data-testid={`demo-sched-policy-${post.id}`}>
-                          {policy}
-                          {contents.find((item) => item.id === post.contentId)
-                            ? ` · ${t('demo.content.approverProgress')
-                                .replace(
-                                  '{approved}',
-                                  String(
-                                    resolveContentWorkflow(
-                                      contents.find((item) => item.id === post.contentId)!,
-                                      policy,
-                                    ).approverApproved,
-                                  ),
-                                )
-                                .replace(
-                                  '{required}',
-                                  String(
-                                    resolveContentWorkflow(
-                                      contents.find((item) => item.id === post.contentId)!,
-                                      policy,
-                                    ).approverRequired,
-                                  ),
-                                )}`
-                            : ''}
-                        </p>
-                        <div className="oma-chip-row">
-                          <Button type="default" onClick={() => openItem(post.id)}>
-                            {t('demo.schedule.open')}
-                          </Button>
-                          {post.contentId ? (
-                            <Link
-                              href={`/app/content?item=${post.contentId}`}
-                              className="oma-text-link"
-                            >
-                              {t('demo.schedule.openPost')}
-                            </Link>
-                          ) : null}
-                        </div>
-                      </article>
-                    );
-                  })}
-                </div>
-              )}
-
-              {view === 'table' ? (
-                <div className="oma-sched-table-wrap" data-testid="demo-schedule-table">
-                  <table className="oma-sched-table">
-                    <thead>
-                      <tr>
-                        <th scope="col">{locale.startsWith('ar') ? 'المنشور' : 'Post'}</th>
-                        <th scope="col">{locale.startsWith('ar') ? 'التاريخ والوقت' : 'Date & time'}</th>
-                        <th scope="col">{locale.startsWith('ar') ? 'القنوات' : 'Channels'}</th>
-                        <th scope="col">{locale.startsWith('ar') ? 'الجاهزية' : 'Readiness'}</th>
-                        <th scope="col">{locale.startsWith('ar') ? 'الحالة' : 'Status'}</th>
-                        <th scope="col"><span className="oma-sr-only">{locale.startsWith('ar') ? 'إجراء' : 'Action'}</span></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {orderedRows.map((post) => {
-                        const score = readinessScore(post);
-                        const content = contentById.get(post.contentId) as ContentRowExtra | undefined;
-                        const title = contentTitleText(
-                          content?.title ?? post.title,
-                          content?.caption ?? post.caption,
-                          locale,
-                          untitled,
-                        );
-                        const previewUrl = content ? contentMediaUrls(content)[0] ?? null : null;
-                        return (
-                          <tr key={post.id} data-testid={`demo-schedule-table-row-${post.id}`}>
-                            <th scope="row">
-                              <div className="oma-sched-table__post">
-                                {previewUrl ? (
-                                  <img className="oma-sched-table__thumb" src={previewUrl} alt="" loading="lazy" />
-                                ) : (
-                                  <span className="oma-sched-table__thumb oma-sched-table__thumb--empty" aria-hidden />
-                                )}
-                                <button type="button" className="oma-sched-table__title" onClick={() => openItem(post.id)}>
-                                  {title}
-                                </button>
-                              </div>
-                            </th>
-                            <td><span className="oma-sched-table__date">{weekdayForScheduleDay(scheduleDayKey(post.plannedAt), locale, scheduleTz)} · {formatScheduleWhen(post.plannedAt, post.timezone || scheduleTz, locale)}</span></td>
-                            <td>{post.channels.join(', ') || t('demo.schedule.ownerEmpty')}</td>
-                            <td>{score.ok}/{score.total} ({score.pct}%)</td>
-                            <td><span className="oma-sched-table__status"><StatusMark display={displayForScheduleBucket(bucketForScheduleRow(post))} locale={locale} />{t(`demo.schedule.bucket.${bucketForScheduleRow(post)}`)}</span></td>
-                            <td><Button type="default" onClick={() => openItem(post.id)}>{t('demo.schedule.open')}</Button></td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              ) : null}
-
+                ) : null}
+              </div>
             </div>
-          </div>
-        </>
-      ) : null}
+          </>
+        ) : null}
       </div>
 
       <AntDrawer
@@ -1045,7 +1116,11 @@ export default function SchedulePage() {
                 <span aria-hidden>🕒</span>
                 <span>
                   {selected.plannedAt
-                    ? formatScheduleWhen(selected.plannedAt, selected.timezone || scheduleTz, locale)
+                    ? formatScheduleWhen(
+                        selected.plannedAt,
+                        selected.timezone || scheduleTz,
+                        locale,
+                      )
                     : locale.startsWith('ar')
                       ? 'اختيار التاريخ والوقت'
                       : 'Select date & time'}
@@ -1146,7 +1221,8 @@ export default function SchedulePage() {
                 emptyBody,
               )}
             </p>
-            {displayContentLabels((selectedContent as ContentRowExtra | undefined)?.labels).length ? (
+            {displayContentLabels((selectedContent as ContentRowExtra | undefined)?.labels)
+              .length ? (
               <div className="oma-pv-chips" data-testid="demo-schedule-preview-labels">
                 {displayContentLabels((selectedContent as ContentRowExtra | undefined)?.labels).map(
                   (label) => (

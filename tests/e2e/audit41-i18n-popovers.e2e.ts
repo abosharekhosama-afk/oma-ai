@@ -10,7 +10,9 @@ if (process.env.PW_CHROME) test.use({ launchOptions: { executablePath: process.e
 test.use({ actionTimeout: 20_000 });
 /** Hide the Next.js dev-only issues badge so it can't sit on top of the sidebar footer in dev runs. */
 async function hideDevOverlay(page: Page) {
-  await page.addStyleTag({ content: 'nextjs-portal{display:none!important}' }).catch(() => undefined);
+  await page
+    .addStyleTag({ content: 'nextjs-portal{display:none!important}' })
+    .catch(() => undefined);
 }
 const shot = async (page: Page, name: string) => {
   if (SHOT_DIR) await page.screenshot({ path: `${SHOT_DIR}/audit41-${name}.png` });
@@ -22,8 +24,10 @@ const VIEWPORTS = [
   { id: '390', width: 390, height: 844 },
 ] as const;
 
-const RAW_KEY = /\b(?:shell|demo|team|members|companies|errors?|wsPanel|content|notificationsPage|settingsPage|auth)\.[a-z_]+(?:\.[a-zA-Z_]+)*\b/;
-const TECH = /\b(?:SCHEDULE_BLOCKED|PERMISSION_DENIED|TENANT_REQUIRED|CONFLICT_STATE|tenant\.manage|brand\.read)\b|Active tenant required/;
+const RAW_KEY =
+  /\b(?:shell|demo|team|members|companies|errors?|wsPanel|content|notificationsPage|settingsPage|auth)\.[a-z_]+(?:\.[a-zA-Z_]+)*\b/;
+const TECH =
+  /\b(?:SCHEDULE_BLOCKED|PERMISSION_DENIED|TENANT_REQUIRED|CONFLICT_STATE|tenant\.manage|brand\.read)\b|Active tenant required/;
 
 async function assertCleanText(page: Page, loc: 'en' | 'ar') {
   const text = await page.locator('body').innerText();
@@ -53,7 +57,12 @@ async function assertInViewport(page: Page, selector: string) {
 async function openShellFooter(page: Page, mobile: boolean) {
   await hideDevOverlay(page);
   if (mobile) {
-    await page.locator('[data-testid="mobile-nav-toggle"]:visible, [data-testid="mobile-nav-trigger"]:visible').first().click();
+    await page
+      .locator(
+        '[data-testid="mobile-nav-toggle"]:visible, [data-testid="mobile-nav-trigger"]:visible',
+      )
+      .first()
+      .click();
     await page.waitForTimeout(400);
   }
 }
@@ -63,11 +72,23 @@ test('audit41 i18n, direction, notifications and popovers', async ({ page, reque
   const owner = await registerBrandOwner(request);
   const { brandId } = await createBrandFlow(request, owner.cookies);
   const mk = async (en: string, ar: string) =>
-    (await (await apiPost(request, `/api/v1/brands/${brandId}/content`, owner.cookies, {
-      title: { en, ar }, caption: { en, ar }, contentType: 'POST', channel: 'Instagram', track: 'ORGANIC',
-      plannedAt: new Date(Date.now() + 2 * 864e5).toISOString(),
-    })).json()).data as { id: string };
-  for (const [en, ar] of [['Cardamom latte is back', 'عاد لاتيه الهيل'], ['Loyalty card relaunch', 'إعادة إطلاق بطاقة الولاء'], ['Winter menu teaser', 'تشويقة قائمة الشتاء']]) {
+    (
+      await (
+        await apiPost(request, `/api/v1/brands/${brandId}/content`, owner.cookies, {
+          title: { en, ar },
+          caption: { en, ar },
+          contentType: 'POST',
+          channel: 'Instagram',
+          track: 'ORGANIC',
+          plannedAt: new Date(Date.now() + 2 * 864e5).toISOString(),
+        })
+      ).json()
+    ).data as { id: string };
+  for (const [en, ar] of [
+    ['Cardamom latte is back', 'عاد لاتيه الهيل'],
+    ['Loyalty card relaunch', 'إعادة إطلاق بطاقة الولاء'],
+    ['Winter menu teaser', 'تشويقة قائمة الشتاء'],
+  ]) {
     const c = await mk(en!, ar!);
     await apiPost(request, `/api/v1/content/${c.id}/request-approval`, owner.cookies, {});
     await apiPost(request, `/api/v1/content/${c.id}/approve`, owner.cookies, {});
@@ -84,7 +105,12 @@ test('audit41 i18n, direction, notifications and popovers', async ({ page, reque
   for (const loc of ['en', 'ar'] as const) {
     await page.context().clearCookies();
     await page.context().addCookies([
-      ...Object.entries(owner.cookies).map(([name, value]) => ({ name, value: String(value), domain: host, path: '/' })),
+      ...Object.entries(owner.cookies).map(([name, value]) => ({
+        name,
+        value: String(value),
+        domain: host,
+        path: '/',
+      })),
       { name: 'oma_locale', value: loc, domain: host, path: '/' },
     ]);
     for (const vp of VIEWPORTS) {
@@ -98,7 +124,10 @@ test('audit41 i18n, direction, notifications and popovers', async ({ page, reque
       await assertCleanText(page, loc);
       await shot(page, `notifications-page-${tag}`);
       await page.getByTestId('notifications-filter-unread').click();
-      await expect(page.getByTestId('notifications-filter-unread')).toHaveAttribute('aria-selected', 'true');
+      await expect(page.getByTestId('notifications-filter-unread')).toHaveAttribute(
+        'aria-selected',
+        'true',
+      );
       await page.getByTestId('notifications-filter-all').click();
 
       // Bell popover
@@ -136,12 +165,20 @@ test('audit41 i18n, direction, notifications and popovers', async ({ page, reque
           await assertInViewport(page, '[data-testid="shell-notifications-panel"]');
           await shot(page, `notifications-popover-collapsed-${tag}`);
           await page.keyboard.press('Escape');
-          await page.getByTestId('oma-rail-logo-expand').click().catch(() => undefined);
+          await page
+            .getByTestId('oma-rail-logo-expand')
+            .click()
+            .catch(() => undefined);
         }
       }
 
       // Sample of main pages
-      for (const [name, path] of [['home', '/app'], ['team', '/app/team'], ['settings', '/app/settings'], ['content', '/app/content']] as const) {
+      for (const [name, path] of [
+        ['home', '/app'],
+        ['team', '/app/team'],
+        ['settings', '/app/settings'],
+        ['content', '/app/content'],
+      ] as const) {
         await page.goto(path);
         await page.waitForLoadState('networkidle').catch(() => undefined);
         await page.waitForTimeout(800);

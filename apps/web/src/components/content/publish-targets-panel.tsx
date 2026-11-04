@@ -1,7 +1,11 @@
 'use client';
 
 import { humanizePublishError } from '../../lib/publish-errors';
-import { isProfileOnlyPostUrl, publishTargetStateLabelKey, type PublishTargetStatusRow } from '../../lib/publish-status';
+import {
+  isProfileOnlyPostUrl,
+  publishTargetStateLabelKey,
+  type PublishTargetStatusRow,
+} from '../../lib/publish-status';
 import { useT } from '../../lib/use-locale';
 
 export function PublishTargetsPanel({

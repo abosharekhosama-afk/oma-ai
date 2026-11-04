@@ -136,7 +136,11 @@ export class RateLimitGuard implements CanActivate {
       budgets.push({ key: `auth-login-ip:${ip}`, limit: 30, windowMs: 60_000 });
       const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
       if (email && email.length <= 320) {
-        budgets.push({ key: `auth-login-email:${digest(email)}`, limit: 20, windowMs: 15 * 60_000 });
+        budgets.push({
+          key: `auth-login-email:${digest(email)}`,
+          limit: 20,
+          windowMs: 15 * 60_000,
+        });
       }
     } else if (method === 'POST' && path.endsWith('/auth/register')) {
       budgets.push({ key: `auth-register-ip:${ip}`, limit: 5, windowMs: 60_000 });

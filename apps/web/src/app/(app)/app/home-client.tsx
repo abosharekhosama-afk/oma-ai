@@ -185,7 +185,12 @@ export default function AppHomePage() {
       activityError={activityError}
       feedback={
         undo ? (
-          <div className="oma-home-undo" role="status" aria-live="polite" data-testid="home-approve-undo">
+          <div
+            className="oma-home-undo"
+            role="status"
+            aria-live="polite"
+            data-testid="home-approve-undo"
+          >
             <span>{t('home.v2.approvedPending')}</span>
             <button type="button" className="oma-home-link" onClick={onUndo}>
               {t('home.v2.undo')}

@@ -52,7 +52,10 @@ export function statusLabel(t: (k: string) => string, status?: string | null): s
   const key = `status.enum.${String(status).toUpperCase()}`;
   const v = t(key);
   if (v && v !== key) return v;
-  const words = String(status).replace(/[_.-]+/g, ' ').toLowerCase().trim();
+  const words = String(status)
+    .replace(/[_.-]+/g, ' ')
+    .toLowerCase()
+    .trim();
   return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
