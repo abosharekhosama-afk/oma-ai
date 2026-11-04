@@ -31,6 +31,7 @@
     "db:migrate:deploy:render": "node scripts/db/render-migrate-deploy.mjs",
     "db:seed": "pnpm --filter @oma/db seed",
     "db:seed:demo": "pnpm --filter @oma/db seed:demo",
+    "db:seed:inbox-demo": "pnpm --filter @oma/db seed:inbox-demo",
     "db:seed:review:002": "pnpm --filter @oma/db seed:review:002",
     "review:002": "bash scripts/review-002.sh",
     "review:002:stop": "bash scripts/review-002-stop.sh",
