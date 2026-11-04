@@ -59,7 +59,7 @@ export function toCampaignRow(c: ApiCampaign, ownerLabel?: string): CampaignRow 
       currency: c.budget?.currency ?? 'USD',
       planningOnly: true as const,
     },
-    owner: ownerLabel || c.owner_user_id || '—',
+    owner: ownerLabel?.trim() || '—',
     kpis: [],
   };
 }

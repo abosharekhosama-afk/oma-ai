@@ -16,6 +16,8 @@ export const DEFAULT_PREFERENCES = {
   localePreference: 'system' as 'en' | 'ar' | 'system',
   /** Home "Finish setup" side card dismissed by this user. */
   homeSetupDismissed: false,
+  /** Campaign ids starred on the campaigns portfolio view (tenant-scoped ids). */
+  campaignFavoriteIds: [] as string[],
   notifications: Object.fromEntries(NOTIFICATION_TYPES.map((t) => [t, true])) as Record<
     string,
     boolean
@@ -65,6 +67,13 @@ export function validatePreferencesPatch(body: Record<string, unknown>): Partial
   if (body.homeSetupDismissed !== undefined) {
     if (typeof body.homeSetupDismissed !== 'boolean') throw bad('homeSetupDismissed');
     out.homeSetupDismissed = body.homeSetupDismissed;
+  }
+  if (body.campaignFavoriteIds !== undefined) {
+    if (!Array.isArray(body.campaignFavoriteIds)) throw bad('campaignFavoriteIds');
+    const ids = body.campaignFavoriteIds
+      .filter((x): x is string => typeof x === 'string' && x.length > 0 && x.length <= 64)
+      .slice(0, 500);
+    out.campaignFavoriteIds = ids;
   }
   if (body.localePreference !== undefined) {
     if (!['en', 'ar', 'system'].includes(String(body.localePreference)))

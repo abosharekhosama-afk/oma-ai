@@ -5,7 +5,7 @@ import { Button, DateField, Input, SelectField, TextArea } from '@oma/ui/control
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   FilterOutlined,
   AppstoreOutlined,
@@ -56,10 +56,30 @@ import {
   type CampaignLayout,
 } from '../../../../lib/demo/demo-view-pref';
 import { useLocale, useT } from '../../../../lib/use-locale';
+import { getPreferences, updatePreferences } from '../../../../lib/account-api';
+import { listWorkspaceMembers, type WorkspaceMember } from '../../../../lib/team-api';
+import { listStrategiesForBrands } from '../../../../lib/strategy-api';
 
 type Brand = DemoGraph['brands'][number];
 type Strategy = DemoGraph['strategies'][number];
 type CampaignTab = 'all' | 'active' | 'planning' | 'completed';
+
+function memberDisplayName(m: WorkspaceMember): string | null {
+  if (!m.user?.id) return null;
+  const name = m.user.name?.trim();
+  if (name) return name;
+  const email = m.user.email?.split('@')[0]?.trim();
+  return email || null;
+}
+
+function ownerLabelForUserId(
+  ownerUserId: string | null | undefined,
+  ownerByUserId: Map<string, string>,
+  isAr: boolean,
+): string {
+  if (!ownerUserId) return '—';
+  return ownerByUserId.get(ownerUserId) ?? (isAr ? 'عضو الفريق' : 'Team member');
+}
 
 export default function CampaignsPage() {
   const t = useT();
@@ -79,6 +99,8 @@ export default function CampaignsPage() {
   const [layout, setLayout] = useState<CampaignLayout>('portfolio');
   const [campaignTab, setCampaignTab] = useState<CampaignTab>('all');
   const [menuId, setMenuId] = useState<string | null>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
+  const campaignMenuRef = useRef<HTMLDivElement | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [archiveTarget, setArchiveTarget] = useState<string | null>(null);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
@@ -116,10 +138,18 @@ export default function CampaignsPage() {
     try {
       const brandRows = await listScopedBrands();
       const brandIds = brandRows.map((b) => b.id);
-      const [campaigns, contentItems] = await Promise.all([
+      const [campaigns, contentItems, members, prefs] = await Promise.all([
         brandIds.length ? listAllCampaigns(brandIds) : Promise.resolve([]),
         brandIds.length ? listAllContent(brandIds).catch(() => []) : Promise.resolve([]),
+        listWorkspaceMembers().catch(() => [] as WorkspaceMember[]),
+        getPreferences().catch(() => null),
       ]);
+      const ownerByUserId = new Map<string, string>();
+      for (const m of members) {
+        const label = memberDisplayName(m);
+        if (m.user?.id && label) ownerByUserId.set(m.user.id, label);
+      }
+      const strategyRows = brandIds.length ? await listStrategiesForBrands(brandIds) : [];
       setBrands(
         brandRows.map((b) => ({
           id: b.id,
@@ -129,9 +159,24 @@ export default function CampaignsPage() {
           strategyId: null,
         })) as Brand[],
       );
-      setRows(campaigns.map((c) => toCampaignRow(c)));
+      setRows(
+        campaigns.map((c) =>
+          toCampaignRow(c, ownerLabelForUserId(c.owner_user_id, ownerByUserId, isAr)),
+        ),
+      );
       setContent(contentItems.map((c) => toContentRow(c)));
-      setStrategies([]);
+      setStrategies(
+        strategyRows.map((s) => ({
+          id: s.id,
+          brandId: s.brandId,
+          name: { en: s.name, ar: s.name },
+          status: s.status,
+          isCurrent: false,
+        })) as Strategy[],
+      );
+      setFavoriteIds(
+        Array.isArray(prefs?.campaignFavoriteIds) ? prefs.campaignFavoriteIds : [],
+      );
       setForm((f) => ({
         ...f,
         brandId: f.brandId || brandIds[0] || '',
@@ -169,18 +214,77 @@ export default function CampaignsPage() {
   const brandName = useCallback(
     (brandId: string) => {
       const b = brands.find((x) => x.id === brandId);
-      return b ? pickCopy(b.name, locale) : brandId;
+      return b ? pickCopy(b.name, locale) : '—';
     },
     [brands, locale],
   );
 
   const strategyName = useCallback(
     (strategyId: string) => {
+      if (!strategyId?.trim()) return '—';
       const s = strategies.find((x) => x.id === strategyId);
-      return s ? pickCopy(s.name, locale) : strategyId;
+      return s ? pickCopy(s.name, locale) : '—';
     },
     [strategies, locale],
   );
+
+  const menuCampaign = useMemo(
+    () => (menuId ? rows.find((r) => r.id === menuId) ?? null : null),
+    [menuId, rows],
+  );
+
+  useEffect(() => {
+    if (!menuId) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMenuId(null);
+        setMenuPos(null);
+      }
+    };
+    const onDown = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (campaignMenuRef.current?.contains(target)) return;
+      setMenuId(null);
+      setMenuPos(null);
+    };
+    window.addEventListener('keydown', onKey);
+    window.addEventListener('mousedown', onDown);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.removeEventListener('mousedown', onDown);
+    };
+  }, [menuId]);
+
+  async function toggleFavorite(campaignId: string) {
+    const prev = favoriteIds;
+    const next = prev.includes(campaignId)
+      ? prev.filter((id) => id !== campaignId)
+      : [...prev, campaignId];
+    setFavoriteIds(next);
+    try {
+      await updatePreferences({ campaignFavoriteIds: next });
+    } catch {
+      setFavoriteIds(prev);
+      toast.push(
+        isAr ? 'تعذّر حفظ المفضلة' : 'Could not save favorite',
+        'danger',
+      );
+    }
+  }
+
+  function openCampaignMenu(campaignId: string, anchor: HTMLElement) {
+    const rect = anchor.getBoundingClientRect();
+    const menuWidth = 168;
+    const pad = 8;
+    let left = rect.right - menuWidth;
+    if (left < pad) left = pad;
+    if (left + menuWidth > window.innerWidth - pad) {
+      left = Math.max(pad, window.innerWidth - menuWidth - pad);
+    }
+    const top = rect.bottom + 4;
+    setMenuPos({ top, left });
+    setMenuId(campaignId);
+  }
 
   const filtered = useMemo(() => {
     const matchesFilters = filterCampaigns(rows, filters, locale);
@@ -304,6 +408,7 @@ export default function CampaignsPage() {
   function openEdit(campaign: CampaignRow) {
     setEditingId(campaign.id);
     setMenuId(null);
+    setMenuPos(null);
     setForm({
       name: pickCopy(campaign.name, locale),
       goal: pickCopy(campaign.objective, locale),
@@ -323,6 +428,7 @@ export default function CampaignsPage() {
 
   async function duplicateCampaign(campaign: CampaignRow) {
     setMenuId(null);
+    setMenuPos(null);
     const copy = locale.toLowerCase().startsWith('ar') ? 'نسخة' : 'copy';
     try {
       if (!campaign.brandId) {
@@ -352,6 +458,7 @@ export default function CampaignsPage() {
 
   async function copyCampaignLink(campaign: CampaignRow) {
     setMenuId(null);
+    setMenuPos(null);
     try {
       await navigator.clipboard.writeText(`${window.location.origin}/app/campaigns/${campaign.id}`);
       toast.push(isAr ? 'تم نسخ رابط الحملة' : 'Campaign link copied', 'success');
@@ -797,11 +904,11 @@ export default function CampaignsPage() {
                           : 'Add to favorites'
                     }
                     aria-pressed={favoriteIds.includes(c.id)}
-                    onClick={() =>
-                      setFavoriteIds((ids) =>
-                        ids.includes(c.id) ? ids.filter((id) => id !== c.id) : [...ids, c.id],
-                      )
-                    }
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      void toggleFavorite(c.id);
+                    }}
                   >
                     {favoriteIds.includes(c.id) ? '★' : '☆'}
                   </Button>
@@ -811,33 +918,19 @@ export default function CampaignsPage() {
                       aria-label={isAr ? 'إجراءات الحملة' : 'Campaign actions'}
                       aria-haspopup="menu"
                       aria-expanded={menuId === c.id}
-                      onClick={() => setMenuId((id) => (id === c.id ? null : c.id))}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (menuId === c.id) {
+                          setMenuId(null);
+                          setMenuPos(null);
+                        } else {
+                          openCampaignMenu(c.id, e.currentTarget);
+                        }
+                      }}
                     >
                       ⋯
                     </Button>
-                    {menuId === c.id ? (
-                      <div className="oma-campaign-menu" role="menu">
-                        <button role="menuitem" onClick={() => openEdit(c)}>
-                          {isAr ? 'تعديل' : 'Edit'}
-                        </button>
-                        <button role="menuitem" onClick={() => void duplicateCampaign(c)}>
-                          {isAr ? 'نسخ' : 'Duplicate'}
-                        </button>
-                        <button role="menuitem" onClick={() => void copyCampaignLink(c)}>
-                          {isAr ? 'نسخ الرابط' : 'Copy link'}
-                        </button>
-                        <button
-                          role="menuitem"
-                          className="is-danger"
-                          onClick={() => {
-                            setMenuId(null);
-                            setArchiveTarget(c.id);
-                          }}
-                        >
-                          {isAr ? 'أرشفة الحملة' : 'Archive campaign'}
-                        </button>
-                      </div>
-                    ) : null}
                   </div>
                 </div>
               </article>
@@ -866,69 +959,103 @@ export default function CampaignsPage() {
               <h2 className="oma-campaign-group-title">
                 {statusLabel(group.status, locale)} · {group.rows.length}
               </h2>
-              <div className="oma-campaign-table">
-                <div className="oma-campaign-table-head">
-                  <span>{t('demo.campaigns.col.campaign')}</span>
-                  <span>{t('demo.campaigns.col.brand')}</span>
-                  <span>{t('demo.campaigns.col.strategy')}</span>
-                  <span>{t('demo.campaigns.col.track')}</span>
-                  <span>{t('demo.campaigns.col.owner')}</span>
-                  <span>{t('demo.campaigns.col.content')}</span>
-                  <span>{t('demo.campaigns.col.review')}</span>
-                  <span>{t('demo.campaigns.col.next')}</span>
-                </div>
-                {group.rows.map((c) => {
-                  const items = contentFor(c.id);
-                  const review = campaignReviewState(items);
-                  return (
-                    <div
-                      key={c.id}
-                      className="oma-campaign-table-row"
-                      data-selected={selectedId === c.id}
-                      data-testid={`demo-campaign-row-${c.id}`}
-                      role="link"
-                      tabIndex={0}
-                      onClick={() => {
-                        setSelectedId(c.id);
-                        router.push(`/app/campaigns/${c.id}`);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault();
-                          setSelectedId(c.id);
-                          router.push(`/app/campaigns/${c.id}`);
-                        }
-                      }}
-                    >
-                      <div className="oma-campaign-name">
-                        <Link href={`/app/campaigns/${c.id}`} onClick={(e) => e.stopPropagation()}>
-                          {pickCopy(c.name, locale)}
-                        </Link>
-                        <StatusChip status={c.status} label={statusLabel(c.status, locale)} />
-                      </div>
-                      <span>{brandName(c.brandId)}</span>
-                      <Link
-                        href={strategyHref(c.brandId, c.strategyId)}
-                        className="oma-text-link"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {strategyName(c.strategyId)}
-                      </Link>
-                      <TrackPill
-                        track={c.track}
-                        organicLabel={t('demo.organic')}
-                        paidLabel={t('demo.paid')}
-                      />
-                      <span>{c.owner}</span>
-                      <span>{items.length}</span>
-                      <StatusChip
-                        status={review === 'CLEAR' ? 'APPROVED' : review}
-                        label={statusLabel(review, locale)}
-                      />
-                      <span>{campaignNextAction(c, items, locale)}</span>
-                    </div>
-                  );
-                })}
+              <div
+                className="oma-req-table-wrap oma-campaign-list-table"
+                data-testid="demo-campaign-table"
+              >
+                <table className="oma-req-table oma-campaign-req-table">
+                  <thead>
+                    <tr>
+                      <th>{t('demo.campaigns.col.campaign')}</th>
+                      <th>{t('demo.campaigns.col.brand')}</th>
+                      <th>{t('demo.campaigns.col.strategy')}</th>
+                      <th>{t('demo.campaigns.col.track')}</th>
+                      <th>{t('demo.campaigns.col.owner')}</th>
+                      <th>{t('demo.campaigns.col.content')}</th>
+                      <th>{t('demo.campaigns.col.review')}</th>
+                      <th>{t('demo.campaigns.col.next')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {group.rows.map((c) => {
+                      const items = contentFor(c.id);
+                      const review = campaignReviewState(items);
+                      const hasStrategy =
+                        Boolean(c.strategyId?.trim()) &&
+                        strategies.some((s) => s.id === c.strategyId);
+                      return (
+                        <tr
+                          key={c.id}
+                          data-selected={selectedId === c.id ? 'true' : undefined}
+                          data-testid={`demo-campaign-row-${c.id}`}
+                          className="oma-campaign-req-row"
+                          tabIndex={0}
+                          onClick={() => {
+                            setSelectedId(c.id);
+                            router.push(`/app/campaigns/${c.id}`);
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                              e.preventDefault();
+                              setSelectedId(c.id);
+                              router.push(`/app/campaigns/${c.id}`);
+                            }
+                          }}
+                        >
+                          <td>
+                            <div className="oma-req-title-cell">
+                              <div>
+                                <Link
+                                  href={`/app/campaigns/${c.id}`}
+                                  className="oma-text-link"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  {pickCopy(c.name, locale)}
+                                </Link>
+                                <div className="oma-chip-row" style={{ marginTop: 4 }}>
+                                  <StatusChip
+                                    status={c.status}
+                                    label={statusLabel(c.status, locale)}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td>{brandName(c.brandId)}</td>
+                          <td>
+                            {hasStrategy ? (
+                              <Link
+                                href={strategyHref(c.brandId, c.strategyId)}
+                                className="oma-text-link"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {strategyName(c.strategyId)}
+                              </Link>
+                            ) : (
+                              <span className="oma-muted">—</span>
+                            )}
+                          </td>
+                          <td>
+                            <TrackPill
+                              track={c.track}
+                              organicLabel={t('demo.organic')}
+                              paidLabel={t('demo.paid')}
+                            />
+                          </td>
+                          <td>{c.owner}</td>
+                          <td>{items.length}</td>
+                          <td>
+                            <StatusChip
+                              status={review === 'CLEAR' ? 'APPROVED' : review}
+                              label={statusLabel(review, locale)}
+                            />
+                          </td>
+                          <td className="oma-campaign-next-cell">{campaignNextAction(c, items, locale)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
               <div className="oma-campaign-mobile-list">
                 {group.rows.map((c) => {
@@ -1257,6 +1384,47 @@ export default function CampaignsPage() {
           </Button>
         </div>
       </Dialog>
+
+      {menuId && menuPos && menuCampaign && typeof document !== 'undefined'
+        ? createPortal(
+            <div
+              ref={campaignMenuRef}
+              className="oma-campaign-menu oma-campaign-menu--float"
+              role="menu"
+              style={{
+                position: 'fixed',
+                top: menuPos.top,
+                left: menuPos.left,
+                zIndex: 9999,
+              }}
+              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button type="button" role="menuitem" onClick={() => openEdit(menuCampaign)}>
+                {isAr ? 'تعديل' : 'Edit'}
+              </button>
+              <button type="button" role="menuitem" onClick={() => void duplicateCampaign(menuCampaign)}>
+                {isAr ? 'نسخ' : 'Duplicate'}
+              </button>
+              <button type="button" role="menuitem" onClick={() => void copyCampaignLink(menuCampaign)}>
+                {isAr ? 'نسخ الرابط' : 'Copy link'}
+              </button>
+              <button
+                type="button"
+                role="menuitem"
+                className="is-danger"
+                onClick={() => {
+                  setMenuId(null);
+                  setMenuPos(null);
+                  setArchiveTarget(menuCampaign.id);
+                }}
+              >
+                {isAr ? 'أرشفة الحملة' : 'Archive campaign'}
+              </button>
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }

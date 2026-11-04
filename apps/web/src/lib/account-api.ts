@@ -18,6 +18,7 @@ export type UserPreferences = {
   localePreference: 'en' | 'ar' | 'system';
   notifications: Record<string, boolean>;
   homeSetupDismissed?: boolean;
+  campaignFavoriteIds?: string[];
 };
 
 export const NOTIFICATION_PREF_TYPES = [

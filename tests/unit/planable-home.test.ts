@@ -161,6 +161,16 @@ describe('preferences: home setup dismissal', () => {
   });
 });
 
+describe('preferences: campaign favorites', () => {
+  it('defaults to empty and validates ids', () => {
+    expect(mergePreferences('{}').campaignFavoriteIds).toEqual([]);
+    expect(
+      validatePreferencesPatch({ campaignFavoriteIds: ['camp-1', 'camp-2'] }),
+    ).toEqual({ campaignFavoriteIds: ['camp-1', 'camp-2'] });
+    expect(() => validatePreferencesPatch({ campaignFavoriteIds: 'nope' })).toThrow();
+  });
+});
+
 describe('home view model', () => {
   it('greets by time of day and first name', () => {
     expect([greetingFor(6), greetingFor(13), greetingFor(20), greetingFor(2)]).toEqual([
