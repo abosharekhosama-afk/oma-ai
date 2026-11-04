@@ -6,7 +6,7 @@
  */
 export const WorkerModule = {
   name: 'WorkerModule',
-  queues: ['mail', 'ingestion', 'analysis', 'ai', 'outbox', 'social'],
+  queues: ['mail', 'ingestion', 'analysis', 'ai', 'outbox', 'social', 'inbox', 'listening'],
   processors: [
     'outbox.publisher',
     'mail.processor',

@@ -2465,3 +2465,5 @@ html body [data-testid='team-page-planable'] .oma-ws-table {
     }
   }
 }
+
+@import '../styles/inbox-listening.css';

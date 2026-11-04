@@ -34,6 +34,9 @@ import { OpsController } from './content/ops.controller';
 import { ContentExtrasController } from './content/content-extras.controller';
 import { AiController } from './ai/ai.controller';
 import { BillingController } from './billing/billing.controller';
+import { InboxController } from './inbox/inbox.controller';
+import { ListeningController } from './listening/listening.controller';
+import { WebhooksController } from './webhooks/webhooks.controller';
 
 @Module({
   controllers: [
@@ -67,6 +70,9 @@ import { BillingController } from './billing/billing.controller';
     WorkDriveController,
     MediaController,
     BillingController,
+    InboxController,
+    ListeningController,
+    WebhooksController,
   ],
   providers: [
     { provide: APP_FILTER, useClass: DomainExceptionFilter },

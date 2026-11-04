@@ -102,6 +102,9 @@ model Tenant {
   timeSlots       WorkspaceTimeSlot[]
   subscription   WorkspaceSubscription?
   upgradeRequests PlanUpgradeRequest[]
+  inboxConversations InboxConversation[]
+  listeningRules     ListeningRule[]
+  listeningHits      ListeningHit[]
 }
 
 enum AiRunStatus {
@@ -1831,4 +1834,154 @@ model PlanUpgradeRequest {
 
   @@index([tenantId, status])
   @@index([status, createdAt])
+}
+
+
+// ─── Unified Inbox & Social Listening (Zoho-style) ───────────────────────────
+
+enum InboxPlatform {
+  META_FB
+  META_IG
+  TIKTOK
+  LINKEDIN
+}
+
+enum InboxConversationType {
+  DIRECT_MESSAGE
+  POST_COMMENT
+  DARK_COMMENT
+  MENTION
+}
+
+enum InboxConversationStatus {
+  UNREAD
+  OPEN
+  PENDING
+  CLOSED
+}
+
+enum InboxSentiment {
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
+}
+
+enum InboxMessageDirection {
+  INBOUND
+  OUTBOUND
+}
+
+/// Thread of DMs, comments, or mentions across a connected social platform.
+model InboxConversation {
+  id                 String                  @id
+  tenantId           String
+  brandId            String?
+  platform           InboxPlatform
+  externalThreadId   String
+  type               InboxConversationType
+  status             InboxConversationStatus @default(UNREAD)
+  assignedToUserId   String?
+  sentiment          InboxSentiment?
+  subject            String?
+  participantName    String?
+  participantAvatar  String?
+  participantExtId   String?
+  lastMessageAt      DateTime                @default(now())
+  lastMessagePreview String?
+  messageCount       Int                     @default(0)
+  unreadCount        Int                     @default(0)
+  metadataJson       String?
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+  tenant             Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  messages           InboxMessage[]
+  notes              InboxInternalNote[]
+
+  @@unique([tenantId, platform, externalThreadId])
+  @@index([tenantId, status, lastMessageAt])
+  @@index([tenantId, platform, status])
+  @@index([tenantId, assignedToUserId])
+  @@index([tenantId, sentiment])
+  @@index([tenantId, type])
+  @@index([brandId])
+}
+
+model InboxMessage {
+  id               String                @id
+  tenantId         String
+  conversationId   String
+  externalMessageId String?
+  senderExternalId String
+  senderName       String
+  senderAvatar     String?
+  content          String
+  mediaUrlsJson    String?
+  direction        InboxMessageDirection
+  /// Raw platform payload fragment for audit / reprocessing
+  rawPayloadJson   String?
+  createdAt        DateTime              @default(now())
+  conversation     InboxConversation     @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, externalMessageId])
+  @@index([tenantId, conversationId, createdAt])
+  @@index([conversationId, createdAt])
+}
+
+model InboxInternalNote {
+  id             String   @id
+  tenantId       String
+  conversationId String
+  authorUserId   String
+  content        String
+  createdAt      DateTime @default(now())
+  conversation   InboxConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@index([tenantId, conversationId])
+}
+
+model ListeningRule {
+  id          String   @id
+  tenantId    String
+  workspaceId String
+  brandId     String?
+  name        String
+  keywordsJson String  @default("[]")
+  hashtagsJson String  @default("[]")
+  platformsJson String @default("[]")
+  isLive      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  hits        ListeningHit[]
+
+  @@index([tenantId, isLive])
+  @@index([workspaceId, isLive])
+}
+
+/// Public mention / keyword hit captured by the listening engine.
+model ListeningHit {
+  id              String          @id
+  tenantId        String
+  ruleId          String?
+  platform        InboxPlatform
+  externalPostId  String
+  authorName      String?
+  authorHandle    String?
+  authorAvatar    String?
+  content         String
+  url             String?
+  mediaUrlsJson   String?
+  sentiment       InboxSentiment?
+  isHighPriority  Boolean         @default(false)
+  matchedKeywordsJson String      @default("[]")
+  capturedAt      DateTime        @default(now())
+  tenant          Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  rule            ListeningRule?  @relation(fields: [ruleId], references: [id], onDelete: SetNull)
+
+  @@unique([tenantId, platform, externalPostId])
+  @@index([tenantId, capturedAt])
+  @@index([tenantId, ruleId, capturedAt])
+  @@index([tenantId, isHighPriority, capturedAt])
+  @@index([tenantId, sentiment])
 }

@@ -1,0 +1,463 @@
+/* Unified Inbox — multi-pane */
+.oma-inbox {
+  display: grid;
+  grid-template-columns: 200px minmax(240px, 320px) minmax(0, 1fr) 240px;
+  gap: 0;
+  min-height: calc(100vh - 72px);
+  border: 1px solid var(--oma-border, #e5e7eb);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.oma-inbox-filters,
+.oma-inbox-list,
+.oma-inbox-thread,
+.oma-inbox-profile {
+  min-height: 0;
+  overflow: auto;
+}
+
+.oma-inbox-filters {
+  padding: 16px 12px;
+  background: #f9fafb;
+  border-inline-end: 1px solid #eef0f2;
+}
+
+.oma-inbox-filters__title {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.oma-inbox-filters__meta {
+  margin: 0 0 16px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.oma-inbox-filters__label {
+  display: block;
+  margin: 12px 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #9ca3af;
+}
+
+.oma-inbox-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.oma-inbox-chip {
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  color: #374151;
+}
+
+.oma-inbox-chip.is-active {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
+.oma-inbox-list {
+  border-inline-end: 1px solid #eef0f2;
+}
+
+.oma-inbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 0;
+  border-bottom: 1px solid #f3f4f6;
+  background: transparent;
+  text-align: start;
+  cursor: pointer;
+}
+
+.oma-inbox-row:hover {
+  background: #f9fafb;
+}
+
+.oma-inbox-row.is-active {
+  background: #eef2ff;
+}
+
+.oma-inbox-row.is-unread strong {
+  font-weight: 700;
+}
+
+.oma-inbox-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 6px;
+  flex-shrink: 0;
+  background: #d1d5db;
+}
+.oma-inbox-dot--pos { background: #10b981; }
+.oma-inbox-dot--neg { background: #ef4444; }
+.oma-inbox-dot--neu { background: #9ca3af; }
+
+.oma-inbox-row__body {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.oma-inbox-row__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.oma-inbox-row__plat {
+  font-size: 11px;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.oma-inbox-row__preview {
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.oma-inbox-badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #2563eb;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.oma-inbox-thread {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+}
+
+.oma-inbox-thread__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #eef0f2;
+}
+
+.oma-inbox-thread__head h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.oma-inbox-thread__head p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.oma-inbox-thread__actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.oma-inbox-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px 12px 0;
+  border-bottom: 1px solid #eef0f2;
+}
+
+.oma-inbox-tabs button {
+  border: 0;
+  background: transparent;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #6b7280;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.oma-inbox-tabs button.is-active {
+  color: #111827;
+  font-weight: 600;
+  border-bottom-color: #2563eb;
+}
+
+.oma-inbox-messages {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.oma-inbox-bubble {
+  max-width: 85%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f3f4f6;
+}
+
+.oma-inbox-bubble--outbound {
+  align-self: flex-end;
+  background: #dbeafe;
+}
+
+.oma-inbox-bubble__meta {
+  font-size: 11px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.oma-inbox-bubble__text {
+  font-size: 14px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.oma-inbox-note {
+  padding: 10px 12px;
+  border: 1px dashed #e5e7eb;
+  border-radius: 10px;
+  background: #fffbeb;
+  font-size: 13px;
+}
+
+.oma-inbox-composer {
+  display: flex;
+  gap: 8px;
+  padding: 12px 16px;
+  border-top: 1px solid #eef0f2;
+}
+
+.oma-inbox-composer > *:first-child {
+  flex: 1;
+}
+
+.oma-inbox-profile {
+  padding: 16px;
+  border-inline-start: 1px solid #eef0f2;
+  background: #fafafa;
+}
+
+.oma-inbox-profile__card {
+  text-align: center;
+}
+
+.oma-inbox-profile__avatar {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 10px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #4c8dff, #2f6fed);
+  color: #fff;
+  font-weight: 800;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.oma-inbox-profile__meta {
+  margin: 16px 0 0;
+  text-align: start;
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.oma-inbox-profile__meta dt {
+  color: #9ca3af;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.oma-inbox-profile__meta dd {
+  margin: 2px 0 0;
+  color: #111827;
+}
+
+.oma-inbox-empty {
+  padding: 32px 16px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.oma-inbox-empty strong {
+  display: block;
+  color: #111827;
+  margin-bottom: 6px;
+}
+
+.oma-inbox-error {
+  margin: 8px 16px;
+  color: #b91c1c;
+  font-size: 13px;
+}
+
+/* Listening board */
+.oma-listening {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 24px;
+}
+
+.oma-listening__head h1 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.oma-listening-create {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)) auto;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.oma-listening-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.oma-listening-tabs button {
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.oma-listening-tabs button.is-active {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+  color: #1d4ed8;
+  font-weight: 600;
+}
+
+.oma-listening-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.oma-listening-card {
+  padding: 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.oma-listening-card.is-priority {
+  border-color: #fecaca;
+  background: #fff7f7;
+}
+
+.oma-listening-card header {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.oma-listening-card__plat {
+  color: #6b7280;
+}
+
+.oma-listening-sent {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+.oma-listening-sent--positive { color: #059669; }
+.oma-listening-sent--negative { color: #dc2626; }
+.oma-listening-sent--neutral { color: #6b7280; }
+
+.oma-listening-card__author {
+  margin: 0;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.oma-listening-card__body {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.oma-listening-card footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  color: #9ca3af;
+  margin-top: auto;
+}
+
+@media (max-width: 1100px) {
+  .oma-inbox {
+    grid-template-columns: 180px minmax(220px, 280px) minmax(0, 1fr);
+  }
+  .oma-inbox-profile {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .oma-inbox {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+  .oma-inbox-filters {
+    border-inline-end: 0;
+    border-bottom: 1px solid #eef0f2;
+  }
+  .oma-inbox-list {
+    max-height: 40vh;
+    border-inline-end: 0;
+    border-bottom: 1px solid #eef0f2;
+  }
+  .oma-inbox-thread {
+    min-height: 50vh;
+  }
+  .oma-listening-create {
+    grid-template-columns: 1fr;
+  }
+}

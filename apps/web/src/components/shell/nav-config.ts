@@ -56,6 +56,7 @@ export const SHELL_NAV_SECTIONS: NavSection[] = [
     items: [
       { href: '/app', labelKey: 'nav.home', icon: 'home' },
       { href: '/app/content', labelKey: 'nav.content', icon: 'content' },
+      { href: '/app/inbox', labelKey: 'nav.inbox', icon: 'requests' },
       { href: '/app/campaigns', labelKey: 'nav.campaigns', icon: 'campaigns' },
       {
         href: '/app/analytics',
@@ -81,6 +82,7 @@ export const SHELL_NAV_SECTIONS: NavSection[] = [
       { href: '/app/schedule', labelKey: 'nav.schedule', icon: 'schedule' },
       { href: '/app/team', labelKey: 'nav.team', icon: 'team' },
       { href: '/app/activity', labelKey: 'nav.activity', icon: 'activity' },
+      { href: '/app/listening', labelKey: 'nav.listening', icon: 'activity' },
     ],
   },
 ];

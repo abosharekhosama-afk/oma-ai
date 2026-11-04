@@ -1,0 +1,89 @@
+import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
+import type { Request } from 'express';
+import { DomainError } from '@oma/domain';
+import { AuthGuard } from '../common/guards/auth.guard';
+import { CapabilitiesGuard } from '../common/guards/capabilities.guard';
+import { CsrfGuard } from '../common/guards/csrf.guard';
+import { inboxService } from './inbox.service';
+
+function ctx(req: Request) {
+  if (!req.oma?.tenantId) {
+    throw new DomainError(
+      'TENANT_REQUIRED',
+      'Active tenant required',
+      409,
+      'errors.tenant_required',
+    );
+  }
+  return { tenantId: req.oma.tenantId, userId: req.oma.userId! };
+}
+
+@Controller()
+export class InboxController {
+  @Get('api/v1/inbox/conversations')
+  @UseGuards(AuthGuard, CapabilitiesGuard)
+  list(
+    @Req() req: Request,
+    @Query('platform') platform?: string,
+    @Query('status') status?: string,
+    @Query('type') type?: string,
+    @Query('sentiment') sentiment?: string,
+    @Query('assignedTo') assignedTo?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const c = ctx(req);
+    return inboxService.listConversations(c.tenantId, {
+      platform: platform as never,
+      status: status as never,
+      type: type as never,
+      sentiment: sentiment as never,
+      assignedTo,
+      page: page ? Number(page) : 1,
+      limit: limit ? Number(limit) : 30,
+    });
+  }
+
+  @Get('api/v1/inbox/conversations/:id')
+  @UseGuards(AuthGuard, CapabilitiesGuard)
+  get(@Req() req: Request, @Param('id') id: string) {
+    return inboxService.getConversation(ctx(req).tenantId, id);
+  }
+
+  @Post('api/v1/inbox/conversations/:id/reply')
+  @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
+  reply(@Req() req: Request, @Param('id') id: string, @Body() body: { content?: string }) {
+    const c = ctx(req);
+    return inboxService.reply(c.tenantId, c.userId, id, body);
+  }
+
+  @Post('api/v1/inbox/conversations/:id/assign')
+  @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
+  assign(
+    @Req() req: Request,
+    @Param('id') id: string,
+    @Body() body: { assignedToUserId?: string | null },
+  ) {
+    return inboxService.assign(ctx(req).tenantId, id, body);
+  }
+
+  @Post('api/v1/inbox/conversations/:id/notes')
+  @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
+  notes(@Req() req: Request, @Param('id') id: string, @Body() body: { content?: string }) {
+    const c = ctx(req);
+    return inboxService.addNote(c.tenantId, c.userId, id, body);
+  }
+
+  @Post('api/v1/inbox/conversations/:id/status')
+  @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
+  status(
+    @Req() req: Request,
+    @Param('id') id: string,
+    @Body() body: { status?: 'UNREAD' | 'OPEN' | 'PENDING' | 'CLOSED' },
+  ) {
+    if (!body.status) {
+      throw new DomainError('VALIDATION', 'status required', 400, 'errors.validation');
+    }
+    return inboxService.updateStatus(ctx(req).tenantId, id, body.status);
+  }
+}

@@ -10,6 +10,9 @@ import { WorkerModule } from './worker.module';
 import { startSocialProcessor } from './processors/social.processor';
 import { startSocialJobs } from './social/social-jobs';
 import { startMediaJobs } from './media/media-jobs';
+import { startInboxProcessor } from './processors/inbox.processor';
+import { startListeningProcessor, tickListeningRules } from './processors/listening.processor';
+import { Queue } from 'bullmq';
 
 const log = createLogger('worker');
 
@@ -38,6 +41,8 @@ async function main() {
   startIngestionProcessor(connection);
   startAnalysisProcessor(connection);
   startAiProcessor(connection);
+  startInboxProcessor(connection);
+  startListeningProcessor(connection);
   setInterval(() => {
     void publishPendingOutbox(connection).catch((err) => {
       // Database outages are transient in managed environments. Do not let an
@@ -48,6 +53,34 @@ async function main() {
   // Real social publishing + token refresh (no-op until SOCIAL_TOKEN_ENCRYPTION_KEY is set).
   startSocialJobs(log, connection);
   startMediaJobs(log);
+
+  // Poll live listening rules every 5 minutes
+  const scheduleListening = async () => {
+    try {
+      const rules = await tickListeningRules();
+      if (!rules.length) return;
+      const q = new Queue('listening', {
+        connection,
+        prefix: process.env.BULLMQ_PREFIX || 'oma',
+      });
+      for (const r of rules) {
+        try {
+          await q.add(
+            'listening.poll',
+            { tenantId: r.tenantId, ruleId: r.id },
+            { jobId: `listening-poll-${r.id}-${Date.now()}`, removeOnComplete: true },
+          );
+        } catch {
+          /* duplicate / transient */
+        }
+      }
+      await q.close().catch(() => undefined);
+    } catch (err) {
+      log.error({ err: String(err) }, 'listening schedule tick failed');
+    }
+  };
+  setInterval(() => void scheduleListening(), 5 * 60 * 1000);
+
 
   const healthPort = Number(process.env.WORKER_HEALTH_PORT ?? 3002);
   const health = createServer((_req, res) => {
