@@ -130,9 +130,15 @@ export function NotificationRow({
       ? preview.captionAr
       : preview.captionEn
     : null;
+  const showPreview = Boolean(
+    preview?.imageUrl?.trim() ||
+      previewTitle?.trim() ||
+      previewCaption?.trim() ||
+      preview?.channel?.trim(),
+  );
   const content = (
     <>
-      <span className="oma-notification-card__top">
+      <span className="oma-notification-card__headline">
         <span className="oma-notification-card__title">{notificationLabel(t, n)}</span>
         <span className="oma-notification-card__time">
           {formatWhen(n.createdAt, locale)}
@@ -140,29 +146,27 @@ export function NotificationRow({
         </span>
       </span>
       {body ? <span className="oma-notification-card__body">{body}</span> : null}
-      <span className="oma-notification-card__preview">
-        {preview?.imageUrl ? (
-          <MediaSurface
-            className="oma-notification-card__preview-image"
-            src={preview.imageUrl}
-            mime={preview.mime}
-            contentType={preview.contentType ?? undefined}
-            alt=""
-            preload="metadata"
-          />
-        ) : (
-          <span className="oma-notification-card__preview-thumb">
-            <ImageIcon width={14} height={14} />
+      {showPreview ? (
+        <span className="oma-notification-card__preview">
+          {preview?.imageUrl ? (
+            <MediaSurface
+              className="oma-notification-card__preview-image"
+              src={preview.imageUrl}
+              mime={preview.mime}
+              contentType={preview.contentType ?? undefined}
+              alt=""
+              preload="metadata"
+            />
+          ) : null}
+          <span className="oma-notification-card__preview-copy">
+            {previewTitle ? <strong>{previewTitle}</strong> : null}
+            {previewCaption ? <span>{previewCaption}</span> : null}
           </span>
-        )}
-        <span className="oma-notification-card__preview-copy">
-          <strong>{previewTitle || (n.objectType ? n.objectType : 'OMA activity')}</strong>
-          {previewCaption ? <span>{previewCaption}</span> : null}
+          {preview?.channel ? (
+            <span className="oma-notification-card__channel">{preview.channel}</span>
+          ) : null}
         </span>
-        {preview?.channel ? (
-          <span className="oma-notification-card__channel">{preview.channel}</span>
-        ) : null}
-      </span>
+      ) : null}
     </>
   );
   return (
@@ -300,10 +304,6 @@ export function NotificationsBell() {
           </button>
         ))}
       </div>
-      <div className="oma-notifications-panel__unread-row">
-        <span>{isAr ? 'غير المقروءة' : 'Unread'}</span>
-        <span className="oma-notifications-panel__unread-count">{counts[category] ?? 0}</span>
-      </div>
       {error ? (
         <p role="alert" className="oma-notifications-panel__error">
           {error}
@@ -365,7 +365,7 @@ export function NotificationsBell() {
         open={open}
         onClose={() => setOpen(false)}
         placement={isAr ? 'left' : 'right'}
-        size={380}
+        size={320}
         mask={true}
         closable={false}
         title={null}
