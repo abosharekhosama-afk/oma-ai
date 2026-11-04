@@ -53,8 +53,8 @@ describe('schedule agenda and queue layouts', () => {
     expect(css).toContain('display: none !important');
     expect(css).toContain(".oma-sched-main[data-view='calendar']");
     expect(css).toContain('overflow-x: auto !important');
-    expect(css).toContain('--oma-sched-mobile-calendar-column');
-    expect(css).toContain('233.333333vw');
+    expect(css).toContain('width: 233.333% !important');
+    expect(css).toContain('min-width: 233.333% !important');
   });
 
   it('does not hide the calendar with the legacy mobile display rule', () => {
@@ -84,6 +84,18 @@ describe('schedule agenda and queue layouts', () => {
     expect(css).toContain('.oma-sched-day__scroll');
   });
 
+  it('fills the mobile Schedule content width without changing shared density or local scrolling', () => {
+    const css = read('apps/web/src/styles/stage5.css');
+    const density = read('apps/web/src/styles/mobile-density.css');
+    const scheduleRule = css.slice(css.lastIndexOf('/* Mobile Schedule:'));
+
+    expect(scheduleRule).toContain('@media (max-width: 767px)');
+    expect(scheduleRule).toContain('main.oma-container:has(.oma-sched-page)');
+    expect(scheduleRule).toContain('padding-inline: 0 !important');
+    expect(density).toContain('--oma-mobile-density: 0.7');
+    expect(density).toContain('zoom: var(--oma-mobile-density)');
+  });
+
   it('makes the schedule layout a flex column so the calendar fills remaining height', () => {
     const css = read('apps/web/src/styles/stage5.css');
     expect(css).toContain('.oma-sched-layout {');
@@ -94,7 +106,7 @@ describe('schedule agenda and queue layouts', () => {
 
   it('keeps calendar day columns height-constrained so posts scroll inside columns', () => {
     const css = read('apps/web/src/styles/stage5.css');
-    expect(css).toContain("display: flex");
+    expect(css).toContain('display: flex');
     expect(css).toContain('flex-direction: column');
     expect(css).toContain(".oma-sched-main[data-view='calendar'] .oma-sched-day__scroll");
     expect(css).toContain('overflow-y: auto !important');

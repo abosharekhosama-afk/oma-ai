@@ -815,7 +815,6 @@ main.oma-container:has(.oma-sched-page) {
     grid-column: 1 / -1;
     justify-self: start;
   }
-
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -3201,6 +3200,12 @@ main.oma-container:has(.oma-sched-page) {
   }
 }
 
+/* Mobile Schedule: use the full content width; keep horizontal scrolling inside the calendar. */
+@media (max-width: 767px) {
+  html body main.oma-container:has(.oma-sched-page) {
+    padding-inline: 0 !important;
+  }
+}
 
 /* Phone-width deliverables: reclaim side gutters while keeping a small safe margin. */
 @media (max-width: 767px) {
