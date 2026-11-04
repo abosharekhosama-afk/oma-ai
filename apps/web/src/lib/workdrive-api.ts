@@ -22,7 +22,7 @@ export type WorkDriveStatus = {
 export type MediaKind = 'posts' | 'logos' | 'deliverables';
 export type MediaAsset = {
   id: string;
-  brand_id: string;
+  brand_id: string | null;
   kind: MediaKind;
   name: string;
   mime: string;

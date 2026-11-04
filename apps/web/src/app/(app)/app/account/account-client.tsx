@@ -1,6 +1,6 @@
 'use client';
 import { Button, Input, SelectField } from '@oma/ui/controls';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { PageSkeleton } from '../../../../components/ui/page-skeleton';
 import { ErrorState, errorKindOf, type ErrorKind } from '../../../../components/ui/error-state';
@@ -10,6 +10,7 @@ import {
   initials,
   setLocaleCookie,
   updateProfile,
+  uploadAvatar,
   type Profile,
 } from '../../../../lib/account-api';
 import { useLocale, useT } from '../../../../lib/use-locale';
@@ -26,6 +27,8 @@ export default function AccountPage() {
   const [fieldError, setFieldError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [imgBroken, setImgBroken] = useState(false);
+  const avatarFile = useRef<HTMLInputElement>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
 
   const load = useCallback(async () => {
     setError(null);
@@ -120,6 +123,39 @@ export default function AccountPage() {
           </label>
           <label className="oma-account__field">
             {t('account.avatarUrl')}
+            <input
+              ref={avatarFile}
+              type="file"
+              accept="image/png,image/jpeg,image/webp,image/gif"
+              hidden
+              data-testid="account-avatar-file"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                e.target.value = '';
+                if (!file) return;
+                setUploadingAvatar(true);
+                setFieldError(null);
+                try {
+                  const uploaded = await uploadAvatar(file);
+                  setImgBroken(false);
+                  setAvatarUrl(uploaded.avatar_url);
+                } catch (err) {
+                  setFieldError(
+                    err instanceof Error ? err.message : t('errors.page.generic.title'),
+                  );
+                } finally {
+                  setUploadingAvatar(false);
+                }
+              }}
+            />
+            <Button
+              type="default"
+              disabled={uploadingAvatar}
+              data-testid="account-avatar-upload"
+              onClick={() => avatarFile.current?.click()}
+            >
+              {uploadingAvatar ? t('common.loading') : t('brandSettings.general.upload')}
+            </Button>
             <Input
               value={avatarUrl}
               placeholder="https://"

@@ -67,6 +67,19 @@ export class WorkDriveController {
 
 @Controller()
 export class MediaController {
+  @Post('api/v1/me/avatar')
+  @UseGuards(AuthGuard, CsrfGuard)
+  uploadAvatar(@Req() req: Request) {
+    const c = ctx(req);
+    const len = req.headers['content-length'];
+    return mediaService.uploadAvatar(c, {
+      name: req.headers['x-file-name'],
+      mime: req.headers['content-type'],
+      length: len != null && /^\d+$/.test(String(len)) ? Number(len) : null,
+      body: req as unknown as Readable,
+    });
+  }
+
   @Get('api/v1/brands/:brandId/media')
   @UseGuards(AuthGuard, CapabilitiesGuard)
   list(@Req() req: Request, @Param('brandId') brandId: string, @Query() q: Record<string, string>) {

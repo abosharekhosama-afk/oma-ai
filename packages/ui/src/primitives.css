@@ -362,6 +362,12 @@
   font-size: var(--text-label);
   font-weight: var(--weight-bold);
 }
+.oma-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
 
 .oma-breadcrumb {
   display: flex;

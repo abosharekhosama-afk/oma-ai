@@ -1,4 +1,4 @@
-import { api, invalidateApiCache } from './api';
+import { api, ensureCsrfToken, friendlyApiMessage, invalidateApiCache } from './api';
 
 export type Profile = {
   id: string;
@@ -52,6 +52,28 @@ export async function updateProfile(patch: {
   });
   invalidateApiCache('/api/v1/auth/me');
   return res.data;
+}
+
+export async function uploadAvatar(file: File): Promise<{ asset_id: string; avatar_url: string }> {
+  const csrf = await ensureCsrfToken();
+  const res = await fetch('/api/v1/me/avatar', {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      ...(csrf ? { 'x-csrf-token': csrf } : {}),
+      'content-type': file.type,
+      'x-file-name': encodeURIComponent(file.name),
+    },
+    body: file,
+  });
+  const body = (await res.json().catch(() => ({}))) as {
+    data?: { asset_id: string; avatar_url: string };
+    error?: { code?: string; message_key?: string };
+  };
+  if (!res.ok || !body.data) throw new Error(friendlyApiMessage(body.error, res.status));
+  invalidateApiCache('/api/v1/me/profile');
+  invalidateApiCache('/api/v1/auth/me');
+  return body.data;
 }
 
 export async function getPreferences(): Promise<UserPreferences> {

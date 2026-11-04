@@ -140,7 +140,9 @@ export class AccountController {
       if (body.avatarUrl === null || body.avatarUrl === '') data.avatarUrl = null;
       else {
         const url = String(body.avatarUrl).trim();
-        if (!/^https:\/\/[^\s]+$/i.test(url) || url.length > 1000) throw bad('avatarUrl');
+        const internalMedia = /^\/api\/v1\/media\/[A-Za-z0-9_-]+\/view$/i.test(url);
+        if ((!/^https:\/\/[^\s]+$/i.test(url) && !internalMedia) || url.length > 1000)
+          throw bad('avatarUrl');
         data.avatarUrl = url;
       }
     }
