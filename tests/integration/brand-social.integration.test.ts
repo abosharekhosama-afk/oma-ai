@@ -19,6 +19,7 @@ import { cookieHeader } from '../helpers/app';
 import {
   MAX_PUBLISH_ATTEMPTS,
   PUBLISH_BACKOFF_MS,
+  TIKTOK_STATUS_POLL_MS,
   runPublishTick,
   runPublishStatusTick,
   runTokenRefreshTick,
@@ -134,7 +135,7 @@ describe('brand membership isolation + lifecycle', () => {
     outsider = await seedMemberWithoutBrandCaps(seed, { brands: [] });
     viewer = await seedMemberWithoutBrandCaps(seed, { brands: [brandA], role: 'VIEWER' });
     for (const m of [outsider, viewer])
-      for (const code of ['brand.read', 'brand.create', 'content.update'])
+      for (const code of ['brand.read', 'brand.create'])
         await grantCapability(seed.tenantId, m.membershipId, code, seed.userId);
   });
   afterAll(async () => {
@@ -155,7 +156,7 @@ describe('brand membership isolation + lifecycle', () => {
     expect((await as(seed, viewer)(`/api/v1/brands/${brandB}`)).status).toBe(404);
     const get = await (await as(seed, viewer)(`/api/v1/brands/${brandA}`)).json();
     expect(get.data.access.role).toBe('VIEWER');
-    expect(get.data.access.capabilities).not.toContain('content.update');
+    expect(get.data.access.capabilities).not.toContain('content.schedule');
     const rename = await as(seed, viewer)(`/api/v1/brands/${brandA}`, {
       method: 'PATCH',
       body: JSON.stringify({ name: 'Nope', version: get.data.version }),
@@ -380,11 +381,11 @@ describe('publish + refresh jobs', () => {
       where: { contentItemId: post, socialPageId: page },
     });
     expect(target).toMatchObject({ publishState: 'PUBLISHING', externalPostId: 'publish-op-1' });
-    expect(target.nextPublishAt!.getTime()).toBe(now.getTime() + 60_000);
+    expect(target.nextPublishAt!.getTime()).toBe(now.getTime() + TIKTOK_STATUS_POLL_MS);
 
     const polled = await runPublishStatusTick({
       key: KEY,
-      now: () => new Date(now.getTime() + 60_001),
+      now: () => new Date(now.getTime() + TIKTOK_STATUS_POLL_MS + 1),
       adapterFor: () => tiktok,
     });
     expect(polled.failed).toBe(1);

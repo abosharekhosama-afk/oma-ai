@@ -37,7 +37,8 @@ describe('scan worker recovery integration', () => {
   it('second processor run does not duplicate successful writes', async () => {
     const { body: brand } = await createBrand(seed);
     await connectWebsite(seed, brand.data.id, FIXTURE_WEBSITE_URL, brand.data.version);
-    const { body: scan } = await startScan(seed, brand.data.id, newId());
+    const { res: scanRes, body: scan } = await startScan(seed, brand.data.id, newId());
+    expect(scanRes.ok, JSON.stringify(scan)).toBe(true);
     const jobRunId = scan.data.job_run_id as string;
     const scanId = scan.data.scan_attempt_id as string;
 
@@ -46,9 +47,14 @@ describe('scan worker recovery integration', () => {
     const queue = new Queue('ingestion', { connection, ...bullmqOptions() });
     const worker = startIngestionProcessor(connection);
     try {
-      await publishPendingOutbox(connection);
-      const job = await queue.getJob(bullIngestionJobId(jobRunId));
-      expect(job).toBeTruthy();
+      const jobId = bullIngestionJobId(jobRunId);
+      let job = await queue.getJob(jobId);
+      for (let attempt = 0; !job && attempt < 40; attempt += 1) {
+        await publishPendingOutbox(connection, 200);
+        job = await queue.getJob(jobId);
+        if (!job) await new Promise((r) => setTimeout(r, 50));
+      }
+      expect(job, `ingestion job missing for jobRun ${jobRunId}`).toBeTruthy();
       await job!.waitUntilFinished(events, 90_000);
 
       const pagesAfterFirst = await getPrisma().discoveredPage.count({

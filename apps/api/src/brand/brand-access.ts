@@ -9,10 +9,7 @@ export type BrandAccess = { all: true } | { all: false; roles: Map<string, Brand
  *
  * - `tenant.manage` → all brands
  * - Explicit BrandMember rows → only those brands
- * - No BrandMember rows → workspace-wide access (capability gates still apply)
- *
- * Invited members typically have zero BrandMember rows until assigned; they must
- * still see workspace brands when they hold `brand.read`.
+ * - No BrandMember rows → no brand visibility until assigned (capability gates still apply)
  */
 export async function resolveBrandAccess(tenantId: string, userId: string): Promise<BrandAccess> {
   return withoutBrandScope(async () => {
@@ -32,8 +29,7 @@ export async function resolveBrandAccess(tenantId: string, userId: string): Prom
       select: { brandId: true, role: true },
     });
     if (rows.length === 0) {
-      // No brand-level ACL → treat as workspace-wide (Planable-style default).
-      return { all: true } as const;
+      return { all: false, roles: new Map() } as const;
     }
     return { all: false, roles: new Map(rows.map((r) => [r.brandId, r.role])) } as const;
   });

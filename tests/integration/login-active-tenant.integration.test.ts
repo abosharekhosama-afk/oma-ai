@@ -90,15 +90,14 @@ describe('login active tenant resolution', () => {
     expect(brands.status).toBe(200);
   });
 
-  it('leaves the choice to a user who belongs to several companies', async () => {
-    const { email } = await createUserWithTenants(2);
+  it('resumes a primary company for a user who belongs to several', async () => {
+    const { email, tenantIds } = await createUserWithTenants(2);
     const { me, cookies } = await loginAndReadMe(email);
-    expect(me.active_tenant_id).toBeNull();
+    expect(me.active_tenant_id).toBe(tenantIds[0]);
 
     const brands = await fetch(`${baseUrl}/api/v1/brands`, {
       headers: { cookie: cookieHeader(cookies) },
     });
-    expect(brands.status).toBe(409);
-    expect((await brands.json()).error.code).toBe('TENANT_REQUIRED');
+    expect(brands.status).toBe(200);
   });
 });

@@ -102,8 +102,8 @@ export class IdentityService {
     }
     const { token, tokenHash } = issueSessionToken();
     const ttl = Number(process.env.SESSION_TTL_SECONDS ?? 604800);
-    // A single-tenant member has nothing to choose, so selecting for them is not
-    // a guess. Anyone with several tenants must still choose explicitly.
+    // Single-tenant members auto-activate their company. Multi-tenant users resume
+    // the last active tenant when still valid, otherwise their primary membership.
     const membershipTenantIds = (
       await getPrisma().membership.findMany({
         where: { userId: user.id, status: 'ACTIVE' },
