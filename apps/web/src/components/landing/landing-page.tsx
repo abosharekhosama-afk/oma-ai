@@ -1,83 +1,302 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useId, useState, type ReactNode } from 'react';
+import { Plus_Jakarta_Sans } from 'next/font/google';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { PLAN_CATALOG, PLAN_CODES, type PlanCode } from '@oma/domain/browser';
 import { PlxLogo } from '../ui/plx-icons';
-import { useLocale, useT } from '../../lib/use-locale';
+import { useLocale } from '../../lib/use-locale';
 import { setLocaleCookie, updateProfile } from '../../lib/account-api';
 import { useInView } from './use-inview';
-import {
-  FacebookGlyph,
-  InstagramGlyph,
-  LinkedInGlyph,
-  TikTokGlyph,
-  XGlyph,
-} from './platform-icons';
+import { LANDING_COPY, type LandingCopy } from './landing-copy';
+import { FacebookGlyph, InstagramGlyph, LinkedInGlyph, TikTokGlyph, XGlyph } from './platform-icons';
 import './landing.css';
 
-const TAB_MS = 6000;
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  weight: ['500', '600', '700', '800'],
+  variable: '--font-oma-pl',
+  display: 'swap',
+});
 
-const TAB_IDS = ['calendar', 'feed', 'approvals', 'analytics'] as const;
-type TabId = (typeof TAB_IDS)[number];
+const VIEW_IDS = ['calendar', 'feed', 'grid', 'list'] as const;
+type ViewId = (typeof VIEW_IDS)[number];
 
-const TAB_IMAGES: Record<TabId, { src: string; altKey: string }> = {
-  calendar: { src: '/landing/calendar.png', altKey: 'landing.feat.calendar.alt' },
-  feed: { src: '/landing/composer.png', altKey: 'landing.feat.collab.alt' },
-  approvals: { src: '/landing/approvals.png', altKey: 'landing.feat.approve.alt' },
-  analytics: { src: '/landing/analytics.png', altKey: 'landing.feat.analytics.alt' },
-};
+const CHANNELS = [
+  { id: 'tiktok', name: 'TikTok', Icon: TikTokGlyph },
+  { id: 'instagram', name: 'Instagram', Icon: InstagramGlyph },
+  { id: 'facebook', name: 'Facebook', Icon: FacebookGlyph },
+  { id: 'linkedin', name: 'LinkedIn', Icon: LinkedInGlyph },
+  { id: 'x', name: 'X', Icon: XGlyph },
+] as const;
 
-function Reveal({
-  children,
-  className = '',
-  variant = 'y',
-}: {
-  children: ReactNode;
-  className?: string;
-  variant?: 'y' | 'x';
-}) {
+function Reveal({ children, className = '' }: { children: ReactNode; className?: string }) {
   const { ref, inView } = useInView<HTMLDivElement>();
-  const base = variant === 'x' ? 'oma-lp-reveal-x' : 'oma-lp-reveal';
   return (
-    <div ref={ref} className={`${base}${inView ? ' is-inview' : ''} ${className}`.trim()}>
+    <div ref={ref} className={`oma-pl-reveal${inView ? ' is-in' : ''} ${className}`.trim()}>
       {children}
     </div>
   );
 }
 
-function BulletIcon() {
+function Ico({ d }: { d: string }) {
   return (
-    <span className="oma-lp-bullet-icon" aria-hidden="true">
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-      >
-        <path d="M5 12h14M13 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+    <span className="oma-pl-ico" aria-hidden="true">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d={d} />
       </svg>
     </span>
   );
 }
 
+const ICONS = [
+  'M20 6 9 17l-5-5',
+  'M12 8v4l3 3M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
+  'M4 6h16M4 12h10M4 18h6',
+];
+
+function Bullets({ items }: { items: readonly (readonly string[])[] }) {
+  return (
+    <ul className="oma-pl-bullets">
+      {items.map(([strong = '', rest = ''], i) => (
+        <li key={strong}>
+          <Ico d={ICONS[i % ICONS.length]!} />
+          <span>
+            <strong>{strong}</strong>
+            {rest}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/* ───────────── Product visuals built from OMA UI patterns ───────────── */
+
+function Chip({ tone, children }: { tone: 'green' | 'amber' | 'blue' | 'gray'; children: ReactNode }) {
+  return <span className={`oma-pl-chip oma-pl-chip--${tone}`}>{children}</span>;
+}
+
+function ChannelDots({ ids }: { ids: readonly string[] }) {
+  return (
+    <span className="oma-pl-dots">
+      {CHANNELS.filter((c) => ids.includes(c.id)).map(({ id, Icon }) => (
+        <span key={id} className={`oma-pl-dot oma-pl-dot--${id}`}>
+          <Icon />
+        </span>
+      ))}
+    </span>
+  );
+}
+
+function Thumb({ hue }: { hue: number }) {
+  return <span className="oma-pl-thumb" style={{ ['--h' as string]: hue }} aria-hidden="true" />;
+}
+
+function PostCard({ title, ids, hue, chip }: { title: string; ids: string[]; hue: number; chip?: ReactNode }) {
+  return (
+    <div className="oma-pl-post">
+      <span className="oma-pl-post__title">{title}</span>
+      <ChannelDots ids={ids} />
+      <Thumb hue={hue} />
+      {chip}
+    </div>
+  );
+}
+
+function AppFrame({ c, children, active }: { c: LandingCopy; children: ReactNode; active: string }) {
+  const side = [c.mock.search, c.mock.content, c.mock.approvals, c.mock.campaigns, c.mock.analytics, c.mock.drive];
+  return (
+    <div className="oma-pl-app" aria-hidden="true">
+      <aside className="oma-pl-app__side">
+        <span className="oma-pl-app__brand">
+          <PlxLogo sub={null} compact />
+        </span>
+        {side.map((s) => (
+          <span key={s} className={`oma-pl-app__nav${s === active ? ' is-on' : ''}`}>
+            {s}
+          </span>
+        ))}
+        <span className="oma-pl-app__sec">{c.mock.brands}</span>
+        {CHANNELS.slice(0, 4).map(({ id, name, Icon }) => (
+          <span key={id} className="oma-pl-app__nav">
+            <span className={`oma-pl-dot oma-pl-dot--${id}`}>
+              <Icon />
+            </span>
+            {name}
+          </span>
+        ))}
+      </aside>
+      <div className="oma-pl-app__main">{children}</div>
+    </div>
+  );
+}
+
+function CalendarMock({ c, menu = false }: { c: LandingCopy; menu?: boolean }) {
+  const days = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21];
+  return (
+    <AppFrame c={c} active={c.mock.content}>
+      <div className="oma-pl-app__bar">
+        <span>
+          {c.mock.content} / <b>{c.mock.calendar}</b>
+        </span>
+        <span className="oma-pl-seg">
+          <span className="is-on">{c.mock.week}</span>
+          <span>{c.mock.month}</span>
+        </span>
+      </div>
+      <div className="oma-pl-cal">
+        {days.map((d, i) => (
+          <div key={d} className="oma-pl-cal__cell">
+            <span className="oma-pl-cal__num">{d}</span>
+            {i === 0 ? <PostCard title={c.mock.post1} ids={['tiktok', 'instagram']} hue={28} chip={<Chip tone="green">{c.mock.approved}</Chip>} /> : null}
+            {i === 1 ? <PostCard title={c.mock.post2} ids={['instagram']} hue={200} chip={<Chip tone="amber">{c.mock.inReview}</Chip>} /> : null}
+            {i === 3 ? <PostCard title={c.mock.post3} ids={['linkedin', 'x']} hue={140} chip={<Chip tone="blue">{c.mock.scheduled}</Chip>} /> : null}
+            {i === 6 ? <PostCard title={c.mock.post4} ids={['facebook', 'tiktok']} hue={330} chip={<Chip tone="gray">{c.mock.draft}</Chip>} /> : null}
+          </div>
+        ))}
+      </div>
+      {menu ? (
+        <div className="oma-pl-menu">
+          <span>✓ {c.mock.approve}</span>
+          <span>◷ {c.mock.schedule}</span>
+          <span>↺ {c.mock.requestChanges}</span>
+        </div>
+      ) : null}
+    </AppFrame>
+  );
+}
+
+function FeedMock({ c }: { c: LandingCopy }) {
+  return (
+    <div className="oma-pl-feed" aria-hidden="true">
+      <div className="oma-pl-phone">
+        <div className="oma-pl-phone__head">
+          <span className="oma-pl-dot oma-pl-dot--tiktok"><TikTokGlyph /></span>
+          <b>OMA</b>
+          <Chip tone="amber">{c.mock.inReview}</Chip>
+        </div>
+        <Thumb hue={12} />
+        <p>{c.mock.caption}</p>
+      </div>
+      <div className="oma-pl-bubble">
+        <b>@{c.mock.level2}</b> {c.mock.comment}
+      </div>
+      <div className="oma-pl-bubble oma-pl-bubble--2">
+        <b>@{c.mock.level1}</b> {c.mock.reply}
+      </div>
+    </div>
+  );
+}
+
+function GridMock() {
+  const hues = [20, 200, 140, 330, 45, 260, 170, 0, 90];
+  return (
+    <div className="oma-pl-grid" aria-hidden="true">
+      {hues.map((h) => (
+        <Thumb key={h} hue={h} />
+      ))}
+    </div>
+  );
+}
+
+function ListMock({ c }: { c: LandingCopy }) {
+  const rows: [string, string[], ReactNode][] = [
+    [c.mock.post1, ['tiktok', 'instagram'], <Chip key="a" tone="green">{c.mock.approved}</Chip>],
+    [c.mock.post2, ['instagram'], <Chip key="b" tone="amber">{c.mock.inReview}</Chip>],
+    [c.mock.post3, ['linkedin', 'x'], <Chip key="c" tone="blue">{c.mock.scheduled}</Chip>],
+    [c.mock.post4, ['facebook'], <Chip key="d" tone="gray">{c.mock.draft}</Chip>],
+  ];
+  return (
+    <div className="oma-pl-list" aria-hidden="true">
+      {rows.map(([t, ids, chip], i) => (
+        <div key={t} className="oma-pl-list__row">
+          <Thumb hue={i * 70 + 20} />
+          <b>{t}</b>
+          <ChannelDots ids={ids} />
+          {chip}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function SplitVisual({ id, c }: { id: string; c: LandingCopy }) {
+  if (id === 'comments') return <FeedMock c={c} />;
+  if (id === 'approvals') {
+    const steps = [c.mock.level1, c.mock.level2, c.mock.level3];
+    return (
+      <div className="oma-pl-chain" aria-hidden="true">
+        {steps.map((s, i) => (
+          <div key={s} className="oma-pl-chain__step" data-done={i < 2 ? 'true' : 'false'}>
+            <span className="oma-pl-chain__dot">{i < 2 ? '✓' : i + 1}</span>
+            <span>{s}</span>
+            <Chip tone={i < 2 ? 'green' : 'amber'}>{i < 2 ? c.mock.approved : c.mock.inReview}</Chip>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  if (id === 'channels') {
+    return (
+      <div className="oma-pl-chan" aria-hidden="true">
+        {CHANNELS.map(({ id: cid, name, Icon }, i) => (
+          <div key={cid} className="oma-pl-chan__card">
+            <span className={`oma-pl-dot oma-pl-dot--${cid}`}>
+              <Icon />
+            </span>
+            <b>{name}</b>
+            <Thumb hue={i * 60 + 10} />
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return (
+    <div className="oma-pl-drive" aria-hidden="true">
+      {[
+        [c.mock.images, 128, 210],
+        [c.mock.videos, 42, 10],
+        [c.mock.docs, 17, 140],
+      ].map(([n, count, h]) => (
+        <div key={String(n)} className="oma-pl-drive__folder">
+          <span className="oma-pl-drive__tab" style={{ ['--h' as string]: h }} />
+          <b>{n}</b>
+          <span>
+            {count} {c.mock.files}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─────────────────────────── Page ─────────────────────────── */
+
 export function LandingPage() {
-  const t = useT();
-  const locale = useLocale();
+  const locale = useLocale() === 'ar' ? 'ar' : 'en';
+  const c = LANDING_COPY[locale];
   const router = useRouter();
-  const [solid, setSolid] = useState(false);
+  const [stuck, setStuck] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [megaOpen, setMegaOpen] = useState(false);
-  const [tab, setTab] = useState<TabId>('calendar');
-  const [progressKey, setProgressKey] = useState(0);
-  const megaId = useId();
-  const manifesto = useInView<HTMLElement>();
+  const [view, setView] = useState<ViewId>('calendar');
+  const [yearly, setYearly] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const manifestoRef = useRef<HTMLParagraphElement>(null);
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    const onScroll = () => setSolid(window.scrollY > 12);
+    const onScroll = () => {
+      setStuck(window.scrollY > 8);
+      const el = manifestoRef.current;
+      if (el) {
+        const r = el.getBoundingClientRect();
+        const vh = window.innerHeight;
+        const p = Math.min(1, Math.max(0, (vh * 0.85 - r.top) / (r.height + vh * 0.35)));
+        setProgress(p);
+      }
+    };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
@@ -90,333 +309,120 @@ export function LandingPage() {
     };
   }, [menuOpen]);
 
-  useEffect(() => {
-    if (
-      typeof window !== 'undefined' &&
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    ) {
-      return;
-    }
-    const id = window.setInterval(() => {
-      setTab((prev) => {
-        const i = TAB_IDS.indexOf(prev);
-        return TAB_IDS[(i + 1) % TAB_IDS.length]!;
-      });
-      setProgressKey((k) => k + 1);
-    }, TAB_MS);
-    return () => window.clearInterval(id);
-  }, [tab]);
+  const switchLocale = useCallback(() => {
+    const next = locale === 'ar' ? 'en' : 'ar';
+    setLocaleCookie(next);
+    void updateProfile({ preferredLocale: next }).catch(() => undefined);
+    router.refresh();
+  }, [locale, router]);
 
-  const switchLocale = useCallback(
-    (next: 'en' | 'ar') => {
-      if (next === locale) return;
-      setLocaleCookie(next);
-      void updateProfile({ preferredLocale: next }).catch(() => undefined);
-      router.refresh();
-    },
-    [locale, router],
-  );
-
-  const selectTab = (id: TabId) => {
-    setTab(id);
-    setProgressKey((k) => k + 1);
-  };
-
+  const words = c.manifesto.rest.split(' ');
+  const lit = Math.round(progress * words.length);
   const year = new Date().getFullYear();
-  const tabTitleKey = `landing.tabs.${tab}Title` as const;
-  const tabBullets = [
-    t(`landing.tabs.${tab}B1`),
-    t(`landing.tabs.${tab}B2`),
-    t(`landing.tabs.${tab}B3`),
-  ];
-
-  const megaItems = [
-    { href: '#features', title: t('landing.mega.plan.title'), desc: t('landing.mega.plan.desc') },
-    {
-      href: '#features',
-      title: t('landing.mega.collaborate.title'),
-      desc: t('landing.mega.collaborate.desc'),
-    },
-    {
-      href: '#features',
-      title: t('landing.mega.approve.title'),
-      desc: t('landing.mega.approve.desc'),
-    },
-    {
-      href: '#features',
-      title: t('landing.mega.publish.title'),
-      desc: t('landing.mega.publish.desc'),
-    },
-    {
-      href: '#features',
-      title: t('landing.mega.storage.title'),
-      desc: t('landing.mega.storage.desc'),
-    },
-    { href: '#how', title: t('landing.mega.team.title'), desc: t('landing.mega.team.desc') },
-  ];
-
-  const features = [
-    {
-      tone: 'mint',
-      flip: false,
-      title: t('landing.feat.calendar.title'),
-      bullets: [
-        t('landing.feat.calendar.b1'),
-        t('landing.feat.calendar.b2'),
-        t('landing.feat.calendar.b3'),
-      ],
-      cta: t('landing.feat.calendar.cta'),
-      alt: t('landing.feat.calendar.alt'),
-      src: '/landing/calendar.png',
-    },
-    {
-      tone: 'peach',
-      flip: true,
-      title: t('landing.feat.collab.title'),
-      bullets: [
-        t('landing.feat.collab.b1'),
-        t('landing.feat.collab.b2'),
-        t('landing.feat.collab.b3'),
-      ],
-      cta: t('landing.feat.collab.cta'),
-      alt: t('landing.feat.collab.alt'),
-      src: '/landing/deliverables.png',
-    },
-    {
-      tone: 'lavender',
-      flip: false,
-      title: t('landing.feat.approve.title'),
-      bullets: [
-        t('landing.feat.approve.b1'),
-        t('landing.feat.approve.b2'),
-        t('landing.feat.approve.b3'),
-      ],
-      cta: t('landing.feat.approve.cta'),
-      alt: t('landing.feat.approve.alt'),
-      src: '/landing/approvals.png',
-    },
-    {
-      tone: 'sand',
-      flip: true,
-      title: t('landing.feat.organize.title'),
-      bullets: [
-        t('landing.feat.organize.b1'),
-        t('landing.feat.organize.b2'),
-        t('landing.feat.organize.b3'),
-      ],
-      cta: t('landing.feat.organize.cta'),
-      alt: t('landing.feat.organize.alt'),
-      src: '/landing/team.png',
-    },
-    {
-      tone: 'sky',
-      flip: false,
-      title: t('landing.feat.analytics.title'),
-      bullets: [
-        t('landing.feat.analytics.b1'),
-        t('landing.feat.analytics.b2'),
-        t('landing.feat.analytics.b3'),
-      ],
-      cta: t('landing.feat.analytics.cta'),
-      alt: t('landing.feat.analytics.alt'),
-      src: '/landing/analytics-detail.png',
-    },
+  const navLinks = [
+    ['#features', c.nav.features],
+    ['#workflow', c.nav.workflow],
+    ['#pricing', c.nav.pricing],
+    ['#faq', c.nav.faq],
   ] as const;
 
-  const how = [
-    { title: t('landing.how.s1.title'), body: t('landing.how.s1.body') },
-    { title: t('landing.how.s2.title'), body: t('landing.how.s2.body') },
-    { title: t('landing.how.s3.title'), body: t('landing.how.s3.body') },
-    { title: t('landing.how.s4.title'), body: t('landing.how.s4.body') },
-  ];
-
-  const faqs = [1, 2, 3, 4, 5, 6].map((n) => ({
-    q: t(`landing.faq.q${n}`),
-    a: t(`landing.faq.a${n}`),
-  }));
-
-  const platforms = [
-    { name: t('landing.platforms.facebook'), Icon: FacebookGlyph },
-    { name: t('landing.platforms.instagram'), Icon: InstagramGlyph },
-    { name: t('landing.platforms.linkedin'), Icon: LinkedInGlyph },
-    { name: t('landing.platforms.tiktok'), Icon: TikTokGlyph },
-    { name: t('landing.platforms.x'), Icon: XGlyph },
-  ];
+  const fmtNum = (n: number) => new Intl.NumberFormat(locale === 'ar' ? 'ar' : 'en').format(n);
+  const planLines = (code: PlanCode) => {
+    const p = PLAN_CATALOG[code];
+    const L = p.limits;
+    const v = (n: number | null) => (n == null ? c.pricing.unlimited : fmtNum(n));
+    const lines = [
+      `${v(L.brands)} ${c.pricing.brands}`,
+      `${v(L.seats)} ${c.pricing.seats}`,
+      L.posts_total != null ? `${fmtNum(L.posts_total)} ${c.pricing.postsTotal}` : `${v(L.posts_per_month)} ${c.pricing.posts}`,
+      `${fmtNum(Math.round(Number(L.storage_bytes ?? 0) / 1024 ** 3))} ${c.pricing.storage}`,
+      `${fmtNum(Number(L.approval_level ?? 1))} ${Number(L.approval_level ?? 1) > 1 ? c.pricing.levels : c.pricing.level}`,
+    ];
+    return lines;
+  };
 
   return (
-    <div className="oma-lp">
-      <header className={`oma-lp-header${solid ? ' is-solid' : ''}`}>
-        <div className="oma-lp-header-inner">
-          <Link href="/" className="oma-lp-brand" aria-label="OMA">
-            <PlxLogo sub="by IMKAN" compact />
+    <div className={`oma-pl-root ${jakarta.variable}`} dir={locale === 'ar' ? 'rtl' : 'ltr'} lang={locale} data-testid="landing-page">
+      {/* NAV */}
+      <header className={`oma-pl-nav${stuck ? ' is-stuck' : ''}`}>
+        <div className="oma-pl-wrap oma-pl-nav__in">
+          <Link href="/" className="oma-pl-logo" aria-label="OMA">
+            <PlxLogo sub="by IMKAN" />
           </Link>
-
-          <nav className="oma-lp-nav" aria-label={t('nav.primary')}>
-            <div
-              className={`oma-lp-nav-item${megaOpen ? ' is-open' : ''}`}
-              onMouseEnter={() => setMegaOpen(true)}
-              onMouseLeave={() => setMegaOpen(false)}
-            >
-              <button
-                type="button"
-                className="oma-lp-nav-btn"
-                aria-expanded={megaOpen}
-                aria-controls={megaId}
-                onClick={() => setMegaOpen((v) => !v)}
-              >
-                {t('landing.nav.product')}
-                <span className="oma-lp-chevron" />
-              </button>
-              <div id={megaId} className="oma-lp-mega" role="menu">
-                {megaItems.map((item) => (
-                  <a
-                    key={item.title}
-                    href={item.href}
-                    role="menuitem"
-                    onClick={() => setMegaOpen(false)}
-                  >
-                    <span className="oma-lp-mega-title">{item.title}</span>
-                    <span className="oma-lp-mega-desc">{item.desc}</span>
-                  </a>
-                ))}
-              </div>
-            </div>
-            <a className="oma-lp-nav-link" href="#features">
-              {t('landing.nav.features')}
-            </a>
-            <a className="oma-lp-nav-link" href="#how">
-              {t('landing.nav.how')}
-            </a>
-            <a className="oma-lp-nav-link" href="#faq">
-              {t('landing.nav.faq')}
-            </a>
+          <nav className="oma-pl-nav__links" aria-label={c.nav.menu}>
+            {navLinks.map(([href, label]) => (
+              <a key={href} href={href}>
+                {label}
+              </a>
+            ))}
           </nav>
-
-          <div className="oma-lp-header-actions">
-            <div className="oma-lp-lang-card" role="group" aria-label={t('landing.nav.language')}>
-              <button
-                type="button"
-                aria-pressed={locale === 'en'}
-                className={locale === 'en' ? 'is-active' : ''}
-                onClick={() => switchLocale('en')}
-              >
-                EN
-              </button>
-              <button
-                type="button"
-                aria-pressed={locale === 'ar'}
-                className={locale === 'ar' ? 'is-active' : ''}
-                onClick={() => switchLocale('ar')}
-              >
-                عربي
-              </button>
-            </div>
-            <Link href="/login" className="oma-lp-link-quiet">
-              {t('landing.nav.login')}
-            </Link>
-            <Link href="/register" className="oma-lp-btn oma-lp-btn--dark oma-lp-btn--sm">
-              {t('landing.nav.startFree')}
-            </Link>
-            <button
-              type="button"
-              className="oma-lp-burger"
-              aria-expanded={menuOpen}
-              aria-label={menuOpen ? t('landing.nav.close') : t('landing.nav.menu')}
-              onClick={() => setMenuOpen((v) => !v)}
-            >
-              <span className="oma-lp-burger-lines" aria-hidden="true">
-                <span />
-                <span />
-                <span />
-              </span>
+          <div className="oma-pl-nav__end">
+            <button type="button" className="oma-pl-nav__lang" onClick={switchLocale} data-testid="landing-lang">
+              {c.nav.lang}
             </button>
+            <span className="oma-pl-nav__sep" aria-hidden="true" />
+            <Link href="/login" className="oma-pl-nav__login" data-testid="landing-login">
+              {c.nav.login}
+            </Link>
+            <Link href="/register" className="oma-pl-btn oma-pl-btn--dark" data-testid="landing-signup">
+              {c.nav.start}
+            </Link>
           </div>
+          <button type="button" className="oma-pl-burger" aria-label={menuOpen ? c.nav.close : c.nav.menu} aria-expanded={menuOpen} onClick={() => setMenuOpen((v) => !v)}>
+            <span />
+            <span />
+          </button>
         </div>
+        {menuOpen ? (
+          <div className="oma-pl-sheet">
+            {navLinks.map(([href, label]) => (
+              <a key={href} href={href} onClick={() => setMenuOpen(false)}>
+                {label}
+              </a>
+            ))}
+            <button type="button" onClick={switchLocale}>
+              {c.nav.lang}
+            </button>
+            <Link href="/login" className="oma-pl-btn oma-pl-btn--outline">
+              {c.nav.login}
+            </Link>
+            <Link href="/register" className="oma-pl-btn oma-pl-btn--green">
+              {c.nav.start}
+            </Link>
+          </div>
+        ) : null}
       </header>
 
-      <div className={`oma-lp-mobile${menuOpen ? ' is-open' : ''}`} hidden={!menuOpen}>
-        <a href="#features" onClick={() => setMenuOpen(false)}>
-          {t('landing.nav.features')}
-        </a>
-        <a href="#how" onClick={() => setMenuOpen(false)}>
-          {t('landing.nav.how')}
-        </a>
-        <a href="#faq" onClick={() => setMenuOpen(false)}>
-          {t('landing.nav.faq')}
-        </a>
-        <div className="oma-lp-mobile-actions">
-          <Link
-            href="/login"
-            className="oma-lp-btn oma-lp-btn--ghost"
-            onClick={() => setMenuOpen(false)}
-          >
-            {t('landing.nav.login')}
-          </Link>
-          <Link
-            href="/register"
-            className="oma-lp-btn oma-lp-btn--accent"
-            onClick={() => setMenuOpen(false)}
-          >
-            {t('landing.nav.startFree')}
-          </Link>
-        </div>
-      </div>
-
-      <main id="main">
-        <section className="oma-lp-hero">
-          <div className="oma-lp-container oma-lp-hero-grid">
-            <div>
-              <span className="oma-lp-kicker">{t('landing.hero.kicker')}</span>
-              <h1>{t('landing.hero.title')}</h1>
-              <p className="oma-lp-hero-sub">{t('landing.hero.subtitle')}</p>
-              <div className="oma-lp-hero-ctas">
-                <Link href="/register" className="oma-lp-btn oma-lp-btn--accent">
-                  {t('landing.hero.ctaPrimary')}
+      <main>
+        {/* HERO */}
+        <section className="oma-pl-hero">
+          <div className="oma-pl-wrap oma-pl-hero__in">
+            <div className="oma-pl-hero__copy">
+              <h1>{c.hero.title}</h1>
+              <p>{c.hero.sub}</p>
+              <div className="oma-pl-hero__ctas">
+                <Link href="/register" className="oma-pl-btn oma-pl-btn--green oma-pl-btn--lg">
+                  {c.hero.primary}
                 </Link>
-                <Link href="/login" className="oma-lp-btn oma-lp-btn--ghost">
-                  {t('landing.hero.ctaSecondary')}
+                <Link href="/login" className="oma-pl-btn oma-pl-btn--outline oma-pl-btn--lg">
+                  {c.hero.secondary}
                 </Link>
               </div>
             </div>
-            <div className="oma-lp-hero-visual">
-              <Image
-                src="/landing/calendar.png"
-                alt={t('landing.hero.visualAlt')}
-                width={1280}
-                height={800}
-                priority
-                sizes="(max-width: 900px) 100vw, 56vw"
-              />
-              <div className="oma-lp-float-card oma-lp-float-card--a" aria-hidden="true">
-                ✓ {t('landing.tabs.approvals')}
-              </div>
-              <div className="oma-lp-float-card oma-lp-float-card--b" aria-hidden="true">
-                {t('landing.tabs.calendar')}
-              </div>
+            <div className="oma-pl-hero__visual">
+              <span className="oma-pl-hero__glow" aria-hidden="true" />
+              <CalendarMock c={c} menu />
             </div>
           </div>
         </section>
 
-        <section
-          ref={manifesto.ref}
-          className={`oma-lp-manifesto${manifesto.inView ? ' is-inview' : ''}`}
-          aria-label={t('landing.manifesto.line1')}
-        >
-          <div className="oma-lp-container">
-            <p className="oma-lp-manifesto-text">
-              <span>{t('landing.manifesto.line1')} </span>
-              <span>{t('landing.manifesto.line2')} </span>
-              <span>{t('landing.manifesto.line3')}</span>
-            </p>
-          </div>
-        </section>
-
-        <section className="oma-lp-platforms" aria-labelledby="oma-lp-platforms-title">
-          <div className="oma-lp-container">
-            <h2 id="oma-lp-platforms-title">{t('landing.platforms.title')}</h2>
-            <div className="oma-lp-platform-row">
-              {platforms.map(({ name, Icon }) => (
-                <span key={name} className="oma-lp-platform">
+        {/* CHANNELS (social proof strip) */}
+        <section className="oma-pl-channels" aria-label={c.channels}>
+          <p>{c.channels}</p>
+          <div className="oma-pl-marquee">
+            <div className="oma-pl-marquee__track">
+              {[...CHANNELS, ...CHANNELS, ...CHANNELS].map(({ id, name, Icon }, i) => (
+                <span key={`${id}-${i}`} className="oma-pl-marquee__item" aria-hidden={i >= CHANNELS.length}>
                   <Icon />
                   {name}
                 </span>
@@ -425,207 +431,280 @@ export function LandingPage() {
           </div>
         </section>
 
-        <section className="oma-lp-tabs" id="product" aria-labelledby="oma-lp-tabs-title">
-          <div className="oma-lp-container">
-            <Reveal>
-              <div className="oma-lp-section-head">
-                <span className="oma-lp-kicker">{t('landing.tabs.kicker')}</span>
-                <h2 id="oma-lp-tabs-title">{t('landing.tabs.title')}</h2>
-              </div>
-            </Reveal>
+        {/* MANIFESTO */}
+        <section className="oma-pl-manifesto">
+          <div className="oma-pl-wrap">
+            <p ref={manifestoRef}>
+              <span className="is-lit">{c.manifesto.lead} </span>
+              {words.map((w, i) => (
+                <span key={i} className={i < lit ? 'is-lit' : ''}>
+                  {w}{' '}
+                </span>
+              ))}
+            </p>
+          </div>
+        </section>
 
-            <div className="oma-lp-tablist" role="tablist" aria-label={t('landing.tabs.title')}>
-              {TAB_IDS.map((id) => (
-                <button
-                  key={id}
-                  type="button"
-                  role="tab"
-                  className="oma-lp-tab"
-                  aria-selected={tab === id}
-                  id={`oma-lp-tab-${id}`}
-                  aria-controls="oma-lp-tabpanel"
-                  onClick={() => selectTab(id)}
-                >
-                  {t(`landing.tabs.${id}`)}
+        {/* VIEWS */}
+        <section className="oma-pl-sec" id="features">
+          <div className="oma-pl-wrap">
+            <Reveal>
+              <h2 className="oma-pl-h2 oma-pl-center">{c.views.title}</h2>
+            </Reveal>
+            <div className="oma-pl-tabs" role="tablist">
+              {VIEW_IDS.map((id) => (
+                <button key={id} type="button" role="tab" aria-selected={view === id} className={view === id ? 'is-on' : ''} onClick={() => setView(id)}>
+                  {c.views.tabs[id]}
                 </button>
               ))}
             </div>
-
-            <div
-              className="oma-lp-tabpanel"
-              role="tabpanel"
-              id="oma-lp-tabpanel"
-              aria-labelledby={`oma-lp-tab-${tab}`}
-            >
-              <div className="oma-lp-tabpanel-copy">
-                <h3>{t(tabTitleKey)}</h3>
-                <ul className="oma-lp-bullets">
-                  {tabBullets.map((text) => (
-                    <li key={text}>
-                      <BulletIcon />
-                      <span>{text}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Link href="/register" className="oma-lp-btn oma-lp-btn--accent">
-                  {t('landing.tabs.cta')}
-                </Link>
+            <div className="oma-pl-split oma-pl-split--mint oma-pl-split--views" role="tabpanel">
+              <div className="oma-pl-split__panel">
+                <h3>{c.views[view].h}</h3>
+                <Bullets items={c.views[view].b} />
               </div>
-              <div className="oma-lp-tabpanel-visual">
-                <Image
-                  src={TAB_IMAGES[tab].src}
-                  alt={t(TAB_IMAGES[tab].altKey)}
-                  width={1200}
-                  height={750}
-                  sizes="(max-width: 900px) 100vw, 50vw"
-                />
+              <div className="oma-pl-split__visual" key={view}>
+                {view === 'calendar' ? <CalendarMock c={c} /> : null}
+                {view === 'feed' ? <FeedMock c={c} /> : null}
+                {view === 'grid' ? <GridMock /> : null}
+                {view === 'list' ? <ListMock c={c} /> : null}
               </div>
             </div>
-            <div key={progressKey} className="oma-lp-progress is-running" aria-hidden="true">
-              <span />
+            <div className="oma-pl-center oma-pl-mt">
+              <Link href="/register" className="oma-pl-btn oma-pl-btn--green oma-pl-btn--lg">
+                {c.views.cta}
+              </Link>
             </div>
           </div>
         </section>
 
-        <section className="oma-lp-features oma-lp-container" id="features">
-          {features.map((f) => (
-            <Reveal key={f.title}>
-              <article
-                className={`oma-lp-feature oma-lp-feature--${f.tone}${f.flip ? ' oma-lp-feature--flip' : ''}`}
-              >
-                <div className="oma-lp-feature-copy">
-                  <h3>{f.title}</h3>
-                  <ul className="oma-lp-bullets">
-                    {f.bullets.map((b) => (
-                      <li key={b}>
-                        <BulletIcon />
-                        <span>{b}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  <Link href="/register" className="oma-lp-text-cta">
-                    {f.cta}
-                  </Link>
-                </div>
-                <div className="oma-lp-feature-visual">
-                  <Image
-                    src={f.src}
-                    alt={f.alt}
-                    width={1100}
-                    height={700}
-                    loading="lazy"
-                    sizes="(max-width: 900px) 100vw, 50vw"
-                  />
-                </div>
-              </article>
-            </Reveal>
-          ))}
-        </section>
-
-        <section className="oma-lp-how" id="how" aria-labelledby="oma-lp-how-title">
-          <div className="oma-lp-container">
+        {/* FEEDBACK + SPLITS */}
+        <section className="oma-pl-sec">
+          <div className="oma-pl-wrap">
             <Reveal>
-              <div className="oma-lp-section-head">
-                <span className="oma-lp-kicker">{t('landing.how.kicker')}</span>
-                <h2 id="oma-lp-how-title">{t('landing.how.title')}</h2>
-              </div>
+              <h2 className="oma-pl-h2 oma-pl-h2--xl oma-pl-center">{c.feedbackTitle}</h2>
             </Reveal>
-            <div className="oma-lp-how-grid">
-              {how.map((step, i) => (
-                <Reveal key={step.title}>
-                  <article className="oma-lp-how-card">
-                    <div className="oma-lp-how-step">{i + 1}</div>
-                    <h3>{step.title}</h3>
-                    <p>{step.body}</p>
-                  </article>
+            <div className="oma-pl-splits">
+              {c.split.map((s, i) => (
+                <Reveal key={s.id}>
+                  <div className={`oma-pl-split oma-pl-split--${s.tone}${i % 2 ? ' is-flip' : ''}`}>
+                    <div className="oma-pl-split__panel">
+                      <h3>{s.h}</h3>
+                      <Bullets items={s.b} />
+                      <Link href="/register" className="oma-pl-link">
+                        {c.splitCta}
+                      </Link>
+                    </div>
+                    <div className="oma-pl-split__visual">
+                      <SplitVisual id={s.id} c={c} />
+                    </div>
+                  </div>
                 </Reveal>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="oma-lp-faq" id="faq" aria-labelledby="oma-lp-faq-title">
-          <div className="oma-lp-container">
+        {/* WORKFLOW */}
+        <section className="oma-pl-sec" id="workflow">
+          <div className="oma-pl-wrap">
             <Reveal>
-              <div className="oma-lp-section-head">
-                <span className="oma-lp-kicker">{t('landing.faq.kicker')}</span>
-                <h2 id="oma-lp-faq-title">{t('landing.faq.title')}</h2>
-              </div>
+              <h2 className="oma-pl-h2 oma-pl-center">{c.workflow.title}</h2>
+              <p className="oma-pl-lede oma-pl-center">{c.workflow.sub}</p>
             </Reveal>
-            <div className="oma-lp-faq-list">
-              {faqs.map((item) => (
-                <details key={item.q} className="oma-lp-faq-item">
-                  <summary>{item.q}</summary>
-                  <p>{item.a}</p>
-                </details>
+            <ol className="oma-pl-steps">
+              {c.workflow.steps.map(([h, p], i) => (
+                <li key={h}>
+                  <span className="oma-pl-steps__n">{fmtNum(i + 1)}</span>
+                  <h3>{h}</h3>
+                  <p>{p}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </section>
+
+        {/* HELP */}
+        <section className="oma-pl-help">
+          <span className="oma-pl-help__ico" aria-hidden="true">
+            <PlxLogo sub={null} compact />
+          </span>
+          <h2 className="oma-pl-h2">{c.help.title}</h2>
+          <p className="oma-pl-lede">{c.help.sub}</p>
+          <Link href="/register" className="oma-pl-btn oma-pl-btn--green oma-pl-btn--lg">
+            {c.help.cta}
+          </Link>
+        </section>
+
+        {/* BENTO */}
+        <section className="oma-pl-sec">
+          <div className="oma-pl-wrap">
+            <Reveal>
+              <h2 className="oma-pl-h2 oma-pl-center">{c.bento.title}</h2>
+            </Reveal>
+            <div className="oma-pl-bento">
+              {(Object.keys(c.bento.items) as (keyof LandingCopy['bento']['items'])[]).map((k, i) => (
+                <div key={k} className={`oma-pl-bento__card oma-pl-bento__card--${k}`} data-i={i}>
+                  <h3>{c.bento.items[k]}</h3>
+                  <span className="oma-pl-bento__art" aria-hidden="true">
+                    {k === 'campaigns' ? (
+                      <>
+                        <Chip tone="gray">{c.mock.draft}</Chip>
+                        <Chip tone="amber">{c.mock.inReview}</Chip>
+                        <Chip tone="green">{c.mock.approved}</Chip>
+                      </>
+                    ) : null}
+                    {k === 'ai' ? <span className="oma-pl-ai">✦ {c.mock.caption}</span> : null}
+                    {k === 'composer' ? <ChannelDots ids={['tiktok', 'instagram', 'facebook', 'linkedin', 'x']} /> : null}
+                    {k === 'analytics' ? (
+                      <span className="oma-pl-bars">
+                        {[40, 64, 52, 80, 70, 92].map((h, j) => (
+                          <i key={j} style={{ height: `${h}%` }} />
+                        ))}
+                      </span>
+                    ) : null}
+                    {k === 'roles' ? (
+                      <span className="oma-pl-roles">
+                        {['M', 'E', 'A', 'V'].map((r) => (
+                          <i key={r}>{r}</i>
+                        ))}
+                      </span>
+                    ) : null}
+                    {k === 'notify' ? <span className="oma-pl-ai">● {c.mock.approve}</span> : null}
+                  </span>
+                </div>
               ))}
             </div>
           </div>
         </section>
 
-        <section className="oma-lp-cta" aria-labelledby="oma-lp-cta-title">
-          <div className="oma-lp-container">
-            <div className="oma-lp-cta-band">
-              <h2 id="oma-lp-cta-title">{t('landing.cta.title')}</h2>
-              <p>{t('landing.cta.body')}</p>
-              <div className="oma-lp-cta-actions">
-                <Link href="/register" className="oma-lp-btn oma-lp-btn--accent">
-                  {t('landing.cta.primary')}
-                </Link>
-                <Link href="/login" className="oma-lp-btn oma-lp-btn--ghost">
-                  {t('landing.cta.secondary')}
-                </Link>
-              </div>
+        {/* USE CASES (in place of testimonials) */}
+        <section className="oma-pl-sec">
+          <div className="oma-pl-wrap oma-pl-cases">
+            <h2 className="oma-pl-h2">{c.useCases.title}</h2>
+            <div className="oma-pl-cases__row">
+              {c.useCases.items.map(([h, p]) => (
+                <article key={h} className="oma-pl-case">
+                  <h3>{h}</h3>
+                  <p>{p}</p>
+                </article>
+              ))}
             </div>
+          </div>
+        </section>
+
+        {/* PRICING */}
+        <section className="oma-pl-sec" id="pricing">
+          <div className="oma-pl-wrap">
+            <h2 className="oma-pl-h2 oma-pl-center">{c.pricing.title}</h2>
+            <p className="oma-pl-lede oma-pl-center">{c.pricing.sub}</p>
+            <div className="oma-pl-tabs oma-pl-tabs--sm" role="group">
+              <button type="button" className={!yearly ? 'is-on' : ''} aria-pressed={!yearly} onClick={() => setYearly(false)}>
+                {c.pricing.monthly}
+              </button>
+              <button type="button" className={yearly ? 'is-on' : ''} aria-pressed={yearly} onClick={() => setYearly(true)}>
+                {c.pricing.yearly}
+              </button>
+            </div>
+            <div className="oma-pl-plans">
+              {PLAN_CODES.map((code) => {
+                const p = PLAN_CATALOG[code];
+                const price = yearly ? p.priceYearlyPerMonthUsd : p.priceMonthlyUsd;
+                const featured = code === 'pro';
+                return (
+                  <div key={code} className={`oma-pl-plan${featured ? ' is-featured' : ''}`} data-testid={`landing-plan-${code}`}>
+                    {featured ? <span className="oma-pl-plan__badge">{c.pricing.popular}</span> : null}
+                    <h3>{locale === 'ar' ? p.nameAr : p.nameEn}</h3>
+                    <p className="oma-pl-plan__desc">{locale === 'ar' ? p.descriptionAr : p.descriptionEn}</p>
+                    <p className="oma-pl-plan__price">
+                      {price == null ? (
+                        c.pricing.contact
+                      ) : (
+                        <>
+                          <b dir="ltr">${fmtNum(price)}</b>
+                          <span>{c.pricing.perMonth}</span>
+                        </>
+                      )}
+                    </p>
+                    <ul>
+                      {planLines(code).map((l) => (
+                        <li key={l}>{l}</li>
+                      ))}
+                    </ul>
+                    <Link href="/register" className={`oma-pl-btn ${featured ? 'oma-pl-btn--green' : 'oma-pl-btn--outline'}`}>
+                      {price == null ? c.pricing.ctaContact : c.pricing.cta}
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="oma-pl-note oma-pl-center">{c.pricing.note}</p>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section className="oma-pl-sec" id="faq">
+          <div className="oma-pl-wrap oma-pl-faq">
+            <h2 className="oma-pl-h2 oma-pl-center">{c.faq.title}</h2>
+            {c.faq.items.map(([q, a], i) => (
+              <div key={q} className={`oma-pl-faq__item${openFaq === i ? ' is-open' : ''}`}>
+                <button type="button" aria-expanded={openFaq === i} onClick={() => setOpenFaq(openFaq === i ? null : i)}>
+                  <span>{q}</span>
+                  <span className="oma-pl-faq__plus" aria-hidden="true" />
+                </button>
+                <div className="oma-pl-faq__a" hidden={openFaq !== i}>
+                  <p>{a}</p>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
       </main>
 
-      <footer className="oma-lp-footer">
-        <div className="oma-lp-container oma-lp-footer-grid">
-          <div className="oma-lp-footer-brand">
-            <PlxLogo sub="by IMKAN" />
-            <p className="oma-lp-footer-tag">{t('landing.footer.tagline')}</p>
-          </div>
-          <div>
-            <h3>{t('landing.footer.product')}</h3>
-            <ul>
-              <li>
-                <a href="#features">{t('landing.footer.features')}</a>
-              </li>
-              <li>
-                <a href="#how">{t('landing.footer.how')}</a>
-              </li>
-              <li>
-                <a href="#faq">{t('landing.footer.faq')}</a>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h3>{t('landing.footer.company')}</h3>
-            <ul>
-              <li>
-                <Link href="/login">{t('landing.footer.login')}</Link>
-              </li>
-              <li>
-                <Link href="/register">{t('landing.footer.signup')}</Link>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h3>{t('landing.footer.legal')}</h3>
-            <ul>
-              <li>
-                <Link href="/terms">{t('landing.footer.terms')}</Link>
-              </li>
-              <li>
-                <Link href="/privacy">{t('landing.footer.privacy')}</Link>
-              </li>
-            </ul>
+      {/* FINAL CTA + FOOTER */}
+      <footer className="oma-pl-dark">
+        <div className="oma-pl-wrap oma-pl-final">
+          <h2>{c.final.title}</h2>
+          <p>{c.final.sub}</p>
+          <div className="oma-pl-hero__ctas oma-pl-center-row">
+            <Link href="/register" className="oma-pl-btn oma-pl-btn--mint oma-pl-btn--lg">
+              {c.final.primary}
+            </Link>
+            <Link href="/login" className="oma-pl-btn oma-pl-btn--ghost oma-pl-btn--lg">
+              {c.final.secondary}
+            </Link>
           </div>
         </div>
-        <div className="oma-lp-container oma-lp-footer-bottom">
-          {t('landing.footer.copyright').replace('{year}', String(year))}
+        <div className="oma-pl-wrap oma-pl-foot">
+          <div className="oma-pl-foot__top">
+            <PlxLogo sub="by IMKAN" />
+            <span>{c.footer.tagline}</span>
+          </div>
+          <div className="oma-pl-foot__cols">
+            <div>
+              <h4>{c.footer.product}</h4>
+              {navLinks.map(([href, label]) => (
+                <a key={href} href={href}>
+                  {label}
+                </a>
+              ))}
+            </div>
+            <div>
+              <h4>{c.footer.account}</h4>
+              <Link href="/login">{c.nav.login}</Link>
+              <Link href="/register">{c.footer.signup}</Link>
+              <Link href="/forgot-password">{c.footer.reset}</Link>
+            </div>
+            <div>
+              <h4>{c.footer.language}</h4>
+              <button type="button" onClick={switchLocale}>
+                {c.nav.lang}
+              </button>
+            </div>
+          </div>
+          <p className="oma-pl-foot__copy">
+            © {year} OMA by IMKAN. {c.footer.rights}
+          </p>
         </div>
       </footer>
     </div>
