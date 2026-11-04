@@ -1,9 +1,11 @@
 'use client';
 
 import { Button, Input, Modal, Select } from 'antd';
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { NetworkIcon } from '../content/network-icon';
 import { initials } from '../content/post-preview-model';
+import { MediaPickerDialog } from '../content/media-picker';
+import { useLocale } from '../../lib/use-locale';
 import {
   BRAND_ROLES,
   SOCIAL_NETWORKS,
@@ -42,8 +44,6 @@ export type BrandSettingsViewProps = {
     logoAssetId: string | null;
     timezone: string;
   }) => void;
-  /** Uploads to WorkDrive when connected, otherwise returns a small data URL. */
-  onLogoFile: (file: File) => Promise<{ url: string; assetId: string | null } | null>;
   /** Where logos are stored; null while loading. */
   logoStorage: { connected: boolean; orgName: string | null; canConnect: boolean } | null;
   onArchive: () => void;
@@ -139,17 +139,14 @@ export function BrandSettingsView(p: BrandSettingsViewProps) {
 
 function GeneralTab(p: BrandSettingsViewProps) {
   const { t } = p;
+  const locale = useLocale();
   const [name, setName] = useState(p.brand.name);
   const [logo, setLogo] = useState<string | null>(p.brand.logo_url);
   const [logoAssetId, setLogoAssetId] = useState<string | null>(p.brand.logo_asset_id ?? null);
-  const [logoBusy, setLogoBusy] = useState(false);
-  const [logoLink, setLogoLink] = useState(
-    p.brand.logo_url?.startsWith('https://') ? p.brand.logo_url : '',
-  );
   const [tz, setTz] = useState(p.brand.timezone);
   const [confirm, setConfirm] = useState<'archive' | 'delete' | null>(null);
   const [deleteName, setDeleteName] = useState('');
-  const file = useRef<HTMLInputElement>(null);
+  const [mediaOpen, setMediaOpen] = useState(false);
   const disabled = !p.canManage || p.brand.archived;
   const nameError = !name.trim()
     ? t('brandSettings.general.nameRequired')
@@ -172,34 +169,10 @@ function GeneralTab(p: BrandSettingsViewProps) {
           <div className="oma-bs-logo-row">
             <BrandLogo name={name} url={logo} size={56} />
             <div className="oma-bs-logo-actions">
-              <input
-                ref={file}
-                type="file"
-                accept="image/png,image/jpeg,image/webp,image/gif"
-                hidden
-                data-testid="brand-logo-file"
-                onChange={async (e) => {
-                  const f = e.target.files?.[0];
-                  e.target.value = '';
-                  if (!f) return;
-                  setLogoBusy(true);
-                  try {
-                    const r = await p.onLogoFile(f);
-                    if (r) {
-                      setLogo(r.url);
-                      setLogoAssetId(r.assetId);
-                      setLogoLink('');
-                    }
-                  } finally {
-                    setLogoBusy(false);
-                  }
-                }}
-              />
               <Button
-                disabled={disabled || logoBusy}
-                loading={logoBusy}
+                disabled={disabled}
                 data-testid="brand-logo-upload"
-                onClick={() => file.current?.click()}
+                onClick={() => setMediaOpen(true)}
               >
                 {t('brandSettings.general.upload')}
               </Button>
@@ -210,7 +183,6 @@ function GeneralTab(p: BrandSettingsViewProps) {
                   onClick={() => {
                     setLogo(null);
                     setLogoAssetId(null);
-                    setLogoLink('');
                   }}
                 >
                   {t('brandSettings.general.removeLogo')}
@@ -234,22 +206,6 @@ function GeneralTab(p: BrandSettingsViewProps) {
               </p>
             </div>
           </div>
-          <label className="oma-bs-label oma-bs-label--sub" htmlFor="bs-logo-link">
-            {t('brandSettings.general.logoLink')}
-          </label>
-          <Input
-            id="bs-logo-link"
-            className="oma-ltr"
-            value={logoLink}
-            disabled={disabled}
-            placeholder="https://"
-            onChange={(e) => {
-              setLogoLink(e.target.value);
-              const v = e.target.value.trim();
-              setLogo(v ? v : null);
-              setLogoAssetId(null);
-            }}
-          />
         </div>
 
         <div className="oma-bs-field">
@@ -298,6 +254,21 @@ function GeneralTab(p: BrandSettingsViewProps) {
           </Button>
         </div>
       </section>
+
+      <MediaPickerDialog
+        open={mediaOpen}
+        brandId={p.brand.id}
+        kind="logos"
+        t={t}
+        locale={locale}
+        canConnect={Boolean(p.logoStorage?.canConnect)}
+        onClose={() => setMediaOpen(false)}
+        onPick={(asset) => {
+          setLogo(asset.view_url);
+          setLogoAssetId(asset.id);
+          setMediaOpen(false);
+        }}
+      />
 
       {p.canManage ? (
         <section className="oma-bs-card oma-bs-card--danger" aria-labelledby="bs-danger">

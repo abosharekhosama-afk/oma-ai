@@ -86,7 +86,11 @@ export default function AccountPage() {
     name !== profile.name ||
     avatarUrl !== (profile.avatar_url ?? '') ||
     lang !== (profile.preferred_locale === 'ar' ? 'ar' : 'en');
-  const showImg = avatarUrl.trim().startsWith('https://') && !imgBroken;
+  const normalizedAvatarUrl = avatarUrl.trim();
+  const showImg =
+    (normalizedAvatarUrl.startsWith('https://') ||
+      normalizedAvatarUrl.startsWith('/api/v1/media/')) &&
+    !imgBroken;
 
   return (
     <div className="oma-planable-page" data-testid="account-page">
@@ -102,7 +106,7 @@ export default function AccountPage() {
           <div className="oma-account__row">
             <span className="oma-account__avatar" aria-hidden="true" data-testid="account-avatar">
               {showImg ? (
-                <img src={avatarUrl.trim()} alt="" onError={() => setImgBroken(true)} />
+                <img src={normalizedAvatarUrl} alt="" onError={() => setImgBroken(true)} />
               ) : (
                 initials(name || profile.email)
               )}
