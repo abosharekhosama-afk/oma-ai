@@ -235,6 +235,19 @@ const routeRequirements: Record<string, string[]> = {
   'POST /api/v1/brands/:brandId/content-templates': ['content.create'],
   'DELETE /api/v1/brands/:brandId/content-templates/:templateId': ['content.update'],
   'POST /api/v1/brands/:brandId/content-templates/:templateId/use': ['content.create'],
+  // Unified Inbox
+  'GET /api/v1/inbox/conversations': ['content.read'],
+  'GET /api/v1/inbox/conversations/:id': ['content.read'],
+  'POST /api/v1/inbox/conversations/:id/reply': ['content.update'],
+  'POST /api/v1/inbox/conversations/:id/assign': ['content.update'],
+  'POST /api/v1/inbox/conversations/:id/notes': ['content.update'],
+  'POST /api/v1/inbox/conversations/:id/status': ['content.update'],
+  // Social Listening
+  'GET /api/v1/listening/rules': ['content.read'],
+  'POST /api/v1/listening/rules': ['content.update'],
+  'POST /api/v1/listening/rules/:id': ['content.update'],
+  'DELETE /api/v1/listening/rules/:id': ['content.update'],
+  'GET /api/v1/listening/hits': ['content.read'],
   'GET /api/v1/billing/plans': ['brand.read'],
   'GET /api/v1/billing/subscription': ['brand.read'],
   'PATCH /api/v1/billing/subscription': ['tenant.manage'],
@@ -454,6 +467,13 @@ export function matchRequirements(method: string, path: string): string[] | null
       /\/api\/v1\/brands\/[^/]+\/evidence\/[^/]+/,
       '/api/v1/brands/:brandId/evidence/:evidenceId',
     )
+    .replace(
+      /\/api\/v1\/inbox\/conversations\/[^/]+\/(reply|assign|notes|status)/,
+      '/api/v1/inbox/conversations/:id/$1',
+    )
+    .replace(/\/api\/v1\/inbox\/conversations\/[^/]+/, '/api/v1/inbox/conversations/:id')
+    .replace(/\/api\/v1\/listening\/rules\/[^/]+/, '/api/v1/listening/rules/:id')
+
     .replace(/\/api\/v1\/brands\/[^/]+/, '/api/v1/brands/:brandId');
   const key = `${method.toUpperCase()} ${normalized}`;
   for (const [k, v] of Object.entries(routeRequirements)) {
