@@ -32,6 +32,7 @@
     "db:seed": "pnpm --filter @oma/db seed",
     "db:seed:demo": "pnpm --filter @oma/db seed:demo",
     "db:seed:inbox-demo": "pnpm --filter @oma/db seed:inbox-demo",
+    "db:seed:inbox-demo:if-enabled": "node scripts/db/seed-inbox-demo-if-enabled.mjs",
     "db:seed:review:002": "pnpm --filter @oma/db seed:review:002",
     "review:002": "bash scripts/review-002.sh",
     "review:002:stop": "bash scripts/review-002-stop.sh",
