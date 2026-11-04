@@ -193,6 +193,8 @@
 
 .oma-campaign-group {
   margin-bottom: var(--space-4);
+  min-width: 0;
+  max-width: 100%;
 }
 
 .oma-campaign-group-title {
@@ -1371,6 +1373,8 @@
 /* Planable-style workspace chrome used by the supplied content/campaign captures. */
 .oma-campaigns-page {
   gap: 8px;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .oma-campaigns-page > .oma-page-header {
@@ -1619,10 +1623,17 @@
 
 .oma-campaigns-page .oma-campaign-list-table {
   margin-bottom: var(--space-3);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
 }
 
 .oma-campaigns-page .oma-campaign-req-table {
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
   table-layout: auto;
 }
 
@@ -1630,17 +1641,34 @@
 .oma-campaigns-page .oma-campaign-req-table td {
   vertical-align: middle;
   padding: 10px 12px;
+  white-space: nowrap;
 }
 
 .oma-campaigns-page .oma-campaign-req-row {
   cursor: pointer;
 }
 
+.oma-campaigns-page .oma-campaign-table-name-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(360px, 42vw);
+  min-width: 160px;
+}
+
+.oma-campaigns-page .oma-campaign-table-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
 .oma-campaigns-page .oma-campaign-next-cell {
-  max-width: 220px;
   font-size: var(--text-meta);
   line-height: var(--leading-meta);
   color: var(--oma-muted);
+  white-space: nowrap;
 }
 
 .oma-campaign-menu button {

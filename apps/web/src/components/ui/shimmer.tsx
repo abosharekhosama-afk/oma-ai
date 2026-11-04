@@ -92,6 +92,47 @@ export function DetailShimmer() {
   );
 }
 
+/** Campaign detail: KPI strip + brief / milestones panels. */
+export function CampaignDetailShimmer() {
+  return (
+    <Status kind="campaign-detail">
+      <div className="oma-shimmer-campaign-kpis">
+        {Array.from({ length: 5 }, (_, i) => (
+          <div key={i} className="oma-shimmer-campaign-kpi">
+            <Bar w="55%" h={10} />
+            <Bar w="40%" h={22} />
+          </div>
+        ))}
+      </div>
+      <div className="oma-shimmer-detail oma-shimmer-detail--campaign">
+        <div className="oma-shimmer-stack">
+          <Bar w="28%" h={14} />
+          <Bar w="95%" h={12} />
+          <Bar w="88%" h={12} />
+          <Bar w="72%" h={12} />
+          <div className="oma-shimmer-facts">
+            {Array.from({ length: 3 }, (_, i) => (
+              <span key={i} className="oma-shimmer-facts-row">
+                <Bar w={72} h={10} />
+                <Bar w="70%" h={12} />
+              </span>
+            ))}
+          </div>
+        </div>
+        <div className="oma-shimmer-stack">
+          <Bar w="40%" h={14} />
+          {Array.from({ length: 5 }, (_, i) => (
+            <span key={i} className="oma-shimmer-facts-row">
+              <Bar w={80} h={10} />
+              <Bar w="55%" h={12} />
+            </span>
+          ))}
+        </div>
+      </div>
+    </Status>
+  );
+}
+
 /** Card grids (workspaces, brands). */
 export function CardGridShimmer({ cards = 6 }: { cards?: number }) {
   return (

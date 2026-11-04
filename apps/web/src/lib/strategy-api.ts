@@ -15,6 +15,20 @@ export async function listStrategiesForBrand(brandId: string): Promise<ApiStrate
   return res.data ?? [];
 }
 
+export async function getStrategyById(
+  brandId: string,
+  strategyId: string,
+): Promise<ApiStrategyListItem | null> {
+  try {
+    const res = await api<{ data: ApiStrategyListItem }>(
+      `/api/v1/brands/${brandId}/strategies/${strategyId}`,
+    );
+    return res.data ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export type ApiStrategyWithBrand = ApiStrategyListItem & { brandId: string };
 
 export async function listStrategiesForBrands(brandIds: string[]): Promise<ApiStrategyWithBrand[]> {

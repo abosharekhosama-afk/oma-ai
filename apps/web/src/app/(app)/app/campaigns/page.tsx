@@ -1003,22 +1003,18 @@ export default function CampaignsPage() {
                           }}
                         >
                           <td>
-                            <div className="oma-req-title-cell">
-                              <div>
-                                <Link
-                                  href={`/app/campaigns/${c.id}`}
-                                  className="oma-text-link"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  {pickCopy(c.name, locale)}
-                                </Link>
-                                <div className="oma-chip-row" style={{ marginTop: 4 }}>
-                                  <StatusChip
-                                    status={c.status}
-                                    label={statusLabel(c.status, locale)}
-                                  />
-                                </div>
-                              </div>
+                            <div className="oma-campaign-table-name-cell">
+                              <Link
+                                href={`/app/campaigns/${c.id}`}
+                                className="oma-text-link oma-campaign-table-name"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {pickCopy(c.name, locale)}
+                              </Link>
+                              <StatusChip
+                                status={c.status}
+                                label={statusLabel(c.status, locale)}
+                              />
                             </div>
                           </td>
                           <td>{brandName(c.brandId)}</td>

@@ -1693,6 +1693,47 @@ html body .oma-deliv-detail__side-card {
   font-size: 14px;
   line-height: 22px;
 }
+.oma-campaign-brief__lead {
+  font-size: 15px;
+  line-height: 24px;
+  font-weight: 500;
+}
+.oma-campaign-facts--brief {
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 1px solid #eef0f3;
+}
+.oma-campaign-channels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.oma-campaign-channel-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 12px;
+  line-height: 18px;
+  text-transform: lowercase;
+}
+.oma-campaign-activity-summary {
+  display: block;
+  max-width: 420px;
+  color: #111827;
+  font-size: 14px;
+  line-height: 20px;
+}
+.oma-campaign-detail .oma-campaign-workspace-head {
+  margin-bottom: 4px;
+}
+@media (max-width: 1200px) {
+  .oma-campaign-kpis {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
 .oma-campaign-metrics {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));

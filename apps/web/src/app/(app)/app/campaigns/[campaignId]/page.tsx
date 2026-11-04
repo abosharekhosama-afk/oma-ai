@@ -1,5 +1,5 @@
 'use client';
-import { DetailShimmer } from '../../../../../components/ui/shimmer';
+import { CampaignDetailShimmer } from '../../../../../components/ui/shimmer';
 import { OmaLinkButton } from '../../../../../components/ui/oma-link-button';
 import { MediaSurface } from '../../../../../components/content/media-surface';
 import { Button } from '@oma/ui/controls';
@@ -41,6 +41,10 @@ import {
 import { mediaAlt } from '../../../../../lib/demo/demo-media';
 import { statusLabel } from '../../../../../lib/demo/stage3-content';
 import { useLocale, useT } from '../../../../../lib/use-locale';
+import { getStrategyById, listStrategiesForBrand } from '../../../../../lib/strategy-api';
+import { listWorkspaceMembers, type WorkspaceMember } from '../../../../../lib/team-api';
+import { listActivity, type ActivityItem } from '../../../../../lib/activity-api';
+import { filterActivityForCampaign } from '../../../../../lib/campaign-activity';
 
 type Campaign = DemoGraph['campaigns'][number];
 type ContentItem = DemoGraph['contentItems'][number];
@@ -48,9 +52,24 @@ type Strategy = DemoGraph['strategies'][number];
 type Brand = DemoGraph['brands'][number];
 type Task = DemoGraph['tasks'][number];
 type Deliverable = DemoGraph['deliverables'][number];
-type Activity = DemoGraph['activity'][number];
-
 type Tab = 'overview' | 'content' | 'tasks' | 'deliverables' | 'activity';
+
+function memberDisplayName(m: WorkspaceMember): string | null {
+  if (!m.user?.id) return null;
+  const name = m.user.name?.trim();
+  if (name) return name;
+  const email = m.user.email?.split('@')[0]?.trim();
+  return email || null;
+}
+
+function ownerLabelForUserId(
+  ownerUserId: string | null | undefined,
+  ownerByUserId: Map<string, string>,
+  isAr: boolean,
+): string {
+  if (!ownerUserId) return '—';
+  return ownerByUserId.get(ownerUserId) ?? (isAr ? 'عضو الفريق' : 'Team member');
+}
 
 export default function CampaignDetailPage() {
   const t = useT();
@@ -64,7 +83,7 @@ export default function CampaignDetailPage() {
   const [content, setContent] = useState<ContentItem[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [deliverables, setDeliverables] = useState<Deliverable[]>([]);
-  const [activity, setActivity] = useState<Activity[]>([]);
+  const [activity, setActivity] = useState<ActivityItem[]>([]);
   const [tab, setTab] = useState<Tab>('overview');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -84,13 +103,24 @@ export default function CampaignDetailPage() {
     status: 'DRAFT' as string,
   });
 
+  const isAr = locale.toLowerCase().startsWith('ar');
+
   useEffect(() => {
     if (!campaignId) return;
     let cancelled = false;
     (async () => {
       try {
         const apiCamp = await getCampaignProduction(campaignId);
-        const row = toCampaignRow(apiCamp);
+        const members = await listWorkspaceMembers().catch(() => [] as WorkspaceMember[]);
+        const ownerByUserId = new Map<string, string>();
+        for (const m of members) {
+          const label = memberDisplayName(m);
+          if (m.user?.id && label) ownerByUserId.set(m.user.id, label);
+        }
+        const row = toCampaignRow(
+          apiCamp,
+          ownerLabelForUserId(apiCamp.owner_user_id, ownerByUserId, isAr),
+        );
         const brands = await listBrandsProduction();
         const b = brands.find((x) => x.id === apiCamp.brand_id);
         const brandRow = b
@@ -102,33 +132,58 @@ export default function CampaignDetailPage() {
               strategyId: null,
             } as Brand)
           : null;
+        let strategyRow: Strategy | null = null;
+        if (apiCamp.strategy_id?.trim()) {
+          try {
+            const strategies = await listStrategiesForBrand(apiCamp.brand_id);
+            let s = strategies.find((x) => x.id === apiCamp.strategy_id);
+            if (!s) {
+              s = (await getStrategyById(apiCamp.brand_id, apiCamp.strategy_id)) ?? undefined;
+            }
+            if (s) {
+              strategyRow = {
+                id: s.id,
+                brandId: apiCamp.brand_id,
+                name: { en: s.name, ar: s.name },
+                status: s.status,
+                isCurrent: false,
+              };
+            }
+          } catch {
+            strategyRow = null;
+          }
+        }
         if (cancelled) return;
         setCampaign(row);
         setBrand(brandRow);
-        setStrategy(null);
+        setStrategy(strategyRow);
         // Linked content from production Content API
+        let contentRows: ContentItem[] = [];
         try {
           const items = await listContentForBrand(apiCamp.brand_id, { campaignId });
-          if (!cancelled) setContent(items.map((c) => toContentRow(c)) as ContentItem[]);
+          contentRows = items.map((c) => toContentRow(c)) as ContentItem[];
+          if (!cancelled) setContent(contentRows);
         } catch {
           if (!cancelled) setContent([]);
         }
+        let taskIds: string[] = [];
+        let deliverableIds: string[] = [];
         try {
           const [taskRows, delRows] = await Promise.all([
             listTasks(apiCamp.brand_id).catch(() => []),
             listDeliverables(apiCamp.brand_id).catch(() => []),
           ]);
           if (!cancelled) {
-            setTasks(
-              taskRows
-                .filter((t) => t.campaign_id === campaignId)
-                .map((t) => toTaskRow(t)) as Task[],
-            );
-            setDeliverables(
-              delRows
-                .filter((d) => d.campaign_id === campaignId)
-                .map((d) => toDeliverableRow(d)) as Deliverable[],
-            );
+            const mappedTasks = taskRows
+              .filter((t) => t.campaign_id === campaignId)
+              .map((t) => toTaskRow(t)) as Task[];
+            const mappedDeliv = delRows
+              .filter((d) => d.campaign_id === campaignId)
+              .map((d) => toDeliverableRow(d)) as Deliverable[];
+            taskIds = mappedTasks.map((t) => t.id);
+            deliverableIds = mappedDeliv.map((d) => d.id);
+            setTasks(mappedTasks);
+            setDeliverables(mappedDeliv);
           }
         } catch {
           if (!cancelled) {
@@ -136,7 +191,20 @@ export default function CampaignDetailPage() {
             setDeliverables([]);
           }
         }
-        setActivity([]);
+        try {
+          const feed = await listActivity({ limit: 100 });
+          if (!cancelled) {
+            setActivity(
+              filterActivityForCampaign(feed.items, campaignId, {
+                contentIds: contentRows.map((c) => c.id),
+                taskIds,
+                deliverableIds,
+              }),
+            );
+          }
+        } catch {
+          if (!cancelled) setActivity([]);
+        }
         setError(null);
         setEditForm({
           name: pickCopy(row.name, locale),
@@ -166,7 +234,7 @@ export default function CampaignDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, [campaignId]);
+  }, [campaignId, isAr, locale]);
 
   const needsAttention = useMemo(
     () =>
@@ -194,6 +262,7 @@ export default function CampaignDetailPage() {
   );
   const review = campaignReviewState(content);
   const ready = campaignScheduleReadiness(content);
+  const strategyLabel = strategy ? pickCopy(strategy.name, locale) : null;
 
   return (
     <div className="oma-stack oma-campaign-detail" data-testid="demo-campaign-detail">
@@ -219,7 +288,7 @@ export default function CampaignDetailPage() {
                     className="oma-text-link"
                     data-testid="demo-campaign-strategy-link"
                   >
-                    {strategy ? pickCopy(strategy.name, locale) : t('demo.campaign.openStrategy')}
+                    {strategyLabel ?? t('demo.campaign.openStrategy')}
                   </Link>
                 ) : null}
                 <TrackPill
@@ -256,7 +325,7 @@ export default function CampaignDetailPage() {
         />
       </div>
 
-      {loading ? <DetailShimmer /> : null}
+      {loading ? <CampaignDetailShimmer /> : null}
       {unavailable ? <DeniedState title={t('demo.unavailable')} /> : null}
       {error ? <ErrorState title={error} /> : null}
 
@@ -321,24 +390,39 @@ export default function CampaignDetailPage() {
                 </article>
               </div>
               <div className="oma-campaign-overview__grid">
-                <section className="oma-campaign-panel">
+                <section className="oma-campaign-panel oma-campaign-brief">
                   <h2>{t('demo.campaign.goal')}</h2>
-                  <p className="oma-campaign-copy">{pickCopy(campaign.objective, locale)}</p>
-                  <dl className="oma-campaign-facts">
-                    <dt>{t('demo.campaign.audience')}</dt>
-                    <dd>{pickCopy(campaign.audience, locale)}</dd>
-                    <dt>{t('demo.campaign.channels')}</dt>
-                    <dd>{campaign.channels.join(' · ') || '—'}</dd>
-                  </dl>
-                  <Link
-                    href={strategyHref(campaign.brandId, campaign.strategyId)}
-                    className="oma-text-link"
-                  >
-                    {t('demo.campaign.openStrategy')}
-                  </Link>
-                  <p className="oma-ltr oma-muted" data-testid="demo-strategy-id">
-                    {campaign.strategyId}
+                  <p className="oma-campaign-copy oma-campaign-brief__lead">
+                    {pickCopy(campaign.objective, locale) || '—'}
                   </p>
+                  <dl className="oma-campaign-facts oma-campaign-facts--brief">
+                    <dt>{t('demo.campaign.audience')}</dt>
+                    <dd>{pickCopy(campaign.audience, locale) || '—'}</dd>
+                    <dt>{t('demo.campaign.channels')}</dt>
+                    <dd className="oma-campaign-channels">
+                      {campaign.channels.length
+                        ? campaign.channels.map((ch) => (
+                            <span key={ch} className="oma-campaign-channel-pill">
+                              {ch}
+                            </span>
+                          ))
+                        : '—'}
+                    </dd>
+                    {campaign.strategyId?.trim() ? (
+                      <>
+                        <dt>{t('demo.create.strategy')}</dt>
+                        <dd>
+                          <Link
+                            href={strategyHref(campaign.brandId, campaign.strategyId)}
+                            className="oma-text-link"
+                            data-testid="demo-campaign-strategy-link"
+                          >
+                            {strategyLabel || t('demo.campaign.openStrategy')}
+                          </Link>
+                        </dd>
+                      </>
+                    ) : null}
+                  </dl>
                 </section>
                 <section className="oma-campaign-panel">
                   <h2>{t('demo.campaign.milestones')}</h2>
@@ -600,22 +684,51 @@ export default function CampaignDetailPage() {
 
           {tab === 'activity' ? (
             activity.length === 0 ? (
-              <EmptyState title={t('demo.empty')} />
+              <EmptyState
+                title={t('demo.empty')}
+                body={
+                  isAr
+                    ? 'سيظهر هنا نشاط الحملة ومنشوراتها ومهامها عند حدوث تغييرات.'
+                    : 'Campaign, post, and task updates will appear here when something changes.'
+                }
+              />
             ) : (
-              <div className="oma-req-table-wrap oma-campaign-table">
+              <div
+                className="oma-req-table-wrap oma-campaign-table"
+                data-testid="demo-campaign-activity-tab"
+              >
                 <table className="oma-req-table oma-task-table">
                   <thead>
                     <tr>
                       <th>{t('demo.campaign.activity')}</th>
+                      <th>{isAr ? 'الهدف' : 'Target'}</th>
+                      <th>{isAr ? 'بواسطة' : 'By'}</th>
                       <th>{t('demo.campaigns.col.dates')}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {activity.map((item) => (
                       <tr key={item.id}>
-                        <td>{pickCopy(item.summary, locale)}</td>
+                        <td>
+                          <span className="oma-campaign-activity-summary">{item.summary}</span>
+                        </td>
+                        <td>
+                          {item.target ? (
+                            <Link href={item.target.href} className="oma-text-link">
+                              {pickCopy(item.target.name, locale)}
+                            </Link>
+                          ) : (
+                            '—'
+                          )}
+                        </td>
+                        <td>{item.actor_name}</td>
                         <td className="oma-ltr oma-task-due-cell">
-                          <span className="oma-task-due-text">{item.at}</span>
+                          <span className="oma-task-due-text">
+                            {new Intl.DateTimeFormat(isAr ? 'ar' : 'en-GB', {
+                              dateStyle: 'medium',
+                              timeStyle: 'short',
+                            }).format(new Date(item.at))}
+                          </span>
                         </td>
                       </tr>
                     ))}
