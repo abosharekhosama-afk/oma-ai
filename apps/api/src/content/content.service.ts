@@ -961,7 +961,7 @@ export class ContentService {
         'errors.validation_failed',
       );
     }
-    const row = await getPrisma().contentItem.update({
+    await getPrisma().contentItem.update({
       where: { id: contentId },
       data: {
         scheduledAt: when,

@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { Button, Input, SelectField } from '@oma/ui/controls';
-import { useLocale, useT } from '../../lib/use-locale';
+import { useT } from '../../lib/use-locale';
 import { api } from '../../lib/api';
 import { getPreferences, updatePreferences, type UserPreferences } from '../../lib/account-api';
 import { ShellIcon } from './shell-icons';
@@ -86,7 +86,6 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
     'loading',
   );
   const [approvalsError, setApprovalsError] = useState<string | null>(null);
-  const isAr = useLocale().toLowerCase().startsWith('ar');
   const [labelModal, setLabelModal] = useState(false);
   const [templateModal, setTemplateModal] = useState(false);
   const [slotModal, setSlotModal] = useState(false);
@@ -670,31 +669,6 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
         </div>
       </div>
     </div>
-  );
-}
-
-function Toggle({
-  label,
-  checked,
-  onChange,
-}: {
-  label: string;
-  checked: boolean;
-  onChange: (v: boolean) => void;
-}) {
-  return (
-    <label className="oma-ws-toggle-row">
-      <span>{label}</span>
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        className={`oma-ws-switch${checked ? ' is-on' : ''}`}
-        onClick={() => onChange(!checked)}
-      >
-        <span className="oma-ws-switch-knob" />
-      </button>
-    </label>
   );
 }
 

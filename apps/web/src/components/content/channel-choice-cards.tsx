@@ -182,7 +182,6 @@ export function ChannelChoiceCards({
             >
               <span className="oma-channel-strip__avatar" aria-hidden>
                 {page?.avatar_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
                   <img src={page.avatar_url} alt="" />
                 ) : (
                   <span className="oma-channel-strip__initial">
@@ -243,7 +242,6 @@ export function ChannelChoiceCards({
             >
               <span className="oma-channel-accounts__av" aria-hidden>
                 {page.avatar_url ? (
-                  // eslint-disable-next-line @next/next/no-img-element
                   <img src={page.avatar_url} alt="" />
                 ) : (
                   <span>{(page.name || '?').slice(0, 1).toUpperCase()}</span>

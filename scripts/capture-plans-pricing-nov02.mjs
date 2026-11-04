@@ -10,7 +10,6 @@ const API = process.env.API_PUBLIC_URL || 'http://127.0.0.1:3001';
 const EMAIL = process.env.BOOTSTRAP_PLATFORM_OWNER_EMAIL || 'platform-owner@example.com';
 const PASS = process.env.BOOTSTRAP_PLATFORM_OWNER_PASSWORD || 'ChangeMe_PlatformOwner_1!';
 const DEMO_TENANT = '01M6BAM32840YSR60NYBVBWSB2';
-const ACME_BRAND = '01M6BAMQMB5PPB8QZW55J2G8G8';
 const ACME_FALLBACK = '01M6BAMQMB5PPB8ZQW55J2G8G8';
 
 function apiLogin() {

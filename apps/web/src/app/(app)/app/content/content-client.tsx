@@ -5530,7 +5530,6 @@ export default function ContentPage() {
                                               rel="noreferrer"
                                               title={isAr ? 'مرفق' : 'Attachment'}
                                             >
-                                              {/* eslint-disable-next-line @next/next/no-img-element */}
                                               <img src={`/api/v1/media/${id}/view`} alt="" />
                                             </a>
                                           ))}
@@ -5871,7 +5870,6 @@ export default function ContentPage() {
                 >
                   <span className="oma-channel-accounts__av" aria-hidden>
                     {pg.avatar_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
                       <img src={pg.avatar_url} alt="" />
                     ) : (
                       <span>{(pg.name || '?').slice(0, 1).toUpperCase()}</span>

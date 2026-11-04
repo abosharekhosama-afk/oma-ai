@@ -37,17 +37,6 @@ function fileIcon(mime: string) {
   return <FileOutlined />;
 }
 
-function formatDate(iso: string | null | undefined, locale: string) {
-  if (!iso) return '';
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '';
-  return new Intl.DateTimeFormat(locale.toLowerCase().startsWith('ar') ? 'ar' : 'en', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  }).format(d);
-}
-
 function MediaShimmer({ rows = 4 }: { rows?: number }) {
   return (
     <div className="oma-mp-loading" aria-busy="true" data-testid="media-shimmer">

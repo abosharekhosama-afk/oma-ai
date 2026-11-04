@@ -81,7 +81,7 @@ export default function BillingClient() {
       const [p, s] = await Promise.all([listPlans(), getSubscription()]);
       setPlans(p.data ?? []);
       setSub(s.data);
-    } catch (e) {
+    } catch {
       toast.push(isAr ? 'تعذر تحميل الخطط' : 'Could not load plans', 'danger');
     } finally {
       setLoading(false);
