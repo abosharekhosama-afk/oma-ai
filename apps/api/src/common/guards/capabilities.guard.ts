@@ -236,6 +236,10 @@ const routeRequirements: Record<string, string[]> = {
   'DELETE /api/v1/brands/:brandId/content-templates/:templateId': ['content.update'],
   'POST /api/v1/brands/:brandId/content-templates/:templateId/use': ['content.create'],
   // Unified Inbox
+  'GET /api/v1/inbox/stats': ['content.read'],
+  'POST /api/v1/inbox/conversations/:id/tags': ['content.update'],
+  'POST /api/v1/inbox/conversations/:id/priority': ['content.update'],
+  'POST /api/v1/inbox/conversations/bulk': ['content.update'],
   'GET /api/v1/inbox/conversations': ['content.read'],
   'GET /api/v1/inbox/conversations/:id': ['content.read'],
   'POST /api/v1/inbox/conversations/:id/reply': ['content.update'],

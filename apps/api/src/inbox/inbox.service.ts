@@ -1,6 +1,7 @@
 import { getPrisma, tenantWhere } from '@oma/db';
 import { DomainError, newId } from '@oma/domain';
 import { classifySentiment } from './sentiment';
+import { tryPlatformReply } from './platform-reply';
 
 type Platform = 'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN';
 type ConvType = 'DIRECT_MESSAGE' | 'POST_COMMENT' | 'DARK_COMMENT' | 'MENTION';
@@ -13,6 +14,11 @@ export type ListConversationsQuery = {
   type?: ConvType;
   sentiment?: Sentiment;
   assignedTo?: string;
+  /** when true, only unassigned */
+  unassigned?: boolean;
+  priority?: boolean;
+  tag?: string;
+  q?: string;
   page?: number;
   limit?: number;
 };
@@ -22,7 +28,76 @@ function previewOf(text: string, max = 140) {
   return t.length <= max ? t : `${t.slice(0, max - 1)}…`;
 }
 
+function parseTags(tagsJson: string | null | undefined): string[] {
+  try {
+    const v = JSON.parse(tagsJson || '[]');
+    return Array.isArray(v) ? v.map(String).filter(Boolean) : [];
+  } catch {
+    return [];
+  }
+}
+
+function mapConv(c: {
+  id: string;
+  platform: string;
+  type: string;
+  status: string;
+  sentiment: string | null;
+  assignedToUserId: string | null;
+  participantName: string | null;
+  participantAvatar: string | null;
+  lastMessageAt: Date;
+  lastMessagePreview: string | null;
+  messageCount: number;
+  unreadCount: number;
+  subject: string | null;
+  brandId: string | null;
+  priority: boolean;
+  tagsJson: string;
+  socialPageId: string | null;
+  firstResponseAt: Date | null;
+  closedAt: Date | null;
+}) {
+  return {
+    id: c.id,
+    platform: c.platform,
+    type: c.type,
+    status: c.status,
+    sentiment: c.sentiment,
+    assignedToUserId: c.assignedToUserId,
+    participantName: c.participantName,
+    participantAvatar: c.participantAvatar,
+    lastMessageAt: c.lastMessageAt.toISOString(),
+    lastMessagePreview: c.lastMessagePreview,
+    messageCount: c.messageCount,
+    unreadCount: c.unreadCount,
+    subject: c.subject,
+    brandId: c.brandId,
+    priority: c.priority,
+    tags: parseTags(c.tagsJson),
+    socialPageId: c.socialPageId,
+    firstResponseAt: c.firstResponseAt?.toISOString() ?? null,
+    closedAt: c.closedAt?.toISOString() ?? null,
+  };
+}
+
 export class InboxService {
+  async stats(tenantId: string) {
+    const base = tenantWhere(tenantId, {});
+    const [total, unread, open, pending, closed, priority, unassigned] = await Promise.all([
+      getPrisma().inboxConversation.count({ where: base }),
+      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { status: 'UNREAD' }) }),
+      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { status: 'OPEN' }) }),
+      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { status: 'PENDING' }) }),
+      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { status: 'CLOSED' }) }),
+      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { priority: true }) }),
+      getPrisma().inboxConversation.count({
+        where: tenantWhere(tenantId, { assignedToUserId: null, status: { not: 'CLOSED' } }),
+      }),
+    ]);
+    return { total, unread, open, pending, closed, priority, unassigned };
+  }
+
   async listConversations(tenantId: string, q: ListConversationsQuery) {
     const page = Math.max(1, q.page ?? 1);
     const limit = Math.min(100, Math.max(1, q.limit ?? 30));
@@ -31,40 +106,36 @@ export class InboxService {
       ...(q.status ? { status: q.status } : {}),
       ...(q.type ? { type: q.type } : {}),
       ...(q.sentiment ? { sentiment: q.sentiment } : {}),
+      ...(q.priority === true ? { priority: true } : {}),
+      ...(q.unassigned ? { assignedToUserId: null } : {}),
       ...(q.assignedTo ? { assignedToUserId: q.assignedTo } : {}),
+      ...(q.tag
+        ? {
+            tagsJson: { contains: q.tag },
+          }
+        : {}),
+      ...(q.q
+        ? {
+            OR: [
+              { participantName: { contains: q.q, mode: 'insensitive' as const } },
+              { lastMessagePreview: { contains: q.q, mode: 'insensitive' as const } },
+              { subject: { contains: q.q, mode: 'insensitive' as const } },
+            ],
+          }
+        : {}),
     });
 
     const [total, rows] = await Promise.all([
       getPrisma().inboxConversation.count({ where }),
       getPrisma().inboxConversation.findMany({
         where,
-        orderBy: { lastMessageAt: 'desc' },
+        orderBy: [{ priority: 'desc' }, { lastMessageAt: 'desc' }],
         skip: (page - 1) * limit,
         take: limit,
       }),
     ]);
 
-    return {
-      page,
-      limit,
-      total,
-      items: rows.map((c) => ({
-        id: c.id,
-        platform: c.platform,
-        type: c.type,
-        status: c.status,
-        sentiment: c.sentiment,
-        assignedToUserId: c.assignedToUserId,
-        participantName: c.participantName,
-        participantAvatar: c.participantAvatar,
-        lastMessageAt: c.lastMessageAt.toISOString(),
-        lastMessagePreview: c.lastMessagePreview,
-        messageCount: c.messageCount,
-        unreadCount: c.unreadCount,
-        subject: c.subject,
-        brandId: c.brandId,
-      })),
-    };
+    return { page, limit, total, items: rows.map(mapConv) };
   }
 
   async getConversation(tenantId: string, id: string) {
@@ -86,7 +157,6 @@ export class InboxService {
       }),
     ]);
 
-    // Mark open / clear unread when viewed
     if (c.unreadCount > 0 || c.status === 'UNREAD') {
       await getPrisma().inboxConversation.update({
         where: { id },
@@ -98,18 +168,8 @@ export class InboxService {
     }
 
     return {
-      id: c.id,
-      platform: c.platform,
-      type: c.type,
-      status: c.status === 'UNREAD' ? 'OPEN' : c.status,
-      sentiment: c.sentiment,
-      assignedToUserId: c.assignedToUserId,
-      participantName: c.participantName,
-      participantAvatar: c.participantAvatar,
+      ...mapConv({ ...c, status: c.status === 'UNREAD' ? 'OPEN' : c.status }),
       participantExtId: c.participantExtId,
-      subject: c.subject,
-      brandId: c.brandId,
-      messageCount: c.messageCount,
       messages: messages.map((m) => ({
         id: m.id,
         direction: m.direction,
@@ -139,41 +199,54 @@ export class InboxService {
     });
     if (!c) throw new DomainError('NOT_FOUND', 'Conversation not found', 404, 'errors.not_found');
 
-    // Platform delivery is gated on real OAuth tokens; record outbound locally and
-    // surface a honest flag when external send is not yet wired for this platform.
-    const externalDelivered = false;
+    const delivery = await tryPlatformReply({
+      tenantId,
+      platform: c.platform as Platform,
+      brandId: c.brandId,
+      socialPageId: c.socialPageId,
+      externalThreadId: c.externalThreadId,
+      type: c.type,
+      participantExtId: c.participantExtId,
+      content,
+    });
 
     const msgId = newId();
+    const now = new Date();
     await getPrisma().$transaction([
       getPrisma().inboxMessage.create({
         data: {
           id: msgId,
           tenantId,
           conversationId: id,
+          externalMessageId: delivery.delivered ? delivery.externalMessageId : null,
           senderExternalId: userId,
           senderName: 'Team',
           content,
           direction: 'OUTBOUND',
           mediaUrlsJson: null,
+          rawPayloadJson: JSON.stringify({
+            platformDelivered: delivery.delivered,
+            platformReason: delivery.delivered ? null : delivery.reason,
+          }),
         },
       }),
       getPrisma().inboxConversation.update({
         where: { id },
         data: {
-          lastMessageAt: new Date(),
+          lastMessageAt: now,
           lastMessagePreview: previewOf(content),
           messageCount: { increment: 1 },
           status: c.status === 'CLOSED' ? 'OPEN' : c.status === 'UNREAD' ? 'OPEN' : c.status,
+          firstResponseAt: c.firstResponseAt ?? now,
         },
       }),
     ]);
 
     return {
       id: msgId,
-      externalDelivered,
-      note: externalDelivered
-        ? null
-        : 'Outbound stored locally. Connect platform OAuth + Graph/TikTok APIs to deliver externally.',
+      externalDelivered: delivery.delivered,
+      externalMessageId: delivery.delivered ? delivery.externalMessageId : null,
+      note: delivery.delivered ? null : delivery.reason,
     };
   }
 
@@ -188,10 +261,35 @@ export class InboxService {
       where: { id },
       data: {
         assignedToUserId,
-        status: c.status === 'UNREAD' ? 'OPEN' : c.status === 'PENDING' ? 'PENDING' : c.status,
+        status: c.status === 'UNREAD' ? 'OPEN' : c.status,
       },
     });
     return { id: updated.id, assignedToUserId: updated.assignedToUserId };
+  }
+
+  async setTags(tenantId: string, id: string, body: { tags?: string[] }) {
+    const c = await getPrisma().inboxConversation.findFirst({
+      where: tenantWhere(tenantId, { id }),
+    });
+    if (!c) throw new DomainError('NOT_FOUND', 'Conversation not found', 404, 'errors.not_found');
+    const tags = (body.tags ?? []).map((t) => t.trim()).filter(Boolean).slice(0, 20);
+    const updated = await getPrisma().inboxConversation.update({
+      where: { id },
+      data: { tagsJson: JSON.stringify(tags) },
+    });
+    return { id: updated.id, tags };
+  }
+
+  async setPriority(tenantId: string, id: string, body: { priority?: boolean }) {
+    const c = await getPrisma().inboxConversation.findFirst({
+      where: tenantWhere(tenantId, { id }),
+    });
+    if (!c) throw new DomainError('NOT_FOUND', 'Conversation not found', 404, 'errors.not_found');
+    const updated = await getPrisma().inboxConversation.update({
+      where: { id },
+      data: { priority: Boolean(body.priority) },
+    });
+    return { id: updated.id, priority: updated.priority };
   }
 
   async addNote(tenantId: string, userId: string, id: string, body: { content?: string }) {
@@ -223,9 +321,43 @@ export class InboxService {
     if (!c) throw new DomainError('NOT_FOUND', 'Conversation not found', 404, 'errors.not_found');
     const updated = await getPrisma().inboxConversation.update({
       where: { id },
-      data: { status },
+      data: {
+        status,
+        closedAt: status === 'CLOSED' ? new Date() : null,
+        unreadCount: status === 'UNREAD' ? c.unreadCount : status === 'OPEN' ? 0 : c.unreadCount,
+      },
     });
     return { id: updated.id, status: updated.status };
+  }
+
+  async bulkUpdate(
+    tenantId: string,
+    body: {
+      ids?: string[];
+      status?: Status;
+      assignedToUserId?: string | null;
+      priority?: boolean;
+    },
+  ) {
+    const ids = (body.ids ?? []).filter(Boolean).slice(0, 100);
+    if (!ids.length) {
+      throw new DomainError('VALIDATION_FAILED', 'ids required', 400, 'errors.validation');
+    }
+    const data: Record<string, unknown> = {};
+    if (body.status) {
+      data.status = body.status;
+      data.closedAt = body.status === 'CLOSED' ? new Date() : null;
+    }
+    if (body.assignedToUserId !== undefined) data.assignedToUserId = body.assignedToUserId;
+    if (body.priority !== undefined) data.priority = body.priority;
+    if (!Object.keys(data).length) {
+      throw new DomainError('VALIDATION_FAILED', 'No update fields', 400, 'errors.validation');
+    }
+    const result = await getPrisma().inboxConversation.updateMany({
+      where: tenantWhere(tenantId, { id: { in: ids } }),
+      data,
+    });
+    return { updated: result.count };
   }
 
   /** Upsert used by webhook worker after parsing platform payloads. */
@@ -256,6 +388,7 @@ export class InboxService {
     });
 
     const convId = existing?.id ?? newId();
+    const priority = sentiment === 'NEGATIVE';
     if (!existing) {
       await prisma.inboxConversation.create({
         data: {
@@ -267,6 +400,7 @@ export class InboxService {
           type: input.type,
           status: 'UNREAD',
           sentiment,
+          priority,
           participantName: input.senderName,
           participantAvatar: input.senderAvatar ?? null,
           participantExtId: input.senderExternalId,
@@ -311,6 +445,7 @@ export class InboxService {
           messageCount: { increment: 1 },
           unreadCount: { increment: 1 },
           sentiment,
+          priority: existing?.priority || priority,
           status: existing?.status === 'CLOSED' ? 'UNREAD' : existing?.status ?? 'UNREAD',
           participantName: input.senderName,
           participantAvatar: input.senderAvatar ?? null,

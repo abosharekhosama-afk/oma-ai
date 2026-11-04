@@ -1,0 +1,180 @@
+import { getPrisma } from '@oma/db';
+import { decryptToken, tokenKeyFromEnv } from '@oma/domain';
+
+export type PlatformReplyResult =
+  | { ok: true; externalMessageId: string | null; delivered: true }
+  | { ok: false; delivered: false; reason: string };
+
+/**
+ * Attempt real outbound delivery when a connected SocialPage token exists.
+ * Meta: Graph API messages / comments. Other networks: explicit not-wired yet.
+ */
+export async function tryPlatformReply(input: {
+  tenantId: string;
+  platform: 'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN';
+  brandId?: string | null;
+  socialPageId?: string | null;
+  externalThreadId: string;
+  type: string;
+  participantExtId?: string | null;
+  content: string;
+}): Promise<PlatformReplyResult> {
+  if (input.platform === 'TIKTOK' || input.platform === 'LINKEDIN') {
+    return {
+      ok: false,
+      delivered: false,
+      reason: `${input.platform} outbound reply is not wired yet — stored locally only.`,
+    };
+  }
+
+  const page = await resolveSocialPage(input);
+  if (!page) {
+    return {
+      ok: false,
+      delivered: false,
+      reason: 'No connected social page token found for this conversation. Connect the page in Brand › Social.',
+    };
+  }
+
+  let accessToken: string;
+  try {
+    const key = tokenKeyFromEnv(process.env);
+    if (!key) {
+      return {
+        ok: false,
+        delivered: false,
+        reason: 'SOCIAL_TOKEN_ENCRYPTION_KEY is not configured.',
+      };
+    }
+    accessToken = decryptToken(page.accessTokenEnc, key);
+  } catch {
+    return {
+      ok: false,
+      delivered: false,
+      reason: 'Could not decrypt page access token. Check SOCIAL_TOKEN_ENCRYPTION_KEY.',
+    };
+  }
+
+  if (input.type === 'DIRECT_MESSAGE') {
+    return sendMetaPrivateMessage({
+      platform: input.platform,
+      accessToken,
+      recipientId: input.participantExtId || extractPeerId(input.externalThreadId),
+      text: input.content,
+    });
+  }
+
+  // Comments / mentions: reply to comment id when thread id looks like a comment/post id
+  return sendMetaCommentReply({
+    accessToken,
+    commentOrMediaId: input.externalThreadId,
+    text: input.content,
+  });
+}
+
+async function resolveSocialPage(input: {
+  tenantId: string;
+  brandId?: string | null;
+  socialPageId?: string | null;
+  platform: 'META_FB' | 'META_IG';
+}) {
+  const network = input.platform === 'META_IG' ? 'INSTAGRAM' : 'FACEBOOK';
+  if (input.socialPageId) {
+    return getPrisma().socialPage.findFirst({
+      where: { id: input.socialPageId, tenantId: input.tenantId, status: 'CONNECTED' },
+      select: { id: true, accessTokenEnc: true, externalId: true, network: true },
+    });
+  }
+  return getPrisma().socialPage.findFirst({
+    where: {
+      tenantId: input.tenantId,
+      status: 'CONNECTED',
+      network: network as never,
+      ...(input.brandId ? { brandId: input.brandId } : {}),
+    },
+    orderBy: { updatedAt: 'desc' },
+    select: { id: true, accessTokenEnc: true, externalId: true, network: true },
+  });
+}
+
+function extractPeerId(externalThreadId: string): string | null {
+  // Worker stores FB/IG DM threads as `${pageId}:${senderId}`
+  const parts = externalThreadId.split(':');
+  if (parts.length >= 2) return parts[parts.length - 1] || null;
+  return externalThreadId || null;
+}
+
+async function sendMetaPrivateMessage(input: {
+  platform: 'META_FB' | 'META_IG';
+  accessToken: string;
+  recipientId: string | null;
+  text: string;
+}): Promise<PlatformReplyResult> {
+  if (!input.recipientId) {
+    return { ok: false, delivered: false, reason: 'Missing recipient id for private message.' };
+  }
+  const url = `https://graph.facebook.com/v21.0/me/messages?access_token=${encodeURIComponent(input.accessToken)}`;
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        recipient: { id: input.recipientId },
+        message: { text: input.text },
+        messaging_type: 'RESPONSE',
+      }),
+    });
+    const body = (await res.json().catch(() => ({}))) as {
+      message_id?: string;
+      error?: { message?: string };
+    };
+    if (!res.ok) {
+      return {
+        ok: false,
+        delivered: false,
+        reason: body.error?.message || `Meta Graph HTTP ${res.status}`,
+      };
+    }
+    return { ok: true, delivered: true, externalMessageId: body.message_id ?? null };
+  } catch (e) {
+    return {
+      ok: false,
+      delivered: false,
+      reason: e instanceof Error ? e.message : 'Meta request failed',
+    };
+  }
+}
+
+async function sendMetaCommentReply(input: {
+  accessToken: string;
+  commentOrMediaId: string;
+  text: string;
+}): Promise<PlatformReplyResult> {
+  const id = input.commentOrMediaId.split(':')[0] || input.commentOrMediaId;
+  const url = `https://graph.facebook.com/v21.0/${encodeURIComponent(id)}/replies?access_token=${encodeURIComponent(input.accessToken)}`;
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ message: input.text }),
+    });
+    const body = (await res.json().catch(() => ({}))) as {
+      id?: string;
+      error?: { message?: string };
+    };
+    if (!res.ok) {
+      return {
+        ok: false,
+        delivered: false,
+        reason: body.error?.message || `Meta Graph HTTP ${res.status}`,
+      };
+    }
+    return { ok: true, delivered: true, externalMessageId: body.id ?? null };
+  } catch (e) {
+    return {
+      ok: false,
+      delivered: false,
+      reason: e instanceof Error ? e.message : 'Meta comment reply failed',
+    };
+  }
+}

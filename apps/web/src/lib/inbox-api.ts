@@ -15,6 +15,11 @@ export type InboxConversationListItem = {
   unreadCount: number;
   subject: string | null;
   brandId: string | null;
+  priority?: boolean;
+  tags?: string[];
+  socialPageId?: string | null;
+  firstResponseAt?: string | null;
+  closedAt?: string | null;
 };
 
 export type InboxMessage = {
@@ -35,27 +40,31 @@ export type InboxNote = {
   createdAt: string;
 };
 
-export type InboxConversationDetail = {
-  id: string;
-  platform: string;
-  type: string;
-  status: string;
-  sentiment: string | null;
-  assignedToUserId: string | null;
-  participantName: string | null;
-  participantAvatar: string | null;
+export type InboxConversationDetail = InboxConversationListItem & {
   participantExtId: string | null;
-  subject: string | null;
-  brandId: string | null;
-  messageCount: number;
   messages: InboxMessage[];
   notes: InboxNote[];
 };
 
-export function listInboxConversations(params: Record<string, string | number | undefined> = {}) {
+export type InboxStats = {
+  total: number;
+  unread: number;
+  open: number;
+  pending: number;
+  closed: number;
+  priority: number;
+  unassigned: number;
+};
+
+export function getInboxStats() {
+  return api<InboxStats>('/api/v1/inbox/stats');
+}
+
+export function listInboxConversations(params: Record<string, string | number | boolean | undefined> = {}) {
   const qs = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) {
-    if (v !== undefined && v !== '' && v !== 'all') qs.set(k, String(v));
+    if (v === undefined || v === '' || v === 'all' || v === false) continue;
+    qs.set(k, String(v));
   }
   const q = qs.toString();
   return api<{ page: number; limit: number; total: number; items: InboxConversationListItem[] }>(
@@ -68,7 +77,7 @@ export function getInboxConversation(id: string) {
 }
 
 export function replyInboxConversation(id: string, content: string) {
-  return api<{ id: string; externalDelivered: boolean; note: string | null }>(
+  return api<{ id: string; externalDelivered: boolean; externalMessageId: string | null; note: string | null }>(
     `/api/v1/inbox/conversations/${id}/reply`,
     { method: 'POST', body: JSON.stringify({ content }) },
   );
@@ -78,6 +87,20 @@ export function assignInboxConversation(id: string, assignedToUserId: string | n
   return api(`/api/v1/inbox/conversations/${id}/assign`, {
     method: 'POST',
     body: JSON.stringify({ assignedToUserId }),
+  });
+}
+
+export function setInboxTags(id: string, tags: string[]) {
+  return api(`/api/v1/inbox/conversations/${id}/tags`, {
+    method: 'POST',
+    body: JSON.stringify({ tags }),
+  });
+}
+
+export function setInboxPriority(id: string, priority: boolean) {
+  return api(`/api/v1/inbox/conversations/${id}/priority`, {
+    method: 'POST',
+    body: JSON.stringify({ priority }),
   });
 }
 
@@ -92,5 +115,17 @@ export function setInboxStatus(id: string, status: string) {
   return api(`/api/v1/inbox/conversations/${id}/status`, {
     method: 'POST',
     body: JSON.stringify({ status }),
+  });
+}
+
+export function bulkUpdateInbox(body: {
+  ids: string[];
+  status?: string;
+  assignedToUserId?: string | null;
+  priority?: boolean;
+}) {
+  return api<{ updated: number }>('/api/v1/inbox/conversations/bulk', {
+    method: 'POST',
+    body: JSON.stringify(body),
   });
 }

@@ -1890,6 +1890,14 @@ model InboxConversation {
   lastMessagePreview String?
   messageCount       Int                     @default(0)
   unreadCount        Int                     @default(0)
+  /// Operational priority flag (SLA / negative / manual).
+  priority           Boolean                 @default(false)
+  /// JSON string array of tag labels, e.g. ["refund","vip"].
+  tagsJson           String                  @default("[]")
+  /// Linked SocialPage used for outbound platform replies when set.
+  socialPageId       String?
+  firstResponseAt    DateTime?
+  closedAt           DateTime?
   metadataJson       String?
   createdAt          DateTime                @default(now())
   updatedAt          DateTime                @updatedAt
@@ -1898,6 +1906,7 @@ model InboxConversation {
   notes              InboxInternalNote[]
 
   @@unique([tenantId, platform, externalThreadId])
+  @@index([tenantId, priority, lastMessageAt])
   @@index([tenantId, status, lastMessageAt])
   @@index([tenantId, platform, status])
   @@index([tenantId, assignedToUserId])
