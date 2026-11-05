@@ -78,6 +78,18 @@ export const SHELL_NAV_SECTIONS: NavSection[] = [
           { href: '/app/analytics/competitors', labelKey: 'analytics.nav.competitors' },
         ],
       },
+      {
+        href: '/app/listening/brand',
+        sectionPath: '/app/listening',
+        labelKey: 'nav.listening',
+        icon: 'filter',
+        children: [
+          { href: '/app/listening/brand', labelKey: 'listening.nav.brand' },
+          { href: '/app/listening/topic', labelKey: 'listening.nav.topic' },
+          { href: '/app/listening/competitors', labelKey: 'listening.nav.competitors' },
+          { href: '/app/listening/alerts', labelKey: 'listening.nav.alerts' },
+        ],
+      },
     ],
   },
   {
@@ -93,7 +105,6 @@ export const SHELL_NAV_SECTIONS: NavSection[] = [
       { href: '/app/schedule', labelKey: 'nav.schedule', icon: 'schedule' },
       { href: '/app/team', labelKey: 'nav.team', icon: 'team' },
       { href: '/app/activity', labelKey: 'nav.activity', icon: 'activity' },
-      { href: '/app/listening', labelKey: 'nav.listening', icon: 'activity' },
     ],
   },
 ];

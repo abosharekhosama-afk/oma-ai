@@ -1,5 +1,5 @@
-import { ListeningClient } from './listening-client';
+import { redirect } from 'next/navigation';
 
 export default function ListeningPage() {
-  return <ListeningClient />;
+  redirect('/app/listening/brand');
 }
