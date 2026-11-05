@@ -156,123 +156,123 @@ export default function BrandSettingsPage() {
         tab={tab}
         onTab={onTab}
         brand={{
-          id: brand.id,
-          name: brand.name,
-          logo_url: brand.logo_url ?? null,
-          logo_asset_id: brand.logo_asset_id ?? null,
-          timezone: brand.timezone ?? 'Asia/Dubai',
-          archived: brand.status === 'ARCHIVED',
-        }}
-        timezones={timezones}
-        canManage={caps.has('brand.create')}
-        canManageMembers={caps.has('membership.manage')}
-        canConnect={caps.has('brand.website.connect')}
-        saving={saving}
-        notice={notice}
-        onSave={async (patch) => {
-          setSaving(true);
-          try {
-            const { logoAssetId, logoUrl, ...rest } = patch;
-            const saved = await brandSettingsApi.update(brandId, {
-              ...rest,
-              ...(logoAssetId
-                ? logoAssetId !== brand.logo_asset_id
-                  ? { logo_asset_id: logoAssetId }
-                  : {}
-                : logoUrl !== brand.logo_url
-                  ? { logoUrl }
-                  : {}),
-              version: brand.version,
-            });
-            announceBrandLogo(brandId, saved.data.logo_url ?? null);
-            setNotice({ kind: 'success', text: t('brandSettings.saved') });
-            loadBrand();
-          } catch (e) {
-            fail(e);
-          } finally {
-            setSaving(false);
-          }
-        }}
-        logoStorage={logoStorage}
-        onArchive={async () => {
-          try {
-            const r = await brandSettingsApi.archive(brandId, brand.version);
-            setNotice({
-              kind: 'success',
-              text: t('brandSettings.danger.archived').replace(
-                '{n}',
-                String(r.data.unscheduled_posts ?? 0),
-              ),
-            });
-            loadBrand();
-          } catch (e) {
-            fail(e);
-          }
-        }}
-        onUnarchive={async () => {
-          try {
-            await brandSettingsApi.unarchive(brandId);
-            setNotice({ kind: 'success', text: t('brandSettings.danger.unarchived') });
-            loadBrand();
-          } catch (e) {
-            fail(e);
-          }
-        }}
-        onDelete={async () => {
-          try {
-            await brandSettingsApi.remove(brandId);
-            router.push('/app/brands');
-          } catch (e) {
-            fail(e);
-          }
-        }}
-        members={members}
-        candidates={candidates}
-        onAddMember={async (userId, role) => {
-          try {
-            await brandSettingsApi.addMember(brandId, userId, role);
-            loadMembers();
-          } catch (e) {
-            fail(e);
-          }
-        }}
-        onRole={async (userId, role) => {
-          try {
-            await brandSettingsApi.setRole(brandId, userId, role);
-            loadMembers();
-          } catch (e) {
-            fail(e);
-          }
-        }}
-        onRemoveMember={async (userId) => {
-          try {
-            await brandSettingsApi.removeMember(brandId, userId);
-            loadMembers();
-          } catch (e) {
-            fail(e);
-          }
-        }}
-        pages={pages}
-        providers={providers}
-        connecting={connecting}
-        onConnect={async (network) => {
-          setConnecting(network);
-          try {
-            const r = await brandSettingsApi.connect(brandId, network);
-            window.location.assign(r.data.authorize_url);
-          } catch (e) {
-            fail(e);
-            setConnecting(null);
-          }
-        }}
-        onDisconnect={async (page) => {
-          try {
-            await brandSettingsApi.disconnect(brandId, page.id);
-            loadSocial();
-          } catch (e) {
-            fail(e);
-          }
-        }}
+        id: brand.id,
+        name: brand.name,
+        logo_url: brand.logo_url ?? null,
+        logo_asset_id: brand.logo_asset_id ?? null,
+        timezone: brand.timezone ?? 'Asia/Dubai',
+        archived: brand.status === 'ARCHIVED',
+      }}
+      timezones={timezones}
+      canManage={caps.has('brand.create')}
+      canManageMembers={caps.has('membership.manage')}
+      canConnect={caps.has('brand.website.connect')}
+      saving={saving}
+      notice={notice}
+      onSave={async (patch) => {
+        setSaving(true);
+        try {
+          const { logoAssetId, logoUrl, ...rest } = patch;
+          const saved = await brandSettingsApi.update(brandId, {
+            ...rest,
+            ...(logoAssetId
+              ? logoAssetId !== brand.logo_asset_id
+                ? { logo_asset_id: logoAssetId }
+                : {}
+              : logoUrl !== brand.logo_url
+                ? { logoUrl }
+                : {}),
+            version: brand.version,
+          });
+          announceBrandLogo(brandId, saved.data.logo_url ?? null);
+          setNotice({ kind: 'success', text: t('brandSettings.saved') });
+          loadBrand();
+        } catch (e) {
+          fail(e);
+        } finally {
+          setSaving(false);
+        }
+      }}
+      logoStorage={logoStorage}
+      onArchive={async () => {
+        try {
+          const r = await brandSettingsApi.archive(brandId, brand.version);
+          setNotice({
+            kind: 'success',
+            text: t('brandSettings.danger.archived').replace(
+              '{n}',
+              String(r.data.unscheduled_posts ?? 0),
+            ),
+          });
+          loadBrand();
+        } catch (e) {
+          fail(e);
+        }
+      }}
+      onUnarchive={async () => {
+        try {
+          await brandSettingsApi.unarchive(brandId);
+          setNotice({ kind: 'success', text: t('brandSettings.danger.unarchived') });
+          loadBrand();
+        } catch (e) {
+          fail(e);
+        }
+      }}
+      onDelete={async () => {
+        try {
+          await brandSettingsApi.remove(brandId);
+          router.push('/app/brands');
+        } catch (e) {
+          fail(e);
+        }
+      }}
+      members={members}
+      candidates={candidates}
+      onAddMember={async (userId, role) => {
+        try {
+          await brandSettingsApi.addMember(brandId, userId, role);
+          loadMembers();
+        } catch (e) {
+          fail(e);
+        }
+      }}
+      onRole={async (userId, role) => {
+        try {
+          await brandSettingsApi.setRole(brandId, userId, role);
+          loadMembers();
+        } catch (e) {
+          fail(e);
+        }
+      }}
+      onRemoveMember={async (userId) => {
+        try {
+          await brandSettingsApi.removeMember(brandId, userId);
+          loadMembers();
+        } catch (e) {
+          fail(e);
+        }
+      }}
+      pages={pages}
+      providers={providers}
+      connecting={connecting}
+      onConnect={async (network) => {
+        setConnecting(network);
+        try {
+          const r = await brandSettingsApi.connect(brandId, network);
+          window.location.assign(r.data.authorize_url);
+        } catch (e) {
+          fail(e);
+          setConnecting(null);
+        }
+      }}
+      onDisconnect={async (page) => {
+        try {
+          await brandSettingsApi.disconnect(brandId, page.id);
+          loadSocial();
+        } catch (e) {
+          fail(e);
+        }
+      }}
       />
     </BrandWorkspaceShell>
   );

@@ -109,7 +109,9 @@ export function BrandWorkspaceShell({
           <BrandMark name={brandName} logoUrl={logoUrl} />
           <div className="oma-plx-brand__identity-copy">
             <h1 className="oma-plx-listening__title">{brandName}</h1>
-            {websiteUrl ? <p className="oma-plx-deliv__subtitle oma-ltr">{websiteUrl}</p> : null}
+            {websiteUrl ? (
+              <p className="oma-plx-deliv__subtitle oma-ltr">{websiteUrl}</p>
+            ) : null}
             <div className="oma-plx-brand__chips">
               {brandStatus ? <StatusChip status={brandStatus} /> : null}
               {scanStatus ? <StatusChip status={scanStatus} /> : null}
@@ -164,13 +166,13 @@ export function BrandWorkspaceShell({
         <div className="oma-plx-deliv-panel__body oma-plx-brand-panel__body">
           <div
             className={
-              aside
-                ? 'oma-plx-brand-layout oma-brand-body'
-                : 'oma-plx-brand-layout oma-plx-brand-layout--single oma-brand-body oma-brand-body--single'
+              aside ? 'oma-plx-brand-layout oma-brand-body' : 'oma-plx-brand-layout oma-plx-brand-layout--single oma-brand-body oma-brand-body--single'
             }
           >
             <div className="oma-plx-brand-main oma-brand-main">{children}</div>
-            {aside ? <aside className="oma-plx-brand-aside oma-brand-aside">{aside}</aside> : null}
+            {aside ? (
+              <aside className="oma-plx-brand-aside oma-brand-aside">{aside}</aside>
+            ) : null}
           </div>
         </div>
       </section>
