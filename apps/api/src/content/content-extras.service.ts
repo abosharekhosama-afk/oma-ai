@@ -250,7 +250,13 @@ export class ContentExtrasService {
     actorUserId: string,
     brandId: string,
     input: {
-      name: { en: string; ar?: string } | string;
+      name?: { en: string; ar?: string } | string;
+      nameEn?: string;
+      nameAr?: string;
+      titleEn?: string;
+      titleAr?: string;
+      captionEn?: string;
+      captionAr?: string;
       fromContentId?: string;
       contentType?: string;
       channel?: string;
@@ -259,10 +265,10 @@ export class ContentExtrasService {
     },
   ) {
     await this.requireBrand(tenantId, brandId);
-    let titleEn: string | null = null;
-    let titleAr: string | null = null;
-    let captionEn: string | null = null;
-    let captionAr: string | null = null;
+    let titleEn: string | null = input.titleEn?.trim() || null;
+    let titleAr: string | null = input.titleAr?.trim() || titleEn;
+    let captionEn: string | null = input.captionEn?.trim() || null;
+    let captionAr: string | null = input.captionAr?.trim() || captionEn;
     let contentType = input.contentType ?? 'POST';
     let channel = input.channel ?? 'instagram';
     let track = input.track ?? 'ORGANIC';
@@ -285,9 +291,12 @@ export class ContentExtrasService {
         previewAssetUrl = src.previewAssetUrl;
       }
     }
-    const nameEn = typeof input.name === 'string' ? input.name.trim() : input.name.en.trim();
-    const nameAr =
-      typeof input.name === 'string' ? input.name.trim() : (input.name.ar ?? input.name.en).trim();
+    const nameEn = (
+      typeof input.name === 'string' ? input.name : (input.name?.en ?? input.nameEn ?? '')
+    ).trim();
+    const nameAr = (
+      typeof input.name === 'string' ? input.name : (input.name?.ar ?? input.nameAr ?? nameEn)
+    ).trim();
     if (!nameEn) {
       throw new DomainError(
         'VALIDATION_FAILED',
