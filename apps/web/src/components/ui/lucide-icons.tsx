@@ -378,3 +378,21 @@ export const UploadOutlined = (p: IconProps) => (
     <path d="M12 3v12" />
   </Icon>
 );
+export const StarOutlined = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M12 2l3.1 6.3 7 1-5 4.9 1.2 7L12 18.8 5.7 21.2 7 14.2 2 9.3l7-1z" />
+  </Icon>
+);
+export const HeartOutlined = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M19 14c1.5-1.3 3-3.3 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3.4 1-4.5 2.5C10.9 4 9.3 3 7.5 3A5.5 5.5 0 0 0 2 8.5c0 2.2 1.5 4.2 3 5.5l7 6.5 7-6.5z" />
+  </Icon>
+);
+export const SmileOutlined = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="12" cy="12" r="10" />
+    <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+    <path d="M9 9h.01" />
+    <path d="M15 9h.01" />
+  </Icon>
+);

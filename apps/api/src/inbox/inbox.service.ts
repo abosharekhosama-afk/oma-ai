@@ -61,6 +61,7 @@ function mapConv(c: {
   socialPageId: string | null;
   firstResponseAt: Date | null;
   closedAt: Date | null;
+  metadataJson?: string | null;
 }) {
   return {
     id: c.id,
@@ -82,6 +83,7 @@ function mapConv(c: {
     socialPageId: c.socialPageId,
     firstResponseAt: c.firstResponseAt?.toISOString() ?? null,
     closedAt: c.closedAt?.toISOString() ?? null,
+    metadataJson: c.metadataJson ?? null,
   };
 }
 
