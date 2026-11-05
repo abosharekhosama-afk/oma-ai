@@ -352,7 +352,8 @@ export default function RequestDetailPage() {
 
   return (
     <div className="oma-plx-listening oma-plx-req-detail oma-req-detail" data-testid="demo-request-detail">
-      <header className="oma-plx-req-detail__top oma-req-detail__top">
+      <div className="oma-plx-workspace-surface">
+      <header className="oma-plx-req-detail__top oma-req-detail__top oma-plx-listening-panel">
         <div className="oma-req-detail__top-left">
           <Link
             href="/app/requests"
@@ -363,15 +364,15 @@ export default function RequestDetailPage() {
             <span>{t('demo.requests.back')}</span>
           </Link>
           {row ? (
-            <div className="oma-req-detail__top-meta">
-              <span className="oma-req-detail__top-id">{pickCopy(row.title, locale)}</span>
+            <div className="oma-req-detail__top-meta oma-plx-req-detail__chips">
+              <span className="oma-plx-req-detail__ref oma-ltr">{requestId.slice(0, 8)}</span>
               <StatusChip status={row.status} />
               <StatusChip status={row.priority} />
             </div>
           ) : null}
         </div>
         {row ? (
-          <div className="oma-req-detail__top-actions">
+          <div className="oma-req-detail__top-actions oma-plx-req-detail__top-actions">
             <Button
               type="default"
               data-testid="demo-request-close"
@@ -399,7 +400,7 @@ export default function RequestDetailPage() {
         </p>
       ) : null}
       {error ? (
-        <div className="oma-card oma-req-detail__pad" role="alert">
+        <div className="oma-plx-listening-panel oma-req-detail__pad" role="alert">
           <p style={{ color: 'var(--status-danger)', margin: 0 }}>{error}</p>
         </div>
       ) : null}
@@ -429,7 +430,7 @@ export default function RequestDetailPage() {
               className="oma-plx-listening-panel oma-plx-req-card oma-req-detail__card"
               data-testid="demo-request-completeness"
             >
-              <header className="oma-req-detail__card-head">
+              <header className="oma-req-detail__card-head oma-plx-listening-panel__head">
                 <strong>{t('demo.requests.triage')}</strong>
                 <span className="oma-req-detail__meta">
                   {requestCompleteness(row, briefDraft)}%
@@ -539,7 +540,7 @@ export default function RequestDetailPage() {
             {/* Brief card */}
             {briefDraft ? (
               <section className="oma-plx-listening-panel oma-plx-req-card oma-req-detail__card oma-req-detail__card--brief">
-                <header className="oma-req-detail__card-head">
+                <header className="oma-req-detail__card-head oma-plx-listening-panel__head">
                   <div className="oma-req-detail__card-head-text">
                     <strong>
                       <FileTextOutlined /> {t('demo.request.brief')}
@@ -683,10 +684,10 @@ export default function RequestDetailPage() {
             ) : null}
 
             <section
-              className="oma-plx-listening-panel oma-plx-req-card oma-req-detail__card oma-req-detail__comments"
+              className="oma-plx-listening-panel oma-plx-req-card oma-req-detail__card oma-req-detail__comments oma-plx-inbox-comments"
               data-testid="demo-request-comments"
             >
-              <header className="oma-req-detail__card-head">
+              <header className="oma-req-detail__card-head oma-plx-listening-panel__head oma-plx-inbox-comments-head">
                 <strong>{isAr ? 'التعليقات' : 'Comments'}</strong>
                 <span className="oma-req-detail__meta">{comments.length}</span>
               </header>
@@ -786,7 +787,7 @@ export default function RequestDetailPage() {
 
             {/* Tasks card */}
             <section className="oma-plx-listening-panel oma-plx-req-card oma-req-detail__card">
-              <header className="oma-req-detail__card-head">
+              <header className="oma-req-detail__card-head oma-plx-listening-panel__head">
                 <strong>{t('demo.tasks.title')}</strong>
               </header>
               {(row.tasks ?? []).length === 0 ? (
@@ -861,6 +862,7 @@ export default function RequestDetailPage() {
           </aside>
         </div>
       ) : null}
+      </div>
 
       <Dialog
         open={confirmClose}

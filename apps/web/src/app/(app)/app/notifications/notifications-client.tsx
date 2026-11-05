@@ -11,9 +11,11 @@ import {
 } from '../../../../lib/notifications-api';
 import { getApiError } from '../../../../lib/brand-api';
 import {
-  notificationCategories,
+  notificationTabCategories,
   notificationCategory,
-  notificationCategoryLabel,
+  notificationTabLabel,
+  notificationTabs,
+  type NotificationTab,
   NotificationRow,
 } from '../../../../components/shell/notifications-bell';
 import { ShellIcon } from '../../../../components/shell/shell-icons';
@@ -24,7 +26,7 @@ export default function NotificationsPage() {
   const isAr = locale === 'ar';
   const [items, setItems] = useState<AppNotification[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [category, setCategory] = useState(notificationCategories[0]);
+  const [category, setCategory] = useState<NotificationTab>('approvals');
   const [busy, setBusy] = useState(false);
   const [unreadOnly, setUnreadOnly] = useState(false);
   const load = useCallback(async () => {
@@ -67,15 +69,20 @@ export default function NotificationsPage() {
   const counts = useMemo(
     () =>
       Object.fromEntries(
-        notificationCategories.map((c) => [
-          c,
-          (items ?? []).filter((n) => notificationCategory(n.type) === c && !n.readAt).length,
+        notificationTabs.map((tab) => [
+          tab,
+          (items ?? []).filter(
+            (n) =>
+              notificationTabCategories(tab).includes(notificationCategory(n.type)) && !n.readAt,
+          ).length,
         ]),
-      ) as Record<(typeof notificationCategories)[number], number>,
+      ) as Record<NotificationTab, number>,
     [items],
   );
   const shown = (items ?? []).filter(
-    (n) => notificationCategory(n.type) === category && (!unreadOnly || !n.readAt),
+    (n) =>
+      notificationTabCategories(category).includes(notificationCategory(n.type)) &&
+      (!unreadOnly || !n.readAt),
   );
   return (
     <main
@@ -101,7 +108,7 @@ export default function NotificationsPage() {
         </Button>
       </header>
       <div className="oma-notifications-page__tabs" role="tablist">
-        {notificationCategories.map((c) => (
+        {notificationTabs.map((c) => (
           <button
             key={c}
             type="button"
@@ -110,38 +117,23 @@ export default function NotificationsPage() {
             className={category === c ? 'is-active' : ''}
             onClick={() => setCategory(c)}
           >
-            <span>{notificationCategoryLabel(c, isAr)}</span>
+            <span>{notificationTabLabel(c, isAr)}</span>
             {counts[c] > 0 ? <b>{counts[c]}</b> : null}
           </button>
         ))}
       </div>
       <div className="oma-notifications-page__toolbar">
-        <div
-          className="oma-notifications-page__filter"
-          role="tablist"
-          aria-label={isAr ? 'تصفية القراءة' : 'Read filter'}
-        >
-          <button
-            type="button"
-            role="tab"
-            data-testid="notifications-filter-all"
-            aria-selected={!unreadOnly}
-            className={!unreadOnly ? 'is-active' : ''}
-            onClick={() => setUnreadOnly(false)}
-          >
-            {isAr ? 'الكل' : 'All'}
-          </button>
-          <button
-            type="button"
-            role="tab"
+        <label className="oma-notifications-panel__unreads">
+          <span>{isAr ? 'غير المقروءة' : 'Unreads'}</span>
+          <input
+            type="checkbox"
+            role="switch"
+            aria-checked={unreadOnly}
+            checked={unreadOnly}
+            onChange={(e) => setUnreadOnly(e.target.checked)}
             data-testid="notifications-filter-unread"
-            aria-selected={unreadOnly}
-            className={unreadOnly ? 'is-active' : ''}
-            onClick={() => setUnreadOnly(true)}
-          >
-            {isAr ? 'غير المقروءة' : 'Unread'}
-          </button>
-        </div>
+          />
+        </label>
         <span>{isAr ? `${counts[category]} غير مقروءة` : `${counts[category]} unread`}</span>
       </div>
       {error ? (
