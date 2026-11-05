@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@oma/ui/controls';
 import {
   AtSignOutlined,
@@ -16,10 +16,15 @@ import {
   ZapOutlined,
 } from '../../../../components/ui/lucide-icons';
 import {
+  getListeningStats,
   listListeningHits,
   listListeningRules,
+  patchListeningHit,
+  syncListening,
+  updateListeningRule,
   type ListeningHit,
   type ListeningRule,
+  type ListeningStats,
 } from '../../../../lib/listening-api';
 import { resolveActiveBrand, useActiveBrandId } from '../../../../lib/active-brand';
 import { listScopedBrands } from '../../../../lib/campaign-api';
@@ -32,15 +37,11 @@ import {
   formatCount,
   highlightKeywords,
   hitEngagement,
-  hitInDateRange,
   hitThumbnail,
   isNewHit,
   platformLabel,
   platformShort,
   relativeDay,
-  sentimentTotals,
-  totalEngagement,
-  volumeByDateRange,
   type ListeningView,
 } from './listening-utils';
 
@@ -57,7 +58,33 @@ function ruleForView(rules: ListeningRule[], view: ListeningView): ListeningRule
   return rules.find((r) => /brand/i.test(r.name)) ?? rules[0] ?? null;
 }
 
-function SentimentBar({ positive, neutral, negative, total }: ReturnType<typeof sentimentTotals>) {
+function formatTrend(pct: number | null | undefined) {
+  if (pct == null) return null;
+  const sign = pct >= 0 ? '↑' : '↓';
+  return `${sign} ${Math.abs(pct)}%`;
+}
+
+function formatNextCheck(iso: string | null | undefined, t: (k: string) => string) {
+  if (!iso) return t('listening.nextCheck') || 'Next check in 2 days';
+  const ms = new Date(iso).getTime() - Date.now();
+  if (ms <= 0) return t('listening.pollSoon') || 'Checking soon…';
+  const mins = Math.ceil(ms / 60_000);
+  if (mins < 120) return (t('listening.nextCheckMinutes') || 'Next check in {n} min').replace('{n}', String(mins));
+  const hours = Math.ceil(mins / 60);
+  return (t('listening.nextCheckHours') || 'Next check in {n} h').replace('{n}', String(hours));
+}
+
+function SentimentBar({
+  positive,
+  neutral,
+  negative,
+  total,
+}: {
+  positive: number;
+  neutral: number;
+  negative: number;
+  total: number;
+}) {
   const p = (positive / total) * 100;
   const n = (neutral / total) * 100;
   const neg = (negative / total) * 100;
@@ -146,12 +173,14 @@ export function ListeningClient({ view }: { view: ListeningView }) {
   const [chartMode, setChartMode] = useState<'total' | 'sentiment'>('sentiment');
   const [filterOpen, setFilterOpen] = useState(false);
   const [contextDismissed, setContextDismissed] = useState(false);
-  const [localSentiment, setLocalSentiment] = useState<Record<string, string>>({});
+  const [stats, setStats] = useState<ListeningStats | null>(null);
   const [chartDayIndex, setChartDayIndex] = useState<number | null>(null);
   const [hideOwnMentions, setHideOwnMentions] = useState(false);
   const [showHidden, setShowHidden] = useState(false);
   const [showExcluded, setShowExcluded] = useState(false);
   const [dateRange, setDateRange] = useState<DateRangeValue>(() => resolveDateRange('7'));
+  const [syncing, setSyncing] = useState(false);
+  const initialSync = useRef(false);
 
   const activeRule = useMemo(() => ruleForView(rules, view), [rules, view]);
 
@@ -178,25 +207,86 @@ export function ListeningClient({ view }: { view: ListeningView }) {
     setLoading(true);
     setError(null);
     try {
-      const r = await listListeningRules();
+      const r = await listListeningRules(activeBrandId || undefined);
       setRules(r.items);
       const rule = ruleForView(r.items, view);
-      const params: Record<string, string | number | boolean | undefined> = { limit: 100 };
-      if (view === 'alerts') params.highPriorityOnly = true;
-      else if (rule) params.ruleId = rule.id;
-      const h = await listListeningHits(params);
+      const platformCsv = platforms.size ? [...platforms].join(',') : undefined;
+      const hitParams: Record<string, string | number | boolean | undefined> = {
+        limit: 100,
+        from: dateRange.start.toISOString(),
+        to: dateRange.end.toISOString(),
+        sort,
+        includeHidden: showHidden,
+        includeExcluded: showExcluded,
+      };
+      if (activeBrandId) hitParams.brandId = activeBrandId;
+      if (platformCsv) hitParams.platforms = platformCsv;
+      if (sentimentFilter !== 'all') hitParams.sentiment = sentimentFilter;
+      if (view === 'alerts') hitParams.highPriorityOnly = true;
+      else if (rule) hitParams.ruleId = rule.id;
+
+      const statParams: Record<string, string | undefined> = {
+        from: dateRange.start.toISOString(),
+        to: dateRange.end.toISOString(),
+      };
+      if (activeBrandId) statParams.brandId = activeBrandId;
+      if (platformCsv) statParams.platforms = platformCsv;
+      if (rule && view !== 'alerts') statParams.ruleId = rule.id;
+
+      const [h, s] = await Promise.all([
+        listListeningHits(hitParams),
+        getListeningStats(statParams).catch(() => null),
+      ]);
       setHits(h.items);
+      setStats(s);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load listening');
       setHits([]);
+      setStats(null);
     } finally {
       setLoading(false);
     }
-  }, [view]);
+  }, [
+    view,
+    activeBrandId,
+    dateRange,
+    platforms,
+    sort,
+    sentimentFilter,
+    showHidden,
+    showExcluded,
+  ]);
+
+  const runSync = useCallback(async () => {
+    setSyncing(true);
+    try {
+      const rule = ruleForView(rules, view);
+      try {
+        await syncListening({
+          brandId: activeBrandId || undefined,
+          ruleId: rule?.id,
+        });
+        await new Promise((r) => setTimeout(r, 1200));
+      } catch {
+        /* no live rules or queue unavailable */
+      }
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Sync failed');
+    } finally {
+      setSyncing(false);
+    }
+  }, [rules, view, activeBrandId, load]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (initialSync.current) return;
+    initialSync.current = true;
+    void runSync();
+  }, [runSync]);
 
   const keywords = useMemo(() => {
     const fromRule = activeRule?.keywords ?? [];
@@ -205,48 +295,51 @@ export function ListeningClient({ view }: { view: ListeningView }) {
   }, [activeRule, hits]);
 
   const filteredHits = useMemo(() => {
-    let list = hits.map((h) => ({
-      ...h,
-      sentiment: (localSentiment[h.id] ?? h.sentiment) as ListeningHit['sentiment'],
-    }));
-    list = list.filter((h) => hitInDateRange(h, dateRange.start, dateRange.end));
-    if (platforms.size > 0) list = list.filter((h) => platforms.has(h.platform));
-    if (sentimentFilter !== 'all') list = list.filter((h) => h.sentiment === sentimentFilter);
-    if (hideOwnMentions) list = list.filter((h) => !/^(oma|team|brand)/i.test(h.authorHandle || ''));
-    if (sort === 'recency') {
-      list = [...list].sort(
-        (a, b) => new Date(b.capturedAt).getTime() - new Date(a.capturedAt).getTime(),
-      );
-    } else if (sort === 'engagement') {
-      list = [...list].sort(
-        (a, b) =>
-          hitEngagement(b).likes +
-          hitEngagement(b).comments -
-          (hitEngagement(a).likes + hitEngagement(a).comments),
-      );
-    } else {
-      list = [...list].sort((a, b) => Number(b.isHighPriority) - Number(a.isHighPriority));
-    }
-    return list;
-  }, [
-    hits,
-    platforms,
-    sentimentFilter,
-    sort,
-    localSentiment,
-    dateRange,
-    hideOwnMentions,
-    showHidden,
-    showExcluded,
-  ]);
+    if (!hideOwnMentions) return hits;
+    return hits.filter((h) => !/^(oma|team|brand)/i.test(h.authorHandle || ''));
+  }, [hits, hideOwnMentions]);
 
-  const series = useMemo(
-    () => volumeByDateRange(filteredHits, dateRange.start, dateRange.end),
-    [filteredHits, dateRange],
-  );
-  const sent = useMemo(() => sentimentTotals(filteredHits), [filteredHits]);
-  const mentionCount = filteredHits.length;
-  const engagementTotal = useMemo(() => totalEngagement(filteredHits), [filteredHits]);
+  const series = stats?.volume ?? [];
+  const mentionCount = stats?.mentions ?? filteredHits.length;
+  const engagementTotal = stats?.engagement ?? 0;
+  const sent = stats?.sentiment ?? {
+    positive: 0,
+    neutral: 0,
+    negative: 0,
+    total: 1,
+  };
+
+  const onSentimentChange = async (hitId: string, sentiment: 'POSITIVE' | 'NEUTRAL' | 'NEGATIVE') => {
+    try {
+      const updated = await patchListeningHit(hitId, { sentiment });
+      setHits((prev) => prev.map((h) => (h.id === hitId ? updated : h)));
+      void load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Update failed');
+    }
+  };
+
+  const onHideHit = async (hitId: string) => {
+    try {
+      await patchListeningHit(hitId, { isHidden: true });
+      setHits((prev) => prev.filter((h) => h.id !== hitId));
+      void load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Hide failed');
+    }
+  };
+
+  const onAddContext = async () => {
+    if (!activeRule) return;
+    const text = window.prompt(t('listening.contextPrompt') || 'Describe your brand for relevance scoring:', activeRule.contextJson ?? '');
+    if (text === null) return;
+    try {
+      await updateListeningRule(activeRule.id, { contextJson: text.trim() || null });
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not save context');
+    }
+  };
 
   const pageTitle =
     view === 'brand'
@@ -280,7 +373,10 @@ export function ListeningClient({ view }: { view: ListeningView }) {
           <h1 className="oma-plx-listening__title">{pageTitle}</h1>
           {activeRule ? <ListeningSourceMenu selected={platforms} onChange={setPlatforms} /> : null}
         </div>
-        <p className="oma-plx-listening__next-check">{t('listening.nextCheck') || 'Next check in 2 days'}</p>
+        <p className="oma-plx-listening__next-check">
+          {formatNextCheck(stats?.nextPollAt, t)}
+          {syncing ? ` · ${t('listening.syncing') || 'Syncing…'}` : ''}
+        </p>
       </div>
 
       {error ? (
@@ -300,8 +396,13 @@ export function ListeningClient({ view }: { view: ListeningView }) {
                 </span>
               </div>
               <strong className="oma-plx-listening-kpi__value">{mentionCount}</strong>
-              <p className="oma-plx-listening-kpi__trend trend--up">
-                ↑ 43% {t('listening.vsPrevious') || 'vs previous period'}
+              <p
+                className={`oma-plx-listening-kpi__trend ${
+                  (stats?.mentionsTrendPct ?? 0) >= 0 ? 'trend--up' : 'trend--down'
+                }`}
+              >
+                {formatTrend(stats?.mentionsTrendPct) ?? '—'}{' '}
+                {t('listening.vsPrevious') || 'vs previous period'}
               </p>
             </article>
             <article className="oma-plx-listening-kpi">
@@ -312,8 +413,13 @@ export function ListeningClient({ view }: { view: ListeningView }) {
                 </span>
               </div>
               <strong className="oma-plx-listening-kpi__value">{formatCount(engagementTotal)}</strong>
-              <p className="oma-plx-listening-kpi__trend trend--up">
-                ↑ 49% {t('listening.vsPrevious') || 'vs previous period'}
+              <p
+                className={`oma-plx-listening-kpi__trend ${
+                  (stats?.engagementTrendPct ?? 0) >= 0 ? 'trend--up' : 'trend--down'
+                }`}
+              >
+                {formatTrend(stats?.engagementTrendPct) ?? '—'}{' '}
+                {t('listening.vsPrevious') || 'vs previous period'}
               </p>
             </article>
             <article className="oma-plx-listening-kpi oma-plx-listening-kpi--sentiment">
@@ -323,7 +429,12 @@ export function ListeningClient({ view }: { view: ListeningView }) {
                   <SmileOutlined />
                 </span>
               </div>
-              <SentimentBar {...sent} />
+              <SentimentBar
+                positive={sent.positive}
+                neutral={sent.neutral}
+                negative={sent.negative}
+                total={sent.total || 1}
+              />
             </article>
           </div>
 
@@ -379,7 +490,16 @@ export function ListeningClient({ view }: { view: ListeningView }) {
             >
               <DownloadOutlined />
             </button>
-            <button type="button" className="oma-plx-listening-icon-btn" aria-label="Hide">
+            <button
+              type="button"
+              className="oma-plx-listening-icon-btn"
+              aria-label="Hide"
+              disabled={!filteredHits.length}
+              onClick={() => {
+                const first = filteredHits[0];
+                if (first) void onHideHit(first.id);
+              }}
+            >
               <MinusCircleOutlined />
             </button>
             <div className="oma-plx-listening-filter">
@@ -469,7 +589,7 @@ export function ListeningClient({ view }: { view: ListeningView }) {
               >
                 {t('listening.dismiss') || 'Dismiss'}
               </button>
-              <Button type="primary" size="small">
+              <Button type="primary" size="small" onClick={() => void onAddContext()}>
                 + {t('listening.addContext') || 'Add context'}
               </Button>
             </div>
@@ -516,7 +636,7 @@ export function ListeningClient({ view }: { view: ListeningView }) {
                   <SentimentPill
                     value={sentLabel}
                     t={t}
-                    onChange={(s) => setLocalSentiment((prev) => ({ ...prev, [h.id]: s }))}
+                    onChange={(s) => void onSentimentChange(h.id, s)}
                   />
                 </div>
                 <div className="oma-plx-listening-card__body">
@@ -542,8 +662,15 @@ export function ListeningClient({ view }: { view: ListeningView }) {
                     <CommentOutlined /> {eng.comments}
                   </span>
                   <span>
-                    <BarChartOutlined /> {formatCount(eng.likes + eng.comments * 3)}
+                    <BarChartOutlined /> {formatCount(eng.total)}
                   </span>
+                  <button
+                    type="button"
+                    className="oma-plx-listening-link"
+                    onClick={() => void onHideHit(h.id)}
+                  >
+                    {t('listening.hideMention') || 'Hide'}
+                  </button>
                   {h.url ? (
                     <a href={h.url} target="_blank" rel="noreferrer" className="oma-plx-listening-card__link">
                       Open

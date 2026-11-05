@@ -395,6 +395,8 @@ async function seedListening(tenantId: string) {
         isHighPriority: h.priority,
         matchedKeywordsJson: JSON.stringify(h.keywords),
         capturedAt: hoursAgo(h.hoursAgo),
+        likeCount: 1200 + h.hoursAgo * 40,
+        commentCount: 20 + h.hoursAgo,
       },
     });
   }
