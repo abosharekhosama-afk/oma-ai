@@ -32,6 +32,8 @@ type PlxHeaderFilterProps = {
   onCreateClick?: () => void;
   footer?: ReactNode;
   headerLeading?: ReactNode;
+  /** When true, only headerLeading / create actions render (no filter popover). */
+  hideFilterTrigger?: boolean;
 };
 
 function usePopoverRect(open: boolean, anchorRef: React.RefObject<HTMLButtonElement | null>) {
@@ -90,9 +92,21 @@ export function PlxHeaderFilter({
   onCreateClick,
   footer,
   headerLeading,
+  hideFilterTrigger = false,
 }: PlxHeaderFilterProps) {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const rect = usePopoverRect(open, triggerRef);
+
+  useEffect(() => {
+    if (hideFilterTrigger) return;
+    const root = document.documentElement;
+    if (open) {
+      root.setAttribute('data-plx-filter-open', 'true');
+    } else {
+      root.removeAttribute('data-plx-filter-open');
+    }
+    return () => root.removeAttribute('data-plx-filter-open');
+  }, [open, hideFilterTrigger]);
 
   useEffect(() => {
     if (!open) return;
@@ -107,24 +121,26 @@ export function PlxHeaderFilter({
     headerSlot && headerSlot.isConnected ? (
       <div className="oma-workspace-header-actions oma-plx-header-filter-actions">
         {headerLeading}
-        <div className="oma-plx-header-filter-anchor">
-          <button
-            ref={triggerRef}
-            type="button"
-            className="oma-plx-listening-filter__trigger"
-            data-testid={filterTestId}
-            data-active={open ? 'true' : 'false'}
-            aria-expanded={open}
-            aria-haspopup="dialog"
-            onClick={() => onOpenChange(!open)}
-          >
-            <FilterOutlined aria-hidden />
-            <span>{filterLabel}</span>
-            {filterCount > 0 ? (
-              <span className="oma-plx-deliv-filter-count">{filterCount}</span>
-            ) : null}
-          </button>
-        </div>
+        {hideFilterTrigger ? null : (
+          <div className="oma-plx-header-filter-anchor">
+            <button
+              ref={triggerRef}
+              type="button"
+              className="oma-plx-listening-filter__trigger"
+              data-testid={filterTestId}
+              data-active={open ? 'true' : 'false'}
+              aria-expanded={open}
+              aria-haspopup="dialog"
+              onClick={() => onOpenChange(!open)}
+            >
+              <FilterOutlined aria-hidden />
+              <span>{filterLabel}</span>
+              {filterCount > 0 ? (
+                <span className="oma-plx-deliv-filter-count">{filterCount}</span>
+              ) : null}
+            </button>
+          </div>
+        )}
         {createTestId && onCreateClick ? (
           <button
             type="button"
@@ -142,7 +158,7 @@ export function PlxHeaderFilter({
     ) : null;
 
   const popoverLayer =
-    open && typeof document !== 'undefined' ? (
+    !hideFilterTrigger && open && typeof document !== 'undefined' ? (
       <>
         {createPortal(
           <button

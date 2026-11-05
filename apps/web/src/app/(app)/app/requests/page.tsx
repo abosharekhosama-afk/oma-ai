@@ -749,6 +749,7 @@ export default function RequestsPage() {
 
       </PlxHeaderFilter>
 
+      <div className="oma-plx-workspace-surface">
       {loading ? (
         <div className="oma-req-main" data-testid="demo-requests-loading">
           <RequestsShimmer part="body" />
@@ -893,6 +894,7 @@ export default function RequestsPage() {
 
         </div>
       ) : null}
+      </div>
 
       <Dialog
         open={createOpen}
