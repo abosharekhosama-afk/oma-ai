@@ -47,6 +47,10 @@ export type FeedPostProps = {
   canEditMedia?: boolean;
   onAddFromComputer?: () => void;
   onAddFromLibrary?: () => void;
+  onRemoveMedia?: (src: string) => void;
+  onDownloadMedia?: (src: string) => void;
+  onSaveAlt?: (alt: string) => void;
+  onGenerateAlt?: () => Promise<string>;
 };
 
 export function relativeTime(iso: string, locale: string, now = Date.now()): string {
@@ -399,8 +403,13 @@ export function FeedPost(props: FeedPostProps) {
           {...props.preview}
           hideNetworkLabel
           workspaceFeed
+          canEditMedia={props.canEditMedia}
           onAddFromComputer={props.canEditMedia ? props.onAddFromComputer : undefined}
           onAddFromLibrary={props.canEditMedia ? props.onAddFromLibrary : undefined}
+          onRemoveMedia={props.canEditMedia ? props.onRemoveMedia : undefined}
+          onDownloadMedia={props.onDownloadMedia}
+          onSaveAlt={props.canEditMedia ? props.onSaveAlt : undefined}
+          onGenerateAlt={props.canEditMedia ? props.onGenerateAlt : undefined}
           headerActions={
             <>
               <button

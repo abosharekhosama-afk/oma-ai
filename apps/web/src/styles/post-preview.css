@@ -489,6 +489,7 @@
   gap: 6px;
   opacity: 0;
   pointer-events: none;
+  z-index: 4;
 }
 .oma-pp__media:hover .oma-pp__media-tools,
 .oma-pp__media-edit[data-open='true'] .oma-pp__media-tools {
@@ -500,25 +501,59 @@
   height: 28px;
   padding: 0 7px;
   border: 0;
-  border-radius: 8px;
-  background: rgb(255 255 255 / 92%);
-  color: #374151;
-  font-size: 11px;
+  border-radius: 999px;
+  background: rgb(17 24 39 / 72%);
+  color: #fff;
+  font-size: 10px;
   font-weight: 700;
   cursor: pointer;
   pointer-events: auto;
+  display: grid;
+  place-items: center;
+}
+.oma-pp__media-tool:hover {
+  background: rgb(17 24 39 / 88%);
+}
+.oma-pp__crop {
+  position: absolute;
+  inset-block-start: 42px;
+  inset-inline-end: 8px;
+  z-index: 5;
+  display: flex;
+  gap: 6px;
+  pointer-events: auto;
+  background: #fff;
+  border: 1px solid #eceef1;
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
+}
+.oma-pp__crop button {
+  border: 0;
+  background: #f2f4f7;
+  color: #344054;
+  border-radius: 8px;
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.oma-pp__crop button[data-on='true'] {
+  background: #175cd3;
+  color: #fff;
 }
 .oma-pp__media-add {
   position: absolute;
   inset: 12px;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1fr) minmax(0, 1fr);
   gap: 10px;
   align-content: center;
   pointer-events: auto;
-  background: rgb(255 255 255 / 88%);
+  background: rgb(255 255 255 / 92%);
   border-radius: 12px;
-  padding: 16px;
+  padding: 16px 16px 48px;
 }
 .oma-pp__media-add-tile {
   min-height: 120px;
@@ -568,13 +603,40 @@
   border-radius: 8px;
   padding: 0 10px;
 }
+.oma-pp__alt-ai {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 34px;
+  border: 1px solid #c4b5fd;
+  background: #f5f3ff;
+  color: #6d28d9;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.oma-pp__alt-ai:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
 .oma-pp__alt-actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
 }
+.oma-pp__alt-actions button {
+  border: 0;
+  background: transparent;
+  color: #667085;
+  height: 30px;
+  padding: 0 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
 .oma-pp__alt-save {
-  background: #7c3aed;
+  background: #1677ff;
   color: #fff;
   border: 0;
   border-radius: 8px;

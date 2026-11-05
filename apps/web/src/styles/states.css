@@ -53,11 +53,12 @@
 .oma-error-state {
   max-width: 440px;
   margin: var(--space-10) auto;
-  padding: var(--space-6);
-  background: var(--oma-surface);
-  border: 1px solid var(--oma-border);
-  border-radius: 8px;
-  color: var(--oma-ink);
+  padding: 28px 24px;
+  background: #fff;
+  border: 1px solid #eceef1;
+  border-radius: 16px;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.08);
+  color: #101828;
   font-size: 14px;
   line-height: 20px;
   text-align: start;
@@ -96,27 +97,28 @@
 .oma-error-state__btn {
   display: inline-flex;
   align-items: center;
-  height: 32px;
-  padding: 0 var(--space-3);
-  border: 1px solid var(--oma-border-strong);
-  border-radius: var(--oma-radius-control);
-  background: var(--oma-surface);
-  color: var(--oma-ink);
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid #d0d5dd;
+  border-radius: 10px;
+  background: #fff;
+  color: #344054;
   font: inherit;
+  font-weight: 600;
   text-decoration: none;
   cursor: pointer;
 }
 .oma-error-state__btn:hover {
-  background: var(--oma-canvas);
+  background: #f8fafc;
 }
 .oma-error-state__btn--primary {
-  background: var(--oma-primary);
-  border-color: var(--oma-primary);
-  color: var(--oma-primary-ink);
+  background: #175cd3;
+  border-color: #175cd3;
+  color: #fff;
 }
 .oma-error-state__btn--primary:hover {
-  background: var(--oma-primary);
-  opacity: 0.92;
+  background: #1570ef;
+  opacity: 1;
 }
 .oma-offline-banner {
   position: sticky;

@@ -65,6 +65,11 @@ export type PostPreviewProps = {
   handle?: string | null;
   onAddFromComputer?: () => void;
   onAddFromLibrary?: () => void;
+  onRemoveMedia?: (src: string) => void;
+  onDownloadMedia?: (src: string) => void;
+  onSaveAlt?: (alt: string) => void;
+  onGenerateAlt?: () => Promise<string>;
+  canEditMedia?: boolean;
 };
 
 type Ctx = PostPreviewProps & {
@@ -195,8 +200,9 @@ function Media({ ctx, ratio }: { ctx: Ctx; ratio?: string }) {
           GIF
         </span>
       ) : null}
-      {ctx.size === 'feed' && (ctx.onAddFromComputer || ctx.onAddFromLibrary) ? (
-        <MediaEditOverlay ctx={ctx} />
+      {ctx.size === 'feed' &&
+      (ctx.canEditMedia || ctx.onAddFromComputer || ctx.onAddFromLibrary) ? (
+        <MediaEditOverlay ctx={ctx} activeSrc={active} />
       ) : null}
       {multi ? (
         <>
@@ -307,32 +313,102 @@ function WhenChevron({ ctx }: { ctx: Ctx }) {
   );
 }
 
-function MediaEditOverlay({ ctx }: { ctx: Ctx }) {
+function loc(locale: string, en: string, ar: string) {
+  return locale.toLowerCase().startsWith('ar') ? ar : en;
+}
+
+function MediaEditOverlay({ ctx, activeSrc }: { ctx: Ctx; activeSrc: string | null }) {
   const [open, setOpen] = useState(false);
   const [altOpen, setAltOpen] = useState(false);
+  const [cropOpen, setCropOpen] = useState(false);
   const [alt, setAlt] = useState(ctx.title || '');
-  const isAr = ctx.locale.toLowerCase().startsWith('ar');
+  const [generating, setGenerating] = useState(false);
+  const [crop, setCrop] = useState<'original' | '1-1' | '4-5'>('original');
+  const src = activeSrc || ctx.media || '';
   return (
-    <div className="oma-pp__media-edit" data-open={open ? 'true' : 'false'}>
+    <div
+      className="oma-pp__media-edit"
+      data-open={open || altOpen || cropOpen ? 'true' : 'false'}
+      data-crop={crop}
+    >
       <div className="oma-pp__media-tools">
         <button
           type="button"
           className="oma-pp__media-tool"
+          data-testid="feed-media-crop"
+          onClick={(e) => {
+            e.stopPropagation();
+            setCropOpen((v) => !v);
+            setAltOpen(false);
+          }}
+          aria-label={loc(ctx.locale, 'Crop', 'قص')}
+          title={loc(ctx.locale, 'Crop', 'قص')}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path
+              d="M6 3v15h15M3 6h15v15"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+        </button>
+        <button
+          type="button"
+          className="oma-pp__media-tool"
+          data-testid="feed-media-alt"
           onClick={(e) => {
             e.stopPropagation();
             setAltOpen((v) => !v);
+            setCropOpen(false);
           }}
-          aria-label={isAr ? 'نص بديل' : 'Alternative text'}
-          title={isAr ? 'نص بديل' : 'Alternative text'}
+          aria-label={loc(ctx.locale, 'Alternative text', 'نص بديل')}
+          title={loc(ctx.locale, 'Alternative text', 'نص بديل')}
         >
           ALT
         </button>
         <button
           type="button"
           className="oma-pp__media-tool"
+          data-testid="feed-media-download"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (src) ctx.onDownloadMedia?.(src);
+          }}
+          aria-label={loc(ctx.locale, 'Download', 'تنزيل')}
+          title={loc(ctx.locale, 'Download', 'تنزيل')}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path
+              d="M12 4v12m0 0 4-4m-4 4-4-4M5 20h14"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+        </button>
+        <button
+          type="button"
+          className="oma-pp__media-tool"
+          data-testid="feed-media-remove"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (src) ctx.onRemoveMedia?.(src);
+          }}
+          aria-label={ctx.t('media.remove')}
+          title={ctx.t('media.remove')}
+        >
+          ×
+        </button>
+        <button
+          type="button"
+          className="oma-pp__media-tool"
+          data-testid="feed-media-add"
           onClick={(e) => {
             e.stopPropagation();
             setOpen((v) => !v);
+            setAltOpen(false);
+            setCropOpen(false);
           }}
           aria-label={ctx.t('media.add')}
           title={ctx.t('media.add')}
@@ -340,6 +416,34 @@ function MediaEditOverlay({ ctx }: { ctx: Ctx }) {
           +
         </button>
       </div>
+      {cropOpen ? (
+        <div className="oma-pp__crop" role="dialog" onClick={(e) => e.stopPropagation()}>
+          {(['original', '1-1', '4-5'] as const).map((mode) => (
+            <button
+              key={mode}
+              type="button"
+              data-on={crop === mode ? 'true' : 'false'}
+              onClick={() => {
+                setCrop(mode);
+                const media = document.activeElement
+                  ?.closest('.oma-pp__media')
+                  ?.querySelector('.oma-pp__media-content') as HTMLElement | null;
+                if (media) {
+                  media.style.objectFit = mode === 'original' ? 'contain' : 'cover';
+                  media.style.aspectRatio =
+                    mode === '1-1' ? '1 / 1' : mode === '4-5' ? '4 / 5' : '';
+                }
+              }}
+            >
+              {mode === 'original'
+                ? loc(ctx.locale, 'Original', 'الأصل')
+                : mode === '1-1'
+                  ? '1:1'
+                  : '4:5'}
+            </button>
+          ))}
+        </div>
+      ) : null}
       {altOpen ? (
         <div
           className="oma-pp__alt"
@@ -347,18 +451,43 @@ function MediaEditOverlay({ ctx }: { ctx: Ctx }) {
           onClick={(e) => e.stopPropagation()}
           data-testid="feed-alt-text"
         >
-          <strong>{isAr ? 'نص بديل' : 'Alternative text'}</strong>
+          <strong>{loc(ctx.locale, 'Alternative text', 'نص بديل')}</strong>
           <input
             value={alt}
-            placeholder={isAr ? 'صف صورتك…' : 'Describe your image…'}
+            placeholder={loc(ctx.locale, 'Describe your image…', 'صف صورتك…')}
             onChange={(e) => setAlt(e.target.value)}
           />
+          <button
+            type="button"
+            className="oma-pp__alt-ai"
+            disabled={generating}
+            onClick={() => {
+              if (!ctx.onGenerateAlt) return;
+              setGenerating(true);
+              void ctx
+                .onGenerateAlt()
+                .then((text) => setAlt(text))
+                .finally(() => setGenerating(false));
+            }}
+          >
+            ✦{' '}
+            {generating
+              ? loc(ctx.locale, 'Generating…', 'جارٍ التوليد…')
+              : loc(ctx.locale, 'Generate with AI', 'توليد بالذكاء الاصطناعي')}
+          </button>
           <div className="oma-pp__alt-actions">
             <button type="button" onClick={() => setAltOpen(false)}>
-              {isAr ? 'إلغاء' : 'Cancel'}
+              {loc(ctx.locale, 'Cancel', 'إلغاء')}
             </button>
-            <button type="button" className="oma-pp__alt-save" onClick={() => setAltOpen(false)}>
-              {isAr ? 'حفظ' : 'Save'}
+            <button
+              type="button"
+              className="oma-pp__alt-save"
+              onClick={() => {
+                ctx.onSaveAlt?.(alt);
+                setAltOpen(false);
+              }}
+            >
+              {loc(ctx.locale, 'Save', 'حفظ')}
             </button>
           </div>
         </div>
@@ -369,20 +498,26 @@ function MediaEditOverlay({ ctx }: { ctx: Ctx }) {
             <button
               type="button"
               className="oma-pp__media-add-tile"
+              data-testid="feed-add-computer"
               onClick={ctx.onAddFromComputer}
             >
               <span aria-hidden>+</span>
-              <span>{isAr ? 'أضف من الجهاز' : 'Add more from computer'}</span>
+              <span>{loc(ctx.locale, 'Add more from computer', 'أضف من الجهاز')}</span>
             </button>
           ) : null}
           {ctx.onAddFromLibrary ? (
-            <button type="button" className="oma-pp__media-add-tile" onClick={ctx.onAddFromLibrary}>
+            <button
+              type="button"
+              className="oma-pp__media-add-tile"
+              data-testid="feed-add-library"
+              onClick={ctx.onAddFromLibrary}
+            >
               <span aria-hidden>+</span>
-              <span>{isAr ? 'أضف من مكتبة الوسائط' : 'Add more from media library'}</span>
+              <span>{loc(ctx.locale, 'Add more from media library', 'أضف من مكتبة الوسائط')}</span>
             </button>
           ) : null}
           <button type="button" className="oma-pp__media-done" onClick={() => setOpen(false)}>
-            {isAr ? 'تم' : 'Done'}
+            {loc(ctx.locale, 'Done', 'تم')}
           </button>
         </div>
       ) : null}

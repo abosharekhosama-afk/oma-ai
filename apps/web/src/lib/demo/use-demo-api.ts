@@ -1,9 +1,13 @@
 import { api } from '../api';
 
-export type DemoLocaleCopy = { en: string; ar: string };
+export type DemoLocaleCopy = { en?: string; ar?: string };
 
-export function pickCopy(copy: DemoLocaleCopy, locale: string): string {
-  return locale.toLowerCase().startsWith('ar') ? copy.ar : copy.en;
+export function pickCopy(copy: DemoLocaleCopy | string | null | undefined, locale: string): string {
+  if (copy == null) return '';
+  if (typeof copy === 'string') return copy;
+  const isAr = locale.toLowerCase().startsWith('ar');
+  const value = isAr ? copy.ar || copy.en : copy.en || copy.ar;
+  return typeof value === 'string' ? value : '';
 }
 
 export type DemoApiResult<T> = { data: T };
