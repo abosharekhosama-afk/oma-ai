@@ -421,6 +421,7 @@ export default function DeliverablesPage() {
         </div>
       </PlxHeaderFilter>
 
+      <div className="oma-plx-workspace-surface">
       <div className="oma-plx-listening__intro oma-plx-deliv__intro">
         <div>
           <h1 className="oma-plx-listening__title">{t('demo.deliverables.title')}</h1>
@@ -648,6 +649,7 @@ export default function DeliverablesPage() {
           </div>
         </div>
       ) : null}
+      </div>
     </div>
   );
 }
