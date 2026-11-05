@@ -21,6 +21,7 @@ export type InboxConversationListItem = {
   firstResponseAt?: string | null;
   closedAt?: string | null;
   metadataJson?: string | null;
+  lastMessageDirection?: string | null;
 };
 
 export type InboxMessage = {
@@ -55,10 +56,12 @@ export type InboxStats = {
   closed: number;
   priority: number;
   unassigned: number;
+  unanswered?: number;
 };
 
-export function getInboxStats() {
-  return api<InboxStats>('/api/v1/inbox/stats');
+export function getInboxStats(brandId?: string | null) {
+  const q = brandId ? `?brandId=${encodeURIComponent(brandId)}` : '';
+  return api<InboxStats>(`/api/v1/inbox/stats${q}`);
 }
 
 export function listInboxConversations(params: Record<string, string | number | boolean | undefined> = {}) {

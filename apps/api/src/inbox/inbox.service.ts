@@ -22,6 +22,9 @@ export type ListConversationsQuery = {
   assignedTo?: string;
   /** when true, only unassigned */
   unassigned?: boolean;
+  /** when true, last message is inbound (needs a reply). */
+  unanswered?: boolean;
+  brandId?: string;
   priority?: boolean;
   tag?: string;
   q?: string;
@@ -64,6 +67,7 @@ function mapConv(c: {
   firstResponseAt: Date | null;
   closedAt: Date | null;
   metadataJson?: string | null;
+  lastMessageDirection?: string | null;
 }) {
   return {
     id: c.id,
@@ -86,24 +90,33 @@ function mapConv(c: {
     firstResponseAt: c.firstResponseAt?.toISOString() ?? null,
     closedAt: c.closedAt?.toISOString() ?? null,
     metadataJson: c.metadataJson ?? null,
+    lastMessageDirection: c.lastMessageDirection ?? null,
   };
 }
 
 export class InboxService {
-  async stats(tenantId: string) {
-    const base = tenantWhere(tenantId, {});
-    const [total, unread, open, pending, closed, priority, unassigned] = await Promise.all([
+  async stats(tenantId: string, brandId?: string) {
+    const brandScope = brandId ? { brandId } : {};
+    const base = tenantWhere(tenantId, brandScope);
+    const [total, unread, open, pending, closed, priority, unassigned, unanswered] = await Promise.all([
       getPrisma().inboxConversation.count({ where: base }),
-      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { status: 'UNREAD' }) }),
-      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { status: 'OPEN' }) }),
-      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { status: 'PENDING' }) }),
-      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { status: 'CLOSED' }) }),
-      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { priority: true }) }),
+      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { ...brandScope, status: 'UNREAD' }) }),
+      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { ...brandScope, status: 'OPEN' }) }),
+      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { ...brandScope, status: 'PENDING' }) }),
+      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { ...brandScope, status: 'CLOSED' }) }),
+      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { ...brandScope, priority: true }) }),
       getPrisma().inboxConversation.count({
-        where: tenantWhere(tenantId, { assignedToUserId: null, status: { not: 'CLOSED' } }),
+        where: tenantWhere(tenantId, { ...brandScope, assignedToUserId: null, status: { not: 'CLOSED' } }),
+      }),
+      getPrisma().inboxConversation.count({
+        where: tenantWhere(tenantId, {
+          ...brandScope,
+          lastMessageDirection: 'INBOUND',
+          status: { in: ['UNREAD', 'OPEN', 'PENDING'] },
+        }),
       }),
     ]);
-    return { total, unread, open, pending, closed, priority, unassigned };
+    return { total, unread, open, pending, closed, priority, unassigned, unanswered };
   }
 
   async listConversations(tenantId: string, q: ListConversationsQuery) {
@@ -117,12 +130,19 @@ export class InboxService {
           : {};
 
     const where = tenantWhere(tenantId, {
+      ...(q.brandId ? { brandId: q.brandId } : {}),
       ...(q.platform ? { platform: q.platform } : {}),
       ...(q.status ? { status: q.status } : {}),
       ...(q.category ? categoryTypes : q.type ? { type: q.type } : {}),
       ...(q.sentiment ? { sentiment: q.sentiment } : {}),
       ...(q.priority === true ? { priority: true } : {}),
       ...(q.unassigned ? { assignedToUserId: null } : {}),
+      ...(q.unanswered
+        ? {
+            lastMessageDirection: 'INBOUND',
+            status: { in: ['UNREAD', 'OPEN', 'PENDING'] as Status[] },
+          }
+        : {}),
       ...(q.assignedTo ? { assignedToUserId: q.assignedTo } : {}),
       ...(q.tag
         ? {
@@ -278,6 +298,7 @@ export class InboxService {
           messageCount: { increment: 1 },
           status: c.status === 'CLOSED' ? 'OPEN' : c.status === 'UNREAD' ? 'OPEN' : c.status,
           firstResponseAt: c.firstResponseAt ?? now,
+          lastMessageDirection: 'OUTBOUND',
         },
       }),
     ]);
@@ -581,6 +602,7 @@ export class InboxService {
           sentiment,
           priority: existing?.priority || priority,
           status: existing?.status === 'CLOSED' ? 'UNREAD' : existing?.status ?? 'UNREAD',
+          lastMessageDirection: 'INBOUND',
           participantName: input.senderName,
           participantAvatar: input.senderAvatar ?? null,
         },

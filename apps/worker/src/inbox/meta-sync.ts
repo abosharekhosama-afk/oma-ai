@@ -49,9 +49,9 @@ async function syncFacebookPage(input: {
 
   try {
     const feed = await graphGet<
-      GraphList<{ id: string; message?: string; created_time?: string; full_picture?: string }>
+      GraphList<{ id: string; message?: string; created_time?: string; full_picture?: string; permalink_url?: string }>
     >(`${input.pageExternalId}/feed`, input.accessToken, {
-      fields: 'id,message,created_time,full_picture',
+      fields: 'id,message,created_time,full_picture,permalink_url',
       limit: '40',
     });
     for (const post of feed.data ?? []) {
@@ -61,6 +61,7 @@ async function syncFacebookPage(input: {
         channelName: `${input.pageName} · Facebook`,
         postCaption,
         postThumbnailUrl: post.full_picture ?? undefined,
+        postPermalink: post.permalink_url ?? undefined,
         postPublishedAt: post.created_time,
       });
       try {
@@ -173,6 +174,7 @@ async function syncInstagramPage(input: {
         timestamp?: string;
         media_url?: string;
         thumbnail_url?: string;
+        permalink?: string;
         comments?: GraphList<{
           id: string;
           text?: string;
@@ -182,7 +184,7 @@ async function syncInstagramPage(input: {
         }>;
       }>
     >(`${input.igUserId}/media`, input.accessToken, {
-      fields: 'id,caption,timestamp,media_url,thumbnail_url,comments.limit(50){id,text,timestamp,username,from}',
+      fields: 'id,caption,timestamp,media_url,thumbnail_url,permalink,comments.limit(50){id,text,timestamp,username,from}',
       limit: '30',
     });
     for (const item of media.data ?? []) {
@@ -194,6 +196,7 @@ async function syncInstagramPage(input: {
         channelName: `${input.pageName} · Instagram`,
         postCaption: caption,
         postThumbnailUrl: thumb,
+        postPermalink: item.permalink,
         postPublishedAt: item.timestamp,
       });
       const comments = item.comments?.data ?? [];

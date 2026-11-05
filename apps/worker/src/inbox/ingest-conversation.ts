@@ -80,6 +80,7 @@ export async function ingestInboundMessage(input: IngestInboundInput): Promise<'
         messageCount: 0,
         unreadCount: 0,
         metadataJson: input.metadataJson ?? null,
+        lastMessageDirection: 'INBOUND',
       },
     });
   } else if (input.metadataJson || input.subject || input.socialPageId) {
@@ -128,6 +129,7 @@ export async function ingestInboundMessage(input: IngestInboundInput): Promise<'
         sentiment,
         priority: existing?.priority || priority,
         status: existing?.status === 'CLOSED' ? 'UNREAD' : existing?.status ?? 'UNREAD',
+        lastMessageDirection: 'INBOUND',
         participantName: input.senderName,
         participantAvatar: input.senderAvatar ?? null,
       },

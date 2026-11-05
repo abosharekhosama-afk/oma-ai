@@ -1888,6 +1888,8 @@ model InboxConversation {
   participantExtId   String?
   lastMessageAt      DateTime                @default(now())
   lastMessagePreview String?
+  /// Direction of the most recent message (for unanswered queue filters).
+  lastMessageDirection InboxMessageDirection?
   messageCount       Int                     @default(0)
   unreadCount        Int                     @default(0)
   /// Operational priority flag (SLA / negative / manual).

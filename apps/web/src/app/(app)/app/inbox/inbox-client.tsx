@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Button } from '@oma/ui/controls';
 import {
   addInboxNote,
+  assignInboxConversation,
   deleteInboxMessage,
   getInboxConnections,
   getInboxConversation,
@@ -12,6 +13,7 @@ import {
   hideInboxMessage,
   listInboxConversations,
   replyInboxConversation,
+  setInboxPriority,
   setInboxStatus,
   syncInbox,
   type InboxConnections,
@@ -38,7 +40,9 @@ import {
   StarOutlined,
   UpOutlined,
 } from '../../../../components/ui/lucide-icons';
+import { listWorkspaceMembers, type WorkspaceMember } from '../../../../lib/team-api';
 import { InboxListEmptyState, InboxPaneAllDone } from './inbox-empty-art';
+import { InboxThreadMenu } from './inbox-thread-menu';
 import { InboxPlatformBadge, InboxPlatformIcon } from './inbox-platform-icon';
 import { InboxStatusDropdown, type InboxStatusFilter } from './inbox-status-dropdown';
 import {
@@ -143,6 +147,9 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
   const [adBannerDismissed, setAdBannerDismissed] = useState(false);
   const [connections, setConnections] = useState<InboxConnections | null>(null);
   const [syncing, setSyncing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQ, setDebouncedQ] = useState('');
+  const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const initialSyncDone = useRef(false);
 
   const brandSettingsHref = activeBrandId
@@ -157,6 +164,17 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
       setConnections(null);
     }
   }, [activeBrandId]);
+
+  useEffect(() => {
+    const tmr = window.setTimeout(() => setDebouncedQ(searchQuery.trim()), 300);
+    return () => window.clearTimeout(tmr);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    void listWorkspaceMembers()
+      .then(setMembers)
+      .catch(() => setMembers([]));
+  }, []);
 
   useEffect(() => {
     try {
@@ -195,8 +213,10 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
         listInboxConversations({
           category: mode,
           limit: 100,
+          brandId: activeBrandId || undefined,
+          q: debouncedQ || undefined,
         }),
-        getInboxStats().catch(() => null),
+        getInboxStats(activeBrandId).catch(() => null),
       ]);
       if (stats) setStatusCounts(stats);
       const filtered = filterByStatusTab(res.items, statusTab);
@@ -212,7 +232,7 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
     } finally {
       setLoading(false);
     }
-  }, [mode, statusTab]);
+  }, [mode, statusTab, activeBrandId, debouncedQ]);
 
   const loadDetail = useCallback(async (id: string) => {
     setDetailLoading(true);
@@ -324,6 +344,12 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
     if (next) setSelectedId(next.id);
   };
 
+  const assigneeLabel = useMemo(() => {
+    if (!detail?.assignedToUserId) return null;
+    const hit = members.find((m) => m.user?.id === detail.assignedToUserId);
+    return hit?.user?.name || hit?.user?.email || null;
+  }, [detail?.assignedToUserId, members]);
+
   const onMarkDone = async () => {
     if (!selectedId) return;
     await setInboxStatus(selectedId, 'CLOSED');
@@ -333,6 +359,34 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
     await loadList();
     if (next) setSelectedId(next.id);
     else setSelectedId(null);
+  };
+
+  const onMoveLater = async () => {
+    if (!selectedId) return;
+    await setInboxStatus(selectedId, 'PENDING');
+    await loadList();
+    await loadDetail(selectedId);
+  };
+
+  const onReopen = async () => {
+    if (!selectedId) return;
+    await setInboxStatus(selectedId, 'OPEN');
+    await loadList();
+    await loadDetail(selectedId);
+  };
+
+  const onTogglePriority = async () => {
+    if (!selectedId || !detail) return;
+    await setInboxPriority(selectedId, !detail.priority);
+    await loadDetail(selectedId);
+    await loadList();
+  };
+
+  const onAssign = async (userId: string | null) => {
+    if (!selectedId) return;
+    await assignInboxConversation(selectedId, userId);
+    await loadDetail(selectedId);
+    await loadList();
   };
 
   const submitReply = async (text: string, clearInline: boolean) => {
@@ -450,8 +504,20 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
             </span>
             <span className="oma-plx-inbox-row__time">{relativeTime(it.lastMessageAt)}</span>
           </span>
-          <span className="oma-plx-inbox-row__preview">{it.lastMessagePreview || '—'}</span>
+          <span className="oma-plx-inbox-row__preview">
+            {it.lastMessageDirection === 'INBOUND' && it.status !== 'CLOSED' ? (
+              <span className="oma-plx-inbox-row__needs-reply" title={t('inbox.needReply') || 'Needs reply'}>
+                •
+              </span>
+            ) : null}
+            {it.lastMessagePreview || '—'}
+          </span>
         </span>
+        {it.priority ? (
+          <span className="oma-plx-inbox-row__priority" aria-label="Priority">
+            !
+          </span>
+        ) : null}
         {mode === 'dms' && it.unreadCount > 0 ? (
           <span className="oma-plx-inbox-row__info-badge" aria-label="Unread">
             {it.unreadCount}
@@ -490,6 +556,14 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
               )}
             </p>
           ) : null}
+          <input
+            type="search"
+            className="oma-plx-inbox-list__search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder={t('inbox.search.placeholder') || 'Search conversations…'}
+            aria-label={t('inbox.search.placeholder') || 'Search conversations'}
+          />
           <InboxStatusDropdown
             value={statusTab}
             onChange={setStatusTab}
@@ -528,38 +602,51 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
                   <h3>{detail.participantName || 'Conversation'}</h3>
                 </div>
               ) : (
-                <div className="oma-plx-inbox-thread__nav">
-                  <button
-                    type="button"
-                    className="oma-plx-inbox-icon-btn oma-plx-inbox-icon-btn--ghost"
-                    aria-label="Previous"
-                    disabled={selectedIndex <= 0}
-                    onClick={() => goRelative(-1)}
-                  >
-                    <UpOutlined />
-                  </button>
-                  <button
-                    type="button"
-                    className="oma-plx-inbox-icon-btn oma-plx-inbox-icon-btn--ghost"
-                    aria-label="Next"
-                    disabled={selectedIndex < 0 || selectedIndex >= visibleItems.length - 1}
-                    onClick={() => goRelative(1)}
-                  >
-                    <DownOutlined />
-                  </button>
+                <div className="oma-plx-inbox-thread__nav-block">
+                  <div className="oma-plx-inbox-thread__nav">
+                    <button
+                      type="button"
+                      className="oma-plx-inbox-icon-btn oma-plx-inbox-icon-btn--ghost"
+                      aria-label="Previous"
+                      disabled={selectedIndex <= 0}
+                      onClick={() => goRelative(-1)}
+                    >
+                      <UpOutlined />
+                    </button>
+                    <button
+                      type="button"
+                      className="oma-plx-inbox-icon-btn oma-plx-inbox-icon-btn--ghost"
+                      aria-label="Next"
+                      disabled={selectedIndex < 0 || selectedIndex >= visibleItems.length - 1}
+                      onClick={() => goRelative(1)}
+                    >
+                      <DownOutlined />
+                    </button>
+                  </div>
+                  {assigneeLabel ? (
+                    <span className="oma-plx-inbox-thread__assignee">
+                      {t('inbox.assignedTo') || 'Assigned'}: {assigneeLabel}
+                    </span>
+                  ) : null}
                 </div>
               )}
               <div className="oma-plx-inbox-thread__actions">
-                {mode === 'dms' ? (
-                  <>
-                    <button type="button" className="oma-plx-inbox-icon-btn oma-plx-inbox-icon-btn--ghost" aria-label="More">
-                      <MoreOutlined />
-                    </button>
-                    <button type="button" className="oma-plx-inbox-icon-btn oma-plx-inbox-icon-btn--ghost" aria-label="Expand">
-                      <DownOutlined />
-                    </button>
-                  </>
+                {mode === 'dms' && assigneeLabel ? (
+                  <span className="oma-plx-inbox-thread__assignee oma-plx-inbox-thread__assignee--compact">
+                    {assigneeLabel}
+                  </span>
                 ) : null}
+                <InboxThreadMenu
+                  detail={detail}
+                  t={t}
+                  members={members}
+                  onLater={() => void onMoveLater()}
+                  onReopen={() => void onReopen()}
+                  onMarkDone={() => void onMarkDone()}
+                  onTogglePriority={() => void onTogglePriority()}
+                  onAssign={(uid) => void onAssign(uid)}
+                  onInternalNote={() => setShowNoteComposer(true)}
+                />
                 <button
                   type="button"
                   className={`oma-plx-inbox-icon-btn oma-plx-inbox-icon-btn--ghost${bookmarks.has(detail.id) ? ' is-on' : ''}`}
@@ -631,7 +718,15 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
                           'Engagement on your published post.'}
                       </p>
                     </div>
-                    <button type="button" className="oma-plx-inbox-post__external" aria-label="Open post">
+                    <button
+                      type="button"
+                      className="oma-plx-inbox-post__external"
+                      aria-label="Open post"
+                      disabled={!detailMeta.postPermalink}
+                      onClick={() => {
+                        if (detailMeta.postPermalink) window.open(detailMeta.postPermalink, '_blank', 'noopener,noreferrer');
+                      }}
+                    >
                       <LinkOutlined />
                     </button>
                   </article>
@@ -694,7 +789,17 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
                                   </button>
                                   {commentMenuId === m.id ? (
                                     <div className="oma-plx-inbox-comment-menu__drop" role="menu">
-                                      <button type="button" role="menuitem">
+                                      <button
+                                        type="button"
+                                        role="menuitem"
+                                        onClick={() => {
+                                          setCommentMenuId(null);
+                                          setDeliveryNote(
+                                            t('inbox.editNotSupported') ||
+                                              'Editing comments on the social network is not supported from here.',
+                                          );
+                                        }}
+                                      >
                                         <EditOutlined /> {t('inbox.comment.edit') || 'Edit'}
                                       </button>
                                       <button
@@ -844,7 +949,7 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
                     }
                   }}
                 />
-                {mode === 'dms' && reply.trim() ? (
+                {reply.trim() ? (
                   <Button
                     type="primary"
                     loading={sending}
@@ -852,7 +957,7 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
                     data-testid="inbox-reply-send"
                     className="oma-plx-inbox-composer__send-inline"
                   >
-                    {t('inbox.sendReply') || 'Send'}
+                    {mode === 'dms' ? t('inbox.sendReply') || 'Send' : t('inbox.postReply') || 'Post'}
                   </Button>
                 ) : null}
               </div>

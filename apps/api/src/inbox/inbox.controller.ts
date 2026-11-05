@@ -22,8 +22,8 @@ function ctx(req: Request) {
 export class InboxController {
   @Get('api/v1/inbox/stats')
   @UseGuards(AuthGuard, CapabilitiesGuard)
-  stats(@Req() req: Request) {
-    return inboxService.stats(ctx(req).tenantId);
+  stats(@Req() req: Request, @Query('brandId') brandId?: string) {
+    return inboxService.stats(ctx(req).tenantId, brandId || undefined);
   }
 
   @Get('api/v1/inbox/conversations')
@@ -39,6 +39,8 @@ export class InboxController {
     @Query('unassigned') unassigned?: string,
     @Query('priority') priority?: string,
     @Query('tag') tag?: string,
+    @Query('brandId') brandId?: string,
+    @Query('unanswered') unanswered?: string,
     @Query('q') q?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -53,6 +55,8 @@ export class InboxController {
       sentiment: sentiment as never,
       assignedTo,
       unassigned: unassigned === '1' || unassigned === 'true',
+      unanswered: unanswered === '1' || unanswered === 'true',
+      brandId: brandId || undefined,
       priority: priority === '1' || priority === 'true' ? true : undefined,
       tag,
       q,
