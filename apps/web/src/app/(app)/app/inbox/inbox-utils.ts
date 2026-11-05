@@ -100,3 +100,28 @@ export function sentimentLabel(s: string | null | undefined): string | null {
   if (s === 'NEUTRAL') return 'Neutral';
   return null;
 }
+
+const AVATAR_PALETTE = ['#2563eb', '#7c3aed', '#be123c', '#0d9488', '#c2410c', '#4f46e5'];
+
+export function avatarColorFromName(name: string): string {
+  let h = 0;
+  for (let i = 0; i < name.length; i += 1) h = (h * 31 + name.charCodeAt(i)) | 0;
+  return AVATAR_PALETTE[Math.abs(h) % AVATAR_PALETTE.length]!;
+}
+
+export function formatInboxPostDate(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
+export function filterByStatusTab<T extends { status: string }>(items: T[], tab: 'OPEN' | 'PENDING' | 'CLOSED') {
+  if (tab === 'OPEN') return items.filter((it) => it.status === 'OPEN' || it.status === 'UNREAD');
+  if (tab === 'PENDING') return items.filter((it) => it.status === 'PENDING');
+  return items.filter((it) => it.status === 'CLOSED');
+}
