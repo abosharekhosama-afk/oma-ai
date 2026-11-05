@@ -2119,6 +2119,10 @@
   color: #059669;
 }
 
+.trend--down {
+  color: #dc2626;
+}
+
 .oma-plx-listening-kpi--sentiment {
   display: flex;
   flex-direction: column;

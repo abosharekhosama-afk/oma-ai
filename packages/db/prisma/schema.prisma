@@ -1961,6 +1961,9 @@ model ListeningRule {
   hashtagsJson String  @default("[]")
   platformsJson String @default("[]")
   isLive      Boolean  @default(true)
+  /// Brand/context blurb for relevance ranking (Planable-style).
+  contextJson String?
+  lastPollAt  DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -1985,6 +1988,13 @@ model ListeningHit {
   mediaUrlsJson   String?
   sentiment       InboxSentiment?
   isHighPriority  Boolean         @default(false)
+  isHidden        Boolean         @default(false)
+  isExcluded      Boolean         @default(false)
+  likeCount       Int             @default(0)
+  commentCount    Int             @default(0)
+  shareCount      Int             @default(0)
+  /// When true, polling must not overwrite sentiment.
+  sentimentLocked Boolean         @default(false)
   matchedKeywordsJson String      @default("[]")
   capturedAt      DateTime        @default(now())
   tenant          Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)

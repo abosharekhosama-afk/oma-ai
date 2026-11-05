@@ -22,17 +22,11 @@ export function platformShort(p: string) {
   return map[p] ?? p.slice(0, 2);
 }
 
-function hashNum(s: string, seed: number) {
-  let h = seed;
-  for (let i = 0; i < s.length; i += 1) h = (h * 31 + s.charCodeAt(i)) | 0;
-  return Math.abs(h);
-}
-
 export function hitEngagement(hit: ListeningHit) {
-  const n = hashNum(hit.id, 17);
-  const likes = 200 + (n % 9800);
-  const comments = 12 + (n % 400);
-  return { likes, comments };
+  const likes = hit.likeCount ?? 0;
+  const comments = hit.commentCount ?? 0;
+  const shares = hit.shareCount ?? 0;
+  return { likes, comments, shares, total: likes + comments + shares };
 }
 
 export function formatCount(n: number): string {
