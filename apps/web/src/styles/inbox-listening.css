@@ -3427,3 +3427,106 @@
     display: none !important;
   }
 }
+
+/* Header-anchored filter popover (deliverables, tasks, requests, reviews) */
+.oma-plx-header-filter-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.oma-plx-header-filter-anchor {
+  position: relative;
+  display: inline-flex;
+}
+
+.oma-plx-filter-popover-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: rgba(15, 23, 42, 0.38);
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity 0.22s ease;
+}
+
+.oma-plx-filter-popover-backdrop[data-state='open'] {
+  opacity: 1;
+}
+
+.oma-plx-filter-popover {
+  position: fixed;
+  z-index: 1110;
+  width: min(320px, calc(100vw - 24px));
+  max-height: min(72vh, 560px);
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border: 1px solid #eceef1;
+  border-radius: 12px;
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.16);
+  opacity: 0;
+  transform: translateY(-8px);
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
+  overflow: hidden;
+}
+
+.oma-plx-filter-popover[data-state='open'] {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.oma-plx-filter-popover__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 14px;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  flex-shrink: 0;
+}
+
+.oma-plx-filter-popover__body {
+  overflow: auto;
+  padding: 0;
+}
+
+.oma-plx-filter-popover__body .oma-plx-deliv-filter-accordion-list,
+.oma-plx-filter-popover__body .oma-filter-accordion-list {
+  padding: 14px 12px 12px;
+}
+
+.oma-plx-filter-popover__foot {
+  padding: 12px 14px;
+  border-top: 1px solid #f3f4f6;
+  flex-shrink: 0;
+  background: #fff;
+}
+
+.oma-plx-deliv-view-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.oma-plx-tasks-panel .oma-kanban-board {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 8px;
+  scroll-behavior: smooth;
+}
+
+.oma-plx-tasks-panel .oma-kanban-col {
+  flex: 0 0 272px;
+  width: 272px;
+}

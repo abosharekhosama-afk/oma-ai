@@ -47,6 +47,7 @@ import {
   type TaskRow,
 } from '../../../../lib/demo/stage4-tasks';
 import { clearBreadcrumbViewSlot } from '../../../../lib/breadcrumb-view-slot';
+import { PlxHeaderFilter } from '../../../../components/ui/plx-header-filter';
 import { useLocale, useT } from '../../../../lib/use-locale';
 import {
   BarsOutlined,
@@ -85,6 +86,7 @@ export default function TasksPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [filterSheet, setFilterSheet] = useState(false);
   const [filterSection, setFilterSection] = useState<string | null>('search');
+  const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
   const [creating, setCreating] = useState(false);
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
   const [createForm, setCreateForm] = useState({
@@ -176,14 +178,7 @@ export default function TasksPage() {
     } else {
       setSelectedId(null);
     }
-    if (window.matchMedia('(max-width: 767px)').matches) {
-      setView('list');
-      return;
-    }
-    const urlView = searchParams.get('view');
-    if (urlView === 'board' || urlView === 'list') {
-      setView(urlView);
-    }
+    setView('board');
   }, [searchParams]);
 
   useEffect(() => {
@@ -193,18 +188,24 @@ export default function TasksPage() {
     return () => clearBreadcrumbViewSlot(el);
   }, []);
 
-  async function changeView(next: ViewMode) {
-    if (window.matchMedia('(max-width: 767px)').matches) {
-      setView('list');
-      return;
-    }
-    setView(next);
-    try {
-      /* view pref local */
-    } catch {
-      /* non-blocking */
-    }
-  }
+  useEffect(() => {
+    let cancelled = false;
+    let tries = 0;
+    const sync = () => {
+      if (cancelled) return;
+      const header = document.getElementById('oma-workspace-top-actions');
+      setHeaderSlot(header);
+      tries += 1;
+      if (!header && tries < 30) {
+        window.setTimeout(sync, 50);
+      }
+    };
+    sync();
+    return () => {
+      cancelled = true;
+      setHeaderSlot(null);
+    };
+  }, []);
 
   const filtered = useMemo(() => filterTasks(rows, filters, locale), [rows, filters, locale]);
   const byBoard = useMemo(() => groupTasksByBoard(filtered), [filtered]);
@@ -436,62 +437,193 @@ export default function TasksPage() {
     ).filter((s) => canTransitionTaskStatus(status, s));
 
   const filterLabel = locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter';
+  const filterPanelTitle =
+    locale.toLowerCase().startsWith('ar') ? 'تصفية وترتيب' : 'Filter & sort';
 
   return (
     <div
       className="oma-plx-deliverables oma-plx-tasks"
       data-testid="demo-tasks"
-      data-view={view}
+      data-view="board"
       data-prefs={prefsLoaded ? '1' : '0'}
+      data-filter-open={filterSheet ? 'true' : 'false'}
     >
-      <header className="oma-plx-listening__toolbar oma-plx-deliv__toolbar">
-        <div className="oma-plx-listening__toolbar-spacer" />
-        <div className="oma-plx-listening-segment" role="group" aria-label={t('demo.view.kanban')}>
-          <button
-            type="button"
-            className={view === 'board' ? 'is-active' : ''}
-            data-testid="demo-tasks-view-board"
-            aria-pressed={view === 'board'}
-            onClick={() => void changeView('board')}
-          >
-            <UnorderedListOutlined aria-hidden />
-            <span>{t('demo.view.kanban')}</span>
-          </button>
-          <button
-            type="button"
-            className={view === 'list' ? 'is-active' : ''}
-            data-testid="demo-tasks-view-list"
-            aria-pressed={view === 'list'}
-            onClick={() => void changeView('list')}
-          >
-            <BarsOutlined aria-hidden />
-            <span>{t('demo.view.list')}</span>
-          </button>
+      <PlxHeaderFilter
+        headerSlot={headerSlot}
+        open={filterSheet}
+        onOpenChange={setFilterSheet}
+        filterTestId="demo-task-open-filters"
+        filterLabel={filterLabel}
+        filterCount={filterCount}
+        panelTitle={filterPanelTitle}
+        panelTestId="demo-task-filters"
+        createTestId="demo-create-task"
+        createLabel={t('demo.tasks.create')}
+        onCreateClick={() => setCreateOpen(true)}
+        footer={
+          filterCount > 0 ? (
+            <Button
+              type="default"
+              data-testid="demo-task-clear-filters"
+              onClick={() => setFilters(EMPTY_TASK_FILTERS)}
+            >
+              {t('demo.requests.clearFilters') || 'Clear filters'}
+            </Button>
+          ) : null
+        }
+      >
+        <div className="oma-filter-accordion-list oma-plx-deliv-filter-accordion-list">
+          <div className="oma-filter-accordion">
+            <button
+              type="button"
+              className="oma-filter-accordion__row"
+              data-open={filterSection === 'search' ? 'true' : 'false'}
+              onClick={() => setFilterSection((s) => (s === 'search' ? null : 'search'))}
+            >
+              <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
+                <SearchOutlined />
+              </span>
+              <span>{t('demo.tasks.search')}</span>
+              <span className="oma-filter-accordion__caret">
+                {filterSection === 'search' ? <UpOutlined /> : <DownOutlined />}
+              </span>
+            </button>
+            {filterSection === 'search' ? (
+              <div className="oma-filter-accordion__body">
+                <Input
+                  value={filters.q}
+                  data-testid="demo-task-search"
+                  onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
+                  placeholder={t('demo.tasks.search')}
+                />
+              </div>
+            ) : null}
+          </div>
+          <div className="oma-filter-accordion">
+            <button
+              type="button"
+              className="oma-filter-accordion__row"
+              data-open={filterSection === 'status' ? 'true' : 'false'}
+              onClick={() => setFilterSection((s) => (s === 'status' ? null : 'status'))}
+            >
+              <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
+                <UnorderedListOutlined />
+              </span>
+              <span>{t('demo.tasks.filter.status')}</span>
+              <span className="oma-filter-accordion__caret">
+                {filterSection === 'status' ? <UpOutlined /> : <DownOutlined />}
+              </span>
+            </button>
+            {filterSection === 'status' ? (
+              <div className="oma-filter-accordion__body">
+                <label className="oma-filter-check">
+                  <input
+                    type="radio"
+                    name="task-status"
+                    data-testid="demo-task-filter-status"
+                    checked={filters.status === 'all'}
+                    onChange={() => setFilters((f) => ({ ...f, status: 'all' }))}
+                  />
+                  <span>{t('demo.filter.all')}</span>
+                </label>
+                {BOARD_COLUMNS.map((c) => (
+                  <label key={c.id} className="oma-filter-check">
+                    <input
+                      type="radio"
+                      name="task-status"
+                      checked={filters.status === c.id}
+                      onChange={() => setFilters((f) => ({ ...f, status: c.id }))}
+                    />
+                    <span>{c.id}</span>
+                  </label>
+                ))}
+              </div>
+            ) : null}
+          </div>
+          <div className="oma-filter-accordion">
+            <button
+              type="button"
+              className="oma-filter-accordion__row"
+              data-open={filterSection === 'assignee' ? 'true' : 'false'}
+              onClick={() => setFilterSection((s) => (s === 'assignee' ? null : 'assignee'))}
+            >
+              <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
+                <UserOutlined />
+              </span>
+              <span>{t('demo.tasks.filter.assignee')}</span>
+              <span className="oma-filter-accordion__caret">
+                {filterSection === 'assignee' ? <UpOutlined /> : <DownOutlined />}
+              </span>
+            </button>
+            {filterSection === 'assignee' ? (
+              <div className="oma-filter-accordion__body">
+                <label className="oma-filter-check">
+                  <input
+                    type="radio"
+                    name="task-assignee"
+                    data-testid="demo-task-filter-assignee"
+                    checked={filters.assignee === 'all'}
+                    onChange={() => setFilters((f) => ({ ...f, assignee: 'all' }))}
+                  />
+                  <span>{t('demo.filter.all')}</span>
+                </label>
+                <label className="oma-filter-check">
+                  <input
+                    type="radio"
+                    name="task-assignee"
+                    checked={filters.assignee === 'unassigned'}
+                    onChange={() => setFilters((f) => ({ ...f, assignee: 'unassigned' }))}
+                  />
+                  <span>Unassigned</span>
+                </label>
+                {assignees.map((a) => (
+                  <label key={a} className="oma-filter-check">
+                    <input
+                      type="radio"
+                      name="task-assignee"
+                      checked={filters.assignee === a}
+                      onChange={() => setFilters((f) => ({ ...f, assignee: a }))}
+                    />
+                    <span>{a}</span>
+                  </label>
+                ))}
+              </div>
+            ) : null}
+          </div>
+          <div className="oma-filter-accordion">
+            <button
+              type="button"
+              className="oma-filter-accordion__row"
+              data-open={filterSection === 'priority' ? 'true' : 'false'}
+              onClick={() => setFilterSection((s) => (s === 'priority' ? null : 'priority'))}
+            >
+              <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
+                <FlagOutlined />
+              </span>
+              <span>{t('demo.tasks.filter.priority')}</span>
+              <span className="oma-filter-accordion__caret">
+                {filterSection === 'priority' ? <UpOutlined /> : <DownOutlined />}
+              </span>
+            </button>
+            {filterSection === 'priority' ? (
+              <div className="oma-filter-accordion__body">
+                {(['all', 'URGENT', 'HIGH', 'MEDIUM', 'LOW'] as const).map((pr) => (
+                  <label key={pr} className="oma-filter-check">
+                    <input
+                      type="radio"
+                      name="task-priority"
+                      data-testid={pr === 'all' ? 'demo-task-filter-priority' : undefined}
+                      checked={filters.priority === pr}
+                      onChange={() => setFilters((f) => ({ ...f, priority: pr }))}
+                    />
+                    <span>{pr === 'all' ? t('demo.filter.all') : pr}</span>
+                  </label>
+                ))}
+              </div>
+            ) : null}
+          </div>
         </div>
-        <button
-          type="button"
-          className="oma-plx-listening-filter__trigger oma-plx-deliv__filter-trigger"
-          data-testid="demo-task-open-filters"
-          data-active={filterSheet ? 'true' : 'false'}
-          onClick={() => setFilterSheet((v) => !v)}
-        >
-          <FilterOutlined />
-          <span>{filterLabel}</span>
-          {filterCount > 0 ? (
-            <span className="oma-plx-deliv-filter-count">{filterCount}</span>
-          ) : null}
-        </button>
-        <Button
-          type="primary"
-          size="small"
-          className="oma-plx-listening__export oma-plx-tasks__create"
-          data-testid="demo-create-task"
-          onClick={() => setCreateOpen(true)}
-        >
-          <PlusOutlined />
-          {t('demo.tasks.create')}
-        </Button>
-      </header>
+      </PlxHeaderFilter>
 
       <div className="oma-plx-listening__intro oma-plx-deliv__intro">
         <div>
@@ -518,283 +650,18 @@ export default function TasksPage() {
       ) : null}
 
       {!loading && !unavailable && !error ? (
-        <div
-          className="oma-plx-deliv-workspace oma-plx-tasks-workspace"
-          data-filter-open={filterSheet ? 'true' : 'false'}
-        >
-          <div
-            className="oma-plx-deliv-workspace__main"
-            data-filter-dimmed={filterSheet ? 'true' : 'false'}
-          >
-            {filterSheet ? (
-              <button
-                type="button"
-                className="oma-plx-deliv-main-scrim"
-                aria-label="Close filters"
-                onClick={() => setFilterSheet(false)}
-              />
-            ) : null}
+        <div className="oma-plx-deliv-workspace oma-plx-tasks-workspace">
+          <div className="oma-plx-deliv-workspace__main">
             <section className="oma-plx-listening-panel oma-plx-tasks-panel">
-              {view === 'board' ? (
-                <TasksKanbanBoard
-                  byBoard={byBoard}
-                  onOpenTask={openTask}
-                  onMoveTask={(id, status) => void patchTask(id, { status })}
-                  disabled={saving}
-                  onAddInColumn={() => setCreateOpen(true)}
-                />
-              ) : (
-                <div className="oma-plx-deliv-table-wrap" data-testid="demo-task-table">
-                  <table className="oma-plx-deliv-table oma-plx-tasks-table">
-                    <thead>
-                      <tr>
-                        <th>{t('demo.tasks.col.title') || 'Task'}</th>
-                        <th>{t('demo.tasks.filter.status')}</th>
-                        <th>{t('demo.tasks.filter.assignee')}</th>
-                        <th>{t('demo.tasks.filter.priority')}</th>
-                        <th>{t('demo.tasks.filter.campaign')}</th>
-                        <th>{t('demo.requests.col.due')}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filtered.map((task) => {
-                        const campaignLabel =
-                          typeof task.campaignName === 'string'
-                            ? task.campaignName
-                            : task.campaignName
-                              ? pickCopy(task.campaignName, locale)
-                              : '';
-                        const brandLabel = typeof task.brandName === 'string' ? task.brandName : '';
-                        return (
-                          <tr
-                            key={task.id}
-                            data-testid={`demo-task-row-${task.id}`}
-                            onClick={() => openTask(task.id)}
-                            style={{ cursor: 'pointer' }}
-                          >
-                            <td className="oma-plx-tasks-table__title-cell">
-                              <button
-                                type="button"
-                                className="oma-plx-tasks-table__title-btn"
-                                data-testid={`demo-task-open-${task.id}`}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  openTask(task.id);
-                                }}
-                              >
-                                <span className="oma-plx-tasks-table__title-text">
-                                  {pickCopy(task.title, locale)}
-                                </span>
-                                <span className="oma-plx-deliv-table__sub">
-                                  {task.type}
-                                  {campaignLabel ? ` · ${campaignLabel}` : ''}
-                                </span>
-                              </button>
-                            </td>
-                            <td>
-                              <StatusChip status={task.status} />
-                            </td>
-                            <td>{task.assignee || t('demo.requests.unassigned')}</td>
-                            <td>
-                              <StatusChip status={task.priority} />
-                            </td>
-                            <td>{campaignLabel || brandLabel || '—'}</td>
-                            <td className="oma-ltr oma-task-due-cell">
-                              <span className="oma-task-due-text">{task.dueAt}</span>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+              <TasksKanbanBoard
+                byBoard={byBoard}
+                onOpenTask={openTask}
+                onMoveTask={(id, status) => void patchTask(id, { status })}
+                disabled={saving}
+                onAddInColumn={() => setCreateOpen(true)}
+              />
             </section>
           </div>
-
-          {filterSheet ? (
-            <aside className="oma-plx-deliv-filter-panel" data-testid="demo-task-filters">
-              <header className="oma-plx-deliv-filter-panel__head">
-                <strong>
-                  {locale.toLowerCase().startsWith('ar') ? 'تصفية وترتيب' : 'Filter & sort'}
-                </strong>
-                <button
-                  type="button"
-                  className="oma-plx-deliv-filter-panel__close"
-                  aria-label="Close"
-                  onClick={() => setFilterSheet(false)}
-                >
-                  <CloseOutlined />
-                </button>
-              </header>
-              <div className="oma-filter-accordion-list oma-plx-deliv-filter-accordion-list">
-                <div className="oma-filter-accordion">
-                  <button
-                    type="button"
-                    className="oma-filter-accordion__row"
-                    data-open={filterSection === 'search' ? 'true' : 'false'}
-                    onClick={() => setFilterSection((s) => (s === 'search' ? null : 'search'))}
-                  >
-                    <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
-                      <SearchOutlined />
-                    </span>
-                    <span>{t('demo.tasks.search')}</span>
-                    <span className="oma-filter-accordion__caret">
-                      {filterSection === 'search' ? <UpOutlined /> : <DownOutlined />}
-                    </span>
-                  </button>
-                  {filterSection === 'search' ? (
-                    <div className="oma-filter-accordion__body">
-                      <Input
-                        value={filters.q}
-                        data-testid="demo-task-search"
-                        onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
-                        placeholder={t('demo.tasks.search')}
-                      />
-                    </div>
-                  ) : null}
-                </div>
-
-                <div className="oma-filter-accordion">
-                  <button
-                    type="button"
-                    className="oma-filter-accordion__row"
-                    data-open={filterSection === 'status' ? 'true' : 'false'}
-                    onClick={() => setFilterSection((s) => (s === 'status' ? null : 'status'))}
-                  >
-                    <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
-                      <UnorderedListOutlined />
-                    </span>
-                    <span>{t('demo.tasks.filter.status')}</span>
-                    <span className="oma-filter-accordion__caret">
-                      {filterSection === 'status' ? <UpOutlined /> : <DownOutlined />}
-                    </span>
-                  </button>
-                  {filterSection === 'status' ? (
-                    <div className="oma-filter-accordion__body">
-                      <label className="oma-filter-check">
-                        <input
-                          type="radio"
-                          name="task-status"
-                          data-testid="demo-task-filter-status"
-                          checked={filters.status === 'all'}
-                          onChange={() => setFilters((f) => ({ ...f, status: 'all' }))}
-                        />
-                        <span>{t('demo.filter.all')}</span>
-                      </label>
-                      {BOARD_COLUMNS.map((c) => (
-                        <label key={c.id} className="oma-filter-check">
-                          <input
-                            type="radio"
-                            name="task-status"
-                            checked={filters.status === c.id}
-                            onChange={() => setFilters((f) => ({ ...f, status: c.id }))}
-                          />
-                          <span>{c.id}</span>
-                        </label>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-
-                <div className="oma-filter-accordion">
-                  <button
-                    type="button"
-                    className="oma-filter-accordion__row"
-                    data-open={filterSection === 'assignee' ? 'true' : 'false'}
-                    onClick={() => setFilterSection((s) => (s === 'assignee' ? null : 'assignee'))}
-                  >
-                    <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
-                      <UserOutlined />
-                    </span>
-                    <span>{t('demo.tasks.filter.assignee')}</span>
-                    <span className="oma-filter-accordion__caret">
-                      {filterSection === 'assignee' ? <UpOutlined /> : <DownOutlined />}
-                    </span>
-                  </button>
-                  {filterSection === 'assignee' ? (
-                    <div className="oma-filter-accordion__body">
-                      <label className="oma-filter-check">
-                        <input
-                          type="radio"
-                          name="task-assignee"
-                          data-testid="demo-task-filter-assignee"
-                          checked={filters.assignee === 'all'}
-                          onChange={() => setFilters((f) => ({ ...f, assignee: 'all' }))}
-                        />
-                        <span>{t('demo.filter.all')}</span>
-                      </label>
-                      <label className="oma-filter-check">
-                        <input
-                          type="radio"
-                          name="task-assignee"
-                          checked={filters.assignee === 'unassigned'}
-                          onChange={() => setFilters((f) => ({ ...f, assignee: 'unassigned' }))}
-                        />
-                        <span>Unassigned</span>
-                      </label>
-                      {assignees.map((a) => (
-                        <label key={a} className="oma-filter-check">
-                          <input
-                            type="radio"
-                            name="task-assignee"
-                            checked={filters.assignee === a}
-                            onChange={() => setFilters((f) => ({ ...f, assignee: a }))}
-                          />
-                          <span>{a}</span>
-                        </label>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-
-                <div className="oma-filter-accordion">
-                  <button
-                    type="button"
-                    className="oma-filter-accordion__row"
-                    data-open={filterSection === 'priority' ? 'true' : 'false'}
-                    onClick={() => setFilterSection((s) => (s === 'priority' ? null : 'priority'))}
-                  >
-                    <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
-                      <FlagOutlined />
-                    </span>
-                    <span>{t('demo.tasks.filter.priority')}</span>
-                    <span className="oma-filter-accordion__caret">
-                      {filterSection === 'priority' ? <UpOutlined /> : <DownOutlined />}
-                    </span>
-                  </button>
-                  {filterSection === 'priority' ? (
-                    <div className="oma-filter-accordion__body">
-                      {(['all', 'URGENT', 'HIGH', 'MEDIUM', 'LOW'] as const).map((pr) => (
-                        <label key={pr} className="oma-filter-check">
-                          <input
-                            type="radio"
-                            name="task-priority"
-                            data-testid={pr === 'all' ? 'demo-task-filter-priority' : undefined}
-                            checked={filters.priority === pr}
-                            onChange={() => setFilters((f) => ({ ...f, priority: pr }))}
-                          />
-                          <span>{pr === 'all' ? t('demo.filter.all') : pr}</span>
-                        </label>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-              </div>
-
-              {filterCount > 0 ? (
-                <div className="oma-plx-deliv-filter-panel__foot">
-                  <Button
-                    type="default"
-                    data-testid="demo-task-clear-filters"
-                    onClick={() => setFilters(EMPTY_TASK_FILTERS)}
-                  >
-                    {t('demo.requests.clearFilters') || 'Clear filters'}
-                  </Button>
-                </div>
-              ) : null}
-            </aside>
-          ) : null}
         </div>
       ) : null}
 
