@@ -5204,15 +5204,73 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   font-size: 12px;
 }
 
-.oma-plx-schedule .oma-sched-week-nav--cluster {
+.oma-plx-sched-week {
+  display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  align-items: center;
+  gap: 10px 14px;
+  width: 100%;
 }
 
-.oma-plx-schedule .oma-sched-week-nav__range {
-  font-size: 13px;
-  font-weight: 600;
-  color: #374151;
+.oma-plx-sched-week__nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+}
+
+.oma-plx-sched-week__today {
+  border: 0;
+  background: transparent;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 650;
+  color: #2563eb;
+  cursor: pointer;
+}
+
+.oma-plx-sched-week__today:hover {
+  background: #eff6ff;
+}
+
+.oma-plx-week-chevron--next {
+  transform: scaleX(-1);
+}
+
+[dir='rtl'] .oma-plx-week-chevron--next {
+  transform: scaleX(1);
+}
+
+[dir='rtl'] .oma-plx-week-chevron--prev {
+  transform: scaleX(-1);
+}
+
+.oma-plx-sched-week__range {
+  font-size: 14px;
+  font-weight: 650;
+  color: #111827;
+}
+
+.oma-plx-schedule .oma-plx-listening-segment {
+  border-radius: 10px;
+  background: #fff;
+}
+
+.oma-plx-schedule .oma-plx-listening-segment button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  min-height: 36px;
+}
+
+.oma-plx-schedule .oma-plx-listening-segment button.is-active {
+  background: #eff6ff;
+  color: #1d4ed8;
 }
 
 .oma-plx-schedule .oma-plx-sched-saved {
@@ -5250,20 +5308,324 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   color: #374151;
 }
 
-.oma-plx-sched-list-card {
-  padding: 14px 16px;
+.oma-plx-sched-agenda {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.oma-plx-sched-queue {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
+  gap: 12px;
+}
+
+.oma-plx-sched-post-card {
+  display: flex;
+  flex-direction: column;
   border: 1px solid #eceef1;
   border-radius: 12px;
   background: #fff;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  overflow: hidden;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
-.oma-plx-schedule .oma-sched-agenda .oma-plx-sched-list-card {
+.oma-plx-sched-post-card:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.oma-plx-sched-post-card__hit {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  gap: 12px;
+  width: 100%;
+  padding: 12px;
+  border: 0;
+  background: transparent;
+  text-align: start;
+  cursor: pointer;
+  color: inherit;
+}
+
+.oma-plx-sched-post-card__media {
+  width: 88px;
+  height: 88px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f3f4f6;
+  flex-shrink: 0;
+}
+
+.oma-plx-sched-post-card__media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.oma-plx-sched-post-card__media-fallback {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: #6b7280;
+}
+
+.oma-plx-sched-post-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.oma-plx-sched-post-card__when {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.oma-plx-sched-post-card__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.oma-plx-sched-post-card__title {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.35;
+  color: #111827;
+}
+
+.oma-plx-sched-post-card__caption {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #6b7280;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.oma-plx-sched-post-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.oma-plx-sched-post-card__nets {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.oma-plx-sched-post-card__meta {
+  font-size: 11px;
+  color: #9ca3af;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.oma-plx-sched-post-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px 12px;
+  border-top: 1px solid #f3f4f6;
+  margin-top: 0;
+  padding-top: 10px;
+}
+
+.oma-plx-sched-post-card__link {
+  font-size: 12px;
+  font-weight: 600;
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.oma-plx-sched-post-card__warn {
+  margin: 0;
+  padding: 8px 12px 10px;
+  font-size: 12px;
+  color: #b45309;
+  background: #fffbeb;
+  border-top: 1px solid #fef3c7;
+}
+
+.oma-plx-sched-agenda .oma-plx-sched-post-card {
   border-inline-start: 3px solid #2563eb;
 }
 
-.oma-plx-schedule .oma-sched-queue {
+.oma-plx-sched-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 280px;
+  padding: 32px 20px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.oma-plx-sched-empty__icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: #f3f4f6;
+  color: #9ca3af;
+  margin-bottom: 4px;
+}
+
+.oma-plx-sched-empty strong {
+  font-size: 16px;
+  color: #111827;
+}
+
+.oma-plx-sched-empty p {
+  margin: 0;
+  max-width: 360px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.oma-plx-sched-empty__hint {
+  font-size: 12px !important;
+  color: #9ca3af !important;
+}
+
+.oma-plx-sched-panel--loading {
+  padding: 14px;
+  min-height: 360px;
+}
+
+.oma-plx-sched-shimmer__toolbar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.oma-plx-shimmer-pill {
+  display: block;
+  height: 36px;
+  width: 120px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #f3f4f6, #e5e7eb, #f3f4f6);
+  background-size: 200% 100%;
+  animation: oma-plx-shimmer 1.2s ease-in-out infinite;
+}
+
+.oma-plx-shimmer-pill--wide {
+  flex: 1;
+  max-width: 280px;
+}
+
+.oma-plx-sched-shimmer__cal {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.oma-plx-sched-shimmer__col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.oma-plx-shimmer-line {
+  height: 14px;
+  border-radius: 6px;
+  background: #eef0f2;
+}
+
+.oma-plx-shimmer-block {
+  height: 120px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #f3f4f6, #e5e7eb, #f3f4f6);
+  background-size: 200% 100%;
+  animation: oma-plx-shimmer 1.2s ease-in-out infinite;
+}
+
+.oma-plx-shimmer-block--sm {
+  height: 48px;
+}
+
+@keyframes oma-plx-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+.oma-plx-sched-detail-card {
+  margin: 12px;
+  padding: 0 !important;
+  overflow: hidden;
+  border-radius: 14px !important;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+}
+
+.oma-plx-sched-detail-card__cover {
+  height: 160px;
+  background: #eef0f2;
+}
+
+.oma-plx-sched-detail-card__cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.oma-plx-sched-detail-card__cover--empty {
+  background: linear-gradient(145deg, #eff6ff, #f3f4f6);
+}
+
+.oma-plx-sched-detail-card__hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
   gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.oma-plx-sched-detail-card__title {
+  margin: 0 0 8px;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #111827;
+}
+
+.oma-plx-sched-detail-card__body {
+  padding: 12px 14px 16px;
+  gap: 10px;
+}
+
+.oma-plx-sched-detail-card__body .oma-plx-sched-drawer__section {
+  padding: 12px 14px;
+  margin: 0;
+  border: 1px solid #eceef1;
+  border-radius: 12px;
+  background: #fafafa;
 }
 
 .oma-plx-sched-table-wrap {
