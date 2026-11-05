@@ -41,13 +41,21 @@ export class MetaAdapter implements SocialProviderAdapter {
 
   private scopes() {
     return this.network === 'facebook'
-      ? ['pages_show_list', 'pages_read_engagement', 'pages_manage_posts']
+      ? [
+          'pages_show_list',
+          'pages_read_engagement',
+          'pages_manage_posts',
+          'pages_messaging',
+          'pages_manage_metadata',
+        ]
       : [
           'pages_show_list',
           'pages_read_engagement',
           'business_management',
           'instagram_basic',
           'instagram_content_publish',
+          'instagram_manage_comments',
+          'instagram_manage_messages',
         ];
   }
 

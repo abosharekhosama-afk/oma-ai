@@ -2,6 +2,8 @@ import { getPrisma, tenantWhere } from '@oma/db';
 import { DomainError, newId } from '@oma/domain';
 import { classifySentiment } from './sentiment';
 import { tryPlatformReply } from './platform-reply';
+import { deletePlatformComment, hidePlatformComment } from './platform-message-actions';
+import { enqueueInboxSync } from './enqueue-inbox';
 
 type Platform = 'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN';
 type ConvType = 'DIRECT_MESSAGE' | 'POST_COMMENT' | 'DARK_COMMENT' | 'MENTION';
@@ -202,7 +204,12 @@ export class InboxService {
     };
   }
 
-  async reply(tenantId: string, userId: string, id: string, body: { content?: string }) {
+  async reply(
+    tenantId: string,
+    userId: string,
+    id: string,
+    body: { content?: string; replyToMessageId?: string },
+  ) {
     const content = (body.content ?? '').trim();
     if (!content) {
       throw new DomainError('VALIDATION_FAILED', 'Reply content required', 400, 'errors.validation');
@@ -212,6 +219,25 @@ export class InboxService {
     });
     if (!c) throw new DomainError('NOT_FOUND', 'Conversation not found', 404, 'errors.not_found');
 
+    let replyToCommentId: string | null = null;
+    if (c.type !== 'DIRECT_MESSAGE') {
+      if (body.replyToMessageId) {
+        const target = await getPrisma().inboxMessage.findFirst({
+          where: { id: body.replyToMessageId, conversationId: id, tenantId },
+          select: { externalMessageId: true },
+        });
+        replyToCommentId = target?.externalMessageId ?? null;
+      }
+      if (!replyToCommentId) {
+        const lastInbound = await getPrisma().inboxMessage.findFirst({
+          where: { conversationId: id, direction: 'INBOUND' },
+          orderBy: { createdAt: 'desc' },
+          select: { externalMessageId: true },
+        });
+        replyToCommentId = lastInbound?.externalMessageId ?? null;
+      }
+    }
+
     const delivery = await tryPlatformReply({
       tenantId,
       platform: c.platform as Platform,
@@ -220,6 +246,7 @@ export class InboxService {
       externalThreadId: c.externalThreadId,
       type: c.type,
       participantExtId: c.participantExtId,
+      replyToCommentId,
       content,
     });
 
@@ -371,6 +398,100 @@ export class InboxService {
       data,
     });
     return { updated: result.count };
+  }
+
+  async requestSync(tenantId: string, brandId?: string | null) {
+    const queued = await enqueueInboxSync({
+      tenantId,
+      brandId: brandId ?? null,
+      requestedAt: new Date().toISOString(),
+    });
+    if (!queued) {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'Inbox sync queue unavailable (Redis). Try again or check worker.',
+        503,
+        'errors.unavailable',
+      );
+    }
+    return { queued: true };
+  }
+
+  async connectionStatus(tenantId: string, brandId?: string | null) {
+    const pages = await getPrisma().socialPage.findMany({
+      where: {
+        tenantId,
+        status: 'CONNECTED',
+        network: { in: ['FACEBOOK', 'INSTAGRAM'] },
+        ...(brandId ? { brandId } : {}),
+      },
+      select: { id: true, name: true, network: true, metaJson: true, brandId: true },
+    });
+    const lastSync = pages.reduce<string | null>((acc, p) => {
+      try {
+        const meta = JSON.parse(p.metaJson || '{}') as { lastInboxSyncAt?: string };
+        const t = meta.lastInboxSyncAt;
+        if (!t) return acc;
+        if (!acc || t > acc) return t;
+        return acc;
+      } catch {
+        return acc;
+      }
+    }, null);
+    return {
+      connectedPages: pages.length,
+      pages: pages.map((p) => ({
+        id: p.id,
+        name: p.name,
+        network: p.network,
+        brandId: p.brandId,
+      })),
+      lastSyncAt: lastSync,
+      realtimeWebhooks: Boolean(process.env.META_APP_SECRET?.trim()),
+    };
+  }
+
+  async hideMessage(tenantId: string, messageId: string) {
+    const msg = await getPrisma().inboxMessage.findFirst({
+      where: { id: messageId, tenantId },
+      include: { conversation: true },
+    });
+    if (!msg) throw new DomainError('NOT_FOUND', 'Message not found', 404, 'errors.not_found');
+    if (!msg.externalMessageId) {
+      throw new DomainError('CONFLICT_STATE', 'Message has no platform id', 409, 'errors.conflict');
+    }
+    const r = await hidePlatformComment({
+      tenantId,
+      socialPageId: msg.conversation.socialPageId,
+      brandId: msg.conversation.brandId,
+      externalCommentId: msg.externalMessageId,
+    });
+    if (!r.ok) {
+      throw new DomainError('CONFLICT_STATE', r.reason ?? 'Hide failed', 502, 'errors.external');
+    }
+    return { ok: true };
+  }
+
+  async deleteMessage(tenantId: string, messageId: string) {
+    const msg = await getPrisma().inboxMessage.findFirst({
+      where: { id: messageId, tenantId },
+      include: { conversation: true },
+    });
+    if (!msg) throw new DomainError('NOT_FOUND', 'Message not found', 404, 'errors.not_found');
+    if (!msg.externalMessageId) {
+      throw new DomainError('CONFLICT_STATE', 'Message has no platform id', 409, 'errors.conflict');
+    }
+    const r = await deletePlatformComment({
+      tenantId,
+      socialPageId: msg.conversation.socialPageId,
+      brandId: msg.conversation.brandId,
+      externalCommentId: msg.externalMessageId,
+    });
+    if (!r.ok) {
+      throw new DomainError('CONFLICT_STATE', r.reason ?? 'Delete failed', 502, 'errors.external');
+    }
+    await getPrisma().inboxMessage.delete({ where: { id: messageId } });
+    return { ok: true };
   }
 
   /** Upsert used by webhook worker after parsing platform payloads. */

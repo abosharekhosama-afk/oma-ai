@@ -81,6 +81,37 @@ async function main() {
   };
   setInterval(() => void scheduleListening(), 5 * 60 * 1000);
 
+  const scheduleInboxSync = async () => {
+    try {
+      const prisma = (await import('@oma/db')).getPrisma();
+      const tenants = await prisma.socialPage.findMany({
+        where: { status: 'CONNECTED', network: { in: ['FACEBOOK', 'INSTAGRAM'] } },
+        select: { tenantId: true },
+        distinct: ['tenantId'],
+      });
+      if (!tenants.length) return;
+      const q = new Queue('inbox', {
+        connection,
+        prefix: process.env.BULLMQ_PREFIX || 'oma',
+      });
+      for (const t of tenants) {
+        try {
+          await q.add(
+            'inbox.sync',
+            { tenantId: t.tenantId, requestedAt: new Date().toISOString() },
+            { jobId: `inbox-sync-cron-${t.tenantId}-${Date.now()}`, removeOnComplete: true },
+          );
+        } catch {
+          /* duplicate job */
+        }
+      }
+      await q.close().catch(() => undefined);
+    } catch (err) {
+      log.error({ err: String(err) }, 'inbox sync schedule tick failed');
+    }
+  };
+  setInterval(() => void scheduleInboxSync(), 10 * 60 * 1000);
+
 
   const healthPort = Number(process.env.WORKER_HEALTH_PORT ?? 3002);
   const health = createServer((_req, res) => {

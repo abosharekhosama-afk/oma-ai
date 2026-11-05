@@ -538,11 +538,43 @@
   flex-wrap: wrap;
 }
 
+.oma-plx-inbox-list__title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
 .oma-plx-inbox-list__title {
   margin: 0;
   font-size: 15px;
   font-weight: 600;
   color: #111827;
+}
+
+.oma-plx-inbox-list__connect-hint,
+.oma-plx-inbox-list__sync-meta {
+  width: 100%;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #6b7280;
+}
+
+.oma-plx-inbox-list__connect-hint a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.oma-plx-inbox-spin {
+  animation: oma-plx-inbox-spin 0.8s linear infinite;
+}
+
+@keyframes oma-plx-inbox-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .oma-plx-inbox-list__filters {

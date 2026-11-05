@@ -77,11 +77,44 @@ export function getInboxConversation(id: string) {
   return api<InboxConversationDetail>(`/api/v1/inbox/conversations/${id}`);
 }
 
-export function replyInboxConversation(id: string, content: string) {
+export type InboxConnections = {
+  connectedPages: number;
+  pages: { id: string; name: string; network: string; brandId: string | null }[];
+  lastSyncAt: string | null;
+  realtimeWebhooks: boolean;
+};
+
+export function getInboxConnections(brandId?: string | null) {
+  const q = brandId ? `?brandId=${encodeURIComponent(brandId)}` : '';
+  return api<InboxConnections>(`/api/v1/inbox/connections${q}`);
+}
+
+export function syncInbox(brandId?: string | null) {
+  return api<{ queued: boolean }>('/api/v1/inbox/sync', {
+    method: 'POST',
+    body: JSON.stringify({ brandId: brandId ?? null }),
+  });
+}
+
+export function replyInboxConversation(id: string, content: string, replyToMessageId?: string | null) {
   return api<{ id: string; externalDelivered: boolean; externalMessageId: string | null; note: string | null }>(
     `/api/v1/inbox/conversations/${id}/reply`,
-    { method: 'POST', body: JSON.stringify({ content }) },
+    {
+      method: 'POST',
+      body: JSON.stringify({
+        content,
+        ...(replyToMessageId ? { replyToMessageId } : {}),
+      }),
+    },
   );
+}
+
+export function hideInboxMessage(messageId: string) {
+  return api<{ ok: boolean }>(`/api/v1/inbox/messages/${messageId}/hide`, { method: 'POST' });
+}
+
+export function deleteInboxMessage(messageId: string) {
+  return api<{ ok: boolean }>(`/api/v1/inbox/messages/${messageId}/delete`, { method: 'POST' });
 }
 
 export function assignInboxConversation(id: string, assignedToUserId: string | null) {

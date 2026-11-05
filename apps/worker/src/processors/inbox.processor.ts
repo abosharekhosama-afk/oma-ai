@@ -3,6 +3,8 @@ import { Worker, type Job } from 'bullmq';
 import type IORedis from 'ioredis';
 import { getPrisma } from '@oma/db';
 import { newId } from '@oma/domain';
+import { ingestInboundMessage } from '../inbox/ingest-conversation';
+import { runInboxSync } from '../inbox/meta-sync';
 
 const log = createLogger('inbox-processor');
 
@@ -12,6 +14,13 @@ type InboxWebhookJob = {
   brandId?: string;
   raw: unknown;
   receivedAt: string;
+};
+
+type InboxSyncJob = {
+  tenantId: string;
+  brandId?: string | null;
+  sinceDays?: number;
+  requestedAt: string;
 };
 
 type Sentiment = 'POSITIVE' | 'NEUTRAL' | 'NEGATIVE';
@@ -157,93 +166,48 @@ async function resolveTenantId(hint?: string, pageExternalId?: string): Promise<
   return process.env.INBOX_DEFAULT_TENANT_ID?.trim() || null;
 }
 
-async function ingest(item: ParsedInbound, fallbackTenant?: string) {
+async function ingest(item: ParsedInbound, fallbackTenant?: string, brandId?: string) {
   const tenantId = await resolveTenantId(item.tenantId ?? fallbackTenant);
   if (!tenantId) {
     log.warn({ platform: item.platform, thread: item.externalThreadId }, 'inbox event dropped: no tenant');
     return;
   }
-  const prisma = getPrisma();
-  const existing = await prisma.inboxConversation.findUnique({
-    where: {
-      tenantId_platform_externalThreadId: {
-        tenantId,
-        platform: item.platform,
-        externalThreadId: item.externalThreadId,
-      },
-    },
+  await ingestInboundMessage({
+    tenantId,
+    brandId: brandId ?? null,
+    platform: item.platform,
+    externalThreadId: item.externalThreadId,
+    type: item.type,
+    externalMessageId: item.externalMessageId ?? null,
+    senderExternalId: item.senderExternalId,
+    senderName: item.senderName,
+    senderAvatar: item.senderAvatar ?? null,
+    content: item.content,
+    mediaUrls: item.mediaUrls,
   });
-  const convId = existing?.id ?? newId();
-  const sentiment = classifySentiment(item.content);
-
-  if (!existing) {
-    await prisma.inboxConversation.create({
-      data: {
-        id: convId,
-        tenantId,
-        platform: item.platform,
-        externalThreadId: item.externalThreadId,
-        type: item.type,
-        status: 'UNREAD',
-        sentiment,
-        participantName: item.senderName,
-        participantExtId: item.senderExternalId,
-        participantAvatar: item.senderAvatar ?? null,
-        lastMessageAt: new Date(),
-        lastMessagePreview: previewOf(item.content),
-      },
-    });
-  }
-
-  if (item.externalMessageId) {
-    const dup = await prisma.inboxMessage.findFirst({
-      where: { conversationId: convId, externalMessageId: item.externalMessageId },
-      select: { id: true },
-    });
-    if (dup) return;
-  }
-
-  await prisma.$transaction([
-    prisma.inboxMessage.create({
-      data: {
-        id: newId(),
-        tenantId,
-        conversationId: convId,
-        externalMessageId: item.externalMessageId ?? null,
-        senderExternalId: item.senderExternalId,
-        senderName: item.senderName,
-        senderAvatar: item.senderAvatar ?? null,
-        content: item.content,
-        mediaUrlsJson: item.mediaUrls?.length ? JSON.stringify(item.mediaUrls) : null,
-        direction: 'INBOUND',
-      },
-    }),
-    prisma.inboxConversation.update({
-      where: { id: convId },
-      data: {
-        lastMessageAt: new Date(),
-        lastMessagePreview: previewOf(item.content),
-        messageCount: { increment: 1 },
-        unreadCount: { increment: 1 },
-        sentiment,
-        status: existing?.status === 'CLOSED' ? 'UNREAD' : existing?.status ?? 'UNREAD',
-      },
-    }),
-  ]);
 }
 
 export function startInboxProcessor(connection: IORedis) {
-  const worker = new Worker<InboxWebhookJob>(
+  const worker = new Worker<InboxWebhookJob | InboxSyncJob>(
     'inbox',
-    async (job: Job<InboxWebhookJob>) => {
-      const { platform, raw, tenantId } = job.data;
+    async (job: Job<InboxWebhookJob | InboxSyncJob>) => {
+      if (job.name === 'inbox.sync') {
+        const data = job.data as InboxSyncJob;
+        await runInboxSync({
+          tenantId: data.tenantId,
+          brandId: data.brandId,
+          sinceDays: data.sinceDays,
+        });
+        return;
+      }
+      const { platform, raw, tenantId, brandId } = job.data as InboxWebhookJob;
       const parsed =
         platform === 'META_FB' || platform === 'META_IG'
           ? parseMeta(raw, platform)
           : parseGeneric(raw, platform);
       log.info({ platform, count: parsed.length, jobId: job.id }, 'inbox webhook job');
       for (const item of parsed) {
-        await ingest(item, tenantId);
+        await ingest(item, tenantId, brandId);
       }
     },
     {

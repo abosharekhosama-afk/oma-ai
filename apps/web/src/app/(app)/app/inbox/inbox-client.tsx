@@ -1,14 +1,20 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import { Button } from '@oma/ui/controls';
 import {
   addInboxNote,
+  deleteInboxMessage,
+  getInboxConnections,
   getInboxConversation,
   getInboxStats,
+  hideInboxMessage,
   listInboxConversations,
   replyInboxConversation,
   setInboxStatus,
+  syncInbox,
+  type InboxConnections,
   type InboxConversationDetail,
   type InboxConversationListItem,
   type InboxMessage,
@@ -27,6 +33,7 @@ import {
   HeartOutlined,
   LinkOutlined,
   MoreOutlined,
+  ReloadOutlined,
   SmileOutlined,
   StarOutlined,
   UpOutlined,
@@ -134,6 +141,22 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
   const [showNoteComposer, setShowNoteComposer] = useState(false);
   const [noteDraft, setNoteDraft] = useState('');
   const [adBannerDismissed, setAdBannerDismissed] = useState(false);
+  const [connections, setConnections] = useState<InboxConnections | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const initialSyncDone = useRef(false);
+
+  const brandSettingsHref = activeBrandId
+    ? `/app/brands/${activeBrandId}/settings?tab=accounts`
+    : '/app/brands';
+
+  const refreshConnections = useCallback(async () => {
+    try {
+      const c = await getInboxConnections(activeBrandId || undefined);
+      setConnections(c);
+    } catch {
+      setConnections(null);
+    }
+  }, [activeBrandId]);
 
   useEffect(() => {
     try {
@@ -207,9 +230,39 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
     }
   }, []);
 
+  const runSync = useCallback(
+    async (opts?: { silent?: boolean }) => {
+      if (!opts?.silent) setSyncing(true);
+      try {
+        await syncInbox(activeBrandId || undefined);
+        await new Promise((r) => setTimeout(r, 1500));
+        await refreshConnections();
+        await loadList();
+        if (selectedId) await loadDetail(selectedId);
+      } catch (e) {
+        if (!opts?.silent) {
+          setError(e instanceof Error ? e.message : 'Sync failed');
+        }
+      } finally {
+        if (!opts?.silent) setSyncing(false);
+      }
+    },
+    [activeBrandId, refreshConnections, loadList, loadDetail, selectedId],
+  );
+
+  useEffect(() => {
+    void refreshConnections();
+  }, [refreshConnections]);
+
   useEffect(() => {
     void loadList();
   }, [loadList]);
+
+  useEffect(() => {
+    if (initialSyncDone.current) return;
+    initialSyncDone.current = true;
+    void runSync({ silent: true });
+  }, [runSync]);
 
   useEffect(() => {
     if (selectedId) void loadDetail(selectedId);
@@ -287,7 +340,11 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
     setSending(true);
     setDeliveryNote(null);
     try {
-      const res = await replyInboxConversation(selectedId, text.trim());
+      const res = await replyInboxConversation(
+        selectedId,
+        text.trim(),
+        replyToMessageId ?? undefined,
+      );
       if (clearInline) {
         setInlineReply('');
         setReplyToMessageId(null);
@@ -300,6 +357,37 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
       await loadList();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Reply failed');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const onHideComment = async (messageId: string) => {
+    setCommentMenuId(null);
+    setSending(true);
+    setError(null);
+    try {
+      await hideInboxMessage(messageId);
+      if (selectedId) await loadDetail(selectedId);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Hide failed');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const onDeleteComment = async (messageId: string) => {
+    setCommentMenuId(null);
+    setSending(true);
+    setError(null);
+    try {
+      await deleteInboxMessage(messageId);
+      if (selectedId) {
+        await loadDetail(selectedId);
+        await loadList();
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Delete failed');
     } finally {
       setSending(false);
     }
@@ -377,7 +465,31 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
     <div className="oma-plx-inbox" data-testid="inbox-page" data-inbox-mode={mode}>
       <section className="oma-plx-inbox-list" aria-label={listTitle}>
         <header className="oma-plx-inbox-list__head">
-          <h2 className="oma-plx-inbox-list__title">{listTitle}</h2>
+          <div className="oma-plx-inbox-list__title-row">
+            <h2 className="oma-plx-inbox-list__title">{listTitle}</h2>
+            <button
+              type="button"
+              className="oma-plx-inbox-icon-btn oma-plx-inbox-icon-btn--ghost"
+              aria-label={t('inbox.syncNow') || 'Sync from channels'}
+              disabled={syncing}
+              onClick={() => void runSync()}
+            >
+              <ReloadOutlined className={syncing ? 'oma-plx-inbox-spin' : undefined} />
+            </button>
+          </div>
+          {connections && connections.connectedPages === 0 ? (
+            <p className="oma-plx-inbox-list__connect-hint">
+              {t('inbox.connectHint') || 'Connect Facebook or Instagram in brand settings to pull comments and DMs.'}{' '}
+              <Link href={brandSettingsHref}>{t('inbox.connectLink') || 'Connect accounts'}</Link>
+            </p>
+          ) : connections?.lastSyncAt ? (
+            <p className="oma-plx-inbox-list__sync-meta">
+              {(t('inbox.lastSync') || 'Last sync {time}').replace(
+                '{time}',
+                relativeTime(connections.lastSyncAt),
+              )}
+            </p>
+          ) : null}
           <InboxStatusDropdown
             value={statusTab}
             onChange={setStatusTab}
@@ -491,9 +603,9 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
                         >
                           {t('inbox.adBanner.dismiss') || 'Dismiss'}
                         </button>
-                        <button type="button" className="oma-plx-inbox-ad-banner__connect">
+                        <Link href={brandSettingsHref} className="oma-plx-inbox-ad-banner__connect">
                           + {t('inbox.adBanner.connect') || 'Connect'}
-                        </button>
+                        </Link>
                       </div>
                     </div>
                   ) : null}
@@ -585,10 +697,19 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
                                       <button type="button" role="menuitem">
                                         <EditOutlined /> {t('inbox.comment.edit') || 'Edit'}
                                       </button>
-                                      <button type="button" role="menuitem">
+                                      <button
+                                        type="button"
+                                        role="menuitem"
+                                        onClick={() => void onHideComment(m.id)}
+                                      >
                                         <EyeInvisibleOutlined /> {t('inbox.comment.hide') || 'Hide'}
                                       </button>
-                                      <button type="button" role="menuitem" className="is-danger">
+                                      <button
+                                        type="button"
+                                        role="menuitem"
+                                        className="is-danger"
+                                        onClick={() => void onDeleteComment(m.id)}
+                                      >
                                         <DeleteOutlined /> {t('inbox.comment.delete') || 'Delete'}
                                       </button>
                                     </div>
