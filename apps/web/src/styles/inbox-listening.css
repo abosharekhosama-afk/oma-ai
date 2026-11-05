@@ -3927,3 +3927,335 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
     border-bottom: 1px solid #eceef1;
   }
 }
+
+/* Activity — Social Listening plx shell */
+.oma-plx-activity {
+  max-width: 920px;
+}
+
+.oma-plx-activity-panel__body {
+  padding: 12px 14px 16px;
+}
+
+.oma-plx-activity-feed {
+  gap: 10px;
+}
+
+.oma-plx-activity-card {
+  margin: 0;
+  padding: 14px 16px;
+}
+
+.oma-plx-activity-card__top {
+  align-items: flex-start;
+}
+
+.oma-plx-activity-card__thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid #eceef1;
+}
+
+.oma-plx-activity-card__avatar-img {
+  padding: 0;
+  object-fit: cover;
+}
+
+.oma-plx-activity-card__avatar {
+  font-size: 13px;
+  font-weight: 700;
+  color: #2563eb;
+  background: #eff6ff;
+}
+
+.oma-plx-activity-card__time {
+  font-size: 11px;
+  font-weight: 500;
+  color: #9ca3af;
+}
+
+.oma-plx-activity-card__verb {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.oma-plx-activity-card__pill {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.oma-plx-activity-card__body {
+  margin-top: 10px;
+  padding-top: 0;
+}
+
+.oma-plx-activity-card__line {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  color: #111827;
+}
+
+.oma-plx-activity-card__target {
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.oma-plx-activity-card__target:hover,
+.oma-plx-activity-card__target:focus-visible {
+  text-decoration: underline;
+}
+
+.oma-plx-activity-card__muted {
+  color: #6b7280;
+}
+
+.oma-plx-activity-card__quote {
+  margin: 8px 0 0;
+  padding: 8px 10px;
+  border-inline-start: 3px solid #e5e7eb;
+  border-radius: 0 8px 8px 0;
+  background: #f9fafb;
+  color: #4b5563;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.oma-plx-activity-load-more {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.oma-plx-activity-empty {
+  padding: 24px 12px;
+}
+
+/* Team — Social Listening plx shell */
+.oma-plx-team {
+  max-width: 1120px;
+}
+
+.oma-plx-team-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+}
+
+.oma-plx-team-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid #eceef1;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.oma-plx-team-card:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.oma-plx-team-card__head {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+}
+
+.oma-plx-team-card__avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: #2563eb;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+}
+
+.oma-plx-team-card__identity {
+  min-width: 0;
+}
+
+.oma-plx-team-card__name-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.oma-plx-team-card__name-row strong {
+  font-size: 15px;
+  color: #111827;
+}
+
+.oma-plx-team-card__you {
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.oma-plx-team-card__email {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: #6b7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.oma-plx-team-card__membership {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.oma-plx-team-card__membership.is-client {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.oma-plx-team-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 4px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.oma-plx-team-card__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.oma-plx-team-card__field select {
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.oma-plx-team-card__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.oma-plx-team-card__status {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.oma-plx-team-card__online {
+  color: #6b7280;
+}
+
+.oma-plx-team-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 8px;
+}
+
+.oma-plx-team-card__perm-btn {
+  border: 0;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.oma-plx-team-card__perm-btn:hover {
+  background: #dbeafe;
+}
+
+.oma-plx-team-card__remove {
+  border: 0;
+  background: transparent;
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 8px;
+}
+
+.oma-plx-team-card__remove:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.oma-plx-team-perms-wrap {
+  overflow-x: auto;
+}
+
+.oma-plx-team-notif {
+  border: 0;
+  box-shadow: none;
+  padding: 4px 0 0;
+  background: transparent;
+}
+
+.oma-plx-perm-popover .oma-perm-card {
+  border: 1px solid #eceef1;
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+}
+
+.oma-plx-team-members-scroll {
+  max-height: none;
+}
+
+.oma-plx-team-empty {
+  padding: 24px 8px;
+}
+
+@media (max-width: 640px) {
+  .oma-plx-team-grid {
+    grid-template-columns: 1fr;
+  }
+}

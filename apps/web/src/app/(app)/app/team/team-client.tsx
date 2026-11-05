@@ -1,9 +1,10 @@
 'use client';
 import { TableShimmer } from '../../../../components/ui/shimmer';
 
-import { Button, Input, SelectField } from '@oma/ui/controls';
+import { Button, SelectField } from '@oma/ui/controls';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { PlxHeaderSearch } from '../../../../components/ui/plx-header-search';
 import {
   attachMemberProfile,
   listWorkspaceMembers,
@@ -161,8 +162,28 @@ export default function TeamPage() {
     };
   }, [tab]);
   const [q, setQ] = useState('');
+  const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
   const loadingRef = useRef(false);
   const mountedRef = useRef(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    let tries = 0;
+    const sync = () => {
+      if (cancelled) return;
+      const header = document.getElementById('oma-workspace-top-actions');
+      setHeaderSlot(header);
+      tries += 1;
+      if (!header && tries < 30) {
+        window.setTimeout(sync, 50);
+      }
+    };
+    sync();
+    return () => {
+      cancelled = true;
+      setHeaderSlot(null);
+    };
+  }, []);
 
   async function load(force = false) {
     if (loadingRef.current) return;
@@ -277,126 +298,132 @@ export default function TeamPage() {
     }
   }
 
-  return (
-    <div className="oma-bs" data-testid="team-page-planable">
-      <header className="oma-bs-head">
-        <div className="oma-bs-head__text">
-          <h1 className="oma-bs-title">{t('wsPanel.team_clients')}</h1>
-          <p className="oma-bs-sub">{t('team.invite_collaborators_set_teamclient_membership')}</p>
-        </div>
-      </header>
-      <div className="oma-bs-body">
-        <nav className="oma-bs-nav" aria-label={t('wsPanel.team_clients')}>
-          {(
-            [
-              ['members', 'team.tab.members'],
-              ['permissions', 'team.tab.permissions'],
-              ['notifications', 'team.tab.notifications'],
-            ] as const
-          ).map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              className="oma-bs-nav__item"
-              aria-current={tab === id ? 'page' : undefined}
-              onClick={() => setTab(id)}
-            >
-              {t(label)}
-            </button>
-          ))}
-        </nav>
-        <main className="oma-bs-main">
-          {loading ? <TableShimmer rows={5} /> : null}
-          {error ? (
-            <div className="plx-empty" role="alert">
-              <strong>{error}</strong>
-              <div style={{ marginTop: 12 }}>
-                <Button type="default" onClick={() => void load(true)}>
-                  {t('activity.retry')}
-                </Button>
-              </div>
-            </div>
-          ) : null}
+  const searchPlaceholder = t('team.search_members');
 
+  return (
+    <div className="oma-plx-listening oma-plx-team" data-testid="team-page-planable">
+      {tab === 'members' ? (
+        <PlxHeaderSearch
+          headerSlot={headerSlot}
+          value={q}
+          onChange={setQ}
+          testId="team-members-search"
+          placeholder={searchPlaceholder}
+          ariaLabel={searchPlaceholder}
+        />
+      ) : null}
+
+      <div className="oma-plx-workspace-surface">
+        <div className="oma-plx-listening__intro oma-plx-deliv__intro">
+          <div>
+            <h1 className="oma-plx-listening__title">{t('wsPanel.team_clients')}</h1>
+            <p className="oma-plx-deliv__subtitle">
+              {t('team.invite_collaborators_set_teamclient_membership')}
+            </p>
+          </div>
           {!loading && !error && tab === 'members' ? (
-            <>
-              <div className="oma-planable-toolbar">
-                <Input
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  placeholder={t('team.search_members')}
-                />
+            <p className="oma-plx-listening__next-check" data-testid="team-member-count">
+              {filtered.length} / {rows.length}
+            </p>
+          ) : null}
+        </div>
+
+        {loading ? <TableShimmer rows={5} /> : null}
+        {error ? (
+          <div className="oma-inbox-error" role="alert">
+            <p style={{ margin: 0 }}>{error}</p>
+            <div style={{ marginTop: 12 }}>
+              <Button type="default" onClick={() => void load(true)}>
+                {t('activity.retry')}
+              </Button>
+            </div>
+          </div>
+        ) : null}
+
+        {!loading && !error ? (
+          <section className="oma-plx-listening-panel oma-plx-team-panel">
+            <header className="oma-plx-deliv-panel__head">
+              <div
+                className="oma-plx-deliv-groups oma-plx-team-tabs"
+                role="tablist"
+                aria-label={t('wsPanel.team_clients')}
+                data-testid="team-tabs"
+              >
+                {(
+                  [
+                    ['members', 'team.tab.members'],
+                    ['permissions', 'team.tab.permissions'],
+                    ['notifications', 'team.tab.notifications'],
+                  ] as const
+                ).map(([id, label]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    role="tab"
+                    aria-selected={tab === id}
+                    className={`oma-plx-deliv-groups__btn${tab === id ? ' is-active' : ''}`}
+                    data-active={tab === id ? 'true' : 'false'}
+                    data-testid={`team-tab-${id}`}
+                    onClick={() => setTab(id)}
+                  >
+                    {t(label)}
+                  </button>
+                ))}
               </div>
-              <div className="oma-planable-card oma-member-surface">
+            </header>
+
+            <div className="oma-plx-deliv-panel__body">
+              {tab === 'members' ? (
                 <div
-                  className="oma-member-table-scroll"
+                  className="oma-plx-team-members-scroll"
                   role="region"
                   aria-label={t('team.user')}
                   tabIndex={0}
                   data-testid="team-members-scroll"
                 >
-                  <table className="oma-ws-table">
-                    <thead>
-                      <tr>
-                        <th>{t('team.user')}</th>
-                        <th>{t('team.membership')}</th>
-                        <th>{t('demo.team.filter.role')}</th>
-                        <th>{t('strategy.list.col.status')}</th>
-                        <th>{t('team.last_online')}</th>
-                        <th>{t('team.permissions')}</th>
-                        <th />
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filtered.length === 0 ? (
-                        <tr>
-                          <td colSpan={7}>
-                            <div className="oma-ws-empty-block">
-                              <h3>{t('company.membersEmpty')}</h3>
-                              <p>{t('team.invite_teammates_or_clients_to')}</p>
-                            </div>
-                          </td>
-                        </tr>
-                      ) : (
-                        filtered.map((m) => {
-                          const label =
-                            m.user?.name || m.user?.email || m.invited_email || t('team.user');
-                          const email = m.user?.email || m.invited_email || '';
-                          return (
-                            <tr key={m.id}>
-                              <td>
-                                <div className="oma-ws-user-cell">
-                                  <span className="oma-ws-avatar oma-ws-avatar--sm">
-                                    {(label[0] || 'U').toUpperCase()}
-                                  </span>
-                                  <div>
-                                    <div className="oma-ws-user-name">
-                                      {label}
-                                      {m.user?.id && m.user.id === meId ? (
-                                        <span
-                                          className="oma-ws-badge oma-ws-badge--ghost"
-                                          style={{ marginInlineStart: 6 }}
-                                        >
-                                          {t('content.you')}
-                                        </span>
-                                      ) : null}
-                                    </div>
-                                    {email ? (
-                                      <div className="oma-ws-user-email">{email}</div>
-                                    ) : null}
-                                  </div>
+                  {filtered.length === 0 ? (
+                    <div className="oma-ws-empty-block oma-plx-team-empty">
+                      <h3>{t('company.membersEmpty')}</h3>
+                      <p>{t('team.invite_teammates_or_clients_to')}</p>
+                    </div>
+                  ) : (
+                    <ul className="oma-plx-team-grid">
+                      {filtered.map((m) => {
+                        const label =
+                          m.user?.name || m.user?.email || m.invited_email || t('team.user');
+                        const email = m.user?.email || m.invited_email || '';
+                        const lastOnline =
+                          m.last_online === 'Invited'
+                            ? t('team.invited')
+                            : m.last_online === 'Active'
+                              ? t('status.enum.ACTIVE')
+                              : m.last_online || '—';
+                        return (
+                          <li key={m.id} className="oma-plx-team-card" data-testid={`team-member-${m.id}`}>
+                            <div className="oma-plx-team-card__head">
+                              <span className="oma-plx-team-card__avatar" aria-hidden>
+                                {(label[0] || 'U').toUpperCase()}
+                              </span>
+                              <div className="oma-plx-team-card__identity">
+                                <div className="oma-plx-team-card__name-row">
+                                  <strong>{label}</strong>
+                                  {m.user?.id && m.user.id === meId ? (
+                                    <span className="oma-plx-team-card__you">{t('content.you')}</span>
+                                  ) : null}
                                 </div>
-                              </td>
-                              <td>
-                                <span
-                                  className={`oma-ws-badge${
-                                    m.membership === 'client' ? ' oma-ws-badge--client' : ''
-                                  }`}
-                                >
-                                  {m.membership === 'client' ? t('team.client') : t('team.team')}
-                                </span>
-                              </td>
-                              <td>
+                                {email ? <span className="oma-plx-team-card__email">{email}</span> : null}
+                              </div>
+                              <span
+                                className={`oma-plx-team-card__membership${
+                                  m.membership === 'client' ? ' is-client' : ''
+                                }`}
+                              >
+                                {m.membership === 'client' ? t('team.client') : t('team.team')}
+                              </span>
+                            </div>
+                            <div className="oma-plx-team-card__meta">
+                              <label className="oma-plx-team-card__field">
+                                <span>{t('demo.team.filter.role')}</span>
                                 <SelectField
                                   value={m.role || 'Member'}
                                   onChange={(e) => void onChangeRole(m, e.target.value)}
@@ -407,26 +434,22 @@ export default function TeamPage() {
                                     </option>
                                   ))}
                                 </SelectField>
-                              </td>
-                              <td>
-                                <span className="oma-ws-badge oma-ws-badge--ghost">
+                              </label>
+                              <div className="oma-plx-team-card__chips">
+                                <span className="oma-plx-team-card__status">
                                   {statusLabel(t, m.status)}
                                 </span>
-                              </td>
-                              <td>
-                                {m.last_online === 'Invited'
-                                  ? t('team.invited')
-                                  : m.last_online === 'Active'
-                                    ? t('status.enum.ACTIVE')
-                                    : m.last_online || '—'}
-                              </td>
-                              <td className="oma-ws-perm-summary" data-testid="team-permissions">
+                                <span className="oma-plx-team-card__online">{lastOnline}</span>
+                              </div>
+                            </div>
+                            <footer className="oma-plx-team-card__foot">
+                              <div className="oma-ws-perm-summary" data-testid="team-permissions">
                                 <Popover
                                   trigger="click"
                                   arrow={false}
                                   placement={isAr ? 'bottomRight' : 'bottomLeft'}
                                   getPopupContainer={() => document.body}
-                                  classNames={{ root: 'oma-perm-popover' }}
+                                  classNames={{ root: 'oma-perm-popover oma-plx-perm-popover' }}
                                   content={
                                     <PermissionsCard
                                       member={m}
@@ -438,7 +461,7 @@ export default function TeamPage() {
                                 >
                                   <button
                                     type="button"
-                                    className="oma-perm-link"
+                                    className="oma-plx-team-card__perm-btn"
                                     aria-label={readablePermissions(m, isAr).join(t('team.text'))}
                                   >
                                     {m.user?.id && m.user.id === meId
@@ -446,44 +469,39 @@ export default function TeamPage() {
                                       : t('team.perm.view')}
                                   </button>
                                 </Popover>
-                              </td>
-                              <td>
-                                {isOwnerMember(m) || (m.user?.id && m.user.id === meId) ? (
-                                  <span className="oma-muted" data-testid="team-no-remove">
-                                    {isOwnerMember(m) ? t('demo.campaigns.col.owner') : '—'}
-                                  </span>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    className="oma-ws-danger-btn"
-                                    onClick={() => void onRemove(m)}
-                                    disabled={busy}
-                                  >
-                                    {t('team.remove')}
-                                  </button>
-                                )}
-                              </td>
-                            </tr>
-                          );
-                        })
-                      )}
-                    </tbody>
-                  </table>
+                              </div>
+                              {isOwnerMember(m) || (m.user?.id && m.user.id === meId) ? (
+                                <span className="oma-muted" data-testid="team-no-remove">
+                                  {isOwnerMember(m) ? t('demo.campaigns.col.owner') : '—'}
+                                </span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  className="oma-plx-team-card__remove"
+                                  onClick={() => void onRemove(m)}
+                                  disabled={busy}
+                                >
+                                  {t('team.remove')}
+                                </button>
+                              )}
+                            </footer>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
                 </div>
-              </div>
-            </>
-          ) : null}
+              ) : null}
 
-          {!loading && !error && tab === 'permissions' ? (
-            <div className="oma-planable-card oma-member-surface">
-              <div
-                className="oma-member-table-scroll"
-                role="region"
-                aria-label={t('team.adjust_permissions')}
-                tabIndex={0}
-                data-testid="team-permissions-scroll"
-              >
-                <table className="oma-ws-table oma-ws-table--perms">
+              {tab === 'permissions' ? (
+                <div
+                  className="oma-plx-deliv-table-wrap oma-plx-team-perms-wrap"
+                  role="region"
+                  aria-label={t('team.adjust_permissions')}
+                  tabIndex={0}
+                  data-testid="team-permissions-scroll"
+                >
+                  <table className="oma-plx-deliv-table oma-ws-table oma-ws-table--perms">
                   <thead>
                     <tr>
                       <th>{t('team.user')}</th>
@@ -522,13 +540,12 @@ export default function TeamPage() {
                       );
                     })}
                   </tbody>
-                </table>
-              </div>
-            </div>
-          ) : null}
+                  </table>
+                </div>
+              ) : null}
 
-          {!loading && !error && tab === 'notifications' ? (
-            <div className="oma-planable-card oma-notif-settings" data-testid="team-notifications">
+              {tab === 'notifications' ? (
+            <div className="oma-plx-team-notif oma-notif-settings" data-testid="team-notifications">
               <header className="oma-notif-settings__intro">
                 <h3 className="oma-ws-subhead">{t('team.manage_notifications')}</h3>
                 <p className="oma-ws-empty-desc">{t('settings.notifications.body')}</p>
@@ -641,8 +658,10 @@ export default function TeamPage() {
                 <div className="oma-skeleton" style={{ height: 160 }} aria-busy="true" />
               )}
             </div>
-          ) : null}
-        </main>
+              ) : null}
+            </div>
+          </section>
+        ) : null}
       </div>
 
       <TeamInviteDialog
