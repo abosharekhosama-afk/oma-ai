@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { MediaSurface, versionMime } from '../../../../components/content/media-surface';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { PlxHeaderFilter } from '../../../../components/ui/plx-header-filter';
 import type { DemoGraph } from '@oma/demo';
 import { EmptyState } from '../../../../components/ui/empty-state';
 import { StatusChip } from '../../../../components/ui/status-chip';
@@ -134,9 +134,9 @@ export default function DeliverablesPage() {
     return () => clearBreadcrumbViewSlot(el);
   }, []);
 
-  useEffect(() => {
-    setFilters((f) => (f.view === 'list' ? f : { ...f, view: 'list' }));
-  }, []);
+  function changeView(view: DeliverableFilters['view']) {
+    setFilters((f) => ({ ...f, view }));
+  }
 
   const filtered = useMemo(
     () => filterDeliverables(rows, filters, locale),
@@ -147,6 +147,8 @@ export default function DeliverablesPage() {
   const reviewers = useMemo(() => [...new Set(rows.map((r) => r.reviewer))], [rows]);
 
   const filterLabel = locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter';
+  const filterPanelTitle =
+    locale.toLowerCase().startsWith('ar') ? 'تصفية وترتيب' : 'Filter & sort';
 
   return (
     <div
@@ -155,43 +157,269 @@ export default function DeliverablesPage() {
       data-prefs={prefsLoaded ? '1' : '0'}
       data-filter-open={filterSheet ? 'true' : 'false'}
     >
-      <header className="oma-plx-listening__toolbar oma-plx-deliv__toolbar">
-        <div className="oma-plx-listening__toolbar-spacer" />
-        <button
-          type="button"
-          className="oma-plx-listening-filter__trigger oma-plx-deliv__filter-trigger"
-          data-testid="demo-deliv-open-filters-inline"
-          data-active={filterSheet ? 'true' : 'false'}
-          onClick={() => setFilterSheet((v) => !v)}
-        >
-          <FilterOutlined />
-          <span>{filterLabel}</span>
-          {filterCount > 0 ? (
-            <span className="oma-plx-deliv-filter-count">{filterCount}</span>
-          ) : null}
-        </button>
-      </header>
-
-      {headerSlot && headerSlot.isConnected
-        ? createPortal(
-            <div className="oma-workspace-header-actions">
-              <button
-                type="button"
-                className="oma-plx-listening-filter__trigger"
-                data-testid="demo-deliv-open-filters"
-                data-active={filterSheet ? 'true' : 'false'}
-                onClick={() => setFilterSheet((v) => !v)}
-              >
+      <PlxHeaderFilter
+        headerSlot={headerSlot}
+        open={filterSheet}
+        onOpenChange={setFilterSheet}
+        filterTestId="demo-deliv-open-filters"
+        filterLabel={filterLabel}
+        filterCount={filterCount}
+        panelTitle={filterPanelTitle}
+        panelTestId="demo-deliv-filters"
+        footer={
+          filterCount > 0 ? (
+            <Button
+              type="default"
+              data-testid="demo-deliv-clear-filters"
+              onClick={() =>
+                setFilters((f) => ({
+                  ...EMPTY_DELIVERABLE_FILTERS,
+                  view: f.view,
+                  group: f.group,
+                }))
+              }
+            >
+              {t('demo.requests.clearFilters') || 'Clear filters'}
+            </Button>
+          ) : null
+        }
+      >
+        <div className="oma-filter-accordion-list oma-plx-deliv-filter-accordion-list">
+          <div className="oma-filter-accordion">
+            <button
+              type="button"
+              className="oma-filter-accordion__row"
+              data-open={filterSection === 'search' ? 'true' : 'false'}
+              onClick={() => setFilterSection((s) => (s === 'search' ? null : 'search'))}
+            >
+              <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
+                <SearchOutlined />
+              </span>
+              <span>{t('demo.deliverables.search')}</span>
+              <span className="oma-filter-accordion__caret">
+                {filterSection === 'search' ? <UpOutlined /> : <DownOutlined />}
+              </span>
+            </button>
+            {filterSection === 'search' ? (
+              <div className="oma-filter-accordion__body">
+                <Input
+                  value={filters.q}
+                  data-testid="demo-deliv-search"
+                  onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
+                  placeholder={t('demo.deliverables.search')}
+                />
+              </div>
+            ) : null}
+          </div>
+          <div className="oma-filter-accordion">
+            <button
+              type="button"
+              className="oma-filter-accordion__row"
+              data-open={filterSection === 'review' ? 'true' : 'false'}
+              onClick={() => setFilterSection((s) => (s === 'review' ? null : 'review'))}
+            >
+              <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
                 <FilterOutlined />
-                <span>{filterLabel}</span>
-                {filterCount > 0 ? (
-                  <span className="oma-plx-deliv-filter-count">{filterCount}</span>
-                ) : null}
-              </button>
-            </div>,
-            headerSlot,
-          )
-        : null}
+              </span>
+              <span>{t('demo.deliverables.filter.review')}</span>
+              <span className="oma-filter-accordion__caret">
+                {filterSection === 'review' ? <UpOutlined /> : <DownOutlined />}
+              </span>
+            </button>
+            {filterSection === 'review' ? (
+              <div className="oma-filter-accordion__body">
+                {(
+                  [
+                    'all',
+                    'DRAFT',
+                    'AWAITING_REVIEW',
+                    'IN_REVIEW',
+                    'CHANGES_REQUESTED',
+                    'APPROVED',
+                    'REJECTED',
+                  ] as const
+                ).map((s) => (
+                  <label key={s} className="oma-filter-check">
+                    <input
+                      type="radio"
+                      name="deliv-review"
+                      data-testid={s === 'all' ? 'demo-deliv-filter-review' : undefined}
+                      checked={filters.reviewState === s}
+                      onChange={() => setFilters((f) => ({ ...f, reviewState: s }))}
+                    />
+                    <span>{s === 'all' ? t('demo.filter.all') : s}</span>
+                  </label>
+                ))}
+              </div>
+            ) : null}
+          </div>
+          <div className="oma-filter-accordion">
+            <button
+              type="button"
+              className="oma-filter-accordion__row"
+              data-open={filterSection === 'type' ? 'true' : 'false'}
+              onClick={() => setFilterSection((s) => (s === 'type' ? null : 'type'))}
+            >
+              <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
+                <AppstoreOutlined />
+              </span>
+              <span>{t('demo.deliverables.filter.type')}</span>
+              <span className="oma-filter-accordion__caret">
+                {filterSection === 'type' ? <UpOutlined /> : <DownOutlined />}
+              </span>
+            </button>
+            {filterSection === 'type' ? (
+              <div className="oma-filter-accordion__body">
+                {(
+                  [
+                    'all',
+                    'STATIC',
+                    'CAROUSEL',
+                    'REEL',
+                    'LONG_VIDEO',
+                    'COPY',
+                    'PHOTOGRAPHY',
+                  ] as const
+                ).map((s) => (
+                  <label key={s} className="oma-filter-check">
+                    <input
+                      type="radio"
+                      name="deliv-type"
+                      data-testid={s === 'all' ? 'demo-deliv-filter-type' : undefined}
+                      checked={filters.assetType === s}
+                      onChange={() => setFilters((f) => ({ ...f, assetType: s }))}
+                    />
+                    <span>{s === 'all' ? t('demo.filter.all') : s}</span>
+                  </label>
+                ))}
+              </div>
+            ) : null}
+          </div>
+          <div className="oma-filter-accordion">
+            <button
+              type="button"
+              className="oma-filter-accordion__row"
+              data-open={filterSection === 'campaign' ? 'true' : 'false'}
+              onClick={() => setFilterSection((s) => (s === 'campaign' ? null : 'campaign'))}
+            >
+              <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
+                <FilterOutlined />
+              </span>
+              <span>{t('demo.deliverables.filter.campaign')}</span>
+              <span className="oma-filter-accordion__caret">
+                {filterSection === 'campaign' ? <UpOutlined /> : <DownOutlined />}
+              </span>
+            </button>
+            {filterSection === 'campaign' ? (
+              <div className="oma-filter-accordion__body">
+                <label className="oma-filter-check">
+                  <input
+                    type="radio"
+                    name="deliv-campaign"
+                    data-testid="demo-deliv-filter-campaign"
+                    checked={filters.campaignId === 'all'}
+                    onChange={() => setFilters((f) => ({ ...f, campaignId: 'all' }))}
+                  />
+                  <span>{t('demo.filter.all')}</span>
+                </label>
+                {campaigns.map((c) => (
+                  <label key={c.id} className="oma-filter-check">
+                    <input
+                      type="radio"
+                      name="deliv-campaign"
+                      checked={filters.campaignId === c.id}
+                      onChange={() => setFilters((f) => ({ ...f, campaignId: c.id }))}
+                    />
+                    <span>{pickCopy(c.name, locale)}</span>
+                  </label>
+                ))}
+              </div>
+            ) : null}
+          </div>
+          <div className="oma-filter-accordion">
+            <button
+              type="button"
+              className="oma-filter-accordion__row"
+              data-open={filterSection === 'owner' ? 'true' : 'false'}
+              onClick={() => setFilterSection((s) => (s === 'owner' ? null : 'owner'))}
+            >
+              <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
+                <FilterOutlined />
+              </span>
+              <span>{t('demo.deliverables.filter.owner')}</span>
+              <span className="oma-filter-accordion__caret">
+                {filterSection === 'owner' ? <UpOutlined /> : <DownOutlined />}
+              </span>
+            </button>
+            {filterSection === 'owner' ? (
+              <div className="oma-filter-accordion__body">
+                <label className="oma-filter-check">
+                  <input
+                    type="radio"
+                    name="deliv-owner"
+                    data-testid="demo-deliv-filter-owner"
+                    checked={filters.owner === 'all'}
+                    onChange={() => setFilters((f) => ({ ...f, owner: 'all' }))}
+                  />
+                  <span>{t('demo.filter.all')}</span>
+                </label>
+                {owners.map((o) => (
+                  <label key={o} className="oma-filter-check">
+                    <input
+                      type="radio"
+                      name="deliv-owner"
+                      checked={filters.owner === o}
+                      onChange={() => setFilters((f) => ({ ...f, owner: o }))}
+                    />
+                    <span>{o}</span>
+                  </label>
+                ))}
+              </div>
+            ) : null}
+          </div>
+          <div className="oma-filter-accordion">
+            <button
+              type="button"
+              className="oma-filter-accordion__row"
+              data-open={filterSection === 'reviewer' ? 'true' : 'false'}
+              onClick={() => setFilterSection((s) => (s === 'reviewer' ? null : 'reviewer'))}
+            >
+              <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
+                <FilterOutlined />
+              </span>
+              <span>{t('demo.deliverables.filter.reviewer')}</span>
+              <span className="oma-filter-accordion__caret">
+                {filterSection === 'reviewer' ? <UpOutlined /> : <DownOutlined />}
+              </span>
+            </button>
+            {filterSection === 'reviewer' ? (
+              <div className="oma-filter-accordion__body">
+                <label className="oma-filter-check">
+                  <input
+                    type="radio"
+                    name="deliv-reviewer"
+                    data-testid="demo-deliv-filter-reviewer"
+                    checked={filters.reviewer === 'all'}
+                    onChange={() => setFilters((f) => ({ ...f, reviewer: 'all' }))}
+                  />
+                  <span>{t('demo.filter.all')}</span>
+                </label>
+                {reviewers.map((r) => (
+                  <label key={r} className="oma-filter-check">
+                    <input
+                      type="radio"
+                      name="deliv-reviewer"
+                      checked={filters.reviewer === r}
+                      onChange={() => setFilters((f) => ({ ...f, reviewer: r }))}
+                    />
+                    <span>{r}</span>
+                  </label>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </PlxHeaderFilter>
 
       <div className="oma-plx-listening__intro oma-plx-deliv__intro">
         <div>
@@ -204,6 +432,33 @@ export default function DeliverablesPage() {
           </p>
         ) : null}
       </div>
+
+      {!loading && !unavailable && !error ? (
+        <div className="oma-plx-deliv-view-row">
+          <div className="oma-plx-listening-segment" role="group" aria-label={t('demo.view.grid')}>
+            <button
+              type="button"
+              className={filters.view === 'grid' ? 'is-active' : ''}
+              data-testid="demo-deliv-view-grid"
+              aria-pressed={filters.view === 'grid'}
+              onClick={() => changeView('grid')}
+            >
+              <AppstoreOutlined aria-hidden />
+              <span>{t('demo.view.grid')}</span>
+            </button>
+            <button
+              type="button"
+              className={filters.view === 'list' ? 'is-active' : ''}
+              data-testid="demo-deliv-view-list"
+              aria-pressed={filters.view === 'list'}
+              onClick={() => changeView('list')}
+            >
+              <BarsOutlined aria-hidden />
+              <span>{t('demo.view.list')}</span>
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {loading ? <DeliverablesShimmer part="body" /> : null}
       {unavailable ? (
@@ -218,22 +473,8 @@ export default function DeliverablesPage() {
       ) : null}
 
       {!loading && !unavailable && !error ? (
-        <div
-          className="oma-plx-deliv-workspace"
-          data-filter-open={filterSheet ? 'true' : 'false'}
-        >
-          <div
-            className="oma-plx-deliv-workspace__main"
-            data-filter-dimmed={filterSheet ? 'true' : 'false'}
-          >
-            {filterSheet ? (
-              <button
-                type="button"
-                className="oma-plx-deliv-main-scrim"
-                aria-label="Close filters"
-                onClick={() => setFilterSheet(false)}
-              />
-            ) : null}
+        <div className="oma-plx-deliv-workspace">
+          <div className="oma-plx-deliv-workspace__main">
             <section className="oma-plx-listening-panel oma-plx-deliv-panel">
               <header className="oma-plx-deliv-panel__head">
                 <div
@@ -262,6 +503,41 @@ export default function DeliverablesPage() {
               <div className="oma-plx-deliv-panel__body">
                 {filtered.length === 0 ? (
                   <EmptyState title={t('demo.empty')} body={t('demo.deliverables.emptyHint')} />
+                ) : filters.view === 'grid' ? (
+                  <div className="oma-plx-deliv-grid" data-testid="demo-deliv-grid">
+                    {filtered.map((d) => {
+                      const ver = currentVersion(d);
+                      const thumb = ver?.assets?.[0];
+                      return (
+                        <Link
+                          key={d.id}
+                          href={`/app/deliverables/${d.id}`}
+                          className="oma-plx-deliv-card"
+                          data-overdue={deliverableIsOverdue(d) ? 'true' : 'false'}
+                          data-testid={`demo-deliv-card-${d.id}`}
+                        >
+                          <div className="oma-plx-deliv-card__media">
+                            {thumb ? (
+                              <MediaSurface src={thumb} mime={versionMime(ver)} alt="" />
+                            ) : (
+                              <div className="oma-plx-deliv-card__media-fallback" aria-hidden />
+                            )}
+                          </div>
+                          <div className="oma-plx-deliv-card__body">
+                            <strong className="oma-plx-deliv-card__title">
+                              {pickCopy(d.title, locale)}
+                            </strong>
+                            <div className="oma-plx-deliv-card__chips">
+                              <StatusChip status={d.reviewStatus} />
+                            </div>
+                            <span className="oma-plx-deliv-card__meta">
+                              {d.owner} · {d.dueAt}
+                            </span>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
                 ) : (
                   <>
                     <div
@@ -370,286 +646,6 @@ export default function DeliverablesPage() {
               </div>
             </section>
           </div>
-
-          {filterSheet ? (
-            <aside className="oma-plx-deliv-filter-panel" data-testid="demo-deliv-filters">
-              <header className="oma-plx-deliv-filter-panel__head">
-                  <strong>
-                    {locale.toLowerCase().startsWith('ar') ? 'تصفية وترتيب' : 'Filter & sort'}
-                  </strong>
-                  <button
-                    type="button"
-                    className="oma-plx-deliv-filter-panel__close"
-                    aria-label="Close"
-                    onClick={() => setFilterSheet(false)}
-                  >
-                    <CloseOutlined />
-                  </button>
-                </header>
-                <div className="oma-filter-accordion-list oma-plx-deliv-filter-accordion-list">
-                  <div className="oma-filter-accordion">
-                    <button
-                      type="button"
-                      className="oma-filter-accordion__row"
-                      data-open={filterSection === 'search' ? 'true' : 'false'}
-                      onClick={() => setFilterSection((s) => (s === 'search' ? null : 'search'))}
-                    >
-                      <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
-                        <SearchOutlined />
-                      </span>
-                      <span>{t('demo.deliverables.search')}</span>
-                      <span className="oma-filter-accordion__caret">
-                        {filterSection === 'search' ? <UpOutlined /> : <DownOutlined />}
-                      </span>
-                    </button>
-                    {filterSection === 'search' ? (
-                      <div className="oma-filter-accordion__body">
-                        <Input
-                          value={filters.q}
-                          data-testid="demo-deliv-search"
-                          onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
-                          placeholder={t('demo.deliverables.search')}
-                        />
-                      </div>
-                    ) : null}
-                  </div>
-
-                  <div className="oma-filter-accordion">
-                    <button
-                      type="button"
-                      className="oma-filter-accordion__row"
-                      data-open={filterSection === 'review' ? 'true' : 'false'}
-                      onClick={() => setFilterSection((s) => (s === 'review' ? null : 'review'))}
-                    >
-                      <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
-                        <FilterOutlined />
-                      </span>
-                      <span>{t('demo.deliverables.filter.review')}</span>
-                      <span className="oma-filter-accordion__caret">
-                        {filterSection === 'review' ? <UpOutlined /> : <DownOutlined />}
-                      </span>
-                    </button>
-                    {filterSection === 'review' ? (
-                      <div className="oma-filter-accordion__body">
-                        {(
-                          [
-                            'all',
-                            'DRAFT',
-                            'AWAITING_REVIEW',
-                            'IN_REVIEW',
-                            'CHANGES_REQUESTED',
-                            'APPROVED',
-                            'REJECTED',
-                          ] as const
-                        ).map((s) => (
-                          <label key={s} className="oma-filter-check">
-                            <input
-                              type="radio"
-                              name="deliv-review"
-                              data-testid={s === 'all' ? 'demo-deliv-filter-review' : undefined}
-                              checked={filters.reviewState === s}
-                              onChange={() => setFilters((f) => ({ ...f, reviewState: s }))}
-                            />
-                            <span>{s === 'all' ? t('demo.filter.all') : s}</span>
-                          </label>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-
-                  <div className="oma-filter-accordion">
-                    <button
-                      type="button"
-                      className="oma-filter-accordion__row"
-                      data-open={filterSection === 'type' ? 'true' : 'false'}
-                      onClick={() => setFilterSection((s) => (s === 'type' ? null : 'type'))}
-                    >
-                      <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
-                        <AppstoreOutlined />
-                      </span>
-                      <span>{t('demo.deliverables.filter.type')}</span>
-                      <span className="oma-filter-accordion__caret">
-                        {filterSection === 'type' ? <UpOutlined /> : <DownOutlined />}
-                      </span>
-                    </button>
-                    {filterSection === 'type' ? (
-                      <div className="oma-filter-accordion__body">
-                        {(
-                          [
-                            'all',
-                            'STATIC',
-                            'CAROUSEL',
-                            'REEL',
-                            'LONG_VIDEO',
-                            'COPY',
-                            'PHOTOGRAPHY',
-                          ] as const
-                        ).map((s) => (
-                          <label key={s} className="oma-filter-check">
-                            <input
-                              type="radio"
-                              name="deliv-type"
-                              data-testid={s === 'all' ? 'demo-deliv-filter-type' : undefined}
-                              checked={filters.assetType === s}
-                              onChange={() => setFilters((f) => ({ ...f, assetType: s }))}
-                            />
-                            <span>{s === 'all' ? t('demo.filter.all') : s}</span>
-                          </label>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-
-                  <div className="oma-filter-accordion">
-                    <button
-                      type="button"
-                      className="oma-filter-accordion__row"
-                      data-open={filterSection === 'campaign' ? 'true' : 'false'}
-                      onClick={() =>
-                        setFilterSection((s) => (s === 'campaign' ? null : 'campaign'))
-                      }
-                    >
-                      <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
-                        <FilterOutlined />
-                      </span>
-                      <span>{t('demo.deliverables.filter.campaign')}</span>
-                      <span className="oma-filter-accordion__caret">
-                        {filterSection === 'campaign' ? <UpOutlined /> : <DownOutlined />}
-                      </span>
-                    </button>
-                    {filterSection === 'campaign' ? (
-                      <div className="oma-filter-accordion__body">
-                        <label className="oma-filter-check">
-                          <input
-                            type="radio"
-                            name="deliv-campaign"
-                            data-testid="demo-deliv-filter-campaign"
-                            checked={filters.campaignId === 'all'}
-                            onChange={() => setFilters((f) => ({ ...f, campaignId: 'all' }))}
-                          />
-                          <span>{t('demo.filter.all')}</span>
-                        </label>
-                        {campaigns.map((c) => (
-                          <label key={c.id} className="oma-filter-check">
-                            <input
-                              type="radio"
-                              name="deliv-campaign"
-                              checked={filters.campaignId === c.id}
-                              onChange={() => setFilters((f) => ({ ...f, campaignId: c.id }))}
-                            />
-                            <span>{pickCopy(c.name, locale)}</span>
-                          </label>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-
-                  <div className="oma-filter-accordion">
-                    <button
-                      type="button"
-                      className="oma-filter-accordion__row"
-                      data-open={filterSection === 'owner' ? 'true' : 'false'}
-                      onClick={() => setFilterSection((s) => (s === 'owner' ? null : 'owner'))}
-                    >
-                      <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
-                        <FilterOutlined />
-                      </span>
-                      <span>{t('demo.deliverables.filter.owner')}</span>
-                      <span className="oma-filter-accordion__caret">
-                        {filterSection === 'owner' ? <UpOutlined /> : <DownOutlined />}
-                      </span>
-                    </button>
-                    {filterSection === 'owner' ? (
-                      <div className="oma-filter-accordion__body">
-                        <label className="oma-filter-check">
-                          <input
-                            type="radio"
-                            name="deliv-owner"
-                            data-testid="demo-deliv-filter-owner"
-                            checked={filters.owner === 'all'}
-                            onChange={() => setFilters((f) => ({ ...f, owner: 'all' }))}
-                          />
-                          <span>{t('demo.filter.all')}</span>
-                        </label>
-                        {owners.map((o) => (
-                          <label key={o} className="oma-filter-check">
-                            <input
-                              type="radio"
-                              name="deliv-owner"
-                              checked={filters.owner === o}
-                              onChange={() => setFilters((f) => ({ ...f, owner: o }))}
-                            />
-                            <span>{o}</span>
-                          </label>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-
-                  <div className="oma-filter-accordion">
-                    <button
-                      type="button"
-                      className="oma-filter-accordion__row"
-                      data-open={filterSection === 'reviewer' ? 'true' : 'false'}
-                      onClick={() =>
-                        setFilterSection((s) => (s === 'reviewer' ? null : 'reviewer'))
-                      }
-                    >
-                      <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
-                        <FilterOutlined />
-                      </span>
-                      <span>{t('demo.deliverables.filter.reviewer')}</span>
-                      <span className="oma-filter-accordion__caret">
-                        {filterSection === 'reviewer' ? <UpOutlined /> : <DownOutlined />}
-                      </span>
-                    </button>
-                    {filterSection === 'reviewer' ? (
-                      <div className="oma-filter-accordion__body">
-                        <label className="oma-filter-check">
-                          <input
-                            type="radio"
-                            name="deliv-reviewer"
-                            data-testid="demo-deliv-filter-reviewer"
-                            checked={filters.reviewer === 'all'}
-                            onChange={() => setFilters((f) => ({ ...f, reviewer: 'all' }))}
-                          />
-                          <span>{t('demo.filter.all')}</span>
-                        </label>
-                        {reviewers.map((r) => (
-                          <label key={r} className="oma-filter-check">
-                            <input
-                              type="radio"
-                              name="deliv-reviewer"
-                              checked={filters.reviewer === r}
-                              onChange={() => setFilters((f) => ({ ...f, reviewer: r }))}
-                            />
-                            <span>{r}</span>
-                          </label>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-                </div>
-
-                {filterCount > 0 ? (
-                  <div className="oma-plx-deliv-filter-panel__foot">
-                    <Button
-                      type="default"
-                      data-testid="demo-deliv-clear-filters"
-                      onClick={() =>
-                        setFilters((f) => ({
-                          ...EMPTY_DELIVERABLE_FILTERS,
-                          view: f.view,
-                          group: f.group,
-                        }))
-                      }
-                    >
-                      {t('demo.requests.clearFilters') || 'Clear filters'}
-                    </Button>
-                  </div>
-                ) : null}
-              </aside>
-            ) : null}
         </div>
       ) : null}
     </div>

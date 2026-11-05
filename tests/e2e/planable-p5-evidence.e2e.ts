@@ -101,7 +101,7 @@ test.describe('P5 Planable deliverables/reviews/schedule evidence pack', () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/app/deliverables');
     await expect(page.getByTestId('demo-deliverables')).toBeVisible();
-    await expect(page.getByTestId('demo-deliv-table')).toBeVisible();
+    await expect(page.getByTestId('demo-deliv-grid')).toBeVisible();
     await shot('01-deliverables-list', '/app/deliverables', '1440x900', {
       evidenceLevel: 'ARCHIVED_MATCH',
       match: 'ARCHIVED_MATCH',

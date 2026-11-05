@@ -1,12 +1,12 @@
 'use client';
 import { ReviewsShimmer } from '../../../../components/ui/screen-shimmer';
 import { useReloadOnBrandChange } from '../../../../lib/active-brand';
-import { SearchOutlined } from '../../../../components/ui/lucide-icons';
 
 import { Button, Input } from '@oma/ui/controls';
 
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { PlxHeaderFilter } from '../../../../components/ui/plx-header-filter';
 import { EmptyState } from '../../../../components/ui/empty-state';
 import { PageHeader } from '../../../../components/ui/page-header';
 import { StatusChip } from '../../../../components/ui/status-chip';
@@ -37,7 +37,8 @@ export default function ReviewsPage() {
   const [rows, setRows] = useState<DeliverableRow[]>([]);
   const [tab, setTab] = useState<ReviewQueueTab>('waiting');
   const [q, setQ] = useState('');
-  const [searchOpen, setSearchOpen] = useState(false);
+  const [filterSheet, setFilterSheet] = useState(false);
+  const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reviewerName, setReviewerName] = useState<string>('');
@@ -71,6 +72,25 @@ export default function ReviewsPage() {
     void load();
   }, [load]);
 
+  useEffect(() => {
+    let cancelled = false;
+    let tries = 0;
+    const sync = () => {
+      if (cancelled) return;
+      const header = document.getElementById('oma-workspace-top-actions');
+      setHeaderSlot(header);
+      tries += 1;
+      if (!header && tries < 30) {
+        window.setTimeout(sync, 50);
+      }
+    };
+    sync();
+    return () => {
+      cancelled = true;
+      setHeaderSlot(null);
+    };
+  }, []);
+
   const queue = useMemo(() => {
     const list = filterReviewQueue(rows, tab, reviewerName);
     return list.filter((row) => matchesReviewSearch(row, q));
@@ -95,7 +115,47 @@ export default function ReviewsPage() {
   );
 
   return (
-    <div className="oma-stack oma-reviews-page" data-testid="reviews-production">
+    <div
+      className="oma-stack oma-reviews-page"
+      data-testid="reviews-production"
+      data-filter-open={filterSheet ? 'true' : 'false'}
+    >
+      <PlxHeaderFilter
+        headerSlot={headerSlot}
+        open={filterSheet}
+        onOpenChange={setFilterSheet}
+        filterTestId="demo-review-open-filters"
+        filterLabel={locale === 'ar' ? 'تصفية' : 'Filter'}
+        filterCount={q.trim() ? 1 : 0}
+        panelTitle={locale === 'ar' ? 'تصفية وترتيب' : 'Filter & sort'}
+        panelTestId="demo-review-filters"
+        footer={
+          q.trim() ? (
+            <Button type="default" onClick={() => setQ('')}>
+              {locale === 'ar' ? 'مسح البحث' : 'Clear search'}
+            </Button>
+          ) : null
+        }
+      >
+        <div className="oma-plx-deliv-filter-accordion-list oma-filter-accordion-list">
+          <label className="oma-filter-check" style={{ display: 'block', padding: '4px 6px' }}>
+            <span style={{ display: 'block', marginBottom: 8, fontSize: 13, fontWeight: 600 }}>
+              {t('demo.reviews.search')}
+            </span>
+            <Input
+              autoFocus
+              value={q}
+              type="search"
+              maxLength={120}
+              data-testid="demo-review-search"
+              placeholder={t('demo.reviews.search')}
+              aria-label={t('demo.reviews.search')}
+              onChange={(e) => setQ(e.target.value)}
+            />
+          </label>
+        </div>
+      </PlxHeaderFilter>
+
       <PageHeader
         title={t('demo.reviews.title')}
         description={t('demo.reviews.subtitle')}
@@ -143,62 +203,7 @@ export default function ReviewsPage() {
                   </span>
                 </button>
               ))}
-              <button
-                type="button"
-                role="tab"
-                aria-selected={searchOpen || Boolean(q)}
-                className={`oma-ws-tab oma-req-tab oma-reviews-search-tab${searchOpen || q ? ' is-active' : ''}`}
-                data-active={searchOpen || q ? 'true' : 'false'}
-                data-testid="demo-review-search-toggle"
-                onClick={() => {
-                  if (searchOpen || q) {
-                    setSearchOpen(false);
-                    setQ('');
-                  } else {
-                    setSearchOpen(true);
-                  }
-                }}
-              >
-                <SearchOutlined aria-hidden />
-                <span>{t('demo.reviews.search')}</span>
-              </button>
             </div>
-            {searchOpen || q ? (
-              <div className="oma-reviews-search-row" data-testid="demo-review-search-bar">
-                <SearchOutlined aria-hidden />
-                <Input
-                  autoFocus={searchOpen}
-                  value={q}
-                  type="search"
-                  maxLength={120}
-                  data-testid="demo-review-search"
-                  placeholder={t('demo.reviews.search')}
-                  aria-label={t('demo.reviews.search')}
-                  onChange={(e) => setQ(e.target.value)}
-                />
-                {q ? (
-                  <button
-                    type="button"
-                    className="oma-reviews-search__clear"
-                    aria-label={locale === 'ar' ? 'مسح البحث' : 'Clear search'}
-                    onClick={() => setQ('')}
-                  >
-                    ×
-                  </button>
-                ) : null}
-                <button
-                  type="button"
-                  className="oma-reviews-search__close"
-                  aria-label={locale === 'ar' ? 'إغلاق البحث' : 'Close search'}
-                  onClick={() => {
-                    setQ('');
-                    setSearchOpen(false);
-                  }}
-                >
-                  ×
-                </button>
-              </div>
-            ) : null}
           </section>
           {queue.length === 0 ? (
             <EmptyState title={t('demo.empty')} body={t('demo.reviews.emptyHint')} />
