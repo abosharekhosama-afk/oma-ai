@@ -351,9 +351,8 @@ export default function RequestDetailPage() {
   }
 
   return (
-    <div className="oma-req-detail" data-testid="demo-request-detail">
-      {/* Planable-style top bar: back + title chips + actions */}
-      <header className="oma-req-detail__top">
+    <div className="oma-plx-listening oma-plx-req-detail oma-req-detail" data-testid="demo-request-detail">
+      <header className="oma-plx-req-detail__top oma-req-detail__top">
         <div className="oma-req-detail__top-left">
           <Link
             href="/app/requests"
@@ -406,10 +405,9 @@ export default function RequestDetailPage() {
       ) : null}
 
       {row ? (
-        <div className="oma-req-detail__workspace">
-          <div className="oma-req-detail__main">
-            {/* Title block */}
-            <div className="oma-req-detail__title-block">
+        <div className="oma-plx-req-detail__workspace oma-req-detail__workspace">
+          <div className="oma-plx-req-detail__main oma-req-detail__main">
+            <div className="oma-plx-listening-panel oma-req-detail__title-block">
               <h1 className="oma-req-detail__title">
                 <Input
                   key={row.id + '-title'}
@@ -427,7 +425,10 @@ export default function RequestDetailPage() {
             </div>
 
             {/* Triage card */}
-            <section className="oma-req-detail__card" data-testid="demo-request-completeness">
+            <section
+              className="oma-plx-listening-panel oma-plx-req-card oma-req-detail__card"
+              data-testid="demo-request-completeness"
+            >
               <header className="oma-req-detail__card-head">
                 <strong>{t('demo.requests.triage')}</strong>
                 <span className="oma-req-detail__meta">
@@ -537,7 +538,7 @@ export default function RequestDetailPage() {
 
             {/* Brief card */}
             {briefDraft ? (
-              <section className="oma-req-detail__card oma-req-detail__card--brief">
+              <section className="oma-plx-listening-panel oma-plx-req-card oma-req-detail__card oma-req-detail__card--brief">
                 <header className="oma-req-detail__card-head">
                   <div className="oma-req-detail__card-head-text">
                     <strong>
@@ -682,7 +683,7 @@ export default function RequestDetailPage() {
             ) : null}
 
             <section
-              className="oma-req-detail__card oma-req-detail__comments"
+              className="oma-plx-listening-panel oma-plx-req-card oma-req-detail__card oma-req-detail__comments"
               data-testid="demo-request-comments"
             >
               <header className="oma-req-detail__card-head">
@@ -784,7 +785,7 @@ export default function RequestDetailPage() {
             </section>
 
             {/* Tasks card */}
-            <section className="oma-req-detail__card">
+            <section className="oma-plx-listening-panel oma-plx-req-card oma-req-detail__card">
               <header className="oma-req-detail__card-head">
                 <strong>{t('demo.tasks.title')}</strong>
               </header>
@@ -810,8 +811,8 @@ export default function RequestDetailPage() {
           </div>
 
           {/* Sidebar summary */}
-          <aside className="oma-req-detail__side">
-            <div className="oma-req-detail__side-card">
+          <aside className="oma-plx-req-detail__side oma-req-detail__side">
+            <div className="oma-plx-listening-panel oma-req-detail__side-card">
               <h3>{locale.toLowerCase().startsWith('ar') ? 'الملخص' : 'Summary'}</h3>
               <div className="oma-req-detail__side-row">
                 <UserOutlined />

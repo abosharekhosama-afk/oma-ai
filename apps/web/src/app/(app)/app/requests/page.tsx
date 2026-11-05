@@ -340,45 +340,24 @@ export default function RequestsPage() {
     }
   }
 
-  return (
-    <div className="oma-stack oma-req-page" data-testid="demo-requests">
-      {/* Unified Planable-style header: title + tabs + actions */}
-      <div className="oma-req-header">
-        <div className="oma-req-header__left">
-          <div className="oma-req-header__title">
-            <h1>{t('demo.requests.title')}</h1>
-          </div>
-          <div
-            className="oma-ws-tabs oma-req-tabs"
-            role="tablist"
-            data-testid="demo-request-groups"
-          >
-            {GROUPS.map((g) => (
-              <button
-                key={g}
-                type="button"
-                role="tab"
-                className={`oma-ws-tab oma-req-tab${filters.group === g ? ' is-active' : ''}`}
-                aria-selected={filters.group === g}
-                data-active={filters.group === g ? 'true' : 'false'}
-                data-testid={`demo-request-group-${g}`}
-                onClick={() => setFilters((f) => ({ ...f, group: g }))}
-              >
-                {t(`demo.requests.group.${g}`)}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+  const filterLabel = locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter';
+  const filterPanelTitle =
+    locale.toLowerCase().startsWith('ar') ? 'تصفية وترتيب' : 'Filter & sort';
 
+  return (
+    <div
+      className="oma-plx-listening oma-plx-requests oma-req-page"
+      data-testid="demo-requests"
+      data-filter-open={filterSheet ? 'true' : 'false'}
+    >
       <PlxHeaderFilter
         headerSlot={headerSlot}
         open={filterSheet}
         onOpenChange={setFilterSheet}
         filterTestId="demo-request-open-filters"
-        filterLabel={locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter'}
+        filterLabel={filterLabel}
         filterCount={filterCount}
-        panelTitle={locale.toLowerCase().startsWith('ar') ? 'تصفية وترتيب' : 'Filter & sort'}
+        panelTitle={filterPanelTitle}
         panelTestId="demo-request-filters"
         createTestId="demo-create-request"
         createLabel={t('demo.requests.new')}
@@ -750,34 +729,68 @@ export default function RequestsPage() {
       </PlxHeaderFilter>
 
       <div className="oma-plx-workspace-surface">
-      {loading ? (
-        <div className="oma-req-main" data-testid="demo-requests-loading">
-          <RequestsShimmer part="body" />
+        <div className="oma-plx-listening__intro oma-plx-deliv__intro">
+          <div>
+            <h1 className="oma-plx-listening__title">{t('demo.requests.title')}</h1>
+            <p className="oma-plx-deliv__subtitle">{t('demo.requests.subtitle')}</p>
+          </div>
+          {!loading && !unavailable && !error ? (
+            <p className="oma-plx-listening__next-check" data-testid="demo-request-result-count">
+              {filtered.length} / {rows.length}
+            </p>
+          ) : null}
         </div>
-      ) : null}
-      {unavailable ? (
-        <p className="oma-muted" data-testid="demo-requests-denied">
-          {t('demo.unavailable')}
-        </p>
-      ) : null}
-      {error ? (
-        <div className="oma-card" role="alert" data-testid="demo-requests-error">
-          <p style={{ color: 'var(--status-danger)', margin: 0 }}>{error}</p>
-        </div>
-      ) : null}
 
-      {!loading && !unavailable && !error ? (
-        <div className="oma-req-workspace" data-filter-open={filterSheet ? 'true' : 'false'}>
-          <div className="oma-req-main">
-            {filtered.length === 0 ? (
-              <EmptyState title={t('demo.empty')} body={t('demo.requests.emptyHint')} />
-            ) : (
-              <>
-                <div
-                  className="oma-req-table-wrap oma-req-desktop"
-                  data-testid="demo-request-table"
-                >
-                  <table className="oma-req-table">
+        {loading ? (
+          <div data-testid="demo-requests-loading">
+            <RequestsShimmer part="body" />
+          </div>
+        ) : null}
+        {unavailable ? (
+          <p className="oma-muted" data-testid="demo-requests-denied">
+            {t('demo.unavailable')}
+          </p>
+        ) : null}
+        {error ? (
+          <div className="oma-inbox-error" role="alert" data-testid="demo-requests-error">
+            <p style={{ margin: 0 }}>{error}</p>
+          </div>
+        ) : null}
+
+        {!loading && !unavailable && !error ? (
+          <section className="oma-plx-listening-panel oma-plx-requests-panel">
+            <header className="oma-plx-deliv-panel__head">
+              <div
+                className="oma-plx-deliv-groups oma-plx-requests-tabs"
+                role="tablist"
+                data-testid="demo-request-groups"
+              >
+                {GROUPS.map((g) => (
+                  <button
+                    key={g}
+                    type="button"
+                    role="tab"
+                    aria-selected={filters.group === g}
+                    className={`oma-plx-deliv-groups__btn${filters.group === g ? ' is-active' : ''}`}
+                    data-active={filters.group === g ? 'true' : 'false'}
+                    data-testid={`demo-request-group-${g}`}
+                    onClick={() => setFilters((f) => ({ ...f, group: g }))}
+                  >
+                    {t(`demo.requests.group.${g}`)}
+                  </button>
+                ))}
+              </div>
+            </header>
+            <div className="oma-plx-deliv-panel__body oma-plx-requests-panel__body">
+              {filtered.length === 0 ? (
+                <EmptyState title={t('demo.empty')} body={t('demo.requests.emptyHint')} />
+              ) : (
+                <>
+                  <div
+                    className="oma-plx-deliv-table-wrap oma-req-table-wrap oma-req-desktop"
+                    data-testid="demo-request-table"
+                  >
+                    <table className="oma-plx-deliv-table oma-req-table">
                     <thead>
                       <tr>
                         <th>{t('demo.requests.col.request')}</th>
@@ -862,38 +875,55 @@ export default function RequestsPage() {
                   </table>
                 </div>
 
-                <ul className="oma-req-mobile" aria-label={t('demo.requests.title')}>
-                  {filtered.map((r) => {
-                    const brief = briefByRequest.get(r.id) ?? null;
-                    const next = requestNextAction(r, brief);
-                    return (
-                      <li key={r.id}>
-                        <Link
-                          href={`/app/requests/${r.id}`}
-                          className="oma-req-mobile-card"
-                          data-testid={`demo-request-mobile-${r.id}`}
-                        >
-                          <strong>{pickCopy(r.title, locale)}</strong>
-                          <div className="oma-chip-row">
-                            <StatusChip status={r.status} />
-                            <StatusChip status={r.priority} />
-                          </div>
-                          <span className="oma-muted">
-                            {r.assignee ?? t('demo.requests.unassigned')} · {r.dueAt}
-                          </span>
-                          <span>{pickCopy(next, locale)}</span>
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </>
-            )}
-          </div>
-
-
-        </div>
-      ) : null}
+                  <ul className="oma-plx-request-feed oma-req-mobile" aria-label={t('demo.requests.title')}>
+                    {filtered.map((r) => {
+                      const brief = briefByRequest.get(r.id) ?? null;
+                      const next = requestNextAction(r, brief);
+                      const missing = requestMissingFields(r);
+                      const overdue = requestIsOverdue(r);
+                      return (
+                        <li key={r.id}>
+                          <Link
+                            href={`/app/requests/${r.id}`}
+                            className="oma-plx-listening-card oma-plx-request-card"
+                            data-testid={`demo-request-mobile-${r.id}`}
+                            data-overdue={overdue ? 'true' : 'false'}
+                          >
+                            <div className="oma-plx-listening-card__top oma-plx-request-card__top">
+                              <div className="oma-plx-listening-card__author">
+                                <span className="oma-plx-request-card__avatar" aria-hidden>
+                                  {initials(r.requester)}
+                                </span>
+                                <div className="oma-plx-listening-card__author-text">
+                                  <div className="oma-plx-listening-card__name-row">
+                                    <strong>{pickCopy(r.title, locale)}</strong>
+                                  </div>
+                                  <span className="oma-plx-request-card__meta">
+                                    {r.requester} · {r.dueAt}
+                                  </span>
+                                </div>
+                              </div>
+                              <StatusChip status={r.status} />
+                            </div>
+                            <div className="oma-plx-listening-card__foot oma-plx-request-card__foot">
+                              <StatusChip status={r.priority} />
+                              <span>{pickCopy(next, locale)}</span>
+                              {missing.length ? (
+                                <span className="oma-plx-request-card__warn">
+                                  {t('demo.requests.missing')}
+                                </span>
+                              ) : null}
+                            </div>
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </>
+              )}
+            </div>
+          </section>
+        ) : null}
       </div>
 
       <Dialog
@@ -902,9 +932,9 @@ export default function RequestsPage() {
         title={t('demo.create.requestTitle')}
         labelledBy="demo-create-request-title"
         size="lg"
-        className="oma-compose-dialog"
+        className="oma-compose-dialog oma-plx-compose-dialog"
       >
-        <div data-testid="demo-create-request-dialog" className="oma-compose">
+        <div data-testid="demo-create-request-dialog" className="oma-compose oma-plx-compose">
           {createError ? (
             <p className="oma-compose__alert" role="alert">
               {createError}
