@@ -5133,4 +5133,210 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   .oma-plx-compose .oma-compose__grid {
     grid-template-columns: 1fr;
   }
+
+  .oma-plx-sched-panel__head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .oma-plx-sched-view-segment {
+    overflow-x: auto;
+  }
+}
+
+/* Mobile Schedule: plx panel uses full content width on small screens */
+@media (max-width: 767px) {
+  .oma-plx-listening.oma-plx-schedule .oma-plx-workspace-surface {
+    padding-inline: 10px;
+  }
+
+  .oma-plx-sched-panel {
+    min-height: min(68vh, 720px);
+  }
+}
+
+/* Schedule — Social Inbox plx shell */
+.oma-plx-listening.oma-plx-schedule {
+  max-width: 1280px;
+  min-height: 0;
+}
+
+.oma-plx-schedule .oma-plx-workspace-surface {
+  padding: 0 16px 20px;
+}
+
+.oma-plx-sched-panel {
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: min(72vh, 820px);
+}
+
+.oma-plx-sched-panel__head {
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #eceef1;
+}
+
+.oma-plx-sched-panel__nav {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.oma-plx-sched-panel__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 12px 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.oma-plx-sched-view-segment {
+  flex-shrink: 0;
+}
+
+.oma-plx-sched-view-segment button span:last-child {
+  font-size: 12px;
+}
+
+.oma-plx-schedule .oma-sched-week-nav--cluster {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.oma-plx-schedule .oma-sched-week-nav__range {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.oma-plx-schedule .oma-plx-sched-saved {
+  padding: 12px 14px;
+  margin-bottom: 0;
+}
+
+.oma-plx-schedule .oma-plx-sched-saved h2 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 650;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.oma-plx-schedule .oma-sched-calendar-scroll {
+  border: 1px solid #eceef1;
+  border-radius: 12px;
+  background: #fff;
+  padding: 8px;
+}
+
+.oma-plx-schedule .oma-sched-day {
+  border-color: #eceef1;
+  background: #fafafa;
+}
+
+.oma-plx-schedule .oma-sched-day[data-today='true'] {
+  border-color: #93c5fd;
+  background: #f8fbff;
+}
+
+.oma-plx-schedule .oma-sched-day-label {
+  color: #374151;
+}
+
+.oma-plx-sched-list-card {
+  padding: 14px 16px;
+  border: 1px solid #eceef1;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.oma-plx-schedule .oma-sched-agenda .oma-plx-sched-list-card {
+  border-inline-start: 3px solid #2563eb;
+}
+
+.oma-plx-schedule .oma-sched-queue {
+  gap: 12px;
+}
+
+.oma-plx-sched-table-wrap {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+}
+
+.oma-plx-schedule .oma-sched-table thead th {
+  background: #fafafa;
+  color: #6b7280;
+  font-weight: 600;
+  border-bottom: 1px solid #eceef1;
+}
+
+.oma-plx-schedule .oma-sched-table tbody tr:hover {
+  background: #f9fafb;
+}
+
+.oma-plx-sched-drawer__hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 12px 12px 0;
+  padding: 14px 16px;
+}
+
+.oma-plx-sched-drawer__hero-main {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.oma-plx-sched-drawer__title {
+  margin: 0 0 10px;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #111827;
+}
+
+.oma-plx-sched-drawer__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.oma-plx-sched-drawer__close:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.oma-plx-sched-drawer__scroll {
+  padding: 12px;
+  gap: 10px;
+}
+
+.oma-plx-sched-drawer__section {
+  padding: 14px 16px;
+  margin: 0;
+}
+
+.oma-plx-sched-drawer__section .oma-plx-listening-panel__head {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 650;
+  color: #374151;
 }

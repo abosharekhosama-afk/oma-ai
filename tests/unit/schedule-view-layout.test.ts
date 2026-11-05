@@ -85,13 +85,12 @@ describe('schedule agenda and queue layouts', () => {
   });
 
   it('fills the mobile Schedule content width without changing shared density or local scrolling', () => {
-    const css = read('apps/web/src/styles/stage5.css');
+    const css = read('apps/web/src/styles/inbox-listening.css');
     const density = read('apps/web/src/styles/mobile-density.css');
     const scheduleRule = css.slice(css.lastIndexOf('/* Mobile Schedule:'));
 
     expect(scheduleRule).toContain('@media (max-width: 767px)');
-    expect(scheduleRule).toContain('main.oma-container:has(.oma-sched-page)');
-    expect(scheduleRule).toContain('padding-inline: 0 !important');
+    expect(scheduleRule).toContain('.oma-plx-schedule');
     expect(density).toContain('--oma-mobile-density: 0.7');
     expect(density).toContain('zoom: var(--oma-mobile-density)');
   });
@@ -128,10 +127,11 @@ describe('schedule agenda and queue layouts', () => {
     expect(css).toContain('max-width: 100vw !important');
   });
 
-  it('removes the legacy inline filter rail and destroys the drawer after closing', () => {
+  it('uses the plx header filter popover instead of the legacy schedule filter drawer', () => {
     const source = read('apps/web/src/app/(app)/app/schedule/schedule-client.tsx');
-    expect(source).toContain('destroyOnHidden');
-    expect(source).not.toContain("data-filter-open={filterSheet ? 'true' : 'false'}");
+    expect(source).toContain('PlxHeaderFilter');
+    expect(source).toContain("data-filter-open={filterSheet ? 'true' : 'false'}");
+    expect(source).not.toContain('rootClassName="oma-tasks-filter-drawer"');
   });
 
   it('uses the shared side-drawer treatment for schedule details', () => {
@@ -143,6 +143,7 @@ describe('schedule agenda and queue layouts', () => {
     expect(source).toContain('rootClassName="oma-schedule-detail-drawer"');
     expect(css).toContain('.oma-schedule-detail-drawer .ant-drawer-content-wrapper');
     expect(css).toContain('.oma-schedule-detail-drawer .oma-plx-sched-drawer');
-    expect(css).toContain('backdrop-filter: blur(8px)');
+    expect(css).toContain('.oma-schedule-detail-drawer .ant-drawer-header');
+    expect(css).toContain('display: none !important');
   });
 });
