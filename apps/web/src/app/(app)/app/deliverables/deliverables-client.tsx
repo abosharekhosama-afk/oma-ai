@@ -24,7 +24,7 @@ import {
   type DeliverableFilters,
   type DeliverableRow,
 } from '../../../../lib/demo/stage5-deliverables';
-import { paintBreadcrumbViewSlot } from '../../../../lib/breadcrumb-view-slot';
+import { clearBreadcrumbViewSlot } from '../../../../lib/breadcrumb-view-slot';
 import { useLocale, useT } from '../../../../lib/use-locale';
 import {
   AppstoreOutlined,
@@ -61,7 +61,6 @@ export default function DeliverablesPage() {
   const [error, setError] = useState<string | null>(null);
   const [unavailable, setUnavailable] = useState(false);
   const [filterSheet, setFilterSheet] = useState(false);
-  const [viewMenuOpen, setViewMenuOpen] = useState(false);
   const [filterSection, setFilterSection] = useState<string | null>('search');
   const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
 
@@ -109,10 +108,6 @@ export default function DeliverablesPage() {
     }
   }, [filters.view, prefsLoaded]);
 
-  function changeView(view: DeliverableFilters['view']) {
-    setFilters((f) => ({ ...f, view }));
-  }
-
   useEffect(() => {
     let cancelled = false;
     let tries = 0;
@@ -135,35 +130,13 @@ export default function DeliverablesPage() {
   useEffect(() => {
     const el = document.getElementById('oma-content-view-slot');
     if (!el) return;
-    el.setAttribute('role', 'button');
-    el.setAttribute('tabindex', '0');
-    el.setAttribute('data-testid', 'demo-deliv-view-toggle');
-    el.style.cursor = 'pointer';
-    const open = (e: Event) => {
-      e.stopPropagation();
-      setViewMenuOpen((v) => !v);
-    };
-    el.addEventListener('click', open);
-    return () => el.removeEventListener('click', open);
+    clearBreadcrumbViewSlot(el);
+    return () => clearBreadcrumbViewSlot(el);
   }, []);
 
   useEffect(() => {
-    const el = document.getElementById('oma-content-view-slot');
-    if (!el) return;
-    const label =
-      filters.view === 'grid' ? t('demo.view.grid') : t('demo.view.list');
-    paintBreadcrumbViewSlot(el, filters.view, label);
-  }, [filters.view, t]);
-
-  useEffect(() => {
-    if (!viewMenuOpen) return;
-    const onDoc = () => setViewMenuOpen(false);
-    const tmr = window.setTimeout(() => document.addEventListener('click', onDoc), 0);
-    return () => {
-      window.clearTimeout(tmr);
-      document.removeEventListener('click', onDoc);
-    };
-  }, [viewMenuOpen]);
+    setFilters((f) => (f.view === 'list' ? f : { ...f, view: 'list' }));
+  }, []);
 
   const filtered = useMemo(
     () => filterDeliverables(rows, filters, locale),
@@ -184,28 +157,6 @@ export default function DeliverablesPage() {
     >
       <header className="oma-plx-listening__toolbar oma-plx-deliv__toolbar">
         <div className="oma-plx-listening__toolbar-spacer" />
-        <div className="oma-plx-listening-segment" role="group" aria-label={t('demo.view.grid')}>
-          <button
-            type="button"
-            className={filters.view === 'grid' ? 'is-active' : ''}
-            data-testid="demo-deliv-view-grid"
-            aria-pressed={filters.view === 'grid'}
-            onClick={() => changeView('grid')}
-          >
-            <AppstoreOutlined aria-hidden />
-            <span>{t('demo.view.grid')}</span>
-          </button>
-          <button
-            type="button"
-            className={filters.view === 'list' ? 'is-active' : ''}
-            data-testid="demo-deliv-view-list"
-            aria-pressed={filters.view === 'list'}
-            onClick={() => changeView('list')}
-          >
-            <BarsOutlined aria-hidden />
-            <span>{t('demo.view.list')}</span>
-          </button>
-        </div>
         <button
           type="button"
           className="oma-plx-listening-filter__trigger oma-plx-deliv__filter-trigger"
@@ -239,64 +190,6 @@ export default function DeliverablesPage() {
               </button>
             </div>,
             headerSlot,
-          )
-        : null}
-
-      {viewMenuOpen && typeof document !== 'undefined'
-        ? createPortal(
-            <ul
-              className="oma-view-menu__list oma-view-menu__list--card oma-view-menu__list--path"
-              role="menu"
-              data-testid="demo-deliv-view-menu"
-            >
-              <li role="none">
-                <button
-                  type="button"
-                  role="menuitemradio"
-                  aria-checked={filters.view === 'list'}
-                  data-selected={filters.view === 'list' ? 'true' : 'false'}
-                  data-testid="demo-deliv-view-list"
-                  className="oma-view-menu__item"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    changeView('list');
-                    setViewMenuOpen(false);
-                  }}
-                >
-                  <span className="oma-view-menu__item-icon" aria-hidden>
-                    <BarsOutlined />
-                  </span>
-                  <span>{t('demo.view.list')}</span>
-                  <span className="oma-view-menu__check" aria-hidden>
-                    {filters.view === 'list' ? '✓' : ''}
-                  </span>
-                </button>
-              </li>
-              <li role="none">
-                <button
-                  type="button"
-                  role="menuitemradio"
-                  aria-checked={filters.view === 'grid'}
-                  data-selected={filters.view === 'grid' ? 'true' : 'false'}
-                  data-testid="demo-deliv-view-grid"
-                  className="oma-view-menu__item"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    changeView('grid');
-                    setViewMenuOpen(false);
-                  }}
-                >
-                  <span className="oma-view-menu__item-icon" aria-hidden>
-                    <AppstoreOutlined />
-                  </span>
-                  <span>{t('demo.view.grid')}</span>
-                  <span className="oma-view-menu__check" aria-hidden>
-                    {filters.view === 'grid' ? '✓' : ''}
-                  </span>
-                </button>
-              </li>
-            </ul>,
-            document.body,
           )
         : null}
 
@@ -369,41 +262,6 @@ export default function DeliverablesPage() {
               <div className="oma-plx-deliv-panel__body">
                 {filtered.length === 0 ? (
                   <EmptyState title={t('demo.empty')} body={t('demo.deliverables.emptyHint')} />
-                ) : filters.view === 'grid' ? (
-                  <div className="oma-plx-deliv-grid" data-testid="demo-deliv-grid">
-                    {filtered.map((d) => {
-                      const ver = currentVersion(d);
-                      const thumb = ver?.assets?.[0];
-                      return (
-                        <Link
-                          key={d.id}
-                          href={`/app/deliverables/${d.id}`}
-                          className="oma-plx-deliv-card"
-                          data-overdue={deliverableIsOverdue(d) ? 'true' : 'false'}
-                          data-testid={`demo-deliv-card-${d.id}`}
-                        >
-                          <div className="oma-plx-deliv-card__media">
-                            {thumb ? (
-                              <MediaSurface src={thumb} mime={versionMime(ver)} alt="" />
-                            ) : (
-                              <div className="oma-plx-deliv-card__media-fallback" aria-hidden />
-                            )}
-                          </div>
-                          <div className="oma-plx-deliv-card__body">
-                            <strong className="oma-plx-deliv-card__title">
-                              {pickCopy(d.title, locale)}
-                            </strong>
-                            <div className="oma-plx-deliv-card__chips">
-                              <StatusChip status={d.reviewStatus} />
-                            </div>
-                            <span className="oma-plx-deliv-card__meta">
-                              {d.owner} · {d.dueAt}
-                            </span>
-                          </div>
-                        </Link>
-                      );
-                    })}
-                  </div>
                 ) : (
                   <>
                     <div
@@ -528,7 +386,7 @@ export default function DeliverablesPage() {
                     <CloseOutlined />
                   </button>
                 </header>
-                <div className="oma-filter-accordion-list">
+                <div className="oma-filter-accordion-list oma-plx-deliv-filter-accordion-list">
                   <div className="oma-filter-accordion">
                     <button
                       type="button"
@@ -536,7 +394,7 @@ export default function DeliverablesPage() {
                       data-open={filterSection === 'search' ? 'true' : 'false'}
                       onClick={() => setFilterSection((s) => (s === 'search' ? null : 'search'))}
                     >
-                      <span className="oma-filter-accordion__ico">
+                      <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
                         <SearchOutlined />
                       </span>
                       <span>{t('demo.deliverables.search')}</span>
@@ -563,7 +421,7 @@ export default function DeliverablesPage() {
                       data-open={filterSection === 'review' ? 'true' : 'false'}
                       onClick={() => setFilterSection((s) => (s === 'review' ? null : 'review'))}
                     >
-                      <span className="oma-filter-accordion__ico">
+                      <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
                         <FilterOutlined />
                       </span>
                       <span>{t('demo.deliverables.filter.review')}</span>
@@ -606,7 +464,7 @@ export default function DeliverablesPage() {
                       data-open={filterSection === 'type' ? 'true' : 'false'}
                       onClick={() => setFilterSection((s) => (s === 'type' ? null : 'type'))}
                     >
-                      <span className="oma-filter-accordion__ico">
+                      <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
                         <AppstoreOutlined />
                       </span>
                       <span>{t('demo.deliverables.filter.type')}</span>
@@ -651,7 +509,7 @@ export default function DeliverablesPage() {
                         setFilterSection((s) => (s === 'campaign' ? null : 'campaign'))
                       }
                     >
-                      <span className="oma-filter-accordion__ico">
+                      <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
                         <FilterOutlined />
                       </span>
                       <span>{t('demo.deliverables.filter.campaign')}</span>
@@ -693,7 +551,7 @@ export default function DeliverablesPage() {
                       data-open={filterSection === 'owner' ? 'true' : 'false'}
                       onClick={() => setFilterSection((s) => (s === 'owner' ? null : 'owner'))}
                     >
-                      <span className="oma-filter-accordion__ico">
+                      <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
                         <FilterOutlined />
                       </span>
                       <span>{t('demo.deliverables.filter.owner')}</span>
@@ -737,7 +595,7 @@ export default function DeliverablesPage() {
                         setFilterSection((s) => (s === 'reviewer' ? null : 'reviewer'))
                       }
                     >
-                      <span className="oma-filter-accordion__ico">
+                      <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
                         <FilterOutlined />
                       </span>
                       <span>{t('demo.deliverables.filter.reviewer')}</span>

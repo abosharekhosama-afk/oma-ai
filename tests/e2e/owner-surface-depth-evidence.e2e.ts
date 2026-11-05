@@ -106,7 +106,7 @@ test.describe('Owner surface-depth evidence', () => {
         ref: 'Frame.io+Planable',
         evidence: 'ARCHIVED',
         setup: async () => {
-          await expect(page.getByTestId('demo-deliv-grid')).toBeVisible({ timeout: 20_000 });
+          await expect(page.getByTestId('demo-deliv-table')).toBeVisible({ timeout: 20_000 });
         },
       },
       {

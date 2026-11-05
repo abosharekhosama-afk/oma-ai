@@ -46,16 +46,12 @@ test.describe('Stage 5 Deliverables + Reviews visual rebuild', () => {
       .getByRole('link', { name: /^deliverables$/i })
       .click();
     await expect(page.getByTestId('demo-deliverables')).toBeVisible();
+    await expect(page.getByTestId('demo-deliv-table')).toBeVisible();
+    await page.getByTestId('demo-deliv-open-filters').click();
     await expect(page.getByTestId('demo-deliv-filters')).toBeVisible();
-    await expect(page.getByTestId('demo-deliv-grid')).toBeVisible();
 
     await page.getByTestId('demo-deliv-group-needs_review').click();
-    await expect(page.getByTestId('demo-deliv-card-demo-deliv-carousel')).toBeVisible();
-    await page.getByTestId('demo-deliv-view-list').click();
-    await expect(page.getByTestId('demo-deliv-table')).toBeVisible();
-    await page.getByTestId('demo-deliv-view-grid').click();
-    await expect(page.getByTestId('demo-deliv-grid')).toBeVisible();
-    await page.getByTestId('demo-deliv-view-list').click();
+    await expect(page.getByTestId('demo-deliv-row-demo-deliv-carousel')).toBeVisible();
     await page.getByTestId('demo-deliv-row-demo-deliv-carousel').getByRole('link').click();
     await expect(page.getByTestId('demo-deliverable-detail')).toBeVisible({ timeout: 15_000 });
     await expect(page.getByText(/Increase CTA contrast|Layla Haddad/i).first()).toBeVisible();
@@ -175,15 +171,7 @@ test.describe('Stage 5 Deliverables + Reviews visual rebuild', () => {
       await page.goto('/app/deliverables');
       await expect(page.getByTestId('demo-deliverables')).toBeVisible({ timeout: 20_000 });
       await expect(page.locator('html')).toHaveAttribute('dir', 'rtl');
-      // Grid is default after surface-depth; open via grid card or table row.
-      if (await page.getByTestId('demo-deliv-grid').count()) {
-        await page
-          .locator('[data-testid^="demo-deliv-card-"], a[href*="/app/deliverables/"]')
-          .first()
-          .click();
-      } else {
-        await page.getByTestId('demo-deliv-row-demo-deliv-static').getByRole('link').click();
-      }
+      await page.getByTestId('demo-deliv-row-demo-deliv-static').getByRole('link').click();
       await expect(page.getByTestId('demo-deliverable-detail')).toBeVisible({ timeout: 15_000 });
       await page.getByTestId('demo-open-review').click();
       await expect(page.getByTestId('demo-review-workspace')).toBeVisible();

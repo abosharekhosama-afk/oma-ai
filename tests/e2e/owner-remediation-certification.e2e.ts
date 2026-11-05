@@ -299,7 +299,7 @@ test.describe('Owner remediation certification', () => {
       .getByRole('navigation', { name: /main navigation/i })
       .getByRole('link', { name: /deliverables/i })
       .click();
-    await expect(page.getByTestId('demo-deliv-grid')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('demo-deliv-table')).toBeVisible({ timeout: 15_000 });
     await page.screenshot({ path: path.join(SHOTS, '11-deliverables-grid.png'), fullPage: false });
     await page
       .getByRole('navigation', { name: /main navigation/i })

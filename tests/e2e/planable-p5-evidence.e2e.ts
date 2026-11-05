@@ -101,16 +101,13 @@ test.describe('P5 Planable deliverables/reviews/schedule evidence pack', () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/app/deliverables');
     await expect(page.getByTestId('demo-deliverables')).toBeVisible();
-    await page.getByTestId('demo-deliv-view-grid').click();
-    await expect(page.getByTestId('demo-deliv-grid')).toBeVisible();
-    await shot('01-deliverables-grid', '/app/deliverables', '1440x900', {
+    await expect(page.getByTestId('demo-deliv-table')).toBeVisible();
+    await shot('01-deliverables-list', '/app/deliverables', '1440x900', {
       evidenceLevel: 'ARCHIVED_MATCH',
       match: 'ARCHIVED_MATCH',
-      viewType: 'deliverables-grid',
+      viewType: 'deliverables-list',
     });
-    await page.getByTestId('demo-deliv-view-list').click();
-    await expect(page.getByTestId('demo-deliv-table')).toBeVisible();
-    await shot('02-deliverables-list', '/app/deliverables', '1440x900', {
+    await shot('02-deliverables-list-table', '/app/deliverables', '1440x900', {
       viewType: 'deliverables-list',
     });
 
