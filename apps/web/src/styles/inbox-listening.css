@@ -2970,9 +2970,12 @@
 
 .oma-plx-deliv-groups {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 4px;
   padding-bottom: 10px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
 }
 
 .oma-plx-deliv-groups__btn {
@@ -3226,8 +3229,45 @@
   color: #111827;
 }
 
+.oma-plx-deliv-filter-accordion-list {
+  padding: 14px 12px 12px;
+}
+
 .oma-plx-deliv-filter-panel .oma-filter-accordion-list {
-  padding: 8px 10px 12px;
+  padding: 14px 12px 12px;
+}
+
+.oma-plx-deliv-filter-accordion__ico {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: #f3f4f6;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+.oma-plx-deliv-filter-accordion__ico svg.oma-lucide {
+  width: 14px;
+  height: 14px;
+}
+
+.oma-plx-deliv-filter-panel .oma-filter-accordion__row {
+  gap: 10px;
+  border-radius: 8px;
+  padding: 8px 6px;
+}
+
+.oma-plx-deliv-filter-panel .oma-filter-accordion__row:hover {
+  background: #f9fafb;
+}
+
+.oma-plx-deliv-filter-panel .oma-filter-accordion__caret svg.oma-lucide {
+  width: 14px;
+  height: 14px;
+  color: #9ca3af;
 }
 
 .oma-plx-deliv-filter-panel .oma-filter-accordion__row {
@@ -3376,6 +3416,10 @@
   border: 0;
   border-radius: 0;
   box-shadow: none;
+}
+
+.oma-plx-tasks .oma-plx-deliv__filter-trigger {
+  display: inline-flex;
 }
 
 @media (max-width: 900px) {

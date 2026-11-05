@@ -20,6 +20,17 @@ function escapeHtml(text: string): string {
     .replace(/"/g, '&quot;');
 }
 
+export function clearBreadcrumbViewSlot(el: HTMLElement) {
+  el.innerHTML = '';
+  el.removeAttribute('role');
+  el.removeAttribute('tabindex');
+  el.removeAttribute('data-testid');
+  el.removeAttribute('aria-label');
+  el.removeAttribute('data-view');
+  el.style.cursor = '';
+  el.classList.remove('oma-breadcrumb-view--interactive');
+}
+
 export function paintBreadcrumbViewSlot(el: HTMLElement, viewKey: string, label: string) {
   const key = viewKey === 'board' ? 'board' : viewKey;
   const icon = VIEW_ICONS[key] ?? VIEW_ICONS.list!;

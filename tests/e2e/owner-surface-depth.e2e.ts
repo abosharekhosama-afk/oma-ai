@@ -55,7 +55,7 @@ test.describe('Owner surface-depth journey', () => {
       .getByRole('navigation')
       .getByRole('link', { name: /deliverables/i })
       .click();
-    await expect(page.getByTestId('demo-deliv-grid')).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByTestId('demo-deliv-table')).toBeVisible({ timeout: 15_000 });
 
     await page
       .getByRole('navigation')
