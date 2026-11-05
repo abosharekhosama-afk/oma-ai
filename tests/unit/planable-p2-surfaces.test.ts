@@ -76,7 +76,10 @@ describe('P2 Planable brand/strategy surfaces', () => {
   });
 
   it('rebuilds Command Center and portfolio without metric-card walls or violet CSS', () => {
-    const home = readFileSync(join(process.cwd(), 'apps/web/src/app/(app)/app/page.tsx'), 'utf8');
+    const home = readFileSync(
+      join(process.cwd(), 'apps/web/src/components/home/home-view.tsx'),
+      'utf8',
+    );
     const brands = readFileSync(
       join(process.cwd(), 'apps/web/src/app/(app)/app/brands/page.tsx'),
       'utf8',

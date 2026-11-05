@@ -108,8 +108,8 @@ function Card({
   id: string;
 }) {
   return (
-    <section className="oma-home-card" aria-labelledby={id}>
-      <header className="oma-home-card__head">
+    <section className="oma-plx-listening-panel oma-home-card" aria-labelledby={id}>
+      <header className="oma-plx-listening-panel__head oma-home-card__head">
         <h2 id={id} className="oma-home-card__title">
           {title}
         </h2>
@@ -151,50 +151,59 @@ export function HomeView(p: HomeViewProps) {
   const totalAwaiting = p.awaiting.length;
 
   return (
-    <div className="oma-home" data-testid="product-home">
-      <header className="oma-home-top">
-        <div>
-          {p.userName ? (
-            <h1 className="oma-home-greeting">{greeting}</h1>
-          ) : (
-            <Skeleton width="240px" height="28px" />
-          )}
-          <p className="oma-home-sub">
-            {dateFmt.format(now)}
-            {!p.loading && totalAwaiting > 0
-              ? ` · ${fill(t('home.v2.needsYou'), { n: totalAwaiting })}`
-              : ''}
-          </p>
-        </div>
-        <Link
-          href={homeLinks.create}
-          className="oma-home-btn oma-home-btn--primary"
-          data-testid="home-create-post"
+    <div
+      className="oma-plx-listening oma-plx-home oma-home oma-surface-cc"
+      data-testid="product-home"
+    >
+      <div className="oma-plx-workspace-surface" data-testid="demo-command-center">
+        <header className="oma-plx-listening__intro oma-plx-deliv__intro oma-plx-home__intro">
+          <div>
+            {p.userName ? (
+              <h1 className="oma-plx-listening__title oma-home-greeting">{greeting}</h1>
+            ) : (
+              <Skeleton width="240px" height="28px" />
+            )}
+            <p className="oma-plx-deliv__subtitle oma-home-sub">{dateFmt.format(now)}</p>
+          </div>
+          <div className="oma-plx-home__intro-actions">
+            {!p.loading && totalAwaiting > 0 ? (
+              <p className="oma-plx-listening__next-check">
+                {fill(t('home.v2.needsYou'), { n: totalAwaiting })}
+              </p>
+            ) : null}
+            <Link
+              href={homeLinks.create}
+              className="oma-plx-tasks__create-icon oma-home-btn oma-home-btn--primary"
+              data-testid="home-create-post"
+            >
+              <span aria-hidden="true">+</span> {t('home.v2.createPost')}
+            </Link>
+          </div>
+        </header>
+
+        {p.error ? (
+          <div className="oma-plx-listening-panel oma-home-error" role="alert">
+            <span>{t('home.loadFailed')}</span>
+            {p.onRetry ? (
+              <button type="button" className="oma-home-btn" onClick={p.onRetry}>
+                {t('home.v2.retry')}
+              </button>
+            ) : null}
+          </div>
+        ) : null}
+
+        <div
+          className="oma-plx-home-brands oma-plx-team-grid oma-home-brands"
+          data-testid="command-center-workspaces"
         >
-          <span aria-hidden="true">+</span> {t('home.v2.createPost')}
-        </Link>
-      </header>
-
-      {p.error ? (
-        <div className="oma-home-error" role="alert">
-          <span>{t('home.loadFailed')}</span>
-          {p.onRetry ? (
-            <button type="button" className="oma-home-btn" onClick={p.onRetry}>
-              {t('home.v2.retry')}
-            </button>
-          ) : null}
-        </div>
-      ) : null}
-
-      <div className="oma-home-brands" data-testid="command-center-workspaces">
         {p.loading ? (
           [0, 1, 2].map((i) => (
-            <div key={i} className="oma-home-card oma-home-brand">
+            <div key={i} className="oma-plx-home-brand oma-plx-team-card oma-home-card oma-home-brand">
               <Shimmer rows={2} height="20px" />
             </div>
           ))
         ) : p.brands.length === 0 ? (
-          <div className="oma-home-card oma-home-empty">
+          <div className="oma-plx-listening-panel oma-home-card oma-home-empty">
             <p>{t('home.v2.noBrands')}</p>
             <Link href="/app/brands/new" className="oma-home-btn">
               {t('brand.list.create')}
@@ -205,10 +214,10 @@ export function HomeView(p: HomeViewProps) {
             <Link
               key={b.id}
               href={homeLinks.brand(b.id)}
-              className="oma-home-card oma-home-brand"
+              className="oma-plx-home-brand oma-plx-team-card oma-home-card oma-home-brand"
               data-testid="home-brand-card"
             >
-              <div className="oma-home-brand__head">
+              <div className="oma-plx-team-card__head oma-home-brand__head">
                 <BrandAvatar name={b.name} logo={b.logo_url} />
                 <div className="oma-home-brand__id">
                   <strong className="oma-home-ellipsis">{b.name}</strong>
@@ -236,9 +245,9 @@ export function HomeView(p: HomeViewProps) {
             </Link>
           ))
         )}
-      </div>
+        </div>
 
-      <div className="oma-home-layout">
+        <div className="oma-plx-home-layout oma-home-layout">
         <div className="oma-home-main">
           <Card
             id="home-waiting-heading"
@@ -266,11 +275,14 @@ export function HomeView(p: HomeViewProps) {
                   {p.awaiting.map((item) => {
                     const caption = pick(item.caption, locale) || pick(item.title, locale);
                     return (
-                      <li key={item.id} className="oma-home-post">
-                        <Link href={item.href} className="oma-home-post__link">
+                      <li
+                        key={item.id}
+                        className="oma-home-post oma-plx-inbox-post oma-plx-inbox-post--row oma-plx-home-awaiting-row"
+                      >
+                        <Link href={item.href} className="oma-home-post__link oma-plx-inbox-post__external">
                           <Thumb url={item.thumbnail_url} channel={item.channel} size="md" />
-                          <div className="oma-home-post__body">
-                            <div className="oma-home-post__meta">
+                          <div className="oma-home-post__body oma-plx-inbox-post__content">
+                            <div className="oma-home-post__meta oma-plx-inbox-post__channel">
                               <NetworkIcon channel={item.channel} size={16} />
                               <strong className="oma-home-ellipsis">{item.brand ?? ''}</strong>
                               <span className="oma-home-muted oma-home-ellipsis">
@@ -281,7 +293,9 @@ export function HomeView(p: HomeViewProps) {
                                   : ''}
                               </span>
                             </div>
-                            <p className="oma-home-post__caption">{caption}</p>
+                            <p className="oma-home-post__caption oma-plx-inbox-post__caption">
+                              {caption}
+                            </p>
                           </div>
                         </Link>
                         {p.canApprove ? (
@@ -375,7 +389,7 @@ export function HomeView(p: HomeViewProps) {
               </Link>
             }
           >
-            <div className="oma-home-week" data-testid="home-schedule-week">
+            <div className="oma-plx-home-week oma-home-week" data-testid="home-schedule-week">
               {days.map((d) => (
                 <Link
                   key={d.key}
@@ -416,7 +430,7 @@ export function HomeView(p: HomeViewProps) {
         <aside className="oma-home-side">
           {p.setup.visible ? (
             <section
-              className="oma-home-card oma-home-setup"
+              className="oma-plx-listening-panel oma-home-card oma-home-setup"
               aria-labelledby="home-setup-heading"
               data-testid="home-setup"
             >
@@ -510,6 +524,7 @@ export function HomeView(p: HomeViewProps) {
             )}
           </Card>
         </aside>
+        </div>
       </div>
       {p.feedback}
     </div>
