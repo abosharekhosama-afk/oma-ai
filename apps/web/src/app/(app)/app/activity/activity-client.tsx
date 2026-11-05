@@ -81,76 +81,87 @@ export default function ActivityPage() {
   ] as const;
 
   return (
-    <div className="oma-bs oma-activity-page" data-testid="activity-page-planable">
-      <header className="oma-bs-head">
-        <div className="oma-bs-head__text">
-          <h1 className="oma-bs-title">{t('activity.title')}</h1>
-          <p className="oma-bs-sub">{t('activity.subtitle')}</p>
+    <div
+      className="oma-plx-listening oma-plx-activity oma-activity-page"
+      data-testid="activity-page-planable"
+    >
+      <div className="oma-plx-listening__intro oma-plx-deliv__intro">
+        <div>
+          <h1 className="oma-plx-listening__title">{t('activity.title')}</h1>
+          <p className="oma-plx-deliv__subtitle">{t('activity.subtitle')}</p>
         </div>
-      </header>
-      <div className="oma-bs-body">
-        <nav className="oma-bs-nav" aria-label={t('activity.title')}>
-          {filters.map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              className="oma-bs-nav__item"
-              aria-current={filter === id ? 'page' : undefined}
-              onClick={() => setFilter(id)}
+        {!loading && !error ? (
+          <p className="oma-plx-listening__next-check" data-testid="activity-result-count">
+            {filtered.length}
+            {filter !== 'all' ? ` / ${items.length}` : ''}
+          </p>
+        ) : null}
+      </div>
+
+      {loading ? <TableShimmer rows={8} /> : null}
+      {error ? (
+        <div className="oma-inbox-error" role="alert">
+          <p style={{ margin: 0 }}>{error}</p>
+          <div style={{ marginTop: 12 }}>
+            <Button type="default" onClick={() => void load()}>
+              {t('activity.retry')}
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+      {!loading && !error ? (
+        <section className="oma-plx-listening-panel oma-plx-activity-panel">
+          <header className="oma-plx-deliv-panel__head">
+            <div
+              className="oma-plx-deliv-groups oma-plx-activity-tabs"
+              role="tablist"
+              aria-label={t('activity.title')}
+              data-testid="activity-filter-tabs"
             >
-              {label}
-            </button>
-          ))}
-        </nav>
-        <main className="oma-bs-main">
-          {loading ? <TableShimmer rows={8} /> : null}
-          {error ? (
-            <div className="plx-empty" role="alert">
-              <strong>{error}</strong>
-              <div style={{ marginTop: 12 }}>
-                <Button type="default" onClick={() => void load()}>
-                  {t('activity.retry')}
+              {filters.map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  role="tab"
+                  aria-selected={filter === id}
+                  className={`oma-plx-deliv-groups__btn${filter === id ? ' is-active' : ''}`}
+                  data-active={filter === id ? 'true' : 'false'}
+                  data-testid={`activity-tab-${id}`}
+                  onClick={() => setFilter(id)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </header>
+          <div className="oma-plx-deliv-panel__body oma-plx-activity-panel__body">
+            {filtered.length === 0 ? (
+              <div className="oma-ws-empty-block oma-plx-activity-empty">
+                <h3>{t('activity.empty')}</h3>
+                <p>{t('activity.emptyBody')}</p>
+              </div>
+            ) : (
+              <ul className="oma-plx-listening-feed oma-plx-activity-feed" data-testid="activity-feed">
+                {filtered.map((item) => (
+                  <ActivityFeedItem key={item.id} item={item} locale={locale} t={t} />
+                ))}
+              </ul>
+            )}
+            {cursor ? (
+              <div className="oma-plx-activity-load-more">
+                <Button
+                  type="default"
+                  disabled={loadingMore}
+                  onClick={() => void load(cursor, true)}
+                >
+                  {loadingMore ? t('activity.loading') : t('activity.loadMore')}
                 </Button>
               </div>
-            </div>
-          ) : null}
-
-          {!loading && !error ? (
-            <div className="oma-act-feed" data-testid="activity-feed">
-              <div className="oma-act-feed__head">
-                <strong>{t('activity.title')}</strong>
-                <span>{t('activity.subtitle')}</span>
-              </div>
-              <div className="oma-act-feed__scroll">
-                {filtered.length === 0 ? (
-                  <div className="oma-ws-empty-block">
-                    <h3>{t('activity.empty')}</h3>
-                    <p>{t('activity.emptyBody')}</p>
-                  </div>
-                ) : (
-                  <ul className="oma-act-list">
-                    {filtered.map((item) => (
-                      <ActivityFeedItem key={item.id} item={item} locale={locale} t={t} />
-                    ))}
-                  </ul>
-                )}
-              </div>
-
-              {cursor ? (
-                <div style={{ marginTop: 16, textAlign: 'center' }}>
-                  <Button
-                    type="default"
-                    disabled={loadingMore}
-                    onClick={() => void load(cursor, true)}
-                  >
-                    {loadingMore ? t('activity.loading') : t('activity.loadMore')}
-                  </Button>
-                </div>
-              ) : null}
-            </div>
-          ) : null}
-        </main>
-      </div>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

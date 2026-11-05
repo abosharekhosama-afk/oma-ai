@@ -37,6 +37,13 @@ function initials(name: string): string {
   return ((parts[0]?.[0] ?? '?') + (parts[1]?.[0] ?? '')).toUpperCase();
 }
 
+const CATEGORY_LABEL: Record<string, string> = {
+  members: 'Members',
+  approvals: 'Approvals',
+  content: 'Content',
+  settings: 'Settings',
+};
+
 export function ActivityFeedItem({
   item,
   locale,
@@ -60,56 +67,73 @@ export function ActivityFeedItem({
           : target.snippet.en
         : '';
   const fullTime = new Date(item.at).toLocaleString(isAr ? 'ar' : 'en');
+  const catLabel =
+    t(`activity.filter.${item.category}`) ||
+    CATEGORY_LABEL[item.category] ||
+    item.category;
 
   return (
     <li
-      className="oma-act-item"
+      className="oma-plx-listening-card oma-plx-activity-card"
       data-testid="activity-item"
       data-category={item.category}
       data-visual={isContentActivity && target?.thumbnail_url ? 'content' : 'actor'}
     >
-      {isContentActivity && target?.thumbnail_url ? (
-        <MediaSurface
-          className="oma-act-item__visual oma-act-item__visual--content"
-          src={target.thumbnail_url}
-          alt={targetName || ''}
-        />
-      ) : item.actor_avatar_url ? (
-        <img
-          className="oma-act-item__visual oma-act-item__visual--actor"
-          src={item.actor_avatar_url}
-          alt={item.actor_name}
-          loading="lazy"
-        />
-      ) : (
-        <span className="oma-act-item__visual oma-act-item__visual--actor" aria-hidden>
-          {initials(item.actor_name || '?')}
-        </span>
-      )}
-
-      <div className="oma-act-item__body">
-        <p className="oma-act-item__line">
-          <strong className="oma-act-item__actor">{item.actor_name}</strong>{' '}
-          <span className="oma-act-item__verb">{activityVerb(t, item)}</span>
-          {target && targetName ? (
-            <>
-              {' '}
-              <Link
-                href={target.href}
-                className="oma-act-item__target"
-                data-testid="activity-item-link"
+      <div className="oma-plx-listening-card__top oma-plx-activity-card__top">
+        <div className="oma-plx-listening-card__author">
+          {isContentActivity && target?.thumbnail_url ? (
+            <MediaSurface
+              className="oma-plx-activity-card__thumb"
+              src={target.thumbnail_url}
+              alt={targetName || ''}
+            />
+          ) : item.actor_avatar_url ? (
+            <img
+              className="oma-plx-listening-card__avatar oma-plx-activity-card__avatar-img"
+              src={item.actor_avatar_url}
+              alt={item.actor_name}
+              loading="lazy"
+            />
+          ) : (
+            <span className="oma-plx-listening-card__avatar oma-plx-activity-card__avatar" aria-hidden>
+              {initials(item.actor_name || '?')}
+            </span>
+          )}
+          <div className="oma-plx-listening-card__author-text">
+            <div className="oma-plx-listening-card__name-row">
+              <strong>{item.actor_name}</strong>
+              <time
+                className="oma-plx-activity-card__time"
+                dateTime={item.at}
+                title={fullTime}
               >
-                {targetName}
-              </Link>
-            </>
-          ) : null}
-        </p>
-        {snippet ? <blockquote className="oma-act-item__quote">{snippet}</blockquote> : null}
-        <span className="oma-act-item__meta">{item.category}</span>
+                {relativeTime(item.at, locale)}
+              </time>
+            </div>
+            <span className="oma-plx-activity-card__verb">{activityVerb(t, item)}</span>
+          </div>
+        </div>
+        <span className="oma-plx-activity-card__pill">{catLabel}</span>
       </div>
-      <time className="oma-act-item__time" dateTime={item.at} title={fullTime}>
-        {relativeTime(item.at, locale)}
-      </time>
+
+      <div className="oma-plx-listening-card__body oma-plx-activity-card__body">
+        <p className="oma-plx-activity-card__line">
+          {target && targetName ? (
+            <Link
+              href={target.href}
+              className="oma-plx-activity-card__target"
+              data-testid="activity-item-link"
+            >
+              {targetName}
+            </Link>
+          ) : (
+            <span className="oma-plx-activity-card__muted">{item.title}</span>
+          )}
+        </p>
+        {snippet ? (
+          <blockquote className="oma-plx-activity-card__quote">{snippet}</blockquote>
+        ) : null}
+      </div>
     </li>
   );
 }
