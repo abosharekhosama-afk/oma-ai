@@ -76,8 +76,9 @@ async function resolveSocialPage(input: {
   tenantId: string;
   brandId?: string | null;
   socialPageId?: string | null;
-  platform: 'META_FB' | 'META_IG';
+  platform: 'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN';
 }) {
+
   const network = input.platform === 'META_IG' ? 'INSTAGRAM' : 'FACEBOOK';
   if (input.socialPageId) {
     return getPrisma().socialPage.findFirst({
