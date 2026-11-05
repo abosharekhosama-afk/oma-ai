@@ -2,7 +2,15 @@
 
 import { useReloadOnBrandChange } from '../../../../lib/active-brand';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from 'react';
 import {
   ErrorState as ApiErrorState,
   errorKindOf,
@@ -94,6 +102,7 @@ import { Dialog } from '../../../../components/ui/dialog';
 import { EmptyState, DeniedState } from '../../../../components/ui/empty-state';
 import { useToast } from '../../../../components/ui/toast';
 import { MediaPickerDialog, MediaThumb } from '../../../../components/content/media-picker';
+import { ComposeMediaToolbar } from '../../../../components/content/compose-media-toolbar';
 import type { MediaAsset } from '../../../../lib/workdrive-api';
 import {
   hasContentViewPref,
@@ -401,6 +410,7 @@ type ComposeForm = {
   caption: string;
   brief: string;
   labels: string[];
+  firstComment: string;
 };
 
 function PlanableComposeCard({
@@ -437,13 +447,15 @@ function PlanableComposeCard({
   const t = useT();
   const isAr = locale.toLowerCase().startsWith('ar');
   const [campaignMenu, setCampaignMenu] = useState(false);
-  const [pickerOpen, setPickerOpen] = useState(false);
+  const [firstCommentOpen, setFirstCommentOpen] = useState(() =>
+    Boolean(form.firstComment?.trim()),
+  );
   if (!open) return null;
   const selectedCampaign = campaigns.find((c) => c.id === form.campaignId);
   return createPortal(
     <div className="oma-compose-overlay" onClick={creating ? undefined : onClose}>
       <div
-        className="oma-compose-card"
+        className="oma-compose-card oma-plx-compose-card"
         role="dialog"
         aria-modal="true"
         data-testid="demo-create-content-dialog"
@@ -460,6 +472,15 @@ function PlanableComposeCard({
         </button>
 
         <div className="oma-compose-pills">
+          <button
+            type="button"
+            className="oma-compose-pill"
+            onClick={() => onOpenTemplates?.()}
+            data-testid="demo-compose-templates"
+          >
+            <FileTextOutlined />
+            {t('wsPanel.templates')}
+          </button>
           <div className="oma-compose-pill-wrap">
             <button
               type="button"
@@ -468,7 +489,7 @@ function PlanableComposeCard({
               data-testid="demo-create-content-campaign"
               onClick={() => setCampaignMenu((v) => !v)}
             >
-              <NotificationOutlined />
+              <FlagOutlined />
               {selectedCampaign
                 ? pickCopy(selectedCampaign.name, locale)
                 : t('demo.campaigns.col.campaign')}
@@ -510,15 +531,9 @@ function PlanableComposeCard({
           >
             <TagOutlined />
             {t('wsPanel.labels')}
-          </button>
-          <button
-            type="button"
-            className="oma-compose-pill"
-            onClick={() => onOpenTemplates?.()}
-            data-testid="demo-compose-templates"
-          >
-            <FileTextOutlined />
-            {t('wsPanel.templates')}
+            {form.labels.length ? (
+              <span className="oma-compose-pill__count">{form.labels.length}</span>
+            ) : null}
           </button>
         </div>
 
@@ -591,21 +606,38 @@ function PlanableComposeCard({
           ) : null}
         </div>
 
-        <div className="oma-compose-body">
-          <div className="oma-compose-side">
-            <div className="oma-compose-avatar">
-              <UserOutlined />
-              <span className="oma-compose-avatar-badge">
-                <EditOutlined />
-              </span>
-            </div>
+        <div className="oma-compose-ai-hint" data-testid="compose-ai-hint">
+          <span className="oma-compose-ai-hint__spark" aria-hidden>
+            ✨
+          </span>
+          <span>{isAr ? 'ولّد فكرة منشور بالذكاء الاصطناعي' : 'Generate a post idea with AI'}</span>
+          <button type="button" className="oma-compose-ai-hint__dismiss">
+            {isAr ? 'تجاهل' : 'Dismiss'}
+          </button>
+        </div>
+
+        <div className="oma-compose-body oma-compose-body--plx">
+          <div className="oma-compose-main">
+            <TextArea
+              className="oma-compose-text oma-compose-text--primary"
+              rows={5}
+              placeholder={
+                isAr
+                  ? 'اكتب شيئاً… أو أضف وسائط من شريط الأدوات أدناه'
+                  : 'Write something… or add media from the toolbar below'
+              }
+              value={form.caption}
+              data-testid="demo-create-content-caption"
+              onChange={(e) => onChange({ caption: e.target.value })}
+            />
             {form.media.length ? (
-              <div className="oma-compose-media-list" data-testid="compose-media-selected">
+              <div className="oma-compose-media-strip" data-testid="compose-media-selected">
                 {form.media.map((asset, index) => (
                   <div className="oma-compose-media-chip" key={asset.id}>
                     <MediaThumb asset={asset} t={t} />
                     <button
                       type="button"
+                      className="oma-compose-media-chip__remove"
                       aria-label={`${t('media.remove')} ${index + 1}`}
                       onClick={() =>
                         onChange({
@@ -613,42 +645,19 @@ function PlanableComposeCard({
                         })
                       }
                     >
-                      {t('media.remove')}
+                      <CloseOutlined />
                     </button>
                   </div>
                 ))}
-                <button
-                  type="button"
-                  className="oma-compose-media oma-compose-media--add"
-                  aria-label={t('media.add')}
-                  title={t('media.add')}
-                  data-testid="compose-media-open"
-                  onClick={() => setPickerOpen(true)}
-                >
-                  <PictureOutlined />
-                </button>
               </div>
-            ) : (
-              <button
-                type="button"
-                className="oma-compose-media"
-                aria-label={t('media.add')}
-                title={t('media.add')}
-                data-testid="compose-media-open"
-                onClick={() => setPickerOpen(true)}
-              >
-                <PictureOutlined />
-              </button>
-            )}
-            <MediaPickerDialog
-              open={pickerOpen}
+            ) : null}
+            <ComposeMediaToolbar
               brandId={brandId}
-              kind="posts"
-              t={t}
               locale={locale}
-              canConnect={canConnectStorage}
-              onClose={() => setPickerOpen(false)}
-              onPick={(asset) =>
+              t={t}
+              canConnectStorage={canConnectStorage}
+              disabled={creating}
+              onAdd={(asset) =>
                 onChange({
                   media: form.media.some((selected) => selected.id === asset.id)
                     ? form.media
@@ -656,21 +665,45 @@ function PlanableComposeCard({
                 })
               }
             />
-          </div>
-          <div className="oma-compose-main">
+            {firstCommentOpen ? (
+              <div className="oma-compose-first-comment" data-testid="compose-first-comment">
+                <header className="oma-compose-first-comment__head">
+                  <span className="oma-compose-first-comment__tag">
+                    {isAr ? 'أول تعليق' : 'First comment'}
+                  </span>
+                  <button
+                    type="button"
+                    className="oma-compose-first-comment__close"
+                    aria-label={t('common.close')}
+                    onClick={() => setFirstCommentOpen(false)}
+                  >
+                    <CloseOutlined />
+                  </button>
+                </header>
+                <TextArea
+                  rows={2}
+                  value={form.firstComment}
+                  placeholder={
+                    isAr ? 'أضف #هاشتاغ أو اذكر حسابات…' : 'Add #hashtags or tag relevant accounts…'
+                  }
+                  onChange={(e) => onChange({ firstComment: e.target.value })}
+                />
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="oma-compose-first-comment__toggle"
+                onClick={() => setFirstCommentOpen(true)}
+              >
+                {isAr ? '+ أول تعليق' : '+ First comment'}
+              </button>
+            )}
             <Input
-              className="oma-compose-title"
+              className="oma-compose-title oma-compose-title--inline"
               placeholder={t('demo.create.title')}
               value={form.title}
               data-testid="demo-create-content-title"
               onChange={(e) => onChange({ title: e.target.value })}
-            />
-            <TextArea
-              className="oma-compose-text"
-              rows={4}
-              placeholder={t('content.type_to_add_headlines_media')}
-              value={form.caption}
-              onChange={(e) => onChange({ caption: e.target.value })}
             />
           </div>
         </div>
@@ -1207,6 +1240,7 @@ export default function ContentPage() {
     track: 'ORGANIC',
     media: [] as MediaAsset[],
     labels: [] as string[],
+    firstComment: '',
   });
 
   const isAr = locale.toLowerCase().startsWith('ar');
@@ -2347,9 +2381,17 @@ export default function ContentPage() {
             en: `${createForm.title.trim()}${suffix}`,
             ar: `${createForm.title.trim()}${suffix}`,
           },
-          caption: createForm.caption.trim()
-            ? { en: createForm.caption.trim(), ar: createForm.caption.trim() }
-            : undefined,
+          caption: (() => {
+            const main = createForm.caption.trim();
+            const fc = createForm.firstComment.trim();
+            if (!main && !fc) return undefined;
+            const text = fc
+              ? main
+                ? `${main}\n\n— ${isAr ? 'أول تعليق' : 'First comment'} —\n${fc}`
+                : fc
+              : main;
+            return { en: text, ar: text };
+          })(),
           campaignId: createForm.campaignId || null,
           contentType: createForm.contentType as ContentRow['contentType'],
           channel: createForm.channel.trim(),
@@ -3173,7 +3215,10 @@ export default function ContentPage() {
   /** Campaigns of the post's brand (falls back to every campaign when none match). */
   const modalCampaigns = brandCampaigns.length > 0 ? brandCampaigns : campaigns;
   return (
-    <div className="oma-stack oma-content-plan oma-content-plan--tight" data-testid="demo-content">
+    <div
+      className="oma-plx-listening oma-plx-content oma-stack oma-content-plan oma-content-plan--tight"
+      data-testid="demo-content"
+    >
       <p className="oma-honesty-inline" data-testid="content-calendar-role">
         {t('demo.content.subtitle')}
       </p>
@@ -3979,7 +4024,10 @@ export default function ContentPage() {
 
       {/* ── FEED VIEW ── */}
       {!loading && !unavailable && !error && filtered.length > 0 && view === 'feed' ? (
-        <div className="oma-content-feed oma-content-feed--preview" data-testid="demo-content-feed">
+        <div
+          className="oma-content-feed oma-content-feed--preview oma-plx-content-feed"
+          data-testid="demo-content-feed"
+        >
           <div className="oma-pv-feed-stories">
             <StoriesRow
               stories={filtered
@@ -4003,7 +4051,7 @@ export default function ContentPage() {
 
       {/* ── LIST VIEW ── */}
       {!loading && !unavailable && !error && filtered.length > 0 && view === 'list' ? (
-        <div className="oma-plan-list" data-testid="demo-content-list">
+        <div className="oma-plan-list oma-plx-content-list" data-testid="demo-content-list">
           <div className="oma-plan-list__head">
             <label className="oma-plan-list__select-all">
               <input
@@ -4024,121 +4072,127 @@ export default function ContentPage() {
               {t('content.last_created')} {sortDir === 'asc' ? '↑' : '↓'}
             </button>
           </div>
-          <div className="oma-plan-list__body">
-            {sorted.map((item) => {
-              const selected = selectedIds.includes(item.id);
-              return (
-                <div
-                  key={item.id}
-                  className="oma-plan-list__row"
-                  data-testid={`demo-content-card-${item.id}`}
-                  data-selected={selected ? 'true' : 'false'}
-                  onClick={() => openItem(item)}
-                >
-                  <label className="oma-plan-list__check" onClick={(e) => e.stopPropagation()}>
-                    <input
-                      type="checkbox"
-                      checked={selected}
-                      onChange={() => toggleSelectId(item.id)}
-                    />
-                  </label>
-                  <div className="oma-plan-list__thumb" aria-hidden>
-                    {item.previewAsset ? (
-                      <MediaSurface
-                        src={item.previewAsset}
-                        contentType={item.contentType}
-                        alt={pickCopy(item.title, locale)}
-                        autoPlay
-                        loop
-                      />
-                    ) : (
-                      <span className="oma-plan-list__thumb-ph">▣</span>
-                    )}
-                  </div>
-                  <div className="oma-plan-list__main">
-                    <div className="oma-plan-list__page">
-                      <span className="oma-plan-list__page-ico" aria-hidden>
-                        <NetworkIcon channel={item.channel} size={14} />
-                      </span>
-                      <span className="oma-plan-list__page-name">{brandName(item.brandId)}</span>
-                    </div>
-                    <div className="oma-plan-list__title" dir="auto">
-                      {item.caption ? pickCopy(item.caption, locale) : pickCopy(item.title, locale)}
-                    </div>
-                  </div>
-                  <div className="oma-plan-list__labels">
-                    {rowLabels(item).length > 2 ? (
-                      <span className="oma-pv-chip">
-                        {t('views.labels_count').replace('{n}', String(rowLabels(item).length))}
-                      </span>
-                    ) : (
-                      rowLabels(item).map((lab) => (
-                        <span key={lab} className="oma-pv-chip">
-                          {lab}
-                        </span>
-                      ))
-                    )}
-                  </div>
-                  <div className="oma-plan-list__mid">
-                    <StatusIcons s={postStatus(item)} t={t} />
-                  </div>
-                  <div className="oma-plan-list__hover">
-                    <button
-                      type="button"
-                      className="oma-plan-list__ico-btn"
-                      data-tooltip={t('demo.deliverable.approve')}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        void runLifecycle('approve', item.id);
-                      }}
-                    >
-                      <CheckOutlined />
-                    </button>
-                    <button
-                      type="button"
-                      className="oma-plan-list__ico-btn"
-                      data-tooltip={
-                        (item as ContentRowExtra).clientVisible !== false
-                          ? t('content.hide_from_clients')
-                          : t('content.show_to_clients')
-                      }
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        void toggleHideFromClients(item.id);
-                      }}
-                    >
-                      <EyeInvisibleOutlined />
-                    </button>
-                    <button
-                      type="button"
-                      className="oma-plan-list__ico-btn"
-                      data-tooltip={t('demo.tasks.copyLink')}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        void navigator.clipboard?.writeText(window.location.href);
-                        toast.push(t('content.link_copied'), 'success');
-                      }}
-                    >
-                      <LinkOutlined />
-                    </button>
-                  </div>
-                  <CardActionsButton
-                    itemId={item.id}
-                    open={cardMenuId === item.id}
-                    label={t('content.post_actions')}
-                    className="oma-card-actions-btn--list"
-                    onOpen={placeCardMenu}
-                    onClose={closeCardMenu}
-                  />
+          <div className="oma-plan-list__scroll">
+            <div className="oma-plan-list__body">
+              {sorted.map((item) => {
+                const selected = selectedIds.includes(item.id);
+                return (
                   <div
-                    className="oma-plan-list__when"
-                    data-overdue={postStatus(item).overdue ? 'true' : 'false'}
+                    key={item.id}
+                    className="oma-plan-list__row"
+                    data-testid={`demo-content-card-${item.id}`}
+                    data-selected={selected ? 'true' : 'false'}
+                    onClick={() => openItem(item)}
                   >
-                    {item.scheduledAt || item.plannedAt ? postDateText(item) : t('preview.no_date')}
+                    <label className="oma-plan-list__check" onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={selected}
+                        onChange={() => toggleSelectId(item.id)}
+                      />
+                    </label>
+                    <div className="oma-plan-list__thumb" aria-hidden>
+                      {item.previewAsset ? (
+                        <MediaSurface
+                          src={item.previewAsset}
+                          contentType={item.contentType}
+                          alt={pickCopy(item.title, locale)}
+                          autoPlay
+                          loop
+                        />
+                      ) : (
+                        <span className="oma-plan-list__thumb-ph">▣</span>
+                      )}
+                    </div>
+                    <div className="oma-plan-list__main">
+                      <div className="oma-plan-list__page">
+                        <span className="oma-plan-list__page-ico" aria-hidden>
+                          <NetworkIcon channel={item.channel} size={14} />
+                        </span>
+                        <span className="oma-plan-list__page-name">{brandName(item.brandId)}</span>
+                      </div>
+                      <div className="oma-plan-list__title" dir="auto">
+                        {item.caption
+                          ? pickCopy(item.caption, locale)
+                          : pickCopy(item.title, locale)}
+                      </div>
+                    </div>
+                    <div className="oma-plan-list__labels">
+                      {rowLabels(item).length > 2 ? (
+                        <span className="oma-plx-label-pill oma-plx-label-pill--muted">
+                          {t('views.labels_count').replace('{n}', String(rowLabels(item).length))}
+                        </span>
+                      ) : (
+                        rowLabels(item).map((lab) => (
+                          <span key={lab} className="oma-plx-label-pill" data-label={lab}>
+                            {lab}
+                          </span>
+                        ))
+                      )}
+                    </div>
+                    <div className="oma-plan-list__mid">
+                      <StatusIcons s={postStatus(item)} t={t} />
+                    </div>
+                    <div className="oma-plan-list__hover">
+                      <button
+                        type="button"
+                        className="oma-plan-list__ico-btn"
+                        data-tooltip={t('demo.deliverable.approve')}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void runLifecycle('approve', item.id);
+                        }}
+                      >
+                        <CheckOutlined />
+                      </button>
+                      <button
+                        type="button"
+                        className="oma-plan-list__ico-btn"
+                        data-tooltip={
+                          (item as ContentRowExtra).clientVisible !== false
+                            ? t('content.hide_from_clients')
+                            : t('content.show_to_clients')
+                        }
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void toggleHideFromClients(item.id);
+                        }}
+                      >
+                        <EyeInvisibleOutlined />
+                      </button>
+                      <button
+                        type="button"
+                        className="oma-plan-list__ico-btn"
+                        data-tooltip={t('demo.tasks.copyLink')}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void navigator.clipboard?.writeText(window.location.href);
+                          toast.push(t('content.link_copied'), 'success');
+                        }}
+                      >
+                        <LinkOutlined />
+                      </button>
+                    </div>
+                    <CardActionsButton
+                      itemId={item.id}
+                      open={cardMenuId === item.id}
+                      label={t('content.post_actions')}
+                      className="oma-card-actions-btn--list"
+                      onOpen={placeCardMenu}
+                      onClose={closeCardMenu}
+                    />
+                    <div
+                      className="oma-plan-list__when"
+                      data-overdue={postStatus(item).overdue ? 'true' : 'false'}
+                    >
+                      {item.scheduledAt || item.plannedAt
+                        ? postDateText(item)
+                        : t('preview.no_date')}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         </div>
       ) : null}
@@ -6335,14 +6389,16 @@ export default function ContentPage() {
                     <button
                       key={lab.id}
                       type="button"
-                      className="oma-label-card"
+                      className="oma-label-card oma-plx-label-card"
                       data-selected={on ? 'true' : 'false'}
+                      style={
+                        {
+                          '--oma-label-color': lab.color || '#1677ff',
+                        } as CSSProperties
+                      }
                       onClick={() => toggleWorkspaceLabel(name)}
                     >
-                      <span
-                        className="oma-label-card__swatch"
-                        style={{ background: lab.color || '#1677ff' }}
-                      />
+                      <span className="oma-label-card__swatch" aria-hidden />
                       <span className="oma-label-card__name">{shown}</span>
                       <span className="oma-label-card__check">{on ? '✓' : ''}</span>
                     </button>
@@ -6430,7 +6486,7 @@ export default function ContentPage() {
                 return (
                   <article
                     key={tpl.id}
-                    className="oma-template-card"
+                    className="oma-template-card oma-plx-template-card"
                     data-testid={`demo-template-${tpl.id}`}
                   >
                     <div className="oma-template-card__media" aria-hidden>
