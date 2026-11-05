@@ -2,10 +2,10 @@
 
 import { ShellIcon } from '../../../../components/shell/shell-icons';
 
-export function SchedulePanelShimmer() {
+export function ScheduleBodyShimmer() {
   return (
-    <section
-      className="oma-plx-listening-panel oma-plx-sched-panel oma-plx-sched-panel--loading"
+    <div
+      className="oma-plx-sched-shimmer oma-plx-sched-shimmer--fill"
       aria-busy="true"
       data-testid="demo-schedule-loading"
     >
@@ -22,6 +22,15 @@ export function SchedulePanelShimmer() {
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+/** @deprecated Prefer panel body + {@link ScheduleBodyShimmer} */
+export function SchedulePanelShimmer() {
+  return (
+    <section className="oma-plx-listening-panel oma-plx-sched-panel oma-plx-sched-panel--loading">
+      <ScheduleBodyShimmer />
     </section>
   );
 }

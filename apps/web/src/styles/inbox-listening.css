@@ -5186,7 +5186,7 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  min-height: min(72vh, 820px);
+  min-height: min(76vh, 860px);
 }
 
 .oma-plx-sched-panel__head {
@@ -5205,11 +5205,44 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
 
 .oma-plx-sched-panel__body {
   flex: 1 1 auto;
-  min-height: 0;
+  min-height: min(58vh, 740px);
   padding: 12px 14px 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.oma-plx-sched-panel__body .oma-sched-layout--full {
+  flex: 1 1 auto;
+  min-height: min(50vh, 600px);
+}
+
+.oma-plx-sched-panel__body .oma-sched-main {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.oma-plx-sched-panel__body .oma-sched-main[data-view='table'] {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.oma-plx-sched-panel__body .oma-plx-sched-table-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: none;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+.oma-plx-sched-panel__body .oma-plx-sched-table-wrap .oma-plx-deliv-table {
+  width: max-content;
+  min-width: 100%;
 }
 
 .oma-plx-sched-view-segment {
@@ -5308,6 +5341,10 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   border-radius: 12px;
   background: #fff;
   padding: 8px;
+  flex: 1 1 auto;
+  min-height: min(48vh, 560px);
+  display: flex;
+  flex-direction: column;
 }
 
 .oma-plx-schedule .oma-sched-day {
@@ -5491,7 +5528,8 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 280px;
+  flex: 1 1 auto;
+  min-height: min(52vh, 620px);
   padding: 32px 20px;
   text-align: center;
   color: #6b7280;
@@ -5530,10 +5568,23 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   min-height: 360px;
 }
 
+.oma-plx-sched-shimmer--fill {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: min(56vh, 680px);
+  width: 100%;
+}
+
+.oma-plx-sched-panel__body .oma-plx-sched-shimmer--fill {
+  min-height: min(58vh, 720px);
+}
+
 .oma-plx-sched-shimmer__toolbar {
   display: flex;
   gap: 10px;
   margin-bottom: 14px;
+  flex-shrink: 0;
 }
 
 .oma-plx-shimmer-pill {
@@ -5555,12 +5606,22 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 8px;
+  flex: 1 1 auto;
+  min-height: min(44vh, 520px);
+  align-content: stretch;
 }
 
 .oma-plx-sched-shimmer__col {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  height: 100%;
+  min-height: 100%;
+}
+
+.oma-plx-sched-shimmer__col .oma-plx-shimmer-block:first-of-type {
+  flex: 1 1 auto;
+  min-height: 120px;
 }
 
 .oma-plx-shimmer-line {
@@ -5591,11 +5652,80 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
 }
 
 .oma-plx-sched-detail-card {
-  margin: 12px;
+  margin: 0;
   padding: 0 !important;
   overflow: hidden;
-  border-radius: 14px !important;
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+  border-radius: 0 !important;
+  border: 0 !important;
+  box-shadow: none;
+}
+
+.oma-schedule-detail-modal .ant-modal-content {
+  padding: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid #eceef1;
+  box-shadow: 0 24px 48px rgba(15, 23, 42, 0.18);
+}
+
+.oma-schedule-detail-modal .ant-modal-body {
+  padding: 0;
+  max-height: min(88vh, 820px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.oma-plx-header-view-anchor {
+  display: inline-flex;
+  align-items: center;
+}
+
+.oma-plx-sched-view-trigger {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.oma-plx-sched-view-trigger[aria-expanded='true'] {
+  border-color: #93c5fd;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.oma-plx-view-popover__body {
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  gap: 2px;
+}
+
+.oma-plx-view-popover__option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: start;
+}
+
+.oma-plx-view-popover__option:hover {
+  background: #f9fafb;
+}
+
+.oma-plx-view-popover__option.is-active {
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 650;
 }
 
 .oma-plx-sched-detail-card__cover {

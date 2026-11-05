@@ -134,16 +134,20 @@ describe('schedule agenda and queue layouts', () => {
     expect(source).not.toContain('rootClassName="oma-tasks-filter-drawer"');
   });
 
-  it('uses the shared side-drawer treatment for schedule details', () => {
+  it('opens schedule details in a centered plx modal card (not a side drawer)', () => {
     const source = read('apps/web/src/app/(app)/app/schedule/schedule-client.tsx');
-    const css = read('apps/web/src/styles/side-drawers.css');
-    expect(source).toContain(
-      "placement={locale.toLowerCase().startsWith('ar') ? 'left' : 'right'}",
-    );
-    expect(source).toContain('rootClassName="oma-schedule-detail-drawer"');
-    expect(css).toContain('.oma-schedule-detail-drawer .ant-drawer-content-wrapper');
-    expect(css).toContain('.oma-schedule-detail-drawer .oma-plx-sched-drawer');
-    expect(css).toContain('.oma-schedule-detail-drawer .ant-drawer-header');
-    expect(css).toContain('display: none !important');
+    const css = read('apps/web/src/styles/inbox-listening.css');
+    expect(source).toContain('className="oma-schedule-detail-modal"');
+    expect(source).toContain('data-testid="demo-schedule-drawer"');
+    expect(source).not.toContain('rootClassName="oma-schedule-detail-drawer"');
+    expect(css).toContain('.oma-schedule-detail-modal');
+    expect(css).toContain('.oma-plx-sched-detail-card');
+  });
+
+  it('anchors schedule view switching in the workspace header popover', () => {
+    const source = read('apps/web/src/app/(app)/app/schedule/schedule-client.tsx');
+    expect(source).toContain('data-testid="demo-schedule-view-toggle"');
+    expect(source).toContain('data-testid={`demo-schedule-view-${id}`}');
+    expect(source).not.toContain('oma-plx-sched-view-segment');
   });
 });
