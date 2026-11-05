@@ -19,28 +19,26 @@ export function StrategySubnav({ brandId, strategyId }: { brandId: string; strat
   ];
   return (
     <nav
-      className="oma-brand-nav"
+      className="oma-plx-deliv-groups oma-plx-strategy-subnav oma-brand-nav"
       aria-label={t('strategy.nav.label')}
       data-testid="strategy-subnav"
     >
-      <ul>
-        {links.map((link) => {
-          const active = link.exact
-            ? pathname === link.href
-            : pathname === link.href || pathname.startsWith(`${link.href}/`);
-          return (
-            <li key={link.href}>
-              <Link
-                href={link.href}
-                aria-current={active ? 'page' : undefined}
-                className={active ? 'oma-brand-nav-active' : undefined}
-              >
-                {link.label}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+      {links.map((link) => {
+        const active = link.exact
+          ? pathname === link.href
+          : pathname === link.href || pathname.startsWith(`${link.href}/`);
+        return (
+          <Link
+            key={link.href}
+            href={link.href}
+            role="tab"
+            aria-current={active ? 'page' : undefined}
+            className={`oma-plx-deliv-groups__btn oma-brand-nav-link${active ? ' is-active' : ''}`}
+          >
+            {link.label}
+          </Link>
+        );
+      })}
     </nav>
   );
 }

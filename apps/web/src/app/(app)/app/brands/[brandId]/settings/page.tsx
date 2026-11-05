@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PermissionDenied } from '../../../../../../components/shell/permission-denied';
 import { ErrorState } from '../../../../../../components/ui/empty-state';
+import { BrandWorkspaceShell } from '../../../../../../components/brand/brand-workspace-shell';
 import {
   BrandSettingsView,
   type BrandSettingsTab,
@@ -142,11 +143,19 @@ export default function BrandSettingsPage() {
   if (!brand) return <DetailShimmer />;
 
   return (
-    <BrandSettingsView
-      t={t}
-      tab={tab}
-      onTab={onTab}
-      brand={{
+    <BrandWorkspaceShell
+      brandId={brandId}
+      brandName={brand.name}
+      brandLogoUrl={brand.logo_url}
+      brandStatus={brand.status}
+      websiteUrl={brand.website?.normalized_url}
+    >
+      <BrandSettingsView
+        embedded
+        t={t}
+        tab={tab}
+        onTab={onTab}
+        brand={{
         id: brand.id,
         name: brand.name,
         logo_url: brand.logo_url ?? null,
@@ -264,6 +273,7 @@ export default function BrandSettingsPage() {
           fail(e);
         }
       }}
-    />
+      />
+    </BrandWorkspaceShell>
   );
 }

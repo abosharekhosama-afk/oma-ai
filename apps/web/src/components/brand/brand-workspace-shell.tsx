@@ -103,14 +103,16 @@ export function BrandWorkspaceShell({
   ];
 
   return (
-    <div className="oma-brand-shell" data-testid="brand-workspace">
-      <header className="oma-brand-header">
-        <div className="oma-brand-header-identity">
+    <div className="oma-plx-listening oma-plx-brand oma-brand-shell" data-testid="brand-workspace">
+      <div className="oma-plx-listening__intro oma-plx-deliv__intro oma-plx-brand__intro">
+        <div className="oma-plx-brand__identity">
           <BrandMark name={brandName} logoUrl={logoUrl} />
-          <div>
-            <h1>{brandName}</h1>
-            {websiteUrl ? <p className="oma-muted oma-ltr">{websiteUrl}</p> : null}
-            <div className="oma-chip-row">
+          <div className="oma-plx-brand__identity-copy">
+            <h1 className="oma-plx-listening__title">{brandName}</h1>
+            {websiteUrl ? (
+              <p className="oma-plx-deliv__subtitle oma-ltr">{websiteUrl}</p>
+            ) : null}
+            <div className="oma-plx-brand__chips">
               {brandStatus ? <StatusChip status={brandStatus} /> : null}
               {scanStatus ? <StatusChip status={scanStatus} /> : null}
               {profileStatus ? <StatusChip status={profileStatus} /> : null}
@@ -118,13 +120,19 @@ export function BrandWorkspaceShell({
           </div>
         </div>
         {nextStepHref && nextStepLabel && !nextStepHref.includes('/connect') ? (
-          <OmaLinkButton href={nextStepHref} type="primary">
+          <OmaLinkButton
+            href={nextStepHref}
+            type="primary"
+            className="oma-plx-brand__cta"
+            data-testid="brand-next-step"
+          >
             {nextStepLabel}
           </OmaLinkButton>
         ) : null}
-      </header>
+      </div>
+
       {journey && journey.length > 0 ? (
-        <ol className="oma-status-row oma-journey-compact" aria-label={t('home.journeyTitle')}>
+        <ol className="oma-plx-brand-journey" aria-label={t('home.journeyTitle')}>
           {journey.map((step) => (
             <li key={step.id} data-state={step.state}>
               {step.label}
@@ -132,25 +140,42 @@ export function BrandWorkspaceShell({
           ))}
         </ol>
       ) : null}
-      <nav className="oma-brand-nav" aria-label={t('brand.nav.label')}>
-        <ul>
-          {links.map((link) => (
-            <li key={link.href}>
-              <Link
-                href={link.href}
-                aria-current={link.match(pathname) ? 'page' : undefined}
-                className={link.match(pathname) ? 'oma-brand-nav-active' : undefined}
-              >
-                {link.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </nav>
-      <div className={aside ? 'oma-brand-body' : 'oma-brand-body oma-brand-body--single'}>
-        <div className="oma-brand-main">{children}</div>
-        {aside ? <aside className="oma-brand-aside">{aside}</aside> : null}
-      </div>
+
+      <section className="oma-plx-listening-panel oma-plx-brand-panel">
+        <header className="oma-plx-deliv-panel__head oma-plx-brand-nav-head">
+          <nav
+            className="oma-plx-deliv-groups oma-plx-brand-nav oma-brand-nav"
+            aria-label={t('brand.nav.label')}
+          >
+            {links.map((link) => {
+              const active = link.match(pathname);
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  role="tab"
+                  aria-current={active ? 'page' : undefined}
+                  className={`oma-plx-deliv-groups__btn oma-brand-nav-link${active ? ' is-active' : ''}`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+          </nav>
+        </header>
+        <div className="oma-plx-deliv-panel__body oma-plx-brand-panel__body">
+          <div
+            className={
+              aside ? 'oma-plx-brand-layout oma-brand-body' : 'oma-plx-brand-layout oma-plx-brand-layout--single oma-brand-body oma-brand-body--single'
+            }
+          >
+            <div className="oma-plx-brand-main oma-brand-main">{children}</div>
+            {aside ? (
+              <aside className="oma-plx-brand-aside oma-brand-aside">{aside}</aside>
+            ) : null}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

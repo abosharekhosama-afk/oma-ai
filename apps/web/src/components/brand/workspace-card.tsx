@@ -43,7 +43,10 @@ export function WorkspaceCard({ brand }: { brand: BrandListItem; compact?: boole
   const primaryHref = brandPrimaryHref(brand);
   const website = brand.primary_website_url?.replace(/^https?:\/\//, '') || null;
   return (
-    <article className="oma-workspace-card" data-testid={`workspace-card-${brand.id}`}>
+    <article
+      className="oma-workspace-card oma-plx-brand-card"
+      data-testid={`workspace-card-${brand.id}`}
+    >
       <Link href={workspaceHref} className="oma-workspace-card-main">
         <BrandMark name={brand.name} logoUrl={brand.logo_url} />
         <div className="oma-workspace-card-copy">
