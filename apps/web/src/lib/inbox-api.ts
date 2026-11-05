@@ -20,6 +20,7 @@ export type InboxConversationListItem = {
   socialPageId?: string | null;
   firstResponseAt?: string | null;
   closedAt?: string | null;
+  metadataJson?: string | null;
 };
 
 export type InboxMessage = {

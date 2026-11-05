@@ -551,8 +551,51 @@
   align-items: center;
 }
 
+.oma-plx-inbox-status-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 0 12px 10px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.oma-plx-inbox-status-tabs__btn {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  padding: 8px 10px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6b7280;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.oma-plx-inbox-status-tabs__btn.is-active {
+  background: #f3f4f6;
+  color: #111827;
+  font-weight: 600;
+}
+
+.oma-plx-inbox-list__toolbar--solo {
+  justify-content: flex-end;
+}
+
 .oma-plx-inbox-select-wrap {
   position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.oma-plx-inbox-select__leading {
+  position: absolute;
+  inset-inline-start: 10px;
+  display: inline-flex;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.oma-plx-inbox-select--with-icon {
+  padding-inline-start: 30px;
 }
 
 .oma-plx-inbox-select {
@@ -630,56 +673,68 @@
   background: #f472b6;
 }
 
-.oma-plx-inbox-row.is-unread .oma-plx-inbox-row__name {
+.oma-plx-inbox-row.is-unread .oma-plx-inbox-row__channel {
   font-weight: 700;
 }
 
-.oma-plx-inbox-row__thumb {
-  width: 44px;
-  height: 44px;
-  border-radius: 8px;
-  overflow: hidden;
+.oma-plx-inbox-row.is-priority {
+  background: #fffbeb;
+}
+
+.oma-plx-inbox-row__media {
+  position: relative;
+  width: 48px;
+  height: 48px;
   flex-shrink: 0;
+}
+
+.oma-plx-inbox-row__media--person .oma-plx-inbox-avatar {
+  width: 48px;
+  height: 48px;
+}
+
+.oma-plx-inbox-row__thumb-img {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  display: block;
   background: #e5e7eb;
 }
 
-.oma-plx-inbox-row__thumb-inner {
-  display: block;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #d1d5db 0%, #9ca3af 100%);
-}
-
-.oma-plx-inbox-row__avatar {
-  position: relative;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  flex-shrink: 0;
-  background: linear-gradient(135deg, #93c5fd, #3b82f6);
-  color: #fff;
-  font-weight: 700;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.oma-plx-inbox-row__plat {
+.oma-plx-inbox-row__plat-badge {
   position: absolute;
-  right: -2px;
-  bottom: -2px;
-  width: 16px;
-  height: 16px;
+  right: -4px;
+  bottom: -4px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
   border: 2px solid #fff;
-  font-size: 7px;
-  font-weight: 800;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #374151;
-  color: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
+}
+
+.oma-plx-inbox-plat-badge__glyph {
+  color: #fff !important;
+}
+
+.oma-plx-inbox-plat-badge__glyph svg {
+  width: 10px;
+  height: 10px;
+  display: block;
+}
+
+.oma-plx-inbox-plat-icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.oma-plx-inbox-plat-fallback {
+  font-size: 9px;
+  font-weight: 800;
 }
 
 .oma-plx-inbox-row__body {
@@ -694,13 +749,16 @@
   align-items: baseline;
 }
 
-.oma-plx-inbox-row__name {
+.oma-plx-inbox-row__channel {
   font-size: 13px;
   color: #111827;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .oma-plx-inbox-row__time {
@@ -711,12 +769,40 @@
 
 .oma-plx-inbox-row__preview {
   display: block;
-  margin-top: 2px;
+  margin-top: 4px;
   font-size: 12px;
   color: #6b7280;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.oma-plx-inbox-row__preview strong {
+  color: #374151;
+  font-weight: 600;
+  margin-inline-end: 4px;
+}
+
+.oma-plx-inbox-sent-pill {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.oma-plx-inbox-sent-pill--positive {
+  background: #dcfce7;
+  color: #166534;
+}
+.oma-plx-inbox-sent-pill--negative {
+  background: #fee2e2;
+  color: #991b1b;
+}
+.oma-plx-inbox-sent-pill--neutral {
+  background: #f3f4f6;
+  color: #4b5563;
 }
 
 .oma-plx-inbox-row__badge {
@@ -738,9 +824,8 @@
 .oma-plx-inbox-plat-badge {
   font-size: 9px;
   font-weight: 800;
-  padding: 2px 4px;
-  border-radius: 4px;
-  background: #374151;
+  padding: 2px;
+  border-radius: 999px;
   color: #fff;
 }
 
@@ -756,6 +841,22 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 24px;
+}
+
+.oma-plx-inbox-empty-list {
+  padding: 16px 12px 24px;
+}
+
+.oma-plx-inbox-empty-list .oma-empty {
+  padding: 24px 12px;
+}
+
+.oma-plx-inbox-empty-inline {
+  padding: 32px 16px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 13px;
 }
 
 .oma-plx-inbox-thread__head {
@@ -815,6 +916,15 @@
   cursor: pointer;
   font-size: 14px;
   color: #374151;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.oma-plx-inbox-icon-btn svg.oma-lucide {
+  width: 16px;
+  height: 16px;
 }
 
 .oma-plx-inbox-icon-btn:disabled {
@@ -829,6 +939,14 @@
 
 .oma-plx-inbox-done {
   font-weight: 600 !important;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+}
+
+.oma-plx-inbox-done svg.oma-lucide {
+  width: 14px;
+  height: 14px;
 }
 
 .oma-plx-inbox-more {
@@ -877,41 +995,104 @@
   border-radius: 12px;
   overflow: hidden;
   margin-bottom: 16px;
-  background: #fafafa;
+  background: #fff;
 }
 
-.oma-plx-inbox-post__media {
-  height: 120px;
-  background: linear-gradient(135deg, #cbd5e1, #94a3b8);
-}
-
-.oma-plx-inbox-post__meta {
-  padding: 10px 12px 0;
+.oma-plx-inbox-post--row {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  font-size: 12px;
+  gap: 12px;
+  padding: 12px;
+  align-items: flex-start;
 }
 
-.oma-plx-inbox-post__meta strong {
+.oma-plx-inbox-post__thumb {
+  width: 72px;
+  height: 72px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: #e5e7eb;
+}
+
+.oma-plx-inbox-post__content {
+  min-width: 0;
+  flex: 1;
+}
+
+.oma-plx-inbox-post__channel {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.oma-plx-inbox-post__channel strong {
+  color: #111827;
   font-size: 13px;
 }
 
 .oma-plx-inbox-post__caption {
   margin: 0;
-  padding: 8px 12px 12px;
   font-size: 13px;
   color: #374151;
   line-height: 1.45;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .oma-plx-inbox-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 10px 12px;
   border-radius: 10px;
   background: #eff6ff;
   color: #1e40af;
   font-size: 13px;
   margin-bottom: 12px;
+}
+
+.oma-plx-inbox-banner svg.oma-lucide {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.oma-plx-inbox-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #93c5fd, #3b82f6);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.oma-plx-inbox-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.oma-plx-inbox-avatar--sm {
+  width: 32px;
+  height: 32px;
+  font-size: 12px;
+}
+
+.oma-plx-inbox-avatar--lg {
+  width: 40px;
+  height: 40px;
 }
 
 .oma-plx-inbox-comments {
@@ -926,18 +1107,10 @@
   align-items: flex-start;
 }
 
-.oma-plx-inbox-comment__avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #e5e7eb;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
-  color: #374151;
+.oma-plx-inbox-comment--outbound .oma-plx-inbox-comment__main p {
+  background: #f0f4ff;
+  border-radius: 10px;
+  padding: 8px 10px;
 }
 
 .oma-plx-inbox-comment__main header {
@@ -950,6 +1123,13 @@
 .oma-plx-inbox-comment__main header time {
   font-size: 11px;
   color: #9ca3af;
+  margin-inline-start: auto;
+}
+
+.oma-plx-inbox-comment__you {
+  font-size: 11px;
+  font-weight: 600;
+  color: #2563eb;
 }
 
 .oma-plx-inbox-comment__main p {
@@ -971,7 +1151,20 @@
   color: #6b7280;
   cursor: pointer;
   font-size: 14px;
-  padding: 2px 4px;
+  padding: 4px 6px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.oma-plx-inbox-comment__actions button:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.oma-plx-inbox-comment__actions button svg.oma-lucide {
+  width: 16px;
+  height: 16px;
 }
 
 .oma-plx-inbox-notes {
@@ -1068,10 +1261,22 @@
 .oma-plx-inbox-composer__emoji {
   border: 0;
   background: transparent;
-  font-size: 20px;
   cursor: pointer;
-  padding: 4px;
+  padding: 6px;
   line-height: 1;
+  color: #6b7280;
+  border-radius: 8px;
+  display: inline-flex;
+}
+
+.oma-plx-inbox-composer__emoji:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.oma-plx-inbox-composer__emoji svg.oma-lucide {
+  width: 20px;
+  height: 20px;
 }
 
 .oma-plx-inbox-composer__textarea {

@@ -239,7 +239,18 @@ async function seedConversations(tenantId: string, actorUserId: string | null) {
         lastMessagePreview: previewOf(last.content),
         messageCount: spec.messages.length,
         unreadCount: spec.status === 'UNREAD' ? spec.messages.filter((m) => m.direction === 'INBOUND').length : 0,
-        metadataJson: JSON.stringify({ source: 'seed-inbox-demo' }),
+        metadataJson: JSON.stringify({
+          source: 'seed-inbox-demo',
+          channelName:
+            spec.type === 'DIRECT_MESSAGE'
+              ? undefined
+              : `OMA Demo · ${spec.platform === 'META_IG' ? 'Instagram' : spec.platform === 'META_FB' ? 'Facebook' : spec.platform === 'TIKTOK' ? 'TikTok' : 'LinkedIn'}`,
+          postCaption:
+            spec.subject ??
+            (spec.type !== 'DIRECT_MESSAGE'
+              ? 'Spring collection launch — discover the latest drop from our feed.'
+              : undefined),
+        }),
       },
     });
 
