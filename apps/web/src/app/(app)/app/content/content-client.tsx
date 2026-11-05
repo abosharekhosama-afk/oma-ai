@@ -87,8 +87,10 @@ import {
   MessageOutlined,
   MobileOutlined,
   MoreOutlined,
-  NotificationOutlined,
   PictureOutlined,
+  PlusOutlined,
+  SearchOutlined,
+  SettingOutlined,
   ShareAltOutlined,
   SendOutlined,
   TagOutlined,
@@ -164,6 +166,7 @@ import {
   listBrandLabels,
   createBrandLabel,
   listBrandTemplates,
+  createBrandTemplate,
   useContentTemplate,
   workflowLabel,
   type ApiContent,
@@ -413,6 +416,12 @@ type ComposeForm = {
   firstComment: string;
 };
 
+type ComposeLabel = {
+  id: string;
+  color?: string | null;
+  name?: { en?: string; ar?: string };
+};
+
 function PlanableComposeCard({
   open,
   creating,
@@ -428,6 +437,13 @@ function PlanableComposeCard({
   brandId,
   scheduleTimezone,
   canConnectStorage,
+  labels = [],
+  templates = [],
+  onToggleLabel,
+  onCreateLabel,
+  onApplyTemplate,
+  onCreateTemplate,
+  brandName,
 }: {
   brandId: string | null;
   scheduleTimezone: string;
@@ -443,15 +459,42 @@ function PlanableComposeCard({
   onSubmit: () => void;
   onOpenLabels?: () => void;
   onOpenTemplates?: () => void;
+  labels?: ComposeLabel[];
+  templates?: BrandTemplateCard[];
+  onToggleLabel?: (name: string) => void;
+  onCreateLabel?: (name: string, color: string) => void;
+  onApplyTemplate?: (tpl: BrandTemplateCard) => void;
+  onCreateTemplate?: () => void;
+  brandName?: string;
 }) {
   const t = useT();
+  const toast = useToast();
   const isAr = locale.toLowerCase().startsWith('ar');
+  const storyFileRef = useRef<HTMLInputElement>(null);
   const [campaignMenu, setCampaignMenu] = useState(false);
-  const [firstCommentOpen, setFirstCommentOpen] = useState(() =>
-    Boolean(form.firstComment?.trim()),
-  );
+  const [labelMenu, setLabelMenu] = useState(false);
+  const [templateMenu, setTemplateMenu] = useState(false);
+  const [dateMenu, setDateMenu] = useState(false);
+  const [aiHint, setAiHint] = useState(true);
+  const [labelQuery, setLabelQuery] = useState('');
+  const [labelDraft, setLabelDraft] = useState('');
+  const [customDate, setCustomDate] = useState(false);
+  const [showFirstComment, setShowFirstComment] = useState(true);
   if (!open) return null;
   const selectedCampaign = campaigns.find((c) => c.id === form.campaignId);
+  const now = dayjs();
+  const preferred = [1, 2, 3, 4].map((d) =>
+    now
+      .add(d, 'day')
+      .hour(11 + d)
+      .minute(15)
+      .second(0),
+  );
+  const shownLabels = labels.filter((lab) => {
+    const q = labelQuery.trim().toLowerCase();
+    if (!q) return true;
+    return `${lab.name?.en ?? ''} ${lab.name?.ar ?? ''}`.toLowerCase().includes(q);
+  });
   return createPortal(
     <div className="oma-compose-overlay" onClick={creating ? undefined : onClose}>
       <div
@@ -472,22 +515,83 @@ function PlanableComposeCard({
         </button>
 
         <div className="oma-compose-pills">
-          <button
-            type="button"
-            className="oma-compose-pill"
-            onClick={() => onOpenTemplates?.()}
-            data-testid="demo-compose-templates"
-          >
-            <FileTextOutlined />
-            {t('wsPanel.templates')}
-          </button>
+          <div className="oma-compose-pill-wrap">
+            <button
+              type="button"
+              className="oma-compose-pill"
+              aria-expanded={templateMenu}
+              onClick={() => {
+                setTemplateMenu((v) => !v);
+                setLabelMenu(false);
+                setCampaignMenu(false);
+                onOpenTemplates?.();
+              }}
+              data-testid="demo-compose-templates"
+            >
+              <FileTextOutlined />
+              {t('wsPanel.templates')}
+            </button>
+            {templateMenu ? (
+              <div
+                className="oma-compose-flyout"
+                role="dialog"
+                data-testid="demo-content-templates"
+              >
+                <header className="oma-compose-flyout__head">
+                  <strong>{isAr ? 'تطبيق قالب منشور' : 'Apply post template'}</strong>
+                </header>
+                <div className="oma-compose-flyout__list">
+                  {templates.length === 0 ? (
+                    <p className="oma-compose-flyout__empty">
+                      {t('content.no_workspace_templates_yet')}
+                    </p>
+                  ) : (
+                    templates.map((tpl) => (
+                      <button
+                        key={tpl.id}
+                        type="button"
+                        className="oma-compose-flyout__row"
+                        data-testid={`demo-template-${tpl.id}`}
+                        onClick={() => {
+                          onApplyTemplate?.(tpl);
+                          setTemplateMenu(false);
+                        }}
+                      >
+                        <span className="oma-compose-flyout__avatar" aria-hidden>
+                          {templateTitle(tpl, isAr).slice(0, 1).toUpperCase()}
+                        </span>
+                        <span className="oma-compose-flyout__copy">{templateTitle(tpl, isAr)}</span>
+                        <span className="oma-compose-flyout__chip">
+                          {tpl.channel || brandName || t('content.no_channel')}
+                        </span>
+                      </button>
+                    ))
+                  )}
+                </div>
+                <button
+                  type="button"
+                  className="oma-compose-flyout__create"
+                  onClick={() => {
+                    onCreateTemplate?.();
+                    setTemplateMenu(false);
+                  }}
+                >
+                  <PlusOutlined /> {isAr ? 'إنشاء قالب جديد' : 'Create new template'}
+                </button>
+              </div>
+            ) : null}
+          </div>
           <div className="oma-compose-pill-wrap">
             <button
               type="button"
               className="oma-compose-pill"
               aria-expanded={campaignMenu}
               data-testid="demo-create-content-campaign"
-              onClick={() => setCampaignMenu((v) => !v)}
+              onClick={() => {
+                setCampaignMenu((v) => !v);
+                setLabelMenu(false);
+                setTemplateMenu(false);
+              }}
             >
               <FlagOutlined />
               {selectedCampaign
@@ -523,18 +627,106 @@ function PlanableComposeCard({
               </div>
             ) : null}
           </div>
-          <button
-            type="button"
-            className="oma-compose-pill"
-            onClick={() => onOpenLabels?.()}
-            data-testid="demo-compose-labels"
-          >
-            <TagOutlined />
-            {t('wsPanel.labels')}
-            {form.labels.length ? (
-              <span className="oma-compose-pill__count">{form.labels.length}</span>
+          <div className="oma-compose-pill-wrap">
+            <button
+              type="button"
+              className="oma-compose-pill"
+              aria-expanded={labelMenu}
+              onClick={() => {
+                setLabelMenu((v) => !v);
+                setTemplateMenu(false);
+                setCampaignMenu(false);
+                onOpenLabels?.();
+              }}
+              data-testid="demo-compose-labels"
+            >
+              <TagOutlined />
+              {t('wsPanel.labels')}
+              {form.labels.length ? (
+                <span className="oma-compose-pill__count">{form.labels.length}</span>
+              ) : null}
+            </button>
+            {labelMenu ? (
+              <div
+                className="oma-compose-flyout oma-compose-flyout--labels"
+                role="dialog"
+                data-testid="demo-content-labels"
+              >
+                <header className="oma-compose-flyout__head">
+                  <strong>{isAr ? 'إضافة تصنيفات' : 'Add labels'}</strong>
+                  <button
+                    type="button"
+                    className="oma-compose-flyout__close"
+                    aria-label={t('common.close')}
+                    onClick={() => setLabelMenu(false)}
+                  >
+                    <CloseOutlined />
+                  </button>
+                </header>
+                <label className="oma-compose-flyout__search-wrap">
+                  <SearchOutlined />
+                  <input
+                    className="oma-compose-flyout__search"
+                    value={labelQuery}
+                    data-testid="demo-content-label-search"
+                    placeholder={isAr ? 'ابحث في التصنيفات…' : 'Search labels…'}
+                    onChange={(e) => setLabelQuery(e.target.value)}
+                  />
+                </label>
+                <div className="oma-compose-flyout__list">
+                  {shownLabels.length === 0 ? (
+                    <p className="oma-compose-flyout__empty">{t('content.no_labels_yet')}</p>
+                  ) : (
+                    shownLabels.map((lab) => {
+                      const name = lab.name?.en || lab.id;
+                      const shown = isAr
+                        ? lab.name?.ar || lab.name?.en || lab.id
+                        : lab.name?.en || lab.name?.ar || lab.id;
+                      const on = form.labels.includes(name);
+                      return (
+                        <label key={lab.id} className="oma-compose-label-row">
+                          <input
+                            type="checkbox"
+                            checked={on}
+                            onChange={() => onToggleLabel?.(name)}
+                          />
+                          <span
+                            className="oma-plx-label-pill"
+                            style={{ '--oma-label-tone': lab.color || '#06b6d4' } as CSSProperties}
+                            data-label={shown}
+                          >
+                            {shown}
+                          </span>
+                        </label>
+                      );
+                    })
+                  )}
+                </div>
+                <div className="oma-compose-flyout__create-row">
+                  <input
+                    value={labelDraft}
+                    data-testid="demo-content-label-name"
+                    placeholder={isAr ? 'اسم التصنيف' : 'New label'}
+                    onChange={(e) => setLabelDraft(e.target.value)}
+                  />
+                  <button
+                    type="button"
+                    className="oma-compose-flyout__create"
+                    data-testid="demo-content-label-add"
+                    onClick={() => {
+                      const name = labelDraft.trim() || labelQuery.trim();
+                      if (!name) return;
+                      onCreateLabel?.(name, LABEL_COLORS[labels.length % LABEL_COLORS.length]!);
+                      setLabelDraft('');
+                      setLabelQuery('');
+                    }}
+                  >
+                    <PlusOutlined /> {isAr ? 'إنشاء تصنيف جديد' : 'Create new label'}
+                  </button>
+                </div>
+              </div>
             ) : null}
-          </button>
+          </div>
         </div>
 
         <div
@@ -601,36 +793,150 @@ function PlanableComposeCard({
           </div>
           {form.contentType === 'STORY' ? (
             <div className="oma-compose-story-hint">
-              {isAr ? 'النشر مباشرة (بدون ملصقات)' : 'Publish directly (no stickers)'}
+              <CheckOutlined />
+              <span>{isAr ? 'النشر مباشرة (بدون ملصقات)' : 'Publish directly (no stickers)'}</span>
+              <DownOutlined style={{ fontSize: 10, marginInlineStart: 'auto' }} />
             </div>
           ) : null}
         </div>
 
-        <div className="oma-compose-ai-hint" data-testid="compose-ai-hint">
-          <span className="oma-compose-ai-hint__spark" aria-hidden>
-            ✨
-          </span>
-          <span>{isAr ? 'ولّد فكرة منشور بالذكاء الاصطناعي' : 'Generate a post idea with AI'}</span>
-          <button type="button" className="oma-compose-ai-hint__dismiss">
-            {isAr ? 'تجاهل' : 'Dismiss'}
-          </button>
-        </div>
+        {aiHint && form.contentType !== 'STORY' ? (
+          <div className="oma-compose-ai-hint" data-testid="compose-ai-hint">
+            <span className="oma-compose-ai-hint__spark" aria-hidden>
+              ✦
+            </span>
+            <span>
+              {isAr ? 'ولّد فكرة منشور بالذكاء الاصطناعي' : 'Generate a post idea with AI'}
+            </span>
+            <button
+              type="button"
+              className="oma-compose-ai-hint__dismiss"
+              onClick={() => setAiHint(false)}
+            >
+              {isAr ? 'تجاهل' : 'Dismiss'}
+            </button>
+            <button
+              type="button"
+              className="oma-compose-ai-hint__show"
+              onClick={() => toast.push(t('demo.content.aiNotConnected'), 'default')}
+            >
+              {isAr ? 'أرني' : 'Show me'}
+            </button>
+          </div>
+        ) : null}
 
         <div className="oma-compose-body oma-compose-body--plx">
           <div className="oma-compose-main">
-            <TextArea
-              className="oma-compose-text oma-compose-text--primary"
-              rows={5}
-              placeholder={
-                isAr
-                  ? 'اكتب شيئاً… أو أضف وسائط من شريط الأدوات أدناه'
-                  : 'Write something… or add media from the toolbar below'
-              }
-              value={form.caption}
-              data-testid="demo-create-content-caption"
-              onChange={(e) => onChange({ caption: e.target.value })}
-            />
-            {form.media.length ? (
+            {form.contentType === 'STORY' ? (
+              <div
+                className="oma-compose-story-drop"
+                data-testid="compose-story-drop"
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const files = e.dataTransfer.files;
+                  const bid = brandId;
+                  if (!files?.length || !bid) return;
+                  void (async () => {
+                    try {
+                      for (const file of Array.from(files)) {
+                        const asset = await mediaApi.upload(bid, 'posts', file);
+                        onChange({
+                          media: form.media.some((selected) => selected.id === asset.id)
+                            ? form.media
+                            : [...form.media, asset],
+                        });
+                      }
+                    } catch (err) {
+                      toast.push(contentApiError(err, t('errors.http')), 'danger');
+                    }
+                  })();
+                }}
+              >
+                <button
+                  type="button"
+                  className="oma-compose-story-drop__side"
+                  onClick={() => storyFileRef.current?.click()}
+                >
+                  +
+                </button>
+                <button
+                  type="button"
+                  className="oma-compose-story-drop__frame"
+                  onClick={() => storyFileRef.current?.click()}
+                >
+                  {form.media[0] ? (
+                    <MediaThumb asset={form.media[0]} t={t} />
+                  ) : (
+                    <span>
+                      <PictureOutlined />
+                      {isAr
+                        ? 'أسقط وسائط من المكتبة أو من الجهاز'
+                        : 'Drop media from your library or from computer'}
+                    </span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className="oma-compose-story-drop__side"
+                  onClick={() => storyFileRef.current?.click()}
+                >
+                  +
+                </button>
+                <input
+                  ref={storyFileRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif,video/mp4,video/quicktime,video/webm"
+                  hidden
+                  onChange={(e) => {
+                    const files = e.target.files;
+                    e.target.value = '';
+                    const bid = brandId;
+                    if (!files?.length || !bid) return;
+                    void (async () => {
+                      try {
+                        for (const file of Array.from(files)) {
+                          const asset = await mediaApi.upload(bid, 'posts', file);
+                          onChange({
+                            media: form.media.some((selected) => selected.id === asset.id)
+                              ? form.media
+                              : [...form.media, asset],
+                          });
+                        }
+                      } catch (err) {
+                        toast.push(contentApiError(err, t('errors.http')), 'danger');
+                      }
+                    })();
+                  }}
+                />
+              </div>
+            ) : (
+              <>
+                <TextArea
+                  className="oma-compose-text oma-compose-text--primary"
+                  rows={4}
+                  placeholder={
+                    isAr
+                      ? 'اكتب شيئاً… أو اكتب :balloon: لإدراج 🎈'
+                      : 'Write something… or type :balloon: to insert a 🎈'
+                  }
+                  value={form.caption}
+                  data-testid="demo-create-content-caption"
+                  onChange={(e) => {
+                    const next = e.target.value.replaceAll(':balloon:', '🎈');
+                    onChange({ caption: next, title: form.title || next.slice(0, 80) });
+                  }}
+                />
+                <button
+                  type="button"
+                  className="oma-compose-ai-gen"
+                  onClick={() => toast.push(t('demo.content.aiNotConnected'), 'default')}
+                >
+                  ✦ {isAr ? 'توليد بالذكاء الاصطناعي' : 'Generate with AI'}
+                </button>
+              </>
+            )}
+            {form.media.length && form.contentType !== 'STORY' ? (
               <div className="oma-compose-media-strip" data-testid="compose-media-selected">
                 {form.media.map((asset, index) => (
                   <div className="oma-compose-media-chip" key={asset.id}>
@@ -651,6 +957,50 @@ function PlanableComposeCard({
                 ))}
               </div>
             ) : null}
+            {form.contentType !== 'STORY' && showFirstComment ? (
+              <div className="oma-compose-first-comment" data-testid="compose-first-comment">
+                <span className="oma-compose-first-comment__avatar" aria-hidden>
+                  {(brandName || 'O').slice(0, 1).toUpperCase()}
+                </span>
+                <div className="oma-compose-first-comment__box">
+                  <header className="oma-compose-first-comment__head">
+                    <span className="oma-compose-first-comment__who">{brandName || 'OMA'}</span>
+                    <span className="oma-compose-first-comment__tag">
+                      {isAr ? 'أول تعليق' : 'FIRST COMMENT'}
+                    </span>
+                    <button
+                      type="button"
+                      className="oma-compose-first-comment__close"
+                      aria-label={t('common.close')}
+                      onClick={() => {
+                        onChange({ firstComment: '' });
+                        setShowFirstComment(false);
+                      }}
+                    >
+                      <CloseOutlined />
+                    </button>
+                  </header>
+                  <TextArea
+                    rows={2}
+                    value={form.firstComment}
+                    placeholder={
+                      isAr
+                        ? 'أضف #هاشتاغ أو اذكر حسابات…'
+                        : 'Add #hashtags or tag relevant accounts…'
+                    }
+                    onChange={(e) => onChange({ firstComment: e.target.value })}
+                  />
+                </div>
+              </div>
+            ) : form.contentType !== 'STORY' ? (
+              <button
+                type="button"
+                className="oma-compose-first-comment__toggle"
+                onClick={() => setShowFirstComment(true)}
+              >
+                {isAr ? 'إضافة أول تعليق' : 'Add first comment'}
+              </button>
+            ) : null}
             <ComposeMediaToolbar
               brandId={brandId}
               locale={locale}
@@ -664,40 +1014,18 @@ function PlanableComposeCard({
                     : [...form.media, asset],
                 })
               }
+              linkUrl=""
+              onLinkUrl={(url) =>
+                onChange({
+                  caption: form.caption ? `${form.caption}\n${url}` : url,
+                })
+              }
+              onCaptionInsert={(text) =>
+                onChange({
+                  caption: `${form.caption}${form.caption && !form.caption.endsWith(' ') ? ' ' : ''}${text}`,
+                })
+              }
             />
-            {firstCommentOpen ? (
-              <div className="oma-compose-first-comment" data-testid="compose-first-comment">
-                <header className="oma-compose-first-comment__head">
-                  <span className="oma-compose-first-comment__tag">
-                    {isAr ? 'أول تعليق' : 'First comment'}
-                  </span>
-                  <button
-                    type="button"
-                    className="oma-compose-first-comment__close"
-                    aria-label={t('common.close')}
-                    onClick={() => setFirstCommentOpen(false)}
-                  >
-                    <CloseOutlined />
-                  </button>
-                </header>
-                <TextArea
-                  rows={2}
-                  value={form.firstComment}
-                  placeholder={
-                    isAr ? 'أضف #هاشتاغ أو اذكر حسابات…' : 'Add #hashtags or tag relevant accounts…'
-                  }
-                  onChange={(e) => onChange({ firstComment: e.target.value })}
-                />
-              </div>
-            ) : (
-              <button
-                type="button"
-                className="oma-compose-first-comment__toggle"
-                onClick={() => setFirstCommentOpen(true)}
-              >
-                {isAr ? '+ أول تعليق' : '+ First comment'}
-              </button>
-            )}
             <Input
               className="oma-compose-title oma-compose-title--inline"
               placeholder={t('demo.create.title')}
@@ -706,32 +1034,6 @@ function PlanableComposeCard({
               onChange={(e) => onChange({ title: e.target.value })}
             />
           </div>
-        </div>
-
-        <div className="oma-compose-extras">
-          <label>
-            {t('demo.campaigns.col.owner')}
-            <Input value={form.owner} onChange={(e) => onChange({ owner: e.target.value })} />
-          </label>
-          <label>
-            {t('demo.filter.track')}
-            <OmaSelect
-              value={form.track}
-              onChange={(track) => onChange({ track })}
-              options={[
-                { value: 'ORGANIC', label: t('strategy.nav.organic') },
-                { value: 'PAID', label: t('strategy.nav.paid') },
-              ]}
-            />
-          </label>
-          <label>
-            {t('demo.campaign.goal')}
-            <TextArea
-              rows={1}
-              value={form.brief}
-              onChange={(e) => onChange({ brief: e.target.value })}
-            />
-          </label>
         </div>
 
         {error ? (
@@ -748,22 +1050,97 @@ function PlanableComposeCard({
         />
 
         <div className="oma-compose-footer">
-          <div className="oma-compose-meta">
-            <ClockCircleOutlined />
-            <DatePicker
-              showTime={{ format: t('content.hhmm') }}
-              format="MMM DD, HH:mm"
-              value={form.plannedDate ? dayjs(form.plannedDate) : null}
-              onChange={(value) =>
-                onChange({
-                  // Store the wall-clock value; it is converted to an ISO instant in the
-                  // workspace timezone on submit (never send the display format to the API).
-                  plannedDate: value ? value.format('YYYY-MM-DDTHH:mm') : '',
-                })
-              }
-              suffixIcon={<DownOutlined style={{ fontSize: 10 }} />}
-            />
-            <span className="oma-compose-tz">({scheduleTimezone.replace('/', ': ')})</span>
+          <div className="oma-compose-meta oma-compose-pill-wrap">
+            <button
+              type="button"
+              className="oma-compose-datetime"
+              data-testid="compose-datetime-toggle"
+              onClick={() => {
+                setDateMenu((v) => !v);
+                setCustomDate(false);
+              }}
+            >
+              <ClockCircleOutlined />
+              <span>
+                {form.plannedDate
+                  ? dayjs(form.plannedDate).format('MMM DD, HH:mm')
+                  : isAr
+                    ? 'اختيار التاريخ والوقت'
+                    : 'Select date & time'}
+              </span>
+              <DownOutlined style={{ fontSize: 10 }} />
+            </button>
+            {dateMenu ? (
+              <div className="oma-compose-date-menu" role="dialog">
+                {customDate ? (
+                  <DatePicker
+                    open
+                    showTime={{ format: 'HH:mm' }}
+                    format="MMM DD, HH:mm"
+                    value={form.plannedDate ? dayjs(form.plannedDate) : null}
+                    onChange={(value) => {
+                      onChange({
+                        plannedDate: value ? value.format('YYYY-MM-DDTHH:mm') : '',
+                      });
+                      setDateMenu(false);
+                      setCustomDate(false);
+                    }}
+                  />
+                ) : (
+                  <>
+                    <p className="oma-compose-date-menu__label">
+                      {isAr ? 'أفضل وقت للنشر' : 'BEST TIME TO POST'}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onChange({ plannedDate: now.format('YYYY-MM-DDTHH:mm') });
+                        setDateMenu(false);
+                      }}
+                    >
+                      {isAr ? 'اليوم' : 'Today'} at {now.format('HH:mm')}
+                    </button>
+                    <p className="oma-compose-date-menu__label">
+                      {isAr ? 'أوقاتك المفضلة' : 'YOUR PREFERRED TIMES'}
+                    </p>
+                    {preferred.map((d) => (
+                      <button
+                        key={d.toISOString()}
+                        type="button"
+                        onClick={() => {
+                          onChange({ plannedDate: d.format('YYYY-MM-DDTHH:mm') });
+                          setDateMenu(false);
+                        }}
+                      >
+                        {d.format('dddd')} at {d.format('HH:mm')}
+                        <small>
+                          {isAr
+                            ? `خلال ${d.diff(now, 'day')} أيام`
+                            : `in ${d.diff(now, 'day')} days`}
+                        </small>
+                      </button>
+                    ))}
+                    <button type="button" onClick={() => setCustomDate(true)}>
+                      <CalendarOutlined />
+                      {isAr ? 'اختيار تاريخ مخصص' : 'Select a custom date'}
+                    </button>
+                    <button type="button" className="oma-muted" disabled>
+                      <SettingOutlined />
+                      {isAr ? 'تعيين الأوقات المفضلة' : 'Set preferred times'}
+                    </button>
+                    <button type="button" className="oma-muted" disabled>
+                      <RetweetOutlined />
+                      {isAr ? 'منشور متكرر' : 'Set recurring post'}
+                    </button>
+                    <button type="button" className="oma-muted" disabled>
+                      <GlobalOutlined />
+                      {isAr ? 'تغيير المنطقة الزمنية' : 'Change workspace time zone'}
+                    </button>
+                    <p className="oma-compose-date-menu__muted">{scheduleTimezone}</p>
+                  </>
+                )}
+              </div>
+            ) : null}
           </div>
           <div className="oma-compose-actions">
             <button
@@ -2369,12 +2746,8 @@ export default function ContentPage() {
 
   async function submitCreate() {
     setCreateError(null);
-    if (
-      !createForm.title.trim() ||
-      !createForm.campaignId ||
-      !createForm.channel.trim() ||
-      !createForm.owner.trim()
-    ) {
+    const title = createForm.title.trim() || createForm.caption.trim().slice(0, 80);
+    if (!title || !createForm.channel.trim()) {
       setCreateError(t('demo.create.validation'));
       return;
     }
@@ -2414,8 +2787,8 @@ export default function ContentPage() {
         const apiCreated = await createContentProduction({
           brandId,
           title: {
-            en: `${createForm.title.trim()}${suffix}`,
-            ar: `${createForm.title.trim()}${suffix}`,
+            en: `${title}${suffix}`,
+            ar: `${title}${suffix}`,
           },
           caption: (() => {
             const main = createForm.caption.trim();
@@ -2479,6 +2852,7 @@ export default function ContentPage() {
         brief: '',
         caption: '',
         labels: [],
+        firstComment: '',
         media: [],
         socialPageIds: [],
       }));
@@ -6355,7 +6729,6 @@ export default function ContentPage() {
               .then((labs) => setBrandLabels(labs as typeof brandLabels))
               .catch(() => setBrandLabels([]));
           }
-          setLabelPickerOpen(true);
         }}
         onOpenTemplates={() => {
           const bid = brands[0]?.id;
@@ -6366,8 +6739,67 @@ export default function ContentPage() {
           } else {
             setBrandTemplates([]);
           }
-          setTemplatePickerOpen(true);
         }}
+        labels={brandLabels}
+        templates={brandTemplates}
+        onToggleLabel={toggleWorkspaceLabel}
+        onCreateLabel={(name, color) => {
+          const brandId =
+            createForm.brandId ||
+            campaigns.find((c) => c.id === createForm.campaignId)?.brandId ||
+            brands[0]?.id;
+          if (!brandId) return;
+          void createBrandLabel(brandId, { en: name, ar: name }, color)
+            .then((lab) => {
+              setBrandLabels((prev) => [...prev, lab as (typeof brandLabels)[0]]);
+              toggleWorkspaceLabel(lab.name?.en || name);
+            })
+            .catch((err) => toast.push(contentApiError(err, t('errors.http')), 'danger'));
+        }}
+        onApplyTemplate={(tpl) => {
+          const caption = isAr
+            ? tpl.caption?.ar || tpl.caption?.en || tpl.title?.ar || tpl.title?.en || ''
+            : tpl.caption?.en || tpl.caption?.ar || tpl.title?.en || tpl.title?.ar || '';
+          setCreateForm((f) => ({
+            ...f,
+            title: templateTitle(tpl, isAr),
+            caption,
+            channel: tpl.channel || f.channel,
+            contentType: tpl.content_type || f.contentType,
+            labels: tpl.labels?.length ? tpl.labels : f.labels,
+          }));
+        }}
+        onCreateTemplate={() => {
+          const brandId =
+            createForm.brandId ||
+            campaigns.find((c) => c.id === createForm.campaignId)?.brandId ||
+            brands[0]?.id;
+          if (!brandId) {
+            toast.push(t('content.select_a_brand'), 'danger');
+            return;
+          }
+          const name =
+            createForm.title.trim() ||
+            createForm.caption.trim().slice(0, 48) ||
+            (isAr ? 'قالب جديد' : 'New template');
+          void createBrandTemplate(brandId, {
+            name,
+            title: createForm.title.trim() || name,
+            caption: createForm.caption.trim(),
+            contentType: createForm.contentType,
+            channel: createForm.channel,
+            labels: createForm.labels,
+          })
+            .then((row) => {
+              const tpl = row as BrandTemplateCard;
+              if (tpl?.id) {
+                setBrandTemplates((prev) => [tpl, ...prev.filter((item) => item.id !== tpl.id)]);
+              }
+              toast.push(t('content.saved_as_template'), 'success');
+            })
+            .catch((err) => toast.push(contentApiError(err, t('errors.http')), 'danger'));
+        }}
+        brandName={pickCopy(brands[0]?.name, locale)}
         open={createOpen}
         creating={creating}
         error={createError}

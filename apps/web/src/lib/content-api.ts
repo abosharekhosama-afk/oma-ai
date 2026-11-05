@@ -364,7 +364,9 @@ export function resetContentWorkspaceLoadCoalescing() {
  *  Fast path: primary brand first so the calendar can paint quickly.
  *  Pass `{ full: true }` or call `loadContentWorkspaceRest` for remaining brands.
  */
-export async function loadContentWorkspace(opts?: { full?: boolean }): Promise<ContentWorkspacePayload> {
+export async function loadContentWorkspace(opts?: {
+  full?: boolean;
+}): Promise<ContentWorkspacePayload> {
   const full = opts?.full ?? false;
   if (!full && fastWorkspaceInflight) return fastWorkspaceInflight;
 
@@ -384,7 +386,9 @@ export async function loadContentWorkspace(opts?: { full?: boolean }): Promise<C
     const [campaigns, prefs] = await Promise.all([
       primary
         ? opts?.full
-          ? listAllCampaigns(brandIds).catch(() => [] as Awaited<ReturnType<typeof listAllCampaigns>>)
+          ? listAllCampaigns(brandIds).catch(
+              () => [] as Awaited<ReturnType<typeof listAllCampaigns>>,
+            )
           : listCampaignsForBrand(primary).catch(
               () => [] as Awaited<ReturnType<typeof listCampaignsForBrand>>,
             )
@@ -725,6 +729,31 @@ export async function createBrandLabel(brandId: string, name: ApiLocale | string
 export async function listBrandTemplates(brandId: string) {
   const res = await api<{ data: unknown[] }>(`/api/v1/brands/${brandId}/content-templates`);
   return res.data ?? [];
+}
+
+export async function createBrandTemplate(
+  brandId: string,
+  input: {
+    name: string;
+    title?: string;
+    caption?: string;
+    contentType?: string;
+    channel?: string;
+    labels?: string[];
+  },
+) {
+  const res = await api<{ data: unknown }>(`/api/v1/brands/${brandId}/content-templates`, {
+    method: 'POST',
+    body: JSON.stringify({
+      name: { en: input.name, ar: input.name },
+      titleEn: input.title,
+      captionEn: input.caption,
+      contentType: input.contentType,
+      channel: input.channel,
+      labels: input.labels,
+    }),
+  });
+  return res.data;
 }
 
 export function workflowLabel(
