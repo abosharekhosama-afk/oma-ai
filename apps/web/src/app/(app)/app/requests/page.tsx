@@ -346,7 +346,7 @@ export default function RequestsPage() {
 
   return (
     <div
-      className="oma-plx-listening oma-plx-requests oma-req-page"
+      className="oma-plx-listening oma-plx-requests"
       data-testid="demo-requests"
       data-filter-open={filterSheet ? 'true' : 'false'}
     >
@@ -787,7 +787,7 @@ export default function RequestsPage() {
               ) : (
                 <>
                   <div
-                    className="oma-plx-deliv-table-wrap oma-req-table-wrap oma-req-desktop"
+                    className="oma-plx-deliv-table-wrap oma-plx-requests-table oma-req-table-wrap"
                     data-testid="demo-request-table"
                   >
                     <table className="oma-plx-deliv-table oma-req-table">
@@ -875,7 +875,10 @@ export default function RequestsPage() {
                   </table>
                 </div>
 
-                  <ul className="oma-plx-request-feed oma-req-mobile" aria-label={t('demo.requests.title')}>
+                  <ul
+                    className="oma-plx-request-feed oma-plx-requests-cards"
+                    aria-label={t('demo.requests.title')}
+                  >
                     {filtered.map((r) => {
                       const brief = briefByRequest.get(r.id) ?? null;
                       const next = requestNextAction(r, brief);
@@ -933,6 +936,21 @@ export default function RequestsPage() {
         labelledBy="demo-create-request-title"
         size="lg"
         className="oma-compose-dialog oma-plx-compose-dialog"
+        footer={
+          <div className="oma-plx-compose-dialog__foot">
+            <Button disabled={creating} onClick={requestCloseCreate}>
+              {t('demo.create.cancel')}
+            </Button>
+            <Button
+              type="primary"
+              loading={creating}
+              data-testid="demo-create-request-submit"
+              onClick={() => void submitCreate()}
+            >
+              {t('demo.create.confirm')}
+            </Button>
+          </div>
+        }
       >
         <div data-testid="demo-create-request-dialog" className="oma-compose oma-plx-compose">
           {createError ? (
@@ -940,7 +958,8 @@ export default function RequestsPage() {
               {createError}
             </p>
           ) : null}
-          <div className="oma-compose__grid">
+          <section className="oma-plx-listening-panel oma-plx-compose-panel">
+          <div className="oma-compose__grid oma-plx-compose__grid">
             <label className="oma-compose__wide">
               {t('demo.create.title')}
               <Input
@@ -1087,19 +1106,7 @@ export default function RequestsPage() {
               {t('demo.requests.filter.requester')}: {form.requester || '—'}
             </p>
           </div>
-          <div className="oma-compose__footer">
-            <Button disabled={creating} onClick={requestCloseCreate}>
-              {t('demo.create.cancel')}
-            </Button>
-            <Button
-              type="primary"
-              loading={creating}
-              data-testid="demo-create-request-submit"
-              onClick={() => void submitCreate()}
-            >
-              {t('demo.create.confirm')}
-            </Button>
-          </div>
+          </section>
         </div>
       </Dialog>
 
