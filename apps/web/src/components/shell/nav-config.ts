@@ -30,6 +30,8 @@ export type NavItem = {
   href: string;
   labelKey: string;
   icon: NavIconId;
+  /** Prefix for active state + sub-nav visibility when `href` is a default child route. */
+  sectionPath?: string;
   /** Sub-pages shown under the item while its section is open (Planable: Analytics › Overview / Competitors). */
   children?: Array<{ href: string; labelKey: string }>;
 };
@@ -56,7 +58,16 @@ export const SHELL_NAV_SECTIONS: NavSection[] = [
     items: [
       { href: '/app', labelKey: 'nav.home', icon: 'home' },
       { href: '/app/content', labelKey: 'nav.content', icon: 'content' },
-      { href: '/app/inbox', labelKey: 'nav.inbox', icon: 'requests' },
+      {
+        href: '/app/inbox/comments',
+        sectionPath: '/app/inbox',
+        labelKey: 'nav.inbox',
+        icon: 'requests',
+        children: [
+          { href: '/app/inbox/comments', labelKey: 'inbox.nav.comments' },
+          { href: '/app/inbox/dms', labelKey: 'inbox.nav.dms' },
+        ],
+      },
       { href: '/app/campaigns', labelKey: 'nav.campaigns', icon: 'campaigns' },
       {
         href: '/app/analytics',
@@ -91,9 +102,10 @@ export const SHELL_NAV_MORE_PREF_KEY = 'oma.shell.moreOpen';
 
 /** True when the path belongs to an item in the given section (auto-opens "More"). */
 export function sectionContainsPath(section: NavSection, pathname: string): boolean {
-  return section.items.some((i) =>
-    i.href === '/app' ? pathname === '/app' : pathname.startsWith(i.href),
-  );
+  return section.items.some((i) => {
+    const base = i.sectionPath ?? i.href;
+    return base === '/app' ? pathname === '/app' : pathname.startsWith(base);
+  });
 }
 
 export const SHELL_RAIL_PREF_KEY = 'oma.shell.railCollapsed';

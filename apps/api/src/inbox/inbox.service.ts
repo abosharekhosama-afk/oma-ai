@@ -8,10 +8,14 @@ type ConvType = 'DIRECT_MESSAGE' | 'POST_COMMENT' | 'DARK_COMMENT' | 'MENTION';
 type Status = 'UNREAD' | 'OPEN' | 'PENDING' | 'CLOSED';
 type Sentiment = 'POSITIVE' | 'NEUTRAL' | 'NEGATIVE';
 
+export type InboxCategory = 'comments' | 'dms';
+
 export type ListConversationsQuery = {
   platform?: Platform;
   status?: Status;
   type?: ConvType;
+  /** Planable-style split: Comments vs DMs (overrides `type` when set). */
+  category?: InboxCategory;
   sentiment?: Sentiment;
   assignedTo?: string;
   /** when true, only unassigned */
@@ -101,10 +105,17 @@ export class InboxService {
   async listConversations(tenantId: string, q: ListConversationsQuery) {
     const page = Math.max(1, q.page ?? 1);
     const limit = Math.min(100, Math.max(1, q.limit ?? 30));
+    const categoryTypes =
+      q.category === 'dms'
+        ? ({ type: 'DIRECT_MESSAGE' } as const)
+        : q.category === 'comments'
+          ? ({ type: { in: ['POST_COMMENT', 'DARK_COMMENT', 'MENTION'] as ConvType[] } } as const)
+          : {};
+
     const where = tenantWhere(tenantId, {
       ...(q.platform ? { platform: q.platform } : {}),
       ...(q.status ? { status: q.status } : {}),
-      ...(q.type ? { type: q.type } : {}),
+      ...(q.category ? categoryTypes : q.type ? { type: q.type } : {}),
       ...(q.sentiment ? { sentiment: q.sentiment } : {}),
       ...(q.priority === true ? { priority: true } : {}),
       ...(q.unassigned ? { assignedToUserId: null } : {}),

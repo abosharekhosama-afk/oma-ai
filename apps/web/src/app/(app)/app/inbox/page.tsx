@@ -1,5 +1,5 @@
-import { InboxClient } from './inbox-client';
+import { redirect } from 'next/navigation';
 
 export default function InboxPage() {
-  return <InboxClient />;
+  redirect('/app/inbox/comments');
 }

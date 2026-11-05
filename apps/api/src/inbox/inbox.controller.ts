@@ -33,6 +33,7 @@ export class InboxController {
     @Query('platform') platform?: string,
     @Query('status') status?: string,
     @Query('type') type?: string,
+    @Query('category') category?: string,
     @Query('sentiment') sentiment?: string,
     @Query('assignedTo') assignedTo?: string,
     @Query('unassigned') unassigned?: string,
@@ -47,6 +48,8 @@ export class InboxController {
       platform: platform as never,
       status: status as never,
       type: type as never,
+      category:
+        category === 'comments' || category === 'dms' ? (category as 'comments' | 'dms') : undefined,
       sentiment: sentiment as never,
       assignedTo,
       unassigned: unassigned === '1' || unassigned === 'true',

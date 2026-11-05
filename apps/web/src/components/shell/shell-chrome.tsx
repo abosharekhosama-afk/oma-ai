@@ -73,8 +73,9 @@ function RailNav({ collapsed }: { collapsed: boolean }) {
             icon={item.icon}
             collapsed={collapsed}
             exact={Boolean(item.children)}
+            sectionPath={item.sectionPath}
           />
-          {item.children && !collapsed && pathname.startsWith(item.href) ? (
+          {item.children && !collapsed && pathname.startsWith(item.sectionPath ?? item.href) ? (
             <ul className="oma-nav-sublist">
               {item.children.map((c) => (
                 <li key={c.href}>
@@ -269,6 +270,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
   const t = useT();
   const pathname = usePathname() || '/app';
   const isContentWorkspace = pathname === '/app/content' || pathname.startsWith('/app/content/');
+  const isInboxWorkspace = pathname === '/app/inbox' || pathname.startsWith('/app/inbox/');
   const isScheduleWorkspace = pathname === '/app/schedule' || pathname.startsWith('/app/schedule/');
   const isRequestsWorkspace = pathname === '/app/requests' || pathname.startsWith('/app/requests/');
   const isDeliverablesWorkspace =
@@ -316,7 +318,8 @@ export function ShellChrome({ children }: { children: ReactNode }) {
     isTasksWorkspace ||
     isCampaignsWorkspace ||
     isScheduleWorkspace ||
-    isBrandsList;
+    isBrandsList ||
+    isInboxWorkspace;
   const [collapsed, setCollapsed] = useState(false);
   // Only animate the rail after a user toggle (never on first paint / hydration).
   const [railAnimated, setRailAnimated] = useState(false);

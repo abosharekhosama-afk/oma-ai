@@ -831,7 +831,9 @@
    ───────────────────────────────────────────────────────────── */
 
 .oma-main:has(.oma-content-plan),
-.oma-container:has(.oma-content-plan) {
+.oma-container:has(.oma-content-plan),
+.oma-main:has(.oma-plx-inbox),
+.oma-container:has(.oma-plx-inbox) {
   max-width: none !important;
   padding: 0 !important;
   margin: 0 !important;
