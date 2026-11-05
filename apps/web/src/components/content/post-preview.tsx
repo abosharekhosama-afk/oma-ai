@@ -60,6 +60,11 @@ export type PostPreviewProps = {
   onOpen?: () => void;
   headerActions?: ReactNode;
   hideNetworkLabel?: boolean;
+  /** Planable workspace feed chrome: caption then media, handle + date chevron. */
+  workspaceFeed?: boolean;
+  handle?: string | null;
+  onAddFromComputer?: () => void;
+  onAddFromLibrary?: () => void;
 };
 
 type Ctx = PostPreviewProps & {
@@ -68,11 +73,26 @@ type Ctx = PostPreviewProps & {
   dateText: string;
 };
 
-export function formatPreviewDate(iso: string | null | undefined, locale: string): string {
+export function formatPreviewDate(
+  iso: string | null | undefined,
+  locale: string,
+  feed = false,
+): string {
   if (!iso) return '';
   const d = new Date(iso.length <= 16 ? `${iso}:00` : iso);
   if (Number.isNaN(d.getTime())) return '';
-  return new Intl.DateTimeFormat(locale.toLowerCase().startsWith('ar') ? 'ar' : 'en', {
+  const loc = locale.toLowerCase().startsWith('ar') ? 'ar' : 'en';
+  if (feed) {
+    const date = new Intl.DateTimeFormat(loc, { month: 'long', day: 'numeric' }).format(d);
+    const time = new Intl.DateTimeFormat(loc, {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      numberingSystem: 'latn',
+    }).format(d);
+    return `${date}, ${time}`;
+  }
+  return new Intl.DateTimeFormat(loc, {
     month: 'short',
     day: 'numeric',
     hour: 'numeric',
@@ -169,6 +189,14 @@ function Media({ ctx, ratio }: { ctx: Ctx; ratio?: string }) {
             <path d="M8 5v14l11-7z" />
           </svg>
         </span>
+      ) : null}
+      {active && /\.gif(\?|$)/i.test(active) ? (
+        <span className="oma-pp__gif" aria-hidden>
+          GIF
+        </span>
+      ) : null}
+      {ctx.size === 'feed' && (ctx.onAddFromComputer || ctx.onAddFromLibrary) ? (
+        <MediaEditOverlay ctx={ctx} />
       ) : null}
       {multi ? (
         <>
@@ -268,13 +296,127 @@ function When({ ctx }: { ctx: Ctx }) {
   return <span className="oma-pp__when">{label}</span>;
 }
 
+function WhenChevron({ ctx }: { ctx: Ctx }) {
+  return (
+    <span className="oma-pp__when oma-pp__when--chevron">
+      {ctx.dateText || ctx.t('preview.no_date')}
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden>
+        <path d="m6 9 6 6 6-6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+      </svg>
+    </span>
+  );
+}
+
+function MediaEditOverlay({ ctx }: { ctx: Ctx }) {
+  const [open, setOpen] = useState(false);
+  const [altOpen, setAltOpen] = useState(false);
+  const [alt, setAlt] = useState(ctx.title || '');
+  const isAr = ctx.locale.toLowerCase().startsWith('ar');
+  return (
+    <div className="oma-pp__media-edit" data-open={open ? 'true' : 'false'}>
+      <div className="oma-pp__media-tools">
+        <button
+          type="button"
+          className="oma-pp__media-tool"
+          onClick={(e) => {
+            e.stopPropagation();
+            setAltOpen((v) => !v);
+          }}
+          aria-label={isAr ? 'نص بديل' : 'Alternative text'}
+          title={isAr ? 'نص بديل' : 'Alternative text'}
+        >
+          ALT
+        </button>
+        <button
+          type="button"
+          className="oma-pp__media-tool"
+          onClick={(e) => {
+            e.stopPropagation();
+            setOpen((v) => !v);
+          }}
+          aria-label={ctx.t('media.add')}
+          title={ctx.t('media.add')}
+        >
+          +
+        </button>
+      </div>
+      {altOpen ? (
+        <div
+          className="oma-pp__alt"
+          role="dialog"
+          onClick={(e) => e.stopPropagation()}
+          data-testid="feed-alt-text"
+        >
+          <strong>{isAr ? 'نص بديل' : 'Alternative text'}</strong>
+          <input
+            value={alt}
+            placeholder={isAr ? 'صف صورتك…' : 'Describe your image…'}
+            onChange={(e) => setAlt(e.target.value)}
+          />
+          <div className="oma-pp__alt-actions">
+            <button type="button" onClick={() => setAltOpen(false)}>
+              {isAr ? 'إلغاء' : 'Cancel'}
+            </button>
+            <button type="button" className="oma-pp__alt-save" onClick={() => setAltOpen(false)}>
+              {isAr ? 'حفظ' : 'Save'}
+            </button>
+          </div>
+        </div>
+      ) : null}
+      {open ? (
+        <div className="oma-pp__media-add" onClick={(e) => e.stopPropagation()}>
+          {ctx.onAddFromComputer ? (
+            <button
+              type="button"
+              className="oma-pp__media-add-tile"
+              onClick={ctx.onAddFromComputer}
+            >
+              <span aria-hidden>+</span>
+              <span>{isAr ? 'أضف من الجهاز' : 'Add more from computer'}</span>
+            </button>
+          ) : null}
+          {ctx.onAddFromLibrary ? (
+            <button type="button" className="oma-pp__media-add-tile" onClick={ctx.onAddFromLibrary}>
+              <span aria-hidden>+</span>
+              <span>{isAr ? 'أضف من مكتبة الوسائط' : 'Add more from media library'}</span>
+            </button>
+          ) : null}
+          <button type="button" className="oma-pp__media-done" onClick={() => setOpen(false)}>
+            {isAr ? 'تم' : 'Done'}
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function WorkspaceFeedPreview({ ctx }: { ctx: Ctx }) {
+  return (
+    <>
+      <Header ctx={ctx} avatar={36} />
+      <div className="oma-pp__pad">
+        <Caption ctx={ctx} moreKey="preview.see_more" />
+      </div>
+      <Media ctx={ctx} />
+    </>
+  );
+}
+
 function Header({ ctx, avatar = 32, extra }: { ctx: Ctx; avatar?: number; extra?: ReactNode }) {
+  const handle =
+    ctx.handle?.trim() ||
+    (ctx.workspaceFeed
+      ? `@${ctx.brandName.replace(/[^a-zA-Z0-9]+/g, '').toLowerCase() || 'brand'}`
+      : '');
   return (
     <div className="oma-pp__head">
       <Avatar name={ctx.brandName} url={ctx.avatarUrl} size={avatar} />
       <div className="oma-pp__who">
-        <bdi className="oma-pp__name">{ctx.brandName}</bdi>
-        <When ctx={ctx} />
+        <div className="oma-pp__who-row">
+          <bdi className="oma-pp__name">{ctx.brandName}</bdi>
+          {handle ? <span className="oma-pp__handle">{handle}</span> : null}
+        </div>
+        {ctx.workspaceFeed ? <WhenChevron ctx={ctx} /> : <When ctx={ctx} />}
       </div>
       {extra}
       {ctx.headerActions ? (
@@ -602,10 +744,16 @@ export function previewKind(channel: string, type: PreviewContentType): PreviewK
 export function PostPreview(props: PostPreviewProps) {
   const t = useT();
   const network = resolveNetwork(props.channel);
-  const ctx: Ctx = { ...props, network, t, dateText: formatPreviewDate(props.when, props.locale) };
+  const ctx: Ctx = {
+    ...props,
+    network,
+    t,
+    dateText: formatPreviewDate(props.when, props.locale, Boolean(props.workspaceFeed)),
+  };
   const kind = previewKind(props.channel, props.contentType);
   let body: ReactNode;
-  if (kind === 'tiktok' || kind.endsWith('-vertical')) body = <VerticalPreview ctx={ctx} />;
+  if (props.workspaceFeed && props.size !== 'detail') body = <WorkspaceFeedPreview ctx={ctx} />;
+  else if (kind === 'tiktok' || kind.endsWith('-vertical')) body = <VerticalPreview ctx={ctx} />;
   else if (kind === 'instagram') body = <InstagramPreview ctx={ctx} />;
   else if (kind === 'facebook') body = <FacebookPreview ctx={ctx} />;
   else if (kind === 'linkedin') body = <LinkedInPreview ctx={ctx} />;

@@ -403,26 +403,185 @@
   width: 16px;
   height: 16px;
 }
-/* Planable Feed: one centered column; approval rail · post · comments */
+/* Planable Feed: canvas + approval rail · post · comments */
 .oma-content-feed--preview {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 24px;
-  padding: 24px 16px 48px;
+  gap: 28px;
+  padding: 8px 16px 72px;
   background: #f5f6f7;
+  border: 0;
+  border-radius: 0;
+  max-width: none;
 }
 .oma-fp {
   display: grid;
-  grid-template-columns: 32px minmax(0, 500px) 340px;
-  gap: 12px 16px;
+  grid-template-columns: 36px minmax(0, 520px) minmax(240px, 300px);
+  gap: 10px 14px;
   align-items: start;
   width: 100%;
-  max-width: 920px;
+  max-width: 900px;
   justify-content: center;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
+  margin: 0;
 }
 .oma-fp .oma-pp {
   max-width: none;
+}
+.oma-fp__post {
+  min-width: 0;
+}
+.oma-fp__labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 8px 2px;
+}
+.oma-fp .oma-pp__post {
+  border-radius: 12px;
+  border-color: #e8eaed;
+  overflow: hidden;
+}
+.oma-pp__who-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+.oma-pp__handle {
+  color: #8c9196;
+  font-size: 13px;
+  font-weight: 400;
+}
+.oma-pp__when--chevron {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.oma-pp__gif {
+  position: absolute;
+  inset-block-start: 10px;
+  inset-inline-start: 10px;
+  z-index: 2;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgb(0 0 0 / 55%);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.oma-pp__media-edit {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+.oma-pp__media-tools {
+  position: absolute;
+  inset-block-start: 8px;
+  inset-inline-end: 8px;
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  pointer-events: none;
+}
+.oma-pp__media:hover .oma-pp__media-tools,
+.oma-pp__media-edit[data-open='true'] .oma-pp__media-tools {
+  opacity: 1;
+  pointer-events: auto;
+}
+.oma-pp__media-tool {
+  min-width: 28px;
+  height: 28px;
+  padding: 0 7px;
+  border: 0;
+  border-radius: 8px;
+  background: rgb(255 255 255 / 92%);
+  color: #374151;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.oma-pp__media-add {
+  position: absolute;
+  inset: 12px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  align-content: center;
+  pointer-events: auto;
+  background: rgb(255 255 255 / 88%);
+  border-radius: 12px;
+  padding: 16px;
+}
+.oma-pp__media-add-tile {
+  min-height: 120px;
+  border: 1px dashed #d1d5db;
+  border-radius: 10px;
+  background: #fff;
+  color: #4b5563;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.oma-pp__media-done {
+  position: absolute;
+  inset-block-end: 16px;
+  inset-inline-start: 16px;
+  border: 0;
+  background: #1677ff;
+  color: #fff;
+  border-radius: 8px;
+  height: 32px;
+  padding: 0 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.oma-pp__alt {
+  position: absolute;
+  inset-block-start: 44px;
+  inset-inline-end: 8px;
+  width: min(240px, calc(100% - 16px));
+  background: #fff;
+  border: 1px solid #e8eaed;
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgb(15 23 42 / 16%);
+  padding: 12px;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.oma-pp__alt input {
+  height: 34px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0 10px;
+}
+.oma-pp__alt-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.oma-pp__alt-save {
+  background: #7c3aed;
+  color: #fff;
+  border: 0;
+  border-radius: 8px;
+  height: 30px;
+  padding: 0 12px;
+  font-weight: 600;
+  cursor: pointer;
 }
 .oma-fp[data-selected='true'] .oma-pp__post {
   border-color: #1677ff;
@@ -434,7 +593,7 @@
   flex-direction: column;
   align-items: center;
   gap: 8px;
-  padding-block-start: 12px;
+  padding-block-start: 8px;
 }
 .oma-fp__approval {
   position: relative;
@@ -493,15 +652,43 @@
   color: #65676b;
   line-height: 1;
 }
+.oma-fp__nets {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 4px;
+}
 .oma-fp__net {
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   background: #fff;
-  border: 1px solid #e4e6eb;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px #e4e6eb;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  margin-block-start: -6px;
+}
+.oma-fp__net:first-child {
+  margin-block-start: 0;
+}
+.oma-fp__reject-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid #e4e6eb;
+  background: #fff;
+  color: #8c9196;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.oma-fp__reject-btn:hover,
+.oma-fp__reject-btn[data-hidden='true'] {
+  border-color: #ff4d4f;
+  color: #ff4d4f;
 }
 .oma-fp__pop {
   position: absolute;
@@ -627,38 +814,61 @@
 }
 .oma-fp__comments {
   background: #fff;
-  border: 1px solid #e4e6eb;
-  border-radius: 6px;
-  padding: 10px;
+  border: 1px solid #e8eaed;
+  border-radius: 12px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  max-height: 640px;
-  overflow: auto;
+  gap: 10px;
+  min-height: 88px;
+  max-height: none;
+  overflow: visible;
 }
 .oma-fp__composer {
   display: flex;
-  gap: 6px;
+  align-items: center;
+  gap: 8px;
+}
+.oma-fp__composer-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #21cc99;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 600;
+  flex: none;
 }
 .oma-fp__input {
   flex: 1;
   min-width: 0;
-  height: 34px;
-  border: 1px solid #e4e6eb;
-  border-radius: 6px;
-  background: #f5f6f7;
-  padding-inline: 10px;
+  height: 36px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding-inline: 0;
   font: inherit;
   font-size: 14px;
   color: #1c1e21;
-  transition:
-    border-color 150ms ease,
-    background-color 150ms ease;
 }
 .oma-fp__input:focus {
   outline: none;
-  border-color: #1677ff;
-  background: #fff;
+  border-color: transparent;
+  background: transparent;
+}
+.oma-fp__input::placeholder {
+  color: #9aa0a6;
+}
+.oma-fp__send {
+  border: 0;
+  background: transparent;
+  color: #1677ff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
 }
 .oma-fp__empty {
   margin: 4px 2px;
@@ -671,32 +881,37 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 .oma-fp__comment {
-  border: 1px solid #eef0f2;
-  border-radius: 6px;
-  padding: 8px 10px;
-  background: #fff;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 8px;
+  border: 0;
+  border-radius: 8px;
+  padding: 0;
+  background: transparent;
 }
 .oma-fp__comment[data-internal='true'] {
-  background: #fff7e8;
-  border-color: #fbe6c2;
+  background: #fff8e8;
+  border: 0;
+  border-radius: 10px;
+  padding: 8px;
 }
 .oma-fp__c-meta {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   gap: 6px;
   font-size: 12px;
   color: #65676b;
 }
 .oma-fp__c-avatar {
-  width: 20px;
-  height: 20px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   background: #e8eaed;
   color: #3c4043;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
@@ -844,4 +1059,24 @@
   inset-inline-start: auto;
   inset-inline-end: 0;
   z-index: 1100;
+}
+
+.oma-fp .oma-pp[data-size='feed'] {
+  max-width: none;
+}
+.oma-fp .oma-pp[data-size='feed'][data-kind$='vertical'],
+.oma-fp .oma-pp[data-size='feed'][data-kind='tiktok'] {
+  max-width: none;
+}
+.oma-fp .oma-pp[data-size='feed'] .oma-pp__media {
+  aspect-ratio: 1 / 1;
+}
+.oma-fp .oma-pp[data-size='feed'] .oma-pp__head {
+  padding: 12px 14px 8px;
+}
+.oma-fp .oma-pp[data-size='feed'] .oma-pp__pad {
+  padding: 0 14px 12px;
+}
+.oma-fp .oma-pp[data-size='feed'] .oma-pp__caption {
+  padding: 0;
 }

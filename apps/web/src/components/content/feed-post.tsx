@@ -39,6 +39,14 @@ export type FeedPostProps = {
   onOpen: () => void;
   selected?: boolean;
   testId?: string;
+  labels?: string[];
+  channels?: string[];
+  hidden?: boolean;
+  onHide?: () => void;
+  onReject?: () => void;
+  canEditMedia?: boolean;
+  onAddFromComputer?: () => void;
+  onAddFromLibrary?: () => void;
 };
 
 export function relativeTime(iso: string, locale: string, now = Date.now()): string {
@@ -245,6 +253,9 @@ function CommentsPanel({
             void submit();
           }}
         >
+          <span className="oma-fp__composer-avatar" aria-hidden>
+            +
+          </span>
           <input
             className="oma-fp__input"
             dir="auto"
@@ -254,15 +265,13 @@ function CommentsPanel({
             onChange={(e) => setDraft(e.target.value)}
           />
           {draft.trim() ? (
-            <button type="submit" className="oma-pp__btn oma-pp__btn--primary" disabled={sending}>
+            <button type="submit" className="oma-fp__send" disabled={sending}>
               {t('preview.comments.send')}
             </button>
           ) : null}
         </form>
       ) : null}
-      {comments.length === 0 ? (
-        <p className="oma-fp__empty">{t('preview.comments.empty')}</p>
-      ) : (
+      {comments.length === 0 ? null : (
         <ul className="oma-fp__thread">
           {comments.map((c) => (
             <li
@@ -270,19 +279,18 @@ function CommentsPanel({
               className="oma-fp__comment"
               data-internal={c.internal ? 'true' : 'false'}
             >
-              <div className="oma-fp__c-meta">
-                <span className="oma-fp__c-avatar" aria-hidden>
-                  {initials(c.author)}
-                </span>
-                <bdi className="oma-fp__c-name">{c.author}</bdi>
-                <span className="oma-fp__c-time">{relativeTime(c.at, locale)}</span>
-                {c.internal ? (
-                  <span className="oma-fp__c-tag">{t('preview.comments.internal')}</span>
-                ) : null}
+              <span className="oma-fp__c-avatar" aria-hidden>
+                {initials(c.author)}
+              </span>
+              <div className="oma-fp__c-main">
+                <div className="oma-fp__c-meta">
+                  <bdi className="oma-fp__c-name">{c.author}</bdi>
+                  <span className="oma-fp__c-time">{relativeTime(c.at, locale)}</span>
+                </div>
+                <p className="oma-fp__c-body" dir="auto">
+                  {c.body}
+                </p>
               </div>
-              <p className="oma-fp__c-body" dir="auto">
-                {c.body}
-              </p>
             </li>
           ))}
         </ul>
@@ -291,26 +299,108 @@ function CommentsPanel({
   );
 }
 
-/** One row of the Planable-style Feed: approval rail · network post · comments thread. */
+function FeedRail({
+  approval,
+  channels,
+  hidden,
+  onHide,
+  onReject,
+}: {
+  approval?: FeedApproval;
+  channels: string[];
+  hidden?: boolean;
+  onHide?: () => void;
+  onReject?: () => void;
+}) {
+  const t = useT();
+  const nets = (channels.length ? channels : ['']).map((c) => resolveNetwork(c || 'instagram'));
+  const unique = [...new Set(nets)];
+  return (
+    <div className="oma-fp__rail">
+      {approval ? (
+        <ApprovalButton a={approval} />
+      ) : (
+        <span className="oma-fp__approve-btn" data-state="NOT_REQUESTED" aria-hidden>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path
+              d="m5 12.5 4.2 4.2L19 7"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </span>
+      )}
+      {onReject || onHide ? (
+        <button
+          type="button"
+          className="oma-fp__reject-btn"
+          data-hidden={hidden ? 'true' : 'false'}
+          aria-label={hidden ? t('content.show_to_clients') : t('content.hide_from_clients')}
+          title={hidden ? t('content.show_to_clients') : t('content.hide_from_clients')}
+          onClick={onHide ?? onReject}
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path
+              d="M6 6l12 12M18 6 6 18"
+              stroke="currentColor"
+              strokeWidth="2.2"
+              strokeLinecap="round"
+            />
+          </svg>
+        </button>
+      ) : null}
+      <div className="oma-fp__nets" aria-hidden>
+        {unique.slice(0, 3).map((network) => (
+          <span key={network} className="oma-fp__net" title={t(`preview.network.${network}`)}>
+            <NetworkIcon network={network} size={14} />
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** One row of the Planable-style Feed: approval rail · workspace post · comments. */
 export function FeedPost(props: FeedPostProps) {
   const t = useT();
-  const network = resolveNetwork(props.preview.channel);
+  const channels = props.channels?.length
+    ? props.channels
+    : String(props.preview.channel || '')
+        .split(',')
+        .map((c) => c.trim())
+        .filter(Boolean);
+  const labels = (props.labels ?? []).filter(Boolean);
   return (
     <section
       className="oma-fp"
       data-selected={props.selected ? 'true' : 'false'}
       data-testid={props.testId}
     >
-      <div className="oma-fp__rail">
-        {props.approval ? <ApprovalButton a={props.approval} /> : null}
-        <span className="oma-fp__net" title={t(`preview.network.${network}`)}>
-          <NetworkIcon network={network} size={14} />
-        </span>
-      </div>
+      <FeedRail
+        approval={props.approval}
+        channels={channels}
+        hidden={props.hidden}
+        onHide={props.onHide}
+        onReject={props.onReject}
+      />
       <div className="oma-fp__post">
+        {labels.length ? (
+          <div className="oma-fp__labels">
+            {labels.map((lab) => (
+              <span key={lab} className="oma-plx-label-pill" data-label={lab}>
+                {lab}
+              </span>
+            ))}
+          </div>
+        ) : null}
         <PostPreview
           {...props.preview}
           hideNetworkLabel
+          workspaceFeed
+          onAddFromComputer={props.canEditMedia ? props.onAddFromComputer : undefined}
+          onAddFromLibrary={props.canEditMedia ? props.onAddFromLibrary : undefined}
           headerActions={
             <>
               <button

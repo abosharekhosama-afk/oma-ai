@@ -103,7 +103,7 @@ import { EmptyState, DeniedState } from '../../../../components/ui/empty-state';
 import { useToast } from '../../../../components/ui/toast';
 import { MediaPickerDialog, MediaThumb } from '../../../../components/content/media-picker';
 import { ComposeMediaToolbar } from '../../../../components/content/compose-media-toolbar';
-import type { MediaAsset } from '../../../../lib/workdrive-api';
+import { mediaApi, type MediaAsset } from '../../../../lib/workdrive-api';
 import {
   hasContentViewPref,
   isContentViewMode,
@@ -1223,6 +1223,9 @@ export default function ContentPage() {
   const [overflowDay, setOverflowDay] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [mediaLibraryOpen, setMediaLibraryOpen] = useState(false);
+  const [feedAttachId, setFeedAttachId] = useState<string | null>(null);
+  const [feedLibraryOpen, setFeedLibraryOpen] = useState(false);
+  const feedFileRef = useRef<HTMLInputElement>(null);
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [createForm, setCreateForm] = useState({
@@ -1509,6 +1512,20 @@ export default function ContentPage() {
       }));
     } catch (err) {
       toast.push(contentApiError(err, t('content.failed_to_save_note')), 'danger');
+    }
+  }
+
+  async function attachFeedMedia(contentId: string, asset: MediaAsset) {
+    const row = rows.find((r) => r.id === contentId) as ContentRowExtra | undefined;
+    const ids = [...(row?.mediaAssetIds ?? []).filter(Boolean), asset.id];
+    try {
+      const api = await updateContentProduction(contentId, {
+        media_asset_ids: ids,
+        preview_asset_id: row?.previewAsset ? undefined : asset.id,
+      });
+      setRows((prev) => prev.map((r) => (r.id === contentId ? toContentRow(api) : r)));
+    } catch (err) {
+      toast.push(contentApiError(err, t('errors.http')), 'danger');
     }
   }
 
@@ -1948,9 +1965,11 @@ export default function ContentPage() {
           channel: item.channel,
           contentType: item.contentType,
           brandName: brandName(item.brandId),
+          avatarUrl: brandLogo(item.brandId),
           caption: item.caption ? pickCopy(item.caption, locale) : '',
           title: pickCopy(item.title, locale),
           media: item.previewAsset,
+          mediaItems: contentMediaUrls(item as ContentRowExtra),
           when: item.scheduledAt || item.plannedAt || null,
           whenKind: item.scheduledAt ? 'scheduled' : item.plannedAt ? 'planned' : null,
           locale,
@@ -1971,6 +1990,23 @@ export default function ContentPage() {
           ),
         }}
         approval={approvalFor(item, approvers)}
+        labels={rowLabels(item)}
+        channels={String(item.channel || '')
+          .split(',')
+          .map((c) => c.trim())
+          .filter(Boolean)}
+        hidden={(item as ContentRowExtra).clientVisible === false}
+        onHide={() => void toggleHideFromClients(item.id)}
+        onReject={() => void runLifecycle('reject', item.id)}
+        canEditMedia={mayCreate}
+        onAddFromComputer={() => {
+          setFeedAttachId(item.id);
+          feedFileRef.current?.click();
+        }}
+        onAddFromLibrary={() => {
+          setFeedAttachId(item.id);
+          setFeedLibraryOpen(true);
+        }}
         comments={comments}
         canComment={mayComment}
         onAddComment={async (body) => {
@@ -6066,6 +6102,37 @@ export default function ContentPage() {
           </div>
         </div>
       ) : null}
+
+      <input
+        ref={feedFileRef}
+        type="file"
+        accept="image/png,image/jpeg,image/webp,image/gif,video/mp4,video/quicktime,video/webm"
+        hidden
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          const id = feedAttachId;
+          const brandId = rows.find((r) => r.id === id)?.brandId || brands[0]?.id;
+          e.target.value = '';
+          if (!file || !id || !brandId) return;
+          void mediaApi
+            .upload(brandId, 'posts', file)
+            .then((asset) => attachFeedMedia(id, asset))
+            .catch((err) => toast.push(contentApiError(err, t('errors.http')), 'danger'));
+        }}
+      />
+      <MediaPickerDialog
+        open={feedLibraryOpen}
+        brandId={rows.find((r) => r.id === feedAttachId)?.brandId || brands[0]?.id || null}
+        kind="posts"
+        t={t}
+        locale={locale}
+        canConnect={canManageWorkspace}
+        onClose={() => setFeedLibraryOpen(false)}
+        onPick={(asset) => {
+          if (feedAttachId) void attachFeedMedia(feedAttachId, asset);
+          setFeedLibraryOpen(false);
+        }}
+      />
 
       <MediaPickerDialog
         open={feedbackAttachOpen}

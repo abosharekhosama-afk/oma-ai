@@ -509,10 +509,10 @@
 
 /* stories */
 .oma-pv-stories {
-  background: var(--oma-surface);
-  border: 1px solid var(--pv-border);
-  border-radius: 6px;
-  padding: 8px 10px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 4px 0 0;
 }
 .oma-pv-stories__head {
   display: flex;
@@ -560,9 +560,10 @@
   border-style: dashed;
 }
 .oma-pv-feed-stories {
-  inline-size: min(840px, 100%);
+  inline-size: min(900px, 100%);
   margin-inline: auto;
-  margin-block-end: 12px;
+  margin-block-end: 4px;
+  padding-inline: 50px;
 }
 
 /* list width */
