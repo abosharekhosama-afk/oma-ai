@@ -2409,7 +2409,7 @@ html body [data-testid='team-page-planable'] .oma-ws-table {
 
 /* Brand workspace navigation: keep tabs in one horizontally scrollable row on phones. */
 @media (max-width: 767px) {
-  .oma-brand-nav {
+  .oma-brand-nav:not(.oma-plx-brand-nav) {
     display: block !important;
     width: 100% !important;
     max-width: 100% !important;
@@ -2417,7 +2417,7 @@ html body [data-testid='team-page-planable'] .oma-ws-table {
     overflow: hidden !important;
   }
 
-  .oma-brand-nav ul {
+  .oma-brand-nav:not(.oma-plx-brand-nav) ul {
     display: flex !important;
     flex-wrap: nowrap !important;
     width: 100% !important;
@@ -2433,11 +2433,38 @@ html body [data-testid='team-page-planable'] .oma-ws-table {
     scroll-snap-type: x proximity;
   }
 
-  .oma-brand-nav li {
+  .oma-brand-nav:not(.oma-plx-brand-nav) li {
     flex: 0 0 auto !important;
   }
 
-  .oma-brand-nav a {
+  .oma-brand-nav:not(.oma-plx-brand-nav) a {
+    flex: 0 0 auto !important;
+    width: max-content !important;
+    white-space: nowrap !important;
+    scroll-snap-align: start;
+  }
+
+  .oma-plx-brand-nav-head {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    overscroll-behavior-inline: contain !important;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x !important;
+    scrollbar-width: thin;
+    scroll-snap-type: x proximity;
+  }
+
+  .oma-plx-brand-nav.oma-brand-nav {
+    width: max-content !important;
+    min-width: max-content !important;
+    max-width: none !important;
+    overflow: visible !important;
+  }
+
+  .oma-plx-brand-nav .oma-brand-nav-link {
     flex: 0 0 auto !important;
     width: max-content !important;
     white-space: nowrap !important;

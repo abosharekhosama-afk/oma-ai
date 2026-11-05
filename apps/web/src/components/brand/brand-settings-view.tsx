@@ -24,6 +24,8 @@ export type BrandSettingsViewProps = {
   t: Tr;
   tab: BrandSettingsTab;
   onTab: (tab: BrandSettingsTab) => void;
+  /** When true, omit top header (used inside BrandWorkspaceShell). Side nav is preserved. */
+  embedded?: boolean;
   brand: {
     id: string;
     name: string;
@@ -93,19 +95,27 @@ export function BrandSettingsView(p: BrandSettingsViewProps) {
     { id: 'accounts', label: t('brandSettings.tab.accounts') },
   ];
   return (
-    <div className="oma-bs" data-testid="brand-settings">
-      <header className="oma-bs-head">
-        <BrandLogo name={p.brand.name} url={p.brand.logo_url} size={32} />
-        <div className="oma-bs-head__text">
-          <h1 className="oma-bs-title">{p.brand.name}</h1>
-          <p className="oma-bs-sub">{t('brandSettings.subtitle')}</p>
-        </div>
-        {p.brand.archived ? (
-          <span className="oma-bs-badge">{t('brandSettings.archivedBadge')}</span>
-        ) : null}
-      </header>
-      <div className="oma-bs-body">
-        <nav className="oma-bs-nav" aria-label={t('brandSettings.navLabel')}>
+    <div
+      className={`oma-plx-brand-settings oma-bs${p.embedded ? ' oma-plx-brand-settings--embedded' : ''}`}
+      data-testid="brand-settings"
+    >
+      {p.embedded ? null : (
+        <header className="oma-bs-head oma-plx-brand-settings__head">
+          <BrandLogo name={p.brand.name} url={p.brand.logo_url} size={32} />
+          <div className="oma-bs-head__text">
+            <h1 className="oma-bs-title">{p.brand.name}</h1>
+            <p className="oma-bs-sub">{t('brandSettings.subtitle')}</p>
+          </div>
+          {p.brand.archived ? (
+            <span className="oma-bs-badge">{t('brandSettings.archivedBadge')}</span>
+          ) : null}
+        </header>
+      )}
+      <div className="oma-bs-body oma-plx-brand-settings__body">
+        <nav
+          className="oma-bs-nav oma-plx-brand-settings__nav"
+          aria-label={t('brandSettings.navLabel')}
+        >
           {tabs.map((x) => (
             <button
               key={x.id}
@@ -119,7 +129,7 @@ export function BrandSettingsView(p: BrandSettingsViewProps) {
             </button>
           ))}
         </nav>
-        <main className="oma-bs-main">
+        <main className="oma-bs-main oma-plx-brand-settings__main">
           {p.notice ? (
             <p
               className={`oma-bs-notice oma-bs-notice--${p.notice.kind}`}
