@@ -85,34 +85,60 @@ export type DaySentiment = {
   total: number;
 };
 
+function dayBucket(d: Date, hits: ListeningHit[]): DaySentiment {
+  const start = new Date(d);
+  start.setHours(0, 0, 0, 0);
+  const next = new Date(start);
+  next.setDate(next.getDate() + 1);
+  const key = start.toISOString().slice(0, 10);
+  const label = start.toLocaleDateString(undefined, { weekday: 'short' });
+  const dayHits = hits.filter((h) => {
+    const t = new Date(h.capturedAt).getTime();
+    return t >= start.getTime() && t < next.getTime();
+  });
+  const positive = dayHits.filter((h) => h.sentiment === 'POSITIVE').length;
+  const neutral = dayHits.filter((h) => h.sentiment === 'NEUTRAL').length;
+  const negative = dayHits.filter((h) => h.sentiment === 'NEGATIVE').length;
+  return { key, label, positive, neutral, negative, total: dayHits.length };
+}
+
 export function volumeByDay(hits: ListeningHit[], days = 7): DaySentiment[] {
   const out: DaySentiment[] = [];
   const now = new Date();
   for (let i = days - 1; i >= 0; i -= 1) {
     const d = new Date(now);
     d.setDate(d.getDate() - i);
-    d.setHours(0, 0, 0, 0);
-    const next = new Date(d);
-    next.setDate(next.getDate() + 1);
-    const key = d.toISOString().slice(0, 10);
-    const label = d.toLocaleDateString(undefined, { weekday: 'short' });
-    const dayHits = hits.filter((h) => {
-      const t = new Date(h.capturedAt).getTime();
-      return t >= d.getTime() && t < next.getTime();
-    });
-    const positive = dayHits.filter((h) => h.sentiment === 'POSITIVE').length;
-    const neutral = dayHits.filter((h) => h.sentiment === 'NEUTRAL').length;
-    const negative = dayHits.filter((h) => h.sentiment === 'NEGATIVE').length;
-    out.push({
-      key,
-      label,
-      positive,
-      neutral,
-      negative,
-      total: dayHits.length,
-    });
+    out.push(dayBucket(d, hits));
   }
   return out;
+}
+
+export function volumeByDateRange(hits: ListeningHit[], start: Date, end: Date): DaySentiment[] {
+  const out: DaySentiment[] = [];
+  const cur = new Date(start);
+  cur.setHours(0, 0, 0, 0);
+  const endDay = new Date(end);
+  endDay.setHours(0, 0, 0, 0);
+  while (cur.getTime() <= endDay.getTime()) {
+    out.push(dayBucket(cur, hits));
+    cur.setDate(cur.getDate() + 1);
+  }
+  return out.length ? out : volumeByDay(hits, 7);
+}
+
+export function hitInDateRange(hit: ListeningHit, start: Date, end: Date) {
+  const t = new Date(hit.capturedAt).getTime();
+  return t >= start.getTime() && t <= end.getTime();
+}
+
+export function hitThumbnail(hit: ListeningHit) {
+  if (hit.mediaUrls?.[0]) return hit.mediaUrls[0];
+  if (hit.authorAvatar) return hit.authorAvatar;
+  return `https://picsum.photos/seed/${encodeURIComponent(hit.id)}/144/144`;
+}
+
+export function isNewHit(hit: ListeningHit) {
+  return Date.now() - new Date(hit.capturedAt).getTime() < 48 * 3600_000;
 }
 
 export function sentimentTotals(hits: ListeningHit[]) {
