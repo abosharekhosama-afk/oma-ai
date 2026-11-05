@@ -610,35 +610,40 @@ export default function DeliverableDetailClient() {
       {row ? (
         reviewMode ? (
           <div
-            className="oma-review-workspace"
+            className="oma-plx-review-workspace oma-review-workspace"
             data-testid="demo-review-workspace"
             aria-label={t('demo.reviews.openReview')}
           >
-            <div className="oma-review-toolbar">
-              <div className="oma-chip-row">
+            <header className="oma-plx-review-workspace__toolbar oma-review-toolbar">
+              <div className="oma-plx-review-workspace__meta">
                 <strong data-testid="demo-review-version-chrome">{selectedVersion?.label}</strong>
-                <span className="oma-muted">{statusLabel(t, row.type)}</span>
+                <span className="oma-plx-review-workspace__type">{statusLabel(t, row.type)}</span>
                 {selectedVersion?.immutable ? (
-                  <span className="oma-deliv-detail__badge">{t('demo.review.immutable')}</span>
+                  <span className="oma-plx-review-workspace__badge">{t('demo.review.immutable')}</span>
                 ) : null}
               </div>
-              <div className="oma-chip-row">
-                <Button
-                  type={zoom === 'fit' ? 'primary' : 'default'}
-                  data-testid="demo-zoom-fit"
-                  onClick={() => setZoom('fit')}
-                >
-                  Fit
-                </Button>
-                <Button
-                  type={zoom === 'in' ? 'primary' : 'default'}
-                  data-testid="demo-zoom-in"
-                  onClick={() => setZoom('in')}
-                >
-                  100%
-                </Button>
-                <Button
-                  type={compareMode ? 'primary' : 'default'}
+              <div className="oma-plx-review-workspace__actions">
+                <div className="oma-plx-listening-segment" role="group" aria-label="Zoom">
+                  <button
+                    type="button"
+                    className={zoom === 'fit' ? 'is-active' : ''}
+                    data-testid="demo-zoom-fit"
+                    onClick={() => setZoom('fit')}
+                  >
+                    Fit
+                  </button>
+                  <button
+                    type="button"
+                    className={zoom === 'in' ? 'is-active' : ''}
+                    data-testid="demo-zoom-in"
+                    onClick={() => setZoom('in')}
+                  >
+                    100%
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  className={`oma-plx-listening-icon-btn${compareMode ? ' is-active' : ''}`}
                   data-testid="demo-compare-toggle"
                   onClick={() =>
                     setReviewUrl({
@@ -649,19 +654,24 @@ export default function DeliverableDetailClient() {
                   }
                 >
                   Compare
-                </Button>
-                <Button
-                  type="default"
+                </button>
+                <button
+                  type="button"
+                  className="oma-plx-listening-filter__trigger"
                   data-testid="demo-exit-review"
                   onClick={() => setReviewUrl({ review: false })}
                 >
-                  <CloseOutlined /> Exit
-                </Button>
+                  <CloseOutlined />
+                  Exit
+                </button>
               </div>
-            </div>
+            </header>
 
-            <div className="oma-review-body">
-              <aside className="oma-review-versions" data-testid="demo-version-list">
+            <div className="oma-plx-review-workspace__body oma-review-body">
+              <aside
+                className="oma-plx-review-rail oma-review-versions"
+                data-testid="demo-version-list"
+              >
                 <h3>
                   <HistoryOutlined /> {t('demo.deliverable.versions') || 'Versions'}
                 </h3>
@@ -857,18 +867,25 @@ export default function DeliverableDetailClient() {
                 ) : null}
               </div>
 
-              <aside className="oma-review-comments" data-testid="demo-review-comments">
+              <aside
+                className="oma-plx-review-rail oma-review-comments"
+                data-testid="demo-review-comments"
+              >
                 <h3>
                   <CommentOutlined /> {t('demo.review.comments') || 'Comments'}
                 </h3>
-                <div className="oma-review-seg" role="tablist" aria-label="Comments filter">
+                <div
+                  className="oma-plx-listening-segment oma-plx-review-segment"
+                  role="tablist"
+                  aria-label="Comments filter"
+                >
                   {(['all', 'unresolved', 'resolved'] as CommentFilter[]).map((f) => (
                     <button
                       key={f}
                       type="button"
                       role="tab"
                       aria-selected={commentFilter === f}
-                      className="oma-review-seg__btn"
+                      className={commentFilter === f ? 'is-active' : ''}
                       data-active={commentFilter === f ? 'true' : 'false'}
                       data-testid={`demo-comment-filter-${f}`}
                       onClick={() => setCommentFilter(f)}
