@@ -18,7 +18,6 @@ import {
 import { Dialog } from '../../../../components/ui/dialog';
 import { AssigneePicker } from '../../../../components/ui/assignee-picker';
 import { EntityLink } from '../../../../components/ui/entity-link';
-import { PageHeader } from '../../../../components/ui/page-header';
 import { StatusChip, statusLabel } from '../../../../components/ui/status-chip';
 import { useToast } from '../../../../components/ui/toast';
 import { daysFromToday, formatCommentTime } from '../../../../lib/calendar-today';
@@ -483,9 +482,11 @@ export default function TasksPage() {
       ] as DemoTaskStatus[]
     ).filter((s) => canTransitionTaskStatus(status, s));
 
+  const filterLabel = locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter';
+
   return (
     <div
-      className="oma-tasks-page"
+      className="oma-plx-deliverables oma-plx-tasks"
       data-testid="demo-tasks"
       data-view={view}
       data-prefs={prefsLoaded ? '1' : '0'}
@@ -504,17 +505,17 @@ export default function TasksPage() {
         styles={{ body: { padding: 0 } }}
       >
         <aside
-          className="oma-req-filter-panel oma-tasks-filter-drawer__panel"
+          className="oma-plx-deliv-filter-panel oma-tasks-filter-drawer__panel"
           data-testid="demo-task-filters"
           data-anchor="viewport-top"
         >
-          <header className="oma-req-filter-panel__head">
+          <header className="oma-plx-deliv-filter-panel__head">
             <strong>
               {locale.toLowerCase().startsWith('ar') ? 'تصفية وترتيب' : 'Filter & sort'}
             </strong>
             <button
               type="button"
-              className="oma-req-filter-panel__close"
+              className="oma-plx-deliv-filter-panel__close"
               aria-label="Close"
               onClick={() => setFilterSheet(false)}
             >
@@ -677,7 +678,7 @@ export default function TasksPage() {
           </div>
 
           {filterCount > 0 ? (
-            <div className="oma-req-filter-panel__foot">
+            <div className="oma-plx-deliv-filter-panel__foot">
               <Button
                 type="default"
                 data-testid="demo-task-clear-filters"
@@ -690,38 +691,95 @@ export default function TasksPage() {
         </aside>
       </AntDrawer>
 
-      <PageHeader title={t('demo.tasks.title')} description={t('demo.tasks.subtitle')} />
+      <header className="oma-plx-listening__toolbar oma-plx-deliv__toolbar">
+        <div className="oma-plx-listening__toolbar-spacer" />
+        <div className="oma-plx-listening-segment" role="group" aria-label={t('demo.view.kanban')}>
+          <button
+            type="button"
+            className={view === 'board' ? 'is-active' : ''}
+            data-testid="demo-tasks-view-board"
+            aria-pressed={view === 'board'}
+            onClick={() => void changeView('board')}
+          >
+            <UnorderedListOutlined aria-hidden />
+            <span>{t('demo.view.kanban')}</span>
+          </button>
+          <button
+            type="button"
+            className={view === 'list' ? 'is-active' : ''}
+            data-testid="demo-tasks-view-list"
+            aria-pressed={view === 'list'}
+            onClick={() => void changeView('list')}
+          >
+            <BarsOutlined aria-hidden />
+            <span>{t('demo.view.list')}</span>
+          </button>
+        </div>
+        <button
+          type="button"
+          className="oma-plx-listening-filter__trigger oma-plx-deliv__filter-trigger"
+          data-testid="demo-task-open-filters-inline"
+          data-active={filterSheet ? 'true' : 'false'}
+          onClick={() => setFilterSheet((v) => !v)}
+        >
+          <FilterOutlined />
+          <span>{filterLabel}</span>
+          {filterCount > 0 ? (
+            <span className="oma-plx-deliv-filter-count">{filterCount}</span>
+          ) : null}
+        </button>
+        <Button
+          type="primary"
+          size="small"
+          className="oma-plx-listening__export oma-plx-tasks__create"
+          data-testid="demo-create-task-inline"
+          onClick={() => setCreateOpen(true)}
+        >
+          <PlusOutlined />
+          {t('demo.tasks.create')}
+        </Button>
+      </header>
+
+      <div className="oma-plx-listening__intro oma-plx-deliv__intro">
+        <div>
+          <h1 className="oma-plx-listening__title">{t('demo.tasks.title')}</h1>
+          <p className="oma-plx-deliv__subtitle">{t('demo.tasks.subtitle')}</p>
+        </div>
+        {!loading && !unavailable && !error ? (
+          <p className="oma-plx-listening__next-check" data-testid="demo-task-result-count">
+            {filtered.length} / {rows.length}
+          </p>
+        ) : null}
+      </div>
 
       {headerSlot && headerSlot.isConnected
         ? createPortal(
             <div className="oma-workspace-header-actions">
               <button
                 type="button"
-                className="oma-req-filter-btn"
+                className="oma-plx-listening-filter__trigger"
                 data-testid="demo-task-open-filters"
-                aria-label={locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter'}
-                title={locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter'}
+                aria-label={filterLabel}
+                title={filterLabel}
                 data-active={filterSheet ? 'true' : 'false'}
                 onClick={() => setFilterSheet((v) => !v)}
               >
                 <FilterOutlined aria-hidden="true" />
-                <span className="oma-req-filter-btn__label">
-                  {locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter'}
-                </span>
+                <span>{filterLabel}</span>
                 {filterCount > 0 ? (
-                  <span className="oma-req-filter-btn__count">{filterCount}</span>
+                  <span className="oma-plx-deliv-filter-count">{filterCount}</span>
                 ) : null}
               </button>
               <button
                 type="button"
-                className="oma-req-create-icon"
+                className="oma-plx-tasks__create-icon"
                 data-testid="demo-create-task"
                 aria-label={t('demo.tasks.create')}
                 title={t('demo.tasks.create')}
                 onClick={() => setCreateOpen(true)}
               >
                 <PlusOutlined />
-                <span className="oma-req-create-icon__label">{t('demo.tasks.create')}</span>
+                <span>{t('demo.tasks.create')}</span>
               </button>
             </div>,
             headerSlot,
@@ -793,30 +851,26 @@ export default function TasksPage() {
         </p>
       ) : null}
       {error ? (
-        <div className="oma-card" role="alert">
-          <p style={{ color: 'var(--status-danger)', margin: 0 }}>{error}</p>
-        </div>
+        <p className="oma-inbox-error" role="alert">
+          {error}
+        </p>
       ) : null}
 
       {!loading && !unavailable && !error ? (
-        <>
-          <div
-            className="oma-req-workspace oma-tasks-workspace"
-            data-filter-open={filterSheet ? 'true' : 'false'}
-          >
-            <div className="oma-req-main">
+        <div className="oma-plx-deliv-workspace oma-plx-tasks-workspace">
+          <div className="oma-plx-deliv-workspace__main">
+            <section className="oma-plx-listening-panel oma-plx-tasks-panel">
               {view === 'board' ? (
                 <TasksKanbanBoard
                   byBoard={byBoard}
                   onOpenTask={openTask}
                   onMoveTask={(id, status) => void patchTask(id, { status })}
                   disabled={saving}
-
                   onAddInColumn={() => setCreateOpen(true)}
                 />
               ) : (
-                <div className="oma-req-table-wrap" data-testid="demo-task-table">
-                  <table className="oma-req-table oma-task-table">
+                <div className="oma-plx-deliv-table-wrap" data-testid="demo-task-table">
+                  <table className="oma-plx-deliv-table oma-plx-tasks-table">
                     <thead>
                       <tr>
                         <th>{t('demo.tasks.col.title') || 'Task'}</th>
@@ -843,20 +897,20 @@ export default function TasksPage() {
                             onClick={() => openTask(task.id)}
                             style={{ cursor: 'pointer' }}
                           >
-                            <td className="oma-task-title-cell">
+                            <td className="oma-plx-tasks-table__title-cell">
                               <button
                                 type="button"
-                                className="oma-task-title-btn"
+                                className="oma-plx-tasks-table__title-btn"
                                 data-testid={`demo-task-open-${task.id}`}
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   openTask(task.id);
                                 }}
                               >
-                                <span className="oma-task-title-text">
+                                <span className="oma-plx-tasks-table__title-text">
                                   {pickCopy(task.title, locale)}
                                 </span>
-                                <span className="oma-task-title-meta">
+                                <span className="oma-plx-deliv-table__sub">
                                   {task.type}
                                   {campaignLabel ? ` · ${campaignLabel}` : ''}
                                 </span>
@@ -880,9 +934,9 @@ export default function TasksPage() {
                   </table>
                 </div>
               )}
-            </div>
+            </section>
           </div>
-        </>
+        </div>
       ) : null}
 
       <AntDrawer

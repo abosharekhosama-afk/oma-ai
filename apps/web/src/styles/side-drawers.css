@@ -36,7 +36,8 @@
 }
 
 .oma-tasks-filter-drawer__panel,
-.oma-tasks-filter-drawer .oma-req-filter-panel {
+.oma-tasks-filter-drawer .oma-req-filter-panel,
+.oma-tasks-filter-drawer .oma-plx-deliv-filter-panel {
   display: flex !important;
   flex: 1 1 auto !important;
   flex-direction: column !important;

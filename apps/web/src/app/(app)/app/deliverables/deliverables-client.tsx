@@ -329,7 +329,18 @@ export default function DeliverablesPage() {
           className="oma-plx-deliv-workspace"
           data-filter-open={filterSheet ? 'true' : 'false'}
         >
-          <div className="oma-plx-deliv-workspace__main">
+          <div
+            className="oma-plx-deliv-workspace__main"
+            data-filter-dimmed={filterSheet ? 'true' : 'false'}
+          >
+            {filterSheet ? (
+              <button
+                type="button"
+                className="oma-plx-deliv-main-scrim"
+                aria-label="Close filters"
+                onClick={() => setFilterSheet(false)}
+              />
+            ) : null}
             <section className="oma-plx-listening-panel oma-plx-deliv-panel">
               <header className="oma-plx-deliv-panel__head">
                 <div
@@ -503,25 +514,14 @@ export default function DeliverablesPage() {
           </div>
 
           {filterSheet ? (
-            <button
-              type="button"
-              className="oma-plx-deliv-filter-backdrop"
-              aria-label="Close filters"
-              onClick={() => setFilterSheet(false)}
-            />
-          ) : null}
-          {filterSheet ? (
-            <aside
-              className="oma-plx-deliv-filter-panel oma-req-filter-panel"
-              data-testid="demo-deliv-filters"
-            >
-              <header className="oma-plx-deliv-filter-panel__head oma-req-filter-panel__head">
+            <aside className="oma-plx-deliv-filter-panel" data-testid="demo-deliv-filters">
+              <header className="oma-plx-deliv-filter-panel__head">
                   <strong>
                     {locale.toLowerCase().startsWith('ar') ? 'تصفية وترتيب' : 'Filter & sort'}
                   </strong>
                   <button
                     type="button"
-                    className="oma-req-filter-panel__close"
+                    className="oma-plx-deliv-filter-panel__close"
                     aria-label="Close"
                     onClick={() => setFilterSheet(false)}
                   >
@@ -774,7 +774,7 @@ export default function DeliverablesPage() {
                 </div>
 
                 {filterCount > 0 ? (
-                  <div className="oma-plx-deliv-filter-panel__foot oma-req-filter-panel__foot">
+                  <div className="oma-plx-deliv-filter-panel__foot">
                     <Button
                       type="default"
                       data-testid="demo-deliv-clear-filters"
