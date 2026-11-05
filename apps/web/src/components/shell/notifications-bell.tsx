@@ -1,10 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { ShellIcon } from './shell-icons';
-import { CloseOutlined } from '../ui/lucide-icons';
+import { CloseOutlined, MoreOutlined } from '../ui/lucide-icons';
 import { CheckSquareIcon, ClockIcon, EnvelopeIcon, ImageIcon, UsersIcon } from '../ui/plx-icons';
+import {
+  FacebookGlyph,
+  InstagramGlyph,
+  TikTokGlyph,
+  XGlyph,
+} from '../landing/platform-icons';
 import { Drawer as AntDrawer } from '@oma/ui/controls';
 import { MediaSurface } from '../content/media-surface';
 import { useLocale, useT } from '../../lib/use-locale';
@@ -23,6 +29,16 @@ export const notificationCategories: NotificationCategory[] = [
   'feedback',
   'tasks',
   'workspace',
+];
+
+/** Planable-style inbox tabs (maps to underlying notification categories). */
+export type NotificationTab = 'approvals' | 'feedback' | 'social_inbox' | 'listening';
+
+export const notificationTabs: NotificationTab[] = [
+  'approvals',
+  'feedback',
+  'social_inbox',
+  'listening',
 ];
 
 const categoryTypes: Record<NotificationCategory, string[]> = {
@@ -49,6 +65,13 @@ const categoryTypes: Record<NotificationCategory, string[]> = {
   workspace: ['membership.invited'],
 };
 
+export function notificationTabCategories(tab: NotificationTab): NotificationCategory[] {
+  if (tab === 'approvals') return ['approvals'];
+  if (tab === 'feedback') return ['feedback'];
+  if (tab === 'social_inbox') return ['publishing'];
+  return ['tasks', 'workspace'];
+}
+
 export function notificationCategory(type: string): NotificationCategory {
   return (
     notificationCategories.find((category) => categoryTypes[category].includes(type)) ?? 'workspace'
@@ -64,6 +87,16 @@ export function notificationCategoryLabel(category: NotificationCategory, isAr: 
     workspace: ['Workspace', 'مساحة العمل'],
   };
   return isAr ? labels[category][1] : labels[category][0];
+}
+
+export function notificationTabLabel(tab: NotificationTab, isAr: boolean): string {
+  const labels: Record<NotificationTab, [string, string]> = {
+    approvals: ['Approvals', 'الموافقات'],
+    feedback: ['Feedback', 'التعليقات'],
+    social_inbox: ['Social inbox', 'صندوق التواصل'],
+    listening: ['Listening', 'الاستماع'],
+  };
+  return isAr ? labels[tab][1] : labels[tab][0];
 }
 
 export function NotificationTypeIcon({
@@ -89,7 +122,9 @@ export function formatWhen(iso: string, locale: string): string {
     if (diff < 60_000) return rtf.format(0, 'second');
     if (diff < 3600_000) return rtf.format(-Math.floor(diff / 60_000), 'minute');
     if (diff < 86400_000) return rtf.format(-Math.floor(diff / 3600_000), 'hour');
-    return d.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
+    if (diff < 86400_000 * 30) return rtf.format(-Math.floor(diff / 86400_000), 'day');
+    if (diff < 86400_000 * 365) return rtf.format(-Math.floor(diff / (86400_000 * 30)), 'month');
+    return rtf.format(-Math.floor(diff / (86400_000 * 365)), 'year');
   } catch {
     return '';
   }
@@ -100,10 +135,56 @@ export function notificationLabel(t: (k: string) => string, n: AppNotification):
   const translated = t(key);
   return translated && translated !== key ? translated : n.title || t('shell.notification.generic');
 }
+
 export function notificationBodyText(t: (k: string) => string, n: AppNotification): string | null {
   const key = `shell.notificationBody.${n.type}`;
   const translated = t(key);
   return translated && translated !== key ? translated : n.body || null;
+}
+
+function actorInitials(n: AppNotification, t: (k: string) => string): string {
+  const label = notificationLabel(t, n);
+  const word = label.match(/[\p{L}\p{N}]+/u)?.[0] ?? label.trim().slice(0, 1);
+  return (word?.slice(0, 1) ?? '?').toUpperCase();
+}
+
+function previewBrandTag(channel: string | undefined): string | null {
+  if (!channel?.trim()) return null;
+  const parts = channel.split(/[,|/·]/).map((p) => p.trim()).filter(Boolean);
+  const last = parts[parts.length - 1];
+  if (!last) return channel.trim();
+  if (/facebook|instagram|tiktok|twitter|linkedin|youtube/i.test(last) && parts.length > 1) {
+    return parts[parts.length - 2] ?? last;
+  }
+  return last;
+}
+
+function PreviewPlatformIcons({ channel }: { channel?: string | null }) {
+  if (!channel?.trim()) return null;
+  const hay = channel.toLowerCase();
+  const icons: { key: string; node: ReactNode }[] = [];
+  if (hay.includes('facebook') || hay.includes('fb')) {
+    icons.push({ key: 'fb', node: <FacebookGlyph /> });
+  }
+  if (hay.includes('instagram') || hay.includes('ig')) {
+    icons.push({ key: 'ig', node: <InstagramGlyph /> });
+  }
+  if (hay.includes('tiktok')) {
+    icons.push({ key: 'tt', node: <TikTokGlyph /> });
+  }
+  if (hay.includes('twitter') || hay.includes(' x ') || hay.endsWith(' x')) {
+    icons.push({ key: 'x', node: <XGlyph /> });
+  }
+  if (!icons.length) return null;
+  return (
+    <span className="oma-notification-card__platforms" aria-hidden>
+      {icons.slice(0, 4).map((item) => (
+        <span key={item.key} className="oma-notification-card__platform">
+          {item.node}
+        </span>
+      ))}
+    </span>
+  );
 }
 
 export function NotificationRow({
@@ -119,6 +200,7 @@ export function NotificationRow({
 }) {
   const category = notificationCategory(n.type);
   const body = notificationBodyText(t, n);
+  const label = notificationLabel(t, n);
   const preview = n.contentPreview;
   const previewTitle = preview
     ? locale.toLowerCase().startsWith('ar')
@@ -130,22 +212,23 @@ export function NotificationRow({
       ? preview.captionAr
       : preview.captionEn
     : null;
+  const previewSnippet = previewCaption?.trim() || previewTitle?.trim() || null;
+  const brandTag = previewBrandTag(preview?.channel ?? undefined);
   const showPreview = Boolean(
-    preview?.imageUrl?.trim() ||
-      previewTitle?.trim() ||
-      previewCaption?.trim() ||
-      preview?.channel?.trim(),
+    preview?.imageUrl?.trim() || previewSnippet || preview?.channel?.trim(),
   );
   const content = (
     <>
-      <span className="oma-notification-card__headline">
-        <span className="oma-notification-card__title">{notificationLabel(t, n)}</span>
+      <div className="oma-notification-card__headline">
+        <p className="oma-notification-card__message">
+          <span className="oma-notification-card__message-text">{label}</span>
+          {body ? <span className="oma-notification-card__message-body"> {body}</span> : null}
+        </p>
         <span className="oma-notification-card__time">
           {formatWhen(n.createdAt, locale)}
           {!n.readAt ? <i aria-label="unread" /> : null}
         </span>
-      </span>
-      {body ? <span className="oma-notification-card__body">{body}</span> : null}
+      </div>
       {showPreview ? (
         <span className="oma-notification-card__preview">
           {preview?.imageUrl ? (
@@ -157,14 +240,16 @@ export function NotificationRow({
               alt=""
               preload="metadata"
             />
-          ) : null}
+          ) : (
+            <span className="oma-notification-card__preview-thumb" aria-hidden>
+              <ImageIcon width={14} height={14} />
+            </span>
+          )}
           <span className="oma-notification-card__preview-copy">
-            {previewTitle ? <strong>{previewTitle}</strong> : null}
-            {previewCaption ? <span>{previewCaption}</span> : null}
+            {previewSnippet ? <span>{previewSnippet}</span> : null}
           </span>
-          {preview?.channel ? (
-            <span className="oma-notification-card__channel">{preview.channel}</span>
-          ) : null}
+          <PreviewPlatformIcons channel={preview?.channel} />
+          {brandTag ? <span className="oma-notification-card__brand">{brandTag}</span> : null}
         </span>
       ) : null}
     </>
@@ -174,8 +259,11 @@ export function NotificationRow({
       className={`oma-notification-card${n.readAt ? '' : ' is-unread'}`}
       data-read={n.readAt ? 'true' : 'false'}
     >
-      <span className={`oma-notification-card__icon is-${category}`}>
-        <NotificationTypeIcon category={category} />
+      <span className="oma-notification-card__avatar-wrap">
+        <span className="oma-notification-card__avatar">{actorInitials(n, t)}</span>
+        <span className={`oma-notification-card__avatar-badge is-${category}`} aria-hidden>
+          <NotificationTypeIcon category={category} size={11} />
+        </span>
       </span>
       <div className="oma-notification-card__main">
         {n.deepLinkPath ? (
@@ -200,7 +288,10 @@ export function NotificationsBell() {
   const [items, setItems] = useState<AppNotification[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [markingAll, setMarkingAll] = useState(false);
-  const [category, setCategory] = useState<NotificationCategory>('approvals');
+  const [category, setCategory] = useState<NotificationTab>('approvals');
+  const [unreadOnly, setUnreadOnly] = useState(false);
+  const [slackHidden, setSlackHidden] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const load = useCallback(async () => {
     try {
       const res = await listNotifications();
@@ -240,6 +331,7 @@ export function NotificationsBell() {
       setItems((prev) =>
         prev ? prev.map((n) => ({ ...n, readAt: n.readAt ?? new Date().toISOString() })) : prev,
       );
+      setMenuOpen(false);
     } catch (err) {
       setError(getApiError(err).message);
     } finally {
@@ -250,14 +342,24 @@ export function NotificationsBell() {
   const counts = useMemo(
     () =>
       Object.fromEntries(
-        notificationCategories.map((c) => [
-          c,
-          (items ?? []).filter((n) => notificationCategory(n.type) === c && !n.readAt).length,
+        notificationTabs.map((tab) => [
+          tab,
+          (items ?? []).filter(
+            (n) =>
+              notificationTabCategories(tab).includes(notificationCategory(n.type)) && !n.readAt,
+          ).length,
         ]),
-      ) as Record<NotificationCategory, number>,
+      ) as Record<NotificationTab, number>,
     [items],
   );
-  const shown = (items ?? []).filter((n) => notificationCategory(n.type) === category);
+  const tabTotal = (items ?? []).filter((n) =>
+    notificationTabCategories(category).includes(notificationCategory(n.type)),
+  ).length;
+  const shown = (items ?? []).filter(
+    (n) =>
+      notificationTabCategories(category).includes(notificationCategory(n.type)) &&
+      (!unreadOnly || !n.readAt),
+  );
   const panel = (
     <div
       id="notifications-panel"
@@ -266,18 +368,8 @@ export function NotificationsBell() {
       data-testid="shell-notifications-panel"
     >
       <header className="oma-notifications-panel__head">
-        <strong>{isAr ? 'آخر النشاطات' : 'Recent activity'}</strong>
+        <strong>{t('shell.notifications')}</strong>
         <span className="oma-notifications-panel__actions">
-          {unread > 0 ? (
-            <button
-              type="button"
-              className="oma-notifications-panel__mark-all"
-              disabled={markingAll}
-              onClick={() => void markAll()}
-            >
-              {t('shell.markAllRead')}
-            </button>
-          ) : null}
           <button
             type="button"
             className="oma-notifications-panel__close"
@@ -288,8 +380,30 @@ export function NotificationsBell() {
           </button>
         </span>
       </header>
+
+      {!slackHidden ? (
+        <div className="oma-notifications-panel__slack" data-testid="shell-notifications-slack">
+          <div className="oma-notifications-panel__slack-copy">
+            <span className="oma-notifications-panel__slack-mark" aria-hidden>
+              #
+            </span>
+            <p>
+              {isAr ? 'استقبل الإشعارات في Slack.' : 'Bring notifications to Slack.'}
+            </p>
+          </div>
+          <div className="oma-notifications-panel__slack-actions">
+            <button type="button" onClick={() => setSlackHidden(true)}>
+              {isAr ? 'إخفاء' : 'Hide'}
+            </button>
+            <button type="button" className="is-primary" disabled title={t('demo.settings.notificationsHonesty')}>
+              {isAr ? 'ربط' : 'Connect'}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       <div className="oma-notifications-panel__tabs" role="tablist">
-        {notificationCategories.map((c) => (
+        {notificationTabs.map((c) => (
           <button
             key={c}
             type="button"
@@ -298,18 +412,54 @@ export function NotificationsBell() {
             className={category === c ? 'is-active' : ''}
             onClick={() => setCategory(c)}
           >
-            <NotificationTypeIcon category={c} size={16} />
-            <span>{notificationCategoryLabel(c, isAr)}</span>
+            <span>{notificationTabLabel(c, isAr)}</span>
             {counts[c] > 0 ? <b>{counts[c]}</b> : null}
           </button>
         ))}
       </div>
+
+      <div className="oma-notifications-panel__unread-row">
+        <label className="oma-notifications-panel__unreads">
+          <span>{isAr ? 'غير المقروءة' : 'Unreads'}</span>
+          <input
+            type="checkbox"
+            role="switch"
+            aria-checked={unreadOnly}
+            checked={unreadOnly}
+            onChange={(e) => setUnreadOnly(e.target.checked)}
+            data-testid="shell-notifications-unreads-toggle"
+          />
+        </label>
+        <div className="oma-notifications-panel__menu-wrap">
+          <button
+            type="button"
+            className="oma-notifications-panel__menu"
+            aria-expanded={menuOpen}
+            aria-label={isAr ? 'المزيد' : 'More'}
+            onClick={() => setMenuOpen((v) => !v)}
+          >
+            <MoreOutlined />
+          </button>
+          {menuOpen ? (
+            <div className="oma-notifications-panel__menu-pop">
+              <button
+                type="button"
+                disabled={markingAll || unread === 0}
+                onClick={() => void markAll()}
+              >
+                {t('shell.markAllRead')}
+              </button>
+            </div>
+          ) : null}
+        </div>
+      </div>
+
       {error ? (
         <p role="alert" className="oma-notifications-panel__error">
           {error}
         </p>
       ) : items === null ? (
-        <p role="status" className="oma-muted">
+        <p role="status" className="oma-muted oma-notifications-panel__loading">
           {t('common.loading')}
         </p>
       ) : shown.length === 0 ? (
@@ -338,6 +488,13 @@ export function NotificationsBell() {
         >
           {t('shell.notificationsViewAll')}
         </Link>
+        {!unreadOnly && tabTotal > shown.length ? (
+          <span className="oma-notifications-panel__foot-meta">
+            {isAr
+              ? `${shown.length} من ${tabTotal}`
+              : `${shown.length} of ${tabTotal} in this tab`}
+          </span>
+        ) : null}
       </footer>
     </div>
   );
@@ -365,7 +522,7 @@ export function NotificationsBell() {
         open={open}
         onClose={() => setOpen(false)}
         placement={isAr ? 'left' : 'right'}
-        size={320}
+        size={400}
         mask={true}
         closable={false}
         title={null}

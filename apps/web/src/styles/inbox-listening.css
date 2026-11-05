@@ -4053,8 +4053,14 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+}
+
+@media (min-width: 1100px) {
+  .oma-plx-team-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 .oma-plx-team-card {
@@ -4252,12 +4258,6 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
 
 .oma-plx-team-empty {
   padding: 24px 8px;
-}
-
-@media (max-width: 640px) {
-  .oma-plx-team-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 /* Brand workspace — Social Inbox / plx shell */
