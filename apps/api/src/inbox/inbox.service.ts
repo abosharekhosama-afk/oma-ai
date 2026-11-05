@@ -2,6 +2,8 @@ import { getPrisma, tenantWhere } from '@oma/db';
 import { DomainError, newId } from '@oma/domain';
 import { classifySentiment } from './sentiment';
 import { tryPlatformReply } from './platform-reply';
+import { deletePlatformComment, hidePlatformComment } from './platform-message-actions';
+import { enqueueInboxSync } from './enqueue-inbox';
 
 type Platform = 'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN';
 type ConvType = 'DIRECT_MESSAGE' | 'POST_COMMENT' | 'DARK_COMMENT' | 'MENTION';
@@ -20,6 +22,9 @@ export type ListConversationsQuery = {
   assignedTo?: string;
   /** when true, only unassigned */
   unassigned?: boolean;
+  /** when true, last message is inbound (needs a reply). */
+  unanswered?: boolean;
+  brandId?: string;
   priority?: boolean;
   tag?: string;
   q?: string;
@@ -62,6 +67,7 @@ function mapConv(c: {
   firstResponseAt: Date | null;
   closedAt: Date | null;
   metadataJson?: string | null;
+  lastMessageDirection?: string | null;
 }) {
   return {
     id: c.id,
@@ -84,24 +90,33 @@ function mapConv(c: {
     firstResponseAt: c.firstResponseAt?.toISOString() ?? null,
     closedAt: c.closedAt?.toISOString() ?? null,
     metadataJson: c.metadataJson ?? null,
+    lastMessageDirection: c.lastMessageDirection ?? null,
   };
 }
 
 export class InboxService {
-  async stats(tenantId: string) {
-    const base = tenantWhere(tenantId, {});
-    const [total, unread, open, pending, closed, priority, unassigned] = await Promise.all([
+  async stats(tenantId: string, brandId?: string) {
+    const brandScope = brandId ? { brandId } : {};
+    const base = tenantWhere(tenantId, brandScope);
+    const [total, unread, open, pending, closed, priority, unassigned, unanswered] = await Promise.all([
       getPrisma().inboxConversation.count({ where: base }),
-      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { status: 'UNREAD' }) }),
-      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { status: 'OPEN' }) }),
-      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { status: 'PENDING' }) }),
-      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { status: 'CLOSED' }) }),
-      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { priority: true }) }),
+      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { ...brandScope, status: 'UNREAD' }) }),
+      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { ...brandScope, status: 'OPEN' }) }),
+      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { ...brandScope, status: 'PENDING' }) }),
+      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { ...brandScope, status: 'CLOSED' }) }),
+      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { ...brandScope, priority: true }) }),
       getPrisma().inboxConversation.count({
-        where: tenantWhere(tenantId, { assignedToUserId: null, status: { not: 'CLOSED' } }),
+        where: tenantWhere(tenantId, { ...brandScope, assignedToUserId: null, status: { not: 'CLOSED' } }),
+      }),
+      getPrisma().inboxConversation.count({
+        where: tenantWhere(tenantId, {
+          ...brandScope,
+          lastMessageDirection: 'INBOUND',
+          status: { in: ['UNREAD', 'OPEN', 'PENDING'] },
+        }),
       }),
     ]);
-    return { total, unread, open, pending, closed, priority, unassigned };
+    return { total, unread, open, pending, closed, priority, unassigned, unanswered };
   }
 
   async listConversations(tenantId: string, q: ListConversationsQuery) {
@@ -115,12 +130,19 @@ export class InboxService {
           : {};
 
     const where = tenantWhere(tenantId, {
+      ...(q.brandId ? { brandId: q.brandId } : {}),
       ...(q.platform ? { platform: q.platform } : {}),
       ...(q.status ? { status: q.status } : {}),
       ...(q.category ? categoryTypes : q.type ? { type: q.type } : {}),
       ...(q.sentiment ? { sentiment: q.sentiment } : {}),
       ...(q.priority === true ? { priority: true } : {}),
       ...(q.unassigned ? { assignedToUserId: null } : {}),
+      ...(q.unanswered
+        ? {
+            lastMessageDirection: 'INBOUND',
+            status: { in: ['UNREAD', 'OPEN', 'PENDING'] as Status[] },
+          }
+        : {}),
       ...(q.assignedTo ? { assignedToUserId: q.assignedTo } : {}),
       ...(q.tag
         ? {
@@ -202,7 +224,12 @@ export class InboxService {
     };
   }
 
-  async reply(tenantId: string, userId: string, id: string, body: { content?: string }) {
+  async reply(
+    tenantId: string,
+    userId: string,
+    id: string,
+    body: { content?: string; replyToMessageId?: string },
+  ) {
     const content = (body.content ?? '').trim();
     if (!content) {
       throw new DomainError('VALIDATION_FAILED', 'Reply content required', 400, 'errors.validation');
@@ -212,6 +239,25 @@ export class InboxService {
     });
     if (!c) throw new DomainError('NOT_FOUND', 'Conversation not found', 404, 'errors.not_found');
 
+    let replyToCommentId: string | null = null;
+    if (c.type !== 'DIRECT_MESSAGE') {
+      if (body.replyToMessageId) {
+        const target = await getPrisma().inboxMessage.findFirst({
+          where: { id: body.replyToMessageId, conversationId: id, tenantId },
+          select: { externalMessageId: true },
+        });
+        replyToCommentId = target?.externalMessageId ?? null;
+      }
+      if (!replyToCommentId) {
+        const lastInbound = await getPrisma().inboxMessage.findFirst({
+          where: { conversationId: id, direction: 'INBOUND' },
+          orderBy: { createdAt: 'desc' },
+          select: { externalMessageId: true },
+        });
+        replyToCommentId = lastInbound?.externalMessageId ?? null;
+      }
+    }
+
     const delivery = await tryPlatformReply({
       tenantId,
       platform: c.platform as Platform,
@@ -220,6 +266,7 @@ export class InboxService {
       externalThreadId: c.externalThreadId,
       type: c.type,
       participantExtId: c.participantExtId,
+      replyToCommentId,
       content,
     });
 
@@ -251,6 +298,7 @@ export class InboxService {
           messageCount: { increment: 1 },
           status: c.status === 'CLOSED' ? 'OPEN' : c.status === 'UNREAD' ? 'OPEN' : c.status,
           firstResponseAt: c.firstResponseAt ?? now,
+          lastMessageDirection: 'OUTBOUND',
         },
       }),
     ]);
@@ -373,6 +421,100 @@ export class InboxService {
     return { updated: result.count };
   }
 
+  async requestSync(tenantId: string, brandId?: string | null) {
+    const queued = await enqueueInboxSync({
+      tenantId,
+      brandId: brandId ?? null,
+      requestedAt: new Date().toISOString(),
+    });
+    if (!queued) {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'Inbox sync queue unavailable (Redis). Try again or check worker.',
+        503,
+        'errors.unavailable',
+      );
+    }
+    return { queued: true };
+  }
+
+  async connectionStatus(tenantId: string, brandId?: string | null) {
+    const pages = await getPrisma().socialPage.findMany({
+      where: {
+        tenantId,
+        status: 'CONNECTED',
+        network: { in: ['FACEBOOK', 'INSTAGRAM'] },
+        ...(brandId ? { brandId } : {}),
+      },
+      select: { id: true, name: true, network: true, metaJson: true, brandId: true },
+    });
+    const lastSync = pages.reduce<string | null>((acc, p) => {
+      try {
+        const meta = JSON.parse(p.metaJson || '{}') as { lastInboxSyncAt?: string };
+        const t = meta.lastInboxSyncAt;
+        if (!t) return acc;
+        if (!acc || t > acc) return t;
+        return acc;
+      } catch {
+        return acc;
+      }
+    }, null);
+    return {
+      connectedPages: pages.length,
+      pages: pages.map((p) => ({
+        id: p.id,
+        name: p.name,
+        network: p.network,
+        brandId: p.brandId,
+      })),
+      lastSyncAt: lastSync,
+      realtimeWebhooks: Boolean(process.env.META_APP_SECRET?.trim()),
+    };
+  }
+
+  async hideMessage(tenantId: string, messageId: string) {
+    const msg = await getPrisma().inboxMessage.findFirst({
+      where: { id: messageId, tenantId },
+      include: { conversation: true },
+    });
+    if (!msg) throw new DomainError('NOT_FOUND', 'Message not found', 404, 'errors.not_found');
+    if (!msg.externalMessageId) {
+      throw new DomainError('CONFLICT_STATE', 'Message has no platform id', 409, 'errors.conflict');
+    }
+    const r = await hidePlatformComment({
+      tenantId,
+      socialPageId: msg.conversation.socialPageId,
+      brandId: msg.conversation.brandId,
+      externalCommentId: msg.externalMessageId,
+    });
+    if (!r.ok) {
+      throw new DomainError('CONFLICT_STATE', r.reason ?? 'Hide failed', 502, 'errors.external');
+    }
+    return { ok: true };
+  }
+
+  async deleteMessage(tenantId: string, messageId: string) {
+    const msg = await getPrisma().inboxMessage.findFirst({
+      where: { id: messageId, tenantId },
+      include: { conversation: true },
+    });
+    if (!msg) throw new DomainError('NOT_FOUND', 'Message not found', 404, 'errors.not_found');
+    if (!msg.externalMessageId) {
+      throw new DomainError('CONFLICT_STATE', 'Message has no platform id', 409, 'errors.conflict');
+    }
+    const r = await deletePlatformComment({
+      tenantId,
+      socialPageId: msg.conversation.socialPageId,
+      brandId: msg.conversation.brandId,
+      externalCommentId: msg.externalMessageId,
+    });
+    if (!r.ok) {
+      throw new DomainError('CONFLICT_STATE', r.reason ?? 'Delete failed', 502, 'errors.external');
+    }
+    await getPrisma().inboxMessage.delete({ where: { id: messageId } });
+    return { ok: true };
+  }
+
   /** Upsert used by webhook worker after parsing platform payloads. */
   async ingestInbound(input: {
     tenantId: string;
@@ -460,6 +602,7 @@ export class InboxService {
           sentiment,
           priority: existing?.priority || priority,
           status: existing?.status === 'CLOSED' ? 'UNREAD' : existing?.status ?? 'UNREAD',
+          lastMessageDirection: 'INBOUND',
           participantName: input.senderName,
           participantAvatar: input.senderAvatar ?? null,
         },

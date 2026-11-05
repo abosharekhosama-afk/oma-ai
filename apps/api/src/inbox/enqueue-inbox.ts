@@ -14,6 +14,13 @@ export type ListeningPollJob = {
   ruleId: string;
 };
 
+export type InboxSyncJob = {
+  tenantId: string;
+  brandId?: string | null;
+  sinceDays?: number;
+  requestedAt: string;
+};
+
 function connection() {
   const url = process.env.REDIS_URL;
   if (!url) return null;
@@ -33,6 +40,28 @@ export async function enqueueInboxWebhook(payload: InboxWebhookJob): Promise<boo
       backoff: { type: 'exponential', delay: 2000 },
       removeOnComplete: 1000,
       removeOnFail: 5000,
+    });
+    return true;
+  } finally {
+    await queue.close().catch(() => undefined);
+    conn.disconnect();
+  }
+}
+
+export async function enqueueInboxSync(payload: InboxSyncJob): Promise<boolean> {
+  const conn = connection();
+  if (!conn) return false;
+  const queue = new Queue('inbox', {
+    connection: conn,
+    prefix: process.env.BULLMQ_PREFIX || 'oma',
+  });
+  try {
+    await queue.add('inbox.sync', payload, {
+      jobId: `inbox-sync-${payload.tenantId}-${payload.brandId ?? 'all'}-${Date.now()}`,
+      attempts: 2,
+      backoff: { type: 'exponential', delay: 5000 },
+      removeOnComplete: 500,
+      removeOnFail: 2000,
     });
     return true;
   } finally {

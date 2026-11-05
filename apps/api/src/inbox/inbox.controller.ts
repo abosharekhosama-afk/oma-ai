@@ -22,8 +22,8 @@ function ctx(req: Request) {
 export class InboxController {
   @Get('api/v1/inbox/stats')
   @UseGuards(AuthGuard, CapabilitiesGuard)
-  stats(@Req() req: Request) {
-    return inboxService.stats(ctx(req).tenantId);
+  stats(@Req() req: Request, @Query('brandId') brandId?: string) {
+    return inboxService.stats(ctx(req).tenantId, brandId || undefined);
   }
 
   @Get('api/v1/inbox/conversations')
@@ -39,6 +39,8 @@ export class InboxController {
     @Query('unassigned') unassigned?: string,
     @Query('priority') priority?: string,
     @Query('tag') tag?: string,
+    @Query('brandId') brandId?: string,
+    @Query('unanswered') unanswered?: string,
     @Query('q') q?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -53,6 +55,8 @@ export class InboxController {
       sentiment: sentiment as never,
       assignedTo,
       unassigned: unassigned === '1' || unassigned === 'true',
+      unanswered: unanswered === '1' || unanswered === 'true',
+      brandId: brandId || undefined,
       priority: priority === '1' || priority === 'true' ? true : undefined,
       tag,
       q,
@@ -69,7 +73,11 @@ export class InboxController {
 
   @Post('api/v1/inbox/conversations/:id/reply')
   @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
-  reply(@Req() req: Request, @Param('id') id: string, @Body() body: { content?: string }) {
+  reply(
+    @Req() req: Request,
+    @Param('id') id: string,
+    @Body() body: { content?: string; replyToMessageId?: string },
+  ) {
     const c = ctx(req);
     return inboxService.reply(c.tenantId, c.userId, id, body);
   }
@@ -114,6 +122,30 @@ export class InboxController {
       throw new DomainError('VALIDATION_FAILED', 'status required', 400, 'errors.validation');
     }
     return inboxService.updateStatus(ctx(req).tenantId, id, body.status);
+  }
+
+  @Post('api/v1/inbox/sync')
+  @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
+  sync(@Req() req: Request, @Body() body: { brandId?: string | null }) {
+    return inboxService.requestSync(ctx(req).tenantId, body.brandId);
+  }
+
+  @Get('api/v1/inbox/connections')
+  @UseGuards(AuthGuard, CapabilitiesGuard)
+  connections(@Req() req: Request, @Query('brandId') brandId?: string) {
+    return inboxService.connectionStatus(ctx(req).tenantId, brandId || undefined);
+  }
+
+  @Post('api/v1/inbox/messages/:messageId/hide')
+  @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
+  hideMessage(@Req() req: Request, @Param('messageId') messageId: string) {
+    return inboxService.hideMessage(ctx(req).tenantId, messageId);
+  }
+
+  @Post('api/v1/inbox/messages/:messageId/delete')
+  @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
+  deleteMessage(@Req() req: Request, @Param('messageId') messageId: string) {
+    return inboxService.deleteMessage(ctx(req).tenantId, messageId);
   }
 
   @Post('api/v1/inbox/conversations/bulk')

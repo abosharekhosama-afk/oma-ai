@@ -18,6 +18,8 @@ import {
 import { AuditService } from '../audit/audit.service';
 import { syncContentPublishRollup } from './publish-target-sync';
 import { billingService } from '../billing/billing.service';
+import { subscribeMetaPageWebhooks } from '../inbox/meta-subscribe';
+import { enqueueInboxSync } from '../inbox/enqueue-inbox';
 
 const STATE_TTL_MS = 15 * 60_000;
 const notFound = () => new DomainError('NOT_FOUND', 'Not found', 404, 'errors.not_found');
@@ -242,6 +244,16 @@ export class SocialService {
           },
           update: data,
         });
+        if (network === 'facebook') {
+          void subscribeMetaPageWebhooks(a.externalId, a.token.accessToken).catch(() => undefined);
+        }
+        if (network === 'facebook' || network === 'instagram') {
+          void enqueueInboxSync({
+            tenantId: row.tenantId,
+            brandId: row.brandId,
+            requestedAt: new Date().toISOString(),
+          }).catch(() => undefined);
+        }
       }
       await this.audit.write({
         actorUserId: row.userId,

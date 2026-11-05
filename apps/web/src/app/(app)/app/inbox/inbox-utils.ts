@@ -53,6 +53,7 @@ export type InboxPostMeta = {
   postThumbnailUrl?: string;
   postCaption?: string;
   channelName?: string;
+  postPermalink?: string;
 };
 
 export function parseInboxPostMeta(metadataJson: string | null | undefined): InboxPostMeta {
@@ -63,6 +64,7 @@ export function parseInboxPostMeta(metadataJson: string | null | undefined): Inb
       postThumbnailUrl: typeof v.postThumbnailUrl === 'string' ? v.postThumbnailUrl : undefined,
       postCaption: typeof v.postCaption === 'string' ? v.postCaption : undefined,
       channelName: typeof v.channelName === 'string' ? v.channelName : undefined,
+      postPermalink: typeof v.postPermalink === 'string' ? v.postPermalink : undefined,
     };
   } catch {
     return {};

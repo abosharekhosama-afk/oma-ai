@@ -17,6 +17,8 @@ export async function tryPlatformReply(input: {
   externalThreadId: string;
   type: string;
   participantExtId?: string | null;
+  /** For comment threads: Graph comment id to reply under. */
+  replyToCommentId?: string | null;
   content: string;
 }): Promise<PlatformReplyResult> {
   if (input.platform === 'TIKTOK' || input.platform === 'LINKEDIN') {
@@ -64,11 +66,21 @@ export async function tryPlatformReply(input: {
     });
   }
 
-  // Comments / mentions: reply to comment id when thread id looks like a comment/post id
+  const commentId =
+    input.replyToCommentId ||
+    (input.externalThreadId.includes(':') ? null : input.externalThreadId);
+  if (!commentId) {
+    return {
+      ok: false,
+      delivered: false,
+      reason: 'Missing platform comment id for reply. Run inbox sync or open the thread from a synced comment.',
+    };
+  }
   return sendMetaCommentReply({
     accessToken,
-    commentOrMediaId: input.externalThreadId,
+    commentId,
     text: input.content,
+    platform: input.platform,
   });
 }
 
@@ -148,16 +160,19 @@ async function sendMetaPrivateMessage(input: {
 
 async function sendMetaCommentReply(input: {
   accessToken: string;
-  commentOrMediaId: string;
+  commentId: string;
   text: string;
+  platform: 'META_FB' | 'META_IG';
 }): Promise<PlatformReplyResult> {
-  const id = input.commentOrMediaId.split(':')[0] || input.commentOrMediaId;
-  const url = `https://graph.facebook.com/v21.0/${encodeURIComponent(id)}/replies?access_token=${encodeURIComponent(input.accessToken)}`;
+  const v = process.env.META_GRAPH_VERSION || 'v21.0';
+  const path = `${encodeURIComponent(input.commentId)}/${input.platform === 'META_IG' ? 'replies' : 'comments'}`;
+  const url = `https://graph.facebook.com/${v}/${path}?access_token=${encodeURIComponent(input.accessToken)}`;
+  const bodyField = input.platform === 'META_IG' ? { message: input.text } : { message: input.text };
   try {
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ message: input.text }),
+      body: JSON.stringify(bodyField),
     });
     const body = (await res.json().catch(() => ({}))) as {
       id?: string;
