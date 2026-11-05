@@ -3,6 +3,19 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from '@oma/ui/controls';
 import {
+  AtSignOutlined,
+  BarChartOutlined,
+  CommentOutlined,
+  DownOutlined,
+  DownloadOutlined,
+  FilterOutlined,
+  HeartOutlined,
+  InfoCircleOutlined,
+  MinusCircleOutlined,
+  SmileOutlined,
+  ZapOutlined,
+} from '../../../../components/ui/lucide-icons';
+import {
   listListeningHits,
   listListeningRules,
   type ListeningHit,
@@ -11,17 +24,23 @@ import {
 import { resolveActiveBrand, useActiveBrandId } from '../../../../lib/active-brand';
 import { listScopedBrands } from '../../../../lib/campaign-api';
 import { useT } from '../../../../lib/use-locale';
+import { ListeningDateRange, resolveDateRange, type DateRangeValue } from './listening-date-range';
+import { ListeningSourceMenu } from './listening-source-menu';
+import { ListeningVolumeChart } from './listening-volume-chart';
 import {
   exportHitsCsv,
   formatCount,
   highlightKeywords,
   hitEngagement,
+  hitInDateRange,
+  hitThumbnail,
+  isNewHit,
   platformLabel,
   platformShort,
   relativeDay,
   sentimentTotals,
   totalEngagement,
-  volumeByDay,
+  volumeByDateRange,
   type ListeningView,
 } from './listening-utils';
 
@@ -36,80 +55,6 @@ function ruleForView(rules: ListeningRule[], view: ListeningView): ListeningRule
     return rules.find((r) => /topic|hashtag/i.test(r.name)) ?? rules[0] ?? null;
   }
   return rules.find((r) => /brand/i.test(r.name)) ?? rules[0] ?? null;
-}
-
-function MentionVolumeChart({
-  series,
-  mode,
-}: {
-  series: ReturnType<typeof volumeByDay>;
-  mode: 'total' | 'sentiment';
-}) {
-  const max = Math.max(1, ...series.map((d) => (mode === 'total' ? d.total : d.positive + d.neutral + d.negative)));
-  const w = 640;
-  const h = 160;
-  const pad = 8;
-  const step = (w - pad * 2) / Math.max(1, series.length - 1);
-
-  const line = (key: 'positive' | 'neutral' | 'negative' | 'total', color: string) => {
-    const pts = series.map((d, i) => {
-      const v = mode === 'total' ? d.total : d[key as 'positive' | 'neutral' | 'negative'];
-      const x = pad + i * step;
-      const y = h - pad - (v / max) * (h - pad * 2);
-      return `${x},${y}`;
-    });
-    return (
-      <polyline
-        key={key}
-        fill="none"
-        stroke={color}
-        strokeWidth="2"
-        points={pts.join(' ')}
-      />
-    );
-  };
-
-  return (
-    <div className="oma-plx-listening-chart">
-      <svg viewBox={`0 0 ${w} ${h}`} role="img" aria-label="Mention volume">
-        {[0.25, 0.5, 0.75].map((p) => (
-          <line
-            key={p}
-            x1={pad}
-            x2={w - pad}
-            y1={h - pad - p * (h - pad * 2)}
-            y2={h - pad - p * (h - pad * 2)}
-            className="oma-plx-listening-chart__grid"
-          />
-        ))}
-        {mode === 'total' ? line('total', '#2563eb') : (
-          <>
-            {line('positive', '#22c55e')}
-            {line('neutral', '#eab308')}
-            {line('negative', '#ef4444')}
-          </>
-        )}
-      </svg>
-      <div className="oma-plx-listening-chart__x">
-        {series.map((d) => (
-          <span key={d.key}>{d.label}</span>
-        ))}
-      </div>
-      {mode === 'sentiment' ? (
-        <div className="oma-plx-listening-chart__legend">
-          <span>
-            <i className="dot dot--pos" /> Positive
-          </span>
-          <span>
-            <i className="dot dot--neu" /> Neutral
-          </span>
-          <span>
-            <i className="dot dot--neg" /> Negative
-          </span>
-        </div>
-      ) : null}
-    </div>
-  );
 }
 
 function SentimentBar({ positive, neutral, negative, total }: ReturnType<typeof sentimentTotals>) {
@@ -138,6 +83,55 @@ function SentimentBar({ positive, neutral, negative, total }: ReturnType<typeof 
   );
 }
 
+function SentimentPill({
+  value,
+  onChange,
+  t,
+}: {
+  value: string;
+  onChange: (s: 'POSITIVE' | 'NEUTRAL' | 'NEGATIVE') => void;
+  t: (k: string) => string;
+}) {
+  const [open, setOpen] = useState(false);
+  const label =
+    value === 'POSITIVE'
+      ? t('listening.sentiment.positive') || 'Positive'
+      : value === 'NEGATIVE'
+        ? t('listening.sentiment.negative') || 'Negative'
+        : t('listening.sentiment.neutral') || 'Neutral';
+  return (
+    <div className="oma-plx-listening-sentiment-dd">
+      <button
+        type="button"
+        className={`oma-plx-listening-sent-pill sent--${value.toLowerCase()}`}
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+      >
+        {label}
+        <DownOutlined />
+      </button>
+      {open ? (
+        <div className="oma-plx-listening-sentiment-dd__menu" role="menu">
+          {(['POSITIVE', 'NEUTRAL', 'NEGATIVE'] as const).map((s) => (
+            <button
+              key={s}
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                onChange(s);
+                setOpen(false);
+              }}
+            >
+              <i className={`dot dot--${s === 'POSITIVE' ? 'pos' : s === 'NEGATIVE' ? 'neg' : 'neu'}`} />
+              {s.charAt(0) + s.slice(1).toLowerCase()}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function ListeningClient({ view }: { view: ListeningView }) {
   const t = useT();
   const activeBrandId = useActiveBrandId();
@@ -146,14 +140,18 @@ export function ListeningClient({ view }: { view: ListeningView }) {
   const [hits, setHits] = useState<ListeningHit[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [platform, setPlatform] = useState<string>('all');
+  const [platforms, setPlatforms] = useState<Set<string>>(() => new Set());
   const [sort, setSort] = useState<SortKey>('relevance');
   const [sentimentFilter, setSentimentFilter] = useState<SentimentFilter>('all');
   const [chartMode, setChartMode] = useState<'total' | 'sentiment'>('sentiment');
   const [filterOpen, setFilterOpen] = useState(false);
   const [contextDismissed, setContextDismissed] = useState(false);
   const [localSentiment, setLocalSentiment] = useState<Record<string, string>>({});
-  const [dateRange] = useState('7');
+  const [chartDayIndex, setChartDayIndex] = useState<number | null>(null);
+  const [hideOwnMentions, setHideOwnMentions] = useState(false);
+  const [showHidden, setShowHidden] = useState(false);
+  const [showExcluded, setShowExcluded] = useState(false);
+  const [dateRange, setDateRange] = useState<DateRangeValue>(() => resolveDateRange('7'));
 
   const activeRule = useMemo(() => ruleForView(rules, view), [rules, view]);
 
@@ -211,8 +209,10 @@ export function ListeningClient({ view }: { view: ListeningView }) {
       ...h,
       sentiment: (localSentiment[h.id] ?? h.sentiment) as ListeningHit['sentiment'],
     }));
-    if (platform !== 'all') list = list.filter((h) => h.platform === platform);
+    list = list.filter((h) => hitInDateRange(h, dateRange.start, dateRange.end));
+    if (platforms.size > 0) list = list.filter((h) => platforms.has(h.platform));
     if (sentimentFilter !== 'all') list = list.filter((h) => h.sentiment === sentimentFilter);
+    if (hideOwnMentions) list = list.filter((h) => !/^(oma|team|brand)/i.test(h.authorHandle || ''));
     if (sort === 'recency') {
       list = [...list].sort(
         (a, b) => new Date(b.capturedAt).getTime() - new Date(a.capturedAt).getTime(),
@@ -228,9 +228,22 @@ export function ListeningClient({ view }: { view: ListeningView }) {
       list = [...list].sort((a, b) => Number(b.isHighPriority) - Number(a.isHighPriority));
     }
     return list;
-  }, [hits, platform, sentimentFilter, sort, localSentiment]);
+  }, [
+    hits,
+    platforms,
+    sentimentFilter,
+    sort,
+    localSentiment,
+    dateRange,
+    hideOwnMentions,
+    showHidden,
+    showExcluded,
+  ]);
 
-  const series = useMemo(() => volumeByDay(filteredHits, Number(dateRange) || 7), [filteredHits, dateRange]);
+  const series = useMemo(
+    () => volumeByDateRange(filteredHits, dateRange.start, dateRange.end),
+    [filteredHits, dateRange],
+  );
   const sent = useMemo(() => sentimentTotals(filteredHits), [filteredHits]);
   const mentionCount = filteredHits.length;
   const engagementTotal = useMemo(() => totalEngagement(filteredHits), [filteredHits]);
@@ -250,34 +263,22 @@ export function ListeningClient({ view }: { view: ListeningView }) {
     <div className="oma-plx-listening" data-testid="listening-page" data-listening-view={view}>
       <header className="oma-plx-listening__toolbar">
         <div className="oma-plx-listening__toolbar-spacer" />
-        <button type="button" className="oma-plx-listening__range">
-          📅 {t('listening.range7') || 'Last 7 days'}
-        </button>
+        <ListeningDateRange value={dateRange} onChange={setDateRange} />
         <Button
           type="primary"
           size="small"
           className="oma-plx-listening__export"
           onClick={() => exportHitsCsv(filteredHits)}
         >
-          ↓ {t('listening.exportCsv') || 'Export CSV'}
+          <DownloadOutlined />
+          {t('listening.exportCsv') || 'Export CSV'}
         </Button>
       </header>
 
       <div className="oma-plx-listening__intro">
         <div>
           <h1 className="oma-plx-listening__title">{pageTitle}</h1>
-          {activeRule ? (
-            <label className="oma-plx-listening__source">
-              <span>{t('listening.source') || 'Source'}:</span>
-              <select value={platform} onChange={(e) => setPlatform(e.target.value)}>
-                <option value="all">{t('listening.allPlatforms') || 'All platforms'}</option>
-                <option value="META_IG">Instagram</option>
-                <option value="META_FB">Facebook</option>
-                <option value="TIKTOK">TikTok</option>
-                <option value="LINKEDIN">LinkedIn</option>
-              </select>
-            </label>
-          ) : null}
+          {activeRule ? <ListeningSourceMenu selected={platforms} onChange={setPlatforms} /> : null}
         </div>
         <p className="oma-plx-listening__next-check">{t('listening.nextCheck') || 'Next check in 2 days'}</p>
       </div>
@@ -295,7 +296,7 @@ export function ListeningClient({ view }: { view: ListeningView }) {
               <div className="oma-plx-listening-kpi__head">
                 <span>{t('listening.kpi.mentions') || 'Mentions'}</span>
                 <span className="oma-plx-listening-kpi__icon" aria-hidden>
-                  @
+                  <AtSignOutlined />
                 </span>
               </div>
               <strong className="oma-plx-listening-kpi__value">{mentionCount}</strong>
@@ -307,7 +308,7 @@ export function ListeningClient({ view }: { view: ListeningView }) {
               <div className="oma-plx-listening-kpi__head">
                 <span>{t('listening.kpi.engagement') || 'Engagement'}</span>
                 <span className="oma-plx-listening-kpi__icon" aria-hidden>
-                  ⚡
+                  <ZapOutlined />
                 </span>
               </div>
               <strong className="oma-plx-listening-kpi__value">{formatCount(engagementTotal)}</strong>
@@ -319,7 +320,7 @@ export function ListeningClient({ view }: { view: ListeningView }) {
               <div className="oma-plx-listening-kpi__head">
                 <span>{t('listening.kpi.sentiment') || 'Sentiment'}</span>
                 <span className="oma-plx-listening-kpi__icon" aria-hidden>
-                  ☺
+                  <SmileOutlined />
                 </span>
               </div>
               <SentimentBar {...sent} />
@@ -331,7 +332,7 @@ export function ListeningClient({ view }: { view: ListeningView }) {
               <h2>
                 {t('listening.volume') || 'Mention volume'}{' '}
                 <button type="button" className="oma-plx-listening-info" aria-label="Info">
-                  ⓘ
+                  <InfoCircleOutlined />
                 </button>
               </h2>
               <div className="oma-plx-listening-segment">
@@ -351,7 +352,12 @@ export function ListeningClient({ view }: { view: ListeningView }) {
                 </button>
               </div>
             </header>
-            <MentionVolumeChart series={series} mode={chartMode} />
+            <ListeningVolumeChart
+              series={series}
+              mode={chartMode}
+              selectedIndex={chartDayIndex}
+              onSelectIndex={setChartDayIndex}
+            />
           </section>
         </>
       ) : null}
@@ -361,12 +367,20 @@ export function ListeningClient({ view }: { view: ListeningView }) {
           <h2>
             {t('listening.mentions') || 'Mentions'}{' '}
             <button type="button" className="oma-plx-listening-info" aria-label="Info">
-              ⓘ
+              <InfoCircleOutlined />
             </button>
           </h2>
           <div className="oma-plx-listening-mentions__actions">
-            <button type="button" className="oma-plx-listening-icon-btn" aria-label="Download" onClick={() => exportHitsCsv(filteredHits)}>
-              ↓
+            <button
+              type="button"
+              className="oma-plx-listening-icon-btn"
+              aria-label="Download"
+              onClick={() => exportHitsCsv(filteredHits)}
+            >
+              <DownloadOutlined />
+            </button>
+            <button type="button" className="oma-plx-listening-icon-btn" aria-label="Hide">
+              <MinusCircleOutlined />
             </button>
             <div className="oma-plx-listening-filter">
               <button
@@ -375,23 +389,20 @@ export function ListeningClient({ view }: { view: ListeningView }) {
                 onClick={() => setFilterOpen((v) => !v)}
                 aria-expanded={filterOpen}
               >
+                <FilterOutlined />
                 {sort === 'relevance'
                   ? t('listening.sort.relevance') || 'By relevance'
                   : sort === 'engagement'
                     ? t('listening.sort.engagement') || 'By engagement'
                     : t('listening.sort.recency') || 'By recency'}
+                <DownOutlined />
               </button>
               {filterOpen ? (
                 <div className="oma-plx-listening-filter__menu" role="dialog">
                   <p className="oma-plx-listening-filter__label">{t('listening.sorting') || 'Sorting'}</p>
                   {(['relevance', 'engagement', 'recency'] as SortKey[]).map((k) => (
                     <label key={k} className="oma-plx-listening-filter__row">
-                      <input
-                        type="radio"
-                        name="sort"
-                        checked={sort === k}
-                        onChange={() => setSort(k)}
-                      />
+                      <input type="radio" name="sort" checked={sort === k} onChange={() => setSort(k)} />
                       {k === 'relevance'
                         ? t('listening.sort.relevance') || 'By relevance'
                         : k === 'engagement'
@@ -418,6 +429,19 @@ export function ListeningClient({ view }: { view: ListeningView }) {
                       {label}
                     </label>
                   ))}
+                  <p className="oma-plx-listening-filter__label">{t('listening.options') || 'Options'}</p>
+                  <label className="oma-plx-listening-filter__row">
+                    <input type="checkbox" checked={hideOwnMentions} onChange={(e) => setHideOwnMentions(e.target.checked)} />
+                    {t('listening.opt.hideOwn') || 'Hide own mentions'}
+                  </label>
+                  <label className="oma-plx-listening-filter__row">
+                    <input type="checkbox" checked={showHidden} onChange={(e) => setShowHidden(e.target.checked)} />
+                    {t('listening.opt.showHidden') || 'Show hidden mentions'}
+                  </label>
+                  <label className="oma-plx-listening-filter__row">
+                    <input type="checkbox" checked={showExcluded} onChange={(e) => setShowExcluded(e.target.checked)} />
+                    {t('listening.opt.showExcluded') || 'Show excluded sources'}
+                  </label>
                 </div>
               ) : null}
             </div>
@@ -426,6 +450,7 @@ export function ListeningClient({ view }: { view: ListeningView }) {
 
         {!contextDismissed && view === 'brand' ? (
           <div className="oma-plx-listening-context">
+            <InfoCircleOutlined className="oma-plx-listening-context__icon" aria-hidden />
             <div>
               <strong>{t('listening.contextTitle') || 'Add brand context for better relevance scores'}</strong>
               <p>
@@ -465,43 +490,38 @@ export function ListeningClient({ view }: { view: ListeningView }) {
         <ul className="oma-plx-listening-feed">
           {filteredHits.map((h) => {
             const eng = hitEngagement(h);
-            const sentLabel = h.sentiment ?? 'NEUTRAL';
+            const sentLabel = (h.sentiment ?? 'NEUTRAL') as string;
             const parts = highlightKeywords(h.content, keywords.length ? keywords : h.matchedKeywords);
+            const thumb = hitThumbnail(h);
             return (
               <li key={h.id} className="oma-plx-listening-card" data-testid={`listening-hit-${h.id}`}>
                 <div className="oma-plx-listening-card__top">
                   <div className="oma-plx-listening-card__author">
                     <span className="oma-plx-listening-card__avatar" aria-hidden>
-                      {(h.authorName || '?').slice(0, 1).toUpperCase()}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={thumb} alt="" />
                       <span className={`plat plat--${h.platform}`}>{platformShort(h.platform)}</span>
                     </span>
-                    <div>
-                      <strong>{h.authorName || 'Unknown'}</strong>
+                    <div className="oma-plx-listening-card__author-text">
+                      <div className="oma-plx-listening-card__name-row">
+                        <strong>{h.authorName || 'Unknown'}</strong>
+                        {isNewHit(h) ? <span className="oma-plx-listening-card__new">New</span> : null}
+                      </div>
                       <span className="oma-plx-listening-card__handle">
-                        {h.authorHandle || platformLabel(h.platform)} · {relativeDay(h.capturedAt)}
+                        {h.authorHandle ? `@${h.authorHandle.replace(/^@/, '')}` : platformLabel(h.platform)} ·{' '}
+                        {relativeDay(h.capturedAt)}
                       </span>
                     </div>
                   </div>
-                  <details className="oma-plx-listening-sentiment-dd">
-                    <summary className={`oma-plx-listening-sent-pill sent--${sentLabel.toLowerCase()}`}>
-                      {sentLabel.charAt(0) + sentLabel.slice(1).toLowerCase()}
-                    </summary>
-                    <div className="oma-plx-listening-sentiment-dd__menu">
-                      {(['POSITIVE', 'NEUTRAL', 'NEGATIVE'] as const).map((s) => (
-                        <button
-                          key={s}
-                          type="button"
-                          onClick={() => setLocalSentiment((prev) => ({ ...prev, [h.id]: s }))}
-                        >
-                          <i className={`dot dot--${s === 'POSITIVE' ? 'pos' : s === 'NEGATIVE' ? 'neg' : 'neu'}`} />
-                          {s.charAt(0) + s.slice(1).toLowerCase()}
-                        </button>
-                      ))}
-                    </div>
-                  </details>
+                  <SentimentPill
+                    value={sentLabel}
+                    t={t}
+                    onChange={(s) => setLocalSentiment((prev) => ({ ...prev, [h.id]: s }))}
+                  />
                 </div>
                 <div className="oma-plx-listening-card__body">
-                  <span className="oma-plx-listening-card__media" aria-hidden />
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img className="oma-plx-listening-card__media" src={thumb} alt="" />
                   <p>
                     {parts.map((p, i) =>
                       p.highlight ? (
@@ -515,8 +535,15 @@ export function ListeningClient({ view }: { view: ListeningView }) {
                   </p>
                 </div>
                 <footer className="oma-plx-listening-card__foot">
-                  <span>♥ {formatCount(eng.likes)}</span>
-                  <span>💬 {eng.comments}</span>
+                  <span>
+                    <HeartOutlined /> {formatCount(eng.likes)}
+                  </span>
+                  <span>
+                    <CommentOutlined /> {eng.comments}
+                  </span>
+                  <span>
+                    <BarChartOutlined /> {formatCount(eng.likes + eng.comments * 3)}
+                  </span>
                   {h.url ? (
                     <a href={h.url} target="_blank" rel="noreferrer" className="oma-plx-listening-card__link">
                       Open
