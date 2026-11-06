@@ -1,7 +1,8 @@
 'use client';
 
-import { Empty, Result, Skeleton as AntSkeleton } from '@oma/ui/controls';
+import { Empty, Skeleton as AntSkeleton } from '@oma/ui/controls';
 import type { ReactNode } from 'react';
+import { ErrorState as PlxErrorState } from './error-state';
 
 export function EmptyState({
   title,
@@ -54,11 +55,7 @@ export function ErrorState({
   body?: string;
   action?: ReactNode;
 }) {
-  return (
-    <div className="oma-error" role="alert">
-      <Result status="error" title={title} subTitle={body} extra={action} />
-    </div>
-  );
+  return <PlxErrorState kind="generic" compact title={title} body={body} action={action} />;
 }
 
 export function DeniedState({
@@ -70,11 +67,7 @@ export function DeniedState({
   body?: string;
   action?: ReactNode;
 }) {
-  return (
-    <div className="oma-denied" role="alert">
-      <Result status="403" title={title} subTitle={body} extra={action} />
-    </div>
-  );
+  return <PlxErrorState kind="forbidden" compact title={title} body={body} action={action} />;
 }
 
 /** Planable-style skeleton block — consistent height, soft pulse */

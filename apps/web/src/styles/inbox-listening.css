@@ -6790,3 +6790,57 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   font-weight: 500 !important;
   color: #667085;
 }
+
+.oma-plx-error {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+}
+
+.oma-plx-error__icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  background: #fef3c7;
+  color: #b45309;
+}
+
+.oma-plx-error__icon[data-kind='server'] {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.oma-plx-error__icon[data-kind='network'] {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.oma-plx-error__icon[data-kind='forbidden'] {
+  background: #f3f4f6;
+  color: #4b5563;
+}
+
+.oma-plx-error__icon[data-kind='notFound'] {
+  background: #f3e8ff;
+  color: #7c3aed;
+}
+
+.oma-plx-listening .oma-error-state,
+.oma-plx-workspace-surface .oma-error-state {
+  margin: 32px auto;
+}
+
+.oma-plx-content-feed .oma-pp__alt-ai {
+  border-color: #ddd6fe;
+  background: #f5f3ff;
+  color: #6d28d9;
+}
+
+.oma-plx-content-feed .oma-pp__alt-save {
+  background: #6d28d9;
+}

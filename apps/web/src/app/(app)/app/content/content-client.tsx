@@ -135,6 +135,7 @@ import {
   contentTypeLabel,
 } from '../../../../lib/demo/stage3-content';
 import { pickCopy } from '../../../../lib/demo/use-demo-api';
+import { proposeContentText } from '../../../../lib/content-ai';
 import {
   loadContentWorkspace,
   loadContentWorkspaceRest,
@@ -444,6 +445,7 @@ function PlanableComposeCard({
   onApplyTemplate,
   onCreateTemplate,
   brandName,
+  onGenerateAi,
 }: {
   brandId: string | null;
   scheduleTimezone: string;
@@ -466,6 +468,7 @@ function PlanableComposeCard({
   onApplyTemplate?: (tpl: BrandTemplateCard) => void;
   onCreateTemplate?: () => void;
   brandName?: string;
+  onGenerateAi?: (kind: 'caption' | 'idea') => Promise<string>;
 }) {
   const t = useT();
   const toast = useToast();
@@ -480,6 +483,7 @@ function PlanableComposeCard({
   const [labelDraft, setLabelDraft] = useState('');
   const [customDate, setCustomDate] = useState(false);
   const [showFirstComment, setShowFirstComment] = useState(true);
+  const [aiBusy, setAiBusy] = useState(false);
   if (!open) return null;
   const selectedCampaign = campaigns.find((c) => c.id === form.campaignId);
   const now = dayjs();
@@ -818,7 +822,23 @@ function PlanableComposeCard({
             <button
               type="button"
               className="oma-compose-ai-hint__show"
-              onClick={() => toast.push(t('demo.content.aiNotConnected'), 'default')}
+              disabled={aiBusy}
+              onClick={() => {
+                if (!onGenerateAi) {
+                  toast.push(t('demo.content.aiNotConnected'), 'default');
+                  return;
+                }
+                setAiBusy(true);
+                void onGenerateAi('idea')
+                  .then((text) => {
+                    onChange({ caption: text, title: form.title || text.slice(0, 80) });
+                    setAiHint(false);
+                  })
+                  .catch((err) =>
+                    toast.push(contentApiError(err, t('demo.content.aiNotConnected')), 'danger'),
+                  )
+                  .finally(() => setAiBusy(false));
+              }}
             >
               {isAr ? 'أرني' : 'Show me'}
             </button>
@@ -930,9 +950,34 @@ function PlanableComposeCard({
                 <button
                   type="button"
                   className="oma-compose-ai-gen"
-                  onClick={() => toast.push(t('demo.content.aiNotConnected'), 'default')}
+                  disabled={aiBusy}
+                  onClick={() => {
+                    if (!onGenerateAi) {
+                      toast.push(t('demo.content.aiNotConnected'), 'default');
+                      return;
+                    }
+                    setAiBusy(true);
+                    void onGenerateAi('caption')
+                      .then((text) =>
+                        onChange({ caption: text, title: form.title || text.slice(0, 80) }),
+                      )
+                      .catch((err) =>
+                        toast.push(
+                          contentApiError(err, t('demo.content.aiNotConnected')),
+                          'danger',
+                        ),
+                      )
+                      .finally(() => setAiBusy(false));
+                  }}
                 >
-                  ✦ {isAr ? 'توليد بالذكاء الاصطناعي' : 'Generate with AI'}
+                  ✦{' '}
+                  {aiBusy
+                    ? isAr
+                      ? 'جارٍ التوليد…'
+                      : 'Generating…'
+                    : isAr
+                      ? 'توليد بالذكاء الاصطناعي'
+                      : 'Generate with AI'}
                 </button>
               </>
             )}
@@ -1906,6 +1951,41 @@ export default function ContentPage() {
     }
   }
 
+  async function removeFeedMedia(contentId: string, src: string) {
+    const row = rows.find((r) => r.id === contentId) as ContentRowExtra | undefined;
+    const assetId = src.match(/\/media\/([^/?]+)\/view/)?.[1];
+    const ids = (row?.mediaAssetIds ?? []).filter((id) => id && id !== assetId);
+    try {
+      const api = await updateContentProduction(contentId, {
+        media_asset_ids: ids,
+        preview_asset_id: ids[0] ?? null,
+      });
+      setRows((prev) => prev.map((r) => (r.id === contentId ? toContentRow(api) : r)));
+    } catch (err) {
+      toast.push(contentApiError(err, t('errors.http')), 'danger');
+    }
+  }
+
+  function downloadFeedMedia(src: string) {
+    const link = document.createElement('a');
+    link.href = src;
+    link.download = src.split('/').pop()?.split('?')[0] || 'media';
+    link.target = '_blank';
+    link.rel = 'noopener';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  }
+
+  function saveFeedAlt(contentId: string, alt: string) {
+    try {
+      window.localStorage.setItem(`oma.content.alt.${contentId}`, alt);
+    } catch {
+      /* ignore */
+    }
+    toast.push(isAr ? 'تم حفظ النص البديل' : 'Alternative text saved', 'success');
+  }
+
   async function toggleHideFromClients(contentId: string) {
     const row = rows.find((r) => r.id === contentId);
     const currentlyVisible = (row as { clientVisible?: boolean })?.clientVisible !== false;
@@ -2384,6 +2464,23 @@ export default function ContentPage() {
           setFeedAttachId(item.id);
           setFeedLibraryOpen(true);
         }}
+        onRemoveMedia={(src) => void removeFeedMedia(item.id, src)}
+        onDownloadMedia={downloadFeedMedia}
+        onSaveAlt={(alt) => saveFeedAlt(item.id, alt)}
+        onGenerateAlt={() =>
+          proposeContentText({
+            kind: 'alt',
+            locale,
+            brandName: brandName(item.brandId),
+            channel: item.channel,
+            caption: item.caption ? pickCopy(item.caption, locale) : '',
+            title: pickCopy(item.title, locale),
+            contentId: item.id,
+          }).then((p) => {
+            toast.push(p.banner, 'default');
+            return p.text;
+          })
+        }
         comments={comments}
         canComment={mayComment}
         onAddComment={async (body) => {
@@ -3815,7 +3912,8 @@ export default function ContentPage() {
         <ApiErrorState
           compact
           kind={errorKind}
-          detail={errorKind === 'generic' ? error : null}
+          code={errorKind === 'server' ? '500' : errorKind === 'notFound' ? '404' : undefined}
+          detail={errorKind === 'generic' || errorKind === 'server' ? error : null}
           onRetry={() => void load()}
         />
       ) : null}
@@ -6800,6 +6898,19 @@ export default function ContentPage() {
             .catch((err) => toast.push(contentApiError(err, t('errors.http')), 'danger'));
         }}
         brandName={pickCopy(brands[0]?.name, locale)}
+        onGenerateAi={async (kind) => {
+          const proposal = await proposeContentText({
+            kind,
+            locale,
+            brandName: pickCopy(brands[0]?.name, locale),
+            channel: createForm.channel,
+            caption: createForm.caption,
+            title: createForm.title,
+            contentId: createForm.brandId || brands[0]?.id,
+          });
+          toast.push(proposal.banner, 'default');
+          return proposal.text;
+        }}
         open={createOpen}
         creating={creating}
         error={createError}

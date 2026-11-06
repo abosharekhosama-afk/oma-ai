@@ -119,7 +119,7 @@ describe('Planable feed row', () => {
   it('uses a single centered column with a side comments panel and no overlays', () => {
     const css = read('apps/web/src/styles/post-preview.css');
     expect(css).toMatch(/\.oma-content-feed--preview \{[^}]*flex-direction: column/);
-    expect(css).toMatch(/grid-template-columns: 32px minmax\(0, 500px\) 340px/);
+    expect(css).toMatch(/grid-template-columns: 36px minmax\(0, 520px\) minmax\(240px, 300px\)/);
     expect(css).not.toMatch(/oma-pp__v-(top|bottom)|rgb\(0 0 0 \/ (25|35)%\)/);
     expect(read('apps/web/src/components/content/post-preview.tsx')).not.toContain('oma-pp__v-');
   });
