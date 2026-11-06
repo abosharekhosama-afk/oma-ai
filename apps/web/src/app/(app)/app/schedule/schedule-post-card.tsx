@@ -65,7 +65,6 @@ export function SchedulePostCard({
       <button type="button" className="oma-plx-sched-post-card__hit" onClick={onOpen}>
         <div className="oma-plx-sched-post-card__media">
           {previewUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
             <img src={previewUrl} alt="" loading="lazy" />
           ) : (
             <span className="oma-plx-sched-post-card__media-fallback" aria-hidden>

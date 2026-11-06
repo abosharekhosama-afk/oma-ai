@@ -52,11 +52,9 @@ import { useLocale, useT } from '../../../../lib/use-locale';
 import {
   BarsOutlined,
   CloseOutlined,
-  FilterOutlined,
   SearchOutlined,
   DownOutlined,
   UpOutlined,
-  PlusOutlined,
   UserOutlined,
   FlagOutlined,
   UnorderedListOutlined,

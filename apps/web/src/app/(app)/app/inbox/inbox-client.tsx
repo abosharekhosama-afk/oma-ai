@@ -51,7 +51,6 @@ import {
   formatInboxPostDate,
   inboxPostThumbnailUrl,
   parseInboxPostMeta,
-  platformLabel,
   postCaption,
   relativeTime,
 } from './inbox-utils';
@@ -110,7 +109,6 @@ function PersonAvatar({
   if (imageUrl) {
     return (
       <span className={cls} aria-hidden>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={imageUrl} alt="" />
       </span>
     );
@@ -489,7 +487,6 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
       >
         {mode === 'comments' ? (
           <span className="oma-plx-inbox-row__media">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img className="oma-plx-inbox-row__thumb-img" src={thumbUrl} alt="" />
             <InboxPlatformBadge platform={it.platform} className="oma-plx-inbox-row__plat-badge" />
           </span>
@@ -711,7 +708,6 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
                   ) : null}
 
                   <article className="oma-plx-inbox-post oma-plx-inbox-post--row">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       className="oma-plx-inbox-post__thumb"
                       src={inboxPostThumbnailUrl(detail.id, detailMeta.postThumbnailUrl)}

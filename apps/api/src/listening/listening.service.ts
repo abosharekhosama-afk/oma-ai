@@ -341,7 +341,6 @@ export class ListeningService {
     const positive = current.filter((h) => h.sentiment === 'POSITIVE').length;
     const neutral = current.filter((h) => h.sentiment === 'NEUTRAL').length;
     const negative = current.filter((h) => h.sentiment === 'NEGATIVE').length;
-    const total = positive + neutral + negative || 1;
 
     const lastPollAt = rules[0]?.lastPollAt ?? null;
     const pollIntervalMs = 5 * 60 * 1000;

@@ -1164,7 +1164,6 @@ export default function SchedulePage() {
                   : null;
                 return previewUrl ? (
                   <div className="oma-plx-sched-detail-card__cover">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={previewUrl} alt="" />
                   </div>
                 ) : (

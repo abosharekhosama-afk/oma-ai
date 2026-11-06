@@ -6,18 +6,10 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PlxHeaderFilter } from '../../../../components/ui/plx-header-filter';
 import type { DemoGraph } from '@oma/demo';
-import {
-  Button,
-  DatePicker,
-  Drawer as AntDrawer,
-  Input,
-  OmaSelect,
-  TextArea,
-} from '@oma/ui/controls';
+import { Button, DatePicker, Input, OmaSelect, TextArea } from '@oma/ui/controls';
 import { ChannelChoiceCards } from '../../../../components/content/channel-choice-cards';
 import { listWorkspaceMembers, type WorkspaceMember } from '../../../../lib/team-api';
 import { api } from '../../../../lib/api';
-import { ShellIcon } from '../../../../components/shell/shell-icons';
 import dayjs from 'dayjs';
 import { Dialog } from '../../../../components/ui/dialog';
 import { EmptyState } from '../../../../components/ui/empty-state';
@@ -45,7 +37,6 @@ import {
 import { useLocale, useT } from '../../../../lib/use-locale';
 import { RequestsShimmer } from '../../../../components/ui/screen-shimmer';
 import {
-  CloseOutlined,
   SearchOutlined,
   CheckCircleOutlined,
   FlagOutlined,

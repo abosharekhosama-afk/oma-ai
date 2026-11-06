@@ -23,28 +23,6 @@ type InboxSyncJob = {
   requestedAt: string;
 };
 
-type Sentiment = 'POSITIVE' | 'NEUTRAL' | 'NEGATIVE';
-
-const NEG =
-  /\b(bad|awful|terrible|hate|angry|worst|scam|refund|broken|disappointed|horrible|poor|fail)\b|سيء|سيئة|فظيع|احتيال|استرجاع|غاضب|محبط/i;
-const POS =
-  /\b(great|love|amazing|excellent|thanks|thank you|awesome|perfect|wonderful|best)\b|رائع|ممتاز|شكرا|أحب|ممتازة|جميل/i;
-
-function classifySentiment(text: string): Sentiment {
-  const t = (text || '').trim();
-  if (!t) return 'NEUTRAL';
-  const neg = NEG.test(t);
-  const pos = POS.test(t);
-  if (neg && !pos) return 'NEGATIVE';
-  if (pos && !neg) return 'POSITIVE';
-  return 'NEUTRAL';
-}
-
-function previewOf(text: string, max = 140) {
-  const t = text.replace(/\s+/g, ' ').trim();
-  return t.length <= max ? t : `${t.slice(0, max - 1)}…`;
-}
-
 type ParsedInbound = {
   tenantId?: string;
   platform: InboxWebhookJob['platform'];

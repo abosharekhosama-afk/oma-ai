@@ -655,7 +655,6 @@ export function ListeningClient({ view }: { view: ListeningView }) {
                 <div className="oma-plx-listening-card__top">
                   <div className="oma-plx-listening-card__author">
                     <span className="oma-plx-listening-card__avatar" aria-hidden>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={thumb} alt="" />
                       <span className={`plat plat--${h.platform}`}>
                         {platformShort(h.platform)}
@@ -683,7 +682,6 @@ export function ListeningClient({ view }: { view: ListeningView }) {
                   />
                 </div>
                 <div className="oma-plx-listening-card__body">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img className="oma-plx-listening-card__media" src={thumb} alt="" />
                   <p>
                     {parts.map((p, i) =>
