@@ -219,7 +219,8 @@ export default function ReviewsPage() {
                               <span className="oma-ltr">{d.dueAt || '—'}</span>
                             </p>
                             <p className="oma-plx-review-card__comments">
-                              {unresolvedCount(d)} {t('demo.deliverables.col.comments').toLowerCase()}
+                              {unresolvedCount(d)}{' '}
+                              {t('demo.deliverables.col.comments').toLowerCase()}
                             </p>
                           </div>
                           <span

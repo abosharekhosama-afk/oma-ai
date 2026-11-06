@@ -22,11 +22,38 @@ export function InboxAllDoneIllustration() {
         strokeWidth="1.5"
       />
       <path d="M40 72 L100 96 L160 72" fill="none" stroke="#93c5fd" strokeWidth="1.5" />
-      <rect x="118" y="28" width="36" height="24" rx="8" fill="#eff6ff" stroke="#93c5fd" strokeWidth="1.2" />
+      <rect
+        x="118"
+        y="28"
+        width="36"
+        height="24"
+        rx="8"
+        fill="#eff6ff"
+        stroke="#93c5fd"
+        strokeWidth="1.2"
+      />
       <path d="M124 40 h24" stroke="#60a5fa" strokeWidth="2" strokeLinecap="round" />
-      <rect x="72" y="16" width="32" height="22" rx="7" fill="#dbeafe" stroke="#93c5fd" strokeWidth="1.2" />
+      <rect
+        x="72"
+        y="16"
+        width="32"
+        height="22"
+        rx="7"
+        fill="#dbeafe"
+        stroke="#93c5fd"
+        strokeWidth="1.2"
+      />
       <circle cx="88" cy="27" r="2" fill="#60a5fa" />
-      <rect x="46" y="36" width="28" height="20" rx="6" fill="#f0f9ff" stroke="#bae6fd" strokeWidth="1.2" />
+      <rect
+        x="46"
+        y="36"
+        width="28"
+        height="20"
+        rx="6"
+        fill="#f0f9ff"
+        stroke="#bae6fd"
+        strokeWidth="1.2"
+      />
     </svg>
   );
 }

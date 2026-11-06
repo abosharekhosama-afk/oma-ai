@@ -142,7 +142,10 @@ export default function ActivityPage() {
                 <p>{t('activity.emptyBody')}</p>
               </div>
             ) : (
-              <ul className="oma-plx-listening-feed oma-plx-activity-feed" data-testid="activity-feed">
+              <ul
+                className="oma-plx-listening-feed oma-plx-activity-feed"
+                data-testid="activity-feed"
+              >
                 {filtered.map((item) => (
                   <ActivityFeedItem key={item.id} item={item} locale={locale} t={t} />
                 ))}

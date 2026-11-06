@@ -25,8 +25,10 @@ type InboxSyncJob = {
 
 type Sentiment = 'POSITIVE' | 'NEUTRAL' | 'NEGATIVE';
 
-const NEG = /\b(bad|awful|terrible|hate|angry|worst|scam|refund|broken|disappointed|horrible|poor|fail)\b|سيء|سيئة|فظيع|احتيال|استرجاع|غاضب|محبط/i;
-const POS = /\b(great|love|amazing|excellent|thanks|thank you|awesome|perfect|wonderful|best)\b|رائع|ممتاز|شكرا|أحب|ممتازة|جميل/i;
+const NEG =
+  /\b(bad|awful|terrible|hate|angry|worst|scam|refund|broken|disappointed|horrible|poor|fail)\b|سيء|سيئة|فظيع|احتيال|استرجاع|غاضب|محبط/i;
+const POS =
+  /\b(great|love|amazing|excellent|thanks|thank you|awesome|perfect|wonderful|best)\b|رائع|ممتاز|شكرا|أحب|ممتازة|جميل/i;
 
 function classifySentiment(text: string): Sentiment {
   const t = (text || '').trim();
@@ -65,7 +67,11 @@ function parseMeta(raw: unknown, platform: InboxWebhookJob['platform']): ParsedI
       messaging?: Array<{
         sender?: { id?: string };
         recipient?: { id?: string };
-        message?: { mid?: string; text?: string; attachments?: Array<{ payload?: { url?: string } }> };
+        message?: {
+          mid?: string;
+          text?: string;
+          attachments?: Array<{ payload?: { url?: string } }>;
+        };
         timestamp?: number;
       }>;
       changes?: Array<{
@@ -169,7 +175,10 @@ async function resolveTenantId(hint?: string, pageExternalId?: string): Promise<
 async function ingest(item: ParsedInbound, fallbackTenant?: string, brandId?: string) {
   const tenantId = await resolveTenantId(item.tenantId ?? fallbackTenant);
   if (!tenantId) {
-    log.warn({ platform: item.platform, thread: item.externalThreadId }, 'inbox event dropped: no tenant');
+    log.warn(
+      { platform: item.platform, thread: item.externalThreadId },
+      'inbox event dropped: no tenant',
+    );
     return;
   }
   await ingestInboundMessage({

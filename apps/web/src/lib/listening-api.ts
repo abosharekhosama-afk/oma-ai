@@ -110,7 +110,9 @@ export function syncListening(body: { ruleId?: string; brandId?: string | null }
   });
 }
 
-export function listListeningHits(params: Record<string, string | number | boolean | undefined> = {}) {
+export function listListeningHits(
+  params: Record<string, string | number | boolean | undefined> = {},
+) {
   const qs = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) {
     if (v === undefined || v === '' || v === false) continue;

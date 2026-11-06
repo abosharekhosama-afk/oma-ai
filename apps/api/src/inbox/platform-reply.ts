@@ -34,7 +34,8 @@ export async function tryPlatformReply(input: {
     return {
       ok: false,
       delivered: false,
-      reason: 'No connected social page token found for this conversation. Connect the page in Brand › Social.',
+      reason:
+        'No connected social page token found for this conversation. Connect the page in Brand › Social.',
     };
   }
 
@@ -73,7 +74,8 @@ export async function tryPlatformReply(input: {
     return {
       ok: false,
       delivered: false,
-      reason: 'Missing platform comment id for reply. Run inbox sync or open the thread from a synced comment.',
+      reason:
+        'Missing platform comment id for reply. Run inbox sync or open the thread from a synced comment.',
     };
   }
   return sendMetaCommentReply({
@@ -90,7 +92,6 @@ async function resolveSocialPage(input: {
   socialPageId?: string | null;
   platform: 'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN';
 }) {
-
   const network = input.platform === 'META_IG' ? 'INSTAGRAM' : 'FACEBOOK';
   if (input.socialPageId) {
     return getPrisma().socialPage.findFirst({
@@ -167,7 +168,8 @@ async function sendMetaCommentReply(input: {
   const v = process.env.META_GRAPH_VERSION || 'v21.0';
   const path = `${encodeURIComponent(input.commentId)}/${input.platform === 'META_IG' ? 'replies' : 'comments'}`;
   const url = `https://graph.facebook.com/${v}/${path}?access_token=${encodeURIComponent(input.accessToken)}`;
-  const bodyField = input.platform === 'META_IG' ? { message: input.text } : { message: input.text };
+  const bodyField =
+    input.platform === 'META_IG' ? { message: input.text } : { message: input.text };
   try {
     const res = await fetch(url, {
       method: 'POST',

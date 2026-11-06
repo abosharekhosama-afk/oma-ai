@@ -1,14 +1,7 @@
 'use client';
 
 import { CloseOutlined, FilterOutlined, PlusOutlined } from './lucide-icons';
-import {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
 export type PlxFilterPopoverRect = {

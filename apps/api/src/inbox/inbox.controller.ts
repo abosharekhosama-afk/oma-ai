@@ -51,7 +51,9 @@ export class InboxController {
       status: status as never,
       type: type as never,
       category:
-        category === 'comments' || category === 'dms' ? (category as 'comments' | 'dms') : undefined,
+        category === 'comments' || category === 'dms'
+          ? (category as 'comments' | 'dms')
+          : undefined,
       sentiment: sentiment as never,
       assignedTo,
       unassigned: unassigned === '1' || unassigned === 'true',

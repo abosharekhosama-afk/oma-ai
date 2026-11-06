@@ -39,8 +39,7 @@ export function enrichPublishTargets(
     const page = byId.get(target.socialPageId);
     const name = page?.name?.trim();
     const network = page?.network?.trim();
-    const accountLabel =
-      name || (network ? network.replace(/^./, (c) => c.toUpperCase()) : null);
+    const accountLabel = name || (network ? network.replace(/^./, (c) => c.toUpperCase()) : null);
     return accountLabel ? { ...target, accountLabel } : target;
   });
 }

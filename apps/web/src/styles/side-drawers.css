@@ -366,7 +366,9 @@ main.oma-container:has(.oma-notifications-page) {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
-.oma-notifications-drawer .oma-notifications-panel--drawer .oma-notifications-panel__list::-webkit-scrollbar {
+.oma-notifications-drawer
+  .oma-notifications-panel--drawer
+  .oma-notifications-panel__list::-webkit-scrollbar {
   display: none;
   width: 0;
   height: 0;
@@ -745,7 +747,9 @@ main.oma-container:has(.oma-notifications-page),
   border-radius: 0 !important;
   background: #fff !important;
 }
-.oma-notifications-page--planable .oma-notifications-page__list > .oma-notification-card:last-child {
+.oma-notifications-page--planable
+  .oma-notifications-page__list
+  > .oma-notification-card:last-child {
   border-bottom: 0 !important;
 }
 .oma-notifications-page--planable .oma-notifications-page__list > .oma-notification-card.is-unread {

@@ -29,8 +29,7 @@ export function PublishTargetsPanel({
           ? humanizePublishError(target.lastError, isAr ? 'ar' : 'en')
           : null;
         const profileOnly = isProfileOnlyPostUrl(target.externalPostUrl);
-        const accountName =
-          target.accountLabel?.trim() || t('demo.schedule.publisherAccount');
+        const accountName = target.accountLabel?.trim() || t('demo.schedule.publisherAccount');
         return (
           <li
             key={target.id}
@@ -47,9 +46,7 @@ export function PublishTargetsPanel({
                 className="oma-text-link oma-publish-targets__link"
                 data-profile-only={profileOnly ? 'true' : 'false'}
               >
-                {profileOnly
-                  ? t('demo.schedule.viewProfileLink')
-                  : t('demo.schedule.viewPostLink')}
+                {profileOnly ? t('demo.schedule.viewProfileLink') : t('demo.schedule.viewPostLink')}
               </a>
             ) : null}
             {err && target.state.toUpperCase() === 'FAILED' ? (

@@ -64,7 +64,9 @@ export function getInboxStats(brandId?: string | null) {
   return api<InboxStats>(`/api/v1/inbox/stats${q}`);
 }
 
-export function listInboxConversations(params: Record<string, string | number | boolean | undefined> = {}) {
+export function listInboxConversations(
+  params: Record<string, string | number | boolean | undefined> = {},
+) {
   const qs = new URLSearchParams();
   for (const [k, v] of Object.entries(params)) {
     if (v === undefined || v === '' || v === 'all' || v === false) continue;
@@ -99,17 +101,23 @@ export function syncInbox(brandId?: string | null) {
   });
 }
 
-export function replyInboxConversation(id: string, content: string, replyToMessageId?: string | null) {
-  return api<{ id: string; externalDelivered: boolean; externalMessageId: string | null; note: string | null }>(
-    `/api/v1/inbox/conversations/${id}/reply`,
-    {
-      method: 'POST',
-      body: JSON.stringify({
-        content,
-        ...(replyToMessageId ? { replyToMessageId } : {}),
-      }),
-    },
-  );
+export function replyInboxConversation(
+  id: string,
+  content: string,
+  replyToMessageId?: string | null,
+) {
+  return api<{
+    id: string;
+    externalDelivered: boolean;
+    externalMessageId: string | null;
+    note: string | null;
+  }>(`/api/v1/inbox/conversations/${id}/reply`, {
+    method: 'POST',
+    body: JSON.stringify({
+      content,
+      ...(replyToMessageId ? { replyToMessageId } : {}),
+    }),
+  });
 }
 
 export function hideInboxMessage(messageId: string) {

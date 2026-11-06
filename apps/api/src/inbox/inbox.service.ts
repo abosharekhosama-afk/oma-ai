@@ -98,24 +98,39 @@ export class InboxService {
   async stats(tenantId: string, brandId?: string) {
     const brandScope = brandId ? { brandId } : {};
     const base = tenantWhere(tenantId, brandScope);
-    const [total, unread, open, pending, closed, priority, unassigned, unanswered] = await Promise.all([
-      getPrisma().inboxConversation.count({ where: base }),
-      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { ...brandScope, status: 'UNREAD' }) }),
-      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { ...brandScope, status: 'OPEN' }) }),
-      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { ...brandScope, status: 'PENDING' }) }),
-      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { ...brandScope, status: 'CLOSED' }) }),
-      getPrisma().inboxConversation.count({ where: tenantWhere(tenantId, { ...brandScope, priority: true }) }),
-      getPrisma().inboxConversation.count({
-        where: tenantWhere(tenantId, { ...brandScope, assignedToUserId: null, status: { not: 'CLOSED' } }),
-      }),
-      getPrisma().inboxConversation.count({
-        where: tenantWhere(tenantId, {
-          ...brandScope,
-          lastMessageDirection: 'INBOUND',
-          status: { in: ['UNREAD', 'OPEN', 'PENDING'] },
+    const [total, unread, open, pending, closed, priority, unassigned, unanswered] =
+      await Promise.all([
+        getPrisma().inboxConversation.count({ where: base }),
+        getPrisma().inboxConversation.count({
+          where: tenantWhere(tenantId, { ...brandScope, status: 'UNREAD' }),
         }),
-      }),
-    ]);
+        getPrisma().inboxConversation.count({
+          where: tenantWhere(tenantId, { ...brandScope, status: 'OPEN' }),
+        }),
+        getPrisma().inboxConversation.count({
+          where: tenantWhere(tenantId, { ...brandScope, status: 'PENDING' }),
+        }),
+        getPrisma().inboxConversation.count({
+          where: tenantWhere(tenantId, { ...brandScope, status: 'CLOSED' }),
+        }),
+        getPrisma().inboxConversation.count({
+          where: tenantWhere(tenantId, { ...brandScope, priority: true }),
+        }),
+        getPrisma().inboxConversation.count({
+          where: tenantWhere(tenantId, {
+            ...brandScope,
+            assignedToUserId: null,
+            status: { not: 'CLOSED' },
+          }),
+        }),
+        getPrisma().inboxConversation.count({
+          where: tenantWhere(tenantId, {
+            ...brandScope,
+            lastMessageDirection: 'INBOUND',
+            status: { in: ['UNREAD', 'OPEN', 'PENDING'] },
+          }),
+        }),
+      ]);
     return { total, unread, open, pending, closed, priority, unassigned, unanswered };
   }
 
@@ -232,7 +247,12 @@ export class InboxService {
   ) {
     const content = (body.content ?? '').trim();
     if (!content) {
-      throw new DomainError('VALIDATION_FAILED', 'Reply content required', 400, 'errors.validation');
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'Reply content required',
+        400,
+        'errors.validation',
+      );
     }
     const c = await getPrisma().inboxConversation.findFirst({
       where: tenantWhere(tenantId, { id }),
@@ -333,7 +353,10 @@ export class InboxService {
       where: tenantWhere(tenantId, { id }),
     });
     if (!c) throw new DomainError('NOT_FOUND', 'Conversation not found', 404, 'errors.not_found');
-    const tags = (body.tags ?? []).map((t) => t.trim()).filter(Boolean).slice(0, 20);
+    const tags = (body.tags ?? [])
+      .map((t) => t.trim())
+      .filter(Boolean)
+      .slice(0, 20);
     const updated = await getPrisma().inboxConversation.update({
       where: { id },
       data: { tagsJson: JSON.stringify(tags) },
@@ -601,7 +624,7 @@ export class InboxService {
           unreadCount: { increment: 1 },
           sentiment,
           priority: existing?.priority || priority,
-          status: existing?.status === 'CLOSED' ? 'UNREAD' : existing?.status ?? 'UNREAD',
+          status: existing?.status === 'CLOSED' ? 'UNREAD' : (existing?.status ?? 'UNREAD'),
           lastMessageDirection: 'INBOUND',
           participantName: input.senderName,
           participantAvatar: input.senderAvatar ?? null,

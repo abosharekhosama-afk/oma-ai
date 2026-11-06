@@ -238,7 +238,10 @@ async function seedConversations(tenantId: string, actorUserId: string | null) {
         lastMessageAt: hoursAgo(last.hoursAgo),
         lastMessagePreview: previewOf(last.content),
         messageCount: spec.messages.length,
-        unreadCount: spec.status === 'UNREAD' ? spec.messages.filter((m) => m.direction === 'INBOUND').length : 0,
+        unreadCount:
+          spec.status === 'UNREAD'
+            ? spec.messages.filter((m) => m.direction === 'INBOUND').length
+            : 0,
         metadataJson: JSON.stringify({
           source: 'seed-inbox-demo',
           channelName:
@@ -347,7 +350,8 @@ async function seedListening(tenantId: string) {
       postId: `${POST_PREFIX}fb-1`,
       authorName: 'Frustrated Buyer',
       handle: 'fb.com/user/x',
-      content: 'Tried OMA social trial — onboarding was confusing and support was slow. Bad experience.',
+      content:
+        'Tried OMA social trial — onboarding was confusing and support was slow. Bad experience.',
       sentiment: 'NEGATIVE',
       priority: true,
       keywords: ['OMA social'],
@@ -412,9 +416,7 @@ async function main() {
 
   const nodeEnv = (process.env.NODE_ENV ?? '').trim().toLowerCase();
   if (nodeEnv === 'production' && !truthy(process.env.SEED_INBOX_DEMO_ALLOW_PROD)) {
-    console.error(
-      'Refusing to run in production unless SEED_INBOX_DEMO_ALLOW_PROD=1 is also set.',
-    );
+    console.error('Refusing to run in production unless SEED_INBOX_DEMO_ALLOW_PROD=1 is also set.');
     process.exit(1);
   }
 
@@ -444,7 +446,9 @@ async function main() {
     }),
   ]);
 
-  console.log(`Done. conversations=${convCount} messages=${msgCount} rules=${ruleCount} hits=${hitCount}`);
+  console.log(
+    `Done. conversations=${convCount} messages=${msgCount} rules=${ruleCount} hits=${hitCount}`,
+  );
   console.log('Open /app/inbox and /app/listening while logged into this workspace.');
 }
 

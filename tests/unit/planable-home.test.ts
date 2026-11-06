@@ -164,9 +164,9 @@ describe('preferences: home setup dismissal', () => {
 describe('preferences: campaign favorites', () => {
   it('defaults to empty and validates ids', () => {
     expect(mergePreferences('{}').campaignFavoriteIds).toEqual([]);
-    expect(
-      validatePreferencesPatch({ campaignFavoriteIds: ['camp-1', 'camp-2'] }),
-    ).toEqual({ campaignFavoriteIds: ['camp-1', 'camp-2'] });
+    expect(validatePreferencesPatch({ campaignFavoriteIds: ['camp-1', 'camp-2'] })).toEqual({
+      campaignFavoriteIds: ['camp-1', 'camp-2'],
+    });
     expect(() => validatePreferencesPatch({ campaignFavoriteIds: 'nope' })).toThrow();
   });
 });

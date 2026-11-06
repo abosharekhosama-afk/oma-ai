@@ -174,9 +174,7 @@ export default function CampaignsPage() {
           isCurrent: false,
         })) as Strategy[],
       );
-      setFavoriteIds(
-        Array.isArray(prefs?.campaignFavoriteIds) ? prefs.campaignFavoriteIds : [],
-      );
+      setFavoriteIds(Array.isArray(prefs?.campaignFavoriteIds) ? prefs.campaignFavoriteIds : []);
       setForm((f) => ({
         ...f,
         brandId: f.brandId || brandIds[0] || '',
@@ -229,7 +227,7 @@ export default function CampaignsPage() {
   );
 
   const menuCampaign = useMemo(
-    () => (menuId ? rows.find((r) => r.id === menuId) ?? null : null),
+    () => (menuId ? (rows.find((r) => r.id === menuId) ?? null) : null),
     [menuId, rows],
   );
 
@@ -265,10 +263,7 @@ export default function CampaignsPage() {
       await updatePreferences({ campaignFavoriteIds: next });
     } catch {
       setFavoriteIds(prev);
-      toast.push(
-        isAr ? 'تعذّر حفظ المفضلة' : 'Could not save favorite',
-        'danger',
-      );
+      toast.push(isAr ? 'تعذّر حفظ المفضلة' : 'Could not save favorite', 'danger');
     }
   }
 
@@ -1011,10 +1006,7 @@ export default function CampaignsPage() {
                               >
                                 {pickCopy(c.name, locale)}
                               </Link>
-                              <StatusChip
-                                status={c.status}
-                                label={statusLabel(c.status, locale)}
-                              />
+                              <StatusChip status={c.status} label={statusLabel(c.status, locale)} />
                             </div>
                           </td>
                           <td>{brandName(c.brandId)}</td>
@@ -1046,7 +1038,9 @@ export default function CampaignsPage() {
                               label={statusLabel(review, locale)}
                             />
                           </td>
-                          <td className="oma-campaign-next-cell">{campaignNextAction(c, items, locale)}</td>
+                          <td className="oma-campaign-next-cell">
+                            {campaignNextAction(c, items, locale)}
+                          </td>
                         </tr>
                       );
                     })}
@@ -1399,10 +1393,18 @@ export default function CampaignsPage() {
               <button type="button" role="menuitem" onClick={() => openEdit(menuCampaign)}>
                 {isAr ? 'تعديل' : 'Edit'}
               </button>
-              <button type="button" role="menuitem" onClick={() => void duplicateCampaign(menuCampaign)}>
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => void duplicateCampaign(menuCampaign)}
+              >
                 {isAr ? 'نسخ' : 'Duplicate'}
               </button>
-              <button type="button" role="menuitem" onClick={() => void copyCampaignLink(menuCampaign)}>
+              <button
+                type="button"
+                role="menuitem"
+                onClick={() => void copyCampaignLink(menuCampaign)}
+              >
                 {isAr ? 'نسخ الرابط' : 'Copy link'}
               </button>
               <button

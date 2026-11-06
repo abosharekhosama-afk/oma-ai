@@ -147,8 +147,7 @@ export default function DeliverablesPage() {
   const reviewers = useMemo(() => [...new Set(rows.map((r) => r.reviewer))], [rows]);
 
   const filterLabel = locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter';
-  const filterPanelTitle =
-    locale.toLowerCase().startsWith('ar') ? 'تصفية وترتيب' : 'Filter & sort';
+  const filterPanelTitle = locale.toLowerCase().startsWith('ar') ? 'تصفية وترتيب' : 'Filter & sort';
 
   return (
     <div
@@ -422,233 +421,240 @@ export default function DeliverablesPage() {
       </PlxHeaderFilter>
 
       <div className="oma-plx-workspace-surface">
-      <div className="oma-plx-listening__intro oma-plx-deliv__intro">
-        <div>
-          <h1 className="oma-plx-listening__title">{t('demo.deliverables.title')}</h1>
-          <p className="oma-plx-deliv__subtitle">{t('demo.deliverables.subtitle')}</p>
+        <div className="oma-plx-listening__intro oma-plx-deliv__intro">
+          <div>
+            <h1 className="oma-plx-listening__title">{t('demo.deliverables.title')}</h1>
+            <p className="oma-plx-deliv__subtitle">{t('demo.deliverables.subtitle')}</p>
+          </div>
+          {!loading && !unavailable && !error ? (
+            <p className="oma-plx-listening__next-check" data-testid="demo-deliv-result-count">
+              {filtered.length} / {rows.length}
+            </p>
+          ) : null}
         </div>
+
         {!loading && !unavailable && !error ? (
-          <p className="oma-plx-listening__next-check" data-testid="demo-deliv-result-count">
-            {filtered.length} / {rows.length}
+          <div className="oma-plx-deliv-view-row">
+            <div
+              className="oma-plx-listening-segment"
+              role="group"
+              aria-label={t('demo.view.grid')}
+            >
+              <button
+                type="button"
+                className={filters.view === 'grid' ? 'is-active' : ''}
+                data-testid="demo-deliv-view-grid"
+                aria-pressed={filters.view === 'grid'}
+                onClick={() => changeView('grid')}
+              >
+                <AppstoreOutlined aria-hidden />
+                <span>{t('demo.view.grid')}</span>
+              </button>
+              <button
+                type="button"
+                className={filters.view === 'list' ? 'is-active' : ''}
+                data-testid="demo-deliv-view-list"
+                aria-pressed={filters.view === 'list'}
+                onClick={() => changeView('list')}
+              >
+                <BarsOutlined aria-hidden />
+                <span>{t('demo.view.list')}</span>
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        {loading ? <DeliverablesShimmer part="body" /> : null}
+        {unavailable ? (
+          <p className="oma-muted" data-testid="demo-deliverables-denied">
+            {t('demo.unavailable')}
           </p>
         ) : null}
-      </div>
+        {error ? (
+          <p className="oma-inbox-error" role="alert">
+            {error}
+          </p>
+        ) : null}
 
-      {!loading && !unavailable && !error ? (
-        <div className="oma-plx-deliv-view-row">
-          <div className="oma-plx-listening-segment" role="group" aria-label={t('demo.view.grid')}>
-            <button
-              type="button"
-              className={filters.view === 'grid' ? 'is-active' : ''}
-              data-testid="demo-deliv-view-grid"
-              aria-pressed={filters.view === 'grid'}
-              onClick={() => changeView('grid')}
-            >
-              <AppstoreOutlined aria-hidden />
-              <span>{t('demo.view.grid')}</span>
-            </button>
-            <button
-              type="button"
-              className={filters.view === 'list' ? 'is-active' : ''}
-              data-testid="demo-deliv-view-list"
-              aria-pressed={filters.view === 'list'}
-              onClick={() => changeView('list')}
-            >
-              <BarsOutlined aria-hidden />
-              <span>{t('demo.view.list')}</span>
-            </button>
-          </div>
-        </div>
-      ) : null}
-
-      {loading ? <DeliverablesShimmer part="body" /> : null}
-      {unavailable ? (
-        <p className="oma-muted" data-testid="demo-deliverables-denied">
-          {t('demo.unavailable')}
-        </p>
-      ) : null}
-      {error ? (
-        <p className="oma-inbox-error" role="alert">
-          {error}
-        </p>
-      ) : null}
-
-      {!loading && !unavailable && !error ? (
-        <div className="oma-plx-deliv-workspace">
-          <div className="oma-plx-deliv-workspace__main">
-            <section className="oma-plx-listening-panel oma-plx-deliv-panel">
-              <header className="oma-plx-deliv-panel__head">
-                <div
-                  className="oma-plx-deliv-groups"
-                  data-testid="demo-deliv-groups"
-                  role="tablist"
-                  aria-label={t('demo.deliverables.title')}
-                >
-                  {GROUPS.map((g) => (
-                    <button
-                      key={g}
-                      type="button"
-                      role="tab"
-                      className={`oma-plx-deliv-groups__btn${filters.group === g ? ' is-active' : ''}`}
-                      aria-selected={filters.group === g}
-                      data-active={filters.group === g ? 'true' : 'false'}
-                      data-testid={`demo-deliv-group-${g}`}
-                      onClick={() => setFilters((f) => ({ ...f, group: g }))}
-                    >
-                      {t(`demo.deliverables.group.${g}`)}
-                    </button>
-                  ))}
-                </div>
-              </header>
-
-              <div className="oma-plx-deliv-panel__body">
-                {filtered.length === 0 ? (
-                  <EmptyState title={t('demo.empty')} body={t('demo.deliverables.emptyHint')} />
-                ) : filters.view === 'grid' ? (
-                  <div className="oma-plx-deliv-grid" data-testid="demo-deliv-grid">
-                    {filtered.map((d) => {
-                      const ver = currentVersion(d);
-                      const thumb = ver?.assets?.[0];
-                      return (
-                        <Link
-                          key={d.id}
-                          href={`/app/deliverables/${d.id}`}
-                          className="oma-plx-deliv-card"
-                          data-overdue={deliverableIsOverdue(d) ? 'true' : 'false'}
-                          data-testid={`demo-deliv-card-${d.id}`}
-                        >
-                          <div className="oma-plx-deliv-card__media">
-                            {thumb ? (
-                              <MediaSurface src={thumb} mime={versionMime(ver)} alt="" />
-                            ) : (
-                              <div className="oma-plx-deliv-card__media-fallback" aria-hidden />
-                            )}
-                          </div>
-                          <div className="oma-plx-deliv-card__body">
-                            <strong className="oma-plx-deliv-card__title">
-                              {pickCopy(d.title, locale)}
-                            </strong>
-                            <div className="oma-plx-deliv-card__chips">
-                              <StatusChip status={d.reviewStatus} />
-                            </div>
-                            <span className="oma-plx-deliv-card__meta">
-                              {d.owner} · {d.dueAt}
-                            </span>
-                          </div>
-                        </Link>
-                      );
-                    })}
+        {!loading && !unavailable && !error ? (
+          <div className="oma-plx-deliv-workspace">
+            <div className="oma-plx-deliv-workspace__main">
+              <section className="oma-plx-listening-panel oma-plx-deliv-panel">
+                <header className="oma-plx-deliv-panel__head">
+                  <div
+                    className="oma-plx-deliv-groups"
+                    data-testid="demo-deliv-groups"
+                    role="tablist"
+                    aria-label={t('demo.deliverables.title')}
+                  >
+                    {GROUPS.map((g) => (
+                      <button
+                        key={g}
+                        type="button"
+                        role="tab"
+                        className={`oma-plx-deliv-groups__btn${filters.group === g ? ' is-active' : ''}`}
+                        aria-selected={filters.group === g}
+                        data-active={filters.group === g ? 'true' : 'false'}
+                        data-testid={`demo-deliv-group-${g}`}
+                        onClick={() => setFilters((f) => ({ ...f, group: g }))}
+                      >
+                        {t(`demo.deliverables.group.${g}`)}
+                      </button>
+                    ))}
                   </div>
-                ) : (
-                  <>
-                    <div
-                      className="oma-plx-deliv-table-wrap oma-plx-deliv-desktop"
-                      data-testid="demo-deliv-table"
-                    >
-                      <table className="oma-plx-deliv-table">
-                      <thead>
-                        <tr>
-                          <th />
-                          <th>{t('demo.deliverables.col.title')}</th>
-                          <th>{t('demo.deliverables.col.type')}</th>
-                          <th>{t('demo.deliverables.col.version')}</th>
-                          <th>{t('demo.deliverables.col.status')}</th>
-                          <th>{t('demo.deliverables.col.owner')}</th>
-                          <th>{t('demo.deliverables.col.reviewer')}</th>
-                          <th>{t('demo.deliverables.col.due')}</th>
-                          <th>{t('demo.deliverables.col.comments')}</th>
-                          <th>{t('demo.deliverables.col.next')}</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filtered.map((d) => {
-                          const ver = currentVersion(d);
-                          const thumb = ver?.assets?.[0];
-                          const next = deliverableNextAction(d);
-                          return (
-                            <tr
-                              key={d.id}
-                              data-overdue={deliverableIsOverdue(d) ? 'true' : 'false'}
-                              data-testid={`demo-deliv-row-${d.id}`}
-                              className="oma-plx-deliv-row"
-                              role="link"
-                              tabIndex={0}
-                              onClick={() => router.push(`/app/deliverables/${d.id}`)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter' || e.key === ' ') {
-                                  e.preventDefault();
-                                  router.push(`/app/deliverables/${d.id}`);
-                                }
-                              }}
-                            >
-                              <td>
-                                {thumb ? (
-                                  <MediaSurface
-                                    className="oma-plx-deliv-thumb"
-                                    src={thumb}
-                                    mime={versionMime(ver)}
-                                    alt=""
-                                  />
-                                ) : (
-                                  <div className="oma-plx-deliv-thumb oma-plx-deliv-thumb--empty" />
-                                )}
-                              </td>
-                              <td>
-                                <Link
-                                  href={`/app/deliverables/${d.id}`}
-                                  className="oma-plx-deliv-table__title"
-                                >
-                                  {pickCopy(d.title, locale)}
-                                </Link>
-                                <div className="oma-plx-deliv-table__sub">
-                                  {[
-                                    (d as { brandName?: string }).brandName,
-                                    (d as { campaignName?: string | null }).campaignName,
-                                  ]
-                                    .filter(Boolean)
-                                    .join(' · ')}
-                                </div>
-                              </td>
-                              <td>{d.type}</td>
-                              <td>{ver?.label ?? '—'}</td>
-                              <td>
-                                <StatusChip status={d.reviewStatus} />
-                              </td>
-                              <td>{d.owner}</td>
-                              <td>{d.reviewer}</td>
-                              <td>{d.dueAt}</td>
-                              <td>{unresolvedCount(d)}</td>
-                              <td>{pickCopy(next, locale)}</td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                    <ul className="oma-plx-deliv-mobile" aria-label={t('demo.deliverables.title')}>
-                      {filtered.map((d) => (
-                        <li key={d.id}>
+                </header>
+
+                <div className="oma-plx-deliv-panel__body">
+                  {filtered.length === 0 ? (
+                    <EmptyState title={t('demo.empty')} body={t('demo.deliverables.emptyHint')} />
+                  ) : filters.view === 'grid' ? (
+                    <div className="oma-plx-deliv-grid" data-testid="demo-deliv-grid">
+                      {filtered.map((d) => {
+                        const ver = currentVersion(d);
+                        const thumb = ver?.assets?.[0];
+                        return (
                           <Link
+                            key={d.id}
                             href={`/app/deliverables/${d.id}`}
-                            className="oma-plx-deliv-mobile-card"
+                            className="oma-plx-deliv-card"
                             data-overdue={deliverableIsOverdue(d) ? 'true' : 'false'}
+                            data-testid={`demo-deliv-card-${d.id}`}
                           >
-                            <strong>{pickCopy(d.title, locale)}</strong>
-                            <StatusChip status={d.reviewStatus} />
-                            <span className="oma-plx-deliv-card__meta">
-                              {d.owner} · {d.dueAt}
-                            </span>
+                            <div className="oma-plx-deliv-card__media">
+                              {thumb ? (
+                                <MediaSurface src={thumb} mime={versionMime(ver)} alt="" />
+                              ) : (
+                                <div className="oma-plx-deliv-card__media-fallback" aria-hidden />
+                              )}
+                            </div>
+                            <div className="oma-plx-deliv-card__body">
+                              <strong className="oma-plx-deliv-card__title">
+                                {pickCopy(d.title, locale)}
+                              </strong>
+                              <div className="oma-plx-deliv-card__chips">
+                                <StatusChip status={d.reviewStatus} />
+                              </div>
+                              <span className="oma-plx-deliv-card__meta">
+                                {d.owner} · {d.dueAt}
+                              </span>
+                            </div>
                           </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                )}
-              </div>
-            </section>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <>
+                      <div
+                        className="oma-plx-deliv-table-wrap oma-plx-deliv-desktop"
+                        data-testid="demo-deliv-table"
+                      >
+                        <table className="oma-plx-deliv-table">
+                          <thead>
+                            <tr>
+                              <th />
+                              <th>{t('demo.deliverables.col.title')}</th>
+                              <th>{t('demo.deliverables.col.type')}</th>
+                              <th>{t('demo.deliverables.col.version')}</th>
+                              <th>{t('demo.deliverables.col.status')}</th>
+                              <th>{t('demo.deliverables.col.owner')}</th>
+                              <th>{t('demo.deliverables.col.reviewer')}</th>
+                              <th>{t('demo.deliverables.col.due')}</th>
+                              <th>{t('demo.deliverables.col.comments')}</th>
+                              <th>{t('demo.deliverables.col.next')}</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {filtered.map((d) => {
+                              const ver = currentVersion(d);
+                              const thumb = ver?.assets?.[0];
+                              const next = deliverableNextAction(d);
+                              return (
+                                <tr
+                                  key={d.id}
+                                  data-overdue={deliverableIsOverdue(d) ? 'true' : 'false'}
+                                  data-testid={`demo-deliv-row-${d.id}`}
+                                  className="oma-plx-deliv-row"
+                                  role="link"
+                                  tabIndex={0}
+                                  onClick={() => router.push(`/app/deliverables/${d.id}`)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                      e.preventDefault();
+                                      router.push(`/app/deliverables/${d.id}`);
+                                    }
+                                  }}
+                                >
+                                  <td>
+                                    {thumb ? (
+                                      <MediaSurface
+                                        className="oma-plx-deliv-thumb"
+                                        src={thumb}
+                                        mime={versionMime(ver)}
+                                        alt=""
+                                      />
+                                    ) : (
+                                      <div className="oma-plx-deliv-thumb oma-plx-deliv-thumb--empty" />
+                                    )}
+                                  </td>
+                                  <td>
+                                    <Link
+                                      href={`/app/deliverables/${d.id}`}
+                                      className="oma-plx-deliv-table__title"
+                                    >
+                                      {pickCopy(d.title, locale)}
+                                    </Link>
+                                    <div className="oma-plx-deliv-table__sub">
+                                      {[
+                                        (d as { brandName?: string }).brandName,
+                                        (d as { campaignName?: string | null }).campaignName,
+                                      ]
+                                        .filter(Boolean)
+                                        .join(' · ')}
+                                    </div>
+                                  </td>
+                                  <td>{d.type}</td>
+                                  <td>{ver?.label ?? '—'}</td>
+                                  <td>
+                                    <StatusChip status={d.reviewStatus} />
+                                  </td>
+                                  <td>{d.owner}</td>
+                                  <td>{d.reviewer}</td>
+                                  <td>{d.dueAt}</td>
+                                  <td>{unresolvedCount(d)}</td>
+                                  <td>{pickCopy(next, locale)}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                      <ul
+                        className="oma-plx-deliv-mobile"
+                        aria-label={t('demo.deliverables.title')}
+                      >
+                        {filtered.map((d) => (
+                          <li key={d.id}>
+                            <Link
+                              href={`/app/deliverables/${d.id}`}
+                              className="oma-plx-deliv-mobile-card"
+                              data-overdue={deliverableIsOverdue(d) ? 'true' : 'false'}
+                            >
+                              <strong>{pickCopy(d.title, locale)}</strong>
+                              <StatusChip status={d.reviewStatus} />
+                              <span className="oma-plx-deliv-card__meta">
+                                {d.owner} · {d.dueAt}
+                              </span>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </div>
+              </section>
+            </div>
           </div>
-        </div>
-      ) : null}
+        ) : null}
       </div>
     </div>
   );

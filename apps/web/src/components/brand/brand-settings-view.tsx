@@ -112,7 +112,10 @@ export function BrandSettingsView(p: BrandSettingsViewProps) {
         </header>
       )}
       <div className="oma-bs-body oma-plx-brand-settings__body">
-        <nav className="oma-bs-nav oma-plx-brand-settings__nav" aria-label={t('brandSettings.navLabel')}>
+        <nav
+          className="oma-bs-nav oma-plx-brand-settings__nav"
+          aria-label={t('brandSettings.navLabel')}
+        >
           {tabs.map((x) => (
             <button
               key={x.id}

@@ -8048,7 +8048,9 @@ label.oma-compose-media {
   background: #8ed9bf !important;
 }
 .oma-cal-note-swatch[data-active='true'] {
-  box-shadow: 0 0 0 2px #fff, 0 0 0 3px rgba(0, 0, 0, 0.12) !important;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 3px rgba(0, 0, 0, 0.12) !important;
 }
 .oma-cal-note__menu {
   position: fixed !important;

@@ -48,7 +48,12 @@ export function ListeningSourceMenu({
 
   return (
     <div className="oma-plx-listening-source" ref={rootRef}>
-      <button type="button" className="oma-plx-listening-source__trigger" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+      <button
+        type="button"
+        className="oma-plx-listening-source__trigger"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+      >
         <span>{t('listening.source') || 'Source'}:</span>
         <strong>{label}</strong>
         <DownOutlined />
@@ -56,11 +61,7 @@ export function ListeningSourceMenu({
       {open ? (
         <div className="oma-plx-listening-source__menu" role="listbox">
           <label className="oma-plx-listening-source__row">
-            <input
-              type="checkbox"
-              checked={allSelected}
-              onChange={() => onChange(new Set())}
-            />
+            <input type="checkbox" checked={allSelected} onChange={() => onChange(new Set())} />
             <span>{t('listening.allPlatforms') || 'All platforms'}</span>
           </label>
           {PLATFORMS.map((p) => (

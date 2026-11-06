@@ -55,7 +55,11 @@ export function InboxPlatformBadge({
       style={{ background: platformAccent(platform), color: '#fff' }}
       title={platformShort(platform)}
     >
-      <InboxPlatformIcon platform={platform} size={10} className="oma-plx-inbox-plat-badge__glyph" />
+      <InboxPlatformIcon
+        platform={platform}
+        size={10}
+        className="oma-plx-inbox-plat-badge__glyph"
+      />
     </span>
   );
 }

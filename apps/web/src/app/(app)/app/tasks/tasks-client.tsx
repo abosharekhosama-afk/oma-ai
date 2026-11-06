@@ -457,8 +457,7 @@ export default function TasksPage() {
     ).filter((s) => canTransitionTaskStatus(status, s));
 
   const filterLabel = locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter';
-  const filterPanelTitle =
-    locale.toLowerCase().startsWith('ar') ? 'تصفية وترتيب' : 'Filter & sort';
+  const filterPanelTitle = locale.toLowerCase().startsWith('ar') ? 'تصفية وترتيب' : 'Filter & sort';
 
   return (
     <div
@@ -646,140 +645,144 @@ export default function TasksPage() {
       </PlxHeaderFilter>
 
       <div className="oma-plx-workspace-surface">
-      <div className="oma-plx-listening__intro oma-plx-deliv__intro">
-        <div>
-          <h1 className="oma-plx-listening__title">{t('demo.tasks.title')}</h1>
-          <p className="oma-plx-deliv__subtitle">{t('demo.tasks.subtitle')}</p>
+        <div className="oma-plx-listening__intro oma-plx-deliv__intro">
+          <div>
+            <h1 className="oma-plx-listening__title">{t('demo.tasks.title')}</h1>
+            <p className="oma-plx-deliv__subtitle">{t('demo.tasks.subtitle')}</p>
+          </div>
+          {!loading && !unavailable && !error ? (
+            <p className="oma-plx-listening__next-check" data-testid="demo-task-result-count">
+              {filtered.length} / {rows.length}
+            </p>
+          ) : null}
         </div>
+
         {!loading && !unavailable && !error ? (
-          <p className="oma-plx-listening__next-check" data-testid="demo-task-result-count">
-            {filtered.length} / {rows.length}
+          <div className="oma-plx-deliv-view-row">
+            <div
+              className="oma-plx-listening-segment"
+              role="group"
+              aria-label={t('demo.view.kanban')}
+            >
+              <button
+                type="button"
+                className={view === 'board' ? 'is-active' : ''}
+                data-testid="demo-tasks-view-board"
+                aria-pressed={view === 'board'}
+                onClick={() => void changeView('board')}
+              >
+                <UnorderedListOutlined aria-hidden />
+                <span>{t('demo.view.kanban')}</span>
+              </button>
+              <button
+                type="button"
+                className={view === 'list' ? 'is-active' : ''}
+                data-testid="demo-tasks-view-list"
+                aria-pressed={view === 'list'}
+                onClick={() => void changeView('list')}
+              >
+                <BarsOutlined aria-hidden />
+                <span>{t('demo.view.list')}</span>
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        {loading ? <TasksShimmer part="body" /> : null}
+        {unavailable ? (
+          <p className="oma-muted" data-testid="demo-tasks-denied">
+            {t('demo.unavailable')}
           </p>
         ) : null}
-      </div>
+        {error ? (
+          <p className="oma-inbox-error" role="alert">
+            {error}
+          </p>
+        ) : null}
 
-      {!loading && !unavailable && !error ? (
-        <div className="oma-plx-deliv-view-row">
-          <div className="oma-plx-listening-segment" role="group" aria-label={t('demo.view.kanban')}>
-            <button
-              type="button"
-              className={view === 'board' ? 'is-active' : ''}
-              data-testid="demo-tasks-view-board"
-              aria-pressed={view === 'board'}
-              onClick={() => void changeView('board')}
-            >
-              <UnorderedListOutlined aria-hidden />
-              <span>{t('demo.view.kanban')}</span>
-            </button>
-            <button
-              type="button"
-              className={view === 'list' ? 'is-active' : ''}
-              data-testid="demo-tasks-view-list"
-              aria-pressed={view === 'list'}
-              onClick={() => void changeView('list')}
-            >
-              <BarsOutlined aria-hidden />
-              <span>{t('demo.view.list')}</span>
-            </button>
+        {!loading && !unavailable && !error ? (
+          <div className="oma-plx-deliv-workspace oma-plx-tasks-workspace">
+            <div className="oma-plx-deliv-workspace__main">
+              <section className="oma-plx-listening-panel oma-plx-tasks-panel">
+                {view === 'board' ? (
+                  <TasksKanbanBoard
+                    byBoard={byBoard}
+                    onOpenTask={openTask}
+                    onMoveTask={(id, status) => void patchTask(id, { status })}
+                    disabled={saving}
+                    onAddInColumn={() => setCreateOpen(true)}
+                  />
+                ) : (
+                  <div className="oma-plx-deliv-table-wrap" data-testid="demo-task-table">
+                    <table className="oma-plx-deliv-table oma-plx-tasks-table">
+                      <thead>
+                        <tr>
+                          <th>{t('demo.tasks.col.title') || 'Task'}</th>
+                          <th>{t('demo.tasks.filter.status')}</th>
+                          <th>{t('demo.tasks.filter.assignee')}</th>
+                          <th>{t('demo.tasks.filter.priority')}</th>
+                          <th>{t('demo.tasks.filter.campaign')}</th>
+                          <th>{t('demo.requests.col.due')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filtered.map((task) => {
+                          const campaignLabel =
+                            typeof task.campaignName === 'string'
+                              ? task.campaignName
+                              : task.campaignName
+                                ? pickCopy(task.campaignName, locale)
+                                : '';
+                          const brandLabel =
+                            typeof task.brandName === 'string' ? task.brandName : '';
+                          return (
+                            <tr
+                              key={task.id}
+                              data-testid={`demo-task-row-${task.id}`}
+                              onClick={() => openTask(task.id)}
+                              style={{ cursor: 'pointer' }}
+                            >
+                              <td className="oma-plx-tasks-table__title-cell">
+                                <button
+                                  type="button"
+                                  className="oma-plx-tasks-table__title-btn"
+                                  data-testid={`demo-task-open-${task.id}`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    openTask(task.id);
+                                  }}
+                                >
+                                  <span className="oma-plx-tasks-table__title-text">
+                                    {pickCopy(task.title, locale)}
+                                  </span>
+                                  <span className="oma-plx-deliv-table__sub">
+                                    {task.type}
+                                    {campaignLabel ? ` · ${campaignLabel}` : ''}
+                                  </span>
+                                </button>
+                              </td>
+                              <td>
+                                <StatusChip status={task.status} />
+                              </td>
+                              <td>{task.assignee || t('demo.requests.unassigned')}</td>
+                              <td>
+                                <StatusChip status={task.priority} />
+                              </td>
+                              <td>{campaignLabel || brandLabel || '—'}</td>
+                              <td className="oma-ltr oma-task-due-cell">
+                                <span className="oma-task-due-text">{task.dueAt}</span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </section>
+            </div>
           </div>
-        </div>
-      ) : null}
-
-      {loading ? <TasksShimmer part="body" /> : null}
-      {unavailable ? (
-        <p className="oma-muted" data-testid="demo-tasks-denied">
-          {t('demo.unavailable')}
-        </p>
-      ) : null}
-      {error ? (
-        <p className="oma-inbox-error" role="alert">
-          {error}
-        </p>
-      ) : null}
-
-      {!loading && !unavailable && !error ? (
-        <div className="oma-plx-deliv-workspace oma-plx-tasks-workspace">
-          <div className="oma-plx-deliv-workspace__main">
-            <section className="oma-plx-listening-panel oma-plx-tasks-panel">
-              {view === 'board' ? (
-                <TasksKanbanBoard
-                  byBoard={byBoard}
-                  onOpenTask={openTask}
-                  onMoveTask={(id, status) => void patchTask(id, { status })}
-                  disabled={saving}
-                  onAddInColumn={() => setCreateOpen(true)}
-                />
-              ) : (
-                <div className="oma-plx-deliv-table-wrap" data-testid="demo-task-table">
-                  <table className="oma-plx-deliv-table oma-plx-tasks-table">
-                    <thead>
-                      <tr>
-                        <th>{t('demo.tasks.col.title') || 'Task'}</th>
-                        <th>{t('demo.tasks.filter.status')}</th>
-                        <th>{t('demo.tasks.filter.assignee')}</th>
-                        <th>{t('demo.tasks.filter.priority')}</th>
-                        <th>{t('demo.tasks.filter.campaign')}</th>
-                        <th>{t('demo.requests.col.due')}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filtered.map((task) => {
-                        const campaignLabel =
-                          typeof task.campaignName === 'string'
-                            ? task.campaignName
-                            : task.campaignName
-                              ? pickCopy(task.campaignName, locale)
-                              : '';
-                        const brandLabel =
-                          typeof task.brandName === 'string' ? task.brandName : '';
-                        return (
-                          <tr
-                            key={task.id}
-                            data-testid={`demo-task-row-${task.id}`}
-                            onClick={() => openTask(task.id)}
-                            style={{ cursor: 'pointer' }}
-                          >
-                            <td className="oma-plx-tasks-table__title-cell">
-                              <button
-                                type="button"
-                                className="oma-plx-tasks-table__title-btn"
-                                data-testid={`demo-task-open-${task.id}`}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  openTask(task.id);
-                                }}
-                              >
-                                <span className="oma-plx-tasks-table__title-text">
-                                  {pickCopy(task.title, locale)}
-                                </span>
-                                <span className="oma-plx-deliv-table__sub">
-                                  {task.type}
-                                  {campaignLabel ? ` · ${campaignLabel}` : ''}
-                                </span>
-                              </button>
-                            </td>
-                            <td>
-                              <StatusChip status={task.status} />
-                            </td>
-                            <td>{task.assignee || t('demo.requests.unassigned')}</td>
-                            <td>
-                              <StatusChip status={task.priority} />
-                            </td>
-                            <td>{campaignLabel || brandLabel || '—'}</td>
-                            <td className="oma-ltr oma-task-due-cell">
-                              <span className="oma-task-due-text">{task.dueAt}</span>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </section>
-          </div>
-        </div>
-      ) : null}
+        ) : null}
       </div>
 
       <AntDrawer

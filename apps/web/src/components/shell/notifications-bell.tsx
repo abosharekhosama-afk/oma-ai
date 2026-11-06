@@ -5,12 +5,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react
 import { ShellIcon } from './shell-icons';
 import { CloseOutlined, MoreOutlined } from '../ui/lucide-icons';
 import { CheckSquareIcon, ClockIcon, EnvelopeIcon, ImageIcon, UsersIcon } from '../ui/plx-icons';
-import {
-  FacebookGlyph,
-  InstagramGlyph,
-  TikTokGlyph,
-  XGlyph,
-} from '../landing/platform-icons';
+import { FacebookGlyph, InstagramGlyph, TikTokGlyph, XGlyph } from '../landing/platform-icons';
 import { Drawer as AntDrawer } from '@oma/ui/controls';
 import { MediaSurface } from '../content/media-surface';
 import { useLocale, useT } from '../../lib/use-locale';
@@ -150,7 +145,10 @@ function actorInitials(n: AppNotification, t: (k: string) => string): string {
 
 function previewBrandTag(channel: string | undefined): string | null {
   if (!channel?.trim()) return null;
-  const parts = channel.split(/[,|/·]/).map((p) => p.trim()).filter(Boolean);
+  const parts = channel
+    .split(/[,|/·]/)
+    .map((p) => p.trim())
+    .filter(Boolean);
   const last = parts[parts.length - 1];
   if (!last) return channel.trim();
   if (/facebook|instagram|tiktok|twitter|linkedin|youtube/i.test(last) && parts.length > 1) {
@@ -387,15 +385,18 @@ export function NotificationsBell() {
             <span className="oma-notifications-panel__slack-mark" aria-hidden>
               #
             </span>
-            <p>
-              {isAr ? 'استقبل الإشعارات في Slack.' : 'Bring notifications to Slack.'}
-            </p>
+            <p>{isAr ? 'استقبل الإشعارات في Slack.' : 'Bring notifications to Slack.'}</p>
           </div>
           <div className="oma-notifications-panel__slack-actions">
             <button type="button" onClick={() => setSlackHidden(true)}>
               {isAr ? 'إخفاء' : 'Hide'}
             </button>
-            <button type="button" className="is-primary" disabled title={t('demo.settings.notificationsHonesty')}>
+            <button
+              type="button"
+              className="is-primary"
+              disabled
+              title={t('demo.settings.notificationsHonesty')}
+            >
               {isAr ? 'ربط' : 'Connect'}
             </button>
           </div>
@@ -490,9 +491,7 @@ export function NotificationsBell() {
         </Link>
         {!unreadOnly && tabTotal > shown.length ? (
           <span className="oma-notifications-panel__foot-meta">
-            {isAr
-              ? `${shown.length} من ${tabTotal}`
-              : `${shown.length} of ${tabTotal} in this tab`}
+            {isAr ? `${shown.length} من ${tabTotal}` : `${shown.length} of ${tabTotal} in this tab`}
           </span>
         ) : null}
       </footer>

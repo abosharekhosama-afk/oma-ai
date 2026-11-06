@@ -13,14 +13,10 @@ if (!enabled) {
 }
 
 console.log('[seed-inbox-demo] SEED_INBOX_DEMO enabled — running seed…');
-const result = spawnSync(
-  'pnpm',
-  ['--filter', '@oma/db', 'seed:inbox-demo'],
-  {
-    stdio: 'inherit',
-    env: process.env,
-    shell: process.platform === 'win32',
-  },
-);
+const result = spawnSync('pnpm', ['--filter', '@oma/db', 'seed:inbox-demo'], {
+  stdio: 'inherit',
+  env: process.env,
+  shell: process.platform === 'win32',
+});
 
 process.exit(result.status === null ? 1 : result.status);

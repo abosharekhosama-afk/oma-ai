@@ -1,7 +1,12 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { CheckOutlined, ClockCircleOutlined, MoreOutlined, UserOutlined } from '../../../../components/ui/lucide-icons';
+import {
+  CheckOutlined,
+  ClockCircleOutlined,
+  MoreOutlined,
+  UserOutlined,
+} from '../../../../components/ui/lucide-icons';
 import type { InboxConversationDetail } from '../../../../lib/inbox-api';
 import type { WorkspaceMember } from '../../../../lib/team-api';
 
@@ -16,8 +21,17 @@ export function InboxThreadMenu(props: {
   onAssign: (userId: string | null) => void;
   onInternalNote: () => void;
 }) {
-  const { detail, t, members, onLater, onReopen, onMarkDone, onTogglePriority, onAssign, onInternalNote } =
-    props;
+  const {
+    detail,
+    t,
+    members,
+    onLater,
+    onReopen,
+    onMarkDone,
+    onTogglePriority,
+    onAssign,
+    onInternalNote,
+  } = props;
   const [open, setOpen] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -51,21 +65,49 @@ export function InboxThreadMenu(props: {
       {open ? (
         <div className="oma-plx-inbox-thread-menu__drop" role="menu">
           {!isClosed && !isLater ? (
-            <button type="button" role="menuitem" onClick={() => { setOpen(false); onLater(); }}>
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                onLater();
+              }}
+            >
               <ClockCircleOutlined /> {t('inbox.menu.later') || 'Move to later'}
             </button>
           ) : null}
           {isClosed || isLater ? (
-            <button type="button" role="menuitem" onClick={() => { setOpen(false); onReopen(); }}>
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                onReopen();
+              }}
+            >
               {t('inbox.menu.reopen') || 'Reopen'}
             </button>
           ) : null}
           {!isClosed ? (
-            <button type="button" role="menuitem" onClick={() => { setOpen(false); onMarkDone(); }}>
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                onMarkDone();
+              }}
+            >
               <CheckOutlined /> {t('inbox.markDone') || 'Mark as done'}
             </button>
           ) : null}
-          <button type="button" role="menuitem" onClick={() => { setOpen(false); onTogglePriority(); }}>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              setOpen(false);
+              onTogglePriority();
+            }}
+          >
             {detail.priority
               ? t('inbox.menu.removePriority') || 'Remove priority'
               : t('inbox.menu.priority') || 'Mark priority'}
@@ -111,7 +153,14 @@ export function InboxThreadMenu(props: {
               </div>
             ) : null}
           </div>
-          <button type="button" role="menuitem" onClick={() => { setOpen(false); onInternalNote(); }}>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              setOpen(false);
+              onInternalNote();
+            }}
+          >
             {t('inbox.menu.note') || 'Internal note'}
           </button>
         </div>

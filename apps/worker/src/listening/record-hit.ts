@@ -1,8 +1,10 @@
 import { getPrisma } from '@oma/db';
 import { newId } from '@oma/domain';
 
-const NEG = /\b(bad|awful|terrible|hate|angry|worst|scam|refund|broken|disappointed|horrible|poor|fail)\b|سيء|سيئة|فظيع|احتيال|غاضب|محبط/i;
-const POS = /\b(great|love|amazing|excellent|thanks|thank you|awesome|perfect|wonderful|best)\b|رائع|ممتاز|شكرا|أحب|ممتازة|جميل/i;
+const NEG =
+  /\b(bad|awful|terrible|hate|angry|worst|scam|refund|broken|disappointed|horrible|poor|fail)\b|سيء|سيئة|فظيع|احتيال|غاضب|محبط/i;
+const POS =
+  /\b(great|love|amazing|excellent|thanks|thank you|awesome|perfect|wonderful|best)\b|رائع|ممتاز|شكرا|أحب|ممتازة|جميل/i;
 
 function classify(text: string): 'POSITIVE' | 'NEUTRAL' | 'NEGATIVE' {
   const t = (text || '').trim();
@@ -22,7 +24,8 @@ function matchedTerms(content: string, keywords: string[], hashtags: string[]) {
   }
   for (const h of hashtags) {
     const tag = h.replace(/^#/, '').toLowerCase();
-    if (tag && (lower.includes(`#${tag}`) || lower.includes(tag))) hits.push(h.startsWith('#') ? h : `#${h}`);
+    if (tag && (lower.includes(`#${tag}`) || lower.includes(tag)))
+      hits.push(h.startsWith('#') ? h : `#${h}`);
   }
   return [...new Set(hits)];
 }
@@ -71,7 +74,9 @@ export async function recordListeningHit(input: {
         commentCount: input.commentCount ?? existing.commentCount,
         shareCount: input.shareCount ?? existing.shareCount,
         matchedKeywordsJson: JSON.stringify(
-          input.matchedKeywords?.length ? input.matchedKeywords : JSON.parse(existing.matchedKeywordsJson || '[]'),
+          input.matchedKeywords?.length
+            ? input.matchedKeywords
+            : JSON.parse(existing.matchedKeywordsJson || '[]'),
         ),
         ...(existing.sentimentLocked
           ? {}

@@ -9,9 +9,7 @@ export type ApiStrategyListItem = {
 };
 
 export async function listStrategiesForBrand(brandId: string): Promise<ApiStrategyListItem[]> {
-  const res = await api<{ data: ApiStrategyListItem[] }>(
-    `/api/v1/brands/${brandId}/strategies`,
-  );
+  const res = await api<{ data: ApiStrategyListItem[] }>(`/api/v1/brands/${brandId}/strategies`);
   return res.data ?? [];
 }
 

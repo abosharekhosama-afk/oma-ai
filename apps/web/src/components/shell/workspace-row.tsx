@@ -3,11 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useT } from '../../lib/use-locale';
 import { api } from '../../lib/api';
-import {
-  AppstoreOutlined,
-  PlusOutlined,
-  SettingOutlined,
-} from '../ui/lucide-icons';
+import { AppstoreOutlined, PlusOutlined, SettingOutlined } from '../ui/lucide-icons';
 import { setActiveBrandId } from '../../lib/active-brand';
 
 type Me = {

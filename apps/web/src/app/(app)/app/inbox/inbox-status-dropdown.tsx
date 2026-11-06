@@ -59,7 +59,11 @@ export function InboxStatusDropdown({
                 }}
               >
                 <span className="oma-plx-inbox-status-dd__item-label">
-                  {o.value === value ? <CheckOutlined /> : <span className="oma-plx-inbox-status-dd__check-spacer" />}
+                  {o.value === value ? (
+                    <CheckOutlined />
+                  ) : (
+                    <span className="oma-plx-inbox-status-dd__check-spacer" />
+                  )}
                   {o.label}
                 </span>
                 {o.count != null && o.count > 0 ? (

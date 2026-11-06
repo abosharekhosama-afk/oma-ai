@@ -203,7 +203,9 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
   }, [activeBrandId]);
 
   const listTitle =
-    mode === 'dms' ? t('inbox.directMessages') || 'Direct messages' : t('inbox.commentsTitle') || 'Comments';
+    mode === 'dms'
+      ? t('inbox.directMessages') || 'Direct messages'
+      : t('inbox.commentsTitle') || 'Comments';
 
   const loadList = useCallback(async () => {
     setLoading(true);
@@ -493,7 +495,11 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
           </span>
         ) : (
           <span className="oma-plx-inbox-row__media oma-plx-inbox-row__media--person">
-            <PersonAvatar name={it.participantName || '?'} imageUrl={it.participantAvatar} size="md" />
+            <PersonAvatar
+              name={it.participantName || '?'}
+              imageUrl={it.participantAvatar}
+              size="md"
+            />
             <InboxPlatformBadge platform={it.platform} className="oma-plx-inbox-row__plat-badge" />
           </span>
         )}
@@ -506,7 +512,10 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
           </span>
           <span className="oma-plx-inbox-row__preview">
             {it.lastMessageDirection === 'INBOUND' && it.status !== 'CLOSED' ? (
-              <span className="oma-plx-inbox-row__needs-reply" title={t('inbox.needReply') || 'Needs reply'}>
+              <span
+                className="oma-plx-inbox-row__needs-reply"
+                title={t('inbox.needReply') || 'Needs reply'}
+              >
                 •
               </span>
             ) : null}
@@ -545,7 +554,8 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
           </div>
           {connections && connections.connectedPages === 0 ? (
             <p className="oma-plx-inbox-list__connect-hint">
-              {t('inbox.connectHint') || 'Connect Facebook or Instagram in brand settings to pull comments and DMs.'}{' '}
+              {t('inbox.connectHint') ||
+                'Connect Facebook or Instagram in brand settings to pull comments and DMs.'}{' '}
               <Link href={brandSettingsHref}>{t('inbox.connectLink') || 'Connect accounts'}</Link>
             </p>
           ) : connections?.lastSyncAt ? (
@@ -598,7 +608,10 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
             <header className="oma-plx-inbox-thread__head">
               {mode === 'dms' ? (
                 <div className="oma-plx-inbox-thread__identity">
-                  <PersonAvatar name={detail.participantName || '?'} imageUrl={detail.participantAvatar} />
+                  <PersonAvatar
+                    name={detail.participantName || '?'}
+                    imageUrl={detail.participantAvatar}
+                  />
                   <h3>{detail.participantName || 'Conversation'}</h3>
                 </div>
               ) : (
@@ -724,7 +737,8 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
                       aria-label="Open post"
                       disabled={!detailMeta.postPermalink}
                       onClick={() => {
-                        if (detailMeta.postPermalink) window.open(detailMeta.postPermalink, '_blank', 'noopener,noreferrer');
+                        if (detailMeta.postPermalink)
+                          window.open(detailMeta.postPermalink, '_blank', 'noopener,noreferrer');
                       }}
                     >
                       <LinkOutlined />
@@ -758,7 +772,9 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
                           <div className="oma-plx-inbox-comment-card__head">
                             <PersonAvatar name={m.senderName} imageUrl={m.senderAvatar} size="sm" />
                             <div className="oma-plx-inbox-comment-card__meta">
-                              <strong>{m.senderName.split(' ')[0]?.toLowerCase() ?? m.senderName}</strong>
+                              <strong>
+                                {m.senderName.split(' ')[0]?.toLowerCase() ?? m.senderName}
+                              </strong>
                               <time dateTime={m.createdAt}>{relativeTime(m.createdAt)}</time>
                             </div>
                             {m.direction === 'INBOUND' ? (
@@ -900,7 +916,11 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
                           ) : null}
                           <div className="oma-plx-inbox-chat__bubble-wrap">
                             {m.direction === 'INBOUND' ? (
-                              <PersonAvatar name={m.senderName} imageUrl={m.senderAvatar} size="sm" />
+                              <PersonAvatar
+                                name={m.senderName}
+                                imageUrl={m.senderAvatar}
+                                size="sm"
+                              />
                             ) : null}
                             <div
                               className={`oma-plx-inbox-bubble oma-plx-inbox-bubble--${m.direction.toLowerCase()}`}
@@ -925,7 +945,12 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
                     placeholder={t('inbox.notePlaceholder') || 'Internal note…'}
                     className="oma-plx-inbox-composer__input"
                   />
-                  <Button type="default" size="small" loading={sending} onClick={() => void onAddNote()}>
+                  <Button
+                    type="default"
+                    size="small"
+                    loading={sending}
+                    onClick={() => void onAddNote()}
+                  >
                     {t('inbox.saveNote') || 'Save note'}
                   </Button>
                 </div>
@@ -957,7 +982,9 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
                     data-testid="inbox-reply-send"
                     className="oma-plx-inbox-composer__send-inline"
                   >
-                    {mode === 'dms' ? t('inbox.sendReply') || 'Send' : t('inbox.postReply') || 'Post'}
+                    {mode === 'dms'
+                      ? t('inbox.sendReply') || 'Send'
+                      : t('inbox.postReply') || 'Post'}
                   </Button>
                 ) : null}
               </div>

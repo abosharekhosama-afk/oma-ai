@@ -136,9 +136,18 @@ const EN = {
   useCases: {
     title: 'Built for teams that publish every day',
     items: [
-      ['Agencies', 'Run many client brands side by side, each with its own calendar, media and approvers.'],
-      ['In-house teams', 'Keep marketing, design and leadership on the same plan without long email threads.'],
-      ['Reviewers and clients', 'Give approvers a clear view of what needs a decision, and nothing else.'],
+      [
+        'Agencies',
+        'Run many client brands side by side, each with its own calendar, media and approvers.',
+      ],
+      [
+        'In-house teams',
+        'Keep marketing, design and leadership on the same plan without long email threads.',
+      ],
+      [
+        'Reviewers and clients',
+        'Give approvers a clear view of what needs a decision, and nothing else.',
+      ],
     ],
   },
   pricing: {
@@ -164,12 +173,30 @@ const EN = {
   faq: {
     title: 'Questions, answered',
     items: [
-      ['Which channels does OMA support?', 'You can plan and preview posts for TikTok, Instagram, Facebook, LinkedIn and X. Direct publishing depends on each connected account.'],
-      ['Can clients approve content without a full account?', 'Yes. Invite them with the viewer or approver role so they only see what needs their review.'],
-      ['Does OMA work in Arabic?', 'Fully. The whole app and this page work in Arabic (right to left) and English, and each person can choose their language.'],
-      ['How many approval levels can I use?', 'Free and Basic have one level, Pro has two, and Enterprise has up to three.'],
-      ['Is there a free plan?', 'Yes. The free plan includes one brand, up to three members and 50 posts to try OMA with your real content.'],
-      ['Where are my files stored?', 'Media lives in Work Drive inside your workspace, organized by brand, with storage based on your plan.'],
+      [
+        'Which channels does OMA support?',
+        'You can plan and preview posts for TikTok, Instagram, Facebook, LinkedIn and X. Direct publishing depends on each connected account.',
+      ],
+      [
+        'Can clients approve content without a full account?',
+        'Yes. Invite them with the viewer or approver role so they only see what needs their review.',
+      ],
+      [
+        'Does OMA work in Arabic?',
+        'Fully. The whole app and this page work in Arabic (right to left) and English, and each person can choose their language.',
+      ],
+      [
+        'How many approval levels can I use?',
+        'Free and Basic have one level, Pro has two, and Enterprise has up to three.',
+      ],
+      [
+        'Is there a free plan?',
+        'Yes. The free plan includes one brand, up to three members and 50 posts to try OMA with your real content.',
+      ],
+      [
+        'Where are my files stored?',
+        'Media lives in Work Drive inside your workspace, organized by brand, with storage based on your plan.',
+      ],
     ],
   },
   final: {
@@ -194,8 +221,10 @@ const EN = {
     'view-grid': 'Grid view in OMA showing an Instagram-style preview of upcoming posts',
     'view-list': 'List view in OMA with posts, brands, labels and dates in rows',
     comments: 'An OMA post open with the feedback panel showing team comments and a reaction',
-    approvals: 'An OMA post with its approval steps popover showing the approver and the approved status',
-    composer: 'The OMA composer with Instagram and TikTok channels selected and a caption being written',
+    approvals:
+      'An OMA post with its approval steps popover showing the approver and the approved status',
+    composer:
+      'The OMA composer with Instagram and TikTok channels selected and a caption being written',
     drive: 'The OMA media dialog showing recently added Work Drive images and videos',
     requests: 'The OMA requests list with briefs, brands, priorities and due dates',
     tasks: 'The OMA tasks board with cards in backlog, to do and in progress columns',
@@ -373,12 +402,30 @@ const AR: LandingCopy = {
   faq: {
     title: 'إجابات لأسئلتك',
     items: [
-      ['ما القنوات التي يدعمها OMA؟', 'يمكنك تخطيط المنشورات ومعاينتها لتيك توك وإنستغرام وفيسبوك ولينكدإن وإكس. النشر المباشر يعتمد على كل حساب مربوط.'],
-      ['هل يستطيع العملاء الموافقة دون حساب كامل؟', 'نعم. ادعهم بدور المشاهد أو المعتمِد ليروا فقط ما يحتاج مراجعتهم.'],
-      ['هل يعمل OMA بالعربية؟', 'بالكامل. التطبيق وهذه الصفحة يعملان بالعربية (من اليمين لليسار) وبالإنجليزية، ويختار كل شخص لغته.'],
-      ['كم مستوى موافقة يمكنني استخدامه؟', 'المجانية والأساسية مستوى واحد، والاحترافية مستويان، والمؤسسات حتى ثلاثة مستويات.'],
-      ['هل توجد خطة مجانية؟', 'نعم. تشمل علامة تجارية واحدة وحتى ثلاثة أعضاء و50 منشوراً لتجربة OMA بمحتواك الحقيقي.'],
-      ['أين تُحفظ ملفاتي؟', 'الوسائط محفوظة في Work Drive داخل مساحة عملك، مرتبة حسب العلامة، بسعة حسب خطتك.'],
+      [
+        'ما القنوات التي يدعمها OMA؟',
+        'يمكنك تخطيط المنشورات ومعاينتها لتيك توك وإنستغرام وفيسبوك ولينكدإن وإكس. النشر المباشر يعتمد على كل حساب مربوط.',
+      ],
+      [
+        'هل يستطيع العملاء الموافقة دون حساب كامل؟',
+        'نعم. ادعهم بدور المشاهد أو المعتمِد ليروا فقط ما يحتاج مراجعتهم.',
+      ],
+      [
+        'هل يعمل OMA بالعربية؟',
+        'بالكامل. التطبيق وهذه الصفحة يعملان بالعربية (من اليمين لليسار) وبالإنجليزية، ويختار كل شخص لغته.',
+      ],
+      [
+        'كم مستوى موافقة يمكنني استخدامه؟',
+        'المجانية والأساسية مستوى واحد، والاحترافية مستويان، والمؤسسات حتى ثلاثة مستويات.',
+      ],
+      [
+        'هل توجد خطة مجانية؟',
+        'نعم. تشمل علامة تجارية واحدة وحتى ثلاثة أعضاء و50 منشوراً لتجربة OMA بمحتواك الحقيقي.',
+      ],
+      [
+        'أين تُحفظ ملفاتي؟',
+        'الوسائط محفوظة في Work Drive داخل مساحة عملك، مرتبة حسب العلامة، بسعة حسب خطتك.',
+      ],
     ],
   },
   final: {

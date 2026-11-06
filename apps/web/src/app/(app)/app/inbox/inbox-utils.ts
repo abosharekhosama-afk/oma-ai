@@ -122,7 +122,10 @@ export function formatInboxPostDate(iso: string): string {
   });
 }
 
-export function filterByStatusTab<T extends { status: string }>(items: T[], tab: 'OPEN' | 'PENDING' | 'CLOSED') {
+export function filterByStatusTab<T extends { status: string }>(
+  items: T[],
+  tab: 'OPEN' | 'PENDING' | 'CLOSED',
+) {
   if (tab === 'OPEN') return items.filter((it) => it.status === 'OPEN' || it.status === 'UNREAD');
   if (tab === 'PENDING') return items.filter((it) => it.status === 'PENDING');
   return items.filter((it) => it.status === 'CLOSED');

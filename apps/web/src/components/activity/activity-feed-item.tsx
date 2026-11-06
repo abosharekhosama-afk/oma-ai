@@ -68,9 +68,7 @@ export function ActivityFeedItem({
         : '';
   const fullTime = new Date(item.at).toLocaleString(isAr ? 'ar' : 'en');
   const catLabel =
-    t(`activity.filter.${item.category}`) ||
-    CATEGORY_LABEL[item.category] ||
-    item.category;
+    t(`activity.filter.${item.category}`) || CATEGORY_LABEL[item.category] || item.category;
 
   return (
     <li
@@ -95,18 +93,17 @@ export function ActivityFeedItem({
               loading="lazy"
             />
           ) : (
-            <span className="oma-plx-listening-card__avatar oma-plx-activity-card__avatar" aria-hidden>
+            <span
+              className="oma-plx-listening-card__avatar oma-plx-activity-card__avatar"
+              aria-hidden
+            >
               {initials(item.actor_name || '?')}
             </span>
           )}
           <div className="oma-plx-listening-card__author-text">
             <div className="oma-plx-listening-card__name-row">
               <strong>{item.actor_name}</strong>
-              <time
-                className="oma-plx-activity-card__time"
-                dateTime={item.at}
-                title={fullTime}
-              >
+              <time className="oma-plx-activity-card__time" dateTime={item.at} title={fullTime}>
                 {relativeTime(item.at, locale)}
               </time>
             </div>

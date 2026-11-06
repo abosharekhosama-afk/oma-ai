@@ -49,7 +49,13 @@ async function syncFacebookPage(input: {
 
   try {
     const feed = await graphGet<
-      GraphList<{ id: string; message?: string; created_time?: string; full_picture?: string; permalink_url?: string }>
+      GraphList<{
+        id: string;
+        message?: string;
+        created_time?: string;
+        full_picture?: string;
+        permalink_url?: string;
+      }>
     >(`${input.pageExternalId}/feed`, input.accessToken, {
       fields: 'id,message,created_time,full_picture,permalink_url',
       limit: '40',
@@ -66,7 +72,12 @@ async function syncFacebookPage(input: {
       });
       try {
         const comments = await graphGet<
-          GraphList<{ id: string; message?: string; created_time?: string; from?: { id?: string; name?: string } }>
+          GraphList<{
+            id: string;
+            message?: string;
+            created_time?: string;
+            from?: { id?: string; name?: string };
+          }>
         >(`${post.id}/comments`, input.accessToken, {
           fields: 'id,message,from,created_time',
           filter: 'stream',
@@ -184,7 +195,8 @@ async function syncInstagramPage(input: {
         }>;
       }>
     >(`${input.igUserId}/media`, input.accessToken, {
-      fields: 'id,caption,timestamp,media_url,thumbnail_url,permalink,comments.limit(50){id,text,timestamp,username,from}',
+      fields:
+        'id,caption,timestamp,media_url,thumbnail_url,permalink,comments.limit(50){id,text,timestamp,username,from}',
       limit: '30',
     });
     for (const item of media.data ?? []) {
@@ -279,7 +291,12 @@ export async function runInboxSync(input: {
 }): Promise<SyncResult> {
   const key = tokenKeyFromEnv(process.env);
   if (!key) {
-    return { pages: 0, ingested: 0, skipped: 0, errors: ['SOCIAL_TOKEN_ENCRYPTION_KEY not configured'] };
+    return {
+      pages: 0,
+      ingested: 0,
+      skipped: 0,
+      errors: ['SOCIAL_TOKEN_ENCRYPTION_KEY not configured'],
+    };
   }
 
   const sinceDays = input.sinceDays ?? Number(process.env.INBOX_SYNC_DAYS ?? 14);
@@ -356,6 +373,9 @@ export async function runInboxSync(input: {
     }
   }
 
-  log.info({ tenantId: input.tenantId, pages: pages.length, ingested, skipped }, 'inbox sync finished');
+  log.info(
+    { tenantId: input.tenantId, pages: pages.length, ingested, skipped },
+    'inbox sync finished',
+  );
   return { pages: pages.length, ingested, skipped, errors: errors.slice(0, 20) };
 }

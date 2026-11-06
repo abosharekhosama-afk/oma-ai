@@ -341,8 +341,7 @@ export default function RequestsPage() {
   }
 
   const filterLabel = locale.toLowerCase().startsWith('ar') ? 'تصفية' : 'Filter';
-  const filterPanelTitle =
-    locale.toLowerCase().startsWith('ar') ? 'تصفية وترتيب' : 'Filter & sort';
+  const filterPanelTitle = locale.toLowerCase().startsWith('ar') ? 'تصفية وترتيب' : 'Filter & sort';
 
   return (
     <div
@@ -374,358 +373,346 @@ export default function RequestsPage() {
           ) : null
         }
       >
-              <div className="oma-filter-accordion-list oma-plx-deliv-filter-accordion-list">
-                <div className="oma-filter-accordion">
-                  <button
-                    type="button"
-                    className="oma-filter-accordion__row"
-                    data-open={filterSection === 'search' ? 'true' : 'false'}
-                    onClick={() => setFilterSection((s) => (s === 'search' ? null : 'search'))}
-                  >
-                    <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
-                      <SearchOutlined />
-                    </span>
-                    <span>{t('demo.requests.search')}</span>
-                    <span className="oma-filter-accordion__caret">
-                      {filterSection === 'search' ? <UpOutlined /> : <DownOutlined />}
-                    </span>
-                  </button>
-                  {filterSection === 'search' ? (
-                    <div className="oma-filter-accordion__body">
-                      <Input
-                        value={filters.q}
-                        data-testid="demo-request-search"
-                        placeholder={t('demo.requests.search')}
-                        onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
-                      />
-                    </div>
-                  ) : null}
-                </div>
-
-                <div className="oma-filter-accordion">
-                  <button
-                    type="button"
-                    className="oma-filter-accordion__row"
-                    data-open={filterSection === 'status' ? 'true' : 'false'}
-                    onClick={() => setFilterSection((s) => (s === 'status' ? null : 'status'))}
-                  >
-                    <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
-                      <CheckCircleOutlined />
-                    </span>
-                    <span>{t('demo.requests.filter.status')}</span>
-                    <span className="oma-filter-accordion__caret">
-                      {filterSection === 'status' ? <UpOutlined /> : <DownOutlined />}
-                    </span>
-                  </button>
-                  {filterSection === 'status' ? (
-                    <div className="oma-filter-accordion__body">
-                      {[
-                        'all',
-                        'OPEN',
-                        'ASSIGNED',
-                        'IN_BRIEF',
-                        'WAITING_INFO',
-                        'READY_FOR_PRODUCTION',
-                        'IN_PRODUCTION',
-                        'DONE',
-                        'CLOSED',
-                      ].map((s) => (
-                        <label key={s} className="oma-filter-check">
-                          <input
-                            type="checkbox"
-                            data-testid={s === 'all' ? 'demo-request-filter-status' : undefined}
-                            checked={(filters.status || 'all') === s}
-                            onChange={() => setFilters((f) => ({ ...f, status: s }))}
-                          />
-                          <span>{s === 'all' ? t('demo.filter.all') : s}</span>
-                        </label>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-
-                <div className="oma-filter-accordion">
-                  <button
-                    type="button"
-                    className="oma-filter-accordion__row"
-                    data-open={filterSection === 'priority' ? 'true' : 'false'}
-                    onClick={() => setFilterSection((s) => (s === 'priority' ? null : 'priority'))}
-                  >
-                    <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
-                      <FlagOutlined />
-                    </span>
-                    <span>{t('demo.requests.filter.priority')}</span>
-                    <span className="oma-filter-accordion__caret">
-                      {filterSection === 'priority' ? <UpOutlined /> : <DownOutlined />}
-                    </span>
-                  </button>
-                  {filterSection === 'priority' ? (
-                    <div className="oma-filter-accordion__body">
-                      {['all', 'URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((s) => (
-                        <label key={s} className="oma-filter-check">
-                          <input
-                            type="checkbox"
-                            data-testid={s === 'all' ? 'demo-request-filter-priority' : undefined}
-                            checked={(filters.priority || 'all') === s}
-                            onChange={() => setFilters((f) => ({ ...f, priority: s }))}
-                          />
-                          <span>{s === 'all' ? t('demo.filter.all') : s}</span>
-                        </label>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-
-                <div className="oma-filter-accordion">
-                  <button
-                    type="button"
-                    className="oma-filter-accordion__row"
-                    data-open={filterSection === 'type' ? 'true' : 'false'}
-                    onClick={() => setFilterSection((s) => (s === 'type' ? null : 'type'))}
-                  >
-                    <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
-                      <AppstoreOutlined />
-                    </span>
-                    <span>{t('demo.requests.filter.type')}</span>
-                    <span className="oma-filter-accordion__caret">
-                      {filterSection === 'type' ? <UpOutlined /> : <DownOutlined />}
-                    </span>
-                  </button>
-                  {filterSection === 'type' ? (
-                    <div className="oma-filter-accordion__body">
-                      {[
-                        'all',
-                        'CONTENT',
-                        'DESIGN',
-                        'VIDEO',
-                        'CAMPAIGN_SUPPORT',
-                        'REVISION',
-                        'OTHER',
-                      ].map((s) => (
-                        <label key={s} className="oma-filter-check">
-                          <input
-                            type="checkbox"
-                            data-testid={s === 'all' ? 'demo-request-filter-type' : undefined}
-                            checked={(filters.type || 'all') === s}
-                            onChange={() => setFilters((f) => ({ ...f, type: s }))}
-                          />
-                          <span>{s === 'all' ? t('demo.filter.all') : s}</span>
-                        </label>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-
-                <div className="oma-filter-accordion">
-                  <button
-                    type="button"
-                    className="oma-filter-accordion__row"
-                    data-open={filterSection === 'brand' ? 'true' : 'false'}
-                    onClick={() => setFilterSection((s) => (s === 'brand' ? null : 'brand'))}
-                  >
-                    <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
-                      <TagOutlined />
-                    </span>
-                    <span>{t('demo.requests.filter.brand')}</span>
-                    <span className="oma-filter-accordion__caret">
-                      {filterSection === 'brand' ? <UpOutlined /> : <DownOutlined />}
-                    </span>
-                  </button>
-                  {filterSection === 'brand' ? (
-                    <div className="oma-filter-accordion__body">
-                      <label className="oma-filter-check">
-                        <input
-                          type="checkbox"
-                          data-testid="demo-request-filter-brand"
-                          checked={(filters.brandId || 'all') === 'all'}
-                          onChange={() => setFilters((f) => ({ ...f, brandId: 'all' }))}
-                        />
-                        <span>{t('demo.filter.all')}</span>
-                      </label>
-                      {brands.map((b) => (
-                        <label key={b.id} className="oma-filter-check">
-                          <input
-                            type="checkbox"
-                            checked={filters.brandId === b.id}
-                            onChange={() => setFilters((f) => ({ ...f, brandId: b.id }))}
-                          />
-                          <span>{pickCopy(b.name, locale)}</span>
-                        </label>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-
-                <div className="oma-filter-accordion">
-                  <button
-                    type="button"
-                    className="oma-filter-accordion__row"
-                    data-open={filterSection === 'campaign' ? 'true' : 'false'}
-                    onClick={() => setFilterSection((s) => (s === 'campaign' ? null : 'campaign'))}
-                  >
-                    <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
-                      <FlagOutlined />
-                    </span>
-                    <span>{t('demo.requests.filter.campaign')}</span>
-                    <span className="oma-filter-accordion__caret">
-                      {filterSection === 'campaign' ? <UpOutlined /> : <DownOutlined />}
-                    </span>
-                  </button>
-                  {filterSection === 'campaign' ? (
-                    <div className="oma-filter-accordion__body">
-                      <label className="oma-filter-check">
-                        <input
-                          type="checkbox"
-                          data-testid="demo-request-filter-campaign"
-                          checked={(filters.campaignId || 'all') === 'all'}
-                          onChange={() => setFilters((f) => ({ ...f, campaignId: 'all' }))}
-                        />
-                        <span>{t('demo.filter.all')}</span>
-                      </label>
-                      {campaigns.map((c) => (
-                        <label key={c.id} className="oma-filter-check">
-                          <input
-                            type="checkbox"
-                            checked={filters.campaignId === c.id}
-                            onChange={() => setFilters((f) => ({ ...f, campaignId: c.id }))}
-                          />
-                          <span>{pickCopy(c.name, locale)}</span>
-                        </label>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-
-                <div className="oma-filter-accordion">
-                  <button
-                    type="button"
-                    className="oma-filter-accordion__row"
-                    data-open={filterSection === 'requester' ? 'true' : 'false'}
-                    onClick={() =>
-                      setFilterSection((s) => (s === 'requester' ? null : 'requester'))
-                    }
-                  >
-                    <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
-                      <UserOutlined />
-                    </span>
-                    <span>{t('demo.requests.filter.requester')}</span>
-                    <span className="oma-filter-accordion__caret">
-                      {filterSection === 'requester' ? <UpOutlined /> : <DownOutlined />}
-                    </span>
-                  </button>
-                  {filterSection === 'requester' ? (
-                    <div className="oma-filter-accordion__body">
-                      <label className="oma-filter-check">
-                        <input
-                          type="checkbox"
-                          data-testid="demo-request-filter-requester"
-                          checked={(filters.requester || 'all') === 'all'}
-                          onChange={() => setFilters((f) => ({ ...f, requester: 'all' }))}
-                        />
-                        <span>{t('demo.filter.all')}</span>
-                      </label>
-                      {requesters.map((r) => (
-                        <label key={r} className="oma-filter-check">
-                          <input
-                            type="checkbox"
-                            checked={filters.requester === r}
-                            onChange={() => setFilters((f) => ({ ...f, requester: r }))}
-                          />
-                          <span>{r}</span>
-                        </label>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-
-                <div className="oma-filter-accordion">
-                  <button
-                    type="button"
-                    className="oma-filter-accordion__row"
-                    data-open={filterSection === 'assignee' ? 'true' : 'false'}
-                    onClick={() => setFilterSection((s) => (s === 'assignee' ? null : 'assignee'))}
-                  >
-                    <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
-                      <TeamOutlined />
-                    </span>
-                    <span>{t('demo.requests.filter.assignee')}</span>
-                    <span className="oma-filter-accordion__caret">
-                      {filterSection === 'assignee' ? <UpOutlined /> : <DownOutlined />}
-                    </span>
-                  </button>
-                  {filterSection === 'assignee' ? (
-                    <div className="oma-filter-accordion__body">
-                      <label className="oma-filter-check">
-                        <input
-                          type="checkbox"
-                          data-testid="demo-request-filter-assignee"
-                          checked={(filters.assignee || 'all') === 'all'}
-                          onChange={() => setFilters((f) => ({ ...f, assignee: 'all' }))}
-                        />
-                        <span>{t('demo.filter.all')}</span>
-                      </label>
-                      {assignees.map((a) => (
-                        <label key={a} className="oma-filter-check">
-                          <input
-                            type="checkbox"
-                            checked={filters.assignee === a}
-                            onChange={() => setFilters((f) => ({ ...f, assignee: a }))}
-                          />
-                          <span>{a}</span>
-                        </label>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
-
-                <div className="oma-filter-accordion">
-                  <button
-                    type="button"
-                    className="oma-filter-accordion__row"
-                    data-open={filterSection === 'due' ? 'true' : 'false'}
-                    onClick={() => setFilterSection((s) => (s === 'due' ? null : 'due'))}
-                  >
-                    <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
-                      <CalendarOutlined />
-                    </span>
-                    <span>{t('demo.requests.filter.due')}</span>
-                    <span className="oma-filter-accordion__caret">
-                      {filterSection === 'due' ? <UpOutlined /> : <DownOutlined />}
-                    </span>
-                  </button>
-                  {filterSection === 'due' ? (
-                    <div className="oma-filter-accordion__body">
-                      {(
-                        [
-                          { value: 'all', label: t('demo.filter.all') },
-                          { value: 'overdue', label: t('demo.requests.overdue') },
-                          { value: 'soon', label: t('demo.requests.dueSoon') },
-                          { value: 'later', label: t('demo.requests.dueLater') },
-                        ] as const
-                      ).map((opt) => (
-                        <label key={opt.value} className="oma-filter-check">
-                          <input
-                            type="checkbox"
-                            data-testid={
-                              opt.value === 'all' ? 'demo-request-filter-due' : undefined
-                            }
-                            checked={(filters.due || 'all') === opt.value}
-                            onChange={() =>
-                              setFilters((f) => ({
-                                ...f,
-                                due: opt.value as RequestFilters['due'],
-                              }))
-                            }
-                          />
-                          <span>{opt.label}</span>
-                        </label>
-                      ))}
-                    </div>
-                  ) : null}
-                </div>
+        <div className="oma-filter-accordion-list oma-plx-deliv-filter-accordion-list">
+          <div className="oma-filter-accordion">
+            <button
+              type="button"
+              className="oma-filter-accordion__row"
+              data-open={filterSection === 'search' ? 'true' : 'false'}
+              onClick={() => setFilterSection((s) => (s === 'search' ? null : 'search'))}
+            >
+              <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
+                <SearchOutlined />
+              </span>
+              <span>{t('demo.requests.search')}</span>
+              <span className="oma-filter-accordion__caret">
+                {filterSection === 'search' ? <UpOutlined /> : <DownOutlined />}
+              </span>
+            </button>
+            {filterSection === 'search' ? (
+              <div className="oma-filter-accordion__body">
+                <Input
+                  value={filters.q}
+                  data-testid="demo-request-search"
+                  placeholder={t('demo.requests.search')}
+                  onChange={(e) => setFilters((f) => ({ ...f, q: e.target.value }))}
+                />
               </div>
+            ) : null}
+          </div>
 
+          <div className="oma-filter-accordion">
+            <button
+              type="button"
+              className="oma-filter-accordion__row"
+              data-open={filterSection === 'status' ? 'true' : 'false'}
+              onClick={() => setFilterSection((s) => (s === 'status' ? null : 'status'))}
+            >
+              <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
+                <CheckCircleOutlined />
+              </span>
+              <span>{t('demo.requests.filter.status')}</span>
+              <span className="oma-filter-accordion__caret">
+                {filterSection === 'status' ? <UpOutlined /> : <DownOutlined />}
+              </span>
+            </button>
+            {filterSection === 'status' ? (
+              <div className="oma-filter-accordion__body">
+                {[
+                  'all',
+                  'OPEN',
+                  'ASSIGNED',
+                  'IN_BRIEF',
+                  'WAITING_INFO',
+                  'READY_FOR_PRODUCTION',
+                  'IN_PRODUCTION',
+                  'DONE',
+                  'CLOSED',
+                ].map((s) => (
+                  <label key={s} className="oma-filter-check">
+                    <input
+                      type="checkbox"
+                      data-testid={s === 'all' ? 'demo-request-filter-status' : undefined}
+                      checked={(filters.status || 'all') === s}
+                      onChange={() => setFilters((f) => ({ ...f, status: s }))}
+                    />
+                    <span>{s === 'all' ? t('demo.filter.all') : s}</span>
+                  </label>
+                ))}
+              </div>
+            ) : null}
+          </div>
 
+          <div className="oma-filter-accordion">
+            <button
+              type="button"
+              className="oma-filter-accordion__row"
+              data-open={filterSection === 'priority' ? 'true' : 'false'}
+              onClick={() => setFilterSection((s) => (s === 'priority' ? null : 'priority'))}
+            >
+              <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
+                <FlagOutlined />
+              </span>
+              <span>{t('demo.requests.filter.priority')}</span>
+              <span className="oma-filter-accordion__caret">
+                {filterSection === 'priority' ? <UpOutlined /> : <DownOutlined />}
+              </span>
+            </button>
+            {filterSection === 'priority' ? (
+              <div className="oma-filter-accordion__body">
+                {['all', 'URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((s) => (
+                  <label key={s} className="oma-filter-check">
+                    <input
+                      type="checkbox"
+                      data-testid={s === 'all' ? 'demo-request-filter-priority' : undefined}
+                      checked={(filters.priority || 'all') === s}
+                      onChange={() => setFilters((f) => ({ ...f, priority: s }))}
+                    />
+                    <span>{s === 'all' ? t('demo.filter.all') : s}</span>
+                  </label>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
+          <div className="oma-filter-accordion">
+            <button
+              type="button"
+              className="oma-filter-accordion__row"
+              data-open={filterSection === 'type' ? 'true' : 'false'}
+              onClick={() => setFilterSection((s) => (s === 'type' ? null : 'type'))}
+            >
+              <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
+                <AppstoreOutlined />
+              </span>
+              <span>{t('demo.requests.filter.type')}</span>
+              <span className="oma-filter-accordion__caret">
+                {filterSection === 'type' ? <UpOutlined /> : <DownOutlined />}
+              </span>
+            </button>
+            {filterSection === 'type' ? (
+              <div className="oma-filter-accordion__body">
+                {['all', 'CONTENT', 'DESIGN', 'VIDEO', 'CAMPAIGN_SUPPORT', 'REVISION', 'OTHER'].map(
+                  (s) => (
+                    <label key={s} className="oma-filter-check">
+                      <input
+                        type="checkbox"
+                        data-testid={s === 'all' ? 'demo-request-filter-type' : undefined}
+                        checked={(filters.type || 'all') === s}
+                        onChange={() => setFilters((f) => ({ ...f, type: s }))}
+                      />
+                      <span>{s === 'all' ? t('demo.filter.all') : s}</span>
+                    </label>
+                  ),
+                )}
+              </div>
+            ) : null}
+          </div>
+
+          <div className="oma-filter-accordion">
+            <button
+              type="button"
+              className="oma-filter-accordion__row"
+              data-open={filterSection === 'brand' ? 'true' : 'false'}
+              onClick={() => setFilterSection((s) => (s === 'brand' ? null : 'brand'))}
+            >
+              <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
+                <TagOutlined />
+              </span>
+              <span>{t('demo.requests.filter.brand')}</span>
+              <span className="oma-filter-accordion__caret">
+                {filterSection === 'brand' ? <UpOutlined /> : <DownOutlined />}
+              </span>
+            </button>
+            {filterSection === 'brand' ? (
+              <div className="oma-filter-accordion__body">
+                <label className="oma-filter-check">
+                  <input
+                    type="checkbox"
+                    data-testid="demo-request-filter-brand"
+                    checked={(filters.brandId || 'all') === 'all'}
+                    onChange={() => setFilters((f) => ({ ...f, brandId: 'all' }))}
+                  />
+                  <span>{t('demo.filter.all')}</span>
+                </label>
+                {brands.map((b) => (
+                  <label key={b.id} className="oma-filter-check">
+                    <input
+                      type="checkbox"
+                      checked={filters.brandId === b.id}
+                      onChange={() => setFilters((f) => ({ ...f, brandId: b.id }))}
+                    />
+                    <span>{pickCopy(b.name, locale)}</span>
+                  </label>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
+          <div className="oma-filter-accordion">
+            <button
+              type="button"
+              className="oma-filter-accordion__row"
+              data-open={filterSection === 'campaign' ? 'true' : 'false'}
+              onClick={() => setFilterSection((s) => (s === 'campaign' ? null : 'campaign'))}
+            >
+              <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
+                <FlagOutlined />
+              </span>
+              <span>{t('demo.requests.filter.campaign')}</span>
+              <span className="oma-filter-accordion__caret">
+                {filterSection === 'campaign' ? <UpOutlined /> : <DownOutlined />}
+              </span>
+            </button>
+            {filterSection === 'campaign' ? (
+              <div className="oma-filter-accordion__body">
+                <label className="oma-filter-check">
+                  <input
+                    type="checkbox"
+                    data-testid="demo-request-filter-campaign"
+                    checked={(filters.campaignId || 'all') === 'all'}
+                    onChange={() => setFilters((f) => ({ ...f, campaignId: 'all' }))}
+                  />
+                  <span>{t('demo.filter.all')}</span>
+                </label>
+                {campaigns.map((c) => (
+                  <label key={c.id} className="oma-filter-check">
+                    <input
+                      type="checkbox"
+                      checked={filters.campaignId === c.id}
+                      onChange={() => setFilters((f) => ({ ...f, campaignId: c.id }))}
+                    />
+                    <span>{pickCopy(c.name, locale)}</span>
+                  </label>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
+          <div className="oma-filter-accordion">
+            <button
+              type="button"
+              className="oma-filter-accordion__row"
+              data-open={filterSection === 'requester' ? 'true' : 'false'}
+              onClick={() => setFilterSection((s) => (s === 'requester' ? null : 'requester'))}
+            >
+              <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
+                <UserOutlined />
+              </span>
+              <span>{t('demo.requests.filter.requester')}</span>
+              <span className="oma-filter-accordion__caret">
+                {filterSection === 'requester' ? <UpOutlined /> : <DownOutlined />}
+              </span>
+            </button>
+            {filterSection === 'requester' ? (
+              <div className="oma-filter-accordion__body">
+                <label className="oma-filter-check">
+                  <input
+                    type="checkbox"
+                    data-testid="demo-request-filter-requester"
+                    checked={(filters.requester || 'all') === 'all'}
+                    onChange={() => setFilters((f) => ({ ...f, requester: 'all' }))}
+                  />
+                  <span>{t('demo.filter.all')}</span>
+                </label>
+                {requesters.map((r) => (
+                  <label key={r} className="oma-filter-check">
+                    <input
+                      type="checkbox"
+                      checked={filters.requester === r}
+                      onChange={() => setFilters((f) => ({ ...f, requester: r }))}
+                    />
+                    <span>{r}</span>
+                  </label>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
+          <div className="oma-filter-accordion">
+            <button
+              type="button"
+              className="oma-filter-accordion__row"
+              data-open={filterSection === 'assignee' ? 'true' : 'false'}
+              onClick={() => setFilterSection((s) => (s === 'assignee' ? null : 'assignee'))}
+            >
+              <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
+                <TeamOutlined />
+              </span>
+              <span>{t('demo.requests.filter.assignee')}</span>
+              <span className="oma-filter-accordion__caret">
+                {filterSection === 'assignee' ? <UpOutlined /> : <DownOutlined />}
+              </span>
+            </button>
+            {filterSection === 'assignee' ? (
+              <div className="oma-filter-accordion__body">
+                <label className="oma-filter-check">
+                  <input
+                    type="checkbox"
+                    data-testid="demo-request-filter-assignee"
+                    checked={(filters.assignee || 'all') === 'all'}
+                    onChange={() => setFilters((f) => ({ ...f, assignee: 'all' }))}
+                  />
+                  <span>{t('demo.filter.all')}</span>
+                </label>
+                {assignees.map((a) => (
+                  <label key={a} className="oma-filter-check">
+                    <input
+                      type="checkbox"
+                      checked={filters.assignee === a}
+                      onChange={() => setFilters((f) => ({ ...f, assignee: a }))}
+                    />
+                    <span>{a}</span>
+                  </label>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
+          <div className="oma-filter-accordion">
+            <button
+              type="button"
+              className="oma-filter-accordion__row"
+              data-open={filterSection === 'due' ? 'true' : 'false'}
+              onClick={() => setFilterSection((s) => (s === 'due' ? null : 'due'))}
+            >
+              <span className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico">
+                <CalendarOutlined />
+              </span>
+              <span>{t('demo.requests.filter.due')}</span>
+              <span className="oma-filter-accordion__caret">
+                {filterSection === 'due' ? <UpOutlined /> : <DownOutlined />}
+              </span>
+            </button>
+            {filterSection === 'due' ? (
+              <div className="oma-filter-accordion__body">
+                {(
+                  [
+                    { value: 'all', label: t('demo.filter.all') },
+                    { value: 'overdue', label: t('demo.requests.overdue') },
+                    { value: 'soon', label: t('demo.requests.dueSoon') },
+                    { value: 'later', label: t('demo.requests.dueLater') },
+                  ] as const
+                ).map((opt) => (
+                  <label key={opt.value} className="oma-filter-check">
+                    <input
+                      type="checkbox"
+                      data-testid={opt.value === 'all' ? 'demo-request-filter-due' : undefined}
+                      checked={(filters.due || 'all') === opt.value}
+                      onChange={() =>
+                        setFilters((f) => ({
+                          ...f,
+                          due: opt.value as RequestFilters['due'],
+                        }))
+                      }
+                    />
+                    <span>{opt.label}</span>
+                  </label>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </div>
       </PlxHeaderFilter>
 
       <div className="oma-plx-workspace-surface">
@@ -791,89 +778,89 @@ export default function RequestsPage() {
                     data-testid="demo-request-table"
                   >
                     <table className="oma-plx-deliv-table oma-req-table">
-                    <thead>
-                      <tr>
-                        <th>{t('demo.requests.col.request')}</th>
-                        <th>{t('demo.requests.col.type')}</th>
-                        <th>{t('demo.requests.col.requester')}</th>
-                        <th>{t('demo.requests.col.brandCampaign')}</th>
-                        <th>{t('demo.requests.col.priority')}</th>
-                        <th>{t('demo.requests.col.assignee')}</th>
-                        <th>{t('demo.requests.col.submitted')}</th>
-                        <th>{t('demo.requests.col.due')}</th>
-                        <th>{t('demo.requests.col.status')}</th>
-                        <th>{t('demo.requests.col.next')}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filtered.map((r) => {
-                        const brief = briefByRequest.get(r.id) ?? null;
-                        const missing = requestMissingFields(r);
-                        const overdue = requestIsOverdue(r);
-                        const next = requestNextAction(r, brief);
-                        return (
-                          <tr
-                            key={r.id}
-                            data-overdue={overdue ? 'true' : 'false'}
-                            data-missing={missing.length ? 'true' : 'false'}
-                            data-testid={`demo-request-row-${r.id}`}
-                          >
-                            <td>
-                              <div className="oma-req-title-cell">
-                                <span className="oma-req-avatar" aria-hidden>
-                                  {initials(r.requester)}
-                                </span>
-                                <div>
-                                  <Link href={`/app/requests/${r.id}`} className="oma-text-link">
-                                    {pickCopy(r.title, locale)}
-                                  </Link>
-                                  <div className="oma-muted" style={{ fontSize: 12 }}>
-                                    {requestRowMeta(r, locale, t)}
+                      <thead>
+                        <tr>
+                          <th>{t('demo.requests.col.request')}</th>
+                          <th>{t('demo.requests.col.type')}</th>
+                          <th>{t('demo.requests.col.requester')}</th>
+                          <th>{t('demo.requests.col.brandCampaign')}</th>
+                          <th>{t('demo.requests.col.priority')}</th>
+                          <th>{t('demo.requests.col.assignee')}</th>
+                          <th>{t('demo.requests.col.submitted')}</th>
+                          <th>{t('demo.requests.col.due')}</th>
+                          <th>{t('demo.requests.col.status')}</th>
+                          <th>{t('demo.requests.col.next')}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filtered.map((r) => {
+                          const brief = briefByRequest.get(r.id) ?? null;
+                          const missing = requestMissingFields(r);
+                          const overdue = requestIsOverdue(r);
+                          const next = requestNextAction(r, brief);
+                          return (
+                            <tr
+                              key={r.id}
+                              data-overdue={overdue ? 'true' : 'false'}
+                              data-missing={missing.length ? 'true' : 'false'}
+                              data-testid={`demo-request-row-${r.id}`}
+                            >
+                              <td>
+                                <div className="oma-req-title-cell">
+                                  <span className="oma-req-avatar" aria-hidden>
+                                    {initials(r.requester)}
+                                  </span>
+                                  <div>
+                                    <Link href={`/app/requests/${r.id}`} className="oma-text-link">
+                                      {pickCopy(r.title, locale)}
+                                    </Link>
+                                    <div className="oma-muted" style={{ fontSize: 12 }}>
+                                      {requestRowMeta(r, locale, t)}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
-                            </td>
-                            <td>
-                              <span className="oma-sr-only">{t('demo.requests.col.type')}: </span>
-                              {r.type}
-                            </td>
-                            <td>{r.requester}</td>
-                            <td>
-                              {brandName(r.brandId)}
-                              <div className="oma-muted" style={{ fontSize: 12 }}>
-                                {campaignName(r.campaignId)}
-                              </div>
-                            </td>
-                            <td>
-                              <StatusChip
-                                status={r.priority}
-                                tone={
-                                  r.priority === 'URGENT' || r.priority === 'HIGH'
-                                    ? 'warning'
-                                    : 'neutral'
-                                }
-                              />
-                            </td>
-                            <td>
-                              <div className="oma-req-title-cell">
-                                <span className="oma-req-avatar" aria-hidden>
-                                  {initials(r.assignee ?? t('demo.requests.unassigned'))}
-                                </span>
-                                <span>{r.assignee ?? t('demo.requests.unassigned')}</span>
-                              </div>
-                            </td>
-                            <td>{r.submittedAt}</td>
-                            <td>{r.dueAt}</td>
-                            <td>
-                              <StatusChip status={r.status} />
-                            </td>
-                            <td>{pickCopy(next, locale)}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
+                              </td>
+                              <td>
+                                <span className="oma-sr-only">{t('demo.requests.col.type')}: </span>
+                                {r.type}
+                              </td>
+                              <td>{r.requester}</td>
+                              <td>
+                                {brandName(r.brandId)}
+                                <div className="oma-muted" style={{ fontSize: 12 }}>
+                                  {campaignName(r.campaignId)}
+                                </div>
+                              </td>
+                              <td>
+                                <StatusChip
+                                  status={r.priority}
+                                  tone={
+                                    r.priority === 'URGENT' || r.priority === 'HIGH'
+                                      ? 'warning'
+                                      : 'neutral'
+                                  }
+                                />
+                              </td>
+                              <td>
+                                <div className="oma-req-title-cell">
+                                  <span className="oma-req-avatar" aria-hidden>
+                                    {initials(r.assignee ?? t('demo.requests.unassigned'))}
+                                  </span>
+                                  <span>{r.assignee ?? t('demo.requests.unassigned')}</span>
+                                </div>
+                              </td>
+                              <td>{r.submittedAt}</td>
+                              <td>{r.dueAt}</td>
+                              <td>
+                                <StatusChip status={r.status} />
+                              </td>
+                              <td>{pickCopy(next, locale)}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
 
                   <ul
                     className="oma-plx-request-feed oma-plx-requests-cards"
@@ -959,153 +946,156 @@ export default function RequestsPage() {
             </p>
           ) : null}
           <section className="oma-plx-listening-panel oma-plx-compose-panel">
-          <div className="oma-compose__grid oma-plx-compose__grid">
-            <label className="oma-compose__wide">
-              {t('demo.create.title')}
-              <Input
-                value={form.title}
-                data-testid="demo-create-request-title-input"
-                onChange={(e) => patchForm({ title: e.target.value })}
-              />
-            </label>
-            <label>
-              {t('demo.requests.filter.type')}
-              <OmaSelect
-                value={form.type}
-                testId="demo-create-request-type"
-                onChange={(type) => patchForm({ type })}
-                options={[
-                  'CONTENT',
-                  'DESIGN',
-                  'VIDEO',
-                  'CAMPAIGN_SUPPORT',
-                  'REVISION',
-                  'OTHER',
-                ].map((s) => ({ value: s, label: s.replaceAll('_', ' ') }))}
-              />
-            </label>
-            <label>
-              {t('demo.requests.filter.priority')}
-              <OmaSelect
-                value={form.priority}
-                testId="demo-create-request-priority"
-                onChange={(priority) => patchForm({ priority })}
-                options={['URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((s) => ({ value: s, label: s }))}
-              />
-            </label>
-            <label>
-              {t('demo.requests.filter.brand')}
-              <OmaSelect
-                value={form.brandId}
-                testId="demo-create-request-brand"
-                onChange={(brandId) => patchForm({ brandId })}
-                options={brands.map((b) => ({ value: b.id, label: pickCopy(b.name, locale) }))}
-              />
-            </label>
-            <label>
-              {t('demo.create.campaign')}
-              <OmaSelect
-                value={form.campaignId}
-                testId="demo-create-request-campaign"
-                onChange={(campaignId) => patchForm({ campaignId })}
-                options={[
-                  { value: '', label: t('demo.optional') },
-                  ...brandCampaigns.map((c) => ({ value: c.id, label: pickCopy(c.name, locale) })),
-                ]}
-              />
-            </label>
-            <label className="oma-compose__wide">
-              {t('demo.requests.description')}
-              <TextArea
-                rows={3}
-                value={form.description}
-                data-testid="demo-create-request-description"
-                onChange={(e) => patchForm({ description: e.target.value })}
-              />
-            </label>
-            <label className="oma-compose__wide">
-              {t('demo.requests.outcome')}
-              <Input
-                value={form.outcome}
-                data-testid="demo-create-request-objective"
-                onChange={(e) => patchForm({ outcome: e.target.value })}
-              />
-            </label>
-            <div className="oma-compose__wide">
-              <span className="oma-compose__label">{t('demo.create.channels')}</span>
-              <ChannelChoiceCards
-                brandId={form.brandId}
-                value={form.channels}
-                locale={locale}
-                multiple
-                testId="demo-create-request-channels"
-                onChange={(channels) => patchForm({ channels })}
-              />
-            </div>
-            <div className="oma-compose__wide" data-testid="demo-create-request-formats">
-              <span className="oma-compose__label">{t('demo.requests.formats')}</span>
-              <div className="oma-compose__chips">
-                {['Static', 'Carousel', 'Reel', 'Story', 'Video'].map((format) => {
-                  const selected = form.formats
-                    .split(',')
-                    .map((part) => part.trim())
-                    .includes(format);
-                  return (
-                    <button
-                      key={format}
-                      type="button"
-                      className="oma-compose__chip"
-                      data-selected={selected ? 'true' : 'false'}
-                      onClick={() => {
-                        const current = form.formats
-                          .split(',')
-                          .map((part) => part.trim())
-                          .filter(Boolean);
-                        const next = selected
-                          ? current.filter((part) => part !== format)
-                          : [...current, format];
-                        patchForm({ formats: next.join(', ') });
-                      }}
-                    >
-                      {format}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            <label>
-              {t('demo.requests.col.due')}
-              <DatePicker
-                data-testid="demo-create-request-due"
-                value={form.dueAt ? dayjs(form.dueAt) : null}
-                onChange={(_, dateString) =>
-                  patchForm({
-                    dueAt: Array.isArray(dateString) ? (dateString[0] ?? '') : dateString,
-                  })
-                }
-              />
-            </label>
-            <label>
-              {t('demo.requests.filter.assignee')}
-              <OmaSelect
-                value={form.assignee}
-                testId="demo-create-request-assignee"
-                onChange={(assignee) => patchForm({ assignee })}
-                options={[
-                  { value: '', label: t('demo.requests.unassigned') },
-                  ...members
-                    .filter((m) => m.user?.id)
-                    .map((m) => ({
-                      value: m.user!.id,
-                      label: m.user?.name || m.user?.email || m.invited_email || 'Member',
+            <div className="oma-compose__grid oma-plx-compose__grid">
+              <label className="oma-compose__wide">
+                {t('demo.create.title')}
+                <Input
+                  value={form.title}
+                  data-testid="demo-create-request-title-input"
+                  onChange={(e) => patchForm({ title: e.target.value })}
+                />
+              </label>
+              <label>
+                {t('demo.requests.filter.type')}
+                <OmaSelect
+                  value={form.type}
+                  testId="demo-create-request-type"
+                  onChange={(type) => patchForm({ type })}
+                  options={[
+                    'CONTENT',
+                    'DESIGN',
+                    'VIDEO',
+                    'CAMPAIGN_SUPPORT',
+                    'REVISION',
+                    'OTHER',
+                  ].map((s) => ({ value: s, label: s.replaceAll('_', ' ') }))}
+                />
+              </label>
+              <label>
+                {t('demo.requests.filter.priority')}
+                <OmaSelect
+                  value={form.priority}
+                  testId="demo-create-request-priority"
+                  onChange={(priority) => patchForm({ priority })}
+                  options={['URGENT', 'HIGH', 'MEDIUM', 'LOW'].map((s) => ({ value: s, label: s }))}
+                />
+              </label>
+              <label>
+                {t('demo.requests.filter.brand')}
+                <OmaSelect
+                  value={form.brandId}
+                  testId="demo-create-request-brand"
+                  onChange={(brandId) => patchForm({ brandId })}
+                  options={brands.map((b) => ({ value: b.id, label: pickCopy(b.name, locale) }))}
+                />
+              </label>
+              <label>
+                {t('demo.create.campaign')}
+                <OmaSelect
+                  value={form.campaignId}
+                  testId="demo-create-request-campaign"
+                  onChange={(campaignId) => patchForm({ campaignId })}
+                  options={[
+                    { value: '', label: t('demo.optional') },
+                    ...brandCampaigns.map((c) => ({
+                      value: c.id,
+                      label: pickCopy(c.name, locale),
                     })),
-                ]}
-              />
-            </label>
-            <p className="oma-compose__note" data-testid="demo-create-request-requester">
-              {t('demo.requests.filter.requester')}: {form.requester || '—'}
-            </p>
-          </div>
+                  ]}
+                />
+              </label>
+              <label className="oma-compose__wide">
+                {t('demo.requests.description')}
+                <TextArea
+                  rows={3}
+                  value={form.description}
+                  data-testid="demo-create-request-description"
+                  onChange={(e) => patchForm({ description: e.target.value })}
+                />
+              </label>
+              <label className="oma-compose__wide">
+                {t('demo.requests.outcome')}
+                <Input
+                  value={form.outcome}
+                  data-testid="demo-create-request-objective"
+                  onChange={(e) => patchForm({ outcome: e.target.value })}
+                />
+              </label>
+              <div className="oma-compose__wide">
+                <span className="oma-compose__label">{t('demo.create.channels')}</span>
+                <ChannelChoiceCards
+                  brandId={form.brandId}
+                  value={form.channels}
+                  locale={locale}
+                  multiple
+                  testId="demo-create-request-channels"
+                  onChange={(channels) => patchForm({ channels })}
+                />
+              </div>
+              <div className="oma-compose__wide" data-testid="demo-create-request-formats">
+                <span className="oma-compose__label">{t('demo.requests.formats')}</span>
+                <div className="oma-compose__chips">
+                  {['Static', 'Carousel', 'Reel', 'Story', 'Video'].map((format) => {
+                    const selected = form.formats
+                      .split(',')
+                      .map((part) => part.trim())
+                      .includes(format);
+                    return (
+                      <button
+                        key={format}
+                        type="button"
+                        className="oma-compose__chip"
+                        data-selected={selected ? 'true' : 'false'}
+                        onClick={() => {
+                          const current = form.formats
+                            .split(',')
+                            .map((part) => part.trim())
+                            .filter(Boolean);
+                          const next = selected
+                            ? current.filter((part) => part !== format)
+                            : [...current, format];
+                          patchForm({ formats: next.join(', ') });
+                        }}
+                      >
+                        {format}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <label>
+                {t('demo.requests.col.due')}
+                <DatePicker
+                  data-testid="demo-create-request-due"
+                  value={form.dueAt ? dayjs(form.dueAt) : null}
+                  onChange={(_, dateString) =>
+                    patchForm({
+                      dueAt: Array.isArray(dateString) ? (dateString[0] ?? '') : dateString,
+                    })
+                  }
+                />
+              </label>
+              <label>
+                {t('demo.requests.filter.assignee')}
+                <OmaSelect
+                  value={form.assignee}
+                  testId="demo-create-request-assignee"
+                  onChange={(assignee) => patchForm({ assignee })}
+                  options={[
+                    { value: '', label: t('demo.requests.unassigned') },
+                    ...members
+                      .filter((m) => m.user?.id)
+                      .map((m) => ({
+                        value: m.user!.id,
+                        label: m.user?.name || m.user?.email || m.invited_email || 'Member',
+                      })),
+                  ]}
+                />
+              </label>
+              <p className="oma-compose__note" data-testid="demo-create-request-requester">
+                {t('demo.requests.filter.requester')}: {form.requester || '—'}
+              </p>
+            </div>
           </section>
         </div>
       </Dialog>

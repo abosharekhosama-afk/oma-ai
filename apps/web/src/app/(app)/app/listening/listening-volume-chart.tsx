@@ -87,24 +87,61 @@ export function ListeningVolumeChart({
               y2={yAt(tick)}
               className="oma-plx-listening-chart__grid"
             />
-            <text x={padL - 8} y={yAt(tick) + 4} className="oma-plx-listening-chart__ylabel" textAnchor="end">
+            <text
+              x={padL - 8}
+              y={yAt(tick) + 4}
+              className="oma-plx-listening-chart__ylabel"
+              textAnchor="end"
+            >
               {tick}
             </text>
           </g>
         ))}
         {mode === 'total' ? (
           <>
-            <path d={buildArea('total')} className="oma-plx-listening-chart__area oma-plx-listening-chart__area--total" />
-            <polyline fill="none" stroke={COLORS.total} strokeWidth="2.5" points={buildLine('total')} />
+            <path
+              d={buildArea('total')}
+              className="oma-plx-listening-chart__area oma-plx-listening-chart__area--total"
+            />
+            <polyline
+              fill="none"
+              stroke={COLORS.total}
+              strokeWidth="2.5"
+              points={buildLine('total')}
+            />
           </>
         ) : (
           <>
-            <path d={buildArea('negative')} className="oma-plx-listening-chart__area oma-plx-listening-chart__area--neg" />
-            <path d={buildArea('neutral')} className="oma-plx-listening-chart__area oma-plx-listening-chart__area--neu" />
-            <path d={buildArea('positive')} className="oma-plx-listening-chart__area oma-plx-listening-chart__area--pos" />
-            <polyline fill="none" stroke={COLORS.negative} strokeWidth="2" points={buildLine('negative')} />
-            <polyline fill="none" stroke={COLORS.neutral} strokeWidth="2" points={buildLine('neutral')} />
-            <polyline fill="none" stroke={COLORS.positive} strokeWidth="2" points={buildLine('positive')} />
+            <path
+              d={buildArea('negative')}
+              className="oma-plx-listening-chart__area oma-plx-listening-chart__area--neg"
+            />
+            <path
+              d={buildArea('neutral')}
+              className="oma-plx-listening-chart__area oma-plx-listening-chart__area--neu"
+            />
+            <path
+              d={buildArea('positive')}
+              className="oma-plx-listening-chart__area oma-plx-listening-chart__area--pos"
+            />
+            <polyline
+              fill="none"
+              stroke={COLORS.negative}
+              strokeWidth="2"
+              points={buildLine('negative')}
+            />
+            <polyline
+              fill="none"
+              stroke={COLORS.neutral}
+              strokeWidth="2"
+              points={buildLine('neutral')}
+            />
+            <polyline
+              fill="none"
+              stroke={COLORS.positive}
+              strokeWidth="2"
+              points={buildLine('positive')}
+            />
           </>
         )}
         {series.map((d, i) => {

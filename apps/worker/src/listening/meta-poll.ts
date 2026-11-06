@@ -9,7 +9,11 @@ const log = createLogger('listening-meta-poll');
 const GRAPH = 'https://graph.facebook.com';
 const v = () => process.env.META_GRAPH_VERSION || 'v21.0';
 
-async function graphGet<T>(path: string, token: string, params: Record<string, string> = {}): Promise<T> {
+async function graphGet<T>(
+  path: string,
+  token: string,
+  params: Record<string, string> = {},
+): Promise<T> {
   const q = new URLSearchParams({ ...params, access_token: token });
   const res = await fetch(`${GRAPH}/${v()}/${path}?${q}`);
   const body = (await res.json().catch(() => ({}))) as T & { error?: { message?: string } };
@@ -30,7 +34,9 @@ function platformAllowed(platforms: string[], p: string) {
   return !platforms.length || platforms.includes(p);
 }
 
-export async function runListeningPoll(ruleId: string): Promise<{ ingested: number; errors: string[] }> {
+export async function runListeningPoll(
+  ruleId: string,
+): Promise<{ ingested: number; errors: string[] }> {
   const prisma = getPrisma();
   const rule = await prisma.listeningRule.findFirst({ where: { id: ruleId, isLive: true } });
   if (!rule) return { ingested: 0, errors: ['rule_not_found'] };
@@ -75,7 +81,8 @@ export async function runListeningPoll(ruleId: string): Promise<{ ingested: numb
               comments?: { summary?: { total_count?: number } };
             }>;
           }>(`${page.externalId}/tagged`, accessToken, {
-            fields: 'message,from,created_time,permalink_url,full_picture,likes.summary(true),comments.summary(true)',
+            fields:
+              'message,from,created_time,permalink_url,full_picture,likes.summary(true),comments.summary(true)',
             limit: '50',
           });
           for (const post of tagged.data ?? []) {
@@ -120,7 +127,8 @@ export async function runListeningPoll(ruleId: string): Promise<{ ingested: numb
               username?: string;
             }>;
           }>(`${igUserId}/tags`, accessToken, {
-            fields: 'id,caption,permalink,media_url,thumbnail_url,timestamp,like_count,comments_count,username',
+            fields:
+              'id,caption,permalink,media_url,thumbnail_url,timestamp,like_count,comments_count,username',
             limit: '50',
           });
           for (const media of tags.data ?? []) {
@@ -152,10 +160,14 @@ export async function runListeningPoll(ruleId: string): Promise<{ ingested: numb
           const q = tag.replace(/^#/, '');
           if (!q) continue;
           try {
-            const search = await graphGet<{ data?: Array<{ id: string }> }>('ig_hashtag_search', accessToken, {
-              user_id: igUserId,
-              q,
-            });
+            const search = await graphGet<{ data?: Array<{ id: string }> }>(
+              'ig_hashtag_search',
+              accessToken,
+              {
+                user_id: igUserId,
+                q,
+              },
+            );
             const hashtagId = search.data?.[0]?.id;
             if (!hashtagId) continue;
             const recent = await graphGet<{

@@ -43,8 +43,18 @@ export function SchedulePostCard({
   bucketLabel: string;
   onOpen: () => void;
 }) {
-  const title = contentTitleText(content?.title ?? post.title, content?.caption ?? post.caption, locale, untitled);
-  const caption = contentBodyText(content?.title ?? post.title, content?.caption ?? post.caption, locale, emptyBody);
+  const title = contentTitleText(
+    content?.title ?? post.title,
+    content?.caption ?? post.caption,
+    locale,
+    untitled,
+  );
+  const caption = contentBodyText(
+    content?.title ?? post.title,
+    content?.caption ?? post.caption,
+    locale,
+    emptyBody,
+  );
   const previewUrl = content ? (contentMediaUrls(content)[0] ?? null) : null;
   const score = readinessScore(post);
   const bucket = bucketForScheduleRow(post);
@@ -92,7 +102,10 @@ export function SchedulePostCard({
           {openLabel}
         </Button>
         {post.contentId ? (
-          <Link href={`/app/content?item=${post.contentId}`} className="oma-plx-sched-post-card__link">
+          <Link
+            href={`/app/content?item=${post.contentId}`}
+            className="oma-plx-sched-post-card__link"
+          >
             {openPostLabel}
           </Link>
         ) : null}

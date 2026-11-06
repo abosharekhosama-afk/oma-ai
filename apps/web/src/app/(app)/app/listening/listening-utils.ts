@@ -163,7 +163,9 @@ export function exportHitsCsv(hits: ListeningHit[], filename = 'listening-mentio
       h.url ?? '',
     ].join(','),
   );
-  const blob = new Blob([[header.join(','), ...rows].join('\n')], { type: 'text/csv;charset=utf-8' });
+  const blob = new Blob([[header.join(','), ...rows].join('\n')], {
+    type: 'text/csv;charset=utf-8',
+  });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = filename;

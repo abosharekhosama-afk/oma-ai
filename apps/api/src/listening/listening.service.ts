@@ -115,7 +115,11 @@ function mapHit(h: {
   };
 }
 
-function dayBuckets(hits: Array<{ capturedAt: Date; sentiment: string | null }>, from: Date, to: Date) {
+function dayBuckets(
+  hits: Array<{ capturedAt: Date; sentiment: string | null }>,
+  from: Date,
+  to: Date,
+) {
   const out: Array<{
     key: string;
     label: string;
@@ -156,10 +160,7 @@ function trendPct(current: number, previous: number): number | null {
 export class ListeningService {
   async listRules(tenantId: string, brandId?: string) {
     const rows = await getPrisma().listeningRule.findMany({
-      where: tenantWhere(
-        tenantId,
-        brandId ? { OR: [{ brandId }, { brandId: null }] } : {},
-      ),
+      where: tenantWhere(tenantId, brandId ? { OR: [{ brandId }, { brandId: null }] } : {}),
       orderBy: { createdAt: 'desc' },
     });
     return {
@@ -193,7 +194,8 @@ export class ListeningService {
     },
   ) {
     const name = (body.name ?? '').trim();
-    if (!name) throw new DomainError('VALIDATION_FAILED', 'name required', 400, 'errors.validation');
+    if (!name)
+      throw new DomainError('VALIDATION_FAILED', 'name required', 400, 'errors.validation');
     const workspaceId = body.workspaceId?.trim() || tenantId;
     const id = newId();
     const row = await getPrisma().listeningRule.create({
@@ -260,7 +262,11 @@ export class ListeningService {
     const where = hitWhere(tenantId, q);
     const orderBy =
       q.sort === 'engagement'
-        ? [{ likeCount: 'desc' as const }, { commentCount: 'desc' as const }, { capturedAt: 'desc' as const }]
+        ? [
+            { likeCount: 'desc' as const },
+            { commentCount: 'desc' as const },
+            { capturedAt: 'desc' as const },
+          ]
         : q.sort === 'recency'
           ? [{ capturedAt: 'desc' as const }]
           : [{ isHighPriority: 'desc' as const }, { capturedAt: 'desc' as const }];
@@ -300,7 +306,13 @@ export class ListeningService {
     const [current, previous, rules] = await Promise.all([
       getPrisma().listeningHit.findMany({
         where: { ...base, capturedAt: { gte: from, lte: to } },
-        select: { capturedAt: true, sentiment: true, likeCount: true, commentCount: true, shareCount: true },
+        select: {
+          capturedAt: true,
+          sentiment: true,
+          likeCount: true,
+          commentCount: true,
+          shareCount: true,
+        },
       }),
       getPrisma().listeningHit.findMany({
         where: { ...base, capturedAt: { gte: prevFrom, lte: prevTo } },
@@ -322,7 +334,10 @@ export class ListeningService {
       where: { ...base, capturedAt: { gte: prevFrom, lte: prevTo } },
     });
     const engagement = current.reduce((s, h) => s + h.likeCount + h.commentCount + h.shareCount, 0);
-    const prevEngagement = previous.reduce((s, h) => s + h.likeCount + h.commentCount + h.shareCount, 0);
+    const prevEngagement = previous.reduce(
+      (s, h) => s + h.likeCount + h.commentCount + h.shareCount,
+      0,
+    );
     const positive = current.filter((h) => h.sentiment === 'POSITIVE').length;
     const neutral = current.filter((h) => h.sentiment === 'NEUTRAL').length;
     const negative = current.filter((h) => h.sentiment === 'NEGATIVE').length;
@@ -371,7 +386,11 @@ export class ListeningService {
   async updateHit(
     tenantId: string,
     id: string,
-    body: { sentiment?: 'POSITIVE' | 'NEUTRAL' | 'NEGATIVE'; isHidden?: boolean; isExcluded?: boolean },
+    body: {
+      sentiment?: 'POSITIVE' | 'NEUTRAL' | 'NEGATIVE';
+      isHidden?: boolean;
+      isExcluded?: boolean;
+    },
   ) {
     const hit = await getPrisma().listeningHit.findFirst({
       where: tenantWhere(tenantId, { id }),

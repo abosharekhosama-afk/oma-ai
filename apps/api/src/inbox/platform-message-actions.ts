@@ -1,7 +1,11 @@
 import { getPrisma } from '@oma/db';
 import { decryptToken, tokenKeyFromEnv } from '@oma/domain';
 
-async function resolvePageToken(tenantId: string, socialPageId: string | null, brandId: string | null) {
+async function resolvePageToken(
+  tenantId: string,
+  socialPageId: string | null,
+  brandId: string | null,
+) {
   const key = tokenKeyFromEnv(process.env);
   if (!key) return { ok: false as const, reason: 'SOCIAL_TOKEN_ENCRYPTION_KEY is not configured.' };
   const page = socialPageId

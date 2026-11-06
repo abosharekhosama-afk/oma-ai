@@ -619,7 +619,9 @@ export default function DeliverableDetailClient() {
                 <strong data-testid="demo-review-version-chrome">{selectedVersion?.label}</strong>
                 <span className="oma-plx-review-workspace__type">{statusLabel(t, row.type)}</span>
                 {selectedVersion?.immutable ? (
-                  <span className="oma-plx-review-workspace__badge">{t('demo.review.immutable')}</span>
+                  <span className="oma-plx-review-workspace__badge">
+                    {t('demo.review.immutable')}
+                  </span>
                 ) : null}
               </div>
               <div className="oma-plx-review-workspace__actions">

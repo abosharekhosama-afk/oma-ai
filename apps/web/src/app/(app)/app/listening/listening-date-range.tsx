@@ -1,7 +1,11 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ArrowLeftOutlined, CalendarOutlined, DownOutlined } from '../../../../components/ui/lucide-icons';
+import {
+  ArrowLeftOutlined,
+  CalendarOutlined,
+  DownOutlined,
+} from '../../../../components/ui/lucide-icons';
 import { useT } from '../../../../lib/use-locale';
 
 export type DateRangePreset = '7' | '14' | '30' | 'thisMonth' | 'lastMonth' | 'quarter' | 'custom';
@@ -24,7 +28,10 @@ function endOfDay(d: Date) {
   return x;
 }
 
-export function resolveDateRange(preset: DateRangePreset, custom?: { start: Date; end: Date }): DateRangeValue {
+export function resolveDateRange(
+  preset: DateRangePreset,
+  custom?: { start: Date; end: Date },
+): DateRangeValue {
   const end = endOfDay(new Date());
   const start = startOfDay(new Date());
   if (preset === '7') start.setDate(end.getDate() - 6);
@@ -78,7 +85,9 @@ export function ListeningDateRange({
   const [draftPreset, setDraftPreset] = useState(value.preset);
   const [rangeStart, setRangeStart] = useState<Date | null>(value.start);
   const [rangeEnd, setRangeEnd] = useState<Date | null>(value.end);
-  const [cursorMonth, setCursorMonth] = useState(() => new Date(value.start.getFullYear(), value.start.getMonth(), 1));
+  const [cursorMonth, setCursorMonth] = useState(
+    () => new Date(value.start.getFullYear(), value.start.getMonth(), 1),
+  );
   const rootRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -134,7 +143,12 @@ export function ListeningDateRange({
 
   return (
     <div className="oma-plx-listening-date" ref={rootRef}>
-      <button type="button" className="oma-plx-listening__range" onClick={() => setOpen((v) => !v)} aria-expanded={open}>
+      <button
+        type="button"
+        className="oma-plx-listening__range"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+      >
         <CalendarOutlined />
         <span>{presetLabel(value.preset, t)}</span>
         <DownOutlined />
@@ -143,10 +157,22 @@ export function ListeningDateRange({
         <div className="oma-plx-listening-date__popover" role="dialog" aria-label="Date range">
           <div className="oma-plx-listening-date__calendars">
             <div className="oma-plx-listening-date__nav">
-              <button type="button" aria-label="Previous month" onClick={() => setCursorMonth(new Date(cursorMonth.getFullYear(), cursorMonth.getMonth() - 1, 1))}>
+              <button
+                type="button"
+                aria-label="Previous month"
+                onClick={() =>
+                  setCursorMonth(new Date(cursorMonth.getFullYear(), cursorMonth.getMonth() - 1, 1))
+                }
+              >
                 <ArrowLeftOutlined />
               </button>
-              <button type="button" aria-label="Next month" onClick={() => setCursorMonth(new Date(cursorMonth.getFullYear(), cursorMonth.getMonth() + 1, 1))}>
+              <button
+                type="button"
+                aria-label="Next month"
+                onClick={() =>
+                  setCursorMonth(new Date(cursorMonth.getFullYear(), cursorMonth.getMonth() + 1, 1))
+                }
+              >
                 <ArrowLeftOutlined className="oma-plx-listening-date__flip" />
               </button>
             </div>
@@ -155,7 +181,10 @@ export function ListeningDateRange({
                 const normM = ((m % 12) + 12) % 12;
                 const normY = y + Math.floor(m / 12);
                 const cells = monthMatrix(normY, normM);
-                const title = new Date(normY, normM, 1).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+                const title = new Date(normY, normM, 1).toLocaleDateString(undefined, {
+                  month: 'long',
+                  year: 'numeric',
+                });
                 return (
                   <div key={`${normY}-${normM}`} className="oma-plx-listening-date__month">
                     <div className="oma-plx-listening-date__month-title">{title}</div>
@@ -174,12 +203,14 @@ export function ListeningDateRange({
                               inRange(normY, normM, day) ? ' in-range' : ''
                             }${
                               rangeStart &&
-                              startOfDay(new Date(normY, normM, day)).getTime() === rangeStart.getTime()
+                              startOfDay(new Date(normY, normM, day)).getTime() ===
+                                rangeStart.getTime()
                                 ? ' is-start'
                                 : ''
                             }${
                               rangeEnd &&
-                              startOfDay(new Date(normY, normM, day)).getTime() === rangeEnd.getTime()
+                              startOfDay(new Date(normY, normM, day)).getTime() ===
+                                rangeEnd.getTime()
                                 ? ' is-end'
                                 : ''
                             }`}
@@ -188,7 +219,10 @@ export function ListeningDateRange({
                             {day}
                           </button>
                         ) : (
-                          <span key={idx} className="oma-plx-listening-date__day oma-plx-listening-date__day--empty" />
+                          <span
+                            key={idx}
+                            className="oma-plx-listening-date__day oma-plx-listening-date__day--empty"
+                          />
                         ),
                       )}
                     </div>
@@ -198,7 +232,9 @@ export function ListeningDateRange({
             </div>
           </div>
           <div className="oma-plx-listening-date__presets">
-            {(['7', '14', '30', 'thisMonth', 'lastMonth', 'quarter', 'custom'] as DateRangePreset[]).map((p) => (
+            {(
+              ['7', '14', '30', 'thisMonth', 'lastMonth', 'quarter', 'custom'] as DateRangePreset[]
+            ).map((p) => (
               <label key={p} className="oma-plx-listening-date__preset">
                 <input
                   type="radio"

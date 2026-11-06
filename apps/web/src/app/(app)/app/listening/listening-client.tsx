@@ -69,7 +69,11 @@ function formatNextCheck(iso: string | null | undefined, t: (k: string) => strin
   const ms = new Date(iso).getTime() - Date.now();
   if (ms <= 0) return t('listening.pollSoon') || 'Checking soon…';
   const mins = Math.ceil(ms / 60_000);
-  if (mins < 120) return (t('listening.nextCheckMinutes') || 'Next check in {n} min').replace('{n}', String(mins));
+  if (mins < 120)
+    return (t('listening.nextCheckMinutes') || 'Next check in {n} min').replace(
+      '{n}',
+      String(mins),
+    );
   const hours = Math.ceil(mins / 60);
   return (t('listening.nextCheckHours') || 'Next check in {n} h').replace('{n}', String(hours));
 }
@@ -149,7 +153,9 @@ function SentimentPill({
                 setOpen(false);
               }}
             >
-              <i className={`dot dot--${s === 'POSITIVE' ? 'pos' : s === 'NEGATIVE' ? 'neg' : 'neu'}`} />
+              <i
+                className={`dot dot--${s === 'POSITIVE' ? 'pos' : s === 'NEGATIVE' ? 'neg' : 'neu'}`}
+              />
               {s.charAt(0) + s.slice(1).toLowerCase()}
             </button>
           ))}
@@ -246,16 +252,7 @@ export function ListeningClient({ view }: { view: ListeningView }) {
     } finally {
       setLoading(false);
     }
-  }, [
-    view,
-    activeBrandId,
-    dateRange,
-    platforms,
-    sort,
-    sentimentFilter,
-    showHidden,
-    showExcluded,
-  ]);
+  }, [view, activeBrandId, dateRange, platforms, sort, sentimentFilter, showHidden, showExcluded]);
 
   const runSync = useCallback(async () => {
     setSyncing(true);
@@ -309,7 +306,10 @@ export function ListeningClient({ view }: { view: ListeningView }) {
     total: 1,
   };
 
-  const onSentimentChange = async (hitId: string, sentiment: 'POSITIVE' | 'NEUTRAL' | 'NEGATIVE') => {
+  const onSentimentChange = async (
+    hitId: string,
+    sentiment: 'POSITIVE' | 'NEUTRAL' | 'NEGATIVE',
+  ) => {
     try {
       const updated = await patchListeningHit(hitId, { sentiment });
       setHits((prev) => prev.map((h) => (h.id === hitId ? updated : h)));
@@ -331,7 +331,10 @@ export function ListeningClient({ view }: { view: ListeningView }) {
 
   const onAddContext = async () => {
     if (!activeRule) return;
-    const text = window.prompt(t('listening.contextPrompt') || 'Describe your brand for relevance scoring:', activeRule.contextJson ?? '');
+    const text = window.prompt(
+      t('listening.contextPrompt') || 'Describe your brand for relevance scoring:',
+      activeRule.contextJson ?? '',
+    );
     if (text === null) return;
     try {
       await updateListeningRule(activeRule.id, { contextJson: text.trim() || null });
@@ -412,7 +415,9 @@ export function ListeningClient({ view }: { view: ListeningView }) {
                   <ZapOutlined />
                 </span>
               </div>
-              <strong className="oma-plx-listening-kpi__value">{formatCount(engagementTotal)}</strong>
+              <strong className="oma-plx-listening-kpi__value">
+                {formatCount(engagementTotal)}
+              </strong>
               <p
                 className={`oma-plx-listening-kpi__trend ${
                   (stats?.engagementTrendPct ?? 0) >= 0 ? 'trend--up' : 'trend--down'
@@ -519,10 +524,17 @@ export function ListeningClient({ view }: { view: ListeningView }) {
               </button>
               {filterOpen ? (
                 <div className="oma-plx-listening-filter__menu" role="dialog">
-                  <p className="oma-plx-listening-filter__label">{t('listening.sorting') || 'Sorting'}</p>
+                  <p className="oma-plx-listening-filter__label">
+                    {t('listening.sorting') || 'Sorting'}
+                  </p>
                   {(['relevance', 'engagement', 'recency'] as SortKey[]).map((k) => (
                     <label key={k} className="oma-plx-listening-filter__row">
-                      <input type="radio" name="sort" checked={sort === k} onChange={() => setSort(k)} />
+                      <input
+                        type="radio"
+                        name="sort"
+                        checked={sort === k}
+                        onChange={() => setSort(k)}
+                      />
                       {k === 'relevance'
                         ? t('listening.sort.relevance') || 'By relevance'
                         : k === 'engagement'
@@ -530,7 +542,9 @@ export function ListeningClient({ view }: { view: ListeningView }) {
                           : t('listening.sort.recency') || 'By recency'}
                     </label>
                   ))}
-                  <p className="oma-plx-listening-filter__label">{t('listening.sentiment') || 'Sentiment'}</p>
+                  <p className="oma-plx-listening-filter__label">
+                    {t('listening.sentiment') || 'Sentiment'}
+                  </p>
                   {(
                     [
                       ['all', t('listening.sentiment.all') || 'All'],
@@ -549,17 +563,31 @@ export function ListeningClient({ view }: { view: ListeningView }) {
                       {label}
                     </label>
                   ))}
-                  <p className="oma-plx-listening-filter__label">{t('listening.options') || 'Options'}</p>
+                  <p className="oma-plx-listening-filter__label">
+                    {t('listening.options') || 'Options'}
+                  </p>
                   <label className="oma-plx-listening-filter__row">
-                    <input type="checkbox" checked={hideOwnMentions} onChange={(e) => setHideOwnMentions(e.target.checked)} />
+                    <input
+                      type="checkbox"
+                      checked={hideOwnMentions}
+                      onChange={(e) => setHideOwnMentions(e.target.checked)}
+                    />
                     {t('listening.opt.hideOwn') || 'Hide own mentions'}
                   </label>
                   <label className="oma-plx-listening-filter__row">
-                    <input type="checkbox" checked={showHidden} onChange={(e) => setShowHidden(e.target.checked)} />
+                    <input
+                      type="checkbox"
+                      checked={showHidden}
+                      onChange={(e) => setShowHidden(e.target.checked)}
+                    />
                     {t('listening.opt.showHidden') || 'Show hidden mentions'}
                   </label>
                   <label className="oma-plx-listening-filter__row">
-                    <input type="checkbox" checked={showExcluded} onChange={(e) => setShowExcluded(e.target.checked)} />
+                    <input
+                      type="checkbox"
+                      checked={showExcluded}
+                      onChange={(e) => setShowExcluded(e.target.checked)}
+                    />
                     {t('listening.opt.showExcluded') || 'Show excluded sources'}
                   </label>
                 </div>
@@ -572,7 +600,9 @@ export function ListeningClient({ view }: { view: ListeningView }) {
           <div className="oma-plx-listening-context">
             <InfoCircleOutlined className="oma-plx-listening-context__icon" aria-hidden />
             <div>
-              <strong>{t('listening.contextTitle') || 'Add brand context for better relevance scores'}</strong>
+              <strong>
+                {t('listening.contextTitle') || 'Add brand context for better relevance scores'}
+              </strong>
               <p>
                 {t('listening.contextBody') ||
                   'Tell us about your brand so we can rank mentions that matter most to your team.'}
@@ -611,25 +641,38 @@ export function ListeningClient({ view }: { view: ListeningView }) {
           {filteredHits.map((h) => {
             const eng = hitEngagement(h);
             const sentLabel = (h.sentiment ?? 'NEUTRAL') as string;
-            const parts = highlightKeywords(h.content, keywords.length ? keywords : h.matchedKeywords);
+            const parts = highlightKeywords(
+              h.content,
+              keywords.length ? keywords : h.matchedKeywords,
+            );
             const thumb = hitThumbnail(h);
             return (
-              <li key={h.id} className="oma-plx-listening-card" data-testid={`listening-hit-${h.id}`}>
+              <li
+                key={h.id}
+                className="oma-plx-listening-card"
+                data-testid={`listening-hit-${h.id}`}
+              >
                 <div className="oma-plx-listening-card__top">
                   <div className="oma-plx-listening-card__author">
                     <span className="oma-plx-listening-card__avatar" aria-hidden>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={thumb} alt="" />
-                      <span className={`plat plat--${h.platform}`}>{platformShort(h.platform)}</span>
+                      <span className={`plat plat--${h.platform}`}>
+                        {platformShort(h.platform)}
+                      </span>
                     </span>
                     <div className="oma-plx-listening-card__author-text">
                       <div className="oma-plx-listening-card__name-row">
                         <strong>{h.authorName || 'Unknown'}</strong>
-                        {isNewHit(h) ? <span className="oma-plx-listening-card__new">New</span> : null}
+                        {isNewHit(h) ? (
+                          <span className="oma-plx-listening-card__new">New</span>
+                        ) : null}
                       </div>
                       <span className="oma-plx-listening-card__handle">
-                        {h.authorHandle ? `@${h.authorHandle.replace(/^@/, '')}` : platformLabel(h.platform)} ·{' '}
-                        {relativeDay(h.capturedAt)}
+                        {h.authorHandle
+                          ? `@${h.authorHandle.replace(/^@/, '')}`
+                          : platformLabel(h.platform)}{' '}
+                        · {relativeDay(h.capturedAt)}
                       </span>
                     </div>
                   </div>
@@ -672,7 +715,12 @@ export function ListeningClient({ view }: { view: ListeningView }) {
                     {t('listening.hideMention') || 'Hide'}
                   </button>
                   {h.url ? (
-                    <a href={h.url} target="_blank" rel="noreferrer" className="oma-plx-listening-card__link">
+                    <a
+                      href={h.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="oma-plx-listening-card__link"
+                    >
                       Open
                     </a>
                   ) : null}

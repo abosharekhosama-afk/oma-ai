@@ -4,8 +4,10 @@ import { newId } from '@oma/domain';
 export type InboxPlatform = 'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN';
 export type InboxConvType = 'DIRECT_MESSAGE' | 'POST_COMMENT' | 'DARK_COMMENT' | 'MENTION';
 
-const NEG = /\b(bad|awful|terrible|hate|angry|worst|scam|refund|broken|disappointed|horrible|poor|fail)\b|سيء|سيئة|فظيع|احتيال|استرجاع|غاضب|محبط/i;
-const POS = /\b(great|love|amazing|excellent|thanks|thank you|awesome|perfect|wonderful|best)\b|رائع|ممتاز|شكرا|أحب|ممتازة|جميل/i;
+const NEG =
+  /\b(bad|awful|terrible|hate|angry|worst|scam|refund|broken|disappointed|horrible|poor|fail)\b|سيء|سيئة|فظيع|احتيال|استرجاع|غاضب|محبط/i;
+const POS =
+  /\b(great|love|amazing|excellent|thanks|thank you|awesome|perfect|wonderful|best)\b|رائع|ممتاز|شكرا|أحب|ممتازة|جميل/i;
 
 function classifySentiment(text: string): 'POSITIVE' | 'NEUTRAL' | 'NEGATIVE' {
   const t = (text || '').trim();
@@ -40,7 +42,9 @@ export type IngestInboundInput = {
   createdAt?: Date;
 };
 
-export async function ingestInboundMessage(input: IngestInboundInput): Promise<'created' | 'duplicate' | 'updated'> {
+export async function ingestInboundMessage(
+  input: IngestInboundInput,
+): Promise<'created' | 'duplicate' | 'updated'> {
   const prisma = getPrisma();
   const sentiment = classifySentiment(input.content);
   const at = input.createdAt ?? new Date();
@@ -128,7 +132,7 @@ export async function ingestInboundMessage(input: IngestInboundInput): Promise<'
         unreadCount: { increment: 1 },
         sentiment,
         priority: existing?.priority || priority,
-        status: existing?.status === 'CLOSED' ? 'UNREAD' : existing?.status ?? 'UNREAD',
+        status: existing?.status === 'CLOSED' ? 'UNREAD' : (existing?.status ?? 'UNREAD'),
         lastMessageDirection: 'INBOUND',
         participantName: input.senderName,
         participantAvatar: input.senderAvatar ?? null,
