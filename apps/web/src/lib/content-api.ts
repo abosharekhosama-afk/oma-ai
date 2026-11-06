@@ -644,6 +644,30 @@ export async function resolveContentComment(contentId: string, commentId: string
   return res.data;
 }
 
+export type ContentChannelAnalytics = {
+  channel: string;
+  published: boolean;
+  published_at: string | null;
+  source: 'oma_local';
+  platform_connected: boolean;
+  note: string;
+  kpis: { views: number; engagements: number; reach: number };
+  organic_views: { reach: number; impressions: number; avg_view_duration_s: number };
+  organic_engagement: { likes: number; comments: number; shares: number };
+  plays: { views: number; three_second: number; one_minute: number; avg_seconds: number };
+  reactions: { like: number; love: number; haha: number; wow: number; sad: number; angry: number };
+  approvals: number;
+  comments: number;
+};
+
+export async function getContentChannelAnalytics(contentId: string, channel?: string) {
+  const q = channel ? `?channel=${encodeURIComponent(channel)}` : '';
+  const res = await api<{ data: ContentChannelAnalytics }>(
+    `/api/v1/content/${contentId}/channel-analytics${q}`,
+  );
+  return res.data;
+}
+
 export async function reactContentComment(contentId: string, commentId: string, emoji: string) {
   const res = await api<{ data: ContentCommentDto }>(
     `/api/v1/content/${contentId}/comments/${commentId}/react`,

@@ -90,6 +90,16 @@ export class ContentController {
     );
   }
 
+  @Get('api/v1/content/:contentId/channel-analytics')
+  async channelAnalytics(
+    @Req() req: Request,
+    @Param('contentId') contentId: string,
+    @Query('channel') channel?: string,
+  ) {
+    this.requireTenant(req);
+    return contentService.channelAnalytics(req.oma!.tenantId!, contentId, channel);
+  }
+
   @Get('api/v1/content/:contentId')
   async get(@Req() req: Request, @Param('contentId') contentId: string) {
     this.requireTenant(req);
