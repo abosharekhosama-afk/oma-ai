@@ -151,18 +151,28 @@ export class MetaAdapter implements SocialProviderAdapter {
     const media = publishMediaUrls(post);
     if (this.network === 'facebook') {
       const primary = media[0];
-      const r = primary
-        ? await this.post(`${page.externalId}/photos`, {
-            url: primary,
-            caption: post.text,
-            access_token: page.accessToken,
-          })
-        : await this.post(`${page.externalId}/feed`, {
-            message: post.text,
-            access_token: page.accessToken,
-          });
-      const id = String(r.post_id ?? r.id);
-      return { externalId: id, url: `https://www.facebook.com/${id}` };
+      if (!primary) {
+        const r = await this.post(`${page.externalId}/feed`, {
+          message: post.text,
+          access_token: page.accessToken,
+        });
+        const id = String(r.post_id ?? r.id);
+        return { externalId: id, url: `https://www.facebook.com/${id}` };
+      }
+      const metaList = post.media ?? [];
+      const primaryMime = metaList.find((m) => m.url === primary)?.mime ?? '';
+      const type = String(post.contentType || '').toUpperCase();
+      const isStory = type === 'STORY';
+      if (isStory) {
+        if (media.length > 1) {
+          throw new SocialProviderError(
+            'facebook: Page stories support a single image or video asset.',
+            { retryable: false },
+          );
+        }
+        return await this.publishFacebookStory(page, primary, primaryMime, post.text);
+      }
+      return await this.publishFacebookFeedMedia(page, primary, primaryMime, type, post.text);
     }
     if (!media.length) {
       throw new SocialProviderError('instagram: an image is required to publish', {
@@ -219,6 +229,111 @@ export class MetaAdapter implements SocialProviderAdapter {
       url = null;
     }
     return { externalId: id, url };
+  }
+
+  /** Facebook Page feed: photo vs video uses different Graph edges; `/photos` rejects video URLs (error 100). */
+  private looksLikeVideo(mime: string, url: string): boolean {
+    const m = mime.toLowerCase();
+    if (m.startsWith('video/')) return true;
+    if (/\.(mp4|mov|m4v|webm)(\?|$)/i.test(url)) return true;
+    return false;
+  }
+
+  private async publishFacebookFeedMedia(
+    page: PublishablePage,
+    primaryUrl: string,
+    primaryMime: string,
+    contentType: string,
+    caption: string,
+  ): Promise<PublishResult> {
+    const videoish =
+      this.looksLikeVideo(primaryMime, primaryUrl) ||
+      contentType === 'REEL' ||
+      contentType === 'VIDEO';
+    const r = videoish
+      ? await this.post(`${page.externalId}/videos`, {
+          file_url: primaryUrl,
+          description: caption,
+          access_token: page.accessToken,
+        })
+      : await this.post(`${page.externalId}/photos`, {
+          url: primaryUrl,
+          caption,
+          access_token: page.accessToken,
+        });
+    const id = String(r.post_id ?? r.id);
+    return { externalId: id, url: `https://www.facebook.com/${id}` };
+  }
+
+  /**
+   * Facebook Page Story (not feed). Photo: unpublished upload → photo_stories. Video: video_stories start → rupload → finish.
+   * @see https://developers.facebook.com/documentation/video-api/page-stories-api
+   */
+  private async publishFacebookStory(
+    page: PublishablePage,
+    mediaUrl: string,
+    mime: string,
+    _caption: string,
+  ): Promise<PublishResult> {
+    const video = this.looksLikeVideo(mime, mediaUrl);
+    if (!video) {
+      const uploaded = await this.post(`${page.externalId}/photos`, {
+        url: mediaUrl,
+        published: 'false',
+        access_token: page.accessToken,
+      });
+      const photoId = String(uploaded.id ?? '');
+      if (!photoId) {
+        throw new SocialProviderError('facebook: photo upload for story returned no id', {
+          retryable: true,
+        });
+      }
+      const story = await this.post(`${page.externalId}/photo_stories`, {
+        photo_id: photoId,
+        access_token: page.accessToken,
+      });
+      const postId = String(story.post_id ?? story.id);
+      if (!postId) {
+        throw new SocialProviderError('facebook: photo_stories returned no post id', {
+          retryable: true,
+        });
+      }
+      return { externalId: postId, url: `https://www.facebook.com/${postId}` };
+    }
+
+    const start = await this.post(`${page.externalId}/video_stories`, {
+      upload_phase: 'start',
+      access_token: page.accessToken,
+    });
+    const videoId = String(start.video_id ?? '');
+    const uploadUrl = String(start.upload_url ?? '');
+    if (!videoId || !uploadUrl) {
+      throw new SocialProviderError('facebook: video_stories start missing video_id or upload_url', {
+        retryable: true,
+      });
+    }
+    const up = await this.fetchFn(uploadUrl, {
+      method: 'POST',
+      headers: {
+        Authorization: `OAuth ${page.accessToken}`,
+        file_url: mediaUrl,
+      },
+    });
+    const upBody = await readJson(up);
+    if (!up.ok) throw httpError(this.network, up, upBody);
+
+    const finish = await this.post(`${page.externalId}/video_stories`, {
+      upload_phase: 'finish',
+      video_id: videoId,
+      access_token: page.accessToken,
+    });
+    const postId = String(finish.post_id ?? finish.id);
+    if (!postId) {
+      throw new SocialProviderError('facebook: video_stories finish returned no post id', {
+        retryable: true,
+      });
+    }
+    return { externalId: postId, url: `https://www.facebook.com/${postId}` };
   }
 
   async fetchInsights(page: PublishablePage, externalPostId: string): Promise<PostInsights | null> {
