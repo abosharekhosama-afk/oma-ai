@@ -240,6 +240,8 @@ const routeRequirements: Record<string, string[]> = {
   'POST /api/v1/brands/:brandId/content-templates/:templateId/use': ['content.create'],
   // Unified Inbox
   'GET /api/v1/inbox/stats': ['content.read'],
+  'GET /api/v1/inbox/connections': ['content.read'],
+  'POST /api/v1/inbox/sync': ['content.update'],
   'POST /api/v1/inbox/conversations/:id/tags': ['content.update'],
   'POST /api/v1/inbox/conversations/:id/priority': ['content.update'],
   'POST /api/v1/inbox/conversations/bulk': ['content.update'],
@@ -249,6 +251,9 @@ const routeRequirements: Record<string, string[]> = {
   'POST /api/v1/inbox/conversations/:id/assign': ['content.update'],
   'POST /api/v1/inbox/conversations/:id/notes': ['content.update'],
   'POST /api/v1/inbox/conversations/:id/status': ['content.update'],
+  'POST /api/v1/inbox/messages/:messageId/hide': ['content.update'],
+  'POST /api/v1/inbox/messages/:messageId/delete': ['content.update'],
+  'POST /api/v1/inbox/messages/:messageId/like': ['content.update'],
   // Social Listening
   'GET /api/v1/listening/rules': ['content.read'],
   'POST /api/v1/listening/rules': ['content.update'],
@@ -478,6 +483,10 @@ export function matchRequirements(method: string, path: string): string[] | null
       /\/api\/v1\/inbox\/conversations\/[^/]+\/(reply|assign|notes|status)/,
       '/api/v1/inbox/conversations/:id/$1',
     )
+    .replace(
+      /\/api\/v1\/inbox\/messages\/[^/]+\/(hide|delete|like)/,
+      '/api/v1/inbox/messages/:messageId/$1',
+    )
     .replace(/\/api\/v1\/inbox\/conversations\/[^/]+/, '/api/v1/inbox/conversations/:id')
     .replace(/\/api\/v1\/listening\/rules\/[^/]+/, '/api/v1/listening/rules/:id')
 
@@ -511,7 +520,8 @@ export function matchRequirements(method: string, path: string): string[] | null
       .replace(':userId', '[^/]+')
       .replace(':network', '[^/]+')
       .replace(':pageId', '[^/]+')
-      .replace(':assetId', '[^/]+');
+      .replace(':assetId', '[^/]+')
+      .replace(':messageId', '[^/]+');
     if (
       new RegExp('^' + pattern.replace(/\//g, '\\/') + '$').test(`${method.toUpperCase()} ${path}`)
     )

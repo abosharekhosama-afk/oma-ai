@@ -11,6 +11,7 @@ import {
   getInboxConversation,
   getInboxStats,
   hideInboxMessage,
+  likeInboxMessage,
   listInboxConversations,
   replyInboxConversation,
   setInboxPriority,
@@ -22,7 +23,9 @@ import {
   type InboxMessage,
   type InboxStats,
 } from '../../../../lib/inbox-api';
-import { useT } from '../../../../lib/use-locale';
+import { localInboxReply } from '../../../../lib/content-ai';
+import { useLocale, useT } from '../../../../lib/use-locale';
+import type { MediaAsset } from '../../../../lib/workdrive-api';
 import { resolveActiveBrand, useActiveBrandId } from '../../../../lib/active-brand';
 import { listScopedBrands } from '../../../../lib/campaign-api';
 import {
@@ -32,11 +35,11 @@ import {
   DownOutlined,
   EditOutlined,
   EyeInvisibleOutlined,
+  HeartFilled,
   HeartOutlined,
   LinkOutlined,
   MoreOutlined,
   ReloadOutlined,
-  SmileOutlined,
   StarOutlined,
   UpOutlined,
 } from '../../../../components/ui/lucide-icons';
@@ -44,7 +47,12 @@ import { listWorkspaceMembers, type WorkspaceMember } from '../../../../lib/team
 import { InboxListEmptyState, InboxPaneAllDone } from './inbox-empty-art';
 import { InboxThreadMenu } from './inbox-thread-menu';
 import { InboxPlatformBadge, InboxPlatformIcon } from './inbox-platform-icon';
-import { InboxStatusDropdown, type InboxStatusFilter } from './inbox-status-dropdown';
+import { InboxComposerTools } from './inbox-composer-tools';
+import {
+  InboxStatusDropdown,
+  type InboxPlatformFilter,
+  type InboxStatusFilter,
+} from './inbox-status-dropdown';
 import {
   avatarColorFromName,
   filterByStatusTab,
@@ -120,14 +128,17 @@ function PersonAvatar({
   );
 }
 
+function mediaUrlOf(asset: MediaAsset) {
+  return asset.view_url || asset.stream_url || '';
+}
+
 export function InboxClient({ mode }: { mode: InboxMode }) {
   const t = useT();
+  const locale = useLocale();
   const activeBrandId = useActiveBrandId();
   const [brandReplyName, setBrandReplyName] = useState('OMA');
   const [statusTab, setStatusTab] = useState<InboxStatusFilter>('OPEN');
-  const [platformFilter, setPlatformFilter] = useState<
-    'all' | 'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN'
-  >('all');
+  const [platformFilter, setPlatformFilter] = useState<InboxPlatformFilter>('all');
   const [statusCounts, setStatusCounts] = useState<InboxStats | null>(null);
   const [unansweredOnly, setUnansweredOnly] = useState(false);
   const [items, setItems] = useState<InboxConversationListItem[]>([]);
@@ -137,6 +148,8 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
   const [detailLoading, setDetailLoading] = useState(false);
   const [reply, setReply] = useState('');
   const [inlineReply, setInlineReply] = useState('');
+  const [replyMedia, setReplyMedia] = useState<string[]>([]);
+  const [aiBusy, setAiBusy] = useState(false);
   const [replyToMessageId, setReplyToMessageId] = useState<string | null>(null);
   const [commentMenuId, setCommentMenuId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -327,6 +340,18 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
     [statusCounts, t],
   );
 
+  const channelOptions = useMemo(
+    () =>
+      [
+        { value: 'all' as const, label: t('inbox.allChannels') || 'All channels' },
+        { value: 'META_IG' as const, label: 'Instagram' },
+        { value: 'META_FB' as const, label: 'Facebook' },
+        { value: 'TIKTOK' as const, label: 'TikTok' },
+        { value: 'LINKEDIN' as const, label: 'LinkedIn' },
+      ] satisfies { value: InboxPlatformFilter; label: string }[],
+    [t],
+  );
+
   const displayedComments = useMemo(() => {
     if (!detail) return [];
     if (!unansweredOnly || mode !== 'comments') return detail.messages;
@@ -395,14 +420,17 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
   };
 
   const submitReply = async (text: string, clearInline: boolean) => {
-    if (!selectedId || !text.trim()) return;
+    if (!selectedId) return;
+    const trimmed = text.trim();
+    if (!trimmed && !replyMedia.length) return;
     setSending(true);
     setDeliveryNote(null);
     try {
       const res = await replyInboxConversation(
         selectedId,
-        text.trim(),
+        trimmed,
         replyToMessageId ?? undefined,
+        replyMedia,
       );
       if (clearInline) {
         setInlineReply('');
@@ -410,6 +438,7 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
       } else {
         setReply('');
       }
+      setReplyMedia([]);
       if (!res.externalDelivered && res.note) setDeliveryNote(res.note);
       else if (res.externalDelivered) setDeliveryNote('Delivered to platform.');
       await loadDetail(selectedId);
@@ -418,6 +447,79 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
       setError(e instanceof Error ? e.message : 'Reply failed');
     } finally {
       setSending(false);
+    }
+  };
+
+  const insertEmoji = (emo: string) => {
+    if (replyToMessageId) setInlineReply((prev) => `${prev}${emo}`);
+    else setReply((prev) => `${prev}${emo}`);
+  };
+
+  const attachMedia = (asset: MediaAsset) => {
+    const url = mediaUrlOf(asset);
+    if (!url) return;
+    setReplyMedia((prev) => (prev.includes(url) ? prev : [...prev, url].slice(0, 8)));
+  };
+
+  const draftAiReply = () => {
+    if (!detail) return;
+    setAiBusy(true);
+    try {
+      const inbound =
+        detail.messages.find((m) => m.id === replyToMessageId)?.content ??
+        [...detail.messages].reverse().find((m) => m.direction === 'INBOUND')?.content ??
+        '';
+      const draft = localInboxReply({
+        locale,
+        brandName: brandReplyName,
+        inbound,
+      });
+      if (replyToMessageId)
+        setInlineReply((prev) => (prev.trim() ? `${prev.trim()} ${draft}` : draft));
+      else setReply((prev) => (prev.trim() ? `${prev.trim()} ${draft}` : draft));
+      setDeliveryNote(t('inbox.aiBanner') || 'AI proposal — requires human review before sending.');
+    } finally {
+      setAiBusy(false);
+    }
+  };
+
+  const onLikeComment = async (messageId: string) => {
+    const current = detail?.messages.find((m) => m.id === messageId);
+    const nextLiked = !current?.liked;
+    setDetail((prev) =>
+      prev
+        ? {
+            ...prev,
+            messages: prev.messages.map((m) =>
+              m.id === messageId ? { ...m, liked: nextLiked } : m,
+            ),
+          }
+        : prev,
+    );
+    try {
+      const res = await likeInboxMessage(messageId);
+      setDetail((prev) =>
+        prev
+          ? {
+              ...prev,
+              messages: prev.messages.map((m) =>
+                m.id === messageId ? { ...m, liked: res.liked } : m,
+              ),
+            }
+          : prev,
+      );
+    } catch (e) {
+      setDetail((prev) =>
+        prev
+          ? {
+              ...prev,
+              messages: prev.messages.map((m) =>
+                m.id === messageId ? { ...m, liked: current?.liked } : m,
+              ),
+            }
+          : prev,
+      );
+      setError(e instanceof Error ? e.message : 'Like failed');
     }
   };
 
@@ -553,6 +655,21 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
             >
               <ReloadOutlined className={syncing ? 'oma-plx-inbox-spin' : undefined} />
             </button>
+            <InboxStatusDropdown
+              value={statusTab}
+              onChange={setStatusTab}
+              options={statusOptions}
+              ariaLabel={t('inbox.statusFilter') || 'Status'}
+              platform={platformFilter}
+              onPlatform={setPlatformFilter}
+              channelOptions={channelOptions}
+              unanswered={unansweredOnly}
+              onUnanswered={setUnansweredOnly}
+              showUnanswered={mode === 'comments'}
+              unansweredLabel={t('inbox.unansweredOnly') || 'Unanswered'}
+              statusLabel={t('inbox.filterCard.status') || 'Status'}
+              channelsLabel={t('inbox.filterCard.channels') || 'Channels'}
+            />
           </div>
           {connections && connections.connectedPages === 0 ? (
             <p className="oma-plx-inbox-list__connect-hint">
@@ -576,43 +693,6 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
             placeholder={t('inbox.search.placeholder') || 'Search conversations…'}
             aria-label={t('inbox.search.placeholder') || 'Search conversations'}
           />
-          <InboxStatusDropdown
-            value={statusTab}
-            onChange={setStatusTab}
-            options={statusOptions}
-            ariaLabel={t('inbox.statusFilter') || 'Status'}
-          />
-          <div className="oma-plx-inbox-channels" data-testid="inbox-channel-filter">
-            {(
-              [
-                ['all', t('inbox.allChannels') || 'All channels'],
-                ['META_IG', 'Instagram'],
-                ['META_FB', 'Facebook'],
-                ['TIKTOK', 'TikTok'],
-                ['LINKEDIN', 'LinkedIn'],
-              ] as const
-            ).map(([id, label]) => (
-              <button
-                key={id}
-                type="button"
-                data-active={platformFilter === id ? 'true' : 'false'}
-                onClick={() => setPlatformFilter(id)}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-          {mode === 'comments' ? (
-            <label className="oma-plx-inbox-switch">
-              <input
-                type="checkbox"
-                checked={unansweredOnly}
-                onChange={(e) => setUnansweredOnly(e.target.checked)}
-              />
-              <span className="oma-plx-inbox-switch__track" aria-hidden />
-              <span>{t('inbox.unansweredOnly') || 'Unanswered'}</span>
-            </label>
-          ) : null}
         </header>
 
         <div className="oma-plx-inbox-list__scroll">
@@ -784,7 +864,7 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
                         String(detail.messages.length),
                       )}
                     </span>
-                    <label className="oma-plx-inbox-switch">
+                    <label className="oma-plx-inbox-switch" data-testid="inbox-thread-unanswered">
                       <input
                         type="checkbox"
                         checked={unansweredOnly}
@@ -811,8 +891,19 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
                             </div>
                             {m.direction === 'INBOUND' ? (
                               <div className="oma-plx-inbox-comment-card__tools">
-                                <button type="button" aria-label="Like">
-                                  <HeartOutlined />
+                                <button
+                                  type="button"
+                                  className={m.liked ? 'is-liked' : undefined}
+                                  aria-pressed={Boolean(m.liked)}
+                                  aria-label={
+                                    m.liked
+                                      ? t('inbox.unlike') || 'Unlike'
+                                      : t('inbox.like') || 'Like'
+                                  }
+                                  data-testid={`inbox-like-${m.id}`}
+                                  onClick={() => void onLikeComment(m.id)}
+                                >
+                                  {m.liked ? <HeartFilled /> : <HeartOutlined />}
                                 </button>
                                 <button
                                   type="button"
@@ -872,6 +963,13 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
                             ) : null}
                           </div>
                           <p className="oma-plx-inbox-comment-card__text">{m.content}</p>
+                          {m.mediaUrls?.length ? (
+                            <div className="oma-plx-inbox-comment-card__media">
+                              {m.mediaUrls.map((url) => (
+                                <img key={url} src={url} alt="" />
+                              ))}
+                            </div>
+                          ) : null}
                           {showInline && m.direction === 'INBOUND' ? (
                             <div className="oma-plx-inbox-inline-reply">
                               <PersonAvatar name={brandReplyName} brand size="sm" />
@@ -881,23 +979,22 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
                                   onChange={(e) => setInlineReply(e.target.value)}
                                   placeholder={replyPlaceholder}
                                 />
-                                <div className="oma-plx-inbox-inline-reply__tools">
-                                  <button type="button" aria-label="Attach">
-                                    <LinkOutlined />
-                                  </button>
-                                  <button type="button" aria-label="Emoji">
-                                    <SmileOutlined />
-                                  </button>
-                                  <button type="button" aria-label="AI">
-                                    ✦
-                                  </button>
-                                </div>
+                                <InboxComposerTools
+                                  t={t}
+                                  locale={locale}
+                                  brandId={activeBrandId}
+                                  onInsertEmoji={insertEmoji}
+                                  onAiDraft={draftAiReply}
+                                  onPickMedia={attachMedia}
+                                  aiBusy={aiBusy}
+                                  disabled={sending}
+                                />
                               </div>
                               <Button
                                 type="primary"
                                 size="small"
                                 loading={sending}
-                                disabled={!inlineReply.trim()}
+                                disabled={!inlineReply.trim() && !replyMedia.length}
                                 onClick={() => void submitReply(inlineReply, true)}
                               >
                                 {t('inbox.postReply') || 'Post'}
@@ -958,6 +1055,13 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
                               className={`oma-plx-inbox-bubble oma-plx-inbox-bubble--${m.direction.toLowerCase()}`}
                             >
                               {m.content}
+                              {m.mediaUrls?.length ? (
+                                <div className="oma-plx-inbox-bubble__media">
+                                  {m.mediaUrls.map((url) => (
+                                    <img key={url} src={url} alt="" />
+                                  ))}
+                                </div>
+                              ) : null}
                             </div>
                           </div>
                         </div>
@@ -996,6 +1100,21 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
                   </Button>
                 </div>
               ) : null}
+              {replyMedia.length ? (
+                <div className="oma-plx-inbox-composer__attach" data-testid="inbox-reply-media">
+                  {replyMedia.map((url) => (
+                    <button
+                      key={url}
+                      type="button"
+                      className="oma-plx-inbox-composer__attach-item"
+                      aria-label={t('inbox.removeMedia') || 'Remove media'}
+                      onClick={() => setReplyMedia((prev) => prev.filter((u) => u !== url))}
+                    >
+                      <img src={url} alt="" />
+                    </button>
+                  ))}
+                </div>
+              ) : null}
               <div className="oma-plx-inbox-composer__pill">
                 {mode === 'comments' ? (
                   <PersonAvatar name={brandReplyName} brand size="sm" />
@@ -1015,7 +1134,17 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
                     }
                   }}
                 />
-                {reply.trim() ? (
+                <InboxComposerTools
+                  t={t}
+                  locale={locale}
+                  brandId={activeBrandId}
+                  onInsertEmoji={insertEmoji}
+                  onAiDraft={draftAiReply}
+                  onPickMedia={attachMedia}
+                  aiBusy={aiBusy}
+                  disabled={sending}
+                />
+                {reply.trim() || replyMedia.length ? (
                   <Button
                     type="primary"
                     loading={sending}

@@ -3777,12 +3777,12 @@ button.oma-cal-item {
   top: calc(100% + 6px) !important;
   inset-inline-end: 0 !important;
   z-index: 50 !important;
-  width: 260px !important;
-  padding: 12px !important;
+  width: 340px !important;
+  padding: 14px !important;
   background: #fff !important;
   border: 1px solid #e8e9eb !important;
-  border-radius: 10px !important;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 12px 32px rgba(17, 24, 39, 0.14) !important;
 }
 .oma-ext-cal-pop__head {
   display: flex !important;

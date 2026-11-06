@@ -56,6 +56,25 @@ export function localContentProposal(input: {
   return `${core} — from ${brand}. Tell us what you think in the comments. ${hashtag}`;
 }
 
+/** Honest on-device inbox reply draft (DEC-016: no live provider). Review required. */
+export function localInboxReply(input: {
+  locale: string;
+  brandName?: string;
+  inbound?: string;
+}): string {
+  const ar = isArLocale(input.locale);
+  const brand = input.brandName?.trim() || (ar ? 'فريقنا' : 'our team');
+  const inbound = input.inbound?.trim();
+  if (ar) {
+    return inbound
+      ? `شكراً على رسالتك. ${brand} اطّلع على تعليقك وسيعود إليك. هل نقدر نساعدك بشيء محدد؟`
+      : `شكراً لتواصلك معنا. ${brand} سعيد بمساعدتك — أخبرنا كيف نقدر نخدمك.`;
+  }
+  return inbound
+    ? `Thanks for writing in. ${brand} saw this and is here to help — anything specific we can do for you?`
+    : `Thanks for reaching out. ${brand} is here to help — how can we support you today?`;
+}
+
 export async function proposeContentText(input: {
   kind: ContentAiKind;
   locale: string;
