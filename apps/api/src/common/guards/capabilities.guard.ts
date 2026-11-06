@@ -27,6 +27,8 @@ const routeRequirements: Record<string, string[]> = {
   'POST /api/v1/brands/:brandId/media/upload-grant': ['brand.read'],
   'POST /api/v1/media/upload-complete': ['brand.read'],
   'GET /api/v1/brands/:brandId/media/browse': ['brand.read'],
+  'POST /api/v1/brands/:brandId/media/folders': ['brand.read'],
+  'GET /api/v1/brands/:brandId/media/file-preview': ['brand.read'],
   'GET /api/v1/media/:assetId': ['brand.read'],
   'GET /api/v1/media/:assetId/url': ['brand.read'],
   'GET /api/v1/media/:assetId/view': ['brand.read'],

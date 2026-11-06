@@ -45,13 +45,54 @@ export type MediaLibrary = {
   assets: MediaAsset[];
   next_cursor: string | null;
 };
+export type WorkDriveBrowseFile = {
+  id: string;
+  name: string;
+  mime: string;
+  size: number;
+  updated_at: string | null;
+  asset_id?: string | null;
+  view_url?: string | null;
+  stream_url?: string | null;
+  usage_count?: number;
+  campaign_ids?: string[];
+  campaign_names?: string[];
+  uploader_id?: string | null;
+  uploader_name?: string | null;
+  missing?: boolean;
+  created_at?: string | null;
+};
+
 export type WorkDriveBrowse = {
   folder: { id: string; name: string; parent_id: string | null };
   root_name: string | null;
+  brand_folder?: { id: string; name: string } | null;
   path?: Array<{ id: string; name: string }>;
   folders: Array<{ id: string; name: string }>;
-  files: Array<{ id: string; name: string; mime: string; size: number; updated_at: string | null }>;
+  files: WorkDriveBrowseFile[];
+  filter_facets?: {
+    campaigns: Array<{ id: string; name: string }>;
+    uploaders: Array<{ id: string; name: string }>;
+  };
 };
+
+const browseCache = new Map<string, { at: number; data: WorkDriveBrowse }>();
+const BROWSE_TTL_MS = 20_000;
+
+function browseKey(brandId: string, kind: MediaKind, folderId: string | undefined, scope: string) {
+  return `${brandId}:${kind}:${scope}:${folderId ?? ''}`;
+}
+
+export function invalidateMediaCache(brandId?: string) {
+  invalidateApiCache(brandId ? `/api/v1/brands/${brandId}/media` : '/api/v1/brands/');
+  if (!brandId) {
+    browseCache.clear();
+    return;
+  }
+  for (const key of [...browseCache.keys()]) {
+    if (key.startsWith(`${brandId}:`)) browseCache.delete(key);
+  }
+}
 
 const json = (method: string, body?: unknown): RequestInit => ({
   method,
@@ -70,21 +111,35 @@ export const workDriveApi = {
 };
 
 export const mediaApi = {
-  list: (brandId: string, kind?: MediaKind) => {
-    invalidateApiCache(`/api/v1/brands/${brandId}/media`);
-    return api<{ data: MediaLibrary }>(
-      `/api/v1/brands/${brandId}/media${kind ? `?kind=${kind}` : ''}`,
-    );
-  },
+  list: (brandId: string, kind?: MediaKind) =>
+    api<{ data: MediaLibrary }>(`/api/v1/brands/${brandId}/media${kind ? `?kind=${kind}` : ''}`),
   browse: (
     brandId: string,
     kind: MediaKind,
     folderId?: string,
     scope: 'brand' | 'organization' = 'brand',
-  ) =>
-    api<{ data: WorkDriveBrowse }>(
+  ) => {
+    const key = browseKey(brandId, kind, folderId, scope);
+    const hit = browseCache.get(key);
+    if (hit && Date.now() - hit.at < BROWSE_TTL_MS) return Promise.resolve({ data: hit.data });
+    return api<{ data: WorkDriveBrowse }>(
       `/api/v1/brands/${brandId}/media/browse?kind=${kind}&scope=${scope}${folderId ? `&folder_id=${encodeURIComponent(folderId)}` : ''}`,
-    ),
+    ).then((r) => {
+      browseCache.set(key, { at: Date.now(), data: r.data });
+      return r;
+    });
+  },
+  createFolder: (
+    brandId: string,
+    body: { name: string; parent_id?: string; scope?: 'brand' | 'organization'; kind?: MediaKind },
+  ) =>
+    api<{ data: { id: string; name: string; parent_id: string } }>(
+      `/api/v1/brands/${brandId}/media/folders`,
+      json('POST', body),
+    ).then((r) => {
+      invalidateMediaCache(brandId);
+      return r;
+    }),
   importFile: (brandId: string, kind: MediaKind, fileId: string) =>
     api<{ data: MediaAsset }>(
       `/api/v1/brands/${brandId}/media/import`,
@@ -104,6 +159,7 @@ export const mediaApi = {
     file: File,
     onProgress?: (fraction: number) => void,
     signal?: AbortSignal,
+    folderId?: string | null,
   ): Promise<MediaAsset> {
     const mime = file.type || 'application/octet-stream';
     const sha256 = await sha256Hex(file);
@@ -112,7 +168,14 @@ export const mediaApi = {
       data: { upload_url: string; headers: Record<string, string>; grant: string };
     }>(
       `/api/v1/brands/${brandId}/media/upload-grant`,
-      json('POST', { kind, name: file.name, mime, size: file.size, sha256 }),
+      json('POST', {
+        kind,
+        name: file.name,
+        mime,
+        size: file.size,
+        sha256,
+        ...(folderId ? { folder_id: folderId } : {}),
+      }),
     );
     try {
       await xhrSend({
@@ -127,14 +190,14 @@ export const mediaApi = {
     } catch (e) {
       const code = (e as { code?: string }).code;
       if (code === 'ABORTED' || file.size > PROXY_LIMIT) throw e;
-      return mediaApi.uploadViaApi(brandId, kind, file, onProgress, signal);
+      return mediaApi.uploadViaApi(brandId, kind, file, onProgress, signal, folderId);
     }
     const done = await api<{ data: MediaAsset }>(
       '/api/v1/media/upload-complete',
       json('POST', { grant: grant.data.grant }),
     );
     onProgress?.(1);
-    invalidateApiCache(`/api/v1/brands/${brandId}/media`);
+    invalidateMediaCache(brandId);
     return done.data;
   },
 
@@ -145,8 +208,10 @@ export const mediaApi = {
     file: File,
     onProgress?: (fraction: number) => void,
     signal?: AbortSignal,
+    folderId?: string | null,
   ): Promise<MediaAsset> {
     const qs = new URLSearchParams({ kind, name: file.name });
+    if (folderId) qs.set('folder_id', folderId);
     const csrf = await ensureCsrfToken();
     const res = await xhrSend({
       url: `/api/v1/brands/${brandId}/media?${qs}`,
@@ -162,7 +227,7 @@ export const mediaApi = {
     });
     const data = res as { data?: MediaAsset };
     if (!data.data) throw new Error(friendlyApiMessage(undefined, 500));
-    invalidateApiCache(`/api/v1/brands/${brandId}/media`);
+    invalidateMediaCache(brandId);
     return data.data;
   },
 };

@@ -2,15 +2,16 @@
 import { openSettings } from '../../lib/settings-dialog';
 
 import {
-  FileImageOutlined,
-  FileOutlined,
-  FilePdfOutlined,
-  FolderOutlined,
-  PlayCircleOutlined,
+  CheckOutlined,
+  CloseOutlined,
+  DownOutlined,
+  FolderAddOutlined,
+  SearchOutlined,
+  UploadOutlined,
 } from '../ui/lucide-icons';
-import { Button, Modal, Progress, Tabs } from 'antd';
 import { MediaSurface } from './media-surface';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { getApiError } from '../../lib/brand-api';
 import {
   formatBytes,
@@ -19,9 +20,14 @@ import {
   type MediaKind,
   type MediaLibrary,
   type WorkDriveBrowse,
+  type WorkDriveBrowseFile,
 } from '../../lib/workdrive-api';
 
 type Tr = (key: string) => string;
+type Scope = 'brand' | 'organization';
+type SortKey = 'latest' | 'oldest' | 'name';
+type UsageFilter = 'used' | 'unused' | 'deleted';
+type TypeFilter = 'image' | 'video' | 'gif' | 'pdf';
 
 const ACCEPT: Record<MediaKind, string> = {
   posts: 'image/png,image/jpeg,image/webp,image/gif,video/mp4,video/quicktime,video/webm',
@@ -30,12 +36,23 @@ const ACCEPT: Record<MediaKind, string> = {
     'image/png,image/jpeg,image/webp,image/gif,video/mp4,video/quicktime,video/webm,application/pdf',
 };
 
-function fileIcon(mime: string) {
-  if (mime.startsWith('video/')) return <PlayCircleOutlined />;
-  if (mime.startsWith('image/')) return <FileImageOutlined />;
-  if (mime.includes('pdf')) return <FilePdfOutlined />;
-  return <FileOutlined />;
-}
+const CANVA_HIDE_KEY = 'oma-ml-hide-canva';
+
+type GridItem = {
+  key: string;
+  name: string;
+  mime: string;
+  viewUrl: string;
+  streamUrl: string | null;
+  usageCount: number;
+  missing: boolean;
+  createdAt: string | null;
+  campaignIds: string[];
+  uploaderId: string | null;
+  uploaderName: string | null;
+  fileId: string;
+  asset: MediaAsset | null;
+};
 
 function MediaShimmer({ rows = 4 }: { rows?: number }) {
   return (
@@ -70,7 +87,117 @@ export function MediaThumb({ asset, t }: { asset: MediaAsset; t: Tr }) {
   return <span className="oma-mp-thumb oma-mp-thumb--file">{asset.name.split('.').pop()}</span>;
 }
 
-/** Real media picker: upload to the brand's WorkDrive folder or choose an existing WorkDrive file. */
+function mosaicHue(name: string) {
+  let h = 0;
+  for (let i = 0; i < name.length; i += 1) h = (h + name.charCodeAt(i) * 17) % 360;
+  return h;
+}
+
+function fileToItem(file: WorkDriveBrowseFile, brandId: string, kind: MediaKind): GridItem {
+  const view =
+    file.view_url ||
+    `/api/v1/brands/${brandId}/media/file-preview?file_id=${encodeURIComponent(file.id)}`;
+  const asset: MediaAsset | null = file.asset_id
+    ? {
+        id: file.asset_id,
+        brand_id: brandId,
+        kind,
+        name: file.name,
+        mime: file.mime,
+        size: file.size,
+        status: file.missing ? 'MISSING' : 'READY',
+        missing: Boolean(file.missing),
+        source: 'workdrive',
+        view_url: file.view_url || `/api/v1/media/${file.asset_id}/view`,
+        stream_url: file.stream_url ?? null,
+        created_at: file.created_at || file.updated_at || new Date().toISOString(),
+      }
+    : null;
+  return {
+    key: file.asset_id || file.id,
+    name: file.name,
+    mime: file.mime,
+    viewUrl: view,
+    streamUrl: file.stream_url ?? null,
+    usageCount: file.usage_count ?? 0,
+    missing: Boolean(file.missing),
+    createdAt: file.created_at || file.updated_at,
+    campaignIds: file.campaign_ids ?? [],
+    uploaderId: file.uploader_id ?? null,
+    uploaderName: file.uploader_name ?? null,
+    fileId: file.id,
+    asset,
+  };
+}
+
+function assetToItem(asset: MediaAsset): GridItem {
+  return {
+    key: asset.id,
+    name: asset.name,
+    mime: asset.mime,
+    viewUrl: asset.view_url,
+    streamUrl: asset.stream_url,
+    usageCount: 0,
+    missing: asset.missing,
+    createdAt: asset.created_at,
+    campaignIds: [],
+    uploaderId: null,
+    uploaderName: null,
+    fileId: asset.id,
+    asset,
+  };
+}
+
+function typeOf(mime: string): TypeFilter | null {
+  if (mime === 'image/gif') return 'gif';
+  if (mime.startsWith('image/')) return 'image';
+  if (mime.startsWith('video/')) return 'video';
+  if (mime.includes('pdf')) return 'pdf';
+  return null;
+}
+
+function usageLabel(count: number, t: Tr) {
+  if (count <= 0) return null;
+  if (count === 1) return t('media.postCount').replace('{n}', '1');
+  return t('media.postsCount').replace('{n}', String(count));
+}
+
+function FolderMosaic({
+  name,
+  thumbs,
+  selected,
+}: {
+  name: string;
+  thumbs: string[];
+  selected: boolean;
+}) {
+  const hue = mosaicHue(name);
+  const tiles = thumbs.slice(0, 4);
+  return (
+    <span className="oma-ml-mosaic" data-selected={selected ? 'true' : 'false'}>
+      {tiles.length
+        ? tiles.map((src) => (
+            <span key={src} className="oma-ml-mosaic__tile">
+              <img src={src} alt="" />
+            </span>
+          ))
+        : [0, 1, 2, 3].map((i) => (
+            <span
+              key={i}
+              className="oma-ml-mosaic__tile"
+              style={{ background: `hsl(${(hue + i * 28) % 360} 62% 72%)` }}
+            />
+          ))}
+      {selected ? (
+        <span className="oma-ml-mosaic__check" aria-hidden>
+          <CheckOutlined />
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
+/** Real media picker: WorkDrive library as a Planable right-side panel. */
 export function MediaPickerDialog({
   open,
   brandId,
@@ -80,6 +207,7 @@ export function MediaPickerDialog({
   canConnect,
   onClose,
   onPick,
+  variant = 'drawer',
 }: {
   open: boolean;
   brandId: string | null;
@@ -89,86 +217,76 @@ export function MediaPickerDialog({
   canConnect: boolean;
   onClose: () => void;
   onPick: (asset: MediaAsset) => void;
+  variant?: 'drawer' | 'panel';
 }) {
   const [lib, setLib] = useState<MediaLibrary | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<'upload' | 'workdrive'>('upload');
-  // The connected WorkDrive root is the authorization boundary. Start there so the picker
-  // shows every folder this key can access, not only the generated folder for the active brand.
-  const [browseScope, setBrowseScope] = useState<'brand' | 'organization'>('organization');
-  const [progress, setProgress] = useState<{ name: string; value: number } | null>(null);
+  const [orgRoot, setOrgRoot] = useState<WorkDriveBrowse | null>(null);
+  const [brandRoot, setBrandRoot] = useState<WorkDriveBrowse | null>(null);
   const [browse, setBrowse] = useState<WorkDriveBrowse | null>(null);
-  const [trail, setTrail] = useState<Array<{ id: string; name: string }>>([]);
+  const [scope, setScope] = useState<Scope>('organization');
+  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
+  const [progress, setProgress] = useState<{ name: string; value: number } | null>(null);
   const [browsing, setBrowsing] = useState(false);
-  const isAr = locale.toLowerCase().startsWith('ar');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [sort, setSort] = useState<SortKey>('latest');
+  const [sortOpen, setSortOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [folderName, setFolderName] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [hideCanva, setHideCanva] = useState(false);
+  const [usage, setUsage] = useState<Set<UsageFilter>>(new Set());
+  const [types, setTypes] = useState<Set<TypeFilter>>(new Set());
+  const [campaigns, setCampaigns] = useState<Set<string>>(new Set());
+  const [uploaders, setUploaders] = useState<Set<string>>(new Set());
   const fileInput = useRef<HTMLInputElement>(null);
   const abort = useRef<AbortController | null>(null);
-
-  const load = useCallback(() => {
-    if (!brandId) return;
-    setError(null);
-    mediaApi
-      .list(brandId, kind)
-      .then((r) => setLib(r.data))
-      .catch((e) => setError(getApiError(e).message));
-  }, [brandId, kind]);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const filterRef = useRef<HTMLDivElement>(null);
+  const sortRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (open) load();
-    else {
-      setBrowse(null);
-      setTrail([]);
-      setProgress(null);
-      setBrowseScope('organization');
+    try {
+      setHideCanva(sessionStorage.getItem(CANVA_HIDE_KEY) === '1');
+    } catch {
+      /* ignore */
     }
-  }, [open, load]);
+  }, []);
+
+  const loadLibrary = useCallback(async () => {
+    if (!brandId) return;
+    setError(null);
+    try {
+      const r = await mediaApi.list(brandId, kind);
+      setLib(r.data);
+    } catch (e) {
+      setError(getApiError(e).message);
+    }
+  }, [brandId, kind]);
 
   const openFolder = useCallback(
-    async (
-      folderId?: string,
-      name?: string,
-      back = false,
-      scope: 'brand' | 'organization' = 'brand',
-    ) => {
+    async (nextScope: Scope, folderId?: string) => {
       if (!brandId) return;
       setBrowsing(true);
       setError(null);
       try {
-        const r = await mediaApi.browse(brandId, kind, folderId, scope);
+        const r = await mediaApi.browse(brandId, kind, folderId, nextScope);
         setBrowse(r.data);
-        setTrail((prev) => {
-          const apiPath = r.data.path?.length
-            ? r.data.path.map((crumb) => ({
-                id: crumb.id,
-                name: crumb.name || r.data.root_name || '',
-              }))
-            : null;
-          if (apiPath) return apiPath;
-          if (!folderId)
-            return [{ id: r.data.folder.id, name: r.data.folder.name || r.data.root_name || '' }];
-          if (back) {
-            const i = prev.findIndex((crumb) => crumb.id === folderId);
-            return i >= 0
-              ? prev.slice(0, i + 1)
-              : [{ id: r.data.folder.id, name: r.data.folder.name }];
-          }
-          return [...prev, { id: r.data.folder.id, name: name ?? r.data.folder.name }];
-        });
+        setScope(nextScope);
+        setSelectedFolderId(folderId || r.data.folder.id);
+        if (nextScope === 'organization' && !folderId) setOrgRoot(r.data);
+        if (nextScope === 'brand' && !folderId) setBrandRoot(r.data);
+        if (r.data.brand_folder && nextScope === 'brand' && !folderId) setBrandRoot(r.data);
       } catch (e) {
-        if (scope === 'organization') {
-          // Root may be unset — retry against the brand folder instead of a CONFLICT_STATE toast.
+        if (nextScope === 'organization') {
           try {
             const r = await mediaApi.browse(brandId, kind, folderId, 'brand');
             setBrowse(r.data);
-            setBrowseScope('brand');
-            setTrail(
-              r.data.path?.length
-                ? r.data.path.map((crumb) => ({
-                    id: crumb.id,
-                    name: crumb.name || r.data.root_name || '',
-                  }))
-                : [{ id: r.data.folder.id, name: r.data.folder.name || r.data.root_name || '' }],
-            );
+            setScope('brand');
+            setSelectedFolderId(folderId || r.data.folder.id);
+            setBrandRoot(r.data);
             setError(null);
             return;
           } catch (inner) {
@@ -185,9 +303,134 @@ export function MediaPickerDialog({
   );
 
   useEffect(() => {
-    if (open && tab === 'workdrive' && !browse && lib?.workdrive.connected)
-      void openFolder(undefined, undefined, false, browseScope);
-  }, [open, tab, browse, lib, openFolder, browseScope]);
+    if (!open || !brandId) return;
+    void loadLibrary();
+    void (async () => {
+      setBrowsing(true);
+      try {
+        const [org, brand] = await Promise.allSettled([
+          mediaApi.browse(brandId, kind, undefined, 'organization'),
+          mediaApi.browse(brandId, kind, undefined, 'brand'),
+        ]);
+        if (org.status === 'fulfilled') {
+          setOrgRoot(org.value.data);
+          setBrowse(org.value.data);
+          setScope('organization');
+          setSelectedFolderId(org.value.data.folder.id);
+        }
+        if (brand.status === 'fulfilled') {
+          setBrandRoot(brand.value.data);
+          if (org.status !== 'fulfilled') {
+            setBrowse(brand.value.data);
+            setScope('brand');
+            setSelectedFolderId(brand.value.data.folder.id);
+          }
+        }
+        if (org.status === 'rejected' && brand.status === 'rejected') {
+          setError(getApiError(org.reason).message);
+        }
+      } finally {
+        setBrowsing(false);
+      }
+    })();
+  }, [open, brandId, kind, loadLibrary]);
+
+  useEffect(() => {
+    if (searchOpen) searchRef.current?.focus();
+  }, [searchOpen]);
+
+  useEffect(() => {
+    if (!sortOpen && !filtersOpen && !createOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      const node = e.target as Node;
+      if (sortOpen && sortRef.current && !sortRef.current.contains(node)) setSortOpen(false);
+      if (filtersOpen && filterRef.current && !filterRef.current.contains(node))
+        setFiltersOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [sortOpen, filtersOpen, createOpen]);
+
+  const connected = lib?.workdrive.connected;
+  const brandFolder = browse?.brand_folder || brandRoot?.brand_folder || orgRoot?.brand_folder;
+  const brandSelected = Boolean(
+    brandFolder && selectedFolderId === brandFolder.id && scope === 'brand',
+  );
+
+  const chipFolders = useMemo(() => {
+    const root = orgRoot ?? (scope === 'organization' ? browse : null);
+    const others = (root?.folders ?? []).filter((f) => f.id !== brandFolder?.id);
+    return others;
+  }, [orgRoot, browse, scope, brandFolder?.id]);
+
+  const items = useMemo(() => {
+    const source = brandSelected ? (brandRoot ?? browse) : browse;
+    const files = source?.files ?? [];
+    const mapped = files.map((f) => fileToItem(f, brandId || '', kind));
+    const seen = new Set(mapped.map((i) => i.key));
+    if (!brandSelected && lib?.assets.length) {
+      for (const a of lib.assets) {
+        if (seen.has(a.id)) continue;
+        seen.add(a.id);
+        mapped.push(assetToItem(a));
+      }
+    }
+    const q = query.trim().toLowerCase();
+    return mapped
+      .filter((item) => {
+        if (q && !item.name.toLowerCase().includes(q)) return false;
+        if (usage.size) {
+          const used = item.usageCount > 0;
+          const deleted = item.missing;
+          const unused = !used && !deleted;
+          if (!(
+            (usage.has('used') && used) ||
+            (usage.has('unused') && unused) ||
+            (usage.has('deleted') && deleted)
+          ))
+            return false;
+        }
+        if (types.size) {
+          const tp = typeOf(item.mime);
+          if (!tp || !types.has(tp)) return false;
+        }
+        if (campaigns.size) {
+          const none = campaigns.has('__none__') && item.campaignIds.length === 0;
+          const hit = item.campaignIds.some((id) => campaigns.has(id));
+          if (!none && !hit) return false;
+        }
+        if (uploaders.size && (!item.uploaderId || !uploaders.has(item.uploaderId))) return false;
+        return true;
+      })
+      .sort((a, b) => {
+        if (sort === 'name') return a.name.localeCompare(b.name);
+        const at = a.createdAt ? Date.parse(a.createdAt) : 0;
+        const bt = b.createdAt ? Date.parse(b.createdAt) : 0;
+        return sort === 'oldest' ? at - bt : bt - at;
+      });
+  }, [
+    brandSelected,
+    brandRoot,
+    browse,
+    lib,
+    brandId,
+    kind,
+    query,
+    usage,
+    types,
+    campaigns,
+    uploaders,
+    sort,
+  ]);
+
+  const facets = browse?.filter_facets || orgRoot?.filter_facets || brandRoot?.filter_facets;
+  const filterCount = usage.size + types.size + campaigns.size + uploaders.size;
+
+  const uploadToFolderId = brandSelected
+    ? (brandRoot?.folders.find(
+        (f) => f.name === (kind === 'deliverables' ? 'deliverables' : 'posts'),
+      )?.id ?? brandFolder?.id)
+    : (browse?.folder.id ?? null);
 
   const upload = async (file: File) => {
     if (!brandId || !lib) return;
@@ -208,9 +451,14 @@ export function MediaPickerDialog({
         file,
         (v) => setProgress({ name: file.name, value: v }),
         abort.current.signal,
+        uploadToFolderId,
       );
       onPick(a);
-      onClose();
+      if (variant === 'drawer') onClose();
+      else {
+        await loadLibrary();
+        await openFolder(scope, selectedFolderId || undefined);
+      }
     } catch (e) {
       if ((e as { code?: string }).code !== 'ABORTED') setError(getApiError(e).message);
     } finally {
@@ -218,7 +466,70 @@ export function MediaPickerDialog({
     }
   };
 
-  const connected = lib?.workdrive.connected;
+  const pickFile = async (item: GridItem) => {
+    if (!brandId || item.missing) return;
+    try {
+      if (item.asset) {
+        onPick(item.asset);
+        if (variant === 'drawer') onClose();
+        return;
+      }
+      const r = await mediaApi.importFile(brandId, kind, item.fileId);
+      onPick(r.data);
+      if (variant === 'drawer') onClose();
+    } catch (e) {
+      setError(getApiError(e).message);
+    }
+  };
+
+  const createFolder = async () => {
+    if (!brandId || !folderName.trim()) return;
+    setCreating(true);
+    setError(null);
+    try {
+      const created = await mediaApi.createFolder(brandId, {
+        name: folderName.trim(),
+        parent_id: selectedFolderId || browse?.folder.id,
+        scope,
+        kind,
+      });
+      setFolderName('');
+      setCreateOpen(false);
+      await openFolder(scope, created.data.parent_id || selectedFolderId || undefined);
+    } catch (e) {
+      setError(getApiError(e).message);
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const toggleSet = <T,>(set: Set<T>, value: T, write: (next: Set<T>) => void) => {
+    const next = new Set(set);
+    if (next.has(value)) next.delete(value);
+    else next.add(value);
+    write(next);
+  };
+
+  const closeSearch = () => {
+    setSearchOpen(false);
+    setQuery('');
+  };
+
+  const hideCanvaBanner = () => {
+    setHideCanva(true);
+    try {
+      sessionStorage.setItem(CANVA_HIDE_KEY, '1');
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const sortLabel =
+    sort === 'oldest'
+      ? t('media.oldestFirst')
+      : sort === 'name'
+        ? t('media.sortName')
+        : t('media.latestFirst');
 
   const body = !brandId ? (
     <p className="oma-mp-empty">{t('media.pickBrandFirst')}</p>
@@ -236,9 +547,13 @@ export function MediaPickerDialog({
       <p>{lib.workdrive.available ? t('media.connectBody') : t('workdrive.notEnabled')}</p>
       {lib.workdrive.available ? (
         canConnect ? (
-          <Button type="primary" onClick={() => openSettings('storage')}>
+          <button
+            type="button"
+            className="oma-ml-btn oma-ml-btn--primary"
+            onClick={() => openSettings('storage')}
+          >
             {t('media.connectCta')}
-          </Button>
+          </button>
         ) : (
           <p className="oma-bs-hint">{t('media.askAdmin')}</p>
         )
@@ -251,275 +566,399 @@ export function MediaPickerDialog({
           {error}
         </p>
       ) : null}
-      <Tabs
-        activeKey={tab}
-        onChange={(k) => setTab(k as 'upload' | 'workdrive')}
-        items={[
-          {
-            key: 'upload',
-            label: t('media.tabUpload'),
-            children: (
-              <div className="oma-mp-pane">
-                <div
-                  className="oma-mp-drop"
-                  role="button"
-                  tabIndex={0}
-                  data-testid="media-dropzone"
-                  onClick={() => !progress && fileInput.current?.click()}
-                  onKeyDown={(e) => {
-                    if ((e.key === 'Enter' || e.key === ' ') && !progress)
-                      fileInput.current?.click();
-                  }}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    const f = e.dataTransfer.files?.[0];
-                    if (f && !progress) void upload(f);
-                  }}
-                >
-                  {progress ? (
-                    <div className="oma-mp-progress">
-                      <span className="oma-mp-progress__name">{progress.name}</span>
-                      <Progress percent={Math.round(progress.value * 100)} size="small" />
-                      <Button size="small" onClick={() => abort.current?.abort()}>
-                        {t('common.cancel')}
-                      </Button>
-                    </div>
-                  ) : (
-                    <>
-                      <strong>{t('media.dropTitle')}</strong>
-                      <span>
-                        {t('media.dropHint')
-                          .replace('{image}', String(lib.workdrive.max_image_mb))
-                          .replace('{video}', String(lib.workdrive.max_video_mb))}
-                      </span>
-                      <span className="oma-bs-hint">
-                        {t('media.savedTo').replace('{org}', lib.workdrive.org_name ?? 'WorkDrive')}
-                      </span>
-                    </>
-                  )}
-                  <input
-                    ref={fileInput}
-                    type="file"
-                    hidden
-                    accept={ACCEPT[kind]}
-                    data-testid="media-file-input"
-                    onChange={(e) => {
-                      const f = e.target.files?.[0];
-                      e.target.value = '';
-                      if (f) void upload(f);
+      {!hideCanva ? (
+        <div className="oma-ml-canva" data-testid="media-canva-banner">
+          <span className="oma-ml-canva__mark" aria-hidden>
+            C
+          </span>
+          <span className="oma-ml-canva__copy">{t('media.canvaBanner')}</span>
+          <button type="button" className="oma-ml-canva__link" onClick={hideCanvaBanner}>
+            {t('media.canvaHide')}
+          </button>
+          <button
+            type="button"
+            className="oma-ml-canva__link"
+            onClick={() => setError(t('media.canvaUnavailable'))}
+          >
+            {t('media.canvaConnect')}
+          </button>
+        </div>
+      ) : null}
+
+      <div className="oma-ml-toolbar">
+        <button
+          type="button"
+          className="oma-ml-btn"
+          data-testid="media-dropzone"
+          disabled={Boolean(progress)}
+          onClick={() => fileInput.current?.click()}
+        >
+          <UploadOutlined />
+          {t('media.upload')}
+        </button>
+        <div className="oma-ml-newfolder">
+          <button
+            type="button"
+            className="oma-ml-iconbtn"
+            aria-label={t('media.newFolder')}
+            data-testid="media-create-folder"
+            onClick={() => setCreateOpen((v) => !v)}
+          >
+            <FolderAddOutlined />
+          </button>
+          {createOpen ? (
+            <div className="oma-ml-pop oma-ml-pop--create" data-testid="media-create-folder-pop">
+              <input
+                value={folderName}
+                onChange={(e) => setFolderName(e.target.value)}
+                placeholder={t('media.folderName')}
+                aria-label={t('media.folderName')}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') void createFolder();
+                  if (e.key === 'Escape') setCreateOpen(false);
+                }}
+                autoFocus
+              />
+              <button
+                type="button"
+                className="oma-ml-btn oma-ml-btn--primary"
+                disabled={creating || !folderName.trim()}
+                onClick={() => void createFolder()}
+              >
+                {t('media.createFolder')}
+              </button>
+            </div>
+          ) : null}
+        </div>
+        <div className="oma-ml-toolbar__end">
+          <div className="oma-ml-sort" ref={sortRef}>
+            <button
+              type="button"
+              className="oma-ml-ghost"
+              data-testid="media-sort"
+              aria-expanded={sortOpen}
+              onClick={() => {
+                setSortOpen((v) => !v);
+                setFiltersOpen(false);
+              }}
+            >
+              {sortLabel}
+              <DownOutlined />
+            </button>
+            {sortOpen ? (
+              <div className="oma-ml-pop" role="menu">
+                {(
+                  [
+                    ['latest', t('media.latestFirst')],
+                    ['oldest', t('media.oldestFirst')],
+                    ['name', t('media.sortName')],
+                  ] as const
+                ).map(([key, label]) => (
+                  <button
+                    key={key}
+                    type="button"
+                    role="menuitem"
+                    data-active={sort === key ? 'true' : 'false'}
+                    onClick={() => {
+                      setSort(key);
+                      setSortOpen(false);
                     }}
-                  />
-                </div>
-                {lib.assets.length ? (
-                  <>
-                    <h3 className="oma-mp-subtitle">{t('media.recent')}</h3>
-                    <div className="oma-mp-grid" data-testid="media-recent">
-                      {lib.assets.map((a) => (
-                        <button
-                          key={a.id}
-                          type="button"
-                          className="oma-mp-item"
-                          disabled={a.missing}
-                          title={a.missing ? t('media.missing') : a.name}
-                          onClick={() => {
-                            onPick(a);
-                            onClose();
-                          }}
-                        >
-                          <MediaThumb asset={a} t={t} />
-                          <span className="oma-mp-item__name">{a.name}</span>
-                        </button>
-                      ))}
-                    </div>
-                  </>
-                ) : null}
+                  >
+                    {label}
+                  </button>
+                ))}
               </div>
-            ),
-          },
-          {
-            key: 'workdrive',
-            label: t('media.tabWorkDrive'),
-            children: (
-              <div className="oma-mp-pane" data-testid="media-browser" aria-busy={browsing}>
-                <div
-                  className="oma-mp-scope"
-                  role="group"
-                  aria-label={isAr ? 'نطاق الملفات' : 'File scope'}
-                >
-                  <button
-                    type="button"
-                    data-active={browseScope === 'organization' ? 'true' : 'false'}
-                    onClick={() => {
-                      setBrowseScope('organization');
-                      setBrowse(null);
-                      setTrail([]);
-                      void openFolder(undefined, undefined, false, 'organization');
-                    }}
-                  >
-                    {t('media.scopeOrganization')}
-                  </button>
-                  <button
-                    type="button"
-                    data-active={browseScope === 'brand' ? 'true' : 'false'}
-                    onClick={() => {
-                      setBrowseScope('brand');
-                      setBrowse(null);
-                      setTrail([]);
-                      void openFolder(undefined, undefined, false, 'brand');
-                    }}
-                  >
-                    {t('media.scopeBrand')}
-                  </button>
-                </div>
-                <nav className="oma-mp-trail" aria-label={t('media.folders')}>
-                  {browse?.folder.parent_id && trail.length === 0 ? (
+            ) : null}
+          </div>
+          <div className="oma-ml-filters" ref={filterRef}>
+            <button
+              type="button"
+              className="oma-ml-ghost"
+              data-testid="media-filters"
+              data-active={filtersOpen || filterCount > 0 ? 'true' : 'false'}
+              aria-expanded={filtersOpen}
+              onClick={() => {
+                setFiltersOpen((v) => !v);
+                setSortOpen(false);
+              }}
+            >
+              {t('media.filters')}
+              {filterCount ? <span className="oma-ml-count">{filterCount}</span> : null}
+            </button>
+            {filtersOpen ? (
+              <div className="oma-ml-pop oma-ml-pop--filters" data-testid="media-filters-pop">
+                <strong>{t('media.filters')}</strong>
+                <p>{t('media.usage')}</p>
+                <div className="oma-ml-chips">
+                  {(
+                    [
+                      ['used', t('media.used')],
+                      ['unused', t('media.unused')],
+                      ['deleted', t('media.deleted')],
+                    ] as const
+                  ).map(([key, label]) => (
                     <button
+                      key={key}
                       type="button"
-                      onClick={() =>
-                        void openFolder(browse.folder.parent_id!, undefined, false, browseScope)
-                      }
+                      data-on={usage.has(key) ? 'true' : 'false'}
+                      onClick={() => toggleSet(usage, key, setUsage)}
                     >
-                      {t('media.up')}
+                      {label}
                     </button>
-                  ) : null}
-                  {trail.length === 0 && browse ? (
-                    <strong>{browse.folder.name || browse.root_name || t('media.folders')}</strong>
-                  ) : null}
-                  {trail.map((crumb, i) => (
-                    <span key={crumb.id}>
-                      {i > 0 ? <span aria-hidden="true"> / </span> : null}
-                      {i === trail.length - 1 ? (
-                        <strong>{crumb.name}</strong>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => void openFolder(crumb.id, crumb.name, true, browseScope)}
-                        >
-                          {crumb.name}
-                        </button>
-                      )}
-                    </span>
                   ))}
-                </nav>
-                {browsing && !browse ? <MediaShimmer rows={5} /> : null}
-                {browse ? (
-                  browse.folders.length || browse.files.length ? (
-                    <>
-                      {browse.folders.length ? (
-                        <>
-                          <div className="oma-mp-tree" data-testid="media-folder-tree">
-                            {trail.map((crumb, i) => (
-                              <button
-                                key={`tree-${crumb.id}`}
-                                type="button"
-                                className="oma-mp-tree__row"
-                                data-active={i === trail.length - 1 ? 'true' : 'false'}
-                                style={{ paddingInlineStart: 8 + i * 12 }}
-                                onClick={() =>
-                                  void openFolder(crumb.id, crumb.name, true, browseScope)
-                                }
-                              >
-                                <FolderOutlined /> {crumb.name}
-                              </button>
-                            ))}
-                            {browse.folders.map((f) => (
-                              <button
-                                key={f.id}
-                                type="button"
-                                className="oma-mp-tree__row"
-                                style={{ paddingInlineStart: 8 + Math.max(trail.length, 1) * 12 }}
-                                onClick={() => void openFolder(f.id, f.name, false, browseScope)}
-                              >
-                                <FolderOutlined /> {f.name}
-                              </button>
-                            ))}
-                          </div>
-                          <div className="oma-mp-folder-chips" data-testid="media-folders">
-                            {browse.folders.map((f) => (
-                              <button
-                                key={`chip-${f.id}`}
-                                type="button"
-                                className="oma-mp-folder-chip"
-                                onClick={() => void openFolder(f.id, f.name, false, browseScope)}
-                              >
-                                <span className="oma-mp-folder-chip__ico" aria-hidden>
-                                  <FolderOutlined />
-                                </span>
-                                <span>{f.name}</span>
-                              </button>
-                            ))}
-                          </div>
-                        </>
-                      ) : null}
-                      {browse.files.length ? (
-                        <>
-                          <p className="oma-mp-section-title">
-                            {t('media.files') || t('media.recent')}
-                          </p>
-                          <div className="oma-mp-files" data-testid="media-files">
-                            {browse.files.map((f) => (
-                              <button
-                                key={f.id}
-                                type="button"
-                                className="oma-mp-file"
-                                data-testid="media-browser-file"
-                                title={[...trail.map((crumb) => crumb.name), f.name]
-                                  .filter(Boolean)
-                                  .join(' / ')}
-                                onClick={async () => {
-                                  try {
-                                    const r = await mediaApi.importFile(brandId, kind, f.id);
-                                    onPick(r.data);
-                                    onClose();
-                                  } catch (e) {
-                                    setError(getApiError(e).message);
-                                  }
-                                }}
-                              >
-                                <span className="oma-mp-file__thumb" aria-hidden>
-                                  {String(f.mime || '').startsWith('video/') ? (
-                                    <span className="oma-mp-file__badge" aria-hidden>
-                                      ▶
-                                    </span>
-                                  ) : null}
-                                  {fileIcon(f.mime)}
-                                </span>
-                                <span className="oma-mp-file__name">{f.name}</span>
-                              </button>
-                            ))}
-                          </div>
-                        </>
-                      ) : null}
-                    </>
-                  ) : (
-                    <p className="oma-mp-empty">{t('media.emptyFolder')}</p>
-                  )
-                ) : browsing ? null : (
-                  <MediaShimmer rows={3} />
-                )}
+                </div>
+                <p>{t('media.type')}</p>
+                <div className="oma-ml-chips">
+                  {(
+                    [
+                      ['image', t('media.typeImage')],
+                      ['video', t('media.typeVideo')],
+                      ['gif', t('media.typeGif')],
+                      ['pdf', t('media.typePdf')],
+                    ] as const
+                  ).map(([key, label]) => (
+                    <button
+                      key={key}
+                      type="button"
+                      data-on={types.has(key) ? 'true' : 'false'}
+                      onClick={() => toggleSet(types, key, setTypes)}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                <p>{t('media.campaign')}</p>
+                <div className="oma-ml-chips">
+                  <button
+                    type="button"
+                    data-on={campaigns.has('__none__') ? 'true' : 'false'}
+                    onClick={() => toggleSet(campaigns, '__none__', setCampaigns)}
+                  >
+                    {t('media.noCampaign')}
+                  </button>
+                  {(facets?.campaigns ?? []).map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      data-on={campaigns.has(c.id) ? 'true' : 'false'}
+                      onClick={() => toggleSet(campaigns, c.id, setCampaigns)}
+                    >
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
+                <p>{t('media.uploader')}</p>
+                <div className="oma-ml-chips">
+                  {(facets?.uploaders ?? []).map((u) => (
+                    <button
+                      key={u.id}
+                      type="button"
+                      data-on={uploaders.has(u.id) ? 'true' : 'false'}
+                      onClick={() => toggleSet(uploaders, u.id, setUploaders)}
+                    >
+                      {uploaders.has(u.id) ? <CheckOutlined /> : null}
+                      {u.name}
+                    </button>
+                  ))}
+                </div>
               </div>
-            ),
-          },
-        ]}
-      />
+            ) : null}
+          </div>
+        </div>
+        <input
+          ref={fileInput}
+          type="file"
+          hidden
+          accept={ACCEPT[kind]}
+          data-testid="media-file-input"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            e.target.value = '';
+            if (f) void upload(f);
+          }}
+        />
+      </div>
+
+      {progress ? (
+        <div className="oma-ml-progress">
+          <span>{progress.name}</span>
+          <span className="oma-ml-progress__bar">
+            <span style={{ width: `${Math.round(progress.value * 100)}%` }} />
+          </span>
+          <button type="button" className="oma-ml-ghost" onClick={() => abort.current?.abort()}>
+            {t('common.cancel')}
+          </button>
+        </div>
+      ) : null}
+
+      <div className="oma-ml-folders" data-testid="media-folders">
+        {chipFolders.map((f) => (
+          <button
+            key={f.id}
+            type="button"
+            className="oma-ml-folder"
+            data-active={selectedFolderId === f.id && !brandSelected ? 'true' : 'false'}
+            onClick={() => void openFolder('organization', f.id)}
+          >
+            <FolderMosaic
+              name={f.name}
+              thumbs={[]}
+              selected={selectedFolderId === f.id && !brandSelected}
+            />
+            <span>{f.name}</span>
+          </button>
+        ))}
+        {brandFolder ? (
+          <button
+            type="button"
+            className="oma-ml-folder"
+            data-testid="media-brand-assets"
+            data-active={brandSelected ? 'true' : 'false'}
+            onClick={() => void openFolder('brand', brandFolder.id)}
+          >
+            <FolderMosaic
+              name={t('media.brandAssets')}
+              thumbs={(brandRoot?.files ?? [])
+                .filter((f) => f.mime.startsWith('image/') && f.view_url)
+                .slice(0, 4)
+                .map((f) => f.view_url as string)}
+              selected={brandSelected}
+            />
+            <span>{t('media.brandAssets')}</span>
+          </button>
+        ) : null}
+      </div>
+
+      <div className="oma-ml-gridwrap" data-testid="media-browser" aria-busy={browsing}>
+        {browsing && !browse && !items.length ? (
+          <MediaShimmer rows={6} />
+        ) : items.length ? (
+          <div className="oma-ml-grid" data-testid="media-files">
+            {items.map((item) => {
+              const video = item.mime.startsWith('video/');
+              const badge = usageLabel(item.usageCount, t);
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  className="oma-ml-item"
+                  data-testid="media-browser-file"
+                  disabled={item.missing}
+                  title={item.missing ? t('media.missing') : item.name}
+                  onClick={() => void pickFile(item)}
+                >
+                  <span className="oma-ml-thumb">
+                    {item.missing ? (
+                      <span className="oma-mp-thumb oma-mp-thumb--missing">
+                        {t('media.missingShort')}
+                      </span>
+                    ) : item.mime.startsWith('image/') || video ? (
+                      <MediaSurface
+                        className="oma-ml-thumb__media"
+                        src={video ? item.streamUrl || item.viewUrl : item.viewUrl}
+                        mime={item.mime}
+                        alt=""
+                      />
+                    ) : (
+                      <span className="oma-ml-thumb__file">{item.name.split('.').pop()}</span>
+                    )}
+                    {video ? (
+                      <span className="oma-ml-play" aria-hidden>
+                        ▶
+                      </span>
+                    ) : null}
+                    {badge ? <span className="oma-ml-used">{badge}</span> : null}
+                  </span>
+                  <span className="oma-ml-item__name">{item.name}</span>
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="oma-mp-empty">
+            {query.trim() ? t('media.emptySearch') : t('media.emptyFolder')}
+          </p>
+        )}
+      </div>
     </>
   );
 
-  return (
-    <Modal
-      open={open}
-      title={t('media.title')}
-      footer={null}
-      width={760}
-      zIndex={1200}
-      onCancel={() => {
-        abort.current?.abort();
-        onClose();
+  const panel = (
+    <aside
+      className={`oma-ml ${variant === 'panel' ? 'oma-ml--panel' : 'oma-ml--drawer'}`}
+      data-testid="media-picker"
+      hidden={!open}
+      onDragOver={(e) => {
+        e.preventDefault();
       }}
-      destroyOnHidden
+      onDrop={(e) => {
+        e.preventDefault();
+        const f = e.dataTransfer.files?.[0];
+        if (f && !progress && connected) void upload(f);
+      }}
     >
-      <div data-testid="media-picker">{body}</div>
-    </Modal>
+      <header className="oma-ml-head">
+        {searchOpen ? (
+          <>
+            <label className="oma-ml-search">
+              <SearchOutlined />
+              <input
+                ref={searchRef}
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={t('media.searchAssets')}
+                aria-label={t('media.searchAssets')}
+                data-testid="media-search"
+              />
+            </label>
+            <button type="button" className="oma-ml-textbtn" onClick={closeSearch}>
+              {t('media.cancelSearch')}
+            </button>
+          </>
+        ) : (
+          <>
+            <h2>{t('media.title')}</h2>
+            <button
+              type="button"
+              className="oma-ml-iconbtn"
+              aria-label={t('media.searchAssets')}
+              onClick={() => setSearchOpen(true)}
+            >
+              <SearchOutlined />
+            </button>
+          </>
+        )}
+        <button
+          type="button"
+          className="oma-ml-iconbtn"
+          aria-label={t('common.close')}
+          onClick={() => {
+            abort.current?.abort();
+            onClose();
+          }}
+        >
+          <CloseOutlined />
+        </button>
+      </header>
+      <div className="oma-ml-body">{open ? body : null}</div>
+    </aside>
+  );
+
+  if (variant === 'panel') return open ? panel : null;
+  if (typeof document === 'undefined' || !open) return null;
+  return createPortal(
+    <div className="oma-ml-overlay" data-open="true">
+      <button
+        type="button"
+        className="oma-ml-overlay__mask"
+        aria-label={t('common.close')}
+        onClick={() => {
+          abort.current?.abort();
+          onClose();
+        }}
+      />
+      {panel}
+    </div>,
+    document.body,
   );
 }

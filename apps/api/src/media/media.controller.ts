@@ -99,6 +99,7 @@ export class MediaController {
       kind: q.kind,
       name: q.name ?? req.headers['x-file-name'],
       mime: req.headers['content-type'],
+      folder_id: q.folder_id,
       length: len != null && /^\d+$/.test(String(len)) ? Number(len) : null,
       body: req as unknown as Readable,
     });
@@ -131,6 +132,24 @@ export class MediaController {
     @Query() q: Record<string, string>,
   ) {
     return mediaService.browse(ctx(req).tenantId, brandId, q);
+  }
+
+  @Post('api/v1/brands/:brandId/media/folders')
+  @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
+  createFolder(@Req() req: Request, @Param('brandId') brandId: string, @Body() body: unknown) {
+    return mediaService.createFolder(ctx(req), brandId, body);
+  }
+
+  @Get('api/v1/brands/:brandId/media/file-preview')
+  @UseGuards(AuthGuard, CapabilitiesGuard)
+  async filePreview(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Param('brandId') brandId: string,
+    @Query('file_id') fileId: string,
+  ) {
+    const r = await mediaService.filePreview(ctx(req).tenantId, brandId, fileId);
+    redirectToSigned(res, r.url, r.expires_at);
   }
 
   @Get('api/v1/media/:assetId')
