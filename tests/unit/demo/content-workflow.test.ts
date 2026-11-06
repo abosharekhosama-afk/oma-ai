@@ -4,6 +4,7 @@ import { DemoDataProvider, DEMO_GRAPH, assertCanSchedule, resolveContentWorkflow
 describe('content workflow separation', () => {
   it('keeps a dated draft unscheduled until the schedule command', () => {
     const provider = new DemoDataProvider(structuredClone(DEMO_GRAPH));
+    provider.updateDemoPreferences({ approvalPolicy: 'NONE' });
     const campaign = provider.getGraph().campaigns[0]!;
     const created = provider.createContent({
       title: { en: 'Dated draft', ar: 'مسودة بتاريخ' },

@@ -68,9 +68,9 @@ describe('P5 Planable deliverables/reviews/schedule surfaces', () => {
   });
 
   it('keeps schedule on Planable stage5 chrome classes', () => {
-    const schedule = read('apps/web/src/app/(app)/app/schedule/page.tsx');
-    expect(schedule).toContain('oma-stage5-tabs');
-    expect(schedule).toContain('oma-stage5-toolbar');
+    const schedule = read('apps/web/src/app/(app)/app/schedule/schedule-client.tsx');
+    expect(schedule).toContain('oma-plx-schedule');
+    expect(schedule).toContain('demo-schedule-week-toolbar');
     expect(schedule).toContain('demo-publish-blocked');
     expect(schedule).toContain('demo-schedule-reschedule-dialog');
     expect(schedule).not.toContain('oma-stage6-tabs');

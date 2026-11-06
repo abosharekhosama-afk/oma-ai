@@ -81,7 +81,7 @@ describe('P2 Planable brand/strategy surfaces', () => {
       'utf8',
     );
     const brands = readFileSync(
-      join(process.cwd(), 'apps/web/src/app/(app)/app/brands/page.tsx'),
+      join(process.cwd(), 'apps/web/src/app/(app)/app/brands/brands-client.tsx'),
       'utf8',
     );
     const stage2 = readFileSync(join(process.cwd(), 'apps/web/src/styles/stage2.css'), 'utf8');
@@ -89,7 +89,7 @@ describe('P2 Planable brand/strategy surfaces', () => {
     expect(home).toContain('demo-command-center');
     expect(home).not.toContain('home.demoPerformance');
     expect(brands).toContain('WorkspaceCard');
-    expect(brands).toContain('oma-filter-bar');
+    expect(brands).toContain('oma-filter-accordion');
     expect(stage2).not.toContain('--oma-signal');
     expect(stage2).not.toContain('#6658');
     expect(stage2).toContain('.oma-workspace-card');

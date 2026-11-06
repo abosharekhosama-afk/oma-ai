@@ -114,7 +114,7 @@
   "listening.dismiss": "تجاهل",
   "listening.addContext": "إضافة سياق",
   "listening.emptyTitle": "لا إشارات بعد",
-  "listening.emptyBody": "تُفعَّل القواعد عند ربط المنصات، أو شغّل بذرة العرض التجريبي للصندوق.",
+  "listening.emptyBody": "تُفعَّل القواعد عند ربط المنصات، أو عند تحميل بيانات الصندوق النموذجية.",
   "nav.requests": "الطلبات",
   "nav.tasks": "لوحة المهام",
   "nav.deliverables": "المخرجات",

@@ -1,8 +1,12 @@
 import { getPrisma } from '@oma/db';
 import { skipReasonMessage } from '@oma/domain';
 
-export async function findDuePublishTargetIds(now: Date, key: Buffer | null): Promise<string[]> {
+export async function findDuePublishTargetIds(
+  now: Date,
+  key: Buffer | null,
+): Promise<{ ids: string[]; skipped: number }> {
   const prisma = getPrisma();
+  let skipped = 0;
   const noApproval = (
     await prisma.contentPreferences.findMany({
       where: { approvalPolicy: 'NONE' },
@@ -30,6 +34,7 @@ export async function findDuePublishTargetIds(now: Date, key: Buffer | null): Pr
   for (const row of dueItems) {
     const eligible = row.approvalState === 'APPROVED' || noApproval.includes(row.brandId);
     if (!eligible) {
+      skipped += 1;
       const reason = skipReasonMessage('NOT_APPROVED');
       if (row.lastPublishSkipReason !== reason) {
         await prisma.contentItem.update({
@@ -50,7 +55,7 @@ export async function findDuePublishTargetIds(now: Date, key: Buffer | null): Pr
     }
   }
 
-  if (!key) return [];
+  if (!key) return { ids: [], skipped };
 
   const targets = await prisma.contentPublishTarget.findMany({
     where: {
@@ -67,5 +72,5 @@ export async function findDuePublishTargetIds(now: Date, key: Buffer | null): Pr
     take: 50,
     select: { id: true },
   });
-  return targets.map((t) => t.id);
+  return { ids: targets.map((t) => t.id), skipped };
 }

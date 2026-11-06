@@ -35,7 +35,11 @@ export async function syncContentPublishRollup(contentItemId: string) {
       ...(published.length
         ? { status: 'PUBLISHED_SAMPLE' as const, scheduleState: 'UNSCHEDULED' as const }
         : {}),
-      lastPublishError: failed[0]?.lastPublishError ?? null,
+      lastPublishError:
+        failed[0]?.lastPublishError ??
+        retrying[0]?.lastPublishError ??
+        targets.find((t) => t.lastPublishError)?.lastPublishError ??
+        null,
       nextPublishAt,
       publishAttempts: targets.reduce((m, t) => Math.max(m, t.publishAttempts), 0),
       workerPickedAt: targets.find((t) => t.workerPickedAt)?.workerPickedAt ?? null,

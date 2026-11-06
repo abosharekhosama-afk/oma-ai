@@ -10,7 +10,7 @@ export async function enqueueDueSocialPublishJobs(
   now = new Date(),
 ): Promise<number> {
   const key = tokenKeyFromEnv();
-  const ids = await findDuePublishTargetIds(now, key);
+  const { ids } = await findDuePublishTargetIds(now, key);
   if (!ids.length) return 0;
   const prisma = getPrisma();
   const queue = new Queue('social', {

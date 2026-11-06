@@ -58,7 +58,7 @@ describe('one shimmer per screen', () => {
       ['apps/web/src/app/(app)/app/brands/page.tsx', 'BrandsShimmer'],
       ['apps/web/src/app/(app)/app/requests/page.tsx', 'RequestsShimmer'],
       ['apps/web/src/app/(app)/app/reviews/page.tsx', 'ReviewsShimmer'],
-      ['apps/web/src/app/(app)/app/deliverables/page.tsx', 'DeliverablesShimmer'],
+      ['apps/web/src/app/(app)/app/deliverables/deliverables-client.tsx', 'DeliverablesShimmer'],
     ];
     for (const [f, c] of screens) expect(read(f), f).toMatch(new RegExp(c));
   });

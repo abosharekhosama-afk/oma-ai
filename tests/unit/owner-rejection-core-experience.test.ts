@@ -45,7 +45,7 @@ describe('Owner rejection — Tasks IA + Kanban core', () => {
     expect(layout).not.toMatch(/\bInter\b/);
     expect(layout).toContain('Noto_Sans_Arabic');
     expect(layout).not.toContain('IBM_Plex');
-    expect(layout).toContain('planable-system');
+    expect(layout).toContain('data-oma-typeface="oma-system-ui"');
     const board = readFileSync(
       join(process.cwd(), 'apps/web/src/components/demo/tasks-kanban-board.tsx'),
       'utf8',

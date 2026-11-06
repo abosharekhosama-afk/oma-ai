@@ -14,8 +14,10 @@ describe('Stage 1 shell nav config', () => {
     expect(SHELL_NAV_SECTIONS[0]!.items.map((i) => i.href)).toEqual([
       '/app',
       '/app/content',
+      '/app/inbox/comments',
       '/app/campaigns',
       '/app/analytics',
+      '/app/listening/brand',
     ]);
     const more = SHELL_NAV_SECTIONS.find((s) => s.collapsible);
     expect(more?.labelKey).toBe('nav.section.more');

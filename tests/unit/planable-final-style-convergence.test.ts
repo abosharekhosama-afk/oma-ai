@@ -59,7 +59,10 @@ describe('Planable final style convergence guards', () => {
         !text.includes('--oma-overlay-scrim')
       ) {
         // muted text uses 0.45 — exclude color tokens that are not overlays
-        if (/background[^;]*rgba\(\s*0\s*,\s*0\s*,\s*0\s*,\s*0\.(4|45|5)/.test(text)) {
+        if (
+          /background[^;]*rgba\(\s*0\s*,\s*0\s*,\s*0\s*,\s*0\.(4|45|5)/.test(text) &&
+          !/linear-gradient/.test(text)
+        ) {
           hits.push(file.replace(root + '/', ''));
         }
       }

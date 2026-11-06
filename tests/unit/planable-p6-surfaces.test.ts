@@ -134,9 +134,9 @@ describe('P6 Planable analytics/organization/settings surfaces', () => {
     const analytics = read('apps/web/src/app/(app)/app/analytics/analytics-client.tsx');
     expect(analytics).toContain('analytics-social-note');
     expect(analytics).not.toContain('--oma-violet');
-    const settings = read('apps/web/src/app/(app)/app/settings/page.tsx');
-    expect(settings).toContain('demo.settings.noConnect');
-    expect(settings).toContain('demo-integrations-search');
+    const settings = read('apps/web/src/components/settings/settings-panel.tsx');
+    expect(settings).toContain('settings-integrations-honest');
+    expect(settings).toContain('settings.integrations.notConnected');
     expect(settings).toContain('demo-settings-dirty');
     expect(settings).not.toMatch(/oauth|api[_-]?key|Connect account/i);
   });

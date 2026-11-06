@@ -263,6 +263,8 @@ function KanbanCardBody({ task }: { task: TaskRow }) {
 function SortableTaskCard({
   task,
   onOpen,
+  onA11yMove,
+  moveOptions,
 }: {
   task: TaskRow;
   onOpen: () => void;
@@ -309,6 +311,28 @@ function SortableTaskCard({
       aria-label={`${t('demo.tasks.detail')}: ${pickCopy(task.title, locale)}`}
     >
       <KanbanCardBody task={task} />
+      {onA11yMove && moveOptions && moveOptions.length > 0 ? (
+        <label className="oma-sr-only">
+          {t('demo.tasks.move')}
+          <select
+            data-testid={`demo-task-move-${task.id}`}
+            value=""
+            onClick={(e) => e.stopPropagation()}
+            onChange={(e) => {
+              e.stopPropagation();
+              const next = e.target.value as DemoTaskStatus;
+              if (next) onA11yMove(next);
+            }}
+          >
+            <option value="">{t('demo.tasks.move')}</option>
+            {moveOptions.map((status) => (
+              <option key={status} value={status}>
+                {t(`demo.tasks.column.${status}`)}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : null}
       <button
         type="button"
         className="oma-sr-only"

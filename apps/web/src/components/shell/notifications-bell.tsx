@@ -224,7 +224,7 @@ export function NotificationRow({
         </p>
         <span className="oma-notification-card__time">
           {formatWhen(n.createdAt, locale)}
-          {!n.readAt ? <i aria-label="unread" /> : null}
+          {!n.readAt ? <i aria-label={t('inbox.filter.unread')} /> : null}
         </span>
       </div>
       {showPreview ? (

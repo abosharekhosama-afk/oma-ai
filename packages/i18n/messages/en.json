@@ -114,7 +114,7 @@
   "listening.dismiss": "Dismiss",
   "listening.addContext": "Add context",
   "listening.emptyTitle": "No mentions yet",
-  "listening.emptyBody": "Live rules poll platform search when credentials are configured, or run inbox demo seed.",
+  "listening.emptyBody": "Listening rules run when platforms are connected, or when sample inbox data is loaded.",
   "nav.requests": "Requests",
   "nav.tasks": "Tasks board",
   "nav.deliverables": "Deliverables",

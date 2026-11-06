@@ -127,7 +127,7 @@ export function PlxHeaderFilter({
               onClick={() => onOpenChange(!open)}
             >
               <FilterOutlined aria-hidden />
-              <span>{filterLabel}</span>
+              <span className="oma-req-filter-btn__label">{filterLabel}</span>
               {filterCount > 0 ? (
                 <span className="oma-plx-deliv-filter-count">{filterCount}</span>
               ) : null}

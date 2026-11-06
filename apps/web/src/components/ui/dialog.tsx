@@ -45,7 +45,7 @@ export function Dialog({
       destroyOnHidden
       closable={hideClose ? false : { 'aria-label': 'Dismiss' }}
       mask={{ closable: true }}
-      focusable={{ focusTriggerAfterClose: false }}
+      focusable={{ focusTriggerAfterClose: true }}
       cancelText={closeLabel ?? t('common.close')}
     >
       {children}

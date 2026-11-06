@@ -13,7 +13,7 @@
   z-index: 6;
   margin-inline: -24px;
   padding: 20px 24px 12px;
-  background: #f5f6f8;
+  background: var(--oma-canvas);
 }
 .oma-activity-refresh {
   display: inline-flex;
@@ -28,7 +28,7 @@
   appearance: none;
   background: transparent;
   box-shadow: none;
-  color: #3d4654;
+  color: var(--oma-muted);
   line-height: 0;
   cursor: pointer;
 }
@@ -36,7 +36,7 @@
 .oma-activity-refresh:focus-visible {
   background: transparent;
   box-shadow: none;
-  color: #111827;
+  color: var(--oma-ink);
 }
 .oma-activity-eyebrow {
   margin-bottom: 6px;

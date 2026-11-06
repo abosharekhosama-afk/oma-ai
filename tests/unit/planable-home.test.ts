@@ -7,6 +7,8 @@ vi.mock('@oma/db', () => {
   const model = () => ({
     count: vi.fn(async () => 0),
     findMany: (args: unknown) => findMany(args),
+    findFirst: vi.fn(async () => null),
+    findUnique: vi.fn(async () => null),
   });
   const prisma = {
     brandWorkspace: model(),
@@ -19,6 +21,7 @@ vi.mock('@oma/db', () => {
     user: model(),
     contentPreferences: model(),
     socialPage: model(),
+    workspaceSetting: model(),
   };
   return {
     getPrisma: () => prisma,

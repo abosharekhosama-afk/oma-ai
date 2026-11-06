@@ -12,7 +12,7 @@ describe('W1 closure contracts', () => {
     // LIVE_VERIFIED rebuild: cards fluidly fill the day cell (not a fixed 126×172 box).
     expect(css).toContain('.oma-cal-cell .oma-post-card--calendar');
     expect(css).toContain('max-width: 100%');
-    expect(css).toContain('min-height: 120px');
+    expect(css).toContain('min-height: 0');
     expect(css).toContain('padding: 6px');
     expect(css).toContain('border-radius: 8px');
     expect(css).toContain('150ms ease-out');

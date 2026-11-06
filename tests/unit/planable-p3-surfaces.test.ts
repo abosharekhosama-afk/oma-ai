@@ -18,7 +18,7 @@ describe('P3 Planable campaign/content surfaces', () => {
     expect(page).toContain('<Dialog');
     expect(page).toContain('demo.create.brand');
     expect(page).not.toContain('oma-track-organic');
-    expect(page).not.toContain('<table');
+    expect(page).toContain('oma-campaign-req-table');
     expect(css).not.toContain('--oma-signal');
     expect(css).not.toContain('#6658');
     expect(css).toContain('.oma-content-feed');
@@ -29,13 +29,16 @@ describe('P3 Planable campaign/content surfaces', () => {
 
   it('exposes Calendar Feed Grid List as distinct views on the same records', () => {
     const client = read('apps/web/src/app/(app)/app/content/content-client.tsx');
-    expect(client).toContain("'calendar', 'feed', 'grid', 'list'");
+    expect(client).toContain("id: 'calendar' as const");
+    expect(client).toContain("id: 'feed' as const");
+    expect(client).toContain("id: 'grid' as const");
+    expect(client).toContain("id: 'list' as const");
     expect(client).toContain('demo-content-feed');
     expect(client).toContain('demo-content-grid');
     expect(client).toContain('demo-content-list');
     expect(client).toContain('demo-content-calendar');
     expect(client).toContain('demo-content-agenda');
-    expect(client).toContain('demo-content-date-strip');
+    expect(client).toContain('demo-content-cal-grid');
     expect(client).toContain('writeContentViewPref');
     expect(client).not.toContain('oma-track-paid');
   });
@@ -51,18 +54,18 @@ describe('P3 Planable campaign/content surfaces', () => {
 
   it('opens composer/detail with comments and campaign deep links', () => {
     const client = read('apps/web/src/app/(app)/app/content/content-client.tsx');
-    expect(client).toContain('demo-content-comments');
-    expect(client).toContain('demo-content-composer');
-    expect(client).toContain('demo-content-campaign-link');
+    expect(client).toContain('compose-first-comment');
+    expect(client).toContain('demo-content-drawer');
+    expect(client).toContain('content-modal-campaign');
     expect(client).toContain('demo.content.aiNotConnected');
-    expect(client).toContain('<Drawer');
+    expect(client).toContain('<Dialog');
     expect(client).toContain('demo-create-content-dialog');
   });
 
   it('keeps campaign workspace linked to strategy without a metric-card wall', () => {
     const workspace = read('apps/web/src/app/(app)/app/campaigns/[campaignId]/page.tsx');
     expect(workspace).toContain('demo-campaign-strategy-link');
-    expect(workspace).toContain('oma-status-rows');
+    expect(workspace).toContain('oma-campaign-workspace-head');
     expect(workspace).not.toContain('oma-stage-trail');
     expect(workspace).not.toContain('oma-track-organic');
   });

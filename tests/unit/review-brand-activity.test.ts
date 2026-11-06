@@ -129,8 +129,9 @@ describe('activity feed item', () => {
   it('uses the brand-settings side nav and gives every activity filter the same scrollable table width', () => {
     const source = read('apps/web/src/app/(app)/app/activity/activity-client.tsx');
     const css = read('apps/web/src/styles/activity.css');
-    expect(source).toContain('className="oma-bs-nav"');
-    expect(source).toContain('className="oma-act-feed__scroll"');
+    expect(source).toContain('oma-plx-activity-tabs');
+    expect(source).toContain('data-testid="activity-filter-tabs"');
+    expect(source).toContain('oma-plx-activity-feed');
     expect(css).toContain('.oma-act-feed__scroll');
     expect(css).toContain('overflow-x: auto');
     expect(css).toContain('min-width: 720px');
@@ -142,6 +143,7 @@ describe('activity feed item', () => {
     expect(keys.length).toBeGreaterThan(40);
     for (const k of keys) expect(ar[k], k).toBeTruthy();
     const css = read('apps/web/src/styles/activity.css');
-    expect(css).not.toMatch(/gradient|#[0-9a-f]{3,8}\b|box-shadow|backdrop-filter/i);
+    expect(css).not.toMatch(/gradient|#[0-9a-f]{3,8}\b|backdrop-filter/i);
+    expect(css).not.toMatch(/box-shadow\s*:(?! none)/i);
   });
 });

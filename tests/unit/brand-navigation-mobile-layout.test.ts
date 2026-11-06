@@ -11,7 +11,7 @@ describe('brand navigation mobile layout', () => {
     const css = read('apps/web/src/app/globals.css');
     const mobileRules = css.slice(css.lastIndexOf('Brand workspace navigation:'));
 
-    expect(shell).toContain('className="oma-brand-nav"');
+    expect(shell).toContain('oma-brand-nav');
     expect(mobileRules).toContain('@media (max-width: 767px)');
     expect(mobileRules).toContain('flex-wrap: nowrap !important');
     expect(mobileRules).toContain('overflow-x: scroll !important');

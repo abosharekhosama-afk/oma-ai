@@ -294,9 +294,10 @@ export async function runPublishTick(deps: Deps = {}) {
   const { findDuePublishTargetIds } = await import('./due-publish-targets');
   const { publishOneTarget } = await import('./publish-one-target');
   const out = { attempted: 0, published: 0, failed: 0, retrying: 0, pending: 0, skipped: 0 };
-  const ids = await findDuePublishTargetIds(now, key);
+  const due = await findDuePublishTargetIds(now, key);
+  out.skipped += due.skipped;
   if (!key) return out;
-  for (const id of ids) {
+  for (const id of due.ids) {
     out.attempted++;
     const result = await publishOneTarget(id, deps);
     if (result.outcome === 'published') out.published++;

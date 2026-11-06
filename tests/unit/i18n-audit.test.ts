@@ -42,7 +42,15 @@ function usedKeys(): Map<string, string> {
 }
 
 /** Values legitimately identical in both languages (formats, brand names). */
-const SAME_ALLOW = new Set(['content.hhmm']);
+const SAME_ALLOW = new Set([
+  'content.hhmm',
+  'landing.mega.storage.title',
+  'landing.platforms.facebook',
+  'landing.platforms.instagram',
+  'landing.platforms.linkedin',
+  'landing.platforms.tiktok',
+  'landing.platforms.x',
+]);
 
 describe('i18n audit (EN/AR)', () => {
   it('catalogs have identical keys and no empty values', () => {

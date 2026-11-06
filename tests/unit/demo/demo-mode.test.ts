@@ -10,7 +10,7 @@ describe('demo mode guards', () => {
 
   it('throws when production tries to force demo mode', () => {
     expect(() => assertDemoModeAllowed({ NODE_ENV: 'production', OMA_DEMO_MODE: '1' })).toThrow(
-      /cannot activate in production/i,
+      /demo mode is not enabled/i,
     );
   });
 
@@ -23,7 +23,7 @@ describe('demo mode guards', () => {
         REDIS_URL: 'redis://127.0.0.1:6379',
         OMA_DEMO_MODE: '1',
       }),
-    ).toThrow(/cannot activate in production/i);
+    ).toThrow(/OMA_DEMO_ALLOW_PRODUCTION=1 in production/);
   });
 
   it('linked journey keeps consistent entity ids', () => {

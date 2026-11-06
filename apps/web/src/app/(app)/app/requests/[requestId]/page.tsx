@@ -544,7 +544,10 @@ export default function RequestDetailPage() {
 
               {/* Brief card */}
               {briefDraft ? (
-                <section className="oma-plx-listening-panel oma-plx-req-card oma-req-detail__card oma-req-detail__card--brief">
+                <section
+                  className="oma-plx-listening-panel oma-plx-req-card oma-req-detail__card oma-req-detail__card--brief"
+                  data-testid="demo-structured-brief"
+                >
                   <header className="oma-req-detail__card-head oma-plx-listening-panel__head">
                     <div className="oma-req-detail__card-head-text">
                       <strong>

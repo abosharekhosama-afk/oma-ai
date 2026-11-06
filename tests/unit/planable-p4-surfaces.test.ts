@@ -42,7 +42,7 @@ describe('P4 Planable requests/briefs/tasks surfaces', () => {
     const detail = read('apps/web/src/app/(app)/app/requests/[requestId]/page.tsx');
     expect(detail).toContain('demo-structured-brief');
     expect(detail).toContain('oma-brief-layout');
-    expect(detail).toContain('oma-brief-toc');
+    expect(detail).toContain('demo-brief-ready-state');
     expect(detail).toContain('demo-brief-save');
     expect(detail).toContain('demo-request-convert');
     expect(detail).toContain('demo-brief-ai-honesty');
@@ -58,7 +58,7 @@ describe('P4 Planable requests/briefs/tasks surfaces', () => {
     expect(board).toContain('oma-task-avatar');
     expect(tasks).toContain('demo-tasks-view-board');
     expect(tasks).toContain('demo-task-drawer');
-    expect(tasks).toContain('<Drawer');
+    expect(tasks).toContain('<Dialog');
   });
 
   it('filters requests and groups tasks without inventing statuses', () => {
