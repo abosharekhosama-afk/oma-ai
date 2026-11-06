@@ -4,7 +4,14 @@ import { AuthGuard } from '../common/guards/auth.guard';
 import { CsrfGuard } from '../common/guards/csrf.guard';
 import { CapabilitiesGuard } from '../common/guards/capabilities.guard';
 import { RequireCapabilities } from '../common/decorators/require-capabilities.decorator';
-import { DomainError, newId } from '@oma/domain';
+import {
+  DomainError,
+  newId,
+  parseHolidayCalendarIds,
+  resolveHolidayCalendarIds,
+  HOLIDAY_CALENDAR_CATALOG,
+  defaultHolidayCalendarsForTimezone,
+} from '@oma/domain';
 import { getPrisma } from '@oma/db';
 import { billingService } from '../billing/billing.service';
 
@@ -27,6 +34,7 @@ type SettingsRow = {
   scheduleOnApproval: boolean;
   lockAfterApproval: boolean;
   reminderPendingApprovals?: boolean;
+  holidayCalendars?: string | null;
 };
 
 export function serializeSettings(tenantId: string, row: SettingsRow | null) {
@@ -51,6 +59,16 @@ export function serializeSettings(tenantId: string, row: SettingsRow | null) {
     schedule_on_approval: row?.scheduleOnApproval ?? false,
     lock_after_approval: row?.lockAfterApproval ?? false,
     reminder_pending_approvals: row?.reminderPendingApprovals ?? false,
+    holiday_calendars: resolveHolidayCalendarIds(
+      row?.holidayCalendars ?? '[]',
+      row?.timezone ?? 'Asia/Jerusalem',
+    ),
+    holiday_calendars_follow_timezone:
+      parseHolidayCalendarIds(row?.holidayCalendars ?? '[]').length === 0,
+    holiday_catalog: HOLIDAY_CALENDAR_CATALOG,
+    holiday_calendars_default: defaultHolidayCalendarsForTimezone(
+      row?.timezone ?? 'Asia/Jerusalem',
+    ),
   };
 }
 
@@ -132,6 +150,17 @@ export function validateSettingsPatch(body: Record<string, unknown>) {
       out[col] = body[k];
     }
   }
+  if (body.holiday_calendars !== undefined) {
+    if (body.holiday_calendars === null) {
+      out.holidayCalendars = '[]';
+    } else {
+      const ids = parseHolidayCalendarIds(body.holiday_calendars);
+      if (!Array.isArray(body.holiday_calendars) && typeof body.holiday_calendars !== 'string') {
+        throw bad('holiday_calendars');
+      }
+      out.holidayCalendars = JSON.stringify(ids);
+    }
+  }
   return out;
 }
 
@@ -177,6 +206,7 @@ export class WorkspaceSettingsController {
       schedule_on_approval?: boolean;
       lock_after_approval?: boolean;
       reminder_pending_approvals?: boolean;
+      holiday_calendars?: string[] | string | null;
     },
   ) {
     const tenantId = this.tenantId(req);
@@ -193,6 +223,25 @@ export class WorkspaceSettingsController {
     if (typeof patch.timezone === 'string') {
       await applyWorkspaceTimezone(prisma, tenantId, patch.timezone);
     }
+    return serializeSettings(tenantId, row);
+  }
+
+  /** Calendar holiday region toggles — editors can change workspace markers. */
+  @Patch('holiday-calendars')
+  @UseGuards(CsrfGuard, CapabilitiesGuard)
+  @RequireCapabilities('content.update')
+  async patchHolidayCalendars(
+    @Req() req: Request,
+    @Body() body: { holiday_calendars?: string[] | string | null },
+  ) {
+    const tenantId = this.tenantId(req);
+    const patch = validateSettingsPatch({ holiday_calendars: body?.holiday_calendars });
+    const prisma = getPrisma();
+    const row = await prisma.workspaceSetting.upsert({
+      where: { tenantId },
+      create: { id: newId(), tenantId, ...patch },
+      update: { ...patch, updatedAt: new Date() },
+    });
     return serializeSettings(tenantId, row);
   }
 

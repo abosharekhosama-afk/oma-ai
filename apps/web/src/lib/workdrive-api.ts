@@ -117,7 +117,7 @@ export const mediaApi = {
     brandId: string,
     kind: MediaKind,
     folderId?: string,
-    scope: 'brand' | 'organization' = 'brand',
+    scope: 'brand' | 'organization' | 'all' = 'brand',
   ) => {
     const key = browseKey(brandId, kind, folderId, scope);
     const hit = browseCache.get(key);

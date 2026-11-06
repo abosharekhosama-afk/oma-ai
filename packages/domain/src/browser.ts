@@ -9,6 +9,18 @@ export {
   wallTimeToIso,
 } from './time/schedule-time';
 export {
+  HOLIDAY_CALENDAR_CATALOG,
+  HOLIDAY_CALENDAR_IDS,
+  defaultHolidayCalendarsForTimezone,
+  holidayMapForCalendars,
+  holidaysForCalendars,
+  parseHolidayCalendarIds,
+  resolveHolidayCalendarIds,
+  type HolidayCalendarDef,
+  type HolidayCalendarId,
+  type HolidayEntry,
+} from './time/holiday-calendars';
+export {
   NETWORK_MEDIA_CONSTRAINTS,
   validateMediaForNetwork,
   imageNeedsTranscode,

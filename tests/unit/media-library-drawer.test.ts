@@ -19,6 +19,9 @@ describe('Planable media library side panel', () => {
     expect(picker).toContain('media-filters');
     expect(picker).toContain('media-create-folder');
     expect(picker).toContain('media.brandAssets');
+    expect(picker).toContain('media.allAssets');
+    expect(picker).toContain('media-all-assets');
+    expect(picker).toContain("openFolder('all')");
     expect(picker).toContain('media-canva-banner');
     expect(picker).toContain('mediaApi.createFolder');
     expect(picker).toContain("scope === 'brand'");

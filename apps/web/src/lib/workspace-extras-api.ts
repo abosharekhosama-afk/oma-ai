@@ -35,6 +35,14 @@ export type ApprovalSettings = {
 };
 
 /** Server-persisted workspace settings (GET/PATCH /api/v1/workspace/settings). */
+export type HolidayCalendarId = 'il' | 'ps' | 'us' | 'gb' | 'ae' | 'sa' | 'eg' | 'jo' | 'intl';
+
+export type HolidayCatalogItem = {
+  id: HolidayCalendarId;
+  nameEn: string;
+  nameAr: string;
+};
+
 export type WorkspaceSettings = {
   tenant_id: string;
   website_url: string | null;
@@ -44,6 +52,10 @@ export type WorkspaceSettings = {
   schedule_on_approval: boolean;
   lock_after_approval: boolean;
   reminder_pending_approvals?: boolean;
+  holiday_calendars?: HolidayCalendarId[];
+  holiday_calendars_follow_timezone?: boolean;
+  holiday_catalog?: HolidayCatalogItem[];
+  holiday_calendars_default?: HolidayCalendarId[];
 };
 
 export const DEFAULT_APPROVALS: ApprovalSettings = {
@@ -74,6 +86,15 @@ export async function patchWorkspaceSettings(
   return api<WorkspaceSettings>('/api/v1/workspace/settings', {
     method: 'PATCH',
     body: JSON.stringify(patch),
+  });
+}
+
+export async function patchHolidayCalendars(
+  holiday_calendars: HolidayCalendarId[],
+): Promise<WorkspaceSettings> {
+  return api<WorkspaceSettings>('/api/v1/workspace/holiday-calendars', {
+    method: 'PATCH',
+    body: JSON.stringify({ holiday_calendars }),
   });
 }
 

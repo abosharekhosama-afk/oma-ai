@@ -94,6 +94,43 @@ type BrowseFile = {
   updated_at: string | null;
 };
 
+async function collectAccessibleFiles(
+  client: WorkDriveClient,
+  startFolderId: string,
+  allowed: string[],
+  opts?: { maxFiles?: number; maxDepth?: number },
+): Promise<BrowseFile[]> {
+  const maxFiles = opts?.maxFiles ?? 250;
+  const maxDepth = opts?.maxDepth ?? 4;
+  const files: BrowseFile[] = [];
+  const seen = new Set<string>();
+  const visited = new Set<string>();
+  const queue: Array<{ id: string; depth: number }> = [{ id: startFolderId, depth: 0 }];
+  while (queue.length && files.length < maxFiles) {
+    const next = queue.shift();
+    if (!next || visited.has(next.id)) continue;
+    visited.add(next.id);
+    const folder = await client.getFolder(next.id);
+    for (const x of folder.files) {
+      if (!allowed.includes(x.mimeType) || seen.has(x.id)) continue;
+      seen.add(x.id);
+      files.push({
+        id: x.id,
+        name: x.name,
+        mime: x.mimeType,
+        size: x.size,
+        updated_at: x.updatedAt,
+      });
+      if (files.length >= maxFiles) break;
+    }
+    if (next.depth >= maxDepth) continue;
+    for (const child of folder.folders) {
+      if (!visited.has(child.id)) queue.push({ id: child.id, depth: next.depth + 1 });
+    }
+  }
+  return files;
+}
+
 /** Counts bytes and hashes while streaming; aborts once `max` is exceeded. */
 function meter(max: number) {
   const hash = createHash('sha256');
@@ -803,7 +840,8 @@ export class MediaService {
     const kind = q.kind ? parseKind(q.kind) : 'posts';
     const c = await this.workdrive.requireClient(tenantId);
     try {
-      const organizationScope = q.scope === 'organization';
+      const allScope = q.scope === 'all';
+      const organizationScope = q.scope === 'organization' || allScope;
       const rootFolderId = c.conn.rootFolderId;
       // Organization browse needs a configured root. Fall back to the brand folder so the
       // media card never surfaces a generic CONFLICT_STATE when the root is unset.
@@ -811,7 +849,7 @@ export class MediaService {
       const brandFolderId = await this.brandFolderFor(c, brand);
       const startFolderId = useOrgRoot ? rootFolderId! : brandFolderId;
       const scopeRootId = startFolderId;
-      const folderId = q.folder_id || startFolderId;
+      const folderId = allScope ? startFolderId : q.folder_id || startFolderId;
       const f = await c.client.getFolder(folderId);
       if (f.id !== scopeRootId) await this.assertInsideScope(c.client, f.id, scopeRootId);
       const allowed = allowedMimeFor(kind);
@@ -830,15 +868,17 @@ export class MediaService {
           if (cursor.id === scopeRootId) break;
         }
       }
-      const files: BrowseFile[] = f.files
-        .filter((x) => allowed.includes(x.mimeType))
-        .map((x) => ({
-          id: x.id,
-          name: x.name,
-          mime: x.mimeType,
-          size: x.size,
-          updated_at: x.updatedAt,
-        }));
+      const files: BrowseFile[] = allScope
+        ? await collectAccessibleFiles(c.client, startFolderId, allowed)
+        : f.files
+            .filter((x) => allowed.includes(x.mimeType))
+            .map((x) => ({
+              id: x.id,
+              name: x.name,
+              mime: x.mimeType,
+              size: x.size,
+              updated_at: x.updatedAt,
+            }));
       // Brand Assets is the brand folder: flatten posts/logos children so the grid is not empty.
       if (f.id === brandFolderId && files.length === 0) {
         const flattenNames = kind === 'deliverables' ? ['deliverables'] : ['posts', 'logos'];
@@ -864,11 +904,15 @@ export class MediaService {
       const decorated = await this.decorateBrowseFiles(tenantId, brandId, files);
       return {
         data: {
-          folder: { id: f.id, name: f.name, parent_id: atRoot ? null : f.parentId },
+          folder: {
+            id: allScope ? '__all__' : f.id,
+            name: allScope ? 'All files' : f.name,
+            parent_id: allScope || atRoot ? null : f.parentId,
+          },
           root_name: c.conn.rootFolderName,
           brand_folder: { id: brandFolderId, name: brand.name },
-          path,
-          folders: f.folders,
+          path: allScope ? [{ id: '__all__', name: 'All files' }] : path,
+          folders: allScope ? [] : f.folders,
           files: decorated.files,
           filter_facets: decorated.filter_facets,
         },

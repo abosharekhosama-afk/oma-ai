@@ -217,6 +217,13 @@ import {
   todayKey,
   wallTimeToIso,
 } from '../../../../lib/calendar-today';
+import {
+  HOLIDAY_CALENDAR_CATALOG,
+  defaultHolidayCalendarsForTimezone,
+  holidayMapForCalendars,
+  type HolidayCalendarId,
+} from '@oma/domain/browser';
+import { getWorkspaceSettings, patchHolidayCalendars } from '../../../../lib/workspace-extras-api';
 
 type Campaign = DemoGraph['campaigns'][number];
 type Brand = DemoGraph['brands'][number];
@@ -224,20 +231,11 @@ type Task = DemoGraph['tasks'][number];
 type Deliverable = DemoGraph['deliverables'][number];
 type RequestRow = DemoGraph['requests'][number];
 
-/* ── Static demo external calendars (mirrors Planable capture) ── */
-const DEMO_EXTERNAL_CALENDARS = [{ id: 'israel-holidays', name: 'Israel Holidays', enabled: true }];
-
-/* ── Demo holidays rendered as green chips inside cells (like Planable) ── */
-const DEMO_HOLIDAYS: Record<string, string> = {
-  '2026-10-26': 'Election Day',
-  '2026-11-01': 'Aliyah Day School Observance',
-  '2026-12-06': 'Asarah B’Tevet (Tenth of Tevet)',
-  '2026-12-24': 'Catholic/Protestant Christmas Eve',
-  '2026-12-25': 'Catholic/Protestant Christmas Day',
-  '2026-12-26': 'Catholic/Protestant Boxing Day',
-  '2026-12-31': "New Year's Eve",
-  '2027-01-01': "New Year's Day",
-};
+function holidayLabel(id: HolidayCalendarId, ar: boolean) {
+  const row = HOLIDAY_CALENDAR_CATALOG.find((c) => c.id === id);
+  if (!row) return id;
+  return ar ? row.nameAr : row.nameEn;
+}
 
 type DraftFields = {
   caption: string;
@@ -1582,6 +1580,11 @@ export default function ContentPage() {
   const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
   const hoverTimerRef = useRef<number | null>(null);
   const [extCalOpen, setExtCalOpen] = useState(false);
+  const [holidayIds, setHolidayIds] = useState<HolidayCalendarId[]>(() =>
+    defaultHolidayCalendarsForTimezone('Asia/Jerusalem'),
+  );
+  const [holidayFollowTz, setHolidayFollowTz] = useState(true);
+  const [workspaceTz, setWorkspaceTz] = useState('Asia/Jerusalem');
   const [savedOpen, setSavedOpen] = useState(true);
   const [policy, setPolicy] = useState<ApprovalPolicy>('OPTIONAL');
   const closingDrawerRef = useRef(false);
@@ -1754,24 +1757,32 @@ export default function ContentPage() {
         void mediaApi.browse(primaryBrand, 'posts', undefined, 'brand').catch(() => undefined);
         void listDayNotes(primaryBrand)
           .then((notes) => {
-            const map: Record<string, CalendarNoteValue> = {};
-            for (const n of notes) {
-              const visibility: NoteVisibility =
-                n.visibility === 'team' || n.visibility === 'all'
-                  ? n.visibility
-                  : n.locked
-                    ? 'only_me'
-                    : 'only_me';
-              map[n.day_key] = {
-                text: locale.toLowerCase().startsWith('ar') ? n.text.ar || n.text.en : n.text.en,
-                color: n.color || 'yellow',
-                visibility,
-              };
-            }
-            setDayNotes(map);
+            setDayNotes((prev) => {
+              const map: Record<string, CalendarNoteValue> = { ...prev };
+              for (const n of notes) {
+                const visibility: NoteVisibility =
+                  n.visibility === 'team' || n.visibility === 'all' ? n.visibility : 'only_me';
+                map[n.day_key] = {
+                  text: locale.toLowerCase().startsWith('ar') ? n.text.ar || n.text.en : n.text.en,
+                  color: n.color || 'yellow',
+                  visibility,
+                };
+              }
+              return map;
+            });
           })
           .catch(() => undefined);
       }
+      void getWorkspaceSettings()
+        .then((wsSettings) => {
+          const tz = wsSettings.timezone || 'Asia/Jerusalem';
+          setWorkspaceTz(tz);
+          const ids = (wsSettings.holiday_calendars ??
+            defaultHolidayCalendarsForTimezone(tz)) as HolidayCalendarId[];
+          setHolidayIds(ids.length ? ids : defaultHolidayCalendarsForTimezone(tz));
+          setHolidayFollowTz(Boolean(wsSettings.holiday_calendars_follow_timezone));
+        })
+        .catch(() => undefined);
 
       // Background hydrate other brands (idle / delayed so primary calendar stays responsive)
       if (ws.remainingBrandIds?.length) {
@@ -1914,6 +1925,25 @@ export default function ContentPage() {
 
   const workspaceBrandId = brands[0]?.id || campaigns[0]?.brandId || '';
   const brandIdForWorkspaceOps = activeBrandId ?? workspaceBrandId;
+  const holidayChips = useMemo(
+    () => holidayMapForCalendars(holidayIds, locale),
+    [holidayIds, locale],
+  );
+
+  async function persistHolidayCalendars(next: HolidayCalendarId[]) {
+    const unique = [...new Set(next)];
+    const fallback = defaultHolidayCalendarsForTimezone(workspaceTz);
+    setHolidayIds(unique.length ? unique : fallback);
+    setHolidayFollowTz(false);
+    try {
+      const saved = await patchHolidayCalendars(unique);
+      const ids = (saved.holiday_calendars ?? unique) as HolidayCalendarId[];
+      setHolidayIds(ids.length ? ids : fallback);
+      setHolidayFollowTz(Boolean(saved.holiday_calendars_follow_timezone));
+    } catch (err) {
+      toast.push(contentApiError(err, t('content.failed_to_save_holidays')), 'danger');
+    }
+  }
 
   async function persistNote(
     dayKey: string,
@@ -1958,16 +1988,18 @@ export default function ContentPage() {
       if (brandIdForWorkspaceOps) {
         void listDayNotes(brandIdForWorkspaceOps)
           .then((notes) => {
-            const map: Record<string, CalendarNoteValue> = {};
-            for (const n of notes) {
-              map[n.day_key] = {
-                text: locale.toLowerCase().startsWith('ar') ? n.text.ar || n.text.en : n.text.en,
-                color: n.color || 'yellow',
-                visibility:
-                  n.visibility === 'team' || n.visibility === 'all' ? n.visibility : 'only_me',
-              };
-            }
-            setDayNotes(map);
+            setDayNotes((prev) => {
+              const map: Record<string, CalendarNoteValue> = { ...prev };
+              for (const n of notes) {
+                map[n.day_key] = {
+                  text: locale.toLowerCase().startsWith('ar') ? n.text.ar || n.text.en : n.text.en,
+                  color: n.color || 'yellow',
+                  visibility:
+                    n.visibility === 'team' || n.visibility === 'all' ? n.visibility : 'only_me',
+                };
+              }
+              return map;
+            });
           })
           .catch(() => undefined);
       }
@@ -4083,9 +4115,7 @@ export default function ContentPage() {
                         aria-label={t('content.external_calendars')}
                       >
                         <span className="oma-cal-ext-dot" aria-hidden />
-                        <span className="oma-cal-ext-count oma-ltr">
-                          {DEMO_EXTERNAL_CALENDARS.filter((c) => c.enabled).length}
-                        </span>
+                        <span className="oma-cal-ext-count oma-ltr">{holidayIds.length}</span>
                         <span className="oma-cal-ext-label">{t('content.calendar_word')}</span>
                       </button>
                       {extCalOpen ? (
@@ -4097,19 +4127,53 @@ export default function ContentPage() {
                           <div className="oma-ext-cal-pop__head">
                             <strong>{t('content.holiday_calendars')}</strong>
                             <span className="oma-ext-cal-pop__sync">
-                              {t('content.workspace_markers')}
+                              {holidayFollowTz
+                                ? t('content.holiday_from_timezone')
+                                : t('content.workspace_markers')}
                             </span>
                           </div>
-                          {DEMO_EXTERNAL_CALENDARS.map((cal) => (
-                            <label key={cal.id} className="oma-ext-cal-pop__row">
-                              <input type="checkbox" defaultChecked={cal.enabled} />
-                              <span className="oma-cal-ext-dot" aria-hidden />
-                              <span>{cal.name}</span>
-                              <span className="oma-ext-cal-pop__users" aria-hidden>
-                                <TeamOutlined />
-                              </span>
-                            </label>
-                          ))}
+                          <label className="oma-ext-cal-pop__region">
+                            <span>{t('content.holiday_region')}</span>
+                            <select
+                              value={
+                                holidayIds[0] ?? defaultHolidayCalendarsForTimezone(workspaceTz)[0]
+                              }
+                              data-testid="content-holiday-region"
+                              onChange={(e) => {
+                                const id = e.target.value as HolidayCalendarId;
+                                void persistHolidayCalendars([id]);
+                              }}
+                            >
+                              {HOLIDAY_CALENDAR_CATALOG.map((cal) => (
+                                <option key={cal.id} value={cal.id}>
+                                  {holidayLabel(cal.id, isAr)}
+                                </option>
+                              ))}
+                            </select>
+                          </label>
+                          {HOLIDAY_CALENDAR_CATALOG.map((cal) => {
+                            const on = holidayIds.includes(cal.id);
+                            return (
+                              <label key={cal.id} className="oma-ext-cal-pop__row">
+                                <input
+                                  type="checkbox"
+                                  checked={on}
+                                  data-testid={`content-holiday-cal-${cal.id}`}
+                                  onChange={() => {
+                                    const next = on
+                                      ? holidayIds.filter((id) => id !== cal.id)
+                                      : [...holidayIds, cal.id];
+                                    void persistHolidayCalendars(next);
+                                  }}
+                                />
+                                <span className="oma-cal-ext-dot" aria-hidden />
+                                <span>{holidayLabel(cal.id, isAr)}</span>
+                                <span className="oma-ext-cal-pop__users" aria-hidden>
+                                  <TeamOutlined />
+                                </span>
+                              </label>
+                            );
+                          })}
                           <p className="oma-ext-cal-pop__add">
                             {t('content.holidays_appear_as_chips_on')}
                           </p>
@@ -4169,7 +4233,8 @@ export default function ContentPage() {
                           const items = byDay.get(cell.key) ?? [];
                           const { extra } = splitCellItems(items);
                           const note = dayNotes[cell.key];
-                          const holiday = DEMO_HOLIDAYS[cell.key];
+                          const holiday = holidayChips[cell.key];
+                          const noteOpen = noteDay === cell.key;
                           return (
                             <div
                               key={cell.key}
@@ -4180,6 +4245,7 @@ export default function ContentPage() {
                               data-today={cell.key === todayKeyVal ? 'true' : 'false'}
                               data-weekend={isWeekendKey(cell.key) ? 'true' : 'false'}
                               data-selected={cell.key === selectedDay ? 'true' : 'false'}
+                              data-note-open={noteOpen ? 'true' : 'false'}
                               onClick={() => setSelectedDay(cell.key)}
                               onDragOver={(e) => {
                                 e.preventDefault();
@@ -4219,6 +4285,9 @@ export default function ContentPage() {
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setSelectedDay(cell.key);
+                                    if (!calDisplay.showNotes) {
+                                      setCalDisplay({ ...calDisplay, showNotes: true });
+                                    }
                                     setDayNotes((prev) =>
                                       prev[cell.key]
                                         ? prev
@@ -4248,77 +4317,79 @@ export default function ContentPage() {
                                 </button>
                               </div>
 
-                              <div className="oma-cal-cell__scroll">
-                                {/* Planable sticky note — ABOVE cards */}
-                                {calDisplay.showNotes && (note || noteDay === cell.key) ? (
-                                  <CalendarStickyNote
-                                    dayKey={cell.key}
-                                    note={
-                                      dayNotes[cell.key] ?? {
-                                        text: '',
-                                        color: 'yellow',
-                                        visibility: 'only_me',
-                                      }
+                              {(calDisplay.showNotes && note) || noteOpen ? (
+                                <CalendarStickyNote
+                                  dayKey={cell.key}
+                                  note={
+                                    dayNotes[cell.key] ?? {
+                                      text: '',
+                                      color: 'yellow',
+                                      visibility: 'only_me',
                                     }
-                                    active={noteDay === cell.key}
-                                    colorOpen={noteDay === cell.key && noteColorOpen}
-                                    menuOpen={noteDay === cell.key && noteMenuOpen}
-                                    t={t}
-                                    onActivate={() => {
-                                      setNoteDay(cell.key);
-                                    }}
-                                    onClosePopovers={() => {
-                                      setNoteColorOpen(false);
-                                      setNoteMenuOpen(false);
-                                    }}
-                                    onToggleColor={() => {
-                                      setNoteDay(cell.key);
-                                      setNoteColorOpen((v) => !v);
-                                      setNoteMenuOpen(false);
-                                    }}
-                                    onToggleMenu={() => {
-                                      setNoteDay(cell.key);
-                                      setNoteMenuOpen((v) => !v);
-                                      setNoteColorOpen(false);
-                                    }}
-                                    onChangeText={(text) => {
-                                      setDayNotes((prev) => ({
-                                        ...prev,
-                                        [cell.key]: {
-                                          text,
-                                          color: prev[cell.key]?.color ?? 'yellow',
-                                          visibility: prev[cell.key]?.visibility ?? 'only_me',
-                                        },
-                                      }));
-                                    }}
-                                    onCommitText={(text) => void persistNote(cell.key, { text })}
-                                    onColor={(c) => {
-                                      void persistNote(cell.key, { color: c });
-                                      setNoteColorOpen(false);
-                                    }}
-                                    onVisibility={(visibility) => {
-                                      void persistNote(cell.key, { visibility });
-                                      setNoteMenuOpen(false);
-                                    }}
-                                    onDelete={() => {
-                                      void persistNote(cell.key, { remove: true });
-                                    }}
-                                    onCreatePost={() => {
-                                      setSelectedDay(cell.key);
-                                      setCreateForm((f) => ({ ...f, plannedDate: cell.key }));
-                                      setCreateOpen(true);
-                                      setNoteMenuOpen(false);
-                                    }}
-                                  />
-                                ) : null}
+                                  }
+                                  active={noteDay === cell.key}
+                                  colorOpen={noteDay === cell.key && noteColorOpen}
+                                  menuOpen={noteDay === cell.key && noteMenuOpen}
+                                  t={t}
+                                  onActivate={() => {
+                                    setNoteDay(cell.key);
+                                  }}
+                                  onClosePopovers={() => {
+                                    setNoteColorOpen(false);
+                                    setNoteMenuOpen(false);
+                                  }}
+                                  onToggleColor={() => {
+                                    setNoteDay(cell.key);
+                                    setNoteColorOpen((v) => !v);
+                                    setNoteMenuOpen(false);
+                                  }}
+                                  onToggleMenu={() => {
+                                    setNoteDay(cell.key);
+                                    setNoteMenuOpen((v) => !v);
+                                    setNoteColorOpen(false);
+                                  }}
+                                  onChangeText={(text) => {
+                                    setDayNotes((prev) => ({
+                                      ...prev,
+                                      [cell.key]: {
+                                        text,
+                                        color: prev[cell.key]?.color ?? 'yellow',
+                                        visibility: prev[cell.key]?.visibility ?? 'only_me',
+                                      },
+                                    }));
+                                  }}
+                                  onCommitText={(text) => void persistNote(cell.key, { text })}
+                                  onColor={(c) => {
+                                    void persistNote(cell.key, { color: c });
+                                    setNoteColorOpen(false);
+                                  }}
+                                  onVisibility={(visibility) => {
+                                    void persistNote(cell.key, { visibility });
+                                    setNoteMenuOpen(false);
+                                  }}
+                                  onDelete={() => {
+                                    void persistNote(cell.key, { remove: true });
+                                  }}
+                                  onCreatePost={() => {
+                                    setSelectedDay(cell.key);
+                                    setCreateForm((f) => ({ ...f, plannedDate: cell.key }));
+                                    setCreateOpen(true);
+                                    setNoteMenuOpen(false);
+                                  }}
+                                />
+                              ) : null}
 
-                                {/* Campaign bar + holiday chip */}
-                                {holiday ? (
-                                  <div className="oma-cal-holiday-chip" title={holiday}>
-                                    {holiday}
-                                  </div>
-                                ) : null}
+                              {holiday ? (
+                                <div
+                                  className="oma-cal-holiday-chip"
+                                  title={holiday}
+                                  data-testid={`demo-cal-holiday-${cell.key}`}
+                                >
+                                  {holiday}
+                                </div>
+                              ) : null}
 
+                              <div className="oma-cal-cell__scroll">
                                 {/* Post cards */}
                                 {items.map((item) => (
                                   <div

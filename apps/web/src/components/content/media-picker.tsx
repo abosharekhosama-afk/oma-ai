@@ -24,7 +24,7 @@ import {
 } from '../../lib/workdrive-api';
 
 type Tr = (key: string) => string;
-type Scope = 'brand' | 'organization';
+type Scope = 'brand' | 'organization' | 'all';
 type SortKey = 'latest' | 'oldest' | 'name';
 type UsageFilter = 'used' | 'unused' | 'deleted';
 type TypeFilter = 'image' | 'video' | 'gif' | 'pdf';
@@ -353,8 +353,9 @@ export function MediaPickerDialog({
 
   const connected = lib?.workdrive.connected;
   const brandFolder = browse?.brand_folder || brandRoot?.brand_folder || orgRoot?.brand_folder;
+  const allSelected = scope === 'all' || selectedFolderId === '__all__';
   const brandSelected = Boolean(
-    brandFolder && selectedFolderId === brandFolder.id && scope === 'brand',
+    !allSelected && brandFolder && selectedFolderId === brandFolder.id && scope === 'brand',
   );
 
   const chipFolders = useMemo(() => {
@@ -364,11 +365,11 @@ export function MediaPickerDialog({
   }, [orgRoot, browse, scope, brandFolder?.id]);
 
   const items = useMemo(() => {
-    const source = brandSelected ? (brandRoot ?? browse) : browse;
+    const source = allSelected ? browse : brandSelected ? (brandRoot ?? browse) : browse;
     const files = source?.files ?? [];
     const mapped = files.map((f) => fileToItem(f, brandId || '', kind));
     const seen = new Set(mapped.map((i) => i.key));
-    if (!brandSelected && lib?.assets.length) {
+    if ((allSelected || !brandSelected) && lib?.assets.length) {
       for (const a of lib.assets) {
         if (seen.has(a.id)) continue;
         seen.add(a.id);
@@ -409,6 +410,7 @@ export function MediaPickerDialog({
         return sort === 'oldest' ? at - bt : bt - at;
       });
   }, [
+    allSelected,
     brandSelected,
     brandRoot,
     browse,
@@ -426,11 +428,14 @@ export function MediaPickerDialog({
   const facets = browse?.filter_facets || orgRoot?.filter_facets || brandRoot?.filter_facets;
   const filterCount = usage.size + types.size + campaigns.size + uploaders.size;
 
-  const uploadToFolderId = brandSelected
-    ? (brandRoot?.folders.find(
-        (f) => f.name === (kind === 'deliverables' ? 'deliverables' : 'posts'),
-      )?.id ?? brandFolder?.id)
-    : (browse?.folder.id ?? null);
+  const folderScope: 'brand' | 'organization' = scope === 'brand' ? 'brand' : 'organization';
+  const uploadToFolderId = allSelected
+    ? (orgRoot?.folder.id ?? brandFolder?.id ?? null)
+    : brandSelected
+      ? (brandRoot?.folders.find(
+          (f) => f.name === (kind === 'deliverables' ? 'deliverables' : 'posts'),
+        )?.id ?? brandFolder?.id)
+      : (browse?.folder.id ?? null);
 
   const upload = async (file: File) => {
     if (!brandId || !lib) return;
@@ -457,7 +462,7 @@ export function MediaPickerDialog({
       if (variant === 'drawer') onClose();
       else {
         await loadLibrary();
-        await openFolder(scope, selectedFolderId || undefined);
+        await openFolder(scope, allSelected ? undefined : selectedFolderId || undefined);
       }
     } catch (e) {
       if ((e as { code?: string }).code !== 'ABORTED') setError(getApiError(e).message);
@@ -487,15 +492,19 @@ export function MediaPickerDialog({
     setCreating(true);
     setError(null);
     try {
+      const parentId =
+        allSelected || selectedFolderId === '__all__'
+          ? (orgRoot?.folder.id ?? brandFolder?.id)
+          : selectedFolderId || browse?.folder.id;
       const created = await mediaApi.createFolder(brandId, {
         name: folderName.trim(),
-        parent_id: selectedFolderId || browse?.folder.id,
-        scope,
+        parent_id: parentId,
+        scope: folderScope,
         kind,
       });
       setFolderName('');
       setCreateOpen(false);
-      await openFolder(scope, created.data.parent_id || selectedFolderId || undefined);
+      await openFolder(scope, allSelected ? undefined : created.data.parent_id || parentId);
     } catch (e) {
       setError(getApiError(e).message);
     } finally {
@@ -792,12 +801,31 @@ export function MediaPickerDialog({
       ) : null}
 
       <div className="oma-ml-folders" data-testid="media-folders">
+        <button
+          type="button"
+          className="oma-ml-folder"
+          data-testid="media-all-assets"
+          data-active={allSelected ? 'true' : 'false'}
+          onClick={() => void openFolder('all')}
+        >
+          <FolderMosaic
+            name={t('media.allAssets')}
+            thumbs={(browse?.files ?? orgRoot?.files ?? [])
+              .filter((f) => f.mime.startsWith('image/') && f.view_url)
+              .slice(0, 4)
+              .map((f) => f.view_url as string)}
+            selected={allSelected}
+          />
+          <span>{t('media.allAssets')}</span>
+        </button>
         {chipFolders.map((f) => (
           <button
             key={f.id}
             type="button"
             className="oma-ml-folder"
-            data-active={selectedFolderId === f.id && !brandSelected ? 'true' : 'false'}
+            data-active={
+              selectedFolderId === f.id && !brandSelected && !allSelected ? 'true' : 'false'
+            }
             onClick={() => void openFolder('organization', f.id)}
           >
             <FolderMosaic

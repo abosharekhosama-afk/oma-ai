@@ -25,8 +25,10 @@ import {
   type ApprovalSettings,
   type ContentLabel,
   type ContentTemplate,
+  type HolidayCalendarId,
   type TimeSlot,
 } from '../../lib/workspace-extras-api';
+import { HOLIDAY_CALENDAR_CATALOG, defaultHolidayCalendarsForTimezone } from '@oma/domain/browser';
 
 type Me = {
   active_tenant_id: string | null;
@@ -47,6 +49,7 @@ type PrefsDraft = {
   createInternal?: boolean;
   hideEmails?: boolean;
   autoCrop?: boolean;
+  holidayRegion?: HolidayCalendarId;
 };
 
 type Props = { open: boolean; onClose: () => void };
@@ -121,7 +124,12 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
     getWorkspaceSettings()
       .then((ws) => {
         setApprovals(approvalsFromSettings(ws));
-        setDraft((d) => ({ ...d, timezone: ws.timezone, websiteUrl: ws.website_url ?? '' }));
+        setDraft((d) => ({
+          ...d,
+          timezone: ws.timezone,
+          websiteUrl: ws.website_url ?? '',
+          holidayRegion: (ws.holiday_calendars?.[0] ?? 'il') as HolidayCalendarId,
+        }));
         setApprovalsState('ready');
       })
       .catch((err: unknown) => {
@@ -163,6 +171,7 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
       await patchWorkspaceSettings({
         timezone: draft.timezone,
         website_url: url ? (/^https?:\/\//i.test(url) ? url : `https://${url}`) : null,
+        holiday_calendars: draft.holidayRegion ? [draft.holidayRegion] : [],
       });
       await updatePreferences({
         weekStart: draft.weekStart as UserPreferences['weekStart'],
@@ -244,14 +253,48 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
                 <label className="oma-ws-label">{t('wsPanel.workspace_timezone')}</label>
                 <SelectField
                   value={draft.timezone || 'Asia/Jerusalem'}
-                  onChange={(e) => setDraft({ ...draft, timezone: e.target.value })}
+                  onChange={(e) => {
+                    const timezone = e.target.value;
+                    const prevDefault = defaultHolidayCalendarsForTimezone(
+                      draft.timezone || 'Asia/Jerusalem',
+                    )[0];
+                    const nextDefault = defaultHolidayCalendarsForTimezone(timezone)[0];
+                    setDraft({
+                      ...draft,
+                      timezone,
+                      holidayRegion:
+                        !draft.holidayRegion || draft.holidayRegion === prevDefault
+                          ? nextDefault
+                          : draft.holidayRegion,
+                    });
+                  }}
                 >
                   <option value="Asia/Jerusalem">{t('wsPanel.jerusalem_asia_utc_3')}</option>
+                  <option value="Asia/Gaza">{t('wsPanel.gaza')}</option>
                   <option value="UTC">UTC</option>
                   <option value="America/New_York">{t('wsPanel.new_york')}</option>
                   <option value="Europe/London">{t('wsPanel.london')}</option>
                   <option value="Asia/Riyadh">{t('wsPanel.riyadh')}</option>
+                  <option value="Asia/Dubai">{t('wsPanel.dubai')}</option>
+                  <option value="Africa/Cairo">{t('wsPanel.cairo')}</option>
+                  <option value="Asia/Amman">{t('wsPanel.amman')}</option>
                 </SelectField>
+              </div>
+              <div className="oma-ws-field" data-testid="ws-holiday-region">
+                <label className="oma-ws-label">{t('wsPanel.holiday_calendars')}</label>
+                <SelectField
+                  value={draft.holidayRegion || 'il'}
+                  onChange={(e) =>
+                    setDraft({ ...draft, holidayRegion: e.target.value as HolidayCalendarId })
+                  }
+                >
+                  {HOLIDAY_CALENDAR_CATALOG.map((cal) => (
+                    <option key={cal.id} value={cal.id}>
+                      {cal.nameEn}
+                    </option>
+                  ))}
+                </SelectField>
+                <p className="oma-ws-empty-desc">{t('wsPanel.holiday_calendars_hint')}</p>
               </div>
               <div className="oma-ws-section-actions">
                 <Button type="primary" onClick={() => void saveGeneral()} disabled={saving}>

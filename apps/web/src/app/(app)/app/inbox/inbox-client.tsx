@@ -125,6 +125,9 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
   const activeBrandId = useActiveBrandId();
   const [brandReplyName, setBrandReplyName] = useState('OMA');
   const [statusTab, setStatusTab] = useState<InboxStatusFilter>('OPEN');
+  const [platformFilter, setPlatformFilter] = useState<
+    'all' | 'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN'
+  >('all');
   const [statusCounts, setStatusCounts] = useState<InboxStats | null>(null);
   const [unansweredOnly, setUnansweredOnly] = useState(false);
   const [items, setItems] = useState<InboxConversationListItem[]>([]);
@@ -215,6 +218,8 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
           limit: 100,
           brandId: activeBrandId || undefined,
           q: debouncedQ || undefined,
+          platform: platformFilter === 'all' ? undefined : platformFilter,
+          unanswered: unansweredOnly || undefined,
         }),
         getInboxStats(activeBrandId).catch(() => null),
       ]);
@@ -232,7 +237,7 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
     } finally {
       setLoading(false);
     }
-  }, [mode, statusTab, activeBrandId, debouncedQ]);
+  }, [mode, statusTab, activeBrandId, debouncedQ, platformFilter, unansweredOnly]);
 
   const loadDetail = useCallback(async (id: string) => {
     setDetailLoading(true);
@@ -577,6 +582,37 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
             options={statusOptions}
             ariaLabel={t('inbox.statusFilter') || 'Status'}
           />
+          <div className="oma-plx-inbox-channels" data-testid="inbox-channel-filter">
+            {(
+              [
+                ['all', t('inbox.allChannels') || 'All channels'],
+                ['META_IG', 'Instagram'],
+                ['META_FB', 'Facebook'],
+                ['TIKTOK', 'TikTok'],
+                ['LINKEDIN', 'LinkedIn'],
+              ] as const
+            ).map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                data-active={platformFilter === id ? 'true' : 'false'}
+                onClick={() => setPlatformFilter(id)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {mode === 'comments' ? (
+            <label className="oma-plx-inbox-switch">
+              <input
+                type="checkbox"
+                checked={unansweredOnly}
+                onChange={(e) => setUnansweredOnly(e.target.checked)}
+              />
+              <span className="oma-plx-inbox-switch__track" aria-hidden />
+              <span>{t('inbox.unansweredOnly') || 'Unanswered'}</span>
+            </label>
+          ) : null}
         </header>
 
         <div className="oma-plx-inbox-list__scroll">
@@ -888,7 +924,7 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
                     })}
                   </div>
                   {detail.notes.length > 0 ? (
-                    <div className="oma-plx-inbox-notes">
+                    <div className="oma-plx-inbox-notes" data-testid="inbox-internal-notes">
                       {detail.notes.map((n) => (
                         <p key={n.id} className="oma-inbox-note">
                           {n.content}
@@ -928,6 +964,15 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
                       ))}
                     </div>
                   ))}
+                  {detail.notes.length > 0 ? (
+                    <div className="oma-plx-inbox-notes" data-testid="inbox-internal-notes">
+                      {detail.notes.map((n) => (
+                        <p key={n.id} className="oma-inbox-note">
+                          {n.content}
+                        </p>
+                      ))}
+                    </div>
+                  ) : null}
                 </div>
               )}
             </div>

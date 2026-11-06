@@ -73,6 +73,9 @@ describe('workspace approval policy (server-side)', () => {
     expect(read('apps/api/src/common/guards/capabilities.guard.ts')).toContain(
       "'PATCH /api/v1/workspace/settings': ['tenant.manage']",
     );
+    expect(read('apps/api/src/common/guards/capabilities.guard.ts')).toContain(
+      "'PATCH /api/v1/workspace/holiday-calendars': ['content.update']",
+    );
   });
 
   it('content service enforces planned/schedule separation and rejected/archived gates', () => {
