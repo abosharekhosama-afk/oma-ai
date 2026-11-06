@@ -73,6 +73,27 @@ function parseKind(v: unknown): MediaKind {
   return v;
 }
 
+function safeFolderName(raw: unknown): string {
+  if (typeof raw !== 'string') throw bad('folder name required');
+  const cleaned = raw
+    .normalize('NFKC')
+    // eslint-disable-next-line no-control-regex -- strip control characters from folder names
+    .replace(/[\\/:*?"<>|\u0000-\u001f]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!cleaned) throw bad('folder name required');
+  if (cleaned.length > 80) throw bad('folder name is too long');
+  return cleaned;
+}
+
+type BrowseFile = {
+  id: string;
+  name: string;
+  mime: string;
+  size: number;
+  updated_at: string | null;
+};
+
 /** Counts bytes and hashes while streaming; aborts once `max` is exceeded. */
 function meter(max: number) {
   const hash = createHash('sha256');
@@ -298,6 +319,140 @@ export class MediaService {
     return folderId;
   }
 
+  private async assertInsideScope(client: WorkDriveClient, folderId: string, scopeRootId: string) {
+    if (folderId === scopeRootId) return;
+    let cursor = await client.getFolder(folderId);
+    if (cursor.id === scopeRootId) return;
+    for (let depth = 0; depth < 32 && cursor.parentId; depth += 1) {
+      if (cursor.parentId === scopeRootId || cursor.id === scopeRootId) return;
+      cursor = await client.getFolder(cursor.parentId);
+      if (cursor.id === scopeRootId) return;
+    }
+    throw notFound();
+  }
+
+  private async resolveUploadFolder(
+    c: {
+      client: WorkDriveClient;
+      conn: { id: string; rootFolderId: string | null; rootFolderName: string | null };
+    },
+    brand: { id: string; name: string },
+    kind: MediaKind,
+    folderId?: string | null,
+  ) {
+    if (!folderId) return this.folderFor(c, brand, kind);
+    const scopeRootId = c.conn.rootFolderId || (await this.brandFolderFor(c, brand));
+    await this.assertInsideScope(c.client, folderId, scopeRootId);
+    return folderId;
+  }
+
+  private async decorateBrowseFiles(
+    tenantId: string,
+    brandId: string,
+    files: BrowseFile[],
+  ): Promise<{
+    files: Array<
+      BrowseFile & {
+        asset_id: string | null;
+        view_url: string;
+        stream_url: string | null;
+        usage_count: number;
+        campaign_ids: string[];
+        campaign_names: string[];
+        uploader_id: string | null;
+        uploader_name: string | null;
+        missing: boolean;
+        created_at: string | null;
+      }
+    >;
+    filter_facets: {
+      campaigns: Array<{ id: string; name: string }>;
+      uploaders: Array<{ id: string; name: string }>;
+    };
+  }> {
+    const brandCampaigns = await getPrisma().campaign.findMany({
+      where: tenantWhere(tenantId, { brandId }),
+      select: { id: true, nameEn: true },
+      orderBy: { updatedAt: 'desc' },
+      take: 24,
+    });
+    if (!files.length) {
+      return {
+        files: [],
+        filter_facets: {
+          campaigns: brandCampaigns.map((c) => ({ id: c.id, name: c.nameEn })),
+          uploaders: [],
+        },
+      };
+    }
+    const assets = await getPrisma().mediaAsset.findMany({
+      where: tenantWhere(tenantId, { workdriveFileId: { in: files.map((f) => f.id) } }),
+    });
+    const byWd = new Map(assets.map((a) => [a.workdriveFileId, a]));
+    const assetIds = assets.map((a) => a.id);
+    const posts = assetIds.length
+      ? await getPrisma().contentItem.findMany({
+          where: tenantWhere(tenantId, {
+            archivedAt: null,
+            OR: [{ previewAssetId: { in: assetIds } }, { mediaAssetIds: { hasSome: assetIds } }],
+          }),
+          select: { previewAssetId: true, mediaAssetIds: true, campaignId: true },
+        })
+      : [];
+    const usage = new Map<string, { count: number; campaignIds: Set<string> }>();
+    for (const p of posts) {
+      const ids = new Set(
+        [...p.mediaAssetIds, p.previewAssetId].filter((id): id is string => Boolean(id)),
+      );
+      for (const id of ids) {
+        if (!assetIds.includes(id)) continue;
+        const cur = usage.get(id) ?? { count: 0, campaignIds: new Set<string>() };
+        cur.count += 1;
+        if (p.campaignId) cur.campaignIds.add(p.campaignId);
+        usage.set(id, cur);
+      }
+    }
+    const users = assets.length
+      ? await getPrisma().user.findMany({
+          where: { id: { in: [...new Set(assets.map((a) => a.createdBy))] } },
+          select: { id: true, name: true },
+        })
+      : [];
+    const userMap = new Map(users.map((u) => [u.id, u.name]));
+    const campMap = new Map(brandCampaigns.map((c) => [c.id, c.nameEn]));
+    const decorated = files.map((f) => {
+      const a = byWd.get(f.id);
+      const u = a ? usage.get(a.id) : undefined;
+      const campaign_ids = u ? [...u.campaignIds] : [];
+      return {
+        ...f,
+        asset_id: a?.id ?? null,
+        view_url: a
+          ? mediaPlaybackUrl(a.id, a.mime)
+          : `/api/v1/brands/${brandId}/media/file-preview?file_id=${encodeURIComponent(f.id)}`,
+        stream_url: a && a.mime.startsWith('video/') ? `/api/v1/media/${a.id}/stream` : null,
+        usage_count: u?.count ?? 0,
+        campaign_ids,
+        campaign_names: campaign_ids.map((id) => campMap.get(id) ?? id),
+        uploader_id: a?.createdBy ?? null,
+        uploader_name: a ? (userMap.get(a.createdBy) ?? null) : null,
+        missing: a?.status === 'MISSING',
+        created_at: a?.createdAt.toISOString() ?? f.updated_at,
+      };
+    });
+    const uploaders = new Map<string, string>();
+    for (const f of decorated) {
+      if (f.uploader_id && f.uploader_name) uploaders.set(f.uploader_id, f.uploader_name);
+    }
+    return {
+      files: decorated,
+      filter_facets: {
+        campaigns: brandCampaigns.map((c) => ({ id: c.id, name: c.nameEn })),
+        uploaders: [...uploaders].map(([id, name]) => ({ id, name })),
+      },
+    };
+  }
+
   private assertCapability(caps: string[] | undefined, kind: MediaKind) {
     if (!caps?.includes(KIND_CAPABILITY[kind]))
       throw new DomainError(
@@ -344,7 +499,14 @@ export class MediaService {
   async upload(
     ctx: { tenantId: string; userId: string; capabilities?: string[]; correlationId?: string },
     brandId: string,
-    input: { kind: unknown; name: unknown; mime: unknown; length: number | null; body: Readable },
+    input: {
+      kind: unknown;
+      name: unknown;
+      mime: unknown;
+      length: number | null;
+      body: Readable;
+      folder_id?: unknown;
+    },
   ) {
     const kind = parseKind(input.kind);
     this.assertCapability(ctx.capabilities, kind);
@@ -386,7 +548,12 @@ export class MediaService {
       let storedName = name;
       let folderId: string;
       try {
-        folderId = await this.folderFor(c, brand, kind);
+        folderId = await this.resolveUploadFolder(
+          c,
+          brand,
+          kind,
+          typeof input.folder_id === 'string' ? input.folder_id : null,
+        );
         const fh = await open(path, 'r');
         try {
           ({ fileId, name: storedName } = await retryWorkDrive(() =>
@@ -476,7 +643,12 @@ export class MediaService {
     let r: Awaited<ReturnType<WorkDriveClient['requestUpload']>>;
     let folderId: string;
     try {
-      folderId = await this.folderFor(c, brand, kind);
+      folderId = await this.resolveUploadFolder(
+        c,
+        brand,
+        kind,
+        typeof b.folder_id === 'string' ? b.folder_id : null,
+      );
       r = await c.client.requestUpload({ folderId, name, mimeType: mime, size, sha256 });
     } catch (e) {
       this.folderCache.clear();
@@ -636,26 +808,12 @@ export class MediaService {
       // Organization browse needs a configured root. Fall back to the brand folder so the
       // media card never surfaces a generic CONFLICT_STATE when the root is unset.
       const useOrgRoot = organizationScope && Boolean(rootFolderId);
-      const startFolderId = useOrgRoot ? rootFolderId! : await this.brandFolderFor(c, brand);
+      const brandFolderId = await this.brandFolderFor(c, brand);
+      const startFolderId = useOrgRoot ? rootFolderId! : brandFolderId;
       const scopeRootId = startFolderId;
       const folderId = q.folder_id || startFolderId;
       const f = await c.client.getFolder(folderId);
-      if (f.id !== scopeRootId) {
-        let cursor = f;
-        let insideRoot = false;
-        for (let depth = 0; depth < 32 && cursor.parentId; depth += 1) {
-          if (cursor.parentId === scopeRootId) {
-            insideRoot = true;
-            break;
-          }
-          cursor = await c.client.getFolder(cursor.parentId);
-          if (cursor.id === scopeRootId) {
-            insideRoot = true;
-            break;
-          }
-        }
-        if (!insideRoot) throw notFound();
-      }
+      if (f.id !== scopeRootId) await this.assertInsideScope(c.client, f.id, scopeRootId);
       const allowed = allowedMimeFor(kind);
       const atRoot = f.id === scopeRootId;
       const path: Array<{ id: string; name: string }> = [{ id: f.id, name: f.name }];
@@ -672,25 +830,113 @@ export class MediaService {
           if (cursor.id === scopeRootId) break;
         }
       }
+      const files: BrowseFile[] = f.files
+        .filter((x) => allowed.includes(x.mimeType))
+        .map((x) => ({
+          id: x.id,
+          name: x.name,
+          mime: x.mimeType,
+          size: x.size,
+          updated_at: x.updatedAt,
+        }));
+      // Brand Assets is the brand folder: flatten posts/logos children so the grid is not empty.
+      if (f.id === brandFolderId && files.length === 0) {
+        const flattenNames = kind === 'deliverables' ? ['deliverables'] : ['posts', 'logos'];
+        const kids = f.folders.filter((child) => flattenNames.includes(child.name));
+        if (kids.length) {
+          const nested = await Promise.all(kids.map((child) => c.client.getFolder(child.id)));
+          const seen = new Set(files.map((x) => x.id));
+          for (const child of nested) {
+            for (const x of child.files) {
+              if (!allowed.includes(x.mimeType) || seen.has(x.id)) continue;
+              seen.add(x.id);
+              files.push({
+                id: x.id,
+                name: x.name,
+                mime: x.mimeType,
+                size: x.size,
+                updated_at: x.updatedAt,
+              });
+            }
+          }
+        }
+      }
+      const decorated = await this.decorateBrowseFiles(tenantId, brandId, files);
       return {
         data: {
           folder: { id: f.id, name: f.name, parent_id: atRoot ? null : f.parentId },
           root_name: c.conn.rootFolderName,
+          brand_folder: { id: brandFolderId, name: brand.name },
           path,
           folders: f.folders,
-          files: f.files
-            .filter((x) => allowed.includes(x.mimeType))
-            .map((x) => ({
-              id: x.id,
-              name: x.name,
-              mime: x.mimeType,
-              size: x.size,
-              updated_at: x.updatedAt,
-            })),
+          files: decorated.files,
+          filter_facets: decorated.filter_facets,
         },
       };
     } catch (e) {
       if (e instanceof WorkDriveError && e.code === 'not_found' && q.folder_id) throw notFound();
+      throw workDriveDomainError(e);
+    }
+  }
+
+  /** Create a folder under the current brand or organization WorkDrive scope. */
+  async createFolder(
+    ctx: { tenantId: string; userId: string; capabilities?: string[]; correlationId?: string },
+    brandId: string,
+    body: unknown,
+  ) {
+    const b = (body ?? {}) as Record<string, unknown>;
+    const kind = b.kind ? parseKind(b.kind) : 'posts';
+    this.assertCapability(ctx.capabilities, kind);
+    const name = safeFolderName(b.name);
+    const brand = await this.brand(ctx.tenantId, brandId);
+    if (brand.status === 'ARCHIVED')
+      throw new DomainError('BRAND_ARCHIVED', 'Brand archived', 409, 'errors.brand_archived');
+    const c = await this.workdrive.requireClient(ctx.tenantId);
+    const organizationScope = b.scope === 'organization';
+    const brandFolderId = await this.brandFolderFor(c, brand);
+    const startFolderId =
+      organizationScope && c.conn.rootFolderId ? c.conn.rootFolderId : brandFolderId;
+    const parentId = typeof b.parent_id === 'string' && b.parent_id ? b.parent_id : startFolderId;
+    try {
+      await this.assertInsideScope(c.client, parentId, startFolderId);
+      const created = await c.client.ensurePath([name], parentId);
+      this.folderCache.clear();
+      await this.audit.write({
+        actorUserId: ctx.userId,
+        tenantId: ctx.tenantId,
+        action: 'media.folder_created',
+        targetType: 'WorkDriveFolder',
+        targetId: created.folderId,
+        afterRef: name,
+        correlationId: ctx.correlationId,
+      });
+      return {
+        data: {
+          id: created.folderId,
+          name,
+          parent_id: parentId,
+          path: created.path,
+        },
+      };
+    } catch (e) {
+      throw workDriveDomainError(e);
+    }
+  }
+
+  /** Signed preview for a WorkDrive file that may not yet be imported as a MediaAsset. */
+  async filePreview(tenantId: string, brandId: string, fileId: string) {
+    if (!fileId || fileId.length > 80) throw notFound();
+    const brand = await this.brand(tenantId, brandId);
+    const c = await this.workdrive.requireClient(tenantId);
+    try {
+      const d = await c.client.details(fileId);
+      const scopeRootId = c.conn.rootFolderId || (await this.brandFolderFor(c, brand));
+      if (d.folderId) await this.assertInsideScope(c.client, d.folderId, scopeRootId);
+      const signed = await c.client.previewUrl(fileId);
+      return { url: signed.url, expires_at: signed.expiresAt.toISOString() };
+    } catch (e) {
+      if (e instanceof WorkDriveError && e.code === 'not_found') throw notFound();
       throw workDriveDomainError(e);
     }
   }

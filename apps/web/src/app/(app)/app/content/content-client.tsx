@@ -1747,6 +1747,11 @@ export default function ContentPage() {
       // Optional notes (do not block first paint)
       const primaryBrand = ws.brands[0]?.id;
       if (primaryBrand) {
+        void mediaApi.list(primaryBrand, 'posts').catch(() => undefined);
+        void mediaApi
+          .browse(primaryBrand, 'posts', undefined, 'organization')
+          .catch(() => undefined);
+        void mediaApi.browse(primaryBrand, 'posts', undefined, 'brand').catch(() => undefined);
         void listDayNotes(primaryBrand)
           .then((notes) => {
             const map: Record<string, CalendarNoteValue> = {};
@@ -3814,7 +3819,8 @@ export default function ContentPage() {
               className="oma-top-action oma-top-action--icon"
               data-tooltip={t('content.media_library')}
               aria-label={t('demo.content.media')}
-              onClick={() => setMediaLibraryOpen(true)}
+              data-active={mediaLibraryOpen ? 'true' : 'false'}
+              onClick={() => setMediaLibraryOpen((open) => !open)}
               data-testid="demo-content-open-media"
             >
               <span className="oma-top-action__icon" aria-hidden>
@@ -3935,498 +3941,581 @@ export default function ContentPage() {
 
       {/* Filter chips removed — brand/other filters live in the side panel only. */}
 
-      {/* The same screen shimmer as the route gate / chunk fallback — one continuous loader. */}
-      {loading ? <ContentShimmer embedded /> : null}
-      {unavailable ? (
-        <DeniedState title={t('demo.unavailable')} body={t('demo.disclosure')} />
-      ) : null}
-      {error ? (
-        <ApiErrorState
-          compact
-          kind={errorKind}
-          code={errorKind === 'server' ? '500' : errorKind === 'notFound' ? '404' : undefined}
-          detail={errorKind === 'generic' || errorKind === 'server' ? error : null}
-          onRetry={() => void load()}
-        />
-      ) : null}
+      <div className="oma-plx-ml-split" data-open={mediaLibraryOpen ? 'true' : 'false'}>
+        <div className="oma-plx-ml-split__main">
+          {/* The same screen shimmer as the route gate / chunk fallback — one continuous loader. */}
+          {loading ? <ContentShimmer embedded /> : null}
+          {unavailable ? (
+            <DeniedState title={t('demo.unavailable')} body={t('demo.disclosure')} />
+          ) : null}
+          {error ? (
+            <ApiErrorState
+              compact
+              kind={errorKind}
+              code={errorKind === 'server' ? '500' : errorKind === 'notFound' ? '404' : undefined}
+              detail={errorKind === 'generic' || errorKind === 'server' ? error : null}
+              onRetry={() => void load()}
+            />
+          ) : null}
 
-      {!loading && !unavailable && !error && filtered.length === 0 && view !== 'calendar' ? (
-        <EmptyState
-          title={t('demo.empty')}
-          action={
-            <Button type="primary" onClick={() => setCreateOpen(true)}>
-              {t('demo.content.create')}
-            </Button>
-          }
-        />
-      ) : null}
+          {!loading && !unavailable && !error && filtered.length === 0 && view !== 'calendar' ? (
+            <EmptyState
+              title={t('demo.empty')}
+              action={
+                <Button type="primary" onClick={() => setCreateOpen(true)}>
+                  {t('demo.content.create')}
+                </Button>
+              }
+            />
+          ) : null}
 
-      {/* ── CALENDAR VIEW ── */}
-      {!loading && !unavailable && !error && view === 'calendar' ? (
-        <section
-          data-testid="demo-content-calendar"
-          className="oma-cal-with-saved"
-          data-cal-span={calSpan}
-          data-saved-open={savedOpen ? 'true' : 'false'}
-        >
-          <div className="oma-cal-main">
-            <div className="oma-cal-toolbar">
-              <div className="oma-cal-toolbar__start">
-                <div className="oma-cal-span" role="group" aria-label={t('demo.view.calendar')}>
-                  <Button
-                    type="text"
-                    className="oma-cal-span__btn"
-                    data-active={calSpan === 'month' ? 'true' : 'false'}
-                    aria-pressed={calSpan === 'month'}
-                    data-testid="demo-content-cal-month"
-                    onClick={() => {
-                      setCalSpan('month');
-                      replaceParams((params) => writeContentUrl(params, { span: 'month' }));
-                    }}
-                  >
-                    {t('demo.content.calMonth')}
-                  </Button>
-                  <Button
-                    type="text"
-                    className="oma-cal-span__btn"
-                    data-active={calSpan === 'week' ? 'true' : 'false'}
-                    aria-pressed={calSpan === 'week'}
-                    data-testid="demo-content-cal-week"
-                    onClick={() => {
-                      setCalSpan('week');
-                      replaceParams((params) => writeContentUrl(params, { span: 'week' }));
-                    }}
-                  >
-                    {t('demo.content.calWeek')}
-                  </Button>
-                </div>
-                <div className="oma-cal-nav">
-                  <Button
-                    type="text"
-                    className="oma-cal-nav__btn"
-                    aria-label={t('demo.content.prev')}
-                    data-testid="demo-content-cal-prev"
-                    onClick={() => stepCal(-1)}
-                  >
-                    ‹
-                  </Button>
-                  <Button
-                    type="text"
-                    className="oma-cal-nav__btn"
-                    aria-label={t('demo.content.next')}
-                    data-testid="demo-content-cal-next"
-                    onClick={() => stepCal(1)}
-                  >
-                    ›
-                  </Button>
-                  <strong className="oma-cal-month-label">
-                    {monthLabel(cursor.year, cursor.monthIndex, locale)}
-                  </strong>
-                  {calSpan === 'week' ? (
-                    <span className="oma-pv-week-chip oma-ltr" data-testid="content-week-chip">
-                      {t('views.week_short').replace(
-                        '{n}',
-                        String(isoWeekNumber(selectedDay ?? todayKeyVal)),
-                      )}
-                    </span>
-                  ) : null}
-                  <button
-                    type="button"
-                    className="oma-pv-today"
-                    data-testid="content-cal-today"
-                    onClick={() => goToDay(todayKeyVal)}
-                  >
-                    {t('views.today')}
-                  </button>
-                </div>
-              </div>
-              <div className="oma-cal-toolbar__end">
-                <button
-                  type="button"
-                  className="oma-cal-request-approvals"
-                  data-testid="demo-content-request-approvals"
-                  data-active={approvalMode ? 'true' : 'false'}
-                  data-tooltip={t('content.request_approvals')}
-                  aria-label={
-                    approvalMode
-                      ? t('content.close_requesting_approvals')
-                      : t('content.request_approvals')
-                  }
-                  onClick={showApprovalQueue}
-                >
-                  <CheckCircleOutlined />
-                  <span className="oma-cal-request-approvals__label">
-                    {approvalMode
-                      ? t('content.close_requesting_approvals')
-                      : t('content.request_approvals')}
-                  </span>
-                </button>
-                <CalendarDisplaySettings value={calDisplay} onChange={setCalDisplay} />
-                <span className="oma-cal-ext-wrap">
-                  <button
-                    type="button"
-                    className="oma-cal-ext-indicator"
-                    data-tooltip={t('content.external_calendars')}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setExtCalOpen((v) => !v);
-                    }}
-                    data-testid="demo-content-ext-cal"
-                    aria-label={t('content.external_calendars')}
-                  >
-                    <span className="oma-cal-ext-dot" aria-hidden />
-                    <span className="oma-cal-ext-count oma-ltr">
-                      {DEMO_EXTERNAL_CALENDARS.filter((c) => c.enabled).length}
-                    </span>
-                    <span className="oma-cal-ext-label">{t('content.calendar_word')}</span>
-                  </button>
-                  {extCalOpen ? (
-                    <div
-                      className="oma-ext-cal-pop"
-                      data-testid="demo-content-ext-cal-pop"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <div className="oma-ext-cal-pop__head">
-                        <strong>{t('content.holiday_calendars')}</strong>
-                        <span className="oma-ext-cal-pop__sync">
-                          {t('content.workspace_markers')}
-                        </span>
-                      </div>
-                      {DEMO_EXTERNAL_CALENDARS.map((cal) => (
-                        <label key={cal.id} className="oma-ext-cal-pop__row">
-                          <input type="checkbox" defaultChecked={cal.enabled} />
-                          <span className="oma-cal-ext-dot" aria-hidden />
-                          <span>{cal.name}</span>
-                          <span className="oma-ext-cal-pop__users" aria-hidden>
-                            <TeamOutlined />
-                          </span>
-                        </label>
-                      ))}
-                      <p className="oma-ext-cal-pop__add">
-                        {t('content.holidays_appear_as_chips_on')}
-                      </p>
-                    </div>
-                  ) : null}
-                </span>
-                {!savedOpen ? (
-                  <button
-                    type="button"
-                    className="oma-cal-saved-toggle"
-                    data-testid="demo-content-saved-toggle"
-                    onClick={() => setSavedOpen(true)}
-                  >
-                    {t('strategy.saved')}
-                  </button>
-                ) : null}
-              </div>
-            </div>
-
-            <div
-              className="oma-cal-grid"
-              role="grid"
-              aria-label={t('demo.view.calendar')}
-              data-testid="demo-content-cal-grid"
-              data-columns={calDisplay.showWeekends ? '7' : '5'}
-              data-hide-weekends={calDisplay.showWeekends ? 'false' : 'true'}
-              data-post-size={calDisplay.postSize}
-              data-span={calSpan}
+          {/* ── CALENDAR VIEW ── */}
+          {!loading && !unavailable && !error && view === 'calendar' ? (
+            <section
+              data-testid="demo-content-calendar"
+              className="oma-cal-with-saved"
+              data-cal-span={calSpan}
+              data-saved-open={savedOpen ? 'true' : 'false'}
             >
-              <div className="oma-cal-dow-row" data-testid="demo-content-weekdays">
-                {dows.map((dow, di) => (
-                  <div
-                    key={dow}
-                    className="oma-cal-dow"
-                    role="columnheader"
-                    data-weekend={
-                      isWeekendKey(shiftDayKey(visibleCells[0]?.key ?? todayKeyVal, di))
-                        ? 'true'
-                        : 'false'
-                    }
-                  >
-                    {dow}
+              <div className="oma-cal-main">
+                <div className="oma-cal-toolbar">
+                  <div className="oma-cal-toolbar__start">
+                    <div className="oma-cal-span" role="group" aria-label={t('demo.view.calendar')}>
+                      <Button
+                        type="text"
+                        className="oma-cal-span__btn"
+                        data-active={calSpan === 'month' ? 'true' : 'false'}
+                        aria-pressed={calSpan === 'month'}
+                        data-testid="demo-content-cal-month"
+                        onClick={() => {
+                          setCalSpan('month');
+                          replaceParams((params) => writeContentUrl(params, { span: 'month' }));
+                        }}
+                      >
+                        {t('demo.content.calMonth')}
+                      </Button>
+                      <Button
+                        type="text"
+                        className="oma-cal-span__btn"
+                        data-active={calSpan === 'week' ? 'true' : 'false'}
+                        aria-pressed={calSpan === 'week'}
+                        data-testid="demo-content-cal-week"
+                        onClick={() => {
+                          setCalSpan('week');
+                          replaceParams((params) => writeContentUrl(params, { span: 'week' }));
+                        }}
+                      >
+                        {t('demo.content.calWeek')}
+                      </Button>
+                    </div>
+                    <div className="oma-cal-nav">
+                      <Button
+                        type="text"
+                        className="oma-cal-nav__btn"
+                        aria-label={t('demo.content.prev')}
+                        data-testid="demo-content-cal-prev"
+                        onClick={() => stepCal(-1)}
+                      >
+                        ‹
+                      </Button>
+                      <Button
+                        type="text"
+                        className="oma-cal-nav__btn"
+                        aria-label={t('demo.content.next')}
+                        data-testid="demo-content-cal-next"
+                        onClick={() => stepCal(1)}
+                      >
+                        ›
+                      </Button>
+                      <strong className="oma-cal-month-label">
+                        {monthLabel(cursor.year, cursor.monthIndex, locale)}
+                      </strong>
+                      {calSpan === 'week' ? (
+                        <span className="oma-pv-week-chip oma-ltr" data-testid="content-week-chip">
+                          {t('views.week_short').replace(
+                            '{n}',
+                            String(isoWeekNumber(selectedDay ?? todayKeyVal)),
+                          )}
+                        </span>
+                      ) : null}
+                      <button
+                        type="button"
+                        className="oma-pv-today"
+                        data-testid="content-cal-today"
+                        onClick={() => goToDay(todayKeyVal)}
+                      >
+                        {t('views.today')}
+                      </button>
+                    </div>
                   </div>
-                ))}
-              </div>
-              {Array.from({ length: Math.ceil(visibleCells.length / 7) }, (_, wi) => {
-                const week = visibleCells.slice(wi * 7, wi * 7 + 7);
-                if (!week.length) return null;
-                const weekStart = week[0]!.key;
-                return (
-                  <div
-                    key={`week-${weekStart}`}
-                    className="oma-cal-week"
-                    style={{ display: 'contents' }}
-                  >
-                    {week.map((cell) => {
-                      const items = byDay.get(cell.key) ?? [];
-                      const { extra } = splitCellItems(items);
-                      const note = dayNotes[cell.key];
-                      const holiday = DEMO_HOLIDAYS[cell.key];
-                      return (
+                  <div className="oma-cal-toolbar__end">
+                    <button
+                      type="button"
+                      className="oma-cal-request-approvals"
+                      data-testid="demo-content-request-approvals"
+                      data-active={approvalMode ? 'true' : 'false'}
+                      data-tooltip={t('content.request_approvals')}
+                      aria-label={
+                        approvalMode
+                          ? t('content.close_requesting_approvals')
+                          : t('content.request_approvals')
+                      }
+                      onClick={showApprovalQueue}
+                    >
+                      <CheckCircleOutlined />
+                      <span className="oma-cal-request-approvals__label">
+                        {approvalMode
+                          ? t('content.close_requesting_approvals')
+                          : t('content.request_approvals')}
+                      </span>
+                    </button>
+                    <CalendarDisplaySettings value={calDisplay} onChange={setCalDisplay} />
+                    <span className="oma-cal-ext-wrap">
+                      <button
+                        type="button"
+                        className="oma-cal-ext-indicator"
+                        data-tooltip={t('content.external_calendars')}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setExtCalOpen((v) => !v);
+                        }}
+                        data-testid="demo-content-ext-cal"
+                        aria-label={t('content.external_calendars')}
+                      >
+                        <span className="oma-cal-ext-dot" aria-hidden />
+                        <span className="oma-cal-ext-count oma-ltr">
+                          {DEMO_EXTERNAL_CALENDARS.filter((c) => c.enabled).length}
+                        </span>
+                        <span className="oma-cal-ext-label">{t('content.calendar_word')}</span>
+                      </button>
+                      {extCalOpen ? (
                         <div
-                          key={cell.key}
-                          className="oma-cal-cell"
-                          role="gridcell"
-                          aria-selected={cell.key === selectedDay}
-                          data-out={cell.inMonth ? 'false' : 'true'}
-                          data-today={cell.key === todayKeyVal ? 'true' : 'false'}
-                          data-weekend={isWeekendKey(cell.key) ? 'true' : 'false'}
-                          data-selected={cell.key === selectedDay ? 'true' : 'false'}
-                          onClick={() => setSelectedDay(cell.key)}
-                          onDragOver={(e) => {
-                            e.preventDefault();
-                            e.dataTransfer.dropEffect = 'move';
-                          }}
-                          onDrop={(e) => {
-                            e.preventDefault();
-                            const id = e.dataTransfer.getData('text/oma-content-id');
-                            const from = e.dataTransfer.getData('text/oma-from-day') || null;
-                            if (id) void rescheduleContentToDay(id, cell.key, from);
-                          }}
+                          className="oma-ext-cal-pop"
+                          data-testid="demo-content-ext-cal-pop"
+                          onClick={(e) => e.stopPropagation()}
                         >
-                          <span className="oma-cal-daynum oma-ltr">{cell.date.getUTCDate()}</span>
-
-                          {/* Post/Note hover actions at top */}
-                          <div className="oma-cal-cell-actions">
-                            <button
-                              type="button"
-                              className="oma-cal-cell-actions__btn"
-                              data-testid={`demo-cal-post-${cell.key}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedDay(cell.key);
-                                setCreateForm((f) => ({ ...f, plannedDate: cell.key }));
-                                setCreateOpen(true);
-                              }}
-                            >
-                              <EditOutlined />
-                              <span>{t('content.post')}</span>
-                            </button>
-                            <button
-                              type="button"
-                              className="oma-cal-cell-actions__btn"
-                              data-testid={`demo-cal-note-${cell.key}`}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedDay(cell.key);
-                                setDayNotes((prev) =>
-                                  prev[cell.key]
-                                    ? prev
-                                    : {
-                                        ...prev,
-                                        [cell.key]: {
-                                          text: '',
-                                          color: 'yellow',
-                                          visibility: 'only_me',
-                                        },
-                                      },
-                                );
-                                setNoteDay(cell.key);
-                                setNoteColorOpen(false);
-                                setNoteMenuOpen(false);
-                                if (!dayNotes[cell.key]) {
-                                  void persistNote(cell.key, {
-                                    text: '',
-                                    color: 'yellow',
-                                    visibility: 'only_me',
-                                  });
-                                }
-                              }}
-                            >
-                              <FileTextOutlined />
-                              <span>{t('content.note')}</span>
-                            </button>
+                          <div className="oma-ext-cal-pop__head">
+                            <strong>{t('content.holiday_calendars')}</strong>
+                            <span className="oma-ext-cal-pop__sync">
+                              {t('content.workspace_markers')}
+                            </span>
                           </div>
+                          {DEMO_EXTERNAL_CALENDARS.map((cal) => (
+                            <label key={cal.id} className="oma-ext-cal-pop__row">
+                              <input type="checkbox" defaultChecked={cal.enabled} />
+                              <span className="oma-cal-ext-dot" aria-hidden />
+                              <span>{cal.name}</span>
+                              <span className="oma-ext-cal-pop__users" aria-hidden>
+                                <TeamOutlined />
+                              </span>
+                            </label>
+                          ))}
+                          <p className="oma-ext-cal-pop__add">
+                            {t('content.holidays_appear_as_chips_on')}
+                          </p>
+                        </div>
+                      ) : null}
+                    </span>
+                    {!savedOpen ? (
+                      <button
+                        type="button"
+                        className="oma-cal-saved-toggle"
+                        data-testid="demo-content-saved-toggle"
+                        onClick={() => setSavedOpen(true)}
+                      >
+                        {t('strategy.saved')}
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
 
-                          <div className="oma-cal-cell__scroll">
-                            {/* Planable sticky note — ABOVE cards */}
-                            {calDisplay.showNotes && (note || noteDay === cell.key) ? (
-                              <CalendarStickyNote
-                                dayKey={cell.key}
-                                note={
-                                  dayNotes[cell.key] ?? {
-                                    text: '',
-                                    color: 'yellow',
-                                    visibility: 'only_me',
-                                  }
-                                }
-                                active={noteDay === cell.key}
-                                colorOpen={noteDay === cell.key && noteColorOpen}
-                                menuOpen={noteDay === cell.key && noteMenuOpen}
-                                t={t}
-                                onActivate={() => {
-                                  setNoteDay(cell.key);
-                                }}
-                                onClosePopovers={() => {
-                                  setNoteColorOpen(false);
-                                  setNoteMenuOpen(false);
-                                }}
-                                onToggleColor={() => {
-                                  setNoteDay(cell.key);
-                                  setNoteColorOpen((v) => !v);
-                                  setNoteMenuOpen(false);
-                                }}
-                                onToggleMenu={() => {
-                                  setNoteDay(cell.key);
-                                  setNoteMenuOpen((v) => !v);
-                                  setNoteColorOpen(false);
-                                }}
-                                onChangeText={(text) => {
-                                  setDayNotes((prev) => ({
-                                    ...prev,
-                                    [cell.key]: {
-                                      text,
-                                      color: prev[cell.key]?.color ?? 'yellow',
-                                      visibility: prev[cell.key]?.visibility ?? 'only_me',
-                                    },
-                                  }));
-                                }}
-                                onCommitText={(text) => void persistNote(cell.key, { text })}
-                                onColor={(c) => {
-                                  void persistNote(cell.key, { color: c });
-                                  setNoteColorOpen(false);
-                                }}
-                                onVisibility={(visibility) => {
-                                  void persistNote(cell.key, { visibility });
-                                  setNoteMenuOpen(false);
-                                }}
-                                onDelete={() => {
-                                  void persistNote(cell.key, { remove: true });
-                                }}
-                                onCreatePost={() => {
-                                  setSelectedDay(cell.key);
-                                  setCreateForm((f) => ({ ...f, plannedDate: cell.key }));
-                                  setCreateOpen(true);
-                                  setNoteMenuOpen(false);
-                                }}
-                              />
-                            ) : null}
+                <div
+                  className="oma-cal-grid"
+                  role="grid"
+                  aria-label={t('demo.view.calendar')}
+                  data-testid="demo-content-cal-grid"
+                  data-columns={calDisplay.showWeekends ? '7' : '5'}
+                  data-hide-weekends={calDisplay.showWeekends ? 'false' : 'true'}
+                  data-post-size={calDisplay.postSize}
+                  data-span={calSpan}
+                >
+                  <div className="oma-cal-dow-row" data-testid="demo-content-weekdays">
+                    {dows.map((dow, di) => (
+                      <div
+                        key={dow}
+                        className="oma-cal-dow"
+                        role="columnheader"
+                        data-weekend={
+                          isWeekendKey(shiftDayKey(visibleCells[0]?.key ?? todayKeyVal, di))
+                            ? 'true'
+                            : 'false'
+                        }
+                      >
+                        {dow}
+                      </div>
+                    ))}
+                  </div>
+                  {Array.from({ length: Math.ceil(visibleCells.length / 7) }, (_, wi) => {
+                    const week = visibleCells.slice(wi * 7, wi * 7 + 7);
+                    if (!week.length) return null;
+                    const weekStart = week[0]!.key;
+                    return (
+                      <div
+                        key={`week-${weekStart}`}
+                        className="oma-cal-week"
+                        style={{ display: 'contents' }}
+                      >
+                        {week.map((cell) => {
+                          const items = byDay.get(cell.key) ?? [];
+                          const { extra } = splitCellItems(items);
+                          const note = dayNotes[cell.key];
+                          const holiday = DEMO_HOLIDAYS[cell.key];
+                          return (
+                            <div
+                              key={cell.key}
+                              className="oma-cal-cell"
+                              role="gridcell"
+                              aria-selected={cell.key === selectedDay}
+                              data-out={cell.inMonth ? 'false' : 'true'}
+                              data-today={cell.key === todayKeyVal ? 'true' : 'false'}
+                              data-weekend={isWeekendKey(cell.key) ? 'true' : 'false'}
+                              data-selected={cell.key === selectedDay ? 'true' : 'false'}
+                              onClick={() => setSelectedDay(cell.key)}
+                              onDragOver={(e) => {
+                                e.preventDefault();
+                                e.dataTransfer.dropEffect = 'move';
+                              }}
+                              onDrop={(e) => {
+                                e.preventDefault();
+                                const id = e.dataTransfer.getData('text/oma-content-id');
+                                const from = e.dataTransfer.getData('text/oma-from-day') || null;
+                                if (id) void rescheduleContentToDay(id, cell.key, from);
+                              }}
+                            >
+                              <span className="oma-cal-daynum oma-ltr">
+                                {cell.date.getUTCDate()}
+                              </span>
 
-                            {/* Campaign bar + holiday chip */}
-                            {holiday ? (
-                              <div className="oma-cal-holiday-chip" title={holiday}>
-                                {holiday}
-                              </div>
-                            ) : null}
-
-                            {/* Post cards */}
-                            {items.map((item) => (
-                              <div
-                                key={item.id}
-                                className="oma-cal-item-wrap"
-                                data-selected={selectedId === item.id ? 'true' : 'false'}
-                                draggable
-                                onDragStart={(e) => {
-                                  e.dataTransfer.setData('text/oma-content-id', item.id);
-                                  e.dataTransfer.setData('text/oma-from-day', cell.key);
-                                  e.dataTransfer.effectAllowed = 'move';
-                                }}
-                                onMouseEnter={(e) => scheduleCardMenu(item.id, e.currentTarget)}
-                                onMouseLeave={() => cancelCardMenu()}
-                              >
-                                {approvalMode ? (
-                                  <label
-                                    className="oma-cal-select"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedIds.includes(item.id)}
-                                      onChange={() => toggleSelectId(item.id)}
-                                    />
-                                  </label>
-                                ) : null}
-                                <SurfaceButton
-                                  data-status={item.status}
-                                  data-testid={`demo-cal-item-${item.id}`}
-                                  data-selected={selectedId === item.id ? 'true' : 'false'}
+                              {/* Post/Note hover actions at top */}
+                              <div className="oma-cal-cell-actions">
+                                <button
+                                  type="button"
+                                  className="oma-cal-cell-actions__btn"
+                                  data-testid={`demo-cal-post-${cell.key}`}
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    if (approvalMode) {
-                                      toggleSelectId(item.id);
-                                      return;
-                                    }
-                                    openItem(item);
+                                    setSelectedDay(cell.key);
+                                    setCreateForm((f) => ({ ...f, plannedDate: cell.key }));
+                                    setCreateOpen(true);
                                   }}
-                                  onContextMenu={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    placeCardMenu(item.id, e.currentTarget);
-                                  }}
-                                  className="oma-cal-item"
                                 >
-                                  {renderCalendarCard(item)}
-                                </SurfaceButton>
-                                <CardActionsButton
-                                  itemId={item.id}
-                                  open={cardMenuId === item.id}
-                                  label={t('content.post_actions')}
-                                  className="oma-card-actions-btn--cal"
-                                  onOpen={placeCardMenu}
-                                  onClose={closeCardMenu}
-                                />
+                                  <EditOutlined />
+                                  <span>{t('content.post')}</span>
+                                </button>
+                                <button
+                                  type="button"
+                                  className="oma-cal-cell-actions__btn"
+                                  data-testid={`demo-cal-note-${cell.key}`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedDay(cell.key);
+                                    setDayNotes((prev) =>
+                                      prev[cell.key]
+                                        ? prev
+                                        : {
+                                            ...prev,
+                                            [cell.key]: {
+                                              text: '',
+                                              color: 'yellow',
+                                              visibility: 'only_me',
+                                            },
+                                          },
+                                    );
+                                    setNoteDay(cell.key);
+                                    setNoteColorOpen(false);
+                                    setNoteMenuOpen(false);
+                                    if (!dayNotes[cell.key]) {
+                                      void persistNote(cell.key, {
+                                        text: '',
+                                        color: 'yellow',
+                                        visibility: 'only_me',
+                                      });
+                                    }
+                                  }}
+                                >
+                                  <FileTextOutlined />
+                                  <span>{t('content.note')}</span>
+                                </button>
                               </div>
-                            ))}
-                            {extra > 0 ? (
-                              <Button
-                                type="default"
-                                data-testid="demo-day-overflow"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedDay(cell.key);
-                                  setOverflowDay(cell.key);
-                                }}
-                                className="oma-cal-more"
-                                aria-label={t('demo.content.openDay')}
-                              >
-                                +{extra} {isAr ? 'المزيد' : 'more'}
-                              </Button>
-                            ) : null}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                );
-              })}
-            </div>
 
-            {/* Mobile agenda (hidden on desktop) */}
-            <div className="oma-cal-agenda" data-testid="demo-content-agenda">
-              {agendaDays.map((day) => (
-                <div key={day.key} className="oma-cal-agenda-day">
-                  <strong className="oma-cal-agenda-day__label">
-                    <span>{weekdayForKey(day.key, locale)}</span>
-                    <span className="oma-ltr">{day.key}</span>
-                  </strong>
-                  {day.items.length === 0 ? (
-                    <p className="oma-muted" style={{ margin: '8px 0 0' }}>
-                      {t('demo.empty')}
-                    </p>
+                              <div className="oma-cal-cell__scroll">
+                                {/* Planable sticky note — ABOVE cards */}
+                                {calDisplay.showNotes && (note || noteDay === cell.key) ? (
+                                  <CalendarStickyNote
+                                    dayKey={cell.key}
+                                    note={
+                                      dayNotes[cell.key] ?? {
+                                        text: '',
+                                        color: 'yellow',
+                                        visibility: 'only_me',
+                                      }
+                                    }
+                                    active={noteDay === cell.key}
+                                    colorOpen={noteDay === cell.key && noteColorOpen}
+                                    menuOpen={noteDay === cell.key && noteMenuOpen}
+                                    t={t}
+                                    onActivate={() => {
+                                      setNoteDay(cell.key);
+                                    }}
+                                    onClosePopovers={() => {
+                                      setNoteColorOpen(false);
+                                      setNoteMenuOpen(false);
+                                    }}
+                                    onToggleColor={() => {
+                                      setNoteDay(cell.key);
+                                      setNoteColorOpen((v) => !v);
+                                      setNoteMenuOpen(false);
+                                    }}
+                                    onToggleMenu={() => {
+                                      setNoteDay(cell.key);
+                                      setNoteMenuOpen((v) => !v);
+                                      setNoteColorOpen(false);
+                                    }}
+                                    onChangeText={(text) => {
+                                      setDayNotes((prev) => ({
+                                        ...prev,
+                                        [cell.key]: {
+                                          text,
+                                          color: prev[cell.key]?.color ?? 'yellow',
+                                          visibility: prev[cell.key]?.visibility ?? 'only_me',
+                                        },
+                                      }));
+                                    }}
+                                    onCommitText={(text) => void persistNote(cell.key, { text })}
+                                    onColor={(c) => {
+                                      void persistNote(cell.key, { color: c });
+                                      setNoteColorOpen(false);
+                                    }}
+                                    onVisibility={(visibility) => {
+                                      void persistNote(cell.key, { visibility });
+                                      setNoteMenuOpen(false);
+                                    }}
+                                    onDelete={() => {
+                                      void persistNote(cell.key, { remove: true });
+                                    }}
+                                    onCreatePost={() => {
+                                      setSelectedDay(cell.key);
+                                      setCreateForm((f) => ({ ...f, plannedDate: cell.key }));
+                                      setCreateOpen(true);
+                                      setNoteMenuOpen(false);
+                                    }}
+                                  />
+                                ) : null}
+
+                                {/* Campaign bar + holiday chip */}
+                                {holiday ? (
+                                  <div className="oma-cal-holiday-chip" title={holiday}>
+                                    {holiday}
+                                  </div>
+                                ) : null}
+
+                                {/* Post cards */}
+                                {items.map((item) => (
+                                  <div
+                                    key={item.id}
+                                    className="oma-cal-item-wrap"
+                                    data-selected={selectedId === item.id ? 'true' : 'false'}
+                                    draggable
+                                    onDragStart={(e) => {
+                                      e.dataTransfer.setData('text/oma-content-id', item.id);
+                                      e.dataTransfer.setData('text/oma-from-day', cell.key);
+                                      e.dataTransfer.effectAllowed = 'move';
+                                    }}
+                                    onMouseEnter={(e) => scheduleCardMenu(item.id, e.currentTarget)}
+                                    onMouseLeave={() => cancelCardMenu()}
+                                  >
+                                    {approvalMode ? (
+                                      <label
+                                        className="oma-cal-select"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={selectedIds.includes(item.id)}
+                                          onChange={() => toggleSelectId(item.id)}
+                                        />
+                                      </label>
+                                    ) : null}
+                                    <SurfaceButton
+                                      data-status={item.status}
+                                      data-testid={`demo-cal-item-${item.id}`}
+                                      data-selected={selectedId === item.id ? 'true' : 'false'}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (approvalMode) {
+                                          toggleSelectId(item.id);
+                                          return;
+                                        }
+                                        openItem(item);
+                                      }}
+                                      onContextMenu={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        placeCardMenu(item.id, e.currentTarget);
+                                      }}
+                                      className="oma-cal-item"
+                                    >
+                                      {renderCalendarCard(item)}
+                                    </SurfaceButton>
+                                    <CardActionsButton
+                                      itemId={item.id}
+                                      open={cardMenuId === item.id}
+                                      label={t('content.post_actions')}
+                                      className="oma-card-actions-btn--cal"
+                                      onOpen={placeCardMenu}
+                                      onClose={closeCardMenu}
+                                    />
+                                  </div>
+                                ))}
+                                {extra > 0 ? (
+                                  <Button
+                                    type="default"
+                                    data-testid="demo-day-overflow"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedDay(cell.key);
+                                      setOverflowDay(cell.key);
+                                    }}
+                                    className="oma-cal-more"
+                                    aria-label={t('demo.content.openDay')}
+                                  >
+                                    +{extra} {isAr ? 'المزيد' : 'more'}
+                                  </Button>
+                                ) : null}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Mobile agenda (hidden on desktop) */}
+                <div className="oma-cal-agenda" data-testid="demo-content-agenda">
+                  {agendaDays.map((day) => (
+                    <div key={day.key} className="oma-cal-agenda-day">
+                      <strong className="oma-cal-agenda-day__label">
+                        <span>{weekdayForKey(day.key, locale)}</span>
+                        <span className="oma-ltr">{day.key}</span>
+                      </strong>
+                      {day.items.length === 0 ? (
+                        <p className="oma-muted" style={{ margin: '8px 0 0' }}>
+                          {t('demo.empty')}
+                        </p>
+                      ) : (
+                        <div className="oma-stack" style={{ marginTop: 8, gap: 6 }}>
+                          {day.items.map((item) => (
+                            <div key={item.id} className="oma-cal-agenda-item">
+                              <SurfaceButton
+                                data-status={item.status}
+                                data-testid={`demo-cal-item-${item.id}`}
+                                onClick={() => openItem(item)}
+                                className="oma-cal-item"
+                              >
+                                <MediaSurface
+                                  className="oma-cal-thumb"
+                                  src={item.previewAsset}
+                                  alt=""
+                                />
+                                <span>
+                                  {pickCopy(item.title, locale)} · {item.channel} ·{' '}
+                                  {statusLabel(item.status, locale)}
+                                </span>
+                              </SurfaceButton>
+                              <CardActionsButton
+                                itemId={item.id}
+                                open={cardMenuId === item.id}
+                                label={t('content.post_actions')}
+                                onOpen={placeCardMenu}
+                                onClose={closeCardMenu}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {savedOpen ? (
+                <aside
+                  className="oma-cal-saved"
+                  data-testid="demo-content-saved"
+                  aria-label={t('demo.content.savedColumn')}
+                >
+                  <header className="oma-cal-saved-head">
+                    <strong>{t('demo.content.savedColumn')}</strong>
+                    <div className="oma-cal-saved-head__meta">
+                      {savedItems.length > 0 ? (
+                        <span className="oma-muted oma-ltr">{savedItems.length}</span>
+                      ) : null}
+                      <button
+                        type="button"
+                        className="oma-cal-saved-close"
+                        aria-label={t('brand.evidence.close')}
+                        data-tooltip={t('brand.evidence.close')}
+                        onClick={() => setSavedOpen(false)}
+                      >
+                        <CloseOutlined />
+                      </button>
+                    </div>
+                  </header>
+                  {savedItems.length === 0 ? (
+                    <div className="oma-cal-saved-empty" data-testid="demo-content-saved-empty">
+                      <div className="oma-cal-saved-empty__art" aria-hidden />
+                      <strong>{t('demo.content.savedEmpty')}</strong>
+                      <p className="oma-muted">{t('demo.content.savedEmptyHint')}</p>
+                      <Button type="default" onClick={() => setCreateOpen(true)}>
+                        {t('demo.content.create')}
+                      </Button>
+                    </div>
                   ) : (
-                    <div className="oma-stack" style={{ marginTop: 8, gap: 6 }}>
-                      {day.items.map((item) => (
-                        <div key={item.id} className="oma-cal-agenda-item">
+                    <div className="oma-cal-saved-list">
+                      {savedItems.map((item) => (
+                        <div
+                          key={item.id}
+                          className="oma-cal-saved-card"
+                          draggable
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData('text/oma-content-id', item.id);
+                            e.dataTransfer.effectAllowed = 'move';
+                          }}
+                        >
                           <SurfaceButton
-                            data-status={item.status}
-                            data-testid={`demo-cal-item-${item.id}`}
+                            data-testid={`demo-saved-item-${item.id}`}
+                            data-selected={selectedId === item.id ? 'true' : 'false'}
                             onClick={() => openItem(item)}
                             className="oma-cal-item"
                           >
-                            <MediaSurface
-                              className="oma-cal-thumb"
-                              src={item.previewAsset}
-                              alt=""
+                            <ContentFace
+                              variant="saved"
+                              title={pickCopy(item.title, locale)}
+                              caption={item.caption ? pickCopy(item.caption, locale) : ''}
+                              channel={item.channel}
+                              when="—"
+                              asset={item.previewAsset}
+                              display={faceDisplay(item, policy)}
+                              locale={locale}
+                              selected={selectedId === item.id}
                             />
-                            <span>
-                              {pickCopy(item.title, locale)} · {item.channel} ·{' '}
-                              {statusLabel(item.status, locale)}
-                            </span>
                           </SurfaceButton>
                           <CardActionsButton
                             itemId={item.id}
                             open={cardMenuId === item.id}
                             label={t('content.post_actions')}
+                            className="oma-card-actions-btn--saved"
                             onOpen={placeCardMenu}
                             onClose={closeCardMenu}
                           />
@@ -4434,303 +4523,253 @@ export default function ContentPage() {
                       ))}
                     </div>
                   )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {savedOpen ? (
-            <aside
-              className="oma-cal-saved"
-              data-testid="demo-content-saved"
-              aria-label={t('demo.content.savedColumn')}
-            >
-              <header className="oma-cal-saved-head">
-                <strong>{t('demo.content.savedColumn')}</strong>
-                <div className="oma-cal-saved-head__meta">
-                  {savedItems.length > 0 ? (
-                    <span className="oma-muted oma-ltr">{savedItems.length}</span>
-                  ) : null}
-                  <button
-                    type="button"
-                    className="oma-cal-saved-close"
-                    aria-label={t('brand.evidence.close')}
-                    data-tooltip={t('brand.evidence.close')}
-                    onClick={() => setSavedOpen(false)}
-                  >
-                    <CloseOutlined />
-                  </button>
-                </div>
-              </header>
-              {savedItems.length === 0 ? (
-                <div className="oma-cal-saved-empty" data-testid="demo-content-saved-empty">
-                  <div className="oma-cal-saved-empty__art" aria-hidden />
-                  <strong>{t('demo.content.savedEmpty')}</strong>
-                  <p className="oma-muted">{t('demo.content.savedEmptyHint')}</p>
-                  <Button type="default" onClick={() => setCreateOpen(true)}>
-                    {t('demo.content.create')}
-                  </Button>
-                </div>
-              ) : (
-                <div className="oma-cal-saved-list">
-                  {savedItems.map((item) => (
-                    <div
-                      key={item.id}
-                      className="oma-cal-saved-card"
-                      draggable
-                      onDragStart={(e) => {
-                        e.dataTransfer.setData('text/oma-content-id', item.id);
-                        e.dataTransfer.effectAllowed = 'move';
-                      }}
-                    >
-                      <SurfaceButton
-                        data-testid={`demo-saved-item-${item.id}`}
-                        data-selected={selectedId === item.id ? 'true' : 'false'}
-                        onClick={() => openItem(item)}
-                        className="oma-cal-item"
-                      >
-                        <ContentFace
-                          variant="saved"
-                          title={pickCopy(item.title, locale)}
-                          caption={item.caption ? pickCopy(item.caption, locale) : ''}
-                          channel={item.channel}
-                          when="—"
-                          asset={item.previewAsset}
-                          display={faceDisplay(item, policy)}
-                          locale={locale}
-                          selected={selectedId === item.id}
-                        />
-                      </SurfaceButton>
-                      <CardActionsButton
-                        itemId={item.id}
-                        open={cardMenuId === item.id}
-                        label={t('content.post_actions')}
-                        className="oma-card-actions-btn--saved"
-                        onOpen={placeCardMenu}
-                        onClose={closeCardMenu}
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </aside>
+                </aside>
+              ) : null}
+            </section>
           ) : null}
-        </section>
-      ) : null}
 
-      {/* ── FEED VIEW ── */}
-      {!loading && !unavailable && !error && filtered.length > 0 && view === 'feed' ? (
-        <div
-          className="oma-content-feed oma-content-feed--preview oma-plx-content-feed"
-          data-testid="demo-content-feed"
-        >
-          <div className="oma-pv-feed-stories">
-            <StoriesRow
-              stories={filtered
-                .filter((i) => i.contentType === 'STORY')
-                .map((i) => ({
-                  id: i.id,
-                  media: i.previewAsset || null,
-                  title: pickCopy(i.title, locale),
-                }))}
-              canCreate={mayCreate}
-              onNew={startStory}
-              onOpen={(id) => {
-                const row = rows.find((r) => r.id === id);
-                if (row) openItem(row);
-              }}
-            />
-          </div>
-          {feedPosts.map((item) => renderFeedPost(item))}
-        </div>
-      ) : null}
+          {/* ── FEED VIEW ── */}
+          {!loading && !unavailable && !error && filtered.length > 0 && view === 'feed' ? (
+            <div
+              className="oma-content-feed oma-content-feed--preview oma-plx-content-feed"
+              data-testid="demo-content-feed"
+            >
+              <div className="oma-pv-feed-stories">
+                <StoriesRow
+                  stories={filtered
+                    .filter((i) => i.contentType === 'STORY')
+                    .map((i) => ({
+                      id: i.id,
+                      media: i.previewAsset || null,
+                      title: pickCopy(i.title, locale),
+                    }))}
+                  canCreate={mayCreate}
+                  onNew={startStory}
+                  onOpen={(id) => {
+                    const row = rows.find((r) => r.id === id);
+                    if (row) openItem(row);
+                  }}
+                />
+              </div>
+              {feedPosts.map((item) => renderFeedPost(item))}
+            </div>
+          ) : null}
 
-      {/* ── LIST VIEW ── */}
-      {!loading && !unavailable && !error && filtered.length > 0 && view === 'list' ? (
-        <div className="oma-plan-list oma-plx-content-list" data-testid="demo-content-list">
-          <div className="oma-plan-list__head">
-            <label className="oma-plan-list__select-all">
-              <input
-                type="checkbox"
-                checked={selectedIds.length > 0 && selectedIds.length === sorted.length}
-                onChange={(e) => {
-                  if (e.target.checked) setSelectedIds(sorted.map((r) => r.id));
-                  else setSelectedIds([]);
+          {/* ── LIST VIEW ── */}
+          {!loading && !unavailable && !error && filtered.length > 0 && view === 'list' ? (
+            <div className="oma-plan-list oma-plx-content-list" data-testid="demo-content-list">
+              <div className="oma-plan-list__head">
+                <label className="oma-plan-list__select-all">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.length > 0 && selectedIds.length === sorted.length}
+                    onChange={(e) => {
+                      if (e.target.checked) setSelectedIds(sorted.map((r) => r.id));
+                      else setSelectedIds([]);
+                    }}
+                  />
+                  <span>{t('content.select_all').replace('{n}', String(sorted.length))}</span>
+                </label>
+                <button
+                  type="button"
+                  className="oma-plan-list__sort"
+                  onClick={() => toggleSort('date')}
+                >
+                  {t('content.last_created')} {sortDir === 'asc' ? '↑' : '↓'}
+                </button>
+              </div>
+              <div className="oma-plan-list__scroll">
+                <div className="oma-plan-list__body">
+                  {sorted.map((item) => {
+                    const selected = selectedIds.includes(item.id);
+                    return (
+                      <div
+                        key={item.id}
+                        className="oma-plan-list__row"
+                        data-testid={`demo-content-card-${item.id}`}
+                        data-selected={selected ? 'true' : 'false'}
+                        onClick={() => openItem(item)}
+                      >
+                        <label
+                          className="oma-plan-list__check"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={selected}
+                            onChange={() => toggleSelectId(item.id)}
+                          />
+                        </label>
+                        <div className="oma-plan-list__thumb" aria-hidden>
+                          {item.previewAsset ? (
+                            <MediaSurface
+                              src={item.previewAsset}
+                              contentType={item.contentType}
+                              alt={pickCopy(item.title, locale)}
+                              autoPlay
+                              loop
+                            />
+                          ) : (
+                            <span className="oma-plan-list__thumb-ph">▣</span>
+                          )}
+                        </div>
+                        <div className="oma-plan-list__main">
+                          <div className="oma-plan-list__page">
+                            <span className="oma-plan-list__page-ico" aria-hidden>
+                              <NetworkIcon channel={item.channel} size={14} />
+                            </span>
+                            <span className="oma-plan-list__page-name">
+                              {brandName(item.brandId)}
+                            </span>
+                          </div>
+                          <div className="oma-plan-list__title" dir="auto">
+                            {item.caption
+                              ? pickCopy(item.caption, locale)
+                              : pickCopy(item.title, locale)}
+                          </div>
+                        </div>
+                        <div className="oma-plan-list__labels">
+                          {rowLabels(item).length > 2 ? (
+                            <span className="oma-plx-label-pill oma-plx-label-pill--muted">
+                              {t('views.labels_count').replace(
+                                '{n}',
+                                String(rowLabels(item).length),
+                              )}
+                            </span>
+                          ) : (
+                            rowLabels(item).map((lab) => (
+                              <span key={lab} className="oma-plx-label-pill" data-label={lab}>
+                                {lab}
+                              </span>
+                            ))
+                          )}
+                        </div>
+                        <div className="oma-plan-list__mid">
+                          <StatusIcons s={postStatus(item)} t={t} />
+                        </div>
+                        <div className="oma-plan-list__hover">
+                          <button
+                            type="button"
+                            className="oma-plan-list__ico-btn"
+                            data-tooltip={t('demo.deliverable.approve')}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              void runLifecycle('approve', item.id);
+                            }}
+                          >
+                            <CheckOutlined />
+                          </button>
+                          <button
+                            type="button"
+                            className="oma-plan-list__ico-btn"
+                            data-tooltip={
+                              (item as ContentRowExtra).clientVisible !== false
+                                ? t('content.hide_from_clients')
+                                : t('content.show_to_clients')
+                            }
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              void toggleHideFromClients(item.id);
+                            }}
+                          >
+                            <EyeInvisibleOutlined />
+                          </button>
+                          <button
+                            type="button"
+                            className="oma-plan-list__ico-btn"
+                            data-tooltip={t('demo.tasks.copyLink')}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              void navigator.clipboard?.writeText(window.location.href);
+                              toast.push(t('content.link_copied'), 'success');
+                            }}
+                          >
+                            <LinkOutlined />
+                          </button>
+                        </div>
+                        <CardActionsButton
+                          itemId={item.id}
+                          open={cardMenuId === item.id}
+                          label={t('content.post_actions')}
+                          className="oma-card-actions-btn--list"
+                          onOpen={placeCardMenu}
+                          onClose={closeCardMenu}
+                        />
+                        <div
+                          className="oma-plan-list__when"
+                          data-overdue={postStatus(item).overdue ? 'true' : 'false'}
+                        >
+                          {item.scheduledAt || item.plannedAt
+                            ? postDateText(item)
+                            : t('preview.no_date')}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {/* ── GRID VIEW (Planable: stories row + 3-column gapless tiles) ── */}
+          {!loading && !unavailable && !error && filtered.length > 0 && view === 'grid' ? (
+            <div className="oma-pv-grid-wrap" data-testid="demo-content-grid">
+              <StoriesRow
+                stories={filtered
+                  .filter((i) => i.contentType === 'STORY')
+                  .map((i) => ({
+                    id: i.id,
+                    media: i.previewAsset || null,
+                    title: pickCopy(i.title, locale),
+                  }))}
+                canCreate={mayCreate}
+                onNew={startStory}
+                onOpen={(id) => {
+                  const row = rows.find((r) => r.id === id);
+                  if (row) openItem(row);
                 }}
               />
-              <span>{t('content.select_all').replace('{n}', String(sorted.length))}</span>
-            </label>
-            <button
-              type="button"
-              className="oma-plan-list__sort"
-              onClick={() => toggleSort('date')}
-            >
-              {t('content.last_created')} {sortDir === 'asc' ? '↑' : '↓'}
-            </button>
-          </div>
-          <div className="oma-plan-list__scroll">
-            <div className="oma-plan-list__body">
-              {sorted.map((item) => {
-                const selected = selectedIds.includes(item.id);
-                return (
-                  <div
-                    key={item.id}
-                    className="oma-plan-list__row"
-                    data-testid={`demo-content-card-${item.id}`}
-                    data-selected={selected ? 'true' : 'false'}
-                    onClick={() => openItem(item)}
-                  >
-                    <label className="oma-plan-list__check" onClick={(e) => e.stopPropagation()}>
-                      <input
-                        type="checkbox"
-                        checked={selected}
-                        onChange={() => toggleSelectId(item.id)}
-                      />
-                    </label>
-                    <div className="oma-plan-list__thumb" aria-hidden>
-                      {item.previewAsset ? (
-                        <MediaSurface
-                          src={item.previewAsset}
-                          contentType={item.contentType}
-                          alt={pickCopy(item.title, locale)}
-                          autoPlay
-                          loop
-                        />
-                      ) : (
-                        <span className="oma-plan-list__thumb-ph">▣</span>
-                      )}
-                    </div>
-                    <div className="oma-plan-list__main">
-                      <div className="oma-plan-list__page">
-                        <span className="oma-plan-list__page-ico" aria-hidden>
-                          <NetworkIcon channel={item.channel} size={14} />
-                        </span>
-                        <span className="oma-plan-list__page-name">{brandName(item.brandId)}</span>
-                      </div>
-                      <div className="oma-plan-list__title" dir="auto">
-                        {item.caption
-                          ? pickCopy(item.caption, locale)
-                          : pickCopy(item.title, locale)}
-                      </div>
-                    </div>
-                    <div className="oma-plan-list__labels">
-                      {rowLabels(item).length > 2 ? (
-                        <span className="oma-plx-label-pill oma-plx-label-pill--muted">
-                          {t('views.labels_count').replace('{n}', String(rowLabels(item).length))}
-                        </span>
-                      ) : (
-                        rowLabels(item).map((lab) => (
-                          <span key={lab} className="oma-plx-label-pill" data-label={lab}>
-                            {lab}
-                          </span>
-                        ))
-                      )}
-                    </div>
-                    <div className="oma-plan-list__mid">
-                      <StatusIcons s={postStatus(item)} t={t} />
-                    </div>
-                    <div className="oma-plan-list__hover">
-                      <button
-                        type="button"
-                        className="oma-plan-list__ico-btn"
-                        data-tooltip={t('demo.deliverable.approve')}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          void runLifecycle('approve', item.id);
-                        }}
-                      >
-                        <CheckOutlined />
-                      </button>
-                      <button
-                        type="button"
-                        className="oma-plan-list__ico-btn"
-                        data-tooltip={
-                          (item as ContentRowExtra).clientVisible !== false
-                            ? t('content.hide_from_clients')
-                            : t('content.show_to_clients')
-                        }
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          void toggleHideFromClients(item.id);
-                        }}
-                      >
-                        <EyeInvisibleOutlined />
-                      </button>
-                      <button
-                        type="button"
-                        className="oma-plan-list__ico-btn"
-                        data-tooltip={t('demo.tasks.copyLink')}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          void navigator.clipboard?.writeText(window.location.href);
-                          toast.push(t('content.link_copied'), 'success');
-                        }}
-                      >
-                        <LinkOutlined />
-                      </button>
-                    </div>
-                    <CardActionsButton
-                      itemId={item.id}
-                      open={cardMenuId === item.id}
-                      label={t('content.post_actions')}
-                      className="oma-card-actions-btn--list"
-                      onOpen={placeCardMenu}
-                      onClose={closeCardMenu}
+              <div className="oma-pv-grid">
+                {filtered
+                  .filter((i) => i.contentType !== 'STORY')
+                  .map((item) => (
+                    <GridTile
+                      key={item.id}
+                      testId={`demo-content-card-${item.id}`}
+                      caption={
+                        item.caption ? pickCopy(item.caption, locale) : pickCopy(item.title, locale)
+                      }
+                      media={item.previewAsset || null}
+                      contentType={item.contentType}
+                      dateText={postDateText(item)}
+                      status={postStatus(item)}
+                      onOpen={() => openItem(item)}
                     />
-                    <div
-                      className="oma-plan-list__when"
-                      data-overdue={postStatus(item).overdue ? 'true' : 'false'}
-                    >
-                      {item.scheduledAt || item.plannedAt
-                        ? postDateText(item)
-                        : t('preview.no_date')}
-                    </div>
-                  </div>
-                );
-              })}
+                  ))}
+              </div>
             </div>
-          </div>
+          ) : null}
         </div>
-      ) : null}
-
-      {/* ── GRID VIEW (Planable: stories row + 3-column gapless tiles) ── */}
-      {!loading && !unavailable && !error && filtered.length > 0 && view === 'grid' ? (
-        <div className="oma-pv-grid-wrap" data-testid="demo-content-grid">
-          <StoriesRow
-            stories={filtered
-              .filter((i) => i.contentType === 'STORY')
-              .map((i) => ({
-                id: i.id,
-                media: i.previewAsset || null,
-                title: pickCopy(i.title, locale),
-              }))}
-            canCreate={mayCreate}
-            onNew={startStory}
-            onOpen={(id) => {
-              const row = rows.find((r) => r.id === id);
-              if (row) openItem(row);
-            }}
-          />
-          <div className="oma-pv-grid">
-            {filtered
-              .filter((i) => i.contentType !== 'STORY')
-              .map((item) => (
-                <GridTile
-                  key={item.id}
-                  testId={`demo-content-card-${item.id}`}
-                  caption={
-                    item.caption ? pickCopy(item.caption, locale) : pickCopy(item.title, locale)
-                  }
-                  media={item.previewAsset || null}
-                  contentType={item.contentType}
-                  dateText={postDateText(item)}
-                  status={postStatus(item)}
-                  onOpen={() => openItem(item)}
-                />
-              ))}
-          </div>
-        </div>
-      ) : null}
+        <MediaPickerDialog
+          open={mediaLibraryOpen}
+          variant="panel"
+          brandId={createForm.brandId || brands[0]?.id || null}
+          kind="posts"
+          t={t}
+          locale={locale}
+          canConnect={canManageWorkspace}
+          onClose={() => setMediaLibraryOpen(false)}
+          onPick={(asset) => {
+            setCreateForm((f) => ({
+              ...f,
+              media: f.media.some((selected) => selected.id === asset.id)
+                ? f.media
+                : [...f.media, asset],
+            }));
+            setCreateOpen(true);
+          }}
+        />
+      </div>
 
       {/* ── Post detail modal (drawer) ── */}
       <Dialog
@@ -6606,26 +6645,6 @@ export default function ContentPage() {
           setFeedbackAttachmentIds((ids) => (ids.includes(asset.id) ? ids : [...ids, asset.id]));
           setFeedbackAttachOpen(false);
           toast.push(isAr ? 'تم إرفاق الوسائط بالتعليق' : 'Attachment added to comment', 'success');
-        }}
-      />
-
-      {/* Media library (WorkDrive) */}
-      <MediaPickerDialog
-        open={mediaLibraryOpen}
-        brandId={createForm.brandId || brands[0]?.id || null}
-        kind="posts"
-        t={t}
-        locale={locale}
-        canConnect={canManageWorkspace}
-        onClose={() => setMediaLibraryOpen(false)}
-        onPick={(asset) => {
-          setCreateForm((f) => ({
-            ...f,
-            media: f.media.some((selected) => selected.id === asset.id)
-              ? f.media
-              : [...f.media, asset],
-          }));
-          setCreateOpen(true);
         }}
       />
 

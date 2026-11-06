@@ -425,6 +425,44 @@ describe('WorkDrive storage (API + worker, local Postgres)', () => {
     ).json();
     expect(nested.data.folder.id).toBe(brandFolder.id);
     expect(nested.data.files.map((f: { name: string }) => f.name)).toContain('launch post.png');
+    expect(nested.data.brand_folder).toMatchObject({ name: 'Lumen Coffee' });
+    const launch = nested.data.files.find((f: { name: string }) => f.name === 'launch post.png');
+    expect(launch.usage_count).toBeGreaterThanOrEqual(1);
+    expect(launch.view_url).toBeTruthy();
+  });
+
+  it('creates a WorkDrive folder and previews a file without importing it', async () => {
+    const created = await fetch(`${seed.baseUrl}/api/v1/brands/${brandId}/media/folders`, {
+      method: 'POST',
+      headers: authHeaders(seed),
+      body: JSON.stringify({ name: 'Spring Release', kind: 'posts', scope: 'brand' }),
+    });
+    expect(created.status).toBe(201);
+    expect((await created.json()).data).toMatchObject({ name: 'Spring Release' });
+    const brand = await (
+      await fetch(`${seed.baseUrl}/api/v1/brands/${brandId}/media/browse?kind=posts`, {
+        headers: authHeaders(seed),
+      })
+    ).json();
+    expect(brand.data.folders.map((f: { name: string }) => f.name)).toContain('Spring Release');
+
+    const postsFolder = brand.data.folders.find((f: { name: string }) => f.name === 'posts');
+    expect(postsFolder).toBeDefined();
+    const posts = await (
+      await fetch(
+        `${seed.baseUrl}/api/v1/brands/${brandId}/media/browse?kind=posts&folder_id=${encodeURIComponent(postsFolder.id)}`,
+        { headers: authHeaders(seed) },
+      )
+    ).json();
+    const file = posts.data.files.find((f: { name: string }) => f.name === 'launch post.png');
+    expect(file).toBeDefined();
+    const preview = await fetch(
+      `${seed.baseUrl}/api/v1/brands/${brandId}/media/file-preview?file_id=${encodeURIComponent(file.id)}`,
+      { headers: authHeaders(seed), redirect: 'manual' },
+    );
+    expect(preview.status).toBeGreaterThanOrEqual(300);
+    expect(preview.status).toBeLessThan(400);
+    expect(preview.headers.get('location')).toMatch(/^https?:\/\//);
   });
 
   it('a file deleted in WorkDrive stays referenced with a missing warning (no destructive sync)', async () => {
