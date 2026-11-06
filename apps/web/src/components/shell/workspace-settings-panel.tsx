@@ -7,6 +7,7 @@ import { api } from '../../lib/api';
 import { getPreferences, updatePreferences, type UserPreferences } from '../../lib/account-api';
 import { ShellIcon } from './shell-icons';
 import type { NavIconId } from './nav-config';
+import { WorkspaceApprovals } from './workspace-approvals';
 import {
   createLabel,
   createTemplate,
@@ -20,7 +21,6 @@ import {
   getWorkspaceSettings,
   patchWorkspaceSettings,
   loadTimeSlots,
-  saveApprovalSettings,
   saveTimeSlots,
   type ApprovalSettings,
   type ContentLabel,
@@ -289,86 +289,20 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
           )}
 
           {section === 'approvals' && (
-            <div className="oma-ws-section" data-testid="ws-approvals">
-              <h2 className="oma-ws-section-title">{t('activity.filter.approvals')}</h2>
-              <p className="oma-ws-empty-desc">{t('wsPanel.choose_how_posts_are_approved')}</p>
+            <div className="oma-ws-section oma-ws-section--approvals" data-testid="ws-approvals">
+              <h2 className="oma-ws-section-title">{t('wsPanel.nav.approvals')}</h2>
               {approvalsState === 'loading' ? (
-                <div className="oma-skeleton" style={{ height: 120 }} aria-busy="true" />
+                <div className="oma-skeleton" style={{ height: 160 }} aria-busy="true" />
               ) : approvalsState === 'error' ? (
                 <p className="oma-ws-save-msg" role="alert" data-testid="ws-approvals-error">
                   {t('wsPanel.could_not_load_approval_settings')} {approvalsError}
                 </p>
               ) : (
-                <>
-                  <div className="oma-ws-field">
-                    <label className="oma-ws-label">{t('demo.content.policy')}</label>
-                    <SelectField
-                      data-testid="ws-approval-mode"
-                      value={approvals.mode}
-                      onChange={(e) =>
-                        setApprovals({
-                          ...approvals,
-                          mode: e.target.value as ApprovalSettings['mode'],
-                        })
-                      }
-                    >
-                      <option value="none">{t('wsPanel.none_no_approval_step')}</option>
-                      <option value="optional">{t('wsPanel.optional_approval_available')}</option>
-                      <option value="required">
-                        {t('wsPanel.required_no_scheduling_until_approved')}
-                      </option>
-                    </SelectField>
-                  </div>
-                  {approvals.mode === 'required' ? (
-                    <div className="oma-ws-field">
-                      <label className="oma-ws-label">{t('wsPanel.approvers_required')}</label>
-                      <SelectField
-                        data-testid="ws-required-approvers"
-                        value={String(approvals.requiredApprovers)}
-                        onChange={(e) =>
-                          setApprovals({ ...approvals, requiredApprovers: Number(e.target.value) })
-                        }
-                      >
-                        {[1, 2, 3, 4, 5].map((n) => (
-                          <option key={n} value={String(n)}>
-                            {n}
-                          </option>
-                        ))}
-                      </SelectField>
-                      <p className="oma-ws-empty-desc">
-                        {t('wsPanel.each_approval_must_come_from')}
-                      </p>
-                    </div>
-                  ) : null}
-                  <div className="oma-ws-action-row">
-                    <Button
-                      type="primary"
-                      loading={approvalsState === 'saving'}
-                      data-testid="ws-approvals-save"
-                      onClick={() => {
-                        setApprovalsState('saving');
-                        saveApprovalSettings(approvals)
-                          .then((next) => {
-                            setApprovals(next);
-                            setApprovalsState('ready');
-                            setMsg(t('wsPanel.approval_settings_saved'));
-                          })
-                          .catch((err: unknown) => {
-                            setApprovalsState('ready');
-                            setMsg(
-                              t('wsPanel.could_not_save') +
-                                (err instanceof Error ? err.message : String(err)),
-                            );
-                          });
-                      }}
-                    >
-                      {t('wsPanel.save_approval_settings')}
-                    </Button>
-                    <Button type="default" onClick={() => (window.location.href = '/app/reviews')}>
-                      {t('wsPanel.open_reviews')}
-                    </Button>
-                  </div>
-                </>
+                <WorkspaceApprovals
+                  approvals={approvals}
+                  onChange={setApprovals}
+                  onError={(msg) => setMsg(msg)}
+                />
               )}
               {msg ? <p className="oma-ws-save-msg">{msg}</p> : null}
             </div>

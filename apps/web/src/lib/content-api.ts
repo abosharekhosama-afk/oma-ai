@@ -476,6 +476,8 @@ export type ApiDayNote = {
   text: { en: string; ar: string };
   color: string;
   locked: boolean;
+  visibility?: 'only_me' | 'team' | 'all';
+  created_by?: string;
 };
 
 export async function listDayNotes(brandId: string, from?: string, to?: string) {
@@ -491,7 +493,13 @@ export async function listDayNotes(brandId: string, from?: string, to?: string) 
 
 export async function upsertDayNote(
   brandId: string,
-  input: { dayKey: string; text?: string; color?: string; locked?: boolean },
+  input: {
+    dayKey: string;
+    text?: string;
+    color?: string;
+    locked?: boolean;
+    visibility?: 'only_me' | 'team' | 'all';
+  },
 ) {
   const res = await api<{ data: ApiDayNote }>(`/api/v1/brands/${brandId}/day-notes`, {
     method: 'POST',

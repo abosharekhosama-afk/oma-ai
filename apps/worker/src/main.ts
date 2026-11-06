@@ -112,6 +112,16 @@ async function main() {
   };
   setInterval(() => void scheduleInboxSync(), 10 * 60 * 1000);
 
+  const scheduleApprovalReminders = async () => {
+    try {
+      const { tickApprovalReminders } = await import('./notifications/approval-reminders');
+      await tickApprovalReminders();
+    } catch (err) {
+      log.error({ err: String(err) }, 'approval reminder tick failed');
+    }
+  };
+  setTimeout(() => void scheduleApprovalReminders(), 20_000);
+  setInterval(() => void scheduleApprovalReminders(), 6 * 60 * 60 * 1000);
 
   const healthPort = Number(process.env.WORKER_HEALTH_PORT ?? 3002);
   const health = createServer((_req, res) => {

@@ -78,12 +78,10 @@ import {
   FileTextOutlined,
   FilterOutlined,
   FlagOutlined,
-  FormOutlined,
   GlobalOutlined,
   HistoryOutlined,
   InboxOutlined,
   LinkOutlined,
-  LockOutlined,
   MessageOutlined,
   MobileOutlined,
   MoreOutlined,
@@ -104,6 +102,11 @@ import { Dialog } from '../../../../components/ui/dialog';
 import { EmptyState, DeniedState } from '../../../../components/ui/empty-state';
 import { useToast } from '../../../../components/ui/toast';
 import { MediaPickerDialog, MediaThumb } from '../../../../components/content/media-picker';
+import {
+  CalendarStickyNote,
+  type CalendarNoteValue,
+  type NoteVisibility,
+} from '../../../../components/content/calendar-sticky-note';
 import { ComposeMediaToolbar } from '../../../../components/content/compose-media-toolbar';
 import { mediaApi, type MediaAsset } from '../../../../lib/workdrive-api';
 import {
@@ -1569,16 +1572,9 @@ export default function ContentPage() {
   const [filterSheet, setFilterSheet] = useState(false);
   const [filterSection, setFilterSection] = useState<string | null>(null);
   const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
-  const [dayNotes, setDayNotes] = useState<Record<string, { text: string; color: string }>>({});
+  const [dayNotes, setDayNotes] = useState<Record<string, CalendarNoteValue>>({});
   const [noteColorOpen, setNoteColorOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 767px)');
-    const apply = () => setIsMobile(mq.matches);
-    apply();
-    mq.addEventListener('change', apply);
-    return () => mq.removeEventListener('change', apply);
-  }, []);
+  const [noteMenuOpen, setNoteMenuOpen] = useState(false);
   const [noteDay, setNoteDay] = useState<string | null>(null);
   const [approvalMode, setApprovalMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -1753,12 +1749,18 @@ export default function ContentPage() {
       if (primaryBrand) {
         void listDayNotes(primaryBrand)
           .then((notes) => {
-            const map: Record<string, { text: string; color: string; locked?: boolean }> = {};
+            const map: Record<string, CalendarNoteValue> = {};
             for (const n of notes) {
+              const visibility: NoteVisibility =
+                n.visibility === 'team' || n.visibility === 'all'
+                  ? n.visibility
+                  : n.locked
+                    ? 'only_me'
+                    : 'only_me';
               map[n.day_key] = {
                 text: locale.toLowerCase().startsWith('ar') ? n.text.ar || n.text.en : n.text.en,
-                color: n.color,
-                locked: n.locked,
+                color: n.color || 'yellow',
+                visibility,
               };
             }
             setDayNotes(map);
@@ -1910,7 +1912,12 @@ export default function ContentPage() {
 
   async function persistNote(
     dayKey: string,
-    patch: { text?: string; color?: string; locked?: boolean; remove?: boolean },
+    patch: {
+      text?: string;
+      color?: string;
+      visibility?: NoteVisibility;
+      remove?: boolean;
+    },
   ) {
     if (!brandIdForWorkspaceOps || !dayKey) return;
     try {
@@ -1921,19 +1928,44 @@ export default function ContentPage() {
           delete next[dayKey];
           return next;
         });
+        setNoteDay(null);
+        setNoteColorOpen(false);
+        setNoteMenuOpen(false);
         return;
       }
       const current = dayNotes[dayKey];
       const text = patch.text !== undefined ? patch.text : (current?.text ?? '');
       const color = patch.color ?? current?.color ?? 'yellow';
-      const locked = patch.locked ?? false;
-      await upsertDayNote(brandIdForWorkspaceOps, { dayKey, text, color, locked });
+      const visibility = patch.visibility ?? current?.visibility ?? 'only_me';
+      await upsertDayNote(brandIdForWorkspaceOps, {
+        dayKey,
+        text,
+        color,
+        visibility,
+        locked: visibility === 'only_me',
+      });
       setDayNotes((prev) => ({
         ...prev,
-        [dayKey]: { text, color, locked },
+        [dayKey]: { text, color, visibility },
       }));
     } catch (err) {
       toast.push(contentApiError(err, t('content.failed_to_save_note')), 'danger');
+      if (brandIdForWorkspaceOps) {
+        void listDayNotes(brandIdForWorkspaceOps)
+          .then((notes) => {
+            const map: Record<string, CalendarNoteValue> = {};
+            for (const n of notes) {
+              map[n.day_key] = {
+                text: locale.toLowerCase().startsWith('ar') ? n.text.ar || n.text.en : n.text.en,
+                color: n.color || 'yellow',
+                visibility:
+                  n.visibility === 'team' || n.visibility === 'all' ? n.visibility : 'only_me',
+              };
+            }
+            setDayNotes(map);
+          })
+          .catch(() => undefined);
+      }
     }
   }
 
@@ -4180,9 +4212,25 @@ export default function ContentPage() {
                                 setDayNotes((prev) =>
                                   prev[cell.key]
                                     ? prev
-                                    : { ...prev, [cell.key]: { text: '', color: 'mint' } },
+                                    : {
+                                        ...prev,
+                                        [cell.key]: {
+                                          text: '',
+                                          color: 'yellow',
+                                          visibility: 'only_me',
+                                        },
+                                      },
                                 );
                                 setNoteDay(cell.key);
+                                setNoteColorOpen(false);
+                                setNoteMenuOpen(false);
+                                if (!dayNotes[cell.key]) {
+                                  void persistNote(cell.key, {
+                                    text: '',
+                                    color: 'yellow',
+                                    visibility: 'only_me',
+                                  });
+                                }
                               }}
                             >
                               <FileTextOutlined />
@@ -4191,127 +4239,67 @@ export default function ContentPage() {
                           </div>
 
                           <div className="oma-cal-cell__scroll">
-                            {/* Private sticky note — appears ABOVE cards */}
+                            {/* Planable sticky note — ABOVE cards */}
                             {calDisplay.showNotes && (note || noteDay === cell.key) ? (
-                              <div
-                                className="oma-cal-note oma-cal-note--inline"
-                                data-color={(note?.color ?? dayNotes[cell.key]?.color) || 'yellow'}
-                                data-active={noteDay === cell.key ? 'true' : 'false'}
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <div className="oma-cal-note__toolbar">
-                                  <div className="oma-cal-note__actions">
-                                    <button
-                                      type="button"
-                                      className="oma-cal-note__action"
-                                      data-tooltip={t('content.note_color')}
-                                      aria-label={t('wsPanel.color')}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setNoteDay(cell.key);
-                                        setNoteColorOpen((v) => !v);
-                                      }}
-                                    >
-                                      <span
-                                        className="oma-cal-note__color-dot"
-                                        data-color={dayNotes[cell.key]?.color ?? 'yellow'}
-                                      />
-                                      <DownOutlined className="oma-cal-note__action-ico" />
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className="oma-cal-note__action"
-                                      data-tooltip={t('demo.content.edit')}
-                                      aria-label={t('demo.content.edit')}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        setNoteDay(cell.key);
-                                        const ta = (
-                                          e.currentTarget.closest(
-                                            '.oma-cal-note',
-                                          ) as HTMLElement | null
-                                        )?.querySelector('textarea');
-                                        ta?.focus();
-                                      }}
-                                    >
-                                      <FormOutlined className="oma-cal-note__action-ico" />
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className="oma-cal-note__action"
-                                      data-tooltip={t('content.only_visible_to_you')}
-                                      aria-label={t('content.private')}
-                                      onClick={(e) => e.stopPropagation()}
-                                    >
-                                      <LockOutlined className="oma-cal-note__action-ico" />
-                                    </button>
-                                    <button
-                                      type="button"
-                                      className="oma-cal-note__action"
-                                      data-tooltip={t('wsPanel.delete')}
-                                      aria-label={t('wsPanel.delete')}
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        void persistNote(cell.key, { remove: true });
-                                        setNoteDay(null);
-                                        setNoteColorOpen(false);
-                                      }}
-                                    >
-                                      <DeleteOutlined className="oma-cal-note__action-ico" />
-                                    </button>
-                                  </div>
-                                  {noteDay === cell.key && noteColorOpen ? (
-                                    <div className="oma-cal-note__swatches" role="listbox">
-                                      {['yellow', 'mint', 'pink', 'lavender', 'blue'].map((c) => (
-                                        <button
-                                          key={c}
-                                          type="button"
-                                          className="oma-cal-note-swatch"
-                                          data-color={c}
-                                          data-active={
-                                            (dayNotes[cell.key]?.color ?? 'yellow') === c
-                                              ? 'true'
-                                              : 'false'
-                                          }
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            void persistNote(cell.key, { color: c });
-                                            setNoteColorOpen(false);
-                                          }}
-                                          aria-label={c}
-                                        />
-                                      ))}
-                                    </div>
-                                  ) : null}
-                                </div>
-                                <p className="oma-cal-note__hint">
-                                  {t('content.private_note_only_you_can')}
-                                </p>
-                                <textarea
-                                  className="oma-cal-note__input"
-                                  placeholder={t('content.type_a_private_note')}
-                                  value={dayNotes[cell.key]?.text ?? ''}
-                                  rows={3}
-                                  autoFocus={noteDay === cell.key && !isMobile}
-                                  onChange={(e) => {
-                                    const text = e.target.value;
-                                    setDayNotes((prev) => ({
-                                      ...prev,
-                                      [cell.key]: {
-                                        text,
-                                        color: prev[cell.key]?.color ?? 'yellow',
-                                      },
-                                    }));
-                                  }}
-                                  onFocus={() => {
-                                    setNoteDay(cell.key);
-                                    if (isMobile) setNoteColorOpen(false);
-                                  }}
-                                  onBlur={(e) =>
-                                    void persistNote(cell.key, { text: e.target.value })
+                              <CalendarStickyNote
+                                dayKey={cell.key}
+                                note={
+                                  dayNotes[cell.key] ?? {
+                                    text: '',
+                                    color: 'yellow',
+                                    visibility: 'only_me',
                                   }
-                                />
-                              </div>
+                                }
+                                active={noteDay === cell.key}
+                                colorOpen={noteDay === cell.key && noteColorOpen}
+                                menuOpen={noteDay === cell.key && noteMenuOpen}
+                                t={t}
+                                onActivate={() => {
+                                  setNoteDay(cell.key);
+                                }}
+                                onClosePopovers={() => {
+                                  setNoteColorOpen(false);
+                                  setNoteMenuOpen(false);
+                                }}
+                                onToggleColor={() => {
+                                  setNoteDay(cell.key);
+                                  setNoteColorOpen((v) => !v);
+                                  setNoteMenuOpen(false);
+                                }}
+                                onToggleMenu={() => {
+                                  setNoteDay(cell.key);
+                                  setNoteMenuOpen((v) => !v);
+                                  setNoteColorOpen(false);
+                                }}
+                                onChangeText={(text) => {
+                                  setDayNotes((prev) => ({
+                                    ...prev,
+                                    [cell.key]: {
+                                      text,
+                                      color: prev[cell.key]?.color ?? 'yellow',
+                                      visibility: prev[cell.key]?.visibility ?? 'only_me',
+                                    },
+                                  }));
+                                }}
+                                onCommitText={(text) => void persistNote(cell.key, { text })}
+                                onColor={(c) => {
+                                  void persistNote(cell.key, { color: c });
+                                  setNoteColorOpen(false);
+                                }}
+                                onVisibility={(visibility) => {
+                                  void persistNote(cell.key, { visibility });
+                                  setNoteMenuOpen(false);
+                                }}
+                                onDelete={() => {
+                                  void persistNote(cell.key, { remove: true });
+                                }}
+                                onCreatePost={() => {
+                                  setSelectedDay(cell.key);
+                                  setCreateForm((f) => ({ ...f, plannedDate: cell.key }));
+                                  setCreateOpen(true);
+                                  setNoteMenuOpen(false);
+                                }}
+                              />
                             ) : null}
 
                             {/* Campaign bar + holiday chip */}
@@ -6694,105 +6682,6 @@ export default function ContentPage() {
           </div>
         </div>
       ) : null}
-
-      {/* Mobile note editor modal */}
-      {noteDay && isMobile
-        ? createPortal(
-            <div className="oma-cal-note-modal" data-testid="demo-content-note-modal">
-              <button
-                type="button"
-                className="oma-cal-note-modal__backdrop"
-                aria-label={t('brand.evidence.close')}
-                onClick={() => {
-                  setNoteDay(null);
-                  setNoteColorOpen(false);
-                }}
-              />
-              <div
-                className="oma-cal-note-modal__card"
-                data-color={dayNotes[noteDay]?.color ?? 'yellow'}
-              >
-                <textarea
-                  className="oma-cal-note__input"
-                  placeholder={t('content.type_a_private_note')}
-                  value={dayNotes[noteDay]?.text ?? ''}
-                  rows={5}
-                  autoFocus
-                  onChange={(e) => {
-                    const text = e.target.value;
-                    setDayNotes((prev) => ({
-                      ...prev,
-                      [noteDay]: { text, color: prev[noteDay]?.color ?? 'yellow' },
-                    }));
-                  }}
-                  onBlur={(e) => void persistNote(noteDay, { text: e.target.value })}
-                />
-                <div className="oma-cal-note__actions">
-                  <button
-                    type="button"
-                    className="oma-cal-note__action"
-                    data-tooltip={t('content.note_color')}
-                    onClick={() => setNoteColorOpen((v) => !v)}
-                  >
-                    <span
-                      className="oma-cal-note__color-dot"
-                      data-color={dayNotes[noteDay]?.color ?? 'yellow'}
-                    />
-                    <DownOutlined />
-                  </button>
-                  <button
-                    type="button"
-                    className="oma-cal-note__action"
-                    data-tooltip={t('content.only_visible_to_you')}
-                  >
-                    <LockOutlined />
-                  </button>
-                  <button
-                    type="button"
-                    className="oma-cal-note__action"
-                    data-tooltip={t('wsPanel.delete')}
-                    onClick={() => {
-                      void persistNote(noteDay, { remove: true });
-                      setNoteDay(null);
-                    }}
-                  >
-                    <DeleteOutlined />
-                  </button>
-                  <button
-                    type="button"
-                    className="oma-cal-note-modal__done"
-                    onClick={() => {
-                      setNoteDay(null);
-                      setNoteColorOpen(false);
-                    }}
-                  >
-                    {t('demo.tasks.column.DONE')}
-                  </button>
-                </div>
-                {noteColorOpen ? (
-                  <div className="oma-cal-note__swatches oma-cal-note__swatches--below">
-                    {['yellow', 'mint', 'pink', 'lavender', 'blue'].map((c) => (
-                      <button
-                        key={c}
-                        type="button"
-                        className="oma-cal-note-swatch"
-                        data-color={c}
-                        data-active={
-                          (dayNotes[noteDay]?.color ?? 'yellow') === c ? 'true' : 'false'
-                        }
-                        onClick={() => {
-                          void persistNote(noteDay, { color: c });
-                          setNoteColorOpen(false);
-                        }}
-                      />
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-            </div>,
-            document.body,
-          )
-        : null}
 
       {/* Floating card hover menu (portal) */}
       <CardFloatingMenu

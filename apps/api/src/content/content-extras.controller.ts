@@ -24,7 +24,13 @@ export class ContentExtrasController {
     @Query('to') to?: string,
   ) {
     this.requireTenant(req);
-    return contentExtrasService.listDayNotes(req.oma!.tenantId!, brandId, from, to);
+    return contentExtrasService.listDayNotes(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      brandId,
+      from,
+      to,
+    );
   }
 
   @Post('api/v1/brands/:brandId/day-notes')
@@ -38,6 +44,7 @@ export class ContentExtrasController {
       text?: string | { en?: string; ar?: string };
       color?: string;
       locked?: boolean;
+      visibility?: string;
     },
   ) {
     this.requireTenant(req);
@@ -52,7 +59,12 @@ export class ContentExtrasController {
     @Param('dayKey') dayKey: string,
   ) {
     this.requireTenant(req);
-    return contentExtrasService.deleteDayNote(req.oma!.tenantId!, brandId, dayKey);
+    return contentExtrasService.deleteDayNote(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      brandId,
+      dayKey,
+    );
   }
 
   @Get('api/v1/brands/:brandId/content-labels')
