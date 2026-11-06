@@ -10,11 +10,11 @@
 
 ## 1) الخدمات الثلاثة
 
-| خدمة | أين تعمل عادة | دورها الاجتماعي |
-| --- | --- | --- |
-| **Web** | Vercel (`https://oma-ai-ecru.vercel.app`) | واجهة الربط والإنبوكس. تمرّر `/api/*` إلى الـ API حتى يبقى كوكي الجلسة على نفس الأصل. |
-| **API (السيرفر)** | Render (أو أي استضافة للـ Nest API) | بدء OAuth، استقبال الويب هوك، حفظ الأحداث، وضع المهام في Redis. |
-| **Worker** | Render (خدمة منفصلة) | نشر المنشورات المستحقة، تجديد التوكن، سحب الإنبوكس، جلب التفاعل. |
+| خدمة              | أين تعمل عادة                             | دورها الاجتماعي                                                                       |
+| ----------------- | ----------------------------------------- | ------------------------------------------------------------------------------------- |
+| **Web**           | Vercel (`https://oma-ai-ecru.vercel.app`) | واجهة الربط والإنبوكس. تمرّر `/api/*` إلى الـ API حتى يبقى كوكي الجلسة على نفس الأصل. |
+| **API (السيرفر)** | Render (أو أي استضافة للـ Nest API)       | بدء OAuth، استقبال الويب هوك، حفظ الأحداث، وضع المهام في Redis.                       |
+| **Worker**        | Render (خدمة منفصلة)                      | نشر المنشورات المستحقة، تجديد التوكن، سحب الإنبوكس، جلب التفاعل.                      |
 
 بدون **نفس** `SOCIAL_TOKEN_ENCRYPTION_KEY` على API وWorker تُرفض كل الشبكات بـ «غير متاح بعد»، حتى لو وُضعت مفاتيح ميتا/تيك توك.
 
@@ -26,31 +26,31 @@
 
 استبدل `<API_PUBLIC_URL>` بالأصل العلني للـ API كما يظهر في Render (بدون `/` أخيرة)، مثل `https://oma-xxxxx.onrender.com`.
 
-| الغرض | القيمة التي تسجّلها في لوحات المزودين |
-| --- | --- |
-| أصل الويب (OAuth + جلسة) | `https://oma-ai-ecru.vercel.app` |
-| أصل الـ API (ويب هوك فقط) | قيمة `API_PUBLIC_URL` |
+| الغرض                     | القيمة التي تسجّلها في لوحات المزودين |
+| ------------------------- | ------------------------------------- |
+| أصل الويب (OAuth + جلسة)  | `https://oma-ai-ecru.vercel.app`      |
+| أصل الـ API (ويب هوك فقط) | قيمة `API_PUBLIC_URL`                 |
 
 روابط **OAuth** (سجّلها كما هي، عبر أصل الويب):
 
-| الشبكة | Redirect URI |
-| --- | --- |
-| Facebook | `https://oma-ai-ecru.vercel.app/api/v1/social/oauth/facebook/callback` |
+| الشبكة    | Redirect URI                                                            |
+| --------- | ----------------------------------------------------------------------- |
+| Facebook  | `https://oma-ai-ecru.vercel.app/api/v1/social/oauth/facebook/callback`  |
 | Instagram | `https://oma-ai-ecru.vercel.app/api/v1/social/oauth/instagram/callback` |
-| WhatsApp | `https://oma-ai-ecru.vercel.app/api/v1/social/oauth/whatsapp/callback` |
-| LinkedIn | `https://oma-ai-ecru.vercel.app/api/v1/social/oauth/linkedin/callback` |
-| TikTok | `https://oma-ai-ecru.vercel.app/api/v1/social/oauth/tiktok/callback` |
-| X | `https://oma-ai-ecru.vercel.app/api/v1/social/oauth/x/callback` |
+| WhatsApp  | `https://oma-ai-ecru.vercel.app/api/v1/social/oauth/whatsapp/callback`  |
+| LinkedIn  | `https://oma-ai-ecru.vercel.app/api/v1/social/oauth/linkedin/callback`  |
+| TikTok    | `https://oma-ai-ecru.vercel.app/api/v1/social/oauth/tiktok/callback`    |
+| X         | `https://oma-ai-ecru.vercel.app/api/v1/social/oauth/x/callback`         |
 
 روابط **الويب هوك** (سجّلها على أصل الـ API، بدون جلسة، مع توقيع):
 
-| المزود | Callback URL | التحقق |
-| --- | --- | --- |
-| ميتا (فيسبوك + إنستغرام + واتساب) | `<API_PUBLIC_URL>/api/webhooks/meta` | GET `hub.challenge` + `META_WEBHOOK_VERIFY_TOKEN` |
-| واتساب (نفس التطبيق، مسار بديل) | `<API_PUBLIC_URL>/api/webhooks/whatsapp` | نفس توكن ميتا أو `WHATSAPP_VERIFY_TOKEN` |
-| تيك توك | `<API_PUBLIC_URL>/api/webhooks/tiktok` | HMAC عبر `TIKTOK_WEBHOOK_SECRET` |
-| لينكدإن | `<API_PUBLIC_URL>/api/webhooks/linkedin` | HMAC عبر `LINKEDIN_WEBHOOK_SECRET` |
-| X | `<API_PUBLIC_URL>/api/webhooks/x` | CRC GET + HMAC عبر `X_WEBHOOK_SECRET` |
+| المزود                            | Callback URL                             | التحقق                                            |
+| --------------------------------- | ---------------------------------------- | ------------------------------------------------- |
+| ميتا (فيسبوك + إنستغرام + واتساب) | `<API_PUBLIC_URL>/api/webhooks/meta`     | GET `hub.challenge` + `META_WEBHOOK_VERIFY_TOKEN` |
+| واتساب (نفس التطبيق، مسار بديل)   | `<API_PUBLIC_URL>/api/webhooks/whatsapp` | نفس توكن ميتا أو `WHATSAPP_VERIFY_TOKEN`          |
+| تيك توك                           | `<API_PUBLIC_URL>/api/webhooks/tiktok`   | HMAC عبر `TIKTOK_WEBHOOK_SECRET`                  |
+| لينكدإن                           | `<API_PUBLIC_URL>/api/webhooks/linkedin` | HMAC عبر `LINKEDIN_WEBHOOK_SECRET`                |
+| X                                 | `<API_PUBLIC_URL>/api/webhooks/x`        | CRC GET + HMAC عبر `X_WEBHOOK_SECRET`             |
 
 لا تستخدم مسار علامة مثل `/api/v1/brands/<id>/social-pages`. المسار الوحيد للـ OAuth هو `/api/v1/social/oauth/<network>/callback`.
 
@@ -159,69 +159,69 @@ INBOX_CONCURRENCY=5
 
 ### 5.1 مشترك
 
-| المتغير | API | Worker | إلزامي | ماذا يلزم |
-| --- | --- | --- | --- | --- |
-| `SOCIAL_TOKEN_ENCRYPTION_KEY` | نعم | نعم (نفس القيمة) | **نعم لأي شبكة** | يشفر توكنات الحسابات (AES-256-GCM). تدويره يقطع كل الحسابات ويجب إعادة الربط. |
-| `REDIS_URL` | نعم | نعم (نفس القيمة) | **نعم** للويب هوك والنشر غير المتزامن | طابور BullMQ: `inbox.webhook` و`inbox.sync` و`social`. |
-| `SOCIAL_OAUTH_REDIRECT_BASE` | نعم | لا | مُفضّل | أصل بناء رابط الـ callback. ضعه على أصل الويب. |
-| `WEB_BASE_URL` / `WEB_ORIGIN` | نعم | نعم | نعم للإنتاج | أصل فيرسل. يُستخدم في إعادة التوجيه بعد OAuth وروابط الإشعارات وبروكسي تيك توك. |
-| `API_PUBLIC_URL` | نعم | لا* | نعم للويب هوك | الأصل العلني للـ API. هذا ما تسجّله ميتا/تيك توك كـ Callback. |
-| `MEDIA_PROXY_ORIGIN` | اختياري | نعم لتيك توك | لتيك توك | نطاق عام يتحقق منه تيك توك لـ `PULL_FROM_URL`. عادة أصل الويب. |
-| `SOCIAL_PUBLISH_INTERVAL_MS` | لا | اختياري | لا | كم مرة يفحص المنشورات المستحقة. الافتراضي 30000. |
-| `SOCIAL_REFRESH_INTERVAL_MS` | لا | اختياري | لا | فحص/تجديد التوكن. الافتراضي 900000 (15 دقيقة). |
-| `SOCIAL_INSIGHTS_INTERVAL_MS` | لا | اختياري | لا | سحب تفاعل المنشورات المنشورة. الافتراضي 900000. |
-| `INBOX_SYNC_DAYS` | لا | اختياري | لا | عمق السحب التاريخي لفيسبوك/إنستغرام/X. الافتراضي 14 يومًا. |
-| `INBOX_CONCURRENCY` | لا | اختياري | لا | توازي مهام الإنبوكس. الافتراضي 5. |
-| `INBOX_DEFAULT_TENANT_ID` | لا | اختياري | لا | مستأجر احتياطي إذا وصل ويب هوك بلا صفحة مربوطة. اتركه فارغًا في الإنتاج ما لم تعرف الـ id. |
+| المتغير                       | API     | Worker           | إلزامي                                | ماذا يلزم                                                                                  |
+| ----------------------------- | ------- | ---------------- | ------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `SOCIAL_TOKEN_ENCRYPTION_KEY` | نعم     | نعم (نفس القيمة) | **نعم لأي شبكة**                      | يشفر توكنات الحسابات (AES-256-GCM). تدويره يقطع كل الحسابات ويجب إعادة الربط.              |
+| `REDIS_URL`                   | نعم     | نعم (نفس القيمة) | **نعم** للويب هوك والنشر غير المتزامن | طابور BullMQ: `inbox.webhook` و`inbox.sync` و`social`.                                     |
+| `SOCIAL_OAUTH_REDIRECT_BASE`  | نعم     | لا               | مُفضّل                                | أصل بناء رابط الـ callback. ضعه على أصل الويب.                                             |
+| `WEB_BASE_URL` / `WEB_ORIGIN` | نعم     | نعم              | نعم للإنتاج                           | أصل فيرسل. يُستخدم في إعادة التوجيه بعد OAuth وروابط الإشعارات وبروكسي تيك توك.            |
+| `API_PUBLIC_URL`              | نعم     | لا*              | نعم للويب هوك                         | الأصل العلني للـ API. هذا ما تسجّله ميتا/تيك توك كـ Callback.                              |
+| `MEDIA_PROXY_ORIGIN`          | اختياري | نعم لتيك توك     | لتيك توك                              | نطاق عام يتحقق منه تيك توك لـ `PULL_FROM_URL`. عادة أصل الويب.                             |
+| `SOCIAL_PUBLISH_INTERVAL_MS`  | لا      | اختياري          | لا                                    | كم مرة يفحص المنشورات المستحقة. الافتراضي 30000.                                           |
+| `SOCIAL_REFRESH_INTERVAL_MS`  | لا      | اختياري          | لا                                    | فحص/تجديد التوكن. الافتراضي 900000 (15 دقيقة).                                             |
+| `SOCIAL_INSIGHTS_INTERVAL_MS` | لا      | اختياري          | لا                                    | سحب تفاعل المنشورات المنشورة. الافتراضي 900000.                                            |
+| `INBOX_SYNC_DAYS`             | لا      | اختياري          | لا                                    | عمق السحب التاريخي لفيسبوك/إنستغرام/X. الافتراضي 14 يومًا.                                 |
+| `INBOX_CONCURRENCY`           | لا      | اختياري          | لا                                    | توازي مهام الإنبوكس. الافتراضي 5.                                                          |
+| `INBOX_DEFAULT_TENANT_ID`     | لا      | اختياري          | لا                                    | مستأجر احتياطي إذا وصل ويب هوك بلا صفحة مربوطة. اتركه فارغًا في الإنتاج ما لم تعرف الـ id. |
 
 \*الـ Worker لا يستقبل الويب هوك، لكنه يحتاج أن يستطيع النداء للواجهات العامة عبر التوكن المحفوظ.
 
 ### 5.2 ميتا / واتساب
 
-| المتغير | API | Worker | إلزامي لـ | ماذا يلزم |
-| --- | --- | --- | --- | --- |
-| `META_APP_ID` | نعم | نعم | فيسبوك + إنستغرام + واتساب | App ID من developers.facebook.com → التطبيق → Settings → Basic. |
-| `META_APP_SECRET` | نعم | نعم | نفس الشبكات + توقيع الويب هوك | App Secret من نفس الصفحة. يُستخدم HMAC لـ `X-Hub-Signature-256`. |
-| `META_GRAPH_VERSION` | نعم | نعم | لا (افتراضي `v21.0`) | إصدار Graph. أبقِه `v21.0` ما لم تطلب ميتا ترقية. |
-| `META_WEBHOOK_VERIFY_TOKEN` | نعم | لا | الويب هوك | سلسلة عشوائية **تكتبها أنت** في ميتا وفي هذا المتغير. ليست من لوحة ميتا جاهزة. |
-| `WHATSAPP_VERIFY_TOKEN` | نعم | لا | بديل | إن فُرغ `META_WEBHOOK_VERIFY_TOKEN` يُستخدم هذا. يُفضّل قيمة واحدة في الاثنين. |
-| `META_FACEBOOK_REDIRECT_URI` | نعم | لا | إذا لم يُستخدم الأساس | يجب أن يطابق حرفيًا الـ URI في ميتا. |
-| `META_INSTAGRAM_REDIRECT_URI` | نعم | لا | نفس المنطق | مسار إنستغرام منفصل رغم أن التطبيق واحد. |
-| `WHATSAPP_REDIRECT_URI` | نعم | لا | واتساب | أو `META_WHATSAPP_REDIRECT_URI` كاسم بديل. |
-| `WHATSAPP_BUSINESS_ACCOUNT_ID` | اختياري | لا | توثيق/اشتراك يدوي | معرف WABA. الاشتراك يتم أيضًا تلقائيًا بعد الربط عبر التوكن. |
+| المتغير                        | API     | Worker | إلزامي لـ                     | ماذا يلزم                                                                      |
+| ------------------------------ | ------- | ------ | ----------------------------- | ------------------------------------------------------------------------------ |
+| `META_APP_ID`                  | نعم     | نعم    | فيسبوك + إنستغرام + واتساب    | App ID من developers.facebook.com → التطبيق → Settings → Basic.                |
+| `META_APP_SECRET`              | نعم     | نعم    | نفس الشبكات + توقيع الويب هوك | App Secret من نفس الصفحة. يُستخدم HMAC لـ `X-Hub-Signature-256`.               |
+| `META_GRAPH_VERSION`           | نعم     | نعم    | لا (افتراضي `v21.0`)          | إصدار Graph. أبقِه `v21.0` ما لم تطلب ميتا ترقية.                              |
+| `META_WEBHOOK_VERIFY_TOKEN`    | نعم     | لا     | الويب هوك                     | سلسلة عشوائية **تكتبها أنت** في ميتا وفي هذا المتغير. ليست من لوحة ميتا جاهزة. |
+| `WHATSAPP_VERIFY_TOKEN`        | نعم     | لا     | بديل                          | إن فُرغ `META_WEBHOOK_VERIFY_TOKEN` يُستخدم هذا. يُفضّل قيمة واحدة في الاثنين. |
+| `META_FACEBOOK_REDIRECT_URI`   | نعم     | لا     | إذا لم يُستخدم الأساس         | يجب أن يطابق حرفيًا الـ URI في ميتا.                                           |
+| `META_INSTAGRAM_REDIRECT_URI`  | نعم     | لا     | نفس المنطق                    | مسار إنستغرام منفصل رغم أن التطبيق واحد.                                       |
+| `WHATSAPP_REDIRECT_URI`        | نعم     | لا     | واتساب                        | أو `META_WHATSAPP_REDIRECT_URI` كاسم بديل.                                     |
+| `WHATSAPP_BUSINESS_ACCOUNT_ID` | اختياري | لا     | توثيق/اشتراك يدوي             | معرف WABA. الاشتراك يتم أيضًا تلقائيًا بعد الربط عبر التوكن.                   |
 
 ### 5.3 لينكدإن
 
-| المتغير | API | Worker | إلزامي | ماذا يلزم |
-| --- | --- | --- | --- | --- |
-| `LINKEDIN_CLIENT_ID` | نعم | نعم | نعم للربط | من linkedin.com/developers → التطبيق → Auth. |
-| `LINKEDIN_CLIENT_SECRET` | نعم | نعم | نعم | نفس الصفحة. |
-| `LINKEDIN_API_VERSION` | نعم | نعم | لا | `YYYYMM`، الافتراضي `202410`. |
-| `LINKEDIN_ORGANIZATIONS` | نعم | نعم | لا | ضع `1` فقط بعد تفعيل Community Management API لربط صفحات الشركة. |
-| `LINKEDIN_REDIRECT_URI` | نعم | لا | مُفضّل | يطابق Auth → Authorized redirect URLs. |
-| `LINKEDIN_WEBHOOK_SECRET` | نعم | لا | للويب هوك | سر HMAC. إذا ضُبط، تُرفض الحمولات بلا توقيع. |
+| المتغير                   | API | Worker | إلزامي    | ماذا يلزم                                                        |
+| ------------------------- | --- | ------ | --------- | ---------------------------------------------------------------- |
+| `LINKEDIN_CLIENT_ID`      | نعم | نعم    | نعم للربط | من linkedin.com/developers → التطبيق → Auth.                     |
+| `LINKEDIN_CLIENT_SECRET`  | نعم | نعم    | نعم       | نفس الصفحة.                                                      |
+| `LINKEDIN_API_VERSION`    | نعم | نعم    | لا        | `YYYYMM`، الافتراضي `202410`.                                    |
+| `LINKEDIN_ORGANIZATIONS`  | نعم | نعم    | لا        | ضع `1` فقط بعد تفعيل Community Management API لربط صفحات الشركة. |
+| `LINKEDIN_REDIRECT_URI`   | نعم | لا     | مُفضّل    | يطابق Auth → Authorized redirect URLs.                           |
+| `LINKEDIN_WEBHOOK_SECRET` | نعم | لا     | للويب هوك | سر HMAC. إذا ضُبط، تُرفض الحمولات بلا توقيع.                     |
 
 ### 5.4 تيك توك
 
-| المتغير | API | Worker | إلزامي | ماذا يلزم |
-| --- | --- | --- | --- | --- |
-| `TIKTOK_CLIENT_KEY` | نعم | نعم | نعم للربط | من developers.tiktok.com → التطبيق. |
-| `TIKTOK_CLIENT_SECRET` | نعم | نعم | نعم | نفس الصفحة. |
-| `TIKTOK_REDIRECT_URI` | نعم | لا | مُفضّل | يطابق Login Kit Redirect URI حرفياً. |
-| `TIKTOK_ENABLE_DIRECT_POST` | نعم | نعم | للنشر المباشر | اتركه `0` حتى توافق تيك توك على `video.publish` ثم `1` وأعد ربط الحساب. |
-| `TIKTOK_PRIVACY_LEVEL` | نعم | نعم | لا | الافتراضي `SELF_ONLY`. بعد التدقيق يمكن `PUBLIC_TO_EVERYONE`. |
-| `TIKTOK_WEBHOOK_SECRET` | نعم | لا | للويب هوك | سر HMAC من بوابة تيك توك. |
-| `TIKTOK_BRAND_CONTENT_TOGGLE` | اختياري | اختياري | إفصاح إعلان | `1` إذا كان المنشور يروّج لمنتج طرف ثالث. |
-| `TIKTOK_BRAND_ORGANIC_TOGGLE` | اختياري | اختياري | إفصاح عضوي | `1` عند الحاجة حسب قواعد تيك توك. |
+| المتغير                       | API     | Worker  | إلزامي        | ماذا يلزم                                                               |
+| ----------------------------- | ------- | ------- | ------------- | ----------------------------------------------------------------------- |
+| `TIKTOK_CLIENT_KEY`           | نعم     | نعم     | نعم للربط     | من developers.tiktok.com → التطبيق.                                     |
+| `TIKTOK_CLIENT_SECRET`        | نعم     | نعم     | نعم           | نفس الصفحة.                                                             |
+| `TIKTOK_REDIRECT_URI`         | نعم     | لا      | مُفضّل        | يطابق Login Kit Redirect URI حرفياً.                                    |
+| `TIKTOK_ENABLE_DIRECT_POST`   | نعم     | نعم     | للنشر المباشر | اتركه `0` حتى توافق تيك توك على `video.publish` ثم `1` وأعد ربط الحساب. |
+| `TIKTOK_PRIVACY_LEVEL`        | نعم     | نعم     | لا            | الافتراضي `SELF_ONLY`. بعد التدقيق يمكن `PUBLIC_TO_EVERYONE`.           |
+| `TIKTOK_WEBHOOK_SECRET`       | نعم     | لا      | للويب هوك     | سر HMAC من بوابة تيك توك.                                               |
+| `TIKTOK_BRAND_CONTENT_TOGGLE` | اختياري | اختياري | إفصاح إعلان   | `1` إذا كان المنشور يروّج لمنتج طرف ثالث.                               |
+| `TIKTOK_BRAND_ORGANIC_TOGGLE` | اختياري | اختياري | إفصاح عضوي    | `1` عند الحاجة حسب قواعد تيك توك.                                       |
 
 ### 5.5 X
 
-| المتغير | API | Worker | إلزامي | ماذا يلزم |
-| --- | --- | --- | --- | --- |
-| `X_CLIENT_ID` | نعم | نعم | نعم للربط | OAuth 2.0 Client ID من developer.x.com. |
-| `X_CLIENT_SECRET` | نعم | نعم | نعم | OAuth 2.0 Client Secret (تطبيق confidential). |
-| `X_REDIRECT_URI` | نعم | لا | مُفضّل | يطابق Callback URI في بوابة X. |
-| `X_WEBHOOK_SECRET` | نعم | لا | للويب هوك | سر CRC/التوقيع. إن فُرغ يُستخدم `X_CLIENT_SECRET`. |
+| المتغير            | API | Worker | إلزامي    | ماذا يلزم                                          |
+| ------------------ | --- | ------ | --------- | -------------------------------------------------- |
+| `X_CLIENT_ID`      | نعم | نعم    | نعم للربط | OAuth 2.0 Client ID من developer.x.com.            |
+| `X_CLIENT_SECRET`  | نعم | نعم    | نعم       | OAuth 2.0 Client Secret (تطبيق confidential).      |
+| `X_REDIRECT_URI`   | نعم | لا     | مُفضّل    | يطابق Callback URI في بوابة X.                     |
+| `X_WEBHOOK_SECRET` | نعم | لا     | للويب هوك | سر CRC/التوقيع. إن فُرغ يُستخدم `X_CLIENT_SECRET`. |
 
 ---
 
@@ -229,14 +229,14 @@ INBOX_CONCURRENCY=5
 
 بعد ضبط المفاتيح وربط الحساب من **العلامة → الإعدادات → الحسابات** ثم فتح **الإنبوكس**:
 
-| المنصة | المصدر الحي (ويب هوك) | السحب الدوري (Worker كل ~10 دقائق + زر المزامنة) | الرد من الإنبوكس |
-| --- | --- | --- | --- |
-| **فيسبوك** | `messages` + تعليقات `feed`/`comments`/`mention` على `/api/webhooks/meta` | نعم: منشورات الصفحة + تعليقات + محادثات Messenger لآخر `INBOX_SYNC_DAYS` | نعم (رسائل خاصة + رد على تعليق) |
-| **إنستغرام** | `messages` + `comments` + `mentions` | نعم: تعليقات الوسائط + DMs | نعم |
-| **واتساب** | Cloud API `messages` على `/api/webhooks/meta` أو `/whatsapp` | **لا يوجد أرشيف تاريخي كامل** في Cloud API. الرسائل تصل من لحظة الاشتراك فما بعد | نعم عبر `POST /{phone-number-id}/messages` (نافذة خدمة العملاء 24 ساعة بعد رسالة العميل) |
-| **X** | Account Activity على `/api/webhooks/x` (DM + منشن/رد) | نعم: `GET /2/dm_events` + منشنات المستخدم (يتطلب `dm.read`) | نعم لـ DM (`dm.write`) |
-| **لينكدإن** | أحداث التعليقات على `/api/webhooks/linkedin` عند تفعيل الاشتراك | ويب هوك أساسًا (لا سحب تاريخ كامل) | يُحفظ محليًا حتى اعتماد منتج المراسلة |
-| **تيك توك** | أحداث التعليقات على `/api/webhooks/tiktok` | ويب هوك أساسًا | يُحفظ محليًا حتى اعتماد منتج المراسلة |
+| المنصة       | المصدر الحي (ويب هوك)                                                     | السحب الدوري (Worker كل ~10 دقائق + زر المزامنة)                                 | الرد من الإنبوكس                                                                         |
+| ------------ | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| **فيسبوك**   | `messages` + تعليقات `feed`/`comments`/`mention` على `/api/webhooks/meta` | نعم: منشورات الصفحة + تعليقات + محادثات Messenger لآخر `INBOX_SYNC_DAYS`         | نعم (رسائل خاصة + رد على تعليق)                                                          |
+| **إنستغرام** | `messages` + `comments` + `mentions`                                      | نعم: تعليقات الوسائط + DMs                                                       | نعم                                                                                      |
+| **واتساب**   | Cloud API `messages` على `/api/webhooks/meta` أو `/whatsapp`              | **لا يوجد أرشيف تاريخي كامل** في Cloud API. الرسائل تصل من لحظة الاشتراك فما بعد | نعم عبر `POST /{phone-number-id}/messages` (نافذة خدمة العملاء 24 ساعة بعد رسالة العميل) |
+| **X**        | Account Activity على `/api/webhooks/x` (DM + منشن/رد)                     | نعم: `GET /2/dm_events` + منشنات المستخدم (يتطلب `dm.read`)                      | نعم لـ DM (`dm.write`)                                                                   |
+| **لينكدإن**  | أحداث التعليقات على `/api/webhooks/linkedin` عند تفعيل الاشتراك           | ويب هوك أساسًا (لا سحب تاريخ كامل)                                               | يُحفظ محليًا حتى اعتماد منتج المراسلة                                                    |
+| **تيك توك**  | أحداث التعليقات على `/api/webhooks/tiktok`                                | ويب هوك أساسًا                                                                   | يُحفظ محليًا حتى اعتماد منتج المراسلة                                                    |
 
 بعد الربط يحاول OMA اشتراك صفحة فيسبوك في `subscribed_apps` واشتراك WABA واتساب تلقائيًا. يبقى التسجيل في لوحة ميتا إلزاميًا (URL + Verify Token + الحقول).
 
@@ -366,14 +366,14 @@ INBOX_CONCURRENCY=5
 
 ## 10) حدود صادقة (لا تُخفى)
 
-| الموضوع | الواقع في الكود الحالي |
-| --- | --- |
-| شبكة بلا مفاتيح | «غير متاح بعد» — لا يوجد اتصال وهمي |
-| واتساب | مراسلة فقط، ليس نشر فيد |
-| تاريخ واتساب قبل الاشتراك | غير متاح من Cloud API |
-| رد تيك توك/لينكدإن من الإنبوكس | يُحفظ في OMA ولا يُرسل للمنصة حتى اعتماد منتج المراسلة |
-| App Review | خارج وضع التطوير ميتا/تيك توك/لينكدإن ترفض الصلاحيات المتقدمة |
-| تدوير `SOCIAL_TOKEN_ENCRYPTION_KEY` | يقطع كل الحسابات |
-| توقيع الويب هوك | إذا ضُبط السر تُرفض الحمولات بلا توقيع صحيح |
+| الموضوع                             | الواقع في الكود الحالي                                        |
+| ----------------------------------- | ------------------------------------------------------------- |
+| شبكة بلا مفاتيح                     | «غير متاح بعد» — لا يوجد اتصال وهمي                           |
+| واتساب                              | مراسلة فقط، ليس نشر فيد                                       |
+| تاريخ واتساب قبل الاشتراك           | غير متاح من Cloud API                                         |
+| رد تيك توك/لينكدإن من الإنبوكس      | يُحفظ في OMA ولا يُرسل للمنصة حتى اعتماد منتج المراسلة        |
+| App Review                          | خارج وضع التطوير ميتا/تيك توك/لينكدإن ترفض الصلاحيات المتقدمة |
+| تدوير `SOCIAL_TOKEN_ENCRYPTION_KEY` | يقطع كل الحسابات                                              |
+| توقيع الويب هوك                     | إذا ضُبط السر تُرفض الحمولات بلا توقيع صحيح                   |
 
 بعد ضبط المتغيرات على السيرفر والـ Worker وإكمال خطوات اللوحات أعلاه، تكون القنوات جاهزة للربط الفعلي، والنشر (ما عدا واتساب)، وجلب الرسائل/التعليقات حسب الجدول في القسم 6.

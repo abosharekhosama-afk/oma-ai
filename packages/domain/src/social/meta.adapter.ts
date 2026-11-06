@@ -308,9 +308,12 @@ export class MetaAdapter implements SocialProviderAdapter {
     const videoId = String(start.video_id ?? '');
     const uploadUrl = String(start.upload_url ?? '');
     if (!videoId || !uploadUrl) {
-      throw new SocialProviderError('facebook: video_stories start missing video_id or upload_url', {
-        retryable: true,
-      });
+      throw new SocialProviderError(
+        'facebook: video_stories start missing video_id or upload_url',
+        {
+          retryable: true,
+        },
+      );
     }
     const up = await this.fetchFn(uploadUrl, {
       method: 'POST',
