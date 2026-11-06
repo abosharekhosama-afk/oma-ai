@@ -32,6 +32,7 @@ export type InboxMessage = {
   senderExternalId: string;
   content: string;
   mediaUrls: string[];
+  liked?: boolean;
   createdAt: string;
 };
 
@@ -105,6 +106,7 @@ export function replyInboxConversation(
   id: string,
   content: string,
   replyToMessageId?: string | null,
+  mediaUrls?: string[],
 ) {
   return api<{
     id: string;
@@ -116,8 +118,13 @@ export function replyInboxConversation(
     body: JSON.stringify({
       content,
       ...(replyToMessageId ? { replyToMessageId } : {}),
+      ...(mediaUrls?.length ? { mediaUrls } : {}),
     }),
   });
+}
+
+export function likeInboxMessage(messageId: string) {
+  return api<{ liked: boolean }>(`/api/v1/inbox/messages/${messageId}/like`, { method: 'POST' });
 }
 
 export function hideInboxMessage(messageId: string) {

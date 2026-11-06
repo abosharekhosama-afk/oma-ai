@@ -94,7 +94,6 @@ import {
   TagOutlined,
   UnorderedListOutlined,
   UserOutlined,
-  TeamOutlined,
   RetweetOutlined,
 } from '../../../../components/ui/lucide-icons';
 
@@ -4132,48 +4131,45 @@ export default function ContentPage() {
                                 : t('content.workspace_markers')}
                             </span>
                           </div>
-                          <label className="oma-ext-cal-pop__region">
-                            <span>{t('content.holiday_region')}</span>
-                            <select
-                              value={
-                                holidayIds[0] ?? defaultHolidayCalendarsForTimezone(workspaceTz)[0]
-                              }
-                              data-testid="content-holiday-region"
-                              onChange={(e) => {
-                                const id = e.target.value as HolidayCalendarId;
-                                void persistHolidayCalendars([id]);
-                              }}
-                            >
-                              {HOLIDAY_CALENDAR_CATALOG.map((cal) => (
-                                <option key={cal.id} value={cal.id}>
-                                  {holidayLabel(cal.id, isAr)}
-                                </option>
-                              ))}
-                            </select>
-                          </label>
-                          {HOLIDAY_CALENDAR_CATALOG.map((cal) => {
-                            const on = holidayIds.includes(cal.id);
-                            return (
-                              <label key={cal.id} className="oma-ext-cal-pop__row">
-                                <input
-                                  type="checkbox"
-                                  checked={on}
+                          <div
+                            className="oma-ext-cal-card"
+                            data-testid="content-holiday-region"
+                            role="listbox"
+                            aria-label={t('content.holiday_region')}
+                          >
+                            {HOLIDAY_CALENDAR_CATALOG.map((cal) => {
+                              const on = holidayIds.includes(cal.id);
+                              return (
+                                <button
+                                  key={cal.id}
+                                  type="button"
+                                  role="option"
+                                  aria-selected={on}
+                                  className="oma-ext-cal-tile"
+                                  data-on={on ? 'true' : 'false'}
+                                  data-cal={cal.id}
                                   data-testid={`content-holiday-cal-${cal.id}`}
-                                  onChange={() => {
+                                  onClick={() => {
                                     const next = on
                                       ? holidayIds.filter((id) => id !== cal.id)
                                       : [...holidayIds, cal.id];
                                     void persistHolidayCalendars(next);
                                   }}
-                                />
-                                <span className="oma-cal-ext-dot" aria-hidden />
-                                <span>{holidayLabel(cal.id, isAr)}</span>
-                                <span className="oma-ext-cal-pop__users" aria-hidden>
-                                  <TeamOutlined />
-                                </span>
-                              </label>
-                            );
-                          })}
+                                >
+                                  <span
+                                    className="oma-ext-cal-tile__swatch"
+                                    data-cal={cal.id}
+                                    aria-hidden
+                                  />
+                                  <span className="oma-ext-cal-tile__copy">
+                                    <strong>{holidayLabel(cal.id, isAr)}</strong>
+                                    <em>{cal.id.toUpperCase()}</em>
+                                  </span>
+                                  {on ? <CheckOutlined /> : null}
+                                </button>
+                              );
+                            })}
+                          </div>
                           <p className="oma-ext-cal-pop__add">
                             {t('content.holidays_appear_as_chips_on')}
                           </p>

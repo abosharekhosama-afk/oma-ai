@@ -395,6 +395,15 @@ export const HeartOutlined = (p: IconProps) => (
     <path d="M19 14c1.5-1.3 3-3.3 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3.4 1-4.5 2.5C10.9 4 9.3 3 7.5 3A5.5 5.5 0 0 0 2 8.5c0 2.2 1.5 4.2 3 5.5l7 6.5 7-6.5z" />
   </Icon>
 );
+export const HeartFilled = (p: IconProps) => (
+  <Icon {...p}>
+    <path
+      d="M19 14c1.5-1.3 3-3.3 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.8 0-3.4 1-4.5 2.5C10.9 4 9.3 3 7.5 3A5.5 5.5 0 0 0 2 8.5c0 2.2 1.5 4.2 3 5.5l7 6.5 7-6.5z"
+      fill="currentColor"
+      stroke="none"
+    />
+  </Icon>
+);
 export const SmileOutlined = (p: IconProps) => (
   <Icon {...p}>
     <circle cx="12" cy="12" r="10" />

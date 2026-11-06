@@ -78,7 +78,7 @@ export class InboxController {
   reply(
     @Req() req: Request,
     @Param('id') id: string,
-    @Body() body: { content?: string; replyToMessageId?: string },
+    @Body() body: { content?: string; replyToMessageId?: string; mediaUrls?: string[] },
   ) {
     const c = ctx(req);
     return inboxService.reply(c.tenantId, c.userId, id, body);
@@ -148,6 +148,12 @@ export class InboxController {
   @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
   deleteMessage(@Req() req: Request, @Param('messageId') messageId: string) {
     return inboxService.deleteMessage(ctx(req).tenantId, messageId);
+  }
+
+  @Post('api/v1/inbox/messages/:messageId/like')
+  @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
+  likeMessage(@Req() req: Request, @Param('messageId') messageId: string) {
+    return inboxService.likeMessage(ctx(req).tenantId, messageId);
   }
 
   @Post('api/v1/inbox/conversations/bulk')

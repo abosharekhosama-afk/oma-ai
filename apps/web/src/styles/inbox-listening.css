@@ -674,6 +674,12 @@
   gap: 6px;
   flex: 1;
   min-width: 0;
+  width: 100%;
+}
+
+.oma-plx-inbox-open-card {
+  margin-inline-start: auto;
+  z-index: 20;
 }
 
 .oma-plx-inbox-list__title {
@@ -1413,6 +1419,7 @@
   border-top: 1px solid #eceef1;
   padding: 12px 16px 16px;
   background: #fff;
+  overflow: visible;
 }
 
 .oma-plx-inbox-composer__note {
@@ -1521,6 +1528,44 @@
   border: 1px solid #e5e7eb;
   border-radius: 12px;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.1);
+}
+
+.oma-plx-inbox-status-dd__menu--in-card {
+  position: static;
+  inset: auto;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.oma-plx-inbox-open-card__panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  inset-inline-end: 0;
+  z-index: 40;
+  width: min(280px, calc(100vw - 32px));
+  padding: 12px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  box-shadow: 0 16px 40px rgba(17, 24, 39, 0.14);
+  display: grid;
+  gap: 12px;
+}
+
+.oma-plx-inbox-open-card__section h3 {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #6b7280;
+}
+
+.oma-plx-inbox-open-card__section .oma-plx-inbox-channels {
+  margin: 0;
 }
 
 .oma-plx-inbox-status-dd__item {
@@ -1836,6 +1881,95 @@
   height: 16px;
 }
 
+.oma-plx-inbox-comment-card__tools button.is-liked {
+  color: #ef4444;
+}
+
+.oma-plx-inbox-comment-card__media,
+.oma-plx-inbox-bubble__media {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.oma-plx-inbox-comment-card__media {
+  margin-inline-start: 42px;
+}
+
+.oma-plx-inbox-comment-card__media img,
+.oma-plx-inbox-bubble__media img {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #eceef1;
+}
+
+.oma-plx-inbox-composer-tools {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.oma-plx-inbox-composer-tools__emoji-wrap {
+  position: relative;
+}
+
+.oma-plx-inbox-emoji {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  inset-inline-start: 0;
+  z-index: 30;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  width: 220px;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.oma-plx-inbox-emoji button {
+  border: 0;
+  background: transparent;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 18px;
+}
+
+.oma-plx-inbox-emoji button:hover {
+  background: #f3f4f6;
+}
+
+.oma-plx-inbox-composer__attach {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.oma-plx-inbox-composer__attach-item {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.oma-plx-inbox-composer__attach-item img {
+  display: block;
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+}
+
 .oma-plx-inbox-comment-menu {
   position: relative;
 }
@@ -1940,6 +2074,7 @@
   border-radius: 999px;
   padding: 8px 14px;
   background: #fff;
+  overflow: visible;
 }
 
 .oma-plx-inbox-composer__pill-input {
@@ -7347,20 +7482,90 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   overflow-x: hidden !important;
   overflow-y: auto !important;
 }
-.oma-ext-cal-pop__region {
+.oma-ext-cal-card {
   display: grid;
-  gap: 4px;
-  margin: 8px 0 10px;
-  font-size: 12px;
-  color: #667085;
+  gap: 8px;
+  margin: 4px 0 8px;
 }
-.oma-ext-cal-pop__region select {
-  height: 32px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+.oma-ext-cal-tile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 48px;
+  padding: 8px 10px;
+  border: 1px solid #eceef1;
+  border-radius: 12px;
   background: #fff;
-  padding: 0 8px;
+  text-align: start;
+  cursor: pointer;
   font: inherit;
+  color: #111827;
+}
+.oma-ext-cal-tile:hover {
+  border-color: #d1d5db;
+  background: #f9fafb;
+}
+.oma-ext-cal-tile[data-on='true'] {
+  border-color: #c7d2fe;
+  background: #eef2ff;
+}
+.oma-ext-cal-tile__swatch {
+  width: 8px;
+  height: 28px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  background: #2563eb;
+}
+.oma-ext-cal-tile__swatch[data-cal='il'] {
+  background: #0038b8;
+}
+.oma-ext-cal-tile__swatch[data-cal='ps'] {
+  background: #007a3d;
+}
+.oma-ext-cal-tile__swatch[data-cal='us'] {
+  background: #3c3b6e;
+}
+.oma-ext-cal-tile__swatch[data-cal='gb'] {
+  background: #012169;
+}
+.oma-ext-cal-tile__swatch[data-cal='ae'] {
+  background: #00732f;
+}
+.oma-ext-cal-tile__swatch[data-cal='sa'] {
+  background: #006c35;
+}
+.oma-ext-cal-tile__swatch[data-cal='eg'] {
+  background: #ce1126;
+}
+.oma-ext-cal-tile__swatch[data-cal='jo'] {
+  background: #007a3d;
+}
+.oma-ext-cal-tile__swatch[data-cal='intl'] {
+  background: #2563eb;
+}
+.oma-ext-cal-tile__copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+.oma-ext-cal-tile__copy strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+.oma-ext-cal-tile__copy em {
+  font-style: normal;
+  font-size: 11px;
+  color: #6b7280;
+  letter-spacing: 0.04em;
+}
+.oma-ext-cal-tile svg.oma-lucide {
+  width: 16px;
+  height: 16px;
+  color: #2563eb;
+  flex-shrink: 0;
 }
 .oma-plx-inbox-channels {
   display: flex;

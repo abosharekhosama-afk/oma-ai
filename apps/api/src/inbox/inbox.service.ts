@@ -228,6 +228,7 @@ export class InboxService {
         senderExternalId: m.senderExternalId,
         content: m.content,
         mediaUrls: m.mediaUrlsJson ? safeJson(m.mediaUrlsJson) : [],
+        liked: Boolean(parseRawObject(m.rawPayloadJson).omaLiked),
         createdAt: m.createdAt.toISOString(),
       })),
       notes: notes.map((n) => ({
@@ -243,9 +244,10 @@ export class InboxService {
     tenantId: string,
     userId: string,
     id: string,
-    body: { content?: string; replyToMessageId?: string },
+    body: { content?: string; replyToMessageId?: string; mediaUrls?: string[] },
   ) {
-    const content = (body.content ?? '').trim();
+    const mediaUrls = sanitizeMediaUrls(body.mediaUrls);
+    const content = (body.content ?? '').trim() || (mediaUrls.length ? '📷' : '');
     if (!content) {
       throw new DomainError(
         'VALIDATION_FAILED',
@@ -303,7 +305,7 @@ export class InboxService {
           senderName: 'Team',
           content,
           direction: 'OUTBOUND',
-          mediaUrlsJson: null,
+          mediaUrlsJson: mediaUrls.length ? JSON.stringify(mediaUrls) : null,
           rawPayloadJson: JSON.stringify({
             platformDelivered: delivery.delivered,
             platformReason: delivery.delivered ? null : delivery.reason,
@@ -495,6 +497,21 @@ export class InboxService {
     };
   }
 
+  async likeMessage(tenantId: string, messageId: string) {
+    const msg = await getPrisma().inboxMessage.findFirst({
+      where: { id: messageId, tenantId },
+    });
+    if (!msg) throw new DomainError('NOT_FOUND', 'Message not found', 404, 'errors.not_found');
+    const raw = parseRawObject(msg.rawPayloadJson);
+    const liked = !raw.omaLiked;
+    raw.omaLiked = liked;
+    await getPrisma().inboxMessage.update({
+      where: { id: messageId },
+      data: { rawPayloadJson: JSON.stringify(raw) },
+    });
+    return { liked };
+  }
+
   async hideMessage(tenantId: string, messageId: string) {
     const msg = await getPrisma().inboxMessage.findFirst({
       where: { id: messageId, tenantId },
@@ -643,6 +660,31 @@ function safeJson(s: string): string[] {
   } catch {
     return [];
   }
+}
+
+function parseRawObject(s: string | null | undefined): Record<string, unknown> {
+  try {
+    const v = JSON.parse(s || '{}');
+    return v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
+  } catch {
+    return {};
+  }
+}
+
+function sanitizeMediaUrls(urls: unknown): string[] {
+  if (!Array.isArray(urls)) return [];
+  return urls
+    .map(String)
+    .filter((u) => {
+      if (u.startsWith('/api/')) return true;
+      try {
+        const parsed = new URL(u);
+        return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+      } catch {
+        return false;
+      }
+    })
+    .slice(0, 8);
 }
 
 export const inboxService = new InboxService();
