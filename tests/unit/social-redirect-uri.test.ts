@@ -20,6 +20,20 @@ describe('social OAuth redirect URIs', () => {
     expect(oauthRedirectUri('instagram', env)).toBe(env.META_INSTAGRAM_REDIRECT_URI);
   });
 
+  it('uses WhatsApp and X explicit callbacks when set', () => {
+    expect(
+      oauthRedirectUri('whatsapp', {
+        WHATSAPP_REDIRECT_URI: 'https://example.com/api/v1/social/oauth/whatsapp/callback',
+        SOCIAL_OAUTH_REDIRECT_BASE: 'https://wrong.example.com',
+      }),
+    ).toBe('https://example.com/api/v1/social/oauth/whatsapp/callback');
+    expect(
+      oauthRedirectUri('x', {
+        X_REDIRECT_URI: 'https://example.com/api/v1/social/oauth/x/callback',
+      }),
+    ).toBe('https://example.com/api/v1/social/oauth/x/callback');
+  });
+
   it('builds the documented callback from the public base when no override exists', () => {
     expect(
       oauthRedirectUri('tiktok', { SOCIAL_OAUTH_REDIRECT_BASE: 'https://oma-ai-ecru.vercel.app/' }),

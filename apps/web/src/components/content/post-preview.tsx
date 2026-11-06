@@ -867,11 +867,13 @@ export type PreviewKind =
   | 'linkedin'
   | 'x'
   | 'tiktok'
+  | 'whatsapp'
   | 'generic';
 
 export function previewKind(channel: string, type: PreviewContentType): PreviewKind {
   const n = resolveNetwork(channel);
   if (n === 'tiktok') return 'tiktok';
+  if (n === 'whatsapp' || n === 'generic') return n;
   if (resolveLayout(n, type) === 'vertical') return `${n}-vertical` as PreviewKind;
   return n;
 }

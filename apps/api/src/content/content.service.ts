@@ -302,6 +302,36 @@ function parseAccentColor(value: string | null | undefined): string | null | und
   return color.toLowerCase();
 }
 
+function parseInsights(raw: string | null | undefined): {
+  impressions?: number;
+  reach?: number;
+  likes?: number;
+  comments?: number;
+  shares?: number;
+  views?: number;
+  fetchedAt?: string;
+} | null {
+  if (!raw) return null;
+  try {
+    const v = JSON.parse(raw) as Record<string, unknown>;
+    const num = (k: string): number | undefined => {
+      const n = v[k];
+      return typeof n === 'number' && Number.isFinite(n) ? n : undefined;
+    };
+    return {
+      impressions: num('impressions'),
+      reach: num('reach'),
+      likes: num('likes'),
+      comments: num('comments'),
+      shares: num('shares'),
+      views: num('views'),
+      fetchedAt: typeof v.fetchedAt === 'string' ? v.fetchedAt : undefined,
+    };
+  } catch {
+    return null;
+  }
+}
+
 @Injectable()
 export class ContentService {
   constructor(private readonly audit: AuditService) {}
@@ -488,7 +518,9 @@ export class ContentService {
         (wanted.includes('instagram') && net.includes('instagram')) ||
         (wanted.includes('facebook') && net.includes('facebook')) ||
         (wanted.includes('tiktok') && net.includes('tiktok')) ||
-        (wanted.includes('linkedin') && net.includes('linkedin'))
+        (wanted.includes('linkedin') && net.includes('linkedin')) ||
+        (wanted.includes('whatsapp') && net.includes('whatsapp')) ||
+        ((wanted === 'x' || wanted.includes('twitter')) && net === 'x')
       );
     });
     const comments = row.comments;
@@ -515,25 +547,36 @@ export class ContentService {
     const publicComments = comments.filter((c) => !c.isInternal).length;
     const published = Boolean(target?.publishedAt || row.publishedAt);
     const connected = Boolean(target?.socialPageId);
-    const note = published
-      ? 'Platform views and reach wait until the live integration phase. OMA comments, reactions, and approvals are counted here.'
-      : 'Analytics fill in after this post is published. OMA comments and approvals are counted now.';
-    const engagements = publicComments + likes + row.approverApproved;
+    const live = parseInsights(target?.insightsJson);
+    const likesLive = live?.likes ?? likes;
+    const commentsLive = live?.comments ?? publicComments;
+    const sharesLive = live?.shares ?? 0;
+    const views = live?.views ?? live?.impressions ?? 0;
+    const reach = live?.reach ?? 0;
+    const impressions = live?.impressions ?? views;
+    const engagements = commentsLive + likesLive + sharesLive + row.approverApproved;
+    const source = live ? ('platform' as const) : ('oma_local' as const);
+    const note = live
+      ? 'Live provider insights for this published post, plus OMA comments and approvals.'
+      : published
+        ? 'Platform views and reach fill after the worker fetches insights. OMA comments, reactions, and approvals are counted here.'
+        : 'Analytics fill in after this post is published. OMA comments and approvals are counted now.';
     return {
       data: {
         channel: requested,
         published,
         published_at: (target?.publishedAt || row.publishedAt)?.toISOString() ?? null,
-        source: 'oma_local' as const,
+        source,
         platform_connected: connected,
         note,
-        kpis: { views: 0, engagements, reach: 0 },
-        organic_views: { reach: 0, impressions: 0, avg_view_duration_s: 0 },
-        organic_engagement: { likes, comments: publicComments, shares: 0 },
-        plays: { views: 0, three_second: 0, one_minute: 0, avg_seconds: 0 },
+        kpis: { views, engagements, reach },
+        organic_views: { reach, impressions, avg_view_duration_s: 0 },
+        organic_engagement: { likes: likesLive, comments: commentsLive, shares: sharesLive },
+        plays: { views, three_second: 0, one_minute: 0, avg_seconds: 0 },
         reactions: rx,
         approvals: row.approverApproved,
         comments: comments.length,
+        insights_at: target?.lastInsightsAt?.toISOString() ?? live?.fetchedAt ?? null,
       },
     };
   }

@@ -24,8 +24,9 @@ describe('content grid + preview analytics', () => {
       'content.read',
     ]);
     const service = read('apps/api/src/content/content.service.ts');
-    expect(service).toContain("source: 'oma_local'");
-    expect(service).toContain('kpis: { views: 0, engagements, reach: 0 }');
+    expect(service).toContain("'oma_local' as const");
+    expect(service).toContain('kpis: { views, engagements, reach }');
+    expect(service).toContain('parseInsights');
     const api = read('apps/web/src/lib/content-api.ts');
     expect(api).toContain('/api/v1/content/${contentId}/channel-analytics');
   });

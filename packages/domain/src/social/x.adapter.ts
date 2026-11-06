@@ -2,7 +2,9 @@ import {
   expiresIn,
   httpError,
   readJson,
+  SocialProviderError,
   type FetchLike,
+  type PostInsights,
   type PublishablePage,
   type PublishInput,
   type PublishResult,
@@ -11,7 +13,7 @@ import {
 } from './adapter';
 
 type Env = { X_CLIENT_ID?: string; X_CLIENT_SECRET?: string };
-const SCOPES = ['tweet.read', 'tweet.write', 'users.read', 'offline.access'];
+const SCOPES = ['tweet.read', 'tweet.write', 'users.read', 'offline.access', 'dm.read', 'dm.write'];
 
 /**
  * X API v2, OAuth 2.0 Authorization Code with PKCE (confidential client).
@@ -125,5 +127,57 @@ export class XAdapter implements SocialProviderAdapter {
     const id = String((b.data as { id?: string })?.id);
     const username = page.meta.username as string | undefined;
     return { externalId: id, url: `https://x.com/${username ?? 'i/web'}/status/${id}` };
+  }
+
+  async fetchInsights(page: PublishablePage, externalPostId: string): Promise<PostInsights | null> {
+    const id = encodeURIComponent(externalPostId.trim());
+    if (!id) return null;
+    const res = await this.fetchFn(`https://api.x.com/2/tweets/${id}?tweet.fields=public_metrics`, {
+      headers: { authorization: `Bearer ${page.accessToken}` },
+    });
+    const b = await readJson(res);
+    if (!res.ok) return null;
+    const m = ((b.data as { public_metrics?: Record<string, number> } | undefined)
+      ?.public_metrics ?? {}) as Record<string, number>;
+    return {
+      impressions: m.impression_count,
+      likes: m.like_count,
+      comments: m.reply_count,
+      shares: (m.retweet_count ?? 0) + (m.quote_count ?? 0),
+      views: m.impression_count,
+      fetchedAt: new Date().toISOString(),
+    };
+  }
+
+  async sendMessage(
+    page: PublishablePage,
+    input: { to: string; text?: string },
+  ): Promise<{ externalId: string }> {
+    const to = input.to.trim();
+    if (!to) {
+      throw new SocialProviderError('x: recipient id is required', { retryable: false });
+    }
+    const res = await this.fetchFn(
+      `https://api.x.com/2/dm_conversations/with/${encodeURIComponent(to)}/messages`,
+      {
+        method: 'POST',
+        headers: {
+          authorization: `Bearer ${page.accessToken}`,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ text: input.text || '' }),
+      },
+    );
+    const b = await readJson(res);
+    if (!res.ok) throw httpError('x', res, b);
+    const id = String(
+      (b.data as { dm_event_id?: string } | undefined)?.dm_event_id ??
+        (b.data as { id?: string } | undefined)?.id ??
+        '',
+    );
+    if (!id) {
+      throw new SocialProviderError('x: send returned no message id', { retryable: true });
+    }
+    return { externalId: id };
   }
 }

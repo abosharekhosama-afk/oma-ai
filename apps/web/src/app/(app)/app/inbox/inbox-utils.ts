@@ -1,6 +1,7 @@
 import type { InboxConversationListItem } from '../../../../lib/inbox-api';
 
-export type InboxPlatform = 'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN' | string;
+export type InboxPlatform =
+  'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN' | 'X' | 'WHATSAPP' | string;
 
 export function platformLabel(p: string) {
   const map: Record<string, string> = {
@@ -8,6 +9,8 @@ export function platformLabel(p: string) {
     META_IG: 'Instagram',
     TIKTOK: 'TikTok',
     LINKEDIN: 'LinkedIn',
+    X: 'X',
+    WHATSAPP: 'WhatsApp',
   };
   return map[p] ?? p;
 }
@@ -18,6 +21,8 @@ export function platformShort(p: string) {
     META_IG: 'IG',
     TIKTOK: 'TT',
     LINKEDIN: 'IN',
+    X: 'X',
+    WHATSAPP: 'WA',
   };
   return map[p] ?? p.slice(0, 2);
 }
@@ -29,6 +34,8 @@ export function platformAccent(platform: string): string {
     META_IG: '#E4405F',
     TIKTOK: '#111827',
     LINKEDIN: '#0A66C2',
+    X: '#0F1419',
+    WHATSAPP: '#25D366',
   };
   return map[platform] ?? '#6b7280';
 }

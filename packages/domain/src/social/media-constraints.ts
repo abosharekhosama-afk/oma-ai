@@ -3,7 +3,7 @@
  * Sources: TikTok Content Posting API; Meta Graph API (IG/FB) common limits.
  */
 
-export type SocialNetworkKey = 'tiktok' | 'instagram' | 'facebook' | 'linkedin' | 'x';
+export type SocialNetworkKey = 'tiktok' | 'instagram' | 'facebook' | 'linkedin' | 'x' | 'whatsapp';
 
 export type MediaConstraint = {
   network: SocialNetworkKey;
@@ -93,6 +93,21 @@ export const NETWORK_MEDIA_CONSTRAINTS: Record<SocialNetworkKey, MediaConstraint
     notes: {
       en: 'X (Twitter) allows up to 4 images or one MP4 video.',
       ar: 'منصة X تسمح حتى 4 صور أو فيديو MP4 واحد.',
+    },
+  },
+  whatsapp: {
+    network: 'whatsapp',
+    photoMimes: ['image/jpeg', 'image/png', 'image/webp'],
+    videoMimes: ['video/mp4', 'video/3gpp'],
+    maxPhotoBytes: 5 * 1024 * 1024,
+    maxVideoBytes: 16 * 1024 * 1024,
+    maxPhotoEdgePx: null,
+    maxPhotosPerPost: 1,
+    maxVideosPerPost: 1,
+    allowMixPhotoVideo: false,
+    notes: {
+      en: 'WhatsApp Cloud API sends inbox messages (JPEG/PNG/WebP or MP4), not calendar feed posts.',
+      ar: 'واجهة واتساب السحابية ترسل رسائل الصندوق (JPEG/PNG/WebP أو MP4) وليست منشورات التقويم.',
     },
   },
 };

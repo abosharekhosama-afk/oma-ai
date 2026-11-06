@@ -1,9 +1,9 @@
 # Social accounts: setup
 
 Brands connect their own Facebook Pages, Instagram professional accounts, LinkedIn,
-TikTok and X accounts from **Brand → Settings → Accounts**. A network appears as
-"Not available yet" until its keys below are set on **both** the API and the worker
-services. No network is ever faked.
+TikTok, X, and WhatsApp Business numbers from **Brand → Settings → Accounts**. A
+network appears as "Not available yet" until its keys below are set on **both** the
+API and the worker services. No network is ever faked.
 
 ## Shared (required for any network)
 
@@ -14,8 +14,16 @@ services. No network is ever faked.
 | `TIKTOK_REDIRECT_URI`         | API                       | Optional explicit TikTok callback URL. Overrides the base and must exactly match the TikTok dashboard.                                                                             |
 | `META_FACEBOOK_REDIRECT_URI`  | API                       | Optional explicit Meta/Facebook callback URL. Overrides the base and must exactly match Meta.                                                                                      |
 | `META_INSTAGRAM_REDIRECT_URI` | API                       | Optional explicit Meta/Instagram callback URL. Overrides the base and must exactly match Meta.                                                                                     |
+| `WHATSAPP_REDIRECT_URI`       | API                       | Optional explicit WhatsApp Cloud API callback. Overrides the base.                                                                                                                 |
+| `X_REDIRECT_URI`              | API                       | Optional explicit X callback URL.                                                                                                                                                  |
+| `META_WEBHOOK_VERIFY_TOKEN`   | API                       | Token you type into Meta App → WhatsApp/Facebook webhooks. Also used for Instagram.                                                                                                |
+| `WHATSAPP_VERIFY_TOKEN`       | API                       | Optional alias of the Meta verify token.                                                                                                                                           |
+| `TIKTOK_WEBHOOK_SECRET`       | API                       | HMAC secret for TikTok event subscriptions. Unsigned payloads are rejected when set.                                                                                               |
+| `LINKEDIN_WEBHOOK_SECRET`     | API                       | HMAC secret for LinkedIn event subscriptions.                                                                                                                                      |
+| `X_WEBHOOK_SECRET`            | API                       | HMAC secret for X Account Activity CRC/signature. Falls back to `X_CLIENT_SECRET`.                                                                                                 |
 | `SOCIAL_PUBLISH_INTERVAL_MS`  | worker (optional)         | How often due posts are published. Default `30000`.                                                                                                                                |
 | `SOCIAL_REFRESH_INTERVAL_MS`  | worker (optional)         | How often tokens are refreshed/validated. Default `900000`.                                                                                                                        |
+| `SOCIAL_INSIGHTS_INTERVAL_MS` | worker (optional)         | How often live post engagement is pulled into `ContentPublishTarget.insightsJson`. Default `900000`.                                                                               |
 
 ## Redirect (callback) URLs
 
@@ -28,6 +36,17 @@ Vercel origin and keeps the signed-in session cookie first-party. Register exact
 | LinkedIn                            | `https://oma-ai-ecru.vercel.app/api/v1/social/oauth/linkedin/callback`                                                                             |
 | TikTok                              | `https://oma-ai-ecru.vercel.app/api/v1/social/oauth/tiktok/callback`                                                                               |
 | X                                   | `https://oma-ai-ecru.vercel.app/api/v1/social/oauth/x/callback`                                                                                    |
+| WhatsApp (same Meta app)            | `https://oma-ai-ecru.vercel.app/api/v1/social/oauth/whatsapp/callback`                                                                             |
+
+Webhook callback URLs (no session cookie; signature-verified):
+
+| Provider            | URL                                              | Verify                                             |
+| ------------------- | ------------------------------------------------ | -------------------------------------------------- |
+| Meta (FB + IG + WA) | `https://<API_PUBLIC_URL>/api/webhooks/meta`     | GET hub.challenge with `META_WEBHOOK_VERIFY_TOKEN` |
+| WhatsApp (alias)    | `https://<API_PUBLIC_URL>/api/webhooks/whatsapp` | Same Meta app secret                               |
+| TikTok              | `https://<API_PUBLIC_URL>/api/webhooks/tiktok`   | `TIKTOK_WEBHOOK_SECRET`                            |
+| LinkedIn            | `https://<API_PUBLIC_URL>/api/webhooks/linkedin` | `LINKEDIN_WEBHOOK_SECRET`                          |
+| X                   | `https://<API_PUBLIC_URL>/api/webhooks/x`        | CRC GET + `X_WEBHOOK_SECRET`                       |
 
 If you instead point `SOCIAL_OAUTH_REDIRECT_BASE` at the Render API directly, the
 URLs become `<API_PUBLIC_URL>/api/v1/social/oauth/<network>/callback`; that only
@@ -49,10 +68,25 @@ complete URL above; otherwise set `SOCIAL_OAUTH_REDIRECT_BASE` to the origin onl
 
 App setup: add **Facebook Login for Business**; add both redirect URLs above to
 "Valid OAuth Redirect URIs". Permissions requested — Facebook: `pages_show_list`, `pages_read_engagement`,
-`pages_manage_posts`; Instagram: `pages_show_list`, `pages_read_engagement`,
-`business_management`, `instagram_basic`, `instagram_content_publish`. Outside development mode these need
+`pages_manage_posts`, `pages_messaging`, `pages_manage_metadata`; Instagram: `pages_show_list`, `pages_read_engagement`,
+`business_management`, `instagram_basic`, `instagram_content_publish`, `instagram_manage_comments`,
+`instagram_manage_messages`. Outside development mode these need
 Meta App Review. Instagram must be a professional account linked to a Facebook Page,
 and Instagram posts need an image (the post preview image URL must be public).
+
+Subscribe the Meta app to webhooks: `feed`, `comments`, `messages`, `messaging_postbacks`,
+`mention` (Page); `comments`, `mentions`, `messages` (Instagram). Callback:
+`https://<API_PUBLIC_URL>/api/webhooks/meta`.
+
+## WhatsApp Cloud API
+
+Uses the **same Meta app** (`META_APP_ID` / `META_APP_SECRET`). Add the **WhatsApp** product,
+set the webhook to `/api/webhooks/meta` (or `/api/webhooks/whatsapp`) with verify token
+`META_WEBHOOK_VERIFY_TOKEN`, and subscribe the WABA to `messages`. OAuth scopes:
+`business_management`, `whatsapp_business_management`, `whatsapp_business_messaging`.
+Connecting lists phone numbers on owned WhatsApp Business Accounts. Inbox replies send
+through `POST /{phone-number-id}/messages`. Calendar feed publishing is not a WhatsApp
+surface — use Inbox for 1:1 messages.
 
 ## LinkedIn
 
@@ -102,8 +136,22 @@ the worker polls the publish status and the schedule detail displays TikTok's ex
 | `X_CLIENT_SECRET` | OAuth 2.0 Client Secret                                       |
 
 App type: **Web App, confidential client**, with OAuth 2.0 enabled and read+write permissions.
-Scopes: `tweet.read tweet.write users.read offline.access` (PKCE S256). Posting requires an
-X API plan that allows `POST /2/tweets`. Text only.
+Scopes: `tweet.read tweet.write users.read offline.access dm.read dm.write` (PKCE S256).
+Posting requires an X API plan that allows `POST /2/tweets`. Text only. Direct Messages need
+the DM product on the developer app; reconnect existing X accounts after adding DM scopes.
+
+## Channel readiness (connect / publish / inbox / insights)
+
+| Network   | Connect (OAuth)                   | Feed publish                       | Inbox messages / comments                       | Engagement insights                      |
+| --------- | --------------------------------- | ---------------------------------- | ----------------------------------------------- | ---------------------------------------- |
+| Facebook  | `META_APP_ID` + `META_APP_SECRET` | Pages Graph posts                  | Webhooks + 14-day comment/DM pull               | Post impressions / engaged users         |
+| Instagram | Same Meta app                     | Professional account media publish | Webhooks + media comments / DMs                 | Media insights (reconnect for new scope) |
+| LinkedIn  | `LINKEDIN_CLIENT_ID` + secret     | Member (and org) posts             | Webhooks (partner messaging not in this phase)  | Social actions likes/comments            |
+| TikTok    | `TIKTOK_CLIENT_KEY` + secret      | Direct Post after `video.publish`  | Webhooks (business messaging not in this phase) | Video query counts when API allows       |
+| X         | `X_CLIENT_ID` + secret            | `POST /2/tweets`                   | Account Activity webhooks + DM/mention pull     | Tweet `public_metrics`                   |
+| WhatsApp  | Same Meta app + WhatsApp product  | **No** — messaging channel         | Cloud API webhooks + Inbox replies              | Not a feed post                          |
+
+Shared: `SOCIAL_TOKEN_ENCRYPTION_KEY` on **API and worker**, public `SOCIAL_OAUTH_REDIRECT_BASE` (or `WEB_BASE_URL`), and webhook URLs reachable from the internet (`API_PUBLIC_URL`). Leave a network's keys blank to keep the honest "Not available yet" chip.
 
 ## How publishing works
 

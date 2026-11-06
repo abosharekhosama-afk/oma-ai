@@ -1,7 +1,7 @@
 import { getPrisma } from '@oma/db';
 import { newId } from '@oma/domain';
 
-export type InboxPlatform = 'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN';
+export type InboxPlatform = 'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN' | 'X' | 'WHATSAPP';
 export type InboxConvType = 'DIRECT_MESSAGE' | 'POST_COMMENT' | 'DARK_COMMENT' | 'MENTION';
 
 const NEG =

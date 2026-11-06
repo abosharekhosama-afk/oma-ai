@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import { CheckOutlined, UpOutlined } from '../../../../components/ui/lucide-icons';
 
 export type InboxStatusFilter = 'OPEN' | 'PENDING' | 'CLOSED';
-export type InboxPlatformFilter = 'all' | 'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN';
+export type InboxPlatformFilter =
+  'all' | 'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN' | 'X' | 'WHATSAPP';
 
 type Option = { value: InboxStatusFilter; label: string; count?: number };
 type ChannelOption = { value: InboxPlatformFilter; label: string };

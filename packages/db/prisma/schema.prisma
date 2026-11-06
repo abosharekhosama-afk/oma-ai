@@ -1603,6 +1603,7 @@ enum SocialNetwork {
   LINKEDIN
   TIKTOK
   X
+  WHATSAPP
 }
 
 enum SocialPageStatus {
@@ -1641,6 +1642,9 @@ model ContentPublishTarget {
   externalPostId   String?
   externalPostUrl  String?
   publishedAt      DateTime?
+  /// Last fetched provider insights JSON (impressions/likes/comments). Honest zeros until live.
+  insightsJson     String?
+  lastInsightsAt   DateTime?
   createdAt        DateTime             @default(now())
   updatedAt        DateTime             @updatedAt
   contentItem      ContentItem          @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
@@ -1849,6 +1853,8 @@ enum InboxPlatform {
   META_IG
   TIKTOK
   LINKEDIN
+  X
+  WHATSAPP
 }
 
 enum InboxConversationType {
@@ -2010,4 +2016,20 @@ model ListeningHit {
   @@index([tenantId, ruleId, capturedAt])
   @@index([tenantId, isHighPriority, capturedAt])
   @@index([tenantId, sentiment])
+}
+
+/// Deduplicated inbound provider webhooks (FR-090). Tenant is filled after page mapping.
+model SocialWebhookEvent {
+  id          String    @id
+  platform    String
+  eventId     String
+  signatureOk Boolean   @default(false)
+  payloadJson String
+  processedAt DateTime?
+  lastError   String?
+  createdAt   DateTime  @default(now())
+
+  @@unique([platform, eventId])
+  @@index([createdAt])
+  @@index([processedAt])
 }

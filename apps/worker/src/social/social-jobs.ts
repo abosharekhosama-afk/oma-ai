@@ -570,8 +570,17 @@ export function startSocialJobs(
     },
     Number(process.env.SOCIAL_REFRESH_INTERVAL_MS ?? 15 * 60_000),
   );
+  const insights = setInterval(
+    () => {
+      void import('./fetch-insights')
+        .then(({ runInsightsTick }) => runInsightsTick())
+        .catch((e) => log.error({ err: String(e) }, 'social insights tick failed'));
+    },
+    Number(process.env.SOCIAL_INSIGHTS_INTERVAL_MS ?? 15 * 60_000),
+  );
   return () => {
     clearInterval(publish);
     clearInterval(refresh);
+    clearInterval(insights);
   };
 }

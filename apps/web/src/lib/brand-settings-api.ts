@@ -18,14 +18,19 @@ export type BrandMemberCandidate = Pick<
   'user_id' | 'name' | 'email' | 'avatar_url'
 >;
 
-export type SocialNetwork = 'facebook' | 'instagram' | 'linkedin' | 'tiktok' | 'x';
+export type SocialNetwork = 'facebook' | 'instagram' | 'linkedin' | 'tiktok' | 'x' | 'whatsapp';
 export const SOCIAL_NETWORKS: SocialNetwork[] = [
   'facebook',
   'instagram',
   'linkedin',
   'tiktok',
   'x',
+  'whatsapp',
 ];
+/** Calendar/feed compose — WhatsApp is inbox-only. */
+export const FEED_SOCIAL_NETWORKS: SocialNetwork[] = SOCIAL_NETWORKS.filter(
+  (n) => n !== 'whatsapp',
+);
 
 export type SocialPageRow = {
   id: string;
@@ -43,6 +48,10 @@ export type SocialProvider = {
   network: SocialNetwork;
   available: boolean;
   reason: 'not_configured' | 'encryption_key_missing' | null;
+  inbox?: boolean;
+  feed_publish?: boolean;
+  webhooks?: boolean;
+  missing_env?: string[];
 };
 
 const json = (method: string, body?: unknown): RequestInit => ({
@@ -116,9 +125,13 @@ export const brandSettingsApi = {
     return r;
   },
   social: (brandId: string) =>
-    api<{ data: { pages: SocialPageRow[]; providers: SocialProvider[] } }>(
-      `/api/v1/brands/${brandId}/social-pages`,
-    ),
+    api<{
+      data: {
+        pages: SocialPageRow[];
+        providers: SocialProvider[];
+        readiness?: SocialProvider[];
+      };
+    }>(`/api/v1/brands/${brandId}/social-pages`),
   connect: (brandId: string, network: SocialNetwork) =>
     api<{ data: { authorize_url: string } }>(
       `/api/v1/brands/${brandId}/social-pages/oauth/${network}/start`,

@@ -85,7 +85,10 @@ async function main() {
     try {
       const prisma = (await import('@oma/db')).getPrisma();
       const tenants = await prisma.socialPage.findMany({
-        where: { status: 'CONNECTED', network: { in: ['FACEBOOK', 'INSTAGRAM'] } },
+        where: {
+          status: 'CONNECTED',
+          network: { in: ['FACEBOOK', 'INSTAGRAM', 'WHATSAPP', 'X', 'LINKEDIN', 'TIKTOK'] },
+        },
         select: { tenantId: true },
         distinct: ['tenantId'],
       });

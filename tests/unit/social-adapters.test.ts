@@ -80,6 +80,7 @@ describe('provider availability', () => {
       'facebook',
       'instagram',
       'x',
+      'whatsapp',
     ]);
   });
 });

@@ -14,6 +14,7 @@ async function bootstrap() {
   const isProd = env.NODE_ENV === 'production';
 
   const app = await NestFactory.create(AppModule, {
+    rawBody: true,
     cors: isProd
       ? {
           origin: env.WEB_ORIGIN,

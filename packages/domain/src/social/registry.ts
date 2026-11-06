@@ -3,6 +3,7 @@ import { SOCIAL_NETWORKS } from './adapter';
 import { LinkedInAdapter } from './linkedin.adapter';
 import { MetaAdapter } from './meta.adapter';
 import { TikTokAdapter } from './tiktok.adapter';
+import { WhatsAppAdapter } from './whatsapp.adapter';
 import { XAdapter } from './x.adapter';
 import { tokenKeyFromEnv } from './token-crypto';
 
@@ -21,6 +22,8 @@ export function createSocialAdapter(
       return new TikTokAdapter(env, fetchFn);
     case 'x':
       return new XAdapter(env, fetchFn);
+    case 'whatsapp':
+      return new WhatsAppAdapter(env, fetchFn);
   }
 }
 
@@ -43,7 +46,35 @@ export function socialAvailability(env: NodeJS.ProcessEnv = process.env): Provid
   });
 }
 
+export type NetworkReadiness = ProviderAvailability & {
+  inbox: boolean;
+  feed_publish: boolean;
+  webhooks: boolean;
+  missing_env: string[];
+};
+
+export function socialReadiness(env: NodeJS.ProcessEnv = process.env): NetworkReadiness[] {
+  const keyOk = Boolean(tokenKeyFromEnv(env));
+  return SOCIAL_NETWORKS.map((network) => {
+    const adapter = createSocialAdapter(network, env);
+    const missing = adapter.requiredEnv.filter((k) => !String(env[k] ?? '').trim());
+    if (!keyOk && !missing.includes('SOCIAL_TOKEN_ENCRYPTION_KEY')) {
+      missing.push('SOCIAL_TOKEN_ENCRYPTION_KEY');
+    }
+    const configured = adapter.isConfigured();
+    return {
+      network,
+      available: configured && keyOk,
+      reason: !configured ? 'not_configured' : !keyOk ? 'encryption_key_missing' : null,
+      inbox: true,
+      feed_publish: network !== 'whatsapp',
+      webhooks: true,
+      missing_env: missing,
+    };
+  });
+}
+
 /** Prisma enum <-> API code. */
 export const toSocialEnum = (n: SocialNetworkCode) =>
-  n.toUpperCase() as 'FACEBOOK' | 'INSTAGRAM' | 'LINKEDIN' | 'TIKTOK' | 'X';
+  n.toUpperCase() as 'FACEBOOK' | 'INSTAGRAM' | 'LINKEDIN' | 'TIKTOK' | 'X' | 'WHATSAPP';
 export const fromSocialEnum = (n: string) => n.toLowerCase() as SocialNetworkCode;

@@ -4,6 +4,7 @@ import {
   readJson,
   type ConnectedAccount,
   type FetchLike,
+  type PostInsights,
   type PublishablePage,
   type PublishInput,
   type PublishResult,
@@ -163,5 +164,28 @@ export class LinkedInAdapter implements SocialProviderAdapter {
     if (!res.ok) throw httpError('linkedin', res, await readJson(res));
     const urn = res.headers.get('x-restli-id') ?? res.headers.get('x-linkedin-id') ?? '';
     return { externalId: urn, url: urn ? `https://www.linkedin.com/feed/update/${urn}/` : null };
+  }
+
+  async fetchInsights(page: PublishablePage, externalPostId: string): Promise<PostInsights | null> {
+    const urn = externalPostId.trim();
+    if (!urn) return null;
+    const res = await this.fetchFn(
+      `https://api.linkedin.com/rest/socialActions/${encodeURIComponent(urn)}`,
+      { headers: this.headers(page.accessToken) },
+    );
+    const body = await readJson(res);
+    if (!res.ok) return null;
+    const likes = Number(
+      (body.likesSummary as { totalLikes?: number } | undefined)?.totalLikes ?? 0,
+    );
+    const comments = Number(
+      (body.commentsSummary as { totalFirstLevelComments?: number } | undefined)
+        ?.totalFirstLevelComments ?? 0,
+    );
+    return {
+      likes: Number.isFinite(likes) ? likes : 0,
+      comments: Number.isFinite(comments) ? comments : 0,
+      fetchedAt: new Date().toISOString(),
+    };
   }
 }

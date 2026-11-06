@@ -1,5 +1,5 @@
 import { getPrisma } from '@oma/db';
-import { decryptToken, tokenKeyFromEnv } from '@oma/domain';
+import { decryptToken, tokenKeyFromEnv, WhatsAppAdapter, XAdapter } from '@oma/domain';
 
 export type PlatformReplyResult =
   | { ok: true; externalMessageId: string | null; delivered: true }
@@ -11,7 +11,7 @@ export type PlatformReplyResult =
  */
 export async function tryPlatformReply(input: {
   tenantId: string;
-  platform: 'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN';
+  platform: 'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN' | 'X' | 'WHATSAPP';
   brandId?: string | null;
   socialPageId?: string | null;
   externalThreadId: string;
@@ -25,7 +25,7 @@ export async function tryPlatformReply(input: {
     return {
       ok: false,
       delivered: false,
-      reason: `${input.platform} outbound reply is not wired yet — stored locally only.`,
+      reason: `${input.platform} outbound reply is stored locally until the provider messaging product is approved.`,
     };
   }
 
@@ -58,9 +58,59 @@ export async function tryPlatformReply(input: {
     };
   }
 
+  if (input.platform === 'X') {
+    try {
+      const adapter = new XAdapter();
+      const sent = await adapter.sendMessage(
+        {
+          externalId: page.externalId,
+          name: page.externalId,
+          accessToken,
+          meta: {},
+        },
+        {
+          to: input.participantExtId || extractPeerId(input.externalThreadId) || '',
+          text: input.content,
+        },
+      );
+      return { ok: true, delivered: true, externalMessageId: sent.externalId };
+    } catch (e) {
+      return {
+        ok: false,
+        delivered: false,
+        reason: e instanceof Error ? e.message : 'X send failed',
+      };
+    }
+  }
+
+  if (input.platform === 'WHATSAPP') {
+    try {
+      const adapter = new WhatsAppAdapter();
+      const sent = await adapter.sendMessage(
+        {
+          externalId: page.externalId,
+          name: page.externalId,
+          accessToken,
+          meta: {},
+        },
+        {
+          to: input.participantExtId || extractPeerId(input.externalThreadId) || '',
+          text: input.content,
+        },
+      );
+      return { ok: true, delivered: true, externalMessageId: sent.externalId };
+    } catch (e) {
+      return {
+        ok: false,
+        delivered: false,
+        reason: e instanceof Error ? e.message : 'WhatsApp send failed',
+      };
+    }
+  }
+
   if (input.type === 'DIRECT_MESSAGE') {
     return sendMetaPrivateMessage({
-      platform: input.platform,
+      platform: input.platform === 'META_IG' ? 'META_IG' : 'META_FB',
       accessToken,
       recipientId: input.participantExtId || extractPeerId(input.externalThreadId),
       text: input.content,
@@ -82,7 +132,7 @@ export async function tryPlatformReply(input: {
     accessToken,
     commentId,
     text: input.content,
-    platform: input.platform,
+    platform: input.platform === 'META_IG' ? 'META_IG' : 'META_FB',
   });
 }
 
@@ -90,9 +140,20 @@ async function resolveSocialPage(input: {
   tenantId: string;
   brandId?: string | null;
   socialPageId?: string | null;
-  platform: 'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN';
+  platform: 'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN' | 'X' | 'WHATSAPP';
 }) {
-  const network = input.platform === 'META_IG' ? 'INSTAGRAM' : 'FACEBOOK';
+  const network =
+    input.platform === 'META_IG'
+      ? 'INSTAGRAM'
+      : input.platform === 'WHATSAPP'
+        ? 'WHATSAPP'
+        : input.platform === 'X'
+          ? 'X'
+          : input.platform === 'TIKTOK'
+            ? 'TIKTOK'
+            : input.platform === 'LINKEDIN'
+              ? 'LINKEDIN'
+              : 'FACEBOOK';
   if (input.socialPageId) {
     return getPrisma().socialPage.findFirst({
       where: { id: input.socialPageId, tenantId: input.tenantId, status: 'CONNECTED' },

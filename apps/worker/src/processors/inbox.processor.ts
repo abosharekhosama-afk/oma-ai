@@ -2,14 +2,14 @@ import { createLogger } from '@oma/observability';
 import { Worker, type Job } from 'bullmq';
 import type IORedis from 'ioredis';
 import { getPrisma } from '@oma/db';
-import { newId } from '@oma/domain';
 import { ingestInboundMessage } from '../inbox/ingest-conversation';
 import { runInboxSync } from '../inbox/meta-sync';
+import { parseInboxWebhook, type InboxPlatform } from '../inbox/parse-webhooks';
 
 const log = createLogger('inbox-processor');
 
 type InboxWebhookJob = {
-  platform: 'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN';
+  platform: InboxPlatform;
   tenantId?: string;
   brandId?: string;
   raw: unknown;
@@ -23,135 +23,28 @@ type InboxSyncJob = {
   requestedAt: string;
 };
 
-type ParsedInbound = {
-  tenantId?: string;
-  platform: InboxWebhookJob['platform'];
-  externalThreadId: string;
-  type: 'DIRECT_MESSAGE' | 'POST_COMMENT' | 'DARK_COMMENT' | 'MENTION';
-  externalMessageId?: string;
-  senderExternalId: string;
-  senderName: string;
-  senderAvatar?: string;
-  content: string;
-  mediaUrls?: string[];
-};
-
-function parseMeta(raw: unknown, platform: InboxWebhookJob['platform']): ParsedInbound[] {
-  const out: ParsedInbound[] = [];
-  if (!raw || typeof raw !== 'object') return out;
-  const body = raw as {
-    entry?: Array<{
-      id?: string;
-      messaging?: Array<{
-        sender?: { id?: string };
-        recipient?: { id?: string };
-        message?: {
-          mid?: string;
-          text?: string;
-          attachments?: Array<{ payload?: { url?: string } }>;
-        };
-        timestamp?: number;
-      }>;
-      changes?: Array<{
-        field?: string;
-        value?: {
-          from?: { id?: string; username?: string };
-          media?: { id?: string };
-          text?: string;
-          id?: string;
-          comment_id?: string;
-          post_id?: string;
-          parent_id?: string;
-          item?: string;
-        };
-      }>;
-    }>;
-  };
-  for (const entry of body.entry ?? []) {
-    for (const m of entry.messaging ?? []) {
-      const text = m.message?.text ?? '';
-      const mid = m.message?.mid;
-      const sender = m.sender?.id ?? 'unknown';
-      if (!text && !m.message?.attachments?.length) continue;
-      out.push({
-        platform,
-        externalThreadId: `${entry.id ?? 'page'}:${sender}`,
-        type: 'DIRECT_MESSAGE',
-        externalMessageId: mid,
-        senderExternalId: sender,
-        senderName: sender,
-        content: text || '[media]',
-        mediaUrls: (m.message?.attachments ?? [])
-          .map((a) => a.payload?.url)
-          .filter(Boolean) as string[],
-      });
-    }
-    for (const ch of entry.changes ?? []) {
-      const v = ch.value;
-      if (!v) continue;
-      const text = v.text ?? '';
-      const fromId = v.from?.id ?? 'unknown';
-      const fromName = v.from?.username ?? fromId;
-      const isDark = ch.field === 'comments' && !v.parent_id && platform === 'META_IG';
-      out.push({
-        platform,
-        externalThreadId: String(v.post_id ?? v.media?.id ?? v.id ?? entry.id ?? 'thread'),
-        type: isDark ? 'DARK_COMMENT' : ch.field === 'mentions' ? 'MENTION' : 'POST_COMMENT',
-        externalMessageId: v.comment_id ?? v.id,
-        senderExternalId: fromId,
-        senderName: fromName,
-        content: text || '[comment]',
-      });
-    }
-  }
-  return out;
-}
-
-function parseGeneric(raw: unknown, platform: InboxWebhookJob['platform']): ParsedInbound[] {
-  // TikTok / LinkedIn payload shapes vary; accept a normalized envelope when present.
-  if (!raw || typeof raw !== 'object') return [];
-  const o = raw as {
-    tenantId?: string;
-    events?: Array<{
-      threadId?: string;
-      messageId?: string;
-      type?: string;
-      senderId?: string;
-      senderName?: string;
-      text?: string;
-    }>;
-  };
-  return (o.events ?? []).map((e) => ({
-    tenantId: o.tenantId,
-    platform,
-    externalThreadId: e.threadId ?? e.messageId ?? newId(),
-    type: (e.type as ParsedInbound['type']) || 'DIRECT_MESSAGE',
-    externalMessageId: e.messageId,
-    senderExternalId: e.senderId ?? 'unknown',
-    senderName: e.senderName ?? e.senderId ?? 'Unknown',
-    content: e.text ?? '',
-  }));
-}
-
 async function resolveTenantId(hint?: string, pageExternalId?: string): Promise<string | null> {
   if (hint) return hint;
-  // Map connected social page external id → tenant when possible.
   if (pageExternalId) {
     try {
       const page = await getPrisma().socialPage.findFirst({
         where: { externalId: pageExternalId },
-        select: { tenantId: true },
+        select: { tenantId: true, brandId: true },
       });
       if (page?.tenantId) return page.tenantId;
     } catch {
-      // socialPage model may not expose externalPageId the same way — ignore
+      // ignore
     }
   }
   return process.env.INBOX_DEFAULT_TENANT_ID?.trim() || null;
 }
 
-async function ingest(item: ParsedInbound, fallbackTenant?: string, brandId?: string) {
-  const tenantId = await resolveTenantId(item.tenantId ?? fallbackTenant);
+async function ingest(
+  item: ReturnType<typeof parseInboxWebhook>[number],
+  fallbackTenant?: string,
+  brandId?: string,
+) {
+  const tenantId = await resolveTenantId(item.tenantId ?? fallbackTenant, item.pageExternalId);
   if (!tenantId) {
     log.warn(
       { platform: item.platform, thread: item.externalThreadId },
@@ -159,9 +52,20 @@ async function ingest(item: ParsedInbound, fallbackTenant?: string, brandId?: st
     );
     return;
   }
+  let socialPageId: string | null = null;
+  let mappedBrand = brandId ?? null;
+  if (item.pageExternalId) {
+    const page = await getPrisma().socialPage.findFirst({
+      where: { externalId: item.pageExternalId, tenantId },
+      select: { id: true, brandId: true },
+    });
+    socialPageId = page?.id ?? null;
+    mappedBrand = mappedBrand ?? page?.brandId ?? null;
+  }
   await ingestInboundMessage({
     tenantId,
-    brandId: brandId ?? null,
+    brandId: mappedBrand,
+    socialPageId,
     platform: item.platform,
     externalThreadId: item.externalThreadId,
     type: item.type,
@@ -188,10 +92,7 @@ export function startInboxProcessor(connection: IORedis) {
         return;
       }
       const { platform, raw, tenantId, brandId } = job.data as InboxWebhookJob;
-      const parsed =
-        platform === 'META_FB' || platform === 'META_IG'
-          ? parseMeta(raw, platform)
-          : parseGeneric(raw, platform);
+      const parsed = parseInboxWebhook(platform, raw);
       log.info({ platform, count: parsed.length, jobId: job.id }, 'inbox webhook job');
       for (const item of parsed) {
         await ingest(item, tenantId, brandId);

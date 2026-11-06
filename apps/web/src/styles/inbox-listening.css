@@ -2720,6 +2720,12 @@
 .plat--LINKEDIN {
   background: #0a66c2;
 }
+.plat--X {
+  background: #0f1419;
+}
+.plat--WHATSAPP {
+  background: #25d366;
+}
 
 .oma-plx-listening-card__handle {
   display: block;

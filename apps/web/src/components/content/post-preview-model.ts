@@ -3,7 +3,8 @@
  * which layout (feed card vs. full-screen vertical) and the media aspect ratio.
  * Kept framework-free so it is unit-testable.
  */
-export type PreviewNetwork = 'instagram' | 'facebook' | 'linkedin' | 'x' | 'tiktok' | 'generic';
+export type PreviewNetwork =
+  'instagram' | 'facebook' | 'linkedin' | 'x' | 'tiktok' | 'whatsapp' | 'generic';
 export type PreviewContentType = 'REEL' | 'CAROUSEL' | 'STATIC' | 'STORY' | 'POST';
 export type PreviewLayout = 'feed' | 'vertical';
 
@@ -14,6 +15,7 @@ export function resolveNetwork(channel: string | null | undefined): PreviewNetwo
   if (c.includes('linkedin') || c === 'li') return 'linkedin';
   if (c.includes('tiktok') || c === 'tt') return 'tiktok';
   if (c.includes('twitter') || c === 'x' || /(^|\W)x(\W|$)/.test(c)) return 'x';
+  if (c.includes('whatsapp') || c === 'wa') return 'whatsapp';
   return 'generic';
 }
 
@@ -48,6 +50,7 @@ export const CAPTION_LIMIT: Record<PreviewNetwork, number> = {
   linkedin: 210,
   x: 280,
   tiktok: 90,
+  whatsapp: 240,
   generic: 240,
 };
 

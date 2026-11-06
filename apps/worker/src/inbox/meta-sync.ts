@@ -284,6 +284,107 @@ async function syncInstagramPage(input: {
   return { ingested, skipped, errors };
 }
 
+async function syncXPage(input: {
+  tenantId: string;
+  brandId: string;
+  socialPageId: string;
+  userId: string;
+  pageName: string;
+  accessToken: string;
+}): Promise<{ ingested: number; skipped: number; errors: string[] }> {
+  let ingested = 0;
+  let skipped = 0;
+  const errors: string[] = [];
+  const headers = { authorization: `Bearer ${input.accessToken}` };
+  const meta = JSON.stringify({
+    source: 'x-inbox-sync',
+    channelName: `${input.pageName} · X`,
+  });
+
+  try {
+    const res = await fetch(
+      'https://api.x.com/2/dm_events?event_types=MessageCreate&dm_event.fields=id,text,sender_id,created_at,dm_conversation_id&max_results=50',
+      { headers },
+    );
+    const body = (await res.json().catch(() => ({}))) as {
+      data?: Array<{
+        id?: string;
+        text?: string;
+        sender_id?: string;
+        created_at?: string;
+        dm_conversation_id?: string;
+      }>;
+      errors?: Array<{ message?: string }>;
+    };
+    if (!res.ok) {
+      errors.push(`X DMs: ${body.errors?.[0]?.message || `HTTP ${res.status}`}`);
+    } else {
+      for (const ev of body.data ?? []) {
+        const sender = ev.sender_id ?? 'unknown';
+        if (sender === input.userId) continue;
+        const r = await ingestInboundMessage({
+          tenantId: input.tenantId,
+          brandId: input.brandId,
+          socialPageId: input.socialPageId,
+          platform: 'X',
+          externalThreadId: ev.dm_conversation_id || `x-dm:${sender}`,
+          type: 'DIRECT_MESSAGE',
+          externalMessageId: ev.id ?? null,
+          senderExternalId: sender,
+          senderName: sender,
+          content: ev.text ?? '',
+          metadataJson: meta,
+          createdAt: ev.created_at ? new Date(ev.created_at) : undefined,
+        });
+        if (r === 'duplicate') skipped += 1;
+        else ingested += 1;
+      }
+    }
+  } catch (e) {
+    errors.push(`X DMs: ${e instanceof Error ? e.message : String(e)}`);
+  }
+
+  try {
+    const res = await fetch(
+      `https://api.x.com/2/users/${encodeURIComponent(input.userId)}/mentions?tweet.fields=created_at,text,author_id&expansions=author_id&user.fields=name,username&max_results=50`,
+      { headers },
+    );
+    const body = (await res.json().catch(() => ({}))) as {
+      data?: Array<{ id?: string; text?: string; author_id?: string; created_at?: string }>;
+      includes?: { users?: Array<{ id?: string; name?: string; username?: string }> };
+      errors?: Array<{ message?: string }>;
+    };
+    if (!res.ok) {
+      errors.push(`X mentions: ${body.errors?.[0]?.message || `HTTP ${res.status}`}`);
+    } else {
+      const users = new Map((body.includes?.users ?? []).map((u) => [u.id ?? '', u]));
+      for (const tw of body.data ?? []) {
+        const author = users.get(tw.author_id ?? '');
+        const r = await ingestInboundMessage({
+          tenantId: input.tenantId,
+          brandId: input.brandId,
+          socialPageId: input.socialPageId,
+          platform: 'X',
+          externalThreadId: tw.id ?? 'x-mention',
+          type: 'MENTION',
+          externalMessageId: tw.id ?? null,
+          senderExternalId: tw.author_id ?? 'unknown',
+          senderName: author?.username ?? author?.name ?? tw.author_id ?? 'X user',
+          content: tw.text ?? '',
+          metadataJson: meta,
+          createdAt: tw.created_at ? new Date(tw.created_at) : undefined,
+        });
+        if (r === 'duplicate') skipped += 1;
+        else ingested += 1;
+      }
+    }
+  } catch (e) {
+    errors.push(`X mentions: ${e instanceof Error ? e.message : String(e)}`);
+  }
+
+  return { ingested, skipped, errors };
+}
+
 export async function runInboxSync(input: {
   tenantId: string;
   brandId?: string | null;
@@ -304,7 +405,7 @@ export async function runInboxSync(input: {
     where: {
       tenantId: input.tenantId,
       status: 'CONNECTED',
-      network: { in: ['FACEBOOK', 'INSTAGRAM'] },
+      network: { in: ['FACEBOOK', 'INSTAGRAM', 'WHATSAPP', 'X', 'LINKEDIN', 'TIKTOK'] },
       ...(input.brandId ? { brandId: input.brandId } : {}),
     },
   });
@@ -357,6 +458,21 @@ export async function runInboxSync(input: {
         ingested += r.ingested;
         skipped += r.skipped;
         errors.push(...r.errors);
+      } else if (page.network === 'X') {
+        const r = await syncXPage({
+          tenantId: page.tenantId,
+          brandId: page.brandId,
+          socialPageId: page.id,
+          userId: page.externalId,
+          pageName: page.name,
+          accessToken,
+        });
+        ingested += r.ingested;
+        skipped += r.skipped;
+        errors.push(...r.errors);
+      } else {
+        // WhatsApp Cloud API, LinkedIn, and TikTok deliver inbox events over webhooks.
+        // There is no complete history list to backfill.
       }
 
       await getPrisma().socialPage.update({
@@ -365,6 +481,10 @@ export async function runInboxSync(input: {
           metaJson: JSON.stringify({
             ...meta,
             lastInboxSyncAt: new Date().toISOString(),
+            inboxMode:
+              page.network === 'FACEBOOK' || page.network === 'INSTAGRAM' || page.network === 'X'
+                ? 'pull_and_webhook'
+                : 'webhook_primary',
           }),
         },
       });

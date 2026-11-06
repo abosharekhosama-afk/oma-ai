@@ -10,6 +10,7 @@ import {
   pkceChallenge,
   pkceVerifier,
   socialAvailability,
+  socialReadiness,
   SocialProviderError,
   tokenKeyFromEnv,
   toSocialEnum,
@@ -18,7 +19,7 @@ import {
 import { AuditService } from '../audit/audit.service';
 import { syncContentPublishRollup } from './publish-target-sync';
 import { billingService } from '../billing/billing.service';
-import { subscribeMetaPageWebhooks } from '../inbox/meta-subscribe';
+import { subscribeMetaPageWebhooks, subscribeWhatsAppWaba } from '../inbox/meta-subscribe';
 import { enqueueInboxSync } from '../inbox/enqueue-inbox';
 
 const STATE_TTL_MS = 15 * 60_000;
@@ -47,7 +48,11 @@ export function oauthRedirectUri(network: SocialNetworkCode, env = process.env):
         ? env.META_FACEBOOK_REDIRECT_URI
         : network === 'instagram'
           ? env.META_INSTAGRAM_REDIRECT_URI
-          : undefined;
+          : network === 'whatsapp'
+            ? env.WHATSAPP_REDIRECT_URI || env.META_WHATSAPP_REDIRECT_URI
+            : network === 'x'
+              ? env.X_REDIRECT_URI
+              : undefined;
   if (explicit?.trim()) return explicit.trim();
 
   const base = (
@@ -119,7 +124,14 @@ export class SocialService {
       where: { tenantId, brandId, status: { not: 'DISCONNECTED' } },
       orderBy: [{ network: 'asc' }, { name: 'asc' }],
     });
-    return { data: { pages: pages.map(mapSocialPage), providers: socialAvailability() } };
+    const readiness = socialReadiness();
+    return {
+      data: {
+        pages: pages.map(mapSocialPage),
+        providers: readiness,
+        readiness,
+      },
+    };
   }
 
   async start(tenantId: string, userId: string, brandId: string, network: string) {
@@ -247,7 +259,20 @@ export class SocialService {
         if (network === 'facebook') {
           void subscribeMetaPageWebhooks(a.externalId, a.token.accessToken).catch(() => undefined);
         }
-        if (network === 'facebook' || network === 'instagram') {
+        if (network === 'whatsapp') {
+          const wabaId = typeof a.meta?.waba_id === 'string' ? a.meta.waba_id : '';
+          if (wabaId) {
+            void subscribeWhatsAppWaba(wabaId, a.token.accessToken).catch(() => undefined);
+          }
+        }
+        if (
+          network === 'facebook' ||
+          network === 'instagram' ||
+          network === 'whatsapp' ||
+          network === 'tiktok' ||
+          network === 'linkedin' ||
+          network === 'x'
+        ) {
           void enqueueInboxSync({
             tenantId: row.tenantId,
             brandId: row.brandId,
@@ -352,6 +377,14 @@ export class SocialService {
         },
       });
       if (pages.length !== pageIds.length) throw notFound();
+      if (pages.some((p) => p.network === 'WHATSAPP')) {
+        throw new DomainError(
+          'VALIDATION_FAILED',
+          'WhatsApp is a messaging channel. Send replies from Inbox; calendar feed posts cannot target WhatsApp.',
+          400,
+          'errors.validation_failed',
+        );
+      }
     }
     const queueOnSchedule = item.scheduleState === 'SCHEDULED';
     await prisma.$transaction(async (tx) => {

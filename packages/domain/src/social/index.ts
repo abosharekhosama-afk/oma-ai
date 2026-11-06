@@ -4,5 +4,6 @@ export * from './meta.adapter';
 export * from './linkedin.adapter';
 export * from './tiktok.adapter';
 export * from './x.adapter';
+export * from './whatsapp.adapter';
 export * from './registry';
 export * from './media-constraints';

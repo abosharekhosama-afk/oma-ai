@@ -1,4 +1,11 @@
-export const SOCIAL_NETWORKS = ['facebook', 'instagram', 'linkedin', 'tiktok', 'x'] as const;
+export const SOCIAL_NETWORKS = [
+  'facebook',
+  'instagram',
+  'linkedin',
+  'tiktok',
+  'x',
+  'whatsapp',
+] as const;
 export type SocialNetworkCode = (typeof SOCIAL_NETWORKS)[number];
 
 export function isSocialNetwork(v: unknown): v is SocialNetworkCode {
@@ -55,6 +62,17 @@ export type PublishStatusResult =
     }
   | { status: 'FAILED'; errorMessage: string; retryable: boolean; reauth?: boolean };
 
+/** Provider post analytics after a successful live publish. Missing fields stay undefined. */
+export type PostInsights = {
+  impressions?: number;
+  reach?: number;
+  likes?: number;
+  comments?: number;
+  shares?: number;
+  views?: number;
+  fetchedAt: string;
+};
+
 /**
  * Errors from a network. `retryable` drives worker backoff; `reauth` means the token is no
  * longer valid and the page must be reconnected (status NEEDS_REAUTH + alert).
@@ -95,6 +113,8 @@ export interface SocialProviderAdapter {
   publish(page: PublishablePage, post: PublishInput): Promise<PublishResult>;
   /** Optional reconciliation for providers whose publish endpoint returns an operation ID. */
   fetchPublishStatus?(page: PublishablePage, externalId: string): Promise<PublishStatusResult>;
+  /** Optional live engagement for a published post id. Return null when the network has none. */
+  fetchInsights?(page: PublishablePage, externalPostId: string): Promise<PostInsights | null>;
 }
 
 export async function readJson(res: Response): Promise<Record<string, unknown>> {

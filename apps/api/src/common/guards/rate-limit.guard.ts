@@ -123,6 +123,7 @@ export class RateLimitGuard implements CanActivate {
       .getResponse<{ setHeader?: (name: string, value: string) => void }>();
     const routePath = Array.isArray(req.route?.path) ? req.route?.path[0] : req.route?.path;
     const path = normalizePath(routePath ? `${req.baseUrl ?? ''}${routePath}` : req.path);
+    if (path.includes('/api/webhooks')) return true;
     const method = (req.method ?? 'GET').toUpperCase();
     const ip = req.ip ?? 'unknown';
     const now = Date.now();

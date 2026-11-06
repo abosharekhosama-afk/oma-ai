@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { NetworkIcon } from './network-icon';
 import {
   brandSettingsApi,
-  SOCIAL_NETWORKS,
+  FEED_SOCIAL_NETWORKS,
   type SocialNetwork,
   type SocialPageRow,
   type SocialProvider,
@@ -17,6 +17,7 @@ const LABELS: Record<SocialNetwork, { en: string; ar: string }> = {
   linkedin: { en: 'LinkedIn', ar: 'لينكدإن' },
   tiktok: { en: 'TikTok', ar: 'تيك توك' },
   x: { en: 'X', ar: 'إكس' },
+  whatsapp: { en: 'WhatsApp', ar: 'واتساب' },
 };
 const CHANNEL_VALUES: Record<SocialNetwork, string> = {
   facebook: 'Facebook',
@@ -24,6 +25,7 @@ const CHANNEL_VALUES: Record<SocialNetwork, string> = {
   linkedin: 'LinkedIn',
   tiktok: 'TikTok',
   x: 'X',
+  whatsapp: 'WhatsApp',
 };
 
 function selectedSet(value: string) {
@@ -42,7 +44,7 @@ export function socialPageIdsForChannelSelection(
 ): string[] {
   const selected = selectedSet(channelValue);
   const ids: string[] = [];
-  for (const network of SOCIAL_NETWORKS) {
+  for (const network of FEED_SOCIAL_NETWORKS) {
     if (!selected.has(network)) continue;
     const connected = pages.find((p) => p.network === network && p.status === 'CONNECTED');
     if (connected) ids.push(connected.id);
@@ -149,11 +151,11 @@ export function ChannelChoiceCards({
   const settingsHref = brandId ? `/app/brands/${brandId}/settings?tab=accounts` : '/app/brands';
 
   if (variant === 'strip') {
-    const stripNets = SOCIAL_NETWORKS.filter((network) => {
+    const stripNets = FEED_SOCIAL_NETWORKS.filter((network) => {
       const accounts = pages.filter((page) => page.network === network);
       return accounts.length > 0 || selected.has(network);
     });
-    const show = stripNets.length ? stripNets : SOCIAL_NETWORKS;
+    const show = stripNets.length ? stripNets : FEED_SOCIAL_NETWORKS;
     return (
       <div
         className="oma-channel-strip"
@@ -210,7 +212,7 @@ export function ChannelChoiceCards({
   if (variant === 'accounts') {
     const q = filterQuery.trim().toLowerCase();
     const rows = pages
-      .filter((page) => page.status !== 'DISCONNECTED')
+      .filter((page) => page.status !== 'DISCONNECTED' && page.network !== 'whatsapp')
       .filter((page) => {
         if (!q) return true;
         const handle = page.external_id ? `@${page.external_id}` : '';
@@ -270,7 +272,7 @@ export function ChannelChoiceCards({
   return (
     <div className="oma-channel-choice" data-testid={testId}>
       <div className="oma-channel-choice__grid" role={multiple ? 'group' : 'radiogroup'}>
-        {SOCIAL_NETWORKS.map((network) => {
+        {FEED_SOCIAL_NETWORKS.map((network) => {
           const accounts = pages.filter((page) => page.network === network);
           const connectedAccounts = accounts.filter((page) => page.status === 'CONNECTED');
           const needsReauth = accounts.some((page) => page.status === 'NEEDS_REAUTH');

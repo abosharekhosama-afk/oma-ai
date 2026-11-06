@@ -5,7 +5,7 @@ import { tryPlatformReply } from './platform-reply';
 import { deletePlatformComment, hidePlatformComment } from './platform-message-actions';
 import { enqueueInboxSync } from './enqueue-inbox';
 
-type Platform = 'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN';
+type Platform = 'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN' | 'X' | 'WHATSAPP';
 type ConvType = 'DIRECT_MESSAGE' | 'POST_COMMENT' | 'DARK_COMMENT' | 'MENTION';
 type Status = 'UNREAD' | 'OPEN' | 'PENDING' | 'CLOSED';
 type Sentiment = 'POSITIVE' | 'NEUTRAL' | 'NEGATIVE';

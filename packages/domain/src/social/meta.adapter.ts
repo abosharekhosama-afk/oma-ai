@@ -5,6 +5,7 @@ import {
   SocialProviderError,
   type ConnectedAccount,
   type FetchLike,
+  type PostInsights,
   type PublishablePage,
   type PublishInput,
   type PublishResult,
@@ -56,6 +57,7 @@ export class MetaAdapter implements SocialProviderAdapter {
           'instagram_content_publish',
           'instagram_manage_comments',
           'instagram_manage_messages',
+          'instagram_manage_insights',
         ];
   }
 
@@ -218,4 +220,54 @@ export class MetaAdapter implements SocialProviderAdapter {
     }
     return { externalId: id, url };
   }
+
+  async fetchInsights(page: PublishablePage, externalPostId: string): Promise<PostInsights | null> {
+    const id = externalPostId.trim();
+    if (!id) return null;
+    const fetchedAt = new Date().toISOString();
+    if (this.network === 'facebook') {
+      const body = await this.get(`${id}/insights`, {
+        metric: 'post_impressions,post_impressions_unique,post_engaged_users',
+        access_token: page.accessToken,
+      }).catch(() => null);
+      if (!body) return null;
+      const map = insightValues(body);
+      return {
+        impressions: map.post_impressions,
+        reach: map.post_impressions_unique,
+        views: map.post_impressions,
+        likes: map.post_engaged_users,
+        fetchedAt,
+      };
+    }
+    const body = await this.get(`${id}/insights`, {
+      metric: 'impressions,reach,likes,comments,saved,shares,plays,views',
+      access_token: page.accessToken,
+    }).catch(() => null);
+    if (!body) return null;
+    const map = insightValues(body);
+    return {
+      impressions: map.impressions,
+      reach: map.reach,
+      likes: map.likes,
+      comments: map.comments,
+      shares: map.shares ?? map.saved,
+      views: map.plays ?? map.views ?? map.impressions,
+      fetchedAt,
+    };
+  }
+}
+
+function insightValues(body: Record<string, unknown>): Record<string, number> {
+  const out: Record<string, number> = {};
+  const rows = Array.isArray(body.data) ? body.data : [];
+  for (const row of rows) {
+    if (!row || typeof row !== 'object') continue;
+    const r = row as { name?: string; values?: Array<{ value?: unknown }> };
+    const name = r.name;
+    const raw = r.values?.[r.values.length - 1]?.value;
+    const n = typeof raw === 'number' ? raw : Number(raw);
+    if (name && Number.isFinite(n)) out[name] = n;
+  }
+  return out;
 }

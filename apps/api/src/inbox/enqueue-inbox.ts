@@ -2,7 +2,7 @@ import { Queue } from 'bullmq';
 import Redis from 'ioredis';
 
 export type InboxWebhookJob = {
-  platform: 'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN';
+  platform: 'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN' | 'X' | 'WHATSAPP';
   tenantId?: string;
   brandId?: string;
   raw: unknown;

@@ -3,6 +3,8 @@ import {
   InstagramGlyph,
   LinkedInGlyph,
   TikTokGlyph,
+  WhatsAppGlyph,
+  XGlyph,
 } from '../../../../components/landing/platform-icons';
 import { platformAccent, platformShort } from './inbox-utils';
 
@@ -11,6 +13,8 @@ const GLYPHS: Record<string, typeof FacebookGlyph> = {
   META_IG: InstagramGlyph,
   TIKTOK: TikTokGlyph,
   LINKEDIN: LinkedInGlyph,
+  X: XGlyph,
+  WHATSAPP: WhatsAppGlyph,
 };
 
 export function InboxPlatformIcon({

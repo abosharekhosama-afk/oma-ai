@@ -5,6 +5,7 @@ import {
   readJson,
   SocialProviderError,
   type FetchLike,
+  type PostInsights,
   type PublishablePage,
   type PublishInput,
   type PublishResult,
@@ -470,5 +471,34 @@ export class TikTokAdapter implements SocialProviderAdapter {
       };
     }
     return { status: 'PENDING' };
+  }
+
+  async fetchInsights(page: PublishablePage, externalPostId: string): Promise<PostInsights | null> {
+    const id = externalPostId.trim();
+    if (!id) return null;
+    const res = await this.fetchFn(
+      `${API}/v2/video/query/?fields=id,like_count,comment_count,share_count,view_count`,
+      {
+        method: 'POST',
+        headers: {
+          authorization: `Bearer ${page.accessToken}`,
+          'content-type': 'application/json; charset=UTF-8',
+        },
+        body: JSON.stringify({ filters: { video_ids: [id] } }),
+      },
+    );
+    const body = await readJson(res);
+    if (!res.ok) return null;
+    const list = (body.data as { videos?: Array<Record<string, unknown>> } | undefined)?.videos;
+    const row = list?.[0];
+    if (!row) return null;
+    return {
+      likes: Number(row.like_count) || 0,
+      comments: Number(row.comment_count) || 0,
+      shares: Number(row.share_count) || 0,
+      views: Number(row.view_count) || 0,
+      impressions: Number(row.view_count) || 0,
+      fetchedAt: new Date().toISOString(),
+    };
   }
 }
