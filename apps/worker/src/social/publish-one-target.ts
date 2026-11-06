@@ -148,7 +148,7 @@ export async function publishOneTarget(
     const mediaUrls =
       network === 'tiktok' ? prepared.map((p) => mediaProxyUrl(p.url)) : prepared.map((p) => p.url);
     const media =
-      network === 'tiktok' && prepared.length
+      prepared.length && (network === 'tiktok' || network === 'facebook')
         ? prepared.map((p, i) => ({
             url: mediaUrls[i]!,
             mime: p.mime,
