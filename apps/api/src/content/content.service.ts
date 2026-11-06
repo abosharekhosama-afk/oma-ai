@@ -326,8 +326,11 @@ export class ContentService {
     const wsPolicy = workspaceModeToPolicy(ws?.approvalMode);
     const policy =
       prefs && prefs.tenantId === tenantId ? (prefs.approvalPolicy as ApprovalPolicy) : wsPolicy;
+    const minApprovers = ws?.approvalMode === 'multi_level' ? 2 : 1;
     const requiredApprovers =
-      policy === 'REQUIRED' ? Math.min(5, Math.max(1, ws?.requiredApprovers ?? 1)) : 1;
+      policy === 'REQUIRED'
+        ? Math.min(5, Math.max(minApprovers, ws?.requiredApprovers ?? minApprovers))
+        : 1;
     return { policy, requiredApprovers };
   }
 
@@ -575,6 +578,19 @@ export class ContentService {
     if (current.archivedAt) {
       throw new DomainError('CONFLICT_STATE', 'Content is archived', 409, 'error.conflict_state');
     }
+    if (current.approvalState === 'APPROVED') {
+      const ws = await getPrisma()
+        .workspaceSetting.findUnique({ where: { tenantId } })
+        .catch(() => null);
+      if (ws?.lockAfterApproval) {
+        throw new DomainError(
+          'CONFLICT_STATE',
+          'Approved content is locked. Request changes before editing.',
+          409,
+          'error.content_locked',
+        );
+      }
+    }
     await this.requireActiveBrand(tenantId, current.brandId);
 
     if (patch.campaignId) {
@@ -800,6 +816,30 @@ export class ContentService {
       targetId: contentId,
       correlationId,
     });
+    if (next.approvalState === 'APPROVED') {
+      const ws = await getPrisma()
+        .workspaceSetting.findUnique({ where: { tenantId } })
+        .catch(() => null);
+      const when = current.plannedAt ?? current.scheduledAt;
+      if (ws?.scheduleOnApproval && when) {
+        try {
+          await this.schedule(
+            tenantId,
+            actorUserId,
+            contentId,
+            { scheduledAt: when.toISOString(), timezone: current.timezone },
+            correlationId,
+          );
+          const scheduled = await getPrisma().contentItem.findUniqueOrThrow({
+            where: { id: contentId },
+          });
+          const scheduledPolicy = await this.policyForBrand(tenantId, scheduled.brandId);
+          return { data: mapContent(scheduled, scheduledPolicy) };
+        } catch {
+          /* leave approved; schedule can be retried manually */
+        }
+      }
+    }
     const policy = await this.policyForBrand(tenantId, row.brandId);
     return { data: mapContent(row, policy) };
   }

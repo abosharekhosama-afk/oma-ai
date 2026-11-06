@@ -24,13 +24,14 @@ export type TimeSlot = {
   color: string;
 };
 
-export type ApprovalMode = 'none' | 'optional' | 'required';
+export type ApprovalMode = 'none' | 'optional' | 'required' | 'multi_level';
 
 export type ApprovalSettings = {
   mode: ApprovalMode;
   requiredApprovers: number;
   scheduleOnApproval: boolean;
   lockAfterApproval: boolean;
+  reminderPendingApprovals: boolean;
 };
 
 /** Server-persisted workspace settings (GET/PATCH /api/v1/workspace/settings). */
@@ -42,6 +43,7 @@ export type WorkspaceSettings = {
   required_approvers: number;
   schedule_on_approval: boolean;
   lock_after_approval: boolean;
+  reminder_pending_approvals?: boolean;
 };
 
 export const DEFAULT_APPROVALS: ApprovalSettings = {
@@ -49,6 +51,7 @@ export const DEFAULT_APPROVALS: ApprovalSettings = {
   requiredApprovers: 1,
   scheduleOnApproval: false,
   lockAfterApproval: false,
+  reminderPendingApprovals: false,
 };
 
 export function approvalsFromSettings(s: WorkspaceSettings): ApprovalSettings {
@@ -57,6 +60,7 @@ export function approvalsFromSettings(s: WorkspaceSettings): ApprovalSettings {
     requiredApprovers: s.required_approvers ?? 1,
     scheduleOnApproval: s.schedule_on_approval,
     lockAfterApproval: s.lock_after_approval,
+    reminderPendingApprovals: s.reminder_pending_approvals ?? false,
   };
 }
 
@@ -76,9 +80,15 @@ export async function patchWorkspaceSettings(
 export async function saveApprovalSettings(a: ApprovalSettings): Promise<ApprovalSettings> {
   const s = await patchWorkspaceSettings({
     approval_mode: a.mode,
-    required_approvers: a.mode === 'required' ? a.requiredApprovers : 1,
+    required_approvers:
+      a.mode === 'multi_level'
+        ? Math.max(2, a.requiredApprovers)
+        : a.mode === 'required'
+          ? Math.max(1, a.requiredApprovers)
+          : 1,
     schedule_on_approval: a.scheduleOnApproval,
     lock_after_approval: a.lockAfterApproval,
+    reminder_pending_approvals: a.reminderPendingApprovals,
   });
   return approvalsFromSettings(s);
 }

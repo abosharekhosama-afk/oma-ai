@@ -4,6 +4,58 @@ import { DomainError, newId } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
 import { ContentService } from './content.service';
 
+const NOTE_COLORS = ['yellow', 'peach', 'pink', 'lavender', 'blue', 'mint'] as const;
+const NOTE_VISIBILITY = ['only_me', 'team', 'all'] as const;
+type NoteVisibility = (typeof NOTE_VISIBILITY)[number];
+
+function parseNoteColor(raw: string | undefined, fallback: string) {
+  if (raw && (NOTE_COLORS as readonly string[]).includes(raw)) return raw;
+  return fallback;
+}
+
+function parseNoteVisibility(raw: string | undefined, fallback: string): NoteVisibility {
+  if (raw && (NOTE_VISIBILITY as readonly string[]).includes(raw)) return raw as NoteVisibility;
+  return (NOTE_VISIBILITY as readonly string[]).includes(fallback)
+    ? (fallback as NoteVisibility)
+    : 'only_me';
+}
+
+function canSeeNote(
+  visibility: string,
+  createdBy: string,
+  actorUserId: string,
+  viewerKind: 'team' | 'client',
+) {
+  if (visibility === 'all') return true;
+  if (visibility === 'team') return viewerKind !== 'client';
+  return createdBy === actorUserId;
+}
+
+function mapNote(r: {
+  id: string;
+  brandId: string;
+  dayKey: string;
+  textEn: string;
+  textAr: string;
+  color: string;
+  locked: boolean;
+  visibility: string;
+  createdBy: string;
+  updatedAt: Date;
+}) {
+  return {
+    id: r.id,
+    brand_id: r.brandId,
+    day_key: r.dayKey,
+    text: { en: r.textEn, ar: r.textAr },
+    color: r.color,
+    locked: r.locked || r.visibility === 'only_me',
+    visibility: r.visibility || 'only_me',
+    created_by: r.createdBy,
+    updated_at: r.updatedAt.toISOString(),
+  };
+}
+
 @Injectable()
 export class ContentExtrasService {
   constructor(
@@ -24,8 +76,19 @@ export class ContentExtrasService {
     return brand;
   }
 
-  async listDayNotes(tenantId: string, brandId: string, from?: string, to?: string) {
+  async listDayNotes(
+    tenantId: string,
+    actorUserId: string,
+    brandId: string,
+    from?: string,
+    to?: string,
+  ) {
     await this.requireBrand(tenantId, brandId);
+    const membership = await getPrisma().membership.findFirst({
+      where: { tenantId, userId: actorUserId, status: 'ACTIVE' },
+      select: { membershipKind: true },
+    });
+    const viewerKind = membership?.membershipKind === 'client' ? 'client' : 'team';
     const where: Record<string, unknown> = { tenantId, brandId };
     if (from || to) {
       where.dayKey = {
@@ -38,15 +101,9 @@ export class ContentExtrasService {
       orderBy: { dayKey: 'asc' },
     });
     return {
-      data: rows.map((r) => ({
-        id: r.id,
-        brand_id: r.brandId,
-        day_key: r.dayKey,
-        text: { en: r.textEn, ar: r.textAr },
-        color: r.color,
-        locked: r.locked,
-        updated_at: r.updatedAt.toISOString(),
-      })),
+      data: rows
+        .filter((r) => canSeeNote(r.visibility, r.createdBy, actorUserId, viewerKind))
+        .map((r) => mapNote(r)),
     };
   }
 
@@ -59,6 +116,7 @@ export class ContentExtrasService {
       text?: { en?: string; ar?: string } | string;
       color?: string;
       locked?: boolean;
+      visibility?: string;
     },
   ) {
     await this.requireBrand(tenantId, brandId);
@@ -78,9 +136,24 @@ export class ContentExtrasService {
     const existing = await getPrisma().calendarDayNote.findUnique({
       where: { brandId_dayKey: { brandId, dayKey } },
     });
-    if (existing?.locked && input.text !== undefined && input.locked !== false) {
-      throw new DomainError('CONFLICT_STATE', 'Note is locked', 409, 'error.conflict_state');
+    if (existing && existing.visibility === 'only_me' && existing.createdBy !== actorUserId) {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'This day already has a private note',
+        409,
+        'error.conflict_state',
+      );
     }
+    let visibility = parseNoteVisibility(input.visibility, existing?.visibility ?? 'only_me');
+    if (input.visibility === undefined && input.locked !== undefined) {
+      visibility = input.locked
+        ? 'only_me'
+        : existing?.visibility === 'only_me'
+          ? 'team'
+          : parseNoteVisibility(existing?.visibility, 'team');
+    }
+    const locked = visibility === 'only_me';
+    const color = parseNoteColor(input.color, existing?.color ?? 'yellow');
     const row = await getPrisma().calendarDayNote.upsert({
       where: { brandId_dayKey: { brandId, dayKey } },
       create: {
@@ -90,36 +163,29 @@ export class ContentExtrasService {
         dayKey,
         textEn,
         textAr,
-        color: input.color ?? 'yellow',
-        locked: input.locked ?? false,
+        color,
+        locked,
+        visibility,
         createdBy: actorUserId,
       },
       update: {
         ...(input.text !== undefined ? { textEn, textAr } : {}),
-        ...(input.color ? { color: input.color } : {}),
-        ...(input.locked !== undefined ? { locked: input.locked } : {}),
+        ...(input.color ? { color } : {}),
+        ...(input.visibility !== undefined || input.locked !== undefined
+          ? { locked, visibility }
+          : {}),
       },
     });
-    return {
-      data: {
-        id: row.id,
-        brand_id: row.brandId,
-        day_key: row.dayKey,
-        text: { en: row.textEn, ar: row.textAr },
-        color: row.color,
-        locked: row.locked,
-        updated_at: row.updatedAt.toISOString(),
-      },
-    };
+    return { data: mapNote(row) };
   }
 
-  async deleteDayNote(tenantId: string, brandId: string, dayKey: string) {
+  async deleteDayNote(tenantId: string, actorUserId: string, brandId: string, dayKey: string) {
     const row = await getPrisma().calendarDayNote.findFirst({
       where: tenantWhere(tenantId, { brandId, dayKey }),
     });
     if (!row) throw new DomainError('NOT_FOUND', 'Note not found', 404, 'errors.not_found');
-    if (row.locked) {
-      throw new DomainError('CONFLICT_STATE', 'Note is locked', 409, 'error.conflict_state');
+    if (row.visibility === 'only_me' && row.createdBy !== actorUserId) {
+      throw new DomainError('NOT_FOUND', 'Note not found', 404, 'errors.not_found');
     }
     await getPrisma().calendarDayNote.delete({ where: { id: row.id } });
     return { data: { ok: true } };

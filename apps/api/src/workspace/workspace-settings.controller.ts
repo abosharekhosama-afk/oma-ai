@@ -13,7 +13,7 @@ const bad = (field: string) =>
     { field },
   ]);
 
-export const APPROVAL_MODES = ['none', 'optional', 'required'] as const;
+export const APPROVAL_MODES = ['none', 'optional', 'required', 'multi_level'] as const;
 
 type SettingsRow = {
   id: string;
@@ -26,10 +26,18 @@ type SettingsRow = {
   requiredApprovers?: number | null;
   scheduleOnApproval: boolean;
   lockAfterApproval: boolean;
+  reminderPendingApprovals?: boolean;
 };
 
 export function serializeSettings(tenantId: string, row: SettingsRow | null) {
-  const mode = row?.approvalMode === 'multi_level' ? 'required' : (row?.approvalMode ?? 'optional');
+  const raw = (row?.approvalMode ?? 'optional').toLowerCase();
+  const mode = (APPROVAL_MODES as readonly string[]).includes(raw) ? raw : 'optional';
+  const required =
+    mode === 'multi_level'
+      ? Math.max(2, row?.requiredApprovers ?? 2)
+      : mode === 'required'
+        ? Math.max(1, row?.requiredApprovers ?? 1)
+        : 1;
   return {
     id: row?.id ?? null,
     tenant_id: tenantId,
@@ -39,9 +47,10 @@ export function serializeSettings(tenantId: string, row: SettingsRow | null) {
     hide_emails_from_clients: row?.hideEmailsFromClients ?? false,
     auto_crop_images: row?.autoCropImages ?? true,
     approval_mode: mode,
-    required_approvers: mode === 'required' ? Math.max(1, row?.requiredApprovers ?? 1) : 1,
+    required_approvers: required,
     schedule_on_approval: row?.scheduleOnApproval ?? false,
     lock_after_approval: row?.lockAfterApproval ?? false,
+    reminder_pending_approvals: row?.reminderPendingApprovals ?? false,
   };
 }
 
@@ -98,11 +107,17 @@ export function validateSettingsPatch(body: Record<string, unknown>) {
     const m = String(body.approval_mode).toLowerCase();
     if (!(APPROVAL_MODES as readonly string[]).includes(m)) throw bad('approval_mode');
     out.approvalMode = m;
+    if (m === 'multi_level' && body.required_approvers === undefined) out.requiredApprovers = 2;
+    if (m === 'required' && body.required_approvers === undefined) out.requiredApprovers = 1;
+    if (m === 'none' || m === 'optional') out.requiredApprovers = 1;
   }
   if (body.required_approvers !== undefined) {
     const n = Number(body.required_approvers);
     if (!Number.isInteger(n) || n < 1 || n > 5) throw bad('required_approvers');
     out.requiredApprovers = n;
+  }
+  if (out.approvalMode === 'multi_level') {
+    out.requiredApprovers = Math.max(2, Number(out.requiredApprovers ?? 2));
   }
   for (const [k, col] of [
     ['create_posts_as_internal', 'createPostsAsInternal'],
@@ -110,6 +125,7 @@ export function validateSettingsPatch(body: Record<string, unknown>) {
     ['auto_crop_images', 'autoCropImages'],
     ['schedule_on_approval', 'scheduleOnApproval'],
     ['lock_after_approval', 'lockAfterApproval'],
+    ['reminder_pending_approvals', 'reminderPendingApprovals'],
   ] as const) {
     if (body[k] !== undefined) {
       if (typeof body[k] !== 'boolean') throw bad(k);
@@ -160,6 +176,7 @@ export class WorkspaceSettingsController {
       required_approvers?: number;
       schedule_on_approval?: boolean;
       lock_after_approval?: boolean;
+      reminder_pending_approvals?: boolean;
     },
   ) {
     const tenantId = this.tenantId(req);

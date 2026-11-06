@@ -1210,6 +1210,8 @@ model CalendarDayNote {
   textAr    String   @default("")
   color     String   @default("yellow")
   locked    Boolean  @default(false)
+  /// only_me | team | all — Planable calendar note visibility
+  visibility String  @default("only_me")
   createdBy String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -1269,6 +1271,7 @@ model WorkspaceSetting {
   requiredApprovers     Int      @default(1)
   scheduleOnApproval    Boolean  @default(false)
   lockAfterApproval     Boolean  @default(false)
+  reminderPendingApprovals Boolean @default(false)
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
   tenant                Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)

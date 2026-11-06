@@ -3739,6 +3739,228 @@ button.oma-breadcrumb-workspace:hover {
 .oma-ws-brand-add:hover {
   background: #f5f7fa;
 }
+
+/* Planable workspace Approvals */
+.oma-ws-section--approvals {
+  max-width: 640px;
+}
+.oma-ws-appr-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.oma-ws-appr-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 112px;
+  padding: 16px 16px 14px;
+  border: 1px solid #e8e9eb;
+  border-radius: 12px;
+  background: #fff;
+  text-align: start;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+.oma-ws-appr-card:hover {
+  border-color: #d5d7db;
+}
+.oma-ws-appr-card.is-selected {
+  border-color: #22c55e;
+  box-shadow: 0 0 0 1px #22c55e;
+}
+.oma-ws-appr-card.is-locked {
+  opacity: 0.92;
+}
+.oma-ws-appr-card-check {
+  position: absolute;
+  top: 10px;
+  inset-inline-end: 10px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #22c55e;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+.oma-ws-appr-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding-inline-end: 22px;
+}
+.oma-ws-appr-radio {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.5px solid #d1d5db;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #fff;
+  font-size: 11px;
+  background: #fff;
+}
+.oma-ws-appr-radio.is-on,
+.oma-ws-appr-card.is-selected .oma-ws-appr-radio {
+  border-color: #22c55e;
+  background: #22c55e;
+}
+.oma-ws-appr-radio.marks-3 {
+  width: auto;
+  height: auto;
+  border: 0;
+  background: transparent;
+  color: #22c55e;
+  gap: 0;
+  font-size: 12px;
+}
+.oma-ws-appr-radio.marks-3.is-on,
+.oma-ws-appr-card.is-selected .oma-ws-appr-radio.marks-3 {
+  background: transparent;
+  color: #22c55e;
+}
+.oma-ws-appr-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+}
+.oma-ws-appr-badge {
+  margin-inline-start: auto;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #eef2ff;
+  color: #4f46e5;
+}
+.oma-ws-appr-badge--ent {
+  background: #f3e8ff;
+  color: #7c3aed;
+}
+.oma-ws-appr-card-desc {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: #6b7280;
+}
+.oma-ws-appr-sub {
+  margin: 28px 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+}
+.oma-ws-appr-members {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.oma-ws-appr-member {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+}
+.oma-ws-appr-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #dbeafe;
+  color: #1d4ed8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.oma-ws-appr-member-meta {
+  min-width: 0;
+  flex: 1;
+  display: grid;
+  gap: 2px;
+}
+.oma-ws-appr-member-name {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+}
+.oma-ws-appr-you {
+  font-weight: 400;
+  color: #6b7280;
+}
+.oma-ws-appr-kind {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #f3f4f6;
+  color: #4b5563;
+}
+.oma-ws-appr-kind--client {
+  background: #eff6ff;
+  color: #2563eb;
+}
+.oma-ws-appr-member-sub {
+  font-size: 12px;
+  color: #9ca3af;
+}
+.oma-ws-appr-more {
+  margin-top: 8px;
+  border: 0;
+  background: transparent;
+  color: #6b7280;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 0;
+}
+.oma-ws-appr-more:hover {
+  color: #111827;
+}
+.oma-ws-appr-toggles {
+  max-width: none;
+  gap: 16px;
+}
+.oma-ws-appr-toggle-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #111827;
+}
+.oma-ws-appr-toggle-label svg {
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+.oma-ws-appr .oma-ws-switch.is-on {
+  background: #2563eb;
+}
+.oma-ws-appr-select {
+  margin-top: 6px;
+  min-height: 36px;
+  padding: 0 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  font: inherit;
+  font-size: 14px;
+  color: #111827;
+}
 @media (max-width: 680px) {
   .oma-breadcrumb-brand {
     max-width: 34vw;

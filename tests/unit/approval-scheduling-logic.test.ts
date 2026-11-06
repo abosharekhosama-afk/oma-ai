@@ -27,19 +27,23 @@ describe('workspace approval policy (server-side)', () => {
     expect(validateSettingsPatch({ timezone: 'Asia/Jerusalem' })).toEqual({
       timezone: 'Asia/Jerusalem',
     });
-    expect(() => validateSettingsPatch({ approval_mode: 'multi_level' })).toThrow(/approval_mode/);
+    expect(validateSettingsPatch({ approval_mode: 'multi_level' })).toEqual({
+      approvalMode: 'multi_level',
+      requiredApprovers: 2,
+    });
     expect(() => validateSettingsPatch({ required_approvers: 0 })).toThrow(/required_approvers/);
     expect(() => validateSettingsPatch({ timezone: 'Mars/Base' })).toThrow(/timezone/);
     expect(() => validateSettingsPatch({ website_url: 'ftp://x' })).toThrow(/website_url/);
   });
 
-  it('serializes defaults and legacy multi_level', () => {
+  it('serializes defaults and first-class multi_level', () => {
     expect(serializeSettings('t1', null)).toMatchObject({
       timezone: 'Asia/Jerusalem',
       approval_mode: 'optional',
       required_approvers: 1,
+      reminder_pending_approvals: false,
     });
-    const legacy = serializeSettings('t1', {
+    const multi = serializeSettings('t1', {
       id: 'x',
       websiteUrl: null,
       timezone: 'Asia/Dubai',
@@ -50,9 +54,18 @@ describe('workspace approval policy (server-side)', () => {
       requiredApprovers: 3,
       scheduleOnApproval: false,
       lockAfterApproval: false,
+      reminderPendingApprovals: true,
     });
-    expect(legacy.approval_mode).toBe('required');
-    expect(legacy.required_approvers).toBe(3);
+    expect(multi.approval_mode).toBe('multi_level');
+    expect(multi.required_approvers).toBe(3);
+    expect(multi.reminder_pending_approvals).toBe(true);
+  });
+
+  it('content service applies lock-after-approve and schedule-on-approve', () => {
+    const svc = read('apps/api/src/content/content.service.ts');
+    expect(svc).toContain('lockAfterApproval');
+    expect(svc).toContain('error.content_locked');
+    expect(svc).toContain('scheduleOnApproval');
   });
 
   it('settings route is registered and PATCH needs tenant.manage', () => {
@@ -68,5 +81,12 @@ describe('workspace approval policy (server-side)', () => {
     expect(svc).toContain('assertCanPublish(');
     expect(svc).toContain("'error.already_approved'");
     expect(svc).toMatch(/archivedAt: new Date\(\),\s+scheduleState: 'UNSCHEDULED'/);
+  });
+
+  it('calendar notes persist Planable visibility', () => {
+    const extras = read('apps/api/src/content/content-extras.service.ts');
+    expect(extras).toContain("visibility === 'only_me'");
+    expect(extras).toContain("'only_me', 'team', 'all'");
+    expect(extras).toContain('peach');
   });
 });
