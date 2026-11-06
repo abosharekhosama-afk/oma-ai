@@ -7414,3 +7414,44 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
     box-shadow: -12px 0 32px rgb(15 23 42 / 10%);
   }
 }
+
+.oma-content-plan [data-testid='demo-content-grid'] {
+  display: flex !important;
+  flex-direction: column !important;
+  grid-template-columns: none !important;
+  width: 100% !important;
+}
+.oma-content-plan .oma-pv-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)) !important;
+  gap: 2px !important;
+}
+@media (min-width: 900px) {
+  .oma-content-plan .oma-pv-grid {
+    grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)) !important;
+  }
+}
+@media (min-width: 1280px) {
+  .oma-content-plan .oma-pv-grid {
+    grid-template-columns: repeat(auto-fill, minmax(188px, 1fr)) !important;
+  }
+}
+@media (min-width: 1600px) {
+  .oma-content-plan .oma-pv-grid {
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)) !important;
+  }
+}
+.oma-plan-post .oma-compose-pills--inline {
+  padding: 0 !important;
+}
+.oma-plan-post__share {
+  background: #12b76a !important;
+  border-color: #12b76a !important;
+  color: #fff !important;
+}
+.oma-plan-post__icon-btn:has(.oma-plan-post__icon-count) {
+  width: auto !important;
+  min-width: 32px !important;
+  padding-inline: 6px !important;
+  gap: 2px !important;
+}

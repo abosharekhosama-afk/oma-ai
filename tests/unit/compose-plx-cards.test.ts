@@ -11,14 +11,15 @@ function read(rel: string): string {
 describe('Planable compose labels / templates / media cards', () => {
   it('renders Template and Labels flyouts with search, create, and apply actions', () => {
     const client = read('apps/web/src/app/(app)/app/content/content-client.tsx');
+    const pills = read('apps/web/src/components/content/compose-meta-pills.tsx');
     expect(client).toContain('demo-compose-templates');
     expect(client).toContain('demo-content-templates');
-    expect(client).toContain('Apply post template');
+    expect(pills).toContain('Apply post template');
     expect(client).toContain('demo-compose-labels');
     expect(client).toContain('demo-content-labels');
-    expect(client).toContain('Add labels');
-    expect(client).toContain('Create new label');
-    expect(client).toContain('Create new template');
+    expect(pills).toContain('Add labels');
+    expect(pills).toContain('Create new label');
+    expect(pills).toContain('Create new template');
     expect(client).toContain('createBrandTemplate');
     expect(client).toContain('onApplyTemplate');
   });

@@ -405,13 +405,10 @@ export function GridTile({
       data-faded={status.published ? 'true' : 'false'}
     >
       {real ? (
-        <MediaSurface src={media!} contentType={contentType} alt={caption} autoPlay loop />
+        <MediaSurface src={media!} contentType={contentType} alt="" autoPlay loop />
       ) : (
         <span className="oma-pv-tile__ph" aria-hidden />
       )}
-      <span className="oma-pv-tile__top" dir="auto">
-        {caption}
-      </span>
       <span className="oma-pv-tile__hover">
         <span className="oma-pv-tile__date">{dateText}</span>
         <span className="oma-pv-tile__cap" dir="auto">

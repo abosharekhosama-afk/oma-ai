@@ -177,6 +177,7 @@ const routeRequirements: Record<string, string[]> = {
   'GET /api/v1/brands/:brandId/content': ['content.read'],
   'POST /api/v1/brands/:brandId/content': ['content.create'],
   'GET /api/v1/content/:contentId': ['content.read'],
+  'GET /api/v1/content/:contentId/channel-analytics': ['content.read'],
   'PATCH /api/v1/content/:contentId': ['content.update'],
   'POST /api/v1/content/:contentId/request-approval': ['content.request_approval'],
   'POST /api/v1/content/:contentId/approve': ['content.approve'],
@@ -458,6 +459,10 @@ export function matchRequirements(method: string, path: string): string[] | null
     .replace(
       /\/api\/v1\/brands\/[^/]+\/content-templates/,
       '/api/v1/brands/:brandId/content-templates',
+    )
+    .replace(
+      /\/api\/v1\/content\/[^/]+\/channel-analytics/,
+      '/api/v1/content/:contentId/channel-analytics',
     )
     .replace(/\/api\/v1\/content\/[^/]+\/labels/, '/api/v1/content/:contentId/labels')
     .replace(/\/api\/v1\/content\/[^/]+\/visibility/, '/api/v1/content/:contentId/visibility')

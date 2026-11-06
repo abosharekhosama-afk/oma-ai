@@ -26,8 +26,10 @@ describe('content preview card', () => {
 
   it('lets the campaign chip pick and persist a campaign', () => {
     const src = read(CLIENT);
-    expect(src).toContain('data-testid="content-modal-campaign-menu"');
+    const pills = read('apps/web/src/components/content/compose-meta-pills.tsx');
+    expect(src).toContain('content-modal-campaign-menu');
     expect(src).toContain('updateContentProduction(contentId, { campaignId })');
-    expect(src).toContain('assignCampaign(selected.id, null)');
+    expect(src).toContain('assignCampaign(selected.id, campaignId');
+    expect(pills).toContain('No campaign');
   });
 });

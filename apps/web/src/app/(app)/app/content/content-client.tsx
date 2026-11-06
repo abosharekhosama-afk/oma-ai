@@ -80,14 +80,13 @@ import {
   FlagOutlined,
   GlobalOutlined,
   HistoryOutlined,
+  BarChartOutlined,
   InboxOutlined,
   LinkOutlined,
   MessageOutlined,
   MobileOutlined,
   MoreOutlined,
   PictureOutlined,
-  PlusOutlined,
-  SearchOutlined,
   SettingOutlined,
   ShareAltOutlined,
   SendOutlined,
@@ -108,6 +107,12 @@ import {
   type NoteVisibility,
 } from '../../../../components/content/calendar-sticky-note';
 import { ComposeMediaToolbar } from '../../../../components/content/compose-media-toolbar';
+import { ComposeMetaPills } from '../../../../components/content/compose-meta-pills';
+import { ContentEmojiPicker } from '../../../../components/content/content-emoji-picker';
+import {
+  PostChannelAnalytics,
+  type ChannelAnalytics,
+} from '../../../../components/content/post-channel-analytics';
 import { mediaApi, type MediaAsset } from '../../../../lib/workdrive-api';
 import {
   hasContentViewPref,
@@ -185,6 +190,7 @@ import {
   resolveContentComment,
   reactContentComment,
   contentMediaUrls,
+  getContentChannelAnalytics,
 } from '../../../../lib/content-api';
 import {
   createRequest,
@@ -475,18 +481,12 @@ function PlanableComposeCard({
   const toast = useToast();
   const isAr = locale.toLowerCase().startsWith('ar');
   const storyFileRef = useRef<HTMLInputElement>(null);
-  const [campaignMenu, setCampaignMenu] = useState(false);
-  const [labelMenu, setLabelMenu] = useState(false);
-  const [templateMenu, setTemplateMenu] = useState(false);
   const [dateMenu, setDateMenu] = useState(false);
   const [aiHint, setAiHint] = useState(true);
-  const [labelQuery, setLabelQuery] = useState('');
-  const [labelDraft, setLabelDraft] = useState('');
   const [customDate, setCustomDate] = useState(false);
   const [showFirstComment, setShowFirstComment] = useState(true);
   const [aiBusy, setAiBusy] = useState(false);
   if (!open) return null;
-  const selectedCampaign = campaigns.find((c) => c.id === form.campaignId);
   const now = dayjs();
   const preferred = [1, 2, 3, 4].map((d) =>
     now
@@ -495,11 +495,6 @@ function PlanableComposeCard({
       .minute(15)
       .second(0),
   );
-  const shownLabels = labels.filter((lab) => {
-    const q = labelQuery.trim().toLowerCase();
-    if (!q) return true;
-    return `${lab.name?.en ?? ''} ${lab.name?.ar ?? ''}`.toLowerCase().includes(q);
-  });
   return createPortal(
     <div className="oma-compose-overlay" onClick={creating ? undefined : onClose}>
       <div
@@ -519,221 +514,31 @@ function PlanableComposeCard({
           <CloseOutlined />
         </button>
 
-        <div className="oma-compose-pills">
-          <div className="oma-compose-pill-wrap">
-            <button
-              type="button"
-              className="oma-compose-pill"
-              aria-expanded={templateMenu}
-              onClick={() => {
-                setTemplateMenu((v) => !v);
-                setLabelMenu(false);
-                setCampaignMenu(false);
-                onOpenTemplates?.();
-              }}
-              data-testid="demo-compose-templates"
-            >
-              <FileTextOutlined />
-              {t('wsPanel.templates')}
-            </button>
-            {templateMenu ? (
-              <div
-                className="oma-compose-flyout"
-                role="dialog"
-                data-testid="demo-content-templates"
-              >
-                <header className="oma-compose-flyout__head">
-                  <strong>{isAr ? 'تطبيق قالب منشور' : 'Apply post template'}</strong>
-                </header>
-                <div className="oma-compose-flyout__list">
-                  {templates.length === 0 ? (
-                    <p className="oma-compose-flyout__empty">
-                      {t('content.no_workspace_templates_yet')}
-                    </p>
-                  ) : (
-                    templates.map((tpl) => (
-                      <button
-                        key={tpl.id}
-                        type="button"
-                        className="oma-compose-flyout__row"
-                        data-testid={`demo-template-${tpl.id}`}
-                        onClick={() => {
-                          onApplyTemplate?.(tpl);
-                          setTemplateMenu(false);
-                        }}
-                      >
-                        <span className="oma-compose-flyout__avatar" aria-hidden>
-                          {templateTitle(tpl, isAr).slice(0, 1).toUpperCase()}
-                        </span>
-                        <span className="oma-compose-flyout__copy">{templateTitle(tpl, isAr)}</span>
-                        <span className="oma-compose-flyout__chip">
-                          {tpl.channel || brandName || t('content.no_channel')}
-                        </span>
-                      </button>
-                    ))
-                  )}
-                </div>
-                <button
-                  type="button"
-                  className="oma-compose-flyout__create"
-                  onClick={() => {
-                    onCreateTemplate?.();
-                    setTemplateMenu(false);
-                  }}
-                >
-                  <PlusOutlined /> {isAr ? 'إنشاء قالب جديد' : 'Create new template'}
-                </button>
-              </div>
-            ) : null}
-          </div>
-          <div className="oma-compose-pill-wrap">
-            <button
-              type="button"
-              className="oma-compose-pill"
-              aria-expanded={campaignMenu}
-              data-testid="demo-create-content-campaign"
-              onClick={() => {
-                setCampaignMenu((v) => !v);
-                setLabelMenu(false);
-                setTemplateMenu(false);
-              }}
-            >
-              <FlagOutlined />
-              {selectedCampaign
-                ? pickCopy(selectedCampaign.name, locale)
-                : t('demo.campaigns.col.campaign')}
-              <DownOutlined style={{ fontSize: 10 }} />
-            </button>
-            {campaignMenu ? (
-              <div className="oma-compose-menu" role="menu">
-                <button
-                  type="button"
-                  className="oma-compose-menu__item"
-                  onClick={() => {
-                    onChange({ campaignId: '' });
-                    setCampaignMenu(false);
-                  }}
-                >
-                  {t('content.no_campaign')}
-                </button>
-                {campaigns.map((c) => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    className="oma-compose-menu__item"
-                    onClick={() => {
-                      onChange({ campaignId: c.id, track: c.track ?? form.track });
-                      setCampaignMenu(false);
-                    }}
-                  >
-                    {pickCopy(c.name, locale)}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-          </div>
-          <div className="oma-compose-pill-wrap">
-            <button
-              type="button"
-              className="oma-compose-pill"
-              aria-expanded={labelMenu}
-              onClick={() => {
-                setLabelMenu((v) => !v);
-                setTemplateMenu(false);
-                setCampaignMenu(false);
-                onOpenLabels?.();
-              }}
-              data-testid="demo-compose-labels"
-            >
-              <TagOutlined />
-              {t('wsPanel.labels')}
-              {form.labels.length ? (
-                <span className="oma-compose-pill__count">{form.labels.length}</span>
-              ) : null}
-            </button>
-            {labelMenu ? (
-              <div
-                className="oma-compose-flyout oma-compose-flyout--labels"
-                role="dialog"
-                data-testid="demo-content-labels"
-              >
-                <header className="oma-compose-flyout__head">
-                  <strong>{isAr ? 'إضافة تصنيفات' : 'Add labels'}</strong>
-                  <button
-                    type="button"
-                    className="oma-compose-flyout__close"
-                    aria-label={t('common.close')}
-                    onClick={() => setLabelMenu(false)}
-                  >
-                    <CloseOutlined />
-                  </button>
-                </header>
-                <label className="oma-compose-flyout__search-wrap">
-                  <SearchOutlined />
-                  <input
-                    className="oma-compose-flyout__search"
-                    value={labelQuery}
-                    data-testid="demo-content-label-search"
-                    placeholder={isAr ? 'ابحث في التصنيفات…' : 'Search labels…'}
-                    onChange={(e) => setLabelQuery(e.target.value)}
-                  />
-                </label>
-                <div className="oma-compose-flyout__list">
-                  {shownLabels.length === 0 ? (
-                    <p className="oma-compose-flyout__empty">{t('content.no_labels_yet')}</p>
-                  ) : (
-                    shownLabels.map((lab) => {
-                      const name = lab.name?.en || lab.id;
-                      const shown = isAr
-                        ? lab.name?.ar || lab.name?.en || lab.id
-                        : lab.name?.en || lab.name?.ar || lab.id;
-                      const on = form.labels.includes(name);
-                      return (
-                        <label key={lab.id} className="oma-compose-label-row">
-                          <input
-                            type="checkbox"
-                            checked={on}
-                            onChange={() => onToggleLabel?.(name)}
-                          />
-                          <span
-                            className="oma-plx-label-pill"
-                            style={{ '--oma-label-tone': lab.color || '#06b6d4' } as CSSProperties}
-                            data-label={shown}
-                          >
-                            {shown}
-                          </span>
-                        </label>
-                      );
-                    })
-                  )}
-                </div>
-                <div className="oma-compose-flyout__create-row">
-                  <input
-                    value={labelDraft}
-                    data-testid="demo-content-label-name"
-                    placeholder={isAr ? 'اسم التصنيف' : 'New label'}
-                    onChange={(e) => setLabelDraft(e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    className="oma-compose-flyout__create"
-                    data-testid="demo-content-label-add"
-                    onClick={() => {
-                      const name = labelDraft.trim() || labelQuery.trim();
-                      if (!name) return;
-                      onCreateLabel?.(name, LABEL_COLORS[labels.length % LABEL_COLORS.length]!);
-                      setLabelDraft('');
-                      setLabelQuery('');
-                    }}
-                  >
-                    <PlusOutlined /> {isAr ? 'إنشاء تصنيف جديد' : 'Create new label'}
-                  </button>
-                </div>
-              </div>
-            ) : null}
-          </div>
-        </div>
-
+        <ComposeMetaPills
+          locale={locale}
+          templates={templates}
+          campaigns={campaigns}
+          labels={labels}
+          selectedCampaignId={form.campaignId || null}
+          selectedLabels={form.labels}
+          brandName={brandName}
+          onSelectCampaign={(campaignId, track) =>
+            onChange({ campaignId: campaignId || '', track: track ?? form.track })
+          }
+          onToggleLabel={(name) => onToggleLabel?.(name)}
+          onCreateLabel={(name, color) => onCreateLabel?.(name, color)}
+          onApplyTemplate={(tpl) => onApplyTemplate?.(tpl as BrandTemplateCard)}
+          onCreateTemplate={() => onCreateTemplate?.()}
+          onOpenTemplates={onOpenTemplates}
+          onOpenLabels={onOpenLabels}
+          testIds={{
+            templates: 'demo-compose-templates',
+            templatesMenu: 'demo-content-templates',
+            campaign: 'demo-create-content-campaign',
+            labels: 'demo-compose-labels',
+            labelsMenu: 'demo-content-labels',
+          }}
+        />
         <div
           className="oma-compose-channel-field"
           style={{ paddingInline: 20, paddingBlockStart: 4 }}
@@ -1597,7 +1402,10 @@ export default function ContentPage() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [unsavedOpen, setUnsavedOpen] = useState(false);
   const [detailTab, setDetailTab] = useState<'preview' | 'edit' | 'comments'>('preview');
-  const [detailSidePanel, setDetailSidePanel] = useState<'none' | 'activity' | 'feedback'>('none');
+  const [detailSidePanel, setDetailSidePanel] = useState<
+    'none' | 'activity' | 'feedback' | 'analytics'
+  >('none');
+  const [channelAnalytics, setChannelAnalytics] = useState<ChannelAnalytics | null>(null);
   const [approvalEvents, setApprovalEvents] = useState<ApprovalEvent[]>([]);
   const [prodComments, setProdComments] = useState<ContentCommentDto[]>([]);
   const [commentDraft, setCommentDraft] = useState('');
@@ -1873,6 +1681,7 @@ export default function ContentPage() {
     if (!selectedId) {
       setApprovalEvents([]);
       setProdComments([]);
+      setChannelAnalytics(null);
       return;
     }
     let cancelled = false;
@@ -1898,6 +1707,21 @@ export default function ContentPage() {
       cancelled = true;
     };
   }, [selectedId, detailRev]);
+
+  useEffect(() => {
+    if (!selectedId) return;
+    let cancelled = false;
+    void getContentChannelAnalytics(selectedId, previewChannel || undefined)
+      .then((data) => {
+        if (!cancelled) setChannelAnalytics(data);
+      })
+      .catch(() => {
+        if (!cancelled) setChannelAnalytics(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedId, previewChannel, detailRev, prodComments]);
 
   useEffect(() => {
     setDetailCampaignMenu(false);
@@ -2626,7 +2450,7 @@ export default function ContentPage() {
         .split(',')
         .map((c) => c.trim())
         .filter(Boolean)[0] || '';
-    setPreviewChannel((prev) => prev || first);
+    setPreviewChannel(first);
     setAddChannelOpen(false);
   }, [selected?.id]);
 
@@ -3280,6 +3104,38 @@ export default function ContentPage() {
       .catch((err) => toast.push(contentApiError(err, t('errors.http')), 'danger'));
   }
 
+  async function applyTemplateFields(tpl: BrandTemplateCard) {
+    if (!selectedId || !selected) {
+      await applyTemplate(tpl);
+      return;
+    }
+    const caption = isAr
+      ? tpl.caption?.ar || tpl.caption?.en || ''
+      : tpl.caption?.en || tpl.caption?.ar || '';
+    const title = templateTitle(tpl, isAr);
+    try {
+      const apiRow = await updateContentProduction(selectedId, {
+        title: mergeLocaleCopy(selected.title, title, locale),
+        caption: mergeLocaleCopy(selected.caption, caption || draft.caption, locale),
+        channel: tpl.channel || draft.channel,
+      });
+      const next = toContentRow(apiRow);
+      setRows((prev) => prev.map((r) => (r.id === next.id ? next : r)));
+      setDraft((d) => ({
+        ...d,
+        caption: caption || d.caption,
+        channel: tpl.channel || d.channel,
+      }));
+      setEditTitle(title || editTitle);
+      if (tpl.labels?.length) {
+        await setContentLabels(selectedId, tpl.labels);
+      }
+      toast.push(t('content.created_from_template'), 'success');
+    } catch (err) {
+      toast.push(contentApiError(err, t('errors.http')), 'danger');
+    }
+  }
+
   async function applyTemplate(tpl: BrandTemplateCard) {
     const brandId =
       (labelTarget === 'compose' ? createForm.brandId : selected?.brandId) || brands[0]?.id;
@@ -3782,9 +3638,6 @@ export default function ContentPage() {
   );
 
   const modalApproval = selected ? approvalFor(selected, modalApproverNames()) : undefined;
-  const selectedCampaign = selected?.campaignId
-    ? campaigns.find((c) => c.id === selected.campaignId)
-    : undefined;
   const brandCampaigns = selected?.brandId
     ? campaigns.filter((c) => c.brandId === selected.brandId)
     : [];
@@ -5003,9 +4856,39 @@ export default function ContentPage() {
                       filterQuery={addChannelQuery}
                       onChange={(channel) => {
                         setDraft((d) => ({ ...d, channel }));
-                        setPreviewChannel(channel.split(',')[0]?.trim() || channel);
+                        const parts = channel
+                          .split(',')
+                          .map((c) => c.trim())
+                          .filter(Boolean);
+                        setPreviewChannel(parts[parts.length - 1] || channel);
+                        if (selectedId) {
+                          void updateContentProduction(selectedId, { channel })
+                            .then((apiRow) => {
+                              setRows((prev) =>
+                                prev.map((r) => (r.id === selectedId ? toContentRow(apiRow) : r)),
+                              );
+                            })
+                            .catch((err) =>
+                              toast.push(contentApiError(err, t('errors.http')), 'danger'),
+                            );
+                        }
                       }}
-                      onSelectPages={(socialPageIds) => setDraft((d) => ({ ...d, socialPageIds }))}
+                      onSelectPages={(socialPageIds) => {
+                        setDraft((d) => ({ ...d, socialPageIds }));
+                        if (!selectedId) return;
+                        void setContentPublishTarget(selectedId, null, socialPageIds)
+                          .then(() => getContentDetail(selectedId))
+                          .then((detail) => {
+                            setRows((prev) =>
+                              prev.map((r) =>
+                                r.id === selectedId ? toContentRow(detail.data) : r,
+                              ),
+                            );
+                          })
+                          .catch((err) =>
+                            toast.push(contentApiError(err, t('errors.http')), 'danger'),
+                          );
+                      }}
                       locale={locale}
                       testId="preview-add-channel"
                     />
@@ -5017,80 +4900,60 @@ export default function ContentPage() {
             <div className="oma-plan-post__main">
               <header className="oma-plan-post__top">
                 <div className="oma-plan-post__top-start">
-                  <div className="oma-compose-pill-wrap" ref={detailCampaignRef}>
-                    <button
-                      type="button"
-                      className="oma-plan-post__chip"
-                      aria-haspopup="menu"
-                      aria-expanded={detailCampaignMenu}
-                      aria-label={t('demo.campaigns.col.campaign')}
-                      data-tooltip={
-                        detailCampaignMenu ? undefined : t('demo.campaigns.col.campaign')
-                      }
-                      data-active={selectedCampaign ? 'true' : 'false'}
-                      data-testid="content-modal-campaign"
-                      onClick={() => setDetailCampaignMenu((v) => !v)}
-                    >
-                      <FlagOutlined />{' '}
-                      <span className="oma-plan-post__chip-label">
-                        {selectedCampaign
-                          ? pickCopy(selectedCampaign.name, locale)
-                          : t('demo.campaigns.col.campaign')}
-                      </span>
-                      <DownOutlined style={{ fontSize: 10 }} />
-                    </button>
-                    {detailCampaignMenu ? (
-                      <div
-                        className="oma-compose-menu oma-plan-post__campaign-menu"
-                        role="menu"
-                        data-testid="content-modal-campaign-menu"
-                      >
-                        <button
-                          type="button"
-                          role="menuitemradio"
-                          aria-checked={!selected.campaignId}
-                          className="oma-compose-menu__item"
-                          data-active={!selected.campaignId ? 'true' : 'false'}
-                          onClick={() => void assignCampaign(selected.id, null)}
-                        >
-                          {t('content.no_campaign')}
-                        </button>
-                        {modalCampaigns.map((c) => (
-                          <button
-                            key={c.id}
-                            type="button"
-                            role="menuitemradio"
-                            aria-checked={selected.campaignId === c.id}
-                            className="oma-compose-menu__item"
-                            data-active={selected.campaignId === c.id ? 'true' : 'false'}
-                            onClick={() => void assignCampaign(selected.id, c.id)}
-                          >
-                            {pickCopy(c.name, locale)}
-                          </button>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-                  <button
-                    type="button"
-                    className="oma-plan-post__chip"
-                    onClick={() => {
+                  <ComposeMetaPills
+                    locale={locale}
+                    templates={brandTemplates}
+                    campaigns={modalCampaigns}
+                    labels={brandLabels}
+                    selectedCampaignId={selected.campaignId}
+                    selectedLabels={rowLabels(selected)}
+                    brandName={brandName(selected.brandId)}
+                    onSelectCampaign={(campaignId) =>
+                      void assignCampaign(selected.id, campaignId ?? null)
+                    }
+                    onToggleLabel={(name) => {
                       setLabelTarget('item');
-                      if (!selectedId) return;
-                      const brandId = selected.brandId || brands[0]?.id;
-                      if (brandId) {
-                        void listBrandLabels(brandId)
-                          .then((labs) => setBrandLabels(labs as typeof brandLabels))
-                          .catch(() => setBrandLabels([]));
-                      }
-                      setLabelPickerOpen(true);
+                      toggleWorkspaceLabel(name);
                     }}
-                    aria-label={t('wsPanel.labels')}
-                    data-tooltip={t('wsPanel.labels')}
-                  >
-                    <TagOutlined />{' '}
-                    <span className="oma-plan-post__chip-label">{t('wsPanel.labels')}</span>
-                  </button>
+                    onCreateLabel={(name, color) => {
+                      const brandId = selected.brandId || brands[0]?.id;
+                      if (!brandId) return;
+                      void createBrandLabel(brandId, { en: name, ar: name }, color)
+                        .then((lab) => {
+                          setBrandLabels((prev) => [...prev, lab as (typeof brandLabels)[0]]);
+                          setLabelTarget('item');
+                          toggleWorkspaceLabel(lab.name?.en || name);
+                        })
+                        .catch((err) =>
+                          toast.push(contentApiError(err, t('errors.http')), 'danger'),
+                        );
+                    }}
+                    onApplyTemplate={(tpl) => void applyTemplateFields(tpl as BrandTemplateCard)}
+                    onCreateTemplate={() => {
+                      if (selectedId) void saveAsTemplate(selectedId);
+                    }}
+                    onOpenTemplates={() => {
+                      const brandId = selected.brandId || brands[0]?.id;
+                      if (!brandId) return;
+                      void listBrandTemplates(brandId)
+                        .then((tpls) => setBrandTemplates(tpls as typeof brandTemplates))
+                        .catch(() => setBrandTemplates([]));
+                    }}
+                    onOpenLabels={() => {
+                      setLabelTarget('item');
+                      const brandId = selected.brandId || brands[0]?.id;
+                      if (!brandId) return;
+                      void listBrandLabels(brandId)
+                        .then((labs) => setBrandLabels(labs as typeof brandLabels))
+                        .catch(() => setBrandLabels([]));
+                    }}
+                    testIds={{
+                      templates: 'content-modal-templates',
+                      campaign: 'content-modal-campaign',
+                      campaignMenu: 'content-modal-campaign-menu',
+                      labels: 'content-modal-labels',
+                    }}
+                  />
                 </div>
                 <div className="oma-plan-post__top-end">
                   {modalApproval ? (
@@ -5102,32 +4965,41 @@ export default function ContentPage() {
                   ) : null}
                   <button
                     type="button"
-                    className="oma-plan-post__tool-btn oma-plan-post__secondary"
+                    className="oma-plan-post__tool-btn oma-plan-post__share"
                     onClick={() => void shareContentWorkspace()}
                   >
                     {t('content.share')}
                   </button>
-                  <span className="oma-plan-post__chip" data-testid="demo-content-workflow">
-                    {workflowLabel(
-                      {
-                        status: selected.status,
-                        approvalState: selected.approvalState,
-                        scheduleState: selected.scheduleState,
-                      },
-                      isAr,
-                    )}
-                  </span>
                   <button
                     type="button"
                     className="oma-plan-post__icon-btn"
                     data-tooltip={t('content.feedback')}
                     aria-label={t('content.feedback')}
                     data-active={detailSidePanel === 'feedback' ? 'true' : 'false'}
+                    data-testid="content-modal-feedback"
                     onClick={() =>
                       setDetailSidePanel((p) => (p === 'feedback' ? 'none' : 'feedback'))
                     }
                   >
                     <MessageOutlined />
+                    {prodComments.length ? (
+                      <span className="oma-plan-post__icon-count oma-ltr">
+                        {prodComments.length}
+                      </span>
+                    ) : null}
+                  </button>
+                  <button
+                    type="button"
+                    className="oma-plan-post__icon-btn"
+                    data-tooltip={t('nav.analytics')}
+                    aria-label={t('nav.analytics')}
+                    data-active={detailSidePanel === 'analytics' ? 'true' : 'false'}
+                    data-testid="content-modal-analytics"
+                    onClick={() =>
+                      setDetailSidePanel((p) => (p === 'analytics' ? 'none' : 'analytics'))
+                    }
+                  >
+                    <BarChartOutlined />
                   </button>
                   <button
                     type="button"
@@ -5212,6 +5084,15 @@ export default function ContentPage() {
                             }}
                           >
                             <EyeInvisibleOutlined /> {clientVisibilityMenuLabel}
+                          </button>
+                        </li>
+                        <li>
+                          <button
+                            type="button"
+                            role="menuitem"
+                            onClick={() => setDetailSidePanel('analytics')}
+                          >
+                            <BarChartOutlined /> {t('nav.analytics')}
                           </button>
                         </li>
                         <li className="oma-plan-post__more-section" aria-hidden>
@@ -5560,12 +5441,75 @@ export default function ContentPage() {
                         {renderPostPreview(
                           {
                             ...selected,
+                            channel: previewChannel || selected.channel,
                             caption: { en: draft.caption, ar: draft.caption },
                             title: editTitle ? { en: editTitle, ar: editTitle } : selected.title,
                           },
                           'detail',
                           false,
                         )}
+                        <div className="oma-pv-modal-actions">
+                          <button
+                            type="button"
+                            disabled={!(selected as ContentRowExtra).externalPostUrl}
+                            onClick={() => {
+                              const url = (selected as ContentRowExtra).externalPostUrl;
+                              if (url) window.open(url, '_blank', 'noopener,noreferrer');
+                            }}
+                          >
+                            {isAr ? 'فتح' : 'Open'}
+                          </button>
+                          <span className="oma-pv-modal-tip">
+                            <button type="button" onClick={() => setPublishTipOpen((v) => !v)}>
+                              {isAr ? 'نصيحة' : 'Tip'}
+                            </button>
+                            {publishTipOpen ? (
+                              <div className="oma-plan-post__tip-card oma-plan-post__tip-card--sm">
+                                {t('content.post_is_not_published_yet')}
+                              </div>
+                            ) : null}
+                          </span>
+                          <ContentEmojiPicker
+                            ariaLabel={isAr ? 'إيموجي' : 'Emoji'}
+                            label={isAr ? 'ابتسامة' : 'Smile'}
+                            testId="content-preview-smile"
+                            onPick={(emo) => {
+                              const next = `${draft.caption}${emo}`;
+                              setDraft((d) => ({ ...d, caption: next }));
+                              if (!selectedId || !selected) {
+                                setDetailPreviewMode('edit');
+                                return;
+                              }
+                              void updateContentProduction(selectedId, {
+                                caption: mergeLocaleCopy(selected.caption, next, locale),
+                              })
+                                .then((apiRow) => {
+                                  setRows((prev) =>
+                                    prev.map((r) =>
+                                      r.id === selectedId ? toContentRow(apiRow) : r,
+                                    ),
+                                  );
+                                })
+                                .catch((err) =>
+                                  toast.push(contentApiError(err, t('errors.http')), 'danger'),
+                                );
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (!selectedId) return;
+                              void duplicateContent(selectedId).then((apiRow) => {
+                                const row = toContentRow(apiRow);
+                                setRows((prev) => [row, ...prev]);
+                                toast.push(t('content.post_duplicated'), 'success');
+                                openItem(row);
+                              });
+                            }}
+                          >
+                            {isAr ? 'تكرار' : 'Repeat'}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ) : (
@@ -5805,7 +5749,11 @@ export default function ContentPage() {
                   <aside className="oma-plan-post__side" data-testid="demo-content-side-panel">
                     <header className="oma-plan-post__side-head">
                       <strong>
-                        {detailSidePanel === 'activity' ? t('nav.activity') : t('content.feedback')}
+                        {detailSidePanel === 'activity'
+                          ? t('nav.activity')
+                          : detailSidePanel === 'analytics'
+                            ? t('nav.analytics')
+                            : t('content.feedback')}
                       </strong>
                       <button
                         type="button"
@@ -5817,7 +5765,21 @@ export default function ContentPage() {
                       </button>
                     </header>
 
-                    {detailSidePanel === 'activity' ? (
+                    {detailSidePanel === 'analytics' ? (
+                      channelAnalytics ? (
+                        <PostChannelAnalytics
+                          data={channelAnalytics}
+                          locale={locale}
+                          onViewAll={() => {
+                            window.location.href = '/app/analytics';
+                          }}
+                        />
+                      ) : (
+                        <p className="oma-muted" style={{ padding: 16 }}>
+                          {isAr ? 'لا تحليلات بعد' : 'No analytics yet'}
+                        </p>
+                      )
+                    ) : detailSidePanel === 'activity' ? (
                       <div className="oma-plan-post__activity">
                         <div className="oma-plan-post__workflow-chip" style={{ marginBottom: 12 }}>
                           <strong>{t('demo.settings.section.workflow')}</strong>
@@ -6046,6 +6008,12 @@ export default function ContentPage() {
                                     />
                                   </svg>
                                 </button>
+                                <ContentEmojiPicker
+                                  ariaLabel={isAr ? 'إيموجي' : 'Emoji'}
+                                  testId="content-feedback-emoji"
+                                  disabled={!mayComment}
+                                  onPick={(emo) => setCommentDraft((d) => `${d}${emo}`)}
+                                />
                                 <button
                                   type="button"
                                   className="oma-fb-tool"
@@ -6213,6 +6181,27 @@ export default function ContentPage() {
                                         </div>
                                       ) : null}
                                       <div className="oma-fb-comment__actions">
+                                        <ContentEmojiPicker
+                                          ariaLabel={isAr ? 'تفاعل' : 'React'}
+                                          testId={`content-comment-react-${c.id}`}
+                                          onPick={(emo) => {
+                                            if (!selectedId) return;
+                                            void reactContentComment(selectedId, c.id, emo)
+                                              .then((updated) =>
+                                                setProdComments((prev) =>
+                                                  prev.map((row) =>
+                                                    row.id === updated.id ? updated : row,
+                                                  ),
+                                                ),
+                                              )
+                                              .catch((err) =>
+                                                toast.push(
+                                                  contentApiError(err, t('errors.http')),
+                                                  'danger',
+                                                ),
+                                              );
+                                          }}
+                                        />
                                         <button
                                           type="button"
                                           onClick={() => {

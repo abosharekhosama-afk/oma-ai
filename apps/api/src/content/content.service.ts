@@ -462,6 +462,82 @@ export class ContentService {
     };
   }
 
+  /** Honest per-channel post analytics. Platform views/reach wait for the live integration phase. */
+  async channelAnalytics(tenantId: string, contentId: string, channel?: string) {
+    const row = await getPrisma().contentItem.findFirst({
+      where: tenantWhere(tenantId, { id: contentId }),
+      include: { publishTargets: { include: { socialPage: true } }, comments: true },
+    });
+    if (!row) throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
+    const channels = String(row.channel || '')
+      .split(',')
+      .map((c) => c.trim())
+      .filter(Boolean);
+    const requested =
+      (channel || '').trim() ||
+      channels[0] ||
+      row.publishTargets[0]?.socialPage.network ||
+      'instagram';
+    const wanted = requested.toLowerCase();
+    const target = row.publishTargets.find((t) => {
+      const net = String(t.socialPage.network || '').toLowerCase();
+      return (
+        net === wanted ||
+        wanted.includes(net) ||
+        net.includes(wanted.replace('meta_', '')) ||
+        (wanted.includes('instagram') && net.includes('instagram')) ||
+        (wanted.includes('facebook') && net.includes('facebook')) ||
+        (wanted.includes('tiktok') && net.includes('tiktok')) ||
+        (wanted.includes('linkedin') && net.includes('linkedin'))
+      );
+    });
+    const comments = row.comments;
+    let likes = 0;
+    const rx = { like: 0, love: 0, haha: 0, wow: 0, sad: 0, angry: 0 };
+    for (const c of comments) {
+      let map: Record<string, string[]> = {};
+      try {
+        map = c.reactionsJson ? (JSON.parse(c.reactionsJson) as Record<string, string[]>) : {};
+      } catch {
+        map = {};
+      }
+      for (const [emoji, users] of Object.entries(map)) {
+        const n = users.length;
+        likes += n;
+        if (emoji === '👍') rx.like += n;
+        else if (emoji === '❤️' || emoji === '😍') rx.love += n;
+        else if (emoji === '😂' || emoji === '😀') rx.haha += n;
+        else if (emoji === '😮') rx.wow += n;
+        else if (emoji === '😢') rx.sad += n;
+        else if (emoji === '😡') rx.angry += n;
+      }
+    }
+    const publicComments = comments.filter((c) => !c.isInternal).length;
+    const published = Boolean(target?.publishedAt || row.publishedAt);
+    const connected = Boolean(target?.socialPageId);
+    const note = published
+      ? 'Platform views and reach wait until the live integration phase. OMA comments, reactions, and approvals are counted here.'
+      : 'Analytics fill in after this post is published. OMA comments and approvals are counted now.';
+    const engagements = publicComments + likes + row.approverApproved;
+    return {
+      data: {
+        channel: requested,
+        published,
+        published_at: (target?.publishedAt || row.publishedAt)?.toISOString() ?? null,
+        source: 'oma_local' as const,
+        platform_connected: connected,
+        note,
+        kpis: { views: 0, engagements, reach: 0 },
+        organic_views: { reach: 0, impressions: 0, avg_view_duration_s: 0 },
+        organic_engagement: { likes, comments: publicComments, shares: 0 },
+        plays: { views: 0, three_second: 0, one_minute: 0, avg_seconds: 0 },
+        reactions: rx,
+        approvals: row.approverApproved,
+        comments: comments.length,
+      },
+    };
+  }
+
   async create(
     tenantId: string,
     actorUserId: string,
