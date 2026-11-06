@@ -35,6 +35,7 @@ describe('permissions audit (plans rollout)', () => {
     expect(brandRoleAllows('VIEWER', 'content.update')).toBe(true);
     expect(brandRoleAllows('VIEWER', 'request.create')).toBe(true);
     expect(brandRoleAllows('VIEWER', 'content.approve')).toBe(true);
+    expect(brandRoleAllows('VIEWER', 'content.create')).toBe(false);
     expect(brandRoleAllows('VIEWER', 'content.schedule')).toBe(false);
     expect(brandRoleAllows('VIEWER', 'membership.manage')).toBe(false);
   });

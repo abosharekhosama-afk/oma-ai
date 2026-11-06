@@ -10,6 +10,7 @@ describe('brand roles', () => {
     expect(brandRoleAllows('VIEWER', 'content.read')).toBe(true);
     expect(brandRoleAllows('VIEWER', 'content.update')).toBe(true);
     expect(brandRoleAllows('VIEWER', 'request.create')).toBe(true);
+    expect(brandRoleAllows('VIEWER', 'content.create')).toBe(false);
     expect(brandRoleAllows('VIEWER', 'content.schedule')).toBe(false);
     expect(brandRoleAllows('APPROVER', 'content.approve')).toBe(true);
     expect(brandRoleAllows('APPROVER', 'content.update')).toBe(true);
@@ -27,6 +28,7 @@ describe('brand roles', () => {
     expect(viewerCaps).toContain('content.read');
     expect(viewerCaps).toContain('content.update');
     expect(viewerCaps).toContain('request.create');
+    expect(viewerCaps).not.toContain('content.create');
     expect(viewerCaps).not.toContain('content.schedule');
     expect(viewerCaps).not.toContain('brand.archive');
   });

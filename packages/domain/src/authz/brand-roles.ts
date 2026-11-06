@@ -44,9 +44,8 @@ const VIEWER_EXTRA = new Set([
   'request.update',
   'request.write',
   'request.convert',
-  /** Content comments route uses content.update; clients may also be granted content.create. */
+  /** Content comments route uses content.update. Viewers cannot upload or create posts. */
   'content.update',
-  'content.create',
   'content.approve',
   'deliverable.annotate',
   'deliverable.review',
