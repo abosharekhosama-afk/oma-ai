@@ -1,5 +1,8 @@
 # Social accounts: setup
 
+Arabic owner runbook (env vars, API vs worker, platform dashboards, webhooks, inbox):
+[`docs/SOCIAL_ENV_AND_PLATFORM_SETUP_AR.md`](./SOCIAL_ENV_AND_PLATFORM_SETUP_AR.md).
+
 Brands connect their own Facebook Pages, Instagram professional accounts, LinkedIn,
 TikTok, X, and WhatsApp Business numbers from **Brand → Settings → Accounts**. A
 network appears as "Not available yet" until its keys below are set on **both** the
@@ -15,6 +18,7 @@ API and the worker services. No network is ever faked.
 | `META_FACEBOOK_REDIRECT_URI`  | API                       | Optional explicit Meta/Facebook callback URL. Overrides the base and must exactly match Meta.                                                                                      |
 | `META_INSTAGRAM_REDIRECT_URI` | API                       | Optional explicit Meta/Instagram callback URL. Overrides the base and must exactly match Meta.                                                                                     |
 | `WHATSAPP_REDIRECT_URI`       | API                       | Optional explicit WhatsApp Cloud API callback. Overrides the base.                                                                                                                 |
+| `LINKEDIN_REDIRECT_URI`       | API                       | Optional explicit LinkedIn callback URL. Overrides the base.                                                                                                                       |
 | `X_REDIRECT_URI`              | API                       | Optional explicit X callback URL.                                                                                                                                                  |
 | `META_WEBHOOK_VERIFY_TOKEN`   | API                       | Token you type into Meta App → WhatsApp/Facebook webhooks. Also used for Instagram.                                                                                                |
 | `WHATSAPP_VERIFY_TOKEN`       | API                       | Optional alias of the Meta verify token.                                                                                                                                           |

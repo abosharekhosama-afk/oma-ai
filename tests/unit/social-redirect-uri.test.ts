@@ -20,6 +20,15 @@ describe('social OAuth redirect URIs', () => {
     expect(oauthRedirectUri('instagram', env)).toBe(env.META_INSTAGRAM_REDIRECT_URI);
   });
 
+  it('uses LinkedIn explicit callback when set', () => {
+    expect(
+      oauthRedirectUri('linkedin', {
+        LINKEDIN_REDIRECT_URI: 'https://example.com/api/v1/social/oauth/linkedin/callback',
+        SOCIAL_OAUTH_REDIRECT_BASE: 'https://wrong.example.com',
+      }),
+    ).toBe('https://example.com/api/v1/social/oauth/linkedin/callback');
+  });
+
   it('uses WhatsApp and X explicit callbacks when set', () => {
     expect(
       oauthRedirectUri('whatsapp', {

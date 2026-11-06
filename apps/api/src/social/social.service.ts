@@ -52,7 +52,9 @@ export function oauthRedirectUri(network: SocialNetworkCode, env = process.env):
             ? env.WHATSAPP_REDIRECT_URI || env.META_WHATSAPP_REDIRECT_URI
             : network === 'x'
               ? env.X_REDIRECT_URI
-              : undefined;
+              : network === 'linkedin'
+                ? env.LINKEDIN_REDIRECT_URI
+                : undefined;
   if (explicit?.trim()) return explicit.trim();
 
   const base = (
