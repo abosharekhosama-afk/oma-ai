@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@oma/ui/controls';
 import { CommentOutlined } from '../../../../components/ui/lucide-icons';
 import {
@@ -27,6 +27,7 @@ import {
   commentCountFor,
   type ApprovalSection,
 } from '../../../../lib/content-approvals-queue';
+import { t as translate } from '@oma/i18n';
 import { pickCopy } from '../../../../lib/demo/use-demo-api';
 import { mapLimit } from '../../../../lib/map-limit';
 import { useLocale, useT } from '../../../../lib/use-locale';
@@ -39,6 +40,8 @@ export function ApprovalsClient() {
   const t = useT();
   const locale = useLocale();
   const toast = useToast();
+  const toastRef = useRef(toast);
+  toastRef.current = toast;
   const [rows, setRows] = useState<ContentRowExtra[]>([]);
   const [brands, setBrands] = useState<Map<string, string>>(new Map());
   const [commentsById, setCommentsById] = useState<Map<string, ContentCommentDto[]>>(new Map());
@@ -80,12 +83,15 @@ export function ApprovalsClient() {
       });
       setCommentsById(new Map(detailPairs));
     } catch (err) {
-      toast.push(err instanceof Error ? err.message : t('errors.http'), 'danger');
+      toastRef.current.push(
+        err instanceof Error ? err.message : translate(locale, 'errors.http'),
+        'danger',
+      );
       setRows([]);
     } finally {
       setLoading(false);
     }
-  }, [locale, t, toast]);
+  }, [locale]);
 
   useEffect(() => {
     void load();
