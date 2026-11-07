@@ -77,8 +77,11 @@ import {
   EyeOutlined,
   FileTextOutlined,
   FilterOutlined,
+  ArrowsUpDownOutlined,
   FlagOutlined,
   GlobalOutlined,
+  MegaphoneOutlined,
+  SearchOutlined,
   HistoryOutlined,
   BarChartOutlined,
   InboxOutlined,
@@ -314,19 +317,6 @@ function weekdayForKey(key: string, locale: string): string {
     weekday: 'short',
     timeZone: 'UTC',
   }).format(d);
-}
-
-function IconFilter({ size = 18 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M4 6h16M7 12h10M10 18h4"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
 }
 
 function IconMedia({ size = 18 }: { size?: number }) {
@@ -1373,6 +1363,8 @@ export default function ContentPage() {
   const [unavailable, setUnavailable] = useState(false);
   const [filterSheet, setFilterSheet] = useState(false);
   const [filterSection, setFilterSection] = useState<string | null>(null);
+  const [hideArchivedInView, setHideArchivedInView] = useState(false);
+  const [hideTeamOnlyPosts, setHideTeamOnlyPosts] = useState(false);
   const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
   const [dayNotes, setDayNotes] = useState<Record<string, CalendarNoteValue>>({});
   const [noteColorOpen, setNoteColorOpen] = useState(false);
@@ -2014,6 +2006,34 @@ export default function ContentPage() {
   );
 
   const filtered = useMemo(() => filterContent(rows, filters, locale), [rows, filters, locale]);
+
+  const workspaceLabels = useMemo(() => {
+    const set = new Set<string>();
+    for (const row of rows) {
+      for (const label of rowLabels(row)) set.add(label);
+    }
+    return [...set].sort((a, b) => a.localeCompare(b));
+  }, [rows]);
+
+  useEffect(() => {
+    try {
+      setHideTeamOnlyPosts(window.localStorage.getItem('oma-content-hide-team-posts') === '1');
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  const contentSortLabel = useMemo(() => {
+    if (sortKey === 'date') {
+      return sortDir === 'desc' ? t('content.sort_last_created') : t('content.sort_oldest_created');
+    }
+    if (sortKey === 'updated') return t('content.last_updated');
+    if (sortKey === 'title') return t('demo.create.title');
+    if (sortKey === 'channel') return t('demo.filter.channel');
+    if (sortKey === 'campaign') return t('demo.campaigns.col.campaign');
+    if (sortKey === 'owner') return t('content.author');
+    return t('strategy.list.col.status');
+  }, [sortKey, sortDir, t]);
 
   // Feed comments/approval trail are only shown in Feed view: fetch them lazily there (was 60
   // detail requests on every open of the calendar, which delayed first paint and saturated the proxy).
@@ -3206,7 +3226,7 @@ export default function ContentPage() {
     setFilterSection((s) => (s === id ? null : id));
   };
   const advancedFilterFields = (
-    <div className="oma-filter-accordion-list" data-testid="demo-content-filter-sheet-fields">
+    <>
       <div className="oma-filter-accordion">
         <button
           type="button"
@@ -3214,7 +3234,10 @@ export default function ContentPage() {
           data-open={filterSection === 'approval' ? 'true' : 'false'}
           onClick={() => toggleFilterSection('approval')}
         >
-          <span className="oma-filter-accordion__ico" aria-hidden>
+          <span
+            className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico"
+            aria-hidden
+          >
             <CheckCircleOutlined />
           </span>
           <span>{t('content.approval_status')}</span>
@@ -3253,7 +3276,10 @@ export default function ContentPage() {
           data-open={filterSection === 'status' ? 'true' : 'false'}
           onClick={() => toggleFilterSection('status')}
         >
-          <span className="oma-filter-accordion__ico" aria-hidden>
+          <span
+            className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico"
+            aria-hidden
+          >
             <ClockCircleOutlined />
           </span>
           <span>{t('content.post_status')}</span>
@@ -3296,8 +3322,11 @@ export default function ContentPage() {
           data-testid="demo-content-filter-campaign-section"
           onClick={() => toggleFilterSection('campaign')}
         >
-          <span className="oma-filter-accordion__ico" aria-hidden>
-            <FlagOutlined />
+          <span
+            className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico"
+            aria-hidden
+          >
+            <MegaphoneOutlined />
           </span>
           <span>{t('demo.campaigns.col.campaign')}</span>
           <span className="oma-filter-accordion__caret">
@@ -3350,11 +3379,61 @@ export default function ContentPage() {
         <button
           type="button"
           className="oma-filter-accordion__row"
+          data-open={filterSection === 'labels' ? 'true' : 'false'}
+          onClick={() => toggleFilterSection('labels')}
+        >
+          <span
+            className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico"
+            aria-hidden
+          >
+            <TagOutlined />
+          </span>
+          <span>{t('content.labels_filter')}</span>
+          <span className="oma-filter-accordion__caret">
+            {filterSection === 'labels' ? <UpOutlined /> : <DownOutlined />}
+          </span>
+        </button>
+        {filterSection === 'labels' ? (
+          <div className="oma-filter-accordion__body">
+            <label className="oma-filter-check">
+              <input
+                type="checkbox"
+                checked={!filters.label || filters.label === 'all'}
+                onChange={() => setFilters((f) => ({ ...f, label: 'all' }))}
+              />
+              <span>{t('demo.filter.all')}</span>
+            </label>
+            {workspaceLabels.map((label) => (
+              <label key={label} className="oma-filter-check">
+                <input
+                  type="checkbox"
+                  checked={filters.label === label}
+                  onChange={() =>
+                    setFilters((f) => ({ ...f, label: f.label === label ? 'all' : label }))
+                  }
+                />
+                <span className="oma-plx-content-filter-label-pill">{label}</span>
+                <span className="oma-filter-check__count">
+                  {rows.filter((r) => rowLabels(r).includes(label)).length}
+                </span>
+              </label>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
+      <div className="oma-filter-accordion">
+        <button
+          type="button"
+          className="oma-filter-accordion__row"
           data-open={filterSection === 'postType' ? 'true' : 'false'}
           onClick={() => toggleFilterSection('postType')}
         >
-          <span className="oma-filter-accordion__ico" aria-hidden>
-            <AppstoreOutlined />
+          <span
+            className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico"
+            aria-hidden
+          >
+            <PictureOutlined />
           </span>
           <span>{t('content.post_type')}</span>
           <span className="oma-filter-accordion__caret">
@@ -3408,7 +3487,10 @@ export default function ContentPage() {
           data-open={filterSection === 'channel' ? 'true' : 'false'}
           onClick={() => toggleFilterSection('channel')}
         >
-          <span className="oma-filter-accordion__ico" aria-hidden>
+          <span
+            className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico"
+            aria-hidden
+          >
             <GlobalOutlined />
           </span>
           <span>{t('content.channel_brand')}</span>
@@ -3451,7 +3533,10 @@ export default function ContentPage() {
           onClick={() => toggleFilterSection('brand')}
           data-testid="demo-content-filter-brand"
         >
-          <span className="oma-filter-accordion__ico" aria-hidden>
+          <span
+            className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico"
+            aria-hidden
+          >
             <AppstoreOutlined />
           </span>
           <span>{t('shell.brand')}</span>
@@ -3508,7 +3593,10 @@ export default function ContentPage() {
           data-open={filterSection === 'review' ? 'true' : 'false'}
           onClick={() => toggleFilterSection('review')}
         >
-          <span className="oma-filter-accordion__ico" aria-hidden>
+          <span
+            className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico"
+            aria-hidden
+          >
             <MessageOutlined />
           </span>
           <span>{t('content.feedback_activity')}</span>
@@ -3548,7 +3636,10 @@ export default function ContentPage() {
           data-open={filterSection === 'author' ? 'true' : 'false'}
           onClick={() => toggleFilterSection('author')}
         >
-          <span className="oma-filter-accordion__ico" aria-hidden>
+          <span
+            className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico"
+            aria-hidden
+          >
             <UserOutlined />
           </span>
           <span>{t('content.author')}</span>
@@ -3591,7 +3682,10 @@ export default function ContentPage() {
           data-open={filterSection === 'period' ? 'true' : 'false'}
           onClick={() => toggleFilterSection('period')}
         >
-          <span className="oma-filter-accordion__ico" aria-hidden>
+          <span
+            className="oma-filter-accordion__ico oma-plx-deliv-filter-accordion__ico"
+            aria-hidden
+          >
             <CalendarOutlined />
           </span>
           <span>{t('analytics.period')}</span>
@@ -3630,27 +3724,7 @@ export default function ContentPage() {
           </div>
         ) : null}
       </div>
-
-      <div className="oma-filter-accordion">
-        <button
-          type="button"
-          className="oma-filter-accordion__row"
-          data-open={filterSection === 'search' ? 'true' : 'false'}
-          onClick={() => toggleFilterSection('search')}
-        >
-          <span className="oma-filter-accordion__ico" aria-hidden>
-            <FilterOutlined />
-          </span>
-          <span>{t('content.search_in_posts')}</span>
-          <span className="oma-filter-accordion__caret">
-            {filterSection === 'search' ? <UpOutlined /> : <DownOutlined />}
-          </span>
-        </button>
-        {filterSection === 'search' ? (
-          <div className="oma-filter-accordion__body">{searchField}</div>
-        ) : null}
-      </div>
-    </div>
+    </>
   );
 
   const modalApproval = selected ? approvalFor(selected, modalApproverNames()) : undefined;
@@ -3663,6 +3737,7 @@ export default function ContentPage() {
     <div
       className="oma-plx-listening oma-plx-content oma-stack oma-content-plan oma-content-plan--tight"
       data-testid="demo-content"
+      data-filter-open={filterSheet ? 'true' : 'false'}
     >
       <p className="oma-honesty-inline" data-testid="content-calendar-role">
         {t('demo.content.subtitle')}
@@ -3670,11 +3745,10 @@ export default function ContentPage() {
       {/* Portal: Filter / Media / Share / Compose into shell header */}
       {headerSlot &&
         createPortal(
-          <>
-            {/* Mobile-only view switcher (the breadcrumb view slot is hidden < 768px). */}
+          <div className="oma-plx-content-header-actions">
             <button
               type="button"
-              className="oma-top-action oma-top-action--view"
+              className="oma-plx-content-header-btn oma-top-action oma-top-action--view"
               data-tooltip={`${t('content.switch_view')}: ${t(`demo.view.${view}`)}`}
               aria-label={`${t('content.switch_view')}: ${t(`demo.view.${view}`)}`}
               aria-haspopup="menu"
@@ -3685,75 +3759,69 @@ export default function ContentPage() {
               }}
               data-testid="demo-content-view-toggle"
             >
-              <span className="oma-top-action__icon" aria-hidden>
-                {view === 'feed' ? (
-                  <BarsOutlined />
-                ) : view === 'list' ? (
-                  <UnorderedListOutlined />
-                ) : view === 'grid' ? (
-                  <AppstoreOutlined />
-                ) : (
-                  <CalendarOutlined />
-                )}
-              </span>
-              <span className="oma-top-action__label">{t(`demo.view.${view}`)}</span>
+              {view === 'feed' ? (
+                <BarsOutlined />
+              ) : view === 'list' ? (
+                <UnorderedListOutlined />
+              ) : view === 'grid' ? (
+                <AppstoreOutlined />
+              ) : (
+                <CalendarOutlined />
+              )}
+              <span>{t(`demo.view.${view}`)}</span>
             </button>
             <button
               type="button"
-              className="oma-top-action oma-top-action--icon"
+              className="oma-plx-content-header-btn"
+              data-active={filterSheet ? 'true' : 'false'}
               data-tooltip={t('content.filter_sort')}
               aria-label={
-                filterCount > 0 ? `${t('content.filter')} (${filterCount})` : t('content.filter')
+                filterCount > 0 ? `${t('content.filtered')} (${filterCount})` : t('content.filter')
               }
-              onClick={() => setFilterSheet(true)}
+              onClick={() => setFilterSheet((open) => !open)}
               data-testid="demo-content-open-filters"
             >
-              <span className="oma-top-action__icon" aria-hidden>
-                <IconFilter />
-              </span>
+              <FilterOutlined />
+              <span>{filterCount > 0 ? t('content.filtered') : t('content.filter')}</span>
               {filterCount > 0 ? (
-                <span className="oma-top-action__count oma-ltr">{filterCount}</span>
+                <span className="oma-plx-content-header-count oma-ltr">{filterCount}</span>
               ) : null}
             </button>
             <button
               type="button"
-              className="oma-top-action oma-top-action--icon"
+              className="oma-plx-content-header-btn"
               data-tooltip={t('content.media_library')}
               aria-label={t('demo.content.media')}
               data-active={mediaLibraryOpen ? 'true' : 'false'}
               onClick={() => setMediaLibraryOpen((open) => !open)}
               data-testid="demo-content-open-media"
             >
-              <span className="oma-top-action__icon" aria-hidden>
-                <IconMedia />
-              </span>
+              <IconMedia />
+              <span>{t('content.media')}</span>
             </button>
             <button
               type="button"
-              className="oma-top-action oma-top-action--icon"
+              className="oma-plx-content-header-btn"
               data-tooltip={t('content.share_view')}
               aria-label={t('content.share')}
               onClick={() => void shareContentWorkspace()}
               data-testid="demo-content-share"
             >
-              <span className="oma-top-action__icon" aria-hidden>
-                <IconShare />
-              </span>
+              <IconShare />
+              <span>{t('content.share')}</span>
             </button>
             <button
               type="button"
-              className="oma-top-action oma-top-action--primary"
+              className="oma-plx-content-header-btn oma-plx-content-header-btn--primary"
               data-tooltip={t('content.compose')}
               aria-label={t('content.compose')}
               data-testid="demo-create-content"
               onClick={() => setCreateOpen(true)}
             >
-              <span className="oma-top-action__icon" aria-hidden>
-                <EditOutlined />
-              </span>
-              <span className="oma-top-action__label">{t('content.compose')}</span>
+              <EditOutlined />
+              <span>{t('content.compose')}</span>
             </button>
-          </>,
+          </div>,
           headerSlot,
         )}
 
@@ -6383,7 +6451,7 @@ export default function ContentPage() {
             onClick={() => setFilterSheet(false)}
           />
           <aside
-            className="oma-filter-sidepanel"
+            className="oma-filter-sidepanel oma-plx-content-filter-drawer"
             data-testid="demo-content-filter-sheet"
             role="dialog"
             aria-label={t('content.filter_sort')}
@@ -6396,46 +6464,134 @@ export default function ContentPage() {
                 onClick={() => setFilterSheet(false)}
                 aria-label={t('brand.evidence.close')}
               >
-                ×
+                <CloseOutlined />
               </button>
             </header>
             <div className="oma-filter-sidepanel__body">
               <p className="oma-content-filter-eyebrow">{t('content.sort_by')}</p>
-              <label className="oma-filter-sidepanel__row">
-                <span>{t('content.sort_field')}</span>
-                <OmaSelect
-                  value={sortKey}
-                  onChange={(value) => setSortKey(value as ContentSortKey)}
-                  options={[
-                    { value: 'date', label: t('demo.content.filter.date') },
-                    { value: 'updated', label: t('content.last_updated') },
-                    { value: 'title', label: t('demo.create.title') },
-                    { value: 'channel', label: t('demo.filter.channel') },
-                    { value: 'campaign', label: t('demo.campaigns.col.campaign') },
-                    { value: 'owner', label: t('content.author') },
-                    { value: 'status', label: t('strategy.list.col.status') },
-                  ]}
-                />
-              </label>
-              <label className="oma-filter-sidepanel__row">
-                <span>{t('content.direction')}</span>
-                <OmaSelect
-                  value={sortDir}
-                  onChange={(value) => setSortDir(value as 'asc' | 'desc')}
-                  options={[
-                    { value: 'desc', label: t('content.newest_first') },
-                    { value: 'asc', label: t('content.oldest_first') },
-                  ]}
-                />
-              </label>
-              <div className="oma-content-filter-divider" />
+              <button
+                type="button"
+                className="oma-plx-content-filter-sort-row"
+                onClick={() => toggleFilterSection('sort')}
+              >
+                <ArrowsUpDownOutlined />
+                <span>{contentSortLabel}</span>
+              </button>
+              {filterSection === 'sort' ? (
+                <div className="oma-filter-accordion__body oma-plx-content-filter-sort-menu">
+                  {(
+                    [
+                      {
+                        key: 'date' as const,
+                        label: t('content.sort_last_created'),
+                        dir: 'desc' as const,
+                      },
+                      {
+                        key: 'date' as const,
+                        label: t('content.sort_oldest_created'),
+                        dir: 'asc' as const,
+                      },
+                      {
+                        key: 'updated' as const,
+                        label: t('content.last_updated'),
+                        dir: 'desc' as const,
+                      },
+                      { key: 'title' as const, label: t('demo.create.title'), dir: 'asc' as const },
+                    ] as const
+                  ).map((opt) => (
+                    <button
+                      key={`${opt.key}-${opt.dir}`}
+                      type="button"
+                      className="oma-filter-check oma-plx-content-filter-sort-opt"
+                      data-active={sortKey === opt.key && sortDir === opt.dir ? 'true' : 'false'}
+                      onClick={() => {
+                        setSortKey(opt.key);
+                        setSortDir(opt.dir);
+                        setFilterSection(null);
+                      }}
+                    >
+                      <CheckOutlined />
+                      <span>{opt.label}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+              <div className="oma-plx-content-filter-match">
+                <p className="oma-plx-content-filter-match__line">
+                  {t('content.filter_match_prefix')}{' '}
+                  <span className="oma-plx-content-filter-match__mode">
+                    {t('content.filter_match_all')}
+                  </span>
+                </p>
+                {!hideArchivedInView ? (
+                  <div className="oma-plx-content-filter-archived">
+                    <InboxOutlined />
+                    <span>{t('content.archived_posts_shown')}</span>
+                    <button
+                      type="button"
+                      aria-label={t('wsPanel.delete')}
+                      onClick={() => setHideArchivedInView(true)}
+                    >
+                      <CloseOutlined />
+                    </button>
+                  </div>
+                ) : null}
+                <button type="button" className="oma-plx-content-filter-save-view">
+                  + {t('content.save_custom_view')}
+                </button>
+              </div>
               <p className="oma-content-filter-eyebrow">{t('content.filter_by')}</p>
-              {advancedFilterFields}
+              <div
+                className="oma-filter-accordion-list oma-plx-deliv-filter-accordion-list"
+                data-testid="demo-content-filter-sheet-fields"
+              >
+                {advancedFilterFields}
+              </div>
+              {filterSection === 'search' ? (
+                <div className="oma-plx-content-filter-search oma-filter-accordion__body">
+                  {searchField}
+                </div>
+              ) : null}
+              <div className="oma-plx-content-filter-drawer__links">
+                <button
+                  type="button"
+                  className="oma-plx-content-filter-drawer__link"
+                  onClick={() => toggleFilterSection('search')}
+                >
+                  <SearchOutlined />
+                  <span>{t('content.search_in_posts')}</span>
+                </button>
+                <button
+                  type="button"
+                  className="oma-plx-content-filter-drawer__link"
+                  data-active={hideTeamOnlyPosts ? 'true' : 'false'}
+                  onClick={() => {
+                    setHideTeamOnlyPosts((on) => {
+                      const next = !on;
+                      try {
+                        window.localStorage.setItem(
+                          'oma-content-hide-team-posts',
+                          next ? '1' : '0',
+                        );
+                      } catch {
+                        /* ignore */
+                      }
+                      return next;
+                    });
+                  }}
+                >
+                  <EyeInvisibleOutlined />
+                  <span>{t('content.hide_team_only_posts')}</span>
+                </button>
+              </div>
             </div>
-            <footer className="oma-filter-sidepanel__foot">
+            <footer className="oma-filter-sidepanel__foot oma-plx-content-filter-drawer__foot">
               <Button
                 type="default"
-                onClick={() => setFilters(EMPTY_CONTENT_FILTERS)}
+                onClick={() => {
+                  setFilters(EMPTY_CONTENT_FILTERS);
+                  setHideArchivedInView(false);
+                }}
                 data-testid="demo-content-filter-clear"
               >
                 {t('demo.content.clearFilters')}

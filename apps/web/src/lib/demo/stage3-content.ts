@@ -15,6 +15,7 @@ export type ContentFilters = {
   review: string;
   approval: string;
   assignee: string;
+  label: string;
   dateFrom: string;
   dateTo: string;
 };
@@ -29,6 +30,7 @@ export const EMPTY_CONTENT_FILTERS: ContentFilters = {
   review: 'all',
   approval: 'all',
   assignee: 'all',
+  label: 'all',
   dateFrom: '',
   dateTo: '',
 };
@@ -51,6 +53,10 @@ export function filterContent(
     if (filters.contentType !== 'all' && item.contentType !== filters.contentType) return false;
     if (filters.status !== 'all' && item.status !== filters.status) return false;
     if (filters.assignee !== 'all' && item.assignee !== filters.assignee) return false;
+    if (filters.label !== 'all') {
+      const labels = (item as { labels?: string[] }).labels ?? [];
+      if (!labels.includes(filters.label)) return false;
+    }
     if (filters.review === 'needs' && item.status !== 'IN_REVIEW') return false;
     if (filters.review === 'approved' && item.status !== 'APPROVED') return false;
     if (filters.approval !== 'all') {
@@ -83,6 +89,7 @@ export function activeContentFilterCount(filters: ContentFilters): number {
   if (filters.review !== 'all') n += 1;
   if (filters.approval !== 'all') n += 1;
   if (filters.assignee !== 'all') n += 1;
+  if (filters.label !== 'all') n += 1;
   if (filters.dateFrom) n += 1;
   if (filters.dateTo) n += 1;
   return n;
@@ -125,6 +132,7 @@ export function contentFilterChips(
     });
   }
   if (filters.assignee !== 'all') chips.push({ id: 'assignee', label: filters.assignee });
+  if (filters.label !== 'all') chips.push({ id: 'label', label: filters.label });
   if (filters.dateFrom) chips.push({ id: 'dateFrom', label: filters.dateFrom });
   if (filters.dateTo) chips.push({ id: 'dateTo', label: filters.dateTo });
   return chips;
@@ -144,6 +152,7 @@ export function clearContentChip(filters: ContentFilters, id: string): ContentFi
   if (id === 'review') return { ...filters, review: 'all' };
   if (id === 'approval') return { ...filters, approval: 'all' };
   if (id === 'assignee') return { ...filters, assignee: 'all' };
+  if (id === 'label') return { ...filters, label: 'all' };
   if (id === 'dateFrom') return { ...filters, dateFrom: '' };
   if (id === 'dateTo') return { ...filters, dateTo: '' };
   return filters;
