@@ -820,11 +820,11 @@
 }
 
 .oma-pv-modal-post {
-  background: #fff;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgb(16 24 40 / 8%);
-  overflow: hidden;
-  padding-bottom: 4px;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+  padding: 0;
 }
 
 .oma-pv-modal-tip {
@@ -1194,7 +1194,7 @@
   inset-inline-start: auto !important;
 }
 
-/* Planable Content Preview Modal: Channel Rail, Status Column, and Per-Network Analytics */
+/* Planable Content Preview Modal: Channel Rail (Feed-style circular badges), Status Column, and Per-Network Analytics */
 .oma-plan-post__rail {
   background: var(--oma-surface) !important;
   border-inline-end: 1px solid var(--oma-home-border) !important;
@@ -1215,33 +1215,34 @@
 .oma-plan-post__rail-ch .oma-plan-post__rail-av {
   inline-size: 32px !important;
   block-size: 32px !important;
-  border-radius: 7px !important;
-  background: var(--oma-home-subtle) !important;
-  color: var(--oma-surface) !important;
+  border-radius: 50% !important;
+  background: var(--oma-surface) !important;
+  border: 2px solid var(--oma-surface) !important;
+  box-shadow: 0 0 0 1px var(--oma-home-border) !important;
   outline: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-block-start: 0 !important;
+  opacity: 0.72;
   transition:
     transform 120ms ease,
-    background 120ms ease,
-    filter 120ms ease;
+    opacity 120ms ease,
+    box-shadow 120ms ease;
 }
 
 .oma-plan-post__rail-ch .oma-plan-post__rail-av svg {
-  filter: brightness(0) invert(1);
+  filter: none !important;
 }
 
-.oma-plan-post__rail-ch[data-active='true'] .oma-plan-post__rail-av {
-  background: var(--oma-primary) !important;
-  box-shadow: 0 2px 6px rgba(22, 119, 255, 0.28);
-}
-
-.oma-plan-post__rail-ch[data-active='true'][data-channel*='youtube'] .oma-plan-post__rail-av {
-  background: var(--oma-home-danger) !important;
-}
-
-.oma-plan-post__rail-ch[data-active='true'][data-channel='x'] .oma-plan-post__rail-av,
-.oma-plan-post__rail-ch[data-active='true'][data-channel*='twitter'] .oma-plan-post__rail-av,
-.oma-plan-post__rail-ch[data-active='true'][data-channel*='tiktok'] .oma-plan-post__rail-av {
-  background: var(--oma-home-ink) !important;
+.oma-plan-post__rail-ch[data-active='true'] .oma-plan-post__rail-av,
+.oma-plan-post__rail-ch .oma-plan-post__rail-av:hover {
+  opacity: 1;
+  transform: scale(1.06);
+  background: var(--oma-surface) !important;
+  box-shadow:
+    0 0 0 2px var(--oma-primary),
+    0 2px 8px rgba(22, 119, 255, 0.22) !important;
 }
 
 .oma-pv-modal-status-stack {
@@ -1267,14 +1268,17 @@
 }
 
 .oma-pv-modal-status-circle {
-  inline-size: 34px;
-  block-size: 34px;
-  border-radius: 999px;
+  inline-size: 32px;
+  block-size: 32px;
+  border-radius: 50%;
   border: 0;
-  display: inline-grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+  box-shadow:
+    0 0 0 1px var(--oma-home-border),
+    0 2px 6px rgba(15, 23, 42, 0.08);
 }
 
 .oma-pv-modal-status-circle--approval {
@@ -1285,30 +1289,23 @@
 
 .oma-pv-modal-status-circle--net {
   cursor: pointer;
-  background: var(--oma-primary);
-  color: var(--oma-surface);
+  background: var(--oma-surface) !important;
+  border: 2px solid var(--oma-surface) !important;
+  margin-block-start: 0 !important;
   transition:
     transform 140ms ease,
     box-shadow 140ms ease;
 }
 
 .oma-pv-modal-status-circle--net svg {
-  filter: brightness(0) invert(1);
-}
-
-.oma-pv-modal-status-circle--net[data-channel*='youtube'] {
-  background: var(--oma-home-danger);
-}
-
-.oma-pv-modal-status-circle--net[data-channel='x'],
-.oma-pv-modal-status-circle--net[data-channel*='twitter'],
-.oma-pv-modal-status-circle--net[data-channel*='tiktok'] {
-  background: var(--oma-home-ink-2);
+  filter: none !important;
 }
 
 .oma-pv-modal-status-circle--net:hover {
-  transform: scale(1.06);
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
+  transform: scale(1.08);
+  box-shadow:
+    0 0 0 2px var(--oma-primary),
+    0 4px 12px rgba(15, 23, 42, 0.16) !important;
 }
 
 /* Planable Right-Side Post Analytics Panel */

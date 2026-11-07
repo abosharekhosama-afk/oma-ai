@@ -28,7 +28,9 @@ export type ApiContentWorkflow = {
 export type ApiPublishTarget = {
   id: string;
   social_page_id: string;
+  network?: string | null;
   state: string;
+  external_post_id?: string | null;
   external_post_url?: string | null;
   last_error?: string | null;
 };
@@ -83,7 +85,9 @@ export type ApiContent = {
 export type ContentPublishTargetRow = {
   id: string;
   socialPageId: string;
+  network?: string | null;
   state: string;
+  externalPostId?: string | null;
   externalPostUrl?: string | null;
   lastError?: string | null;
 };
@@ -140,7 +144,9 @@ export function toContentRow(c: ApiContent): ContentRowExtra {
       c.publishing?.publish_targets?.map((t) => ({
         id: t.id,
         socialPageId: t.social_page_id,
+        network: t.network ?? null,
         state: t.state,
+        externalPostId: t.external_post_id ?? null,
         externalPostUrl: t.external_post_url ?? null,
         lastError: t.last_error ?? null,
       })) ?? [],

@@ -219,7 +219,7 @@ import {
 import { useActiveBrandId } from '../../../../lib/active-brand';
 import { brandScheduleTimezone } from '../../../../lib/brand-schedule-timezone';
 import { paintBreadcrumbViewSlot } from '../../../../lib/breadcrumb-view-slot';
-import { buildPublishStatusView } from '../../../../lib/publish-status';
+import { buildPublishStatusView, resolveDirectPostPermalink } from '../../../../lib/publish-status';
 import {
   FALLBACK_SCHEDULE_TZ,
   formatCommentTime,
@@ -4864,12 +4864,12 @@ export default function ContentPage() {
                   >
                     <button
                       type="button"
-                      className="oma-plan-post__rail-av"
+                      className="oma-plan-post__rail-av oma-fp__net"
                       aria-label={ch}
                       onClick={() => setPreviewChannel(ch)}
                       data-testid={`preview-rail-channel-${ch.toLowerCase()}`}
                     >
-                      <NetworkIcon channel={ch} size={18} />
+                      <NetworkIcon channel={ch} size={16} />
                     </button>
                     <div className="oma-plan-post__rail-actions" role="menu">
                       <button
@@ -5494,33 +5494,82 @@ export default function ContentPage() {
                       data-testid="content-detail-preview"
                     >
                       {(() => {
-                        const activeCh = (previewChannel || selected.channel || 'instagram').trim();
+                        const activeCh = (
+                          previewChannel ||
+                          selected.channel.split(',')[0]?.trim() ||
+                          'instagram'
+                        ).trim();
+                        const chLower = activeCh.toLowerCase();
                         const extra = selected as ContentRowExtra;
-                        const matchingTarget = (extra.publishTargets ?? []).find((pt) => {
-                          const net = String(
-                            (pt as { network?: string }).network ?? '',
-                          ).toLowerCase();
-                          return net && activeCh.toLowerCase().includes(net);
+                        const targetList = extra.publishTargets ?? [];
+                        const matchingTarget = targetList.find((pt) => {
+                          const net = String(pt.network ?? '').toLowerCase();
+                          const urlNet = String(pt.externalPostUrl ?? '').toLowerCase();
+                          if (net) {
+                            return (
+                              net === chLower ||
+                              chLower.includes(net) ||
+                              net.includes(chLower) ||
+                              (chLower.includes('facebook') && net.includes('facebook')) ||
+                              (chLower.includes('instagram') && net.includes('instagram')) ||
+                              (chLower.includes('tiktok') && net.includes('tiktok')) ||
+                              (chLower.includes('linkedin') && net.includes('linkedin')) ||
+                              ((chLower === 'x' || chLower.includes('twitter')) && net === 'x')
+                            );
+                          }
+                          if (urlNet) {
+                            return (
+                              (chLower.includes('facebook') && urlNet.includes('facebook.com')) ||
+                              (chLower.includes('instagram') && urlNet.includes('instagram.com')) ||
+                              (chLower.includes('tiktok') && urlNet.includes('tiktok.com')) ||
+                              (chLower.includes('linkedin') && urlNet.includes('linkedin.com')) ||
+                              ((chLower === 'x' || chLower.includes('twitter')) &&
+                                (urlNet.includes('x.com') || urlNet.includes('twitter.com'))) ||
+                              (chLower.includes('youtube') && urlNet.includes('youtube.com'))
+                            );
+                          }
+                          return false;
                         });
+                        const resolvedTargetUrl = matchingTarget
+                          ? resolveDirectPostPermalink(matchingTarget.externalPostUrl, {
+                              externalPostId: matchingTarget.externalPostId,
+                              network: matchingTarget.network ?? chLower,
+                              contentType: selected.contentType,
+                            })
+                          : null;
+                        const primaryUrlMatchesActiveChannel = (() => {
+                          const u = String(extra.externalPostUrl ?? '').toLowerCase();
+                          if (!u) return false;
+                          if (chLower.includes('facebook')) return u.includes('facebook.com');
+                          if (chLower.includes('instagram')) return u.includes('instagram.com');
+                          if (chLower.includes('tiktok')) return u.includes('tiktok.com');
+                          if (chLower.includes('linkedin')) return u.includes('linkedin.com');
+                          if (chLower === 'x' || chLower.includes('twitter'))
+                            return u.includes('x.com') || u.includes('twitter.com');
+                          if (chLower.includes('youtube')) return u.includes('youtube.com');
+                          return true;
+                        })();
                         const rawExternalUrl =
-                          matchingTarget?.externalPostUrl || extra.externalPostUrl || null;
+                          resolvedTargetUrl ||
+                          (primaryUrlMatchesActiveChannel ? extra.externalPostUrl : null) ||
+                          null;
                         const openPlatformUrl = () => {
                           if (rawExternalUrl) {
                             window.open(rawExternalUrl, '_blank', 'noopener,noreferrer');
                             return;
                           }
-                          const chLower = activeCh.toLowerCase();
+                          const slug = encodeURIComponent(selected.id.slice(-8));
                           const fallback = chLower.includes('facebook')
-                            ? 'https://www.facebook.com'
+                            ? `https://www.facebook.com/posts/${slug}`
                             : chLower.includes('youtube')
-                              ? 'https://www.youtube.com'
+                              ? `https://www.youtube.com/watch?v=${slug}`
                               : chLower === 'x' || chLower.includes('twitter')
-                                ? 'https://x.com'
+                                ? `https://x.com/i/web/status/${slug}`
                                 : chLower.includes('linkedin')
-                                  ? 'https://www.linkedin.com'
+                                  ? `https://www.linkedin.com/feed/update/urn:li:share:${slug}/`
                                   : chLower.includes('tiktok')
-                                    ? 'https://www.tiktok.com'
-                                    : 'https://www.instagram.com';
+                                    ? `https://www.tiktok.com/@oma/video/${slug}`
+                                    : `https://www.instagram.com/p/${slug}/`;
                           window.open(fallback, '_blank', 'noopener,noreferrer');
                         };
                         const pubIso =
@@ -5571,8 +5620,8 @@ export default function ContentPage() {
                               </span>
                               <button
                                 type="button"
-                                className="oma-pv-modal-status-circle oma-pv-modal-status-circle--net"
-                                data-channel={activeCh.toLowerCase()}
+                                className="oma-pv-modal-status-circle oma-pv-modal-status-circle--net oma-fp__net"
+                                data-channel={chLower}
                                 onClick={openPlatformUrl}
                                 title={isAr ? 'افتح المنشور على المنصة' : 'Open post on platform'}
                                 aria-label={
@@ -5580,7 +5629,7 @@ export default function ContentPage() {
                                 }
                                 data-testid="content-preview-open-platform"
                               >
-                                <NetworkIcon channel={activeCh} size={18} />
+                                <NetworkIcon channel={activeCh} size={16} />
                               </button>
                             </div>
                           </div>
@@ -5635,68 +5684,6 @@ export default function ContentPage() {
                           'detail',
                           false,
                         )}
-                        <div className="oma-pv-modal-actions">
-                          <button
-                            type="button"
-                            disabled={!(selected as ContentRowExtra).externalPostUrl}
-                            onClick={() => {
-                              const url = (selected as ContentRowExtra).externalPostUrl;
-                              if (url) window.open(url, '_blank', 'noopener,noreferrer');
-                            }}
-                          >
-                            {isAr ? 'فتح' : 'Open'}
-                          </button>
-                          <span className="oma-pv-modal-tip">
-                            <button type="button" onClick={() => setPublishTipOpen((v) => !v)}>
-                              {isAr ? 'نصيحة' : 'Tip'}
-                            </button>
-                            {publishTipOpen ? (
-                              <div className="oma-plan-post__tip-card oma-plan-post__tip-card--sm">
-                                {t('content.post_is_not_published_yet')}
-                              </div>
-                            ) : null}
-                          </span>
-                          <ContentEmojiPicker
-                            ariaLabel={isAr ? 'إيموجي' : 'Emoji'}
-                            label={isAr ? 'ابتسامة' : 'Smile'}
-                            testId="content-preview-smile"
-                            onPick={(emo) => {
-                              const next = `${draft.caption}${emo}`;
-                              setDraft((d) => ({ ...d, caption: next }));
-                              if (!selectedId || !selected) {
-                                setDetailPreviewMode('edit');
-                                return;
-                              }
-                              void updateContentProduction(selectedId, {
-                                caption: mergeLocaleCopy(selected.caption, next, locale),
-                              })
-                                .then((apiRow) => {
-                                  setRows((prev) =>
-                                    prev.map((r) =>
-                                      r.id === selectedId ? toContentRow(apiRow) : r,
-                                    ),
-                                  );
-                                })
-                                .catch((err) =>
-                                  toast.push(contentApiError(err, t('errors.http')), 'danger'),
-                                );
-                            }}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (!selectedId) return;
-                              void duplicateContent(selectedId).then((apiRow) => {
-                                const row = toContentRow(apiRow);
-                                setRows((prev) => [row, ...prev]);
-                                toast.push(t('content.post_duplicated'), 'success');
-                                openItem(row);
-                              });
-                            }}
-                          >
-                            {isAr ? 'تكرار' : 'Repeat'}
-                          </button>
-                        </div>
                       </div>
                     </div>
                   ) : (

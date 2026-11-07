@@ -209,14 +209,18 @@ function mapContent(
               id: string;
               socialPageId: string;
               publishState: string;
+              externalPostId?: string | null;
               externalPostUrl: string | null;
               lastPublishError: string | null;
+              socialPage?: { network?: string } | null;
             }>;
           }
         ).publishTargets?.map((t) => ({
           id: t.id,
           social_page_id: t.socialPageId,
+          network: t.socialPage?.network ? String(t.socialPage.network).toLowerCase() : undefined,
           state: t.publishState,
+          external_post_id: t.externalPostId ?? null,
           external_post_url: t.externalPostUrl,
           last_error: t.lastPublishError,
         })) ?? [],
@@ -422,7 +426,7 @@ export class ContentService {
       where,
       orderBy: { updatedAt: 'desc' },
       take: limit + 1,
-      include: { publishTargets: true },
+      include: { publishTargets: { include: { socialPage: { select: { network: true } } } } },
     });
     const hasMore = rows.length > limit;
     const data = hasMore ? rows.slice(0, limit) : rows;
@@ -460,7 +464,7 @@ export class ContentService {
   async get(tenantId: string, contentId: string, opts?: { clientAudience?: boolean }) {
     const row = await getPrisma().contentItem.findFirst({
       where: tenantWhere(tenantId, { id: contentId }),
-      include: { publishTargets: true },
+      include: { publishTargets: { include: { socialPage: { select: { network: true } } } } },
     });
     if (!row) {
       throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
@@ -1188,7 +1192,7 @@ export class ContentService {
     }
     const refreshed = await getPrisma().contentItem.findUniqueOrThrow({
       where: { id: contentId },
-      include: { publishTargets: true },
+      include: { publishTargets: { include: { socialPage: { select: { network: true } } } } },
     });
     await this.audit.write({
       actorUserId,
@@ -1635,7 +1639,7 @@ export class ContentService {
     const { enqueuePublishTargetsNow } = await import('../social/enqueue-publish-now');
     const current = await getPrisma().contentItem.findFirst({
       where: tenantWhere(tenantId, { id: contentId }),
-      include: { publishTargets: true },
+      include: { publishTargets: { include: { socialPage: { select: { network: true } } } } },
     });
     if (!current) throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
     if (current.archivedAt) {
@@ -1704,7 +1708,7 @@ export class ContentService {
     });
     const refreshed = await getPrisma().contentItem.findUniqueOrThrow({
       where: { id: contentId },
-      include: { publishTargets: true },
+      include: { publishTargets: { include: { socialPage: { select: { network: true } } } } },
     });
     return { data: mapContent(refreshed, policy), enqueued };
   }
@@ -1747,7 +1751,7 @@ export class ContentService {
   ) {
     const current = await getPrisma().contentItem.findFirst({
       where: tenantWhere(tenantId, { id: contentId }),
-      include: { publishTargets: true },
+      include: { publishTargets: { include: { socialPage: { select: { network: true } } } } },
     });
     if (!current) throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
     const target = current.publishTargets.find((t) => t.socialPageId === socialPageId);
@@ -1814,7 +1818,7 @@ export class ContentService {
     const policy = await this.policyForBrand(tenantId, current.brandId);
     const row = await getPrisma().contentItem.findUniqueOrThrow({
       where: { id: newId_ },
-      include: { publishTargets: true },
+      include: { publishTargets: { include: { socialPage: { select: { network: true } } } } },
     });
     return { data: mapContent(row, policy), source_id: contentId };
   }
@@ -1823,7 +1827,7 @@ export class ContentService {
   async ungroup(tenantId: string, actorUserId: string, contentId: string, correlationId?: string) {
     const current = await getPrisma().contentItem.findFirst({
       where: tenantWhere(tenantId, { id: contentId }),
-      include: { publishTargets: true },
+      include: { publishTargets: { include: { socialPage: { select: { network: true } } } } },
     });
     if (!current) throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
     const targets = current.publishTargets;
@@ -1855,7 +1859,7 @@ export class ContentService {
     const policy = await this.policyForBrand(tenantId, current.brandId);
     const rows = await getPrisma().contentItem.findMany({
       where: { id: { in: [contentId, ...created] } },
-      include: { publishTargets: true },
+      include: { publishTargets: { include: { socialPage: { select: { network: true } } } } },
     });
     await this.audit.write({
       actorUserId,
@@ -1934,7 +1938,7 @@ export class ContentService {
     const policy = await this.policyForBrand(tenantId, input.brandId);
     const row = await getPrisma().contentItem.findUniqueOrThrow({
       where: { id: newId_ },
-      include: { publishTargets: true },
+      include: { publishTargets: { include: { socialPage: { select: { network: true } } } } },
     });
     return { data: mapContent(row, policy) };
   }
