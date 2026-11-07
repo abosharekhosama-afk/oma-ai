@@ -54,8 +54,9 @@ export async function recordListeningHit(input: {
 
   const existing = await prisma.listeningHit.findUnique({
     where: {
-      tenantId_platform_externalPostId: {
+      tenantId_ruleId_platform_externalPostId: {
         tenantId: input.tenantId,
+        ruleId: input.ruleId,
         platform: input.platform,
         externalPostId: input.externalPostId,
       },

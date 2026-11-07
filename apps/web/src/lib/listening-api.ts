@@ -12,8 +12,26 @@ export type ListeningRule = {
   isLive: boolean;
   contextJson?: string | null;
   lastPollAt?: string | null;
+  syncStatus?: string;
+  lastSyncStartedAt?: string | null;
+  lastSyncFinishedAt?: string | null;
+  lastSyncIngested?: number;
+  lastSyncError?: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+export type ListeningSource = {
+  id: string;
+  mode: string;
+  readiness: 'configured' | 'not_configured' | 'needs_account' | 'public' | 'inbox_only';
+  limitation: string;
+};
+
+export type ListeningSyncResult = {
+  status: string;
+  alreadyQueued?: boolean;
+  error?: string;
 };
 
 export type ListeningHit = {
@@ -56,7 +74,15 @@ export type ListeningStats = {
     total: number;
   }>;
   lastPollAt: string | null;
-  nextPollAt: string;
+  sync?: {
+    ruleId: string;
+    isLive: boolean;
+    status: string;
+    lastSyncStartedAt: string | null;
+    lastSyncFinishedAt: string | null;
+    lastSyncIngested: number;
+    lastSyncError: string | null;
+  } | null;
 };
 
 export function listListeningRules(brandId?: string | null) {
@@ -66,13 +92,15 @@ export function listListeningRules(brandId?: string | null) {
 
 export function createListeningRule(body: {
   name: string;
+  kind: 'BRAND' | 'COMPETITOR' | 'TOPIC';
   keywords?: string[];
   hashtags?: string[];
   platforms?: string[];
   isLive?: boolean;
   brandId?: string | null;
+  contextJson?: string | null;
 }) {
-  return api<{ id: string }>('/api/v1/listening/rules', {
+  return api<{ id: string; sync: ListeningSyncResult | null }>('/api/v1/listening/rules', {
     method: 'POST',
     body: JSON.stringify(body),
   });
@@ -87,12 +115,22 @@ export function updateListeningRule(
     platforms: string[];
     isLive: boolean;
     contextJson: string | null;
+    kind: 'BRAND' | 'COMPETITOR' | 'TOPIC';
+    brandId: string | null;
   }>,
 ) {
-  return api(`/api/v1/listening/rules/${id}`, {
-    method: 'POST',
-    body: JSON.stringify(body),
-  });
+  return api<{ id: string; isLive: boolean; sync: ListeningSyncResult | null }>(
+    `/api/v1/listening/rules/${id}`,
+    {
+      method: 'POST',
+      body: JSON.stringify(body),
+    },
+  );
+}
+
+export function getListeningSources(brandId?: string | null) {
+  const q = brandId ? `?brandId=${encodeURIComponent(brandId)}` : '';
+  return api<{ sources: ListeningSource[]; channelsPath: string }>(`/api/v1/listening/sources${q}`);
 }
 
 export function getListeningStats(params: Record<string, string | undefined>) {
@@ -105,7 +143,12 @@ export function getListeningStats(params: Record<string, string | undefined>) {
 }
 
 export function syncListening(body: { ruleId?: string; brandId?: string | null } = {}) {
-  return api<{ queued: number; rules: number }>('/api/v1/listening/sync', {
+  return api<{
+    queued: number;
+    rules: number;
+    status: string;
+    items: Array<{ id: string } & ListeningSyncResult>;
+  }>('/api/v1/listening/sync', {
     method: 'POST',
     body: JSON.stringify(body),
   });

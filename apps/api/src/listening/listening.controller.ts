@@ -31,6 +31,12 @@ function ctx(req: Request) {
 
 @Controller()
 export class ListeningController {
+  @Get('api/v1/listening/sources')
+  @UseGuards(AuthGuard, CapabilitiesGuard)
+  sources(@Req() req: Request, @Query('brandId') brandId?: string) {
+    return listeningService.sourceReadiness(ctx(req).tenantId, brandId || undefined);
+  }
+
   @Get('api/v1/listening/rules')
   @UseGuards(AuthGuard, CapabilitiesGuard)
   listRules(@Req() req: Request, @Query('brandId') brandId?: string) {

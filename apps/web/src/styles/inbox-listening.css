@@ -8225,3 +8225,227 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   font-weight: 400;
   color: var(--oma-home-subtle);
 }
+
+.oma-listening-icon-btn {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #374151;
+  cursor: pointer;
+  padding: 0;
+}
+
+.oma-listening-icon-btn:focus-visible,
+.oma-listening-save:focus-visible,
+.oma-listening-text-btn:focus-visible,
+.oma-listening-pill:focus-visible {
+  outline: 2px solid #1570ef;
+  outline-offset: 2px;
+}
+
+.oma-listening-icon-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.oma-listening-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+
+.oma-listening-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 13px;
+  color: #374151;
+  cursor: pointer;
+}
+
+.oma-listening-pill[data-active='true'] {
+  border-color: #1570ef;
+  color: #1570ef;
+}
+
+.oma-listening-pill small {
+  color: #6b7280;
+  font-size: 11px;
+}
+
+.oma-listening-panel-root {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+}
+
+.oma-listening-panel-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(17, 24, 39, 0.28);
+  cursor: pointer;
+}
+
+.oma-listening-panel {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  width: min(420px, 100%);
+  height: 100%;
+  background: #fff;
+  border-inline-start: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  color: #111827;
+}
+
+.oma-listening-panel__head,
+.oma-listening-panel__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.oma-listening-panel__foot {
+  border-bottom: 0;
+  border-top: 1px solid #e5e7eb;
+}
+
+.oma-listening-panel__brand {
+  margin: 0 0 4px;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.oma-listening-panel__head h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.oma-listening-panel__body {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.oma-listening-panel__rules {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.oma-listening-panel__rule {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: start;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.oma-listening-panel__rule[data-active='true'] {
+  border-color: #1570ef;
+}
+
+.oma-listening-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.oma-listening-field input,
+.oma-listening-field textarea {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font: inherit;
+  color: inherit;
+  background: #fff;
+}
+
+.oma-listening-source {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-top: 8px;
+}
+
+.oma-listening-source small,
+.oma-listening-field small,
+.oma-listening-panel__rule small {
+  display: block;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.oma-listening-channels {
+  margin-top: 10px;
+  color: #1570ef;
+  font-size: 13px;
+}
+
+.oma-listening-save {
+  border: 0;
+  background: #1570ef;
+  color: #fff;
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.oma-listening-text-btn {
+  border: 0;
+  background: transparent;
+  color: #1570ef;
+  cursor: pointer;
+  padding: 0;
+  text-align: start;
+}
+
+.oma-listening-panel__error {
+  color: #b42318;
+  margin: 0;
+}
+
+.oma-listening-avatar-fallback {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: #f3f4f6;
+  color: #374151;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+@media (max-width: 720px) {
+  .oma-listening-panel {
+    width: min(92vw, 420px);
+  }
+}

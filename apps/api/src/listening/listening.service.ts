@@ -1,5 +1,12 @@
 import { getPrisma, tenantWhere } from '@oma/db';
-import { DomainError, newId } from '@oma/domain';
+import {
+  buildListeningSourceCatalog,
+  DomainError,
+  ListeningRuleValidationError,
+  mergedTermsAreUseful,
+  newId,
+  validateListeningRuleWrite,
+} from '@oma/domain';
 import { classifySentiment } from '../inbox/sentiment';
 import { enqueueListeningPoll } from '../inbox/enqueue-inbox';
 
@@ -210,6 +217,18 @@ function alertFiresWhen(triggerType: string, threshold: Record<string, number>):
   return triggerType;
 }
 
+function brandHitScope(brandId: string | null) {
+  return {
+    isHidden: false,
+    isExcluded: false,
+    rule: {
+      kind: 'BRAND',
+      isLive: true,
+      ...(brandId ? { OR: [{ brandId }, { brandId: null }] } : {}),
+    },
+  };
+}
+
 function netSentimentBalance(positive: number, neutral: number, negative: number): number {
   const total = positive + neutral + negative;
   if (!total) return 0;
@@ -235,78 +254,82 @@ export class ListeningService {
         isLive: r.isLive,
         contextJson: r.contextJson,
         lastPollAt: r.lastPollAt?.toISOString() ?? null,
+        syncStatus: r.syncStatus,
+        lastSyncStartedAt: r.lastSyncStartedAt?.toISOString() ?? null,
+        lastSyncFinishedAt: r.lastSyncFinishedAt?.toISOString() ?? null,
+        lastSyncIngested: r.lastSyncIngested,
+        lastSyncError: r.lastSyncError,
         createdAt: r.createdAt.toISOString(),
         updatedAt: r.updatedAt.toISOString(),
       })),
     };
   }
 
-  async createRule(
-    tenantId: string,
-    body: {
-      name?: string;
-      workspaceId?: string;
-      brandId?: string | null;
-      keywords?: string[];
-      hashtags?: string[];
-      platforms?: string[];
-      isLive?: boolean;
-      kind?: string;
-    },
-  ) {
-    const name = (body.name ?? '').trim();
-    if (!name)
-      throw new DomainError('VALIDATION_FAILED', 'name required', 400, 'errors.validation');
-    const workspaceId = body.workspaceId?.trim() || tenantId;
+  async createRule(tenantId: string, body: Record<string, unknown>) {
+    const input = this.parseWrite(body, 'create');
+    const brandId = await this.assertBrand(tenantId, input.brandId ?? null);
     const id = newId();
     const row = await getPrisma().listeningRule.create({
       data: {
         id,
         tenantId,
-        workspaceId,
-        brandId: body.brandId ?? null,
-        name,
-        kind: String(body.kind || 'BRAND').toUpperCase(),
-        keywordsJson: JSON.stringify(body.keywords ?? []),
-        hashtagsJson: JSON.stringify(body.hashtags ?? []),
-        platformsJson: JSON.stringify(body.platforms ?? []),
-        isLive: body.isLive !== false,
+        workspaceId: tenantId,
+        brandId,
+        name: input.name!,
+        kind: input.kind!,
+        keywordsJson: JSON.stringify(input.keywords ?? []),
+        hashtagsJson: JSON.stringify(input.hashtags ?? []),
+        platformsJson: JSON.stringify(input.platforms ?? []),
+        isLive: input.isLive !== false,
+        contextJson: input.contextJson ?? null,
+        syncStatus: 'IDLE',
       },
     });
-    if (row.isLive) {
-      await enqueueListeningPoll({ tenantId, ruleId: row.id });
-    }
-    return { id: row.id };
+    const queued = row.isLive ? await this.queueRule(tenantId, row.id) : null;
+    return { id: row.id, sync: queued };
   }
 
-  async updateRule(
-    tenantId: string,
-    id: string,
-    body: {
-      name?: string;
-      keywords?: string[];
-      hashtags?: string[];
-      platforms?: string[];
-      isLive?: boolean;
-      contextJson?: string | null;
-    },
-  ) {
+  async updateRule(tenantId: string, id: string, body: Record<string, unknown>) {
     const existing = await getPrisma().listeningRule.findFirst({
       where: tenantWhere(tenantId, { id }),
     });
     if (!existing) throw new DomainError('NOT_FOUND', 'Rule not found', 404, 'errors.not_found');
+    const input = this.parseWrite(body, 'update');
+    const keywords = input.keywords ?? safeArr(existing.keywordsJson);
+    const hashtags = input.hashtags ?? safeArr(existing.hashtagsJson);
+    if (!mergedTermsAreUseful(keywords, hashtags)) {
+      throw new DomainError('VALIDATION_FAILED', 'terms required', 400, 'errors.validation');
+    }
+    if (input.platforms && input.platforms.length === 0) {
+      throw new DomainError('VALIDATION_FAILED', 'platforms required', 400, 'errors.validation');
+    }
+    const brandId =
+      input.brandId !== undefined ? await this.assertBrand(tenantId, input.brandId) : undefined;
     const row = await getPrisma().listeningRule.update({
       where: { id },
       data: {
-        ...(body.name !== undefined ? { name: body.name.trim() } : {}),
-        ...(body.keywords ? { keywordsJson: JSON.stringify(body.keywords) } : {}),
-        ...(body.hashtags ? { hashtagsJson: JSON.stringify(body.hashtags) } : {}),
-        ...(body.platforms ? { platformsJson: JSON.stringify(body.platforms) } : {}),
-        ...(body.isLive !== undefined ? { isLive: body.isLive } : {}),
-        ...(body.contextJson !== undefined ? { contextJson: body.contextJson } : {}),
+        ...(input.name !== undefined ? { name: input.name } : {}),
+        ...(input.kind ? { kind: input.kind } : {}),
+        ...(input.keywords ? { keywordsJson: JSON.stringify(input.keywords) } : {}),
+        ...(input.hashtags ? { hashtagsJson: JSON.stringify(input.hashtags) } : {}),
+        ...(input.platforms ? { platformsJson: JSON.stringify(input.platforms) } : {}),
+        ...(input.isLive !== undefined ? { isLive: input.isLive } : {}),
+        ...(input.contextJson !== undefined ? { contextJson: input.contextJson } : {}),
+        ...(brandId !== undefined ? { brandId } : {}),
       },
     });
-    return { id: row.id, isLive: row.isLive };
+    const becameActive = row.isLive && (input.isLive === true || existing.isLive);
+    const termsChanged = Boolean(input.keywords || input.hashtags || input.platforms);
+    const queued =
+      row.isLive && (input.isLive === true || (existing.isLive && termsChanged))
+        ? await this.queueRule(tenantId, row.id)
+        : null;
+    return {
+      id: row.id,
+      isLive: row.isLive,
+      sync: queued,
+      resumed: becameActive && !existing.isLive,
+    };
   }
 
   async deleteRule(tenantId: string, id: string) {
@@ -385,7 +408,6 @@ export class ListeningService {
           ...(q.brandId ? { OR: [{ brandId: q.brandId }, { brandId: null }] } : {}),
           ...(q.ruleId ? { id: q.ruleId } : {}),
         }),
-        select: { lastPollAt: true },
         orderBy: { lastPollAt: 'desc' },
         take: 1,
       }),
@@ -404,11 +426,8 @@ export class ListeningService {
     const neutral = current.filter((h) => h.sentiment === 'NEUTRAL').length;
     const negative = current.filter((h) => h.sentiment === 'NEGATIVE').length;
 
-    const lastPollAt = rules[0]?.lastPollAt ?? null;
-    const pollIntervalMs = 5 * 60 * 1000;
-    const nextPollAt = lastPollAt
-      ? new Date(lastPollAt.getTime() + pollIntervalMs)
-      : new Date(Date.now() + pollIntervalMs);
+    const rule = rules[0];
+    const lastPollAt = rule?.lastPollAt ?? null;
 
     return {
       from: from.toISOString(),
@@ -420,7 +439,17 @@ export class ListeningService {
       sentiment: { positive, neutral, negative, total: positive + neutral + negative },
       volume: dayBuckets(current, from, to),
       lastPollAt: lastPollAt?.toISOString() ?? null,
-      nextPollAt: nextPollAt.toISOString(),
+      sync: rule
+        ? {
+            ruleId: rule.id,
+            isLive: rule.isLive,
+            status: rule.syncStatus,
+            lastSyncStartedAt: rule.lastSyncStartedAt?.toISOString() ?? null,
+            lastSyncFinishedAt: rule.lastSyncFinishedAt?.toISOString() ?? null,
+            lastSyncIngested: rule.lastSyncIngested,
+            lastSyncError: rule.lastSyncError,
+          }
+        : null,
     };
   }
 
@@ -717,20 +746,13 @@ export class ListeningService {
     });
     if (!alerts.length) return { evaluated: 0, fired: 0 };
 
-    const brandRule = await getPrisma().listeningRule.findFirst({
-      where: tenantWhere(tenantId, { kind: 'BRAND', isLive: true }),
-      orderBy: { createdAt: 'asc' },
-    });
-    const ruleId = brandRule?.id;
     let fired = 0;
 
     for (const alert of alerts) {
       const platforms = safeArr(alert.platformsJson);
       const dayHits = await getPrisma().listeningHit.findMany({
         where: tenantWhere(tenantId, {
-          ...(ruleId ? { ruleId } : {}),
-          isHidden: false,
-          isExcluded: false,
+          ...brandHitScope(alert.brandId),
           ...(platforms.length ? { platform: { in: platforms as never[] } } : {}),
           capturedAt: { gte: start, lt: end },
         }),
@@ -746,10 +768,8 @@ export class ListeningService {
           const histFrom = new Date(start.getTime() - 7 * 86400_000);
           const hist = await getPrisma().listeningHit.count({
             where: tenantWhere(tenantId, {
-              ...(ruleId ? { ruleId } : {}),
+              ...brandHitScope(alert.brandId),
               capturedAt: { gte: histFrom, lt: start },
-              isHidden: false,
-              isExcluded: false,
             }),
           });
           const avg = hist / 7;
@@ -812,12 +832,86 @@ export class ListeningService {
     if (!rules.length) {
       throw new DomainError('NOT_FOUND', 'No live listening rules', 404, 'errors.not_found');
     }
+    const items = [];
     let queued = 0;
     for (const r of rules) {
-      const ok = await enqueueListeningPoll({ tenantId, ruleId: r.id });
-      if (ok) queued += 1;
+      const sync = await this.queueRule(tenantId, r.id);
+      if (sync.status === 'QUEUED' && !sync.alreadyQueued) queued += 1;
+      items.push({ id: r.id, ...sync });
     }
-    return { queued, rules: rules.length };
+    return {
+      queued,
+      rules: rules.length,
+      status: queued > 0 ? 'queued' : (items[0]?.status ?? 'not_queued'),
+      items,
+    };
+  }
+
+  async sourceReadiness(tenantId: string, brandId?: string) {
+    const scopedBrand = brandId ? await this.assertBrand(tenantId, brandId) : null;
+    const pages = await getPrisma().socialPage.findMany({
+      where: tenantWhere(tenantId, {
+        status: 'CONNECTED',
+        ...(scopedBrand ? { brandId: scopedBrand } : {}),
+      }),
+      select: { network: true },
+    });
+    return {
+      sources: buildListeningSourceCatalog({
+        connectedNetworks: pages.map((page) => page.network),
+        youtubeConfigured: Boolean(process.env.YOUTUBE_API_KEY?.trim()),
+        webConfigured: Boolean(
+          process.env.GOOGLE_CSE_API_KEY?.trim() && process.env.GOOGLE_CSE_CX?.trim(),
+        ),
+      }),
+      channelsPath: scopedBrand
+        ? `/app/brands/${scopedBrand}/settings?tab=accounts`
+        : '/app/brands',
+    };
+  }
+
+  private parseWrite(body: Record<string, unknown>, mode: 'create' | 'update') {
+    try {
+      return validateListeningRuleWrite(body, mode);
+    } catch (error) {
+      if (error instanceof ListeningRuleValidationError) {
+        throw new DomainError('VALIDATION_FAILED', error.field, 400, 'errors.validation');
+      }
+      throw error;
+    }
+  }
+
+  private async assertBrand(tenantId: string, brandId: string | null): Promise<string | null> {
+    if (!brandId) return null;
+    const brand = await getPrisma().brandWorkspace.findFirst({
+      where: tenantWhere(tenantId, { id: brandId }),
+      select: { id: true },
+    });
+    if (!brand) throw new DomainError('NOT_FOUND', 'Brand not found', 404, 'errors.not_found');
+    return brand.id;
+  }
+
+  private async queueRule(tenantId: string, ruleId: string) {
+    const ok = await enqueueListeningPoll({ tenantId, ruleId });
+    if (ok) {
+      await getPrisma().listeningRule.update({
+        where: { id: ruleId },
+        data: { syncStatus: 'QUEUED', lastSyncError: null },
+      });
+      return { status: 'QUEUED' as const, alreadyQueued: false };
+    }
+    const current = await getPrisma().listeningRule.findFirst({
+      where: tenantWhere(tenantId, { id: ruleId }),
+      select: { syncStatus: true },
+    });
+    if (current?.syncStatus === 'QUEUED' || current?.syncStatus === 'RUNNING') {
+      return { status: current.syncStatus, alreadyQueued: true };
+    }
+    await getPrisma().listeningRule.update({
+      where: { id: ruleId },
+      data: { syncStatus: 'FAILED', lastSyncError: 'queue_unavailable' },
+    });
+    return { status: 'FAILED' as const, alreadyQueued: false, error: 'queue_unavailable' };
   }
 
   async updateHit(
@@ -878,15 +972,25 @@ export class ListeningService {
   }) {
     const sentiment = classifySentiment(input.content);
     const isHighPriority = sentiment === 'NEGATIVE';
-    const existing = await getPrisma().listeningHit.findUnique({
-      where: {
-        tenantId_platform_externalPostId: {
-          tenantId: input.tenantId,
-          platform: input.platform,
-          externalPostId: input.externalPostId,
-        },
-      },
-    });
+    const existing = input.ruleId
+      ? await getPrisma().listeningHit.findUnique({
+          where: {
+            tenantId_ruleId_platform_externalPostId: {
+              tenantId: input.tenantId,
+              ruleId: input.ruleId,
+              platform: input.platform,
+              externalPostId: input.externalPostId,
+            },
+          },
+        })
+      : await getPrisma().listeningHit.findFirst({
+          where: {
+            tenantId: input.tenantId,
+            ruleId: null,
+            platform: input.platform,
+            externalPostId: input.externalPostId,
+          },
+        });
     if (existing) {
       const updated = await getPrisma().listeningHit.update({
         where: { id: existing.id },

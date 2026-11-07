@@ -60,20 +60,19 @@ export async function evaluateListeningAlertsForYesterday(connection?: IORedis) 
     const alerts = await getPrisma().listeningAlert.findMany({
       where: { tenantId, isActive: true },
     });
-    const brandRule = await getPrisma().listeningRule.findFirst({
-      where: { tenantId, kind: 'BRAND', isLive: true },
-      orderBy: { createdAt: 'asc' },
-    });
-    const ruleId = brandRule?.id;
-
     for (const alert of alerts) {
       const platforms = safeArr(alert.platformsJson);
+      const ruleScope = {
+        kind: 'BRAND',
+        isLive: true,
+        ...(alert.brandId ? { OR: [{ brandId: alert.brandId }, { brandId: null }] } : {}),
+      };
       const dayHits = await getPrisma().listeningHit.findMany({
         where: {
           tenantId,
-          ...(ruleId ? { ruleId } : {}),
           isHidden: false,
           isExcluded: false,
+          rule: ruleScope,
           ...(platforms.length ? { platform: { in: platforms as never[] } } : {}),
           capturedAt: { gte: start, lt: end },
         },
@@ -90,10 +89,10 @@ export async function evaluateListeningAlertsForYesterday(connection?: IORedis) 
           const hist = await getPrisma().listeningHit.count({
             where: {
               tenantId,
-              ...(ruleId ? { ruleId } : {}),
-              capturedAt: { gte: histFrom, lt: start },
               isHidden: false,
               isExcluded: false,
+              rule: ruleScope,
+              capturedAt: { gte: histFrom, lt: start },
             },
           });
           const avg = hist / 7;
