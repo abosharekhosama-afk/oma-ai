@@ -43,12 +43,17 @@ describe('workspace sidebar layout', () => {
     const chrome = read('apps/web/src/components/shell/shell-chrome.tsx');
     const account = read('apps/web/src/components/shell/user-menu.tsx');
     const workspaceRow = read('apps/web/src/components/shell/workspace-row.tsx');
+    const settings = read('apps/web/src/components/settings/settings-panel.tsx');
+    const sections = read('apps/web/src/components/settings/settings-sections.ts');
     expect(chrome).toContain("import { WorkspaceRow } from './workspace-row';");
     expect(chrome).not.toContain('WorkspaceSettingsPanel');
     expect(chrome).toContain('<SettingsPanel');
     expect(workspaceRow).toContain('onOpenSettings');
     expect(account).toContain('data-testid="shell-user-menu-settings"');
     expect(account).toContain('openSettings();');
+    expect(sections).toContain("'approvals'");
+    expect(settings).toContain('WorkspaceApprovals');
+    expect(settings).toContain('data-testid="settings-approvals"');
   });
 
   it('selects a child navigation page without also selecting its parent page', () => {

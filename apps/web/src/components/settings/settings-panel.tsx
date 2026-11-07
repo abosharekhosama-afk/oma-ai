@@ -12,10 +12,14 @@ import {
 } from '../../lib/account-api';
 import { useToast } from '../ui/toast';
 import {
+  DEFAULT_APPROVALS,
+  approvalsFromSettings,
   getWorkspaceSettings,
   patchWorkspaceSettings,
+  type ApprovalSettings,
   type WorkspaceSettings,
 } from '../../lib/workspace-extras-api';
+import { WorkspaceApprovals } from '../shell/workspace-approvals';
 import { useLocale, useT } from '../../lib/use-locale';
 import { ShellIcon } from '../shell/shell-icons';
 import type { NavIconId } from '../shell/nav-config';
@@ -76,6 +80,7 @@ export type SettingsSection = Section;
 const NAV: Array<{ id: Section; icon: NavIconId; group: 'account' | 'workspace' }> = [
   { id: 'localization', icon: 'activity', group: 'account' },
   { id: 'workflow', icon: 'tasks', group: 'account' },
+  { id: 'approvals', icon: 'reviews', group: 'workspace' },
   { id: 'workspace', icon: 'company', group: 'workspace' },
   { id: 'storage', icon: 'deliverables', group: 'workspace' },
   { id: 'integrations', icon: 'campaigns', group: 'workspace' },
@@ -114,6 +119,8 @@ export function SettingsPanel({
   });
   const [wsSaving, setWsSaving] = useState(false);
   const [wsError, setWsError] = useState<string | null>(null);
+  const [approvals, setApprovals] = useState<ApprovalSettings>(DEFAULT_APPROVALS);
+  const [approvalsMsg, setApprovalsMsg] = useState<string | null>(null);
   const [prefs, setPrefs] = useState<DemoPreferences | null>(null);
   const [draft, setDraft] = useState<DemoPreferences | null>(null);
   const rows = INTEGRATIONS;
@@ -139,6 +146,7 @@ export function SettingsPanel({
       setWs(workspace);
       if (workspace) {
         setWsDraft({ timezone: workspace.timezone, website_url: workspace.website_url ?? '' });
+        setApprovals(approvalsFromSettings(workspace));
       }
       setError(null);
     } catch (err) {
@@ -266,6 +274,34 @@ export function SettingsPanel({
           {error ? <ErrorState compact kind={error} onRetry={() => void load()} /> : null}
           {!loading && draft ? (
             <>
+              {section === 'approvals' && (
+                <div
+                  className="oma-ws-section oma-ws-section--approvals"
+                  data-testid="settings-approvals"
+                >
+                  <h2 className="oma-ws-section-title">{t('wsPanel.nav.approvals')}</h2>
+                  <p className="oma-ws-empty-desc">{t('settings.approvals.workspaceScope')}</p>
+                  {wsError ? (
+                    <p className="oma-ws-save-msg" role="alert">
+                      {wsError}
+                    </p>
+                  ) : null}
+                  <WorkspaceApprovals
+                    approvals={approvals}
+                    onChange={setApprovals}
+                    onError={(msg) => {
+                      setApprovalsMsg(msg);
+                      toast.push(msg, 'danger');
+                    }}
+                  />
+                  {approvalsMsg ? (
+                    <p className="oma-ws-save-msg" role="status">
+                      {approvalsMsg}
+                    </p>
+                  ) : null}
+                </div>
+              )}
+
               {section === 'workspace' && (
                 <div className="oma-ws-section" data-testid="settings-workspace">
                   <h2 className="oma-ws-section-title">{t('settings.workspace.title')}</h2>

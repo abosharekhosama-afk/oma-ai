@@ -25,7 +25,7 @@ import { announceBrandLogo } from '../../../../../../lib/active-brand';
 import { useT } from '../../../../../../lib/use-locale';
 import { mediaApi } from '../../../../../../lib/workdrive-api';
 
-const TABS: BrandSettingsTab[] = ['general', 'members', 'accounts'];
+const TABS: BrandSettingsTab[] = ['general', 'members', 'accounts', 'approvals'];
 const CONNECT_RESULT = ['ok', 'cancelled', 'invalid', 'none', 'provider_error', 'error'];
 
 export default function BrandSettingsPage() {
