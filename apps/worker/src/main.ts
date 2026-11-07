@@ -84,7 +84,7 @@ async function main() {
   const runListeningAlerts = async () => {
     try {
       const { evaluateListeningAlertsForYesterday } = await import('./listening/evaluate-alerts');
-      const res = await evaluateListeningAlertsForYesterday();
+      const res = await evaluateListeningAlertsForYesterday(connection);
       log.info(res, 'listening alerts evaluated');
     } catch (err) {
       log.error({ err: String(err) }, 'listening alert evaluation failed');

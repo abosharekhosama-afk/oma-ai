@@ -2,12 +2,28 @@ import type { ListeningHit } from '../../../../lib/listening-api';
 
 export type ListeningView = 'brand' | 'topic' | 'competitors' | 'alerts';
 
+export const LISTENING_PLATFORMS = [
+  { id: 'META_IG', short: 'IG', color: '#E4405F' },
+  { id: 'META_FB', short: 'FB', color: '#1877F2' },
+  { id: 'X', short: 'X', color: '#0f1419' },
+  { id: 'TIKTOK', short: 'TT', color: '#111827' },
+  { id: 'LINKEDIN', short: 'IN', color: '#0A66C2' },
+  { id: 'REDDIT', short: 'RD', color: '#ff4500' },
+  { id: 'YOUTUBE', short: 'YT', color: '#ff0000' },
+  { id: 'WEB', short: 'W', color: '#6b7280' },
+] as const;
+
 export function platformLabel(p: string) {
   const map: Record<string, string> = {
     META_FB: 'Facebook',
     META_IG: 'Instagram',
     TIKTOK: 'TikTok',
     LINKEDIN: 'LinkedIn',
+    X: 'X',
+    WHATSAPP: 'WhatsApp',
+    REDDIT: 'Reddit',
+    WEB: 'Web',
+    YOUTUBE: 'YouTube',
   };
   return map[p] ?? p;
 }
@@ -18,6 +34,11 @@ export function platformShort(p: string) {
     META_IG: 'IG',
     TIKTOK: 'TT',
     LINKEDIN: 'IN',
+    X: 'X',
+    WHATSAPP: 'WA',
+    REDDIT: 'RD',
+    WEB: 'W',
+    YOUTUBE: 'YT',
   };
   return map[p] ?? p.slice(0, 2);
 }

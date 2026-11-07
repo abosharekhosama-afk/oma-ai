@@ -1,4 +1,6 @@
 import { getPrisma } from '@oma/db';
+import type IORedis from 'ioredis';
+import { deliverListeningAlertNotifications } from './alert-delivery';
 
 function safeArr(s: string): string[] {
   try {
@@ -23,14 +25,29 @@ function parseThreshold(json: string): Record<string, number> {
   }
 }
 
+function alertFiresWhen(triggerType: string, threshold: Record<string, number>): string {
+  if (triggerType === 'VOLUME_SPIKE') {
+    const n = threshold.mentionsPerDay;
+    return n ? `Over ${n} mentions / day` : 'More mentions than usual';
+  }
+  if (triggerType === 'SENTIMENT_POSITIVE') {
+    return `Over ${threshold.sharePct ?? 0}% positive / day`;
+  }
+  if (triggerType === 'SENTIMENT_NEGATIVE') {
+    return `Over ${threshold.sharePct ?? 0}% negative / day`;
+  }
+  return triggerType;
+}
+
 /** Nightly evaluation of workspace listening alerts (yesterday UTC). */
-export async function evaluateListeningAlertsForYesterday() {
+export async function evaluateListeningAlertsForYesterday(connection?: IORedis) {
   const day = new Date();
   day.setUTCDate(day.getUTCDate() - 1);
   const start = new Date(day);
   start.setUTCHours(0, 0, 0, 0);
   const end = new Date(start);
   end.setUTCDate(end.getUTCDate() + 1);
+  const dayKey = start.toISOString().slice(0, 10);
 
   const tenants = await getPrisma().listeningAlert.findMany({
     where: { isActive: true },
@@ -95,6 +112,20 @@ export async function evaluateListeningAlertsForYesterday() {
           where: { id: alert.id },
           data: { lastFiredAt: end },
         });
+        await deliverListeningAlertNotifications(
+          tenantId,
+          {
+            alertId: alert.id,
+            alertName: alert.name,
+            triggerType: alert.triggerType,
+            firesWhen: alertFiresWhen(alert.triggerType, threshold),
+            notifyInApp: alert.notifyInApp,
+            notifyEmail: alert.notifyEmail,
+            notifySlack: alert.notifySlack,
+          },
+          dayKey,
+          connection,
+        );
       }
     }
   }

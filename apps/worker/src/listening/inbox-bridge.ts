@@ -48,7 +48,7 @@ export async function bridgeInboxMessagesToListening(rule: {
     const r = await recordListeningHit({
       tenantId: rule.tenantId,
       ruleId: rule.id,
-      platform: m.conversation.platform as 'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN',
+      platform: m.conversation.platform as Parameters<typeof recordListeningHit>[0]['platform'],
       externalPostId: extId,
       authorName: m.senderName,
       authorHandle: m.senderExternalId,

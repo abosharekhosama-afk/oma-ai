@@ -52,6 +52,7 @@ export type WorkspaceSettings = {
   schedule_on_approval: boolean;
   lock_after_approval: boolean;
   reminder_pending_approvals?: boolean;
+  listening_slack_webhook_url?: string | null;
   holiday_calendars?: HolidayCalendarId[];
   holiday_calendars_follow_timezone?: boolean;
   holiday_catalog?: HolidayCatalogItem[];
