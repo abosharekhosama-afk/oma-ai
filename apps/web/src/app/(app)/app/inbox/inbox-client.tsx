@@ -42,6 +42,7 @@ import {
   UpOutlined,
 } from '../../../../components/ui/lucide-icons';
 import { listWorkspaceMembers, type WorkspaceMember } from '../../../../lib/team-api';
+import { ConfirmActionDialog } from '../../../../components/ui/confirm-action-dialog';
 import { ErrorState } from '../../../../components/ui/error-state';
 import { InboxListEmptyState, InboxPaneAllDone } from './inbox-empty-art';
 import { InboxThreadMenu } from './inbox-thread-menu';
@@ -151,6 +152,7 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
   const [aiBusy, setAiBusy] = useState(false);
   const [replyToMessageId, setReplyToMessageId] = useState<string | null>(null);
   const [commentMenuId, setCommentMenuId] = useState<string | null>(null);
+  const [deleteCommentTargetId, setDeleteCommentTargetId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [deliveryNote, setDeliveryNote] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
@@ -922,7 +924,10 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
                                         type="button"
                                         role="menuitem"
                                         className="is-danger"
-                                        onClick={() => void onDeleteComment(m.id)}
+                                        onClick={() => {
+                                          setCommentMenuId(null);
+                                          setDeleteCommentTargetId(m.id);
+                                        }}
                                       >
                                         <DeleteOutlined /> {t('inbox.comment.delete') || 'Delete'}
                                       </button>
@@ -1132,6 +1137,26 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
           </>
         ) : null}
       </section>
+
+      <ConfirmActionDialog
+        open={Boolean(deleteCommentTargetId)}
+        title={t('inbox.comment.delete_confirm_title') || 'Delete this comment?'}
+        description={
+          t('inbox.comment.delete_confirm_body') ||
+          'This comment will be permanently removed from the conversation.'
+        }
+        confirmLabel={t('inbox.comment.delete') || 'Delete'}
+        cancelLabel={t('common.cancel')}
+        tone="danger"
+        busy={sending}
+        onConfirm={() => {
+          const id = deleteCommentTargetId;
+          setDeleteCommentTargetId(null);
+          if (id) void onDeleteComment(id);
+        }}
+        onCancel={() => setDeleteCommentTargetId(null)}
+        testId="confirm-delete-inbox-comment"
+      />
     </div>
   );
 }

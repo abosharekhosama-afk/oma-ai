@@ -68,6 +68,7 @@ export class AuthController {
       password: string;
       terms_accepted?: boolean;
       terms_version?: string;
+      totp_code?: string;
     },
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,

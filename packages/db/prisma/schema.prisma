@@ -57,6 +57,11 @@ model User {
   termsAcceptedAt   DateTime?
   termsVersion      String?
   privacyAcceptedAt DateTime?
+  twoFactorEnabled     Boolean   @default(false)
+  twoFactorSecret      String?
+  twoFactorBackupCodes String?
+  deletionScheduledAt  DateTime?
+  deletionPurgeAt      DateTime?
   status           UserStatus   @default(ACTIVE)
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt

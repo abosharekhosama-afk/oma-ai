@@ -1,56 +1,67 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { CopyOutlined, DeleteOutlined, EditOutlined } from '../../../../components/ui/lucide-icons';
+import {
+  CheckCircleOutlined,
+  CloseOutlined,
+  CopyOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  LockOutlined,
+} from '../../../../components/ui/lucide-icons';
+import { ConfirmActionDialog } from '../../../../components/ui/confirm-action-dialog';
 import { PageSkeleton } from '../../../../components/ui/page-skeleton';
 import { ErrorState, errorKindOf, type ErrorKind } from '../../../../components/ui/error-state';
 import { useToast } from '../../../../components/ui/toast';
 import {
+  cancelAccountDeletion,
   changeMyPassword,
-  deleteMyAccount,
+  disableTwoFactor,
   exportMyData,
-  getPreferences,
   getProfile,
   initials,
-  updatePreferences,
+  scheduleAccountDeletion,
+  setupTwoFactor,
   updateProfile,
   uploadAvatar,
+  verifyTwoFactor,
   type Profile,
-  type UserPreferences,
+  type TwoFactorSetupResponse,
 } from '../../../../lib/account-api';
-import { SESSION_OK_KEY } from '../../../../lib/session';
 import { useLocale, useT } from '../../../../lib/use-locale';
 import './account-planable.css';
-
-const TIMEZONE_OPTIONS = [
-  { value: 'Asia/Jerusalem', label: 'Jerusalem, Asia (UTC +2)' },
-  { value: 'Asia/Dubai', label: 'Dubai, Asia (UTC +4)' },
-  { value: 'Asia/Riyadh', label: 'Riyadh, Asia (UTC +3)' },
-  { value: 'Africa/Cairo', label: 'Cairo, Africa (UTC +2)' },
-  { value: 'Europe/London', label: 'London, Europe (UTC +0)' },
-  { value: 'Europe/Paris', label: 'Paris, Europe (UTC +1)' },
-  { value: 'America/New_York', label: 'New York, America (UTC -5)' },
-  { value: 'America/Los_Angeles', label: 'Los Angeles, America (UTC -8)' },
-  { value: 'UTC', label: 'UTC (UTC +0)' },
-];
 
 export default function AccountPage() {
   const t = useT();
   const locale = useLocale();
   const toast = useToast();
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [prefs, setPrefs] = useState<UserPreferences | null>(null);
   const [name, setName] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
-  const [editingEmail, setEditingEmail] = useState(false);
-  const [emailInput, setEmailInput] = useState('');
+
+  // Password change state + confirmation
   const [passwordModalOpen, setPasswordModalOpen] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [passwordConfirmOpen, setPasswordConfirmOpen] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
+
+  // Real TOTP 2FA state + confirmation
+  const [twoFactorSetup, setTwoFactorSetup] = useState<TwoFactorSetupResponse | null>(null);
+  const [twoFactorCode, setTwoFactorCode] = useState('');
+  const [twoFactorBackupCodes, setTwoFactorBackupCodes] = useState<string[] | null>(null);
+  const [twoFactorBusy, setTwoFactorBusy] = useState(false);
+  const [disable2faConfirmOpen, setDisable2faConfirmOpen] = useState(false);
+
+  // 30-day scheduled deletion + confirmation
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [cancelDeleteConfirmOpen, setCancelDeleteConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  // Export data state + confirmation
+  const [exportConfirmOpen, setExportConfirmOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
+
   const [error, setError] = useState<ErrorKind | null>(null);
   const [imgBroken, setImgBroken] = useState(false);
   const avatarFile = useRef<HTMLInputElement>(null);
@@ -59,12 +70,10 @@ export default function AccountPage() {
   const load = useCallback(async () => {
     setError(null);
     try {
-      const [p, pr] = await Promise.all([getProfile(), getPreferences().catch(() => null)]);
+      const p = await getProfile();
       setProfile(p);
       setName(p.name);
-      setEmailInput(p.email);
       setAvatarUrl(p.avatar_url ?? '');
-      if (pr) setPrefs(pr);
     } catch (err) {
       setError(errorKindOf(err));
     }
@@ -84,41 +93,14 @@ export default function AccountPage() {
     if (trimmed === profile.name) return;
     try {
       const next = await updateProfile({ name: trimmed });
-      setProfile(next);
+      setProfile((prev) => (prev ? { ...prev, ...next } : next));
       toast.push(t('account.saved'), 'success');
     } catch (err) {
       toast.push(err instanceof Error ? err.message : t('errors.http'), 'danger');
     }
   }
 
-  async function saveEmail() {
-    if (!profile) return;
-    const trimmed = emailInput.trim().toLowerCase();
-    if (!trimmed || trimmed === profile.email) {
-      setEditingEmail(false);
-      return;
-    }
-    try {
-      const next = await updateProfile({ email: trimmed });
-      setProfile(next);
-      setEditingEmail(false);
-      toast.push(t('account.saved'), 'success');
-    } catch (err) {
-      toast.push(err instanceof Error ? err.message : t('errors.http'), 'danger');
-    }
-  }
-
-  async function patchPrefs(patch: Partial<UserPreferences>) {
-    try {
-      const next = await updatePreferences(patch);
-      setPrefs(next);
-      toast.push(t('account.saved'), 'success');
-    } catch (err) {
-      toast.push(err instanceof Error ? err.message : t('errors.http'), 'danger');
-    }
-  }
-
-  async function handlePasswordSave() {
+  async function handlePasswordSaveConfirmed() {
     if (!newPassword.trim()) return;
     setChangingPassword(true);
     try {
@@ -126,6 +108,7 @@ export default function AccountPage() {
         current_password: currentPassword || undefined,
         new_password: newPassword,
       });
+      setPasswordConfirmOpen(false);
       setPasswordModalOpen(false);
       setCurrentPassword('');
       setNewPassword('');
@@ -137,7 +120,59 @@ export default function AccountPage() {
     }
   }
 
-  async function handleExportData() {
+  async function handleStart2FA() {
+    setTwoFactorBusy(true);
+    try {
+      const res = await setupTwoFactor();
+      setTwoFactorSetup(res);
+      setTwoFactorCode('');
+      setTwoFactorBackupCodes(null);
+    } catch (err) {
+      toast.push(err instanceof Error ? err.message : t('errors.http'), 'danger');
+    } finally {
+      setTwoFactorBusy(false);
+    }
+  }
+
+  async function handleVerify2FA() {
+    if (twoFactorCode.trim().length < 6) return;
+    setTwoFactorBusy(true);
+    try {
+      const res = await verifyTwoFactor(twoFactorCode.trim());
+      setProfile((prev) => (prev ? { ...prev, two_factor_enabled: res.two_factor_enabled } : prev));
+      setTwoFactorBackupCodes(res.backup_codes);
+      setTwoFactorSetup(null);
+      setTwoFactorCode('');
+      toast.push(
+        t('account.two_factor_enabled_toast') || 'Two-factor authentication enabled.',
+        'success',
+      );
+    } catch (err) {
+      toast.push(err instanceof Error ? err.message : t('errors.http'), 'danger');
+    } finally {
+      setTwoFactorBusy(false);
+    }
+  }
+
+  async function handleDisable2FAConfirmed() {
+    setTwoFactorBusy(true);
+    try {
+      await disableTwoFactor();
+      setProfile((prev) => (prev ? { ...prev, two_factor_enabled: false } : prev));
+      setDisable2faConfirmOpen(false);
+      setTwoFactorBackupCodes(null);
+      toast.push(
+        t('account.two_factor_disabled_toast') || 'Two-factor authentication disabled.',
+        'success',
+      );
+    } catch (err) {
+      toast.push(err instanceof Error ? err.message : t('errors.http'), 'danger');
+    } finally {
+      setTwoFactorBusy(false);
+    }
+  }
+
+  async function handleExportDataConfirmed() {
     setExporting(true);
     try {
       const payload = await exportMyData();
@@ -147,11 +182,13 @@ export default function AccountPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `oma-account-export-${profile?.id.slice(0, 8) ?? 'user'}.json`;
+      const stamp = new Date().toISOString().slice(0, 10);
+      a.download = `oma-account-data-${profile?.id.slice(0, 8) ?? 'user'}-${stamp}.json`;
       document.body.appendChild(a);
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
+      setExportConfirmOpen(false);
       toast.push(t('account.export_done') || 'Your data export has been downloaded.', 'success');
     } catch (err) {
       toast.push(err instanceof Error ? err.message : t('errors.http'), 'danger');
@@ -160,26 +197,57 @@ export default function AccountPage() {
     }
   }
 
-  async function handleDeleteAccount() {
+  async function handleScheduleDeleteConfirmed() {
     setDeleting(true);
     try {
-      await deleteMyAccount();
-      try {
-        window.sessionStorage.removeItem(SESSION_OK_KEY);
-      } catch {
-        /* ignore */
-      }
-      window.location.href = '/login';
+      const res = await scheduleAccountDeletion();
+      setProfile((prev) =>
+        prev
+          ? {
+              ...prev,
+              deletion_scheduled_at: res.deletion_scheduled_at,
+              deletion_purge_at: res.deletion_purge_at,
+            }
+          : prev,
+      );
+      setDeleteConfirmOpen(false);
+      toast.push(
+        t('account.delete_scheduled_toast') ||
+          'Account scheduled for deletion in 30 days. You can cancel anytime before then.',
+        'success',
+      );
     } catch (err) {
       toast.push(err instanceof Error ? err.message : t('errors.http'), 'danger');
+    } finally {
       setDeleting(false);
     }
   }
 
-  function copyUserId() {
-    if (!profile?.id) return;
-    void navigator.clipboard?.writeText(profile.id);
-    toast.push(t('account.user_id_copied') || 'User ID copied to clipboard.', 'success');
+  async function handleCancelDeleteConfirmed() {
+    setDeleting(true);
+    try {
+      await cancelAccountDeletion();
+      setProfile((prev) =>
+        prev
+          ? {
+              ...prev,
+              deletion_scheduled_at: null,
+              deletion_purge_at: null,
+            }
+          : prev,
+      );
+      setCancelDeleteConfirmOpen(false);
+      toast.push(t('account.delete_cancelled_toast') || 'Account deletion cancelled.', 'success');
+    } catch (err) {
+      toast.push(err instanceof Error ? err.message : t('errors.http'), 'danger');
+    } finally {
+      setDeleting(false);
+    }
+  }
+
+  function copyText(value: string, msgKey: string, fallback: string) {
+    void navigator.clipboard?.writeText(value);
+    toast.push(t(msgKey) || fallback, 'success');
   }
 
   if (error) return <ErrorState kind={error} onRetry={() => void load()} />;
@@ -191,10 +259,8 @@ export default function AccountPage() {
       normalizedAvatarUrl.startsWith('/api/v1/media/')) &&
     !imgBroken;
 
-  const timezone = prefs?.timezone ?? 'Asia/Jerusalem';
-  const hourFormat = prefs?.hourFormat ?? '24h';
-  const weekStart = prefs?.weekStart ?? 'monday';
-  const twoFactorEnabled = Boolean(prefs?.twoFactorEnabled);
+  const twoFactorEnabled = Boolean(profile.two_factor_enabled);
+  const purgeDate = profile.deletion_purge_at ? profile.deletion_purge_at.slice(0, 10) : null;
 
   return (
     <div
@@ -204,6 +270,35 @@ export default function AccountPage() {
     >
       <div className="oma-plx-profile-page__inner">
         <h1 className="oma-plx-profile-page__title">{t('account.profile') || 'Profile'}</h1>
+
+        {purgeDate ? (
+          <div
+            className="oma-plx-profile-deletion-banner"
+            role="status"
+            data-testid="account-deletion-scheduled-banner"
+          >
+            <div>
+              <strong>
+                {t('account.delete_scheduled_title') ||
+                  'Your account is scheduled for deletion in 30 days'}
+              </strong>
+              <p>
+                {(
+                  t('account.delete_scheduled_body') ||
+                  'Permanent erasure date: {date}. You can cancel this request anytime before that date.'
+                ).replace('{date}', purgeDate)}
+              </p>
+            </div>
+            <button
+              type="button"
+              className="oma-plx-profile-btn"
+              onClick={() => setCancelDeleteConfirmOpen(true)}
+              data-testid="account-cancel-deletion-btn"
+            >
+              {t('account.cancel_deletion_cta') || 'Cancel deletion'}
+            </button>
+          </div>
+        ) : null}
 
         {/* Section 1: Profile settings */}
         <section className="oma-plx-profile-sec">
@@ -235,7 +330,7 @@ export default function AccountPage() {
                       setImgBroken(false);
                       setAvatarUrl(uploaded.avatar_url);
                       const updated = await updateProfile({ avatarUrl: uploaded.avatar_url });
-                      setProfile(updated);
+                      setProfile((prev) => (prev ? { ...prev, ...updated } : updated));
                       toast.push(t('account.saved'), 'success');
                     } catch (err) {
                       toast.push(
@@ -294,7 +389,7 @@ export default function AccountPage() {
           </div>
         </section>
 
-        {/* Section 2: Security */}
+        {/* Section 2: Security (Email read-only, Password, Real 2FA) */}
         <section className="oma-plx-profile-sec">
           <h2 className="oma-plx-profile-sec__heading">
             {t('account.security_heading') || 'Security'}
@@ -308,37 +403,12 @@ export default function AccountPage() {
                 </span>
               </div>
               <div className="oma-plx-profile-row__control">
-                {editingEmail ? (
-                  <div className="oma-plx-profile-inline-edit">
-                    <input
-                      type="email"
-                      className="oma-plx-profile-input"
-                      value={emailInput}
-                      onChange={(e) => setEmailInput(e.target.value)}
-                      data-testid="account-email-input"
-                    />
-                    <button
-                      type="button"
-                      className="oma-plx-profile-btn"
-                      onClick={() => void saveEmail()}
-                    >
-                      {t('account.save')}
-                    </button>
-                  </div>
-                ) : (
-                  <div className="oma-plx-profile-email-display">
-                    <span className="oma-ltr">{profile.email}</span>
-                    <button
-                      type="button"
-                      className="oma-plx-profile-icon-btn"
-                      onClick={() => setEditingEmail(true)}
-                      aria-label={t('common.edit') || 'Edit email'}
-                      data-testid="account-edit-email"
-                    >
-                      <EditOutlined />
-                    </button>
-                  </div>
-                )}
+                <span
+                  className="oma-plx-profile-email-display oma-ltr"
+                  data-testid="account-email-readonly"
+                >
+                  {profile.email}
+                </span>
               </div>
             </div>
 
@@ -381,7 +451,8 @@ export default function AccountPage() {
                   type="button"
                   className="oma-plx-profile-btn oma-plx-profile-btn--primary"
                   disabled={changingPassword || !newPassword.trim()}
-                  onClick={() => void handlePasswordSave()}
+                  onClick={() => setPasswordConfirmOpen(true)}
+                  data-testid="account-password-submit"
                 >
                   {t('auth.reset.submit')}
                 </button>
@@ -396,10 +467,20 @@ export default function AccountPage() {
                 </span>
               </div>
               <div className="oma-plx-profile-row__control">
+                {twoFactorEnabled ? (
+                  <span className="oma-plx-profile-2fa-active">
+                    <CheckCircleOutlined />
+                    <span>{t('account.two_factor_active_badge') || 'Enabled'}</span>
+                  </span>
+                ) : null}
                 <button
                   type="button"
                   className="oma-plx-profile-btn"
-                  onClick={() => void patchPrefs({ twoFactorEnabled: !twoFactorEnabled })}
+                  disabled={twoFactorBusy}
+                  onClick={() => {
+                    if (twoFactorEnabled) setDisable2faConfirmOpen(true);
+                    else void handleStart2FA();
+                  }}
                   data-testid="account-2fa-btn"
                 >
                   {twoFactorEnabled
@@ -408,94 +489,24 @@ export default function AccountPage() {
                 </button>
               </div>
             </div>
-          </div>
-        </section>
 
-        {/* Section 3: Time & location */}
-        <section className="oma-plx-profile-sec">
-          <h2 className="oma-plx-profile-sec__heading">
-            {t('account.time_location_heading') || 'Time & location'}
-          </h2>
-          <div className="oma-plx-profile-card">
-            <div className="oma-plx-profile-row">
-              <div className="oma-plx-profile-row__text">
-                <strong>{t('account.timezone_label') || 'Account timezone'}</strong>
-                <span>
-                  {t('account.timezone_hint') ||
-                    "Used for workspaces you create, that don't have a timezone."}
-                </span>
-              </div>
-              <div className="oma-plx-profile-row__control oma-plx-profile-row__control--wide">
-                <select
-                  className="oma-plx-profile-select"
-                  value={timezone}
-                  onChange={(e) => void patchPrefs({ timezone: e.target.value })}
-                  data-testid="account-timezone-select"
-                >
-                  {TIMEZONE_OPTIONS.map((tz) => (
-                    <option key={tz.value} value={tz.value}>
-                      {tz.label}
-                    </option>
+            {twoFactorBackupCodes && twoFactorBackupCodes.length > 0 ? (
+              <div className="oma-plx-profile-2fa-backups" data-testid="account-2fa-backup-codes">
+                <strong>
+                  {t('account.two_factor_backup_title') ||
+                    'Save your recovery backup codes in a safe place:'}
+                </strong>
+                <div className="oma-plx-profile-2fa-backups__grid oma-ltr">
+                  {twoFactorBackupCodes.map((c) => (
+                    <code key={c}>{c}</code>
                   ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="oma-plx-profile-row">
-              <div className="oma-plx-profile-row__text">
-                <strong>{t('account.hour_format_label') || 'Hour format'}</strong>
-              </div>
-              <div className="oma-plx-profile-row__control">
-                <div className="oma-plx-profile-seg" role="group">
-                  <button
-                    type="button"
-                    data-active={hourFormat === '24h' ? 'true' : 'false'}
-                    onClick={() => void patchPrefs({ hourFormat: '24h' })}
-                    data-testid="account-hour-24"
-                  >
-                    {t('account.hour_24') || '24 hour'}
-                  </button>
-                  <button
-                    type="button"
-                    data-active={hourFormat === '12h' ? 'true' : 'false'}
-                    onClick={() => void patchPrefs({ hourFormat: '12h' })}
-                    data-testid="account-hour-12"
-                  >
-                    {t('account.hour_12') || '12 hour'}
-                  </button>
                 </div>
               </div>
-            </div>
-
-            <div className="oma-plx-profile-row">
-              <div className="oma-plx-profile-row__text">
-                <strong>{t('account.week_starts_on') || 'Week starts on'}</strong>
-              </div>
-              <div className="oma-plx-profile-row__control">
-                <div className="oma-plx-profile-seg" role="group">
-                  <button
-                    type="button"
-                    data-active={weekStart === 'monday' ? 'true' : 'false'}
-                    onClick={() => void patchPrefs({ weekStart: 'monday' })}
-                    data-testid="account-week-monday"
-                  >
-                    {t('account.monday') || 'Monday'}
-                  </button>
-                  <button
-                    type="button"
-                    data-active={weekStart === 'sunday' ? 'true' : 'false'}
-                    onClick={() => void patchPrefs({ weekStart: 'sunday' })}
-                    data-testid="account-week-sunday"
-                  >
-                    {t('account.sunday') || 'Sunday'}
-                  </button>
-                </div>
-              </div>
-            </div>
+            ) : null}
           </div>
         </section>
 
-        {/* Section 4: Support */}
+        {/* Section 3: Support (Export data, 30-day Delete account, User ID) */}
         <section className="oma-plx-profile-sec">
           <h2 className="oma-plx-profile-sec__heading">
             {t('account.support_heading') || 'Support'}
@@ -514,7 +525,7 @@ export default function AccountPage() {
                   type="button"
                   className="oma-plx-profile-btn"
                   disabled={exporting}
-                  onClick={() => void handleExportData()}
+                  onClick={() => setExportConfirmOpen(true)}
                   data-testid="account-export-btn"
                 >
                   {t('account.export_all_my_data') || 'Export all my data'}
@@ -526,12 +537,21 @@ export default function AccountPage() {
               <div className="oma-plx-profile-row__text">
                 <strong>{t('account.delete_account_title') || 'Delete my account'}</strong>
                 <span>
-                  {t('account.delete_account_hint') ||
-                    'Close my account and erase all my data (posts, comments, workspaces, pages etc.). This action is irreversible.'}
+                  {t('account.delete_account_30d_hint') ||
+                    'Schedule your account and all related data for permanent erasure after a 30-day grace period.'}
                 </span>
               </div>
               <div className="oma-plx-profile-row__control">
-                {!deleteConfirmOpen ? (
+                {purgeDate ? (
+                  <button
+                    type="button"
+                    className="oma-plx-profile-btn"
+                    onClick={() => setCancelDeleteConfirmOpen(true)}
+                    data-testid="account-delete-cancel-row-btn"
+                  >
+                    {t('account.cancel_deletion_cta') || 'Cancel scheduled deletion'}
+                  </button>
+                ) : (
                   <button
                     type="button"
                     className="oma-plx-profile-btn oma-plx-profile-btn--danger"
@@ -541,25 +561,6 @@ export default function AccountPage() {
                     <DeleteOutlined />
                     <span>{t('account.delete_account_cta') || 'Delete account and data'}</span>
                   </button>
-                ) : (
-                  <div className="oma-plx-profile-inline-edit">
-                    <button
-                      type="button"
-                      className="oma-plx-profile-btn oma-plx-profile-btn--danger"
-                      disabled={deleting}
-                      onClick={() => void handleDeleteAccount()}
-                      data-testid="account-delete-confirm-btn"
-                    >
-                      {t('common.confirm') || 'Confirm delete'}
-                    </button>
-                    <button
-                      type="button"
-                      className="oma-plx-profile-btn"
-                      onClick={() => setDeleteConfirmOpen(false)}
-                    >
-                      {t('common.cancel')}
-                    </button>
-                  </div>
                 )}
               </div>
             </div>
@@ -574,7 +575,9 @@ export default function AccountPage() {
                   <button
                     type="button"
                     className="oma-plx-profile-icon-btn"
-                    onClick={copyUserId}
+                    onClick={() =>
+                      copyText(profile.id, 'account.user_id_copied', 'User ID copied to clipboard.')
+                    }
                     aria-label={t('views.menu.copy_link') || 'Copy User ID'}
                     data-testid="account-copy-userid"
                   >
@@ -586,6 +589,187 @@ export default function AccountPage() {
           </div>
         </section>
       </div>
+
+      {/* Real TOTP 2FA Setup & Verification Card Modal */}
+      {twoFactorSetup ? (
+        <div
+          className="oma-plx-confirm-overlay"
+          role="dialog"
+          aria-modal="true"
+          dir={locale === 'ar' ? 'rtl' : 'ltr'}
+          data-testid="account-2fa-modal"
+          onClick={() => {
+            if (!twoFactorBusy) setTwoFactorSetup(null);
+          }}
+        >
+          <div className="oma-plx-confirm-card" onClick={(e) => e.stopPropagation()}>
+            <header className="oma-plx-confirm-card__head">
+              <span
+                className="oma-plx-confirm-card__badge oma-plx-confirm-card__badge--primary"
+                aria-hidden="true"
+              >
+                <LockOutlined />
+              </span>
+              <h3 className="oma-plx-confirm-card__title">
+                {t('account.two_factor_setup_title') || 'Set up Two-Factor Authentication'}
+              </h3>
+              <button
+                type="button"
+                className="oma-plx-confirm-card__close"
+                onClick={() => setTwoFactorSetup(null)}
+                disabled={twoFactorBusy}
+                aria-label={t('common.close')}
+              >
+                <CloseOutlined />
+              </button>
+            </header>
+
+            <div className="oma-plx-confirm-card__body">
+              <p>
+                {t('account.two_factor_setup_desc') ||
+                  'Add this secret key to your authenticator app (Google Authenticator, Authy, 1Password), then enter the 6-digit code generated by the app:'}
+              </p>
+              <div className="oma-plx-2fa-secret-box">
+                <code className="oma-ltr" data-testid="account-2fa-secret">
+                  {twoFactorSetup.secret}
+                </code>
+                <button
+                  type="button"
+                  className="oma-plx-profile-icon-btn"
+                  onClick={() =>
+                    copyText(
+                      twoFactorSetup.secret,
+                      'account.two_factor_secret_copied',
+                      '2FA secret copied.',
+                    )
+                  }
+                  aria-label="Copy secret"
+                >
+                  <CopyOutlined />
+                </button>
+              </div>
+              <label className="oma-plx-2fa-code-field">
+                <span>{t('account.two_factor_code_label') || '6-digit verification code'}</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  className="oma-plx-profile-input oma-ltr"
+                  placeholder="000000"
+                  value={twoFactorCode}
+                  onChange={(e) => setTwoFactorCode(e.target.value.replace(/\D/g, ''))}
+                  data-testid="account-2fa-code-input"
+                />
+              </label>
+            </div>
+
+            <footer className="oma-plx-confirm-card__foot">
+              <button
+                type="button"
+                className="oma-plx-confirm-card__btn oma-plx-confirm-card__btn--cancel"
+                onClick={() => setTwoFactorSetup(null)}
+                disabled={twoFactorBusy}
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                type="button"
+                className="oma-plx-confirm-card__btn oma-plx-confirm-card__btn--primary"
+                disabled={twoFactorBusy || twoFactorCode.length !== 6}
+                onClick={() => void handleVerify2FA()}
+                data-testid="account-2fa-verify-btn"
+              >
+                {t('account.two_factor_verify_cta') || 'Verify & enable 2FA'}
+              </button>
+            </footer>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Confirmation Card: Disable 2FA */}
+      <ConfirmActionDialog
+        open={disable2faConfirmOpen}
+        title={t('account.disable_2fa_confirm_title') || 'Disable two-factor authentication?'}
+        description={
+          t('account.disable_2fa_confirm_body') ||
+          'Removing 2FA will make your account rely on your password or OAuth provider only.'
+        }
+        confirmLabel={t('account.disable_2fa') || 'Disable 2FA'}
+        cancelLabel={t('common.cancel')}
+        tone="danger"
+        busy={twoFactorBusy}
+        onConfirm={() => void handleDisable2FAConfirmed()}
+        onCancel={() => setDisable2faConfirmOpen(false)}
+        testId="confirm-disable-2fa-dialog"
+      />
+
+      {/* Confirmation Card: Change Password */}
+      <ConfirmActionDialog
+        open={passwordConfirmOpen}
+        title={t('account.password_confirm_title') || 'Confirm password update'}
+        description={
+          t('account.password_confirm_body') ||
+          'Are you sure you want to update your account password?'
+        }
+        confirmLabel={t('auth.reset.submit')}
+        cancelLabel={t('common.cancel')}
+        tone="primary"
+        busy={changingPassword}
+        onConfirm={() => void handlePasswordSaveConfirmed()}
+        onCancel={() => setPasswordConfirmOpen(false)}
+        testId="confirm-password-dialog"
+      />
+
+      {/* Confirmation Card: Export All My Data */}
+      <ConfirmActionDialog
+        open={exportConfirmOpen}
+        title={t('account.export_confirm_title') || 'Export all your account data?'}
+        description={
+          t('account.export_confirm_body') ||
+          'We will compile your profile, workspaces, brands, posts, comments, tasks, and activity into a downloadable JSON archive.'
+        }
+        confirmLabel={t('account.export_all_my_data') || 'Export all my data'}
+        cancelLabel={t('common.cancel')}
+        tone="primary"
+        busy={exporting}
+        onConfirm={() => void handleExportDataConfirmed()}
+        onCancel={() => setExportConfirmOpen(false)}
+        testId="confirm-export-data-dialog"
+      />
+
+      {/* Confirmation Card: Schedule Account Deletion (30 days) */}
+      <ConfirmActionDialog
+        open={deleteConfirmOpen}
+        title={t('account.delete_confirm_30d_title') || 'Schedule account deletion (30 days)?'}
+        description={
+          t('account.delete_confirm_30d_body') ||
+          'Your account and all associated data (posts, comments, workspaces, pages) will be scheduled for permanent deletion in 30 days. You can cancel the deletion at any time during the next 30 days.'
+        }
+        confirmLabel={t('account.delete_account_cta') || 'Delete account and data'}
+        cancelLabel={t('common.cancel')}
+        tone="danger"
+        busy={deleting}
+        onConfirm={() => void handleScheduleDeleteConfirmed()}
+        onCancel={() => setDeleteConfirmOpen(false)}
+        testId="confirm-delete-account-dialog"
+      />
+
+      {/* Confirmation Card: Cancel Scheduled Account Deletion */}
+      <ConfirmActionDialog
+        open={cancelDeleteConfirmOpen}
+        title={t('account.cancel_delete_confirm_title') || 'Keep your account active?'}
+        description={
+          t('account.cancel_delete_confirm_body') ||
+          'This will cancel the scheduled 30-day deletion and keep your account and workspaces active.'
+        }
+        confirmLabel={t('account.cancel_deletion_cta') || 'Cancel deletion'}
+        cancelLabel={t('common.close')}
+        tone="primary"
+        busy={deleting}
+        onConfirm={() => void handleCancelDeleteConfirmed()}
+        onCancel={() => setCancelDeleteConfirmOpen(false)}
+        testId="confirm-cancel-delete-account-dialog"
+      />
     </div>
   );
 }

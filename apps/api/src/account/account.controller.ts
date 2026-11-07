@@ -1,11 +1,18 @@
-import { Body, Controller, Delete, Get, Patch, Post, Req, Res, UseGuards } from '@nestjs/common';
-import type { Request, Response } from 'express';
+import { Body, Controller, Delete, Get, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import type { Request } from 'express';
 import { getPrisma } from '@oma/db';
 import { DomainError, assertPasswordPolicy, hashPassword, verifyPassword } from '@oma/domain';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { CsrfGuard } from '../common/guards/csrf.guard';
-import { clearSessionCookie } from '../identity/session-cookie';
+import {
+  buildOtpAuthUri,
+  generateBackupCodes,
+  generateTotpSecret,
+  verifyTotpCode,
+} from '../identity/totp';
 import { NOTIFICATION_TYPES, parsePreferences } from '../notifications/notify';
+
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
 
 /** Per-user preference defaults (formerly demo-only; now persisted on User.preferencesJson). */
 export const DEFAULT_PREFERENCES = {
@@ -111,6 +118,9 @@ function mapProfile(u: {
   avatarUrl: string | null;
   preferredLocale: string;
   preferredDir: string;
+  twoFactorEnabled?: boolean;
+  deletionScheduledAt?: Date | null;
+  deletionPurgeAt?: Date | null;
 }) {
   return {
     id: u.id,
@@ -119,6 +129,9 @@ function mapProfile(u: {
     avatar_url: u.avatarUrl,
     preferred_locale: u.preferredLocale,
     preferred_dir: u.preferredDir,
+    two_factor_enabled: Boolean(u.twoFactorEnabled),
+    deletion_scheduled_at: u.deletionScheduledAt?.toISOString() ?? null,
+    deletion_purge_at: u.deletionPurgeAt?.toISOString() ?? null,
   };
 }
 
@@ -148,7 +161,6 @@ export class AccountController {
     const userId = this.uid(req);
     const data: {
       name?: string;
-      email?: string;
       avatarUrl?: string | null;
       preferredLocale?: string;
       preferredDir?: string;
@@ -157,20 +169,6 @@ export class AccountController {
       const name = typeof body.name === 'string' ? body.name.trim() : '';
       if (!name || name.length > 120) throw bad('name');
       data.name = name;
-    }
-    if (body.email !== undefined) {
-      const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw bad('email');
-      const existing = await getPrisma().user.findUnique({ where: { email } });
-      if (existing && existing.id !== userId) {
-        throw new DomainError(
-          'CONFLICT_STATE',
-          'Email already registered',
-          409,
-          'errors.email_taken',
-        );
-      }
-      data.email = email;
     }
     if (body.avatarUrl !== undefined) {
       if (body.avatarUrl === null || body.avatarUrl === '') data.avatarUrl = null;
@@ -221,6 +219,103 @@ export class AccountController {
     return { data: { ok: true } };
   }
 
+  /** Step 1 of 2FA: generate a TOTP secret and otpauth URI for the authenticator app. */
+  @Post('2fa/setup')
+  @UseGuards(CsrfGuard)
+  async setupTwoFactor(@Req() req: Request) {
+    const userId = this.uid(req);
+    const prisma = getPrisma();
+    const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    const secret = generateTotpSecret();
+    const backupCodes = generateBackupCodes(6);
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        twoFactorSecret: secret,
+        twoFactorBackupCodes: JSON.stringify(backupCodes),
+      },
+    });
+    const otpauthUri = buildOtpAuthUri({ secret, email: user.email, issuer: 'OMA AI' });
+    return {
+      data: {
+        secret,
+        otpauth_uri: otpauthUri,
+        backup_codes: backupCodes,
+      },
+    };
+  }
+
+  /** Step 2 of 2FA: verify the 6-digit code from the authenticator app and activate 2FA. */
+  @Post('2fa/verify')
+  @UseGuards(CsrfGuard)
+  async verifyTwoFactor(@Req() req: Request, @Body() body: { code?: string }) {
+    const userId = this.uid(req);
+    const prisma = getPrisma();
+    const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    if (!user.twoFactorSecret) {
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'Start 2FA setup first before verifying a code',
+        400,
+        'errors.validation_failed',
+      );
+    }
+    const code = String(body?.code ?? '').trim();
+    if (!verifyTotpCode(user.twoFactorSecret, code)) {
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'Invalid 6-digit verification code. Check your authenticator app and try again.',
+        400,
+        'errors.two_factor_invalid_code',
+      );
+    }
+    const prefs = mergePreferences(user.preferencesJson);
+    prefs.twoFactorEnabled = true;
+    const updated = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        twoFactorEnabled: true,
+        preferencesJson: JSON.stringify(prefs),
+      },
+    });
+    let backupCodes: string[] = [];
+    try {
+      backupCodes = user.twoFactorBackupCodes
+        ? (JSON.parse(user.twoFactorBackupCodes) as string[])
+        : [];
+    } catch {
+      backupCodes = [];
+    }
+    return {
+      data: {
+        two_factor_enabled: updated.twoFactorEnabled,
+        backup_codes: backupCodes,
+      },
+    };
+  }
+
+  /** Disable 2FA on the account. */
+  @Post('2fa/disable')
+  @UseGuards(CsrfGuard)
+  async disableTwoFactor(@Req() req: Request) {
+    const userId = this.uid(req);
+    const prisma = getPrisma();
+    const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    const prefs = mergePreferences(user.preferencesJson);
+    prefs.twoFactorEnabled = false;
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        twoFactorEnabled: false,
+        twoFactorSecret: null,
+        twoFactorBackupCodes: null,
+        preferencesJson: JSON.stringify(prefs),
+      },
+    });
+    return { data: { two_factor_enabled: false } };
+  }
+
+  /** Comprehensive personal & workspace data export (GDPR / compliance archive). */
   @Get('export')
   async exportData(@Req() req: Request) {
     const userId = this.uid(req);
@@ -228,69 +323,224 @@ export class AccountController {
     const user = await prisma.user.findUniqueOrThrow({
       where: { id: userId },
       include: {
-        memberships: { include: { tenant: { select: { id: true, name: true, slug: true } } } },
+        memberships: {
+          include: {
+            tenant: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+                defaultLocale: true,
+                createdAt: true,
+              },
+            },
+            grants: { where: { revokedAt: null }, select: { capabilityCode: true } },
+          },
+        },
         authIdentities: { select: { provider: true, email: true, createdAt: true } },
       },
     });
-    const comments = await prisma.contentComment.findMany({
-      where: { authorUserId: userId },
-      take: 200,
-      orderBy: { createdAt: 'desc' },
-    });
+
+    const tenantIds = [
+      ...new Set(user.memberships.filter((m) => m.status === 'ACTIVE').map((m) => m.tenantId)),
+    ];
+
+    const [brands, posts, comments, campaigns, socialPages, sessions, auditEvents] =
+      await Promise.all([
+        tenantIds.length
+          ? prisma.brandWorkspace.findMany({
+              where: { tenantId: { in: tenantIds }, deletedAt: null },
+              select: {
+                id: true,
+                tenantId: true,
+                name: true,
+                status: true,
+                createdAt: true,
+              },
+              take: 200,
+            })
+          : Promise.resolve([]),
+        tenantIds.length
+          ? prisma.contentItem.findMany({
+              where: { tenantId: { in: tenantIds } },
+              select: {
+                id: true,
+                tenantId: true,
+                brandId: true,
+                titleEn: true,
+                titleAr: true,
+                captionEn: true,
+                captionAr: true,
+                channel: true,
+                contentType: true,
+                status: true,
+                approvalState: true,
+                scheduledAt: true,
+                createdAt: true,
+              },
+              orderBy: { createdAt: 'desc' },
+              take: 500,
+            })
+          : Promise.resolve([]),
+        prisma.contentComment.findMany({
+          where: { authorUserId: userId },
+          select: {
+            id: true,
+            contentId: true,
+            bodyEn: true,
+            bodyAr: true,
+            isInternal: true,
+            createdAt: true,
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 500,
+        }),
+        tenantIds.length
+          ? prisma.campaign.findMany({
+              where: { tenantId: { in: tenantIds } },
+              select: {
+                id: true,
+                tenantId: true,
+                brandId: true,
+                nameEn: true,
+                nameAr: true,
+                status: true,
+                createdAt: true,
+              },
+              take: 200,
+            })
+          : Promise.resolve([]),
+        tenantIds.length
+          ? prisma.socialPage.findMany({
+              where: { tenantId: { in: tenantIds }, status: { not: 'DISCONNECTED' } },
+              select: {
+                id: true,
+                brandId: true,
+                network: true,
+                name: true,
+                externalId: true,
+                status: true,
+                createdAt: true,
+              },
+              take: 200,
+            })
+          : Promise.resolve([]),
+        prisma.session.findMany({
+          where: { userId },
+          select: {
+            id: true,
+            ip: true,
+            userAgent: true,
+            createdAt: true,
+            lastSeenAt: true,
+            expiresAt: true,
+            revokedAt: true,
+          },
+          orderBy: { lastSeenAt: 'desc' },
+          take: 50,
+        }),
+        prisma.auditEvent.findMany({
+          where: { actorUserId: userId },
+          select: {
+            id: true,
+            action: true,
+            targetType: true,
+            targetId: true,
+            occurredAt: true,
+          },
+          orderBy: { occurredAt: 'desc' },
+          take: 300,
+        }),
+      ]);
+
     return {
       data: {
+        schema_version: '2026-11',
         exported_at: new Date().toISOString(),
         user: {
           id: user.id,
           name: user.name,
           email: user.email,
+          avatar_url: user.avatarUrl,
           preferred_locale: user.preferredLocale,
+          two_factor_enabled: user.twoFactorEnabled,
           terms_accepted_at: user.termsAcceptedAt?.toISOString() ?? null,
           terms_version: user.termsVersion ?? null,
+          privacy_accepted_at: user.privacyAcceptedAt?.toISOString() ?? null,
+          deletion_scheduled_at: user.deletionScheduledAt?.toISOString() ?? null,
+          deletion_purge_at: user.deletionPurgeAt?.toISOString() ?? null,
           created_at: user.createdAt.toISOString(),
         },
         preferences: mergePreferences(user.preferencesJson),
+        identities: user.authIdentities,
         workspaces: user.memberships.map((m) => ({
           membership_id: m.id,
           tenant_id: m.tenantId,
           tenant_name: m.tenant.name,
+          tenant_slug: m.tenant.slug,
           role: m.displayRole ?? m.membershipKind,
           status: m.status,
+          capabilities: m.grants.map((g) => g.capabilityCode),
         })),
-        identities: user.authIdentities,
-        comments_count: comments.length,
+        brands,
+        social_pages: socialPages,
+        campaigns,
+        posts,
+        comments,
+        sessions,
+        audit_events: auditEvents,
       },
     };
   }
 
+  /**
+   * Schedule the user's account and data for permanent erasure in 30 days.
+   * The user can cancel this scheduled deletion any time during the 30-day window.
+   */
   @Delete('account')
   @UseGuards(CsrfGuard)
-  async deleteAccount(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+  async scheduleDeleteAccount(@Req() req: Request) {
     const userId = this.uid(req);
     const prisma = getPrisma();
-    const anonymizedEmail = `deleted-${userId}@deleted.oma.local`;
-    await prisma.$transaction([
-      prisma.session.updateMany({
-        where: { userId, revokedAt: null },
-        data: { revokedAt: new Date() },
-      }),
-      prisma.membership.updateMany({
-        where: { userId },
-        data: { status: 'REMOVED', removedAt: new Date() },
-      }),
-      prisma.user.update({
-        where: { id: userId },
-        data: {
-          status: 'DELETED',
-          email: anonymizedEmail,
-          name: 'Deleted User',
-          passwordHash: null,
-          avatarUrl: null,
-        },
-      }),
-    ]);
-    clearSessionCookie(res);
-    return { data: { deleted: true } };
+    const now = new Date();
+    const purgeAt = new Date(now.getTime() + THIRTY_DAYS_MS);
+    const updated = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        deletionScheduledAt: now,
+        deletionPurgeAt: purgeAt,
+      },
+    });
+    return {
+      data: {
+        scheduled: true,
+        deletion_scheduled_at: updated.deletionScheduledAt?.toISOString() ?? now.toISOString(),
+        deletion_purge_at: updated.deletionPurgeAt?.toISOString() ?? purgeAt.toISOString(),
+        grace_period_days: 30,
+      },
+    };
+  }
+
+  /** Cancel a pending 30-day scheduled account deletion. */
+  @Post('account/cancel-deletion')
+  @UseGuards(CsrfGuard)
+  async cancelDeleteAccount(@Req() req: Request) {
+    const userId = this.uid(req);
+    const prisma = getPrisma();
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        deletionScheduledAt: null,
+        deletionPurgeAt: null,
+      },
+    });
+    return {
+      data: {
+        scheduled: false,
+        deletion_scheduled_at: null,
+        deletion_purge_at: null,
+      },
+    };
   }
 
   @Get('preferences')

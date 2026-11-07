@@ -7,6 +7,9 @@ export type Profile = {
   avatar_url: string | null;
   preferred_locale: 'en' | 'ar' | string;
   preferred_dir: string;
+  two_factor_enabled?: boolean;
+  deletion_scheduled_at?: string | null;
+  deletion_purge_at?: string | null;
 };
 
 export type UserPreferences = {
@@ -21,6 +24,12 @@ export type UserPreferences = {
   notifications: Record<string, boolean>;
   homeSetupDismissed?: boolean;
   campaignFavoriteIds?: string[];
+};
+
+export type TwoFactorSetupResponse = {
+  secret: string;
+  otpauth_uri: string;
+  backup_codes: string[];
 };
 
 export const NOTIFICATION_PREF_TYPES = [
@@ -46,7 +55,6 @@ export async function getProfile(): Promise<Profile> {
 
 export async function updateProfile(patch: {
   name?: string;
-  email?: string;
   avatarUrl?: string | null;
   preferredLocale?: 'en' | 'ar';
 }): Promise<Profile> {
@@ -68,16 +76,80 @@ export async function changeMyPassword(input: {
   });
 }
 
+export async function setupTwoFactor(): Promise<TwoFactorSetupResponse> {
+  const res = await api<{ data: TwoFactorSetupResponse }>('/api/v1/me/2fa/setup', {
+    method: 'POST',
+    body: '{}',
+  });
+  return res.data;
+}
+
+export async function verifyTwoFactor(code: string): Promise<{
+  two_factor_enabled: boolean;
+  backup_codes: string[];
+}> {
+  const res = await api<{
+    data: { two_factor_enabled: boolean; backup_codes: string[] };
+  }>('/api/v1/me/2fa/verify', {
+    method: 'POST',
+    body: JSON.stringify({ code }),
+  });
+  invalidateApiCache('/api/v1/me/profile');
+  return res.data;
+}
+
+export async function disableTwoFactor(): Promise<{ two_factor_enabled: boolean }> {
+  const res = await api<{ data: { two_factor_enabled: boolean } }>('/api/v1/me/2fa/disable', {
+    method: 'POST',
+    body: '{}',
+  });
+  invalidateApiCache('/api/v1/me/profile');
+  return res.data;
+}
+
 export async function exportMyData(): Promise<Record<string, unknown>> {
   const res = await api<{ data: Record<string, unknown> }>('/api/v1/me/export');
   return res.data;
 }
 
-export async function deleteMyAccount(): Promise<void> {
-  await api('/api/v1/me/account', {
+export async function scheduleAccountDeletion(): Promise<{
+  scheduled: boolean;
+  deletion_scheduled_at: string;
+  deletion_purge_at: string;
+  grace_period_days: number;
+}> {
+  const res = await api<{
+    data: {
+      scheduled: boolean;
+      deletion_scheduled_at: string;
+      deletion_purge_at: string;
+      grace_period_days: number;
+    };
+  }>('/api/v1/me/account', {
     method: 'DELETE',
     body: '{}',
   });
+  invalidateApiCache('/api/v1/me/profile');
+  return res.data;
+}
+
+export async function cancelAccountDeletion(): Promise<{
+  scheduled: boolean;
+  deletion_scheduled_at: null;
+  deletion_purge_at: null;
+}> {
+  const res = await api<{
+    data: {
+      scheduled: boolean;
+      deletion_scheduled_at: null;
+      deletion_purge_at: null;
+    };
+  }>('/api/v1/me/account/cancel-deletion', {
+    method: 'POST',
+    body: '{}',
+  });
+  invalidateApiCache('/api/v1/me/profile');
+  return res.data;
 }
 
 export async function uploadAvatar(file: File): Promise<{ asset_id: string; avatar_url: string }> {

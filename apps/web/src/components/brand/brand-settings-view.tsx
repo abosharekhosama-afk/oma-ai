@@ -3,6 +3,7 @@
 import { Button, Input, Modal, Select } from 'antd';
 import { useState } from 'react';
 import { NetworkIcon } from '../content/network-icon';
+import { ConfirmActionDialog } from '../ui/confirm-action-dialog';
 import { initials } from '../content/post-preview-model';
 import { MediaPickerDialog } from '../content/media-picker';
 import { useLocale } from '../../lib/use-locale';
@@ -368,6 +369,7 @@ function MembersTab(p: BrandSettingsViewProps) {
   const { t } = p;
   const [userId, setUserId] = useState<string | undefined>();
   const [role, setRole] = useState<BrandRole>('EDITOR');
+  const [removeTarget, setRemoveTarget] = useState<BrandMemberRow | null>(null);
   const roleOptions = BRAND_ROLES.map((r) => ({ value: r, label: t(`brandSettings.role.${r}`) }));
   return (
     <section className="oma-bs-card" aria-labelledby="bs-members">
@@ -424,7 +426,7 @@ function MembersTab(p: BrandSettingsViewProps) {
                     onChange={(r) => p.onRole(m.user_id, r)}
                     options={roleOptions}
                   />
-                  <Button type="text" onClick={() => p.onRemoveMember(m.user_id)}>
+                  <Button type="text" onClick={() => setRemoveTarget(m)}>
                     {t('brandSettings.members.remove')}
                   </Button>
                 </>
@@ -443,12 +445,28 @@ function MembersTab(p: BrandSettingsViewProps) {
           </div>
         ))}
       </dl>
+
+      <ConfirmActionDialog
+        open={Boolean(removeTarget)}
+        title={t('brandSettings.members.remove')}
+        description={removeTarget ? `${removeTarget.name || removeTarget.email}` : ''}
+        confirmLabel={t('brandSettings.members.remove')}
+        cancelLabel={t('brandSettings.cancel')}
+        tone="danger"
+        onConfirm={() => {
+          if (removeTarget) p.onRemoveMember(removeTarget.user_id);
+          setRemoveTarget(null);
+        }}
+        onCancel={() => setRemoveTarget(null)}
+        testId="confirm-remove-brand-member"
+      />
     </section>
   );
 }
 
 function AccountsTab(p: BrandSettingsViewProps) {
   const { t } = p;
+  const [disconnectTarget, setDisconnectTarget] = useState<SocialPageRow | null>(null);
   const byNet = new Map(p.providers.map((x) => [x.network, x]));
   return (
     <section className="oma-bs-card" aria-labelledby="bs-accounts">
@@ -518,7 +536,7 @@ function AccountsTab(p: BrandSettingsViewProps) {
                           </Button>
                         ) : null}
                         {p.canConnect ? (
-                          <Button type="text" onClick={() => p.onDisconnect(pg)}>
+                          <Button type="text" onClick={() => setDisconnectTarget(pg)}>
                             {t('brandSettings.accounts.disconnect')}
                           </Button>
                         ) : null}
@@ -531,6 +549,20 @@ function AccountsTab(p: BrandSettingsViewProps) {
           })}
         </ul>
       )}
+      <ConfirmActionDialog
+        open={Boolean(disconnectTarget)}
+        title={t('brandSettings.accounts.disconnect')}
+        description={disconnectTarget ? disconnectTarget.name : ''}
+        confirmLabel={t('brandSettings.accounts.disconnect')}
+        cancelLabel={t('brandSettings.cancel')}
+        tone="danger"
+        onConfirm={() => {
+          if (disconnectTarget) p.onDisconnect(disconnectTarget);
+          setDisconnectTarget(null);
+        }}
+        onCancel={() => setDisconnectTarget(null)}
+        testId="confirm-disconnect-social-page"
+      />
     </section>
   );
 }

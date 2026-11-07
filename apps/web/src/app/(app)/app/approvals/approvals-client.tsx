@@ -18,6 +18,7 @@ import { ApprovalReviewFlow } from '../../../../components/approvals/approval-re
 import { MediaSurface } from '../../../../components/content/media-surface';
 import { NetworkIcon } from '../../../../components/content/network-icon';
 import { ContentShimmer } from '../../../../components/ui/screen-shimmer';
+import { ConfirmActionDialog } from '../../../../components/ui/confirm-action-dialog';
 import { useToast } from '../../../../components/ui/toast';
 import { api } from '../../../../lib/api';
 import {
@@ -66,6 +67,7 @@ export function ApprovalsClient() {
   const [reviewSection, setReviewSection] = useState<ApprovalSection>('awaiting');
   const [reviewInitialItemId, setReviewInitialItemId] = useState<string | null>(null);
   const [approvingAll, setApprovingAll] = useState(false);
+  const [approveAllConfirmOpen, setApproveAllConfirmOpen] = useState(false);
   const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -207,7 +209,7 @@ export function ApprovalsClient() {
         type="button"
         className="oma-plx-approvals__approve-all-btn"
         disabled={!buckets.awaiting.length || approvingAll}
-        onClick={() => void approveAll()}
+        onClick={() => setApproveAllConfirmOpen(true)}
         data-testid="approvals-approve-all"
       >
         {t('approvals.approve_all')}
@@ -415,6 +417,25 @@ export function ApprovalsClient() {
           }}
         />
       ) : null}
+
+      <ConfirmActionDialog
+        open={approveAllConfirmOpen}
+        title={t('approvals.approve_all_confirm_title') || 'Approve all pending posts?'}
+        description={(
+          t('approvals.approve_all_confirm_body') ||
+          'Are you sure you want to approve all {n} pending posts waiting in your queue?'
+        ).replace('{n}', String(buckets.awaiting.length))}
+        confirmLabel={t('approvals.approve_all')}
+        cancelLabel={t('common.cancel')}
+        tone="primary"
+        busy={approvingAll}
+        onConfirm={() => {
+          setApproveAllConfirmOpen(false);
+          void approveAll();
+        }}
+        onCancel={() => setApproveAllConfirmOpen(false)}
+        testId="confirm-approve-all-dialog"
+      />
     </div>
   );
 }
