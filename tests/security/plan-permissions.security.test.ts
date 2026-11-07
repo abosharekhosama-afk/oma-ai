@@ -60,6 +60,8 @@ describe('permissions audit (plans rollout)', () => {
     const guard = readFileSync(resolve('apps/api/src/common/guards/capabilities.guard.ts'), 'utf8');
     expect(guard).toContain("'GET /api/v1/billing/plans': ['brand.read']");
     expect(guard).toContain("'PATCH /api/v1/billing/subscription': ['tenant.manage']");
+    expect(guard).toContain("'POST /api/v1/billing/checkouts/:id/fulfill': ['tenant.manage']");
+    expect(guard).toContain("'GET /api/v1/billing/entitlements': ['brand.read']");
   });
 
   it('maps preferred-audience content route in the capabilities guard', () => {

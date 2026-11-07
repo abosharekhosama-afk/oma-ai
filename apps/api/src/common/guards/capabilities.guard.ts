@@ -274,10 +274,22 @@ const routeRequirements: Record<string, string[]> = {
   'PATCH /api/v1/billing/subscription': ['tenant.manage'],
   'POST /api/v1/billing/upgrade-requests': ['brand.read'],
   'GET /api/v1/billing/upgrade-requests': ['tenant.manage'],
+  'GET /api/v1/billing/entitlements': ['brand.read'],
+  'POST /api/v1/billing/checkouts': ['brand.read'],
+  'GET /api/v1/billing/checkouts': ['brand.read'],
+  'POST /api/v1/billing/checkouts/:id/fulfill': ['tenant.manage'],
+  'POST /api/v1/billing/checkouts/:id/cancel': ['brand.read'],
+  'POST /api/v1/billing/subscription/cancel': ['tenant.manage'],
+  'POST /api/v1/billing/subscription/resume': ['tenant.manage'],
 };
 
 export function matchRequirements(method: string, path: string): string[] | null {
   const normalized = path
+    .replace(
+      /\/api\/v1\/billing\/checkouts\/[^/]+\/fulfill/,
+      '/api/v1/billing/checkouts/:id/fulfill',
+    )
+    .replace(/\/api\/v1\/billing\/checkouts\/[^/]+\/cancel/, '/api/v1/billing/checkouts/:id/cancel')
     .replace(/\/api\/v1\/memberships\/[^/]+\//, '/api/v1/memberships/:id/')
     .replace(/\/api\/v1\/notifications\/[^/]+\/read/, '/api/v1/notifications/:id/read')
     .replace(/\/api\/v1\/jobs\/[^/]+/, '/api/v1/jobs/:id')

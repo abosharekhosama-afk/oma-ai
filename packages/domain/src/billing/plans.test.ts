@@ -2,10 +2,13 @@ import { describe, expect, it } from 'vitest';
 import {
   PLAN_CATALOG,
   PLAN_CODES,
+  addBillingPeriod,
   approvalModeAllowed,
   getPlan,
   isPlanCode,
+  limitsExceededByUsage,
   planHasFeature,
+  planPriceUsdCents,
   DEFAULT_PLAN_FOR_NEW_TENANTS,
   GRANDFATHER_PLAN_FOR_EXISTING,
 } from './plans';
@@ -49,5 +52,20 @@ describe('plan catalog', () => {
     expect(GRANDFATHER_PLAN_FOR_EXISTING).toBe('pro');
     expect(isPlanCode('pro')).toBe(true);
     expect(isPlanCode('gold')).toBe(false);
+  });
+
+  it('prices a billing period and rejects a downgrade that exceeds usage', () => {
+    expect(planPriceUsdCents('free', 'monthly')).toBe(0);
+    expect(planPriceUsdCents('pro', 'monthly')).toBe(5900);
+    expect(planPriceUsdCents('pro', 'yearly')).toBe(49 * 12 * 100);
+    expect(planPriceUsdCents('enterprise', 'monthly')).toBeNull();
+    const start = new Date('2026-01-31T00:00:00.000Z');
+    expect(addBillingPeriod(start, 'monthly').toISOString()).toBe('2026-02-28T00:00:00.000Z');
+    expect(limitsExceededByUsage(getPlan('free').limits, { brands: 2, posts_total: 10 })).toEqual([
+      'brands',
+    ]);
+    expect(limitsExceededByUsage(getPlan('pro').limits, { brands: 2, posts_total: 400 })).toEqual(
+      [],
+    );
   });
 });

@@ -102,6 +102,7 @@ import {
 import { Dialog } from '../../../../components/ui/dialog';
 import { EmptyState, DeniedState } from '../../../../components/ui/empty-state';
 import { useToast } from '../../../../components/ui/toast';
+import { usePlanFeatures, viewAllowedByPlan } from '../../../../lib/use-plan-features';
 import { MediaPickerDialog, MediaThumb } from '../../../../components/content/media-picker';
 import {
   CalendarStickyNote,
@@ -1327,6 +1328,7 @@ export default function ContentPage() {
   const router = useRouter();
   const search = useSearchParams();
   const toast = useToast();
+  const planFeatures = usePlanFeatures();
   const activeBrandId = useActiveBrandId();
   const caps = useCapabilities();
   const canManageWorkspace = caps.capabilities.includes('tenant.manage');
@@ -1924,13 +1926,17 @@ export default function ContentPage() {
   useEffect(() => {
     const urlView = search.get('view');
     if (isContentViewMode(urlView)) {
-      setView((current) => (current === urlView ? current : urlView));
+      if (!viewAllowedByPlan(urlView, planFeatures)) {
+        setView('feed');
+      } else {
+        setView((current) => (current === urlView ? current : urlView));
+      }
     }
     const parsed = parseContentUrl(search.toString());
     setCalSpan(parsed.span);
     if (parsed.approvals)
       setFilters((f) => (f.approval === 'PENDING' ? f : { ...f, approval: 'PENDING' }));
-  }, [search]);
+  }, [search, planFeatures]);
 
   // Home deep links: ?brand=<id> filters the plan, ?date=YYYY-MM-DD opens that calendar day,
   // ?create=1 opens the composer once workspace data is loaded.
@@ -3859,6 +3865,10 @@ export default function ContentPage() {
                     className="oma-view-menu__item"
                     onClick={(e) => {
                       e.stopPropagation();
+                      if (!viewAllowedByPlan(id, planFeatures)) {
+                        toast.push(t('errors.plan_feature_required'), 'danger');
+                        return;
+                      }
                       setView(id);
                       writeContentViewPref(id);
                       replaceParams((params) => {
