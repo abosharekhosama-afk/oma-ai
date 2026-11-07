@@ -76,12 +76,12 @@ function RailNav({ collapsed }: { collapsed: boolean }) {
             sectionPath={item.sectionPath}
           />
           {item.children && !collapsed && pathname.startsWith(item.sectionPath ?? item.href) ? (
-            <ul className="oma-nav-sublist">
+            <ul className="oma-nav-sublist oma-nav-tree oma-nav-tree--shell">
               {item.children.map((c) => (
-                <li key={c.href}>
+                <li key={c.href} className="oma-nav-tree__item oma-nav-tree__item--leaf">
                   <Link
                     href={c.href}
-                    className="oma-nav-sublink"
+                    className="oma-nav-sublink oma-nav-tree__row"
                     data-active={pathname === c.href ? 'true' : undefined}
                     aria-current={pathname === c.href ? 'page' : undefined}
                   >
@@ -156,6 +156,7 @@ function ShellBreadcrumb({ onOpenSettings }: { onOpenSettings: () => void }) {
   const t = useT();
   const pathname = usePathname() || '/app';
   const isContent = pathname === '/app/content' || pathname.startsWith('/app/content/');
+  const isApprovals = pathname === '/app/approvals' || pathname.startsWith('/app/approvals/');
   const isDeliverables =
     pathname === '/app/deliverables' || pathname.startsWith('/app/deliverables/');
   const isTasks = pathname === '/app/tasks' || pathname.startsWith('/app/tasks/');
@@ -163,25 +164,29 @@ function ShellBreadcrumb({ onOpenSettings }: { onOpenSettings: () => void }) {
   const isCampaigns = pathname === '/app/campaigns' || pathname.startsWith('/app/campaigns/');
 
   /* Planable trail: Workspace / Section [/ View] — no brand switcher */
-  if (isContent || isDeliverables || isTasks || isRequests || isCampaigns) {
+  if (isContent || isApprovals || isDeliverables || isTasks || isRequests || isCampaigns) {
     const sectionHref = isContent
       ? '/app/content'
-      : isDeliverables
-        ? '/app/deliverables'
-        : isTasks
-          ? '/app/tasks'
-          : isRequests
-            ? '/app/requests'
-            : '/app/campaigns';
+      : isApprovals
+        ? '/app/approvals'
+        : isDeliverables
+          ? '/app/deliverables'
+          : isTasks
+            ? '/app/tasks'
+            : isRequests
+              ? '/app/requests'
+              : '/app/campaigns';
     const sectionLabel = isContent
       ? t('nav.content') || 'Content'
-      : isDeliverables
-        ? t('nav.deliverables') || t('demo.deliverables.title') || 'Deliverables'
-        : isTasks
-          ? t('nav.tasks') || t('demo.tasks.title') || 'Tasks'
-          : isRequests
-            ? t('nav.requests') || t('demo.requests.title') || 'Requests'
-            : t('nav.campaigns') || t('demo.campaigns.title') || 'Campaigns';
+      : isApprovals
+        ? t('views.my_approvals') || 'My approvals'
+        : isDeliverables
+          ? t('nav.deliverables') || t('demo.deliverables.title') || 'Deliverables'
+          : isTasks
+            ? t('nav.tasks') || t('demo.tasks.title') || 'Tasks'
+            : isRequests
+              ? t('nav.requests') || t('demo.requests.title') || 'Requests'
+              : t('nav.campaigns') || t('demo.campaigns.title') || 'Campaigns';
     const defaultView = isContent ? 'Calendar' : isDeliverables ? 'Grid' : isTasks ? 'Board' : '';
     const showViewSlot = isContent || isDeliverables || isTasks;
     return (
@@ -269,7 +274,11 @@ function ShellBreadcrumb({ onOpenSettings }: { onOpenSettings: () => void }) {
 export function ShellChrome({ children }: { children: ReactNode }) {
   const t = useT();
   const pathname = usePathname() || '/app';
-  const isContentWorkspace = pathname === '/app/content' || pathname.startsWith('/app/content/');
+  const isContentWorkspace =
+    pathname === '/app/content' ||
+    pathname.startsWith('/app/content/') ||
+    pathname === '/app/approvals' ||
+    pathname.startsWith('/app/approvals/');
   const isInboxWorkspace = pathname === '/app/inbox' || pathname.startsWith('/app/inbox/');
   const isListeningWorkspace =
     pathname === '/app/listening' || pathname.startsWith('/app/listening/');

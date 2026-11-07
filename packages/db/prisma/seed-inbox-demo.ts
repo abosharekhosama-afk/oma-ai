@@ -17,7 +17,7 @@
 import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { config as loadDotenv } from 'dotenv';
-import { PrismaClient } from '@prisma/client';
+import { InboxPlatform, PrismaClient } from '@prisma/client';
 import { newId } from '@oma/domain';
 
 for (let dir = process.cwd(), depth = 0; depth < 5; depth += 1, dir = path.dirname(dir)) {
@@ -388,7 +388,7 @@ async function seedListening(tenantId: string) {
 
   const hits: Array<{
     ruleId: string;
-    platform: 'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN';
+    platform: InboxPlatform;
     postId: string;
     authorName: string;
     handle: string;

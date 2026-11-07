@@ -111,6 +111,7 @@ export function useReloadOnBrandChange(reload: () => unknown): void {
 
 const BRAND_SCOPED_PREFIXES = [
   '/app/content',
+  '/app/approvals',
   '/app/deliverables',
   '/app/tasks',
   '/app/requests',

@@ -32,6 +32,7 @@ import { useT } from '../../../../lib/use-locale';
 import { ListeningDateRange, resolveDateRange, type DateRangeValue } from './listening-date-range';
 import { ListeningSourceMenu } from './listening-source-menu';
 import { ListeningVolumeChart } from './listening-volume-chart';
+import { useListeningWorkspaceOptional } from '../../../../components/listening/listening-workspace-context';
 import {
   exportHitsCsv,
   formatCount,
@@ -183,6 +184,7 @@ function SentimentPill({
 
 export function ListeningClient({ view }: { view: ListeningView }) {
   const t = useT();
+  const listeningTree = useListeningWorkspaceOptional();
   const activeBrandId = useActiveBrandId();
   const [brandTitle, setBrandTitle] = useState('Brand');
   const [rules, setRules] = useState<ListeningRule[]>([]);
@@ -667,6 +669,24 @@ export function ListeningClient({ view }: { view: ListeningView }) {
                 key={h.id}
                 className="oma-plx-listening-card"
                 data-testid={`listening-hit-${h.id}`}
+                data-selected={listeningTree?.selectedHit?.id === h.id ? 'true' : 'false'}
+                onClick={() => {
+                  listeningTree?.setSelectedHit(h);
+                  listeningTree?.setTreeActions([
+                    {
+                      id: 'reply',
+                      labelKey: 'listening.tree.reply_comment',
+                      onSelect: () => {
+                        if (h.url) window.open(h.url, '_blank', 'noopener,noreferrer');
+                      },
+                    },
+                    {
+                      id: 'hide',
+                      labelKey: 'listening.hideMention',
+                      onSelect: () => void onHideHit(h.id),
+                    },
+                  ]);
+                }}
               >
                 <div className="oma-plx-listening-card__top">
                   <div className="oma-plx-listening-card__author">

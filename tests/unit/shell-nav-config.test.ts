@@ -14,6 +14,7 @@ describe('Stage 1 shell nav config', () => {
     expect(SHELL_NAV_SECTIONS[0]!.items.map((i) => i.href)).toEqual([
       '/app',
       '/app/content',
+      '/app/approvals',
       '/app/inbox/comments',
       '/app/campaigns',
       '/app/analytics',
@@ -33,6 +34,7 @@ describe('Stage 1 shell nav config', () => {
         '/app/brands',
         '/app/campaigns',
         '/app/content',
+        '/app/approvals',
         '/app/requests',
         '/app/tasks',
         '/app/deliverables',

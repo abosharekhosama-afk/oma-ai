@@ -372,6 +372,12 @@ export const TagOutlined = (p: IconProps) => (
     <circle cx="7.5" cy="7.5" r="1" fill="currentColor" stroke="none" />
   </Icon>
 );
+export const ArrowRightOutlined = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M5 12h14" />
+    <path d="m12 5 7 7-7 7" />
+  </Icon>
+);
 export const ArrowLeftOutlined = (p: IconProps) => (
   <Icon {...p}>
     <path d="m12 19-7-7 7-7" />
