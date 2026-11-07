@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable, Optional } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { capabilitiesForBrandRole, DomainError, hasCapability } from '@oma/domain';
+import { capabilitiesForBrandRole, DomainError, hasCapability, SYSTEM_PROFILES } from '@oma/domain';
 import { getPrisma, tenantWhere, withoutBrandScope } from '@oma/db';
 import { REQUIRE_CAPABILITIES_KEY } from '../decorators/require-capabilities.decorator';
 import { resolveBrandAccess, type BrandAccess } from '../../brand/brand-access';
@@ -612,6 +612,12 @@ export class CapabilitiesGuard implements CanActivate {
         'errors.permission_denied',
       );
     let caps = [...new Set(memberships.flatMap((m) => m.grants.map((g) => g.capabilityCode)))];
+    if (
+      caps.length === 0 &&
+      memberships.some((m) => (m.displayRole ?? '').toLowerCase() === 'owner')
+    ) {
+      caps = [...(SYSTEM_PROFILES.COMPANY_OWNER ?? [])];
+    }
     // Per-brand access: when the request targets one brand, non-admins must be a member of it
     // and their brand role narrows their workspace capabilities.
     const access = req.brandAccess ?? (await resolveBrandAccess(req.oma.tenantId, req.oma.userId));

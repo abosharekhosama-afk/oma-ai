@@ -24,8 +24,8 @@ export class TenantService {
       where: { userId: actorUserId, status: 'ACTIVE' },
       include: { grants: { where: { revokedAt: null } } },
     });
-    const platformCaps = activeMemberships.flatMap((m) => m.grants.map((g) => g.capabilityCode));
-    if (platformCaps.includes('platform.tenant.create')) {
+    const grantedCaps = activeMemberships.flatMap((m) => m.grants.map((g) => g.capabilityCode));
+    if (grantedCaps.includes('platform.tenant.create')) {
       return 'platform';
     }
     const platformGrant = await prisma.capabilityGrant.findFirst({
@@ -41,6 +41,24 @@ export class TenantService {
     if (distinctActiveTenants.size === 0) {
       return 'self_serve';
     }
+
+    // Company Owners & Workspace Admins (or memberships explicitly marked as Owner) may create additional workspaces
+    const isWorkspaceOwnerOrAdmin =
+      grantedCaps.includes('tenant.manage') ||
+      activeMemberships.some(
+        (m) =>
+          (m.displayRole ?? '').toLowerCase() === 'owner' ||
+          m.grants.some(
+            (g) =>
+              g.sourceProfileCode === 'COMPANY_OWNER' ||
+              g.sourceProfileCode === 'PLATFORM_OWNER' ||
+              g.sourceProfileCode === 'ADMIN',
+          ),
+      );
+    if (isWorkspaceOwnerOrAdmin) {
+      return 'self_serve';
+    }
+
     throw new DomainError(
       'PERMISSION_DENIED',
       'Missing platform.tenant.create',
