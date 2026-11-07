@@ -450,3 +450,17 @@ export const MinusCircleOutlined = (p: IconProps) => (
     <path d="M8 12h8" />
   </Icon>
 );
+export const MegaphoneOutlined = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="m3 11 18-5v12L3 14v-3z" />
+    <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" />
+  </Icon>
+);
+export const ArrowsUpDownOutlined = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="m21 16-4 4-4-4" />
+    <path d="M17 20V4" />
+    <path d="m3 8 4-4 4 4" />
+    <path d="M7 4v16" />
+  </Icon>
+);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
   CheckOutlined,
@@ -65,29 +65,37 @@ export function CalendarStickyNote({
   const menuBtnRef = useRef<HTMLButtonElement>(null);
   const closePopoversRef = useRef(onClosePopovers);
   closePopoversRef.current = onClosePopovers;
-  const [colorPos, setColorPos] = useState<{ top: number; left: number } | null>(null);
-  const [menuPos, setMenuPos] = useState<{ top: number; left: number } | null>(null);
+  const [colorPos, setColorPos] = useState<{ top: number; insetInlineStart: number } | null>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; insetInlineStart: number } | null>(null);
   const visibility = note.visibility ?? 'only_me';
   const color = NOTE_COLORS.includes(note.color as NoteColor)
     ? (note.color as NoteColor)
     : 'yellow';
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!colorOpen || !colorBtnRef.current) {
       setColorPos(null);
       return;
     }
     const r = colorBtnRef.current.getBoundingClientRect();
-    setColorPos({ top: r.bottom + 6, left: r.left });
+    const dir = document.documentElement.getAttribute('dir') === 'rtl' ? 'rtl' : 'ltr';
+    const insetInlineStart =
+      dir === 'rtl' ? Math.max(8, window.innerWidth - r.right) : Math.max(8, r.left);
+    setColorPos({ top: r.bottom + 8, insetInlineStart });
   }, [colorOpen]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!menuOpen || !menuBtnRef.current) {
       setMenuPos(null);
       return;
     }
     const r = menuBtnRef.current.getBoundingClientRect();
-    setMenuPos({ top: r.bottom + 6, left: Math.max(8, r.right - 240) });
+    const dir = document.documentElement.getAttribute('dir') === 'rtl' ? 'rtl' : 'ltr';
+    const insetInlineStart =
+      dir === 'rtl'
+        ? Math.max(8, window.innerWidth - r.right)
+        : Math.max(8, Math.min(r.left, window.innerWidth - 248));
+    setMenuPos({ top: r.bottom + 8, insetInlineStart });
   }, [menuOpen]);
 
   useEffect(() => {
@@ -115,6 +123,7 @@ export function CalendarStickyNote({
       className="oma-cal-note oma-cal-note--inline"
       data-color={color}
       data-active={active ? 'true' : 'false'}
+      data-popover-open={colorOpen || menuOpen ? 'true' : 'false'}
       data-testid={`demo-cal-note-card-${dayKey}`}
       onClick={(e) => {
         e.stopPropagation();
@@ -145,6 +154,7 @@ export function CalendarStickyNote({
           data-tooltip={t('content.note_color')}
           aria-label={t('content.note_color')}
           aria-expanded={colorOpen}
+          onMouseDown={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();
             onToggleColor();
@@ -187,10 +197,10 @@ export function CalendarStickyNote({
       {colorOpen && colorPos && typeof document !== 'undefined'
         ? createPortal(
             <div
-              className="oma-cal-note__swatches"
+              className="oma-cal-note__swatches oma-cal-note__swatches--portal"
               role="listbox"
               data-oma-note-pop="true"
-              style={{ top: colorPos.top, left: colorPos.left }}
+              style={{ top: colorPos.top, insetInlineStart: colorPos.insetInlineStart }}
             >
               {NOTE_COLORS.map((c) => (
                 <button
@@ -218,7 +228,7 @@ export function CalendarStickyNote({
               className="oma-cal-note__menu"
               role="menu"
               data-oma-note-pop="true"
-              style={{ top: menuPos.top, left: menuPos.left }}
+              style={{ top: menuPos.top, insetInlineStart: menuPos.insetInlineStart }}
             >
               <button
                 type="button"
