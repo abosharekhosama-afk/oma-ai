@@ -27,6 +27,8 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(true);
+  const [twoFactorRequired, setTwoFactorRequired] = useState(false);
+  const [totpCode, setTotpCode] = useState('');
   const [ssoMode, setSsoMode] = useState(false);
   const [ssoDomain, setSsoDomain] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -111,6 +113,7 @@ export default function LoginPage() {
           password,
           terms_accepted: true,
           terms_version: CURRENT_TERMS_VERSION,
+          ...(totpCode.trim() ? { totp_code: totpCode.trim() } : {}),
         }),
       });
       try {
@@ -123,6 +126,12 @@ export default function LoginPage() {
       }
       window.location.assign(next);
     } catch (err) {
+      const e = err as { code?: string; data?: { error?: { message_key?: string } } };
+      if (e?.data?.error?.message_key === 'errors.two_factor_required') {
+        setTwoFactorRequired(true);
+        setError(t('errors.two_factor_required'));
+        return;
+      }
       setError(err instanceof Error ? err.message : t('auth.loginFailed'));
     } finally {
       setBusy(false);
@@ -224,6 +233,22 @@ export default function LoginPage() {
                   {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                 </button>
               </div>
+
+              {twoFactorRequired ? (
+                <input
+                  id="totp_code"
+                  name="totp_code"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  required
+                  className="plx-input oma-ltr"
+                  placeholder={t('account.two_factor_code_label') || '6-digit 2FA code'}
+                  value={totpCode}
+                  onChange={(e) => setTotpCode(e.target.value.trim())}
+                  data-testid="login-totp-input"
+                />
+              ) : null}
 
               <label className="plx-terms-consent" data-testid="auth-terms-consent">
                 <input

@@ -420,3 +420,141 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* Global Planable Confirmation Card Dialog */
+.oma-plx-confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: var(--oma-overlay-scrim);
+  backdrop-filter: blur(4px);
+}
+
+.oma-plx-confirm-card {
+  width: min(440px, calc(100vw - 32px));
+  background: var(--oma-surface);
+  border: 1px solid var(--oma-home-border);
+  border-radius: 14px;
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.24);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.oma-plx-confirm-card__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid var(--oma-home-divider);
+}
+
+.oma-plx-confirm-card__badge {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  font-size: 15px;
+}
+
+.oma-plx-confirm-card__badge--danger {
+  background: var(--oma-home-danger-bg);
+  color: var(--oma-home-danger);
+}
+
+.oma-plx-confirm-card__badge--primary {
+  background: var(--oma-home-primary-soft);
+  color: var(--oma-primary);
+}
+
+.oma-plx-confirm-card__title {
+  margin: 0;
+  flex: 1;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--oma-home-ink);
+}
+
+.oma-plx-confirm-card__close {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 0;
+  background: transparent;
+  color: var(--oma-home-muted);
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.oma-plx-confirm-card__close:hover {
+  background: var(--oma-home-hover);
+  color: var(--oma-home-ink);
+}
+
+.oma-plx-confirm-card__body {
+  padding: 16px 18px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--oma-home-ink-2);
+}
+
+.oma-plx-confirm-card__body p {
+  margin: 0;
+}
+
+.oma-plx-confirm-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 18px 16px;
+  border-top: 1px solid var(--oma-home-divider);
+  background: var(--oma-home-day-bg);
+}
+
+.oma-plx-confirm-card__btn {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid var(--oma-home-border);
+  background: var(--oma-surface);
+  color: var(--oma-home-ink-2);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease;
+}
+
+.oma-plx-confirm-card__btn--cancel:hover:not(:disabled) {
+  background: var(--oma-home-hover);
+}
+
+.oma-plx-confirm-card__btn--primary {
+  background: var(--oma-primary);
+  border-color: var(--oma-primary);
+  color: var(--oma-primary-ink);
+}
+
+.oma-plx-confirm-card__btn--primary:hover:not(:disabled) {
+  background: var(--oma-home-primary-hover);
+}
+
+.oma-plx-confirm-card__btn--danger {
+  background: var(--oma-home-danger);
+  border-color: var(--oma-home-danger);
+  color: var(--oma-surface);
+}
+
+.oma-plx-confirm-card__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

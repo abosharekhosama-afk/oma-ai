@@ -10,6 +10,7 @@ import {
 } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
 import { CURRENT_TERMS_VERSION, type OAuthUserProfile } from './oauth-providers.service';
+import { verifyTotpCode } from './totp';
 
 type MembershipRow = {
   id: string;
@@ -106,6 +107,7 @@ export class IdentityService {
     userAgent?: string;
     terms_accepted?: boolean;
     terms_version?: string;
+    totp_code?: string;
   }) {
     if (input.terms_accepted === false) {
       throw new DomainError(
@@ -135,6 +137,44 @@ export class IdentityService {
         401,
         'errors.invalid_credentials',
       );
+    }
+    if (user.twoFactorEnabled && user.twoFactorSecret) {
+      const code = String(input.totp_code ?? '').trim();
+      if (!code) {
+        throw new DomainError(
+          'UNAUTHENTICATED',
+          'Enter the 6-digit verification code from your authenticator app.',
+          403,
+          'errors.two_factor_required',
+        );
+      }
+      let backupMatched = false;
+      if (!verifyTotpCode(user.twoFactorSecret, code)) {
+        try {
+          const backups = user.twoFactorBackupCodes
+            ? (JSON.parse(user.twoFactorBackupCodes) as string[])
+            : [];
+          const idx = backups.findIndex((b) => b.toUpperCase() === code.toUpperCase());
+          if (idx >= 0) {
+            backupMatched = true;
+            backups.splice(idx, 1);
+            await getPrisma().user.update({
+              where: { id: user.id },
+              data: { twoFactorBackupCodes: JSON.stringify(backups) },
+            });
+          }
+        } catch {
+          backupMatched = false;
+        }
+        if (!backupMatched) {
+          throw new DomainError(
+            'UNAUTHENTICATED',
+            'Invalid 6-digit two-factor authentication code.',
+            401,
+            'errors.two_factor_invalid_code',
+          );
+        }
+      }
     }
     if (input.terms_accepted || !user.termsAcceptedAt) {
       const now = new Date();
