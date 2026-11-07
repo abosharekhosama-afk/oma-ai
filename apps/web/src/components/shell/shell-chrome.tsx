@@ -169,24 +169,24 @@ function ShellBreadcrumb({ onOpenSettings }: { onOpenSettings: () => void }) {
       ? '/app/content'
       : isApprovals
         ? '/app/approvals'
-      : isDeliverables
-        ? '/app/deliverables'
-        : isTasks
-          ? '/app/tasks'
-          : isRequests
-            ? '/app/requests'
-            : '/app/campaigns';
+        : isDeliverables
+          ? '/app/deliverables'
+          : isTasks
+            ? '/app/tasks'
+            : isRequests
+              ? '/app/requests'
+              : '/app/campaigns';
     const sectionLabel = isContent
       ? t('nav.content') || 'Content'
       : isApprovals
         ? t('views.my_approvals') || 'My approvals'
-      : isDeliverables
-        ? t('nav.deliverables') || t('demo.deliverables.title') || 'Deliverables'
-        : isTasks
-          ? t('nav.tasks') || t('demo.tasks.title') || 'Tasks'
-          : isRequests
-            ? t('nav.requests') || t('demo.requests.title') || 'Requests'
-            : t('nav.campaigns') || t('demo.campaigns.title') || 'Campaigns';
+        : isDeliverables
+          ? t('nav.deliverables') || t('demo.deliverables.title') || 'Deliverables'
+          : isTasks
+            ? t('nav.tasks') || t('demo.tasks.title') || 'Tasks'
+            : isRequests
+              ? t('nav.requests') || t('demo.requests.title') || 'Requests'
+              : t('nav.campaigns') || t('demo.campaigns.title') || 'Campaigns';
     const defaultView = isContent ? 'Calendar' : isDeliverables ? 'Grid' : isTasks ? 'Board' : '';
     const showViewSlot = isContent || isDeliverables || isTasks;
     return (
