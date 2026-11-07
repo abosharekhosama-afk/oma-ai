@@ -49,8 +49,9 @@ describe('workspace sidebar layout', () => {
     expect(chrome).not.toContain('WorkspaceSettingsPanel');
     expect(chrome).toContain('<SettingsPanel');
     expect(workspaceRow).toContain('onOpenSettings');
-    expect(account).toContain('data-testid="shell-user-menu-settings"');
-    expect(account).toContain('openSettings();');
+    expect(account).toContain('data-testid="shell-user-menu-profile"');
+    expect(account).toContain('data-testid="shell-user-menu-billing"');
+    expect(account).toContain('data-testid="shell-user-menu-logout"');
     expect(sections).toContain("'approvals'");
     expect(settings).toContain('WorkspaceApprovals');
     expect(settings).toContain('data-testid="settings-approvals"');

@@ -1,15 +1,18 @@
-import { Body, Controller, Get, Patch, Req, UseGuards } from '@nestjs/common';
-import type { Request } from 'express';
+import { Body, Controller, Delete, Get, Patch, Post, Req, Res, UseGuards } from '@nestjs/common';
+import type { Request, Response } from 'express';
 import { getPrisma } from '@oma/db';
-import { DomainError } from '@oma/domain';
+import { DomainError, assertPasswordPolicy, hashPassword, verifyPassword } from '@oma/domain';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { CsrfGuard } from '../common/guards/csrf.guard';
+import { clearSessionCookie } from '../identity/session-cookie';
 import { NOTIFICATION_TYPES, parsePreferences } from '../notifications/notify';
 
 /** Per-user preference defaults (formerly demo-only; now persisted on User.preferencesJson). */
 export const DEFAULT_PREFERENCES = {
-  timezone: 'Asia/Dubai',
+  timezone: 'Asia/Jerusalem',
+  hourFormat: '24h' as '24h' | '12h',
   weekStart: 'monday' as 'monday' | 'sunday',
+  twoFactorEnabled: false,
   defaultContentView: 'calendar' as 'list' | 'calendar' | 'feed' | 'grid',
   defaultTaskView: 'board' as 'board' | 'list',
   reviewReminders: true,
@@ -49,9 +52,17 @@ export function validatePreferencesPatch(body: Record<string, unknown>): Partial
     }
     out.timezone = body.timezone.trim();
   }
+  if (body.hourFormat !== undefined) {
+    if (body.hourFormat !== '24h' && body.hourFormat !== '12h') throw bad('hourFormat');
+    out.hourFormat = body.hourFormat;
+  }
   if (body.weekStart !== undefined) {
     if (body.weekStart !== 'monday' && body.weekStart !== 'sunday') throw bad('weekStart');
     out.weekStart = body.weekStart;
+  }
+  if (body.twoFactorEnabled !== undefined) {
+    if (typeof body.twoFactorEnabled !== 'boolean') throw bad('twoFactorEnabled');
+    out.twoFactorEnabled = body.twoFactorEnabled;
   }
   if (body.defaultContentView !== undefined) {
     if (!['list', 'calendar', 'feed', 'grid'].includes(String(body.defaultContentView)))
@@ -134,8 +145,10 @@ export class AccountController {
   @Patch('profile')
   @UseGuards(CsrfGuard)
   async updateProfile(@Req() req: Request, @Body() body: Record<string, unknown>) {
+    const userId = this.uid(req);
     const data: {
       name?: string;
+      email?: string;
       avatarUrl?: string | null;
       preferredLocale?: string;
       preferredDir?: string;
@@ -144,6 +157,20 @@ export class AccountController {
       const name = typeof body.name === 'string' ? body.name.trim() : '';
       if (!name || name.length > 120) throw bad('name');
       data.name = name;
+    }
+    if (body.email !== undefined) {
+      const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw bad('email');
+      const existing = await getPrisma().user.findUnique({ where: { email } });
+      if (existing && existing.id !== userId) {
+        throw new DomainError(
+          'CONFLICT_STATE',
+          'Email already registered',
+          409,
+          'errors.email_taken',
+        );
+      }
+      data.email = email;
     }
     if (body.avatarUrl !== undefined) {
       if (body.avatarUrl === null || body.avatarUrl === '') data.avatarUrl = null;
@@ -161,8 +188,109 @@ export class AccountController {
       data.preferredLocale = body.preferredLocale;
       data.preferredDir = body.preferredLocale === 'ar' ? 'rtl' : 'ltr';
     }
-    const u = await getPrisma().user.update({ where: { id: this.uid(req) }, data });
+    const u = await getPrisma().user.update({ where: { id: userId }, data });
     return { data: mapProfile(u) };
+  }
+
+  @Post('password')
+  @UseGuards(CsrfGuard)
+  async changePassword(
+    @Req() req: Request,
+    @Body() body: { current_password?: string; new_password?: string },
+  ) {
+    const userId = this.uid(req);
+    const newPassword = String(body?.new_password ?? '');
+    assertPasswordPolicy(newPassword);
+    const prisma = getPrisma();
+    const u = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+    if (u.passwordHash && body?.current_password) {
+      const ok = await verifyPassword(u.passwordHash, body.current_password);
+      if (!ok) {
+        throw new DomainError(
+          'UNAUTHENTICATED',
+          'Current password is incorrect',
+          401,
+          'errors.invalid_credentials',
+        );
+      }
+    }
+    await prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash: await hashPassword(newPassword) },
+    });
+    return { data: { ok: true } };
+  }
+
+  @Get('export')
+  async exportData(@Req() req: Request) {
+    const userId = this.uid(req);
+    const prisma = getPrisma();
+    const user = await prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      include: {
+        memberships: { include: { tenant: { select: { id: true, name: true, slug: true } } } },
+        authIdentities: { select: { provider: true, email: true, createdAt: true } },
+      },
+    });
+    const comments = await prisma.contentComment.findMany({
+      where: { authorUserId: userId },
+      take: 200,
+      orderBy: { createdAt: 'desc' },
+    });
+    return {
+      data: {
+        exported_at: new Date().toISOString(),
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          preferred_locale: user.preferredLocale,
+          terms_accepted_at: user.termsAcceptedAt?.toISOString() ?? null,
+          terms_version: user.termsVersion ?? null,
+          created_at: user.createdAt.toISOString(),
+        },
+        preferences: mergePreferences(user.preferencesJson),
+        workspaces: user.memberships.map((m) => ({
+          membership_id: m.id,
+          tenant_id: m.tenantId,
+          tenant_name: m.tenant.name,
+          role: m.displayRole ?? m.membershipKind,
+          status: m.status,
+        })),
+        identities: user.authIdentities,
+        comments_count: comments.length,
+      },
+    };
+  }
+
+  @Delete('account')
+  @UseGuards(CsrfGuard)
+  async deleteAccount(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    const userId = this.uid(req);
+    const prisma = getPrisma();
+    const anonymizedEmail = `deleted-${userId}@deleted.oma.local`;
+    await prisma.$transaction([
+      prisma.session.updateMany({
+        where: { userId, revokedAt: null },
+        data: { revokedAt: new Date() },
+      }),
+      prisma.membership.updateMany({
+        where: { userId },
+        data: { status: 'REMOVED', removedAt: new Date() },
+      }),
+      prisma.user.update({
+        where: { id: userId },
+        data: {
+          status: 'DELETED',
+          email: anonymizedEmail,
+          name: 'Deleted User',
+          passwordHash: null,
+          avatarUrl: null,
+        },
+      }),
+    ]);
+    clearSessionCookie(res);
+    return { data: { deleted: true } };
   }
 
   @Get('preferences')

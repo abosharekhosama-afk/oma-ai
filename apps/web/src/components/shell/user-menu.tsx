@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { getProfile, initials, type Profile } from '../../lib/account-api';
 import { SESSION_OK_KEY } from '../../lib/session';
-import { openSettings } from '../../lib/settings-dialog';
 import { useT } from '../../lib/use-locale';
 import { ShellIcon } from './shell-icons';
 import { ShellPopover } from './shell-popover';
@@ -98,41 +97,6 @@ export function UserMenu() {
             {t('shell.profile_settings') || 'Profile settings'}
           </span>
         </Link>
-
-        <button
-          type="button"
-          className="oma-plx-account-card__item"
-          role="menuitem"
-          data-testid="shell-user-menu-settings"
-          onClick={() => {
-            setOpen(false);
-            openSettings();
-          }}
-        >
-          <span className="oma-plx-account-card__icon" aria-hidden="true">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M4 21v-7" />
-              <path d="M4 10V3" />
-              <path d="M12 21v-9" />
-              <path d="M12 8V3" />
-              <path d="M20 21v-5" />
-              <path d="M20 12V3" />
-              <path d="M1 14h6" />
-              <path d="M9 8h6" />
-              <path d="M17 16h6" />
-            </svg>
-          </span>
-          <span className="oma-plx-account-card__label">{t('nav.settings')}</span>
-        </button>
 
         <Link
           href="/app/billing"
