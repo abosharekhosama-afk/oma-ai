@@ -58,6 +58,7 @@ export const SHELL_NAV_SECTIONS: NavSection[] = [
     items: [
       { href: '/app', labelKey: 'nav.home', icon: 'home' },
       { href: '/app/content', labelKey: 'nav.content', icon: 'content' },
+      { href: '/app/approvals', labelKey: 'views.my_approvals', icon: 'check' },
       {
         href: '/app/inbox/comments',
         sectionPath: '/app/inbox',
