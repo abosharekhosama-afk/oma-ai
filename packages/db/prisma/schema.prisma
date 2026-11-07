@@ -2063,9 +2063,16 @@ model ListeningRule {
   hashtagsJson String  @default("[]")
   platformsJson String @default("[]")
   isLive      Boolean  @default(true)
-  /// Brand/context blurb for relevance ranking (Planable-style).
+  /// Optional note stored with the rule. It does not score or filter mentions.
   contextJson String?
   lastPollAt  DateTime?
+  /// IDLE | QUEUED | RUNNING | SUCCEEDED | FAILED. Independent of isLive.
+  syncStatus         String    @default("IDLE")
+  lastSyncStartedAt  DateTime?
+  lastSyncFinishedAt DateTime?
+  lastSyncIngested   Int       @default(0)
+  /// Short provider-free error codes, never tokens or response bodies.
+  lastSyncError      String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -2127,7 +2134,7 @@ model ListeningHit {
   tenant          Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   rule            ListeningRule?  @relation(fields: [ruleId], references: [id], onDelete: SetNull)
 
-  @@unique([tenantId, platform, externalPostId])
+  @@unique([tenantId, ruleId, platform, externalPostId])
   @@index([tenantId, capturedAt])
   @@index([tenantId, ruleId, capturedAt])
   @@index([tenantId, isHighPriority, capturedAt])

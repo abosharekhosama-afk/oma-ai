@@ -1,5 +1,5 @@
 import { getPrisma } from '@oma/db';
-import { decryptToken, tokenKeyFromEnv } from '@oma/domain';
+import { decryptToken, safeListeningSyncError, tokenKeyFromEnv } from '@oma/domain';
 import { createLogger } from '@oma/observability';
 import { matchedTerms, recordListeningHit } from './record-hit';
 import { bridgeInboxMessagesToListening } from './inbox-bridge';
@@ -41,6 +41,10 @@ export async function runListeningPoll(
   const prisma = getPrisma();
   const rule = await prisma.listeningRule.findFirst({ where: { id: ruleId, isLive: true } });
   if (!rule) return { ingested: 0, errors: ['rule_not_found'] };
+  await prisma.listeningRule.update({
+    where: { id: rule.id },
+    data: { syncStatus: 'RUNNING', lastSyncStartedAt: new Date(), lastSyncError: null },
+  });
 
   const keywords = parseArr(rule.keywordsJson);
   const hashtags = parseArr(rule.hashtagsJson);
@@ -230,9 +234,16 @@ export async function runListeningPoll(
     errors.push(`public_sources:${e instanceof Error ? e.message : String(e)}`);
   }
 
+  const finishedAt = new Date();
   await prisma.listeningRule.update({
     where: { id: rule.id },
-    data: { lastPollAt: new Date() },
+    data: {
+      syncStatus: 'SUCCEEDED',
+      lastPollAt: finishedAt,
+      lastSyncFinishedAt: finishedAt,
+      lastSyncIngested: ingested,
+      lastSyncError: safeListeningSyncError(errors),
+    },
   });
 
   log.info({ ruleId, ingested, errors: errors.length }, 'listening poll complete');

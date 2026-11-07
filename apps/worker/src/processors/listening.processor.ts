@@ -20,8 +20,20 @@ export function startListeningProcessor(connection: IORedis) {
         log.info({ ruleId }, 'listening rule missing or paused');
         return;
       }
-      const result = await runListeningPoll(ruleId);
-      log.info({ ruleId, tenantId, ...result }, 'listening poll finished');
+      try {
+        const result = await runListeningPoll(ruleId);
+        log.info({ ruleId, tenantId, ...result }, 'listening poll finished');
+      } catch (err) {
+        await getPrisma().listeningRule.updateMany({
+          where: { id: ruleId, tenantId },
+          data: {
+            syncStatus: 'FAILED',
+            lastSyncError: 'poll_failed',
+            lastSyncFinishedAt: new Date(),
+          },
+        });
+        throw err;
+      }
     },
     {
       connection,

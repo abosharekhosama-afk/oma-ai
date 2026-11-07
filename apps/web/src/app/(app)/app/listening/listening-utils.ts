@@ -11,6 +11,7 @@ export const LISTENING_PLATFORMS = [
   { id: 'REDDIT', short: 'RD', color: '#ff4500' },
   { id: 'YOUTUBE', short: 'YT', color: '#ff0000' },
   { id: 'WEB', short: 'W', color: '#6b7280' },
+  { id: 'WHATSAPP', short: 'WA', color: '#128C7E' },
 ] as const;
 
 export function platformLabel(p: string) {
@@ -146,10 +147,27 @@ export function hitInDateRange(hit: ListeningHit, start: Date, end: Date) {
   return t >= start.getTime() && t <= end.getTime();
 }
 
+export function rulesOfKind<T extends { kind?: string }>(rules: T[], kind: string): T[] {
+  const wanted = kind.toUpperCase();
+  return rules.filter((rule) => (rule.kind || 'BRAND').toUpperCase() === wanted);
+}
+
+export function pickRule<T extends { id: string }>(
+  rules: T[],
+  selectedId: string | null,
+): T | null {
+  if (!rules.length) return null;
+  if (selectedId) {
+    const found = rules.find((rule) => rule.id === selectedId);
+    if (found) return found;
+  }
+  return rules[0] ?? null;
+}
+
 export function hitThumbnail(hit: ListeningHit) {
   if (hit.mediaUrls?.[0]) return hit.mediaUrls[0];
   if (hit.authorAvatar) return hit.authorAvatar;
-  return `https://picsum.photos/seed/${encodeURIComponent(hit.id)}/144/144`;
+  return null;
 }
 
 export function isNewHit(hit: ListeningHit) {

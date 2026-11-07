@@ -257,6 +257,7 @@ const routeRequirements: Record<string, string[]> = {
   'POST /api/v1/inbox/messages/:messageId/delete': ['content.update'],
   'POST /api/v1/inbox/messages/:messageId/like': ['content.update'],
   // Social Listening
+  'GET /api/v1/listening/sources': ['content.read'],
   'GET /api/v1/listening/rules': ['content.read'],
   'POST /api/v1/listening/rules': ['content.update'],
   'POST /api/v1/listening/rules/:id': ['content.update'],

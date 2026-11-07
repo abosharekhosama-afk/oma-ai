@@ -5,6 +5,7 @@ import {
   CommentOutlined,
   HeartOutlined,
   InfoCircleOutlined,
+  PlusOutlined,
   RetweetOutlined,
 } from '../../../../components/ui/lucide-icons';
 import { NetworkIcon } from '../../../../components/content/network-icon';
@@ -14,10 +15,14 @@ import { useActiveBrandId } from '../../../../lib/active-brand';
 import {
   getListeningCompetitors,
   listListeningHits,
+  listListeningRules,
   type ListeningCompetitorDashboard,
   type ListeningHit,
+  type ListeningRule,
 } from '../../../../lib/listening-api';
+import { useCapabilities } from '../../../../lib/use-capabilities';
 import { useLocale, useT } from '../../../../lib/use-locale';
+import { ListeningRulePanel } from './listening-rule-panel';
 import { ListeningDateRange, resolveDateRange, type DateRangeValue } from './listening-date-range';
 import { ListeningSourceMenu } from './listening-source-menu';
 import {
@@ -28,6 +33,7 @@ import {
   isNewHit,
   platformShort,
   relativeDay,
+  rulesOfKind,
 } from './listening-utils';
 
 const PALETTE = ['#1570ef', '#ee46bc', '#f79009', '#0e9f95', '#7a5af8'];
@@ -156,13 +162,19 @@ export function ListeningCompetitorsView() {
   const [mentionSort, setMentionSort] = useState<'engagement' | 'recency' | 'relevance'>(
     'engagement',
   );
+  const [rules, setRules] = useState<ListeningRule[]>([]);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [panelCreate, setPanelCreate] = useState(true);
+  const caps = useCapabilities();
+  const canMutate = !caps.loading && caps.can('content.update');
+  const competitorRules = useMemo(() => rulesOfKind(rules, 'COMPETITOR'), [rules]);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const platformCsv = platforms.size ? [...platforms].join(',') : undefined;
-      const [res, hitRes] = await Promise.all([
+      const [res, hitRes, ruleRes] = await Promise.all([
         getListeningCompetitors({
           brandId: brandId || undefined,
           from: dateRange.start.toISOString(),
@@ -176,10 +188,13 @@ export function ListeningCompetitorsView() {
           platforms: platformCsv,
           sort: mentionSort,
           limit: 60,
+          ...(activeCompetitorRuleId !== 'all' ? { ruleId: activeCompetitorRuleId } : {}),
         }).catch(() => ({ items: [] as ListeningHit[], total: 0, page: 1, limit: 60 })),
+        listListeningRules(brandId || undefined).catch(() => ({ items: [] as ListeningRule[] })),
       ]);
       setData(res);
       setHits(hitRes.items ?? []);
+      setRules(ruleRes.items ?? []);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load competitors');
       setData(null);
@@ -187,14 +202,14 @@ export function ListeningCompetitorsView() {
     } finally {
       setLoading(false);
     }
-  }, [brandId, dateRange, platforms, mentionSort]);
+  }, [brandId, dateRange, platforms, mentionSort, activeCompetitorRuleId]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
   const entities = data?.entities ?? [];
-  const youEntity = entities.find((e) => e.isYou) ?? entities[0] ?? null;
+  const youEntity = entities.find((e) => e.isYou) ?? null;
   const competitorEntities = useMemo(() => entities.filter((e) => !e.isYou), [entities]);
   const totalMentions = data?.totals.mentions ?? 0;
 
@@ -204,12 +219,11 @@ export function ListeningCompetitorsView() {
   );
 
   const competitorHits = useMemo(() => {
-    const base = hits.filter((h) =>
-      competitorRuleIds.size > 0 && h.ruleId ? competitorRuleIds.has(h.ruleId) : true,
-    );
-    const pool = base.length > 0 ? base : hits;
-    if (activeCompetitorRuleId === 'all') return pool;
-    return pool.filter((h) => h.ruleId === activeCompetitorRuleId);
+    return hits.filter((hit) => {
+      if (!hit.ruleId || !competitorRuleIds.has(hit.ruleId)) return false;
+      if (activeCompetitorRuleId === 'all') return true;
+      return hit.ruleId === activeCompetitorRuleId;
+    });
   }, [hits, competitorRuleIds, activeCompetitorRuleId]);
 
   return (
@@ -219,6 +233,19 @@ export function ListeningCompetitorsView() {
     >
       <header className="oma-plx-listening__toolbar">
         <div className="oma-plx-listening__toolbar-spacer" />
+        <button
+          type="button"
+          className="oma-listening-icon-btn"
+          data-testid="listening-add-competitor"
+          aria-label={t('listening.addCompetitor') || (ar ? 'إضافة منافس' : 'Add competitor')}
+          title={t('listening.addCompetitor') || (ar ? 'إضافة منافس' : 'Add competitor')}
+          onClick={() => {
+            setPanelCreate(true);
+            setPanelOpen(true);
+          }}
+        >
+          <PlusOutlined />
+        </button>
         <ListeningDateRange value={dateRange} onChange={setDateRange} />
       </header>
 
@@ -250,6 +277,33 @@ export function ListeningCompetitorsView() {
         </div>
         <ListeningSourceMenu selected={platforms} onChange={setPlatforms} />
       </div>
+      {!loading && competitorRules.length === 0 ? (
+        <div className="oma-inbox-empty" data-testid="listening-setup-empty">
+          <strong>
+            {t('listening.competitorEmptyTitle') || (ar ? 'أضف منافسًا' : 'Add a competitor')}
+          </strong>
+          <p>
+            {t('listening.competitorEmptyBody') ||
+              (ar
+                ? 'كل منافس له كلماته ومصادره. الإشارات تُنسب إلى قاعدته بعد انتهاء الفحص.'
+                : 'Each competitor keeps its own terms and sources. Mentions stay on that rule after a check finishes.')}
+          </p>
+          {canMutate ? (
+            <button
+              type="button"
+              className="oma-listening-save"
+              onClick={() => {
+                setPanelCreate(true);
+                setPanelOpen(true);
+              }}
+            >
+              {t('listening.addCompetitor') || (ar ? 'إضافة منافس' : 'Add competitor')}
+            </button>
+          ) : (
+            <p>{t('listening.viewOnly') || ''}</p>
+          )}
+        </div>
+      ) : null}
 
       {error ? (
         <ErrorState compact kind="generic" body={error} onRetry={() => void load()} />
@@ -615,7 +669,13 @@ export function ListeningCompetitorsView() {
                       <div className="oma-plx-listening-card__top">
                         <div className="oma-plx-listening-card__author">
                           <span className="oma-plx-listening-card__avatar" aria-hidden>
-                            <img src={thumb} alt="" />
+                            {thumb ? (
+                              <img src={thumb} alt="" />
+                            ) : (
+                              <span className="oma-listening-avatar-fallback">
+                                {(h.authorName || '?').slice(0, 1)}
+                              </span>
+                            )}
                             <span className={`plat plat--${h.platform}`}>
                               {platformShort(h.platform)}
                             </span>
@@ -688,6 +748,24 @@ export function ListeningCompetitorsView() {
           </section>
         </>
       ) : null}
+      <ListeningRulePanel
+        open={panelOpen}
+        kind="COMPETITOR"
+        brandName={youEntity?.name || (ar ? 'العلامة' : 'Brand')}
+        brandId={brandId}
+        rules={competitorRules}
+        activeRuleId={activeCompetitorRuleId === 'all' ? null : activeCompetitorRuleId}
+        canMutate={canMutate}
+        createOnOpen={panelCreate}
+        onClose={() => setPanelOpen(false)}
+        onSelect={(id) => setActiveCompetitorRuleId(id)}
+        onSaved={(id) => {
+          setActiveCompetitorRuleId(id);
+          setPanelCreate(false);
+          setPanelOpen(false);
+          void load();
+        }}
+      />
     </div>
   );
 }

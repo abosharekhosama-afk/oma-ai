@@ -11,7 +11,7 @@
 | **عامل الاستماع** (worker)           | يجري `listening.poll` كل ~5 دقائق للقواعد الحية؛ يقيّم **التنبيهات** يومياً ليوم الأمس. |
 | **واجهة API**                        | `/api/v1/listening/*` مع صلاحيات `content.read` / `content.update`.                     |
 
-المنصات: `META_FB`, `META_IG`, `TIKTOK`, `LINKEDIN`, `X`, `REDDIT`, `WEB`, `YOUTUBE` (+ `WHATSAPP` عبر جسر Inbox). جلب Reddit عام؛ YouTube/Web عند مفاتيح Google في البيئة (انظر أسفل المستند).
+المنصات: `META_FB`, `META_IG`, `TIKTOK`, `LINKEDIN`, `X`, `REDDIT`, `WEB`, `YOUTUBE`, `WHATSAPP`. فيسبوك وإنستغرام من الحساب المربوط. Reddit بحث عام. يوتيوب وبحث الويب عند مفاتيح الخادم. X وتيك توك ولينكدإن وواتساب من صندوق الوارد فقط. كل قاعدة تحتفظ بإشاراتها عبر المفتاح `(tenantId, ruleId, platform, externalPostId)`.
 
 ---
 
@@ -21,7 +21,7 @@
 
 **ما تفعله:** تعرض KPIs (إشارات، تفاعل، مشاعر)، مخطط الحجم، وقائمة الإشارات لقاعدة نوع `BRAND`.
 
-**المنطق:** تستدعي `GET /listening/stats` و`GET /listening/hits` مع `ruleId` للقاعدة الأساسية. الاتجاه (% مقابل الفترة السابقة) يُحسب من صفوف `ListeningHit` في DB. زر المزامنة يستدعي `POST /listening/sync`.
+**المنطق:** أيقونة «إعداد المراقبة» تفتح لوحة لإدارة عدة قواعد `BRAND` (الاسم، الكلمات، الهاشتاغات، المصادر، إيقاف/استئناف). النتائج والإحصاءات للقاعدة المختارة فقط. `POST /listening/sync` يضع الحالة `QUEUED` ولا يدّعي انتهاء الفحص.
 
 ---
 
@@ -31,7 +31,7 @@
 
 **ما تفعله:** نفس لوحة Brand لكن لقاعدة `kind === TOPIC` (أو اسم يحتوي topic/hashtag).
 
-**المنطق:** قاعدة موضوع منفصلة بكلمات/هاشتاغات؛ الإشارات مرتبطة بـ `ruleId` تلك القاعدة.
+**المنطق:** أيقونة الإضافة تنشئ قاعدة `TOPIC`. المواضيع المحفوظة قابلة للاختيار والتعديل والإيقاف، ونتائج كل موضوع معزولة.
 
 ---
 
@@ -92,7 +92,12 @@ SEED_INBOX_DEMO=1 pnpm db:seed:inbox-demo
 
 `PATCH /api/v1/workspace/settings` مع `listening_slack_webhook_url` (رابط `hooks.slack.com/services/...` فقط).
 
+## إدارة القواعد
+
+`GET /api/v1/listening/sources` يعيد جاهزية المصادر بلا أسرار: `configured` أو `not_configured` أو `needs_account` أو `public` أو `inbox_only`، مع مسار داخلي لتبويب الحسابات في إعدادات العلامة. القراءة `content.read` والتعديل `content.update`. الإيقاف يبقي الإشارات التاريخية.
+
 ## فجوات متبقية
 
-- TikTok / LinkedIn / X في **poll مباشر** ما زالت تعتمد على جسر الـ Inbox والربط الاجتماعي (ليست Graph عام).
-- Web/YouTube يتطلبان مفاتيح Google في البيئة؛ بدونها يُسجَّل تخطٍّ صادق ولا تُلفَّق بيانات.
+- TikTok / LinkedIn / X / WhatsApp ليست بحثًا عامًا؛ تصل عبر صندوق الوارد للحساب المربوط.
+- Web/YouTube يتطلبان `YOUTUBE_API_KEY` و`GOOGLE_CSE_API_KEY` و`GOOGLE_CSE_CX` على الخادم. الواجهة لا تجمع هذه المفاتيح.
+- بحث Reddit ويوتيوب والويب يستخدم حتى خمسة مصطلحات لكل قاعدة في كل دورة.

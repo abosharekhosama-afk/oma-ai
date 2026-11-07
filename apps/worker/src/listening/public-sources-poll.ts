@@ -1,3 +1,4 @@
+import { listeningSearchTerms } from '@oma/domain';
 import { createLogger } from '@oma/observability';
 import { matchedTerms, recordListeningHit } from './record-hit';
 
@@ -19,19 +20,14 @@ function platformAllowed(platforms: string[], p: string) {
   return !platforms.length || platforms.includes(p);
 }
 
-function queryTerms(keywords: string[], hashtags: string[]) {
-  const parts = [...keywords, ...hashtags.map((h) => h.replace(/^#/, ''))].filter(Boolean);
-  return parts.slice(0, 3).join(' ');
-}
-
 const UA = 'oma-listening/1.0';
 
 async function pollReddit(
   rule: { id: string; tenantId: string },
   keywords: string[],
   hashtags: string[],
+  q: string,
 ): Promise<{ ingested: number; errors: string[] }> {
-  const q = queryTerms(keywords, hashtags);
   if (!q) return { ingested: 0, errors: [] };
   const errors: string[] = [];
   let ingested = 0;
@@ -87,10 +83,10 @@ async function pollYoutube(
   rule: { id: string; tenantId: string },
   keywords: string[],
   hashtags: string[],
+  q: string,
 ): Promise<{ ingested: number; errors: string[] }> {
   const key = process.env.YOUTUBE_API_KEY?.trim();
   if (!key) return { ingested: 0, errors: ['youtube:YOUTUBE_API_KEY_missing'] };
-  const q = queryTerms(keywords, hashtags);
   if (!q) return { ingested: 0, errors: [] };
   const errors: string[] = [];
   let ingested = 0;
@@ -147,11 +143,11 @@ async function pollWeb(
   rule: { id: string; tenantId: string },
   keywords: string[],
   hashtags: string[],
+  q: string,
 ): Promise<{ ingested: number; errors: string[] }> {
   const cseKey = process.env.GOOGLE_CSE_API_KEY?.trim();
   const cseCx = process.env.GOOGLE_CSE_CX?.trim();
   if (!cseKey || !cseCx) return { ingested: 0, errors: ['web:GOOGLE_CSE_not_configured'] };
-  const q = queryTerms(keywords, hashtags);
   if (!q) return { ingested: 0, errors: [] };
   const errors: string[] = [];
   let ingested = 0;
@@ -208,20 +204,33 @@ export async function pollPublicListeningSources(rule: {
   let ingested = 0;
   const errors: string[] = [];
 
-  if (platformAllowed(platforms, 'REDDIT')) {
-    const r = await pollReddit(rule, keywords, hashtags);
-    ingested += r.ingested;
-    errors.push(...r.errors);
+  const queries = listeningSearchTerms(keywords, hashtags);
+  const youtubeReady = Boolean(process.env.YOUTUBE_API_KEY?.trim());
+  const webReady = Boolean(
+    process.env.GOOGLE_CSE_API_KEY?.trim() && process.env.GOOGLE_CSE_CX?.trim(),
+  );
+  if (platformAllowed(platforms, 'YOUTUBE') && !youtubeReady) {
+    errors.push('youtube:YOUTUBE_API_KEY_missing');
   }
-  if (platformAllowed(platforms, 'YOUTUBE')) {
-    const r = await pollYoutube(rule, keywords, hashtags);
-    ingested += r.ingested;
-    errors.push(...r.errors);
+  if (platformAllowed(platforms, 'WEB') && !webReady) {
+    errors.push('web:GOOGLE_CSE_not_configured');
   }
-  if (platformAllowed(platforms, 'WEB')) {
-    const r = await pollWeb(rule, keywords, hashtags);
-    ingested += r.ingested;
-    errors.push(...r.errors);
+  for (const q of queries) {
+    if (platformAllowed(platforms, 'REDDIT')) {
+      const r = await pollReddit(rule, keywords, hashtags, q);
+      ingested += r.ingested;
+      errors.push(...r.errors);
+    }
+    if (platformAllowed(platforms, 'YOUTUBE') && youtubeReady) {
+      const r = await pollYoutube(rule, keywords, hashtags, q);
+      ingested += r.ingested;
+      errors.push(...r.errors);
+    }
+    if (platformAllowed(platforms, 'WEB') && webReady) {
+      const r = await pollWeb(rule, keywords, hashtags, q);
+      ingested += r.ingested;
+      errors.push(...r.errors);
+    }
   }
 
   if (errors.length) log.info({ ruleId: rule.id, errors: errors.length, ingested }, 'public poll');

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from '@oma/ui/controls';
 import {
   AtSignOutlined,
@@ -12,6 +12,8 @@ import {
   HeartOutlined,
   InfoCircleOutlined,
   MinusCircleOutlined,
+  PlusOutlined,
+  SettingOutlined,
   SmileOutlined,
   ZapOutlined,
 } from '../../../../components/ui/lucide-icons';
@@ -21,7 +23,6 @@ import {
   listListeningRules,
   patchListeningHit,
   syncListening,
-  updateListeningRule,
   type ListeningHit,
   type ListeningRule,
   type ListeningStats,
@@ -41,39 +42,23 @@ import {
   hitEngagement,
   hitThumbnail,
   isNewHit,
+  pickRule,
   platformLabel,
   platformShort,
   relativeDay,
+  rulesOfKind,
   type ListeningView,
 } from './listening-utils';
+import { ListeningRulePanel } from './listening-rule-panel';
+import { useCapabilities } from '../../../../lib/use-capabilities';
 
 type SortKey = 'relevance' | 'engagement' | 'recency';
 type SentimentFilter = 'all' | 'POSITIVE' | 'NEUTRAL' | 'NEGATIVE';
 
-function ruleForView(rules: ListeningRule[], view: ListeningView): ListeningRule | null {
-  if (view === 'competitors') {
-    return (
-      rules.find((r) => r.kind === 'COMPETITOR') ??
-      rules.find((r) => /competitor/i.test(r.name)) ??
-      rules[1] ??
-      rules[0] ??
-      null
-    );
-  }
-  if (view === 'topic') {
-    return (
-      rules.find((r) => r.kind === 'TOPIC') ??
-      rules.find((r) => /topic|hashtag/i.test(r.name)) ??
-      rules[0] ??
-      null
-    );
-  }
-  return (
-    rules.find((r) => r.kind === 'BRAND') ??
-    rules.find((r) => /brand/i.test(r.name)) ??
-    rules[0] ??
-    null
-  );
+function kindForView(view: ListeningView): 'BRAND' | 'TOPIC' | 'COMPETITOR' {
+  if (view === 'topic') return 'TOPIC';
+  if (view === 'competitors') return 'COMPETITOR';
+  return 'BRAND';
 }
 
 function formatTrend(pct: number | null | undefined) {
@@ -82,18 +67,33 @@ function formatTrend(pct: number | null | undefined) {
   return `${sign} ${Math.abs(pct)}%`;
 }
 
-function formatNextCheck(iso: string | null | undefined, t: (k: string) => string) {
-  if (!iso) return t('listening.nextCheck') || 'Next check in 2 days';
-  const ms = new Date(iso).getTime() - Date.now();
-  if (ms <= 0) return t('listening.pollSoon') || 'Checking soon…';
-  const mins = Math.ceil(ms / 60_000);
-  if (mins < 120)
-    return (t('listening.nextCheckMinutes') || 'Next check in {n} min').replace(
-      '{n}',
-      String(mins),
-    );
-  const hours = Math.ceil(mins / 60);
-  return (t('listening.nextCheckHours') || 'Next check in {n} h').replace('{n}', String(hours));
+function formatWhen(iso: string | null | undefined) {
+  if (!iso) return '';
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleString();
+}
+
+function syncLabel(rule: ListeningRule | null, t: (k: string) => string) {
+  if (!rule) return t('listening.sync.none') || 'No monitoring rule yet';
+  if (!rule.isLive) return t('listening.status.paused') || 'Paused';
+  const status = rule.syncStatus || 'IDLE';
+  if (status === 'QUEUED')
+    return t('listening.sync.queued') || 'Queued. The worker has not finished.';
+  if (status === 'RUNNING') return t('listening.sync.running') || 'Checking sources now';
+  if (status === 'FAILED') {
+    return `${t('listening.sync.failed') || 'Last check failed'}${
+      rule.lastSyncError ? ` (${rule.lastSyncError})` : ''
+    }`;
+  }
+  if (status === 'SUCCEEDED' && rule.lastSyncFinishedAt) {
+    const when = `${t('listening.sync.last') || 'Last check'} ${formatWhen(rule.lastSyncFinishedAt)}`;
+    return rule.lastSyncError ? `${when} (${rule.lastSyncError})` : when;
+  }
+  if (rule.lastPollAt) {
+    return `${t('listening.sync.last') || 'Last check'} ${formatWhen(rule.lastPollAt)}`;
+  }
+  return t('listening.sync.idle') || 'Not checked yet';
 }
 
 function SentimentBar({
@@ -204,9 +204,14 @@ export function ListeningClient({ view }: { view: ListeningView }) {
   const [showExcluded, setShowExcluded] = useState(false);
   const [dateRange, setDateRange] = useState<DateRangeValue>(() => resolveDateRange('7'));
   const [syncing, setSyncing] = useState(false);
-  const initialSync = useRef(false);
-
-  const activeRule = useMemo(() => ruleForView(rules, view), [rules, view]);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [panelCreate, setPanelCreate] = useState(false);
+  const caps = useCapabilities();
+  const canMutate = !caps.loading && caps.can('content.update');
+  const kind = kindForView(view);
+  const kindRules = useMemo(() => rulesOfKind(rules, kind), [rules, kind]);
+  const activeRule = useMemo(() => pickRule(kindRules, selectedId), [kindRules, selectedId]);
 
   useEffect(() => {
     void listScopedBrands()
@@ -227,81 +232,102 @@ export function ListeningClient({ view }: { view: ListeningView }) {
     }
   }, []);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const r = await listListeningRules(activeBrandId || undefined);
-      setRules(r.items);
-      const rule = ruleForView(r.items, view);
-      const platformCsv = platforms.size ? [...platforms].join(',') : undefined;
-      const hitParams: Record<string, string | number | boolean | undefined> = {
-        limit: 100,
-        from: dateRange.start.toISOString(),
-        to: dateRange.end.toISOString(),
-        sort,
-        includeHidden: showHidden,
-        includeExcluded: showExcluded,
-      };
-      if (activeBrandId) hitParams.brandId = activeBrandId;
-      if (platformCsv) hitParams.platforms = platformCsv;
-      if (sentimentFilter !== 'all') hitParams.sentiment = sentimentFilter;
-      if (view === 'alerts') hitParams.highPriorityOnly = true;
-      else if (rule) hitParams.ruleId = rule.id;
+  const load = useCallback(
+    async (quiet = false) => {
+      if (!quiet) setLoading(true);
+      setError(null);
+      try {
+        const r = await listListeningRules(activeBrandId || undefined);
+        setRules(r.items);
+        const rule = pickRule(rulesOfKind(r.items, kind), selectedId);
+        if (!rule) {
+          setHits([]);
+          setStats(null);
+          return;
+        }
+        const platformCsv = platforms.size ? [...platforms].join(',') : undefined;
+        const hitParams: Record<string, string | number | boolean | undefined> = {
+          limit: 100,
+          from: dateRange.start.toISOString(),
+          to: dateRange.end.toISOString(),
+          sort,
+          includeHidden: showHidden,
+          includeExcluded: showExcluded,
+        };
+        if (activeBrandId) hitParams.brandId = activeBrandId;
+        if (platformCsv) hitParams.platforms = platformCsv;
+        if (sentimentFilter !== 'all') hitParams.sentiment = sentimentFilter;
+        if (view === 'alerts') hitParams.highPriorityOnly = true;
+        else if (rule) hitParams.ruleId = rule.id;
 
-      const statParams: Record<string, string | undefined> = {
-        from: dateRange.start.toISOString(),
-        to: dateRange.end.toISOString(),
-      };
-      if (activeBrandId) statParams.brandId = activeBrandId;
-      if (platformCsv) statParams.platforms = platformCsv;
-      if (rule && view !== 'alerts') statParams.ruleId = rule.id;
+        const statParams: Record<string, string | undefined> = {
+          from: dateRange.start.toISOString(),
+          to: dateRange.end.toISOString(),
+        };
+        if (activeBrandId) statParams.brandId = activeBrandId;
+        if (platformCsv) statParams.platforms = platformCsv;
+        if (rule && view !== 'alerts') statParams.ruleId = rule.id;
 
-      const [h, s] = await Promise.all([
-        listListeningHits(hitParams),
-        getListeningStats(statParams).catch(() => null),
-      ]);
-      setHits(h.items);
-      setStats(s);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load listening');
-      setHits([]);
-      setStats(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [view, activeBrandId, dateRange, platforms, sort, sentimentFilter, showHidden, showExcluded]);
+        const [h, s] = await Promise.all([
+          listListeningHits(hitParams),
+          getListeningStats(statParams).catch(() => null),
+        ]);
+        setHits(h.items);
+        setStats(s);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Failed to load listening');
+        setHits([]);
+        setStats(null);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [
+      view,
+      kind,
+      selectedId,
+      activeBrandId,
+      dateRange,
+      platforms,
+      sort,
+      sentimentFilter,
+      showHidden,
+      showExcluded,
+    ],
+  );
 
   const runSync = useCallback(async () => {
+    if (!activeRule?.isLive) return;
     setSyncing(true);
+    setError(null);
     try {
-      const rule = ruleForView(rules, view);
-      try {
-        await syncListening({
-          brandId: activeBrandId || undefined,
-          ruleId: rule?.id,
-        });
-        await new Promise((r) => setTimeout(r, 1200));
-      } catch {
-        /* no live rules or queue unavailable */
-      }
-      await load();
+      await syncListening({
+        brandId: activeBrandId || undefined,
+        ruleId: activeRule.id,
+      });
+      await load(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Sync failed');
     } finally {
       setSyncing(false);
     }
-  }, [rules, view, activeBrandId, load]);
+  }, [activeRule, activeBrandId, load]);
 
   useEffect(() => {
     void load();
   }, [load]);
 
+  const watchStatus = activeRule?.syncStatus;
+  const watchId = activeRule?.id;
   useEffect(() => {
-    if (initialSync.current) return;
-    initialSync.current = true;
-    void runSync();
-  }, [runSync]);
+    if (!watchId || (watchStatus !== 'QUEUED' && watchStatus !== 'RUNNING')) return;
+    const timer = window.setInterval(() => void load(true), 4000);
+    const stop = window.setTimeout(() => window.clearInterval(timer), 20000);
+    return () => {
+      window.clearInterval(timer);
+      window.clearTimeout(stop);
+    };
+  }, [watchId, watchStatus, load]);
 
   const keywords = useMemo(() => {
     const fromRule = activeRule?.keywords ?? [];
@@ -347,19 +373,9 @@ export function ListeningClient({ view }: { view: ListeningView }) {
     }
   };
 
-  const onAddContext = async () => {
-    if (!activeRule) return;
-    const text = window.prompt(
-      t('listening.contextPrompt') || 'Describe your brand for relevance scoring:',
-      activeRule.contextJson ?? '',
-    );
-    if (text === null) return;
-    try {
-      await updateListeningRule(activeRule.id, { contextJson: text.trim() || null });
-      await load();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not save context');
-    }
+  const onAddContext = () => {
+    setPanelCreate(false);
+    setPanelOpen(true);
   };
 
   const pageTitle =
@@ -378,6 +394,39 @@ export function ListeningClient({ view }: { view: ListeningView }) {
       <header className="oma-plx-listening__toolbar">
         <div className="oma-plx-listening__toolbar-spacer" />
         <ListeningDateRange value={dateRange} onChange={setDateRange} />
+        <button
+          type="button"
+          className="oma-listening-icon-btn"
+          data-testid={view === 'topic' ? 'listening-add-topic' : 'listening-setup-monitoring'}
+          aria-label={
+            view === 'topic'
+              ? t('listening.addTopic') || 'Add topic'
+              : t('listening.setup') || 'Set up monitoring'
+          }
+          title={
+            view === 'topic'
+              ? t('listening.addTopic') || 'Add topic'
+              : t('listening.setup') || 'Set up monitoring'
+          }
+          onClick={() => {
+            setPanelCreate(view === 'topic' || kindRules.length === 0);
+            setPanelOpen(true);
+          }}
+        >
+          {view === 'topic' ? <PlusOutlined /> : <SettingOutlined />}
+        </button>
+        {activeRule?.isLive ? (
+          <button
+            type="button"
+            className="oma-listening-icon-btn"
+            aria-label={t('listening.checkNow') || 'Check now'}
+            title={t('listening.checkNow') || 'Check now'}
+            disabled={syncing}
+            onClick={() => void runSync()}
+          >
+            <span aria-hidden>{syncing ? '…' : '↻'}</span>
+          </button>
+        ) : null}
         <Button
           type="primary"
           size="small"
@@ -394,11 +443,33 @@ export function ListeningClient({ view }: { view: ListeningView }) {
           <h1 className="oma-plx-listening__title">{pageTitle}</h1>
           {activeRule ? <ListeningSourceMenu selected={platforms} onChange={setPlatforms} /> : null}
         </div>
-        <p className="oma-plx-listening__next-check">
-          {formatNextCheck(stats?.nextPollAt, t)}
-          {syncing ? ` · ${t('listening.syncing') || 'Syncing…'}` : ''}
+        <p className="oma-plx-listening__next-check" data-testid="listening-sync-status">
+          {syncLabel(activeRule, t)}
         </p>
       </div>
+      {kindRules.length > 1 ? (
+        <div className="oma-listening-pills" role="tablist">
+          {kindRules.map((rule) => (
+            <button
+              key={rule.id}
+              type="button"
+              role="tab"
+              aria-selected={activeRule?.id === rule.id}
+              className="oma-listening-pill"
+              data-active={activeRule?.id === rule.id ? 'true' : 'false'}
+              data-testid={`listening-rule-pill-${rule.id}`}
+              onClick={() => setSelectedId(rule.id)}
+            >
+              {rule.name}
+              <small>
+                {rule.isLive
+                  ? t('listening.status.active') || 'Active'
+                  : t('listening.status.paused') || 'Paused'}
+              </small>
+            </button>
+          ))}
+        </div>
+      ) : null}
 
       {showDashboard ? (
         <>
@@ -642,12 +713,40 @@ export function ListeningClient({ view }: { view: ListeningView }) {
           <ErrorState compact kind="generic" body={error} onRetry={() => void load()} />
         ) : null}
         {loading ? <ListeningShimmer embedded /> : null}
-        {!loading && filteredHits.length === 0 ? (
+        {!loading && kindRules.length === 0 ? (
+          <div className="oma-inbox-empty" data-testid="listening-setup-empty">
+            <strong>{t('listening.setupEmptyTitle') || 'Set up monitoring'}</strong>
+            <p>
+              {t('listening.setupEmptyBody') ||
+                'Add keywords, hashtags, and sources. Mentions appear after the worker finishes a check.'}
+            </p>
+            {canMutate ? (
+              <button
+                type="button"
+                className="oma-listening-save"
+                onClick={() => {
+                  setPanelCreate(true);
+                  setPanelOpen(true);
+                }}
+              >
+                {view === 'topic'
+                  ? t('listening.addTopic') || 'Add topic'
+                  : t('listening.setup') || 'Set up monitoring'}
+              </button>
+            ) : (
+              <p>
+                {t('listening.viewOnly') ||
+                  'You can view rules. Editing needs content update access.'}
+              </p>
+            )}
+          </div>
+        ) : null}
+        {!loading && kindRules.length > 0 && filteredHits.length === 0 ? (
           <div className="oma-inbox-empty">
             <strong>{t('listening.emptyTitle') || 'No mentions yet'}</strong>
             <p>
               {t('listening.emptyBody') ||
-                'Live rules poll platform search when credentials are configured, or run inbox demo seed.'}
+                'A check has to finish before mentions show here. Source readiness is listed in the monitoring panel.'}
             </p>
           </div>
         ) : null}
@@ -661,6 +760,7 @@ export function ListeningClient({ view }: { view: ListeningView }) {
               keywords.length ? keywords : h.matchedKeywords,
             );
             const thumb = hitThumbnail(h);
+            const initial = (h.authorName || h.authorHandle || '?').slice(0, 1);
             return (
               <li
                 key={h.id}
@@ -670,7 +770,11 @@ export function ListeningClient({ view }: { view: ListeningView }) {
                 <div className="oma-plx-listening-card__top">
                   <div className="oma-plx-listening-card__author">
                     <span className="oma-plx-listening-card__avatar" aria-hidden>
-                      <img src={thumb} alt="" />
+                      {thumb ? (
+                        <img src={thumb} alt="" />
+                      ) : (
+                        <span className="oma-listening-avatar-fallback">{initial}</span>
+                      )}
                       <span className={`plat plat--${h.platform}`}>
                         {platformShort(h.platform)}
                       </span>
@@ -697,7 +801,9 @@ export function ListeningClient({ view }: { view: ListeningView }) {
                   />
                 </div>
                 <div className="oma-plx-listening-card__body">
-                  <img className="oma-plx-listening-card__media" src={thumb} alt="" />
+                  {thumb ? (
+                    <img className="oma-plx-listening-card__media" src={thumb} alt="" />
+                  ) : null}
                   <p>
                     {parts.map((p, i) =>
                       p.highlight ? (
@@ -743,6 +849,24 @@ export function ListeningClient({ view }: { view: ListeningView }) {
           })}
         </ul>
       </section>
+      <ListeningRulePanel
+        open={panelOpen}
+        kind={kind}
+        brandName={brandTitle}
+        brandId={activeBrandId}
+        rules={kindRules}
+        activeRuleId={activeRule?.id ?? null}
+        canMutate={canMutate}
+        createOnOpen={panelCreate}
+        onClose={() => setPanelOpen(false)}
+        onSelect={setSelectedId}
+        onSaved={(id) => {
+          setSelectedId(id);
+          setPanelCreate(false);
+          setPanelOpen(false);
+          void load(true);
+        }}
+      />
     </div>
   );
 }
