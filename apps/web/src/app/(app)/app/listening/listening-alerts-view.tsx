@@ -11,7 +11,7 @@ import {
   updateListeningAlert,
   type ListeningAlertRow,
 } from '../../../../lib/listening-api';
-import { useLocale, useT } from '../../../../lib/use-locale';
+import { useLocale } from '../../../../lib/use-locale';
 
 const ENTITY_COLORS = ['#1570ef', '#ee46bc', '#f79009', '#0e9f95'];
 
@@ -24,7 +24,6 @@ function formatLastFired(iso: string | null, locale: string) {
 }
 
 export function ListeningAlertsView() {
-  const t = useT();
   const locale = useLocale();
   const ar = locale.startsWith('ar');
   const brandId = useActiveBrandId();
