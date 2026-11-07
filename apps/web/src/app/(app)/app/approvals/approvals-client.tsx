@@ -1,9 +1,15 @@
 'use client';
 
-import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Button } from '@oma/ui/controls';
-import { CommentOutlined } from '../../../../components/ui/lucide-icons';
+import { createPortal } from 'react-dom';
+import {
+  CheckCircleOutlined,
+  CheckOutlined,
+  ClockCircleOutlined,
+  CommentOutlined,
+  LinkOutlined,
+  PlayCircleOutlined,
+} from '../../../../components/ui/lucide-icons';
 import {
   ApprovalChannelRail,
   type ApprovalChannelRow,
@@ -36,6 +42,13 @@ type Me = { user?: { id?: string; name?: string | null } };
 
 const SECTIONS: ApprovalSection[] = ['awaiting', 'feedback', 'approved'];
 
+function formatCardTime(item: ContentRowExtra): { isScheduled: boolean; label: string } {
+  const iso = item.scheduledAt || item.plannedAt;
+  const hm = iso && iso.length >= 16 ? iso.slice(11, 16) : '21:40';
+  const isScheduled = Boolean(item.scheduledAt) && item.status !== 'DRAFT';
+  return { isScheduled, label: isScheduled ? hm : `Draft ${hm}` };
+}
+
 export function ApprovalsClient() {
   const t = useT();
   const locale = useLocale();
@@ -46,11 +59,18 @@ export function ApprovalsClient() {
   const [brands, setBrands] = useState<Map<string, string>>(new Map());
   const [commentsById, setCommentsById] = useState<Map<string, ContentCommentDto[]>>(new Map());
   const [userId, setUserId] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [channelFilter, setChannelFilter] = useState<Set<string>>(new Set());
   const [reviewOpen, setReviewOpen] = useState(false);
   const [reviewSection, setReviewSection] = useState<ApprovalSection>('awaiting');
+  const [reviewInitialItemId, setReviewInitialItemId] = useState<string | null>(null);
   const [approvingAll, setApprovingAll] = useState(false);
+  const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
+
+  useEffect(() => {
+    setHeaderSlot(document.getElementById('oma-content-top-actions'));
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -60,6 +80,7 @@ export function ApprovalsClient() {
         api<Me>('/api/v1/auth/me').catch(() => ({ user: undefined })),
       ]);
       setUserId(me.user?.id ?? null);
+      setUserName(me.user?.name ?? null);
       const nameMap = new Map(ws.brands.map((b) => [b.id, pickCopy(b.name, locale)]));
       setBrands(nameMap);
       const items = ws.content as ContentRowExtra[];
@@ -68,7 +89,7 @@ export function ApprovalsClient() {
       const approvalIds = items
         .filter((i) => {
           const st = i.approvalState || 'NOT_REQUESTED';
-          return st !== 'NOT_REQUESTED' && st !== 'APPROVED';
+          return st !== 'NOT_REQUESTED';
         })
         .slice(0, 60)
         .map((i) => i.id);
@@ -128,7 +149,20 @@ export function ApprovalsClient() {
     [filteredRows, userId, commentsById],
   );
 
-  const reviewQueue = buckets[reviewSection];
+  const reviewQueue = useMemo(() => {
+    if (reviewSection === 'approved') return buckets.approved;
+    if (reviewSection === 'feedback') return buckets.feedback;
+    const seen = new Set<string>();
+    const combined: ContentRowExtra[] = [];
+    for (const row of [...buckets.awaiting, ...buckets.feedback]) {
+      if (!seen.has(row.id)) {
+        seen.add(row.id);
+        combined.push(row);
+      }
+    }
+    return combined;
+  }, [buckets, reviewSection]);
+
   const pendingTotal = approvalQueueTotal(buckets);
 
   const toggleChannel = (id: string) => {
@@ -155,130 +189,228 @@ export function ApprovalsClient() {
     }
   };
 
+  const openReviewForSection = (section: ApprovalSection, itemId?: string) => {
+    setReviewSection(section);
+    setReviewInitialItemId(itemId ?? null);
+    setReviewOpen(true);
+  };
+
+  const topBarActions = (
+    <div className="oma-plx-approvals__top-actions">
+      <ApprovalChannelRail
+        channels={channels}
+        enabled={channelFilter}
+        onToggle={toggleChannel}
+        onToggleAll={(on) => setChannelFilter(on ? new Set() : new Set(channels.map((c) => c.id)))}
+      />
+      <button
+        type="button"
+        className="oma-plx-approvals__approve-all-btn"
+        disabled={!buckets.awaiting.length || approvingAll}
+        onClick={() => void approveAll()}
+        data-testid="approvals-approve-all"
+      >
+        {t('approvals.approve_all')}
+      </button>
+      <button
+        type="button"
+        className="oma-plx-approvals__review-cta"
+        disabled={pendingTotal === 0}
+        onClick={() => openReviewForSection('awaiting')}
+        data-testid="approvals-review-posts"
+      >
+        {t('approvals.review_n_posts')
+          ? t('approvals.review_n_posts').replace('{n}', String(pendingTotal))
+          : `${t('approvals.review_posts')} ${pendingTotal}`}
+      </button>
+    </div>
+  );
+
   return (
     <div className="oma-plx-approvals" data-testid="demo-my-approvals">
-      <header className="oma-plx-approvals__head">
-        <div>
-          <h1 className="oma-plx-listening__title">{t('views.my_approvals')}</h1>
-          <p className="oma-plx-deliv__subtitle">{t('approvals.subtitle')}</p>
-        </div>
-        <div className="oma-plx-approvals__head-actions">
-          <button
-            type="button"
-            className="oma-plx-approvals__link-btn"
-            disabled={!buckets.awaiting.length || approvingAll}
-            onClick={() => void approveAll()}
-            data-testid="approvals-approve-all"
-          >
-            {t('approvals.approve_all')}
-          </button>
-          <Button
-            type="primary"
-            disabled={pendingTotal === 0}
-            onClick={() => {
-              setReviewSection('awaiting');
-              setReviewOpen(true);
-            }}
-            data-testid="approvals-review-posts"
-          >
-            {`${t('approvals.review_posts')} ${pendingTotal}`}
-          </Button>
-        </div>
-      </header>
+      {headerSlot && headerSlot.isConnected ? (
+        createPortal(topBarActions, headerSlot)
+      ) : (
+        <header className="oma-plx-approvals__subbar">{topBarActions}</header>
+      )}
 
-      <div className="oma-plx-approvals__body">
-        <ApprovalChannelRail
-          channels={channels}
-          enabled={channelFilter}
-          onToggle={toggleChannel}
-          onToggleAll={(on) =>
-            setChannelFilter(on ? new Set() : new Set(channels.map((c) => c.id)))
-          }
-        />
-
-        <div className="oma-plx-approvals__board">
-          {loading ? <ContentShimmer embedded /> : null}
-          {!loading ? (
-            <div className="oma-plx-approvals__columns">
-              {SECTIONS.map((section) => (
-                <section key={section} className="oma-plx-approvals__column" data-section={section}>
+      <div className="oma-plx-approvals__board">
+        {loading ? <ContentShimmer embedded /> : null}
+        {!loading ? (
+          <div className="oma-plx-approvals__columns">
+            {SECTIONS.map((section) => {
+              const items = buckets[section];
+              return (
+                <section
+                  key={section}
+                  className="oma-plx-approvals__column-wrap"
+                  data-section={section}
+                >
                   <header className="oma-plx-approvals__column-head">
-                    <span>{t(`approvals.section.${section}`)}</span>
-                    <span className="oma-plx-approvals__column-count">
-                      {buckets[section].length}
+                    <span className="oma-plx-approvals__column-title">
+                      {section === 'awaiting' ? (
+                        <span
+                          className="oma-plx-approvals__sec-ico oma-plx-approvals__sec-ico--awaiting"
+                          aria-hidden
+                        >
+                          ✦
+                        </span>
+                      ) : section === 'feedback' ? (
+                        <CommentOutlined className="oma-plx-approvals__sec-ico oma-plx-approvals__sec-ico--feedback" />
+                      ) : (
+                        <CheckCircleOutlined className="oma-plx-approvals__sec-ico oma-plx-approvals__sec-ico--approved" />
+                      )}
+                      <span>{t(`approvals.section.${section}`)}</span>
+                    </span>
+                    <span
+                      className={`oma-plx-approvals__column-count oma-plx-approvals__column-count--${section}`}
+                    >
+                      {items.length}
                     </span>
                   </header>
-                  {buckets[section].length === 0 ? (
-                    <p className="oma-plx-approvals__empty">{t(`approvals.empty.${section}`)}</p>
-                  ) : (
-                    <ul className="oma-plx-approvals__cards">
-                      {buckets[section].map((item) => {
-                        const brandName = brands.get(item.brandId) ?? '';
-                        const title = pickCopy(item.title, locale);
-                        const caption = item.caption ? pickCopy(item.caption, locale) : title;
-                        const comments = commentCountFor(item.id, commentsById);
-                        return (
-                          <li key={item.id}>
-                            <article
-                              className="oma-plx-approvals-card"
-                              data-testid={`approval-card-${item.id}`}
-                            >
-                              <header className="oma-plx-approvals-card__head">
-                                <NetworkIcon channel={item.channel} size={18} />
-                                <strong>{brandName}</strong>
-                                <span className="oma-plx-approvals-card__time">
-                                  {item.scheduledAt?.slice(11, 16) ?? '—'}
-                                </span>
-                              </header>
-                              <div className="oma-plx-approvals-card__media">
-                                {item.previewAsset ? (
-                                  <MediaSurface
-                                    src={item.previewAsset}
-                                    contentType={item.contentType}
-                                  />
-                                ) : (
-                                  <span className="oma-plx-approvals-card__placeholder">
-                                    {title}
-                                  </span>
-                                )}
-                              </div>
-                              <p className="oma-plx-approvals-card__caption">{caption}</p>
-                              <footer className="oma-plx-approvals-card__foot">
-                                <span data-state={item.approvalState}>
-                                  {t('content.approvals')}
-                                </span>
-                                {comments ? (
-                                  <span className="oma-plx-approvals-card__comments">
-                                    <CommentOutlined />
-                                    {comments}
-                                  </span>
-                                ) : null}
-                              </footer>
-                              <Link
-                                href={`/app/content?open=${item.id}`}
-                                className="oma-plx-approvals-card__open"
+
+                  <div className="oma-plx-approvals__column">
+                    {section === 'awaiting' && items.length > 0 ? (
+                      <button
+                        type="button"
+                        className="oma-plx-approvals__column-review-btn"
+                        onClick={() => openReviewForSection('awaiting')}
+                        data-testid="approvals-column-review-btn"
+                      >
+                        {t('approvals.review_posts')}
+                      </button>
+                    ) : null}
+
+                    {items.length === 0 ? (
+                      <p className="oma-plx-approvals__empty">{t(`approvals.empty.${section}`)}</p>
+                    ) : (
+                      <ul className="oma-plx-approvals__cards">
+                        {items.map((item) => {
+                          const brandName = brands.get(item.brandId) ?? '';
+                          const title = pickCopy(item.title, locale);
+                          const caption = item.caption ? pickCopy(item.caption, locale) : title;
+                          const comments = commentCountFor(item.id, commentsById);
+                          const timeMeta = formatCardTime(item);
+                          const isVideo =
+                            item.contentType === 'REEL' ||
+                            Boolean(
+                              item.previewAsset && /\.(mp4|mov|webm)$/i.test(item.previewAsset),
+                            );
+                          const isApprovedCard = item.approvalState === 'APPROVED';
+
+                          return (
+                            <li key={item.id}>
+                              <article
+                                className="oma-plx-approvals-card"
+                                data-testid={`approval-card-${item.id}`}
+                                role="button"
+                                tabIndex={0}
+                                onClick={() => openReviewForSection(section, item.id)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault();
+                                    openReviewForSection(section, item.id);
+                                  }
+                                }}
                               >
-                                {t('approvals.open_post')}
-                              </Link>
-                            </article>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  )}
+                                <header className="oma-plx-approvals-card__head">
+                                  <span className="oma-plx-approvals-card__nets">
+                                    <NetworkIcon channel={item.channel} size={16} />
+                                  </span>
+                                  <strong className="oma-plx-approvals-card__brand">
+                                    {brandName}
+                                  </strong>
+                                  <span
+                                    className="oma-plx-approvals-card__time"
+                                    data-scheduled={timeMeta.isScheduled ? 'true' : 'false'}
+                                  >
+                                    {timeMeta.isScheduled ? (
+                                      <ClockCircleOutlined className="oma-plx-approvals-card__clock" />
+                                    ) : null}
+                                    <span>{timeMeta.label}</span>
+                                  </span>
+                                </header>
+
+                                <div className="oma-plx-approvals-card__media">
+                                  {item.previewAsset ? (
+                                    <>
+                                      <MediaSurface
+                                        src={item.previewAsset}
+                                        contentType={item.contentType}
+                                      />
+                                      {isVideo ? (
+                                        <span
+                                          className="oma-plx-approvals-card__media-badge"
+                                          aria-hidden
+                                        >
+                                          <PlayCircleOutlined />
+                                        </span>
+                                      ) : null}
+                                    </>
+                                  ) : (
+                                    <div
+                                      className="oma-plx-approvals-card__media-empty"
+                                      aria-hidden
+                                    >
+                                      {isVideo ? (
+                                        <span className="oma-plx-approvals-card__media-badge">
+                                          <PlayCircleOutlined />
+                                        </span>
+                                      ) : (
+                                        <span className="oma-plx-approvals-card__media-badge">
+                                          <LinkOutlined />
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+
+                                <p className="oma-plx-approvals-card__caption">{caption}</p>
+
+                                <footer className="oma-plx-approvals-card__foot">
+                                  {isApprovedCard ? (
+                                    <span className="oma-plx-approvals-card__status oma-plx-approvals-card__status--approved">
+                                      <span className="oma-plx-approvals-card__status-dot">
+                                        <CheckOutlined />
+                                      </span>
+                                      <span>{t('approvals.section.approved')}</span>
+                                    </span>
+                                  ) : (
+                                    <span className="oma-plx-approvals-card__status oma-plx-approvals-card__status--pending">
+                                      <span className="oma-plx-approvals-card__status-ring" />
+                                      <span>{t('approvals.status_pending') || 'Pending'}</span>
+                                    </span>
+                                  )}
+                                  {comments > 0 ? (
+                                    <span className="oma-plx-approvals-card__comments">
+                                      <CommentOutlined />
+                                      <span>{comments}</span>
+                                    </span>
+                                  ) : null}
+                                </footer>
+                              </article>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </div>
                 </section>
-              ))}
-            </div>
-          ) : null}
-        </div>
+              );
+            })}
+          </div>
+        ) : null}
       </div>
 
       {reviewOpen ? (
         <ApprovalReviewFlow
           queue={reviewQueue}
           brandNames={brands}
+          initialItemId={reviewInitialItemId}
+          userName={userName}
           onClose={() => {
             setReviewOpen(false);
+            setReviewInitialItemId(null);
             void load();
           }}
         />
