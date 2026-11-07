@@ -29,6 +29,7 @@ import {
 import { resolveActiveBrand, useActiveBrandId } from '../../../../lib/active-brand';
 import { listScopedBrands } from '../../../../lib/campaign-api';
 import { useT } from '../../../../lib/use-locale';
+import { ErrorState } from '../../../../components/ui/error-state';
 import { ListeningDateRange, resolveDateRange, type DateRangeValue } from './listening-date-range';
 import { ListeningSourceMenu } from './listening-source-menu';
 import { ListeningVolumeChart } from './listening-volume-chart';
@@ -398,12 +399,6 @@ export function ListeningClient({ view }: { view: ListeningView }) {
         </p>
       </div>
 
-      {error ? (
-        <p className="oma-inbox-error" role="alert">
-          {error}
-        </p>
-      ) : null}
-
       {showDashboard ? (
         <>
           <div className="oma-plx-listening-kpis">
@@ -642,7 +637,12 @@ export function ListeningClient({ view }: { view: ListeningView }) {
           </div>
         ) : null}
 
-        {loading ? <div className="oma-inbox-empty">Loading…</div> : null}
+        {error ? (
+          <ErrorState compact kind="generic" body={error} onRetry={() => void load()} />
+        ) : null}
+        {loading ? (
+          <div className="oma-inbox-empty">{t('common.loading') || 'Loading…'}</div>
+        ) : null}
         {!loading && filteredHits.length === 0 ? (
           <div className="oma-inbox-empty">
             <strong>{t('listening.emptyTitle') || 'No mentions yet'}</strong>

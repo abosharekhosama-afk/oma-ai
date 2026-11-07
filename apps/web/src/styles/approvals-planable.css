@@ -903,11 +903,15 @@
 }
 
 .oma-plx-approvals-review__nav--prev {
-  left: max(12px, calc(50% - 280px));
+  inset-inline-start: max(12px, calc(50% - 280px));
 }
 
 .oma-plx-approvals-review__nav--next {
-  right: max(12px, calc(50% - 280px));
+  inset-inline-end: max(12px, calc(50% - 280px));
+}
+
+[dir='rtl'] .oma-plx-approvals-review__nav svg {
+  transform: scaleX(-1);
 }
 
 .oma-plx-approvals-review__nav:disabled {

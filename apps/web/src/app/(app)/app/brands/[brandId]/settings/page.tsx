@@ -2,9 +2,9 @@
 import { DetailShimmer } from '../../../../../../components/ui/shimmer';
 
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PermissionDenied } from '../../../../../../components/shell/permission-denied';
-import { ErrorState } from '../../../../../../components/ui/empty-state';
+import { ErrorState } from '../../../../../../components/ui/error-state';
 import { BrandWorkspaceShell } from '../../../../../../components/brand/brand-workspace-shell';
 import {
   BrandSettingsView,
@@ -21,6 +21,7 @@ import {
 } from '../../../../../../lib/brand-settings-api';
 import type { BrandDetail } from '../../../../../../lib/brand-types';
 import { getApiError, isPermissionDenied } from '../../../../../../lib/brand-api';
+import { invalidateApiCache } from '../../../../../../lib/api';
 import { announceBrandLogo } from '../../../../../../lib/active-brand';
 import { useT } from '../../../../../../lib/use-locale';
 import { mediaApi } from '../../../../../../lib/workdrive-api';
@@ -30,12 +31,14 @@ const CONNECT_RESULT = ['ok', 'cancelled', 'invalid', 'none', 'provider_error', 
 
 export default function BrandSettingsPage() {
   const t = useT();
+  const tRef = useRef(t);
+  tRef.current = t;
   const router = useRouter();
   const search = useSearchParams();
   const { brandId } = useParams<{ brandId: string }>();
-  const initialTab = search.get('tab');
+  const urlTab = search.get('tab');
   const [tab, setTab] = useState<BrandSettingsTab>(
-    TABS.includes(initialTab as BrandSettingsTab) ? (initialTab as BrandSettingsTab) : 'general',
+    TABS.includes(urlTab as BrandSettingsTab) ? (urlTab as BrandSettingsTab) : 'general',
   );
   const [brand, setBrand] = useState<BrandDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -67,6 +70,7 @@ export default function BrandSettingsPage() {
       .then((r) => setBrand(r.data))
       .catch((e) => (isPermissionDenied(e) ? setDenied(true) : setError(getApiError(e).message)));
   }, [brandId]);
+
   const loadMembers = useCallback(() => {
     brandSettingsApi
       .members(brandId)
@@ -79,7 +83,9 @@ export default function BrandSettingsPage() {
         fail(e);
       });
   }, [brandId, fail]);
+
   const loadSocial = useCallback(() => {
+    invalidateApiCache(`/api/v1/brands/${brandId}/social-pages`);
     brandSettingsApi
       .social(brandId)
       .then((r) => {
@@ -95,20 +101,47 @@ export default function BrandSettingsPage() {
   useEffect(() => {
     loadBrand();
   }, [loadBrand]);
+
+  // Keep active tab synced with URL changes (e.g. OAuth callback redirecting to ?tab=accounts)
+  useEffect(() => {
+    if (urlTab && TABS.includes(urlTab as BrandSettingsTab)) {
+      setTab((prev) => (prev === urlTab ? prev : (urlTab as BrandSettingsTab)));
+    }
+  }, [urlTab]);
+
+  // Reset connecting spinner when returning via browser back/forward cache
+  useEffect(() => {
+    const onPageShow = () => setConnecting(null);
+    window.addEventListener('pageshow', onPageShow);
+    return () => window.removeEventListener('pageshow', onPageShow);
+  }, []);
+
   useEffect(() => {
     if (tab === 'members' && members === null) loadMembers();
     if (tab === 'accounts' && pages === null) loadSocial();
   }, [tab, members, pages, loadMembers, loadSocial]);
+
+  const connectStatus = search.get('connect');
+  const connectError = search.get('connect_error');
+
   useEffect(() => {
-    const r = search.get('connect');
-    if (!r || !CONNECT_RESULT.includes(r)) return;
-    const detail = search.get('connect_error')?.trim();
-    const translated = t(`brandSettings.accounts.result.${r}`);
+    if (!connectStatus || !CONNECT_RESULT.includes(connectStatus)) return;
+    setConnecting(null);
+    setTab('accounts');
+    const detail = connectError?.trim();
+    const translated = tRef.current(`brandSettings.accounts.result.${connectStatus}`);
     setNotice({
-      kind: r === 'ok' ? 'success' : r === 'cancelled' ? 'info' : 'error',
-      text: detail && r !== 'ok' ? `${translated} (${detail})` : translated,
+      kind: connectStatus === 'ok' ? 'success' : connectStatus === 'cancelled' ? 'info' : 'error',
+      text: detail && connectStatus !== 'ok' ? `${translated} (${detail})` : translated,
     });
-  }, [search, t]);
+    // Force a fresh fetch of connected social pages after OAuth redirect
+    loadSocial();
+    // Clean OAuth callback query params so the page never gets stuck re-triggering
+    if (typeof window !== 'undefined') {
+      const cleanUrl = `/app/brands/${encodeURIComponent(brandId)}/settings?tab=accounts`;
+      window.history.replaceState(null, '', cleanUrl);
+    }
+  }, [connectStatus, connectError, brandId, loadSocial]);
 
   const caps = new Set(brand?.access?.capabilities ?? []);
   const canManageWorkspace = caps.has('tenant.manage');
@@ -139,7 +172,8 @@ export default function BrandSettingsPage() {
   };
 
   if (denied) return <PermissionDenied message={t('errors.permission')} />;
-  if (error) return <ErrorState title={t('common.error')} body={error} />;
+  if (error)
+    return <ErrorState kind="generic" title={t('common.error')} body={error} onRetry={loadBrand} />;
   if (!brand) return <DetailShimmer />;
 
   return (

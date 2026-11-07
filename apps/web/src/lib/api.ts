@@ -135,6 +135,9 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
       try {
         return await fetch(path, { ...init, headers, credentials: 'include' });
       } catch (cause) {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('oma:network-failure'));
+        }
         // Network/offline: surface a typed error (status 0) so UIs can show an offline state + retry.
         throw Object.assign(new Error(friendlyApiMessage({ code: 'NETWORK' }, 0)), {
           status: 0,
