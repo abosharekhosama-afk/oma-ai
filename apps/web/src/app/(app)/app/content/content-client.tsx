@@ -1384,6 +1384,11 @@ export default function ContentPage() {
   const [holidayFollowTz, setHolidayFollowTz] = useState(true);
   const [workspaceTz, setWorkspaceTz] = useState('Asia/Jerusalem');
   const [savedOpen, setSavedOpen] = useState(true);
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth <= 1024) {
+      setSavedOpen(false);
+    }
+  }, []);
   const [policy, setPolicy] = useState<ApprovalPolicy>('OPTIONAL');
   const closingDrawerRef = useRef(false);
 
@@ -4124,16 +4129,16 @@ export default function ContentPage() {
                         </div>
                       ) : null}
                     </span>
-                    {!savedOpen ? (
-                      <button
-                        type="button"
-                        className="oma-cal-saved-toggle"
-                        data-testid="demo-content-saved-toggle"
-                        onClick={() => setSavedOpen(true)}
-                      >
-                        {t('strategy.saved')}
-                      </button>
-                    ) : null}
+                    <button
+                      type="button"
+                      className="oma-cal-saved-toggle"
+                      data-active={savedOpen ? 'true' : 'false'}
+                      data-testid="demo-content-saved-toggle"
+                      onClick={() => setSavedOpen((v) => !v)}
+                    >
+                      <FileTextOutlined />
+                      <span className="oma-cal-saved-toggle__label">{t('strategy.saved')}</span>
+                    </button>
                   </div>
                 </div>
 
@@ -4465,80 +4470,87 @@ export default function ContentPage() {
               </div>
 
               {savedOpen ? (
-                <aside
-                  className="oma-cal-saved"
-                  data-testid="demo-content-saved"
-                  aria-label={t('demo.content.savedColumn')}
-                >
-                  <header className="oma-cal-saved-head">
-                    <strong>{t('demo.content.savedColumn')}</strong>
-                    <div className="oma-cal-saved-head__meta">
-                      {savedItems.length > 0 ? (
-                        <span className="oma-muted oma-ltr">{savedItems.length}</span>
-                      ) : null}
-                      <button
-                        type="button"
-                        className="oma-cal-saved-close"
-                        aria-label={t('brand.evidence.close')}
-                        data-tooltip={t('brand.evidence.close')}
-                        onClick={() => setSavedOpen(false)}
-                      >
-                        <CloseOutlined />
-                      </button>
-                    </div>
-                  </header>
-                  {savedItems.length === 0 ? (
-                    <div className="oma-cal-saved-empty" data-testid="demo-content-saved-empty">
-                      <div className="oma-cal-saved-empty__art" aria-hidden />
-                      <strong>{t('demo.content.savedEmpty')}</strong>
-                      <p className="oma-muted">{t('demo.content.savedEmptyHint')}</p>
-                      <Button type="default" onClick={() => setCreateOpen(true)}>
-                        {t('demo.content.create')}
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="oma-cal-saved-list">
-                      {savedItems.map((item) => (
-                        <div
-                          key={item.id}
-                          className="oma-cal-saved-card"
-                          draggable
-                          onDragStart={(e) => {
-                            e.dataTransfer.setData('text/oma-content-id', item.id);
-                            e.dataTransfer.effectAllowed = 'move';
-                          }}
+                <>
+                  <div
+                    className="oma-cal-saved-backdrop"
+                    aria-hidden="true"
+                    onClick={() => setSavedOpen(false)}
+                  />
+                  <aside
+                    className="oma-cal-saved"
+                    data-testid="demo-content-saved"
+                    aria-label={t('demo.content.savedColumn')}
+                  >
+                    <header className="oma-cal-saved-head">
+                      <strong>{t('demo.content.savedColumn')}</strong>
+                      <div className="oma-cal-saved-head__meta">
+                        {savedItems.length > 0 ? (
+                          <span className="oma-muted oma-ltr">{savedItems.length}</span>
+                        ) : null}
+                        <button
+                          type="button"
+                          className="oma-cal-saved-close"
+                          aria-label={t('brand.evidence.close')}
+                          data-tooltip={t('brand.evidence.close')}
+                          onClick={() => setSavedOpen(false)}
                         >
-                          <SurfaceButton
-                            data-testid={`demo-saved-item-${item.id}`}
-                            data-selected={selectedId === item.id ? 'true' : 'false'}
-                            onClick={() => openItem(item)}
-                            className="oma-cal-item"
+                          <CloseOutlined />
+                        </button>
+                      </div>
+                    </header>
+                    {savedItems.length === 0 ? (
+                      <div className="oma-cal-saved-empty" data-testid="demo-content-saved-empty">
+                        <div className="oma-cal-saved-empty__art" aria-hidden />
+                        <strong>{t('demo.content.savedEmpty')}</strong>
+                        <p className="oma-muted">{t('demo.content.savedEmptyHint')}</p>
+                        <Button type="default" onClick={() => setCreateOpen(true)}>
+                          {t('demo.content.create')}
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="oma-cal-saved-list">
+                        {savedItems.map((item) => (
+                          <div
+                            key={item.id}
+                            className="oma-cal-saved-card"
+                            draggable
+                            onDragStart={(e) => {
+                              e.dataTransfer.setData('text/oma-content-id', item.id);
+                              e.dataTransfer.effectAllowed = 'move';
+                            }}
                           >
-                            <ContentFace
-                              variant="saved"
-                              title={pickCopy(item.title, locale)}
-                              caption={item.caption ? pickCopy(item.caption, locale) : ''}
-                              channel={item.channel}
-                              when="—"
-                              asset={item.previewAsset}
-                              display={faceDisplay(item, policy)}
-                              locale={locale}
-                              selected={selectedId === item.id}
+                            <SurfaceButton
+                              data-testid={`demo-saved-item-${item.id}`}
+                              data-selected={selectedId === item.id ? 'true' : 'false'}
+                              onClick={() => openItem(item)}
+                              className="oma-cal-item"
+                            >
+                              <ContentFace
+                                variant="saved"
+                                title={pickCopy(item.title, locale)}
+                                caption={item.caption ? pickCopy(item.caption, locale) : ''}
+                                channel={item.channel}
+                                when="—"
+                                asset={item.previewAsset}
+                                display={faceDisplay(item, policy)}
+                                locale={locale}
+                                selected={selectedId === item.id}
+                              />
+                            </SurfaceButton>
+                            <CardActionsButton
+                              itemId={item.id}
+                              open={cardMenuId === item.id}
+                              label={t('content.post_actions')}
+                              className="oma-card-actions-btn--saved"
+                              onOpen={placeCardMenu}
+                              onClose={closeCardMenu}
                             />
-                          </SurfaceButton>
-                          <CardActionsButton
-                            itemId={item.id}
-                            open={cardMenuId === item.id}
-                            label={t('content.post_actions')}
-                            className="oma-card-actions-btn--saved"
-                            onOpen={placeCardMenu}
-                            onClose={closeCardMenu}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </aside>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </aside>
+                </>
               ) : null}
             </section>
           ) : null}

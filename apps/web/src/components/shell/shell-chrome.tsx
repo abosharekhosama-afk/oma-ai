@@ -303,22 +303,50 @@ export function ShellChrome({ children }: { children: ReactNode }) {
     // app / brands / :brandId / ...
     return parts.length >= 3 ? parts[2] : null;
   })();
+  const isApprovalsWorkspace =
+    pathname === '/app/approvals' || pathname.startsWith('/app/approvals/');
+  const isAnalyticsWorkspace =
+    pathname === '/app/analytics' || pathname.startsWith('/app/analytics/');
+  const isAccountWorkspace = pathname === '/app/account' || pathname.startsWith('/app/account/');
+  const isBillingWorkspace =
+    pathname === '/app/billing' ||
+    pathname.startsWith('/app/billing/') ||
+    pathname === '/app/subscription' ||
+    pathname.startsWith('/app/subscription/');
   // Mobile (<768): page title shown next to the nav toggle for key ops screens.
-  const mobilePageTitle = isRequestsWorkspace
-    ? t('demo.requests.title') || t('nav.requests')
-    : isTasksWorkspace
-      ? t('demo.tasks.title') || t('nav.tasks')
-      : isDeliverablesWorkspace
-        ? t('demo.deliverables.title') || t('nav.deliverables')
-        : isReviewsWorkspace
-          ? t('demo.reviews.title') || t('nav.reviews')
-          : isScheduleWorkspace
-            ? t('demo.schedule.title') || t('nav.schedule')
-            : isTeamWorkspace
-              ? t('wsPanel.team_clients') || t('nav.team')
-              : isActivityWorkspace
-                ? t('activity.title') || t('nav.activity')
-                : null;
+  const mobilePageTitle = isApprovalsWorkspace
+    ? t('views.my_approvals')
+    : pathname === '/app/content' || pathname.startsWith('/app/content/')
+      ? t('nav.content')
+      : isCampaignsWorkspace
+        ? t('nav.campaigns')
+        : isBrandsList
+          ? t('nav.brands')
+          : isInboxWorkspace
+            ? t('nav.inbox')
+            : isListeningWorkspace
+              ? t('nav.listening')
+              : isAnalyticsWorkspace
+                ? t('nav.analytics')
+                : isAccountWorkspace
+                  ? t('account.profile')
+                  : isBillingWorkspace
+                    ? t('shell.billing')
+                    : isRequestsWorkspace
+                      ? t('demo.requests.title') || t('nav.requests')
+                      : isTasksWorkspace
+                        ? t('demo.tasks.title') || t('nav.tasks')
+                        : isDeliverablesWorkspace
+                          ? t('demo.deliverables.title') || t('nav.deliverables')
+                          : isReviewsWorkspace
+                            ? t('demo.reviews.title') || t('nav.reviews')
+                            : isScheduleWorkspace
+                              ? t('demo.schedule.title') || t('nav.schedule')
+                              : isTeamWorkspace
+                                ? t('wsPanel.team_clients') || t('nav.team')
+                                : isActivityWorkspace
+                                  ? t('activity.title') || t('nav.activity')
+                                  : null;
 
   // Home owns its single primary "Create post" action.
   const hideShellCreate =

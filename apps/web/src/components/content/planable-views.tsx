@@ -552,17 +552,21 @@ export function ModalNav({
 }
 
 function useOutside(ref: React.RefObject<HTMLElement | null>, active: boolean, onOut: () => void) {
+  const onOutRef = useRef(onOut);
+  onOutRef.current = onOut;
   useEffect(() => {
     if (!active) return;
-    const h = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) onOut();
+    const h = (e: MouseEvent | TouchEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onOutRef.current();
     };
-    const k = (e: KeyboardEvent) => e.key === 'Escape' && onOut();
+    const k = (e: KeyboardEvent) => e.key === 'Escape' && onOutRef.current();
     document.addEventListener('mousedown', h);
+    document.addEventListener('touchstart', h, { passive: true });
     document.addEventListener('keydown', k);
     return () => {
       document.removeEventListener('mousedown', h);
+      document.removeEventListener('touchstart', h);
       document.removeEventListener('keydown', k);
     };
-  }, [ref, active, onOut]);
+  }, [ref, active]);
 }
