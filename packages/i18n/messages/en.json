@@ -2113,6 +2113,8 @@
   "approvals.status_pending": "Pending",
   "approvals.skipped_label": "Skipped",
   "approvals.post_comment": "Post",
+  "shell.profile_settings": "Profile settings",
+  "shell.billing": "Billing",
   "approvals.section.awaiting": "Awaiting approval",
   "approvals.section.feedback": "Feedback left",
   "approvals.section.approved": "Approved",

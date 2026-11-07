@@ -2113,6 +2113,8 @@
   "approvals.status_pending": "قيد الانتظار",
   "approvals.skipped_label": "تم التخطي",
   "approvals.post_comment": "نشر",
+  "shell.profile_settings": "إعدادات الملف الشخصي",
+  "shell.billing": "الفوترة والخطط",
   "approvals.section.awaiting": "بانتظار الموافقة",
   "approvals.section.feedback": "ملاحظاتك المفتوحة",
   "approvals.section.approved": "معتمد",
