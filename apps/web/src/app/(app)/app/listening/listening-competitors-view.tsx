@@ -148,7 +148,10 @@ export function ListeningCompetitorsView() {
   const totalMentions = data?.totals.mentions ?? 0;
 
   return (
-    <div className="oma-plx-listening oma-plx-listening-comp" data-testid="listening-competitors-page">
+    <div
+      className="oma-plx-listening oma-plx-listening-comp"
+      data-testid="listening-competitors-page"
+    >
       <header className="oma-plx-listening__toolbar">
         <div className="oma-plx-listening__toolbar-spacer" />
         <ListeningDateRange value={dateRange} onChange={setDateRange} />
@@ -169,9 +172,7 @@ export function ListeningCompetitorsView() {
         </p>
       ) : null}
 
-      {loading && !data ? (
-        <p className="oma-muted">{ar ? 'جاري التحميل…' : 'Loading…'}</p>
-      ) : null}
+      {loading && !data ? <p className="oma-muted">{ar ? 'جاري التحميل…' : 'Loading…'}</p> : null}
 
       {data ? (
         <>
@@ -205,9 +206,7 @@ export function ListeningCompetitorsView() {
                   />
                   <h3>
                     {e.name}
-                    {e.isYou ? (
-                      <small>{ar ? ' · أنت' : ' · You'}</small>
-                    ) : null}
+                    {e.isYou ? <small>{ar ? ' · أنت' : ' · You'}</small> : null}
                   </h3>
                   <strong className="oma-ltr">
                     {formatCount(metricTab === 'mentions' ? e.mentions : e.engagement)}
@@ -239,7 +238,10 @@ export function ListeningCompetitorsView() {
               </header>
               <div className="oma-plx-listening-comp__matrix">
                 {(['under_fire', 'leading', 'quiet', 'well_liked'] as const).map((bucket) => (
-                  <div key={bucket} className={`oma-plx-listening-comp__quad oma-plx-listening-comp__quad--${bucket}`}>
+                  <div
+                    key={bucket}
+                    className={`oma-plx-listening-comp__quad oma-plx-listening-comp__quad--${bucket}`}
+                  >
                     <span className="oma-plx-listening-comp__quad-label">
                       {ar ? BUCKET_LABEL[bucket].ar : BUCKET_LABEL[bucket].en}
                     </span>
@@ -247,11 +249,7 @@ export function ListeningCompetitorsView() {
                       {(data.quadrant ?? [])
                         .filter((q) => q.bucket === bucket)
                         .map((q) => (
-                          <span
-                            key={q.ruleId}
-                            className={q.isYou ? 'is-you' : ''}
-                            title={q.name}
-                          >
+                          <span key={q.ruleId} className={q.isYou ? 'is-you' : ''} title={q.name}>
                             {q.name.slice(0, 1).toUpperCase()}
                           </span>
                         ))}
@@ -363,7 +361,8 @@ export function ListeningCompetitorsView() {
                                   key={s.ruleId}
                                   style={{
                                     width: `${w}%`,
-                                    background: PALETTE[idx >= 0 ? idx % PALETTE.length : i % PALETTE.length],
+                                    background:
+                                      PALETTE[idx >= 0 ? idx % PALETTE.length : i % PALETTE.length],
                                   }}
                                   title={s.name}
                                 />

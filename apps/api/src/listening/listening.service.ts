@@ -524,10 +524,7 @@ export class ListeningService {
       return { ...rest, sharePct, shareChangePts };
     });
 
-    const platformMap = new Map<
-      string,
-      { mentions: number; byRule: Map<string, number> }
-    >();
+    const platformMap = new Map<string, { mentions: number; byRule: Map<string, number> }>();
     for (const e of entityRows) {
       for (const h of e.hits) {
         const plat = String(h.platform);
@@ -548,7 +545,7 @@ export class ListeningService {
           mentions: row.byRule.get(rule.id) ?? 0,
           isYou: resolveRuleKind(rule) === 'BRAND',
         }));
-        const yourMentions = youRuleId ? row.byRule.get(youRuleId) ?? 0 : 0;
+        const yourMentions = youRuleId ? (row.byRule.get(youRuleId) ?? 0) : 0;
         const yourSharePct = row.mentions
           ? Math.round((yourMentions / row.mentions) * 1000) / 10
           : 0;

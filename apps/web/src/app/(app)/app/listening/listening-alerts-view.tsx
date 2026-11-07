@@ -34,9 +34,9 @@ export function ListeningAlertsView() {
   const [menuId, setMenuId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [draftName, setDraftName] = useState('Volume spike');
-  const [trigger, setTrigger] = useState<'VOLUME_SPIKE' | 'SENTIMENT_POSITIVE' | 'SENTIMENT_NEGATIVE'>(
-    'VOLUME_SPIKE',
-  );
+  const [trigger, setTrigger] = useState<
+    'VOLUME_SPIKE' | 'SENTIMENT_POSITIVE' | 'SENTIMENT_NEGATIVE'
+  >('VOLUME_SPIKE');
   const [mentionsPerDay, setMentionsPerDay] = useState(36);
   const [sharePct, setSharePct] = useState(75);
   const [notifyInApp, setNotifyInApp] = useState(true);
@@ -75,9 +75,7 @@ export function ListeningAlertsView() {
 
   const onCreate = async () => {
     const threshold: Record<string, number> =
-      trigger === 'VOLUME_SPIKE'
-        ? { mentionsPerDay: mentionsPerDay }
-        : { sharePct: sharePct };
+      trigger === 'VOLUME_SPIKE' ? { mentionsPerDay: mentionsPerDay } : { sharePct: sharePct };
     await createListeningAlert({
       name: draftName.trim() || 'Alert',
       brandId: brandId || null,
