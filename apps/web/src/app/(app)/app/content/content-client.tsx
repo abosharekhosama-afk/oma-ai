@@ -57,7 +57,7 @@ import {
   writeContentUrl,
   type CalendarDisplay,
 } from '../../../../lib/content-views';
-import { Button, DatePicker, Input, OmaSelect, SurfaceButton, TextArea } from '@oma/ui/controls';
+import { Button, DatePicker, Input, SurfaceButton, TextArea } from '@oma/ui/controls';
 import dayjs from 'dayjs';
 import {
   AppstoreOutlined,

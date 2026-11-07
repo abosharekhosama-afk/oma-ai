@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from '@oma/ui/controls';
-import { CheckOutlined, CommentOutlined } from '../../../../components/ui/lucide-icons';
+import { CommentOutlined } from '../../../../components/ui/lucide-icons';
 import {
   ApprovalChannelRail,
   type ApprovalChannelRow,
