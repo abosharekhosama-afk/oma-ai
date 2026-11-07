@@ -807,28 +807,66 @@
   margin-block-start: 12px;
 }
 
-/* sidebar sub-nav (Analytics › Overview / Competitors) */
+/* sidebar sub-nav with Planable vertical tree stem + curved branch connectors */
 .oma-nav-sublist {
   list-style: none;
-  margin: 2px 0 4px;
-  padding: 0 0 0 0;
-  padding-inline-start: 28px;
+  margin: 4px 0 6px;
+  padding: 0;
+  padding-inline-start: 20px;
+  position: relative;
 }
+
+.oma-nav-sublist > li {
+  position: relative;
+  padding-inline-start: 14px;
+}
+
+.oma-nav-sublist > li::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  top: -6px;
+  bottom: 0;
+  width: 1px;
+  background: var(--oma-home-border);
+}
+
+.oma-nav-sublist > li:last-child::before {
+  bottom: 50%;
+}
+
+.oma-nav-sublist > li::after {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  top: 50%;
+  width: 10px;
+  height: 8px;
+  margin-top: -8px;
+  border-inline-start: 1px solid var(--oma-home-border);
+  border-bottom: 1px solid var(--oma-home-border);
+  border-end-start-radius: 7px;
+}
+
 .oma-nav-sublink {
   display: block;
-  padding: 5px 8px;
-  border-radius: 6px;
+  padding: 6px 10px;
+  border-radius: 8px;
   color: var(--pa-muted, var(--oma-muted));
   font-size: 13px;
   text-decoration: none;
+  transition:
+    background 140ms ease,
+    color 140ms ease;
 }
 .oma-nav-sublink:hover {
   background: var(--oma-home-hover);
+  color: var(--oma-ink);
 }
 .oma-nav-sublink[data-active='true'] {
   background: var(--oma-home-hover);
   color: var(--oma-ink);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 @media (max-width: 960px) {

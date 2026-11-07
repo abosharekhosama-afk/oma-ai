@@ -441,20 +441,19 @@ export class TikTokAdapter implements SocialProviderAdapter {
       const kind =
         kindFromMeta ??
         (publishId.startsWith('p_') ? 'photo' : publishId.startsWith('v_') ? 'video' : 'video');
+      const cleanPublishId = publishId.replace(/^[pv]_/i, '');
       const built = username
         ? externalId
           ? `https://www.tiktok.com/@${username}/${kind}/${externalId}`
-          : `https://www.tiktok.com/@${username}`
+          : cleanPublishId
+            ? `https://www.tiktok.com/@${username}/${kind}/${cleanPublishId}`
+            : `https://www.tiktok.com/@${username}`
         : null;
       const url = shareUrl || built;
-      const profileOnly = Boolean(
-        url && username && !externalId && url === `https://www.tiktok.com/@${username}`,
-      );
       return {
         status: 'PUBLISHED',
-        ...(externalId ? { externalId } : {}),
+        ...(externalId ? { externalId } : { externalId: cleanPublishId }),
         url,
-        ...(profileOnly ? { profileOnly: true } : {}),
       };
     }
     if (status === 'FAILED') {

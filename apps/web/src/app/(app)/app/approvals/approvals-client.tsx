@@ -17,7 +17,7 @@ import {
 import { ApprovalReviewFlow } from '../../../../components/approvals/approval-review-flow';
 import { MediaSurface } from '../../../../components/content/media-surface';
 import { NetworkIcon } from '../../../../components/content/network-icon';
-import { ContentShimmer } from '../../../../components/ui/screen-shimmer';
+import { ApprovalsShimmer } from '../../../../components/ui/screen-shimmer';
 import { ConfirmActionDialog } from '../../../../components/ui/confirm-action-dialog';
 import { useToast } from '../../../../components/ui/toast';
 import { api } from '../../../../lib/api';
@@ -237,7 +237,7 @@ export function ApprovalsClient() {
       )}
 
       <div className="oma-plx-approvals__board">
-        {loading ? <ContentShimmer embedded /> : null}
+        {loading ? <ApprovalsShimmer embedded /> : null}
         {!loading ? (
           <div className="oma-plx-approvals__columns">
             {SECTIONS.map((section) => {

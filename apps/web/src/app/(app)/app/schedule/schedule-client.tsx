@@ -1435,9 +1435,7 @@ export default function SchedulePage() {
                                       rel="noreferrer"
                                       className="oma-text-link"
                                     >
-                                      {isProfileOnlyPostUrl(status.externalUrl)
-                                        ? t('demo.schedule.viewProfileLink')
-                                        : t('demo.schedule.viewPostLink')}
+                                      {t('demo.schedule.viewPostLink')}
                                     </a>
                                   </>
                                 ) : null}
@@ -1484,7 +1482,7 @@ export default function SchedulePage() {
                   <div className="oma-plx-sched-drawer__nav-links oma-plx-listening-panel">
                     {selected.contentId ? (
                       <Link
-                        href={`/app/content?item=${selected.contentId}`}
+                        href={`/app/content?open=${selected.contentId}`}
                         className="oma-text-link"
                         data-testid="demo-schedule-content-link"
                       >

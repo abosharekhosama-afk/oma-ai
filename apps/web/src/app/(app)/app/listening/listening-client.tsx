@@ -30,6 +30,7 @@ import { resolveActiveBrand, useActiveBrandId } from '../../../../lib/active-bra
 import { listScopedBrands } from '../../../../lib/campaign-api';
 import { useT } from '../../../../lib/use-locale';
 import { ErrorState } from '../../../../components/ui/error-state';
+import { ListeningShimmer } from '../../../../components/ui/screen-shimmer';
 import { ListeningDateRange, resolveDateRange, type DateRangeValue } from './listening-date-range';
 import { ListeningSourceMenu } from './listening-source-menu';
 import { ListeningVolumeChart } from './listening-volume-chart';
@@ -640,9 +641,7 @@ export function ListeningClient({ view }: { view: ListeningView }) {
         {error ? (
           <ErrorState compact kind="generic" body={error} onRetry={() => void load()} />
         ) : null}
-        {loading ? (
-          <div className="oma-inbox-empty">{t('common.loading') || 'Loading…'}</div>
-        ) : null}
+        {loading ? <ListeningShimmer embedded /> : null}
         {!loading && filteredHits.length === 0 ? (
           <div className="oma-inbox-empty">
             <strong>{t('listening.emptyTitle') || 'No mentions yet'}</strong>

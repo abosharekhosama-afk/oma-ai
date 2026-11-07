@@ -622,6 +622,207 @@ export function DeliverablesShimmer({
 }
 
 /* -------------------------------------------------------------------------------------------- */
+/* My Approvals & Social Listening Shimmers                                                     */
+/* -------------------------------------------------------------------------------------------- */
+
+export function ApprovalsShimmer({ embedded = false }: { embedded?: boolean }) {
+  const cols = [4, 4, 4];
+  return (
+    <ShimmerRoot
+      screen="approvals"
+      className={embedded ? 'oma-shim-approvals' : 'oma-plx-approvals oma-shim-approvals'}
+    >
+      <div className="oma-plx-approvals__columns" aria-hidden="true">
+        {cols.map((cards, colIdx) => (
+          <section key={colIdx} className="oma-plx-approvals__column-wrap">
+            <header className="oma-plx-approvals__column-head">
+              <span className="oma-plx-approvals__column-title">
+                <Bone w={14} h={14} r={999} />
+                <Bone w={colIdx === 0 ? 110 : 88} h={13} r={5} />
+              </span>
+              <Bone w={22} h={18} r={6} />
+            </header>
+            <div className="oma-plx-approvals__column">
+              {colIdx === 0 ? <Bone w="100%" h={36} r={8} /> : null}
+              <div className="oma-plx-approvals__cards">
+                {range(cards).map((i) => (
+                  <article key={i} className="oma-plx-approvals-card" style={{ paddingBottom: 10 }}>
+                    <div className="oma-plx-approvals-card__head">
+                      <Bone w={16} h={16} r={4} />
+                      <Bone w={68} h={11} r={4} />
+                      <span className="oma-shim-spacer" />
+                      <Bone w={46} h={10} r={4} />
+                    </div>
+                    <div style={{ padding: '0 8px' }}>
+                      <Bone w="100%" h={124} r={6} />
+                    </div>
+                    <div style={{ padding: '8px 10px 4px', display: 'grid', gap: 5 }}>
+                      <Bone w="92%" h={11} r={4} />
+                      <Bone w="66%" h={11} r={4} />
+                    </div>
+                    <div className="oma-plx-approvals-card__foot">
+                      <Bone w={56} h={11} r={999} />
+                      <Bone w={26} h={11} r={4} />
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </section>
+        ))}
+      </div>
+    </ShimmerRoot>
+  );
+}
+
+/** Planable Social Listening Competitors Shimmer matching Image 7 exactly */
+export function ListeningCompetitorsShimmer({ embedded = false }: { embedded?: boolean }) {
+  return (
+    <ShimmerRoot
+      screen="listening-competitors"
+      className={embedded ? 'oma-shim-listening-comp' : 'oma-plx-listening oma-shim-listening-comp'}
+    >
+      <div className="oma-stack" style={{ gap: 16 }} aria-hidden="true">
+        {/* Mention volume card */}
+        <section className="oma-plx-listening-panel">
+          <div className="oma-plx-listening-panel__head">
+            <Bone w={118} h={16} r={5} />
+            <Bone w={148} h={30} r={8} />
+          </div>
+          <div className="oma-plx-listening-comp__entity-row" style={{ marginTop: 10 }}>
+            {range(4).map((i) => (
+              <div key={i} className="oma-plx-listening-comp__entity">
+                <div className="oma-shim-row" style={{ marginBottom: 8 }}>
+                  <Bone w={8} h={8} r={999} />
+                  <Bone w={82} h={12} r={4} />
+                </div>
+                <Bone w={76} h={22} r={6} />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Where you stand card */}
+        <section className="oma-plx-listening-panel">
+          <div className="oma-plx-listening-panel__head">
+            <Bone w={122} h={16} r={5} />
+          </div>
+          <Bone w="100%" h={210} r={10} style={{ marginTop: 10 }} />
+        </section>
+
+        {/* Share of voice card */}
+        <section className="oma-plx-listening-panel">
+          <div className="oma-plx-listening-panel__head">
+            <Bone w={110} h={16} r={5} />
+          </div>
+          <div className="oma-plx-listening-comp__sov-body" style={{ marginTop: 10 }}>
+            <Bone w={132} h={132} r={999} />
+            <div className="oma-shim-stack" style={{ flex: 1, gap: 12 }}>
+              {range(4).map((i) => (
+                <div key={i} className="oma-shim-row oma-shim-row--between">
+                  <Bone w={110} h={12} r={4} />
+                  <Bone w={48} h={12} r={4} />
+                  <Bone w={56} h={12} r={4} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Sentiment card */}
+        <section className="oma-plx-listening-panel">
+          <div className="oma-plx-listening-panel__head">
+            <Bone w={88} h={16} r={5} />
+          </div>
+          <div className="oma-shim-stack" style={{ marginTop: 12, gap: 14 }}>
+            {range(4).map((i) => (
+              <div key={i} className="oma-shim-row oma-shim-row--between">
+                <Bone w={96} h={12} r={4} />
+                <Bone w="46%" h={10} r={999} />
+                <Bone w={44} h={12} r={4} />
+                <Bone w={52} h={12} r={4} />
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Share by source card */}
+        <section className="oma-plx-listening-panel">
+          <div className="oma-plx-listening-panel__head">
+            <Bone w={116} h={16} r={5} />
+          </div>
+          <div className="oma-shim-stack" style={{ marginTop: 12, gap: 12 }}>
+            {range(7).map((i) => (
+              <div key={i} className="oma-shim-row oma-shim-row--between">
+                <Bone w={88} h={12} r={4} />
+                <Bone w="46%" h={10} r={999} />
+                <Bone w={44} h={12} r={4} />
+                <Bone w={52} h={12} r={4} />
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+    </ShimmerRoot>
+  );
+}
+
+export function ListeningShimmer({ embedded = false }: { embedded?: boolean }) {
+  return (
+    <ShimmerRoot
+      screen="listening"
+      className={embedded ? 'oma-shim-listening' : 'oma-plx-listening oma-shim-listening'}
+    >
+      <div className="oma-stack" style={{ gap: 16 }} aria-hidden="true">
+        <div className="oma-plx-listening-kpis">
+          {range(3).map((i) => (
+            <article key={i} className="oma-plx-listening-kpi">
+              <div className="oma-shim-row oma-shim-row--between">
+                <Bone w={76} h={12} r={4} />
+                <Bone w={20} h={20} r={6} />
+              </div>
+              <Bone w={92} h={26} r={6} style={{ marginTop: 10 }} />
+              <Bone w={64} h={11} r={4} style={{ marginTop: 8 }} />
+            </article>
+          ))}
+        </div>
+        <section className="oma-plx-listening-panel">
+          <div className="oma-plx-listening-panel__head">
+            <Bone w={120} h={16} r={5} />
+            <Bone w={140} h={28} r={8} />
+          </div>
+          <Bone w="100%" h={180} r={10} style={{ marginTop: 12 }} />
+        </section>
+        <section className="oma-plx-listening-panel">
+          <div className="oma-plx-listening-panel__head">
+            <Bone w={96} h={16} r={5} />
+            <Bone w={110} h={28} r={8} />
+          </div>
+          <div className="oma-shim-stack" style={{ marginTop: 12, gap: 12 }}>
+            {range(4).map((i) => (
+              <div key={i} className="oma-plx-listening-card" style={{ padding: 14 }}>
+                <div className="oma-shim-row oma-shim-row--between">
+                  <div className="oma-shim-row">
+                    <Bone w={34} h={34} r={999} />
+                    <div className="oma-shim-stack">
+                      <Bone w={110} h={12} r={4} />
+                      <Bone w={80} h={10} r={4} />
+                    </div>
+                  </div>
+                  <Bone w={62} h={22} r={999} />
+                </div>
+                <Bone w="90%" h={12} r={4} style={{ marginTop: 10 }} />
+                <Bone w="64%" h={12} r={4} style={{ marginTop: 6 }} />
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+    </ShimmerRoot>
+  );
+}
+
+/* -------------------------------------------------------------------------------------------- */
 /* Route lookup (used by the membership gate before the session resolves)                      */
 /* -------------------------------------------------------------------------------------------- */
 
@@ -629,6 +830,9 @@ export function DeliverablesShimmer({
 export function screenShimmerFor(pathname: string | null | undefined): ReactNode | null {
   const p = (pathname ?? '').replace(/\/+$/, '');
   if (p === '/app/content') return <ContentShimmer />;
+  if (p === '/app/approvals') return <ApprovalsShimmer />;
+  if (p === '/app/listening/competitors') return <ListeningCompetitorsShimmer />;
+  if (p.startsWith('/app/listening')) return <ListeningShimmer />;
   if (p === '/app/tasks') return <TasksShimmer />;
   if (p === '/app/brands') return <BrandsShimmer />;
   if (p === '/app/requests') return <RequestsShimmer />;
