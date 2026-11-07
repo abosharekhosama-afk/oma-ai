@@ -4,13 +4,15 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { useT } from '../../lib/use-locale';
 
-export type ErrorKind = 'notFound' | 'server' | 'network' | 'forbidden' | 'generic';
+export type ErrorKind =
+  'unauthorized' | 'notFound' | 'server' | 'network' | 'forbidden' | 'generic';
 
 /** Classify an api() error (status 0 = network) into a UI error kind. */
 export function errorKindOf(err: unknown): ErrorKind {
   const status = (err as { status?: number } | null)?.status;
   if (status === 0 || (typeof navigator !== 'undefined' && navigator.onLine === false))
     return 'network';
+  if (status === 401) return 'unauthorized';
   if (status === 404) return 'notFound';
   if (status === 403) return 'forbidden';
   if (typeof status === 'number' && status >= 500) return 'server';
@@ -18,6 +20,7 @@ export function errorKindOf(err: unknown): ErrorKind {
 }
 
 const KIND_ICON: Record<ErrorKind, string> = {
+  unauthorized: '🔒',
   server: '!',
   network: '⌁',
   notFound: '?',
@@ -25,8 +28,15 @@ const KIND_ICON: Record<ErrorKind, string> = {
   generic: 'i',
 };
 
+const DEFAULT_CODE: Partial<Record<ErrorKind, string>> = {
+  unauthorized: '401',
+  forbidden: '403',
+  notFound: '404',
+  server: '500',
+};
+
 /**
- * Social Inbox / Planable error card (404 / 500 / offline / API) with retry.
+ * Standardized Planable / OMA Error Card (401 / 403 / 404 / 500 / offline / API) with retry.
  * Text comes from `errors.page.<kind>.title|body` in en/ar.
  */
 export function ErrorState({
@@ -53,7 +63,9 @@ export function ErrorState({
   const t = useT();
   const heading = title || t(`errors.page.${kind}.title`);
   const description = body || t(`errors.page.${kind}.body`);
-  const shownCode = code ?? (kind === 'server' ? '500' : kind === 'notFound' ? '404' : undefined);
+  const shownCode = code ?? DEFAULT_CODE[kind];
+  const isUnauth = kind === 'unauthorized';
+
   return (
     <section
       className={`oma-error-state oma-plx-error${compact ? ' oma-error-state--compact' : ''}`}
@@ -71,6 +83,15 @@ export function ErrorState({
       <div className="oma-error-state__actions">
         {action ?? (
           <>
+            {isUnauth ? (
+              <Link
+                className="oma-error-state__btn oma-error-state__btn--primary"
+                href="/login"
+                data-testid="error-state-login"
+              >
+                {t('auth.login')}
+              </Link>
+            ) : null}
             {onRetry ? (
               <button
                 type="button"

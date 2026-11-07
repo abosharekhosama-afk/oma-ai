@@ -7,7 +7,6 @@ import {
   addInboxNote,
   assignInboxConversation,
   deleteInboxMessage,
-  getInboxConnections,
   getInboxConversation,
   getInboxStats,
   hideInboxMessage,
@@ -17,7 +16,6 @@ import {
   setInboxPriority,
   setInboxStatus,
   syncInbox,
-  type InboxConnections,
   type InboxConversationDetail,
   type InboxConversationListItem,
   type InboxMessage,
@@ -44,6 +42,7 @@ import {
   UpOutlined,
 } from '../../../../components/ui/lucide-icons';
 import { listWorkspaceMembers, type WorkspaceMember } from '../../../../lib/team-api';
+import { ErrorState } from '../../../../components/ui/error-state';
 import { InboxListEmptyState, InboxPaneAllDone } from './inbox-empty-art';
 import { InboxThreadMenu } from './inbox-thread-menu';
 import { InboxPlatformBadge, InboxPlatformIcon } from './inbox-platform-icon';
@@ -159,7 +158,6 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
   const [showNoteComposer, setShowNoteComposer] = useState(false);
   const [noteDraft, setNoteDraft] = useState('');
   const [adBannerDismissed, setAdBannerDismissed] = useState(false);
-  const [connections, setConnections] = useState<InboxConnections | null>(null);
   const [syncing, setSyncing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQ, setDebouncedQ] = useState('');
@@ -169,15 +167,6 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
   const brandSettingsHref = activeBrandId
     ? `/app/brands/${activeBrandId}/settings?tab=accounts`
     : '/app/brands';
-
-  const refreshConnections = useCallback(async () => {
-    try {
-      const c = await getInboxConnections(activeBrandId || undefined);
-      setConnections(c);
-    } catch {
-      setConnections(null);
-    }
-  }, [activeBrandId]);
 
   useEffect(() => {
     const tmr = window.setTimeout(() => setDebouncedQ(searchQuery.trim()), 300);
@@ -274,7 +263,6 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
       try {
         await syncInbox(activeBrandId || undefined);
         await new Promise((r) => setTimeout(r, 1500));
-        await refreshConnections();
         await loadList();
         if (selectedId) await loadDetail(selectedId);
       } catch (e) {
@@ -285,12 +273,8 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
         if (!opts?.silent) setSyncing(false);
       }
     },
-    [activeBrandId, refreshConnections, loadList, loadDetail, selectedId],
+    [activeBrandId, loadList, loadDetail, selectedId],
   );
-
-  useEffect(() => {
-    void refreshConnections();
-  }, [refreshConnections]);
 
   useEffect(() => {
     void loadList();
@@ -673,20 +657,6 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
               channelsLabel={t('inbox.filterCard.channels') || 'Channels'}
             />
           </div>
-          {connections && connections.connectedPages === 0 ? (
-            <p className="oma-plx-inbox-list__connect-hint">
-              {t('inbox.connectHint') ||
-                'Connect Facebook or Instagram in brand settings to pull comments and DMs.'}{' '}
-              <Link href={brandSettingsHref}>{t('inbox.connectLink') || 'Connect accounts'}</Link>
-            </p>
-          ) : connections?.lastSyncAt ? (
-            <p className="oma-plx-inbox-list__sync-meta">
-              {(t('inbox.lastSync') || 'Last sync {time}').replace(
-                '{time}',
-                relativeTime(connections.lastSyncAt),
-              )}
-            </p>
-          ) : null}
           <input
             type="search"
             className="oma-plx-inbox-list__search"
@@ -708,9 +678,7 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
 
       <section className="oma-plx-inbox-thread" aria-label="Conversation">
         {error ? (
-          <p className="oma-inbox-error" role="alert">
-            {error}
-          </p>
+          <ErrorState compact kind="generic" body={error} onRetry={() => void loadList()} />
         ) : null}
         {deliveryNote ? <p className="oma-inbox-delivery">{deliveryNote}</p> : null}
 

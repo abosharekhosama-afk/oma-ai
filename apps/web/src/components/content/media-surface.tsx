@@ -75,10 +75,14 @@ export function videoUrlFor(src: string): string {
   return id ? `/api/v1/media/${id}/stream` : src;
 }
 
-/** Images use the stable view route (redirects to the signed inline WorkDrive URL). */
+/** Images use the stable view route (redirects to the signed inline WorkDrive URL) and upgrades local demo JPGs to WebP. */
 function imageUrlFor(src: string): string {
   const id = mediaIdFromUrl(src);
-  return id ? `/api/v1/media/${id}/view` : src;
+  if (id) return `/api/v1/media/${id}/view`;
+  if (/^\/demo\/real-assets\/(campaign-look|fashion-studio|product-detail)\.jpg$/i.test(src)) {
+    return src.replace(/\.jpg$/i, '.webp');
+  }
+  return src;
 }
 
 const kindCache = new Map<string, MediaKind | null>();

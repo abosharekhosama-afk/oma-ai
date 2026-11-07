@@ -37,12 +37,17 @@ const nextConfig = (phase: string): NextConfig => {
   return {
     outputFileTracingRoot: path.join(__dirname, '../..'),
     transpilePackages: ['@oma/i18n', '@oma/ui'],
+    poweredByHeader: false,
+    compress: true,
+    images: {
+      formats: ['image/avif', 'image/webp'],
+      minimumCacheTTL: 86400,
+    },
     experimental: {
       optimizePackageImports: ['@ant-design/icons', '@oma/ui', 'dayjs', 'antd'],
     },
     ...(distDir ? { distDir } : {}),
 
-    // 👇 إضافات لتجاوز فحص ESLint و TypeScript أثناء البناء على Vercel
     eslint: {
       ignoreDuringBuilds: true,
     },
@@ -61,12 +66,28 @@ const nextConfig = (phase: string): NextConfig => {
     async headers() {
       return [
         {
+          source: '/(landing|demo)/:path*',
+          headers: [
+            {
+              key: 'Cache-Control',
+              value: 'public, max-age=31536000, immutable',
+            },
+          ],
+        },
+        {
           source: '/:path*',
           headers: [
             { key: 'X-Content-Type-Options', value: 'nosniff' },
             { key: 'X-Frame-Options', value: 'DENY' },
+            { key: 'X-DNS-Prefetch-Control', value: 'on' },
+            { key: 'Cross-Origin-Opener-Policy', value: 'same-origin-allow-popups' },
             { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
             { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+            {
+              key: 'Content-Security-Policy',
+              value:
+                "default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; form-action 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self' https: http://localhost:* http://127.0.0.1:* ws: wss:;",
+            },
           ],
         },
       ];

@@ -1265,6 +1265,8 @@
   "shell.markRead": "Mark as read",
   "errors.page.notFound.title": "Page not found",
   "errors.page.notFound.body": "We couldn't find that page. It may have moved or no longer exists.",
+  "errors.page.unauthorized.title": "Authentication required",
+  "errors.page.unauthorized.body": "Your session has expired or you need to sign in to view this page.",
   "errors.page.server.title": "Something went wrong",
   "errors.page.server.body": "An unexpected error occurred on our side. Please try again.",
   "errors.page.network.title": "You're offline",
