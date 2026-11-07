@@ -9,6 +9,7 @@ import {
   verifyPassword,
 } from '@oma/domain';
 import { AuditService } from '../audit/audit.service';
+import { CURRENT_TERMS_VERSION, type OAuthUserProfile } from './oauth-providers.service';
 
 type MembershipRow = {
   id: string;
@@ -49,7 +50,21 @@ function dedupeMembershipsByTenant(memberships: MembershipRow[]) {
 export class IdentityService {
   constructor(private readonly audit: AuditService) {}
 
-  async register(input: { email: string; password: string; name: string }) {
+  async register(input: {
+    email: string;
+    password: string;
+    name: string;
+    terms_accepted?: boolean;
+    terms_version?: string;
+  }) {
+    if (input.terms_accepted === false) {
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'You must accept the Terms of Service and Privacy Policy to continue.',
+        400,
+        'errors.terms_required',
+      );
+    }
     assertPasswordPolicy(input.password);
     const email = input.email.trim().toLowerCase();
     const existing = await getPrisma().user.findUnique({ where: { email } });
@@ -60,12 +75,17 @@ export class IdentityService {
         409,
         'errors.email_taken',
       );
+    const now = new Date();
+    const termsVersion = input.terms_version?.trim() || CURRENT_TERMS_VERSION;
     const user = await getPrisma().user.create({
       data: {
         id: newId(),
         email,
         name: input.name,
         passwordHash: await hashPassword(input.password),
+        termsAcceptedAt: now,
+        termsVersion,
+        privacyAcceptedAt: now,
         status: 'ACTIVE',
       },
     });
@@ -74,11 +94,27 @@ export class IdentityService {
       action: 'user.registered',
       targetType: 'User',
       targetId: user.id,
+      afterRef: `terms:${termsVersion}`,
     });
     return user;
   }
 
-  async login(input: { email: string; password: string; ip?: string; userAgent?: string }) {
+  async login(input: {
+    email: string;
+    password: string;
+    ip?: string;
+    userAgent?: string;
+    terms_accepted?: boolean;
+    terms_version?: string;
+  }) {
+    if (input.terms_accepted === false) {
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'You must accept the Terms of Service and Privacy Policy to continue.',
+        400,
+        'errors.terms_required',
+      );
+    }
     const email = input.email.trim().toLowerCase();
     const user = await getPrisma().user.findUnique({ where: { email } });
     if (!user?.passwordHash || user.status !== 'ACTIVE') {
@@ -100,10 +136,40 @@ export class IdentityService {
         'errors.invalid_credentials',
       );
     }
+    if (input.terms_accepted || !user.termsAcceptedAt) {
+      const now = new Date();
+      const version = input.terms_version?.trim() || user.termsVersion || CURRENT_TERMS_VERSION;
+      await getPrisma().user.update({
+        where: { id: user.id },
+        data: {
+          termsAcceptedAt: user.termsAcceptedAt ?? now,
+          termsVersion: version,
+          privacyAcceptedAt: user.privacyAcceptedAt ?? now,
+        },
+      });
+    }
+    return this.createSessionForUser(user.id, {
+      ip: input.ip,
+      userAgent: input.userAgent,
+      auditAction: 'user.login',
+    });
+  }
+
+  async createSessionForUser(
+    userId: string,
+    opts?: { ip?: string; userAgent?: string; auditAction?: string },
+  ) {
+    const user = await getPrisma().user.findUniqueOrThrow({ where: { id: userId } });
+    if (user.status !== 'ACTIVE') {
+      throw new DomainError(
+        'UNAUTHENTICATED',
+        'Account is not active',
+        401,
+        'errors.invalid_credentials',
+      );
+    }
     const { token, tokenHash } = issueSessionToken();
     const ttl = Number(process.env.SESSION_TTL_SECONDS ?? 604800);
-    // Single-tenant members auto-activate their company. Multi-tenant users resume
-    // the last active tenant when still valid, otherwise their primary membership.
     const membershipTenantIds = (
       await getPrisma().membership.findMany({
         where: { userId: user.id, status: 'ACTIVE' },
@@ -113,8 +179,6 @@ export class IdentityService {
     ).map((m) => m.tenantId);
     const tenantIds = new Set(membershipTenantIds);
     const soleTenantId = tenantIds.size === 1 ? [...tenantIds][0]! : null;
-    // Multi-company: restore the most recent still-valid active tenant so users
-    // are not dropped on an empty select-company screen every login.
     let resumeTenantId: string | null = soleTenantId;
     if (!resumeTenantId && tenantIds.size > 1) {
       const prev = await getPrisma().session.findFirst({
@@ -129,7 +193,6 @@ export class IdentityService {
       if (prev?.activeTenantId && tenantIds.has(prev.activeTenantId)) {
         resumeTenantId = prev.activeTenantId;
       } else {
-        // Stable fallback: first membership by creation (primary company).
         const first = await getPrisma().membership.findFirst({
           where: { userId: user.id, status: 'ACTIVE', tenantId: { in: [...tenantIds] } },
           orderBy: { createdAt: 'asc' },
@@ -145,17 +208,136 @@ export class IdentityService {
         tokenHash,
         activeTenantId: resumeTenantId,
         expiresAt: new Date(Date.now() + ttl * 1000),
-        ip: input.ip,
-        userAgent: input.userAgent,
+        ip: opts?.ip,
+        userAgent: opts?.userAgent,
       },
     });
     await this.audit.write({
       actorUserId: user.id,
-      action: 'user.login',
+      action: opts?.auditAction ?? 'user.login',
       targetType: 'Session',
       targetId: session.id,
     });
     return { user, token, session };
+  }
+
+  async loginOrRegisterWithOAuth(
+    profile: OAuthUserProfile,
+    opts?: { ip?: string; userAgent?: string; termsVersion?: string | null },
+  ) {
+    const prisma = getPrisma();
+    const email = profile.email.trim().toLowerCase();
+    const now = new Date();
+    const termsVersion = opts?.termsVersion || CURRENT_TERMS_VERSION;
+
+    const existingIdentity = await prisma.authIdentity.findUnique({
+      where: {
+        provider_providerUserId: {
+          provider: profile.provider,
+          providerUserId: profile.providerUserId,
+        },
+      },
+      include: { user: true },
+    });
+
+    let user = existingIdentity?.user ?? null;
+
+    if (!user) {
+      user = await prisma.user.findUnique({ where: { email } });
+      if (!user) {
+        user = await prisma.user.create({
+          data: {
+            id: newId(),
+            email,
+            name: profile.name,
+            avatarUrl: profile.avatarUrl ?? null,
+            emailVerifiedAt: profile.emailVerified ? now : null,
+            termsAcceptedAt: now,
+            termsVersion,
+            privacyAcceptedAt: now,
+            status: 'ACTIVE',
+          },
+        });
+        await this.audit.write({
+          actorUserId: user.id,
+          action: `user.registered.${profile.provider}`,
+          targetType: 'User',
+          targetId: user.id,
+          afterRef: `terms:${termsVersion}`,
+        });
+      } else {
+        await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            avatarUrl: user.avatarUrl ?? profile.avatarUrl ?? null,
+            emailVerifiedAt: user.emailVerifiedAt ?? (profile.emailVerified ? now : null),
+            termsAcceptedAt: user.termsAcceptedAt ?? now,
+            termsVersion: user.termsVersion ?? termsVersion,
+            privacyAcceptedAt: user.privacyAcceptedAt ?? now,
+          },
+        });
+      }
+
+      await prisma.authIdentity.upsert({
+        where: {
+          provider_providerUserId: {
+            provider: profile.provider,
+            providerUserId: profile.providerUserId,
+          },
+        },
+        update: {
+          email,
+          rawProfileJson: profile.raw ? JSON.stringify(profile.raw).slice(0, 4000) : null,
+        },
+        create: {
+          id: newId(),
+          userId: user.id,
+          provider: profile.provider,
+          providerUserId: profile.providerUserId,
+          email,
+          rawProfileJson: profile.raw ? JSON.stringify(profile.raw).slice(0, 4000) : null,
+        },
+      });
+    } else if (!user.termsAcceptedAt) {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          termsAcceptedAt: now,
+          termsVersion,
+          privacyAcceptedAt: user.privacyAcceptedAt ?? now,
+        },
+      });
+    }
+
+    return this.createSessionForUser(user.id, {
+      ip: opts?.ip,
+      userAgent: opts?.userAgent,
+      auditAction: `user.login.${profile.provider}`,
+    });
+  }
+
+  async acceptTerms(userId: string, termsVersion = CURRENT_TERMS_VERSION) {
+    const now = new Date();
+    const updated = await getPrisma().user.update({
+      where: { id: userId },
+      data: {
+        termsAcceptedAt: now,
+        termsVersion: termsVersion.trim() || CURRENT_TERMS_VERSION,
+        privacyAcceptedAt: now,
+      },
+    });
+    await this.audit.write({
+      actorUserId: userId,
+      action: 'user.terms_accepted',
+      targetType: 'User',
+      targetId: userId,
+      afterRef: `terms:${updated.termsVersion}`,
+    });
+    return {
+      terms_accepted_at: updated.termsAcceptedAt?.toISOString() ?? now.toISOString(),
+      terms_version: updated.termsVersion ?? CURRENT_TERMS_VERSION,
+      privacy_accepted_at: updated.privacyAcceptedAt?.toISOString() ?? now.toISOString(),
+    };
   }
 
   async logout(sessionId: string, userId: string) {
@@ -198,6 +380,9 @@ export class IdentityService {
         preferred_locale: user.preferredLocale,
         preferred_dir: user.preferredDir,
         avatar_url: user.avatarUrl ?? null,
+        terms_accepted_at: user.termsAcceptedAt?.toISOString() ?? null,
+        terms_version: user.termsVersion ?? null,
+        privacy_accepted_at: user.privacyAcceptedAt?.toISOString() ?? null,
       },
       session_expires_at: session?.expiresAt.toISOString() ?? null,
       active_tenant_id: activeTenantId,

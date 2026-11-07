@@ -54,12 +54,60 @@ model User {
   avatarAssetId    String?
   /// JSON: { notifications: { [type]: boolean }, timezone, weekStart, ... }
   preferencesJson  String       @default("{}")
+  termsAcceptedAt   DateTime?
+  termsVersion      String?
+  privacyAcceptedAt DateTime?
   status           UserStatus   @default(ACTIVE)
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
   sessions         Session[]
   memberships      Membership[]
   auditEvents      AuditEvent[] @relation("ActorUser")
+  authIdentities   AuthIdentity[]
+}
+
+model AuthIdentity {
+  id             String   @id
+  userId         String
+  /// google | facebook | saml
+  provider       String
+  providerUserId String
+  email          String?
+  rawProfileJson String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerUserId])
+  @@index([userId])
+}
+
+model AuthOAuthState {
+  id           String    @id
+  provider     String
+  codeVerifier String?
+  returnPath   String    @default("/app")
+  termsVersion String?
+  expiresAt    DateTime
+  usedAt       DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([expiresAt])
+}
+
+model SsoDomainConfig {
+  id            String   @id
+  domain        String   @unique
+  tenantId      String?
+  idpEntryUrl   String
+  idpIssuer     String?
+  clientId      String?
+  clientSecret  String?
+  tokenEndpoint String?
+  userInfoUrl   String?
+  enabled       Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Session {

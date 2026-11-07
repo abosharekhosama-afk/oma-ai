@@ -4,14 +4,13 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: #f5f6f8;
+  background: var(--oma-canvas);
   padding: 32px 20px;
-  direction: ltr;
 }
 .plx-auth-card {
   width: 100%;
   max-width: 484px;
-  background: #fff;
+  background: var(--oma-surface);
   border-radius: 20px;
   box-shadow:
     0 14px 44px rgba(17, 24, 39, 0.08),
@@ -226,10 +225,295 @@
 .plx-auth-back {
   background: none;
   border: none;
-  color: #6b7280;
+  color: var(--oma-home-muted);
   font-size: 13px;
   text-decoration: underline;
   cursor: pointer;
   margin-top: 14px;
   font-family: inherit;
+}
+
+.plx-terms-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  text-align: start;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--oma-home-ink-3);
+  padding: 4px 2px;
+  cursor: pointer;
+}
+.plx-terms-consent input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  accent-color: var(--oma-primary);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.plx-terms-consent a {
+  color: var(--oma-home-ink);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* Legal & Compliance Center (/terms, /privacy) */
+.oma-legal-shell {
+  min-height: 100vh;
+  background: var(--oma-canvas);
+  color: var(--oma-ink);
+}
+.oma-legal-shell__topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--oma-surface);
+  border-bottom: 1px solid var(--oma-home-border);
+}
+.oma-legal-shell__topbar-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.oma-legal-shell__brand {
+  text-decoration: none;
+}
+.oma-legal-shell__tabs {
+  display: inline-flex;
+  gap: 6px;
+  background: var(--oma-home-hover);
+  padding: 4px;
+  border-radius: 10px;
+}
+.oma-legal-shell__tab {
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--oma-home-muted);
+  text-decoration: none;
+}
+.oma-legal-shell__tab[data-active='true'] {
+  background: var(--oma-surface);
+  color: var(--oma-home-ink);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+}
+.oma-legal-shell__back {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--oma-primary);
+  text-decoration: none;
+}
+.oma-legal-shell__hero {
+  background: var(--oma-surface);
+  border-bottom: 1px solid var(--oma-home-border);
+}
+.oma-legal-shell__hero-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 36px 24px 32px;
+}
+.oma-legal-shell__eyebrow {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--oma-primary);
+  margin-bottom: 8px;
+}
+.oma-legal-shell__title {
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--oma-home-ink);
+  margin: 0 0 12px;
+}
+.oma-legal-shell__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.oma-legal-shell__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--oma-home-primary-soft);
+  color: var(--oma-home-primary-hover);
+}
+.oma-legal-shell__badge--muted {
+  background: var(--oma-home-hover);
+  color: var(--oma-home-muted);
+}
+.oma-legal-shell__lead {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--oma-home-ink-3);
+  max-width: 720px;
+  margin: 0;
+}
+.oma-legal-shell__grid {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 28px 24px 64px;
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+.oma-legal-shell__toc {
+  position: sticky;
+  top: 84px;
+  background: var(--oma-surface);
+  border: 1px solid var(--oma-home-border);
+  border-radius: 14px;
+  padding: 16px;
+}
+.oma-legal-shell__toc-title {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--oma-home-subtle);
+}
+.oma-legal-shell__toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.oma-legal-shell__toc-list a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--oma-home-ink-2);
+  text-decoration: none;
+}
+.oma-legal-shell__toc-list a:hover {
+  background: var(--oma-home-hover);
+}
+.oma-legal-shell__toc-num {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--oma-home-subtle);
+}
+.oma-legal-shell__doc {
+  background: var(--oma-surface);
+  border: 1px solid var(--oma-home-border);
+  border-radius: 16px;
+  padding: 28px 32px;
+  max-width: none;
+  margin: 0;
+}
+.oma-legal-shell__section {
+  padding-bottom: 22px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid var(--oma-home-divider);
+  scroll-margin-top: 90px;
+}
+.oma-legal-shell__section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.oma-legal-shell__section-head h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--oma-home-ink);
+}
+.oma-legal-shell__section-num {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--oma-home-primary-soft);
+  color: var(--oma-primary);
+  font-size: 12px;
+  font-weight: 700;
+}
+.oma-legal-shell__section p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--oma-home-ink-3);
+}
+.oma-legal__consent-card {
+  margin: 24px 0;
+  padding: 16px 18px;
+  border-radius: 12px;
+  border: 1px solid var(--oma-home-border);
+  background: var(--oma-home-day-bg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.oma-legal__consent-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--oma-home-ink);
+  cursor: pointer;
+}
+.oma-legal__consent-check input {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--oma-primary);
+}
+.oma-legal__consent-badge {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--oma-badge-success-bg);
+  color: var(--oma-home-success);
+}
+.oma-legal-shell__footer {
+  padding-top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.oma-legal-shell__footer-links {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.oma-legal-shell__footer-links a {
+  color: var(--oma-home-ink-2);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+@media (max-width: 860px) {
+  .oma-legal-shell__grid {
+    grid-template-columns: 1fr;
+  }
+  .oma-legal-shell__toc {
+    position: static;
+  }
 }
