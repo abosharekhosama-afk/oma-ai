@@ -6,12 +6,14 @@ import { api } from '../../lib/api';
 import { getProfile, initials, type Profile } from '../../lib/account-api';
 import { SESSION_OK_KEY } from '../../lib/session';
 import { useT } from '../../lib/use-locale';
+import { ConfirmActionDialog } from '../ui/confirm-action-dialog';
 import { ShellIcon } from './shell-icons';
 import { ShellPopover } from './shell-popover';
 
 export function UserMenu() {
   const t = useT();
   const [open, setOpen] = useState(false);
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loggingOut, setLoggingOut] = useState(false);
 
@@ -28,6 +30,7 @@ export function UserMenu() {
   async function handleLogout() {
     if (loggingOut) return;
     setLoggingOut(true);
+    setLogoutConfirmOpen(false);
     setOpen(false);
     try {
       await api('/api/v1/auth/logout', { method: 'POST', body: '{}' });
@@ -144,7 +147,10 @@ export function UserMenu() {
           role="menuitem"
           data-testid="shell-user-menu-logout"
           disabled={loggingOut}
-          onClick={() => void handleLogout()}
+          onClick={() => {
+            setOpen(false);
+            setLogoutConfirmOpen(true);
+          }}
         >
           <span className="oma-plx-account-card__icon" aria-hidden="true">
             <svg
@@ -210,6 +216,22 @@ export function UserMenu() {
           </span>
         </button>
       </ShellPopover>
+
+      <ConfirmActionDialog
+        open={logoutConfirmOpen}
+        title={t('shell.logout_confirm_title') || t('shell.logout')}
+        description={
+          t('shell.logout_confirm_body') ||
+          'Are you sure you want to log out of your OMA account on this device?'
+        }
+        confirmLabel={t('shell.logout')}
+        cancelLabel={t('common.cancel')}
+        tone="danger"
+        busy={loggingOut}
+        onConfirm={() => void handleLogout()}
+        onCancel={() => setLogoutConfirmOpen(false)}
+        testId="confirm-logout-dialog"
+      />
     </div>
   );
 }

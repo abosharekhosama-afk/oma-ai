@@ -21,6 +21,7 @@ import { EmptyState, ErrorState, DeniedState } from '../../../../components/ui/e
 import { StatusChip } from '../../../../components/ui/status-chip';
 import { useToast } from '../../../../components/ui/toast';
 import { Dialog } from '../../../../components/ui/dialog';
+import { ConfirmActionDialog } from '../../../../components/ui/confirm-action-dialog';
 import { pickCopy } from '../../../../lib/demo/use-demo-api';
 import {
   listScopedBrands,
@@ -1260,25 +1261,21 @@ export default function CampaignsPage() {
         </div>
       </Dialog>
 
-      <Dialog
+      <ConfirmActionDialog
         open={Boolean(archiveTarget)}
         title={isAr ? 'أرشفة الحملة' : 'Archive campaign'}
-        onClose={() => setArchiveTarget(null)}
-      >
-        <p>
-          {isAr
+        description={
+          isAr
             ? 'ستُنقل الحملة إلى المكتملة/المؤرشفة. تبقى عناصر المحتوى والمهام مرتبطة بها.'
-            : 'This moves the campaign to archived. Its posts and tasks remain linked.'}
-        </p>
-        <div className="oma-dialog-footer">
-          <Button type="default" onClick={() => setArchiveTarget(null)}>
-            {isAr ? 'إلغاء' : 'Cancel'}
-          </Button>
-          <Button type="primary" onClick={() => void archiveCampaign()}>
-            {isAr ? 'أرشفة الحملة' : 'Archive campaign'}
-          </Button>
-        </div>
-      </Dialog>
+            : 'This moves the campaign to archived. Its posts and tasks remain linked.'
+        }
+        confirmLabel={isAr ? 'أرشفة الحملة' : 'Archive campaign'}
+        cancelLabel={isAr ? 'إلغاء' : 'Cancel'}
+        tone="danger"
+        onConfirm={() => void archiveCampaign()}
+        onCancel={() => setArchiveTarget(null)}
+        testId="confirm-archive-campaign-dialog"
+      />
     </div>
   );
 }

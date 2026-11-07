@@ -27,6 +27,7 @@ import {
 } from '../../../../lib/account-api';
 import { TEAM_INVITE_EVENT } from '../../../../lib/team-invite';
 import { TeamInviteDialog } from '../../../../components/team/team-invite-dialog';
+import { ConfirmActionDialog } from '../../../../components/ui/confirm-action-dialog';
 import { useToast } from '../../../../components/ui/toast';
 import { api } from '../../../../lib/api';
 import { statusLabel } from '../../../../components/ui/status-chip';
@@ -134,6 +135,7 @@ export default function TeamPage() {
       .catch(() => setMeId(null));
   }, []);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [removeTarget, setRemoveTarget] = useState<WorkspaceMember | null>(null);
   const [busy, setBusy] = useState(false);
   // The "Invite members" button lives in the shell header (replaces the generic Create button).
   useEffect(() => {
@@ -256,16 +258,11 @@ export default function TeamPage() {
   }
 
   async function onRemove(member: WorkspaceMember) {
-    if (
-      !window.confirm(
-        t('team.removeConfirm').replace('{name}', member.user?.email || member.invited_email || ''),
-      )
-    )
-      return;
     setBusy(true);
     try {
       if (source === 'api') await removeMember(member.id);
       setRows((prev) => prev.filter((r) => r.id !== member.id));
+      setRemoveTarget(null);
       toast.push(t('team.member_removed'), 'success');
     } catch (err) {
       toast.push(err instanceof Error ? err.message : t('errors.remove_failed'), 'danger');
@@ -486,7 +483,7 @@ export default function TeamPage() {
                                 <button
                                   type="button"
                                   className="oma-plx-team-card__remove"
-                                  onClick={() => void onRemove(m)}
+                                  onClick={() => setRemoveTarget(m)}
                                   disabled={busy}
                                 >
                                   {t('team.remove')}
@@ -686,6 +683,28 @@ export default function TeamPage() {
           void load(true);
           toast.push(t('team.invitation_sent'), 'success');
         }}
+      />
+
+      <ConfirmActionDialog
+        open={Boolean(removeTarget)}
+        title={t('team.remove')}
+        description={
+          removeTarget
+            ? t('team.removeConfirm').replace(
+                '{name}',
+                removeTarget.user?.email || removeTarget.invited_email || '',
+              )
+            : ''
+        }
+        confirmLabel={t('team.remove')}
+        cancelLabel={t('common.cancel')}
+        tone="danger"
+        busy={busy}
+        onConfirm={() => {
+          if (removeTarget) void onRemove(removeTarget);
+        }}
+        onCancel={() => setRemoveTarget(null)}
+        testId="confirm-remove-team-member"
       />
     </div>
   );

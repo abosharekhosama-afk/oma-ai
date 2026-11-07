@@ -321,7 +321,7 @@ export function ShellChrome({ children }: { children: ReactNode }) {
       : isCampaignsWorkspace
         ? t('nav.campaigns')
         : isBrandsList
-          ? t('nav.brands')
+          ? t('brand.list.title') || t('shell.brand')
           : isInboxWorkspace
             ? t('nav.inbox')
             : isListeningWorkspace

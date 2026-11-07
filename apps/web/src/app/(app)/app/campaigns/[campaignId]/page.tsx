@@ -13,6 +13,7 @@ import { EmptyState, ErrorState, DeniedState } from '../../../../../components/u
 import { PageHeader } from '../../../../../components/ui/page-header';
 import { StatusChip } from '../../../../../components/ui/status-chip';
 import { Dialog } from '../../../../../components/ui/dialog';
+import { ConfirmActionDialog } from '../../../../../components/ui/confirm-action-dialog';
 import { pickCopy } from '../../../../../lib/demo/use-demo-api';
 import {
   getCampaignProduction,
@@ -89,6 +90,7 @@ export default function CampaignDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const unavailable = false;
   const [editOpen, setEditOpen] = useState(false);
+  const [archiveConfirmOpen, setArchiveConfirmOpen] = useState(false);
   const [confirmClose, setConfirmClose] = useState(false);
   const toast = useToast();
   const [saving, setSaving] = useState(false);
@@ -863,34 +865,48 @@ export default function CampaignDetailPage() {
             >
               {saving ? '…' : t('demo.content.saved') || 'Save'}
             </Button>
-            <Button
-              type="default"
-              disabled={saving}
-              onClick={() => {
-                void (async () => {
-                  if (!campaignId) return;
-                  setSaving(true);
-                  try {
-                    await archiveCampaignProduction(campaignId);
-                    toast.push(
-                      locale.toLowerCase().startsWith('ar') ? 'تمت الأرشفة' : 'Archived',
-                      'success',
-                    );
-                    setEditOpen(false);
-                    router.push('/app/campaigns');
-                  } catch (err) {
-                    toast.push(apiErrorMessage(err, 'Archive failed'), 'danger');
-                  } finally {
-                    setSaving(false);
-                  }
-                })();
-              }}
-            >
-              Archive
+            <Button type="default" disabled={saving} onClick={() => setArchiveConfirmOpen(true)}>
+              {locale.toLowerCase().startsWith('ar') ? 'أرشفة' : 'Archive'}
             </Button>
           </div>
         </div>
       </Dialog>
+
+      <ConfirmActionDialog
+        open={archiveConfirmOpen}
+        title={locale.toLowerCase().startsWith('ar') ? 'أرشفة الحملة' : 'Archive campaign'}
+        description={
+          locale.toLowerCase().startsWith('ar')
+            ? 'ستُنقل الحملة إلى المكتملة/المؤرشفة. تبقى عناصر المحتوى والمهام مرتبطة بها.'
+            : 'This moves the campaign to archived. Its posts and tasks remain linked.'
+        }
+        confirmLabel={locale.toLowerCase().startsWith('ar') ? 'أرشفة الحملة' : 'Archive campaign'}
+        cancelLabel={t('demo.create.cancel')}
+        tone="danger"
+        busy={saving}
+        onConfirm={() => {
+          void (async () => {
+            if (!campaignId) return;
+            setSaving(true);
+            try {
+              await archiveCampaignProduction(campaignId);
+              toast.push(
+                locale.toLowerCase().startsWith('ar') ? 'تمت الأرشفة' : 'Archived',
+                'success',
+              );
+              setArchiveConfirmOpen(false);
+              setEditOpen(false);
+              router.push('/app/campaigns');
+            } catch (err) {
+              toast.push(apiErrorMessage(err, 'Archive failed'), 'danger');
+            } finally {
+              setSaving(false);
+            }
+          })();
+        }}
+        onCancel={() => setArchiveConfirmOpen(false)}
+        testId="confirm-archive-campaign-detail"
+      />
 
       <Dialog
         open={confirmClose}
