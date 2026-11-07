@@ -157,6 +157,60 @@ function trendPct(current: number, previous: number): number | null {
   return Math.round(((current - previous) / previous) * 100);
 }
 
+type RuleKind = 'BRAND' | 'COMPETITOR' | 'TOPIC';
+
+function resolveRuleKind(row: { kind: string; name: string }): RuleKind {
+  const k = String(row.kind || '').toUpperCase();
+  if (k === 'COMPETITOR' || k === 'TOPIC') return k;
+  if (/competitor/i.test(row.name)) return 'COMPETITOR';
+  if (/topic|hashtag/i.test(row.name)) return 'TOPIC';
+  return 'BRAND';
+}
+
+function platformLabel(code: string): string {
+  const m: Record<string, string> = {
+    META_FB: 'Facebook',
+    META_IG: 'Instagram',
+    TIKTOK: 'TikTok',
+    LINKEDIN: 'LinkedIn',
+  };
+  return m[code] ?? code;
+}
+
+function parseThresholdJson(json: string): Record<string, number> {
+  try {
+    const v = JSON.parse(json) as Record<string, unknown>;
+    const out: Record<string, number> = {};
+    for (const [k, raw] of Object.entries(v)) {
+      const n = typeof raw === 'number' ? raw : Number(raw);
+      if (Number.isFinite(n)) out[k] = n;
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+function alertFiresWhen(triggerType: string, threshold: Record<string, number>): string {
+  if (triggerType === 'VOLUME_SPIKE') {
+    const n = threshold.mentionsPerDay;
+    return n ? `Over ${n} mentions / day` : 'More mentions than usual';
+  }
+  if (triggerType === 'SENTIMENT_POSITIVE') {
+    return `Over ${threshold.sharePct ?? 0}% positive / day`;
+  }
+  if (triggerType === 'SENTIMENT_NEGATIVE') {
+    return `Over ${threshold.sharePct ?? 0}% negative / day`;
+  }
+  return triggerType;
+}
+
+function netSentimentBalance(positive: number, neutral: number, negative: number): number {
+  const total = positive + neutral + negative;
+  if (!total) return 0;
+  return Math.round(((positive - negative) / total) * 100);
+}
+
 export class ListeningService {
   async listRules(tenantId: string, brandId?: string) {
     const rows = await getPrisma().listeningRule.findMany({
@@ -167,6 +221,7 @@ export class ListeningService {
       items: rows.map((r) => ({
         id: r.id,
         name: r.name,
+        kind: resolveRuleKind(r),
         workspaceId: r.workspaceId,
         brandId: r.brandId,
         keywords: safeArr(r.keywordsJson),
@@ -191,6 +246,7 @@ export class ListeningService {
       hashtags?: string[];
       platforms?: string[];
       isLive?: boolean;
+      kind?: string;
     },
   ) {
     const name = (body.name ?? '').trim();
@@ -205,6 +261,7 @@ export class ListeningService {
         workspaceId,
         brandId: body.brandId ?? null,
         name,
+        kind: String(body.kind || 'BRAND').toUpperCase(),
         keywordsJson: JSON.stringify(body.keywords ?? []),
         hashtagsJson: JSON.stringify(body.hashtags ?? []),
         platformsJson: JSON.stringify(body.platforms ?? []),
@@ -360,6 +417,356 @@ export class ListeningService {
       lastPollAt: lastPollAt?.toISOString() ?? null,
       nextPollAt: nextPollAt.toISOString(),
     };
+  }
+
+  /** Multi-brand compare: share of voice, sentiment, and source split from live ListeningHit rows. */
+  async competitorDashboard(
+    tenantId: string,
+    q: { brandId?: string; from?: string; to?: string; platforms?: string[] },
+  ) {
+    const to = parseDate(q.to) ?? new Date();
+    const from = parseDate(q.from) ?? new Date(to.getTime() - 6 * 86400_000);
+    from.setHours(0, 0, 0, 0);
+    to.setHours(23, 59, 59, 999);
+    const spanMs = to.getTime() - from.getTime();
+    const prevTo = new Date(from.getTime() - 1);
+    const prevFrom = new Date(prevTo.getTime() - spanMs);
+
+    const rules = await getPrisma().listeningRule.findMany({
+      where: tenantWhere(tenantId, {
+        ...(q.brandId ? { OR: [{ brandId: q.brandId }, { brandId: null }] } : {}),
+      }),
+      orderBy: { createdAt: 'asc' },
+    });
+    const brandRules = rules.filter((r) => resolveRuleKind(r) === 'BRAND');
+    const competitorRules = rules.filter((r) => resolveRuleKind(r) === 'COMPETITOR');
+    const track = [...brandRules, ...competitorRules];
+    if (!track.length) {
+      return {
+        from: from.toISOString(),
+        to: to.toISOString(),
+        totals: { mentions: 0 },
+        entities: [],
+        bySource: [],
+        quadrant: [],
+      };
+    }
+
+    const platformFilter = q.platforms?.length ? { platform: { in: q.platforms as never[] } } : {};
+
+    const entityRows = await Promise.all(
+      track.map(async (rule) => {
+        const base = {
+          tenantId,
+          ruleId: rule.id,
+          isHidden: false,
+          isExcluded: false,
+          ...platformFilter,
+        };
+        const [current, previous] = await Promise.all([
+          getPrisma().listeningHit.findMany({
+            where: { ...base, capturedAt: { gte: from, lte: to } },
+            select: {
+              capturedAt: true,
+              sentiment: true,
+              platform: true,
+              likeCount: true,
+              commentCount: true,
+              shareCount: true,
+            },
+          }),
+          getPrisma().listeningHit.findMany({
+            where: { ...base, capturedAt: { gte: prevFrom, lte: prevTo } },
+            select: { id: true },
+          }),
+        ]);
+        const mentions = current.length;
+        const prevMentions = previous.length;
+        const engagement = current.reduce(
+          (s, h) => s + h.likeCount + h.commentCount + h.shareCount,
+          0,
+        );
+        const positive = current.filter((h) => h.sentiment === 'POSITIVE').length;
+        const neutral = current.filter((h) => h.sentiment === 'NEUTRAL').length;
+        const negative = current.filter((h) => h.sentiment === 'NEGATIVE').length;
+        const volume = dayBuckets(current, from, to).map((d) => d.total);
+        return {
+          ruleId: rule.id,
+          name: rule.name,
+          kind: resolveRuleKind(rule),
+          isYou: resolveRuleKind(rule) === 'BRAND',
+          mentions,
+          mentionsTrendPct: trendPct(mentions, prevMentions),
+          engagement,
+          engagementTrendPct: null as number | null,
+          sentiment: {
+            positive,
+            neutral,
+            negative,
+            balance: netSentimentBalance(positive, neutral, negative),
+          },
+          sparkline: volume,
+          hits: current,
+          prevMentions,
+        };
+      }),
+    );
+
+    const totalMentions = entityRows.reduce((s, e) => s + e.mentions, 0);
+    const prevTotal = entityRows.reduce((s, e) => s + e.prevMentions, 0);
+    const youRuleId = brandRules[0]?.id ?? null;
+
+    const entities = entityRows.map((e) => {
+      const sharePct = totalMentions ? Math.round((e.mentions / totalMentions) * 1000) / 10 : 0;
+      const prevShare = prevTotal ? (e.prevMentions / prevTotal) * 100 : 0;
+      const shareChangePts = Math.round((sharePct - prevShare) * 10) / 10;
+      const { hits: _hits, prevMentions: _p, ...rest } = e;
+      return { ...rest, sharePct, shareChangePts };
+    });
+
+    const platformMap = new Map<string, { mentions: number; byRule: Map<string, number> }>();
+    for (const e of entityRows) {
+      for (const h of e.hits) {
+        const plat = String(h.platform);
+        let row = platformMap.get(plat);
+        if (!row) {
+          row = { mentions: 0, byRule: new Map() };
+          platformMap.set(plat, row);
+        }
+        row.mentions += 1;
+        row.byRule.set(e.ruleId, (row.byRule.get(e.ruleId) ?? 0) + 1);
+      }
+    }
+    const bySource = [...platformMap.entries()]
+      .map(([platform, row]) => {
+        const splits = track.map((rule) => ({
+          ruleId: rule.id,
+          name: rule.name,
+          mentions: row.byRule.get(rule.id) ?? 0,
+          isYou: resolveRuleKind(rule) === 'BRAND',
+        }));
+        const yourMentions = youRuleId ? (row.byRule.get(youRuleId) ?? 0) : 0;
+        const yourSharePct = row.mentions
+          ? Math.round((yourMentions / row.mentions) * 1000) / 10
+          : 0;
+        return {
+          platform,
+          label: platformLabel(platform),
+          mentions: row.mentions,
+          splits,
+          yourSharePct,
+        };
+      })
+      .sort((a, b) => b.mentions - a.mentions);
+
+    const mentionValues = entityRows.map((e) => e.mentions);
+    const medianMentions =
+      mentionValues.length && mentionValues.some((n) => n > 0)
+        ? mentionValues.sort((a, b) => a - b)[Math.floor(mentionValues.length / 2)]!
+        : 0;
+    const quadrant = entityRows.map((e) => ({
+      ruleId: e.ruleId,
+      name: e.name,
+      isYou: e.isYou,
+      mentions: e.mentions,
+      balance: e.sentiment.balance,
+      bucket:
+        e.mentions >= medianMentions && e.sentiment.balance >= 0
+          ? 'leading'
+          : e.mentions >= medianMentions && e.sentiment.balance < 0
+            ? 'under_fire'
+            : e.mentions < medianMentions && e.sentiment.balance >= 0
+              ? 'well_liked'
+              : 'quiet',
+    }));
+
+    return {
+      from: from.toISOString(),
+      to: to.toISOString(),
+      totals: { mentions: totalMentions, previousMentions: prevTotal },
+      entities,
+      bySource,
+      quadrant,
+    };
+  }
+
+  async listAlerts(tenantId: string, brandId?: string) {
+    const rows = await getPrisma().listeningAlert.findMany({
+      where: tenantWhere(tenantId, brandId ? { brandId } : {}),
+      orderBy: { createdAt: 'desc' },
+    });
+    return {
+      items: rows.map((a) => {
+        const threshold = parseThresholdJson(a.thresholdJson);
+        const platforms = safeArr(a.platformsJson);
+        return {
+          id: a.id,
+          name: a.name,
+          brandId: a.brandId,
+          triggerType: a.triggerType,
+          threshold,
+          platforms,
+          platformsLabel: platforms.length ? platforms.join(', ') : 'All platforms',
+          firesWhen: alertFiresWhen(a.triggerType, threshold),
+          notifyInApp: a.notifyInApp,
+          notifyEmail: a.notifyEmail,
+          notifySlack: a.notifySlack,
+          isActive: a.isActive,
+          lastFiredAt: a.lastFiredAt?.toISOString() ?? null,
+          createdAt: a.createdAt.toISOString(),
+          updatedAt: a.updatedAt.toISOString(),
+        };
+      }),
+    };
+  }
+
+  async createAlert(
+    tenantId: string,
+    body: {
+      name?: string;
+      brandId?: string | null;
+      triggerType?: string;
+      threshold?: Record<string, number>;
+      platforms?: string[];
+      notifyInApp?: boolean;
+      notifyEmail?: boolean;
+      notifySlack?: boolean;
+      isActive?: boolean;
+    },
+  ) {
+    const name = (body.name ?? '').trim();
+    if (!name)
+      throw new DomainError('VALIDATION_FAILED', 'name required', 400, 'errors.validation');
+    const triggerType = String(body.triggerType || 'VOLUME_SPIKE').toUpperCase();
+    const id = newId();
+    await getPrisma().listeningAlert.create({
+      data: {
+        id,
+        tenantId,
+        brandId: body.brandId ?? null,
+        name,
+        triggerType,
+        thresholdJson: JSON.stringify(body.threshold ?? {}),
+        platformsJson: JSON.stringify(body.platforms ?? []),
+        notifyInApp: body.notifyInApp !== false,
+        notifyEmail: Boolean(body.notifyEmail),
+        notifySlack: Boolean(body.notifySlack),
+        isActive: body.isActive !== false,
+      },
+    });
+    return { id };
+  }
+
+  async updateAlert(
+    tenantId: string,
+    id: string,
+    body: {
+      name?: string;
+      triggerType?: string;
+      threshold?: Record<string, number>;
+      platforms?: string[];
+      notifyInApp?: boolean;
+      notifyEmail?: boolean;
+      notifySlack?: boolean;
+      isActive?: boolean;
+    },
+  ) {
+    const existing = await getPrisma().listeningAlert.findFirst({
+      where: tenantWhere(tenantId, { id }),
+    });
+    if (!existing) throw new DomainError('NOT_FOUND', 'Alert not found', 404, 'errors.not_found');
+    await getPrisma().listeningAlert.update({
+      where: { id },
+      data: {
+        ...(body.name !== undefined ? { name: body.name.trim() } : {}),
+        ...(body.triggerType ? { triggerType: body.triggerType.toUpperCase() } : {}),
+        ...(body.threshold ? { thresholdJson: JSON.stringify(body.threshold) } : {}),
+        ...(body.platforms ? { platformsJson: JSON.stringify(body.platforms) } : {}),
+        ...(body.notifyInApp !== undefined ? { notifyInApp: body.notifyInApp } : {}),
+        ...(body.notifyEmail !== undefined ? { notifyEmail: body.notifyEmail } : {}),
+        ...(body.notifySlack !== undefined ? { notifySlack: body.notifySlack } : {}),
+        ...(body.isActive !== undefined ? { isActive: body.isActive } : {}),
+      },
+    });
+    return { id };
+  }
+
+  async deleteAlert(tenantId: string, id: string) {
+    const existing = await getPrisma().listeningAlert.findFirst({
+      where: tenantWhere(tenantId, { id }),
+    });
+    if (!existing) throw new DomainError('NOT_FOUND', 'Alert not found', 404, 'errors.not_found');
+    await getPrisma().listeningAlert.delete({ where: { id } });
+    return { ok: true };
+  }
+
+  /** Evaluate active alerts for a calendar day (yesterday UTC). Called from the worker cron. */
+  async evaluateAlertsForDay(tenantId: string, day: Date) {
+    const start = new Date(day);
+    start.setUTCHours(0, 0, 0, 0);
+    const end = new Date(start);
+    end.setUTCDate(end.getUTCDate() + 1);
+
+    const alerts = await getPrisma().listeningAlert.findMany({
+      where: tenantWhere(tenantId, { isActive: true }),
+    });
+    if (!alerts.length) return { evaluated: 0, fired: 0 };
+
+    const brandRule = await getPrisma().listeningRule.findFirst({
+      where: tenantWhere(tenantId, { kind: 'BRAND', isLive: true }),
+      orderBy: { createdAt: 'asc' },
+    });
+    const ruleId = brandRule?.id;
+    let fired = 0;
+
+    for (const alert of alerts) {
+      const platforms = safeArr(alert.platformsJson);
+      const dayHits = await getPrisma().listeningHit.findMany({
+        where: tenantWhere(tenantId, {
+          ...(ruleId ? { ruleId } : {}),
+          isHidden: false,
+          isExcluded: false,
+          ...(platforms.length ? { platform: { in: platforms as never[] } } : {}),
+          capturedAt: { gte: start, lt: end },
+        }),
+        select: { sentiment: true },
+      });
+      const total = dayHits.length;
+      const threshold = parseThresholdJson(alert.thresholdJson);
+      let shouldFire = false;
+      if (alert.triggerType === 'VOLUME_SPIKE') {
+        const min = threshold.mentionsPerDay ?? 0;
+        if (min > 0 && total >= min) shouldFire = true;
+        else if (!min && total > 0) {
+          const histFrom = new Date(start.getTime() - 7 * 86400_000);
+          const hist = await getPrisma().listeningHit.count({
+            where: tenantWhere(tenantId, {
+              ...(ruleId ? { ruleId } : {}),
+              capturedAt: { gte: histFrom, lt: start },
+              isHidden: false,
+              isExcluded: false,
+            }),
+          });
+          const avg = hist / 7;
+          if (avg > 0 && total > avg * 1.2) shouldFire = true;
+        }
+      } else if (alert.triggerType === 'SENTIMENT_POSITIVE' && total > 0) {
+        const pct = (dayHits.filter((h) => h.sentiment === 'POSITIVE').length / total) * 100;
+        if (pct >= (threshold.sharePct ?? 0)) shouldFire = true;
+      } else if (alert.triggerType === 'SENTIMENT_NEGATIVE' && total > 0) {
+        const pct = (dayHits.filter((h) => h.sentiment === 'NEGATIVE').length / total) * 100;
+        if (pct >= (threshold.sharePct ?? 0)) shouldFire = true;
+      }
+      if (shouldFire) {
+        fired += 1;
+        await getPrisma().listeningAlert.update({
+          where: { id: alert.id },
+          data: { lastFiredAt: end },
+        });
+        // In-app / email / Slack delivery hooks on notify* flags — lastFiredAt drives the Alerts table.
+      }
+    }
+    return { evaluated: alerts.length, fired };
   }
 
   async requestSync(tenantId: string, body: { ruleId?: string; brandId?: string | null }) {

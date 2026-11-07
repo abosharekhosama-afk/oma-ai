@@ -50,12 +50,28 @@ type SentimentFilter = 'all' | 'POSITIVE' | 'NEUTRAL' | 'NEGATIVE';
 
 function ruleForView(rules: ListeningRule[], view: ListeningView): ListeningRule | null {
   if (view === 'competitors') {
-    return rules.find((r) => /competitor/i.test(r.name)) ?? rules[1] ?? rules[0] ?? null;
+    return (
+      rules.find((r) => r.kind === 'COMPETITOR') ??
+      rules.find((r) => /competitor/i.test(r.name)) ??
+      rules[1] ??
+      rules[0] ??
+      null
+    );
   }
   if (view === 'topic') {
-    return rules.find((r) => /topic|hashtag/i.test(r.name)) ?? rules[0] ?? null;
+    return (
+      rules.find((r) => r.kind === 'TOPIC') ??
+      rules.find((r) => /topic|hashtag/i.test(r.name)) ??
+      rules[0] ??
+      null
+    );
   }
-  return rules.find((r) => /brand/i.test(r.name)) ?? rules[0] ?? null;
+  return (
+    rules.find((r) => r.kind === 'BRAND') ??
+    rules.find((r) => /brand/i.test(r.name)) ??
+    rules[0] ??
+    null
+  );
 }
 
 function formatTrend(pct: number | null | undefined) {

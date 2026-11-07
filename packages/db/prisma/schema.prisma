@@ -105,6 +105,7 @@ model Tenant {
   inboxConversations InboxConversation[]
   listeningRules     ListeningRule[]
   listeningHits      ListeningHit[]
+  listeningAlerts    ListeningAlert[]
 }
 
 enum AiRunStatus {
@@ -1968,6 +1969,8 @@ model ListeningRule {
   workspaceId String
   brandId     String?
   name        String
+  /// BRAND | COMPETITOR | TOPIC — drives Listening nav surfaces (Planable-style).
+  kind        String   @default("BRAND")
   keywordsJson String  @default("[]")
   hashtagsJson String  @default("[]")
   platformsJson String @default("[]")
@@ -1981,7 +1984,32 @@ model ListeningRule {
   hits        ListeningHit[]
 
   @@index([tenantId, isLive])
+  @@index([tenantId, kind])
   @@index([workspaceId, isLive])
+}
+
+/// Workspace alert when mention volume or sentiment share crosses a threshold (evaluated daily).
+model ListeningAlert {
+  id             String    @id
+  tenantId       String
+  brandId        String?
+  name           String
+  /// VOLUME_SPIKE | SENTIMENT_POSITIVE | SENTIMENT_NEGATIVE
+  triggerType    String
+  /// e.g. {"mentionsPerDay":45} or {"sharePct":75}
+  thresholdJson  String    @default("{}")
+  platformsJson  String    @default("[]")
+  notifyInApp    Boolean   @default(true)
+  notifyEmail    Boolean   @default(false)
+  notifySlack    Boolean   @default(false)
+  isActive       Boolean   @default(true)
+  lastFiredAt    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, isActive])
+  @@index([tenantId, brandId])
 }
 
 /// Public mention / keyword hit captured by the listening engine.

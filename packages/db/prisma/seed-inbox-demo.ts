@@ -77,6 +77,7 @@ async function clearPreviousDemo(tenantId: string) {
   await prisma.listeningHit.deleteMany({
     where: { tenantId, externalPostId: { startsWith: POST_PREFIX } },
   });
+  await prisma.listeningAlert.deleteMany({ where: { tenantId } });
   await prisma.listeningRule.deleteMany({
     where: { tenantId, name: { startsWith: RULE_NAME_PREFIX } },
   });
@@ -292,13 +293,33 @@ async function seedListening(tenantId: string) {
   const rules = [
     {
       name: `${RULE_NAME_PREFIX}Brand mentions`,
+      kind: 'BRAND' as const,
       keywords: ['OMA AI', 'OMA social', 'omai'],
       hashtags: ['OMA', 'SocialOps'],
     },
     {
-      name: `${RULE_NAME_PREFIX}Competitor watch`,
-      keywords: ['Planable', 'Zoho Social'],
+      name: `${RULE_NAME_PREFIX}Competitor — Planable`,
+      kind: 'COMPETITOR' as const,
+      keywords: ['Planable', 'planable.io'],
       hashtags: ['SocialMediaTools'],
+    },
+    {
+      name: `${RULE_NAME_PREFIX}Competitor — Zoho Social`,
+      kind: 'COMPETITOR' as const,
+      keywords: ['Zoho Social', 'Zoho'],
+      hashtags: ['SocialMediaTools'],
+    },
+    {
+      name: `${RULE_NAME_PREFIX}Competitor — Buffer`,
+      kind: 'COMPETITOR' as const,
+      keywords: ['Buffer app', 'Buffer social'],
+      hashtags: ['Buffer'],
+    },
+    {
+      name: `${RULE_NAME_PREFIX}Topic — #SocialOps`,
+      kind: 'TOPIC' as const,
+      keywords: ['SocialOps', 'social ops'],
+      hashtags: ['SocialOps', 'AgencyLife'],
     },
   ];
 
@@ -312,6 +333,7 @@ async function seedListening(tenantId: string) {
         tenantId,
         workspaceId: tenantId,
         name: r.name,
+        kind: r.kind,
         keywordsJson: JSON.stringify(r.keywords),
         hashtagsJson: JSON.stringify(r.hashtags),
         platformsJson: JSON.stringify(['META_IG', 'META_FB', 'TIKTOK', 'LINKEDIN']),
@@ -319,6 +341,41 @@ async function seedListening(tenantId: string) {
       },
     });
   }
+
+  const brandRuleId = ruleIds[0]!;
+  await prisma.listeningAlert.createMany({
+    data: [
+      {
+        id: newId(),
+        tenantId,
+        name: 'Brand mention spike',
+        triggerType: 'VOLUME_SPIKE',
+        thresholdJson: JSON.stringify({ mentionsPerDay: 3 }),
+        platformsJson: '[]',
+        isActive: true,
+        lastFiredAt: hoursAgo(48),
+      },
+      {
+        id: newId(),
+        tenantId,
+        name: 'Positive buzz',
+        triggerType: 'SENTIMENT_POSITIVE',
+        thresholdJson: JSON.stringify({ sharePct: 60 }),
+        platformsJson: '[]',
+        isActive: true,
+        lastFiredAt: hoursAgo(72),
+      },
+      {
+        id: newId(),
+        tenantId,
+        name: 'Negative sentiment watch',
+        triggerType: 'SENTIMENT_NEGATIVE',
+        thresholdJson: JSON.stringify({ sharePct: 20 }),
+        platformsJson: '[]',
+        isActive: true,
+      },
+    ],
+  });
 
   const hits: Array<{
     ruleId: string;
@@ -368,6 +425,54 @@ async function seedListening(tenantId: string) {
       priority: false,
       keywords: ['Planable', 'Zoho Social'],
       hoursAgo: 15,
+    },
+    {
+      ruleId: ruleIds[2]!,
+      platform: 'META_IG',
+      postId: `${POST_PREFIX}ig-zoho`,
+      authorName: 'SaaS Reviewer',
+      handle: '@saasreview',
+      content: 'Zoho Social pricing changed again — agencies are shopping alternatives.',
+      sentiment: 'NEGATIVE',
+      priority: false,
+      keywords: ['Zoho Social'],
+      hoursAgo: 5,
+    },
+    {
+      ruleId: ruleIds[3]!,
+      platform: 'META_FB',
+      postId: `${POST_PREFIX}fb-buffer`,
+      authorName: 'Marketing Lead',
+      handle: 'fb.com/mkt',
+      content: 'We moved queues from Buffer to a single ops stack. Cleaner approvals.',
+      sentiment: 'POSITIVE',
+      priority: false,
+      keywords: ['Buffer'],
+      hoursAgo: 12,
+    },
+    {
+      ruleId: ruleIds[4]!,
+      platform: 'TIKTOK',
+      postId: `${POST_PREFIX}tt-topic`,
+      authorName: 'agency.tips',
+      handle: '@agency.tips',
+      content: '#SocialOps thread: how do you batch client content without burnout?',
+      sentiment: 'NEUTRAL',
+      priority: false,
+      keywords: ['SocialOps'],
+      hoursAgo: 6,
+    },
+    {
+      ruleId: brandRuleId,
+      platform: 'META_IG',
+      postId: `${POST_PREFIX}ig-brand-2`,
+      authorName: 'Client PM',
+      handle: '@clientpm',
+      content: 'OMA social trial workflow is finally smooth — approvals in one place.',
+      sentiment: 'POSITIVE',
+      priority: false,
+      keywords: ['OMA social'],
+      hoursAgo: 4,
     },
     {
       ruleId: ruleIds[0]!,

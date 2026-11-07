@@ -648,9 +648,10 @@ export type ContentChannelAnalytics = {
   channel: string;
   published: boolean;
   published_at: string | null;
-  source: 'oma_local';
+  source: 'oma_local' | 'platform';
   platform_connected: boolean;
   note: string;
+  insights_at?: string | null;
   kpis: { views: number; engagements: number; reach: number };
   organic_views: { reach: number; impressions: number; avg_view_duration_s: number };
   organic_engagement: { likes: number; comments: number; shares: number };

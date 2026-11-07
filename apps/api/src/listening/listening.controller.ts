@@ -124,4 +124,46 @@ export class ListeningController {
   sync(@Req() req: Request, @Body() body: { ruleId?: string; brandId?: string | null }) {
     return listeningService.requestSync(ctx(req).tenantId, body);
   }
+
+  @Get('api/v1/listening/competitors')
+  @UseGuards(AuthGuard, CapabilitiesGuard)
+  competitors(
+    @Req() req: Request,
+    @Query('brandId') brandId?: string,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+    @Query('platforms') platforms?: string,
+  ) {
+    const platformList = platforms ? platforms.split(',').filter(Boolean) : undefined;
+    return listeningService.competitorDashboard(ctx(req).tenantId, {
+      brandId,
+      from,
+      to,
+      platforms: platformList,
+    });
+  }
+
+  @Get('api/v1/listening/alerts')
+  @UseGuards(AuthGuard, CapabilitiesGuard)
+  listAlerts(@Req() req: Request, @Query('brandId') brandId?: string) {
+    return listeningService.listAlerts(ctx(req).tenantId, brandId || undefined);
+  }
+
+  @Post('api/v1/listening/alerts')
+  @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
+  createAlert(@Req() req: Request, @Body() body: Record<string, unknown>) {
+    return listeningService.createAlert(ctx(req).tenantId, body as never);
+  }
+
+  @Patch('api/v1/listening/alerts/:id')
+  @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
+  updateAlert(@Req() req: Request, @Param('id') id: string, @Body() body: Record<string, unknown>) {
+    return listeningService.updateAlert(ctx(req).tenantId, id, body as never);
+  }
+
+  @Delete('api/v1/listening/alerts/:id')
+  @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
+  deleteAlert(@Req() req: Request, @Param('id') id: string) {
+    return listeningService.deleteAlert(ctx(req).tenantId, id);
+  }
 }

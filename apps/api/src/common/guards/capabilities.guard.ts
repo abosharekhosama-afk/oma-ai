@@ -261,6 +261,14 @@ const routeRequirements: Record<string, string[]> = {
   'POST /api/v1/listening/rules/:id': ['content.update'],
   'DELETE /api/v1/listening/rules/:id': ['content.update'],
   'GET /api/v1/listening/hits': ['content.read'],
+  'PATCH /api/v1/listening/hits/:id': ['content.update'],
+  'GET /api/v1/listening/stats': ['content.read'],
+  'POST /api/v1/listening/sync': ['content.update'],
+  'GET /api/v1/listening/competitors': ['content.read'],
+  'GET /api/v1/listening/alerts': ['content.read'],
+  'POST /api/v1/listening/alerts': ['content.update'],
+  'PATCH /api/v1/listening/alerts/:id': ['content.update'],
+  'DELETE /api/v1/listening/alerts/:id': ['content.update'],
   'GET /api/v1/billing/plans': ['brand.read'],
   'GET /api/v1/billing/subscription': ['brand.read'],
   'PATCH /api/v1/billing/subscription': ['tenant.manage'],
@@ -494,6 +502,8 @@ export function matchRequirements(method: string, path: string): string[] | null
     )
     .replace(/\/api\/v1\/inbox\/conversations\/[^/]+/, '/api/v1/inbox/conversations/:id')
     .replace(/\/api\/v1\/listening\/rules\/[^/]+/, '/api/v1/listening/rules/:id')
+    .replace(/\/api\/v1\/listening\/hits\/[^/]+/, '/api/v1/listening/hits/:id')
+    .replace(/\/api\/v1\/listening\/alerts\/[^/]+/, '/api/v1/listening/alerts/:id')
 
     .replace(/\/api\/v1\/brands\/[^/]+/, '/api/v1/brands/:brandId');
   const key = `${method.toUpperCase()} ${normalized}`;

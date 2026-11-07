@@ -927,6 +927,20 @@
   background: #f3f4f6;
 }
 
+.oma-post-an__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 0 12px;
+  font-size: 12px;
+}
+.oma-post-an__src {
+  font-weight: 600;
+  color: #374151;
+}
+.oma-post-an__src--platform {
+  color: #1d4ed8;
+}
 .oma-post-an {
   padding: 8px 16px 20px;
   display: grid;

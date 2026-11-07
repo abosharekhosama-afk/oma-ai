@@ -1,5 +1,5 @@
-import { ListeningClient } from '../listening-client';
+import { ListeningCompetitorsView } from '../listening-competitors-view';
 
 export default function ListeningCompetitorsPage() {
-  return <ListeningClient view="competitors" />;
+  return <ListeningCompetitorsView />;
 }

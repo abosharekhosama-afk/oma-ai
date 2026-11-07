@@ -3,6 +3,7 @@ import { api } from './api';
 export type ListeningRule = {
   id: string;
   name: string;
+  kind?: 'BRAND' | 'COMPETITOR' | 'TOPIC';
   workspaceId: string;
   brandId: string | null;
   keywords: string[];
@@ -136,4 +137,111 @@ export function patchListeningHit(
     method: 'PATCH',
     body: JSON.stringify(body),
   });
+}
+
+export type ListeningCompetitorDashboard = {
+  from: string;
+  to: string;
+  totals: { mentions: number; previousMentions?: number };
+  entities: Array<{
+    ruleId: string;
+    name: string;
+    kind: string;
+    isYou: boolean;
+    mentions: number;
+    mentionsTrendPct: number | null;
+    engagement: number;
+    engagementTrendPct: number | null;
+    sentiment: { positive: number; neutral: number; negative: number; balance: number };
+    sharePct: number;
+    shareChangePts: number;
+    sparkline: number[];
+  }>;
+  bySource: Array<{
+    platform: string;
+    label: string;
+    mentions: number;
+    splits: Array<{ ruleId: string; name: string; mentions: number; isYou: boolean }>;
+    yourSharePct: number;
+  }>;
+  quadrant: Array<{
+    ruleId: string;
+    name: string;
+    isYou: boolean;
+    mentions: number;
+    balance: number;
+    bucket: 'leading' | 'under_fire' | 'quiet' | 'well_liked';
+  }>;
+};
+
+export function getListeningCompetitors(params: Record<string, string | undefined>) {
+  const qs = new URLSearchParams();
+  for (const [k, v] of Object.entries(params)) {
+    if (v) qs.set(k, v);
+  }
+  const q = qs.toString();
+  return api<ListeningCompetitorDashboard>(`/api/v1/listening/competitors${q ? `?${q}` : ''}`);
+}
+
+export type ListeningAlertRow = {
+  id: string;
+  name: string;
+  brandId: string | null;
+  triggerType: string;
+  threshold: Record<string, number>;
+  platforms: string[];
+  platformsLabel: string;
+  firesWhen: string;
+  notifyInApp: boolean;
+  notifyEmail: boolean;
+  notifySlack: boolean;
+  isActive: boolean;
+  lastFiredAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export function listListeningAlerts(brandId?: string | null) {
+  const q = brandId ? `?brandId=${encodeURIComponent(brandId)}` : '';
+  return api<{ items: ListeningAlertRow[] }>(`/api/v1/listening/alerts${q}`);
+}
+
+export function createListeningAlert(body: {
+  name: string;
+  brandId?: string | null;
+  triggerType: 'VOLUME_SPIKE' | 'SENTIMENT_POSITIVE' | 'SENTIMENT_NEGATIVE';
+  threshold: Record<string, number>;
+  platforms?: string[];
+  notifyInApp?: boolean;
+  notifyEmail?: boolean;
+  notifySlack?: boolean;
+  isActive?: boolean;
+}) {
+  return api<{ id: string }>('/api/v1/listening/alerts', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export function updateListeningAlert(
+  id: string,
+  body: Partial<{
+    name: string;
+    triggerType: string;
+    threshold: Record<string, number>;
+    platforms: string[];
+    notifyInApp: boolean;
+    notifyEmail: boolean;
+    notifySlack: boolean;
+    isActive: boolean;
+  }>,
+) {
+  return api<{ id: string }>(`/api/v1/listening/alerts/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+}
+
+export function deleteListeningAlert(id: string) {
+  return api<{ ok: boolean }>(`/api/v1/listening/alerts/${id}`, { method: 'DELETE' });
 }

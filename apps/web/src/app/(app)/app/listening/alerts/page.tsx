@@ -1,5 +1,5 @@
-import { ListeningClient } from '../listening-client';
+import { ListeningAlertsView } from '../listening-alerts-view';
 
 export default function ListeningAlertsPage() {
-  return <ListeningClient view="alerts" />;
+  return <ListeningAlertsView />;
 }

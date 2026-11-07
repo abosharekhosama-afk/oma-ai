@@ -4,9 +4,10 @@ type ChannelAnalytics = {
   channel: string;
   published: boolean;
   published_at: string | null;
-  source: 'oma_local';
+  source: 'oma_local' | 'platform';
   platform_connected: boolean;
   note: string;
+  insights_at?: string | null;
   kpis: { views: number; engagements: number; reach: number };
   organic_views: { reach: number; impressions: number; avg_view_duration_s: number };
   organic_engagement: { likes: number; comments: number; shares: number };
@@ -44,8 +45,32 @@ export function PostChannelAnalytics({
   const rx = data.reactions;
   const rxTotal = rx.like + rx.love + rx.haha + rx.wow + rx.sad + rx.angry;
 
+  const updatedLabel =
+    data.insights_at &&
+    new Date(data.insights_at).toLocaleString(locale.startsWith('ar') ? 'ar' : 'en', {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    });
+
   return (
     <div className="oma-post-an" data-testid="content-channel-analytics">
+      <p className="oma-post-an__meta">
+        <span className={`oma-post-an__src oma-post-an__src--${data.source}`}>
+          {data.source === 'platform'
+            ? ar
+              ? 'بيانات المنصة'
+              : 'Platform insights'
+            : ar
+              ? 'بيانات OMA المحلية'
+              : 'OMA local metrics'}
+        </span>
+        {updatedLabel ? (
+          <span className="oma-muted">
+            {ar ? 'آخر تحديث: ' : 'Updated: '}
+            <span className="oma-ltr">{updatedLabel}</span>
+          </span>
+        ) : null}
+      </p>
       <div className="oma-post-an__kpis">
         <div>
           <span>{ar ? 'المشاهدات' : 'Views'}</span>
