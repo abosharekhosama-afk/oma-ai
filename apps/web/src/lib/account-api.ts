@@ -11,7 +11,9 @@ export type Profile = {
 
 export type UserPreferences = {
   timezone: string;
+  hourFormat?: '24h' | '12h';
   weekStart: 'monday' | 'sunday';
+  twoFactorEnabled?: boolean;
   defaultContentView: 'list' | 'calendar' | 'feed' | 'grid';
   defaultTaskView: 'board' | 'list';
   reviewReminders: boolean;
@@ -44,6 +46,7 @@ export async function getProfile(): Promise<Profile> {
 
 export async function updateProfile(patch: {
   name?: string;
+  email?: string;
   avatarUrl?: string | null;
   preferredLocale?: 'en' | 'ar';
 }): Promise<Profile> {
@@ -53,6 +56,28 @@ export async function updateProfile(patch: {
   });
   invalidateApiCache('/api/v1/auth/me');
   return res.data;
+}
+
+export async function changeMyPassword(input: {
+  current_password?: string;
+  new_password: string;
+}): Promise<void> {
+  await api('/api/v1/me/password', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
+export async function exportMyData(): Promise<Record<string, unknown>> {
+  const res = await api<{ data: Record<string, unknown> }>('/api/v1/me/export');
+  return res.data;
+}
+
+export async function deleteMyAccount(): Promise<void> {
+  await api('/api/v1/me/account', {
+    method: 'DELETE',
+    body: '{}',
+  });
 }
 
 export async function uploadAvatar(file: File): Promise<{ asset_id: string; avatar_url: string }> {

@@ -1,0 +1,289 @@
+/* Planable Personal Settings / Profile (/app/account) */
+
+.oma-plx-profile-page {
+  min-height: calc(100vh - 56px);
+  background: var(--oma-canvas);
+  padding: 36px 24px 64px;
+}
+
+.oma-plx-profile-page__inner {
+  max-width: 660px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.oma-plx-profile-page__title {
+  margin: 0 0 4px;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--oma-home-ink);
+}
+
+.oma-plx-profile-sec {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.oma-plx-profile-sec__heading {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--oma-home-ink);
+}
+
+.oma-plx-profile-card {
+  background: var(--oma-surface);
+  border: 1px solid var(--oma-home-border);
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+  overflow: hidden;
+}
+
+.oma-plx-profile-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--oma-home-divider);
+}
+
+.oma-plx-profile-row:last-child {
+  border-bottom: 0;
+}
+
+.oma-plx-profile-row__text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  max-width: 360px;
+}
+
+.oma-plx-profile-row__text strong {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--oma-home-ink);
+}
+
+.oma-plx-profile-row__text span {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--oma-home-muted);
+}
+
+.oma-plx-profile-row__control {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.oma-plx-profile-row__control--wide {
+  width: min(260px, 52%);
+}
+
+/* Circular dark-green avatar with edit pencil overlay */
+.oma-plx-profile-avatar-btn {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  border: 0;
+  padding: 0;
+  background: var(--oma-home-ink-2);
+  color: var(--oma-surface);
+  font-size: 13px;
+  font-weight: 700;
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.oma-plx-profile-avatar-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.oma-plx-profile-avatar-btn__edit {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  color: var(--oma-surface);
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+}
+
+.oma-plx-profile-input,
+.oma-plx-profile-select {
+  width: 100%;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 8px;
+  border: 1px solid var(--oma-home-border);
+  background: var(--oma-surface);
+  color: var(--oma-home-ink);
+  font-family: inherit;
+  font-size: 13px;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.oma-plx-profile-input:focus,
+.oma-plx-profile-select:focus {
+  outline: none;
+  border-color: var(--oma-primary);
+  box-shadow: var(--elev-focus);
+}
+
+.oma-plx-profile-email-display {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--oma-home-ink-2);
+}
+
+.oma-plx-profile-icon-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--oma-home-border);
+  background: var(--oma-surface);
+  color: var(--oma-home-muted);
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.oma-plx-profile-icon-btn:hover {
+  background: var(--oma-home-hover);
+  color: var(--oma-home-ink);
+}
+
+.oma-plx-profile-btn {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 7px;
+  border: 1px solid var(--oma-home-border);
+  background: var(--oma-surface);
+  color: var(--oma-home-ink-2);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease;
+}
+
+.oma-plx-profile-btn:hover:not(:disabled) {
+  background: var(--oma-home-hover);
+  border-color: var(--oma-home-border-hover);
+}
+
+.oma-plx-profile-btn--primary {
+  background: var(--oma-primary);
+  border-color: var(--oma-primary);
+  color: var(--oma-primary-ink);
+}
+
+.oma-plx-profile-btn--danger {
+  border-color: var(--oma-home-danger-border);
+  color: var(--oma-home-danger);
+  background: var(--oma-surface);
+}
+
+.oma-plx-profile-btn--danger:hover:not(:disabled) {
+  background: var(--oma-home-danger-bg);
+}
+
+.oma-plx-profile-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.oma-plx-profile-inline-edit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.oma-plx-profile-subform {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 8px;
+  padding: 12px 20px;
+  background: var(--oma-home-day-bg);
+  border-bottom: 1px solid var(--oma-home-divider);
+}
+
+/* Segmented pills (24 hour / 12 hour, Monday / Sunday) */
+.oma-plx-profile-seg {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--oma-home-track);
+  border: 1px solid var(--oma-home-border);
+}
+
+.oma-plx-profile-seg button {
+  height: 28px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--oma-home-muted);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.oma-plx-profile-seg button[data-active='true'] {
+  background: var(--oma-surface);
+  color: var(--oma-home-ink);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08);
+}
+
+.oma-plx-profile-userid {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--oma-home-muted);
+}
+
+.oma-plx-profile-userid code {
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--oma-home-muted);
+}
+
+@media (max-width: 640px) {
+  .oma-plx-profile-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .oma-plx-profile-row__control,
+  .oma-plx-profile-row__control--wide {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .oma-plx-profile-subform {
+    grid-template-columns: 1fr;
+  }
+}
