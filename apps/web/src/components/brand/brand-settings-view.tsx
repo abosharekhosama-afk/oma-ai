@@ -6,6 +6,7 @@ import { NetworkIcon } from '../content/network-icon';
 import { initials } from '../content/post-preview-model';
 import { MediaPickerDialog } from '../content/media-picker';
 import { useLocale } from '../../lib/use-locale';
+import { BrandApprovalsSettings } from './brand-approvals-settings';
 import {
   BRAND_ROLES,
   SOCIAL_NETWORKS,
@@ -17,7 +18,7 @@ import {
   type SocialProvider,
 } from '../../lib/brand-settings-api';
 
-export type BrandSettingsTab = 'general' | 'members' | 'accounts';
+export type BrandSettingsTab = 'general' | 'members' | 'accounts' | 'approvals';
 type Tr = (key: string) => string;
 
 export type BrandSettingsViewProps = {
@@ -93,6 +94,7 @@ export function BrandSettingsView(p: BrandSettingsViewProps) {
     { id: 'general', label: t('brandSettings.tab.general') },
     { id: 'members', label: t('brandSettings.tab.members') },
     { id: 'accounts', label: t('brandSettings.tab.accounts') },
+    { id: 'approvals', label: t('brandSettings.tab.approvals') },
   ];
   return (
     <div
@@ -141,6 +143,7 @@ export function BrandSettingsView(p: BrandSettingsViewProps) {
           {p.tab === 'general' ? <GeneralTab {...p} /> : null}
           {p.tab === 'members' ? <MembersTab {...p} /> : null}
           {p.tab === 'accounts' ? <AccountsTab {...p} /> : null}
+          {p.tab === 'approvals' ? <BrandApprovalsSettings canManage={p.canManage} /> : null}
         </main>
       </div>
     </div>
