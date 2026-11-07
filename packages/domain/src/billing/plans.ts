@@ -279,6 +279,54 @@ export const PLAN_LIMIT_MESSAGES: Record<string, { en: string; ar: string; messa
   },
 };
 
+const USAGE_LIMIT_KEYS = [
+  'brands',
+  'social_channels',
+  'seats',
+  'guests',
+  'posts_per_month',
+  'posts_total',
+  'storage_bytes',
+  'ai_runs_per_month',
+] as const satisfies readonly PlanLimitKey[];
+
+/** List price for the whole billing period, in USD cents. null = contact sales. */
+export function planPriceUsdCents(code: PlanCode, cycle: BillingCycle): number | null {
+  const plan = PLAN_CATALOG[code];
+  if (cycle === 'yearly') {
+    if (plan.priceYearlyPerMonthUsd == null) return null;
+    return Math.round(plan.priceYearlyPerMonthUsd * 12 * 100);
+  }
+  if (plan.priceMonthlyUsd == null) return null;
+  return Math.round(plan.priceMonthlyUsd * 100);
+}
+
+export function addBillingPeriod(start: Date, cycle: BillingCycle): Date {
+  const end = new Date(start.getTime());
+  const months = cycle === 'yearly' ? 12 : 1;
+  const day = end.getUTCDate();
+  end.setUTCDate(1);
+  end.setUTCMonth(end.getUTCMonth() + months);
+  const last = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth() + 1, 0)).getUTCDate();
+  end.setUTCDate(Math.min(day, last));
+  return end;
+}
+
+/** Limit keys the workspace already exceeds on the target plan. Empty means the change fits. */
+export function limitsExceededByUsage(
+  limits: PlanLimits,
+  usage: Partial<Record<string, number>>,
+): PlanLimitKey[] {
+  const over: PlanLimitKey[] = [];
+  for (const key of USAGE_LIMIT_KEYS) {
+    const limit = limits[key];
+    if (limit == null) continue;
+    const used = usage[key] ?? 0;
+    if (used > limit) over.push(key);
+  }
+  return over;
+}
+
 export const PLAN_FEATURE_MESSAGES: Record<string, { en: string; ar: string; messageKey: string }> =
   {
     analytics: {

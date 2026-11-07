@@ -7,9 +7,14 @@ import { useLocale } from '../../../../lib/use-locale';
 import { useToast } from '../../../../components/ui/toast';
 import { useCapabilities } from '../../../../lib/use-capabilities';
 import {
+  cancelSubscriptionAtPeriodEnd,
   changePlan,
+  fulfillCheckout,
   getSubscription,
+  listCheckouts,
   listUpgradeRequests,
+  resumeSubscription,
+  type CheckoutDto,
   type SubscriptionView,
 } from '../../../../lib/billing-api';
 import '../billing/billing.css';
@@ -45,6 +50,7 @@ export default function SubscriptionClient() {
   const canAdmin = caps.can('tenant.manage');
   const [sub, setSub] = useState<SubscriptionView | null>(null);
   const [requests, setRequests] = useState<Array<Record<string, unknown>>>([]);
+  const [checkouts, setCheckouts] = useState<CheckoutDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [adminPlan, setAdminPlan] = useState('pro');
   const [busy, setBusy] = useState(false);
@@ -55,6 +61,8 @@ export default function SubscriptionClient() {
       const s = await getSubscription();
       setSub(s.data);
       setAdminPlan(s.data.plan_code);
+      const check = await listCheckouts().catch(() => ({ data: [] as CheckoutDto[] }));
+      setCheckouts(check.data ?? []);
       if (canAdmin) {
         const r = await listUpgradeRequests().catch(() => ({ data: [] }));
         setRequests(r.data ?? []);
@@ -187,7 +195,76 @@ export default function SubscriptionClient() {
               {isAr ? sub.plan.description.ar : sub.plan.description.en}
             </p>
             {sub.grandfathered ? <p className="oma-billing__desc">{copy.grandfather}</p> : null}
+            {sub.current_period_end ? (
+              <p className="oma-billing__desc">
+                {isAr ? 'نهاية الفترة' : 'Period ends'}: {sub.current_period_end.slice(0, 10)}
+                {sub.cancel_at_period_end
+                  ? isAr
+                    ? ' — سيُلغى في نهاية الفترة'
+                    : ' — cancels at period end'
+                  : ''}
+              </p>
+            ) : null}
+            {sub.pending_plan_code ? (
+              <p className="oma-billing__desc">
+                {isAr ? 'بانتظار الدفع للخطة' : 'Awaiting payment for'}: {sub.pending_plan_code}
+              </p>
+            ) : null}
+            {canAdmin ? (
+              <div className="oma-sub__admin-row" style={{ marginTop: 12 }}>
+                <Button
+                  disabled={busy}
+                  onClick={() =>
+                    void (
+                      sub.cancel_at_period_end
+                        ? resumeSubscription()
+                        : cancelSubscriptionAtPeriodEnd()
+                    ).then(() => load())
+                  }
+                >
+                  {sub.cancel_at_period_end
+                    ? isAr
+                      ? 'استئناف الاشتراك'
+                      : 'Resume subscription'
+                    : isAr
+                      ? 'إلغاء في نهاية الفترة'
+                      : 'Cancel at period end'}
+                </Button>
+              </div>
+            ) : null}
           </section>
+
+          {checkouts.some((c) => c.status === 'awaiting_payment') ? (
+            <section className="oma-sub__admin" aria-label={isAr ? 'طلبات الدفع' : 'Checkouts'}>
+              <h2>{isAr ? 'طلبات الدفع المعلّقة' : 'Pending checkouts'}</h2>
+              <ul className="oma-sub__requests">
+                {checkouts
+                  .filter((c) => c.status === 'awaiting_payment')
+                  .map((c) => (
+                    <li key={c.id}>
+                      {c.plan_code} · {c.billing_cycle}
+                      {c.amount_usd_cents != null
+                        ? ` · $${(c.amount_usd_cents / 100).toFixed(0)}`
+                        : ''}
+                      {canAdmin ? (
+                        <Button
+                          type="primary"
+                          disabled={busy}
+                          onClick={() =>
+                            void fulfillCheckout(c.id).then(() => {
+                              toast.push(isAr ? 'تم تطبيق الخطة' : 'Plan applied', 'success');
+                              return load();
+                            })
+                          }
+                        >
+                          {isAr ? 'تطبيق بدون دفع' : 'Apply without payment'}
+                        </Button>
+                      ) : null}
+                    </li>
+                  ))}
+              </ul>
+            </section>
+          ) : null}
 
           <section className="oma-sub__bars" aria-label={copy.title}>
             {bars.map((bar) => {

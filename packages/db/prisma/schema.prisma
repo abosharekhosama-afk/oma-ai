@@ -102,6 +102,7 @@ model Tenant {
   timeSlots       WorkspaceTimeSlot[]
   subscription   WorkspaceSubscription?
   upgradeRequests PlanUpgradeRequest[]
+  billingCheckouts BillingCheckout[]
   inboxConversations InboxConversation[]
   listeningRules     ListeningRule[]
   listeningHits      ListeningHit[]
@@ -1815,10 +1816,15 @@ model WorkspaceSubscription {
   status           String   @default("active")
   /// Existing tenants assigned Pro at rollout (not a paid conversion).
   grandfathered    Boolean  @default(false)
-  /// Payment not wired yet; kept for future Stripe/etc.
+  /// Payment provider not connected yet. false only for the free plan (no charge).
   paymentDeferred  Boolean  @default(true)
   assignedByUserId String?
   notes            String?
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  cancelAtPeriodEnd  Boolean  @default(false)
+  pendingPlanCode     String?
+  pendingBillingCycle String?
   startedAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -1843,6 +1849,30 @@ model PlanUpgradeRequest {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, status])
+  @@index([status, createdAt])
+}
+
+/// Checkout intent. A payment provider fulfills this later; until then status stays awaiting_payment
+/// unless a workspace admin applies the plan manually (provider = manual).
+model BillingCheckout {
+  id             String    @id
+  tenantId       String
+  requestedBy    String
+  planCode       String
+  billingCycle   String    @default("monthly")
+  amountUsdCents Int?
+  /// awaiting_payment | fulfilled | cancelled
+  status         String    @default("awaiting_payment")
+  /// deferred | manual | future provider id
+  provider       String    @default("deferred")
+  providerRef    String?
+  fulfilledAt    DateTime?
+  fulfilledBy    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([tenantId, status])
   @@index([status, createdAt])

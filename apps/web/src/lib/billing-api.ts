@@ -19,7 +19,12 @@ export type SubscriptionView = {
   status: string;
   grandfathered: boolean;
   payment_deferred: boolean;
+  payment_configured?: boolean;
   payment_coming_soon: boolean;
+  current_period_start?: string | null;
+  current_period_end?: string | null;
+  cancel_at_period_end?: boolean;
+  pending_plan_code?: string | null;
   started_at: string;
   plan: PlanDto;
   usage: Record<string, number>;
@@ -56,6 +61,60 @@ export function changePlan(body: { plan_code: string; billing_cycle?: string; no
 
 export function listUpgradeRequests() {
   return api<{ data: Array<Record<string, unknown>> }>('/api/v1/billing/upgrade-requests');
+}
+
+export type CheckoutDto = {
+  id: string;
+  plan_code: string;
+  billing_cycle: string;
+  amount_usd_cents: number | null;
+  status: string;
+  provider: string;
+  created_at: string;
+};
+
+export function startCheckout(body: { plan_code: string; billing_cycle?: string; note?: string }) {
+  return api<{
+    data: {
+      id?: string;
+      status: string;
+      plan_code: string;
+      payment_configured: boolean;
+      message?: { en: string; ar: string };
+    };
+  }>('/api/v1/billing/checkouts', { method: 'POST', body: JSON.stringify(body) });
+}
+
+export function listCheckouts() {
+  return api<{ data: CheckoutDto[]; payment_configured: boolean }>('/api/v1/billing/checkouts');
+}
+
+export function fulfillCheckout(id: string) {
+  return api<{ data: { id: string; status: string } }>(`/api/v1/billing/checkouts/${id}/fulfill`, {
+    method: 'POST',
+    body: '{}',
+  });
+}
+
+export function cancelCheckout(id: string) {
+  return api<{ data: { id: string; status: string } }>(`/api/v1/billing/checkouts/${id}/cancel`, {
+    method: 'POST',
+    body: '{}',
+  });
+}
+
+export function cancelSubscriptionAtPeriodEnd() {
+  return api<{ data: { cancel_at_period_end: boolean } }>('/api/v1/billing/subscription/cancel', {
+    method: 'POST',
+    body: '{}',
+  });
+}
+
+export function resumeSubscription() {
+  return api<{ data: { cancel_at_period_end: boolean } }>('/api/v1/billing/subscription/resume', {
+    method: 'POST',
+    body: '{}',
+  });
 }
 
 /** Parse plan-limit / plan-feature API errors for bilingual UI. */

@@ -1589,6 +1589,7 @@ export class ContentService {
     contentId: string,
     correlationId?: string,
   ) {
+    await billingService.assertFeature(tenantId, 'publishing');
     const { enqueuePublishTargetsNow } = await import('../social/enqueue-publish-now');
     const current = await getPrisma().contentItem.findFirst({
       where: tenantWhere(tenantId, { id: contentId }),

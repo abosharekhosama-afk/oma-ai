@@ -6,16 +6,20 @@ import {
   PLAN_LIMIT_MESSAGES,
   DEFAULT_PLAN_FOR_NEW_TENANTS,
   GRANDFATHER_PLAN_FOR_EXISTING,
+  addBillingPeriod,
   approvalModeAllowed,
   getPlan,
   isPlanCode,
+  limitsExceededByUsage,
   newId,
   planHasFeature,
+  planPriceUsdCents,
   type BillingCycle,
   type PlanCode,
   type PlanFeatureKey,
   type PlanLimitKey,
 } from '@oma/domain';
+import { deferredPaymentPort } from './payment-port';
 
 export type UsageSnapshot = {
   brands: number;
@@ -228,7 +232,13 @@ export class BillingService {
         status: sub.status,
         grandfathered: sub.grandfathered,
         payment_deferred: sub.paymentDeferred,
-        payment_coming_soon: true,
+        payment_configured: deferredPaymentPort.isConfigured(),
+        payment_coming_soon: !deferredPaymentPort.isConfigured(),
+        current_period_start: sub.currentPeriodStart?.toISOString() ?? null,
+        current_period_end: sub.currentPeriodEnd?.toISOString() ?? null,
+        cancel_at_period_end: sub.cancelAtPeriodEnd,
+        pending_plan_code: sub.pendingPlanCode,
+        pending_billing_cycle: sub.pendingBillingCycle,
         started_at: sub.startedAt.toISOString(),
         plan: {
           code: plan.code,
@@ -245,36 +255,291 @@ export class BillingService {
     };
   }
 
+  private async assertFitsPlan(tenantId: string, planCode: PlanCode) {
+    const usage = await this.usage(tenantId);
+    const over = limitsExceededByUsage(getPlan(planCode).limits, usage);
+    if (!over.length) return;
+    const key = over[0]!;
+    const msg = PLAN_LIMIT_MESSAGES[key] ?? {
+      en: 'Current usage is above the target plan. Reduce usage before changing plans.',
+      ar: 'الاستخدام الحالي أعلى من الخطة المطلوبة. خفّض الاستخدام قبل تغيير الخطة.',
+      messageKey: 'errors.plan_limit_reached',
+    };
+    throw new DomainError('PLAN_LIMIT_REACHED', msg.en, 409, msg.messageKey, [
+      {
+        limit_key: key,
+        plan_code: planCode,
+        exceeded: over,
+        message_ar: msg.ar,
+      },
+    ]);
+  }
+
+  /** Manual grant. Records a fulfilled checkout so a payment provider can replace this path later. */
   async changePlan(
     tenantId: string,
     actorUserId: string,
     input: { plan_code: string; billing_cycle?: string; notes?: string },
+    opts?: { recordCheckout?: boolean },
   ) {
     if (!isPlanCode(input.plan_code)) {
       throw new DomainError('VALIDATION_FAILED', 'Invalid plan', 400, 'errors.validation_failed');
     }
     const cycle: BillingCycle = input.billing_cycle === 'yearly' ? 'yearly' : 'monthly';
+    await this.assertFitsPlan(tenantId, input.plan_code);
     const prisma = getPrisma();
     await this.ensureSubscription(tenantId, { grandfather: true });
+    const now = new Date();
+    const amount = planPriceUsdCents(input.plan_code, cycle);
     const updated = await prisma.workspaceSubscription.update({
       where: { tenantId },
       data: {
         planCode: input.plan_code,
         billingCycle: cycle,
+        status: 'active',
         grandfathered: false,
-        paymentDeferred: true,
+        paymentDeferred: amount !== 0,
         assignedByUserId: actorUserId,
         notes: input.notes?.slice(0, 500) ?? null,
-        updatedAt: new Date(),
+        currentPeriodStart: now,
+        currentPeriodEnd: addBillingPeriod(now, cycle),
+        cancelAtPeriodEnd: false,
+        pendingPlanCode: null,
+        pendingBillingCycle: null,
+        updatedAt: now,
       },
     });
+    if (opts?.recordCheckout !== false) {
+      await prisma.billingCheckout.updateMany({
+        where: { tenantId, status: 'awaiting_payment' },
+        data: { status: 'cancelled', updatedAt: now },
+      });
+      await prisma.billingCheckout.create({
+        data: {
+          id: newId(),
+          tenantId,
+          requestedBy: actorUserId,
+          planCode: input.plan_code,
+          billingCycle: cycle,
+          amountUsdCents: amount,
+          status: 'fulfilled',
+          provider: 'manual',
+          fulfilledAt: now,
+          fulfilledBy: actorUserId,
+        },
+      });
+    }
     return {
       data: {
         tenant_id: tenantId,
         plan_code: updated.planCode,
         billing_cycle: updated.billingCycle,
-        payment_deferred: true,
+        payment_deferred: updated.paymentDeferred,
+        payment_configured: deferredPaymentPort.isConfigured(),
+        current_period_end: updated.currentPeriodEnd?.toISOString() ?? null,
         assigned_by: actorUserId,
+      },
+    };
+  }
+
+  async startCheckout(
+    tenantId: string,
+    actorUserId: string,
+    input: { plan_code: string; billing_cycle?: string; note?: string },
+  ) {
+    if (!isPlanCode(input.plan_code)) {
+      throw new DomainError('VALIDATION_FAILED', 'Invalid plan', 400, 'errors.validation_failed');
+    }
+    const cycle: BillingCycle = input.billing_cycle === 'yearly' ? 'yearly' : 'monthly';
+    const amount = planPriceUsdCents(input.plan_code, cycle);
+    if (amount === 0) {
+      const applied = await this.changePlan(tenantId, actorUserId, {
+        plan_code: input.plan_code,
+        billing_cycle: cycle,
+        notes: 'Free plan — no payment required',
+      });
+      return {
+        data: {
+          ...applied.data,
+          status: 'fulfilled',
+          payment_configured: false,
+          reason: 'free_plan',
+        },
+      };
+    }
+    await this.assertFitsPlan(tenantId, input.plan_code);
+    const prisma = getPrisma();
+    await this.ensureSubscription(tenantId, { grandfather: true });
+    const open = await prisma.billingCheckout.findFirst({
+      where: {
+        tenantId,
+        status: 'awaiting_payment',
+        planCode: input.plan_code,
+        billingCycle: cycle,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    const checkout =
+      open ??
+      (await prisma.billingCheckout.create({
+        data: {
+          id: newId(),
+          tenantId,
+          requestedBy: actorUserId,
+          planCode: input.plan_code,
+          billingCycle: cycle,
+          amountUsdCents: amount,
+          status: 'awaiting_payment',
+          provider: 'deferred',
+        },
+      }));
+    await prisma.workspaceSubscription.update({
+      where: { tenantId },
+      data: { pendingPlanCode: input.plan_code, pendingBillingCycle: cycle },
+    });
+    const payment = await deferredPaymentPort.startCheckout({
+      checkoutId: checkout.id,
+      tenantId,
+      planCode: input.plan_code,
+      billingCycle: cycle,
+      amountUsdCents: amount,
+    });
+    if (!open) {
+      await this.requestUpgrade(tenantId, actorUserId, {
+        plan_code: input.plan_code,
+        billing_cycle: cycle,
+        note: input.note,
+      });
+    }
+    return {
+      data: {
+        id: checkout.id,
+        plan_code: checkout.planCode,
+        billing_cycle: checkout.billingCycle,
+        amount_usd_cents: checkout.amountUsdCents,
+        status: checkout.status,
+        payment_configured: payment.configured,
+        reason: payment.configured ? null : payment.reason,
+        message: {
+          en: 'Checkout is ready. Online payment is not connected yet — a workspace admin can apply the plan.',
+          ar: 'طلب الدفع جاهز. الدفع الإلكتروني غير مربوط بعد — يمكن لمسؤول مساحة العمل تطبيق الخطة.',
+        },
+      },
+    };
+  }
+
+  async listCheckouts(tenantId: string) {
+    const rows = await getPrisma().billingCheckout.findMany({
+      where: { tenantId },
+      orderBy: { createdAt: 'desc' },
+      take: 30,
+    });
+    return {
+      data: rows.map((r) => ({
+        id: r.id,
+        plan_code: r.planCode,
+        billing_cycle: r.billingCycle,
+        amount_usd_cents: r.amountUsdCents,
+        status: r.status,
+        provider: r.provider,
+        created_at: r.createdAt.toISOString(),
+        fulfilled_at: r.fulfilledAt?.toISOString() ?? null,
+      })),
+      payment_configured: deferredPaymentPort.isConfigured(),
+    };
+  }
+
+  async fulfillCheckout(tenantId: string, actorUserId: string, checkoutId: string) {
+    const prisma = getPrisma();
+    const row = await prisma.billingCheckout.findFirst({ where: { id: checkoutId, tenantId } });
+    if (!row) throw new DomainError('NOT_FOUND', 'Checkout not found', 404, 'errors.not_found');
+    if (row.status !== 'awaiting_payment') {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'Checkout is not awaiting payment',
+        409,
+        'error.conflict_state',
+      );
+    }
+    await this.changePlan(
+      tenantId,
+      actorUserId,
+      {
+        plan_code: row.planCode,
+        billing_cycle: row.billingCycle,
+        notes: `Fulfilled checkout ${row.id} (payment provider not connected)`,
+      },
+      { recordCheckout: false },
+    );
+    await prisma.billingCheckout.updateMany({
+      where: { tenantId, status: 'awaiting_payment', id: { not: row.id } },
+      data: { status: 'cancelled' },
+    });
+    const now = new Date();
+    await prisma.billingCheckout.update({
+      where: { id: row.id },
+      data: {
+        status: 'fulfilled',
+        provider: 'manual',
+        fulfilledAt: now,
+        fulfilledBy: actorUserId,
+      },
+    });
+    return { data: { id: row.id, status: 'fulfilled', plan_code: row.planCode } };
+  }
+
+  async cancelCheckout(tenantId: string, actorUserId: string, checkoutId: string) {
+    const prisma = getPrisma();
+    const row = await prisma.billingCheckout.findFirst({ where: { id: checkoutId, tenantId } });
+    if (!row) throw new DomainError('NOT_FOUND', 'Checkout not found', 404, 'errors.not_found');
+    if (row.status !== 'awaiting_payment') {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'Checkout is not awaiting payment',
+        409,
+        'error.conflict_state',
+      );
+    }
+    if (row.requestedBy !== actorUserId) {
+      throw new DomainError(
+        'PERMISSION_DENIED',
+        'Only the requester can cancel this checkout',
+        403,
+        'errors.permission_denied',
+      );
+    }
+    await prisma.billingCheckout.update({
+      where: { id: row.id },
+      data: { status: 'cancelled' },
+    });
+    const sub = await prisma.workspaceSubscription.findUnique({ where: { tenantId } });
+    if (sub?.pendingPlanCode === row.planCode) {
+      await prisma.workspaceSubscription.update({
+        where: { tenantId },
+        data: { pendingPlanCode: null, pendingBillingCycle: null },
+      });
+    }
+    return { data: { id: row.id, status: 'cancelled' } };
+  }
+
+  async setCancelAtPeriodEnd(tenantId: string, cancel: boolean) {
+    const prisma = getPrisma();
+    const sub = await this.ensureSubscription(tenantId, { grandfather: true });
+    const now = new Date();
+    const cycle: BillingCycle = sub.billingCycle === 'yearly' ? 'yearly' : 'monthly';
+    const updated = await prisma.workspaceSubscription.update({
+      where: { tenantId },
+      data: {
+        cancelAtPeriodEnd: cancel,
+        currentPeriodStart: sub.currentPeriodStart ?? now,
+        currentPeriodEnd: sub.currentPeriodEnd ?? addBillingPeriod(now, cycle),
+      },
+    });
+    return {
+      data: {
+        cancel_at_period_end: updated.cancelAtPeriodEnd,
+        current_period_end: updated.currentPeriodEnd?.toISOString() ?? null,
+        plan_code: updated.planCode,
       },
     };
   }

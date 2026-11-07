@@ -10,7 +10,7 @@ import {
   changePlan,
   getSubscription,
   listPlans,
-  requestUpgrade,
+  startCheckout,
   type PlanDto,
   type SubscriptionView,
 } from '../../../../lib/billing-api';
@@ -139,11 +139,19 @@ export default function BillingClient() {
         });
         toast.push(copy.applied, 'success');
       } else {
-        await requestUpgrade({
+        const result = await startCheckout({
           plan_code: code,
           billing_cycle: annual ? 'yearly' : 'monthly',
+          note: 'Requested from plans page',
         });
-        toast.push(copy.requested, 'success');
+        toast.push(
+          result.data.message
+            ? isAr
+              ? result.data.message.ar
+              : result.data.message.en
+            : copy.requested,
+          'success',
+        );
       }
       await load();
     } catch {

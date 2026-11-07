@@ -825,6 +825,8 @@ This is product dependency order, not an implementation plan. Scope requires app
 
 **External-provider note:** Any live payment/invoice provider SDK remains `DEFERRED_TO_FINAL_INTEGRATION_PHASE` under `DEC-016`. Provider-neutral commercial UX/domain may still be specified later without selecting a payment processor.
 
+**Implemented contract (payment unwired):** Workspace plans (`free`, `basic`, `pro`, `enterprise`) are the entitlement source for limits and feature flags. Each tenant has one subscription with a billing period and optional cancel-at-period-end. Paid plan selection creates a `BillingCheckout` in `awaiting_payment` and does not change entitlements. `PaymentPort` is a refusing adapter (`payment_provider_not_configured`). A workspace admin may fulfill a checkout or apply a plan manually; that grant is recorded as `provider=manual`. Free plan changes apply immediately. Downgrades that exceed current usage are rejected. Live charges, invoices, taxes, and refunds stay out of scope until a provider is chosen.
+
 ### DEC-006 — Meta activation authority `DEFERRED_TO_FINAL_INTEGRATION_PHASE` (still open)
 
 **Status tag:** `DEFERRED_TO_FINAL_INTEGRATION_PHASE` under `DEC-016` for live Meta/paid-media APIs — **not resolved**.
