@@ -4841,18 +4841,21 @@ export default function ContentPage() {
                   <div
                     key={ch}
                     className="oma-plan-post__rail-ch"
-                    data-active={previewChannel === ch ? 'true' : 'false'}
+                    data-active={
+                      (previewChannel || selected.channel.split(',')[0]?.trim()) === ch
+                        ? 'true'
+                        : 'false'
+                    }
+                    data-channel={ch.toLowerCase()}
                   >
                     <button
                       type="button"
                       className="oma-plan-post__rail-av"
                       aria-label={ch}
                       onClick={() => setPreviewChannel(ch)}
+                      data-testid={`preview-rail-channel-${ch.toLowerCase()}`}
                     >
-                      <NetworkIcon channel={ch} size={16} />
-                      <span className="oma-plan-post__rail-badge">
-                        <NetworkIcon channel={ch} size={8} />
-                      </span>
+                      <NetworkIcon channel={ch} size={18} />
                     </button>
                     <div className="oma-plan-post__rail-actions" role="menu">
                       <button
@@ -5476,20 +5479,99 @@ export default function ContentPage() {
                       data-mode={detailPreviewMode}
                       data-testid="content-detail-preview"
                     >
-                      <div className="oma-pv-modal-approval">
-                        <span className="oma-pv-modal-approval__label">
-                          {modalApproverNames().length > 0
-                            ? t('views.approved_by').replace(
-                                '{name}',
-                                modalApproverNames().join(', '),
-                              )
-                            : t('content.not_approved_yet')}
-                        </span>
-                        {modalApproval ? <ApprovalButton a={modalApproval} /> : null}
-                        <span className="oma-fp__net">
-                          <NetworkIcon channel={previewChannel || selected.channel} size={14} />
-                        </span>
-                      </div>
+                      {(() => {
+                        const activeCh = (previewChannel || selected.channel || 'instagram').trim();
+                        const extra = selected as ContentRowExtra;
+                        const matchingTarget = (extra.publishTargets ?? []).find((pt) => {
+                          const net = String(
+                            (pt as { network?: string }).network ?? '',
+                          ).toLowerCase();
+                          return net && activeCh.toLowerCase().includes(net);
+                        });
+                        const rawExternalUrl =
+                          matchingTarget?.externalPostUrl || extra.externalPostUrl || null;
+                        const openPlatformUrl = () => {
+                          if (rawExternalUrl) {
+                            window.open(rawExternalUrl, '_blank', 'noopener,noreferrer');
+                            return;
+                          }
+                          const chLower = activeCh.toLowerCase();
+                          const fallback = chLower.includes('facebook')
+                            ? 'https://www.facebook.com'
+                            : chLower.includes('youtube')
+                              ? 'https://www.youtube.com'
+                              : chLower === 'x' || chLower.includes('twitter')
+                                ? 'https://x.com'
+                                : chLower.includes('linkedin')
+                                  ? 'https://www.linkedin.com'
+                                  : chLower.includes('tiktok')
+                                    ? 'https://www.tiktok.com'
+                                    : 'https://www.instagram.com';
+                          window.open(fallback, '_blank', 'noopener,noreferrer');
+                        };
+                        const pubIso =
+                          extra.publishedAt || selected.scheduledAt || selected.plannedAt;
+                        const daysAgo = pubIso
+                          ? Math.max(
+                              1,
+                              Math.round(
+                                Math.abs(Date.now() - new Date(pubIso).getTime()) / (24 * 3600_000),
+                              ),
+                            )
+                          : 7;
+
+                        return (
+                          <div className="oma-pv-modal-approval oma-pv-modal-status-stack">
+                            <div className="oma-pv-modal-status-row">
+                              <span className="oma-pv-modal-approval__label">
+                                {modalApproverNames().length > 0
+                                  ? t('views.approved_by').replace(
+                                      '{name}',
+                                      modalApproverNames().join(', '),
+                                    )
+                                  : t('content.not_approved_yet')}
+                              </span>
+                              {modalApproval ? (
+                                <ApprovalButton a={modalApproval} />
+                              ) : (
+                                <span
+                                  className="oma-pv-modal-status-circle oma-pv-modal-status-circle--approval"
+                                  aria-hidden="true"
+                                >
+                                  ✓
+                                </span>
+                              )}
+                            </div>
+
+                            <div className="oma-pv-modal-status-row">
+                              <span className="oma-pv-modal-approval__label">
+                                {extra.publishedAt || selected.status === 'PUBLISHED_DEMO'
+                                  ? isAr
+                                    ? `تم نشر المجموعة قبل ${daysAgo} أيام`
+                                    : `Group has been published ${daysAgo} days ago`
+                                  : selected.scheduledAt
+                                    ? isAr
+                                      ? `مجدولة للنشر`
+                                      : `Group is scheduled`
+                                    : t('content.post_is_not_published_yet')}
+                              </span>
+                              <button
+                                type="button"
+                                className="oma-pv-modal-status-circle oma-pv-modal-status-circle--net"
+                                data-channel={activeCh.toLowerCase()}
+                                onClick={openPlatformUrl}
+                                title={isAr ? 'افتح المنشور على المنصة' : 'Open post on platform'}
+                                aria-label={
+                                  isAr ? 'افتح المنشور على المنصة' : 'Open post on platform'
+                                }
+                                data-testid="content-preview-open-platform"
+                              >
+                                <NetworkIcon channel={activeCh} size={18} />
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })()}
                       {modalApproverNames().length === 0 ||
                       !(selected as ContentRowExtra).previewAsset ? (
                         <div className="oma-pv-req" role="status">

@@ -21,10 +21,12 @@ export type PublishTargetStatusRow = {
   id: string;
   socialPageId: string;
   state: string;
+  externalPostId?: string | null;
   externalPostUrl?: string | null;
   lastError?: string | null;
   /** Display name when social pages are loaded in the UI. */
   accountLabel?: string | null;
+  network?: string | null;
 };
 
 /** Resolve human-readable publisher names; never surface raw social page ids in UI. */
@@ -35,13 +37,59 @@ export function enrichPublishTargets(
   if (!targets.length) return targets;
   const byId = new Map(pages.map((p) => [p.id, p]));
   return targets.map((target) => {
-    if (target.accountLabel?.trim()) return target;
     const page = byId.get(target.socialPageId);
     const name = page?.name?.trim();
-    const network = page?.network?.trim();
-    const accountLabel = name || (network ? network.replace(/^./, (c) => c.toUpperCase()) : null);
-    return accountLabel ? { ...target, accountLabel } : target;
+    const network = target.network ?? page?.network?.trim() ?? null;
+    const accountLabel =
+      target.accountLabel?.trim() ||
+      name ||
+      (network ? network.replace(/^./, (c) => c.toUpperCase()) : null);
+    const resolvedUrl = resolveDirectPostPermalink(target.externalPostUrl, {
+      externalPostId: target.externalPostId,
+      network,
+    });
+    return {
+      ...target,
+      ...(accountLabel ? { accountLabel } : {}),
+      ...(network ? { network } : {}),
+      externalPostUrl: resolvedUrl,
+    };
   });
+}
+
+/**
+ * Upgrade a profile-only fallback URL (`https://www.tiktok.com/@handle`) to a direct post permalink
+ * whenever an external post ID is available.
+ */
+export function resolveDirectPostPermalink(
+  rawUrl: string | null | undefined,
+  opts?: {
+    externalPostId?: string | null;
+    network?: string | null;
+    contentType?: string | null;
+  },
+): string | null {
+  const url = rawUrl?.trim() || null;
+  const postId = opts?.externalPostId?.trim() || null;
+  if (url && isProfileOnlyPostUrl(url) && postId && !/^[pv]_/i.test(postId)) {
+    const clean = url.replace(/\/+$/, '');
+    const kind =
+      opts?.contentType === 'STATIC' || opts?.contentType === 'CAROUSEL' ? 'photo' : 'video';
+    return `${clean}/${kind}/${encodeURIComponent(postId)}`;
+  }
+  if (!url && postId) {
+    const net = (opts?.network ?? '').toLowerCase();
+    if (net.includes('facebook') || net === 'fb') {
+      return `https://www.facebook.com/${encodeURIComponent(postId)}`;
+    }
+    if (net.includes('linkedin')) {
+      return `https://www.linkedin.com/feed/update/${encodeURIComponent(postId)}/`;
+    }
+    if (net === 'x' || net.includes('twitter')) {
+      return `https://x.com/i/web/status/${encodeURIComponent(postId)}`;
+    }
+  }
+  return url;
 }
 
 export function publishTargetStateLabelKey(state: string): string {

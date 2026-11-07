@@ -8012,3 +8012,216 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   padding-inline: 6px !important;
   gap: 2px !important;
 }
+
+/* Planable Competitors Dashboard (Images 7 & 8) */
+.oma-plx-listening-comp {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.oma-plx-listening-comp__vs-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.oma-plx-listening-comp__vs-pills {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.oma-plx-listening-comp__you-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--oma-home-ink);
+}
+
+.oma-plx-listening-comp__vs-word {
+  font-size: 12px;
+  color: var(--oma-home-subtle);
+}
+
+.oma-plx-listening-comp__pill {
+  height: 28px;
+  padding: 0 11px;
+  border-radius: 999px;
+  border: 1px solid var(--oma-home-control-border);
+  background: var(--oma-surface);
+  color: var(--oma-home-ink-2);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease;
+}
+
+.oma-plx-listening-comp__pill[data-active='true'],
+.oma-plx-listening-comp__pill:hover {
+  background: var(--oma-home-hover);
+  border-color: var(--oma-home-border-hover);
+}
+
+.oma-plx-listening-comp__info {
+  width: 13px;
+  height: 13px;
+  color: var(--oma-home-subtle);
+  vertical-align: middle;
+}
+
+.oma-plx-listening-comp__entity-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.oma-plx-listening-comp__entity-title h3 {
+  margin: 0 !important;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--oma-home-ink-2);
+}
+
+.oma-plx-listening-comp__you-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: var(--oma-home-primary-soft);
+  color: var(--oma-primary);
+  font-size: 10px;
+  font-weight: 700;
+  margin-inline-start: 4px;
+}
+
+.oma-plx-listening-comp__entity-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.oma-plx-listening-comp__entity-stat strong {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--oma-home-ink);
+}
+
+.oma-plx-listening-comp__matrix {
+  position: relative;
+  padding-bottom: 24px;
+}
+
+.oma-plx-listening-comp__axis-x {
+  position: absolute;
+  bottom: 4px;
+  inset-inline-end: 8px;
+  font-size: 11px;
+  color: var(--oma-home-subtle);
+}
+
+.oma-plx-listening-comp__pts--up {
+  color: var(--oma-home-success);
+  font-weight: 600;
+}
+
+.oma-plx-listening-comp__pts--down {
+  color: var(--oma-home-danger);
+  font-weight: 600;
+}
+
+.oma-plx-listening-comp__bar-cell {
+  width: 48%;
+}
+
+.oma-plx-listening-comp__src-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.oma-plx-listening-comp__legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding-top: 12px;
+  font-size: 11px;
+  color: var(--oma-home-muted);
+}
+
+.oma-plx-listening-comp__legend .dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  margin-inline-end: 4px;
+}
+
+.oma-plx-listening-comp__legend .dot--pos {
+  background: var(--oma-home-success);
+}
+
+.oma-plx-listening-comp__legend .dot--neu {
+  background: var(--oma-home-warning);
+}
+
+.oma-plx-listening-comp__legend .dot--neg {
+  background: var(--oma-home-danger);
+}
+
+.oma-plx-listening-comp__mentions-sec {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.oma-plx-listening-comp__mentions-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.oma-plx-listening-comp__mentions-head h2 {
+  margin: 0 0 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--oma-home-ink);
+}
+
+.oma-plx-listening-comp__filter-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.oma-plx-listening-comp__sort-select {
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid var(--oma-home-border);
+  background: var(--oma-surface);
+  color: var(--oma-home-ink-2);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.oma-plx-listening-card__date {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--oma-home-subtle);
+}

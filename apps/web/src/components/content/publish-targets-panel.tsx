@@ -46,7 +46,7 @@ export function PublishTargetsPanel({
                 className="oma-text-link oma-publish-targets__link"
                 data-profile-only={profileOnly ? 'true' : 'false'}
               >
-                {profileOnly ? t('demo.schedule.viewProfileLink') : t('demo.schedule.viewPostLink')}
+                {t('demo.schedule.viewPostLink')}
               </a>
             ) : null}
             {err && target.state.toUpperCase() === 'FAILED' ? (
