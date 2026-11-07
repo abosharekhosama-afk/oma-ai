@@ -1405,6 +1405,8 @@ export default function ContentPage() {
     'none' | 'activity' | 'feedback' | 'analytics'
   >('none');
   const [channelAnalytics, setChannelAnalytics] = useState<ChannelAnalytics | null>(null);
+  const [channelAnalyticsLoading, setChannelAnalyticsLoading] = useState(false);
+  const [channelAnalyticsError, setChannelAnalyticsError] = useState<string | null>(null);
   const [approvalEvents, setApprovalEvents] = useState<ApprovalEvent[]>([]);
   const [prodComments, setProdComments] = useState<ContentCommentDto[]>([]);
   const [commentDraft, setCommentDraft] = useState('');
@@ -1708,19 +1710,34 @@ export default function ContentPage() {
   }, [selectedId, detailRev]);
 
   useEffect(() => {
-    if (!selectedId) return;
+    if (!selectedId) {
+      setChannelAnalytics(null);
+      setChannelAnalyticsError(null);
+      return;
+    }
     let cancelled = false;
+    setChannelAnalyticsLoading(true);
+    setChannelAnalyticsError(null);
     void getContentChannelAnalytics(selectedId, previewChannel || undefined)
       .then((data) => {
-        if (!cancelled) setChannelAnalytics(data);
+        if (!cancelled) {
+          setChannelAnalytics(data);
+          setChannelAnalyticsError(null);
+        }
       })
-      .catch(() => {
-        if (!cancelled) setChannelAnalytics(null);
+      .catch((err) => {
+        if (!cancelled) {
+          setChannelAnalytics(null);
+          setChannelAnalyticsError(err instanceof Error ? err.message : 'Analytics unavailable');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setChannelAnalyticsLoading(false);
       });
     return () => {
       cancelled = true;
     };
-  }, [selectedId, previewChannel, detailRev, prodComments]);
+  }, [selectedId, previewChannel, detailRev]);
 
   useEffect(() => {
     setDetailCampaignMenu(false);
@@ -5762,7 +5779,15 @@ export default function ContentPage() {
                     </header>
 
                     {detailSidePanel === 'analytics' ? (
-                      channelAnalytics ? (
+                      channelAnalyticsLoading ? (
+                        <p className="oma-muted" style={{ padding: 16 }}>
+                          {isAr ? 'جاري تحميل التحليلات…' : 'Loading analytics…'}
+                        </p>
+                      ) : channelAnalyticsError ? (
+                        <p className="oma-inbox-error" style={{ padding: 16 }} role="alert">
+                          {channelAnalyticsError}
+                        </p>
+                      ) : channelAnalytics ? (
                         <PostChannelAnalytics
                           data={channelAnalytics}
                           locale={locale}
@@ -5772,7 +5797,9 @@ export default function ContentPage() {
                         />
                       ) : (
                         <p className="oma-muted" style={{ padding: 16 }}>
-                          {isAr ? 'لا تحليلات بعد' : 'No analytics yet'}
+                          {isAr
+                            ? 'لا تحليلات بعد. ستظهر بعد النشر أو عند توفر تعليقات وتفاعلات OMA.'
+                            : 'No analytics yet. Metrics appear after publish or from OMA comments and reactions.'}
                         </p>
                       )
                     ) : detailSidePanel === 'activity' ? (

@@ -81,6 +81,18 @@ async function main() {
   };
   setInterval(() => void scheduleListening(), 5 * 60 * 1000);
 
+  const runListeningAlerts = async () => {
+    try {
+      const { evaluateListeningAlertsForYesterday } = await import('./listening/evaluate-alerts');
+      const res = await evaluateListeningAlertsForYesterday();
+      log.info(res, 'listening alerts evaluated');
+    } catch (err) {
+      log.error({ err: String(err) }, 'listening alert evaluation failed');
+    }
+  };
+  void runListeningAlerts();
+  setInterval(() => void runListeningAlerts(), 24 * 60 * 60 * 1000);
+
   const scheduleInboxSync = async () => {
     try {
       const prisma = (await import('@oma/db')).getPrisma();
