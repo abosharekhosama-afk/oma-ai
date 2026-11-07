@@ -8,6 +8,7 @@ import type { Request } from 'express';
 
 const routeRequirements: Record<string, string[]> = {
   'POST /api/v1/tenants/current/invitations': ['membership.invite'],
+  'PATCH /api/v1/tenants/current': ['tenant.manage'],
   'POST /api/v1/memberships/:id/suspend': ['membership.manage'],
   'POST /api/v1/memberships/:id/remove': ['membership.manage'],
   'POST /api/v1/memberships/:id/capabilities': ['capability.assign'],

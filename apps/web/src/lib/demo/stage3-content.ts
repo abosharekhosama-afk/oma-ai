@@ -37,8 +37,8 @@ export const EMPTY_CONTENT_FILTERS: ContentFilters = {
 
 export type ContentViewMode = 'calendar' | 'feed' | 'list' | 'grid';
 
-/** One preview card in the cell; remaining posts open via "+N more". */
-export const MAX_CELL_ITEMS = 1;
+/** Up to two preview cards in the cell; remaining posts open via "+N more". */
+export const MAX_CELL_ITEMS = 2;
 
 export function filterContent(
   items: ContentRow[],

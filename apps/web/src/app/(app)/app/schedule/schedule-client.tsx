@@ -18,6 +18,7 @@ import { PlxHeaderFilter } from '../../../../components/ui/plx-header-filter';
 import type { ApprovalPolicy, DemoGraph } from '@oma/demo';
 import { resolveContentWorkflow } from '@oma/demo';
 import { Dialog } from '../../../../components/ui/dialog';
+import { ConfirmActionDialog } from '../../../../components/ui/confirm-action-dialog';
 import { ScheduleBodyShimmer, ScheduleEmptyState } from './schedule-plx-states';
 import { SchedulePostCard } from './schedule-post-card';
 import { StatusMark } from '../../../../components/content/content-card';
@@ -112,6 +113,7 @@ export default function SchedulePage() {
   const [anchor, setAnchor] = useState(() => todayKey());
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [rescheduleOpen, setRescheduleOpen] = useState(false);
+  const [removeConfirmOpen, setRemoveConfirmOpen] = useState(false);
   const [plannedAtDraft, setPlannedAtDraft] = useState('');
   const [channelDraft, setChannelDraft] = useState('');
   const [socialPageIdsDraft, setSocialPageIdsDraft] = useState<string[]>([]);
@@ -1473,7 +1475,7 @@ export default function SchedulePage() {
                     type="default"
                     data-testid="demo-schedule-remove"
                     disabled={saving}
-                    onClick={() => void removeSelected()}
+                    onClick={() => setRemoveConfirmOpen(true)}
                   >
                     {t('demo.schedule.remove')}
                   </Button>
@@ -1589,6 +1591,26 @@ export default function SchedulePage() {
           </div>
         </div>
       </Dialog>
+
+      <ConfirmActionDialog
+        open={removeConfirmOpen}
+        title={t('demo.schedule.remove')}
+        description={
+          locale.startsWith('ar')
+            ? 'هل أنت متأكد من إلغاء جدولة هذا المنشور وإزالته من التقويم؟'
+            : 'Are you sure you want to unschedule and remove this post from the schedule?'
+        }
+        confirmLabel={t('demo.schedule.remove')}
+        cancelLabel={t('demo.create.cancel')}
+        tone="danger"
+        busy={saving}
+        onConfirm={() => {
+          setRemoveConfirmOpen(false);
+          void removeSelected();
+        }}
+        onCancel={() => setRemoveConfirmOpen(false)}
+        testId="confirm-schedule-remove-dialog"
+      />
     </div>
   );
 }

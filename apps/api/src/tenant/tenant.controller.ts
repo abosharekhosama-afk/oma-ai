@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
 import { AuthGuard } from '../common/guards/auth.guard';
 import { CsrfGuard } from '../common/guards/csrf.guard';
@@ -44,6 +44,33 @@ export class TenantController {
     const tenant = await getPrisma().tenant.findFirst({ where: { id: req.oma.tenantId } });
     if (!tenant) throw new DomainError('NOT_FOUND', 'Tenant not found', 404, 'errors.not_found');
     return { tenant };
+  }
+
+  @Patch('tenants/current')
+  @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
+  @RequireCapabilities('tenant.manage')
+  async renameCurrent(@Req() req: Request, @Body() body: { name?: string }) {
+    if (!req.oma?.tenantId)
+      throw new DomainError(
+        'TENANT_REQUIRED',
+        'Active tenant required',
+        409,
+        'errors.tenant_required',
+      );
+    const name = typeof body?.name === 'string' ? body.name.trim() : '';
+    if (!name || name.length > 120) {
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'Valid workspace name is required',
+        400,
+        'errors.validation_failed',
+      );
+    }
+    const updated = await getPrisma().tenant.update({
+      where: { id: req.oma.tenantId },
+      data: { name },
+    });
+    return { data: { id: updated.id, name: updated.name, slug: updated.slug } };
   }
 
   @Get('tenants/current/memberships')

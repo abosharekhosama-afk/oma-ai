@@ -100,6 +100,7 @@ import {
 } from '../../../../components/ui/lucide-icons';
 
 import { Dialog } from '../../../../components/ui/dialog';
+import { ConfirmActionDialog } from '../../../../components/ui/confirm-action-dialog';
 import { EmptyState, DeniedState } from '../../../../components/ui/empty-state';
 import { useToast } from '../../../../components/ui/toast';
 import { usePlanFeatures, viewAllowedByPlan } from '../../../../lib/use-plan-features';
@@ -1399,6 +1400,7 @@ export default function ContentPage() {
   const [saveState, setSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [saveError, setSaveError] = useState<string | null>(null);
   const [unsavedOpen, setUnsavedOpen] = useState(false);
+  const [archiveConfirmId, setArchiveConfirmId] = useState<string | null>(null);
   const [detailTab, setDetailTab] = useState<'preview' | 'edit' | 'comments'>('preview');
   const [detailSidePanel, setDetailSidePanel] = useState<
     'none' | 'activity' | 'feedback' | 'analytics'
@@ -3051,7 +3053,7 @@ export default function ContentPage() {
     } else if (action === 'changes') void runLifecycle('request-changes', id);
     else if (action === 'reject') void runLifecycle('reject', id);
     else if (action === 'hide') void toggleHideFromClients(id);
-    else if (action === 'archive') void runLifecycle('archive', id);
+    else if (action === 'archive') setArchiveConfirmId(id);
     else if (action === 'schedule') void runLifecycle('schedule', id);
     else if (action === 'unschedule') void runLifecycle('unschedule', id);
     else if (action === 'template') void saveAsTemplate(id);
@@ -4180,7 +4182,7 @@ export default function ContentPage() {
                       >
                         {week.map((cell) => {
                           const items = byDay.get(cell.key) ?? [];
-                          const { extra } = splitCellItems(items);
+                          const { visible: visibleCellItems, extra } = splitCellItems(items, 2);
                           const note = dayNotes[cell.key];
                           const holiday = holidayChips[cell.key];
                           const noteOpen = noteDay === cell.key;
@@ -4339,8 +4341,8 @@ export default function ContentPage() {
                               ) : null}
 
                               <div className="oma-cal-cell__scroll">
-                                {/* Post cards */}
-                                {items.map((item) => (
+                                {/* Post cards (max 2 per cell; rest via +N more) */}
+                                {visibleCellItems.map((item) => (
                                   <div
                                     key={item.id}
                                     className="oma-cal-item-wrap"
@@ -4930,7 +4932,7 @@ export default function ContentPage() {
                       <button
                         type="button"
                         title={t('wsPanel.delete')}
-                        onClick={() => selectedId && void runLifecycle('archive', selectedId)}
+                        onClick={() => selectedId && setArchiveConfirmId(selectedId)}
                       >
                         <DeleteOutlined />
                       </button>
@@ -5136,7 +5138,7 @@ export default function ContentPage() {
                     data-tooltip={t('wsPanel.delete')}
                     aria-label={t('wsPanel.delete')}
                     onClick={() => {
-                      if (selectedId) void runLifecycle('archive', selectedId);
+                      if (selectedId) setArchiveConfirmId(selectedId);
                     }}
                   >
                     <DeleteOutlined />
@@ -5415,7 +5417,7 @@ export default function ContentPage() {
                             type="button"
                             role="menuitem"
                             onClick={() => {
-                              if (selectedId) void runLifecycle('archive', selectedId);
+                              if (selectedId) setArchiveConfirmId(selectedId);
                               setDetailMoreOpen(false);
                             }}
                           >
@@ -7382,6 +7384,27 @@ export default function ContentPage() {
           )}
         </div>
       </Dialog>
+
+      <ConfirmActionDialog
+        open={Boolean(archiveConfirmId)}
+        title={t('content.archive_post') || (isAr ? 'أرشفة المنشور' : 'Archive post')}
+        description={
+          isAr
+            ? 'هل أنت متأكد من أرشفة هذا المنشور؟ سيُنقل إلى المؤرشفة ولن يُنشر.'
+            : 'Are you sure you want to archive this post? It will be moved to archived and will not be published.'
+        }
+        confirmLabel={t('content.archive_post') || (isAr ? 'أرشفة المنشور' : 'Archive post')}
+        cancelLabel={t('common.cancel')}
+        tone="danger"
+        busy={saving}
+        onConfirm={() => {
+          const targetId = archiveConfirmId;
+          setArchiveConfirmId(null);
+          if (targetId) void runLifecycle('archive', targetId);
+        }}
+        onCancel={() => setArchiveConfirmId(null)}
+        testId="confirm-archive-post-dialog"
+      />
     </div>
   );
 }
