@@ -173,6 +173,11 @@ function platformLabel(code: string): string {
     META_IG: 'Instagram',
     TIKTOK: 'TikTok',
     LINKEDIN: 'LinkedIn',
+    X: 'X',
+    WHATSAPP: 'WhatsApp',
+    REDDIT: 'Reddit',
+    WEB: 'Web',
+    YOUTUBE: 'YouTube',
   };
   return m[code] ?? code;
 }
@@ -763,7 +768,33 @@ export class ListeningService {
           where: { id: alert.id },
           data: { lastFiredAt: end },
         });
-        // In-app / email / Slack delivery hooks on notify* flags — lastFiredAt drives the Alerts table.
+        if (alert.notifyInApp) {
+          const readers = await getPrisma().membership.findMany({
+            where: {
+              tenantId,
+              status: 'ACTIVE',
+              grants: { some: { revokedAt: null, capabilityCode: 'content.read' } },
+            },
+            select: { userId: true },
+          });
+          const dayKey = start.toISOString().slice(0, 10);
+          const rows = readers
+            .map((r) => r.userId)
+            .filter(Boolean)
+            .map((uid) => ({
+              id: newId(),
+              tenantId,
+              recipientUserId: uid!,
+              type: 'listening.alert_fired',
+              objectType: 'ListeningAlert',
+              objectId: alert.id,
+              deepLinkPath: '/app/listening/alerts',
+              dedupeKey: `listening.alert:${alert.id}:${uid}:${dayKey}`,
+            }));
+          if (rows.length) {
+            await getPrisma().notification.createMany({ data: rows, skipDuplicates: true });
+          }
+        }
       }
     }
     return { evaluated: alerts.length, fired };
@@ -823,7 +854,16 @@ export class ListeningService {
   async recordHit(input: {
     tenantId: string;
     ruleId?: string | null;
-    platform: 'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN';
+    platform:
+      | 'META_FB'
+      | 'META_IG'
+      | 'TIKTOK'
+      | 'LINKEDIN'
+      | 'X'
+      | 'WHATSAPP'
+      | 'REDDIT'
+      | 'WEB'
+      | 'YOUTUBE';
     externalPostId: string;
     authorName?: string | null;
     authorHandle?: string | null;

@@ -2720,6 +2720,15 @@
 .plat--LINKEDIN {
   background: #0a66c2;
 }
+.plat--REDDIT {
+  background: #ff4500;
+}
+.plat--YOUTUBE {
+  background: #e62117;
+}
+.plat--WEB {
+  background: #6b7280;
+}
 .plat--X {
   background: #0f1419;
 }
@@ -7781,6 +7790,21 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   justify-content: flex-end;
   gap: 8px;
   margin-top: 4px;
+}
+.oma-plx-listening-alerts__plat-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: 6px;
+}
+.oma-plx-listening-alerts__plat-grid label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+.oma-plx-listening-alerts__menu button:first-child {
+  color: #374151;
 }
 
 .oma-plx-listening-comp__grid {

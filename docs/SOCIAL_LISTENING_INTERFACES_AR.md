@@ -11,7 +11,7 @@
 | **عامل الاستماع** (worker)           | يجري `listening.poll` كل ~5 دقائق للقواعد الحية؛ يقيّم **التنبيهات** يومياً ليوم الأمس. |
 | **واجهة API**                        | `/api/v1/listening/*` مع صلاحيات `content.read` / `content.update`.                     |
 
-المنصات المدعومة حالياً في النموذج: `META_FB`, `META_IG`, `TIKTOK`, `LINKEDIN` (لا Reddit/Web/X في لوحة المنافسين حتى تُضاف قواعد وجلب لها).
+المنصات: `META_FB`, `META_IG`, `TIKTOK`, `LINKEDIN`, `X`, `REDDIT`, `WEB`, `YOUTUBE` (+ `WHATSAPP` عبر جسر Inbox). جلب Reddit عام؛ YouTube/Web عند مفاتيح Google في البيئة (انظر أسفل المستند).
 
 ---
 
@@ -62,8 +62,8 @@
 
 **المنطق:**
 
-- CRUD عبر `/api/v1/listening/alerts`.
-- **التقييم اليومي** (worker `evaluate-alerts.ts`): لكل تنبيه نشط، يُحسب أمس UTC على إشارات قاعدة العلامة (`BRAND`). عند تجاوز العتبة يُحدَّث `lastFiredAt`.
+- CRUD عبر `/api/v1/listening/alerts`، بما في ذلك **تعديل** التنبيه من القائمة (الاسم، المنصات، العتبة، قنوات الإشعار).
+- **التقييم اليومي** (worker `evaluate-alerts.ts`): لكل تنبيه نشط، يُحسب أمس UTC على إشارات قاعدة العلامة (`BRAND`). عند التفعيل: `lastFiredAt` + **إشعار داخل التطبيق** + **بريد** (عبر محوّل البريد) + **Slack** (webhook في `WorkspaceSetting.listeningSlackWebhookUrl` أو `LISTENING_SLACK_WEBHOOK_URL`).
 - أنواع المشغّل: `VOLUME_SPIKE` (`mentionsPerDay` أو >120% من متوسط 7 أيام)، `SENTIMENT_POSITIVE` / `SENTIMENT_NEGATIVE` (`sharePct`).
 
 ---
@@ -88,8 +88,11 @@ SEED_INBOX_DEMO=1 pnpm db:seed:inbox-demo
 
 ---
 
-## فجوات معروفة مقابل Planable
+## إعداد Slack للتنبيهات
 
-- لا جلب خارجي لـ Reddit / Web / YouTube في الاستماع بعد.
-- إشعارات البريد وSlack للتنبيهات مُخزَّنة ولم تُربط بمزود إشعارات بعد.
-- واجهة التنبيهات لا تدعم تحريراً كاملاً من القائمة (حذف + إنشاء + تفعيل/إيقاف).
+`PATCH /api/v1/workspace/settings` مع `listening_slack_webhook_url` (رابط `hooks.slack.com/services/...` فقط).
+
+## فجوات متبقية
+
+- TikTok / LinkedIn / X في **poll مباشر** ما زالت تعتمد على جسر الـ Inbox والربط الاجتماعي (ليست Graph عام).
+- Web/YouTube يتطلبان مفاتيح Google في البيئة؛ بدونها يُسجَّل تخطٍّ صادق ولا تُلفَّق بيانات.

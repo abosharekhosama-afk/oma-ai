@@ -3,6 +3,7 @@ import { decryptToken, tokenKeyFromEnv } from '@oma/domain';
 import { createLogger } from '@oma/observability';
 import { matchedTerms, recordListeningHit } from './record-hit';
 import { bridgeInboxMessagesToListening } from './inbox-bridge';
+import { pollPublicListeningSources } from './public-sources-poll';
 
 const log = createLogger('listening-meta-poll');
 
@@ -217,6 +218,16 @@ export async function runListeningPoll(
     ingested += await bridgeInboxMessagesToListening(rule);
   } catch (e) {
     errors.push(`inbox_bridge:${e instanceof Error ? e.message : String(e)}`);
+  }
+
+  try {
+    const pub = await pollPublicListeningSources(rule);
+    ingested += pub.ingested;
+    errors.push(
+      ...pub.errors.filter((e) => !e.endsWith('_missing') && !e.endsWith('_not_configured')),
+    );
+  } catch (e) {
+    errors.push(`public_sources:${e instanceof Error ? e.message : String(e)}`);
   }
 
   await prisma.listeningRule.update({

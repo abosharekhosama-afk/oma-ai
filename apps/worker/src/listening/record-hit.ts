@@ -33,7 +33,8 @@ function matchedTerms(content: string, keywords: string[], hashtags: string[]) {
 export async function recordListeningHit(input: {
   tenantId: string;
   ruleId: string;
-  platform: 'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN';
+  platform:
+    'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN' | 'X' | 'WHATSAPP' | 'REDDIT' | 'WEB' | 'YOUTUBE';
   externalPostId: string;
   authorName?: string | null;
   authorHandle?: string | null;

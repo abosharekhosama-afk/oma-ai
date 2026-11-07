@@ -3,14 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { DownOutlined } from '../../../../components/ui/lucide-icons';
 import { useT } from '../../../../lib/use-locale';
-import { platformLabel } from './listening-utils';
-
-const PLATFORMS = [
-  { id: 'META_IG', short: 'IG', color: '#E4405F' },
-  { id: 'META_FB', short: 'FB', color: '#1877F2' },
-  { id: 'TIKTOK', short: 'TT', color: '#111827' },
-  { id: 'LINKEDIN', short: 'IN', color: '#0A66C2' },
-] as const;
+import { LISTENING_PLATFORMS, platformLabel } from './listening-utils';
 
 export function ListeningSourceMenu({
   selected,
@@ -64,7 +57,7 @@ export function ListeningSourceMenu({
             <input type="checkbox" checked={allSelected} onChange={() => onChange(new Set())} />
             <span>{t('listening.allPlatforms') || 'All platforms'}</span>
           </label>
-          {PLATFORMS.map((p) => (
+          {LISTENING_PLATFORMS.map((p) => (
             <label key={p.id} className="oma-plx-listening-source__row">
               <input
                 type="checkbox"

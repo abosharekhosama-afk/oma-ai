@@ -12,6 +12,7 @@ import {
   type ListeningAlertRow,
 } from '../../../../lib/listening-api';
 import { useLocale } from '../../../../lib/use-locale';
+import { LISTENING_PLATFORMS } from './listening-utils';
 
 const ENTITY_COLORS = ['#1570ef', '#ee46bc', '#f79009', '#0e9f95'];
 
@@ -32,7 +33,10 @@ export function ListeningAlertsView() {
   const [error, setError] = useState<string | null>(null);
   const [menuId, setMenuId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [draftName, setDraftName] = useState('Volume spike');
+  const [platformScope, setPlatformScope] = useState<'all' | 'specific'>('all');
+  const [selectedPlatforms, setSelectedPlatforms] = useState<Set<string>>(() => new Set());
   const [trigger, setTrigger] = useState<
     'VOLUME_SPIKE' | 'SENTIMENT_POSITIVE' | 'SENTIMENT_NEGATIVE'
   >('VOLUME_SPIKE');
@@ -72,19 +76,71 @@ export function ListeningAlertsView() {
     await load();
   };
 
-  const onCreate = async () => {
+  const resetModal = () => {
+    setModalOpen(false);
+    setEditingId(null);
+    setDraftName('Volume spike');
+    setTrigger('VOLUME_SPIKE');
+    setMentionsPerDay(36);
+    setSharePct(75);
+    setNotifyInApp(true);
+    setNotifyEmail(false);
+    setNotifySlack(false);
+    setPlatformScope('all');
+    setSelectedPlatforms(new Set());
+  };
+
+  const openCreate = () => {
+    resetModal();
+    setModalOpen(true);
+  };
+
+  const openEdit = (row: ListeningAlertRow) => {
+    setEditingId(row.id);
+    setDraftName(row.name);
+    const tt = row.triggerType as typeof trigger;
+    setTrigger(tt === 'SENTIMENT_POSITIVE' || tt === 'SENTIMENT_NEGATIVE' ? tt : 'VOLUME_SPIKE');
+    if (row.triggerType === 'VOLUME_SPIKE') {
+      setMentionsPerDay(row.threshold.mentionsPerDay ?? 36);
+    } else {
+      setSharePct(row.threshold.sharePct ?? 75);
+    }
+    setNotifyInApp(row.notifyInApp);
+    setNotifyEmail(row.notifyEmail);
+    setNotifySlack(row.notifySlack);
+    if (row.platforms.length) {
+      setPlatformScope('specific');
+      setSelectedPlatforms(new Set(row.platforms));
+    } else {
+      setPlatformScope('all');
+      setSelectedPlatforms(new Set());
+    }
+    setMenuId(null);
+    setModalOpen(true);
+  };
+
+  const onSave = async () => {
     const threshold: Record<string, number> =
       trigger === 'VOLUME_SPIKE' ? { mentionsPerDay: mentionsPerDay } : { sharePct: sharePct };
-    await createListeningAlert({
+    const platforms = platformScope === 'all' ? [] : [...selectedPlatforms];
+    const body = {
       name: draftName.trim() || 'Alert',
-      brandId: brandId || null,
       triggerType: trigger,
       threshold,
+      platforms,
       notifyInApp,
       notifyEmail,
       notifySlack,
-    });
-    setModalOpen(false);
+    };
+    if (editingId) {
+      await updateListeningAlert(editingId, body);
+    } else {
+      await createListeningAlert({
+        ...body,
+        brandId: brandId || null,
+      });
+    }
+    resetModal();
     await load();
   };
 
@@ -92,7 +148,7 @@ export function ListeningAlertsView() {
     <div className="oma-plx-listening oma-plx-listening-alerts" data-testid="listening-alerts-page">
       <header className="oma-plx-listening-alerts__head">
         <h1 className="oma-plx-listening__title">{ar ? 'التنبيهات' : 'Alerts'}</h1>
-        <Button type="primary" size="small" onClick={() => setModalOpen(true)}>
+        <Button type="primary" size="small" onClick={openCreate}>
           <PlusOutlined /> {ar ? 'تنبيه جديد' : 'New alert'}
         </Button>
       </header>
@@ -162,6 +218,9 @@ export function ListeningAlertsView() {
                   </button>
                   {menuId === row.id ? (
                     <div className="oma-plx-listening-alerts__menu" role="menu">
+                      <button type="button" role="menuitem" onClick={() => openEdit(row)}>
+                        {ar ? 'تعديل التنبيه' : 'Edit alert'}
+                      </button>
                       <button type="button" role="menuitem" onClick={() => void onDelete(row.id)}>
                         {ar ? 'حذف التنبيه' : 'Delete alert'}
                       </button>
@@ -176,16 +235,24 @@ export function ListeningAlertsView() {
 
       <p className="oma-plx-listening-alerts__footnote">
         {ar
-          ? 'تُجمَع الإشارات بين عشية وضحاها. إذا تجاوز أمس العتبة، يُحدَّث عمود «آخر تفعيل» ويُفعَّل إشعار داخل التطبيق عند تفعيله.'
-          : 'Mentions are collected overnight. When yesterday crosses your threshold, Last fired updates and in-app notify fires when enabled.'}
+          ? 'تُجمَع الإشارات بين عشية وضحاها. عند التفعيل تُرسل إشعارات داخل التطبيق والبريد وSlack (إن وُجد webhook في إعدادات مساحة العمل).'
+          : 'Mentions are collected overnight. When an alert fires, in-app, email, and Slack notify (if a workspace Slack webhook is configured in settings).'}
       </p>
 
       {modalOpen ? (
         <div className="oma-plx-listening-alerts__modal" role="dialog" aria-modal="true">
           <div className="oma-plx-listening-alerts__dialog">
             <header>
-              <h2>{ar ? 'إنشاء تنبيه' : 'Create new alert'}</h2>
-              <button type="button" onClick={() => setModalOpen(false)} aria-label="Close">
+              <h2>
+                {editingId
+                  ? ar
+                    ? 'تعديل التنبيه'
+                    : 'Edit alert'
+                  : ar
+                    ? 'إنشاء تنبيه'
+                    : 'Create new alert'}
+              </h2>
+              <button type="button" onClick={resetModal} aria-label="Close">
                 ×
               </button>
             </header>
@@ -193,6 +260,46 @@ export function ListeningAlertsView() {
               <span>{ar ? 'الاسم' : 'Name'}</span>
               <input value={draftName} onChange={(e) => setDraftName(e.target.value)} />
             </label>
+            <fieldset>
+              <legend>{ar ? 'المنصات' : 'Platforms'}</legend>
+              <label>
+                <input
+                  type="radio"
+                  name="plat-scope"
+                  checked={platformScope === 'all'}
+                  onChange={() => setPlatformScope('all')}
+                />
+                {ar ? 'كل المنصات' : 'All platforms'}
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="plat-scope"
+                  checked={platformScope === 'specific'}
+                  onChange={() => setPlatformScope('specific')}
+                />
+                {ar ? 'منصات محددة' : 'Specific'}
+              </label>
+              {platformScope === 'specific' ? (
+                <div className="oma-plx-listening-alerts__plat-grid">
+                  {LISTENING_PLATFORMS.map((p) => (
+                    <label key={p.id}>
+                      <input
+                        type="checkbox"
+                        checked={selectedPlatforms.has(p.id)}
+                        onChange={() => {
+                          const next = new Set(selectedPlatforms);
+                          if (next.has(p.id)) next.delete(p.id);
+                          else next.add(p.id);
+                          setSelectedPlatforms(next);
+                        }}
+                      />
+                      {p.short}
+                    </label>
+                  ))}
+                </div>
+              ) : null}
+            </fieldset>
             <fieldset>
               <legend>{ar ? 'نبّهني عندما' : 'Alert me when'}</legend>
               <label>
@@ -276,9 +383,9 @@ export function ListeningAlertsView() {
               </label>
             </fieldset>
             <footer>
-              <Button onClick={() => setModalOpen(false)}>{ar ? 'إلغاء' : 'Cancel'}</Button>
-              <Button type="primary" onClick={() => void onCreate()}>
-                {ar ? 'إنشاء التنبيه' : 'Create alert'}
+              <Button onClick={resetModal}>{ar ? 'إلغاء' : 'Cancel'}</Button>
+              <Button type="primary" onClick={() => void onSave()}>
+                {editingId ? (ar ? 'حفظ' : 'Save') : ar ? 'إنشاء التنبيه' : 'Create alert'}
               </Button>
             </footer>
           </div>

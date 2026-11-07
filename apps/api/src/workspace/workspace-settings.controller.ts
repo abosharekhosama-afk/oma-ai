@@ -34,6 +34,7 @@ type SettingsRow = {
   scheduleOnApproval: boolean;
   lockAfterApproval: boolean;
   reminderPendingApprovals?: boolean;
+  listeningSlackWebhookUrl?: string | null;
   holidayCalendars?: string | null;
 };
 
@@ -59,6 +60,7 @@ export function serializeSettings(tenantId: string, row: SettingsRow | null) {
     schedule_on_approval: row?.scheduleOnApproval ?? false,
     lock_after_approval: row?.lockAfterApproval ?? false,
     reminder_pending_approvals: row?.reminderPendingApprovals ?? false,
+    listening_slack_webhook_url: row?.listeningSlackWebhookUrl ?? null,
     holiday_calendars: resolveHolidayCalendarIds(
       row?.holidayCalendars ?? '[]',
       row?.timezone ?? 'Asia/Jerusalem',
@@ -149,6 +151,18 @@ export function validateSettingsPatch(body: Record<string, unknown>) {
       if (typeof body[k] !== 'boolean') throw bad(k);
       out[col] = body[k];
     }
+  }
+  if (body.listening_slack_webhook_url !== undefined) {
+    if (
+      body.listening_slack_webhook_url !== null &&
+      typeof body.listening_slack_webhook_url !== 'string'
+    ) {
+      throw bad('listening_slack_webhook_url');
+    }
+    const v = (body.listening_slack_webhook_url as string | null)?.trim() || null;
+    if (v && !/^https:\/\/hooks\.slack\.com\/services\//i.test(v))
+      throw bad('listening_slack_webhook_url');
+    out.listeningSlackWebhookUrl = v;
   }
   if (body.holiday_calendars !== undefined) {
     if (body.holiday_calendars === null) {
