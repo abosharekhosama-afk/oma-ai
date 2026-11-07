@@ -76,12 +76,12 @@ function RailNav({ collapsed }: { collapsed: boolean }) {
             sectionPath={item.sectionPath}
           />
           {item.children && !collapsed && pathname.startsWith(item.sectionPath ?? item.href) ? (
-            <ul className="oma-nav-sublist oma-nav-tree oma-nav-tree--shell">
+            <ul className="oma-nav-sublist">
               {item.children.map((c) => (
-                <li key={c.href} className="oma-nav-tree__item oma-nav-tree__item--leaf">
+                <li key={c.href}>
                   <Link
                     href={c.href}
-                    className="oma-nav-sublink oma-nav-tree__row"
+                    className="oma-nav-sublink"
                     data-active={pathname === c.href ? 'true' : undefined}
                     aria-current={pathname === c.href ? 'page' : undefined}
                   >
