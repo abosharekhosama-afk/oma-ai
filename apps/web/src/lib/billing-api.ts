@@ -9,7 +9,39 @@ export type PlanDto = {
   popular?: boolean;
   limits: Record<string, number | null>;
   features: Record<string, boolean>;
-  payment_deferred?: boolean;
+  vat_rate_bps?: number;
+  vat_percent?: string;
+  monthly_vat?: {
+    ex_vat_cents: number;
+    vat_cents: number;
+    inc_vat_cents: number;
+  };
+};
+
+export type ProviderDto = {
+  id: string;
+  name_en: string;
+  name_ar: string;
+  mode: 'live' | 'manual' | 'unavailable';
+  configured: boolean;
+  notes_en: string;
+  notes_ar: string;
+};
+
+export type InvoiceDto = {
+  id: string;
+  provider: string;
+  number: string | null;
+  status: string;
+  currency: string;
+  amount_ex_vat_cents: number;
+  vat_rate_bps: number;
+  vat_cents: number;
+  amount_inc_vat_cents: number;
+  hosted_url: string | null;
+  pdf_url: string | null;
+  created_at: string;
+  paid_at: string | null;
 };
 
 export type SubscriptionView = {
@@ -21,11 +53,18 @@ export type SubscriptionView = {
   payment_deferred: boolean;
   payment_configured?: boolean;
   payment_coming_soon: boolean;
+  provider?: string | null;
+  x_api_addon?: boolean;
+  vat_rate_bps?: number;
+  vat_percent?: string;
   current_period_start?: string | null;
   current_period_end?: string | null;
   cancel_at_period_end?: boolean;
   pending_plan_code?: string | null;
+  grace_period_ends_at?: string | null;
+  trial_ends_at?: string | null;
   started_at: string;
+  has_stripe_portal?: boolean;
   plan: PlanDto;
   usage: Record<string, number>;
   usage_bars: Array<{
@@ -35,10 +74,13 @@ export type SubscriptionView = {
     unlimited: boolean;
     pct: number;
   }>;
+  invoices?: InvoiceDto[];
+  providers?: ProviderDto[];
+  addon?: { code: string; price_monthly_usd: number };
 };
 
 export function listPlans() {
-  return api<{ data: PlanDto[]; payment_coming_soon?: boolean }>('/api/v1/billing/plans');
+  return api<{ data: PlanDto[] }>('/api/v1/billing/plans');
 }
 
 export function getSubscription() {
@@ -52,15 +94,29 @@ export function requestUpgrade(body: { plan_code: string; billing_cycle?: string
   );
 }
 
-export function changePlan(body: { plan_code: string; billing_cycle?: string; notes?: string }) {
-  return api<{ data: { plan_code: string } }>('/api/v1/billing/subscription', {
-    method: 'PATCH',
-    body: JSON.stringify(body),
-  });
-}
-
-export function listUpgradeRequests() {
-  return api<{ data: Array<Record<string, unknown>> }>('/api/v1/billing/upgrade-requests');
+export function startCheckout(body: {
+  plan_code: string;
+  billing_cycle?: string;
+  provider?: string;
+  x_api_addon?: boolean;
+  note?: string;
+}) {
+  return api<{
+    data: {
+      id?: string;
+      status: string;
+      plan_code: string;
+      provider?: string;
+      payment_configured: boolean;
+      redirect_url?: string | null;
+      reference?: string;
+      instructions?: { en: string; ar: string };
+      amount_inc_vat_cents?: number;
+      vat_cents?: number;
+      vat_percent?: string;
+      message?: { en: string; ar: string };
+    };
+  }>('/api/v1/billing/checkouts', { method: 'POST', body: JSON.stringify(body) });
 }
 
 export type CheckoutDto = {
@@ -73,31 +129,35 @@ export type CheckoutDto = {
   created_at: string;
 };
 
-export function startCheckout(body: { plan_code: string; billing_cycle?: string; note?: string }) {
-  return api<{
-    data: {
-      id?: string;
-      status: string;
-      plan_code: string;
-      payment_configured: boolean;
-      message?: { en: string; ar: string };
-    };
-  }>('/api/v1/billing/checkouts', { method: 'POST', body: JSON.stringify(body) });
-}
-
 export function listCheckouts() {
-  return api<{ data: CheckoutDto[]; payment_configured: boolean }>('/api/v1/billing/checkouts');
+  return api<{
+    data: CheckoutDto[];
+    orders?: Array<Record<string, unknown>>;
+    payment_configured: boolean;
+  }>('/api/v1/billing/checkouts');
 }
 
-export function fulfillCheckout(id: string) {
-  return api<{ data: { id: string; status: string } }>(`/api/v1/billing/checkouts/${id}/fulfill`, {
+export function cancelCheckout(id: string) {
+  return api<{ data: { id: string; status: string } }>(`/api/v1/billing/checkouts/${id}/cancel`, {
     method: 'POST',
     body: '{}',
   });
 }
 
-export function cancelCheckout(id: string) {
-  return api<{ data: { id: string; status: string } }>(`/api/v1/billing/checkouts/${id}/cancel`, {
+export function submitPaymentProof(body: {
+  reference?: string;
+  order_id?: string;
+  proof_note: string;
+  proof_file_name?: string;
+}) {
+  return api<{ data: { id: string; status: string; reference: string } }>(
+    '/api/v1/billing/manual-orders/proof',
+    { method: 'POST', body: JSON.stringify(body) },
+  );
+}
+
+export function openBillingPortal() {
+  return api<{ data: { redirect_url: string } }>('/api/v1/billing/portal', {
     method: 'POST',
     body: '{}',
   });
@@ -117,16 +177,73 @@ export function resumeSubscription() {
   });
 }
 
-/** Parse plan-limit / plan-feature API errors for bilingual UI. */
+export function adminListWorkspaces(q?: string) {
+  const qs = q ? `?q=${encodeURIComponent(q)}` : '';
+  return api<{ data: Array<Record<string, unknown>> }>(`/api/v1/admin/billing/workspaces${qs}`);
+}
+
+export function adminListOrders() {
+  return api<{ data: Array<Record<string, unknown>> }>('/api/v1/admin/billing/orders');
+}
+
+export function adminBillingSettings() {
+  return api<{ data: Record<string, unknown> }>('/api/v1/admin/billing/settings');
+}
+
+export function adminUpdateSettings(body: Record<string, unknown>) {
+  return api<{ data: Record<string, unknown> }>('/api/v1/admin/billing/settings', {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+}
+
+export function adminActivateWorkspace(tenantId: string, body: Record<string, unknown>) {
+  return api<{ data: Record<string, unknown> }>(
+    `/api/v1/admin/billing/workspaces/${tenantId}/activate`,
+    { method: 'POST', body: JSON.stringify(body) },
+  );
+}
+
+export function adminExtendWorkspace(tenantId: string, body: { days: number; note?: string }) {
+  return api<{ data: Record<string, unknown> }>(
+    `/api/v1/admin/billing/workspaces/${tenantId}/extend`,
+    { method: 'POST', body: JSON.stringify(body) },
+  );
+}
+
+export function adminCancelWorkspace(tenantId: string, body: { note?: string }) {
+  return api<{ data: Record<string, unknown> }>(
+    `/api/v1/admin/billing/workspaces/${tenantId}/cancel`,
+    { method: 'POST', body: JSON.stringify(body) },
+  );
+}
+
+export function adminReviewOrder(id: string, action: 'approve' | 'reject', note?: string) {
+  return api<{ data: Record<string, unknown> }>(`/api/v1/admin/billing/orders/${id}/${action}`, {
+    method: 'POST',
+    body: JSON.stringify({ note }),
+  });
+}
+
 export function planErrorFromUnknown(err: unknown, isAr: boolean): string | null {
   const e = err as {
     code?: string;
     message?: string;
-    message_key?: string;
-    details?: Array<{ message_ar?: string; limit_key?: string; feature?: string }>;
+    details?: Array<{ message_ar?: string }>;
   } | null;
   if (!e) return null;
-  if (e.code !== 'PLAN_LIMIT_REACHED' && e.code !== 'PLAN_FEATURE_REQUIRED') return null;
+  if (
+    !e.code ||
+    ![
+      'PLAN_LIMIT_REACHED',
+      'PLAN_FEATURE_REQUIRED',
+      'PLAN_INACTIVE',
+      'ADDON_REQUIRED',
+      'PAYMENT_REQUIRED',
+    ].includes(e.code)
+  ) {
+    return null;
+  }
   const detail = Array.isArray(e.details) ? e.details[0] : undefined;
   if (isAr && detail?.message_ar) return detail.message_ar;
   return e.message || null;

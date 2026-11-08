@@ -2810,5 +2810,16 @@
   "legal.privacy.s5.title": "Security, Encryption & Retention",
   "legal.privacy.s5.body": "Session tokens are hashed, OAuth credentials are encrypted at rest with AES-256-GCM, and tenant data is strictly isolated. Audit logs and consent timestamps are retained for compliance.",
   "legal.privacy.s6.title": "Your Data Rights & Consent",
-  "legal.privacy.s6.body": "We record the timestamp and version of your Terms and Privacy acceptance. You may request data export, profile updates, or account deletion through your workspace administrator."
+  "legal.privacy.s6.body": "We record the timestamp and version of your Terms and Privacy acceptance. You may request data export, profile updates, or account deletion through your workspace administrator.",
+  "errors.plan_limit.social_accounts": "You’ve reached the social account limit for your plan. Upgrade to connect more accounts.",
+  "errors.plan_limit.scheduled_posts_per_month": "You’ve used all scheduled posts allowed this billing period.",
+  "errors.plan_limit.ai_credits_per_month": "You’ve used all AI credits for this billing period.",
+  "errors.plan_limit.listening_keywords": "You’ve reached the listening keyword limit for your plan.",
+  "errors.plan_limit.mentions_per_month": "You’ve reached the monthly mention limit for your plan.",
+  "errors.plan_inactive": "Your workspace does not have an active plan. Choose a plan to continue.",
+  "errors.addon_required": "Paid X API access is an add-on. Enable it from billing to connect X.",
+  "errors.payment_required": "Payment is required to activate this plan.",
+  "billing.nav.admin": "Platform billing",
+  "members.role.billing": "Billing",
+  "members.role.billing_desc": "Manage plans, invoices, and payments"
 }

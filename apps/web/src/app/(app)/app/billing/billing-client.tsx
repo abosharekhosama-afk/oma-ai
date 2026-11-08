@@ -7,11 +7,13 @@ import { useLocale } from '../../../../lib/use-locale';
 import { useToast } from '../../../../components/ui/toast';
 import { useCapabilities } from '../../../../lib/use-capabilities';
 import {
-  changePlan,
+  openBillingPortal,
   getSubscription,
   listPlans,
   startCheckout,
+  submitPaymentProof,
   type PlanDto,
+  type ProviderDto,
   type SubscriptionView,
 } from '../../../../lib/billing-api';
 import {
@@ -23,55 +25,44 @@ import {
 import './billing.css';
 
 function planIcon(code: string) {
-  if (code === 'free') return <SparkleIcon />;
+  if (code === 'starter') return <SparkleIcon />;
   if (code === 'pro') return <CrownIcon />;
   return <BriefcaseIcon />;
 }
 
-function formatLimit(key: string, value: number | null, isAr: boolean): string {
-  if (value == null) return isAr ? 'غير محدود' : 'Unlimited';
-  if (key === 'storage_bytes') {
-    const gb = value / (1024 * 1024 * 1024);
-    return `${gb % 1 === 0 ? gb : gb.toFixed(1)} GB`;
-  }
-  return String(value);
-}
+const LIMIT_KEYS = [
+  'brands',
+  'social_accounts',
+  'seats',
+  'scheduled_posts_per_month',
+  'ai_credits_per_month',
+  'listening_keywords',
+  'mentions_per_month',
+];
 
 const LIMIT_LABELS: Record<string, { en: string; ar: string }> = {
   brands: { en: 'Brands', ar: 'العلامات' },
-  social_channels: { en: 'Social channels', ar: 'القنوات الاجتماعية' },
+  social_accounts: { en: 'Social accounts', ar: 'الحسابات الاجتماعية' },
   seats: { en: 'Team seats', ar: 'مقاعد الفريق' },
-  guests: { en: 'Guests / clients', ar: 'الضيوف / العملاء' },
-  posts_per_month: { en: 'Posts / month', ar: 'منشورات / شهر' },
-  posts_total: { en: 'Posts (total)', ar: 'منشورات (إجمالي)' },
-  storage_bytes: { en: 'Work Drive storage', ar: 'تخزين مساحة العمل' },
-  approval_level: { en: 'Approval level', ar: 'مستوى الموافقات' },
-  ai_runs_per_month: { en: 'AI assists / month', ar: 'مساعدات ذكاء / شهر' },
-};
-
-const FEATURE_LABELS: Record<string, { en: string; ar: string }> = {
-  feed_view: { en: 'Feed view', ar: 'عرض الخلاصة' },
-  calendar_view: { en: 'Calendar view', ar: 'عرض التقويم' },
-  grid_view: { en: 'Grid view', ar: 'عرض الشبكة' },
-  list_view: { en: 'List view', ar: 'عرض القائمة' },
-  approvals_optional: { en: 'Optional approvals', ar: 'موافقات اختيارية' },
-  approvals_required: { en: 'Required approvals', ar: 'موافقات إلزامية' },
-  approvals_multi_level: { en: 'Multi-level approvals', ar: 'موافقات متعددة المستويات' },
-  client_visibility: { en: 'Hide from clients', ar: 'إخفاء عن العملاء' },
-  analytics: { en: 'Analytics', ar: 'التحليلات' },
-  custom_roles: { en: 'Custom roles', ar: 'أدوار مخصصة' },
-  publishing: { en: 'Publishing', ar: 'النشر' },
-  ai_assist: { en: 'AI assist', ar: 'مساعد الذكاء الاصطناعي' },
-  workdrive: { en: 'Work Drive', ar: 'مساحة العمل' },
+  scheduled_posts_per_month: { en: 'Scheduled posts / period', ar: 'منشورات مجدولة / فترة' },
+  ai_credits_per_month: { en: 'AI credits / period', ar: 'رصيد ذكاء / فترة' },
+  listening_keywords: { en: 'Listening keywords', ar: 'كلمات الاستماع' },
+  mentions_per_month: { en: 'Mentions / period', ar: 'إشارات / فترة' },
 };
 
 export default function BillingClient() {
   const isAr = useLocale() === 'ar';
   const toast = useToast();
   const caps = useCapabilities();
+  const canBill = caps.can('billing.manage') || caps.can('platform.support.access');
+  const isOwner = caps.can('platform.support.access');
   const [annual, setAnnual] = useState(false);
   const [plans, setPlans] = useState<PlanDto[]>([]);
   const [sub, setSub] = useState<SubscriptionView | null>(null);
+  const [provider, setProvider] = useState('stripe');
+  const [xAddon, setXAddon] = useState(false);
+  const [proof, setProof] = useState('');
+  const [proofRef, setProofRef] = useState('');
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -81,6 +72,9 @@ export default function BillingClient() {
       const [p, s] = await Promise.all([listPlans(), getSubscription()]);
       setPlans(p.data ?? []);
       setSub(s.data);
+      setXAddon(Boolean(s.data.x_api_addon));
+      const first = (s.data.providers ?? []).find((item) => item.configured);
+      if (first) setProvider(first.id);
     } catch {
       toast.push(isAr ? 'تعذر تحميل الخطط' : 'Could not load plans', 'danger');
     } finally {
@@ -92,70 +86,70 @@ export default function BillingClient() {
     void load();
   }, [load]);
 
-  const copy = isAr
-    ? {
-        title: 'الخطط والأسعار',
-        sub: 'اختر الخطة المناسبة لفريقك. الدفع قريباً — يمكنك طلب ترقية الآن.',
-        current: 'الخطة الحالية',
-        choose: 'طلب ترقية',
-        contact: 'تواصل مع المبيعات',
-        back: 'العودة',
-        note: 'الدفع الإلكتروني غير مفعّل بعد. طلب الترقية يُراجع من مسؤول مساحة العمل، ويمكن للمسؤول تطبيق الخطة يدوياً.',
-        monthly: 'شهرياً',
-        yearly: 'سنوياً',
-        save: 'وفر',
-        usage: 'الاستخدام والخطة',
-        apply: 'تطبيق الخطة',
-        applied: 'تم تطبيق الخطة',
-        requested: 'تم إرسال طلب الترقية',
-        coming: 'الدفع قريباً',
-      }
-    : {
-        title: 'Plans & pricing',
-        sub: 'Choose the plan that fits your team. Payment is coming soon — request an upgrade anytime.',
-        current: 'Current plan',
-        choose: 'Request upgrade',
-        contact: 'Contact sales',
-        back: 'Back',
-        note: 'Online payments are not enabled yet. Upgrade requests are reviewed by a workspace admin, who can apply a plan manually.',
-        monthly: 'per month',
-        yearly: 'per month, billed yearly',
-        save: 'Save',
-        usage: 'Usage & plan',
-        apply: 'Apply plan',
-        applied: 'Plan applied',
-        requested: 'Upgrade request sent',
-        coming: 'Payment coming soon',
-      };
+  const providers: ProviderDto[] = sub?.providers ?? [];
 
   async function onUpgrade(code: string) {
+    if (!canBill) {
+      toast.push(
+        isAr
+          ? 'فقط المالك أو دور الفوترة يمكنه تغيير الخطة'
+          : 'Only the owner or billing role can change the plan',
+        'danger',
+      );
+      return;
+    }
     setBusy(code);
     try {
-      if (caps.can('tenant.manage') && code !== 'enterprise') {
-        await changePlan({
-          plan_code: code,
-          billing_cycle: annual ? 'yearly' : 'monthly',
-          notes: 'Applied from pricing page (payment deferred)',
-        });
-        toast.push(copy.applied, 'success');
-      } else {
-        const result = await startCheckout({
-          plan_code: code,
-          billing_cycle: annual ? 'yearly' : 'monthly',
-          note: 'Requested from plans page',
-        });
-        toast.push(
-          result.data.message
-            ? isAr
-              ? result.data.message.ar
-              : result.data.message.en
-            : copy.requested,
-          'success',
-        );
+      const result = await startCheckout({
+        plan_code: code,
+        billing_cycle: annual ? 'yearly' : 'monthly',
+        provider,
+        x_api_addon: xAddon,
+      });
+      if (result.data.redirect_url) {
+        window.location.assign(result.data.redirect_url);
+        return;
       }
+      if (result.data.reference) setProofRef(result.data.reference);
+      toast.push(
+        result.data.message
+          ? isAr
+            ? result.data.message.ar
+            : result.data.message.en
+          : isAr
+            ? 'تم إنشاء طلب الدفع'
+            : 'Checkout created',
+        'success',
+      );
       await load();
     } catch {
-      toast.push(isAr ? 'تعذر إكمال الطلب' : 'Could not complete the request', 'danger');
+      toast.push(isAr ? 'تعذر بدء الدفع' : 'Could not start checkout', 'danger');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function onPortal() {
+    setBusy('portal');
+    try {
+      const res = await openBillingPortal();
+      if (res.data.redirect_url) window.location.assign(res.data.redirect_url);
+    } catch {
+      toast.push(isAr ? 'تعذر فتح بوابة سترايب' : 'Could not open the Stripe portal', 'danger');
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function onProof() {
+    setBusy('proof');
+    try {
+      await submitPaymentProof({ reference: proofRef || undefined, proof_note: proof });
+      toast.push(isAr ? 'تم إرسال إثبات الدفع' : 'Payment proof submitted', 'success');
+      setProof('');
+      await load();
+    } catch {
+      toast.push(isAr ? 'تعذر إرسال الإثبات' : 'Could not submit proof', 'danger');
     } finally {
       setBusy(null);
     }
@@ -165,58 +159,43 @@ export default function BillingClient() {
     <main className="oma-planable-page oma-billing" dir={isAr ? 'rtl' : 'ltr'}>
       <header className="oma-planable-page__header oma-billing__header">
         <div>
-          <h1 className="oma-planable-page__title">{copy.title}</h1>
-          <p className="oma-planable-page__sub">{copy.sub}</p>
+          <h1 className="oma-planable-page__title">{isAr ? 'الخطط والدفع' : 'Plans & billing'}</h1>
+          <p className="oma-planable-page__sub">
+            {isAr
+              ? 'الأسعار قبل الضريبة. تُحسب الضريبة من الخادم عند الدفع.'
+              : 'Prices are shown before VAT. Tax is calculated on the server at checkout.'}
+          </p>
         </div>
         <div className="oma-billing__header-actions">
-          <Link
-            className="oma-billing__icon-link"
-            href="/app/subscription"
-            aria-label={copy.usage}
-            title={copy.usage}
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              aria-hidden="true"
-            >
-              <path d="M4 19V5M4 19h16M8 17V9M12 17V7M16 17v-4" />
-            </svg>
+          <Link className="oma-billing__icon-link" href="/app/subscription">
+            {isAr ? 'الاستخدام' : 'Usage'}
           </Link>
-          <Link
-            className="oma-billing__icon-link"
-            href="/app"
-            aria-label={copy.back}
-            title={copy.back}
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              aria-hidden="true"
-            >
-              <path d={isAr ? 'M5 12h14M11 6l-6 6 6 6' : 'M19 12H5M11 6l-6 6 6 6'} />
-            </svg>
-          </Link>
+          {isOwner ? (
+            <Link className="oma-billing__icon-link" href="/app/admin/billing">
+              {isAr ? 'إدارة الفوترة' : 'Admin billing'}
+            </Link>
+          ) : null}
         </div>
       </header>
 
-      <div className="oma-billing__notice" role="status">
-        <strong>{copy.coming}</strong> — {copy.note}
-      </div>
+      {sub ? (
+        <div className="oma-billing__notice" role="status">
+          <strong>
+            {isAr ? sub.plan.name.ar : sub.plan.name.en} · {sub.status}
+          </strong>
+          {sub.vat_percent ? ` · ${isAr ? 'الضريبة' : 'VAT'} ${sub.vat_percent}` : null}
+          {sub.grace_period_ends_at && sub.status === 'past_due'
+            ? ` · ${isAr ? 'مهلة السماح حتى' : 'Grace until'} ${sub.grace_period_ends_at.slice(0, 10)}`
+            : null}
+          {sub.has_stripe_portal && canBill ? (
+            <Button type="default" disabled={busy === 'portal'} onClick={() => void onPortal()}>
+              {isAr ? 'بوابة سترايب' : 'Stripe portal'}
+            </Button>
+          ) : null}
+        </div>
+      ) : null}
 
-      <div
-        className="oma-billing__switch"
-        role="group"
-        aria-label={isAr ? 'دورة الفوترة' : 'Billing cycle'}
-      >
+      <div className="oma-billing__switch" role="group">
         <button
           type="button"
           className={!annual ? 'is-active' : ''}
@@ -225,39 +204,44 @@ export default function BillingClient() {
           {isAr ? 'شهري' : 'Monthly'}
         </button>
         <button type="button" className={annual ? 'is-active' : ''} onClick={() => setAnnual(true)}>
-          {isAr ? 'سنوي' : 'Yearly'} <span>{copy.save} 20%</span>
+          {isAr ? 'سنوي' : 'Yearly'} <span>{isAr ? 'وفر شهرين' : '2 months free'}</span>
         </button>
       </div>
+
+      {providers.length ? (
+        <div
+          className="oma-billing__switch"
+          role="group"
+          aria-label={isAr ? 'طريقة الدفع' : 'Payment method'}
+        >
+          {providers.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              className={provider === item.id ? 'is-active' : ''}
+              disabled={!item.configured}
+              onClick={() => setProvider(item.id)}
+            >
+              {isAr ? item.name_ar : item.name_en}
+            </button>
+          ))}
+        </div>
+      ) : null}
+
+      <label className="oma-billing__notice">
+        <input type="checkbox" checked={xAddon} onChange={(e) => setXAddon(e.target.checked)} />{' '}
+        {isAr
+          ? `إضافة واجهة إكس المدفوعة (${sub?.addon?.price_monthly_usd ?? 29}$ / شهر قبل الضريبة)`
+          : `Paid X API add-on ($${sub?.addon?.price_monthly_usd ?? 29}/mo before VAT)`}
+      </label>
 
       {loading ? (
         <p className="oma-billing__desc">{isAr ? 'جاري التحميل…' : 'Loading…'}</p>
       ) : (
-        <section className="oma-billing__grid" aria-label={copy.title}>
+        <section className="oma-billing__grid" aria-label={isAr ? 'الخطط' : 'Plans'}>
           {plans.map((plan) => {
             const active = sub?.plan_code === plan.code;
-            const price =
-              plan.price_monthly_usd == null
-                ? null
-                : annual
-                  ? plan.price_yearly_per_month_usd
-                  : plan.price_monthly_usd;
-            const featureKeys = Object.entries(plan.features)
-              .filter(([, on]) => on)
-              .map(([k]) => k);
-            const limitKeys = [
-              'brands',
-              'social_channels',
-              'seats',
-              'guests',
-              'posts_per_month',
-              'posts_total',
-              'storage_bytes',
-            ].filter(
-              (k) =>
-                plan.limits[k] !== undefined &&
-                !(k === 'posts_total' && plan.limits[k] == null) &&
-                !(k === 'posts_per_month' && plan.code === 'free'),
-            );
+            const price = annual ? plan.price_yearly_per_month_usd : plan.price_monthly_usd;
             return (
               <article
                 key={plan.code}
@@ -276,46 +260,95 @@ export default function BillingClient() {
                   {isAr ? plan.description.ar : plan.description.en}
                 </p>
                 <div className="oma-billing__price">
-                  {price == null ? (
-                    <strong>{isAr ? 'حسب الطلب' : 'Custom'}</strong>
-                  ) : (
-                    <>
-                      <strong>${price}</strong>
-                      <span> / {annual ? copy.yearly : copy.monthly}</span>
-                    </>
-                  )}
+                  <strong>${price}</strong>
+                  <span>
+                    {' '}
+                    /{' '}
+                    {annual
+                      ? isAr
+                        ? 'شهر عند الدفع سنوياً'
+                        : 'mo, billed yearly'
+                      : isAr
+                        ? 'شهر'
+                        : 'month'}
+                  </span>
                 </div>
-                <p className="oma-billing__included">{isAr ? 'الحدود' : 'Limits'}</p>
+                <p className="oma-billing__included">{isAr ? 'قبل الضريبة' : 'Before VAT'}</p>
                 <ul>
-                  {limitKeys.map((key) => (
+                  {LIMIT_KEYS.map((key) => (
                     <li key={key}>
                       <CheckIcon aria-hidden="true" />
                       {(isAr ? LIMIT_LABELS[key]?.ar : LIMIT_LABELS[key]?.en) ?? key}:{' '}
-                      {formatLimit(key, plan.limits[key] ?? null, isAr)}
-                    </li>
-                  ))}
-                </ul>
-                <p className="oma-billing__included">{isAr ? 'الميزات' : 'Features'}</p>
-                <ul>
-                  {featureKeys.slice(0, 8).map((key) => (
-                    <li key={key}>
-                      <CheckIcon aria-hidden="true" />
-                      {(isAr ? FEATURE_LABELS[key]?.ar : FEATURE_LABELS[key]?.en) ?? key}
+                      {plan.limits[key] ?? '—'}
                     </li>
                   ))}
                 </ul>
                 <Button
                   type={active ? 'default' : 'primary'}
-                  disabled={active || busy === plan.code}
+                  disabled={active || busy === plan.code || !canBill}
                   onClick={() => void onUpgrade(plan.code)}
                 >
-                  {active ? copy.current : plan.code === 'enterprise' ? copy.contact : copy.choose}
+                  {active
+                    ? isAr
+                      ? 'الخطة الحالية'
+                      : 'Current plan'
+                    : isAr
+                      ? 'ترقية أو تغيير'
+                      : 'Upgrade or switch'}
                 </Button>
               </article>
             );
           })}
         </section>
       )}
+
+      {sub?.invoices?.length ? (
+        <section className="oma-billing__notice" aria-label={isAr ? 'الفواتير' : 'Invoices'}>
+          <h2>{isAr ? 'الفواتير' : 'Invoices'}</h2>
+          <ul>
+            {sub.invoices.map((inv) => (
+              <li key={inv.id}>
+                {inv.number || inv.id.slice(0, 8)} · {(inv.amount_inc_vat_cents / 100).toFixed(2)}{' '}
+                {inv.currency.toUpperCase()} · {inv.status}
+                {inv.hosted_url ? (
+                  <>
+                    {' '}
+                    <a href={inv.hosted_url} target="_blank" rel="noreferrer">
+                      {isAr ? 'عرض' : 'View'}
+                    </a>
+                  </>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      <section className="oma-billing__notice">
+        <h2>{isAr ? 'إثبات تحويل يدوي' : 'Manual transfer proof'}</h2>
+        <p>
+          {isAr
+            ? 'بعد التحويل البنكي أو عبر جوال باي / بال بي / ريفلكت، أدخل رقم المرجع وملاحظة الإثبات.'
+            : 'After a bank transfer or Jawwal Pay / PalPay / Reflect payment, enter the reference and a proof note.'}
+        </p>
+        <input
+          value={proofRef}
+          onChange={(e) => setProofRef(e.target.value)}
+          placeholder={isAr ? 'رقم المرجع' : 'Reference number'}
+        />
+        <textarea
+          value={proof}
+          onChange={(e) => setProof(e.target.value)}
+          placeholder={isAr ? 'رقم التحويل أو تفاصيل الإثبات' : 'Transfer id or proof details'}
+        />
+        <Button
+          type="primary"
+          disabled={!canBill || !proof || busy === 'proof'}
+          onClick={() => void onProof()}
+        >
+          {isAr ? 'إرسال الإثبات' : 'Submit proof'}
+        </Button>
+      </section>
     </main>
   );
 }

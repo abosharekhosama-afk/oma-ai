@@ -221,12 +221,12 @@ export function LandingPage() {
     const v = (n: number | null) => (n == null ? c.pricing.unlimited : fmtNum(n));
     const lines = [
       `${v(L.brands)} ${c.pricing.brands}`,
+      `${v(L.social_accounts ?? L.social_channels)} ${c.pricing.social}`,
       `${v(L.seats)} ${c.pricing.seats}`,
-      L.posts_total != null
-        ? `${fmtNum(L.posts_total)} ${c.pricing.postsTotal}`
-        : `${v(L.posts_per_month)} ${c.pricing.posts}`,
-      `${fmtNum(Math.round(Number(L.storage_bytes ?? 0) / 1024 ** 3))} ${c.pricing.storage}`,
-      `${fmtNum(Number(L.approval_level ?? 1))} ${Number(L.approval_level ?? 1) > 1 ? c.pricing.levels : c.pricing.level}`,
+      `${v(L.scheduled_posts_per_month ?? L.posts_per_month)} ${c.pricing.posts}`,
+      `${v(L.ai_credits_per_month ?? L.ai_runs_per_month)} ${c.pricing.credits}`,
+      `${v(L.listening_keywords)} ${c.pricing.keywords}`,
+      `${v(L.mentions_per_month)} ${c.pricing.mentions}`,
     ];
     return lines;
   };

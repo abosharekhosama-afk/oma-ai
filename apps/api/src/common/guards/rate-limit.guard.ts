@@ -157,6 +157,10 @@ export class RateLimitGuard implements CanActivate {
       }
     } else if (method === 'POST' && path.endsWith('/auth/recovery/confirm')) {
       budgets.push({ key: `recovery-confirm-ip:${ip}`, limit: 10, windowMs: 60_000 });
+    } else if (method !== 'GET' && path.includes('/api/v1/billing')) {
+      budgets.push({ key: `billing:${ip}`, limit: 20, windowMs: 60_000 });
+    } else if (method !== 'GET' && path.includes('/api/v1/admin/billing')) {
+      budgets.push({ key: `admin-billing:${ip}`, limit: 30, windowMs: 60_000 });
     }
 
     for (const budget of budgets) {

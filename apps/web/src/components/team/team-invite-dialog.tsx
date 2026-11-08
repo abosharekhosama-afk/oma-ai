@@ -20,7 +20,7 @@ const PERM_COLS: PlanablePerm[] = [
   'admin',
 ];
 
-const ROLE_OPTIONS = ['Administrator', 'Contributor', 'Writer', 'Approver', 'Guest'];
+const ROLE_OPTIONS = ['Administrator', 'Billing', 'Contributor', 'Writer', 'Approver', 'Guest'];
 
 function rolePermissions(role: string): Record<PlanablePerm, boolean> {
   return {

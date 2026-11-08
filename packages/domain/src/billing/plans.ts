@@ -1,11 +1,19 @@
 /**
- * Single source of truth for OMA plans & pricing (Planable-inspired).
- * Seeded into Plan / PlanLimit / PlanFeature; Subscription per tenant references planCode.
- * Payment is deferred — prices are shown as "coming soon"; admins change plans manually.
+ * OMA pricing catalog (Starter / Pro / Agency).
+ * Seeded into Plan / PlanLimit / PlanFeature so rows can be edited in the database.
+ * List prices are USD before VAT.
  */
 
-export const PLAN_CODES = ['free', 'basic', 'pro', 'enterprise'] as const;
+import { YEARLY_MONTHS_CHARGED } from './vat';
+
+export const PLAN_CODES = ['starter', 'pro', 'agency'] as const;
 export type PlanCode = (typeof PLAN_CODES)[number];
+
+export const LEGACY_PLAN_MAP: Record<string, PlanCode> = {
+  free: 'starter',
+  basic: 'starter',
+  enterprise: 'agency',
+};
 
 export const BILLING_CYCLES = ['monthly', 'yearly'] as const;
 export type BillingCycle = (typeof BILLING_CYCLES)[number];
@@ -13,17 +21,23 @@ export type BillingCycle = (typeof BILLING_CYCLES)[number];
 /** null = unlimited */
 export type PlanLimits = {
   brands: number | null;
+  social_accounts: number | null;
+  /** Alias of social_accounts (older call sites). */
   social_channels: number | null;
   seats: number | null;
   guests: number | null;
-  /** Paid plans: posts created in the current calendar month. Free uses posts_total instead. */
+  scheduled_posts_per_month: number | null;
+  /** Alias of scheduled_posts_per_month. */
   posts_per_month: number | null;
-  /** Free only: lifetime posts created (never resets). null on paid plans. */
   posts_total: number | null;
   storage_bytes: number | null;
   /** Highest approval mode: 1=optional, 2=required, 3=multi_level */
   approval_level: number;
+  ai_credits_per_month: number | null;
+  /** Alias of ai_credits_per_month. */
   ai_runs_per_month: number | null;
+  listening_keywords: number | null;
+  mentions_per_month: number | null;
 };
 
 export type PlanFeatures = {
@@ -48,10 +62,10 @@ export type PlanDefinition = {
   nameAr: string;
   descriptionEn: string;
   descriptionAr: string;
-  /** USD per workspace / month (list price). null = contact sales. */
-  priceMonthlyUsd: number | null;
-  /** USD per workspace / month when billed yearly (Planable-style ~10/12). */
-  priceYearlyPerMonthUsd: number | null;
+  /** USD per workspace / month (list price, before VAT). */
+  priceMonthlyUsd: number;
+  /** USD per workspace / month when billed yearly (before VAT). */
+  priceYearlyPerMonthUsd: number;
   popular?: boolean;
   limits: PlanLimits;
   features: PlanFeatures;
@@ -59,61 +73,57 @@ export type PlanDefinition = {
 
 const GB = 1024 * 1024 * 1024;
 
+function limits(input: {
+  brands: number;
+  social_accounts: number;
+  seats: number;
+  guests: number;
+  scheduled_posts_per_month: number;
+  storage_gb: number;
+  approval_level: number;
+  ai_credits_per_month: number;
+  listening_keywords: number;
+  mentions_per_month: number;
+}): PlanLimits {
+  return {
+    brands: input.brands,
+    social_accounts: input.social_accounts,
+    social_channels: input.social_accounts,
+    seats: input.seats,
+    guests: input.guests,
+    scheduled_posts_per_month: input.scheduled_posts_per_month,
+    posts_per_month: input.scheduled_posts_per_month,
+    posts_total: null,
+    storage_bytes: input.storage_gb * GB,
+    approval_level: input.approval_level,
+    ai_credits_per_month: input.ai_credits_per_month,
+    ai_runs_per_month: input.ai_credits_per_month,
+    listening_keywords: input.listening_keywords,
+    mentions_per_month: input.mentions_per_month,
+  };
+}
+
 export const PLAN_CATALOG: Record<PlanCode, PlanDefinition> = {
-  free: {
-    code: 'free',
-    nameEn: 'Free',
-    nameAr: 'مجانية',
-    descriptionEn: 'Try OMA with your first posts — no card required.',
-    descriptionAr: 'جرّب OMA بمنشوراتك الأولى — دون بطاقة.',
-    priceMonthlyUsd: 0,
-    priceYearlyPerMonthUsd: 0,
-    limits: {
-      brands: 1,
-      social_channels: 2,
-      seats: 3,
-      guests: 1,
-      posts_per_month: null,
-      posts_total: 50,
-      storage_bytes: 2 * GB,
-      approval_level: 1,
-      ai_runs_per_month: 0,
-    },
-    features: {
-      feed_view: true,
-      calendar_view: true,
-      grid_view: false,
-      list_view: false,
-      approvals_optional: true,
-      approvals_required: false,
-      approvals_multi_level: false,
-      client_visibility: false,
-      analytics: false,
-      custom_roles: false,
-      publishing: true,
-      ai_assist: false,
-      workdrive: true,
-    },
-  },
-  basic: {
-    code: 'basic',
-    nameEn: 'Basic',
-    nameAr: 'أساسية',
-    descriptionEn: 'For small teams planning content together.',
-    descriptionAr: 'للفرق الصغيرة التي تخطّط المحتوى معاً.',
+  starter: {
+    code: 'starter',
+    nameEn: 'Starter',
+    nameAr: 'البداية',
+    descriptionEn: 'For small teams publishing together across a few brands.',
+    descriptionAr: 'للفرق الصغيرة التي تنشر معاً عبر عدد محدود من العلامات.',
     priceMonthlyUsd: 39,
-    priceYearlyPerMonthUsd: 33,
-    limits: {
+    priceYearlyPerMonthUsd: (39 * YEARLY_MONTHS_CHARGED) / 12,
+    limits: limits({
       brands: 3,
-      social_channels: 4,
-      seats: 10,
-      guests: 5,
-      posts_per_month: 60,
-      posts_total: null,
-      storage_bytes: 10 * GB,
+      social_accounts: 4,
+      seats: 3,
+      guests: 3,
+      scheduled_posts_per_month: 60,
+      storage_gb: 10,
       approval_level: 1,
-      ai_runs_per_month: 20,
-    },
+      ai_credits_per_month: 300,
+      listening_keywords: 3,
+      mentions_per_month: 1000,
+    }),
     features: {
       feed_view: true,
       calendar_view: true,
@@ -133,23 +143,24 @@ export const PLAN_CATALOG: Record<PlanCode, PlanDefinition> = {
   pro: {
     code: 'pro',
     nameEn: 'Pro',
-    nameAr: 'احترافية',
-    descriptionEn: 'For growing teams with approvals, clients, and analytics.',
-    descriptionAr: 'للفرق النامية مع الموافقات والعملاء والتحليلات.',
-    priceMonthlyUsd: 59,
-    priceYearlyPerMonthUsd: 49,
+    nameAr: 'الاحترافية',
+    descriptionEn: 'For growing teams that need approvals, clients, and analytics.',
+    descriptionAr: 'للفرق النامية التي تحتاج موافقات وعملاء وتحليلات.',
+    priceMonthlyUsd: 79,
+    priceYearlyPerMonthUsd: (79 * YEARLY_MONTHS_CHARGED) / 12,
     popular: true,
-    limits: {
+    limits: limits({
       brands: 10,
-      social_channels: 10,
-      seats: null,
-      guests: 25,
-      posts_per_month: 150,
-      posts_total: null,
-      storage_bytes: 50 * GB,
+      social_accounts: 10,
+      seats: 10,
+      guests: 10,
+      scheduled_posts_per_month: 300,
+      storage_gb: 50,
       approval_level: 2,
-      ai_runs_per_month: 200,
-    },
+      ai_credits_per_month: 1500,
+      listening_keywords: 10,
+      mentions_per_month: 5000,
+    }),
     features: {
       feed_view: true,
       calendar_view: true,
@@ -166,25 +177,26 @@ export const PLAN_CATALOG: Record<PlanCode, PlanDefinition> = {
       workdrive: true,
     },
   },
-  enterprise: {
-    code: 'enterprise',
-    nameEn: 'Enterprise',
-    nameAr: 'مؤسسات',
-    descriptionEn: 'Unlimited scale, multi-level approvals, and custom roles.',
-    descriptionAr: 'نطاق غير محدود، موافقات متعددة المستويات وأدوار مخصصة.',
-    priceMonthlyUsd: null,
-    priceYearlyPerMonthUsd: null,
-    limits: {
-      brands: null,
-      social_channels: null,
-      seats: null,
-      guests: null,
-      posts_per_month: null,
-      posts_total: null,
-      storage_bytes: 100 * GB,
+  agency: {
+    code: 'agency',
+    nameEn: 'Agency',
+    nameAr: 'الوكالة',
+    descriptionEn: 'For agencies running many brands with higher volume and roles.',
+    descriptionAr: 'للوكالات التي تدير علامات كثيرة بحجم أعلى وأدوار مخصصة.',
+    priceMonthlyUsd: 249,
+    priceYearlyPerMonthUsd: (249 * YEARLY_MONTHS_CHARGED) / 12,
+    limits: limits({
+      brands: 25,
+      social_accounts: 30,
+      seats: 25,
+      guests: 25,
+      scheduled_posts_per_month: 1500,
+      storage_gb: 200,
       approval_level: 3,
-      ai_runs_per_month: null,
-    },
+      ai_credits_per_month: 6000,
+      listening_keywords: 30,
+      mentions_per_month: 25000,
+    }),
     features: {
       feed_view: true,
       calendar_view: true,
@@ -203,13 +215,10 @@ export const PLAN_CATALOG: Record<PlanCode, PlanDefinition> = {
   },
 };
 
-/** New workspaces start here. */
-export const DEFAULT_PLAN_FOR_NEW_TENANTS: PlanCode = 'free';
+/** New workspaces start on Starter (trialing when trial days are configured). */
+export const DEFAULT_PLAN_FOR_NEW_TENANTS: PlanCode = 'starter';
 
-/**
- * Existing tenants (pre-plans rollout) are grandfathered to Pro so demos and
- * production workspaces keep current limits/features until an admin changes them.
- */
+/** Existing tenants without a row are grandfathered to Pro so current work is not blocked. */
 export const GRANDFATHER_PLAN_FOR_EXISTING: PlanCode = 'pro';
 
 export type PlanLimitKey = keyof PlanLimits;
@@ -217,6 +226,12 @@ export type PlanFeatureKey = keyof PlanFeatures;
 
 export function isPlanCode(v: unknown): v is PlanCode {
   return typeof v === 'string' && (PLAN_CODES as readonly string[]).includes(v);
+}
+
+export function normalizePlanCode(v: unknown): PlanCode | null {
+  if (typeof v !== 'string') return null;
+  if (isPlanCode(v)) return v;
+  return LEGACY_PLAN_MAP[v] ?? null;
 }
 
 export function getPlan(code: PlanCode): PlanDefinition {
@@ -236,15 +251,30 @@ export function approvalModeAllowed(code: PlanCode, mode: string): boolean {
   return false;
 }
 
+export const PLAN_LIMIT_ALIASES: Record<string, PlanLimitKey> = {
+  social_channels: 'social_accounts',
+  posts_per_month: 'scheduled_posts_per_month',
+  ai_runs_per_month: 'ai_credits_per_month',
+};
+
+export function canonicalLimitKey(key: string): PlanLimitKey {
+  return (PLAN_LIMIT_ALIASES[key] ?? key) as PlanLimitKey;
+}
+
 export const PLAN_LIMIT_MESSAGES: Record<string, { en: string; ar: string; messageKey: string }> = {
   brands: {
     en: 'You’ve reached the brand limit for your plan. Upgrade to add more brands.',
     ar: 'وصلت إلى حد العلامات في خطتك. رقِّ الخطة لإضافة المزيد.',
     messageKey: 'errors.plan_limit.brands',
   },
+  social_accounts: {
+    en: 'You’ve reached the social account limit for your plan. Upgrade to connect more accounts.',
+    ar: 'وصلت إلى حد الحسابات الاجتماعية في خطتك. رقِّ الخطة لربط المزيد.',
+    messageKey: 'errors.plan_limit.social_accounts',
+  },
   social_channels: {
-    en: 'You’ve reached the social channel limit for your plan. Upgrade to connect more channels.',
-    ar: 'وصلت إلى حد القنوات الاجتماعية في خطتك. رقِّ الخطة لربط المزيد.',
+    en: 'You’ve reached the social account limit for your plan. Upgrade to connect more accounts.',
+    ar: 'وصلت إلى حد الحسابات الاجتماعية في خطتك. رقِّ الخطة لربط المزيد.',
     messageKey: 'errors.plan_limit.social_channels',
   },
   seats: {
@@ -257,14 +287,19 @@ export const PLAN_LIMIT_MESSAGES: Record<string, { en: string; ar: string; messa
     ar: 'وصلت إلى حد الضيوف/العملاء في خطتك. رقِّ الخطة لدعوة المزيد.',
     messageKey: 'errors.plan_limit.guests',
   },
+  scheduled_posts_per_month: {
+    en: 'You’ve used all scheduled posts allowed this billing period. Upgrade or wait until it renews.',
+    ar: 'استهلكت كل المنشورات المجدولة المسموحة في فترة الفوترة. رقِّ الخطة أو انتظر التجديد.',
+    messageKey: 'errors.plan_limit.scheduled_posts_per_month',
+  },
   posts_per_month: {
-    en: 'You’ve used all posts allowed this month on your plan. Upgrade or wait until next month.',
-    ar: 'استهلكت كل منشورات هذا الشهر في خطتك. رقِّ الخطة أو انتظر الشهر القادم.',
+    en: 'You’ve used all scheduled posts allowed this billing period. Upgrade or wait until it renews.',
+    ar: 'استهلكت كل المنشورات المجدولة المسموحة في فترة الفوترة. رقِّ الخطة أو انتظر التجديد.',
     messageKey: 'errors.plan_limit.posts_per_month',
   },
   posts_total: {
-    en: 'You’ve used all free posts. Upgrade to keep creating content.',
-    ar: 'استهلكت كل المنشورات المجانية. رقِّ الخطة لمتابعة إنشاء المحتوى.',
+    en: 'You’ve used all posts included in your plan. Upgrade to keep creating content.',
+    ar: 'استهلكت كل المنشورات المشمولة في خطتك. رقِّ الخطة لمتابعة إنشاء المحتوى.',
     messageKey: 'errors.plan_limit.posts_total',
   },
   storage_bytes: {
@@ -272,32 +307,62 @@ export const PLAN_LIMIT_MESSAGES: Record<string, { en: string; ar: string; messa
     ar: 'وصلت إلى حد تخزين مساحة العمل في خطتك. رقِّ الخطة لمساحة أكبر.',
     messageKey: 'errors.plan_limit.storage_bytes',
   },
+  ai_credits_per_month: {
+    en: 'You’ve used all AI credits for this billing period. Upgrade for a higher limit.',
+    ar: 'استهلكت كل رصيد الذكاء الاصطناعي لفترة الفوترة. رقِّ الخطة لحد أعلى.',
+    messageKey: 'errors.plan_limit.ai_credits_per_month',
+  },
   ai_runs_per_month: {
-    en: 'You’ve used all AI assists for this month. Upgrade for a higher limit.',
-    ar: 'استهلكت كل مساعدات الذكاء الاصطناعي لهذا الشهر. رقِّ الخطة لحد أعلى.',
+    en: 'You’ve used all AI credits for this billing period. Upgrade for a higher limit.',
+    ar: 'استهلكت كل رصيد الذكاء الاصطناعي لفترة الفوترة. رقِّ الخطة لحد أعلى.',
     messageKey: 'errors.plan_limit.ai_runs_per_month',
+  },
+  listening_keywords: {
+    en: 'You’ve reached the listening keyword limit for your plan. Upgrade to track more terms.',
+    ar: 'وصلت إلى حد كلمات الاستماع في خطتك. رقِّ الخطة لتتبع المزيد.',
+    messageKey: 'errors.plan_limit.listening_keywords',
+  },
+  mentions_per_month: {
+    en: 'You’ve reached the monthly mention limit for your plan. Upgrade to ingest more mentions.',
+    ar: 'وصلت إلى حد الإشارات الشهري في خطتك. رقِّ الخطة لاستيعاب المزيد.',
+    messageKey: 'errors.plan_limit.mentions_per_month',
   },
 };
 
 const USAGE_LIMIT_KEYS = [
   'brands',
+  'social_accounts',
   'social_channels',
   'seats',
   'guests',
+  'scheduled_posts_per_month',
   'posts_per_month',
   'posts_total',
   'storage_bytes',
+  'ai_credits_per_month',
   'ai_runs_per_month',
+  'listening_keywords',
+  'mentions_per_month',
 ] as const satisfies readonly PlanLimitKey[];
 
-/** List price for the whole billing period, in USD cents. null = contact sales. */
-export function planPriceUsdCents(code: PlanCode, cycle: BillingCycle): number | null {
+export const PERIOD_USAGE_KEYS = [
+  'scheduled_posts_per_month',
+  'posts_per_month',
+  'ai_credits_per_month',
+  'ai_runs_per_month',
+  'mentions_per_month',
+] as const;
+
+export function isPeriodUsageKey(key: string): boolean {
+  return (PERIOD_USAGE_KEYS as readonly string[]).includes(key);
+}
+
+/** List price for the whole billing period, in USD cents, before VAT. */
+export function planPriceUsdCents(code: PlanCode, cycle: BillingCycle): number {
   const plan = PLAN_CATALOG[code];
   if (cycle === 'yearly') {
-    if (plan.priceYearlyPerMonthUsd == null) return null;
-    return Math.round(plan.priceYearlyPerMonthUsd * 12 * 100);
+    return Math.round(plan.priceMonthlyUsd * YEARLY_MONTHS_CHARGED * 100);
   }
-  if (plan.priceMonthlyUsd == null) return null;
   return Math.round(plan.priceMonthlyUsd * 100);
 }
 
@@ -314,14 +379,18 @@ export function addBillingPeriod(start: Date, cycle: BillingCycle): Date {
 
 /** Limit keys the workspace already exceeds on the target plan. Empty means the change fits. */
 export function limitsExceededByUsage(
-  limits: PlanLimits,
+  planLimits: PlanLimits,
   usage: Partial<Record<string, number>>,
 ): PlanLimitKey[] {
   const over: PlanLimitKey[] = [];
-  for (const key of USAGE_LIMIT_KEYS) {
-    const limit = limits[key];
+  const seen = new Set<string>();
+  for (const raw of USAGE_LIMIT_KEYS) {
+    const key = canonicalLimitKey(raw);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    const limit = planLimits[key] ?? planLimits[raw];
     if (limit == null) continue;
-    const used = usage[key] ?? 0;
+    const used = usage[key] ?? usage[raw] ?? 0;
     if (used > limit) over.push(key);
   }
   return over;
@@ -330,38 +399,38 @@ export function limitsExceededByUsage(
 export const PLAN_FEATURE_MESSAGES: Record<string, { en: string; ar: string; messageKey: string }> =
   {
     analytics: {
-      en: 'Analytics is available on Pro and Enterprise. Request an upgrade to unlock it.',
-      ar: 'التحليلات متاحة في الخطط الاحترافية والمؤسسات. اطلب ترقية لتفعيلها.',
+      en: 'Analytics is available on Pro and Agency. Upgrade to unlock it.',
+      ar: 'التحليلات متاحة في خطتي الاحترافية والوكالة. رقِّ الخطة لتفعيلها.',
       messageKey: 'errors.plan_feature.analytics',
     },
     client_visibility: {
-      en: 'Hiding posts from clients is available on Pro and Enterprise.',
-      ar: 'إخفاء المنشورات عن العملاء متاح في الخطط الاحترافية والمؤسسات.',
+      en: 'Hiding posts from clients is available on Pro and Agency.',
+      ar: 'إخفاء المنشورات عن العملاء متاح في خطتي الاحترافية والوكالة.',
       messageKey: 'errors.plan_feature.client_visibility',
     },
     approvals_required: {
-      en: 'Required approvals are available on Pro and Enterprise.',
-      ar: 'الموافقات الإلزامية متاحة في الخطط الاحترافية والمؤسسات.',
+      en: 'Required approvals are available on Pro and Agency.',
+      ar: 'الموافقات الإلزامية متاحة في خطتي الاحترافية والوكالة.',
       messageKey: 'errors.plan_feature.approvals_required',
     },
     approvals_multi_level: {
-      en: 'Multi-level approvals are available on Enterprise.',
-      ar: 'الموافقات متعددة المستويات متاحة في خطة المؤسسات.',
+      en: 'Multi-level approvals are available on Agency.',
+      ar: 'الموافقات متعددة المستويات متاحة في خطة الوكالة.',
       messageKey: 'errors.plan_feature.approvals_multi_level',
     },
     grid_view: {
-      en: 'Grid view is available on Pro and Enterprise.',
-      ar: 'عرض الشبكة متاح في الخطط الاحترافية والمؤسسات.',
+      en: 'Grid view is available on Pro and Agency.',
+      ar: 'عرض الشبكة متاح في خطتي الاحترافية والوكالة.',
       messageKey: 'errors.plan_feature.grid_view',
     },
     list_view: {
-      en: 'List view is available on Enterprise.',
-      ar: 'عرض القائمة متاح في خطة المؤسسات.',
+      en: 'List view is available on Agency.',
+      ar: 'عرض القائمة متاح في خطة الوكالة.',
       messageKey: 'errors.plan_feature.list_view',
     },
     custom_roles: {
-      en: 'Custom roles are available on Enterprise.',
-      ar: 'الأدوار المخصصة متاحة في خطة المؤسسات.',
+      en: 'Custom roles are available on Agency.',
+      ar: 'الأدوار المخصصة متاحة في خطة الوكالة.',
       messageKey: 'errors.plan_feature.custom_roles',
     },
     ai_assist: {

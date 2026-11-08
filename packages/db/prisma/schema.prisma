@@ -42,33 +42,33 @@ enum JobStatus {
 }
 
 model User {
-  id               String       @id
-  email            String       @unique
-  emailVerifiedAt  DateTime?
-  passwordHash     String?
-  name             String
-  preferredLocale  String       @default("en")
-  preferredDir     String       @default("ltr")
-  avatarUrl        String?
+  id                   String         @id
+  email                String         @unique
+  emailVerifiedAt      DateTime?
+  passwordHash         String?
+  name                 String
+  preferredLocale      String         @default("en")
+  preferredDir         String         @default("ltr")
+  avatarUrl            String?
   /// MediaAsset id when the avatar is stored in the tenant WorkDrive.
-  avatarAssetId    String?
+  avatarAssetId        String?
   /// JSON: { notifications: { [type]: boolean }, timezone, weekStart, ... }
-  preferencesJson  String       @default("{}")
-  termsAcceptedAt   DateTime?
-  termsVersion      String?
-  privacyAcceptedAt DateTime?
-  twoFactorEnabled     Boolean   @default(false)
+  preferencesJson      String         @default("{}")
+  termsAcceptedAt      DateTime?
+  termsVersion         String?
+  privacyAcceptedAt    DateTime?
+  twoFactorEnabled     Boolean        @default(false)
   twoFactorSecret      String?
   twoFactorBackupCodes String?
   deletionScheduledAt  DateTime?
   deletionPurgeAt      DateTime?
-  status           UserStatus   @default(ACTIVE)
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
-  sessions         Session[]
-  memberships      Membership[]
-  auditEvents      AuditEvent[] @relation("ActorUser")
-  authIdentities   AuthIdentity[]
+  status               UserStatus     @default(ACTIVE)
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  sessions             Session[]
+  memberships          Membership[]
+  auditEvents          AuditEvent[]   @relation("ActorUser")
+  authIdentities       AuthIdentity[]
 }
 
 model AuthIdentity {
@@ -133,33 +133,36 @@ model Session {
 }
 
 model Tenant {
-  id              String              @id
-  name            String
-  slug            String              @unique
-  status          TenantStatus        @default(ACTIVE)
-  defaultLocale   String              @default("en")
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
-  version         Int                 @default(1)
-  memberships     Membership[]
-  sessions        Session[]
-  grants          CapabilityGrant[]
-  audits          AuditEvent[]
-  outbox          OutboxEvent[]
-  jobs            JobRun[]
-  notifications   Notification[]
-  idempotency     IdempotencyRecord[]
-  brandWorkspaces BrandWorkspace[]
-  aiRuns          AiRun[]
-  workspaceSetting WorkspaceSetting?
-  timeSlots       WorkspaceTimeSlot[]
-  subscription   WorkspaceSubscription?
-  upgradeRequests PlanUpgradeRequest[]
-  billingCheckouts BillingCheckout[]
-  inboxConversations InboxConversation[]
-  listeningRules     ListeningRule[]
-  listeningHits      ListeningHit[]
-  listeningAlerts    ListeningAlert[]
+  id                   String                 @id
+  name                 String
+  slug                 String                 @unique
+  status               TenantStatus           @default(ACTIVE)
+  defaultLocale        String                 @default("en")
+  createdAt            DateTime               @default(now())
+  updatedAt            DateTime               @updatedAt
+  version              Int                    @default(1)
+  memberships          Membership[]
+  sessions             Session[]
+  grants               CapabilityGrant[]
+  audits               AuditEvent[]
+  outbox               OutboxEvent[]
+  jobs                 JobRun[]
+  notifications        Notification[]
+  idempotency          IdempotencyRecord[]
+  brandWorkspaces      BrandWorkspace[]
+  aiRuns               AiRun[]
+  workspaceSetting     WorkspaceSetting?
+  timeSlots            WorkspaceTimeSlot[]
+  subscription         WorkspaceSubscription?
+  upgradeRequests      PlanUpgradeRequest[]
+  billingCheckouts     BillingCheckout[]
+  billingInvoices      BillingInvoice[]
+  billingUsageCounters BillingUsageCounter[]
+  manualPaymentOrders  ManualPaymentOrder[]
+  inboxConversations   InboxConversation[]
+  listeningRules       ListeningRule[]
+  listeningHits        ListeningHit[]
+  listeningAlerts      ListeningAlert[]
 }
 
 enum AiRunStatus {
@@ -211,12 +214,12 @@ model AiRun {
 }
 
 model Membership {
-  id             String           @id
+  id             String            @id
   tenantId       String
   userId         String?
-  status         MembershipStatus @default(INVITED)
+  status         MembershipStatus  @default(INVITED)
   /// Planable: team | client
-  membershipKind String           @default("team")
+  membershipKind String            @default("team")
   /// Planable display role e.g. Owner, Contributor, Approver
   displayRole    String?
   invitedEmail   String?
@@ -225,11 +228,11 @@ model Membership {
   acceptedAt     DateTime?
   suspendedAt    DateTime?
   removedAt      DateTime?
-  version        Int              @default(1)
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  tenant         Tenant           @relation(fields: [tenantId], references: [id])
-  user           User?            @relation(fields: [userId], references: [id])
+  version        Int               @default(1)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  tenant         Tenant            @relation(fields: [tenantId], references: [id])
+  user           User?             @relation(fields: [userId], references: [id])
   grants         CapabilityGrant[]
   invitations    Invitation[]
 
@@ -732,23 +735,23 @@ model EvidenceExcerpt {
 
 /// Profile sections stored as JSON document on ProfileVersion.sectionsJson (overview, catalog, etc.)
 model ProfileVersion {
-  id                         String               @id
+  id                         String                 @id
   tenantId                   String
   brandId                    String
   scanAttemptId              String?
-  status                     ProfileVersionStatus @default(DRAFT)
-  rowVersion                 Int                  @default(1)
-  aiAvailability             BrandAiAvailability  @default(NOT_CONFIGURED)
+  status                     ProfileVersionStatus   @default(DRAFT)
+  rowVersion                 Int                    @default(1)
+  aiAvailability             BrandAiAvailability    @default(NOT_CONFIGURED)
   coverageSnapshotJson       String?
   sectionsJson               String?
   approvedAt                 DateTime?
   approvedByUserId           String?
   rejectedAt                 DateTime?
   rejectedByUserId           String?
-  incompletenessAcknowledged Boolean              @default(false)
-  createdAt                  DateTime             @default(now())
-  brand                      BrandWorkspace       @relation(fields: [brandId], references: [id])
-  scanAttempt                ScanAttempt?         @relation(fields: [scanAttemptId], references: [id])
+  incompletenessAcknowledged Boolean                @default(false)
+  createdAt                  DateTime               @default(now())
+  brand                      BrandWorkspace         @relation(fields: [brandId], references: [id])
+  scanAttempt                ScanAttempt?           @relation(fields: [scanAttemptId], references: [id])
   observations               ExtractedObservation[]
   insightClaims              InsightClaim[]
   humanEdits                 HumanEdit[]
@@ -1162,57 +1165,57 @@ model Campaign {
 }
 
 model ContentItem {
-  id               String               @id
-  tenantId         String
-  brandId          String
-  campaignId       String?
-  titleEn          String
-  titleAr          String
-  captionEn        String?
-  captionAr        String?
-  contentType      ContentType
-  channel          String
-  track            Track
-  status           ContentStatus        @default(DRAFT)
-  approvalState    ContentApprovalState @default(NOT_REQUESTED)
-  scheduleState    ContentScheduleState @default(UNSCHEDULED)
-  plannedAt        DateTime?
-  scheduledAt      DateTime?
-  timezone         String               @default("Asia/Dubai")
-  approverRequired Int                  @default(1)
-  approverApproved Int                  @default(0)
-  previewAssetUrl  String?
+  id                    String                    @id
+  tenantId              String
+  brandId               String
+  campaignId            String?
+  titleEn               String
+  titleAr               String
+  captionEn             String?
+  captionAr             String?
+  contentType           ContentType
+  channel               String
+  track                 Track
+  status                ContentStatus             @default(DRAFT)
+  approvalState         ContentApprovalState      @default(NOT_REQUESTED)
+  scheduleState         ContentScheduleState      @default(UNSCHEDULED)
+  plannedAt             DateTime?
+  scheduledAt           DateTime?
+  timezone              String                    @default("Asia/Dubai")
+  approverRequired      Int                       @default(1)
+  approverApproved      Int                       @default(0)
+  previewAssetUrl       String?
   /// MediaAsset id when the preview is stored in WorkDrive (previewAssetUrl = /api/v1/media/:id/view).
-  previewAssetId   String?
+  previewAssetId        String?
   /// Ordered WorkDrive MediaAsset ids attached to this post; previewAssetId remains the first item for compatibility.
-  mediaAssetIds    String[]             @default([])
-  labels           String[]             @default([])
-  assigneeUserId   String?
-  clientVisible    Boolean              @default(true)
+  mediaAssetIds         String[]                  @default([])
+  labels                String[]                  @default([])
+  assigneeUserId        String?
+  clientVisible         Boolean                   @default(true)
   /// Primary connected account (legacy UI); first publish target when multiple are set.
-  socialPageId     String?
+  socialPageId          String?
   /// Rollup across ContentPublishTarget rows.
-  publishState     ContentPublishRollupState @default(NONE)
-  publishAttempts  Int                  @default(0)
-  nextPublishAt    DateTime?
-  lastPublishError String?
-  workerPickedAt   DateTime?
+  publishState          ContentPublishRollupState @default(NONE)
+  publishAttempts       Int                       @default(0)
+  nextPublishAt         DateTime?
+  lastPublishError      String?
+  workerPickedAt        DateTime?
   lastPublishSkipReason String?
-  externalPostId   String?
-  externalPostUrl  String?
-  publishedAt      DateTime?
-  archivedAt       DateTime?
+  externalPostId        String?
+  externalPostUrl       String?
+  publishedAt           DateTime?
+  archivedAt            DateTime?
   /// Shared id across posts that were composed with Sync ON (Planable group).
-  syncGroupId      String?
+  syncGroupId           String?
   /// Preferred audience label (Planable post setting), free text.
-  preferredAudience String?
-  createdBy        String
-  createdAt        DateTime             @default(now())
-  updatedAt        DateTime             @updatedAt
-  campaign         Campaign?            @relation(fields: [campaignId], references: [id])
-  approvalEvents   ContentApprovalEvent[]
-  comments         ContentComment[]
-  publishTargets   ContentPublishTarget[]
+  preferredAudience     String?
+  createdBy             String
+  createdAt             DateTime                  @default(now())
+  updatedAt             DateTime                  @updatedAt
+  campaign              Campaign?                 @relation(fields: [campaignId], references: [id])
+  approvalEvents        ContentApprovalEvent[]
+  comments              ContentComment[]
+  publishTargets        ContentPublishTarget[]
 
   @@index([tenantId, brandId])
   @@index([brandId, campaignId])
@@ -1243,40 +1246,40 @@ model ContentApprovalEvent {
 }
 
 model ContentPreferences {
-  brandId         String                @id
-  tenantId        String
+  brandId                  String                 @id
+  tenantId                 String
   /// Null means inherit the workspace approval mode. NONE/OPTIONAL/REQUIRED are explicit overrides.
-  approvalPolicy  ContentApprovalPolicy?
+  approvalPolicy           ContentApprovalPolicy?
   /// Brand override of workspace approvalMode (none|optional|required|multi_level). Null inherits.
-  approvalMode    String?
-  requiredApprovers Int?
-  scheduleOnApproval Boolean?
-  lockAfterApproval Boolean?
+  approvalMode             String?
+  requiredApprovers        Int?
+  scheduleOnApproval       Boolean?
+  lockAfterApproval        Boolean?
   reminderPendingApprovals Boolean?
-  defaultTimezone String                @default("Asia/Dubai")
+  defaultTimezone          String                 @default("Asia/Dubai")
   /// Universal page presentation: default | classic | modern | compact
-  previewStyle    String                @default("default")
+  previewStyle             String                 @default("default")
   /// Optional #RRGGBB accent chosen when the page is created.
-  accentColor     String?
-  updatedAt       DateTime              @updatedAt
+  accentColor              String?
+  updatedAt                DateTime               @updatedAt
 }
 
 // --- CalendarDayNote Added Models ---
 
 model CalendarDayNote {
-  id        String   @id
-  tenantId  String
-  brandId   String
-  dayKey    String
-  textEn    String   @default("")
-  textAr    String   @default("")
-  color     String   @default("yellow")
-  locked    Boolean  @default(false)
+  id         String   @id
+  tenantId   String
+  brandId    String
+  dayKey     String
+  textEn     String   @default("")
+  textAr     String   @default("")
+  color      String   @default("yellow")
+  locked     Boolean  @default(false)
   /// only_me | team | all — Planable calendar note visibility
-  visibility String  @default("only_me")
-  createdBy String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  visibility String   @default("only_me")
+  createdBy  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@unique([brandId, dayKey])
   @@index([tenantId, brandId])
@@ -1320,27 +1323,27 @@ model ContentTemplate {
 
 /// Tenant-scoped workspace general + approval settings (Planable Workspace Settings).
 model WorkspaceSetting {
-  id                    String   @id
-  tenantId              String   @unique
-  websiteUrl            String?
-  timezone              String   @default("Asia/Jerusalem")
-  createPostsAsInternal Boolean  @default(false)
-  hideEmailsFromClients Boolean  @default(false)
-  autoCropImages        Boolean  @default(true)
+  id                       String   @id
+  tenantId                 String   @unique
+  websiteUrl               String?
+  timezone                 String   @default("Asia/Jerusalem")
+  createPostsAsInternal    Boolean  @default(false)
+  hideEmailsFromClients    Boolean  @default(false)
+  autoCropImages           Boolean  @default(true)
   /// none | optional | required | multi_level
-  approvalMode          String   @default("optional")
+  approvalMode             String   @default("optional")
   /// Number of distinct approvers needed when approvalMode = required (1–5).
-  requiredApprovers     Int      @default(1)
-  scheduleOnApproval    Boolean  @default(false)
-  lockAfterApproval     Boolean  @default(false)
-  reminderPendingApprovals Boolean @default(false)
+  requiredApprovers        Int      @default(1)
+  scheduleOnApproval       Boolean  @default(false)
+  lockAfterApproval        Boolean  @default(false)
+  reminderPendingApprovals Boolean  @default(false)
   /// Optional Slack incoming webhook for listening alert delivery (workspace-wide).
   listeningSlackWebhookUrl String?
   /// JSON array of HolidayCalendarId values. Empty means follow workspace timezone.
-  holidayCalendars      String   @default("[]")
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  tenant                Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  holidayCalendars         String   @default("[]")
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+  tenant                   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([tenantId])
 }
@@ -1363,24 +1366,22 @@ model WorkspaceTimeSlot {
   @@index([tenantId])
 }
 
-
-
 model ContentComment {
-  id          String      @id
-  tenantId    String
-  contentId   String
-  authorUserId String
-  bodyEn      String
-  bodyAr      String
-  isInternal  Boolean     @default(false)
-  parentId    String?
-  resolvedAt  DateTime?
+  id                 String      @id
+  tenantId           String
+  contentId          String
+  authorUserId       String
+  bodyEn             String
+  bodyAr             String
+  isInternal         Boolean     @default(false)
+  parentId           String?
+  resolvedAt         DateTime?
   /// JSON map of emoji -> userId[]
-  reactionsJson String    @default("{}")
-  attachmentMediaIds String[] @default([])
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  content     ContentItem @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  reactionsJson      String      @default("{}")
+  attachmentMediaIds String[]    @default([])
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  content            ContentItem @relation(fields: [contentId], references: [id], onDelete: Cascade)
 
   @@index([contentId, createdAt])
   @@index([tenantId, contentId])
@@ -1412,35 +1413,35 @@ enum WorkRequestType {
 }
 
 model WorkRequest {
-  id             String             @id
-  tenantId       String
-  brandId        String
-  campaignId     String?
-  contentId      String?
-  titleEn        String
-  titleAr        String
-  descriptionEn  String             @default("")
-  descriptionAr  String             @default("")
-  type           WorkRequestType    @default(CONTENT)
-  priority       WorkRequestPriority @default(MEDIUM)
-  status         WorkRequestStatus  @default(OPEN)
-  dueAt          DateTime?
-  requesterUserId String
-  assigneeUserId String?
-  channels       String[]           @default([])
-  formats        String[]           @default([])
+  id                String              @id
+  tenantId          String
+  brandId           String
+  campaignId        String?
+  contentId         String?
+  titleEn           String
+  titleAr           String
+  descriptionEn     String              @default("")
+  descriptionAr     String              @default("")
+  type              WorkRequestType     @default(CONTENT)
+  priority          WorkRequestPriority @default(MEDIUM)
+  status            WorkRequestStatus   @default(OPEN)
+  dueAt             DateTime?
+  requesterUserId   String
+  assigneeUserId    String?
+  channels          String[]            @default([])
+  formats           String[]            @default([])
   /// Production brief gate (objective / audience / key message). READY when all three are non-empty.
-  briefObjectiveEn   String          @default("")
-  briefObjectiveAr   String          @default("")
-  briefAudienceEn    String          @default("")
-  briefAudienceAr    String          @default("")
-  briefKeyMessageEn  String          @default("")
-  briefKeyMessageAr  String          @default("")
-  briefReadyAt       DateTime?
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
-  tasks          WorkTask[]
-  deliverables   WorkDeliverable[]
+  briefObjectiveEn  String              @default("")
+  briefObjectiveAr  String              @default("")
+  briefAudienceEn   String              @default("")
+  briefAudienceAr   String              @default("")
+  briefKeyMessageEn String              @default("")
+  briefKeyMessageAr String              @default("")
+  briefReadyAt      DateTime?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  tasks             WorkTask[]
+  deliverables      WorkDeliverable[]
 
   @@index([tenantId, brandId])
   @@index([brandId, status])
@@ -1477,28 +1478,28 @@ enum WorkDeliverableReviewStatus {
 }
 
 model WorkTask {
-  id              String           @id
-  tenantId        String
-  brandId         String
-  campaignId      String?
-  requestId       String?
-  contentId       String?
-  titleEn         String
-  titleAr         String
-  descriptionEn   String           @default("")
-  descriptionAr   String           @default("")
-  status          WorkTaskStatus   @default(TODO)
-  priority        WorkTaskPriority @default(MEDIUM)
-  department      String           @default("")
-  assigneeUserId  String?
-  dueAt           DateTime?
-  createdBy       String
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  request         WorkRequest?     @relation(fields: [requestId], references: [id])
-  deliverables    WorkDeliverable[]
-  checklistItems  WorkTaskChecklistItem[]
-  comments        WorkTaskComment[]
+  id             String                  @id
+  tenantId       String
+  brandId        String
+  campaignId     String?
+  requestId      String?
+  contentId      String?
+  titleEn        String
+  titleAr        String
+  descriptionEn  String                  @default("")
+  descriptionAr  String                  @default("")
+  status         WorkTaskStatus          @default(TODO)
+  priority       WorkTaskPriority        @default(MEDIUM)
+  department     String                  @default("")
+  assigneeUserId String?
+  dueAt          DateTime?
+  createdBy      String
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+  request        WorkRequest?            @relation(fields: [requestId], references: [id])
+  deliverables   WorkDeliverable[]
+  checklistItems WorkTaskChecklistItem[]
+  comments       WorkTaskComment[]
 
   @@index([tenantId, brandId])
   @@index([brandId, status])
@@ -1516,30 +1517,30 @@ enum WorkDeliverableStatus {
 }
 
 model WorkDeliverable {
-  id              String                       @id
-  tenantId        String
-  brandId         String
-  campaignId      String?
-  requestId       String?
-  taskId          String?
-  contentId       String?
-  titleEn         String
-  titleAr         String
-  status          WorkDeliverableStatus        @default(DRAFT)
-  reviewStatus    WorkDeliverableReviewStatus  @default(NOT_STARTED)
-  assetUrl        String?
+  id                String                      @id
+  tenantId          String
+  brandId           String
+  campaignId        String?
+  requestId         String?
+  taskId            String?
+  contentId         String?
+  titleEn           String
+  titleAr           String
+  status            WorkDeliverableStatus       @default(DRAFT)
+  reviewStatus      WorkDeliverableReviewStatus @default(NOT_STARTED)
+  assetUrl          String?
   /// MediaAsset id when the file is stored in WorkDrive (assetUrl then points at /api/v1/media/:id/view).
-  assetId         String?
-  currentVersionId String?
+  assetId           String?
+  currentVersionId  String?
   approvedVersionId String?
-  createdBy       String
-  createdAt       DateTime                     @default(now())
-  updatedAt       DateTime                     @updatedAt
-  request         WorkRequest?                 @relation(fields: [requestId], references: [id])
-  task            WorkTask?                    @relation(fields: [taskId], references: [id])
-  versions        WorkDeliverableVersion[]
-  annotations     WorkDeliverableAnnotation[]
-  comments        WorkDeliverableComment[]
+  createdBy         String
+  createdAt         DateTime                    @default(now())
+  updatedAt         DateTime                    @updatedAt
+  request           WorkRequest?                @relation(fields: [requestId], references: [id])
+  task              WorkTask?                   @relation(fields: [taskId], references: [id])
+  versions          WorkDeliverableVersion[]
+  annotations       WorkDeliverableAnnotation[]
+  comments          WorkDeliverableComment[]
 
   @@index([tenantId, brandId])
   @@index([brandId, status])
@@ -1549,75 +1550,75 @@ model WorkDeliverable {
 
 /// Production parity with demo multi-version review.
 model WorkDeliverableVersion {
-  id              String         @id
-  tenantId        String
-  deliverableId   String
-  label           String         @default("v1")
-  versionNumber   Int            @default(1)
-  assetUrl        String?
+  id            String          @id
+  tenantId      String
+  deliverableId String
+  label         String          @default("v1")
+  versionNumber Int             @default(1)
+  assetUrl      String?
   /// MediaAsset id when the file is stored in WorkDrive (assetUrl then points at /api/v1/media/:id/view).
-  assetId         String?
-  notesEn         String         @default("")
-  notesAr         String         @default("")
+  assetId       String?
+  notesEn       String          @default("")
+  notesAr       String          @default("")
   /// DRAFT | IN_REVIEW | APPROVED | REJECTED | SUPERSEDED
-  status          String         @default("DRAFT")
-  createdBy       String
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  deliverable     WorkDeliverable @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+  status        String          @default("DRAFT")
+  createdBy     String
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  deliverable   WorkDeliverable @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
 
   @@index([deliverableId, versionNumber])
   @@index([tenantId, deliverableId])
 }
 
 model WorkDeliverableAnnotation {
-  id              String         @id
-  tenantId        String
-  deliverableId   String
-  versionId       String?
-  authorUserId    String
-  bodyEn          String
-  bodyAr          String         @default("")
+  id            String          @id
+  tenantId      String
+  deliverableId String
+  versionId     String?
+  authorUserId  String
+  bodyEn        String
+  bodyAr        String          @default("")
   /// normalized 0..1 canvas coords
-  x               Float          @default(0.5)
-  y               Float          @default(0.5)
-  resolved        Boolean        @default(false)
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  deliverable     WorkDeliverable @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+  x             Float           @default(0.5)
+  y             Float           @default(0.5)
+  resolved      Boolean         @default(false)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  deliverable   WorkDeliverable @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
 
   @@index([deliverableId, createdAt])
   @@index([tenantId, deliverableId])
 }
 
 model WorkDeliverableComment {
-  id              String         @id
-  tenantId        String
-  deliverableId   String
-  versionId       String?
-  authorUserId    String
-  bodyEn          String
-  bodyAr          String         @default("")
-  resolved        Boolean        @default(false)
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  deliverable     WorkDeliverable @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
+  id            String          @id
+  tenantId      String
+  deliverableId String
+  versionId     String?
+  authorUserId  String
+  bodyEn        String
+  bodyAr        String          @default("")
+  resolved      Boolean         @default(false)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  deliverable   WorkDeliverable @relation(fields: [deliverableId], references: [id], onDelete: Cascade)
 
   @@index([deliverableId, createdAt])
   @@index([tenantId, deliverableId])
 }
 
 model WorkTaskChecklistItem {
-  id          String   @id
-  tenantId    String
-  taskId      String
-  titleEn     String
-  titleAr     String   @default("")
-  done        Boolean  @default(false)
-  sortOrder   Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  task        WorkTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  id        String   @id
+  tenantId  String
+  taskId    String
+  titleEn   String
+  titleAr   String   @default("")
+  done      Boolean  @default(false)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  task      WorkTask @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   @@index([taskId, sortOrder])
   @@index([tenantId, taskId])
@@ -1694,12 +1695,12 @@ enum ContentPublishState {
 }
 
 model ContentPublishTarget {
-  id               String               @id
+  id               String              @id
   tenantId         String
   contentItemId    String
   socialPageId     String
-  publishState     ContentPublishState  @default(NONE)
-  publishAttempts  Int                  @default(0)
+  publishState     ContentPublishState @default(NONE)
+  publishAttempts  Int                 @default(0)
   nextPublishAt    DateTime?
   lastPublishError String?
   workerPickedAt   DateTime?
@@ -1709,10 +1710,10 @@ model ContentPublishTarget {
   /// Last fetched provider insights JSON (impressions/likes/comments). Honest zeros until live.
   insightsJson     String?
   lastInsightsAt   DateTime?
-  createdAt        DateTime             @default(now())
-  updatedAt        DateTime             @updatedAt
-  contentItem      ContentItem          @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
-  socialPage       SocialPage           @relation(fields: [socialPageId], references: [id], onDelete: Cascade)
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+  contentItem      ContentItem         @relation(fields: [contentItemId], references: [id], onDelete: Cascade)
+  socialPage       SocialPage          @relation(fields: [socialPageId], references: [id], onDelete: Cascade)
 
   @@unique([contentItemId, socialPageId])
   @@index([tenantId, contentItemId])
@@ -1723,27 +1724,27 @@ model ContentPublishTarget {
 /// A connected social profile/page for a brand. Tokens are AES-256-GCM encrypted at rest
 /// (SOCIAL_TOKEN_ENCRYPTION_KEY); never returned by the API.
 model SocialPage {
-  id                String           @id
-  tenantId          String
-  brandId           String
-  network           SocialNetwork
-  externalId        String
-  name              String
-  avatarUrl         String?
-  status            SocialPageStatus @default(CONNECTED)
-  accessTokenEnc    String
-  refreshTokenEnc   String?
-  tokenExpiresAt    DateTime?
-  refreshExpiresAt  DateTime?
-  scopes            String[]         @default([])
+  id               String                 @id
+  tenantId         String
+  brandId          String
+  network          SocialNetwork
+  externalId       String
+  name             String
+  avatarUrl        String?
+  status           SocialPageStatus       @default(CONNECTED)
+  accessTokenEnc   String
+  refreshTokenEnc  String?
+  tokenExpiresAt   DateTime?
+  refreshExpiresAt DateTime?
+  scopes           String[]               @default([])
   /// Network-specific ids (e.g. Instagram business account's parent Facebook page).
-  metaJson          String           @default("{}")
-  lastError         String?
-  lastRefreshedAt   DateTime?
-  connectedBy       String
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
-  publishTargets    ContentPublishTarget[]
+  metaJson         String                 @default("{}")
+  lastError        String?
+  lastRefreshedAt  DateTime?
+  connectedBy      String
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  publishTargets   ContentPublishTarget[]
 
   @@unique([brandId, network, externalId])
   @@index([tenantId, brandId])
@@ -1823,25 +1824,24 @@ model MediaAsset {
   @@index([status, lastCheckedAt])
 }
 
-
 /// Catalog plan (seeded from packages/domain billing plans).
 model Plan {
-  id                     String   @id
-  code                   String   @unique
-  nameEn                 String
-  nameAr                 String
-  descriptionEn          String
-  descriptionAr          String
-  priceMonthlyUsdCents   Int?
+  id                       String                  @id
+  code                     String                  @unique
+  nameEn                   String
+  nameAr                   String
+  descriptionEn            String
+  descriptionAr            String
+  priceMonthlyUsdCents     Int?
   priceYearlyPerMonthCents Int?
-  sortOrder              Int      @default(0)
-  popular                Boolean  @default(false)
-  active                 Boolean  @default(true)
-  createdAt              DateTime @default(now())
-  updatedAt              DateTime @updatedAt
-  limits                 PlanLimit[]
-  features               PlanFeature[]
-  subscriptions          WorkspaceSubscription[]
+  sortOrder                Int                     @default(0)
+  popular                  Boolean                 @default(false)
+  active                   Boolean                 @default(true)
+  createdAt                DateTime                @default(now())
+  updatedAt                DateTime                @updatedAt
+  limits                   PlanLimit[]
+  features                 PlanFeature[]
+  subscriptions            WorkspaceSubscription[]
 }
 
 model PlanLimit {
@@ -1869,46 +1869,150 @@ model PlanFeature {
 
 /// One active subscription per workspace (tenant). Payment deferred — status stays active; plan changes are manual.
 model WorkspaceSubscription {
-  id               String   @id
-  tenantId         String   @unique
-  planCode         String
-  billingCycle     String   @default("monthly")
-  status           String   @default("active")
+  id                     String    @id
+  tenantId               String    @unique
+  planCode               String
+  billingCycle           String    @default("monthly")
+  /// trialing | active | past_due | canceled | incomplete | restricted
+  status                 String    @default("active")
   /// Existing tenants assigned Pro at rollout (not a paid conversion).
-  grandfathered    Boolean  @default(false)
-  /// Payment provider not connected yet. false only for the free plan (no charge).
-  paymentDeferred  Boolean  @default(true)
-  assignedByUserId String?
-  notes            String?
-  currentPeriodStart DateTime?
-  currentPeriodEnd   DateTime?
-  cancelAtPeriodEnd  Boolean  @default(false)
-  pendingPlanCode     String?
-  pendingBillingCycle String?
-  startedAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  tenant           Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  plan             Plan     @relation(fields: [planCode], references: [code])
+  grandfathered          Boolean   @default(false)
+  paymentDeferred        Boolean   @default(false)
+  assignedByUserId       String?
+  notes                  String?
+  currentPeriodStart     DateTime?
+  currentPeriodEnd       DateTime?
+  cancelAtPeriodEnd      Boolean   @default(false)
+  pendingPlanCode        String?
+  pendingBillingCycle    String?
+  provider               String?
+  providerCustomerId     String?
+  providerSubscriptionId String?
+  /// Lahza reusable authorization code. Server-only; never returned to clients.
+  providerAuthCode       String?
+  gracePeriodEndsAt      DateTime?
+  trialEndsAt            DateTime?
+  xApiAddon              Boolean   @default(false)
+  vatRateBps             Int?
+  startedAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+  tenant                 Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  plan                   Plan      @relation(fields: [planCode], references: [code])
 
   @@index([planCode])
   @@index([status])
+  @@index([provider, providerSubscriptionId])
+}
+
+model BillingSettings {
+  id                       String   @id @default("platform")
+  vatRateBps               Int      @default(1700)
+  gracePeriodDays          Int      @default(7)
+  trialDays                Int      @default(14)
+  currency                 String   @default("usd")
+  xApiAddonMonthlyUsdCents Int      @default(2900)
+  bankInstructionsEn       String?
+  bankInstructionsAr       String?
+  updatedAt                DateTime @updatedAt
+}
+
+model BillingInvoice {
+  id                String    @id
+  tenantId          String
+  provider          String
+  providerInvoiceId String?
+  number            String?
+  /// draft | open | paid | void | uncollectible
+  status            String    @default("open")
+  currency          String    @default("usd")
+  amountExVatCents  Int
+  vatRateBps        Int
+  vatCents          Int
+  amountIncVatCents Int
+  periodStart       DateTime?
+  periodEnd         DateTime?
+  hostedUrl         String?
+  pdfUrl            String?
+  createdAt         DateTime  @default(now())
+  paidAt            DateTime?
+  tenant            Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerInvoiceId])
+  @@index([tenantId, createdAt])
+}
+
+model BillingUsageCounter {
+  id          String   @id
+  tenantId    String
+  periodStart DateTime
+  key         String
+  used        Int      @default(0)
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, periodStart, key])
+  @@index([tenantId, key])
+}
+
+model BillingWebhookEvent {
+  id          String   @id
+  provider    String
+  eventId     String
+  eventType   String
+  processedAt DateTime @default(now())
+  payloadHash String?
+
+  @@unique([provider, eventId])
+  @@index([provider, processedAt])
+}
+
+model ManualPaymentOrder {
+  id                String    @id
+  tenantId          String
+  requestedBy       String
+  planCode          String
+  billingCycle      String    @default("monthly")
+  xApiAddon         Boolean   @default(false)
+  /// bank_transfer | jawwal_pay | palpay | reflect | lahza
+  provider          String
+  reference         String    @unique
+  amountExVatCents  Int
+  vatRateBps        Int
+  vatCents          Int
+  amountIncVatCents Int
+  currency          String    @default("usd")
+  /// awaiting_payment | proof_uploaded | approved | rejected | cancelled
+  status            String    @default("awaiting_payment")
+  instructionsEn    String
+  instructionsAr    String
+  proofNote         String?
+  proofFileName     String?
+  proofMime         String?
+  adminNote         String?
+  approvedBy        String?
+  approvedAt        DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  tenant            Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, status])
+  @@index([status, createdAt])
 }
 
 model PlanUpgradeRequest {
-  id           String   @id
+  id           String    @id
   tenantId     String
   requestedBy  String
   fromPlanCode String
   toPlanCode   String
-  billingCycle String   @default("monthly")
+  billingCycle String    @default("monthly")
   note         String?
   /// pending | contacted | fulfilled | cancelled
-  status       String   @default("pending")
+  status       String    @default("pending")
   handledBy    String?
   handledAt    DateTime?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([tenantId, status])
   @@index([status, createdAt])
@@ -1937,7 +2041,6 @@ model BillingCheckout {
   @@index([tenantId, status])
   @@index([status, createdAt])
 }
-
 
 // ─── Unified Inbox & Social Listening (Zoho-style) ───────────────────────────
 
@@ -1980,39 +2083,39 @@ enum InboxMessageDirection {
 
 /// Thread of DMs, comments, or mentions across a connected social platform.
 model InboxConversation {
-  id                 String                  @id
-  tenantId           String
-  brandId            String?
-  platform           InboxPlatform
-  externalThreadId   String
-  type               InboxConversationType
-  status             InboxConversationStatus @default(UNREAD)
-  assignedToUserId   String?
-  sentiment          InboxSentiment?
-  subject            String?
-  participantName    String?
-  participantAvatar  String?
-  participantExtId   String?
-  lastMessageAt      DateTime                @default(now())
-  lastMessagePreview String?
+  id                   String                  @id
+  tenantId             String
+  brandId              String?
+  platform             InboxPlatform
+  externalThreadId     String
+  type                 InboxConversationType
+  status               InboxConversationStatus @default(UNREAD)
+  assignedToUserId     String?
+  sentiment            InboxSentiment?
+  subject              String?
+  participantName      String?
+  participantAvatar    String?
+  participantExtId     String?
+  lastMessageAt        DateTime                @default(now())
+  lastMessagePreview   String?
   /// Direction of the most recent message (for unanswered queue filters).
   lastMessageDirection InboxMessageDirection?
-  messageCount       Int                     @default(0)
-  unreadCount        Int                     @default(0)
+  messageCount         Int                     @default(0)
+  unreadCount          Int                     @default(0)
   /// Operational priority flag (SLA / negative / manual).
-  priority           Boolean                 @default(false)
+  priority             Boolean                 @default(false)
   /// JSON string array of tag labels, e.g. ["refund","vip"].
-  tagsJson           String                  @default("[]")
+  tagsJson             String                  @default("[]")
   /// Linked SocialPage used for outbound platform replies when set.
-  socialPageId       String?
-  firstResponseAt    DateTime?
-  closedAt           DateTime?
-  metadataJson       String?
-  createdAt          DateTime                @default(now())
-  updatedAt          DateTime                @updatedAt
-  tenant             Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  messages           InboxMessage[]
-  notes              InboxInternalNote[]
+  socialPageId         String?
+  firstResponseAt      DateTime?
+  closedAt             DateTime?
+  metadataJson         String?
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
+  tenant               Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  messages             InboxMessage[]
+  notes                InboxInternalNote[]
 
   @@unique([tenantId, platform, externalThreadId])
   @@index([tenantId, priority, lastMessageAt])
@@ -2025,24 +2128,24 @@ model InboxConversation {
 }
 
 model InboxMessage {
-  id               String                @id
-  tenantId         String
-  conversationId   String
+  id                String                @id
+  tenantId          String
+  conversationId    String
   externalMessageId String?
-  senderExternalId String
-  senderName       String
-  senderAvatar     String?
-  content          String
-  mediaUrlsJson    String?
-  direction        InboxMessageDirection
+  senderExternalId  String
+  senderName        String
+  senderAvatar      String?
+  content           String
+  mediaUrlsJson     String?
+  direction         InboxMessageDirection
   /// Raw platform payload fragment for audit / reprocessing
-  rawPayloadJson   String?
+  rawPayloadJson    String?
   /// Local parent message when this row is a reply (platform parent id stored in raw payload until resolved).
-  parentMessageId  String?
-  createdAt        DateTime              @default(now())
-  conversation     InboxConversation     @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  parent           InboxMessage?         @relation("InboxMessageReplies", fields: [parentMessageId], references: [id], onDelete: SetNull)
-  replies          InboxMessage[]        @relation("InboxMessageReplies")
+  parentMessageId   String?
+  createdAt         DateTime              @default(now())
+  conversation      InboxConversation     @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  parent            InboxMessage?         @relation("InboxMessageReplies", fields: [parentMessageId], references: [id], onDelete: SetNull)
+  replies           InboxMessage[]        @relation("InboxMessageReplies")
 
   @@unique([conversationId, externalMessageId])
   @@index([tenantId, conversationId, createdAt])
@@ -2051,12 +2154,12 @@ model InboxMessage {
 }
 
 model InboxInternalNote {
-  id             String   @id
+  id             String            @id
   tenantId       String
   conversationId String
   authorUserId   String
   content        String
-  createdAt      DateTime @default(now())
+  createdAt      DateTime          @default(now())
   conversation   InboxConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
   @@index([conversationId, createdAt])
@@ -2064,31 +2167,31 @@ model InboxInternalNote {
 }
 
 model ListeningRule {
-  id          String   @id
-  tenantId    String
-  workspaceId String
-  brandId     String?
-  name        String
+  id                 String         @id
+  tenantId           String
+  workspaceId        String
+  brandId            String?
+  name               String
   /// BRAND | COMPETITOR | TOPIC — drives Listening nav surfaces (Planable-style).
-  kind        String   @default("BRAND")
-  keywordsJson String  @default("[]")
-  hashtagsJson String  @default("[]")
-  platformsJson String @default("[]")
-  isLive      Boolean  @default(true)
+  kind               String         @default("BRAND")
+  keywordsJson       String         @default("[]")
+  hashtagsJson       String         @default("[]")
+  platformsJson      String         @default("[]")
+  isLive             Boolean        @default(true)
   /// Optional note stored with the rule. It does not score or filter mentions.
-  contextJson String?
-  lastPollAt  DateTime?
+  contextJson        String?
+  lastPollAt         DateTime?
   /// IDLE | QUEUED | RUNNING | SUCCEEDED | FAILED. Independent of isLive.
-  syncStatus         String    @default("IDLE")
+  syncStatus         String         @default("IDLE")
   lastSyncStartedAt  DateTime?
   lastSyncFinishedAt DateTime?
-  lastSyncIngested   Int       @default(0)
+  lastSyncIngested   Int            @default(0)
   /// Short provider-free error codes, never tokens or response bodies.
   lastSyncError      String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  hits        ListeningHit[]
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  tenant             Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  hits               ListeningHit[]
 
   @@index([tenantId, isLive])
   @@index([tenantId, kind])
@@ -2097,23 +2200,23 @@ model ListeningRule {
 
 /// Workspace alert when mention volume or sentiment share crosses a threshold (evaluated daily).
 model ListeningAlert {
-  id             String    @id
-  tenantId       String
-  brandId        String?
-  name           String
+  id            String    @id
+  tenantId      String
+  brandId       String?
+  name          String
   /// VOLUME_SPIKE | SENTIMENT_POSITIVE | SENTIMENT_NEGATIVE
-  triggerType    String
+  triggerType   String
   /// e.g. {"mentionsPerDay":45} or {"sharePct":75}
-  thresholdJson  String    @default("{}")
-  platformsJson  String    @default("[]")
-  notifyInApp    Boolean   @default(true)
-  notifyEmail    Boolean   @default(false)
-  notifySlack    Boolean   @default(false)
-  isActive       Boolean   @default(true)
-  lastFiredAt    DateTime?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-  tenant         Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  thresholdJson String    @default("{}")
+  platformsJson String    @default("[]")
+  notifyInApp   Boolean   @default(true)
+  notifyEmail   Boolean   @default(false)
+  notifySlack   Boolean   @default(false)
+  isActive      Boolean   @default(true)
+  lastFiredAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@index([tenantId, isActive])
   @@index([tenantId, brandId])
@@ -2121,30 +2224,30 @@ model ListeningAlert {
 
 /// Public mention / keyword hit captured by the listening engine.
 model ListeningHit {
-  id              String          @id
-  tenantId        String
-  ruleId          String?
-  platform        InboxPlatform
-  externalPostId  String
-  authorName      String?
-  authorHandle    String?
-  authorAvatar    String?
-  content         String
-  url             String?
-  mediaUrlsJson   String?
-  sentiment       InboxSentiment?
-  isHighPriority  Boolean         @default(false)
-  isHidden        Boolean         @default(false)
-  isExcluded      Boolean         @default(false)
-  likeCount       Int             @default(0)
-  commentCount    Int             @default(0)
-  shareCount      Int             @default(0)
+  id                  String          @id
+  tenantId            String
+  ruleId              String?
+  platform            InboxPlatform
+  externalPostId      String
+  authorName          String?
+  authorHandle        String?
+  authorAvatar        String?
+  content             String
+  url                 String?
+  mediaUrlsJson       String?
+  sentiment           InboxSentiment?
+  isHighPriority      Boolean         @default(false)
+  isHidden            Boolean         @default(false)
+  isExcluded          Boolean         @default(false)
+  likeCount           Int             @default(0)
+  commentCount        Int             @default(0)
+  shareCount          Int             @default(0)
   /// When true, polling must not overwrite sentiment.
-  sentimentLocked Boolean         @default(false)
-  matchedKeywordsJson String      @default("[]")
-  capturedAt      DateTime        @default(now())
-  tenant          Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  rule            ListeningRule?  @relation(fields: [ruleId], references: [id], onDelete: SetNull)
+  sentimentLocked     Boolean         @default(false)
+  matchedKeywordsJson String          @default("[]")
+  capturedAt          DateTime        @default(now())
+  tenant              Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  rule                ListeningRule?  @relation(fields: [ruleId], references: [id], onDelete: SetNull)
 
   @@unique([tenantId, ruleId, platform, externalPostId])
   @@index([tenantId, capturedAt])

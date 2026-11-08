@@ -34,7 +34,10 @@ export type ErrorCode =
   | 'MEDIA_MISSING'
   | 'PAYLOAD_TOO_LARGE'
   | 'PLAN_LIMIT_REACHED'
-  | 'PLAN_FEATURE_REQUIRED';
+  | 'PLAN_FEATURE_REQUIRED'
+  | 'PLAN_INACTIVE'
+  | 'PAYMENT_REQUIRED'
+  | 'ADDON_REQUIRED';
 
 export class DomainError extends Error {
   constructor(

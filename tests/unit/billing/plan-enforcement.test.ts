@@ -41,8 +41,7 @@ describe('plan enforcement wiring', () => {
     const brand = readFileSync(resolve('apps/api/src/brand/brand.service.ts'), 'utf8');
     expect(brand).toContain("assertWithinLimit(tenantId, 'brands')");
     const content = readFileSync(resolve('apps/api/src/content/content.service.ts'), 'utf8');
-    expect(content).toContain("assertWithinLimit(tenantId, 'posts_total')");
-    expect(content).toContain("assertWithinLimit(tenantId, 'posts_per_month')");
+    expect(content).toContain("consumeUsage(tenantId, 'scheduled_posts_per_month'");
     const tenant = readFileSync(resolve('apps/api/src/tenant/tenant.service.ts'), 'utf8');
     expect(tenant).toContain("assertWithinLimit(tenantId, kind === 'client' ? 'guests' : 'seats')");
     const social = readFileSync(resolve('apps/api/src/social/social.service.ts'), 'utf8');
@@ -60,9 +59,10 @@ describe('plan enforcement wiring', () => {
   });
 
   it('matches catalog limits used by UI pricing cards', () => {
-    expect(PLAN_CATALOG.basic.priceMonthlyUsd).toBe(39);
-    expect(PLAN_CATALOG.pro.priceMonthlyUsd).toBe(59);
-    expect(approvalModeAllowed('basic', 'required')).toBe(false);
-    expect(planHasFeature('enterprise', 'list_view')).toBe(true);
+    expect(PLAN_CATALOG.starter.priceMonthlyUsd).toBe(39);
+    expect(PLAN_CATALOG.pro.priceMonthlyUsd).toBe(79);
+    expect(PLAN_CATALOG.agency.priceMonthlyUsd).toBe(249);
+    expect(approvalModeAllowed('starter', 'required')).toBe(false);
+    expect(planHasFeature('agency', 'list_view')).toBe(true);
   });
 });

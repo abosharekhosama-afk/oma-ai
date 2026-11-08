@@ -1,4 +1,5 @@
 import { getPrisma, tenantWhere } from '@oma/db';
+import { billingService } from '../billing/billing.service';
 import {
   buildListeningSourceCatalog,
   DomainError,
@@ -265,8 +266,31 @@ export class ListeningService {
     };
   }
 
+  private async assertKeywordLimit(tenantId: string, nextKeywords: string[], previousCount = 0) {
+    const rows = await getPrisma().listeningRule.findMany({
+      where: { tenantId },
+      select: { keywordsJson: true },
+    });
+    const current = rows.reduce((n, r) => {
+      try {
+        const parsed = JSON.parse(r.keywordsJson || '[]') as unknown;
+        return (
+          n + (Array.isArray(parsed) ? parsed.filter((x) => String(x ?? '').trim()).length : 0)
+        );
+      } catch {
+        return n;
+      }
+    }, 0);
+    const adding = nextKeywords.filter((x) => String(x ?? '').trim()).length;
+    await billingService.assertWithinLimit(tenantId, 'listening_keywords', {
+      usedOverride: Math.max(0, current - previousCount),
+      adding,
+    });
+  }
+
   async createRule(tenantId: string, body: Record<string, unknown>) {
     const input = this.parseWrite(body, 'create');
+    await this.assertKeywordLimit(tenantId, input.keywords ?? []);
     const brandId = await this.assertBrand(tenantId, input.brandId ?? null);
     const id = newId();
     const row = await getPrisma().listeningRule.create({
@@ -297,6 +321,9 @@ export class ListeningService {
     const input = this.parseWrite(body, 'update');
     const keywords = input.keywords ?? safeArr(existing.keywordsJson);
     const hashtags = input.hashtags ?? safeArr(existing.hashtagsJson);
+    if (input.keywords) {
+      await this.assertKeywordLimit(tenantId, keywords, safeArr(existing.keywordsJson).length);
+    }
     if (!mergedTermsAreUseful(keywords, hashtags)) {
       throw new DomainError('VALIDATION_FAILED', 'terms required', 400, 'errors.validation');
     }

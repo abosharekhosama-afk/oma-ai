@@ -142,8 +142,12 @@ export function WorkspaceApprovals({
   );
 
   const canRequired =
-    features.approvals_required === true || planCode === 'pro' || planCode === 'enterprise';
-  const canMulti = features.approvals_multi_level === true || planCode === 'enterprise';
+    features.approvals_required === true ||
+    planCode === 'pro' ||
+    planCode === 'agency' ||
+    planCode === 'enterprise';
+  const canMulti =
+    features.approvals_multi_level === true || planCode === 'agency' || planCode === 'enterprise';
 
   const visibleMembers = showAll ? members : members.slice(0, 3);
 

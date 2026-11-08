@@ -4,68 +4,89 @@ import {
   PLAN_CODES,
   addBillingPeriod,
   approvalModeAllowed,
+  canonicalLimitKey,
   getPlan,
   isPlanCode,
   limitsExceededByUsage,
+  normalizePlanCode,
   planHasFeature,
   planPriceUsdCents,
   DEFAULT_PLAN_FOR_NEW_TENANTS,
   GRANDFATHER_PLAN_FOR_EXISTING,
 } from './plans';
+import { YEARLY_MONTHS_CHARGED } from './vat';
 
 describe('plan catalog', () => {
-  it('defines Free, Basic, Pro, Enterprise', () => {
-    expect(PLAN_CODES).toEqual(['free', 'basic', 'pro', 'enterprise']);
-    for (const code of PLAN_CODES) {
-      expect(PLAN_CATALOG[code].code).toBe(code);
-      expect(PLAN_CATALOG[code].nameEn.length).toBeGreaterThan(0);
-      expect(PLAN_CATALOG[code].nameAr.length).toBeGreaterThan(0);
-    }
+  it('defines Starter, Pro, and Agency with the published limits', () => {
+    expect(PLAN_CODES).toEqual(['starter', 'pro', 'agency']);
+    expect(getPlan('starter').priceMonthlyUsd).toBe(39);
+    expect(getPlan('pro').priceMonthlyUsd).toBe(79);
+    expect(getPlan('agency').priceMonthlyUsd).toBe(249);
+    expect(getPlan('starter').limits).toMatchObject({
+      brands: 3,
+      social_accounts: 4,
+      seats: 3,
+      scheduled_posts_per_month: 60,
+      ai_credits_per_month: 300,
+      listening_keywords: 3,
+      mentions_per_month: 1000,
+    });
+    expect(getPlan('pro').limits).toMatchObject({
+      brands: 10,
+      social_accounts: 10,
+      seats: 10,
+      scheduled_posts_per_month: 300,
+      ai_credits_per_month: 1500,
+      listening_keywords: 10,
+      mentions_per_month: 5000,
+    });
+    expect(getPlan('agency').limits).toMatchObject({
+      brands: 25,
+      social_accounts: 30,
+      seats: 25,
+      scheduled_posts_per_month: 1500,
+      ai_credits_per_month: 6000,
+      listening_keywords: 30,
+      mentions_per_month: 25000,
+    });
   });
 
-  it('keeps Free posts as lifetime total and paid as monthly', () => {
-    expect(getPlan('free').limits.posts_total).toBe(50);
-    expect(getPlan('free').limits.posts_per_month).toBeNull();
-    expect(getPlan('basic').limits.posts_per_month).toBe(60);
-    expect(getPlan('pro').limits.posts_per_month).toBe(150);
-    expect(getPlan('enterprise').limits.posts_per_month).toBeNull();
+  it('maps legacy plan codes and aliases limit keys', () => {
+    expect(normalizePlanCode('free')).toBe('starter');
+    expect(normalizePlanCode('basic')).toBe('starter');
+    expect(normalizePlanCode('enterprise')).toBe('agency');
+    expect(normalizePlanCode('pro')).toBe('pro');
+    expect(isPlanCode('basic')).toBe(false);
+    expect(canonicalLimitKey('social_channels')).toBe('social_accounts');
+    expect(canonicalLimitKey('posts_per_month')).toBe('scheduled_posts_per_month');
+    expect(canonicalLimitKey('ai_runs_per_month')).toBe('ai_credits_per_month');
   });
 
-  it('gates approval modes by plan level', () => {
-    expect(approvalModeAllowed('free', 'optional')).toBe(true);
-    expect(approvalModeAllowed('free', 'required')).toBe(false);
+  it('gates approval modes and analytics by plan', () => {
+    expect(approvalModeAllowed('starter', 'optional')).toBe(true);
+    expect(approvalModeAllowed('starter', 'required')).toBe(false);
     expect(approvalModeAllowed('pro', 'required')).toBe(true);
     expect(approvalModeAllowed('pro', 'multi_level')).toBe(false);
-    expect(approvalModeAllowed('enterprise', 'multi_level')).toBe(true);
-  });
-
-  it('exposes analytics and client visibility from Pro up', () => {
-    expect(planHasFeature('free', 'analytics')).toBe(false);
-    expect(planHasFeature('basic', 'analytics')).toBe(false);
+    expect(approvalModeAllowed('agency', 'multi_level')).toBe(true);
+    expect(planHasFeature('starter', 'analytics')).toBe(false);
     expect(planHasFeature('pro', 'analytics')).toBe(true);
-    expect(planHasFeature('pro', 'client_visibility')).toBe(true);
-    expect(planHasFeature('enterprise', 'custom_roles')).toBe(true);
+    expect(planHasFeature('agency', 'custom_roles')).toBe(true);
   });
 
-  it('defaults new tenants to Free and grandfathers existing to Pro', () => {
-    expect(DEFAULT_PLAN_FOR_NEW_TENANTS).toBe('free');
+  it('defaults new tenants to Starter and grandfathers existing to Pro', () => {
+    expect(DEFAULT_PLAN_FOR_NEW_TENANTS).toBe('starter');
     expect(GRANDFATHER_PLAN_FOR_EXISTING).toBe('pro');
-    expect(isPlanCode('pro')).toBe(true);
-    expect(isPlanCode('gold')).toBe(false);
+    expect(PLAN_CATALOG.pro.popular).toBe(true);
   });
 
-  it('prices a billing period and rejects a downgrade that exceeds usage', () => {
-    expect(planPriceUsdCents('free', 'monthly')).toBe(0);
-    expect(planPriceUsdCents('pro', 'monthly')).toBe(5900);
-    expect(planPriceUsdCents('pro', 'yearly')).toBe(49 * 12 * 100);
-    expect(planPriceUsdCents('enterprise', 'monthly')).toBeNull();
+  it('prices a billing period before VAT and rejects a downgrade that exceeds usage', () => {
+    expect(planPriceUsdCents('starter', 'monthly')).toBe(3900);
+    expect(planPriceUsdCents('pro', 'monthly')).toBe(7900);
+    expect(planPriceUsdCents('agency', 'monthly')).toBe(24900);
+    expect(planPriceUsdCents('pro', 'yearly')).toBe(79 * YEARLY_MONTHS_CHARGED * 100);
     const start = new Date('2026-01-31T00:00:00.000Z');
     expect(addBillingPeriod(start, 'monthly').toISOString()).toBe('2026-02-28T00:00:00.000Z');
-    expect(limitsExceededByUsage(getPlan('free').limits, { brands: 2, posts_total: 10 })).toEqual([
-      'brands',
-    ]);
-    expect(limitsExceededByUsage(getPlan('pro').limits, { brands: 2, posts_total: 400 })).toEqual(
-      [],
-    );
+    expect(limitsExceededByUsage(getPlan('starter').limits, { brands: 4 })).toEqual(['brands']);
+    expect(limitsExceededByUsage(getPlan('pro').limits, { brands: 4, seats: 2 })).toEqual([]);
   });
 });

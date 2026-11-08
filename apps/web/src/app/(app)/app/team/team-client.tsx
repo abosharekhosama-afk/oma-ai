@@ -70,7 +70,15 @@ const PERM_COLS: PlanablePerm[] = [
   'admin',
 ];
 
-const ROLE_OPTIONS = ['Owner', 'Administrator', 'Contributor', 'Writer', 'Approver', 'Guest'];
+const ROLE_OPTIONS = [
+  'Owner',
+  'Administrator',
+  'Billing',
+  'Contributor',
+  'Writer',
+  'Approver',
+  'Guest',
+];
 
 /** Popover card explaining what a member can do (opened from the permissions link). */
 function PermissionsCard({

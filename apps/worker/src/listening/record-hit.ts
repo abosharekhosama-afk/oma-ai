@@ -1,5 +1,5 @@
-import { getPrisma } from '@oma/db';
-import { newId } from '@oma/domain';
+import { enforceAndConsumeUsage, getPrisma } from '@oma/db';
+import { DomainError, newId } from '@oma/domain';
 
 const NEG =
   /\b(bad|awful|terrible|hate|angry|worst|scam|refund|broken|disappointed|horrible|poor|fail)\b|سيء|سيئة|فظيع|احتيال|غاضب|محبط/i;
@@ -47,7 +47,7 @@ export async function recordListeningHit(input: {
   commentCount?: number;
   shareCount?: number;
   capturedAt?: Date;
-}): Promise<'created' | 'updated' | 'duplicate'> {
+}): Promise<'created' | 'updated' | 'duplicate' | 'limit'> {
   const prisma = getPrisma();
   const sentiment = classify(input.content);
   const isHighPriority = sentiment === 'NEGATIVE';
@@ -89,6 +89,18 @@ export async function recordListeningHit(input: {
       },
     });
     return 'updated';
+  }
+
+  try {
+    await enforceAndConsumeUsage(input.tenantId, 'mentions_per_month', 1);
+  } catch (err) {
+    if (
+      err instanceof DomainError &&
+      (err.code === 'PLAN_LIMIT_REACHED' || err.code === 'PLAN_INACTIVE')
+    ) {
+      return 'limit';
+    }
+    throw err;
   }
 
   await prisma.listeningHit.create({

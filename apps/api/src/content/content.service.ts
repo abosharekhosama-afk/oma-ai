@@ -599,12 +599,7 @@ export class ContentService {
     correlationId?: string,
   ) {
     await this.requireActiveBrand(tenantId, brandId);
-    const planCode = await billingService.getPlanCode(tenantId);
-    if (planCode === 'free') {
-      await billingService.assertWithinLimit(tenantId, 'posts_total');
-    } else {
-      await billingService.assertWithinLimit(tenantId, 'posts_per_month');
-    }
+    await billingService.assertWriteAccess(tenantId);
     const media = await resolvePreviewAssets(
       tenantId,
       brandId,
@@ -1114,6 +1109,9 @@ export class ContentService {
         400,
         'errors.validation_failed',
       );
+    }
+    if (!current.scheduledAt) {
+      await billingService.consumeUsage(tenantId, 'scheduled_posts_per_month', 1);
     }
     await getPrisma().contentItem.update({
       where: { id: contentId },
