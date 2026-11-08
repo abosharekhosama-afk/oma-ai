@@ -3776,6 +3776,77 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   max-height: min(72vh, 680px);
 }
 
+/* Phone: keep the board/list switcher usable and both views scannable. Desktop unchanged. */
+@media (max-width: 767px) {
+  .oma-plx-tasks .oma-plx-deliv-view-row {
+    display: flex;
+    justify-content: flex-start;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .oma-plx-tasks .oma-plx-listening-segment {
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .oma-plx-tasks .oma-plx-listening-segment button {
+    flex: 1 1 0;
+    justify-content: center;
+    min-height: 36px;
+    padding: 8px 10px;
+    white-space: nowrap;
+  }
+
+  .oma-plx-tasks-panel {
+    padding: 8px 6px 12px;
+    overflow: visible;
+  }
+
+  .oma-plx-tasks-panel .oma-kb-board {
+    overflow-x: auto;
+    overflow-y: hidden;
+    max-width: 100%;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-inline: contain;
+  }
+
+  .oma-plx-tasks-panel .oma-kb-board__grid {
+    display: flex;
+    flex-wrap: nowrap;
+    width: max-content;
+    min-width: 100%;
+  }
+
+  .oma-plx-tasks-panel .oma-kb-col {
+    flex: 0 0 min(260px, 84vw);
+    width: min(260px, 84vw);
+    min-width: min(260px, 84vw);
+    min-height: min(52vh, 480px);
+    max-height: min(62vh, 560px);
+  }
+
+  .oma-plx-tasks .oma-plx-deliv-table-wrap {
+    max-height: none;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .oma-plx-tasks .oma-plx-tasks-table__title-btn {
+    align-items: start;
+  }
+
+  [dir='rtl'] .oma-plx-tasks .oma-plx-deliv-view-row {
+    justify-content: flex-start;
+  }
+
+  [dir='rtl'] .oma-plx-tasks-panel .oma-kb-board,
+  [dir='rtl'] .oma-plx-tasks-panel .oma-kb-board__grid {
+    direction: rtl;
+  }
+}
+
 /* Planable-style Reviews queue */
 .oma-plx-reviews {
   max-width: 1120px;
