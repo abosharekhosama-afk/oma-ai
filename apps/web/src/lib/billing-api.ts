@@ -114,6 +114,7 @@ export function startCheckout(body: {
       amount_inc_vat_cents?: number;
       vat_cents?: number;
       vat_percent?: string;
+      fallback_from?: string | null;
       message?: { en: string; ar: string };
     };
   }>('/api/v1/billing/checkouts', { method: 'POST', body: JSON.stringify(body) });
@@ -226,25 +227,47 @@ export function adminReviewOrder(id: string, action: 'approve' | 'reject', note?
 }
 
 export function planErrorFromUnknown(err: unknown, isAr: boolean): string | null {
-  const e = err as {
+  const raw = err as {
     code?: string;
     message?: string;
-    details?: Array<{ message_ar?: string }>;
+    details?: Array<{ message_ar?: string; provider?: string }>;
+    data?: {
+      error?: {
+        code?: string;
+        message?: string;
+        message_key?: string;
+        details?: Array<{ message_ar?: string; provider?: string }>;
+      };
+    };
   } | null;
-  if (!e) return null;
+  if (!raw) return null;
+  const nested = raw.data?.error;
+  const code = raw.code ?? nested?.code;
+  const details = raw.details ?? nested?.details;
+  const detail = Array.isArray(details) ? details[0] : undefined;
+  if (isAr && detail?.message_ar) return detail.message_ar;
+  if (code === 'PROVIDER_NOT_CONFIGURED') {
+    if (detail?.provider === 'stripe' || nested?.message_key === 'errors.stripe_not_configured') {
+      return isAr ? 'لم يتم إعداد Stripe بعد' : 'Stripe is not set up yet';
+    }
+    if (detail?.provider === 'lahza' || nested?.message_key === 'errors.lahza_not_configured') {
+      return isAr
+        ? 'لم يتم إعداد لحظة / بنك فلسطين بعد'
+        : 'Lahza / Bank of Palestine is not set up yet';
+    }
+    return isAr ? 'طريقة الدفع هذه غير مهيأة بعد' : 'That payment method is not set up yet';
+  }
   if (
-    !e.code ||
-    ![
+    code &&
+    [
       'PLAN_LIMIT_REACHED',
       'PLAN_FEATURE_REQUIRED',
       'PLAN_INACTIVE',
       'ADDON_REQUIRED',
       'PAYMENT_REQUIRED',
-    ].includes(e.code)
+    ].includes(code)
   ) {
-    return null;
+    return raw.message || nested?.message || null;
   }
-  const detail = Array.isArray(e.details) ? e.details[0] : undefined;
-  if (isAr && detail?.message_ar) return detail.message_ar;
-  return e.message || null;
+  return raw.message || nested?.message || null;
 }

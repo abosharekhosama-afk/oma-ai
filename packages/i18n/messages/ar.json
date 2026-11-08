@@ -2821,5 +2821,8 @@
   "errors.payment_required": "يلزم إكمال الدفع لتفعيل هذه الخطة.",
   "billing.nav.admin": "فوترة المنصة",
   "members.role.billing": "الفوترة",
-  "members.role.billing_desc": "إدارة الخطط والفواتير والمدفوعات"
+  "members.role.billing_desc": "إدارة الخطط والفواتير والمدفوعات",
+  "errors.provider_not_configured": "طريقة الدفع هذه غير مهيأة بعد.",
+  "errors.stripe_not_configured": "لم يتم إعداد Stripe بعد.",
+  "errors.lahza_not_configured": "لم يتم إعداد لحظة / بنك فلسطين بعد."
 }

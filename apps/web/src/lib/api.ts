@@ -50,6 +50,10 @@ const CODE_KEYS: Record<string, string> = {
   CAMPAIGN_ARCHIVED: 'error.campaign_archived',
   PLAN_LIMIT_REACHED: 'errors.plan_limit_reached',
   PLAN_FEATURE_REQUIRED: 'errors.plan_feature_required',
+  PLAN_INACTIVE: 'errors.plan_inactive',
+  ADDON_REQUIRED: 'errors.addon_required',
+  PAYMENT_REQUIRED: 'errors.payment_required',
+  PROVIDER_NOT_CONFIGURED: 'errors.provider_not_configured',
 };
 
 /** Localized, user-facing message for an API error (prefers the server's message_key). */

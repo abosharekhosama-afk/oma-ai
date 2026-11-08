@@ -276,16 +276,16 @@ const routeRequirements: Record<string, string[]> = {
   'GET /api/v1/billing/subscription': ['brand.read'],
   'GET /api/v1/billing/invoices': ['brand.read'],
   'POST /api/v1/billing/upgrade-requests': ['brand.read'],
-  'GET /api/v1/billing/upgrade-requests': ['billing.manage'],
+  'GET /api/v1/billing/upgrade-requests': ['billing.manage', 'platform.support.access'],
   'GET /api/v1/billing/entitlements': ['brand.read'],
-  'POST /api/v1/billing/checkouts': ['billing.manage'],
+  'POST /api/v1/billing/checkouts': ['billing.manage', 'platform.support.access'],
   'GET /api/v1/billing/checkouts': ['brand.read'],
-  'POST /api/v1/billing/checkouts/:id/cancel': ['billing.manage'],
-  'POST /api/v1/billing/manual-orders/proof': ['billing.manage'],
-  'POST /api/v1/billing/portal': ['billing.manage'],
-  'POST /api/v1/billing/confirm': ['billing.manage'],
-  'POST /api/v1/billing/subscription/cancel': ['billing.manage'],
-  'POST /api/v1/billing/subscription/resume': ['billing.manage'],
+  'POST /api/v1/billing/checkouts/:id/cancel': ['billing.manage', 'platform.support.access'],
+  'POST /api/v1/billing/manual-orders/proof': ['billing.manage', 'platform.support.access'],
+  'POST /api/v1/billing/portal': ['billing.manage', 'platform.support.access'],
+  'POST /api/v1/billing/confirm': ['billing.manage', 'platform.support.access'],
+  'POST /api/v1/billing/subscription/cancel': ['billing.manage', 'platform.support.access'],
+  'POST /api/v1/billing/subscription/resume': ['billing.manage', 'platform.support.access'],
 };
 
 export function matchRequirements(method: string, path: string): string[] | null {
@@ -634,10 +634,25 @@ export class CapabilitiesGuard implements CanActivate {
         caps = capabilitiesForBrandRole(caps, role);
       }
     }
+    if (
+      !caps.includes('billing.manage') &&
+      memberships.some((m) => {
+        const role = (m.displayRole ?? '').toLowerCase();
+        if (role === 'owner') return true;
+        return m.grants.some(
+          (g) =>
+            g.sourceProfileCode === 'COMPANY_OWNER' || g.sourceProfileCode === 'PLATFORM_OWNER',
+        );
+      })
+    ) {
+      caps.push('billing.manage');
+    }
     req.oma.capabilities = caps;
     req.oma.membershipId = primary.id;
     req.oma.membershipKind = (primary as { membershipKind?: string }).membershipKind ?? 'team';
-    if (required.length > 0 && !hasCapability(caps, required)) {
+    const anyOf =
+      required.includes('billing.manage') && required.includes('platform.support.access');
+    if (required.length > 0 && !hasCapability(caps, required, anyOf ? 'any' : 'all')) {
       throw new DomainError(
         'PERMISSION_DENIED',
         'Missing capability',
