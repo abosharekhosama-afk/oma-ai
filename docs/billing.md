@@ -98,6 +98,12 @@ OMA does not invent other paths. Apply for a Lahza merchant account (ILS / JOD /
 
 Always available unless `BILLING_BANK_TRANSFER_DISABLED=1`. The customer receives a unique `OMA-…` reference, pays the **server-computed** total (including VAT), and uploads a proof note. The platform owner approves it in admin.
 
+## Upgrading without Stripe or Lahza
+
+The billing page (`/app/billing`) posts to `POST /api/v1/billing/checkouts`. If `STRIPE_SECRET_KEY` or `LAHZA_SECRET_KEY` is missing, those providers are hidden and the upgrade still succeeds as a **bank-transfer / manual** request: the API creates a pending `ManualPaymentOrder` with an `OMA-…` reference, shows payment instructions, and the customer uploads proof. The platform owner activates the plan from `/app/admin/billing`.
+
+Stripe appears only when `STRIPE_SECRET_KEY` is set (and webhooks need `STRIPE_WEBHOOK_SECRET`). Lahza / Bank of Palestine appears only when `LAHZA_SECRET_KEY` is set.
+
 ## Enforcement
 
 Usage is checked on the server, never in the UI alone:

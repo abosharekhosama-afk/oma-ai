@@ -12,6 +12,7 @@ import {
   listPlans,
   startCheckout,
   submitPaymentProof,
+  planErrorFromUnknown,
   type PlanDto,
   type ProviderDto,
   type SubscriptionView,
@@ -59,12 +60,19 @@ export default function BillingClient() {
   const [annual, setAnnual] = useState(false);
   const [plans, setPlans] = useState<PlanDto[]>([]);
   const [sub, setSub] = useState<SubscriptionView | null>(null);
-  const [provider, setProvider] = useState('stripe');
+  const [provider, setProvider] = useState('');
   const [xAddon, setXAddon] = useState(false);
   const [proof, setProof] = useState('');
   const [proofRef, setProofRef] = useState('');
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
+  const [pendingOrder, setPendingOrder] = useState<{
+    reference?: string;
+    instructions?: { en: string; ar: string };
+    message?: { en: string; ar: string };
+    amount_inc_vat_cents?: number;
+    vat_percent?: string;
+  } | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -73,8 +81,8 @@ export default function BillingClient() {
       setPlans(p.data ?? []);
       setSub(s.data);
       setXAddon(Boolean(s.data.x_api_addon));
-      const first = (s.data.providers ?? []).find((item) => item.configured);
-      if (first) setProvider(first.id);
+      const available = (s.data.providers ?? []).filter((item) => item.configured);
+      if (available[0]) setProvider(available[0].id);
     } catch {
       toast.push(isAr ? 'تعذر تحميل الخطط' : 'Could not load plans', 'danger');
     } finally {
@@ -86,7 +94,7 @@ export default function BillingClient() {
     void load();
   }, [load]);
 
-  const providers: ProviderDto[] = sub?.providers ?? [];
+  const providers: ProviderDto[] = (sub?.providers ?? []).filter((item) => item.configured);
 
   async function onUpgrade(code: string) {
     if (!canBill) {
@@ -103,7 +111,7 @@ export default function BillingClient() {
       const result = await startCheckout({
         plan_code: code,
         billing_cycle: annual ? 'yearly' : 'monthly',
-        provider,
+        provider: provider || undefined,
         x_api_addon: xAddon,
       });
       if (result.data.redirect_url) {
@@ -111,6 +119,13 @@ export default function BillingClient() {
         return;
       }
       if (result.data.reference) setProofRef(result.data.reference);
+      setPendingOrder({
+        reference: result.data.reference,
+        instructions: result.data.instructions,
+        message: result.data.message,
+        amount_inc_vat_cents: result.data.amount_inc_vat_cents,
+        vat_percent: result.data.vat_percent,
+      });
       toast.push(
         result.data.message
           ? isAr
@@ -122,8 +137,13 @@ export default function BillingClient() {
         'success',
       );
       await load();
-    } catch {
-      toast.push(isAr ? 'تعذر بدء الدفع' : 'Could not start checkout', 'danger');
+    } catch (err) {
+      toast.push(
+        planErrorFromUnknown(err, isAr) ||
+          (err instanceof Error ? err.message : null) ||
+          (isAr ? 'تعذر إكمال طلب الترقية' : 'Could not complete the upgrade request'),
+        'danger',
+      );
     } finally {
       setBusy(null);
     }
@@ -134,8 +154,13 @@ export default function BillingClient() {
     try {
       const res = await openBillingPortal();
       if (res.data.redirect_url) window.location.assign(res.data.redirect_url);
-    } catch {
-      toast.push(isAr ? 'تعذر فتح بوابة سترايب' : 'Could not open the Stripe portal', 'danger');
+    } catch (err) {
+      toast.push(
+        planErrorFromUnknown(err, isAr) ||
+          (err instanceof Error ? err.message : null) ||
+          (isAr ? 'تعذر فتح بوابة سترايب' : 'Could not open the Stripe portal'),
+        'danger',
+      );
     } finally {
       setBusy(null);
     }
@@ -148,8 +173,13 @@ export default function BillingClient() {
       toast.push(isAr ? 'تم إرسال إثبات الدفع' : 'Payment proof submitted', 'success');
       setProof('');
       await load();
-    } catch {
-      toast.push(isAr ? 'تعذر إرسال الإثبات' : 'Could not submit proof', 'danger');
+    } catch (err) {
+      toast.push(
+        planErrorFromUnknown(err, isAr) ||
+          (err instanceof Error ? err.message : null) ||
+          (isAr ? 'تعذر إرسال الإثبات' : 'Could not submit proof'),
+        'danger',
+      );
     } finally {
       setBusy(null);
     }
@@ -321,6 +351,30 @@ export default function BillingClient() {
               </li>
             ))}
           </ul>
+        </section>
+      ) : null}
+
+      {pendingOrder ? (
+        <section className="oma-billing__notice" aria-live="polite">
+          <h2>{isAr ? 'طلب الترقية' : 'Upgrade request'}</h2>
+          <p>{isAr ? pendingOrder.message?.ar : pendingOrder.message?.en}</p>
+          {pendingOrder.reference ? (
+            <p>
+              <strong>{isAr ? 'رقم المرجع' : 'Reference'}:</strong> {pendingOrder.reference}
+            </p>
+          ) : null}
+          {pendingOrder.amount_inc_vat_cents != null ? (
+            <p>
+              <strong>{isAr ? 'المبلغ مع الضريبة' : 'Amount including VAT'}:</strong> $
+              {(pendingOrder.amount_inc_vat_cents / 100).toFixed(2)}
+              {pendingOrder.vat_percent
+                ? ` (${isAr ? 'الضريبة' : 'VAT'} ${pendingOrder.vat_percent})`
+                : ''}
+            </p>
+          ) : null}
+          {pendingOrder.instructions ? (
+            <p>{isAr ? pendingOrder.instructions.ar : pendingOrder.instructions.en}</p>
+          ) : null}
         </section>
       ) : null}
 

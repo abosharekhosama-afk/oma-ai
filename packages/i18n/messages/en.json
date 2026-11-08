@@ -2821,5 +2821,8 @@
   "errors.payment_required": "Payment is required to activate this plan.",
   "billing.nav.admin": "Platform billing",
   "members.role.billing": "Billing",
-  "members.role.billing_desc": "Manage plans, invoices, and payments"
+  "members.role.billing_desc": "Manage plans, invoices, and payments",
+  "errors.provider_not_configured": "That payment method is not set up yet.",
+  "errors.stripe_not_configured": "Stripe is not set up yet.",
+  "errors.lahza_not_configured": "Lahza / Bank of Palestine is not set up yet."
 }

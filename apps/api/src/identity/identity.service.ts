@@ -408,10 +408,26 @@ export class IdentityService {
     });
     const membershipRows = dedupeMembershipsByTenant(memberships);
     const activeTenantId = session?.activeTenantId ?? null;
-    const activeCaps =
+    let activeCaps =
       membershipRows.find((m) => m.tenant_id === activeTenantId)?.capabilities ??
       membershipRows[0]?.capabilities ??
       [];
+    if (!activeCaps.includes('billing.manage')) {
+      const scope = memberships.filter(
+        (m) => m.tenantId === (activeTenantId ?? memberships[0]?.tenantId),
+      );
+      const owner = scope.some((m) => {
+        const role = (m.displayRole ?? '').toLowerCase();
+        return (
+          role === 'owner' ||
+          m.grants.some(
+            (g) =>
+              g.sourceProfileCode === 'COMPANY_OWNER' || g.sourceProfileCode === 'PLATFORM_OWNER',
+          )
+        );
+      });
+      if (owner) activeCaps = [...activeCaps, 'billing.manage'];
+    }
     return {
       user: {
         id: user.id,

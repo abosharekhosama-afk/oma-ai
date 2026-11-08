@@ -40,7 +40,13 @@ import {
   startLahzaCheckout,
   verifyLahzaTransaction,
 } from './providers/lahza.adapter';
-import { listPaymentProviders, providerIsManual, stripeConfigured } from './providers/registry';
+import {
+  listPaymentProviders,
+  providerIsManual,
+  resolveCheckoutProvider,
+  stripeConfigured,
+  visiblePaymentProviders,
+} from './providers/registry';
 import { createStripePortal, startStripeCheckout } from './providers/stripe.adapter';
 
 const audit = new AuditService();
@@ -66,6 +72,34 @@ function requirePlan(code: string): PlanCode {
     throw new DomainError('VALIDATION_FAILED', 'Invalid plan', 400, 'errors.validation_failed');
   }
   return normalized;
+}
+
+function manualCheckoutMessage(
+  reference: string,
+  resolved: { fallback: boolean; requested: string | null },
+) {
+  if (resolved.fallback && resolved.requested === 'stripe') {
+    return {
+      en: `Stripe is not set up yet. We created a bank-transfer request with reference ${reference}. Upload proof so the platform owner can activate the plan.`,
+      ar: `لم يتم إعداد Stripe بعد. أنشأنا طلب تحويل بنكي برقم المرجع ${reference}. ارفع إثبات الدفع ليتمكّن مالك المنصة من تفعيل الخطة.`,
+    };
+  }
+  if (resolved.fallback && resolved.requested === 'lahza') {
+    return {
+      en: `Lahza / Bank of Palestine is not set up yet. We created a bank-transfer request with reference ${reference}. Upload proof so the platform owner can activate the plan.`,
+      ar: `لم يتم إعداد لحظة / بنك فلسطين بعد. أنشأنا طلب تحويل بنكي برقم المرجع ${reference}. ارفع إثبات الدفع ليتمكّن مالك المنصة من تفعيل الخطة.`,
+    };
+  }
+  if (resolved.fallback && resolved.requested) {
+    return {
+      en: `That payment method is not available. We created a bank-transfer request with reference ${reference}. Upload proof so the platform owner can activate the plan.`,
+      ar: `طريقة الدفع هذه غير متاحة. أنشأنا طلب تحويل بنكي برقم المرجع ${reference}. ارفع إثبات الدفع ليتمكّن مالك المنصة من تفعيل الخطة.`,
+    };
+  }
+  return {
+    en: `Pay the amount shown and include reference ${reference}. Upload proof so the platform owner can activate the plan.`,
+    ar: `ادفع المبلغ الظاهر وأضف المرجع ${reference}. ارفع إثبات الدفع ليتمكّن مالك المنصة من تفعيل الخطة.`,
+  };
 }
 
 export class BillingService {
@@ -288,7 +322,7 @@ export class BillingService {
         usage,
         usage_bars: usageBars,
         invoices: invoices.map((r) => this.mapInvoice(r)),
-        providers: listPaymentProviders(),
+        providers: visiblePaymentProviders(),
         addon: {
           code: 'x_api',
           price_monthly_usd: settings.xApiAddonMonthlyUsdCents / 100,
@@ -475,18 +509,10 @@ export class BillingService {
     const cycle = asCycle(input.billing_cycle);
     await this.assertFitsPlan(tenantId, planCode);
     const settings = await loadBillingSettings();
-    const provider = (input.provider ?? (stripeConfigured() ? 'stripe' : 'bank_transfer')).trim();
-    const providers = listPaymentProviders();
-    const info = providers.find((p) => p.id === provider);
-    if (!info || !info.configured) {
-      throw new DomainError(
-        'PROVIDER_NOT_CONFIGURED',
-        'That payment method is not available',
-        400,
-        'errors.provider_not_configured',
-      );
-    }
+    const resolved = resolveCheckoutProvider(input.provider);
+    const provider = resolved.id;
     const prisma = getPrisma();
+    await this.ensureSubscription(tenantId, { grandfather: true });
     const user = await prisma.user.findUnique({ where: { id: actorUserId } });
     const quote = this.quoteFor(
       planCode,
@@ -545,7 +571,33 @@ export class BillingService {
     };
 
     if (provider === 'stripe') {
-      const payment = await startStripeCheckout(common);
+      let payment;
+      try {
+        payment = await startStripeCheckout(common);
+      } catch {
+        throw new DomainError(
+          'PROVIDER_NOT_CONFIGURED',
+          'Stripe checkout could not be started. Check STRIPE_SECRET_KEY or use bank transfer.',
+          502,
+          'errors.stripe_not_configured',
+          [
+            {
+              provider: 'stripe',
+              message_ar:
+                'لم يتم إعداد Stripe بعد، أو رفض المفتاح طلب الدفع. استخدم التحويل البنكي أو راجع المفاتيح.',
+            },
+          ],
+        );
+      }
+      if (!payment.configured || !payment.redirectUrl) {
+        throw new DomainError(
+          'PROVIDER_NOT_CONFIGURED',
+          'Stripe is not set up yet',
+          400,
+          'errors.stripe_not_configured',
+          [{ provider: 'stripe', message_ar: 'لم يتم إعداد Stripe بعد' }],
+        );
+      }
       if (payment.configured && payment.providerRef) {
         await prisma.billingCheckout.update({
           where: { id: checkout.id },
@@ -574,7 +626,33 @@ export class BillingService {
     }
 
     if (provider === 'lahza') {
-      const payment = await startLahzaCheckout(common);
+      let payment;
+      try {
+        payment = await startLahzaCheckout(common);
+      } catch {
+        throw new DomainError(
+          'PROVIDER_NOT_CONFIGURED',
+          'Lahza checkout could not be started. Check LAHZA_SECRET_KEY or use bank transfer.',
+          502,
+          'errors.lahza_not_configured',
+          [
+            {
+              provider: 'lahza',
+              message_ar:
+                'لم يتم إعداد لحظة / بنك فلسطين بعد، أو رُفض الطلب. استخدم التحويل البنكي أو راجع المفاتيح.',
+            },
+          ],
+        );
+      }
+      if (!payment.configured || !payment.redirectUrl) {
+        throw new DomainError(
+          'PROVIDER_NOT_CONFIGURED',
+          'Lahza / Bank of Palestine is not set up yet',
+          400,
+          'errors.lahza_not_configured',
+          [{ provider: 'lahza', message_ar: 'لم يتم إعداد لحظة / بنك فلسطين بعد' }],
+        );
+      }
       if (payment.configured && payment.providerRef) {
         await prisma.billingCheckout.update({
           where: { id: checkout.id },
@@ -673,10 +751,8 @@ export class BillingService {
         vat_percent: formatVatPercent(settings.vatRateBps),
         payment_configured: true,
         instructions: extra,
-        message: {
-          en: `Pay the amount shown and include reference ${reference}. Upload proof so the platform owner can activate the plan.`,
-          ar: `ادفع المبلغ الظاهر وأضف المرجع ${reference}. ارفع إثبات الدفع ليتمكّن مالك المنصة من تفعيل الخطة.`,
-        },
+        fallback_from: resolved.fallback ? resolved.requested : null,
+        message: manualCheckoutMessage(reference, resolved),
       },
     };
   }

@@ -14,6 +14,7 @@ import {
   adminListWorkspaces,
   adminReviewOrder,
   adminUpdateSettings,
+  planErrorFromUnknown,
 } from '../../../../../lib/billing-api';
 import '../../../billing/billing.css';
 
@@ -21,7 +22,9 @@ export default function AdminBillingClient() {
   const isAr = useLocale() === 'ar';
   const toast = useToast();
   const caps = useCapabilities();
-  const allowed = caps.can('platform.support.access');
+  const [allowed, setAllowed] = useState<boolean | null>(
+    caps.can('platform.support.access') ? true : null,
+  );
   const [q, setQ] = useState('');
   const [workspaces, setWorkspaces] = useState<Array<Record<string, unknown>>>([]);
   const [orders, setOrders] = useState<Array<Record<string, unknown>>>([]);
@@ -35,25 +38,46 @@ export default function AdminBillingClient() {
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
-    if (!allowed) return;
     try {
       const [w, o, s] = await Promise.all([
         adminListWorkspaces(q || undefined),
         adminListOrders(),
         adminBillingSettings(),
       ]);
+      setAllowed(true);
       setWorkspaces(w.data ?? []);
       setOrders(o.data ?? []);
       setSettings(s.data ?? {});
       if (s.data?.vatRateBps) setVat(String(Number(s.data.vatRateBps) / 100));
-    } catch {
-      toast.push(isAr ? 'تعذر تحميل إدارة الفوترة' : 'Could not load admin billing', 'danger');
+    } catch (err) {
+      const denied =
+        (err as { status?: number; code?: string } | null)?.status === 403 ||
+        (err as { code?: string } | null)?.code === 'PERMISSION_DENIED';
+      setAllowed((prev) => (denied ? false : (prev ?? false)));
+      if (!denied) {
+        toast.push(
+          planErrorFromUnknown(err, isAr) ||
+            (err instanceof Error ? err.message : null) ||
+            (isAr ? 'تعذر تحميل إدارة الفوترة' : 'Could not load admin billing'),
+          'danger',
+        );
+      } else {
+        setAllowed(false);
+      }
     }
-  }, [allowed, isAr, q, toast]);
+  }, [isAr, q, toast]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  if (allowed === null || caps.loading) {
+    return (
+      <main className="oma-planable-page oma-billing" dir={isAr ? 'rtl' : 'ltr'}>
+        <p>{isAr ? 'جاري التحميل…' : 'Loading…'}</p>
+      </main>
+    );
+  }
 
   if (!allowed) {
     return (
@@ -70,8 +94,13 @@ export default function AdminBillingClient() {
       await fn();
       toast.push(ok, 'success');
       await load();
-    } catch {
-      toast.push(isAr ? 'تعذر تنفيذ الإجراء' : 'Could not complete that action', 'danger');
+    } catch (err) {
+      toast.push(
+        planErrorFromUnknown(err, isAr) ||
+          (err instanceof Error ? err.message : null) ||
+          (isAr ? 'تعذر تنفيذ الإجراء' : 'Could not complete that action'),
+        'danger',
+      );
     } finally {
       setBusy(false);
     }

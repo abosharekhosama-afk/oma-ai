@@ -26,6 +26,12 @@ export function useCapabilities() {
       if (!next.length && me.memberships?.length) {
         next = [...new Set(me.memberships.flatMap((m) => m.capabilities ?? []))];
       }
+      if (
+        me.memberships?.some((m) => (m.capabilities ?? []).includes('platform.support.access')) &&
+        !next.includes('platform.support.access')
+      ) {
+        next = [...next, 'platform.support.access'];
+      }
       // Fallback: if me has no caps, treat as full access for demo owner sessions
       // only when tenant is active — UI still gates destructive actions on 403.
       setCaps(next);

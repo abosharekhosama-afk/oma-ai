@@ -13,6 +13,14 @@ export function lahzaConfigured(): boolean {
   return Boolean(process.env.LAHZA_SECRET_KEY?.trim());
 }
 
+/** Bank transfer stays available whenever no live card/gateway provider is configured. */
+export function bankTransferConfigured(): boolean {
+  if (stripeConfigured() || lahzaConfigured()) {
+    return !flag('BILLING_BANK_TRANSFER_DISABLED');
+  }
+  return true;
+}
+
 export function listPaymentProviders(): ProviderInfo[] {
   const providers: ProviderInfo[] = [
     {
@@ -41,8 +49,8 @@ export function listPaymentProviders(): ProviderInfo[] {
       id: 'bank_transfer',
       name_en: 'Bank transfer',
       name_ar: 'تحويل بنكي',
-      mode: flag('BILLING_BANK_TRANSFER_DISABLED') ? 'unavailable' : 'manual',
-      configured: !flag('BILLING_BANK_TRANSFER_DISABLED'),
+      mode: bankTransferConfigured() ? 'manual' : 'unavailable',
+      configured: bankTransferConfigured(),
       notes_en:
         'You receive a reference number and transfer instructions, upload proof, and the platform owner activates the plan.',
       notes_ar: 'تصلك تعليمات التحويل ورقم مرجع، ترفع إثبات الدفع، ثم يفعّل مالك المنصة الخطة.',
@@ -93,4 +101,38 @@ export function listPaymentProviders(): ProviderInfo[] {
 
 export function providerIsManual(id: string): boolean {
   return ['bank_transfer', 'jawwal_pay', 'palpay', 'reflect'].includes(id);
+}
+
+export type ResolvedCheckoutProvider = {
+  id: string;
+  fallback: boolean;
+  requested: string | null;
+};
+
+/**
+ * Pick a checkout provider. An unconfigured online method (Stripe/Lahza) never
+ * fails the upgrade — it falls back to bank transfer / another configured manual method.
+ */
+export function resolveCheckoutProvider(requested?: string | null): ResolvedCheckoutProvider {
+  const wanted = requested?.trim() || null;
+  const providers = listPaymentProviders();
+  if (wanted) {
+    const info = providers.find((p) => p.id === wanted);
+    if (info?.configured) return { id: wanted, fallback: false, requested: wanted };
+  } else {
+    if (stripeConfigured()) return { id: 'stripe', fallback: false, requested: null };
+    if (lahzaConfigured()) return { id: 'lahza', fallback: false, requested: null };
+  }
+  const manual = providers.find((p) => p.configured && providerIsManual(p.id));
+  const id = manual?.id ?? 'bank_transfer';
+  return { id, fallback: Boolean(wanted && wanted !== id), requested: wanted };
+}
+
+/** Providers the customer can actually use. Hides Stripe/Lahza until keys are set. */
+export function visiblePaymentProviders(): ProviderInfo[] {
+  const visible = listPaymentProviders().filter((p) => p.configured);
+  if (visible.length) return visible;
+  return listPaymentProviders()
+    .filter((p) => p.id === 'bank_transfer')
+    .map((p) => ({ ...p, configured: true, mode: 'manual' as const }));
 }
