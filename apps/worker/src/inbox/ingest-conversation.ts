@@ -40,6 +40,7 @@ export type IngestInboundInput = {
   subject?: string | null;
   metadataJson?: string | null;
   createdAt?: Date;
+  parentExternalId?: string | null;
 };
 
 export async function ingestInboundMessage(
@@ -107,6 +108,15 @@ export async function ingestInboundMessage(
     if (dup) return 'duplicate';
   }
 
+  let parentMessageId: string | null = null;
+  if (input.parentExternalId) {
+    const parent = await prisma.inboxMessage.findFirst({
+      where: { conversationId: convId, externalMessageId: input.parentExternalId },
+      select: { id: true },
+    });
+    parentMessageId = parent?.id ?? null;
+  }
+
   await prisma.$transaction([
     prisma.inboxMessage.create({
       data: {
@@ -120,6 +130,10 @@ export async function ingestInboundMessage(
         content: input.content,
         mediaUrlsJson: input.mediaUrls?.length ? JSON.stringify(input.mediaUrls) : null,
         direction: 'INBOUND',
+        parentMessageId,
+        rawPayloadJson: input.parentExternalId
+          ? JSON.stringify({ parentExternalId: input.parentExternalId })
+          : null,
         createdAt: at,
       },
     }),

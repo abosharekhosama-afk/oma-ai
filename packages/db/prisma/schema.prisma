@@ -2037,12 +2037,17 @@ model InboxMessage {
   direction        InboxMessageDirection
   /// Raw platform payload fragment for audit / reprocessing
   rawPayloadJson   String?
+  /// Local parent message when this row is a reply (platform parent id stored in raw payload until resolved).
+  parentMessageId  String?
   createdAt        DateTime              @default(now())
   conversation     InboxConversation     @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  parent           InboxMessage?         @relation("InboxMessageReplies", fields: [parentMessageId], references: [id], onDelete: SetNull)
+  replies          InboxMessage[]        @relation("InboxMessageReplies")
 
   @@unique([conversationId, externalMessageId])
   @@index([tenantId, conversationId, createdAt])
   @@index([conversationId, createdAt])
+  @@index([parentMessageId])
 }
 
 model InboxInternalNote {

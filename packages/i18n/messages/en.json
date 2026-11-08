@@ -46,6 +46,7 @@
   "inbox.adBanner.dismiss": "Dismiss",
   "inbox.adBanner.connect": "Connect",
   "inbox.commentCount": "{count} comments",
+  "inbox.replyCount": "{count} replies",
   "inbox.comment.edit": "Edit",
   "inbox.comment.hide": "Hide",
   "inbox.comment.delete": "Delete",

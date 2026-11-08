@@ -217,20 +217,34 @@ export class InboxService {
       });
     }
 
+    const byExternalId = new Map(
+      messages
+        .filter((row) => row.externalMessageId)
+        .map((row) => [row.externalMessageId as string, row.id]),
+    );
+
     return {
       ...mapConv({ ...c, status: c.status === 'UNREAD' ? 'OPEN' : c.status }),
       participantExtId: c.participantExtId,
-      messages: messages.map((m) => ({
-        id: m.id,
-        direction: m.direction,
-        senderName: m.senderName,
-        senderAvatar: m.senderAvatar,
-        senderExternalId: m.senderExternalId,
-        content: m.content,
-        mediaUrls: m.mediaUrlsJson ? safeJson(m.mediaUrlsJson) : [],
-        liked: Boolean(parseRawObject(m.rawPayloadJson).omaLiked),
-        createdAt: m.createdAt.toISOString(),
-      })),
+      messages: messages.map((m) => {
+        const raw = parseRawObject(m.rawPayloadJson);
+        const parentFromPayload =
+          typeof raw.parentExternalId === 'string'
+            ? byExternalId.get(raw.parentExternalId)
+            : undefined;
+        return {
+          id: m.id,
+          direction: m.direction,
+          senderName: m.senderName,
+          senderAvatar: m.senderAvatar,
+          senderExternalId: m.senderExternalId,
+          content: m.content,
+          mediaUrls: m.mediaUrlsJson ? safeJson(m.mediaUrlsJson) : [],
+          liked: Boolean(raw.omaLiked),
+          parentMessageId: m.parentMessageId ?? parentFromPayload ?? null,
+          createdAt: m.createdAt.toISOString(),
+        };
+      }),
       notes: notes.map((n) => ({
         id: n.id,
         authorUserId: n.authorUserId,
@@ -262,14 +276,18 @@ export class InboxService {
     if (!c) throw new DomainError('NOT_FOUND', 'Conversation not found', 404, 'errors.not_found');
 
     let replyToCommentId: string | null = null;
-    if (c.type !== 'DIRECT_MESSAGE') {
-      if (body.replyToMessageId) {
-        const target = await getPrisma().inboxMessage.findFirst({
-          where: { id: body.replyToMessageId, conversationId: id, tenantId },
-          select: { externalMessageId: true },
-        });
-        replyToCommentId = target?.externalMessageId ?? null;
+    let parentMessageId: string | null = null;
+    if (body.replyToMessageId) {
+      const target = await getPrisma().inboxMessage.findFirst({
+        where: { id: body.replyToMessageId, conversationId: id, tenantId },
+        select: { id: true, externalMessageId: true },
+      });
+      if (target) {
+        parentMessageId = target.id;
+        replyToCommentId = target.externalMessageId ?? null;
       }
+    }
+    if (c.type !== 'DIRECT_MESSAGE') {
       if (!replyToCommentId) {
         const lastInbound = await getPrisma().inboxMessage.findFirst({
           where: { conversationId: id, direction: 'INBOUND' },
@@ -305,10 +323,12 @@ export class InboxService {
           senderName: 'Team',
           content,
           direction: 'OUTBOUND',
+          parentMessageId,
           mediaUrlsJson: mediaUrls.length ? JSON.stringify(mediaUrls) : null,
           rawPayloadJson: JSON.stringify({
             platformDelivered: delivery.delivered,
             platformReason: delivery.delivered ? null : delivery.reason,
+            ...(parentMessageId ? { replyToMessageId: parentMessageId } : {}),
           }),
         },
       }),

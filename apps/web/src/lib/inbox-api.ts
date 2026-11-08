@@ -33,6 +33,7 @@ export type InboxMessage = {
   content: string;
   mediaUrls: string[];
   liked?: boolean;
+  parentMessageId?: string | null;
   createdAt: string;
 };
 

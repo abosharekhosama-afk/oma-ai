@@ -46,6 +46,7 @@
   "inbox.adBanner.dismiss": "تجاهل",
   "inbox.adBanner.connect": "ربط",
   "inbox.commentCount": "{count} تعليقات",
+  "inbox.replyCount": "{count} ردود",
   "inbox.comment.edit": "تعديل",
   "inbox.comment.hide": "إخفاء",
   "inbox.comment.delete": "حذف",
