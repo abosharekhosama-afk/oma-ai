@@ -57,7 +57,7 @@ export async function runListeningPoll(
     where: {
       tenantId: rule.tenantId,
       status: 'CONNECTED',
-      network: { in: ['FACEBOOK', 'INSTAGRAM'] },
+      network: { in: ['FACEBOOK', 'INSTAGRAM', 'X'] },
       ...(rule.brandId ? { brandId: rule.brandId } : {}),
     },
   });
@@ -211,6 +211,65 @@ export async function runListeningPoll(
           } catch (e) {
             errors.push(`ig_hashtag_${q}:${e instanceof Error ? e.message : String(e)}`);
           }
+        }
+      }
+
+      if (page.network === 'X' && platformAllowed(platforms, 'X')) {
+        try {
+          const params = new URLSearchParams({
+            max_results: '25',
+            'tweet.fields': 'created_at,public_metrics,author_id',
+            expansions: 'author_id',
+            'user.fields': 'name,username',
+          });
+          const res = await fetch(
+            `https://api.x.com/2/users/${encodeURIComponent(page.externalId)}/mentions?${params}`,
+            { headers: { Authorization: `Bearer ${accessToken}` } },
+          );
+          const body = (await res.json()) as {
+            data?: Array<{
+              id: string;
+              text?: string;
+              author_id?: string;
+              created_at?: string;
+              public_metrics?: {
+                like_count?: number;
+                reply_count?: number;
+                retweet_count?: number;
+              };
+            }>;
+            includes?: { users?: Array<{ id: string; name?: string; username?: string }> };
+            title?: string;
+            detail?: string;
+          };
+          if (!res.ok) throw new Error(body.detail || body.title || `HTTP ${res.status}`);
+          const users = new Map((body.includes?.users ?? []).map((u) => [u.id, u]));
+          for (const tweet of body.data ?? []) {
+            const content = tweet.text ?? '';
+            const terms = matchedTerms(content, keywords, hashtags);
+            if (!terms.length && keywords.length + hashtags.length > 0) continue;
+            const author = tweet.author_id ? users.get(tweet.author_id) : undefined;
+            const r = await recordListeningHit({
+              tenantId: rule.tenantId,
+              ruleId: rule.id,
+              platform: 'X',
+              externalPostId: tweet.id,
+              authorName: author?.name ?? 'X user',
+              authorHandle: author?.username ? `@${author.username}` : null,
+              content,
+              url: author?.username
+                ? `https://x.com/${author.username}/status/${tweet.id}`
+                : `https://x.com/i/web/status/${tweet.id}`,
+              matchedKeywords: terms,
+              likeCount: tweet.public_metrics?.like_count ?? 0,
+              commentCount: tweet.public_metrics?.reply_count ?? 0,
+              shareCount: tweet.public_metrics?.retweet_count ?? 0,
+              capturedAt: tweet.created_at ? new Date(tweet.created_at) : undefined,
+            });
+            if (r === 'created' || r === 'updated') ingested += 1;
+          }
+        } catch (e) {
+          errors.push(`x_mentions:${e instanceof Error ? e.message : String(e)}`);
         }
       }
     }
