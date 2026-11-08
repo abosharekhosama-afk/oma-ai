@@ -49,5 +49,7 @@ describe('manual transfer receipt validation', () => {
     const oversized = parseReceiptImage(huge, 'image/jpeg');
     expect(oversized.ok).toBe(false);
     expect(estimateBase64Bytes(pngPixel)).toBeGreaterThan(32);
+    const mismatched = parseReceiptImage(pngPixel, 'image/jpeg');
+    expect(mismatched.ok).toBe(false);
   });
 });

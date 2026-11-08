@@ -4,7 +4,14 @@ import { openSettings } from '../../../../lib/settings-dialog';
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  FormEvent,
+  KeyboardEvent as ReactKeyboardEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { api } from '../../../../lib/api';
 import { announceBrandLogo, setActiveBrandId } from '../../../../lib/active-brand';
 import {
@@ -24,7 +31,6 @@ import {
   ChevronDownIcon,
   CloseIcon,
   CrownIcon,
-  HelpIcon,
   ImageIcon,
   LinkIcon,
   MoreIcon,
@@ -40,6 +46,7 @@ import {
 } from '../../../../components/ui/plx-icons';
 import './planable-dashboard.css';
 import { useLocale, useT } from '../../../../lib/use-locale';
+import { useCapabilities } from '../../../../lib/use-capabilities';
 import { NotificationsBell } from '../../../../components/shell/notifications-bell';
 import { UserMenu } from '../../../../components/shell/user-menu';
 
@@ -117,6 +124,25 @@ function initials(name: string) {
   return (name || '?').trim().charAt(0).toUpperCase();
 }
 
+function handleMenuKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
+  if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+  const items = Array.from(
+    event.currentTarget.querySelectorAll<HTMLElement>('[role="menuitem"]'),
+  ).filter((item) => !(item instanceof HTMLButtonElement && item.disabled));
+  if (!items.length) return;
+  event.preventDefault();
+  event.stopPropagation();
+  const current =
+    document.activeElement instanceof HTMLElement ? items.indexOf(document.activeElement) : -1;
+  let next = 0;
+  if (event.key === 'ArrowDown') next = current < 0 ? 0 : (current + 1) % items.length;
+  else if (event.key === 'ArrowUp')
+    next = current < 0 ? items.length - 1 : (current - 1 + items.length) % items.length;
+  else if (event.key === 'Home') next = 0;
+  else next = items.length - 1;
+  items[next]?.focus();
+}
+
 export function PlanableDashboard() {
   const t = useT();
   const locale = useLocale();
@@ -127,6 +153,7 @@ export function PlanableDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activating, setActivating] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const [companyMenuOpen, setCompanyMenuOpen] = useState(false);
   const [wsMenuFor, setWsMenuFor] = useState<string | null>(null);
@@ -162,6 +189,10 @@ export function PlanableDashboard() {
   const [createError, setCreateError] = useState<string | null>(null);
 
   const rootRef = useRef<HTMLDivElement>(null);
+  const companyMenuRef = useRef<HTMLDivElement>(null);
+  const activateGen = useRef(0);
+  const caps = useCapabilities();
+  const isPlatformAdmin = caps.can('platform.support.access');
 
   useEffect(() => {
     let cancelled = false;
@@ -199,8 +230,12 @@ export function PlanableDashboard() {
 
   useEffect(() => {
     function onDown(e: MouseEvent) {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (companyMenuRef.current && !companyMenuRef.current.contains(target)) {
         setCompanyMenuOpen(false);
+      }
+      const el = target instanceof Element ? target : target.parentElement;
+      if (wsMenuFor && !el?.closest('.plx-ws-menu-wrap')) {
         setWsMenuFor(null);
       }
     }
@@ -210,6 +245,7 @@ export function PlanableDashboard() {
         setWsMenuFor(null);
         setInviteOpen(false);
         setCreateOpen(false);
+        setRenameOpen(false);
       }
     }
     document.addEventListener('mousedown', onDown);
@@ -218,7 +254,19 @@ export function PlanableDashboard() {
       document.removeEventListener('mousedown', onDown);
       document.removeEventListener('keydown', onKey);
     };
-  }, []);
+  }, [wsMenuFor]);
+
+  useEffect(() => {
+    if (!companyMenuOpen) return;
+    companyMenuRef.current?.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
+  }, [companyMenuOpen]);
+
+  useEffect(() => {
+    if (!wsMenuFor) return;
+    document
+      .querySelector<HTMLElement>('[data-testid="workspace-card-actions-menu"] [role="menuitem"]')
+      ?.focus();
+  }, [wsMenuFor]);
 
   useEffect(() => {
     document.body.style.overflow = inviteOpen || createOpen ? 'hidden' : '';
@@ -275,18 +323,31 @@ export function PlanableDashboard() {
     });
   }
 
-  async function activate(tenantId: string) {
-    if (!tenantId || activating) return;
+  async function activate(tenantId: string, nextPath = '/app') {
+    if (!tenantId) return;
+    if (tenantId === me?.active_tenant_id) {
+      setCompanyMenuOpen(false);
+      setWsMenuFor(null);
+      setActionError(null);
+      window.location.assign(nextPath);
+      return;
+    }
+    const gen = ++activateGen.current;
     setActivating(tenantId);
+    setCompanyMenuOpen(false);
+    setWsMenuFor(null);
+    setActionError(null);
     try {
       await api('/api/v1/tenants/active', {
         method: 'POST',
         body: JSON.stringify({ tenant_id: tenantId }),
       });
+      if (gen !== activateGen.current) return;
       setActiveBrandId(null);
-      window.location.assign('/app');
+      window.location.assign(nextPath);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      if (gen !== activateGen.current) return;
+      setActionError(err instanceof Error ? err.message : String(err));
       setActivating(null);
     }
   }
@@ -317,7 +378,7 @@ export function PlanableDashboard() {
       );
       setRenameOpen(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setActionError(err instanceof Error ? err.message : String(err));
     } finally {
       setRenameSaving(false);
     }
@@ -441,11 +502,8 @@ export function PlanableDashboard() {
           />
         </div>
         <span className="plx-topbar-spacer" />
-        <button type="button" className="plx-icon-btn" aria-label={t('companies.help')}>
-          <HelpIcon />
-        </button>
         <NotificationsBell />
-        <UserMenu />
+        <UserMenu variant="header" />
       </header>
 
       {loading ? (
@@ -462,114 +520,191 @@ export function PlanableDashboard() {
       ) : (
         <div className="plx-dash-body">
           <div className="plx-company-row">
-            <span className="plx-company-avatar">{initials(companyName)}</span>
-            <div className="plx-company-menu-wrap">
-              <button
-                type="button"
-                className="plx-company-name"
-                aria-expanded={companyMenuOpen}
-                onClick={() => {
-                  setCompanyMenuOpen((v) => !v);
-                  setWsMenuFor(null);
-                }}
-              >
-                {companyName}
-                <ChevronDownIcon />
-              </button>
-              {companyMenuOpen ? (
-                <div className="plx-menu" role="menu" data-testid="company-actions-menu">
-                  <Link
-                    className="plx-menu-item"
-                    href="/app/billing"
-                    onClick={() => setCompanyMenuOpen(false)}
+            <div className="plx-company-identity">
+              <span className="plx-company-avatar">{initials(companyName)}</span>
+              <div className="plx-company-menu-wrap" ref={companyMenuRef}>
+                <button
+                  type="button"
+                  className="plx-company-name"
+                  aria-expanded={companyMenuOpen}
+                  aria-haspopup="menu"
+                  aria-controls="plx-workspace-switcher-menu"
+                  data-testid="workspace-switcher"
+                  onClick={() => {
+                    setCompanyMenuOpen((v) => !v);
+                    setWsMenuFor(null);
+                  }}
+                >
+                  <span className="plx-company-name-text">{companyName}</span>
+                  <ChevronDownIcon />
+                </button>
+                {companyMenuOpen ? (
+                  <div
+                    id="plx-workspace-switcher-menu"
+                    className="plx-menu"
+                    role="menu"
+                    data-testid="company-actions-menu"
+                    onKeyDown={handleMenuKeyDown}
                   >
-                    <CrownIcon /> {t('companies.upgrade') || 'Upgrade plan'}
-                  </Link>
-                  <button
-                    type="button"
-                    className="plx-menu-item"
-                    onClick={() => {
-                      setCompanyMenuOpen(false);
-                      router.push('/app/subscription');
-                    }}
-                  >
-                    <ChartIcon /> {t('billing.nav.subscription') || 'Usage'}
-                  </button>
-                  <button
-                    type="button"
-                    className="plx-menu-item"
-                    onClick={() => {
-                      setCompanyMenuOpen(false);
-                      router.push('/app/billing');
-                    }}
-                  >
-                    <CardIcon /> {t('shell.billing') || 'Billing'}
-                  </button>
-                  <button
-                    type="button"
-                    className="plx-menu-item"
-                    onClick={() => {
-                      setCompanyMenuOpen(false);
-                      openSettings('workspace');
-                    }}
-                  >
-                    <SettingsIcon /> {t('nav.settings') || 'Settings'}
-                  </button>
-                  <button
-                    type="button"
-                    className="plx-menu-item"
-                    onClick={() => {
-                      setCompanyMenuOpen(false);
-                      setRenameValue(companyName);
-                      setRenameOpen(true);
-                    }}
-                    data-testid="company-menu-rename"
-                  >
-                    <PencilIcon /> {t('companies.rename_company') || 'Rename workspace'}
-                  </button>
-                  <button
-                    type="button"
-                    className="plx-menu-item"
-                    onClick={() => {
-                      setCompanyMenuOpen(false);
-                      router.push('/app/team');
-                    }}
-                  >
-                    <UsersIcon /> {t('nav.team') || 'Members'}
-                  </button>
-                  <div className="plx-menu-sep" />
-                  <button
-                    type="button"
-                    className="plx-menu-item"
-                    onClick={() => {
-                      setCompanyMenuOpen(false);
-                      setInviteOpen(true);
-                    }}
-                  >
-                    <UserPlusIcon /> {t('companies.invite_users') || 'Invite collaborators'}
-                  </button>
-                </div>
-              ) : null}
+                    {memberships.length ? (
+                      <>
+                        <div className="plx-menu-label">{t('shell.workspaces')}</div>
+                        {memberships.map((m) => {
+                          const active = m.tenant_id === me?.active_tenant_id;
+                          return (
+                            <button
+                              key={m.tenant_id}
+                              type="button"
+                              role="menuitem"
+                              className="plx-menu-item"
+                              data-testid={`workspace-switcher-option-${m.tenant_id}`}
+                              disabled={activating === m.tenant_id}
+                              onClick={() => {
+                                void activate(m.tenant_id);
+                              }}
+                            >
+                              <BriefcaseIcon /> {m.tenant_name}
+                              {active ? <CheckSquareIcon /> : null}
+                            </button>
+                          );
+                        })}
+                        <div className="plx-menu-sep" />
+                      </>
+                    ) : null}
+                    {isPlatformAdmin ? (
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="plx-menu-item"
+                        onClick={() => {
+                          setCompanyMenuOpen(false);
+                          router.push('/app/admin/billing');
+                        }}
+                      >
+                        <CardIcon /> {t('companies.admin_billing')}
+                      </button>
+                    ) : (
+                      <Link
+                        className="plx-menu-item"
+                        role="menuitem"
+                        href="/app/billing"
+                        onClick={() => setCompanyMenuOpen(false)}
+                      >
+                        <CrownIcon /> {t('companies.upgrade')}
+                      </Link>
+                    )}
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="plx-menu-item"
+                      onClick={() => {
+                        setCompanyMenuOpen(false);
+                        router.push('/app/subscription');
+                      }}
+                    >
+                      <ChartIcon /> {t('billing.nav.subscription')}
+                    </button>
+                    {isPlatformAdmin ? null : (
+                      <button
+                        type="button"
+                        role="menuitem"
+                        className="plx-menu-item"
+                        onClick={() => {
+                          setCompanyMenuOpen(false);
+                          router.push('/app/billing');
+                        }}
+                      >
+                        <CardIcon /> {t('shell.billing')}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="plx-menu-item"
+                      onClick={() => {
+                        setCompanyMenuOpen(false);
+                        openSettings('workspace');
+                      }}
+                    >
+                      <SettingsIcon /> {t('nav.settings')}
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="plx-menu-item"
+                      onClick={() => {
+                        setCompanyMenuOpen(false);
+                        setRenameValue(companyName);
+                        setRenameOpen(true);
+                      }}
+                      data-testid="company-menu-rename"
+                    >
+                      <PencilIcon /> {t('companies.rename_company')}
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="plx-menu-item"
+                      onClick={() => {
+                        setCompanyMenuOpen(false);
+                        router.push('/app/team');
+                      }}
+                    >
+                      <UsersIcon /> {t('nav.team')}
+                    </button>
+                    <div className="plx-menu-sep" />
+                    <button
+                      type="button"
+                      role="menuitem"
+                      className="plx-menu-item"
+                      onClick={() => {
+                        setCompanyMenuOpen(false);
+                        setInviteOpen(true);
+                      }}
+                    >
+                      <UserPlusIcon /> {t('companies.invite_users')}
+                    </button>
+                  </div>
+                ) : null}
+              </div>
             </div>
-            <button
-              type="button"
-              className="plx-upgrade-pill"
-              onClick={() => router.push('/app/billing')}
-              data-testid="workspace-upgrade"
-            >
-              <SparkleIcon width={15} height={15} />
-              {t('companies.upgrade')}
-            </button>
-            <button type="button" className="plx-ghost-pill" onClick={() => setInviteOpen(true)}>
-              <UserPlusIcon width={16} height={16} />
-              {t('companies.invite_users')}
-            </button>
-            <span className="plx-topbar-spacer" />
-            <button type="button" className="plx-new-ws" onClick={openCreate}>
-              <PlusIcon width={16} height={16} />
-              {t('shell.newWorkspace')}
-            </button>
+            <div className="plx-company-actions">
+              {isPlatformAdmin ? (
+                <button
+                  type="button"
+                  className="plx-ghost-pill"
+                  onClick={() => router.push('/app/admin/billing')}
+                  data-testid="workspace-admin-billing"
+                >
+                  <CardIcon width={15} height={15} />
+                  {t('companies.admin_billing')}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="plx-upgrade-pill"
+                  onClick={() => router.push('/app/billing')}
+                  data-testid="workspace-upgrade"
+                >
+                  <SparkleIcon width={15} height={15} />
+                  {t('companies.upgrade')}
+                </button>
+              )}
+              <button type="button" className="plx-ghost-pill" onClick={() => setInviteOpen(true)}>
+                <UserPlusIcon width={16} height={16} />
+                {t('companies.invite_users')}
+              </button>
+              <button type="button" className="plx-new-ws" onClick={openCreate}>
+                <PlusIcon width={16} height={16} />
+                {t('shell.newWorkspace')}
+              </button>
+            </div>
           </div>
+          {actionError ? (
+            <p className="plx-action-error" role="alert">
+              {actionError}
+            </p>
+          ) : null}
 
           {me?.active_tenant_id ? (
             <div className="plx-other-head">
@@ -680,16 +815,13 @@ export function PlanableDashboard() {
                     }
                     onCloseMenu={() => setWsMenuFor(null)}
                     onInvite={() => {
-                      setWsMenuFor(null);
-                      setInviteOpen(true);
+                      void activate(m.tenant_id, '/app/team');
                     }}
                     onSettings={() => {
-                      setWsMenuFor(null);
-                      openSettings('workspace');
+                      void activate(m.tenant_id, '/app?settings=workspace');
                     }}
                     onApprovals={() => {
-                      setWsMenuFor(null);
-                      window.location.assign('/app/approvals');
+                      void activate(m.tenant_id, '/app/approvals');
                     }}
                   />
                 ))}
@@ -1117,6 +1249,7 @@ function WorkspaceCard(props: {
           className="plx-ws-more"
           aria-label={t('companies.workspace_options').replace('{name}', props.name)}
           aria-expanded={props.menuOpen}
+          aria-haspopup="menu"
           onClick={(e) => {
             e.stopPropagation();
             props.onToggleMenu();
@@ -1125,9 +1258,16 @@ function WorkspaceCard(props: {
           <MoreIcon />
         </button>
         {props.menuOpen ? (
-          <div className="plx-menu plx-menu--up" role="menu" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="plx-menu plx-menu--up"
+            role="menu"
+            data-testid="workspace-card-actions-menu"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={handleMenuKeyDown}
+          >
             <button
               type="button"
+              role="menuitem"
               className="plx-menu-item"
               onClick={() => {
                 props.onActivate();
@@ -1136,52 +1276,65 @@ function WorkspaceCard(props: {
             >
               <BriefcaseIcon />{' '}
               {props.kind === 'brand'
-                ? t('companies.open_brand') || 'Open brand'
-                : t('companies.open_workspace_action') || 'Open workspace'}
+                ? t('companies.open_brand')
+                : t('companies.open_workspace_action')}
             </button>
             {props.kind === 'brand' ? (
               <>
                 <button
                   type="button"
+                  role="menuitem"
                   className="plx-menu-item"
                   onClick={() => {
                     props.onConnect?.();
                     props.onCloseMenu();
                   }}
                 >
-                  <LinkIcon /> Connect website
+                  <LinkIcon /> {t('brand.detail.connectCta')}
                 </button>
                 <button
                   type="button"
+                  role="menuitem"
                   className="plx-menu-item"
                   onClick={() => {
                     props.onOpenContent?.();
                     props.onCloseMenu();
                   }}
                 >
-                  <ImageIcon /> Content calendar
+                  <ImageIcon /> {t('nav.content')}
                 </button>
               </>
             ) : (
-              <button type="button" className="plx-menu-item" onClick={props.onInvite}>
-                <UsersIcon /> Manage people
+              <button
+                type="button"
+                role="menuitem"
+                className="plx-menu-item"
+                onClick={props.onInvite}
+              >
+                <UsersIcon /> {t('nav.team')}
               </button>
             )}
-            <button type="button" className="plx-menu-item" onClick={props.onSettings}>
+            <button
+              type="button"
+              role="menuitem"
+              className="plx-menu-item"
+              onClick={props.onSettings}
+            >
               <SettingsIcon />{' '}
               {props.kind === 'brand'
-                ? t('companies.brand_settings') || 'Brand settings'
-                : t('shell.workspaceSettings') || 'Workspace settings'}
+                ? t('companies.brand_settings')
+                : t('shell.workspaceSettings')}
             </button>
             <button
               type="button"
+              role="menuitem"
               className="plx-menu-item"
               onClick={() => {
                 props.onApprovals?.();
                 props.onCloseMenu();
               }}
             >
-              <CheckSquareIcon /> {t('views.my_approvals') || 'Approvals'}
+              <CheckSquareIcon /> {t('views.my_approvals')}
             </button>
           </div>
         ) : null}

@@ -23,7 +23,10 @@ import {
   computeVat,
   formatVatPercent,
   isPlanCode,
+  resolvePublicAppOrigin,
+  sniffImageMime,
   validateManualTransfer,
+  RECEIPT_ALLOWED_MIME,
   limitsExceededByUsage,
   newId,
   normalizePlanCode,
@@ -53,10 +56,7 @@ import { createStripePortal, startStripeCheckout } from './providers/stripe.adap
 const audit = new AuditService();
 
 function webBase(): string {
-  return (process.env.WEB_BASE_URL || process.env.WEB_ORIGIN || 'http://127.0.0.1:3000').replace(
-    /\/$/,
-    '',
-  );
+  return resolvePublicAppOrigin(process.env.WEB_BASE_URL || process.env.WEB_ORIGIN);
 }
 
 function asCycle(v?: string): BillingCycle {
@@ -543,7 +543,8 @@ export class BillingService {
         requestedBy: actorUserId,
         planCode,
         billingCycle: cycle,
-        amountUsdCents: quote.plan.ex_vat_cents,
+        xApiAddon: Boolean(input.x_api_addon),
+        amountUsdCents: quote.total_ex_vat_cents,
         status: 'awaiting_payment',
         provider,
       },
@@ -1005,11 +1006,11 @@ export class BillingService {
       planCode,
       asCycle(checkout.billingCycle),
       settings.vatRateBps,
-      false,
-      0,
+      Boolean(checkout.xApiAddon),
+      settings.xApiAddonMonthlyUsdCents,
     );
     if (typeof input.amountCents === 'number' && Number.isFinite(input.amountCents)) {
-      if (input.amountCents < quote.plan.inc_vat_cents) {
+      if (input.amountCents < quote.total_inc_vat_cents) {
         throw new DomainError(
           'PAYMENT_REQUIRED',
           'Paid amount does not match the plan total',
@@ -1027,6 +1028,8 @@ export class BillingService {
       providerCustomerId: input.customerId,
       providerSubscriptionId: input.subscriptionId,
       providerAuthCode: input.authorizationCode,
+      xApiAddon: Boolean(checkout.xApiAddon),
+      vatRateBps: settings.vatRateBps,
     });
     await prisma.billingCheckout.update({
       where: { id: checkout.id },
@@ -1077,6 +1080,7 @@ export class BillingService {
             tenantId: metadata.tenant_id,
             provider: 'stripe',
             reference: metadata.checkout_id || reference,
+            amountCents: typeof obj.amount_total === 'number' ? obj.amount_total : undefined,
             customerId: typeof obj.customer === 'string' ? obj.customer : undefined,
             subscriptionId: typeof obj.subscription === 'string' ? obj.subscription : undefined,
           });
@@ -1449,7 +1453,13 @@ export class BillingService {
     if (!order?.proofImageBase64) {
       throw new DomainError('NOT_FOUND', 'Receipt not found', 404, 'errors.not_found');
     }
-    const mime = order.proofMime || 'image/jpeg';
+    const allowed = new Set<string>(RECEIPT_ALLOWED_MIME);
+    const sniffed = sniffImageMime(order.proofImageBase64);
+    const mime =
+      sniffed ?? (order.proofMime && allowed.has(order.proofMime) ? order.proofMime : null);
+    if (!mime) {
+      throw new DomainError('NOT_FOUND', 'Receipt not found', 404, 'errors.not_found');
+    }
     return {
       data: {
         id: order.id,

@@ -2568,6 +2568,10 @@ button.oma-breadcrumb-workspace:hover {
   cursor: pointer;
   text-align: start;
   padding: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* OMA-PATCH-ws-popover-planable */
@@ -4177,4 +4181,10 @@ button.oma-breadcrumb-workspace:hover {
 
 [dir='rtl'] .oma-plx-account-card__chev svg {
   transform: scaleX(-1);
+}
+
+.oma-ws-name-row,
+.oma-ws-body,
+.oma-ws-row {
+  min-width: 0;
 }

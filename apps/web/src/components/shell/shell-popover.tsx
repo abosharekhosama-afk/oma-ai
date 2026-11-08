@@ -17,16 +17,18 @@ export function ShellPopover(props: {
   content: ReactNode;
   children: ReactNode;
   className?: string;
+  placement?: 'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight';
 }) {
   const locale = useLocale();
   const rtl = locale === 'ar';
+  const placement = props.placement ?? (rtl ? 'topRight' : 'topLeft');
   return (
     <Popover
       open={props.open}
       onOpenChange={props.onOpenChange}
       trigger="click"
       arrow={false}
-      placement={rtl ? 'topRight' : 'topLeft'}
+      placement={placement}
       autoAdjustOverflow
       align={{ overflow: { adjustX: true, adjustY: true, shiftX: 8, shiftY: 8 } }}
       getPopupContainer={() => document.body}

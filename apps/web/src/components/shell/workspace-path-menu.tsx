@@ -46,6 +46,8 @@ export function WorkspacePathMenu({ onOpenSettings }: { onOpenSettings: () => vo
   const [brands, setBrands] = useState<BrandItem[]>([]);
   const [openMenu, setOpenMenu] = useState<'workspace' | 'brand' | null>(null);
   const [busyTenant, setBusyTenant] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const switchGen = useRef(0);
   const rootRef = useRef<HTMLDivElement>(null);
   const activeBrandId = useActiveBrandId();
 
@@ -109,21 +111,32 @@ export function WorkspacePathMenu({ onOpenSettings }: { onOpenSettings: () => vo
 
   async function activateWorkspace(tenantId: string) {
     if (!tenantId || tenantId === me?.active_tenant_id || busyTenant) return;
+    const gen = ++switchGen.current;
     setBusyTenant(true);
+    setError(null);
+    setOpenMenu(null);
     try {
       await api('/api/v1/tenants/active', {
         method: 'POST',
         body: JSON.stringify({ tenant_id: tenantId }),
       });
+      if (gen !== switchGen.current) return;
       setActiveBrandId(null);
       window.location.assign('/app');
-    } catch {
+    } catch (err) {
+      if (gen !== switchGen.current) return;
+      setError(err instanceof Error ? err.message : t('common.error'));
       setBusyTenant(false);
     }
   }
 
   return (
     <div className="oma-path-ws" ref={rootRef} data-testid="shell-context-selectors">
+      {error ? (
+        <p role="alert" className="oma-shell-note">
+          {error}
+        </p>
+      ) : null}
       <div className="oma-context-selector">
         <button
           type="button"

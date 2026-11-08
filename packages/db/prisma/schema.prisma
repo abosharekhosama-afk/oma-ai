@@ -2033,6 +2033,7 @@ model BillingCheckout {
   requestedBy    String
   planCode       String
   billingCycle   String    @default("monthly")
+  xApiAddon      Boolean   @default(false)
   amountUsdCents Int?
   /// awaiting_payment | fulfilled | cancelled
   status         String    @default("awaiting_payment")

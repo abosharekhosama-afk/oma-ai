@@ -101,6 +101,15 @@ function formatUsd(cents?: number | null) {
   return `$${(cents / 100).toFixed(2)}`;
 }
 
+function isSafeCheckoutRedirect(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:' && !parsed.username && !parsed.password;
+  } catch {
+    return false;
+  }
+}
+
 function money(n: number) {
   return `$${Number(n).toFixed(n % 1 === 0 ? 0 : 2)}`;
 }
@@ -208,7 +217,7 @@ export default function BillingClient() {
         x_api_addon: xAddon,
       });
       if (item.mode === 'live' || result.data.redirect_url) {
-        if (result.data.redirect_url) {
+        if (result.data.redirect_url && isSafeCheckoutRedirect(result.data.redirect_url)) {
           window.location.assign(result.data.redirect_url);
           return;
         }
@@ -261,7 +270,13 @@ export default function BillingClient() {
     setBusy('portal');
     try {
       const res = await openBillingPortal();
-      if (res.data.redirect_url) window.location.assign(res.data.redirect_url);
+      if (res.data.redirect_url && isSafeCheckoutRedirect(res.data.redirect_url)) {
+        window.location.assign(res.data.redirect_url);
+        return;
+      }
+      throw new Error(
+        isAr ? 'تعذر فتح صفحة الدفع الآمنة' : 'The provider did not return a safe payment page',
+      );
     } catch (err) {
       toast.push(
         planErrorFromUnknown(err, isAr) ||

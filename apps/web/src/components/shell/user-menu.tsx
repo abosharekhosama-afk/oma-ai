@@ -5,13 +5,19 @@ import { useEffect, useState } from 'react';
 import { api } from '../../lib/api';
 import { getProfile, initials, type Profile } from '../../lib/account-api';
 import { SESSION_OK_KEY } from '../../lib/session';
-import { useT } from '../../lib/use-locale';
+import { useCapabilities } from '../../lib/use-capabilities';
+import { useLocale, useT } from '../../lib/use-locale';
 import { ConfirmActionDialog } from '../ui/confirm-action-dialog';
 import { ShellIcon } from './shell-icons';
 import { ShellPopover } from './shell-popover';
 
-export function UserMenu() {
+export function UserMenu({ variant = 'rail' }: { variant?: 'rail' | 'header' } = {}) {
   const t = useT();
+  const locale = useLocale();
+  const headerPlacement = locale === 'ar' ? 'bottomLeft' : 'bottomRight';
+  const caps = useCapabilities();
+  const isPlatformAdmin = caps.can('platform.support.access');
+  const billingHref = isPlatformAdmin ? '/app/admin/billing' : '/app/billing';
   const [open, setOpen] = useState(false);
   const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -102,7 +108,7 @@ export function UserMenu() {
         </Link>
 
         <Link
-          href="/app/billing"
+          href={billingHref}
           className="oma-plx-account-card__item"
           role="menuitem"
           data-testid="shell-user-menu-billing"
@@ -124,7 +130,9 @@ export function UserMenu() {
               <path d="M12 6.5v11" />
             </svg>
           </span>
-          <span className="oma-plx-account-card__label">{t('shell.billing') || 'Billing'}</span>
+          <span className="oma-plx-account-card__label">
+            {isPlatformAdmin ? t('companies.admin_billing') : t('shell.billing') || 'Billing'}
+          </span>
           <span className="oma-plx-account-card__chev" aria-hidden="true">
             <svg
               width="14"
@@ -175,12 +183,13 @@ export function UserMenu() {
   );
 
   return (
-    <div className="oma-user-menu">
+    <div className={`oma-user-menu${variant === 'header' ? ' oma-user-menu--header' : ''}`}>
       <ShellPopover
         open={open}
         onOpenChange={setOpen}
         content={panel}
         className="oma-user-menu-pop"
+        placement={variant === 'header' ? headerPlacement : undefined}
       >
         <button
           type="button"
