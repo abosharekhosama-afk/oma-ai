@@ -79,6 +79,8 @@ function notificationTitle(type: string): string {
     'membership.invited': 'Team invitation',
     'strategy.submitted': 'Strategy submitted',
     'strategy.approved': 'Strategy approved',
+    'listening.alert_fired': 'Listening alert',
+    'inbox.message': 'New inbox message',
   };
   return map[type] ?? type.replace(/\./g, ' ');
 }
@@ -106,6 +108,8 @@ function notificationBody(type: string): string {
     'membership.invited': 'You were invited to a workspace.',
     'strategy.submitted': 'A strategy was submitted for review.',
     'strategy.approved': 'A strategy was approved.',
+    'listening.alert_fired': 'A listening alert matched new mentions.',
+    'inbox.message': 'You have a new social inbox conversation.',
   };
   return map[type] ?? 'You have a new notification.';
 }

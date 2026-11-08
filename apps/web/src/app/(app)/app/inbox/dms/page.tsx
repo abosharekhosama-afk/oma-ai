@@ -1,5 +1,10 @@
+import { Suspense } from 'react';
 import { InboxClient } from '../inbox-client';
 
-export default function InboxDmsPage() {
-  return <InboxClient mode="dms" />;
+export default function InboxPage() {
+  return (
+    <Suspense fallback={null}>
+      <InboxClient mode="dms" />
+    </Suspense>
+  );
 }

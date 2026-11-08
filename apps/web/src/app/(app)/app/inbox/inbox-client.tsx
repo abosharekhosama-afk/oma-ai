@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@oma/ui/controls';
 import {
   addInboxNote,
@@ -141,8 +142,10 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
   const [platformFilter, setPlatformFilter] = useState<InboxPlatformFilter>('all');
   const [statusCounts, setStatusCounts] = useState<InboxStats | null>(null);
   const [unansweredOnly, setUnansweredOnly] = useState(false);
+  const searchParams = useSearchParams();
+  const conversationFromUrl = searchParams.get('conversation');
   const [items, setItems] = useState<InboxConversationListItem[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(conversationFromUrl);
   const [detail, setDetail] = useState<InboxConversationDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -212,39 +215,51 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
       ? t('inbox.directMessages') || 'Direct messages'
       : t('inbox.commentsTitle') || 'Comments';
 
-  const loadList = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const [res, stats] = await Promise.all([
-        listInboxConversations({
-          category: mode,
-          limit: 100,
-          brandId: activeBrandId || undefined,
-          q: debouncedQ || undefined,
-          platform: platformFilter === 'all' ? undefined : platformFilter,
-          unanswered: unansweredOnly || undefined,
-        }),
-        getInboxStats(activeBrandId).catch(() => null),
-      ]);
-      if (stats) setStatusCounts(stats);
-      const filtered = filterByStatusTab(res.items, statusTab);
-      setItems(filtered);
-      setSelectedId((prev) => {
-        if (prev && filtered.some((it) => it.id === prev)) return prev;
-        return filtered[0]?.id ?? null;
-      });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to load inbox');
-      setItems([]);
-      setSelectedId(null);
-    } finally {
-      setLoading(false);
-    }
-  }, [mode, statusTab, activeBrandId, debouncedQ, platformFilter, unansweredOnly]);
+  const loadList = useCallback(
+    async (opts?: { silent?: boolean }) => {
+      if (!opts?.silent) setLoading(true);
+      setError(null);
+      try {
+        const [res, stats] = await Promise.all([
+          listInboxConversations({
+            category: mode,
+            limit: 100,
+            brandId: activeBrandId || undefined,
+            q: debouncedQ || undefined,
+            platform: platformFilter === 'all' ? undefined : platformFilter,
+            unanswered: unansweredOnly || undefined,
+          }),
+          getInboxStats(activeBrandId).catch(() => null),
+        ]);
+        if (stats) setStatusCounts(stats);
+        const filtered = filterByStatusTab(res.items, statusTab);
+        setItems(filtered);
+        setSelectedId((prev) => {
+          if (prev && filtered.some((it) => it.id === prev)) return prev;
+          if (conversationFromUrl && prev === conversationFromUrl) return prev;
+          return filtered[0]?.id ?? null;
+        });
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Failed to load inbox');
+        setItems([]);
+        setSelectedId(null);
+      } finally {
+        if (!opts?.silent) setLoading(false);
+      }
+    },
+    [
+      mode,
+      statusTab,
+      activeBrandId,
+      debouncedQ,
+      platformFilter,
+      unansweredOnly,
+      conversationFromUrl,
+    ],
+  );
 
-  const loadDetail = useCallback(async (id: string) => {
-    setDetailLoading(true);
+  const loadDetail = useCallback(async (id: string, opts?: { silent?: boolean }) => {
+    if (!opts?.silent) setDetailLoading(true);
     try {
       const d = await getInboxConversation(id);
       setDetail(d);
@@ -255,7 +270,7 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
       setError(e instanceof Error ? e.message : 'Failed to load conversation');
       setDetail(null);
     } finally {
-      setDetailLoading(false);
+      if (!opts?.silent) setDetailLoading(false);
     }
   }, []);
 
@@ -265,8 +280,8 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
       try {
         await syncInbox(activeBrandId || undefined);
         await new Promise((r) => setTimeout(r, 1500));
-        await loadList();
-        if (selectedId) await loadDetail(selectedId);
+        await loadList({ silent: opts?.silent });
+        if (selectedId) await loadDetail(selectedId, { silent: opts?.silent });
       } catch (e) {
         if (!opts?.silent) {
           setError(e instanceof Error ? e.message : 'Sync failed');
@@ -281,6 +296,18 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
   useEffect(() => {
     void loadList();
   }, [loadList]);
+
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      void loadList({ silent: true });
+      if (selectedId) void loadDetail(selectedId, { silent: true });
+    }, 15_000);
+    return () => window.clearInterval(id);
+  }, [loadList, loadDetail, selectedId]);
+
+  useEffect(() => {
+    if (conversationFromUrl) setSelectedId(conversationFromUrl);
+  }, [conversationFromUrl]);
 
   useEffect(() => {
     if (initialSyncDone.current) return;

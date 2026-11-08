@@ -17,13 +17,16 @@ import {
 } from '../../lib/notifications-api';
 import { getApiError } from '../../lib/brand-api';
 
-export type NotificationCategory = 'approvals' | 'publishing' | 'feedback' | 'tasks' | 'workspace';
+export type NotificationCategory =
+  'approvals' | 'publishing' | 'feedback' | 'tasks' | 'workspace' | 'listening' | 'inbox';
 export const notificationCategories: NotificationCategory[] = [
   'approvals',
   'publishing',
   'feedback',
   'tasks',
   'workspace',
+  'listening',
+  'inbox',
 ];
 
 /** Planable-style inbox tabs (maps to underlying notification categories). */
@@ -58,13 +61,15 @@ const categoryTypes: Record<NotificationCategory, string[]> = {
   feedback: ['content.comment', 'task.comment', 'deliverable.comment'],
   tasks: ['request.assigned', 'request.converted', 'task.assigned'],
   workspace: ['membership.invited'],
+  listening: ['listening.alert_fired'],
+  inbox: ['inbox.message'],
 };
 
 export function notificationTabCategories(tab: NotificationTab): NotificationCategory[] {
   if (tab === 'approvals') return ['approvals'];
-  if (tab === 'feedback') return ['feedback'];
-  if (tab === 'social_inbox') return ['publishing'];
-  return ['tasks', 'workspace'];
+  if (tab === 'feedback') return ['feedback', 'tasks', 'workspace'];
+  if (tab === 'social_inbox') return ['inbox', 'publishing'];
+  return ['listening'];
 }
 
 export function notificationCategory(type: string): NotificationCategory {
@@ -80,6 +85,8 @@ export function notificationCategoryLabel(category: NotificationCategory, isAr: 
     feedback: ['Feedback', 'التعليقات'],
     tasks: ['Tasks', 'المهام'],
     workspace: ['Workspace', 'مساحة العمل'],
+    listening: ['Listening', 'الاستماع'],
+    inbox: ['Social inbox', 'صندوق التواصل'],
   };
   return isAr ? labels[category][1] : labels[category][0];
 }
@@ -106,6 +113,8 @@ export function NotificationTypeIcon({
   if (category === 'publishing') return <ClockIcon {...props} />;
   if (category === 'feedback') return <EnvelopeIcon {...props} />;
   if (category === 'tasks') return <ImageIcon {...props} />;
+  if (category === 'listening') return <ClockIcon {...props} />;
+  if (category === 'inbox') return <EnvelopeIcon {...props} />;
   return <UsersIcon {...props} />;
 }
 
@@ -305,9 +314,12 @@ export function NotificationsBell() {
   }, [open, load]);
   useEffect(() => {
     void load();
-    const id = window.setInterval(() => {
-      if (!open) void load();
-    }, 60_000);
+    const id = window.setInterval(
+      () => {
+        void load();
+      },
+      open ? 15_000 : 60_000,
+    );
     return () => window.clearInterval(id);
   }, [load, open]);
   async function markRead(id: string) {

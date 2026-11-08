@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   CheckOutlined,
   ClockCircleOutlined,
   MoreOutlined,
   UserOutlined,
 } from '../../../../components/ui/lucide-icons';
+import { FloatingOverlay } from '../../../../components/ui/floating-overlay';
 import type { InboxConversationDetail } from '../../../../lib/inbox-api';
 import type { WorkspaceMember } from '../../../../lib/team-api';
 
@@ -34,26 +35,20 @@ export function InboxThreadMenu(props: {
   } = props;
   const [open, setOpen] = useState(false);
   const [assignOpen, setAssignOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
-    if (!open) return;
-    const onDoc = (e: MouseEvent) => {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
-        setOpen(false);
-        setAssignOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', onDoc);
-    return () => document.removeEventListener('mousedown', onDoc);
-  }, [open]);
+  const close = () => {
+    setOpen(false);
+    setAssignOpen(false);
+  };
 
   const isClosed = detail.status === 'CLOSED';
   const isLater = detail.status === 'PENDING';
 
   return (
-    <div className="oma-plx-inbox-thread-menu" ref={rootRef}>
+    <div className="oma-plx-inbox-thread-menu">
       <button
+        ref={triggerRef}
         type="button"
         className="oma-plx-inbox-icon-btn oma-plx-inbox-icon-btn--ghost"
         aria-label={t('inbox.menu.more') || 'More actions'}
@@ -62,109 +57,113 @@ export function InboxThreadMenu(props: {
       >
         <MoreOutlined />
       </button>
-      {open ? (
-        <div className="oma-plx-inbox-thread-menu__drop" role="menu">
-          {!isClosed && !isLater ? (
-            <button
-              type="button"
-              role="menuitem"
-              onClick={() => {
-                setOpen(false);
-                onLater();
-              }}
-            >
-              <ClockCircleOutlined /> {t('inbox.menu.later') || 'Move to later'}
-            </button>
-          ) : null}
-          {isClosed || isLater ? (
-            <button
-              type="button"
-              role="menuitem"
-              onClick={() => {
-                setOpen(false);
-                onReopen();
-              }}
-            >
-              {t('inbox.menu.reopen') || 'Reopen'}
-            </button>
-          ) : null}
-          {!isClosed ? (
-            <button
-              type="button"
-              role="menuitem"
-              onClick={() => {
-                setOpen(false);
-                onMarkDone();
-              }}
-            >
-              <CheckOutlined /> {t('inbox.markDone') || 'Mark as done'}
-            </button>
-          ) : null}
+      <FloatingOverlay
+        open={open}
+        anchorRef={triggerRef}
+        onClose={close}
+        className="oma-plx-inbox-thread-menu__drop"
+        role="menu"
+        width={260}
+        align="end"
+      >
+        {!isClosed && !isLater ? (
           <button
             type="button"
             role="menuitem"
             onClick={() => {
-              setOpen(false);
-              onTogglePriority();
+              close();
+              onLater();
             }}
           >
-            {detail.priority
-              ? t('inbox.menu.removePriority') || 'Remove priority'
-              : t('inbox.menu.priority') || 'Mark priority'}
+            <ClockCircleOutlined /> {t('inbox.menu.later') || 'Move to later'}
           </button>
-          <div className="oma-plx-inbox-thread-menu__sub">
-            <button
-              type="button"
-              role="menuitem"
-              className="oma-plx-inbox-thread-menu__sub-trigger"
-              onClick={() => setAssignOpen((v) => !v)}
-            >
-              <UserOutlined /> {t('inbox.menu.assign') || 'Assign'}
-            </button>
-            {assignOpen ? (
-              <div className="oma-plx-inbox-thread-menu__sub-panel" role="group">
-                <button
-                  type="button"
-                  className={!detail.assignedToUserId ? 'is-active' : undefined}
-                  onClick={() => {
-                    setOpen(false);
-                    setAssignOpen(false);
-                    onAssign(null);
-                  }}
-                >
-                  {t('inbox.assign.unassigned') || 'Unassigned'}
-                </button>
-                {members
-                  .filter((m) => m.user?.id)
-                  .map((m) => (
-                    <button
-                      key={m.user!.id}
-                      type="button"
-                      className={detail.assignedToUserId === m.user!.id ? 'is-active' : undefined}
-                      onClick={() => {
-                        setOpen(false);
-                        setAssignOpen(false);
-                        onAssign(m.user!.id);
-                      }}
-                    >
-                      {m.user!.name || m.user!.email}
-                    </button>
-                  ))}
-              </div>
-            ) : null}
-          </div>
+        ) : null}
+        {isClosed || isLater ? (
           <button
             type="button"
             role="menuitem"
             onClick={() => {
-              setOpen(false);
-              onInternalNote();
+              close();
+              onReopen();
             }}
           >
-            {t('inbox.menu.note') || 'Internal note'}
+            {t('inbox.menu.reopen') || 'Reopen'}
           </button>
+        ) : null}
+        {!isClosed ? (
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
+              close();
+              onMarkDone();
+            }}
+          >
+            <CheckOutlined /> {t('inbox.markDone') || 'Mark as done'}
+          </button>
+        ) : null}
+        <button
+          type="button"
+          role="menuitem"
+          onClick={() => {
+            close();
+            onTogglePriority();
+          }}
+        >
+          {detail.priority
+            ? t('inbox.menu.removePriority') || 'Remove priority'
+            : t('inbox.menu.priority') || 'Mark priority'}
+        </button>
+        <div className="oma-plx-inbox-thread-menu__sub">
+          <button
+            type="button"
+            role="menuitem"
+            className="oma-plx-inbox-thread-menu__sub-trigger"
+            onClick={() => setAssignOpen((v) => !v)}
+          >
+            <UserOutlined /> {t('inbox.menu.assign') || 'Assign'}
+          </button>
+          {assignOpen ? (
+            <div className="oma-plx-inbox-thread-menu__sub-panel" role="group">
+              <button
+                type="button"
+                className={!detail.assignedToUserId ? 'is-active' : undefined}
+                onClick={() => {
+                  close();
+                  onAssign(null);
+                }}
+              >
+                {t('inbox.assign.unassigned') || 'Unassigned'}
+              </button>
+              {members
+                .filter((m) => m.user?.id)
+                .map((m) => (
+                  <button
+                    key={m.user!.id}
+                    type="button"
+                    className={detail.assignedToUserId === m.user!.id ? 'is-active' : undefined}
+                    onClick={() => {
+                      close();
+                      onAssign(m.user!.id);
+                    }}
+                  >
+                    {m.user!.name || m.user!.email}
+                  </button>
+                ))}
+            </div>
+          ) : null}
         </div>
-      ) : null}
+        <button
+          type="button"
+          role="menuitem"
+          onClick={() => {
+            close();
+            onInternalNote();
+          }}
+        >
+          {t('inbox.menu.note') || 'Internal note'}
+        </button>
+      </FloatingOverlay>
     </div>
   );
 }

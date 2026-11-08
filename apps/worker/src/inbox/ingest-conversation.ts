@@ -1,5 +1,5 @@
 import { getPrisma } from '@oma/db';
-import { newId } from '@oma/domain';
+import { newId, notificationAllowed } from '@oma/domain';
 
 export type InboxPlatform = 'META_FB' | 'META_IG' | 'TIKTOK' | 'LINKEDIN' | 'X' | 'WHATSAPP';
 export type InboxConvType = 'DIRECT_MESSAGE' | 'POST_COMMENT' | 'DARK_COMMENT' | 'MENTION';
@@ -140,5 +140,50 @@ export async function ingestInboundMessage(
     }),
   ]);
 
-  return existing ? 'updated' : 'created';
+  const result = existing ? 'updated' : 'created';
+  await notifyInboxInbound(input.tenantId, convId, input.type);
+  return result;
+}
+
+async function notifyInboxInbound(
+  tenantId: string,
+  conversationId: string,
+  convType: InboxConvType,
+) {
+  try {
+    const prisma = getPrisma();
+    const path =
+      convType === 'DIRECT_MESSAGE'
+        ? `/app/inbox/dms?conversation=${encodeURIComponent(conversationId)}`
+        : `/app/inbox/comments?conversation=${encodeURIComponent(conversationId)}`;
+    const members = await prisma.membership.findMany({
+      where: {
+        tenantId,
+        status: 'ACTIVE',
+        grants: { some: { revokedAt: null, capabilityCode: 'content.read' } },
+      },
+      include: { user: { select: { id: true, preferencesJson: true } } },
+    });
+    const targets = members
+      .map((m) => m.user)
+      .filter((u): u is NonNullable<typeof u> => Boolean(u?.id))
+      .filter((u) => notificationAllowed(u.preferencesJson, 'inbox.message'));
+    if (!targets.length) return;
+    const hourKey = new Date().toISOString().slice(0, 13);
+    await prisma.notification.createMany({
+      data: targets.map((u) => ({
+        id: newId(),
+        tenantId,
+        recipientUserId: u.id,
+        type: 'inbox.message',
+        objectType: 'InboxConversation',
+        objectId: conversationId,
+        deepLinkPath: path,
+        dedupeKey: `inbox.message:${conversationId}:${u.id}:${hourKey}`,
+      })),
+      skipDuplicates: true,
+    });
+  } catch {
+    // Ingestion must not fail because a notification could not be written.
+  }
 }

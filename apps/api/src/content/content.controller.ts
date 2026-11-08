@@ -482,7 +482,7 @@ export class ContentController {
     @Param('brandId') brandId: string,
     @Body()
     body: {
-      approvalPolicy?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
+      approvalPolicy?: 'NONE' | 'OPTIONAL' | 'REQUIRED' | null;
       defaultTimezone?: string;
       previewStyle?: string;
       accentColor?: string | null;

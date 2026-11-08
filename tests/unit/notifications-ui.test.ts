@@ -27,4 +27,15 @@ describe('notifications Planable-style UI', () => {
     expect(css).toContain('.oma-notification-card__channel');
     expect(css).toContain('.oma-notifications-panel__tabs');
   });
+
+  it('maps Planable tabs to real listening and inbox notification types', () => {
+    const source = read('apps/web/src/components/shell/notifications-bell.tsx');
+    expect(source).toContain("listening: ['listening.alert_fired']");
+    expect(source).toContain("inbox: ['inbox.message']");
+    expect(source).toContain("if (tab === 'social_inbox') return ['inbox', 'publishing']");
+    expect(source).toContain("return ['listening']");
+    expect(source).not.toContain("if (tab === 'social_inbox') return ['publishing']");
+    const ingest = read('apps/worker/src/inbox/ingest-conversation.ts');
+    expect(ingest).toContain("type: 'inbox.message'");
+  });
 });

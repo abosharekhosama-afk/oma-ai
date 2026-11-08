@@ -1,5 +1,5 @@
 import { getPrisma } from '@oma/db';
-import { skipReasonMessage } from '@oma/domain';
+import { effectiveApprovalPolicy, skipReasonMessage } from '@oma/domain';
 
 export async function findDuePublishTargetIds(
   now: Date,
@@ -7,12 +7,34 @@ export async function findDuePublishTargetIds(
 ): Promise<{ ids: string[]; skipped: number }> {
   const prisma = getPrisma();
   let skipped = 0;
-  const noApproval = (
-    await prisma.contentPreferences.findMany({
-      where: { approvalPolicy: 'NONE' },
-      select: { brandId: true },
-    })
-  ).map((p) => p.brandId);
+  const [prefs, settings] = await Promise.all([
+    prisma.contentPreferences.findMany({
+      select: { brandId: true, tenantId: true, approvalPolicy: true },
+    }),
+    prisma.workspaceSetting.findMany({
+      select: { tenantId: true, approvalMode: true },
+    }),
+  ]);
+  const wsModeByTenant = new Map(settings.map((row) => [row.tenantId, row.approvalMode]));
+  const noApproval = new Set<string>();
+  const seen = new Set<string>();
+  for (const pref of prefs) {
+    seen.add(pref.brandId);
+    const policy = effectiveApprovalPolicy(wsModeByTenant.get(pref.tenantId), pref.approvalPolicy);
+    if (policy !== 'REQUIRED') noApproval.add(pref.brandId);
+  }
+  const skipApprovalTenantIds = settings
+    .filter((row) => effectiveApprovalPolicy(row.approvalMode, null) !== 'REQUIRED')
+    .map((row) => row.tenantId);
+  if (skipApprovalTenantIds.length > 0) {
+    const inherited = await prisma.brandWorkspace.findMany({
+      where: { tenantId: { in: skipApprovalTenantIds }, deletedAt: null },
+      select: { id: true },
+    });
+    for (const brand of inherited) {
+      if (!seen.has(brand.id)) noApproval.add(brand.id);
+    }
+  }
 
   const dueItems = await prisma.contentItem.findMany({
     where: {
@@ -32,7 +54,7 @@ export async function findDuePublishTargetIds(
   });
 
   for (const row of dueItems) {
-    const eligible = row.approvalState === 'APPROVED' || noApproval.includes(row.brandId);
+    const eligible = row.approvalState === 'APPROVED' || noApproval.has(row.brandId);
     if (!eligible) {
       skipped += 1;
       const reason = skipReasonMessage('NOT_APPROVED');
@@ -65,7 +87,7 @@ export async function findDuePublishTargetIds(
         archivedAt: null,
         scheduleState: 'SCHEDULED',
         scheduledAt: { lte: now },
-        OR: [{ approvalState: 'APPROVED' }, { brandId: { in: noApproval } }],
+        OR: [{ approvalState: 'APPROVED' }, { brandId: { in: [...noApproval] } }],
       },
     },
     orderBy: { contentItem: { scheduledAt: 'asc' } },

@@ -8520,3 +8520,22 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
     width: min(92vw, 420px);
   }
 }
+
+
+/* Collision-aware floating overlays (portaled to document.body) */
+body > .oma-floating-overlay {
+  position: fixed !important;
+  top: var(--oma-float-top, 0) !important;
+  left: var(--oma-float-left, 0) !important;
+  inset-inline-start: auto !important;
+  inset-inline-end: auto !important;
+  width: var(--oma-float-width, auto) !important;
+  max-height: var(--oma-float-max-h, 70vh) !important;
+  z-index: 12000 !important;
+  overflow: auto !important;
+}
+.oma-plan-post__more-menu-list {
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}

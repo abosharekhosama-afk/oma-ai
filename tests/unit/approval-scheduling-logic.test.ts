@@ -68,6 +68,43 @@ describe('workspace approval policy (server-side)', () => {
     expect(svc).toContain('scheduleOnApproval');
   });
 
+  it('inherits workspace approval mode unless a brand override is explicitly set', () => {
+    const svc = read('apps/api/src/content/content.service.ts');
+    expect(svc).toContain('effectiveApprovalPolicy');
+    expect(svc).toContain('requiredApproverCount');
+    expect(svc).toContain("source: brandOverride ? 'brand' : 'workspace'");
+    expect(svc).toContain('approvalPolicy: patch.approvalPolicy ?? null');
+    expect(svc).not.toContain(
+      'prefs && prefs.tenantId === tenantId ? (prefs.approvalPolicy as ApprovalPolicy) : wsPolicy',
+    );
+    const worker = read('apps/worker/src/social/due-publish-targets.ts');
+    expect(worker).toContain('effectiveApprovalPolicy');
+    expect(worker).not.toContain("where: { approvalPolicy: 'NONE' }");
+    const schema = read('packages/db/prisma/schema.prisma');
+    expect(schema).toContain('approvalPolicy  ContentApprovalPolicy?');
+  });
+
+  it('brand and workspace settings cards persist the same workspace approval fields', () => {
+    const brand = read('apps/web/src/components/brand/brand-approvals-settings.tsx');
+    const workspace = read('apps/web/src/components/shell/workspace-settings-panel.tsx');
+    const settings = read('apps/web/src/components/settings/settings-panel.tsx');
+    const ui = read('apps/web/src/components/shell/workspace-approvals.tsx');
+    const api = read('apps/web/src/lib/workspace-extras-api.ts');
+    expect(brand).toContain('getWorkspaceSettings');
+    expect(brand).toContain('<WorkspaceApprovals');
+    expect(workspace).toContain('approvalsFromSettings');
+    expect(settings).toContain('approvalsFromSettings');
+    expect(ui).toContain('saveApprovalSettings');
+    expect(ui).toContain('scheduleOnApproval');
+    expect(ui).toContain('lockAfterApproval');
+    expect(ui).toContain('reminderPendingApprovals');
+    expect(api).toContain('approval_mode: a.mode');
+    expect(api).toContain('required_approvers:');
+    expect(api).toContain('schedule_on_approval: a.scheduleOnApproval');
+    expect(api).toContain('lock_after_approval: a.lockAfterApproval');
+    expect(api).toContain('reminder_pending_approvals: a.reminderPendingApprovals');
+  });
+
   it('settings route is registered and PATCH needs tenant.manage', () => {
     expect(read('apps/api/src/app.module.ts')).toContain('WorkspaceSettingsController');
     expect(read('apps/api/src/common/guards/capabilities.guard.ts')).toContain(
