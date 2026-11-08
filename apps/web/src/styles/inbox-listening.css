@@ -2006,21 +2006,27 @@
 }
 
 .oma-plx-inbox-comment-card__text {
-  margin: 8px 0 0 42px;
+  margin-block: 8px 0;
+  margin-inline: 42px 0;
   font-size: 14px;
   line-height: 1.45;
   color: #111827;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .oma-plx-inbox-inline-reply {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  margin: 10px 0 0 42px;
+  margin-block: 10px 0;
+  margin-inline: 42px 0;
   padding: 10px;
   border: 1px solid #93c5fd;
   border-radius: 10px;
   background: #fff;
+  min-width: 0;
+  max-width: 100%;
 }
 
 .oma-plx-inbox-inline-reply--placeholder {
@@ -2198,13 +2204,83 @@
 
 @media (max-width: 900px) {
   .oma-plx-inbox {
+    display: flex;
+    flex-direction: column;
     grid-template-columns: 1fr;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     min-height: auto;
+    box-sizing: border-box;
+    overflow-x: hidden;
+  }
+  .oma-plx-inbox-list,
+  .oma-plx-inbox-thread,
+  .oma-plx-inbox-thread__body,
+  .oma-plx-inbox-comments,
+  .oma-plx-inbox-comment-card,
+  .oma-plx-inbox-comment-tree,
+  .oma-plx-inbox-comment-replies,
+  .oma-plx-inbox-composer,
+  .oma-plx-inbox-composer__pill,
+  .oma-plx-inbox-post,
+  .oma-plx-inbox-post__content {
+    min-width: 0;
+    max-width: 100%;
   }
   .oma-plx-inbox-list {
     max-height: 42vh;
     border-inline-end: 0;
     border-bottom: 1px solid #eceef1;
+  }
+  .oma-plx-inbox-list__head,
+  .oma-plx-inbox-list__title-row,
+  .oma-plx-inbox-list__toolbar,
+  .oma-plx-inbox-list__filters,
+  .oma-plx-inbox-thread__head,
+  .oma-plx-inbox-thread__actions,
+  .oma-plx-inbox-comments-head,
+  .oma-plx-inbox-composer__pill,
+  .oma-plx-inbox-composer__main,
+  .oma-plx-inbox-composer__note {
+    flex-wrap: wrap;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .oma-plx-inbox-thread__actions {
+    flex-shrink: 1;
+  }
+  .oma-plx-inbox-status-tabs {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .oma-plx-inbox-post__caption,
+  .oma-plx-inbox-comment-card__text,
+  .oma-plx-inbox-bubble,
+  .oma-inbox-note {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+}
+
+@media (max-width: 767px) {
+  .oma-plx-inbox-thread__body {
+    padding-inline: 12px;
+  }
+  .oma-plx-inbox-composer {
+    padding-inline: 12px;
+  }
+  .oma-plx-inbox-comment-tree {
+    padding-inline-start: 12px;
+  }
+  .oma-plx-inbox-comment-tree > li {
+    padding-inline-start: 10px;
+  }
+  .oma-plx-inbox-comment-card__text,
+  .oma-plx-inbox-inline-reply,
+  .oma-plx-inbox-comment-card__media {
+    margin-inline-start: 8px;
   }
 }
 

@@ -1801,8 +1801,64 @@ html body .oma-deliv-detail__side-card {
 }
 @media (max-width: 980px) {
   .oma-campaign-kpis,
-  .oma-campaign-overview__grid {
+  .oma-campaign-overview__grid,
+  .oma-campaign-metrics {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 767px) {
+  .oma-campaign-detail,
+  .oma-campaign-detail.oma-stack {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+  .oma-campaign-detail > *,
+  .oma-campaign-workspace-head,
+  .oma-campaign-detail .oma-page-header,
+  .oma-campaign-detail .oma-ws-tabs,
+  .oma-campaign-detail .oma-workspace-tabs,
+  .oma-campaign-overview,
+  .oma-campaign-overview__grid,
+  .oma-campaign-kpis,
+  .oma-campaign-metrics,
+  .oma-campaign-panel,
+  .oma-campaign-table,
+  .oma-campaign-detail .oma-req-table-wrap {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .oma-campaign-detail .oma-workspace-tabs {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .oma-campaign-kpis,
+  .oma-campaign-overview__grid,
+  .oma-campaign-metrics {
+    grid-template-columns: 1fr;
+  }
+  .oma-campaign-facts,
+  .oma-campaign-facts--brief {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px 0;
+  }
+  .oma-campaign-copy,
+  .oma-campaign-facts dd,
+  .oma-campaign-kpi strong,
+  .oma-campaign-metric strong,
+  .oma-campaign-activity-summary,
+  .oma-campaign-detail .oma-task-title-text {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    min-width: 0;
+  }
+  .oma-campaign-activity-summary {
+    max-width: 100%;
+  }
+  .oma-campaign-detail .oma-campaign-table {
+    overflow-x: auto;
   }
 }
 

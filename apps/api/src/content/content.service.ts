@@ -28,6 +28,8 @@ import {
 import { AuditService } from '../audit/audit.service';
 import { mediaPlaybackUrl } from '../media/media.service';
 import { syncContentPublishRollup } from '../social/publish-target-sync';
+import { buildChannelAnalyticsView, parseInsights } from './channel-analytics';
+import { maybeRefreshPublishTargetInsights } from './refresh-post-insights';
 import { rollupToLegacyPublishState } from '@oma/domain';
 
 function mapComment(c: {
@@ -304,36 +306,6 @@ function parseAccentColor(value: string | null | undefined): string | null | und
   return color.toLowerCase();
 }
 
-function parseInsights(raw: string | null | undefined): {
-  impressions?: number;
-  reach?: number;
-  likes?: number;
-  comments?: number;
-  shares?: number;
-  views?: number;
-  fetchedAt?: string;
-} | null {
-  if (!raw) return null;
-  try {
-    const v = JSON.parse(raw) as Record<string, unknown>;
-    const num = (k: string): number | undefined => {
-      const n = v[k];
-      return typeof n === 'number' && Number.isFinite(n) ? n : undefined;
-    };
-    return {
-      impressions: num('impressions'),
-      reach: num('reach'),
-      likes: num('likes'),
-      comments: num('comments'),
-      shares: num('shares'),
-      views: num('views'),
-      fetchedAt: typeof v.fetchedAt === 'string' ? v.fetchedAt : undefined,
-    };
-  } catch {
-    return null;
-  }
-}
-
 @Injectable()
 export class ContentService {
   constructor(private readonly audit: AuditService) {}
@@ -514,8 +486,8 @@ export class ContentService {
     };
   }
 
-  /** Honest per-channel post analytics. Platform views/reach wait for the live integration phase. */
-  async channelAnalytics(tenantId: string, contentId: string, channel?: string) {
+  /** Honest per-channel post analytics from stored or freshly fetched platform insights. */
+  async channelAnalytics(tenantId: string, contentId: string, channel?: string, refresh = false) {
     const row = await getPrisma().contentItem.findFirst({
       where: tenantWhere(tenantId, { id: contentId }),
       include: { publishTargets: { include: { socialPage: true } }, comments: true },
@@ -528,11 +500,11 @@ export class ContentService {
     const requested =
       (channel || '').trim() ||
       channels[0] ||
-      row.publishTargets[0]?.socialPage.network ||
+      row.publishTargets[0]?.socialPage?.network ||
       'instagram';
     const wanted = requested.toLowerCase();
     const target = row.publishTargets.find((t) => {
-      const net = String(t.socialPage.network || '').toLowerCase();
+      const net = String(t.socialPage?.network || '').toLowerCase();
       return (
         net === wanted ||
         wanted.includes(net) ||
@@ -567,81 +539,44 @@ export class ContentService {
       }
     }
     const publicComments = comments.filter((c) => !c.isInternal).length;
-    const connected = Boolean(target?.socialPageId);
-    const live = parseInsights(target?.insightsJson);
-    const seed =
-      contentId.split('').reduce((acc, ch) => acc + ch.charCodeAt(0), 0) + wanted.length * 17;
+    const pageStatus = target?.socialPage?.status ?? null;
+    const connected = Boolean(target?.socialPageId && pageStatus === 'CONNECTED');
     const isPublished = Boolean(
-      target?.publishedAt || row.publishedAt || String(row.status) === 'PUBLISHED',
+      target
+        ? target.publishState === 'PUBLISHED' ||
+            target.publishState === 'PUBLISHING' ||
+            target.publishedAt
+        : row.publishedAt || String(row.status) === 'PUBLISHED',
     );
-    const fallbackViews = isPublished ? 640 + (seed % 900) : 0;
-    const fallbackLikes = isPublished ? Math.max(likes, 18 + (seed % 120)) : likes;
-    const fallbackComments = isPublished
-      ? Math.max(publicComments, 4 + (seed % 28))
-      : publicComments;
-    const fallbackShares = isPublished ? 3 + (seed % 22) : 0;
 
-    const likesLive = live?.likes ?? fallbackLikes;
-    const commentsLive = live?.comments ?? fallbackComments;
-    const sharesLive = live?.shares ?? fallbackShares;
-    const views = live?.views ?? live?.impressions ?? fallbackViews;
-    const reach = live?.reach ?? (views ? Math.round(views * 0.92) : 0);
-    const impressions = live?.impressions ?? views;
-    const otherClicks = isPublished ? Math.round(views * 0.12) : 0;
-    const linkClicks = isPublished ? Math.round(sharesLive * 0.5) : 0;
-    const profileClicks = isPublished ? Math.max(2, Math.round(likesLive * 0.08)) : 0;
-    if (isPublished && rx.like + rx.love + rx.haha + rx.wow + rx.sad + rx.angry === 0) {
-      rx.like = Math.max(4, Math.round(likesLive * 0.5));
-      rx.love = Math.max(2, Math.round(likesLive * 0.25));
-      rx.haha = Math.max(1, Math.round(likesLive * 0.1));
-      rx.wow = Math.max(1, Math.round(likesLive * 0.08));
-      rx.sad = Math.max(0, Math.round(likesLive * 0.04));
-      rx.angry = Math.max(0, Math.round(likesLive * 0.03));
+    let insightsRaw = target?.insightsJson ?? null;
+    let lastInsightsAt = target?.lastInsightsAt ?? null;
+    if (refresh && target) {
+      const updated = await maybeRefreshPublishTargetInsights(target);
+      if (updated) {
+        insightsRaw = updated.insightsJson;
+        lastInsightsAt = updated.lastInsightsAt;
+      }
     }
-    const engagements =
-      commentsLive + likesLive + sharesLive + otherClicks + linkClicks + row.approverApproved;
-    const source = live ? ('platform' as const) : ('oma_local' as const);
-    const note = live
-      ? 'Live provider insights for this published post, plus OMA comments and approvals.'
-      : isPublished
-        ? 'Platform views and reach fill after the worker fetches insights. OMA comments, reactions, and approvals are counted here.'
-        : 'Analytics fill in after this post is published. OMA comments and approvals are counted now.';
+    const live = parseInsights(insightsRaw);
+
     return {
-      data: {
+      data: buildChannelAnalyticsView({
         channel: requested,
-        published: isPublished,
-        published_at: (target?.publishedAt || row.publishedAt)?.toISOString() ?? null,
-        source,
-        platform_connected: connected,
-        note,
-        kpis: { views, engagements, reach },
-        organic_views: {
-          reach,
-          impressions,
-          avg_view_duration_s: isPublished ? 14 : 0,
-          watch_time_m: isPublished ? Number(((views * 14) / 3600).toFixed(2)) : 0,
-        },
-        organic_engagement: {
-          likes: likesLive,
-          comments: commentsLive,
-          shares: sharesLive,
-          reposts: sharesLive,
-          replies: commentsLive,
-          profile_clicks: profileClicks,
-          link_clicks: linkClicks,
-          other_clicks: otherClicks,
-        },
-        plays: {
-          views,
-          three_second: isPublished ? Math.round(views * 0.62) : 0,
-          one_minute: isPublished ? Math.round(views * 0.18) : 0,
-          avg_seconds: isPublished ? 14 : 0,
-        },
-        reactions: rx,
+        isPublished,
+        publishedAt: target?.publishedAt || row.publishedAt || null,
+        platformConnected: connected,
+        pageStatus,
+        externalPostId: target?.externalPostId ?? null,
+        live,
+        lastInsightsAt,
+        omaLikes: likes,
+        omaPublicComments: publicComments,
+        omaCommentsTotal: comments.length,
+        omaReactions: rx,
         approvals: row.approverApproved,
-        comments: comments.length,
-        insights_at: target?.lastInsightsAt?.toISOString() ?? live?.fetchedAt ?? null,
-      },
+        contentId,
+      }),
     };
   }
 

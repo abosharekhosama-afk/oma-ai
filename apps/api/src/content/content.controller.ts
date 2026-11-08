@@ -95,9 +95,11 @@ export class ContentController {
     @Req() req: Request,
     @Param('contentId') contentId: string,
     @Query('channel') channel?: string,
+    @Query('refresh') refresh?: string,
   ) {
     this.requireTenant(req);
-    return contentService.channelAnalytics(req.oma!.tenantId!, contentId, channel);
+    const shouldRefresh = refresh === '1' || refresh === 'true';
+    return contentService.channelAnalytics(req.oma!.tenantId!, contentId, channel, shouldRefresh);
   }
 
   @Get('api/v1/content/:contentId')

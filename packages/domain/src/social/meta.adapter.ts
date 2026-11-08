@@ -343,32 +343,73 @@ export class MetaAdapter implements SocialProviderAdapter {
     const id = externalPostId.trim();
     if (!id) return null;
     const fetchedAt = new Date().toISOString();
+    const tryInsights = async (metric: string) =>
+      this.get(`${id}/insights`, { metric, access_token: page.accessToken }).catch(() => null);
+
     if (this.network === 'facebook') {
-      const body = await this.get(`${id}/insights`, {
-        metric: 'post_impressions,post_impressions_unique,post_engaged_users',
+      let body: Record<string, unknown> | null = null;
+      for (const metric of [
+        'post_impressions,post_impressions_unique,post_engaged_users',
+        'post_impressions,post_impressions_unique',
+        'post_impressions',
+      ]) {
+        body = await tryInsights(metric);
+        if (body) break;
+      }
+      const post = (await this.get(id, {
+        fields: 'shares,likes.summary(true),comments.summary(true)',
         access_token: page.accessToken,
-      }).catch(() => null);
-      if (!body) return null;
-      const map = insightValues(body);
+      }).catch(() => null)) as {
+        shares?: { count?: number };
+        likes?: { summary?: { total_count?: number } };
+        comments?: { summary?: { total_count?: number } };
+      } | null;
+      if (!body && !post) return null;
+      const map = body ? insightValues(body) : {};
+      const likes =
+        typeof post?.likes?.summary?.total_count === 'number'
+          ? post.likes.summary.total_count
+          : map.post_engaged_users;
+      const comments =
+        typeof post?.comments?.summary?.total_count === 'number'
+          ? post.comments.summary.total_count
+          : undefined;
+      const shares = typeof post?.shares?.count === 'number' ? post.shares.count : undefined;
       return {
         impressions: map.post_impressions,
         reach: map.post_impressions_unique,
         views: map.post_impressions,
-        likes: map.post_engaged_users,
+        likes,
+        comments,
+        shares,
         fetchedAt,
       };
     }
-    const body = await this.get(`${id}/insights`, {
-      metric: 'impressions,reach,likes,comments,saved,shares,plays,views',
+
+    let body: Record<string, unknown> | null = null;
+    for (const metric of [
+      'impressions,reach,likes,comments,saved,shares,plays,views',
+      'impressions,reach,saved,shares,plays,views',
+      'views,reach,saved,shares,likes,comments',
+      'plays,reach,saved,shares',
+      'impressions,reach',
+    ]) {
+      body = await tryInsights(metric);
+      if (body) break;
+    }
+    const media = (await this.get(id, {
+      fields: 'like_count,comments_count',
       access_token: page.accessToken,
-    }).catch(() => null);
-    if (!body) return null;
-    const map = insightValues(body);
+    }).catch(() => null)) as { like_count?: number; comments_count?: number } | null;
+    if (!body && !media) return null;
+    const map = body ? insightValues(body) : {};
     return {
       impressions: map.impressions,
       reach: map.reach,
-      likes: map.likes,
-      comments: map.comments,
+      likes: map.likes ?? (typeof media?.like_count === 'number' ? media.like_count : undefined),
+      comments:
+        map.comments ??
+        (typeof media?.comments_count === 'number' ? media.comments_count : undefined),
       shares: map.shares ?? map.saved,
       views: map.plays ?? map.views ?? map.impressions,
       fetchedAt,
