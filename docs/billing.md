@@ -71,6 +71,10 @@ Platform owners (`platform.support.access`) use `/app/admin/billing` to **activa
 
 Workspace owners and the Billing role (`billing.manage`) can start checkout and submit proof. They cannot grant themselves a paid plan.
 
+Upgrade or pay opens a **provider-selection card** listing only configured providers (Stripe, Lahza, Jawwal Pay, PalPay, Reflect, and bank transfer). Stripe and Lahza redirect to their hosted checkout. Manual providers mint an `OMA-…` reference, then collect transfer details (sender name, phone/account, amount, date, transaction reference) and a receipt image (JPEG/PNG/WebP/GIF, max 4 MB). Admin billing (`/app/admin/billing`) shows those details, a receipt preview, status filters, and approve/reject with a note.
+
+The platform-owner account (`platform.support.access` on the current tenant) sees an admin-oriented billing page instead of tenant plan cards and plan-change controls. Changing `BillingSettings.vatRateBps` updates `listPlans()` / checkout quotes and the including-VAT totals on `/app/billing`.
+
 ### Lahza / Bank of Palestine — live when keys are set
 
 Bank of Palestine’s public payment gateway is **Lahza** ([merchant page](https://web.bankofpalestine.com/business/electronic-services/digital-payments/payment-gateway), [developer docs](https://docs.lahza.io)):
@@ -100,7 +104,7 @@ Always available unless `BILLING_BANK_TRANSFER_DISABLED=1`. The customer receive
 
 ## Upgrading without Stripe or Lahza
 
-The billing page (`/app/billing`) posts to `POST /api/v1/billing/checkouts`. If `STRIPE_SECRET_KEY` or `LAHZA_SECRET_KEY` is missing, those providers are hidden and the upgrade still succeeds as a **bank-transfer / manual** request: the API creates a pending `ManualPaymentOrder` with an `OMA-…` reference, shows payment instructions, and the customer uploads proof. The platform owner activates the plan from `/app/admin/billing`.
+The billing page (`/app/billing`) opens a provider picker, then posts to `POST /api/v1/billing/checkouts`. If `STRIPE_SECRET_KEY` or `LAHZA_SECRET_KEY` is missing, those providers are hidden and the upgrade still succeeds as a **bank-transfer / manual** request: the API creates a pending `ManualPaymentOrder` with an `OMA-…` reference, the customer submits transfer details plus a receipt image to `POST /api/v1/billing/manual-orders/proof`, and the platform owner reviews it from `/app/admin/billing`.
 
 Stripe appears only when `STRIPE_SECRET_KEY` is set (and webhooks need `STRIPE_WEBHOOK_SECRET`). Lahza / Bank of Palestine appears only when `LAHZA_SECRET_KEY` is set.
 

@@ -16,6 +16,11 @@ export type PlanDto = {
     vat_cents: number;
     inc_vat_cents: number;
   };
+  yearly_vat?: {
+    ex_vat_cents: number;
+    vat_cents: number;
+    inc_vat_cents: number;
+  };
 };
 
 export type ProviderDto = {
@@ -76,7 +81,54 @@ export type SubscriptionView = {
   }>;
   invoices?: InvoiceDto[];
   providers?: ProviderDto[];
-  addon?: { code: string; price_monthly_usd: number };
+  settings_vat_rate_bps?: number;
+  settings_vat_percent?: string;
+  viewer_is_platform_admin?: boolean;
+  addon?: {
+    code: string;
+    price_monthly_usd: number;
+    monthly_vat?: {
+      ex_vat_cents: number;
+      vat_cents: number;
+      inc_vat_cents: number;
+    };
+  };
+  pending_manual_orders?: Array<{
+    id: string;
+    reference: string;
+    provider: string;
+    status: string;
+    plan_code: string;
+    amount_inc_vat_cents: number;
+    vat_cents?: number;
+    vat_percent?: string;
+    instructions?: { en: string; ar: string };
+  }>;
+};
+
+export type ManualOrderDto = {
+  id: string;
+  tenant_id?: string;
+  reference: string;
+  provider: string;
+  status: string;
+  plan_code: string;
+  billing_cycle?: string;
+  amount_inc_vat_cents: number;
+  vat_cents?: number;
+  vat_percent?: string;
+  proof_note?: string | null;
+  proof_file_name?: string | null;
+  proof_mime?: string | null;
+  has_proof_image?: boolean;
+  transfer_sender_name?: string | null;
+  transfer_contact?: string | null;
+  transfer_amount_cents?: number | null;
+  transfer_at?: string | null;
+  transfer_txn_ref?: string | null;
+  admin_note?: string | null;
+  created_at?: string;
+  x_api_addon?: boolean;
 };
 
 export function listPlans() {
@@ -104,6 +156,7 @@ export function startCheckout(body: {
   return api<{
     data: {
       id?: string;
+      order_id?: string;
       status: string;
       plan_code: string;
       provider?: string;
@@ -148,8 +201,15 @@ export function cancelCheckout(id: string) {
 export function submitPaymentProof(body: {
   reference?: string;
   order_id?: string;
-  proof_note: string;
+  proof_note?: string;
   proof_file_name?: string;
+  proof_mime?: string;
+  sender_name: string;
+  contact: string;
+  amount: string | number;
+  transfer_date: string;
+  txn_ref: string;
+  proof_image_base64: string;
 }) {
   return api<{ data: { id: string; status: string; reference: string } }>(
     '/api/v1/billing/manual-orders/proof',
@@ -183,8 +243,15 @@ export function adminListWorkspaces(q?: string) {
   return api<{ data: Array<Record<string, unknown>> }>(`/api/v1/admin/billing/workspaces${qs}`);
 }
 
-export function adminListOrders() {
-  return api<{ data: Array<Record<string, unknown>> }>('/api/v1/admin/billing/orders');
+export function adminListOrders(status?: string) {
+  const qs = status ? `?status=${encodeURIComponent(status)}` : '';
+  return api<{ data: ManualOrderDto[] }>(`/api/v1/admin/billing/orders${qs}`);
+}
+
+export function adminOrderReceipt(id: string) {
+  return api<{
+    data: { id: string; file_name: string | null; mime: string; image_data_url: string };
+  }>(`/api/v1/admin/billing/orders/${id}/receipt`);
 }
 
 export function adminBillingSettings() {

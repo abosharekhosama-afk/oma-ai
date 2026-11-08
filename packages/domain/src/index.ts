@@ -38,5 +38,6 @@ export * from './workdrive';
 export * from './notification-prefs';
 export * from './billing/plans';
 export * from './billing/vat';
+export * from './billing/receipt';
 export * from './billing/signatures';
 export * from './listening/rules';

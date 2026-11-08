@@ -1984,10 +1984,17 @@ model ManualPaymentOrder {
   status            String    @default("awaiting_payment")
   instructionsEn    String
   instructionsAr    String
-  proofNote         String?
-  proofFileName     String?
-  proofMime         String?
-  adminNote         String?
+  proofNote           String?
+  proofFileName       String?
+  proofMime           String?
+  proofImageBase64    String?   @db.Text
+  proofImageSize      Int?
+  transferSenderName  String?
+  transferContact     String?
+  transferAmountCents Int?
+  transferAt          DateTime?
+  transferTxnRef      String?
+  adminNote           String?
   approvedBy        String?
   approvedAt        DateTime?
   createdAt         DateTime  @default(now())

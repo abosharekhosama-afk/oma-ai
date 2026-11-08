@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import './request-context';
 import { NestFactory } from '@nestjs/core';
+import type { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module';
 import { setupOpenApi } from './openapi';
@@ -13,7 +14,7 @@ async function bootstrap() {
   const env = loadEnv();
   const isProd = env.NODE_ENV === 'production';
 
-  const app = await NestFactory.create(AppModule, {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     rawBody: true,
     cors: isProd
       ? {
@@ -23,6 +24,8 @@ async function bootstrap() {
       : false,
   });
 
+  app.useBodyParser('json', { limit: '6mb' });
+  app.useBodyParser('urlencoded', { limit: '6mb', extended: true });
   app.use(securityHeaders);
   app.use(cookieParser());
   app.setGlobalPrefix('');
