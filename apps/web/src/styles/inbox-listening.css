@@ -2086,6 +2086,89 @@
   min-width: 0;
 }
 
+/* Strip the global blue focus ring only on the bottom comment composer, not inline/DM replies. */
+.oma-plx-inbox-composer--comments .oma-plx-inbox-composer__pill:focus-within {
+  outline: none;
+  box-shadow: none;
+  border-color: #e5e7eb;
+}
+
+.oma-plx-inbox-composer--comments .oma-plx-inbox-composer__pill-input:focus,
+.oma-plx-inbox-composer--comments .oma-plx-inbox-composer__pill-input:focus-visible {
+  outline: none !important;
+  outline-offset: 0;
+  box-shadow: none;
+}
+
+.oma-plx-inbox-comment-replies {
+  margin-top: 8px;
+  margin-inline-start: 8px;
+}
+
+.oma-plx-inbox-comment-replies__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: transparent;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+  padding: 4px 0;
+  text-align: start;
+}
+
+.oma-plx-inbox-comment-replies__toggle svg.oma-lucide {
+  width: 12px;
+  height: 12px;
+}
+
+.oma-plx-inbox-comment-tree {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  padding-inline-start: 20px;
+  position: relative;
+}
+
+.oma-plx-inbox-comment-tree > li {
+  position: relative;
+  padding-inline-start: 14px;
+  padding-block: 6px;
+}
+
+.oma-plx-inbox-comment-tree > li::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  top: -6px;
+  bottom: 0;
+  width: 1px;
+  background: var(--oma-home-border, #e5e7eb);
+}
+
+.oma-plx-inbox-comment-tree > li:last-child::before {
+  bottom: 50%;
+}
+
+.oma-plx-inbox-comment-tree > li::after {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  top: 50%;
+  width: 10px;
+  height: 8px;
+  margin-top: -8px;
+  border-inline-start: 1px solid var(--oma-home-border, #e5e7eb);
+  border-bottom: 1px solid var(--oma-home-border, #e5e7eb);
+  border-end-start-radius: 7px;
+}
+
+.oma-plx-inbox-comment-card--reply {
+  border-color: #f0f1f3;
+}
+
 .oma-plx-inbox-composer__send-inline {
   flex-shrink: 0;
   border-radius: 999px !important;
@@ -5424,6 +5507,25 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
     max-width: 100% !important;
     min-width: 0 !important;
     overflow-x: auto !important;
+    contain: inline-size;
+    box-sizing: border-box;
+  }
+
+  /* Calendar view was inset by surface/panel padding plus scroll padding, so it
+     looked narrower than list/queue/table. Make the grid full-bleed. */
+  .oma-plx-listening.oma-plx-schedule:has(.oma-sched-main[data-view='calendar'])
+    .oma-plx-workspace-surface,
+  .oma-plx-listening.oma-plx-schedule:has(.oma-sched-main[data-view='calendar'])
+    .oma-plx-sched-panel__body {
+    padding-inline: 0 !important;
+  }
+
+  .oma-plx-listening.oma-plx-schedule
+    .oma-sched-main[data-view='calendar']
+    .oma-sched-calendar-scroll {
+    padding-inline: 0;
+    border-inline: 0;
+    border-radius: 0;
   }
 }
 

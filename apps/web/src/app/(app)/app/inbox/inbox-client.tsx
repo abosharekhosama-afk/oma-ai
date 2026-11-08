@@ -62,6 +62,8 @@ import {
   parseInboxPostMeta,
   postCaption,
   relativeTime,
+  nestInboxMessages,
+  commentThreadHasOutbound,
 } from './inbox-utils';
 
 export type InboxMode = 'comments' | 'dms';
@@ -85,15 +87,6 @@ function groupMessagesByDay(messages: InboxMessage[]) {
     }
   }
   return groups;
-}
-
-function isCommentUnanswered(messages: InboxMessage[], index: number) {
-  const m = messages[index];
-  if (!m || m.direction !== 'INBOUND') return false;
-  for (let j = index + 1; j < messages.length; j += 1) {
-    if (messages[j]!.direction === 'OUTBOUND') return false;
-  }
-  return true;
 }
 
 function PersonAvatar({
@@ -154,6 +147,7 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
   const [replyMedia, setReplyMedia] = useState<string[]>([]);
   const [aiBusy, setAiBusy] = useState(false);
   const [replyToMessageId, setReplyToMessageId] = useState<string | null>(null);
+  const [collapsedReplyGroups, setCollapsedReplyGroups] = useState<Record<string, boolean>>({});
   const [commentMenuId, setCommentMenuId] = useState<string | null>(null);
   const [deleteCommentTargetId, setDeleteCommentTargetId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -367,10 +361,18 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
     [t],
   );
 
-  const displayedComments = useMemo(() => {
-    if (!detail) return [];
-    if (!unansweredOnly || mode !== 'comments') return detail.messages;
-    return detail.messages.filter((_, idx) => isCommentUnanswered(detail.messages, idx));
+  const commentTree = useMemo(() => {
+    if (!detail)
+      return { roots: [] as InboxMessage[], childrenOf: new Map<string, InboxMessage[]>() };
+    const nested = nestInboxMessages(detail.messages);
+    if (!unansweredOnly || mode !== 'comments') return nested;
+    return {
+      roots: nested.roots.filter(
+        (root) =>
+          root.direction === 'INBOUND' && !commentThreadHasOutbound(root, nested.childrenOf),
+      ),
+      childrenOf: nested.childrenOf,
+    };
   }, [detail, unansweredOnly, mode]);
 
   const toggleBookmark = (id: string) => {
@@ -441,10 +443,12 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
     setSending(true);
     setDeliveryNote(null);
     try {
+      const nestUnder =
+        mode === 'comments' ? (clearInline ? replyToMessageId : null) : replyToMessageId;
       const res = await replyInboxConversation(
         selectedId,
         trimmed,
-        replyToMessageId ?? undefined,
+        nestUnder ?? undefined,
         replyMedia,
       );
       if (clearInline) {
@@ -875,151 +879,205 @@ export function InboxClient({ mode }: { mode: InboxMode }) {
                   </div>
 
                   <div className="oma-plx-inbox-comments">
-                    {displayedComments.map((m) => {
-                      const idx = detail.messages.findIndex((x) => x.id === m.id);
-                      const showInline = replyToMessageId === m.id;
-                      return (
-                        <article key={m.id} className="oma-plx-inbox-comment-card">
-                          <div className="oma-plx-inbox-comment-card__head">
-                            <PersonAvatar name={m.senderName} imageUrl={m.senderAvatar} size="sm" />
-                            <div className="oma-plx-inbox-comment-card__meta">
-                              <strong>
-                                {m.senderName.split(' ')[0]?.toLowerCase() ?? m.senderName}
-                              </strong>
-                              <time dateTime={m.createdAt}>{relativeTime(m.createdAt)}</time>
-                            </div>
-                            {m.direction === 'INBOUND' ? (
-                              <div className="oma-plx-inbox-comment-card__tools">
-                                <button
-                                  type="button"
-                                  className={m.liked ? 'is-liked' : undefined}
-                                  aria-pressed={Boolean(m.liked)}
-                                  aria-label={
-                                    m.liked
-                                      ? t('inbox.unlike') || 'Unlike'
-                                      : t('inbox.like') || 'Like'
-                                  }
-                                  data-testid={`inbox-like-${m.id}`}
-                                  onClick={() => void onLikeComment(m.id)}
-                                >
-                                  {m.liked ? <HeartFilled /> : <HeartOutlined />}
-                                </button>
-                                <button
-                                  type="button"
-                                  aria-label="Reply"
-                                  onClick={() => {
-                                    setReplyToMessageId(m.id);
-                                    setInlineReply(`@${m.senderName.split(' ')[0] ?? 'user'} `);
-                                  }}
-                                >
-                                  <CommentOutlined />
-                                </button>
-                                <div className="oma-plx-inbox-comment-menu">
+                    {commentTree.roots.map((rootMessage) => {
+                      const renderCommentCard = (m: InboxMessage, depth = 0) => {
+                        const replies = commentTree.childrenOf.get(m.id) ?? [];
+                        const showInline = replyToMessageId === m.id;
+                        const repliesOpen = collapsedReplyGroups[m.id] !== true;
+                        return (
+                          <article
+                            key={m.id}
+                            className={`oma-plx-inbox-comment-card${
+                              depth > 0 ? ' oma-plx-inbox-comment-card--reply' : ''
+                            }`}
+                            data-depth={depth}
+                            data-testid={
+                              depth > 0 ? `inbox-comment-reply-${m.id}` : `inbox-comment-${m.id}`
+                            }
+                          >
+                            <div className="oma-plx-inbox-comment-card__head">
+                              <PersonAvatar
+                                name={m.senderName}
+                                imageUrl={m.senderAvatar}
+                                size="sm"
+                              />
+                              <div className="oma-plx-inbox-comment-card__meta">
+                                <strong>
+                                  {m.senderName.split(' ')[0]?.toLowerCase() ?? m.senderName}
+                                </strong>
+                                <time dateTime={m.createdAt}>{relativeTime(m.createdAt)}</time>
+                              </div>
+                              {m.direction === 'INBOUND' ? (
+                                <div className="oma-plx-inbox-comment-card__tools">
                                   <button
                                     type="button"
-                                    aria-label="More"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setCommentMenuId((prev) => (prev === m.id ? null : m.id));
+                                    className={m.liked ? 'is-liked' : undefined}
+                                    aria-pressed={Boolean(m.liked)}
+                                    aria-label={
+                                      m.liked
+                                        ? t('inbox.unlike') || 'Unlike'
+                                        : t('inbox.like') || 'Like'
+                                    }
+                                    data-testid={`inbox-like-${m.id}`}
+                                    onClick={() => void onLikeComment(m.id)}
+                                  >
+                                    {m.liked ? <HeartFilled /> : <HeartOutlined />}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    aria-label="Reply"
+                                    onClick={() => {
+                                      setReplyToMessageId(m.id);
+                                      setInlineReply(`@${m.senderName.split(' ')[0] ?? 'user'} `);
                                     }}
                                   >
-                                    <MoreOutlined />
+                                    <CommentOutlined />
                                   </button>
-                                  {commentMenuId === m.id ? (
-                                    <div className="oma-plx-inbox-comment-menu__drop" role="menu">
-                                      <button
-                                        type="button"
-                                        role="menuitem"
-                                        onClick={() => {
-                                          setCommentMenuId(null);
-                                          setDeliveryNote(
-                                            t('inbox.editNotSupported') ||
-                                              'Editing comments on the social network is not supported from here.',
-                                          );
-                                        }}
-                                      >
-                                        <EditOutlined /> {t('inbox.comment.edit') || 'Edit'}
-                                      </button>
-                                      <button
-                                        type="button"
-                                        role="menuitem"
-                                        onClick={() => void onHideComment(m.id)}
-                                      >
-                                        <EyeInvisibleOutlined /> {t('inbox.comment.hide') || 'Hide'}
-                                      </button>
-                                      <button
-                                        type="button"
-                                        role="menuitem"
-                                        className="is-danger"
-                                        onClick={() => {
-                                          setCommentMenuId(null);
-                                          setDeleteCommentTargetId(m.id);
-                                        }}
-                                      >
-                                        <DeleteOutlined /> {t('inbox.comment.delete') || 'Delete'}
-                                      </button>
-                                    </div>
-                                  ) : null}
+                                  <div className="oma-plx-inbox-comment-menu">
+                                    <button
+                                      type="button"
+                                      aria-label="More"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setCommentMenuId((prev) => (prev === m.id ? null : m.id));
+                                      }}
+                                    >
+                                      <MoreOutlined />
+                                    </button>
+                                    {commentMenuId === m.id ? (
+                                      <div className="oma-plx-inbox-comment-menu__drop" role="menu">
+                                        <button
+                                          type="button"
+                                          role="menuitem"
+                                          onClick={() => {
+                                            setCommentMenuId(null);
+                                            setDeliveryNote(
+                                              t('inbox.editNotSupported') ||
+                                                'Editing comments on the social network is not supported from here.',
+                                            );
+                                          }}
+                                        >
+                                          <EditOutlined /> {t('inbox.comment.edit') || 'Edit'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          role="menuitem"
+                                          onClick={() => void onHideComment(m.id)}
+                                        >
+                                          <EyeInvisibleOutlined />{' '}
+                                          {t('inbox.comment.hide') || 'Hide'}
+                                        </button>
+                                        <button
+                                          type="button"
+                                          role="menuitem"
+                                          className="is-danger"
+                                          onClick={() => {
+                                            setCommentMenuId(null);
+                                            setDeleteCommentTargetId(m.id);
+                                          }}
+                                        >
+                                          <DeleteOutlined /> {t('inbox.comment.delete') || 'Delete'}
+                                        </button>
+                                      </div>
+                                    ) : null}
+                                  </div>
                                 </div>
+                              ) : null}
+                            </div>
+                            <p className="oma-plx-inbox-comment-card__text">{m.content}</p>
+                            {m.mediaUrls?.length ? (
+                              <div className="oma-plx-inbox-comment-card__media">
+                                {m.mediaUrls.map((url) => (
+                                  <img key={url} src={url} alt="" />
+                                ))}
                               </div>
                             ) : null}
-                          </div>
-                          <p className="oma-plx-inbox-comment-card__text">{m.content}</p>
-                          {m.mediaUrls?.length ? (
-                            <div className="oma-plx-inbox-comment-card__media">
-                              {m.mediaUrls.map((url) => (
-                                <img key={url} src={url} alt="" />
-                              ))}
-                            </div>
-                          ) : null}
-                          {showInline && m.direction === 'INBOUND' ? (
-                            <div className="oma-plx-inbox-inline-reply">
-                              <PersonAvatar name={brandReplyName} brand size="sm" />
-                              <div className="oma-plx-inbox-inline-reply__field">
-                                <input
-                                  value={inlineReply}
-                                  onChange={(e) => setInlineReply(e.target.value)}
-                                  placeholder={replyPlaceholder}
-                                />
-                                <InboxComposerTools
-                                  t={t}
-                                  locale={locale}
-                                  brandId={activeBrandId}
-                                  onInsertEmoji={insertEmoji}
-                                  onAiDraft={draftAiReply}
-                                  onPickMedia={attachMedia}
-                                  aiBusy={aiBusy}
-                                  disabled={sending}
-                                />
+                            {showInline && m.direction === 'INBOUND' ? (
+                              <div className="oma-plx-inbox-inline-reply">
+                                <PersonAvatar name={brandReplyName} brand size="sm" />
+                                <div className="oma-plx-inbox-inline-reply__field">
+                                  <input
+                                    value={inlineReply}
+                                    onChange={(e) => setInlineReply(e.target.value)}
+                                    placeholder={replyPlaceholder}
+                                  />
+                                  <InboxComposerTools
+                                    t={t}
+                                    locale={locale}
+                                    brandId={activeBrandId}
+                                    onInsertEmoji={insertEmoji}
+                                    onAiDraft={draftAiReply}
+                                    onPickMedia={attachMedia}
+                                    aiBusy={aiBusy}
+                                    disabled={sending}
+                                  />
+                                </div>
+                                <Button
+                                  type="primary"
+                                  size="small"
+                                  loading={sending}
+                                  disabled={!inlineReply.trim() && !replyMedia.length}
+                                  onClick={() => void submitReply(inlineReply, true)}
+                                >
+                                  {t('inbox.postReply') || 'Post'}
+                                </Button>
                               </div>
-                              <Button
-                                type="primary"
-                                size="small"
-                                loading={sending}
-                                disabled={!inlineReply.trim() && !replyMedia.length}
-                                onClick={() => void submitReply(inlineReply, true)}
-                              >
-                                {t('inbox.postReply') || 'Post'}
-                              </Button>
-                            </div>
-                          ) : null}
-                          {idx === 0 && !showInline && isCommentUnanswered(detail.messages, idx) ? (
-                            <div className="oma-plx-inbox-inline-reply oma-plx-inbox-inline-reply--placeholder">
-                              <PersonAvatar name={brandReplyName} brand size="sm" />
-                              <button
-                                type="button"
-                                className="oma-plx-inbox-inline-reply__ghost"
-                                onClick={() => {
-                                  setReplyToMessageId(m.id);
-                                  setInlineReply('');
-                                }}
-                              >
-                                {replyPlaceholder}
-                              </button>
-                            </div>
-                          ) : null}
-                        </article>
-                      );
+                            ) : null}
+                            {depth === 0 &&
+                            commentTree.roots[0]?.id === m.id &&
+                            !showInline &&
+                            m.direction === 'INBOUND' &&
+                            !commentThreadHasOutbound(m, commentTree.childrenOf) ? (
+                              <div className="oma-plx-inbox-inline-reply oma-plx-inbox-inline-reply--placeholder">
+                                <PersonAvatar name={brandReplyName} brand size="sm" />
+                                <button
+                                  type="button"
+                                  className="oma-plx-inbox-inline-reply__ghost"
+                                  onClick={() => {
+                                    setReplyToMessageId(m.id);
+                                    setInlineReply('');
+                                  }}
+                                >
+                                  {replyPlaceholder}
+                                </button>
+                              </div>
+                            ) : null}
+                            {replies.length > 0 ? (
+                              <div className="oma-plx-inbox-comment-replies">
+                                <button
+                                  type="button"
+                                  className="oma-plx-inbox-comment-replies__toggle"
+                                  aria-expanded={repliesOpen}
+                                  data-testid={`inbox-comment-replies-toggle-${m.id}`}
+                                  onClick={() =>
+                                    setCollapsedReplyGroups((prev) => ({
+                                      ...prev,
+                                      [m.id]: !prev[m.id],
+                                    }))
+                                  }
+                                >
+                                  {repliesOpen ? <UpOutlined /> : <DownOutlined />}
+                                  {(t('inbox.replyCount') || '{count} replies').replace(
+                                    '{count}',
+                                    String(replies.length),
+                                  )}
+                                </button>
+                                {repliesOpen ? (
+                                  <ul
+                                    className="oma-plx-inbox-comment-tree"
+                                    data-testid={`inbox-comment-tree-${m.id}`}
+                                  >
+                                    {replies.map((child) => (
+                                      <li key={child.id}>{renderCommentCard(child, depth + 1)}</li>
+                                    ))}
+                                  </ul>
+                                ) : null}
+                              </div>
+                            ) : null}
+                          </article>
+                        );
+                      };
+                      return renderCommentCard(rootMessage);
                     })}
                   </div>
                   {detail.notes.length > 0 ? (

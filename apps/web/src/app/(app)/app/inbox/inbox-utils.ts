@@ -137,3 +137,36 @@ export function filterByStatusTab<T extends { status: string }>(
   if (tab === 'PENDING') return items.filter((it) => it.status === 'PENDING');
   return items.filter((it) => it.status === 'CLOSED');
 }
+
+export function nestInboxMessages<T extends { id: string; parentMessageId?: string | null }>(
+  messages: T[],
+): { roots: T[]; childrenOf: Map<string, T[]> } {
+  const ids = new Set(messages.map((m) => m.id));
+  const childrenOf = new Map<string, T[]>();
+  const roots: T[] = [];
+  for (const m of messages) {
+    const parentId = m.parentMessageId && ids.has(m.parentMessageId) ? m.parentMessageId : null;
+    if (parentId) {
+      const list = childrenOf.get(parentId) ?? [];
+      list.push(m);
+      childrenOf.set(parentId, list);
+    } else {
+      roots.push(m);
+    }
+  }
+  return { roots, childrenOf };
+}
+
+export function commentThreadHasOutbound<T extends { id: string; direction: string }>(
+  root: T,
+  childrenOf: Map<string, T[]>,
+): boolean {
+  const stack = [root];
+  while (stack.length) {
+    const cur = stack.pop()!;
+    if (cur.direction === 'OUTBOUND') return true;
+    const kids = childrenOf.get(cur.id);
+    if (kids?.length) stack.push(...kids);
+  }
+  return false;
+}

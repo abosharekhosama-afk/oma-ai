@@ -159,10 +159,15 @@ describe('schedule agenda and queue layouts', () => {
     expect(scheduleRule).toContain(".oma-sched-main[data-view='table']");
     expect(scheduleRule).toContain('.oma-sched-calendar-scroll');
     expect(scheduleRule).toContain('overflow-x: auto !important');
+    expect(scheduleRule).toContain('contain: inline-size');
+    expect(scheduleRule).toContain(".oma-sched-main[data-view='calendar']");
+    expect(scheduleRule).toContain('padding-inline: 0 !important');
     expect(stage).toContain('.oma-sched-page');
     expect(stage).toContain('overflow-x: hidden !important');
     expect(stage).toContain('width: 233.333% !important');
     expect(stage).toContain('min-width: 233.333% !important');
+    expect(stage).toContain('contain: inline-size');
+    expect(stage).toContain(":has(.oma-sched-main[data-view='calendar'])");
   });
 
   it('sizes the schedule details card as a responsive sheet on mobile and a larger dialog on desktop', () => {

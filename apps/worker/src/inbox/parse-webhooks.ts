@@ -14,6 +14,8 @@ export type ParsedInbound = {
   content: string;
   mediaUrls?: string[];
   pageExternalId?: string;
+  /** External id of the parent comment/message when the platform marks this as a reply. */
+  parentExternalId?: string;
 };
 
 export function parseMeta(raw: unknown, platform: 'META_FB' | 'META_IG'): ParsedInbound[] {
@@ -72,6 +74,11 @@ export function parseMeta(raw: unknown, platform: 'META_FB' | 'META_IG'): Parsed
       const fromId = v.from?.id ?? 'unknown';
       const fromName = v.from?.username ?? fromId;
       const isDark = ch.field === 'comments' && !v.parent_id && platform === 'META_IG';
+      const commentId = String(v.comment_id ?? v.id ?? '');
+      const postOrMediaId = String(v.post_id ?? v.media?.id ?? '');
+      const rawParent = v.parent_id ? String(v.parent_id) : '';
+      const parentExternalId =
+        rawParent && rawParent !== postOrMediaId && rawParent !== commentId ? rawParent : undefined;
       out.push({
         platform,
         pageExternalId: entry.id,
@@ -81,6 +88,7 @@ export function parseMeta(raw: unknown, platform: 'META_FB' | 'META_IG'): Parsed
         senderExternalId: fromId,
         senderName: fromName,
         content: text || '[comment]',
+        ...(parentExternalId ? { parentExternalId } : {}),
       });
     }
   }
@@ -184,6 +192,7 @@ export function parseX(raw: unknown): ParsedInbound[] {
       senderExternalId: tw.user?.id_str ?? 'unknown',
       senderName: tw.user?.screen_name ?? 'X user',
       content: tw.text ?? '',
+      ...(tw.in_reply_to_status_id_str ? { parentExternalId: tw.in_reply_to_status_id_str } : {}),
     });
   }
   if (o.data?.id && o.data.text) {
@@ -211,8 +220,10 @@ export function parseTikTok(raw: unknown): ParsedInbound[] {
     content?: string;
     user_openid?: string;
     nickname?: string;
+    parent_comment_id?: string;
     data?: {
       comment_id?: string;
+      parent_comment_id?: string;
       video_id?: string;
       text?: string;
       content?: string;
@@ -244,6 +255,9 @@ export function parseTikTok(raw: unknown): ParsedInbound[] {
       senderExternalId: String(sender ?? 'unknown'),
       senderName: comment?.user_nickname || o.data?.user_nickname || o.nickname || 'TikTok user',
       content: text || '[comment]',
+      ...(o.parent_comment_id || o.data?.parent_comment_id
+        ? { parentExternalId: String(o.parent_comment_id || o.data?.parent_comment_id) }
+        : {}),
     },
   ];
 }
@@ -301,6 +315,9 @@ export function parseGeneric(raw: unknown, platform: InboxPlatform): ParsedInbou
       senderId?: string;
       senderName?: string;
       text?: string;
+      parentId?: string;
+      parentMessageId?: string;
+      replyToMessageId?: string;
     }>;
   };
   return (o.events ?? []).map((e) => ({
@@ -312,6 +329,9 @@ export function parseGeneric(raw: unknown, platform: InboxPlatform): ParsedInbou
     senderExternalId: e.senderId ?? 'unknown',
     senderName: e.senderName ?? e.senderId ?? 'Unknown',
     content: e.text ?? '',
+    ...(e.parentId || e.parentMessageId || e.replyToMessageId
+      ? { parentExternalId: e.parentId || e.parentMessageId || e.replyToMessageId }
+      : {}),
   }));
 }
 

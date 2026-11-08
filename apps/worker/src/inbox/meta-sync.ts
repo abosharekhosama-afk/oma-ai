@@ -77,9 +77,10 @@ async function syncFacebookPage(input: {
             message?: string;
             created_time?: string;
             from?: { id?: string; name?: string };
+            parent?: { id?: string };
           }>
         >(`${post.id}/comments`, input.accessToken, {
-          fields: 'id,message,from,created_time',
+          fields: 'id,message,from,created_time,parent',
           filter: 'stream',
           limit: '100',
           since: String(since),
@@ -102,6 +103,7 @@ async function syncFacebookPage(input: {
             subject: postCaption.slice(0, 200) || null,
             metadataJson: meta,
             createdAt: c.created_time ? new Date(c.created_time) : undefined,
+            parentExternalId: c.parent?.id && c.parent.id !== post.id ? c.parent.id : undefined,
           });
           if (r === 'duplicate') skipped += 1;
           else ingested += 1;
@@ -192,11 +194,18 @@ async function syncInstagramPage(input: {
           timestamp?: string;
           username?: string;
           from?: { id?: string; username?: string };
+          replies?: GraphList<{
+            id: string;
+            text?: string;
+            timestamp?: string;
+            username?: string;
+            from?: { id?: string; username?: string };
+          }>;
         }>;
       }>
     >(`${input.igUserId}/media`, input.accessToken, {
       fields:
-        'id,caption,timestamp,media_url,thumbnail_url,permalink,comments.limit(50){id,text,timestamp,username,from}',
+        'id,caption,timestamp,media_url,thumbnail_url,permalink,comments.limit(50){id,text,timestamp,username,from,replies.limit(50){id,text,timestamp,username,from}}',
       limit: '30',
     });
     for (const item of media.data ?? []) {
@@ -232,6 +241,28 @@ async function syncInstagramPage(input: {
         });
         if (r === 'duplicate') skipped += 1;
         else ingested += 1;
+        for (const reply of c.replies?.data ?? []) {
+          const replySenderId = reply.from?.id ?? reply.username ?? 'ig_user';
+          const replySenderName = reply.username ?? reply.from?.username ?? replySenderId;
+          const rr = await ingestInboundMessage({
+            tenantId: input.tenantId,
+            brandId: input.brandId,
+            socialPageId: input.socialPageId,
+            platform: 'META_IG',
+            externalThreadId: item.id,
+            type: 'POST_COMMENT',
+            externalMessageId: reply.id,
+            senderExternalId: String(replySenderId),
+            senderName: String(replySenderName),
+            content: reply.text ?? '',
+            subject: caption.slice(0, 200) || null,
+            metadataJson: meta,
+            createdAt: reply.timestamp ? new Date(reply.timestamp) : undefined,
+            parentExternalId: c.id,
+          });
+          if (rr === 'duplicate') skipped += 1;
+          else ingested += 1;
+        }
       }
     }
   } catch (e) {

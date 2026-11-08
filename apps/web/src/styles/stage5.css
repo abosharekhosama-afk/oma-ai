@@ -2932,6 +2932,10 @@ main.oma-container:has(.oma-sched-page) {
     overflow: hidden !important;
     -webkit-overflow-scrolling: touch;
   }
+  .oma-sched-page:has(.oma-sched-main[data-view='calendar']) .oma-plx-workspace-surface,
+  .oma-sched-page:has(.oma-sched-main[data-view='calendar']) .oma-plx-sched-panel__body {
+    padding-inline: 0 !important;
+  }
   .oma-sched-main[data-view='calendar'] .oma-sched-calendar-scroll {
     display: flex !important;
     flex-direction: column !important;
@@ -2942,6 +2946,9 @@ main.oma-container:has(.oma-sched-page) {
     min-height: 0 !important;
     overflow-x: auto !important;
     overflow-y: hidden !important;
+    contain: inline-size;
+    box-sizing: border-box !important;
+    padding-inline: 0;
     touch-action: pan-x pan-y;
     overscroll-behavior-inline: contain;
     -webkit-overflow-scrolling: touch;

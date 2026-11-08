@@ -75,6 +75,7 @@ async function ingest(
     senderAvatar: item.senderAvatar ?? null,
     content: item.content,
     mediaUrls: item.mediaUrls,
+    parentExternalId: item.parentExternalId ?? null,
   });
 }
 
