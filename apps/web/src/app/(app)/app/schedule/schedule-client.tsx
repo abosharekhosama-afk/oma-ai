@@ -52,11 +52,7 @@ import { todayKey, wallTimeToIso } from '../../../../lib/calendar-today';
 import { brandScheduleTimezone } from '../../../../lib/brand-schedule-timezone';
 import { useActiveBrandId } from '../../../../lib/active-brand';
 import { contentToScheduleRow, type ScheduleRowExtras } from '../../../../lib/schedule-production';
-import {
-  buildPublishStatusView,
-  formatScheduleWhen,
-  isProfileOnlyPostUrl,
-} from '../../../../lib/publish-status';
+import { buildPublishStatusView, formatScheduleWhen } from '../../../../lib/publish-status';
 import {
   EMPTY_SCHEDULE_FILTERS,
   activeScheduleFilterCount,
@@ -74,7 +70,11 @@ import {
   type ScheduleView,
 } from '../../../../lib/demo/stage6-schedule';
 import { useLocale, useT } from '../../../../lib/use-locale';
-import { scheduleBlockedHint, scheduleBlockReason } from '../../../../lib/content-workflow-ui';
+import {
+  approvalPolicyOf,
+  scheduleBlockedHint,
+  scheduleBlockReason,
+} from '../../../../lib/content-workflow-ui';
 
 type ScheduleRowView = ScheduleRow & ScheduleRowExtras;
 
@@ -306,7 +306,13 @@ export default function SchedulePage() {
   const byDay = useMemo(() => groupScheduleByDay(datedRows), [datedRows]);
   const todayInBrand = useMemo(() => todayKey(scheduleTz), [scheduleTz]);
   const selectedContent = contents.find((item) => item.id === selected?.contentId) ?? null;
-  const selectedWorkflow = selectedContent ? resolveContentWorkflow(selectedContent, policy) : null;
+  const selectedPolicy = approvalPolicyOf(
+    selectedContent as { approvalPolicy?: typeof policy } | null,
+    policy,
+  );
+  const selectedWorkflow = selectedContent
+    ? resolveContentWorkflow(selectedContent, selectedPolicy)
+    : null;
   const scheduleBlocked =
     selected?.state === 'BLOCKED' || Boolean(selectedWorkflow?.scheduleBlocked);
   const filterCount = activeScheduleFilterCount(filters);
@@ -843,7 +849,14 @@ export default function SchedulePage() {
                           <h2>{t('demo.content.savedColumn')}</h2>
                           {contents
                             .filter(
-                              (item) => resolveContentWorkflow(item, policy).plannedAt == null,
+                              (item) =>
+                                resolveContentWorkflow(
+                                  item,
+                                  approvalPolicyOf(
+                                    item as { approvalPolicy?: typeof policy },
+                                    policy,
+                                  ),
+                                ).plannedAt == null,
                             )
                             .map((item) => (
                               <Link
@@ -1151,9 +1164,10 @@ export default function SchedulePage() {
         footer={null}
         closable={false}
         centered
-        width={560}
+        width="min(920px, calc(100vw - 32px))"
         destroyOnHidden
         className="oma-schedule-detail-modal"
+        rootClassName="oma-schedule-detail-modal-root"
         styles={{ body: { padding: 0 } }}
         mask={{ closable: true }}
       >
@@ -1222,7 +1236,7 @@ export default function SchedulePage() {
                   <p data-testid="demo-schedule-truth">
                     {selected.state === 'BLOCKED' || scheduleBlocked
                       ? scheduleBlockedHint(
-                          scheduleBlockReason(selectedContent ?? {}, policy),
+                          scheduleBlockReason(selectedContent ?? {}, selectedPolicy),
                           locale.startsWith('ar'),
                         ) || t('demo.schedule.truth.waitingApproval')
                       : selected.state === 'SCHEDULED_PREVIEW'
@@ -1270,13 +1284,13 @@ export default function SchedulePage() {
                 <section className="oma-plx-listening-panel oma-plx-sched-drawer__section">
                   <p data-testid="demo-schedule-policy">
                     {t('demo.content.policy')}:{' '}
-                    {policy === 'NONE'
+                    {selectedPolicy === 'NONE'
                       ? t('demo.content.policy.none')
-                      : policy === 'REQUIRED'
+                      : selectedPolicy === 'REQUIRED'
                         ? t('demo.content.policy.required')
                         : t('demo.content.policy.optional')}
                   </p>
-                  {selectedWorkflow && policy !== 'NONE' ? (
+                  {selectedWorkflow && selectedPolicy !== 'NONE' ? (
                     <p data-testid="demo-schedule-approver-progress">
                       {t('demo.content.approverProgress')
                         .replace('{approved}', String(selectedWorkflow.approverApproved))
@@ -1291,7 +1305,7 @@ export default function SchedulePage() {
                       title={
                         scheduleBlocked
                           ? scheduleBlockedHint(
-                              scheduleBlockReason(selectedContent ?? {}, policy),
+                              scheduleBlockReason(selectedContent ?? {}, selectedPolicy),
                               locale.startsWith('ar'),
                             ) || t('demo.content.scheduleBlocked')
                           : undefined

@@ -93,6 +93,8 @@ export type ContentPublishTargetRow = {
 };
 
 export type ContentRowExtra = ContentRow & {
+  approvalPolicy?: 'NONE' | 'OPTIONAL' | 'REQUIRED';
+  scheduleBlocked?: boolean;
   labels?: string[];
   clientVisible?: boolean;
   requestId?: string | null;
@@ -162,6 +164,8 @@ export function toContentRow(c: ApiContent): ContentRowExtra {
     syncGroupId: (c as { sync_group_id?: string | null }).sync_group_id ?? null,
     preferredAudience: (c as { preferred_audience?: string | null }).preferred_audience ?? null,
     mediaAssetIds: c.media_asset_ids ?? [],
+    approvalPolicy: c.workflow?.policy,
+    scheduleBlocked: c.workflow?.scheduleBlocked,
   };
 }
 
@@ -324,6 +328,12 @@ export async function getContentPreferences(brandId: string) {
     data: {
       brand_id: string;
       approval_policy: string;
+      approval_mode?: string;
+      approval_policy_source?: 'brand' | 'workspace';
+      required_approvers?: number;
+      schedule_on_approval?: boolean;
+      lock_after_approval?: boolean;
+      reminder_pending_approvals?: boolean;
       default_timezone: string;
       preview_style?: string;
       accent_color?: string | null;

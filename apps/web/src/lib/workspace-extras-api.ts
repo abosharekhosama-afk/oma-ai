@@ -99,6 +99,80 @@ export async function patchHolidayCalendars(
   });
 }
 
+export async function getBrandApprovalSettings(
+  brandId: string,
+): Promise<ApprovalSettings & { source: 'brand' | 'workspace' }> {
+  const res = await api<{
+    data: {
+      approval_mode?: ApprovalMode;
+      approval_policy?: string;
+      approval_policy_source?: 'brand' | 'workspace';
+      required_approvers?: number;
+      schedule_on_approval?: boolean;
+      lock_after_approval?: boolean;
+      reminder_pending_approvals?: boolean;
+    };
+  }>(`/api/v1/brands/${brandId}/content-preferences`);
+  const d = res.data;
+  const mode: ApprovalMode =
+    d.approval_mode === 'none' ||
+    d.approval_mode === 'optional' ||
+    d.approval_mode === 'required' ||
+    d.approval_mode === 'multi_level'
+      ? d.approval_mode
+      : d.approval_policy === 'NONE'
+        ? 'none'
+        : d.approval_policy === 'REQUIRED'
+          ? 'required'
+          : 'optional';
+  return {
+    mode,
+    requiredApprovers: d.required_approvers ?? 1,
+    scheduleOnApproval: d.schedule_on_approval ?? false,
+    lockAfterApproval: d.lock_after_approval ?? false,
+    reminderPendingApprovals: d.reminder_pending_approvals ?? false,
+    source: d.approval_policy_source === 'brand' ? 'brand' : 'workspace',
+  };
+}
+
+export async function saveBrandApprovalSettings(
+  brandId: string,
+  a: ApprovalSettings,
+): Promise<ApprovalSettings> {
+  const required =
+    a.mode === 'multi_level'
+      ? Math.max(2, a.requiredApprovers)
+      : a.mode === 'required'
+        ? Math.max(1, a.requiredApprovers)
+        : 1;
+  const res = await api<{
+    data: {
+      approval_mode?: ApprovalMode;
+      required_approvers?: number;
+      schedule_on_approval?: boolean;
+      lock_after_approval?: boolean;
+      reminder_pending_approvals?: boolean;
+    };
+  }>(`/api/v1/brands/${brandId}/content-preferences`, {
+    method: 'PATCH',
+    body: JSON.stringify({
+      approvalMode: a.mode,
+      requiredApprovers: required,
+      scheduleOnApproval: a.scheduleOnApproval,
+      lockAfterApproval: a.lockAfterApproval,
+      reminderPendingApprovals: a.reminderPendingApprovals,
+    }),
+  });
+  const d = res.data;
+  return {
+    mode: d.approval_mode ?? a.mode,
+    requiredApprovers: d.required_approvers ?? required,
+    scheduleOnApproval: d.schedule_on_approval ?? a.scheduleOnApproval,
+    lockAfterApproval: d.lock_after_approval ?? a.lockAfterApproval,
+    reminderPendingApprovals: d.reminder_pending_approvals ?? a.reminderPendingApprovals,
+  };
+}
+
 export async function saveApprovalSettings(a: ApprovalSettings): Promise<ApprovalSettings> {
   const s = await patchWorkspaceSettings({
     approval_mode: a.mode,

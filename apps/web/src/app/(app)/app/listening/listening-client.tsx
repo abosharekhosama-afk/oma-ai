@@ -1,7 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FloatingOverlay } from '../../../../components/ui/floating-overlay';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from '@oma/ui/controls';
 import {
   AtSignOutlined,
@@ -143,7 +142,6 @@ function SentimentPill({
   t: (k: string) => string;
 }) {
   const [open, setOpen] = useState(false);
-  const triggerRef = useRef<HTMLButtonElement>(null);
   const label =
     value === 'POSITIVE'
       ? t('listening.sentiment.positive') || 'Positive'
@@ -153,7 +151,6 @@ function SentimentPill({
   return (
     <div className="oma-plx-listening-sentiment-dd">
       <button
-        ref={triggerRef}
         type="button"
         className={`oma-plx-listening-sent-pill sent--${value.toLowerCase()}`}
         onClick={() => setOpen((v) => !v)}
@@ -162,31 +159,26 @@ function SentimentPill({
         {label}
         <DownOutlined />
       </button>
-      <FloatingOverlay
-        open={open}
-        anchorRef={triggerRef}
-        onClose={() => setOpen(false)}
-        className="oma-plx-listening-sentiment-dd__menu"
-        role="menu"
-        width={200}
-      >
-        {(['POSITIVE', 'NEUTRAL', 'NEGATIVE'] as const).map((s) => (
-          <button
-            key={s}
-            type="button"
-            role="menuitem"
-            onClick={() => {
-              onChange(s);
-              setOpen(false);
-            }}
-          >
-            <i
-              className={`dot dot--${s === 'POSITIVE' ? 'pos' : s === 'NEGATIVE' ? 'neg' : 'neu'}`}
-            />
-            {s.charAt(0) + s.slice(1).toLowerCase()}
-          </button>
-        ))}
-      </FloatingOverlay>
+      {open ? (
+        <div className="oma-plx-listening-sentiment-dd__menu" role="menu">
+          {(['POSITIVE', 'NEUTRAL', 'NEGATIVE'] as const).map((s) => (
+            <button
+              key={s}
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                onChange(s);
+                setOpen(false);
+              }}
+            >
+              <i
+                className={`dot dot--${s === 'POSITIVE' ? 'pos' : s === 'NEGATIVE' ? 'neg' : 'neu'}`}
+              />
+              {s.charAt(0) + s.slice(1).toLowerCase()}
+            </button>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -204,7 +196,6 @@ export function ListeningClient({ view }: { view: ListeningView }) {
   const [sentimentFilter, setSentimentFilter] = useState<SentimentFilter>('all');
   const [chartMode, setChartMode] = useState<'total' | 'sentiment'>('sentiment');
   const [filterOpen, setFilterOpen] = useState(false);
-  const filterTriggerRef = useRef<HTMLButtonElement>(null);
   const [contextDismissed, setContextDismissed] = useState(false);
   const [stats, setStats] = useState<ListeningStats | null>(null);
   const [chartDayIndex, setChartDayIndex] = useState<number | null>(null);
@@ -601,7 +592,6 @@ export function ListeningClient({ view }: { view: ListeningView }) {
             </button>
             <div className="oma-plx-listening-filter">
               <button
-                ref={filterTriggerRef}
                 type="button"
                 className="oma-plx-listening-filter__trigger"
                 onClick={() => setFilterOpen((v) => !v)}
@@ -615,82 +605,76 @@ export function ListeningClient({ view }: { view: ListeningView }) {
                     : t('listening.sort.recency') || 'By recency'}
                 <DownOutlined />
               </button>
-              <FloatingOverlay
-                open={filterOpen}
-                anchorRef={filterTriggerRef}
-                onClose={() => setFilterOpen(false)}
-                className="oma-plx-listening-filter__menu"
-                role="dialog"
-                width={280}
-                align="end"
-              >
-                <p className="oma-plx-listening-filter__label">
-                  {t('listening.sorting') || 'Sorting'}
-                </p>
-                {(['relevance', 'engagement', 'recency'] as SortKey[]).map((k) => (
-                  <label key={k} className="oma-plx-listening-filter__row">
+              {filterOpen ? (
+                <div className="oma-plx-listening-filter__menu" role="dialog">
+                  <p className="oma-plx-listening-filter__label">
+                    {t('listening.sorting') || 'Sorting'}
+                  </p>
+                  {(['relevance', 'engagement', 'recency'] as SortKey[]).map((k) => (
+                    <label key={k} className="oma-plx-listening-filter__row">
+                      <input
+                        type="radio"
+                        name="sort"
+                        checked={sort === k}
+                        onChange={() => setSort(k)}
+                      />
+                      {k === 'relevance'
+                        ? t('listening.sort.relevance') || 'By relevance'
+                        : k === 'engagement'
+                          ? t('listening.sort.engagement') || 'By engagement'
+                          : t('listening.sort.recency') || 'By recency'}
+                    </label>
+                  ))}
+                  <p className="oma-plx-listening-filter__label">
+                    {t('listening.sentiment') || 'Sentiment'}
+                  </p>
+                  {(
+                    [
+                      ['all', t('listening.sentiment.all') || 'All'],
+                      ['POSITIVE', t('listening.sentiment.positive') || 'Positive'],
+                      ['NEUTRAL', t('listening.sentiment.neutral') || 'Neutral'],
+                      ['NEGATIVE', t('listening.sentiment.negative') || 'Negative'],
+                    ] as const
+                  ).map(([val, label]) => (
+                    <label key={val} className="oma-plx-listening-filter__row">
+                      <input
+                        type="radio"
+                        name="sentiment"
+                        checked={sentimentFilter === val}
+                        onChange={() => setSentimentFilter(val)}
+                      />
+                      {label}
+                    </label>
+                  ))}
+                  <p className="oma-plx-listening-filter__label">
+                    {t('listening.options') || 'Options'}
+                  </p>
+                  <label className="oma-plx-listening-filter__row">
                     <input
-                      type="radio"
-                      name="sort"
-                      checked={sort === k}
-                      onChange={() => setSort(k)}
+                      type="checkbox"
+                      checked={hideOwnMentions}
+                      onChange={(e) => setHideOwnMentions(e.target.checked)}
                     />
-                    {k === 'relevance'
-                      ? t('listening.sort.relevance') || 'By relevance'
-                      : k === 'engagement'
-                        ? t('listening.sort.engagement') || 'By engagement'
-                        : t('listening.sort.recency') || 'By recency'}
+                    {t('listening.opt.hideOwn') || 'Hide own mentions'}
                   </label>
-                ))}
-                <p className="oma-plx-listening-filter__label">
-                  {t('listening.sentiment') || 'Sentiment'}
-                </p>
-                {(
-                  [
-                    ['all', t('listening.sentiment.all') || 'All'],
-                    ['POSITIVE', t('listening.sentiment.positive') || 'Positive'],
-                    ['NEUTRAL', t('listening.sentiment.neutral') || 'Neutral'],
-                    ['NEGATIVE', t('listening.sentiment.negative') || 'Negative'],
-                  ] as const
-                ).map(([val, label]) => (
-                  <label key={val} className="oma-plx-listening-filter__row">
+                  <label className="oma-plx-listening-filter__row">
                     <input
-                      type="radio"
-                      name="sentiment"
-                      checked={sentimentFilter === val}
-                      onChange={() => setSentimentFilter(val)}
+                      type="checkbox"
+                      checked={showHidden}
+                      onChange={(e) => setShowHidden(e.target.checked)}
                     />
-                    {label}
+                    {t('listening.opt.showHidden') || 'Show hidden mentions'}
                   </label>
-                ))}
-                <p className="oma-plx-listening-filter__label">
-                  {t('listening.options') || 'Options'}
-                </p>
-                <label className="oma-plx-listening-filter__row">
-                  <input
-                    type="checkbox"
-                    checked={hideOwnMentions}
-                    onChange={(e) => setHideOwnMentions(e.target.checked)}
-                  />
-                  {t('listening.opt.hideOwn') || 'Hide own mentions'}
-                </label>
-                <label className="oma-plx-listening-filter__row">
-                  <input
-                    type="checkbox"
-                    checked={showHidden}
-                    onChange={(e) => setShowHidden(e.target.checked)}
-                  />
-                  {t('listening.opt.showHidden') || 'Show hidden mentions'}
-                </label>
-                <label className="oma-plx-listening-filter__row">
-                  <input
-                    type="checkbox"
-                    checked={showExcluded}
-                    onChange={(e) => setShowExcluded(e.target.checked)}
-                  />
-                  {t('listening.opt.showExcluded') || 'Show excluded sources'}
-                </label>
-              </FloatingOverlay>
+                  <label className="oma-plx-listening-filter__row">
+                    <input
+                      type="checkbox"
+                      checked={showExcluded}
+                      onChange={(e) => setShowExcluded(e.target.checked)}
+                    />
+                    {t('listening.opt.showExcluded') || 'Show excluded sources'}
+                  </label>
+                </div>
+              ) : null}
             </div>
           </div>
         </header>

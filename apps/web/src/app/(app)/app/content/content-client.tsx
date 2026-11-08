@@ -153,6 +153,7 @@ import {
   loadContentWorkspace,
   loadContentWorkspaceRest,
   resetContentWorkspaceLoadCoalescing,
+  getContentPreferences,
   createContentProduction,
   duplicateContent,
   setContentPublishTarget,
@@ -216,6 +217,7 @@ import {
   scheduleBlockedHint,
   canArchive,
   lifecycleHint,
+  approvalPolicyOf,
 } from '../../../../lib/content-workflow-ui';
 import { useActiveBrandId } from '../../../../lib/active-brand';
 import { brandScheduleTimezone } from '../../../../lib/brand-schedule-timezone';
@@ -1399,6 +1401,22 @@ export default function ContentPage() {
     }
   }, []);
   const [policy, setPolicy] = useState<ApprovalPolicy>('OPTIONAL');
+
+  const policyFor = useCallback(
+    (item?: object | null) => approvalPolicyOf(item, policy),
+    [policy],
+  );
+
+  useEffect(() => {
+    if (!activeBrandId) return;
+    void getContentPreferences(activeBrandId)
+      .then((res) => {
+        const next = res.data.approval_policy;
+        if (next === 'NONE' || next === 'OPTIONAL' || next === 'REQUIRED') setPolicy(next);
+      })
+      .catch(() => undefined);
+  }, [activeBrandId]);
+
   const closingDrawerRef = useRef(false);
 
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -2085,7 +2103,7 @@ export default function ContentPage() {
     };
   }, [feedIds]);
   const savedItems = useMemo(
-    () => filtered.filter((item) => !resolveContentWorkflow(item, policy).plannedAt),
+    () => filtered.filter((item) => !resolveContentWorkflow(item, policyFor(item)).plannedAt),
     [filtered, policy],
   );
   const feedPosts = useMemo(() => filtered.filter((i) => i.contentType !== 'STORY'), [filtered]);
@@ -2638,7 +2656,7 @@ export default function ContentPage() {
               : command,
         target,
         isAr,
-        policy,
+        policyFor(target),
       );
       if (
         hint &&
@@ -2718,7 +2736,7 @@ export default function ContentPage() {
   ) {
     const row = rows.find((r) => r.id === contentId);
     if (!row) return;
-    const decision = decideDrop(row, fromDay ?? null, dayKey, policy);
+    const decision = decideDrop(row, fromDay ?? null, dayKey, policyFor(row));
     if (!decision.ok) {
       if (decision.reason === 'SAME_DAY') return;
       toast.push(
@@ -2740,9 +2758,9 @@ export default function ContentPage() {
       return;
     }
     const isScheduled = row.scheduleState === 'SCHEDULED';
-    if (isScheduled && !canScheduleItem(row, policy)) {
+    if (isScheduled && !canScheduleItem(row, policyFor(row))) {
       toast.push(
-        scheduleBlockedHint(scheduleBlockReason(row, policy), isAr) ??
+        scheduleBlockedHint(scheduleBlockReason(row, policyFor(row)), isAr) ??
           t('content.scheduling_unavailable'),
         'danger',
       );
@@ -4543,7 +4561,7 @@ export default function ContentPage() {
                                 channel={item.channel}
                                 when="—"
                                 asset={item.previewAsset}
-                                display={faceDisplay(item, policy)}
+                                display={faceDisplay(item, policyFor(item))}
                                 locale={locale}
                                 selected={selectedId === item.id}
                               />
@@ -5884,14 +5902,20 @@ export default function ContentPage() {
                             className="oma-plan-post__approval-meta"
                             data-testid="content-approval-meta"
                           >
-                            {approvalProgressLabel(selected, policy, isAr) ? (
+                            {approvalProgressLabel(selected, policyFor(selected), isAr) ? (
                               <span data-testid="content-approval-progress">
-                                {approvalProgressLabel(selected, policy, isAr)}
+                                {approvalProgressLabel(selected, policyFor(selected), isAr)}
                               </span>
                             ) : null}
-                            {scheduleBlockedHint(scheduleBlockReason(selected, policy), isAr) ? (
+                            {scheduleBlockedHint(
+                              scheduleBlockReason(selected, policyFor(selected)),
+                              isAr,
+                            ) ? (
                               <span data-testid="content-schedule-blocked">
-                                {scheduleBlockedHint(scheduleBlockReason(selected, policy), isAr)}
+                                {scheduleBlockedHint(
+                                  scheduleBlockReason(selected, policyFor(selected)),
+                                  isAr,
+                                )}
                               </span>
                             ) : null}
                             <span data-testid="content-publishing-not-connected">
@@ -5911,10 +5935,12 @@ export default function ContentPage() {
                           />
                           <Button
                             type="default"
-                            disabled={saving || !canScheduleItem(selected, policy)}
+                            disabled={saving || !canScheduleItem(selected, policyFor(selected))}
                             title={
-                              scheduleBlockedHint(scheduleBlockReason(selected, policy), isAr) ??
-                              undefined
+                              scheduleBlockedHint(
+                                scheduleBlockReason(selected, policyFor(selected)),
+                                isAr,
+                              ) ?? undefined
                             }
                             onClick={() => void runLifecycle('schedule', selectedId)}
                             data-testid="demo-content-schedule"
@@ -7058,7 +7084,7 @@ export default function ContentPage() {
         pos={menuPos}
         item={rows.find((r) => r.id === cardMenuId) || null}
         itemId={cardMenuId}
-        policy={policy}
+        policy={policyFor(rows.find((r) => r.id === cardMenuId) || null)}
         locale={locale}
         variant={menuVariant}
         canEdit={mayComment}

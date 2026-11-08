@@ -483,6 +483,11 @@ export class ContentController {
     @Body()
     body: {
       approvalPolicy?: 'NONE' | 'OPTIONAL' | 'REQUIRED' | null;
+      approvalMode?: 'none' | 'optional' | 'required' | 'multi_level' | null;
+      requiredApprovers?: number;
+      scheduleOnApproval?: boolean;
+      lockAfterApproval?: boolean;
+      reminderPendingApprovals?: boolean;
       defaultTimezone?: string;
       previewStyle?: string;
       accentColor?: string | null;

@@ -144,6 +144,44 @@ describe('schedule agenda and queue layouts', () => {
     expect(css).toContain('.oma-plx-sched-detail-card');
   });
 
+  it('keeps every schedule view at full mobile width and scrolls the calendar inside its container', () => {
+    const css = read('apps/web/src/styles/inbox-listening.css');
+    const stage = read('apps/web/src/styles/stage5.css');
+    const scheduleRule = css.slice(css.lastIndexOf('/* Mobile Schedule:'));
+    expect(scheduleRule).toContain('@media (max-width: 767px)');
+    expect(scheduleRule).toContain('.oma-plx-listening.oma-plx-schedule');
+    expect(scheduleRule).toContain('width: 100% !important');
+    expect(scheduleRule).toContain('max-width: 100% !important');
+    expect(scheduleRule).toContain('overflow-x: hidden');
+    expect(scheduleRule).toContain(".oma-sched-main[data-view='calendar']");
+    expect(scheduleRule).toContain(".oma-sched-main[data-view='agenda']");
+    expect(scheduleRule).toContain(".oma-sched-main[data-view='queue']");
+    expect(scheduleRule).toContain(".oma-sched-main[data-view='table']");
+    expect(scheduleRule).toContain('.oma-sched-calendar-scroll');
+    expect(scheduleRule).toContain('overflow-x: auto !important');
+    expect(stage).toContain('.oma-sched-page');
+    expect(stage).toContain('overflow-x: hidden !important');
+    expect(stage).toContain('width: 233.333% !important');
+    expect(stage).toContain('min-width: 233.333% !important');
+  });
+
+  it('sizes the schedule details card as a responsive sheet on mobile and a larger dialog on desktop', () => {
+    const source = read('apps/web/src/app/(app)/app/schedule/schedule-client.tsx');
+    const css = read('apps/web/src/styles/inbox-listening.css');
+    expect(source).toContain('rootClassName="oma-schedule-detail-modal-root"');
+    expect(source).toContain('width="min(920px, calc(100vw - 32px))"');
+    expect(source).not.toContain('width={560}');
+    expect(css).toContain('.oma-schedule-detail-modal-root');
+    expect(css).toContain('min(920px, calc(100vw - 32px))');
+    expect(css).toContain('min(760px, calc(100vw - 40px))');
+    expect(css).toContain('var(--oma-mobile-vw, 100vw)');
+    expect(css).toContain('var(--oma-mobile-vh, 100dvh)');
+    expect(css).toContain('border-start-start-radius: 16px');
+    expect(css).toContain('border-start-end-radius: 16px');
+    expect(css).toContain('inset-inline: 0');
+    expect(css).toContain('overflow-y: auto');
+  });
+
   it('anchors schedule view switching in the workspace header popover', () => {
     const source = read('apps/web/src/app/(app)/app/schedule/schedule-client.tsx');
     expect(source).toContain('data-testid="demo-schedule-view-toggle"');

@@ -35,6 +35,19 @@ export function canReject(item: ContentLifecycleSource): boolean {
 
 export type Policy = 'NONE' | 'OPTIONAL' | 'REQUIRED';
 
+/** Prefer the policy stamped on the item (its brand); fall back to the screen default. */
+export function approvalPolicyOf(
+  item?: { approvalPolicy?: Policy | null } | object | null,
+  fallback: Policy = 'OPTIONAL',
+): Policy {
+  const p =
+    item && typeof item === 'object' && 'approvalPolicy' in item
+      ? (item as { approvalPolicy?: Policy | null }).approvalPolicy
+      : undefined;
+  if (p === 'NONE' || p === 'OPTIONAL' || p === 'REQUIRED') return p;
+  return fallback;
+}
+
 /** Why Schedule is unavailable (mirrors domain `scheduleBlockedReason`). */
 export function scheduleBlockReason(
   item: ContentLifecycleSource,

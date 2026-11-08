@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@oma/ui/controls';
 import { MoreOutlined, PlusOutlined } from '../../../../components/ui/lucide-icons';
 import { useActiveBrandId } from '../../../../lib/active-brand';
@@ -13,8 +13,66 @@ import {
 } from '../../../../lib/listening-api';
 import { useLocale } from '../../../../lib/use-locale';
 import { LISTENING_PLATFORMS } from './listening-utils';
+import { FloatingOverlay } from '../../../../components/ui/floating-overlay';
 
 const ENTITY_COLORS = ['#1570ef', '#ee46bc', '#f79009', '#0e9f95'];
+
+function AlertActionsMenu({
+  ar,
+  onEdit,
+  onDelete,
+}: {
+  ar: boolean;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  return (
+    <td className="oma-plx-listening-alerts__menu-cell">
+      <button
+        ref={triggerRef}
+        type="button"
+        className="oma-plx-listening-icon-btn"
+        aria-label={ar ? 'إجراءات' : 'Actions'}
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+      >
+        <MoreOutlined />
+      </button>
+      <FloatingOverlay
+        open={open}
+        anchorRef={triggerRef}
+        onClose={() => setOpen(false)}
+        className="oma-plx-listening-alerts__menu"
+        role="menu"
+        width={220}
+        align="end"
+      >
+        <button
+          type="button"
+          role="menuitem"
+          onClick={() => {
+            setOpen(false);
+            onEdit();
+          }}
+        >
+          {ar ? 'تعديل التنبيه' : 'Edit alert'}
+        </button>
+        <button
+          type="button"
+          role="menuitem"
+          onClick={() => {
+            setOpen(false);
+            onDelete();
+          }}
+        >
+          {ar ? 'حذف التنبيه' : 'Delete alert'}
+        </button>
+      </FloatingOverlay>
+    </td>
+  );
+}
 
 function formatLastFired(iso: string | null, locale: string) {
   if (!iso) return '—';
@@ -31,7 +89,6 @@ export function ListeningAlertsView() {
   const [rows, setRows] = useState<ListeningAlertRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [menuId, setMenuId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draftName, setDraftName] = useState('Volume spike');
@@ -72,7 +129,6 @@ export function ListeningAlertsView() {
   const onDelete = async (id: string) => {
     if (!window.confirm(ar ? 'حذف التنبيه؟' : 'Delete this alert?')) return;
     await deleteListeningAlert(id);
-    setMenuId(null);
     await load();
   };
 
@@ -115,7 +171,6 @@ export function ListeningAlertsView() {
       setPlatformScope('all');
       setSelectedPlatforms(new Set());
     }
-    setMenuId(null);
     setModalOpen(true);
   };
 
@@ -207,26 +262,11 @@ export function ListeningAlertsView() {
                     onClick={() => void onToggle(row)}
                   />
                 </td>
-                <td className="oma-plx-listening-alerts__menu-cell">
-                  <button
-                    type="button"
-                    className="oma-plx-listening-icon-btn"
-                    aria-label={ar ? 'إجراءات' : 'Actions'}
-                    onClick={() => setMenuId(menuId === row.id ? null : row.id)}
-                  >
-                    <MoreOutlined />
-                  </button>
-                  {menuId === row.id ? (
-                    <div className="oma-plx-listening-alerts__menu" role="menu">
-                      <button type="button" role="menuitem" onClick={() => openEdit(row)}>
-                        {ar ? 'تعديل التنبيه' : 'Edit alert'}
-                      </button>
-                      <button type="button" role="menuitem" onClick={() => void onDelete(row.id)}>
-                        {ar ? 'حذف التنبيه' : 'Delete alert'}
-                      </button>
-                    </div>
-                  ) : null}
-                </td>
+                <AlertActionsMenu
+                  ar={ar}
+                  onEdit={() => openEdit(row)}
+                  onDelete={() => void onDelete(row.id)}
+                />
               </tr>
             ))}
           </tbody>

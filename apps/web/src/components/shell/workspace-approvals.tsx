@@ -93,10 +93,12 @@ export function WorkspaceApprovals({
   approvals,
   onChange,
   onError,
+  saveSettings,
 }: {
   approvals: ApprovalSettings;
   onChange: (next: ApprovalSettings) => void;
   onError: (msg: string) => void;
+  saveSettings?: (next: ApprovalSettings) => Promise<ApprovalSettings>;
 }) {
   const t = useT();
   const [members, setMembers] = useState<WorkspaceMember[]>([]);
@@ -128,7 +130,7 @@ export function WorkspaceApprovals({
       onChange(next);
       setBusy(true);
       try {
-        const saved = await saveApprovalSettings(next);
+        const saved = await (saveSettings ?? saveApprovalSettings)(next);
         onChange(saved);
       } catch (err) {
         onError(err instanceof Error ? err.message : String(err));
@@ -136,7 +138,7 @@ export function WorkspaceApprovals({
         setBusy(false);
       }
     },
-    [onChange, onError],
+    [onChange, onError, saveSettings],
   );
 
   const canRequired =

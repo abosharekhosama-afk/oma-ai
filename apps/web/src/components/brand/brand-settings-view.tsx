@@ -144,7 +144,9 @@ export function BrandSettingsView(p: BrandSettingsViewProps) {
           {p.tab === 'general' ? <GeneralTab {...p} /> : null}
           {p.tab === 'members' ? <MembersTab {...p} /> : null}
           {p.tab === 'accounts' ? <AccountsTab {...p} /> : null}
-          {p.tab === 'approvals' ? <BrandApprovalsSettings canManage={p.canManage} /> : null}
+          {p.tab === 'approvals' ? (
+            <BrandApprovalsSettings canManage={p.canManage} brandId={p.brand.id} />
+          ) : null}
         </main>
       </div>
     </div>
