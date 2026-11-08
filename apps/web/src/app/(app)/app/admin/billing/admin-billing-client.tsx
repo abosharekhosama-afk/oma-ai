@@ -16,7 +16,7 @@ import {
   adminUpdateSettings,
   planErrorFromUnknown,
 } from '../../../../../lib/billing-api';
-import '../../../billing/billing.css';
+import '../../billing/billing.css';
 
 export default function AdminBillingClient() {
   const isAr = useLocale() === 'ar';
