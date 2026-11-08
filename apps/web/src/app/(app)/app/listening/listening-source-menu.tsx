@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { DownOutlined } from '../../../../components/ui/lucide-icons';
+import { FloatingOverlay } from '../../../../components/ui/floating-overlay';
 import { useT } from '../../../../lib/use-locale';
 import { LISTENING_PLATFORMS, platformLabel } from './listening-utils';
 
@@ -14,16 +15,7 @@ export function ListeningSourceMenu({
 }) {
   const t = useT();
   const [open, setOpen] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onDoc = (e: MouseEvent) => {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', onDoc);
-    return () => document.removeEventListener('mousedown', onDoc);
-  }, [open]);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   const allSelected = selected.size === 0;
   const label = allSelected
@@ -40,8 +32,9 @@ export function ListeningSourceMenu({
   };
 
   return (
-    <div className="oma-plx-listening-source" ref={rootRef}>
+    <div className="oma-plx-listening-source">
       <button
+        ref={triggerRef}
         type="button"
         className="oma-plx-listening-source__trigger"
         onClick={() => setOpen((v) => !v)}
@@ -51,30 +44,35 @@ export function ListeningSourceMenu({
         <strong>{label}</strong>
         <DownOutlined />
       </button>
-      {open ? (
-        <div className="oma-plx-listening-source__menu" role="listbox">
-          <label className="oma-plx-listening-source__row">
-            <input type="checkbox" checked={allSelected} onChange={() => onChange(new Set())} />
-            <span>{t('listening.allPlatforms') || 'All platforms'}</span>
+      <FloatingOverlay
+        open={open}
+        anchorRef={triggerRef}
+        onClose={() => setOpen(false)}
+        className="oma-plx-listening-source__menu"
+        role="listbox"
+        width={260}
+      >
+        <label className="oma-plx-listening-source__row">
+          <input type="checkbox" checked={allSelected} onChange={() => onChange(new Set())} />
+          <span>{t('listening.allPlatforms') || 'All platforms'}</span>
+        </label>
+        {LISTENING_PLATFORMS.map((p) => (
+          <label key={p.id} className="oma-plx-listening-source__row">
+            <input
+              type="checkbox"
+              checked={!allSelected && selected.has(p.id)}
+              onChange={() => {
+                if (allSelected) onChange(new Set([p.id]));
+                else toggle(p.id);
+              }}
+            />
+            <span className="oma-plx-listening-source__plat" style={{ background: p.color }}>
+              {p.short}
+            </span>
+            <span>{platformLabel(p.id)}</span>
           </label>
-          {LISTENING_PLATFORMS.map((p) => (
-            <label key={p.id} className="oma-plx-listening-source__row">
-              <input
-                type="checkbox"
-                checked={!allSelected && selected.has(p.id)}
-                onChange={() => {
-                  if (allSelected) onChange(new Set([p.id]));
-                  else toggle(p.id);
-                }}
-              />
-              <span className="oma-plx-listening-source__plat" style={{ background: p.color }}>
-                {p.short}
-              </span>
-              <span>{platformLabel(p.id)}</span>
-            </label>
-          ))}
-        </div>
-      ) : null}
+        ))}
+      </FloatingOverlay>
     </div>
   );
 }

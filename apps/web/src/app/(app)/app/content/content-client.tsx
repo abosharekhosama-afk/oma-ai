@@ -18,6 +18,7 @@ import {
 } from '../../../../components/ui/error-state';
 import { ContentShimmer } from '../../../../components/ui/screen-shimmer';
 import { createPortal } from 'react-dom';
+import { FloatingOverlay } from '../../../../components/ui/floating-overlay';
 import { resolveContentWorkflow, type ApprovalPolicy, type DemoGraph } from '@oma/demo';
 import { ContentFace, faceDisplay } from '../../../../components/content/content-card';
 import { PostPreview } from '../../../../components/content/post-preview';
@@ -1198,7 +1199,14 @@ function CardFloatingMenu({
       className="oma-card-menu--float"
       role="menu"
       data-testid="demo-content-card-menu"
-      style={{ position: 'fixed', top: realPos.top, left: realPos.left, zIndex: 9999 }}
+      style={{
+        position: 'fixed',
+        top: realPos.top,
+        left: realPos.left,
+        zIndex: 12000,
+        maxHeight: 'min(70vh, calc(100vh - 16px))',
+        overflowY: 'auto',
+      }}
       onMouseDown={(e) => e.stopPropagation()}
       onClick={(e) => e.stopPropagation()}
     >
@@ -1426,6 +1434,7 @@ export default function ContentPage() {
     'desktop',
   );
   const [detailMoreOpen, setDetailMoreOpen] = useState(false);
+  const detailMoreBtnRef = useRef<HTMLButtonElement>(null);
   const [detailCampaignMenu, setDetailCampaignMenu] = useState(false);
   const detailCampaignRef = useRef<HTMLDivElement | null>(null);
   /** Bumped after lifecycle actions so approval events of the open post are reloaded. */
@@ -5145,6 +5154,7 @@ export default function ContentPage() {
                   </button>
                   <div className="oma-plan-post__more-wrap">
                     <button
+                      ref={detailMoreBtnRef}
                       type="button"
                       className="oma-plan-post__icon-btn"
                       aria-label={t('content.more_actions')}
@@ -5156,9 +5166,17 @@ export default function ContentPage() {
                     >
                       <MoreOutlined />
                     </button>
-                    {detailMoreOpen ? (
+                    <FloatingOverlay
+                      open={detailMoreOpen}
+                      anchorRef={detailMoreBtnRef}
+                      onClose={() => setDetailMoreOpen(false)}
+                      className="oma-plan-post__more-menu"
+                      role="menu"
+                      width={260}
+                      align="end"
+                    >
                       <ul
-                        className="oma-plan-post__more-menu"
+                        className="oma-plan-post__more-menu-list"
                         role="menu"
                         onClick={() => setDetailMoreOpen(false)}
                       >
@@ -5443,7 +5461,7 @@ export default function ContentPage() {
                           </button>
                         </li>
                       </ul>
-                    ) : null}
+                    </FloatingOverlay>
                   </div>
                   <button
                     type="button"
