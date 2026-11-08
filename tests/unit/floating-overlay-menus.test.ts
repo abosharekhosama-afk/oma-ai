@@ -13,8 +13,12 @@ describe('collision-aware floating menus', () => {
     expect(overlay).toContain('maxHeight');
 
     const source = read('apps/web/src/app/(app)/app/listening/listening-source-menu.tsx');
-    expect(source).toContain('<FloatingOverlay');
+    expect(source).not.toContain('<FloatingOverlay');
     expect(source).toContain('oma-plx-listening-source__menu');
+
+    const alerts = read('apps/web/src/app/(app)/app/listening/listening-alerts-view.tsx');
+    expect(alerts).toContain('<FloatingOverlay');
+    expect(alerts).toContain('oma-plx-listening-alerts__menu');
 
     const actions = read('apps/web/src/app/(app)/app/content/content-client.tsx');
     expect(actions).toContain('oma-plan-post__more-menu');

@@ -1,12 +1,11 @@
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowLeftOutlined,
   CalendarOutlined,
   DownOutlined,
 } from '../../../../components/ui/lucide-icons';
-import { FloatingOverlay } from '../../../../components/ui/floating-overlay';
 import { useT } from '../../../../lib/use-locale';
 
 export type DateRangePreset = '7' | '14' | '30' | 'thisMonth' | 'lastMonth' | 'quarter' | 'custom';
@@ -90,7 +89,15 @@ export function ListeningDateRange({
     () => new Date(value.start.getFullYear(), value.start.getMonth(), 1),
   );
   const rootRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (rootRef.current && !rootRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, [open]);
 
   const months = useMemo(
     () => [
@@ -137,7 +144,6 @@ export function ListeningDateRange({
   return (
     <div className="oma-plx-listening-date" ref={rootRef}>
       <button
-        ref={triggerRef}
         type="button"
         className="oma-plx-listening__range"
         onClick={() => setOpen((v) => !v)}
@@ -147,115 +153,111 @@ export function ListeningDateRange({
         <span>{presetLabel(value.preset, t)}</span>
         <DownOutlined />
       </button>
-      <FloatingOverlay
-        open={open}
-        anchorRef={triggerRef}
-        onClose={() => setOpen(false)}
-        className="oma-plx-listening-date__popover"
-        role="dialog"
-        width={680}
-      >
-        <div className="oma-plx-listening-date__calendars">
-          <div className="oma-plx-listening-date__nav">
-            <button
-              type="button"
-              aria-label="Previous month"
-              onClick={() =>
-                setCursorMonth(new Date(cursorMonth.getFullYear(), cursorMonth.getMonth() - 1, 1))
-              }
-            >
-              <ArrowLeftOutlined />
-            </button>
-            <button
-              type="button"
-              aria-label="Next month"
-              onClick={() =>
-                setCursorMonth(new Date(cursorMonth.getFullYear(), cursorMonth.getMonth() + 1, 1))
-              }
-            >
-              <ArrowLeftOutlined className="oma-plx-listening-date__flip" />
+      {open ? (
+        <div className="oma-plx-listening-date__popover" role="dialog" aria-label="Date range">
+          <div className="oma-plx-listening-date__calendars">
+            <div className="oma-plx-listening-date__nav">
+              <button
+                type="button"
+                aria-label="Previous month"
+                onClick={() =>
+                  setCursorMonth(new Date(cursorMonth.getFullYear(), cursorMonth.getMonth() - 1, 1))
+                }
+              >
+                <ArrowLeftOutlined />
+              </button>
+              <button
+                type="button"
+                aria-label="Next month"
+                onClick={() =>
+                  setCursorMonth(new Date(cursorMonth.getFullYear(), cursorMonth.getMonth() + 1, 1))
+                }
+              >
+                <ArrowLeftOutlined className="oma-plx-listening-date__flip" />
+              </button>
+            </div>
+            <div className="oma-plx-listening-date__months">
+              {months.map(({ y, m }) => {
+                const normM = ((m % 12) + 12) % 12;
+                const normY = y + Math.floor(m / 12);
+                const cells = monthMatrix(normY, normM);
+                const title = new Date(normY, normM, 1).toLocaleDateString(undefined, {
+                  month: 'long',
+                  year: 'numeric',
+                });
+                return (
+                  <div key={`${normY}-${normM}`} className="oma-plx-listening-date__month">
+                    <div className="oma-plx-listening-date__month-title">{title}</div>
+                    <div className="oma-plx-listening-date__weekdays">
+                      {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((w) => (
+                        <span key={w}>{w}</span>
+                      ))}
+                    </div>
+                    <div className="oma-plx-listening-date__grid">
+                      {cells.map((day, idx) =>
+                        day ? (
+                          <button
+                            key={idx}
+                            type="button"
+                            className={`oma-plx-listening-date__day${
+                              inRange(normY, normM, day) ? ' in-range' : ''
+                            }${
+                              rangeStart &&
+                              startOfDay(new Date(normY, normM, day)).getTime() ===
+                                rangeStart.getTime()
+                                ? ' is-start'
+                                : ''
+                            }${
+                              rangeEnd &&
+                              startOfDay(new Date(normY, normM, day)).getTime() ===
+                                rangeEnd.getTime()
+                                ? ' is-end'
+                                : ''
+                            }`}
+                            onClick={() => pickDay(normY, normM, day)}
+                          >
+                            {day}
+                          </button>
+                        ) : (
+                          <span
+                            key={idx}
+                            className="oma-plx-listening-date__day oma-plx-listening-date__day--empty"
+                          />
+                        ),
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div className="oma-plx-listening-date__presets">
+            {(
+              ['7', '14', '30', 'thisMonth', 'lastMonth', 'quarter', 'custom'] as DateRangePreset[]
+            ).map((p) => (
+              <label key={p} className="oma-plx-listening-date__preset">
+                <input
+                  type="radio"
+                  name="listening-range"
+                  checked={draftPreset === p}
+                  onChange={() => {
+                    setDraftPreset(p);
+                    if (p !== 'custom') {
+                      const r = resolveDateRange(p);
+                      setRangeStart(r.start);
+                      setRangeEnd(r.end);
+                    }
+                  }}
+                />
+                {presetLabel(p, t)}
+              </label>
+            ))}
+            <button type="button" className="oma-plx-listening-date__apply" onClick={apply}>
+              {t('listening.applyRange') || 'Apply'}
             </button>
           </div>
-          <div className="oma-plx-listening-date__months">
-            {months.map(({ y, m }) => {
-              const normM = ((m % 12) + 12) % 12;
-              const normY = y + Math.floor(m / 12);
-              const cells = monthMatrix(normY, normM);
-              const title = new Date(normY, normM, 1).toLocaleDateString(undefined, {
-                month: 'long',
-                year: 'numeric',
-              });
-              return (
-                <div key={`${normY}-${normM}`} className="oma-plx-listening-date__month">
-                  <div className="oma-plx-listening-date__month-title">{title}</div>
-                  <div className="oma-plx-listening-date__weekdays">
-                    {['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((w) => (
-                      <span key={w}>{w}</span>
-                    ))}
-                  </div>
-                  <div className="oma-plx-listening-date__grid">
-                    {cells.map((day, idx) =>
-                      day ? (
-                        <button
-                          key={idx}
-                          type="button"
-                          className={`oma-plx-listening-date__day${
-                            inRange(normY, normM, day) ? ' in-range' : ''
-                          }${
-                            rangeStart &&
-                            startOfDay(new Date(normY, normM, day)).getTime() ===
-                              rangeStart.getTime()
-                              ? ' is-start'
-                              : ''
-                          }${
-                            rangeEnd &&
-                            startOfDay(new Date(normY, normM, day)).getTime() === rangeEnd.getTime()
-                              ? ' is-end'
-                              : ''
-                          }`}
-                          onClick={() => pickDay(normY, normM, day)}
-                        >
-                          {day}
-                        </button>
-                      ) : (
-                        <span
-                          key={idx}
-                          className="oma-plx-listening-date__day oma-plx-listening-date__day--empty"
-                        />
-                      ),
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
         </div>
-        <div className="oma-plx-listening-date__presets">
-          {(
-            ['7', '14', '30', 'thisMonth', 'lastMonth', 'quarter', 'custom'] as DateRangePreset[]
-          ).map((p) => (
-            <label key={p} className="oma-plx-listening-date__preset">
-              <input
-                type="radio"
-                name="listening-range"
-                checked={draftPreset === p}
-                onChange={() => {
-                  setDraftPreset(p);
-                  if (p !== 'custom') {
-                    const r = resolveDateRange(p);
-                    setRangeStart(r.start);
-                    setRangeEnd(r.end);
-                  }
-                }}
-              />
-              {presetLabel(p, t)}
-            </label>
-          ))}
-          <button type="button" className="oma-plx-listening-date__apply" onClick={apply}>
-            {t('listening.applyRange') || 'Apply'}
-          </button>
-        </div>
-      </FloatingOverlay>
+      ) : null}
     </div>
   );
 }
