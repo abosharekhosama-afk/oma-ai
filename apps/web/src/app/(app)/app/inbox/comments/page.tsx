@@ -1,5 +1,10 @@
+import { Suspense } from 'react';
 import { InboxClient } from '../inbox-client';
 
-export default function InboxCommentsPage() {
-  return <InboxClient mode="comments" />;
+export default function InboxPage() {
+  return (
+    <Suspense fallback={null}>
+      <InboxClient mode="comments" />
+    </Suspense>
+  );
 }
