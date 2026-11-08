@@ -15,6 +15,8 @@ import {
   assertCanPublish,
   applyContentApprovalTransition,
   nextApproverCount,
+  effectiveApprovalPolicy,
+  requiredApproverCount,
   type ApprovalPolicy,
   type ApprovalState,
   type ContentStatus,
@@ -245,13 +247,7 @@ export function parseOptionalDate(value: unknown, field: string): Date | null {
   return date;
 }
 
-/** Map the workspace setting value (none | optional | required | legacy multi_level) to a policy. */
-export function workspaceModeToPolicy(mode: string | null | undefined): ApprovalPolicy {
-  const m = (mode ?? '').toLowerCase();
-  if (m === 'none') return 'NONE';
-  if (m === 'required' || m === 'multi_level') return 'REQUIRED';
-  return 'OPTIONAL';
-}
+export { workspaceModeToPolicy, effectiveApprovalPolicy, requiredApproverCount } from '@oma/domain';
 
 function workflowSource(current: {
   status: string;
@@ -351,21 +347,25 @@ export class ContentService {
   async approvalConfig(
     tenantId: string,
     brandId: string,
-  ): Promise<{ policy: ApprovalPolicy; requiredApprovers: number }> {
+  ): Promise<{
+    policy: ApprovalPolicy;
+    requiredApprovers: number;
+    source: 'brand' | 'workspace';
+  }> {
     const prisma = getPrisma();
     const [prefs, ws] = await Promise.all([
       prisma.contentPreferences.findUnique({ where: { brandId } }),
       prisma.workspaceSetting.findUnique({ where: { tenantId } }).catch(() => null),
     ]);
-    const wsPolicy = workspaceModeToPolicy(ws?.approvalMode);
-    const policy =
-      prefs && prefs.tenantId === tenantId ? (prefs.approvalPolicy as ApprovalPolicy) : wsPolicy;
-    const minApprovers = ws?.approvalMode === 'multi_level' ? 2 : 1;
-    const requiredApprovers =
-      policy === 'REQUIRED'
-        ? Math.min(5, Math.max(minApprovers, ws?.requiredApprovers ?? minApprovers))
-        : 1;
-    return { policy, requiredApprovers };
+    const brandOverride =
+      prefs && prefs.tenantId === tenantId ? (prefs.approvalPolicy as ApprovalPolicy | null) : null;
+    const policy = effectiveApprovalPolicy(ws?.approvalMode, brandOverride);
+    const requiredApprovers = requiredApproverCount(
+      policy,
+      ws?.approvalMode,
+      ws?.requiredApprovers,
+    );
+    return { policy, requiredApprovers, source: brandOverride ? 'brand' : 'workspace' };
   }
 
   private async requireActiveBrand(tenantId: string, brandId: string) {
@@ -676,7 +676,7 @@ export class ContentService {
       track = input.track ?? (campaign.track as Track);
     }
     const caption = input.caption ? localePair(input.caption) : null;
-    const prefs = await this.policyForBrand(tenantId, brandId);
+    const { policy, requiredApprovers } = await this.approvalConfig(tenantId, brandId);
 
     const row = await getPrisma().contentItem.create({
       data: {
@@ -696,7 +696,7 @@ export class ContentService {
         scheduleState: 'UNSCHEDULED',
         plannedAt: parseOptionalDate(input.plannedAt, 'plannedAt'),
         timezone: await brandTimezone(tenantId, brandId),
-        approverRequired: 1,
+        approverRequired: requiredApprovers,
         approverApproved: 0,
         labels: input.labels ?? [],
         ...(media ?? {}),
@@ -713,7 +713,7 @@ export class ContentService {
       correlationId,
     });
 
-    return { data: mapContent(row, prefs) };
+    return { data: mapContent(row, policy) };
   }
 
   async update(
@@ -1356,9 +1356,9 @@ export class ContentService {
     return {
       data: {
         brand_id: brandId,
-        // Effective policy: brand override when set, otherwise the workspace policy.
+        // Effective policy: explicit brand override when set, otherwise the workspace policy.
         approval_policy: effective.policy,
-        approval_policy_source: prefs ? 'brand' : 'workspace',
+        approval_policy_source: effective.source,
         required_approvers: effective.requiredApprovers,
         default_timezone: prefs?.defaultTimezone ?? 'Asia/Dubai',
         preview_style: prefs?.previewStyle ?? 'default',
@@ -1371,7 +1371,7 @@ export class ContentService {
     tenantId: string,
     brandId: string,
     patch: {
-      approvalPolicy?: ApprovalPolicy;
+      approvalPolicy?: ApprovalPolicy | null;
       defaultTimezone?: string;
       previewStyle?: string;
       accentColor?: string | null;
@@ -1387,13 +1387,13 @@ export class ContentService {
       create: {
         brandId,
         tenantId,
-        approvalPolicy: patch.approvalPolicy ?? 'OPTIONAL',
+        approvalPolicy: patch.approvalPolicy ?? null,
         defaultTimezone: patch.defaultTimezone ?? 'Asia/Dubai',
         previewStyle: previewStyle ?? 'default',
         accentColor: accentColor === undefined ? null : accentColor,
       },
       update: {
-        ...(patch.approvalPolicy ? { approvalPolicy: patch.approvalPolicy } : {}),
+        ...(patch.approvalPolicy !== undefined ? { approvalPolicy: patch.approvalPolicy } : {}),
         ...(patch.defaultTimezone ? { defaultTimezone: patch.defaultTimezone } : {}),
         ...(previewStyle ? { previewStyle } : {}),
         ...(accentColor !== undefined ? { accentColor } : {}),

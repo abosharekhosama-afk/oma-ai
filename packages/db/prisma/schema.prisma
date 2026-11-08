@@ -1245,7 +1245,8 @@ model ContentApprovalEvent {
 model ContentPreferences {
   brandId         String                @id
   tenantId        String
-  approvalPolicy  ContentApprovalPolicy @default(OPTIONAL)
+  /// Null means inherit the workspace approval mode. NONE/OPTIONAL/REQUIRED are explicit overrides.
+  approvalPolicy  ContentApprovalPolicy?
   defaultTimezone String                @default("Asia/Dubai")
   /// Universal page presentation: default | classic | modern | compact
   previewStyle    String                @default("default")
