@@ -3,6 +3,7 @@ import { resolveContentWorkflow, type ApprovalPolicy } from '@oma/demo';
 import type { ContentRow } from './demo/stage3-campaigns';
 import type { ScheduleRow } from './demo/stage6-schedule';
 import type { ContentRowExtra } from './content-api';
+import { approvalPolicyOf, type Policy } from './content-workflow-ui';
 
 export type ScheduleRowExtras = {
   publishState?: string;
@@ -24,7 +25,10 @@ export function contentToScheduleRow(
   opts?: { timezone?: string; campaignTitle?: { en: string; ar: string } | null },
 ): ScheduleRow & ScheduleRowExtras {
   const publishing = item as ContentRowExtra;
-  const workflow = resolveContentWorkflow(item, policy);
+  const workflow = resolveContentWorkflow(
+    item,
+    approvalPolicyOf(item as { approvalPolicy?: Policy }, policy),
+  );
   const plannedAt = workflow.plannedAt || item.scheduledAt || '';
   const pageIds =
     publishing.socialPageIds ?? (publishing.socialPageId ? [publishing.socialPageId] : []);

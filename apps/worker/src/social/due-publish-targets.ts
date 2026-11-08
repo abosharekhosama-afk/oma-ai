@@ -1,5 +1,5 @@
 import { getPrisma } from '@oma/db';
-import { effectiveApprovalPolicy, skipReasonMessage } from '@oma/domain';
+import { effectiveApprovalPolicy, resolveApprovalSettings, skipReasonMessage } from '@oma/domain';
 
 export async function findDuePublishTargetIds(
   now: Date,
@@ -9,7 +9,7 @@ export async function findDuePublishTargetIds(
   let skipped = 0;
   const [prefs, settings] = await Promise.all([
     prisma.contentPreferences.findMany({
-      select: { brandId: true, tenantId: true, approvalPolicy: true },
+      select: { brandId: true, tenantId: true, approvalPolicy: true, approvalMode: true },
     }),
     prisma.workspaceSetting.findMany({
       select: { tenantId: true, approvalMode: true },
@@ -20,7 +20,10 @@ export async function findDuePublishTargetIds(
   const seen = new Set<string>();
   for (const pref of prefs) {
     seen.add(pref.brandId);
-    const policy = effectiveApprovalPolicy(wsModeByTenant.get(pref.tenantId), pref.approvalPolicy);
+    const policy = resolveApprovalSettings(
+      { approvalMode: wsModeByTenant.get(pref.tenantId) },
+      { approvalMode: pref.approvalMode, approvalPolicy: pref.approvalPolicy },
+    ).policy;
     if (policy !== 'REQUIRED') noApproval.add(pref.brandId);
   }
   const skipApprovalTenantIds = settings

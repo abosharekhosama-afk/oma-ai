@@ -1247,6 +1247,12 @@ model ContentPreferences {
   tenantId        String
   /// Null means inherit the workspace approval mode. NONE/OPTIONAL/REQUIRED are explicit overrides.
   approvalPolicy  ContentApprovalPolicy?
+  /// Brand override of workspace approvalMode (none|optional|required|multi_level). Null inherits.
+  approvalMode    String?
+  requiredApprovers Int?
+  scheduleOnApproval Boolean?
+  lockAfterApproval Boolean?
+  reminderPendingApprovals Boolean?
   defaultTimezone String                @default("Asia/Dubai")
   /// Universal page presentation: default | classic | modern | compact
   previewStyle    String                @default("default")

@@ -3,31 +3,46 @@
 import { useEffect, useState } from 'react';
 import {
   DEFAULT_APPROVALS,
-  approvalsFromSettings,
-  getWorkspaceSettings,
+  getBrandApprovalSettings,
+  saveBrandApprovalSettings,
   type ApprovalSettings,
 } from '../../lib/workspace-extras-api';
 import { WorkspaceApprovals } from '../shell/workspace-approvals';
 import { useT } from '../../lib/use-locale';
 
-/** Workspace-level approval & publish gates (same rules apply to every brand). */
-export function BrandApprovalsSettings({ canManage }: { canManage: boolean }) {
+/** Brand-level approval & publish gates. Workspace settings are the default until this brand overrides them. */
+export function BrandApprovalsSettings({
+  canManage,
+  brandId,
+}: {
+  canManage: boolean;
+  brandId: string;
+}) {
   const t = useT();
   const [approvals, setApprovals] = useState<ApprovalSettings>(DEFAULT_APPROVALS);
+  const [source, setSource] = useState<'brand' | 'workspace'>('workspace');
   const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    void getWorkspaceSettings()
-      .then((ws) => {
-        setApprovals(approvalsFromSettings(ws));
+    setState('loading');
+    void getBrandApprovalSettings(brandId)
+      .then((next) => {
+        setApprovals({
+          mode: next.mode,
+          requiredApprovers: next.requiredApprovers,
+          scheduleOnApproval: next.scheduleOnApproval,
+          lockAfterApproval: next.lockAfterApproval,
+          reminderPendingApprovals: next.reminderPendingApprovals,
+        });
+        setSource(next.source);
         setState('ready');
       })
       .catch((err: unknown) => {
         setError(err instanceof Error ? err.message : String(err));
         setState('error');
       });
-  }, []);
+  }, [brandId]);
 
   return (
     <section className="oma-bs-section" data-testid="brand-settings-approvals">
@@ -51,6 +66,7 @@ export function BrandApprovalsSettings({ canManage }: { canManage: boolean }) {
             )[approvals.mode],
           )}
           {approvals.scheduleOnApproval ? ` · ${t('wsPanel.approvals.schedule_on_approval')}` : ''}
+          {source === 'workspace' ? ` · ${t('brandSettings.approvals.usingWorkspace')}` : ''}
         </p>
       ) : null}
       {state === 'loading' ? (
@@ -66,6 +82,11 @@ export function BrandApprovalsSettings({ canManage }: { canManage: boolean }) {
           approvals={approvals}
           onChange={setApprovals}
           onError={(msg) => setError(msg)}
+          saveSettings={async (next) => {
+            const saved = await saveBrandApprovalSettings(brandId, next);
+            setSource('brand');
+            return saved;
+          }}
         />
       ) : null}
     </section>

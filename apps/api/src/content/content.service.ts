@@ -15,8 +15,10 @@ import {
   assertCanPublish,
   applyContentApprovalTransition,
   nextApproverCount,
-  effectiveApprovalPolicy,
-  requiredApproverCount,
+  resolveApprovalSettings,
+  parseApprovalMode,
+  policyToApprovalMode,
+  workspaceModeToPolicy,
   type ApprovalPolicy,
   type ApprovalState,
   type ContentStatus,
@@ -348,8 +350,12 @@ export class ContentService {
     tenantId: string,
     brandId: string,
   ): Promise<{
+    mode: 'none' | 'optional' | 'required' | 'multi_level';
     policy: ApprovalPolicy;
     requiredApprovers: number;
+    scheduleOnApproval: boolean;
+    lockAfterApproval: boolean;
+    reminderPendingApprovals: boolean;
     source: 'brand' | 'workspace';
   }> {
     const prisma = getPrisma();
@@ -357,15 +363,27 @@ export class ContentService {
       prisma.contentPreferences.findUnique({ where: { brandId } }),
       prisma.workspaceSetting.findUnique({ where: { tenantId } }).catch(() => null),
     ]);
-    const brandOverride =
-      prefs && prefs.tenantId === tenantId ? (prefs.approvalPolicy as ApprovalPolicy | null) : null;
-    const policy = effectiveApprovalPolicy(ws?.approvalMode, brandOverride);
-    const requiredApprovers = requiredApproverCount(
-      policy,
-      ws?.approvalMode,
-      ws?.requiredApprovers,
+    const brand =
+      prefs && prefs.tenantId === tenantId
+        ? {
+            approvalMode: prefs.approvalMode,
+            approvalPolicy: prefs.approvalPolicy as ApprovalPolicy | null,
+            requiredApprovers: prefs.requiredApprovers,
+            scheduleOnApproval: prefs.scheduleOnApproval,
+            lockAfterApproval: prefs.lockAfterApproval,
+            reminderPendingApprovals: prefs.reminderPendingApprovals,
+          }
+        : null;
+    return resolveApprovalSettings(
+      {
+        approvalMode: ws?.approvalMode,
+        requiredApprovers: ws?.requiredApprovers,
+        scheduleOnApproval: ws?.scheduleOnApproval,
+        lockAfterApproval: ws?.lockAfterApproval,
+        reminderPendingApprovals: ws?.reminderPendingApprovals,
+      },
+      brand,
     );
-    return { policy, requiredApprovers, source: brandOverride ? 'brand' : 'workspace' };
   }
 
   private async requireActiveBrand(tenantId: string, brandId: string) {
@@ -744,10 +762,8 @@ export class ContentService {
       throw new DomainError('CONFLICT_STATE', 'Content is archived', 409, 'error.conflict_state');
     }
     if (current.approvalState === 'APPROVED') {
-      const ws = await getPrisma()
-        .workspaceSetting.findUnique({ where: { tenantId } })
-        .catch(() => null);
-      if (ws?.lockAfterApproval) {
+      const cfg = await this.approvalConfig(tenantId, current.brandId);
+      if (cfg.lockAfterApproval) {
         throw new DomainError(
           'CONFLICT_STATE',
           'Approved content is locked. Request changes before editing.',
@@ -982,11 +998,9 @@ export class ContentService {
       correlationId,
     });
     if (next.approvalState === 'APPROVED') {
-      const ws = await getPrisma()
-        .workspaceSetting.findUnique({ where: { tenantId } })
-        .catch(() => null);
+      const cfg = await this.approvalConfig(tenantId, current.brandId);
       const when = current.plannedAt ?? current.scheduledAt;
-      if (ws?.scheduleOnApproval && when) {
+      if (cfg.scheduleOnApproval && when) {
         try {
           await this.schedule(
             tenantId,
@@ -1356,10 +1370,14 @@ export class ContentService {
     return {
       data: {
         brand_id: brandId,
-        // Effective policy: explicit brand override when set, otherwise the workspace policy.
+        // Effective settings: explicit brand override when set, otherwise the workspace defaults.
         approval_policy: effective.policy,
+        approval_mode: effective.mode,
         approval_policy_source: effective.source,
         required_approvers: effective.requiredApprovers,
+        schedule_on_approval: effective.scheduleOnApproval,
+        lock_after_approval: effective.lockAfterApproval,
+        reminder_pending_approvals: effective.reminderPendingApprovals,
         default_timezone: prefs?.defaultTimezone ?? 'Asia/Dubai',
         preview_style: prefs?.previewStyle ?? 'default',
         accent_color: prefs?.accentColor ?? null,
@@ -1372,6 +1390,11 @@ export class ContentService {
     brandId: string,
     patch: {
       approvalPolicy?: ApprovalPolicy | null;
+      approvalMode?: string | null;
+      requiredApprovers?: number;
+      scheduleOnApproval?: boolean;
+      lockAfterApproval?: boolean;
+      reminderPendingApprovals?: boolean;
       defaultTimezone?: string;
       previewStyle?: string;
       accentColor?: string | null;
@@ -1382,27 +1405,78 @@ export class ContentService {
       patch.defaultTimezone = parseTimezone(patch.defaultTimezone);
     const previewStyle = parsePreviewStyle(patch.previewStyle);
     const accentColor = parseAccentColor(patch.accentColor);
+    let approvalMode = parseApprovalMode(patch.approvalMode);
+    if (patch.approvalMode !== undefined && patch.approvalMode !== null && !approvalMode) {
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'Invalid approvalMode',
+        400,
+        'errors.validation_failed',
+        [{ field: 'approvalMode' }],
+      );
+    }
+    if (!approvalMode && patch.approvalPolicy) {
+      approvalMode = policyToApprovalMode(patch.approvalPolicy);
+    }
+    const approvalPolicy = approvalMode
+      ? workspaceModeToPolicy(approvalMode)
+      : patch.approvalPolicy === undefined
+        ? undefined
+        : patch.approvalPolicy;
+    const requiredApprovers =
+      approvalMode && patch.requiredApprovers !== undefined
+        ? approvalMode === 'multi_level'
+          ? Math.min(5, Math.max(2, patch.requiredApprovers))
+          : approvalMode === 'required'
+            ? Math.min(5, Math.max(1, patch.requiredApprovers))
+            : 1
+        : patch.requiredApprovers;
     const row = await getPrisma().contentPreferences.upsert({
       where: { brandId },
       create: {
         brandId,
         tenantId,
-        approvalPolicy: patch.approvalPolicy ?? null,
+        approvalPolicy: approvalPolicy ?? null,
+        approvalMode: approvalMode ?? null,
+        requiredApprovers: requiredApprovers ?? null,
+        scheduleOnApproval: patch.scheduleOnApproval ?? null,
+        lockAfterApproval: patch.lockAfterApproval ?? null,
+        reminderPendingApprovals: patch.reminderPendingApprovals ?? null,
         defaultTimezone: patch.defaultTimezone ?? 'Asia/Dubai',
         previewStyle: previewStyle ?? 'default',
         accentColor: accentColor === undefined ? null : accentColor,
       },
       update: {
-        ...(patch.approvalPolicy !== undefined ? { approvalPolicy: patch.approvalPolicy } : {}),
+        ...(approvalPolicy !== undefined ? { approvalPolicy } : {}),
+        ...(patch.approvalMode !== undefined || patch.approvalPolicy !== undefined
+          ? { approvalMode: approvalMode ?? null }
+          : {}),
+        ...(requiredApprovers !== undefined ? { requiredApprovers } : {}),
+        ...(patch.scheduleOnApproval !== undefined
+          ? { scheduleOnApproval: patch.scheduleOnApproval }
+          : {}),
+        ...(patch.lockAfterApproval !== undefined
+          ? { lockAfterApproval: patch.lockAfterApproval }
+          : {}),
+        ...(patch.reminderPendingApprovals !== undefined
+          ? { reminderPendingApprovals: patch.reminderPendingApprovals }
+          : {}),
         ...(patch.defaultTimezone ? { defaultTimezone: patch.defaultTimezone } : {}),
         ...(previewStyle ? { previewStyle } : {}),
         ...(accentColor !== undefined ? { accentColor } : {}),
       },
     });
+    const effective = await this.approvalConfig(tenantId, brandId);
     return {
       data: {
         brand_id: brandId,
-        approval_policy: row.approvalPolicy,
+        approval_policy: effective.policy,
+        approval_mode: effective.mode,
+        approval_policy_source: effective.source,
+        required_approvers: effective.requiredApprovers,
+        schedule_on_approval: effective.scheduleOnApproval,
+        lock_after_approval: effective.lockAfterApproval,
+        reminder_pending_approvals: effective.reminderPendingApprovals,
         default_timezone: row.defaultTimezone,
         preview_style: row.previewStyle,
         accent_color: row.accentColor,
