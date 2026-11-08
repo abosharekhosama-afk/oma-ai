@@ -138,6 +138,9 @@ export class SocialService {
 
   async start(tenantId: string, userId: string, brandId: string, network: string) {
     if (!isSocialNetwork(network)) throw notFound();
+    if (network === 'x') {
+      await billingService.assertAddon(tenantId, 'x_api');
+    }
     const brand = await this.brand(tenantId, brandId);
     if (brand.status === 'ARCHIVED') {
       throw new DomainError('BRAND_ARCHIVED', 'Brand archived', 409, 'errors.brand_archived');

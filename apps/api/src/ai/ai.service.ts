@@ -98,7 +98,7 @@ export async function createAiRun(input: {
   }
   const useCase = input.useCase as AiUseCase;
   await billingService.assertFeature(input.tenantId, 'ai_assist');
-  await billingService.assertWithinLimit(input.tenantId, 'ai_runs_per_month');
+  await billingService.consumeUsage(input.tenantId, 'ai_credits_per_month', 1);
   const routed = routeModel(useCase, modelConfig());
   if (liveEnabled()) {
     throw new DomainError(

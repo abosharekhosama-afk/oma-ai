@@ -34,6 +34,8 @@ import { OpsController } from './content/ops.controller';
 import { ContentExtrasController } from './content/content-extras.controller';
 import { AiController } from './ai/ai.controller';
 import { BillingController } from './billing/billing.controller';
+import { BillingAdminController } from './billing/billing-admin.controller';
+import { BillingWebhookController } from './billing/billing-webhook.controller';
 import { InboxController } from './inbox/inbox.controller';
 import { ListeningController } from './listening/listening.controller';
 import { WebhooksController } from './webhooks/webhooks.controller';
@@ -70,6 +72,8 @@ import { WebhooksController } from './webhooks/webhooks.controller';
     WorkDriveController,
     MediaController,
     BillingController,
+    BillingAdminController,
+    BillingWebhookController,
     InboxController,
     ListeningController,
     WebhooksController,

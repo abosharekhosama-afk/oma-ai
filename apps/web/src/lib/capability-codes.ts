@@ -25,6 +25,12 @@ export const PLANABLE_ROLES = [
     desc: 'Manage people, brands, and settings',
   },
   {
+    role: 'Billing',
+    profile: 'BILLING',
+    kind: 'team' as const,
+    desc: 'Manage plans, invoices, and payments',
+  },
+  {
     role: 'Writer',
     profile: 'WRITER',
     kind: 'team' as const,
@@ -61,5 +67,6 @@ export const CAPABILITY_LABELS: Record<string, string> = {
   'membership.invite': 'Invite people',
   'membership.manage': 'Manage people',
   'tenant.manage': 'Manage company',
+  'billing.manage': 'Manage billing',
   'capability.assign': 'Assign roles',
 };

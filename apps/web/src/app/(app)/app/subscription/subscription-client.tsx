@@ -8,11 +8,8 @@ import { useToast } from '../../../../components/ui/toast';
 import { useCapabilities } from '../../../../lib/use-capabilities';
 import {
   cancelSubscriptionAtPeriodEnd,
-  changePlan,
-  fulfillCheckout,
   getSubscription,
   listCheckouts,
-  listUpgradeRequests,
   resumeSubscription,
   type CheckoutDto,
   type SubscriptionView,
@@ -23,12 +20,16 @@ const BAR_LABELS: Record<string, { en: string; ar: string }> = {
   brands: { en: 'Brands', ar: 'العلامات' },
   social_channels: { en: 'Social channels', ar: 'القنوات الاجتماعية' },
   seats: { en: 'Team seats', ar: 'مقاعد الفريق' },
+  social_accounts: { en: 'Social accounts', ar: 'الحسابات الاجتماعية' },
   guests: { en: 'Guests / clients', ar: 'الضيوف / العملاء' },
-  posts_per_month: { en: 'Posts this month', ar: 'منشورات هذا الشهر' },
-  posts_total: { en: 'Posts (lifetime)', ar: 'منشورات (إجمالي)' },
+  scheduled_posts_per_month: { en: 'Scheduled posts', ar: 'منشورات مجدولة' },
+  posts_per_month: { en: 'Scheduled posts', ar: 'منشورات مجدولة' },
+  ai_credits_per_month: { en: 'AI credits', ar: 'رصيد الذكاء' },
   storage_bytes: { en: 'Work Drive storage', ar: 'تخزين مساحة العمل' },
   approval_level: { en: 'Approval level', ar: 'مستوى الموافقات' },
-  ai_runs_per_month: { en: 'AI assists this month', ar: 'مساعدات الذكاء هذا الشهر' },
+  listening_keywords: { en: 'Listening keywords', ar: 'كلمات الاستماع' },
+  mentions_per_month: { en: 'Mentions', ar: 'الإشارات' },
+  ai_runs_per_month: { en: 'AI credits', ar: 'رصيد الذكاء' },
 };
 
 function formatUsed(key: string, used: number, limit: number | null, isAr: boolean) {
@@ -47,26 +48,18 @@ export default function SubscriptionClient() {
   const isAr = useLocale() === 'ar';
   const toast = useToast();
   const caps = useCapabilities();
-  const canAdmin = caps.can('tenant.manage');
+  const canAdmin = caps.can('billing.manage') || caps.can('platform.support.access');
   const [sub, setSub] = useState<SubscriptionView | null>(null);
-  const [requests, setRequests] = useState<Array<Record<string, unknown>>>([]);
   const [checkouts, setCheckouts] = useState<CheckoutDto[]>([]);
   const [loading, setLoading] = useState(true);
-  const [adminPlan, setAdminPlan] = useState('pro');
-  const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
       const s = await getSubscription();
       setSub(s.data);
-      setAdminPlan(s.data.plan_code);
       const check = await listCheckouts().catch(() => ({ data: [] as CheckoutDto[] }));
       setCheckouts(check.data ?? []);
-      if (canAdmin) {
-        const r = await listUpgradeRequests().catch(() => ({ data: [] }));
-        setRequests(r.data ?? []);
-      }
     } catch {
       toast.push(isAr ? 'تعذر تحميل الاشتراك' : 'Could not load subscription', 'danger');
     } finally {
@@ -78,23 +71,6 @@ export default function SubscriptionClient() {
     void load();
   }, [load]);
 
-  async function applyPlan() {
-    if (!canAdmin) return;
-    setBusy(true);
-    try {
-      await changePlan({
-        plan_code: adminPlan,
-        notes: 'Admin manual plan change (payment deferred)',
-      });
-      toast.push(isAr ? 'تم تحديث الخطة' : 'Plan updated', 'success');
-      await load();
-    } catch {
-      toast.push(isAr ? 'تعذر تحديث الخطة' : 'Could not update plan', 'danger');
-    } finally {
-      setBusy(false);
-    }
-  }
-
   const copy = isAr
     ? {
         title: 'الاشتراك والاستخدام',
@@ -102,12 +78,8 @@ export default function SubscriptionClient() {
         pricing: 'الخطط والأسعار',
         back: 'العودة',
         current: 'الخطة الحالية',
-        deferred: 'الدفع قريباً — لا يتم تحصيل أي مبلغ الآن.',
+        deferred: 'غيّر خطتك وادفع من صفحة الفوترة. الحدود تُطبَّق على الخادم.',
         grandfather: 'مساحة العمل هذه على خطة مرحّلة من قبل التفعيل.',
-        admin: 'تغيير الخطة (مسؤول)',
-        apply: 'تطبيق',
-        requests: 'طلبات الترقية',
-        none: 'لا توجد طلبات.',
         loading: 'جاري التحميل…',
       }
     : {
@@ -116,12 +88,8 @@ export default function SubscriptionClient() {
         pricing: 'Plans & pricing',
         back: 'Back',
         current: 'Current plan',
-        deferred: 'Payment coming soon — nothing is charged yet.',
+        deferred: 'Change plans and pay from the billing page. Limits are enforced on the server.',
         grandfather: 'This workspace was grandfathered onto this plan at rollout.',
-        admin: 'Change plan (admin)',
-        apply: 'Apply',
-        requests: 'Upgrade requests',
-        none: 'No requests yet.',
         loading: 'Loading…',
       };
 
@@ -213,7 +181,6 @@ export default function SubscriptionClient() {
             {canAdmin ? (
               <div className="oma-sub__admin-row" style={{ marginTop: 12 }}>
                 <Button
-                  disabled={busy}
                   onClick={() =>
                     void (
                       sub.cancel_at_period_end
@@ -246,20 +213,6 @@ export default function SubscriptionClient() {
                       {c.amount_usd_cents != null
                         ? ` · $${(c.amount_usd_cents / 100).toFixed(0)}`
                         : ''}
-                      {canAdmin ? (
-                        <Button
-                          type="primary"
-                          disabled={busy}
-                          onClick={() =>
-                            void fulfillCheckout(c.id).then(() => {
-                              toast.push(isAr ? 'تم تطبيق الخطة' : 'Plan applied', 'success');
-                              return load();
-                            })
-                          }
-                        >
-                          {isAr ? 'تطبيق بدون دفع' : 'Apply without payment'}
-                        </Button>
-                      ) : null}
                     </li>
                   ))}
               </ul>
@@ -294,41 +247,9 @@ export default function SubscriptionClient() {
           </section>
 
           {canAdmin ? (
-            <section className="oma-sub__admin" aria-label={copy.admin}>
-              <h2>{copy.admin}</h2>
-              <div className="oma-sub__admin-row">
-                <select
-                  value={adminPlan}
-                  onChange={(e) => setAdminPlan(e.target.value)}
-                  aria-label={copy.admin}
-                >
-                  <option value="free">{isAr ? 'مجانية' : 'Free'}</option>
-                  <option value="basic">{isAr ? 'أساسية' : 'Basic'}</option>
-                  <option value="pro">{isAr ? 'احترافية' : 'Pro'}</option>
-                  <option value="enterprise">{isAr ? 'مؤسسات' : 'Enterprise'}</option>
-                </select>
-                <Button
-                  type="primary"
-                  disabled={busy || adminPlan === sub.plan_code}
-                  onClick={() => void applyPlan()}
-                >
-                  {copy.apply}
-                </Button>
-              </div>
-
-              <h3 style={{ marginTop: 28 }}>{copy.requests}</h3>
-              {requests.length === 0 ? (
-                <p className="oma-billing__desc">{copy.none}</p>
-              ) : (
-                <ul className="oma-sub__requests">
-                  {requests.map((r) => (
-                    <li key={String(r.id)}>
-                      {String(r.from_plan_code)} → {String(r.to_plan_code)} · {String(r.status)}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
+            <p className="oma-sub__admin">
+              <a href="/app/billing">{copy.pricing}</a>
+            </p>
           ) : null}
         </>
       )}

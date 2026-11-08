@@ -82,6 +82,7 @@ export function profileToRole(profiles: string[], displayRole?: string | null): 
   if (displayRole) return displayRole;
   const p = profiles.map((x) => x.toUpperCase());
   if (p.some((x) => x.includes('OWNER'))) return 'Owner';
+  if (p.some((x) => x.includes('BILLING'))) return 'Billing';
   if (p.some((x) => x.includes('ADMIN'))) return 'Administrator';
   if (p.some((x) => x.includes('APPROVER'))) return 'Approver';
   if (p.some((x) => x.includes('CONTRIBUTOR'))) return 'Contributor';

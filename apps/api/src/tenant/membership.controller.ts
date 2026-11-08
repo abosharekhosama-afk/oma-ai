@@ -52,6 +52,7 @@ export class MembershipController {
             admin: 'ADMIN',
             contributor: 'MEMBER',
             member: 'MEMBER',
+            billing: 'BILLING',
             writer: 'WRITER',
             approver: 'APPROVER',
             client: 'CLIENT',

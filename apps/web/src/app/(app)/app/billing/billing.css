@@ -190,11 +190,55 @@
 .oma-billing__card.is-popular {
   border-color: #c7d7ea;
 }
-.oma-billing__plan-icon.is-basic {
+.oma-billing__plan-icon.is-basic,
+.oma-billing__plan-icon.is-starter {
   background: #64748b;
 }
-.oma-billing__plan-icon.is-enterprise {
+.oma-billing__plan-icon.is-enterprise,
+.oma-billing__plan-icon.is-agency {
   background: #0f172a;
+}
+
+.oma-billing input,
+.oma-billing select,
+.oma-billing textarea {
+  display: block;
+  width: 100%;
+  max-width: 36rem;
+  min-width: 0;
+  box-sizing: border-box;
+  margin: 8px 0;
+  padding: 10px 12px;
+  border: 1px solid #d0dae4;
+  border-radius: 10px;
+  background: #fff;
+  color: #24303d;
+  font: inherit;
+}
+
+.oma-billing textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+@media (max-width: 900px) {
+  .oma-billing {
+    padding: 20px 16px 48px;
+  }
+  .oma-billing__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .oma-billing__header,
+  .oma-billing__header-actions,
+  .oma-sub__admin-row {
+    flex-wrap: wrap;
+  }
+  .oma-billing__switch {
+    width: 100%;
+    max-width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
 }
 
 .oma-sub__current {

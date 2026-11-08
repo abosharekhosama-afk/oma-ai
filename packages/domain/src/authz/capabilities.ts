@@ -8,6 +8,8 @@ export const FOUNDATION_CAPABILITIES = [
   'notification.read',
   'platform.tenant.create',
   'platform.support.access',
+  /** Workspace owner or billing role: plans, invoices, checkout. */
+  'billing.manage',
   /** Internal work analytics (content pipeline, approvals, on-time, team throughput). */
   'analytics.read',
 ] as const;
@@ -143,6 +145,7 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     'platform.tenant.create',
     'platform.support.access',
     'tenant.manage',
+    'billing.manage',
     'membership.invite',
     'membership.manage',
     'capability.assign',
@@ -159,6 +162,7 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
   ],
   COMPANY_OWNER: [
     'tenant.manage',
+    'billing.manage',
     'membership.invite',
     'membership.manage',
     'capability.assign',
@@ -191,6 +195,8 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
     'ai.propose.strategy',
     'ai.propose.brief',
   ],
+  /** Billing manager — invoices, plan changes, payment methods. */
+  BILLING: ['billing.manage', 'audit.read', 'notification.read', 'brand.read'],
   /** Planable Writer — create/edit content & campaigns */
   WRITER: [
     'notification.read',
@@ -271,6 +277,7 @@ export const SYSTEM_PROFILES: Record<string, string[]> = {
 export const PLANABLE_ROLE_OPTIONS = [
   { role: 'Owner', profile: 'COMPANY_OWNER', kind: 'team' as const },
   { role: 'Administrator', profile: 'ADMIN', kind: 'team' as const },
+  { role: 'Billing', profile: 'BILLING', kind: 'team' as const },
   { role: 'Writer', profile: 'WRITER', kind: 'team' as const },
   { role: 'Approver', profile: 'APPROVER', kind: 'team' as const },
   { role: 'Contributor', profile: 'MEMBER', kind: 'team' as const },
