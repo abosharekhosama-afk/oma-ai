@@ -66,8 +66,8 @@ export function resolveContentWorkflow(
       : approvalState === 'PARTIALLY_APPROVED'
         ? 1
         : 0);
-  // OPTIONAL and REQUIRED both require approval before schedule; only NONE skips it.
-  const scheduleBlockedFinal = policy !== 'NONE' && approvalState !== 'APPROVED';
+  // Only REQUIRED blocks schedule/publish until approved. OPTIONAL is available but not required.
+  const scheduleBlockedFinal = policy === 'REQUIRED' && approvalState !== 'APPROVED';
   let publishDisplay: PublishDisplay = 'DRAFT';
   if (item.publishSample === 'FAILED_SAMPLE') publishDisplay = 'FAILED_SAMPLE';
   else if (item.publishSample === 'PUBLISHED_SAMPLE' || item.status === 'PUBLISHED_DEMO') {

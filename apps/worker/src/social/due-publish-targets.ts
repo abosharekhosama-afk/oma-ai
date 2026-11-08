@@ -21,14 +21,14 @@ export async function findDuePublishTargetIds(
   for (const pref of prefs) {
     seen.add(pref.brandId);
     const policy = effectiveApprovalPolicy(wsModeByTenant.get(pref.tenantId), pref.approvalPolicy);
-    if (policy === 'NONE') noApproval.add(pref.brandId);
+    if (policy !== 'REQUIRED') noApproval.add(pref.brandId);
   }
-  const noneTenantIds = settings
-    .filter((row) => effectiveApprovalPolicy(row.approvalMode, null) === 'NONE')
+  const skipApprovalTenantIds = settings
+    .filter((row) => effectiveApprovalPolicy(row.approvalMode, null) !== 'REQUIRED')
     .map((row) => row.tenantId);
-  if (noneTenantIds.length > 0) {
+  if (skipApprovalTenantIds.length > 0) {
     const inherited = await prisma.brandWorkspace.findMany({
-      where: { tenantId: { in: noneTenantIds }, deletedAt: null },
+      where: { tenantId: { in: skipApprovalTenantIds }, deletedAt: null },
       select: { id: true },
     });
     for (const brand of inherited) {

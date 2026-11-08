@@ -94,12 +94,13 @@ export function resolveContentWorkflow(
         ? Math.max(1, Math.min(approverRequired - 1, 1))
         : 0);
 
-  // OPTIONAL and REQUIRED both require full approval before schedule; only NONE skips approval.
+  // Only REQUIRED (including workspace multi-level) blocks schedule/publish until approved.
+  // OPTIONAL keeps approval available but does not require it; NONE skips approval entirely.
   const scheduleBlockedReason: ScheduleBlockedReason | null = item.archivedAt
     ? 'ARCHIVED'
     : wasRejected
       ? 'REJECTED'
-      : policy !== 'NONE' && approvalState !== 'APPROVED'
+      : policy === 'REQUIRED' && approvalState !== 'APPROVED'
         ? 'APPROVAL_REQUIRED'
         : null;
   const scheduleBlocked = scheduleBlockedReason !== null;
@@ -165,7 +166,7 @@ export function assertCanSchedule(item: WorkflowSource, policy: ApprovalPolicy =
   }
 }
 
-/** Marking as published follows the same gate as scheduling (rejected/archived/unapproved under REQUIRED). */
+/** Marking as published follows the same gate as scheduling (rejected/archived/unapproved under REQUIRED only). */
 export function assertCanPublish(item: WorkflowSource, policy: ApprovalPolicy = 'OPTIONAL'): void {
   assertCanSchedule(item, policy);
 }
