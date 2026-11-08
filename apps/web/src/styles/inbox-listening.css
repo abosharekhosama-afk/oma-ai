@@ -5383,6 +5383,33 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
 
 /* Mobile Schedule: plx panel uses full content width on small screens */
 @media (max-width: 767px) {
+  .oma-plx-listening.oma-plx-schedule,
+  .oma-plx-listening.oma-plx-schedule.oma-sched-page {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin-inline: 0 !important;
+    padding-inline: 0 !important;
+    box-sizing: border-box;
+    overflow-x: hidden;
+  }
+
+  .oma-plx-listening.oma-plx-schedule .oma-plx-workspace-surface,
+  .oma-plx-listening.oma-plx-schedule .oma-plx-sched-panel,
+  .oma-plx-listening.oma-plx-schedule .oma-plx-sched-panel__body,
+  .oma-plx-listening.oma-plx-schedule .oma-sched-layout,
+  .oma-plx-listening.oma-plx-schedule .oma-sched-layout--full,
+  .oma-plx-listening.oma-plx-schedule .oma-sched-main,
+  .oma-plx-listening.oma-plx-schedule .oma-sched-main[data-view='calendar'],
+  .oma-plx-listening.oma-plx-schedule .oma-sched-main[data-view='agenda'],
+  .oma-plx-listening.oma-plx-schedule .oma-sched-main[data-view='queue'],
+  .oma-plx-listening.oma-plx-schedule .oma-sched-main[data-view='table'] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box;
+  }
+
   .oma-plx-listening.oma-plx-schedule .oma-plx-workspace-surface {
     padding-inline: 10px;
   }
@@ -5390,12 +5417,23 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   .oma-plx-sched-panel {
     min-height: min(68vh, 720px);
   }
+
+  /* Extra-wide calendar grid scrolls inside this container only. */
+  .oma-plx-listening.oma-plx-schedule .oma-sched-calendar-scroll {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    overflow-x: auto !important;
+  }
 }
 
 /* Schedule — Social Inbox plx shell */
 .oma-plx-listening.oma-plx-schedule {
+  width: 100%;
   max-width: 1280px;
+  min-width: 0;
   min-height: 0;
+  box-sizing: border-box;
 }
 
 .oma-plx-schedule .oma-plx-workspace-surface {
@@ -5881,19 +5919,103 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   box-shadow: none;
 }
 
+.oma-schedule-detail-modal-root .oma-schedule-detail-modal.ant-modal {
+  width: min(920px, calc(100vw - 32px));
+  max-width: min(920px, calc(100vw - 32px));
+  padding-bottom: 24px;
+}
+
 .oma-schedule-detail-modal .ant-modal-content {
   padding: 0;
   border-radius: 16px;
   overflow: hidden;
   border: 1px solid #eceef1;
   box-shadow: 0 24px 48px rgba(15, 23, 42, 0.18);
+  display: flex;
+  flex-direction: column;
+  max-height: min(88vh, 920px);
 }
 
 .oma-schedule-detail-modal .ant-modal-body {
   padding: 0;
-  max-height: min(88vh, 820px);
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  overscroll-behavior: contain;
+}
+
+.oma-schedule-detail-modal .oma-plx-sched-drawer,
+.oma-schedule-detail-modal .oma-plx-sched-detail-card {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+.oma-schedule-detail-modal .oma-plx-sched-detail-card__cover {
+  flex-shrink: 0;
+  height: clamp(140px, 22vh, 240px);
+}
+
+.oma-schedule-detail-modal .oma-plx-sched-detail-card__hero {
+  flex-shrink: 0;
+}
+
+.oma-schedule-detail-modal .oma-plx-sched-detail-card__body {
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 768px) and (max-width: 1099px) {
+  .oma-schedule-detail-modal-root .oma-schedule-detail-modal.ant-modal {
+    width: min(760px, calc(100vw - 40px)) !important;
+    max-width: min(760px, calc(100vw - 40px)) !important;
+  }
+
+  .oma-schedule-detail-modal .ant-modal-content {
+    max-height: min(86vh, 860px);
+  }
+}
+
+@media (max-width: 767px) {
+  .oma-schedule-detail-modal-root .ant-modal-wrap,
+  .oma-schedule-detail-modal-root .ant-modal-wrap.ant-modal-centered {
+    display: flex !important;
+    align-items: flex-end !important;
+    justify-content: stretch !important;
+    padding: 0 !important;
+  }
+
+  .oma-schedule-detail-modal-root .oma-schedule-detail-modal.ant-modal {
+    width: var(--oma-mobile-vw, 100vw) !important;
+    max-width: var(--oma-mobile-vw, 100vw) !important;
+    margin: 0 !important;
+    margin-inline: 0 !important;
+    top: 0 !important;
+    padding: 0 !important;
+    inset-inline: 0 !important;
+  }
+
+  .oma-schedule-detail-modal-root .oma-schedule-detail-modal .ant-modal-content,
+  .oma-schedule-detail-modal .ant-modal-content {
+    width: 100%;
+    max-width: 100%;
+    border-start-start-radius: 16px;
+    border-start-end-radius: 16px;
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+    height: calc(var(--oma-mobile-vh, 100dvh) * 0.96);
+    max-height: calc(var(--oma-mobile-vh, 100dvh) * 0.96);
+    min-height: 0 !important;
+  }
 }
 
 .oma-plx-header-view-anchor {
@@ -8520,7 +8642,6 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
     width: min(92vw, 420px);
   }
 }
-
 
 /* Collision-aware floating overlays (portaled to document.body) */
 body > .oma-floating-overlay {

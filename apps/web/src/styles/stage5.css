@@ -2575,6 +2575,9 @@ main.oma-container:has(.oma-sched-page) {
   align-items: stretch !important;
   flex: 1 1 auto !important;
   min-height: 0 !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
   overflow: hidden !important;
 }
 .oma-sched-filter-nav {
@@ -2596,6 +2599,9 @@ main.oma-container:has(.oma-sched-page) {
   display: flex !important;
   flex-direction: column !important;
   min-height: 0 !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
   flex: 1 1 auto !important;
 }
 .oma-sched-main[data-view='calendar'] {
@@ -2901,12 +2907,26 @@ main.oma-container:has(.oma-sched-page) {
     grid-template-columns: minmax(0, 1fr);
   }
   /* Keep the calendar available on touch screens; show three columns and scroll the rest. */
+  /* Page width must not depend on the calendar being mounted (it is calendar-view only). */
+  .oma-sched-page,
+  .oma-sched-page .oma-plx-workspace-surface,
+  .oma-sched-page .oma-plx-sched-panel,
+  .oma-sched-page .oma-plx-sched-panel__body,
+  .oma-sched-page .oma-sched-layout,
   .oma-sched-body,
   .oma-sched-layout--full,
-  .oma-sched-main {
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
+  .oma-sched-main,
+  .oma-sched-main[data-view='calendar'],
+  .oma-sched-main[data-view='agenda'],
+  .oma-sched-main[data-view='queue'],
+  .oma-sched-main[data-view='table'] {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box;
+  }
+  .oma-sched-page {
+    overflow-x: hidden !important;
   }
   .oma-sched-main[data-view='calendar'] {
     overflow: hidden !important;
@@ -2916,9 +2936,9 @@ main.oma-container:has(.oma-sched-page) {
     display: flex !important;
     flex-direction: column !important;
     flex: 1 1 auto !important;
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
     min-height: 0 !important;
     overflow-x: auto !important;
     overflow-y: hidden !important;

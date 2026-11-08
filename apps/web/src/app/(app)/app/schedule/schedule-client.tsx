@@ -52,10 +52,7 @@ import { todayKey, wallTimeToIso } from '../../../../lib/calendar-today';
 import { brandScheduleTimezone } from '../../../../lib/brand-schedule-timezone';
 import { useActiveBrandId } from '../../../../lib/active-brand';
 import { contentToScheduleRow, type ScheduleRowExtras } from '../../../../lib/schedule-production';
-import {
-  buildPublishStatusView,
-  formatScheduleWhen,
-} from '../../../../lib/publish-status';
+import { buildPublishStatusView, formatScheduleWhen } from '../../../../lib/publish-status';
 import {
   EMPTY_SCHEDULE_FILTERS,
   activeScheduleFilterCount,
@@ -1167,9 +1164,10 @@ export default function SchedulePage() {
         footer={null}
         closable={false}
         centered
-        width={560}
+        width="min(920px, calc(100vw - 32px))"
         destroyOnHidden
         className="oma-schedule-detail-modal"
+        rootClassName="oma-schedule-detail-modal-root"
         styles={{ body: { padding: 0 } }}
         mask={{ closable: true }}
       >
