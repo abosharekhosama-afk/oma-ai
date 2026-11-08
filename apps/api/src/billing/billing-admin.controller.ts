@@ -45,9 +45,15 @@ export class BillingAdminController {
   }
 
   @Get('api/v1/admin/billing/orders')
-  async orders(@Req() req: Request) {
+  async orders(@Req() req: Request, @Query('status') status?: string) {
     await requireSuperAdmin(req);
-    return billingService.adminListOrders();
+    return billingService.adminListOrders(status);
+  }
+
+  @Get('api/v1/admin/billing/orders/:id/receipt')
+  async receipt(@Req() req: Request, @Param('id') id: string) {
+    await requireSuperAdmin(req);
+    return billingService.adminGetOrderReceipt(id);
   }
 
   @Get('api/v1/admin/billing/settings')

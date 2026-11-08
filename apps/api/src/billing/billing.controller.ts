@@ -43,7 +43,16 @@ export class BillingController {
 
   @Get('api/v1/billing/subscription')
   async subscription(@Req() req: Request) {
-    return billingService.getSubscriptionView(requireTenant(req));
+    const view = await billingService.getSubscriptionView(requireTenant(req));
+    return {
+      data: {
+        ...view.data,
+        viewer_is_platform_admin: hasCapability(
+          req.oma?.capabilities ?? [],
+          'platform.support.access',
+        ),
+      },
+    };
   }
 
   @Get('api/v1/billing/invoices')
@@ -151,6 +160,12 @@ export class BillingController {
       proof_note?: string;
       proof_file_name?: string;
       proof_mime?: string;
+      sender_name?: string;
+      contact?: string;
+      amount?: string | number;
+      transfer_date?: string;
+      txn_ref?: string;
+      proof_image_base64?: string;
     },
   ) {
     requireBillingManage(req);

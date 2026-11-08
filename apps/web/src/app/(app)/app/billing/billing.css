@@ -323,3 +323,249 @@
   padding: 8px 0;
   border-bottom: 1px solid #eef2f6;
 }
+
+.oma-billing input[type='checkbox'] {
+  display: inline-block;
+  width: 1.15rem;
+  height: 1.15rem;
+  margin: 0.15rem 0 0;
+  padding: 0;
+  flex-shrink: 0;
+}
+.oma-billing input[type='file'] {
+  max-width: 100%;
+}
+.oma-billing__addon {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 42rem;
+  margin: 0 auto 28px;
+  padding: 16px 18px;
+  border: 1px solid #dfe7ee;
+  border-radius: 14px;
+  background: #fff;
+  color: #24303d;
+}
+.oma-billing__addon-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.oma-billing__addon-copy strong {
+  font-size: 15px;
+}
+.oma-billing__addon-price,
+.oma-billing__addon-help,
+.oma-billing__price-vat {
+  color: #526273;
+  font-size: 13px;
+}
+.oma-billing__admin-hero {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+.oma-billing__admin-hero .oma-billing__card,
+.oma-billing__admin-panel {
+  min-height: 0;
+}
+.oma-billing__admin-panel {
+  margin: 0 0 22px;
+}
+.oma-billing__admin-panel h2 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+.oma-billing__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 0 12px;
+}
+.oma-billing__field > span {
+  color: #24303d;
+  font-size: 13px;
+  font-weight: 700;
+}
+.oma-billing__modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(30, 49, 70, 0.45);
+}
+.oma-billing__modal {
+  width: min(640px, 100%);
+  max-height: min(92vh, 840px);
+  overflow: auto;
+  padding: 24px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(59, 130, 246, 0.14);
+}
+.oma-billing__modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.oma-billing__modal-head h2 {
+  margin: 0;
+  font-size: 20px;
+}
+.oma-billing__modal-close {
+  border: 1px solid #d0dae4;
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: #fff;
+  color: #24303d;
+  font: inherit;
+  cursor: pointer;
+}
+.oma-billing__provider-grid,
+.oma-billing__workspace-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.oma-billing__provider-card,
+.oma-billing__workspace-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  width: 100%;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #dfe7ee;
+  border-radius: 14px;
+  background: #fff;
+  color: #24303d;
+  text-align: start;
+  cursor: pointer;
+  font: inherit;
+}
+.oma-billing__provider-card em,
+.oma-billing__workspace-card em,
+.oma-billing__provider-card span,
+.oma-billing__workspace-card span {
+  color: #526273;
+  font-size: 13px;
+  font-style: normal;
+}
+.oma-billing__workspace-card.is-selected,
+.oma-billing__provider-card:focus-visible {
+  border-color: #3b82f6;
+  box-shadow: 0 12px 30px rgba(59, 130, 246, 0.14);
+}
+.oma-billing__receipt-preview {
+  margin: 12px 0 0;
+}
+.oma-billing__receipt-preview img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  border: 1px solid #dfe7ee;
+  border-radius: 12px;
+  background: #f7fafc;
+}
+.oma-billing__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 16px;
+}
+.oma-billing__filters button {
+  border: 1px solid #dfe7ee;
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: #f7fafc;
+  color: #687789;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.oma-billing__filters button.is-active {
+  background: #fff;
+  color: #24303d;
+  box-shadow: 0 2px 8px rgba(30, 49, 70, 0.1);
+  font-weight: 800;
+}
+.oma-billing__orders {
+  display: grid;
+  gap: 14px;
+}
+.oma-billing__order {
+  padding: 16px;
+  border: 1px solid #dfe7ee;
+  border-radius: 14px;
+  background: #fff;
+}
+.oma-billing__order.is-proof_uploaded {
+  border-color: #3b82f6;
+}
+.oma-billing__order.is-approved {
+  border-color: #16a34a;
+}
+.oma-billing__order.is-rejected {
+  border-color: #dc2626;
+}
+.oma-billing__order-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.oma-billing__order-head p {
+  margin: 4px 0 0;
+  color: #526273;
+}
+.oma-billing__order-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 16px;
+  margin: 0 0 12px;
+}
+.oma-billing__order-meta div {
+  min-width: 0;
+}
+.oma-billing__order-meta dt {
+  color: #687789;
+  font-size: 12px;
+}
+.oma-billing__order-meta dd {
+  margin: 2px 0 0;
+  overflow-wrap: anywhere;
+}
+.oma-billing__admin-actions {
+  margin-top: 16px;
+}
+.oma-billing__admin-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+@media (max-width: 900px) {
+  .oma-billing__admin-hero,
+  .oma-billing__provider-grid,
+  .oma-billing__workspace-grid,
+  .oma-billing__order-meta {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .oma-billing__modal {
+    padding: 18px 16px;
+  }
+  .oma-billing__order-head,
+  .oma-billing__modal-head,
+  .oma-billing__addon {
+    flex-wrap: wrap;
+  }
+}

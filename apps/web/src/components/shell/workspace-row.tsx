@@ -19,6 +19,8 @@ export function WorkspaceRow({ collapsed = false, onOpenSettings }: WorkspaceRow
   const [menuOpen, setMenuOpen] = useState(false);
   const [expanded, setExpanded] = useState(true);
   const [busyTenant, setBusyTenant] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const switchGen = useRef(0);
   const rootRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     let cancelled = false;
@@ -59,15 +61,21 @@ export function WorkspaceRow({ collapsed = false, onOpenSettings }: WorkspaceRow
   const workspaceName = workspace?.tenant_name || t('shell.workspace') || 'Workspace';
   async function activateWorkspace(tenantId: string) {
     if (!tenantId || tenantId === me?.active_tenant_id || busyTenant) return;
+    const gen = ++switchGen.current;
     setBusyTenant(true);
+    setError(null);
+    setMenuOpen(false);
     try {
       await api('/api/v1/tenants/active', {
         method: 'POST',
         body: JSON.stringify({ tenant_id: tenantId }),
       });
+      if (gen !== switchGen.current) return;
       setActiveBrandId(null);
       window.location.assign('/app');
-    } catch {
+    } catch (err) {
+      if (gen !== switchGen.current) return;
+      setError(err instanceof Error ? err.message : t('common.error'));
       setBusyTenant(false);
     }
   }
@@ -91,6 +99,11 @@ export function WorkspaceRow({ collapsed = false, onOpenSettings }: WorkspaceRow
 
   return (
     <div className="oma-ws-row" ref={rootRef} data-testid="workspace-row">
+      {error ? (
+        <p role="alert" className="oma-shell-note">
+          {error}
+        </p>
+      ) : null}
       <button
         type="button"
         className="oma-ws-toggle"

@@ -23,6 +23,10 @@ import {
   computeVat,
   formatVatPercent,
   isPlanCode,
+  resolvePublicAppOrigin,
+  sniffImageMime,
+  validateManualTransfer,
+  RECEIPT_ALLOWED_MIME,
   limitsExceededByUsage,
   newId,
   normalizePlanCode,
@@ -52,10 +56,7 @@ import { createStripePortal, startStripeCheckout } from './providers/stripe.adap
 const audit = new AuditService();
 
 function webBase(): string {
-  return (process.env.WEB_BASE_URL || process.env.WEB_ORIGIN || 'http://127.0.0.1:3000').replace(
-    /\/$/,
-    '',
-  );
+  return resolvePublicAppOrigin(process.env.WEB_BASE_URL || process.env.WEB_ORIGIN);
 }
 
 function asCycle(v?: string): BillingCycle {
@@ -235,7 +236,9 @@ export class BillingService {
       if (!normalized) continue;
       const plan = await hydratePlan(normalized);
       const monthly = Math.round(plan.priceMonthlyUsd * 100);
+      const yearlyMonthly = Math.round(plan.priceYearlyPerMonthUsd * 100);
       const vat = computeVat(monthly, settings.vatRateBps);
+      const yearlyVat = computeVat(yearlyMonthly, settings.vatRateBps);
       plans.push({
         code: plan.code,
         name: { en: plan.nameEn, ar: plan.nameAr },
@@ -248,6 +251,7 @@ export class BillingService {
         vat_rate_bps: vat.vat_rate_bps,
         vat_percent: formatVatPercent(vat.vat_rate_bps),
         monthly_vat: vat,
+        yearly_vat: yearlyVat,
       });
     }
     return plans;
@@ -282,11 +286,18 @@ export class BillingService {
               : Math.min(100, Math.round((used / limit) * 100)),
         };
       });
-    const invoices = await getPrisma().billingInvoice.findMany({
-      where: { tenantId },
-      orderBy: { createdAt: 'desc' },
-      take: 24,
-    });
+    const [invoices, pendingOrders] = await Promise.all([
+      getPrisma().billingInvoice.findMany({
+        where: { tenantId },
+        orderBy: { createdAt: 'desc' },
+        take: 24,
+      }),
+      getPrisma().manualPaymentOrder.findMany({
+        where: { tenantId, status: { in: ['awaiting_payment', 'proof_uploaded'] } },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+      }),
+    ]);
     return {
       data: {
         tenant_id: tenantId,
@@ -323,10 +334,14 @@ export class BillingService {
         usage_bars: usageBars,
         invoices: invoices.map((r) => this.mapInvoice(r)),
         providers: visiblePaymentProviders(),
+        settings_vat_rate_bps: settings.vatRateBps,
+        settings_vat_percent: formatVatPercent(settings.vatRateBps),
         addon: {
           code: 'x_api',
           price_monthly_usd: settings.xApiAddonMonthlyUsdCents / 100,
+          monthly_vat: computeVat(settings.xApiAddonMonthlyUsdCents, settings.vatRateBps),
         },
+        pending_manual_orders: pendingOrders.map((o) => this.mapManualOrder(o)),
       },
     };
   }
@@ -528,7 +543,8 @@ export class BillingService {
         requestedBy: actorUserId,
         planCode,
         billingCycle: cycle,
-        amountUsdCents: quote.plan.ex_vat_cents,
+        xApiAddon: Boolean(input.x_api_addon),
+        amountUsdCents: quote.total_ex_vat_cents,
         status: 'awaiting_payment',
         provider,
       },
@@ -766,8 +782,20 @@ export class BillingService {
       proof_note?: string;
       proof_file_name?: string;
       proof_mime?: string;
+      sender_name?: string;
+      contact?: string;
+      amount?: string | number;
+      transfer_date?: string;
+      txn_ref?: string;
+      proof_image_base64?: string;
     },
   ) {
+    const parsed = validateManualTransfer(input);
+    if (!parsed.ok) {
+      throw new DomainError('VALIDATION_FAILED', parsed.message, 400, 'errors.validation_failed', [
+        { message_ar: parsed.message_ar },
+      ]);
+    }
     const prisma = getPrisma();
     const order = await prisma.manualPaymentOrder.findFirst({
       where: {
@@ -792,9 +820,16 @@ export class BillingService {
       where: { id: order.id },
       data: {
         status: 'proof_uploaded',
-        proofNote: input.proof_note?.slice(0, 2000) ?? order.proofNote,
-        proofFileName: input.proof_file_name?.slice(0, 200) ?? order.proofFileName,
-        proofMime: input.proof_mime?.slice(0, 120) ?? order.proofMime,
+        proofNote: parsed.value.proof_note,
+        proofFileName: parsed.value.receipt.file_name ?? order.proofFileName,
+        proofMime: parsed.value.receipt.mime,
+        proofImageBase64: parsed.value.receipt.base64,
+        proofImageSize: parsed.value.receipt.bytes,
+        transferSenderName: parsed.value.sender_name,
+        transferContact: parsed.value.contact,
+        transferAmountCents: parsed.value.amount_cents,
+        transferAt: parsed.value.transfer_at,
+        transferTxnRef: parsed.value.txn_ref,
       },
     });
     await audit.write({
@@ -803,9 +838,19 @@ export class BillingService {
       action: 'billing.manual.proof_uploaded',
       targetType: 'ManualPaymentOrder',
       targetId: updated.id,
-      afterRef: JSON.stringify({ reference: updated.reference }),
+      afterRef: JSON.stringify({
+        reference: updated.reference,
+        transferTxnRef: updated.transferTxnRef,
+      }),
     });
-    return { data: { id: updated.id, status: updated.status, reference: updated.reference } };
+    return {
+      data: {
+        id: updated.id,
+        status: updated.status,
+        reference: updated.reference,
+        transfer: this.mapManualOrder(updated),
+      },
+    };
   }
 
   async listCheckouts(tenantId: string) {
@@ -833,15 +878,8 @@ export class BillingService {
         fulfilled_at: r.fulfilledAt?.toISOString() ?? null,
       })),
       orders: orders.map((o) => ({
-        id: o.id,
-        reference: o.reference,
-        provider: o.provider,
-        status: o.status,
-        plan_code: o.planCode,
-        amount_inc_vat_cents: o.amountIncVatCents,
-        vat_cents: o.vatCents,
+        ...this.mapManualOrder(o),
         instructions: { en: o.instructionsEn, ar: o.instructionsAr },
-        created_at: o.createdAt.toISOString(),
       })),
       payment_configured: listPaymentProviders().some((p) => p.configured),
     };
@@ -968,11 +1006,11 @@ export class BillingService {
       planCode,
       asCycle(checkout.billingCycle),
       settings.vatRateBps,
-      false,
-      0,
+      Boolean(checkout.xApiAddon),
+      settings.xApiAddonMonthlyUsdCents,
     );
     if (typeof input.amountCents === 'number' && Number.isFinite(input.amountCents)) {
-      if (input.amountCents < quote.plan.inc_vat_cents) {
+      if (input.amountCents < quote.total_inc_vat_cents) {
         throw new DomainError(
           'PAYMENT_REQUIRED',
           'Paid amount does not match the plan total',
@@ -990,6 +1028,8 @@ export class BillingService {
       providerCustomerId: input.customerId,
       providerSubscriptionId: input.subscriptionId,
       providerAuthCode: input.authorizationCode,
+      xApiAddon: Boolean(checkout.xApiAddon),
+      vatRateBps: settings.vatRateBps,
     });
     await prisma.billingCheckout.update({
       where: { id: checkout.id },
@@ -1040,6 +1080,7 @@ export class BillingService {
             tenantId: metadata.tenant_id,
             provider: 'stripe',
             reference: metadata.checkout_id || reference,
+            amountCents: typeof obj.amount_total === 'number' ? obj.amount_total : undefined,
             customerId: typeof obj.customer === 'string' ? obj.customer : undefined,
             subscriptionId: typeof obj.subscription === 'string' ? obj.subscription : undefined,
           });
@@ -1385,27 +1426,47 @@ export class BillingService {
     return { data: { tenant_id: tenantId, status: updated.status } };
   }
 
-  async adminListOrders() {
+  async adminListOrders(status?: string) {
+    const allowed = new Set([
+      'awaiting_payment',
+      'proof_uploaded',
+      'approved',
+      'rejected',
+      'cancelled',
+    ]);
+    const where = status && allowed.has(status) ? { status } : undefined;
     const rows = await getPrisma().manualPaymentOrder.findMany({
-      where: { status: { in: ['awaiting_payment', 'proof_uploaded'] } },
+      where,
       orderBy: { createdAt: 'desc' },
-      take: 100,
+      take: 150,
     });
     return {
       data: rows.map((o) => ({
-        id: o.id,
+        ...this.mapManualOrder(o),
         tenant_id: o.tenantId,
-        reference: o.reference,
-        provider: o.provider,
-        status: o.status,
-        plan_code: o.planCode,
-        billing_cycle: o.billingCycle,
-        amount_inc_vat_cents: o.amountIncVatCents,
-        vat_cents: o.vatCents,
-        proof_note: o.proofNote,
-        proof_file_name: o.proofFileName,
-        created_at: o.createdAt.toISOString(),
       })),
+    };
+  }
+
+  async adminGetOrderReceipt(orderId: string) {
+    const order = await getPrisma().manualPaymentOrder.findUnique({ where: { id: orderId } });
+    if (!order?.proofImageBase64) {
+      throw new DomainError('NOT_FOUND', 'Receipt not found', 404, 'errors.not_found');
+    }
+    const allowed = new Set<string>(RECEIPT_ALLOWED_MIME);
+    const sniffed = sniffImageMime(order.proofImageBase64);
+    const mime =
+      sniffed ?? (order.proofMime && allowed.has(order.proofMime) ? order.proofMime : null);
+    if (!mime) {
+      throw new DomainError('NOT_FOUND', 'Receipt not found', 404, 'errors.not_found');
+    }
+    return {
+      data: {
+        id: order.id,
+        file_name: order.proofFileName,
+        mime,
+        image_data_url: `data:${mime};base64,${order.proofImageBase64}`,
+      },
     };
   }
 
@@ -1520,6 +1581,56 @@ export class BillingService {
       afterRef: JSON.stringify({ vatRateBps: row.vatRateBps }),
     });
     return { data: await loadBillingSettings() };
+  }
+
+  private mapManualOrder(o: {
+    id: string;
+    tenantId: string;
+    reference: string;
+    provider: string;
+    status: string;
+    planCode: string;
+    billingCycle: string;
+    amountIncVatCents: number;
+    vatCents: number;
+    vatRateBps: number;
+    proofNote: string | null;
+    proofFileName: string | null;
+    proofMime: string | null;
+    proofImageBase64?: string | null;
+    transferSenderName: string | null;
+    transferContact: string | null;
+    transferAmountCents: number | null;
+    transferAt: Date | null;
+    transferTxnRef: string | null;
+    adminNote?: string | null;
+    createdAt: Date;
+    xApiAddon?: boolean;
+  }) {
+    return {
+      id: o.id,
+      tenant_id: o.tenantId,
+      reference: o.reference,
+      provider: o.provider,
+      status: o.status,
+      plan_code: o.planCode,
+      billing_cycle: o.billingCycle,
+      amount_inc_vat_cents: o.amountIncVatCents,
+      vat_cents: o.vatCents,
+      vat_percent: formatVatPercent(o.vatRateBps),
+      proof_note: o.proofNote,
+      proof_file_name: o.proofFileName,
+      proof_mime: o.proofMime,
+      has_proof_image: Boolean(o.proofImageBase64),
+      transfer_sender_name: o.transferSenderName,
+      transfer_contact: o.transferContact,
+      transfer_amount_cents: o.transferAmountCents,
+      transfer_at: o.transferAt?.toISOString() ?? null,
+      transfer_txn_ref: o.transferTxnRef,
+      admin_note: o.adminNote ?? null,
+      created_at: o.createdAt.toISOString(),
+      x_api_addon: o.xApiAddon ?? false,
+    };
   }
 }
 
