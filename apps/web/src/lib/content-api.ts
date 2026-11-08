@@ -664,13 +664,30 @@ export type ContentChannelAnalytics = {
   channel: string;
   published: boolean;
   published_at: string | null;
-  source: 'oma_local' | 'platform';
+  source: 'oma_local' | 'platform' | 'demo';
   platform_connected: boolean;
   note: string;
   insights_at?: string | null;
+  external_post_id?: string | null;
+  status?:
+    'not_published' | 'not_connected' | 'no_external_id' | 'no_data_yet' | 'unsupported' | 'ready';
   kpis: { views: number; engagements: number; reach: number };
-  organic_views: { reach: number; impressions: number; avg_view_duration_s: number };
-  organic_engagement: { likes: number; comments: number; shares: number };
+  organic_views: {
+    reach: number;
+    impressions: number;
+    avg_view_duration_s: number;
+    watch_time_m?: number;
+  };
+  organic_engagement: {
+    likes: number;
+    comments: number;
+    shares: number;
+    reposts?: number;
+    replies?: number;
+    profile_clicks?: number;
+    link_clicks?: number;
+    other_clicks?: number;
+  };
   plays: { views: number; three_second: number; one_minute: number; avg_seconds: number };
   reactions: { like: number; love: number; haha: number; wow: number; sad: number; angry: number };
   approvals: number;
@@ -678,9 +695,10 @@ export type ContentChannelAnalytics = {
 };
 
 export async function getContentChannelAnalytics(contentId: string, channel?: string) {
-  const q = channel ? `?channel=${encodeURIComponent(channel)}` : '';
+  const q = new URLSearchParams({ refresh: '1' });
+  if (channel) q.set('channel', channel);
   const res = await api<{ data: ContentChannelAnalytics }>(
-    `/api/v1/content/${contentId}/channel-analytics${q}`,
+    `/api/v1/content/${contentId}/channel-analytics?${q.toString()}`,
   );
   return res.data;
 }

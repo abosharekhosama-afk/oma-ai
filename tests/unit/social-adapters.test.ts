@@ -202,6 +202,52 @@ describe('Meta adapter', () => {
       .catch((e) => e);
     expect(e2.opts).toMatchObject({ retryable: true });
   });
+  it('fetches Facebook insights plus likes/comments/shares summaries', async () => {
+    const m = mockFetch([
+      [
+        /\/p99\/insights\?/,
+        () =>
+          json({
+            data: [
+              { name: 'post_impressions', values: [{ value: 1200 }] },
+              { name: 'post_impressions_unique', values: [{ value: 900 }] },
+            ],
+          }),
+      ],
+      [
+        /\/p99\?/,
+        () =>
+          json({
+            shares: { count: 4 },
+            likes: { summary: { total_count: 33 } },
+            comments: { summary: { total_count: 7 } },
+          }),
+      ],
+    ]);
+    const insights = await new MetaAdapter('facebook', env, m.fn).fetchInsights(
+      { externalId: 'page1', name: 'P', accessToken: 't', meta: {} },
+      'p99',
+    );
+    expect(insights).toMatchObject({
+      impressions: 1200,
+      reach: 900,
+      views: 1200,
+      likes: 33,
+      comments: 7,
+      shares: 4,
+    });
+  });
+  it('falls back to Instagram media like_count when insight metrics fail', async () => {
+    const m = mockFetch([
+      [/\/m1\/insights\?/, () => json({ error: { message: 'invalid metric' } }, 400)],
+      [/\/m1\?/, () => json({ like_count: 12, comments_count: 3 })],
+    ]);
+    const insights = await new MetaAdapter('instagram', env, m.fn).fetchInsights(
+      { externalId: 'ig1', name: 'IG', accessToken: 't', meta: {} },
+      'm1',
+    );
+    expect(insights).toMatchObject({ likes: 12, comments: 3 });
+  });
 });
 
 describe('LinkedIn adapter', () => {

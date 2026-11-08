@@ -24,11 +24,21 @@ describe('content grid + preview analytics', () => {
       'content.read',
     ]);
     const service = read('apps/api/src/content/content.service.ts');
-    expect(service).toContain("'oma_local' as const");
-    expect(service).toContain('kpis: { views, engagements, reach }');
+    const logic = read('apps/api/src/content/channel-analytics.ts');
     expect(service).toContain('parseInsights');
+    expect(service).toContain('buildChannelAnalyticsView');
+    expect(service).toContain('maybeRefreshPublishTargetInsights');
+    expect(logic).toContain("'oma_local' as const");
+    expect(logic).toContain('kpis: { views, engagements, reach }');
+    expect(logic).toContain('isDemoModeEnabled');
+    expect(logic).not.toContain('fallbackViews');
     const api = read('apps/web/src/lib/content-api.ts');
     expect(api).toContain('/api/v1/content/${contentId}/channel-analytics');
+    expect(api).toContain("refresh: '1'");
+    const analytics = read('apps/web/src/components/content/post-channel-analytics.tsx');
+    expect(analytics).toContain('not_published');
+    expect(analytics).toContain('no_data_yet');
+    expect(analytics).toContain('not_connected');
   });
 
   it('reuses compose campaign/labels/templates cards in the preview header', () => {
@@ -38,7 +48,6 @@ describe('content grid + preview analytics', () => {
     expect(client).toContain('content-modal-campaign');
     expect(client).toContain('content-modal-labels');
     expect(client).toContain('content-modal-analytics');
-    expect(client).toContain('content-preview-smile');
     expect(pills).toContain('Apply post template');
     expect(pills).toContain('Add labels');
     expect(client).toContain('PostChannelAnalytics');

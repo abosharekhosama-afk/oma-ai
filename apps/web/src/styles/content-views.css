@@ -1316,6 +1316,27 @@
   gap: 16px;
 }
 
+.oma-plx-post-an__status {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--oma-border) 55%, transparent);
+  color: var(--oma-fg-muted);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.oma-plx-post-an__status--demo {
+  background: color-mix(in srgb, var(--oma-border) 80%, transparent);
+  color: var(--oma-fg);
+}
+
+.oma-plx-post-an__synced {
+  margin: 0;
+  font-size: 11px;
+  color: var(--oma-fg-subtle);
+}
+
 .oma-plx-post-an__kpis {
   display: grid;
   gap: 8px;
