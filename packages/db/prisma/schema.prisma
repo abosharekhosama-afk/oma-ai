@@ -1745,10 +1745,118 @@ model SocialPage {
   createdAt        DateTime               @default(now())
   updatedAt        DateTime               @updatedAt
   publishTargets   ContentPublishTarget[]
+  metricSnapshots  PostMetricSnapshot[]
+  activityBuckets  AudienceActivityBucket[]
+  optimalTimeSlots OptimalTimeSlot[]
+  publishQueue     PublishQueue?
 
   @@unique([brandId, network, externalId])
   @@index([tenantId, brandId])
   @@index([status, tokenExpiresAt])
+}
+
+
+
+/// Per-account auto-queue that assigns the next free send slot.
+model PublishQueue {
+  id           String      @id
+  tenantId     String
+  socialPageId String      @unique
+  enabled      Boolean     @default(false)
+  slotsPerDay  Int         @default(3)
+  windowStart  String?
+  windowEnd    String?
+  split        String      @default("per_day")
+  useSuggested Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  socialPage   SocialPage  @relation(fields: [socialPageId], references: [id], onDelete: Cascade)
+  slots        QueueSlot[]
+
+  @@index([tenantId])
+}
+
+model QueueSlot {
+  id        String       @id
+  queueId   String
+  dayOfWeek Int
+  timeLocal String
+  origin    String
+  enabled   Boolean      @default(true)
+  queue     PublishQueue @relation(fields: [queueId], references: [id], onDelete: Cascade)
+
+  @@unique([queueId, dayOfWeek, timeLocal])
+}
+
+/// Latest extracted insights for a published target (indexed columns for aggregation).
+model PostMetricSnapshot {
+  id              String     @id
+  tenantId        String
+  brandId         String
+  socialPageId    String
+  publishTargetId String?    @unique
+  contentItemId   String?
+  externalPostId  String?
+  publishedAt     DateTime
+  impressions     Int?
+  reach           Int?
+  likes           Int?
+  comments        Int?
+  shares          Int?
+  views           Int?
+  engagementRate  Float?
+  excluded        Boolean    @default(false)
+  excludeReason   String?
+  source          String     @default("insights_json")
+  capturedAt      DateTime
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  socialPage      SocialPage @relation(fields: [socialPageId], references: [id], onDelete: Cascade)
+
+  @@unique([socialPageId, externalPostId])
+  @@index([tenantId, socialPageId, publishedAt])
+  @@index([tenantId, brandId])
+  @@index([contentItemId])
+}
+
+/// Precomputed 7x24 engagement bucket for a connected account (0 = Sunday).
+model AudienceActivityBucket {
+  id            String     @id
+  tenantId      String
+  socialPageId  String
+  timezone      String
+  dayOfWeek     Int
+  hourLocal     Int
+  postCount     Int
+  weightedEr    Float
+  weightSum     Float
+  engagementSum Float      @default(0)
+  priorScore    Float
+  score         Float
+  confidence    Float
+  computedAt    DateTime
+  socialPage    SocialPage @relation(fields: [socialPageId], references: [id], onDelete: Cascade)
+
+  @@unique([socialPageId, dayOfWeek, hourLocal])
+  @@index([tenantId, socialPageId])
+}
+
+/// Ranked send-time suggestion for one weekday on a connected account.
+model OptimalTimeSlot {
+  id           String     @id
+  tenantId     String
+  socialPageId String
+  dayOfWeek    Int
+  minuteOfDay  Int
+  rank         Int
+  score        Float
+  confidence   Float
+  source       String     @default("model")
+  computedAt   DateTime
+  socialPage   SocialPage @relation(fields: [socialPageId], references: [id], onDelete: Cascade)
+
+  @@unique([socialPageId, dayOfWeek, rank])
+  @@index([tenantId, socialPageId])
 }
 
 /// OAuth state for an in-flight connect (CSRF + PKCE verifier), single use, 15 min.

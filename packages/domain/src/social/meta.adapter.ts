@@ -6,6 +6,7 @@ import {
   type ConnectedAccount,
   type FetchLike,
   type PostInsights,
+  type RecentNetworkPost,
   type PublishablePage,
   type PublishInput,
   type PublishResult,
@@ -414,6 +415,66 @@ export class MetaAdapter implements SocialProviderAdapter {
       views: map.plays ?? map.views ?? map.impressions,
       fetchedAt,
     };
+  }
+
+  async listRecentPosts(
+    page: PublishablePage,
+    opts?: { limit?: number; since?: Date },
+  ): Promise<RecentNetworkPost[]> {
+    const limit = Math.min(25, Math.max(1, opts?.limit ?? 20));
+    const since = opts?.since ? String(Math.floor(opts.since.getTime() / 1000)) : undefined;
+    const rows: RecentNetworkPost[] = [];
+    if (this.network === 'facebook') {
+      const qs: Record<string, string> = {
+        fields: 'id,created_time,permalink_url',
+        limit: String(limit),
+        access_token: page.accessToken,
+      };
+      if (since) qs.since = since;
+      const body = (await this.get(`${page.externalId}/published_posts`, qs).catch(() => null)) as {
+        data?: Array<{ id?: string; created_time?: string; permalink_url?: string }>;
+      } | null;
+      for (const row of body?.data ?? []) {
+        if (!row.id || !row.created_time) continue;
+        const publishedAt = new Date(row.created_time);
+        if (Number.isNaN(publishedAt.getTime())) continue;
+        rows.push({
+          externalPostId: row.id,
+          publishedAt,
+          url: row.permalink_url ?? null,
+        });
+      }
+      return rows;
+    }
+    const body = (await this.get(`${page.externalId}/media`, {
+      fields: 'id,timestamp,permalink,like_count,comments_count',
+      limit: String(limit),
+      access_token: page.accessToken,
+    }).catch(() => null)) as {
+      data?: Array<{
+        id?: string;
+        timestamp?: string;
+        permalink?: string;
+        like_count?: number;
+        comments_count?: number;
+      }>;
+    } | null;
+    for (const row of body?.data ?? []) {
+      if (!row.id || !row.timestamp) continue;
+      const publishedAt = new Date(row.timestamp);
+      if (Number.isNaN(publishedAt.getTime())) continue;
+      rows.push({
+        externalPostId: row.id,
+        publishedAt,
+        url: row.permalink ?? null,
+        insights: {
+          likes: typeof row.like_count === 'number' ? row.like_count : undefined,
+          comments: typeof row.comments_count === 'number' ? row.comments_count : undefined,
+          fetchedAt: new Date().toISOString(),
+        },
+      });
+    }
+    return rows;
   }
 }
 

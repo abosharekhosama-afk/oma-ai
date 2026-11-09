@@ -1152,6 +1152,39 @@ export class ContentService {
     return { data: mapContent(refreshed, policy) };
   }
 
+  async enqueue(tenantId: string, actorUserId: string, contentId: string, correlationId?: string) {
+    const current = await getPrisma().contentItem.findFirst({
+      where: tenantWhere(tenantId, { id: contentId }),
+    });
+    if (!current) {
+      throw new DomainError('NOT_FOUND', 'Content not found', 404, 'errors.not_found');
+    }
+    const targets = await getPrisma().contentPublishTarget.findMany({
+      where: { contentItemId: contentId },
+      select: { socialPageId: true },
+    });
+    const { pickNextQueueSlot } = await import('../workspace/publish-queues.service');
+    const slot = await pickNextQueueSlot(tenantId, {
+      brandId: current.brandId,
+      socialPageIds: targets.map((t) => t.socialPageId),
+    });
+    if (!slot) {
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'No free queue slot in the next three weeks',
+        400,
+        'errors.validation_failed',
+      );
+    }
+    return this.schedule(
+      tenantId,
+      actorUserId,
+      contentId,
+      { scheduledAt: slot.at.toISOString(), timezone: slot.timezone },
+      correlationId,
+    );
+  }
+
   async unschedule(
     tenantId: string,
     actorUserId: string,

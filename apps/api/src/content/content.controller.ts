@@ -418,6 +418,18 @@ export class ContentController {
     );
   }
 
+  @Post('api/v1/content/:contentId/enqueue')
+  @UseGuards(CsrfGuard)
+  async enqueue(@Req() req: Request, @Param('contentId') contentId: string) {
+    this.requireTenant(req);
+    return contentService.enqueue(
+      req.oma!.tenantId!,
+      req.oma!.userId!,
+      contentId,
+      req.oma!.correlationId,
+    );
+  }
+
   @Post('api/v1/content/:contentId/schedule')
   @UseGuards(CsrfGuard)
   async schedule(

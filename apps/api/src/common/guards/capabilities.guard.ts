@@ -16,6 +16,9 @@ const routeRequirements: Record<string, string[]> = {
   'GET /api/v1/audit-events': ['audit.read'],
   'GET /api/v1/analytics': ['analytics.read'],
   'GET /api/v1/analytics/content': ['analytics.read'],
+  'GET /api/v1/analytics/optimal-times': ['analytics.read'],
+  'GET /api/v1/analytics/optimal-times/heatmap': ['analytics.read'],
+  'GET /api/v1/analytics/optimal-times/suggest': ['content.schedule'],
   'PATCH /api/v1/workspace/settings': ['tenant.manage'],
   'PATCH /api/v1/workspace/holiday-calendars': ['content.update'],
   'GET /api/v1/workspace/workdrive': ['tenant.manage'],
@@ -215,6 +218,9 @@ const routeRequirements: Record<string, string[]> = {
 
   'POST /api/v1/content/:contentId/request-changes': ['content.approve'],
   'POST /api/v1/content/:contentId/schedule': ['content.schedule'],
+  'POST /api/v1/content/:contentId/enqueue': ['content.schedule'],
+  'GET /api/v1/workspace/publish-queues': ['content.schedule'],
+  'PUT /api/v1/workspace/publish-queues': ['tenant.manage'],
   'POST /api/v1/content/:contentId/unschedule': ['content.schedule'],
   'POST /api/v1/content/:contentId/archive': ['content.archive'],
   // Post-card actions. These routes are protected by the global guard, so an

@@ -20,8 +20,9 @@ import {
   approvalsFromSettings,
   getWorkspaceSettings,
   patchWorkspaceSettings,
-  loadTimeSlots,
-  saveTimeSlots,
+  syncTimeSlots,
+  createTimeSlot,
+  deleteTimeSlot,
   type ApprovalSettings,
   type ContentLabel,
   type ContentTemplate,
@@ -29,6 +30,7 @@ import {
   type TimeSlot,
 } from '../../lib/workspace-extras-api';
 import { HOLIDAY_CALENDAR_CATALOG, defaultHolidayCalendarsForTimezone } from '@oma/domain/browser';
+import { PublishQueueSettings } from './publish-queue-settings';
 
 type Me = {
   active_tenant_id: string | null;
@@ -119,7 +121,9 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
         }));
       })
       .catch(() => undefined);
-    setSlots(loadTimeSlots());
+    void syncTimeSlots()
+      .then(setSlots)
+      .catch(() => setSlots([]));
     setApprovalsState('loading');
     getWorkspaceSettings()
       .then((ws) => {
@@ -489,9 +493,9 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
                           type="button"
                           className="oma-ws-danger-btn"
                           onClick={() => {
-                            const next = slots.filter((x) => x.id !== s.id);
-                            setSlots(next);
-                            saveTimeSlots(next);
+                            void deleteTimeSlot(s.id)
+                              .then(() => setSlots((prev) => prev.filter((x) => x.id !== s.id)))
+                              .catch(() => undefined);
                           }}
                         >
                           {t('wsPanel.delete')}
@@ -509,6 +513,7 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
                   </div>
                 </>
               )}
+              <PublishQueueSettings brandId={brandId} t={t} />
             </div>
           )}
 
@@ -624,18 +629,12 @@ export function WorkspaceSettingsPanel({ open, onClose }: Props) {
                 <Button
                   type="primary"
                   onClick={() => {
-                    const next = [
-                      ...slots,
-                      {
-                        id: `slot-${Date.now()}`,
-                        time: slotTime,
-                        day: slotDay,
-                        color: slotColor,
-                      },
-                    ];
-                    setSlots(next);
-                    saveTimeSlots(next);
-                    setSlotModal(false);
+                    void createTimeSlot({ time: slotTime, day: slotDay, color: slotColor })
+                      .then((row) => {
+                        setSlots((prev) => [...prev, row]);
+                        setSlotModal(false);
+                      })
+                      .catch(() => undefined);
                   }}
                 >
                   {t('shell.create')}

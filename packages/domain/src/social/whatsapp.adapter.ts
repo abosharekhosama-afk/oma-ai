@@ -174,6 +174,7 @@ export class WhatsAppAdapter implements SocialProviderAdapter {
     return { externalId: id };
   }
 
+  /** WhatsApp Cloud API has no list-recent-posts endpoint; historical import skips this network. */
   async fetchInsights(
     _page: PublishablePage,
     _externalPostId: string,
