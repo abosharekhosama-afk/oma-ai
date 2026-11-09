@@ -157,7 +157,7 @@ export async function snapshotUsage(tenantId: string, periodStart: Date): Promis
     }),
     prisma.contentItem.count({ where: { tenantId } }),
     prisma.mediaAsset.aggregate({
-      where: { tenantId, status: { not: 'MISSING' } },
+      where: { tenantId, status: { not: 'MISSING' }, storageProvider: 'OMA_INTERNAL' },
       _sum: { size: true },
     }),
     prisma.listeningRule.findMany({

@@ -1,4 +1,4 @@
-import { getPrisma } from '@oma/db';
+import { getPrisma, hydratePlan } from '@oma/db';
 import {
   checkSsrfHost,
   discoverWorkDrive,
@@ -14,9 +14,11 @@ import {
   WorkDriveError,
   workDriveKeyPrefix,
   workDriveLimits,
+  workDriveMasterConfig,
   workDriveSecretKey,
   type FetchLike,
 } from '@oma/domain';
+import { billingService } from '../billing/billing.service';
 import { AuditService } from '../audit/audit.service';
 
 type Conn = NonNullable<
@@ -45,6 +47,13 @@ export function workDriveDomainError(e: unknown): DomainError {
       return new DomainError('WORKDRIVE_ERROR', e.message, 422, 'errors.workdrive_key_rejected');
     case 'forbidden':
       return new DomainError('WORKDRIVE_ERROR', e.message, 422, 'errors.workdrive_forbidden');
+    case 'quota_exceeded':
+      return new DomainError(
+        'STORAGE_QUOTA_EXCEEDED',
+        e.message,
+        403,
+        'errors.storage_quota_exceeded',
+      );
     case 'not_found':
       return new DomainError('MEDIA_MISSING', e.message, 410, 'errors.media_missing');
     case 'too_large':
@@ -153,6 +162,93 @@ export class WorkDriveService {
         'errors.workdrive_not_connected',
       );
     return c;
+  }
+
+  /** Test seam so integration files can enable the master account without sharing process.env. */
+  static masterConfigImpl: typeof workDriveMasterConfig | undefined;
+
+  masterConfig() {
+    return (WorkDriveService.masterConfigImpl ?? workDriveMasterConfig)();
+  }
+
+  masterClient() {
+    const cfg = this.masterConfig();
+    if (!cfg) return null;
+    return new WorkDriveClient(cfg.baseUrl, cfg.apiKey, WorkDriveService.fetchImpl);
+  }
+
+  async effectiveMode(
+    tenantId: string,
+  ): Promise<'OMA_INTERNAL' | 'USER_WORKDRIVE' | 'SYNC_BACKUP'> {
+    const setting = await getPrisma().workspaceStorageSetting.findUnique({ where: { tenantId } });
+    if (setting) return setting.mode;
+    if (await this.connection(tenantId)) return 'USER_WORKDRIVE';
+    return 'OMA_INTERNAL';
+  }
+
+  /**
+   * Client used to write a new file. Prefers the workspace mode: BYOS when explicitly set (or
+   * when a connection exists and no setting row was created), otherwise the platform master.
+   */
+  async resolveWriteTarget(tenantId: string) {
+    const mode = await this.effectiveMode(tenantId);
+    const user = await this.clientFor(tenantId);
+    if ((mode === 'USER_WORKDRIVE' || mode === 'SYNC_BACKUP') && user) {
+      return { ...user, provider: 'USER_WORKDRIVE' as const, tenantId };
+    }
+    const master = this.masterClient();
+    if (master) {
+      return {
+        client: master,
+        conn: { id: `master:${tenantId}`, rootFolderId: null, rootFolderName: null },
+        provider: 'OMA_INTERNAL' as const,
+        tenantId,
+      };
+    }
+    if (user) return { ...user, provider: 'USER_WORKDRIVE' as const, tenantId };
+    throw new DomainError(
+      'WORKDRIVE_NOT_CONNECTED',
+      'WorkDrive is not connected',
+      409,
+      'errors.workdrive_not_connected',
+    );
+  }
+
+  async clientForAsset(tenantId: string, asset: { storageProvider?: string | null }) {
+    if (asset.storageProvider === 'OMA_INTERNAL') {
+      const master = this.masterClient();
+      if (!master)
+        throw new DomainError(
+          'WORKDRIVE_NOT_CONNECTED',
+          'WorkDrive is not connected',
+          409,
+          'errors.workdrive_not_connected',
+        );
+      return {
+        client: master,
+        conn: { id: `master:${tenantId}`, rootFolderId: null, rootFolderName: null },
+        provider: 'OMA_INTERNAL' as const,
+        tenantId,
+      };
+    }
+    const user = await this.requireClient(tenantId);
+    return { ...user, provider: 'USER_WORKDRIVE' as const, tenantId };
+  }
+
+  async storageStatus(tenantId: string) {
+    const mode = await this.effectiveMode(tenantId);
+    const conn = await this.connection(tenantId);
+    const usage = await billingService.usage(tenantId);
+    const plan = await hydratePlan(await billingService.getPlanCode(tenantId));
+    return {
+      data: {
+        mode,
+        used_bytes: usage.storage_bytes,
+        limit_bytes: plan.limits.storage_bytes ?? null,
+        byos_connected: !!conn,
+        internal_available: !!this.masterConfig(),
+      },
+    };
   }
 
   private assertUrlAllowed(url: string) {

@@ -11,6 +11,7 @@ export type WorkDriveErrorCode =
   | 'not_found'
   | 'rate_limited'
   | 'too_large'
+  | 'quota_exceeded'
   | 'conflict'
   | 'unavailable'
   | 'bad_request'
@@ -158,6 +159,9 @@ export class WorkDriveClient {
         }
         throw last;
       }
+      if (res.status === 507 || res.status === 509) {
+        await this.fail(res);
+      }
       if (res.status === 429 || res.status >= 500) {
         last = await this.failAsError(res);
         if (i < attempts - 1) {
@@ -193,22 +197,28 @@ export class WorkDriveClient {
     } catch {
       /* not JSON */
     }
+    const quota =
+      res.status === 507 ||
+      res.status === 509 ||
+      (res.status === 403 && /storage quota exceeded/i.test(msg));
     const code: WorkDriveErrorCode =
       res.status === 401
         ? 'unauthorized'
-        : res.status === 403
-          ? 'forbidden'
-          : res.status === 404
-            ? 'not_found'
-            : res.status === 409
-              ? 'conflict'
-              : res.status === 413
-                ? 'too_large'
-                : res.status === 429
-                  ? 'rate_limited'
-                  : res.status >= 500
-                    ? 'unavailable'
-                    : 'bad_response';
+        : quota
+          ? 'quota_exceeded'
+          : res.status === 403
+            ? 'forbidden'
+            : res.status === 404
+              ? 'not_found'
+              : res.status === 409
+                ? 'conflict'
+                : res.status === 413
+                  ? 'too_large'
+                  : res.status === 429
+                    ? 'rate_limited'
+                    : res.status >= 500
+                      ? 'unavailable'
+                      : 'bad_response';
     throw new WorkDriveError(code, `WorkDrive: ${msg}`, res.status);
   }
 

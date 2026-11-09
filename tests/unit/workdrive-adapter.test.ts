@@ -90,6 +90,16 @@ describe('WorkDrive client (mocked HTTP)', () => {
     const busy = await c.details('busy').catch((e) => e);
     expect(busy).toMatchObject({ code: 'rate_limited', retryable: true });
     await expect(c.details('down')).rejects.toMatchObject({ code: 'unavailable', retryable: true });
+    const q = mock([
+      [/\/files\/full\/details$/, () => json({ message: 'Storage quota exceeded' }, 403)],
+      [/\/files\/insuf\/details$/, () => json({ message: 'out of space' }, 507)],
+    ]);
+    const qc = new WorkDriveClient(BASE, KEY, q.fn);
+    await expect(qc.details('full')).rejects.toMatchObject({ code: 'quota_exceeded', status: 403 });
+    await expect(qc.details('insuf')).rejects.toMatchObject({
+      code: 'quota_exceeded',
+      status: 507,
+    });
     const offline = new WorkDriveClient(BASE, KEY, async () => {
       throw new Error('ECONNREFUSED');
     });

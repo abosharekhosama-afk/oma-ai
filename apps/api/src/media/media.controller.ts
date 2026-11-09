@@ -37,6 +37,12 @@ function ctx(req: Request) {
 
 @Controller()
 export class WorkDriveController {
+  @Get('api/v1/workspace/storage')
+  @UseGuards(AuthGuard, CapabilitiesGuard)
+  storage(@Req() req: Request) {
+    return workDriveService.storageStatus(ctx(req).tenantId);
+  }
+
   @Get('api/v1/workspace/workdrive')
   @UseGuards(AuthGuard, CapabilitiesGuard)
   status(@Req() req: Request) {
