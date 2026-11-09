@@ -8,6 +8,7 @@ export type OptimalSlot = {
   confidence: number;
   label: 'high' | 'medium' | 'low';
   time_label: string;
+  source?: 'model' | 'prior';
 };
 
 export type OptimalTimesStatus = 'ready' | 'low_data' | 'no_data';
@@ -39,7 +40,14 @@ export type OptimalHeatmap = {
   social_page_id: string | null;
   network: string | null;
   cells: Array<Array<{ score: number; n: number; confidence: number }>>;
-  pages: Array<{ id: string; name: string; network: string }>;
+  slots?: OptimalSlot[];
+  pages: Array<{
+    id: string;
+    name: string;
+    network: string;
+    sample_size?: number;
+    status?: OptimalTimesStatus;
+  }>;
   generated_at: string;
 };
 

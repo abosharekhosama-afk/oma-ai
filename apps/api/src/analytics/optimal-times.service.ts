@@ -190,7 +190,7 @@ export class OptimalTimesService {
       });
     }
     const primary =
-      pageSummaries.sort(
+      [...pageSummaries].sort(
         (a, b) =>
           (b.status === 'ready' ? 1 : 0) - (a.status === 'ready' ? 1 : 0) ||
           b.sample_size - a.sample_size,
@@ -209,13 +209,32 @@ export class OptimalTimesService {
 
   async heatmap(tenantId: string, q: OptimalTimesQuery) {
     await assertBrand(tenantId, q.brandId);
-    const pages = await loadPages(tenantId, q);
+    // Catalog every connected page for the workspace/brand. Do not constrain the
+    // list to `socialPageId` — that field only selects which page's heatmap to compute.
+    // Filtering the catalog by the selected page made the UI look as if only one
+    // account (often Instagram) was connected.
+    const pages = (await loadPages(tenantId, { brandId: q.brandId })).filter(
+      (p) => p.status !== 'DISCONNECTED',
+    );
     const timezone = await resolveScheduleTimezone(tenantId, q.brandId || pages[0]?.brandId);
     const metric = q.metric === 'engagements' ? 'engagements' : 'rate';
+    const counts = pages.length
+      ? await getPrisma().postMetricSnapshot.groupBy({
+          by: ['socialPageId'],
+          where: { tenantId, socialPageId: { in: pages.map((p) => p.id) }, excluded: false },
+          _count: { _all: true },
+        })
+      : [];
+    const countByPage = new Map(counts.map((row) => [row.socialPageId, row._count._all]));
     const pageSummaries = pages.map((p) => ({
       id: p.id,
       name: p.name,
       network: fromSocialEnum(p.network),
+      sample_size: countByPage.get(p.id) ?? 0,
+      status: ((): OptimalTimesStatus => {
+        const n = countByPage.get(p.id) ?? 0;
+        return n <= 0 ? 'no_data' : n < 20 ? 'low_data' : 'ready';
+      })(),
     }));
     if (pages.length === 0) {
       return {
@@ -226,11 +245,20 @@ export class OptimalTimesService {
         social_page_id: null,
         network: q.network?.toLowerCase() ?? null,
         cells: heatmapMatrix([], metric),
+        slots: [],
         pages: pageSummaries,
         generated_at: new Date().toISOString(),
       };
     }
-    const chosen = pages.find((p) => p.id === q.socialPageId) ?? pages[0]!;
+    const requestedNetwork = q.network?.trim().toLowerCase();
+    const pool = requestedNetwork
+      ? pages.filter((p) => fromSocialEnum(p.network) === requestedNetwork)
+      : pages;
+    const chosen =
+      pool.find((p) => p.id === q.socialPageId) ??
+      pages.find((p) => p.id === q.socialPageId) ??
+      pool[0] ??
+      pages[0]!;
     const computed = await computedOrLive(chosen, tenantId, timezone);
     return {
       timezone,
@@ -240,6 +268,16 @@ export class OptimalTimesService {
       social_page_id: chosen.id,
       network: fromSocialEnum(chosen.network),
       cells: heatmapMatrix(computed.cells, metric),
+      slots: computed.slots.map((s) => ({
+        day_of_week: s.day_of_week,
+        minute_of_day: s.minute_of_day,
+        rank: s.rank,
+        score: Number(s.score.toFixed(4)),
+        confidence: Number(s.confidence.toFixed(4)),
+        label: s.label,
+        time_label: formatSlotLabel(s.hour_local),
+        source: s.source,
+      })),
       pages: pageSummaries,
       generated_at: computed.generated_at,
     };
