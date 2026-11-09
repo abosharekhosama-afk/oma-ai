@@ -3535,6 +3535,18 @@
         "tags": [
           "WorkDrive"
         ]
+      },
+      "patch": {
+        "operationId": "WorkDriveController_updateStorage",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "WorkDrive"
+        ]
       }
     },
     "/api/v1/workspace/workdrive": {
