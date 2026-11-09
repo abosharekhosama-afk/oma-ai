@@ -13,7 +13,11 @@ describe('optimal send times surfaces', () => {
     expect(schema).toContain('model OptimalTimeSlot');
     const jobs = read('apps/worker/src/social/social-jobs.ts');
     expect(jobs).toContain('runOptimalTimesTick');
+    expect(jobs).toContain('runHistoricalImportTick');
     expect(read('apps/worker/src/social/fetch-insights.ts')).toContain('upsertPostMetricSnapshot');
+    expect(read('apps/worker/src/social/historical-import.ts')).toContain('listRecentPosts');
+    expect(read('packages/domain/src/social/meta.adapter.ts')).toContain('async listRecentPosts');
+    expect(read('packages/domain/src/social/tiktok.adapter.ts')).toContain('async listRecentPosts');
   });
 
   it('exposes heatmap, list, and suggest APIs with the documented capabilities', () => {
@@ -39,6 +43,14 @@ describe('optimal send times surfaces', () => {
     );
     expect(page).toContain('data-testid="analytics-optimal-times"');
     expect(page).toContain('data-testid="optimal-times-heatmap"');
+    expect(page).toContain('data-testid="optimal-times-explain"');
+    expect(page).toContain('data-testid="optimal-times-headline"');
+    expect(page).toContain('analytics.optimal.howItWorks');
+    expect(page).toContain('analytics.optimal.usingPriorsDetail');
+    const svc = read('apps/api/src/analytics/optimal-times.service.ts');
+    expect(svc).toContain('loadPages(tenantId, { brandId: q.brandId })');
+    expect(svc).toContain("p.status !== 'DISCONNECTED'");
+    expect(svc).toContain('postMetricSnapshot.groupBy');
     const chip = read('apps/web/src/components/content/best-time-suggestions.tsx');
     expect(chip).toContain('getOptimalTimeSuggestions');
     const compose = read('apps/web/src/app/(app)/app/content/content-client.tsx');
