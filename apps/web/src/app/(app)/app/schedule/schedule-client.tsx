@@ -1,8 +1,13 @@
 'use client';
 import { useReloadOnBrandChange } from '../../../../lib/active-brand';
 import {
+  AgendaListOutlined,
   ArrowLeftOutlined,
+  CalendarDaysOutlined,
+  CheckOutlined,
   CloseOutlined,
+  LayoutGridOutlined,
+  TableGridOutlined,
   DownOutlined,
   SearchOutlined,
   UpOutlined,
@@ -125,7 +130,7 @@ export default function SchedulePage() {
   const viewTriggerRef = useRef<HTMLButtonElement>(null);
   const [viewMenuRect, setViewMenuRect] = useState<{
     top: number;
-    insetInlineStart: number;
+    left: number;
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -195,24 +200,27 @@ export default function SchedulePage() {
   const scheduleViewOptions = useMemo(
     () =>
       [
-        ['calendar', 'calendar-view'],
-        ['agenda', 'list-view'],
-        ['queue', 'grid-view'],
-        ['table', 'list-view'],
+        ['calendar', CalendarDaysOutlined],
+        ['agenda', AgendaListOutlined],
+        ['queue', LayoutGridOutlined],
+        ['table', TableGridOutlined],
       ] as const,
     [],
   );
+  const ActiveViewIcon =
+    scheduleViewOptions.find(([id]) => id === view)?.[1] ?? CalendarDaysOutlined;
 
   const measureViewMenu = useCallback(() => {
     const el = viewTriggerRef.current;
     if (!el) return;
     const box = el.getBoundingClientRect();
     const width = Math.min(260, window.innerWidth - 24);
-    let start = box.left;
-    if (start + width > window.innerWidth - 12) {
-      start = Math.max(12, window.innerWidth - 12 - width);
-    }
-    setViewMenuRect({ top: box.bottom + 8, insetInlineStart: start });
+    // Physical `left` (not inset-inline-start): the rect is measured in physical
+    // coordinates, so mixing them put the RTL menu on the opposite side of the screen.
+    const rtl = getComputedStyle(el).direction === 'rtl';
+    let left = rtl ? box.right - width : box.left;
+    left = Math.min(Math.max(12, left), Math.max(12, window.innerWidth - 12 - width));
+    setViewMenuRect({ top: box.bottom + 8, left });
   }, []);
 
   useLayoutEffect(() => {
@@ -687,11 +695,17 @@ export default function SchedulePage() {
         data-testid="demo-schedule-view-toggle"
         aria-expanded={viewMenuOpen}
         aria-haspopup="dialog"
-        aria-label={viewMenuLabel}
-        title={viewMenuLabel}
+        aria-label={`${viewMenuLabel}: ${t(`demo.schedule.view.${view}`)}`}
+        title={`${viewMenuLabel}: ${t(`demo.schedule.view.${view}`)}`}
+        data-view={view}
         onClick={() => setViewMenuOpen((o) => !o)}
       >
-        <ShellIcon name="grid-view" size={18} />
+        <ActiveViewIcon
+          key={view}
+          className="oma-plx-sched-view-trigger__icon"
+          width={18}
+          height={18}
+        />
       </button>
     </div>
   );
@@ -717,7 +731,7 @@ export default function SchedulePage() {
                 style={{
                   position: 'fixed',
                   top: viewMenuRect.top,
-                  insetInlineStart: viewMenuRect.insetInlineStart,
+                  left: viewMenuRect.left,
                   width: 'min(260px, calc(100vw - 24px))',
                   zIndex: 1200,
                 }}
@@ -734,7 +748,7 @@ export default function SchedulePage() {
                   </button>
                 </header>
                 <div className="oma-plx-view-popover__body" role="listbox">
-                  {scheduleViewOptions.map(([id, icon]) => (
+                  {scheduleViewOptions.map(([id, OptionIcon]) => (
                     <button
                       key={id}
                       type="button"
@@ -747,8 +761,19 @@ export default function SchedulePage() {
                         setViewMenuOpen(false);
                       }}
                     >
-                      <ShellIcon name={icon} size={16} />
-                      <span>{t(`demo.schedule.view.${id}`)}</span>
+                      <span className="oma-plx-view-popover__icon" aria-hidden="true">
+                        <OptionIcon width={16} height={16} />
+                      </span>
+                      <span className="oma-plx-view-popover__label">
+                        {t(`demo.schedule.view.${id}`)}
+                      </span>
+                      {view === id ? (
+                        <CheckOutlined
+                          className="oma-plx-view-popover__check"
+                          width={14}
+                          height={14}
+                        />
+                      ) : null}
                     </button>
                   ))}
                 </div>

@@ -2321,13 +2321,13 @@ html body a.oma-link-button.ant-btn-primary:not(.ant-btn-dangerous) {
   height: 34px !important;
   min-height: 34px !important;
   padding-inline: 12px !important;
-  border: 1px solid #e5e7eb !important;
-  border-radius: 8px !important;
-  background: #fff !important;
-  color: #2563eb !important;
-  box-shadow: 0 1px 2px rgb(15 23 42 / 8%) !important;
+  border: 1px solid var(--oma-action-border) !important;
+  border-radius: var(--oma-action-radius) !important;
+  background: var(--oma-action-bg) !important;
+  color: var(--oma-action-fg) !important;
+  box-shadow: var(--oma-action-shadow) !important;
   font-size: 13px !important;
-  font-weight: 600 !important;
+  font-weight: var(--oma-action-weight) !important;
 }
 html body .ant-btn-primary:not(.ant-btn-dangerous):not(.ant-btn-color-danger):hover,
 html body .ant-btn-primary:not(.ant-btn-dangerous):not(.ant-btn-color-danger):focus-visible,
@@ -2337,9 +2337,9 @@ html
     .ant-btn-color-danger
   ):hover,
 html body a.oma-link-button.ant-btn-primary:not(.ant-btn-dangerous):hover {
-  border-color: #2563eb !important;
-  background: #eff6ff !important;
-  color: #2563eb !important;
+  border-color: var(--oma-action-hover-border) !important;
+  background: var(--oma-action-hover-bg) !important;
+  color: var(--oma-action-fg) !important;
 }
 
 html body .oma-comment-delete,

@@ -1402,10 +1402,7 @@ export default function ContentPage() {
   }, []);
   const [policy, setPolicy] = useState<ApprovalPolicy>('OPTIONAL');
 
-  const policyFor = useCallback(
-    (item?: object | null) => approvalPolicyOf(item, policy),
-    [policy],
-  );
+  const policyFor = useCallback((item?: object | null) => approvalPolicyOf(item, policy), [policy]);
 
   useEffect(() => {
     if (!activeBrandId) return;
@@ -3790,6 +3787,7 @@ export default function ContentPage() {
               type="button"
               className="oma-plx-content-header-btn oma-top-action oma-top-action--view"
               data-tooltip={`${t('content.switch_view')}: ${t(`demo.view.${view}`)}`}
+              title={`${t('content.switch_view')}: ${t(`demo.view.${view}`)}`}
               aria-label={`${t('content.switch_view')}: ${t(`demo.view.${view}`)}`}
               aria-haspopup="menu"
               aria-expanded={viewMenuOpen}
@@ -3808,13 +3806,14 @@ export default function ContentPage() {
               ) : (
                 <CalendarOutlined />
               )}
-              <span>{t(`demo.view.${view}`)}</span>
+              <span className="oma-plx-content-header-btn__label">{t(`demo.view.${view}`)}</span>
             </button>
             <button
               type="button"
               className="oma-plx-content-header-btn"
               data-active={filterSheet ? 'true' : 'false'}
               data-tooltip={t('content.filter_sort')}
+              title={t('content.filter_sort')}
               aria-label={
                 filterCount > 0 ? `${t('content.filtered')} (${filterCount})` : t('content.filter')
               }
@@ -3822,7 +3821,9 @@ export default function ContentPage() {
               data-testid="demo-content-open-filters"
             >
               <FilterOutlined />
-              <span>{filterCount > 0 ? t('content.filtered') : t('content.filter')}</span>
+              <span className="oma-plx-content-header-btn__label">
+                {filterCount > 0 ? t('content.filtered') : t('content.filter')}
+              </span>
               {filterCount > 0 ? (
                 <span className="oma-plx-content-header-count oma-ltr">{filterCount}</span>
               ) : null}
@@ -3831,35 +3832,38 @@ export default function ContentPage() {
               type="button"
               className="oma-plx-content-header-btn"
               data-tooltip={t('content.media_library')}
+              title={t('content.media_library')}
               aria-label={t('demo.content.media')}
               data-active={mediaLibraryOpen ? 'true' : 'false'}
               onClick={() => setMediaLibraryOpen((open) => !open)}
               data-testid="demo-content-open-media"
             >
               <IconMedia />
-              <span>{t('content.media')}</span>
+              <span className="oma-plx-content-header-btn__label">{t('content.media')}</span>
             </button>
             <button
               type="button"
               className="oma-plx-content-header-btn"
               data-tooltip={t('content.share_view')}
+              title={t('content.share_view')}
               aria-label={t('content.share')}
               onClick={() => void shareContentWorkspace()}
               data-testid="demo-content-share"
             >
               <IconShare />
-              <span>{t('content.share')}</span>
+              <span className="oma-plx-content-header-btn__label">{t('content.share')}</span>
             </button>
             <button
               type="button"
               className="oma-plx-content-header-btn oma-plx-content-header-btn--primary"
               data-tooltip={t('content.compose')}
+              title={t('content.compose')}
               aria-label={t('content.compose')}
               data-testid="demo-create-content"
               onClick={() => setCreateOpen(true)}
             >
               <EditOutlined />
-              <span>{t('content.compose')}</span>
+              <span className="oma-plx-content-header-btn__label">{t('content.compose')}</span>
             </button>
           </div>,
           headerSlot,

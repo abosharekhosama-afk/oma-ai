@@ -44,6 +44,8 @@ export function OmaLinkButton({
   ghost,
   disabled,
   'data-testid': testId,
+  'aria-label': ariaLabel,
+  title,
 }: {
   href: string;
   type?: LinkButtonType;
@@ -55,17 +57,31 @@ export function OmaLinkButton({
   ghost?: boolean;
   disabled?: boolean;
   'data-testid'?: string;
+  'aria-label'?: string;
+  title?: string;
 }) {
   const cls = antBtnClass(type, size, block, danger, ghost, className);
   if (disabled) {
     return (
-      <span className={`${cls} ant-btn-disabled`} aria-disabled="true" data-testid={testId}>
+      <span
+        className={`${cls} ant-btn-disabled`}
+        aria-disabled="true"
+        aria-label={ariaLabel}
+        title={title}
+        data-testid={testId}
+      >
         {children}
       </span>
     );
   }
   return (
-    <Link href={href} className={`oma-link-button ${cls}`} data-testid={testId}>
+    <Link
+      href={href}
+      className={`oma-link-button ${cls}`}
+      aria-label={ariaLabel}
+      title={title}
+      data-testid={testId}
+    >
       {children}
     </Link>
   );

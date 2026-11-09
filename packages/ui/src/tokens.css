@@ -139,9 +139,21 @@
   --icon-md: 20px;
   --icon-lg: 24px;
 
-  /* Focus */
-  --focus-ring: 2px solid var(--oma-primary);
+  /* Focus — neutral ring (the saturated blue ring read as a hover outline). */
+  --focus-ring: 2px solid rgb(17 24 39 / 42%);
   --focus-offset: 2px;
+
+  /* Primary action button — the Analytics header style is the product standard:
+     white surface, hairline border, blue label. Every primary/CTA button uses these. */
+  --oma-action-bg: #ffffff;
+  --oma-action-fg: #2563eb;
+  --oma-action-border: #e5e7eb;
+  --oma-action-shadow: 0 1px 2px rgb(15 23 42 / 8%);
+  --oma-action-hover-bg: #eff6ff;
+  --oma-action-hover-border: #2563eb;
+  --oma-action-radius: 8px;
+  --oma-action-height: 34px;
+  --oma-action-weight: 600;
 }
 
 /* Home (Planable calm palette) */

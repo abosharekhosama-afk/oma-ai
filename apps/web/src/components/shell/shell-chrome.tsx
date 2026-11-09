@@ -314,43 +314,45 @@ export function ShellChrome({ children }: { children: ReactNode }) {
     pathname === '/app/subscription' ||
     pathname.startsWith('/app/subscription/');
   // Mobile (<768): page title shown next to the nav toggle for key ops screens.
-  const mobilePageTitle = isApprovalsWorkspace
-    ? t('views.my_approvals')
-    : pathname === '/app/content' || pathname.startsWith('/app/content/')
-      ? t('nav.content')
-      : isCampaignsWorkspace
-        ? t('nav.campaigns')
-        : isBrandsList
-          ? t('brand.list.title') || t('shell.brand')
-          : isInboxWorkspace
-            ? t('nav.inbox')
-            : isListeningWorkspace
-              ? t('nav.listening')
-              : isAnalyticsWorkspace
-                ? t('nav.analytics')
-                : isAccountWorkspace
-                  ? t('account.profile')
-                  : isBillingWorkspace
-                    ? t('shell.billing')
-                    : isRequestsWorkspace
-                      ? t('demo.requests.title') || t('nav.requests')
-                      : isTasksWorkspace
-                        ? t('demo.tasks.title') || t('nav.tasks')
-                        : isDeliverablesWorkspace
-                          ? t('demo.deliverables.title') || t('nav.deliverables')
-                          : isReviewsWorkspace
-                            ? t('demo.reviews.title') || t('nav.reviews')
-                            : isScheduleWorkspace
-                              ? t('demo.schedule.title') || t('nav.schedule')
-                              : isTeamWorkspace
-                                ? t('wsPanel.team_clients') || t('nav.team')
-                                : isActivityWorkspace
-                                  ? t('activity.title') || t('nav.activity')
-                                  : null;
+  const isHome = pathname === '/app';
+  const mobilePageTitle = isHome
+    ? t('nav.home')
+    : isApprovalsWorkspace
+      ? t('views.my_approvals')
+      : pathname === '/app/content' || pathname.startsWith('/app/content/')
+        ? t('nav.content')
+        : isCampaignsWorkspace
+          ? t('nav.campaigns')
+          : isBrandsList
+            ? t('brand.list.title') || t('shell.brand')
+            : isInboxWorkspace
+              ? t('nav.inbox')
+              : isListeningWorkspace
+                ? t('nav.listening')
+                : isAnalyticsWorkspace
+                  ? t('nav.analytics')
+                  : isAccountWorkspace
+                    ? t('account.profile')
+                    : isBillingWorkspace
+                      ? t('shell.billing')
+                      : isRequestsWorkspace
+                        ? t('demo.requests.title') || t('nav.requests')
+                        : isTasksWorkspace
+                          ? t('demo.tasks.title') || t('nav.tasks')
+                          : isDeliverablesWorkspace
+                            ? t('demo.deliverables.title') || t('nav.deliverables')
+                            : isReviewsWorkspace
+                              ? t('demo.reviews.title') || t('nav.reviews')
+                              : isScheduleWorkspace
+                                ? t('demo.schedule.title') || t('nav.schedule')
+                                : isTeamWorkspace
+                                  ? t('wsPanel.team_clients') || t('nav.team')
+                                  : isActivityWorkspace
+                                    ? t('activity.title') || t('nav.activity')
+                                    : null;
 
-  // Home owns its single primary "Create post" action.
+  // Home's single "Create post" action lives in the header (next to the page name).
   const hideShellCreate =
-    pathname === '/app' ||
     isContentWorkspace ||
     isRequestsWorkspace ||
     isDeliverablesWorkspace ||
@@ -578,7 +580,21 @@ export function ShellChrome({ children }: { children: ReactNode }) {
                   <ReloadOutlined width={18} height={18} />
                 </button>
               </div>
-            ) : hideShellCreate ? null : isBrandsList ? (
+            ) : hideShellCreate ? null : isHome ? (
+              <div className="oma-top-actions oma-top-actions--home">
+                <OmaLinkButton
+                  href="/app/content?create=1"
+                  type="primary"
+                  className="oma-header-create-icon"
+                  data-testid="shell-create"
+                  aria-label={t('home.v2.createPost')}
+                  title={t('home.v2.createPost')}
+                >
+                  <ShellIcon name="plus" size={16} />
+                  <span className="oma-header-create-icon__label">{t('home.v2.createPost')}</span>
+                </OmaLinkButton>
+              </div>
+            ) : isBrandsList ? (
               <div className="oma-top-actions">
                 <OmaLinkButton
                   href="/app/brands/new"

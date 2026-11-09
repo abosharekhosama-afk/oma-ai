@@ -5,6 +5,7 @@ import { resolveDir, resolveLocale, t, type Locale } from '@oma/i18n';
 import { OmaAntdProvider } from '../components/ui/oma-antd-provider';
 import { LocaleProvider } from '../lib/locale-context';
 import './globals.css';
+import '../styles/ui-polish.css';
 
 /** OMA typography: native system UI for Latin text and Noto Sans Arabic for Arabic. */
 const jetbrainsMono = JetBrains_Mono({
