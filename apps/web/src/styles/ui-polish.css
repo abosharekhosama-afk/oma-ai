@@ -1,0 +1,384 @@
+/*
+ * UI polish (Nov 09). Loaded after globals.css so these rules win without page hacks.
+ * 1. Schedule: every view scrolls inside its panel (vertical + horizontal where needed).
+ */
+
+/* ── 1. Schedule scroll chain ─────────────────────────────────────────────
+   The page is a fixed-height flex column with overflow hidden. The workspace
+   surface was a block with auto height, so the panel grew to its content and
+   everything below the fold was clipped. Make every level a shrinkable flex
+   column and let the active view own the scroll. The page itself scrolls as a
+   fallback when the viewport is shorter than the panel minimum. */
+.oma-plx-listening.oma-plx-schedule.oma-sched-page {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  overscroll-behavior-y: contain;
+}
+.oma-plx-schedule.oma-sched-page > .oma-plx-workspace-surface {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+}
+.oma-plx-schedule.oma-sched-page > .oma-plx-workspace-surface > * {
+  flex-shrink: 0;
+}
+.oma-plx-schedule.oma-sched-page > .oma-plx-workspace-surface > .oma-plx-sched-panel {
+  flex: 1 1 auto !important;
+  flex-shrink: 1;
+  min-height: 420px !important;
+}
+.oma-plx-schedule .oma-plx-sched-panel > .oma-plx-sched-panel__head {
+  flex-shrink: 0;
+}
+.oma-plx-schedule .oma-plx-sched-panel__body,
+.oma-plx-schedule .oma-plx-sched-panel__body .oma-sched-layout--full {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+}
+.oma-plx-schedule .oma-plx-sched-panel__body .oma-sched-main {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+}
+.oma-plx-schedule .oma-sched-main[data-view='agenda'],
+.oma-plx-schedule .oma-sched-main[data-view='queue'] {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch;
+}
+.oma-plx-schedule .oma-sched-main[data-view='table'] {
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+.oma-plx-schedule .oma-sched-main[data-view='table'] > * {
+  flex-shrink: 0;
+}
+.oma-plx-schedule .oma-sched-main[data-view='table'] > .oma-plx-sched-table-wrap {
+  flex: 1 1 auto !important;
+  flex-shrink: 1;
+  min-height: 0 !important;
+  height: auto !important;
+  overflow: auto !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+.oma-plx-schedule .oma-sched-main[data-view='table'] .oma-sched-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: rgb(255 255 255);
+}
+/* Calendar: the week grid fills the panel; each day column scrolls its posts
+   and the grid itself scrolls horizontally on narrow screens.
+   `contain: paint` is required: with the mobile html zoom and RTL, Chrome let the
+   233%-wide grid widen the document (scrollWidth 2× viewport) and scrolled the whole
+   shell off-screen, leaving a blank page on phones. */
+.oma-plx-schedule .oma-sched-main[data-view='calendar'] > .oma-sched-calendar-scroll {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  contain: inline-size paint !important;
+}
+@media (max-width: 767px) {
+  .oma-plx-schedule.oma-sched-page > .oma-plx-workspace-surface > .oma-plx-sched-panel {
+    min-height: 360px !important;
+  }
+}
+
+/* ── 4. Schedule view switcher ────────────────────────────────────────────
+   Each option carries its own Lucide icon in a soft chip; the trigger shows the
+   active view's icon and animates when the view changes. */
+.oma-plx-view-popover__option {
+  min-height: 40px;
+}
+.oma-plx-view-popover__icon {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 8px;
+  background: rgb(243 244 246);
+  color: rgb(75 85 99);
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+.oma-plx-view-popover__label {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.oma-plx-view-popover__check {
+  flex-shrink: 0;
+  color: rgb(37 99 235);
+}
+.oma-plx-view-popover__option:hover .oma-plx-view-popover__icon {
+  background: rgb(229 231 235);
+  color: rgb(17 24 39);
+}
+.oma-plx-view-popover__option.is-active .oma-plx-view-popover__icon {
+  background: rgb(219 234 254);
+  color: rgb(29 78 216);
+}
+.oma-plx-sched-view-trigger__icon {
+  animation: oma-view-icon-in 0.22s ease-out;
+}
+@keyframes oma-view-icon-in {
+  from {
+    opacity: 0;
+    transform: scale(0.7) rotate(-8deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .oma-plx-sched-view-trigger__icon {
+    animation: none;
+  }
+}
+
+/* ── 5. Home on phones ────────────────────────────────────────────────────
+   "This week": home.css switched the strip to `grid-auto-flow: column` with
+   112px auto columns, then inbox-listening.css re-added a 2-column template.
+   The two explicit `minmax(0, 1fr)` columns collapsed to 0px and the first two
+   days stacked on top of the others. Use one horizontal, snap-scrolling strip. */
+@media (max-width: 767px) {
+  .oma-plx-home .oma-plx-home-week.oma-home-week {
+    display: grid !important;
+    grid-template-columns: none !important;
+    grid-auto-flow: column !important;
+    grid-auto-columns: minmax(104px, 34%) !important;
+    gap: 8px !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    overscroll-behavior-inline: contain;
+    scroll-snap-type: inline proximity;
+    scroll-padding-inline: 2px;
+    padding-block-end: 6px;
+    contain: inline-size paint;
+    -webkit-overflow-scrolling: touch;
+  }
+  .oma-plx-home .oma-plx-home-week .oma-home-day {
+    min-width: 0 !important;
+    scroll-snap-align: start;
+  }
+}
+/* "Waiting for you": the row link reused `.oma-plx-inbox-post__external`, which
+   is an absolutely positioned icon button in the inbox. That pulled the whole
+   thumbnail + text out of flow, so captions spilled over the next row. */
+.oma-plx-home-awaiting-row {
+  position: relative;
+  align-items: center !important;
+  overflow: visible !important;
+  min-width: 0;
+}
+.oma-plx-home-awaiting-row > .oma-home-post__link.oma-plx-inbox-post__external {
+  position: static !important;
+  inset: auto !important;
+  padding: 0 !important;
+  color: inherit !important;
+  display: flex !important;
+  align-items: center;
+  gap: 12px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.oma-plx-home-awaiting-row .oma-home-post__caption {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 2px 0 0;
+}
+.oma-plx-home-awaiting-row .oma-home-post__meta {
+  flex-wrap: wrap;
+  row-gap: 2px;
+  min-width: 0;
+}
+.oma-plx-home-awaiting-row .oma-home-approve {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+}
+
+/* ── 2/3. Account menu + focus treatment ─────────────────────────────────
+   Antd v6 renders `.ant-popover-container` (the old reset targeted
+   `.ant-popover-inner`), so the account card sat inside a second white,
+   padded popover card. The card owns its surface; the container is transparent. */
+.oma-shell-popover .ant-popover-container {
+  padding: 0 !important;
+  border-radius: 14px !important;
+}
+.oma-shell-popover.oma-user-menu-pop .ant-popover-container {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+/* Header (all-workspaces) trigger was an unstyled UA button (grey fill, 2px
+   outset border) with the global blue focus ring. Match the rail trigger. */
+.oma-user-menu--header .oma-plx-account-trigger {
+  width: auto !important;
+  min-width: 36px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  height: 36px !important;
+  padding: 2px 8px 2px 2px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  background: transparent !important;
+  color: rgb(55 65 81);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+.oma-user-menu--header .oma-plx-account-trigger:hover,
+.oma-user-menu--header .oma-plx-account-trigger[aria-expanded='true'] {
+  background: rgb(243 244 246) !important;
+}
+.oma-user-menu--header .oma-plx-account-trigger__name {
+  display: none !important;
+}
+.oma-user-menu--header .oma-plx-account-trigger__avatar {
+  flex: 0 0 32px !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 999px !important;
+  display: inline-grid !important;
+  place-items: center !important;
+  background: var(--oma-home-success, rgb(18 183 106)) !important;
+  color: rgb(255 255 255) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  overflow: hidden;
+}
+.oma-user-menu--header .oma-plx-account-trigger__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* One neutral focus indicator everywhere instead of the saturated blue ring
+   (token: --focus-ring in packages/ui tokens.css). Keyboard users keep a visible
+   2px ring; mouse/touch clicks no longer leave one behind. */
+html body :focus:not(:focus-visible) {
+  outline: none;
+}
+html body :focus-visible {
+  outline-color: rgb(17 24 39 / 42%) !important;
+}
+html body .oma-plx-account-trigger:focus-visible,
+html body .oma-avatar:focus-visible,
+html body .oma-notifications .oma-icon-btn:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgb(17 24 39 / 16%) !important;
+}
+
+@media (max-width: 760px) {
+  .plx-topbar .oma-user-menu--header .oma-plx-account-trigger {
+    padding: 2px !important;
+  }
+  .plx-topbar .oma-user-menu--header .oma-plx-account-trigger__chev {
+    display: none !important;
+  }
+}
+
+/* ── 7. Shared primary action button ─────────────────────────────────────
+   Single source of truth: tokens --oma-action-* (packages/ui/src/tokens.css).
+   Antd primary buttons (globals.css) and every bespoke "--primary"/CTA class
+   use the same white button with blue label instead of solid blue. */
+html
+  body
+  .oma-btn:not(.oma-btn--secondary):not(.oma-btn--ghost):not(.oma-btn--danger):not(.oma-btn--quiet),
+html body .oma-home-btn--primary,
+html body .oma-plx-tasks__create-icon,
+html body .oma-plx-content-header-btn--primary,
+html body .oma-error-state__btn--primary,
+html body .oma-plx-confirm-card__btn--primary,
+html body .oma-pa-btn--primary,
+html body .oma-ml-btn--primary,
+html body .oma-bulk-bar__btn--primary,
+html body .oma-plx-profile-btn--primary,
+html body .oma-plx-approvals__review-cta,
+html body .oma-plx-approvals-review__post-btn:not(:disabled),
+html body .oma-listening-save,
+html body .oma-pp__alt-save,
+html body .plx-btn--primary {
+  background: var(--oma-action-bg) !important;
+  color: var(--oma-action-fg) !important;
+  border: 1px solid var(--oma-action-border) !important;
+  box-shadow: var(--oma-action-shadow) !important;
+  border-radius: var(--oma-action-radius) !important;
+  font-weight: var(--oma-action-weight) !important;
+  filter: none !important;
+}
+html
+  body
+  .oma-btn:not(.oma-btn--secondary):not(.oma-btn--ghost):not(.oma-btn--danger):not(
+    .oma-btn--quiet
+  ):hover:not(:disabled),
+html body .oma-home-btn--primary:hover,
+html body .oma-plx-tasks__create-icon:hover,
+html body .oma-plx-content-header-btn--primary:hover,
+html body .oma-error-state__btn--primary:hover,
+html body .oma-plx-confirm-card__btn--primary:hover:not(:disabled),
+html body .oma-pa-btn--primary:hover:not(:disabled),
+html body .oma-ml-btn--primary:hover,
+html body .oma-bulk-bar__btn--primary:hover,
+html body .oma-plx-profile-btn--primary:hover:not(:disabled),
+html body .oma-plx-approvals__review-cta:hover:not(:disabled),
+html body .oma-plx-approvals-review__post-btn:hover:not(:disabled),
+html body .oma-listening-save:hover:not(:disabled),
+html body .oma-pp__alt-save:hover,
+html body .plx-btn--primary:hover:not(:disabled) {
+  background: var(--oma-action-hover-bg) !important;
+  border-color: var(--oma-action-hover-border) !important;
+  color: var(--oma-action-fg) !important;
+}
+html body .oma-plx-content-header-btn--primary svg,
+html body .oma-plx-tasks__create-icon svg,
+html body .oma-home-btn--primary svg,
+html body .oma-plx-approvals__review-cta svg {
+  color: currentColor !important;
+  stroke: currentColor;
+}
+html body .oma-plx-content-header-btn--primary svg.oma-lucide {
+  color: var(--oma-action-fg) !important;
+}
+
+/* ── 8. Content calendar header: icon-only when space is tight ───────────
+   Below 1280px (rail + calendar toolbar leave < ~1000px for the header) the
+   five labelled buttons overflowed the top bar. Labels collapse to icons; each
+   button keeps aria-label + title, and the filter count badge stays visible. */
+@media (max-width: 1279px) {
+  html body .oma-plx-content-header-actions {
+    gap: 6px !important;
+    flex-wrap: nowrap !important;
+  }
+  html body .oma-plx-content-header-btn {
+    width: 34px !important;
+    min-width: 34px !important;
+    height: 34px !important;
+    padding: 0 !important;
+    justify-content: center !important;
+    position: relative !important;
+    flex: 0 0 34px !important;
+  }
+  html body .oma-plx-content-header-btn > .oma-plx-content-header-btn__label {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0 0 0 0) !important;
+    white-space: nowrap !important;
+  }
+  html body .oma-plx-content-header-btn .oma-plx-content-header-count {
+    position: absolute !important;
+    top: -4px !important;
+    inset-inline-end: -4px !important;
+    min-width: 16px !important;
+    height: 16px !important;
+    line-height: 16px !important;
+    font-size: 10px !important;
+    padding: 0 4px !important;
+  }
+}

@@ -171,13 +171,6 @@ export function HomeView(p: HomeViewProps) {
                 {fill(t('home.v2.needsYou'), { n: totalAwaiting })}
               </p>
             ) : null}
-            <Link
-              href={homeLinks.create}
-              className="oma-plx-tasks__create-icon oma-home-btn oma-home-btn--primary"
-              data-testid="home-create-post"
-            >
-              <span aria-hidden="true">+</span> {t('home.v2.createPost')}
-            </Link>
           </div>
         </header>
 

@@ -470,3 +470,35 @@ export const ArrowsUpDownOutlined = (p: IconProps) => (
     <path d="M7 4v16" />
   </Icon>
 );
+
+/* View-mode icons (Lucide: calendar-days, list-todo, layout-grid, table-2). */
+export const CalendarDaysOutlined = (p: IconProps) => (
+  <Icon {...p}>
+    <rect x="3" y="4" width="18" height="18" rx="2" />
+    <path d="M16 2v4M8 2v4M3 10h18" />
+    <path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01" />
+  </Icon>
+);
+
+export const AgendaListOutlined = (p: IconProps) => (
+  <Icon {...p}>
+    <rect x="3" y="5" width="6" height="6" rx="1" />
+    <path d="m3 17 2 2 4-4" />
+    <path d="M13 6h8M13 12h8M13 18h8" />
+  </Icon>
+);
+
+export const LayoutGridOutlined = (p: IconProps) => (
+  <Icon {...p}>
+    <rect x="3" y="3" width="7" height="7" rx="1" />
+    <rect x="14" y="3" width="7" height="7" rx="1" />
+    <rect x="14" y="14" width="7" height="7" rx="1" />
+    <rect x="3" y="14" width="7" height="7" rx="1" />
+  </Icon>
+);
+
+export const TableGridOutlined = (p: IconProps) => (
+  <Icon {...p}>
+    <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18" />
+  </Icon>
+);
