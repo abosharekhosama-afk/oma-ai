@@ -164,6 +164,7 @@ model Tenant {
   listeningHits        ListeningHit[]
   listeningAlerts      ListeningAlert[]
   storageSetting       WorkspaceStorageSetting?
+  storageBackupJobs    StorageBackupJob[]
 }
 
 enum AiRunStatus {
@@ -1925,8 +1926,43 @@ model WorkspaceStorageSetting {
   mode                  StorageMode @default(OMA_INTERNAL)
   workdriveRootFolderId String?
   workdriveKeyRef       String?
+  backupPausedAt        DateTime?
+  /// quota_exceeded | key_revoked
+  backupPausedReason    String?
   updatedAt             DateTime    @updatedAt
   tenant                Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+enum BackupJobStatus {
+  PENDING
+  RUNNING
+  DONE
+  FAILED
+  SKIPPED
+}
+
+/// Copy an OMA_INTERNAL file onto the workspace's own WorkDrive (SYNC_BACKUP).
+model StorageBackupJob {
+  id                    String          @id
+  tenantId              String
+  mediaAssetId          String
+  workdriveConnectionId String
+  status                BackupJobStatus @default(PENDING)
+  attempts              Int             @default(0)
+  nextAttemptAt         DateTime?
+  lastError             String?
+  replicaPath           String?
+  replicaFileId         String?
+  startedAt             DateTime?
+  finishedAt            DateTime?
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  tenant                Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  asset                 MediaAsset      @relation(fields: [mediaAssetId], references: [id], onDelete: Cascade)
+
+  @@unique([mediaAssetId, workdriveConnectionId])
+  @@index([status, nextAttemptAt])
+  @@index([tenantId, status])
 }
 
 /// A file OMA uses (post media, brand logo, deliverable) stored in WorkDrive (platform or BYOS).
@@ -1946,6 +1982,10 @@ model MediaAsset {
   storageProvider StorageProvider  @default(OMA_INTERNAL)
   /// Logical path such as tenants/{tenantId}/brands/{brandId}/posts
   storagePath     String?
+  replicaFileId   String?
+  replicaFolderId String?
+  /// pending | ready | failed | skipped
+  replicaStatus   String?
   /// upload | workdrive (picked from existing files) | migrated
   source          String           @default("upload")
   lastCheckedAt   DateTime?
@@ -1953,6 +1993,7 @@ model MediaAsset {
   createdBy       String
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
+  backupJobs      StorageBackupJob[]
 
   @@unique([tenantId, brandId, workdriveFileId])
   @@index([tenantId, brandId, kind, createdAt])

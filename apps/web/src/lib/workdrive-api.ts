@@ -47,6 +47,26 @@ export type WorkspaceStorage = {
   can_upload: boolean;
 };
 
+export type WorkspaceBackup = {
+  counts: {
+    pending: number;
+    running: number;
+    done: number;
+    failed: number;
+    skipped: number;
+  };
+  last_success_at: string | null;
+  last_error: {
+    message: string | null;
+    at: string;
+    asset_id: string;
+    status: string;
+  } | null;
+  paused: boolean;
+  paused_reason: string | null;
+  paused_at: string | null;
+};
+
 export type MediaLibrary = {
   workdrive: {
     connected: boolean;
@@ -120,6 +140,17 @@ export const workDriveApi = {
   storage: () => api<{ data: WorkspaceStorage }>('/api/v1/workspace/storage'),
   setMode: (mode: StorageMode) =>
     api<{ data: WorkspaceStorage }>('/api/v1/workspace/storage', json('PATCH', { mode })),
+  backup: () => api<{ data: WorkspaceBackup }>('/api/v1/workspace/storage/backup'),
+  backfillBackup: () =>
+    api<{ data: { enqueued: number; skipped: number } }>(
+      '/api/v1/workspace/storage/backup/backfill',
+      json('POST', {}),
+    ),
+  retryFailedBackup: () =>
+    api<{ data: { retried: number } }>(
+      '/api/v1/workspace/storage/backup/retry-failed',
+      json('POST', {}),
+    ),
   connect: (base_url: string, api_key: string) =>
     api<{ data: WorkDriveStatus }>(
       '/api/v1/workspace/workdrive',

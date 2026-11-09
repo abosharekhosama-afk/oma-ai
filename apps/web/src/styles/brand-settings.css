@@ -773,3 +773,7 @@
     flex: 1;
   }
 }
+
+.oma-st-backup {
+  margin-block-start: 16px;
+}

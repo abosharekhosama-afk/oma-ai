@@ -23,9 +23,14 @@ describe('storage settings UI', () => {
     expect(ui).toContain('data-testid="storage-usage-bar"');
     expect(ui).toContain('data-testid="storage-usage-byos"');
     expect(ui).toContain("t('storage.usage.byos')");
-    expect(ui).toContain("t('storage.mode.sync.soon')");
+    expect(ui).not.toContain("t('storage.mode.sync.soon')");
     expect(ui).toContain("t('storage.explainer')");
     expect(ui).toContain('workDriveApi.setMode');
+    expect(ui).toContain('data-testid="storage-backup-status"');
+    expect(ui).toContain('data-testid="storage-backup-paused"');
+    expect(ui).toContain('data-testid="storage-backup-backfill"');
+    expect(ui).toContain('data-testid="storage-backup-retry"');
+    expect(api).toContain('/api/v1/workspace/storage/backup');
     expect(ui).toContain('<WorkDriveSettings');
     expect(wd).toContain('data-testid="workdrive-form"');
     expect(wd).toContain('data-testid="workdrive-test"');
@@ -54,7 +59,10 @@ describe('storage settings UI', () => {
       'storage.mode.internal.title',
       'storage.mode.byos.title',
       'storage.mode.sync.title',
-      'storage.mode.sync.soon',
+      'storage.backup.title',
+      'storage.backup.pausedQuota',
+      'storage.backup.backfill',
+      'storage.backup.retry',
       'storage.usage.byos',
       'storage.adminOnly',
       'brandSettings.general.logoHintOma',

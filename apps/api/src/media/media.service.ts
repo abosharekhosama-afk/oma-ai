@@ -313,6 +313,7 @@ export class MediaService {
         createdBy: ctx.userId,
       },
     });
+    await this.workdrive.enqueueBackupIfNeeded(row);
     const avatarUrl = mediaViewUrl(row.id);
     await getPrisma().user.update({
       where: { id: ctx.userId },
@@ -689,6 +690,7 @@ export class MediaService {
         afterRef: `${kind}:${fileId}`,
         correlationId: ctx.correlationId,
       });
+      await this.workdrive.enqueueBackupIfNeeded(row);
       return { data: mapAsset(row) };
     } finally {
       await rm(dir, { recursive: true, force: true });
@@ -825,6 +827,7 @@ export class MediaService {
       afterRef: `${g.k}:${row.workdriveFileId}`,
       correlationId: ctx.correlationId,
     });
+    await this.workdrive.enqueueBackupIfNeeded(row);
     return { data: mapAsset(row) };
   }
 
