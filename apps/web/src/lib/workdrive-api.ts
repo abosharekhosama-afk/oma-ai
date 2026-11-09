@@ -106,7 +106,9 @@ export type MediaLibrary = {
     org_name: string | null;
     can_upload?: boolean;
     internal_available?: boolean;
+    byos_connected?: boolean;
     mode?: StorageMode;
+    available_sources?: { oma: boolean; workdrive: boolean };
   };
   assets: MediaAsset[];
   next_cursor: string | null;
@@ -140,13 +142,22 @@ export type WorkDriveBrowse = {
     campaigns: Array<{ id: string; name: string }>;
     uploaders: Array<{ id: string; name: string }>;
   };
+  source?: 'oma' | 'workdrive';
+  available_sources?: { oma: boolean; workdrive: boolean };
+  mode?: StorageMode;
 };
 
 const browseCache = new Map<string, { at: number; data: WorkDriveBrowse }>();
 const BROWSE_TTL_MS = 20_000;
 
-function browseKey(brandId: string, kind: MediaKind, folderId: string | undefined, scope: string) {
-  return `${brandId}:${kind}:${scope}:${folderId ?? ''}`;
+function browseKey(
+  brandId: string,
+  kind: MediaKind,
+  folderId: string | undefined,
+  scope: string,
+  source?: string,
+) {
+  return `${brandId}:${kind}:${scope}:${folderId ?? ''}:${source ?? ''}`;
 }
 
 export function invalidateMediaCache(brandId?: string) {
@@ -206,12 +217,16 @@ export const mediaApi = {
     kind: MediaKind,
     folderId?: string,
     scope: 'brand' | 'organization' | 'all' = 'brand',
+    source?: 'oma' | 'workdrive',
   ) => {
-    const key = browseKey(brandId, kind, folderId, scope);
+    const key = browseKey(brandId, kind, folderId, scope, source);
     const hit = browseCache.get(key);
     if (hit && Date.now() - hit.at < BROWSE_TTL_MS) return Promise.resolve({ data: hit.data });
+    const qs = new URLSearchParams({ kind, scope });
+    if (folderId) qs.set('folder_id', folderId);
+    if (source) qs.set('source', source);
     return api<{ data: WorkDriveBrowse }>(
-      `/api/v1/brands/${brandId}/media/browse?kind=${kind}&scope=${scope}${folderId ? `&folder_id=${encodeURIComponent(folderId)}` : ''}`,
+      `/api/v1/brands/${brandId}/media/browse?${qs.toString()}`,
     ).then((r) => {
       browseCache.set(key, { at: Date.now(), data: r.data });
       return r;
@@ -219,7 +234,13 @@ export const mediaApi = {
   },
   createFolder: (
     brandId: string,
-    body: { name: string; parent_id?: string; scope?: 'brand' | 'organization'; kind?: MediaKind },
+    body: {
+      name: string;
+      parent_id?: string;
+      scope?: 'brand' | 'organization';
+      kind?: MediaKind;
+      source?: 'oma' | 'workdrive';
+    },
   ) =>
     api<{ data: { id: string; name: string; parent_id: string } }>(
       `/api/v1/brands/${brandId}/media/folders`,
@@ -228,10 +249,10 @@ export const mediaApi = {
       invalidateMediaCache(brandId);
       return r;
     }),
-  importFile: (brandId: string, kind: MediaKind, fileId: string) =>
+  importFile: (brandId: string, kind: MediaKind, fileId: string, source?: 'oma' | 'workdrive') =>
     api<{ data: MediaAsset }>(
       `/api/v1/brands/${brandId}/media/import`,
-      json('POST', { kind, file_id: fileId }),
+      json('POST', { kind, file_id: fileId, ...(source ? { source } : {}) }),
     ),
   /**
    * Uploads straight from the browser to WorkDrive storage:

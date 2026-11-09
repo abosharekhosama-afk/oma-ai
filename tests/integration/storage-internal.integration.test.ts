@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { getPrisma } from '@oma/db';
 import {
@@ -202,5 +203,150 @@ describe('OMA_INTERNAL storage (platform master, no BYOS required)', () => {
     const syncUp = await upload(other, otherBrand, PNG, 'kind=posts&name=after-sync.png');
     expect(syncUp.status).toBe(201);
     expect((await syncUp.json()).data.storage_provider).toBe('OMA_INTERNAL');
+  });
+
+  it('browses internal storage at org and brand scope and creates folders on an empty brand', async () => {
+    const emptyBrand = (await createBrand(seed, 'Empty Studio')).body.data.id as string;
+    const empty = await fetch(
+      `${seed.baseUrl}/api/v1/brands/${emptyBrand}/media/browse?kind=posts&scope=brand`,
+      { headers: authHeaders(seed) },
+    );
+    expect(empty.status).toBe(200);
+    const emptyBody = await empty.json();
+    expect(emptyBody.data.source).toBe('oma');
+    expect(emptyBody.data.mode).toBe('OMA_INTERNAL');
+    expect(emptyBody.data.available_sources).toMatchObject({ oma: true, workdrive: false });
+    expect(emptyBody.data.files).toEqual([]);
+    expect(emptyBody.data.folder.id).toBeTruthy();
+    expect(emptyBody.data.folders.map((f: { name: string }) => f.name)).toEqual(
+      expect.arrayContaining(['posts', 'logos']),
+    );
+
+    const org = await fetch(
+      `${seed.baseUrl}/api/v1/brands/${brandId}/media/browse?kind=posts&scope=organization`,
+      { headers: authHeaders(seed) },
+    );
+    expect(org.status).toBe(200);
+    const orgBody = await org.json();
+    expect(orgBody.data.source).toBe('oma');
+    expect(orgBody.data.folders.map((f: { name: string }) => f.name)).toEqual(
+      expect.arrayContaining(['brands']),
+    );
+
+    const brand = await fetch(
+      `${seed.baseUrl}/api/v1/brands/${brandId}/media/browse?kind=posts&scope=brand`,
+      { headers: authHeaders(seed) },
+    );
+    expect(brand.status).toBe(200);
+    const brandBody = await brand.json();
+    expect(brandBody.data.files.map((f: { name: string }) => f.name)).toContain('hero.png');
+
+    const created = await fetch(`${seed.baseUrl}/api/v1/brands/${emptyBrand}/media/folders`, {
+      method: 'POST',
+      headers: authHeaders(seed),
+      body: JSON.stringify({ name: 'Moodboards', kind: 'posts', scope: 'brand' }),
+    });
+    expect(created.status).toBe(201);
+    const after = await (
+      await fetch(
+        `${seed.baseUrl}/api/v1/brands/${emptyBrand}/media/browse?kind=posts&scope=brand`,
+        { headers: authHeaders(seed) },
+      )
+    ).json();
+    expect(after.data.folders.map((f: { name: string }) => f.name)).toContain('Moodboards');
+  });
+
+  it('rejects browsing another tenant folder and previews/imports only inside the tenant tree', async () => {
+    const otherOrg = await fetch(
+      `${other.baseUrl}/api/v1/brands/${otherBrand}/media/browse?kind=posts&scope=organization&source=oma`,
+      { headers: authHeaders(other) },
+    );
+    expect(otherOrg.status).toBe(200);
+    const foreignFolder = (await otherOrg.json()).data.folder.id as string;
+
+    const leak = await fetch(
+      `${seed.baseUrl}/api/v1/brands/${brandId}/media/browse?kind=posts&scope=organization&folder_id=${encodeURIComponent(foreignFolder)}`,
+      { headers: authHeaders(seed) },
+    );
+    expect(leak.status).toBe(404);
+
+    const brand = await (
+      await fetch(`${seed.baseUrl}/api/v1/brands/${brandId}/media/browse?kind=posts&scope=brand`, {
+        headers: authHeaders(seed),
+      })
+    ).json();
+    const postsFolder = brand.data.folders.find((f: { name: string }) => f.name === 'posts');
+    expect(postsFolder).toBeDefined();
+    const fileId = randomUUID();
+    wd.files.set(fileId, {
+      id: fileId,
+      folderId: postsFolder.id,
+      name: 'imported-internal.png',
+      mimeType: 'image/png',
+      size: PNG.length,
+      sha256: 'y',
+    });
+    const preview = await fetch(
+      `${seed.baseUrl}/api/v1/brands/${brandId}/media/file-preview?file_id=${encodeURIComponent(fileId)}&source=oma`,
+      { headers: authHeaders(seed), redirect: 'manual' },
+    );
+    expect(preview.status).toBeGreaterThanOrEqual(300);
+    expect(preview.status).toBeLessThan(400);
+
+    const otherPreview = await fetch(
+      `${other.baseUrl}/api/v1/brands/${otherBrand}/media/file-preview?file_id=${encodeURIComponent(fileId)}&source=oma`,
+      { headers: authHeaders(other), redirect: 'manual' },
+    );
+    expect(otherPreview.status).toBe(404);
+
+    const imp = await fetch(`${seed.baseUrl}/api/v1/brands/${brandId}/media/import`, {
+      method: 'POST',
+      headers: authHeaders(seed),
+      body: JSON.stringify({ kind: 'posts', file_id: fileId, source: 'oma' }),
+    });
+    expect(imp.status).toBe(201);
+    expect((await imp.json()).data).toMatchObject({
+      name: 'imported-internal.png',
+      storage_provider: 'OMA_INTERNAL',
+    });
+  });
+
+  it('keeps BYOS browse available via source=workdrive when the workspace uses internal storage', async () => {
+    const lib = await (
+      await fetch(`${other.baseUrl}/api/v1/brands/${otherBrand}/media?kind=posts`, {
+        headers: authHeaders(other),
+      })
+    ).json();
+    expect(lib.data.workdrive.mode).toBe('SYNC_BACKUP');
+    expect(lib.data.workdrive.available_sources).toMatchObject({ oma: true, workdrive: true });
+    expect(lib.data.workdrive.byos_connected).toBe(true);
+
+    const internal = await fetch(
+      `${other.baseUrl}/api/v1/brands/${otherBrand}/media/browse?kind=posts&scope=brand`,
+      { headers: authHeaders(other) },
+    );
+    expect(internal.status).toBe(200);
+    const internalBody = await internal.json();
+    expect(internalBody.data.source).toBe('oma');
+    expect(internalBody.data.files.map((f: { name: string }) => f.name)).toEqual(
+      expect.arrayContaining(['after-internal.png', 'after-sync.png']),
+    );
+
+    const byos = await fetch(
+      `${other.baseUrl}/api/v1/brands/${otherBrand}/media/browse?kind=posts&scope=brand&source=workdrive`,
+      { headers: authHeaders(other) },
+    );
+    expect(byos.status).toBe(200);
+    const byosBody = await byos.json();
+    expect(byosBody.data.source).toBe('workdrive');
+    expect(byosBody.data.files.map((f: { name: string }) => f.name)).toEqual(
+      expect.arrayContaining(['byos.png', 'after-byos.png']),
+    );
+
+    const bad = await fetch(
+      `${other.baseUrl}/api/v1/brands/${otherBrand}/media/browse?kind=posts&source=ftp`,
+      { headers: authHeaders(other) },
+    );
+    expect(bad.status).toBe(400);
   });
 });
