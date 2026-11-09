@@ -542,6 +542,7 @@ export class MediaService {
   ) {
     await this.brand(tenantId, brandId);
     const conn = await this.workdrive.status(tenantId);
+    const storage = await this.workdrive.storageStatus(tenantId);
     const take = Math.min(Math.max(Number(q.limit) || 40, 1), 100);
     const rows = await getPrisma().mediaAsset.findMany({
       where: tenantWhere(tenantId, { brandId, ...(q.kind ? { kind: parseKind(q.kind) } : {}) }),
@@ -557,6 +558,9 @@ export class MediaService {
           max_video_mb: conn.data.max_video_mb,
           max_image_mb: conn.data.max_image_mb,
           org_name: conn.data.connection?.org_name ?? null,
+          can_upload: storage.data.can_upload,
+          internal_available: storage.data.internal_available,
+          mode: storage.data.mode,
         },
         assets: rows.slice(0, take).map(mapAsset),
         next_cursor: rows.length > take ? rows[take - 1]!.id : null,

@@ -55,6 +55,7 @@ export default function BrandSettingsPage() {
   const timezones = useMemo(() => timezoneOptions(brand?.timezone), [brand?.timezone]);
   const [logoStorage, setLogoStorage] = useState<{
     connected: boolean;
+    canUpload: boolean;
     orgName: string | null;
     canConnect: boolean;
   } | null>(null);
@@ -153,12 +154,14 @@ export default function BrandSettingsPage() {
         if (live)
           setLogoStorage({
             connected: r.data.workdrive.connected,
+            canUpload: r.data.workdrive.can_upload ?? r.data.workdrive.connected,
             orgName: r.data.workdrive.org_name,
             canConnect: canManageWorkspace,
           });
       })
       .catch(() => {
-        if (live) setLogoStorage({ connected: false, orgName: null, canConnect: false });
+        if (live)
+          setLogoStorage({ connected: false, canUpload: false, orgName: null, canConnect: false });
       });
     return () => {
       live = false;

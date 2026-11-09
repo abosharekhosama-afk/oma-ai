@@ -23,7 +23,7 @@ import { WorkspaceApprovals } from '../shell/workspace-approvals';
 import { useLocale, useT } from '../../lib/use-locale';
 import { ShellIcon } from '../shell/shell-icons';
 import type { NavIconId } from '../shell/nav-config';
-import { WorkDriveSettings } from './workdrive-settings';
+import { StorageSettings } from './storage-settings';
 import { useCapabilities } from '../../lib/use-capabilities';
 import { timezoneOptions } from '../../lib/brand-settings-api';
 
@@ -475,7 +475,7 @@ export function SettingsPanel({
               )}
 
               {section === 'storage' && !capabilities.loading && (
-                <WorkDriveSettings
+                <StorageSettings
                   t={t}
                   locale={locale}
                   canManage={capabilities.capabilities.includes('tenant.manage')}

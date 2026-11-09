@@ -193,7 +193,7 @@ export class WorkDriveService {
   async resolveWriteTarget(tenantId: string) {
     const mode = await this.effectiveMode(tenantId);
     const user = await this.clientFor(tenantId);
-    if ((mode === 'USER_WORKDRIVE' || mode === 'SYNC_BACKUP') && user) {
+    if (mode === 'USER_WORKDRIVE' && user) {
       return { ...user, provider: 'USER_WORKDRIVE' as const, tenantId };
     }
     const master = this.masterClient();
@@ -235,6 +235,19 @@ export class WorkDriveService {
     return { ...user, provider: 'USER_WORKDRIVE' as const, tenantId };
   }
 
+  async canUpload(tenantId: string) {
+    try {
+      await this.resolveWriteTarget(tenantId);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private byosWorking(conn: Conn | null) {
+    return !!conn && conn.status === 'CONNECTED';
+  }
+
   async storageStatus(tenantId: string) {
     const mode = await this.effectiveMode(tenantId);
     const conn = await this.connection(tenantId);
@@ -246,9 +259,95 @@ export class WorkDriveService {
         used_bytes: usage.storage_bytes,
         limit_bytes: plan.limits.storage_bytes ?? null,
         byos_connected: !!conn,
+        byos_status: conn?.status ?? null,
         internal_available: !!this.masterConfig(),
+        backup_available: false,
+        can_upload: await this.canUpload(tenantId),
       },
     };
+  }
+
+  async setStorageMode(tenantId: string, userId: string, body: unknown, correlationId?: string) {
+    const raw = (body ?? {}) as Record<string, unknown>;
+    const mode = raw.mode;
+    const allowed = ['OMA_INTERNAL', 'USER_WORKDRIVE', 'SYNC_BACKUP'] as const;
+    if (typeof mode !== 'string' || !(allowed as readonly string[]).includes(mode)) {
+      throw new DomainError(
+        'VALIDATION_FAILED',
+        'Invalid storage mode',
+        400,
+        'errors.storage_mode_invalid',
+      );
+    }
+    const conn = await this.connection(tenantId);
+    const working = this.byosWorking(conn);
+    const internal = !!this.masterConfig();
+    if (mode === 'USER_WORKDRIVE' && !working) {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'Connect WorkDrive before switching to it',
+        409,
+        'errors.storage_mode_byos_required',
+      );
+    }
+    if (mode === 'OMA_INTERNAL' && !internal) {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'Platform storage is not configured',
+        409,
+        'errors.storage_mode_internal_unavailable',
+      );
+    }
+    if (mode === 'SYNC_BACKUP' && !(internal && working)) {
+      throw new DomainError(
+        'CONFLICT_STATE',
+        'Sync and backup needs platform storage and a connected WorkDrive',
+        409,
+        'errors.storage_mode_sync_unavailable',
+      );
+    }
+    const next = mode as (typeof allowed)[number];
+    const prev = await getPrisma().workspaceStorageSetting.findUnique({ where: { tenantId } });
+    await getPrisma().workspaceStorageSetting.upsert({
+      where: { tenantId },
+      create: { tenantId, mode: next },
+      update: { mode: next },
+    });
+    await this.audit.write({
+      actorUserId: userId,
+      tenantId,
+      action: 'storage.mode_changed',
+      targetType: 'WorkspaceStorageSetting',
+      targetId: tenantId,
+      beforeRef: prev?.mode,
+      afterRef: next,
+      correlationId,
+    });
+    return this.storageStatus(tenantId);
+  }
+
+  private async fallbackToInternalIfNeeded(
+    tenantId: string,
+    userId: string,
+    correlationId?: string,
+  ) {
+    if (!this.masterConfig()) return;
+    const setting = await getPrisma().workspaceStorageSetting.findUnique({ where: { tenantId } });
+    if (!setting || setting.mode === 'OMA_INTERNAL') return;
+    await getPrisma().workspaceStorageSetting.update({
+      where: { tenantId },
+      data: { mode: 'OMA_INTERNAL' },
+    });
+    await this.audit.write({
+      actorUserId: userId,
+      tenantId,
+      action: 'storage.mode_changed',
+      targetType: 'WorkspaceStorageSetting',
+      targetId: tenantId,
+      beforeRef: setting.mode,
+      afterRef: 'OMA_INTERNAL',
+      correlationId,
+    });
   }
 
   private assertUrlAllowed(url: string) {
@@ -373,6 +472,7 @@ export class WorkDriveService {
         targetId: conn.id,
         correlationId,
       });
+      await this.fallbackToInternalIfNeeded(tenantId, userId, correlationId);
     }
     return { data: mapConnection(null) };
   }

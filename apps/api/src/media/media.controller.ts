@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Put,
   Query,
@@ -41,6 +42,13 @@ export class WorkDriveController {
   @UseGuards(AuthGuard, CapabilitiesGuard)
   storage(@Req() req: Request) {
     return workDriveService.storageStatus(ctx(req).tenantId);
+  }
+
+  @Patch('api/v1/workspace/storage')
+  @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
+  updateStorage(@Req() req: Request, @Body() body: unknown) {
+    const c = ctx(req);
+    return workDriveService.setStorageMode(c.tenantId, c.userId, body, c.correlationId);
   }
 
   @Get('api/v1/workspace/workdrive')

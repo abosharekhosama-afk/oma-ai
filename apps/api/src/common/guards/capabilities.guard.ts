@@ -22,6 +22,7 @@ const routeRequirements: Record<string, string[]> = {
   'PATCH /api/v1/workspace/settings': ['tenant.manage'],
   'PATCH /api/v1/workspace/holiday-calendars': ['content.update'],
   'GET /api/v1/workspace/storage': ['tenant.manage'],
+  'PATCH /api/v1/workspace/storage': ['tenant.manage'],
   'GET /api/v1/workspace/workdrive': ['tenant.manage'],
   'PUT /api/v1/workspace/workdrive': ['tenant.manage'],
   'POST /api/v1/workspace/workdrive/test': ['tenant.manage'],

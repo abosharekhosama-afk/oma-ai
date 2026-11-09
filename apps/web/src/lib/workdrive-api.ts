@@ -34,6 +34,19 @@ export type MediaAsset = {
   stream_url: string | null;
   created_at: string;
 };
+export type StorageMode = 'OMA_INTERNAL' | 'USER_WORKDRIVE' | 'SYNC_BACKUP';
+
+export type WorkspaceStorage = {
+  mode: StorageMode;
+  used_bytes: number;
+  limit_bytes: number | null;
+  byos_connected: boolean;
+  byos_status: 'CONNECTED' | 'ERROR' | null;
+  internal_available: boolean;
+  backup_available: boolean;
+  can_upload: boolean;
+};
+
 export type MediaLibrary = {
   workdrive: {
     connected: boolean;
@@ -41,6 +54,9 @@ export type MediaLibrary = {
     max_video_mb: number;
     max_image_mb: number;
     org_name: string | null;
+    can_upload?: boolean;
+    internal_available?: boolean;
+    mode?: StorageMode;
   };
   assets: MediaAsset[];
   next_cursor: string | null;
@@ -101,6 +117,9 @@ const json = (method: string, body?: unknown): RequestInit => ({
 
 export const workDriveApi = {
   status: () => api<{ data: WorkDriveStatus }>('/api/v1/workspace/workdrive'),
+  storage: () => api<{ data: WorkspaceStorage }>('/api/v1/workspace/storage'),
+  setMode: (mode: StorageMode) =>
+    api<{ data: WorkspaceStorage }>('/api/v1/workspace/storage', json('PATCH', { mode })),
   connect: (base_url: string, api_key: string) =>
     api<{ data: WorkDriveStatus }>(
       '/api/v1/workspace/workdrive',
