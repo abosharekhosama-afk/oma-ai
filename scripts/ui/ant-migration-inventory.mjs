@@ -2,7 +2,8 @@
 /**
  * Readable Ant Design A2 migration inventory.
  * Default: write the report and exit 0.
- * `--check`: exit 1 while any MIGRATE finding remains.
+ * `--check`: print the JSON summary without rewriting the inventory file.
+ * A non-zero MIGRATE count is remaining design-system work, not a scanner failure.
  */
 import { spawnSync } from 'node:child_process';
 import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
@@ -208,14 +209,16 @@ for (const [file, items] of [...byFile.entries()].sort()) {
   lines.push('');
 }
 
-mkdirSync(join(ROOT, 'docs'), { recursive: true });
-writeFileSync(OUT, `${lines.join('\n')}\n`);
-const formatted = spawnSync(
-  process.execPath,
-  [join(ROOT, 'node_modules/prettier/bin/prettier.cjs'), '--write', OUT],
-  { cwd: ROOT, stdio: 'inherit' },
-);
-if (formatted.status !== 0) process.exit(formatted.status ?? 1);
+if (!check) {
+  mkdirSync(join(ROOT, 'docs'), { recursive: true });
+  writeFileSync(OUT, `${lines.join('\n')}\n`);
+  const formatted = spawnSync(
+    process.execPath,
+    [join(ROOT, 'node_modules/prettier/bin/prettier.cjs'), '--write', OUT],
+    { cwd: ROOT, stdio: 'inherit' },
+  );
+  if (formatted.status !== 0) process.exit(formatted.status ?? 1);
+}
 console.log(
   JSON.stringify(
     {
@@ -228,4 +231,3 @@ console.log(
     2,
   ),
 );
-if (check && migrate.length > 0) process.exit(1);

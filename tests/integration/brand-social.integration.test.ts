@@ -293,6 +293,18 @@ describe('brand membership isolation + lifecycle', () => {
     ).json();
     expect(r.data.pages).toEqual([]);
     expect(r.data.providers.every((p: { available: boolean }) => !p.available)).toBe(true);
+    const gated = await fetch(
+      `${seed.baseUrl}/api/v1/brands/${brandA}/social-pages/oauth/x/start`,
+      {
+        method: 'POST',
+        headers: authHeaders(seed),
+      },
+    );
+    expect(gated.status).toBe(402);
+    await getPrisma().workspaceSubscription.update({
+      where: { tenantId: seed.tenantId },
+      data: { xApiAddon: true },
+    });
     const start = await fetch(
       `${seed.baseUrl}/api/v1/brands/${brandA}/social-pages/oauth/x/start`,
       {
@@ -401,6 +413,21 @@ describe('publish + refresh jobs', () => {
   });
 
   it('does not publish unapproved posts and records a skip reason', async () => {
+    await getPrisma().workspaceSetting.upsert({
+      where: { tenantId: seed.tenantId },
+      update: { approvalMode: 'required' },
+      create: { id: newId(), tenantId: seed.tenantId, approvalMode: 'required' },
+    });
+    await getPrisma().contentPreferences.upsert({
+      where: { brandId: brand },
+      update: { approvalPolicy: 'REQUIRED', approvalMode: 'required' },
+      create: {
+        brandId: brand,
+        tenantId: seed.tenantId,
+        approvalPolicy: 'REQUIRED',
+        approvalMode: 'required',
+      },
+    });
     const page = await seedPage(seed, brand);
     const post = await seedPost(seed, brand, { socialPageId: page, approvalState: 'PENDING' });
     const out = await runPublishTick({
