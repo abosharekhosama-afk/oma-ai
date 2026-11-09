@@ -81,7 +81,7 @@ describe('workspace approval policy (server-side)', () => {
     expect(worker).toContain('effectiveApprovalPolicy');
     expect(worker).not.toContain("where: { approvalPolicy: 'NONE' }");
     const schema = read('packages/db/prisma/schema.prisma');
-    expect(schema).toContain('approvalPolicy  ContentApprovalPolicy?');
+    expect(schema).toMatch(/approvalPolicy\s+ContentApprovalPolicy\?/);
   });
 
   it('brand settings card persists per-brand approval fields; workspace card stays workspace-wide', () => {

@@ -37,7 +37,7 @@ describe('production calendar helpers', () => {
       'OPTIONAL',
     );
     expect(row.plannedAt).toBe('');
-    expect(row.state).toBe('BLOCKED');
+    expect(row.state).toBe('PLANNED');
     expect(row.externalPublishingConnected).toBe(false);
   });
 });

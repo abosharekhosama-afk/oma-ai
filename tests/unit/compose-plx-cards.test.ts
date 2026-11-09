@@ -30,7 +30,9 @@ describe('Planable compose labels / templates / media cards', () => {
     expect(client).toContain('compose-first-comment');
     expect(client).toContain('FIRST COMMENT');
     expect(client).toContain('compose-datetime-toggle');
-    expect(client).toContain('BEST TIME TO POST');
+    expect(client).toContain('BestTimeSuggestions');
+    const suggest = read('apps/web/src/components/content/best-time-suggestions.tsx');
+    expect(suggest).toContain("t('content.bestTime.title')");
     expect(client).toContain('demo.content.aiNotConnected');
     expect(toolbar).toContain('compose-link-field');
     expect(toolbar).toContain('Paste image URL');
