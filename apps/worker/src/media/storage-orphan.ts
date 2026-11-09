@@ -1,5 +1,12 @@
 import { getPrisma } from '@oma/db';
-import { newId, workDriveMasterConfig, WorkDriveClient, type FetchLike } from '@oma/domain';
+import {
+  listFolderPagewise,
+  newId,
+  revokeMintedKeyByTenantName,
+  workDriveMasterConfig,
+  WorkDriveClient,
+  type FetchLike,
+} from '@oma/domain';
 
 export type OrphanTickDeps = {
   now?: () => Date;
@@ -33,7 +40,7 @@ async function walk(
   limit: number,
 ) {
   if (acc.length >= limit) return;
-  const folder = await client.getFolder(folderId);
+  const folder = await listFolderPagewise(client, folderId);
   for (const file of folder.files) {
     acc.push({
       id: file.id,
@@ -76,7 +83,7 @@ export async function runOrphanCleanupTick(deps: OrphanTickDeps = {}) {
     const self = await master.self();
     const rootId = self.rootFolder?.id;
     if (rootId) {
-      const root = await master.getFolder(rootId);
+      const root = await listFolderPagewise(master, rootId);
       tenantsFolderId = root.folders.find((f) => f.name === 'tenants')?.id ?? null;
     }
   } catch {
@@ -113,6 +120,7 @@ export async function runOrphanCleanupTick(deps: OrphanTickDeps = {}) {
   for (const tenantId of tenantIds) {
     if (!known.has(tenantId)) {
       out.skipped_outside += byTenant.get(tenantId)?.length ?? 0;
+      await revokeMintedKeyByTenantName(master, tenantId).catch(() => undefined);
       continue;
     }
     const remote = byTenant.get(tenantId) ?? [];

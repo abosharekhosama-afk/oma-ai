@@ -1927,11 +1927,27 @@ model WorkspaceStorageSetting {
   mode                  StorageMode @default(OMA_INTERNAL)
   workdriveRootFolderId String?
   workdriveKeyRef       String?
+  /// Encrypted child wdk_ for tenants/{tenantId} when the master key can mint.
+  platformKeyEnc        String?
+  platformKeyPrefix     String?
+  platformKeyId         String?
+  platformRootFolderId  String?
+  /// active | unsupported | revoked
+  platformKeyStatus     String?
   backupPausedAt        DateTime?
   /// quota_exceeded | key_revoked
   backupPausedReason    String?
   updatedAt             DateTime    @updatedAt
   tenant                Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+/// Replay protection for inbound WorkDrive webhooks (event id).
+model WorkDriveWebhookEvent {
+  eventId    String   @id
+  eventType  String
+  receivedAt DateTime @default(now())
+
+  @@index([receivedAt])
 }
 
 enum BackupJobStatus {

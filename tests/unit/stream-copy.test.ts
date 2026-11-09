@@ -10,14 +10,11 @@ import {
 import { fakeKey, startFakeWorkDrive } from '../helpers/fake-workdrive';
 
 describe('streaming storage copy', () => {
-  it('chooses a streamed PUT vs ranged sessions from size and refuses huge unhashed buffers', () => {
+  it('chooses a streamed PUT vs ranged sessions and never requires a full-object buffer', () => {
     expect(copyTransferMode(1024, 32 * 1024 * 1024)).toBe('put');
     expect(copyTransferMode(33 * 1024 * 1024, 32 * 1024 * 1024)).toBe('session');
-    expect(copyRequiresFullBuffer(100, null)).toBe(true);
-    expect(copyRequiresFullBuffer(100, 'a'.repeat(64))).toBe(false);
-    expect(copyBufferAllowed(1024, null, 32 * 1024 * 1024)).toBe(true);
+    expect(copyRequiresFullBuffer(40 * 1024 * 1024, null)).toBe(false);
     expect(copyBufferAllowed(40 * 1024 * 1024, null, 32 * 1024 * 1024)).toBe(false);
-    expect(copyBufferAllowed(40 * 1024 * 1024, 'a'.repeat(64), 32 * 1024 * 1024)).toBe(false);
     expect(copyMaxBufferBytes({ STORAGE_COPY_MAX_BUFFER_BYTES: '1048576' })).toBe(1048576);
   });
 
@@ -65,6 +62,34 @@ describe('streaming storage copy', () => {
       expect(
         wd.calls.some((c) => c.path === '/storage/objects' && c.range?.startsWith('bytes=')),
       ).toBe(true);
+    });
+
+    it('stream-hashes while copying when sha256 is omitted', async () => {
+      const client = new WorkDriveClient(wd.baseUrl, key);
+      const bytes = Buffer.from('stream-hash-me');
+      const expected = createHash('sha256').update(bytes).digest('hex');
+      const folder = await client.ensurePath(['tenants', 't1', 'src-nohash']);
+      const requested = await client.requestUpload({
+        folderId: folder.folderId,
+        name: 'plain.bin',
+        mimeType: 'application/octet-stream',
+        size: bytes.length,
+      });
+      const put = await fetch(requested.uploadUrl, { method: 'PUT', body: bytes });
+      expect(put.ok || put.status === 204).toBe(true);
+      const completed = await client.completeUpload(requested.uploadId);
+      expect(completed.sha256).toBe(expected);
+      const signed = await client.downloadUrl(requested.fileId);
+      const dest = await client.ensurePath(['tenants', 't1', 'dest-nohash']);
+      const copied = await client.uploadFromSignedSource({
+        folderId: dest.folderId,
+        name: 'copied.bin',
+        mimeType: 'application/octet-stream',
+        size: bytes.length,
+        sourceUrl: signed.url,
+      });
+      expect(copied.sha256).toBe(expected);
+      expect(copied.mode).toBe('put');
     });
   });
 });

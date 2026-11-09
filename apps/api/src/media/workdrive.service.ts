@@ -4,11 +4,14 @@ import {
   discoverWorkDrive,
   workDriveUrlCandidates,
   clientFromConnection,
+  clientFromPlatformKey,
   DomainError,
   encryptToken,
+  ensurePlatformScopedKey,
   isWorkDriveKey,
   newId,
   REQUIRED_SCOPES,
+  revokePlatformKeyForTenant,
   workDriveDefaultUrl,
   WorkDriveClient,
   WorkDriveError,
@@ -17,6 +20,7 @@ import {
   workDriveMasterConfig,
   workDriveSecretKey,
   type FetchLike,
+  type PlatformKeyStore,
 } from '@oma/domain';
 import { billingService } from '../billing/billing.service';
 import { AuditService } from '../audit/audit.service';
@@ -184,6 +188,83 @@ export class WorkDriveService {
     return new WorkDriveClient(cfg.baseUrl, cfg.apiKey, WorkDriveService.fetchImpl);
   }
 
+  private platformKeyStore(): PlatformKeyStore {
+    const prisma = getPrisma();
+    return {
+      async get(tenantId) {
+        const row = await prisma.workspaceStorageSetting.findUnique({ where: { tenantId } });
+        if (!row) return null;
+        return {
+          platformKeyEnc: row.platformKeyEnc,
+          platformKeyPrefix: row.platformKeyPrefix,
+          platformKeyId: row.platformKeyId,
+          platformRootFolderId: row.platformRootFolderId,
+          platformKeyStatus: row.platformKeyStatus,
+        };
+      },
+      async save(tenantId, data) {
+        await prisma.workspaceStorageSetting.upsert({
+          where: { tenantId },
+          create: { tenantId, ...data },
+          update: data,
+        });
+      },
+    };
+  }
+
+  async ensureInternalClient(tenantId: string) {
+    const cfg = this.masterConfig();
+    const master = this.masterClient();
+    if (!cfg || !master) return null;
+    const key = workDriveSecretKey();
+    if (key) {
+      try {
+        await ensurePlatformScopedKey({
+          tenantId,
+          master,
+          secret: key,
+          store: this.platformKeyStore(),
+        });
+      } catch {
+        // Feature-detect fallback: keep using the master key + path.
+      }
+    }
+    const setting = await getPrisma().workspaceStorageSetting.findUnique({ where: { tenantId } });
+    if (key && setting?.platformKeyStatus === 'active' && setting.platformKeyEnc) {
+      return {
+        client: clientFromPlatformKey(
+          cfg.baseUrl,
+          setting.platformKeyEnc,
+          key,
+          WorkDriveService.fetchImpl,
+        ),
+        conn: {
+          id: `scoped:${tenantId}`,
+          rootFolderId: setting.platformRootFolderId,
+          rootFolderName: null,
+        },
+        provider: 'OMA_INTERNAL' as const,
+        tenantId,
+      };
+    }
+    return {
+      client: master,
+      conn: { id: `master:${tenantId}`, rootFolderId: null, rootFolderName: null },
+      provider: 'OMA_INTERNAL' as const,
+      tenantId,
+    };
+  }
+
+  async revokePlatformKey(tenantId: string) {
+    const master = this.masterClient();
+    if (!master) return;
+    await revokePlatformKeyForTenant({
+      tenantId,
+      master,
+      store: this.platformKeyStore(),
+    });
+  }
+
   async effectiveMode(
     tenantId: string,
   ): Promise<'OMA_INTERNAL' | 'USER_WORKDRIVE' | 'SYNC_BACKUP'> {
@@ -203,15 +284,8 @@ export class WorkDriveService {
     if (mode === 'USER_WORKDRIVE' && user) {
       return { ...user, provider: 'USER_WORKDRIVE' as const, tenantId };
     }
-    const master = this.masterClient();
-    if (master) {
-      return {
-        client: master,
-        conn: { id: `master:${tenantId}`, rootFolderId: null, rootFolderName: null },
-        provider: 'OMA_INTERNAL' as const,
-        tenantId,
-      };
-    }
+    const internal = await this.ensureInternalClient(tenantId);
+    if (internal) return internal;
     if (user) return { ...user, provider: 'USER_WORKDRIVE' as const, tenantId };
     throw new DomainError(
       'WORKDRIVE_NOT_CONNECTED',
@@ -223,20 +297,15 @@ export class WorkDriveService {
 
   async clientForAsset(tenantId: string, asset: { storageProvider?: string | null }) {
     if (asset.storageProvider === 'OMA_INTERNAL') {
-      const master = this.masterClient();
-      if (!master)
+      const internal = await this.ensureInternalClient(tenantId);
+      if (!internal)
         throw new DomainError(
           'WORKDRIVE_NOT_CONNECTED',
           'WorkDrive is not connected',
           409,
           'errors.workdrive_not_connected',
         );
-      return {
-        client: master,
-        conn: { id: `master:${tenantId}`, rootFolderId: null, rootFolderName: null },
-        provider: 'OMA_INTERNAL' as const,
-        tenantId,
-      };
+      return internal;
     }
     const user = await this.requireClient(tenantId);
     return { ...user, provider: 'USER_WORKDRIVE' as const, tenantId };
