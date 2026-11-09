@@ -126,6 +126,7 @@ export async function runLogoMigrationTick(deps: Deps = {}) {
             kind: 'logos',
             workdriveFileId: fileId,
             folderId,
+            storageProvider: 'USER_WORKDRIVE',
             name,
             mime: decoded.mime,
             size: BigInt(decoded.bytes.length),

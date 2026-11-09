@@ -1,6 +1,6 @@
 import { decryptToken, parseEncryptionKey } from '../social/token-crypto';
 import type { FetchLike } from '../social/adapter';
-import { WorkDriveClient } from './client';
+import { isWorkDriveKey, normalizeWorkDriveUrl, WorkDriveClient } from './client';
 import { DEFAULT_MAX_IMAGE_BYTES, DEFAULT_MAX_VIDEO_BYTES } from './layout';
 
 /** Encryption key for stored WorkDrive keys: WORKDRIVE_ENCRYPTION_KEY, else SOCIAL_TOKEN_ENCRYPTION_KEY. */
@@ -43,4 +43,22 @@ export function clientFromConnection(
   fetchImpl?: FetchLike,
 ) {
   return new WorkDriveClient(conn.baseUrl, decryptToken(conn.apiKeyEnc, key), fetchImpl);
+}
+
+/** Platform-master WorkDrive used for OMA_INTERNAL storage. Keys never go in WorkDriveConnection. */
+export function workDriveMasterConfig(env: NodeJS.ProcessEnv = process.env) {
+  const baseUrl = (env.WORKDRIVE_MASTER_BASE_URL || env.WORKDRIVE_PLATFORM_BASE_URL || '').trim();
+  const apiKey = (env.WORKDRIVE_MASTER_API_KEY || env.WORKDRIVE_PLATFORM_API_KEY || '').trim();
+  if (!baseUrl || !apiKey || !isWorkDriveKey(apiKey)) return null;
+  try {
+    return { baseUrl: normalizeWorkDriveUrl(baseUrl), apiKey };
+  } catch {
+    return null;
+  }
+}
+
+export function clientFromMaster(fetchImpl?: FetchLike, env: NodeJS.ProcessEnv = process.env) {
+  const cfg = workDriveMasterConfig(env);
+  if (!cfg) return null;
+  return new WorkDriveClient(cfg.baseUrl, cfg.apiKey, fetchImpl);
 }

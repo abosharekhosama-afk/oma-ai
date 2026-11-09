@@ -2472,6 +2472,7 @@
   "errors.workdrive_invalid_url": "أدخل عنوان WorkDrive بدءًا بـ https://.",
   "errors.workdrive_key_rejected": "لم يقبل WorkDrive هذا المفتاح. ربما أُلغي أو انتهت صلاحيته.",
   "errors.workdrive_missing_scopes": "يحتاج هذا المفتاح إلى صلاحية قراءة وكتابة الملفات والمجلدات.",
+  "errors.storage_quota_exceeded": "تم تجاوز حصة التخزين. حرّر مساحة أو رقِّ خطتك.",
   "errors.workdrive_not_connected": "اربط WorkDrive من الإعدادات لإضافة الوسائط.",
   "errors.workdrive_not_configured": "مجلد مؤسسة WorkDrive غير جاهز. يتم عرض وسائط العلامة بدلًا من ذلك.",
   "errors.workdrive_not_enabled": "تخزين WorkDrive غير متاح بعد.",

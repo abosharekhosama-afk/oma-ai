@@ -2472,6 +2472,7 @@
   "errors.workdrive_invalid_url": "Enter the WorkDrive address, starting with https://.",
   "errors.workdrive_key_rejected": "WorkDrive didn’t accept this key. It may have been revoked or expired.",
   "errors.workdrive_missing_scopes": "This key needs read and write access to files and folders.",
+  "errors.storage_quota_exceeded": "Storage quota exceeded. Free up space or upgrade your plan.",
   "errors.workdrive_not_connected": "Connect WorkDrive in Settings to add media.",
   "errors.workdrive_not_configured": "WorkDrive organization folder is not ready. Showing brand media instead.",
   "errors.workdrive_not_enabled": "WorkDrive storage isn’t available yet.",

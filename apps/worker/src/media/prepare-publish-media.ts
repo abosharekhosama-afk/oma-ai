@@ -188,6 +188,7 @@ async function uploadVariant(input: {
       kind: 'posts',
       workdriveFileId: uploaded.fileId,
       folderId,
+      storageProvider: 'USER_WORKDRIVE',
       name: uploaded.name,
       mime: input.mime,
       size: BigInt(input.bytes.length),

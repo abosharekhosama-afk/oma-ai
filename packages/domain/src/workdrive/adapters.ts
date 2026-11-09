@@ -53,6 +53,24 @@ export function workDriveObjectStorage(
       // Moves to WorkDrive trash (restorable there).
       await (await need(resolve, tenantId)).trash(externalRef);
     },
+    async requestUpload({ tenantId, key, contentType, size, sha256 }) {
+      const client = await need(resolve, tenantId);
+      const parts = key.split('/').filter(Boolean);
+      const name = safeFileName(parts.pop() ?? 'file');
+      const { folderId } = await client.ensurePath(parts.length ? parts : ['OMA']);
+      const r = await client.requestUpload({
+        folderId,
+        name,
+        mimeType: contentType,
+        size,
+        sha256,
+      });
+      return { uploadUrl: r.uploadUrl, uploadId: r.uploadId, fileId: r.fileId, name: r.name };
+    },
+    async signedReadUrl({ tenantId, externalRef, mode }) {
+      const client = await need(resolve, tenantId);
+      return mode === 'download' ? client.downloadUrl(externalRef) : client.previewUrl(externalRef);
+    },
   };
 }
 

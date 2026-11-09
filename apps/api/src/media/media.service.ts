@@ -12,9 +12,11 @@ import {
   DomainError,
   isMediaKind,
   maxBytesForMime,
+  internalMediaSegments,
   mediaFolderSegments,
   newId,
   safeFileName,
+  storagePathOf,
   WorkDriveClient,
   WorkDriveError,
   workDriveSecretKey,
@@ -59,6 +61,8 @@ export function mapAsset(a: Asset) {
     status: a.status,
     missing: a.status === 'MISSING',
     source: a.source,
+    storage_provider: a.storageProvider,
+    storage_path: a.storagePath,
     view_url: mediaViewUrl(a.id),
     stream_url: a.mime.startsWith('video/') ? `/api/v1/media/${a.id}/stream` : null,
     created_at: a.createdAt.toISOString(),
@@ -161,6 +165,7 @@ type Grant = {
   up: string;
   f: string;
   d: string;
+  p: 'OMA_INTERNAL' | 'USER_WORKDRIVE';
   exp: number;
 };
 
@@ -266,8 +271,12 @@ export class MediaService {
     if (!size) throw bad('Empty avatar', 'errors.media_empty');
     const bytes = Buffer.concat(chunks);
     const sha256 = createHash('sha256').update(bytes).digest('hex');
-    const c = await this.workdrive.requireClient(ctx.tenantId);
-    const folder = await c.client.ensurePath(['OMA AI', 'profile-avatars', ctx.userId]);
+    const c = await this.workdrive.resolveWriteTarget(ctx.tenantId);
+    const avatarSegs =
+      c.provider === 'OMA_INTERNAL'
+        ? internalMediaSegments({ tenantId: ctx.tenantId, kind: 'avatars', userId: ctx.userId })
+        : ['OMA AI', 'profile-avatars', ctx.userId];
+    const folder = await c.client.ensurePath(avatarSegs);
     const fileName = safeFileName(typeof input.name === 'string' ? input.name : 'avatar');
     let uploaded: { fileId: string; name: string };
     try {
@@ -293,6 +302,8 @@ export class MediaService {
         kind: 'avatars',
         workdriveFileId: uploaded.fileId,
         folderId: folder.folderId,
+        storageProvider: c.provider,
+        storagePath: storagePathOf(avatarSegs),
         name: uploaded.name,
         mime,
         size: BigInt(size),
@@ -319,16 +330,37 @@ export class MediaService {
     return { data: { asset_id: row.id, avatar_url: avatarUrl } };
   }
 
-  private async folderFor(
-    c: { client: WorkDriveClient; conn: { id: string; rootFolderName: string | null } },
+  private folderSegments(
+    c: {
+      client: WorkDriveClient;
+      conn: { id: string; rootFolderName: string | null };
+      provider?: 'OMA_INTERNAL' | 'USER_WORKDRIVE';
+      tenantId?: string;
+    },
     brand: { id: string; name: string },
     kind: MediaKind,
   ) {
-    const segs = mediaFolderSegments({
+    if (c.provider === 'OMA_INTERNAL' && c.tenantId) {
+      return internalMediaSegments({ tenantId: c.tenantId, brandId: brand.id, kind });
+    }
+    return mediaFolderSegments({
       brandSlug: brandFolderSlug(brand.name, brand.id.slice(-8).toLowerCase()),
       kind,
       rootFolderName: c.conn.rootFolderName,
     });
+  }
+
+  private async folderFor(
+    c: {
+      client: WorkDriveClient;
+      conn: { id: string; rootFolderName: string | null };
+      provider?: 'OMA_INTERNAL' | 'USER_WORKDRIVE';
+      tenantId?: string;
+    },
+    brand: { id: string; name: string },
+    kind: MediaKind,
+  ) {
+    const segs = this.folderSegments(c, brand, kind);
     const k = `${c.conn.id}:${segs.join('/')}`;
     const hit = this.folderCache.get(k);
     if (hit) return hit;
@@ -339,14 +371,15 @@ export class MediaService {
 
   /** The brand browsing scope starts at the brand folder, not at one media-kind child. */
   private async brandFolderFor(
-    c: { client: WorkDriveClient; conn: { id: string; rootFolderName: string | null } },
+    c: {
+      client: WorkDriveClient;
+      conn: { id: string; rootFolderName: string | null };
+      provider?: 'OMA_INTERNAL' | 'USER_WORKDRIVE';
+      tenantId?: string;
+    },
     brand: { id: string; name: string },
   ) {
-    const kindPath = mediaFolderSegments({
-      brandSlug: brandFolderSlug(brand.name, brand.id.slice(-8).toLowerCase()),
-      kind: 'posts',
-      rootFolderName: c.conn.rootFolderName,
-    });
+    const kindPath = this.folderSegments(c, brand, 'posts');
     const segments = kindPath.slice(0, -1);
     const k = `${c.conn.id}:${segments.join('/')}`;
     const hit = this.folderCache.get(k);
@@ -372,6 +405,8 @@ export class MediaService {
     c: {
       client: WorkDriveClient;
       conn: { id: string; rootFolderId: string | null; rootFolderName: string | null };
+      provider?: 'OMA_INTERNAL' | 'USER_WORKDRIVE';
+      tenantId?: string;
     },
     brand: { id: string; name: string },
     kind: MediaKind,
@@ -547,8 +582,10 @@ export class MediaService {
   ) {
     const kind = parseKind(input.kind);
     this.assertCapability(ctx.capabilities, kind);
-    await billingService.assertWithinLimit(ctx.tenantId, 'storage_bytes', { adding: 0 });
-    // Soft check: reject when already at/over storage (upload size checked after meter when known).
+    const target = await this.workdrive.resolveWriteTarget(ctx.tenantId);
+    if (target.provider === 'OMA_INTERNAL') {
+      await billingService.assertWithinLimit(ctx.tenantId, 'storage_bytes', { adding: 0 });
+    }
     const brand = await this.brand(ctx.tenantId, brandId);
     if (brand.status === 'ARCHIVED')
       throw new DomainError('BRAND_ARCHIVED', 'Brand archived', 409, 'errors.brand_archived');
@@ -568,7 +605,7 @@ export class MediaService {
     if (input.length != null && input.length > max)
       throw new DomainError('PAYLOAD_TOO_LARGE', 'File too large', 413, 'errors.media_too_large');
     if (input.length === 0) throw bad('Empty file', 'errors.media_empty');
-    const c = await this.workdrive.requireClient(ctx.tenantId);
+    const c = target;
 
     const dir = await mkdtemp(join(tmpdir(), 'oma-upload-'));
     const path = join(dir, 'body');
@@ -576,7 +613,9 @@ export class MediaService {
       const m = meter(max);
       await pipeline(input.body, m.t, createWriteStream(path));
       const { size, sha256 } = m.result();
-      await billingService.assertWithinLimit(ctx.tenantId, 'storage_bytes', { adding: size });
+      if (c.provider === 'OMA_INTERNAL') {
+        await billingService.assertWithinLimit(ctx.tenantId, 'storage_bytes', { adding: size });
+      }
       if (!size) throw bad('Empty file', 'errors.media_empty');
       if (input.length != null && size !== input.length)
         throw bad('Upload was interrupted', 'errors.media_interrupted');
@@ -626,6 +665,8 @@ export class MediaService {
           kind,
           workdriveFileId: fileId,
           folderId,
+          storageProvider: c.provider,
+          storagePath: storagePathOf(this.folderSegments(c, brand, kind)),
           name: storedName,
           mime,
           size: BigInt(size),
@@ -676,7 +717,10 @@ export class MediaService {
     const sha256 = typeof b.sha256 === 'string' ? b.sha256.toLowerCase() : '';
     if (!/^[a-f0-9]{64}$/.test(sha256)) throw bad('sha256 required');
     const name = safeFileName(typeof b.name === 'string' && b.name.trim() ? b.name : 'file');
-    const c = await this.workdrive.requireClient(ctx.tenantId);
+    const c = await this.workdrive.resolveWriteTarget(ctx.tenantId);
+    if (c.provider === 'OMA_INTERNAL') {
+      await billingService.assertWithinLimit(ctx.tenantId, 'storage_bytes', { adding: size });
+    }
     let r: Awaited<ReturnType<WorkDriveClient['requestUpload']>>;
     let folderId: string;
     try {
@@ -704,6 +748,7 @@ export class MediaService {
       up: r.uploadId,
       f: r.fileId,
       d: folderId,
+      p: c.provider,
       exp,
     });
     return {
@@ -730,7 +775,13 @@ export class MediaService {
       where: tenantWhere(ctx.tenantId, { brandId: g.b, workdriveFileId: g.f }),
     });
     if (existing) return { data: mapAsset(existing) };
-    const c = await this.workdrive.requireClient(ctx.tenantId);
+    const c =
+      g.p === 'OMA_INTERNAL'
+        ? await this.workdrive.clientForAsset(ctx.tenantId, { storageProvider: 'OMA_INTERNAL' })
+        : {
+            ...(await this.workdrive.requireClient(ctx.tenantId)),
+            provider: 'USER_WORKDRIVE' as const,
+          };
     let fileId: string;
     try {
       ({ fileId } = await c.client.completeUpload(g.up));
@@ -745,6 +796,13 @@ export class MediaService {
         kind: g.k,
         workdriveFileId: fileId || g.f,
         folderId: g.d,
+        storageProvider: g.p,
+        storagePath:
+          g.p === 'OMA_INTERNAL'
+            ? storagePathOf(
+                internalMediaSegments({ tenantId: ctx.tenantId, brandId: g.b, kind: g.k }),
+              )
+            : null,
         name: g.n,
         mime: g.m,
         size: BigInt(g.s),
@@ -809,6 +867,7 @@ export class MediaService {
             kind,
             workdriveFileId: fileId,
             folderId: d.folderId,
+            storageProvider: 'USER_WORKDRIVE',
             name: d.name,
             mime: d.mimeType,
             size: BigInt(d.size),
@@ -1012,7 +1071,12 @@ export class MediaService {
   /** Details + a live existence check (WorkDrive deletions surface as `missing`, never deleted here). */
   async details(tenantId: string, assetId: string) {
     const a = await this.getAsset(tenantId, assetId);
-    const c = await this.workdrive.clientFor(tenantId);
+    let c: Awaited<ReturnType<WorkDriveService['clientForAsset']>> | null = null;
+    try {
+      c = await this.workdrive.clientForAsset(tenantId, a);
+    } catch {
+      c = null;
+    }
     if (c) {
       try {
         await c.client.details(a.workdriveFileId);
@@ -1045,7 +1109,7 @@ export class MediaService {
         : `https://picsum.photos/seed/${seed}/900/1200`;
       return { url, expires_at: expires.toISOString(), mime: a.mime };
     }
-    const { client } = await this.workdrive.requireClient(tenantId);
+    const { client } = await this.workdrive.clientForAsset(tenantId, a);
     try {
       const s =
         mode === 'download'
@@ -1069,7 +1133,7 @@ export class MediaService {
 
   async stream(tenantId: string, assetId: string, range: string | undefined) {
     const a = await this.getAsset(tenantId, assetId);
-    const { client } = await this.workdrive.requireClient(tenantId);
+    const { client } = await this.workdrive.clientForAsset(tenantId, a);
     try {
       const up = await client.stream(a.workdriveFileId, range);
       return Object.assign(up, { assetMime: a.mime });

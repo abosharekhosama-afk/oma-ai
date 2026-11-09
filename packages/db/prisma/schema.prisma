@@ -163,6 +163,7 @@ model Tenant {
   listeningRules       ListeningRule[]
   listeningHits        ListeningHit[]
   listeningAlerts      ListeningAlert[]
+  storageSetting       WorkspaceStorageSetting?
 }
 
 enum AiRunStatus {
@@ -1879,10 +1880,12 @@ enum WorkDriveConnectionStatus {
   ERROR
 }
 
-/// One WorkDrive organization per OMA workspace (tenant). The integration key is AES-256-GCM encrypted.
+/// Workspace-owned WorkDrive key (BYOS). Platform master keys never live in this table.
 model WorkDriveConnection {
   id             String                    @id
   tenantId       String                    @unique
+  /// tenant_byos — user-supplied integration key. Platform master keys stay in env/vault.
+  purpose        String                    @default("tenant_byos")
   baseUrl        String
   apiKeyEnc      String
   keyPrefix      String
@@ -1905,7 +1908,28 @@ enum MediaAssetStatus {
   MISSING
 }
 
-/// A file OMA uses (post media, brand logo, deliverable) stored in the tenant's WorkDrive.
+enum StorageProvider {
+  OMA_INTERNAL
+  USER_WORKDRIVE
+}
+
+enum StorageMode {
+  OMA_INTERNAL
+  USER_WORKDRIVE
+  SYNC_BACKUP
+}
+
+/// Per-workspace storage mode. Absent row means OMA_INTERNAL (unless a BYOS connection exists).
+model WorkspaceStorageSetting {
+  tenantId              String      @id
+  mode                  StorageMode @default(OMA_INTERNAL)
+  workdriveRootFolderId String?
+  workdriveKeyRef       String?
+  updatedAt             DateTime    @updatedAt
+  tenant                Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+}
+
+/// A file OMA uses (post media, brand logo, deliverable) stored in WorkDrive (platform or BYOS).
 model MediaAsset {
   id              String           @id
   tenantId        String
@@ -1919,6 +1943,9 @@ model MediaAsset {
   size            BigInt
   sha256          String?
   status          MediaAssetStatus @default(READY)
+  storageProvider StorageProvider  @default(OMA_INTERNAL)
+  /// Logical path such as tenants/{tenantId}/brands/{brandId}/posts
+  storagePath     String?
   /// upload | workdrive (picked from existing files) | migrated
   source          String           @default("upload")
   lastCheckedAt   DateTime?
@@ -1930,6 +1957,8 @@ model MediaAsset {
   @@unique([tenantId, brandId, workdriveFileId])
   @@index([tenantId, brandId, kind, createdAt])
   @@index([status, lastCheckedAt])
+  @@index([tenantId, storageProvider, createdAt])
+  @@index([tenantId, status])
 }
 
 /// Catalog plan (seeded from packages/domain billing plans).

@@ -33,6 +33,12 @@ export const refusingObjectStorage: ObjectStoragePort = {
   async deleteObject() {
     throw new ObjectStorageNotConfiguredError();
   },
+  async requestUpload() {
+    throw new ObjectStorageNotConfiguredError();
+  },
+  async signedReadUrl() {
+    throw new ObjectStorageNotConfiguredError();
+  },
 };
 
 export const refusingWorkDrive: WorkDrivePort = {
