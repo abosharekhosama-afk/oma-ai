@@ -55,6 +55,7 @@ export async function startFakeWorkDrive(opts: {
   const calls: Array<{ method: string; path: string; auth: string | undefined; partSha?: string }> =
     [];
   let maxBodyBytes = 0;
+  let rejectUploads: { status: number; message: string } | null = null;
 
   const read = (req: IncomingMessage) =>
     new Promise<Buffer>((res) => {
@@ -153,6 +154,9 @@ export async function startFakeWorkDrive(opts: {
             updatedAt: new Date().toISOString(),
           })),
       });
+    }
+    if (path === '/files/upload-request' && method === 'POST' && rejectUploads) {
+      return send(rejectUploads.status, { message: rejectUploads.message });
     }
     if (path === '/files/upload-request' && method === 'POST') {
       const b = await json();
@@ -304,6 +308,9 @@ export async function startFakeWorkDrive(opts: {
       return out.join('/');
     },
     close: () => new Promise<void>((r) => server.close(() => r())),
+    setRejectUploads(next: { status: number; message: string } | null) {
+      rejectUploads = next;
+    },
   };
 }
 

@@ -20,6 +20,12 @@ import {
 } from '@oma/domain';
 import { billingService } from '../billing/billing.service';
 import { AuditService } from '../audit/audit.service';
+import {
+  backfillBackups,
+  backupStatus,
+  enqueueBackupIfNeeded,
+  retryFailedBackups,
+} from './storage-backup';
 
 type Conn = NonNullable<
   Awaited<ReturnType<ReturnType<typeof getPrisma>['workDriveConnection']['findUnique']>>
@@ -261,7 +267,7 @@ export class WorkDriveService {
         byos_connected: !!conn,
         byos_status: conn?.status ?? null,
         internal_available: !!this.masterConfig(),
-        backup_available: false,
+        backup_available: true,
         can_upload: await this.canUpload(tenantId),
       },
     };
@@ -475,5 +481,46 @@ export class WorkDriveService {
       await this.fallbackToInternalIfNeeded(tenantId, userId, correlationId);
     }
     return { data: mapConnection(null) };
+  }
+
+  enqueueBackupIfNeeded(asset: {
+    id: string;
+    tenantId: string;
+    storageProvider: string;
+    status: string;
+  }) {
+    return enqueueBackupIfNeeded(asset);
+  }
+
+  backupStatus(tenantId: string) {
+    return backupStatus(tenantId);
+  }
+
+  async backfillBackups(tenantId: string, userId: string, correlationId?: string) {
+    const result = await backfillBackups(tenantId);
+    await this.audit.write({
+      actorUserId: userId,
+      tenantId,
+      action: 'storage.backup_backfilled',
+      targetType: 'WorkspaceStorageSetting',
+      targetId: tenantId,
+      afterRef: String(result.data.enqueued),
+      correlationId,
+    });
+    return result;
+  }
+
+  async retryFailedBackups(tenantId: string, userId: string, correlationId?: string) {
+    const result = await retryFailedBackups(tenantId);
+    await this.audit.write({
+      actorUserId: userId,
+      tenantId,
+      action: 'storage.backup_retried',
+      targetType: 'WorkspaceStorageSetting',
+      targetId: tenantId,
+      afterRef: String(result.data.retried),
+      correlationId,
+    });
+    return result;
   }
 }

@@ -3549,6 +3549,48 @@
         ]
       }
     },
+    "/api/v1/workspace/storage/backup": {
+      "get": {
+        "operationId": "WorkDriveController_backupStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "WorkDrive"
+        ]
+      }
+    },
+    "/api/v1/workspace/storage/backup/backfill": {
+      "post": {
+        "operationId": "WorkDriveController_backfillBackup",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "WorkDrive"
+        ]
+      }
+    },
+    "/api/v1/workspace/storage/backup/retry-failed": {
+      "post": {
+        "operationId": "WorkDriveController_retryBackup",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "WorkDrive"
+        ]
+      }
+    },
     "/api/v1/workspace/workdrive": {
       "get": {
         "operationId": "WorkDriveController_status",

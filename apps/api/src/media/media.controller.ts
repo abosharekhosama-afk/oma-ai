@@ -51,6 +51,26 @@ export class WorkDriveController {
     return workDriveService.setStorageMode(c.tenantId, c.userId, body, c.correlationId);
   }
 
+  @Get('api/v1/workspace/storage/backup')
+  @UseGuards(AuthGuard, CapabilitiesGuard)
+  backupStatus(@Req() req: Request) {
+    return workDriveService.backupStatus(ctx(req).tenantId);
+  }
+
+  @Post('api/v1/workspace/storage/backup/backfill')
+  @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
+  backfillBackup(@Req() req: Request) {
+    const c = ctx(req);
+    return workDriveService.backfillBackups(c.tenantId, c.userId, c.correlationId);
+  }
+
+  @Post('api/v1/workspace/storage/backup/retry-failed')
+  @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
+  retryBackup(@Req() req: Request) {
+    const c = ctx(req);
+    return workDriveService.retryFailedBackups(c.tenantId, c.userId, c.correlationId);
+  }
+
   @Get('api/v1/workspace/workdrive')
   @UseGuards(AuthGuard, CapabilitiesGuard)
   status(@Req() req: Request) {

@@ -11,6 +11,7 @@ import {
   workDriveSecretKey,
   type FetchLike,
 } from '@oma/domain';
+import { runBackupTick } from './storage-backup';
 
 type Deps = { now?: () => Date; key?: Buffer | null; fetchImpl?: FetchLike; limit?: number };
 
@@ -306,6 +307,7 @@ export function mediaProxyUrl(
 
 export function startMediaJobs(log: { error: (o: unknown, m: string) => void }) {
   const every = Number(process.env.WORKDRIVE_MIGRATION_INTERVAL_MS ?? 10 * 60_000);
+  const backupEvery = Number(process.env.STORAGE_BACKUP_TICK_MS ?? 15_000);
   const run = () => {
     runLogoMigrationTick().catch((e) =>
       log.error({ err: String(e) }, 'logo migration tick failed'),
@@ -314,10 +316,17 @@ export function startMediaJobs(log: { error: (o: unknown, m: string) => void }) 
       log.error({ err: String(e) }, 'media reconcile tick failed'),
     );
   };
+  const runBackup = () => {
+    runBackupTick().catch((e) => log.error({ err: String(e) }, 'storage backup tick failed'));
+  };
   const t = setInterval(run, every);
   const first = setTimeout(run, 15_000);
+  const backupTimer = setInterval(runBackup, backupEvery);
+  const backupFirst = setTimeout(runBackup, 8_000);
   return () => {
     clearInterval(t);
     clearTimeout(first);
+    clearInterval(backupTimer);
+    clearTimeout(backupFirst);
   };
 }

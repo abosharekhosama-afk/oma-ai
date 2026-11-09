@@ -1,11 +1,13 @@
 'use client';
 
+import { Button } from 'antd';
 import { useCallback, useEffect, useState } from 'react';
 import { getApiError } from '../../lib/brand-api';
 import {
   formatBytes,
   workDriveApi,
   type StorageMode,
+  type WorkspaceBackup,
   type WorkspaceStorage,
 } from '../../lib/workdrive-api';
 import { WorkDriveSettings } from './workdrive-settings';
@@ -30,8 +32,10 @@ export function StorageSettings({
   canManage: boolean;
 }) {
   const [storage, setStorage] = useState<WorkspaceStorage | null>(null);
+  const [backup, setBackup] = useState<WorkspaceBackup | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [busy, setBusy] = useState<StorageMode | null>(null);
+  const [backupBusy, setBackupBusy] = useState<'backfill' | 'retry' | null>(null);
   const [notice, setNotice] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
 
   const load = useCallback(() => {
@@ -39,6 +43,10 @@ export function StorageSettings({
       .storage()
       .then((r) => setStorage(r.data))
       .catch((e) => setLoadError(getApiError(e).message));
+    workDriveApi
+      .backup()
+      .then((r) => setBackup(r.data))
+      .catch(() => setBackup(null));
   }, []);
   useEffect(load, [load]);
 
@@ -82,6 +90,10 @@ export function StorageSettings({
       const r = await workDriveApi.setMode(mode);
       setStorage(r.data);
       setNotice({ kind: 'success', text: t('storage.switched') });
+      workDriveApi
+        .backup()
+        .then((b) => setBackup(b.data))
+        .catch(() => undefined);
     } catch (e) {
       setNotice({ kind: 'error', text: getApiError(e).message });
     } finally {
@@ -139,11 +151,6 @@ export function StorageSettings({
                   ) : null}
                 </span>
                 <p className="oma-st-mode__desc">{t(copy.desc)}</p>
-                {mode === 'SYNC_BACKUP' ? (
-                  <p className="oma-st-mode__desc" data-testid="storage-sync-soon">
-                    {t('storage.mode.sync.soon')}
-                  </p>
-                ) : null}
                 {!enabled[mode] && reason[mode] ? (
                   <p className="oma-st-mode__desc">{reason[mode]}</p>
                 ) : null}
@@ -172,6 +179,108 @@ export function StorageSettings({
           ) : null}
         </div>
       </section>
+
+      {backup &&
+      (storage.mode === 'SYNC_BACKUP' || Object.values(backup.counts).some((n) => n > 0)) ? (
+        <section className="oma-bs-card oma-st-backup" data-testid="storage-backup-status">
+          <p className="oma-bs-label">{t('storage.backup.title')}</p>
+          <p className="oma-bs-hint">{t('storage.backup.desc')}</p>
+          {backup.paused ? (
+            <p
+              className="oma-bs-notice oma-bs-notice--error"
+              role="alert"
+              data-testid="storage-backup-paused"
+            >
+              {backup.paused_reason === 'quota_exceeded'
+                ? t('storage.backup.pausedQuota')
+                : t('storage.backup.pausedKey')}
+            </p>
+          ) : null}
+          <dl className="oma-wd-facts" data-testid="storage-backup-counts">
+            <div>
+              <dt>{t('storage.backup.pending')}</dt>
+              <dd>{backup.counts.pending + backup.counts.running}</dd>
+            </div>
+            <div>
+              <dt>{t('storage.backup.done')}</dt>
+              <dd>{backup.counts.done}</dd>
+            </div>
+            <div>
+              <dt>{t('storage.backup.failed')}</dt>
+              <dd>{backup.counts.failed}</dd>
+            </div>
+            <div>
+              <dt>{t('storage.backup.skipped')}</dt>
+              <dd>{backup.counts.skipped}</dd>
+            </div>
+          </dl>
+          {backup.last_success_at ? (
+            <p className="oma-bs-hint">
+              {t('storage.backup.lastSuccess').replace(
+                '{when}',
+                new Intl.DateTimeFormat(locale, {
+                  dateStyle: 'medium',
+                  timeStyle: 'short',
+                }).format(new Date(backup.last_success_at)),
+              )}
+            </p>
+          ) : null}
+          {backup.last_error?.message ? (
+            <p className="oma-bs-hint" data-testid="storage-backup-last-error">
+              {t('storage.backup.lastError').replace('{error}', backup.last_error.message)}
+            </p>
+          ) : null}
+          <div className="oma-bs-actions">
+            <Button
+              loading={backupBusy === 'backfill'}
+              data-testid="storage-backup-backfill"
+              onClick={async () => {
+                setBackupBusy('backfill');
+                setNotice(null);
+                try {
+                  const r = await workDriveApi.backfillBackup();
+                  setNotice({
+                    kind: 'success',
+                    text: t('storage.backup.backfillOk').replace('{n}', String(r.data.enqueued)),
+                  });
+                  const b = await workDriveApi.backup();
+                  setBackup(b.data);
+                } catch (e) {
+                  setNotice({ kind: 'error', text: getApiError(e).message });
+                } finally {
+                  setBackupBusy(null);
+                }
+              }}
+            >
+              {t('storage.backup.backfill')}
+            </Button>
+            <Button
+              loading={backupBusy === 'retry'}
+              disabled={!backup.paused && backup.counts.failed === 0}
+              data-testid="storage-backup-retry"
+              onClick={async () => {
+                setBackupBusy('retry');
+                setNotice(null);
+                try {
+                  const r = await workDriveApi.retryFailedBackup();
+                  setNotice({
+                    kind: 'success',
+                    text: t('storage.backup.retryOk').replace('{n}', String(r.data.retried)),
+                  });
+                  const b = await workDriveApi.backup();
+                  setBackup(b.data);
+                } catch (e) {
+                  setNotice({ kind: 'error', text: getApiError(e).message });
+                } finally {
+                  setBackupBusy(null);
+                }
+              }}
+            >
+              {t('storage.backup.retry')}
+            </Button>
+          </div>
+        </section>
+      ) : null}
 
       <WorkDriveSettings t={t} locale={locale} canManage={canManage} onChanged={load} />
     </div>
