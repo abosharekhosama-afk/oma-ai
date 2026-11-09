@@ -1,5 +1,6 @@
 import { SocialController } from './social/social.controller';
 import { MediaController, WorkDriveController } from './media/media.controller';
+import { WorkDriveWebhookController } from './media/workdrive-webhook.controller';
 import { BrandScopeMiddleware } from './common/middleware/brand-scope.middleware';
 import { ActivityController, HomeController } from './home/home.controller';
 import { WorkspaceSettingsController } from './workspace/workspace-settings.controller';
@@ -76,6 +77,7 @@ import { WebhooksController } from './webhooks/webhooks.controller';
     BillingController,
     BillingAdminController,
     BillingWebhookController,
+    WorkDriveWebhookController,
     InboxController,
     ListeningController,
     WebhooksController,

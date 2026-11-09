@@ -4247,6 +4247,20 @@
         ]
       }
     },
+    "/api/v1/integrations/workdrive/webhook": {
+      "post": {
+        "operationId": "WorkDriveWebhookController_receive",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "WorkDriveWebhook"
+        ]
+      }
+    },
     "/api/v1/inbox/stats": {
       "get": {
         "operationId": "InboxController_stats",

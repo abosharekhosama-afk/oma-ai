@@ -83,6 +83,8 @@ export type WorkDriveFolder = {
   parentId: string | null;
   folders: WorkDriveFolderEntry[];
   files: WorkDriveFileEntry[];
+  nextCursor?: string | null;
+  hasMore?: boolean;
 };
 export type WorkDriveFileDetails = {
   id: string;
@@ -270,8 +272,17 @@ export class WorkDriveClient {
     };
   }
 
-  async getFolder(id: string): Promise<WorkDriveFolder> {
-    const b = await this.json<Record<string, any>>(`/folders/${encodeURIComponent(id)}`);
+  async getFolder(
+    id: string,
+    page?: { cursor?: string; limit?: number; offset?: number },
+  ): Promise<WorkDriveFolder> {
+    const qs = new URLSearchParams();
+    if (page?.cursor) qs.set('cursor', page.cursor);
+    if (page?.limit != null) qs.set('limit', String(page.limit));
+    if (page?.offset != null) qs.set('offset', String(page.offset));
+    const suffix = qs.toString() ? `?${qs.toString()}` : '';
+    const b = await this.json<Record<string, any>>(`/folders/${encodeURIComponent(id)}${suffix}`);
+    const next = b.next_cursor ?? b.nextCursor;
     return {
       id: str(b.id),
       name: str(b.name),
@@ -289,6 +300,8 @@ export class WorkDriveClient {
           size: num(f.size),
           updatedAt: f.updatedAt ? str(f.updatedAt) : null,
         })),
+      nextCursor: next ? str(next) : null,
+      hasMore: Boolean(b.has_more ?? b.hasMore),
     };
   }
 
@@ -362,7 +375,7 @@ export class WorkDriveClient {
     name: string;
     mimeType: string;
     size: number;
-    sha256: string;
+    sha256?: string | null;
   }): Promise<{ uploadUrl: string; uploadId: string; fileId: string; name: string }> {
     const dot = input.name.lastIndexOf('.');
     const base = dot > 0 ? input.name.slice(0, dot) : input.name;
@@ -375,7 +388,7 @@ export class WorkDriveClient {
           folder_id: input.folderId,
           size: input.size,
           mime_type: input.mimeType,
-          sha256: input.sha256,
+          ...(input.sha256 ? { sha256: input.sha256 } : {}),
         });
         const uploadUrl = str(req.upload_url);
         if (!/^https?:\/\//.test(uploadUrl) || !req.upload_id)
@@ -388,9 +401,10 @@ export class WorkDriveClient {
   }
 
   /** Direct-upload step 2: WorkDrive verifies the stored bytes and activates the file. */
-  async completeUpload(uploadId: string): Promise<{ fileId: string }> {
+  async completeUpload(uploadId: string): Promise<{ fileId: string; sha256?: string }> {
     const done = await this.post('/files/upload-complete', { upload_id: uploadId });
-    return { fileId: str(done.file_id ?? done.id) };
+    const sha = done.sha256 ? str(done.sha256) : '';
+    return { fileId: str(done.file_id ?? done.id), ...(sha ? { sha256: sha } : {}) };
   }
 
   /** Upload into `folderId`. Small files: one signed PUT; big files: resumable parts. */
@@ -398,7 +412,7 @@ export class WorkDriveClient {
     folderId: string;
     name: string;
     mimeType: string;
-    sha256: string;
+    sha256?: string;
     source: UploadSource;
   }) {
     // WorkDrive refuses duplicate names in a folder: retry as "name (2).ext", "name (3).ext"…
@@ -419,7 +433,7 @@ export class WorkDriveClient {
     folderId: string;
     name: string;
     mimeType: string;
-    sha256: string;
+    sha256?: string;
     source: UploadSource;
   }) {
     const { folderId, name, mimeType, sha256, source } = input;
@@ -429,7 +443,7 @@ export class WorkDriveClient {
         folder_id: folderId,
         size: source.size,
         mime_type: mimeType,
-        sha256,
+        ...(sha256 ? { sha256 } : {}),
       });
       const uploadUrl = str(req.upload_url);
       if (!/^https?:\/\//.test(uploadUrl) || !req.upload_id)
@@ -458,7 +472,7 @@ export class WorkDriveClient {
       name,
       mimeType,
       size: source.size,
-      sha256,
+      ...(sha256 ? { sha256 } : {}),
       partSize,
     });
     const sid = str(session.session_id);
@@ -498,11 +512,17 @@ export class WorkDriveClient {
     name: string;
     mimeType: string;
     size: number;
-    sha256: string;
+    sha256?: string | null;
     sourceUrl: string;
     singlePutLimit?: number;
     partSize?: number;
-  }): Promise<{ fileId: string; name: string; mode: 'put' | 'session'; maxChunkBytes: number }> {
+  }): Promise<{
+    fileId: string;
+    name: string;
+    mode: 'put' | 'session';
+    maxChunkBytes: number;
+    sha256?: string;
+  }> {
     const limit = input.singlePutLimit ?? this.opts.singlePutLimit ?? SINGLE_PUT_LIMIT;
     const requested = await this.requestUpload({
       folderId: input.folderId,
@@ -520,12 +540,28 @@ export class WorkDriveClient {
       }
       if (!src.ok || !src.body)
         throw new WorkDriveError('unavailable', `Download failed (${src.status})`, src.status);
+      const hasher = createHash('sha256');
+      const reader = src.body.getReader();
+      const hashed = new ReadableStream<Uint8Array>({
+        async pull(controller) {
+          const { done, value } = await reader.read();
+          if (done) {
+            controller.close();
+            return;
+          }
+          hasher.update(value);
+          controller.enqueue(value);
+        },
+        cancel(reason) {
+          return reader.cancel(reason);
+        },
+      });
       let put: Response;
       try {
         put = await this.fetchImpl(requested.uploadUrl, {
           method: 'PUT',
           headers: { 'content-type': input.mimeType, 'content-length': String(input.size) },
-          body: src.body,
+          body: hashed,
           ...({ duplex: 'half' } as object),
           signal: AbortSignal.timeout(30 * 60_000),
         });
@@ -533,12 +569,21 @@ export class WorkDriveClient {
         throw new WorkDriveError('unavailable', `Upload failed: ${(e as Error).message}`);
       }
       if (!put.ok) await this.fail(put);
+      const computed = hasher.digest('hex');
       const done = await this.completeUpload(requested.uploadId);
+      const reported = done.sha256 || input.sha256 || undefined;
+      if (reported && computed && reported !== computed) {
+        throw new WorkDriveError(
+          'bad_response',
+          'WorkDrive checksum did not match the streamed hash',
+        );
+      }
       return {
         fileId: done.fileId || requested.fileId,
         name: requested.name,
         mode: 'put',
         maxChunkBytes: input.size,
+        sha256: computed,
       };
     }
     const partSize = input.partSize ?? this.opts.partSize ?? PART_SIZE;
@@ -547,13 +592,14 @@ export class WorkDriveClient {
       name: requested.name,
       mimeType: input.mimeType,
       size: input.size,
-      sha256: input.sha256,
+      ...(input.sha256 ? { sha256: input.sha256 } : {}),
       partSize,
     });
     const sid = str(session.session_id);
     const size = num(session.part_size) || partSize;
     const total = num(session.total_parts) || Math.ceil(input.size / size);
     let maxChunkBytes = 0;
+    const overall = createHash('sha256');
     try {
       for (let n = 1; n <= total; n++) {
         const start = (n - 1) * size;
@@ -577,6 +623,7 @@ export class WorkDriveClient {
             partRes.status,
           );
         const chunk = Buffer.from(await partRes.arrayBuffer());
+        overall.update(chunk);
         maxChunkBytes = Math.max(maxChunkBytes, chunk.length);
         const form = new FormData();
         form.append(
@@ -591,16 +638,98 @@ export class WorkDriveClient {
         );
       }
       const done = await this.post(`/files/upload-sessions/${sid}/complete`, {});
+      const computed = overall.digest('hex');
+      const reported = done.sha256 ? str(done.sha256) : input.sha256 || undefined;
+      if (reported && computed && reported !== computed) {
+        throw new WorkDriveError(
+          'bad_response',
+          'WorkDrive checksum did not match the streamed hash',
+        );
+      }
       return {
         fileId: str(done.file_id ?? done.id ?? session.file_id),
         name: requested.name,
         mode: 'session',
         maxChunkBytes,
+        sha256: computed,
       };
     } catch (e) {
       await this.call(`/files/upload-sessions/${sid}`, { method: 'DELETE' }).catch(() => undefined);
       throw e;
     }
+  }
+
+  async mintKey(input: {
+    name: string;
+    rootFolderId: string;
+    scopes: string[];
+    quotaBytes?: number | string;
+  }): Promise<{
+    keyId: string;
+    prefix: string;
+    secret: string;
+    rootFolderId: string;
+    name: string;
+  }> {
+    const b = await this.post('/integration/keys', {
+      name: input.name,
+      rootFolderId: input.rootFolderId,
+      scopes: input.scopes,
+      ...(input.quotaBytes != null ? { quotaBytes: input.quotaBytes } : {}),
+    });
+    const key = (b.key ?? b) as Record<string, any>;
+    const secret = str(b.secret ?? key.secret);
+    if (!secret) throw new WorkDriveError('bad_response', 'WorkDrive did not return a child key');
+    return {
+      keyId: str(key.id),
+      prefix: str(key.prefix),
+      secret,
+      rootFolderId: str(key.rootFolder?.id ?? key.rootFolderId ?? input.rootFolderId),
+      name: str(key.name ?? input.name),
+    };
+  }
+
+  async listChildKeys(): Promise<
+    Array<{
+      id: string;
+      name: string;
+      prefix: string;
+      revokedAt: string | null;
+      rootFolderId: string | null;
+    }>
+  > {
+    const b = await this.json<unknown>('/integration/keys');
+    const rows = Array.isArray(b) ? b : Array.isArray((b as any)?.keys) ? (b as any).keys : [];
+    return rows.map((k: any) => ({
+      id: str(k.id),
+      name: str(k.name),
+      prefix: str(k.prefix),
+      revokedAt: k.revokedAt ? str(k.revokedAt) : null,
+      rootFolderId: k.rootFolder?.id
+        ? str(k.rootFolder.id)
+        : k.rootFolderId
+          ? str(k.rootFolderId)
+          : null,
+    }));
+  }
+
+  async revokeChildKey(id: string) {
+    await this.post(`/integration/keys/${encodeURIComponent(id)}/revoke`, {});
+  }
+
+  async registerWebhook(input: { url: string; secret?: string; events: string[] }) {
+    const b = await this.post('/integration/webhooks', {
+      url: input.url,
+      events: input.events,
+      ...(input.secret ? { secret: input.secret } : {}),
+    });
+    const hook = (b.webhook ?? b) as Record<string, any>;
+    return {
+      webhookId: str(hook.id),
+      url: str(hook.url ?? input.url),
+      secret: str(b.secret ?? hook.secret ?? input.secret ?? ''),
+      events: Array.isArray(hook.events) ? hook.events.map(str) : input.events,
+    };
   }
 
   async quota(): Promise<{ usedBytes: number; quotaBytes: number | null }> {

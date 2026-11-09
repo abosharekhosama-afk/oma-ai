@@ -72,7 +72,8 @@
     "ui:pixel-capture-oma-rejected": "node scripts/pixel-parity/capture-oma-rejected.mjs",
     "ui:pixel-capture-planable": "node scripts/pixel-parity/capture-planable-reference.mjs",
     "ui:pixel-compare": "node scripts/pixel-parity/compare-pair.mjs",
-    "ui:pixel-parity-coverage": "node scripts/pixel-parity/validate-coverage.mjs"
+    "ui:pixel-parity-coverage": "node scripts/pixel-parity/validate-coverage.mjs",
+    "workdrive:register-webhook": "tsx scripts/register-workdrive-webhook.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",

@@ -1,12 +1,9 @@
-import { createHash } from 'node:crypto';
 import { getPrisma } from '@oma/db';
 import {
   backupBackoffMs,
   classifyBackupError,
   clientFromConnection,
   newId,
-  copyBufferAllowed,
-  copyMaxBufferBytes,
   internalMediaSegments,
   replicaFolderSegments,
   safeFileName,
@@ -283,23 +280,10 @@ async function processBackupJob(
   const replicaPath = storagePathOf(segs);
 
   let sourceUrl: string;
-  let sha256 = job.asset.sha256;
+  const sha256 = job.asset.sha256;
   try {
     const signed = await opts.master.downloadUrl(job.asset.workdriveFileId);
     sourceUrl = signed.url;
-    if (!sha256) {
-      const size = Number(job.asset.size);
-      if (!copyBufferAllowed(size, sha256)) {
-        throw new Error('File hash is missing; cannot stream a file this large safely');
-      }
-      const res = await (opts.fetchImpl ?? fetch)(sourceUrl);
-      if (!res.ok) throw new Error(`Master download failed (${res.status})`);
-      const bytes = Buffer.from(await res.arrayBuffer());
-      if (bytes.length > copyMaxBufferBytes()) {
-        throw new Error('Refusing to buffer a file larger than STORAGE_COPY_MAX_BUFFER_BYTES');
-      }
-      sha256 = createHash('sha256').update(bytes).digest('hex');
-    }
   } catch (e) {
     const info = classifyBackupError(e);
     if (info.skip) {
@@ -316,7 +300,7 @@ async function processBackupJob(
       name: safeFileName(job.asset.name),
       mimeType: job.asset.mime,
       size: Number(job.asset.size),
-      sha256,
+      sha256: sha256 ?? undefined,
       sourceUrl,
     });
     await markAssetReplica(job.asset.id, {
@@ -514,25 +498,14 @@ async function processMigrate(
   });
   try {
     const signed = await source.downloadUrl(job.asset.workdriveFileId);
-    let sha256 = job.asset.sha256;
-    if (!sha256) {
-      const size = Number(job.asset.size);
-      if (!copyBufferAllowed(size, sha256)) {
-        throw new Error('File hash is missing; cannot stream a file this large safely');
-      }
-      const res = await (opts.fetchImpl ?? fetch)(signed.url);
-      if (!res.ok) throw new Error(`Download failed (${res.status})`);
-      sha256 = createHash('sha256')
-        .update(Buffer.from(await res.arrayBuffer()))
-        .digest('hex');
-    }
+    const sha256 = job.asset.sha256;
     const folder = await opts.master.ensurePath(segs);
     const uploaded = await opts.master.uploadFromSignedSource({
       folderId: folder.folderId,
       name: safeFileName(job.asset.name),
       mimeType: job.asset.mime,
       size: Number(job.asset.size),
-      sha256,
+      sha256: sha256 ?? undefined,
       sourceUrl: signed.url,
     });
     const previousId = job.asset.workdriveFileId;
