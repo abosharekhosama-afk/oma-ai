@@ -57,6 +57,90 @@
         ]
       }
     },
+    "/api/v1/auth/providers": {
+      "get": {
+        "operationId": "AuthController_providers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/auth/oauth/{provider}/start": {
+      "post": {
+        "operationId": "AuthController_oauthStart",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/auth/oauth/{provider}/callback": {
+      "get": {
+        "operationId": "AuthController_oauthCallback",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/auth/sso/start": {
+      "post": {
+        "operationId": "AuthController_ssoStart",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/auth/sso/callback": {
+      "get": {
+        "operationId": "AuthController_ssoCallback",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/auth/terms/accept": {
+      "post": {
+        "operationId": "AuthController_acceptTerms",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
     "/api/v1/auth/logout": {
       "post": {
         "operationId": "AuthController_logout",
@@ -71,9 +155,37 @@
         ]
       }
     },
+    "/api/v1/auth/csrf": {
+      "get": {
+        "operationId": "AuthController_csrf",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
     "/api/v1/auth/me": {
       "get": {
         "operationId": "AuthController_me",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Auth"
+        ]
+      }
+    },
+    "/api/v1/auth/session/refresh": {
+      "post": {
+        "operationId": "AuthController_refresh",
         "parameters": [],
         "responses": {
           "200": {
@@ -141,6 +253,34 @@
         ]
       }
     },
+    "/api/v1/audit-events/feed": {
+      "get": {
+        "operationId": "AuditController_feed",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Audit"
+        ]
+      }
+    },
+    "/api/v1/audit-events/activity": {
+      "get": {
+        "operationId": "AuditController_activity",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Audit"
+        ]
+      }
+    },
     "/api/v1/tenants": {
       "post": {
         "operationId": "TenantController_create",
@@ -167,11 +307,37 @@
         "tags": [
           "Tenant"
         ]
+      },
+      "patch": {
+        "operationId": "TenantController_renameCurrent",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Tenant"
+        ]
       }
     },
     "/api/v1/tenants/current/memberships": {
       "get": {
         "operationId": "TenantController_memberships",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Tenant"
+        ]
+      }
+    },
+    "/api/v1/tenants/current/members": {
+      "get": {
+        "operationId": "TenantController_membersRead",
         "parameters": [],
         "responses": {
           "200": {
@@ -337,6 +503,34 @@
         ]
       }
     },
+    "/api/v1/notifications/unread-count": {
+      "get": {
+        "operationId": "NotificationsController_unreadCount",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
+    "/api/v1/notifications/read-all": {
+      "post": {
+        "operationId": "NotificationsController_markAllRead",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Notifications"
+        ]
+      }
+    },
     "/api/v1/notifications/{id}/read": {
       "post": {
         "operationId": "NotificationsController_markRead",
@@ -348,6 +542,226 @@
         },
         "tags": [
           "Notifications"
+        ]
+      }
+    },
+    "/api/v1/analytics": {
+      "get": {
+        "operationId": "AnalyticsController_overview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Analytics"
+        ]
+      }
+    },
+    "/api/v1/analytics/content": {
+      "get": {
+        "operationId": "AnalyticsController_content",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Analytics"
+        ]
+      }
+    },
+    "/api/v1/analytics/optimal-times": {
+      "get": {
+        "operationId": "AnalyticsController_optimalTimes",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Analytics"
+        ]
+      }
+    },
+    "/api/v1/analytics/optimal-times/heatmap": {
+      "get": {
+        "operationId": "AnalyticsController_optimalTimesHeatmap",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Analytics"
+        ]
+      }
+    },
+    "/api/v1/analytics/optimal-times/suggest": {
+      "get": {
+        "operationId": "AnalyticsController_optimalTimesSuggest",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Analytics"
+        ]
+      }
+    },
+    "/api/v1/me/profile": {
+      "get": {
+        "operationId": "AccountController_profile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Account"
+        ]
+      },
+      "patch": {
+        "operationId": "AccountController_updateProfile",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/api/v1/me/password": {
+      "post": {
+        "operationId": "AccountController_changePassword",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/api/v1/me/2fa/setup": {
+      "post": {
+        "operationId": "AccountController_setupTwoFactor",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/api/v1/me/2fa/verify": {
+      "post": {
+        "operationId": "AccountController_verifyTwoFactor",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/api/v1/me/2fa/disable": {
+      "post": {
+        "operationId": "AccountController_disableTwoFactor",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/api/v1/me/export": {
+      "get": {
+        "operationId": "AccountController_exportData",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/api/v1/me/account": {
+      "delete": {
+        "operationId": "AccountController_scheduleDeleteAccount",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/api/v1/me/account/cancel-deletion": {
+      "post": {
+        "operationId": "AccountController_cancelDeleteAccount",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Account"
+        ]
+      }
+    },
+    "/api/v1/me/preferences": {
+      "get": {
+        "operationId": "AccountController_preferences",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Account"
+        ]
+      },
+      "patch": {
+        "operationId": "AccountController_updatePreferences",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Account"
         ]
       }
     },
@@ -401,6 +815,18 @@
         "tags": [
           "Brand"
         ]
+      },
+      "delete": {
+        "operationId": "BrandController_remove",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Brand"
+        ]
       }
     },
     "/api/v1/brands/{brandId}/archive": {
@@ -409,6 +835,114 @@
         "parameters": [],
         "responses": {
           "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Brand"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/unarchive": {
+      "post": {
+        "operationId": "BrandController_unarchive",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Brand"
+        ]
+      }
+    },
+    "/api/v1/brands/-/deleted": {
+      "get": {
+        "operationId": "BrandController_deleted",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Brand"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/restore": {
+      "post": {
+        "operationId": "BrandController_restore",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Brand"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/purge": {
+      "post": {
+        "operationId": "BrandController_purge",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Brand"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/members": {
+      "get": {
+        "operationId": "BrandController_members",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Brand"
+        ]
+      },
+      "post": {
+        "operationId": "BrandController_addMember",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Brand"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/members/{userId}": {
+      "patch": {
+        "operationId": "BrandController_updateMember",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Brand"
+        ]
+      },
+      "delete": {
+        "operationId": "BrandController_removeMember",
+        "parameters": [],
+        "responses": {
+          "200": {
             "description": ""
           }
         },
@@ -1291,6 +1825,18 @@
         "tags": [
           "Demo"
         ]
+      },
+      "patch": {
+        "operationId": "DemoController_updateCampaign",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Demo"
+        ]
       }
     },
     "/api/v1/demo/content": {
@@ -1781,6 +2327,900 @@
         ]
       }
     },
+    "/api/v1/brands/{brandId}/campaigns": {
+      "get": {
+        "operationId": "CampaignController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Campaign"
+        ]
+      },
+      "post": {
+        "operationId": "CampaignController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Campaign"
+        ]
+      }
+    },
+    "/api/v1/campaigns/{campaignId}": {
+      "get": {
+        "operationId": "CampaignController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Campaign"
+        ]
+      },
+      "patch": {
+        "operationId": "CampaignController_update",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Campaign"
+        ]
+      }
+    },
+    "/api/v1/campaigns/{campaignId}/archive": {
+      "post": {
+        "operationId": "CampaignController_archive",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Campaign"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/content": {
+      "get": {
+        "operationId": "ContentController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      },
+      "post": {
+        "operationId": "ContentController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/api/v1/content/{contentId}/channel-analytics": {
+      "get": {
+        "operationId": "ContentController_channelAnalytics",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/api/v1/content/{contentId}": {
+      "get": {
+        "operationId": "ContentController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      },
+      "patch": {
+        "operationId": "ContentController_update",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/api/v1/content/{contentId}/request-approval": {
+      "post": {
+        "operationId": "ContentController_requestApproval",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/api/v1/content/{contentId}/approve": {
+      "post": {
+        "operationId": "ContentController_approve",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/api/v1/content/{contentId}/request-changes": {
+      "post": {
+        "operationId": "ContentController_requestChanges",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/api/v1/content/{contentId}/reject": {
+      "post": {
+        "operationId": "ContentController_reject",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/api/v1/content/{contentId}/mark-published": {
+      "post": {
+        "operationId": "ContentController_markPublished",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/api/v1/content/{contentId}/publish-now": {
+      "post": {
+        "operationId": "ContentController_publishNow",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/api/v1/content/{contentId}/ungroup": {
+      "post": {
+        "operationId": "ContentController_ungroup",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/api/v1/content/{contentId}/detach": {
+      "post": {
+        "operationId": "ContentController_detach",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/api/v1/content/{contentId}/copy-to": {
+      "post": {
+        "operationId": "ContentController_copyTo",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/api/v1/content/{contentId}/preferred-audience": {
+      "post": {
+        "operationId": "ContentController_preferredAudience",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/api/v1/content/{contentId}/comments/{commentId}": {
+      "patch": {
+        "operationId": "ContentController_updateComment",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      },
+      "delete": {
+        "operationId": "ContentController_deleteComment",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/api/v1/content/{contentId}/comments/{commentId}/resolve": {
+      "post": {
+        "operationId": "ContentController_resolveComment",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/api/v1/content/{contentId}/comments/{commentId}/react": {
+      "post": {
+        "operationId": "ContentController_reactComment",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/api/v1/content/{contentId}/comments": {
+      "get": {
+        "operationId": "ContentController_listComments",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      },
+      "post": {
+        "operationId": "ContentController_addComment",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/api/v1/content/{contentId}/enqueue": {
+      "post": {
+        "operationId": "ContentController_enqueue",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/api/v1/content/{contentId}/schedule": {
+      "post": {
+        "operationId": "ContentController_schedule",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/api/v1/content/{contentId}/unschedule": {
+      "post": {
+        "operationId": "ContentController_unschedule",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/api/v1/content/{contentId}/archive": {
+      "post": {
+        "operationId": "ContentController_archive",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/api/v1/content/{contentId}/duplicate": {
+      "post": {
+        "operationId": "ContentController_duplicate",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/content-preferences": {
+      "get": {
+        "operationId": "ContentController_getPrefs",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      },
+      "patch": {
+        "operationId": "ContentController_patchPrefs",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Content"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/day-notes": {
+      "get": {
+        "operationId": "ContentExtrasController_listNotes",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "ContentExtras"
+        ]
+      },
+      "post": {
+        "operationId": "ContentExtrasController_upsertNote",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "ContentExtras"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/day-notes/{dayKey}": {
+      "delete": {
+        "operationId": "ContentExtrasController_deleteNote",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "ContentExtras"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/content-labels": {
+      "get": {
+        "operationId": "ContentExtrasController_listLabels",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "ContentExtras"
+        ]
+      },
+      "post": {
+        "operationId": "ContentExtrasController_createLabel",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "ContentExtras"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/content-labels/{labelId}": {
+      "delete": {
+        "operationId": "ContentExtrasController_deleteLabel",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "ContentExtras"
+        ]
+      }
+    },
+    "/api/v1/content/{contentId}/labels": {
+      "post": {
+        "operationId": "ContentExtrasController_setLabels",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "ContentExtras"
+        ]
+      }
+    },
+    "/api/v1/content/{contentId}/visibility": {
+      "post": {
+        "operationId": "ContentExtrasController_setVisibility",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "ContentExtras"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/content-templates": {
+      "get": {
+        "operationId": "ContentExtrasController_listTemplates",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "ContentExtras"
+        ]
+      },
+      "post": {
+        "operationId": "ContentExtrasController_createTemplate",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "ContentExtras"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/content-templates/{templateId}": {
+      "delete": {
+        "operationId": "ContentExtrasController_deleteTemplate",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "ContentExtras"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/content-templates/{templateId}/use": {
+      "post": {
+        "operationId": "ContentExtrasController_useTemplate",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "ContentExtras"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/requests": {
+      "get": {
+        "operationId": "OpsController_listRequests",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ops"
+        ]
+      },
+      "post": {
+        "operationId": "OpsController_createRequest",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ops"
+        ]
+      }
+    },
+    "/api/v1/requests/{requestId}": {
+      "get": {
+        "operationId": "OpsController_getRequest",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ops"
+        ]
+      },
+      "patch": {
+        "operationId": "OpsController_updateRequest",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ops"
+        ]
+      }
+    },
+    "/api/v1/requests/{requestId}/convert-to-task": {
+      "post": {
+        "operationId": "OpsController_convertToTask",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ops"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/tasks": {
+      "get": {
+        "operationId": "OpsController_listTasks",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ops"
+        ]
+      },
+      "post": {
+        "operationId": "OpsController_createTask",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ops"
+        ]
+      }
+    },
+    "/api/v1/tasks/{taskId}": {
+      "patch": {
+        "operationId": "OpsController_updateTask",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ops"
+        ]
+      },
+      "get": {
+        "operationId": "OpsController_getTask",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ops"
+        ]
+      }
+    },
+    "/api/v1/tasks/{taskId}/convert-to-deliverable": {
+      "post": {
+        "operationId": "OpsController_convertToDeliverable",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ops"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/deliverables": {
+      "get": {
+        "operationId": "OpsController_listDeliverables",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ops"
+        ]
+      }
+    },
+    "/api/v1/deliverables/{deliverableId}": {
+      "get": {
+        "operationId": "OpsController_getDeliverable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ops"
+        ]
+      },
+      "patch": {
+        "operationId": "OpsController_updateDeliverable",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ops"
+        ]
+      }
+    },
+    "/api/v1/deliverables/{deliverableId}/review": {
+      "post": {
+        "operationId": "OpsController_reviewDeliverable",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ops"
+        ]
+      }
+    },
+    "/api/v1/deliverables/{deliverableId}/versions": {
+      "post": {
+        "operationId": "OpsController_addDeliverableVersion",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ops"
+        ]
+      }
+    },
+    "/api/v1/deliverables/{deliverableId}/annotations": {
+      "post": {
+        "operationId": "OpsController_addDeliverableAnnotation",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ops"
+        ]
+      }
+    },
+    "/api/v1/deliverable-annotations/{annotationId}": {
+      "patch": {
+        "operationId": "OpsController_resolveAnnotation",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ops"
+        ]
+      }
+    },
+    "/api/v1/deliverables/{deliverableId}/comments": {
+      "post": {
+        "operationId": "OpsController_addDeliverableComment",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ops"
+        ]
+      }
+    },
+    "/api/v1/tasks/{taskId}/checklist": {
+      "post": {
+        "operationId": "OpsController_addChecklist",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ops"
+        ]
+      }
+    },
+    "/api/v1/tasks/{taskId}/checklist/{itemId}": {
+      "patch": {
+        "operationId": "OpsController_updateChecklist",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ops"
+        ]
+      }
+    },
+    "/api/v1/tasks/{taskId}/comments": {
+      "post": {
+        "operationId": "OpsController_addTaskComment",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Ops"
+        ]
+      }
+    },
     "/api/v1/ai/status": {
       "get": {
         "operationId": "AiController_status",
@@ -1876,6 +3316,1450 @@
         },
         "tags": [
           "Ai"
+        ]
+      }
+    },
+    "/api/v1/workspace/settings": {
+      "get": {
+        "operationId": "WorkspaceSettingsController_getSettings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "WorkspaceSettings"
+        ]
+      },
+      "patch": {
+        "operationId": "WorkspaceSettingsController_patchSettings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "WorkspaceSettings"
+        ]
+      }
+    },
+    "/api/v1/workspace/holiday-calendars": {
+      "patch": {
+        "operationId": "WorkspaceSettingsController_patchHolidayCalendars",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "WorkspaceSettings"
+        ]
+      }
+    },
+    "/api/v1/workspace/time-slots": {
+      "get": {
+        "operationId": "WorkspaceSettingsController_listSlots",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "WorkspaceSettings"
+        ]
+      },
+      "post": {
+        "operationId": "WorkspaceSettingsController_createSlot",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "WorkspaceSettings"
+        ]
+      }
+    },
+    "/api/v1/workspace/time-slots/{slotId}": {
+      "delete": {
+        "operationId": "WorkspaceSettingsController_deleteSlot",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "WorkspaceSettings"
+        ]
+      }
+    },
+    "/api/v1/workspace/publish-queues": {
+      "get": {
+        "operationId": "PublishQueuesController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PublishQueues"
+        ]
+      },
+      "put": {
+        "operationId": "PublishQueuesController_upsert",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "PublishQueues"
+        ]
+      }
+    },
+    "/api/v1/home": {
+      "get": {
+        "operationId": "HomeController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Home"
+        ]
+      }
+    },
+    "/api/v1/activity": {
+      "get": {
+        "operationId": "ActivityController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Activity"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/social-pages": {
+      "get": {
+        "operationId": "SocialController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Social"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/social-pages/oauth/{network}/start": {
+      "post": {
+        "operationId": "SocialController_start",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Social"
+        ]
+      }
+    },
+    "/api/v1/social/oauth/{network}/callback": {
+      "get": {
+        "operationId": "SocialController_callback",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Social"
+        ]
+      }
+    },
+    "/api/v1/social-pages/{pageId}": {
+      "delete": {
+        "operationId": "SocialController_disconnect",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Social"
+        ]
+      }
+    },
+    "/api/v1/content/{contentId}/publish-target": {
+      "post": {
+        "operationId": "SocialController_target",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Social"
+        ]
+      }
+    },
+    "/api/v1/workspace/storage": {
+      "get": {
+        "operationId": "WorkDriveController_storage",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "WorkDrive"
+        ]
+      },
+      "patch": {
+        "operationId": "WorkDriveController_updateStorage",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "WorkDrive"
+        ]
+      }
+    },
+    "/api/v1/workspace/storage/backup": {
+      "get": {
+        "operationId": "WorkDriveController_backupStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "WorkDrive"
+        ]
+      }
+    },
+    "/api/v1/workspace/storage/backup/backfill": {
+      "post": {
+        "operationId": "WorkDriveController_backfillBackup",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "WorkDrive"
+        ]
+      }
+    },
+    "/api/v1/workspace/storage/backup/retry-failed": {
+      "post": {
+        "operationId": "WorkDriveController_retryBackup",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "WorkDrive"
+        ]
+      }
+    },
+    "/api/v1/workspace/storage/migrate": {
+      "get": {
+        "operationId": "WorkDriveController_migrateStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "WorkDrive"
+        ]
+      },
+      "post": {
+        "operationId": "WorkDriveController_startMigrate",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "WorkDrive"
+        ]
+      }
+    },
+    "/api/v1/workspace/storage/migrate/cancel": {
+      "post": {
+        "operationId": "WorkDriveController_cancelMigrate",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "WorkDrive"
+        ]
+      }
+    },
+    "/api/v1/workspace/workdrive": {
+      "get": {
+        "operationId": "WorkDriveController_status",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "WorkDrive"
+        ]
+      },
+      "put": {
+        "operationId": "WorkDriveController_connect",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "WorkDrive"
+        ]
+      },
+      "delete": {
+        "operationId": "WorkDriveController_disconnect",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "WorkDrive"
+        ]
+      }
+    },
+    "/api/v1/workspace/workdrive/test": {
+      "post": {
+        "operationId": "WorkDriveController_test",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "WorkDrive"
+        ]
+      }
+    },
+    "/api/v1/me/avatar": {
+      "post": {
+        "operationId": "MediaController_uploadAvatar",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Media"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/media": {
+      "get": {
+        "operationId": "MediaController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Media"
+        ]
+      },
+      "post": {
+        "operationId": "MediaController_upload",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Media"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/media/upload-grant": {
+      "post": {
+        "operationId": "MediaController_uploadGrant",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Media"
+        ]
+      }
+    },
+    "/api/v1/media/upload-complete": {
+      "post": {
+        "operationId": "MediaController_uploadComplete",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Media"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/media/import": {
+      "post": {
+        "operationId": "MediaController_importFile",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Media"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/media/browse": {
+      "get": {
+        "operationId": "MediaController_browse",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Media"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/media/folders": {
+      "post": {
+        "operationId": "MediaController_createFolder",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Media"
+        ]
+      }
+    },
+    "/api/v1/brands/{brandId}/media/file-preview": {
+      "get": {
+        "operationId": "MediaController_filePreview",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Media"
+        ]
+      }
+    },
+    "/api/v1/media/{assetId}": {
+      "get": {
+        "operationId": "MediaController_details",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Media"
+        ]
+      },
+      "delete": {
+        "operationId": "MediaController_remove",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Media"
+        ]
+      }
+    },
+    "/api/v1/media/{assetId}/url": {
+      "get": {
+        "operationId": "MediaController_url",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Media"
+        ]
+      }
+    },
+    "/api/v1/media/{assetId}/view": {
+      "get": {
+        "operationId": "MediaController_view",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Media"
+        ]
+      }
+    },
+    "/api/v1/media/{assetId}/stream": {
+      "get": {
+        "operationId": "MediaController_stream",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Media"
+        ]
+      }
+    },
+    "/api/v1/billing/plans": {
+      "get": {
+        "operationId": "BillingController_plans",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Billing"
+        ]
+      }
+    },
+    "/api/v1/billing/providers": {
+      "get": {
+        "operationId": "BillingController_providers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Billing"
+        ]
+      }
+    },
+    "/api/v1/billing/subscription": {
+      "get": {
+        "operationId": "BillingController_subscription",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Billing"
+        ]
+      }
+    },
+    "/api/v1/billing/invoices": {
+      "get": {
+        "operationId": "BillingController_invoices",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Billing"
+        ]
+      }
+    },
+    "/api/v1/billing/entitlements": {
+      "get": {
+        "operationId": "BillingController_entitlements",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Billing"
+        ]
+      }
+    },
+    "/api/v1/billing/upgrade-requests": {
+      "post": {
+        "operationId": "BillingController_requestUpgrade",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Billing"
+        ]
+      },
+      "get": {
+        "operationId": "BillingController_listRequests",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Billing"
+        ]
+      }
+    },
+    "/api/v1/billing/checkouts": {
+      "post": {
+        "operationId": "BillingController_startCheckout",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Billing"
+        ]
+      },
+      "get": {
+        "operationId": "BillingController_listCheckouts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Billing"
+        ]
+      }
+    },
+    "/api/v1/billing/checkouts/{id}/cancel": {
+      "post": {
+        "operationId": "BillingController_cancelCheckout",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Billing"
+        ]
+      }
+    },
+    "/api/v1/billing/manual-orders/proof": {
+      "post": {
+        "operationId": "BillingController_submitProof",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Billing"
+        ]
+      }
+    },
+    "/api/v1/billing/portal": {
+      "post": {
+        "operationId": "BillingController_portal",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Billing"
+        ]
+      }
+    },
+    "/api/v1/billing/confirm": {
+      "post": {
+        "operationId": "BillingController_confirm",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Billing"
+        ]
+      }
+    },
+    "/api/v1/billing/subscription/cancel": {
+      "post": {
+        "operationId": "BillingController_cancelAtPeriodEnd",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Billing"
+        ]
+      }
+    },
+    "/api/v1/billing/subscription/resume": {
+      "post": {
+        "operationId": "BillingController_resume",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Billing"
+        ]
+      }
+    },
+    "/api/v1/admin/billing/workspaces": {
+      "get": {
+        "operationId": "BillingAdminController_workspaces",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "BillingAdmin"
+        ]
+      }
+    },
+    "/api/v1/admin/billing/orders": {
+      "get": {
+        "operationId": "BillingAdminController_orders",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "BillingAdmin"
+        ]
+      }
+    },
+    "/api/v1/admin/billing/orders/{id}/receipt": {
+      "get": {
+        "operationId": "BillingAdminController_receipt",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "BillingAdmin"
+        ]
+      }
+    },
+    "/api/v1/admin/billing/settings": {
+      "get": {
+        "operationId": "BillingAdminController_settings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "BillingAdmin"
+        ]
+      },
+      "patch": {
+        "operationId": "BillingAdminController_updateSettings",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "BillingAdmin"
+        ]
+      }
+    },
+    "/api/v1/admin/billing/workspaces/{tenantId}/activate": {
+      "post": {
+        "operationId": "BillingAdminController_activate",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "BillingAdmin"
+        ]
+      }
+    },
+    "/api/v1/admin/billing/workspaces/{tenantId}/extend": {
+      "post": {
+        "operationId": "BillingAdminController_extend",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "BillingAdmin"
+        ]
+      }
+    },
+    "/api/v1/admin/billing/workspaces/{tenantId}/cancel": {
+      "post": {
+        "operationId": "BillingAdminController_cancel",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "BillingAdmin"
+        ]
+      }
+    },
+    "/api/v1/admin/billing/orders/{id}/approve": {
+      "post": {
+        "operationId": "BillingAdminController_approve",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "BillingAdmin"
+        ]
+      }
+    },
+    "/api/v1/admin/billing/orders/{id}/reject": {
+      "post": {
+        "operationId": "BillingAdminController_reject",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "BillingAdmin"
+        ]
+      }
+    },
+    "/api/webhooks/billing/stripe": {
+      "post": {
+        "operationId": "BillingWebhookController_stripe",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "BillingWebhook"
+        ]
+      }
+    },
+    "/api/webhooks/billing/lahza": {
+      "post": {
+        "operationId": "BillingWebhookController_lahza",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "BillingWebhook"
+        ]
+      }
+    },
+    "/api/v1/inbox/stats": {
+      "get": {
+        "operationId": "InboxController_stats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Inbox"
+        ]
+      }
+    },
+    "/api/v1/inbox/conversations": {
+      "get": {
+        "operationId": "InboxController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Inbox"
+        ]
+      }
+    },
+    "/api/v1/inbox/conversations/{id}": {
+      "get": {
+        "operationId": "InboxController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Inbox"
+        ]
+      }
+    },
+    "/api/v1/inbox/conversations/{id}/reply": {
+      "post": {
+        "operationId": "InboxController_reply",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Inbox"
+        ]
+      }
+    },
+    "/api/v1/inbox/conversations/{id}/assign": {
+      "post": {
+        "operationId": "InboxController_assign",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Inbox"
+        ]
+      }
+    },
+    "/api/v1/inbox/conversations/{id}/tags": {
+      "post": {
+        "operationId": "InboxController_tags",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Inbox"
+        ]
+      }
+    },
+    "/api/v1/inbox/conversations/{id}/priority": {
+      "post": {
+        "operationId": "InboxController_priority",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Inbox"
+        ]
+      }
+    },
+    "/api/v1/inbox/conversations/{id}/notes": {
+      "post": {
+        "operationId": "InboxController_notes",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Inbox"
+        ]
+      }
+    },
+    "/api/v1/inbox/conversations/{id}/status": {
+      "post": {
+        "operationId": "InboxController_status",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Inbox"
+        ]
+      }
+    },
+    "/api/v1/inbox/sync": {
+      "post": {
+        "operationId": "InboxController_sync",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Inbox"
+        ]
+      }
+    },
+    "/api/v1/inbox/connections": {
+      "get": {
+        "operationId": "InboxController_connections",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Inbox"
+        ]
+      }
+    },
+    "/api/v1/inbox/messages/{messageId}/hide": {
+      "post": {
+        "operationId": "InboxController_hideMessage",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Inbox"
+        ]
+      }
+    },
+    "/api/v1/inbox/messages/{messageId}/delete": {
+      "post": {
+        "operationId": "InboxController_deleteMessage",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Inbox"
+        ]
+      }
+    },
+    "/api/v1/inbox/messages/{messageId}/like": {
+      "post": {
+        "operationId": "InboxController_likeMessage",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Inbox"
+        ]
+      }
+    },
+    "/api/v1/inbox/conversations/bulk": {
+      "post": {
+        "operationId": "InboxController_bulk",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Inbox"
+        ]
+      }
+    },
+    "/api/v1/listening/sources": {
+      "get": {
+        "operationId": "ListeningController_sources",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Listening"
+        ]
+      }
+    },
+    "/api/v1/listening/rules": {
+      "get": {
+        "operationId": "ListeningController_listRules",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Listening"
+        ]
+      },
+      "post": {
+        "operationId": "ListeningController_createRule",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Listening"
+        ]
+      }
+    },
+    "/api/v1/listening/rules/{id}": {
+      "post": {
+        "operationId": "ListeningController_updateRule",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Listening"
+        ]
+      },
+      "delete": {
+        "operationId": "ListeningController_deleteRule",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Listening"
+        ]
+      }
+    },
+    "/api/v1/listening/stats": {
+      "get": {
+        "operationId": "ListeningController_stats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Listening"
+        ]
+      }
+    },
+    "/api/v1/listening/hits": {
+      "get": {
+        "operationId": "ListeningController_listHits",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Listening"
+        ]
+      }
+    },
+    "/api/v1/listening/hits/{id}": {
+      "patch": {
+        "operationId": "ListeningController_patchHit",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Listening"
+        ]
+      }
+    },
+    "/api/v1/listening/sync": {
+      "post": {
+        "operationId": "ListeningController_sync",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Listening"
+        ]
+      }
+    },
+    "/api/v1/listening/competitors": {
+      "get": {
+        "operationId": "ListeningController_competitors",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Listening"
+        ]
+      }
+    },
+    "/api/v1/listening/alerts": {
+      "get": {
+        "operationId": "ListeningController_listAlerts",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Listening"
+        ]
+      },
+      "post": {
+        "operationId": "ListeningController_createAlert",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Listening"
+        ]
+      }
+    },
+    "/api/v1/listening/alerts/{id}": {
+      "patch": {
+        "operationId": "ListeningController_updateAlert",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Listening"
+        ]
+      },
+      "delete": {
+        "operationId": "ListeningController_deleteAlert",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Listening"
+        ]
+      }
+    },
+    "/api/webhooks/meta": {
+      "get": {
+        "operationId": "WebhooksController_metaVerify",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Webhooks"
+        ]
+      },
+      "post": {
+        "operationId": "WebhooksController_metaIngress",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Webhooks"
+        ]
+      }
+    },
+    "/api/webhooks/whatsapp": {
+      "get": {
+        "operationId": "WebhooksController_whatsappVerify",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Webhooks"
+        ]
+      },
+      "post": {
+        "operationId": "WebhooksController_whatsappIngress",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Webhooks"
+        ]
+      }
+    },
+    "/api/webhooks/tiktok": {
+      "get": {
+        "operationId": "WebhooksController_tiktokVerify",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Webhooks"
+        ]
+      },
+      "post": {
+        "operationId": "WebhooksController_tiktokIngress",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Webhooks"
+        ]
+      }
+    },
+    "/api/webhooks/linkedin": {
+      "post": {
+        "operationId": "WebhooksController_linkedinIngress",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Webhooks"
+        ]
+      }
+    },
+    "/api/webhooks/x": {
+      "get": {
+        "operationId": "WebhooksController_xCrc",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Webhooks"
+        ]
+      },
+      "post": {
+        "operationId": "WebhooksController_xIngress",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Webhooks"
         ]
       }
     }

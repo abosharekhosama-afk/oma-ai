@@ -136,7 +136,8 @@ function createDefault(): AnalyticsCache {
     enableOfflineQueue: false,
   });
   redis.on('error', () => undefined);
-  void redis.connect().catch(() => undefined);
+  // Connect on first command (lazyConnect). An eager connect() here keeps the
+  // Node process alive after OpenAPI generation and other short-lived scripts.
   return new AnalyticsCache(new RedisStore(redis));
 }
 
