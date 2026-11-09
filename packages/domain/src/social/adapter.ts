@@ -73,6 +73,14 @@ export type PostInsights = {
   fetchedAt: string;
 };
 
+/** A post that already exists on the network (used to backfill optimal-time snapshots). */
+export type RecentNetworkPost = {
+  externalPostId: string;
+  publishedAt: Date;
+  url?: string | null;
+  insights?: PostInsights | null;
+};
+
 /**
  * Errors from a network. `retryable` drives worker backoff; `reauth` means the token is no
  * longer valid and the page must be reconnected (status NEEDS_REAUTH + alert).
@@ -115,6 +123,15 @@ export interface SocialProviderAdapter {
   fetchPublishStatus?(page: PublishablePage, externalId: string): Promise<PublishStatusResult>;
   /** Optional live engagement for a published post id. Return null when the network has none. */
   fetchInsights?(page: PublishablePage, externalPostId: string): Promise<PostInsights | null>;
+  /**
+   * Optional listing of recent live posts (including those not published via OMA).
+   * Used to backfill PostMetricSnapshot. Omit when the network has no list API
+   * (WhatsApp). Return [] when the token cannot list posts.
+   */
+  listRecentPosts?(
+    page: PublishablePage,
+    opts?: { limit?: number; since?: Date },
+  ): Promise<RecentNetworkPost[]>;
 }
 
 export async function readJson(res: Response): Promise<Record<string, unknown>> {

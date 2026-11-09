@@ -594,10 +594,27 @@ export function startSocialJobs(
     },
     Number(process.env.OPTIMAL_TIMES_STARTUP_DELAY_MS ?? 45_000),
   );
+  const historical = setInterval(
+    () => {
+      void import('./historical-import')
+        .then(({ runHistoricalImportTick }) => runHistoricalImportTick())
+        .catch((e) => log.error({ err: String(e) }, 'historical post import tick failed'));
+    },
+    Number(process.env.HISTORICAL_IMPORT_INTERVAL_MS ?? 24 * 60 * 60_000),
+  );
+  setTimeout(
+    () => {
+      void import('./historical-import')
+        .then(({ runHistoricalImportTick }) => runHistoricalImportTick())
+        .catch((e) => log.error({ err: String(e) }, 'historical post import startup tick failed'));
+    },
+    Number(process.env.HISTORICAL_IMPORT_STARTUP_DELAY_MS ?? 90_000),
+  );
   return () => {
     clearInterval(publish);
     clearInterval(refresh);
     clearInterval(insights);
     clearInterval(optimal);
+    clearInterval(historical);
   };
 }

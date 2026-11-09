@@ -29,6 +29,8 @@ export function SchedulePostCard({
   openLabel,
   openPostLabel,
   bucketLabel,
+  bestTime,
+  bestTimeLabel,
   onOpen,
 }: {
   post: Row;
@@ -41,6 +43,8 @@ export function SchedulePostCard({
   openLabel: string;
   openPostLabel: string;
   bucketLabel: string;
+  bestTime?: boolean;
+  bestTimeLabel?: string;
   onOpen: () => void;
 }) {
   const title = contentTitleText(
@@ -76,6 +80,13 @@ export function SchedulePostCard({
           <header className="oma-plx-sched-post-card__head">
             <span className="oma-plx-sched-post-card__when oma-ltr">
               {weekdayLabel} · {when}
+              {bestTime ? (
+                <span
+                  className="oma-sched-best-inline"
+                  title={bestTimeLabel}
+                  aria-label={bestTimeLabel}
+                />
+              ) : null}
             </span>
             <span className="oma-plx-sched-post-card__status">
               <StatusMark display={displayForScheduleBucket(bucket)} locale={locale} />

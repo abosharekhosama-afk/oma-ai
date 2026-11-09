@@ -5,6 +5,7 @@ import {
   type ConnectedAccount,
   type FetchLike,
   type PostInsights,
+  type RecentNetworkPost,
   type PublishablePage,
   type PublishInput,
   type PublishResult,
@@ -187,5 +188,41 @@ export class LinkedInAdapter implements SocialProviderAdapter {
       comments: Number.isFinite(comments) ? comments : 0,
       fetchedAt: new Date().toISOString(),
     };
+  }
+
+  /**
+   * Best-effort listing via `/rest/posts?q=author`. Organization tokens without
+   * Community Management access return [] and the importer skips the page.
+   */
+  async listRecentPosts(
+    page: PublishablePage,
+    opts?: { limit?: number },
+  ): Promise<RecentNetworkPost[]> {
+    const author = encodeURIComponent(page.externalId);
+    const count = Math.min(50, Math.max(1, opts?.limit ?? 20));
+    const res = await this.fetchFn(
+      `https://api.linkedin.com/rest/posts?q=author&author=${author}&count=${count}`,
+      { headers: this.headers(page.accessToken) },
+    );
+    const body = await readJson(res);
+    if (!res.ok) return [];
+    const elements = (body.elements as Array<Record<string, unknown>> | undefined) ?? [];
+    const out: RecentNetworkPost[] = [];
+    for (const row of elements) {
+      const id = String(row.id ?? row.urn ?? '');
+      const createdRaw = row.createdAt ?? row.publishedAt;
+      const created =
+        typeof createdRaw === 'number'
+          ? new Date(createdRaw)
+          : createdRaw
+            ? new Date(String(createdRaw))
+            : null;
+      if (!id || !created || Number.isNaN(created.getTime())) continue;
+      out.push({
+        externalPostId: id,
+        publishedAt: created,
+      });
+    }
+    return out;
   }
 }

@@ -3,6 +3,7 @@ import { MediaController, WorkDriveController } from './media/media.controller';
 import { BrandScopeMiddleware } from './common/middleware/brand-scope.middleware';
 import { ActivityController, HomeController } from './home/home.controller';
 import { WorkspaceSettingsController } from './workspace/workspace-settings.controller';
+import { PublishQueuesController } from './workspace/publish-queues.controller';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { DomainExceptionFilter } from './common/filters/domain-exception.filter';
@@ -66,6 +67,7 @@ import { WebhooksController } from './webhooks/webhooks.controller';
     OpsController,
     AiController,
     WorkspaceSettingsController,
+    PublishQueuesController,
     HomeController,
     ActivityController,
     SocialController,

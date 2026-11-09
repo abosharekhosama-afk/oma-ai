@@ -6,6 +6,7 @@ import {
   SocialProviderError,
   type FetchLike,
   type PostInsights,
+  type RecentNetworkPost,
   type PublishablePage,
   type PublishInput,
   type PublishResult,
@@ -499,5 +500,53 @@ export class TikTokAdapter implements SocialProviderAdapter {
       impressions: Number(row.view_count) || 0,
       fetchedAt: new Date().toISOString(),
     };
+  }
+
+  async listRecentPosts(
+    page: PublishablePage,
+    opts?: { limit?: number },
+  ): Promise<RecentNetworkPost[]> {
+    const limit = Math.min(20, Math.max(1, opts?.limit ?? 20));
+    const res = await this.fetchFn(
+      `${API}/v2/video/list/?fields=id,create_time,share_url,like_count,comment_count,share_count,view_count`,
+      {
+        method: 'POST',
+        headers: {
+          authorization: `Bearer ${page.accessToken}`,
+          'content-type': 'application/json; charset=UTF-8',
+        },
+        body: JSON.stringify({ max_count: limit }),
+      },
+    );
+    const body = await readJson(res);
+    if (!res.ok) return [];
+    const videos =
+      (body.data as { videos?: Array<Record<string, unknown>> } | undefined)?.videos ?? [];
+    const out: RecentNetworkPost[] = [];
+    for (const row of videos) {
+      const id = String(row.id ?? '');
+      const createdRaw = row.create_time;
+      const created =
+        typeof createdRaw === 'number'
+          ? new Date(createdRaw * 1000)
+          : createdRaw
+            ? new Date(String(createdRaw))
+            : null;
+      if (!id || !created || Number.isNaN(created.getTime())) continue;
+      out.push({
+        externalPostId: id,
+        publishedAt: created,
+        url: typeof row.share_url === 'string' ? row.share_url : null,
+        insights: {
+          likes: Number(row.like_count) || 0,
+          comments: Number(row.comment_count) || 0,
+          shares: Number(row.share_count) || 0,
+          views: Number(row.view_count) || 0,
+          impressions: Number(row.view_count) || 0,
+          fetchedAt: new Date().toISOString(),
+        },
+      });
+    }
+    return out;
   }
 }

@@ -3274,3 +3274,63 @@ main.oma-container:has(.oma-sched-page) {
     box-sizing: border-box !important;
   }
 }
+
+/* Optimal send-time markers — stay outside the day-column overflow chain (PR #125). */
+.oma-sched-best-times {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 4px;
+  max-width: 100%;
+  flex-shrink: 0;
+  margin-block-start: 4px;
+  pointer-events: auto;
+}
+.oma-sched-best-dot,
+.oma-sched-best-inline {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+  background: var(--oma-action-primary, var(--oma-primary));
+  box-shadow: 0 0 0 2px
+    color-mix(in srgb, var(--oma-action-primary, var(--oma-primary)) 18%, transparent);
+}
+.oma-sched-best-dot--high {
+  background: var(--oma-action-primary, var(--oma-primary));
+}
+.oma-sched-best-dot--medium {
+  opacity: 0.72;
+}
+.oma-sched-best-dot--low {
+  opacity: 0.45;
+}
+.oma-sched-best-inline {
+  display: inline-block;
+  margin-inline-start: 6px;
+  vertical-align: middle;
+}
+.oma-compose-queue {
+  border: 1px solid
+    color-mix(in srgb, var(--oma-action-primary, var(--oma-primary)) 35%, transparent);
+  background: color-mix(in srgb, var(--oma-action-primary, var(--oma-primary)) 10%, transparent);
+  color: var(--oma-action-primary-text, inherit);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.oma-compose-queue:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.oma-ws-queue {
+  margin-block-start: 1.5rem;
+  display: grid;
+  gap: 0.75rem;
+}
+.oma-ws-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

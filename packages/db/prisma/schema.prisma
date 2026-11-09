@@ -1748,6 +1748,7 @@ model SocialPage {
   metricSnapshots  PostMetricSnapshot[]
   activityBuckets  AudienceActivityBucket[]
   optimalTimeSlots OptimalTimeSlot[]
+  publishQueue     PublishQueue?
 
   @@unique([brandId, network, externalId])
   @@index([tenantId, brandId])
@@ -1755,14 +1756,47 @@ model SocialPage {
 }
 
 
+
+/// Per-account auto-queue that assigns the next free send slot.
+model PublishQueue {
+  id           String      @id
+  tenantId     String
+  socialPageId String      @unique
+  enabled      Boolean     @default(false)
+  slotsPerDay  Int         @default(3)
+  windowStart  String?
+  windowEnd    String?
+  split        String      @default("per_day")
+  useSuggested Boolean     @default(true)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  socialPage   SocialPage  @relation(fields: [socialPageId], references: [id], onDelete: Cascade)
+  slots        QueueSlot[]
+
+  @@index([tenantId])
+}
+
+model QueueSlot {
+  id        String       @id
+  queueId   String
+  dayOfWeek Int
+  timeLocal String
+  origin    String
+  enabled   Boolean      @default(true)
+  queue     PublishQueue @relation(fields: [queueId], references: [id], onDelete: Cascade)
+
+  @@unique([queueId, dayOfWeek, timeLocal])
+}
+
 /// Latest extracted insights for a published target (indexed columns for aggregation).
 model PostMetricSnapshot {
   id              String     @id
   tenantId        String
   brandId         String
   socialPageId    String
-  publishTargetId String     @unique
-  contentItemId   String
+  publishTargetId String?    @unique
+  contentItemId   String?
+  externalPostId  String?
   publishedAt     DateTime
   impressions     Int?
   reach           Int?
@@ -1779,6 +1813,7 @@ model PostMetricSnapshot {
   updatedAt       DateTime   @updatedAt
   socialPage      SocialPage @relation(fields: [socialPageId], references: [id], onDelete: Cascade)
 
+  @@unique([socialPageId, externalPostId])
   @@index([tenantId, socialPageId, publishedAt])
   @@index([tenantId, brandId])
   @@index([contentItemId])

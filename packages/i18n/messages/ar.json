@@ -2852,5 +2852,22 @@
   "members.role.billing_desc": "إدارة الخطط والفواتير والمدفوعات",
   "errors.provider_not_configured": "طريقة الدفع هذه غير مهيأة بعد.",
   "errors.stripe_not_configured": "لم يتم إعداد Stripe بعد.",
-  "errors.lahza_not_configured": "لم يتم إعداد لحظة / بنك فلسطين بعد."
+  "errors.lahza_not_configured": "لم يتم إعداد لحظة / بنك فلسطين بعد.",
+  "schedule.bestTime.dot": "أفضل وقت · {time}",
+  "content.bestTime.enqueue": "إضافة إلى الطابور",
+  "content.bestTime.enqueued": "أُضيف إلى الطابور في {time}",
+  "content.bestTime.enqueueFailed": "لا يوجد وقت شاغر في الطابور خلال الأسابيع الثلاثة القادمة.",
+  "wsPanel.queue.title": "طابور النشر",
+  "wsPanel.queue.help": "ضع المنشورات في أقرب وقت شاغر باستخدام الأوقات المقترحة أو جدولك اليدوي.",
+  "wsPanel.queue.enable": "تفعيل الطابور التلقائي",
+  "wsPanel.queue.slotsPerDay": "عدد الأوقات يومياً",
+  "wsPanel.queue.useSuggested": "استخدام أفضل الأوقات المقترحة",
+  "wsPanel.queue.manual": "أوقات يدوية",
+  "wsPanel.queue.addManual": "إضافة وقت يدوي",
+  "wsPanel.queue.account": "الحساب",
+  "wsPanel.queue.emptyAccounts": "اربط حساباً اجتماعياً لضبط الطابور.",
+  "wsPanel.queue.origin.optimal": "مقترح",
+  "wsPanel.queue.origin.manual": "يدوي",
+  "wsPanel.queue.windowStart": "أبكر وقت",
+  "wsPanel.queue.windowEnd": "آخر وقت"
 }

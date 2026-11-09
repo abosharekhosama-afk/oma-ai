@@ -2852,5 +2852,22 @@
   "members.role.billing_desc": "Manage plans, invoices, and payments",
   "errors.provider_not_configured": "That payment method is not set up yet.",
   "errors.stripe_not_configured": "Stripe is not set up yet.",
-  "errors.lahza_not_configured": "Lahza / Bank of Palestine is not set up yet."
+  "errors.lahza_not_configured": "Lahza / Bank of Palestine is not set up yet.",
+  "schedule.bestTime.dot": "Best time · {time}",
+  "content.bestTime.enqueue": "Add to queue",
+  "content.bestTime.enqueued": "Added to the queue for {time}",
+  "content.bestTime.enqueueFailed": "Couldn’t find a free queue slot in the next three weeks.",
+  "wsPanel.queue.title": "Publish queue",
+  "wsPanel.queue.help": "Place posts in the next free slot using suggested times or your manual timetable.",
+  "wsPanel.queue.enable": "Enable auto queue",
+  "wsPanel.queue.slotsPerDay": "Slots per day",
+  "wsPanel.queue.useSuggested": "Use suggested best times",
+  "wsPanel.queue.manual": "Manual slots",
+  "wsPanel.queue.addManual": "Add manual slot",
+  "wsPanel.queue.account": "Account",
+  "wsPanel.queue.emptyAccounts": "Connect a social account to configure a queue.",
+  "wsPanel.queue.origin.optimal": "Suggested",
+  "wsPanel.queue.origin.manual": "Manual",
+  "wsPanel.queue.windowStart": "Earliest time",
+  "wsPanel.queue.windowEnd": "Latest time"
 }

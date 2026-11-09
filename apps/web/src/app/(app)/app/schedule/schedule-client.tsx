@@ -26,6 +26,12 @@ import { Dialog } from '../../../../components/ui/dialog';
 import { ConfirmActionDialog } from '../../../../components/ui/confirm-action-dialog';
 import { ScheduleBodyShimmer, ScheduleEmptyState } from './schedule-plx-states';
 import { SchedulePostCard } from './schedule-post-card';
+import {
+  BestTimeInlineMark,
+  BestTimeMarks,
+  isBestScheduledTime,
+} from '../../../../components/schedule/best-time-marks';
+import { getOptimalTimes, type OptimalSlot } from '../../../../lib/optimal-times-api';
 import { StatusMark } from '../../../../components/content/content-card';
 import { CalendarPostCard } from '../../../../components/content/planable-views';
 import type { CalendarDisplay } from '../../../../lib/content-views';
@@ -136,6 +142,7 @@ export default function SchedulePage() {
   const [error, setError] = useState<string | null>(null);
   const [unavailable, setUnavailable] = useState(false);
   const [socialPages, setSocialPages] = useState<SocialPageRow[]>([]);
+  const [bestSlots, setBestSlots] = useState<OptimalSlot[]>([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -299,6 +306,20 @@ export default function SchedulePage() {
       live = false;
     };
   }, [selected?.brandId]);
+
+  useEffect(() => {
+    let live = true;
+    getOptimalTimes({ brandId: activeBrandId })
+      .then((res) => {
+        if (live) setBestSlots(res.slots ?? []);
+      })
+      .catch(() => {
+        if (live) setBestSlots([]);
+      });
+    return () => {
+      live = false;
+    };
+  }, [activeBrandId]);
 
   const scheduleTz = useMemo(
     () =>
@@ -928,6 +949,13 @@ export default function SchedulePage() {
                                       {Number(day.slice(8, 10))}
                                     </span>
                                     <span className="oma-sched-day-label__key oma-ltr">{day}</span>
+                                    <BestTimeMarks
+                                      dateKey={day}
+                                      slots={bestSlots}
+                                      tooltip={(time) =>
+                                        t('schedule.bestTime.dot').replace('{time}', time)
+                                      }
+                                    />
                                   </div>
                                   <div className="oma-sched-day__scroll-wrap">
                                     <div className="oma-sched-day__scroll">
@@ -1055,6 +1083,19 @@ export default function SchedulePage() {
                               openLabel={t('demo.schedule.open')}
                               openPostLabel={t('demo.schedule.openPost')}
                               bucketLabel={t(`demo.schedule.bucket.${bucketForScheduleRow(post)}`)}
+                              bestTime={isBestScheduledTime(
+                                post.plannedAt,
+                                post.timezone || scheduleTz,
+                                bestSlots,
+                              )}
+                              bestTimeLabel={t('schedule.bestTime.dot').replace(
+                                '{time}',
+                                formatScheduleWhen(
+                                  post.plannedAt,
+                                  post.timezone || scheduleTz,
+                                  locale,
+                                ),
+                              )}
                               onOpen={() => openItem(post.id)}
                             />
                           ))}
@@ -1143,6 +1184,21 @@ export default function SchedulePage() {
                                           post.timezone || scheduleTz,
                                           locale,
                                         )}
+                                        <BestTimeInlineMark
+                                          active={isBestScheduledTime(
+                                            post.plannedAt,
+                                            post.timezone || scheduleTz,
+                                            bestSlots,
+                                          )}
+                                          label={t('schedule.bestTime.dot').replace(
+                                            '{time}',
+                                            formatScheduleWhen(
+                                              post.plannedAt,
+                                              post.timezone || scheduleTz,
+                                              locale,
+                                            ),
+                                          )}
+                                        />
                                       </span>
                                     </td>
                                     <td>

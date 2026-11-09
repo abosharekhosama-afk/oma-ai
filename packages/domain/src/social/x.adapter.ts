@@ -5,6 +5,7 @@ import {
   SocialProviderError,
   type FetchLike,
   type PostInsights,
+  type RecentNetworkPost,
   type PublishablePage,
   type PublishInput,
   type PublishResult,
@@ -147,6 +148,45 @@ export class XAdapter implements SocialProviderAdapter {
       views: m.impression_count,
       fetchedAt: new Date().toISOString(),
     };
+  }
+
+  async listRecentPosts(
+    page: PublishablePage,
+    opts?: { limit?: number; since?: Date },
+  ): Promise<RecentNetworkPost[]> {
+    const userId = page.externalId.trim();
+    if (!userId) return [];
+    const limit = Math.min(100, Math.max(5, opts?.limit ?? 20));
+    const url = new URL(`https://api.x.com/2/users/${encodeURIComponent(userId)}/tweets`);
+    url.searchParams.set('max_results', String(limit));
+    url.searchParams.set('tweet.fields', 'created_at,public_metrics');
+    if (opts?.since) url.searchParams.set('start_time', opts.since.toISOString());
+    const res = await this.fetchFn(url.toString(), {
+      headers: { authorization: `Bearer ${page.accessToken}` },
+    });
+    const b = await readJson(res);
+    if (!res.ok) return [];
+    const list = (b.data as Array<Record<string, unknown>> | undefined) ?? [];
+    const out: RecentNetworkPost[] = [];
+    for (const row of list) {
+      const id = String(row.id ?? '');
+      const created = row.created_at ? new Date(String(row.created_at)) : null;
+      if (!id || !created || Number.isNaN(created.getTime())) continue;
+      const m = (row.public_metrics as Record<string, number> | undefined) ?? {};
+      out.push({
+        externalPostId: id,
+        publishedAt: created,
+        insights: {
+          impressions: m.impression_count,
+          likes: m.like_count,
+          comments: m.reply_count,
+          shares: (m.retweet_count ?? 0) + (m.quote_count ?? 0),
+          views: m.impression_count,
+          fetchedAt: new Date().toISOString(),
+        },
+      });
+    }
+    return out;
   }
 
   async sendMessage(

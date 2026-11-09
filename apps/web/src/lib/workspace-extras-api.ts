@@ -261,6 +261,34 @@ export async function deleteTemplate(brandId: string, templateId: string): Promi
   });
 }
 
+const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+export function timeSlotDayName(dow: number): string {
+  return DAY_NAMES[((dow % 7) + 7) % 7]!;
+}
+
+export function timeSlotDayIndex(name: string): number {
+  const i = DAY_NAMES.findIndex((d) => d.toLowerCase() === name.trim().toLowerCase());
+  return i >= 0 ? i : 0;
+}
+
+type ApiTimeSlot = {
+  id: string;
+  day_of_week: number;
+  time_local: string;
+  color?: string | null;
+  label?: string | null;
+};
+
+function fromApiSlot(row: ApiTimeSlot): TimeSlot {
+  return {
+    id: row.id,
+    time: row.time_local,
+    day: timeSlotDayName(row.day_of_week),
+    color: row.color || '#fde68a',
+  };
+}
+
 export function loadTimeSlots(): TimeSlot[] {
   if (typeof window === 'undefined') return [];
   try {
@@ -274,4 +302,55 @@ export function loadTimeSlots(): TimeSlot[] {
 export function saveTimeSlots(slots: TimeSlot[]) {
   if (typeof window === 'undefined') return;
   window.localStorage.setItem(SLOT_KEY, JSON.stringify(slots));
+}
+
+export async function listTimeSlots(): Promise<TimeSlot[]> {
+  const res = await api<{ items?: ApiTimeSlot[] }>('/api/v1/workspace/time-slots');
+  return (res.items ?? []).map(fromApiSlot);
+}
+
+export async function createTimeSlot(input: {
+  time: string;
+  day: string;
+  color?: string;
+}): Promise<TimeSlot> {
+  const res = await api<ApiTimeSlot & { id: string }>('/api/v1/workspace/time-slots', {
+    method: 'POST',
+    body: JSON.stringify({
+      day_of_week: timeSlotDayIndex(input.day),
+      time_local: input.time,
+      color: input.color ?? '#fde68a',
+    }),
+  });
+  return fromApiSlot({
+    id: res.id,
+    day_of_week: timeSlotDayIndex(input.day),
+    time_local: input.time,
+    color: input.color ?? '#fde68a',
+  });
+}
+
+export async function deleteTimeSlot(slotId: string): Promise<void> {
+  await api(`/api/v1/workspace/time-slots/${slotId}`, { method: 'DELETE', body: '{}' });
+}
+
+/** Prefer the workspace API; migrate leftover localStorage slots once if the server list is empty. */
+export async function syncTimeSlots(): Promise<TimeSlot[]> {
+  const remote = await listTimeSlots();
+  if (remote.length) {
+    if (typeof window !== 'undefined') window.localStorage.removeItem(SLOT_KEY);
+    return remote;
+  }
+  const local = loadTimeSlots();
+  if (!local.length) return [];
+  const migrated: TimeSlot[] = [];
+  for (const slot of local) {
+    try {
+      migrated.push(await createTimeSlot(slot));
+    } catch {
+      migrated.push(slot);
+    }
+  }
+  if (typeof window !== 'undefined') window.localStorage.removeItem(SLOT_KEY);
+  return migrated;
 }

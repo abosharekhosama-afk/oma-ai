@@ -162,6 +162,7 @@ import {
   requestContentApproval,
   approveContent,
   scheduleContent,
+  enqueueContent,
   unscheduleContent,
   archiveContent,
   toContentRow,
@@ -435,6 +436,7 @@ function PlanableComposeCard({
   onChange,
   onClose,
   onSubmit,
+  onEnqueue,
   onOpenLabels,
   onOpenTemplates,
   brandId,
@@ -461,6 +463,7 @@ function PlanableComposeCard({
   onChange: (patch: Partial<ComposeForm>) => void;
   onClose: () => void;
   onSubmit: () => void;
+  onEnqueue?: () => void;
   onOpenLabels?: () => void;
   onOpenTemplates?: () => void;
   labels?: ComposeLabel[];
@@ -1002,6 +1005,17 @@ function PlanableComposeCard({
             >
               <EyeOutlined />
             </button>
+            {onEnqueue ? (
+              <button
+                type="button"
+                className="oma-compose-queue"
+                disabled={creating}
+                data-testid="compose-add-to-queue"
+                onClick={onEnqueue}
+              >
+                {t('content.bestTime.enqueue')}
+              </button>
+            ) : null}
             <button
               type="button"
               className="oma-compose-save"
@@ -2814,7 +2828,7 @@ export default function ContentPage() {
     }
   }
 
-  async function submitCreate() {
+  async function submitCreate(mode: 'draft' | 'queue' = 'draft') {
     setCreateError(null);
     const title = createForm.title.trim() || createForm.caption.trim().slice(0, 80);
     if (!title || !createForm.channel.trim()) {
@@ -2895,6 +2909,13 @@ export default function ContentPage() {
                 : 'Draft saved, but the publishing account could not be linked. You can retry from the post details.',
               'danger',
             );
+          }
+        }
+        if (mode === 'queue') {
+          try {
+            await enqueueContent(apiCreated.id);
+          } catch (err) {
+            toast.push(contentApiError(err, t('content.bestTime.enqueueFailed')), 'danger');
           }
         }
       }
@@ -5967,6 +5988,45 @@ export default function ContentPage() {
                           >
                             {t('demo.content.schedule')}
                           </Button>
+                          <Button
+                            type="default"
+                            disabled={saving || !canScheduleItem(selected, policyFor(selected))}
+                            data-testid="demo-content-enqueue"
+                            onClick={() => {
+                              if (!selectedId) return;
+                              void (async () => {
+                                setSaving(true);
+                                try {
+                                  const draftIds = draft.socialPageIds ?? [];
+                                  if (draftIds.length) {
+                                    await setContentPublishTarget(selectedId, null, draftIds);
+                                  }
+                                  const apiRow = await enqueueContent(selectedId);
+                                  const updated = toContentRow(apiRow);
+                                  setRows((prev) =>
+                                    prev.map((r) => (r.id === updated.id ? updated : r)),
+                                  );
+                                  toast.push(
+                                    t('content.bestTime.enqueued').replace(
+                                      '{time}',
+                                      updated.scheduledAt || '',
+                                    ),
+                                    'success',
+                                  );
+                                  void load();
+                                } catch (err) {
+                                  toast.push(
+                                    contentApiError(err, t('content.bestTime.enqueueFailed')),
+                                    'danger',
+                                  );
+                                } finally {
+                                  setSaving(false);
+                                }
+                              })();
+                            }}
+                          >
+                            {t('content.bestTime.enqueue')}
+                          </Button>
                           {selected.scheduleState === 'SCHEDULED' ? (
                             <Button
                               type="default"
@@ -7237,6 +7297,7 @@ export default function ContentPage() {
         onChange={(patch) => setCreateForm((f) => ({ ...f, ...patch }))}
         onClose={() => setCreateOpen(false)}
         onSubmit={() => void submitCreate()}
+        onEnqueue={() => void submitCreate('queue')}
       />
 
       <Dialog

@@ -288,6 +288,14 @@ export async function approveContent(contentId: string, note?: ApiLocale | strin
   return res.data;
 }
 
+export async function enqueueContent(contentId: string) {
+  const res = await api<{ data: ApiContent }>(`/api/v1/content/${contentId}/enqueue`, {
+    method: 'POST',
+    body: JSON.stringify({}),
+  });
+  return res.data;
+}
+
 export async function scheduleContent(
   contentId: string,
   input: { scheduledAt: string; timezone?: string },
