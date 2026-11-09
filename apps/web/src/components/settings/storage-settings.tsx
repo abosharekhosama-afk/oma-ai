@@ -8,6 +8,7 @@ import {
   workDriveApi,
   type StorageMode,
   type WorkspaceBackup,
+  type WorkspaceMigration,
   type WorkspaceStorage,
 } from '../../lib/workdrive-api';
 import { WorkDriveSettings } from './workdrive-settings';
@@ -33,9 +34,12 @@ export function StorageSettings({
 }) {
   const [storage, setStorage] = useState<WorkspaceStorage | null>(null);
   const [backup, setBackup] = useState<WorkspaceBackup | null>(null);
+  const [migrate, setMigrate] = useState<WorkspaceMigration | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [busy, setBusy] = useState<StorageMode | null>(null);
   const [backupBusy, setBackupBusy] = useState<'backfill' | 'retry' | null>(null);
+  const [migrateBusy, setMigrateBusy] = useState<'start' | 'cancel' | null>(null);
+  const [deleteSource, setDeleteSource] = useState(false);
   const [notice, setNotice] = useState<{ kind: 'success' | 'error'; text: string } | null>(null);
 
   const load = useCallback(() => {
@@ -47,6 +51,10 @@ export function StorageSettings({
       .backup()
       .then((r) => setBackup(r.data))
       .catch(() => setBackup(null));
+    workDriveApi
+      .migrate()
+      .then((r) => setMigrate(r.data))
+      .catch(() => setMigrate(null));
   }, []);
   useEffect(load, [load]);
 
@@ -277,6 +285,102 @@ export function StorageSettings({
               }}
             >
               {t('storage.backup.retry')}
+            </Button>
+          </div>
+        </section>
+      ) : null}
+
+      {migrate ? (
+        <section className="oma-bs-card oma-st-migrate" data-testid="storage-migrate">
+          <p className="oma-bs-label">{t('storage.migrate.title')}</p>
+          <p className="oma-bs-hint">{t('storage.migrate.desc')}</p>
+          {migrate.candidate_count > 0 ? (
+            <p className="oma-bs-hint" data-testid="storage-migrate-candidates">
+              {t('storage.migrate.candidates')
+                .replace('{count}', String(migrate.candidate_count))
+                .replace('{size}', formatBytes(migrate.candidate_bytes, locale))}
+            </p>
+          ) : (
+            <p className="oma-bs-hint" data-testid="storage-migrate-none">
+              {t('storage.migrate.none')}
+            </p>
+          )}
+          {migrate.quota_blocked ? (
+            <p
+              className="oma-bs-notice oma-bs-notice--error"
+              role="alert"
+              data-testid="storage-migrate-quota"
+            >
+              {t('storage.migrate.quotaWarning')
+                .replace('{used}', formatBytes(migrate.used_bytes, locale))
+                .replace(
+                  '{limit}',
+                  migrate.limit_bytes == null
+                    ? t('storage.usage.unlimited')
+                    : formatBytes(migrate.limit_bytes, locale),
+                )
+                .replace('{needed}', formatBytes(migrate.candidate_bytes, locale))}
+            </p>
+          ) : null}
+          {migrate.migration ? (
+            <p className="oma-bs-hint" data-testid="storage-migrate-progress">
+              {t(`storage.migrate.status.${migrate.migration.status}`)}
+              {' · '}
+              {t('storage.migrate.progress')
+                .replace('{completed}', String(migrate.migration.completed))
+                .replace('{total}', String(migrate.migration.total))
+                .replace('{failed}', String(migrate.migration.failed))
+                .replace('{skipped}', String(migrate.migration.skipped))}
+            </p>
+          ) : null}
+          <label className="oma-bs-hint" data-testid="storage-migrate-delete-source">
+            <input
+              type="checkbox"
+              checked={deleteSource}
+              onChange={(e) => setDeleteSource(e.target.checked)}
+            />{' '}
+            {t('storage.migrate.deleteSource')}
+          </label>
+          <div className="oma-st-backup__actions">
+            <Button
+              loading={migrateBusy === 'start'}
+              disabled={!migrate.can_start}
+              data-testid="storage-migrate-start"
+              onClick={async () => {
+                setMigrateBusy('start');
+                try {
+                  const r = await workDriveApi.startMigrate(deleteSource);
+                  setMigrate(r.data);
+                  setNotice({ kind: 'success', text: t('storage.migrate.started') });
+                } catch (e) {
+                  setNotice({ kind: 'error', text: getApiError(e).message });
+                } finally {
+                  setMigrateBusy(null);
+                }
+              }}
+            >
+              {t('storage.migrate.start')}
+            </Button>
+            <Button
+              loading={migrateBusy === 'cancel'}
+              disabled={
+                !migrate.migration || !['PENDING', 'RUNNING'].includes(migrate.migration.status)
+              }
+              data-testid="storage-migrate-cancel"
+              onClick={async () => {
+                setMigrateBusy('cancel');
+                try {
+                  const r = await workDriveApi.cancelMigrate();
+                  setMigrate(r.data);
+                  setNotice({ kind: 'success', text: t('storage.migrate.cancelled') });
+                } catch (e) {
+                  setNotice({ kind: 'error', text: getApiError(e).message });
+                } finally {
+                  setMigrateBusy(null);
+                }
+              }}
+            >
+              {t('storage.migrate.cancel')}
             </Button>
           </div>
         </section>

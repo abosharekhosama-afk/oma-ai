@@ -165,6 +165,7 @@ model Tenant {
   listeningAlerts      ListeningAlert[]
   storageSetting       WorkspaceStorageSetting?
   storageBackupJobs    StorageBackupJob[]
+  storageMigrations    StorageMigration[]
 }
 
 enum AiRunStatus {
@@ -1941,12 +1942,28 @@ enum BackupJobStatus {
   SKIPPED
 }
 
-/// Copy an OMA_INTERNAL file onto the workspace's own WorkDrive (SYNC_BACKUP).
+enum StorageJobKind {
+  BACKUP
+  REPLICA_TRASH
+  MIGRATE
+}
+
+enum StorageMigrationStatus {
+  PENDING
+  RUNNING
+  DONE
+  FAILED
+  CANCELLED
+}
+
+/// Copy an OMA_INTERNAL file onto the workspace's own WorkDrive (SYNC_BACKUP),
+/// trash a replica, or migrate a BYOS file onto the platform master.
 model StorageBackupJob {
   id                    String          @id
   tenantId              String
   mediaAssetId          String
   workdriveConnectionId String
+  kind                  StorageJobKind  @default(BACKUP)
   status                BackupJobStatus @default(PENDING)
   attempts              Int             @default(0)
   nextAttemptAt         DateTime?
@@ -1960,9 +1977,42 @@ model StorageBackupJob {
   tenant                Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   asset                 MediaAsset      @relation(fields: [mediaAssetId], references: [id], onDelete: Cascade)
 
-  @@unique([mediaAssetId, workdriveConnectionId])
+  @@unique([mediaAssetId, workdriveConnectionId, kind])
   @@index([status, nextAttemptAt])
+  @@index([tenantId, status, kind])
+}
+
+model StorageMigration {
+  id           String                  @id
+  tenantId     String
+  status       StorageMigrationStatus  @default(PENDING)
+  deleteSource Boolean                 @default(false)
+  total        Int                     @default(0)
+  completed    Int                     @default(0)
+  failed       Int                     @default(0)
+  skipped      Int                     @default(0)
+  lastError    String?
+  startedBy    String
+  startedAt    DateTime?
+  finishedAt   DateTime?
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+  tenant       Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
   @@index([tenantId, status])
+}
+
+/// Latest platform storage quota comparison (singleton id = "latest").
+model StorageQuotaReconcile {
+  id                 String   @id
+  ranAt              DateTime
+  omaInternalBytes   BigInt
+  platformUsedBytes  BigInt?
+  platformLimitBytes BigInt?
+  driftBytes         BigInt?
+  tenantsScanned     Int      @default(0)
+  dryRun             Boolean  @default(false)
+  notes              String?
 }
 
 /// A file OMA uses (post media, brand logo, deliverable) stored in WorkDrive (platform or BYOS).

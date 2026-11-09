@@ -487,6 +487,129 @@ export class WorkDriveClient {
       throw e;
     }
   }
+
+  /**
+   * Copy bytes from a signed GET URL into this WorkDrive folder without buffering the whole
+   * object: a streamed PUT when the file fits a single request, or ranged upload-sessions
+   * (one part in memory) when it does not.
+   */
+  async uploadFromSignedSource(input: {
+    folderId: string;
+    name: string;
+    mimeType: string;
+    size: number;
+    sha256: string;
+    sourceUrl: string;
+    singlePutLimit?: number;
+    partSize?: number;
+  }): Promise<{ fileId: string; name: string; mode: 'put' | 'session'; maxChunkBytes: number }> {
+    const limit = input.singlePutLimit ?? this.opts.singlePutLimit ?? SINGLE_PUT_LIMIT;
+    const requested = await this.requestUpload({
+      folderId: input.folderId,
+      name: input.name,
+      mimeType: input.mimeType,
+      size: input.size,
+      sha256: input.sha256,
+    });
+    if (input.size <= limit) {
+      let src: Response;
+      try {
+        src = await this.fetchImpl(input.sourceUrl, { signal: AbortSignal.timeout(30 * 60_000) });
+      } catch (e) {
+        throw new WorkDriveError('unavailable', `Download failed: ${(e as Error).message}`);
+      }
+      if (!src.ok || !src.body)
+        throw new WorkDriveError('unavailable', `Download failed (${src.status})`, src.status);
+      let put: Response;
+      try {
+        put = await this.fetchImpl(requested.uploadUrl, {
+          method: 'PUT',
+          headers: { 'content-type': input.mimeType, 'content-length': String(input.size) },
+          body: src.body,
+          ...({ duplex: 'half' } as object),
+          signal: AbortSignal.timeout(30 * 60_000),
+        });
+      } catch (e) {
+        throw new WorkDriveError('unavailable', `Upload failed: ${(e as Error).message}`);
+      }
+      if (!put.ok) await this.fail(put);
+      const done = await this.completeUpload(requested.uploadId);
+      return {
+        fileId: done.fileId || requested.fileId,
+        name: requested.name,
+        mode: 'put',
+        maxChunkBytes: input.size,
+      };
+    }
+    const partSize = input.partSize ?? this.opts.partSize ?? PART_SIZE;
+    const session = await this.post('/files/upload-sessions', {
+      folderId: input.folderId,
+      name: requested.name,
+      mimeType: input.mimeType,
+      size: input.size,
+      sha256: input.sha256,
+      partSize,
+    });
+    const sid = str(session.session_id);
+    const size = num(session.part_size) || partSize;
+    const total = num(session.total_parts) || Math.ceil(input.size / size);
+    let maxChunkBytes = 0;
+    try {
+      for (let n = 1; n <= total; n++) {
+        const start = (n - 1) * size;
+        const end = Math.min(start + size, input.size) - 1;
+        let partRes: Response;
+        try {
+          partRes = await this.fetchImpl(input.sourceUrl, {
+            headers: { range: `bytes=${start}-${end}` },
+            signal: AbortSignal.timeout(10 * 60_000),
+          });
+        } catch (e) {
+          throw new WorkDriveError(
+            'unavailable',
+            `Ranged download failed: ${(e as Error).message}`,
+          );
+        }
+        if (!partRes.ok && partRes.status !== 206)
+          throw new WorkDriveError(
+            'unavailable',
+            `Ranged download failed (${partRes.status})`,
+            partRes.status,
+          );
+        const chunk = Buffer.from(await partRes.arrayBuffer());
+        maxChunkBytes = Math.max(maxChunkBytes, chunk.length);
+        const form = new FormData();
+        form.append(
+          'chunk',
+          new Blob([chunk as unknown as ArrayBuffer], { type: 'application/octet-stream' }),
+          `${requested.name}.part${n}`,
+        );
+        await this.call(
+          `/files/upload-sessions/${sid}/parts/${n}`,
+          { method: 'POST', headers: { 'x-part-sha256': sha256Hex(chunk) }, body: form },
+          10 * 60_000,
+        );
+      }
+      const done = await this.post(`/files/upload-sessions/${sid}/complete`, {});
+      return {
+        fileId: str(done.file_id ?? done.id ?? session.file_id),
+        name: requested.name,
+        mode: 'session',
+        maxChunkBytes,
+      };
+    } catch (e) {
+      await this.call(`/files/upload-sessions/${sid}`, { method: 'DELETE' }).catch(() => undefined);
+      throw e;
+    }
+  }
+
+  async quota(): Promise<{ usedBytes: number; quotaBytes: number | null }> {
+    const b = await this.json<Record<string, unknown>>('/storage/quota');
+    const used = num(b.usedBytes ?? b.used_bytes);
+    const raw = b.quotaBytes ?? b.quota_bytes ?? b.limit_bytes;
+    const quota = raw == null || raw === '' ? null : num(raw);
+    return { usedBytes: used, quotaBytes: quota && quota > 0 ? quota : null };
+  }
 }
 
 /** Candidate API roots for an address typed by a person (with/without `/api`, `/api/v1`). */

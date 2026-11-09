@@ -5,3 +5,4 @@ export * from './config';
 
 export * from './storage-path';
 export * from './storage-backup-policy';
+export * from './stream-copy';

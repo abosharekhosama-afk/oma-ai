@@ -38,6 +38,11 @@ describe('storage settings UI', () => {
     expect(wd).toContain('onChanged');
     expect(api).toContain("json('PATCH', { mode })");
     expect(api).toContain('/api/v1/workspace/storage');
+    expect(ui).toContain('data-testid="storage-migrate"');
+    expect(ui).toContain('data-testid="storage-migrate-start"');
+    expect(ui).toContain('data-testid="storage-migrate-cancel"');
+    expect(ui).toContain('data-testid="storage-migrate-quota"');
+    expect(api).toContain('/api/v1/workspace/storage/migrate');
   });
 
   it('softens mandatory WorkDrive copy when internal storage can accept uploads', () => {
@@ -63,6 +68,10 @@ describe('storage settings UI', () => {
       'storage.backup.pausedQuota',
       'storage.backup.backfill',
       'storage.backup.retry',
+      'storage.migrate.title',
+      'storage.migrate.start',
+      'storage.migrate.cancel',
+      'storage.migrate.quotaWarning',
       'storage.usage.byos',
       'storage.adminOnly',
       'brandSettings.general.logoHintOma',

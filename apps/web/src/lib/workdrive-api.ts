@@ -45,6 +45,15 @@ export type WorkspaceStorage = {
   internal_available: boolean;
   backup_available: boolean;
   can_upload: boolean;
+  last_quota_reconcile?: {
+    at: string;
+    oma_internal_bytes: number;
+    platform_used_bytes: number | null;
+    platform_limit_bytes: number | null;
+    drift_bytes: number | null;
+    tenants_scanned: number;
+    notes: string | null;
+  } | null;
 };
 
 export type WorkspaceBackup = {
@@ -65,6 +74,27 @@ export type WorkspaceBackup = {
   paused: boolean;
   paused_reason: string | null;
   paused_at: string | null;
+};
+
+export type WorkspaceMigration = {
+  migration: {
+    id: string;
+    status: 'PENDING' | 'RUNNING' | 'DONE' | 'CANCELLED' | 'FAILED';
+    total: number;
+    completed: number;
+    failed: number;
+    skipped: number;
+    delete_source: boolean;
+    last_error: string | null;
+    started_at: string | null;
+    finished_at: string | null;
+  } | null;
+  candidate_count: number;
+  candidate_bytes: number;
+  used_bytes: number;
+  limit_bytes: number | null;
+  can_start: boolean;
+  quota_blocked: boolean;
 };
 
 export type MediaLibrary = {
@@ -151,6 +181,14 @@ export const workDriveApi = {
       '/api/v1/workspace/storage/backup/retry-failed',
       json('POST', {}),
     ),
+  migrate: () => api<{ data: WorkspaceMigration }>('/api/v1/workspace/storage/migrate'),
+  startMigrate: (delete_source = false) =>
+    api<{ data: WorkspaceMigration }>(
+      '/api/v1/workspace/storage/migrate',
+      json('POST', { delete_source }),
+    ),
+  cancelMigrate: () =>
+    api<{ data: WorkspaceMigration }>('/api/v1/workspace/storage/migrate/cancel', json('POST', {})),
   connect: (base_url: string, api_key: string) =>
     api<{ data: WorkDriveStatus }>(
       '/api/v1/workspace/workdrive',

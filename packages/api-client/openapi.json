@@ -3591,6 +3591,46 @@
         ]
       }
     },
+    "/api/v1/workspace/storage/migrate": {
+      "get": {
+        "operationId": "WorkDriveController_migrateStatus",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "WorkDrive"
+        ]
+      },
+      "post": {
+        "operationId": "WorkDriveController_startMigrate",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "WorkDrive"
+        ]
+      }
+    },
+    "/api/v1/workspace/storage/migrate/cancel": {
+      "post": {
+        "operationId": "WorkDriveController_cancelMigrate",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "WorkDrive"
+        ]
+      }
+    },
     "/api/v1/workspace/workdrive": {
       "get": {
         "operationId": "WorkDriveController_status",
@@ -3770,6 +3810,18 @@
     "/api/v1/media/{assetId}": {
       "get": {
         "operationId": "MediaController_details",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Media"
+        ]
+      },
+      "delete": {
+        "operationId": "MediaController_remove",
         "parameters": [],
         "responses": {
           "200": {

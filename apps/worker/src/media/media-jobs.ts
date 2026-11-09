@@ -12,6 +12,8 @@ import {
   type FetchLike,
 } from '@oma/domain';
 import { runBackupTick } from './storage-backup';
+import { runOrphanCleanupTick } from './storage-orphan';
+import { runQuotaReconcileTick } from './storage-quota-reconcile';
 
 type Deps = { now?: () => Date; key?: Buffer | null; fetchImpl?: FetchLike; limit?: number };
 
@@ -308,6 +310,8 @@ export function mediaProxyUrl(
 export function startMediaJobs(log: { error: (o: unknown, m: string) => void }) {
   const every = Number(process.env.WORKDRIVE_MIGRATION_INTERVAL_MS ?? 10 * 60_000);
   const backupEvery = Number(process.env.STORAGE_BACKUP_TICK_MS ?? 15_000);
+  const orphanEvery = Number(process.env.STORAGE_ORPHAN_TICK_MS ?? 60 * 60_000);
+  const quotaEvery = Number(process.env.STORAGE_QUOTA_RECONCILE_TICK_MS ?? 6 * 60 * 60_000);
   const run = () => {
     runLogoMigrationTick().catch((e) =>
       log.error({ err: String(e) }, 'logo migration tick failed'),
@@ -323,10 +327,28 @@ export function startMediaJobs(log: { error: (o: unknown, m: string) => void }) 
   const first = setTimeout(run, 15_000);
   const backupTimer = setInterval(runBackup, backupEvery);
   const backupFirst = setTimeout(runBackup, 8_000);
+  const runOrphan = () => {
+    runOrphanCleanupTick().catch((e) =>
+      log.error({ err: String(e) }, 'storage orphan cleanup tick failed'),
+    );
+  };
+  const runQuota = () => {
+    runQuotaReconcileTick().catch((e) =>
+      log.error({ err: String(e) }, 'storage quota reconcile tick failed'),
+    );
+  };
+  const orphanTimer = setInterval(runOrphan, orphanEvery);
+  const orphanFirst = setTimeout(runOrphan, 30_000);
+  const quotaTimer = setInterval(runQuota, quotaEvery);
+  const quotaFirst = setTimeout(runQuota, 45_000);
   return () => {
     clearInterval(t);
     clearTimeout(first);
     clearInterval(backupTimer);
     clearTimeout(backupFirst);
+    clearInterval(orphanTimer);
+    clearTimeout(orphanFirst);
+    clearInterval(quotaTimer);
+    clearTimeout(quotaFirst);
   };
 }

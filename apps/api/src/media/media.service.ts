@@ -1051,6 +1051,41 @@ export class MediaService {
     }
   }
 
+  async remove(
+    tenantId: string,
+    assetId: string,
+    caps: string[] | undefined,
+    userId: string,
+    correlationId?: string,
+  ) {
+    const a = await this.getAsset(tenantId, assetId);
+    this.assertCapability(caps, a.kind as MediaKind);
+    const { cancelBackupJobsForAsset, enqueueReplicaTrash } = await import('./storage-backup');
+    await cancelBackupJobsForAsset(a.id);
+    await enqueueReplicaTrash({
+      id: a.id,
+      tenantId: a.tenantId,
+      replicaFileId: a.replicaFileId,
+    });
+    try {
+      const { client } = await this.workdrive.clientForAsset(tenantId, a);
+      await client.trash(a.workdriveFileId);
+    } catch {
+      /* best-effort primary trash */
+    }
+    await this.markMissing(a, true);
+    await this.audit.write({
+      actorUserId: userId,
+      tenantId,
+      action: 'media.deleted',
+      targetType: 'MediaAsset',
+      targetId: a.id,
+      afterRef: a.replicaFileId ?? a.workdriveFileId,
+      correlationId,
+    });
+    return { data: mapAsset(await this.getAsset(tenantId, assetId)) };
+  }
+
   async getAsset(tenantId: string, assetId: string) {
     const a = await getPrisma().mediaAsset.findFirst({
       where: tenantWhere(tenantId, { id: assetId }),
