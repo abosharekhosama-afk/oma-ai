@@ -26,6 +26,7 @@ import {
   enqueueBackupIfNeeded,
   retryFailedBackups,
 } from './storage-backup';
+import { cancelMigration, migrationStatus, startMigration } from './storage-migrate';
 
 type Conn = NonNullable<
   Awaited<ReturnType<ReturnType<typeof getPrisma>['workDriveConnection']['findUnique']>>
@@ -269,7 +270,22 @@ export class WorkDriveService {
         internal_available: !!this.masterConfig(),
         backup_available: true,
         can_upload: await this.canUpload(tenantId),
+        last_quota_reconcile: await this.lastQuotaReconcile(),
       },
+    };
+  }
+
+  private async lastQuotaReconcile() {
+    const row = await getPrisma().storageQuotaReconcile.findUnique({ where: { id: 'latest' } });
+    if (!row) return null;
+    return {
+      at: row.ranAt.toISOString(),
+      oma_internal_bytes: Number(row.omaInternalBytes),
+      platform_used_bytes: row.platformUsedBytes == null ? null : Number(row.platformUsedBytes),
+      platform_limit_bytes: row.platformLimitBytes == null ? null : Number(row.platformLimitBytes),
+      drift_bytes: row.driftBytes == null ? null : Number(row.driftBytes),
+      tenants_scanned: row.tenantsScanned,
+      notes: row.notes,
     };
   }
 
@@ -519,6 +535,37 @@ export class WorkDriveService {
       targetType: 'WorkspaceStorageSetting',
       targetId: tenantId,
       afterRef: String(result.data.retried),
+      correlationId,
+    });
+    return result;
+  }
+
+  migrationStatus(tenantId: string) {
+    return migrationStatus(tenantId);
+  }
+
+  async startMigration(tenantId: string, userId: string, body: unknown, correlationId?: string) {
+    const result = await startMigration(tenantId, userId, body);
+    await this.audit.write({
+      actorUserId: userId,
+      tenantId,
+      action: 'storage.migrate_started',
+      targetType: 'StorageMigration',
+      targetId: result.data.migration?.id ?? tenantId,
+      afterRef: String(result.data.candidate_count),
+      correlationId,
+    });
+    return result;
+  }
+
+  async cancelMigration(tenantId: string, userId: string, correlationId?: string) {
+    const result = await cancelMigration(tenantId);
+    await this.audit.write({
+      actorUserId: userId,
+      tenantId,
+      action: 'storage.migrate_cancelled',
+      targetType: 'StorageMigration',
+      targetId: result.data.migration?.id ?? tenantId,
       correlationId,
     });
     return result;

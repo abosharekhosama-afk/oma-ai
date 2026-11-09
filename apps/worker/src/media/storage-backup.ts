@@ -5,6 +5,9 @@ import {
   classifyBackupError,
   clientFromConnection,
   newId,
+  copyBufferAllowed,
+  copyMaxBufferBytes,
+  internalMediaSegments,
   replicaFolderSegments,
   safeFileName,
   storageBackupConfig,
@@ -92,7 +95,6 @@ export async function runBackupTick(deps: BackupTickDeps = {}) {
   if (!key) return out;
   const masterFactory = deps.masterConfig ?? workDriveMasterConfig;
   const masterCfg = masterFactory();
-  if (!masterCfg) return out;
   const prisma = getPrisma();
 
   await prisma.storageBackupJob.updateMany({
@@ -114,7 +116,10 @@ export async function runBackupTick(deps: BackupTickDeps = {}) {
       status: 'PENDING',
       AND: [
         { OR: [{ nextAttemptAt: null }, { nextAttemptAt: { lte: now } }] },
-        pausedIds.length ? { tenantId: { notIn: pausedIds } } : {},
+        pausedIds.length
+          ? { OR: [{ kind: { not: 'BACKUP' } }, { tenantId: { notIn: pausedIds } }] }
+          : {},
+        masterCfg ? {} : { kind: 'REPLICA_TRASH' },
       ],
     },
     orderBy: [{ nextAttemptAt: 'asc' }, { createdAt: 'asc' }],
@@ -123,7 +128,9 @@ export async function runBackupTick(deps: BackupTickDeps = {}) {
   });
   out.scanned = jobs.length;
 
-  const master = new WorkDriveClient(masterCfg.baseUrl, masterCfg.apiKey, deps.fetchImpl);
+  const master = masterCfg
+    ? new WorkDriveClient(masterCfg.baseUrl, masterCfg.apiKey, deps.fetchImpl)
+    : null;
 
   await mapPool(jobs, deps.concurrency ?? cfg.concurrency, async (job) => {
     const claimed = await prisma.storageBackupJob.updateMany({
@@ -172,6 +179,7 @@ async function processBackupJob(
     tenantId: string;
     mediaAssetId: string;
     workdriveConnectionId: string;
+    kind: string;
     attempts: number;
     replicaFileId: string | null;
     asset: {
@@ -185,6 +193,7 @@ async function processBackupJob(
       sha256: string | null;
       status: string;
       storageProvider: string;
+      storagePath: string | null;
       workdriveFileId: string;
       replicaFileId: string | null;
       replicaFolderId: string | null;
@@ -194,7 +203,7 @@ async function processBackupJob(
   opts: {
     now: Date;
     key: Buffer;
-    master: WorkDriveClient;
+    master: WorkDriveClient | null;
     fetchImpl?: FetchLike;
     maxAttempts: number;
     backoffMs: number;
@@ -216,6 +225,15 @@ async function processBackupJob(
     });
     return status;
   };
+
+  if (job.kind === 'REPLICA_TRASH') {
+    return processReplicaTrash(job, opts, finish);
+  }
+  if (job.kind === 'MIGRATE') {
+    if (!opts.master) return retryOrFail(job, opts, 'Platform storage is not configured', finish);
+    return processMigrate(job, opts, finish);
+  }
+  if (!opts.master) return retryOrFail(job, opts, 'Platform storage is not configured', finish);
 
   if (job.asset.storageProvider !== 'OMA_INTERNAL' || job.asset.status === 'MISSING') {
     await markAssetReplica(job.asset.id, { replicaStatus: 'skipped' });
@@ -264,14 +282,24 @@ async function processBackupJob(
   });
   const replicaPath = storagePathOf(segs);
 
-  let bytes: Buffer;
+  let sourceUrl: string;
+  let sha256 = job.asset.sha256;
   try {
     const signed = await opts.master.downloadUrl(job.asset.workdriveFileId);
-    const res = await (opts.fetchImpl ?? fetch)(signed.url);
-    if (!res.ok) {
-      throw new Error(`Master download failed (${res.status})`);
+    sourceUrl = signed.url;
+    if (!sha256) {
+      const size = Number(job.asset.size);
+      if (!copyBufferAllowed(size, sha256)) {
+        throw new Error('File hash is missing; cannot stream a file this large safely');
+      }
+      const res = await (opts.fetchImpl ?? fetch)(sourceUrl);
+      if (!res.ok) throw new Error(`Master download failed (${res.status})`);
+      const bytes = Buffer.from(await res.arrayBuffer());
+      if (bytes.length > copyMaxBufferBytes()) {
+        throw new Error('Refusing to buffer a file larger than STORAGE_COPY_MAX_BUFFER_BYTES');
+      }
+      sha256 = createHash('sha256').update(bytes).digest('hex');
     }
-    bytes = Buffer.from(await res.arrayBuffer());
   } catch (e) {
     const info = classifyBackupError(e);
     if (info.skip) {
@@ -283,17 +311,13 @@ async function processBackupJob(
 
   try {
     const folder = await dest.ensurePath(segs);
-    const sha256 = job.asset.sha256 || createHash('sha256').update(bytes).digest('hex');
-    const uploaded = await dest.upload({
+    const uploaded = await dest.uploadFromSignedSource({
       folderId: folder.folderId,
       name: safeFileName(job.asset.name),
       mimeType: job.asset.mime,
+      size: Number(job.asset.size),
       sha256,
-      source: {
-        size: bytes.length,
-        full: () => bytes,
-        part: async (start, end) => bytes.subarray(start, end),
-      },
+      sourceUrl,
     });
     await markAssetReplica(job.asset.id, {
       replicaFileId: uploaded.fileId,
@@ -356,4 +380,215 @@ async function retryOrFail(
 /** Exported for tests that want a deterministic job id. */
 export function newBackupJobId() {
   return newId();
+}
+
+async function processReplicaTrash(
+  job: {
+    id: string;
+    tenantId: string;
+    mediaAssetId: string;
+    workdriveConnectionId: string;
+    replicaFileId: string | null;
+    asset: { id: string; replicaFileId: string | null };
+    attempts: number;
+  },
+  opts: {
+    now: Date;
+    key: Buffer;
+    fetchImpl?: FetchLike;
+    maxAttempts: number;
+    backoffMs: number;
+    maxBackoffMs: number;
+  },
+  finish: (
+    status: 'DONE' | 'SKIPPED' | 'FAILED' | 'PENDING',
+    extra?: Record<string, unknown>,
+  ) => Promise<'DONE' | 'SKIPPED' | 'FAILED' | 'PENDING'>,
+) {
+  const fileId = job.replicaFileId || job.asset.replicaFileId;
+  if (!fileId) return finish('SKIPPED', { lastError: 'No replica to delete' });
+  const conn = await getPrisma().workDriveConnection.findUnique({
+    where: { id: job.workdriveConnectionId },
+  });
+  if (!conn) return finish('SKIPPED', { lastError: 'WorkDrive is not connected' });
+  try {
+    const dest = clientFromConnection(conn, opts.key, opts.fetchImpl);
+    await dest.trash(fileId);
+    await getPrisma().mediaAsset.update({
+      where: { id: job.asset.id },
+      data: { replicaFileId: null, replicaFolderId: null, replicaStatus: null },
+    });
+    return finish('DONE', { replicaFileId: fileId, lastError: null });
+  } catch (e) {
+    const info = classifyBackupError(e);
+    if (info.skip) {
+      await getPrisma().mediaAsset.update({
+        where: { id: job.asset.id },
+        data: { replicaFileId: null, replicaFolderId: null, replicaStatus: null },
+      });
+      return finish('DONE', { lastError: info.message });
+    }
+    if (info.pauseReason === 'key_revoked' || !info.retryable) {
+      return finish('FAILED', { attempts: job.attempts + 1, lastError: info.message });
+    }
+    return retryOrFail(job, opts, info.message, finish);
+  }
+}
+
+async function processMigrate(
+  job: {
+    id: string;
+    tenantId: string;
+    mediaAssetId: string;
+    workdriveConnectionId: string;
+    attempts: number;
+    asset: {
+      id: string;
+      tenantId: string;
+      brandId: string | null;
+      kind: string;
+      name: string;
+      mime: string;
+      size: bigint;
+      sha256: string | null;
+      status: string;
+      storageProvider: string;
+      storagePath: string | null;
+      workdriveFileId: string;
+      createdBy: string;
+    };
+  },
+  opts: {
+    now: Date;
+    key: Buffer;
+    master: WorkDriveClient | null;
+    fetchImpl?: FetchLike;
+    maxAttempts: number;
+    backoffMs: number;
+    maxBackoffMs: number;
+  },
+  finish: (
+    status: 'DONE' | 'SKIPPED' | 'FAILED' | 'PENDING',
+    extra?: Record<string, unknown>,
+  ) => Promise<'DONE' | 'SKIPPED' | 'FAILED' | 'PENDING'>,
+) {
+  const prisma = getPrisma();
+  const migration = await prisma.storageMigration.findFirst({
+    where: { tenantId: job.tenantId, status: { in: ['PENDING', 'RUNNING'] } },
+    orderBy: { createdAt: 'desc' },
+  });
+  if (!migration || migration.status === 'CANCELLED') {
+    return finish('SKIPPED', { lastError: 'Migration was cancelled' });
+  }
+  if (job.asset.storageProvider === 'OMA_INTERNAL') {
+    await prisma.storageMigration.update({
+      where: { id: migration.id },
+      data: { skipped: { increment: 1 } },
+    });
+    return finish('SKIPPED', { lastError: 'Already on OMA storage' });
+  }
+  if (job.asset.status === 'MISSING') {
+    await prisma.storageMigration.update({
+      where: { id: migration.id },
+      data: { skipped: { increment: 1 } },
+    });
+    return finish('SKIPPED', { lastError: 'Asset is missing' });
+  }
+  if (!opts.master) return retryOrFail(job, opts, 'Platform storage is not configured', finish);
+  const conn = await prisma.workDriveConnection.findUnique({
+    where: { id: job.workdriveConnectionId },
+  });
+  if (!conn || conn.status !== 'CONNECTED') {
+    await prisma.storageMigration.update({
+      where: { id: migration.id },
+      data: { failed: { increment: 1 }, lastError: 'WorkDrive is not connected' },
+    });
+    return finish('FAILED', { lastError: 'WorkDrive is not connected' });
+  }
+  const source = clientFromConnection(conn, opts.key, opts.fetchImpl);
+  const segs = internalMediaSegments({
+    tenantId: job.asset.tenantId,
+    brandId: job.asset.brandId,
+    kind: job.asset.kind,
+    userId: job.asset.createdBy,
+  });
+  try {
+    const signed = await source.downloadUrl(job.asset.workdriveFileId);
+    let sha256 = job.asset.sha256;
+    if (!sha256) {
+      const size = Number(job.asset.size);
+      if (!copyBufferAllowed(size, sha256)) {
+        throw new Error('File hash is missing; cannot stream a file this large safely');
+      }
+      const res = await (opts.fetchImpl ?? fetch)(signed.url);
+      if (!res.ok) throw new Error(`Download failed (${res.status})`);
+      sha256 = createHash('sha256')
+        .update(Buffer.from(await res.arrayBuffer()))
+        .digest('hex');
+    }
+    const folder = await opts.master.ensurePath(segs);
+    const uploaded = await opts.master.uploadFromSignedSource({
+      folderId: folder.folderId,
+      name: safeFileName(job.asset.name),
+      mimeType: job.asset.mime,
+      size: Number(job.asset.size),
+      sha256,
+      sourceUrl: signed.url,
+    });
+    const previousId = job.asset.workdriveFileId;
+    await prisma.mediaAsset.update({
+      where: { id: job.asset.id },
+      data: {
+        storageProvider: 'OMA_INTERNAL',
+        storagePath: storagePathOf(segs),
+        workdriveFileId: uploaded.fileId,
+        folderId: folder.folderId,
+      },
+    });
+    if (migration.deleteSource) {
+      await source.trash(previousId).catch(() => undefined);
+    }
+    await prisma.storageMigration.update({
+      where: { id: migration.id },
+      data: { completed: { increment: 1 } },
+    });
+    await maybeFinishMigration(migration.id, job.tenantId, opts.now, job.id);
+    return finish('DONE', { replicaFileId: uploaded.fileId, replicaPath: storagePathOf(segs) });
+  } catch (e) {
+    const info = classifyBackupError(e);
+    if (info.retryable) return retryOrFail(job, opts, info.message, finish);
+    await prisma.storageMigration.update({
+      where: { id: migration.id },
+      data: { failed: { increment: 1 }, lastError: info.message },
+    });
+    await maybeFinishMigration(migration.id, job.tenantId, opts.now, job.id);
+    return finish('FAILED', { attempts: job.attempts + 1, lastError: info.message });
+  }
+}
+
+async function maybeFinishMigration(
+  migrationId: string,
+  tenantId: string,
+  now: Date,
+  excludeJobId?: string,
+) {
+  const prisma = getPrisma();
+  const open = await prisma.storageBackupJob.count({
+    where: {
+      tenantId,
+      kind: 'MIGRATE',
+      status: { in: ['PENDING', 'RUNNING'] },
+      ...(excludeJobId ? { id: { not: excludeJobId } } : {}),
+    },
+  });
+  if (open > 0) return;
+  const migration = await prisma.storageMigration.findUnique({ where: { id: migrationId } });
+  if (!migration || migration.status === 'CANCELLED' || migration.status === 'DONE') return;
+  await prisma.storageMigration.update({
+    where: { id: migrationId },
+    data: {
+      status: migration.failed > 0 && migration.completed === 0 ? 'FAILED' : 'DONE',
+      finishedAt: now,
+    },
+  });
 }

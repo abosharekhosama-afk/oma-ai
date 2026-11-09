@@ -12,6 +12,8 @@ export type FakeFile = {
   sha256: string;
   bytes?: Buffer;
   trashed?: boolean;
+  createdAt?: Date;
+  updatedAt?: Date;
 };
 
 export async function startFakeWorkDrive(opts: {
@@ -52,10 +54,17 @@ export async function startFakeWorkDrive(opts: {
       total: number;
     }
   >();
-  const calls: Array<{ method: string; path: string; auth: string | undefined; partSha?: string }> =
-    [];
+  const calls: Array<{
+    method: string;
+    path: string;
+    auth: string | undefined;
+    partSha?: string;
+    range?: string;
+  }> = [];
   let maxBodyBytes = 0;
   let rejectUploads: { status: number; message: string } | null = null;
+  let rejectDeletes: { status: number; message: string } | null = null;
+  let quotaBytes: number | null = 10 * 1024 * 1024 * 1024;
 
   const read = (req: IncomingMessage) =>
     new Promise<Buffer>((res) => {
@@ -74,6 +83,7 @@ export async function startFakeWorkDrive(opts: {
       path,
       auth: req.headers.authorization,
       partSha: req.headers['x-part-sha256'] as string | undefined,
+      range: req.headers.range as string | undefined,
     });
     const send = (status: number, body?: unknown) => {
       res.writeHead(status, { 'content-type': 'application/json' });
@@ -151,7 +161,8 @@ export async function startFakeWorkDrive(opts: {
             size: String(x.size),
             status: 'ACTIVE',
             deletedAt: null,
-            updatedAt: new Date().toISOString(),
+            updatedAt: (x.updatedAt ?? x.createdAt ?? new Date()).toISOString(),
+            createdAt: (x.createdAt ?? x.updatedAt ?? new Date()).toISOString(),
           })),
       });
     }
@@ -200,6 +211,8 @@ export async function startFakeWorkDrive(opts: {
         size: up.size,
         sha256: up.sha256,
         bytes: up.bytes,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
       return send(201, { file_id: up.fileId, upload_id: b.upload_id, status: 'complete' });
     }
@@ -242,6 +255,8 @@ export async function startFakeWorkDrive(opts: {
         mimeType: s.mime,
         size: s.size,
         sha256: s.sha256,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       });
       return send(201, { file_id: s.fileId, status: 'complete' });
     }
@@ -282,10 +297,15 @@ export async function startFakeWorkDrive(opts: {
       return sendBytes(res, f.mimeType, f.bytes ?? Buffer.alloc(f.size), req.headers.range);
     }
     if ((m = /^\/files\/([^/]+)$/.exec(path)) && method === 'DELETE') {
+      if (rejectDeletes) return send(rejectDeletes.status, { message: rejectDeletes.message });
       const f = files.get(m[1]!);
       if (!f) return send(404, { message: 'File not found' });
       f.trashed = true;
       return send(200, { id: f.id, trashed: true });
+    }
+    if (path === '/storage/quota' && method === 'GET') {
+      const used = [...files.values()].filter((f) => !f.trashed).reduce((n, f) => n + f.size, 0);
+      return send(200, { usedBytes: used, quotaBytes, used_bytes: used, quota_bytes: quotaBytes });
     }
     send(404, { message: 'route' });
   });
@@ -310,6 +330,12 @@ export async function startFakeWorkDrive(opts: {
     close: () => new Promise<void>((r) => server.close(() => r())),
     setRejectUploads(next: { status: number; message: string } | null) {
       rejectUploads = next;
+    },
+    setRejectDeletes(next: { status: number; message: string } | null) {
+      rejectDeletes = next;
+    },
+    setQuotaBytes(next: number | null) {
+      quotaBytes = next;
     },
   };
 }

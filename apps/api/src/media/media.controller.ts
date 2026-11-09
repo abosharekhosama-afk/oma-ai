@@ -71,6 +71,26 @@ export class WorkDriveController {
     return workDriveService.retryFailedBackups(c.tenantId, c.userId, c.correlationId);
   }
 
+  @Get('api/v1/workspace/storage/migrate')
+  @UseGuards(AuthGuard, CapabilitiesGuard)
+  migrateStatus(@Req() req: Request) {
+    return workDriveService.migrationStatus(ctx(req).tenantId);
+  }
+
+  @Post('api/v1/workspace/storage/migrate')
+  @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
+  startMigrate(@Req() req: Request, @Body() body: unknown) {
+    const c = ctx(req);
+    return workDriveService.startMigration(c.tenantId, c.userId, body, c.correlationId);
+  }
+
+  @Post('api/v1/workspace/storage/migrate/cancel')
+  @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
+  cancelMigrate(@Req() req: Request) {
+    const c = ctx(req);
+    return workDriveService.cancelMigration(c.tenantId, c.userId, c.correlationId);
+  }
+
   @Get('api/v1/workspace/workdrive')
   @UseGuards(AuthGuard, CapabilitiesGuard)
   status(@Req() req: Request) {
@@ -209,6 +229,13 @@ export class MediaController {
    * from storage (no proxy hop through Vercel/API). The redirect itself is cacheable for as long
    * as the signed URL stays valid, so revisiting a screen costs no API round trip at all.
    */
+  @Delete('api/v1/media/:assetId')
+  @UseGuards(AuthGuard, CsrfGuard, CapabilitiesGuard)
+  remove(@Req() req: Request, @Param('assetId') assetId: string) {
+    const c = ctx(req);
+    return mediaService.remove(c.tenantId, assetId, c.capabilities, c.userId, c.correlationId);
+  }
+
   @Get('api/v1/media/:assetId/view')
   @UseGuards(AuthGuard, CapabilitiesGuard)
   async view(@Req() req: Request, @Res() res: Response, @Param('assetId') assetId: string) {

@@ -19,9 +19,10 @@ export async function enqueueBackupIfNeeded(asset: AssetLike) {
   if (!conn || conn.status !== 'CONNECTED') return null;
   const existing = await prisma.storageBackupJob.findUnique({
     where: {
-      mediaAssetId_workdriveConnectionId: {
+      mediaAssetId_workdriveConnectionId_kind: {
         mediaAssetId: asset.id,
         workdriveConnectionId: conn.id,
+        kind: 'BACKUP',
       },
     },
   });
@@ -32,6 +33,7 @@ export async function enqueueBackupIfNeeded(asset: AssetLike) {
       tenantId: asset.tenantId,
       mediaAssetId: asset.id,
       workdriveConnectionId: conn.id,
+      kind: 'BACKUP',
       status: 'PENDING',
       attempts: 0,
       nextAttemptAt: new Date(),
@@ -48,7 +50,7 @@ export async function backupStatus(tenantId: string) {
   const prisma = getPrisma();
   const grouped = await prisma.storageBackupJob.groupBy({
     by: ['status'],
-    where: { tenantId },
+    where: { tenantId, kind: 'BACKUP' },
     _count: { _all: true },
   });
   const counts = { pending: 0, running: 0, done: 0, failed: 0, skipped: 0 };
@@ -57,12 +59,17 @@ export async function backupStatus(tenantId: string) {
     if (key in counts) counts[key] = row._count._all;
   }
   const lastSuccess = await prisma.storageBackupJob.findFirst({
-    where: { tenantId, status: 'DONE' },
+    where: { tenantId, kind: 'BACKUP', status: 'DONE' },
     orderBy: { finishedAt: 'desc' },
     select: { finishedAt: true, updatedAt: true },
   });
   const lastError = await prisma.storageBackupJob.findFirst({
-    where: { tenantId, lastError: { not: null }, status: { in: ['FAILED', 'PENDING'] } },
+    where: {
+      tenantId,
+      kind: 'BACKUP',
+      lastError: { not: null },
+      status: { in: ['FAILED', 'PENDING'] },
+    },
     orderBy: { updatedAt: 'desc' },
     select: { lastError: true, updatedAt: true, mediaAssetId: true, status: true },
   });
@@ -103,9 +110,10 @@ export async function backfillBackups(tenantId: string) {
   for (const asset of assets) {
     const before = await prisma.storageBackupJob.findUnique({
       where: {
-        mediaAssetId_workdriveConnectionId: {
+        mediaAssetId_workdriveConnectionId_kind: {
           mediaAssetId: asset.id,
           workdriveConnectionId: conn.id,
+          kind: 'BACKUP',
         },
       },
     });
@@ -135,7 +143,7 @@ export async function retryFailedBackups(tenantId: string) {
     data: { status: 'CONNECTED', lastError: null, lastCheckedAt: now },
   });
   const result = await prisma.storageBackupJob.updateMany({
-    where: { tenantId, status: 'FAILED' },
+    where: { tenantId, kind: 'BACKUP', status: 'FAILED' },
     data: {
       status: 'PENDING',
       nextAttemptAt: now,
@@ -144,4 +152,49 @@ export async function retryFailedBackups(tenantId: string) {
     },
   });
   return { data: { retried: result.count } };
+}
+
+export async function enqueueReplicaTrash(asset: {
+  id: string;
+  tenantId: string;
+  replicaFileId: string | null;
+}) {
+  if (!asset.replicaFileId) return null;
+  const prisma = getPrisma();
+  const conn = await prisma.workDriveConnection.findUnique({ where: { tenantId: asset.tenantId } });
+  if (!conn) return null;
+  return prisma.storageBackupJob.upsert({
+    where: {
+      mediaAssetId_workdriveConnectionId_kind: {
+        mediaAssetId: asset.id,
+        workdriveConnectionId: conn.id,
+        kind: 'REPLICA_TRASH',
+      },
+    },
+    create: {
+      id: newId(),
+      tenantId: asset.tenantId,
+      mediaAssetId: asset.id,
+      workdriveConnectionId: conn.id,
+      kind: 'REPLICA_TRASH',
+      status: 'PENDING',
+      attempts: 0,
+      nextAttemptAt: new Date(),
+      replicaFileId: asset.replicaFileId,
+    },
+    update: {
+      status: 'PENDING',
+      nextAttemptAt: new Date(),
+      finishedAt: null,
+      lastError: null,
+      replicaFileId: asset.replicaFileId,
+    },
+  });
+}
+
+export async function cancelBackupJobsForAsset(mediaAssetId: string) {
+  return getPrisma().storageBackupJob.updateMany({
+    where: { mediaAssetId, kind: 'BACKUP', status: { in: ['PENDING', 'RUNNING'] } },
+    data: { status: 'SKIPPED', lastError: 'Asset deleted', finishedAt: new Date() },
+  });
 }
