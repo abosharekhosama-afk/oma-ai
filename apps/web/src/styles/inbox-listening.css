@@ -7691,6 +7691,35 @@ html[data-plx-filter-open='true'] .oma-plx-workspace-surface {
   height: 100%;
   background: #2563eb;
 }
+.oma-ml-source {
+  display: inline-flex;
+  align-items: stretch;
+  margin: 0 0 10px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+.oma-ml-source button {
+  border: 0;
+  background: transparent;
+  padding: 7px 12px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  color: #4b5563;
+  cursor: pointer;
+}
+.oma-ml-source button + button {
+  border-inline-start: 1px solid #e5e7eb;
+}
+.oma-ml-source button:hover {
+  background: #f9fafb;
+}
+.oma-ml-source button[data-active='true'] {
+  background: #eef2ff;
+  color: #1d4ed8;
+}
 .oma-ml-folders {
   display: flex;
   gap: 8px;

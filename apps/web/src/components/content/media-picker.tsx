@@ -93,10 +93,16 @@ function mosaicHue(name: string) {
   return h;
 }
 
-function fileToItem(file: WorkDriveBrowseFile, brandId: string, kind: MediaKind): GridItem {
+function fileToItem(
+  file: WorkDriveBrowseFile,
+  brandId: string,
+  kind: MediaKind,
+  source?: 'oma' | 'workdrive',
+): GridItem {
+  const qs = source ? `&source=${encodeURIComponent(source)}` : '';
   const view =
     file.view_url ||
-    `/api/v1/brands/${brandId}/media/file-preview?file_id=${encodeURIComponent(file.id)}`;
+    `/api/v1/brands/${brandId}/media/file-preview?file_id=${encodeURIComponent(file.id)}${qs}`;
   const asset: MediaAsset | null = file.asset_id
     ? {
         id: file.asset_id,
@@ -224,6 +230,7 @@ export function MediaPickerDialog({
   const [orgRoot, setOrgRoot] = useState<WorkDriveBrowse | null>(null);
   const [brandRoot, setBrandRoot] = useState<WorkDriveBrowse | null>(null);
   const [browse, setBrowse] = useState<WorkDriveBrowse | null>(null);
+  const [storageSource, setStorageSource] = useState<'oma' | 'workdrive' | null>(null);
   const [scope, setScope] = useState<Scope>('organization');
   const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
   const [progress, setProgress] = useState<{ name: string; value: number } | null>(null);
@@ -272,8 +279,17 @@ export function MediaPickerDialog({
       setBrowsing(true);
       setError(null);
       try {
-        const r = await mediaApi.browse(brandId, kind, folderId, nextScope);
+        const r = await mediaApi.browse(
+          brandId,
+          kind,
+          folderId,
+          nextScope,
+          storageSource ?? undefined,
+        );
         setBrowse(r.data);
+        if (r.data.source === 'oma' || r.data.source === 'workdrive') {
+          setStorageSource(r.data.source);
+        }
         setScope(nextScope);
         setSelectedFolderId(folderId || r.data.folder.id);
         if (nextScope === 'organization' && !folderId) setOrgRoot(r.data);
@@ -282,7 +298,13 @@ export function MediaPickerDialog({
       } catch (e) {
         if (nextScope === 'organization') {
           try {
-            const r = await mediaApi.browse(brandId, kind, folderId, 'brand');
+            const r = await mediaApi.browse(
+              brandId,
+              kind,
+              folderId,
+              'brand',
+              storageSource ?? undefined,
+            );
             setBrowse(r.data);
             setScope('brand');
             setSelectedFolderId(folderId || r.data.folder.id);
@@ -299,7 +321,7 @@ export function MediaPickerDialog({
         setBrowsing(false);
       }
     },
-    [brandId, kind],
+    [brandId, kind, storageSource],
   );
 
   useEffect(() => {
@@ -308,10 +330,18 @@ export function MediaPickerDialog({
     void (async () => {
       setBrowsing(true);
       try {
+        const src = storageSource ?? undefined;
         const [org, brand] = await Promise.allSettled([
-          mediaApi.browse(brandId, kind, undefined, 'organization'),
-          mediaApi.browse(brandId, kind, undefined, 'brand'),
+          mediaApi.browse(brandId, kind, undefined, 'organization', src),
+          mediaApi.browse(brandId, kind, undefined, 'brand', src),
         ]);
+        const from =
+          org.status === 'fulfilled'
+            ? org.value.data.source
+            : brand.status === 'fulfilled'
+              ? brand.value.data.source
+              : null;
+        if (from === 'oma' || from === 'workdrive') setStorageSource(from);
         if (org.status === 'fulfilled') {
           setOrgRoot(org.value.data);
           setBrowse(org.value.data);
@@ -333,7 +363,7 @@ export function MediaPickerDialog({
         setBrowsing(false);
       }
     })();
-  }, [open, brandId, kind, loadLibrary]);
+  }, [open, brandId, kind, loadLibrary, storageSource]);
 
   useEffect(() => {
     if (searchOpen) searchRef.current?.focus();
@@ -351,7 +381,12 @@ export function MediaPickerDialog({
     return () => document.removeEventListener('mousedown', onDoc);
   }, [sortOpen, filtersOpen, createOpen]);
 
-  const storageReady = lib?.workdrive.can_upload ?? lib?.workdrive.connected;
+  const storageReady = Boolean(
+    lib?.workdrive.can_upload || lib?.workdrive.internal_available || lib?.workdrive.connected,
+  );
+  const showSourceToggle = Boolean(
+    lib?.workdrive.internal_available && (lib.workdrive.byos_connected || lib.workdrive.connected),
+  );
   const brandFolder = browse?.brand_folder || brandRoot?.brand_folder || orgRoot?.brand_folder;
   const allSelected = scope === 'all' || selectedFolderId === '__all__';
   const brandSelected = Boolean(
@@ -367,7 +402,7 @@ export function MediaPickerDialog({
   const items = useMemo(() => {
     const source = allSelected ? browse : brandSelected ? (brandRoot ?? browse) : browse;
     const files = source?.files ?? [];
-    const mapped = files.map((f) => fileToItem(f, brandId || '', kind));
+    const mapped = files.map((f) => fileToItem(f, brandId || '', kind, storageSource ?? undefined));
     const seen = new Set(mapped.map((i) => i.key));
     if ((allSelected || !brandSelected) && lib?.assets.length) {
       for (const a of lib.assets) {
@@ -423,6 +458,7 @@ export function MediaPickerDialog({
     campaigns,
     uploaders,
     sort,
+    storageSource,
   ]);
 
   const facets = browse?.filter_facets || orgRoot?.filter_facets || brandRoot?.filter_facets;
@@ -479,7 +515,7 @@ export function MediaPickerDialog({
         if (variant === 'drawer') onClose();
         return;
       }
-      const r = await mediaApi.importFile(brandId, kind, item.fileId);
+      const r = await mediaApi.importFile(brandId, kind, item.fileId, storageSource ?? undefined);
       onPick(r.data);
       if (variant === 'drawer') onClose();
     } catch (e) {
@@ -501,6 +537,7 @@ export function MediaPickerDialog({
         parent_id: parentId,
         scope: folderScope,
         kind,
+        source: storageSource ?? undefined,
       });
       setFolderName('');
       setCreateOpen(false);
@@ -590,6 +627,46 @@ export function MediaPickerDialog({
             onClick={() => setError(t('media.canvaUnavailable'))}
           >
             {t('media.canvaConnect')}
+          </button>
+        </div>
+      ) : null}
+
+      {showSourceToggle ? (
+        <div
+          className="oma-ml-source"
+          data-testid="media-source-toggle"
+          role="group"
+          aria-label={t('media.sourceLabel')}
+        >
+          <button
+            type="button"
+            data-testid="media-source-oma"
+            data-active={storageSource !== 'workdrive' ? 'true' : 'false'}
+            onClick={() => {
+              if (storageSource === 'oma') return;
+              setOrgRoot(null);
+              setBrandRoot(null);
+              setBrowse(null);
+              setError(null);
+              setStorageSource('oma');
+            }}
+          >
+            {t('media.sourceOma')}
+          </button>
+          <button
+            type="button"
+            data-testid="media-source-workdrive"
+            data-active={storageSource === 'workdrive' ? 'true' : 'false'}
+            onClick={() => {
+              if (storageSource === 'workdrive') return;
+              setOrgRoot(null);
+              setBrandRoot(null);
+              setBrowse(null);
+              setError(null);
+              setStorageSource('workdrive');
+            }}
+          >
+            {t('media.sourceWorkDrive')}
           </button>
         </div>
       ) : null}

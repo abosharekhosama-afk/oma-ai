@@ -275,6 +275,53 @@ export class WorkDriveService {
   }
 
   /**
+   * Browse/import source: `oma` = platform storage, `workdrive` = the workspace BYOS connection.
+   */
+  parseLibrarySource(raw?: string | null): 'oma' | 'workdrive' | undefined {
+    if (raw == null || String(raw).trim() === '') return undefined;
+    const v = String(raw).trim().toLowerCase();
+    if (v === 'oma' || v === 'internal' || v === 'oma_internal') return 'oma';
+    if (v === 'workdrive' || v === 'user' || v === 'user_workdrive' || v === 'byos') {
+      return 'workdrive';
+    }
+    throw new DomainError(
+      'VALIDATION_FAILED',
+      'source must be oma or workdrive',
+      400,
+      'errors.validation_failed',
+    );
+  }
+
+  /**
+   * Client used to browse/import/preview files. Defaults to the workspace storage mode.
+   * `source=workdrive` always uses the BYOS connection; `source=oma` always uses the
+   * platform client (scoped child key when minted, otherwise master + path guard).
+   */
+  async resolveLibraryClient(tenantId: string, source?: 'oma' | 'workdrive' | null) {
+    const mode = await this.effectiveMode(tenantId);
+    const want = source ?? (mode === 'USER_WORKDRIVE' ? 'workdrive' : 'oma');
+    if (want === 'workdrive') {
+      const user = await this.requireClient(tenantId);
+      return {
+        ...user,
+        provider: 'USER_WORKDRIVE' as const,
+        tenantId,
+        source: 'workdrive' as const,
+      };
+    }
+    const internal = await this.ensureInternalClient(tenantId);
+    if (!internal) {
+      throw new DomainError(
+        'PROVIDER_NOT_CONFIGURED',
+        'WorkDrive storage is not enabled on this server',
+        409,
+        'errors.workdrive_not_enabled',
+      );
+    }
+    return { ...internal, source: 'oma' as const };
+  }
+
+  /**
    * Client used to write a new file. Prefers the workspace mode: BYOS when explicitly set (or
    * when a connection exists and no setting row was created), otherwise the platform master.
    */

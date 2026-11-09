@@ -334,7 +334,7 @@ export class MediaService {
   private folderSegments(
     c: {
       client: WorkDriveClient;
-      conn: { id: string; rootFolderName: string | null };
+      conn: { id: string; rootFolderId?: string | null; rootFolderName: string | null };
       provider?: 'OMA_INTERNAL' | 'USER_WORKDRIVE';
       tenantId?: string;
     },
@@ -342,7 +342,12 @@ export class MediaService {
     kind: MediaKind,
   ) {
     if (c.provider === 'OMA_INTERNAL' && c.tenantId) {
-      return internalMediaSegments({ tenantId: c.tenantId, brandId: brand.id, kind });
+      const full = internalMediaSegments({ tenantId: c.tenantId, brandId: brand.id, kind });
+      // A minted child key is already rooted at tenants/{tenantId}.
+      if (c.conn.rootFolderId && full[0] === 'tenants' && full[1] === c.tenantId) {
+        return full.slice(2);
+      }
+      return full;
     }
     return mediaFolderSegments({
       brandSlug: brandFolderSlug(brand.name, brand.id.slice(-8).toLowerCase()),
@@ -390,6 +395,27 @@ export class MediaService {
     return folderId;
   }
 
+  /** Workspace root for platform storage: tenants/{tenantId} (or the scoped key root). */
+  private async tenantFolderFor(c: {
+    client: WorkDriveClient;
+    conn: { id: string; rootFolderId?: string | null; rootFolderName: string | null };
+    provider?: 'OMA_INTERNAL' | 'USER_WORKDRIVE';
+    tenantId?: string;
+  }) {
+    if (c.provider === 'OMA_INTERNAL' && c.conn.rootFolderId) return c.conn.rootFolderId;
+    if (c.provider === 'OMA_INTERNAL' && c.tenantId) {
+      const segs = ['tenants', c.tenantId];
+      const k = `${c.conn.id}:${segs.join('/')}`;
+      const hit = this.folderCache.get(k);
+      if (hit) return hit;
+      const { folderId } = await c.client.ensurePath(segs);
+      this.folderCache.set(k, folderId);
+      return folderId;
+    }
+    if (c.conn.rootFolderId) return c.conn.rootFolderId;
+    throw notFound();
+  }
+
   private async assertInsideScope(client: WorkDriveClient, folderId: string, scopeRootId: string) {
     if (folderId === scopeRootId) return;
     let cursor = await client.getFolder(folderId);
@@ -423,6 +449,7 @@ export class MediaService {
     tenantId: string,
     brandId: string,
     files: BrowseFile[],
+    source?: 'oma' | 'workdrive',
   ): Promise<{
     files: Array<
       BrowseFile & {
@@ -502,7 +529,7 @@ export class MediaService {
         asset_id: a?.id ?? null,
         view_url: a
           ? mediaPlaybackUrl(a.id, a.mime)
-          : `/api/v1/brands/${brandId}/media/file-preview?file_id=${encodeURIComponent(f.id)}`,
+          : `/api/v1/brands/${brandId}/media/file-preview?file_id=${encodeURIComponent(f.id)}${source ? `&source=${source}` : ''}`,
         stream_url: a && a.mime.startsWith('video/') ? `/api/v1/media/${a.id}/stream` : null,
         usage_count: u?.count ?? 0,
         campaign_ids,
@@ -561,7 +588,12 @@ export class MediaService {
           org_name: conn.data.connection?.org_name ?? null,
           can_upload: storage.data.can_upload,
           internal_available: storage.data.internal_available,
+          byos_connected: storage.data.byos_connected,
           mode: storage.data.mode,
+          available_sources: {
+            oma: storage.data.internal_available,
+            workdrive: storage.data.byos_connected,
+          },
         },
         assets: rows.slice(0, take).map(mapAsset),
         next_cursor: rows.length > take ? rows[take - 1]!.id : null,
@@ -840,21 +872,38 @@ export class MediaService {
     const b = (body ?? {}) as Record<string, unknown>;
     const kind = parseKind(b.kind);
     this.assertCapability(ctx.capabilities, kind);
-    await this.brand(ctx.tenantId, brandId);
+    const brand = await this.brand(ctx.tenantId, brandId);
     const fileId = typeof b.file_id === 'string' ? b.file_id.trim() : '';
     if (!/^[0-9a-f-]{36}$/i.test(fileId)) throw bad('file_id required');
-    const { client } = await this.workdrive.requireClient(ctx.tenantId);
+    const c = await this.workdrive.resolveLibraryClient(
+      ctx.tenantId,
+      this.workdrive.parseLibrarySource(typeof b.source === 'string' ? b.source : undefined),
+    );
     let d;
     try {
-      d = await client.details(fileId);
+      d = await c.client.details(fileId);
     } catch (e) {
       throw workDriveDomainError(e);
     }
     if (!allowedMimeFor(kind).includes(d.mimeType))
       throw bad('This file type is not supported', 'errors.media_type');
+    try {
+      const scopeRootId =
+        c.provider === 'OMA_INTERNAL'
+          ? await this.tenantFolderFor(c)
+          : c.conn.rootFolderId || (await this.brandFolderFor(c, brand));
+      if (d.folderId) await this.assertInsideScope(c.client, d.folderId, scopeRootId);
+      else if (c.provider === 'OMA_INTERNAL') throw notFound();
+    } catch (e) {
+      throw workDriveDomainError(e);
+    }
     const existing = await getPrisma().mediaAsset.findFirst({
       where: tenantWhere(ctx.tenantId, { brandId, workdriveFileId: fileId }),
     });
+    const internalPath =
+      c.provider === 'OMA_INTERNAL'
+        ? storagePathOf(internalMediaSegments({ tenantId: ctx.tenantId, brandId, kind }))
+        : undefined;
     const row = existing
       ? await getPrisma().mediaAsset.update({
           where: { id: existing.id },
@@ -874,7 +923,8 @@ export class MediaService {
             kind,
             workdriveFileId: fileId,
             folderId: d.folderId,
-            storageProvider: 'USER_WORKDRIVE',
+            storageProvider: c.provider === 'OMA_INTERNAL' ? 'OMA_INTERNAL' : 'USER_WORKDRIVE',
+            storagePath: internalPath,
             name: d.name,
             mime: d.mimeType,
             size: BigInt(d.size),
@@ -900,20 +950,31 @@ export class MediaService {
   async browse(
     tenantId: string,
     brandId: string,
-    q: { folder_id?: string; kind?: string; scope?: string },
+    q: { folder_id?: string; kind?: string; scope?: string; source?: string },
   ) {
     const brand = await this.brand(tenantId, brandId);
     const kind = q.kind ? parseKind(q.kind) : 'posts';
-    const c = await this.workdrive.requireClient(tenantId);
+    const requested = this.workdrive.parseLibrarySource(q.source);
+    const c = await this.workdrive.resolveLibraryClient(tenantId, requested);
+    const storage = await this.workdrive.storageStatus(tenantId);
     try {
       const allScope = q.scope === 'all';
       const organizationScope = q.scope === 'organization' || allScope;
-      const rootFolderId = c.conn.rootFolderId;
-      // Organization browse needs a configured root. Fall back to the brand folder so the
-      // media card never surfaces a generic CONFLICT_STATE when the root is unset.
-      const useOrgRoot = organizationScope && Boolean(rootFolderId);
       const brandFolderId = await this.brandFolderFor(c, brand);
-      const startFolderId = useOrgRoot ? rootFolderId! : brandFolderId;
+      let startFolderId: string;
+      if (c.provider === 'OMA_INTERNAL') {
+        const tenantRootId = await this.tenantFolderFor(c);
+        // Ensure-path so a brand that has never uploaded still lists empty folders.
+        await this.folderFor(c, brand, kind);
+        if (kind !== 'deliverables') await this.folderFor(c, brand, 'logos');
+        startFolderId = organizationScope || allScope ? tenantRootId : brandFolderId;
+      } else {
+        const rootFolderId = c.conn.rootFolderId;
+        // Organization browse needs a configured root. Fall back to the brand folder so the
+        // media card never surfaces a generic CONFLICT_STATE when the root is unset.
+        const useOrgRoot = organizationScope && Boolean(rootFolderId);
+        startFolderId = useOrgRoot ? rootFolderId! : brandFolderId;
+      }
       const scopeRootId = startFolderId;
       const folderId = allScope ? startFolderId : q.folder_id || startFolderId;
       const f = await c.client.getFolder(folderId);
@@ -967,7 +1028,7 @@ export class MediaService {
           }
         }
       }
-      const decorated = await this.decorateBrowseFiles(tenantId, brandId, files);
+      const decorated = await this.decorateBrowseFiles(tenantId, brandId, files, c.source);
       return {
         data: {
           folder: {
@@ -981,6 +1042,12 @@ export class MediaService {
           folders: allScope ? [] : f.folders,
           files: decorated.files,
           filter_facets: decorated.filter_facets,
+          source: c.source,
+          available_sources: {
+            oma: storage.data.internal_available,
+            workdrive: storage.data.byos_connected,
+          },
+          mode: storage.data.mode,
         },
       };
     } catch (e) {
@@ -1002,11 +1069,18 @@ export class MediaService {
     const brand = await this.brand(ctx.tenantId, brandId);
     if (brand.status === 'ARCHIVED')
       throw new DomainError('BRAND_ARCHIVED', 'Brand archived', 409, 'errors.brand_archived');
-    const c = await this.workdrive.requireClient(ctx.tenantId);
+    const c = await this.workdrive.resolveLibraryClient(
+      ctx.tenantId,
+      this.workdrive.parseLibrarySource(typeof b.source === 'string' ? b.source : undefined),
+    );
     const organizationScope = b.scope === 'organization';
     const brandFolderId = await this.brandFolderFor(c, brand);
     const startFolderId =
-      organizationScope && c.conn.rootFolderId ? c.conn.rootFolderId : brandFolderId;
+      organizationScope && c.provider === 'OMA_INTERNAL'
+        ? await this.tenantFolderFor(c)
+        : organizationScope && c.conn.rootFolderId
+          ? c.conn.rootFolderId
+          : brandFolderId;
     const parentId = typeof b.parent_id === 'string' && b.parent_id ? b.parent_id : startFolderId;
     try {
       await this.assertInsideScope(c.client, parentId, startFolderId);
@@ -1035,14 +1109,21 @@ export class MediaService {
   }
 
   /** Signed preview for a WorkDrive file that may not yet be imported as a MediaAsset. */
-  async filePreview(tenantId: string, brandId: string, fileId: string) {
+  async filePreview(tenantId: string, brandId: string, fileId: string, source?: string) {
     if (!fileId || fileId.length > 80) throw notFound();
     const brand = await this.brand(tenantId, brandId);
-    const c = await this.workdrive.requireClient(tenantId);
+    const c = await this.workdrive.resolveLibraryClient(
+      tenantId,
+      this.workdrive.parseLibrarySource(source),
+    );
     try {
       const d = await c.client.details(fileId);
-      const scopeRootId = c.conn.rootFolderId || (await this.brandFolderFor(c, brand));
+      const scopeRootId =
+        c.provider === 'OMA_INTERNAL'
+          ? await this.tenantFolderFor(c)
+          : c.conn.rootFolderId || (await this.brandFolderFor(c, brand));
       if (d.folderId) await this.assertInsideScope(c.client, d.folderId, scopeRootId);
+      else if (c.provider === 'OMA_INTERNAL') throw notFound();
       const signed = await c.client.previewUrl(fileId);
       return { url: signed.url, expires_at: signed.expiresAt.toISOString() };
     } catch (e) {

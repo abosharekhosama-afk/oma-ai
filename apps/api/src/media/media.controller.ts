@@ -201,8 +201,9 @@ export class MediaController {
     @Res() res: Response,
     @Param('brandId') brandId: string,
     @Query('file_id') fileId: string,
+    @Query('source') source?: string,
   ) {
-    const r = await mediaService.filePreview(ctx(req).tenantId, brandId, fileId);
+    const r = await mediaService.filePreview(ctx(req).tenantId, brandId, fileId, source);
     redirectToSigned(res, r.url, r.expires_at);
   }
 
