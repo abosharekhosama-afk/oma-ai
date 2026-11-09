@@ -578,9 +578,26 @@ export function startSocialJobs(
     },
     Number(process.env.SOCIAL_INSIGHTS_INTERVAL_MS ?? 15 * 60_000),
   );
+  const optimal = setInterval(
+    () => {
+      void import('./optimal-times')
+        .then(({ runOptimalTimesTick }) => runOptimalTimesTick())
+        .catch((e) => log.error({ err: String(e) }, 'optimal send times tick failed'));
+    },
+    Number(process.env.OPTIMAL_TIMES_INTERVAL_MS ?? 24 * 60 * 60_000),
+  );
+  setTimeout(
+    () => {
+      void import('./optimal-times')
+        .then(({ runOptimalTimesTick }) => runOptimalTimesTick())
+        .catch((e) => log.error({ err: String(e) }, 'optimal send times startup tick failed'));
+    },
+    Number(process.env.OPTIMAL_TIMES_STARTUP_DELAY_MS ?? 45_000),
+  );
   return () => {
     clearInterval(publish);
     clearInterval(refresh);
     clearInterval(insights);
+    clearInterval(optimal);
   };
 }

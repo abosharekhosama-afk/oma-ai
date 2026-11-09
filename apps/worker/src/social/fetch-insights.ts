@@ -1,4 +1,4 @@
-import { getPrisma } from '@oma/db';
+import { getPrisma, upsertPostMetricSnapshot } from '@oma/db';
 import {
   createSocialAdapter,
   fromSocialEnum,
@@ -29,7 +29,7 @@ export async function runInsightsTick(
       externalPostId: { not: null },
       OR: [{ lastInsightsAt: null }, { lastInsightsAt: { lte: staleBefore } }],
     },
-    include: { socialPage: true },
+    include: { socialPage: true, contentItem: { select: { brandId: true, publishedAt: true } } },
     take: BATCH,
     orderBy: { lastInsightsAt: 'asc' },
   });
@@ -50,13 +50,26 @@ export async function runInsightsTick(
         pageForAdapter(page, key),
         target.externalPostId,
       );
+      const insightsJson = insights ? JSON.stringify(insights) : target.insightsJson;
       await prisma.contentPublishTarget.update({
         where: { id: target.id },
         data: {
-          insightsJson: insights ? JSON.stringify(insights) : target.insightsJson,
+          insightsJson,
           lastInsightsAt: now,
         },
       });
+      if (insightsJson) {
+        await upsertPostMetricSnapshot({
+          tenantId: target.tenantId,
+          brandId: target.contentItem?.brandId ?? target.socialPage?.brandId ?? '',
+          socialPageId: target.socialPageId,
+          publishTargetId: target.id,
+          contentItemId: target.contentItemId,
+          publishedAt: target.publishedAt ?? target.contentItem?.publishedAt,
+          insightsJson,
+          capturedAt: now,
+        });
+      }
       if (insights) updated += 1;
     } catch {
       await prisma.contentPublishTarget.update({

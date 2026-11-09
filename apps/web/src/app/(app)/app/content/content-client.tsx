@@ -32,6 +32,7 @@ import { MediaSurface } from '../../../../components/content/media-surface';
 import { ChannelChoiceCards } from '../../../../components/content/channel-choice-cards';
 import { PublishTargetsPanel } from '../../../../components/content/publish-targets-panel';
 import { NetworkMediaWarnings } from '../../../../components/content/network-media-warnings';
+import { BestTimeSuggestions } from '../../../../components/content/best-time-suggestions';
 import { listWorkspaceMembers, type WorkspaceMember } from '../../../../lib/team-api';
 import { brandSettingsApi, type SocialPageRow } from '../../../../lib/brand-settings-api';
 import { NetworkIcon } from '../../../../components/content/network-icon';
@@ -933,9 +934,15 @@ function PlanableComposeCard({
                   />
                 ) : (
                   <>
-                    <p className="oma-compose-date-menu__label">
-                      {isAr ? 'أفضل وقت للنشر' : 'BEST TIME TO POST'}
-                    </p>
+                    <BestTimeSuggestions
+                      socialPageIds={form.socialPageIds}
+                      brandId={brandId}
+                      date={form.plannedDate || now.format('YYYY-MM-DD')}
+                      onPick={(value) => {
+                        onChange({ plannedDate: value });
+                        setDateMenu(false);
+                      }}
+                    />
                     <button
                       type="button"
                       onClick={() => {
@@ -5936,6 +5943,15 @@ export default function ContentPage() {
                               setDraft((current) => ({ ...current, scheduledAt: next }));
                             }}
                             aria-label={t('demo.content.publish.PLANNED_DATE')}
+                          />
+                          <BestTimeSuggestions
+                            compact
+                            socialPageIds={draft.socialPageIds}
+                            brandId={selected.brandId}
+                            date={draft.scheduledAt || undefined}
+                            onPick={(value) =>
+                              setDraft((current) => ({ ...current, scheduledAt: value }))
+                            }
                           />
                           <Button
                             type="default"

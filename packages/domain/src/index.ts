@@ -42,3 +42,4 @@ export * from './billing/receipt';
 export * from './billing/urls';
 export * from './billing/signatures';
 export * from './listening/rules';
+export * from './analytics/optimal-send-times';

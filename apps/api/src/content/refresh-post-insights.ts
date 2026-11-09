@@ -1,4 +1,4 @@
-import { getPrisma } from '@oma/db';
+import { getPrisma, upsertPostMetricSnapshot } from '@oma/db';
 import {
   createSocialAdapter,
   decryptToken,
@@ -11,6 +11,7 @@ const STALE_MS = 2 * 60 * 1000;
 
 export type InsightsPage = {
   id: string;
+  tenantId?: string;
   name: string;
   network: string;
   externalId: string;
@@ -23,10 +24,15 @@ export type InsightsPage = {
 
 export type InsightsTarget = {
   id: string;
+  tenantId?: string;
+  socialPageId?: string;
+  contentItemId?: string;
+  publishedAt?: Date | null;
   externalPostId: string | null;
   insightsJson: string | null;
   lastInsightsAt: Date | null;
   socialPage: InsightsPage | null;
+  contentItem?: { brandId?: string; publishedAt?: Date | null } | null;
 };
 
 /**
@@ -74,13 +80,41 @@ export async function maybeRefreshPublishTargetInsights(
     );
     const now = new Date();
     if (insights) {
+      const insightsJson = JSON.stringify(insights);
       const updated = await prisma.contentPublishTarget.update({
         where: { id: target.id },
         data: {
-          insightsJson: JSON.stringify(insights),
+          insightsJson,
           lastInsightsAt: now,
         },
       });
+      const tenantId = target.tenantId ?? page.tenantId;
+      const socialPageId = target.socialPageId ?? page.id;
+      const contentItemId = target.contentItemId;
+      if (tenantId && socialPageId && contentItemId) {
+        let brandId = target.contentItem?.brandId ?? '';
+        let publishedAt = target.publishedAt ?? target.contentItem?.publishedAt ?? null;
+        if (!brandId || !publishedAt) {
+          const item = await prisma.contentItem.findUnique({
+            where: { id: contentItemId },
+            select: { brandId: true, publishedAt: true },
+          });
+          brandId = brandId || item?.brandId || '';
+          publishedAt = publishedAt ?? item?.publishedAt ?? null;
+        }
+        if (brandId) {
+          await upsertPostMetricSnapshot({
+            tenantId,
+            brandId,
+            socialPageId,
+            publishTargetId: target.id,
+            contentItemId,
+            publishedAt,
+            insightsJson,
+            capturedAt: now,
+          });
+        }
+      }
       return { insightsJson: updated.insightsJson, lastInsightsAt: updated.lastInsightsAt };
     }
     await prisma.contentPublishTarget.update({

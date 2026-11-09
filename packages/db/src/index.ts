@@ -4,3 +4,4 @@ export * from './outbox';
 export * from './brand-scope';
 export { PrismaClient, Prisma } from '@prisma/client';
 export * from './billing-usage';
+export * from './post-metric-snapshot';

@@ -77,6 +77,7 @@ export const SHELL_NAV_SECTIONS: NavSection[] = [
         children: [
           { href: '/app/analytics', labelKey: 'analytics.nav.overview' },
           { href: '/app/analytics/competitors', labelKey: 'analytics.nav.competitors' },
+          { href: '/app/analytics/optimal-times', labelKey: 'analytics.nav.optimalTimes' },
         ],
       },
       {
