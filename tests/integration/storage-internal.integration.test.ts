@@ -1,6 +1,12 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { getPrisma } from '@oma/db';
-import { authHeaders, createBrand, seedBrandTenant } from '../helpers/brand-test';
+import {
+  authHeaders,
+  createBrand,
+  seedBrandTenant,
+  seedMemberWithoutBrandCaps,
+} from '../helpers/brand-test';
+import { cookieHeader } from '../helpers/app';
 import { fakeKey, startFakeWorkDrive } from '../helpers/fake-workdrive';
 import { WorkDriveService } from '../../apps/api/src/media/workdrive.service';
 
@@ -108,5 +114,93 @@ describe('OMA_INTERNAL storage (platform master, no BYOS required)', () => {
       await fetch(`${other.baseUrl}/api/v1/workspace/storage`, { headers: authHeaders(other) })
     ).json();
     expect(after.data.used_bytes).toBe(usedBefore);
+  });
+
+  const patchMode = (s: Seed, mode: string, headers?: Record<string, string>) =>
+    fetch(`${s.baseUrl}/api/v1/workspace/storage`, {
+      method: 'PATCH',
+      headers: headers ?? authHeaders(s),
+      body: JSON.stringify({ mode }),
+    });
+
+  it('validates storage mode switches and restricts them to owners and admins', async () => {
+    const denied = await patchMode(seed, 'USER_WORKDRIVE');
+    expect(denied.status).toBe(409);
+    expect((await denied.json()).error?.message_key).toBe('errors.storage_mode_byos_required');
+
+    const syncDenied = await patchMode(seed, 'SYNC_BACKUP');
+    expect(syncDenied.status).toBe(409);
+    expect((await syncDenied.json()).error?.message_key).toBe(
+      'errors.storage_mode_sync_unavailable',
+    );
+
+    const bad = await patchMode(seed, 'NOT_A_MODE');
+    expect(bad.status).toBe(400);
+    expect((await bad.json()).error?.message_key).toBe('errors.storage_mode_invalid');
+
+    const member = await seedMemberWithoutBrandCaps(seed);
+    const forbidden = await patchMode(seed, 'OMA_INTERNAL', {
+      'content-type': 'application/json',
+      cookie: cookieHeader(member.cookies),
+      'x-csrf-token': member.csrf,
+    });
+    expect(forbidden.status).toBe(403);
+
+    const ok = await patchMode(seed, 'OMA_INTERNAL');
+    expect(ok.status).toBe(200);
+    expect((await ok.json()).data.mode).toBe('OMA_INTERNAL');
+
+    const events = await getPrisma().auditEvent.findMany({
+      where: { tenantId: seed.tenantId, action: 'storage.mode_changed' },
+    });
+    expect(events.some((e) => e.afterRef === 'OMA_INTERNAL')).toBe(true);
+
+    const lib = await (
+      await fetch(`${seed.baseUrl}/api/v1/brands/${brandId}/media?kind=posts`, {
+        headers: authHeaders(seed),
+      })
+    ).json();
+    expect(lib.data.workdrive.connected).toBe(false);
+    expect(lib.data.workdrive.can_upload).toBe(true);
+    expect(lib.data.workdrive.internal_available).toBe(true);
+
+    const prev = WorkDriveService.masterConfigImpl;
+    WorkDriveService.masterConfigImpl = () => undefined;
+    const noMaster = await patchMode(seed, 'OMA_INTERNAL');
+    expect(noMaster.status).toBe(409);
+    expect((await noMaster.json()).error?.message_key).toBe(
+      'errors.storage_mode_internal_unavailable',
+    );
+    WorkDriveService.masterConfigImpl = prev;
+  });
+
+  it('routes new uploads to the selected mode and leaves earlier files where they are', async () => {
+    const toInternal = await patchMode(other, 'OMA_INTERNAL');
+    expect(toInternal.status).toBe(200);
+    expect((await toInternal.json()).data.mode).toBe('OMA_INTERNAL');
+
+    const internalUp = await upload(other, otherBrand, PNG, 'kind=posts&name=after-internal.png');
+    expect(internalUp.status).toBe(201);
+    const internalBody = await internalUp.json();
+    expect(internalBody.data.storage_provider).toBe('OMA_INTERNAL');
+
+    const toByos = await patchMode(other, 'USER_WORKDRIVE');
+    expect(toByos.status).toBe(200);
+    const byosUp = await upload(other, otherBrand, PNG, 'kind=posts&name=after-byos.png');
+    expect(byosUp.status).toBe(201);
+    expect((await byosUp.json()).data.storage_provider).toBe('USER_WORKDRIVE');
+
+    const stillInternal = await fetch(`${other.baseUrl}/api/v1/media/${internalBody.data.id}`, {
+      headers: authHeaders(other),
+    });
+    expect(stillInternal.status).toBe(200);
+    expect((await stillInternal.json()).data.storage_provider).toBe('OMA_INTERNAL');
+
+    const toSync = await patchMode(other, 'SYNC_BACKUP');
+    expect(toSync.status).toBe(200);
+    expect((await toSync.json()).data.mode).toBe('SYNC_BACKUP');
+    const syncUp = await upload(other, otherBrand, PNG, 'kind=posts&name=after-sync.png');
+    expect(syncUp.status).toBe(201);
+    expect((await syncUp.json()).data.storage_provider).toBe('OMA_INTERNAL');
   });
 });

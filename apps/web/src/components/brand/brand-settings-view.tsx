@@ -49,7 +49,12 @@ export type BrandSettingsViewProps = {
     timezone: string;
   }) => void;
   /** Where logos are stored; null while loading. */
-  logoStorage: { connected: boolean; orgName: string | null; canConnect: boolean } | null;
+  logoStorage: {
+    connected: boolean;
+    canUpload?: boolean;
+    orgName: string | null;
+    canConnect: boolean;
+  } | null;
   onArchive: () => void;
   onUnarchive: () => void;
   onDelete: () => void;
@@ -210,8 +215,13 @@ function GeneralTab(p: BrandSettingsViewProps) {
                       '{org}',
                       p.logoStorage.orgName ?? 'WorkDrive',
                     )
-                  : t('brandSettings.general.logoHint')}
-                {p.logoStorage && !p.logoStorage.connected && p.logoStorage.canConnect ? (
+                  : p.logoStorage?.canUpload
+                    ? t('brandSettings.general.logoHintOma')
+                    : t('brandSettings.general.logoHint')}
+                {p.logoStorage &&
+                !p.logoStorage.connected &&
+                !p.logoStorage.canUpload &&
+                p.logoStorage.canConnect ? (
                   <>
                     {' '}
                     <a href="/app?settings=storage" className="oma-bs-link">

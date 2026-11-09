@@ -19,10 +19,12 @@ export function WorkDriveSettings({
   t,
   locale,
   canManage,
+  onChanged,
 }: {
   t: Tr;
   locale: string;
   canManage: boolean;
+  onChanged?: () => void;
 }) {
   const [status, setStatus] = useState<WorkDriveStatus | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -78,6 +80,7 @@ export function WorkDriveSettings({
         kind: 'success',
         text: t('workdrive.connected').replace('{org}', r.data.connection?.org_name ?? ''),
       });
+      onChanged?.();
     } catch (e) {
       setNotice({ kind: 'error', text: getApiError(e).message });
     } finally {
@@ -219,6 +222,7 @@ export function WorkDriveSettings({
                         ? { kind: 'success', text: t('workdrive.testOk') }
                         : { kind: 'error', text: t('workdrive.testFailed') },
                     );
+                    onChanged?.();
                   } catch (e) {
                     setNotice({ kind: 'error', text: getApiError(e).message });
                   } finally {
@@ -258,6 +262,7 @@ export function WorkDriveSettings({
             setStatus(r.data);
             setConfirmOff(false);
             setNotice({ kind: 'success', text: t('workdrive.disconnected') });
+            onChanged?.();
           } catch (e) {
             setNotice({ kind: 'error', text: getApiError(e).message });
           } finally {

@@ -351,7 +351,7 @@ export function MediaPickerDialog({
     return () => document.removeEventListener('mousedown', onDoc);
   }, [sortOpen, filtersOpen, createOpen]);
 
-  const connected = lib?.workdrive.connected;
+  const storageReady = lib?.workdrive.can_upload ?? lib?.workdrive.connected;
   const brandFolder = browse?.brand_folder || brandRoot?.brand_folder || orgRoot?.brand_folder;
   const allSelected = scope === 'all' || selectedFolderId === '__all__';
   const brandSelected = Boolean(
@@ -550,7 +550,7 @@ export function MediaPickerDialog({
     ) : (
       <MediaShimmer />
     )
-  ) : !connected ? (
+  ) : !storageReady ? (
     <div className="oma-mp-connect" data-testid="media-connect-workdrive">
       <strong>{t('media.connectTitle')}</strong>
       <p>{lib.workdrive.available ? t('media.connectBody') : t('workdrive.notEnabled')}</p>
@@ -922,7 +922,7 @@ export function MediaPickerDialog({
       onDrop={(e) => {
         e.preventDefault();
         const f = e.dataTransfer.files?.[0];
-        if (f && !progress && connected) void upload(f);
+        if (f && !progress && storageReady) void upload(f);
       }}
     >
       <header className="oma-ml-head">

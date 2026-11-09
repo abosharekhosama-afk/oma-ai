@@ -343,6 +343,69 @@
   margin: 12px 0;
   color: var(--oma-home-ink-2);
 }
+
+.oma-st-modes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  margin: 12px 0 16px;
+}
+.oma-st-mode {
+  display: grid;
+  gap: 4px;
+  text-align: start;
+  padding: 14px;
+  border: 1px solid var(--oma-home-control-border);
+  border-radius: 10px;
+  background: var(--oma-home-day-bg);
+  color: var(--oma-home-ink);
+  cursor: pointer;
+}
+.oma-st-mode:hover:not(:disabled),
+.oma-st-mode:focus-visible {
+  border-color: var(--oma-home-primary);
+  outline: none;
+}
+.oma-st-mode--active {
+  border-color: var(--oma-home-primary);
+  box-shadow: 0 0 0 1px var(--oma-home-primary);
+}
+.oma-st-mode:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+.oma-st-mode__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  font-weight: 600;
+}
+.oma-st-mode__badge {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--oma-home-muted);
+}
+.oma-st-mode__desc {
+  margin: 0;
+  font-size: 13px;
+  color: var(--oma-home-ink-2);
+}
+.oma-st-usage {
+  margin: 8px 0 4px;
+}
+.oma-st-usage__track {
+  height: 8px;
+  margin: 8px 0 6px;
+  border-radius: 999px;
+  background: var(--oma-home-control-border);
+  overflow: hidden;
+}
+.oma-st-usage__fill {
+  height: 100%;
+  background: var(--oma-home-primary);
+}
 .oma-wd-form {
   display: grid;
   gap: 6px;
