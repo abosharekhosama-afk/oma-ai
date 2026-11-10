@@ -1,16 +1,12 @@
 import { getPrisma } from '@oma/db';
 import { AiProviderNotConfiguredError } from '@oma/domain';
-import { OpenAiProviderAdapter } from '@oma/ai';
+import { createOpenAiAdapterFromEnv } from '@oma/ai';
 import { Worker } from 'bullmq';
 import type IORedis from 'ioredis';
 
 /** Text jobs only. Live OpenAI calls stay disabled until billing activation. */
 export function startAiProcessor(connection: IORedis) {
-  const adapter = new OpenAiProviderAdapter({
-    liveEnabled: process.env.AI_LIVE_ENABLED === 'true',
-    defaultModel: process.env.AI_DEFAULT_MODEL || 'gpt-5.6-luna',
-    reasoningModel: process.env.AI_REASONING_MODEL || 'gpt-5.6-terra',
-  });
+  const adapter = createOpenAiAdapterFromEnv();
 
   return new Worker(
     'ai',

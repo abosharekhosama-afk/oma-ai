@@ -65,6 +65,7 @@ export class ProfileService {
         row_version: version.rowVersion,
         scan_attempt_id: version.scanAttemptId,
         ai_availability: version.aiAvailability,
+        analysis_status: version.analysisStatus,
         sections: version.sectionsJson ? JSON.parse(version.sectionsJson) : {},
         insights: insights.map((i) => ({
           id: i.id,
@@ -76,6 +77,8 @@ export class ProfileService {
           text_value: i.textValue,
           value_json: i.valueJson ? JSON.parse(i.valueJson) : null,
           row_version: i.rowVersion,
+          confidence: i.confidence,
+          created_by: i.createdBy,
         })),
         coverage_snapshot: version.coverageSnapshotJson
           ? JSON.parse(version.coverageSnapshotJson)

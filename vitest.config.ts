@@ -22,7 +22,7 @@ export default defineConfig({
     alias: {
       '@oma/domain/browser': path.resolve(__dirname, 'packages/domain/src/browser.ts'),
       '@oma/domain': path.resolve(__dirname, 'packages/domain/src/index.ts'),
-      '@oma/ai': path.resolve(__dirname, 'packages/ai/src/openai-adapter.ts'),
+      '@oma/ai': path.resolve(__dirname, 'packages/ai/src/index.ts'),
       '@oma/db': path.resolve(__dirname, 'packages/db/src/index.ts'),
       '@oma/config': path.resolve(__dirname, 'packages/config/src/index.ts'),
       '@oma/observability': path.resolve(__dirname, 'packages/observability/src/index.ts'),

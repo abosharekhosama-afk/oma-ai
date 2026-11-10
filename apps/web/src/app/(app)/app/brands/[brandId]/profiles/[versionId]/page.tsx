@@ -7,7 +7,12 @@ import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { api } from '../../../../../../../lib/api';
-import { apiMutate, getApiError, isPermissionDenied } from '../../../../../../../lib/brand-api';
+import {
+  apiMutate,
+  getApiError,
+  isPermissionDenied,
+  newIdempotencyKey,
+} from '../../../../../../../lib/brand-api';
 import type { BrandDetail, InsightItem, ProfileDetail } from '../../../../../../../lib/brand-types';
 import { BrandWorkspaceShell } from '../../../../../../../components/brand/brand-workspace-shell';
 import { AiUnavailableBanner } from '../../../../../../../components/brand/ai-unavailable-banner';
@@ -168,6 +173,24 @@ export default function ProfileEditorPage() {
     await loadProfile();
   }
 
+  async function handleAnalyze() {
+    if (!profile?.scan_attempt_id) return;
+    setBusy(true);
+    setActionError(null);
+    try {
+      await apiMutate(`/api/v1/brands/${brandId}/scans/${profile.scan_attempt_id}/analyze`, {
+        method: 'POST',
+        body: JSON.stringify({}),
+        idempotencyKey: newIdempotencyKey('brand:scan-analyze'),
+      });
+      await loadProfile();
+    } catch (err) {
+      setActionError(getApiError(err).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function handleRejectVersion(reason?: string) {
     if (!profile) return;
     await apiMutate(`/api/v1/brands/${brandId}/profiles/${versionId}/reject`, {
@@ -231,7 +254,10 @@ export default function ProfileEditorPage() {
         </Link>
       </header>
 
-      <AiUnavailableBanner aiAvailability={profile.ai_availability} />
+      <AiUnavailableBanner
+        aiAvailability={profile.ai_availability}
+        analysisStatus={profile.analysis_status}
+      />
 
       {profile.status === 'APPROVED' || profile.status === 'SUPERSEDED' ? (
         <div className="oma-banner oma-banner-info" role="status" data-testid="immutable-banner">
@@ -260,6 +286,22 @@ export default function ProfileEditorPage() {
         onInsightChange={(id, text) => setPendingEdits((prev) => ({ ...prev, [id]: text }))}
         onViewEvidence={setEvidenceId}
       />
+
+      {editable && profile.scan_attempt_id && profile.status !== 'APPROVED' ? (
+        <div className="oma-form-actions">
+          <Button
+            type="default"
+            disabled={
+              busy ||
+              profile.analysis_status === 'QUEUED' ||
+              profile.analysis_status === 'ANALYZING'
+            }
+            onClick={() => void handleAnalyze()}
+          >
+            {t('brand.ai.rerun')}
+          </Button>
+        </div>
+      ) : null}
 
       {editable ? (
         <div className="oma-form-actions">

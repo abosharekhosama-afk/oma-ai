@@ -419,6 +419,17 @@ enum BrandAiAvailability {
   SKIPPED
 }
 
+/// Post-extraction AI brand analysis. Independent of scan extraction status
+/// so a partial scan can still finish while analysis is queued or failed.
+enum ScanAnalysisStatus {
+  NOT_REQUESTED
+  QUEUED
+  ANALYZING
+  ANALYZED
+  FAILED
+  SKIPPED
+}
+
 /// Which website connector produced a scan. Recorded per attempt because the
 /// configured connector can change between runs.
 enum BrandConnectorMode {
@@ -629,6 +640,8 @@ model ScanAttempt {
   pagesSkipped          Int                        @default(0)
   coverageJson          String?
   aiAvailability        BrandAiAvailability        @default(NOT_CONFIGURED)
+  analysisStatus        ScanAnalysisStatus         @default(NOT_REQUESTED)
+  analysisErrorCode     String?
   connectorMode         BrandConnectorMode         @default(NOT_CONFIGURED)
   errorCode             String?
   errorDetail           String?
@@ -746,6 +759,7 @@ model ProfileVersion {
   status                     ProfileVersionStatus   @default(DRAFT)
   rowVersion                 Int                    @default(1)
   aiAvailability             BrandAiAvailability    @default(NOT_CONFIGURED)
+  analysisStatus             ScanAnalysisStatus     @default(NOT_REQUESTED)
   coverageSnapshotJson       String?
   sectionsJson               String?
   approvedAt                 DateTime?
@@ -778,6 +792,7 @@ model InsightClaim {
   evidenceId       String?
   discoveryTier    DiscoveryTier
   createdBy        InsightCreatedBy    @default(SYSTEM)
+  confidence       Float?
   rowVersion       Int                 @default(1)
   brand            BrandWorkspace      @relation(fields: [brandId], references: [id])
   profileVersion   ProfileVersion      @relation(fields: [profileVersionId], references: [id])

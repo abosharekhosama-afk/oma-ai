@@ -10,6 +10,7 @@ import { Worker, type Job } from 'bullmq';
 import type IORedis from 'ioredis';
 import { runExtractionForScan } from '../brand/extraction.service';
 import { createProfileDraftFromScan } from '../brand/profile-draft.service';
+import { enqueueBrandAnalysis } from '@oma/db';
 import { handleLateScanResult } from '../brand/late-result.service';
 import type { IngestionJobPayload } from './ingestion-job-payload';
 
@@ -269,7 +270,7 @@ export function startIngestionProcessor(
       }
 
       if (usable || counts.pagesFetched > 0) {
-        await createProfileDraftFromScan({
+        const profileVersionId = await createProfileDraftFromScan({
           tenantId: scan.tenantId,
           brandId: scan.brandId,
           scanAttemptId: scan.id,
@@ -280,6 +281,16 @@ export function startIngestionProcessor(
           where: { id: scan.brandId },
           data: { status: brand?.status === 'READY_TO_SCAN' ? 'ACTIVE' : brand?.status },
         });
+        if (scan.tenantId) {
+          await enqueueBrandAnalysis({
+            tenantId: scan.tenantId,
+            brandId: scan.brandId,
+            scanAttemptId: scan.id,
+            profileVersionId,
+            actorUserId: jobRun.actorUserId ?? scan.actorUserId,
+            correlationId: jobRun.correlationId,
+          });
+        }
       }
 
       await prisma.jobRun.update({

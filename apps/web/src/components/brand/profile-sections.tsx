@@ -17,7 +17,12 @@ const SECTION_ORDER = [
   'brand',
   'catalog',
   'products',
+  'tone',
+  'audiences',
+  'messaging',
+  'visual_identity',
   'contact',
+  'social',
   'languages',
   'claims',
   'risks',
@@ -41,6 +46,60 @@ function formatValue(value: unknown): string {
   if (Array.isArray(value)) return value.map((v) => formatValue(v)).join(', ');
   if (typeof value === 'object') return JSON.stringify(value);
   return String(value);
+}
+
+function colorList(value: unknown): string[] {
+  if (!value || typeof value !== 'object') return [];
+  const record = value as Record<string, unknown>;
+  const raw = record.colors ?? record.theme ?? record.urls;
+  if (Array.isArray(raw)) return raw.filter((item): item is string => typeof item === 'string');
+  return [];
+}
+
+function VisualIdentity({ value }: { value: unknown }) {
+  if (!value || typeof value !== 'object') return null;
+  const record = value as Record<string, unknown>;
+  const colors = colorList(record);
+  const logos = Array.isArray(record.logos)
+    ? record.logos.filter((item): item is string => typeof item === 'string')
+    : [];
+  const favicon = typeof record.favicon === 'string' ? record.favicon : null;
+  const ogImage = typeof record.og_image === 'string' ? record.og_image : null;
+  return (
+    <div className="oma-profile-data" data-testid="visual-identity">
+      {colors.length > 0 ? (
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 8 }}>
+          {colors.map((color) => (
+            <span
+              key={color}
+              title={color}
+              style={{
+                width: 24,
+                height: 24,
+                borderRadius: 4,
+                background: color,
+                border: '1px solid var(--border-subtle, #d0d5dd)',
+              }}
+            />
+          ))}
+        </div>
+      ) : null}
+      <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+        {[favicon, ogImage, ...logos]
+          .filter(Boolean)
+          .slice(0, 4)
+          .map((src) => (
+            <img
+              key={src}
+              src={src!}
+              alt=""
+              referrerPolicy="no-referrer"
+              style={{ maxHeight: 48 }}
+            />
+          ))}
+      </div>
+    </div>
+  );
 }
 
 function SectionData({ label, value }: { label: string; value: unknown }) {
@@ -134,6 +193,7 @@ export function ProfileSections({
               aria-labelledby={`heading-${key}`}
             >
               <h3 id={`heading-${key}`}>{sectionTitle(t, key)}</h3>
+              {key === 'visual_identity' ? <VisualIdentity value={sections[key]} /> : null}
               <SectionData label={t('brand.profile.sectionDataTitle')} value={sections[key]} />
               <ul className="oma-insight-list">
                 {(insightsBySection.get(key) ?? []).map((insight) => (
@@ -146,6 +206,17 @@ export function ProfileSections({
                       <span className="oma-badge oma-badge-muted">
                         {t(`brand.tier.${insight.discovery_tier}`)}
                       </span>
+                      {insight.created_by === 'AI' ? (
+                        <span className="oma-badge">{t('brand.ai.generatedBadge')}</span>
+                      ) : null}
+                      {typeof insight.confidence === 'number' ? (
+                        <span className="oma-badge oma-badge-muted">
+                          {t('brand.ai.confidence').replace(
+                            '{value}',
+                            `${Math.round(insight.confidence * 100)}%`,
+                          )}
+                        </span>
+                      ) : null}
                     </div>
                     {(() => {
                       const empty =

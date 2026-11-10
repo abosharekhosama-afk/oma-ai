@@ -15,9 +15,12 @@ const FIELD_TIER_MAP: Record<string, DiscoveryTier> = {
   'brand.social': 'DISCOVER_WHEN_AVAILABLE',
   'catalog.products': 'DISCOVER_WHEN_AVAILABLE',
   'catalog.services': 'DISCOVER_WHEN_AVAILABLE',
-  'brand.audiences': 'DEFERRED_ADVANCED',
-  'brand.messaging': 'DEFERRED_ADVANCED',
-  'brand.tone': 'DEFERRED_ADVANCED',
+  'brand.audiences': 'DISCOVER_WHEN_AVAILABLE',
+  'brand.messaging': 'DISCOVER_WHEN_AVAILABLE',
+  'brand.tone': 'DISCOVER_WHEN_AVAILABLE',
+  'brand.logo': 'DISCOVER_WHEN_AVAILABLE',
+  'brand.colors': 'DISCOVER_WHEN_AVAILABLE',
+  'brand.visual_identity': 'DISCOVER_WHEN_AVAILABLE',
 };
 
 export function discoveryTierForField(fieldKey: string): DiscoveryTier {
